@@ -1,0 +1,15 @@
+# Normalize line endings across macOS and Windows
+* text=auto eol=lf
+
+# Godot text resources
+*.gd text
+*.tscn text
+*.tres text
+*.godot text
+
+# Binary assets
+*.blend binary
+*.png binary
+*.jpg binary
+*.ogg binary
+*.wav binary
