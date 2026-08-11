@@ -13,6 +13,7 @@ config/features=PackedStringArray("4.7", "Forward Plus")
 
 [autoload]
 
+ParkClock="*res://scripts/park_clock.gd"
 PhotoAlbum="*res://scripts/photo_album.gd"
 
 [display]

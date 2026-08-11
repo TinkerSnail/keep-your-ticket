@@ -1,7 +1,9 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/world/plaza_props.tscn" id="1_props"]
 [ext_resource type="PackedScene" path="res://scenes/world/plaza_skyline.tscn" id="2_skyline"]
+[ext_resource type="Script" path="res://scenes/world/daylight.gd" id="3_daylight"]
+[ext_resource type="Script" path="res://scenes/world/tower_clock.gd" id="4_tower_clock"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
 sky_top_color = Color(0.35, 0.55, 0.78, 1)
@@ -42,6 +44,11 @@ roughness = 0.85
 
 [node name="world_environment" type="WorldEnvironment" parent="."]
 environment = SubResource("env")
+
+[node name="daylight" type="Node" parent="."]
+script = ExtResource("3_daylight")
+sun_path = NodePath("../sun")
+world_environment_path = NodePath("../world_environment")
 
 [node name="sun" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.81915, 0, 0.57358, 0.49672, 0.5, -0.70938, -0.28679, 0.866, 0.40958, 0, 20, 0)
@@ -161,6 +168,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 12.5, -16)
 use_collision = true
 size = Vector3(7, 3, 0.4)
 material = SubResource("mat_accent")
+
+[node name="tower_clock" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 10, -15.15)
+script = ExtResource("4_tower_clock")
 
 [node name="planter_a" type="CSGBox3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0.45, 10)
