@@ -50,13 +50,24 @@ Everything routes through named input actions rather than raw device polling, wh
 ```
 scenes/
   main/     main.tscn — the scene that runs
-  world/    plaza.tscn — the greybox
+  world/    plaza.tscn — the greybox; plaza_props.tscn — generated park residue
   player/   player.gd (walk and look), camera_tool.gd (the Instamatic)
   npc/      npc_walker.gd — waypoint loops
   ui/       viewfinder, album grid, HUD
 scripts/
   photo_album.gd — autoloaded as PhotoAlbum, owns capture storage
+tools/
+  gen_props.gd — rebuilds plaza_props.tscn
+  capture.gd — poses the player and saves screenshots
 ```
+
+The tools are development-only and never run as part of the game:
+
+```bash
+godot --headless --path . --script res://tools/gen_props.gd
+```
+
+`plaza_props.tscn` is generated output — edit `gen_props.gd` and re-run rather than moving props by hand, or the next regeneration discards the change. It builds transforms with `Transform3D.rotated()` and `Basis(axis, angle)` rather than writing basis components, because the `.tscn` format serialises basis *rows* while `basis.x/y/z` are the *columns*, and hand-writing the nine numbers silently yields the transpose.
 
 Scripts live alongside the scenes they belong to. `scripts/` is for shared code only. Files and directories are `snake_case`.
 
