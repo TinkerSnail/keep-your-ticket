@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=13 format=3]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
 sky_top_color = Color(0.35, 0.55, 0.78, 1)
@@ -34,6 +34,31 @@ roughness = 0.9
 [sub_resource type="StandardMaterial3D" id="mat_accent"]
 albedo_color = Color(0.78, 0.54, 0.42, 1)
 roughness = 0.85
+
+[sub_resource type="StandardMaterial3D" id="mat_wood"]
+albedo_color = Color(0.55, 0.42, 0.3, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_metal"]
+albedo_color = Color(0.3, 0.31, 0.33, 1)
+roughness = 0.55
+metallic = 0.2
+
+[sub_resource type="StandardMaterial3D" id="mat_white"]
+albedo_color = Color(0.87, 0.86, 0.82, 1)
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_red"]
+albedo_color = Color(0.84, 0.27, 0.24, 1)
+roughness = 0.7
+
+[sub_resource type="StandardMaterial3D" id="mat_yellow"]
+albedo_color = Color(0.93, 0.76, 0.24, 1)
+roughness = 0.7
+
+[sub_resource type="StandardMaterial3D" id="mat_blue"]
+albedo_color = Color(0.27, 0.5, 0.72, 1)
+roughness = 0.7
 
 [node name="plaza" type="Node3D"]
 
@@ -194,3 +219,1413 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -39, 1.5, 0)
 use_collision = true
 size = Vector3(1, 3, 80)
 material = SubResource("mat_building")
+
+[node name="props" type="Node3D" parent="."]
+
+[node name="bench_0_seat" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.422618, 0, 0.906308, -0, 1, -0, -0.906308, -0, -0.422618, 6.79731, 0.45, 3.16964)
+use_collision = true
+size = Vector3(1.8, 0.12, 0.55)
+material = SubResource("mat_wood")
+
+[node name="bench_0_leg_l" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.422618, 0, 0.906308, -0, 1, -0, -0.906308, -0, -0.422618, 7.12695, 0.225, 2.46272)
+use_collision = true
+size = Vector3(0.14, 0.45, 0.5)
+material = SubResource("mat_metal")
+
+[node name="bench_0_leg_r" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.422618, 0, 0.906308, -0, 1, -0, -0.906308, -0, -0.422618, 6.46767, 0.225, 3.87656)
+use_collision = true
+size = Vector3(0.14, 0.45, 0.5)
+material = SubResource("mat_metal")
+
+[node name="bench_0_back" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.422618, 0, 0.906308, -0, 1, -0, -0.906308, -0, -0.422618, 7.0692, 0.75, 3.29642)
+use_collision = true
+size = Vector3(1.8, 0.5, 0.1)
+material = SubResource("mat_wood")
+
+[node name="bench_1_seat" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.996195, 0, -0.0871557, 0, 1, -0, 0.0871557, -0, -0.996195, -0.653668, 0.45, 7.47146)
+use_collision = true
+size = Vector3(1.8, 0.12, 0.55)
+material = SubResource("mat_wood")
+
+[node name="bench_1_leg_l" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.996195, 0, -0.0871557, 0, 1, -0, 0.0871557, -0, -0.996195, 0.123364, 0.225, 7.53944)
+use_collision = true
+size = Vector3(0.14, 0.45, 0.5)
+material = SubResource("mat_metal")
+
+[node name="bench_1_leg_r" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.996195, 0, -0.0871557, 0, 1, -0, 0.0871557, -0, -0.996195, -1.4307, 0.225, 7.40348)
+use_collision = true
+size = Vector3(0.14, 0.45, 0.5)
+material = SubResource("mat_metal")
+
+[node name="bench_1_back" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.996195, 0, -0.0871557, 0, 1, -0, 0.0871557, -0, -0.996195, -0.679815, 0.75, 7.77032)
+use_collision = true
+size = Vector3(1.8, 0.5, 0.1)
+material = SubResource("mat_wood")
+
+[node name="bench_2_seat" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.258819, 0, -0.965926, 0, 1, -0, 0.965926, -0, -0.258819, -7.24444, 0.45, 1.94114)
+use_collision = true
+size = Vector3(1.8, 0.12, 0.55)
+material = SubResource("mat_wood")
+
+[node name="bench_2_leg_l" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.258819, 0, -0.965926, 0, 1, -0, 0.965926, -0, -0.258819, -7.04256, 0.225, 2.69456)
+use_collision = true
+size = Vector3(0.14, 0.45, 0.5)
+material = SubResource("mat_metal")
+
+[node name="bench_2_leg_r" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.258819, 0, -0.965926, 0, 1, -0, 0.965926, -0, -0.258819, -7.44632, 0.225, 1.18772)
+use_collision = true
+size = Vector3(0.14, 0.45, 0.5)
+material = SubResource("mat_metal")
+
+[node name="bench_2_back" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.258819, 0, -0.965926, 0, 1, -0, 0.965926, -0, -0.258819, -7.53422, 0.75, 2.01879)
+use_collision = true
+size = Vector3(1.8, 0.5, 0.1)
+material = SubResource("mat_wood")
+
+[node name="bench_3_seat" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.819152, 0, -0.573576, 0, 1, 0, 0.573576, -0, 0.819152, -4.30182, 0.45, -6.14364)
+use_collision = true
+size = Vector3(1.8, 0.12, 0.55)
+material = SubResource("mat_wood")
+
+[node name="bench_3_leg_l" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.819152, 0, -0.573576, 0, 1, 0, 0.573576, -0, 0.819152, -4.94076, 0.225, -5.69625)
+use_collision = true
+size = Vector3(0.14, 0.45, 0.5)
+material = SubResource("mat_metal")
+
+[node name="bench_3_leg_r" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.819152, 0, -0.573576, 0, 1, 0, 0.573576, -0, 0.819152, -3.66288, 0.225, -6.59103)
+use_collision = true
+size = Vector3(0.14, 0.45, 0.5)
+material = SubResource("mat_metal")
+
+[node name="bench_3_back" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.819152, 0, -0.573576, 0, 1, 0, 0.573576, -0, 0.819152, -4.4739, 0.75, -6.38939)
+use_collision = true
+size = Vector3(1.8, 0.5, 0.1)
+material = SubResource("mat_wood")
+
+[node name="bench_4_seat" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.819152, 0, 0.573576, -0, 1, 0, -0.573576, -0, 0.819152, 4.30182, 0.45, -6.14364)
+use_collision = true
+size = Vector3(1.8, 0.12, 0.55)
+material = SubResource("mat_wood")
+
+[node name="bench_4_leg_l" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.819152, 0, 0.573576, -0, 1, 0, -0.573576, -0, 0.819152, 3.66288, 0.225, -6.59103)
+use_collision = true
+size = Vector3(0.14, 0.45, 0.5)
+material = SubResource("mat_metal")
+
+[node name="bench_4_leg_r" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.819152, 0, 0.573576, -0, 1, 0, -0.573576, -0, 0.819152, 4.94076, 0.225, -5.69625)
+use_collision = true
+size = Vector3(0.14, 0.45, 0.5)
+material = SubResource("mat_metal")
+
+[node name="bench_4_back" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.819152, 0, 0.573576, -0, 1, 0, -0.573576, -0, 0.819152, 4.4739, 0.75, -6.38939)
+use_collision = true
+size = Vector3(1.8, 0.5, 0.1)
+material = SubResource("mat_wood")
+
+[node name="bench_hut_seat" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.990268, 0, -0.139173, 0, 1, 0, 0.139173, -0, 0.990268, 4.5, 0.45, 11.5)
+use_collision = true
+size = Vector3(1.8, 0.12, 0.55)
+material = SubResource("mat_wood")
+
+[node name="bench_hut_leg_l" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.990268, 0, -0.139173, 0, 1, 0, 0.139173, -0, 0.990268, 3.72759, 0.225, 11.6086)
+use_collision = true
+size = Vector3(0.14, 0.45, 0.5)
+material = SubResource("mat_metal")
+
+[node name="bench_hut_leg_r" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.990268, 0, -0.139173, 0, 1, 0, 0.139173, -0, 0.990268, 5.27241, 0.225, 11.3914)
+use_collision = true
+size = Vector3(0.14, 0.45, 0.5)
+material = SubResource("mat_metal")
+
+[node name="bench_hut_back" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.990268, 0, -0.139173, 0, 1, 0, 0.139173, -0, 0.990268, 4.45825, 0.75, 11.2029)
+use_collision = true
+size = Vector3(1.8, 0.5, 0.1)
+material = SubResource("mat_wood")
+
+[node name="bench_south_seat" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.994522, 0, 0.104528, -0, 1, -0, -0.104528, -0, -0.994522, -5, 0.45, 19)
+use_collision = true
+size = Vector3(1.8, 0.12, 0.55)
+material = SubResource("mat_wood")
+
+[node name="bench_south_leg_l" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.994522, 0, 0.104528, -0, 1, -0, -0.104528, -0, -0.994522, -4.22427, 0.225, 18.9185)
+use_collision = true
+size = Vector3(0.14, 0.45, 0.5)
+material = SubResource("mat_metal")
+
+[node name="bench_south_leg_r" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.994522, 0, 0.104528, -0, 1, -0, -0.104528, -0, -0.994522, -5.77573, 0.225, 19.0815)
+use_collision = true
+size = Vector3(0.14, 0.45, 0.5)
+material = SubResource("mat_metal")
+
+[node name="bench_south_back" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.994522, 0, 0.104528, -0, 1, -0, -0.104528, -0, -0.994522, -4.96864, 0.75, 19.2984)
+use_collision = true
+size = Vector3(1.8, 0.5, 0.1)
+material = SubResource("mat_wood")
+
+[node name="lamp_0_pole" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 13, 2.1, -2)
+use_collision = true
+radius = 0.09
+height = 4.2
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="lamp_0_head" type="CSGBox3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 13, 4.35, -2)
+use_collision = true
+size = Vector3(0.5, 0.24, 0.5)
+material = SubResource("mat_white")
+
+[node name="lamp_1_pole" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 9, 2.1, -11)
+use_collision = true
+radius = 0.09
+height = 4.2
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="lamp_1_head" type="CSGBox3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 9, 4.35, -11)
+use_collision = true
+size = Vector3(0.5, 0.24, 0.5)
+material = SubResource("mat_white")
+
+[node name="lamp_2_pole" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -2, 2.1, -13)
+use_collision = true
+radius = 0.09
+height = 4.2
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="lamp_2_head" type="CSGBox3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -2, 4.35, -13)
+use_collision = true
+size = Vector3(0.5, 0.24, 0.5)
+material = SubResource("mat_white")
+
+[node name="lamp_3_pole" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -13, 2.1, -3)
+use_collision = true
+radius = 0.09
+height = 4.2
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="lamp_3_head" type="CSGBox3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -13, 4.35, -3)
+use_collision = true
+size = Vector3(0.5, 0.24, 0.5)
+material = SubResource("mat_white")
+
+[node name="lamp_4_pole" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -11, 2.1, 6)
+use_collision = true
+radius = 0.09
+height = 4.2
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="lamp_4_head" type="CSGBox3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -11, 4.35, 6)
+use_collision = true
+size = Vector3(0.5, 0.24, 0.5)
+material = SubResource("mat_white")
+
+[node name="lamp_5_pole" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -3, 2.1, 13)
+use_collision = true
+radius = 0.09
+height = 4.2
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="lamp_5_head" type="CSGBox3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -3, 4.35, 13)
+use_collision = true
+size = Vector3(0.5, 0.24, 0.5)
+material = SubResource("mat_white")
+
+[node name="lamp_6_pole" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 7, 2.1, 14)
+use_collision = true
+radius = 0.09
+height = 4.2
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="lamp_6_head" type="CSGBox3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 7, 4.35, 14)
+use_collision = true
+size = Vector3(0.5, 0.24, 0.5)
+material = SubResource("mat_white")
+
+[node name="lamp_7_pole" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 14, 2.1, 9)
+use_collision = true
+radius = 0.09
+height = 4.2
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="lamp_7_head" type="CSGBox3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 14, 4.35, 9)
+use_collision = true
+size = Vector3(0.5, 0.24, 0.5)
+material = SubResource("mat_white")
+
+[node name="bin_0_body" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 5.5, 0.43, 6)
+use_collision = true
+radius = 0.32
+height = 0.85
+sides = 12
+material = SubResource("mat_metal")
+
+[node name="bin_0_lid" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 5.5, 0.9, 6)
+use_collision = true
+radius = 0.36
+height = 0.1
+sides = 12
+material = SubResource("mat_blue")
+
+[node name="bin_1_body" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -6, 0.43, 5.5)
+use_collision = true
+radius = 0.32
+height = 0.85
+sides = 12
+material = SubResource("mat_metal")
+
+[node name="bin_1_lid" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -6, 0.9, 5.5)
+use_collision = true
+radius = 0.36
+height = 0.1
+sides = 12
+material = SubResource("mat_blue")
+
+[node name="bin_2_body" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -6.5, 0.43, -6)
+use_collision = true
+radius = 0.32
+height = 0.85
+sides = 12
+material = SubResource("mat_metal")
+
+[node name="bin_2_lid" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -6.5, 0.9, -6)
+use_collision = true
+radius = 0.36
+height = 0.1
+sides = 12
+material = SubResource("mat_blue")
+
+[node name="bin_3_body" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 6, 0.43, -6.5)
+use_collision = true
+radius = 0.32
+height = 0.85
+sides = 12
+material = SubResource("mat_metal")
+
+[node name="bin_3_lid" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 6, 0.9, -6.5)
+use_collision = true
+radius = 0.36
+height = 0.1
+sides = 12
+material = SubResource("mat_blue")
+
+[node name="bin_4_body" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 12, 0.43, 12)
+use_collision = true
+radius = 0.32
+height = 0.85
+sides = 12
+material = SubResource("mat_metal")
+
+[node name="bin_4_lid" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 12, 0.9, 12)
+use_collision = true
+radius = 0.36
+height = 0.1
+sides = 12
+material = SubResource("mat_blue")
+
+[node name="bin_5_body" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -14, 0.43, 14)
+use_collision = true
+radius = 0.32
+height = 0.85
+sides = 12
+material = SubResource("mat_metal")
+
+[node name="bin_5_lid" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -14, 0.9, 14)
+use_collision = true
+radius = 0.36
+height = 0.1
+sides = 12
+material = SubResource("mat_blue")
+
+[node name="bin_6_body" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 3, 0.43, -14)
+use_collision = true
+radius = 0.32
+height = 0.85
+sides = 12
+material = SubResource("mat_metal")
+
+[node name="bin_6_lid" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 3, 0.9, -14)
+use_collision = true
+radius = 0.36
+height = 0.1
+sides = 12
+material = SubResource("mat_blue")
+
+[node name="table_0_top" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(0.965926, 0, -0.258819, 0, 1, 0, 0.258819, -0, 0.965926, 14, 0.74, 3)
+use_collision = true
+radius = 0.6
+height = 0.08
+sides = 16
+material = SubResource("mat_white")
+
+[node name="table_0_post" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(0.965926, 0, -0.258819, 0, 1, 0, 0.258819, -0, 0.965926, 14, 0.37, 3)
+use_collision = true
+radius = 0.07
+height = 0.74
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="table_0_umb_pole" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(0.965926, 0, -0.258819, 0, 1, 0, 0.258819, -0, 0.965926, 14, 1.15, 3)
+use_collision = true
+radius = 0.05
+height = 2.3
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="table_0_umb_top" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(0.965926, 0, -0.258819, 0, 1, 0, 0.258819, -0, 0.965926, 14, 2.3, 3)
+use_collision = true
+radius = 1.5
+height = 0.12
+sides = 12
+material = SubResource("mat_red")
+
+[node name="chair_00_post" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, -0, 0.707107, 14.95, 0.22, 3.2)
+use_collision = true
+radius = 0.05
+height = 0.44
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="chair_00_seat" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, -0, 0.707107, 14.95, 0.44, 3.2)
+use_collision = true
+size = Vector3(0.42, 0.07, 0.42)
+material = SubResource("mat_white")
+
+[node name="chair_00_back" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, -0, 0.707107, 14.8156, 0.67, 3.06565)
+use_collision = true
+size = Vector3(0.42, 0.45, 0.07)
+material = SubResource("mat_white")
+
+[node name="chair_01_post" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(0.258819, 0, -0.965926, 0, 1, 0, 0.965926, -0, 0.258819, 13.1, 0.22, 2.65)
+use_collision = true
+radius = 0.05
+height = 0.44
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="chair_01_seat" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.258819, 0, -0.965926, 0, 1, 0, 0.965926, -0, 0.258819, 13.1, 0.44, 2.65)
+use_collision = true
+size = Vector3(0.42, 0.07, 0.42)
+material = SubResource("mat_white")
+
+[node name="chair_01_back" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.258819, 0, -0.965926, 0, 1, 0, 0.965926, -0, 0.258819, 12.9165, 0.67, 2.60082)
+use_collision = true
+size = Vector3(0.42, 0.45, 0.07)
+material = SubResource("mat_white")
+
+[node name="table_1_top" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(0.906308, 0, 0.422618, -0, 1, 0, -0.422618, -0, 0.906308, 17, 0.74, 8)
+use_collision = true
+radius = 0.6
+height = 0.08
+sides = 16
+material = SubResource("mat_white")
+
+[node name="table_1_post" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(0.906308, 0, 0.422618, -0, 1, 0, -0.422618, -0, 0.906308, 17, 0.37, 8)
+use_collision = true
+radius = 0.07
+height = 0.74
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="table_1_umb_pole" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(0.906308, 0, 0.422618, -0, 1, 0, -0.422618, -0, 0.906308, 17, 1.15, 8)
+use_collision = true
+radius = 0.05
+height = 2.3
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="table_1_umb_top" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(0.906308, 0, 0.422618, -0, 1, 0, -0.422618, -0, 0.906308, 17, 2.3, 8)
+use_collision = true
+radius = 1.5
+height = 0.12
+sides = 12
+material = SubResource("mat_yellow")
+
+[node name="chair_10_post" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(0.996195, 0, -0.0871557, 0, 1, 0, 0.0871557, -0, 0.996195, 17.95, 0.22, 8.2)
+use_collision = true
+radius = 0.05
+height = 0.44
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="chair_10_seat" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.996195, 0, -0.0871557, 0, 1, 0, 0.0871557, -0, 0.996195, 17.95, 0.44, 8.2)
+use_collision = true
+size = Vector3(0.42, 0.07, 0.42)
+material = SubResource("mat_white")
+
+[node name="chair_10_back" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.996195, 0, -0.0871557, 0, 1, 0, 0.0871557, -0, 0.996195, 17.9334, 0.67, 8.01072)
+use_collision = true
+size = Vector3(0.42, 0.45, 0.07)
+material = SubResource("mat_white")
+
+[node name="chair_11_post" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(0.819152, 0, -0.573576, 0, 1, 0, 0.573576, -0, 0.819152, 16.1, 0.22, 7.65)
+use_collision = true
+radius = 0.05
+height = 0.44
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="chair_11_seat" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.819152, 0, -0.573576, 0, 1, 0, 0.573576, -0, 0.819152, 16.1, 0.44, 7.65)
+use_collision = true
+size = Vector3(0.42, 0.07, 0.42)
+material = SubResource("mat_white")
+
+[node name="chair_11_back" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.819152, 0, -0.573576, 0, 1, 0, 0.573576, -0, 0.819152, 15.991, 0.67, 7.49436)
+use_collision = true
+size = Vector3(0.42, 0.45, 0.07)
+material = SubResource("mat_white")
+
+[node name="table_2_top" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(0.766044, 0, -0.642788, 0, 1, 0, 0.642788, -0, 0.766044, 13, 0.74, 12)
+use_collision = true
+radius = 0.6
+height = 0.08
+sides = 16
+material = SubResource("mat_white")
+
+[node name="table_2_post" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(0.766044, 0, -0.642788, 0, 1, 0, 0.642788, -0, 0.766044, 13, 0.37, 12)
+use_collision = true
+radius = 0.07
+height = 0.74
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="table_2_umb_pole" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(0.766044, 0, -0.642788, 0, 1, 0, 0.642788, -0, 0.766044, 13, 1.15, 12)
+use_collision = true
+radius = 0.05
+height = 2.3
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="table_2_umb_top" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(0.766044, 0, -0.642788, 0, 1, 0, 0.642788, -0, 0.766044, 13, 2.3, 12)
+use_collision = true
+radius = 1.5
+height = 0.12
+sides = 12
+material = SubResource("mat_blue")
+
+[node name="chair_20_post" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(0.34202, 0, -0.939693, 0, 1, 0, 0.939693, -0, 0.34202, 13.95, 0.22, 12.2)
+use_collision = true
+radius = 0.05
+height = 0.44
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="chair_20_seat" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.34202, 0, -0.939693, 0, 1, 0, 0.939693, -0, 0.34202, 13.95, 0.44, 12.2)
+use_collision = true
+size = Vector3(0.42, 0.07, 0.42)
+material = SubResource("mat_white")
+
+[node name="chair_20_back" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.34202, 0, -0.939693, 0, 1, 0, 0.939693, -0, 0.34202, 13.7715, 0.67, 12.135)
+use_collision = true
+size = Vector3(0.42, 0.45, 0.07)
+material = SubResource("mat_white")
+
+[node name="chair_21_post" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(-0.173648, 0, -0.984808, 0, 1, -0, 0.984808, -0, -0.173648, 12.1, 0.22, 11.65)
+use_collision = true
+radius = 0.05
+height = 0.44
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="chair_21_seat" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.173648, 0, -0.984808, 0, 1, -0, 0.984808, -0, -0.173648, 12.1, 0.44, 11.65)
+use_collision = true
+size = Vector3(0.42, 0.07, 0.42)
+material = SubResource("mat_white")
+
+[node name="chair_21_back" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.173648, 0, -0.984808, 0, 1, -0, 0.984808, -0, -0.173648, 11.9129, 0.67, 11.683)
+use_collision = true
+size = Vector3(0.42, 0.45, 0.07)
+material = SubResource("mat_white")
+
+[node name="stanchion_0" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 5.5, 0.5, 12)
+use_collision = true
+radius = 0.06
+height = 1
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="stanchion_1" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 7, 0.5, 12)
+use_collision = true
+radius = 0.06
+height = 1
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="stanchion_2" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 8.5, 0.5, 12)
+use_collision = true
+radius = 0.06
+height = 1
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="stanchion_3" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 10, 0.5, 12)
+use_collision = true
+radius = 0.06
+height = 1
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="stanchion_4" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 11.5, 0.5, 12)
+use_collision = true
+radius = 0.06
+height = 1
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="rope_0" type="CSGBox3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 6.25, 0.8, 12)
+size = Vector3(1.5, 0.05, 0.05)
+material = SubResource("mat_red")
+
+[node name="rope_1" type="CSGBox3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 7.75, 0.8, 12)
+size = Vector3(1.5, 0.05, 0.05)
+material = SubResource("mat_red")
+
+[node name="rope_2" type="CSGBox3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 9.25, 0.8, 12)
+size = Vector3(1.5, 0.05, 0.05)
+material = SubResource("mat_red")
+
+[node name="rope_3" type="CSGBox3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 10.75, 0.8, 12)
+size = Vector3(1.5, 0.05, 0.05)
+material = SubResource("mat_red")
+
+[node name="bollard_0" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -4, 0.45, -20)
+use_collision = true
+radius = 0.13
+height = 0.9
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="bollard_1" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -1, 0.45, -20)
+use_collision = true
+radius = 0.13
+height = 0.9
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="bollard_2" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 2, 0.45, -20)
+use_collision = true
+radius = 0.13
+height = 0.9
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="bollard_3" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 5, 0.45, -20)
+use_collision = true
+radius = 0.13
+height = 0.9
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="bollard_4" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 8, 0.45, -20)
+use_collision = true
+radius = 0.13
+height = 0.9
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="aframe_0_a" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.927184, 0, -0.374607, -0.0714783, 0.981627, -0.176915, 0.367724, 0.190809, 0.910149, 2.94006, 0.54, 9.85165)
+use_collision = true
+size = Vector3(0.9, 1.1, 0.05)
+material = SubResource("mat_wood")
+
+[node name="aframe_0_b" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.927184, 0, -0.374607, 0.0714783, 0.981627, 0.176915, 0.367724, -0.190809, 0.910149, 3.05994, 0.54, 10.1483)
+use_collision = true
+size = Vector3(0.9, 1.1, 0.05)
+material = SubResource("mat_yellow")
+
+[node name="aframe_1_a" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.766044, 0, 0.642788, 0.12265, 0.981627, -0.146168, -0.630978, 0.190809, 0.75197, -8.89715, 0.54, -2.12257)
+use_collision = true
+size = Vector3(0.9, 1.1, 0.05)
+material = SubResource("mat_wood")
+
+[node name="aframe_1_b" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.766044, 0, 0.642788, -0.12265, 0.981627, 0.146168, -0.630978, -0.190809, 0.75197, -9.10285, 0.54, -1.87743)
+use_collision = true
+size = Vector3(0.9, 1.1, 0.05)
+material = SubResource("mat_yellow")
+
+[node name="aframe_2_a" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.422618, 0, -0.906308, -0.172932, 0.981627, 0.0806394, 0.889656, 0.190809, -0.414854, 11.855, 0.54, -7.93238)
+use_collision = true
+size = Vector3(0.9, 1.1, 0.05)
+material = SubResource("mat_wood")
+
+[node name="aframe_2_b" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.422618, 0, -0.906308, 0.172932, 0.981627, -0.0806394, 0.889656, -0.190809, -0.414854, 12.145, 0.54, -8.06762)
+use_collision = true
+size = Vector3(0.9, 1.1, 0.05)
+material = SubResource("mat_yellow")
+
+[node name="newsbox_0_body" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.978148, 0, -0.207912, 0, 1, 0, 0.207912, -0, 0.978148, 3.4, 0.45, 7.6)
+use_collision = true
+size = Vector3(0.45, 0.9, 0.4)
+material = SubResource("mat_red")
+
+[node name="newsbox_0_top" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.978148, 0, -0.207912, 0, 1, 0, 0.207912, -0, 0.978148, 3.4, 0.93, 7.6)
+use_collision = true
+size = Vector3(0.5, 0.08, 0.45)
+material = SubResource("mat_metal")
+
+[node name="newsbox_1_body" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.848048, 0, -0.529919, 0, 1, 0, 0.529919, -0, 0.848048, 2.5, 0.45, 7.4)
+use_collision = true
+size = Vector3(0.45, 0.9, 0.4)
+material = SubResource("mat_red")
+
+[node name="newsbox_1_top" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.848048, 0, -0.529919, 0, 1, 0, 0.529919, -0, 0.848048, 2.5, 0.93, 7.4)
+use_collision = true
+size = Vector3(0.5, 0.08, 0.45)
+material = SubResource("mat_metal")
+
+[node name="flagpole_0_pole" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 15.5, 3, -16)
+use_collision = true
+radius = 0.07
+height = 6
+sides = 8
+material = SubResource("mat_white")
+
+[node name="flagpole_0_banner" type="CSGBox3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 15.5, 4.6, -15.65)
+size = Vector3(0.08, 2.2, 0.7)
+material = SubResource("mat_red")
+
+[node name="flagpole_1_pole" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 20.5, 3, -16)
+use_collision = true
+radius = 0.07
+height = 6
+sides = 8
+material = SubResource("mat_white")
+
+[node name="flagpole_1_banner" type="CSGBox3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 20.5, 4.6, -15.65)
+size = Vector3(0.08, 2.2, 0.7)
+material = SubResource("mat_yellow")
+
+[node name="cart_body" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.951057, 0, 0.309017, -0, 1, 0, -0.309017, -0, 0.951057, -6, 0.6, -10)
+use_collision = true
+size = Vector3(2, 1.2, 1.1)
+material = SubResource("mat_white")
+
+[node name="cart_roof" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.951057, 0, 0.309017, -0, 1, 0, -0.309017, -0, 0.951057, -6, 1.55, -10)
+use_collision = true
+size = Vector3(2.4, 0.1, 1.5)
+material = SubResource("mat_red")
+
+[node name="cart_wheel_l" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(0.309017, 0, -0.951057, 0, 1, 0, 0.951057, -0, 0.309017, -5.67658, 0.22, -9.05374)
+use_collision = true
+radius = 0.22
+height = 0.1
+sides = 10
+material = SubResource("mat_metal")
+
+[node name="cart_wheel_r" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(0.309017, 0, -0.951057, 0, 1, 0, 0.951057, -0, 0.309017, -5.18215, 0.22, -10.5754)
+use_collision = true
+radius = 0.22
+height = 0.1
+sides = 10
+material = SubResource("mat_metal")
+
+[node name="stroller_basket" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.829038, 0, -0.559193, 0, 1, 0, 0.559193, -0, 0.829038, -3.2, 0.62, 8.4)
+use_collision = true
+size = Vector3(0.55, 0.5, 0.8)
+material = SubResource("mat_blue")
+
+[node name="stroller_handle" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.829038, 0, -0.559193, 0, 1, 0, 0.559193, -0, 0.829038, -3.43486, 0.95, 8.0518)
+use_collision = true
+size = Vector3(0.5, 0.06, 0.06)
+material = SubResource("mat_metal")
+
+[node name="stroller_leg" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(0.829038, 0, -0.559193, 0, 1, 0, 0.559193, -0, 0.829038, -3.2, 0.19, 8.4)
+use_collision = true
+radius = 0.04
+height = 0.38
+sides = 6
+material = SubResource("mat_metal")
+
+[node name="stroller_wheel" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(-0.559193, 0, -0.829038, 0, 1, -0, 0.829038, -0, -0.559193, -2.91813, 0.1, 8.20987)
+use_collision = true
+radius = 0.1
+height = 0.06
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="ladder_rail_a" type="CSGBox3D" parent="props"]
+transform = Transform3D(6.12323e-17, 0, -1, 0.275637, 0.961262, 1.68779e-17, 0.961262, -0.275637, 5.88603e-17, 19.48, 1.44, 2.22)
+use_collision = true
+size = Vector3(0.06, 3, 0.06)
+material = SubResource("mat_metal")
+
+[node name="ladder_rail_b" type="CSGBox3D" parent="props"]
+transform = Transform3D(6.12323e-17, 0, -1, 0.275637, 0.961262, 1.68779e-17, 0.961262, -0.275637, 5.88603e-17, 19.48, 1.44, 1.78)
+use_collision = true
+size = Vector3(0.06, 3, 0.06)
+material = SubResource("mat_metal")
+
+[node name="ladder_rung_0" type="CSGBox3D" parent="props"]
+transform = Transform3D(6.12323e-17, 0, -1, 0, 1, 0, 1, -0, 6.12323e-17, 19.7495, 0.5, 2)
+size = Vector3(0.5, 0.05, 0.05)
+material = SubResource("mat_metal")
+
+[node name="ladder_rung_1" type="CSGBox3D" parent="props"]
+transform = Transform3D(6.12323e-17, 0, -1, 0, 1, 0, 1, -0, 6.12323e-17, 19.5345, 1.25, 2)
+size = Vector3(0.5, 0.05, 0.05)
+material = SubResource("mat_metal")
+
+[node name="ladder_rung_2" type="CSGBox3D" parent="props"]
+transform = Transform3D(6.12323e-17, 0, -1, 0, 1, 0, 1, -0, 6.12323e-17, 19.3194, 2, 2)
+size = Vector3(0.5, 0.05, 0.05)
+material = SubResource("mat_metal")
+
+[node name="ladder_rung_3" type="CSGBox3D" parent="props"]
+transform = Transform3D(6.12323e-17, 0, -1, 0, 1, 0, 1, -0, 6.12323e-17, 19.1044, 2.75, 2)
+size = Vector3(0.5, 0.05, 0.05)
+material = SubResource("mat_metal")
+
+[node name="balloon_0" type="CSGSphere3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 6.4, 1.5, 5.6)
+radius = 0.26
+radial_segments = 10
+rings = 6
+material = SubResource("mat_red")
+
+[node name="balloon_0_string" type="CSGBox3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 6.4, 0.75, 5.6)
+size = Vector3(0.02, 1.5, 0.02)
+material = SubResource("mat_white")
+
+[node name="balloon_1" type="CSGSphere3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 6.6, 1.7, 5.9)
+radius = 0.26
+radial_segments = 10
+rings = 6
+material = SubResource("mat_yellow")
+
+[node name="balloon_1_string" type="CSGBox3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 6.6, 0.85, 5.9)
+size = Vector3(0.02, 1.7, 0.02)
+material = SubResource("mat_white")
+
+[node name="balloon_2" type="CSGSphere3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -1.2, 0.32, 34)
+radius = 0.26
+radial_segments = 10
+rings = 6
+material = SubResource("mat_blue")
+
+[node name="balloon_2_string" type="CSGBox3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -1.2, 0.16, 34)
+size = Vector3(0.02, 0.32, 0.02)
+material = SubResource("mat_white")
+
+[node name="litter_0" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 2.3, 0.06, 12.4)
+radius = 0.055
+height = 0.12
+sides = 8
+material = SubResource("mat_white")
+
+[node name="litter_1" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(0.681998, 0, -0.731354, 0, 1, 0, 0.731354, -0, 0.681998, -4.6, 0.06, 6.2)
+radius = 0.055
+height = 0.12
+sides = 8
+material = SubResource("mat_white")
+
+[node name="litter_2" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(-0.0697565, 0, -0.997564, 0, 1, -0, 0.997564, -0, -0.0697565, 8.9, 0.06, -3.1)
+radius = 0.055
+height = 0.12
+sides = 8
+material = SubResource("mat_white")
+
+[node name="litter_3" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(-0.777146, 0, -0.62932, 0, 1, -0, 0.62932, -0, -0.777146, -9.4, 0.06, 11.8)
+radius = 0.055
+height = 0.12
+sides = 8
+material = SubResource("mat_white")
+
+[node name="litter_4" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.990268, 0, 0.139173, -0, 1, -0, -0.139173, -0, -0.990268, 11.2, 0.005, 6.7)
+size = Vector3(0.22, 0.01, 0.16)
+material = SubResource("mat_white")
+
+[node name="litter_5" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.573576, 0, 0.819152, -0, 1, -0, -0.819152, -0, -0.573576, -2.1, 0.005, -9.6)
+size = Vector3(0.22, 0.01, 0.16)
+material = SubResource("mat_white")
+
+[node name="litter_6" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.207912, 0, 0.978148, -0, 1, 0, -0.978148, -0, 0.207912, 5.7, 0.005, 17.3)
+size = Vector3(0.22, 0.01, 0.16)
+material = SubResource("mat_white")
+
+[node name="litter_7" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.857167, 0, 0.515038, -0, 1, 0, -0.515038, -0, 0.857167, -12.6, 0.005, -4.4)
+size = Vector3(0.22, 0.01, 0.16)
+material = SubResource("mat_white")
+
+[node name="litter_8" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(0.961262, 0, -0.275637, 0, 1, 0, 0.275637, -0, 0.961262, 14.8, 0.06, -12.2)
+radius = 0.055
+height = 0.12
+sides = 8
+material = SubResource("mat_white")
+
+[node name="litter_9" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.45399, 0, -0.891007, 0, 1, 0, 0.891007, -0, 0.45399, 0.9, 0.005, -17.4)
+size = Vector3(0.22, 0.01, 0.16)
+material = SubResource("mat_white")
+
+[node name="litter_10" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(-0.34202, 0, -0.939693, 0, 1, -0, 0.939693, -0, -0.34202, -16.2, 0.06, 7.1)
+radius = 0.055
+height = 0.12
+sides = 8
+material = SubResource("mat_white")
+
+[node name="litter_11" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.920505, 0, -0.390731, 0, 1, -0, 0.390731, -0, -0.920505, 17.6, 0.005, 15.9)
+size = Vector3(0.22, 0.01, 0.16)
+material = SubResource("mat_white")
+
+[node name="bench_band_0_seat" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.34202, 0, 0.939693, -0, 1, -0, -0.939693, -0, -0.34202, -5.04627, 0.45, -9.46905)
+use_collision = true
+size = Vector3(1.8, 0.12, 0.55)
+material = SubResource("mat_wood")
+
+[node name="bench_band_0_leg_l" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.34202, 0, 0.939693, -0, 1, -0, -0.939693, -0, -0.34202, -4.7795, 0.225, -10.202)
+use_collision = true
+size = Vector3(0.14, 0.45, 0.5)
+material = SubResource("mat_metal")
+
+[node name="bench_band_0_leg_r" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.34202, 0, 0.939693, -0, 1, -0, -0.939693, -0, -0.34202, -5.31305, 0.225, -8.73609)
+use_collision = true
+size = Vector3(0.14, 0.45, 0.5)
+material = SubResource("mat_metal")
+
+[node name="bench_band_0_back" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.34202, 0, 0.939693, -0, 1, -0, -0.939693, -0, -0.34202, -4.76437, 0.75, -9.36644)
+use_collision = true
+size = Vector3(1.8, 0.5, 0.1)
+material = SubResource("mat_wood")
+
+[node name="bench_band_1_seat" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.642788, 0, -0.766044, 0, 1, -0, 0.766044, -0, -0.642788, -17.6687, 0.45, -7.24337)
+use_collision = true
+size = Vector3(1.8, 0.12, 0.55)
+material = SubResource("mat_wood")
+
+[node name="bench_band_1_leg_l" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.642788, 0, -0.766044, 0, 1, -0, 0.766044, -0, -0.642788, -17.1674, 0.225, -6.64586)
+use_collision = true
+size = Vector3(0.14, 0.45, 0.5)
+material = SubResource("mat_metal")
+
+[node name="bench_band_1_leg_r" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.642788, 0, -0.766044, 0, 1, -0, 0.766044, -0, -0.642788, -18.1701, 0.225, -7.84089)
+use_collision = true
+size = Vector3(0.14, 0.45, 0.5)
+material = SubResource("mat_metal")
+
+[node name="bench_band_1_back" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.642788, 0, -0.766044, 0, 1, -0, 0.766044, -0, -0.642788, -17.8985, 0.75, -7.05054)
+use_collision = true
+size = Vector3(1.8, 0.5, 0.1)
+material = SubResource("mat_wood")
+
+[node name="bench_band_2_seat" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.984808, 0, -0.173648, 0, 1, 0, 0.173648, -0, 0.984808, -13.285, 0.45, -19.2876)
+use_collision = true
+size = Vector3(1.8, 0.12, 0.55)
+material = SubResource("mat_wood")
+
+[node name="bench_band_2_leg_l" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.984808, 0, -0.173648, 0, 1, 0, 0.173648, -0, 0.984808, -14.0531, 0.225, -19.1521)
+use_collision = true
+size = Vector3(0.14, 0.45, 0.5)
+material = SubResource("mat_metal")
+
+[node name="bench_band_2_leg_r" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.984808, 0, -0.173648, 0, 1, 0, 0.173648, -0, 0.984808, -12.5168, 0.225, -19.423)
+use_collision = true
+size = Vector3(0.14, 0.45, 0.5)
+material = SubResource("mat_metal")
+
+[node name="bench_band_2_back" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.984808, 0, -0.173648, 0, 1, 0, 0.173648, -0, 0.984808, -13.3371, 0.75, -19.583)
+use_collision = true
+size = Vector3(1.8, 0.5, 0.1)
+material = SubResource("mat_wood")
+
+[node name="lampw_0_pole" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -19, 2.1, 2)
+use_collision = true
+radius = 0.09
+height = 4.2
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="lampw_0_head" type="CSGBox3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -19, 4.35, 2)
+use_collision = true
+size = Vector3(0.5, 0.24, 0.5)
+material = SubResource("mat_white")
+
+[node name="lampw_1_pole" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -19, 2.1, 12)
+use_collision = true
+radius = 0.09
+height = 4.2
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="lampw_1_head" type="CSGBox3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -19, 4.35, 12)
+use_collision = true
+size = Vector3(0.5, 0.24, 0.5)
+material = SubResource("mat_white")
+
+[node name="lampw_2_pole" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -18, 2.1, -14)
+use_collision = true
+radius = 0.09
+height = 4.2
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="lampw_2_head" type="CSGBox3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -18, 4.35, -14)
+use_collision = true
+size = Vector3(0.5, 0.24, 0.5)
+material = SubResource("mat_white")
+
+[node name="lampw_3_pole" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -16, 2.1, 20)
+use_collision = true
+radius = 0.09
+height = 4.2
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="lampw_3_head" type="CSGBox3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -16, 4.35, 20)
+use_collision = true
+size = Vector3(0.5, 0.24, 0.5)
+material = SubResource("mat_white")
+
+[node name="binw_0_body" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -19, 0.43, 7)
+use_collision = true
+radius = 0.32
+height = 0.85
+sides = 12
+material = SubResource("mat_metal")
+
+[node name="binw_0_lid" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -19, 0.9, 7)
+use_collision = true
+radius = 0.36
+height = 0.1
+sides = 12
+material = SubResource("mat_blue")
+
+[node name="binw_1_body" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -17, 0.43, 18)
+use_collision = true
+radius = 0.32
+height = 0.85
+sides = 12
+material = SubResource("mat_metal")
+
+[node name="binw_1_lid" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -17, 0.9, 18)
+use_collision = true
+radius = 0.36
+height = 0.1
+sides = 12
+material = SubResource("mat_blue")
+
+[node name="binw_2_body" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -6.5, 0.43, 24)
+use_collision = true
+radius = 0.32
+height = 0.85
+sides = 12
+material = SubResource("mat_metal")
+
+[node name="binw_2_lid" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -6.5, 0.9, 24)
+use_collision = true
+radius = 0.36
+height = 0.1
+sides = 12
+material = SubResource("mat_blue")
+
+[node name="binw_3_body" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 8, 0.43, 20)
+use_collision = true
+radius = 0.32
+height = 0.85
+sides = 12
+material = SubResource("mat_metal")
+
+[node name="binw_3_lid" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 8, 0.9, 20)
+use_collision = true
+radius = 0.36
+height = 0.1
+sides = 12
+material = SubResource("mat_blue")
+
+[node name="picnic_0_top" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.906308, 0, -0.422618, 0, 1, 0, 0.422618, -0, 0.906308, -13, 0.75, 18)
+use_collision = true
+size = Vector3(1.7, 0.09, 0.85)
+material = SubResource("mat_wood")
+
+[node name="picnic_0_bench_a" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.906308, 0, -0.422618, 0, 1, 0, 0.422618, -0, 0.906308, -12.6957, 0.44, 18.6525)
+use_collision = true
+size = Vector3(1.7, 0.08, 0.32)
+material = SubResource("mat_wood")
+
+[node name="picnic_0_bench_b" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.906308, 0, -0.422618, 0, 1, 0, 0.422618, -0, 0.906308, -13.3043, 0.44, 17.3475)
+use_collision = true
+size = Vector3(1.7, 0.08, 0.32)
+material = SubResource("mat_wood")
+
+[node name="picnic_0_leg_a" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.906308, 0, -0.422618, 0, 1, 0, 0.422618, -0, 0.906308, -13.6344, 0.37, 18.2958)
+use_collision = true
+size = Vector3(0.1, 0.75, 1.7)
+material = SubResource("mat_metal")
+
+[node name="picnic_0_leg_b" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.906308, 0, -0.422618, 0, 1, 0, 0.422618, -0, 0.906308, -12.3656, 0.37, 17.7042)
+use_collision = true
+size = Vector3(0.1, 0.75, 1.7)
+material = SubResource("mat_metal")
+
+[node name="picnic_1_top" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.965926, 0, 0.258819, -0, 1, 0, -0.258819, -0, 0.965926, -17, 0.75, 15)
+use_collision = true
+size = Vector3(1.7, 0.09, 0.85)
+material = SubResource("mat_wood")
+
+[node name="picnic_1_bench_a" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.965926, 0, 0.258819, -0, 1, 0, -0.258819, -0, 0.965926, -17.1863, 0.44, 15.6955)
+use_collision = true
+size = Vector3(1.7, 0.08, 0.32)
+material = SubResource("mat_wood")
+
+[node name="picnic_1_bench_b" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.965926, 0, 0.258819, -0, 1, 0, -0.258819, -0, 0.965926, -16.8137, 0.44, 14.3045)
+use_collision = true
+size = Vector3(1.7, 0.08, 0.32)
+material = SubResource("mat_wood")
+
+[node name="picnic_1_leg_a" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.965926, 0, 0.258819, -0, 1, 0, -0.258819, -0, 0.965926, -17.6761, 0.37, 14.8188)
+use_collision = true
+size = Vector3(0.1, 0.75, 1.7)
+material = SubResource("mat_metal")
+
+[node name="picnic_1_leg_b" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.965926, 0, 0.258819, -0, 1, 0, -0.258819, -0, 0.965926, -16.3239, 0.37, 15.1812)
+use_collision = true
+size = Vector3(0.1, 0.75, 1.7)
+material = SubResource("mat_metal")
+
+[node name="bollard_s_0" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -6, 0.45, 30)
+use_collision = true
+radius = 0.13
+height = 0.9
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="bollard_s_1" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -3, 0.45, 30)
+use_collision = true
+radius = 0.13
+height = 0.9
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="bollard_s_2" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 0, 0.45, 30)
+use_collision = true
+radius = 0.13
+height = 0.9
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="bollard_s_3" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 3, 0.45, 30)
+use_collision = true
+radius = 0.13
+height = 0.9
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="bollard_s_4" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 6, 0.45, 30)
+use_collision = true
+radius = 0.13
+height = 0.9
+sides = 8
+material = SubResource("mat_metal")
+
+[node name="planter_s_0" type="CSGBox3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -7, 0.45, 26)
+use_collision = true
+size = Vector3(2.6, 0.9, 2.6)
+material = SubResource("mat_accent")
+
+[node name="planter_s_1" type="CSGBox3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, 4, 0.45, 26)
+use_collision = true
+size = Vector3(2.6, 0.9, 2.6)
+material = SubResource("mat_accent")
+
+[node name="bench_sw_seat" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.5, 0, -0.866025, 0, 1, -0, 0.866025, -0, -0.5, -11, 0.45, 20)
+use_collision = true
+size = Vector3(1.8, 0.12, 0.55)
+material = SubResource("mat_wood")
+
+[node name="bench_sw_leg_l" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.5, 0, -0.866025, 0, 1, -0, 0.866025, -0, -0.5, -10.61, 0.225, 20.6755)
+use_collision = true
+size = Vector3(0.14, 0.45, 0.5)
+material = SubResource("mat_metal")
+
+[node name="bench_sw_leg_r" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.5, 0, -0.866025, 0, 1, -0, 0.866025, -0, -0.5, -11.39, 0.225, 19.3245)
+use_collision = true
+size = Vector3(0.14, 0.45, 0.5)
+material = SubResource("mat_metal")
+
+[node name="bench_sw_back" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.5, 0, -0.866025, 0, 1, -0, 0.866025, -0, -0.5, -11.2598, 0.75, 20.15)
+use_collision = true
+size = Vector3(1.8, 0.5, 0.1)
+material = SubResource("mat_wood")
+
+[node name="bench_se_seat" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.939693, 0, 0.34202, -0, 1, -0, -0.34202, -0, -0.939693, 2, 0.45, 22)
+use_collision = true
+size = Vector3(1.8, 0.12, 0.55)
+material = SubResource("mat_wood")
+
+[node name="bench_se_leg_l" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.939693, 0, 0.34202, -0, 1, -0, -0.34202, -0, -0.939693, 2.73296, 0.225, 21.7332)
+use_collision = true
+size = Vector3(0.14, 0.45, 0.5)
+material = SubResource("mat_metal")
+
+[node name="bench_se_leg_r" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.939693, 0, 0.34202, -0, 1, -0, -0.34202, -0, -0.939693, 1.26704, 0.225, 22.2668)
+use_collision = true
+size = Vector3(0.14, 0.45, 0.5)
+material = SubResource("mat_metal")
+
+[node name="bench_se_back" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.939693, 0, 0.34202, -0, 1, -0, -0.34202, -0, -0.939693, 2.10261, 0.75, 22.2819)
+use_collision = true
+size = Vector3(1.8, 0.5, 0.1)
+material = SubResource("mat_wood")
+
+[node name="crate_a" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.978148, 0, -0.207912, 0, 1, 0, 0.207912, -0, 0.978148, -19, 0.4, -6)
+use_collision = true
+size = Vector3(0.9, 0.8, 0.9)
+material = SubResource("mat_wood")
+
+[node name="crate_b" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.913545, 0, 0.406737, -0, 1, 0, -0.406737, -0, 0.913545, -18.9443, 1.15, -5.75628)
+use_collision = true
+size = Vector3(0.85, 0.7, 0.85)
+material = SubResource("mat_wood")
+
+[node name="crate_c" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.766044, 0, -0.642788, 0, 1, 0, 0.642788, -0, 0.766044, -18.3885, 0.35, -6.90474)
+use_collision = true
+size = Vector3(0.8, 0.7, 0.8)
+material = SubResource("mat_wood")
+
+[node name="litterw_0" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(1, 0, -0, 0, 1, 0, 0, -0, 1, -15.4, 0.06, 3.2)
+radius = 0.055
+height = 0.12
+sides = 8
+material = SubResource("mat_white")
+
+[node name="litterw_1" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.48481, 0, -0.87462, 0, 1, 0, 0.87462, -0, 0.48481, -11.8, 0.005, 16.4)
+size = Vector3(0.22, 0.01, 0.16)
+material = SubResource("mat_white")
+
+[node name="litterw_2" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(-0.529919, 0, -0.848048, 0, 1, -0, 0.848048, -0, -0.529919, -18.9, 0.06, -8.7)
+radius = 0.055
+height = 0.12
+sides = 8
+material = SubResource("mat_white")
+
+[node name="litterw_3" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.99863, 0, 0.052336, -0, 1, -0, -0.052336, -0, -0.99863, -7.3, 0.005, 22.6)
+size = Vector3(0.22, 0.01, 0.16)
+material = SubResource("mat_white")
+
+[node name="litterw_4" type="CSGBox3D" parent="props"]
+transform = Transform3D(-0.438371, 0, 0.898794, -0, 1, -0, -0.898794, -0, -0.438371, -20.4, 0.005, 11.2)
+size = Vector3(0.22, 0.01, 0.16)
+material = SubResource("mat_white")
+
+[node name="litterw_5" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(0.573576, 0, 0.819152, -0, 1, 0, -0.819152, -0, 0.573576, 3.6, 0.06, 25.8)
+radius = 0.055
+height = 0.12
+sides = 8
+material = SubResource("mat_white")
+
+[node name="litterw_6" type="CSGCylinder3D" parent="props"]
+transform = Transform3D(0.994522, 0, -0.104528, 0, 1, 0, 0.104528, -0, 0.994522, -13.1, 0.06, -18.9)
+radius = 0.055
+height = 0.12
+sides = 8
+material = SubResource("mat_white")
+
+[node name="litterw_7" type="CSGBox3D" parent="props"]
+transform = Transform3D(0.390731, 0, -0.920505, 0, 1, 0, 0.920505, -0, 0.390731, 10.4, 0.005, 22.1)
+size = Vector3(0.22, 0.01, 0.16)
+material = SubResource("mat_white")
