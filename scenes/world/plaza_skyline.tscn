@@ -1,0 +1,326 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_uaeg6"]
+albedo_color = Color(0.72, 0.66, 0.63, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6p7od"]
+albedo_color = Color(0.66, 0.68, 0.72, 1)
+roughness = 0.95
+
+[node name="skyline" type="Node3D" unique_id=591736658]
+
+[node name="coaster_col_0" type="CSGCylinder3D" parent="." unique_id=1042028962]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 1.5, -58)
+radius = 0.55
+height = 3.0
+sides = 6
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_col_1" type="CSGCylinder3D" parent="." unique_id=1170241695]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28.657396, 4.5, -60.16312)
+radius = 0.55
+height = 9.0
+sides = 6
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_brace_1" type="CSGBox3D" parent="." unique_id=1240229815]
+transform = Transform3D(0.30901644, 0.89564997, 0.31987497, 0, 0.3363364, -0.9417419, -0.9510567, 0.29101372, 0.10393347, -29.846218, 4.5, -60.549393)
+size = Vector3(0.35, 0.35, 7.4330344)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_track_1" type="CSGBox3D" parent="." unique_id=1456061866]
+transform = Transform3D(0.30901712, 0.6189393, 0.72209597, 0, 0.75925666, -0.6507913, -0.9510565, 0.20110565, 0.23462331, -25.328697, 6, -59.08156)
+size = Vector3(0.7, 0.7, 9.219545)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_col_2" type="CSGCylinder3D" parent="." unique_id=200310172]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35.314793, 7.5, -62.326237)
+radius = 0.55
+height = 15.0
+sides = 6
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_brace_2" type="CSGBox3D" parent="." unique_id=1127776938]
+transform = Transform3D(0.30901664, 0.9339437, 0.17960443, 0, 0.18884723, -0.9820065, -0.95105654, 0.30345634, 0.058356944, -36.503613, 7.5, -62.71251)
+size = Vector3(0.35, 0.35, 13.238202)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_track_2" type="CSGBox3D" parent="." unique_id=676989765]
+transform = Transform3D(0.30901664, 0.61893946, 0.722096, 0, 0.7592566, -0.65079135, -0.95105666, 0.20110536, 0.23462293, -31.986095, 12, -61.24468)
+size = Vector3(0.7, 0.7, 9.219544)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_col_3" type="CSGCylinder3D" parent="." unique_id=1564658188]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -41.972187, 10.5, -64.48936)
+radius = 0.55
+height = 21.0
+sides = 6
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_brace_3" type="CSGBox3D" parent="." unique_id=1478804615]
+transform = Transform3D(-0.9922609, 0.0050056567, 0.12406953, -0.12417047, -0.040000796, -0.99145424, 0, -0.99918705, 0.040312782, -43.161007, 10.5, -64.875626)
+size = Vector3(0.35, 0.35, 19.163769)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_track_3" type="CSGBox3D" parent="." unique_id=953711188]
+transform = Transform3D(0.30901724, 0.61893934, 0.7220958, 0, 0.75925654, -0.65079135, -0.9510565, 0.20110574, 0.23462334, -38.64349, 18, -63.4078)
+size = Vector3(0.7, 0.7, 9.219544)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_col_4" type="CSGCylinder3D" parent="." unique_id=292776229]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.629585, 13, -66.65247)
+radius = 0.55
+height = 26.0
+sides = 6
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_brace_4" type="CSGBox3D" parent="." unique_id=335427465]
+transform = Transform3D(-0.9951286, 0.0031563342, 0.09853518, -0.09858572, -0.031860176, -0.9946185, 0, -0.99948746, 0.03201614, -49.818405, 13, -67.03874)
+size = Vector3(0.35, 0.35, 24.129856)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_track_4" type="CSGBox3D" parent="." unique_id=211764737]
+transform = Transform3D(0.30901656, 0.55279034, 0.7739067, 0, 0.8137335, -0.5812381, -0.9510566, 0.17961219, 0.25145715, -45.300888, 23.5, -65.570915)
+size = Vector3(0.7, 0.7, 8.602326)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_col_5" type="CSGCylinder3D" parent="." unique_id=974009873]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -55.28698, 13.5, -68.8156)
+radius = 0.55
+height = 27.0
+sides = 6
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_brace_5" type="CSGBox3D" parent="." unique_id=2114904720]
+transform = Transform3D(-0.9955079, 0.0029112117, 0.0946336, -0.09467837, -0.03061031, -0.9950372, 0, -0.99952716, 0.030748434, -56.4758, 13.5, -69.20187)
+size = Vector3(0.35, 0.35, 25.12469)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_track_5" type="CSGBox3D" parent="." unique_id=1242928011]
+transform = Transform3D(0.30901772, 0.13449967, 0.9414977, 0, 0.9899495, -0.14142135, -0.9510563, 0.0437017, 0.30591193, -51.958282, 26.5, -67.73404)
+size = Vector3(0.7, 0.7, 7.0710683)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_col_6" type="CSGCylinder3D" parent="." unique_id=1174029183]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -61.944374, 4.5, -70.978714)
+radius = 0.55
+height = 9.0
+sides = 6
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_brace_6" type="CSGBox3D" parent="." unique_id=768131105]
+transform = Transform3D(0.30901805, 0.8956495, 0.31987473, 0, 0.3363363, -0.94174194, -0.9510562, 0.29101527, 0.10393399, -63.133194, 4.5, -71.36499)
+size = Vector3(0.35, 0.35, 7.433034)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_track_6" type="CSGBox3D" parent="." unique_id=510999292]
+transform = Transform3D(0.3090167, -0.8863892, 0.34470683, 0, 0.3624462, 0.9320047, -0.9510566, -0.28800502, 0.112001926, -58.615677, 18, -69.897156)
+size = Vector3(0.7, 0.7, 19.313208)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_col_7" type="CSGCylinder3D" parent="." unique_id=1215571483]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -68.601776, 9.5, -73.14183)
+radius = 0.55
+height = 19.0
+sides = 6
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_brace_7" type="CSGBox3D" parent="." unique_id=1482545823]
+transform = Transform3D(0.30901805, 0.94093615, 0.13837291, 0, 0.14549394, -0.98935914, -0.9510562, 0.30572984, 0.044960253, -69.790596, 9.5, -73.52811)
+size = Vector3(0.35, 0.35, 17.18284)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_track_7" type="CSGBox3D" parent="." unique_id=1329506245]
+transform = Transform3D(0.3090164, 0.7791358, 0.5453955, 0, 0.57346267, -0.8192317, -0.9510568, 0.25315604, 0.17720935, -65.27307, 14, -72.06027)
+size = Vector3(0.7, 0.7, 12.206559)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_col_8" type="CSGCylinder3D" parent="." unique_id=789293985]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -75.25917, 4, -75.30495)
+radius = 0.55
+height = 8.0
+sides = 6
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_track_8" type="CSGBox3D" parent="." unique_id=813705167]
+transform = Transform3D(0.30901673, -0.80236995, 0.5105989, 0, 0.5368754, 0.84366155, -0.95105666, -0.26070553, 0.16590348, -71.93047, 13.5, -74.22339)
+size = Vector3(0.7, 0.7, 13.0384035)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_col_9" type="CSGCylinder3D" parent="." unique_id=862068937]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -81.916565, 7.75, -77.46807)
+radius = 0.55
+height = 15.5
+sides = 6
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_brace_9" type="CSGBox3D" parent="." unique_id=1420194206]
+transform = Transform3D(0.30901805, 0.93515646, 0.17317706, 0, 0.18208922, -0.98328197, -0.95105624, 0.30385187, 0.05626885, -83.105385, 7.75, -77.85434)
+size = Vector3(0.35, 0.35, 13.72953)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_track_9" type="CSGBox3D" parent="." unique_id=2126847796]
+transform = Transform3D(0.30901772, 0.69527465, 0.64892304, 0, 0.6823183, -0.7310552, -0.9510563, 0.22590901, 0.21084842, -78.58787, 11.75, -76.386505)
+size = Vector3(0.7, 0.7, 10.259143)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_col_10" type="CSGCylinder3D" parent="." unique_id=1922209818]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -88.57396, 3.5, -79.63119)
+radius = 0.55
+height = 7.0
+sides = 6
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_track_10" type="CSGBox3D" parent="." unique_id=1713008230]
+transform = Transform3D(0.3090167, -0.73414946, 0.6045935, 0, 0.6357072, 0.77193034, -0.9510566, -0.23853937, 0.19644414, -85.24526, 11.25, -78.54963)
+size = Vector3(0.7, 0.7, 11.011356)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_col_11" type="CSGCylinder3D" parent="." unique_id=480811796]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -95.23135, 6, -81.79431)
+radius = 0.55
+height = 12.0
+sides = 6
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_brace_11" type="CSGBox3D" parent="." unique_id=2121872402]
+transform = Transform3D(0.30901805, 0.92266, 0.23066494, 0, 0.24253556, -0.9701425, -0.9510562, 0.29979154, 0.074947864, -96.42017, 6, -82.18059)
+size = Vector3(0.35, 0.35, 10.307764)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_track_11" type="CSGBox3D" parent="." unique_id=1936612095]
+transform = Transform3D(0.30901772, 0.5527903, 0.77390635, 0, 0.81373346, -0.5812382, -0.9510563, 0.1796129, 0.25145805, -91.90266, 9.5, -80.71275)
+size = Vector3(0.7, 0.7, 8.602325)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_col_12" type="CSGCylinder3D" parent="." unique_id=18100419]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -101.88875, 3.25, -83.95743)
+radius = 0.55
+height = 6.5
+sides = 6
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_track_12" type="CSGBox3D" parent="." unique_id=666996026]
+transform = Transform3D(0.30901673, -0.58758336, 0.74783313, 0, 0.78631824, 0.61782163, -0.9510566, -0.19091722, 0.24298549, -98.56005, 9.25, -82.87587)
+size = Vector3(0.7, 0.7, 8.9022455)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_col_13" type="CSGCylinder3D" parent="." unique_id=2105014896]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -108.54614, 4.5, -86.120544)
+radius = 0.55
+height = 9.0
+sides = 6
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_brace_13" type="CSGBox3D" parent="." unique_id=1770546060]
+transform = Transform3D(0.30901805, 0.8956495, 0.31987473, 0, 0.3363363, -0.94174194, -0.9510562, 0.29101527, 0.10393399, -109.73496, 4.5, -86.50682)
+size = Vector3(0.35, 0.35, 7.433034)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_track_13" type="CSGBox3D" parent="." unique_id=1024030308]
+transform = Transform3D(0.3090167, 0.31987503, 0.89564985, 0, 0.9417418, -0.3363365, -0.9510566, 0.103933595, 0.291014, -105.217445, 7.75, -85.03899)
+size = Vector3(0.7, 0.7, 7.4330325)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_col_14" type="CSGCylinder3D" parent="." unique_id=188495042]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -115.203545, 2.5, -88.28366)
+radius = 0.55
+height = 5.0
+sides = 6
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="coaster_track_14" type="CSGBox3D" parent="." unique_id=582637476]
+transform = Transform3D(0.3090164, -0.47185594, 0.8257486, 0, 0.8682433, 0.49613863, -0.95105666, -0.15331498, 0.26830143, -111.87485, 7, -87.2021)
+size = Vector3(0.7, 0.7, 8.062263)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="tower_shaft" type="CSGCylinder3D" parent="." unique_id=1568743342]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54, 21, -40)
+radius = 1.7
+height = 42.0
+sides = 10
+material = SubResource("StandardMaterial3D_6p7od")
+
+[node name="tower_deck" type="CSGCylinder3D" parent="." unique_id=1596377392]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54, 32, -40)
+radius = 5.6
+height = 2.4
+sides = 14
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="tower_deck_roof" type="CSGCylinder3D" parent="." unique_id=1891469667]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54, 33.6, -40)
+radius = 6.3
+height = 0.7
+sides = 14
+material = SubResource("StandardMaterial3D_6p7od")
+
+[node name="tower_spire" type="CSGCylinder3D" parent="." unique_id=1031426886]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54, 46, -40)
+radius = 0.45
+height = 9.0
+sides = 6
+material = SubResource("StandardMaterial3D_6p7od")
+
+[node name="wheel_ring" type="CSGTorus3D" parent="." unique_id=381462823]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, -58, 18, -4)
+inner_radius = 12.2
+outer_radius = 13.2
+sides = 28
+material = SubResource("StandardMaterial3D_6p7od")
+
+[node name="wheel_hub" type="CSGCylinder3D" parent="." unique_id=1221359038]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58, 18, -4)
+radius = 1.0
+material = SubResource("StandardMaterial3D_6p7od")
+
+[node name="wheel_spoke_0" type="CSGBox3D" parent="." unique_id=1704942804]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -51.65, 18, -4)
+size = Vector3(0.3, 0.3, 12.700001)
+material = SubResource("StandardMaterial3D_6p7od")
+
+[node name="wheel_spoke_1" type="CSGBox3D" parent="." unique_id=809429517]
+transform = Transform3D(0, -0.70710677, -0.70710677, 0, 0.70710677, -0.70710677, 1, 0, 0, -53.509872, 22.490128, -4)
+size = Vector3(0.3, 0.3, 12.699999)
+material = SubResource("StandardMaterial3D_6p7od")
+
+[node name="wheel_spoke_2" type="CSGBox3D" parent="." unique_id=297054517]
+transform = Transform3D(-1, 0, 0, 0, 0, -1, 0, -1, 0, -58, 24.35, -4)
+size = Vector3(0.3, 0.3, 12.700001)
+material = SubResource("StandardMaterial3D_6p7od")
+
+[node name="wheel_spoke_3" type="CSGBox3D" parent="." unique_id=1626968784]
+transform = Transform3D(0, 0.70710677, 0.70710677, 0, 0.70710677, -0.70710677, -1, 0, 0, -62.490128, 22.490128, -4)
+size = Vector3(0.3, 0.3, 12.699999)
+material = SubResource("StandardMaterial3D_6p7od")
+
+[node name="wheel_spoke_4" type="CSGBox3D" parent="." unique_id=933188072]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -64.35, 18, -4)
+size = Vector3(0.3, 0.3, 12.699997)
+material = SubResource("StandardMaterial3D_6p7od")
+
+[node name="wheel_spoke_5" type="CSGBox3D" parent="." unique_id=1777228121]
+transform = Transform3D(0, -0.7071068, 0.70710677, 0, 0.70710677, 0.7071068, -1, 0, 0, -62.490128, 13.509872, -4)
+size = Vector3(0.3, 0.3, 12.699999)
+material = SubResource("StandardMaterial3D_6p7od")
+
+[node name="wheel_spoke_6" type="CSGBox3D" parent="." unique_id=2069552800]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -58, 11.65, -4)
+size = Vector3(0.3, 0.3, 12.7)
+material = SubResource("StandardMaterial3D_6p7od")
+
+[node name="wheel_spoke_7" type="CSGBox3D" parent="." unique_id=1760121056]
+transform = Transform3D(0, 0.7071068, -0.70710677, 0, 0.70710677, 0.7071068, 1, 0, 0, -53.509872, 13.509872, -4)
+size = Vector3(0.3, 0.3, 12.699999)
+material = SubResource("StandardMaterial3D_6p7od")
+
+[node name="wheel_leg_a" type="CSGBox3D" parent="." unique_id=407457604]
+transform = Transform3D(0, -0.85328186, -0.52145004, 0, 0.52145004, -0.85328186, 1, 0, 0, -63.5, 9, -4)
+size = Vector3(1.2, 1.2, 21.095022)
+material = SubResource("StandardMaterial3D_6p7od")
+
+[node name="wheel_leg_b" type="CSGBox3D" parent="." unique_id=1921184682]
+transform = Transform3D(0, 0.85328186, 0.52145004, 0, 0.52145004, -0.85328186, -1, 0, 0, -52.5, 9, -4)
+size = Vector3(1.2, 1.2, 21.095022)
+material = SubResource("StandardMaterial3D_6p7od")

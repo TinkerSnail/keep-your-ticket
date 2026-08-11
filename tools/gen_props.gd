@@ -11,6 +11,7 @@ extends SceneTree
 ##   godot --headless --path . --script res://_gen_props.gd
 
 const OUT_PATH := "res://scenes/world/plaza_props.tscn"
+const SKYLINE_PATH := "res://scenes/world/plaza_skyline.tscn"
 
 var _root: Node3D
 var mats: Dictionary = {}
@@ -18,9 +19,9 @@ var mats: Dictionary = {}
 
 func _initialize() -> void:
 	_build_materials()
+
 	_root = Node3D.new()
 	_root.name = "props"
-
 	_benches()
 	_lamps()
 	_bins()
@@ -37,20 +38,32 @@ func _initialize() -> void:
 	_litter()
 	_picnic()
 	_crates()
+	if not _save(_root, OUT_PATH):
+		return
 
+	_root = Node3D.new()
+	_root.name = "skyline"
+	_skyline()
+	if not _save(_root, SKYLINE_PATH):
+		return
+
+	quit()
+
+
+func _save(node: Node3D, path: String) -> bool:
 	var packed := PackedScene.new()
-	var err := packed.pack(_root)
+	var err := packed.pack(node)
 	if err != OK:
 		push_error("pack failed: %d" % err)
 		quit(1)
-		return
-	err = ResourceSaver.save(packed, OUT_PATH)
+		return false
+	err = ResourceSaver.save(packed, path)
 	if err != OK:
 		push_error("save failed: %d" % err)
 		quit(1)
-		return
-	print("wrote %d prop nodes to %s" % [_root.get_child_count(), OUT_PATH])
-	quit()
+		return false
+	print("wrote %d nodes to %s" % [node.get_child_count(), path])
+	return true
 
 
 func _build_materials() -> void:
@@ -62,6 +75,9 @@ func _build_materials() -> void:
 		"yellow": [Color(0.93, 0.76, 0.24), 0.7, 0.0],
 		"blue": [Color(0.27, 0.5, 0.72), 0.7, 0.0],
 		"accent": [Color(0.78, 0.54, 0.42), 0.85, 0.0],
+		# Washed toward the sky so distance reads without touching the environment.
+		"far": [Color(0.66, 0.68, 0.72), 0.95, 0.0],
+		"far_warm": [Color(0.72, 0.66, 0.63), 0.95, 0.0],
 	}
 	for key in defs:
 		var m := StandardMaterial3D.new()
@@ -367,3 +383,99 @@ func _crates() -> void:
 	_box("crate_a", c, Vector3(0, 0.4, 0), Vector3(0.9, 0.8, 0.9), "wood", deg_to_rad(12.0))
 	_box("crate_b", c, Vector3(0.15, 1.12, 0.2), Vector3(0.85, 0.7, 0.85), "wood", deg_to_rad(-24.0))
 	_box("crate_c", c, Vector3(1.05, 0.35, -0.3), Vector3(0.8, 0.7, 0.8), "wood", deg_to_rad(40.0))
+
+
+# --- the park beyond the plaza ----------------------------------------------
+#
+# Silhouettes only. They sit well outside the perimeter walls, carry no
+# collision, and are never reachable — this is the view of rides, not rides.
+# Heights and distances are chosen so the perimeter buildings crop their bases,
+# so they arrive as glimpses between rooflines rather than as a skyline.
+
+
+## A box stretched between two points, oriented with Basis.looking_at so no
+## matrix is written by hand.
+func _strut(nm: String, a: Vector3, b: Vector3, thickness: float, mat: String) -> void:
+	var d := b - a
+	var len := d.length()
+	if len < 0.001:
+		return
+	var up := Vector3.UP if absf(d.normalized().dot(Vector3.UP)) < 0.99 else Vector3.FORWARD
+	var box := CSGBox3D.new()
+	box.size = Vector3(thickness, thickness, len)
+	box.material = mats[mat]
+	box.use_collision = false
+	box.transform = Transform3D(Basis.looking_at(d, up), a + d * 0.5)
+	_add(box, nm)
+
+
+func _far_cyl(nm: String, origin: Vector3, radius: float, height: float, mat: String, sides := 12) -> void:
+	var c := CSGCylinder3D.new()
+	c.radius = radius
+	c.height = height
+	c.sides = sides
+	c.material = mats[mat]
+	c.use_collision = false
+	c.transform = Transform3D(Basis.IDENTITY, origin)
+	_add(c, nm)
+
+
+## The classic wooden out-and-back: lift hill, first drop, then camelbacks.
+## Built as a profile of support columns with the track line running over them.
+func _wooden_coaster(origin: Vector3, heading: float, mat: String) -> void:
+	var profile := [3.0, 9.0, 15.0, 21.0, 26.0, 27.0, 9.0, 19.0, 8.0, 15.5, 7.0, 12.0, 6.5, 9.0, 5.0]
+	var step := 7.0
+	var dir := Basis(Vector3.UP, heading) * Vector3.FORWARD
+	var prev := Vector3.ZERO
+	for i in profile.size():
+		var foot: Vector3 = origin + dir * (i * step)
+		var h: float = profile[i]
+		_far_cyl("coaster_col_%d" % i, foot + Vector3(0, h * 0.5, 0), 0.55, h, mat, 6)
+		# cross-bracing, which is most of what reads as "wooden" at distance
+		if h > 8.0:
+			_strut("coaster_brace_%d" % i, foot + Vector3(0, 1.0, 0), foot + Vector3(0, h - 1.0, 0) + dir * 2.5, 0.35, mat)
+		var top: Vector3 = foot + Vector3(0, h, 0)
+		if i > 0:
+			_strut("coaster_track_%d" % i, prev, top, 0.7, mat)
+		prev = top
+
+
+## Slender shaft, observation deck, spire. The park's landmark.
+func _tower(origin: Vector3, mat: String, accent: String) -> void:
+	_far_cyl("tower_shaft", origin + Vector3(0, 21, 0), 1.7, 42.0, mat, 10)
+	_far_cyl("tower_deck", origin + Vector3(0, 32, 0), 5.6, 2.4, accent, 14)
+	_far_cyl("tower_deck_roof", origin + Vector3(0, 33.6, 0), 6.3, 0.7, mat, 14)
+	_far_cyl("tower_spire", origin + Vector3(0, 46, 0), 0.45, 9.0, mat, 6)
+
+
+## A wheel is a ring on two legs; the ring is what carries at distance.
+func _wheel(origin: Vector3, mat: String) -> void:
+	var hub := origin + Vector3(0, 18.0, 0)
+	var ring := CSGTorus3D.new()
+	ring.inner_radius = 12.2
+	ring.outer_radius = 13.2
+	# sides walks the big circle, ring_sides is the tube cross-section.
+	ring.sides = 28
+	ring.ring_sides = 6
+	ring.material = mats[mat]
+	ring.use_collision = false
+	# A torus lies flat by default; stand it up to face the plaza.
+	ring.transform = Transform3D(Basis(Vector3.RIGHT, PI * 0.5), hub)
+	_add(ring, "wheel_ring")
+
+	_far_cyl("wheel_hub", hub, 1.0, 2.0, mat, 8)
+	for i in 8:
+		var a := TAU * i / 8.0
+		var rim := hub + Vector3(cos(a) * 12.7, sin(a) * 12.7, 0)
+		_strut("wheel_spoke_%d" % i, hub, rim, 0.3, mat)
+	_strut("wheel_leg_a", origin + Vector3(-11, 0, 0), hub, 1.2, mat)
+	_strut("wheel_leg_b", origin + Vector3(11, 0, 0), hub, 1.2, mat)
+
+
+func _skyline() -> void:
+	# North, straight down the spawn sightline, cropped by building_north.
+	_wooden_coaster(Vector3(-22, 0, -58), deg_to_rad(72.0), "far_warm")
+	# North-east, visible over the low corner between perim_ne and building_east.
+	_tower(Vector3(54, 0, -40), "far", "far_warm")
+	# West, caught in the gap past building_west.
+	_wheel(Vector3(-58, 0, -4), "far")

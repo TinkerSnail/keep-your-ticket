@@ -8,6 +8,9 @@ extends Node
 
 const SHOTS := [
 	{"name": "spawn", "yaw": 0.0, "pitch": 0.0},
+	{"name": "sky_north", "yaw": 0.0, "pitch": 12.0},
+	{"name": "sky_ne", "yaw": -48.0, "pitch": 14.0},
+	{"name": "sky_west", "yaw": 96.0, "pitch": 10.0},
 	{"name": "east", "yaw": -70.0, "pitch": -4.0},
 	{"name": "west", "yaw": 80.0, "pitch": -4.0},
 	{"name": "back_south", "yaw": 180.0, "pitch": -4.0},

@@ -50,7 +50,7 @@ Everything routes through named input actions rather than raw device polling, wh
 ```
 scenes/
   main/     main.tscn — the scene that runs
-  world/    plaza.tscn — the greybox; plaza_props.tscn — generated park residue
+  world/    plaza.tscn — the greybox; plaza_props.tscn and plaza_skyline.tscn — generated
   player/   player.gd (walk and look), camera_tool.gd (the Instamatic)
   npc/      npc_walker.gd — waypoint loops
   ui/       viewfinder, album grid, HUD
