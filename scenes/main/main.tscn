@@ -3,7 +3,7 @@
 [ext_resource type="PackedScene" path="res://scenes/world/plaza.tscn" id="1_plaza"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="3_hud"]
-[ext_resource type="PackedScene" path="res://scenes/npc/npc_walker.tscn" id="4_npc"]
+[ext_resource type="PackedScene" path="res://scenes/world/plaza_crowd.tscn" id="4_crowd"]
 
 [node name="main" type="Node3D"]
 
@@ -12,33 +12,6 @@
 [node name="player" parent="." instance=ExtResource("2_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 16)
 
-[node name="guests" type="Node3D" parent="."]
-
-[node name="guest_a" parent="guests" instance=ExtResource("4_npc")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, -6)
-waypoints = PackedVector3Array(0, 0, 0, -14, 0, 0, -14, 0, 10, 0, 0, 10)
-speed = 1.25
-pause_at_waypoint = 1.6
-
-[node name="guest_b" parent="guests" instance=ExtResource("4_npc")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0, 20)
-waypoints = PackedVector3Array(0, 0, 0, 36, 0, 0)
-speed = 1.05
-pause_at_waypoint = 3.0
-start_delay = 1.4
-
-[node name="guest_c" parent="guests" instance=ExtResource("4_npc")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -18)
-waypoints = PackedVector3Array(0, 0, 0, -14, 0, 0, -14, 0, 14, 0, 0, 14)
-speed = 1.45
-pause_at_waypoint = 0.8
-start_delay = 2.2
-
-[node name="guest_d" parent="guests" instance=ExtResource("4_npc")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0, -21)
-waypoints = PackedVector3Array(0, 0, 0, -8, 0, 0, -8, 0, 10, 0, 0, 10)
-speed = 1.15
-pause_at_waypoint = 2.2
-start_delay = 0.6
+[node name="crowd" parent="." instance=ExtResource("4_crowd")]
 
 [node name="hud" parent="." instance=ExtResource("3_hud")]

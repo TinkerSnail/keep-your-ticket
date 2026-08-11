@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scenes/player/player.gd" id="1_player"]
 [ext_resource type="Script" path="res://scenes/player/camera_tool.gd" id="2_camera_tool"]
+[ext_resource type="Script" path="res://scenes/player/interact_tool.gd" id="3_interact_tool"]
 
 [sub_resource type="CapsuleShape3D" id="body_shape"]
 radius = 0.35
@@ -25,3 +26,6 @@ far = 400.0
 
 [node name="camera_tool" type="Node" parent="."]
 script = ExtResource("2_camera_tool")
+
+[node name="interact_tool" type="Node" parent="."]
+script = ExtResource("3_interact_tool")

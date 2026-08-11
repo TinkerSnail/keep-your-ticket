@@ -20,7 +20,20 @@ const SHOTS := [
 	{"name": "aframe_close", "yaw": 8.0, "pitch": -10.0, "pos": Vector3(2.0, 0.2, 14.0)},
 	{"name": "balloons", "yaw": -20.0, "pitch": -6.0, "pos": Vector3(4.5, 0.2, 9.5)},
 	{"name": "balloon_ground", "yaw": -144.0, "pitch": -12.0, "pos": Vector3(-1.5, 0.2, 27.5)},
+	# The crowd. Aimed at where guests are generated rather than where they end
+	# up, so these are worth re-taking after changing `SETTLE_SECONDS`.
+	{"name": "crowd_gate", "yaw": 0.0, "pitch": -3.0, "pos": Vector3(-1.5, 0.2, 30.0)},
+	{"name": "crowd_fountain", "yaw": 140.0, "pitch": -6.0, "pos": Vector3(6.0, 0.2, 10.0)},
+	{"name": "crowd_bench", "yaw": -125.0, "pitch": -8.0, "pos": Vector3(2.0, 0.2, 6.0)},
+	{"name": "crowd_band", "yaw": 55.0, "pitch": -5.0, "pos": Vector3(-6.0, 0.2, -4.0)},
+	{"name": "crowd_cafe", "yaw": -55.0, "pitch": -6.0, "pos": Vector3(11.0, 0.2, 8.0)},
+	{"name": "guest_face", "yaw": 180.0, "pitch": -4.0, "pos": Vector3(0.0, 0.2, 5.0)},
 ]
+
+## Long enough for guests to have picked a route, taken a few steps, and settled
+## their heads onto something. At one second the whole crowd is still standing
+## where it was generated, facing whichever way it was pointed.
+const SETTLE_SECONDS := 6.0
 
 
 func _ready() -> void:
@@ -30,7 +43,7 @@ func _ready() -> void:
 
 
 func _run(main: Node) -> void:
-	await get_tree().create_timer(1.0).timeout
+	await get_tree().create_timer(SETTLE_SECONDS).timeout
 
 	var player: Node3D = main.get_node_or_null("player")
 	if player == null:
