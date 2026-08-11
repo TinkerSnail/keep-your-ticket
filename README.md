@@ -36,7 +36,8 @@ Photos are written to Godot's user data directory, under `photos/`. On macOS tha
 |---|---|---|
 | Move | `W` `A` `S` `D` | Left stick |
 | Look | Mouse | Right stick |
-| Raise camera | `Space` or right mouse | `L2` |
+| Jump | `Space` | `A` / `Cross` |
+| Raise camera | `F` or right mouse | `L2` |
 | Shutter | `Enter` or left mouse | `R2` |
 | Album | `Tab` | `Y` / `Triangle` |
 

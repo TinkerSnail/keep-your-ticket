@@ -8,7 +8,7 @@ extends CanvasLayer
 
 signal album_visibility_changed(album_open: bool)
 
-const HINT_PLAYING := "[Space] camera — tap or hold    [click / Enter] shutter    [Tab] album    [Esc] free mouse"
+const HINT_PLAYING := "[F] camera — tap or hold    [click / Enter] shutter    [Space] jump    [Tab] album    [Esc] free mouse"
 const HINT_ALBUM := "[arrows / d-pad] browse    [Tab / Y] close"
 
 @onready var viewfinder: Control = $viewfinder

@@ -9,6 +9,9 @@ extends CharacterBody3D
 const GRAVITY := 24.0
 
 @export var walk_speed := 3.2
+## Enough to get onto a bench or a planter, not enough to be platforming.
+## Climbing is meant to be a route you read, not a jump you time.
+@export var jump_velocity := 6.5
 @export var acceleration := 14.0
 @export var friction := 16.0
 @export var mouse_sensitivity := 0.0022
@@ -67,6 +70,8 @@ func _physics_process(delta: float) -> void:
 
 	if is_on_floor():
 		velocity.y = 0.0
+		if _look_enabled and Input.is_action_just_pressed("jump"):
+			velocity.y = jump_velocity
 	else:
 		velocity.y -= GRAVITY * delta
 
