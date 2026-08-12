@@ -40,6 +40,32 @@ const SHOTS := [
 	{"name": "stair_head", "yaw": 62.0, "pitch": -8.0, "pos": Vector3(-34.0, 0.2, -6.0)},
 	{"name": "stair_turn", "yaw": 178.0, "pitch": -16.0, "pos": Vector3(-44.7, -0.6, -9.7)},
 	{"name": "stair_foot", "yaw": 100.0, "pitch": 2.0, "pos": Vector3(-44.7, -5.6, 5.2)},
+	# The arrival, walked in order. The first two decide whether the street
+	# works: what the gate frames from outside, and whether the plaza reads as a
+	# widening at the end of the run rather than as another room.
+	{"name": "arrive_apron", "yaw": 0.0, "pitch": 2.0, "pos": Vector3(-1.5, 0.2, 106.0)},
+	{"name": "arrive_gate", "yaw": 0.0, "pitch": 1.0, "pos": Vector3(-1.5, 0.2, 90.0)},
+	{"name": "arrive_street", "yaw": 0.0, "pitch": 2.0, "pos": Vector3(-1.5, 0.2, 62.0)},
+	{"name": "arrive_mouth", "yaw": 0.0, "pitch": 1.0, "pos": Vector3(-1.5, 0.2, 36.0)},
+	# Back the other way: the street as the thing you leave down.
+	{"name": "arrive_back", "yaw": 180.0, "pitch": -1.0, "pos": Vector3(-1.5, 0.2, 26.0)},
+	# Oblique, because a street is read off its frontage rather than its axis.
+	{"name": "arrive_shops", "yaw": 132.0, "pitch": -2.0, "pos": Vector3(-1.5, 0.2, 72.0)},
+	# Enclosure. Six openings in a 320m perimeter is roughly a quarter of the
+	# plaza's edge missing, and whether it still reads as a room rather than a
+	# crossroads is the one thing scaffolding the thresholds was for. A turn on
+	# the spot answers it and nothing else does.
+	{"name": "room_000", "yaw": 0.0, "pitch": -1.0, "pos": Vector3(3.0, 0.2, 3.0)},
+	{"name": "room_060", "yaw": -60.0, "pitch": -1.0, "pos": Vector3(3.0, 0.2, 3.0)},
+	{"name": "room_120", "yaw": -120.0, "pitch": -1.0, "pos": Vector3(3.0, 0.2, 3.0)},
+	{"name": "room_180", "yaw": 180.0, "pitch": -1.0, "pos": Vector3(3.0, 0.2, 3.0)},
+	{"name": "room_240", "yaw": 120.0, "pitch": -1.0, "pos": Vector3(3.0, 0.2, 3.0)},
+	{"name": "room_300", "yaw": 60.0, "pitch": -1.0, "pos": Vector3(3.0, 0.2, 3.0)},
+	# Each new opening from close enough to see whether the turn hides its end.
+	{"name": "way_nnw", "yaw": 0.0, "pitch": -1.0, "pos": Vector3(-13.0, 0.2, -30.0)},
+	{"name": "way_ne", "yaw": -90.0, "pitch": -1.0, "pos": Vector3(30.0, 0.2, -21.0)},
+	{"name": "way_se", "yaw": -90.0, "pitch": -1.0, "pos": Vector3(30.0, 0.2, 24.0)},
+	{"name": "way_sw", "yaw": 180.0, "pitch": -1.0, "pos": Vector3(-24.0, 0.2, 30.0)},
 ]
 
 ## The two vantages the day pass is shot from, both standing at the spawn: one

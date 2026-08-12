@@ -1,10 +1,12 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/world/plaza_props.tscn" id="1_props"]
 [ext_resource type="PackedScene" path="res://scenes/world/plaza_skyline.tscn" id="2_skyline"]
 [ext_resource type="Script" path="res://scenes/world/daylight.gd" id="3_daylight"]
 [ext_resource type="Script" path="res://scenes/world/tower_clock.gd" id="4_tower_clock"]
 [ext_resource type="PackedScene" path="res://scenes/world/west_stair.tscn" id="5_west_stair"]
+[ext_resource type="PackedScene" path="res://scenes/world/entrance.tscn" id="6_entrance"]
+[ext_resource type="PackedScene" path="res://scenes/world/thresholds.tscn" id="7_thresholds"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
 sky_top_color = Color(0.35, 0.55, 0.78, 1)
@@ -135,9 +137,9 @@ size = Vector3(1, 1, 16.4)
 material = SubResource("mat_accent")
 
 [node name="building_north" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 4.5, -28)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5, 4.5, -28)
 use_collision = true
-size = Vector3(28, 9, 10)
+size = Vector3(23, 9, 10)
 material = SubResource("mat_building")
 
 [node name="building_east" type="CSGBox3D" parent="."]
@@ -147,9 +149,9 @@ size = Vector3(12, 6, 18)
 material = SubResource("mat_building")
 
 [node name="building_south_west" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 2.5, 26)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 2.5, 26)
 use_collision = true
-size = Vector3(14, 5, 8)
+size = Vector3(10, 5, 8)
 material = SubResource("mat_building")
 
 [node name="building_south_east" type="CSGBox3D" parent="."]
@@ -246,22 +248,52 @@ use_collision = true
 size = Vector3(3, 0.9, 3)
 material = SubResource("mat_accent")
 
-[node name="wall_south" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 39)
+[node name="wall_south_far_west" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -34, 1.5, 39)
 use_collision = true
-size = Vector3(80, 3, 1)
+size = Vector3(12, 3, 1)
 material = SubResource("mat_building")
 
-[node name="wall_north" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -39)
+[node name="wall_south_west" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.5, 1.5, 39)
 use_collision = true
-size = Vector3(80, 3, 1)
+size = Vector3(11, 3, 1)
 material = SubResource("mat_building")
 
-[node name="wall_east" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 39, 1.5, 0)
+[node name="wall_south_east" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23, 1.5, 39)
 use_collision = true
-size = Vector3(1, 3, 80)
+size = Vector3(34, 3, 1)
+material = SubResource("mat_building")
+
+[node name="wall_north_west" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29.5, 1.5, -39)
+use_collision = true
+size = Vector3(21, 3, 1)
+material = SubResource("mat_building")
+
+[node name="wall_north_east" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.5, 1.5, -39)
+use_collision = true
+size = Vector3(47, 3, 1)
+material = SubResource("mat_building")
+
+[node name="wall_east_north" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 39, 1.5, -33.5)
+use_collision = true
+size = Vector3(1, 3, 13)
+material = SubResource("mat_building")
+
+[node name="wall_east_mid" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 39, 1.5, 2)
+use_collision = true
+size = Vector3(1, 3, 34)
+material = SubResource("mat_building")
+
+[node name="wall_east_south" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 39, 1.5, 34.5)
+use_collision = true
+size = Vector3(1, 3, 11)
 material = SubResource("mat_building")
 
 [node name="wall_west_north" type="CSGBox3D" parent="."]
@@ -282,16 +314,20 @@ material = SubResource("mat_building")
 
 [node name="west_stair" parent="." instance=ExtResource("5_west_stair")]
 
+[node name="entrance" parent="." instance=ExtResource("6_entrance")]
+
+[node name="thresholds" parent="." instance=ExtResource("7_thresholds")]
+
 [node name="perim_nw" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.5, 4, -27)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24.5, 4, -27)
 use_collision = true
-size = Vector3(17, 8, 8)
+size = Vector3(11, 8, 8)
 material = SubResource("mat_building")
 
 [node name="perim_ne" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 3.5, -26)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 3.5, -30.5)
 use_collision = true
-size = Vector3(14, 7, 9)
+size = Vector3(14, 7, 7)
 material = SubResource("mat_building")
 
 [node name="perim_w_north" type="CSGBox3D" parent="."]
@@ -301,9 +337,9 @@ size = Vector3(10, 6, 7)
 material = SubResource("mat_building")
 
 [node name="perim_e_north" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26, 2.75, -14)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26, 2.75, -11)
 use_collision = true
-size = Vector3(12, 5.5, 14)
+size = Vector3(12, 5.5, 8)
 material = SubResource("mat_building")
 
 [node name="perim_w_south" type="CSGBox3D" parent="."]
@@ -313,19 +349,19 @@ size = Vector3(10, 6.5, 14)
 material = SubResource("mat_building")
 
 [node name="perim_e_south" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26, 3, 17)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26, 3, 15)
 use_collision = true
-size = Vector3(12, 6, 12)
+size = Vector3(12, 6, 8)
 material = SubResource("mat_building")
 
 [node name="perim_sw_outer" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28, 2.5, 26)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32.5, 2.5, 26)
 use_collision = true
-size = Vector3(8, 5, 10)
+size = Vector3(7, 5, 10)
 material = SubResource("mat_building")
 
 [node name="perim_se_outer" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 3, 27)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 3, 32)
 use_collision = true
-size = Vector3(12, 6, 8)
+size = Vector3(12, 6, 6)
 material = SubResource("mat_building")

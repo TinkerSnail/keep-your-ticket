@@ -8,10 +8,12 @@
 [node name="main" type="Node3D"]
 
 [node name="plaza" parent="." instance=ExtResource("1_plaza")]
+groups = ["world"]
 
 [node name="player" parent="." instance=ExtResource("2_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 16)
 
 [node name="crowd" parent="." instance=ExtResource("4_crowd")]
+groups = ["world"]
 
 [node name="hud" parent="." instance=ExtResource("3_hud")]

@@ -13,6 +13,8 @@ extends SceneTree
 const OUT_PATH := "res://scenes/world/plaza_props.tscn"
 const SKYLINE_PATH := "res://scenes/world/plaza_skyline.tscn"
 const STAIR_PATH := "res://scenes/world/west_stair.tscn"
+const ENTRANCE_PATH := "res://scenes/world/entrance.tscn"
+const THRESHOLD_PATH := "res://scenes/world/thresholds.tscn"
 
 var _root: Node3D
 var mats: Dictionary = {}
@@ -56,6 +58,20 @@ func _initialize() -> void:
 	if not _save(_root, STAIR_PATH):
 		return
 
+	# The arrival. Everything south of the plaza's south wall.
+	_root = Node3D.new()
+	_root.name = "entrance"
+	_entrance()
+	if not _save(_root, ENTRANCE_PATH):
+		return
+
+	# Scaffolding, and the first thing to delete when a real section attaches.
+	_root = Node3D.new()
+	_root.name = "thresholds"
+	_thresholds()
+	if not _save(_root, THRESHOLD_PATH):
+		return
+
 	quit()
 
 
@@ -92,6 +108,9 @@ func _build_materials() -> void:
 		# is the whole point: it is what turns a low sun into a glitter path, and
 		# the reason the boardwalk went west in the first place.
 		"water": [Color(0.34, 0.44, 0.52), 0.08, 0.1],
+		# Shop glazing. Dark and a little slick, so a bay reads as a window
+		# rather than as a differently-coloured piece of the same wall.
+		"glass": [Color(0.2, 0.24, 0.29), 0.25, 0.0],
 	}
 	for key in defs:
 		var m := StandardMaterial3D.new()
@@ -738,3 +757,458 @@ func _skyline() -> void:
 	# Off the arch's centre line on purpose: from the fountain the north pier
 	# covers it, and a step or two north uncovers it.
 	_wheel(Vector3(-66, SHORE_TOP, -16), "far", PI * 0.5)
+
+
+## The arrival: everything south of the plaza's south wall.
+##
+## This is the Disney treatment, simplified. Disneyland runs Main Entrance Mall,
+## gate, Town Square, Main Street, and only then the hub — five stages before
+## you reach the middle. Three of those earn their place here: an apron outside
+## the gate, the gate, and a street. Town Square is dropped; the apron does its
+## job from the other side of the turnstiles.
+##
+## Length is the decision. Disneyland's Main Street is about 170m against a 60m
+## hub. Straight scaling would put 230m in front of an 80m plaza, which is a
+## walk the player repeats every session. 56m is the shortest run that still
+## reads as a street rather than a passage — long enough that the plaza arrives
+## as a widening, short enough that arriving is not a commute.
+const ST_X := -1.5
+const ST_HALF := 7.5
+const ST_FROM := 38.0
+const GATE_Z := 95.0
+const APRON_Z := 111.0
+
+## On the existing sightline rather than a new one. The gap in the plaza's south
+## building line already sits at x -9..6, and the fountain is at x 0 — 1.5m off
+## this centre, which at 56m is under two degrees and invisible. So the street
+## costs the plaza one cut in one wall and nothing else.
+func _entrance() -> void:
+	# Top at y=0, matching the plaza ground. Overlapped by 2m rather than butted:
+	# a coplanar butt can leave a zero-width seam for the capsule to catch on,
+	# and two floors at exactly the same height cannot produce a lip.
+	_box("entrance_ground", Vector3.ZERO, Vector3(ST_X, -0.5, 75.5),
+		Vector3(41, 1, 75), "accent", 0.0, true)
+
+	_street_frontage()
+	_street_booths()
+	_gate()
+	_apron()
+
+
+## Both sides of the street, one building deep, fronting the walk. This is the
+## midway treatment the design calls for: the corridor between the gate and the
+## plaza is where the small commerce lives, not a section of its own.
+##
+## Depths and heights vary per building so the run reads as a street of separate
+## businesses. A constant depth gives two long walls, which is what the boardwalk
+## frontage got wrong at close range.
+func _street_frontage() -> void:
+	# Kinds alternate across the street rather than down it, so neither side is a
+	# run of the same thing and the arcades face something other than each other.
+	var west := [
+		[44.0, 10.0, 9.0, 6.5, "far_warm", "store"],
+		[55.0, 11.0, 10.0, 5.0, "accent", "cafe"],
+		[66.0, 10.0, 8.0, 7.0, "far_warm", "arcade"],
+		[76.0, 9.0, 9.5, 5.5, "white", "store"],
+		[87.0, 12.0, 8.5, 6.0, "accent", "cafe"],
+	]
+	var east := [
+		[45.0, 11.0, 9.0, 5.5, "accent", "cafe"],
+		[57.0, 12.0, 10.0, 7.0, "far_warm", "store"],
+		[69.0, 11.0, 8.0, 5.0, "white", "arcade"],
+		[80.0, 10.0, 9.0, 6.5, "accent", "store"],
+		[90.0, 9.0, 8.5, 5.5, "far_warm", "cafe"],
+	]
+	_shopfronts(west, -1.0, 0)
+	_shopfronts(east, 1.0, 10)
+
+
+## `side` is -1 for the west range and +1 for the east. Buildings grow away from
+## the street so the frontage line stays straight whatever the depth.
+func _shopfronts(rows: Array, side: float, id_from: int) -> void:
+	var face := ST_X + side * ST_HALF
+	var n := id_from
+	for row in rows:
+		var z: float = row[0]
+		var length: float = row[1]
+		var depth: float = row[2]
+		var height: float = row[3]
+		var mat: String = row[4]
+		var kind: String = row[5]
+		var cx := face + side * depth * 0.5
+		var walk_in: bool = kind == "arcade" and side < 0.0
+		if walk_in:
+			_arcade_room(face, z, length)
+		else:
+			_box("shop_%d" % n, Vector3.ZERO, Vector3(cx, height * 0.5, z),
+				Vector3(depth, height, length), mat)
+		# A parapet lip, so the roofline is an edge rather than the top of a slab.
+		if not walk_in:
+			_box("shop_%d_cap" % n, Vector3.ZERO, Vector3(cx, height + 0.2, z),
+				Vector3(depth + 0.5, 0.4, length + 0.5), "far_shade", 0.0, false)
+		# The canopy is what makes this a street instead of two walls. It sits
+		# above head height and carries no collision — walking into shade should
+		# not be walking into a wall.
+		_box("shop_%d_awning" % n, Vector3.ZERO,
+			Vector3(face + side * 0.9, 3.1, z),
+			Vector3(1.8, 0.18, length - 1.5), "red", 0.0, false)
+		_cyl("shop_%d_post_a" % n, Vector3.ZERO,
+			Vector3(face + side * 1.7, 1.55, z - length * 0.5 + 1.0),
+			0.08, 3.1, "metal", 0.0, 6, false)
+		_cyl("shop_%d_post_b" % n, Vector3.ZERO,
+			Vector3(face + side * 1.7, 1.55, z + length * 0.5 - 1.0),
+			0.08, 3.1, "metal", 0.0, 6, false)
+		# The front itself, turned to look across the street. Narrower than the
+		# building so the frontage line has joints in it.
+		var theta := -side * PI * 0.5
+		_front("shop_%d" % n, Vector3(face, 0.0, z), theta,
+			minf(length - 2.0, 7.5), kind, not walk_in)
+		n += 1
+
+
+## Turnstiles under a canopy. The threshold is a squeeze between two booths
+## rather than a doorway: you can see the whole street through it from outside,
+## which is the opposite of the west stair's job and deliberately so. Arrival
+## should promise; a section boundary should hide.
+func _gate() -> void:
+	var west_c := ST_X - ST_HALF + 2.25
+	var east_c := ST_X + ST_HALF - 2.25
+	_box("gate_booth_west", Vector3.ZERO, Vector3(west_c, 1.75, GATE_Z),
+		Vector3(4.5, 3.5, 4.0), "white")
+	_box("gate_booth_east", Vector3.ZERO, Vector3(east_c, 1.75, GATE_Z),
+		Vector3(4.5, 3.5, 4.0), "white")
+	_box("gate_canopy", Vector3.ZERO, Vector3(ST_X, 4.3, GATE_Z),
+		Vector3(ST_HALF * 2.0 + 1.0, 0.5, 5.5), "red", 0.0, false)
+	_cyl("gate_post_west", Vector3.ZERO,
+		Vector3(ST_X - ST_HALF - 0.2, 2.15, GATE_Z), 0.14, 4.3, "metal")
+	_cyl("gate_post_east", Vector3.ZERO,
+		Vector3(ST_X + ST_HALF + 0.2, 2.15, GATE_Z), 0.14, 4.3, "metal")
+	# The name board, read from the apron on the way in.
+	_box("gate_sign", Vector3.ZERO, Vector3(ST_X, 5.6, GATE_Z + 2.6),
+		Vector3(9.0, 2.0, 0.3), "yellow", 0.0, false)
+	# Stiles in the opening. Waist height and solid, so the gap reads as a count
+	# of lanes rather than a hole.
+	#
+	# Two dividers, not three, and neither on ST_X. Three evenly spaced stiles
+	# put one dead centre — a post in the middle of the doorway, on the exact
+	# line the street is aimed down. Two put a lane on the axis instead, which
+	# is what the walk into the park should find.
+	for i in range(2):
+		var x := ST_X - 1.0 + float(i) * 2.0
+		_box("stile_%d" % i, Vector3.ZERO, Vector3(x, 0.5, GATE_Z),
+			Vector3(0.25, 1.0, 3.4), "metal")
+
+
+## Outside the turnstiles. This is the piece the star scheme kept pointing at —
+## a place to arrive that is not yet the park. Closed at the south, because the
+## player does not get to leave: the parking lot is a view, not a destination.
+func _apron() -> void:
+	for i in range(6):
+		var x := ST_X - 15.0 + float(i) * 6.0
+		_cyl("apron_pole_%d" % i, Vector3.ZERO, Vector3(x, 4.0, GATE_Z + 9.0),
+			0.12, 8.0, "white", 0.0, 8)
+	_box("apron_planter_west", Vector3.ZERO, Vector3(ST_X - 13.0, 0.3, GATE_Z + 5.0),
+		Vector3(7.0, 0.6, 3.0), "accent")
+	_box("apron_planter_east", Vector3.ZERO, Vector3(ST_X + 13.0, 0.3, GATE_Z + 5.0),
+		Vector3(7.0, 0.6, 3.0), "accent")
+	# The far edge. Waist-high so the parking beyond stays visible over it, and
+	# solid because there is nothing walkable past it.
+	_box("apron_rail", Vector3.ZERO, Vector3(ST_X, 0.55, APRON_Z),
+		Vector3(41.0, 1.1, 0.4), "metal")
+	_box("apron_wall_west", Vector3.ZERO, Vector3(ST_X - 20.3, 1.5, 104.0),
+		Vector3(0.4, 3.0, 15.0), "far_shade")
+	_box("apron_wall_east", Vector3.ZERO, Vector3(ST_X + 17.3, 1.5, 104.0),
+		Vector3(0.4, 3.0, 15.0), "far_shade")
+
+	# The parking lot, which is a backdrop. No collision, never reached.
+	_box("lot_ground", Vector3.ZERO, Vector3(ST_X, -0.6, 145.0),
+		Vector3(150.0, 1.0, 68.0), "far_shade", 0.0, false)
+	var n := 0
+	for row in range(4):
+		for col in range(14):
+			var x := ST_X - 45.0 + float(col) * 7.0
+			var z := 120.0 + float(row) * 12.0
+			_box("car_%d" % n, Vector3.ZERO, Vector3(x, 0.7, z),
+				Vector3(1.9, 1.4, 4.4), "far" if (n % 3) else "far_warm",
+				0.0, false)
+			n += 1
+	for i in range(9):
+		_cyl("lot_tree_%d" % i, Vector3.ZERO,
+			Vector3(ST_X - 48.0 + float(i) * 12.0, 3.5, 116.0),
+			1.6, 7.0, "far_shade", 0.0, 6, false)
+
+
+## Scaffolding: a short passage out of each of the four section openings.
+##
+## These exist to test one thing — whether an 80m plaza survives being punched
+## six times. Enclosure is what makes it a room rather than a crossroads, and
+## the milestone's "yes" was measured on a plaza with two ways out.
+##
+## Not gates. A park does not padlock its own paths during opening hours, and a
+## shut gate across a main way reads as closed rather than as unbuilt — which is
+## the wrong thing to say about a park whose whole pitch is that it is open and
+## everyone is having a nice time.
+##
+## So each one turns instead. Nine metres out, a bend, seven more, and a wall
+## you cannot see from the plaza. The player walks in, finds the way carries on
+## somewhere, and does not find a refusal. It is the same trick the west stair
+## plays, and it is where the section will attach: the bend is the seam.
+##
+## Bearings are approximate on purpose. The star is a skeleton — points anchor a
+## section's centre line, edges are free — so these sit where the perimeter had
+## room rather than on exact rays. From the fountain: roughly 342, 62, 121 and
+## 211 degrees, against a west arch at 273 and the entrance street at 182.
+const THRESHOLDS := [
+	{"name": "nnw", "at": Vector3(-13.0, 0.0, -39.5), "theta": PI, "width": 12.0, "turn": 1.0},
+	{"name": "ne", "at": Vector3(39.5, 0.0, -21.0), "theta": PI * 0.5, "width": 12.0, "turn": 1.0},
+	{"name": "se", "at": Vector3(39.5, 0.0, 24.0), "theta": PI * 0.5, "width": 10.0, "turn": -1.0},
+	{"name": "sw", "at": Vector3(-24.0, 0.0, 39.5), "theta": 0.0, "width": 8.0, "turn": -1.0},
+]
+
+const REACH := 9.0
+const BEND := 7.0
+
+
+func _thresholds() -> void:
+	for t in THRESHOLDS:
+		_passage(t["name"], t["at"], t["theta"], t["width"], t["turn"])
+
+
+## Local +Z is out of the plaza, local +X is the direction of the turn, and
+## `turn` flips which way that is. Built in local space and rotated once, so the
+## four of them are the same shape rather than four hand-placed near-misses.
+func _passage(nm: String, base: Vector3, theta: float, w: float, turn: float) -> void:
+	var n := w * 0.5
+	var t := turn
+
+	# Floors. Tops at y=0 to match the plaza, and the first one overlaps back
+	# under the wall line so there is no seam at the threshold.
+	_box("way_%s_floor_a" % nm, base, Vector3(0, -0.5, REACH * 0.5 - 0.5),
+		Vector3(w, 1, REACH + 1.0), "accent", theta)
+	_box("way_%s_floor_b" % nm, base,
+		Vector3(t * (n + BEND * 0.5), -0.5, REACH - w * 0.5),
+		Vector3(BEND, 1, w), "accent", theta)
+
+	# The wall on the outside of the bend runs the whole way; the one on the
+	# inside stops short, and that gap is the turn.
+	_box("way_%s_side_far" % nm, base, Vector3(-t * (n + 0.25), 1.75, REACH * 0.5),
+		Vector3(0.5, 3.5, REACH), "far_warm", theta)
+	_box("way_%s_side_near" % nm, base,
+		Vector3(t * (n + 0.25), 1.75, (REACH - w) * 0.5),
+		Vector3(0.5, 3.5, REACH - w), "far_warm", theta)
+
+	# Straight ahead as you come through the opening. This is what makes the
+	# passage a turn rather than a corridor: from the plaza it reads as a wall
+	# with somewhere behind it, not as a view of a dead end.
+	_box("way_%s_ahead" % nm, base, Vector3(t * BEND * 0.5, 1.75, REACH + 0.25),
+		Vector3(w + BEND + 1.0, 3.5, 0.5), "far_warm", theta)
+	_box("way_%s_inner" % nm, base,
+		Vector3(t * (n + BEND * 0.5 + 0.25), 1.75, REACH - w - 0.25),
+		Vector3(BEND + 0.5, 3.5, 0.5), "far_warm", theta)
+	# The end, only visible once you have made the turn. Where a section joins.
+	_box("way_%s_end" % nm, base,
+		Vector3(t * (n + BEND + 0.25), 1.75, REACH - w * 0.5),
+		Vector3(0.5, 3.5, w), "far_shade", theta)
+
+	# What you meet on walking in. An arcade, because an open dark mouth says the
+	# park carries on through here better than a sign saying so — and because a
+	# blank wall at the head of a passage is the thing that made these read as
+	# service alcoves rather than as somewhere to go.
+	_front("way_%s_arcade" % nm, _place(base, Vector3(0, 0, REACH), theta),
+		theta + PI, minf(w - 1.0, 7.0), "arcade")
+	# And one along the flank, so the passage has two sides worth looking at.
+	_front("way_%s_shop" % nm, _place(base, Vector3(-t * n, 0, REACH * 0.45), theta),
+		theta + t * PI * 0.5, 5.0, "cafe" if t > 0.0 else "store")
+
+## A frontage stamped onto an existing wall. Local +Z faces out into the space
+## the front is read from.
+##
+## Three kinds, and they differ in how open they are, which is the whole point:
+## a store is glazed and shut, a cafe spills furniture into the walk, an arcade
+## has no front at all — just a dark mouth with machines in it. Read down a
+## street they give the run a rhythm that varying the building heights cannot.
+##
+## Nothing stamped here collides. The wall behind already stops the player, and
+## a bulkhead standing a quarter-metre proud would be a ledge running the length
+## of the street — steppable, but a snag every few metres for nothing. Only
+## furniture genuinely standing in the walkway collides.
+##
+## Recess is faked with relief rather than cut, because CSG in separate scenes
+## cannot subtract: piers standing proud of a dark bay throw a shadow across it,
+## and at street distance that reads as depth.
+func _front(nm: String, at: Vector3, theta: float, width: float, kind: String,
+		solid := true) -> void:
+	var n := width * 0.5
+	var open_front := kind == "arcade"
+
+	_box("%s_pier_l" % nm, at, Vector3(-n + 0.15, 1.7, 0.15), Vector3(0.3, 3.4, 0.3),
+		"white", theta, false)
+	_box("%s_pier_r" % nm, at, Vector3(n - 0.15, 1.7, 0.15), Vector3(0.3, 3.4, 0.3),
+		"white", theta, false)
+
+	if open_front:
+		# A faked mouth only where there is nothing behind the wall. Where the
+		# room is real the doorway is a real hole, and a hole is darker than any
+		# panel imitating one.
+		if solid:
+			_box("%s_mouth" % nm, at, Vector3(0, 1.35, 0.02), Vector3(width - 0.7, 2.7, 0.06),
+				"glass", theta, false)
+		_box("%s_soffit" % nm, at, Vector3(0, 2.85, 0.24), Vector3(width - 0.7, 0.3, 0.5),
+			"far_shade", theta, false)
+		# Cabinets just inside, in a row facing out. Silhouettes at this size, but
+		# they are the difference between a dark rectangle and somewhere to go.
+		var cabs := 0 if not solid else maxi(2, int((width - 1.6) / 1.1))
+		for i in range(cabs):
+			var x := -n + 1.0 + float(i) * ((width - 2.0) / maxf(1.0, float(cabs - 1)))
+			_box("%s_cab_%d" % [nm, i], at, Vector3(x, 0.8, 0.42),
+				Vector3(0.72, 1.6, 0.6), "far_shade", theta, false)
+			_box("%s_cab_%d_screen" % [nm, i], at, Vector3(x, 1.25, 0.73),
+				Vector3(0.5, 0.42, 0.06), "blue", theta, false)
+	else:
+		_box("%s_glass" % nm, at, Vector3(0, 1.7, 0.05), Vector3(width - 0.7, 2.1, 0.1),
+			"glass", theta, false)
+		_box("%s_bulkhead" % nm, at, Vector3(0, 0.45, 0.12), Vector3(width - 0.7, 0.9, 0.24),
+			"accent", theta, false)
+		# Off to one side. Centred, a door makes the unit read as a symmetrical
+		# shed; off-centre it reads as a building somebody laid out.
+		_box("%s_door" % nm, at, Vector3(n - 1.1, 1.05, 0.07), Vector3(1.0, 2.1, 0.14),
+			"wood", theta, false)
+
+	# Marquee for an arcade, plain fascia for the rest.
+	var band := 0.9 if open_front else 0.55
+	var y := 3.7 if open_front else 3.55
+	var sign_mat := "red"
+	if kind == "cafe":
+		sign_mat = "yellow"
+	elif kind == "store":
+		sign_mat = "blue"
+	_box("%s_fascia" % nm, at, Vector3(0, y, 0.16), Vector3(width, band, 0.32),
+		"white", theta, false)
+	_box("%s_sign" % nm, at, Vector3(0, y, 0.36), Vector3(width * 0.6, band * 0.7, 0.1),
+		sign_mat, theta, false)
+
+	if kind == "cafe":
+		for i in range(2):
+			var x := -n + 1.4 + float(i) * (width - 2.8)
+			_cyl("%s_table_%d" % [nm, i], at, Vector3(x, 0.37, 1.5), 0.36, 0.74,
+				"white", theta, 10)
+			_cyl("%s_table_%d_leg" % [nm, i], at, Vector3(x, 0.18, 1.5), 0.1, 0.36,
+				"metal", theta, 6, false)
+			for j in range(2):
+				var sx := x + (-0.75 if j == 0 else 0.75)
+				_cyl("%s_stool_%d_%d" % [nm, i, j], at, Vector3(sx, 0.24, 1.5),
+					0.18, 0.48, "wood", theta, 8)
+
+## An open-air booth. No door, no interior, no load — a counter facing the walk,
+## a back wall of prizes, and a canopy over it.
+##
+## This is what most park games actually are, and it is the shape that suits
+## this one best: the player and the crowd stay in the same space, so a game
+## being played is a thing other guests stand and watch, which is a photograph.
+## A door would take all of that indoors and leave the walk emptier.
+##
+## Doors are for what genuinely wants to be inside — the arcade is dark and
+## loud, and that is the whole reason it gets one.
+func _booth(nm: String, base: Vector3, theta: float, width: float, mat: String) -> void:
+	var n := width * 0.5
+	var depth := 3.2
+
+	_box(nm + "_back", base, Vector3(0, 1.6, -depth * 0.5), Vector3(width, 3.2, 0.3), mat, theta)
+	_box(nm + "_side_l", base, Vector3(-n + 0.15, 1.6, 0), Vector3(0.3, 3.2, depth), mat, theta)
+	_box(nm + "_side_r", base, Vector3(n - 0.15, 1.6, 0), Vector3(0.3, 3.2, depth), mat, theta)
+	# Waist high and solid: the counter is the thing that makes it a booth rather
+	# than a shed, and the thing the player leans on to shoot across.
+	_box(nm + "_counter", base, Vector3(0, 0.55, depth * 0.5 - 0.3),
+		Vector3(width - 0.6, 1.1, 0.6), "wood", theta)
+	_box(nm + "_counter_top", base, Vector3(0, 1.14, depth * 0.5 - 0.3),
+		Vector3(width - 0.3, 0.1, 0.8), "white", theta, false)
+	_box(nm + "_canopy", base, Vector3(0, 3.3, 0.1), Vector3(width + 0.8, 0.25, depth + 1.0),
+		"red", theta, false)
+	_box(nm + "_valance", base, Vector3(0, 2.95, depth * 0.5 + 0.55),
+		Vector3(width + 0.8, 0.5, 0.15), "yellow", theta, false)
+
+	# The prize wall. Rows of small blocks read as stuffed toys at ten metres,
+	# which is the distance this is meant to be photographed from.
+	var cols := maxi(3, int(width / 0.8))
+	for r in range(2):
+		for c in range(cols):
+			var x := -n + 0.7 + float(c) * ((width - 1.4) / maxf(1.0, float(cols - 1)))
+			_box("%s_prize_%d_%d" % [nm, r, c], base,
+				Vector3(x, 1.7 + float(r) * 0.65, -depth * 0.5 + 0.35),
+				Vector3(0.42, 0.5, 0.3),
+				["yellow", "blue", "white", "red"][(r * cols + c) % 4], theta, false)
+
+
+## Freestanding on the walk rather than against a wall, so the street has
+## something in the middle of it and a reason to weave.
+func _street_booths() -> void:
+	_booth("booth_ring", Vector3(ST_X - 4.2, 0.0, 52.0), PI * 0.5, 4.5, "far_warm")
+	_booth("booth_darts", Vector3(ST_X + 4.2, 0.0, 63.0), -PI * 0.5, 4.5, "accent")
+	_booth("booth_hoops", Vector3(ST_X - 4.2, 0.0, 79.0), PI * 0.5, 4.0, "accent")
+
+
+## The arcade, built where it stands rather than swapped in behind a door.
+##
+## First person means the room and the street are never both in view, so there
+## is nothing to gain by loading one and unloading the other — and a doorway you
+## walk straight through beats one that cuts. Zelda loaded its shops because the
+## N64 had four megabytes, which is a fact about 1998 and not a design idea.
+##
+## CSG in separate scenes cannot subtract, so the doorway is not cut: the front
+## wall is built as two cheeks and a lintel, and the gap between them is the way
+## in. Everything here is one scene with the street, which is the whole point.
+const ARC_BACK := -29.0
+const ARC_TALL := 4.4
+const ARC_DOOR := 5.0
+
+
+func _arcade_room(face: float, z: float, length: float) -> void:
+	var depth := face - ARC_BACK
+	var mid := (face + ARC_BACK) * 0.5
+	var half := length * 0.5
+	var dn := z - ARC_DOOR * 0.5
+	var ds := z + ARC_DOOR * 0.5
+
+	_box("arc_floor", Vector3.ZERO, Vector3(mid, -0.25, z),
+		Vector3(depth, 0.5, length), "far_shade")
+	_box("arc_roof", Vector3.ZERO, Vector3(mid, ARC_TALL + 0.2, z),
+		Vector3(depth + 0.6, 0.4, length + 0.6), "far_warm")
+	_box("arc_back", Vector3.ZERO, Vector3(ARC_BACK - 0.25, ARC_TALL * 0.5, z),
+		Vector3(0.5, ARC_TALL, length), "accent")
+	_box("arc_wall_n", Vector3.ZERO, Vector3(mid, ARC_TALL * 0.5, z - half + 0.25),
+		Vector3(depth, ARC_TALL, 0.5), "accent")
+	_box("arc_wall_s", Vector3.ZERO, Vector3(mid, ARC_TALL * 0.5, z + half - 0.25),
+		Vector3(depth, ARC_TALL, 0.5), "accent")
+
+	# The front, in three pieces. The gap is the door.
+	var cheek := (length - ARC_DOOR) * 0.5
+	_box("arc_cheek_n", Vector3.ZERO, Vector3(face - 0.25, ARC_TALL * 0.5, dn - cheek * 0.5),
+		Vector3(0.5, ARC_TALL, cheek), "far_warm")
+	_box("arc_cheek_s", Vector3.ZERO, Vector3(face - 0.25, ARC_TALL * 0.5, ds + cheek * 0.5),
+		Vector3(0.5, ARC_TALL, cheek), "far_warm")
+	_box("arc_lintel", Vector3.ZERO, Vector3(face - 0.25, 3.5, z),
+		Vector3(0.5, 1.8, ARC_DOOR), "far_warm")
+
+	# Cabinets down both flanks, facing the aisle, clear of the door line.
+	for row in range(2):
+		var x := ARC_BACK + 1.1 if row == 0 else face - 1.1
+		var facing := -1.0 if row == 0 else 1.0
+		for i in range(4):
+			var cz := z - half + 1.6 + float(i) * ((length - 3.2) / 3.0)
+			if row == 1 and cz > dn - 0.8 and cz < ds + 0.8:
+				continue
+			var nm := "arc_cab_%d_%d" % [row, i]
+			_box(nm, Vector3.ZERO, Vector3(x, 0.85, cz), Vector3(0.9, 1.7, 0.8), "far_shade")
+			_box(nm + "_screen", Vector3.ZERO, Vector3(x + facing * 0.5, 1.3, cz),
+				Vector3(0.1, 0.5, 0.6), "blue", 0.0, false)
+			_box(nm + "_top", Vector3.ZERO, Vector3(x + facing * 0.1, 1.85, cz),
+				Vector3(0.75, 0.3, 0.75), "red", 0.0, false)
+
+	# The counter and the change machine, which is what anybody is actually
+	# queueing for. Both are subjects before they are anything else.
+	_box("arc_counter", Vector3.ZERO, Vector3(mid + 2.0, 0.55, z - half + 1.0),
+		Vector3(4.5, 1.1, 0.9), "wood")
+	_box("arc_counter_top", Vector3.ZERO, Vector3(mid + 2.0, 1.15, z - half + 1.0),
+		Vector3(4.9, 0.12, 1.1), "white", 0.0, false)
+	_box("arc_change", Vector3.ZERO, Vector3(ARC_BACK + 0.9, 0.9, z + half - 1.1),
+		Vector3(0.9, 1.8, 0.7), "red")
