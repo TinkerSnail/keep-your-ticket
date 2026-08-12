@@ -10,6 +10,8 @@ signal album_visibility_changed(album_open: bool)
 
 const HINT_PLAYING := "[F] camera — tap or hold    [click / Enter] shutter    [E] ask    [V] view    [Space] jump    [Tab] album    [Esc] free mouse"
 const HINT_ALBUM := "[arrows / d-pad] browse    [Tab / Y] close"
+## Matches the raise. Fast enough not to be a transition anyone waits through.
+const HINT_FADE := 0.16
 
 @onready var viewfinder: Control = $viewfinder
 @onready var lines: Control = $viewfinder/lines
@@ -18,6 +20,8 @@ const HINT_ALBUM := "[arrows / d-pad] browse    [Tab / Y] close"
 @onready var album_view: Control = $album_view
 
 var _capturing := false
+var _hint_tween: Tween
+var _raised := false
 
 
 func _ready() -> void:
@@ -72,14 +76,40 @@ func _notification(what: int) -> void:
 
 func _set_album_open(album_open: bool) -> void:
 	album_view.visible = album_open
-	if album_open:
-		viewfinder.visible = false
 	hint.text = HINT_ALBUM if album_open else HINT_PLAYING
+	_apply_overlays()
 	album_visibility_changed.emit(album_open)
 
 
 func _on_raised_changed(raised: bool) -> void:
-	viewfinder.visible = raised and not album_view.visible
+	_raised = raised
+	_apply_overlays()
+
+
+## One place decides what is on screen, from the camera and the album rather
+## than from whichever of them changed last.
+##
+## Opening the album used to set the finder invisible directly and nothing ever
+## set it back, so raising the camera, opening the album and closing it again
+## left the finder gone until it was toggled twice — the tool still believed it
+## was raised, and only the overlay had been switched off behind its back.
+func _apply_overlays() -> void:
+	viewfinder.visible = _raised and not album_view.visible
+	# The hint goes out while the camera is up. It sat in the black surround,
+	# which is the inside of the camera body — the one part of the frame meant
+	# to read as an object rather than as a screen, and a line of bracketed key
+	# names there undoes the whole tunnel.
+	_fade_hint(not viewfinder.visible)
+
+
+## Faded rather than switched, because a label vanishing on the same frame the
+## finder appears reads as a glitch, and because the raise is already a tween.
+func _fade_hint(shown: bool) -> void:
+	if _hint_tween != null and _hint_tween.is_valid():
+		_hint_tween.kill()
+	_hint_tween = create_tween()
+	_hint_tween.set_ease(Tween.EASE_OUT)
+	_hint_tween.tween_property(hint, "modulate:a", 1.0 if shown else 0.0, HINT_FADE)
 
 
 func _on_shutter_requested() -> void:
