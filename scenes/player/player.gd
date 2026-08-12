@@ -25,6 +25,23 @@ const STEP_HEIGHT := 0.35
 @export var stick_sensitivity := 2.8
 @export var pitch_limit_degrees := 88.0
 
+## How far up the walking view may be pitched, which is much less than the eye.
+##
+## A third-person camera orbits: pitching up swings the arm down. At 88 degrees
+## the arm is pointing almost straight at the ground, so it collides and pulls
+## in to eighteen centimetres — the camera ends at ankle height, looking almost
+## vertically at the underside of the photographer with nothing but sky behind
+## them. It reads exactly like falling through the floor, and it was reported as
+## that, but the arm is doing its job: measured across the range, it shortens
+## from 2.60 to 1.42 and the camera never goes below y = +0.18.
+##
+## So this is not a collision fix, it is a clamp. Fifty-two degrees is as far up
+## as the arm can swing while still clearing the ground at its full length.
+##
+## The eye keeps the full 88. Looking straight up through the finder is how you
+## photograph the top of a coaster, and there is no arm to collapse.
+@export var third_pitch_limit_degrees := 52.0
+
 ## What the raise costs. Up to now putting the camera up was free — it added an
 ## overlay and took nothing away, so there was never a reason to put it down.
 ## The finder is a tunnel: you walk at a shuffle, you turn deliberately, and the
@@ -59,6 +76,21 @@ const STEP_HEIGHT := 0.35
 ## swing sideways into whatever pinched it.
 @export var shoulder_offset := 0.42
 
+## The arm pulls in as the view pitches up, and this is why the clamp above can
+## afford to be as generous as it is.
+##
+## A 2.6m arm swinging from a 1.72m pivot reaches the ground at about 40
+## degrees, and is already at waist height by 20 — measured, not guessed. So no
+## clamp alone gives both a usable range and a camera that stays off the floor;
+## at any angle worth having, a pure orbit is under the player looking up at
+## them. Tapering the arm instead means looking up tucks the camera in behind
+## the head rather than swinging it down past the knees, which is also what it
+## looks like when somebody leans back to see the top of something.
+##
+## The full length is read off the scene at load, so the arm's resting length
+## stays a property of the scene and this is only how far it collapses.
+@export var third_arm_close := 1.1
+
 const LOOK_SETTLE_FRAMES := 2
 const LOOK_JUMP_LIMIT := 400.0
 
@@ -88,6 +120,8 @@ var _fov_tween: Tween
 ## itself, not the player. Two frames is enough to swallow it and short enough
 ## that a genuine movement started in the same breath is not lost.
 var _look_settle := 0
+var _pitch_tween: Tween
+var _arm_length := 2.6
 var _was_captured := false
 
 
@@ -97,6 +131,7 @@ func _ready() -> void:
 	# Otherwise the arm collides with the body it is attached to and collapses
 	# to zero the moment it is switched on.
 	spring.add_excluded_object(get_rid())
+	_arm_length = spring.spring_length
 	_apply_view()
 	call_deferred("_connect_ui")
 
@@ -140,6 +175,27 @@ func _apply_view() -> void:
 	# the frame in the late light.
 	body.set_seen(behind and spring.get_hit_length() > body_fade_length)
 	body.set_raised(_shooting)
+	_settle_pitch()
+
+
+## Coming back to the walking view from a steep look up — lowering the camera
+## after shooting something overhead — leaves the pitch outside what the arm can
+## take. Eased rather than snapped, over the same beat as the raise, so it reads
+## as part of putting the camera down rather than as the view being grabbed.
+func _settle_pitch() -> void:
+	var ceiling := _pitch_ceiling()
+	if _pitch <= ceiling + 0.0001:
+		return
+	if _pitch_tween != null and _pitch_tween.is_valid():
+		_pitch_tween.kill()
+	_pitch_tween = create_tween()
+	_pitch_tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	_pitch_tween.tween_method(_set_pitch, _pitch, ceiling, raise_seconds)
+
+
+func _set_pitch(value: float) -> void:
+	_pitch = value
+	head.rotation.x = _pitch
 
 
 func _tween_fov() -> void:
@@ -236,6 +292,8 @@ func _physics_process(delta: float) -> void:
 	# The arm length is decided by whatever is behind the player, which changes
 	# every step, so this cannot live in `_apply_view` with the rest of it.
 	if camera_third.current:
+		var up := clampf(_pitch / maxf(_pitch_ceiling(), 0.001), 0.0, 1.0)
+		spring.spring_length = lerpf(_arm_length, third_arm_close, up)
 		var reach := spring.get_hit_length()
 		camera_third.position.x = shoulder_offset * clampf(reach / spring.spring_length, 0.0, 1.0)
 		body.set_seen(reach > body_fade_length)
@@ -263,11 +321,26 @@ func _try_step(wanted: Vector3, delta: float) -> void:
 
 
 func _apply_look(yaw_delta: float, pitch_delta: float) -> void:
+	# Whoever is looking wins. Otherwise the settle keeps yanking the view back
+	# for a fifth of a second after the player has started aiming somewhere.
+	if _pitch_tween != null and _pitch_tween.is_valid():
+		_pitch_tween.kill()
 	var scale := raised_look_scale if _shooting else 1.0
 	rotate_y(yaw_delta * scale)
-	var limit := deg_to_rad(pitch_limit_degrees)
-	_pitch = clampf(_pitch + pitch_delta * scale, -limit, limit)
+	_pitch = clampf(_pitch + pitch_delta * scale, -_pitch_floor(), _pitch_ceiling())
 	head.rotation.x = _pitch
+
+
+## Looking down is the same in both views — the arm swings up and over, and
+## there is nothing above the player to collide with. Only the up end differs.
+func _pitch_ceiling() -> float:
+	if third_person and not _shooting:
+		return deg_to_rad(third_pitch_limit_degrees)
+	return deg_to_rad(pitch_limit_degrees)
+
+
+func _pitch_floor() -> float:
+	return deg_to_rad(pitch_limit_degrees)
 
 
 func _on_album_visibility_changed(album_open: bool) -> void:
