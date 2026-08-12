@@ -84,24 +84,59 @@ const SIZE_TITLE := 52
 
 ## Ink and paper. The map is a printed object and stays paper — white-on-black
 ## is the one thing that has never been true of any park map ever handed out.
-const INK := Color("14110c")
-const PAPER := Color("f2e6c4")
-const PAPER_LINE := Color("7a6a49")
+##
+## The ink is a warm near-black rather than a neutral one. Cartoon outlines are
+## never grey and never blue-black; they are the colour of a brush loaded with
+## black ink over warm paper, and a neutral #111 next to a saturated fill reads
+## as a UI border instead of a drawn line.
+const INK := Color("17100a")
+const PAPER := Color("f7e7bd")
+const PAPER_LINE := Color("8a7040")
 
 ## The chrome. A saturated blue plaque you can still see the park through, which
 ## is the Squaresoft half — their boxes are dark but they read as glass rather
 ## than as a hole in the screen, and the difference is entirely that you can
 ## make out what is behind them.
-const PANEL := Color(0.106, 0.184, 0.451, 0.82)
-const PANEL_HI := Color("7aa6e8")
-const PANEL_LO := Color("0a1230")
+## It stays blue, and blue is the right canvas precisely because none of the
+## three references is blue — Looney Tunes, DKC and Banjo-Kazooie are all warm,
+## gold-forward and green. A warm panel under a gold accent is gold on gold, and
+## the accent stops being an accent. The blue is what makes the gold read.
+##
+## But it is a far more saturated blue than it was. The old value was a cool
+## desaturated navy, which is a Squaresoft colour rather than a cartoon one, and
+## it made every tab tint sitting on it look muted by association.
+const PANEL := Color(0.098, 0.161, 0.541, 0.84)
+const PANEL_HI := Color("6fa8ff")
+const PANEL_LO := Color("070d2e")
 
-## Gold. Donkey Kong Country's, and already the game's — this is the value the
-## HUD prompts have been colouring key names with since they were written, so
-## `hud.gd` reads it from here rather than keeping its own copy.
-const ACCENT := Color("eec84a")
-const TEXT := Color("fbf6e6")
-const DIM := Color("8fa2c4")
+## Gold, and the one colour all three references share — DKC's banana, Banjo's
+## jiggy, the WB shield. This is the value the HUD prompts have been colouring
+## key names with since they were written, so `hud.gd` reads it from here rather
+## than keeping its own copy.
+##
+## The old `eec84a` was a pale, slightly greyed gold that read as brass. A jiggy
+## is not brass. This is hotter and fully saturated, which is what lets it carry
+## the selection bar on its own without an outline.
+const ACCENT := Color("ffc82e")
+const TEXT := Color("fffaf0")
+const DIM := Color("93a7d4")
+
+## The frame around the body of the menu, and the one warm surface on the
+## screen. It is a *material* rather than a colour — the thing the subscreen is
+## mounted in, the way a DKC signboard or a Banjo plaque is a wooden object with
+## something painted on it, and that is why it does not compete with `ACCENT`
+## the way a warm panel fill would. A frame is not a fill.
+##
+## It is deliberately a darker, browner gold than `ACCENT`. Two golds on one
+## screen only works if one of them is clearly the older, dimmer, more wooden of
+## the pair; matched they just look like a mistake in one of them.
+const FRAME := Color("b5822a")
+
+## And the frame's own line, which is the same black the letters get. This is
+## what stops the gold reading as a beige rectangle: the entire look is flat
+## saturated fills with a hard dark line around them, and the largest shape on
+## the screen is not an exception to that.
+const FRAME_EDGE := INK
 
 ## Selection is an inverted bar: a solid accent block with the label knocked out
 ## of it in ink. Glows and outlines are both later. This is what a menu looked
@@ -114,12 +149,29 @@ const SELECT_TEXT := INK
 ## rather than being decoration: the tab you are on recolours its own panel
 ## edge, so the screen tells you where you are before you have read a word of
 ## it. Keyed by tab id.
+## Every one of these was a tint of its hue rather than the hue itself — a sage
+## green, a dusty blue, a lilac, a brick. Cartoon colour is not tinted. Looney
+## Tunes title cards and Banjo's worlds both work in colours at or near full
+## chroma, and the darkness that keeps them from glaring comes from the black
+## line around them, not from muting the fill.
 const TAB_COLOURS := {
-	&"map": Color("58b26a"),
-	&"album": Color("4a90d9"),
-	&"options": Color("9b6fd0"),
-	&"quit": Color("d4604a"),
+	&"map": Color("46b23d"),
+	&"album": Color("2b8ee8"),
+	&"options": Color("9b4fd6"),
+	&"quit": Color("e33d28"),
 }
+
+## The unchosen tab. It lived in `park_menu.gd` as a private constant, which made
+## it the one colour in the game defined outside this file — and it is not an
+## incidental one, it is three quarters of what the tab strip looks like.
+const TAB_IDLE := Color(0.075, 0.114, 0.271, 0.92)
+
+## How far an unchosen tab's border is knocked back from its true hue. It was
+## 0.45, which took every tint most of the way to black and left a strip of
+## near-identical navy buttons — the per-subscreen colour was doing no work at
+## all until the tab was already selected, which is the one moment you no longer
+## need telling. At 0.22 the green, violet and red are legible cold.
+const TAB_IDLE_FADE := 0.22
 
 ## The hard shadow under everything. No blur, no spread curve. This is the
 ## single detail that does the most period work and the easiest one to lose to a
@@ -131,9 +183,58 @@ const SHADOW_COLOUR := Color(0, 0, 0, 0.85)
 ## Text shadow, which is the same idea one layer down. Two pixels, black, hard.
 const TEXT_SHADOW := Vector2i(2, 2)
 
+## The black line around the display face, and the thing that actually makes the
+## reference set look like itself.
+##
+## This file used to argue the opposite — that an outlined face over a hard
+## shadow was two period looks fighting and the shadow was the right one. That
+## was written when the display face was Bungee, which is signwriting and does
+## carry itself unoutlined. It does not survive contact with the references it
+## was claiming to serve: Donkey Kong Country, Banjo-Kazooie and Looney Tunes
+## all use outline *and* drop shadow together, on the same letters, and the
+## outline is the more definitional of the two. A cartoon letterform without a
+## black line around it is a font; with one it is a drawing.
+##
+## Body keeps `outline_size` at zero. A pixel face at 16 or 24 has strokes only
+## two or three pixels wide, and a six-pixel line around those closes the
+## counters and turns a word into a blob.
+##
+## It is a ratio of the font size rather than a flat pixel count, which is the
+## opposite of how `BORDER` works and for the opposite reason. A border belongs
+## to a box, and a box has no natural size to be a fraction of. A line around a
+## letter belongs to the letter, and letters do have one — a drawn `O` keeps the
+## same ratio of line to counter whether it is on a poster or a badge, and a
+## fixed six pixels would go spindly at `SIZE_TITLE` and gummy at anything small.
+const OUTLINE_RATIO := 0.17
+const OUTLINE_COLOUR := INK
+
+## The fill inside that line: bright yellow at the cap line falling to red-orange
+## at the baseline. Mario Kart's logo, Looney Tunes' cards, DKC's title — they
+## are all this ramp, and it is why those letters read as hot metal rather than
+## as coloured text.
+##
+## The stops are hard. A yellow-to-orange ramp is a subtle thing and looks like a
+## rendering artefact; yellow all the way to a genuine red is the effect. The
+## bottom is a red-orange rather than a red, because a true red against this gold
+## turns muddy where they meet in the middle of the letter.
+const DISPLAY_TOP := Color("ffe23f")
+const DISPLAY_BOTTOM := Color("e2400f")
+
+## Loaded once. Every display label shares the shader and owns its own material,
+## because the ramp is common and the on/off is not.
+const DISPLAY_SHADER_PATH := "res://scenes/ui/display_gradient.gdshader"
+static var _display_shader: Shader = null
+
 ## Border weight, everywhere. Two pixels at every size, because a border that
 ## scales with its box is a vector-era idea.
 const BORDER := 2
+
+## Except on the one box that is holding all the others. The body of the menu is
+## the largest single shape on the screen and a two-pixel line around something
+## that size does not read as an edge at all — it reads as the field simply
+## stopping. Five is not that border scaled up; it is the difference between a
+## sheet and a frame with something mounted in it.
+const BORDER_FRAME := 5
 
 
 ## The theme. Built rather than stored as a `.tres` so that the palette above is
@@ -183,6 +284,16 @@ static func plaque(fill: Color, edge: Color) -> StyleBoxFlat:
 	return box
 
 
+## The heavy one, for the body of the menu. Same object, thicker edge — so what
+## the subscreens sit in is a frame with a well in it rather than one flat field
+## the size of the screen. The depth comes from there being two surfaces at all;
+## a single translucent rectangle has no near and far to read.
+static func frame(fill: Color, edge: Color) -> StyleBoxFlat:
+	var box := plaque(fill, edge)
+	box.set_border_width_all(BORDER_FRAME)
+	return box
+
+
 ## The same plaque with no shadow, for boxes sitting inside another one. A
 ## shadow inside a panel is a shadow cast on a surface that is already lit,
 ## which is the tell that a UI was assembled rather than drawn.
@@ -201,6 +312,51 @@ static func font() -> Font:
 ## The face with the character in it: tabs, titles, the map's lettering.
 static func display_font() -> Font:
 	return face(FONT_DISPLAY_PATH, FONT_DISPLAY_PIXEL)
+
+
+## Dress a label in the display face, outline and all.
+##
+## It is a function rather than four call sites setting four overrides, because
+## the outline is not optional decoration on this face — a Luckiest Guy label
+## without one is the odd one out on any screen that has the others. Anything
+## reaching for `display_font()` directly should probably be calling this.
+static func display_label(label: Label, size: int = SIZE_TAB) -> void:
+	label.add_theme_font_override("font", display_font())
+	label.add_theme_font_size_override("font_size", size)
+	label.add_theme_constant_override("outline_size", outline_for(size))
+	label.add_theme_color_override("font_outline_color", OUTLINE_COLOUR)
+
+	if _display_shader == null and ResourceLoader.exists(DISPLAY_SHADER_PATH):
+		_display_shader = load(DISPLAY_SHADER_PATH)
+	if _display_shader == null:
+		return
+
+	# The ramp is measured off the face rather than off the label, so it does not
+	# depend on layout having happened. A label whose size is still zero the
+	# first time it is styled would otherwise collapse the gradient to its bottom
+	# colour and look like a bug in the shader rather than in the ordering.
+	var mat := ShaderMaterial.new()
+	mat.shader = _display_shader
+	mat.set_shader_parameter("top_colour", DISPLAY_TOP)
+	mat.set_shader_parameter("bottom_colour", DISPLAY_BOTTOM)
+	mat.set_shader_parameter("ascent", display_font().get_ascent(size))
+	mat.set_shader_parameter("enabled", 0.0)
+	label.material = mat
+
+
+## Turn the ramp on or off for one label. Off leaves whatever `font_color` says,
+## which is how an unchosen tab keeps its flat dim grey.
+static func display_gradient(label: Label, on: bool) -> void:
+	var mat := label.material as ShaderMaterial
+	if mat != null:
+		mat.set_shader_parameter("enabled", 1.0 if on else 0.0)
+
+
+## The line weight for a given font size. Floored at 2 because Godot rounds an
+## outline to whole pixels and a 1px line reads as an artefact rather than as a
+## drawn edge — below that it is better to have none.
+static func outline_for(size: int) -> int:
+	return maxi(2, roundi(size * OUTLINE_RATIO))
 
 
 ## Load a face and set its rendering to match what it is.
