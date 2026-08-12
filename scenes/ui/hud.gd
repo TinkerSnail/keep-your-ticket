@@ -6,26 +6,24 @@ extends CanvasLayer
 ## frame before the viewport is read — a photograph should not contain its own
 ## viewfinder.
 
-signal album_visibility_changed(album_open: bool)
-
 ## Control prompts, in the idiom of the period the game is set in: key names in
 ## a warm accent, the action in plain white, both in capitals, over a hard
 ## two-pixel shadow. Boxed keycaps are a much later convention — the late
 ## nineties put the key in a colour and trusted you to read it.
 ##
-## Written as pairs rather than as one string so the three sets stay parallel
-## and the separator is decided in one place.
-const KEY_COLOUR := "e8c76a"
+## Written as pairs rather than as one string so the two sets stay parallel and
+## the separator is decided in one place. The accent comes from `park_ui` now
+## that the menu uses the same value — these prompts set that colour before
+## there was a menu, and there is no reason for two copies of it.
 const SEPARATOR := "   ·   "
 
 const HINT_PLAYING := [
 	["F", "CAMERA"], ["E", "ASK"], ["V", "VIEW"],
-	["SPACE", "JUMP"], ["TAB", "ALBUM"], ["ESC", "MOUSE"],
+	["SPACE", "JUMP"], ["TAB", "ALBUM"], ["ESC", "MENU"],
 ]
 ## What is left when the finder is up. One line, because the surround is meant
 ## to read as the inside of a camera body and a row of prompts there undoes it.
 const HINT_SHOOTING := [["SPACE", "SHUTTER"]]
-const HINT_ALBUM := [["ARROWS", "BROWSE"], ["TAB", "CLOSE"]]
 
 ## Matches the raise. Fast enough not to be a transition anyone waits through.
 const HINT_FADE := 0.16
@@ -35,46 +33,52 @@ const HINT_FADE := 0.16
 @onready var flash: ColorRect = $flash
 @onready var hint: RichTextLabel = $hint
 @onready var shutter_hint: RichTextLabel = $shutter_hint
-@onready var album_view: Control = $album_view
+@onready var minimap: Control = $minimap
 
 var _capturing := false
 var _hint_tween: Tween
 var _shutter_hint_tween: Tween
+var _minimap_tween: Tween
 var _raised := false
 
 
 func _ready() -> void:
 	add_to_group("hud")
 	viewfinder.visible = false
-	album_view.visible = false
 	flash.modulate.a = 0.0
 	_set_prompts(hint, HINT_PLAYING)
 	_set_prompts(shutter_hint, HINT_SHOOTING)
 	shutter_hint.modulate.a = 0.0
-	call_deferred("_connect_camera_tool")
+	call_deferred("_connect")
 
 
-func _connect_camera_tool() -> void:
+func _connect() -> void:
 	var camera_tool := get_tree().get_first_node_in_group("camera_tool")
 	if camera_tool == null:
 		push_warning("hud: no camera_tool found in the scene tree")
-		return
-	camera_tool.raised_changed.connect(_on_raised_changed)
-	camera_tool.shutter_requested.connect(_on_shutter_requested)
+	else:
+		camera_tool.raised_changed.connect(_on_raised_changed)
+		camera_tool.shutter_requested.connect(_on_shutter_requested)
+
+	# The menu replaces the HUD rather than sitting over it. A row of key
+	# prompts showing along the bottom of a pause screen is the tell that an
+	# overlay was put on top of a game instead of the game being paused.
+	var menu := get_tree().get_first_node_in_group("park_menu")
+	if menu != null and menu.has_signal("menu_visibility_changed"):
+		menu.menu_visibility_changed.connect(_on_menu_visibility_changed)
 
 
+func _on_menu_visibility_changed(open: bool) -> void:
+	visible = not open
+
+
+## The album key and escape both belong to `park_menu` now — the album is one of
+## its subscreens and escape opens the menu rather than handing back the cursor.
+## Releasing the mouse is what pausing does, so it no longer needs a key of its
+## own. What is left here is the click that takes the cursor back.
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("album"):
-		_set_album_open(not album_view.visible)
-		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("ui_cancel"):
-		if album_view.visible:
-			_set_album_open(false)
-		else:
-			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-		get_viewport().set_input_as_handled()
-	elif event is InputEventMouseButton and event.pressed:
-		if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED and not album_view.visible:
+	if event is InputEventMouseButton and event.pressed:
+		if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 			# The click that takes the mouse back is not also a shutter press.
 			# Now that losing focus releases the cursor, this is the ordinary way
@@ -95,32 +99,35 @@ func _notification(what: int) -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
-func _set_album_open(album_open: bool) -> void:
-	album_view.visible = album_open
-	_set_prompts(hint, HINT_ALBUM if album_open else HINT_PLAYING)
-	_apply_overlays()
-	album_visibility_changed.emit(album_open)
-
-
 func _on_raised_changed(raised: bool) -> void:
 	_raised = raised
 	_apply_overlays()
 
 
-## One place decides what is on screen, from the camera and the album rather
-## than from whichever of them changed last.
+## One place decides what is on screen, from the camera rather than from
+## whichever thing changed last.
 ##
 ## Opening the album used to set the finder invisible directly and nothing ever
 ## set it back, so raising the camera, opening the album and closing it again
 ## left the finder gone until it was toggled twice — the tool still believed it
-## was raised, and only the overlay had been switched off behind its back.
+## was raised, and only the overlay had been switched off behind its back. The
+## album is a subscreen of a paused menu now and the whole layer goes with it,
+## so there is only the camera left to read.
 func _apply_overlays() -> void:
-	viewfinder.visible = _raised and not album_view.visible
+	viewfinder.visible = _raised
 	# The hint goes out while the camera is up. It sat in the black surround,
 	# which is the inside of the camera body — the one part of the frame meant
 	# to read as an object rather than as a screen, and a line of bracketed key
 	# names there undoes the whole tunnel.
 	_hint_tween = _fade(hint, _hint_tween, not viewfinder.visible)
+
+	# The minimap goes out with the prompts, and for the same reason. The black
+	# surround is the inside of a camera body — the one part of the frame meant
+	# to read as an object rather than as a screen — and a lit disc sitting in
+	# it undoes the tunnel exactly the way a row of key names did. It is also
+	# the moment the player is composing, which is the moment they should be
+	# looking at the park rather than at a diagram of it.
+	_minimap_tween = _fade(minimap, _minimap_tween, not viewfinder.visible)
 
 	# Except for this one, which is the shutter and stays.
 	#
@@ -144,23 +151,23 @@ func _apply_overlays() -> void:
 func _set_prompts(label: RichTextLabel, pairs: Array) -> void:
 	var parts := PackedStringArray()
 	for pair in pairs:
-		parts.append("[color=#%s]%s[/color]  %s" % [KEY_COLOUR, pair[0], pair[1]])
+		parts.append("[color=#%s]%s[/color]  %s" % [ParkUI.ACCENT.to_html(false), pair[0], pair[1]])
 	label.text = "[center]%s[/center]" % SEPARATOR.join(parts)
 
 
 ## Faded rather than switched, because a label vanishing on the same frame the
 ## finder appears reads as a glitch, and because the raise is already a tween.
-func _fade(label: RichTextLabel, tween: Tween, shown: bool) -> Tween:
+func _fade(item: CanvasItem, tween: Tween, shown: bool) -> Tween:
 	if tween != null and tween.is_valid():
 		tween.kill()
 	var next := create_tween()
 	next.set_ease(Tween.EASE_OUT)
-	next.tween_property(label, "modulate:a", 1.0 if shown else 0.0, HINT_FADE)
+	next.tween_property(item, "modulate:a", 1.0 if shown else 0.0, HINT_FADE)
 	return next
 
 
 func _on_shutter_requested() -> void:
-	if _capturing or album_view.visible:
+	if _capturing:
 		return
 	_capturing = true
 

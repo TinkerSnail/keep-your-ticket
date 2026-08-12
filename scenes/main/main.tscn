@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/world/plaza.tscn" id="1_plaza"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://scenes/world/plaza_crowd.tscn" id="4_crowd"]
 [ext_resource type="Script" path="res://scenes/world/daylight.gd" id="5_daylight"]
 [ext_resource type="Script" path="res://scenes/main/main.gd" id="6_main"]
+[ext_resource type="Script" path="res://scenes/ui/park_menu.gd" id="7_menu"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
 sky_top_color = Color(0.35, 0.55, 0.78, 1)
@@ -58,3 +59,6 @@ directional_shadow_max_distance = 120.0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 16)
 
 [node name="hud" parent="." instance=ExtResource("3_hud")]
+
+[node name="park_menu" type="CanvasLayer" parent="."]
+script = ExtResource("7_menu")

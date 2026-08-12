@@ -236,6 +236,150 @@ const BORDER := 2
 ## sheet and a frame with something mounted in it.
 const BORDER_FRAME := 5
 
+## The cut corner, and the thing this file was missing.
+##
+## Star Fox 64 and Smash Bros are the reference for it and they are the same
+## reference: a console menu of that generation does not draw a rectangle. It
+## draws a plate with its corners taken off at 45°, which is a *hardware* look —
+## a chamfer is four extra vertices and a rounded corner is a curve nobody was
+## going to tessellate. That is why the shape says late nineties and why a
+## rounded one says phone.
+##
+## It is emphatically not a rounded corner with fewer steps. The cut is a
+## straight line, it is aliased on purpose, and it is large enough to read as a
+## deliberate bevel rather than as the renderer having missed the corner.
+##
+## Three sizes, and they are proportional to what they are cutting. A 14px cut on
+## a 40px row would eat the row; a 6px cut on a panel the size of the screen
+## disappears.
+const CUT := 16.0
+const CUT_TAB := 10.0
+const CUT_ROW := 7.0
+
+## How much further out the selected thing sits than the ones around it.
+##
+## This is the other half of the same reference and the more important half.
+## Melee's main menu does not mark the current item by recolouring it — the plate
+## physically slides out of the stack and grows. Smash 64 does it, Star Fox's
+## mission select does it, and every one of them survives a photograph of the
+## screen at a size where you cannot read the words: the thing sticking out is
+## the thing you are on.
+##
+## The old menu marked selection by colour alone, on both the tab strip and the
+## rows. Colour is the weaker of the two signals and it is the one that fails
+## first when a screen is busy.
+const JUT := 28
+const TAB_RISE := 14
+
+
+## A plate with its corners cut off.
+##
+## `StyleBoxFlat` cannot do this. It has a corner radius and no chamfer, and the
+## radius is the one setting in the engine that would take the whole menu
+## straight to the wrong decade — so the shape has to be drawn.
+##
+## Drawn as three flat polygons rather than as a border stroke: the shadow, the
+## fill, and a ring of triangles between the outer and inner outlines. A stroked
+## polyline was the obvious version and it notches at every 45° corner, which is
+## the one place this shape has to be clean. Filling the ring mitres for free.
+##
+## Nothing here is antialiased and that is not an oversight. A hard stair-stepped
+## diagonal is what the reference looks like; a smoothed one reads as a vector
+## shape at the wrong resolution.
+class Plate extends StyleBox:
+	var fill := Color.BLACK
+	var edge := Color.WHITE
+	var border := 2.0
+	var cut := ParkUI.CUT
+	var shadow_offset := Vector2.ZERO
+	var shadow_colour := Color(0, 0, 0, 0)
+
+	## Which corners are cut, clockwise from top-left. A tab that runs into the
+	## panel below it keeps its bottom corners square, so the two shapes meet as
+	## one object rather than as a plate resting on a box.
+	var corners := [true, true, true, true]
+
+	## Content clears the border and nothing else. The chamfer is not counted,
+	## because everything in this menu is centred or padded well inside it, and
+	## charging every plate a corner's worth of margin on all four sides would
+	## quietly shrink every screen.
+	func _get_style_margin(_side: Side) -> float:
+		return border
+
+	func _get_draw_rect(rect: Rect2) -> Rect2:
+		return rect.grow_individual(
+			maxf(-shadow_offset.x, 0.0), maxf(-shadow_offset.y, 0.0),
+			maxf(shadow_offset.x, 0.0), maxf(shadow_offset.y, 0.0))
+
+	func _draw(to_canvas_item: RID, rect: Rect2) -> void:
+		if rect.size.x <= 0.0 or rect.size.y <= 0.0:
+			return
+
+		var outer := _outline(rect, cut)
+
+		if shadow_colour.a > 0.0 and shadow_offset != Vector2.ZERO:
+			var cast := PackedVector2Array()
+			for point in outer:
+				cast.append(point + shadow_offset)
+			RenderingServer.canvas_item_add_polygon(
+				to_canvas_item, cast, PackedColorArray([shadow_colour]))
+
+		var thickness := minf(border, minf(rect.size.x, rect.size.y) * 0.5)
+		# Offsetting a 45° chamfer inward by `b` shortens the cut by `b(2 - √2)`,
+		# which is what keeps the border an even width all the way round the
+		# corner instead of pinching at it.
+		var inner := _outline(rect.grow(-thickness),
+			maxf(cut - thickness * (2.0 - sqrt(2.0)), 0.0))
+
+		if fill.a > 0.0:
+			RenderingServer.canvas_item_add_polygon(
+				to_canvas_item, inner, PackedColorArray([fill]))
+
+		if thickness > 0.0 and edge.a > 0.0:
+			_ring(to_canvas_item, outer, inner, edge)
+
+	## Always eight points, even where a corner is square — the two points there
+	## land on top of each other and the triangles between them come out with no
+	## area. Keeping the count fixed is what lets the ring be indexed rather than
+	## rebuilt per shape.
+	func _outline(rect: Rect2, size: float) -> PackedVector2Array:
+		var left := rect.position.x
+		var top := rect.position.y
+		var right := left + rect.size.x
+		var bottom := top + rect.size.y
+		var at := clampf(size, 0.0, minf(rect.size.x, rect.size.y) * 0.5)
+
+		var tl := at if corners[0] else 0.0
+		var tr := at if corners[1] else 0.0
+		var br := at if corners[2] else 0.0
+		var bl := at if corners[3] else 0.0
+
+		return PackedVector2Array([
+			Vector2(left + tl, top), Vector2(right - tr, top),
+			Vector2(right, top + tr), Vector2(right, bottom - br),
+			Vector2(right - br, bottom), Vector2(left + bl, bottom),
+			Vector2(left, bottom - bl), Vector2(left, top + tl),
+		])
+
+	func _ring(to_canvas_item: RID, outer: PackedVector2Array,
+			inner: PackedVector2Array, colour: Color) -> void:
+		var points := PackedVector2Array()
+		points.append_array(outer)
+		points.append_array(inner)
+
+		var colours := PackedColorArray()
+		colours.resize(points.size())
+		colours.fill(colour)
+
+		var indices := PackedInt32Array()
+		for at in 8:
+			var next := (at + 1) % 8
+			for index in [at, next, 8 + next, at, 8 + next, 8 + at]:
+				indices.append(index)
+
+		RenderingServer.canvas_item_add_triangle_array(
+			to_canvas_item, indices, points, colours)
+
 
 ## The theme. Built rather than stored as a `.tres` so that the palette above is
 ## the only definition of any of these values — a resource file would be a
@@ -258,8 +402,57 @@ static func theme() -> Theme:
 		# looks fighting, and the shadow is the right one.
 		built.set_constant("outline_size", type, 0)
 
-	built.set_stylebox("panel", "PanelContainer", plaque(PANEL, PANEL_HI))
+	built.set_stylebox("panel", "PanelContainer", plate(PANEL, PANEL_HI))
 	return built
+
+
+## The plate, and what almost everything in the menu is now made of.
+##
+## `plaque`, `frame` and `inset` are still here and still square, because a
+## photograph is a rectangle and the album's slots are photographs. The chamfer
+## belongs to the *furniture* — the tabs, the frame, the field, the selection
+## bar — and putting it on a picture would be cropping the picture.
+static func plate(fill: Color, edge: Color, cut: float = CUT,
+		border: int = BORDER, shadow: bool = true) -> Plate:
+	var box := Plate.new()
+	box.fill = fill
+	box.edge = edge
+	box.border = float(border)
+	box.cut = cut
+	if shadow:
+		box.shadow_offset = Vector2(SHADOW_OFFSET)
+		box.shadow_colour = SHADOW_COLOUR
+	return box
+
+
+## The field a subscreen sits on: the tab's own hue, taken down to near-black.
+##
+## This is the Pokémon Snap habit finally doing something. Colour-coding that
+## only reaches a two-pixel border is colour-coding you have to go looking for —
+## the tab strip already told you which tab is lit, so the border was repeating
+## the one thing that was never in doubt. Recolouring the whole field means the
+## screen has changed colour before you have focused on any part of it.
+##
+## The value is low enough that this stays a field rather than becoming a colour.
+## `PANEL`'s note argues blue is the right canvas because none of the references
+## is blue and a warm panel under gold is gold on gold, and that argument still
+## holds — at 20% value the hue is a cast on a near-black, not a fill competing
+## with the frame. Blue remains what the game is in; this is what a page is on.
+## The saturation is high and the value is very low, which is the order that
+## matters and the opposite of the obvious one. Taking a hue down by
+## desaturating it gives four greys with a suggestion in them; taking it down by
+## *value* while holding the chroma up keeps a dark green a green and a dark red
+## a red. The red is what proves it — the first two attempts came out a rust
+## brown and read as upholstery, and both of them lost by being too light rather
+## than by being the wrong hue.
+##
+## The value looks impossibly low written down and is not, because a `Color` on
+## the Forward+ canvas is not what lands on the screen: the 2D pipeline works in
+## linear and converts on the way out, so 0.075 arrives at roughly a third of
+## full. Anything picked by eye off a hex value in a colour picker will come out
+## about twice as bright as intended here, which is exactly what happened twice.
+static func field(tint: Color) -> Color:
+	return Color.from_hsv(tint.h, 0.85, 0.075, 0.92)
 
 
 ## A raised plaque: saturated fill, a bright square border, and a hard black

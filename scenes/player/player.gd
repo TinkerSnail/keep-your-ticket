@@ -128,6 +128,12 @@ var _was_captured := false
 var _crossing := false
 var _crossing_wish := Vector3.ZERO
 
+## From `ParkSettings`. A multiplier over the exported sensitivities rather than
+## a replacement for them, so the tuning in the inspector stays meaningful and
+## the options row is a scale on top of it.
+var _look_scale := 1.0
+var _invert_look_y := false
+
 
 func _ready() -> void:
 	add_to_group("player")
@@ -136,14 +142,28 @@ func _ready() -> void:
 	# to zero the moment it is switched on.
 	spring.add_excluded_object(get_rid())
 	_arm_length = spring.spring_length
+	apply_look_settings()
+	# The view the park starts in is a setting rather than a default. Set
+	# directly rather than through `set_third_person`, which tweens — there is
+	# nothing to tween from on the first frame.
+	third_person = bool(ParkSettings.get_value(&"start_third_person"))
 	_apply_view()
 	call_deferred("_connect_ui")
 
 
+## Pulled from `ParkSettings` rather than pushed by it, so a player that enters
+## the tree after a section swap picks up the current values without anything
+## having to remember to tell it. `ParkSettings` also calls this when a row
+## moves, which is what makes the sensitivity slider live while it is held.
+func apply_look_settings() -> void:
+	_look_scale = ParkSettings.look_scale()
+	_invert_look_y = bool(ParkSettings.get_value(&"invert_look_y"))
+
+
 func _connect_ui() -> void:
-	var hud := get_tree().get_first_node_in_group("hud")
-	if hud != null and hud.has_signal("album_visibility_changed"):
-		hud.album_visibility_changed.connect(_on_album_visibility_changed)
+	var menu := get_tree().get_first_node_in_group("park_menu")
+	if menu != null and menu.has_signal("menu_visibility_changed"):
+		menu.menu_visibility_changed.connect(_on_menu_visibility_changed)
 	# Raising the Instamatic drops to the eye whatever the walking view is. The
 	# viewfinder has to be the lens, so it cannot be a camera hanging in space
 	# three metres behind the person holding it.
@@ -292,8 +312,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			if event.relative.length() > LOOK_JUMP_LIMIT:
 				return
 			_apply_look(
-				-event.relative.x * mouse_sensitivity,
-				-event.relative.y * mouse_sensitivity
+				-event.relative.x * mouse_sensitivity * _look_scale,
+				-event.relative.y * mouse_sensitivity * _look_scale
 			)
 
 
@@ -312,8 +332,8 @@ func _physics_process(delta: float) -> void:
 		var look := Input.get_vector("look_left", "look_right", "look_up", "look_down")
 		if look != Vector2.ZERO:
 			_apply_look(
-				-look.x * stick_sensitivity * delta,
-				-look.y * stick_sensitivity * delta
+				-look.x * stick_sensitivity * _look_scale * delta,
+				-look.y * stick_sensitivity * _look_scale * delta
 			)
 
 	var input_dir := Vector2.ZERO
@@ -407,6 +427,11 @@ func _apply_look(yaw_delta: float, pitch_delta: float) -> void:
 	if _pitch_tween != null and _pitch_tween.is_valid():
 		_pitch_tween.kill()
 	var scale := raised_look_scale if _shooting else 1.0
+	# Inverted here rather than at each source, because the mouse and the stick
+	# both arrive through this and a setting applied twice is a setting that
+	# does nothing on a gamepad.
+	if _invert_look_y:
+		pitch_delta = -pitch_delta
 	rotate_y(yaw_delta * scale)
 	_pitch = clampf(_pitch + pitch_delta * scale, -_pitch_floor(), _pitch_ceiling())
 	head.rotation.x = _pitch
@@ -424,5 +449,9 @@ func _pitch_floor() -> float:
 	return deg_to_rad(pitch_limit_degrees)
 
 
-func _on_album_visibility_changed(album_open: bool) -> void:
-	_look_enabled = not album_open
+## The tree is paused while the menu is up, so this is belt and braces rather
+## than the mechanism — but the pause is released a frame before the cursor is
+## recaptured, and without this the mouse's first motion after closing the menu
+## is applied to the view.
+func _on_menu_visibility_changed(open: bool) -> void:
+	_look_enabled = not open
