@@ -14,8 +14,18 @@ extends AnimatableBody3D
 ## turns as far as a neck goes — past that the guest either turns their body or
 ## gives up and faces forward. At this fidelity what a guest is looking at is
 ## the whole of their performance, so it is where the detail went.
+##
+## A guest is not always in the park. The crowd admits and sends home whole
+## groups against the hour, so the same body is a different visitor at eleven
+## and at eight. Everything below the `-- coming and going --` line is what that
+## costs a guest: somewhere to be parked, a way in and a way out, and sitting
+## down as something they do rather than something they were built as.
 
 enum Attention { FORWARD, POI, COMPANION, GAZE, CAMERA, POSE }
+
+## What to do on reaching the last waypoint. Arriving and leaving are the same
+## walk with a different end to it.
+enum Then { NOTHING, SIT, WANDER, SLEEP }
 
 ## How a guest takes being photographed. Rolled once per camera raise, against
 ## the guest's own curiosity and shyness, so the same person tends to respond
@@ -31,6 +41,10 @@ const LAYER_PEOPLE := 2
 const ARRIVE_DISTANCE := 0.35
 const SEPARATION_RADIUS := 0.95
 const SEPARATION_STRENGTH := 1.4
+
+## Where a guest who is not in the park is parked. Far under the world, so that
+## a raycast, a nearest-guest search or a stray bit of physics cannot find one.
+const DORMANT_Y := -400.0
 
 const HEAD_YAW_LIMIT := deg_to_rad(78.0)
 const HEAD_PITCH_LIMIT := deg_to_rad(32.0)
@@ -81,10 +95,20 @@ const POSE_GATHER_DISTANCE := 2.6
 @export var rng_seed := 0
 @export var curiosity := 0.5
 @export var shyness := 0.25
-@export var seated := false
+## Where this guest belongs while they are in the park. `INF` is somebody who
+## came to walk about; anything else is a seat, and they walk to it and sit
+## down. Sitting used to be a fact about a body and is now something a visit
+## does, which is the whole difference between a cafe that is always half full
+## and a cafe that fills up at lunch.
+@export var seat_at := Vector3.INF
+@export var seat_yaw := 0.0
 ## Top of whatever they are sitting on. Benches and cafe chairs differ, and a
 ## guest hovering two centimetres above a seat is the first thing anyone sees.
 @export var seat_height := 0.51
+## Which population this guest counts towards — `wander`, `bench` or `cafe`.
+## Each has its own curve across the day, so the seats do not simply track the
+## crowd: the tables fill at meals whether or not the plaza is busy.
+@export var group_kind := "wander"
 ## Followers shadow their group's leader instead of routing for themselves,
 ## which is what makes a family read as a family rather than four strangers
 ## on the same heading.
@@ -115,6 +139,19 @@ var _route: PackedInt32Array = PackedInt32Array()
 var _leg := 0
 var _wait := 0.0
 var _wander := Vector3.ZERO
+
+## Somewhere to be that is not the graph: the walk in from off-stage, the walk
+## out to it, and the last few metres to a seat. Takes precedence over the
+## route, because a guest on their way home is not wandering.
+var _waypoints: Array[Vector3] = []
+var _then := Then.NOTHING
+var _live := false
+var _seated := false
+var _stand_rest_y := 0.0
+## Reached the end of the walk out and waiting to be put away. The crowd does
+## the putting away, because whether it is safe to vanish is a fact about where
+## the player is looking and the guest has no business knowing that.
+var _off_stage := false
 
 var _phase := 0.0
 var _stride := 0.0
@@ -157,14 +194,6 @@ func _ready() -> void:
 	add_to_group("npc")
 	add_to_group("guest")
 
-	# People, not architecture. Set here rather than in the generator because a
-	# guest is not the only thing that needs to be distinguishable from a wall,
-	# and because it would otherwise be one more thing lost to a regeneration.
-	# Still collides with the world, with the player, and with other guests —
-	# only the things that ask specifically for architecture see the difference.
-	collision_layer = LAYER_PEOPLE
-	collision_mask = LAYER_WORLD | LAYER_PEOPLE
-
 	_rng.seed = rng_seed if rng_seed != 0 else hash(name)
 
 	_body = $body
@@ -175,7 +204,25 @@ func _ready() -> void:
 	_hip_r = $body/hip_r
 	_knee_l = $body/hip_l/knee_l
 	_knee_r = $body/hip_r/knee_r
-	_body_rest_y = _body.position.y
+	_stand_rest_y = _body.position.y
+	_body_rest_y = _stand_rest_y
+
+	# An AnimatableBody3D syncing to physics takes its transform from the
+	# physics server, and a write from outside the physics step is silently
+	# thrown away — not warned about, not clamped, just gone. Guests move by
+	# adding to `global_position` inside `_physics_process`, which is why this
+	# never came up until they had to be teleported: put to bed off-stage,
+	# fetched back to the threshold, dropped onto a seat.
+	#
+	# Verified rather than reasoned about, because the first two explanations
+	# for it were both wrong. Setting the position on a live, fully enabled
+	# guest and reading it back on the same line returns the old value.
+	#
+	# What it costs: a guest walking into a standing player no longer shoves
+	# them aside, because that shove was the physics server moving the body. It
+	# still blocks them — collision is unaffected — and being shoved by a crowd
+	# was never something anybody asked for.
+	sync_to_physics = false
 
 	_idle_phase = _rng.randf() * TAU
 	_wander = Vector3(_rng.randfn(0.0, 0.5), 0.0, _rng.randfn(0.0, 0.5))
@@ -187,8 +234,11 @@ func _ready() -> void:
 
 	call_deferred("_resolve_group")
 
-	if seated:
-		_apply_seated_pose()
+	# Nobody is in the park until the clock says so. The crowd runs its first
+	# sync in its own `_ready`, which is after every guest's, so a guest that
+	# belongs to the opening hour is put back on stage before the first frame
+	# and never flickers.
+	_go_dormant()
 
 
 func _exit_tree() -> void:
@@ -203,12 +253,192 @@ func _resolve_group() -> void:
 		_companions.assign(_crowd.companions(self))
 
 
+# --- coming and going -------------------------------------------------------
+
+
+func has_seat() -> bool:
+	return seat_at != Vector3.INF
+
+
+func is_live() -> bool:
+	return _live
+
+
+## Finished the walk out and standing off-stage, waiting to be put away.
+func is_off_stage() -> bool:
+	return _off_stage
+
+
+## Already in the park when the clock is read — the first frame of a session, or
+## a dev jump to an hour. No walk in: a plaza at opening should have people
+## standing about in it, not a queue of them filing through the gate one at a
+## time while the player watches.
+func spawn_at(at: Vector3) -> void:
+	_wake()
+	global_position = Vector3(at.x, 0.0, at.z)
+	if has_seat():
+		rotation.y = seat_yaw
+		_sit()
+		return
+	rotation.y = _rng.randf() * TAU
+	_route = PackedInt32Array()
+	# Staggered, or every wanderer in the plaza sets off on the same frame.
+	_wait = _rng.randf_range(0.0, 5.0)
+
+
+## Walk in. `via` ends wherever this guest belongs — a seat, or the threshold
+## itself for somebody who came to walk about and will route on from there.
+func arrive_from(hold: Vector3, via: Array[Vector3]) -> void:
+	_wake()
+	global_position = Vector3(hold.x, 0.0, hold.z)
+	_waypoints = via.duplicate()
+	_then = Then.SIT if has_seat() else Then.WANDER
+	if not _waypoints.is_empty():
+		var heading := _waypoints[0] - global_position
+		heading.y = 0.0
+		if heading.length_squared() > 0.0001:
+			rotation.y = atan2(-heading.x, -heading.z)
+
+
+## Go home. Whoever is sitting stands up first, which is most of what makes the
+## cafe emptying in the evening read as people leaving rather than as furniture
+## being cleared.
+func depart_via(via: Array[Vector3]) -> void:
+	if not _live:
+		return
+	_stand()
+	_posing = false
+	_route = PackedInt32Array()
+	_wait = 0.0
+	_waypoints = via.duplicate()
+	_then = Then.SLEEP
+
+
+## Followers have no waypoints of their own — they shadow their leader through
+## the gate the same way they shadow them everywhere else. But a follower whose
+## leader has gone off-stage has nothing left to follow, so the crowd asks them
+## directly whether they have caught up.
+##
+## Generous, and it has to be: the guest walked to a point scattered several
+## metres off `hold`, and a follower stops a stride and a half behind that
+## again. Measured tightly against `hold` itself this is never true and nobody
+## ever goes home. Precision buys nothing here — the nearest thing the player
+## can stand on is eighteen metres away.
+const HOME_RADIUS := 8.0
+
+
+func is_home(hold: Vector3) -> bool:
+	if _off_stage:
+		return true
+	var away := global_position - hold
+	away.y = 0.0
+	return away.length() < HOME_RADIUS
+
+
+func go_dormant() -> void:
+	_go_dormant()
+
+
+func _wake() -> void:
+	if _live:
+		return
+	_live = true
+	_off_stage = false
+	visible = true
+	process_mode = Node.PROCESS_MODE_INHERIT
+	# People, not architecture. Set here rather than in the generator because a
+	# guest is not the only thing that needs to be distinguishable from a wall,
+	# and because it would otherwise be one more thing lost to a regeneration.
+	# Still collides with the world, with the player, and with other guests —
+	# only the things that ask specifically for architecture see the difference.
+	collision_layer = LAYER_PEOPLE
+	collision_mask = LAYER_WORLD | LAYER_PEOPLE
+	if _crowd != null and _crowd.has_method("set_live"):
+		_crowd.set_live(self, true)
+
+
+func _go_dormant() -> void:
+	_live = false
+	_off_stage = false
+	visible = false
+	process_mode = Node.PROCESS_MODE_DISABLED
+	# A disabled node keeps its collision shapes. Without this a whole day's
+	# worth of guests who have gone home are still standing in the street,
+	# invisibly, in the way.
+	collision_layer = 0
+	collision_mask = 0
+	# Under the world rather than at the threshold, so there is no pile of
+	# nobody for a stray query to find.
+	global_position = Vector3(0.0, DORMANT_Y, 0.0)
+
+	_stand()
+	_waypoints.clear()
+	_then = Then.NOTHING
+	_route = PackedInt32Array()
+	_leg = 0
+	_wait = 0.0
+	_posing = false
+	_pose_timer = 0.0
+	_speed = 0.0
+	_clear_notice()
+	_was_camera_raised = false
+
+	if _crowd != null and _crowd.has_method("set_live"):
+		_crowd.set_live(self, false)
+
+
+func _finish_waypoints() -> void:
+	match _then:
+		Then.SIT:
+			# Snapped, because arriving is `ARRIVE_DISTANCE` and a third of a
+			# metre off a bench is sitting on the arm of it. It is the last
+			# frame of a walk, so it reads as settling rather than as a jump.
+			global_position = Vector3(seat_at.x, 0.0, seat_at.z)
+			rotation.y = seat_yaw
+			_sit()
+		Then.WANDER:
+			_route = PackedInt32Array()
+			_wait = _rng.randf_range(0.0, 1.5)
+		Then.SLEEP:
+			# Standing off-stage. The crowd decides when it is safe to vanish.
+			_off_stage = true
+	_then = Then.NOTHING
+
+
+func _sit() -> void:
+	_seated = true
+	_waypoints.clear()
+	_route = PackedInt32Array()
+	_wait = 0.0
+	_body_rest_y = seat_height
+	_apply_seated_pose()
+
+
+func _stand() -> void:
+	if not _seated:
+		return
+	_seated = false
+	_body_rest_y = _stand_rest_y
+	_body.position.y = _body_rest_y
+	# Straightened rather than left folded. `_animate` drives the limbs from
+	# here every frame, but it lerps `_stride` up from zero, so a guest who
+	# stood up out of a fold would take their first two steps still sitting.
+	_hip_l.rotation.x = 0.0
+	_hip_r.rotation.x = 0.0
+	_knee_l.rotation.x = 0.0
+	_knee_r.rotation.x = 0.0
+	_arm_l.rotation.x = 0.0
+	_arm_r.rotation.x = 0.0
+	_phase = 0.0
+	_stride = 0.0
+
+
 func _physics_process(delta: float) -> void:
 	_update_reaction(delta)
 	_update_pose(delta)
 
 	var moved := 0.0
-	if not seated:
+	if not _seated:
 		moved = _update_movement(delta)
 		_speed = moved / maxf(delta, 0.0001)
 
@@ -241,7 +471,7 @@ func _update_movement(delta: float) -> float:
 	var distance := to_target.length()
 
 	var stop_distance := ARRIVE_DISTANCE
-	if _leader != null:
+	if _leader != null and _waypoints.is_empty():
 		# Followers keep station loosely. Holding a precise offset looks like
 		# formation marching; letting them drift and catch up looks like people.
 		stop_distance = 0.55
@@ -253,6 +483,10 @@ func _update_movement(delta: float) -> float:
 		var step := minf(walk_speed * delta, distance - stop_distance * 0.5)
 		global_position += direction * step
 		_face_direction(direction, delta, 6.0)
+	elif not _waypoints.is_empty():
+		_waypoints.remove_at(0)
+		if _waypoints.is_empty():
+			_finish_waypoints()
 	elif _leader == null and not _posing:
 		_advance_route()
 
@@ -263,6 +497,20 @@ func _update_movement(delta: float) -> float:
 func _movement_target() -> Vector3:
 	if _posing:
 		return _pose_anchor
+
+	# Gone home, and standing off-stage until the crowd puts them away. Without
+	# this they finish the walk out, find themselves with no waypoints and no
+	# route, ask for a new one, and wander straight back into the park — which
+	# is what froze the first run of the day test with nineteen people still
+	# inside at eleven at night.
+	if _off_stage:
+		return Vector3.INF
+
+	# Arriving, leaving, or crossing the last few metres to a seat. A guest on
+	# their way somewhere specific is not wandering, and a follower on the way
+	# in walks the way in rather than after whoever happens to be ahead.
+	if not _waypoints.is_empty():
+		return _waypoints[0]
 
 	if _leader != null:
 		if not is_instance_valid(_leader):
@@ -494,7 +742,7 @@ func _commit_notice(source: Guest) -> void:
 ## Asked to pose. The guest does not stop being a person about it — they walk
 ## in a little, turn, and hold, and then they stop holding.
 func ask_to_pose(anchor: Vector3) -> void:
-	if seated:
+	if _seated:
 		_posing = true
 		_pose_timer = POSE_HOLD + _rng.randf_range(POSE_DECAY.x, POSE_DECAY.y)
 		return
@@ -640,7 +888,7 @@ func _update_head(delta: float) -> void:
 func _animate(delta: float, moved: float) -> void:
 	_idle_phase += delta
 
-	if seated:
+	if _seated:
 		_animate_seated()
 		return
 
@@ -676,7 +924,7 @@ func _animate_seated() -> void:
 
 
 ## Sitting is the same skeleton folded: hips raised to the seat, thighs swung
-## forward, shins hanging back down. The generator puts the root at the seat's
+## forward, shins hanging back down. The guest walks their root onto the seat's
 ## centre, so the only thing to solve here is the fold.
 ##
 ## Positive rotation about X carries a limb forward (-Z). The thigh goes almost
@@ -684,7 +932,6 @@ func _animate_seated() -> void:
 ## shins vertical and the feet under the seat's front edge rather than out in
 ## front of it.
 func _apply_seated_pose() -> void:
-	_body_rest_y = seat_height
 	_body.position.y = _body_rest_y
 	_hip_l.rotation.x = deg_to_rad(84.0)
 	_hip_r.rotation.x = deg_to_rad(80.0)

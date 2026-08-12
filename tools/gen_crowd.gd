@@ -56,6 +56,14 @@ func _initialize() -> void:
 	_root.set("edges", _graph_edges)
 	_root.set("pois", _points_of_interest())
 
+	# The way in and out, and where off-stage is. z=45 is the entrance street's
+	# own ground, six metres beyond the perimeter wall, in the middle lane
+	# between two ranges of shopfronts that stand at x −9 and +6. Nobody in the
+	# plaza is looking at it unless they are looking down the street at the
+	# gate — which is exactly the case the crowd checks for before using it.
+	_root.set("entry_node", _node_index("gate"))
+	_root.set("hold_point", Vector3(-1.5, 0.0, 45.0))
+
 	_walking_groups()
 	_seated_groups()
 
@@ -469,6 +477,14 @@ func _chair_spots() -> Array:
 # --- the crowd --------------------------------------------------------------
 
 
+## The cast, not the crowd. This is the park's busiest hour; `crowd.gd` decides
+## how much of it is standing in the plaza at any given time, and the order
+## below is the order they arrive in.
+##
+## The early entries are the ones the plaza is never without, because they are
+## admitted first and sent home last. So the front of this list is what the
+## opening hour looks like, and it is deliberately families and pairs rather
+## than singles — a park that has just opened is people who queued for it.
 func _walking_groups() -> void:
 	# Families lead with an adult and trail a kid; pairs walk abreast; singles
 	# are the ones who stop in the middle of everything.
@@ -487,6 +503,12 @@ func _walking_groups() -> void:
 		{"start": "band_w", "kinds": ["adult"]},
 		{"start": "south_west", "kinds": ["adult"]},
 		{"start": "ring_nw", "kinds": ["adult"]},
+		# Added when the day went on the clock. These are the afternoon — the
+		# plaza only ever holds all of them between about one and five.
+		{"start": "east", "kinds": ["adult", "adult", "kid"]},
+		{"start": "ring_sw", "kinds": ["adult", "kid"]},
+		{"start": "west_n", "kinds": ["adult", "adult"]},
+		{"start": "hut_walk", "kinds": ["adult"]},
 	]
 
 	for entry in plan:
@@ -510,35 +532,51 @@ func _walking_groups() -> void:
 				guest.set("follow_offset", Vector3(lateral, 0.0, behind))
 
 
+## Which seats are taken, and in what order they fill. Order is the whole point
+## of the list: `crowd.gd` admits groups in generation order, so this is what
+## the plaza looks like filling up. The fountain benches go first because they
+## are the good seats and they are the ones the player is nearest.
+##
+## Benches and cafe tables are separate populations with separate curves. A
+## bench is somewhere to rest and fills through the afternoon; a table is a
+## meal and fills at one and at six. That the two disagree is the reason for
+## splitting them — a cafe that simply tracked the crowd would say nothing the
+## headcount does not already say.
 func _seated_groups() -> void:
-	# Which benches are occupied, and by how many. Chosen rather than random so
-	# the fountain ring and the bandstand both read as places people sit.
 	var benches := _bench_spots()
-	var occupancy := {0: 2, 2: 1, 5: 2, 6: 1, 8: 2, 10: 1}
-	for index in occupancy:
-		var bench: Dictionary = benches[index]
+	var plan := [[0, 2], [2, 1], [5, 2], [7, 2], [1, 1], [4, 2], [8, 1], [10, 2], [6, 1]]
+	for entry in plan:
+		var bench: Dictionary = benches[entry[0]]
 		var group := _group_index
 		_group_index += 1
-		var seats: int = occupancy[index]
-		for s in seats:
+		for s in int(entry[1]):
 			var side := -0.45 if s == 0 else 0.45
 			var offset: Vector3 = Basis(Vector3.UP, bench["theta"]) * Vector3(side, 0.0, 0.06)
+			var seat: Vector3 = bench["at"] + offset
 			var guest := _guest(
 				"adult" if _rng.randf() > 0.25 else "kid",
-				bench["at"] + offset,
+				seat,
 				bench["theta"] + PI,
 				group)
-			guest.set("seated", true)
+			guest.set("group_kind", "bench")
+			guest.set("seat_at", seat)
+			guest.set("seat_yaw", bench["theta"] + PI)
 			guest.set("seat_height", 0.51)
 
+	# A table at a time, both chairs. Two people at one table is a pair having
+	# lunch; two people at two tables is two strangers, and the cafe fills more
+	# convincingly as the first thing.
 	var chairs := _chair_spots()
-	for index in [0, 3]:
-		var chair: Dictionary = chairs[index]
+	for table in 3:
 		var group := _group_index
 		_group_index += 1
-		var guest := _guest("adult", chair["at"], chair["theta"] + PI, group)
-		guest.set("seated", true)
-		guest.set("seat_height", 0.475)
+		for j in 2:
+			var chair: Dictionary = chairs[table * 2 + j]
+			var guest := _guest("adult", chair["at"], chair["theta"] + PI, group)
+			guest.set("group_kind", "cafe")
+			guest.set("seat_at", chair["at"])
+			guest.set("seat_yaw", chair["theta"] + PI)
+			guest.set("seat_height", 0.475)
 
 
 func _guest(kind: String, at: Vector3, yaw: float, group: int) -> Node3D:

@@ -20,6 +20,12 @@ signal hour_passed(hour: int)
 signal park_opened
 signal park_closed
 
+## The clock was jumped rather than run. Anything that catches up to the time by
+## degrees — the crowd walking guests in through the gate — has to be told, or a
+## dev tool that skips to eight in the evening gets the eight o'clock sun over
+## the ten o'clock crowd, still filing in.
+signal clock_jumped
+
 const MINUTE := 60.0
 const HOUR := 3600.0
 const DAY := 86400.0
@@ -72,6 +78,7 @@ func set_clock(hour_of_day: int, minute_of_hour: int = 0) -> void:
 	seconds = fposmod(hour_of_day * HOUR + minute_of_hour * MINUTE, DAY)
 	_last_minute = int(seconds / MINUTE)
 	_was_open = is_open()
+	clock_jumped.emit()
 
 
 func hour() -> int:

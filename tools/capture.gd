@@ -87,6 +87,22 @@ const DAY_VIEWS := [
 ## afternoon, the low evening light, sunset, and after dark.
 const DAY_TIMES := [6.5, 7.5, 10.0, 13.75, 17.0, 19.0, 20.5, 21.5]
 
+## The crowd across the open day, from two places the plaza floor reads from:
+## across the fountain, and down the gap at the south towards the gate. Both are
+## about how many people are in shot rather than about the light, so they are
+## shot low and wide rather than at the sky.
+##
+## The gate view is the one that answers whether the day is legible. If eleven
+## in the morning and eight at night are the same picture, the schedule is a
+## number in a file and not something the player can read off the park.
+const CROWD_TIMES := [10.0, 11.5, 13.0, 15.0, 18.0, 20.0, 21.5]
+
+const CROWD_VIEWS := [
+	{"name": "floor", "yaw": 155.0, "pitch": -4.0, "pos": Vector3(7.0, 0.2, -4.0)},
+	{"name": "gate", "yaw": 178.0, "pitch": -2.0, "pos": Vector3(0.0, 0.2, 8.0)},
+	{"name": "cafe", "yaw": -58.0, "pitch": -6.0, "pos": Vector3(9.0, 0.2, 7.0)},
+]
+
 ## Whichever time the ordinary vantage pass is shot at. Mid-afternoon: the sun
 ## is off the vertical again and the shadows have direction.
 const STANDARD_TIME := 16.0
@@ -152,6 +168,17 @@ func _run(main: Node) -> void:
 		ParkClock.set_clock(int(hour), int(round(fmod(hour, 1.0) * 60.0)))
 		for view in DAY_VIEWS:
 			var label := "day_%02d%02d_%s" % [ParkClock.hour(), ParkClock.minute(), view["name"]]
+			await _shoot(view, label)
+
+	# Jumping the clock re-places the crowd rather than walking it in, so each
+	# of these is the plaza as that hour actually holds it. A settle beat after
+	# the jump, because the guests are put down facing where they were left and
+	# want a moment to pick a route and turn their heads.
+	for hour in CROWD_TIMES:
+		ParkClock.set_clock(int(hour), int(round(fmod(hour, 1.0) * 60.0)))
+		await get_tree().create_timer(2.5).timeout
+		for view in CROWD_VIEWS:
+			var label := "crowd_%02d%02d_%s" % [ParkClock.hour(), ParkClock.minute(), view["name"]]
 			await _shoot(view, label)
 
 	ParkClock.set_clock(int(CLOCK_TIME), CLOCK_MINUTE)
