@@ -15,6 +15,18 @@ extends Node
 ## and the hardest to see in a screenshot. An arrival point half a metre out is
 ## a player falling through the world, and it looks identical to a working one
 ## right up until it does not.
+##
+## Every position below comes from `ParkPlan`. That matters for a reason beyond
+## tidiness: `boardwalk_stub.tscn` *cannot* read `ParkPlan` — it is a scene, and
+## a scene's transforms are baked literals with nowhere to put an expression. So
+## the far side of the seam is still a hand-placed number and always will be
+## until something generates it.
+##
+## This test is what stops that being a silent duplication. It walks to a marker
+## placed by hand in the stub and asserts it is where `ParkPlan` says it should
+## be, so the two agreeing is *checked* rather than assumed. Duplication a test
+## enforces is fine; duplication nothing looks at is how the stair foot ended up
+## written down as three different numbers in one afternoon.
 
 ## Close enough to a waypoint to call it reached. Tight, because the last
 ## waypoint of each route is deliberately on the far side of a trigger volume
@@ -35,25 +47,24 @@ const FLOOR_LIMIT := -12.0
 const STALL_FRAMES := 240
 const MAX_SECONDS := 60.0
 
-## Terrace, stair head, the landing, and a point behind the shut gate at the
-## foot. The last one is not reachable — the gate is solid and stops the player
-## about a third of a metre short of it, which puts them inside the crossing
-## volume. Walking at something they cannot get to is how the seam gets tripped
-## rather than approached, and if it never fires they stall against the gate and
-## the stall detector says so.
-const OUTBOUND := [
-	Vector3(-38.0, 0.2, -9.7),
-	Vector3(-42.0, 0.0, -9.7),
-	Vector3(-44.7, -1.0, -7.5),
-	Vector3(-44.7, -6.0, 8.2),
-]
+## How far past the shut gate the last outbound waypoint sits. Deliberately
+## unreachable — the gate is solid and stops the player short of it, which puts
+## them inside the crossing volume. Walking at something you cannot get to is
+## how the seam gets tripped rather than merely approached, and if it never
+## fires the player stalls against the gate and the stall detector says so.
+const PAST_THE_GATE := 2.7
 
-## Back the other way, aimed off the north edge of the stub deck for the same
-## reason: the crossing is between here and there, and the player should meet it
-## well before they run out of planking.
-const INBOUND := [
-	Vector3(-44.7, -5.8, 6.0),
-]
+## How far north of the boardwalk arrival to aim on the way back. Comfortably
+## past the crossing volume, so the player meets the seam well before they run
+## out of planking.
+const BACK_ACROSS := 8.0
+
+## Terrace, stair head, the landing, and the point behind the gate. Built in
+## `_ready` rather than declared const, because they are derived from `ParkPlan`
+## and a route that stops following the plan is the failure this exists to
+## catch.
+var _outbound: Array[Vector3] = []
+var _inbound: Array[Vector3] = []
 
 var _player: CharacterBody3D
 var _phase := 0
@@ -84,9 +95,19 @@ func _ready() -> void:
 	if ParkSections.current() != &"plaza":
 		_fail("started in '%s' rather than the plaza" % ParkSections.current())
 
+	# The terrace and the stair head are on the plan's own west passage; the
+	# landing is one flight down, which is `treads_a` risers below the terrace.
+	_outbound = [
+		Vector3(-38.0, 0.2, ParkPlan.STAIR_TOP_Z),
+		Vector3(-42.0, 0.0, ParkPlan.STAIR_TOP_Z),
+		Vector3(ParkPlan.STAIR_TURN_X, -ParkPlan.STAIR_RISE * 4.0, ParkPlan.STAIR_TOP_Z + 2.2),
+		ParkPlan.STAIR_FOOT + Vector3(0.0, 0.0, PAST_THE_GATE),
+	]
+	_inbound = [ParkPlan.BOARDWALK_ARRIVAL - Vector3(0.0, 0.0, BACK_ACROSS)]
+
 	# Onto the terrace by hand. Getting there from the spawn is `walk_test.gd`'s
 	# job and repeating it here only buys a longer run.
-	_player.global_position = OUTBOUND[0]
+	_player.global_position = _outbound[0]
 	_player.velocity = Vector3.ZERO
 	_last = _player.global_position
 	ParkSections.section_entered.connect(_on_entered)
@@ -132,13 +153,13 @@ func _physics_process(delta: float) -> void:
 
 	match _phase:
 		0:
-			_walk(OUTBOUND)
+			_walk(_outbound)
 		1:
-			_check_landing(&"boardwalk", Vector3(-44.7, -5.8, 14.0))
+			_check_landing(&"boardwalk", ParkPlan.BOARDWALK_ARRIVAL)
 		2:
-			_walk(INBOUND)
+			_walk(_inbound)
 		3:
-			_check_landing(&"plaza", Vector3(-44.7, -5.8, 4.8))
+			_check_landing(&"plaza", ParkPlan.STAIR_FOOT_STAND)
 
 
 ## Steer at the next waypoint and hold forward. Yaw is set rather than turned
