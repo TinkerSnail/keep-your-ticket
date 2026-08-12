@@ -19,6 +19,8 @@ config/features=PackedStringArray("4.7", "Forward Plus")
 
 ParkClock="*res://scripts/park_clock.gd"
 PhotoAlbum="*res://scripts/photo_album.gd"
+ParkSections="*res://scripts/park_sections.gd"
+ParkGuests="*res://scripts/park_guests.gd"
 
 [display]
 

@@ -124,6 +124,10 @@ var _pitch_tween: Tween
 var _arm_length := 2.6
 var _was_captured := false
 
+## Mid-threshold: input is off and the walk is on rails until the far side.
+var _crossing := false
+var _crossing_wish := Vector3.ZERO
+
 
 func _ready() -> void:
 	add_to_group("player")
@@ -153,6 +157,75 @@ func set_third_person(on: bool) -> void:
 		return
 	third_person = on
 	_apply_view()
+
+
+## Hand the walk over to the threshold. Input stops being read, and the player
+## carries on in the direction they were already going — or straight ahead, if
+## they managed to trip the seam from a standstill.
+##
+## The camera is deliberately not detached here. In a game with a fixed chase
+## camera the shot holds at the doorway and the player walks out of frame, which
+## is the whole trick; with a free-look camera on a spring arm there is no frame
+## to walk out of, and taking the look away to fake one would read as the
+## controls dying a moment before the fade. The fade does that job alone, and
+## what carries across it is the walk.
+func begin_crossing() -> void:
+	_crossing = true
+	var moving := Vector3(velocity.x, 0.0, velocity.z)
+	_crossing_wish = moving.normalized() if moving.length_squared() > 0.04 \
+		else -global_transform.basis.z
+	_crossing_wish.y = 0.0
+
+
+func end_crossing() -> void:
+	_crossing = false
+	_crossing_wish = Vector3.ZERO
+
+
+func is_crossing() -> bool:
+	return _crossing
+
+
+## Put the player down somewhere else, facing somewhere else. Called by
+## `ParkSections` when a section is crossed into.
+##
+## Through here rather than by writing `global_position` from outside, because
+## the walking view is not just this node: the look is split between the body's
+## yaw and the head's pitch, the camera hangs off a spring arm that shortens as
+## the pitch rises, and there may be a tween part-way through moving the pitch.
+## Setting the position and hoping leaves the arm sweeping from where the player
+## used to be to where they are now — a whip-pan across the whole park — and
+## leaves whatever pitch they crossed the threshold at, which for somebody who
+## walked down a stair looking at their feet is a face full of ground.
+##
+## The pitch goes level rather than being preserved. Arriving somewhere is
+## looking up at it.
+func place_at(at: Vector3, yaw: float) -> void:
+	if _pitch_tween != null and _pitch_tween.is_valid():
+		_pitch_tween.kill()
+
+	global_position = at
+	rotation.y = yaw
+	_pitch = 0.0
+	head.rotation.x = 0.0
+	velocity = Vector3.ZERO
+
+	# The arm is lerped towards `third_arm_close` by pitch every physics frame,
+	# and the pitch is now zero, so this only spares the one frame in between —
+	# which is the frame the player is looking at as the new section appears.
+	spring.spring_length = _arm_length
+	# Both transforms, or the spring arm casts its shape from the position the
+	# player held before the crossing and pulls itself in against the old
+	# section's geometry.
+	force_update_transform()
+	head.force_update_transform()
+
+	# Re-aimed, not cleared. The walk that carried the player through the seam
+	# carries them out of it, and after the yaw above "ahead" means something
+	# else than it did on the other side.
+	if _crossing:
+		_crossing_wish = -global_transform.basis.z
+		_crossing_wish.y = 0.0
 
 
 func _on_camera_raised(raised: bool) -> void:
@@ -235,7 +308,7 @@ func _physics_process(delta: float) -> void:
 		_look_settle -= 1
 	_was_captured = captured
 
-	if _look_enabled:
+	if _look_enabled and not _crossing:
 		var look := Input.get_vector("look_left", "look_right", "look_up", "look_down")
 		if look != Vector2.ZERO:
 			_apply_look(
@@ -244,10 +317,18 @@ func _physics_process(delta: float) -> void:
 			)
 
 	var input_dir := Vector2.ZERO
-	if _look_enabled:
+	if _look_enabled and not _crossing:
 		input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var wish := (transform.basis * Vector3(input_dir.x, 0.0, input_dir.y))
 	wish.y = 0.0
+	# Crossing a section threshold the player is walked rather than driven, and
+	# the walk is the one they were already doing. Handing control back at the
+	# far side of a fade only works if they never stopped: a threshold that
+	# brings the player to a halt, fades, and starts them again from nothing is
+	# felt as the game taking the controller away, which is exactly what the
+	# fade is meant to be covering up.
+	if _crossing:
+		wish = _crossing_wish
 	if wish.length_squared() > 1.0:
 		wish = wish.normalized()
 

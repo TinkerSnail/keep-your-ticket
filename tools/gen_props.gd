@@ -179,6 +179,74 @@ func _add(node: Node3D, nm: String) -> void:
 	node.owner = _root
 
 
+## Loaded on first use rather than preloaded, and that is not a style choice.
+##
+## This file is run with `--script`, which compiles it before the project's
+## autoloads are registered. `section_gate.gd` names `ParkSections`, so a
+## compile-time `preload` of it resolves to a script that never finished
+## compiling — and the failure is silent in the worst way: the constant is not
+## null, `set_script` accepts it and does nothing, `set("role", …)` writes to a
+## property that does not exist, and the generator cheerfully emits bare
+## `Area3D`s with no script and no gates on them. Which is what it did.
+##
+## By the time `_initialize` runs the autoloads exist and an ordinary `load`
+## compiles cleanly. Anything here that touches a script naming an autoload has
+## to be loaded late for the same reason.
+var _section_gate: Script = null
+
+
+func _gate_script() -> Script:
+	if _section_gate == null:
+		_section_gate = load("res://scenes/world/section_gate.gd")
+	return _section_gate
+
+## Added without the seam displacement `_add` applies. That offset exists to
+## stop two CSG surfaces sharing a plane; a trigger volume and a spawn point are
+## neither, and a marker the player is placed on wants to be exactly where it
+## says it is.
+func _attach(node: Node3D, nm: String) -> void:
+	node.name = nm
+	_root.add_child(node)
+	node.owner = _root
+
+
+## Mask 2, not the default 1. The player is on the "people" layer — layer 1 is
+## the world, and a gate watching for the world fires on the ground it is
+## standing on, or on nothing at all.
+func _gate_area(nm: String, at: Vector3, size: Vector3, role: int,
+		leads: StringName) -> void:
+	var area := Area3D.new()
+	area.position = at
+	area.collision_layer = 0
+	area.collision_mask = 2
+	area.set_script(_gate_script())
+	if area.get_script() == null:
+		push_error("gen_props: section_gate.gd did not compile — '%s' would be a bare Area3D" % nm)
+		return
+	area.set("role", role)
+	area.set("leads_to", leads)
+	area.set("belongs_to", &"plaza")
+	_attach(area, nm)
+
+	var box := BoxShape3D.new()
+	box.size = size
+	var shape := CollisionShape3D.new()
+	shape.shape = box
+	shape.name = "shape"
+	area.add_child(shape)
+	shape.owner = _root
+
+
+## Where `ParkSections` puts the player down coming the other way. Emitting this
+## is what lets the hand-written fallback in `park_sections.gd` be deleted — a
+## marker generated alongside the stair moves when the stair moves.
+func _marker(nm: String, at: Vector3, yaw: float) -> void:
+	var m := Marker3D.new()
+	m.position = at
+	m.rotation.y = yaw
+	_attach(m, nm)
+
+
 func _box(nm: String, base: Vector3, local: Vector3, size: Vector3, mat: String,
 		theta := 0.0, collide := true, phi := 0.0) -> void:
 	var b := CSGBox3D.new()
@@ -787,6 +855,28 @@ func _west_stair() -> void:
 	_box("foot_gate", Vector3.ZERO,
 		Vector3(STAIR_TURN_X, foot_y + 1.1, foot_z + STAIR_W * 0.5 + 0.1),
 		Vector3(STAIR_W, 2.2, 0.2), "metal")
+
+	# The section boundary, as three nodes rather than as geometry.
+	#
+	# The preload sits at the head of flight A, so stepping off the terrace onto
+	# the stair is what starts the load. The crossing sits just short of the shut
+	# gate at the bottom. Between them is the whole stair — about twenty-two
+	# metres, most of a minute at a walk — and it turns halfway down, so the
+	# thing being loaded is never in shot while it loads. That corridor is the
+	# budget; the fade over the swap is only there to hide the cut.
+	#
+	# The crossing is deliberately in front of the gate rather than past it. The
+	# gate is a solid box and stays shut: the player walks up to it and the park
+	# takes over, which is a threshold opening rather than a wall vanishing.
+	_gate_area("preload_boardwalk", Vector3(-40.0, 0.9, STAIR_TOP_Z),
+		Vector3(4.0, 3.0, 2.4), 0, &"boardwalk")
+	_gate_area("cross_boardwalk",
+		Vector3(STAIR_TURN_X, foot_y + 1.4, foot_z + 0.9),
+		Vector3(STAIR_W, 3.0, 1.0), 1, &"boardwalk")
+	# Behind the crossing volume, or arriving from the boardwalk lands the player
+	# inside the trigger that sent them and bounces them straight back.
+	_marker("arrival_from_boardwalk",
+		Vector3(STAIR_TURN_X, foot_y + 0.2, foot_z - 0.7), 0.0)
 
 
 func _skyline() -> void:
