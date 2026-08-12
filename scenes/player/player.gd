@@ -70,7 +70,11 @@ const STEP_HEIGHT := 0.35
 ## a button. Under test: the park's sightlines were all composed for an eye at
 ## 1.6m, and whether the compositions survive a camera three metres back is the
 ## open question, not whether the camera works.
-var third_person := false
+## Third person to move, first person to shoot — so walking around is the
+## default state and the eye is the exception you enter by raising the camera.
+## This started false, which meant the game opened in first person and the
+## whole arrangement was invisible unless you knew to press V.
+var third_person := true
 
 var _pitch := 0.0
 var _look_enabled := true
