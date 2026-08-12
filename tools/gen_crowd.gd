@@ -668,8 +668,18 @@ func _build_body(guest: Node3D, h: float, build: float, is_kid: bool) -> void:
 		# guest.gd reads shin length off this child, so it stays first.
 		_part(knee, "shin", Vector3(limb * 1.1, shin, limb * 1.1),
 			Vector3(0, -shin * 0.5, 0), skin if _rng.randf() > 0.4 else bottom)
-		_part(knee, "shoe", Vector3(limb * 1.25, limb * 0.5, limb * 2.0),
-			Vector3(0, -shin, -limb * 0.45), "bottom_black")
+		# The shoe is deeper than the shin and offset forward, so that neither
+		# end of it shares a plane with the leg above. It used to be exactly as
+		# deep behind as the shin was, which put the back of the shoe and the
+		# back of the shin on one plane with different materials — 21cm² of
+		# z-fighting per leg, on every guest in the park. Christina, playing:
+		# the heels of each character kind of vibrate.
+		#
+		# A tenth of `limb` is about a centimetre at adult scale. It reads as a
+		# heel rather than as a correction, which is the shape a shoe has
+		# anyway.
+		_part(knee, "shoe", Vector3(limb * 1.25, limb * 0.5, limb * 2.1),
+			Vector3(0, -shin, -limb * 0.40), "bottom_black")
 
 	var neck := Node3D.new()
 	neck.position = Vector3(0, hips_h + torso_h, 0)
