@@ -1,13 +1,40 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scenes/ui/hud.gd" id="1_hud"]
 [ext_resource type="Script" path="res://scenes/ui/viewfinder.gd" id="2_viewfinder"]
 [ext_resource type="Script" path="res://scenes/ui/album_view.gd" id="3_album"]
+[ext_resource type="Shader" path="res://scenes/ui/finder_tunnel.gdshader" id="4_tunnel"]
+
+[sub_resource type="ShaderMaterial" id="finder_tunnel_material"]
+shader = ExtResource("4_tunnel")
+shader_parameter/window_half_height = 0.4
+shader_parameter/window_aspect = 1.18
+shader_parameter/corner_radius = 0.1
+shader_parameter/softness = 0.085
+shader_parameter/body_color = Color(0.015, 0.014, 0.018, 1)
+shader_parameter/body_alpha = 0.985
 
 [node name="hud" type="CanvasLayer"]
 script = ExtResource("1_hud")
 
 [node name="viewfinder" type="Control" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="tunnel" type="ColorRect" parent="viewfinder"]
+material = SubResource("finder_tunnel_material")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="lines" type="Control" parent="viewfinder"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0

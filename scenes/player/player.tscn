@@ -1,25 +1,42 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scenes/player/player.gd" id="1_player"]
 [ext_resource type="Script" path="res://scenes/player/camera_tool.gd" id="2_camera_tool"]
 [ext_resource type="Script" path="res://scenes/player/interact_tool.gd" id="3_interact_tool"]
+[ext_resource type="Script" path="res://scenes/player/player_body.gd" id="4_player_body"]
 
 [sub_resource type="CapsuleShape3D" id="body_shape"]
 radius = 0.35
 height = 1.8
 
 [node name="player" type="CharacterBody3D"]
+collision_layer = 2
+collision_mask = 3
 script = ExtResource("1_player")
 
 [node name="collision" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 shape = SubResource("body_shape")
 
+[node name="body" type="Node3D" parent="."]
+script = ExtResource("4_player_body")
+
 [node name="head" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 
 [node name="camera" type="Camera3D" parent="head"]
 current = true
+fov = 70.0
+near = 0.05
+far = 400.0
+
+[node name="spring" type="SpringArm3D" parent="head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12, 0)
+collision_mask = 1
+spring_length = 2.6
+margin = 0.25
+
+[node name="camera_third" type="Camera3D" parent="head/spring"]
 fov = 70.0
 near = 0.05
 far = 400.0

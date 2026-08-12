@@ -98,6 +98,22 @@ const CLOCK_SHOT := {"name": "tower_clock", "yaw": -35.0, "pitch": 21.0, "pos": 
 const CLOCK_TIME := 15.0
 const CLOCK_MINUTE := 40
 
+## The shots most likely to break under a camera three metres back, taken twice
+## — once from the eye, once from the arm. The question the spring arm test is
+## actually asking is not whether the camera works but whether the compositions
+## survive it, and these are where it would show first: the skyline glimpses the
+## rooflines are tuned to crop, the arch framing the pier, and the tight spaces.
+const COMPARE := [
+	{"name": "sky_north", "yaw": 0.0, "pitch": 12.0, "pos": SPAWN},
+	{"name": "sky_ne", "yaw": -48.0, "pitch": 14.0, "pos": SPAWN},
+	{"name": "west_arch", "yaw": 90.0, "pitch": 3.0, "pos": Vector3(0.0, 0.2, -2.0)},
+	{"name": "room", "yaw": -60.0, "pitch": -1.0, "pos": Vector3(3.0, 0.2, 3.0)},
+	{"name": "street", "yaw": 0.0, "pitch": 1.0, "pos": Vector3(-1.5, 0.2, 78.0)},
+	{"name": "way_nnw", "yaw": 0.0, "pitch": -1.0, "pos": Vector3(-13.0, 0.2, -34.0)},
+	{"name": "arcade", "yaw": 90.0, "pitch": -1.0, "pos": Vector3(-13.0, 0.2, 66.0)},
+]
+
+
 ## Long enough for guests to have picked a route, taken a few steps, and settled
 ## their heads onto something. At one second the whole crowd is still standing
 ## where it was generated, facing whichever way it was pointed.
@@ -140,6 +156,16 @@ func _run(main: Node) -> void:
 
 	ParkClock.set_clock(int(CLOCK_TIME), CLOCK_MINUTE)
 	await _shoot(CLOCK_SHOT, "shot_%s" % CLOCK_SHOT["name"])
+
+	ParkClock.set_clock(int(STANDARD_TIME), 0)
+	for view in COMPARE:
+		await _shoot(view, "cmp_1p_%s" % view["name"])
+	if _player.has_method("set_third_person"):
+		_player.set_third_person(true)
+		await get_tree().physics_frame
+		for view in COMPARE:
+			await _shoot(view, "cmp_3p_%s" % view["name"])
+		_player.set_third_person(false)
 
 	get_tree().quit()
 

@@ -22,6 +22,12 @@ enum Attention { FORWARD, POI, COMPANION, GAZE, CAMERA, POSE }
 ## the same way twice — but not always, because people don't.
 enum Reaction { OBLIVIOUS, GLANCE, HOLD, AVOID }
 
+## Physics layers, named in project settings so the editor's layer picker reads
+## as words rather than as numbers. The distinction exists because a camera arm
+## has to be shoved aside by a building and walk straight through a crowd.
+const LAYER_WORLD := 1
+const LAYER_PEOPLE := 2
+
 const ARRIVE_DISTANCE := 0.35
 const SEPARATION_RADIUS := 0.95
 const SEPARATION_STRENGTH := 1.4
@@ -150,6 +156,14 @@ var _pose_complies := true
 func _ready() -> void:
 	add_to_group("npc")
 	add_to_group("guest")
+
+	# People, not architecture. Set here rather than in the generator because a
+	# guest is not the only thing that needs to be distinguishable from a wall,
+	# and because it would otherwise be one more thing lost to a regeneration.
+	# Still collides with the world, with the player, and with other guests —
+	# only the things that ask specifically for architecture see the difference.
+	collision_layer = LAYER_PEOPLE
+	collision_mask = LAYER_WORLD | LAYER_PEOPLE
 
 	_rng.seed = rng_seed if rng_seed != 0 else hash(name)
 

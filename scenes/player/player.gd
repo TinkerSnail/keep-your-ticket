@@ -25,16 +25,66 @@ const STEP_HEIGHT := 0.35
 @export var stick_sensitivity := 2.8
 @export var pitch_limit_degrees := 88.0
 
+## What the raise costs. Up to now putting the camera up was free — it added an
+## overlay and took nothing away, so there was never a reason to put it down.
+## The finder is a tunnel: you walk at a shuffle, you turn deliberately, and the
+## park either side of the frame stops existing. Everything the crowd does off
+## to the side — the guest who just noticed, the chain of noticing travelling
+## along a queue — is now something the player gave up in order to compose.
+@export var raised_speed_scale := 0.45
+@export var raised_look_scale := 0.55
+
+## Not a zoom. The finder takes screen area, not angle: the mask is what makes
+## the world small, and the lens is roughly what the eye was already seeing. The
+## few degrees here are the motion of pressing your face to the back of a camera
+## and nothing more — enough to feel, not enough to reach with.
+@export var walk_fov := 70.0
+@export var finder_fov := 64.0
+@export var raise_seconds := 0.18
+
+## The arm is pushed in by whatever is behind the player, and in a park at one
+## prop per 30m² there is usually something. Below this it has collapsed far
+## enough that the camera is inside the body, so the body stops being drawn and
+## the frame goes back to being about the park. It keeps its shadow either way,
+## so the give-away is not that the photographer vanished.
+@export var body_fade_length := 1.3
+
+## Over the shoulder, so the player is not standing in the middle of their own
+## frame. Applied at the camera end rather than to the arm's origin: an origin
+## half a metre to the player's right is not guaranteed to be anywhere the
+## player could stand, and against a wall it starts inside one — which reads as
+## the arm collapsing to nothing for no visible reason. The arm now measures
+## from the player's own axis, which is by definition somewhere they fit, and
+## the offset slides back to centre as the arm pulls in so the camera does not
+## swing sideways into whatever pinched it.
+@export var shoulder_offset := 0.42
+
 @onready var head: Node3D = $head
 @onready var camera: Camera3D = $head/camera
+@onready var spring: SpringArm3D = $head/spring
+@onready var camera_third: Camera3D = $head/spring/camera_third
+@onready var body: Node3D = $body
+
+## Third person to move, first person to shoot — the Fatal Frame and Jet Grind
+## Radio arrangement, where the switch is what makes the act an act rather than
+## a button. Under test: the park's sightlines were all composed for an eye at
+## 1.6m, and whether the compositions survive a camera three metres back is the
+## open question, not whether the camera works.
+var third_person := false
 
 var _pitch := 0.0
 var _look_enabled := true
+var _shooting := false
+var _fov_tween: Tween
 
 
 func _ready() -> void:
 	add_to_group("player")
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	# Otherwise the arm collides with the body it is attached to and collapses
+	# to zero the moment it is switched on.
+	spring.add_excluded_object(get_rid())
+	_apply_view()
 	call_deferred("_connect_ui")
 
 
@@ -42,9 +92,55 @@ func _connect_ui() -> void:
 	var hud := get_tree().get_first_node_in_group("hud")
 	if hud != null and hud.has_signal("album_visibility_changed"):
 		hud.album_visibility_changed.connect(_on_album_visibility_changed)
+	# Raising the Instamatic drops to the eye whatever the walking view is. The
+	# viewfinder has to be the lens, so it cannot be a camera hanging in space
+	# three metres behind the person holding it.
+	var tool_node := get_node_or_null("camera_tool")
+	if tool_node != null and tool_node.has_signal("raised_changed"):
+		tool_node.raised_changed.connect(_on_camera_raised)
+
+
+func set_third_person(on: bool) -> void:
+	if third_person == on:
+		return
+	third_person = on
+	_apply_view()
+
+
+func _on_camera_raised(raised: bool) -> void:
+	_shooting = raised
+	_apply_view()
+	_tween_fov()
+
+
+## First person whenever the Instamatic is up, whatever the walking view is set
+## to. `third_person` is the preference; this is what the frame actually does.
+func _apply_view() -> void:
+	var tool_node := get_node_or_null("camera_tool")
+	_shooting = tool_node != null and bool(tool_node.get("raised"))
+	var behind := third_person and not _shooting
+	camera_third.current = behind
+	camera.current = not behind
+	# Drawn only when there is a camera back there to see it. Otherwise it stays
+	# in the scene casting a shadow, so the photographer turns up in their own
+	# photographs the way they actually would — as a shadow across the bottom of
+	# the frame in the late light.
+	body.set_seen(behind and spring.get_hit_length() > body_fade_length)
+	body.set_raised(_shooting)
+
+
+func _tween_fov() -> void:
+	if _fov_tween != null and _fov_tween.is_valid():
+		_fov_tween.kill()
+	_fov_tween = create_tween()
+	_fov_tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	_fov_tween.tween_property(camera, "fov", finder_fov if _shooting else walk_fov, raise_seconds)
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("view_toggle"):
+		set_third_person(not third_person)
+		return
 	if event is InputEventMouseMotion and _look_enabled:
 		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 			_apply_look(
@@ -70,7 +166,7 @@ func _physics_process(delta: float) -> void:
 	if wish.length_squared() > 1.0:
 		wish = wish.normalized()
 
-	var target := wish * walk_speed
+	var target := wish * walk_speed * (raised_speed_scale if _shooting else 1.0)
 	var rate := acceleration if target != Vector3.ZERO else friction
 	velocity.x = move_toward(velocity.x, target.x, rate * delta)
 	velocity.z = move_toward(velocity.z, target.z, rate * delta)
@@ -99,6 +195,13 @@ func _physics_process(delta: float) -> void:
 		if intended > 0.001 and got < intended * 0.7:
 			_try_step(wanted, delta)
 
+	# The arm length is decided by whatever is behind the player, which changes
+	# every step, so this cannot live in `_apply_view` with the rest of it.
+	if camera_third.current:
+		var reach := spring.get_hit_length()
+		camera_third.position.x = shoulder_offset * clampf(reach / spring.spring_length, 0.0, 1.0)
+		body.set_seen(reach > body_fade_length)
+
 
 ## Walk into something short: lift by a step, try the move again from up there,
 ## and drop back onto whatever is underneath. Every stage has to succeed or the
@@ -122,9 +225,10 @@ func _try_step(wanted: Vector3, delta: float) -> void:
 
 
 func _apply_look(yaw_delta: float, pitch_delta: float) -> void:
-	rotate_y(yaw_delta)
+	var scale := raised_look_scale if _shooting else 1.0
+	rotate_y(yaw_delta * scale)
 	var limit := deg_to_rad(pitch_limit_degrees)
-	_pitch = clampf(_pitch + pitch_delta, -limit, limit)
+	_pitch = clampf(_pitch + pitch_delta * scale, -limit, limit)
 	head.rotation.x = _pitch
 
 
