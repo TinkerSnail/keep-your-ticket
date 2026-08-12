@@ -42,6 +42,21 @@ const ARRIVE_DISTANCE := 0.35
 const SEPARATION_RADIUS := 0.95
 const SEPARATION_STRENGTH := 1.4
 
+## How much room a guest leaves the player, and how hard they insist on it.
+##
+## Wider than they give each other, because a guest who merely stops overlapping
+## the player still leans on them, and leaning is what carried the photographer
+## across the plaza. The clearance is what does the work: past about 0.6m the
+## player's capsule has nothing to depenetrate from, so 1.25 is margin rather
+## than a limit.
+##
+## The strength is deliberately low, and it was 2.2 first. At that value a guest
+## the player walks into darts away at over twice their own walking speed, which
+## reads as a flinch. Measured at 1.0, 1.3 and 2.2 against a full plaza: all
+## three hold the drift at zero, so the gentlest that keeps its margin wins.
+const PLAYER_CLEARANCE := 1.25
+const PLAYER_AVOIDANCE := 1.3
+
 ## Where a guest who is not in the park is parked. Far under the world, so that
 ## a raycast, a nearest-guest search or a stray bit of physics cannot find one.
 const DORMANT_Y := -400.0
@@ -554,6 +569,18 @@ func _request_route() -> void:
 
 ## Guests do not path around each other, they just refuse to overlap. At this
 ## density that is indistinguishable from the real thing and costs nothing.
+##
+## The player counts. They did not until somebody played it: guests separated
+## from each other and walked straight through the photographer, and since a
+## guest is moved by assignment while the player is a `CharacterBody3D` that
+## depenetrates, every one of those pass-throughs shoved the player sideways.
+## Standing still in the plaza at three in the afternoon carried them five
+## metres a minute, and twelve if they were standing in the gap at the south
+## where arriving groups funnel through. Long enough at the wrong spot and the
+## player was pushed clean out of the plaza and down the entrance street.
+##
+## That is disqualifying rather than untidy. Standing still and waiting for a
+## shot is most of what the job is.
 func _apply_separation(delta: float) -> void:
 	if _crowd == null:
 		return
@@ -569,6 +596,18 @@ func _apply_separation(delta: float) -> void:
 		if d > SEPARATION_RADIUS or d < 0.001:
 			continue
 		push += (away / d) * (1.0 - d / SEPARATION_RADIUS)
+
+	if _crowd.player_present:
+		var at: Vector3 = _crowd.player_position
+		var off := global_position - at
+		off.y = 0.0
+		var pd := off.length()
+		# A wider berth than they give each other, because that is what people
+		# do with a stranger — and because the margin is what decides whether
+		# the crowd parts around the player or merely stops overlapping them.
+		if pd < PLAYER_CLEARANCE and pd > 0.001:
+			push += (off / pd) * (1.0 - pd / PLAYER_CLEARANCE) * PLAYER_AVOIDANCE
+
 	if push == Vector3.ZERO:
 		return
 	global_position += push * SEPARATION_STRENGTH * delta

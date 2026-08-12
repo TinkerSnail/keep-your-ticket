@@ -123,6 +123,11 @@ const SLEEP_PATIENCE := 90.0
 
 var guests: Array = []
 var camera_raised := false
+## Whether `player_position` means anything yet. Guests give the player a berth
+## and would otherwise all give a berth to the origin — which is the fountain —
+## for as long as it took the player to be found, or forever in a harness that
+## runs without one.
+var player_present := false
 var player_position := Vector3.ZERO
 var player_eye := Vector3.ZERO
 
@@ -227,6 +232,8 @@ func _connect_player() -> void:
 	_player = get_tree().get_first_node_in_group("player") as Node3D
 	if _player != null:
 		_player_camera = _player.get_node_or_null("head/camera") as Node3D
+		player_position = _player.global_position
+		player_present = true
 
 	var camera_tool := get_tree().get_first_node_in_group("camera_tool")
 	if camera_tool == null:
