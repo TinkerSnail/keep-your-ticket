@@ -21,6 +21,24 @@ const CROWD_SCRIPT := "res://scenes/npc/crowd.gd"
 ## counts as blocked.
 const CLEARANCE := 0.45
 
+## How many guests the cast should come to, padded with procedural groups if the
+## authored list is short of it. Zero means no padding, which is the authored 56.
+##
+## **This is a measuring knob, not a design.** The list in `_walking_groups` is
+## composed — the front of it is what the opening hour looks like — and nothing
+## `_pad_cast` adds is composed at all. It exists because the estimate of a real
+## peak for a plaza this size is 320 to 640 people, the cast is 56, and the
+## cheap way to find out where the plain path stops holding is to raise the
+## number and watch the frame time rather than to design a tiering scheme
+## against a guess.
+##
+## The padding runs last, after the authored cast is complete, so the 56 come
+## out byte-identical whatever this is set to and setting it back to 0
+## reproduces the committed scene exactly. Seated groups are not padded — the
+## plaza has fourteen bench seats and six chairs, and that is the constraint
+## rather than an oversight. Extra people walk.
+const CAST_TARGET := 0
+
 var _root: Node3D
 var _rng := RandomNumberGenerator.new()
 var mats: Dictionary = {}
@@ -66,6 +84,7 @@ func _initialize() -> void:
 
 	_walking_groups()
 	_seated_groups()
+	_pad_cast()
 
 	var saved := _save(_root, OUT_PATH)
 	# Nothing here was ever added to a tree, so it has to be released by hand.
@@ -577,6 +596,51 @@ func _seated_groups() -> void:
 			guest.set("seat_at", chair["at"])
 			guest.set("seat_yaw", chair["theta"] + PI)
 			guest.set("seat_height", 0.475)
+
+
+## Fill the cast out to `CAST_TARGET` with wandering groups nobody composed.
+##
+## Its own generator, seeded separately, so that padding on and off cannot shift
+## a single draw in the authored cast above. Placement is a graph node picked at
+## random with a scatter — the graph is already validated as walkable and clear
+## of props, so a point on it is a point somebody can stand.
+func _pad_cast() -> void:
+	if CAST_TARGET <= 0 or _guest_index >= CAST_TARGET:
+		return
+
+	var pad := RandomNumberGenerator.new()
+	pad.seed = 0x9E3779B9
+	# Roughly the mix of the authored list: mostly pairs and families, a third
+	# of them singles. Group size is what decides how much of the per-frame cost
+	# is follower logic rather than routing, so it should not be all singles.
+	var shapes := [
+		["adult", "adult", "kid"],
+		["adult", "adult"],
+		["adult", "kid"],
+		["adult"],
+		["adult", "adult", "kid", "kid"],
+		["adult"],
+	]
+
+	while _guest_index < CAST_TARGET:
+		var origin: Vector3 = _graph_points[pad.randi_range(0, _graph_points.size() - 1)]
+		var kinds: Array = shapes[pad.randi_range(0, shapes.size() - 1)]
+		var group := _group_index
+		_group_index += 1
+		var leader_name := ""
+		for i in kinds.size():
+			if _guest_index >= CAST_TARGET:
+				break
+			var scatter := Vector3(pad.randf_range(-1.2, 1.2), 0.0, pad.randf_range(-1.2, 1.2))
+			var guest := _guest(kinds[i], origin + scatter, pad.randf_range(0.0, TAU), group)
+			if i == 0:
+				leader_name = guest.name
+			elif leader_name != "":
+				guest.set("leader_path", NodePath("../" + leader_name))
+				var lateral: float = pad.randf_range(0.55, 1.15) * (1.0 if i % 2 == 0 else -1.0)
+				var behind: float = pad.randf_range(0.4, 1.5) if kinds[i] == "adult" \
+					else pad.randf_range(0.9, 2.4)
+				guest.set("follow_offset", Vector3(lateral, 0.0, behind))
 
 
 func _guest(kind: String, at: Vector3, yaw: float, group: int) -> Node3D:

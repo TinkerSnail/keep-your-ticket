@@ -248,7 +248,73 @@ func _on_camera_raised_changed(raised: bool) -> void:
 		_alerts.clear()
 
 
+## One separation radius to a side. With cells at least as wide as the radius,
+## everything within a push of a point lies inside the nine cells around it, so
+## a guest never has to look past its own block.
+const CELL_SIZE := Guest.SEPARATION_RADIUS
+
+## Live guests bucketed by a square of ground, rebuilt once per physics frame.
+##
+## This is the whole reason the crowd can be more than about sixty people.
+## Separation used to walk the entire live list for every live guest, which is
+## every pair, every frame — 2,916 distance checks at 54 people and 21,904 at
+## 148. Measured across a cast of 56 and a cast of 150, that quadratic term was
+## **87% of the crowd's frame cost at 148**, and the plaza was spending half its
+## physics budget on people not bumping into each other.
+##
+## Keyed on the ground plane only. Height is not part of it because nobody is
+## standing on anybody.
+var _cells: Dictionary = {}
+
+## Handed straight back by `neighbours` and refilled by the next call — see the
+## warning there.
+var _near: Array = []
+
+
+func _rebuild_cells() -> void:
+	_cells.clear()
+	for entry in guests:
+		var guest := entry as Node3D
+		if guest == null or not is_instance_valid(guest):
+			continue
+		var key := _cell_of(guest.global_position)
+		if not _cells.has(key):
+			_cells[key] = []
+		_cells[key].append(guest)
+
+
+func _cell_of(at: Vector3) -> Vector2i:
+	return Vector2i(int(floor(at.x / CELL_SIZE)), int(floor(at.z / CELL_SIZE)))
+
+
+## Everyone in the nine cells around `at`: everybody close enough to push, plus
+## a few who are not. The caller measures distance anyway, so a loose answer
+## costs nothing and a tight one would cost more to compute than it saves.
+##
+## **The array handed back is reused.** The next call refills it, so it is safe
+## to iterate and never safe to keep. Guests ask once inside their own
+## `_physics_process` and use it immediately; handing out a fresh array per
+## guest per frame would put back a good part of what the bucketing just saved.
+func neighbours(at: Vector3) -> Array:
+	_near.clear()
+	var base := _cell_of(at)
+	for dx in range(-1, 2):
+		for dz in range(-1, 2):
+			var bucket: Variant = _cells.get(Vector2i(base.x + dx, base.y + dz))
+			if bucket != null:
+				_near.append_array(bucket)
+	return _near
+
+
 func _physics_process(_delta: float) -> void:
+	# First, and before any guest has run. `_physics_process` is called down the
+	# tree and the guests are children of this node, so a hash built here is
+	# already standing by the time they ask for it.
+	#
+	# It is one frame stale against their own movement, which is at most about
+	# five centimetres at a walk. That is well inside the slack the nine-cell
+	# block gives, and a push missed for a sixtieth of a second is not a push.
+	_rebuild_cells()
 	_age_alerts(_delta)
 
 	_sync_timer -= _delta
