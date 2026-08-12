@@ -51,6 +51,23 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventMouseButton and event.pressed:
 		if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED and not album_view.visible:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+			# The click that takes the mouse back is not also a shutter press.
+			# Now that losing focus releases the cursor, this is the ordinary way
+			# back into the game rather than a rare one, and without this a
+			# player who tabbed away with the camera up returns holding a
+			# photograph of wherever they happened to click.
+			get_viewport().set_input_as_handled()
+
+
+## Tabbing away hands the mouse back.
+##
+## Without this the game goes on believing it owns the cursor while the window
+## is in the background: the pointer wanders off wherever the user takes it, and
+## the first motion event after the window returns arrives as one enormous
+## relative delta. The view whips round before the player has touched anything.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
 func _set_album_open(album_open: bool) -> void:

@@ -59,6 +59,9 @@ const STEP_HEIGHT := 0.35
 ## swing sideways into whatever pinched it.
 @export var shoulder_offset := 0.42
 
+const LOOK_SETTLE_FRAMES := 2
+const LOOK_JUMP_LIMIT := 400.0
+
 @onready var head: Node3D = $head
 @onready var camera: Camera3D = $head/camera
 @onready var spring: SpringArm3D = $head/spring
@@ -80,6 +83,12 @@ var _pitch := 0.0
 var _look_enabled := true
 var _shooting := false
 var _fov_tween: Tween
+
+## Motion arriving in the first frames after the cursor is grabbed is the grab
+## itself, not the player. Two frames is enough to swallow it and short enough
+## that a genuine movement started in the same breath is not lost.
+var _look_settle := 0
+var _was_captured := false
 
 
 func _ready() -> void:
@@ -146,7 +155,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		set_third_person(not third_person)
 		return
 	if event is InputEventMouseMotion and _look_enabled:
-		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and _look_settle == 0:
+			# A single event this large is the cursor being put somewhere by the
+			# compositor, not a flick of the wrist. Motion events arrive per OS
+			# event rather than per frame, so even a fast whip-round comes in
+			# well under this; anything above it is a warp and is dropped.
+			if event.relative.length() > LOOK_JUMP_LIMIT:
+				return
 			_apply_look(
 				-event.relative.x * mouse_sensitivity,
 				-event.relative.y * mouse_sensitivity
@@ -154,6 +169,16 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	# Watch for the cursor being grabbed rather than being told about it, so the
+	# guard covers every route back in — the click that recaptures, the album
+	# closing, or anything later that takes the mouse.
+	var captured := Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+	if captured and not _was_captured:
+		_look_settle = LOOK_SETTLE_FRAMES
+	elif _look_settle > 0:
+		_look_settle -= 1
+	_was_captured = captured
+
 	if _look_enabled:
 		var look := Input.get_vector("look_left", "look_right", "look_up", "look_down")
 		if look != Vector2.ZERO:
