@@ -8,30 +8,39 @@ extends CanvasLayer
 
 signal album_visibility_changed(album_open: bool)
 
-const HINT_PLAYING := "[F] camera — tap or hold    [E] ask    [V] view    [Space] jump, shutter with the camera up    [Tab] album    [Esc] free mouse"
-const HINT_ALBUM := "[arrows / d-pad] browse    [Tab / Y] close"
+## Control prompts, in the idiom of the period the game is set in: key names in
+## a warm accent, the action in plain white, both in capitals, over a hard
+## two-pixel shadow. Boxed keycaps are a much later convention — the late
+## nineties put the key in a colour and trusted you to read it.
+##
+## Written as pairs rather than as one string so the three sets stay parallel
+## and the separator is decided in one place.
+const KEY_COLOUR := "e8c76a"
+const SEPARATOR := "   ·   "
+
+const HINT_PLAYING := [
+	["F", "CAMERA"], ["E", "ASK"], ["V", "VIEW"],
+	["SPACE", "JUMP"], ["TAB", "ALBUM"], ["ESC", "MOUSE"],
+]
+## What is left when the finder is up. One line, because the surround is meant
+## to read as the inside of a camera body and a row of prompts there undoes it.
+const HINT_SHOOTING := [["SPACE", "SHUTTER"]]
+const HINT_ALBUM := [["ARROWS", "BROWSE"], ["TAB", "CLOSE"]]
+
 ## Matches the raise. Fast enough not to be a transition anyone waits through.
 const HINT_FADE := 0.16
 
 @onready var viewfinder: Control = $viewfinder
 @onready var lines: Control = $viewfinder/lines
 @onready var flash: ColorRect = $flash
-@onready var hint: Label = $hint
-@onready var shutter_hint: Label = $shutter_hint
+@onready var hint: RichTextLabel = $hint
+@onready var shutter_hint: RichTextLabel = $shutter_hint
 @onready var album_view: Control = $album_view
 
 var _capturing := false
 var _hint_tween: Tween
 var _shutter_hint_tween: Tween
 var _raised := false
-## Whether a photograph has been taken since the game started. The shutter
-## prompt in the finder is shown until it has, and never again.
-##
-## Deliberately per-session rather than off `PhotoAlbum.count()`. The album
-## persists on disk, so keying it to that would mean the prompt never appears
-## again for anybody who has ever taken a picture — including the one person
-## most likely to be checking whether it appears.
-var _shot_this_session := false
 
 
 func _ready() -> void:
@@ -39,7 +48,8 @@ func _ready() -> void:
 	viewfinder.visible = false
 	album_view.visible = false
 	flash.modulate.a = 0.0
-	hint.text = HINT_PLAYING
+	_set_prompts(hint, HINT_PLAYING)
+	_set_prompts(shutter_hint, HINT_SHOOTING)
 	shutter_hint.modulate.a = 0.0
 	call_deferred("_connect_camera_tool")
 
@@ -87,7 +97,7 @@ func _notification(what: int) -> void:
 
 func _set_album_open(album_open: bool) -> void:
 	album_view.visible = album_open
-	hint.text = HINT_ALBUM if album_open else HINT_PLAYING
+	_set_prompts(hint, HINT_ALBUM if album_open else HINT_PLAYING)
 	_apply_overlays()
 	album_visibility_changed.emit(album_open)
 
@@ -112,7 +122,7 @@ func _apply_overlays() -> void:
 	# names there undoes the whole tunnel.
 	_hint_tween = _fade(hint, _hint_tween, not viewfinder.visible)
 
-	# Except for this one, which is the shutter and only until it has been used.
+	# Except for this one, which is the shutter and stays.
 	#
 	# Taking the whole row out of the finder was right and it left the one
 	# control that matters in camera mode with nowhere to be taught: the line
@@ -120,15 +130,27 @@ func _apply_overlays() -> void:
 	# down and gone the moment it went up. Playing it, the shutter turned out to
 	# be undiscoverable — found by accident or not at all.
 	#
-	# So: three words, centred, and gone for good after the first photograph.
-	# One key rather than the row, because the row is what undid the tunnel.
-	_shutter_hint_tween = _fade(
-		shutter_hint, _shutter_hint_tween, viewfinder.visible and not _shot_this_session)
+	# It retired itself after the first photograph at first, on the reasoning
+	# that one shot is enough to learn a key. Christina, having taken six of
+	# them and then raised the camera again: keep it there. So it stays up
+	# whenever the finder is. Three words rather than the row is what makes that
+	# affordable — the row is what undid the tunnel, not the fact of a label.
+	_shutter_hint_tween = _fade(shutter_hint, _shutter_hint_tween, viewfinder.visible)
+
+
+## Key in the accent, action in white, everything centred. The prompts are
+## built rather than written out so that adding one cannot get the colouring
+## subtly wrong on the sixth entry.
+func _set_prompts(label: RichTextLabel, pairs: Array) -> void:
+	var parts := PackedStringArray()
+	for pair in pairs:
+		parts.append("[color=#%s]%s[/color]  %s" % [KEY_COLOUR, pair[0], pair[1]])
+	label.text = "[center]%s[/center]" % SEPARATOR.join(parts)
 
 
 ## Faded rather than switched, because a label vanishing on the same frame the
 ## finder appears reads as a glitch, and because the raise is already a tween.
-func _fade(label: Label, tween: Tween, shown: bool) -> Tween:
+func _fade(label: RichTextLabel, tween: Tween, shown: bool) -> Tween:
 	if tween != null and tween.is_valid():
 		tween.kill()
 	var next := create_tween()
@@ -156,10 +178,6 @@ func _on_shutter_requested() -> void:
 	PhotoAlbum.add_photo(image)
 	_jolt()
 	_capturing = false
-
-	if not _shot_this_session:
-		_shot_this_session = true
-		_apply_overlays()
 
 
 ## What the lens got, which is not what the finder showed. The bright lines mark
