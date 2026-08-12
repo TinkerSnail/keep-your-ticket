@@ -136,8 +136,45 @@ func _place(base: Vector3, local: Vector3, theta: float) -> Vector3:
 	return base + Basis(Vector3.UP, theta) * local
 
 
+## How far apart two shapes' faces have to be before the depth buffer can tell
+## them apart, and how many distinct offsets there are to hand out. Reverse-Z
+## with a float depth buffer resolves a few microns at forty metres, so a
+## quarter of a millimetre is about a thousand times what is needed — small
+## enough that nothing moves anywhere a player could see, large enough that it
+## can never be a close call.
+## 21 rather than a round 16 because the ring only fails when two shapes that
+## meet are an exact multiple of it apart in build order, and assemblies are
+## built in runs of even length — a power of two lines those runs up, and an
+## odd number that shares no factor with them does not.
+const SEAM_STEP := 0.00025
+const SEAM_STEPS := 21
+
+## Handed out in build order, which is what makes this work: the shapes that
+## overlap are the ones assembled together, so they are always within a few of
+## each other and never collide.
+var _seam_ordinal := 0
+
+
+## Everything generated goes through here, which is the point. Shapes are meant
+## to overlap — a coplanar butt leaves a zero-width seam for the capsule to
+## catch on, so parts run into each other rather than meeting edge to edge. What
+## they must not also do is *share a plane*: two faces pointing the same way at
+## the same depth is z-fighting, and it is the vibration in the ground.
+##
+## GROUND_SEAM settled that one plane by hand. There turned out to be 394 of
+## them, because the mistake is not really about the ground: anything built to
+## the same height as the thing it overlaps shares its top and its bottom, and
+## every wall corner in the park is two boxes 3m tall crossing at the corner.
+##
+## So the rule moves up a level. Overlaps stay; sharing a plane stops. Each
+## shape is displaced by a hair nobody will ever see, and no two shapes that
+## meet get the same hair.
 func _add(node: Node3D, nm: String) -> void:
 	node.name = nm
+	var t := node.transform
+	t.origin += Vector3.ONE * float(_seam_ordinal % SEAM_STEPS) * SEAM_STEP
+	node.transform = t
+	_seam_ordinal += 1
 	_root.add_child(node)
 	node.owner = _root
 
@@ -696,9 +733,14 @@ func _west_stair() -> void:
 	# Run the landing all the way back to the bluff wall. One stair-width leaves a
 	# metre of gap behind it, and a metre of gap five metres up is a hole a player
 	# falls into and cannot climb out of.
+	# A centimetre proud of the stair width rather than equal to it. The landing
+	# and the ramp that comes off it are both STAIR_W at the same x, so built
+	# flush they share both side faces — the one pair the build-order seam cannot
+	# separate, because these two are exactly SEAM_STEPS apart. The plinth is the
+	# thing the ramp lands on, so the plinth is the one that owns the edge.
 	_box("stair_landing", Vector3.ZERO,
 		Vector3(STAIR_TURN_X, (landing_y - 6.0) * 0.5, STAIR_TOP_Z - 0.5),
-		Vector3(STAIR_W, landing_y + 6.0, STAIR_W + 1.0), "accent")
+		Vector3(STAIR_W + 0.01, landing_y + 6.0, STAIR_W + 1.0), "accent")
 
 	# Flight B: turn south and run down the bluff face to the boardwalk.
 	var treads_b := 20
