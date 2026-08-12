@@ -118,4 +118,22 @@ theme_override_colors/font_color = Color(1, 1, 1, 0.65)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
-text = "[F] camera — tap or hold    [click / Enter] shutter    [Space] jump    [Tab] album    [Esc] free mouse"
+text = "[F] camera — tap or hold    [E] ask    [V] view    [Space] jump, shutter with the camera up    [Tab] album    [Esc] free mouse"
+
+[node name="shutter_hint" type="Label" parent="."]
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -44.0
+offset_right = -24.0
+offset_bottom = -18.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.65)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+text = "[Space] shutter"
+horizontal_alignment = 1

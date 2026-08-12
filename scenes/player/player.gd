@@ -202,7 +202,16 @@ func _physics_process(delta: float) -> void:
 
 	if is_on_floor():
 		velocity.y = 0.0
-		if _look_enabled and Input.is_action_just_pressed("jump"):
+		# Space is bound to both `jump` and `shutter`, and which one it is depends
+		# on whether the camera is at the eye. Nobody jumps with a viewfinder
+		# against their face, and the thumb is already on that key — so with the
+		# Instamatic up it fires the shutter and does not leave the ground.
+		#
+		# The suppression has to be here rather than left to input handling.
+		# `camera_tool` consumes the event, but this is a poll, and a poll does
+		# not care what was marked handled: without this line raising the camera
+		# and pressing space takes the photograph *and* jumps.
+		if _look_enabled and not _shooting and Input.is_action_just_pressed("jump"):
 			velocity.y = jump_velocity
 	else:
 		velocity.y -= GRAVITY * delta

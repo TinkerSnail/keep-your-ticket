@@ -8,7 +8,7 @@ extends CanvasLayer
 
 signal album_visibility_changed(album_open: bool)
 
-const HINT_PLAYING := "[F] camera — tap or hold    [click / Enter] shutter    [E] ask    [V] view    [Space] jump    [Tab] album    [Esc] free mouse"
+const HINT_PLAYING := "[F] camera — tap or hold    [E] ask    [V] view    [Space] jump, shutter with the camera up    [Tab] album    [Esc] free mouse"
 const HINT_ALBUM := "[arrows / d-pad] browse    [Tab / Y] close"
 ## Matches the raise. Fast enough not to be a transition anyone waits through.
 const HINT_FADE := 0.16
@@ -17,11 +17,21 @@ const HINT_FADE := 0.16
 @onready var lines: Control = $viewfinder/lines
 @onready var flash: ColorRect = $flash
 @onready var hint: Label = $hint
+@onready var shutter_hint: Label = $shutter_hint
 @onready var album_view: Control = $album_view
 
 var _capturing := false
 var _hint_tween: Tween
+var _shutter_hint_tween: Tween
 var _raised := false
+## Whether a photograph has been taken since the game started. The shutter
+## prompt in the finder is shown until it has, and never again.
+##
+## Deliberately per-session rather than off `PhotoAlbum.count()`. The album
+## persists on disk, so keying it to that would mean the prompt never appears
+## again for anybody who has ever taken a picture — including the one person
+## most likely to be checking whether it appears.
+var _shot_this_session := false
 
 
 func _ready() -> void:
@@ -30,6 +40,7 @@ func _ready() -> void:
 	album_view.visible = false
 	flash.modulate.a = 0.0
 	hint.text = HINT_PLAYING
+	shutter_hint.modulate.a = 0.0
 	call_deferred("_connect_camera_tool")
 
 
@@ -99,17 +110,31 @@ func _apply_overlays() -> void:
 	# which is the inside of the camera body — the one part of the frame meant
 	# to read as an object rather than as a screen, and a line of bracketed key
 	# names there undoes the whole tunnel.
-	_fade_hint(not viewfinder.visible)
+	_hint_tween = _fade(hint, _hint_tween, not viewfinder.visible)
+
+	# Except for this one, which is the shutter and only until it has been used.
+	#
+	# Taking the whole row out of the finder was right and it left the one
+	# control that matters in camera mode with nowhere to be taught: the line
+	# saying how to fire the shutter was visible exactly when the camera was
+	# down and gone the moment it went up. Playing it, the shutter turned out to
+	# be undiscoverable — found by accident or not at all.
+	#
+	# So: three words, centred, and gone for good after the first photograph.
+	# One key rather than the row, because the row is what undid the tunnel.
+	_shutter_hint_tween = _fade(
+		shutter_hint, _shutter_hint_tween, viewfinder.visible and not _shot_this_session)
 
 
 ## Faded rather than switched, because a label vanishing on the same frame the
 ## finder appears reads as a glitch, and because the raise is already a tween.
-func _fade_hint(shown: bool) -> void:
-	if _hint_tween != null and _hint_tween.is_valid():
-		_hint_tween.kill()
-	_hint_tween = create_tween()
-	_hint_tween.set_ease(Tween.EASE_OUT)
-	_hint_tween.tween_property(hint, "modulate:a", 1.0 if shown else 0.0, HINT_FADE)
+func _fade(label: Label, tween: Tween, shown: bool) -> Tween:
+	if tween != null and tween.is_valid():
+		tween.kill()
+	var next := create_tween()
+	next.set_ease(Tween.EASE_OUT)
+	next.tween_property(label, "modulate:a", 1.0 if shown else 0.0, HINT_FADE)
+	return next
 
 
 func _on_shutter_requested() -> void:
@@ -131,6 +156,10 @@ func _on_shutter_requested() -> void:
 	PhotoAlbum.add_photo(image)
 	_jolt()
 	_capturing = false
+
+	if not _shot_this_session:
+		_shot_this_session = true
+		_apply_overlays()
 
 
 ## What the lens got, which is not what the finder showed. The bright lines mark
