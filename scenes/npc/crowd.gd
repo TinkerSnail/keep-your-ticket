@@ -21,6 +21,12 @@ extends Node3D
 
 @export var route_hops := Vector2i(2, 5)
 
+## How long a guest who has just noticed the camera stays worth noticing. The
+## signal a neighbour picks up is the turn, not the staring that follows, so a
+## chain can only hop while the last hop is still recent. That is what makes
+## contagion a ripple that dies out rather than an alarm the whole plaza joins.
+const ALERT_FRESHNESS := 1.3
+
 var guests: Array = []
 var camera_raised := false
 var player_position := Vector3.ZERO
@@ -28,6 +34,9 @@ var player_eye := Vector3.ZERO
 
 var _adjacency: Array[PackedInt32Array] = []
 var _groups: Dictionary = {}
+## Guests who noticed the camera recently enough to still be catching eyes,
+## each with how long ago. Short — usually nobody, briefly a handful.
+var _alerts: Array = []
 var _player: Node3D = null
 var _player_camera: Node3D = null
 var _rng := RandomNumberGenerator.new()
@@ -76,9 +85,12 @@ func _connect_player() -> void:
 
 func _on_camera_raised_changed(raised: bool) -> void:
 	camera_raised = raised
+	if not raised:
+		_alerts.clear()
 
 
 func _physics_process(_delta: float) -> void:
+	_age_alerts(_delta)
 	if _player == null:
 		return
 	player_position = _player.global_position
@@ -178,6 +190,46 @@ func companions(guest: Node) -> Array:
 		if other != guest and is_instance_valid(other):
 			result.append(other)
 	return result
+
+
+# --- noticing ---------------------------------------------------------------
+
+
+## A guest reporting that they have just clocked the camera, whether they saw
+## it themselves or caught it off somebody else. Both spread it onward — that
+## is what makes it a chain rather than a single ring.
+func report_notice(guest: Node) -> void:
+	_alerts.append({"guest": guest, "age": 0.0})
+
+
+func _age_alerts(delta: float) -> void:
+	for i in range(_alerts.size() - 1, -1, -1):
+		var alert: Dictionary = _alerts[i]
+		alert.age += delta
+		if alert.age > ALERT_FRESHNESS or not is_instance_valid(alert.guest):
+			_alerts.remove_at(i)
+
+
+## The nearest guest within `radius` who noticed recently enough to be worth
+## noticing in turn, skipping any the asker has already shrugged off.
+func fresh_alert_near(asker: Node3D, radius: float, declined: Array) -> Node:
+	var best: Node = null
+	var best_distance := radius * radius
+	for alert in _alerts:
+		var guest := alert.guest as Node3D
+		if guest == null or guest == asker or not is_instance_valid(guest):
+			continue
+		if guest.get_instance_id() in declined:
+			continue
+		var d := asker.global_position.distance_squared_to(guest.global_position)
+		if d > best_distance:
+			continue
+		best_distance = d
+		best = guest
+	return best
+
+
+# --- interaction ------------------------------------------------------------
 
 
 ## The guest nearest the centre of the view, close enough to talk to. Look is

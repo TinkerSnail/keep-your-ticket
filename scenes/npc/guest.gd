@@ -15,7 +15,7 @@ extends AnimatableBody3D
 ## gives up and faces forward. At this fidelity what a guest is looking at is
 ## the whole of their performance, so it is where the detail went.
 
-enum Attention { FORWARD, POI, COMPANION, CAMERA, POSE }
+enum Attention { FORWARD, POI, COMPANION, GAZE, CAMERA, POSE }
 
 ## How a guest takes being photographed. Rolled once per camera raise, against
 ## the guest's own curiosity and shyness, so the same person tends to respond
@@ -35,8 +35,34 @@ const HEAD_TURN_RATE := 7.0
 const BODY_TURN_THRESHOLD := deg_to_rad(60.0)
 
 const CAMERA_NOTICE_RANGE := 13.0
-const CAMERA_NOTICE_RANGE_SQ := CAMERA_NOTICE_RANGE * CAMERA_NOTICE_RANGE
 const GLANCE_SECONDS := Vector2(0.9, 2.1)
+
+## Nobody looks up at the same instant. Each guest has their own beat before
+## they react, shorter the closer the camera is, which is what turns the
+## crowd's response into a ripple rather than a flinch.
+const NOTICE_DELAY := Vector2(0.1, 0.85)
+
+## How near the person who turned has to be to be worth turning about. Much
+## smaller than the camera's own range: this is peripheral movement, not a man
+## with a camera across the plaza.
+const CONTAGION_NEIGHBOUR := 5.5
+## Past this from the player, following a neighbour's gaze finds nothing worth
+## reacting to. The chain can outrun the camera's notice range, but not far.
+const CONTAGION_PLAYER_RANGE := CAMERA_NOTICE_RANGE * 1.6
+## How often a guest who has not noticed yet checks whether anyone near them
+## just did.
+const CONTAGION_SCAN := 0.3
+const CONTAGION_DELAY := Vector2(0.2, 0.75)
+## Movement is caught at the edge of vision, so the arc is wide — but it is not
+## the whole circle, and someone turning behind your back goes unseen unless
+## they are one of yours.
+const NEIGHBOUR_ARC := deg_to_rad(100.0)
+
+## Where the eye goes first: to the person who turned, not to whatever they
+## turned at. Following the gaze before finding the camera is the whole of what
+## makes a chain legible from outside it — without it, contagious noticing is
+## indistinguishable from everyone happening to notice at once.
+const GAZE_FOLLOW := Vector2(0.35, 0.8)
 
 const POSE_HOLD := 7.0
 ## The pose does not end, it comes apart. Each guest drops out somewhere in
@@ -98,6 +124,20 @@ var _head_pitch := 0.0
 var _reaction := Reaction.OBLIVIOUS
 var _reaction_timer := 0.0
 var _was_camera_raised := false
+
+## Committed to a reaction, oblivious or otherwise, and done deciding. Until
+## this is true the guest is still catchable off a neighbour.
+var _noticed := false
+var _notice_timer := 0.0
+var _direct_pending := false
+var _catch_from: Guest = null
+## Alerters already shrugged off. Each one gets a single roll — without this a
+## guest re-rolls against the same neighbour every scan and the whole plaza
+## notices eventually, which is exactly the crowd-wide flinch this avoids.
+var _declined: Array[int] = []
+
+var _gaze_at: Guest = null
+var _gaze_timer := 0.0
 
 var _posing := false
 var _pose_timer := 0.0
@@ -285,34 +325,142 @@ func _face_direction(direction: Vector3, delta: float, rate: float) -> void:
 func _update_reaction(delta: float) -> void:
 	if _reaction_timer > 0.0:
 		_reaction_timer -= delta
+	if _gaze_timer > 0.0:
+		_gaze_timer -= delta
 
 	if _crowd == null:
 		return
 
 	var raised: bool = _crowd.camera_raised
 	if raised and not _was_camera_raised:
-		_roll_reaction()
+		_begin_notice()
 	elif not raised and _was_camera_raised:
-		_reaction = Reaction.OBLIVIOUS
-		_reaction_timer = 0.0
+		_clear_notice()
 	_was_camera_raised = raised
 
+	if raised and not _noticed:
+		_advance_notice(delta)
 
-func _roll_reaction() -> void:
-	var player: Vector3 = _crowd.player_position
-	if global_position.distance_squared_to(player) > CAMERA_NOTICE_RANGE_SQ:
-		_reaction = Reaction.OBLIVIOUS
+
+func _begin_notice() -> void:
+	_clear_notice()
+	var distance := global_position.distance_to(_crowd.player_position)
+	_direct_pending = distance <= CAMERA_NOTICE_RANGE
+	if not _direct_pending:
+		# Too far to see it for themselves, but not too far to see someone else
+		# see it. Start scanning on a scattered beat.
+		_notice_timer = _rng.randf_range(0.0, CONTAGION_SCAN)
 		return
-
-	# Nearer guests notice more reliably. Someone across the plaza mostly does
-	# not clock a camera, which is what keeps the reaction from reading as the
-	# whole crowd flinching at once.
-	var distance := global_position.distance_to(player)
+	# The people the camera is pointed at look up first.
 	var closeness := 1.0 - clampf(distance / CAMERA_NOTICE_RANGE, 0.0, 1.0)
-	var notices := _rng.randf() < 0.25 + closeness * (0.35 + curiosity * 0.5)
-	if not notices:
-		_reaction = Reaction.OBLIVIOUS
+	_notice_timer = lerpf(NOTICE_DELAY.y, NOTICE_DELAY.x, closeness) * _rng.randf_range(0.6, 1.4)
+
+
+func _clear_notice() -> void:
+	_reaction = Reaction.OBLIVIOUS
+	_reaction_timer = 0.0
+	_noticed = false
+	_direct_pending = false
+	_notice_timer = 0.0
+	_catch_from = null
+	_declined.clear()
+	_gaze_at = null
+	_gaze_timer = 0.0
+
+
+## One step of deciding whether to notice: the guest's own look first, then a
+## standing watch on the people around them for as long as the camera is up.
+func _advance_notice(delta: float) -> void:
+	_notice_timer -= delta
+	if _notice_timer > 0.0:
 		return
+
+	if _direct_pending:
+		_direct_pending = false
+		_notice_timer = _rng.randf_range(0.0, CONTAGION_SCAN)
+		if _rolls_direct():
+			_commit_notice(null)
+		return
+
+	if _catch_from != null:
+		var source := _catch_from
+		_catch_from = null
+		_notice_timer = CONTAGION_SCAN
+		if is_instance_valid(source):
+			_commit_notice(source)
+		return
+
+	# Set before the scan, which overwrites it with the catch delay on a hit.
+	_notice_timer = CONTAGION_SCAN
+	_scan_for_alert()
+
+
+## Nearer guests notice more reliably. The base is deliberately low — most of a
+## distant guest's chance of clocking the camera now comes from the person next
+## to them rather than from the camera itself.
+func _rolls_direct() -> bool:
+	var distance := global_position.distance_to(_crowd.player_position)
+	if distance > CAMERA_NOTICE_RANGE:
+		return false
+	var closeness := 1.0 - clampf(distance / CAMERA_NOTICE_RANGE, 0.0, 1.0)
+	return _rng.randf() < 0.12 + closeness * (0.38 + curiosity * 0.5)
+
+
+func _scan_for_alert() -> void:
+	if _posing:
+		return
+	var source := _crowd.fresh_alert_near(self, CONTAGION_NEIGHBOUR, _declined) as Guest
+	if source == null:
+		return
+	if not _catches_from(source):
+		_declined.append(source.get_instance_id())
+		return
+	_catch_from = source
+	_notice_timer = _rng.randf_range(CONTAGION_DELAY.x, CONTAGION_DELAY.y)
+
+
+func _catches_from(source: Guest) -> bool:
+	if global_position.distance_to(_crowd.player_position) > CONTAGION_PLAYER_RANGE:
+		return false
+
+	var to_source := source.global_position - global_position
+	to_source.y = 0.0
+	var distance := to_source.length()
+	if distance < 0.01:
+		return false
+
+	# You are aware of the people you came with whichever way they are standing.
+	# A stranger has to turn where you can see them turn.
+	var companion := source in _companions
+	if not companion and not _sees_direction(to_source / distance):
+		return false
+
+	var closeness := 1.0 - clampf(distance / CONTAGION_NEIGHBOUR, 0.0, 1.0)
+	var chance := (0.16 + closeness * 0.34) * (0.7 + curiosity * 0.6)
+	if companion:
+		chance *= 1.9
+	return _rng.randf() < chance
+
+
+func _sees_direction(direction: Vector3) -> bool:
+	var forward := -global_transform.basis.z
+	forward.y = 0.0
+	if forward.length_squared() < 0.0001:
+		return false
+	return forward.normalized().angle_to(direction) < NEIGHBOUR_ARC
+
+
+## Settle on a reaction and become news yourself. How a guest takes it is their
+## own — shyness and curiosity decide it — whether they came to it by looking
+## up or by watching a friend look up.
+func _commit_notice(source: Guest) -> void:
+	_noticed = true
+
+	var gaze := 0.0
+	if source != null:
+		gaze = _rng.randf_range(GAZE_FOLLOW.x, GAZE_FOLLOW.y)
+		_gaze_at = source
+		_gaze_timer = gaze
 
 	if _rng.randf() < shyness:
 		_reaction = Reaction.AVOID
@@ -320,7 +468,13 @@ func _roll_reaction() -> void:
 		_reaction = Reaction.HOLD
 	else:
 		_reaction = Reaction.GLANCE
-		_reaction_timer = _rng.randf_range(GLANCE_SECONDS.x, GLANCE_SECONDS.y)
+		# The glance is at the camera, so it starts once the eye has arrived
+		# there. Otherwise a caught guest spends their whole glance looking at
+		# their friend and never gets to the lens.
+		_reaction_timer = gaze + _rng.randf_range(GLANCE_SECONDS.x, GLANCE_SECONDS.y)
+
+	if _crowd != null and _crowd.has_method("report_notice"):
+		_crowd.report_notice(self)
 
 
 ## Asked to pose. The guest does not stop being a person about it — they walk
@@ -383,6 +537,12 @@ func _update_attention() -> void:
 		return
 
 	if _crowd.camera_raised and _reaction != Reaction.OBLIVIOUS:
+		# The beat where they are looking at whoever tipped them off, before
+		# they find what that person found.
+		if _gaze_timer > 0.0 and is_instance_valid(_gaze_at):
+			_set_attention(Attention.GAZE, _gaze_at.eye_position(), 0.9)
+			return
+
 		var holding := _reaction == Reaction.HOLD
 		var glancing := _reaction == Reaction.GLANCE and _reaction_timer > 0.0
 		if holding or glancing:
