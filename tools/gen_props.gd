@@ -12,6 +12,7 @@ extends SceneTree
 
 const OUT_PATH := "res://scenes/world/plaza_props.tscn"
 const SKYLINE_PATH := "res://scenes/world/plaza_skyline.tscn"
+const STAIR_PATH := "res://scenes/world/west_stair.tscn"
 
 var _root: Node3D
 var mats: Dictionary = {}
@@ -45,6 +46,14 @@ func _initialize() -> void:
 	_root.name = "skyline"
 	_skyline()
 	if not _save(_root, SKYLINE_PATH):
+		return
+
+	# The one thing west of the parapet the player can stand on, so unlike the
+	# rest of it this one collides.
+	_root = Node3D.new()
+	_root.name = "west_stair"
+	_west_stair()
+	if not _save(_root, STAIR_PATH):
 		return
 
 	quit()
@@ -511,8 +520,28 @@ func _boardwalk() -> void:
 		Vector3(240, 8.0, 400), "water", 0.0, false)
 	# The face the plaza stands on. Everything west of the parapet drops away
 	# here, which is what turns the parapet into an overlook rather than a fence.
-	_box("bluff", Vector3.ZERO, Vector3(-42.5, -6.0, 0),
-		Vector3(7.0, 12.0, 340), "far_warm", 0.0, false)
+	# Cut in two so the stair has a slot to descend through — a stair cut into a
+	# seawall, which is also what puts a corner between the terrace and the
+	# bottom of the flight.
+	# The only part of the west that collides, because the stair runs down inside
+	# it: these four are the walls and floor of the stair well, and without them
+	# a player walking sideways off a flight goes straight through the scenery
+	# and out of the world.
+	_box("bluff_north", Vector3.ZERO, Vector3(-42.5, -6.0, -91.0),
+		Vector3(7.0, 12.0, 158.0), "far_warm")
+	_box("bluff_south", Vector3.ZERO, Vector3(-42.5, -6.0, 89.0),
+		Vector3(7.0, 12.0, 162.0), "far_warm")
+	_box("bluff_base", Vector3.ZERO, Vector3(-42.5, -9.0, -2.0),
+		Vector3(7.0, 6.0, 20.0), "far_warm")
+	# The rest of the bluff fills back in around the well, in three pieces,
+	# because the upper flight runs east through it and a solid fill walls in the
+	# stair it is supposed to be holding up.
+	_box("bluff_slot_north", Vector3.ZERO, Vector3(-41.2, -6.0, -11.5),
+		Vector3(4.4, 12.0, 1.0), "far_warm")
+	_box("bluff_slot_south", Vector3.ZERO, Vector3(-41.2, -6.0, -0.2),
+		Vector3(4.4, 12.0, 16.4), "far_warm")
+	_box("bluff_slot_under", Vector3.ZERO, Vector3(-41.2, -6.75, -9.7),
+		Vector3(4.4, 10.5, 2.6), "far_warm")
 	# The ground the boardwalk stands on: back lane, frontage, promenade.
 	_box("shore", Vector3.ZERO, Vector3(-57, SHORE_TOP - 3.0, 0),
 		Vector3(26, 6.0, 340), "far_warm", 0.0, false)
@@ -591,6 +620,112 @@ func _pier(root: Vector3) -> void:
 		Vector3(14.0, 0.6, 15.0), "far_shade", 0.0, false)
 	_cyl("pier_pavilion_spire", Vector3.ZERO, head + Vector3(0, 9.5, 0),
 		0.3, 5.0, "far_shade", 0.0, 6, false)
+
+
+## The way down. Two flights with a corner between them, cut into the bluff:
+## west out of a gap in the parapet, a landing, then south along the face to the
+## boardwalk.
+##
+## The corner is the point. The arch is a straight tube you can see through,
+## which makes it a weak threshold; a flight that turns puts a wall between the
+## terrace and wherever it comes out, which is where a section load can hide and
+## why the reveal gets walked into rather than faded into.
+const STAIR_W := 2.6
+const STAIR_RISE := 0.25
+const STAIR_TOP_Z := -9.7
+const STAIR_TURN_X := -44.7
+
+
+## The treads are scenery and the ramps under them are the floor.
+##
+## CharacterBody3D has no step-up: a quarter-metre riser is a ninety-degree wall,
+## so a stair built out of boxes is walkable down and impassable coming back.
+## Verified by driving the player at it rather than by looking at it, which a
+## screenshot could not have told us. A ramp at the slope of the nosings is
+## flush with every one of them and under forty-five degrees, so it is floor.
+func _flight_ramp(nm: String, top_a: Vector3, top_b: Vector3, theta: float) -> void:
+	var span := top_b - top_a
+	var horizontal := Vector2(span.x, span.z).length()
+	var phi := atan2(-span.y, horizontal)
+	var mid := (top_a + top_b) * 0.5
+	var thickness := 0.4
+	# Back the slab off along its own up-axis so its top face lands on the line
+	# the nosings sit on.
+	var up := (Basis(Vector3.UP, theta) * Basis(Vector3.RIGHT, phi)).y
+	_box(nm, mid - up * (thickness * 0.5), Vector3.ZERO,
+		Vector3(STAIR_W, thickness, span.length()), "accent", theta, true, phi)
+
+
+func _west_stair() -> void:
+	# Flight A: west off the terrace, out of the parapet gap. Short and shallow,
+	# because it has to reach the landing's near edge rather than cross it — a
+	# ramp that overhangs its own landing presents the landing with a wall.
+	var treads_a := 4
+	var run_a := 0.85
+	for i in treads_a:
+		var top := -STAIR_RISE * (i + 1)
+		var x := -40.0 - run_a * (i + 0.5)
+		_box("flight_a_%d" % i, Vector3.ZERO, Vector3(x, top - 0.25, STAIR_TOP_Z),
+			Vector3(run_a, 0.5, STAIR_W), "accent", 0.0, false)
+	_flight_ramp("ramp_a", Vector3(-40.0, 0.0, STAIR_TOP_Z),
+		Vector3(-40.0 - run_a * treads_a, -STAIR_RISE * treads_a, STAIR_TOP_Z),
+		-PI * 0.5)
+
+	# The landing is a plinth rather than a slab: the slot it sits in is open to
+	# the boardwalk below, and a floating step reads as a mistake from down there.
+	var landing_y := -STAIR_RISE * treads_a
+	# Run the landing all the way back to the bluff wall. One stair-width leaves a
+	# metre of gap behind it, and a metre of gap five metres up is a hole a player
+	# falls into and cannot climb out of.
+	_box("stair_landing", Vector3.ZERO,
+		Vector3(STAIR_TURN_X, (landing_y - 6.0) * 0.5, STAIR_TOP_Z - 0.5),
+		Vector3(STAIR_W, landing_y + 6.0, STAIR_W + 1.0), "accent")
+
+	# Flight B: turn south and run down the bluff face to the boardwalk.
+	var treads_b := 20
+	var run_b := 0.63
+	var start_z := STAIR_TOP_Z + STAIR_W * 0.5
+	for i in treads_b:
+		var top := landing_y - STAIR_RISE * (i + 1)
+		var z := start_z + run_b * (i + 0.5)
+		_box("flight_b_%d" % i, Vector3.ZERO, Vector3(STAIR_TURN_X, top - 0.25, z),
+			Vector3(STAIR_W, 0.5, run_b), "accent", 0.0, false)
+	_flight_ramp("ramp_b", Vector3(STAIR_TURN_X, landing_y, start_z),
+		Vector3(STAIR_TURN_X, landing_y - STAIR_RISE * treads_b, start_z + run_b * treads_b),
+		0.0)
+
+	# A rail down the open west side of flight B, and a return across the head of
+	# flight A so the gap in the parapet reads as a stair rather than a hole.
+	var horizontal := run_b * treads_b
+	var vertical := STAIR_RISE * treads_b
+	var slope := atan2(vertical, horizontal)
+	_box("stair_rail", Vector3.ZERO,
+		Vector3(STAIR_TURN_X - STAIR_W * 0.5 - 0.1, landing_y - vertical * 0.5 + 0.55,
+			start_z + horizontal * 0.5),
+		Vector3(0.2, 1.0, sqrt(horizontal * horizontal + vertical * vertical)),
+		"metal", 0.0, true, slope)
+	_box("stair_head_rail", Vector3.ZERO,
+		Vector3(-40.6, 0.55, STAIR_TOP_Z - STAIR_W * 0.5 - 0.1),
+		Vector3(1.4, 1.1, 0.2), "metal")
+
+	# The foot, and the gate across it. Everything past this point is a tableau
+	# with no collision on it, so the stair has to end somewhere the player can
+	# stand and look and not walk through the scenery.
+	#
+	# This is the section boundary, and it is deliberately at the bottom of a
+	# flight that turned: out of sight of the terrace, one room deep, with the
+	# boardwalk at eye level through the bars. When there is a boardwalk to load,
+	# the gate is what opens and this is where it loads.
+	var foot_z := start_z + horizontal + STAIR_W * 0.5
+	var foot_y := landing_y - vertical
+	_box("stair_foot", Vector3.ZERO, Vector3(STAIR_TURN_X, foot_y - 0.25, foot_z),
+		Vector3(STAIR_W, 0.5, STAIR_W), "accent")
+	_box("foot_rail_west", Vector3.ZERO,
+		Vector3(STAIR_TURN_X - STAIR_W * 0.5 - 0.1, foot_y + 0.55, foot_z),
+		Vector3(0.2, 1.1, STAIR_W), "metal")
+	_box("foot_gate", Vector3.ZERO,
+		Vector3(STAIR_TURN_X, foot_y + 1.1, foot_z + STAIR_W * 0.5 + 0.1),
+		Vector3(STAIR_W, 2.2, 0.2), "metal")
 
 
 func _skyline() -> void:

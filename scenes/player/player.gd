@@ -8,6 +8,13 @@ extends CharacterBody3D
 
 const GRAVITY := 24.0
 
+## CharacterBody3D has no step-up of its own — any riser is a ninety-degree wall
+## and stops you dead, however small. A kerb, a planter lip, the fountain edge
+## and the seam where a ramp meets a landing are all the same obstacle to it, so
+## this is a general capability rather than a fix for one stair. Set to an
+## ordinary step: enough for a kerb, nowhere near enough to climb anything.
+const STEP_HEIGHT := 0.35
+
 @export var walk_speed := 3.2
 ## Enough to get onto a bench or a planter, not enough to be platforming.
 ## Climbing is meant to be a route you read, not a jump you time.
@@ -75,7 +82,43 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.y -= GRAVITY * delta
 
+	var grounded := is_on_floor()
+	# Kept from before the slide: `move_and_slide` cancels the component heading
+	# into whatever stopped it, so afterwards there is nothing left to say which
+	# way the player was trying to go.
+	var wanted := Vector3(velocity.x, 0.0, velocity.z)
+	var was_at := global_position
 	move_and_slide()
+	if grounded and velocity.y <= 0.0:
+		var intended := Vector2(wanted.x, wanted.z).length() * delta
+		var got := Vector2(global_position.x - was_at.x, global_position.z - was_at.z).length()
+		# Not `is_on_wall`. Where a ramp meets a landing the two surfaces are
+		# coplanar, and the sliver that catches the capsule reports a normal
+		# pointing up — so the snag is a floor by every test except the one that
+		# matters, which is that the player stopped moving.
+		if intended > 0.001 and got < intended * 0.7:
+			_try_step(wanted, delta)
+
+
+## Walk into something short: lift by a step, try the move again from up there,
+## and drop back onto whatever is underneath. Every stage has to succeed or the
+## position is left exactly as `move_and_slide` left it.
+func _try_step(wanted: Vector3, delta: float) -> void:
+	var motion := wanted * delta
+	if motion.length_squared() < 0.0001:
+		return
+	var lift := Vector3.UP * STEP_HEIGHT
+	var probe := global_transform
+	if test_move(probe, lift):
+		return
+	probe.origin += lift
+	if test_move(probe, motion):
+		return
+	probe.origin += motion
+	var landing := KinematicCollision3D.new()
+	if not test_move(probe, Vector3.DOWN * (STEP_HEIGHT + 0.1), landing):
+		return
+	global_position = probe.origin + landing.get_travel()
 
 
 func _apply_look(yaw_delta: float, pitch_delta: float) -> void:

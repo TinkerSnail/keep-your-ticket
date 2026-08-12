@@ -35,6 +35,11 @@ const SHOTS := [
 	{"name": "west_under", "yaw": 90.0, "pitch": 1.0, "pos": Vector3(-24.0, 0.2, -2.0)},
 	{"name": "west_overlook", "yaw": 90.0, "pitch": 0.0, "pos": Vector3(-37.0, 0.2, -2.0)},
 	{"name": "west_wheel", "yaw": 68.0, "pitch": 4.0, "pos": Vector3(-37.0, 0.2, -2.0)},
+	# The way down, which is the thing the overlook was missing. The head of the
+	# flight from the terrace, the turn, and the gate at the foot.
+	{"name": "stair_head", "yaw": 62.0, "pitch": -8.0, "pos": Vector3(-34.0, 0.2, -6.0)},
+	{"name": "stair_turn", "yaw": 178.0, "pitch": -16.0, "pos": Vector3(-44.7, -0.6, -9.7)},
+	{"name": "stair_foot", "yaw": 100.0, "pitch": 2.0, "pos": Vector3(-44.7, -5.6, 5.2)},
 ]
 
 ## The two vantages the day pass is shot from, both standing at the spawn: one
