@@ -546,18 +546,18 @@ func _boardwalk() -> void:
 	# it: these four are the walls and floor of the stair well, and without them
 	# a player walking sideways off a flight goes straight through the scenery
 	# and out of the world.
-	_box("bluff_north", Vector3.ZERO, Vector3(-42.5, -6.0, -91.0),
+	_box("bluff_north", Vector3.ZERO, Vector3(-42.5, -6.0 + GROUND_SEAM, -91.0),
 		Vector3(7.0, 12.0, 158.0), "far_warm")
-	_box("bluff_south", Vector3.ZERO, Vector3(-42.5, -6.0, 89.0),
+	_box("bluff_south", Vector3.ZERO, Vector3(-42.5, -6.0 + GROUND_SEAM, 89.0),
 		Vector3(7.0, 12.0, 162.0), "far_warm")
 	_box("bluff_base", Vector3.ZERO, Vector3(-42.5, -9.0, -2.0),
 		Vector3(7.0, 6.0, 20.0), "far_warm")
 	# The rest of the bluff fills back in around the well, in three pieces,
 	# because the upper flight runs east through it and a solid fill walls in the
 	# stair it is supposed to be holding up.
-	_box("bluff_slot_north", Vector3.ZERO, Vector3(-41.2, -6.0, -11.5),
+	_box("bluff_slot_north", Vector3.ZERO, Vector3(-41.2, -6.0 + GROUND_SEAM, -11.5),
 		Vector3(4.4, 12.0, 1.0), "far_warm")
-	_box("bluff_slot_south", Vector3.ZERO, Vector3(-41.2, -6.0, -0.2),
+	_box("bluff_slot_south", Vector3.ZERO, Vector3(-41.2, -6.0 + GROUND_SEAM, -0.2),
 		Vector3(4.4, 12.0, 16.4), "far_warm")
 	_box("bluff_slot_under", Vector3.ZERO, Vector3(-41.2, -6.75, -9.7),
 		Vector3(4.4, 10.5, 2.6), "far_warm")
@@ -772,6 +772,20 @@ func _skyline() -> void:
 ## walk the player repeats every session. 56m is the shortest run that still
 ## reads as a street rather than a passage — long enough that the plaza arrives
 ## as a widening, short enough that arriving is not a commute.
+## The plaza's own `ground` owns y = 0. Every other surface that meets it sits
+## a centimetre under, so that where the two overlap there is exactly one
+## up-facing face at that height and nothing for the depth buffer to choose
+## between.
+##
+## The overlaps are all deliberate — a coplanar butt leaves a zero-width seam
+## for the capsule to catch on, so each of these runs back under the plaza's
+## edge rather than meeting it. That is what made them z-fight: two up-facing
+## floors, the same plane, different materials, tens of square metres of it.
+##
+## A centimetre is under the controller's step-up, so the lip where the plaza's
+## ground ends is not something you can trip on in either direction.
+const GROUND_SEAM := -0.01
+
 const ST_X := -1.5
 const ST_HALF := 7.5
 const ST_FROM := 38.0
@@ -786,7 +800,7 @@ func _entrance() -> void:
 	# Top at y=0, matching the plaza ground. Overlapped by 2m rather than butted:
 	# a coplanar butt can leave a zero-width seam for the capsule to catch on,
 	# and two floors at exactly the same height cannot produce a lip.
-	_box("entrance_ground", Vector3.ZERO, Vector3(ST_X, -0.5, 75.5),
+	_box("entrance_ground", Vector3.ZERO, Vector3(ST_X, -0.5 + GROUND_SEAM, 75.5),
 		Vector3(41, 1, 75), "accent", 0.0, true)
 
 	_street_frontage()
@@ -985,10 +999,10 @@ func _passage(nm: String, base: Vector3, theta: float, w: float, turn: float) ->
 
 	# Floors. Tops at y=0 to match the plaza, and the first one overlaps back
 	# under the wall line so there is no seam at the threshold.
-	_box("way_%s_floor_a" % nm, base, Vector3(0, -0.5, REACH * 0.5 - 0.5),
+	_box("way_%s_floor_a" % nm, base, Vector3(0, -0.5 + GROUND_SEAM, REACH * 0.5 - 0.5),
 		Vector3(w, 1, REACH + 1.0), "accent", theta)
 	_box("way_%s_floor_b" % nm, base,
-		Vector3(t * (n + BEND * 0.5), -0.5, REACH - w * 0.5),
+		Vector3(t * (n + BEND * 0.5), -0.5 + GROUND_SEAM, REACH - w * 0.5),
 		Vector3(BEND, 1, w), "accent", theta)
 
 	# The wall on the outside of the bend runs the whole way; the one on the
