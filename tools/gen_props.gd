@@ -10,6 +10,19 @@ extends SceneTree
 ##
 ##   godot --headless --path . --script res://_gen_props.gd
 
+## The park's plan. Everything below that says where something *is* reads from
+## here rather than declaring it, so the generator and the things that draw the
+## park cannot disagree about the same number.
+##
+## Preloaded rather than reached for by `class_name`, because this file runs
+## under `--script` and that compiles before the project's script registry and
+## autoloads are up. `park_plan.gd` is deliberately autoload-free — pure static
+## data on a `RefCounted` — which is exactly what makes this preload safe. If
+## anything global ever gets named in it, this line starts silently yielding a
+## script that is not itself and the generator emits well-formed output with
+## pieces missing.
+const Plan := preload("res://scripts/park_plan.gd")
+
 const OUT_PATH := "res://scenes/world/plaza_props.tscn"
 const SKYLINE_PATH := "res://scenes/world/plaza_skyline.tscn"
 const STAIR_PATH := "res://scenes/world/west_stair.tscn"
@@ -627,16 +640,16 @@ func _wheel(origin: Vector3, mat: String, heading := 0.0) -> void:
 ## recede, it looms, and the frontage read as a wall across the view rather than
 ## as somewhere else. Down a bluff is also how the real ones are built: the park
 ## on the rise, the boardwalk at beach level.
-const SHORE_TOP := -6.0
-const WATER_TOP := -7.5
-const SHORE_EDGE := -70.0
-const FRONT_X := -58.0
+const SHORE_TOP := Plan.SHORE_TOP
+const WATER_TOP := Plan.WATER_TOP
+const SHORE_EDGE := Plan.SHORE_EDGE
+const FRONT_X := Plan.FRONT_X
 
 ## The frontage opens here, and the gap is aimed at the plaza arch. This is the
 ## whole composition: the arch frames a gap, the gap frames the pier, and the
 ## wheel sits off to one side where you have to move to uncover it.
-const GAP_FROM := -8.0
-const GAP_TO := 6.0
+const GAP_FROM := Plan.GAP_FROM
+const GAP_TO := Plan.GAP_TO
 
 
 func _boardwalk() -> void:
@@ -754,10 +767,10 @@ func _pier(root: Vector3) -> void:
 ## which makes it a weak threshold; a flight that turns puts a wall between the
 ## terrace and wherever it comes out, which is where a section load can hide and
 ## why the reveal gets walked into rather than faded into.
-const STAIR_W := 2.6
-const STAIR_RISE := 0.25
-const STAIR_TOP_Z := -9.7
-const STAIR_TURN_X := -44.7
+const STAIR_W := Plan.STAIR_W
+const STAIR_RISE := Plan.STAIR_RISE
+const STAIR_TOP_Z := Plan.STAIR_TOP_Z
+const STAIR_TURN_X := Plan.STAIR_TURN_X
 
 
 ## The treads are scenery and the ramps under them are the floor.
@@ -918,11 +931,11 @@ func _skyline() -> void:
 ## ground ends is not something you can trip on in either direction.
 const GROUND_SEAM := -0.01
 
-const ST_X := -1.5
-const ST_HALF := 7.5
-const ST_FROM := 38.0
-const GATE_Z := 95.0
-const APRON_Z := 111.0
+const ST_X := Plan.STREET_X
+const ST_HALF := Plan.STREET_HALF
+const ST_FROM := Plan.STREET_FROM_Z
+const GATE_Z := Plan.GATE_Z
+const APRON_Z := Plan.APRON_Z
 
 ## On the existing sightline rather than a new one. The gap in the plaza's south
 ## building line already sits at x -9..6, and the fountain is at x 0 — 1.5m off
@@ -1106,15 +1119,10 @@ func _apron() -> void:
 ## section's centre line, edges are free — so these sit where the perimeter had
 ## room rather than on exact rays. From the fountain: roughly 342, 62, 121 and
 ## 211 degrees, against a west arch at 273 and the entrance street at 182.
-const THRESHOLDS := [
-	{"name": "nnw", "at": Vector3(-13.0, 0.0, -39.5), "theta": PI, "width": 12.0, "turn": 1.0},
-	{"name": "ne", "at": Vector3(39.5, 0.0, -21.0), "theta": PI * 0.5, "width": 12.0, "turn": 1.0},
-	{"name": "se", "at": Vector3(39.5, 0.0, 24.0), "theta": PI * 0.5, "width": 10.0, "turn": -1.0},
-	{"name": "sw", "at": Vector3(-24.0, 0.0, 39.5), "theta": 0.0, "width": 8.0, "turn": -1.0},
-]
+const THRESHOLDS := Plan.THRESHOLDS
 
-const REACH := 9.0
-const BEND := 7.0
+const REACH := Plan.REACH
+const BEND := Plan.BEND
 
 
 func _thresholds() -> void:
