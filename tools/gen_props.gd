@@ -849,8 +849,10 @@ func _shopfronts(rows: Array, side: float, id_from: int) -> void:
 		# The canopy is what makes this a street instead of two walls. It sits
 		# above head height and carries no collision — walking into shade should
 		# not be walking into a wall.
+		# Sunk 2cm into the frontage. Butted exactly against it the awning's back
+		# face and the shop's face are the same plane, which fights.
 		_box("shop_%d_awning" % n, Vector3.ZERO,
-			Vector3(face + side * 0.9, 3.1, z),
+			Vector3(face + side * 0.88, 3.1, z),
 			Vector3(1.8, 0.18, length - 1.5), "red", 0.0, false)
 		_cyl("shop_%d_post_a" % n, Vector3.ZERO,
 			Vector3(face + side * 1.7, 1.55, z - length * 0.5 + 1.0),
@@ -1065,13 +1067,17 @@ func _front(nm: String, at: Vector3, theta: float, width: float, kind: String,
 			_box("%s_cab_%d_screen" % [nm, i], at, Vector3(x, 1.25, 0.73),
 				Vector3(0.5, 0.42, 0.06), "blue", theta, false)
 	else:
-		_box("%s_glass" % nm, at, Vector3(0, 1.7, 0.05), Vector3(width - 0.7, 2.1, 0.1),
+		# Glass, bulkhead and door are three layers of relief on one wall, and
+		# all three had their back face at exactly 0 — the wall's plane and each
+		# other's. Their fronts are what reads, so the backs sink into the wall
+		# by differing amounts and nothing shares a plane with anything.
+		_box("%s_glass" % nm, at, Vector3(0, 1.7, 0.04), Vector3(width - 0.7, 2.1, 0.12),
 			"glass", theta, false)
-		_box("%s_bulkhead" % nm, at, Vector3(0, 0.45, 0.12), Vector3(width - 0.7, 0.9, 0.24),
+		_box("%s_bulkhead" % nm, at, Vector3(0, 0.45, 0.1), Vector3(width - 0.7, 0.9, 0.28),
 			"accent", theta, false)
 		# Off to one side. Centred, a door makes the unit read as a symmetrical
 		# shed; off-centre it reads as a building somebody laid out.
-		_box("%s_door" % nm, at, Vector3(n - 1.1, 1.05, 0.07), Vector3(1.0, 2.1, 0.14),
+		_box("%s_door" % nm, at, Vector3(n - 1.1, 1.055, 0.055), Vector3(1.0, 2.1, 0.17),
 			"wood", theta, false)
 
 	# Marquee for an arcade, plain fascia for the rest.
@@ -1169,7 +1175,12 @@ func _arcade_room(face: float, z: float, length: float) -> void:
 	var dn := z - ARC_DOOR * 0.5
 	var ds := z + ARC_DOOR * 0.5
 
-	_box("arc_floor", Vector3.ZERO, Vector3(mid, -0.25, z),
+	# A centimetre proud of the street rather than flush with it. Both are
+	# up-facing floors and the overlap is 130m², so at exactly the same height
+	# they z-fight across the whole arcade mouth — the ground flickers between
+	# the street's colour and the arcade's as the player walks. A centimetre is
+	# under the step-up and invisible as a lip.
+	_box("arc_floor", Vector3.ZERO, Vector3(mid, -0.24, z),
 		Vector3(depth, 0.5, length), "far_shade")
 	_box("arc_roof", Vector3.ZERO, Vector3(mid, ARC_TALL + 0.2, z),
 		Vector3(depth + 0.6, 0.4, length + 0.6), "far_warm")
@@ -1181,10 +1192,12 @@ func _arcade_room(face: float, z: float, length: float) -> void:
 		Vector3(depth, ARC_TALL, 0.5), "accent")
 
 	# The front, in three pieces. The gap is the door.
-	var cheek := (length - ARC_DOOR) * 0.5
-	_box("arc_cheek_n", Vector3.ZERO, Vector3(face - 0.25, ARC_TALL * 0.5, dn - cheek * 0.5),
+	# Held 2cm clear of the side walls at each end. Run out to meet them and the
+	# cheek's outer face lands in the same plane as the wall's, which fights.
+	var cheek := (length - ARC_DOOR) * 0.5 - 0.02
+	_box("arc_cheek_n", Vector3.ZERO, Vector3(face - 0.245, ARC_TALL * 0.5, dn - cheek * 0.5 - 0.01),
 		Vector3(0.5, ARC_TALL, cheek), "far_warm")
-	_box("arc_cheek_s", Vector3.ZERO, Vector3(face - 0.25, ARC_TALL * 0.5, ds + cheek * 0.5),
+	_box("arc_cheek_s", Vector3.ZERO, Vector3(face - 0.245, ARC_TALL * 0.5, ds + cheek * 0.5 + 0.01),
 		Vector3(0.5, ARC_TALL, cheek), "far_warm")
 	_box("arc_lintel", Vector3.ZERO, Vector3(face - 0.25, 3.5, z),
 		Vector3(0.5, 1.8, ARC_DOOR), "far_warm")
