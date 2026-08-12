@@ -78,6 +78,11 @@ func _build_materials() -> void:
 		# Washed toward the sky so distance reads without touching the environment.
 		"far": [Color(0.66, 0.68, 0.72), 0.95, 0.0],
 		"far_warm": [Color(0.72, 0.66, 0.63), 0.95, 0.0],
+		"far_shade": [Color(0.55, 0.56, 0.62), 0.95, 0.0],
+		# The one surface in the park that is supposed to be shiny. Low roughness
+		# is the whole point: it is what turns a low sun into a glitter path, and
+		# the reason the boardwalk went west in the first place.
+		"water": [Color(0.34, 0.44, 0.52), 0.08, 0.1],
 	}
 	for key in defs:
 		var m := StandardMaterial3D.new()
@@ -449,8 +454,13 @@ func _tower(origin: Vector3, mat: String, accent: String) -> void:
 
 
 ## A wheel is a ring on two legs; the ring is what carries at distance.
-func _wheel(origin: Vector3, mat: String) -> void:
+##
+## `heading` turns the whole assembly about Y. Standing the torus up alone
+## leaves it facing north-south, which from the plaza is edge-on — a wheel seen
+## edge-on is a line, and a line is not the seaside icon anybody came for.
+func _wheel(origin: Vector3, mat: String, heading := 0.0) -> void:
 	var hub := origin + Vector3(0, 18.0, 0)
+	var turn := Basis(Vector3.UP, heading)
 	var ring := CSGTorus3D.new()
 	ring.inner_radius = 12.2
 	ring.outer_radius = 13.2
@@ -459,17 +469,128 @@ func _wheel(origin: Vector3, mat: String) -> void:
 	ring.ring_sides = 6
 	ring.material = mats[mat]
 	ring.use_collision = false
-	# A torus lies flat by default; stand it up to face the plaza.
-	ring.transform = Transform3D(Basis(Vector3.RIGHT, PI * 0.5), hub)
+	# A torus lies flat by default; stand it up, then turn it to face the plaza.
+	ring.transform = Transform3D(turn * Basis(Vector3.RIGHT, PI * 0.5), hub)
 	_add(ring, "wheel_ring")
 
 	_far_cyl("wheel_hub", hub, 1.0, 2.0, mat, 8)
 	for i in 8:
 		var a := TAU * i / 8.0
-		var rim := hub + Vector3(cos(a) * 12.7, sin(a) * 12.7, 0)
+		var rim := hub + turn * Vector3(cos(a) * 12.7, sin(a) * 12.7, 0)
 		_strut("wheel_spoke_%d" % i, hub, rim, 0.3, mat)
-	_strut("wheel_leg_a", origin + Vector3(-11, 0, 0), hub, 1.2, mat)
-	_strut("wheel_leg_b", origin + Vector3(11, 0, 0), hub, 1.2, mat)
+	_strut("wheel_leg_a", origin + turn * Vector3(-11, 0, 0), hub, 1.2, mat)
+	_strut("wheel_leg_b", origin + turn * Vector3(11, 0, 0), hub, 1.2, mat)
+
+
+## Everything west of the plaza wall, seen from the overlook and never reached.
+##
+## Laid out in bands running north-south, so that what the arch frames is a
+## sequence receding rather than a backdrop: the shore below the parapet, a
+## frontage of buildings one deep, the promenade behind them, then water.
+## Santa Cruz is the reference for the ribbon being one building deep and for
+## both ends of a strip needing to be closed by something.
+## The boardwalk sits well below the plaza and well out from it. Both were wrong
+## on the first pass — a strip a metre down and twelve metres out does not
+## recede, it looms, and the frontage read as a wall across the view rather than
+## as somewhere else. Down a bluff is also how the real ones are built: the park
+## on the rise, the boardwalk at beach level.
+const SHORE_TOP := -6.0
+const WATER_TOP := -7.5
+const SHORE_EDGE := -70.0
+const FRONT_X := -58.0
+
+## The frontage opens here, and the gap is aimed at the plaza arch. This is the
+## whole composition: the arch frames a gap, the gap frames the pier, and the
+## wheel sits off to one side where you have to move to uncover it.
+const GAP_FROM := -8.0
+const GAP_TO := 6.0
+
+
+func _boardwalk() -> void:
+	_box("water", Vector3.ZERO, Vector3(-186, WATER_TOP - 4.0, 0),
+		Vector3(240, 8.0, 400), "water", 0.0, false)
+	# The face the plaza stands on. Everything west of the parapet drops away
+	# here, which is what turns the parapet into an overlook rather than a fence.
+	_box("bluff", Vector3.ZERO, Vector3(-42.5, -6.0, 0),
+		Vector3(7.0, 12.0, 340), "far_warm", 0.0, false)
+	# The ground the boardwalk stands on: back lane, frontage, promenade.
+	_box("shore", Vector3.ZERO, Vector3(-57, SHORE_TOP - 3.0, 0),
+		Vector3(26, 6.0, 340), "far_warm", 0.0, false)
+
+	_frontage()
+	_pier(Vector3(SHORE_EDGE, SHORE_TOP, -1.0))
+
+	# Masts along the promenade. At this distance they are the thing that says
+	# somebody strung lights here, without a single light being modelled.
+	var z := -46.0
+	var n := 0
+	while z <= 46.0:
+		if z < GAP_FROM - 3.0 or z > GAP_TO + 3.0:
+			_cyl("mast_%d" % n, Vector3.ZERO, Vector3(-67, SHORE_TOP + 4.0, z),
+				0.22, 8.0, "far_shade", 0.0, 6, false)
+			n += 1
+		z += 11.0
+
+
+## A row one building deep with a hole in it. Widths and heights are stepped
+## rather than random — a roofline needs to read as a set of decisions, and
+## noise reads as noise even at forty metres.
+func _frontage() -> void:
+	var runs := [
+		# z_from, z_to, height
+		[-64.0, -52.0, 7.5],
+		[-52.0, -43.0, 10.5],
+		[-43.0, -33.0, 6.0],
+		[-33.0, -21.0, 8.5],
+		[-21.0, GAP_FROM, 6.5],
+		[GAP_TO, 17.0, 9.0],
+		[17.0, 27.0, 6.0],
+		[27.0, 40.0, 11.0],
+		[40.0, 52.0, 7.0],
+		[52.0, 64.0, 8.0],
+	]
+	for i in runs.size():
+		var run: Array = runs[i]
+		var from: float = run[0]
+		var to: float = run[1]
+		var height: float = run[2]
+		var mid := (from + to) * 0.5
+		var depth := to - from
+		var mat := "far" if i % 2 == 0 else "far_warm"
+		_box("front_%d" % i, Vector3.ZERO, Vector3(FRONT_X, SHORE_TOP + height * 0.5, mid),
+			Vector3(9.0, height, depth), mat, 0.0, false)
+		# A parapet lip, so the rooflines are edges rather than the tops of slabs.
+		_box("front_%d_cap" % i, Vector3.ZERO,
+			Vector3(FRONT_X, SHORE_TOP + height + 0.25, mid),
+			Vector3(10.0, 0.5, depth + 0.6), "far_shade", 0.0, false)
+
+
+## What runs out over the water. A strip needs stops or it trails off, so this
+## one ends in a pavilion rather than in nothing.
+func _pier(root: Vector3) -> void:
+	var length := 44.0
+	var deck := root + Vector3(-length * 0.5, 0.4, 0)
+	_box("pier_deck", Vector3.ZERO, deck, Vector3(length, 0.5, 8.0), "far_warm", 0.0, false)
+	_box("pier_rail_n", Vector3.ZERO, deck + Vector3(0, 0.7, -3.9),
+		Vector3(length, 0.9, 0.2), "far_shade", 0.0, false)
+	_box("pier_rail_s", Vector3.ZERO, deck + Vector3(0, 0.7, 3.9),
+		Vector3(length, 0.9, 0.2), "far_shade", 0.0, false)
+
+	var piles := int(length / 5.0)
+	for i in piles:
+		var x := root.x - 3.0 - i * 5.0
+		for side in [-3.0, 3.0]:
+			_cyl("pile_%d_%s" % [i, "n" if side < 0.0 else "s"], Vector3.ZERO,
+				Vector3(x, WATER_TOP - 0.4, root.z + side), 0.28, 4.0,
+				"far_shade", 0.0, 6, false)
+
+	var head := root + Vector3(-length - 5.0, 0.0, 0)
+	_box("pier_pavilion", Vector3.ZERO, head + Vector3(0, 3.4, 0),
+		Vector3(12.0, 6.0, 13.0), "far", 0.0, false)
+	_box("pier_pavilion_roof", Vector3.ZERO, head + Vector3(0, 6.7, 0),
+		Vector3(14.0, 0.6, 15.0), "far_shade", 0.0, false)
+	_cyl("pier_pavilion_spire", Vector3.ZERO, head + Vector3(0, 9.5, 0),
+		0.3, 5.0, "far_shade", 0.0, 6, false)
 
 
 func _skyline() -> void:
@@ -477,5 +598,8 @@ func _skyline() -> void:
 	_wooden_coaster(Vector3(-22, 0, -58), deg_to_rad(72.0), "far_warm")
 	# North-east, visible over the low corner between perim_ne and building_east.
 	_tower(Vector3(54, 0, -40), "far", "far_warm")
-	# West, caught in the gap past building_west.
-	_wheel(Vector3(-58, 0, -4), "far")
+	_boardwalk()
+	# West, on the promenade behind the frontage and turned to face the plaza.
+	# Off the arch's centre line on purpose: from the fountain the north pier
+	# covers it, and a step or two north uncovers it.
+	_wheel(Vector3(-66, SHORE_TOP, -16), "far", PI * 0.5)

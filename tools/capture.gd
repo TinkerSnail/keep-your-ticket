@@ -28,6 +28,13 @@ const SHOTS := [
 	{"name": "crowd_band", "yaw": 55.0, "pitch": -5.0, "pos": Vector3(-6.0, 0.2, -4.0)},
 	{"name": "crowd_cafe", "yaw": -55.0, "pitch": -6.0, "pos": Vector3(11.0, 0.2, 8.0)},
 	{"name": "guest_face", "yaw": 180.0, "pitch": -4.0, "pos": Vector3(0.0, 0.2, 5.0)},
+	# The west opening, read as a sequence: the arch from inside the plaza, the
+	# passage under it, the view over the parapet, and the wheel that the north
+	# pier covers until you step out from behind it.
+	{"name": "west_arch", "yaw": 90.0, "pitch": 3.0, "pos": Vector3(0.0, 0.2, -2.0)},
+	{"name": "west_under", "yaw": 90.0, "pitch": 1.0, "pos": Vector3(-24.0, 0.2, -2.0)},
+	{"name": "west_overlook", "yaw": 90.0, "pitch": 0.0, "pos": Vector3(-37.0, 0.2, -2.0)},
+	{"name": "west_wheel", "yaw": 68.0, "pitch": 4.0, "pos": Vector3(-37.0, 0.2, -2.0)},
 ]
 
 ## The two vantages the day pass is shot from, both standing at the spawn: one
@@ -39,6 +46,9 @@ const SPAWN := Vector3(0.0, 0.2, 16.0)
 const DAY_VIEWS := [
 	{"name": "north", "yaw": 0.0, "pitch": 8.0, "pos": SPAWN},
 	{"name": "west", "yaw": 90.0, "pitch": 6.0, "pos": SPAWN},
+	# Over the parapet. The sun sets into this one, which is the reason the
+	# boardwalk went west and the reason the axis was worth computing.
+	{"name": "overlook", "yaw": 84.0, "pitch": 1.0, "pos": Vector3(-37.0, 0.2, -2.0)},
 ]
 
 ## Times of day, chosen for the moments the arc is supposed to hit rather than
