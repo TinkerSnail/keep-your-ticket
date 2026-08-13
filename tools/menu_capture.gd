@@ -20,9 +20,12 @@ const OUT := "user://%s.png"
 const MOTION_FRAMES := 6
 const MOTION_GAP := 3
 
-## Where to crop. The tab strip across the top, and the card the lists sit on.
+## Where to crop. The tab strip across the top, the card the lists sit on, and
+## the album's first two slots — the one being left and the one being arrived at,
+## which is the only pair that shows the lift handing over.
 const TAB_STRIP := Rect2i(60, 28, 780, 96)
 const CARD := Rect2i(430, 330, 760, 250)
+const SLOTS := Rect2i(88, 130, 620, 180)
 
 
 func _ready() -> void:
@@ -91,6 +94,11 @@ func _ready() -> void:
 	menu.call("open", &"options")
 	await RenderingServer.frame_post_draw
 	await _motion("motion_row", &"ui_down", CARD)
+
+	menu.call("close")
+	menu.call("open", &"album")
+	await RenderingServer.frame_post_draw
+	await _motion("motion_slot", &"ui_right", SLOTS)
 
 	get_tree().quit()
 

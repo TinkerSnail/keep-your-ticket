@@ -42,8 +42,29 @@ const SLOT_GAP := 12
 const EMPTY_FILL := Color(0.06, 0.09, 0.18, 0.85)
 const EMPTY_EDGE := Color(0.20, 0.27, 0.45, 1.0)
 
+## How far the selected photograph comes forward.
+##
+## The rest of the menu marks selection by sliding a plate out of a row, and a
+## grid has nowhere to slide to — moving one cell would reflow the other
+## nineteen. So this one comes *forward* instead, which is the same idea on the
+## axis a grid has spare, and it is what an album does anyway: the photograph you
+## are looking at is the one held up.
+##
+## `scale` rather than size, and that is the whole reason it works. A `Control`'s
+## scale is a transform and takes no part in layout, so the slot grows without
+## `GridContainer` ever hearing about it. Growing it by size would push its
+## neighbours out of the way, which is a page of photographs rearranging itself
+## because the cursor moved.
+##
+## Seven per cent is a little more than the twelve-pixel gutter, on purpose. The
+## selected slot overlaps its neighbours by two or three pixels and is drawn
+## above them, and that small overlap is most of what makes it read as nearer
+## rather than merely bigger.
+const LIFT := 1.07
+
 var _grid: GridContainer
 var _slots: Array[PanelContainer] = []
+var _tween: Tween
 
 ## An index across the whole album, not into the visible page. Which page is
 ## showing is derived from it, so moving off the bottom row turns the page
@@ -90,7 +111,7 @@ func _input(event: InputEvent) -> void:
 
 	if moved:
 		accept_event()
-		_show_page()
+		_show_page(true)
 
 
 ## Every photograph, rounded up to a whole page, never fewer than one page. The
@@ -108,13 +129,16 @@ func _pages() -> int:
 ## Which page is showing follows the cursor rather than being steered
 ## separately, so moving off the bottom row turns the page instead of stopping.
 ## Only rebuilds when the page actually changes.
-func _show_page() -> void:
+## Only a move within a page eases. A page turn rebuilds every slot, and a fresh
+## set of photographs sliding forward one at a time would be the cursor animating
+## onto a page that was not there a frame ago.
+func _show_page(animate: bool = false) -> void:
 	var wanted := _selected / PER_PAGE
 	if wanted != _page:
 		_page = wanted
 		_rebuild()
 	else:
-		_refresh_selection()
+		_refresh_selection(animate)
 
 
 func _rebuild() -> void:
@@ -145,23 +169,50 @@ func _rebuild() -> void:
 		if index < filled:
 			thumbnail.texture = PhotoAlbum.thumbnails[index]
 		slot.add_child(thumbnail)
+		# Scaled about its middle, and the middle is not known yet — the slots
+		# expand to fill the well, so a slot's size is whatever the grid hands it
+		# after layout and is zero right now. Tracking `resized` also keeps it
+		# right when the window changes, which a value read once would not.
+		slot.resized.connect(_recentre.bind(slot))
 		_grid.add_child(slot)
 		_slots.append(slot)
 
 	_refresh_selection()
 
 
-func _refresh_selection() -> void:
+func _refresh_selection(animate: bool = false) -> void:
+	if _tween != null:
+		_tween.kill()
+	_tween = ParkUI.tween(self) if animate else null
+
 	var first := _page * PER_PAGE
 	for offset in _slots.size():
 		var chosen := first + offset == _selected
+		var slot := _slots[offset]
 		var box := ParkUI.inset(EMPTY_FILL,
 			ParkUI.ACCENT if chosen else EMPTY_EDGE)
 		if chosen:
 			box.set_border_width_all(ParkUI.BORDER * 2)
-		_slots[offset].add_theme_stylebox_override("panel", box)
+		slot.add_theme_stylebox_override("panel", box)
+
+		# Above its neighbours, so what it grows into it grows over. The one
+		# being left drops back down the order immediately rather than when it
+		# finishes shrinking, which is the right way round — the arriving
+		# photograph should pass in front of the leaving one, not behind it.
+		slot.z_index = 1 if chosen else 0
+
+		var lift := Vector2.ONE * (LIFT if chosen else 1.0)
+		if _tween == null:
+			slot.scale = lift
+		else:
+			ParkUI.settle(_tween.tween_property(slot, "scale", lift,
+				ParkUI.MOVE_SECONDS), chosen)
 
 	note_changed.emit(_caption())
+
+
+func _recentre(slot: Control) -> void:
+	slot.pivot_offset = slot.size * 0.5
 
 
 ## Where you are in the album, then what you are looking at. The filename is
