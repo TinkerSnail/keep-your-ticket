@@ -83,6 +83,7 @@ var _hatch: Control
 var _footer: PanelContainer
 var _note: Label
 var _root: Control
+var _tween: Tween
 
 
 func _ready() -> void:
@@ -189,7 +190,11 @@ func _select(index: int) -> void:
 		_screens[at].visible = at == _tab
 	if _open:
 		_notify_shown()
-	_restyle()
+	# Only while the menu is up. `open(&"album")` selects its tab before the root
+	# is visible, so animating there would mean the pause screen appears with a
+	# tab halfway out of the strip — the movement has to be something the player
+	# caused, not something they arrived in the middle of.
+	_restyle(_open)
 
 
 ## Subscreens may implement `_on_shown` and `_on_hidden` — options re-reads its
@@ -265,6 +270,16 @@ func _build() -> void:
 	var tabs := HBoxContainer.new()
 	tabs.add_theme_constant_override("separation", TAB_GAP)
 	tabs.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# The row is as tall as its tallest state whether or not anything is standing
+	# that tall right now, and without that the rise does the opposite of what it
+	# looks like it does. A row sized to its content grows when the selected tab
+	# grows, and because every tab is bottom-aligned inside it, what actually
+	# happens is that the other three sink and the whole body below them shifts
+	# down — measured at eleven pixels a keypress. Reserving the space means the
+	# selected tab rises into it and nothing else moves at all.
+	tabs.custom_minimum_size.y = ceili(
+		ParkUI.display_font().get_height(ParkUI.SIZE_TAB)) \
+		+ TAB_PAD_Y * 2 + ParkUI.BORDER * 2 + ParkUI.TAB_RISE
 	tab_row.add_child(tabs)
 
 	for entry in TABS:
@@ -455,8 +470,16 @@ func _on_note_changed(note: String) -> void:
 ## runs into the frame below it, and the field behind the subscreen takes the
 ## same hue — so the tab and the screen it opens are visibly one object rather
 ## than a strip of buttons above a box.
-func _restyle() -> void:
+func _restyle(animate: bool = false) -> void:
 	var tint: Color = ParkUI.tab_colour(_current_id())
+
+	# One tween for the whole strip, killed before it is replaced. Four separate
+	# ones would be four things racing on the same four constants the moment the
+	# tab key is held down, and the tab that lost would be left part-risen.
+	if _tween != null:
+		_tween.kill()
+	_tween = ParkUI.tween(self) if animate else null
+
 	for index in _tab_panels.size():
 		var chosen := index == _tab
 		var colour: Color = ParkUI.tab_colour(TABS[index]["id"])
@@ -473,8 +496,18 @@ func _restyle() -> void:
 		# The rise. Extra top padding rather than a taller box: the labels stay
 		# on one line and the plate grows upward out of the strip, which is the
 		# half of the signal that survives not being able to read the words.
-		_tab_pads[index].add_theme_constant_override("margin_top",
-			TAB_PAD_Y + (ParkUI.TAB_RISE if chosen else 0))
+		#
+		# A theme constant rather than a property, so it goes through
+		# `tween_method` — and it is read back off the pad rather than derived
+		# from which tab *was* selected, because a tab key held down retargets a
+		# rise that is already part way up and has to start from where it is.
+		var rise := float(TAB_PAD_Y + (ParkUI.TAB_RISE if chosen else 0))
+		if _tween == null:
+			_set_tab_rise(rise, index)
+		else:
+			ParkUI.settle(_tween.tween_method(_set_tab_rise.bind(index),
+				float(_tab_pads[index].get_theme_constant("margin_top")),
+				rise, ParkUI.MOVE_SECONDS), chosen)
 		# Light letters with a black line, chosen or not. The selected tab used
 		# to knock its label out in ink, which is a tile-era idea and made the
 		# one tab you are looking at the only dark text on the screen. The fill
@@ -506,6 +539,13 @@ func _restyle() -> void:
 			ParkUI.plate(ParkUI.TAB_IDLE, tint.darkened(0.35), ParkUI.CUT_TAB))
 	if _hatch != null:
 		_hatch.queue_redraw()
+
+
+## Rounded, because a theme constant is an integer and the pixel face under it
+## has no business landing on a half. The tween runs in floats and this is where
+## it comes back to the grid.
+func _set_tab_rise(amount: float, index: int) -> void:
+	_tab_pads[index].add_theme_constant_override("margin_top", roundi(amount))
 
 
 ## Diagonals across the field, running the way the light does — down to the

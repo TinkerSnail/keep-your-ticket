@@ -271,6 +271,29 @@ const CUT_ROW := 7.0
 const JUT := 28
 const TAB_RISE := 14
 
+## How the plate gets there.
+##
+## Instant was wrong and it was wrong in a specific way: a plate that is simply
+## *drawn* further out is a plate that has been redrawn, and a plate that slides
+## out is a plate that moved. The references all ease it over a handful of frames
+## and the reason is not polish — it is that the movement is the signal, and a
+## thing which is only ever seen in its start and end positions never moved.
+##
+## Short. This is a tab press and a cursor step, not a transition; anything past
+## about a fifth of a second and the menu is answering slower than the key was
+## pressed, which is the one thing a menu of this generation never did.
+const MOVE_SECONDS := 0.15
+
+## Arriving overshoots and settles; leaving just retreats.
+##
+## The asymmetry is the whole character of it. `TRANS_BACK` on the way out gives
+## the plate a small carry past its mark and a settle back, which is what makes
+## it read as having been thrown rather than moved — and on 28 pixels it is about
+## three, so it is felt rather than seen. The same curve on the way *back* would
+## dip the leaving plate below its resting width first, which reads as a flinch.
+const ARRIVE_TRANS := Tween.TRANS_BACK
+const LEAVE_TRANS := Tween.TRANS_CUBIC
+
 
 ## A plate with its corners cut off.
 ##
@@ -595,6 +618,29 @@ static func face(path: String, pixel: bool) -> Font:
 ## without a colour looks deliberate rather than looking broken.
 static func tab_colour(id: StringName) -> Color:
 	return TAB_COLOURS.get(id, ACCENT)
+
+
+## A tween that runs while the game does not.
+##
+## Every one of these is driven by the pause screen, and the pause screen is the
+## only thing in the tree still processing — a tween left on the default
+## `TWEEN_PAUSE_BOUND` inherits its node's pause state, which is correct
+## everywhere except here and would leave the menu frozen mid-slide the instant
+## it did the thing it exists to do.
+static func tween(on: Node) -> Tween:
+	var made := on.create_tween()
+	made.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	made.set_parallel(true)
+	return made
+
+
+## The curve for one tweener. Untyped because `set_trans` lives on the concrete
+## tweeners rather than on `Tweener`, and both kinds are passed through here —
+## the jut is a property and the rise is a theme constant, which only
+## `tween_method` can reach.
+static func settle(tweener: Variant, arriving: bool) -> void:
+	tweener.set_trans(ARRIVE_TRANS if arriving else LEAVE_TRANS)
+	tweener.set_ease(Tween.EASE_OUT)
 
 
 ## Capitals, and the one place that decides so. Every label in the menu goes

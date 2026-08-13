@@ -78,10 +78,22 @@ var _labels: Array[Label] = []
 ## the base type rather than `Label`.
 var _values: Array[Control] = []
 var _selected := 0
+var _tween: Tween
+
+
+## Wide enough for the furthest a row ever gets, and then a little.
+##
+## Without this the list is as wide as its widest row, which during a cursor move
+## is neither — the leaving row is shrinking while the arriving one grows, so the
+## maximum dips through the middle and the card breathes in and out on every
+## keypress. The allowance on the end is for the overshoot, which is small and
+## would otherwise be the one thing still able to push the width past its mark.
+const OVERSHOOT := 6
 
 
 func _ready() -> void:
 	add_theme_constant_override("separation", ROW_SEPARATION)
+	custom_minimum_size.x = ROW_WIDTH + ParkUI.JUT + OVERSHOOT
 
 
 ## Build the list inside a plate, centred in `parent`. Both list screens want
@@ -211,9 +223,14 @@ func _input(event: InputEvent) -> void:
 
 ## Wraps. A four-row list where down does nothing on the last row is a list that
 ## makes the player check whether the input registered.
+##
+## The one place the list animates. Adjusting a slider moves nothing — the bar
+## stays where it is and only the cells change — and rebuilding the rows has to
+## land them at their final widths, or opening a screen would play the cursor
+## sliding into place on a list that was not there a frame ago.
 func _move(step: int) -> void:
 	_selected = wrapi(_selected + step, 0, _rows.size())
-	_refresh()
+	_refresh(true)
 
 
 func _adjust(step: int) -> void:
@@ -249,13 +266,25 @@ func _activate() -> void:
 ## the screen too small to read: Melee, Smash 64 and Star Fox's mission select
 ## all slide the current plate out of the stack, and none of them relies on the
 ## tint to say which one you are on.
-func _refresh() -> void:
+func _refresh(animate: bool = false) -> void:
+	# One tween for the list, killed before it is replaced — the cursor held on
+	# the down key retargets rows that are still moving, and two tweens on one
+	# row's width leaves it stuck between the two.
+	if _tween != null:
+		_tween.kill()
+	_tween = ParkUI.tween(self) if animate else null
+
 	for index in _rows.size():
 		var row := _rows[index]
 		var kind := int(row.get("kind", Kind.ACTION))
 		var chosen := index == _selected
 
-		_panels[index].custom_minimum_size.x = ROW_WIDTH + (ParkUI.JUT if chosen else 0)
+		var width := float(ROW_WIDTH + (ParkUI.JUT if chosen else 0))
+		if _tween == null:
+			_panels[index].custom_minimum_size.x = width
+		else:
+			ParkUI.settle(_tween.tween_property(_panels[index],
+				"custom_minimum_size:x", width, ParkUI.MOVE_SECONDS), chosen)
 		var box := ParkUI.plate(
 			ParkUI.SELECT_FILL if chosen else Color(0, 0, 0, 0),
 			ParkUI.SELECT_FILL if chosen else Color(0, 0, 0, 0),

@@ -14,6 +14,16 @@ const SETTLE := 2.0
 ## is hanging. `capture.gd` has always written to `user://` for this reason.
 const OUT := "user://%s.png"
 
+## How many consecutive frames a motion strip stacks, and the black rule between
+## them. Six at sixty is a tenth of a second, which is most of `MOVE_SECONDS` —
+## enough to catch the middle and the settle without the strip being all settle.
+const MOTION_FRAMES := 6
+const MOTION_GAP := 3
+
+## Where to crop. The tab strip across the top, and the card the lists sit on.
+const TAB_STRIP := Rect2i(60, 28, 780, 96)
+const CARD := Rect2i(430, 330, 760, 250)
+
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -67,4 +77,45 @@ func _ready() -> void:
 		image.save_png(OUT % tab)
 		print("saved ", OUT % tab)
 
+	# The tab rise and the row jut both animate, and a still of a menu proves
+	# exactly as much about that as a still of a rotating minimap proves about
+	# rotation. So each one is caught on consecutive frames and stacked into one
+	# strip — if the plate is at its start position in the top band and its end
+	# position in the bottom one and at neither in between, it moved.
+	menu.call("close")
+	menu.call("open", &"map")
+	await RenderingServer.frame_post_draw
+	await _motion("motion_tab", &"menu_next_tab", TAB_STRIP)
+
+	menu.call("close")
+	menu.call("open", &"options")
+	await RenderingServer.frame_post_draw
+	await _motion("motion_row", &"ui_down", CARD)
+
 	get_tree().quit()
+
+
+## Fire an action and stack the next few frames of one region into a strip.
+##
+## `parse_input_event` rather than calling the menu's own methods: the animation
+## is started from `_input` and driven by a tween, and poking the internals would
+## test a code path the player never takes.
+func _motion(tag: String, action: StringName, region: Rect2i) -> void:
+	var press := InputEventAction.new()
+	press.action = action
+	press.pressed = true
+	Input.parse_input_event(press)
+
+	var strip := Image.create_empty(region.size.x,
+		region.size.y * MOTION_FRAMES + MOTION_GAP * (MOTION_FRAMES - 1),
+		false, Image.FORMAT_RGBA8)
+
+	for at in MOTION_FRAMES:
+		await RenderingServer.frame_post_draw
+		var frame := get_viewport().get_texture().get_image()
+		frame.convert(Image.FORMAT_RGBA8)
+		strip.blit_rect(frame, region,
+			Vector2i(0, at * (region.size.y + MOTION_GAP)))
+
+	strip.save_png(OUT % tag)
+	print("saved ", OUT % tag)
