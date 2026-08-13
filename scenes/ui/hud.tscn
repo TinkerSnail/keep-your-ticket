@@ -81,7 +81,6 @@ theme_override_colors/default_color = Color(1, 1, 1, 0.82)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.85)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/normal_font_size = 15
 
 [node name="shutter_hint" type="RichTextLabel" parent="."]
 anchor_top = 1.0
@@ -101,4 +100,3 @@ theme_override_colors/default_color = Color(1, 1, 1, 0.82)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.85)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/normal_font_size = 15

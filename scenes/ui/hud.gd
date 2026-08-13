@@ -11,12 +11,12 @@ extends CanvasLayer
 ## two-pixel shadow. Boxed keycaps are a much later convention — the late
 ## nineties put the key in a colour and trusted you to read it.
 ##
-## Written as pairs rather than as one string so the two sets stay parallel and
-## the separator is decided in one place. The accent comes from `park_ui` now
-## that the menu uses the same value — these prompts set that colour before
-## there was a menu, and there is no reason for two copies of it.
-const SEPARATOR := "   ·   "
-
+## Written as pairs rather than as one string, and handed to `ParkUI.prompts`,
+## which is where the idiom itself now lives. The two rows in the game — this one
+## and the pause screen's footer — were building the same string from two copies
+## of the same loop, and they had drifted: the menu's was Silkscreen and this one
+## was whatever face the engine falls back to, because nothing ever put a theme
+## on the HUD. Only the pairs belong here.
 const HINT_PLAYING := [
 	["F", "CAMERA"], ["E", "ASK"], ["V", "VIEW"],
 	["SPACE", "JUMP"], ["TAB", "ALBUM"], ["ESC", "MENU"],
@@ -145,14 +145,14 @@ func _apply_overlays() -> void:
 	_shutter_hint_tween = _fade(shutter_hint, _shutter_hint_tween, viewfinder.visible)
 
 
-## Key in the accent, action in white, everything centred. The prompts are
-## built rather than written out so that adding one cannot get the colouring
-## subtly wrong on the sixth entry.
+## Key in the display face and the accent, action in the body face, everything
+## centred. `park_ui` owns all of that; the HUD owns which pairs to show.
+##
+## It also raises the body size from the 15 this scene was authored with to 16.
+## Silkscreen is drawn on an eight-pixel grid and is sharp at 16 and mush at
+## anything between, and 15 was exactly the sort of value that looks harmless.
 func _set_prompts(label: RichTextLabel, pairs: Array) -> void:
-	var parts := PackedStringArray()
-	for pair in pairs:
-		parts.append("[color=#%s]%s[/color]  %s" % [ParkUI.ACCENT.to_html(false), pair[0], pair[1]])
-	label.text = "[center]%s[/center]" % SEPARATOR.join(parts)
+	ParkUI.prompts(label, pairs)
 
 
 ## Faded rather than switched, because a label vanishing on the same frame the

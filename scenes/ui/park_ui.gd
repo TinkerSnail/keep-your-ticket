@@ -76,6 +76,16 @@ static var _faces := {}
 const SIZE_SMALL := 16
 const SIZE_BODY := 24
 const SIZE_TAB := 36
+
+## What the display face has to be set to to look the same size as the body face
+## set to something else.
+##
+## A nominal size is not a rendered size and these two faces disagree about it
+## badly — the same measurement `SIZE_TAB` is built on. Luckiest Guy at 30 draws
+## the same width as Silkscreen at 24 and sits three pixels shorter, so anything
+## putting the two faces on one line has to scale one of them or the display face
+## reads as the smaller of the pair, which is the opposite of what it is for.
+const DISPLAY_RATIO := 1.25
 ## 52 rather than 40 for the same reason, one step up. A title and a tab are both
 ## the display face, so a four-point gap between them is not a hierarchy — it is
 ## two headings that happen to differ. Nothing draws this yet; it is set now so
@@ -224,6 +234,10 @@ const DISPLAY_BOTTOM := Color("e2400f")
 ## because the ramp is common and the on/off is not.
 const DISPLAY_SHADER_PATH := "res://scenes/ui/display_gradient.gdshader"
 static var _display_shader: Shader = null
+
+## What goes between two prompts. One copy, because a separator that differs
+## between the HUD and the pause screen is a separator nobody chose twice.
+const HINT_SEPARATOR := "   ·   "
 
 ## Border weight, everywhere. Two pixels at every size, because a border that
 ## scales with its box is a vector-era idea.
@@ -641,6 +655,53 @@ static func tween(on: Node) -> Tween:
 static func settle(tweener: Variant, arriving: bool) -> void:
 	tweener.set_trans(ARRIVE_TRANS if arriving else LEAVE_TRANS)
 	tweener.set_ease(Tween.EASE_OUT)
+
+
+## A row of control prompts, in the one place that decides what one looks like.
+##
+## This lived twice — `hud.gd` built the string for the park and `park_menu.gd`
+## built the same string for the footer — and the two had already drifted further
+## than either copy admitted. The menu's row was Silkscreen; the HUD's was the
+## engine's own face, because nothing had ever put a theme on the HUD, and this
+## file has been asserting that "body appears on the HUD prompts" while that was
+## quietly untrue.
+##
+## The key name is the display face and the action is the body face, which is a
+## change to what this file used to say. The old rule sent anything short and
+## shouty to the display face and everything else to body, and then made the key
+## names an exception on the grounds that a prompt is a caption. But a key name
+## is the shortest all-caps thing in the game — it is a tab label that happens to
+## say ESC — and it was already being coloured to stand out from the word next to
+## it. Giving it the face that does that job means the colour is no longer doing
+## it alone.
+##
+## The word beside it stays body, which is the whole point: two faces on one line
+## is the pairing this menu is built on, and it now happens at the smallest scale
+## the interface has as well as the largest.
+##
+## `bold_font` rather than a second label, because `RichTextLabel` puts mixed
+## faces on a common baseline and an `HBoxContainer` of two `Label`s does not —
+## it centres each one in the row and leaves the two sitting at different heights
+## by however much their ascents differ, which for these two faces is three
+## pixels at tab size and visible at any size.
+static func prompts(label: RichTextLabel, pairs: Array,
+		centred: bool = true, size: int = SIZE_SMALL) -> void:
+	var key_size := roundi(size * DISPLAY_RATIO)
+	label.bbcode_enabled = true
+	label.add_theme_font_override("normal_font", font())
+	label.add_theme_font_size_override("normal_font_size", size)
+	label.add_theme_font_override("bold_font", display_font())
+	label.add_theme_font_size_override("bold_font_size", key_size)
+
+	var parts := PackedStringArray()
+	for pair in pairs:
+		parts.append("[outline_size=%d][outline_color=#%s][color=#%s][b]%s[/b][/color][/outline_color][/outline_size]  %s" % [
+			outline_for(key_size), OUTLINE_COLOUR.to_html(false),
+			ACCENT.to_html(false), pair[0], pair[1],
+		])
+
+	var align := "center" if centred else "right"
+	label.text = "[%s]%s[/%s]" % [align, HINT_SEPARATOR.join(parts), align]
 
 
 ## Capitals, and the one place that decides so. Every label in the menu goes

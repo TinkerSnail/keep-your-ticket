@@ -413,13 +413,11 @@ func _build() -> void:
 	footer_row.add_child(_note)
 
 	var hints := RichTextLabel.new()
-	hints.bbcode_enabled = true
 	hints.fit_content = true
 	hints.scroll_active = false
 	hints.autowrap_mode = TextServer.AUTOWRAP_OFF
 	hints.size_flags_horizontal = Control.SIZE_SHRINK_END
-	hints.add_theme_font_size_override("normal_font_size", ParkUI.SIZE_SMALL)
-	hints.text = _hint_text()
+	ParkUI.prompts(hints, HINTS, false)
 	footer_row.add_child(hints)
 
 	for entry in TABS:
@@ -561,8 +559,3 @@ func _draw_hatch() -> void:
 		at += HATCH_STEP
 
 
-func _hint_text() -> String:
-	var parts := PackedStringArray()
-	for pair in HINTS:
-		parts.append("[color=#%s]%s[/color]  %s" % [ParkUI.ACCENT.to_html(false), pair[0], pair[1]])
-	return "[right]%s[/right]" % "   ·   ".join(parts)
