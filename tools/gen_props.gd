@@ -29,6 +29,32 @@ const STAIR_PATH := "res://scenes/world/west_stair.tscn"
 const ENTRANCE_PATH := "res://scenes/world/entrance.tscn"
 const THRESHOLD_PATH := "res://scenes/world/thresholds.tscn"
 
+## The west, in three scenes rather than one, because the same ground has to be
+## standing in two different sections and only one section is ever mounted.
+##
+## `plaza_skyline.tscn` used to hold the whole west — water, bluff, shore,
+## frontage, pier, wheel — as a child of `plaza.tscn`. Which meant that crossing
+## the gate at the foot of the stair freed the water the player was walking
+## towards, the bluff they had just come down, and the pier they were looking at,
+## and left the boardwalk floating over nothing. Nothing caught it: the section
+## test only asks whether the player lands on a floor, and they did.
+##
+##   `west_shell.tscn`   water, bluff and shore. **Both sections instance this.**
+##                       It is the ground and the horizon, it is identical seen
+##                       from either side, and it is what makes the cut continuous.
+##   `west_far.tscn`     the tableau — frontage, pier, wheel and coaster as cheap
+##                       massing with no collision. **Plaza only.** What you look
+##                       at from the overlook.
+##   `boardwalk.tscn`    the same four things built for real, plus everything a
+##                       person walking there needs. **Boardwalk only.**
+##
+## So the swap at the gate is: keep the shell, throw away the tableau, stand up
+## the real thing. Which is the trade the design has been describing all along —
+## "the real one replaces the west tableau outright" — made literal.
+const WEST_SHELL_PATH := "res://scenes/world/west_shell.tscn"
+const WEST_FAR_PATH := "res://scenes/world/west_far.tscn"
+const BOARDWALK_PATH := "res://scenes/world/boardwalk.tscn"
+
 var _root: Node3D
 var mats: Dictionary = {}
 
@@ -38,6 +64,7 @@ func _initialize() -> void:
 
 	_root = Node3D.new()
 	_root.name = "props"
+	_begin_scene()
 	_benches()
 	_lamps()
 	_bins()
@@ -59,14 +86,41 @@ func _initialize() -> void:
 
 	_root = Node3D.new()
 	_root.name = "skyline"
+	_begin_scene()
 	_skyline()
 	if not _save(_root, SKYLINE_PATH):
+		return
+
+	# The ground and the horizon of the west, shared by the two sections that
+	# stand on it. Written before either, because both are laid out against it.
+	_root = Node3D.new()
+	_root.name = "west_shell"
+	_begin_scene()
+	_west_shell()
+	if not _save(_root, WEST_SHELL_PATH):
+		return
+
+	# What the west looks like from the overlook, and only from there.
+	_root = Node3D.new()
+	_root.name = "west_far"
+	_begin_scene()
+	_west_far()
+	if not _save(_root, WEST_FAR_PATH):
+		return
+
+	# The same view with a floor under it.
+	_root = Node3D.new()
+	_root.name = "boardwalk"
+	_begin_scene()
+	_boardwalk_section()
+	if not _save(_root, BOARDWALK_PATH):
 		return
 
 	# The one thing west of the parapet the player can stand on, so unlike the
 	# rest of it this one collides.
 	_root = Node3D.new()
 	_root.name = "west_stair"
+	_begin_scene()
 	_west_stair()
 	if not _save(_root, STAIR_PATH):
 		return
@@ -74,6 +128,7 @@ func _initialize() -> void:
 	# The arrival. Everything south of the plaza's south wall.
 	_root = Node3D.new()
 	_root.name = "entrance"
+	_begin_scene()
 	_entrance()
 	if not _save(_root, ENTRANCE_PATH):
 		return
@@ -81,6 +136,7 @@ func _initialize() -> void:
 	# Scaffolding, and the first thing to delete when a real section attaches.
 	_root = Node3D.new()
 	_root.name = "thresholds"
+	_begin_scene()
 	_thresholds()
 	if not _save(_root, THRESHOLD_PATH):
 		return
@@ -124,6 +180,14 @@ func _build_materials() -> void:
 		# Shop glazing. Dark and a little slick, so a bay reads as a window
 		# rather than as a differently-coloured piece of the same wall.
 		"glass": [Color(0.2, 0.24, 0.29), 0.25, 0.0],
+		# Deck boards. Greyer and cooler than `wood`, which is furniture — planking
+		# that has had weather on it is not the same colour as a bench slat, and
+		# the promenade is 17m wide, so getting it wrong is 2,700m² of wrong.
+		"plank": [Color(0.62, 0.56, 0.48), 0.95, 0.0],
+		# Awnings and the stripes on things. Saturated on purpose: the boardwalk is
+		# the one section allowed to be loud, and it is what the late sun hits.
+		"canvas": [Color(0.86, 0.4, 0.33), 0.85, 0.0],
+		"canvas_alt": [Color(0.35, 0.55, 0.66), 0.85, 0.0],
 	}
 	for key in defs:
 		var m := StandardMaterial3D.new()
@@ -165,7 +229,32 @@ const SEAM_STEPS := 21
 ## Handed out in build order, which is what makes this work: the shapes that
 ## overlap are the ones assembled together, so they are always within a few of
 ## each other and never collide.
+##
+## **Re-seeded at the start of every scene, and not to zero.**
+##
+## It used to run straight through the generator, which made a scene's
+## displacements depend on how many nodes every earlier scene happened to emit —
+## so adding the three west scenes shifted the ordinals in `thresholds.tscn`,
+## four scenes later and untouched, and landed a bulkhead and a door on the same
+## plane. A failure in a file nothing had edited is the worst possible place to
+## go looking for one.
+##
+## Resetting to zero fixes that and breaks something worse: scenes that *are*
+## mounted together — `west_shell` under `boardwalk`, the stair under the plaza —
+## then all start from the same offset, and their first few shapes get identical
+## displacement. That put 97m² of bluff face against 97m² of bluff infill on
+## exactly the same plane, which is the largest z-fight this project has had.
+##
+## So each scene gets its own seed, five apart. Five is coprime with 21, so eight
+## scenes land on eight distinct offsets, and a scene's seams stay a function of
+## that scene alone.
 var _seam_ordinal := 0
+var _scene_seed := 0
+
+
+func _begin_scene() -> void:
+	_seam_ordinal = _scene_seed
+	_scene_seed = (_scene_seed + 5) % SEAM_STEPS
 
 
 ## Everything generated goes through here, which is the point. Shapes are meant
@@ -227,7 +316,7 @@ func _attach(node: Node3D, nm: String) -> void:
 ## the world, and a gate watching for the world fires on the ground it is
 ## standing on, or on nothing at all.
 func _gate_area(nm: String, at: Vector3, size: Vector3, role: int,
-		leads: StringName) -> void:
+		leads: StringName, belongs := &"plaza") -> void:
 	var area := Area3D.new()
 	area.position = at
 	area.collision_layer = 0
@@ -238,7 +327,7 @@ func _gate_area(nm: String, at: Vector3, size: Vector3, role: int,
 		return
 	area.set("role", role)
 	area.set("leads_to", leads)
-	area.set("belongs_to", &"plaza")
+	area.set("belongs_to", belongs)
 	_attach(area, nm)
 
 	var box := BoxShape3D.new()
@@ -643,16 +732,46 @@ func _wheel(origin: Vector3, mat: String, heading := 0.0) -> void:
 const SHORE_TOP := Plan.SHORE_TOP
 const WATER_TOP := Plan.WATER_TOP
 const SHORE_EDGE := Plan.SHORE_EDGE
+const SHORE_FROM_X := Plan.SHORE_FROM_X
 const FRONT_X := Plan.FRONT_X
+const FRONT_DEPTH := Plan.FRONT_DEPTH
+const BACK_LANE_X := Plan.BACK_LANE_X
+const PROMENADE_X := Plan.PROMENADE_X
 
 ## The frontage opens here, and the gap is aimed at the plaza arch. This is the
 ## whole composition: the arch frames a gap, the gap frames the pier, and the
 ## wheel sits off to one side where you have to move to uncover it.
 const GAP_FROM := Plan.GAP_FROM
 const GAP_TO := Plan.GAP_TO
+const ALLEY_Z := Plan.ALLEY_Z
+
+const WALK_FROM_Z := Plan.WALK_FROM_Z
+const WALK_TO_Z := Plan.WALK_TO_Z
+const FRONT_FROM_Z := Plan.FRONT_FROM_Z
+const FRONT_TO_Z := Plan.FRONT_TO_Z
+const WHEEL_AT := Plan.WHEEL_AT
+const COASTER_STATION := Plan.COASTER_STATION
+const COASTER_TO_Z := Plan.COASTER_TO_Z
+const PIER_ROOT := Plan.PIER_ROOT
+const PIER_LENGTH := Plan.PIER_LENGTH
+const PIER_HALF_W := Plan.PIER_HALF_W
+const PAVILION_AT := Plan.PAVILION_AT
 
 
-func _boardwalk() -> void:
+const FRONTAGE := Plan.FRONTAGE_UNITS
+
+
+# ---------------------------------------------------------------------------
+# The west, part one: the shell both sections stand on
+# ---------------------------------------------------------------------------
+
+## Water, bluff and shore — the ground and the horizon, identical from either
+## side of the seam, and therefore the only part of the west that is not built
+## twice.
+##
+## The shore collides now. It did not when the whole west was scenery, and that
+## was correct then: nothing could reach it. It is the boardwalk's floor.
+func _west_shell() -> void:
 	_box("water", Vector3.ZERO, Vector3(-186, WATER_TOP - 4.0, 0),
 		Vector3(240, 8.0, 400), "water", 0.0, false)
 	# The face the plaza stands on. Everything west of the parapet drops away
@@ -660,16 +779,20 @@ func _boardwalk() -> void:
 	# Cut in two so the stair has a slot to descend through — a stair cut into a
 	# seawall, which is also what puts a corner between the terrace and the
 	# bottom of the flight.
-	# The only part of the west that collides, because the stair runs down inside
-	# it: these four are the walls and floor of the stair well, and without them
+	# These four are also the walls and floor of the stair well, and without them
 	# a player walking sideways off a flight goes straight through the scenery
 	# and out of the world.
 	_box("bluff_north", Vector3.ZERO, Vector3(-42.5, -6.0 + GROUND_SEAM, -91.0),
 		Vector3(7.0, 12.0, 158.0), "far_warm")
 	_box("bluff_south", Vector3.ZERO, Vector3(-42.5, -6.0 + GROUND_SEAM, 89.0),
 		Vector3(7.0, 12.0, 162.0), "far_warm")
-	_box("bluff_base", Vector3.ZERO, Vector3(-42.5, -9.0, -2.0),
-		Vector3(7.0, 6.0, 20.0), "far_warm")
+	# Its west face is inset 3cm from the other bluff pieces, because the stair's
+	# treads are exactly one stair-width at the turn axis and land on -46 too.
+	# Two faces the same way at the same depth is the vibration in the ground, and
+	# the build-order seam cannot separate these two: they are in different
+	# scenes. Giving way inward is the hand-authored rule.
+	_box("bluff_base", Vector3.ZERO, Vector3(-42.485, -9.0, -2.0),
+		Vector3(6.97, 6.0, 20.0), "far_warm")
 	# The rest of the bluff fills back in around the well, in three pieces,
 	# because the upper flight runs east through it and a solid fill walls in the
 	# stair it is supposed to be holding up.
@@ -679,12 +802,39 @@ func _boardwalk() -> void:
 		Vector3(4.4, 12.0, 16.4), "far_warm")
 	_box("bluff_slot_under", Vector3.ZERO, Vector3(-41.2, -6.75, -9.7),
 		Vector3(4.4, 10.5, 2.6), "far_warm")
-	# The ground the boardwalk stands on: back lane, frontage, promenade.
-	_box("shore", Vector3.ZERO, Vector3(-57, SHORE_TOP - 3.0, 0),
-		Vector3(26, 6.0, 340), "far_warm", 0.0, false)
+	# The ground the boardwalk stands on: back lane, frontage, promenade. Runs
+	# 2m east under the bluff's west face rather than butting against it.
+	var width := SHORE_FROM_X - SHORE_EDGE
+	_box("shore", Vector3.ZERO,
+		Vector3((SHORE_FROM_X + SHORE_EDGE) * 0.5, SHORE_TOP - 3.0, 0),
+		Vector3(width, 6.0, 340), "far_warm")
 
-	_frontage()
-	_pier(Vector3(SHORE_EDGE, SHORE_TOP, -1.0))
+
+# ---------------------------------------------------------------------------
+# The west, part two: the tableau
+# ---------------------------------------------------------------------------
+
+## What the west looks like from the overlook, and only from there.
+##
+## Laid out in bands running north-south, so that what the arch frames is a
+## sequence receding rather than a backdrop: the shore below the parapet, a
+## frontage of buildings one deep, the promenade behind them, then water.
+## Santa Cruz is the reference for the ribbon being one building deep and for
+## both ends of a strip needing to be closed by something.
+##
+## Everything in here has a full-fidelity twin in `boardwalk.tscn` standing in
+## the same place, and the two are never in the tree together.
+func _west_far() -> void:
+	_frontage_far()
+	_pier_far(Vector3(PIER_ROOT.x, SHORE_TOP, PIER_ROOT.y))
+	# Turned to face the plaza. Off the arch's centre line on purpose: from the
+	# fountain the north pier covers it, and a step or two north uncovers it.
+	_wheel(Vector3(WHEEL_AT.x, SHORE_TOP, WHEEL_AT.y), "far", PI * 0.5)
+	# The north end of the strip, closed by the coaster rather than trailing off.
+	# Same origin the section builds it at, or the silhouette shifts eight metres
+	# when the player walks through the gate.
+	_wooden_coaster(Vector3(FRONT_X, SHORE_TOP, COASTER_STATION.y - 2.0),
+		0.0, "far_warm")
 
 	# Masts along the promenade. At this distance they are the thing that says
 	# somebody strung lights here, without a single light being modelled.
@@ -692,57 +842,42 @@ func _boardwalk() -> void:
 	var n := 0
 	while z <= 46.0:
 		if z < GAP_FROM - 3.0 or z > GAP_TO + 3.0:
-			_cyl("mast_%d" % n, Vector3.ZERO, Vector3(-67, SHORE_TOP + 4.0, z),
+			_cyl("mast_%d" % n, Vector3.ZERO, Vector3(PROMENADE_X + 4.0, SHORE_TOP + 4.0, z),
 				0.22, 8.0, "far_shade", 0.0, 6, false)
 			n += 1
 		z += 11.0
 
 
-## A row one building deep with a hole in it. Widths and heights are stepped
-## rather than random — a roofline needs to read as a set of decisions, and
-## noise reads as noise even at forty metres.
-func _frontage() -> void:
-	var runs := [
-		# z_from, z_to, height
-		[-64.0, -52.0, 7.5],
-		[-52.0, -43.0, 10.5],
-		[-43.0, -33.0, 6.0],
-		[-33.0, -21.0, 8.5],
-		[-21.0, GAP_FROM, 6.5],
-		[GAP_TO, 17.0, 9.0],
-		[17.0, 27.0, 6.0],
-		[27.0, 40.0, 11.0],
-		[40.0, 52.0, 7.0],
-		[52.0, 64.0, 8.0],
-	]
-	for i in runs.size():
-		var run: Array = runs[i]
-		var from: float = run[0]
-		var to: float = run[1]
-		var height: float = run[2]
+func _frontage_far() -> void:
+	for i in FRONTAGE.size():
+		var unit: Dictionary = FRONTAGE[i]
+		var from: float = unit["from"]
+		var to: float = unit["to"]
+		var height: float = unit["h"]
 		var mid := (from + to) * 0.5
 		var depth := to - from
 		var mat := "far" if i % 2 == 0 else "far_warm"
-		_box("front_%d" % i, Vector3.ZERO, Vector3(FRONT_X, SHORE_TOP + height * 0.5, mid),
-			Vector3(9.0, height, depth), mat, 0.0, false)
+		_box("front_%s" % unit["nm"], Vector3.ZERO,
+			Vector3(FRONT_X, SHORE_TOP + height * 0.5, mid),
+			Vector3(FRONT_DEPTH, height, depth), mat, 0.0, false)
 		# A parapet lip, so the rooflines are edges rather than the tops of slabs.
-		_box("front_%d_cap" % i, Vector3.ZERO,
+		_box("front_%s_cap" % unit["nm"], Vector3.ZERO,
 			Vector3(FRONT_X, SHORE_TOP + height + 0.25, mid),
-			Vector3(10.0, 0.5, depth + 0.6), "far_shade", 0.0, false)
+			Vector3(FRONT_DEPTH + 1.0, 0.5, depth + 0.6), "far_shade", 0.0, false)
 
 
 ## What runs out over the water. A strip needs stops or it trails off, so this
 ## one ends in a pavilion rather than in nothing.
-func _pier(root: Vector3) -> void:
-	var length := 44.0
-	var deck := root + Vector3(-length * 0.5, 0.4, 0)
-	_box("pier_deck", Vector3.ZERO, deck, Vector3(length, 0.5, 8.0), "far_warm", 0.0, false)
-	_box("pier_rail_n", Vector3.ZERO, deck + Vector3(0, 0.7, -3.9),
-		Vector3(length, 0.9, 0.2), "far_shade", 0.0, false)
-	_box("pier_rail_s", Vector3.ZERO, deck + Vector3(0, 0.7, 3.9),
-		Vector3(length, 0.9, 0.2), "far_shade", 0.0, false)
+func _pier_far(root: Vector3) -> void:
+	var deck := root + Vector3(-PIER_LENGTH * 0.5, 0.4, 0)
+	_box("pier_deck", Vector3.ZERO, deck, Vector3(PIER_LENGTH, 0.5, PIER_HALF_W * 2.0),
+		"far_warm", 0.0, false)
+	_box("pier_rail_n", Vector3.ZERO, deck + Vector3(0, 0.7, -PIER_HALF_W + 0.1),
+		Vector3(PIER_LENGTH, 0.9, 0.2), "far_shade", 0.0, false)
+	_box("pier_rail_s", Vector3.ZERO, deck + Vector3(0, 0.7, PIER_HALF_W - 0.1),
+		Vector3(PIER_LENGTH, 0.9, 0.2), "far_shade", 0.0, false)
 
-	var piles := int(length / 5.0)
+	var piles := int(PIER_LENGTH / 5.0)
 	for i in piles:
 		var x := root.x - 3.0 - i * 5.0
 		for side in [-3.0, 3.0]:
@@ -750,7 +885,7 @@ func _pier(root: Vector3) -> void:
 				Vector3(x, WATER_TOP - 0.4, root.z + side), 0.28, 4.0,
 				"far_shade", 0.0, 6, false)
 
-	var head := root + Vector3(-length - 5.0, 0.0, 0)
+	var head := Vector3(PAVILION_AT.x, root.y, PAVILION_AT.y)
 	_box("pier_pavilion", Vector3.ZERO, head + Vector3(0, 3.4, 0),
 		Vector3(12.0, 6.0, 13.0), "far", 0.0, false)
 	_box("pier_pavilion_roof", Vector3.ZERO, head + Vector3(0, 6.7, 0),
@@ -862,12 +997,32 @@ func _west_stair() -> void:
 	var foot_y := landing_y - vertical
 	_box("stair_foot", Vector3.ZERO, Vector3(STAIR_TURN_X, foot_y - 0.25, foot_z),
 		Vector3(STAIR_W, 0.5, STAIR_W), "accent")
-	_box("foot_rail_west", Vector3.ZERO,
-		Vector3(STAIR_TURN_X - STAIR_W * 0.5 - 0.1, foot_y + 0.55, foot_z),
-		Vector3(0.2, 1.1, STAIR_W), "metal")
+	# The gate is on the *west* face, because that is the only face the well has.
+	# It ran across the south face until 2026-08-12, which put twelve metres of
+	# bluff behind a door — a mistake that could not be seen from either side
+	# while the bluff belonged to the plaza and stopped existing at the crossing.
+	# The back wall of the well takes the rail instead.
+	_box("foot_rail_south", Vector3.ZERO,
+		Vector3(STAIR_TURN_X, foot_y + 0.55, foot_z + STAIR_W * 0.5 + 0.1),
+		Vector3(STAIR_W, 1.1, 0.2), "metal")
 	_box("foot_gate", Vector3.ZERO,
-		Vector3(STAIR_TURN_X, foot_y + 1.1, foot_z + STAIR_W * 0.5 + 0.1),
-		Vector3(STAIR_W, 2.2, 0.2), "metal")
+		Vector3(Plan.FOOT_GATE_X, foot_y + 1.1, foot_z),
+		Vector3(0.2, 2.2, STAIR_W), "metal")
+
+	# The well's west face, closed except at the gate — which turns flight B from
+	# a ledge into a shaft. It was open for its whole twenty metres, and a player
+	# who reached the foot could walk north under their own stair and straight out
+	# onto the shore, six metres below a section that was not mounted.
+	#
+	# Closing it also makes good on something the comment above has been claiming
+	# since the seam was built: "the boardwalk at eye level through the bars" is
+	# only true if the bars are the *only* way to see it.
+	for run in [[-12.0, foot_z - STAIR_W * 0.5], [foot_z + STAIR_W * 0.5, 8.0]]:
+		var from: float = run[0]
+		var to: float = run[1]
+		_box("well_wall_%.0f" % from, Vector3.ZERO,
+			Vector3(Plan.FOOT_GATE_X, -3.0, (from + to) * 0.5),
+			Vector3(0.3, 6.0, to - from), "far_warm")
 
 	# The section boundary, as three nodes rather than as geometry.
 	#
@@ -884,12 +1039,12 @@ func _west_stair() -> void:
 	_gate_area("preload_boardwalk", Vector3(-40.0, 0.9, STAIR_TOP_Z),
 		Vector3(4.0, 3.0, 2.4), 0, &"boardwalk")
 	_gate_area("cross_boardwalk",
-		Vector3(STAIR_TURN_X, foot_y + 1.4, foot_z + 0.9),
-		Vector3(STAIR_W, 3.0, 1.0), 1, &"boardwalk")
-	# Behind the crossing volume, or arriving from the boardwalk lands the player
-	# inside the trigger that sent them and bounces them straight back.
-	_marker("arrival_from_boardwalk",
-		Vector3(STAIR_TURN_X, foot_y + 0.2, foot_z - 0.7), 0.0)
+		Vector3(Plan.FOOT_GATE_X + 0.5, foot_y + 1.4, foot_z),
+		Vector3(1.0, 3.0, STAIR_W), 1, &"boardwalk")
+	# East of the crossing volume, or arriving from the boardwalk lands the player
+	# inside the trigger that sent them and bounces them straight back. Facing
+	# north is facing back up the flight they would have come down.
+	_marker("arrival_from_boardwalk", Plan.STAIR_FOOT_STAND, 0.0)
 
 
 func _skyline() -> void:
@@ -897,11 +1052,9 @@ func _skyline() -> void:
 	_wooden_coaster(Vector3(-22, 0, -58), deg_to_rad(72.0), "far_warm")
 	# North-east, visible over the low corner between perim_ne and building_east.
 	_tower(Vector3(54, 0, -40), "far", "far_warm")
-	_boardwalk()
-	# West, on the promenade behind the frontage and turned to face the plaza.
-	# Off the arch's centre line on purpose: from the fountain the north pier
-	# covers it, and a step or two north uncovers it.
-	_wheel(Vector3(-66, SHORE_TOP, -16), "far", PI * 0.5)
+	# The west used to be built here. It is three scenes of its own now — see
+	# WEST_SHELL_PATH — because half of it has to survive the player crossing the
+	# gate and the other half has to be replaced when they do.
 
 
 ## The arrival: everything south of the plaza's south wall.
@@ -930,6 +1083,19 @@ func _skyline() -> void:
 ## A centimetre is under the controller's step-up, so the lip where the plaza's
 ## ground ends is not something you can trip on in either direction.
 const GROUND_SEAM := -0.01
+
+## And a second offset for the *other* generated ground, because there is more
+## than one of them and they meet.
+##
+## The four passages come out of the plaza's south-west corner near where the
+## entrance street's ground runs, and both sit a centimetre under the plaza. Same
+## height, same material, twenty square metres of overlap — and the build-order
+## seam cannot separate them, because they are in different scenes and the
+## ordinal only orders shapes within one.
+##
+## Three more millimetres down. Still far under the step-up, still one flat
+## surface to walk on, and no longer the same plane as the street.
+const PASSAGE_SEAM := GROUND_SEAM - 0.003
 
 const ST_X := Plan.STREET_X
 const ST_HALF := Plan.STREET_HALF
@@ -1139,10 +1305,10 @@ func _passage(nm: String, base: Vector3, theta: float, w: float, turn: float) ->
 
 	# Floors. Tops at y=0 to match the plaza, and the first one overlaps back
 	# under the wall line so there is no seam at the threshold.
-	_box("way_%s_floor_a" % nm, base, Vector3(0, -0.5 + GROUND_SEAM, REACH * 0.5 - 0.5),
+	_box("way_%s_floor_a" % nm, base, Vector3(0, -0.5 + PASSAGE_SEAM, REACH * 0.5 - 0.5),
 		Vector3(w, 1, REACH + 1.0), "accent", theta)
 	_box("way_%s_floor_b" % nm, base,
-		Vector3(t * (n + BEND * 0.5), -0.5 + GROUND_SEAM, REACH - w * 0.5),
+		Vector3(t * (n + BEND * 0.5), -0.5 + PASSAGE_SEAM, REACH - w * 0.5),
 		Vector3(BEND, 1, w), "accent", theta)
 
 	# The wall on the outside of the bend runs the whole way; the one on the
@@ -1379,3 +1545,578 @@ func _arcade_room(face: float, z: float, length: float) -> void:
 		Vector3(4.9, 0.12, 1.1), "white", 0.0, false)
 	_box("arc_change", Vector3.ZERO, Vector3(ARC_BACK + 0.9, 0.9, z + half - 1.1),
 		Vector3(0.9, 1.8, 0.7), "red")
+
+
+# ---------------------------------------------------------------------------
+# The west, part three: the boardwalk, built for real
+# ---------------------------------------------------------------------------
+
+## The deck sits a hair proud of the shore rather than flush with it.
+##
+## Flush is z-fighting across 2,800m² of promenade; proud is a step. Four
+## centimetres is proud enough that the depth buffer is never asked and low
+## enough that the controller never notices, and every walkable surface down here
+## uses the same figure — so there is no step anywhere the player actually walks,
+## only at the edges, which are all either a building, the bluff, or a rail.
+const DECK_TOP := Plan.SHORE_TOP + 0.04
+const DECK_THICK := 0.5
+
+## Where the player is put down having come through the gate, and which way they
+## are looking. South of the gate because the stair descends southward and comes
+## out below it; turned north-west because that is where the alley mouth is, and
+## arriving already looking at the way on is the difference between a threshold
+## and a loading screen.
+const ARRIVAL_AT := Plan.BOARDWALK_ARRIVAL
+const ARRIVAL_YAW := Plan.BOARDWALK_ARRIVAL_YAW
+
+
+## The section, in the order the player meets it.
+##
+## The sequence is the whole design and it is worth reading as one: down the
+## stair, out of a gate into a service lane with the bluff on one side and the
+## backs of buildings on the other, north twelve metres, then left through a hole
+## in the frontage — and the water, the pier, the wheel and the coaster all
+## arrive at once, sideways, having been completely hidden by a row of sheds.
+##
+## That is the same trick the arch and the gap play from the terrace, at
+## one-tenth the distance. It works twice because the two reveals are of
+## different things: from above you are shown where you are going, and from the
+## alley you are shown that you have arrived.
+func _boardwalk_section() -> void:
+	_boardwalk_paving()
+	_boardwalk_frontage()
+	_boardwalk_wheel()
+	_boardwalk_coaster()
+	_boardwalk_pier()
+	_boardwalk_edges()
+	_boardwalk_props()
+	_plaza_from_below()
+
+	_boardwalk_seam()
+
+
+## The gate at the foot of the stair, from below, and the bluff it is set into.
+##
+## The well the stair descends is a slot open on its west face for twenty metres
+## of its length, which is correct from the plaza — you walk down inside it and
+## the boardwalk is at eye level through the opening. From the boardwalk it is a
+## twenty-metre notch with nothing in it, because the stair is in the plaza's
+## scenes and the plaza is not mounted down here.
+##
+## So this side fills the notch and leaves one door. Same gate, same plane, same
+## 2.6m of opening as `_west_stair` builds from the other side — and the two
+## agree because both read `FOOT_GATE_X` and `STAIR_FOOT` rather than each
+## measuring the bluff themselves.
+##
+## The crossing volume is west of the gate and the arrival is west of that, out
+## on the lane. Which means the walk north to the alley never touches either: the
+## lane's centre line is nearly four metres clear of both, so heading for the
+## promenade cannot be mistaken for heading back up the stair.
+func _boardwalk_seam() -> void:
+	var foot_z := Plan.STAIR_FOOT.z
+	var w := Plan.STAIR_W
+	var gate_x := Plan.FOOT_GATE_X
+	# The notch, filled north of the gate and above it.
+	# Inset on **every** axis, so the fill is strictly inside the piece it fills.
+	# `west_shell` is mounted underneath this, so these two are in the tree
+	# together and the build-order seam cannot reach across scenes to separate
+	# them — the inset is the only thing keeping them apart.
+	#
+	# It was inset on three faces and not the fourth: the height came down but the
+	# centre did not move with it, so the bottom stayed on the bluff's own −12 and
+	# 41m² of it z-fought the moment an unrelated edit shifted the ordinals. Both
+	# ends of every axis, or it is not an inset.
+	_box("bluff_infill_north", Vector3.ZERO,
+		Vector3(-44.67, SHORE_TOP, (-11.94 + foot_z - w * 0.5) * 0.5),
+		Vector3(2.54, 11.88, foot_z - w * 0.5 + 11.94), "far_warm")
+	_box("bluff_infill_south", Vector3.ZERO,
+		Vector3(-44.67, SHORE_TOP, (foot_z + w * 0.5 + 7.94) * 0.5),
+		Vector3(2.54, 11.88, 7.94 - foot_z - w * 0.5), "far_warm")
+	_box("bluff_infill_over", Vector3.ZERO,
+		Vector3(-44.7, SHORE_TOP + 4.1, foot_z),
+		Vector3(2.6, 3.8, w), "far_warm")
+	# Something to see through the bars: the slab the last tread lands on.
+	_box("gate_sill", Vector3.ZERO, Vector3(-44.7, SHORE_TOP - 0.25, foot_z),
+		Vector3(2.6, 0.5, w), "accent")
+	_box("foot_gate", Vector3.ZERO, Vector3(gate_x, SHORE_TOP + 1.1, foot_z),
+		Vector3(0.2, 2.2, w), "metal")
+	# A sign on the bluff beside it, because a door in a wall with no writing on
+	# it is a door nobody tries.
+	_box("gate_sign", Vector3.ZERO, Vector3(gate_x - 0.2, SHORE_TOP + 2.6, foot_z),
+		Vector3(0.12, 0.7, 2.0), "white", 0.0, false)
+
+	# The lane is the corridor: it goes to the gate and to the alley and nowhere
+	# else, so entering it at all is enough to start the plaza loading.
+	_gate_area("preload_plaza", Vector3(BACK_LANE_X, SHORE_TOP + 1.5, 4.0),
+		Vector3(8.0, 3.0, 24.0), 0, &"plaza", &"boardwalk")
+	_gate_area("cross_plaza", Vector3(gate_x - 0.7, SHORE_TOP + 1.4, foot_z),
+		Vector3(1.2, 3.0, w), 1, &"plaza", &"boardwalk")
+	_marker("arrival_from_plaza", ARRIVAL_AT, ARRIVAL_YAW)
+
+
+## Everything the player can stand on, as three slabs: the promenade, the alley
+## through the frontage, and the back lane behind it.
+func _boardwalk_paving() -> void:
+	var prom_w := (FRONT_X - FRONT_DEPTH * 0.5) - SHORE_EDGE
+	var prom_x := (SHORE_EDGE + FRONT_X - FRONT_DEPTH * 0.5) * 0.5
+	_box("deck_promenade", Vector3.ZERO,
+		Vector3(prom_x, DECK_TOP - DECK_THICK * 0.5, (WALK_FROM_Z + WALK_TO_Z) * 0.5),
+		Vector3(prom_w, DECK_THICK, WALK_TO_Z - WALK_FROM_Z), "plank")
+
+	_box("deck_alley", Vector3.ZERO,
+		Vector3(FRONT_X, DECK_TOP - DECK_THICK * 0.5, (GAP_FROM + GAP_TO) * 0.5),
+		Vector3(FRONT_DEPTH, DECK_THICK, GAP_TO - GAP_FROM), "plank")
+
+	# The lane runs from the backs of the shops to the foot of the bluff. Not
+	# planked: it is a service road, and the material change is what says so.
+	# The lane runs from the backs of the shops to the foot of the bluff — 7.5m
+	# of it, laid 8 wide so it tucks under both rather than butting against
+	# either. Not planked: it is a service road, and the material says so.
+	_box("deck_lane", Vector3.ZERO,
+		Vector3(BACK_LANE_X, DECK_TOP - DECK_THICK * 0.5, 3.0),
+		Vector3(8.0, DECK_THICK, 74.0), "far_warm")
+
+
+## The row, built. Same spans as the tableau, read out of the same table.
+##
+## Each unit is a box with a face on it: a recessed bay in glass, an awning over
+## it, a sign board above that, and a service door round the back. Five pieces is
+## enough for a greybox building to read as a shop rather than as a crate — the
+## bay says there is an inside, the awning says it is hot, and the sign says
+## somebody is trying to sell you something.
+func _boardwalk_frontage() -> void:
+	var front_face := FRONT_X - FRONT_DEPTH * 0.5
+	var back_face := FRONT_X + FRONT_DEPTH * 0.5
+	for i in FRONTAGE.size():
+		var unit: Dictionary = FRONTAGE[i]
+		var nm: String = unit["nm"]
+		var from: float = unit["from"]
+		var to: float = unit["to"]
+		var h: float = unit["h"]
+		var kind: String = unit["kind"]
+		var mid := (from + to) * 0.5
+		var depth := to - from
+		var wall := "white" if i % 2 == 0 else "accent"
+
+		_box("shop_%s" % nm, Vector3.ZERO, Vector3(FRONT_X, SHORE_TOP + h * 0.5, mid),
+			Vector3(FRONT_DEPTH, h, depth), wall)
+		_box("shop_%s_cap" % nm, Vector3.ZERO,
+			Vector3(FRONT_X, SHORE_TOP + h + 0.25, mid),
+			Vector3(FRONT_DEPTH + 1.0, 0.5, depth + 0.6), "far_shade", 0.0, false)
+
+		# A shuttered unit gets boards instead of a window, which is the one
+		# thing on the row that has to read differently close up.
+		var bay_mat := "wood" if kind == "shut" else "glass"
+		_box("shop_%s_bay" % nm, Vector3.ZERO,
+			Vector3(front_face + 0.12, SHORE_TOP + 1.9, mid),
+			Vector3(0.3, 2.6, depth - 2.4), bay_mat, 0.0, false)
+
+		if kind != "shut":
+			var awn := "canvas" if i % 2 == 0 else "canvas_alt"
+			_box("shop_%s_awning" % nm, Vector3.ZERO,
+				Vector3(front_face - 1.1, SHORE_TOP + 3.5, mid),
+				Vector3(2.6, 0.16, depth - 1.6), awn, 0.0, false, -0.18)
+			_box("shop_%s_post_n" % nm, Vector3.ZERO,
+				Vector3(front_face - 2.2, SHORE_TOP + 1.6, mid - depth * 0.5 + 1.0),
+				Vector3(0.14, 3.2, 0.14), "metal")
+			_box("shop_%s_post_s" % nm, Vector3.ZERO,
+				Vector3(front_face - 2.2, SHORE_TOP + 1.6, mid + depth * 0.5 - 1.0),
+				Vector3(0.14, 3.2, 0.14), "metal")
+
+		# The sign is what makes a roofline a street. Sat above the parapet on
+		# the tall units and flat on the wall on the short ones, because a row
+		# where every sign is at the same height reads as a fence.
+		var sign_mat := "red" if kind == "games" else ("yellow" if kind == "food" else "blue")
+		if h >= 8.0:
+			_box("shop_%s_sign" % nm, Vector3.ZERO,
+				Vector3(front_face - 0.3, SHORE_TOP + h + 1.9, mid),
+				Vector3(0.4, 3.0, minf(depth - 2.0, 9.0)), sign_mat, 0.0, false)
+		else:
+			_box("shop_%s_sign" % nm, Vector3.ZERO,
+				Vector3(front_face - 0.15, SHORE_TOP + h - 0.9, mid),
+				Vector3(0.3, 1.3, minf(depth - 2.0, 7.0)), sign_mat, 0.0, false)
+
+		# The back. A door, and something left against the wall — the service
+		# side is where a photographer finds the thing nobody meant them to see,
+		# so it gets furniture rather than being a blank face.
+		_box("shop_%s_door" % nm, Vector3.ZERO,
+			Vector3(back_face - 0.1, SHORE_TOP + 1.05, mid + 1.0),
+			Vector3(0.3, 2.1, 0.95), "metal", 0.0, false)
+		if i % 3 == 0:
+			_box("shop_%s_bin" % nm, Vector3.ZERO,
+				Vector3(back_face + 1.1, SHORE_TOP + 0.6, mid - depth * 0.5 + 1.4),
+				Vector3(1.4, 1.2, 1.1), "metal")
+		if i % 3 == 1:
+			_box("shop_%s_crate" % nm, Vector3.ZERO,
+				Vector3(back_face + 0.9, SHORE_TOP + 0.35, mid - 1.6),
+				Vector3(0.8, 0.7, 0.8), "wood")
+
+
+## The wheel, standing on the promenade with a fence round its feet.
+##
+## The ring, hub and spokes are the same assembly the tableau uses — it was
+## always built at full size, because a wheel is a ring and a ring is legible at
+## any distance, so there was never a cheap version to replace. What the section
+## adds is everything that says it is a machine somebody operates: a deck, cars
+## on the rim, a fence, a queue rail, and a booth with the lever in it.
+func _boardwalk_wheel() -> void:
+	var base := Vector3(WHEEL_AT.x, SHORE_TOP, WHEEL_AT.y)
+	var half := Plan.WHEEL_PLATFORM * 0.5
+	_box("wheel_deck", Vector3.ZERO, base + Vector3(0, 0.3, 0),
+		Vector3(Plan.WHEEL_PLATFORM.x, 0.6, Plan.WHEEL_PLATFORM.y), "plank")
+	_wheel(base + Vector3(0, 0.6, 0), "white", PI * 0.5)
+
+	# Cars. Eight, on the rim the spokes already reach, hung below their pin so
+	# they read as swinging rather than as bolted on. In the Z–Y plane, same as
+	# the ring — a car placed in X would be a car threaded through the axle.
+	var hub := base + Vector3(0, 18.6, 0)
+	for i in 8:
+		var a := TAU * i / 8.0
+		var at := hub + Vector3(0, sin(a) * 12.7, cos(a) * 12.7)
+		_box("wheel_car_%d" % i, Vector3.ZERO, at + Vector3(0, -1.1, 0),
+			Vector3(2.0, 1.4, 1.6), "red" if i % 2 == 0 else "yellow", 0.0, false)
+
+	# The fence round the platform, open on the east side where the queue and
+	# the booth are. Posts along three sides, at 2m.
+	var n := 0
+	var z := base.z - half.y
+	while z <= base.z + half.y:
+		_box("wheel_fence_w_%d" % n, Vector3.ZERO,
+			Vector3(base.x - half.x, SHORE_TOP + 1.2, z), Vector3(0.12, 1.2, 0.12), "metal")
+		z += 2.0
+		n += 1
+	for side in [-1.0, 1.0]:
+		var tag := "n" if side < 0.0 else "s"
+		_box("wheel_fence_%s" % tag, Vector3.ZERO,
+			Vector3(base.x, SHORE_TOP + 1.2, base.z + side * half.y),
+			Vector3(Plan.WHEEL_PLATFORM.x, 1.2, 0.12), "metal")
+
+	# The booth stands off the platform's east side, facing the promenade, with
+	# the queue rail running back along the frontage.
+	var booth := Vector3(base.x + half.x + 1.4, SHORE_TOP, base.z - 3.0)
+	_box("wheel_booth", Vector3.ZERO, booth + Vector3(0, 1.3, 0),
+		Vector3(2.2, 2.6, 2.6), "white")
+	_box("wheel_booth_roof", Vector3.ZERO, booth + Vector3(0, 2.75, 0),
+		Vector3(2.8, 0.3, 3.2), "blue", 0.0, false)
+	_box("wheel_booth_sign", Vector3.ZERO, booth + Vector3(-1.2, 3.5, 0),
+		Vector3(0.2, 1.4, 2.6), "red", 0.0, false)
+	for i in 6:
+		_box("wheel_queue_%d" % i, Vector3.ZERO,
+			booth + Vector3(1.6, 0.5, 1.4 + i * 1.6), Vector3(0.08, 1.0, 0.08), "metal")
+
+
+## The coaster closes the north end.
+##
+## Out-and-back along the shore, on the frontage's own line so it reads as the
+## last building on the row and then keeps going for ninety metres. The player
+## walks beside it and under nothing — the structure is fenced, because it is a
+## lattice of six-sided columns with no collision on it and a fence is both
+## cheaper and what a real park does.
+##
+## The station is the piece that matters at ten metres. It is the only building
+## in the section with a roof you can see the underside of, and it is where the
+## queue is, which is where the photographs are.
+func _boardwalk_coaster() -> void:
+	var origin := Vector3(FRONT_X, SHORE_TOP, COASTER_STATION.y - 2.0)
+	_wooden_coaster(origin, 0.0, "wood")
+
+	# North of where the frontage stops, so the station reads as the last
+	# building on the row rather than as one crashed into the arcade.
+	var st := Vector3(FRONT_X, SHORE_TOP, COASTER_STATION.y - 4.0)
+	_box("station_floor", Vector3.ZERO, st + Vector3(0, 0.55, 0),
+		Vector3(11.0, 1.1, 12.0), "plank")
+	for i in 6:
+		var x := st.x - 4.4 + (i % 3) * 4.4
+		var z := st.z - 4.6 + floorf(i / 3.0) * 9.2
+		_box("station_post_%d" % i, Vector3.ZERO, Vector3(x, SHORE_TOP + 3.2, z),
+			Vector3(0.3, 5.2, 0.3), "wood")
+	_box("station_roof", Vector3.ZERO, st + Vector3(0, 5.9, 0),
+		Vector3(13.0, 0.4, 14.0), "far_shade", 0.0, false)
+	_box("station_sign", Vector3.ZERO, st + Vector3(-6.6, 6.9, 0),
+		Vector3(0.4, 2.4, 8.0), "red", 0.0, false)
+
+	# The fence between the promenade and the structure, from the station north
+	# to where the walk stops.
+	var z := COASTER_STATION.y - 12.0
+	var n := 0
+	while z > WALK_FROM_Z:
+		_box("coaster_fence_%d" % n, Vector3.ZERO,
+			Vector3(FRONT_X - FRONT_DEPTH * 0.5, SHORE_TOP + 0.75, z),
+			Vector3(0.1, 1.5, 3.6), "metal")
+		z -= 4.0
+		n += 1
+
+
+## The pier: the second strip, at right angles to the first, and the only thing
+## in the section that goes somewhere new.
+##
+## Santa Monica's half of the reference. Walking out on it puts the whole
+## boardwalk broadside — the frontage, the wheel and the coaster all at once,
+## from forty metres offshore — which is the section photographing itself, and
+## the reason it is walkable rather than scenery.
+func _boardwalk_pier() -> void:
+	var root := Vector3(PIER_ROOT.x, SHORE_TOP, PIER_ROOT.y)
+	var mid := root + Vector3(-PIER_LENGTH * 0.5, 0, 0)
+	_box("pier_deck", Vector3.ZERO,
+		Vector3(mid.x, DECK_TOP - DECK_THICK * 0.5, mid.z),
+		Vector3(PIER_LENGTH, DECK_THICK, PIER_HALF_W * 2.0), "plank")
+
+	# Rails both sides, in posts and a top rail rather than as one long box, so
+	# that the water reads between them from a low camera.
+	var posts := int(PIER_LENGTH / 2.2)
+	for i in posts + 1:
+		var x := root.x - i * 2.2
+		for side in [-1.0, 1.0]:
+			var tag := "n" if side < 0.0 else "s"
+			_box("pier_post_%d_%s" % [i, tag], Vector3.ZERO,
+				Vector3(x, SHORE_TOP + 0.6, root.z + side * (PIER_HALF_W - 0.15)),
+				Vector3(0.12, 1.2, 0.12), "wood")
+	for side in [-1.0, 1.0]:
+		var tag := "n" if side < 0.0 else "s"
+		_box("pier_rail_%s" % tag, Vector3.ZERO,
+			Vector3(mid.x, SHORE_TOP + 1.15, root.z + side * (PIER_HALF_W - 0.15)),
+			Vector3(PIER_LENGTH, 0.14, 0.16), "wood")
+
+	var piles := int(PIER_LENGTH / 5.0)
+	for i in piles:
+		var x := root.x - 3.0 - i * 5.0
+		for side in [-3.0, 3.0]:
+			_cyl("pile_%d_%s" % [i, "n" if side < 0.0 else "s"], Vector3.ZERO,
+				Vector3(x, WATER_TOP - 0.4, root.z + side), 0.28, 4.0,
+				"far_shade", 0.0, 6, false)
+
+	# The pavilion at the head. Solid for now: it is the silhouette the sun sets
+	# behind and the stop at the end of the strip, and an interior is a room
+	# nobody has designed yet. The doors are on it so that it reads as closed
+	# rather than as unfinished.
+	var head := Vector3(PAVILION_AT.x, SHORE_TOP, PAVILION_AT.y)
+	_box("pavilion_apron", Vector3.ZERO,
+		Vector3(head.x, DECK_TOP - DECK_THICK * 0.5, head.z),
+		Vector3(16.0, DECK_THICK, 17.0), "plank")
+	_box("pavilion", Vector3.ZERO, head + Vector3(0, 3.4, 0),
+		Vector3(12.0, 6.8, 13.0), "white")
+	_box("pavilion_roof", Vector3.ZERO, head + Vector3(0, 7.1, 0),
+		Vector3(14.0, 0.6, 15.0), "far_shade", 0.0, false)
+	_box("pavilion_band", Vector3.ZERO, head + Vector3(0, 6.4, 0),
+		Vector3(12.4, 0.7, 13.4), "canvas", 0.0, false)
+	_cyl("pavilion_spire", Vector3.ZERO, head + Vector3(0, 10.2, 0),
+		0.3, 5.6, "far_shade", 0.0, 6, false)
+	_box("pavilion_doors", Vector3.ZERO, head + Vector3(6.1, 1.4, 0),
+		Vector3(0.3, 2.8, 3.6), "wood", 0.0, false)
+
+
+## What stops the player walking off the edges of the section.
+##
+## Three different edges and three different answers, on purpose. The water gets
+## a rail because a rail is what a promenade has. The south end gets a chain and
+## a sign, because the strip has to visibly carry on past where you may go —
+## a wall there would say the world ends and a chain says the park does. The
+## north end is the coaster's fence, already built.
+func _boardwalk_edges() -> void:
+	var n := 0
+	var z := WALK_FROM_Z
+	while z <= WALK_TO_Z:
+		# The break for the pier. Everything else gets a post.
+		if absf(z - PIER_ROOT.y) > 5.0:
+			_box("edge_post_%d" % n, Vector3.ZERO,
+				Vector3(SHORE_EDGE + 0.4, SHORE_TOP + 0.6, z),
+				Vector3(0.14, 1.3, 0.14), "wood")
+			n += 1
+		z += 2.4
+	# Two runs of rail, north and south of the pier mouth. **These collide.** The
+	# posts are 2.4m apart and the player is 0.8 across, so a decorative rail
+	# between colliding posts is a gap the player walks through and off the edge
+	# — which looks exactly like a rail right up until somebody tries it.
+	var runs := [[WALK_FROM_Z, PIER_ROOT.y - 5.0], [PIER_ROOT.y + 5.0, WALK_TO_Z]]
+	for i in runs.size():
+		var run: Array = runs[i]
+		var from: float = run[0]
+		var to: float = run[1]
+		_box("edge_rail_%d" % i, Vector3.ZERO,
+			Vector3(SHORE_EDGE + 0.4, SHORE_TOP + 1.2, (from + to) * 0.5),
+			Vector3(0.16, 0.14, to - from), "wood")
+
+	# Both ends of the strip. A chain rather than a wall, because the shore
+	# visibly carries on past both and a wall there would say the world ends
+	# where a chain says the park does. It collides for the same reason the rail
+	# does: a barrier the player walks through is scenery, not a barrier.
+	var east_edge := FRONT_X - FRONT_DEPTH * 0.5
+	for end in [[WALK_TO_Z, "south"], [WALK_FROM_Z, "north"]]:
+		var z_at: float = end[0]
+		var tag: String = end[1]
+		_box("%s_chain_post_w" % tag, Vector3.ZERO,
+			Vector3(SHORE_EDGE + 1.0, SHORE_TOP + 0.55, z_at),
+			Vector3(0.2, 1.1, 0.2), "metal")
+		_box("%s_chain_post_e" % tag, Vector3.ZERO,
+			Vector3(east_edge - 1.0, SHORE_TOP + 0.55, z_at),
+			Vector3(0.2, 1.1, 0.2), "metal")
+		_box("%s_chain" % tag, Vector3.ZERO,
+			Vector3((SHORE_EDGE + east_edge) * 0.5, SHORE_TOP + 0.85, z_at),
+			Vector3(16.4, 0.1, 0.1), "metal")
+		_box("%s_sign" % tag, Vector3.ZERO,
+			Vector3(SHORE_EDGE + 5.0, SHORE_TOP + 1.4, z_at),
+			Vector3(1.6, 0.9, 0.1), "white", 0.0, false)
+
+	# The east side of the promenade south of the row, so the strip is closed
+	# rather than fraying into raw shore.
+	var yz := FRONT_TO_Z
+	var m := 0
+	while yz < WALK_TO_Z:
+		_box("yard_fence_%d" % m, Vector3.ZERO,
+			Vector3(FRONT_X - FRONT_DEPTH * 0.5, SHORE_TOP + 0.75, yz),
+			Vector3(0.1, 1.5, 3.6), "metal")
+		yz += 4.0
+		m += 1
+
+
+## Furniture. Benches facing the water, lamps, bins, and the masts with the
+## bulbs on them that were a silhouette in the tableau and are the section's
+## whole night lighting plan up close.
+func _boardwalk_props() -> void:
+	# Benches face west, at the rail, because that is what the view is. The line
+	# comes from the plan, so `gen_crowd.gd` can sit people on exactly these
+	# rather than on a second copy of the same arithmetic.
+	var line := Plan.bench_line()
+	for n in line.size():
+		var at: Vector2 = line[n]
+		_bench("prom_bench_%d" % n, Vector3(at.x, SHORE_TOP, at.y), -PI * 0.5)
+
+	# Lamp standards down the middle of the promenade.
+	var m := 0
+	var z := WALK_FROM_Z + 6.0
+	while z < WALK_TO_Z:
+		# The wheel's platform occupies the centre line for 26m; a lamp there is
+		# a lamp inside the ride.
+		if absf(z - WHEEL_AT.y) > 15.0:
+			_cyl("prom_lamp_%d" % m, Vector3.ZERO,
+				Vector3(PROMENADE_X, SHORE_TOP + 2.4, z), 0.11, 4.8, "metal", 0.0, 8)
+			_sphere("prom_lamp_%d_globe" % m,
+				Vector3(PROMENADE_X, SHORE_TOP + 5.0, z), 0.34, "white")
+			m += 1
+		z += 9.0
+
+	# Masts, and a bulb every couple of metres between them. The bulbs are the
+	# composition after dark — a string of points with silhouette in between is
+	# the look-and-feel note made out of geometry.
+	# The mast spacing lands one of them exactly on the pier's centre line, which
+	# is a post planted in the only doorway in the section. Skipped there, and the
+	# string of bulbs skips the span with it rather than hanging off nothing.
+	var k := 0
+	var prev_mast := 0.0
+	var had_prev := false
+	z = WALK_FROM_Z + 4.0
+	while z < WALK_TO_Z:
+		if absf(z - PIER_ROOT.y) > 5.0:
+			_cyl("mast_%d" % k, Vector3.ZERO,
+				Vector3(SHORE_EDGE + 1.6, SHORE_TOP + 4.0, z), 0.22, 8.0, "wood", 0.0, 6)
+			if had_prev and z - prev_mast < 12.0:
+				_light_string(k, prev_mast, z)
+			prev_mast = z
+			had_prev = true
+			k += 1
+		z += 11.0
+
+	# Bins, and the two carts that say somebody works here.
+	var b_at := [-30.0, -12.0, 8.0, 26.0, 46.0, 64.0]
+	for i in b_at.size():
+		_cyl("prom_bin_%d" % i, Vector3.ZERO,
+			Vector3(PROMENADE_X + 3.2, SHORE_TOP + 0.45, b_at[i]), 0.38, 0.9, "metal", 0.0, 8)
+	_box("prom_cart", Vector3.ZERO, Vector3(PROMENADE_X - 3.0, SHORE_TOP + 0.7, 18.0),
+		Vector3(1.8, 1.4, 1.0), "blue")
+	_box("prom_cart_roof", Vector3.ZERO, Vector3(PROMENADE_X - 3.0, SHORE_TOP + 2.1, 18.0),
+		Vector3(2.4, 0.14, 1.6), "canvas", 0.0, false)
+	_box("lane_cart", Vector3.ZERO, Vector3(BACK_LANE_X + 1.2, SHORE_TOP + 0.5, 22.0),
+		Vector3(1.2, 1.0, 2.0), "metal")
+
+	# Tables outside the two food units. Four of them, and they are the third
+	# population down here — the boardwalk has no cafe, so without these the
+	# crowd's "sitting at a table" curve has nowhere to put anybody and the
+	# section reads the hour with one fewer instrument than the plaza does.
+	#
+	# Set 3m off the shopfronts rather than against them, because a table against
+	# a wall is a wall with a table and a table with room round it is somewhere
+	# people are eating.
+	for i in Plan.TABLES.size():
+		var at: Vector2 = Plan.TABLES[i]
+		var base := Vector3(at.x, SHORE_TOP, at.y)
+		_cyl("table_%d_top" % i, base, Vector3(0, 0.78, 0), 0.62, 0.08, "white", 0.0, 10)
+		_cyl("table_%d_post" % i, base, Vector3(0, 0.39, 0), 0.09, 0.78, "metal", 0.0, 8)
+		_cyl("table_%d_foot" % i, base, Vector3(0, 0.03, 0), 0.42, 0.06, "metal", 0.0, 10)
+		# The umbrella is 2.2m up and overhangs rather than blocking, same as the
+		# plaza's — which is why the crowd generator treats a table as a 1.15m
+		# circle and ignores the shade entirely.
+		_cyl("table_%d_pole" % i, base, Vector3(0, 1.5, 0), 0.05, 2.4, "metal", 0.0, 6)
+		_cyl("table_%d_shade" % i, base, Vector3(0, 2.26, 0), 1.5, 0.1,
+			"canvas" if i % 2 == 0 else "canvas_alt", 0.0, 10, false)
+		for j in 2:
+			var off := Vector3(0.95, 0.0, 0.2) if j == 0 else Vector3(-0.9, 0.0, -0.35)
+			var seat := base + off
+			_box("table_%d_chair_%d" % [i, j], seat, Vector3(0, 0.44, 0),
+				Vector3(0.44, 0.06, 0.44), "wood")
+			_box("table_%d_chair_%d_back" % [i, j], seat, Vector3(0, 0.7, -0.2),
+				Vector3(0.44, 0.46, 0.06), "wood")
+			_cyl("table_%d_chair_%d_leg" % [i, j], seat, Vector3(0, 0.22, 0),
+				0.06, 0.44, "metal", 0.0, 6)
+
+
+## A run of bulbs between two masts, and the cable they hang on.
+##
+## The cable was missing. The bulbs were placed on a sag curve and nothing was
+## drawn between them, which reads as a string of lights from the far end of the
+## strip and as five spheres floating in a row from underneath — and underneath
+## is where the player walks.
+##
+## One curve, both things. The bulbs sit on the interior sample points and the
+## cable joins all seven, so a bulb is on the wire by construction rather than
+## near it. Straight segments rather than anything curved: at five centimetres
+## across, the kink at each sample is smaller than the cable is thick.
+##
+## The ends land on the mast centre line 0.6m below its top, so each run
+## terminates inside the pole rather than short of it.
+const STRING_HEIGHT := 7.4
+const STRING_SAG := 0.55
+const STRING_STEPS := 6
+
+
+func _light_string(index: int, from_z: float, to_z: float) -> void:
+	var x := SHORE_EDGE + 1.6
+	var span := to_z - from_z
+	var points: Array[Vector3] = []
+	for s in STRING_STEPS + 1:
+		var t := float(s) / float(STRING_STEPS)
+		points.append(Vector3(x,
+			SHORE_TOP + STRING_HEIGHT - STRING_SAG * sin(PI * t),
+			from_z + span * t))
+	for s in STRING_STEPS:
+		_strut("wire_%d_%d" % [index, s], points[s], points[s + 1], 0.05, "metal")
+	for b in STRING_STEPS - 1:
+		_sphere("bulb_%d_%d" % [index, b], points[b + 1], 0.11, "yellow")
+
+
+## The plaza, seen from below, as massing with nothing behind it.
+##
+## This exists because the plaza is *gone* down here. `ParkSections` frees the
+## outgoing section, so the bluff the player just walked down, the parapet they
+## looked over and the arch they walked through all cease to exist the moment
+## they step through the gate — and the bluff top would be a clean horizon line
+## with sky above it, which is the one thing that would say "this is a different
+## level" out loud.
+##
+## Six boxes. They are the plaza's own west wall at the plaza's own coordinates,
+## which is duplication, and it is the kind a test can hold: anything that moves
+## the plaza's west face and not these will show up as the skyline sliding.
+func _plaza_from_below() -> void:
+	_box("far_parapet", Vector3.ZERO, Vector3(-38.5, 0.5, -0.2),
+		Vector3(1.0, 1.0, 16.4), "far_warm", 0.0, false)
+	_box("far_overlook_n", Vector3.ZERO, Vector3(-35.0, 1.6, -11.5),
+		Vector3(8.0, 3.2, 1.0), "far", 0.0, false)
+	_box("far_overlook_s", Vector3.ZERO, Vector3(-35.0, 1.6, 7.5),
+		Vector3(8.0, 3.2, 1.0), "far", 0.0, false)
+	_box("far_west_n", Vector3.ZERO, Vector3(-26.0, 3.5, -11.5),
+		Vector3(10.0, 7.0, 9.0), "far", 0.0, false)
+	_box("far_west_s", Vector3.ZERO, Vector3(-26.0, 3.5, 5.5),
+		Vector3(10.0, 7.0, 5.0), "far", 0.0, false)
+	# The one thing on the plaza tall enough to clear the bluff from down here,
+	# and the only way of telling the time that survives the crossing.
+	_box("far_sign_tower", Vector3.ZERO, Vector3(18.0, 7.0, -16.0),
+		Vector3(1.6, 14.0, 1.6), "far", 0.0, false)

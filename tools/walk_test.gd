@@ -1,16 +1,27 @@
 extends Node
 
-## Dev tool: drives the real player down the new entrance street and
-## back, then probes every open edge of it.
+## Dev tool: drives the real player down the entrance street and back, round the
+## four scaffolded passages, and — once the seam is crossed — over every route on
+## the boardwalk, probing every open edge of all of it.
 ##
 ## Pressing the actual input actions rather than setting velocity, so the run
 ## goes through `_physics_process` and `_try_step` exactly as a player's would.
 ## Teleporting the body would test the geometry and skip the controller, and on
 ## the west stair it was the controller that was wrong.
+##
+## The boardwalk legs run in a second phase, after `ParkSections.enter`, because
+## a section that is not mounted has no floor and every leg in it would report
+## the same thing: fell. `tools/section_test.gd` owns the crossing itself; this
+## owns what is on either side of it.
 
 const ARRIVE := 1.6
 const STALL_FRAMES := 90
 const MAX_SECONDS := 22.0
+
+## How far below its own starting height a leg may take the player before it
+## counts as falling. Relative, not absolute: the boardwalk's floor is at −6 and
+## a fixed threshold of −3 called every leg down there a fall.
+const FALL_BELOW := 3.0
 
 var _player: CharacterBody3D
 var _legs: Array = []
@@ -22,6 +33,27 @@ var _still := 0
 var _min_y := 1e9
 var _last := Vector3.ZERO
 var _fails: Array = []
+## Whether the run has already dropped into the boardwalk. One-way: the plaza
+## legs are done by then and there is nothing to go back for.
+var _crossed := false
+
+
+## Mount the boardwalk and queue its legs. `enter` is awaited rather than called
+## and hoped at — it fades, swaps and places the player, and starting a leg
+## mid-fade teleports the body out from under a transition that is still holding
+## it.
+func _enter_boardwalk() -> void:
+	print("--- crossing to the boardwalk ---")
+	await ParkSections.enter(&"boardwalk", &"plaza")
+	for i in 4:
+		await get_tree().physics_frame
+	if ParkSections.current() != &"boardwalk":
+		_fails.append("could not mount the boardwalk")
+		_report()
+		return
+	_legs = _boardwalk_legs()
+	_leg = 0
+	_start_leg()
 
 
 func _ready() -> void:
@@ -94,8 +126,57 @@ func _ready() -> void:
 	_start_leg()
 
 
+## The boardwalk, one section down. Eye height is the shore plus the same 1.2 the
+## plaza legs use.
+##
+## The order is the order the player meets it, because that is the thing being
+## tested: the arrival, the lane, the alley, and then the promenade in both
+## directions with the pier out of the middle of it. Everything after that is a
+## probe — the water, the shops, the bluff, and both ends of the strip.
+func _boardwalk_legs() -> Array:
+	var y := ParkPlan.SHORE_TOP + 1.2
+	var arrive := Vector3(ParkPlan.BOARDWALK_ARRIVAL.x, y, ParkPlan.BOARDWALK_ARRIVAL.z)
+	var alley_in := Vector3(ParkPlan.BACK_LANE_X - 3.0, y, ParkPlan.ALLEY_Z)
+	var alley_out := Vector3(ParkPlan.PROMENADE_X + 5.0, y, ParkPlan.ALLEY_Z)
+	var prom := Vector3(ParkPlan.PROMENADE_X + 5.0, y, ParkPlan.ALLEY_Z)
+	return [
+		["bw arrive -> lane", arrive, alley_in, true],
+		["bw lane -> alley", alley_in, alley_out, true],
+		["bw alley -> pier head", prom, Vector3(-78.0, y, ParkPlan.ALLEY_Z), true],
+		["bw out the pier", Vector3(-78.0, y, ParkPlan.ALLEY_Z),
+			Vector3(-121.0, y, ParkPlan.ALLEY_Z), true],
+		["bw pavilion holds", Vector3(-121.0, y, ParkPlan.ALLEY_Z),
+			Vector3(-134.0, y, ParkPlan.ALLEY_Z), false],
+		["bw back down pier", Vector3(-121.0, y, ParkPlan.ALLEY_Z),
+			Vector3(-74.0, y, ParkPlan.ALLEY_Z), true],
+		# The walk north weaves, and both pinches are real. The tables outside the
+		# corn-dog stand and the wheel's platform leave 4m between them; then the
+		# wheel's ticket booth takes the west half of what is left. A straight
+		# line up the promenade walks into one or the other, which is the same
+		# route the crowd's graph threads and for the same reason.
+		["bw north past tables", Vector3(-68.5, y, -4.0), Vector3(-68.5, y, -14.0), true],
+		["bw past the booth", Vector3(-68.5, y, -14.0), Vector3(-66.5, y, -24.0), true],
+		["bw wheel -> coaster", Vector3(-66.5, y, -24.0), Vector3(-68.0, y, -52.0), true],
+		["bw north end holds", Vector3(-70.0, y, -72.0), Vector3(-70.0, y, -95.0), false],
+		["bw south along strip", Vector3(-70.0, y, 10.0), Vector3(-70.0, y, 62.0), true],
+		["bw south end holds", Vector3(-70.0, y, 70.0), Vector3(-70.0, y, 92.0), false],
+		# Probes. None of these may arrive.
+		["bw water holds", Vector3(-70.0, y, 30.0), Vector3(-92.0, y, 30.0), false],
+		["bw water holds n", Vector3(-70.0, y, -50.0), Vector3(-92.0, y, -50.0), false],
+		["bw shops hold", Vector3(-68.0, y, 26.0), Vector3(-48.0, y, 26.0), false],
+		["bw yard holds", Vector3(-70.0, y, 70.0), Vector3(-50.0, y, 70.0), false],
+		["bw coaster fence holds", Vector3(-68.0, y, -60.0), Vector3(-48.0, y, -60.0), false],
+		["bw bluff holds", Vector3(-50.0, y, 20.0), Vector3(-36.0, y, 20.0), false],
+		["bw well holds", Vector3(-50.0, y, -4.0), Vector3(-36.0, y, -4.0), false],
+	]
+
+
 func _start_leg() -> void:
 	if _leg >= _legs.size():
+		if not _crossed:
+			_crossed = true
+			_enter_boardwalk()
+			return
 		_report()
 		return
 	var leg: Array = _legs[_leg]
@@ -128,7 +209,7 @@ func _physics_process(delta: float) -> void:
 	var flat_to := Vector3(_to.x, p.y, _to.z)
 	var arrived := p.distance_to(flat_to) < ARRIVE
 	var stalled := _still >= STALL_FRAMES
-	var fell := p.y < -3.0
+	var fell := p.y < _from.y - FALL_BELOW
 	if arrived or stalled or fell or _t > MAX_SECONDS:
 		Input.action_release("move_forward")
 		_finish_leg(arrived, stalled, fell, p)

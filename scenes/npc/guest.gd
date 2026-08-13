@@ -243,7 +243,7 @@ func _ready() -> void:
 	_wander = Vector3(_rng.randfn(0.0, 0.5), 0.0, _rng.randfn(0.0, 0.5))
 	_pose_complies = _rng.randf() > 0.16
 
-	_crowd = get_tree().get_first_node_in_group("crowd")
+	_crowd = _find_crowd()
 	if _crowd != null and _crowd.has_method("register"):
 		_crowd.register(self)
 
@@ -254,6 +254,31 @@ func _ready() -> void:
 	# belongs to the opening hour is put back on stage before the first frame
 	# and never flickers.
 	_go_dormant()
+
+
+## **Up the parent chain, not out to the group.**
+##
+## This asked the tree for the first node in the `crowd` group, which was right
+## while there was one crowd and became silently wrong the moment there were two.
+## `ParkSections._swap` adds the incoming section's scenes *before* it frees the
+## outgoing one — deliberately, so the player is never moved onto a floor that
+## has already gone — which means every boardwalk guest ran its `_ready` with the
+## plaza's crowd still standing, registered with it, and was thrown away with it
+## seconds later. The boardwalk mounted with a roster of nobody.
+##
+## Nothing errored. The section had a crowd node, a graph, a day and fifty-seven
+## guest bodies in the tree, and every one of them was dormant forever.
+##
+## A guest is a child of its own crowd, so the answer was always here rather than
+## in a group. The group lookup stays as a fallback for a harness that parents
+## guests somewhere else.
+func _find_crowd() -> Node:
+	var at: Node = get_parent()
+	while at != null:
+		if at.has_method("register") and at.is_in_group("crowd"):
+			return at
+		at = at.get_parent()
+	return get_tree().get_first_node_in_group("crowd")
 
 
 func _exit_tree() -> void:
@@ -284,13 +309,30 @@ func is_off_stage() -> bool:
 	return _off_stage
 
 
+## Put down on the floor of whatever section this guest belongs to.
+##
+## The three places that teleport a guest — spawning at opening, arriving from
+## off-stage, and the last snap onto a seat — all wrote `Vector3(p.x, 0.0, p.z)`,
+## which was the plaza's floor written down as a literal three times. It was
+## invisible for as long as the plaza was the only section anybody stood in, and
+## the boardwalk is six metres down: every guest that spawned or arrived down
+## there was placed six metres above the promenade, in the air, and then walked
+## about up there.
+##
+## The y comes off the point now, and every point handed in already carries the
+## right one — the graph's nodes, the hold point and the seats are all generated
+## at the section's own floor. Dropping it was never buying anything.
+func _on_ground(at: Vector3) -> Vector3:
+	return at
+
+
 ## Already in the park when the clock is read — the first frame of a session, or
 ## a dev jump to an hour. No walk in: a plaza at opening should have people
 ## standing about in it, not a queue of them filing through the gate one at a
 ## time while the player watches.
 func spawn_at(at: Vector3) -> void:
 	_wake()
-	global_position = Vector3(at.x, 0.0, at.z)
+	global_position = _on_ground(at)
 	if has_seat():
 		rotation.y = seat_yaw
 		_sit()
@@ -305,7 +347,7 @@ func spawn_at(at: Vector3) -> void:
 ## itself for somebody who came to walk about and will route on from there.
 func arrive_from(hold: Vector3, via: Array[Vector3]) -> void:
 	_wake()
-	global_position = Vector3(hold.x, 0.0, hold.z)
+	global_position = _on_ground(hold)
 	_waypoints = via.duplicate()
 	_then = Then.SIT if has_seat() else Then.WANDER
 	if not _waypoints.is_empty():
@@ -408,7 +450,7 @@ func _finish_waypoints() -> void:
 			# Snapped, because arriving is `ARRIVE_DISTANCE` and a third of a
 			# metre off a bench is sitting on the arm of it. It is the last
 			# frame of a walk, so it reads as settling rather than as a jump.
-			global_position = Vector3(seat_at.x, 0.0, seat_at.z)
+			global_position = _on_ground(seat_at)
 			rotation.y = seat_yaw
 			_sit()
 		Then.WANDER:

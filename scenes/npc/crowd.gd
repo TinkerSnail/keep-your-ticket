@@ -66,7 +66,7 @@ enum Visit { OUT, IN, LEAVING }
 ## plateau rather than a spike, and a real evening — the park runs to ten and
 ## people stay for it. The last hour thins because people are going home, not
 ## because the park is shutting on them.
-const WANDER_DAY := [
+const PLAZA_WANDER_DAY := [
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.34, 0.60, 0.74, 0.85, 0.94, 1.00,
 	0.98, 0.90, 0.84, 0.88, 0.78, 0.46,
@@ -76,7 +76,7 @@ const WANDER_DAY := [
 ## The tables do not track the crowd, which is the point of giving them their
 ## own curve: a full cafe at one o'clock and an empty one at four is a fact
 ## about lunch, and reading it is worth more than another copy of the headcount.
-const CAFE_DAY := [
+const PLAZA_CAFE_DAY := [
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.15, 0.45, 0.90, 1.00, 0.75, 0.50,
 	0.45, 0.70, 0.95, 0.85, 0.55, 0.30,
@@ -86,22 +86,37 @@ const CAFE_DAY := [
 ## Benches fill later and stay full longer. People sit down in the afternoon
 ## because they have been walking since eleven, and they sit down in the
 ## evening because there is a bandstand and the light is good.
-const BENCH_DAY := [
+const PLAZA_BENCH_DAY := [
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	0.15, 0.30, 0.50, 0.65, 0.85, 1.00,
 	1.00, 0.90, 0.75, 0.80, 0.85, 0.50,
 	0.0, 0.0,
 ]
 
-## Which way the plaza is drifting. +1 is people heading into the park, −1 is
-## people heading for the way out. A thumb on the scale in `route_from` and
-## nothing more, so the evening is a drift towards the gate and never a march.
-const FLOW := [
+## Which way the section is drifting. +1 is people heading in, −1 is people
+## heading for the way out. A thumb on the scale in `route_from` and nothing
+## more, so the evening is a drift towards the gate and never a march.
+const PLAZA_FLOW := [
 	0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	1.00, 0.85, 0.50, 0.20, 0.00, 0.00,
 	-0.10, -0.20, -0.30, -0.35, -0.60, -1.00,
 	0.0, 0.0,
 ]
+
+## The four curves above are the *plaza's*, and they are defaults rather than
+## law. A section's day is section data in exactly the way its graph is, and the
+## first section to disagree was the second one built: a seaside strip peaks in
+## the evening, which is the whole reason the boardwalk is on the side the sun
+## sets into. Curves belonging to the crowd rather than to the section would have
+## made that unsayable.
+##
+## Set by `tools/gen_crowd.gd` alongside `nodes` and `edges`. Anything mounted
+## without them gets the plaza's shape, which is the right failure: a section
+## with a generic day is odd, and a section with no day at all is empty.
+@export var wander_day: Array = PLAZA_WANDER_DAY
+@export var cafe_day: Array = PLAZA_CAFE_DAY
+@export var bench_day: Array = PLAZA_BENCH_DAY
+@export var flow_day: Array = PLAZA_FLOW
 
 ## How hard the flow leans on each hop. Small on purpose, and measured rather
 ## than guessed: over four thousand wanders starting three hops from the gate,
@@ -375,12 +390,12 @@ func _target_for(kind: String, peak: int) -> int:
 	if not ParkClock.is_open():
 		return 0
 	var h := ParkClock.hours()
-	var curve := WANDER_DAY
+	var curve := wander_day
 	match kind:
 		"cafe":
-			curve = CAFE_DAY
+			curve = cafe_day
 		"bench":
-			curve = BENCH_DAY
+			curve = bench_day
 	return int(round(_curve_at(curve, h) * float(peak)))
 
 
@@ -660,7 +675,7 @@ func route_from(point: Vector3, route_seed: int) -> PackedInt32Array:
 		return route
 
 	_route_rng.seed = route_seed
-	var flow := _curve_at(FLOW, ParkClock.hours())
+	var flow := _curve_at(flow_day, ParkClock.hours())
 	var previous := -1
 	var hops := _route_rng.randi_range(route_hops.x, route_hops.y)
 	for _i in hops:

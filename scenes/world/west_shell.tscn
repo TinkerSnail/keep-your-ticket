@@ -1,0 +1,59 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6thh3"]
+albedo_color = Color(0.34, 0.44, 0.52, 1)
+metallic = 0.1
+roughness = 0.08
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_uaeg6"]
+albedo_color = Color(0.72, 0.66, 0.63, 1)
+roughness = 0.95
+
+[node name="west_shell" type="Node3D" unique_id=1869252429]
+
+[node name="water" type="CSGBox3D" parent="." unique_id=2074113236]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -185.9975, -11.4975, 0.0025000002)
+size = Vector3(240, 8, 400)
+material = SubResource("StandardMaterial3D_6thh3")
+
+[node name="bluff_north" type="CSGBox3D" parent="." unique_id=1546661323]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -42.49725, -6.0072503, -90.99725)
+use_collision = true
+size = Vector3(7, 12, 158)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="bluff_south" type="CSGBox3D" parent="." unique_id=313597404]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -42.497, -6.0070004, 89.003)
+use_collision = true
+size = Vector3(7, 12, 162)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="bluff_base" type="CSGBox3D" parent="." unique_id=1699912259]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -42.48175, -8.99675, -1.99675)
+use_collision = true
+size = Vector3(6.97, 6, 20)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="bluff_slot_north" type="CSGBox3D" parent="." unique_id=1378356853]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -41.1965, -6.0065002, -11.4965)
+use_collision = true
+size = Vector3(4.4, 12, 1)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="bluff_slot_south" type="CSGBox3D" parent="." unique_id=656660342]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -41.19625, -6.0062504, -0.19625)
+use_collision = true
+size = Vector3(4.4, 12, 16.4)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="bluff_slot_under" type="CSGBox3D" parent="." unique_id=1400011381]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -41.196, -6.746, -9.696)
+use_collision = true
+size = Vector3(4.4, 10.5, 2.6)
+material = SubResource("StandardMaterial3D_uaeg6")
+
+[node name="shore" type="CSGBox3D" parent="." unique_id=910957476]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -61.99575, -8.99575, 0.00425)
+use_collision = true
+size = Vector3(36, 6, 340)
+material = SubResource("StandardMaterial3D_uaeg6")

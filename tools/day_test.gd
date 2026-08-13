@@ -38,12 +38,49 @@ const SETTLE_FRAMES := 8
 ## cover more ground would be measuring a different game: whether guests can
 ## walk in fast enough to keep up with the curve is one of the things in
 ## question, and it is only a fair question at the rate the game runs at.
-const WINDOWS := [
-	{"name": "the fill", "hour": 10, "minute": 0, "seconds": 900.0},
-	# Runs well past ten so that closing time is inside the window and not at
-	# the edge of it. The first version of this stopped eighteen game minutes
-	# after close, reported PASS, and had twenty-three people still in the park.
-	{"name": "the drain", "hour": 19, "minute": 30, "seconds": 1100.0},
+##
+## Per section, because a section's day is its own — see `crowd.gd`'s curve
+## exports. The plaza fills at ten and drains at ten; the boardwalk is still
+## filling at seven in the evening, so running the plaza's windows against it
+## would measure a plateau at one end and a plateau at the other and call it a
+## day.
+##
+## `floor_y` is the height a live guest stands at. It was a bare `absf(y) > 0.05`
+## against zero, which is the sort of assumption a second section is the only
+## thing that ever finds.
+##
+## `idle` is where the player is parked so they are not staring at the way in,
+## and `watch` is where they are parked so that they are.
+const SECTIONS := [
+	{
+		"id": &"plaza",
+		"floor_y": 0.0,
+		"idle": {"at": Vector3(0.0, 0.2, 6.0), "yaw": 0.0},
+		"watch": {"at": Vector3(-1.5, 0.2, 14.0), "yaw": PI},
+		"windows": [
+			{"name": "the fill", "hour": 10, "minute": 0, "seconds": 900.0},
+			# Runs well past ten so that closing time is inside the window and not
+			# at the edge of it. The first version of this stopped eighteen game
+			# minutes after close, reported PASS, and had twenty-three people
+			# still in the park.
+			{"name": "the drain", "hour": 19, "minute": 30, "seconds": 1100.0},
+		],
+	},
+	{
+		"id": &"boardwalk",
+		"floor_y": -6.0,
+		# On the promenade at the mouth of the alley, facing the water — which is
+		# where a player actually stands and is a wall away from the back lane.
+		"idle": {"at": Vector3(-68.0, -5.8, -1.0), "yaw": PI * 0.5},
+		# Down the back lane, looking at the way in.
+		"watch": {"at": Vector3(-49.8, -5.8, 4.0), "yaw": PI},
+		"windows": [
+			# The strip's turnover is late. Nothing much moves before four, and
+			# the drain is a single hour after the sun goes down.
+			{"name": "the fill", "hour": 16, "minute": 30, "seconds": 900.0},
+			{"name": "the drain", "hour": 20, "minute": 30, "seconds": 1100.0},
+		],
+	},
 ]
 
 ## Checking 56 guests every frame for a quarter of an hour is most of the
@@ -55,6 +92,9 @@ var _crowd: Node = null
 var _fails: Array = []
 var _seen: Dictionary = {}
 var _peak := 0
+## Whichever section is being measured. Everything below that used to name the
+## plaza now reads this.
+var _section: Dictionary = {}
 
 
 func _ready() -> void:
@@ -62,21 +102,12 @@ func _ready() -> void:
 	for i in SETTLE_FRAMES:
 		await get_tree().physics_frame
 
-	_crowd = get_tree().get_first_node_in_group("crowd")
-	if _crowd == null:
-		print("FAIL: no crowd")
-		get_tree().quit(1)
-		return
-
 	# The clock is what everything here is measuring against, so it does not get
 	# to run underneath the measurement.
 	ParkClock.running = false
-	_peak = _crowd.get("_roster").size()
 
-	await _table()
-	for window in WINDOWS:
-		await _walk_window(window)
-	await _watched_gate()
+	for section in SECTIONS:
+		await _measure(section)
 
 	print("")
 	if _fails.is_empty():
@@ -86,6 +117,33 @@ func _ready() -> void:
 	for f in _fails:
 		print("FAIL: %s" % f)
 	get_tree().quit(1)
+
+
+func _measure(section: Dictionary) -> void:
+	_section = section
+	var id: StringName = section["id"]
+
+	if ParkSections.current() != id:
+		# Straight in. Whether the seam works is `section_test.gd`'s job and it
+		# already passes; what this needs is the section standing.
+		await ParkSections.enter(id, ParkSections.current())
+		for i in SETTLE_FRAMES:
+			await get_tree().physics_frame
+		ParkClock.running = false
+
+	_crowd = get_tree().get_first_node_in_group("crowd")
+	if _crowd == null:
+		_fail("%s: no crowd in the tree" % id)
+		return
+
+	print("")
+	print("=== %s ===" % ParkSections.section_name(id))
+	_peak = _crowd.get("_roster").size()
+
+	await _table()
+	for window in section["windows"]:
+		await _walk_window(window)
+	await _watched_gate()
 
 
 ## Deduplicated on the message rather than appended blind. A guest stuck in a
@@ -134,8 +192,8 @@ func _table() -> void:
 		_check_placement(h)
 
 	if opening >= seen_peak:
-		_fail("the plaza is no busier at its peak (%d) than at opening (%d)"
-			% [seen_peak, opening])
+		_fail("%s is no busier at its peak (%d) than at opening (%d)"
+			% [_section["id"], seen_peak, opening])
 	# The whole claim is that the crowd tells the time. If the busiest hour and
 	# the thinnest hour are within a third of each other, it does not.
 	if float(opening) > float(seen_peak) * 0.66:
@@ -189,14 +247,18 @@ func _watched_gate() -> void:
 			% [before, after])
 
 
-## Parked south of the fountain, looking down the gap. Teleported rather than
-## walked, because where the player is standing is not what is being measured.
+## Parked where the section's way in is in shot. Teleported rather than walked,
+## because where the player is standing is not what is being measured.
 func _face_gate() -> void:
+	_pose(_section["watch"])
+
+
+func _pose(spot: Dictionary) -> void:
 	var player := get_tree().get_first_node_in_group("player") as Node3D
 	if player == null:
 		return
-	player.global_position = Vector3(-1.5, 0.2, 14.0)
-	player.rotation.y = PI
+	player.global_position = spot["at"]
+	player.rotation.y = spot["yaw"]
 
 
 func _walk_window(window: Dictionary) -> void:
@@ -208,9 +270,7 @@ func _walk_window(window: Dictionary) -> void:
 	# windows are measuring. Whether the gate itself discriminates is
 	# `_watched_gate`'s job, not this one's.
 	var player := get_tree().get_first_node_in_group("player") as Node3D
-	if player != null:
-		player.global_position = Vector3(0.0, 0.2, 6.0)
-		player.rotation.y = 0.0
+	_pose(_section["idle"])
 	for i in 2:
 		await get_tree().physics_frame
 
@@ -227,9 +287,7 @@ func _walk_window(window: Dictionary) -> void:
 		elapsed += get_tree().root.get_process_delta_time()
 		frame += 1
 
-		if player != null:
-			player.global_position = Vector3(0.0, 0.2, 6.0)
-			player.rotation.y = 0.0
+		_pose(_section["idle"])
 
 		if frame % PLACEMENT_EVERY == 0:
 			_check_placement(-1)
@@ -319,13 +377,14 @@ func _check_placement(hour: int) -> void:
 	for guest in get_tree().get_nodes_in_group("guest"):
 		var live: bool = guest.is_live()
 		var y: float = guest.global_position.y
-		if live and absf(y) > 0.05:
+		var floor_y: float = _section.get("floor_y", 0.0)
+		if live and absf(y - floor_y) > 0.05:
 			_fail("%s: %s is live at y=%.2f" % [when, guest.name, y])
 			return
 		if not live and guest.visible:
 			_fail("%s: %s is dormant and visible" % [when, guest.name])
 			return
-		if not live and y > -100.0:
+		if not live and y > floor_y - 100.0:
 			_fail("%s: %s is dormant at y=%.2f, not parked" % [when, guest.name, y])
 			return
 

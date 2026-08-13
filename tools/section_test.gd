@@ -47,17 +47,17 @@ const FLOOR_LIMIT := -12.0
 const STALL_FRAMES := 240
 const MAX_SECONDS := 60.0
 
-## How far past the shut gate the last outbound waypoint sits. Deliberately
+## How far past the shut gate the last waypoint of each leg sits. Deliberately
 ## unreachable — the gate is solid and stops the player short of it, which puts
 ## them inside the crossing volume. Walking at something you cannot get to is
 ## how the seam gets tripped rather than merely approached, and if it never
 ## fires the player stalls against the gate and the stall detector says so.
+##
+## West on both legs, because the gate is in the well's west face. It was south
+## until 2026-08-12 and this test is what caught the change: the player walked
+## down, pushed at the back wall of the well and stalled there, which is exactly
+## what a wrongly-placed threshold looks like from inside the game.
 const PAST_THE_GATE := 2.7
-
-## How far north of the boardwalk arrival to aim on the way back. Comfortably
-## past the crossing volume, so the player meets the seam well before they run
-## out of planking.
-const BACK_ACROSS := 8.0
 
 ## Terrace, stair head, the landing, and the point behind the gate. Built in
 ## `_ready` rather than declared const, because they are derived from `ParkPlan`
@@ -101,9 +101,19 @@ func _ready() -> void:
 		Vector3(-38.0, 0.2, ParkPlan.STAIR_TOP_Z),
 		Vector3(-42.0, 0.0, ParkPlan.STAIR_TOP_Z),
 		Vector3(ParkPlan.STAIR_TURN_X, -ParkPlan.STAIR_RISE * 4.0, ParkPlan.STAIR_TOP_Z + 2.2),
-		ParkPlan.STAIR_FOOT + Vector3(0.0, 0.0, PAST_THE_GATE),
+		ParkPlan.STAIR_FOOT + Vector3(-PAST_THE_GATE, 0.0, 0.0),
 	]
-	_inbound = [ParkPlan.BOARDWALK_ARRIVAL - Vector3(0.0, 0.0, BACK_ACROSS)]
+	# The gate faces west now, so the way back is east into the bluff rather than
+	# north along it. Aimed at the stair foot, which is behind a shut gate and
+	# therefore unreachable — the same trick the outbound leg uses, and the same
+	# reason: walking at something you cannot get to is how a seam gets tripped
+	# rather than merely approached.
+	# Up the lane to the level of the well mouth first. Cutting the corner from
+	# the arrival clips the bluff, which starts at z 8 and is a wall.
+	_inbound = [
+		Vector3(-48.5, ParkPlan.BOARDWALK_ARRIVAL.y, 6.5),
+		ParkPlan.STAIR_FOOT + Vector3(0.0, 0.2, 0.0),
+	]
 
 	# Onto the terrace by hand. Getting there from the spawn is `walk_test.gd`'s
 	# job and repeating it here only buys a longer run.

@@ -81,6 +81,33 @@ def parse(path):
     return out
 
 AX = 'XYZ'
+
+# Scenes that are never in the tree at the same time, so two faces of theirs
+# sharing a plane cannot fight — there is only ever one of them to draw.
+#
+# The west is built twice on purpose: `west_far.tscn` is the tableau the plaza
+# looks at and `boardwalk.tscn` is the same frontage, pier and wheel with a floor
+# under them, standing in the same coordinates. They are alternatives, and
+# `boardwalk.tscn` also fills the stair well that `west_stair.tscn` cuts open.
+# Without this the report is dominated by pairs that describe the design working.
+EXCLUSIVE = [
+    {'boardwalk.tscn', 'west_far.tscn'},
+    {'boardwalk.tscn', 'west_stair.tscn'},
+    {'boardwalk.tscn', 'plaza.tscn'},
+    {'boardwalk.tscn', 'plaza_props.tscn'},
+    {'boardwalk.tscn', 'plaza_skyline.tscn'},
+    {'boardwalk.tscn', 'entrance.tscn'},
+    {'boardwalk.tscn', 'thresholds.tscn'},
+    {'boardwalk.tscn', 'plaza_crowd.tscn'},
+]
+
+
+def coexist(a, b):
+    a = a.split('/')[-1]
+    b = b.split('/')[-1]
+    return a == b or {a, b} not in EXCLUSIVE
+
+
 boxes = []
 for f in sorted(glob.glob('scenes/world/*.tscn')):
     boxes.extend(parse(f))
@@ -105,6 +132,8 @@ for key, group in buckets.items():
         if A is B:
             continue
         if abs(A[side][a] - B[side][a]) > EPS:
+            continue
+        if not coexist(A['scene'], B['scene']):
             continue
         o = [i for i in range(3) if i != a]
         # must overlap with real area in the plane of the face

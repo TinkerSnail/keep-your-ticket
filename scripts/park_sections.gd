@@ -65,19 +65,25 @@ const SECTIONS := {
 			"res://scenes/world/plaza_crowd.tscn",
 		],
 	},
-	## Scaffolding. A deck, three rails and the two gates back, standing at the
-	## foot of the west stair so that the seam has something on the far side of
-	## it to walk into and a walk test has somewhere to arrive.
+	## The strip below the bluff: promenade, frontage, wheel, coaster, pier.
 	##
-	## It is not an attempt at the boardwalk and should not be improved. The real
-	## one replaces the west tableau outright, and `documentation/design.md`
-	## wants a midway corridor between this and the gate before any of it is
-	## worth building. Until then the only thing this has to be is crossable in
-	## both directions.
+	## Two scenes, and the first of them is also in the plaza's list. `west_shell`
+	## is the water, the bluff and the shore — the ground both sections stand on
+	## and the horizon both of them see. It has to be mounted on either side of
+	## the seam, because a section swap frees everything the outgoing section
+	## owned, and the west used to be owned entirely by the plaza. Crossing the
+	## gate therefore deleted the water.
+	##
+	## Listing it twice is the cheap fix and the right one: sections are already
+	## lists of scenes precisely so that a section can be more than one file, and
+	## the alternative — a third persistent tier mounted outside sections — buys
+	## nothing while exactly one thing is shared.
 	&"boardwalk": {
 		"name": "the boardwalk",
 		"scenes": [
-			"res://scenes/world/boardwalk_stub.tscn",
+			"res://scenes/world/west_shell.tscn",
+			"res://scenes/world/boardwalk.tscn",
+			"res://scenes/world/boardwalk_crowd.tscn",
 		],
 	},
 }

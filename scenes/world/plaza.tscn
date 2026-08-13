@@ -6,6 +6,8 @@
 [ext_resource type="PackedScene" path="res://scenes/world/west_stair.tscn" id="5_west_stair"]
 [ext_resource type="PackedScene" path="res://scenes/world/entrance.tscn" id="6_entrance"]
 [ext_resource type="PackedScene" path="res://scenes/world/thresholds.tscn" id="7_thresholds"]
+[ext_resource type="PackedScene" path="res://scenes/world/west_shell.tscn" id="8_west_shell"]
+[ext_resource type="PackedScene" path="res://scenes/world/west_far.tscn" id="9_west_far"]
 
 [sub_resource type="StandardMaterial3D" id="mat_ground"]
 albedo_color = Color(0.62, 0.6, 0.56, 1)
@@ -272,6 +274,10 @@ material = SubResource("mat_building")
 [node name="props" parent="." instance=ExtResource("1_props")]
 
 [node name="skyline" parent="." instance=ExtResource("2_skyline")]
+
+[node name="west_shell" parent="." instance=ExtResource("8_west_shell")]
+
+[node name="west_far" parent="." instance=ExtResource("9_west_far")]
 
 [node name="west_stair" parent="." instance=ExtResource("5_west_stair")]
 
