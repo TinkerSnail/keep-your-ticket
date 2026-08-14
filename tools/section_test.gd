@@ -98,8 +98,8 @@ func _ready() -> void:
 	# The terrace and the stair head are on the plan's own west passage; the
 	# landing is one flight down, which is `treads_a` risers below the terrace.
 	_outbound = [
-		Vector3(-38.0, 0.2, ParkPlan.STAIR_TOP_Z),
-		Vector3(-42.0, 0.0, ParkPlan.STAIR_TOP_Z),
+		Vector3(-50.0, 0.2, ParkPlan.STAIR_TOP_Z),
+		Vector3(-54.0, 0.0, ParkPlan.STAIR_TOP_Z),
 		Vector3(ParkPlan.STAIR_TURN_X, -ParkPlan.STAIR_RISE * 4.0, ParkPlan.STAIR_TOP_Z + 2.2),
 		ParkPlan.STAIR_FOOT + Vector3(-PAST_THE_GATE, 0.0, 0.0),
 	]
@@ -111,7 +111,7 @@ func _ready() -> void:
 	# Up the lane to the level of the well mouth first. Cutting the corner from
 	# the arrival clips the bluff, which starts at z 8 and is a wall.
 	_inbound = [
-		Vector3(-48.5, ParkPlan.BOARDWALK_ARRIVAL.y, 6.5),
+		Vector3(-60.5, ParkPlan.BOARDWALK_ARRIVAL.y, 6.5),
 		ParkPlan.STAIR_FOOT + Vector3(0.0, 0.2, 0.0),
 	]
 

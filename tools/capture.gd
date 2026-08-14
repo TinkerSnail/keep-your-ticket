@@ -14,72 +14,72 @@ const SHOTS := [
 	{"name": "east", "yaw": -70.0, "pitch": -4.0},
 	{"name": "west", "yaw": 80.0, "pitch": -4.0},
 	{"name": "back_south", "yaw": 180.0, "pitch": -4.0},
-	{"name": "ladder", "yaw": -95.0, "pitch": 6.0, "pos": Vector3(15.0, 0.2, 3.5)},
-	{"name": "bench_close", "yaw": 150.0, "pitch": -12.0, "pos": Vector3(4.0, 0.2, 1.0)},
-	{"name": "cafe_close", "yaw": -60.0, "pitch": -8.0, "pos": Vector3(10.0, 0.2, 6.0)},
-	{"name": "aframe_close", "yaw": 8.0, "pitch": -10.0, "pos": Vector3(2.0, 0.2, 14.0)},
-	{"name": "balloons", "yaw": -20.0, "pitch": -6.0, "pos": Vector3(4.5, 0.2, 9.5)},
-	{"name": "balloon_ground", "yaw": -144.0, "pitch": -12.0, "pos": Vector3(-1.5, 0.2, 27.5)},
+	{"name": "ladder", "yaw": -95.0, "pitch": 6.0, "pos": Vector3(24.8, 0.2, 5.8)},
+	{"name": "bench_close", "yaw": 150.0, "pitch": -12.0, "pos": Vector3(11.6, 0.2, 2.9)},
+	{"name": "cafe_close", "yaw": -60.0, "pitch": -8.0, "pos": Vector3(16.2, 0.2, 9.7)},
+	{"name": "aframe_close", "yaw": 8.0, "pitch": -10.0, "pos": Vector3(3.3, 0.2, 22.9)},
+	{"name": "balloons", "yaw": -20.0, "pitch": -6.0, "pos": Vector3(7.4, 0.2, 15.7)},
+	{"name": "balloon_ground", "yaw": -144.0, "pitch": -12.0, "pos": Vector3(-2.3, 0.2, 41.4)},
 	# The crowd. Aimed at where guests are generated rather than where they end
 	# up, so these are worth re-taking after changing `SETTLE_SECONDS`.
-	{"name": "crowd_gate", "yaw": 0.0, "pitch": -3.0, "pos": Vector3(-1.5, 0.2, 30.0)},
-	{"name": "crowd_fountain", "yaw": 140.0, "pitch": -6.0, "pos": Vector3(6.0, 0.2, 10.0)},
-	{"name": "crowd_bench", "yaw": -125.0, "pitch": -8.0, "pos": Vector3(2.0, 0.2, 6.0)},
-	{"name": "crowd_band", "yaw": 55.0, "pitch": -5.0, "pos": Vector3(-6.0, 0.2, -4.0)},
-	{"name": "crowd_cafe", "yaw": -55.0, "pitch": -6.0, "pos": Vector3(11.0, 0.2, 8.0)},
-	{"name": "guest_face", "yaw": 180.0, "pitch": -4.0, "pos": Vector3(0.0, 0.2, 5.0)},
+	{"name": "crowd_gate", "yaw": 0.0, "pitch": -3.0, "pos": Vector3(-2.2, 0.2, 43.5)},
+	{"name": "crowd_fountain", "yaw": 140.0, "pitch": -6.0, "pos": Vector3(9.7, 0.2, 16.2)},
+	{"name": "crowd_bench", "yaw": -125.0, "pitch": -8.0, "pos": Vector3(3.5, 0.2, 10.5)},
+	{"name": "crowd_band", "yaw": 55.0, "pitch": -5.0, "pos": Vector3(-10.4, 0.2, -6.9)},
+	{"name": "crowd_cafe", "yaw": -55.0, "pitch": -6.0, "pos": Vector3(17.9, 0.2, 13)},
+	{"name": "guest_face", "yaw": 180.0, "pitch": -4.0, "pos": Vector3(0, 0.2, 12)},
 	# The west opening, read as a sequence: the arch from inside the plaza, the
 	# passage under it, the view over the parapet, and the wheel that the north
 	# pier covers until you step out from behind it.
-	{"name": "west_arch", "yaw": 90.0, "pitch": 3.0, "pos": Vector3(0.0, 0.2, -2.0)},
-	{"name": "west_under", "yaw": 90.0, "pitch": 1.0, "pos": Vector3(-24.0, 0.2, -2.0)},
-	{"name": "west_overlook", "yaw": 90.0, "pitch": 0.0, "pos": Vector3(-37.0, 0.2, -2.0)},
-	{"name": "west_wheel", "yaw": 68.0, "pitch": 4.0, "pos": Vector3(-37.0, 0.2, -2.0)},
+	{"name": "west_arch", "yaw": 90.0, "pitch": 3.0, "pos": Vector3(16.0, 0.2, -2.0)},
+	{"name": "west_under", "yaw": 90.0, "pitch": 1.0, "pos": Vector3(-39.0, 0.2, -2.0)},
+	{"name": "west_overlook", "yaw": 90.0, "pitch": 0.0, "pos": Vector3(-49, 0.2, -2)},
+	{"name": "west_wheel", "yaw": 68.0, "pitch": 4.0, "pos": Vector3(-49, 0.2, -2)},
 	# The way down, which is the thing the overlook was missing. The head of the
 	# flight from the terrace, the turn, and the gate at the foot.
-	{"name": "stair_head", "yaw": 62.0, "pitch": -8.0, "pos": Vector3(-34.0, 0.2, -6.0)},
-	{"name": "stair_turn", "yaw": 178.0, "pitch": -16.0, "pos": Vector3(-44.7, -0.6, -9.7)},
-	{"name": "stair_foot", "yaw": 100.0, "pitch": 2.0, "pos": Vector3(-44.7, -5.6, 5.2)},
+	{"name": "stair_head", "yaw": 62.0, "pitch": -8.0, "pos": Vector3(-46, 0.2, -6)},
+	{"name": "stair_turn", "yaw": 178.0, "pitch": -16.0, "pos": Vector3(-56.7, -0.6, -9.7)},
+	{"name": "stair_foot", "yaw": 100.0, "pitch": 2.0, "pos": Vector3(-56.7, -5.6, 5.2)},
 	# The arrival, walked in order. The first two decide whether the street
 	# works: what the gate frames from outside, and whether the plaza reads as a
 	# widening at the end of the run rather than as another room.
-	{"name": "arrive_apron", "yaw": 0.0, "pitch": 2.0, "pos": Vector3(-1.5, 0.2, 106.0)},
-	{"name": "arrive_gate", "yaw": 0.0, "pitch": 1.0, "pos": Vector3(-1.5, 0.2, 90.0)},
-	{"name": "arrive_street", "yaw": 0.0, "pitch": 2.0, "pos": Vector3(-1.5, 0.2, 62.0)},
-	{"name": "arrive_mouth", "yaw": 0.0, "pitch": 1.0, "pos": Vector3(-1.5, 0.2, 36.0)},
+	{"name": "arrive_apron", "yaw": 0.0, "pitch": 2.0, "pos": Vector3(-1.5, 0.2, 118)},
+	{"name": "arrive_gate", "yaw": 0.0, "pitch": 1.0, "pos": Vector3(-1.5, 0.2, 102)},
+	{"name": "arrive_street", "yaw": 0.0, "pitch": 2.0, "pos": Vector3(-1.5, 0.2, 74)},
+	{"name": "arrive_mouth", "yaw": 0.0, "pitch": 1.0, "pos": Vector3(-2, 0.2, 48.5)},
 	# Back the other way: the street as the thing you leave down.
-	{"name": "arrive_back", "yaw": 180.0, "pitch": -1.0, "pos": Vector3(-1.5, 0.2, 26.0)},
+	{"name": "arrive_back", "yaw": 180.0, "pitch": -1.0, "pos": Vector3(-2.3, 0.2, 40.1)},
 	# Oblique, because a street is read off its frontage rather than its axis.
-	{"name": "arrive_shops", "yaw": 132.0, "pitch": -2.0, "pos": Vector3(-1.5, 0.2, 72.0)},
+	{"name": "arrive_shops", "yaw": 132.0, "pitch": -2.0, "pos": Vector3(-1.5, 0.2, 84)},
 	# Enclosure. Six openings in a 320m perimeter is roughly a quarter of the
 	# plaza's edge missing, and whether it still reads as a room rather than a
 	# crossroads is the one thing scaffolding the thresholds was for. A turn on
 	# the spot answers it and nothing else does.
-	{"name": "room_000", "yaw": 0.0, "pitch": -1.0, "pos": Vector3(3.0, 0.2, 3.0)},
-	{"name": "room_060", "yaw": -60.0, "pitch": -1.0, "pos": Vector3(3.0, 0.2, 3.0)},
-	{"name": "room_120", "yaw": -120.0, "pitch": -1.0, "pos": Vector3(3.0, 0.2, 3.0)},
-	{"name": "room_180", "yaw": 180.0, "pitch": -1.0, "pos": Vector3(3.0, 0.2, 3.0)},
-	{"name": "room_240", "yaw": 120.0, "pitch": -1.0, "pos": Vector3(3.0, 0.2, 3.0)},
-	{"name": "room_300", "yaw": 60.0, "pitch": -1.0, "pos": Vector3(3.0, 0.2, 3.0)},
+	{"name": "room_000", "yaw": 0.0, "pitch": -1.0, "pos": Vector3(8.5, 0.2, 8.5)},
+	{"name": "room_060", "yaw": -60.0, "pitch": -1.0, "pos": Vector3(8.5, 0.2, 8.5)},
+	{"name": "room_120", "yaw": -120.0, "pitch": -1.0, "pos": Vector3(8.5, 0.2, 8.5)},
+	{"name": "room_180", "yaw": 180.0, "pitch": -1.0, "pos": Vector3(8.5, 0.2, 8.5)},
+	{"name": "room_240", "yaw": 120.0, "pitch": -1.0, "pos": Vector3(8.5, 0.2, 8.5)},
+	{"name": "room_300", "yaw": 60.0, "pitch": -1.0, "pos": Vector3(8.5, 0.2, 8.5)},
 	# Each new opening from close enough to see whether the turn hides its end.
-	{"name": "way_nnw", "yaw": 0.0, "pitch": -1.0, "pos": Vector3(-13.0, 0.2, -30.0)},
-	{"name": "way_ne", "yaw": -90.0, "pitch": -1.0, "pos": Vector3(30.0, 0.2, -21.0)},
-	{"name": "way_se", "yaw": -90.0, "pitch": -1.0, "pos": Vector3(30.0, 0.2, 24.0)},
-	{"name": "way_sw", "yaw": 180.0, "pitch": -1.0, "pos": Vector3(-24.0, 0.2, 30.0)},
+	{"name": "way_nnw", "yaw": 0.0, "pitch": -1.0, "pos": Vector3(-18.2, 0.2, -42)},
+	{"name": "way_ne", "yaw": -90.0, "pitch": -1.0, "pos": Vector3(40.2, 0.2, -28.1)},
+	{"name": "way_se", "yaw": -90.0, "pitch": -1.0, "pos": Vector3(39.4, 0.2, 31.6)},
+	{"name": "way_sw", "yaw": 180.0, "pitch": -1.0, "pos": Vector3(-31.6, 0.2, 39.4)},
 ]
 
 ## The two vantages the day pass is shot from, both standing at the spawn: one
 ## up the plaza to the north, one west toward where the boardwalk attaches. West
 ## is the one that matters — the sun sets into it, so it is where a wrong axis
 ## would show.
-const SPAWN := Vector3(0.0, 0.2, 16.0)
+const SPAWN := Vector3(0.0, 0.2, 24.0)
 
 const DAY_VIEWS := [
 	{"name": "north", "yaw": 0.0, "pitch": 8.0, "pos": SPAWN},
 	{"name": "west", "yaw": 90.0, "pitch": 6.0, "pos": SPAWN},
 	# Over the parapet. The sun sets into this one, which is the reason the
 	# boardwalk went west and the reason the axis was worth computing.
-	{"name": "overlook", "yaw": 84.0, "pitch": 1.0, "pos": Vector3(-37.0, 0.2, -2.0)},
+	{"name": "overlook", "yaw": 84.0, "pitch": 1.0, "pos": Vector3(-49, 0.2, -2)},
 ]
 
 ## Times of day, chosen for the moments the arc is supposed to hit rather than
@@ -98,9 +98,9 @@ const DAY_TIMES := [6.5, 7.5, 10.0, 13.75, 17.0, 19.0, 20.5, 21.5]
 const CROWD_TIMES := [10.0, 11.5, 13.0, 15.0, 18.0, 20.0, 21.5]
 
 const CROWD_VIEWS := [
-	{"name": "floor", "yaw": 155.0, "pitch": -4.0, "pos": Vector3(7.0, 0.2, -4.0)},
-	{"name": "gate", "yaw": 178.0, "pitch": -2.0, "pos": Vector3(0.0, 0.2, 8.0)},
-	{"name": "cafe", "yaw": -58.0, "pitch": -6.0, "pos": Vector3(9.0, 0.2, 7.0)},
+	{"name": "floor", "yaw": 155.0, "pitch": -4.0, "pos": Vector3(12, 0.2, -6.8)},
+	{"name": "gate", "yaw": 178.0, "pitch": -2.0, "pos": Vector3(0, 0.2, 13.7)},
+	{"name": "cafe", "yaw": 90.0, "pitch": -4.0, "pos": Vector3(-16.0, 0.2, 8.0)},
 ]
 
 ## Whichever time the ordinary vantage pass is shot at. Mid-afternoon: the sun
@@ -110,7 +110,7 @@ const STANDARD_TIME := 16.0
 ## Aimed up at the sign tower to read the clock face. The time is set to
 ## something no symmetry can hide — the hands are not near each other and not
 ## near a tick.
-const CLOCK_SHOT := {"name": "tower_clock", "yaw": -35.0, "pitch": 21.0, "pos": Vector3(6.0, 0.2, 2.0)}
+const CLOCK_SHOT := {"name": "tower_clock", "yaw": 0.0, "pitch": 24.0, "pos": Vector3(-1.5, 0.2, 14.0)}
 const CLOCK_TIME := 15.0
 const CLOCK_MINUTE := 40
 
@@ -122,11 +122,11 @@ const CLOCK_MINUTE := 40
 const COMPARE := [
 	{"name": "sky_north", "yaw": 0.0, "pitch": 12.0, "pos": SPAWN},
 	{"name": "sky_ne", "yaw": -48.0, "pitch": 14.0, "pos": SPAWN},
-	{"name": "west_arch", "yaw": 90.0, "pitch": 3.0, "pos": Vector3(0.0, 0.2, -2.0)},
-	{"name": "room", "yaw": -60.0, "pitch": -1.0, "pos": Vector3(3.0, 0.2, 3.0)},
-	{"name": "street", "yaw": 0.0, "pitch": 1.0, "pos": Vector3(-1.5, 0.2, 78.0)},
-	{"name": "way_nnw", "yaw": 0.0, "pitch": -1.0, "pos": Vector3(-13.0, 0.2, -34.0)},
-	{"name": "arcade", "yaw": 90.0, "pitch": -1.0, "pos": Vector3(-13.0, 0.2, 66.0)},
+	{"name": "west_arch", "yaw": 90.0, "pitch": 3.0, "pos": Vector3(0, 0.2, -12)},
+	{"name": "room", "yaw": -60.0, "pitch": -1.0, "pos": Vector3(8.5, 0.2, 8.5)},
+	{"name": "street", "yaw": 0.0, "pitch": 1.0, "pos": Vector3(-1.5, 0.2, 90)},
+	{"name": "way_nnw", "yaw": 0.0, "pitch": -1.0, "pos": Vector3(-17.4, 0.2, -45.6)},
+	{"name": "arcade", "yaw": 90.0, "pitch": -1.0, "pos": Vector3(-13, 0.2, 78)},
 ]
 
 

@@ -42,6 +42,15 @@ var _crossed := false
 ## and hoped at — it fades, swaps and places the player, and starting a leg
 ## mid-fade teleports the body out from under a transition that is still holding
 ## it.
+## Every crowd standing, not the first one found. `get_first_node_in_group` was
+## fine while the plaza was the only section with a cast in it.
+func _clear_crowds() -> void:
+	for crowd in get_tree().get_nodes_in_group("crowd"):
+		for g in crowd.guests:
+			if is_instance_valid(g):
+				g.queue_free()
+
+
 func _enter_boardwalk() -> void:
 	print("--- crossing to the boardwalk ---")
 	await ParkSections.enter(&"boardwalk", &"plaza")
@@ -51,6 +60,19 @@ func _enter_boardwalk() -> void:
 		_fails.append("could not mount the boardwalk")
 		_report()
 		return
+
+	# Clear the crowd again. The one freed at startup was the plaza's — the
+	# section swap stands up a second one, 57 guests on a 17m strip, and this
+	# test is geometry only for the reason stated up there.
+	#
+	# It failed as a *timeout* rather than a block, which is why it went
+	# unnoticed: bodies pushing back do not stop the player, they slow him to a
+	# third of his pace, and whether 52m fits in the budget then depends on how
+	# many guests the hour has put on the promenade — which depends on how long
+	# the run took to get here. Adding geometry anywhere in the park was enough
+	# to tip it. A test whose verdict moves when an unrelated scene grows is
+	# worse than no test.
+	_clear_crowds()
 	_legs = _boardwalk_legs()
 	_leg = 0
 	_start_leg()
@@ -72,42 +94,59 @@ func _ready() -> void:
 	# the first run failed exactly that way. Whether the crowd congests a
 	# doorway is a real question, but it is a crowd question, and answering it
 	# here would also mean testing against another session's half-edited guest.
-	var crowd := get_tree().get_first_node_in_group("crowd")
-	if crowd != null:
-		for g in crowd.guests:
-			if is_instance_valid(g):
-				g.queue_free()
-		await get_tree().physics_frame
+	_clear_crowds()
+	await get_tree().physics_frame
 
 	# label, from, to, must_arrive
 	_legs = [
-		["plaza -> gap", Vector3(0, 1.2, 10), Vector3(-1.5, 1.2, 34), true],
-		["gap -> mid street", Vector3(-1.5, 1.2, 34), Vector3(-1.5, 1.2, 66), true],
-		["mid street -> gate", Vector3(-1.5, 1.2, 66), Vector3(-1.5, 1.2, 92), true],
-		["through turnstiles", Vector3(-1.5, 1.2, 92), Vector3(-1.5, 1.2, 100), true],
-		["apron -> gate", Vector3(-1.5, 1.2, 104), Vector3(-1.5, 1.2, 92), true],
-		["gate -> mid street", Vector3(-1.5, 1.2, 92), Vector3(-1.5, 1.2, 60), true],
-		["street -> plaza", Vector3(-1.5, 1.2, 60), Vector3(0, 1.2, 20), true],
+		["plaza -> gap", Vector3(0, 1.2, 20), Vector3(-1.5, 1.2, 46), true],
+		["gap -> mid street", Vector3(-1.5, 1.2, 46), Vector3(-1.5, 1.2, 78), true],
+		["mid street -> gate", Vector3(-1.5, 1.2, 78), Vector3(-1.5, 1.2, 104), true],
+		["through turnstiles", Vector3(-1.5, 1.2, 104), Vector3(-1.5, 1.2, 112), true],
+		["apron -> gate", Vector3(-1.5, 1.2, 116), Vector3(-1.5, 1.2, 104), true],
+		["gate -> mid street", Vector3(-1.5, 1.2, 104), Vector3(-1.5, 1.2, 72), true],
+		["street -> plaza", Vector3(-1.5, 1.2, 72), Vector3(0, 1.2, 24), true],
 		# Edge probes. Each must NOT arrive: something should stop the player.
-		["probe west shops", Vector3(-1.5, 1.2, 55), Vector3(-30, 1.2, 55), false],
-		["probe east shops", Vector3(-1.5, 1.2, 70), Vector3(28, 1.2, 70), false],
-		["probe west shops far", Vector3(-1.5, 1.2, 85), Vector3(-30, 1.2, 85), false],
-		# Clear of the flagpole row at z=104, which stopped the first run's probes
-		# before they ever reached the walls they were aimed at.
-		["probe apron west", Vector3(-1.5, 1.2, 107), Vector3(-30, 1.2, 107), false],
-		["probe apron east", Vector3(-1.5, 1.2, 107), Vector3(28, 1.2, 107), false],
-		["probe apron south", Vector3(-1.5, 1.2, 107), Vector3(-1.5, 1.2, 130), false],
-		["probe apron sw", Vector3(-1.5, 1.2, 107), Vector3(-30, 1.2, 130), false],
-		["probe apron se", Vector3(-1.5, 1.2, 107), Vector3(28, 1.2, 130), false],
-		["probe street seam", Vector3(-1.5, 1.2, 41), Vector3(-30, 1.2, 41), false],
+		["probe west shops", Vector3(-1.5, 1.2, 67), Vector3(-30, 1.2, 67), false],
+		["probe east shops", Vector3(-1.5, 1.2, 82), Vector3(28, 1.2, 82), false],
+		["probe west shops far", Vector3(-1.5, 1.2, 97), Vector3(-30, 1.2, 97), false],
+		# Clear of the flagpole row, which stopped the first run's probes before
+		# they ever reached the walls they were aimed at.
+		["probe apron west", Vector3(-1.5, 1.2, 119), Vector3(-30, 1.2, 119), false],
+		["probe apron east", Vector3(-1.5, 1.2, 119), Vector3(28, 1.2, 119), false],
+		["probe apron south", Vector3(-1.5, 1.2, 119), Vector3(-1.5, 1.2, 142), false],
+		["probe apron sw", Vector3(-1.5, 1.2, 119), Vector3(-30, 1.2, 142), false],
+		["probe apron se", Vector3(-1.5, 1.2, 119), Vector3(28, 1.2, 142), false],
+		["probe street seam", Vector3(-1.5, 1.2, 53), Vector3(-30, 1.2, 53), false],
 		# The arcade, which is a room you walk into rather than a scene that
 		# loads. In and back out under your own power, and the back wall holds.
-		["arcade in", Vector3(-6.0, 1.2, 66), Vector3(-20.0, 1.2, 66), true],
-		["arcade back out", Vector3(-20.0, 1.2, 66), Vector3(-4.0, 1.2, 66), true],
-		["arcade rear holds", Vector3(-20.0, 1.2, 66), Vector3(-40.0, 1.2, 66), false],
-		["arcade north holds", Vector3(-20.0, 1.2, 66), Vector3(-20.0, 1.2, 50), false],
-		["arcade south holds", Vector3(-20.0, 1.2, 66), Vector3(-20.0, 1.2, 82), false],
+		["arcade in", Vector3(-6.0, 1.2, 78), Vector3(-20.0, 1.2, 78), true],
+		["arcade back out", Vector3(-20.0, 1.2, 78), Vector3(-4.0, 1.2, 78), true],
+		["arcade rear holds", Vector3(-20.0, 1.2, 78), Vector3(-40.0, 1.2, 78), false],
+		["arcade north holds", Vector3(-20.0, 1.2, 78), Vector3(-20.0, 1.2, 62), false],
+		["arcade south holds", Vector3(-20.0, 1.2, 78), Vector3(-20.0, 1.2, 94), false],
 	]
+	# The four spokes, ring to passage mouth, one leg per dogleg.
+	#
+	# **These are the legs that were missing.** Every threshold test below starts
+	# at the mouth, so nothing here had ever walked the plaza itself — and three
+	# of the four spokes in `ParkPlan.WALKWAYS` turned out to run through
+	# buildings, `spoke_ne` for 21m of it. A passage nothing can reach passes
+	# every test aimed at the passage.
+	for s in [
+		["nnw", [Vector3(-8.0, 1.2, -13.86), Vector3(-14.0, 1.2, -30.0),
+			Vector3(-16.9, 1.2, -46.0)]],
+		["ne", [Vector3(13.86, 1.2, -8.0), Vector3(30.0, 1.2, -24.0),
+			Vector3(46.0, 1.2, -27.4)]],
+		["se", [Vector3(13.86, 1.2, 8.0), Vector3(27.0, 1.2, 13.0),
+			Vector3(34.0, 1.2, 26.0), Vector3(46.0, 1.2, 31.3)]],
+		["sw", [Vector3(-8.0, 1.2, 13.86), Vector3(-28.0, 1.2, 30.0),
+			Vector3(-31.3, 1.2, 46.0)]],
+	]:
+		var run: Array = s[1]
+		for i in run.size() - 1:
+			_legs.append(["spoke %s %d" % [s[0], i], run[i], run[i + 1], true])
+
 	# The four scaffolded section thresholds. Head-on plus both corners, because
 	# the leak in a gate is never the middle — it is the hand's width between
 	# the post and the wall it was supposed to meet.
@@ -115,10 +154,10 @@ func _ready() -> void:
 	# and reach the end, then push on past the end and be stopped. The last of
 	# the three is the one that matters — a passage that leaks is a hole.
 	for t in [
-		["nnw", Vector3(-13, 1.2, -34), Vector3(-13, 1.2, -46), Vector3(-22, 1.2, -46), Vector3(-40, 1.2, -46)],
-		["ne", Vector3(34, 1.2, -21), Vector3(46, 1.2, -21), Vector3(46, 1.2, -30), Vector3(46, 1.2, -48)],
-		["se", Vector3(34, 1.2, 24), Vector3(46, 1.2, 24), Vector3(46, 1.2, 33), Vector3(46, 1.2, 51)],
-		["sw", Vector3(-24, 1.2, 34), Vector3(-24, 1.2, 46), Vector3(-33, 1.2, 46), Vector3(-51, 1.2, 46)],
+		["nnw", Vector3(-16.9, 1.2, -46), Vector3(-16.9, 1.2, -58), Vector3(-27.9, 1.2, -58), Vector3(-45, 1.2, -58)],
+		["ne", Vector3(46, 1.2, -27.4), Vector3(58, 1.2, -27.4), Vector3(58, 1.2, -38.4), Vector3(58, 1.2, -56)],
+		["se", Vector3(46, 1.2, 31.3), Vector3(58, 1.2, 31.3), Vector3(58, 1.2, 41.3), Vector3(58, 1.2, 59)],
+		["sw", Vector3(-31.3, 1.2, 46), Vector3(-31.3, 1.2, 58), Vector3(-41.3, 1.2, 58), Vector3(-59, 1.2, 58)],
 	]:
 		_legs.append(["way %s in" % t[0], t[1], t[2], true])
 		_legs.append(["way %s turn" % t[0], t[2], t[3], true])
@@ -142,32 +181,32 @@ func _boardwalk_legs() -> Array:
 	return [
 		["bw arrive -> lane", arrive, alley_in, true],
 		["bw lane -> alley", alley_in, alley_out, true],
-		["bw alley -> pier head", prom, Vector3(-78.0, y, ParkPlan.ALLEY_Z), true],
-		["bw out the pier", Vector3(-78.0, y, ParkPlan.ALLEY_Z),
-			Vector3(-121.0, y, ParkPlan.ALLEY_Z), true],
-		["bw pavilion holds", Vector3(-121.0, y, ParkPlan.ALLEY_Z),
-			Vector3(-134.0, y, ParkPlan.ALLEY_Z), false],
-		["bw back down pier", Vector3(-121.0, y, ParkPlan.ALLEY_Z),
-			Vector3(-74.0, y, ParkPlan.ALLEY_Z), true],
+		["bw alley -> pier head", prom, Vector3(-90.0, y, ParkPlan.ALLEY_Z), true],
+		["bw out the pier", Vector3(-90.0, y, ParkPlan.ALLEY_Z),
+			Vector3(-133.0, y, ParkPlan.ALLEY_Z), true],
+		["bw pavilion holds", Vector3(-133.0, y, ParkPlan.ALLEY_Z),
+			Vector3(-146.0, y, ParkPlan.ALLEY_Z), false],
+		["bw back down pier", Vector3(-133.0, y, ParkPlan.ALLEY_Z),
+			Vector3(-86.0, y, ParkPlan.ALLEY_Z), true],
 		# The walk north weaves, and both pinches are real. The tables outside the
 		# corn-dog stand and the wheel's platform leave 4m between them; then the
 		# wheel's ticket booth takes the west half of what is left. A straight
 		# line up the promenade walks into one or the other, which is the same
 		# route the crowd's graph threads and for the same reason.
-		["bw north past tables", Vector3(-68.5, y, -4.0), Vector3(-68.5, y, -14.0), true],
-		["bw past the booth", Vector3(-68.5, y, -14.0), Vector3(-66.5, y, -24.0), true],
-		["bw wheel -> coaster", Vector3(-66.5, y, -24.0), Vector3(-68.0, y, -52.0), true],
-		["bw north end holds", Vector3(-70.0, y, -72.0), Vector3(-70.0, y, -95.0), false],
-		["bw south along strip", Vector3(-70.0, y, 10.0), Vector3(-70.0, y, 62.0), true],
-		["bw south end holds", Vector3(-70.0, y, 70.0), Vector3(-70.0, y, 92.0), false],
+		["bw north past tables", Vector3(-80.5, y, -4.0), Vector3(-80.5, y, -14.0), true],
+		["bw past the booth", Vector3(-80.5, y, -14.0), Vector3(-78.5, y, -24.0), true],
+		["bw wheel -> coaster", Vector3(-78.5, y, -24.0), Vector3(-80.0, y, -52.0), true],
+		["bw north end holds", Vector3(-82.0, y, -72.0), Vector3(-82.0, y, -95.0), false],
+		["bw south along strip", Vector3(-82.0, y, 10.0), Vector3(-82.0, y, 62.0), true],
+		["bw south end holds", Vector3(-82.0, y, 70.0), Vector3(-82.0, y, 92.0), false],
 		# Probes. None of these may arrive.
-		["bw water holds", Vector3(-70.0, y, 30.0), Vector3(-92.0, y, 30.0), false],
-		["bw water holds n", Vector3(-70.0, y, -50.0), Vector3(-92.0, y, -50.0), false],
-		["bw shops hold", Vector3(-68.0, y, 26.0), Vector3(-48.0, y, 26.0), false],
-		["bw yard holds", Vector3(-70.0, y, 70.0), Vector3(-50.0, y, 70.0), false],
-		["bw coaster fence holds", Vector3(-68.0, y, -60.0), Vector3(-48.0, y, -60.0), false],
-		["bw bluff holds", Vector3(-50.0, y, 20.0), Vector3(-36.0, y, 20.0), false],
-		["bw well holds", Vector3(-50.0, y, -4.0), Vector3(-36.0, y, -4.0), false],
+		["bw water holds", Vector3(-82.0, y, 30.0), Vector3(-104.0, y, 30.0), false],
+		["bw water holds n", Vector3(-82.0, y, -50.0), Vector3(-104.0, y, -50.0), false],
+		["bw shops hold", Vector3(-80.0, y, 26.0), Vector3(-60.0, y, 26.0), false],
+		["bw yard holds", Vector3(-82.0, y, 70.0), Vector3(-62.0, y, 70.0), false],
+		["bw coaster fence holds", Vector3(-80.0, y, -60.0), Vector3(-60.0, y, -60.0), false],
+		["bw bluff holds", Vector3(-62.0, y, 20.0), Vector3(-48.0, y, 20.0), false],
+		["bw well holds", Vector3(-62.0, y, -4.0), Vector3(-48.0, y, -4.0), false],
 	]
 
 

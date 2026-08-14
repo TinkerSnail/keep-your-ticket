@@ -24,6 +24,7 @@ extends SceneTree
 const Plan := preload("res://scripts/park_plan.gd")
 
 const OUT_PATH := "res://scenes/world/plaza_props.tscn"
+const PAVING_PATH := "res://scenes/world/plaza_paving.tscn"
 const SKYLINE_PATH := "res://scenes/world/plaza_skyline.tscn"
 const STAIR_PATH := "res://scenes/world/west_stair.tscn"
 const ENTRANCE_PATH := "res://scenes/world/entrance.tscn"
@@ -60,11 +61,13 @@ var mats: Dictionary = {}
 
 
 func _initialize() -> void:
+	_build_textures()
 	_build_materials()
 
 	_root = Node3D.new()
 	_root.name = "props"
 	_begin_scene()
+	_dilate_plaza = true
 	_benches()
 	_lamps()
 	_bins()
@@ -81,6 +84,13 @@ func _initialize() -> void:
 	_litter()
 	_picnic()
 	_crates()
+	# Everything below is placed in final coordinates against the 104m plaza,
+	# so the dilation comes off first. These were never in the 80m plaza and
+	# have nothing to be mapped from — they exist because it grew.
+	_dilate_plaza = false
+	_trees()
+	_outer_furniture()
+	_picture_spots()
 	if not _save(_root, OUT_PATH):
 		return
 
@@ -141,6 +151,35 @@ func _initialize() -> void:
 	if not _save(_root, THRESHOLD_PATH):
 		return
 
+	# The circulation, paved. Its own scene rather than a handful of nodes in
+	# `plaza_props.tscn`, because paving is not a prop: the props are 214 things
+	# scattered on a floor and this is the floor saying where the walking goes.
+	#
+	# **Built last, and that is load-bearing.** `_begin_scene` hands each scene a
+	# seam seed five on from the last, so a scene inserted anywhere but the end
+	# shifts the displacement of every scene after it — and a shifted ordinal is
+	# how two untouched shapes end up sharing a plane. Adding this one at the top
+	# of the run put a bulkhead and a door in `entrance.tscn` on the same face,
+	# four scenes away and unedited. Nothing here is a CSG shape, so the seed it
+	# gets does not matter to it; it matters to everything it would displace.
+	_root = Node3D.new()
+	_root.name = "paving"
+	_begin_scene()
+	_paving()
+	if not _save(_root, PAVING_PATH):
+		return
+
+	# What the perimeter is made of. Last for the same reason paving was last —
+	# a scene inserted before an existing one re-planes shapes in scenes nobody
+	# edited — and last for a second reason of its own: it reads `plaza.tscn`,
+	# so it must not be the thing that decides whether `plaza.tscn` can load.
+	_root = Node3D.new()
+	_root.name = "frontage"
+	_begin_scene()
+	_plaza_frontage()
+	if not _save(_root, FRONTAGE_PATH):
+		return
+
 	quit()
 
 
@@ -160,6 +199,382 @@ func _save(node: Node3D, path: String) -> bool:
 	return true
 
 
+# ---------------------------------------------------------------------------
+# Ground textures
+# ---------------------------------------------------------------------------
+
+## The first textures in the project, and they are generated rather than painted
+## for the same reason everything else here is: there is no art yet, and a
+## greybox that waits for art gets no ground detail at all.
+##
+## What they are for is not decoration. A flat-shaded floor gives the eye nothing
+## to measure against, so walking across 80m of plaza reads as sliding — there is
+## no optical flow, and speed and distance both stop being legible. A joint
+## pattern at a known size fixes that, and it is the cheapest thing in the park
+## that says how big the park is.
+##
+## **Two surfaces, and which way round matters.** A real park paves its
+## circulation in asphalt and its standing room in brick — the path is the cheap
+## hard-wearing thing you walk along and the plaza is the expensive decorative
+## thing it crosses. Built the other way round, with pavers on the walkways and
+## flat ground either side, the plan reads inside out: the paths look like
+## features and the plaza looks like the gap between them.
+##
+## So the walkways of `ParkPlan.WALKWAYS` are asphalt, and the ground they are
+## laid over is brick. That is also what makes them legible at all — dark
+## circulation against a warm floor is a stronger read than a lighter grey
+## against a slightly different grey, and it is the read the reference parks use.
+const TEX_DIR := "res://assets/textures"
+const BRICK_ALBEDO_PATH := "res://assets/textures/brick_albedo.res"
+const BRICK_NORMAL_PATH := "res://assets/textures/brick_normal.res"
+const ASPHALT_ALBEDO_PATH := "res://assets/textures/asphalt_albedo.res"
+const ASPHALT_NORMAL_PATH := "res://assets/textures/asphalt_normal.res"
+
+## Decking, twice — once with the boards running east-west and once north-south.
+##
+## Two files rather than one, because the surface has to carry a direction and
+## the material is world-space projected, so there is no way to turn it per
+## surface. That direction is the whole reason planking is textured at all. The
+## boardwalk cannot show its circulation the way the plaza does — the promenade
+## *is* the path, and painting a walkway down the middle of 160m of decking
+## would invent a distinction that is not there. What it can do is lay the boards
+## across the direction of travel, which reads as "along" from any angle, and
+## turn them where the walk turns. The strip changes direction twice, at the
+## alley and at the pier, and both are reveals; boards that turn with them say so
+## underfoot at the moment it happens.
+const PLANK_ALBEDO_PATH := "res://assets/textures/plank_albedo.res"
+const PLANK_NORMAL_PATH := "res://assets/textures/plank_normal.res"
+const PLANK_X_ALBEDO_PATH := "res://assets/textures/plank_cross_albedo.res"
+const PLANK_X_NORMAL_PATH := "res://assets/textures/plank_cross_normal.res"
+
+## A 200x100mm clay paver, which is the real brick, at 512px over 3.2m: 16 across
+## and 32 courses, both dividing the tile exactly. That last part is the whole
+## trick — a brick that does not fit a whole number of times leaves a ruled line
+## every 3.2m, and on open ground that line is the only thing you would see.
+##
+## 6.25mm to the pixel, so a 10mm joint is 1.6px. Fine, but the smallest the tile
+## can go: at 256px the joint is under a pixel and the first mip erases it.
+const BRICK_SIZE := 512
+const BRICK_METRES := 3.2
+const BRICK_COLS := 16
+const BRICK_ROWS := 32
+
+## Asphalt has no unit to fit, so it is sized by its grain instead. 512px over 3m
+## is 5.9mm to the pixel, which is the coarsest the tile can be and still resolve
+## aggregate: a chip is about a centimetre, and at the 256px/4m this started at
+## that is under a pixel. Which is exactly how it looked — a flat grey road, the
+## same nothing the untextured ground was, only greyer.
+const ASPHALT_SIZE := 512
+const ASPHALT_METRES := 3.0
+
+## Sixteen 140mm boards over 2.24m, 32px each on a 512px tile. 4.4mm to the
+## pixel, so the 6mm gap between boards is a pixel and a half — thin, and the
+## thinnest the tile can be and still have the gap survive its own first mip.
+const PLANK_SIZE := 512
+const PLANK_METRES := 2.24
+const PLANK_BOARDS := 16
+
+
+func _build_textures() -> void:
+	DirAccess.make_dir_recursive_absolute(TEX_DIR)
+	_brick_texture()
+	_asphalt_texture()
+	_plank_texture()
+
+
+## Running bond, because stack bond reads as a grid and a grid at this size reads
+## as tiling. Height first and albedo derived from it, so the shading and the
+## relief cannot disagree about where a joint is.
+func _brick_texture() -> void:
+	var n := BRICK_SIZE
+	var cw := float(n) / float(BRICK_COLS)
+	var ch := float(n) / float(BRICK_ROWS)
+	var joint := 1.6
+	var bevel := 2.0
+
+	var height := PackedFloat32Array()
+	height.resize(n * n)
+	var albedo := Image.create_empty(n, n, true, Image.FORMAT_RGB8)
+	for py in n:
+		var fy := float(py) + 0.5
+		var row := int(floor(fy / ch))
+		var ly := fy - float(row) * ch
+		# Every other course shifted half a brick. 32 courses is even, so the
+		# shift pattern wraps with the tile.
+		var offx := 0.0 if row % 2 == 0 else cw * 0.5
+		for px in n:
+			var fx := fposmod(float(px) + 0.5 + offx, float(n))
+			var col := int(floor(fx / cw))
+			var lx := fx - float(col) * cw
+			var d: float = min(min(lx, cw - lx), min(ly, ch - ly))
+			var h: float = clampf((d - joint * 0.5) / bevel, 0.0, 1.0)
+			height[py * n + px] = h
+
+			# Brick varies far more from brick to brick than a cast slab does —
+			# it is fired clay and the colour is the kiln — so the per-unit term
+			# is wide on purpose. Under it, weathering that ignores the bond, and
+			# grit that ignores everything.
+			var tone := 0.80 + 0.34 * _hash01(col, row, 7)
+			var mottle := 0.92 + 0.16 * _vnoise(float(px) / n, float(py) / n, 6, 11)
+			var grit := 0.96 + 0.08 * _hash01(px, py, 3)
+			# Mortar is paler and greyer than the brick it holds, so the joint
+			# does not just go dark — it goes flat.
+			var lit := 0.62 + 0.38 * h
+			var v: float = clampf(tone * mottle * grit * lit, 0.0, 1.0)
+			albedo.set_pixel(px, py, Color(v, v, v))
+	albedo.generate_mipmaps()
+
+	_save_texture(albedo, BRICK_ALBEDO_PATH, false)
+	_save_texture(_normal_from(height, n, 2.0), BRICK_NORMAL_PATH, true)
+
+
+## No unit at all, which is the point: asphalt is legible as asphalt precisely
+## because nothing about it repeats at a size you could name. What it has is
+## aggregate — pale stones in a dark binder — and blotching from where it was
+## laid and what has worn it.
+##
+## The mean is kept near 0.8 rather than 1.0 so the bright stones have somewhere
+## to go. Push the average up and every stone clips to white, which is the same
+## as having no stones.
+func _asphalt_texture() -> void:
+	var n := ASPHALT_SIZE
+	var height := PackedFloat32Array()
+	height.resize(n * n)
+	var albedo := Image.create_empty(n, n, true, Image.FORMAT_RGB8)
+	for py in n:
+		for px in n:
+			var u := float(px) / float(n)
+			var v := float(py) / float(n)
+			# A 256-lattice on a 512px tile is two pixels a cell, which at this
+			# scale is a 12mm chip. That is the real size of the stone in a
+			# wearing course, and resolving it is the whole reason for 512.
+			var chip := _vnoise(u, v, 256, 41)
+			var grain := _hash01(px, py, 43)
+			# Relief is deliberately coarser than the chips — 5cm and 20cm, the
+			# undulation of a laid surface rather than the stones in it.
+			#
+			# Both finer attempts were wrong the same way. A height field with
+			# per-pixel grain, or with the 12mm chips in it, is white noise as far
+			# as the derivative is concerned: no mip level means anything, so it
+			# glitters underfoot, and it will not compress — the asphalt normal
+			# alone was 765KB of the repository, four times its own albedo. A
+			# 1cm stone does not shade at eye height anyway. What does is the
+			# dip and swell the roller left.
+			height[py * n + px] = 0.7 * _vnoise(u, v, 64, 49) \
+				+ 0.3 * _vnoise(u, v, 16, 51)
+
+			var agg := 0.66 + 0.46 * chip
+			# The few stones that catch the light. Without this the surface is
+			# uniform noise, which reads as static rather than as a road.
+			if chip > 0.78:
+				agg += (chip - 0.78) * 1.5
+			agg *= 0.97 + 0.06 * grain
+			# Laid in passes and worn in patches. Kept gentle — asphalt that
+			# blotches hard reads as mud, and the 3m repeat would start to show.
+			var patch := 0.88 + 0.20 * _vnoise(u, v, 4, 45)
+			var wear := 0.94 + 0.12 * _vnoise(u, v, 12, 47)
+			var w: float = clampf(agg * patch * wear * 0.86, 0.0, 1.0)
+			albedo.set_pixel(px, py, Color(w, w, w))
+	albedo.generate_mipmaps()
+
+	_save_texture(albedo, ASPHALT_ALBEDO_PATH, false)
+	_save_texture(_normal_from(height, n, 0.9), ASPHALT_NORMAL_PATH, true)
+
+
+## Weathered decking, generated once and written twice — the second copy
+## transposed, which is what gives the pier and the alley boards at right angles
+## to the promenade's.
+##
+## Transposed rather than rotated, and the difference is a mirror. It does not
+## matter here because every asymmetry in the pattern is noise, and a mirrored
+## random plank is still a random plank. It would matter the moment anything in
+## the tile had a handedness — a diagonal, a printed mark — and then this has to
+## become a rotation.
+##
+## Three things make planking read as planking rather than as stripes: the gap,
+## which is a shadow and not a line; the butt joint, which is where one board
+## stops and the next starts, and is the only thing that says a board has a
+## length; and grain, which runs *along* the board and is therefore the one
+## anisotropic term in any of these textures.
+func _plank_texture() -> void:
+	var n := PLANK_SIZE
+	var bw := float(n) / float(PLANK_BOARDS)
+	var gap := 1.5
+	var bevel := 1.5
+
+	var height := PackedFloat32Array()
+	height.resize(n * n)
+	var albedo := Image.create_empty(n, n, true, Image.FORMAT_RGB8)
+	# `a` runs along the board, `b` across it. Everything below is written in
+	# those terms and the mapping to pixels happens once, here, so the transpose
+	# at the end is the only place the two orientations differ.
+	for py in n:
+		for px in n:
+			var a := float(px) + 0.5
+			var b := float(py) + 0.5
+			var board := int(floor(b / bw))
+			var across := b - float(board) * bw
+
+			# The gap between boards, and the one butt joint on this board. The
+			# joint sits at a per-board position so the ends do not line up into
+			# a seam across the deck, which is the thing carpenters stagger to
+			# avoid and the thing that makes a repeating tile obvious.
+			var d_edge: float = min(across, bw - across)
+			var joint_at := _hash01(board, 0, 61) * float(n)
+			var d_joint := absf(fposmod(a - joint_at + float(n) * 0.5, float(n))
+				- float(n) * 0.5)
+			var h: float = clampf((d_edge - gap * 0.5) / bevel, 0.0, 1.0)
+			h = minf(h, clampf((d_joint - 1.0) / bevel, 0.0, 1.0) * 0.4 + 0.6)
+			# A shallow crown across each board, so a low sun catches the middle
+			# of every one of them and the deck reads as boards from fifty metres
+			# where the gaps have long since mipped away.
+			h += 0.10 * sin(PI * across / bw)
+
+			# Grain: slow along the board, fast across it. Phase-shifted per
+			# board so no two are the same piece of wood.
+			var ua := (a / float(n)) + float(board) * 0.137
+			var ub := b / float(n)
+			var grain := 0.6 * _vnoise2(ua, ub, 4, 128, 71) \
+				+ 0.4 * _vnoise2(ua, ub, 12, 48, 73)
+			height[py * n + px] = h + grain * 0.12
+
+			# Weathered boards vary widely board to board — they were cut from
+			# different trees and replaced in different decades.
+			var tone := 0.78 + 0.34 * _hash01(board, 0, 63)
+			var wear := 0.94 + 0.12 * _vnoise2(ua, ub, 3, 5, 75)
+			var lit := 0.30 + 0.70 * clampf(h, 0.0, 1.0)
+			var v: float = clampf(tone * wear * lit * (0.82 + 0.30 * grain),
+				0.0, 1.0)
+			albedo.set_pixel(px, py, Color(v, v, v))
+	albedo.generate_mipmaps()
+
+	# The cross-grain copy is built from a transposed *height field* rather than
+	# by transposing the finished normal map. R and G encode the derivative along
+	# U and V, so swapping the image's axes without swapping those two channels
+	# produces a map whose relief runs one way and whose lighting runs the other
+	# — grooves lit from along their own length, which reads as a smeared sheen
+	# and not as anything.
+	var height_t := PackedFloat32Array()
+	height_t.resize(n * n)
+	for py in n:
+		for px in n:
+			height_t[py * n + px] = height[px * n + py]
+
+	_save_texture(albedo, PLANK_ALBEDO_PATH, false)
+	_save_texture(_normal_from(height, n, 1.6), PLANK_NORMAL_PATH, true)
+	_save_texture(_transposed(albedo), PLANK_X_ALBEDO_PATH, false)
+	_save_texture(_normal_from(height_t, n, 1.6), PLANK_X_NORMAL_PATH, true)
+
+
+## The same image with its two axes swapped. Mips are regenerated rather than
+## transposed, because `get_pixel` only reads mip zero and a texture whose mips
+## came from somewhere else is a texture that changes pattern with distance.
+func _transposed(src: Image) -> Image:
+	var n := src.get_width()
+	var flat := src.duplicate() as Image
+	flat.clear_mipmaps()
+	var out := Image.create_empty(n, n, true, src.get_format())
+	for py in n:
+		for px in n:
+			out.set_pixel(px, py, flat.get_pixel(py, px))
+	out.generate_mipmaps()
+	return out
+
+
+## Central differences on a height field, wrapped, so the normal map tiles with
+## the albedo instead of flattening at the tile edge.
+func _normal_from(height: PackedFloat32Array, n: int, strength: float) -> Image:
+	var normal := Image.create_empty(n, n, true, Image.FORMAT_RGB8)
+	for py in n:
+		for px in n:
+			var l := height[py * n + posmod(px - 1, n)]
+			var r := height[py * n + posmod(px + 1, n)]
+			var u := height[posmod(py - 1, n) * n + px]
+			var d := height[posmod(py + 1, n) * n + px]
+			var vec := Vector3(-(r - l) * strength, -(d - u) * strength, 1.0).normalized()
+			normal.set_pixel(px, py, Color(vec.x * 0.5 + 0.5, vec.y * 0.5 + 0.5,
+				vec.z * 0.5 + 0.5))
+	normal.generate_mipmaps()
+	return normal
+
+
+## Written as `.res` rather than `.png` on purpose. A PNG is an *imported* asset:
+## it needs an editor pass to produce the `.import` file and the compressed
+## texture beside it, so a generator that emits one writes something the next
+## `--script` run cannot load. A `PortableCompressedTexture2D` saved as a native
+## resource carries its own pixels and loads with no import step at all, which
+## keeps the whole park one command to rebuild.
+##
+## Saved with `FLAG_CHANGE_PATH` so the texture in hand becomes the one on disk.
+## Without it the in-memory copy stays pathless, every scene that uses it packs
+## its own base64 duplicate, and the same tile lands several times in the
+## repository as text.
+##
+## `keep_compressed_buffer` is the fifth way the tooling lies, and it is the same
+## shape as the other four: it fails by succeeding. Outside the editor the class
+## throws the compressed bytes away as soon as the GPU has them, because nothing
+## at runtime is going to re-save a texture. So `ResourceSaver.save` returns OK
+## and writes a well-formed 360-byte resource with no pixels in it, `load()`
+## returns a texture object, the material accepts it, and the ground is untextured
+## for a reason nothing anywhere reports. Held open, the same call writes 100KB.
+func _save_texture(img: Image, path: String, is_normal: bool) -> void:
+	var tex := PortableCompressedTexture2D.new()
+	tex.keep_compressed_buffer = true
+	tex.create_from_image(img, PortableCompressedTexture2D.COMPRESSION_MODE_LOSSLESS,
+		is_normal)
+	var err := ResourceSaver.save(tex, path, ResourceSaver.FLAG_CHANGE_PATH)
+	if err != OK:
+		push_error("texture save failed: %s (%d)" % [path, err])
+		quit(1)
+		return
+	# Read back rather than trust the byte count. A grid of grooves is nearly all
+	# flat, so the normal map losslessly compresses to about 2KB and any size
+	# threshold big enough to catch the empty stub also rejects it. Dimensions
+	# are the honest test: the stub reports none.
+	var back := ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_IGNORE) as Texture2D
+	if back == null or back.get_width() != img.get_width():
+		push_error("texture %s came back %s — the pixels did not make it"
+			% [path, "null" if back == null else str(back.get_size())])
+		quit(1)
+		return
+	print("wrote %dx%d, %d mips, %d bytes to %s" % [img.get_width(), img.get_height(),
+		img.get_mipmap_count(), FileAccess.get_file_as_bytes(path).size(), path])
+
+
+## A stable 0..1 from a pair of integers. Deterministic across runs, which
+## matters: the generator is re-run constantly and a texture that changed every
+## time would put a new blob in the diff for every unrelated edit.
+func _hash01(x: int, y: int, salt: int) -> float:
+	var h := (x * 374761393 + y * 668265263 + salt * 2246822519) & 0x7fffffff
+	h = ((h ^ (h >> 13)) * 1274126177) & 0x7fffffff
+	return float(h % 65536) / 65535.0
+
+
+## Value noise on a `g`x`g` lattice, wrapping at the tile edge.
+func _vnoise(u: float, v: float, g: int, salt: int) -> float:
+	return _vnoise2(u, v, g, g, salt)
+
+
+## The same, with a different lattice count on each axis — which is the only way
+## to get grain. Wood is the one surface here that is not the same in both
+## directions: slow along the board and fast across it is what makes a streak
+## instead of a blotch.
+func _vnoise2(u: float, v: float, gx: int, gy: int, salt: int) -> float:
+	var fx := u * float(gx)
+	var fy := v * float(gy)
+	var x0 := int(floor(fx))
+	var y0 := int(floor(fy))
+	var tx := fx - float(x0)
+	var ty := fy - float(y0)
+	tx = tx * tx * (3.0 - 2.0 * tx)
+	ty = ty * ty * (3.0 - 2.0 * ty)
+	var a := _hash01(posmod(x0, gx), posmod(y0, gy), salt)
+	var b := _hash01(posmod(x0 + 1, gx), posmod(y0, gy), salt)
+	var c := _hash01(posmod(x0, gx), posmod(y0 + 1, gy), salt)
+	var d := _hash01(posmod(x0 + 1, gx), posmod(y0 + 1, gy), salt)
+	return lerp(lerp(a, b, tx), lerp(c, d, tx), ty)
+
+
 func _build_materials() -> void:
 	var defs := {
 		"wood": [Color(0.55, 0.42, 0.3), 0.9, 0.0],
@@ -169,6 +584,10 @@ func _build_materials() -> void:
 		"yellow": [Color(0.93, 0.76, 0.24), 0.7, 0.0],
 		"blue": [Color(0.27, 0.5, 0.72), 0.7, 0.0],
 		"accent": [Color(0.78, 0.54, 0.42), 0.85, 0.0],
+		# The perimeter's own masonry. Matches `mat_building` in `plaza.tscn`
+		# exactly and has to: parapets and pediments are the wall carrying on
+		# upward, and a shade out reads as a different building stacked on top.
+		"building": [Color(0.72, 0.71, 0.69), 0.9, 0.0],
 		# Washed toward the sky so distance reads without touching the environment.
 		"far": [Color(0.66, 0.68, 0.72), 0.95, 0.0],
 		"far_warm": [Color(0.72, 0.66, 0.63), 0.95, 0.0],
@@ -180,14 +599,14 @@ func _build_materials() -> void:
 		# Shop glazing. Dark and a little slick, so a bay reads as a window
 		# rather than as a differently-coloured piece of the same wall.
 		"glass": [Color(0.2, 0.24, 0.29), 0.25, 0.0],
-		# Deck boards. Greyer and cooler than `wood`, which is furniture — planking
-		# that has had weather on it is not the same colour as a bench slat, and
-		# the promenade is 17m wide, so getting it wrong is 2,700m² of wrong.
-		"plank": [Color(0.62, 0.56, 0.48), 0.95, 0.0],
 		# Awnings and the stripes on things. Saturated on purpose: the boardwalk is
 		# the one section allowed to be loud, and it is what the late sun hits.
 		"canvas": [Color(0.86, 0.4, 0.33), 0.85, 0.0],
 		"canvas_alt": [Color(0.35, 0.55, 0.66), 0.85, 0.0],
+		# The only green in the park, and it earns the exception: a canopy in
+		# the grey palette reads as a boulder on a stick. Dusty olive rather
+		# than leaf, so it sits with everything else rather than shouting.
+		"foliage": [Color(0.5, 0.56, 0.42), 0.95, 0.0],
 	}
 	for key in defs:
 		var m := StandardMaterial3D.new()
@@ -195,6 +614,60 @@ func _build_materials() -> void:
 		m.roughness = defs[key][1]
 		m.metallic = defs[key][2]
 		mats[key] = m
+
+	# The two ground surfaces. Brick is warm and a little dusty rather than new
+	# terracotta — a park floor has had twenty summers on it.
+	#
+	# Asphalt is dark, and the first pass had it far too light on the theory that
+	# faded asphalt is grey rather than black. It is, but "grey" in the sun is
+	# still about a quarter of the light back, and 0.45 put the street somewhere
+	# between concrete and dust. Under a bright sky the tint has to sit well
+	# below where the surface looks right on paper.
+	mats["brick"] = _ground_material(Color(0.64, 0.50, 0.43),
+		BRICK_ALBEDO_PATH, BRICK_NORMAL_PATH, BRICK_METRES, 0.6, 0.94)
+	mats["asphalt"] = _ground_material(Color(0.27, 0.268, 0.265),
+		ASPHALT_ALBEDO_PATH, ASPHALT_NORMAL_PATH, ASPHALT_METRES, 0.9, 0.97)
+
+	# Decking, in the two directions boards run down there. Greyer and cooler
+	# than `wood`, which is furniture: planking that has had weather on it is not
+	# the colour of a bench slat, and the promenade is 17m wide, so getting it
+	# wrong is 2,700m² of wrong.
+	#
+	# Which one a surface takes is decided by which way you walk over it, not by
+	# where it is — see `_boardwalk_paving`.
+	mats["plank"] = _ground_material(Color(0.68, 0.62, 0.54),
+		PLANK_ALBEDO_PATH, PLANK_NORMAL_PATH, PLANK_METRES, 0.8, 0.95)
+	mats["plank_cross"] = _ground_material(Color(0.68, 0.62, 0.54),
+		PLANK_X_ALBEDO_PATH, PLANK_X_NORMAL_PATH, PLANK_METRES, 0.8, 0.95)
+
+
+## World-space triplanar rather than the surface's own UVs, and that is the whole
+## reason this is one material instead of forty.
+##
+## A walkway is one quad per segment at whatever length the segment happens to
+## be, so quad UVs would give every segment its own tiling rate and every joint
+## in the polyline a visible break in the pattern. Projected from world position
+## the pattern is continuous across the entire park, and two quads meeting at a
+## corner line up because they are reading the same grid rather than each
+## starting one. The same applies to the brick: the plaza's floor, the street's
+## and the apron's are three separate slabs and one continuous bond.
+func _ground_material(tint: Color, albedo_path: String, normal_path: String,
+		metres: float, normal_scale: float, roughness: float) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = tint
+	m.albedo_texture = load(albedo_path)
+	m.normal_enabled = true
+	m.normal_texture = load(normal_path)
+	m.normal_scale = normal_scale
+	m.roughness = roughness
+	m.uv1_triplanar = true
+	m.uv1_world_triplanar = true
+	m.uv1_scale = Vector3.ONE / metres
+	# Anisotropic, not because it is prettier but because a ground plane is seen
+	# almost edge-on for most of its area, and trilinear alone turns the far half
+	# of the plaza into flat grey.
+	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+	return m
 
 
 ## Rotation about Y, then a tilt about the object's own X. Engine maths only.
@@ -209,8 +682,26 @@ func _xform(theta: float, phi: float, origin: Vector3) -> Transform3D:
 ## Place a part sitting at `local` within an assembly whose base is at `base`
 ## and which is turned by `theta`. The offset uses the same rotation the part
 ## does, so parts cannot drift away from each other.
+##
+## When the plaza is being dilated the *base* moves and the offsets do not,
+## which is the whole reason this indirection is worth having: every prop in the
+## plaza is an assembly of parts hung off one base, so moving bases moves
+## assemblies rigidly. Dilating each emitted part instead would stretch a bench
+## away from its own legs.
 func _place(base: Vector3, local: Vector3, theta: float) -> Vector3:
-	return base + Basis(Vector3.UP, theta) * local
+	return _plaza_out(base) + Basis(Vector3.UP, theta) * local
+
+
+## True only while the plaza's prop scene is being built. Nothing else in the
+## park is dilated — the west and the boardwalk moved by a flat translation, and
+## the passages are laid out from the plan directly.
+var _dilate_plaza := false
+
+
+## The map itself lives in `ParkPlan`, because `gen_crowd.gd` needs the same one
+## to know where these props ended up.
+func _plaza_out(p: Vector3) -> Vector3:
+	return Plan.plaza_out(p) if _dilate_plaza else p
 
 
 ## How far apart two shapes' faces have to be before the depth buffer can tell
@@ -382,6 +873,219 @@ func _sphere(nm: String, origin: Vector3, radius: float, mat: String, squash := 
 	_add(s, nm)
 
 
+# ---------------------------------------------------------------------------
+# Paving
+# ---------------------------------------------------------------------------
+
+## `ParkPlan.WALKWAYS` has been the park's circulation since the minimap needed
+## something path-shaped to draw, and until now the only place it existed was on
+## that minimap. Which is backwards: a plan the player can read on a map and not
+## on the ground is a plan the park does not actually have.
+##
+## So this lays the same polylines as paving. Nothing new is decided here — the
+## centre lines and the widths are read out of the plan, and if a walkway moves
+## the paving moves with it.
+##
+## 12mm above the ground it sits on, and **no collision**. The lip is the reason
+## for both: `CharacterBody3D` has no step-up, so paving the player could stand
+## on would be a 12mm kerb around every path in the park, and a capsule catches
+## on those. Laid over the floor rather than into it, the player walks on the
+## ground and looks at the paving.
+const PAVE_LIFT := 0.012
+
+## Everything the plaza side walks on.
+##
+## The four threshold spokes are included even though what they lead to is
+## scaffolding, because the paving is what makes a scaffolded passage read as a
+## way out rather than as a gap in the wall.
+##
+## `west_stair` is not paved: it is a flight of steps, and a flat quad laid over
+## treads would either float above them or cut through them. The boardwalk's runs
+## are not paved either — down there the deck *is* the path, and a strip over it
+## would be paving on planking.
+func _paving() -> void:
+	_walkway_paving([&"plaza_ring", &"spoke_south", &"spoke_west", &"spoke_nnw",
+		&"spoke_ne", &"spoke_se", &"spoke_sw"], PAVE_LIFT, "asphalt")
+	# The plaza's floor is at y=0; `entrance_ground` is `GROUND_SEAM` lower, so
+	# the street's asphalt comes down with it. Otherwise the two halves of the
+	# same walk sit at different heights where they meet at z=38.
+	_walkway_paving([&"street", &"apron"], GROUND_SEAM + PAVE_LIFT, "asphalt")
+
+
+func _walkway_paving(ids: Array, y: float, mat: String) -> void:
+	for id in ids:
+		var run: Array = Plan.WALKWAYS[id]
+		var w: float = Plan.WALKWAY_WIDTH.get(id, 6.0)
+		# A closed run — the ring — mitres its two ends into each other like any
+		# other joint. An open one stops where the plan says it stops, because
+		# the spokes end at the perimeter wall and any overhang there is paving
+		# inside a building.
+		var closed: bool = run.size() > 2 and run[0].distance_to(run[-1]) < 0.01
+		var last := run.size() - 1
+		for i in last:
+			var a: Vector2 = run[i]
+			var b: Vector2 = run[i + 1]
+			var d := b - a
+			var length := d.length()
+			if length < 0.01:
+				continue
+			var ext_a := 0.0
+			if i > 0:
+				ext_a = _mitre(run[i - 1], a, b, w)
+			elif closed:
+				ext_a = _mitre(run[last - 1], a, b, w)
+			var ext_b := 0.0
+			if i + 2 <= last:
+				ext_b = _mitre(a, b, run[i + 2], w)
+			elif closed:
+				ext_b = _mitre(a, b, run[1], w)
+			var dir := d / length
+			var mid := (a + b) * 0.5 + dir * (ext_b - ext_a) * 0.5
+			_pave_quad("pave_%s_%d" % [id, i], Vector3(mid.x, y, mid.y),
+				Vector2(w, length + ext_a + ext_b), atan2(d.x, d.y), mat)
+
+
+## How far past a corner each of the two quads meeting there has to run.
+##
+## Butted, a turn leaves a wedge of bare ground on the outside of the corner. The
+## first attempt filled it by extending both quads half a width, which is right
+## for a right angle and wildly too much for anything shallower — on the ring's
+## twelve 30° joints it put 3m of overshoot on an 0.8m gap, and twelve of those
+## turned a clean dodecagon into a cog. Which is what it looked like: the ring
+## read as a blob of asphalt with corners, and every bend in every spoke had a
+## diamond bulge on it.
+##
+## The exact answer is the mitre: half the width times the tangent of half the
+## turn. Capped at a width, because the plan is allowed to contain a hairpin and
+## the tangent is not bounded.
+func _mitre(before: Vector2, at: Vector2, after: Vector2, w: float) -> float:
+	var into := (at - before).normalized()
+	var out_of := (after - at).normalized()
+	var turn := absf(into.angle_to(out_of))
+	if turn < 0.001:
+		return 0.0
+	return minf(w * 0.5 * tan(turn * 0.5), w)
+
+
+## One segment of paving, as a plane rather than a slab.
+##
+## Two triangles and no sides, because nothing ever sees the edge of it: the
+## quad is 12mm off the floor and the floor is opaque. Shadows are off for the
+## same reason — a flat thing lying on the ground casting a shadow onto the
+## ground is 12mm of dark outline around every path, and it is the one artefact
+## that would give the trick away.
+func _pave_quad(nm: String, centre: Vector3, size: Vector2, theta: float,
+		mat: String) -> void:
+	var plane := PlaneMesh.new()
+	plane.size = size
+	plane.material = mats[mat]
+	var mi := MeshInstance3D.new()
+	mi.mesh = plane
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.transform = _xform(theta, 0.0, centre)
+	_add(mi, nm)
+
+
+# ---------------------------------------------------------------------------
+# Filling the outer room
+# ---------------------------------------------------------------------------
+
+## Trees. **The plaza had none**, which at 80m was a thin excuse and at 104m is
+## the first thing missing from any photograph of it: the reference parks are
+## full of planting and this was a paved floor with furniture on it.
+##
+## Three pieces each — a trunk and two offset crowns — because one sphere on a
+## stick reads as a lollipop and two overlapping ones read as a tree from the
+## only distance that matters here, which is across the plaza.
+func _trees() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 0x7EE5
+	var spots := Plan.open_spots(28, 11, 21.0, 35.0, 3.0, 6.0)
+	for i in spots.size():
+		var p: Vector2 = spots[i]
+		var b := Vector3(p.x, 0, p.y)
+		var h := 3.4 + rng.randf() * 1.6
+		var spread := 2.1 + rng.randf() * 0.8
+		_cyl("tree_%d_trunk" % i, b, Vector3(0, h * 0.5, 0), 0.24, h, "wood", 0.0, 8)
+		_sphere("tree_%d_crown_a" % i, _place(b, Vector3(0, h + spread * 0.55, 0), 0.0),
+			spread, "foliage", 0.72)
+		_sphere("tree_%d_crown_b" % i,
+			_place(b, Vector3(spread * 0.4, h + spread * 0.95, -spread * 0.3), 0.0),
+			spread * 0.66, "foliage", 0.8)
+
+
+## Lamps, bins and benches for the outer room, on the same rules. The inner ring
+## already has its own set placed against the fountain; this is everything the
+## walk out to the perimeter needs and did not have, because until today there
+## was no walk out to the perimeter.
+func _outer_furniture() -> void:
+	var lamps := Plan.open_spots(12, 21, 23.0, 33.0, 2.6, 9.0)
+	for i in lamps.size():
+		var b := Vector3(lamps[i].x, 0, lamps[i].y)
+		_cyl("lamp_o%d_pole" % i, b, Vector3(0, 2.1, 0), 0.09, 4.2, "metal", 0.0, 8)
+		_box("lamp_o%d_head" % i, b, Vector3(0, 4.13, 0), Vector3(0.5, 0.24, 0.5), "white")
+
+	var bins := Plan.open_spots(8, 31, 21.0, 34.0, 2.2, 8.0)
+	for i in bins.size():
+		var b := Vector3(bins[i].x, 0, bins[i].y)
+		_cyl("bin_o%d_body" % i, b, Vector3(0, 0.42, 0), 0.32, 0.85, "metal")
+		_cyl("bin_o%d_lid" % i, b, Vector3(0, 0.865, 0), 0.36, 0.1, "blue")
+
+	# Round the ring's outer verge, facing the fountain, because that is where a
+	# plaza puts benches and because the open ground belongs to the crowd's
+	# routes. See `ParkPlan.ring_verge`.
+	var seats := Plan.ring_verge(1.8, 2.2)
+	for i in seats.size():
+		var p := Vector3(seats[i].x, 0, seats[i].y)
+		_bench("bench_o%d" % i, p, _facing(p, Vector3.ZERO))
+
+	# Flower beds were tried here and taken out again. At 3.2m square they are
+	# big enough to be obstacles, and scattered through open ground they land on
+	# the crowd's wander graph — the validator threw out three nodes and four
+	# edges at once. Open ground is what the graph is made of, so anything that
+	# size has to hug a walkway or a wall rather than sit in the middle. The
+	# budget went to trees instead, which are the thing actually missing, and
+	# which a guest can walk past without the graph caring.
+
+	var trash := Plan.open_spots(10, 61, 18.0, 36.0, 1.0, 3.0)
+	for i in trash.size():
+		var b := Vector3(trash[i].x, 0, trash[i].y)
+		_box("litter_o%d" % i, b, Vector3(0, 0.006, 0), Vector3(0.22, 0.012, 0.16),
+			"white", float(i), false)
+
+
+## Picture-spot signs: the park telling you where its own best angle is.
+##
+## `design.md` has asked for these since before there was a plaza to put them
+## in, and they are the one piece of density here that is content rather than
+## furniture. Each stands where the park thinks you should stand and faces what
+## it thinks you should point at. **Diegetic suggestion with nothing that
+## completes** — free aim means the game never frames a shot, and half the point
+## of a sign saying "photograph this" is being able to walk past it.
+const PICTURE_SPOTS := [
+	# where to stand, what to look at
+	[Vector2(-1.5, 20.0), Vector2(-1.5, -32.0)],   # up the axis at the clock
+	[Vector2(-19.0, 6.0), Vector2(-39.0, -2.0)],   # west through the arch
+	[Vector2(14.0, 16.0), Vector2(0.0, 0.0)],      # across the fountain
+	[Vector2(24.0, -22.0), Vector2(44.0, -44.0)],  # north-east at the coaster
+]
+
+
+func _picture_spots() -> void:
+	for i in PICTURE_SPOTS.size():
+		var at: Vector2 = PICTURE_SPOTS[i][0]
+		var look: Vector2 = PICTURE_SPOTS[i][1]
+		var b := Vector3(at.x, 0, at.y)
+		var th := _facing(b, Vector3(look.x, 0, look.y))
+		_cyl("photospot_%d_post" % i, b, Vector3(0, 0.6, 0), 0.07, 1.2, "metal", th, 8)
+		_box("photospot_%d_board" % i, b, Vector3(0, 1.35, 0),
+			Vector3(0.9, 0.6, 0.06), "yellow", th)
+		# A little dark rectangle for the camera pictogram, so it reads as a
+		# photo sign rather than as a park map at ten metres.
+		_box("photospot_%d_icon" % i, b, Vector3(0, 1.35, 0.05),
+			Vector3(0.34, 0.24, 0.04), "far_shade", th, false)
+
+
 func _bench(nm: String, base: Vector3, theta: float) -> void:
 	_box(nm + "_seat", base, Vector3(0, 0.45, 0), Vector3(1.8, 0.12, 0.55), "wood", theta)
 	_box(nm + "_leg_l", base, Vector3(-0.78, 0.225, 0), Vector3(0.14, 0.45, 0.5), "metal", theta)
@@ -402,15 +1106,25 @@ func _benches() -> void:
 		var a := deg_to_rad(degs[i])
 		var p := Vector3(r * cos(a), 0.0, r * sin(a))
 		_bench("bench_%d" % i, p, _facing(p, Vector3.ZERO))
-	_bench("bench_hut", Vector3(4.5, 0, 11.5), deg_to_rad(8))
 	_bench("bench_south", Vector3(-5, 0, 19), deg_to_rad(186))
 
-	var band := Vector3(-12, 0, -12)
+	# The hut's own bench, and the bandstand's three, are placed against things
+	# that moved by hand rather than by `_plaza_out` — so they are placed by hand
+	# too, in final coordinates, with the dilation off. Run through the map they
+	# would each be dilated by their own radius and spread away from the object
+	# they belong to: the bandstand's ring of benches would come out 24m across
+	# around an 11m bandstand.
+	_dilate_plaza = false
+	var hut := Vector3(Plan.PHOTO_HUT_AT.x, 0.0, Plan.PHOTO_HUT_AT.y)
+	_bench("bench_hut", hut + Vector3(-6.0, 0, -4.0), deg_to_rad(8))
+
+	var band := Vector3(-20, 0, -20)
 	var bdegs := [20.0, 140.0, 260.0]
 	for i in bdegs.size():
 		var a := deg_to_rad(bdegs[i])
-		var p := band + Vector3(7.4 * cos(a), 0.0, 7.4 * sin(a))
+		var p := band + Vector3(8.6 * cos(a), 0.0, 8.6 * sin(a))
 		_bench("bench_band_%d" % i, p, _facing(p, band))
+	_dilate_plaza = true
 	_bench("bench_sw", Vector3(-11, 0, 20), deg_to_rad(120))
 	_bench("bench_se", Vector3(2, 0, 22), deg_to_rad(200))
 
@@ -439,18 +1153,21 @@ func _bins() -> void:
 		_cyl("bin_%d_lid" % i, b, Vector3(0, 0.865, 0), 0.36, 0.1, "blue")
 
 
+## Read out of `ParkPlan.PLAZA_CAFE` rather than declared here, because
+## `gen_crowd.gd` has to put a guest on each of these chairs and was agreeing
+## with this function by having the same three coordinates typed into it.
 func _cafe() -> void:
-	var spots := [Vector2(14, 3), Vector2(17, 8), Vector2(13, 12)]
-	var turns := [15.0, -25.0, 40.0]
 	var shades := ["red", "yellow", "blue"]
-	for i in spots.size():
-		var b := Vector3(spots[i].x, 0, spots[i].y)
-		var th := deg_to_rad(turns[i])
+	for i in Plan.PLAZA_CAFE.size():
+		var spec: Dictionary = Plan.PLAZA_CAFE[i]
+		var at: Vector2 = spec["at"]
+		var b := Vector3(at.x, 0, at.y)
+		var th := deg_to_rad(float(spec["theta"]))
 		_cyl("table_%d_top" % i, b, Vector3(0, 0.74, 0), 0.6, 0.08, "white", th, 16)
 		_cyl("table_%d_post" % i, b, Vector3(0, 0.37, 0), 0.07, 0.74, "metal", th, 8)
 		_cyl("table_%d_umb_pole" % i, b, Vector3(0, 1.15, 0), 0.05, 2.3, "metal", th, 8)
 		_cyl("table_%d_umb_top" % i, b, Vector3(0, 2.3, 0), 1.5, 0.12, shades[i], th, 12)
-		var offs := [Vector3(0.95, 0, 0.2), Vector3(-0.9, 0, -0.35)]
+		var offs := Plan.CAFE_CHAIRS
 		for j in offs.size():
 			var cb: Vector3 = b + offs[j]
 			var cth: float = th + deg_to_rad(30.0 * (j + 1))
@@ -459,14 +1176,22 @@ func _cafe() -> void:
 			_box("chair_%d%d_back" % [i, j], cb, Vector3(0, 0.66, -0.16), Vector3(0.42, 0.48, 0.07), "white", cth)
 
 
+## The queue belongs to the photo hut, so it is placed off `PHOTO_HUT_AT` rather
+## than dilated. The hut is one of the few things that moved by decision instead
+## of by the map — out to radius 28 because it was the one bearing with zero
+## clearance — and a queue that followed the map would have ended up 6m from the
+## door it is queuing at.
 func _queue() -> void:
-	var xs := [5.5, 7.0, 8.5, 10.0, 11.5]
-	var z := 12.0
+	_dilate_plaza = false
+	var hut := Plan.PHOTO_HUT_AT
+	var z := hut.y + 4.5
+	var xs := [hut.x - 3.5, hut.x - 2.0, hut.x - 0.5, hut.x + 1.0, hut.x + 2.5]
 	for i in xs.size():
 		_cyl("stanchion_%d" % i, Vector3(xs[i], 0, z), Vector3(0, 0.5, 0), 0.06, 1.0, "metal", 0.0, 8)
 	for i in xs.size() - 1:
 		var mid: float = (xs[i] + xs[i + 1]) * 0.5
 		_box("rope_%d" % i, Vector3(mid, 0, z), Vector3(0, 0.8, 0), Vector3(1.5, 0.05, 0.05), "red", 0.0, false)
+	_dilate_plaza = true
 
 
 func _bollards() -> void:
@@ -662,17 +1387,22 @@ func _far_cyl(nm: String, origin: Vector3, radius: float, height: float, mat: St
 
 ## The classic wooden out-and-back: lift hill, first drop, then camelbacks.
 ## Built as a profile of support columns with the track line running over them.
-func _wooden_coaster(origin: Vector3, heading: float, mat: String) -> void:
+##
+## `vscale` raises the profile without touching the footprint, and only the
+## plaza's skyline uses it. The boardwalk's coaster and its twin in the far
+## tableau must stay at 1.0 and stay identical to each other, or the silhouette
+## jumps when the player walks through the gate.
+func _wooden_coaster(origin: Vector3, heading: float, mat: String, vscale := 1.0) -> void:
 	var profile := [3.0, 9.0, 15.0, 21.0, 26.0, 27.0, 9.0, 19.0, 8.0, 15.5, 7.0, 12.0, 6.5, 9.0, 5.0]
 	var step := 7.0
 	var dir := Basis(Vector3.UP, heading) * Vector3.FORWARD
 	var prev := Vector3.ZERO
 	for i in profile.size():
 		var foot: Vector3 = origin + dir * (i * step)
-		var h: float = profile[i]
+		var h: float = profile[i] * vscale
 		_far_cyl("coaster_col_%d" % i, foot + Vector3(0, h * 0.5, 0), 0.55, h, mat, 6)
 		# cross-bracing, which is most of what reads as "wooden" at distance
-		if h > 8.0:
+		if h > 8.0 * vscale:
 			_strut("coaster_brace_%d" % i, foot + Vector3(0, 1.0, 0), foot + Vector3(0, h - 1.0, 0) + dir * 2.5, 0.35, mat)
 		var top: Vector3 = foot + Vector3(0, h, 0)
 		if i > 0:
@@ -772,7 +1502,7 @@ const FRONTAGE := Plan.FRONTAGE_UNITS
 ## The shore collides now. It did not when the whole west was scenery, and that
 ## was correct then: nothing could reach it. It is the boardwalk's floor.
 func _west_shell() -> void:
-	_box("water", Vector3.ZERO, Vector3(-186, WATER_TOP - 4.0, 0),
+	_box("water", Vector3.ZERO, Vector3(-198, WATER_TOP - 4.0, 0),
 		Vector3(240, 8.0, 400), "water", 0.0, false)
 	# The face the plaza stands on. Everything west of the parapet drops away
 	# here, which is what turns the parapet into an overlook rather than a fence.
@@ -782,25 +1512,25 @@ func _west_shell() -> void:
 	# These four are also the walls and floor of the stair well, and without them
 	# a player walking sideways off a flight goes straight through the scenery
 	# and out of the world.
-	_box("bluff_north", Vector3.ZERO, Vector3(-42.5, -6.0 + GROUND_SEAM, -91.0),
+	_box("bluff_north", Vector3.ZERO, Vector3(-54.5, -6.0 + GROUND_SEAM, -91.0),
 		Vector3(7.0, 12.0, 158.0), "far_warm")
-	_box("bluff_south", Vector3.ZERO, Vector3(-42.5, -6.0 + GROUND_SEAM, 89.0),
+	_box("bluff_south", Vector3.ZERO, Vector3(-54.5, -6.0 + GROUND_SEAM, 89.0),
 		Vector3(7.0, 12.0, 162.0), "far_warm")
 	# Its west face is inset 3cm from the other bluff pieces, because the stair's
 	# treads are exactly one stair-width at the turn axis and land on -46 too.
 	# Two faces the same way at the same depth is the vibration in the ground, and
 	# the build-order seam cannot separate these two: they are in different
 	# scenes. Giving way inward is the hand-authored rule.
-	_box("bluff_base", Vector3.ZERO, Vector3(-42.485, -9.0, -2.0),
+	_box("bluff_base", Vector3.ZERO, Vector3(-54.485, -9.0, -2.0),
 		Vector3(6.97, 6.0, 20.0), "far_warm")
 	# The rest of the bluff fills back in around the well, in three pieces,
 	# because the upper flight runs east through it and a solid fill walls in the
 	# stair it is supposed to be holding up.
-	_box("bluff_slot_north", Vector3.ZERO, Vector3(-41.2, -6.0 + GROUND_SEAM, -11.5),
+	_box("bluff_slot_north", Vector3.ZERO, Vector3(-53.2, -6.0 + GROUND_SEAM, -11.5),
 		Vector3(4.4, 12.0, 1.0), "far_warm")
-	_box("bluff_slot_south", Vector3.ZERO, Vector3(-41.2, -6.0 + GROUND_SEAM, -0.2),
+	_box("bluff_slot_south", Vector3.ZERO, Vector3(-53.2, -6.0 + GROUND_SEAM, -0.2),
 		Vector3(4.4, 12.0, 16.4), "far_warm")
-	_box("bluff_slot_under", Vector3.ZERO, Vector3(-41.2, -6.75, -9.7),
+	_box("bluff_slot_under", Vector3.ZERO, Vector3(-53.2, -6.75, -9.7),
 		Vector3(4.4, 10.5, 2.6), "far_warm")
 	# The ground the boardwalk stands on: back lane, frontage, promenade. Runs
 	# 2m east under the bluff's west face rather than butting against it.
@@ -934,13 +1664,19 @@ func _west_stair() -> void:
 	# ramp that overhangs its own landing presents the landing with a wall.
 	var treads_a := 4
 	var run_a := 0.85
+	# Where the first flight starts, derived from where the second one lands
+	# rather than typed. It was typed — as -40, the old parapet line — and when
+	# the plaza grew and the parapet went to -51 the flight stayed put, leaving
+	# thirteen metres of nothing between the bottom of flight A and the landing.
+	# `section_test.gd` found it as the player stuck halfway down.
+	var start_x := STAIR_TURN_X + STAIR_W * 0.5 + run_a * float(treads_a)
 	for i in treads_a:
 		var top := -STAIR_RISE * (i + 1)
-		var x := -40.0 - run_a * (i + 0.5)
+		var x := start_x - run_a * (i + 0.5)
 		_box("flight_a_%d" % i, Vector3.ZERO, Vector3(x, top - 0.25, STAIR_TOP_Z),
 			Vector3(run_a, 0.5, STAIR_W), "accent", 0.0, false)
-	_flight_ramp("ramp_a", Vector3(-40.0, 0.0, STAIR_TOP_Z),
-		Vector3(-40.0 - run_a * treads_a, -STAIR_RISE * treads_a, STAIR_TOP_Z),
+	_flight_ramp("ramp_a", Vector3(start_x, 0.0, STAIR_TOP_Z),
+		Vector3(start_x - run_a * treads_a, -STAIR_RISE * treads_a, STAIR_TOP_Z),
 		-PI * 0.5)
 
 	# The landing is a plinth rather than a slab: the slot it sits in is open to
@@ -982,7 +1718,7 @@ func _west_stair() -> void:
 		Vector3(0.2, 1.0, sqrt(horizontal * horizontal + vertical * vertical)),
 		"metal", 0.0, true, slope)
 	_box("stair_head_rail", Vector3.ZERO,
-		Vector3(-40.6, 0.55, STAIR_TOP_Z - STAIR_W * 0.5 - 0.1),
+		Vector3(start_x - 0.6, 0.55, STAIR_TOP_Z - STAIR_W * 0.5 - 0.1),
 		Vector3(1.4, 1.1, 0.2), "metal")
 
 	# The foot, and the gate across it. Everything past this point is a tableau
@@ -1049,7 +1785,14 @@ func _west_stair() -> void:
 
 func _skyline() -> void:
 	# North, straight down the spawn sightline, cropped by building_north.
-	_wooden_coaster(Vector3(-22, 0, -58), deg_to_rad(72.0), "far_warm")
+	#
+	# A third taller than the boardwalk's, because the perimeter went to 13–19m
+	# on 2026-08-13 and at its old 27m crest the roofline ate it: the sightline
+	# from the fountain clears a 16m wall at 46m and passes 29m up by the time it
+	# reaches the crest column, 88m out. Height is the only lever that works
+	# here — moving the ride in or out barely changes the ratio of wall distance
+	# to ride distance, which is what decides how much shows.
+	_wooden_coaster(Vector3(-22, 0, -58), deg_to_rad(72.0), "far_warm", 1.3)
 	# North-east, visible over the low corner between perim_ne and building_east.
 	_tower(Vector3(54, 0, -40), "far", "far_warm")
 	# The west used to be built here. It is three scenes of its own now — see
@@ -1111,8 +1854,18 @@ func _entrance() -> void:
 	# Top at y=0, matching the plaza ground. Overlapped by 2m rather than butted:
 	# a coplanar butt can leave a zero-width seam for the capsule to catch on,
 	# and two floors at exactly the same height cannot produce a lip.
-	_box("entrance_ground", Vector3.ZERO, Vector3(ST_X, -0.5 + GROUND_SEAM, 75.5),
-		Vector3(41, 1, 75), "accent", 0.0, true)
+	# Brick, the same bond as the plaza's floor, because it is the same floor —
+	# the street's asphalt is laid over it and what shows either side is the walk
+	# under the shopfronts and the apron outside the gate.
+	# Spans the street from under the plaza's own floor to ten metres past the
+	# apron. Derived rather than typed, because it was typed and then the street
+	# moved 12m south without it: the apron ended up standing off the end of its
+	# own ground, which the walk test reported as falling.
+	var g_from := Plan.PLAZA_HALF - 6.0
+	var g_to := Plan.APRON_Z + 10.0
+	_box("entrance_ground", Vector3.ZERO,
+		Vector3(ST_X, -0.5 + GROUND_SEAM, (g_from + g_to) * 0.5),
+		Vector3(41, 1, g_to - g_from), "brick", 0.0, true)
 
 	_street_frontage()
 	_street_booths()
@@ -1131,18 +1884,18 @@ func _street_frontage() -> void:
 	# Kinds alternate across the street rather than down it, so neither side is a
 	# run of the same thing and the arcades face something other than each other.
 	var west := [
-		[44.0, 10.0, 9.0, 6.5, "far_warm", "store"],
-		[55.0, 11.0, 10.0, 5.0, "accent", "cafe"],
-		[66.0, 10.0, 8.0, 7.0, "far_warm", "arcade"],
-		[76.0, 9.0, 9.5, 5.5, "white", "store"],
-		[87.0, 12.0, 8.5, 6.0, "accent", "cafe"],
+		[56.0, 10.0, 9.0, 6.5, "far_warm", "store"],
+		[67.0, 11.0, 10.0, 5.0, "accent", "cafe"],
+		[78.0, 10.0, 8.0, 7.0, "far_warm", "arcade"],
+		[88.0, 9.0, 9.5, 5.5, "white", "store"],
+		[99.0, 12.0, 8.5, 6.0, "accent", "cafe"],
 	]
 	var east := [
-		[45.0, 11.0, 9.0, 5.5, "accent", "cafe"],
-		[57.0, 12.0, 10.0, 7.0, "far_warm", "store"],
-		[69.0, 11.0, 8.0, 5.0, "white", "arcade"],
-		[80.0, 10.0, 9.0, 6.5, "accent", "store"],
-		[90.0, 9.0, 8.5, 5.5, "far_warm", "cafe"],
+		[57.0, 11.0, 9.0, 5.5, "accent", "cafe"],
+		[69.0, 12.0, 10.0, 7.0, "far_warm", "store"],
+		[81.0, 11.0, 8.0, 5.0, "white", "arcade"],
+		[92.0, 10.0, 9.0, 6.5, "accent", "store"],
+		[102.0, 9.0, 8.5, 5.5, "far_warm", "cafe"],
 	]
 	_shopfronts(west, -1.0, 0)
 	_shopfronts(east, 1.0, 10)
@@ -1242,26 +1995,26 @@ func _apron() -> void:
 	# solid because there is nothing walkable past it.
 	_box("apron_rail", Vector3.ZERO, Vector3(ST_X, 0.55, APRON_Z),
 		Vector3(41.0, 1.1, 0.4), "metal")
-	_box("apron_wall_west", Vector3.ZERO, Vector3(ST_X - 20.3, 1.5, 104.0),
+	_box("apron_wall_west", Vector3.ZERO, Vector3(ST_X - 20.3, 1.5, 116.0),
 		Vector3(0.4, 3.0, 15.0), "far_shade")
-	_box("apron_wall_east", Vector3.ZERO, Vector3(ST_X + 17.3, 1.5, 104.0),
+	_box("apron_wall_east", Vector3.ZERO, Vector3(ST_X + 17.3, 1.5, 116.0),
 		Vector3(0.4, 3.0, 15.0), "far_shade")
 
 	# The parking lot, which is a backdrop. No collision, never reached.
-	_box("lot_ground", Vector3.ZERO, Vector3(ST_X, -0.6, 145.0),
+	_box("lot_ground", Vector3.ZERO, Vector3(ST_X, -0.6, 157.0),
 		Vector3(150.0, 1.0, 68.0), "far_shade", 0.0, false)
 	var n := 0
 	for row in range(4):
 		for col in range(14):
 			var x := ST_X - 45.0 + float(col) * 7.0
-			var z := 120.0 + float(row) * 12.0
+			var z := 132.0 + float(row) * 12.0
 			_box("car_%d" % n, Vector3.ZERO, Vector3(x, 0.7, z),
 				Vector3(1.9, 1.4, 4.4), "far" if (n % 3) else "far_warm",
 				0.0, false)
 			n += 1
 	for i in range(9):
 		_cyl("lot_tree_%d" % i, Vector3.ZERO,
-			Vector3(ST_X - 48.0 + float(i) * 12.0, 3.5, 116.0),
+			Vector3(ST_X - 48.0 + float(i) * 12.0, 3.5, 128.0),
 			1.6, 7.0, "far_shade", 0.0, 6, false)
 
 
@@ -1291,9 +2044,133 @@ const REACH := Plan.REACH
 const BEND := Plan.BEND
 
 
+## Two passes, and not one loop doing both.
+##
+## `_add` hands out seam displacement in build order, so anything inserted into
+## the middle of a run shifts everything after it — the same trap as adding a
+## scene anywhere but the end of the generator, one level down. Building each
+## mouth right after its own passage looked tidier and moved every ordinal in
+## the file: it put a passage wall on the same plane as a plaza wall in a scene
+## nobody had edited, twice, and a bulkhead on a door for good measure.
+##
+## Passages first, in their original order, then the mouths appended. The four
+## passages keep exactly the displacement they had.
 func _thresholds() -> void:
 	for t in THRESHOLDS:
 		_passage(t["name"], t["at"], t["theta"], t["width"], t["turn"])
+	for t in THRESHOLDS:
+		_threshold_mouth(t["name"], t["at"], t["theta"], t["width"])
+
+
+## What each way in looks like from the fountain.
+##
+## Colour and height per land rather than four identical arches, because four
+## identical arches at four bearings read as a pattern — one thing repeated —
+## and the whole reason these exist is that the park should read as continuing
+## in five *different* directions. Four ways that look alike say there is one
+## kind of elsewhere.
+##
+## `sign` is the board, `valance` the canopy under the beam, `cap` the finial on
+## the piers. The cap is doing most of the work at distance: at forty metres a
+## colour is a smudge and a silhouette is still a shape.
+##
+## This is generator data and not `ParkPlan` data on purpose. Where a section is
+## belongs to the plan; what colour its sign is belongs to a section that does
+## not exist yet, and inventing plan facts about four unbuilt places is how the
+## plan stops being a record of the park.
+const THRESHOLD_MOUTH := {
+	"nnw": {"sign": "canvas_alt", "valance": "canvas", "h": 2.6, "cap": "spire"},
+	"ne": {"sign": "wood", "valance": "canvas", "h": 2.2, "cap": "block"},
+	"se": {"sign": "yellow", "valance": "canvas_alt", "h": 1.8, "cap": "ball"},
+	"sw": {"sign": "red", "valance": "canvas_alt", "h": 2.4, "cap": "drum"},
+}
+
+
+## Local space is the passage's: +Z out of the plaza, so everything here is at
+## negative z — the mouth is read from inside.
+##
+## The passage walls are 3.5m, so a board topping out near 10.5m stands clear of
+## the passage without competing with the wall it is set into. That height is the
+## point of the whole thing: the sign is what you see from the fountain, forty
+## metres away, and the opening itself is barely a dark notch at that range.
+##
+## `MOUTH_H` is a single vertical multiplier over the whole frontispiece, added
+## when the perimeter went from 8–12m to 13–19m on 2026-08-13. At 1.0 the mouth
+## read as a shopfront in a long wall from the fountain, where the west arch
+## beside it still read as a gate — the arch's advantage being that it tops its
+## wall and the mouth does not. The mouth cannot top a 14.5m wall without
+## becoming a monument, so it gets proportion instead: everything scales
+## together and the relationships that make it a gateway survive. Nothing
+## horizontal moves, because the width belongs to the passage, not the sign.
+const MOUTH_H := 1.3
+
+
+func _threshold_mouth(nm: String, base: Vector3, theta: float, w: float) -> void:
+	var n := w * 0.5
+	var spec: Dictionary = THRESHOLD_MOUTH[nm]
+	var sh: float = spec["h"] * MOUTH_H
+
+	# Piers, set 5cm clear of the passage walls rather than flush with them.
+	# Flush, the pier's inner face and the wall's inner face are the same plane
+	# pointing the same way over a 1.6m² overlap, which is a z-fight at the one
+	# place in the passage the player is looking at.
+	for i in 2:
+		var sx := (-1.0 if i == 0 else 1.0) * (n + 0.6)
+		_box("way_%s_pier_%d" % [nm, i], base, Vector3(sx, 2.25 * MOUTH_H, -0.45),
+			Vector3(1.1, 4.7 * MOUTH_H, 1.6), "far_warm", theta)
+		_mouth_cap("way_%s_cap_%d" % [nm, i], base, sx, theta, spec["cap"])
+
+	_box("way_%s_lintel" % nm, base, Vector3(0, 5.05 * MOUTH_H, -0.45),
+		Vector3(w + 2.3, 1.1 * MOUTH_H, 1.6), "far_warm", theta, false)
+
+	# Valance and bulbs, hung on the plaza side of the beam. Same trick as the
+	# alley mouth: a row of lights is what says a thing is open.
+	_box("way_%s_valance" % nm, base, Vector3(0, 4.35 * MOUTH_H, -1.15),
+		Vector3(w + 1.2, 0.18, 1.0), spec["valance"], theta, false)
+	var bulbs: int = maxi(5, int(w * 0.8))
+	for i in bulbs:
+		var t := (float(i) + 0.5) / float(bulbs)
+		var bx: float = lerpf(-n + 0.5, n - 0.5, t)
+		_sphere("way_%s_bulb_%d" % [nm, i],
+			_place(base, Vector3(bx, 4.1 * MOUTH_H, -1.5), theta), 0.13, "yellow")
+
+	# The board, lapping the beam. Wide but not full width: a sign the width of
+	# its own opening reads as a lid on it.
+	var by := 5.45 * MOUTH_H + sh * 0.5
+	_box("way_%s_board" % nm, base, Vector3(0, by, -0.55),
+		Vector3(w * 0.8, sh, 0.6), spec["sign"], theta, false)
+	_box("way_%s_board_panel" % nm, base, Vector3(0, by, -0.85),
+		Vector3(w * 0.8 - 2.0, sh - 0.8, 0.4), "white", theta, false)
+
+
+## A finial, four ways. Cheap, and the only thing distinguishing the four ways
+## out at the distance most of them are seen from.
+##
+## Every height here is scaled by `MOUTH_H` along with its own thickness rather
+## than on its own, because each of these sits on the pier top: scaling where a
+## plinth is without scaling how deep it is opens a six-centimetre gap under it.
+func _mouth_cap(nm: String, base: Vector3, sx: float, theta: float, kind: String) -> void:
+	var k := MOUTH_H
+	match kind:
+		"block":
+			_box(nm, base, Vector3(sx, 4.85 * k, -0.45), Vector3(1.5, 0.5 * k, 2.0),
+				"far_shade", theta, false)
+		"ball":
+			_box(nm + "_plinth", base, Vector3(sx, 4.8 * k, -0.45),
+				Vector3(1.3, 0.4 * k, 1.8), "far_shade", theta, false)
+			_sphere(nm, _place(base, Vector3(sx, 5.5 * k, -0.45), theta), 0.55 * k, "white")
+		"drum":
+			_box(nm + "_plinth", base, Vector3(sx, 4.8 * k, -0.45),
+				Vector3(1.3, 0.4 * k, 1.8), "far_shade", theta, false)
+			_cyl(nm, base, Vector3(sx, 5.4 * k, -0.45), 0.55 * k, 1.0 * k, "white",
+				theta, 10, false)
+		_:
+			# A mast, which is the tallest of the four and reads as trees rather
+			# than as masonry from a distance.
+			_box(nm + "_plinth", base, Vector3(sx, 4.8 * k, -0.45),
+				Vector3(1.3, 0.4 * k, 1.8), "far_shade", theta, false)
+			_box(nm, base, Vector3(sx, 6.0 * k, -0.45), Vector3(0.35, 2.4 * k, 0.35),
+				"far_shade", theta, false)
 
 
 ## Local +Z is out of the plaza, local +X is the direction of the turn, and
@@ -1305,11 +2182,17 @@ func _passage(nm: String, base: Vector3, theta: float, w: float, turn: float) ->
 
 	# Floors. Tops at y=0 to match the plaza, and the first one overlaps back
 	# under the wall line so there is no seam at the threshold.
+	#
+	# Brick, the same bond as the plaza's, and it lines up with it because the
+	# material is world-space projected. Which makes the threshold a change of
+	# surface as well as a change of shape: the asphalt spoke runs up to the
+	# piers and stops, and under the arch you are on the plaza's own paving. The
+	# same beat as the alley mouth's asphalt-to-decking line, the other way up.
 	_box("way_%s_floor_a" % nm, base, Vector3(0, -0.5 + PASSAGE_SEAM, REACH * 0.5 - 0.5),
-		Vector3(w, 1, REACH + 1.0), "accent", theta)
+		Vector3(w, 1, REACH + 1.0), "brick", theta)
 	_box("way_%s_floor_b" % nm, base,
 		Vector3(t * (n + BEND * 0.5), -0.5 + PASSAGE_SEAM, REACH - w * 0.5),
-		Vector3(BEND, 1, w), "accent", theta)
+		Vector3(BEND, 1, w), "brick", theta)
 
 	# The wall on the outside of the bend runs the whole way; the one on the
 	# inside stops short, and that gap is the turn.
@@ -1397,14 +2280,25 @@ func _front(nm: String, at: Vector3, theta: float, width: float, kind: String,
 			"accent", theta, false)
 		# Off to one side. Centred, a door makes the unit read as a symmetrical
 		# shed; off-centre it reads as a building somebody laid out.
-		_box("%s_door" % nm, at, Vector3(n - 1.1, 1.055, 0.055), Vector3(1.0, 2.1, 0.17),
+		#
+		# Its foot goes well *under* the pavement rather than five millimetres
+		# over it. Five millimetres is exactly twenty seam steps, so whenever the
+		# bulkhead's ordinal landed on 20 and the door's wrapped to 0 the two
+		# undersides came out on the same plane — invisible under a doorway, but
+		# it is a real pair and the ring is supposed to make those impossible
+		# rather than unlikely. Six centimetres and not one: the perimeter
+		# buildings' own undersides sit a few millimetres below zero, so a door
+		# buried a hair lands on those instead.
+		_box("%s_door" % nm, at, Vector3(n - 1.1, 1.02, 0.055), Vector3(1.0, 2.17, 0.17),
 			"wood", theta, false)
 
-	# Marquee for an arcade, plain fascia for the rest.
+	# Marquee for an arcade, plain fascia for the rest. `food` is `cafe` without
+	# the terrace: the plaza's perimeter wants the sign colour but not two tables
+	# and four stools per bay standing out on the crowd's floor.
 	var band := 0.9 if open_front else 0.55
 	var y := 3.7 if open_front else 3.55
 	var sign_mat := "red"
-	if kind == "cafe":
+	if kind == "cafe" or kind == "food":
 		sign_mat = "yellow"
 	elif kind == "store":
 		sign_mat = "blue"
@@ -1468,9 +2362,9 @@ func _booth(nm: String, base: Vector3, theta: float, width: float, mat: String) 
 ## Freestanding on the walk rather than against a wall, so the street has
 ## something in the middle of it and a reason to weave.
 func _street_booths() -> void:
-	_booth("booth_ring", Vector3(ST_X - 4.2, 0.0, 52.0), PI * 0.5, 4.5, "far_warm")
-	_booth("booth_darts", Vector3(ST_X + 4.2, 0.0, 63.0), -PI * 0.5, 4.5, "accent")
-	_booth("booth_hoops", Vector3(ST_X - 4.2, 0.0, 79.0), PI * 0.5, 4.0, "accent")
+	_booth("booth_ring", Vector3(ST_X - 4.2, 0.0, 64.0), PI * 0.5, 4.5, "far_warm")
+	_booth("booth_darts", Vector3(ST_X + 4.2, 0.0, 75.0), -PI * 0.5, 4.5, "accent")
+	_booth("booth_hoops", Vector3(ST_X - 4.2, 0.0, 91.0), PI * 0.5, 4.0, "accent")
 
 
 ## The arcade, built where it stands rather than swapped in behind a door.
@@ -1585,6 +2479,7 @@ const ARRIVAL_YAW := Plan.BOARDWALK_ARRIVAL_YAW
 func _boardwalk_section() -> void:
 	_boardwalk_paving()
 	_boardwalk_frontage()
+	_alley_mouth()
 	_boardwalk_wheel()
 	_boardwalk_coaster()
 	_boardwalk_pier()
@@ -1627,16 +2522,16 @@ func _boardwalk_seam() -> void:
 	# 41m² of it z-fought the moment an unrelated edit shifted the ordinals. Both
 	# ends of every axis, or it is not an inset.
 	_box("bluff_infill_north", Vector3.ZERO,
-		Vector3(-44.67, SHORE_TOP, (-11.94 + foot_z - w * 0.5) * 0.5),
+		Vector3(-56.67, SHORE_TOP, (-11.94 + foot_z - w * 0.5) * 0.5),
 		Vector3(2.54, 11.88, foot_z - w * 0.5 + 11.94), "far_warm")
 	_box("bluff_infill_south", Vector3.ZERO,
-		Vector3(-44.67, SHORE_TOP, (foot_z + w * 0.5 + 7.94) * 0.5),
+		Vector3(-56.67, SHORE_TOP, (foot_z + w * 0.5 + 7.94) * 0.5),
 		Vector3(2.54, 11.88, 7.94 - foot_z - w * 0.5), "far_warm")
 	_box("bluff_infill_over", Vector3.ZERO,
-		Vector3(-44.7, SHORE_TOP + 4.1, foot_z),
+		Vector3(-56.7, SHORE_TOP + 4.1, foot_z),
 		Vector3(2.6, 3.8, w), "far_warm")
 	# Something to see through the bars: the slab the last tread lands on.
-	_box("gate_sill", Vector3.ZERO, Vector3(-44.7, SHORE_TOP - 0.25, foot_z),
+	_box("gate_sill", Vector3.ZERO, Vector3(-56.7, SHORE_TOP - 0.25, foot_z),
 		Vector3(2.6, 0.5, w), "accent")
 	_box("foot_gate", Vector3.ZERO, Vector3(gate_x, SHORE_TOP + 1.1, foot_z),
 		Vector3(0.2, 2.2, w), "metal")
@@ -1656,25 +2551,46 @@ func _boardwalk_seam() -> void:
 
 ## Everything the player can stand on, as three slabs: the promenade, the alley
 ## through the frontage, and the back lane behind it.
+##
+## **The boards run across the way you walk, and that is how this section shows
+## its circulation.** The plaza can pave a walkway darker than the ground either
+## side of it; the promenade cannot, because there is no ground either side —
+## the deck *is* the path, all 160m of it, and a strip painted down the middle
+## would be inventing a distinction the place does not have.
+##
+## What a deck has instead is a direction, and the boards are it. Laid across the
+## walk they read as "along" from any angle and at any distance, long after a
+## 6mm gap has mipped away — the crown on each board survives even that. And the
+## strip turns twice: west through the alley, and west again out onto the pier.
+## Both turns are reveals, so the floor changes direction under the player at the
+## moment the view does.
 func _boardwalk_paving() -> void:
 	var prom_w := (FRONT_X - FRONT_DEPTH * 0.5) - SHORE_EDGE
 	var prom_x := (SHORE_EDGE + FRONT_X - FRONT_DEPTH * 0.5) * 0.5
+	# North-south walk, so the boards run east-west.
 	_box("deck_promenade", Vector3.ZERO,
 		Vector3(prom_x, DECK_TOP - DECK_THICK * 0.5, (WALK_FROM_Z + WALK_TO_Z) * 0.5),
 		Vector3(prom_w, DECK_THICK, WALK_TO_Z - WALK_FROM_Z), "plank")
 
+	# The alley is walked east-west, so its boards turn with it. This is the one
+	# the player meets first and the one that earns the second texture: you come
+	# out of the lane, turn through the frontage, and the deck under you has
+	# turned as well.
 	_box("deck_alley", Vector3.ZERO,
 		Vector3(FRONT_X, DECK_TOP - DECK_THICK * 0.5, (GAP_FROM + GAP_TO) * 0.5),
-		Vector3(FRONT_DEPTH, DECK_THICK, GAP_TO - GAP_FROM), "plank")
+		Vector3(FRONT_DEPTH, DECK_THICK, GAP_TO - GAP_FROM), "plank_cross")
 
-	# The lane runs from the backs of the shops to the foot of the bluff. Not
-	# planked: it is a service road, and the material change is what says so.
 	# The lane runs from the backs of the shops to the foot of the bluff — 7.5m
 	# of it, laid 8 wide so it tucks under both rather than butting against
-	# either. Not planked: it is a service road, and the material says so.
+	# either. **Asphalt.** It is a service road behind a row of shops with a
+	# bluff on the other side, and nobody decks a service road. It is also the
+	# only surface in the section that is not boards, which means the material
+	# alone tells the player that the twenty metres before the reveal are
+	# back-of-house — and makes stepping onto the planking at the alley mouth
+	# the moment the boardwalk starts.
 	_box("deck_lane", Vector3.ZERO,
 		Vector3(BACK_LANE_X, DECK_TOP - DECK_THICK * 0.5, 3.0),
-		Vector3(8.0, DECK_THICK, 74.0), "far_warm")
+		Vector3(8.0, DECK_THICK, 74.0), "asphalt")
 
 
 ## The row, built. Same spans as the tableau, read out of the same table.
@@ -1750,6 +2666,94 @@ func _boardwalk_frontage() -> void:
 			_box("shop_%s_crate" % nm, Vector3.ZERO,
 				Vector3(back_face + 0.9, SHORE_TOP + 0.35, mid - 1.6),
 				Vector3(0.8, 0.7, 0.8), "wood")
+
+
+## The hole in the frontage, made into a doorway.
+##
+## The floor was carrying the arrival on its own: asphalt stops, decking starts,
+## and that line was the only thing saying you had got somewhere. It works, and
+## it should not be working alone — the two buildings either side are plain
+## slabs and read as a missing shopfront rather than as a way through.
+##
+## So: a beam across, legs under it, a valance with bulbs, and a sign standing
+## proud of the 5.5m roofline so it is visible over the roofs from down the lane
+## before the gap itself is. Both ends get one, because a hole with a header at
+## only one end is a hole you came in by rather than a passage.
+##
+## **The lane end is the event and the promenade end is the acknowledgement**, so
+## they are not the same: the arrival sign is taller and in the loud canvas red,
+## the one facing the strip is lower and blue. Coming back east it should read as
+## the way out and not as a second entrance.
+##
+## Nothing here goes into `west_far.tscn`, and that is deliberate rather than an
+## oversight. The tableau's whole job from the overlook is "the arch frames a
+## gap, the gap frames the pier" — and a sign board spanning eleven of the
+## fourteen metres at that height sits exactly across the sightline to the
+## pavilion. Measured from the parapet it would cover its top. So the mouth
+## belongs only on the side you are close enough to walk under.
+func _alley_mouth() -> void:
+	var front_face := FRONT_X - FRONT_DEPTH * 0.5
+	var back_face := FRONT_X + FRONT_DEPTH * 0.5
+	var gap_w := GAP_TO - GAP_FROM
+	# face x, which way is out, sign height, sign colour, valance colour, bulbs
+	var faces := [
+		[back_face, 1.0, 2.4, "canvas", "canvas_alt", 9, "lane"],
+		[front_face, -1.0, 1.7, "canvas_alt", "canvas", 7, "strip"],
+	]
+	for f in faces:
+		var fx: float = f[0]
+		var out: float = f[1]
+		var sh: float = f[2]
+		var sign_mat: String = f[3]
+		var valance_mat: String = f[4]
+		var bulbs: int = f[5]
+		var tag: String = f[6]
+
+		# The beam, let into both buildings rather than butted against them —
+		# 0.4m of lap at each end, which is also what keeps its end faces off
+		# theirs. Nothing above head height collides: a box at 4.3m that the
+		# player can walk into is a bug waiting for somebody to find it.
+		_box("alley_beam_%s" % tag, Vector3.ZERO,
+			Vector3(fx - out * 0.5, SHORE_TOP + 4.8, ALLEY_Z),
+			Vector3(1.2, 1.0, gap_w + 0.8), "wood", 0.0, false)
+
+		# Corbels at the ends, so the beam is carried rather than floating.
+		for i in 2:
+			var cz: float = GAP_FROM + 0.35 if i == 0 else GAP_TO - 0.35
+			_box("alley_corbel_%s_%d" % [tag, i], Vector3.ZERO,
+				Vector3(fx - out * 0.5, SHORE_TOP + 4.05, cz),
+				Vector3(0.9, 0.6, 1.4), "wood", 0.0, false)
+
+		# Legs, standing on the deck 0.6m in from each corner. They collide,
+		# which is fine: the alley is 14m wide and its walkway is the middle 6,
+		# so a post at 6.4m off centre is nowhere anybody walks.
+		for i in 2:
+			var pz: float = GAP_FROM + 0.6 if i == 0 else GAP_TO - 0.6
+			_box("alley_post_%s_%d" % [tag, i], Vector3.ZERO,
+				Vector3(fx + out * 0.45, SHORE_TOP + 2.15, pz),
+				Vector3(0.28, 4.3, 0.28), "wood")
+
+		# The valance, and the bulbs along its lip. Flat rather than raked: the
+		# `_box` tilt turns about the part's own X, which cants a canopy along
+		# the frontage instead of sloping it outward, and a flat soffit under a
+		# beam is what this wants anyway.
+		_box("alley_valance_%s" % tag, Vector3.ZERO,
+			Vector3(fx + out * 0.75, SHORE_TOP + 4.18, ALLEY_Z),
+			Vector3(1.5, 0.18, gap_w - 1.0), valance_mat, 0.0, false)
+		for i in bulbs:
+			var t := (float(i) + 0.5) / float(bulbs)
+			var bz: float = lerpf(GAP_FROM + 1.2, GAP_TO - 1.2, t)
+			_sphere("alley_bulb_%s_%d" % [tag, i],
+				Vector3(fx + out * 1.2, SHORE_TOP + 3.95, bz), 0.13, "yellow")
+
+		# The sign, lapping the beam by 0.15 so it sits on it, and standing
+		# 1.5m clear of the neighbours' rooflines so the lane sees it first.
+		_box("alley_sign_%s" % tag, Vector3.ZERO,
+			Vector3(fx + out * 0.2, SHORE_TOP + 5.15 + sh * 0.5, ALLEY_Z),
+			Vector3(0.5, sh, gap_w - 3.0), sign_mat, 0.0, false)
+		_box("alley_sign_panel_%s" % tag, Vector3.ZERO,
+			Vector3(fx + out * 0.5, SHORE_TOP + 5.15 + sh * 0.5, ALLEY_Z),
+			Vector3(0.25, sh - 0.8, gap_w - 5.0), "white", 0.0, false)
 
 
 ## The wheel, standing on the promenade with a fence round its feet.
@@ -1857,9 +2861,12 @@ func _boardwalk_coaster() -> void:
 func _boardwalk_pier() -> void:
 	var root := Vector3(PIER_ROOT.x, SHORE_TOP, PIER_ROOT.y)
 	var mid := root + Vector3(-PIER_LENGTH * 0.5, 0, 0)
+	# Walked east-west, so the boards run north-south — the other way from the
+	# promenade it leaves. Standing at the pier mouth, that turn in the decking
+	# is the first thing that says the pier goes somewhere the strip does not.
 	_box("pier_deck", Vector3.ZERO,
 		Vector3(mid.x, DECK_TOP - DECK_THICK * 0.5, mid.z),
-		Vector3(PIER_LENGTH, DECK_THICK, PIER_HALF_W * 2.0), "plank")
+		Vector3(PIER_LENGTH, DECK_THICK, PIER_HALF_W * 2.0), "plank_cross")
 
 	# Rails both sides, in posts and a top rail rather than as one long box, so
 	# that the water reads between them from a low camera.
@@ -1890,9 +2897,11 @@ func _boardwalk_pier() -> void:
 	# nobody has designed yet. The doors are on it so that it reads as closed
 	# rather than as unfinished.
 	var head := Vector3(PAVILION_AT.x, SHORE_TOP, PAVILION_AT.y)
+	# Carries the pier's boards through to the end, because it is the pier's last
+	# sixteen metres and not a separate place.
 	_box("pavilion_apron", Vector3.ZERO,
 		Vector3(head.x, DECK_TOP - DECK_THICK * 0.5, head.z),
-		Vector3(16.0, DECK_THICK, 17.0), "plank")
+		Vector3(16.0, DECK_THICK, 17.0), "plank_cross")
 	_box("pavilion", Vector3.ZERO, head + Vector3(0, 3.4, 0),
 		Vector3(12.0, 6.8, 13.0), "white")
 	_box("pavilion_roof", Vector3.ZERO, head + Vector3(0, 7.1, 0),
@@ -2046,7 +3055,7 @@ func _boardwalk_props() -> void:
 		# plaza's — which is why the crowd generator treats a table as a 1.15m
 		# circle and ignores the shade entirely.
 		_cyl("table_%d_pole" % i, base, Vector3(0, 1.5, 0), 0.05, 2.4, "metal", 0.0, 6)
-		_cyl("table_%d_shade" % i, base, Vector3(0, 2.26, 0), 1.5, 0.1,
+		_cyl("table_%d_shade" % i, base, Vector3(0, 2.26, 0), 1.6, 0.1,
 			"canvas" if i % 2 == 0 else "canvas_alt", 0.0, 10, false)
 		for j in 2:
 			var off := Vector3(0.95, 0.0, 0.2) if j == 0 else Vector3(-0.9, 0.0, -0.35)
@@ -2093,6 +3102,17 @@ func _light_string(index: int, from_z: float, to_z: float) -> void:
 		_sphere("bulb_%d_%d" % [index, b], points[b + 1], 0.11, "yellow")
 
 
+## Everything west of here is on the skyline from the boardwalk. It is the
+## plaza's own west range and the terrace in front of it; the bandstand at −20
+## and the fountain at the origin are behind fifteen metres of wall and would
+## never be seen even if they were emitted.
+const BELOW_WEST_X := -30.0
+
+## Thinner than this is detail at ninety metres. Drops the overlook's copings —
+## 16cm bands on top of a parapet — and keeps the parapet.
+const BELOW_MIN_H := 1.0
+
+
 ## The plaza, seen from below, as massing with nothing behind it.
 ##
 ## This exists because the plaza is *gone* down here. `ParkSections` frees the
@@ -2102,21 +3122,392 @@ func _light_string(index: int, from_z: float, to_z: float) -> void:
 ## with sky above it, which is the one thing that would say "this is a different
 ## level" out loud.
 ##
-## Six boxes. They are the plaza's own west wall at the plaza's own coordinates,
-## which is duplication, and it is the kind a test can hold: anything that moves
-## the plaza's west face and not these will show up as the skyline sliding.
+## **Read off `plaza.tscn` since 2026-08-13, and it had to be.** This used to be
+## six literals, and the comment over them said the duplication was "the kind a
+## test can hold: anything that moves the plaza's west face and not these will
+## show up as the skyline sliding". No such test was ever written, and by today
+## every one of the six was wrong: 7m walls against a real perimeter of 13–19,
+## at x=−26 against a real west range at −44 to −33, and a 14m sign tower at
+## x=18 against a 40m one at −1.5. The plaza had grown from 80m to 104m and gone
+## taller twice underneath a stand-in nobody re-derived, which is exactly the
+## failure the plan file exists to prevent — and the fix is the plan file's own
+## first answer: generate it, rather than describe it a second time.
+##
+## Two things it deliberately does not carry. The **frontage** is applied to
+## inner faces only, so from the west there is nothing of it to see — the outer
+## faces are blank and the massing is right to be blank with them. And the
+## **roof clutter** would show a metre or two of cupola over the roofline from
+## the promenade; it is left off, because a stand-in that reproduces detail is a
+## stand-in that has to be kept in step with detail.
 func _plaza_from_below() -> void:
-	_box("far_parapet", Vector3.ZERO, Vector3(-38.5, 0.5, -0.2),
-		Vector3(1.0, 1.0, 16.4), "far_warm", 0.0, false)
-	_box("far_overlook_n", Vector3.ZERO, Vector3(-35.0, 1.6, -11.5),
-		Vector3(8.0, 3.2, 1.0), "far", 0.0, false)
-	_box("far_overlook_s", Vector3.ZERO, Vector3(-35.0, 1.6, 7.5),
-		Vector3(8.0, 3.2, 1.0), "far", 0.0, false)
-	_box("far_west_n", Vector3.ZERO, Vector3(-26.0, 3.5, -11.5),
-		Vector3(10.0, 7.0, 9.0), "far", 0.0, false)
-	_box("far_west_s", Vector3.ZERO, Vector3(-26.0, 3.5, 5.5),
-		Vector3(10.0, 7.0, 5.0), "far", 0.0, false)
-	# The one thing on the plaza tall enough to clear the bluff from down here,
-	# and the only way of telling the time that survives the crossing.
-	_box("far_sign_tower", Vector3.ZERO, Vector3(18.0, 7.0, -16.0),
-		Vector3(1.6, 14.0, 1.6), "far", 0.0, false)
+	var n := 0
+	for box in _plaza_scene_boxes():
+		var nm: String = box["nm"]
+		var at: Vector3 = box["at"]
+		var size: Vector3 = box["size"]
+		if size.y < BELOW_MIN_H:
+			continue
+		# The tower by name rather than by position: it stands on the gate axis
+		# in the middle of the plaza, and it is here because it is the one thing
+		# tall enough to clear its own west wall from down on the promenade.
+		if not (nm.begins_with("tower_") or at.x < BELOW_WEST_X):
+			continue
+		var mat := "far_warm" if nm.begins_with("tower_") else "far"
+		# Snapped to the centimetre, and that is not tidiness.
+		#
+		# The plaza's shapes carry hand displacement, and it runs *downward and
+		# inward* — on the west side each successive node is a quarter-millimetre
+		# further out in −X. `_add` displaces in +X by the same step in the same
+		# order. Copied verbatim, the two cancel exactly: the arch's two piers and
+		# its lintel came out sharing three planes over ninety square metres, all
+		# of it hand displacement that had been carefully arranged in the file
+		# they were read from. Snapping throws that away and lets this scene's own
+		# ring do the separating, which is the only ring that applies here.
+		_box("far_%s" % nm, Vector3.ZERO, at.snapped(Vector3.ONE * 0.01), size,
+			mat, 0.0, false)
+		n += 1
+	if n < 6:
+		push_error("only %d plaza masses read for the view from below — " % n
+			+ "the parse found nothing, or the west range has been renamed")
+
+
+# ---------------------------------------------------------------------------
+# The plaza's frontage
+# ---------------------------------------------------------------------------
+
+## What the perimeter is made of, applied to walls that already exist.
+##
+## The perimeter went to 13–19m on 2026-08-13 and the enclosure came back with
+## it, but a 19m greybox slab is a great deal of nothing — from the fountain the
+## east wall was most of the frame with no incident in it at all. Height without
+## frontage reads as a retaining wall rather than as buildings, and the taller
+## the wall the more it reads that way.
+##
+## **Laid by rule off the walls themselves, not off a table.** The perimeter is
+## the one hand-authored thing in the world and its runs live as baked literals
+## in `plaza.tscn`, where no generator can reach them. A copy in `ParkPlan` would
+## be the fourth survey of the same park, which is the mistake that file exists
+## to stop. So this reads the scene as text and derives the frontage from what is
+## actually standing: move a wall in the editor and the frontage follows on the
+## next run, and a wall that is not there gets no shopfront.
+##
+## Text rather than `load()` because `plaza.tscn` instances the very scene this
+## writes. Loading it would make the generator depend on its own output, and the
+## first run after a clean checkout — or any run where the output is missing —
+## would fail on a dependency it is in the middle of creating.
+const FRONTAGE_PATH := "res://scenes/world/plaza_frontage.tscn"
+const PLAZA_SCENE_PATH := "res://scenes/world/plaza.tscn"
+
+## Bare wall left at each end of a run. Architecturally a quoin; practically the
+## clearance that keeps the last pilaster off the threshold mouths, whose piers
+## stand in the gaps the runs end at.
+const FRONT_INSET := 0.9
+
+## Top of the shopfront storey. `_front` builds to 3.83 with its fascia, so this
+## is the first floor line and everything above it is upper storeys.
+const FRONT_GROUND := 4.3
+
+## The band under the roofline. Reserved out of the wall before the storeys are
+## divided, so a cornice never lands on top of a row of windows.
+const FRONT_CORNICE := 1.2
+
+## Widest a bay is allowed to get before the run takes another one. Bays come out
+## 5.4 to 8.4m across the perimeter, which is a shop unit rather than a warehouse
+## door, and the count is per run so no two runs share a rhythm by accident.
+const FRONT_BAY_MAX := 9.0
+
+## How far the whole frontage is set into the wall it is applied to.
+##
+## Everything here is relief on a face, so the natural thing is to sit each
+## element's back exactly on that face — which is fine along a wall and wrong at
+## a corner, where the *next* building's end face is the same plane pointing the
+## same way. The north range's east end and the east range's inner face are both
+## x=36, so a shopfront pilaster on the east wall shared a plane with a building
+## a quarter of the park away. Four centimetres in and no back face is on any
+## plane at all; nothing that projects stops projecting.
+const FRONT_SINK := 0.04
+
+
+## Every box in `plaza.tscn`, by name, centre and size in world units.
+##
+## Read once and kept, because two things want it now: the frontage, which needs
+## the perimeter runs, and the massing the boardwalk shows in the plaza's place,
+## which needs everything on the plaza's west side. Only `CSGBox3D` — a node with
+## no `size` is skipped, which is how the fountain's cylinders and the instanced
+## sub-scenes drop out without being named here.
+var _plaza_boxes: Array = []
+
+
+func _plaza_scene_boxes() -> Array:
+	if not _plaza_boxes.is_empty():
+		return _plaza_boxes
+	var f := FileAccess.open(PLAZA_SCENE_PATH, FileAccess.READ)
+	if f == null:
+		push_error("cannot read %s" % PLAZA_SCENE_PATH)
+		return _plaza_boxes
+	var text := f.get_as_text()
+	f.close()
+
+	var nm := ""
+	var origin := Vector3.ZERO
+	var size := Vector3.ZERO
+	for raw in text.split("\n"):
+		var line := raw.strip_edges()
+		if line.begins_with("[node "):
+			_keep_box(nm, origin, size)
+			nm = _quoted(line, "name=\"")
+			origin = Vector3.ZERO
+			size = Vector3.ZERO
+		elif line.begins_with("transform = Transform3D("):
+			var n := _numbers(line)
+			if n.size() >= 12:
+				origin = Vector3(n[9], n[10], n[11])
+		elif line.begins_with("size = Vector3("):
+			var n := _numbers(line)
+			if n.size() >= 3:
+				size = Vector3(n[0], n[1], n[2])
+	_keep_box(nm, origin, size)
+	return _plaza_boxes
+
+
+func _keep_box(nm: String, origin: Vector3, size: Vector3) -> void:
+	if nm != "" and size.length() > 0.0:
+		_plaza_boxes.append({"nm": nm, "at": origin, "size": size})
+
+
+## The perimeter runs.
+##
+## Only `perim_*` — the arch piers, the lintel, the boundary fences and the
+## overlook walls are named differently on purpose and get no frontage.
+func _perimeter_runs() -> Array:
+	var out: Array = []
+	for box in _plaza_scene_boxes():
+		if String(box["nm"]).begins_with("perim_"):
+			out.append(box)
+	return out
+
+
+func _quoted(line: String, key: String) -> String:
+	var a := line.find(key)
+	if a < 0:
+		return ""
+	a += key.length()
+	var b := line.find("\"", a)
+	return line.substr(a, b - a) if b > a else ""
+
+
+func _numbers(line: String) -> Array:
+	var a := line.find("(")
+	var b := line.rfind(")")
+	if a < 0 or b <= a:
+		return []
+	var out: Array = []
+	for part in line.substr(a + 1, b - a - 1).split(","):
+		out.append(part.strip_edges().to_float())
+	return out
+
+
+func _plaza_frontage() -> void:
+	var runs := _perimeter_runs()
+	if runs.is_empty():
+		push_error("no perim_* runs found in %s — the frontage would be empty, "
+			% PLAZA_SCENE_PATH + "which means the parse broke rather than the wall moved")
+		return
+	for i in runs.size():
+		_facade(runs[i], i)
+
+
+## One run of perimeter, from the pavement to the skyline.
+##
+## Local space is the wall's: +X along it, +Z out of its inner face, so every
+## number below is read the way you would read it standing in front of the
+## building. Which face is the inner one is decided by which side of the run the
+## fountain is on, so nothing here has to know which wall it is working on.
+func _facade(run: Dictionary, idx: int) -> void:
+	var c: Vector3 = run["at"]
+	var s: Vector3 = run["size"]
+	var along_x: bool = s.x > s.z
+	var length: float = s.x if along_x else s.z
+	var thick: float = s.z if along_x else s.x
+	var h: float = s.y
+	var normal := (Vector3(0.0, 0.0, -signf(c.z)) if along_x
+		else Vector3(-signf(c.x), 0.0, 0.0))
+	var theta := atan2(normal.x, normal.z)
+	var base := Vector3(c.x, 0.0, c.z) + normal * (thick * 0.5 - FRONT_SINK)
+	var tag := "f%02d" % idx
+
+	var usable := length - FRONT_INSET * 2.0
+	var bays: int = maxi(1, int(ceil(usable / FRONT_BAY_MAX)))
+	var bw := usable / float(bays)
+
+	# Every horizontal in this run is lifted by a few centimetres nobody will
+	# read, and the amount is a function of which run it is.
+	#
+	# Two runs meeting at a corner overlap over about a third of a square metre,
+	# and equal-height runs — there are several, the perimeter only has five
+	# heights in it — put their floor lines, cornices and parapets at exactly the
+	# same y. The seam ring cannot help: it separates shapes that are *near each
+	# other in build order*, and a corner is two shapes sixty nodes apart. So the
+	# runs disagree by construction instead. Real adjacent buildings do not share
+	# a floor line either, which is the other reason to want this.
+	var jog := 0.031 * float((idx * 3) % 5)
+
+	# Storeys divide what is left after the shopfront and the cornice have taken
+	# theirs, so the top floor is never a sliver and the courses always land on
+	# the wall rather than through the roof.
+	var upper := h - FRONT_GROUND - jog - FRONT_CORNICE
+	var storeys: int = clampi(int(round(upper / 3.4)), 1, 4)
+	var sh := upper / float(storeys)
+	var ground := FRONT_GROUND + jog
+
+	# Floor lines, one per storey including the shopfront's own cornice at 4.3.
+	# Run the whole length rather than per bay: a course that stops at every
+	# joint reads as a row of sheds, and the point of these is that a run is one
+	# building with several shops in it.
+	for st in storeys:
+		_box("%s_course_%d" % [tag, st], base,
+			Vector3(0.0, ground + float(st) * sh, 0.14),
+			Vector3(length - 0.5, 0.26, 0.46), "white", theta, false)
+
+	for b in bays:
+		_facade_bay(tag, base, theta, idx, b, bays, bw,
+			-length * 0.5 + FRONT_INSET + bw * (float(b) + 0.5), storeys, sh,
+			ground, h + jog)
+
+	# The cornice oversails the parapet, which is what makes the roofline a shadow
+	# line rather than an edge. Both sink into the wall by different amounts —
+	# butted flush their back faces and the wall's face are one plane.
+	#
+	# The parapet runs *past* the wall it caps rather than stopping on it. Level
+	# with the ends its side faces are the wall's own side faces, which is a
+	# fight wherever a run's displacement happens to be zero — and it is also
+	# what leaves a notch at the two places where runs butt instead of being
+	# separated by a threshold gap.
+	_box("%s_cornice" % tag, base, Vector3(0.0, h + jog - FRONT_CORNICE * 0.5, 0.2),
+		Vector3(length - 0.2, FRONT_CORNICE * 0.6, 0.62), "white", theta, false)
+	_box("%s_parapet" % tag, base, Vector3(0.0, h + jog + 0.45, 0.0),
+		Vector3(length + 0.12, 1.1, 0.72), "building", theta, false)
+	_box("%s_parapet_cap" % tag, base, Vector3(0.0, h + jog + 1.06, 0.03),
+		Vector3(length + 0.24, 0.2, 0.94), "far_shade", theta, false)
+
+	_roofline(tag, base, theta, idx, length, thick, h + jog)
+
+
+## A bay: the shop at the bottom, windows above it, and on some of them the
+## raised parapet that breaks the roofline.
+func _facade_bay(tag: String, base: Vector3, theta: float, idx: int, b: int,
+		bays: int, bw: float, bx: float, storeys: int, sh: float,
+		ground: float, h: float) -> void:
+	var at := _place(base, Vector3(bx, 0.0, 0.0), theta)
+	var nm := "%s_b%d" % [tag, b]
+
+	# Kinds walk across the perimeter rather than repeating per run, so no wall
+	# is a row of the same shop and no two adjacent runs start on the same one.
+	var kinds := ["store", "food", "store", "arcade"]
+	_front(nm, at, theta, minf(bw - 1.4, 8.0), kinds[(idx * 3 + b) % kinds.size()])
+
+	# Awnings on about half the bays. On all of them the wall reads as a market
+	# stall; on none of it there is nothing at eye level but glass. No posts,
+	# unlike the street's: a colonnade round the plaza would say arcade, and
+	# anything standing on the floor here is something the crowd has to walk
+	# round that the wander graph does not know about.
+	if _hash01(idx, b, 17) < 0.55:
+		var canvases := ["canvas", "canvas_alt", "red", "yellow"]
+		var cm: String = canvases[int(_hash01(idx, b, 23) * 4.0) % 4]
+		_box("%s_awning" % nm, at, Vector3(0.0, 3.98, 0.86),
+			Vector3(bw - 1.9, 0.16, 1.7), cm, theta, false)
+		for i in 2:
+			var sx := (-1.0 if i == 0 else 1.0) * (bw * 0.5 - 1.15)
+			_box("%s_bracket_%d" % [nm, i], at, Vector3(sx, 3.55, 0.34),
+				Vector3(0.1, 0.86, 0.66), "metal", theta, false)
+
+	# Windows, applied rather than punched. Nothing here is a CSG boolean — the
+	# shapes are siblings, not a combiner — so a hole in a wall is not available
+	# and a recess would simply be a box inside a solid. What reads as a window
+	# is a dark panel standing a hair proud with a lighter head over it, which is
+	# the same trick the street's glazing plays.
+	var wins := 2 if bw < 7.2 else 3
+	var ww := minf(1.45, bw / (float(wins) * 2.15))
+	var wh := minf(2.0, sh - 1.25)
+	for st in storeys:
+		var y := ground + float(st) * sh + sh * 0.52
+		for w in wins:
+			var t := (float(w) + 0.5) / float(wins)
+			var wx := lerpf(-bw * 0.5 + ww, bw * 0.5 - ww, t)
+			_box("%s_win_%d_%d" % [nm, st, w], at, Vector3(wx, y, 0.07),
+				Vector3(ww, wh, 0.14), "glass", theta, false)
+			_box("%s_head_%d_%d" % [nm, st, w], at, Vector3(wx, y + wh * 0.5 + 0.14, 0.11),
+				Vector3(ww + 0.36, 0.22, 0.26), "white", theta, false)
+
+	# One bay per run carries a raised parapet. This is the piece doing the work
+	# the whole pass is for: fifteen runs of different height already step the
+	# roofline at every joint, and this steps it in the middle of a run as well,
+	# so no single wall is a straight line against the sky.
+	if b == idx % bays:
+		var pw := minf(bw * 0.6, 5.2)
+		_box("%s_ped" % nm, at, Vector3(0.0, h + 1.55, 0.0),
+			Vector3(pw, 2.0, 0.78), "building", theta, false)
+		_box("%s_ped_cap" % nm, at, Vector3(0.0, h + 2.62, 0.04),
+			Vector3(pw + 0.3, 0.22, 1.0), "far_shade", theta, false)
+		var signs := ["red", "blue", "yellow", "canvas_alt"]
+		_box("%s_ped_sign" % nm, at, Vector3(0.0, h + 1.6, 0.44),
+			Vector3(pw * 0.66, 1.05, 0.14), signs[idx % signs.size()], theta, false)
+
+
+## What stands on the roof. Sparse on purpose — every run having something is a
+## skyline, and a park's roofline is mostly flat with three or four things on it.
+##
+## Set back from the face so the parapet crops their feet, which is the same rule
+## the skyline's coaster and tower are placed by: a silhouette whose base you can
+## see is a model, and one you cannot is a building with more behind it.
+func _roofline(tag: String, base: Vector3, theta: float, idx: int,
+		length: float, thick: float, h: float) -> void:
+	var pick := int(_hash01(idx, 7, 41) * 6.0)
+	var back := -minf(thick * 0.5 - 1.4, 3.0)
+	var x := lerpf(-length * 0.28, length * 0.28, _hash01(idx, 3, 53))
+	match pick:
+		0:
+			# A cupola, which is the one that says park rather than high street.
+			_box("%s_cup_base" % tag, base, Vector3(x, h + 1.1, back),
+				Vector3(3.2, 1.0, 3.2), "building", theta, false)
+			_cyl("%s_cup_drum" % tag, base, Vector3(x, h + 2.5, back), 1.15, 2.0,
+				"white", theta, 10, false)
+			_cyl("%s_cup_roof" % tag, base, Vector3(x, h + 3.75, back), 1.5, 0.5,
+				"accent", theta, 10, false)
+			_box("%s_cup_mast" % tag, base, Vector3(x, h + 4.85, back),
+				Vector3(0.16, 1.8, 0.16), "far_shade", theta, false)
+		1:
+			# Water tank. Every park of this vintage has one and it is the
+			# cheapest thing on this list that reads as machinery.
+			for i in 4:
+				var lx := x + (-1.0 if i < 2 else 1.0) * 1.15
+				var lz := back + (-1.0 if i % 2 == 0 else 1.0) * 1.15
+				_box("%s_tank_leg_%d" % [tag, i], base, Vector3(lx, h + 1.2, lz),
+					Vector3(0.2, 2.4, 0.2), "far_shade", theta, false)
+			_cyl("%s_tank" % tag, base, Vector3(x, h + 3.7, back), 1.7, 3.2,
+				"wood", theta, 12, false)
+			_cyl("%s_tank_cap" % tag, base, Vector3(x, h + 5.45, back), 1.55, 0.4,
+				"far_shade", theta, 12, false)
+		2:
+			# A roof sign, seen from the far side of the plaza and blank from the
+			# back, because half of them are.
+			for i in 2:
+				var px := x + (-1.0 if i == 0 else 1.0) * 2.4
+				_box("%s_sign_post_%d" % [tag, i], base, Vector3(px, h + 1.6, back),
+					Vector3(0.22, 3.2, 0.22), "metal", theta, false)
+			_box("%s_sign_panel" % tag, base, Vector3(x, h + 3.0, back + 0.1),
+				Vector3(6.0, 2.2, 0.2), "white", theta, false)
+			_box("%s_sign_face" % tag, base, Vector3(x, h + 3.0, back + 0.26),
+				Vector3(4.6, 1.5, 0.12), "red", theta, false)
+		3:
+			# Vents, which is what most park rooftops actually have on them.
+			for i in 3:
+				var vx := x + (float(i) - 1.0) * 1.6
+				_cyl("%s_vent_%d" % [tag, i], base, Vector3(vx, h + 0.9, back),
+					0.34, 1.8, "metal", theta, 8, false)
+				_cyl("%s_vent_%d_cap" % [tag, i], base, Vector3(vx, h + 1.9, back),
+					0.46, 0.2, "far_shade", theta, 8, false)
+		_:
+			# Two in six get a flat roof, and they are what makes the other four
+			# read as incidents rather than as a pattern.
+			pass

@@ -94,6 +94,8 @@ EXCLUSIVE = [
     {'boardwalk.tscn', 'west_far.tscn'},
     {'boardwalk.tscn', 'west_stair.tscn'},
     {'boardwalk.tscn', 'plaza.tscn'},
+    {'boardwalk.tscn', 'plaza_frontage.tscn'},
+    {'boardwalk.tscn', 'plaza_paving.tscn'},
     {'boardwalk.tscn', 'plaza_props.tscn'},
     {'boardwalk.tscn', 'plaza_skyline.tscn'},
     {'boardwalk.tscn', 'entrance.tscn'},

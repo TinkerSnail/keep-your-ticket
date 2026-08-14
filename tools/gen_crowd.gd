@@ -115,7 +115,7 @@ func _finish(path: String) -> bool:
 func _build_plaza() -> bool:
 	# Fixed seed: this file is committed, so the same source must produce the
 	# same scene or every run shows up as a diff.
-	_begin("crowd", 0.0, Rect2(-36.0, -36.0, 72.0, 72.0), 0x5150)
+	_begin("crowd", 0.0, Rect2(-48.0, -48.0, 96.0, 96.0), 0x5150)
 
 	_plaza_graph()
 	_obstacles = _plaza_obstacles()
@@ -254,39 +254,42 @@ func _plaza_graph() -> void:
 	# east–west traffic goes around the fountain instead. That is what a real
 	# plaza does, and it was found by checking rather than by deciding.
 	var points := {
-		"gate": Vector2(-1.5, 27.0),
-		"south": Vector2(-1.5, 21.5),
-		"south_east": Vector2(6.5, 18.0),
-		"south_west": Vector2(-11.0, 17.0),
-		"hut_walk": Vector2(4.6, 14.0),
-		"queue": Vector2(8.5, 15.5),
-		"cafe_s": Vector2(16.0, 14.5),
-		"cafe_mid": Vector2(15.0, 10.0),
-		"cafe_n": Vector2(15.5, 5.5),
-		"east": Vector2(17.0, -5.0),
-		"sign": Vector2(14.5, -13.5),
-		"north": Vector2(4.5, -16.0),
-		"ring_s": Vector2(0.0, 11.0),
-		"ring_sw": Vector2(-6.5, 5.5),
-		"ring_w": Vector2(-12.0, 0.0),
-		# The ring bulges around an a-frame sign and the bench at 235 degrees,
-		# which is why the north-west is two nodes instead of a clean arc.
-		"ring_wnw": Vector2(-10.5, -4.0),
-		"ring_nw": Vector2(-3.0, -9.0),
-		"ring_n": Vector2(0.0, -11.0),
-		"ring_ne": Vector2(8.0, -8.0),
-		"ring_e": Vector2(12.0, 0.0),
-		"west_mid": Vector2(-11.5, 9.0),
-		"west": Vector2(-16.0, 4.0),
-		"west_s": Vector2(-18.0, 11.0),
-		"west_n": Vector2(-18.5, -2.0),
-		"band_e": Vector2(-3.5, -12.0),
-		# Behind the bandstand the walkable strip is 1.8m wide, between one of
-		# the bandstand's own benches and the north perimeter. Both of these sit
-		# in it, which is why they are further south than they look like they
-		# should be.
-		"band_n": Vector2(-9.0, -21.0),
-		"band_w": Vector2(-19.0, -21.0),
+		# The plaza mouth, and the south walk in from it.
+		"gate": Vector2(-1.5, 41.0),
+		"south": Vector2(-1.5, 30.0),
+		"south_east": Vector2(12.0, 22.0),
+		"south_west": Vector2(-24.0, 26.0),
+		# The photo hut, out at radius 28 now, with its queue on the south side.
+		"hut_walk": Vector2(14.0, 18.0),
+		"queue": Vector2(17.0, 27.0),
+		# The street out to the south-east threshold, which the crowd walks the
+		# near end of and no further — past the mouth is scaffolding.
+		"street_n": Vector2(22.0, 11.0),
+		"east": Vector2(25.0, -2.0),
+		"east_n": Vector2(24.0, -18.0),
+		"north": Vector2(5.0, -25.0),
+		# In front of the clock tower. The node kept its name when the tower moved
+		# onto the axis, because what it means — the walk under the sign — did not.
+		"sign": Vector2(-1.5, -26.0),
+		"band_e": Vector2(-11.0, -20.0),
+		"band_n": Vector2(-17.0, -31.0),
+		"band_w": Vector2(-31.0, -30.0),
+		"west": Vector2(-24.0, -6.0),
+		"west_n": Vector2(-30.0, -2.0),
+		"cafe": Vector2(-22.0, 8.0),
+		"west_s": Vector2(-22.0, 20.0),
+		# The ring, at r=16 where the walkway is. Nine nodes now rather than eight:
+		# the south-east arc was missing because the photo hut used to stand in it,
+		# and with the hut moved out the ring closes properly.
+		"ring_s": Vector2(0.0, 16.0),
+		"ring_se": Vector2(11.0, 11.0),
+		"ring_e": Vector2(16.0, 0.0),
+		"ring_ne": Vector2(11.0, -11.0),
+		"ring_n": Vector2(0.0, -16.0),
+		"ring_nw": Vector2(-8.0, -14.0),
+		"ring_wnw": Vector2(-15.0, -11.0),
+		"ring_w": Vector2(-19.0, 0.0),
+		"ring_sw": Vector2(-11.0, 11.0),
 	}
 	for name in points:
 		_graph_names.append(name)
@@ -299,29 +302,25 @@ func _plaza_graph() -> void:
 	# meant to learn about this place by walking it.
 	var links := [
 		["gate", "south"],
-		["south", "south_east"], ["south", "ring_s"],
+		["south", "south_east"], ["south", "south_west"], ["south", "ring_s"],
 		["south_east", "queue"], ["south_east", "hut_walk"],
-		["queue", "hut_walk"], ["queue", "cafe_s"],
-		["cafe_s", "cafe_mid"],
-		["cafe_mid", "cafe_n"],
-		["cafe_n", "east"],
-		["east", "sign"], ["east", "ring_e"],
-		["sign", "north"],
-		["north", "ring_n"], ["north", "ring_ne"], ["north", "band_n"],
-		["hut_walk", "ring_s"],
-		["ring_s", "ring_sw"],
-		["ring_sw", "ring_w"], ["ring_sw", "west_mid"],
-		["ring_w", "ring_wnw"], ["ring_w", "west"], ["ring_w", "west_n"],
-		["ring_w", "west_mid"],
-		["ring_wnw", "ring_nw"],
-		["ring_nw", "ring_n"], ["ring_nw", "band_e"],
-		["ring_n", "ring_ne"],
-		["ring_ne", "ring_e"],
-		["band_e", "band_n"],
+		["queue", "hut_walk"],
+		["hut_walk", "ring_se"],
+		["street_n", "east"], ["street_n", "ring_se"], ["street_n", "ring_e"],
+		["east", "ring_e"], ["east", "east_n"],
+		["east_n", "north"], ["east_n", "ring_ne"],
+		["north", "sign"], ["north", "ring_n"], ["north", "ring_ne"],
+		["sign", "band_e"], ["sign", "band_n"], ["sign", "ring_n"],
+		["band_e", "ring_n"],
 		["band_n", "band_w"],
-		["west", "west_mid"], ["west", "west_s"], ["west", "west_n"],
+		["west", "west_n"], ["west", "cafe"], ["west", "ring_w"],
+		["west", "ring_wnw"],
+		["cafe", "west_s"], ["cafe", "ring_sw"],
 		["west_s", "south_west"],
-		["south_west", "west_mid"],
+		# The ring, closed.
+		["ring_s", "ring_se"], ["ring_se", "ring_e"], ["ring_e", "ring_ne"],
+		["ring_ne", "ring_n"], ["ring_n", "ring_nw"], ["ring_nw", "ring_wnw"],
+		["ring_wnw", "ring_w"], ["ring_w", "ring_sw"], ["ring_sw", "ring_s"],
 	]
 	for link in links:
 		_graph_edges.append(_node_index(link[0]))
@@ -347,15 +346,11 @@ func _node_index(name: String) -> int:
 func _plaza_obstacles() -> Array:
 	var out: Array = []
 
-	# Circles: [centre, radius]
+	# Props, at the positions `gen_props.gd` placed them *before* the dilation —
+	# put through the same map below, so this list stays readable as the layout
+	# somebody typed rather than as a column of arithmetic.
 	var circles := [
-		[Vector2(0, 0), 5.0],          # fountain
 		[Vector2(-6, -10), 1.3],       # cart
-		# Table and its two chairs. The umbrella above is 2.3m up and overhangs
-		# the corridor rather than blocking it.
-		[Vector2(14, 3), 1.15],
-		[Vector2(17, 8), 1.15],
-		[Vector2(13, 12), 1.15],
 		[Vector2(-19, -6), 1.0],       # crates
 		[Vector2(-13, 18), 1.3],       # picnic tables
 		[Vector2(-17, 15), 1.3],
@@ -367,39 +362,47 @@ func _plaza_obstacles() -> Array:
 		[Vector2(20.5, -16), 0.25],
 	]
 	for spot in circles:
-		out.append({"kind": "circle", "at": spot[0], "r": spot[1]})
+		out.append({"kind": "circle", "at": Plan.plaza_out2(spot[0]), "r": spot[1]})
+
+	# The fountain is not dilated: it is the thing the map is measured from, and
+	# its radius is plan data.
+	out.append({"kind": "circle", "at": Plan.FOUNTAIN_AT, "r": Plan.FOUNTAIN_RADIUS})
+
+	# Each cafe table and its two chairs, from the plan. **This was a third copy
+	# of the same three coordinates** — `gen_props.gd` had them, the chair-spot
+	# mirror had them, and so did this list, which is the one that decides
+	# whether a corridor is walkable. Moving the terrace with only two of the
+	# three updated left the validator holding a table at (17,8) that no longer
+	# existed, and it duly reported the new street as blocked by it. Right to
+	# complain, wrong about why, which is the worst kind of correct.
+	#
+	# The umbrella above each is 2.3m up and overhangs rather than blocks.
+	for spec in Plan.PLAZA_CAFE:
+		out.append({"kind": "circle", "at": spec["at"], "r": 1.15})
+
+	# The outer room's benches and flower beds, asked for with the same arguments
+	# `gen_props.gd` stands them on. Trees, bins and litter are left out for the
+	# same reason the lamp posts are: people brush past those without thinking,
+	# and treating them as walls closes corridors that are genuinely walkable.
+	for at in Plan.ring_verge(1.8, 2.2):
+		out.append({"kind": "circle", "at": at, "r": 1.05})
 
 	for spot in _plaza_bench_spots():
 		out.append({"kind": "circle", "at": Vector2(spot["at"].x, spot["at"].z), "r": 1.05})
 
-	# Rectangles: [centre, half extent]
-	var rects := [
-		[Vector2(-26, -4), Vector2(5, 12)],       # building_west
-		[Vector2(2, -28), Vector2(14, 5)],        # building_north
-		[Vector2(26, 2), Vector2(6, 9)],          # building_east
-		[Vector2(-16, 26), Vector2(7, 4)],        # building_south_west
-		[Vector2(12, 27), Vector2(6, 4)],         # building_south_east
-		[Vector2(9, 8), Vector2(3.2, 2.7)],       # photo hut and its roof
-		[Vector2(-12, -12), Vector2(4.5, 4.5)],   # bandstand
-		[Vector2(18, -16), Vector2(0.8, 0.8)],    # sign tower
-		[Vector2(-8, 10), Vector2(1.5, 1.5)],     # planters
-		[Vector2(2, 16), Vector2(1.5, 1.5)],
-		[Vector2(-7, 26), Vector2(1.3, 1.3)],
-		[Vector2(4, 26), Vector2(1.3, 1.3)],
-		[Vector2(-21.5, -27), Vector2(8.5, 4)],   # perimeter
-		[Vector2(22, -26), Vector2(7, 4.5)],
-		[Vector2(-26, -19.5), Vector2(5, 3.5)],
-		[Vector2(26, -14), Vector2(6, 7)],
-		[Vector2(-26, 16), Vector2(5, 7)],
-		[Vector2(26, 17), Vector2(6, 6)],
-		[Vector2(-28, 26), Vector2(4, 5)],
-		[Vector2(25, 27), Vector2(6, 4)],
-		[Vector2(8.5, 12), Vector2(3.2, 0.2)],    # queue rope
-		[Vector2(2, -20), Vector2(6.2, 0.2)],     # bollard lines
-		[Vector2(0, 30), Vector2(6.2, 0.2)],
-	]
-	for rect in rects:
-		out.append({"kind": "rect", "at": rect[0], "half": rect[1]})
+	# The plaza's own masses, from the plan. This was a typed copy of
+	# `plaza.tscn` and the third survey of the same buildings; when the plaza grew
+	# every line of it was wrong at once.
+	for m in Plan.PLAZA_MASSES:
+		out.append({"kind": "rect", "at": m["at"], "half": m["half"]})
+
+	# The hut's queue rope, which belongs to the hut rather than to the plan.
+	out.append({"kind": "rect", "at": Vector2(Plan.PHOTO_HUT_AT.x, Plan.PHOTO_HUT_AT.y + 4.5),
+		"half": Vector2(3.2, 0.2)})
+
+	# The bollard lines, which are props and so are dilated like the rest.
+	for at in [Vector2(2, -20), Vector2(0, 30)]:
+		out.append({"kind": "rect", "at": Plan.plaza_out2(at), "half": Vector2(8.0, 0.2)})
 
 	return out
 
@@ -502,36 +505,46 @@ func _bin_spots() -> Array:
 ## shared: the props tool owns where benches are, and if it moves one this list
 ## going stale is a visible bug — guests sitting in mid-air — rather than a
 ## silent one.
+## Mirrors `gen_props.gd::_benches()`, dilation and exceptions included — a
+## guest has to sit on a bench that exists, and after the plaza grew the two
+## agree only if they scale the same way. The ring benches, the south bench and
+## the two by the south wall go through `ParkPlan.plaza_out`; the hut's bench and
+## the bandstand's three do not, for the same reason they do not over there.
 func _plaza_bench_spots() -> Array:
 	var out: Array = []
 	var r := 7.5
 	for deg in [25.0, 95.0, 165.0, 235.0, 305.0]:
 		var a := deg_to_rad(deg)
-		var p := Vector3(r * cos(a), 0.0, r * sin(a))
+		var p := Plan.plaza_out(Vector3(r * cos(a), 0.0, r * sin(a)))
 		out.append({"at": p, "theta": atan2(-p.x, -p.z)})
-	out.append({"at": Vector3(4.5, 0, 11.5), "theta": deg_to_rad(8.0)})
-	out.append({"at": Vector3(-5, 0, 19), "theta": deg_to_rad(186.0)})
+	out.append({"at": Plan.plaza_out(Vector3(-5, 0, 19)), "theta": deg_to_rad(186.0)})
 
-	var band := Vector3(-12, 0, -12)
+	var hut := Vector3(Plan.PHOTO_HUT_AT.x, 0.0, Plan.PHOTO_HUT_AT.y)
+	out.append({"at": hut + Vector3(-6.0, 0, -4.0), "theta": deg_to_rad(8.0)})
+
+	var band := Vector3(-20, 0, -20)
 	for deg in [20.0, 140.0, 260.0]:
 		var a := deg_to_rad(deg)
-		var p: Vector3 = band + Vector3(7.4 * cos(a), 0.0, 7.4 * sin(a))
+		var p: Vector3 = band + Vector3(8.6 * cos(a), 0.0, 8.6 * sin(a))
 		var d: Vector3 = band - p
 		out.append({"at": p, "theta": atan2(d.x, d.z)})
-	out.append({"at": Vector3(-11, 0, 20), "theta": deg_to_rad(120.0)})
-	out.append({"at": Vector3(2, 0, 22), "theta": deg_to_rad(200.0)})
+	out.append({"at": Plan.plaza_out(Vector3(-11, 0, 20)), "theta": deg_to_rad(120.0)})
+	out.append({"at": Plan.plaza_out(Vector3(2, 0, 22)), "theta": deg_to_rad(200.0)})
 	return out
 
 
-## Mirrors `gen_props.gd::_cafe()` for the same reason.
+## The same three tables `gen_props.gd::_cafe()` builds, out of the same table
+## in `ParkPlan`. It used to be the same literal typed into both files, with a
+## comment in each saying so, which is a duplicate waiting for one of them to be
+## edited alone — and the terrace moved today.
 func _plaza_chair_spots() -> Array:
 	var out: Array = []
-	var spots := [Vector2(14, 3), Vector2(17, 8), Vector2(13, 12)]
-	var turns := [15.0, -25.0, 40.0]
-	var offs := [Vector3(0.95, 0, 0.2), Vector3(-0.9, 0, -0.35)]
-	for i in spots.size():
-		var b := Vector3(spots[i].x, 0, spots[i].y)
-		var th := deg_to_rad(turns[i])
+	var offs := Plan.CAFE_CHAIRS
+	for i in Plan.PLAZA_CAFE.size():
+		var spec: Dictionary = Plan.PLAZA_CAFE[i]
+		var at: Vector2 = spec["at"]
+		var b := Vector3(at.x, 0, at.y)
+		var th := deg_to_rad(float(spec["theta"]))
 		for j in offs.size():
 			out.append({
 				"at": b + offs[j],
@@ -561,7 +574,7 @@ func _plaza_walking_groups() -> void:
 		{"start": "ring_ne", "kinds": ["adult", "adult", "kid", "kid"]},
 		{"start": "band_e", "kinds": ["adult", "adult", "kid"]},
 		{"start": "queue", "kinds": ["adult", "adult"]},
-		{"start": "cafe_n", "kinds": ["adult", "adult"]},
+		{"start": "street_n", "kinds": ["adult", "adult"]},
 		{"start": "ring_w", "kinds": ["adult", "adult"]},
 		{"start": "north", "kinds": ["adult", "adult"]},
 		{"start": "west_s", "kinds": ["adult", "kid"]},
@@ -1045,30 +1058,30 @@ func _boardwalk_graph() -> void:
 		"lane_m": Vector2(Plan.BACK_LANE_X, 12.0),
 		"lane_n": Vector2(Plan.BACK_LANE_X, 2.0),
 		# Through the hole in the frontage.
-		"alley_e": Vector2(-54.5, Plan.ALLEY_Z),
-		"alley_w": Vector2(-61.0, Plan.ALLEY_Z),
+		"alley_e": Vector2(-66.5, Plan.ALLEY_Z),
+		"alley_w": Vector2(-73.0, Plan.ALLEY_Z),
 		# Where the strip and the pier meet, which is where everybody ends up.
-		"prom_gap": Vector2(-66.0, Plan.ALLEY_Z),
+		"prom_gap": Vector2(-78.0, Plan.ALLEY_Z),
 		# North, past the wheel to the coaster.
 		# West of the tables outside the corn-dog stand and east of the wheel
 		# platform, which between them leave a 4m gap. The validator found this:
 		# -66.5 put a graph node a metre inside a table.
-		"prom_n1": Vector2(-68.5, -10.0),
-		"wheel_q": Vector2(-66.5, -19.0),
-		"prom_n2": Vector2(-66.5, -28.0),
-		"station_q": Vector2(-67.0, -41.0),
-		"prom_n3": Vector2(-70.0, -55.0),
-		"prom_n4": Vector2(-70.0, -72.0),
+		"prom_n1": Vector2(-80.5, -10.0),
+		"wheel_q": Vector2(-78.5, -19.0),
+		"prom_n2": Vector2(-78.5, -28.0),
+		"station_q": Vector2(-79.0, -41.0),
+		"prom_n3": Vector2(-82.0, -55.0),
+		"prom_n4": Vector2(-82.0, -72.0),
 		# Out over the water.
-		"pier_root": Vector2(-77.0, Plan.ALLEY_Z),
-		"pier_mid": Vector2(-95.0, Plan.ALLEY_Z),
-		"pier_head": Vector2(-118.0, Plan.ALLEY_Z),
-		"pavilion_door": Vector2(-122.5, Plan.ALLEY_Z),
+		"pier_root": Vector2(-89.0, Plan.ALLEY_Z),
+		"pier_mid": Vector2(-107.0, Plan.ALLEY_Z),
+		"pier_head": Vector2(-130.0, Plan.ALLEY_Z),
+		"pavilion_door": Vector2(-134.5, Plan.ALLEY_Z),
 		# South, which is the quiet end and stays that way.
-		"prom_s1": Vector2(-68.5, 12.0),
-		"prom_s2": Vector2(-70.0, 30.0),
-		"prom_s3": Vector2(-70.0, 48.0),
-		"prom_s4": Vector2(-70.0, 66.0),
+		"prom_s1": Vector2(-80.5, 12.0),
+		"prom_s2": Vector2(-82.0, 30.0),
+		"prom_s3": Vector2(-82.0, 48.0),
+		"prom_s4": Vector2(-82.0, 66.0),
 	}
 	for name in points:
 		_graph_names.append(name)
@@ -1101,7 +1114,7 @@ func _boardwalk_obstacles() -> Array:
 	var out: Array = []
 
 	var circles := [
-		[Vector2(-69.6, -19.0), 1.6],   # the wheel's ticket booth
+		[Vector2(-81.6, -19.0), 1.6],   # the wheel's ticket booth
 	]
 	for at in Plan.TABLES:
 		circles.append([at, 1.15])
@@ -1121,7 +1134,7 @@ func _boardwalk_obstacles() -> Array:
 		# The coaster's station, which is a building on the same line.
 		[Vector2(front_x, Plan.COASTER_STATION.y - 4.0), Vector2(5.5, 6.0)],
 		# The bluff, the whole east edge. The stair well is filled from this side.
-		[Vector2(-42.5, 0.0), Vector2(3.5, 90.0)],
+		[Vector2(-54.5, 0.0), Vector2(3.5, 90.0)],
 		# The wheel's platform, which is 26m of the promenade's length.
 		[Vector2(Plan.WHEEL_AT.x, Plan.WHEEL_AT.y),
 			Vector2(Plan.WHEEL_PLATFORM.x * 0.5, Plan.WHEEL_PLATFORM.y * 0.5)],
@@ -1131,8 +1144,8 @@ func _boardwalk_obstacles() -> Array:
 		[Vector2(front_x - half_d, -66.0), Vector2(0.2, 16.0)],
 		[Vector2(front_x - half_d, 71.0), Vector2(0.2, 7.0)],
 		# The sea, north and south of the pier's corridor.
-		[Vector2(-102.0, -50.0), Vector2(22.4, 40.0)],
-		[Vector2(-102.0, 50.0), Vector2(22.4, 40.0)],
+		[Vector2(-114.0, -50.0), Vector2(22.4, 40.0)],
+		[Vector2(-114.0, 50.0), Vector2(22.4, 40.0)],
 	]
 	for rect in rects:
 		out.append({"kind": "rect", "at": rect[0], "half": rect[1]})

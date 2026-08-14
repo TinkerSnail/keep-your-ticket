@@ -56,7 +56,7 @@ directional_shadow_max_distance = 120.0
 [node name="crowd" parent="sections" instance=ExtResource("4_crowd")]
 
 [node name="player" parent="." instance=ExtResource("2_player")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 16)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 24)
 
 [node name="hud" parent="." instance=ExtResource("3_hud")]
 
