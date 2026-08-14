@@ -183,18 +183,38 @@ func set_third_person(on: bool) -> void:
 ## carries on in the direction they were already going — or straight ahead, if
 ## they managed to trip the seam from a standstill.
 ##
-## The camera is deliberately not detached here. In a game with a fixed chase
-## camera the shot holds at the doorway and the player walks out of frame, which
-## is the whole trick; with a free-look camera on a spring arm there is no frame
-## to walk out of, and taking the look away to fake one would read as the
-## controls dying a moment before the fade. The fade does that job alone, and
-## what carries across it is the walk.
-func begin_crossing() -> void:
+## The camera is not detached *here*, and that distinction now matters. This
+## file used to argue that a seam should never take the view: with a free-look
+## camera on a spring arm there is no frame to walk out of, and freezing the
+## player's own look to fake one reads as the controls dying a moment before the
+## fade. That is still true and this still does not do it.
+##
+## What a seam may do is cut to a camera that was never the player's, which is
+## what `ParkSections._hold_shot` builds — a fixed pose, the player walking
+## across it and out of shot. A cut reads as a cut. The spring arm keeps running
+## underneath and is handed back on the far side, so nothing here is frozen and
+## nothing is taken away; it is simply not the current camera for two seconds.
+##
+## `dir` is where the threshold wants them sent. Zero means carry on the way
+## they were already going, which is what a seam with no framing does — but a
+## framed one has an axis it needs them to walk along, or they leave the shot on
+## whatever diagonal they happened to trip the volume on.
+func begin_crossing(dir: Vector3 = Vector3.ZERO) -> void:
 	_crossing = true
+	if dir.length_squared() > 0.0001:
+		_crossing_wish = Vector3(dir.x, 0.0, dir.z).normalized()
+		return
 	var moving := Vector3(velocity.x, 0.0, velocity.z)
 	_crossing_wish = moving.normalized() if moving.length_squared() > 0.04 \
 		else -global_transform.basis.z
 	_crossing_wish.y = 0.0
+
+
+## Take the view back after a held shot. The arm and the pitch have been running
+## the whole time, so there is nothing to restore — only a camera to make
+## current again, and which one that is depends on whether the Instamatic is up.
+func resume_camera() -> void:
+	_apply_view()
 
 
 func end_crossing() -> void:

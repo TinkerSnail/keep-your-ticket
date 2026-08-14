@@ -327,6 +327,75 @@ const FOOT_GATE_X := -58.1
 
 
 # ---------------------------------------------------------------------------
+# The west seam
+# ---------------------------------------------------------------------------
+
+## **Moved from the foot of the stair to the arch on 2026-08-14.**
+##
+## It used to sit in front of a shut gate at the bottom of a turned flight —
+## chosen because a load must not begin where the player can watch it, and the
+## turn was what took the far side out of shot. An arch is the opposite: you can
+## see clean through it from across the plaza, which is the whole reason the
+## overlook works.
+##
+## What makes the arch usable anyway is that the camera stops following. The
+## shot cuts to a fixed pose, the player walks out of frame under the arch, and
+## only then does the screen go. Nothing the swap changes is on screen when it
+## happens, so the cover no longer has to come from the geometry — which is the
+## trade: the corridor bought cover with distance, and this buys it with framing.
+##
+## The gain is that every one of the six ways out can now be the same rule. Four
+## of them are scaffolded passages that bend for cover they no longer need, and
+## the two that matter are arches you walk under.
+const ARCH_SEAM_AT := Vector3(-38.5, 1.5, ARCH_AT.y)
+const ARCH_SEAM_SIZE := Vector3(2.6, 3.0, 8.6)
+
+## Out on the west spoke, seventeen metres of walking short of the arch. Less
+## than the stair gave and enough: the hold adds a couple of seconds of its own
+## on the far end, and the preload only has to be *started* before the crossing,
+## not finished.
+const ARCH_PRELOAD_AT := Vector3(-21.5, 1.5, ARCH_AT.y)
+const ARCH_PRELOAD_SIZE := Vector3(4.0, 3.0, 13.0)
+
+## Where the walk resumes, a stride past the wall on each side, still on the
+## arch's centre line and still facing the way they were going. Yaw is radians
+## and a Node3D looks down −Z, so +PI/2 is west and −PI/2 is east.
+const ARCH_ARRIVE_WEST := Vector3(-46.0, 0.2, ARCH_AT.y)
+const ARCH_ARRIVE_WEST_YAW := PI * 0.5
+const ARCH_ARRIVE_EAST := Vector3(-30.5, 0.2, ARCH_AT.y)
+const ARCH_ARRIVE_EAST_YAW := -PI * 0.5
+
+## The held shot, per direction. `from` is where the camera stands and `look` is
+## what it points at; both are world coordinates, because a seam's framing is
+## layout and belongs with the rest of the layout.
+##
+## Both stand **on the walkway**, and that is not an aesthetic choice. The first
+## pair were set off to one side for a three-quarter view of the arch, and the
+## westbound one came out looking at a tree trunk: the plaza's trees are
+## scattered by `open_spots` over open ground, so anywhere off the paving is a
+## place a tree may be standing this regeneration and not the last. The spokes
+## are kept clear of masses and planting by construction, so a camera on the
+## spoke's own centre line is the only pose that cannot be photobombed.
+##
+## What that costs is the crossing shot: the player walks away down the axis and
+## recedes into the arch rather than crossing the frame. It reads as leaving,
+## which is what they are doing, and the arch swallowing them is the exit.
+const ARCH_HOLD_WEST := {
+	"from": Vector3(-24.5, 3.5, -1.0),
+	"look": Vector3(-42.0, 2.4, -2.2),
+}
+const ARCH_HOLD_EAST := {
+	"from": Vector3(-48.5, 3.4, -2.0),
+	"look": Vector3(-36.0, 2.6, -2.0),
+}
+
+## How long the player walks before the screen goes. Long enough to be under the
+## arch and out of the frame at a walk, short enough that a player who wanted to
+## keep playing is not waiting on a cutscene.
+const ARCH_HOLD_SECONDS := 2.1
+
+
+# ---------------------------------------------------------------------------
 # The boardwalk
 # ---------------------------------------------------------------------------
 

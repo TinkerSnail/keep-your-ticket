@@ -807,7 +807,9 @@ func _attach(node: Node3D, nm: String) -> void:
 ## the world, and a gate watching for the world fires on the ground it is
 ## standing on, or on nothing at all.
 func _gate_area(nm: String, at: Vector3, size: Vector3, role: int,
-		leads: StringName, belongs := &"plaza") -> void:
+		leads: StringName, belongs := &"plaza",
+		hold_from := Vector3.ZERO, hold_look := Vector3.ZERO,
+		hold_walk := Vector3.ZERO, hold_seconds := 0.0) -> void:
 	var area := Area3D.new()
 	area.position = at
 	area.collision_layer = 0
@@ -819,6 +821,10 @@ func _gate_area(nm: String, at: Vector3, size: Vector3, role: int,
 	area.set("role", role)
 	area.set("leads_to", leads)
 	area.set("belongs_to", belongs)
+	area.set("hold_from", hold_from)
+	area.set("hold_look", hold_look)
+	area.set("hold_walk", hold_walk)
+	area.set("hold_seconds", hold_seconds)
 	_attach(area, nm)
 
 	var box := BoxShape3D.new()
@@ -1560,6 +1566,10 @@ func _west_far() -> void:
 	# Turned to face the plaza. Off the arch's centre line on purpose: from the
 	# fountain the north pier covers it, and a step or two north uncovers it.
 	_wheel(Vector3(WHEEL_AT.x, SHORE_TOP, WHEEL_AT.y), "far", PI * 0.5)
+	# The plaza's half of the west seam. Here because this scene is the plaza's
+	# and only the plaza's — it is thrown away at the moment of the crossing,
+	# which is exactly the life a gate pointing west should have.
+	_arch_seam(&"plaza", &"boardwalk")
 	# The north end of the strip, closed by the coaster rather than trailing off.
 	# Same origin the section builds it at, or the silhouette shifts eight metres
 	# when the player walks through the gate.
@@ -1741,9 +1751,18 @@ func _west_stair() -> void:
 	_box("foot_rail_south", Vector3.ZERO,
 		Vector3(STAIR_TURN_X, foot_y + 0.55, foot_z + STAIR_W * 0.5 + 0.1),
 		Vector3(STAIR_W, 1.1, 0.2), "metal")
-	_box("foot_gate", Vector3.ZERO,
-		Vector3(Plan.FOOT_GATE_X, foot_y + 1.1, foot_z),
-		Vector3(0.2, 2.2, STAIR_W), "metal")
+	# A frame rather than a leaf, since 2026-08-14. This was a shut gate because
+	# it was the section boundary and the player had to be stopped at it; the
+	# boundary is at the arch now and this is a doorway on the way down, so it
+	# has jambs and a head and nothing across it.
+	for i in 2:
+		var jz := foot_z + (-1.0 if i == 0 else 1.0) * (STAIR_W * 0.5 - 0.16)
+		_box("foot_jamb_%d" % i, Vector3.ZERO,
+			Vector3(Plan.FOOT_GATE_X, foot_y + 1.25, jz),
+			Vector3(0.24, 2.5, 0.32), "metal")
+	_box("foot_gate_head", Vector3.ZERO,
+		Vector3(Plan.FOOT_GATE_X, foot_y + 2.62, foot_z),
+		Vector3(0.24, 0.26, STAIR_W), "metal")
 
 	# The well's west face, closed except at the gate — which turns flight B from
 	# a ledge into a shaft. It was open for its whole twenty metres, and a player
@@ -1760,27 +1779,11 @@ func _west_stair() -> void:
 			Vector3(Plan.FOOT_GATE_X, -3.0, (from + to) * 0.5),
 			Vector3(0.3, 6.0, to - from), "far_warm")
 
-	# The section boundary, as three nodes rather than as geometry.
-	#
-	# The preload sits at the head of flight A, so stepping off the terrace onto
-	# the stair is what starts the load. The crossing sits just short of the shut
-	# gate at the bottom. Between them is the whole stair — about twenty-two
-	# metres, most of a minute at a walk — and it turns halfway down, so the
-	# thing being loaded is never in shot while it loads. That corridor is the
-	# budget; the fade over the swap is only there to hide the cut.
-	#
-	# The crossing is deliberately in front of the gate rather than past it. The
-	# gate is a solid box and stays shut: the player walks up to it and the park
-	# takes over, which is a threshold opening rather than a wall vanishing.
-	_gate_area("preload_boardwalk", Vector3(-40.0, 0.9, STAIR_TOP_Z),
-		Vector3(4.0, 3.0, 2.4), 0, &"boardwalk")
-	_gate_area("cross_boardwalk",
-		Vector3(Plan.FOOT_GATE_X + 0.5, foot_y + 1.4, foot_z),
-		Vector3(1.0, 3.0, STAIR_W), 1, &"boardwalk")
-	# East of the crossing volume, or arriving from the boardwalk lands the player
-	# inside the trigger that sent them and bounces them straight back. Facing
-	# north is facing back up the flight they would have come down.
-	_marker("arrival_from_boardwalk", Plan.STAIR_FOOT_STAND, 0.0)
+	# The seam used to be three nodes here — preload at the head of the flight,
+	# crossing in front of the shut gate at the foot, and the whole turned stair
+	# between them as the load's cover. It is at the arch now, and this scene is
+	# mounted on both sides of it, so it can hold no gates at all: a gate here
+	# would fire in whichever section happened to be standing.
 
 
 func _skyline() -> void:
@@ -2246,9 +2249,18 @@ func _front(nm: String, at: Vector3, theta: float, width: float, kind: String,
 	var n := width * 0.5
 	var open_front := kind == "arcade"
 
-	_box("%s_pier_l" % nm, at, Vector3(-n + 0.15, 1.7, 0.15), Vector3(0.3, 3.4, 0.3),
+	# Every foot in this unit is buried, and each by a different amount.
+	#
+	# A shopfront has four things standing on the pavement — two piers, a
+	# bulkhead, and either a mouth or a row of cabinets — and all four had their
+	# underside at exactly y=0, which is also where the buildings' undersides
+	# are. Undersides are invisible, but they are real faces on a real plane, and
+	# with a thousand of these in the plaza the seam ring lines two of them up
+	# roughly every regeneration. Four different depths, none of them a whole
+	# number of seam steps from another, and there is nothing left to align.
+	_box("%s_pier_l" % nm, at, Vector3(-n + 0.15, 1.68, 0.15), Vector3(0.3, 3.44, 0.3),
 		"white", theta, false)
-	_box("%s_pier_r" % nm, at, Vector3(n - 0.15, 1.7, 0.15), Vector3(0.3, 3.4, 0.3),
+	_box("%s_pier_r" % nm, at, Vector3(n - 0.15, 1.68, 0.15), Vector3(0.3, 3.44, 0.3),
 		"white", theta, false)
 
 	if open_front:
@@ -2256,7 +2268,7 @@ func _front(nm: String, at: Vector3, theta: float, width: float, kind: String,
 		# room is real the doorway is a real hole, and a hole is darker than any
 		# panel imitating one.
 		if solid:
-			_box("%s_mouth" % nm, at, Vector3(0, 1.35, 0.02), Vector3(width - 0.7, 2.7, 0.06),
+			_box("%s_mouth" % nm, at, Vector3(0, 1.325, 0.02), Vector3(width - 0.7, 2.75, 0.06),
 				"glass", theta, false)
 		_box("%s_soffit" % nm, at, Vector3(0, 2.85, 0.24), Vector3(width - 0.7, 0.3, 0.5),
 			"far_shade", theta, false)
@@ -2265,8 +2277,8 @@ func _front(nm: String, at: Vector3, theta: float, width: float, kind: String,
 		var cabs := 0 if not solid else maxi(2, int((width - 1.6) / 1.1))
 		for i in range(cabs):
 			var x := -n + 1.0 + float(i) * ((width - 2.0) / maxf(1.0, float(cabs - 1)))
-			_box("%s_cab_%d" % [nm, i], at, Vector3(x, 0.8, 0.42),
-				Vector3(0.72, 1.6, 0.6), "far_shade", theta, false)
+			_box("%s_cab_%d" % [nm, i], at, Vector3(x, 0.77, 0.42),
+				Vector3(0.72, 1.66, 0.6), "far_shade", theta, false)
 			_box("%s_cab_%d_screen" % [nm, i], at, Vector3(x, 1.25, 0.73),
 				Vector3(0.5, 0.42, 0.06), "blue", theta, false)
 	else:
@@ -2276,7 +2288,7 @@ func _front(nm: String, at: Vector3, theta: float, width: float, kind: String,
 		# by differing amounts and nothing shares a plane with anything.
 		_box("%s_glass" % nm, at, Vector3(0, 1.7, 0.04), Vector3(width - 0.7, 2.1, 0.12),
 			"glass", theta, false)
-		_box("%s_bulkhead" % nm, at, Vector3(0, 0.45, 0.1), Vector3(width - 0.7, 0.9, 0.28),
+		_box("%s_bulkhead" % nm, at, Vector3(0, 0.435, 0.1), Vector3(width - 0.7, 0.93, 0.28),
 			"accent", theta, false)
 		# Off to one side. Centred, a door makes the unit read as a symmetrical
 		# shed; off-centre it reads as a building somebody laid out.
@@ -2488,6 +2500,7 @@ func _boardwalk_section() -> void:
 	_plaza_from_below()
 
 	_boardwalk_seam()
+	_arch_seam(&"boardwalk", &"plaza")
 
 
 ## The gate at the foot of the stair, from below, and the bluff it is set into.
@@ -2513,6 +2526,11 @@ func _boardwalk_seam() -> void:
 	var gate_x := Plan.FOOT_GATE_X
 	# The notch, filled north of the gate and above it.
 	# Inset on **every** axis, so the fill is strictly inside the piece it fills.
+	# Narrowed again on 2026-08-14: `west_stair.tscn` is mounted with this
+	# section now, so the flight that descends the slot is in the tree beside the
+	# thing that fills it, and both were built out to the slot's own edge. The
+	# fill is redundant while the stair is there and it costs nothing to keep,
+	# but it may not share the flight's side face.
 	# `west_shell` is mounted underneath this, so these two are in the tree
 	# together and the build-order seam cannot reach across scenes to separate
 	# them — the inset is the only thing keeping them apart.
@@ -2523,30 +2541,25 @@ func _boardwalk_seam() -> void:
 	# ends of every axis, or it is not an inset.
 	_box("bluff_infill_north", Vector3.ZERO,
 		Vector3(-56.67, SHORE_TOP, (-11.94 + foot_z - w * 0.5) * 0.5),
-		Vector3(2.54, 11.88, foot_z - w * 0.5 + 11.94), "far_warm")
+		Vector3(2.40, 11.88, foot_z - w * 0.5 + 11.94), "far_warm")
 	_box("bluff_infill_south", Vector3.ZERO,
 		Vector3(-56.67, SHORE_TOP, (foot_z + w * 0.5 + 7.94) * 0.5),
-		Vector3(2.54, 11.88, 7.94 - foot_z - w * 0.5), "far_warm")
+		Vector3(2.40, 11.88, 7.94 - foot_z - w * 0.5), "far_warm")
 	_box("bluff_infill_over", Vector3.ZERO,
 		Vector3(-56.7, SHORE_TOP + 4.1, foot_z),
-		Vector3(2.6, 3.8, w), "far_warm")
+		Vector3(2.40, 3.8, w - 0.12), "far_warm")
 	# Something to see through the bars: the slab the last tread lands on.
 	_box("gate_sill", Vector3.ZERO, Vector3(-56.7, SHORE_TOP - 0.25, foot_z),
 		Vector3(2.6, 0.5, w), "accent")
-	_box("foot_gate", Vector3.ZERO, Vector3(gate_x, SHORE_TOP + 1.1, foot_z),
-		Vector3(0.2, 2.2, w), "metal")
+	# No gate leaf and no crossing here any more. `west_stair.tscn` is mounted
+	# with this section since 2026-08-14 and builds the doorway itself; a second
+	# copy at the same plane would be a z-fight, and the boundary has gone up to
+	# the arch.
+	#
 	# A sign on the bluff beside it, because a door in a wall with no writing on
 	# it is a door nobody tries.
 	_box("gate_sign", Vector3.ZERO, Vector3(gate_x - 0.2, SHORE_TOP + 2.6, foot_z),
 		Vector3(0.12, 0.7, 2.0), "white", 0.0, false)
-
-	# The lane is the corridor: it goes to the gate and to the alley and nowhere
-	# else, so entering it at all is enough to start the plaza loading.
-	_gate_area("preload_plaza", Vector3(BACK_LANE_X, SHORE_TOP + 1.5, 4.0),
-		Vector3(8.0, 3.0, 24.0), 0, &"plaza", &"boardwalk")
-	_gate_area("cross_plaza", Vector3(gate_x - 0.7, SHORE_TOP + 1.4, foot_z),
-		Vector3(1.2, 3.0, w), 1, &"plaza", &"boardwalk")
-	_marker("arrival_from_plaza", ARRIVAL_AT, ARRIVAL_YAW)
 
 
 ## Everything the player can stand on, as three slabs: the promenade, the alley
@@ -3152,7 +3165,16 @@ func _plaza_from_below() -> void:
 		# tall enough to clear its own west wall from down on the promenade.
 		if not (nm.begins_with("tower_") or at.x < BELOW_WEST_X):
 			continue
+		# The near boundary is no longer scenery. The seam moved to the arch on
+		# 2026-08-14, so the player crosses onto the terrace and stands two
+		# metres from this wall — it gets the plaza's own material and it
+		# collides, or they walk through the back of the arch they just came
+		# under. Everything else here is still a silhouette seen from ninety
+		# metres down on the promenade and stays washed and passable.
+		var near := _near_boundary(nm)
 		var mat := "far_warm" if nm.begins_with("tower_") else "far"
+		if near:
+			mat = "accent" if nm.ends_with("_sign") else "building"
 		# Snapped to the centimetre, and that is not tidiness.
 		#
 		# The plaza's shapes carry hand displacement, and it runs *downward and
@@ -3164,11 +3186,38 @@ func _plaza_from_below() -> void:
 		# they were read from. Snapping throws that away and lets this scene's own
 		# ring do the separating, which is the only ring that applies here.
 		_box("far_%s" % nm, Vector3.ZERO, at.snapped(Vector3.ONE * 0.01), size,
-			mat, 0.0, false)
+			mat, 0.0, near)
 		n += 1
 	if n < 6:
 		push_error("only %d plaza masses read for the view from below — " % n
 			+ "the parse found nothing, or the west range has been renamed")
+
+	# The floor the terrace stands on.
+	#
+	# It is the plaza's own ground seen from the far side of a seam that has
+	# moved: up to today the player crossed at the bottom of the stair and never
+	# stood up here without the plaza mounted. Now they cross under the arch, and
+	# without this they would walk through it and fall six metres to the shore.
+	#
+	# Brick, which looks like it breaks "no brick west of the bluff" and does
+	# not. That rule is about the strip *below* — the two sections disagreeing
+	# about their material is what makes arriving down there feel like arriving.
+	# The terrace is on top of the bluff, inside the plaza's own wall line, and
+	# it is the plaza's floor: the player walks under the arch and the ground
+	# under them must not change, because nothing about the ground did.
+	_box("terrace_floor", Vector3.ZERO, Vector3(-42.5, -0.5, -2.5),
+		Vector3(19.0, 1.0, 27.0), "brick")
+
+
+const BELOW_NEAR := ["perim_w_", "arch_", "overlook_", "wall_west_"]
+
+
+## Whether a piece of the plaza's boundary is one the player can now walk up to.
+func _near_boundary(nm: String) -> bool:
+	for prefix in BELOW_NEAR:
+		if nm.begins_with(prefix):
+			return true
+	return false
 
 
 # ---------------------------------------------------------------------------
@@ -3354,24 +3403,26 @@ func _facade(run: Dictionary, idx: int) -> void:
 
 	# Storeys divide what is left after the shopfront and the cornice have taken
 	# theirs, so the top floor is never a sliver and the courses always land on
-	# the wall rather than through the roof.
+	# the wall rather than through the roof. They do **not** divide it evenly —
+	# see `_storey_heights`.
 	var upper := h - FRONT_GROUND - jog - FRONT_CORNICE
-	var storeys: int = clampi(int(round(upper / 3.4)), 1, 4)
-	var sh := upper / float(storeys)
+	var storeys: int = clampi(int(round(upper / 3.0)), 1, 5)
+	var floors := _storey_heights(upper, storeys)
 	var ground := FRONT_GROUND + jog
 
 	# Floor lines, one per storey including the shopfront's own cornice at 4.3.
 	# Run the whole length rather than per bay: a course that stops at every
 	# joint reads as a row of sheds, and the point of these is that a run is one
 	# building with several shops in it.
+	var y := ground
 	for st in storeys:
-		_box("%s_course_%d" % [tag, st], base,
-			Vector3(0.0, ground + float(st) * sh, 0.14),
+		_box("%s_course_%d" % [tag, st], base, Vector3(0.0, y, 0.14),
 			Vector3(length - 0.5, 0.26, 0.46), "white", theta, false)
+		y += floors[st]
 
 	for b in bays:
 		_facade_bay(tag, base, theta, idx, b, bays, bw,
-			-length * 0.5 + FRONT_INSET + bw * (float(b) + 0.5), storeys, sh,
+			-length * 0.5 + FRONT_INSET + bw * (float(b) + 0.5), floors,
 			ground, h + jog)
 
 	# The cornice oversails the parapet, which is what makes the roofline a shadow
@@ -3395,8 +3446,38 @@ func _facade(run: Dictionary, idx: int) -> void:
 
 ## A bay: the shop at the bottom, windows above it, and on some of them the
 ## raised parapet that breaks the roofline.
+## Storey heights, diminishing upward.
+##
+## This is forced perspective, and it is the one park-specific trick in the whole
+## frontage. Main Street's buildings are about ten metres and read as three or
+## four floors, because the ground floor is full height and everything above it
+## is built at roughly five-eighths and then half. Divide a wall into equal
+## storeys instead and every building reads at its true size — which is what the
+## first pass did, and is most of why 13–19m came out looking like a civic
+## office block rather than a park.
+##
+## So the same wall reads shorter than it measures, and the unevenly spaced floor
+## lines are the visible signature of it. 0.78 per floor is gentler than Main
+## Street's, because these are seen from forty metres across an open plaza rather
+## than from a street eleven metres wide.
+const FRONT_FALLOFF := 0.78
+
+
+func _storey_heights(upper: float, storeys: int) -> Array:
+	var weights: Array = []
+	var total := 0.0
+	for i in storeys:
+		var k: float = pow(FRONT_FALLOFF, float(i))
+		weights.append(k)
+		total += k
+	var out: Array = []
+	for i in storeys:
+		out.append(upper * weights[i] / total)
+	return out
+
+
 func _facade_bay(tag: String, base: Vector3, theta: float, idx: int, b: int,
-		bays: int, bw: float, bx: float, storeys: int, sh: float,
+		bays: int, bw: float, bx: float, floors: Array,
 		ground: float, h: float) -> void:
 	var at := _place(base, Vector3(bx, 0.0, 0.0), theta)
 	var nm := "%s_b%d" % [tag, b]
@@ -3426,18 +3507,26 @@ func _facade_bay(tag: String, base: Vector3, theta: float, idx: int, b: int,
 	# and a recess would simply be a box inside a solid. What reads as a window
 	# is a dark panel standing a hair proud with a lighter head over it, which is
 	# the same trick the street's glazing plays.
+	# The windows shrink with their storey, in width as well as height. Height
+	# alone would leave a row of letterboxes on the top floor; taking both keeps
+	# each opening the same *shape* while the whole storey gets smaller, which is
+	# what sells the lie.
 	var wins := 2 if bw < 7.2 else 3
-	var ww := minf(1.45, bw / (float(wins) * 2.15))
-	var wh := minf(2.0, sh - 1.25)
-	for st in storeys:
-		var y := ground + float(st) * sh + sh * 0.52
+	var ww0 := minf(1.45, bw / (float(wins) * 2.15))
+	var sill := ground
+	for st in floors.size():
+		var sh: float = floors[st]
+		var ww := ww0 * pow(FRONT_FALLOFF, float(st) * 0.6)
+		var wh := minf(2.2, sh - 1.05)
+		var y := sill + sh * 0.52
 		for w in wins:
 			var t := (float(w) + 0.5) / float(wins)
-			var wx := lerpf(-bw * 0.5 + ww, bw * 0.5 - ww, t)
+			var wx := lerpf(-bw * 0.5 + ww0, bw * 0.5 - ww0, t)
 			_box("%s_win_%d_%d" % [nm, st, w], at, Vector3(wx, y, 0.07),
 				Vector3(ww, wh, 0.14), "glass", theta, false)
-			_box("%s_head_%d_%d" % [nm, st, w], at, Vector3(wx, y + wh * 0.5 + 0.14, 0.11),
-				Vector3(ww + 0.36, 0.22, 0.26), "white", theta, false)
+			_box("%s_head_%d_%d" % [nm, st, w], at, Vector3(wx, y + wh * 0.5 + 0.13, 0.11),
+				Vector3(ww + 0.34, 0.2, 0.26), "white", theta, false)
+		sill += sh
 
 	# One bay per run carries a raised parapet. This is the piece doing the work
 	# the whole pass is for: fifteen runs of different height already step the
@@ -3511,3 +3600,43 @@ func _roofline(tag: String, base: Vector3, theta: float, idx: int,
 			# Two in six get a flat roof, and they are what makes the other four
 			# read as incidents rather than as a pattern.
 			pass
+
+
+## The west seam, at the arch.
+##
+## Two of these exist and they stand in the same nine metres of air: one in the
+## plaza's scenes pointing west, one in the boardwalk's pointing east. Only one
+## is ever mounted, so they cannot see each other, and neither can go in a scene
+## both sections share — which is why `west_stair.tscn` lost its gates when it
+## became one of those.
+##
+## The preload volumes are not symmetric, because the two approaches are not. On
+## the plaza side the spoke is open ground and the volume sits out on it,
+## seventeen metres short. On the boardwalk side the approach is the terrace,
+## which is a dead end with a stair at one corner and an arch at the other, so
+## stepping off the head of the flight is already a commitment to the walk east.
+func _arch_seam(belongs: StringName, leads: StringName) -> void:
+	var westward := belongs == &"plaza"
+	var hold: Dictionary = Plan.ARCH_HOLD_WEST if westward else Plan.ARCH_HOLD_EAST
+	var walk := Vector3(-1.0, 0.0, 0.0) if westward else Vector3(1.0, 0.0, 0.0)
+
+	if westward:
+		_gate_area("preload_%s" % leads, Plan.ARCH_PRELOAD_AT, Plan.ARCH_PRELOAD_SIZE,
+			0, leads, belongs)
+	else:
+		_gate_area("preload_%s" % leads,
+			Vector3(-47.5, 1.5, Plan.STAIR_TOP_Z + 2.5), Vector3(7.0, 3.0, 7.0),
+			0, leads, belongs)
+
+	_gate_area("cross_%s" % leads, Plan.ARCH_SEAM_AT, Plan.ARCH_SEAM_SIZE,
+		1, leads, belongs, hold["from"], hold["look"], walk, Plan.ARCH_HOLD_SECONDS)
+
+	# Named for where the player has come *from*, and put down a stride past the
+	# wall on the far side of it — never inside the crossing volume, or arriving
+	# trips the gate that sent them and bounces them straight back.
+	if westward:
+		_marker("arrival_from_%s" % leads, Plan.ARCH_ARRIVE_EAST,
+			Plan.ARCH_ARRIVE_EAST_YAW)
+	else:
+		_marker("arrival_from_%s" % leads, Plan.ARCH_ARRIVE_WEST,
+			Plan.ARCH_ARRIVE_WEST_YAW)

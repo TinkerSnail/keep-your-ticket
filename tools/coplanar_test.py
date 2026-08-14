@@ -92,7 +92,6 @@ AX = 'XYZ'
 # Without this the report is dominated by pairs that describe the design working.
 EXCLUSIVE = [
     {'boardwalk.tscn', 'west_far.tscn'},
-    {'boardwalk.tscn', 'west_stair.tscn'},
     {'boardwalk.tscn', 'plaza.tscn'},
     {'boardwalk.tscn', 'plaza_frontage.tscn'},
     {'boardwalk.tscn', 'plaza_paving.tscn'},

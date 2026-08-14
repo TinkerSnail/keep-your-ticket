@@ -35,6 +35,24 @@ enum Role {
 ## have been. This is what decides where they are put down coming back.
 @export var belongs_to: StringName = &"plaza"
 
+## The held shot, for a `CROSS` gate that wants one.
+##
+## With `hold_seconds` at zero the crossing is the old one: hand the walk over
+## and fade. Above zero the camera cuts to `hold_from` looking at `hold_look`,
+## the player walks `hold_walk` for that long, and only then does the screen go —
+## so the swap happens with the player already out of frame.
+##
+## The pose is authored per seam rather than derived from the gate's transform,
+## because a good one depends on what is behind the threshold as much as on the
+## threshold: the arch wants to be seen three-quarter on from inside the plaza,
+## and no rule about the volume's axes would have found that.
+@export var hold_seconds: float = 0.0
+@export var hold_from: Vector3 = Vector3.ZERO
+@export var hold_look: Vector3 = Vector3.ZERO
+## Which way the player is sent while the shot holds. Zero means "carry on the
+## way you were already going", which is what a seam with no framing does.
+@export var hold_walk: Vector3 = Vector3.ZERO
+
 
 func _ready() -> void:
 	if Engine.is_editor_hint():
@@ -58,4 +76,12 @@ func _on_body_entered(body: Node3D) -> void:
 		Role.PRELOAD:
 			ParkSections.begin_preload(leads_to)
 		Role.CROSS:
-			ParkSections.enter(leads_to, belongs_to)
+			var hold := {}
+			if hold_seconds > 0.0:
+				hold = {
+					"seconds": hold_seconds,
+					"from": hold_from,
+					"look": hold_look,
+					"walk": hold_walk,
+				}
+			ParkSections.enter(leads_to, belongs_to, hold)

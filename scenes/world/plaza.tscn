@@ -124,27 +124,27 @@ size = Vector3(23.1, 16, 11)
 material = SubResource("mat_building")
 
 [node name="perim_n_east" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.54700, 8.74700, -41.50300)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.54700, 6.24700, -41.50300)
 use_collision = true
-size = Vector3(22.9, 17.5, 11)
+size = Vector3(22.9, 12.5, 11)
 material = SubResource("mat_building")
 
 [node name="perim_n_far_east" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.99675, 7.24675, -41.50325)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.99675, 5.24675, -41.50325)
 use_collision = true
-size = Vector3(22, 14.5, 11)
+size = Vector3(22, 10.5, 11)
 material = SubResource("mat_building")
 
 [node name="perim_e_north" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.49650, 7.24650, -41.70350)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.49650, 4.74650, -41.70350)
 use_collision = true
-size = Vector3(11, 14.5, 12.6)
+size = Vector3(11, 9.5, 12.6)
 material = SubResource("mat_building")
 
 [node name="perim_e_mid_n" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.49625, 7.99625, -8.70375)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.49625, 5.74625, -8.70375)
 use_collision = true
-size = Vector3(11, 16, 21.4)
+size = Vector3(11, 11.5, 21.4)
 material = SubResource("mat_building")
 
 [node name="perim_e_mid_s" type="CSGBox3D" parent="."]
@@ -154,81 +154,81 @@ size = Vector3(11, 19, 22.8)
 material = SubResource("mat_building")
 
 [node name="perim_e_south" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.49575, 6.49575, 42.89575)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.49575, 4.74575, 42.89575)
 use_collision = true
-size = Vector3(11, 13, 10.2)
+size = Vector3(11, 9.5, 10.2)
 material = SubResource("mat_building")
 
 [node name="perim_s_west" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -42.15450, 6.49550, 41.49550)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -42.15450, 4.99550, 41.49550)
 use_collision = true
-size = Vector3(11.7, 13, 11)
+size = Vector3(11.7, 10, 11)
 material = SubResource("mat_building")
 
 [node name="perim_s_mid" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.65475, 7.24525, 41.49525)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.65475, 5.74525, 41.49525)
 use_collision = true
-size = Vector3(17.3, 14.5, 11)
+size = Vector3(17.3, 11.5, 11)
 material = SubResource("mat_building")
 
 [node name="perim_s_east" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.49500, 7.99500, 41.49500)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.49500, 6.24500, 41.49500)
 use_collision = true
-size = Vector3(21, 16, 11)
+size = Vector3(21, 12.5, 11)
 material = SubResource("mat_building")
 
 [node name="perim_s_far_east" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 37.50000, 6.50000, 41.50000)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 37.50000, 4.75000, 41.50000)
 use_collision = true
-size = Vector3(21, 13, 11)
+size = Vector3(21, 9.5, 11)
 material = SubResource("mat_building")
 
 [node name="perim_w_north" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38.50025, 7.24975, -35.50025)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38.50025, 5.99975, -35.50025)
 use_collision = true
-size = Vector3(11, 14.5, 25)
+size = Vector3(11, 12, 25)
 material = SubResource("mat_building")
 
 [node name="perim_w_arch_n" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38.50050, 7.24950, -16.00050)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38.50050, 5.49950, -16.00050)
 use_collision = true
-size = Vector3(11, 14.5, 14)
+size = Vector3(11, 11, 14)
 material = SubResource("mat_building")
 
 [node name="perim_w_arch_s" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38.50075, 6.49925, 14.49925)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38.50075, 5.24925, 14.49925)
 use_collision = true
-size = Vector3(11, 13, 21)
+size = Vector3(11, 10.5, 21)
 material = SubResource("mat_building")
 
 [node name="perim_w_south" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38.50100, 7.99900, 36.49900)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38.50100, 6.24900, 36.49900)
 use_collision = true
-size = Vector3(11, 16, 23)
+size = Vector3(11, 12.5, 23)
 material = SubResource("mat_building")
 
 [node name="arch_pier_north" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38.50125, 7.24875, -8.00125)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38.50125, 6.24875, -8.00125)
 use_collision = true
-size = Vector3(11, 14.5, 3)
+size = Vector3(11, 12.5, 3)
 material = SubResource("mat_building")
 
 [node name="arch_pier_south" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38.50150, 7.24850, 3.99850)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38.50150, 6.24850, 3.99850)
 use_collision = true
-size = Vector3(11, 14.5, 3)
+size = Vector3(11, 12.5, 3)
 material = SubResource("mat_building")
 
 [node name="arch_lintel" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38.50175, 11.69825, -1.75175)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38.50175, 10.69825, -1.75175)
 use_collision = true
-size = Vector3(11, 5.6, 15.5)
+size = Vector3(11, 3.6, 15.5)
 material = SubResource("mat_building")
 
 [node name="arch_sign" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32.90200, 16.29800, -1.75200)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32.90200, 14.09800, -1.75200)
 use_collision = false
-size = Vector3(0.8, 4.2, 11)
+size = Vector3(0.8, 3.8, 11)
 material = SubResource("mat_accent")
 
 [node name="overlook_wall_north" type="CSGBox3D" parent="."]

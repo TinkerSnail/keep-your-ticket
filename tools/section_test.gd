@@ -97,22 +97,27 @@ func _ready() -> void:
 
 	# The terrace and the stair head are on the plan's own west passage; the
 	# landing is one flight down, which is `treads_a` risers below the terrace.
+	# **The seam moved to the arch on 2026-08-14**, so this no longer walks the
+	# stair. Out is west along the spoke and under the arch; back is east under the
+	# same arch. Both routes end past the crossing at a point the player is never
+	# allowed to reach on foot — walking at something unreachable is how a seam
+	# gets tripped rather than merely approached, and it is the same trick the
+	# stair version used.
+	#
+	# What this is really checking has changed with it. It used to ask whether the
+	# player landed on a floor rather than inside the bluff. Now the outbound
+	# landing is on `terrace_floor`, which exists only in the boardwalk's copy of
+	# the plaza's boundary — so if that slab is ever missing or mispositioned, the
+	# player crosses the arch and falls six metres to the shore, and this is what
+	# says so.
 	_outbound = [
-		Vector3(-50.0, 0.2, ParkPlan.STAIR_TOP_Z),
-		Vector3(-54.0, 0.0, ParkPlan.STAIR_TOP_Z),
-		Vector3(ParkPlan.STAIR_TURN_X, -ParkPlan.STAIR_RISE * 4.0, ParkPlan.STAIR_TOP_Z + 2.2),
-		ParkPlan.STAIR_FOOT + Vector3(-PAST_THE_GATE, 0.0, 0.0),
+		Vector3(-18.0, 0.2, ParkPlan.ARCH_AT.y),
+		Vector3(-30.0, 0.2, ParkPlan.ARCH_AT.y),
+		Vector3(-46.0, 0.2, ParkPlan.ARCH_AT.y),
 	]
-	# The gate faces west now, so the way back is east into the bluff rather than
-	# north along it. Aimed at the stair foot, which is behind a shut gate and
-	# therefore unreachable — the same trick the outbound leg uses, and the same
-	# reason: walking at something you cannot get to is how a seam gets tripped
-	# rather than merely approached.
-	# Up the lane to the level of the well mouth first. Cutting the corner from
-	# the arrival clips the bluff, which starts at z 8 and is a wall.
 	_inbound = [
-		Vector3(-60.5, ParkPlan.BOARDWALK_ARRIVAL.y, 6.5),
-		ParkPlan.STAIR_FOOT + Vector3(0.0, 0.2, 0.0),
+		Vector3(-42.0, 0.2, ParkPlan.ARCH_AT.y),
+		Vector3(-28.0, 0.2, ParkPlan.ARCH_AT.y),
 	]
 
 	# Onto the terrace by hand. Getting there from the spawn is `walk_test.gd`'s
@@ -165,11 +170,11 @@ func _physics_process(delta: float) -> void:
 		0:
 			_walk(_outbound)
 		1:
-			_check_landing(&"boardwalk", ParkPlan.BOARDWALK_ARRIVAL)
+			_check_landing(&"boardwalk", ParkPlan.ARCH_ARRIVE_WEST)
 		2:
 			_walk(_inbound)
 		3:
-			_check_landing(&"plaza", ParkPlan.STAIR_FOOT_STAND)
+			_check_landing(&"plaza", ParkPlan.ARCH_ARRIVE_EAST)
 
 
 ## Steer at the next waypoint and hold forward. Yaw is set rather than turned

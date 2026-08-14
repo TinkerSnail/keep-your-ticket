@@ -82,6 +82,7 @@ const SECTIONS := {
 		"name": "the boardwalk",
 		"scenes": [
 			"res://scenes/world/west_shell.tscn",
+			"res://scenes/world/west_stair.tscn",
 			"res://scenes/world/boardwalk.tscn",
 			"res://scenes/world/boardwalk_crowd.tscn",
 		],
@@ -97,28 +98,17 @@ const SECTIONS := {
 ## generated yet. `tools/gen_props.gd` should emit them with the stair, at which
 ## point these become dead weight and can go.
 ##
-## Until then these are a second copy of the generator's arithmetic, which is
-## the thing markers exist to avoid — so they are written out rather than
-## asserted. Coming back from the boardwalk puts the player on the foot slab at
-## the bottom of the west stair, facing back up it:
+## The generator emits the markers now, so this is dead weight in the normal
+## case and a backstop for a harness that mounts a section without them.
 ##
-##   x   `STAIR_TURN_X`, −44.7. Flight B runs straight down the turn's axis.
-##   y   the landing is `STAIR_RISE * treads_a` below the terrace, −1.0, and
-##       flight B drops `STAIR_RISE * treads_b` more, 5.0, so the slab's walking
-##       surface is at −6.0. The player rides 0.2 above their floor, the same
-##       clearance `main.tscn` gives them in the plaza.
-##   z   `STAIR_TOP_Z + STAIR_W * 0.5` is −8.4, plus `run_b * treads_b` of 12.6,
-##       plus half a stair width to the slab's centre: 5.5, less 0.7 to stand
-##       behind the crossing volume rather than inside it. The shut gate is a
-##       further 1.4 south, so this stands inside it.
-##   yaw zero. A Node3D looks down −Z, the stair descends towards +Z, so facing
-##       zero is facing back up the flight the player just came down.
-##
-## If the stair moves, this is wrong and nothing will say so until somebody
-## arrives inside the bluff. That is the argument for the markers.
+## It is `ParkPlan.ARCH_ARRIVE_EAST` written out: a stride east of the west
+## wall, on the arch's centre line, facing east. Not read from the plan, because
+## this file is an autoload and the plan is deliberately not one — the literal
+## is the cheaper of the two couplings and `tools/section_test.gd` walks the
+## crossing in both directions every run, which is what would catch it drifting.
 const ARRIVAL_FALLBACK := {
 	&"plaza": {
-		&"boardwalk": {"position": Vector3(-44.7, -5.8, 4.8), "yaw": 0.0},
+		&"boardwalk": {"position": Vector3(-30.5, 0.2, -2.0), "yaw": -PI * 0.5},
 	},
 }
 
@@ -208,7 +198,14 @@ func is_ready(id: StringName) -> bool:
 ## The load itself should already be done by here, paid for by the corridor. The
 ## fade is buying cover, not time — and if it is buying time as well, the
 ## corridor between the two gates is too short.
-func enter(id: StringName, from: StringName = &"") -> void:
+## Cross into `id`.
+##
+## `hold`, when a gate supplies one, is the framed version: the camera cuts to a
+## fixed pose, the player walks out of shot, and only then does the screen go.
+## See `_hold_shot`. Without it the crossing is the plain one — hand the walk
+## over and fade — which is still right for a seam whose cover comes from a bend
+## rather than from framing.
+func enter(id: StringName, from: StringName = &"", hold: Dictionary = {}) -> void:
 	if _busy or id == _current:
 		return
 	if not is_built(id):
@@ -221,15 +218,46 @@ func enter(id: StringName, from: StringName = &"") -> void:
 	_busy = true
 	var player := get_tree().get_first_node_in_group("player")
 	if player != null and player.has_method("begin_crossing"):
-		player.call("begin_crossing")
+		player.call("begin_crossing", hold.get("walk", Vector3.ZERO))
+
+	var held: Camera3D = null
+	if not hold.is_empty():
+		held = _hold_shot(hold)
+		await get_tree().create_timer(float(hold["seconds"])).timeout
 
 	await _fade_to(1.0, FADE_OUT)
 	_swap(id, from)
+	# Given back before the fade lifts, so the frame the player is shown is
+	# already theirs. Freed rather than kept: the next seam authors its own.
+	if held != null and is_instance_valid(held):
+		held.queue_free()
+		if player != null and is_instance_valid(player) and player.has_method("resume_camera"):
+			player.call("resume_camera")
 	await _fade_to(0.0, FADE_IN)
 
 	if player != null and is_instance_valid(player) and player.has_method("end_crossing"):
 		player.call("end_crossing")
 	_busy = false
+
+
+## The held shot: a camera that is not the player's, standing still.
+##
+## Added to the tree at the top rather than under the section, because the
+## section is about to be freed and a camera freed mid-crossing takes the view
+## with it. It outlives the swap by design and is thrown away on the far side.
+##
+## `player.gd` argued against detaching the camera at a seam, and it was right
+## about the thing it was arguing against: freezing a free-look camera reads as
+## the controls dying. This does not freeze theirs — it cuts to another one, the
+## way a film cuts, and a cut is read as a cut.
+func _hold_shot(hold: Dictionary) -> Camera3D:
+	var cam := Camera3D.new()
+	cam.name = "seam_hold"
+	get_tree().root.add_child(cam)
+	cam.global_position = hold["from"]
+	cam.look_at(hold["look"], Vector3.UP)
+	cam.make_current()
+	return cam
 
 
 ## The swap proper, and the order matters. The new ground goes in first, the

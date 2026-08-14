@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" path="res://assets/textures/asphalt_albedo.res" id="1_5mj68"]
 [ext_resource type="Texture2D" path="res://assets/textures/asphalt_normal.res" id="2_loq4d"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gjspm"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_y047d"]
 albedo_color = Color(0.27, 0.268, 0.265, 1)
 albedo_texture = ExtResource("1_5mj68")
 roughness = 0.97
@@ -16,255 +16,255 @@ uv1_world_triplanar = true
 texture_filter = 5
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_2ah80"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(8, 10.423976)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_lwcxk"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(8, 10.432681)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_t5710"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(8, 10.423976)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_n8w6e"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(8, 10.423976)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_s4wwu"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(8, 10.432681)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ap0cj"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(8, 10.423976)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_8il34"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(8, 10.423976)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_othd8"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(8, 10.432681)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_hi3an"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(8, 10.423976)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_i2xp1"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(8, 10.423976)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_q8o2j"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(8, 10.432681)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_e4y6j"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(8, 10.423976)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_wmnhb"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(6, 14.240383)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_djy1q"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(6, 20.160255)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_w0ra1"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(8, 14.426407)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_veam4"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(8, 9.284271)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_7cdrg"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(8, 10)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_0l42s"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(8, 17.664675)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_qeofk"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(8, 22.140211)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_jplrk"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(8, 24.017208)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_wn5jo"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(8, 23.057758)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_imkyy"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(7, 15.363099)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_owiiy"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(7, 17.513157)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ai62i"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(7, 19.729345)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ms81g"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(6, 26.862915)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_likpn"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(6, 22.91451)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_jqr33"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(15, 57)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_pjtb4"]
-material = SubResource("StandardMaterial3D_gjspm")
+material = SubResource("StandardMaterial3D_y047d")
 size = Vector2(15, 16)
 
-[node name="paving" type="Node3D" unique_id=53770034]
+[node name="paving" type="Node3D" unique_id=1698659425]
 
-[node name="pave_plaza_ring_0" type="MeshInstance3D" parent="." unique_id=192659667]
+[node name="pave_plaza_ring_0" type="MeshInstance3D" parent="." unique_id=37458614]
 transform = Transform3D(0.96603423, 0, -0.2584142, 0, 1, 0, 0.2584142, 0, 0.96603423, 14.934402, 0.01675, 4.0060515)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_2ah80")
 
-[node name="pave_plaza_ring_1" type="MeshInstance3D" parent="." unique_id=1875864473]
+[node name="pave_plaza_ring_1" type="MeshInstance3D" parent="." unique_id=1069108641]
 transform = Transform3D(0.70710677, 0, -0.70710677, 0, 1, 0, 0.70710677, 0, 0.70710677, 10.935, 0.017, 10.935)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_lwcxk")
 
-[node name="pave_plaza_ring_2" type="MeshInstance3D" parent="." unique_id=108028870]
+[node name="pave_plaza_ring_2" type="MeshInstance3D" parent="." unique_id=1392385203]
 transform = Transform3D(0.25841418, 0, -0.96603423, 0, 1, 0, 0.96603423, 0, 0.25841418, 4.001302, 0.012, 14.929652)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_t5710")
 
-[node name="pave_plaza_ring_3" type="MeshInstance3D" parent="." unique_id=958328789]
+[node name="pave_plaza_ring_3" type="MeshInstance3D" parent="." unique_id=769802163]
 transform = Transform3D(-0.25841415, 0, -0.96603423, 0, 1, 0, 0.96603423, 0, -0.25841415, -4.001052, 0.01225, 14.929902)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_n8w6e")
 
-[node name="pave_plaza_ring_4" type="MeshInstance3D" parent="." unique_id=992802393]
+[node name="pave_plaza_ring_4" type="MeshInstance3D" parent="." unique_id=1442476386]
 transform = Transform3D(-0.70710677, 0, -0.70710677, 0, 1, 0, 0.70710677, 0, -0.70710677, -10.929501, 0.0125, 10.9305)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_s4wwu")
 
-[node name="pave_plaza_ring_5" type="MeshInstance3D" parent="." unique_id=1971843897]
+[node name="pave_plaza_ring_5" type="MeshInstance3D" parent="." unique_id=78230157]
 transform = Transform3D(-0.9660342, 0, -0.25841427, 0, 1, 0, 0.25841427, 0, -0.9660342, -14.928903, 0.01275, 4.002052)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_ap0cj")
 
-[node name="pave_plaza_ring_6" type="MeshInstance3D" parent="." unique_id=1750300851]
+[node name="pave_plaza_ring_6" type="MeshInstance3D" parent="." unique_id=559623950]
 transform = Transform3D(-0.9660342, 0, 0.25841427, 0, 1, 0, -0.25841427, 0, -0.9660342, -14.928652, 0.013, -4.000302)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_8il34")
 
-[node name="pave_plaza_ring_7" type="MeshInstance3D" parent="." unique_id=1173088953]
+[node name="pave_plaza_ring_7" type="MeshInstance3D" parent="." unique_id=1661927184]
 transform = Transform3D(-0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, -0.70710677, -10.92875, 0.01325, -10.92875)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_othd8")
 
-[node name="pave_plaza_ring_8" type="MeshInstance3D" parent="." unique_id=474547820]
+[node name="pave_plaza_ring_8" type="MeshInstance3D" parent="." unique_id=207819320]
 transform = Transform3D(-0.25841415, 0, 0.96603423, 0, 1, 0, -0.96603423, 0, -0.25841415, -3.9998019, 0.0135, -14.928152)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_hi3an")
 
-[node name="pave_plaza_ring_9" type="MeshInstance3D" parent="." unique_id=1134049273]
+[node name="pave_plaza_ring_9" type="MeshInstance3D" parent="." unique_id=1838048602]
 transform = Transform3D(0.25841418, 0, 0.96603423, 0, 1, 0, -0.96603423, 0, 0.25841418, 4.0030518, 0.01375, -14.927902)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_i2xp1")
 
-[node name="pave_plaza_ring_10" type="MeshInstance3D" parent="." unique_id=748930522]
+[node name="pave_plaza_ring_10" type="MeshInstance3D" parent="." unique_id=1292023795]
 transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, 10.932, 0.014, -10.928)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_q8o2j")
 
-[node name="pave_plaza_ring_11" type="MeshInstance3D" parent="." unique_id=2010853498]
+[node name="pave_plaza_ring_11" type="MeshInstance3D" parent="." unique_id=965838839]
 transform = Transform3D(0.96603423, 0, 0.2584142, 0, 1, 0, -0.2584142, 0, 0.96603423, 14.931902, 0.01425, -3.9990518)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_e4y6j")
 
-[node name="pave_spoke_south_0" type="MeshInstance3D" parent="." unique_id=860201003]
+[node name="pave_spoke_south_0" type="MeshInstance3D" parent="." unique_id=967619859]
 transform = Transform3D(0.9943091, 0, -0.10653312, 0, 1, 0, 0.10653312, 0, 0.9943091, -0.7560363, 0.0145000005, 23.082172)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_wmnhb")
 
-[node name="pave_spoke_south_1" type="MeshInstance3D" parent="." unique_id=2107325296]
+[node name="pave_spoke_south_1" type="MeshInstance3D" parent="." unique_id=1289280703]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.49725, 0.01475, 39.922623)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_djy1q")
 
-[node name="pave_spoke_west_0" type="MeshInstance3D" parent="." unique_id=2012730725]
+[node name="pave_spoke_west_0" type="MeshInstance3D" parent="." unique_id=620951769]
 transform = Transform3D(-0.1414213, 0, -0.9899495, 0, 1, 0, 0.9899495, 0, -0.1414213, -23.137707, 0.015000001, -1.017101)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_w0ra1")
 
-[node name="pave_spoke_west_1" type="MeshInstance3D" parent="." unique_id=999660866]
+[node name="pave_spoke_west_1" type="MeshInstance3D" parent="." unique_id=1347215290]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -34.354614, 0.01525, -1.99675)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_veam4")
 
-[node name="pave_spoke_west_2" type="MeshInstance3D" parent="." unique_id=224694163]
+[node name="pave_spoke_west_2" type="MeshInstance3D" parent="." unique_id=1809185026]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -43.9965, 0.0155, -1.9965)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_7cdrg")
 
-[node name="pave_spoke_nnw_0" type="MeshInstance3D" parent="." unique_id=1234515113]
+[node name="pave_spoke_nnw_0" type="MeshInstance3D" parent="." unique_id=1045096558]
 transform = Transform3D(-0.93732774, 0, -0.34844905, 0, 1, 0, 0.34844905, 0, -0.93732774, -11.073869, 0.01575, -22.135046)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_0l42s")
 
-[node name="pave_spoke_nnw_1" type="MeshInstance3D" parent="." unique_id=1071218878]
+[node name="pave_spoke_nnw_1" type="MeshInstance3D" parent="." unique_id=924810545]
 transform = Transform3D(-0.99102545, 0, -0.13367328, 0, 1, 0, 0.13367328, 0, -0.99102545, -15.416224, 0.016, -40.52524)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_qeofk")
 
-[node name="pave_spoke_ne_0" type="MeshInstance3D" parent="." unique_id=185072298]
+[node name="pave_spoke_ne_0" type="MeshInstance3D" parent="." unique_id=324321822]
 transform = Transform3D(-0.70402, 0, 0.71018016, 0, 1, 0, -0.71018016, 0, -0.70402, 22.392523, 0.01625, -16.450048)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_jplrk")
 
-[node name="pave_spoke_ne_1" type="MeshInstance3D" parent="." unique_id=1699988870]
+[node name="pave_spoke_ne_1" type="MeshInstance3D" parent="." unique_id=1328563437]
 transform = Transform3D(-0.1561985, 0, 0.9877257, 0, 1, 0, -0.9877257, 0, -0.1561985, 40.11713, 0.0165, -25.594707)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_wn5jo")
 
-[node name="pave_spoke_se_0" type="MeshInstance3D" parent="." unique_id=1327973909]
+[node name="pave_spoke_se_0" type="MeshInstance3D" parent="." unique_id=1059359899]
 transform = Transform3D(0.35564035, 0, 0.9346229, 0, 1, 0, -0.9346229, 0, 0.35564035, 21.044102, 0.01675, 10.736619)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_imkyy")
 
-[node name="pave_spoke_se_1" type="MeshInstance3D" parent="." unique_id=637328419]
+[node name="pave_spoke_se_1" type="MeshInstance3D" parent="." unique_id=697477053]
 transform = Transform3D(0.8804711, 0, 0.4740998, 0, 1, 0, -0.4740998, 0, 0.8804711, 30.538288, 0.017, 19.56682)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_owiiy")
 
-[node name="pave_spoke_se_2" type="MeshInstance3D" parent="." unique_id=196960778]
+[node name="pave_spoke_se_2" type="MeshInstance3D" parent="." unique_id=524575256]
 transform = Transform3D(0.28985557, 0, 0.9570704, 0, 1, 0, -0.9570704, 0, 0.28985557, 42.05881, 0.012, 28.440668)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_ai62i")
 
-[node name="pave_spoke_sw_0" type="MeshInstance3D" parent="." unique_id=1828284509]
+[node name="pave_spoke_sw_0" type="MeshInstance3D" parent="." unique_id=2038257758]
 transform = Transform3D(0.628011, 0, -0.77820444, 0, 1, 0, 0.77820444, 0, 0.628011, -18.452171, 0.01225, 22.295353)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_ms81g")
 
-[node name="pave_spoke_sw_1" type="MeshInstance3D" parent="." unique_id=2004343081]
+[node name="pave_spoke_sw_1" type="MeshInstance3D" parent="." unique_id=77809108]
 transform = Transform3D(0.9884248, 0, -0.15171167, 0, 1, 0, 0.15171167, 0, 0.9884248, -29.5613, 0.0125, 40.175865)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_likpn")
 
-[node name="pave_street_0" type="MeshInstance3D" parent="." unique_id=932355702]
+[node name="pave_street_0" type="MeshInstance3D" parent="." unique_id=633273232]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.49925, 0.00275, 78.50075)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_jqr33")
 
-[node name="pave_apron_0" type="MeshInstance3D" parent="." unique_id=596813906]
+[node name="pave_apron_0" type="MeshInstance3D" parent="." unique_id=1635357353]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.499, 0.003, 115.001)
 cast_shadow = 0
 mesh = SubResource("PlaneMesh_pjtb4")
