@@ -275,7 +275,12 @@ func _plaza_graph() -> void:
 		"band_n": Vector2(-17.0, -31.0),
 		"band_w": Vector2(-31.0, -30.0),
 		"west": Vector2(-24.0, -6.0),
-		"west_n": Vector2(-30.0, -2.0),
+		# In front of the arch, and it has to stay in front of it. This was
+		# (−30, −2), which was three metres clear of a wall face at −33; the arch
+		# became a tunnel on 2026-08-14 and its gate house came forward to −30.5,
+		# which left the node half a metre inside the throat with guests standing
+		# in a 6m passage the player crosses a section seam in.
+		"west_n": Vector2(-27.0, -2.0),
 		"cafe": Vector2(-22.0, 8.0),
 		"west_s": Vector2(-22.0, 20.0),
 		# The ring, at r=16 where the walkway is. Nine nodes now rather than eight:

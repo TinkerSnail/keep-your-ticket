@@ -207,26 +207,47 @@ use_collision = true
 size = Vector3(11, 12.5, 23)
 material = SubResource("mat_building")
 
+; The arch is a tunnel, and the three boxes below are the whole of it: two piers
+; and the mass over them.
+;
+; It was 9m wide, 8.9m clear and 11m deep — a section nearly square, which is a
+; hole in a wall rather than a tunnel. You saw the entire far side from the ring,
+; and the section swap had nothing but the fade to hide behind.
+;
+; 6m wide, 5m clear and 13.5m deep. The depth comes from projecting the piers and
+; the mass 2.5m *into* the plaza rather than thickening the wall, because the
+; wall's west face is the terrace's east edge and the terrace is only six metres
+; deep to begin with. What projects reads as a gate house, which is what a park
+; puts at the head of a land anyway.
+;
+; The through-view survives the narrowing, and it had to: the overlook only works
+; because the arch frames the gap in the boardwalk's frontage and the gap frames
+; the pier. From the fountain the near mouth is 29m off and the far one 44m, so
+; on the axis the near opening projects 4.5m either side at the far plane — wider
+; than the far opening's own 3m. The whole of the far end is still in view.
 [node name="arch_pier_north" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38.50125, 6.24875, -8.00125)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37.25125, 6.24875, -7.25125)
 use_collision = true
-size = Vector3(11, 12.5, 3)
+size = Vector3(13.5, 12.5, 4.5)
 material = SubResource("mat_building")
 
 [node name="arch_pier_south" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38.50150, 6.24850, 3.99850)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37.25150, 6.24850, 3.24850)
 use_collision = true
-size = Vector3(11, 12.5, 3)
+size = Vector3(13.5, 12.5, 4.5)
 material = SubResource("mat_building")
 
 [node name="arch_lintel" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38.50175, 10.69825, -1.75175)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37.25175, 8.74825, -1.75175)
 use_collision = true
-size = Vector3(11, 3.6, 15.5)
+size = Vector3(13.5, 7.5, 15.5)
 material = SubResource("mat_building")
 
+; On the gate house's own face now rather than five metres back on the wall
+; line, and still standing clear above the roofline — which is what makes it
+; readable from the ring, where the decision to walk west actually gets made.
 [node name="arch_sign" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32.90200, 14.09800, -1.75200)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30.05200, 14.09800, -1.75200)
 use_collision = false
 size = Vector3(0.8, 3.8, 11)
 material = SubResource("mat_accent")
@@ -243,28 +264,40 @@ use_collision = true
 size = Vector3(7, 3.6, 1)
 material = SubResource("mat_building")
 
+; The parapet, in two runs with a five-metre gap between them **on the arch's
+; own axis since 2026-08-14**.
+;
+; The gap used to be 2.6m at the terrace's north end, because it was the mouth of
+; a slot cut in the bluff and the stair inside it was 2.6m wide. That put the way
+; down off to one side of a route that arrives dead centre, and put an unbroken
+; rail straight ahead of the arch — so the overlook showed you the boardwalk and
+; nothing at all about how to reach it.
+;
+; On the axis it is the opposite: you walk out of the tunnel and the way down is
+; the thing in front of you, with the view over the rail either side of it. The
+; walk west becomes one straight line from the ring to the head of the flight.
 [node name="overlook_parapet_s" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50.50275, 0.54725, 0.29725)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50.50275, 0.54725, 4.74725)
 use_collision = true
-size = Vector3(1, 1.1, 17.4)
+size = Vector3(1, 1.1, 8.5)
 material = SubResource("mat_accent")
 
 [node name="overlook_coping_s" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50.50300, 1.15700, 0.29700)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50.50300, 1.15700, 4.74700)
 use_collision = true
-size = Vector3(1.4, 0.16, 17.8)
+size = Vector3(1.4, 0.16, 8.9)
 material = SubResource("mat_building")
 
 [node name="overlook_parapet_n" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50.50325, 0.54675, -12.50325)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50.50325, 0.54675, -9.25325)
 use_collision = true
-size = Vector3(1, 1.1, 3)
+size = Vector3(1, 1.1, 9.5)
 material = SubResource("mat_accent")
 
 [node name="overlook_coping_n" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50.50350, 1.15650, -12.50350)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50.50350, 1.15650, -9.25350)
 use_collision = true
-size = Vector3(1.4, 0.16, 3.4)
+size = Vector3(1.4, 0.16, 9.9)
 material = SubResource("mat_building")
 
 [node name="bandstand" type="CSGBox3D" parent="."]

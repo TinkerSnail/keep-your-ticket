@@ -44,11 +44,22 @@ var _crossed := false
 ## it.
 ## Every crowd standing, not the first one found. `get_first_node_in_group` was
 ## fine while the plaza was the only section with a cast in it.
+##
+## **Everybody, not `crowd.guests`.** That array is the register of who is
+## actually in the park — the day admits groups out of a dormant pool as the
+## hour turns, and a dormant guest is not in it. So this cleared the crowd
+## standing at the moment it ran and left the rest of the cast to walk in
+## afterwards, which made the verdict depend on how long the run took to reach a
+## leg: `bw back down pier` failed on a guest who arrived during the descent, and
+## only once the stair legs made the run long enough for them to.
+##
+## Stopping the crowd itself is the other half. Freeing the guests is not enough
+## while the thing that admits them is still ticking.
 func _clear_crowds() -> void:
 	for crowd in get_tree().get_nodes_in_group("crowd"):
-		for g in crowd.guests:
-			if is_instance_valid(g):
-				g.queue_free()
+		crowd.set_physics_process(false)
+	for g in get_tree().get_nodes_in_group("guest"):
+		g.queue_free()
 
 
 func _enter_boardwalk() -> void:
@@ -165,21 +176,93 @@ func _ready() -> void:
 	_start_leg()
 
 
+## The way down from the arch: the terrace, the bluff top, the flight, and out
+## into the lane.
+##
+## Both directions, because a stair is the one route where down and up are
+## different problems. `CharacterBody3D` has no step-up, so a flight that walks
+## down a treat can be a wall coming back — which is why the treads are scenery
+## and the ramp under them is the floor.
+##
+## The descent is split in three, because `FALL_BELOW` is measured from where a
+## leg started and the flight drops six metres. One leg from head to foot cannot
+## be told apart from walking off the side of it.
+func _stair_legs() -> Array:
+	var arch := Vector3(ParkPlan.ARCH_ARRIVE_WEST.x, 1.2, ParkPlan.ARCH_ARRIVE_WEST.z)
+	# On the head deck, still on the arch's axis — the walk west is one straight
+	# line from the tunnel to here, across the terrace and the bluff top.
+	var deck := Vector3(ParkPlan.STAIR_X, 1.2, ParkPlan.ARCH_AT.y)
+	var third := _on_flight(1.0 / 3.0)
+	var two_thirds := _on_flight(2.0 / 3.0)
+	var foot := Vector3(ParkPlan.STAIR_X, ParkPlan.STAIR_FOOT.y + 0.2,
+		ParkPlan.STAIR_FOOT.z)
+	var y := ParkPlan.SHORE_TOP + 1.2
+	var lane := Vector3(ParkPlan.BACK_LANE_X, y, ParkPlan.STAIR_FOOT.z)
+	var alley := Vector3(ParkPlan.BACK_LANE_X, y, ParkPlan.ALLEY_Z)
+	return [
+		["bw arch -> deck", arch, deck, true],
+		["bw deck -> third", deck, third, true],
+		["bw third -> two thirds", third, two_thirds, true],
+		["bw two thirds -> foot", two_thirds, foot, true],
+		["bw foot -> lane", foot, lane, true],
+		["bw lane -> alley mouth", lane, alley, true],
+		["bw alley mouth -> lane", alley, lane, true],
+		["bw lane -> foot", lane, foot, true],
+		["bw foot -> two thirds", foot, two_thirds, true],
+		["bw two thirds -> third", two_thirds, third, true],
+		["bw third -> deck", third, deck, true],
+		["bw deck -> arch", deck, arch, true],
+		# The parapet is all that is between the terrace walk and the shore. It is
+		# hand-authored in `plaza.tscn`, which is *not* mounted here — what holds
+		# these is the copy `_plaza_from_below` reads out of that file, so these two
+		# probes really ask whether the copy still collides.
+		["bw parapet holds", Vector3(-46.0, 1.2, 4.0),
+			Vector3(-56.0, 1.2, 4.0), false],
+		["bw parapet holds n", Vector3(-46.0, 1.2, -9.0),
+			Vector3(-56.0, 1.2, -9.0), false],
+		# And the bluff top past the parapet is a seven-metre ledge running the
+		# length of the map. Both ends of it have to hold, or the way down is also a
+		# way to walk to the coaster along the top of a cliff.
+		["bw ledge holds n", Vector3(-54.5, 1.2, -6.0),
+			Vector3(-54.5, 1.2, -22.0), false],
+		["bw ledge holds s", Vector3(-54.5, 1.2, 2.0),
+			Vector3(-54.5, 1.2, 18.0), false],
+		# The open side of the flight, which is a six-metre drop onto the lane.
+		["bw flight rail holds", _on_flight(0.5),
+			_on_flight(0.5) + Vector3(-6.0, 0.0, 0.0), false],
+	]
+
+
+## A point on the flight, `t` of the way down it, a stride above the treads.
+func _on_flight(t: float) -> Vector3:
+	var run: float = ParkPlan.STAIR_GOING * ParkPlan.STAIR_TREADS
+	var drop: float = ParkPlan.STAIR_RISE * ParkPlan.STAIR_TREADS
+	return Vector3(ParkPlan.STAIR_X, -drop * t + 0.2,
+		ParkPlan.STAIR_HEAD_Z + run * t)
+
+
 ## The boardwalk, one section down. Eye height is the shore plus the same 1.2 the
 ## plaza legs use.
 ##
 ## The order is the order the player meets it, because that is the thing being
-## tested: the arrival, the lane, the alley, and then the promenade in both
-## directions with the pier out of the middle of it. Everything after that is a
-## probe — the water, the shops, the bluff, and both ends of the strip.
+## tested: the terrace, the stair, the lane, the alley, and then the promenade in
+## both directions with the pier out of the middle of it. Everything after that
+## is a probe — the water, the shops, the bluff, and both ends of the strip.
+##
+## **The stair is in this list rather than the plaza's since 2026-08-14.** The
+## seam moved to the arch, so the player descends it with the boardwalk standing
+## and the plaza gone — different neighbours, different scene, and the flight is
+## a scene mounted with this one. It was walked in the plaza's phase until the
+## seam moved and then in neither, because `section_test.gd` gave it up the same
+## day and nothing picked it up — and what nothing was walking turned out to be a
+## flight buried inside the boardwalk's own fill for the slot it descends. A
+## route nothing walks is a route that is not walkable, and this one was not.
 func _boardwalk_legs() -> Array:
 	var y := ParkPlan.SHORE_TOP + 1.2
-	var arrive := Vector3(ParkPlan.BOARDWALK_ARRIVAL.x, y, ParkPlan.BOARDWALK_ARRIVAL.z)
-	var alley_in := Vector3(ParkPlan.BACK_LANE_X - 3.0, y, ParkPlan.ALLEY_Z)
+	var alley_in := Vector3(ParkPlan.BACK_LANE_X, y, ParkPlan.ALLEY_Z)
 	var alley_out := Vector3(ParkPlan.PROMENADE_X + 5.0, y, ParkPlan.ALLEY_Z)
 	var prom := Vector3(ParkPlan.PROMENADE_X + 5.0, y, ParkPlan.ALLEY_Z)
-	return [
-		["bw arrive -> lane", arrive, alley_in, true],
+	return _stair_legs() + [
 		["bw lane -> alley", alley_in, alley_out, true],
 		["bw alley -> pier head", prom, Vector3(-90.0, y, ParkPlan.ALLEY_Z), true],
 		["bw out the pier", Vector3(-90.0, y, ParkPlan.ALLEY_Z),

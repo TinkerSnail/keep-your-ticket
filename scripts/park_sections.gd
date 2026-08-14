@@ -108,7 +108,7 @@ const SECTIONS := {
 ## crossing in both directions every run, which is what would catch it drifting.
 const ARRIVAL_FALLBACK := {
 	&"plaza": {
-		&"boardwalk": {"position": Vector3(-30.5, 0.2, -2.0), "yaw": -PI * 0.5},
+		&"boardwalk": {"position": Vector3(-28.5, 0.2, -2.0), "yaw": -PI * 0.5},
 	},
 }
 

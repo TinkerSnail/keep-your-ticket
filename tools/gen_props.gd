@@ -910,45 +910,88 @@ const PAVE_LIFT := 0.012
 ## are not paved either — down there the deck *is* the path, and a strip over it
 ## would be paving on planking.
 func _paving() -> void:
-	_walkway_paving([&"plaza_ring", &"spoke_south", &"spoke_west", &"spoke_nnw",
+	_walkway_paving([&"plaza_ring", &"spoke_south", &"spoke_nnw",
 		&"spoke_ne", &"spoke_se", &"spoke_sw"], PAVE_LIFT, "asphalt")
+	# The west spoke's plaza half only: ring, bend, and up to the gate house's
+	# face. The tunnel past it is the plaza's own brick and the terrace past
+	# *that* is laid by `_terrace_paving`, into this scene and the boardwalk both.
+	_pave_run(&"spoke_west", PAVE_LIFT, "asphalt", 0, 2)
+	_terrace_paving()
 	# The plaza's floor is at y=0; `entrance_ground` is `GROUND_SEAM` lower, so
 	# the street's asphalt comes down with it. Otherwise the two halves of the
 	# same walk sit at different heights where they meet at z=38.
 	_walkway_paving([&"street", &"apron"], GROUND_SEAM + PAVE_LIFT, "asphalt")
 
 
+## The paving on the far side of the tunnel, laid into whichever scene is being
+## written — which is both of them.
+##
+## The terrace is on the boardwalk's side of the seam and the plaza's side of the
+## wall, so both sections have to show it: the plaza sees it framed by the arch
+## from as far back as the ring, and the boardwalk stands on it. `plaza_paving`
+## is not mounted past the arch and `boardwalk` is not mounted before it, so the
+## only way for the ground to be the same in both is to lay it twice.
+##
+## Two stretches, and the second is the point. The west spoke's last segment runs
+## out of the tunnel to the parapet, which is where the view is; the stair's first
+## two run north to the head of the flight, which is where the player is actually
+## going, and without asphalt on them the terrace was a bare brick balcony with
+## nothing to say the way on was to the right. They stop at the head of the
+## flight, because past that it is treads.
+func _terrace_paving() -> void:
+	_pave_run(&"spoke_west", PAVE_LIFT, "asphalt", 3, 1)
+	_pave_run(&"west_stair", PAVE_LIFT, "asphalt", 0, 2)
+
+
 func _walkway_paving(ids: Array, y: float, mat: String) -> void:
 	for id in ids:
-		var run: Array = Plan.WALKWAYS[id]
-		var w: float = Plan.WALKWAY_WIDTH.get(id, 6.0)
-		# A closed run — the ring — mitres its two ends into each other like any
-		# other joint. An open one stops where the plan says it stops, because
-		# the spokes end at the perimeter wall and any overhang there is paving
-		# inside a building.
-		var closed: bool = run.size() > 2 and run[0].distance_to(run[-1]) < 0.01
-		var last := run.size() - 1
-		for i in last:
-			var a: Vector2 = run[i]
-			var b: Vector2 = run[i + 1]
-			var d := b - a
-			var length := d.length()
-			if length < 0.01:
-				continue
-			var ext_a := 0.0
-			if i > 0:
-				ext_a = _mitre(run[i - 1], a, b, w)
-			elif closed:
-				ext_a = _mitre(run[last - 1], a, b, w)
-			var ext_b := 0.0
-			if i + 2 <= last:
-				ext_b = _mitre(a, b, run[i + 2], w)
-			elif closed:
-				ext_b = _mitre(a, b, run[1], w)
-			var dir := d / length
-			var mid := (a + b) * 0.5 + dir * (ext_b - ext_a) * 0.5
-			_pave_quad("pave_%s_%d" % [id, i], Vector3(mid.x, y, mid.y),
-				Vector2(w, length + ext_a + ext_b), atan2(d.x, d.y), mat)
+		_pave_run(id, y, mat)
+
+
+## One walkway, or a range of its segments where a run is only partly ground.
+##
+## The range is what keeps `ParkPlan.WALKWAYS` honest. The west spoke runs from
+## the ring through the arch and out onto the terrace, and three different things
+## are true of three stretches of it: the plaza's half is paved into
+## `plaza_paving`, the tunnel is not paved at all, and the terrace is paved into
+## two scenes. Cutting the run up to match was tried and it put a hole in the
+## map — the way west drew as a stub ending at a wall. So the run stays whole and
+## this takes `first` and `count`.
+func _pave_run(id: StringName, y: float, mat: String, first := 0,
+		count := -1) -> void:
+	var run: Array = Plan.WALKWAYS[id]
+	var w: float = Plan.WALKWAY_WIDTH.get(id, 6.0)
+	# A closed run — the ring — mitres its two ends into each other like any
+	# other joint. An open one stops where the plan says it stops, because
+	# the spokes end at the perimeter wall and any overhang there is paving
+	# inside a building.
+	var closed: bool = run.size() > 2 and run[0].distance_to(run[-1]) < 0.01
+	var last := run.size() - 1
+	var to: int = last if count < 0 else mini(first + count, last)
+	for i in range(first, to):
+		var a: Vector2 = run[i]
+		var b: Vector2 = run[i + 1]
+		var d := b - a
+		var length := d.length()
+		if length < 0.01:
+			continue
+		var ext_a := 0.0
+		if i > first:
+			ext_a = _mitre(run[i - 1], a, b, w)
+		elif closed:
+			ext_a = _mitre(run[last - 1], a, b, w)
+		var ext_b := 0.0
+		# Against the end of the range rather than the end of the run: paving
+		# mitred into a segment nobody is laying would run on past whatever
+		# made the range stop there.
+		if i + 2 <= to:
+			ext_b = _mitre(a, b, run[i + 2], w)
+		elif closed:
+			ext_b = _mitre(a, b, run[1], w)
+		var dir := d / length
+		var mid := (a + b) * 0.5 + dir * (ext_b - ext_a) * 0.5
+		_pave_quad("pave_%s_%d" % [id, i], Vector3(mid.x, y, mid.y),
+			Vector2(w, length + ext_a + ext_b), atan2(d.x, d.y), mat)
 
 
 ## How far past a corner each of the two quads meeting there has to run.
@@ -1512,32 +1555,31 @@ func _west_shell() -> void:
 		Vector3(240, 8.0, 400), "water", 0.0, false)
 	# The face the plaza stands on. Everything west of the parapet drops away
 	# here, which is what turns the parapet into an overlook rather than a fence.
-	# Cut in two so the stair has a slot to descend through — a stair cut into a
-	# seawall, which is also what puts a corner between the terrace and the
-	# bottom of the flight.
-	# These four are also the walls and floor of the stair well, and without them
-	# a player walking sideways off a flight goes straight through the scenery
-	# and out of the world.
-	_box("bluff_north", Vector3.ZERO, Vector3(-54.5, -6.0 + GROUND_SEAM, -91.0),
-		Vector3(7.0, 12.0, 158.0), "far_warm")
-	_box("bluff_south", Vector3.ZERO, Vector3(-54.5, -6.0 + GROUND_SEAM, 89.0),
-		Vector3(7.0, 12.0, 162.0), "far_warm")
-	# Its west face is inset 3cm from the other bluff pieces, because the stair's
-	# treads are exactly one stair-width at the turn axis and land on -46 too.
-	# Two faces the same way at the same depth is the vibration in the ground, and
-	# the build-order seam cannot separate these two: they are in different
-	# scenes. Giving way inward is the hand-authored rule.
-	_box("bluff_base", Vector3.ZERO, Vector3(-54.485, -9.0, -2.0),
-		Vector3(6.97, 6.0, 20.0), "far_warm")
-	# The rest of the bluff fills back in around the well, in three pieces,
-	# because the upper flight runs east through it and a solid fill walls in the
-	# stair it is supposed to be holding up.
-	_box("bluff_slot_north", Vector3.ZERO, Vector3(-53.2, -6.0 + GROUND_SEAM, -11.5),
-		Vector3(4.4, 12.0, 1.0), "far_warm")
-	_box("bluff_slot_south", Vector3.ZERO, Vector3(-53.2, -6.0 + GROUND_SEAM, -0.2),
-		Vector3(4.4, 12.0, 16.4), "far_warm")
-	_box("bluff_slot_under", Vector3.ZERO, Vector3(-53.2, -6.75, -9.7),
-		Vector3(4.4, 10.5, 2.6), "far_warm")
+	#
+	# **One piece since 2026-08-14.** It used to be cut into five — two long runs
+	# with a slot between them, a floor under the slot and three fillers round it —
+	# because the stair descended *inside* the bluff and the rock had to be taken
+	# out of its way. The stair is hung on the face now, so the rock is just rock,
+	# and the top of it is a ledge the player can walk out onto through the gap in
+	# the parapet.
+	_box("bluff", Vector3.ZERO,
+		Vector3((Plan.BLUFF_FACE_X + Plan.BLUFF_BACK_X) * 0.5, -6.0 + GROUND_SEAM, 0.0),
+		Vector3(Plan.BLUFF_BACK_X - Plan.BLUFF_FACE_X, 12.0, 341.0), "far_warm")
+	# The face, dressed. Six metres of blank plane is what the player looks back at
+	# from the lane, and until 2026-08-14 that is exactly what it was — the reason
+	# the two sides of the descent did not read as the same place was half the
+	# hidden stair and half this.
+	#
+	# A seawall, then: a coping along the top edge and buttresses down it at eight
+	# metres. Only over the stretch the boardwalk can see; north and south of that
+	# it is scenery at ninety metres and a blank cliff is correct.
+	var face := Plan.BLUFF_FACE_X
+	_box("bluff_coping", Vector3.ZERO, Vector3(face + 0.15, -0.35, 0.0),
+		Vector3(1.1, 0.7, 150.0), "far_shade", 0.0, false)
+	for i in 19:
+		var bz := -72.0 + float(i) * 8.0
+		_box("bluff_buttress_%d" % i, Vector3.ZERO,
+			Vector3(face - 0.24, -3.43, bz), Vector3(0.5, 5.26, 1.2), "far_warm", 0.0, false)
 	# The ground the boardwalk stands on: back lane, frontage, promenade. Runs
 	# 2m east under the bluff's west face rather than butting against it.
 	var width := SHORE_FROM_X - SHORE_EDGE
@@ -1634,28 +1676,59 @@ func _pier_far(root: Vector3) -> void:
 		0.3, 5.0, "far_shade", 0.0, 6, false)
 
 
-## The way down. Two flights with a corner between them, cut into the bluff:
-## west out of a gap in the parapet, a landing, then south along the face to the
-## boardwalk.
+## The way down: **one straight flight, four metres wide, hung on the face of the
+## bluff.**
 ##
-## The corner is the point. The arch is a straight tube you can see through,
-## which makes it a weak threshold; a flight that turns puts a wall between the
-## terrace and wherever it comes out, which is where a section load can hide and
-## why the reveal gets walked into rather than faded into.
+## It was two narrow flights with a corner between them, descending a slot cut in
+## the rock to a door in a blank cliff. The corner was the point — a flight that
+## turns puts a wall between the terrace and wherever it comes out, and that is
+## where a section load could hide.
+##
+## **The load moved to the arch on 2026-08-14 and the corner stopped paying for
+## anything.** What it left behind was a 2.6m service stair with four direction
+## changes, invisible from both ends: from the terrace an unbroken parapet with
+## no way down in sight, from the promenade a cliff with a service door in it.
+## Neither end looked like the other because nothing joining them could be seen
+## from either.
+##
+## So the flight came out of the rock and onto the front of it. From the lane you
+## see it climbing to the bluff top with the parapet and the arch above; from the
+## terrace it is what you walk out of the tunnel facing. Same object from both
+## sides, which is the whole of what was wrong.
+##
+## The bluff top behind the parapet is walkable now — it used to be the roof of a
+## slot — so the sequence is: out of the tunnel, six metres of terrace, through
+## the gap, seven metres of bluff top, onto the head deck, one turn, and down.
 const STAIR_W := Plan.STAIR_W
 const STAIR_RISE := Plan.STAIR_RISE
-const STAIR_TOP_Z := Plan.STAIR_TOP_Z
-const STAIR_TURN_X := Plan.STAIR_TURN_X
+const STAIR_GOING := Plan.STAIR_GOING
+const STAIR_X := Plan.STAIR_X
 
 
-## The treads are scenery and the ramps under them are the floor.
+## The treads are scenery and the ramp under them is the floor.
 ##
 ## CharacterBody3D has no step-up: a quarter-metre riser is a ninety-degree wall,
 ## so a stair built out of boxes is walkable down and impassable coming back.
 ## Verified by driving the player at it rather than by looking at it, which a
 ## screenshot could not have told us. A ramp at the slope of the nosings is
 ## flush with every one of them and under forty-five degrees, so it is floor.
-func _flight_ramp(nm: String, top_a: Vector3, top_b: Vector3, theta: float) -> void:
+##
+## **And it hid the stair completely, which no screenshot had been pointed at
+## until 2026-08-14.** A ramp on the nosing line runs from the *back* of one
+## tread to the front of the next, so over each tread it stands up to a full
+## riser above it — and at the same width it covers every one. What the player
+## walked on was a smooth slope, and what they said about it was "it snakes down
+## a narrow ramp". They were describing it exactly.
+##
+## Two things put the steps back without putting a wall in front of the capsule.
+## The ramp is **narrower than the treads**, so the treads stand out past it on
+## both sides and the flight has a stepped edge — the west one outboard of the
+## rail, where a body cannot reach it, and the east one buried in the bluff. And
+## each nosing gets a strip three centimetres proud of the ramp, which is under
+## the lip the ground planes already carry everywhere and reads as a step at any
+## distance. Neither is load-bearing; the ramp is still the floor.
+func _flight_ramp(nm: String, top_a: Vector3, top_b: Vector3, theta: float,
+		width := 0.0, mat := "accent") -> void:
 	var span := top_b - top_a
 	var horizontal := Vector2(span.x, span.z).length()
 	var phi := atan2(-span.y, horizontal)
@@ -1665,119 +1738,118 @@ func _flight_ramp(nm: String, top_a: Vector3, top_b: Vector3, theta: float) -> v
 	# the nosings sit on.
 	var up := (Basis(Vector3.UP, theta) * Basis(Vector3.RIGHT, phi)).y
 	_box(nm, mid - up * (thickness * 0.5), Vector3.ZERO,
-		Vector3(STAIR_W, thickness, span.length()), "accent", theta, true, phi)
+		Vector3(width if width > 0.0 else STAIR_W, thickness, span.length()),
+		mat, theta, true, phi)
 
 
 func _west_stair() -> void:
-	# Flight A: west off the terrace, out of the parapet gap. Short and shallow,
-	# because it has to reach the landing's near edge rather than cross it — a
-	# ramp that overhangs its own landing presents the landing with a wall.
-	var treads_a := 4
-	var run_a := 0.85
-	# Where the first flight starts, derived from where the second one lands
-	# rather than typed. It was typed — as -40, the old parapet line — and when
-	# the plaza grew and the parapet went to -51 the flight stayed put, leaving
-	# thirteen metres of nothing between the bottom of flight A and the landing.
-	# `section_test.gd` found it as the player stuck halfway down.
-	var start_x := STAIR_TURN_X + STAIR_W * 0.5 + run_a * float(treads_a)
-	for i in treads_a:
-		var top := -STAIR_RISE * (i + 1)
-		var x := start_x - run_a * (i + 0.5)
-		_box("flight_a_%d" % i, Vector3.ZERO, Vector3(x, top - 0.25, STAIR_TOP_Z),
-			Vector3(run_a, 0.5, STAIR_W), "accent", 0.0, false)
-	_flight_ramp("ramp_a", Vector3(start_x, 0.0, STAIR_TOP_Z),
-		Vector3(start_x - run_a * treads_a, -STAIR_RISE * treads_a, STAIR_TOP_Z),
-		-PI * 0.5)
+	var face := Plan.BLUFF_FACE_X
+	var head := Plan.STAIR_HEAD_Z
+	var treads := Plan.STAIR_TREADS
+	var drop := STAIR_RISE * treads
+	var run := STAIR_GOING * treads
+	var foot_z := Plan.STAIR_FOOT.z
+	var foot_y := Plan.STAIR_FOOT.y
 
-	# The landing is a plinth rather than a slab: the slot it sits in is open to
-	# the boardwalk below, and a floating step reads as a mistake from down there.
-	var landing_y := -STAIR_RISE * treads_a
-	# Run the landing all the way back to the bluff wall. One stair-width leaves a
-	# metre of gap behind it, and a metre of gap five metres up is a hole a player
-	# falls into and cannot climb out of.
-	# A centimetre proud of the stair width rather than equal to it. The landing
-	# and the ramp that comes off it are both STAIR_W at the same x, so built
-	# flush they share both side faces — the one pair the build-order seam cannot
-	# separate, because these two are exactly SEAM_STEPS apart. The plinth is the
-	# thing the ramp lands on, so the plinth is the one that owns the edge.
-	_box("stair_landing", Vector3.ZERO,
-		Vector3(STAIR_TURN_X, (landing_y - 6.0) * 0.5, STAIR_TOP_Z - 0.5),
-		Vector3(STAIR_W + 0.01, landing_y + 6.0, STAIR_W + 1.0), "accent")
-
-	# Flight B: turn south and run down the bluff face to the boardwalk.
-	var treads_b := 20
-	var run_b := 0.63
-	var start_z := STAIR_TOP_Z + STAIR_W * 0.5
-	for i in treads_b:
-		var top := landing_y - STAIR_RISE * (i + 1)
-		var z := start_z + run_b * (i + 0.5)
-		_box("flight_b_%d" % i, Vector3.ZERO, Vector3(STAIR_TURN_X, top - 0.25, z),
-			Vector3(STAIR_W, 0.5, run_b), "accent", 0.0, false)
-	_flight_ramp("ramp_b", Vector3(STAIR_TURN_X, landing_y, start_z),
-		Vector3(STAIR_TURN_X, landing_y - STAIR_RISE * treads_b, start_z + run_b * treads_b),
-		0.0)
-
-	# A rail down the open west side of flight B, and a return across the head of
-	# flight A so the gap in the parapet reads as a stair rather than a hole.
-	var horizontal := run_b * treads_b
-	var vertical := STAIR_RISE * treads_b
-	var slope := atan2(vertical, horizontal)
-	_box("stair_rail", Vector3.ZERO,
-		Vector3(STAIR_TURN_X - STAIR_W * 0.5 - 0.1, landing_y - vertical * 0.5 + 0.55,
-			start_z + horizontal * 0.5),
-		Vector3(0.2, 1.0, sqrt(horizontal * horizontal + vertical * vertical)),
-		"metal", 0.0, true, slope)
-	_box("stair_head_rail", Vector3.ZERO,
-		Vector3(start_x - 0.6, 0.55, STAIR_TOP_Z - STAIR_W * 0.5 - 0.1),
-		Vector3(1.4, 1.1, 0.2), "metal")
-
-	# The foot, and the gate across it. Everything past this point is a tableau
-	# with no collision on it, so the stair has to end somewhere the player can
-	# stand and look and not walk through the scenery.
-	#
-	# This is the section boundary, and it is deliberately at the bottom of a
-	# flight that turned: out of sight of the terrace, one room deep, with the
-	# boardwalk at eye level through the bars. When there is a boardwalk to load,
-	# the gate is what opens and this is where it loads.
-	var foot_z := start_z + horizontal + STAIR_W * 0.5
-	var foot_y := landing_y - vertical
-	_box("stair_foot", Vector3.ZERO, Vector3(STAIR_TURN_X, foot_y - 0.25, foot_z),
-		Vector3(STAIR_W, 0.5, STAIR_W), "accent")
-	# The gate is on the *west* face, because that is the only face the well has.
-	# It ran across the south face until 2026-08-12, which put twelve metres of
-	# bluff behind a door — a mistake that could not be seen from either side
-	# while the bluff belonged to the plaza and stopped existing at the crossing.
-	# The back wall of the well takes the rail instead.
-	_box("foot_rail_south", Vector3.ZERO,
-		Vector3(STAIR_TURN_X, foot_y + 0.55, foot_z + STAIR_W * 0.5 + 0.1),
-		Vector3(STAIR_W, 1.1, 0.2), "metal")
-	# A frame rather than a leaf, since 2026-08-14. This was a shut gate because
-	# it was the section boundary and the player had to be stopped at it; the
-	# boundary is at the arch now and this is a doorway on the way down, so it
-	# has jambs and a head and nothing across it.
+	# The head deck. A platform at the plaza's own level standing out over the
+	# lane, level with the bluff top so the walk from the parapet gap is flat, with
+	# the flight coming off its south edge. Posts under it, because a four-metre
+	# slab cantilevered off a cliff with nothing holding it up reads as an error.
+	var deck_from := Plan.STAIR_DECK_FROM_Z
+	_box("stair_deck", Vector3.ZERO,
+		Vector3(STAIR_X, -0.25, (deck_from + head) * 0.5),
+		Vector3(STAIR_W, 0.5, head - deck_from), "accent")
 	for i in 2:
-		var jz := foot_z + (-1.0 if i == 0 else 1.0) * (STAIR_W * 0.5 - 0.16)
-		_box("foot_jamb_%d" % i, Vector3.ZERO,
-			Vector3(Plan.FOOT_GATE_X, foot_y + 1.25, jz),
-			Vector3(0.24, 2.5, 0.32), "metal")
-	_box("foot_gate_head", Vector3.ZERO,
-		Vector3(Plan.FOOT_GATE_X, foot_y + 2.62, foot_z),
-		Vector3(0.24, 0.26, STAIR_W), "metal")
+		var pz := lerpf(deck_from + 0.6, head - 0.6, float(i))
+		_box("deck_post_%d" % i, Vector3.ZERO,
+			Vector3(STAIR_X - STAIR_W * 0.5 + 0.4, (foot_y - 0.5) * 0.5, pz),
+			Vector3(0.36, -foot_y + 0.5, 0.36), "far_shade", 0.0, false)
 
-	# The well's west face, closed except at the gate — which turns flight B from
-	# a ledge into a shaft. It was open for its whole twenty metres, and a player
-	# who reached the foot could walk north under their own stair and straight out
-	# onto the shore, six metres below a section that was not mounted.
-	#
-	# Closing it also makes good on something the comment above has been claiming
-	# since the seam was built: "the boardwalk at eye level through the bars" is
-	# only true if the bars are the *only* way to see it.
-	for run in [[-12.0, foot_z - STAIR_W * 0.5], [foot_z + STAIR_W * 0.5, 8.0]]:
-		var from: float = run[0]
-		var to: float = run[1]
-		_box("well_wall_%.0f" % from, Vector3.ZERO,
-			Vector3(Plan.FOOT_GATE_X, -3.0, (from + to) * 0.5),
-			Vector3(0.3, 6.0, to - from), "far_warm")
+	# The flight. Treads are scenery over a ramp — see `_flight_ramp` — and it runs
+	# south, away from the alley, which is what keeps the reveal at the hole in the
+	# frontage for the walk back north.
+	for i in treads:
+		var top := -STAIR_RISE * (i + 1)
+		var z := head + STAIR_GOING * (i + 0.5)
+		# A centimetre under the line, because the last tread's top is at −6 and so
+		# is the shore's, and the treads are hidden beneath the ramp regardless —
+		# what shows of them is the stepped edge each side of it.
+		_box("tread_%d" % i, Vector3.ZERO, Vector3(STAIR_X, top - 0.26, z),
+			Vector3(STAIR_W + 1.0, 0.5, STAIR_GOING), "accent", 0.0, false)
+		# The nosing, three centimetres proud of the ramp, which is what makes the
+		# flight read as a stair from on top of it rather than as a slope.
+		_box("nosing_%d" % i, Vector3.ZERO,
+			Vector3(STAIR_X, top + 0.015, head + STAIR_GOING * (i + 1)),
+			Vector3(STAIR_W - 0.12, 0.03, 0.16), "far_shade", 0.0, false)
+	# Grey, and narrower than the treads. It is the soffit as well as the floor —
+	# from the lane you stand under this — so it wants to read as the structure of
+	# a stair and not as one more painted tread.
+	_flight_ramp("stair_ramp", Vector3(STAIR_X, 0.0, head),
+		Vector3(STAIR_X, -drop, head + run), 0.0, STAIR_W, "far_shade")
+
+	# The slab at the bottom, on the lane's own deck, and a cheek wall under the
+	# open side of the flight so it stands on something from the lane rather than
+	# floating over it.
+	# Buried a hair, because the shore's top face is at exactly this height and the
+	# lane's deck sits 4cm over it. This is a footing under the end of the ramp
+	# rather than a step, and the deck is what the player actually walks out onto.
+	_box("stair_foot", Vector3.ZERO, Vector3(STAIR_X, foot_y - 0.28, foot_z),
+		Vector3(STAIR_W, 0.5, STAIR_W * 0.5), "accent")
+	# What holds the flight up, and it is open rather than solid on purpose. A
+	# cheek wall down the west side made the whole thing read from the lane as one
+	# grey wedge — you stand under a stair and what you see is its soffit, so the
+	# soffit is what has to have something in it. A stringer and four bents give it
+	# depth and let the light through, which is also how a stair on a seafront is
+	# actually built.
+	var slope := atan2(drop, run)
+	var length := sqrt(run * run + drop * drop)
+	_box("stair_stringer", Vector3.ZERO,
+		Vector3(STAIR_X - STAIR_W * 0.5 + 0.16, -drop * 0.5 - 0.5, head + run * 0.5),
+		Vector3(0.32, 0.7, length), "far_shade", 0.0, false, slope)
+	for i in 4:
+		var t := (float(i) + 0.7) / 4.4
+		var bz := head + run * t
+		var by := -drop * t
+		for side in [-1.0, 1.0]:
+			_box("stair_bent_%d_%d" % [i, int(side + 1)], Vector3.ZERO,
+				Vector3(STAIR_X + side * (STAIR_W * 0.5 - 0.35),
+					(by - 0.6 + foot_y) * 0.5, bz),
+				Vector3(0.3, by - 0.6 - foot_y, 0.3), "far_shade", 0.0, false)
+		_box("stair_beam_%d" % i, Vector3.ZERO,
+			Vector3(STAIR_X, by - 0.75, bz), Vector3(STAIR_W - 0.4, 0.3, 0.3),
+			"far_shade", 0.0, false)
+
+	# A rail down the open west side of the flight and round the head deck. The
+	# east side needs none: the bluff is the wall there, which is the whole point
+	# of hanging the flight on it.
+	_box("stair_rail", Vector3.ZERO,
+		Vector3(STAIR_X - STAIR_W * 0.5 - 0.1, -drop * 0.5 + 0.55, head + run * 0.5),
+		Vector3(0.2, 1.0, sqrt(run * run + drop * drop)), "metal", 0.0, true, slope)
+	_box("deck_rail_w", Vector3.ZERO,
+		Vector3(STAIR_X - STAIR_W * 0.5 - 0.1, 0.55, (deck_from + head) * 0.5),
+		Vector3(0.2, 1.1, head - deck_from), "metal")
+	_box("deck_rail_n", Vector3.ZERO,
+		Vector3(STAIR_X - 0.1, 0.55, deck_from - 0.1),
+		Vector3(STAIR_W - 0.2, 1.1, 0.2), "metal")
+
+	# The edge of the bluff top, either side of the deck. Without it the parapet
+	# gap opens onto a six-metre drop with nothing between.
+	for run_z in [[Plan.BLUFF_TOP_FROM_Z, deck_from - 0.1],
+			[head + 0.1, Plan.BLUFF_TOP_TO_Z]]:
+		var a: float = run_z[0]
+		var b: float = run_z[1]
+		_box("bluff_edge_%.0f" % a, Vector3.ZERO,
+			Vector3(face + 0.45, 0.5, (a + b) * 0.5),
+			Vector3(0.9, 1.0, b - a), "accent")
+
+	# And its two ends, on the terrace's own lines. The bluff top is seven metres
+	# of ledge running the length of the map; these are what make it a place rather
+	# than a way to walk to the coaster.
+	for i in 2:
+		var wz: float = Plan.BLUFF_TOP_FROM_Z if i == 0 else Plan.BLUFF_TOP_TO_Z
+		_box("bluff_top_end_%d" % i, Vector3.ZERO,
+			Vector3((face + Plan.BLUFF_BACK_X) * 0.5 - 0.2, 1.15, wz),
+			Vector3(Plan.BLUFF_BACK_X - face - 0.4, 2.3, 0.9), "building")
 
 	# The seam used to be three nodes here — preload at the head of the flight,
 	# crossing in front of the shut gate at the foot, and the whole turned stair
@@ -2467,15 +2539,6 @@ func _arcade_room(face: float, z: float, length: float) -> void:
 const DECK_TOP := Plan.SHORE_TOP + 0.04
 const DECK_THICK := 0.5
 
-## Where the player is put down having come through the gate, and which way they
-## are looking. South of the gate because the stair descends southward and comes
-## out below it; turned north-west because that is where the alley mouth is, and
-## arriving already looking at the way on is the difference between a threshold
-## and a loading screen.
-const ARRIVAL_AT := Plan.BOARDWALK_ARRIVAL
-const ARRIVAL_YAW := Plan.BOARDWALK_ARRIVAL_YAW
-
-
 ## The section, in the order the player meets it.
 ##
 ## The sequence is the whole design and it is worth reading as one: down the
@@ -2498,68 +2561,12 @@ func _boardwalk_section() -> void:
 	_boardwalk_edges()
 	_boardwalk_props()
 	_plaza_from_below()
+	# The terrace's own asphalt, on the plaza's floor, laid here as well as into
+	# `plaza_paving.tscn` — see `_terrace_paving`. It goes after
+	# `_plaza_from_below` because that is what puts the floor under it.
+	_terrace_paving()
 
-	_boardwalk_seam()
 	_arch_seam(&"boardwalk", &"plaza")
-
-
-## The gate at the foot of the stair, from below, and the bluff it is set into.
-##
-## The well the stair descends is a slot open on its west face for twenty metres
-## of its length, which is correct from the plaza — you walk down inside it and
-## the boardwalk is at eye level through the opening. From the boardwalk it is a
-## twenty-metre notch with nothing in it, because the stair is in the plaza's
-## scenes and the plaza is not mounted down here.
-##
-## So this side fills the notch and leaves one door. Same gate, same plane, same
-## 2.6m of opening as `_west_stair` builds from the other side — and the two
-## agree because both read `FOOT_GATE_X` and `STAIR_FOOT` rather than each
-## measuring the bluff themselves.
-##
-## The crossing volume is west of the gate and the arrival is west of that, out
-## on the lane. Which means the walk north to the alley never touches either: the
-## lane's centre line is nearly four metres clear of both, so heading for the
-## promenade cannot be mistaken for heading back up the stair.
-func _boardwalk_seam() -> void:
-	var foot_z := Plan.STAIR_FOOT.z
-	var w := Plan.STAIR_W
-	var gate_x := Plan.FOOT_GATE_X
-	# The notch, filled north of the gate and above it.
-	# Inset on **every** axis, so the fill is strictly inside the piece it fills.
-	# Narrowed again on 2026-08-14: `west_stair.tscn` is mounted with this
-	# section now, so the flight that descends the slot is in the tree beside the
-	# thing that fills it, and both were built out to the slot's own edge. The
-	# fill is redundant while the stair is there and it costs nothing to keep,
-	# but it may not share the flight's side face.
-	# `west_shell` is mounted underneath this, so these two are in the tree
-	# together and the build-order seam cannot reach across scenes to separate
-	# them — the inset is the only thing keeping them apart.
-	#
-	# It was inset on three faces and not the fourth: the height came down but the
-	# centre did not move with it, so the bottom stayed on the bluff's own −12 and
-	# 41m² of it z-fought the moment an unrelated edit shifted the ordinals. Both
-	# ends of every axis, or it is not an inset.
-	_box("bluff_infill_north", Vector3.ZERO,
-		Vector3(-56.67, SHORE_TOP, (-11.94 + foot_z - w * 0.5) * 0.5),
-		Vector3(2.40, 11.88, foot_z - w * 0.5 + 11.94), "far_warm")
-	_box("bluff_infill_south", Vector3.ZERO,
-		Vector3(-56.67, SHORE_TOP, (foot_z + w * 0.5 + 7.94) * 0.5),
-		Vector3(2.40, 11.88, 7.94 - foot_z - w * 0.5), "far_warm")
-	_box("bluff_infill_over", Vector3.ZERO,
-		Vector3(-56.7, SHORE_TOP + 4.1, foot_z),
-		Vector3(2.40, 3.8, w - 0.12), "far_warm")
-	# Something to see through the bars: the slab the last tread lands on.
-	_box("gate_sill", Vector3.ZERO, Vector3(-56.7, SHORE_TOP - 0.25, foot_z),
-		Vector3(2.6, 0.5, w), "accent")
-	# No gate leaf and no crossing here any more. `west_stair.tscn` is mounted
-	# with this section since 2026-08-14 and builds the doorway itself; a second
-	# copy at the same plane would be a z-fight, and the boundary has gone up to
-	# the arch.
-	#
-	# A sign on the bluff beside it, because a door in a wall with no writing on
-	# it is a door nobody tries.
-	_box("gate_sign", Vector3.ZERO, Vector3(gate_x - 0.2, SHORE_TOP + 2.6, foot_z),
-		Vector3(0.12, 0.7, 2.0), "white", 0.0, false)
 
 
 ## Everything the player can stand on, as three slabs: the promenade, the alley
@@ -2593,17 +2600,23 @@ func _boardwalk_paving() -> void:
 		Vector3(FRONT_X, DECK_TOP - DECK_THICK * 0.5, (GAP_FROM + GAP_TO) * 0.5),
 		Vector3(FRONT_DEPTH, DECK_THICK, GAP_TO - GAP_FROM), "plank_cross")
 
-	# The lane runs from the backs of the shops to the foot of the bluff — 7.5m
-	# of it, laid 8 wide so it tucks under both rather than butting against
-	# either. **Asphalt.** It is a service road behind a row of shops with a
-	# bluff on the other side, and nobody decks a service road. It is also the
-	# only surface in the section that is not boards, which means the material
-	# alone tells the player that the twenty metres before the reveal are
-	# back-of-house — and makes stepping onto the planking at the alley mouth
-	# the moment the boardwalk starts.
+	# The lane runs from the backs of the shops to the foot of the bluff, laid
+	# from one to the other with a metre of tuck at each end rather than butting
+	# against either. Spanned from the two edges rather than centred on
+	# `BACK_LANE_X` and given a width: that constant is where the *walk* runs, and
+	# the walk moved west of the stair on 2026-08-14 while the ground did not.
+	#
+	# **Asphalt.** It is a service road behind a row of shops with a bluff on the
+	# other side, and nobody decks a service road. It is also the only surface in
+	# the section that is not boards, which means the material alone tells the
+	# player that the twenty metres before the reveal are back-of-house — and
+	# makes stepping onto the planking at the alley mouth the moment the
+	# boardwalk starts.
+	var lane_w := FRONT_X - FRONT_DEPTH * 0.5 - Plan.BLUFF_FACE_X
+	var lane_x := (FRONT_X - FRONT_DEPTH * 0.5 + Plan.BLUFF_FACE_X) * 0.5
 	_box("deck_lane", Vector3.ZERO,
-		Vector3(BACK_LANE_X, DECK_TOP - DECK_THICK * 0.5, 3.0),
-		Vector3(8.0, DECK_THICK, 74.0), "asphalt")
+		Vector3(lane_x, DECK_TOP - DECK_THICK * 0.5, 3.0),
+		Vector3(-lane_w + 2.0, DECK_THICK, 74.0), "asphalt")
 
 
 ## The row, built. Same spans as the tableau, read out of the same table.
@@ -3163,7 +3176,8 @@ func _plaza_from_below() -> void:
 		# The tower by name rather than by position: it stands on the gate axis
 		# in the middle of the plaza, and it is here because it is the one thing
 		# tall enough to clear its own west wall from down on the promenade.
-		if not (nm.begins_with("tower_") or at.x < BELOW_WEST_X):
+		var framed := _framed_by_arch(at, size)
+		if not (nm.begins_with("tower_") or at.x < BELOW_WEST_X or framed):
 			continue
 		# The near boundary is no longer scenery. The seam moved to the arch on
 		# 2026-08-14, so the player crosses onto the terrace and stands two
@@ -3185,7 +3199,16 @@ func _plaza_from_below() -> void:
 		# of it hand displacement that had been carefully arranged in the file
 		# they were read from. Snapping throws that away and lets this scene's own
 		# ring do the separating, which is the only ring that applies here.
-		_box("far_%s" % nm, Vector3.ZERO, at.snapped(Vector3.ONE * 0.01), size,
+		# Dropped a hand's width when it is only here to be seen down the tunnel.
+		# The plaza's `ground` is one of these and it is 104m of up-facing floor
+		# at exactly y=0, which is also `terrace_floor`'s — two floors on one
+		# plane, five hundred square metres of it. Everything framed by the arch
+		# is a silhouette between fifteen and a hundred metres off through a six
+		# metre aperture, so a 12cm drop costs nothing and settles it for all of
+		# them rather than special-casing the one that collides.
+		var drop := 0.0 if (near or at.x < BELOW_WEST_X) else BELOW_FRAMED_DROP
+		_box("far_%s" % nm, Vector3.ZERO,
+			at.snapped(Vector3.ONE * 0.01) - Vector3(0.0, drop, 0.0), size,
 			mat, 0.0, near)
 		n += 1
 	if n < 6:
@@ -3207,6 +3230,37 @@ func _plaza_from_below() -> void:
 	# under them must not change, because nothing about the ground did.
 	_box("terrace_floor", Vector3.ZERO, Vector3(-42.5, -0.5, -2.5),
 		Vector3(19.0, 1.0, 27.0), "brick")
+
+
+## How far the arch-framed masses sit below where `plaza.tscn` puts them. See the
+## drop in `_plaza_from_below` — it is the plaza floor and the terrace floor
+## sharing a plane, settled once for everything that comes in this way.
+const BELOW_FRAMED_DROP := 0.12
+
+
+## Whether the tunnel points at this, standing on the terrace looking back east.
+##
+## The other half of `_plaza_from_below`'s own argument. That function exists
+## because a bluff top with nothing above it says "different level" out loud;
+## a tunnel with *sky* at the end of it says the same thing louder, because the
+## player is two metres from the near end and it is the way they just came. The
+## arch was 9m wide and 8.9m clear until 2026-08-14 and would have shown a great
+## deal of nothing; at 6 by 5 it shows a small rectangle of nothing, which is
+## still nothing.
+##
+## The cone is the aperture as seen from where they are put down: half the
+## opening, opened out by how much further away a thing is than the far mouth.
+## Anything whose footprint reaches into it is worth emitting. What that picks up
+## is the ground, the fountain the arch is aimed at, and the east range ninety
+## metres on that closes the view — which is all three of the things you would
+## expect to see down a tunnel into a plaza.
+func _framed_by_arch(at: Vector3, size: Vector3) -> bool:
+	var stand: float = Plan.ARCH_ARRIVE_WEST.x
+	var mouth: float = Plan.ARCH_MOUTH_X
+	if at.x < mouth:
+		return false
+	var half := Plan.ARCH_WIDTH * 0.5 * (at.x - stand) / (mouth - stand)
+	return absf(at.z - Plan.ARCH_AT.y) - size.z * 0.5 < half
 
 
 const BELOW_NEAR := ["perim_w_", "arch_", "overlook_", "wall_west_"]
@@ -3364,6 +3418,85 @@ func _plaza_frontage() -> void:
 		return
 	for i in runs.size():
 		_facade(runs[i], i)
+	_gate_house()
+
+
+## The arch's own face, which the perimeter's frontage does not reach.
+##
+## `_facade` works on `perim_*` runs, and the gate house is three `arch_*` boxes
+## — so when the arch became a tunnel on 2026-08-14 and its mass came 2.5m
+## forward of the wall line, what arrived in the plaza was fifteen metres of
+## blank white slab standing proud between two dressed shopfronts. That is the
+## same complaint the whole frontage pass was laid to answer, one building later.
+##
+## It is not given shopfronts, because it is not a shop: a plinth, a course at
+## the height its neighbours put theirs, a cornice and a parapet, and a raised
+## surround round the opening. What that does is make the arch read as a doorway
+## into a building rather than a hole in a wall, which is also what makes the
+## tunnel behind it read as a tunnel.
+##
+## Read out of `plaza.tscn` like everything else here, so moving the arch in the
+## editor moves its dressing. The three boxes are named rather than found by
+## shape — an arch is the one thing in the perimeter with a hole in it, and there
+## is no rule over a box that says "this one is a gate".
+func _gate_house() -> void:
+	var mass := {}
+	for box in _plaza_scene_boxes():
+		var nm: String = box["nm"]
+		if nm in ["arch_pier_north", "arch_pier_south", "arch_lintel"]:
+			mass[nm] = box
+	if mass.size() < 3:
+		push_error("the arch's three masses were not all found in %s — "
+			% PLAZA_SCENE_PATH + "the gate house would be dressed against nothing")
+		return
+
+	var north: Dictionary = mass["arch_pier_north"]
+	var south: Dictionary = mass["arch_pier_south"]
+	var lintel: Dictionary = mass["arch_lintel"]
+	# The face you see from the plaza, the two outer edges, and the top.
+	var face: float = north["at"].x + north["size"].x * 0.5
+	var from_z: float = north["at"].z - north["size"].z * 0.5
+	var to_z: float = south["at"].z + south["size"].z * 0.5
+	var top: float = north["at"].y + north["size"].y * 0.5
+	# The opening, as the two pier faces that make it and the lintel's underside.
+	var open_n: float = north["at"].z + north["size"].z * 0.5
+	var open_s: float = south["at"].z - south["size"].z * 0.5
+	var head: float = lintel["at"].y - lintel["size"].y * 0.5
+	var width := to_z - from_z
+	var mid := (from_z + to_z) * 0.5
+
+	# Plinth and ground-floor course, both broken at the opening because you walk
+	# through it. The course sits at `FRONT_GROUND` so it runs on into the
+	# shopfronts either side rather than starting a line of its own.
+	for i in 2:
+		var a: float = from_z if i == 0 else open_s
+		var b: float = open_n if i == 0 else to_z
+		_box("gate_plinth_%d" % i, Vector3.ZERO,
+			Vector3(face + 0.09, 0.45, (a + b) * 0.5),
+			Vector3(0.34, 0.9, b - a), "far_shade", 0.0, false)
+		_box("gate_course_%d" % i, Vector3.ZERO,
+			Vector3(face + 0.06, FRONT_GROUND, (a + b) * 0.5),
+			Vector3(0.28, 0.34, b - a), "white", 0.0, false)
+
+	# The surround. Two jambs and a head, each lapping 2cm into the opening so
+	# that no face of theirs lands on a face of the piers'.
+	for i in 2:
+		var jz: float = (open_n - 0.33) if i == 0 else (open_s + 0.33)
+		_box("gate_jamb_%d" % i, Vector3.ZERO,
+			Vector3(face + 0.17, head * 0.5, jz),
+			Vector3(0.36, head, 0.7), "white", 0.0, false)
+	_box("gate_head", Vector3.ZERO,
+		Vector3(face + 0.17, head + 0.36, Plan.ARCH_AT.y),
+		Vector3(0.36, 0.72, Plan.ARCH_WIDTH + 1.6), "white", 0.0, false)
+
+	# Cornice and parapet. The parapet stands on the roof rather than on the
+	# face, which is what stops a 12.5m mass ending in a raw edge against the sky.
+	_box("gate_cornice", Vector3.ZERO,
+		Vector3(face + 0.14, top - FRONT_CORNICE * 0.5, mid),
+		Vector3(0.5, FRONT_CORNICE, width + 0.52), "white", 0.0, false)
+	_box("gate_parapet", Vector3.ZERO,
+		Vector3(face - 0.52, top + 0.56, mid),
+		Vector3(1.24, 1.12, width + 0.18), "building", 0.0, false)
 
 
 ## One run of perimeter, from the pavement to the skyline.
@@ -3625,7 +3758,7 @@ func _arch_seam(belongs: StringName, leads: StringName) -> void:
 			0, leads, belongs)
 	else:
 		_gate_area("preload_%s" % leads,
-			Vector3(-47.5, 1.5, Plan.STAIR_TOP_Z + 2.5), Vector3(7.0, 3.0, 7.0),
+			Vector3(-52.0, 1.5, Plan.ARCH_AT.y), Vector3(9.0, 3.0, 7.0),
 			0, leads, belongs)
 
 	_gate_area("cross_%s" % leads, Plan.ARCH_SEAM_AT, Plan.ARCH_SEAM_SIZE,

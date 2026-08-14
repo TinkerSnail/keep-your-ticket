@@ -162,12 +162,29 @@ const CAFE_CHAIRS := [Vector3(0.95, 0.0, 0.2), Vector3(-0.9, 0.0, -0.35)]
 # The ways out — six of them, in a 320m perimeter
 # ---------------------------------------------------------------------------
 
-## The west arch: a straight tube through the wall at x ≈ −24, its opening
-## running z −5.6..1.6 between the two piers.
+## The west arch: a straight tube through the wall, on the plaza's own west axis.
+##
+## **It became a tunnel on 2026-08-14.** 6m wide and 5m clear over 13.5m of
+## depth, where it was 9 by 8.9 over 11 — a section nearly square is a hole in a
+## wall, and the section swap that happens inside it had only the fade to hide
+## behind. The extra depth is a gate house projecting into the plaza rather than
+## a thicker wall, because the wall's west face is the terrace's east edge and
+## the terrace has only six metres to give.
 const ARCH_AT := Vector2(-39.0, -2.0)
 
+## The two ends of the tube, as x. The mouth is the gate house's face, out in the
+## plaza; the far end is the wall's west face, on the terrace. Everything that
+## has to stop at the arch or start past it reads these rather than measuring
+## `plaza.tscn` again.
+const ARCH_MOUTH_X := -30.5
+const ARCH_FAR_X := -44.0
+
+## The clear opening between the piers, and under the lintel.
+const ARCH_WIDTH := 6.0
+const ARCH_HEIGHT := 5.0
+
 ## The overlook, past the arch and above the boardwalk. The parapet is at
-## x −38.5; this stands short of it, where you actually end up walking.
+## x −50.5; this stands short of it, where you actually end up walking.
 const OVERLOOK_AT := Vector2(-49.0, -2.0)
 
 ## The four scaffolded passages, moved here verbatim from `gen_props.gd`.
@@ -248,82 +265,75 @@ const FRONT_DEPTH := 9.0
 ## the buildings and reaching the water only after passing *through* them is the
 ## reveal, and it is the same trick the arch and the gap already play at a
 ## larger scale.
-const BACK_LANE_X := -61.8
+const BACK_LANE_X := -63.6
 const PROMENADE_X := -83.2
 
-## The stair down the bluff. Two flights with a turn between them, and the turn
-## is what makes the gate at the foot a threshold you cannot see through.
+## The way down the bluff, rebuilt on 2026-08-14 as **one open flight on the
+## face of the bluff**.
 ##
-## **These values are load-bearing outside this file.** `boardwalk_stub.tscn` is
-## hardcoded to butt against the stair foot at x −44.7, and `tools/section_test.gd`
-## asserts landing coordinates as literals. Moving the stair means moving both,
-## and the failure looks like the section loader breaking rather than like this.
-const STAIR_W := 2.6
+## It was two narrow flights with a turn between them, descending inside a slot
+## cut in the rock, then a passage, then a door in a blank cliff. The turn was
+## the point of it: a section load must not begin where the player can watch it,
+## and the corner was what took the far side out of shot.
+##
+## **The seam moved to the arch, and the turn stopped paying for anything.** What
+## was left was a 2.6m service stair with four direction changes that you could
+## not see from either end — from the terrace an unbroken parapet with no visible
+## way down, from the promenade a blank cliff with a door in it. The two ends did
+## not read as the same place, because nothing joining them was visible from
+## either.
+##
+## So: 4m wide, twenty-four treads, straight, hung on the outside of the bluff
+## and running south. From the lane you see the flight climbing to the bluff top
+## with the parapet and the arch above it, and from the terrace you see it going
+## down. That is the whole fix, and it is only available because the load moved.
+##
+## Descending *south*, away from the alley, which is what keeps the reveal at the
+## hole in the frontage: the walk back north up the lane is twelve metres of
+## shop backs before the gap opens. The turn at the foot is the one thing this
+## shape cannot avoid — the arch and the alley are on the same axis and the
+## flight needs eleven metres of it — and it happens in an open lane at the
+## bottom of a visible stair rather than inside a slot.
+const STAIR_W := 4.0
 const STAIR_RISE := 0.25
-const STAIR_TOP_Z := -9.7
-const STAIR_TURN_X := -56.7
+const STAIR_GOING := 0.45
+const STAIR_TREADS := 24
 
-## The foot of the stair, as named points, because three things outside this
-## file currently hold their own copy of them.
-##
-## `STAIR_FOOT` is the walking surface at the bottom of the second flight — the
-## top of the slab the last tread lands on. The generator computes it rather
-## than declaring it, as `foot_z = start_z + horizontal + STAIR_W * 0.5`, which
-## is 5.5, and `foot_y = landing_y − vertical`, which is −6.0. Checked against
-## the `stair_foot` box in the generated `west_stair.tscn` rather than against
-## the arithmetic: it sits at −6.25 with a height of 0.5, so its top is −6.0.
-##
-## The half-stair-width in that sum is the trap. An earlier version of this
-## constant carried 5.2, taken from `capture.gd`'s camera vantage for the
-## `stair_foot` screenshot — which is somewhere to stand a camera, not the slab.
-## It is exactly the drift this file exists to stop, so it is recorded here
-## rather than quietly corrected.
-##
-## `STAIR_FOOT_STAND` is where a *body* ends up: the same slab, 0.2 up because
-## the player rides that far above their floor, and east of the crossing volume
-## rather than inside it. That is what `ParkSections` arrives the player on
-## coming back from the boardwalk, and it matches the `arrival_from_boardwalk`
-## marker in `west_stair.tscn` to the digit.
-##
-## **The gate at the foot turned west on 2026-08-12.** It faced south, which was
-## invisibly wrong for as long as the bluff was the plaza's alone: the section
-## swap freed it, so nobody ever saw that the shut gate at the bottom of the
-## stair had twelve metres of solid rock behind it and that the arrival on the
-## far side stood inside that rock. The stair well is a slot in the bluff open on
-## its *west* face — that is where the boardwalk is — so west is where the way
-## out has always been. The whole class of error is the same one this file was
-## written for, one level up: not two numbers disagreeing, but a number nothing
-## was in a position to contradict.
-##
-## `BOARDWALK_ARRIVAL` is the far side of the same seam — where the player
-## stands having gone *out* through the gate, and it is generated now rather
-## than hand-placed: `gen_props.gd` emits the `arrival_from_plaza` marker with
-## the section, so this is the plan's copy and the test's assertion checks the
-## two agree.
-##
-## It moved when the boardwalk became somewhere to walk. The stub put it 8m
-## straight south of the gate, facing nowhere in particular, which was fine for
-## a deck with three rails on it. The section puts it west of the gate and turns
-## it towards the alley mouth, because the player should arrive already looking
-## at the way on. `BOARDWALK_ARRIVAL_YAW` is that turn — north-west, so the
-## frontage runs away on the left and the bluff is behind the right shoulder.
-const STAIR_FOOT := Vector3(-56.7, -6.0, 5.5)
-const STAIR_FOOT_STAND := Vector3(-56.0, -5.8, 5.5)
-## Six and a half metres south of the gate rather than level with it, and that
-## gap is doing work. Level with the gate is level with the *hole in the
-## frontage* — they are at the same z — so the player arrived already looking
-## down the alley at the wheel and the water, and the reveal fired during the
-## fade. Screenshots caught it; nothing else could have.
-##
-## From here the custard unit is between the player and the gap, so the walk is
-## twelve metres of service lane and then a corner. The gate they came through is
-## passed on the right, which nobody notices and which no test can object to.
-const BOARDWALK_ARRIVAL := Vector3(-61.5, -5.8, 12.0)
-const BOARDWALK_ARRIVAL_YAW := 0.15
+## The flight's centre line, and it laps a hand's width into the bluff's face so
+## that the two do not meet on one plane.
+const STAIR_X := -59.9
 
-## The gate itself, as the plane both sections build against. The well is 2.6m
-## wide and its west face is the bluff's, so the gate hangs a hair proud of it.
-const FOOT_GATE_X := -58.1
+## The head deck: a platform at the plaza's own level, projecting from the bluff
+## top out over the lane, with the flight coming off its south edge. It stands at
+## the gap in the parapet, so the walk from the arch is straight west and then
+## one turn.
+const STAIR_DECK_FROM_Z := -4.5
+const STAIR_DECK_TO_Z := -0.5
+
+## Where the treads begin, and where the slab at the bottom of them sits. The
+## foot is computed rather than declared: twenty-four goings from the head, plus
+## half the slab. Anything outside this file that needs the bottom of the stair
+## reads `STAIR_FOOT` — three things used to hold their own copy of it.
+const STAIR_HEAD_Z := STAIR_DECK_TO_Z
+const STAIR_FOOT := Vector3(STAIR_X, SHORE_TOP,
+	STAIR_HEAD_Z + STAIR_GOING * STAIR_TREADS + 1.0)
+
+## Where a *body* ends up at the bottom: the same slab, 0.2 up because the player
+## rides that far above their floor.
+const STAIR_FOOT_STAND := Vector3(STAIR_X, SHORE_TOP + 0.2, STAIR_FOOT.z)
+
+## The bluff, as its two faces. The west one is the drop the flight is hung on;
+## the east one is where the plaza's made ground takes over. Seven metres of rock
+## between them, and the top of it is walkable now — the parapet gap opens onto
+## it, where it used to open into a slot with walls.
+const BLUFF_FACE_X := -58.0
+const BLUFF_BACK_X := -51.0
+
+## How far north and south of the arch's axis the bluff top can be walked. The
+## terrace's own end walls stand on these lines, and without something on them
+## the parapet gap opens onto a seven-metre ledge running the length of the map.
+const BLUFF_TOP_FROM_Z := -14.5
+const BLUFF_TOP_TO_Z := 9.5
 
 
 # ---------------------------------------------------------------------------
@@ -347,8 +357,11 @@ const FOOT_GATE_X := -58.1
 ## The gain is that every one of the six ways out can now be the same rule. Four
 ## of them are scaffolded passages that bend for cover they no longer need, and
 ## the two that matter are arches you walk under.
+## Sized to the opening rather than to a number: a crossing volume narrower than
+## the tube is a gap a body can walk through beside it, and the tube went from
+## 9m to 6m when the arch became a tunnel.
 const ARCH_SEAM_AT := Vector3(-38.5, 1.5, ARCH_AT.y)
-const ARCH_SEAM_SIZE := Vector3(2.6, 3.0, 8.6)
+const ARCH_SEAM_SIZE := Vector3(2.6, 3.0, ARCH_WIDTH)
 
 ## Out on the west spoke, seventeen metres of walking short of the arch. Less
 ## than the stair gave and enough: the hold adds a couple of seconds of its own
@@ -357,12 +370,17 @@ const ARCH_SEAM_SIZE := Vector3(2.6, 3.0, 8.6)
 const ARCH_PRELOAD_AT := Vector3(-21.5, 1.5, ARCH_AT.y)
 const ARCH_PRELOAD_SIZE := Vector3(4.0, 3.0, 13.0)
 
-## Where the walk resumes, a stride past the wall on each side, still on the
+## Where the walk resumes, a stride past the tube on each side, still on the
 ## arch's centre line and still facing the way they were going. Yaw is radians
 ## and a Node3D looks down −Z, so +PI/2 is west and −PI/2 is east.
-const ARCH_ARRIVE_WEST := Vector3(-46.0, 0.2, ARCH_AT.y)
+##
+## The eastern one is measured off `ARCH_MOUTH_X` rather than typed, because it
+## used to *be* −30.5 and the gate house then projected out to exactly there —
+## which would have put the player down inside the tunnel mouth, in the crossing
+## volume's own throat, on the frame after the swap.
+const ARCH_ARRIVE_WEST := Vector3(ARCH_FAR_X - 2.0, 0.2, ARCH_AT.y)
 const ARCH_ARRIVE_WEST_YAW := PI * 0.5
-const ARCH_ARRIVE_EAST := Vector3(-30.5, 0.2, ARCH_AT.y)
+const ARCH_ARRIVE_EAST := Vector3(ARCH_MOUTH_X + 2.0, 0.2, ARCH_AT.y)
 const ARCH_ARRIVE_EAST_YAW := -PI * 0.5
 
 ## The held shot, per direction. `from` is where the camera stands and `look` is
@@ -723,19 +741,51 @@ const WALKWAYS := {
 		Vector2(STREET_X, GATE_Z), Vector2(STREET_X, APRON_Z),
 	],
 
-	## West, under the arch and out onto the terrace. Straight, and you can see
-	## the whole length of it — which is exactly why the section boundary is not
-	## here but at the foot of the stair.
+	## West off the ring, in at the mouth of the arch, through the tunnel and out
+	## onto the terrace. **One run, and it has to be one run.**
+	##
+	## The two vertices in the middle are the tunnel's ends, and they are here so
+	## that a consumer can tell where it starts and stops without measuring the
+	## arch — the paving stops at the piers, because asphalt is the plaza's
+	## circulation and a passage under a building is not it, so you cross onto the
+	## plaza's own brick to walk through and it picks up again on the far side.
+	## That is a fact about the paving and not about the route.
+	##
+	## Which is worth stating plainly, because it was got wrong on 2026-08-14: the
+	## run was cut at the mouth so that the paving would stop there, and the map
+	## promptly drew the way west as a stub ending at a wall with the terrace
+	## floating thirteen metres beyond it. **`WALKWAYS` is where the player can
+	## go. What is paved is `_pave_run`'s business**, and it takes a range for
+	## exactly this reason.
 	&"spoke_west": [
-		Vector2(-16.0, 0.0), Vector2(-30.0, -2.0), Vector2(ARCH_AT.x, ARCH_AT.y),
-		Vector2(OVERLOOK_AT.x, OVERLOOK_AT.y),
+		Vector2(-16.0, 0.0), Vector2(-26.0, -2.0), Vector2(ARCH_MOUTH_X, ARCH_AT.y),
+		Vector2(ARCH_FAR_X, ARCH_AT.y), Vector2(OVERLOOK_AT.x, OVERLOOK_AT.y),
 	],
 
-	## Off the north end of the terrace and down the bluff. Two flights with the
-	## turn between them, which is the seam the boardwalk loads behind.
+	## Across the terrace to the north end of it, out through the gap in the
+	## parapet, and down the bluff in two flights with the turn between them.
+	##
+	## **It used to start at (−46, −6) and cut the corner diagonally**, which was
+	## a line on a minimap and not a route: it left `spoke_west` and the stair as
+	## two runs with four metres of nothing between them, so the plan described a
+	## walk that stopped at a parapet and a stair that began in mid-air. It starts
+	## on the west spoke's own centre line now and turns square, which is also
+	## what lets the first two segments be paved — they are the only part of the
+	## descent that is ground rather than treads, and they are what tells a player
+	## standing under the arch that the way on is to their right.
+	## Across the bluff top to the head of the flight, and down it.
+	##
+	## Four vertices: it leaves the west spoke on the arch's own axis, runs straight
+	## west through the gap in the parapet and across the bluff top onto the head
+	## deck, turns south at the head, and descends. **One turn**, where the old
+	## route had four — see the stair constants for why it could not have had one
+	## before today.
+	##
+	## The first two segments are ground rather than treads and they are the paved
+	## ones; the third is the flight.
 	&"west_stair": [
-		Vector2(-46.0, -6.0), Vector2(-50.0, STAIR_TOP_Z),
-		Vector2(STAIR_TURN_X, STAIR_TOP_Z), Vector2(STAIR_FOOT.x, STAIR_FOOT.z),
+		Vector2(-46.0, ARCH_AT.y), Vector2(STAIR_X, ARCH_AT.y),
+		Vector2(STAIR_X, STAIR_HEAD_Z), Vector2(STAIR_FOOT.x, STAIR_FOOT.z),
 	],
 
 	## The boardwalk, below and west of everything above.
@@ -749,8 +799,11 @@ const WALKWAYS := {
 	## The back lane is short on purpose. It is a service road with the bluff on
 	## one side and the backs of buildings on the other, and its whole job is to
 	## be the twenty metres before the reveal rather than somewhere to spend time.
+	## Off the last tread and out into the lane, where the walk turns north for the
+	## alley. One leg: the flight lands in the open now rather than inside a well
+	## with a door at the end of it.
 	&"boardwalk_arrival": [
-		Vector2(STAIR_FOOT.x, STAIR_FOOT.z), Vector2(BACK_LANE_X, 1.5),
+		Vector2(STAIR_FOOT.x, STAIR_FOOT.z), Vector2(BACK_LANE_X, STAIR_FOOT.z),
 	],
 	&"boardwalk_lane": [
 		Vector2(BACK_LANE_X, -30.0), Vector2(BACK_LANE_X, 40.0),
@@ -843,8 +896,14 @@ const WALKWAY_WIDTH := {
 	&"spoke_south": 6.0,
 	&"street": 15.0,
 	&"apron": 15.0,
+	## Wider than the 6m tunnel it runs into, and deliberately: the last few
+	## metres on the plaza side are a forecourt in front of the gate house rather
+	## than a throat. Paved into the tunnel at this width it would bury a metre of
+	## asphalt in each pier, which is the other half of why the paving stops at
+	## the face while the route does not.
 	&"spoke_west": 8.0,
-	&"west_stair": 2.6,
+	## The width of the flight it leads to.
+	&"west_stair": STAIR_W,
 	&"boardwalk_arrival": 4.0,
 	&"boardwalk_lane": 6.0,
 	## The alley is the width of the hole in the frontage, which is what makes it
