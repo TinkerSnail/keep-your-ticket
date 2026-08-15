@@ -70,39 +70,41 @@ const ARRIVED := [
 	# straight ahead rather than eight metres off to one side.
 	{"name": "08_the_way_down", "yaw": 90.0, "pitch": -10.0, "pos": Vector3(-50.5, 0.2, -2.0)},
 	# Over the rail, south of the gap. What the overlook is for.
-	{"name": "09_overlook", "yaw": 92.0, "pitch": -6.0, "pos": Vector3(-49.0, 0.2, 4.0)},
-	{"name": "10_head_of_the_flight", "yaw": 178.0, "pitch": -22.0, "pos": Vector3(-59.2, 0.2, -2.5)},
-	{"name": "11_halfway_down", "yaw": 178.0, "pitch": -10.0, "pos": Vector3(-59.9, -2.8, 4.9)},
-	{"name": "12_foot", "yaw": 4.0, "pitch": 0.0, "pos": Vector3(-60.5, -5.8, 11.0)},
-	# **The shot the rebuild is for.** From the lane, looking back at what you came
-	# down. If the flight, the bluff top, the parapet and the arch above it do not
-	# read as the place you were standing two minutes ago, the descent is still
-	# hidden and this is still a cliff with a hole in it.
-	{"name": "13_look_back_up", "yaw": -22.0, "pitch": 10.0, "pos": Vector3(-65.0, -5.8, 22.0)},
-	{"name": "14_up_the_lane", "yaw": 6.0, "pitch": 0.0, "pos": Vector3(-63.6, -5.8, 8.0)},
-	{"name": "15_flight_from_north", "yaw": -150.0, "pitch": 12.0, "pos": Vector3(-63.6, -5.8, -6.0)},
-	{"name": "16_alley_mouth", "yaw": 90.0, "pitch": 0.0, "pos": Vector3(-64.5, -5.8, -1)},
-	{"name": "17_in_the_alley", "yaw": 90.0, "pitch": 0.0, "pos": Vector3(-70, -5.8, -1)},
-	{"name": "18_reveal", "yaw": 90.0, "pitch": 1.0, "pos": Vector3(-76, -5.8, -1)},
-	{"name": "19_reveal_north", "yaw": 20.0, "pitch": 2.0, "pos": Vector3(-76, -5.8, -1)},
-	{"name": "20_reveal_south", "yaw": 160.0, "pitch": 0.0, "pos": Vector3(-76, -5.8, -1)},
+	{"name": "09_overlook", "yaw": 92.0, "pitch": -8.0, "pos": Vector3(-49.0, 0.2, 4.0)},
+	# North along the ledge, which is where the eleven metres a six-metre drop
+	# needs are spent — and where the ramp's head is, further on.
+	# Straight down it. No ledge walk and no deck: the flight leaves the bluff's
+	# own edge heading the way you were already going.
+	{"name": "10_head_of_the_flight", "yaw": 90.0, "pitch": -20.0, "pos": Vector3(-56.0, 0.2, -2.0)},
+	{"name": "11_halfway_down", "yaw": 90.0, "pitch": -8.0, "pos": Vector3(-63.0, -2.8, -2.0)},
+	{"name": "12_at_the_foot", "yaw": 90.0, "pitch": 0.0, "pos": Vector3(-69.0, -2.8, -2.0)},
+	# The ramp, which is the other way down and has to read as one.
+	{"name": "13_ramp_head", "yaw": 2.0, "pitch": -10.0, "pos": Vector3(-60.0, 0.2, -25.0)},
+	{"name": "14_ramp_from_court", "yaw": -40.0, "pitch": 12.0, "pos": Vector3(-78.0, -2.8, -20.0)},
+	{"name": "15_the_court", "yaw": 90.0, "pitch": 2.0, "pos": Vector3(-62.0, -2.8, -2.0)},
+	{"name": "16_court_back_east", "yaw": -90.0, "pitch": 10.0, "pos": Vector3(-78.0, -2.8, -2.0)},
+	{"name": "17_entry", "yaw": 90.0, "pitch": 0.0, "pos": Vector3(-64.5, -2.8, -2)},
+	{"name": "18_in_the_alley", "yaw": 90.0, "pitch": 0.0, "pos": Vector3(-70, -2.8, -2)},
+	{"name": "19_reveal", "yaw": 90.0, "pitch": 1.0, "pos": Vector3(-92, -2.8, -2)},
+	{"name": "20_reveal_north", "yaw": 20.0, "pitch": 2.0, "pos": Vector3(-92, -2.8, -2)},
+	{"name": "21_reveal_south", "yaw": 160.0, "pitch": 0.0, "pos": Vector3(-92, -2.8, -2)},
 	# The strip, both ways, from the middle of the paving.
-	{"name": "17_prom_north", "yaw": 0.0, "pitch": 2.0, "pos": Vector3(-80, -5.8, 6)},
-	{"name": "18_prom_south", "yaw": 180.0, "pitch": 0.0, "pos": Vector3(-80, -5.8, -20)},
-	{"name": "19_shopfronts", "yaw": 125.0, "pitch": 2.0, "pos": Vector3(-82, -5.8, 8)},
+	{"name": "22_prom_north", "yaw": 0.0, "pitch": 2.0, "pos": Vector3(-96, -2.8, 6)},
+	{"name": "23_prom_south", "yaw": 180.0, "pitch": 0.0, "pos": Vector3(-96, -2.8, -20)},
+	{"name": "24_shopfronts", "yaw": 125.0, "pitch": 2.0, "pos": Vector3(-98, -2.8, 8)},
 	# The three anchors, close enough to judge as objects rather than silhouettes.
-	{"name": "20_wheel", "yaw": 90.0, "pitch": 22.0, "pos": Vector3(-78, -5.8, -16)},
-	{"name": "21_wheel_along", "yaw": 12.0, "pitch": 14.0, "pos": Vector3(-80, -5.8, 2)},
-	{"name": "22_coaster", "yaw": -60.0, "pitch": 8.0, "pos": Vector3(-82, -5.8, -30)},
-	{"name": "23_under_coaster", "yaw": 20.0, "pitch": 12.0, "pos": Vector3(-78, -5.8, -58)},
-	{"name": "24_pier_mouth", "yaw": 90.0, "pitch": 0.0, "pos": Vector3(-88, -5.8, -1)},
-	{"name": "25_pier_out", "yaw": 90.0, "pitch": 2.0, "pos": Vector3(-112, -5.8, -1)},
-	{"name": "26_pavilion", "yaw": 90.0, "pitch": 10.0, "pos": Vector3(-130, -5.8, -1)},
+	{"name": "25_wheel", "yaw": 90.0, "pitch": 22.0, "pos": Vector3(-94, -2.8, -16)},
+	{"name": "26_wheel_along", "yaw": 12.0, "pitch": 14.0, "pos": Vector3(-96, -2.8, 2)},
+	{"name": "27_coaster", "yaw": -60.0, "pitch": 8.0, "pos": Vector3(-98, -2.8, -30)},
+	{"name": "28_under_coaster", "yaw": 20.0, "pitch": 12.0, "pos": Vector3(-94, -2.8, -58)},
+	{"name": "29_pier_mouth", "yaw": 90.0, "pitch": 0.0, "pos": Vector3(-104, -2.8, -2)},
+	{"name": "30_pier_out", "yaw": 90.0, "pitch": 2.0, "pos": Vector3(-128, -2.8, -2)},
+	{"name": "31_pavilion", "yaw": 90.0, "pitch": 10.0, "pos": Vector3(-146, -2.8, -2)},
 	# The section photographing itself, which is the argument for the pier being
 	# walkable at all: forty metres offshore is the only place the whole strip is
 	# in one frame.
-	{"name": "27_from_the_pier", "yaw": -80.0, "pitch": 3.0, "pos": Vector3(-124, -5.8, -1)},
-	{"name": "28_from_the_pier_n", "yaw": -50.0, "pitch": 4.0, "pos": Vector3(-124, -5.8, -1)},
+	{"name": "32_from_the_pier", "yaw": -80.0, "pitch": 3.0, "pos": Vector3(-140, -2.8, -2)},
+	{"name": "33_from_the_pier_n", "yaw": -50.0, "pitch": 4.0, "pos": Vector3(-140, -2.8, -2)},
 	# Back east at the bluff, and both of these were aimed at things they had
 	# stopped showing. `29` stood on the gap's own axis, so what filled the frame
 	# was the alley mouth rather than the rise behind it; `30` had been walked
@@ -119,8 +121,13 @@ const ARRIVED := [
 	# Through the gap you can, and it is the whole west composition run backwards:
 	# from the overlook the arch frames the gap and the gap frames the pier; from
 	# the pier the gap frames the bluff and the plaza standing on it.
-	{"name": "29_back_east", "yaw": -90.0, "pitch": 12.0, "pos": Vector3(-88, -5.8, -1)},
-	{"name": "30_bluff", "yaw": -118.0, "pitch": 7.0, "pos": Vector3(-66.5, -5.8, -1)},
+	{"name": "34_back_east", "yaw": -90.0, "pitch": 12.0, "pos": Vector3(-104, -2.8, -2)},
+	# The cascade from the head of the pier, which is what it is *for*: three
+	# arches on one axis at rising heights — the boardwalk's entry, the portal, the
+	# plaza's tunnel — with the wings spread between them.
+	{"name": "34a_cascade_from_pier", "yaw": -90.0, "pitch": 6.0, "pos": Vector3(-140, -2.8, -2)},
+	{"name": "34b_cascade_close", "yaw": -90.0, "pitch": 4.0, "pos": Vector3(-96, -2.8, -2)},
+	{"name": "35_bluff", "yaw": -118.0, "pitch": 7.0, "pos": Vector3(-66.5, -2.8, -2)},
 ]
 
 ## The reason the boardwalk is west. Sunset is about 20:20 for this latitude, so
@@ -128,22 +135,22 @@ const ARRIVED := [
 ## pavilion at the head of the pier.
 const SUNSET := [
 	{"time": [19, 30], "name": "31_evening_strip", "yaw": 172.0, "pitch": 3.0,
-		"pos": Vector3(-82, -5.8, -34)},
+		"pos": Vector3(-98, -2.8, -34)},
 	{"time": [20, 20], "name": "32_sunset_pier", "yaw": 90.0, "pitch": 4.0,
-		"pos": Vector3(-82, -5.8, -1)},
+		"pos": Vector3(-98, -2.8, -2)},
 	{"time": [20, 20], "name": "33_sunset_wheel", "yaw": 118.0, "pitch": 14.0,
-		"pos": Vector3(-76, -5.8, -6)},
+		"pos": Vector3(-92, -2.8, -6)},
 	{"time": [21, 15], "name": "34_dusk_bulbs", "yaw": 160.0, "pitch": 2.0,
-		"pos": Vector3(-84, -5.8, -30)},
+		"pos": Vector3(-100, -2.8, -30)},
 	# The claim, and the same frame twice to test it. `design.md` asks the player
 	# to read the hour off the park; the plaza does it with a headcount and with
 	# whether the cafe is full. The boardwalk's version is that it is nearly
 	# empty when the plaza is busy and full when the plaza is going home. If
 	# these two pictures are the same picture, the curves are a number in a file.
 	{"time": [11, 0], "name": "35_eleven_am", "yaw": 172.0, "pitch": 1.0,
-		"pos": Vector3(-82, -5.8, -34)},
+		"pos": Vector3(-98, -2.8, -34)},
 	{"time": [19, 0], "name": "36_seven_pm", "yaw": 172.0, "pitch": 1.0,
-		"pos": Vector3(-82, -5.8, -34)},
+		"pos": Vector3(-98, -2.8, -34)},
 ]
 
 const SETTLE_SECONDS := 7.0

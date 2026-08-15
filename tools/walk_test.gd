@@ -176,69 +176,80 @@ func _ready() -> void:
 	_start_leg()
 
 
-## The way down from the arch: the terrace, the bluff top, the flight, and out
-## into the lane.
+## The cascade — all three ways down it, both directions.
 ##
-## Both directions, because a stair is the one route where down and up are
-## different problems. `CharacterBody3D` has no step-up, so a flight that walks
-## down a treat can be a wall coming back — which is why the treads are scenery
-## and the ramp under them is the floor.
-##
-## The descent is split in three, because `FALL_BELOW` is measured from where a
-## leg started and the flight drops six metres. One leg from head to foot cannot
-## be told apart from walking off the side of it.
-func _stair_legs() -> Array:
-	var arch := Vector3(ParkPlan.ARCH_ARRIVE_WEST.x, 1.2, ParkPlan.ARCH_ARRIVE_WEST.z)
-	# On the head deck, still on the arch's axis — the walk west is one straight
-	# line from the tunnel to here, across the terrace and the bluff top.
-	var deck := Vector3(ParkPlan.STAIR_X, 1.2, ParkPlan.ARCH_AT.y)
-	var third := _on_flight(1.0 / 3.0)
-	var two_thirds := _on_flight(2.0 / 3.0)
-	var foot := Vector3(ParkPlan.STAIR_X, ParkPlan.STAIR_FOOT.y + 0.2,
-		ParkPlan.STAIR_FOOT.z)
-	var y := ParkPlan.SHORE_TOP + 1.2
-	var lane := Vector3(ParkPlan.BACK_LANE_X, y, ParkPlan.STAIR_FOOT.z)
-	var alley := Vector3(ParkPlan.BACK_LANE_X, y, ParkPlan.ALLEY_Z)
-	return [
-		["bw arch -> deck", arch, deck, true],
-		["bw deck -> third", deck, third, true],
-		["bw third -> two thirds", third, two_thirds, true],
-		["bw two thirds -> foot", two_thirds, foot, true],
-		["bw foot -> lane", foot, lane, true],
-		["bw lane -> alley mouth", lane, alley, true],
-		["bw alley mouth -> lane", alley, lane, true],
-		["bw lane -> foot", lane, foot, true],
-		["bw foot -> two thirds", foot, two_thirds, true],
-		["bw two thirds -> third", two_thirds, third, true],
-		["bw third -> deck", third, deck, true],
-		["bw deck -> arch", deck, arch, true],
-		# The parapet is all that is between the terrace walk and the shore. It is
-		# hand-authored in `plaza.tscn`, which is *not* mounted here — what holds
-		# these is the copy `_plaza_from_below` reads out of that file, so these two
-		# probes really ask whether the copy still collides.
-		["bw parapet holds", Vector3(-46.0, 1.2, 4.0),
-			Vector3(-56.0, 1.2, 4.0), false],
-		["bw parapet holds n", Vector3(-46.0, 1.2, -9.0),
-			Vector3(-56.0, 1.2, -9.0), false],
-		# And the bluff top past the parapet is a seven-metre ledge running the
-		# length of the map. Both ends of it have to hold, or the way down is also a
-		# way to walk to the coaster along the top of a cliff.
-		["bw ledge holds n", Vector3(-54.5, 1.2, -6.0),
-			Vector3(-54.5, 1.2, -22.0), false],
-		["bw ledge holds s", Vector3(-54.5, 1.2, 2.0),
-			Vector3(-54.5, 1.2, 18.0), false],
-		# The open side of the flight, which is a six-metre drop onto the lane.
-		["bw flight rail holds", _on_flight(0.5),
-			_on_flight(0.5) + Vector3(-6.0, 0.0, 0.0), false],
+## The middle flight, the north wing's ramp and the south wing's garden stair
+## start together at the bluff top and land together in the court, which is the
+## whole point of the thing: a group with a wheelchair in it does not have to
+## split up to get to the boardwalk. So all three get walked, and so does the
+## portal they converge on.
+func _cascade_legs() -> Array:
+	var axis: float = ParkPlan.CASCADE_AXIS_Z
+	var top_x: float = ParkPlan.CASCADE_TOP_X
+	var y: float = ParkPlan.SHORE_TOP + 1.2
+	var arch := Vector3(ParkPlan.ARCH_ARRIVE_WEST.x, 1.2, axis)
+	var head := Vector3(top_x - 0.8, 1.2, axis)
+	var mid := _on_flight(0.5)
+	var foot := Vector3(ParkPlan.STAIR_FOOT.x, ParkPlan.SHORE_TOP + 0.2, axis)
+	var court := Vector3(ParkPlan.BACK_LANE_X, y, axis)
+	var out: Array = [
+		["cas arch -> head", arch, head, true],
+		["cas head -> mid", head, mid, true],
+		["cas mid -> foot", mid, foot, true],
+		["cas foot -> court", foot, court, true],
+		["cas court -> foot", court, foot, true],
+		["cas foot -> mid", foot, mid, true],
+		["cas mid -> head", mid, head, true],
+		["cas head -> arch", head, arch, true],
 	]
+	# Each wing, in three because 36m is further than a leg's budget likes and the
+	# fall detector measures from where the leg started.
+	for w in [[-1.0, "ramp"], [1.0, "stair"]]:
+		var side: float = w[0]
+		var nm: String = w[1]
+		for i in 3:
+			out.append(["cas %s wing %d" % [nm, i],
+				_on_wing(side, float(i) / 3.0), _on_wing(side, float(i + 1) / 3.0), true])
+		for i in range(2, -1, -1):
+			out.append(["cas %s wing up %d" % [nm, i],
+				_on_wing(side, float(i + 1) / 3.0), _on_wing(side, float(i) / 3.0), true])
+		# Off the head of the wing back onto the bluff top, and off its tip into
+		# the court — the two joints where a wing meets something else.
+		out.append(["cas %s wing -> top" % nm, _on_wing(side, 0.0), head, true])
+		# Off the tip and eight metres on, along the wing's own line. It used to
+		# aim at the court's walk line — twenty-two metres away in z and four in
+		# x, which is so shallow a diagonal that the player walks past the target
+		# without ever coming within the arrival radius. It passed once and timed
+		# out twice on identical geometry, which is what a marginal waypoint
+		# looks like and why it was worth re-running uninterrupted.
+		var tip := _on_wing(side, 1.0)
+		var along := (tip - _on_wing(side, 0.9)).normalized()
+		out.append(["cas %s wing -> court" % nm, tip,
+			Vector3(tip.x + along.x * 8.0, y, tip.z + along.z * 8.0), true])
+		# And the open side of it, which is a three-metre drop onto the court.
+		var half := _on_wing(side, 0.5)
+		out.append(["cas %s wing rail holds" % nm, half,
+			half + Vector3(-8.0, 0.0, side * 8.0), false])
+	return out
 
 
-## A point on the flight, `t` of the way down it, a stride above the treads.
+## A point on the flight, `t` of the way down, a stride above the treads.
 func _on_flight(t: float) -> Vector3:
-	var run: float = ParkPlan.STAIR_GOING * ParkPlan.STAIR_TREADS
-	var drop: float = ParkPlan.STAIR_RISE * ParkPlan.STAIR_TREADS
-	return Vector3(ParkPlan.STAIR_X, -drop * t + 0.2,
-		ParkPlan.STAIR_HEAD_Z + run * t)
+	var risers := int(round(ParkPlan.CASCADE_DROP / ParkPlan.FLIGHT_RISE))
+	var run: float = ParkPlan.FLIGHT_GOING * risers
+	return Vector3(ParkPlan.CASCADE_TOP_X - run * t,
+		-ParkPlan.CASCADE_DROP * t + 0.2, ParkPlan.CASCADE_AXIS_Z)
+
+
+## A point on one wing, `t` of the way out along it. `side` is −1 for the north
+## wing, which carries the ramp, and +1 for the south, which carries the stair.
+func _on_wing(side: float, t: float) -> Vector3:
+	var axis: float = ParkPlan.CASCADE_AXIS_Z
+	var a := Vector2(ParkPlan.CASCADE_TOP_X - 3.2,
+		axis + side * (ParkPlan.FLIGHT_W * 0.5 + 2.6))
+	var b := Vector2(ParkPlan.WING_TIP_X, axis + side * ParkPlan.WING_TIP_Z)
+	var p := a.lerp(b, t)
+	return Vector3(p.x, -ParkPlan.CASCADE_DROP * t + 0.2, p.y)
 
 
 ## The boardwalk, one section down. Eye height is the shore plus the same 1.2 the
@@ -262,34 +273,35 @@ func _boardwalk_legs() -> Array:
 	var alley_in := Vector3(ParkPlan.BACK_LANE_X, y, ParkPlan.ALLEY_Z)
 	var alley_out := Vector3(ParkPlan.PROMENADE_X + 5.0, y, ParkPlan.ALLEY_Z)
 	var prom := Vector3(ParkPlan.PROMENADE_X + 5.0, y, ParkPlan.ALLEY_Z)
-	return _stair_legs() + [
+	return _cascade_legs() + [
 		["bw lane -> alley", alley_in, alley_out, true],
-		["bw alley -> pier head", prom, Vector3(-90.0, y, ParkPlan.ALLEY_Z), true],
-		["bw out the pier", Vector3(-90.0, y, ParkPlan.ALLEY_Z),
-			Vector3(-133.0, y, ParkPlan.ALLEY_Z), true],
-		["bw pavilion holds", Vector3(-133.0, y, ParkPlan.ALLEY_Z),
-			Vector3(-146.0, y, ParkPlan.ALLEY_Z), false],
-		["bw back down pier", Vector3(-133.0, y, ParkPlan.ALLEY_Z),
-			Vector3(-86.0, y, ParkPlan.ALLEY_Z), true],
+		["bw alley -> pier head", prom, Vector3(-106, y, ParkPlan.ALLEY_Z), true],
+		["bw out the pier", Vector3(-106, y, ParkPlan.ALLEY_Z),
+			Vector3(-149, y, ParkPlan.ALLEY_Z), true],
+		["bw pavilion holds", Vector3(-149, y, ParkPlan.ALLEY_Z),
+			Vector3(-162, y, ParkPlan.ALLEY_Z), false],
+		["bw back down pier", Vector3(-149, y, ParkPlan.ALLEY_Z),
+			Vector3(-102, y, ParkPlan.ALLEY_Z), true],
 		# The walk north weaves, and both pinches are real. The tables outside the
 		# corn-dog stand and the wheel's platform leave 4m between them; then the
 		# wheel's ticket booth takes the west half of what is left. A straight
 		# line up the promenade walks into one or the other, which is the same
 		# route the crowd's graph threads and for the same reason.
-		["bw north past tables", Vector3(-80.5, y, -4.0), Vector3(-80.5, y, -14.0), true],
-		["bw past the booth", Vector3(-80.5, y, -14.0), Vector3(-78.5, y, -24.0), true],
-		["bw wheel -> coaster", Vector3(-78.5, y, -24.0), Vector3(-80.0, y, -52.0), true],
-		["bw north end holds", Vector3(-82.0, y, -72.0), Vector3(-82.0, y, -95.0), false],
-		["bw south along strip", Vector3(-82.0, y, 10.0), Vector3(-82.0, y, 62.0), true],
-		["bw south end holds", Vector3(-82.0, y, 70.0), Vector3(-82.0, y, 92.0), false],
+		["bw north past tables", Vector3(-96.5, y, -4.0), Vector3(-96.5, y, -14.0), true],
+		["bw past the booth", Vector3(-96.5, y, -14.0), Vector3(-94.5, y, -24.0), true],
+		["bw wheel -> coaster", Vector3(-94.5, y, -24.0), Vector3(-96, y, -52.0), true],
+		["bw north end holds", Vector3(-98, y, -72.0), Vector3(-98, y, -95.0), false],
+		["bw south along strip", Vector3(-98, y, 10.0), Vector3(-98, y, 62.0), true],
+		["bw south end holds", Vector3(-98, y, 70.0), Vector3(-98, y, 92.0), false],
 		# Probes. None of these may arrive.
-		["bw water holds", Vector3(-82.0, y, 30.0), Vector3(-104.0, y, 30.0), false],
-		["bw water holds n", Vector3(-82.0, y, -50.0), Vector3(-104.0, y, -50.0), false],
-		["bw shops hold", Vector3(-80.0, y, 26.0), Vector3(-60.0, y, 26.0), false],
-		["bw yard holds", Vector3(-82.0, y, 70.0), Vector3(-62.0, y, 70.0), false],
-		["bw coaster fence holds", Vector3(-80.0, y, -60.0), Vector3(-60.0, y, -60.0), false],
-		["bw bluff holds", Vector3(-62.0, y, 20.0), Vector3(-48.0, y, 20.0), false],
-		["bw well holds", Vector3(-62.0, y, -4.0), Vector3(-48.0, y, -4.0), false],
+		["bw water holds", Vector3(-98, y, 30.0), Vector3(-120, y, 30.0), false],
+		["bw water holds n", Vector3(-98, y, -50.0), Vector3(-120, y, -50.0), false],
+		["bw shops hold", Vector3(-96, y, 26.0), Vector3(-60.0, y, 26.0), false],
+		["bw yard holds", Vector3(-98, y, 70.0), Vector3(-62.0, y, 70.0), false],
+		["bw coaster fence holds", Vector3(-96, y, -60.0), Vector3(-60.0, y, -60.0), false],
+		["bw bluff holds", Vector3(-70.0, y, 20.0), Vector3(-50.0, y, 20.0), false],
+		# The bluff face north of the ramp, where there is no way up at all.
+		["bw bluff holds n", Vector3(-70.0, y, -50.0), Vector3(-50.0, y, -50.0), false],
 	]
 
 

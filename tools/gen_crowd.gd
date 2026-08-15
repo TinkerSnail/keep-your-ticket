@@ -354,20 +354,39 @@ func _plaza_obstacles() -> Array:
 	# Props, at the positions `gen_props.gd` placed them *before* the dilation —
 	# put through the same map below, so this list stays readable as the layout
 	# somebody typed rather than as a column of arithmetic.
+	#
+	# The third column is the margin `gen_props.gd` stands each of them clear of
+	# the paving by, and it is not the same as the radius: a prop is pushed off
+	# the walkway by more than it is wide, so that there is a walk beside it and
+	# not merely a squeeze. **A zero here means the prop is placed where it is
+	# written** — the crates and the ladder lean on buildings and never moved.
+	#
+	# Getting this column wrong is quiet rather than loud: the guest graph would
+	# route round a cart that is four metres away and walk through the one that is
+	# there. Which is the same failure the terrace had, in the same file.
 	var circles := [
-		[Vector2(-6, -10), 1.3],       # cart
-		[Vector2(-19, -6), 1.0],       # crates
-		[Vector2(-13, 18), 1.3],       # picnic tables
-		[Vector2(-17, 15), 1.3],
-		[Vector2(3, 10), 0.65],        # a-frames
-		[Vector2(-9, -2), 0.65],
-		[Vector2(12, -8), 0.65],
-		[Vector2(19.3, 2.0), 0.6],     # ladder
-		[Vector2(15.5, -16), 0.25],    # flagpoles
-		[Vector2(20.5, -16), 0.25],
+		[Vector2(-6, -10), 1.3, 1.5],     # cart
+		[Vector2(-19, -6), 1.0, 0.0],     # crates
+		[Vector2(-13, 18), 1.3, 1.4],     # picnic tables
+		[Vector2(-17, 15), 1.3, 1.4],
+		[Vector2(3, 10), 0.65, 0.8],      # a-frames
+		[Vector2(-9, -2), 0.65, 0.8],
+		[Vector2(12, -8), 0.65, 0.8],
+		[Vector2(19.3, 2.0), 0.6, 0.0],   # ladder
 	]
 	for spot in circles:
-		out.append({"kind": "circle", "at": Plan.plaza_out2(spot[0]), "r": spot[1]})
+		var at: Vector2 = Plan.plaza_out2(spot[0])
+		if float(spot[2]) > 0.0:
+			at = Plan.clear_of_walkways(at, spot[2])
+		out.append({"kind": "circle", "at": at, "r": spot[1]})
+
+	# The flagpoles are one assembly with two poles 5m apart, so they are stood
+	# clear as a pair and then modelled as a pair — two circles hung off the one
+	# base, the way `gen_props.gd` builds them. Listed separately from the rest
+	# because nothing else in the plaza has an offset from its own stand point.
+	var flags := Plan.clear_of_walkways(Plan.plaza_out2(Vector2(18, -16)), 3.0)
+	for dx in [-2.5, 2.5]:
+		out.append({"kind": "circle", "at": flags + Vector2(dx, 0.0), "r": 0.25})
 
 	# The fountain is not dilated: it is the thing the map is measured from, and
 	# its radius is plan data.
@@ -515,26 +534,47 @@ func _bin_spots() -> Array:
 ## agree only if they scale the same way. The ring benches, the south bench and
 ## the two by the south wall go through `ParkPlan.plaza_out`; the hut's bench and
 ## the bandstand's three do not, for the same reason they do not over there.
+## **And they are stood clear of the paving the same way too**, which is the half
+## of this that was missing. `plaza_out` alone put the ring of five in the middle
+## of the ring walkway; `plaza_stand` walks them back onto the fountain's skirt.
+## A guest sitting on `gen_props`' idea of where a bench is and a bench built on
+## this one's is the same drift the cafe terrace caused, so the two call the same
+## function with the same margin — `gen_props.BENCH_CLEAR`, spelled out here
+## because that file is a `SceneTree` this one cannot preload.
+const BENCH_CLEAR := 1.2
+
+
+func _bench_spot(at: Vector3, theta: float, dilate := true) -> Dictionary:
+	var p: Vector3 = Plan.plaza_out(at) if dilate else at
+	var c := Plan.clear_of_walkways(Vector2(p.x, p.z), BENCH_CLEAR)
+	return {"at": Vector3(c.x, p.y, c.y), "theta": theta}
+
+
 func _plaza_bench_spots() -> Array:
 	var out: Array = []
 	var r := 7.5
 	for deg in [25.0, 95.0, 165.0, 235.0, 305.0]:
 		var a := deg_to_rad(deg)
-		var p := Plan.plaza_out(Vector3(r * cos(a), 0.0, r * sin(a)))
-		out.append({"at": p, "theta": atan2(-p.x, -p.z)})
-	out.append({"at": Plan.plaza_out(Vector3(-5, 0, 19)), "theta": deg_to_rad(186.0)})
+		var spot := _bench_spot(Vector3(r * cos(a), 0.0, r * sin(a)), 0.0)
+		var p: Vector3 = spot["at"]
+		spot["theta"] = atan2(-p.x, -p.z)
+		out.append(spot)
+	out.append(_bench_spot(Vector3(-5, 0, 19), deg_to_rad(186.0)))
 
 	var hut := Vector3(Plan.PHOTO_HUT_AT.x, 0.0, Plan.PHOTO_HUT_AT.y)
-	out.append({"at": hut + Vector3(-6.0, 0, -4.0), "theta": deg_to_rad(8.0)})
+	out.append(_bench_spot(hut + Vector3(-6.0, 0, -4.0), deg_to_rad(8.0), false))
 
+	# The bandstand's three are not stood clear, because they moved a different
+	# way: they belong to the bandstand, so they gave up the east bearing rather
+	# than the radius. `spoke_nnw` runs down that side. See `gen_props._benches`.
 	var band := Vector3(-20, 0, -20)
-	for deg in [20.0, 140.0, 260.0]:
+	for deg in [90.0, 180.0, 270.0]:
 		var a := deg_to_rad(deg)
 		var p: Vector3 = band + Vector3(8.6 * cos(a), 0.0, 8.6 * sin(a))
 		var d: Vector3 = band - p
 		out.append({"at": p, "theta": atan2(d.x, d.z)})
-	out.append({"at": Plan.plaza_out(Vector3(-11, 0, 20)), "theta": deg_to_rad(120.0)})
-	out.append({"at": Plan.plaza_out(Vector3(2, 0, 22)), "theta": deg_to_rad(200.0)})
+	out.append(_bench_spot(Vector3(-11, 0, 20), deg_to_rad(120.0)))
+	out.append(_bench_spot(Vector3(2, 0, 22), deg_to_rad(200.0)))
 	return out
 
 
@@ -974,7 +1014,12 @@ func _build_boardwalk() -> bool:
 	# A different seed from the plaza's, or the two casts are the same fifty-six
 	# people in different clothes — same heights, same builds, same draws in the
 	# same order.
-	_begin("crowd", Plan.SHORE_TOP, Rect2(-139.0, -84.0, 96.0, 164.0), 0x0B0A2D)
+	# Derived rather than typed. It was a hand-placed Rect2 out to x −139, which
+	# was the pavilion's neighbourhood until the strip moved sixteen metres west
+	# and the pier's last two nodes fell out of the world.
+	var west := Plan.PAVILION_AT.x - 8.0
+	var east := Plan.BLUFF_FACE_X + 6.0
+	_begin("crowd", Plan.SHORE_TOP, Rect2(west, -84.0, east - west, 164.0), 0x0B0A2D)
 
 	_boardwalk_graph()
 	_obstacles = _boardwalk_obstacles()
@@ -1063,30 +1108,30 @@ func _boardwalk_graph() -> void:
 		"lane_m": Vector2(Plan.BACK_LANE_X, 12.0),
 		"lane_n": Vector2(Plan.BACK_LANE_X, 2.0),
 		# Through the hole in the frontage.
-		"alley_e": Vector2(-66.5, Plan.ALLEY_Z),
-		"alley_w": Vector2(-73.0, Plan.ALLEY_Z),
+		"alley_e": Vector2(-82.5, Plan.ALLEY_Z),
+		"alley_w": Vector2(-89, Plan.ALLEY_Z),
 		# Where the strip and the pier meet, which is where everybody ends up.
-		"prom_gap": Vector2(-78.0, Plan.ALLEY_Z),
+		"prom_gap": Vector2(-94, Plan.ALLEY_Z),
 		# North, past the wheel to the coaster.
 		# West of the tables outside the corn-dog stand and east of the wheel
 		# platform, which between them leave a 4m gap. The validator found this:
 		# -66.5 put a graph node a metre inside a table.
-		"prom_n1": Vector2(-80.5, -10.0),
-		"wheel_q": Vector2(-78.5, -19.0),
-		"prom_n2": Vector2(-78.5, -28.0),
-		"station_q": Vector2(-79.0, -41.0),
-		"prom_n3": Vector2(-82.0, -55.0),
-		"prom_n4": Vector2(-82.0, -72.0),
+		"prom_n1": Vector2(-96.5, -10.0),
+		"wheel_q": Vector2(-97.0, -19.0),
+		"prom_n2": Vector2(-94.5, -28.0),
+		"station_q": Vector2(-95, -41.0),
+		"prom_n3": Vector2(-98, -55.0),
+		"prom_n4": Vector2(-98, -72.0),
 		# Out over the water.
-		"pier_root": Vector2(-89.0, Plan.ALLEY_Z),
-		"pier_mid": Vector2(-107.0, Plan.ALLEY_Z),
-		"pier_head": Vector2(-130.0, Plan.ALLEY_Z),
-		"pavilion_door": Vector2(-134.5, Plan.ALLEY_Z),
+		"pier_root": Vector2(-105, Plan.ALLEY_Z),
+		"pier_mid": Vector2(-123, Plan.ALLEY_Z),
+		"pier_head": Vector2(-146, Plan.ALLEY_Z),
+		"pavilion_door": Vector2(-150.5, Plan.ALLEY_Z),
 		# South, which is the quiet end and stays that way.
-		"prom_s1": Vector2(-80.5, 12.0),
-		"prom_s2": Vector2(-82.0, 30.0),
-		"prom_s3": Vector2(-82.0, 48.0),
-		"prom_s4": Vector2(-82.0, 66.0),
+		"prom_s1": Vector2(-96.5, 12.0),
+		"prom_s2": Vector2(-98, 30.0),
+		"prom_s3": Vector2(-98, 48.0),
+		"prom_s4": Vector2(-98, 66.0),
 	}
 	for name in points:
 		_graph_names.append(name)
@@ -1148,9 +1193,12 @@ func _boardwalk_obstacles() -> Array:
 		# The two fences that close the promenade's east side beyond the shops.
 		[Vector2(front_x - half_d, -66.0), Vector2(0.2, 16.0)],
 		[Vector2(front_x - half_d, 71.0), Vector2(0.2, 7.0)],
-		# The sea, north and south of the pier's corridor.
-		[Vector2(-114.0, -50.0), Vector2(22.4, 40.0)],
-		[Vector2(-114.0, 50.0), Vector2(22.4, 40.0)],
+		# The sea, north and south of the pier's corridor. Measured off the
+		# shore's own edge rather than typed: the strip moved sixteen metres west
+		# on 2026-08-14b and a hand-placed sea ended up thirty metres inland,
+		# blocking half the promenade.
+		[Vector2(Plan.SHORE_EDGE - 31.0, -50.0), Vector2(31.0, 40.0)],
+		[Vector2(Plan.SHORE_EDGE - 31.0, 50.0), Vector2(31.0, 40.0)],
 	]
 	for rect in rects:
 		out.append({"kind": "rect", "at": rect[0], "half": rect[1]})

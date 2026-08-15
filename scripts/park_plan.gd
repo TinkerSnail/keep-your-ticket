@@ -236,8 +236,8 @@ const APRON_Z := 123.0
 ## The drop off the parapet, and what is below it. The plaza stands on made
 ## ground; everything west of the parapet falls away here, which is what turns
 ## the parapet into an overlook rather than a fence.
-const SHORE_TOP := -6.0
-const WATER_TOP := -7.5
+const SHORE_TOP := -3.0
+const WATER_TOP := -4.5
 
 ## The shore band, east edge to west edge. The east edge is where the made
 ## ground of the bluff stops; the west edge is where the planking stops and the
@@ -250,12 +250,12 @@ const WATER_TOP := -7.5
 ## a gameplay reason rather than a compositional one, so it is worth knowing it
 ## moved: anything that looked right against -70 wants re-checking.
 const SHORE_FROM_X := -56.0
-const SHORE_EDGE := -92.0
+const SHORE_EDGE := -108.0
 
 ## The frontage line — the row one building deep, 9m of it, so the buildings
 ## occupy x -62.5..-53.5. East of them is the back lane against the bluff, west
 ## of them is the promenade.
-const FRONT_X := -70.0
+const FRONT_X := -86.0
 const FRONT_DEPTH := 9.0
 
 ## The two bands either side of the frontage, as centre lines.
@@ -265,74 +265,60 @@ const FRONT_DEPTH := 9.0
 ## the buildings and reaching the water only after passing *through* them is the
 ## reveal, and it is the same trick the arch and the gap already play at a
 ## larger scale.
-const BACK_LANE_X := -63.6
-const PROMENADE_X := -83.2
+const BACK_LANE_X := -74.0
+const PROMENADE_X := -99.2
 
-## The way down the bluff, rebuilt on 2026-08-14 as **one open flight on the
-## face of the bluff**.
+## The bluff, as its two faces. The west one is the drop the cascade is built
+## against; the east one is where the plaza's made ground takes over.
 ##
-## It was two narrow flights with a turn between them, descending inside a slot
-## cut in the rock, then a passage, then a door in a blank cliff. The turn was
-## the point of it: a section load must not begin where the player can watch it,
-## and the corner was what took the far side out of shot.
-##
-## **The seam moved to the arch, and the turn stopped paying for anything.** What
-## was left was a 2.6m service stair with four direction changes that you could
-## not see from either end — from the terrace an unbroken parapet with no visible
-## way down, from the promenade a blank cliff with a door in it. The two ends did
-## not read as the same place, because nothing joining them was visible from
-## either.
-##
-## So: 4m wide, twenty-four treads, straight, hung on the outside of the bluff
-## and running south. From the lane you see the flight climbing to the bluff top
-## with the parapet and the arch above it, and from the terrace you see it going
-## down. That is the whole fix, and it is only available because the load moved.
-##
-## Descending *south*, away from the alley, which is what keeps the reveal at the
-## hole in the frontage: the walk back north up the lane is twelve metres of
-## shop backs before the gap opens. The turn at the foot is the one thing this
-## shape cannot avoid — the arch and the alley are on the same axis and the
-## flight needs eleven metres of it — and it happens in an open lane at the
-## bottom of a visible stair rather than inside a slot.
-const STAIR_W := 4.0
-const STAIR_RISE := 0.25
-const STAIR_GOING := 0.45
-const STAIR_TREADS := 24
-
-## The flight's centre line, and it laps a hand's width into the bluff's face so
-## that the two do not meet on one plane.
-const STAIR_X := -59.9
-
-## The head deck: a platform at the plaza's own level, projecting from the bluff
-## top out over the lane, with the flight coming off its south edge. It stands at
-## the gap in the parapet, so the walk from the arch is straight west and then
-## one turn.
-const STAIR_DECK_FROM_Z := -4.5
-const STAIR_DECK_TO_Z := -0.5
-
-## Where the treads begin, and where the slab at the bottom of them sits. The
-## foot is computed rather than declared: twenty-four goings from the head, plus
-## half the slab. Anything outside this file that needs the bottom of the stair
-## reads `STAIR_FOOT` — three things used to hold their own copy of it.
-const STAIR_HEAD_Z := STAIR_DECK_TO_Z
-const STAIR_FOOT := Vector3(STAIR_X, SHORE_TOP,
-	STAIR_HEAD_Z + STAIR_GOING * STAIR_TREADS + 1.0)
-
-## Where a *body* ends up at the bottom: the same slab, 0.2 up because the player
-## rides that far above their floor.
-const STAIR_FOOT_STAND := Vector3(STAIR_X, SHORE_TOP + 0.2, STAIR_FOOT.z)
-
-## The bluff, as its two faces. The west one is the drop the flight is hung on;
-## the east one is where the plaza's made ground takes over. Seven metres of rock
-## between them, and the top of it is walkable now — the parapet gap opens onto
-## it, where it used to open into a slot with walls.
+## **The drop is three metres, not six, since 2026-08-14b.** The shore came up to
+## meet the plaza rather than the descent stretching to reach the shore, and the
+## reason is arithmetic: a wheelchair gradient is 1:12, so six metres of drop is
+## seventy-two metres of ramp no matter what shape it takes. Three metres is
+## thirty-six, which fits a single sweep — and a 3m seawall is a thing you walk
+## down rather than a cliff you are let off the side of.
 const BLUFF_FACE_X := -58.0
 const BLUFF_BACK_X := -51.0
+
+## The cascade: the whole way down, as one monument on the arch's own axis.
+##
+## Modelled on the Cleveland Cascade in Oakland, which is a straight flight in
+## the middle, a wall with an arched niche at its foot, and two wings sweeping
+## out and down either side — a shape that reads, from the bottom, unmistakably
+## like a ray with its wings spread. **The wings are the wall, not the path.**
+## That is what lets one side be a ramp and the other a stair without the thing
+## losing its symmetry: the wall sweeps the same diagonal both ways and only the
+## surface riding on it differs.
+##
+## Three ways down, and nobody has to take a service entrance to use one:
+## the central flight for anyone in a hurry, the north wing at 1:12 for a wheel-
+## chair, and the south wing as a garden stair of short flights and long
+## landings. They start together at the top and land together in the court.
+const CASCADE_AXIS_Z := ARCH_AT.y
+const CASCADE_TOP_X := BLUFF_FACE_X
+const CASCADE_DROP := -SHORE_TOP
+
+## The middle flight: wide, direct, and the whole drop in one go.
+const FLIGHT_W := 10.0
+const FLIGHT_RISE := 0.25
+const FLIGHT_GOING := 0.55
+
+## Where a wing's tip ends up — out in the court and down at its level. The run
+## that falls out of it is 36m, which is `CASCADE_DROP` at 1:12 exactly.
+const WING_TIP_X := -70.0
+const WING_TIP_Z := 42.5
+const WING_W := 3.6
+
+## Where the flight lands, and where a body stands there.
+const STAIR_FOOT := Vector3(
+	CASCADE_TOP_X - FLIGHT_GOING * int(CASCADE_DROP / FLIGHT_RISE) - 1.2,
+	SHORE_TOP, CASCADE_AXIS_Z)
+const STAIR_FOOT_STAND := Vector3(STAIR_FOOT.x, SHORE_TOP + 0.2, CASCADE_AXIS_Z)
 
 ## How far north and south of the arch's axis the bluff top can be walked. The
 ## terrace's own end walls stand on these lines, and without something on them
 ## the parapet gap opens onto a seven-metre ledge running the length of the map.
-const BLUFF_TOP_FROM_Z := -14.5
+const BLUFF_TOP_FROM_Z := -28.0
 const BLUFF_TOP_TO_Z := 9.5
 
 
@@ -434,15 +420,15 @@ const WALK_TO_Z := 78.0
 ## The frontage runs from the coaster's station south. North of `FRONT_FROM_Z`
 ## there are no buildings, because that is where the coaster stands and it takes
 ## the full width of the shore.
-const FRONT_FROM_Z := -34.0
-const FRONT_TO_Z := 64.0
+const FRONT_FROM_Z := -42.0
+const FRONT_TO_Z := 68.0
 
 ## The hole in the frontage, aimed at the arch, and the alley through it. The
 ## whole west composition is this: the arch frames a gap, the gap frames the
 ## pier. The player walks the same line the composition is built on.
-const GAP_FROM := -8.0
-const GAP_TO := 6.0
-const ALLEY_Z := -1.0
+const GAP_FROM := -14.0
+const GAP_TO := 10.0
+const ALLEY_Z := ARCH_AT.y
 
 ## The three anchors, in the order you meet them coming through the alley.
 ##
@@ -463,14 +449,14 @@ const ALLEY_Z := -1.0
 ## spare — 8.5m against 1m on the water side. A wheel in the middle of a strip
 ## pinches it twice; a wheel against the rail pinches it once and puts the queue
 ## where the shops are, which is where a queue belongs.
-const WHEEL_AT := Vector2(-87.0, -16.0)
+const WHEEL_AT := Vector2(-103.0, -16.0)
 const WHEEL_RADIUS := 13.2
 const WHEEL_PLATFORM := Vector2(8.0, 26.0)
 
 ## The coaster closes the north end. Out-and-back along the shore, station
 ## fronting the promenade, structure running away from the player — so it is a
 ## thing you walk towards and then walk under, rather than a thing you look at.
-const COASTER_STATION := Vector2(-78.0, -38.0)
+const COASTER_STATION := Vector2(-94.0, -38.0)
 const COASTER_HEADING := 0.0
 const COASTER_FROM_Z := -38.0
 const COASTER_TO_Z := -82.0
@@ -502,16 +488,16 @@ const PAVILION_AT := Vector2(SHORE_EDGE - PIER_LENGTH - 6.0, ALLEY_Z)
 ## too, and one unit shuttered, because a strip with nothing shut on it is a
 ## strip nobody works at.
 const FRONTAGE_UNITS := [
-	{"nm": "arcade", "from": -34.0, "to": -22.0, "h": 8.5, "kind": "arcade"},
-	{"nm": "gallery", "from": -22.0, "to": -15.0, "h": 6.0, "kind": "games"},
-	{"nm": "corndogs", "from": -15.0, "to": GAP_FROM, "h": 5.5, "kind": "food"},
-	{"nm": "custard", "from": GAP_TO, "to": 13.0, "h": 5.5, "kind": "food"},
-	{"nm": "studio", "from": 13.0, "to": 21.0, "h": 6.5, "kind": "shop"},
-	{"nm": "funhouse", "from": 21.0, "to": 33.0, "h": 11.0, "kind": "ride"},
-	{"nm": "games", "from": 33.0, "to": 44.0, "h": 6.0, "kind": "games"},
-	{"nm": "restrooms", "from": 44.0, "to": 51.0, "h": 4.5, "kind": "plain"},
-	{"nm": "shuttered", "from": 51.0, "to": 58.0, "h": 6.0, "kind": "shut"},
-	{"nm": "taffy", "from": 58.0, "to": FRONT_TO_Z, "h": 5.5, "kind": "shop"},
+	{"nm": "arcade", "from": FRONT_FROM_Z, "to": -30.0, "h": 8.5, "kind": "arcade"},
+	{"nm": "gallery", "from": -30.0, "to": -22.0, "h": 6.0, "kind": "games"},
+	{"nm": "corndogs", "from": -22.0, "to": GAP_FROM, "h": 5.5, "kind": "food"},
+	{"nm": "custard", "from": GAP_TO, "to": 18.0, "h": 5.5, "kind": "food"},
+	{"nm": "studio", "from": 18.0, "to": 26.0, "h": 6.5, "kind": "shop"},
+	{"nm": "funhouse", "from": 26.0, "to": 38.0, "h": 11.0, "kind": "ride"},
+	{"nm": "games", "from": 38.0, "to": 48.0, "h": 6.0, "kind": "games"},
+	{"nm": "restrooms", "from": 48.0, "to": 55.0, "h": 4.5, "kind": "plain"},
+	{"nm": "shuttered", "from": 55.0, "to": 62.0, "h": 6.0, "kind": "shut"},
+	{"nm": "taffy", "from": 62.0, "to": FRONT_TO_Z, "h": 5.5, "kind": "shop"},
 ]
 
 ## Where somebody can sit down, which two different generators have to agree
@@ -520,8 +506,8 @@ const FRONTAGE_UNITS := [
 ## with a comment saying a stale copy shows up as guests sitting in mid-air. That
 ## was the right call when there was nowhere better to put them; there is now.
 const TABLES := [
-	Vector2(-77.5, -13.5), Vector2(-77.5, -10.0),
-	Vector2(-77.5, 8.0), Vector2(-77.5, 11.5),
+	Vector2(-93.5, -20.0), Vector2(-93.5, -16.5),
+	Vector2(-93.5, 12.0), Vector2(-93.5, 15.5),
 ]
 
 ## The benches along the rail, as a rule rather than a list, because they are
@@ -575,9 +561,14 @@ static func bench_line() -> Array:
 ## the square the other three are: there is nowhere for it to widen into.
 const SECTION_GROUND := {
 	&"plaza": {"at": Vector2(0.0, 0.0), "size": Vector2(104.0, 104.0), "floor_y": 0.0},
+	## Out to the pavilion rather than to the water's edge. The pier is ground
+	## the player walks on and it reaches forty-four metres past the shore, so a
+	## footprint that stopped at `SHORE_EDGE` had the whole pier outside the
+	## section — which the crowd's own validator says out loud as soon as a node
+	## is put on it.
 	&"boardwalk": {
-		"at": Vector2((SHORE_FROM_X + SHORE_EDGE) * 0.5, 0.0),
-		"size": Vector2(SHORE_FROM_X - SHORE_EDGE, 340.0),
+		"at": Vector2((SHORE_FROM_X + PAVILION_AT.x - 12.0) * 0.5, 0.0),
+		"size": Vector2(SHORE_FROM_X - PAVILION_AT.x + 12.0, 340.0),
 		"floor_y": SHORE_TOP,
 	},
 	# Pushed out along their own bearings by the 12m the wall line moved, so each
@@ -773,19 +764,16 @@ const WALKWAYS := {
 	## what lets the first two segments be paved — they are the only part of the
 	## descent that is ground rather than treads, and they are what tells a player
 	## standing under the arch that the way on is to their right.
-	## Across the bluff top to the head of the flight, and down it.
+	## West across the terrace and the bluff top, and straight on down the flight.
 	##
-	## Four vertices: it leaves the west spoke on the arch's own axis, runs straight
-	## west through the gap in the parapet and across the bluff top onto the head
-	## deck, turns south at the head, and descends. **One turn**, where the old
-	## route had four — see the stair constants for why it could not have had one
-	## before today.
+	## **Three vertices on one line**, where this was a Z with a doubling-back in
+	## it as recently as this afternoon. See `CASCADE_AXIS_Z` for why it could not be a
+	## line until the court got wide enough to hold the run.
 	##
-	## The first two segments are ground rather than treads and they are the paved
-	## ones; the third is the flight.
+	## The first segment is ground and is paved; the second is the flight.
 	&"west_stair": [
-		Vector2(-46.0, ARCH_AT.y), Vector2(STAIR_X, ARCH_AT.y),
-		Vector2(STAIR_X, STAIR_HEAD_Z), Vector2(STAIR_FOOT.x, STAIR_FOOT.z),
+		Vector2(-46.0, CASCADE_AXIS_Z), Vector2(CASCADE_TOP_X, CASCADE_AXIS_Z),
+		Vector2(STAIR_FOOT.x, CASCADE_AXIS_Z),
 	],
 
 	## The boardwalk, below and west of everything above.
@@ -799,11 +787,10 @@ const WALKWAYS := {
 	## The back lane is short on purpose. It is a service road with the bluff on
 	## one side and the backs of buildings on the other, and its whole job is to
 	## be the twenty metres before the reveal rather than somewhere to spend time.
-	## Off the last tread and out into the lane, where the walk turns north for the
-	## alley. One leg: the flight lands in the open now rather than inside a well
-	## with a door at the end of it.
+	## Off the last tread and straight on west across the court to the entry. One
+	## leg and no turn: the flight faces the way you were already going.
 	&"boardwalk_arrival": [
-		Vector2(STAIR_FOOT.x, STAIR_FOOT.z), Vector2(BACK_LANE_X, STAIR_FOOT.z),
+		Vector2(STAIR_FOOT.x, CASCADE_AXIS_Z), Vector2(BACK_LANE_X, CASCADE_AXIS_Z),
 	],
 	&"boardwalk_lane": [
 		Vector2(BACK_LANE_X, -30.0), Vector2(BACK_LANE_X, 40.0),
@@ -903,7 +890,7 @@ const WALKWAY_WIDTH := {
 	## the face while the route does not.
 	&"spoke_west": 8.0,
 	## The width of the flight it leads to.
-	&"west_stair": STAIR_W,
+	&"west_stair": FLIGHT_W,
 	&"boardwalk_arrival": 4.0,
 	&"boardwalk_lane": 6.0,
 	## The alley is the width of the hole in the frontage, which is what makes it
@@ -1035,6 +1022,89 @@ static func walkway_clearance(p: Vector2) -> float:
 	return best
 
 
+## How good a place to stand a prop is: the least of its clearances from the
+## paving, from the buildings, and from the fountain.
+##
+## The fountain is in here and not in `PLAZA_MASSES` because that list is
+## axis-aligned rectangles and this one is a circle 18m across — a box round it
+## would close the four diagonals of the skirt, which is exactly the ground the
+## benches want.
+static func stand_score(p: Vector2) -> float:
+	return minf(walkway_clearance(p),
+		minf(mass_clearance(p), p.length() - FOUNTAIN_RADIUS))
+
+
+## The nearest place to `p` that is not standing in a walkway, by `clear` metres.
+##
+## The companion to `open_spots`, and the reason it exists is that the two halves
+## of the plaza's furniture were placed by different rules and only one of them
+## was checked. What is *scattered* has been rejection-sampled against
+## `walkway_clearance` since the plaza grew; what is **hand-placed** — the ring
+## benches, the bins, the cart, the a-frames, the flagpoles, the picture-spot
+## signs — was typed in the old 80m coordinates and run through `plaza_out`, so
+## where it ends up is not where it is written. A coordinate that cleared the
+## paving at 80m has no reason to clear it at 104m, and 20-odd of them did not:
+## five benches and four bins stood in the ring walkway, the cart and an a-frame
+## in a threshold spoke, and a picture-spot sign dead on the entrance axis.
+##
+## So this keeps the authored position as the *intent* and makes clearing the
+## paving a rule, rather than re-typing twenty coordinates against a layout that
+## will move again. A prop pinned to a walkway edge stays pinned to it when the
+## walkway moves — which is the same bargain `plaza_out` already makes, one level
+## further on.
+##
+## Snap-to-edge and keep the best, rather than a gradient: a prop at a dogleg is
+## inside two runs at once and being pushed out of one puts it into the other, so
+## the move that matters is the whole way to an edge and the question is only
+## which edge. If nowhere clears — a passage mouth has walls at both hands — it
+## returns the best it found and leaves `clearance_test.gd` to say so, because a
+## prop that cannot be placed by rule is one somebody has to look at.
+static func clear_of_walkways(p: Vector2, clear: float) -> Vector2:
+	var out := p
+	var best := stand_score(out)
+	for _pass in 8:
+		if best >= clear:
+			break
+		var from := out
+		var moved := false
+		for run in walkway_segments():
+			var a: Vector2 = run["from"]
+			var b: Vector2 = run["to"]
+			var d := b - a
+			var l2 := d.length_squared()
+			var t := 0.0 if l2 < 0.0001 else clampf((from - a).dot(d) / l2, 0.0, 1.0)
+			var near := a + d * t
+			var off := from - near
+			var want := float(run["width"]) * 0.5 + clear
+			if off.length() >= want:
+				continue
+			# Standing on the centre line there is no "away" — take the segment's
+			# own normal, which is the direction a path is crossed.
+			var axis := off.normalized() if off.length() > 0.01 \
+				else Vector2(-d.y, d.x).normalized()
+			for side: float in [1.0, -1.0]:
+				var cand: Vector2 = near + axis * side * want
+				var score := stand_score(cand)
+				if score > best + 0.001:
+					best = score
+					out = cand
+					moved = true
+		if not moved:
+			break
+	return out
+
+
+## An assembly's base: dilated out of the old plaza, then stood clear of the
+## paving. `clear` is the prop's own half-footprint plus whatever margin it wants
+## — a bench is about 1.2, a bollard nothing at all.
+##
+## **Both generators call this rather than `plaza_out` alone**, because
+## `gen_crowd.gd` routes its guests around these props and a push applied in one
+## file and not the other is the same drift the cafe terrace already caused once.
+static func plaza_stand(p: Vector2, clear: float) -> Vector2:
+	return clear_of_walkways(plaza_out2(p), clear)
+
+
 ## Somewhere in the plaza's outer room to stand something.
 ##
 ## Generated by rejection rather than listed, and that is the lesson of the
@@ -1052,8 +1122,15 @@ static func walkway_clearance(p: Vector2) -> float:
 ## them and `gen_crowd.gd` asks for the same points with the same arguments so
 ## its guests route around the ones worth routing around — which is why this is
 ## here and not in either of them.
+## `avoid` is whatever is already standing, as `{at, r}` — the plaza's hand-placed
+## furniture, which this cannot otherwise see. It matters because the two halves
+## run in the wrong order: the hand-placed props go down first and are then
+## *pushed* clear of the paving by `clear_of_walkways`, so where they finish is
+## not where they were written, and the scatter that follows them was sampling
+## against the written positions. That is how a tree came to be growing through
+## the bandstand's west bench.
 static func open_spots(count: int, salt: int, r_min: float, r_max: float,
-		clear: float, apart: float) -> Array:
+		clear: float, apart: float, avoid: Array = []) -> Array:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 0x5EED0000 + salt
 	var out: Array = []
@@ -1070,6 +1147,18 @@ static func open_spots(count: int, salt: int, r_min: float, r_max: float,
 		if walkway_clearance(p) < clear:
 			continue
 		if mass_clearance(p) < clear:
+			continue
+		# Against `avoid` the margin is fixed and small, not `clear`. `clear` is
+		# how far this wants to be from a *wall* or a walkway, and a bench is
+		# neither: a crown overhanging a bench is a park and a trunk growing
+		# through one is not, so the only thing that has to be kept apart is the
+		# footprints. Reusing `clear` here cost five of the twenty-eight trees.
+		var taken := false
+		for o in avoid:
+			if p.distance_to(o["at"]) < float(o["r"]) + 0.9:
+				taken = true
+				break
+		if taken:
 			continue
 		var ok := true
 		for q in out:

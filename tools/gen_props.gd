@@ -131,7 +131,7 @@ func _initialize() -> void:
 	_root = Node3D.new()
 	_root.name = "west_stair"
 	_begin_scene()
-	_west_stair()
+	_west_cascade()
 	if not _save(_root, STAIR_PATH):
 		return
 
@@ -607,6 +607,13 @@ func _build_materials() -> void:
 		# the grey palette reads as a boulder on a stick. Dusty olive rather
 		# than leaf, so it sits with everything else rather than shouting.
 		"foliage": [Color(0.5, 0.56, 0.42), 0.95, 0.0],
+		# Planting, and the one place the park is allowed flowers. The cascade's
+		# terraces are the reason it reads as a garden rather than as civil
+		# engineering, so these are saturated where `foliage` is dusty.
+		"planting": [Color(0.36, 0.47, 0.31), 0.95, 0.0],
+		"bloom_warm": [Color(0.88, 0.62, 0.28), 0.9, 0.0],
+		"bloom_pink": [Color(0.84, 0.46, 0.55), 0.9, 0.0],
+		"bloom_pale": [Color(0.93, 0.9, 0.76), 0.9, 0.0],
 	}
 	for key in defs:
 		var m := StandardMaterial3D.new()
@@ -698,10 +705,46 @@ func _place(base: Vector3, local: Vector3, theta: float) -> Vector3:
 var _dilate_plaza := false
 
 
+## How far the prop being built now has to stand clear of the paving, or 0 to
+## leave it where it is written.
+##
+## Set around a group and cleared after, the way `_dilate_plaza` is. It is a
+## property of the *prop* rather than of the plaza — a bench wants a metre and a
+## bollard wants to be in the road — so it cannot live in the map.
+var _stand_clear := 0.0
+
+
 ## The map itself lives in `ParkPlan`, because `gen_crowd.gd` needs the same one
 ## to know where these props ended up.
+##
+## This is handed an assembly's **base** and only its base — `_place` adds the
+## part offsets afterwards — so pushing here moves a prop rigidly, and every part
+## of it gets the same answer because the input is the same point every time.
 func _plaza_out(p: Vector3) -> Vector3:
-	return Plan.plaza_out(p) if _dilate_plaza else p
+	var q := Plan.plaza_out(p) if _dilate_plaza else p
+	if _stand_clear <= 0.0:
+		return q
+	var c := Plan.clear_of_walkways(Vector2(q.x, q.z), _stand_clear)
+	_note_stood(c, _stand_clear)
+	return Vector3(c.x, q.y, c.y)
+
+
+## Where the plaza's hand-placed props actually finished, for the scatter that
+## comes after them to sample against.
+##
+## Only the ones that were **pushed** are in here, and that is the whole point:
+## a prop written where it stands can be avoided by reading the source, and a
+## prop pushed off the paving cannot. Recorded from `_plaza_out` rather than by
+## each caller so a group added later cannot forget to.
+var _stood: Array = []
+
+
+func _note_stood(at: Vector2, r: float) -> void:
+	for o in _stood:
+		if at.distance_to(o["at"]) < 0.01:
+			o["r"] = maxf(float(o["r"]), r)
+			return
+	_stood.append({"at": at, "r": r})
 
 
 ## How far apart two shapes' faces have to be before the depth buffer can tell
@@ -744,6 +787,11 @@ var _scene_seed := 0
 
 
 func _begin_scene() -> void:
+	# No prop group spans two scenes, so a margin still set when a scene ends is
+	# a `_stand_clear = 0.0` somebody forgot — and it would silently push the
+	# west's props against the *plaza's* walkways, forty metres away and one
+	# section over. Cleared here rather than trusted.
+	_stand_clear = 0.0
 	_seam_ordinal = _scene_seed
 	_scene_seed = (_scene_seed + 5) % SEAM_STEPS
 
@@ -940,7 +988,7 @@ func _paving() -> void:
 ## flight, because past that it is treads.
 func _terrace_paving() -> void:
 	_pave_run(&"spoke_west", PAVE_LIFT, "asphalt", 3, 1)
-	_pave_run(&"west_stair", PAVE_LIFT, "asphalt", 0, 2)
+	_pave_run(&"west_stair", PAVE_LIFT, "asphalt", 0, 1)
 
 
 func _walkway_paving(ids: Array, y: float, mat: String) -> void:
@@ -1049,7 +1097,10 @@ func _pave_quad(nm: String, centre: Vector3, size: Vector2, theta: float,
 func _trees() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 0x7EE5
-	var spots := Plan.open_spots(28, 11, 21.0, 35.0, 3.0, 6.0)
+	# 5.5m apart rather than 6.0. The furniture register took the outer room's
+	# spare ground down to where 28 trees no longer fitted at six, and half a
+	# metre of spacing is a cheaper thing to give up than a tree.
+	var spots := Plan.open_spots(28, 11, 21.0, 35.0, 3.0, 5.5, _stood)
 	for i in spots.size():
 		var p: Vector2 = spots[i]
 		var b := Vector3(p.x, 0, p.y)
@@ -1068,13 +1119,13 @@ func _trees() -> void:
 ## walk out to the perimeter needs and did not have, because until today there
 ## was no walk out to the perimeter.
 func _outer_furniture() -> void:
-	var lamps := Plan.open_spots(12, 21, 23.0, 33.0, 2.6, 9.0)
+	var lamps := Plan.open_spots(12, 21, 23.0, 33.0, 2.6, 9.0, _stood)
 	for i in lamps.size():
 		var b := Vector3(lamps[i].x, 0, lamps[i].y)
 		_cyl("lamp_o%d_pole" % i, b, Vector3(0, 2.1, 0), 0.09, 4.2, "metal", 0.0, 8)
 		_box("lamp_o%d_head" % i, b, Vector3(0, 4.13, 0), Vector3(0.5, 0.24, 0.5), "white")
 
-	var bins := Plan.open_spots(8, 31, 21.0, 34.0, 2.2, 8.0)
+	var bins := Plan.open_spots(8, 31, 21.0, 34.0, 2.2, 8.0, _stood)
 	for i in bins.size():
 		var b := Vector3(bins[i].x, 0, bins[i].y)
 		_cyl("bin_o%d_body" % i, b, Vector3(0, 0.42, 0), 0.32, 0.85, "metal")
@@ -1120,12 +1171,22 @@ const PICTURE_SPOTS := [
 ]
 
 
+## The sign has to stand *beside* the spot, not on it — which is the one prop in
+## the plaza where being in the walkway is not carelessness but the definition.
+## `PICTURE_SPOTS` names the ground the park wants you standing on, and two of
+## the four are on a spoke's own centre line because that is where the view is:
+## the axial one looks up the entrance street at the clock, which is `spoke_south`
+## exactly. So the point stays what it is and the board is stood off it, and the
+## aim is taken from where the board ends up rather than from where the spot is —
+## a sign that has moved four metres and is still pointing from the old place is
+## a sign pointing four degrees wide.
 func _picture_spots() -> void:
+	_stand_clear = 0.8
 	for i in PICTURE_SPOTS.size():
 		var at: Vector2 = PICTURE_SPOTS[i][0]
 		var look: Vector2 = PICTURE_SPOTS[i][1]
 		var b := Vector3(at.x, 0, at.y)
-		var th := _facing(b, Vector3(look.x, 0, look.y))
+		var th := _facing(_plaza_out(b), Vector3(look.x, 0, look.y))
 		_cyl("photospot_%d_post" % i, b, Vector3(0, 0.6, 0), 0.07, 1.2, "metal", th, 8)
 		_box("photospot_%d_board" % i, b, Vector3(0, 1.35, 0),
 			Vector3(0.9, 0.6, 0.06), "yellow", th)
@@ -1133,6 +1194,7 @@ func _picture_spots() -> void:
 		# photo sign rather than as a park map at ten metres.
 		_box("photospot_%d_icon" % i, b, Vector3(0, 1.35, 0.05),
 			Vector3(0.34, 0.24, 0.04), "far_shade", th, false)
+	_stand_clear = 0.0
 
 
 func _bench(nm: String, base: Vector3, theta: float) -> void:
@@ -1148,9 +1210,36 @@ func _facing(from: Vector3, target: Vector3) -> float:
 	return atan2(d.x, d.z)
 
 
+## A bench is 1.8m long and 0.55 deep and faces something, so it wants about a
+## metre of verge behind it and the walk in *front* of it rather than under it.
+const BENCH_CLEAR := 1.2
+
+
 func _benches() -> void:
+	# The ring of five round the fountain. They were on its skirt in the 80m
+	# plaza and the dilation put them in the road: the hub grew by 1.8 and the
+	# ring walkway moved out further than that, so radius 7.5 came out at 13.5
+	# and the ring is paved from 12 to 20. `_stand_clear` walks them back onto
+	# the skirt, which is where they were meant to be all along — a bench beside
+	# a fountain, with the walk behind it.
+	_stand_clear = BENCH_CLEAR
 	var r := 7.5
-	var degs := [25.0, 95.0, 165.0, 235.0, 305.0]
+	# The fourth bearing is 340 and not 235, and it took two goes to find out why.
+	#
+	# 235 put the bench on top of the snack cart, which is pushed onto the skirt
+	# from the mouth of `spoke_nnw` and lands at 243. Moving it to 210 was worse
+	# and instructively so: **the ring is a twelve-gon, and 210 is one of its
+	# vertices.** A prop pushed inward off a corner is 5.2m clear of the segment
+	# it was pushed from and only 0.8 clear of the next one round, so the rule
+	# scored the inward candidate below the outward one and put the bench at
+	# radius 21 — out in the open room, against the bandstand's own south bench.
+	# The skirt is pinched every 30 degrees and the gaps between are what it has.
+	#
+	# So the ring gives up being even. It was never going to stay even anyway:
+	# the cart, the stroller, the newspaper boxes, an a-frame and two bins are all
+	# pushed onto the same three metres of skirt, and five benches spaced 72 apart
+	# is a drawing rather than a plaza.
+	var degs := [25.0, 95.0, 165.0, 305.0, 340.0]
 	for i in degs.size():
 		var a := deg_to_rad(degs[i])
 		var p := Vector3(r * cos(a), 0.0, r * sin(a))
@@ -1167,18 +1256,43 @@ func _benches() -> void:
 	var hut := Vector3(Plan.PHOTO_HUT_AT.x, 0.0, Plan.PHOTO_HUT_AT.y)
 	_bench("bench_hut", hut + Vector3(-6.0, 0, -4.0), deg_to_rad(8))
 
+	# **The bandstand's three are re-beared rather than pushed, and that is the
+	# line between the two fixes.** A prop standing on open ground can be moved
+	# to the nearest clear metre and still be the same prop; a prop that belongs
+	# to a building cannot — pushed out of `spoke_nnw`, the east bench came out
+	# twelve metres away and stopped being one of a ring of three. So the ring
+	# keeps its radius and gives up the bearing instead.
+	#
+	# The bearing it gives up is the east one, because `spoke_nnw` runs down that
+	# side: from (−8, −13.86) to (−14, −30) it passes within four metres of the
+	# bandstand's east face, which is the paving's own half-width. There is no
+	# room for a bench there and there was not one before either — the old
+	# arrangement simply put one in the road. South, west and north it is, so you
+	# walk past the bandstand on one side and sit on the other three.
+	_stand_clear = 0.0
 	var band := Vector3(-20, 0, -20)
-	var bdegs := [20.0, 140.0, 260.0]
+	var bdegs := [90.0, 180.0, 270.0]
 	for i in bdegs.size():
 		var a := deg_to_rad(bdegs[i])
 		var p := band + Vector3(8.6 * cos(a), 0.0, 8.6 * sin(a))
 		_bench("bench_band_%d" % i, p, _facing(p, band))
+		# Told to the register by hand, because these are the one bench that is
+		# not pushed and `_plaza_out` only records what it moves. Without it the
+		# scatter that comes later cannot see them, and grew a tree through the
+		# west one — which is what opting out of the rule costs.
+		_note_stood(Vector2(p.x, p.z), BENCH_CLEAR)
 	_dilate_plaza = true
+	_stand_clear = BENCH_CLEAR
 	_bench("bench_sw", Vector3(-11, 0, 20), deg_to_rad(120))
 	_bench("bench_se", Vector3(2, 0, 22), deg_to_rad(200))
+	_stand_clear = 0.0
 
 
+## A lamp post is 18cm through and is *meant* to stand at the edge of a walk —
+## which is what this number says. Small, because a lamp on the verge is right
+## and a lamp two metres back in the grass is a lamp lighting nothing.
 func _lamps() -> void:
+	_stand_clear = 0.45
 	var spots := [
 		Vector2(13, -2), Vector2(9, -11), Vector2(-2, -13), Vector2(-13, -3),
 		Vector2(-11, 6), Vector2(-3, 13), Vector2(7, 14), Vector2(14, 9),
@@ -1188,18 +1302,33 @@ func _lamps() -> void:
 		var b := Vector3(spots[i].x, 0, spots[i].y)
 		_cyl("lamp_%d_pole" % i, b, Vector3(0, 2.1, 0), 0.09, 4.2, "metal", 0.0, 8)
 		_box("lamp_%d_head" % i, b, Vector3(0, 4.13, 0), Vector3(0.5, 0.24, 0.5), "white")
+	_stand_clear = 0.0
 
 
+## The four inner bins sit on the fountain's skirt with the benches, and are
+## written as bearings rather than as corners for that reason: on a circle they
+## can be *interleaved* with the bench ring, and a bin pushed onto the skirt from
+## a typed corner has no way of knowing a bench is already there. 60° off each
+## bench at radius ten is six metres of daylight, which is a bin beside a bench
+## rather than a bin in one.
 func _bins() -> void:
-	var spots := [
-		Vector2(5.5, 6), Vector2(-6, 5.5), Vector2(-6.5, -6), Vector2(6, -6.5),
+	_stand_clear = 0.6
+	var inner := [60.0, 130.0, 200.0, 270.0]
+	var spots := []
+	for a in inner:
+		spots.append(Vector2(8.1 * cos(deg_to_rad(a)), 8.1 * sin(deg_to_rad(a))))
+	# The last two moved off the picnic tables and the south planters. Both pairs
+	# were 2–3m apart as written and both halves of each pair are pushed outward,
+	# so they were converging rather than merely close.
+	spots.append_array([
 		Vector2(12, 12), Vector2(-14, 14), Vector2(3, -14),
-		Vector2(-19, 7), Vector2(-17, 18), Vector2(-6.5, 24), Vector2(8, 20),
-	]
+		Vector2(-19, 7), Vector2(-21, 20), Vector2(-10, 22), Vector2(8, 20),
+	])
 	for i in spots.size():
 		var b := Vector3(spots[i].x, 0, spots[i].y)
 		_cyl("bin_%d_body" % i, b, Vector3(0, 0.42, 0), 0.32, 0.85, "metal")
 		_cyl("bin_%d_lid" % i, b, Vector3(0, 0.865, 0), 0.36, 0.1, "blue")
+	_stand_clear = 0.0
 
 
 ## Read out of `ParkPlan.PLAZA_CAFE` rather than declared here, because
@@ -1248,14 +1377,21 @@ func _bollards() -> void:
 		_cyl("bollard_n_%d" % i, Vector3(-4 + i * 3.0, 0, -20), Vector3(0, 0.45, 0), 0.13, 0.9, "metal", 0.0, 8)
 	for i in 5:
 		_cyl("bollard_s_%d" % i, Vector3(-6 + i * 3.0, 0, 30), Vector3(0, 0.45, 0), 0.13, 0.9, "metal", 0.0, 8)
+	# Neither the bollard lines nor the planters are pushed — a bollard line
+	# crosses the walk because that is what bollards are for, and the planters
+	# stand at the ends of it. The planters go on the register anyway: they are
+	# 2.6m square, which is the largest thing in the plaza the tree scatter would
+	# otherwise be free to grow through.
 	var pl := [Vector2(-7, 26), Vector2(4, 26)]
 	for i in pl.size():
 		_box("planter_s_%d" % i, Vector3(pl[i].x, 0, pl[i].y), Vector3(0, 0.45, 0), Vector3(2.6, 0.9, 2.6), "accent")
+		_note_stood(Plan.plaza_out2(pl[i]), 2.0)
 
 
 ## Two panels leaning together at the top. The tilt is about each panel's own
 ## X axis, and the offset is rotated by the same transform, so the tops meet.
 func _aframes() -> void:
+	_stand_clear = 0.8
 	var spots := [Vector2(3, 10), Vector2(-9, -2), Vector2(12, -8)]
 	var turns := [22.0, -40.0, 115.0]
 	var lean := deg_to_rad(11.0)
@@ -1264,42 +1400,68 @@ func _aframes() -> void:
 		var th := deg_to_rad(turns[i])
 		_box("aframe_%d_a" % i, b, Vector3(0, 0.54, -0.16), Vector3(0.9, 1.1, 0.05), "wood", th, true, lean)
 		_box("aframe_%d_b" % i, b, Vector3(0, 0.54, 0.16), Vector3(0.9, 1.1, 0.05), "yellow", th, true, -lean)
+	_stand_clear = 0.0
 
 
+## **One base with two boxes hung off it, where this was two bases 90cm apart.**
+## They have to move together or not at all: pushed independently, two props that
+## close together snap to nearly the same point on the same paved edge and end up
+## inside each other, which is a worse fault than the one being fixed. Anything
+## that reads as a pair gets built as a pair — see `_flagpoles` for the other.
 func _newsboxes() -> void:
-	var spots := [Vector2(3.4, 7.6), Vector2(2.5, 7.4)]
-	for i in spots.size():
-		var b := Vector3(spots[i].x, 0, spots[i].y)
+	_stand_clear = 0.8
+	var b := Vector3(3.0, 0, 7.5)
+	for i in 2:
 		var th := deg_to_rad(12.0 + i * 20.0)
-		_box("newsbox_%d_body" % i, b, Vector3(0, 0.45, 0), Vector3(0.45, 0.9, 0.4), "red", th)
-		_box("newsbox_%d_top" % i, b, Vector3(0, 0.9, 0), Vector3(0.5, 0.08, 0.45), "metal", th)
+		# Shoulder to shoulder is right for newspaper boxes; inside each other is
+		# not, and 0.45 apart with a 0.45 box is the second one.
+		var at := Vector3(0.62 * (float(i) - 0.5), 0.0, 0.14 * (float(i) - 0.5))
+		_box("newsbox_%d_body" % i, b, at + Vector3(0, 0.45, 0), Vector3(0.45, 0.9, 0.4), "red", th)
+		_box("newsbox_%d_top" % i, b, at + Vector3(0, 0.9, 0), Vector3(0.5, 0.08, 0.45), "metal", th)
+	_stand_clear = 0.0
 
 
+## A pair, and built as one assembly for the reason `_newsboxes` gives — but here
+## the failure is the opposite one and just as bad. The two poles stood 5m apart
+## on the same line, and only the eastern one was in `spoke_ne`; pushed one at a
+## time, one would move and one would not, and two flagpoles that no longer
+## agree about where the line is are not a pair any more.
+## `_stand_clear` is asked for on the **base**, so a wide assembly has to ask for
+## its own half-width on top of the margin it wants. Five metres of pair is 2.5
+## of that, and asking for 0.5 like a single pole would left the base clear and
+## the east pole still half a metre inside `spoke_ne`.
 func _flagpoles() -> void:
-	var xs := [15.5, 20.5]
+	_stand_clear = 3.0
+	var b := Vector3(18.0, 0, -16.0)
 	var shades := ["red", "yellow"]
-	for i in xs.size():
-		var b := Vector3(xs[i], 0, -16)
-		_cyl("flagpole_%d_pole" % i, b, Vector3(0, 3.0, 0), 0.07, 6.0, "white", 0.0, 8)
-		_box("flagpole_%d_banner" % i, b, Vector3(0, 4.6, 0.35), Vector3(0.08, 2.2, 0.7), shades[i], 0.0, false)
+	for i in shades.size():
+		var at := Vector3(2.5 * (float(i) * 2.0 - 1.0), 0.0, 0.0)
+		_cyl("flagpole_%d_pole" % i, b, at + Vector3(0, 3.0, 0), 0.07, 6.0, "white", 0.0, 8)
+		_box("flagpole_%d_banner" % i, b, at + Vector3(0, 4.6, 0.35),
+			Vector3(0.08, 2.2, 0.7), shades[i], 0.0, false)
+	_stand_clear = 0.0
 
 
 func _cart() -> void:
+	_stand_clear = 1.5
 	var c := Vector3(-6, 0, -10)
 	var th := deg_to_rad(-18.0)
 	_box("cart_body", c, Vector3(0, 0.6, 0), Vector3(2.0, 1.2, 1.1), "white", th)
 	_box("cart_roof", c, Vector3(0, 1.55, 0), Vector3(2.4, 0.1, 1.5), "red", th)
 	_cyl("cart_wheel_l", c, Vector3(-0.8, 0.22, 0.6), 0.22, 0.1, "metal", th + PI / 2, 10)
 	_cyl("cart_wheel_r", c, Vector3(0.8, 0.22, 0.6), 0.22, 0.1, "metal", th + PI / 2, 10)
+	_stand_clear = 0.0
 
 
 func _stroller() -> void:
+	_stand_clear = 0.9
 	var s := Vector3(-3.2, 0, 8.4)
 	var th := deg_to_rad(34.0)
 	_box("stroller_basket", s, Vector3(0, 0.62, 0), Vector3(0.55, 0.5, 0.8), "blue", th)
 	_box("stroller_handle", s, Vector3(0, 0.86, -0.28), Vector3(0.5, 0.06, 0.06), "metal", th)
 	_cyl("stroller_leg", s, Vector3(0, 0.19, 0), 0.04, 0.38, "metal", th, 6)
 	_cyl("stroller_wheel", s, Vector3(0, 0.1, 0.34), 0.1, 0.06, "metal", th + PI / 2, 8)
+	_stand_clear = 0.0
 
 
 ## Leaning against the west face of building_east, which starts at x = 20.
@@ -1380,6 +1542,7 @@ func _litter() -> void:
 
 
 func _picnic() -> void:
+	_stand_clear = 1.4
 	var spots := [Vector2(-13, 18), Vector2(-17, 15)]
 	var turns := [25.0, -15.0]
 	for i in spots.size():
@@ -1390,6 +1553,7 @@ func _picnic() -> void:
 		_box("picnic_%d_bench_b" % i, b, Vector3(0, 0.44, -0.72), Vector3(1.7, 0.08, 0.32), "wood", th)
 		_box("picnic_%d_leg_a" % i, b, Vector3(-0.7, 0.37, 0), Vector3(0.1, 0.75, 1.7), "metal", th)
 		_box("picnic_%d_leg_b" % i, b, Vector3(0.7, 0.37, 0), Vector3(0.1, 0.75, 1.7), "metal", th)
+	_stand_clear = 0.0
 
 
 func _crates() -> void:
@@ -1676,33 +1840,12 @@ func _pier_far(root: Vector3) -> void:
 		0.3, 5.0, "far_shade", 0.0, 6, false)
 
 
-## The way down: **one straight flight, four metres wide, hung on the face of the
-## bluff.**
-##
-## It was two narrow flights with a corner between them, descending a slot cut in
-## the rock to a door in a blank cliff. The corner was the point — a flight that
-## turns puts a wall between the terrace and wherever it comes out, and that is
-## where a section load could hide.
-##
-## **The load moved to the arch on 2026-08-14 and the corner stopped paying for
-## anything.** What it left behind was a 2.6m service stair with four direction
-## changes, invisible from both ends: from the terrace an unbroken parapet with
-## no way down in sight, from the promenade a cliff with a service door in it.
-## Neither end looked like the other because nothing joining them could be seen
-## from either.
-##
-## So the flight came out of the rock and onto the front of it. From the lane you
-## see it climbing to the bluff top with the parapet and the arch above; from the
-## terrace it is what you walk out of the tunnel facing. Same object from both
-## sides, which is the whole of what was wrong.
-##
-## The bluff top behind the parapet is walkable now — it used to be the roof of a
-## slot — so the sequence is: out of the tunnel, six metres of terrace, through
-## the gap, seven metres of bluff top, onto the head deck, one turn, and down.
-const STAIR_W := Plan.STAIR_W
-const STAIR_RISE := Plan.STAIR_RISE
-const STAIR_GOING := Plan.STAIR_GOING
-const STAIR_X := Plan.STAIR_X
+## The descent, and the whole of it is `_west_cascade` below. What used to live
+## here — a 2.6m flight in a slot, then on the face, then a switchback ramp
+## beside it — is all gone; see `ParkPlan.CASCADE_AXIS_Z` for the history and
+## why the shape kept moving.
+const FLIGHT_RISE := Plan.FLIGHT_RISE
+const FLIGHT_GOING := Plan.FLIGHT_GOING
 
 
 ## The treads are scenery and the ramp under them is the floor.
@@ -1738,118 +1881,257 @@ func _flight_ramp(nm: String, top_a: Vector3, top_b: Vector3, theta: float,
 	# the nosings sit on.
 	var up := (Basis(Vector3.UP, theta) * Basis(Vector3.RIGHT, phi)).y
 	_box(nm, mid - up * (thickness * 0.5), Vector3.ZERO,
-		Vector3(width if width > 0.0 else STAIR_W, thickness, span.length()),
+		Vector3(width if width > 0.0 else 4.0, thickness, span.length()),
 		mat, theta, true, phi)
 
 
-func _west_stair() -> void:
-	var face := Plan.BLUFF_FACE_X
-	var head := Plan.STAIR_HEAD_Z
-	var treads := Plan.STAIR_TREADS
-	var drop := STAIR_RISE * treads
-	var run := STAIR_GOING * treads
-	var foot_z := Plan.STAIR_FOOT.z
-	var foot_y := Plan.STAIR_FOOT.y
+## The cascade: the whole descent as one monument. See `ParkPlan.CASCADE_AXIS_Z`.
+##
+## Built rather than cut, because the park has no CSG subtraction in its
+## vocabulary — the arched niches are a gap left between jambs with a stepped
+## head over it, which at greybox scale reads as an arch and at any scale reads
+## as deliberate.
+func _west_cascade() -> void:
+	var axis := Plan.CASCADE_AXIS_Z
+	var top_x := Plan.CASCADE_TOP_X
+	var drop := Plan.CASCADE_DROP
+	var floor_y := SHORE_TOP
+	var risers := int(round(drop / FLIGHT_RISE))
+	var run := FLIGHT_GOING * risers
+	var half := Plan.FLIGHT_W * 0.5
 
-	# The head deck. A platform at the plaza's own level standing out over the
-	# lane, level with the bluff top so the walk from the parapet gap is flat, with
-	# the flight coming off its south edge. Posts under it, because a four-metre
-	# slab cantilevered off a cliff with nothing holding it up reads as an error.
-	var deck_from := Plan.STAIR_DECK_FROM_Z
-	_box("stair_deck", Vector3.ZERO,
-		Vector3(STAIR_X, -0.25, (deck_from + head) * 0.5),
-		Vector3(STAIR_W, 0.5, head - deck_from), "accent")
+	# --- the middle flight, straight down the arch's axis ---
+	for i in risers:
+		var top := -FLIGHT_RISE * (i + 1)
+		var x := top_x - FLIGHT_GOING * (i + 0.5)
+		_box("cascade_tread_%d" % i, Vector3.ZERO, Vector3(x, top - 0.26, axis),
+			Vector3(FLIGHT_GOING, 0.5, Plan.FLIGHT_W + 0.8), "accent", 0.0, false)
+		_box("cascade_nosing_%d" % i, Vector3.ZERO,
+			Vector3(top_x - FLIGHT_GOING * (i + 1), top + 0.015, axis),
+			Vector3(0.16, 0.03, Plan.FLIGHT_W - 0.2), "far_shade", 0.0, false)
+	_flight_ramp("cascade_ramp", Vector3(top_x, 0.0, axis),
+		Vector3(top_x - run, -drop, axis), -PI * 0.5, Plan.FLIGHT_W, "far_shade")
+	_box("cascade_foot", Vector3.ZERO,
+		Vector3(top_x - run - 0.9, floor_y - 0.28, axis),
+		Vector3(2.4, 0.5, Plan.FLIGHT_W + 0.8), "accent")
+	# The apron at the bottom: two broad shallow steps spreading into the court,
+	# which is what the Cascade does and what stops a flight ending in a line.
 	for i in 2:
-		var pz := lerpf(deck_from + 0.6, head - 0.6, float(i))
-		_box("deck_post_%d" % i, Vector3.ZERO,
-			Vector3(STAIR_X - STAIR_W * 0.5 + 0.4, (foot_y - 0.5) * 0.5, pz),
-			Vector3(0.36, -foot_y + 0.5, 0.36), "far_shade", 0.0, false)
+		_box("cascade_apron_%d" % i, Vector3.ZERO,
+			Vector3(top_x - run - 2.2 - float(i) * 1.1, floor_y - 0.1 - float(i) * 0.1,
+				axis),
+			Vector3(1.1, 0.2 + float(i) * 0.2, Plan.FLIGHT_W + 2.4 + float(i) * 2.4),
+			"accent")
 
-	# The flight. Treads are scenery over a ramp — see `_flight_ramp` — and it runs
-	# south, away from the alley, which is what keeps the reveal at the hole in the
-	# frontage for the walk back north.
-	for i in treads:
-		var top := -STAIR_RISE * (i + 1)
-		var z := head + STAIR_GOING * (i + 0.5)
-		# A centimetre under the line, because the last tread's top is at −6 and so
-		# is the shore's, and the treads are hidden beneath the ramp regardless —
-		# what shows of them is the stepped edge each side of it.
-		_box("tread_%d" % i, Vector3.ZERO, Vector3(STAIR_X, top - 0.26, z),
-			Vector3(STAIR_W + 1.0, 0.5, STAIR_GOING), "accent", 0.0, false)
-		# The nosing, three centimetres proud of the ramp, which is what makes the
-		# flight read as a stair from on top of it rather than as a slope.
-		_box("nosing_%d" % i, Vector3.ZERO,
-			Vector3(STAIR_X, top + 0.015, head + STAIR_GOING * (i + 1)),
-			Vector3(STAIR_W - 0.12, 0.03, 0.16), "far_shade", 0.0, false)
-	# Grey, and narrower than the treads. It is the soffit as well as the floor —
-	# from the lane you stand under this — so it wants to read as the structure of
-	# a stair and not as one more painted tread.
-	_flight_ramp("stair_ramp", Vector3(STAIR_X, 0.0, head),
-		Vector3(STAIR_X, -drop, head + run), 0.0, STAIR_W, "far_shade")
+	_cascade_wall(-1.0)
+	_cascade_wall(1.0)
+	_cascade_portal()
+	_cascade_wing(-1.0, true)
+	_cascade_wing(1.0, false)
 
-	# The slab at the bottom, on the lane's own deck, and a cheek wall under the
-	# open side of the flight so it stands on something from the lane rather than
-	# floating over it.
-	# Buried a hair, because the shore's top face is at exactly this height and the
-	# lane's deck sits 4cm over it. This is a footing under the end of the ramp
-	# rather than a step, and the deck is what the player actually walks out onto.
-	_box("stair_foot", Vector3.ZERO, Vector3(STAIR_X, foot_y - 0.28, foot_z),
-		Vector3(STAIR_W, 0.5, STAIR_W * 0.5), "accent")
-	# What holds the flight up, and it is open rather than solid on purpose. A
-	# cheek wall down the west side made the whole thing read from the lane as one
-	# grey wedge — you stand under a stair and what you see is its soffit, so the
-	# soffit is what has to have something in it. A stringer and four bents give it
-	# depth and let the light through, which is also how a stair on a seafront is
-	# actually built.
-	var slope := atan2(drop, run)
-	var length := sqrt(run * run + drop * drop)
-	_box("stair_stringer", Vector3.ZERO,
-		Vector3(STAIR_X - STAIR_W * 0.5 + 0.16, -drop * 0.5 - 0.5, head + run * 0.5),
-		Vector3(0.32, 0.7, length), "far_shade", 0.0, false, slope)
-	for i in 4:
-		var t := (float(i) + 0.7) / 4.4
-		var bz := head + run * t
-		var by := -drop * t
-		for side in [-1.0, 1.0]:
-			_box("stair_bent_%d_%d" % [i, int(side + 1)], Vector3.ZERO,
-				Vector3(STAIR_X + side * (STAIR_W * 0.5 - 0.35),
-					(by - 0.6 + foot_y) * 0.5, bz),
-				Vector3(0.3, by - 0.6 - foot_y, 0.3), "far_shade", 0.0, false)
-		_box("stair_beam_%d" % i, Vector3.ZERO,
-			Vector3(STAIR_X, by - 0.75, bz), Vector3(STAIR_W - 0.4, 0.3, 0.3),
-			"far_shade", 0.0, false)
+	# --- the eyes ---
+	#
+	# Two globes on the wall heads, level with each other and set either side of
+	# the flight where the wings spring. On a ray that is exactly where the eyes
+	# sit, and from the pier — 130m out, which is where this thing is meant to be
+	# looked at — they are the two points that make the silhouette read as a face
+	# rather than as masonry.
+	for side in [-1.0, 1.0]:
+		var ez: float = axis + side * (half + 1.6)
+		_cyl("cascade_eye_post_%d" % int(side + 1), Vector3.ZERO,
+			Vector3(top_x - 1.4, 1.5, ez), 0.16, 3.0, "metal", 0.0, 8)
+		_sphere("cascade_eye_%d" % int(side + 1),
+			Vector3(top_x - 1.4, 3.35, ez), 0.55, "white")
 
-	# A rail down the open west side of the flight and round the head deck. The
-	# east side needs none: the bluff is the wall there, which is the whole point
-	# of hanging the flight on it.
-	_box("stair_rail", Vector3.ZERO,
-		Vector3(STAIR_X - STAIR_W * 0.5 - 0.1, -drop * 0.5 + 0.55, head + run * 0.5),
-		Vector3(0.2, 1.0, sqrt(run * run + drop * drop)), "metal", 0.0, true, slope)
-	_box("deck_rail_w", Vector3.ZERO,
-		Vector3(STAIR_X - STAIR_W * 0.5 - 0.1, 0.55, (deck_from + head) * 0.5),
-		Vector3(0.2, 1.1, head - deck_from), "metal")
-	_box("deck_rail_n", Vector3.ZERO,
-		Vector3(STAIR_X - 0.1, 0.55, deck_from - 0.1),
-		Vector3(STAIR_W - 0.2, 1.1, 0.2), "metal")
 
-	# The edge of the bluff top, either side of the deck. Without it the parapet
-	# gap opens onto a six-metre drop with nothing between.
-	for run_z in [[Plan.BLUFF_TOP_FROM_Z, deck_from - 0.1],
-			[head + 0.1, Plan.BLUFF_TOP_TO_Z]]:
-		var a: float = run_z[0]
-		var b: float = run_z[1]
-		_box("bluff_edge_%.0f" % a, Vector3.ZERO,
-			Vector3(face + 0.45, 0.5, (a + b) * 0.5),
-			Vector3(0.9, 1.0, b - a), "accent")
+## One half of the mass the flight is cut into, and the niche in its west face.
+func _cascade_wall(side: float) -> void:
+	var axis := Plan.CASCADE_AXIS_Z
+	var top_x := Plan.CASCADE_TOP_X
+	var drop := Plan.CASCADE_DROP
+	var floor_y := SHORE_TOP
+	var half := Plan.FLIGHT_W * 0.5
+	var tag := "n" if side < 0.0 else "s"
+	# The head of the wall, between the flight and where the wing springs.
+	var from_z := axis + side * (half + 0.2)
+	var to_z := axis + side * (half + 5.0)
+	_box("cascade_head_%s" % tag, Vector3.ZERO,
+		Vector3(top_x - 1.6, -drop * 0.5, (from_z + to_z) * 0.5),
+		Vector3(3.2, drop, absf(to_z - from_z)), "building")
+	_box("cascade_head_cap_%s" % tag, Vector3.ZERO,
+		Vector3(top_x - 1.6, 0.22, (from_z + to_z) * 0.5),
+		Vector3(3.6, 0.44, absf(to_z - from_z) + 0.4), "white")
 
-	# And its two ends, on the terrace's own lines. The bluff top is seven metres
-	# of ledge running the length of the map; these are what make it a place rather
-	# than a way to walk to the coaster.
+
+## The portal: an arched gate standing in the court on the axis, a few metres
+## west of the flight's foot.
+##
+## The arch was going to be a pair of niches flanking the flight, because the
+## flight owns the axis and a niche cannot share it. Then the point of having an
+## arch at all turned out to be **alignment**: the boardwalk's entry, this, and
+## the plaza's tunnel are all on x = the same line, at rising heights, so from
+## the head of the pier you look back east through three arches stacked one
+## behind the other with the cascade's wings spread between them. Two niches off
+## to the sides give you none of that. So it comes off the wall and stands in the
+## court as a gate you actually walk through.
+func _cascade_portal() -> void:
+	var axis := Plan.CASCADE_AXIS_Z
+	var floor_y := SHORE_TOP
+	var risers := int(round(Plan.CASCADE_DROP / FLIGHT_RISE))
+	var x := Plan.CASCADE_TOP_X - FLIGHT_GOING * risers - 5.4
+	var clear := 2.8
+	var opening := 4.4
+
+	# Two piers and the mass over them, with a stepped head that reads as an arch
+	# at greybox scale.
 	for i in 2:
-		var wz: float = Plan.BLUFF_TOP_FROM_Z if i == 0 else Plan.BLUFF_TOP_TO_Z
-		_box("bluff_top_end_%d" % i, Vector3.ZERO,
-			Vector3((face + Plan.BLUFF_BACK_X) * 0.5 - 0.2, 1.15, wz),
-			Vector3(Plan.BLUFF_BACK_X - face - 0.4, 2.3, 0.9), "building")
+		var pz := axis + (-1.0 if i == 0 else 1.0) * (opening * 0.5 + 1.1)
+		_box("portal_pier_%d" % i, Vector3.ZERO,
+			Vector3(x, floor_y + 2.1, pz), Vector3(1.8, 4.2, 2.2), "building")
+	for i in 3:
+		var w := opening + 2.2 - float(i) * 0.7
+		_box("portal_arch_%d" % i, Vector3.ZERO,
+			Vector3(x, floor_y + clear + 0.16 + float(i) * 0.3, axis),
+			Vector3(1.8, 0.3, w), "building")
+	_box("portal_lintel", Vector3.ZERO,
+		Vector3(x, floor_y + 4.3, axis), Vector3(1.8, 1.2, opening + 2.2), "building")
+	_box("portal_cap", Vector3.ZERO,
+		Vector3(x, floor_y + 5.0, axis), Vector3(2.4, 0.42, opening + 3.0), "white")
+	# A pediment over the middle, because the silhouette from the pier is most of
+	# what this is for.
+	_box("portal_pediment", Vector3.ZERO,
+		Vector3(x, floor_y + 5.7, axis), Vector3(1.6, 1.0, opening * 0.7), "building")
+	_box("portal_finial", Vector3.ZERO,
+		Vector3(x, floor_y + 6.5, axis), Vector3(0.5, 0.7, 0.5), "accent")
+
+
+## A wing: the wall sweeping out and down, with a deck riding on it. `smooth`
+## makes it the ramp; otherwise it is the garden stair — short flights and long
+## landings on the same diagonal, so the two sides match from the court.
+func _cascade_wing(side: float, smooth: bool) -> void:
+	var axis := Plan.CASCADE_AXIS_Z
+	var top_x := Plan.CASCADE_TOP_X
+	var drop := Plan.CASCADE_DROP
+	var floor_y := SHORE_TOP
+	var half := Plan.FLIGHT_W * 0.5
+	var tag := "n" if side < 0.0 else "s"
+
+	# On the west face of the wall head, not inside it. The wing used to start at
+	# (top_x − 1, half + 0.4), which is squarely within `cascade_head_*` — so a
+	# player could leave the wing but never walk *to* its top, and `walk_test`
+	# reported it as a body wandering off across the bluff looking for a point
+	# buried in masonry.
+	var a := Vector2(top_x - 3.2, axis + side * (half + 2.6))
+	var b := Vector2(Plan.WING_TIP_X, axis + side * Plan.WING_TIP_Z)
+	var span := b - a
+	var length := span.length()
+	var theta := atan2(span.x, span.y)
+	var mid := (a + b) * 0.5
+	var slope := atan2(drop, length)
+	# The outboard normal, taken from the wing's own direction and turned to the
+	# side away from the axis. Rotating theta by ±90° and hoping does not work:
+	# the wings are mirrored, so one fixed rotation lands outboard on one and
+	# inboard on the other, and `walk_test` walked off whichever it got wrong.
+	var out_n := Vector2(-span.y, span.x).normalized()
+	if out_n.y * side < 0.0:
+		out_n = -out_n
+
+	# The wall itself — the wing. Its top edge is the diagonal that gives the
+	# monument its silhouette, so this is the piece that has to be right.
+	_box("wing_wall_%s" % tag, Vector3(mid.x, -drop * 0.5 - 1.2, mid.y),
+		Vector3.ZERO, Vector3(Plan.WING_W + 2.6, 2.4, length), "building",
+		theta, true, slope)
+	_box("wing_cap_%s" % tag, Vector3(mid.x, -drop * 0.5 + 0.22, mid.y),
+		Vector3.ZERO, Vector3(Plan.WING_W + 3.2, 0.44, length), "white",
+		theta, true, slope)
+
+	# The deck that rides on it.
+	if smooth:
+		_flight_ramp("wing_ramp_%s" % tag,
+			Vector3(a.x, 0.0, a.y), Vector3(b.x, -drop, b.y), theta,
+			Plan.WING_W, "far_shade")
+	else:
+		# Four flights of three risers with long level landings between, which
+		# covers the same diagonal at the same average fall as the ramp opposite.
+		var flights := 4
+		for f in flights:
+			var t0 := float(f) / float(flights)
+			var t1 := float(f + 1) / float(flights)
+			var y0 := -drop * t0
+			var y1 := -drop * t1
+			var p0 := a.lerp(b, t0)
+			var p1 := a.lerp(b, t0 + (t1 - t0) * 0.55)
+			var p2 := a.lerp(b, t1)
+			# The landing.
+			var lm := (p0 + p1) * 0.5
+			_box("wing_landing_%s_%d" % [tag, f],
+				Vector3(lm.x, y0 - 0.25, lm.y), Vector3.ZERO,
+				Vector3(Plan.WING_W, 0.5, p0.distance_to(p1)), "accent", theta)
+			# And the three risers that drop to the next one.
+			_flight_ramp("wing_step_%s_%d" % [tag, f],
+				Vector3(p1.x, y0, p1.y), Vector3(p2.x, y1, p2.y), theta,
+				Plan.WING_W, "far_shade")
+			for r in 3:
+				var tr := float(r + 1) / 3.0
+				var pr := p1.lerp(p2, tr)
+				_box("wing_nosing_%s_%d_%d" % [tag, f, r], Vector3(pr.x,
+					y0 + (y1 - y0) * tr + 0.015, pr.y), Vector3.ZERO,
+					Vector3(Plan.WING_W - 0.2, 0.03, 0.16), "far_shade", theta, false)
+
+	# Rails down **both** edges, as posts and a top rail rather than a slab.
+	#
+	# Both, because a wing is an elevated causeway across the court and not a path
+	# against a bank — there is a three-metre drop off either side of it. One rail
+	# was built on the assumption there was an inboard bank to lean on, and the
+	# probe walked straight off the other side.
+	# **Stopping three metres short of the tip**, which is not an oversight. At the
+	# tip the wing has finished its drop and is flush with the court, so there is
+	# nothing there to fall off — and a rail carried all the way to the end fences
+	# the one place the wing is supposed to deliver you. It did exactly that: both
+	# `wing -> court` legs timed out with the player sliding down the outside of a
+	# rail instead of stepping off the end of the ramp.
+	var open_end := 3.0
+	var t_end := 1.0 - open_end / length
+	var rail_len := length - open_end
+	var posts := maxi(2, int(rail_len / 2.6))
+	for e in 2:
+		var n: Vector2 = out_n if e == 0 else -out_n
+		var off := n * (Plan.WING_W * 0.5 + 0.2)
+		for i in posts + 1:
+			var t := t_end * float(i) / float(posts)
+			var p := a.lerp(b, t)
+			var py := -drop * t
+			_cyl("wing_post_%s_%d_%d" % [tag, e, i], Vector3.ZERO,
+				Vector3(p.x + off.x, py + 0.55, p.y + off.y), 0.06, 1.1, "metal", 0.0, 6)
+		var rm := a.lerp(b, t_end * 0.5)
+		_box("wing_rail_%s_%d" % [tag, e],
+			Vector3(rm.x + off.x, -drop * t_end * 0.5 + 1.02, rm.y + off.y), Vector3.ZERO,
+			Vector3(0.12, 1.0, rail_len), "metal", theta, true, slope)
+
+	# --- the planting ---
+	#
+	# The terraces are what turn this from civil engineering into a garden, and
+	# they are the reason the thing is worth looking back at from the pier. Beds
+	# stepping down the inner side of the wing, between the deck and the bluff.
+	var beds := 7
+	for i in beds:
+		var t := (float(i) + 0.5) / float(beds)
+		var p := a.lerp(b, t)
+		var py := -drop * t
+		var inn := -out_n * (Plan.WING_W * 0.5 + 1.5)
+		var bx := p.x + inn.x
+		var bz := p.y + inn.y
+		_box("wing_bed_%s_%d" % [tag, i], Vector3(bx, py - 0.1, bz), Vector3.ZERO,
+			Vector3(2.6, 0.5, 3.4), "accent", theta)
+		_box("wing_soil_%s_%d" % [tag, i], Vector3(bx, py + 0.2, bz), Vector3.ZERO,
+			Vector3(2.2, 0.3, 3.0), "planting", theta, false)
+		for k in 5:
+			var hx := bx + (_hash01(i * 7 + k, 3, 29) - 0.5) * 1.7
+			var hz := bz + (_hash01(i * 7 + k, 5, 31) - 0.5) * 2.4
+			var bloom: String = ["bloom_warm", "bloom_pink", "bloom_pale"][(i + k) % 3]
+			_sphere("wing_bloom_%s_%d_%d" % [tag, i, k],
+				Vector3(hx, py + 0.5, hz), 0.26 + _hash01(k, 2, 17) * 0.14, bloom)
+
 
 	# The seam used to be three nodes here — preload at the head of the flight,
 	# crossing in front of the shut gate at the foot, and the whole turned stair
