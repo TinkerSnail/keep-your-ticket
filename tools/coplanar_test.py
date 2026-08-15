@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Dev tool: finds surfaces that will z-fight, across all six world scenes.
+"""Dev tool: finds surfaces that will z-fight, across every world scene.
 
     python3 tools/coplanar_test.py
 
@@ -14,13 +14,45 @@ opposite ways and one is culled. The fight needs both faces pointing the SAME
 way, at the same depth, over a shared footprint.
 
 This reads the .tscn text rather than loading Godot, which is the point: it
-takes a second, so it can run after every regeneration. It is also the only
-check that sees hand-authored plaza.tscn and the generated scenes at once, and
-the seams that actually go wrong are exactly the ones where two authors meet.
+takes a couple of seconds, so it can run after every regeneration. It is also
+the only check that sees hand-authored plaza.tscn and the generated scenes at
+once, and the seams that actually go wrong are exactly the ones where two
+authors meet.
+
+**It covers MeshInstance3D as well as CSG since 2026-08-14c**, which is most of
+what it now looks at: the park is 3,228 CSG shapes and 3,021 meshes, and every
+one of the meshes is a person. Before that the first line read "if not
+type.startswith('CSG'): continue", so it opened both crowd scenes, found nothing
+in them, and reported zero pairs -- which was true and meant nothing. Guest
+bodies had never been checked by it at all, including on the day the heels of
+every guest in the park were found to be z-fighting by someone playing the game.
+
+Covering meshes needed three things that CSG did not:
+
+* **Parent transforms have to be composed.** No CSG node in this park is nested;
+  every guest part is, three and four deep. A guest's shin is placed relative to
+  a knee, relative to a hip, relative to a body.
+* **Comparisons happen inside a frame, not in world space.** Every guest is
+  rotated to its own heading, so composing to world would make all 3,021 meshes
+  non-axis-aligned and skip the lot. Instead, a node whose own basis is not
+  axis-aligned starts a new frame, and shapes are only compared with others in
+  the same one. Two faces coplanar in a shared rigid frame are coplanar in the
+  world; two faces in different frames belong to two different people standing
+  near each other, which is a separation problem and not this tool's business.
+* **A smaller area floor.** The heels bug was 21cm^2 per leg and plainly visible.
+  The old floor was 200cm^2, so even with meshes parsed it would have been
+  filtered out as a sliver.
 
 Limits, stated because a check that overstates its coverage is worse than none:
-it only judges axis-aligned shapes, since a tilted box's bounding box has faces
-its geometry does not. It reports how many it skipped.
+
+* It only judges axis-aligned shapes, since a tilted box's bounding box has faces
+  its geometry does not. It reports how many it skipped.
+* A rotated node is its own frame, so its geometry is never compared with its
+  siblings' -- a wheel is checked against its own parts and not against the
+  chair it is bolted to.
+* Instanced sub-scenes are read as their own files at their own origin. Nothing
+  in this park instances one at an offset, and if something starts to, this will
+  quietly measure it in the wrong place.
 """
 import os
 import re, glob, sys, itertools, math
@@ -29,106 +61,320 @@ from collections import defaultdict
 # Reverse-Z with a float depth buffer resolves microns at forty metres, so
 # anything a tenth of a millimetre apart is comfortably distinct.
 EPS = float(os.environ.get("EPS", "0.00005"))
-MIN_AREA = 0.02    # ignore slivers
+
+# Two floors, because the park is built at two scales. A building's wall and a
+# guest's shoe are both real fights and 200cm^2 is the wrong threshold for one of
+# them. A pair is judged by the smaller of the two, so a guest standing on the
+# paving is held to the guest's floor.
+MIN_AREA_CSG = 0.02      # 200cm^2 -- buildings, ground, props
+MIN_AREA_MESH = 0.0015   # 15cm^2 -- bodies; the heels bug was 21cm^2
+
+# Godot omits a property from the .tscn when it still holds its default, so a
+# BoxMesh the generator left at 1x1x1 is written as a bare sub_resource with no
+# size line at all. These are the defaults it is leaving out.
+MESH_DEFAULTS = {
+    'BoxMesh':      {'size': (1.0, 1.0, 1.0)},
+    'PlaneMesh':    {'size': (2.0, 2.0)},
+    'CylinderMesh': {'top_radius': 0.5, 'bottom_radius': 0.5, 'height': 2.0},
+    'SphereMesh':   {'radius': 0.5, 'height': 1.0},
+    'TorusMesh':    {'inner_radius': 0.5, 'outer_radius': 1.0},
+}
+
+
+def _num(chunk, key, fallback):
+    m = re.search(r'\b%s = ([\d.eE+-]+)' % key, chunk)
+    return float(m.group(1)) if m else fallback
+
+
+def _vec(chunk, key, fallback):
+    m = re.search(r'\b%s = Vector([23])\(([^)]*)\)' % key, chunk)
+    if not m:
+        return fallback
+    return tuple(float(x) for x in m.group(2).split(','))
+
+
+# Which of a shape's own axes it actually has a flat face on. A cylinder is flat
+# on its ends and curved round its side; a sphere and a torus are curved
+# everywhere and have no faces at all.
+#
+# **This is the difference between a fight and a tangent.** Without it a sphere
+# is judged as its bounding box, and the box's underside coincides with whatever
+# the sphere is resting in -- which is one point of contact, not a shared plane.
+# It cost three false positives on the prams the first time this ran, and the
+# same flaw was in the CSG path from the beginning.
+FLAT_AXES = {
+    'BoxMesh': {0, 1, 2}, 'PlaneMesh': {0, 1, 2},
+    'CylinderMesh': {1}, 'SphereMesh': set(), 'TorusMesh': set(),
+    'CSGBox3D': {0, 1, 2}, 'CSGCylinder3D': {1},
+    'CSGSphere3D': set(), 'CSGTorus3D': set(),
+}
+
+
+def mesh_half(typ, chunk):
+    """Half-extents of a unit-placed mesh, before the node's own scale."""
+    d = MESH_DEFAULTS.get(typ)
+    if d is None:
+        return None
+    if typ == 'BoxMesh':
+        s = _vec(chunk, 'size', d['size'])
+        return [s[0] / 2, s[1] / 2, s[2] / 2]
+    if typ == 'PlaneMesh':
+        # Flat in XZ with no thickness at all, which the pair test has to know
+        # about: two coincident planes never interpenetrate, and the check that
+        # rejects "the same slab seen twice" would throw them away.
+        s = _vec(chunk, 'size', d['size'])
+        return [s[0] / 2, 0.0, s[1] / 2]
+    if typ == 'CylinderMesh':
+        r = max(_num(chunk, 'top_radius', d['top_radius']),
+                _num(chunk, 'bottom_radius', d['bottom_radius']))
+        return [r, _num(chunk, 'height', d['height']) / 2, r]
+    if typ == 'SphereMesh':
+        r = _num(chunk, 'radius', d['radius'])
+        return [r, _num(chunk, 'height', d['height']) / 2, r]
+    if typ == 'TorusMesh':
+        outer = _num(chunk, 'outer_radius', d['outer_radius'])
+        inner = _num(chunk, 'inner_radius', d['inner_radius'])
+        return [outer, (outer - inner) / 2, outer]
+    return None
+
+
+IDENTITY = ([[1.0, 0, 0], [0, 1.0, 0], [0, 0, 1.0]], [0.0, 0.0, 0.0])
+
+
+def read_transform(chunk):
+    """Godot writes the basis as three basis *vectors* -- that is, columns."""
+    tr = re.search(r'transform = Transform3D\(([^)]*)\)', chunk)
+    if not tr:
+        return IDENTITY
+    v = [float(x) for x in tr.group(1).split(',')]
+    cols = [v[0:3], v[3:6], v[6:9]]
+    m = [[cols[c][r] for c in range(3)] for r in range(3)]
+    return m, v[9:12]
+
+
+def compose(parent, child):
+    """parent o child, as (basis, origin)."""
+    pm, po = parent
+    cm, co = child
+    m = [[sum(pm[r][k] * cm[k][c] for k in range(3)) for c in range(3)]
+         for r in range(3)]
+    o = [sum(pm[r][k] * co[k] for k in range(3)) + po[r] for r in range(3)]
+    return m, o
+
+
+def axis_aligned(m):
+    """True when the basis is a permutation of the axes with a scale on each.
+
+    Not the same question as "is it unrotated". A mesh node carries its size in
+    the basis -- `Basis.IDENTITY.scaled(size)` -- so a diagonal of 0.3 is a
+    perfectly axis-aligned box, and the old test rejected it for not being 1.
+    What actually matters is that each axis still maps to an axis, because then
+    the shape's bounding box is the shape.
+    """
+    used = set()
+    for c in range(3):
+        col = [m[r][c] for r in range(3)]
+        big = [r for r in range(3) if abs(col[r]) > 1e-6]
+        if len(big) != 1:
+            return False
+        scale = abs(col[big[0]])
+        if any(abs(col[r]) > scale * 1e-3 for r in range(3) if r != big[0]):
+            return False
+        used.add(big[0])
+    return len(used) == 3
+
 
 def parse(path):
     txt = open(path).read()
+
+    meshes = {}
+    for block in re.split(r'\n\[sub_resource ', '\n' + txt)[1:]:
+        head = block.split('\n')[0]
+        t = re.search(r'type="([^"]+)"', head)
+        i = re.search(r'id="([^"]+)"', head)
+        if not t or not i:
+            continue
+        half = mesh_half(t.group(1), block.split('[node ')[0])
+        if half is not None:
+            meshes[i.group(1)] = (t.group(1), half)
+
     out = []
+    # path -> (frame id, transform within that frame). Godot writes parents
+    # before children, so one pass in document order is enough.
+    frames = {}
+    root_path = None
+
     for chunk in re.split(r'\n\[node ', txt)[1:]:
         head = chunk.split('\n')[0]
+        body = chunk.split('\n[')[0]
         m = re.search(r'name="([^"]+)"', head)
         t = re.search(r'type="([^"]+)"', head)
-        if not m or not t:
+        p = re.search(r'parent="([^"]+)"', head)
+        if not m:
             continue
-        name, typ = m.group(1), t.group(1)
-        if not typ.startswith('CSG'):
-            continue
-        tr = re.search(r'transform = Transform3D\(([^)]*)\)', chunk)
-        if tr:
-            v = [float(x) for x in tr.group(1).split(',')]
-            basis = [v[0:3], v[3:6], v[6:9]]
-            org = v[9:12]
+        name = m.group(1)
+        typ = t.group(1) if t else None
+
+        if p is None:
+            node_path = '.'
+            root_path = '.'
+            parent_frame, parent_tf = 'world', IDENTITY
         else:
-            basis = [[1,0,0],[0,1,0],[0,0,1]]
-            org = [0,0,0]
-        if typ == 'CSGBox3D':
-            s = re.search(r'size = Vector3\(([^)]*)\)', chunk)
-            half = [float(x)/2 for x in s.group(1).split(',')] if s else [0.5,0.5,0.5]
-        elif typ in ('CSGCylinder3D',):
-            r = float((re.search(r'radius = ([\d.eE+-]+)', chunk) or [0,'0.5'])[1])
-            h = float((re.search(r'height = ([\d.eE+-]+)', chunk) or [0,'2.0'])[1])
-            half = [r, h/2, r]
-        elif typ == 'CSGSphere3D':
-            r = float((re.search(r'radius = ([\d.eE+-]+)', chunk) or [0,'0.5'])[1])
-            half = [r, r, r]
+            parent = p.group(1)
+            node_path = name if parent == '.' else parent + '/' + name
+            parent_frame, parent_tf = frames.get(parent, ('world', IDENTITY))
+
+        local = read_transform(body)
+        if axis_aligned(local[0]):
+            frame, tf = parent_frame, compose(parent_tf, local)
+        else:
+            # Its own frame, and identity within it. Everything below inherits
+            # that frame, so a guest's parts are compared to each other in the
+            # guest's own space and the heading it happens to be facing drops
+            # out of the question entirely.
+            frame, tf = '%s:%s' % (path, node_path), IDENTITY
+        frames[node_path] = (frame, tf)
+
+        if typ is None:
+            continue
+
+        kind = None
+        # What the shape actually *is*. For CSG the node type says so; for a
+        # mesh the node is always MeshInstance3D and the answer is in the
+        # resource it points at. Keying the flat-face table on the node type
+        # made every sphere in the park report as a box.
+        shape_typ = typ
+        if typ.startswith('CSG'):
+            kind = 'csg'
+            if typ == 'CSGBox3D':
+                s = _vec(body, 'size', (2.0, 2.0, 2.0))
+                half = [s[0] / 2, s[1] / 2, s[2] / 2]
+            elif typ == 'CSGCylinder3D':
+                r = _num(body, 'radius', 0.5)
+                half = [r, _num(body, 'height', 2.0) / 2, r]
+            elif typ == 'CSGSphere3D':
+                r = _num(body, 'radius', 0.5)
+                half = [r, r, r]
+            elif typ == 'CSGTorus3D':
+                outer = _num(body, 'outer_radius', 1.0)
+                inner = _num(body, 'inner_radius', 0.5)
+                half = [outer, (outer - inner) / 2, outer]
+            else:
+                continue
+            mat = re.search(r'\bmaterial = SubResource\("([^"]+)"\)', body)
+        elif typ == 'MeshInstance3D':
+            kind = 'mesh'
+            ref = re.search(r'\bmesh = SubResource\("([^"]+)"\)', body)
+            if not ref or ref.group(1) not in meshes:
+                continue
+            shape_typ, half = meshes[ref.group(1)]
+            half = list(half)
+            mat = re.search(r'\bmaterial_override = SubResource\("([^"]+)"\)', body)
         else:
             continue
-        # world AABB from the 8 transformed corners
-        lo = [1e9]*3; hi = [-1e9]*3
-        for sx in (-1,1):
-            for sy in (-1,1):
-                for sz in (-1,1):
-                    l = [sx*half[0], sy*half[1], sz*half[2]]
-                    for a in range(3):
-                        w = basis[a][0]*l[0] + basis[a][1]*l[1] + basis[a][2]*l[2] + org[a]
-                        lo[a] = min(lo[a], w); hi[a] = max(hi[a], w)
-        aligned = all(abs(abs(basis[r][c]) - (1.0 if r == c else 0.0)) < 1e-3
-                      or abs(basis[r][c]) < 1e-3 or abs(abs(basis[r][c]) - 1.0) < 1e-3
-                      for r in range(3) for c in range(3))
-        mat = re.search(r'material = SubResource\("([^"]+)"\)', chunk)
-        out.append(dict(name=name, typ=typ, lo=lo, hi=hi, aligned=aligned,
-                        mat=mat.group(1) if mat else None, scene=path))
+
+        basis, org = tf
+        aligned = axis_aligned(basis)
+        # Exact for a scaled permutation, which is the only case we keep.
+        ext = [sum(abs(basis[r][c]) * half[c] for c in range(3)) for r in range(3)]
+        lo = [org[r] - ext[r] for r in range(3)]
+        hi = [org[r] + ext[r] for r in range(3)]
+
+        # The shape's own flat axes, carried through the permutation into the
+        # frame's axes -- a cylinder laid on its side is flat along X, not Y.
+        faces = set()
+        if aligned:
+            for c in FLAT_AXES.get(shape_typ, {0, 1, 2}):
+                for r in range(3):
+                    if abs(basis[r][c]) > 1e-6:
+                        faces.add(r)
+
+        out.append(dict(name=node_path, typ=typ, kind=kind, lo=lo, hi=hi,
+                        aligned=aligned, frame=frame, faces=faces,
+                        mat=mat.group(1) if mat else None, scene=path,
+                        floor=MIN_AREA_CSG if kind == 'csg' else MIN_AREA_MESH))
     return out
+
 
 AX = 'XYZ'
 
-# Scenes that are never in the tree at the same time, so two faces of theirs
-# sharing a plane cannot fight — there is only ever one of them to draw.
+# Which section each scene stands in. Two scenes that are never mounted together
+# cannot fight -- there is only ever one of them to draw.
 #
-# The west is built twice on purpose: `west_far.tscn` is the tableau the plaza
-# looks at and `boardwalk.tscn` is the same frontage, pier and wheel with a floor
-# under them, standing in the same coordinates. They are alternatives, and
-# `boardwalk.tscn` also fills the stair well that `west_stair.tscn` cuts open.
-# Without this the report is dominated by pairs that describe the design working.
-EXCLUSIVE = [
-    {'boardwalk.tscn', 'west_far.tscn'},
-    {'boardwalk.tscn', 'plaza.tscn'},
-    {'boardwalk.tscn', 'plaza_frontage.tscn'},
-    {'boardwalk.tscn', 'plaza_paving.tscn'},
-    {'boardwalk.tscn', 'plaza_props.tscn'},
-    {'boardwalk.tscn', 'plaza_skyline.tscn'},
-    {'boardwalk.tscn', 'entrance.tscn'},
-    {'boardwalk.tscn', 'thresholds.tscn'},
-    {'boardwalk.tscn', 'plaza_crowd.tscn'},
-]
+# **Stated as membership rather than as a list of pairs**, which is how this
+# started. Every new scene needed a row against each of the nine it excluded, and
+# when boardwalk_crowd.tscn arrived it got none of them: its guests would have
+# been compared against the whole plaza, which stands in the same coordinates
+# with nothing mounted between them.
+#
+# The west is deliberately in both. `west_shell` and `west_stair` are mounted by
+# the plaza and by the boardwalk, because the seam is at the arch and the ground
+# either side of it has to be the same ground.
+SECTION = {
+    'plaza.tscn': 'plaza',
+    'plaza_props.tscn': 'plaza',
+    'plaza_frontage.tscn': 'plaza',
+    'plaza_paving.tscn': 'plaza',
+    'plaza_skyline.tscn': 'plaza',
+    'plaza_crowd.tscn': 'plaza',
+    'plaza_fountain.tscn': 'plaza',
+    'entrance.tscn': 'plaza',
+    'thresholds.tscn': 'plaza',
+    'west_far.tscn': 'plaza',
+    'boardwalk.tscn': 'boardwalk',
+    'boardwalk_crowd.tscn': 'boardwalk',
+    'west_shell.tscn': 'both',
+    'west_stair.tscn': 'both',
+}
+# Anything unlisted is treated as standing in both, which over-reports rather
+# than under-reports. A new scene shows up as noise here, not as silence.
+UNKNOWN = 'both'
 
 
 def coexist(a, b):
-    a = a.split('/')[-1]
-    b = b.split('/')[-1]
-    return a == b or {a, b} not in EXCLUSIVE
+    a = SECTION.get(a.split('/')[-1], UNKNOWN)
+    b = SECTION.get(b.split('/')[-1], UNKNOWN)
+    return a == b or a == 'both' or b == 'both'
 
 
-boxes = []
+shapes = []
 for f in sorted(glob.glob('scenes/world/*.tscn')):
-    boxes.extend(parse(f))
-print(f"{len(boxes)} CSG shapes across {len(set(b['scene'] for b in boxes))} scenes\n")
+    shapes.extend(parse(f))
+n_csg = sum(1 for s in shapes if s['kind'] == 'csg')
+n_mesh = len(shapes) - n_csg
+print(f"{len(shapes)} shapes across {len(set(s['scene'] for s in shapes))} scenes "
+      f"({n_csg} CSG, {n_mesh} mesh)\n")
 
-# bucket by each of the 6 face planes so we only compare candidates
+shapes = [s for s in shapes if s['aligned']]
+
+# What is genuinely not being looked at, counted rather than asserted. A shape
+# alone in its frame has nothing it could be compared with -- that is a rotated
+# wheel or a tilted sign, and it is the honest cost of refusing to judge a
+# tilted box by its bounding box.
+per_frame = defaultdict(int)
+for s in shapes:
+    per_frame[s['frame']] += 1
+alone = sum(1 for s in shapes if per_frame[s['frame']] == 1)
+round_only = sum(1 for s in shapes if not s['faces'])
+print(f"{len(per_frame) - 1} local frames (a rotated node and everything under it)")
+print(f"{alone} shapes alone in a frame, so never compared")
+print(f"{round_only} shapes with no flat face at all (spheres, tori)\n")
+
+# Bucket by each of the 6 face planes, and by frame -- shapes in different
+# frames are never comparable, so keeping the frame in the key is what stops
+# 140 guests' worth of shoes from meeting each other in one bucket.
 buckets = defaultdict(list)
-skipped = [b for b in boxes if not b['aligned']]
-boxes = [b for b in boxes if b['aligned']]
-print(f"{len(skipped)} rotated shapes skipped (a tilted box's bounding box has faces it does not)\n")
-for b in boxes:
-    for a in range(3):
-        for side, val in (('lo', b['lo'][a]), ('hi', b['hi'][a])):
-            buckets[(a, side, round(val/EPS))].append(b)
-            buckets[(a, side, round(val/EPS)+1)].append(b)
+for s in shapes:
+    for a in s['faces']:
+        for side in ('lo', 'hi'):
+            val = s[side][a]
+            buckets[(s['frame'], a, side, round(val / EPS))].append(s)
+            buckets[(s['frame'], a, side, round(val / EPS) + 1)].append(s)
 
 seen = set()
 hits = []
 for key, group in buckets.items():
-    a, side, _ = key
+    _, a, side, _ = key
     for A, B in itertools.combinations(group, 2):
         if A is B:
             continue
@@ -145,14 +391,17 @@ for key, group in buckets.items():
         if min(ext) <= 1e-4:
             continue
         area = ext[0] * ext[1]
-        if area < MIN_AREA:
+        if area < min(A['floor'], B['floor']):
             continue
-        # the volumes must actually interpenetrate on the face axis too,
-        # otherwise the two faces are the same slab seen twice
+        # The volumes must actually interpenetrate on the face axis too,
+        # otherwise the two faces are the same slab seen twice. Shapes with no
+        # thickness are exempt: two coincident planes never interpenetrate and
+        # fight all the same, which is the whole reason the water is a worry.
         lo = max(A['lo'][a], B['lo'][a]); hi = min(A['hi'][a], B['hi'][a])
-        if hi - lo <= 1e-4:
+        flat = min(A['hi'][a] - A['lo'][a], B['hi'][a] - B['lo'][a]) <= 1e-4
+        if hi - lo <= 1e-4 and not flat:
             continue
-        k = tuple(sorted([A['name']+A['scene'], B['name']+B['scene']])) + (a, side)
+        k = tuple(sorted([A['name'] + A['scene'], B['name'] + B['scene']])) + (a, side)
         if k in seen:
             continue
         seen.add(k)
@@ -165,14 +414,20 @@ diff_mat = [h for h in hits if h[3]['mat'] != h[4]['mat']]
 print(f"  {len(diff_mat)} between DIFFERENT materials (visible colour fight)")
 print(f"  {len(same_mat)} between the same material (fights, but reads as one surface)\n")
 
+
 def show(lst, n, title):
     print(f"--- {title} (top {n} by area) ---")
     for area, a, side, A, B in lst[:n]:
-        face = f"{'+' if side=='hi' else '-'}{AX[a]}"
-        print(f"{area:8.1f} m^2  {face} @ {A[side][a]:>8.3f}  "
-              f"{A['scene'].split('/')[-1]:<20} {A['name']} <-> {B['name']}"
-              f"{'' if A['mat']==B['mat'] else '   [diff mat]'}")
+        face = f"{'+' if side == 'hi' else '-'}{AX[a]}"
+        # The frame is printed because "shin <-> shoe" is not an address when
+        # the park holds a hundred and forty people with a shin and a shoe each.
+        where = A['frame'].split(':')[-1] if A['frame'] != 'world' else 'world'
+        print(f"{area:9.4f} m^2  {face} @ {A[side][a]:>8.3f}  "
+              f"{A['scene'].split('/')[-1]:<22} {where:<12} "
+              f"{A['name'].split('/')[-1]} <-> {B['name'].split('/')[-1]}"
+              f"{'' if A['mat'] == B['mat'] else '   [diff mat]'}")
     print()
+
 
 show(diff_mat, 30, "different materials")
 show(same_mat, 15, "same material")

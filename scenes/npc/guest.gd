@@ -124,6 +124,47 @@ const POSE_GATHER_DISTANCE := 2.6
 ## Each has its own curve across the day, so the seats do not simply track the
 ## crowd: the tables fill at meals whether or not the plaza is busy.
 @export var group_kind := "wander"
+## A guest who came in a wheelchair.
+##
+## **Seated and moving at once, which nothing here modelled.** `_seated` meant
+## "not going anywhere" — the fold, the stop and the bench were one state,
+## because on foot they always arrive together. A wheelchair separates them: the
+## body is folded from the moment it is built and never unfolds, and the stopping
+## is the only part of sitting that a seat still means. So `_sit` and `_stand`
+## keep the stopping and skip the pose, and the walk cycle is replaced rather
+## than suppressed — the wheels turn on ground crossed and the arms push.
+##
+## The fold itself is baked by `tools/gen_crowd.gd` rather than applied here,
+## because the angle the knees hold is what puts the feet on the footplate and
+## the footplate is part of the chair. One of them has to own it and it is the
+## one that knows where the chair is.
+@export var wheelchair := false
+## Rolling radius of the driven wheels, so a turn is ground crossed rather than a
+## rate somebody picked. Set by the generator alongside the chair — or the
+## stroller — it belongs to. One property for both, because to the animator they
+## are the same thing: the pair that is turned by the ground going past.
+@export var wheel_radius := 0.3
+## A guest pushing a stroller, twin buggy or pram.
+##
+## **The opposite shape to `wheelchair`, and deliberately not folded into it.**
+## There, the body is seated and moving at once and the walk cycle had to be
+## replaced. Here the person walks perfectly normally and the thing they are
+## pushing is a prop that rolls along in front of them — so this keeps the
+## ordinary walk cycle and changes only what the arms do. Both hands go to the
+## handle and stay there, which is the whole of what distinguishes pushing from
+## walking at this fidelity.
+##
+## The child in it is geometry rather than a guest. A toddler strapped into a
+## moving buggy is seated *and* moving — precisely the case the wheelchair had to
+## decompose `_seated` to handle — and unlike a wheelchair user it has no
+## independent movement to model at all. So it does not route, does not collide,
+## is not in the headcount and cannot be asked to pose. The one thing it does is
+## turn its head, and that is driven from here.
+@export var stroller := false
+## How far forward the arms are held to reach the handle, in radians. Solved by
+## the generator against the bar it built, because these arms have no elbow to
+## take up a difference and a typed angle puts the hands through the handle.
+@export var push_arm := 0.0
 ## Followers shadow their group's leader instead of routing for themselves,
 ## which is what makes a family read as a family rather than four strangers
 ## on the same heading.
@@ -146,6 +187,20 @@ var _hip_r: Node3D
 var _knee_l: Node3D
 var _knee_r: Node3D
 var _body_rest_y := 0.0
+## The chair, when there is one. The rear wheels and the casters are pivots the
+## parts hang off, so turning one is a rotation and not a rebuild.
+var _wheel_l: Node3D
+var _wheel_r: Node3D
+var _caster_l: Node3D
+var _caster_r: Node3D
+var _caster_ratio := 1.0
+## The buggy, when there is one, and where it sits while it is being pushed —
+## kept so that parking it beside a seat is reversible without recomputing it.
+var _stroller_node: Node3D
+var _stroller_home := Transform3D.IDENTITY
+## The head pivots of whoever is riding in it. Empty for a pram, whose occupant
+## is lying down and has no head to track anybody with.
+var _passenger_heads: Array[Node3D] = []
 
 var _leader: Guest = null
 var _companions: Array[Guest] = []
@@ -172,6 +227,18 @@ var _phase := 0.0
 var _stride := 0.0
 var _speed := 0.0
 var _idle_phase := 0.0
+## The push stroke, which is slower than the wheel and is not a multiple of it —
+## a hand catches the rim, pushes through, and comes back for another. Tying the
+## arms to `_phase` would have them stroking once per revolution forever.
+var _push_phase := 0.0
+## How far the wheels have turned, kept off `_phase` on purpose.
+##
+## A wheelchair user's legs do not walk, so the chair could have borrowed the
+## walk cycle's accumulator. Somebody pushing a buggy is walking *and* rolling at
+## once, and sharing one counter turned the wheels at the leg cadence — about
+## four times too fast, and wrong at exactly the distance the player photographs
+## a family from.
+var _roll_phase := 0.0
 
 var _attention := Attention.FORWARD
 var _look_point := Vector3.ZERO
@@ -221,6 +288,21 @@ func _ready() -> void:
 	_knee_r = $body/hip_r/knee_r
 	_stand_rest_y = _body.position.y
 	_body_rest_y = _stand_rest_y
+
+	if wheelchair:
+		_mount_wheels("chair")
+	elif stroller:
+		_mount_wheels("stroller")
+		_stroller_node = get_node_or_null("stroller") as Node3D
+		if _stroller_node != null:
+			_stroller_home = _stroller_node.transform
+		# However many seats the chassis came with. A pram emits none — its
+		# occupant is lying down — so this finds nothing and the passenger pass
+		# does nothing, which is the intended behaviour rather than a gap.
+		for i in MAX_PASSENGERS:
+			var pivot := get_node_or_null("stroller/kid_%d/head_pivot" % i) as Node3D
+			if pivot != null:
+				_passenger_heads.append(pivot)
 
 	# An AnimatableBody3D syncing to physics takes its transform from the
 	# physics server, and a write from outside the physics step is silently
@@ -272,6 +354,51 @@ func _ready() -> void:
 ## A guest is a child of its own crowd, so the answer was always here rather than
 ## in a group. The group lookup stays as a fallback for a harness that parents
 ## guests somewhere else.
+## How many seats any chassis in `gen_crowd.gd` has. A bound rather than a fact —
+## it only decides how far to look for pivots that may not be there.
+const MAX_PASSENGERS := 2
+
+
+## The four wheel pivots, whichever thing they belong to.
+##
+## A wheelchair and a stroller have the same two-and-two arrangement — a driven
+## pair, and a smaller pair that trails — so they share the lookup, the ratio and
+## the spin rather than growing a second set that drifts from the first. Both are
+## siblings of the body and not children of it: the body bobs and sways, and
+## anything on wheels underneath it must not.
+##
+## The front radius is read off the pivot's own height, because a pivot sits at
+## its axle and an axle sits one radius off the ground. That saves the generator
+## having to export a second number that could disagree with the geometry.
+func _mount_wheels(root: String) -> void:
+	_wheel_l = get_node_or_null(root + "/wheel_l")
+	_wheel_r = get_node_or_null(root + "/wheel_r")
+	_caster_l = get_node_or_null(root + "/caster_l")
+	_caster_r = get_node_or_null(root + "/caster_r")
+	if _caster_l != null and _caster_l.position.y > 0.001:
+		_caster_ratio = wheel_radius / _caster_l.position.y
+
+
+## Swing the buggy to the pusher's side, or put it back.
+##
+## Left where it was, a parked stroller stands in the table: a seated body is
+## most of a metre shorter than the thing it was pushing, and the chassis does
+## not fold. Turned out and set beside the chair it reads as what anybody does
+## before they sit down.
+##
+## The side is taken from `rng_seed` rather than rolled, so a guest who sits,
+## stands and sits again parks on the same side both times.
+func _park_stroller(parked: bool) -> void:
+	if _stroller_node == null:
+		return
+	if not parked:
+		_stroller_node.transform = _stroller_home
+		return
+	var side := 1.0 if (rng_seed & 1) == 0 else -1.0
+	_stroller_node.position = _stroller_home.origin + Vector3(side * 0.62, 0.0, 0.15)
+	_stroller_node.rotation.y = side * 1.35
+
+
 func _find_crowd() -> Node:
 	var at: Node = get_parent()
 	while at != null:
@@ -467,6 +594,16 @@ func _sit() -> void:
 	_waypoints.clear()
 	_route = PackedInt32Array()
 	_wait = 0.0
+	# A wheelchair user brought their seat with them. What a bench or a cafe
+	# table means for them is a place to stop and a direction to face — the fold
+	# is already held and the seat height is already theirs, and writing either
+	# one would drop them through the chair onto the bench they pulled up beside.
+	if wheelchair:
+		return
+	# The buggy is parked, not abandoned. Left where it was it would stand in the
+	# table — a seated body is most of a metre shorter than the thing it was
+	# pushing, and the chassis does not fold.
+	_park_stroller(true)
 	_body_rest_y = seat_height
 	_apply_seated_pose()
 
@@ -475,6 +612,12 @@ func _stand() -> void:
 	if not _seated:
 		return
 	_seated = false
+	# Nothing to stand up out of, and nothing to straighten. The stopping was
+	# the whole of the sitting, and `_animate_wheels` drives the arms from here
+	# whether the chair is moving or not.
+	if wheelchair:
+		return
+	_park_stroller(false)
 	_body_rest_y = _stand_rest_y
 	_body.position.y = _body_rest_y
 	# Straightened rather than left folded. `_animate` drives the limbs from
@@ -971,12 +1114,62 @@ func _update_head(delta: float) -> void:
 	_head_pitch = lerp_angle(_head_pitch, wanted_pitch, HEAD_TURN_RATE * delta)
 	_head_pivot.rotation = Vector3(_head_pitch, _head_yaw, 0.0)
 
+	if not _passenger_heads.is_empty():
+		_update_passengers(delta)
+
+
+## How much further round a passenger turns than the adult pushing them. Over one
+## because a strapped-in child turns as far as the straps allow, and an adult
+## only as far as is polite.
+const PASSENGER_CRANE := 1.4
+const PASSENGER_YAW_LIMIT := 1.5
+const PASSENGER_PITCH_LIMIT := 0.5
+const PASSENGER_TURN_RATE := 4.0
+
+
+## The children in the buggy, looking where the adult pushing them is looking.
+##
+## Not a copy of that adult's head: later, further round, and each on its own
+## beat. A small child follows what the grown-up is attending to rather than
+## finding it themselves, and takes a moment about it — so the gaze arrives as a
+## ripple through the group rather than as two heads snapping together, which is
+## the same reason `crowd.gd` staggers contagious noticing.
+##
+## Reusing the pusher's head angles rather than aiming these at the look point
+## costs a little accuracy — a passenger sits about a metre in front of the
+## person pushing, so their true angle to a subject differs. At the eight metres
+## a photograph is taken from that difference is under two degrees, and it buys
+## the passengers out of the attention system entirely.
+func _update_passengers(delta: float) -> void:
+	for i in _passenger_heads.size():
+		var head: Node3D = _passenger_heads[i]
+		var yaw := clampf(_head_yaw * PASSENGER_CRANE,
+			-PASSENGER_YAW_LIMIT, PASSENGER_YAW_LIMIT)
+		var pitch := clampf(_head_pitch * PASSENGER_CRANE,
+			-PASSENGER_PITCH_LIMIT, PASSENGER_PITCH_LIMIT)
+		# Each on a frequency of its own, so twins are never in step.
+		yaw += sin(_idle_phase * (0.34 + 0.09 * float(i))) * 0.13
+		pitch += sin(_idle_phase * (0.27 + 0.07 * float(i))) * 0.06
+		# Clamped, because `lerp_angle` past one overshoots and a delta spike
+		# would snap a head past the target and back.
+		var rate := minf(PASSENGER_TURN_RATE * (1.0 + float(i) * 0.27) * delta, 1.0)
+		head.rotation = Vector3(
+			lerp_angle(head.rotation.x, pitch, rate),
+			lerp_angle(head.rotation.y, yaw, rate),
+			0.0)
+
 
 # --- animation --------------------------------------------------------------
 
 
 func _animate(delta: float, moved: float) -> void:
 	_idle_phase += delta
+
+	# Checked before `_seated`, because a wheelchair guest is seated the whole
+	# time and this one function has to cover both rolling and stopped.
+	if wheelchair:
+		_animate_wheels(delta, moved)
+		return
 
 	if _seated:
 		_animate_seated()
@@ -996,13 +1189,77 @@ func _animate(delta: float, moved: float) -> void:
 	_knee_l.rotation.x = -maxf(sin(_phase - 0.9), 0.0) * 0.85 * _stride
 	_knee_r.rotation.x = -maxf(sin(_phase - 0.9 + PI), 0.0) * 0.85 * _stride
 
-	_arm_l.rotation.x = -hip * swing * 0.7
-	_arm_r.rotation.x = hip * swing * 0.7
+	if stroller:
+		# Both hands on the bar, and staying there. An arm swinging over a
+		# stroller reads as somebody walking beside one rather than pushing it,
+		# and that is the entire difference at this fidelity.
+		_arm_l.rotation.x = push_arm
+		_arm_r.rotation.x = push_arm
+		_spin_wheels(moved)
+	else:
+		_arm_l.rotation.x = -hip * swing * 0.7
+		_arm_r.rotation.x = hip * swing * 0.7
 
-	var bob := absf(sin(_phase)) * 0.022 * _stride
+	# Damped when the hands are anchored to something that does not bob with the
+	# shoulders. At a full walking bob they slide up and down through the handle
+	# a centimetre every step, which is small enough to miss in motion and
+	# obvious in a photograph — and a photograph is what this game makes.
+	var carry := 0.35 if stroller else 1.0
+	var bob := absf(sin(_phase)) * 0.022 * _stride * carry
 	var sway := sin(_idle_phase * 0.9) * 0.012 * (1.0 - _stride)
 	_body.position.y = _body_rest_y + bob + sway
-	_body.rotation.z = sin(_phase) * 0.03 * _stride
+	_body.rotation.z = sin(_phase) * 0.03 * _stride * carry
+
+
+## Rolling. The same idea as the walk cycle and for the same reason — the wheels
+## turn on ground actually crossed rather than on a clock, so a guest held up by
+## the crowd slows down instead of skating.
+##
+## The arms are the part that has to be right. Both go together rather than
+## alternating, which is the single thing that distinguishes pushing a chair from
+## walking at this fidelity, and the stroke is a slower beat than the wheel: a
+## hand catches the rim, pushes through and comes back. `_stride` fades it out
+## when the chair stops, so the hands settle onto the rims rather than freezing
+## mid-push.
+func _animate_wheels(delta: float, moved: float) -> void:
+	_stride = lerpf(_stride, clampf(moved / maxf(delta, 0.0001) / walk_speed, 0.0, 1.0),
+		8.0 * delta)
+
+	_spin_wheels(moved)
+
+	_push_phase += moved * 1.45
+	var reach := 0.35 + sin(_push_phase) * 0.5 * _stride
+	_arm_l.rotation.x = reach
+	_arm_r.rotation.x = reach
+
+	# Leaning into the stroke and not out of it, so the lean is only ever
+	# forward — half a sine rather than a whole one.
+	_body.rotation.x = maxf(sin(_push_phase), 0.0) * 0.07 * _stride
+	_body.rotation.z = sin(_idle_phase * 0.4) * 0.02 * (1.0 - _stride)
+	# Off the wheels, not off `_phase`. The walk cycle no longer advances for a
+	# guest whose legs are folded, so a jostle tied to it stood perfectly still.
+	var jostle := absf(sin(_roll_phase * 0.5)) * 0.005 * _stride
+	_body.position.y = _body_rest_y + jostle + sin(_idle_phase * 0.6) * 0.008 * (1.0 - _stride)
+
+
+## Turning the wheels of whatever is being pushed, or pushed in, on ground
+## actually crossed rather than on a clock — so anything held up by the crowd
+## slows down instead of skating.
+##
+## Shared by the chair and the buggy because they are the same arrangement: a
+## driven pair, and a smaller pair that trails and therefore turns further over
+## the same ground.
+func _spin_wheels(moved: float) -> void:
+	_roll_phase += moved / maxf(wheel_radius, 0.05)
+	# Positive rotation about X carries the bottom of the wheel forward, so a
+	# wheel rolling the way the guest is facing turns the other way.
+	if _wheel_l != null:
+		_wheel_l.rotation.x = -_roll_phase
+		_wheel_r.rotation.x = -_roll_phase
+	if _caster_l != null:
+		var spin := -_roll_phase * _caster_ratio
+		_caster_l.rotation.x = spin
+		_caster_r.rotation.x = spin
 
 
 func _animate_seated() -> void:

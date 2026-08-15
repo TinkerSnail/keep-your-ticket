@@ -1,5 +1,8 @@
 extends Node
 
+## The park's layout, so the poses and floors below cannot drift from it again.
+const Plan := preload("res://scripts/park_plan.gd")
+
 ## Dev tool: checks that the crowd actually has a day.
 ##
 ## Two passes, because the schedule and the walking are different things and
@@ -68,12 +71,21 @@ const SECTIONS := [
 	},
 	{
 		"id": &"boardwalk",
-		"floor_y": -6.0,
+		# **Read off the plan rather than typed.** All three of these were
+		# literals from the day the boardwalk was built, and all three went stale
+		# together on 2026-08-14b when the drop was halved to 3m and the strip
+		# moved sixteen metres west: the floor was still −6, so *every live guest
+		# down here failed the placement check on every sampled frame*, and the
+		# two poses were parked inland of the frontage. The whole boardwalk phase
+		# had been failing since that afternoon, which is a test that had stopped
+		# being able to say anything about the section it names.
+		"floor_y": Plan.SHORE_TOP,
 		# On the promenade at the mouth of the alley, facing the water — which is
 		# where a player actually stands and is a wall away from the back lane.
-		"idle": {"at": Vector3(-68.0, -5.8, -1.0), "yaw": PI * 0.5},
-		# Down the back lane, looking at the way in.
-		"watch": {"at": Vector3(-49.8, -5.8, 4.0), "yaw": PI},
+		"idle": {"at": Vector3(-94.0, Plan.SHORE_TOP + 0.2, Plan.ALLEY_Z), "yaw": PI * 0.5},
+		# Down the back lane, looking at the way in — which is `lane_s`, at the
+		# south end of the lane, with off-stage further south again.
+		"watch": {"at": Vector3(Plan.BACK_LANE_X, Plan.SHORE_TOP + 0.2, 8.0), "yaw": PI},
 		"windows": [
 			# The strip's turnover is late. Nothing much moves before four, and
 			# the drain is a single hour after the sun goes down.

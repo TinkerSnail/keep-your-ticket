@@ -52,6 +52,13 @@ var mats: Dictionary = {}
 var _box: BoxMesh
 var _cyl: CylinderMesh
 var _sphere: SphereMesh
+## A rounder cylinder and a ring, for wheels only. Eight sides is plenty for a
+## cup held at arm's length and is plainly an octagon on a 65cm wheel standing at
+## the front of the shot — a wheel is the one round thing in this park that the
+## player gets close to.
+var _wheel_cyl: CylinderMesh
+var _tyre_ring: TorusMesh
+var _ring: TorusMesh
 
 var _graph_names: PackedStringArray = PackedStringArray()
 var _graph_points: PackedVector3Array = PackedVector3Array()
@@ -205,6 +212,19 @@ func _build_resources() -> void:
 		"hair_grey": Color(0.68, 0.67, 0.65),
 		"metal": Color(0.3, 0.31, 0.33),
 		"plastic": Color(0.85, 0.84, 0.8),
+		# The chairs. Powder-coated frames in colours a chair actually came in,
+		# chrome for the push rims, dark rubber for the tyres and dark nylon for
+		# the upholstery. Prefixed `frame_` so `_pick` draws from them the way it
+		# draws shirts — a park where every wheelchair is the same colour is a
+		# park with a fleet of them rather than a park with people in them.
+		"frame_chrome": Color(0.63, 0.64, 0.67),
+		"frame_blue": Color(0.2, 0.33, 0.56),
+		"frame_red": Color(0.6, 0.2, 0.21),
+		"frame_violet": Color(0.37, 0.28, 0.5),
+		"frame_teal": Color(0.16, 0.42, 0.44),
+		"frame_black": Color(0.19, 0.19, 0.21),
+		"tyre": Color(0.13, 0.13, 0.14),
+		"nylon": Color(0.16, 0.17, 0.2),
 	}
 	for key in defs:
 		var m := StandardMaterial3D.new()
@@ -213,6 +233,11 @@ func _build_resources() -> void:
 		if key == "metal":
 			m.roughness = 0.55
 			m.metallic = 0.2
+		elif key.begins_with("frame_"):
+			m.roughness = 0.42
+			m.metallic = 0.35
+		elif key == "tyre":
+			m.roughness = 0.95
 		mats[key] = m
 
 	_box = BoxMesh.new()
@@ -228,6 +253,29 @@ func _build_resources() -> void:
 	_sphere.height = 1.0
 	_sphere.radial_segments = 10
 	_sphere.rings = 6
+	_wheel_cyl = CylinderMesh.new()
+	_wheel_cyl.top_radius = 0.5
+	_wheel_cyl.bottom_radius = 0.5
+	_wheel_cyl.height = 1.0
+	_wheel_cyl.radial_segments = 16
+	_wheel_cyl.rings = 1
+	# The tyre and the hand rim, both rings and neither a disc. They were discs
+	# first, and a disc is wrong twice over: a hubcap-sized rim filled the wheel
+	# and turned a wheelchair into a car wheel, and a filled tyre buried the
+	# spokes inside itself — so the one part that shows a wheel turning could not
+	# be seen, and a rolling chair had three motionless dark circles under it.
+	# A tyre is a ring with spokes across the hole, which is also the only shape
+	# that makes the rotation legible.
+	_tyre_ring = TorusMesh.new()
+	_tyre_ring.outer_radius = 0.5
+	_tyre_ring.inner_radius = 0.42
+	_tyre_ring.rings = 20
+	_tyre_ring.ring_segments = 6
+	_ring = TorusMesh.new()
+	_ring.outer_radius = 0.5
+	_ring.inner_radius = 0.455
+	_ring.rings = 16
+	_ring.ring_segments = 5
 
 
 func _pick(prefix: String) -> String:
@@ -618,9 +666,23 @@ func _plaza_walking_groups() -> void:
 		{"start": "south_east", "kinds": ["adult", "kid", "kid"]},
 		{"start": "ring_ne", "kinds": ["adult", "adult", "kid", "kid"]},
 		{"start": "band_e", "kinds": ["adult", "adult", "kid"]},
+		# The family the cascade was built for, and it is early in the list on
+		# purpose: a group that has to plan its route round the park is a group
+		# that comes when the park opens, not one that turns up at four.
+		{"start": "west_s", "kinds": ["adult", "adult", "chair_kid", "kid"]},
+		# The other thing that cannot take a flight of stairs, and the commoner
+		# one by far. The ramp on the cascade's north wing was built so that a
+		# group with a wheelchair in it never has to split up; a park on a normal
+		# afternoon has one of those and a dozen of these, and the wing carries
+		# them both. Started at the west so it is aimed at the arch.
+		{"start": "west_s", "kinds": ["stroller_adult", "adult", "kid"]},
 		{"start": "queue", "kinds": ["adult", "adult"]},
 		{"start": "street_n", "kinds": ["adult", "adult"]},
-		{"start": "ring_w", "kinds": ["adult", "adult"]},
+		# The wheelchair user is the leader here rather than the one trailed.
+		# Followers hold station on whoever is first in the list, so this is the
+		# difference between two friends walking with somebody and two friends
+		# keeping up with them.
+		{"start": "ring_w", "kinds": ["chair_adult", "adult"]},
 		{"start": "north", "kinds": ["adult", "adult"]},
 		{"start": "west_s", "kinds": ["adult", "kid"]},
 		{"start": "ring_s", "kinds": ["adult"]},
@@ -633,7 +695,18 @@ func _plaza_walking_groups() -> void:
 		{"start": "east", "kinds": ["adult", "adult", "kid"]},
 		{"start": "ring_sw", "kinds": ["adult", "kid"]},
 		{"start": "west_n", "kinds": ["adult", "adult"]},
+		{"start": "north", "kinds": ["adult", "chair_adult"]},
 		{"start": "hut_walk", "kinds": ["adult"]},
+		{"start": "band_n", "kinds": ["chair_adult"]},
+		# A pram comes in early and goes home early, so this one is in the
+		# afternoon block rather than the opening one on purpose: it is the
+		# second outing of the day, not the first.
+		{"start": "ring_ne", "kinds": ["pram_adult", "adult"]},
+		# Twins, and the parent is on their own with them — which is the reason
+		# the buggy is a twin rather than two singles, and is worth one group in
+		# the cast because it reads instantly from across the plaza.
+		{"start": "south_east", "kinds": ["twin_adult", "kid"]},
+		{"start": "ring_nw", "kinds": ["adult", "stroller_adult"]},
 	]
 
 	for entry in plan:
@@ -697,11 +770,61 @@ func _plaza_seated_groups() -> void:
 		_group_index += 1
 		for j in 2:
 			var chair: Dictionary = chairs[table * 2 + j]
-			var guest := _guest("adult", chair["at"], chair["theta"] + PI, group)
+			# One table has a pram parked at it. `guest.gd` swings it out to the
+			# side on the way into the chair, because a buggy left where it was
+			# being pushed ends up standing in the table — which is also why a
+			# real terrace has them parked all along the outside of the row.
+			var kind := "pram_adult" if table == CAFE_PRAM_TABLE and j == 0 else "adult"
+			var guest := _guest(kind, chair["at"], chair["theta"] + PI, group)
 			guest.set("group_kind", "cafe")
 			guest.set("seat_at", chair["at"])
 			guest.set("seat_yaw", chair["theta"] + PI)
 			guest.set("seat_height", 0.475)
+		if table == CAFE_PULL_UP_TABLE:
+			_cafe_pull_up(table, group)
+
+
+## Which table has a pram parked at it — a different one from the wheelchair's,
+## because the point of both is that the terrace is an ordinary terrace people
+## turn up to with what they turn up with, and putting them at one table would
+## make that table the accessible one and the other two the normal ones.
+const CAFE_PRAM_TABLE := 2
+
+
+## Which table has somebody at it who brought their own seat. One of three, so
+## the terrace is a terrace with a wheelchair at it rather than an accessible
+## terrace — the middle one, because the middle one is the one you see from the
+## fountain across the open ground the cafe was moved onto.
+const CAFE_PULL_UP_TABLE := 1
+
+## The third side of the table, which is deliberately the side `gen_props.gd`
+## does not put a chair on. That is the whole content of pulling up to a table:
+## not a reserved space, just the gap between the two chairs that are there.
+const CAFE_PULL_UP := Vector3(0.05, 0.0, 1.1)
+
+
+func _cafe_pull_up(table: int, group: int) -> void:
+	var spec: Dictionary = Plan.PLAZA_CAFE[table]
+	var at: Vector2 = spec["at"]
+	var seat := Vector3(at.x, 0.0, at.y) + CAFE_PULL_UP
+
+	# The two chairs are furniture and this guest is not sitting on one, so the
+	# only thing that can go wrong here is parking on top of one. Checked rather
+	# than eyeballed: `CAFE_CHAIRS` is plan data and can move.
+	for off in Plan.CAFE_CHAIRS:
+		if (CAFE_PULL_UP - off).length() < 0.9:
+			push_error("cafe pull-up at %v stands on a chair at %v" % [CAFE_PULL_UP, off])
+			quit(1)
+			return
+
+	# Facing the table, unlike the two on chairs — those take the chair's own
+	# bearing, which is near enough for furniture somebody is sitting in and
+	# would be plainly wrong for somebody who chose where to stop.
+	var to_table := Vector3(at.x, 0.0, at.y) - seat
+	var guest := _guest("chair_adult", seat, atan2(-to_table.x, -to_table.z), group)
+	guest.set("group_kind", "cafe")
+	guest.set("seat_at", seat)
+	guest.set("seat_yaw", atan2(-to_table.x, -to_table.z))
 
 
 ## Fill the cast out to `CAST_TARGET` with wandering groups nobody composed.
@@ -726,6 +849,12 @@ func _pad_cast() -> void:
 		["adult"],
 		["adult", "adult", "kid", "kid"],
 		["adult"],
+		# One in six padded groups has a buggy in it, which is about the rate in
+		# the authored cast. It matters here rather than being decoration: a
+		# pusher carries a chassis, two passengers and four wheels — the heaviest
+		# guest in the park to draw — so padding made entirely of bare adults
+		# would measure a crowd this park does not have.
+		["stroller_adult", "adult"],
 	]
 
 	while _guest_index < CAST_TARGET:
@@ -749,8 +878,26 @@ func _pad_cast() -> void:
 				guest.set("follow_offset", Vector3(lateral, 0.0, behind))
 
 
+## Seven kinds: `adult`, `kid`, `chair_adult`, `chair_kid`, `stroller_adult`,
+## `twin_adult`, `pram_adult`. What somebody arrived with is spelled into the
+## kind rather than passed beside it, so that a group reads as a group in the
+## tables above — `["adult", "chair_kid", "kid"]` is a family with a sibling in a
+## wheelchair, `["pram_adult", "adult", "kid"]` is a family with a baby asleep
+## and an older one walking, and each says so on one line.
+##
+## Every prefix is matched with `begins_with` and none of them ends in `kid`,
+## which is what lets a new chassis be one row in `STROLLER_STYLES` rather than
+## an entry here and a second copy of the name in the parse.
 func _guest(kind: String, at: Vector3, yaw: float, group: int) -> Node3D:
-	var is_kid := kind == "kid"
+	var is_kid := kind.ends_with("kid")
+	var wheels := kind.begins_with("chair")
+	# What they are pushing, if anything. Read off the style table rather than a
+	# list of names kept beside it.
+	var pushes := ""
+	for style in STROLLER_STYLES:
+		if kind.begins_with(style):
+			pushes = style
+			break
 	var height := _rng.randf_range(1.05, 1.34) if is_kid else _rng.randf_range(1.58, 1.9)
 	var build := _rng.randf_range(0.88, 1.18)
 
@@ -761,8 +908,22 @@ func _guest(kind: String, at: Vector3, yaw: float, group: int) -> Node3D:
 	_guest_index += 1
 
 	# Shorter legs mean more steps for the same ground, so a mixed crowd moves
-	# at mixed speeds without anyone choosing the numbers.
-	guest.set("walk_speed", (1.05 + (height - 1.5) * 0.55) * _rng.randf_range(0.9, 1.12))
+	# at mixed speeds without anyone choosing the numbers. That argument does not
+	# survive the legs coming off the ground: a manual chair on the flat is
+	# pushed at about walking pace whatever the length of the legs folded into
+	# it, and what makes a child in one slower is the length of their arms.
+	if wheels:
+		guest.set("walk_speed", (0.86 if is_kid else 1.16) * _rng.randf_range(0.9, 1.12))
+	else:
+		var pace := 1.05 + (height - 1.5) * 0.55
+		# Pushing something takes the top off a walking pace, and by the same few
+		# percent whoever is doing it — the brake is the thing out in front, not
+		# the legs behind it. It is small on purpose: a stroller that visibly
+		# lagged the group would pull every family apart down the length of the
+		# plaza, and `follow_offset` has no slack to absorb that.
+		if pushes != "":
+			pace *= 0.92
+		guest.set("walk_speed", pace * _rng.randf_range(0.9, 1.12))
 	guest.set("group_id", group)
 	guest.set("rng_seed", _rng.randi())
 	# Children are the curious ones and adults are more often the shy ones,
@@ -770,14 +931,119 @@ func _guest(kind: String, at: Vector3, yaw: float, group: int) -> Node3D:
 	guest.set("curiosity", _rng.randf_range(0.55, 1.0) if is_kid else _rng.randf_range(0.1, 0.8))
 	guest.set("shyness", _rng.randf_range(0.0, 0.25) if is_kid else _rng.randf_range(0.05, 0.5))
 
-	_build_body(guest, height, build, is_kid)
+	var wheel_r := _build_body(guest, height, build, is_kid, wheels, pushes)
+	guest.set("wheelchair", wheels)
+	guest.set("stroller", pushes != "")
+	# One radius, two owners. A chair's rear wheel and a stroller's are the same
+	# thing to the animator — the pair that is driven by ground crossed — so they
+	# share the property rather than growing a second one that means the same.
+	if wheels or pushes != "":
+		guest.set("wheel_radius", wheel_r)
+	if pushes != "":
+		guest.set("push_arm", PUSH_ARM)
 	return guest
 
 
 # --- bodies -----------------------------------------------------------------
 
 
-func _build_body(guest: Node3D, h: float, build: float, is_kid: bool) -> void:
+## The fold a wheelchair holds a body in, and it is not the fold a bench holds
+## one in. `guest.gd`'s seated pose drops the shins vertical and the feet under
+## the seat's front edge; a wheelchair has a footplate there, and the knee sits
+## a little *above* the hip rather than level with it, which is what a cushion
+## does and is the reason this is past ninety.
+##
+## **Only the thigh angle is written down; the knee is solved.** The drop from
+## seat to footplate is the guest's own leg length and the cast runs from 1.05m
+## to 1.9m, so a typed pair of angles put the tallest guests' feet through the
+## ground and left the shortest ones' hanging in the air.
+const CHAIR_THIGH := deg_to_rad(92.0)
+
+
+## The knee angle that stands the **sole** on the footplate, not the ankle.
+##
+## The shoe is a box that rotates with the shin, so its lowest point is a corner
+## and travels with both the sine and the cosine of the angle. Solving for the
+## ankle and then hanging the shoe off it is 3cm out at adult scale, in the one
+## direction that matters — a foot through the plate. That version looked right
+## in every screenshot, because a screenshot of a seated guest is taken from
+## standing and the footplate is the part a standing camera cannot see.
+##
+## Closed form: `a·cos b + c·sin b = knee − sole` is `R·cos(b − phi)`. Clamped,
+## because the shortest children's legs cannot reach as low as the rule wants —
+## which is why the plate is placed at the sole this returns rather than at the
+## height it was asked for.
+func _solve_knee(seat_y: float, thigh: float, shin: float, limb: float) -> float:
+	var knee_y := seat_y - thigh * cos(CHAIR_THIGH)
+	var want := seat_y * 0.15
+	var a := shin + limb * 0.25
+	var c := limb * 0.65
+	var r := sqrt(a * a + c * c)
+	return atan2(c, a) + acos(clampf((knee_y - want) / maxf(r, 0.001), -1.0, 1.0))
+
+
+func _sole_height(seat_y: float, thigh: float, shin: float, limb: float,
+		bend: float) -> float:
+	var knee_y := seat_y - thigh * cos(CHAIR_THIGH)
+	return knee_y - (shin + limb * 0.25) * cos(bend) - limb * 0.65 * sin(bend)
+
+
+## How far forward a pushing arm is held, measured from hanging straight down.
+##
+## **The handle is solved from this, and not the other way round.** A stroller
+## handle is about a metre off the ground in life, and typing that in put every
+## short guest's hands under the bar and every tall guest's through it — these
+## arms are one rigid segment with no elbow, so they cannot take up the
+## difference the way a real arm does. Deriving the bar from where the hand
+## actually lands means the hands are on it for every guest in the cast, and the
+## handle height then comes out between 86cm and 1.03m across the adults, which
+## is a narrower spread than real strollers have anyway.
+##
+## Same lesson as `CHAIR_THIGH` above, learned from the other end: there, the
+## seat was fixed and the fold was solved; here, the arm is fixed and the thing
+## it holds is solved. Either way only one of the two may be typed.
+const PUSH_ARM := deg_to_rad(46.0)
+
+
+## The three chassis, in the dimensions that tell them apart. Everything else is
+## the same few tubes and a fabric seat, and the point of having three is the
+## silhouette: a single is a wedge, a twin is that wedge twice as wide, and a
+## pram is a deep box on tall wheels that reads from further off than either.
+##
+## `span` is the gap between seat centres, so the singles are the ones with a
+## zero in it. **Sizes are real and do not scale with the pusher** — a stroller
+## is a bought object and a tall parent does not get a bigger one. Only the
+## handle follows the arms, which is why the bar's width is computed against the
+## hands as well as the seats and the wider of the two wins.
+const STROLLER_STYLES := {
+	"stroller": {
+		"seats": 1, "span": 0.0, "seat_w": 0.32, "rear_r": 0.085, "front_r": 0.072,
+		"length": 0.74, "seat_y": 0.44, "back_h": 0.36, "bassinet": false,
+	},
+	"twin": {
+		"seats": 2, "span": 0.35, "seat_w": 0.31, "rear_r": 0.085, "front_r": 0.072,
+		"length": 0.74, "seat_y": 0.44, "back_h": 0.36, "bassinet": false,
+	},
+	# Coach-built, which is what a pram is and why it is not just a deeper
+	# stroller: the baby lies down inside a body rather than sitting in a sling,
+	# so the wheels are big enough to carry it and the whole thing stands high.
+	# Lower and on bigger wheels than the first pass, which put a 30cm box at
+	# 56cm on thin legs and read as a vendor's cart rather than a pram. What
+	# separates the two shapes is the ratio of wheel to body: a pram is mostly
+	# wheel, and the body sits *between* them rather than on top of them.
+	"pram": {
+		"seats": 1, "span": 0.0, "seat_w": 0.40, "rear_r": 0.155, "front_r": 0.125,
+		"length": 0.80, "seat_y": 0.50, "back_h": 0.30, "bassinet": true,
+	},
+}
+
+
+## Returns the rolling radius of the driven wheels — the chair's or the
+## stroller's — and zero for a guest walking with nothing. `guest.gd` needs it to
+## turn ground crossed into a rotation, and this is the only place that knows how
+## big either of them came out.
+func _build_body(guest: Node3D, h: float, build: float, is_kid: bool,
+		wheels := false, pushes := "") -> float:
 	var head_h: float = h * (0.175 if is_kid else 0.132)
 	var neck_h: float = h * (0.02 if is_kid else 0.03)
 	var torso_h: float = h * (0.235 if is_kid else 0.258)
@@ -791,6 +1057,17 @@ func _build_body(guest: Node3D, h: float, build: float, is_kid: bool) -> void:
 	var depth := h * 0.115 * build
 	var limb := h * 0.055 * build
 
+	# Seat and footplate first, because the fold is measured between them. The
+	# floor under the seat height is for the smallest of the children: a chair
+	# built strictly in proportion to a 1.05m guest has its seat below its own
+	# casters.
+	var seat_y := maxf(h * 0.29, 0.32)
+	var knee_a := 0.0
+	var sole := 0.0
+	if wheels:
+		knee_a = _solve_knee(seat_y, thigh, shin, limb)
+		sole = _sole_height(seat_y, thigh, shin, limb, knee_a)
+
 	var skin := _pick("skin_")
 	var shirt := _pick("shirt_")
 	var bottom := _pick("bottom_")
@@ -798,14 +1075,22 @@ func _build_body(guest: Node3D, h: float, build: float, is_kid: bool) -> void:
 
 	var collision := CollisionShape3D.new()
 	var shape := CapsuleShape3D.new()
-	shape.radius = maxf(shoulder * 0.5, 0.22)
-	shape.height = h
+	if wheels:
+		# Wider than a body and shorter than one. The footplate and the casters
+		# stand outside it, deliberately — a capsule long enough to cover them is
+		# a capsule the player cannot get past on any side, and nothing in the
+		# park needs to bump into a footrest.
+		shape.radius = maxf(hip_w * 0.5 + 0.13, 0.3)
+		shape.height = maxf(seat_y + hips_h + torso_h + neck_h + head_h, shape.radius * 2.0)
+	else:
+		shape.radius = maxf(shoulder * 0.5, 0.22)
+		shape.height = h
 	collision.shape = shape
-	collision.position.y = h * 0.5
+	collision.position.y = shape.height * 0.5
 	_add(collision, guest, "collision")
 
 	var body := Node3D.new()
-	body.position.y = leg
+	body.position.y = seat_y if wheels else leg
 	_add(body, guest, "body")
 
 	_part(body, "hips", Vector3(hip_w, hips_h, depth), Vector3(0, hips_h * 0.5, 0), bottom)
@@ -825,19 +1110,35 @@ func _build_body(guest: Node3D, h: float, build: float, is_kid: bool) -> void:
 		_part(pivot, nm + "_skin", Vector3(limb * 0.88, arm * 0.58, limb * 0.88),
 			Vector3(0, -arm * 0.71, 0), skin)
 
+	# Shorts or long trousers, and it is **one** roll for the guest rather than
+	# one per leg. It used to be drawn inside the loop below, which gave about
+	# half the park a bare shin on one side and a trouser leg on the other.
+	# Christina, playing: some of the guests have one long pant leg and one
+	# short pant leg. Nothing about a per-leg roll was ever wanted — it was a
+	# line that happened to sit inside a loop.
+	var lower := skin if _rng.randf() > 0.4 else bottom
+
 	for side in [-1.0, 1.0]:
 		var nm := "hip_l" if side < 0.0 else "hip_r"
 		var pivot := Node3D.new()
 		pivot.position = Vector3(side * hip_w * 0.26, 0, 0)
+		# The fold is baked here rather than applied by `guest.gd`, because the
+		# angle the knee holds is what puts the foot on the footplate and the
+		# footplate is part of the chair. One of the two has to own it, and it is
+		# the one that knows where the chair is.
+		if wheels:
+			pivot.rotation.x = CHAIR_THIGH
 		_add(pivot, body, nm)
 		_part(pivot, nm + "_thigh", Vector3(limb * 1.25, thigh, limb * 1.25),
 			Vector3(0, -thigh * 0.5, 0), bottom)
 		var knee := Node3D.new()
 		knee.position = Vector3(0, -thigh, 0)
+		if wheels:
+			knee.rotation.x = knee_a - CHAIR_THIGH
 		_add(knee, pivot, "knee_l" if side < 0.0 else "knee_r")
 		# guest.gd reads shin length off this child, so it stays first.
 		_part(knee, "shin", Vector3(limb * 1.1, shin, limb * 1.1),
-			Vector3(0, -shin * 0.5, 0), skin if _rng.randf() > 0.4 else bottom)
+			Vector3(0, -shin * 0.5, 0), lower)
 		# The shoe is deeper than the shin and offset forward, so that neither
 		# end of it shares a plane with the leg above. It used to be exactly as
 		# deep behind as the shin was, which put the back of the shoe and the
@@ -870,7 +1171,440 @@ func _build_body(guest: Node3D, h: float, build: float, is_kid: bool) -> void:
 	_part(head_pivot, "eyes", Vector3(head_w * 0.72, head_h * 0.13, 0.02),
 		Vector3(0, head_h * 0.6, -head_d * 0.5 - 0.01), "hair_black")
 	_build_hair(head_pivot, head_w, head_h, head_d, hair, is_kid)
-	_build_carried(body, head_pivot, hips_h, torso_h, shoulder, depth, limb, arm, is_kid)
+
+	if not wheels:
+		if pushes != "":
+			# The pusher keeps the ordinary walk cycle and the ordinary standing
+			# body — the legs underneath are doing exactly what a walking guest's
+			# do, and only the arms are spoken for. That is the whole difference
+			# between this and the chair above, and it is why nothing here
+			# touches the fold.
+			_build_stroller(guest, body, head_pivot, pushes, leg, hips_h, torso_h,
+				shoulder, depth, limb, arm)
+			return float(STROLLER_STYLES[pushes]["rear_r"])
+		_build_carried(body, head_pivot, hips_h, torso_h, shoulder, depth, limb, arm, is_kid)
+		return 0.0
+
+	# Where the shoe came out: its lowest point, and how far forward its middle
+	# stands. The footplate goes under the first and the casters behind it.
+	var knee_z := -thigh * sin(CHAIR_THIGH)
+	var shoe_z := knee_z - shin * sin(knee_a) - limb * 0.4 * cos(knee_a)
+	# A 24" rear wheel under a 0.5m seat puts the top of the tyre a hand above
+	# the seat, which is the proportion that reads as a wheelchair from across a
+	# plaza. Everything else about the chair follows the guest in it.
+	var wheel_r := seat_y * 0.6
+	var chair := _build_chair(guest, wheel_r, seat_y, sole, hip_w, hips_h, torso_h,
+		depth, limb, thigh, shoe_z)
+	_build_carried_seated(body, chair, head_pivot, hips_h, torso_h, depth,
+		limb, arm, thigh, seat_y, hip_w, is_kid)
+	return wheel_r
+
+
+## The chair, as a sibling of the body rather than a child of it. The body bobs
+## and leans into the push stroke; the chair under it does neither, and parenting
+## it to the body would have the wheels rise and fall with the shoulders.
+##
+## The two rear wheels and the two casters are **pivot nodes with the parts hung
+## off them**, so `guest.gd` turns one by setting a rotation rather than by
+## knowing anything about how it is built.
+##
+## Nothing here shares a plane with anything, which took more care than usual
+## because a wheel is a stack of discs on one axis: the tyre, the push rim and
+## the hub plate are three different radii at three different widths, and the
+## seat pan is sunk into the hips rather than laid against them.
+func _build_chair(guest: Node3D, wheel_r: float, seat_y: float, sole: float,
+		hip_w: float, hips_h: float, torso_h: float, depth: float, limb: float,
+		thigh: float, shoe_z: float) -> Node3D:
+	var chair := Node3D.new()
+	_add(chair, guest, "chair")
+
+	var frame := _pick("frame_")
+	var hub_x := hip_w * 0.5 + 0.13
+	var tyre_w := maxf(limb * 0.42, 0.035)
+	var caster_r := maxf(wheel_r * 0.2, 0.05)
+	# Behind the footplate, which is where a caster trails.
+	var caster_z := shoe_z + limb * 1.5 + caster_r
+	var back_y := seat_y + hips_h * 0.5 + torso_h * 0.3
+
+	# The seat. Its top stands 15mm inside the hips rather than level with them,
+	# because level with them is the one thing it may not be — the underside of
+	# the pelvis and the top of the pan would be the same plane in two materials.
+	_part(chair, "seat", Vector3(hip_w + 0.12, 0.05, thigh * 0.95),
+		Vector3(0, seat_y - 0.01, -thigh * 0.34), "nylon")
+	# The back, sunk a centimetre into the torso for the same reason.
+	_part(chair, "back", Vector3(hip_w + 0.1, torso_h * 0.66, 0.05),
+		Vector3(0, back_y, depth * 0.5 + 0.008), "nylon")
+
+	for side in [-1.0, 1.0]:
+		var s := "l" if side < 0.0 else "r"
+		# The upright behind the back, and the handle somebody else would push by.
+		# Nobody pushes anybody in this park — every wheelchair guest here self-
+		# propels — but a chair without handles is a chair nobody has ever seen.
+		_part(chair, "post_" + s, Vector3(0.035, torso_h * 0.95, 0.035),
+			Vector3(side * (hip_w * 0.5 + 0.045), seat_y + hips_h * 0.5 + torso_h * 0.44,
+				depth * 0.5 + 0.035), frame)
+		_part(chair, "handle_" + s, Vector3(0.032, 0.032, 0.15),
+			Vector3(side * (hip_w * 0.5 + 0.045),
+				seat_y + hips_h * 0.5 + torso_h * 0.9, depth * 0.5 + 0.1), "bottom_black")
+		# The side rail under the seat, and the front post down to the caster.
+		_part(chair, "rail_" + s, Vector3(0.034, 0.048, thigh * 1.2),
+			Vector3(side * (hub_x - 0.045), seat_y - 0.075, -thigh * 0.36), frame)
+		_part(chair, "leg_" + s, Vector3(0.032, seat_y - caster_r - 0.03, 0.032),
+			Vector3(side * (hub_x - 0.05), (seat_y + caster_r) * 0.5, caster_z), frame)
+
+		# The rear wheel: pivot at the hub, everything that turns hung off it.
+		var hub := Node3D.new()
+		hub.position = Vector3(side * hub_x, wheel_r, 0.06)
+		_add(hub, chair, "wheel_" + s)
+		_rim(hub, "tyre", wheel_r, Vector3.ZERO, "tyre", true)
+		# The push rim, which is what a hand actually rests on: a thinner ring
+		# standing outboard of the tyre.
+		_rim(hub, "rim", wheel_r * 0.86, Vector3(side * tyre_w * 0.8, 0, 0),
+			"frame_chrome")
+		_disc(hub, "hub", wheel_r * 0.17, tyre_w * 1.8, Vector3.ZERO, frame)
+		# Three bars across the hole in the tyre, and they are the whole reason a
+		# turning wheel looks like it is turning. Each at its own roll and its own
+		# depth, so no two of them ever line up.
+		for k in 3:
+			_spoke(hub, "spoke_%d" % k, wheel_r, tyre_w * 0.36,
+				PI * float(k) / 3.0,
+				Vector3(side * tyre_w * (0.06 * k - 0.06), 0, 0), "frame_chrome")
+
+		var caster := Node3D.new()
+		caster.position = Vector3(side * (hub_x - 0.05), caster_r, caster_z)
+		_add(caster, chair, "caster_" + s)
+		_disc(caster, "tyre", caster_r, tyre_w * 0.7, Vector3.ZERO, "tyre")
+
+	# The footplate, placed against the sole the fold actually produced rather
+	# than against the height the fold was asked for — the shortest legs in the
+	# cast cannot reach the height the rule wants, and their plate rides up to
+	# meet them. Its top stands 3mm above the sole, so the feet rest *into* it
+	# rather than on a plane shared with it.
+	var plate_th := 0.026
+	_part(chair, "footplate", Vector3(hip_w + 0.08, plate_th, limb * 2.4),
+		Vector3(0, sole + 0.003 - plate_th * 0.5, shoe_z), frame)
+
+	return chair
+
+
+## The stroller, as a sibling of the body for the same reason the chair is: the
+## body bobs and sways as it walks and the thing being pushed does neither.
+## Parenting it to the body would have the whole chassis rise and fall with the
+## pusher's shoulders, which is the one motion a wheeled object may not have.
+##
+## **The handle is solved from the arms; the chassis is not.** A stroller is a
+## bought object, so its seat, wheels and length are real numbers — but the bar
+## has to be exactly where the hands land, because these arms have no elbow to
+## take up a difference. So the bar goes where `PUSH_ARM` puts the hands and the
+## chassis hangs forward from it, which means a tall pusher gets longer handle
+## posts and the same buggy. That is also what happens in life.
+##
+## Nothing about the child in it is a guest. See `_build_passenger`.
+func _build_stroller(guest: Node3D, body: Node3D, head_pivot: Node3D,
+		style: String, leg: float, hips_h: float, torso_h: float,
+		shoulder: float, depth: float, limb: float, arm: float) -> void:
+	var spec: Dictionary = STROLLER_STYLES[style]
+	var pram := Node3D.new()
+	_add(pram, guest, "stroller")
+
+	var frame := _pick("frame_")
+	var fabric := _pick("shirt_")
+
+	# Where the hands come out, in the guest's own frame. The arm pivot sits at
+	# the shoulder and the hand hangs a whole arm below it, so swinging it
+	# forward by PUSH_ARM is the same trig the leg fold uses, run the other way.
+	var hand_r := arm * 0.98
+	var hand_x := shoulder * 0.5 + limb * 0.35
+	var bar_y := leg + hips_h + torso_h - limb * 0.5 - hand_r * cos(PUSH_ARM)
+	var bar_z := -hand_r * sin(PUSH_ARM)
+
+	var seats := int(spec["seats"])
+	var span: float = spec["span"]
+	var seat_w: float = spec["seat_w"]
+	var rear_r: float = spec["rear_r"]
+	var front_r: float = spec["front_r"]
+	var length: float = spec["length"]
+	var seat_y: float = spec["seat_y"]
+	var back_h: float = spec["back_h"]
+
+	# Wide enough for the seats or for the hands, whichever asks for more. On a
+	# twin it is the seats; on a single it is the hands, and a bar cut to the
+	# seat width would leave both hands hanging off the ends of it.
+	var half := maxf((span + seat_w) * 0.5 + 0.03, hand_x + 0.05)
+	var track := maxf(half - 0.02, 0.2)
+	var rear_z := bar_z - 0.02
+	var front_z := bar_z - length
+	var tyre_w := maxf(limb * 0.3, 0.03)
+
+	# The bar the hands actually rest on, and the posts down to the rear axle.
+	# The posts are vertical rather than raked: a rake is truer to a real buggy,
+	# but it stands the top of the post and the underside of the bar on one plane
+	# at an angle, and that seam is 2cm from the camera in every shot of a family.
+	_part(pram, "handle", Vector3(half * 2.0, 0.032, 0.034),
+		Vector3(0, bar_y, bar_z), "bottom_black")
+
+	for side: float in [-1.0, 1.0]:
+		var s := "l" if side < 0.0 else "r"
+		_part(pram, "post_" + s, Vector3(0.03, bar_y - rear_r, 0.03),
+			Vector3(side * (track - 0.03), (bar_y + rear_r) * 0.5, bar_z - 0.008), frame)
+		_part(pram, "rail_" + s, Vector3(0.028, 0.03, length * 0.9),
+			Vector3(side * (track - 0.035), seat_y - 0.05, bar_z - length * 0.45), frame)
+		_part(pram, "leg_" + s, Vector3(0.028, seat_y - front_r, 0.028),
+			Vector3(side * (track - 0.04), (seat_y + front_r) * 0.5, front_z + 0.01), frame)
+
+		var hub := Node3D.new()
+		hub.position = Vector3(side * track, rear_r, rear_z)
+		_add(hub, pram, "wheel_" + s)
+		_buggy_wheel(hub, rear_r, tyre_w, side, frame)
+
+		# `guest.gd` reads the front radius off this node's own height to work
+		# out how much further a small wheel turns, so the pivot sits at the
+		# axle and the parts hang off it. Same arrangement as the chair's
+		# casters, and it shares the spin code with them.
+		var caster := Node3D.new()
+		caster.position = Vector3(side * (track - 0.02), front_r, front_z)
+		_add(caster, pram, "caster_" + s)
+		_buggy_wheel(caster, front_r, tyre_w * 0.9, side, frame)
+
+	if bool(spec["bassinet"]):
+		# A pram body, not a deeper seat. The hood is over the head end, which is
+		# the end nearest whoever is pushing — so walking towards one you see the
+		# open side and a face, and from behind you see the hood. That asymmetry
+		# is the only thing that says which way round a pram is.
+		_part(pram, "body", Vector3(seat_w + 0.1, 0.26, length * 0.72),
+			Vector3(0, seat_y + 0.11, bar_z - length * 0.44), fabric)
+		# A rim, not a lid. At 5cm deep and wider than the hood it capped the
+		# whole pram and buried everything inside it.
+		_part(pram, "body_trim", Vector3(seat_w + 0.11, 0.035, length * 0.74),
+			Vector3(0, seat_y + 0.24, bar_z - length * 0.44), "plastic")
+		_part(pram, "hood", Vector3(seat_w + 0.08, 0.3, length * 0.3),
+			Vector3(0, seat_y + 0.33, bar_z - length * 0.17), fabric)
+		# What is actually visible of a baby in a pram: a wrapped bundle and a
+		# face at the hood end. **Nothing here turns, and there is no pivot.** An
+		# infant lying down is the one passenger with no head to track anybody
+		# with, so `guest.gd` looks for one, finds none, and drives nothing.
+		# Bedding down inside the body rather than laid across the top of it. It
+		# sat proud at first and read as a lid; a pram is a box you cannot see
+		# into from the side, and the only thing that should break its rim is the
+		# head. Its top face is also kept clear of the body's and the trim's —
+		# at `seat_y + 0.25` it landed on exactly the trim's plane, same
+		# footprint, two materials, which is a z-fight `coplanar_test.py` would
+		# never have reported because it reads CSG and a guest is MeshInstance3D.
+		_part(pram, "swaddle", Vector3(seat_w * 0.66, 0.07, length * 0.4),
+			Vector3(0, seat_y + 0.2, bar_z - length * 0.52), _pick("shirt_"))
+		_sphere_part(pram, "baby_head", 0.055,
+			Vector3(0, seat_y + 0.22, bar_z - length * 0.27), _pick("skin_"))
+		_build_carried_pushing(body, pram, head_pivot, shoulder, torso_h, hips_h,
+			depth, limb, bar_y, bar_z, hand_x)
+		return
+
+	_part(pram, "seat", Vector3(span + seat_w, 0.04, 0.42),
+		Vector3(0, seat_y, bar_z - 0.33), fabric)
+	# Sunk into the pan rather than stood on it, so the two do not share a
+	# bottom face where they overlap.
+	_part(pram, "back", Vector3(span + seat_w, back_h, 0.04),
+		Vector3(0, seat_y + back_h * 0.5 + 0.005, bar_z - 0.11), fabric)
+
+	var sole_y := INF
+	var sole_z := 0.0
+	for i in seats:
+		var cx := (float(i) - (float(seats) - 1.0) * 0.5) * span
+		# **The child goes in before the hood goes on.** The hood was placed
+		# first, off the backrest, and a solid box 20cm deep at that height sat
+		# exactly where the head is — so both children were sealed inside their
+		# own canopies with an arm out each side. A hood arches *over* a head, and
+		# the only way to know where the head is is to have built it.
+		var landed := _build_passenger(pram, "kid_%d" % i,
+			_rng.randf_range(0.78, 0.95), Vector3(cx, seat_y + 0.02, bar_z - 0.22),
+			fabric)
+		if landed.x < sole_y:
+			sole_y = landed.x
+			sole_z = landed.y
+
+		# **The hood is the seat's fabric, not a colour of its own.** It was its
+		# own `_pick` first, which put three different brights on one chassis —
+		# seat, back and hood — and the whole thing stopped reading as a buggy and
+		# started reading as a cart with boxes stacked on it. A stroller is one
+		# manufactured object and comes in one fabric, and that single fact is
+		# what makes the silhouette parse at ten metres.
+		#
+		# Up or folded is still rolled per seat, so twins are not identical twins.
+		if _rng.randf() < 0.62:
+			# Clear of the head by 3cm. That puts it above the handle on the
+			# taller children, which is where a real stroller hood sits anyway.
+			_part(pram, "canopy_%d" % i, Vector3(seat_w - 0.04, 0.2, 0.3),
+				Vector3(cx, landed.z + 0.13, bar_z - 0.2), fabric)
+		else:
+			# Folded back against the backrest, which is where a canopy lives on
+			# a cloudy afternoon and is the shape that says it can move. This one
+			# is behind the head in z rather than above it in y, so it needs no
+			# clearance.
+			_part(pram, "canopy_%d" % i, Vector3(seat_w - 0.04, 0.15, 0.07),
+				Vector3(cx, seat_y + back_h - 0.04, bar_z - 0.055), fabric)
+
+	# Under the feet that are actually there, rather than at a height somebody
+	# picked. The passengers vary by 17cm of standing height across the cast, and
+	# a footrest typed as a fraction of the chassis has half of them resting on
+	# air and the other half through it.
+	_part(pram, "footrest", Vector3(span + seat_w - 0.06, 0.026, 0.14),
+		Vector3(0, sole_y - 0.022, sole_z), frame)
+
+	_build_carried_pushing(body, pram, head_pivot, shoulder, torso_h, hips_h,
+		depth, limb, bar_y, bar_z, hand_x)
+
+
+## One wheel, hung off a pivot the animator turns.
+##
+## Two builds, and the difference is not decoration. A pram wheel is big enough
+## to be a ring with bars across the hole, which is what makes its rotation
+## legible. A stroller wheel is a solid moulded disc, so a bar across it would be
+## buried inside it and the ribs go **proud of the outer face** instead. Either
+## way there has to be something off-axis: a featureless disc turning at any
+## speed is a disc standing still, which is how a rolling buggy ends up looking
+## like it is being dragged.
+func _buggy_wheel(hub: Node3D, radius: float, width: float, side: float,
+		frame: String) -> void:
+	if radius > 0.11:
+		_rim(hub, "tyre", radius, Vector3.ZERO, "tyre", true)
+		_disc(hub, "hub", radius * 0.2, width * 1.7, Vector3.ZERO, frame)
+		for k in 3:
+			_spoke(hub, "spoke_%d" % k, radius, width * 0.34, PI * float(k) / 3.0,
+				Vector3(side * width * (0.05 * float(k) - 0.05), 0, 0), "frame_chrome")
+		return
+
+	_disc(hub, "tyre", radius, width, Vector3.ZERO, "tyre")
+	_disc(hub, "hub", radius * 0.42, width * 1.4, Vector3.ZERO, "plastic")
+	for k in 3:
+		_spoke(hub, "rib_%d" % k, radius * 0.78, width * 0.3, PI * float(k) / 3.0,
+			Vector3(side * (width * 0.78), 0, 0), "plastic")
+
+
+## A child in a buggy seat, built folded and left that way.
+##
+## **This is geometry, not a guest**, and the distinction is the whole design.
+## A toddler strapped into a moving stroller is seated *and* moving, which is
+## precisely the problem the wheelchair had to decompose `_seated` to solve — and
+## unlike a wheelchair user, a toddler in a buggy has no independent movement to
+## model at all. So there is no body here, no routing, no collision, no place in
+## the headcount and nothing to ask for a pose. It cannot be photographed as a
+## subject; it is photographed as part of the family, which is what it is.
+##
+## The one exception is the head, which gets a pivot because a small child
+## craning round to look at a stranger with a camera is the photograph the whole
+## feature exists for. `guest.gd` drives it off the pusher's own gaze.
+##
+## Returns the lowest point of the shoes, how far forward they stand, and the top
+## of the head — so the footrest goes under the feet that came out and the hood
+## goes over the head that came out, rather than either being guessed. The cast
+## varies by 17cm of standing height, which is enough for a guess to be wrong at
+## both ends at once.
+func _build_passenger(parent: Node3D, nm: String, t: float, at: Vector3,
+		fabric: String) -> Vector3:
+	var kid := Node3D.new()
+	kid.position = at
+	_add(kid, parent, nm)
+
+	# A toddler is not a scaled adult and is barely a scaled child: the head is
+	# most of a quarter of the height, which is what makes one read as a toddler
+	# from across a plaza rather than as a small person.
+	var head_h := t * 0.23
+	var neck_h := t * 0.025
+	var torso_h := t * 0.27
+	var hips_h := t * 0.11
+	var shoulder := t * 0.28
+	var hip_w := t * 0.25
+	var depth := t * 0.16
+	var limb := t * 0.08
+	var thigh := t * 0.2
+	var shin := t * 0.19
+	var arm_l := t * 0.3
+
+	var skin := _pick("skin_")
+	# Never the seat's own colour. The palette is twelve shirts and the buggy
+	# takes one of them, so about one child in twelve came out dressed in the
+	# upholstery and vanished into it — a seat with a head and two shoes. Rolled
+	# again rather than shifted along the list, so the distribution stays flat.
+	var shirt := _pick("shirt_")
+	while shirt == fabric:
+		shirt = _pick("shirt_")
+	var hair := _pick("hair_")
+	# One roll for the child, not one per leg. Drawn inside the loop below this
+	# is how half the park ended up with one bare shin and one trouser leg.
+	var bottom := _pick("bottom_")
+	var lower := skin if _rng.randf() > 0.45 else bottom
+
+	_part(kid, "hips", Vector3(hip_w, hips_h, depth),
+		Vector3(0, hips_h * 0.5, 0), bottom)
+	_part(kid, "torso", Vector3(shoulder, torso_h, depth),
+		Vector3(0, hips_h + torso_h * 0.5, 0), shirt)
+
+	# Thighs forward and level, shins hanging off the front. Written rather than
+	# solved, unlike the wheelchair's fold: there is no plate the feet have to
+	# land on, because a buggy's footrest goes wherever the feet ended up and
+	# `_build_stroller` places it from what this returns.
+	var sole := 0.0
+	var shoe_z := 0.0
+	for side: float in [-1.0, 1.0]:
+		var s := "l" if side < 0.0 else "r"
+		var x := side * hip_w * 0.26
+		_part(kid, "thigh_" + s, Vector3(limb * 1.2, limb * 1.2, thigh),
+			Vector3(x, limb * 0.55, -thigh * 0.5), bottom)
+		_part(kid, "shin_" + s, Vector3(limb * 1.05, shin, limb * 1.05),
+			Vector3(x, limb * 0.55 - shin * 0.5, -thigh * 0.94), lower)
+		# Offset forward of the shin so neither end of the shoe shares a plane
+		# with the leg above it — the same 21cm² of z-fighting per leg that the
+		# adults' heels had.
+		shoe_z = -thigh * 0.94 - limb * 0.35
+		sole = limb * 0.55 - shin - limb * 0.25
+		_part(kid, "shoe_" + s, Vector3(limb * 1.2, limb * 0.5, limb * 1.9),
+			Vector3(x, sole + limb * 0.25, shoe_z), "bottom_black")
+		# Arms forward along the sides, which is where they go when there is a
+		# tray or a bar in front of you.
+		_part(kid, "arm_" + s, Vector3(limb * 0.95, limb * 0.95, arm_l),
+			Vector3(side * (shoulder * 0.5 + limb * 0.3),
+				hips_h + torso_h * 0.72, -arm_l * 0.42), shirt)
+
+	var neck := Node3D.new()
+	neck.position = Vector3(0, hips_h + torso_h, 0)
+	_add(neck, kid, "neck")
+	_part(neck, "throat", Vector3(limb * 1.05, neck_h * 2.0, limb * 1.05),
+		Vector3(0, neck_h * 0.4, 0), skin)
+
+	var head_pivot := Node3D.new()
+	head_pivot.position = Vector3(0, neck_h, 0)
+	_add(head_pivot, neck, "head_pivot")
+
+	var head_w := t * 0.15
+	var head_d := t * 0.155
+	_part(head_pivot, "head", Vector3(head_w, head_h, head_d),
+		Vector3(0, head_h * 0.5, 0), skin)
+	_part(head_pivot, "eyes", Vector3(head_w * 0.7, head_h * 0.13, 0.02),
+		Vector3(0, head_h * 0.58, -head_d * 0.5 - 0.01), "hair_black")
+	_build_hair(head_pivot, head_w, head_h, head_d, hair, true)
+
+	return Vector3(at.y + sole, at.z + shoe_z,
+		at.y + hips_h + torso_h + neck_h + head_h)
+
+
+## What somebody pushing a buggy has with them. Both hands are on the handle, so
+## nothing swings from a hand and almost nothing in `_build_carried` survives —
+## a pusher's things hang off the stroller, which is what everyone does with a
+## stroller and is why the handles of real ones are bent.
+func _build_carried_pushing(body: Node3D, pram: Node3D, head_pivot: Node3D,
+		shoulder: float, torso_h: float, hips_h: float, depth: float,
+		limb: float, bar_y: float, bar_z: float, hand_x: float) -> void:
+	var roll := _rng.randf()
+	if roll < 0.28:
+		# Hung off one end of the handle, and off to one side rather than
+		# centred: a bag in the middle of the bar is where the hands are.
+		_part(pram, "tote", Vector3(limb * 2.4, limb * 3.0, limb * 1.3),
+			Vector3(-hand_x * 0.62, bar_y - limb * 1.8, bar_z + 0.05), _pick("shirt_"))
+	elif roll < 0.44:
+		_part(body, "backpack", Vector3(shoulder * 0.7, torso_h * 0.72, depth * 0.7),
+			Vector3(0, hips_h + torso_h * 0.55, depth * 0.72), _pick("shirt_"))
+	elif roll < 0.54:
+		_part(head_pivot, "sunglasses", Vector3(0.11, 0.02, 0.02),
+			Vector3(0, 0.0, 0.0), "bottom_black")
 
 
 func _build_hair(head_pivot: Node3D, w: float, h: float, d: float,
@@ -896,8 +1630,13 @@ func _build_hair(head_pivot: Node3D, w: float, h: float, d: float,
 		_part(head_pivot, "cap_brim", Vector3(w * 1.05, h * 0.07, d * 0.6),
 			Vector3(0, h * 0.9, -d * 0.72), shade)
 	elif hat < 0.4:
+		# The brim rides 2% of a head above where it used to. At `h * 0.95` a
+		# brim `h * 0.1` deep put its top face at exactly `h` — which is the top
+		# of the head, pointing the same way, with the whole crown inside it. Two
+		# materials, white on skin, on every guest who drew a sunhat. The cap
+		# above escaped it only by being thicker.
 		_part(head_pivot, "sunhat", Vector3(w * 2.1, h * 0.1, d * 2.1),
-			Vector3(0, h * 0.95, 0), "shirt_white")
+			Vector3(0, h * 0.97, 0), "shirt_white")
 		_part(head_pivot, "sunhat_crown", Vector3(w * 1.1, h * 0.28, d * 1.1),
 			Vector3(0, h * 1.08, 0), "shirt_white")
 
@@ -914,9 +1653,12 @@ func _build_carried(body: Node3D, head_pivot: Node3D, hips_h: float, torso_h: fl
 	var roll := _rng.randf()
 	if is_kid:
 		if roll < 0.3:
-			# A plush too big to carry properly.
+			# A plush too big to carry properly, tucked a centimetre further in
+			# than it was. At `-limb * 1.2` its outer face landed flush with the
+			# sleeve's — both at `limb * 0.5`, both pointing out — so the arm and
+			# the toy fought down one edge on every kid carrying one.
 			_part(arm_r, "plush", Vector3(limb * 3.4, limb * 4.2, limb * 3.0),
-				Vector3(-limb * 1.2, -arm * 0.62, -depth * 0.5), _pick("shirt_"))
+				Vector3(-limb * 1.3, -arm * 0.62, -depth * 0.5), _pick("shirt_"))
 		elif roll < 0.5:
 			# The string is a fixed 1.4m rather than a fraction of the arm. Tied
 			# to arm length it came out at half a metre, which put the balloon
@@ -956,6 +1698,61 @@ func _build_carried(body: Node3D, head_pivot: Node3D, hips_h: float, torso_h: fl
 			Vector3(0, hand_y - limb * 1.1, 0), "shirt_white")
 
 
+## The same idea for somebody whose hands are on the rims. Almost nothing a
+## walking guest carries survives the move: a tote swinging from a hand becomes a
+## tote hung on a push handle, a plush too big to carry becomes a plush in a lap,
+## and a balloon is tied to the chair rather than to a wrist — which is what
+## anybody would do with it, and reads better besides, because the string then
+## stands over the chair instead of over the shoulder.
+func _build_carried_seated(body: Node3D, chair: Node3D, head_pivot: Node3D,
+		hips_h: float, torso_h: float, depth: float, limb: float, arm: float,
+		thigh: float, seat_y: float, hip_w: float, is_kid: bool) -> void:
+	var arm_l: Node3D = body.get_node("arm_l")
+	var arm_r: Node3D = body.get_node("arm_r")
+	var hand_y := -arm * 0.98
+	# On the thighs, which are level. In the body's frame the thighs run forward
+	# from the origin, so the lap is a limb's thickness above it.
+	var lap := Vector3(0, limb * 0.7, -thigh * 0.45)
+	# The right-hand push handle, in the chair's frame.
+	var handle := Vector3(hip_w * 0.5 + 0.045,
+		seat_y + hips_h * 0.5 + torso_h * 0.9, depth * 0.5 + 0.1)
+
+	var roll := _rng.randf()
+	if is_kid:
+		if roll < 0.34:
+			_part(body, "plush", Vector3(limb * 3.4, limb * 4.0, limb * 3.0),
+				lap + Vector3(-limb * 0.6, limb * 1.9, 0), _pick("shirt_"))
+		elif roll < 0.56:
+			var shade := _pick("shirt_")
+			var string_length := 1.4
+			_part(chair, "balloon_string", Vector3(0.02, string_length, 0.02),
+				handle + Vector3(0, string_length * 0.5, 0), "shirt_white")
+			_sphere_part(chair, "balloon", 0.22,
+				handle + Vector3(0, string_length + 0.22, 0), shade)
+		elif roll < 0.72:
+			_cyl_part(arm_r, "cup", 0.05, 0.16, Vector3(0, hand_y, -0.04), "plastic")
+		return
+
+	if roll < 0.16:
+		# Slung over the back of the chair, which is where a day bag lives.
+		_part(chair, "daypack", Vector3(hip_w * 0.66, torso_h * 0.5, 0.14),
+			Vector3(0, seat_y + hips_h * 0.5 + torso_h * 0.34, depth * 0.5 + 0.11),
+			_pick("shirt_"))
+	elif roll < 0.3:
+		_part(body, "map", Vector3(0.34, 0.26, 0.01),
+			lap + Vector3(0, limb * 0.9, -0.02), "shirt_white")
+	elif roll < 0.44:
+		_part(chair, "tote", Vector3(limb * 2.4, limb * 3.0, limb * 1.3),
+			handle + Vector3(0, -limb * 1.7, 0), _pick("shirt_"))
+	elif roll < 0.56:
+		_cyl_part(arm_r, "cup", 0.055, 0.18, Vector3(0, hand_y, -0.04), "plastic")
+	elif roll < 0.64:
+		_part(body, "camera", Vector3(0.11, 0.07, 0.06),
+			lap + Vector3(0, limb * 1.1, -0.02), "bottom_black")
+		_part(head_pivot, "sunglasses", Vector3(0.11, 0.02, 0.02),
+			Vector3(0, 0.0, 0.0), "bottom_black")
+
+
 # --- part helpers -----------------------------------------------------------
 
 
@@ -981,6 +1778,48 @@ func _cyl_part(parent: Node3D, nm: String, radius: float, height: float,
 	m.material_override = mats[mat]
 	m.transform = Transform3D(
 		Basis.IDENTITY.scaled(Vector3(radius * 2.0, height, radius * 2.0)), pos)
+	_add(m, parent, nm)
+
+
+## A cylinder laid on its side, so it is a wheel rather than a bollard.
+##
+## The rotation has to be applied **outside** the scale and not through
+## `Basis.scaled`, which introduces the scale in the parent's frame — so a
+## cylinder turned onto its side and then "scaled" by (2r, width, 2r) comes out
+## 2r wide and width tall, which is a bollard again.
+func _disc(parent: Node3D, nm: String, radius: float, width: float,
+		pos: Vector3, mat: String) -> void:
+	_sideways(parent, nm, _wheel_cyl, Vector3(radius * 2.0, width, radius * 2.0), pos, mat)
+
+
+## The tyre and the hand rim. Scaled uniformly, or the tube goes oval.
+func _rim(parent: Node3D, nm: String, radius: float, pos: Vector3, mat: String,
+		fat := false) -> void:
+	var mesh: Mesh = _tyre_ring if fat else _ring
+	_sideways(parent, nm, mesh, Vector3.ONE * radius * 2.0, pos, mat)
+
+
+## A bar across the wheel, rolled about the axle. Three of them is a spoked
+## wheel; without any, a dark tyre with a hole in the middle turns invisibly.
+func _spoke(parent: Node3D, nm: String, radius: float, thick: float,
+		roll: float, pos: Vector3, mat: String) -> void:
+	var m := MeshInstance3D.new()
+	m.mesh = _box
+	m.material_override = mats[mat]
+	m.transform = Transform3D(
+		Basis(Vector3(1, 0, 0), roll) * Basis.IDENTITY.scaled(
+			Vector3(thick, radius * 1.9, thick)),
+		pos)
+	_add(m, parent, nm)
+
+
+func _sideways(parent: Node3D, nm: String, mesh: Mesh, size: Vector3,
+		pos: Vector3, mat: String) -> void:
+	var m := MeshInstance3D.new()
+	m.mesh = mesh
+	m.material_override = mats[mat]
+	m.transform = Transform3D(
+		Basis(Vector3(0, 0, 1), PI * 0.5) * Basis.IDENTITY.scaled(size), pos)
 	_add(m, parent, nm)
 
 
@@ -1295,10 +2134,21 @@ func _boardwalk_walking_groups() -> void:
 		{"start": "pier_mid", "kinds": ["adult", "adult"]},
 		{"start": "prom_n1", "kinds": ["adult", "adult", "kid"]},
 		{"start": "wheel_q", "kinds": ["adult", "kid"]},
-		{"start": "prom_s1", "kinds": ["adult", "adult"]},
+		{"start": "prom_s1", "kinds": ["chair_adult", "adult"]},
 		{"start": "pier_head", "kinds": ["adult"]},
 		{"start": "prom_n2", "kinds": ["adult", "adult"]},
 		{"start": "alley_w", "kinds": ["adult", "adult", "kid"]},
+		# Started at the alley mouth, which is where the cascade comes out. The
+		# strip is the section the descent exists to reach, so a mixed group
+		# arriving down here together is the claim the cascade makes, standing on
+		# the promenade where it can be checked by looking at it.
+		{"start": "alley_e", "kinds": ["adult", "chair_kid", "kid", "adult"]},
+		# Also arriving off the cascade, and the reason the ramp earns its keep on
+		# an ordinary day rather than an exceptional one. The strip is 160m of
+		# promenade with the interest at the north end, which is a long way to
+		# carry a toddler — so the people who come down here with one bring the
+		# buggy, and the descent has to take it.
+		{"start": "alley_e", "kinds": ["stroller_adult", "adult", "kid"]},
 		{"start": "station_q", "kinds": ["adult", "kid", "kid"]},
 		{"start": "pier_root", "kinds": ["adult"]},
 		{"start": "prom_s2", "kinds": ["adult", "adult"]},
@@ -1309,6 +2159,10 @@ func _boardwalk_walking_groups() -> void:
 		{"start": "pier_mid", "kinds": ["adult", "kid"]},
 		{"start": "prom_s3", "kinds": ["adult"]},
 		{"start": "prom_n4", "kinds": ["adult"]},
+		# The promenade is where a pram goes at seven in the evening, which is the
+		# boardwalk's peak and the plaza's decline. Putting one here rather than
+		# in the plaza is part of what makes the two sections disagree.
+		{"start": "prom_n2", "kinds": ["pram_adult", "adult"]},
 	]
 
 	for entry in plan:
@@ -1340,8 +2194,11 @@ func _boardwalk_walking_groups() -> void:
 func _boardwalk_seated_groups() -> void:
 	var benches := _boardwalk_bench_spots()
 	# Bench indices, nearest the pier first. `bench_line()` runs north to south,
-	# so the middle of the list is the middle of the strip.
-	var plan := [[4, 2], [5, 2], [3, 1], [6, 2], [2, 2], [7, 1], [1, 2]]
+	# so the middle of the list is the middle of the strip. The third column is
+	# how many of the group parked alongside rather than sat down — every bench
+	# here faces the water, and pulling up at the end of one beside whoever you
+	# came with is what a wheelchair user does with a view.
+	var plan := [[4, 2, 0], [5, 2, 1], [3, 1, 0], [6, 2, 0], [2, 2, 0], [7, 1, 0], [1, 2, 0]]
 	for entry in plan:
 		var bench: Dictionary = benches[entry[0]]
 		var group := _group_index
@@ -1359,6 +2216,22 @@ func _boardwalk_seated_groups() -> void:
 			guest.set("seat_at", seat)
 			guest.set("seat_yaw", bench["theta"] + PI)
 			guest.set("seat_height", 0.51)
+		for w in int(entry[2]):
+			# Past the end of the bench and a little back off the rail, so the
+			# chair stands beside the arm of it rather than through it. Facing
+			# the same way as everyone on it, which is west, which is the sunset.
+			#
+			# 1.35 and not 1.15: a bench is 1.8m long and a chair is about 0.65
+			# wide, so anything under 1.25 puts the chair's back corner through
+			# the bench's end corner. The two overlap in one axis at a time and
+			# the arithmetic has to be done in both.
+			var offset: Vector3 = Basis(Vector3.UP, bench["theta"]) \
+				* Vector3(1.35 + 0.75 * w, 0.0, -0.35)
+			var seat: Vector3 = bench["at"] + offset
+			var guest := _guest("chair_adult", seat, bench["theta"] + PI, group)
+			guest.set("group_kind", "bench")
+			guest.set("seat_at", seat)
+			guest.set("seat_yaw", bench["theta"] + PI)
 
 	var chairs := _boardwalk_chair_spots()
 	for table in 4:
