@@ -86,8 +86,57 @@ const PLAZA_HALF := 52.0
 ## 18m across rather than 10. At the old size it was a puddle in the middle of
 ## the new room and invisible from the gate; this reads from the far end of the
 ## street, which is the whole job of a thing on an axis.
+##
+## Since 2026-08-14c this is the outer face of the pool's **coping**, and the
+## fountain is generated into `scenes/world/plaza_fountain.tscn` rather than
+## typed into `plaza.tscn`. The number did not move and nothing that routes
+## around it had to change — which was the point of not moving it. What did
+## change is that the ring is now a 52cm kerb you could sit on rather than a
+## 90cm drum, so the footprint the crowd avoids and the thing a person meets are
+## no longer the same height.
 const FOUNTAIN_AT := Vector2(0.0, 0.0)
 const FOUNTAIN_RADIUS := 9.0
+
+## The coping, as the two numbers a *person* needs rather than the two a route
+## needs. `FOUNTAIN_RADIUS` above is the footprint the crowd walks around; these
+## are where somebody sits on it and how high that is.
+##
+## Here rather than in `gen_props.gd` because both generators need them and
+## neither can read the other: `gen_props` builds the coping to this height and
+## `gen_crowd` puts nine guests on it, and the two agreeing by having 0.52 typed
+## into each is the drift that put the cafe terrace in three places at once.
+##
+## 0.52 is a decision and not a measurement. What stood here until 2026-08-14c
+## was a 0.9m drum, which is a plinth you lean against; a kerb people sit on is
+## about half a metre, and this one is fifty-four metres long, in the middle of
+## the room, and the first thing the entrance street points at. It is the best
+## seat in the plaza and it should look like it.
+##
+## The seat radius is on the *outer* half of the 0.8m coping, so legs hang over
+## open paving rather than over the water.
+const FOUNTAIN_RIM_TOP := 0.52
+const FOUNTAIN_RIM_SEAT_R := 8.66
+
+## The water, as the three numbers something outside `gen_props.gd` has to know
+## in order to *point at* it.
+##
+## `gen_crowd.gd` aims the crowd's attention at the jets and the pool surface —
+## those are the two parts of the fountain a person standing beside it actually
+## watches — and it cannot read the generator that builds them. The alternative
+## is the radius typed in both files, which is how the fountain's own POI came to
+## be aimed at a column that no longer exists.
+const FOUNTAIN_JET_R := 6.5
+const FOUNTAIN_JET_TOP := 2.2
+const FOUNTAIN_POOL_TOP := 0.30
+
+## The bench by the photo hut, local to the hut so it follows if the hut moves.
+##
+## Here because **three** places want it: `gen_props` builds the bench and ties
+## two balloons to its rail, `gen_crowd` seats a guest on it, and the POI list
+## points at the balloons. It was typed into the first two separately, which is
+## one copy short of the cafe terrace's three and the same failure waiting.
+const PHOTO_HUT_BENCH := Vector3(-6.0, 0.0, -4.0)
+const PHOTO_HUT_BENCH_YAW := 8.0
 
 ## The hub, as one number each. The ring walkway is set outside the fountain's
 ## skirt and these are what put it there — `WALKWAYS` has the twelve vertices
@@ -275,7 +324,7 @@ const PROMENADE_X := -99.2
 ## meet the plaza rather than the descent stretching to reach the shore, and the
 ## reason is arithmetic: a wheelchair gradient is 1:12, so six metres of drop is
 ## seventy-two metres of ramp no matter what shape it takes. Three metres is
-## thirty-six, which fits a single sweep — and a 3m seawall is a thing you walk
+## thirty-six, which fits one hairpin — and a 3m seawall is a thing you walk
 ## down rather than a cliff you are let off the side of.
 const BLUFF_FACE_X := -58.0
 const BLUFF_BACK_X := -51.0
@@ -287,13 +336,16 @@ const BLUFF_BACK_X := -51.0
 ## out and down either side — a shape that reads, from the bottom, unmistakably
 ## like a ray with its wings spread. **The wings are the wall, not the path.**
 ## That is what lets one side be a ramp and the other a stair without the thing
-## losing its symmetry: the wall sweeps the same diagonal both ways and only the
+## losing its symmetry: the wall follows the same hairpin both ways and only the
 ## surface riding on it differs.
 ##
 ## Three ways down, and nobody has to take a service entrance to use one:
 ## the central flight for anyone in a hurry, the north wing at 1:12 for a wheel-
 ## chair, and the south wing as a garden stair of short flights and long
-## landings. They start together at the top and land together in the court.
+## landings. They start together at the top and land together in the court —
+## which is a claim `WING_SPRING_X` had to be rebuilt to make true, and which
+## `walk_test` asks about by walking each of the three and checking where it
+## came out.
 const CASCADE_AXIS_Z := ARCH_AT.y
 const CASCADE_TOP_X := BLUFF_FACE_X
 const CASCADE_DROP := -SHORE_TOP
@@ -303,11 +355,52 @@ const FLIGHT_W := 10.0
 const FLIGHT_RISE := 0.25
 const FLIGHT_GOING := 0.55
 
-## Where a wing's tip ends up — out in the court and down at its level. The run
-## that falls out of it is 36m, which is `CASCADE_DROP` at 1:12 exactly.
-const WING_TIP_X := -70.0
-const WING_TIP_Z := 42.5
+## A wing, as the hairpin it is: out and down along the bluff face, a level
+## landing at the turn, then back in and down to the court beside the flight's
+## own foot.
+##
+## **It used to be one straight diagonal spending the whole 36m going away from
+## the axis**, out to z ±42.5, and three separate things were wrong with that.
+## It landed fourteen metres past the end of the back lane, on bare shore under
+## the coaster — so "all three ways down land together in the court" was simply
+## false, and a wheelchair taking the north wing arrived eighty-five metres from
+## where the flight put everyone it came down with, which is the one thing this
+## shape exists to prevent. Nothing in `WALKWAYS` described it, so no part of the
+## park except `walk_test` believed the route existed at all. And 3m of fall
+## stretched over 36m is a 4.8° slope: from the court the wings read as two low
+## walls running off past the frame rather than as a way down.
+##
+## Doubling back fixes all three at once and costs nothing, because a landing is
+## level — it carries none of the fall, so folding the run in half keeps the
+## gradient at 1:12 exactly. Same 36m, half the reach, and the silhouette from
+## the pier is better for it: two diagonals converging on the turn instead of one
+## rail. What the pocket between the legs is for is the planting.
+##
+## The outbound leg runs true north–south against the bluff face, which is why
+## its x never changes. That is not tidiness — it keeps the 0.3m slot between the
+## wing's wall and the rock closed for the whole run, and it means the *only*
+## sweep in plan is on the way back, aimed at the court.
+const WING_SPRING_X := CASCADE_TOP_X - 3.2
+const WING_SPRING_Z := FLIGHT_W * 0.5 + 2.6
+const WING_TURN_X := WING_SPRING_X
+const WING_TURN_Z := 27.0
+const WING_SEP := 6.0
+const WING_FOOT_X := -69.6
+const WING_FOOT_Z := 7.0
 const WING_W := 3.6
+
+## The landing is a square the width of the ramp, and both of those numbers are
+## the same number on purpose: a turn needs as much room across as the thing
+## turning in it is wide, and a wheelchair turning 180° needs all of it.
+##
+## It is also **what sets `WING_TURN_Z`**, which is why the reach is 27m and not
+## the 25 it was drawn at. The legs stop at the landing's inner edge rather than
+## running to the turn vertex — anything else has the landing overhanging a ramp,
+## and a level slab 20cm over a slope is a step in the middle of the descent. So
+## the sloping run is the leg length *less half a landing at each end*, and
+## getting 36m of that back out is what pushes the turn a metre and a half
+## further out. The landing eats what it needs and the gradient does not move.
+const WING_LAND_D := WING_W
 
 ## Where the flight lands, and where a body stands there.
 const STAIR_FOOT := Vector3(
@@ -776,6 +869,31 @@ const WALKWAYS := {
 		Vector2(STAIR_FOOT.x, CASCADE_AXIS_Z),
 	],
 
+	## The other two ways down, and **they were in no graph at all until the wings
+	## were rebuilt.** `west_stair` above described the central flight and nothing
+	## described the ramp or the garden stair, so the minimap drew one way off the
+	## bluff where there are three, and every rule that reads the park's
+	## circulation — where a prop may stand, where the paving goes — was answering
+	## about a monument two thirds of which it could not see.
+	##
+	## Four vertices each, and they are `wing_path`'s four points flattened: the
+	## springing, the two ends of the landing, the foot. Written as constants
+	## rather than called, because a `const` dictionary cannot hold a function
+	## call — so if these and `wing_path` ever disagree it is because somebody
+	## edited one, which is what `walk_test` walking the wings is there to catch.
+	&"west_wing_north": [
+		Vector2(WING_SPRING_X, CASCADE_AXIS_Z - WING_SPRING_Z),
+		Vector2(WING_TURN_X, CASCADE_AXIS_Z - WING_TURN_Z),
+		Vector2(WING_TURN_X - WING_SEP, CASCADE_AXIS_Z - WING_TURN_Z),
+		Vector2(WING_FOOT_X, CASCADE_AXIS_Z - WING_FOOT_Z),
+	],
+	&"west_wing_south": [
+		Vector2(WING_SPRING_X, CASCADE_AXIS_Z + WING_SPRING_Z),
+		Vector2(WING_TURN_X, CASCADE_AXIS_Z + WING_TURN_Z),
+		Vector2(WING_TURN_X - WING_SEP, CASCADE_AXIS_Z + WING_TURN_Z),
+		Vector2(WING_FOOT_X, CASCADE_AXIS_Z + WING_FOOT_Z),
+	],
+
 	## The boardwalk, below and west of everything above.
 	##
 	## Five runs and they are read in order by anybody walking in: off the stair
@@ -891,6 +1009,11 @@ const WALKWAY_WIDTH := {
 	&"spoke_west": 8.0,
 	## The width of the flight it leads to.
 	&"west_stair": FLIGHT_W,
+	## The width of the deck, and no more. These run within a metre of the back
+	## lane's own band at the turn, so the default 6m would have the two arguing
+	## about ground neither of them is on.
+	&"west_wing_north": WING_W,
+	&"west_wing_south": WING_W,
 	&"boardwalk_arrival": 4.0,
 	&"boardwalk_lane": 6.0,
 	## The alley is the width of the hole in the frontage, which is what makes it
@@ -922,6 +1045,94 @@ static func walkway_segments() -> Array:
 			out.append({"id": id, "from": run[i], "to": run[i + 1],
 				"width": WALKWAY_WIDTH.get(id, 6.0)})
 	return out
+
+
+## The four points a wing turns through, with their heights: the springing on
+## the bluff top, the two ends of the landing at the turn, and the foot out in
+## the court. `side` is −1 for the north wing and +1 for the south.
+##
+## Heights are computed from the running length rather than typed, so both legs
+## come out at the same gradient and stay there when any of the constants above
+## move. The landing is level, which is why it is two points and not one: it
+## carries none of the fall and none of the run, and it is the whole reason a
+## 36m ramp fits in an 18m reach.
+##
+## **Up here rather than in `gen_props.gd` because `walk_test.gd` was carrying
+## its own copy of the old wing's arithmetic** — a second survey of the same
+## geometry, which is the fault CLAUDE.md already records about the cafe tables.
+## It meant the test could keep passing against a wing the generator had stopped
+## building, which is the worst thing a walk test can do.
+static func wing_path(side: float) -> Array:
+	var a := Vector2(WING_SPRING_X, CASCADE_AXIS_Z + side * WING_SPRING_Z)
+	var p := Vector2(WING_TURN_X, CASCADE_AXIS_Z + side * WING_TURN_Z)
+	var q := Vector2(p.x - WING_SEP, p.y)
+	var c := Vector2(WING_FOOT_X, CASCADE_AXIS_Z + side * WING_FOOT_Z)
+	# Each leg's slope stops half a landing short of its turn vertex, so the fall
+	# is shared over that and not over the level part. See `WING_LAND_D`.
+	var half_land := WING_LAND_D * 0.5
+	var l1 := a.distance_to(p) - half_land
+	var l2 := q.distance_to(c) - half_land
+	var turn_y := -CASCADE_DROP * l1 / (l1 + l2)
+	return [
+		Vector3(a.x, 0.0, a.y), Vector3(p.x, turn_y, p.y),
+		Vector3(q.x, turn_y, q.y), Vector3(c.x, -CASCADE_DROP, c.y),
+	]
+
+
+## Where a leg's slope actually stops: the landing's inner edge, half a landing
+## short of the turn vertex it routes through. `leg` is 0 for the outbound leg
+## and 1 for the return. The stretch from here to the vertex is the landing, and
+## it is level.
+static func wing_leg_end(side: float, leg: int) -> Vector3:
+	var path := wing_path(side)
+	var from: Vector3 = path[0] if leg == 0 else path[3]
+	var to: Vector3 = path[1] if leg == 0 else path[2]
+	var d := Vector2(to.x - from.x, to.z - from.z)
+	var e := from.lerp(to, 1.0 - (WING_LAND_D * 0.5) / d.length())
+	# The height is the turn's, not the lerp's: the leg has finished falling by
+	# the time it gets here, which is the whole distinction being drawn.
+	return Vector3(e.x, to.y, e.z)
+
+
+## The gradient a wing actually runs at, as 1 in this.
+##
+## Worth being able to ask rather than trusting the arithmetic: the ramp wing is
+## the park's only wheelchair route off the bluff, 1:12 is the entire reason the
+## drop was halved to 3m, and every one of the constants it falls out of is the
+## kind of number that gets nudged against a screenshot.
+static func wing_gradient() -> float:
+	var path := wing_path(-1.0)
+	var run := 0.0
+	# Leg to leg-end, skipping the turn: the landing is level and is not run. A
+	# gradient is fall over the distance that falls, and counting the turn — or
+	# the last half-landing of either leg — would flatter it.
+	for leg in 2:
+		var from: Vector3 = path[0] if leg == 0 else path[3]
+		var e := wing_leg_end(-1.0, leg)
+		run += Vector2(from.x, from.z).distance_to(Vector2(e.x, e.z))
+	return run / CASCADE_DROP
+
+
+## A point on a wing, `t` of the way along it by distance — landing included, so
+## `t` measures walking rather than falling.
+static func wing_point(side: float, t: float) -> Vector3:
+	var path := wing_path(side)
+	var seg := PackedFloat32Array()
+	var total := 0.0
+	for i in 3:
+		var v0: Vector3 = path[i]
+		var v1: Vector3 = path[i + 1]
+		var d := Vector2(v0.x, v0.z).distance_to(Vector2(v1.x, v1.z))
+		seg.append(d)
+		total += d
+	var want := clampf(t, 0.0, 1.0) * total
+	for i in 3:
+		if want <= seg[i] or i == 2:
+			var v0: Vector3 = path[i]
+			var v1: Vector3 = path[i + 1]
+			return v0.lerp(v1, 0.0 if seg[i] <= 0.0 else clampf(want / seg[i], 0.0, 1.0))
+		want -= seg[i]
+	return path[3]
 
 
 ## A place by id, or an empty dictionary. Same reasoning as `threshold()`: the
@@ -1245,3 +1456,56 @@ static func plaza_out2(p: Vector2) -> Vector2:
 static func bearing_to(at: Vector2) -> float:
 	var d := at - FOUNTAIN_AT
 	return fposmod(rad_to_deg(atan2(d.x, -d.y)), 360.0)
+
+
+# ---------------------------------------------------------------------------
+# The park's own lighting
+# ---------------------------------------------------------------------------
+
+## What every artificial light in the park joins, and what `park_lights.gd`
+## finds them by. `tools/gen_props.gd` puts them in it.
+const LIGHT_GROUP := &"park_light"
+
+## What a light is *for*, which is the only thing that decides what becomes of it
+## at ten o'clock when the park shuts.
+##
+## Here rather than in either of the two files that use them, under the rule at
+## the top of this file: the generator writes these numbers into scenes and the
+## driver reads them back out, so they are a contract between two programs and
+## exactly the kind of thing that drifts when each keeps its own copy. They are
+## not layout, which is the one argument against — but a constant that is wrong
+## in one file of two is the failure this whole file exists to prevent, and
+## `gen_props.gd` already preloads this one.
+##
+##   FIXTURE  the park lighting itself: lamp standards, festoon runs, the globes
+##            under the threshold valances, the glow in the bandstand. On at
+##            dusk, and mostly — not entirely — out after close.
+##   FEATURE  the uplighting. On at dusk, off at close, and off completely.
+##            Floodlit architecture is the park performing for its guests, and
+##            after close there are none.
+##   SERVICE  the few still on at two in the morning. The back lane, a cart with
+##            its light left on. `night.md` wants the shut park to read as
+##            powered and awake rather than as switched off at the main, and
+##            these are what carry that.
+const LIGHT_FIXTURE := 0
+const LIGHT_FEATURE := 1
+const LIGHT_SERVICE := 2
+
+## Where the park's own lights live on disk. Externalised as their own resources
+## — unlike every other material in the park, which is packed per-scene — so that
+## one file is one instance and the driver can light 196 fixtures across four
+## scenes by writing to a single material. See `_lit_material` in `gen_props.gd`.
+const BULB_MATERIAL := "res://assets/materials/bulb.res"
+const LAMP_MATERIAL := "res://assets/materials/lamp_glass.res"
+const EYE_MATERIAL := "res://assets/materials/cascade_eye.res"
+
+## Architectural edge-lighting: coping and cap stones that glow along their own
+## length after dark, rather than being surfaces something else is aimed at.
+##
+## The fourth lit material and the only one that is not a fitting. It exists
+## because the cascade's silhouette is a *line* — the top edge of each wing's
+## coping, sweeping out and down — and a line cannot be floodlit into existence.
+## Washing the wall under it lights an area and leaves the edge exactly as
+## legible as the wall, which is what made the monument read flat in the first
+## night capture.
+const TRIM_MATERIAL := "res://assets/materials/trim.res"

@@ -26,6 +26,21 @@ const Plan := preload("res://scripts/park_plan.gd")
 const OUT_PATH := "res://scenes/world/plaza_props.tscn"
 const PAVING_PATH := "res://scenes/world/plaza_paving.tscn"
 const SKYLINE_PATH := "res://scenes/world/plaza_skyline.tscn"
+
+## The fountain, which used to be five stacked cylinders typed into
+## `plaza.tscn` by hand and is now 190-odd parts and two shaders.
+##
+## Its own scene for the ordinary reason — that is too many parts to hand-author
+## and keep straight — but moving it *out* of `plaza.tscn` is worth a line,
+## because `plaza.tscn` is the one hand-authored world scene and the temptation
+## is to say the plaza's centrepiece belongs in it. The perimeter is hand-laid
+## because it is a *room shape* being designed: its runs are the thing the
+## enclosure argument is about, and the frontage generator reads them back out.
+## The fountain is not a room shape, it is an assembly, and every other assembly
+## in the park is generated. What stays in `plaza.tscn` is the ground, the walls
+## and the tower — the things the plaza *is*, rather than the things standing in
+## it.
+const FOUNTAIN_PATH := "res://scenes/world/plaza_fountain.tscn"
 const STAIR_PATH := "res://scenes/world/west_stair.tscn"
 const ENTRANCE_PATH := "res://scenes/world/entrance.tscn"
 const THRESHOLD_PATH := "res://scenes/world/thresholds.tscn"
@@ -91,6 +106,7 @@ func _initialize() -> void:
 	_trees()
 	_outer_furniture()
 	_picture_spots()
+	_plaza_lights()
 	if not _save(_root, OUT_PATH):
 		return
 
@@ -178,6 +194,22 @@ func _initialize() -> void:
 	_begin_scene()
 	_plaza_frontage()
 	if not _save(_root, FRONTAGE_PATH):
+		return
+
+	# The fountain, and **last for the same reason paving and frontage are**: the
+	# seam seed is handed out five per scene, so a scene inserted anywhere but
+	# the end shifts the displacement of every scene after it and puts two
+	# untouched shapes on the same plane, in a file nobody edited.
+	#
+	# It is the scene most exposed to that, too. 270 shapes stacked on one axis
+	# is 270 top faces and 270 bottom faces, all concentric, and it is the only
+	# object in the park where the coplanar rule is doing continuous work rather
+	# than catching the odd corner.
+	_root = Node3D.new()
+	_root.name = "fountain"
+	_begin_scene()
+	_fountain()
+	if not _save(_root, FOUNTAIN_PATH):
 		return
 
 	quit()
@@ -273,6 +305,58 @@ const ASPHALT_METRES := 3.0
 const PLANK_SIZE := 512
 const PLANK_METRES := 2.24
 const PLANK_BOARDS := 16
+
+
+# ---------------------------------------------------------------------------
+# The lit materials
+# ---------------------------------------------------------------------------
+
+## The three materials that are allowed to *be* light rather than take it, and
+## the only ones in the park written out as their own files.
+##
+## Everything else in `mats` is an in-memory `StandardMaterial3D`, so each scene
+## packs its own copy and two scenes sharing a colour share nothing at runtime.
+## That is fine for a bench slat and useless here, because a bulb has to change
+## through the evening and there are 196 of them across four scenes. Externalised
+## with `FLAG_CHANGE_PATH` — the same trick the ground textures use — one file is
+## one resource, Godot's cache hands the same instance to every scene that
+## references it, and `park_lights.gd` `load()`s that instance and sets
+## `emission_energy_multiplier` on it once. One assignment lights the park.
+##
+## Which is also why these could not just be `defs` entries with emission turned
+## on: `"yellow"` is the festoon bulbs *and* the awning stripes, the flagpole
+## pennants and the parasol shades. Emission on that palette entry sets fire to
+## every umbrella on the terrace.
+const MAT_DIR := "res://assets/materials"
+const BULB_MAT_PATH := Plan.BULB_MATERIAL
+const LAMP_MAT_PATH := Plan.LAMP_MATERIAL
+const EYE_MAT_PATH := Plan.EYE_MATERIAL
+const TRIM_MAT_PATH := Plan.TRIM_MATERIAL
+
+## Emission colours, and they are deliberately not the albedo.
+##
+## A bulb reads as *on* by being warmer than its own daytime colour, not just
+## brighter — a lamp that scales its albedo up looks like a white ball in a dark
+## park, and a lamp that shifts amber as it brightens looks like a filament. The
+## festoon runs are the warmest thing in the park after dark and the promenade
+## globes are a half-step cooler, so the strip has two temperatures in it rather
+## than one.
+const BULB_EMIT := Color(1.0, 0.72, 0.34)
+const LAMP_EMIT := Color(1.0, 0.86, 0.62)
+const EYE_EMIT := Color(1.0, 0.80, 0.50)
+
+## Cool, and the only cool light in the park. The trim runs along the cascade's
+## copings and the whole point is that it reads as *architecture* lit on purpose,
+## against a park lit in tungsten — warm everywhere else, cold on the monument.
+## Same colour the pavilion takes at the pier head, so the two cool things in the
+## west are the two built things worth walking to.
+## Saturated well past where it looks right in a swatch, because emission clips
+## toward white as it brightens and these are the largest emissive surfaces in
+## the park — 40m of coping down each wing, seen flat-on from the head of the
+## flight. At (0.60, 0.82, 1.0) the capture came back with two white-hot slabs
+## and no colour in them at all; the blue has to be deep enough to survive its
+## own brightness.
+const TRIM_EMIT := Color(0.24, 0.55, 1.0)
 
 
 func _build_textures() -> void:
@@ -647,6 +731,169 @@ func _build_materials() -> void:
 	mats["plank_cross"] = _ground_material(Color(0.68, 0.62, 0.54),
 		PLANK_X_ALBEDO_PATH, PLANK_X_NORMAL_PATH, PLANK_METRES, 0.8, 0.95)
 
+	# The three that light up. Saved to disk, then loaded back — see MAT_DIR.
+	DirAccess.make_dir_recursive_absolute(MAT_DIR)
+	mats["bulb"] = _lit_material(Color(0.96, 0.88, 0.66), BULB_EMIT, BULB_MAT_PATH)
+	mats["lamp_glass"] = _lit_material(Color(0.92, 0.90, 0.84), LAMP_EMIT, LAMP_MAT_PATH)
+	mats["eye"] = _lit_material(Color(0.90, 0.88, 0.82), EYE_EMIT, EYE_MAT_PATH)
+	# Albedo matched to `white`, because the trim is coping stone by day and has
+	# to sit in the daylight palette exactly where it did before it could glow.
+	mats["trim"] = _lit_material(Color(0.87, 0.86, 0.82), TRIM_EMIT, TRIM_MAT_PATH)
+
+	_fountain_materials()
+
+
+## The fountain's palette, and the only shaders in the park.
+##
+## Two stones and one metal first. The plaza's masonry is `building` at 0.72 grey
+## and the fountain used to be that plus `accent`, alternating drum by drum,
+## which is what made it read as a cake: the bands were the loudest thing about
+## it and they went with the layers rather than across them. So the fountain gets
+## its own two, close enough together that the *profile* is what separates the
+## parts and not the colour — a dry stone and the same stone permanently wet,
+## which is the honest difference between a basin's outside and its inside.
+##
+## Then the water. `mats["water"]` already exists and is the sea: flat, 0.08
+## rough, and completely correct for 340m of shore seen from a bluff. It is
+## useless for a fountain, because at three metres what says *water* is that it
+## is moving, and a `StandardMaterial3D` cannot move.
+##
+## Both shaders are loaded from `res://assets/shaders`, which is safe under
+## `--script` for the same reason the ground textures are safe as `.res`: a
+## `.gdshader` is not an *imported* asset. It has no `.import` sidecar and no
+## editor pass standing between the file and `load()`, so the park stays one
+## command to rebuild.
+##
+## Four instances of two shaders rather than four shaders, because the uniforms
+## are the whole difference: a basin is the pool with a shorter wavelength, and a
+## jet is a sheet with its flow running the other way.
+const POOL_SHADER_PATH := "res://assets/shaders/water_pool.gdshader"
+const FALL_SHADER_PATH := "res://assets/shaders/water_fall.gdshader"
+
+
+func _fountain_materials() -> void:
+	# Warm limestone, and the warmth is the point rather than a preference. The
+	# first build made this 0.74/0.72/0.68, which is `building` to within two
+	# percent — so the fountain was a pale grey object standing against a
+	# hundred and twenty metres of pale grey perimeter and did not separate from
+	# it at any distance. The old fountain got away with the same value only
+	# because half of it was `accent` salmon, which is the banding this rebuild
+	# exists to remove; the fix is to move the *whole* object off the wall's
+	# hue instead of striping it.
+	mats["fount_stone"] = _plain(Color(0.72, 0.66, 0.57), 0.88, 0.0)
+	# The wetted stone. Darker and much less rough, because that is what water
+	# actually does to masonry, and it is the cheapest possible way to say which
+	# surfaces the water has been over without drawing a stain on anything.
+	mats["fount_wet"] = _plain(Color(0.48, 0.45, 0.40), 0.35, 0.0)
+	mats["fount_bronze"] = _plain(Color(0.42, 0.40, 0.30), 0.45, 0.55)
+	# The pool floor. Never really seen — the water above it is opaque — but a
+	# fountain with nothing under its water is a fountain you can see the plaza
+	# through from the one angle nobody checked.
+	mats["fount_bed"] = _plain(Color(0.16, 0.26, 0.27), 0.8, 0.0)
+
+	var pool := load(POOL_SHADER_PATH) as Shader
+	var fall := load(FALL_SHADER_PATH) as Shader
+	if pool == null or fall == null:
+		push_error("gen_props: the water shaders did not load — the fountain "
+			+ "would be built out of null materials")
+		quit(1)
+		return
+
+	mats["water_pool"] = _shader_material(pool, {
+		"tint": Color(0.10, 0.24, 0.28),
+		"centre": Vector3(Plan.FOUNTAIN_AT.x, 0.0, Plan.FOUNTAIN_AT.y),
+		"ring_scale": 1.0,
+		"chop": 1.0,
+		"rough": 0.06,
+	})
+	# The basins are 8m and 4m across against the pool's 17, so they take the
+	# rings four and eight times as tight. At the pool's wavelength a basin has
+	# one and a half waves on it, which does not read as water at all — it reads
+	# as a dent.
+	mats["water_basin"] = _shader_material(pool, {
+		"tint": Color(0.13, 0.28, 0.31),
+		"centre": Vector3(Plan.FOUNTAIN_AT.x, 0.0, Plan.FOUNTAIN_AT.y),
+		"ring_scale": 4.5,
+		"chop": 3.0,
+		"rough": 0.05,
+	})
+	# `streaks` is radians per world metre, so it has to be read against how wide
+	# the thing wearing it is. The falls take 64 and 80 where the jets take 34,
+	# and that is not a taste difference: at 26 a rope is 24cm and a fall is
+	# 36cm wide, so each fall came out as one translucent rod hanging off a
+	# basin. At 64 the same fall has five ropes in it and reads as a curtain. A
+	# jet is 15cm through and genuinely *is* one rope, so it keeps the low number.
+	#
+	# The two sheets. Heavy, slow, falling, and each faded over its own drop —
+	# which is why they are two materials and not one. `fade_from` is the lip and
+	# `fade_to` is a little above whatever the sheet lands in, so the last of the
+	# fall is gone before it arrives and the froth ring takes the landing. That
+	# is the trick that lets a veil run the full height of its drop: a sheet that
+	# stopped in mid-air would read as a modelling mistake, and one drawn at full
+	# strength all the way down reads as a glass tube.
+	mats["water_veil_lo"] = _shader_material(fall, {
+		"flow": 2.4, "streaks": 64.0, "grain": 2.2,
+		"base_alpha": 0.30, "glow": 0.30,
+		"fade_from": 3.16, "fade_to": 0.55,
+	})
+	mats["water_veil_hi"] = _shader_material(fall, {
+		"flow": 2.6, "streaks": 80.0, "grain": 2.6,
+		"base_alpha": 0.32, "glow": 0.32,
+		"fade_from": 5.33, "fade_to": 3.45,
+	})
+	# Jets and the plume: the same substance with the flow reversed, thinner, and
+	# breaking up faster the higher it gets.
+	mats["water_jet"] = _shader_material(fall, {
+		"flow": -4.2, "streaks": 34.0, "grain": 3.4,
+		"base_alpha": 0.36, "glow": 0.45,
+	})
+	# The plume fades the other way — out at the *top*. It is the only part of
+	# the fountain visible from the gate, and without this it ends in a flat disc
+	# against the sky fifty-seven metres up the street.
+	mats["water_plume"] = _shader_material(fall, {
+		"flow": -4.8, "streaks": 30.0, "grain": 3.0,
+		"base_alpha": 0.44, "glow": 0.55,
+		"fade_from": 6.30, "fade_to": 7.95,
+	})
+	# What comes back down around the plume. Very faint, because two concentric
+	# translucent drums at any real opacity are the wedding cake this rebuild
+	# exists to stop being.
+	mats["water_spray"] = _shader_material(fall, {
+		"flow": 2.0, "streaks": 16.0, "grain": 1.8,
+		"base_alpha": 0.13, "glow": 0.40,
+		"fade_from": 6.60, "fade_to": 5.40,
+	})
+	# Froth. The pool shader rather than the fall shader, and that is not a
+	# detail: `water_fall` travels by *height*, so on a flat horizontal patch
+	# every fragment shares one value and the whole ring pulses in unison. The
+	# pool shader travels across the surface, which is what froth does.
+	mats["water_foam"] = _shader_material(pool, {
+		"tint": Color(0.48, 0.63, 0.66),
+		"centre": Vector3(Plan.FOUNTAIN_AT.x, 0.0, Plan.FOUNTAIN_AT.y),
+		"ring_scale": 9.0,
+		"chop": 7.0,
+		"rough": 0.22,
+		"spec": 0.7,
+	})
+
+
+func _plain(albedo: Color, roughness: float, metallic: float) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = albedo
+	m.roughness = roughness
+	m.metallic = metallic
+	return m
+
+
+## One `ShaderMaterial` per uniform set. Shared by every part that takes it, so
+## the packed scene carries one copy and not one per node.
+func _shader_material(shader: Shader, params: Dictionary) -> ShaderMaterial:
+	var m := ShaderMaterial.new()
+	m.shader = shader
+	for key in params:
+		m.set_shader_parameter(key, params[key])
+	return m
+
 
 ## World-space triplanar rather than the surface's own UVs, and that is the whole
 ## reason this is one material instead of forty.
@@ -675,6 +922,51 @@ func _ground_material(tint: Color, albedo_path: String, normal_path: String,
 	# of the plaza into flat grey.
 	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 	return m
+
+
+## A material that can be switched on, written to `path` and loaded back from it.
+##
+## Emission is left *enabled* and its multiplier left at zero rather than the
+## flag being off, and that is the whole reason this works at runtime. Godot
+## compiles `emission_enabled` into the shader; flipping it recompiles, so a
+## park that turned its lights on at dusk by setting the flag would hitch on the
+## one frame the player is most likely to be looking at the sky. The multiplier
+## is a uniform, so sliding it from 0 to 1 over the twilight costs nothing and
+## can be done every frame.
+##
+## At zero the surface is exactly its albedo, which is what a bulb in daylight
+## is: a pale glass ball. Nothing about the day changes.
+##
+## The load-back is not a paranoia check like the texture one — a material has no
+## buffer to drop. It is what makes the *identity* work: `ResourceSaver` with
+## `FLAG_CHANGE_PATH` gives the in-hand copy a path, and `ResourceLoader` then
+## returns that same cached instance to everyone who asks for the path later,
+## including the running game. Skipping it leaves the generator holding an object
+## whose path says one thing and whose cache entry does not exist.
+func _lit_material(albedo: Color, emit: Color, path: String) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = albedo
+	m.roughness = 0.45
+	m.metallic = 0.0
+	m.emission_enabled = true
+	m.emission = emit
+	m.emission_energy_multiplier = 0.0
+	# A bulb is a light source, so it should not be shaded like a solid. Unshaded
+	# would be wrong the other way — it would glow flat at noon — so this keeps
+	# the daytime shading and only lifts the shadowed side, which is where a real
+	# frosted globe picks up its own scatter.
+	m.disable_ambient_light = false
+	var err := ResourceSaver.save(m, path, ResourceSaver.FLAG_CHANGE_PATH)
+	if err != OK:
+		push_error("material save failed: %s (%d)" % [path, err])
+		quit(1)
+		return m
+	var back := ResourceLoader.load(path) as StandardMaterial3D
+	if back == null:
+		push_error("material %s did not load back" % path)
+		quit(1)
+		return m
+	return back
 
 
 ## Rotation about Y, then a tilt about the object's own X. Engine maths only.
@@ -894,6 +1186,145 @@ func _marker(nm: String, at: Vector3, yaw: float) -> void:
 	_attach(m, nm)
 
 
+# ---------------------------------------------------------------------------
+# Lights
+# ---------------------------------------------------------------------------
+
+## The group and the three kinds are the plan's, not this file's — they are a
+## contract between this generator and `park_lights.gd`, which reads back out of
+## the scenes written here. Aliased rather than used through `Plan.` at every
+## call site only because these appear as default arguments about forty times.
+const LIGHT_GROUP := Plan.LIGHT_GROUP
+const LIGHT_FIXTURE := Plan.LIGHT_FIXTURE
+const LIGHT_FEATURE := Plan.LIGHT_FEATURE
+const LIGHT_SERVICE := Plan.LIGHT_SERVICE
+
+## The park's lamps are tungsten and its floodlighting is not, and that gap is
+## most of what makes uplighting read as *staged* rather than as more lamps.
+const LIGHT_TINTS := {
+	"warm": Color(1.0, 0.78, 0.48),
+	"lamp": Color(1.0, 0.88, 0.68),
+	# Floodlighting, a touch cooler than the lamps so a washed wall separates
+	# from the pool of light at its foot instead of merging with it.
+	"wash": Color(1.0, 0.92, 0.80),
+	# The two on the boardwalk that are allowed to be a colour. A midway after
+	# dark is not a white place, and the wheel and the pavilion are the two
+	# things down there whose whole job is to be looked at from far away.
+	"rose": Color(1.0, 0.62, 0.58),
+	"cyan": Color(0.62, 0.86, 1.0),
+	# The cascade's pair, and they only mean anything together. Drama in
+	# architectural lighting is contrast rather than quantity: the first pass put
+	# one near-white `wash` on every surface of the monument at moderate energy,
+	# which is the most even and least dramatic thing available. Splitting it
+	# gives the eye something to separate — cold on the stone that holds the
+	# silhouette, warm on the ground people actually walk down.
+	"moon": Color(0.55, 0.72, 1.0),
+	"amber": Color(1.0, 0.63, 0.26),
+	# For uplighting foliage, and pushed green because the target is not white.
+	# `foliage` is a dusty olive chosen so a canopy does not read as a boulder on
+	# a stick, and a warm lamp on a desaturated olive gives back a brown mass. A
+	# light with green in it puts the green back and the crown reads as leaves.
+	"foliage_up": Color(0.72, 1.0, 0.62),
+}
+
+
+## A pool of light hung on a fixture.
+##
+## Shadows default off and that is the important default. A shadow-casting omni
+## costs a cubemap render per frame, and the park wants ~90 of these; the ones
+## that earn a shadow are the few the player walks directly under. Everything
+## else is filling in a floor that already has ambient on it.
+##
+## `_attach` rather than `_add`, so no seam displacement — that offset exists to
+## stop two CSG faces sharing a plane, and a light is not a surface. It is the
+## same reason gates and markers use it.
+func _omni(nm: String, at: Vector3, tint: String, energy: float, rng: float,
+		kind := LIGHT_FIXTURE, shadow := false) -> void:
+	var l := OmniLight3D.new()
+	l.position = at
+	l.light_color = LIGHT_TINTS[tint]
+	l.light_energy = energy
+	l.omni_range = rng
+	# Above 1.0 the falloff is steeper than physical, which is what a lamp pool
+	# wants: a bright disc under the post that gives out well before the next
+	# post's does. Linear falloff over a 14m range makes the whole plaza an even
+	# grey and there is no point having lamps at all.
+	l.omni_attenuation = 1.6
+	l.light_specular = 0.4
+	l.shadow_enabled = shadow
+	if shadow:
+		l.shadow_bias = 0.04
+	_light(l, nm, energy, kind)
+
+
+## Uplighting. A spot at the foot of something, pointed up it.
+##
+## The angle is wide and the range is long, which is the opposite of how a spot
+## is usually set: this is not a beam picking out an object, it is a wash raking
+## a face from below. What sells it is that the source sits *close* to the
+## surface — a floodlight two metres out from a wall grazes it and every string
+## course and window reveal on `plaza_frontage.tscn` throws a shadow up the
+## building. The same fitting six metres out just makes the wall evenly bright,
+## which is worth nothing.
+##
+## `Basis.looking_at` rather than `look_at`, because the node is not in a tree
+## yet and `look_at` needs global transforms. It also cannot be handed an up
+## vector parallel to its aim, and these aim very nearly straight up — hence the
+## fallback. Without it every genuinely vertical uplight in the park comes out
+## with a zero basis and lights nothing.
+func _uplight(nm: String, at: Vector3, aim: Vector3, tint: String, energy: float,
+		rng: float, degrees: float, kind := LIGHT_FEATURE, shadow := false) -> void:
+	var dir := aim - at
+	if dir.length_squared() < 0.0001:
+		push_error("uplight '%s' aims at its own position" % nm)
+		return
+	dir = dir.normalized()
+	var up := Vector3.UP if absf(dir.dot(Vector3.UP)) < 0.98 else Vector3.FORWARD
+	var l := SpotLight3D.new()
+	l.transform = Transform3D(Basis.looking_at(dir, up), at)
+	l.light_color = LIGHT_TINTS[tint]
+	l.light_energy = energy
+	l.spot_range = rng
+	l.spot_angle = degrees
+	# Soft-edged. A hard cone edge on a building face draws an ellipse on the
+	# masonry and reads as a projector rather than as light.
+	#
+	# Above 1.0, not below. This had it at 0.7 on the reasoning that less
+	# attenuation is a gentler light, which is backwards: the value is how fast
+	# the cone falls off *towards its own edge*, so a low number holds full
+	# brightness right out to the rim and cuts. The first capture showed exactly
+	# that — a crisp bright ellipse on the north range, which is the projector
+	# this comment was already warning about.
+	l.spot_angle_attenuation = 1.7
+	l.spot_attenuation = 1.0
+	l.light_specular = 0.25
+	l.shadow_enabled = shadow
+	if shadow:
+		l.shadow_bias = 0.05
+		l.shadow_normal_bias = 1.5
+	_light(l, nm, energy, kind)
+
+
+## The shared tail: remember what full brightness means, say what the light is
+## for, and put it in the group.
+##
+## `base_energy` is stored because the driver scales rather than sets — a lamp
+## and a floodlight are not the same brightness and the evening has to dim both
+## by the same fraction. Without it the driver would have to hold a table of
+## every light's intended energy, which is a second copy of a number that is
+## already right here.
+func _light(l: Light3D, nm: String, energy: float, kind: int) -> void:
+	l.set_meta("base_energy", energy)
+	l.set_meta("light_kind", kind)
+	# Off as generated. Nothing in the park is lit until the driver says the sun
+	# is down, and a scene that loads at noon with its lamps burning would be
+	# wrong for the twelve hours the game actually spends open.
+	l.light_energy = 0.0
+	l.visible = false
+	l.add_to_group(LIGHT_GROUP, true)
+	_attach(l, nm)
+
+
 func _box(nm: String, base: Vector3, local: Vector3, size: Vector3, mat: String,
 		theta := 0.0, collide := true, phi := 0.0) -> void:
 	var b := CSGBox3D.new()
@@ -916,14 +1347,39 @@ func _cyl(nm: String, base: Vector3, local: Vector3, radius: float, height: floa
 	_add(c, nm)
 
 
-func _sphere(nm: String, origin: Vector3, radius: float, mat: String, squash := 1.0) -> void:
+## **`base` plus `local`, like `_box` and `_cyl`, and it took until 2026-08-14c
+## to be.**
+##
+## It used to take a single finished world position, which made it the one
+## primitive that did not go through `_place` — so it was also the one primitive
+## that silently ignored `_dilate_plaza`. Every caller outside the plaza was
+## fine, because out there the map is the identity; the three inside it were the
+## balloons, and all three came out separated from their own strings. The red one
+## floated 5.4m from its string, the yellow 5.6m, and the blue one — which is
+## meant to be resting against a bollard — 13.2m, because its string was mapped
+## from radius 30 to 43.5 and it was not.
+##
+## Nothing catches that. `coplanar_test.py` has no opinion about two shapes that
+## have drifted *apart*, the walk test does not walk into balloons, and a
+## screenshot of a plaza with a balloon in the wrong half of it looks like a
+## plaza with a balloon in it. It was found by somebody looking at the pictures
+## and asking why the balloons had no strings.
+##
+## The lesson is narrower than "test more": an assembly whose parts are built by
+## two different helpers is only rigid if both helpers compose position the same
+## way. The signature *is* the invariant, so the odd one out had to go.
+func _sphere(nm: String, base: Vector3, local: Vector3, radius: float, mat: String,
+		theta := 0.0, squash := 1.0) -> void:
 	var s := CSGSphere3D.new()
 	s.radius = radius
 	s.radial_segments = 10
 	s.rings = 6
 	s.material = mats[mat]
 	s.use_collision = false
-	s.transform = Transform3D(Basis.IDENTITY.scaled(Vector3(1.0, squash, 1.0)), origin)
+	# A sphere has no orientation worth keeping, so `theta` only turns the offset
+	# — which is exactly what it is for. Squash stays on the basis.
+	s.transform = Transform3D(Basis.IDENTITY.scaled(Vector3(1.0, squash, 1.0)),
+		_place(base, local, theta))
 	_add(s, nm)
 
 
@@ -1084,6 +1540,366 @@ func _pave_quad(nm: String, centre: Vector3, size: Vector2, theta: float,
 
 
 # ---------------------------------------------------------------------------
+# The fountain
+# ---------------------------------------------------------------------------
+
+## The plaza's centrepiece, and until now the plaza's worst object.
+##
+## It was five concentric drums of decreasing radius, alternating grey and
+## salmon, eighteen metres across and 7.9 tall. Everything about that is
+## defensible one line at a time — it held the middle of the room, it cleared the
+## clock tower, it was the right size — and the whole of it read as a cake. Two
+## reasons, and they are separable:
+##
+##   1. **There was no water in it.** Not a plane, not a jet, nothing. The only
+##      thing that makes a fountain a fountain was the one thing missing, and
+##      calling it `fountain_base` in the scene tree did not put it there.
+##   2. **The profile was monotone.** Five stacked cylinders each smaller than
+##      the last is a shape with no incident in it: every silhouette from every
+##      angle is the same staircase, and the alternating colour banded it *with*
+##      the layers, which made the staircase louder rather than breaking it up.
+##
+## So: a real tiered fountain. A pool you could sit on the edge of, a pedestal, a
+## basin, a column, a smaller basin, and water — falling from each lip to the one
+## below it, jetting in a ring inside the pool, and a plume up the middle.
+##
+## **The height envelope is inherited and not renegotiated.** 2026-08-13b tuned
+## this against the clock tower and wrote the numbers down: at 10.9m the fountain
+## hid the bottom 24m of a 29m tower from the ring's edge, and coming down to
+## 7.9m with the 18m basin untouched was what fixed it. So 7.9 and 18 stand.
+##
+## What *did* change is which 7.9. The tallest solid is now the nozzle at 6.3m
+## and the top 1.6m is the plume — so the stone silhouette is 1.6m lower than
+## before and gives the tower back more than it takes, while the object is the
+## same height it was measured at. Being able to spend the top of the envelope on
+## something thin and bright is most of the argument for the plume: from the gate
+## the old fountain was a pale drum subtending 3.3 degrees against a pale
+## building, and the new one has a white vertical against the sky.
+##
+## The other inherited number is `Plan.FOUNTAIN_RADIUS`, which is 9 and is the
+## footprint the crowd's walkable graph cuts around. The coping's *outer* face is
+## that radius exactly, so nothing about where guests may walk changes.
+
+## Where the sections of the fountain sit, bottom to top. Written out rather than
+## derived, because a fountain is a drawn profile and the numbers are the
+## drawing: every one of these was pushed around against a screenshot, and a
+## formula generating them would be a formula nobody could tune.
+##
+## The rule they all obey is that consecutive parts *overlap* by 1-3cm. That is
+## the project's standing rule about coplanar faces — parts run into each other
+## rather than meeting edge to edge — and it matters more here than anywhere,
+## because this is 270 shapes stacked on one axis and every one of them has a top
+## face and a bottom face that could line up with a neighbour's.
+const FOUNT_R := Plan.FOUNTAIN_RADIUS
+
+## The kerb, as a ring of blocks rather than as a cylinder. The whole reason is
+## that a pool needs an *inside*: a solid drum at radius 9 is a disc with water
+## painted on top of it, and the thing that reads as a basin is seeing the water
+## sit down below a rim you could put a drink on.
+##
+## 36 blocks makes the outer face an inscribed 36-gon, so it bulges 3.4cm past
+## radius 9 at each block's corner and sits exactly on it at each block's middle.
+## Under 4cm over a metre and a half is a faceted stone kerb, which is what this
+## is meant to be, and it is far too shallow for the capsule to catch on.
+const KERB_SEGS := 36
+const COPING_DEPTH := 0.80
+## Derived rather than typed, so the coping's *outer* face is on the plan's
+## radius by construction. That face is the one number the rest of the park
+## agrees with — it is what the crowd's graph cuts around and what the ring
+## walkway is set outside of — and a kerb radius typed independently is a kerb
+## radius that drifts off it the first time the coping gets wider.
+const KERB_R := FOUNT_R - COPING_DEPTH * 0.5
+const KERB_TOP := 0.36
+
+## The seat, and it is plan data rather than a number in this file because
+## `gen_crowd.gd` seats nine guests on it and cannot read anything over here.
+## See `ParkPlan.FOUNTAIN_RIM_TOP` for why it is half a metre.
+const COPING_TOP := Plan.FOUNTAIN_RIM_TOP
+const POOL_TOP := Plan.FOUNTAIN_POOL_TOP
+
+
+func _fountain() -> void:
+	# In final coordinates. The fountain is at the origin, so the dilation map
+	# would return it unchanged anyway — but stating it is cheaper than the
+	# reader having to prove that, and `_dilate_plaza` is a mode that persists
+	# across scenes.
+	_dilate_plaza = false
+	var o := Vector3(Plan.FOUNTAIN_AT.x, 0.0, Plan.FOUNTAIN_AT.y)
+
+	_fountain_pool(o)
+	_fountain_pedestal(o)
+	_fountain_basins(o)
+	_fountain_plume(o)
+	_fountain_jets(o)
+	# No lights here, and that is deliberate rather than an omission. The
+	# fountain's six uplights are `_fountain_lights` over in `_plaza_lights`,
+	# where the tower's and the bandstand's are, because what a fitting is aimed
+	# at is a decision about the *plaza after dark* and belongs with the rest of
+	# that argument. It also keeps this scene to geometry, which is the only
+	# reason it can be regenerated without touching what the night looks like.
+
+
+## The pool: kerb, coping, bed and surface.
+func _fountain_pool(o: Vector3) -> void:
+	# Chord of one segment, plus 4% so neighbours overlap instead of butting.
+	var chord := 2.0 * KERB_R * sin(PI / float(KERB_SEGS)) * 1.04
+	for i in KERB_SEGS:
+		var a := TAU * float(i) / float(KERB_SEGS)
+		# The kerb collides and the coping collides, and nothing else in the
+		# fountain does. That is the whole barrier: the player cannot get over a
+		# 52cm wall without a step-up, so 260 shapes inside the pool need no
+		# collision at all and 72 ring blocks are the cheapest possible fence.
+		_box("kerb_%02d" % i, o, Vector3(0.0, KERB_TOP * 0.5, KERB_R),
+			Vector3(chord, KERB_TOP, 0.62), "fount_stone", a)
+		# Overhanging the kerb by 9cm each side, which is the entire reason the
+		# coping is a separate course: the shadow line under a lip is what makes
+		# masonry read as cut stone rather than as an extruded shape.
+		_box("coping_%02d" % i, o, Vector3(0.0, (KERB_TOP + COPING_TOP) * 0.5, KERB_R),
+			Vector3(chord * 1.04, COPING_TOP - KERB_TOP, COPING_DEPTH), "fount_wet", a)
+
+	# Under the water and effectively never seen. It is here so that the one
+	# grazing angle where the surface disappears shows a floor rather than the
+	# plaza on the far side.
+	_cyl("pool_bed", o, Vector3(0.0, 0.06, 0.0), 8.42, 0.12, "fount_bed",
+		0.0, 40, false)
+	# 0.30, so the water sits 22cm below the coping. Freeboard is what says the
+	# pool has depth; brimmed to the rim it reads as a painted disc.
+	_water_cyl("pool_water", o, Vector3(0.0, POOL_TOP - 0.10, 0.0), 8.26, 0.20,
+		"water_pool", 48)
+
+
+## The steps out of the water, and the pedestal on them.
+##
+## Three steps rather than one plinth, and the bottom two are `fount_wet`: the
+## waterline is at 0.30 and the first step's top is at 0.46, so one of the three
+## is genuinely half-submerged. Wetting two of them puts the tide mark a step
+## above the water, which is what a fountain that has been running all summer
+## actually looks like.
+func _fountain_pedestal(o: Vector3) -> void:
+	_cyl("step_1", o, Vector3(0.0, 0.23, 0.0), 3.60, 0.46, "fount_wet", 0.0, 32, false)
+	_cyl("step_2", o, Vector3(0.0, 0.62, 0.0), 3.05, 0.36, "fount_wet", 0.0, 28, false)
+	_cyl("step_3", o, Vector3(0.0, 0.94, 0.0), 2.55, 0.32, "fount_stone", 0.0, 24, false)
+
+	# Foot, shaft, cap. Three shapes and the only three that matter: a bare drum
+	# between the steps and the basin is the old fountain again in miniature,
+	# and a moulding top and bottom is what turns it into a pedestal.
+	_cyl("ped_foot", o, Vector3(0.0, 1.21, 0.0), 1.95, 0.26, "fount_stone", 0.0, 20, false)
+	_cyl("ped_shaft", o, Vector3(0.0, 1.79, 0.0), 1.52, 0.92, "fount_stone", 0.0, 20, false)
+	_cyl("ped_cap", o, Vector3(0.0, 2.35, 0.0), 1.92, 0.24, "fount_stone", 0.0, 20, false)
+
+
+## The two basins, each built the same way: an underside that steps *outward*
+## going up, a rim ring, and water inside the ring.
+##
+## The stepped underside is the load-bearing idea. A basin is a dish, and a dish
+## seen from below — which is how you see both of these, standing on the plaza
+## floor — is a curve. Three discs of increasing radius approximate that curve in
+## silhouette, and unlike a single drum they catch light differently on each
+## step, so the underside has shading in it at every hour rather than only when
+## the sun happens to rake it.
+##
+## The rim is a ring of blocks for the same reason the coping is: a solid
+## cylinder would be a lid over the water.
+func _fountain_basins(o: Vector3) -> void:
+	# Lower basin. 8.1m across at 3.35 — wider than the pedestal by a long way,
+	# which is what makes the profile read as a fountain rather than as a column.
+	_cyl("lb_under_1", o, Vector3(0.0, 2.59, 0.0), 2.48, 0.28, "fount_stone", 0.0, 24, false)
+	_cyl("lb_under_2", o, Vector3(0.0, 2.83, 0.0), 3.26, 0.24, "fount_stone", 0.0, 28, false)
+	_cyl("lb_under_3", o, Vector3(0.0, 3.04, 0.0), 3.82, 0.22, "fount_stone", 0.0, 28, false)
+	_rim_ring("lb_rim", o, 28, 3.92, 3.24, 0.22, 0.30)
+	_water_cyl("lb_water", o, Vector3(0.0, 3.19, 0.0), 3.80, 0.22, "water_basin", 32)
+
+	_cyl("col_foot", o, Vector3(0.0, 3.40, 0.0), 1.02, 0.22, "fount_stone", 0.0, 16, false)
+	_cyl("col_shaft", o, Vector3(0.0, 4.08, 0.0), 0.74, 1.15, "fount_stone", 0.0, 16, false)
+	_cyl("col_cap", o, Vector3(0.0, 4.74, 0.0), 1.00, 0.22, "fount_stone", 0.0, 16, false)
+
+	# Upper basin, 4.1m across at 5.46.
+	_cyl("ub_under_1", o, Vector3(0.0, 4.95, 0.0), 1.30, 0.24, "fount_stone", 0.0, 20, false)
+	_cyl("ub_under_2", o, Vector3(0.0, 5.16, 0.0), 1.78, 0.22, "fount_stone", 0.0, 20, false)
+	_rim_ring("ub_rim", o, 20, 1.94, 5.36, 0.20, 0.26)
+	_water_cyl("ub_water", o, Vector3(0.0, 5.30, 0.0), 1.84, 0.22, "water_basin", 24)
+
+	# The falls. Each hangs from its own lip and runs the whole way down to what
+	# it lands in, rather than stopping short — a fall that ends in mid-air is
+	# the one artefact that would read as a modelling mistake instead of as
+	# water. What makes the full drop affordable is the fade: the shader thins it
+	# out over its length, so it is bright at the lip and a ghost by the time it
+	# reaches the surface, where the froth ring takes over.
+	_veil("lb_veil", o, 16, 4.03, 3.16, 0.40, 0.07, "water_veil_lo")
+	_veil("ub_veil", o, 10, 2.03, 5.33, 3.30, 0.06, "water_veil_hi")
+
+	# Where the lower falls land. Flat, 1cm proud of the surface, and the one
+	# piece of water in the fountain that is neither falling nor still. One disc
+	# per fall, on the same bearings, so the froth is under the water that made
+	# it rather than being a decorative ring of its own.
+	_foam_ring("pool_foam", o, 16, 4.03, POOL_TOP + 0.01, 0.52)
+
+
+## The nozzle and what comes out of it.
+##
+## The plume is four tapering cylinders and it is the tallest thing on the
+## fountain — 7.9m, which is the number the whole envelope was tuned to in
+## 2026-08-13b. Spending it on water rather than on stone is the point: it is
+## thin, so it hides almost none of the clock tower behind it, and it is the only
+## bright vertical in a plaza built out of pale horizontal masonry.
+##
+## The spray skirt is two very faint drums flaring downward around it, standing
+## in for the water coming back down into the upper basin. Faint on purpose —
+## at any real opacity a pair of concentric translucent drums is a wedding cake
+## made of ghosts, which is the shape this rebuild exists to get rid of.
+func _fountain_plume(o: Vector3) -> void:
+	_cyl("fin_foot", o, Vector3(0.0, 5.50, 0.0), 0.54, 0.20, "fount_stone", 0.0, 12, false)
+	_cyl("fin_shaft", o, Vector3(0.0, 5.86, 0.0), 0.32, 0.55, "fount_stone", 0.0, 12, false)
+	_cyl("nozzle", o, Vector3(0.0, 6.22, 0.0), 0.20, 0.22, "fount_bronze", 0.0, 10, false)
+
+	_water_cyl("plume_1", o, Vector3(0.0, 6.55, 0.0), 0.28, 0.50, "water_plume", 10)
+	_water_cyl("plume_2", o, Vector3(0.0, 7.01, 0.0), 0.21, 0.46, "water_plume", 10)
+	_water_cyl("plume_3", o, Vector3(0.0, 7.42, 0.0), 0.14, 0.40, "water_plume", 8)
+	_water_cyl("plume_4", o, Vector3(0.0, 7.74, 0.0), 0.075, 0.32, "water_plume", 8)
+
+	# One skirt, not two. The second was a 2.9m drum sitting on top of the upper
+	# basin and it was doing exactly what the veils were doing — reading as a
+	# container rather than as its contents.
+	_water_cyl("spray_1", o, Vector3(0.0, 5.95, 0.0), 0.86, 0.90, "water_spray", 16)
+
+
+## The ring of jets in the pool.
+##
+## Twelve, at radius 6.5, leaning six degrees inward. Near-vertical rather than
+## arcing, and that is a decision about what greybox can carry: an arc is four
+## segments per jet and lands wherever the last one stops, and a jet that ends
+## in mid-air over the water is worse than a straight one. Leaning them all
+## slightly inward makes the ring converge on the plume, so the twelve of them
+## and the one up the middle read as one arrangement instead of two.
+##
+## They stand well outside the lower basin's 4.05m rim, so from anywhere on the
+## plaza floor there is water at three heights at once: the ring, the sheets off
+## each lip, and the plume.
+const JET_COUNT := 12
+const JET_R := Plan.FOUNTAIN_JET_R
+const JET_LEAN := -0.10
+
+
+func _fountain_jets(o: Vector3) -> void:
+	for i in JET_COUNT:
+		var a := TAU * (float(i) + 0.5) / float(JET_COUNT)
+		# Breaking the surface rather than sitting on the floor of the pool: the
+		# nozzle's top is 9cm above the waterline, which is what stops the jet
+		# looking as though it starts at nothing.
+		_cyl("jet_%02d_nozzle" % i, o, Vector3(0.0, 0.26, JET_R), 0.14, 0.26,
+			"fount_bronze", a, 8, false)
+		var foot := Vector3(0.0, 0.34, JET_R)
+		foot = _leaning("jet_%02d_a" % i, o, foot, 0.075, 1.25, "water_jet", a, JET_LEAN, 8)
+		_leaning("jet_%02d_b" % i, o, foot, 0.050, 0.85, "water_jet", a, JET_LEAN, 6)
+		_foam_patch("jet_%02d_foam" % i, o, Vector3(0.0, POOL_TOP + 0.01, JET_R),
+			0.34, a)
+
+
+## A ring of stone blocks standing on edge — a basin's lip.
+func _rim_ring(nm: String, o: Vector3, segs: int, r: float, mid_y: float,
+		height: float, depth: float) -> void:
+	var chord := 2.0 * r * sin(PI / float(segs)) * 1.06
+	for i in segs:
+		var a := TAU * float(i) / float(segs)
+		_box("%s_%02d" % [nm, i], o, Vector3(0.0, mid_y, r),
+			Vector3(chord, height, depth), "fount_wet", a, false)
+
+
+## A ring of falls hanging off a lip.
+##
+## **The slabs do not touch, and that is the whole design of this thing.** The
+## first build ran them shoulder to shoulder all the way round, which is what a
+## sheet coming off a rim actually does — and it came out as a translucent tube
+## with the basins invisible inside it. Two separate faults produced that: the
+## material was being drawn four times over (see `water_fall.gdshader`), and a
+## closed ring of translucent slabs is *geometrically* a tube no matter how
+## faint you make it. Fixing only the first gives a fainter tube.
+##
+## So each fall is 40% of its slot and 60% is air. You see the stone through the
+## gaps, the ring reads as a set of falls rather than as a curtain, and the
+## shader's streaking — which does nothing on a wide sheet — has something the
+## width of a stream to run down. It is also closer to how a park fountain that
+## has been running for twenty summers behaves: the sheet breaks up at the lip
+## into the places where the lip has worn.
+const VEIL_FILL := 0.34
+
+
+func _veil(nm: String, o: Vector3, segs: int, r: float, top: float, bottom: float,
+		thick: float, mat: String) -> void:
+	# `2 r sin(pi/n)` is the whole chord — the width of one slot. The fill is a
+	# fraction *of* that, not of half of it.
+	var chord := 2.0 * r * sin(PI / float(segs)) * VEIL_FILL
+	var h := top - bottom
+	for i in segs:
+		var a := TAU * float(i) / float(segs)
+		_water_box("%s_%02d" % [nm, i], o, Vector3(0.0, bottom + h * 0.5, r),
+			Vector3(chord, h, thick), mat, a)
+
+
+## Froth, laid flat on a water surface where something is falling into it.
+##
+## Round, and the first build was square. A flat box on water is a *tile*: it
+## has four straight edges and two of them are parallel to nothing, so a ring of
+## them read as paving laid in the pool. Discs overlap into a scalloped band with
+## no straight edge anywhere in it, which is what disturbed water looks like from
+## six metres away, and they cost the same.
+func _foam_ring(nm: String, o: Vector3, segs: int, r: float, y: float,
+		radius: float) -> void:
+	for i in segs:
+		var a := TAU * float(i) / float(segs)
+		_foam_patch("%s_%02d" % [nm, i], o, Vector3(0.0, y, r), radius, a)
+
+
+func _foam_patch(nm: String, o: Vector3, local: Vector3, radius: float,
+		a: float) -> void:
+	_water_cyl(nm, o, local, radius, 0.04, "water_foam", 10, a)
+
+
+## A cylinder standing on `foot` and leaning by `lean` about its own bearing.
+## Returns the far end, so segments chain into each other.
+##
+## The arithmetic is here rather than at each call site because `_xform` rotates
+## a shape about its *centre*: leaning a 1.25m jet by six degrees swings its
+## bottom 6cm off the nozzle it is supposed to be coming out of, and the fix is
+## to solve for the centre from the foot rather than to nudge the number until
+## the screenshot looks right.
+func _leaning(nm: String, o: Vector3, foot: Vector3, radius: float, height: float,
+		mat: String, theta: float, lean: float, sides: int) -> Vector3:
+	var up := Vector3(0.0, cos(lean), sin(lean))
+	_water_cyl(nm, o, foot + up * (height * 0.5), radius, height, mat, sides,
+		theta, lean)
+	return foot + up * height
+
+
+## The two water primitives. Identical to `_box` and `_cyl` except that nothing
+## they make collides or casts a shadow.
+##
+## The shadow is the part worth stating. A translucent veil that casts an opaque
+## shadow draws a solid black ring on the water it is falling into, and a plume
+## casting one lays a bar across the plaza at four in the afternoon. Godot has no
+## notion that a material is see-through when it renders the shadow map, so this
+## has to be said per node.
+func _water_cyl(nm: String, o: Vector3, local: Vector3, radius: float,
+		height: float, mat: String, sides := 16, theta := 0.0, phi := 0.0) -> void:
+	_cyl(nm, o, local, radius, height, mat, theta, sides, false, phi)
+	_last_unlit()
+
+
+func _water_box(nm: String, o: Vector3, local: Vector3, size: Vector3,
+		mat: String, theta := 0.0) -> void:
+	_box(nm, o, local, size, mat, theta, false)
+	_last_unlit()
+
+
+func _last_unlit() -> void:
+	var last := _root.get_child(_root.get_child_count() - 1) as GeometryInstance3D
+	if last == null:
+		push_error("gen_props: the last node added was not geometry")
+		return
+	last.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+
+# ---------------------------------------------------------------------------
 # Filling the outer room
 # ---------------------------------------------------------------------------
 
@@ -1107,11 +1923,11 @@ func _trees() -> void:
 		var h := 3.4 + rng.randf() * 1.6
 		var spread := 2.1 + rng.randf() * 0.8
 		_cyl("tree_%d_trunk" % i, b, Vector3(0, h * 0.5, 0), 0.24, h, "wood", 0.0, 8)
-		_sphere("tree_%d_crown_a" % i, _place(b, Vector3(0, h + spread * 0.55, 0), 0.0),
-			spread, "foliage", 0.72)
-		_sphere("tree_%d_crown_b" % i,
-			_place(b, Vector3(spread * 0.4, h + spread * 0.95, -spread * 0.3), 0.0),
-			spread * 0.66, "foliage", 0.8)
+		_sphere("tree_%d_crown_a" % i, b, Vector3(0, h + spread * 0.55, 0),
+			spread, "foliage", 0.0, 0.72)
+		_sphere("tree_%d_crown_b" % i, b,
+			Vector3(spread * 0.4, h + spread * 0.95, -spread * 0.3),
+			spread * 0.66, "foliage", 0.0, 0.8)
 
 
 ## Lamps, bins and benches for the outer room, on the same rules. The inner ring
@@ -1123,7 +1939,8 @@ func _outer_furniture() -> void:
 	for i in lamps.size():
 		var b := Vector3(lamps[i].x, 0, lamps[i].y)
 		_cyl("lamp_o%d_pole" % i, b, Vector3(0, 2.1, 0), 0.09, 4.2, "metal", 0.0, 8)
-		_box("lamp_o%d_head" % i, b, Vector3(0, 4.13, 0), Vector3(0.5, 0.24, 0.5), "white")
+		_box("lamp_o%d_head" % i, b, Vector3(0, 4.13, 0), Vector3(0.5, 0.24, 0.5), "lamp_glass")
+		_lamp_light("lamp_o%d_pool" % i, _place(b, Vector3(0, 3.98, 0), 0.0), false)
 
 	var bins := Plan.open_spots(8, 31, 21.0, 34.0, 2.2, 8.0, _stood)
 	for i in bins.size():
@@ -1214,6 +2031,14 @@ func _facing(from: Vector3, target: Vector3) -> float:
 ## metre of verge behind it and the walk in *front* of it rather than under it.
 const BENCH_CLEAR := 1.2
 
+## The hut's bench, hoisted out of `_benches` because `_balloons` ties two
+## balloons to it and a second copy of these numbers is how the balloons came to
+## be eight metres from the bench in the first place. Local to the hut, so it
+## follows if the hut moves; the top of the back rail is what a string ties to.
+const HUT_BENCH_AT := Plan.PHOTO_HUT_BENCH
+const HUT_BENCH_YAW := Plan.PHOTO_HUT_BENCH_YAW
+const HUT_BENCH_RAIL := 0.98
+
 
 func _benches() -> void:
 	# The ring of five round the fountain. They were on its skirt in the 80m
@@ -1254,7 +2079,7 @@ func _benches() -> void:
 	# around an 11m bandstand.
 	_dilate_plaza = false
 	var hut := Vector3(Plan.PHOTO_HUT_AT.x, 0.0, Plan.PHOTO_HUT_AT.y)
-	_bench("bench_hut", hut + Vector3(-6.0, 0, -4.0), deg_to_rad(8))
+	_bench("bench_hut", hut + HUT_BENCH_AT, deg_to_rad(HUT_BENCH_YAW))
 
 	# **The bandstand's three are re-beared rather than pushed, and that is the
 	# line between the two fixes.** A prop standing on open ground can be moved
@@ -1301,8 +2126,270 @@ func _lamps() -> void:
 	for i in spots.size():
 		var b := Vector3(spots[i].x, 0, spots[i].y)
 		_cyl("lamp_%d_pole" % i, b, Vector3(0, 2.1, 0), 0.09, 4.2, "metal", 0.0, 8)
-		_box("lamp_%d_head" % i, b, Vector3(0, 4.13, 0), Vector3(0.5, 0.24, 0.5), "white")
+		_box("lamp_%d_head" % i, b, Vector3(0, 4.13, 0), Vector3(0.5, 0.24, 0.5), "lamp_glass")
+		# Under the head rather than inside it: a light at the centre of its own
+		# fitting lights the fitting's underside and nothing else, and the box is
+		# opaque. 15cm down puts the source at the glass.
+		_lamp_light("lamp_%d_pool" % i, _place(b, Vector3(0, 3.98, 0), 0.0), true)
 	_stand_clear = 0.0
+
+
+## The pool under a plaza lamp standard, and the one place in the park where a
+## few lights carry shadows.
+##
+## `shadow` is passed for the twelve inner standards and not for the twelve outer
+## ones, and the split is not arbitrary: the inner ring is where the crowd stands
+## and where the player is at eye level with people, so a guest casting a long
+## shadow across the brick is most of what makes the plaza read as lit rather
+## than as tinted. Out at the perimeter the same shadow falls on empty paving.
+##
+## Twelve shadow-casting omnis is the number `perf_test.gd` is measuring; if it
+## comes back expensive this is the line to turn down, because the pools stay.
+func _lamp_light(nm: String, at: Vector3, shadow: bool) -> void:
+	_omni(nm, at, "lamp", 2.6, 15.0, LIGHT_FIXTURE, shadow)
+
+
+## The three things in the plaza that are worth floodlighting, and nothing else.
+##
+## Emitted with `_dilate_plaza` already false, because all three are hand-authored
+## in `plaza.tscn` at final 104m coordinates and have nothing to be mapped from.
+## Running these through `plaza_out` would push the tower's four uplights off the
+## tower.
+##
+## Two of the three are *read out of* `plaza.tscn` rather than typed here, which
+## is the same call the frontage makes and for the same reason: the perimeter and
+## the landmarks are the only hand-authored geometry in the world, and a floodlight
+## aimed at a literal is a floodlight that keeps pointing at where the tower used
+## to be. The fountain is the exception and does not need the parse — it is round,
+## so it is cylinders, and `_plaza_scene_boxes` only knows about boxes. Its
+## position and radius are already in the plan.
+func _plaza_lights() -> void:
+	_tower_lights()
+	_fountain_lights()
+	_bandstand_lights()
+	_cafe_lights()
+	_tree_lights()
+	_plaza_service_lights()
+
+
+## The cafe terrace, and this one is a *mechanic* rather than a mood.
+##
+## The plaza has two instruments for telling the time without a HUD clock: how
+## many people are standing in it, and whether the cafe tables are taken. That
+## second one is the whole reason the tables disagree with the crowd — full at
+## one and at six, half empty at four. All of it is invisible after sunset if the
+## terrace is unlit, which quietly deletes an instrument at the exact hour the
+## other one is hardest to read, because a thinning crowd in the dark looks like
+## an empty plaza whatever the hour.
+##
+## So the terrace gets its own light, at table height, warm and close. It is also
+## the plaza's only outdoor room and the thing the design keeps calling for the
+## annulus to be wide enough to hold.
+##
+## Off `ParkPlan.PLAZA_CAFE`, which is the one copy of where the tables are —
+## the same list `gen_props` builds them from and `gen_crowd` sits people at.
+func _cafe_lights() -> void:
+	for i in Plan.PLAZA_CAFE.size():
+		var t: Dictionary = Plan.PLAZA_CAFE[i]
+		var at: Vector2 = t["at"]
+		var b := Plan.plaza_out(Vector3(at.x, 0.0, at.y))
+		# Above the parasol rather than under it. A light under a canvas shade is
+		# a light nobody can see from across the plaza, and the read this exists
+		# for is "are those tables taken", made from thirty metres away.
+		_omni("cafe_glow_%d" % i, b + Vector3(0, 3.1, 0), "warm", 2.2, 9.0,
+			LIGHT_FIXTURE, i == 1)
+
+
+## A handful of trees uplit from the root.
+##
+## Not all 28 — that would be a lit orchard, and the point of uplighting a tree
+## is that it is one bright thing among dark ones. Every fourth, which lands
+## seven of them scattered round the outer room by `open_spots`' own rejection
+## sampling rather than by any pattern.
+##
+## They are the only vertical mass between the perimeter and the hub, so before
+## this the middle distance was the darkest band in the plaza: pools of lamp
+## light on the ground, a lit wall behind, and eight metres of black canopy in
+## between. Uplighting a crown also does something no lamp does — it throws the
+## branch shadows *up*, so the plaza has something on its ceiling.
+func _tree_lights() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 0x7EE5
+	var spots := Plan.open_spots(28, 11, 21.0, 35.0, 3.0, 5.5, _stood)
+	for i in spots.size():
+		# Consume the same two draws `_trees` does, in the same order, or the
+		# heights this aims at are a different tree's. The generator is
+		# deterministic and that is only useful if both readers step the stream
+		# identically.
+		var h := 3.4 + rng.randf() * 1.6
+		var spread := 2.1 + rng.randf() * 0.8
+		if i % 4 != 0:
+			continue
+		var p: Vector2 = spots[i]
+		var b := _place(Vector3(p.x, 0, p.y), Vector3.ZERO, 0.0)
+		_uplight("tree_up_%d" % i,
+			b + Vector3(0.9, 0.12, 0.0),
+			b + Vector3(0.2, h + spread * 0.6, 0.0),
+			"foliage_up", 2.6, 9.0, 40.0)
+
+
+## The two lights left on in the plaza after everyone has gone, and they are here
+## because a test asked for them rather than because the plan did.
+##
+## `night_test.gd` walks the clock to two in the morning and checks that
+## something is still burning. It failed: every `LIGHT_SERVICE` fitting in the
+## park was in `_lane_lights`, which is in `boardwalk.tscn` — so the shut park
+## read as powered only if you happened to be standing on the boardwalk, and the
+## plaza, which is where the player actually is after close, went to absolute
+## black. That is the power cut `night.md` explicitly does not want.
+##
+## Two, not a scheme. `night.md` asks for "a cart with its light still on", and
+## the point of that image is that it is nearly the only one.
+func _plaza_service_lights() -> void:
+	# The photo hut, and it gets three rather than the one it had.
+	#
+	# The player works here. `night.md` names it as one of the two candidates for
+	# what replaces the campfire — the anchor the shut park needs, the place you
+	# leave from and come back to — and one dim window on one face is not an
+	# anchor, it is a shed with a light on. What makes somewhere a place you
+	# return to is that you can *find* it from across a dark 104m plaza, so this
+	# is lit on the plaza side, over its counter, and under its own eaves.
+	#
+	# All three are SERVICE. The hut is the one building in the park that should
+	# look the same at two in the morning as at nine in the evening, because the
+	# thing it has to say after close is that it is still yours.
+	var hut := _plaza_box("photo_hut")
+	if not hut.is_empty():
+		var at: Vector3 = hut["at"]
+		var size: Vector3 = hut["size"]
+		var west := at.x - size.x * 0.5
+		# The serving window, facing the fountain.
+		_omni("hut_window", Vector3(west - 0.4, at.y + 0.2, at.z),
+			"warm", 2.4, 9.0, LIGHT_SERVICE, true)
+		# Under the eaves at each end, so the building has an outline rather than
+		# one bright patch. The roof sits at 3.85 with a 0.45 slab on it.
+		for i in 2:
+			var z: float = at.z + (-1.0 if i == 0 else 1.0) * (size.z * 0.5 - 0.8)
+			_omni("hut_eave_%d" % i, Vector3(west - 0.2, 3.55, z),
+				"warm", 1.2, 6.0, LIGHT_SERVICE)
+
+	# The cart, with its light on. Placed against `_cart`'s own base and through
+	# the same dilation, so it stays on the cart if the cart moves.
+	_dilate_plaza = true
+	_omni("cart_lamp", _place(Vector3(-6, 0, -10), Vector3(0, 1.8, 0), deg_to_rad(-18.0)),
+		"warm", 1.5, 6.5, LIGHT_SERVICE)
+	_dilate_plaza = false
+
+
+func _plaza_box(nm: String) -> Dictionary:
+	for box in _plaza_scene_boxes():
+		if String(box["nm"]) == nm:
+			return box
+	return {}
+
+
+## The clock tower, up all four faces.
+##
+## This is the one the whole park is aimed at — it stands on the gate axis, the
+## 57m entrance street points at it, and it is dead centre in the turnstile
+## opening from the apron. It is also the only readout the time has. A 40m tower
+## that goes black at sunset takes the park's clock with it, so this is the
+## uplighting that is doing a job rather than being handsome.
+##
+## Set 3.4m off a 5.6m shaft — close enough to graze, which is what puts the
+## cap's overhang and the belfry in relief instead of flattening the whole shaft
+## to one brightness. The beam runs past the top on purpose; a wash that stops
+## exactly at the parapet draws a line across the masonry.
+func _tower_lights() -> void:
+	var shaft := _plaza_box("tower_shaft")
+	if shaft.is_empty():
+		push_error("no tower_shaft in %s — the tower would go dark" % PLAZA_SCENE_PATH)
+		return
+	var at: Vector3 = shaft["at"]
+	var size: Vector3 = shaft["size"]
+	var top := at.y + size.y * 0.5
+	var out := size.x * 0.5 + 0.6
+	var faces: Array[Vector3] = [Vector3(out, 0, 0), Vector3(-out, 0, 0),
+		Vector3(0, 0, out), Vector3(0, 0, -out)]
+	for i in faces.size():
+		var p := Vector3(at.x, 0.25, at.z) + faces[i]
+		# Aim just inside the far top corner, so the cone hugs the face rather
+		# than standing off it. The tilt is small — this is very nearly straight
+		# up, which is exactly the case `_uplight`'s up-vector fallback exists for.
+		var aim := Vector3(at.x, top + 6.0, at.z) + faces[i] * 0.25
+		# Only the face the street sees casts. One shadow-caster on a 40m tower
+		# is what puts the clock's own hands and the cap's overhang onto the
+		# shaft; four is four cubemaps for three views nobody takes.
+		_uplight("tower_wash_%d" % i, p, aim, "wash", 7.0, 46.0, 24.0,
+			LIGHT_FEATURE, faces[i].z > 0.0)
+
+	# The clock face itself, lit from its own hood rather than from the ground.
+	# A face washed from 30m below is legible as a bright square and not as a
+	# time — the hands are thin and the uplight puts them in the same plane of
+	# brightness as the dial behind them.
+	#
+	# **SERVICE, not FEATURE, and this is the one classification in the park that
+	# is a game decision rather than a lighting one.** Everything else that
+	# floodlights the tower goes out at close, and should: a floodlit tower at
+	# two in the morning is the park still performing. But the clock is the only
+	# readout the time has — there is no HUD clock, by design, and the whole
+	# point of that decision is that knowing the hour is a small piece of knowing
+	# the park. Switch the dial off with the rest of the tower and the after-close
+	# park has no clock at all, which is not atmosphere, it is the removal of an
+	# instrument at exactly the hour it gets interesting.
+	#
+	# It also gives the night its best image for free: a black 40m tower with a
+	# lit face at the top of it.
+	var dial_y := at.y + size.y * 0.5 - 6.0
+	for i in faces.size():
+		_omni("tower_dial_%d" % i,
+			Vector3(at.x, dial_y + 2.2, at.z) + faces[i] * 1.35,
+			"lamp", 1.6, 6.0, LIGHT_SERVICE)
+
+
+## The fountain, from its own rim.
+##
+## Six stations round an 18m basin, each raking its own slice of the tiers rather
+## than all six aiming at the middle — pointed at the centre they overlap into a
+## single flat pool and the four tiers stop being four. Offset aim points keep a
+## shadow under every lip.
+func _fountain_lights() -> void:
+	var c := Plan.FOUNTAIN_AT
+	var r := Plan.FOUNTAIN_RADIUS
+	for i in 6:
+		var th := TAU * float(i) / 6.0
+		var dir := Vector2(cos(th), sin(th))
+		var p := Vector3(c.x + dir.x * (r - 1.4), 1.05, c.y + dir.y * (r - 1.4))
+		# Up and inward, but not to the axis: a quarter of the way across keeps
+		# the beam on the tier faces this station is actually in front of.
+		var aim := Vector3(c.x + dir.x * r * 0.22, 7.4, c.y + dir.y * r * 0.22)
+		_uplight("fountain_wash_%d" % i, p, aim, "wash", 2.8, 14.0, 38.0)
+
+
+## The bandstand, lit from under its own roof.
+##
+## Uplighting would be wrong here and it is worth saying why: the bandstand is
+## the one structure in the plaza the crowd goes *inside*, so the light belongs
+## where the band would be. Washed from outside it reads as a monument; lit from
+## within it reads as somewhere still open, which is what it is at nine in the
+## evening.
+func _bandstand_lights() -> void:
+	var roof := _plaza_box("bandstand_roof")
+	if roof.is_empty():
+		push_error("no bandstand_roof in %s" % PLAZA_SCENE_PATH)
+		return
+	var at: Vector3 = roof["at"]
+	var under := at.y - 0.5
+	_omni("bandstand_glow", Vector3(at.x, under, at.z), "warm", 3.4, 16.0,
+		LIGHT_FIXTURE, true)
+	# And four at the eaves, so the roof's underside is not one flat disc of
+	# light with a dark rim.
+	var q: float = roof["size"].x * 0.5 - 1.4
+	for i in 4:
+		var th := TAU * float(i) / 4.0 + PI * 0.25
+		_omni("bandstand_eave_%d" % i,
+			Vector3(at.x + cos(th) * q, under - 0.2, at.z + sin(th) * q),
+			"warm", 1.2, 8.0)
 
 
 ## The four inner bins sit on the fountain's skirt with the benches, and are
@@ -1494,33 +2581,75 @@ func _ladder() -> void:
 		_add(rung, "ladder_rung_%d" % r)
 
 
+## **All three of these were adrift, and re-anchoring them is the other half of
+## the `_sphere` fix.**
+##
+## The bug in the primitive separated each balloon from its own string. What it
+## hid was a second fault underneath: the balloons were *also* separated from the
+## things they belong to, and fixing the strings alone would have left three
+## correctly-assembled balloons tied to nothing in the middle of open paving.
+##
+## They were written as bare coordinates in the 80m plaza — (5.6, 4.9) for the
+## pair, radius 7.4 — on the theory that the dilation would carry them along with
+## whatever they were tied to. It does not, and could not: the hut's bench does
+## not move by `plaza_out` at all. The hut went from radius 12 to radius 28 *by
+## hand* on 2026-08-13, and `_benches` places its bench in final coordinates with
+## the dilation switched off for exactly that reason. So the pair mapped to
+## radius 12.8 and the bench they are tied to is at radius 20.9, eight metres
+## away, and no amount of getting the string right would have joined them.
+##
+## The fix is the rule the project already has, applied one level up: hang each
+## balloon off the *base of the thing it belongs to* and let the offset be local.
+## The pair take the hut bench's base and yaw, so they follow it wherever it
+## goes; the loose one takes `bollard_s_2`'s, which is a dilated position, so it
+## goes on being in contact with the bollard rather than 15cm off it — the gap
+## would have been scaled by the map along with everything else if it had been
+## baked into the base.
 func _balloons() -> void:
-	# Two tied to the bench by the hut, floating on their strings.
-	# Kept clear of the photo hut, which occupies x 6.5..11.5, z 6..10.
+	# The pair, tied to the back rail of the bench by the photo hut. In final
+	# coordinates with the dilation off, because that is where the bench is —
+	# see `_benches`, which switches it off for the same three props.
+	_dilate_plaza = false
+	var bench := Vector3(Plan.PHOTO_HUT_AT.x, 0.0, Plan.PHOTO_HUT_AT.y) + HUT_BENCH_AT
+	var th := deg_to_rad(HUT_BENCH_YAW)
+	# `_bench` builds 1.8m long with its back at z −0.22 and its top at 0.98, so
+	# these tie on just inside the left end of the rail and float above it.
+	# Far enough apart to be two balloons. At 20cm they intersected — which the
+	# overlap rule permits, but two 26cm spheres 20cm apart are one lumpy sphere,
+	# and the pair of strings landed on top of each other as well.
 	var tied := [
-		{"at": Vector2(5.6, 4.9), "y": 1.5, "mat": "red"},
-		{"at": Vector2(5.95, 5.25), "y": 1.7, "mat": "yellow"},
+		{"local": Vector3(0.84, 0.0, -0.17), "y": 2.05, "mat": "red"},
+		{"local": Vector3(0.42, 0.0, -0.28), "y": 2.34, "mat": "yellow"},
 	]
 	for i in tied.size():
 		var d: Dictionary = tied[i]
-		var x: float = d["at"].x
-		var z: float = d["at"].y
+		var l: Vector3 = d["local"]
 		var y: float = d["y"]
-		_sphere("balloon_%d" % i, Vector3(x, y, z), 0.26, d["mat"])
-		_box("balloon_%d_string" % i, Vector3(x, 0, z), Vector3(0, y * 0.5, 0),
-			Vector3(0.02, y, 0.02), "white", 0.0, false)
+		_sphere("balloon_%d" % i, bench, l + Vector3(0.0, y, 0.0), 0.26, d["mat"], th)
+		# From the rail rather than from the ground. A string that runs to the
+		# paving says the balloon is tied to the floor, which is not a thing
+		# anybody does with a balloon.
+		_box("balloon_%d_string" % i, bench,
+			l + Vector3(0.0, (y + HUT_BENCH_RAIL) * 0.5, 0.0),
+			Vector3(0.02, y - HUT_BENCH_RAIL, 0.02), "white", th, false)
+	_dilate_plaza = true
 
 	# One that came down, caught against a bollard at the south entrance with its
 	# string trailing on the ground. Sitting loose on open concrete it read as
 	# half-buried no matter where it was in Y — a ball resting on a plane and a
 	# ball sunk into one have the same silhouette. Leaning it on something and
 	# giving it a string is what makes it legible as a balloon.
+	#
+	# The base is the middle bollard of the south line, written the way
+	# `_bollards` writes it so the two cannot disagree about where it is.
 	var r := 0.22
-	var bollard := Vector3(0, 0, 30)
-	var at := bollard + Vector3(0.13 + r, r, 0.06)
-	_sphere("balloon_2", at, r, "blue")
-	_box("balloon_2_string", Vector3(at.x, 0, at.z), Vector3(0.55, 0.012, 0.0),
-		Vector3(0.9, 0.018, 0.018), "white", deg_to_rad(28.0), false)
+	var bollard := Vector3(-6.0 + 2.0 * 3.0, 0.0, 30.0)
+	var rest := Vector3(0.13 + r, 0.0, 0.06)
+	_sphere("balloon_2", bollard, rest + Vector3(0.0, r, 0.0), r, "blue")
+	# Trailing along z rather than at an angle, because the bollard line runs in
+	# x: a string parallel to the line reads as part of it.
+	_box("balloon_2_string", bollard, rest + Vector3(0.0, 0.012, 0.46),
+		Vector3(0.018, 0.018, 0.9), "white", 0.0, false)
 
 
 func _litter() -> void:
@@ -1782,16 +2911,98 @@ func _west_far() -> void:
 	_wooden_coaster(Vector3(FRONT_X, SHORE_TOP, COASTER_STATION.y - 2.0),
 		0.0, "far_warm")
 
-	# Masts along the promenade. At this distance they are the thing that says
-	# somebody strung lights here, without a single light being modelled.
+	# Masts along the promenade. In daylight they are the thing that says somebody
+	# strung lights here, without a single light being modelled.
 	var z := -46.0
 	var n := 0
+	var masts: Array[float] = []
 	while z <= 46.0:
 		if z < GAP_FROM - 3.0 or z > GAP_TO + 3.0:
 			_cyl("mast_%d" % n, Vector3.ZERO, Vector3(PROMENADE_X + 4.0, SHORE_TOP + 4.0, z),
 				0.22, 8.0, "far_shade", 0.0, 6, false)
+			masts.append(z)
 			n += 1
 		z += 11.0
+
+	_west_far_lights(masts)
+
+
+## The tableau after dark, which the tableau did not have.
+##
+## This is the gap the night test could not see, because the test walks the clock
+## in the plaza and counts lights, and the number it counts was right — the west
+## was black for the opposite reason, that a whole scene had none. From the
+## overlook at nine in the evening the arch framed a hole.
+##
+## Which would have broken the section's central trick. The far place is fake and
+## permanently visible, the real one loads behind a threshold — and that only
+## works while the fake one is worth looking at. An unlit tableau does not read as
+## a boardwalk at night, it reads as the edge of the world.
+##
+## **Almost all of it is emissive geometry rather than lights, and that is the
+## right answer here rather than a saving.** At 60 to 130m a light source is
+## indistinguishable from a bright speck; what carries is the *pattern* of specks
+## — a strung line, a wheel's circle, a row of shop windows. Real lights this far
+## from the player would light massing that has no collision, no detail and no
+## business being lit. Four are kept for the shapes big enough to hold a
+## gradient.
+##
+## It is also the cheapest thing in the park to build, because the boardwalk's
+## own night presentation established the vocabulary: same `bulb` material, same
+## three-material driver, no new state.
+func _west_far_lights(masts: Array[float]) -> void:
+	# Festoons between the masts. The daylight comment above says the masts imply
+	# strung lights; after dark the implication becomes the thing itself, and it
+	# is the strongest read in the tableau because it is a *line* of points 90m
+	# long and the eye follows it.
+	for i in masts.size() - 1:
+		var from_z: float = masts[i]
+		var to_z: float = masts[i + 1]
+		if to_z - from_z > 12.0:
+			continue
+		for b in 4:
+			var t := (float(b) + 1.0) / 5.0
+			_sphere("far_bulb_%d_%d" % [i, b],
+				Vector3(PROMENADE_X + 4.0, SHORE_TOP + 7.4 - 0.5 * sin(PI * t),
+					lerpf(from_z, to_z, t)), Vector3.ZERO, 0.16, "bulb")
+
+	# The wheel's rim, which is the single most recognisable night silhouette in
+	# the section and the reason the wheel was turned to face the plaza at all.
+	# Same 24 as the real one, so walking down does not change its count.
+	var hub := Vector3(WHEEL_AT.x, SHORE_TOP + 18.6, WHEEL_AT.y)
+	for i in 24:
+		var a := TAU * float(i) / 24.0
+		_sphere("far_wheel_bulb_%d" % i, hub,
+			Vector3(0, sin(a) * Plan.WHEEL_RADIUS, cos(a) * Plan.WHEEL_RADIUS),
+			0.22, "bulb")
+
+	# Lit windows along the frontage. One band per unit at first-floor height,
+	# stopping short of the gap — the 24m opening the arch is aimed at has to
+	# stay a dark slot, because it is the hole the real section is behind and a
+	# lit band across it would close it.
+	for i in FRONTAGE.size():
+		var unit: Dictionary = FRONTAGE[i]
+		var from: float = unit["from"]
+		var to: float = unit["to"]
+		var mid := (from + to) * 0.5
+		if mid > GAP_FROM - 2.0 and mid < GAP_TO + 2.0:
+			continue
+		_box("far_front_lit_%s" % unit["nm"], Vector3.ZERO,
+			Vector3(FRONT_X - FRONT_DEPTH * 0.5 - 0.3, SHORE_TOP + 2.6, mid),
+			Vector3(0.3, 1.1, (to - from) * 0.62), "bulb", 0.0, false)
+
+	# The pavilion at the pier head, lit the same cool it is up close so the two
+	# versions of the same building are the same colour from either side of the
+	# seam.
+	var head := Vector3(PAVILION_AT.x, SHORE_TOP, PAVILION_AT.y)
+	_omni("far_pavilion_glow", head + Vector3(0, 7.0, 0), "cyan", 3.0, 26.0)
+	_omni("far_wheel_glow", hub, "rose", 3.0, 30.0)
+	# And two down the strip, so the promenade has some fall-off along it rather
+	# than being an even line of beads on black.
+	for i in 2:
+		_omni("far_prom_glow_%d" % i,
+			Vector3(PROMENADE_X, SHORE_TOP + 5.0, -30.0 + float(i) * 46.0),
+			"lamp", 2.0, 24.0)
 
 
 func _frontage_far() -> void:
@@ -1931,17 +3142,184 @@ func _west_cascade() -> void:
 
 	# --- the eyes ---
 	#
-	# Two globes on the wall heads, level with each other and set either side of
-	# the flight where the wings spring. On a ray that is exactly where the eyes
+	# Two globes level with each other and set either side of the flight, just
+	# outboard of where the wings spring. On a ray that is exactly where the eyes
 	# sit, and from the pier — 130m out, which is where this thing is meant to be
 	# looked at — they are the two points that make the silhouette read as a face
 	# rather than as masonry.
+	#
+	# **Moved outboard onto the wing's own coping**, off the head. They used to
+	# stand at 6.6 off the axis, which is between the flight's edge and the wing's
+	# springing — in other words squarely in the doorway, and a 32cm post in a 3m
+	# gap is a bollard. `walk_test` walked into it from both sides. Out here they
+	# stand on the strip of coping between the bluff and the wing's deck, which is
+	# ground nobody crosses, and the wider spacing reads better at 130m anyway.
 	for side in [-1.0, 1.0]:
-		var ez: float = axis + side * (half + 1.6)
+		var ez: float = axis + side * 11.0
 		_cyl("cascade_eye_post_%d" % int(side + 1), Vector3.ZERO,
-			Vector3(top_x - 1.4, 1.5, ez), 0.16, 3.0, "metal", 0.0, 8)
+			Vector3(top_x - 0.75, 1.5, ez), 0.16, 3.0, "metal", 0.0, 8)
 		_sphere("cascade_eye_%d" % int(side + 1),
-			Vector3(top_x - 1.4, 3.35, ez), 0.55, "white")
+			Vector3(top_x - 0.75, 3.35, ez), Vector3.ZERO, 0.55, "eye")
+		# The eyes are the one pair of fixtures in the park whose job is entirely
+		# at distance, so they are bright and their range is long. From the pier
+		# at 130m the pools they throw are invisible and only the globes read,
+		# which is the point — a face needs two lights, not two lit walls.
+		_omni("cascade_eye_%d_lamp" % int(side + 1),
+			Vector3(top_x - 0.75, 3.35, ez), "lamp", 4.0, 20.0)
+
+	_cascade_lights()
+
+
+## The monument after dark, and the heaviest concentration of light in the park.
+##
+## Nothing else here is built to be looked at from 130m away and walked down at
+## the same time, and those two want opposite things: distance wants a silhouette
+## with bright points in it, and the descent wants to see where the treads are.
+## So the fittings split by which job they do rather than by where they are.
+##
+## The rake across the flight is the one worth explaining. `CharacterBody3D` has
+## no step-up, so a flight here is a ramp with treads laid over it and a nosing
+## strip a few centimetres proud — a distinction that is legible in daylight only
+## because the sun is somewhere off-axis. After dark, lit from straight on, the
+## whole thing flattens back into the slope it actually is. Lighting it from the
+## *side* puts every nosing's shadow across the tread below it, so the stair
+## reads as a stair in the dark for the same reason it reads as one at four in
+## the afternoon. It is the cheapest safety feature in the park and it is also
+## the best-looking thing in it.
+func _cascade_lights() -> void:
+	var axis := Plan.CASCADE_AXIS_Z
+	var top_x := Plan.CASCADE_TOP_X
+	var floor_y := SHORE_TOP
+	var half := Plan.FLIGHT_W * 0.5
+	var foot_x := Plan.STAIR_FOOT.x
+
+	# --- the aperture ---
+	#
+	# The portal lit from *behind*, and this is the change that does most of the
+	# work. The first pass washed its west face from two floodlights out in the
+	# court, which makes a bright arch on a dark ground — legible, and completely
+	# inert. An arch is a hole, and the dramatic version of a hole is a dark mass
+	# with light coming through it.
+	#
+	# So the fittings move to the east side, inside the opening, throwing light
+	# out through it towards the court and the pier beyond. The mass reads as a
+	# silhouette, the opening reads as luminous, and the three-arch alignment the
+	# portal was moved off the wall to create — boardwalk entry, this, plaza
+	# tunnel — becomes three lit apertures at rising heights instead of three
+	# lit walls.
+	var portal_x := foot_x - 4.2
+	_omni("portal_aperture", Vector3(portal_x + 1.6, floor_y + 1.6, axis),
+		"amber", 6.0, 16.0, LIGHT_FEATURE, true)
+	# A second, low and further back, so the light through the opening has depth
+	# rather than being one lamp visible as a dot from the court.
+	_omni("portal_aperture_back", Vector3(portal_x + 4.4, floor_y + 0.9, axis),
+		"amber", 3.0, 13.0)
+
+	# The pediment and finial, picked out from close underneath. The top of the
+	# portal is what breaks the skyline from the pier, and backlighting the
+	# opening deliberately leaves it dark — so it gets its own pair, tight and
+	# cold against the warm coming through the arch below.
+	for side in [-1.0, 1.0]:
+		_uplight("portal_crown_%d" % int(side + 1),
+			Vector3(portal_x - 1.1, floor_y + 5.2, axis + side * 1.9),
+			Vector3(portal_x, floor_y + 7.4, axis + side * 0.4),
+			"moon", 3.4, 9.0, 30.0)
+
+	# --- the descent ---
+	#
+	# Raking the flight. Six stations down each side, alternating so the light
+	# crosses the treads rather than running down them — a pair facing each other
+	# at the same station cancels the shadows they are both there to cast.
+	#
+	# Warm, and the warm is doing a job beyond looks: everything the player walks
+	# on down here is amber and everything they walk *past* is cold, so the route
+	# is legible as a route from the top of the bluff. That is the same argument
+	# the plaza's asphalt-on-brick makes, made in light because the cascade has
+	# no room for a painted walkway.
+	for i in 6:
+		var t := (float(i) + 0.5) / 6.0
+		var lx: float = lerpf(top_x - 1.0, foot_x + 1.0, t)
+		var side := 1.0 if i % 2 == 0 else -1.0
+		var ly: float = lerpf(floor_y + Plan.CASCADE_DROP, floor_y, t)
+		_uplight("cascade_rake_%d" % i,
+			Vector3(lx, ly + 0.35, axis + side * (half - 0.2)),
+			Vector3(lx - 2.5, ly + 0.9, axis - side * half),
+			"amber", 3.2, 14.0, 42.0)
+
+	# --- the wings ---
+	#
+	# Grazing the wall face from directly beneath the coping, rather than
+	# floodlighting it from out in the court.
+	#
+	# The copings light themselves now — they are `trim`, and the two of them
+	# draw the monument's silhouette on their own. What the wall below wants is
+	# therefore the opposite of what it was given: not more brightness but a
+	# gradient, bright directly under the coping and falling away down the face,
+	# so the lit edge has something to sit on and the mass reads as mass. Close
+	# in and narrow does that; five wide cones from 1.6m out did not.
+	#
+	# Placed off `Plan.wing_path`, so they follow the wing exactly instead of the
+	# approximation this used to carry.
+	#
+	# **Both legs get them and only their west faces do**, which is the hairpin's
+	# doing. West is the court, so those are the two faces anybody sees; the
+	# outbound leg's east face is 30cm of slot against the bluff, and lighting it
+	# would be eighteen metres of fittings aimed into rock.
+	for side in [-1.0, 1.0]:
+		var tag := "n" if side < 0.0 else "s"
+		var path := Plan.wing_path(side)
+		for leg in 2:
+			var a: Vector3 = path[0] if leg == 0 else path[2]
+			var b: Vector3 = path[1] if leg == 0 else path[3]
+			var west := _wing_west(Vector2(b.x - a.x, b.z - a.z))
+			for i in 6:
+				var t := (float(i) + 0.5) / 6.0
+				var p := a.lerp(b, t)
+				# Just west of the wall face and just under the cap, aimed down
+				# and out along the face.
+				var at := Vector3(p.x + west.x * (Plan.WING_W * 0.5 + 1.9),
+					p.y - 0.55, p.z + west.y * (Plan.WING_W * 0.5 + 1.9))
+				var aim := Vector3(p.x + west.x * (Plan.WING_W * 0.5 + 1.5),
+					p.y + 0.30, p.z + west.y * (Plan.WING_W * 0.5 + 1.5))
+				_uplight("cascade_wing_%s_%d_%d" % [tag, leg, i], at, aim,
+					"moon", 2.8, 7.0, 34.0)
+
+	# --- the garden ---
+	#
+	# The planted terraces, from underneath. Four per side rather than two, and
+	# warm against the cold wall: the planting is the reason this reads as a
+	# garden rather than as civil engineering, and that is exactly the quality
+	# that dies first when the sun goes down. It is also the only colour on the
+	# monument, so it is worth more light than its area suggests.
+	#
+	# On the return leg's pocket side, which is where the beds are now. They used
+	# to be strung down the inboard face of one long wing; the pocket the hairpin
+	# encloses is a better place for a garden and a much better place to light
+	# one, because the outbound leg above it is what the light lands on.
+	for side in [-1.0, 1.0]:
+		var tag := "n" if side < 0.0 else "s"
+		var path := Plan.wing_path(side)
+		var q: Vector3 = path[2]
+		var c: Vector3 = path[3]
+		var into := -_wing_west(Vector2(c.x - q.x, c.z - q.z))
+		for i in 4:
+			var t := 0.15 + float(i) * 0.23
+			var p := q.lerp(c, t)
+			var at := Vector3(p.x + into.x * (Plan.WING_W * 0.5 + 0.7),
+				p.y + 0.15, p.z + into.y * (Plan.WING_W * 0.5 + 0.7))
+			_uplight("cascade_planting_%s_%d" % [tag, i], at,
+				at + Vector3(0.5, 2.4, 0.0), "amber", 2.2, 6.0, 56.0)
+
+	# --- the ground ---
+	#
+	# Two in the arrival court, throwing the monument's own shadow west and
+	# giving the 23m of open ground at its foot something other than spill.
+	# Without them the court is the darkest place on the route and it is the
+	# place the descent delivers you to.
+	for side in [-1.0, 1.0]:
+		_omni("court_pool_%d" % int(side + 1),
+			Vector3(foot_x - 11.0, floor_y + 3.4, axis + side * 12.0),
+			"lamp", 2.4, 18.0, LIGHT_FIXTURE)
 
 
 ## One half of the mass the flight is cut into, and the niche in its west face.
@@ -1952,15 +3330,51 @@ func _cascade_wall(side: float) -> void:
 	var floor_y := SHORE_TOP
 	var half := Plan.FLIGHT_W * 0.5
 	var tag := "n" if side < 0.0 else "s"
-	# The head of the wall, between the flight and where the wing springs.
+	# The head of the wall, between the flight and where the wing springs — and
+	# **it now stops exactly at the springing**, where it used to carry on 2.4m
+	# past it. That overhang is a three-metre block of masonry sitting over the
+	# first stretch of the wing's own ramp, which the ramp then descends into: the
+	# north wing's `wing up 0` walked into its outer face from underneath while
+	# the south wing's got away with it, because the garden stair's first landing
+	# happens to be level for just long enough to clear. An asymmetry between two
+	# mirrored things is the tell that one of them is passing by luck.
 	var from_z := axis + side * (half + 0.2)
-	var to_z := axis + side * (half + 5.0)
+	var to_z := axis + side * Plan.WING_SPRING_Z
 	_box("cascade_head_%s" % tag, Vector3.ZERO,
 		Vector3(top_x - 1.6, -drop * 0.5, (from_z + to_z) * 0.5),
 		Vector3(3.2, drop, absf(to_z - from_z)), "building")
-	_box("cascade_head_cap_%s" % tag, Vector3.ZERO,
-		Vector3(top_x - 1.6, 0.22, (from_z + to_z) * 0.5),
-		Vector3(3.6, 0.44, absf(to_z - from_z) + 0.4), "white")
+	# **The head's top is the wing's doorway**, and that is the fact everything
+	# else here follows from. The bluff top, this, and the wing's springing are
+	# all at y = 0, so a player beside the flight walks straight west onto the
+	# wing without a step — which is the only way onto a wing there is.
+	#
+	# So the trim comes off the top and hangs on the west face instead. It used to
+	# be a lid over the whole 3.2 by 4.8, which is a 44cm kerb laid across the
+	# doorway: you could step *down* onto a wing and never get back up, and
+	# `walk_test` said so the moment its legs started aiming at the springing
+	# rather than past it. Notching the lid does not work either — the wing's own
+	# coping already occupies everything outboard of the springing, so what is
+	# left to notch is exactly the doorway.
+	#
+	# The line still carries. It runs down the flight, along this band, and picks
+	# up as the wing's coping where the two meet at the springing; the only
+	# difference is that it is now at knee height on a wall rather than underfoot.
+	#
+	# It stops at the springing rather than running the head's full length. Past
+	# that point the wing's own deck is what is out here, and a band hung on the
+	# head's west face is a band hung a foot above the middle of a ramp.
+	var band_in: float = axis + side * (Plan.FLIGHT_W * 0.5 - 0.2)
+	var band_out: float = axis + side * Plan.WING_SPRING_Z
+	_box("cascade_head_band_%s" % tag, Vector3.ZERO,
+		Vector3(top_x - 3.35, -0.27, (band_in + band_out) * 0.5),
+		Vector3(0.3, 0.44, absf(band_out - band_in)), "trim")
+	# And the guard, because taking the lid off leaves the doorway's west edge as
+	# an unfenced three-metre drop into the court. Splayed rather than square: it
+	# runs from beside the flight out to where the wing's own outbound rail
+	# begins, so the two are one handrail and the shape of it points at the wing.
+	_wing_rail("cascade_head_guard_%s" % tag,
+		Vector2(top_x - 3.0, axis + side * (Plan.FLIGHT_W * 0.5 + 0.6)), 0.0,
+		Vector2(top_x - 5.2, axis + side * Plan.WING_SPRING_Z), 0.0)
 
 
 ## The portal: an arched gate standing in the court on the axis, a few metres
@@ -1996,7 +3410,7 @@ func _cascade_portal() -> void:
 	_box("portal_lintel", Vector3.ZERO,
 		Vector3(x, floor_y + 4.3, axis), Vector3(1.8, 1.2, opening + 2.2), "building")
 	_box("portal_cap", Vector3.ZERO,
-		Vector3(x, floor_y + 5.0, axis), Vector3(2.4, 0.42, opening + 3.0), "white")
+		Vector3(x, floor_y + 5.0, axis), Vector3(2.4, 0.42, opening + 3.0), "trim")
 	# A pediment over the middle, because the silhouette from the pier is most of
 	# what this is for.
 	_box("portal_pediment", Vector3.ZERO,
@@ -2005,132 +3419,260 @@ func _cascade_portal() -> void:
 		Vector3(x, floor_y + 6.5, axis), Vector3(0.5, 0.7, 0.5), "accent")
 
 
-## A wing: the wall sweeping out and down, with a deck riding on it. `smooth`
-## makes it the ramp; otherwise it is the garden stair — short flights and long
-## landings on the same diagonal, so the two sides match from the court.
-func _cascade_wing(side: float, smooth: bool) -> void:
-	var axis := Plan.CASCADE_AXIS_Z
-	var top_x := Plan.CASCADE_TOP_X
-	var drop := Plan.CASCADE_DROP
-	var floor_y := SHORE_TOP
-	var half := Plan.FLIGHT_W * 0.5
-	var tag := "n" if side < 0.0 else "s"
+## How far below the deck a wing's masonry reaches. Past the shore rather than
+## down to it, so the mass is buried at every point on a tilted box rather than
+## floating at one end and cut at the other.
+const WING_BASE_Y := SHORE_TOP - 1.0
 
-	# On the west face of the wall head, not inside it. The wing used to start at
-	# (top_x − 1, half + 0.4), which is squarely within `cascade_head_*` — so a
-	# player could leave the wing but never walk *to* its top, and `walk_test`
-	# reported it as a body wandering off across the bluff looking for a point
-	# buried in masonry.
-	var a := Vector2(top_x - 3.2, axis + side * (half + 2.6))
-	var b := Vector2(Plan.WING_TIP_X, axis + side * Plan.WING_TIP_Z)
+
+## The normal to a leg pointing west — out into the court, away from the bluff.
+##
+## Both legs of the hairpin run predominantly north–south, so "west" is an
+## unambiguous answer where "outboard" was not. The old wing had to derive
+## outboard from `side` and got it backwards on one of the two mirrored wings
+## until somebody walked off the wrong edge; there is nothing left to get
+## backwards here, because the court is west of both wings and always will be.
+func _wing_west(span: Vector2) -> Vector2:
+	var n := Vector2(-span.y, span.x).normalized()
+	return n if n.x < 0.0 else -n
+
+
+## One leg of a wing: the wall, the coping on it, and the deck riding on top.
+##
+## `smooth` makes the deck a ramp; otherwise it is the garden stair — two short
+## flights with a long level landing, so both wings cover the same hairpin at the
+## same average fall and only the surface differs.
+func _wing_leg(tag: String, leg: int, a3: Vector3, b3: Vector3,
+		smooth: bool) -> void:
+	var a := Vector2(a3.x, a3.z)
+	var b := Vector2(b3.x, b3.z)
 	var span := b - a
 	var length := span.length()
 	var theta := atan2(span.x, span.y)
-	var mid := (a + b) * 0.5
-	var slope := atan2(drop, length)
-	# The outboard normal, taken from the wing's own direction and turned to the
-	# side away from the axis. Rotating theta by ±90° and hoping does not work:
-	# the wings are mirrored, so one fixed rotation lands outboard on one and
-	# inboard on the other, and `walk_test` walked off whichever it got wrong.
-	var out_n := Vector2(-span.y, span.x).normalized()
-	if out_n.y * side < 0.0:
-		out_n = -out_n
+	var slope := atan2(a3.y - b3.y, length)
+	var mid := (a3 + b3) * 0.5
+	# The leg's own up-axis, so the wall can be backed off under the deck line
+	# and the coping raised above it without either drifting off the slope.
+	var up := (Basis(Vector3.UP, theta) * Basis(Vector3.RIGHT, slope)).y
+	var run := sqrt(length * length + pow(a3.y - b3.y, 2.0))
 
-	# The wall itself — the wing. Its top edge is the diagonal that gives the
+	# The wall itself. Its top edge is one of the two diagonals that give the
 	# monument its silhouette, so this is the piece that has to be right.
-	_box("wing_wall_%s" % tag, Vector3(mid.x, -drop * 0.5 - 1.2, mid.y),
-		Vector3.ZERO, Vector3(Plan.WING_W + 2.6, 2.4, length), "building",
-		theta, true, slope)
-	_box("wing_cap_%s" % tag, Vector3(mid.x, -drop * 0.5 + 0.22, mid.y),
-		Vector3.ZERO, Vector3(Plan.WING_W + 3.2, 0.44, length), "white",
-		theta, true, slope)
-
-	# The deck that rides on it.
-	if smooth:
-		_flight_ramp("wing_ramp_%s" % tag,
-			Vector3(a.x, 0.0, a.y), Vector3(b.x, -drop, b.y), theta,
-			Plan.WING_W, "far_shade")
-	else:
-		# Four flights of three risers with long level landings between, which
-		# covers the same diagonal at the same average fall as the ramp opposite.
-		var flights := 4
-		for f in flights:
-			var t0 := float(f) / float(flights)
-			var t1 := float(f + 1) / float(flights)
-			var y0 := -drop * t0
-			var y1 := -drop * t1
-			var p0 := a.lerp(b, t0)
-			var p1 := a.lerp(b, t0 + (t1 - t0) * 0.55)
-			var p2 := a.lerp(b, t1)
-			# The landing.
-			var lm := (p0 + p1) * 0.5
-			_box("wing_landing_%s_%d" % [tag, f],
-				Vector3(lm.x, y0 - 0.25, lm.y), Vector3.ZERO,
-				Vector3(Plan.WING_W, 0.5, p0.distance_to(p1)), "accent", theta)
-			# And the three risers that drop to the next one.
-			_flight_ramp("wing_step_%s_%d" % [tag, f],
-				Vector3(p1.x, y0, p1.y), Vector3(p2.x, y1, p2.y), theta,
-				Plan.WING_W, "far_shade")
-			for r in 3:
-				var tr := float(r + 1) / 3.0
-				var pr := p1.lerp(p2, tr)
-				_box("wing_nosing_%s_%d_%d" % [tag, f, r], Vector3(pr.x,
-					y0 + (y1 - y0) * tr + 0.015, pr.y), Vector3.ZERO,
-					Vector3(Plan.WING_W - 0.2, 0.03, 0.16), "far_shade", theta, false)
-
-	# Rails down **both** edges, as posts and a top rail rather than a slab.
+	var wall_h: float = mid.y - WING_BASE_Y
+	_box("wing_wall_%s_%d" % [tag, leg], mid - up * (wall_h * 0.5), Vector3.ZERO,
+		Vector3(Plan.WING_W + 2.6, wall_h, run), "building", theta, true, slope)
+	# **The one piece of the monument that lights itself.** This coping's top edge
+	# is the diagonal the whole shape is for, and an edge is a line — floodlighting
+	# the wall under it makes an area bright and leaves the line exactly as
+	# legible as everything around it, which is what the first night capture
+	# showed. Lit from within, the copings draw the cascade's silhouette in the
+	# dark as cold sweeping lines, and the wall below them can stay dim.
 	#
-	# Both, because a wing is an elevated causeway across the court and not a path
-	# against a bank — there is a three-metre drop off either side of it. One rail
-	# was built on the assumption there was an inboard bank to lean on, and the
-	# probe walked straight off the other side.
-	# **Stopping three metres short of the tip**, which is not an oversight. At the
-	# tip the wing has finished its drop and is flush with the court, so there is
-	# nothing there to fall off — and a rail carried all the way to the end fences
-	# the one place the wing is supposed to deliver you. It did exactly that: both
-	# `wing -> court` legs timed out with the player sliding down the outside of a
-	# rail instead of stepping off the end of the ramp.
-	var open_end := 3.0
-	var t_end := 1.0 - open_end / length
-	var rail_len := length - open_end
-	var posts := maxi(2, int(rail_len / 2.6))
+	# **A parapet either side of the deck, not a slab over it.** It used to be one
+	# box wider than the deck and 44cm proud of it, on the theory that the deck
+	# would sit on top and leave a kerb showing at both edges — but the deck is
+	# 40cm thick and hangs *below* its own top line, so what the box actually did
+	# was lay a 44cm lid over the entire walking surface. The wing worked only
+	# because the player walked on the coping instead of the ramp, and the price
+	# came due at the springing, where that put the walking surface 44cm above the
+	# bluff top it is supposed to be flush with: a step the player cannot climb,
+	# across the only doorway onto the wing.
+	#
+	# The east strip is skipped on the outbound leg. Its east side is the bluff —
+	# the wall runs to within 10cm of the rock — so a kerb there is invisible from
+	# everywhere and stands square across the doorway, which is the same fault in
+	# the same place by a different route.
+	var west := _wing_west(span)
 	for e in 2:
-		var n: Vector2 = out_n if e == 0 else -out_n
-		var off := n * (Plan.WING_W * 0.5 + 0.2)
-		for i in posts + 1:
-			var t := t_end * float(i) / float(posts)
-			var p := a.lerp(b, t)
-			var py := -drop * t
-			_cyl("wing_post_%s_%d_%d" % [tag, e, i], Vector3.ZERO,
-				Vector3(p.x + off.x, py + 0.55, p.y + off.y), 0.06, 1.1, "metal", 0.0, 6)
-		var rm := a.lerp(b, t_end * 0.5)
-		_box("wing_rail_%s_%d" % [tag, e],
-			Vector3(rm.x + off.x, -drop * t_end * 0.5 + 1.02, rm.y + off.y), Vector3.ZERO,
-			Vector3(0.12, 1.0, rail_len), "metal", theta, true, slope)
+		if leg == 0 and e == 1:
+			continue
+		var n: Vector2 = west if e == 0 else -west
+		_box("wing_cap_%s_%d_%d" % [tag, leg, e],
+			mid + up * 0.22 + Vector3(n.x, 0.0, n.y) * 2.4, Vector3.ZERO,
+			Vector3(1.2, 0.44, run), "trim", theta, true, slope)
+
+	if smooth:
+		_flight_ramp("wing_ramp_%s_%d" % [tag, leg], a3, b3, theta,
+			Plan.WING_W, "far_shade")
+		return
+
+	for f in 2:
+		var t0 := float(f) * 0.5
+		var t1 := t0 + 0.5
+		var y0: float = lerpf(a3.y, b3.y, t0)
+		var y1: float = lerpf(a3.y, b3.y, t1)
+		var p0 := a.lerp(b, t0)
+		var p1 := a.lerp(b, t0 + 0.5 * 0.55)
+		var p2 := a.lerp(b, t1)
+		var lm := (p0 + p1) * 0.5
+		_box("wing_tread_%s_%d_%d" % [tag, leg, f],
+			Vector3(lm.x, y0 - 0.25, lm.y), Vector3.ZERO,
+			Vector3(Plan.WING_W, 0.5, p0.distance_to(p1)), "accent", theta)
+		_flight_ramp("wing_step_%s_%d_%d" % [tag, leg, f],
+			Vector3(p1.x, y0, p1.y), Vector3(p2.x, y1, p2.y), theta,
+			Plan.WING_W, "far_shade")
+		for r in 3:
+			var tr := float(r + 1) / 3.0
+			var pr := p1.lerp(p2, tr)
+			_box("wing_nosing_%s_%d_%d_%d" % [tag, leg, f, r], Vector3(pr.x,
+				y0 + (y1 - y0) * tr + 0.015, pr.y), Vector3.ZERO,
+				Vector3(Plan.WING_W - 0.2, 0.03, 0.16), "far_shade", theta, false)
+
+
+## A run of rail: posts and a top rail rather than a slab, between two points at
+## two heights. Level or raking, and every rail on the monument is one of these.
+func _wing_rail(nm: String, a: Vector2, ya: float, b: Vector2, yb: float) -> void:
+	var span := b - a
+	var length := span.length()
+	if length < 0.5:
+		return
+	var theta := atan2(span.x, span.y)
+	var phi := atan2(ya - yb, length)
+	var posts := maxi(2, int(length / 2.6))
+	for i in posts + 1:
+		var t := float(i) / float(posts)
+		var p := a.lerp(b, t)
+		_cyl("%s_post_%d" % [nm, i], Vector3.ZERO,
+			Vector3(p.x, lerpf(ya, yb, t) + 0.55, p.y), 0.06, 1.1, "metal", 0.0, 6)
+	var m := (a + b) * 0.5
+	_box("%s_rail" % nm, Vector3(m.x, (ya + yb) * 0.5 + 1.02, m.y), Vector3.ZERO,
+		Vector3(0.12, 1.0, sqrt(length * length + pow(ya - yb, 2.0))), "metal",
+		theta, true, phi)
+
+
+## A wing: the hairpin, and the whole of it. Out and down against the bluff, a
+## level landing at the turn, and back in and down to the court beside the
+## flight's own foot. See `ParkPlan.WING_SPRING_X` for what it replaced and why.
+func _cascade_wing(side: float, smooth: bool) -> void:
+	var tag := "n" if side < 0.0 else "s"
+	var path := Plan.wing_path(side)
+	var spring: Vector3 = path[0]
+	var turn_in: Vector3 = path[1]
+	var turn_out: Vector3 = path[2]
+	var foot: Vector3 = path[3]
+	var half_w := Plan.WING_W * 0.5
+
+	# The legs stop at the landing's inner edge rather than at the turn vertex —
+	# see `ParkPlan.WING_LAND_D`. Everything below is laid off those two points,
+	# so the landing and the ramps meet exactly and neither overhangs the other.
+	var end_out := Plan.wing_leg_end(side, 0)
+	var end_ret := Plan.wing_leg_end(side, 1)
+	_wing_leg(tag, 0, spring, end_out, smooth)
+	_wing_leg(tag, 1, end_ret, foot, smooth)
+
+	# --- the landing at the turn ---
+	#
+	# Level, and that is the whole trick: a landing carries none of the fall, so
+	# folding thirty-six metres of run in half across one costs nothing in
+	# gradient. It is also the only place on the descent you can stop, turn round
+	# and look back up at the plaza, which is worth more than it cost.
+	#
+	# **It spans exactly the two leg ends and no further inward.** A landing deep
+	# enough to reach past them is a level slab lying over a slope, and where the
+	# ramp has dropped below it you meet its edge as a step — which is how both
+	# `wing up` legs failed before the leg ends moved.
+	var lx0: float = end_out.x + half_w
+	var lx1: float = end_ret.x - half_w
+	var lc := Vector2((lx0 + lx1) * 0.5, turn_in.z)
+	var lw := absf(lx1 - lx0)
+	var ld := Plan.WING_LAND_D
+	var ly := turn_in.y
+	_box("wing_landing_wall_%s" % tag,
+		Vector3(lc.x, (ly + WING_BASE_Y) * 0.5, lc.y), Vector3.ZERO,
+		Vector3(lw + 1.0, ly - WING_BASE_Y, ld + 0.8), "building")
+	_box("wing_landing_%s" % tag, Vector3(lc.x, ly - 0.25, lc.y), Vector3.ZERO,
+		Vector3(lw, 0.5, ld), "accent")
+	# Coping as three strips rather than one frame, because a frame puts a 44cm
+	# kerb across the two places the legs come in — and `CharacterBody3D` has no
+	# step-up, so that is not a kerb, it is a wall closing the route the landing
+	# exists to turn. These are the edges nothing walks over: the outer face, the
+	# west face, and the pocket between the two leg mouths.
+	var e_out: float = turn_in.z + side * (ld * 0.5 + 0.4)
+	var e_in: float = turn_in.z - side * (ld * 0.5 + 0.4)
+	var gap_from: float = end_out.x - half_w
+	var gap_to: float = end_ret.x + half_w
+	_box("wing_landing_cap_out_%s" % tag, Vector3(lc.x, ly + 0.22, e_out),
+		Vector3.ZERO, Vector3(lw + 0.8, 0.44, 0.8), "trim")
+	_box("wing_landing_cap_west_%s" % tag,
+		Vector3(lx1 - 0.4, ly + 0.22, lc.y), Vector3.ZERO,
+		Vector3(0.8, 0.44, ld + 0.8), "trim")
+	_box("wing_landing_cap_in_%s" % tag,
+		Vector3((gap_from + gap_to) * 0.5, ly + 0.22, e_in), Vector3.ZERO,
+		Vector3(absf(gap_to - gap_from), 0.44, 0.8), "trim")
+
+	# --- the rails ---
+	#
+	# Round the exposed perimeter and nowhere else, which is a shorter list than
+	# the old wing's "both edges of everything". The outbound leg's east side is
+	# the bluff — there is nothing to fall off a wall you are leaning against —
+	# and rail there would have been 18m of posts inside the rock.
+	#
+	# **The last three metres of the return leg get none**, which is not an
+	# oversight. By then the wing is flush with the court and there is nothing to
+	# fall off, and a rail carried to the end fences the one place the wing is
+	# supposed to deliver you to. It did exactly that once already: both
+	# `wing -> court` legs timed out with the player sliding down the outside of
+	# a rail instead of stepping off the end of the ramp.
+	var out_span := Vector2(end_out.x - spring.x, end_out.z - spring.z)
+	var out_w := _wing_west(out_span) * (half_w + 0.2)
+	_wing_rail("wing_rail_%s_out" % tag,
+		Vector2(spring.x, spring.z) + out_w, spring.y,
+		Vector2(end_out.x, end_out.z) + out_w, end_out.y)
+
+	var ret := Vector2(foot.x - end_ret.x, foot.z - end_ret.z)
+	var ret_len := ret.length()
+	var t_end: float = 1.0 - 3.0 / ret_len
+	var ret_w := _wing_west(ret) * (half_w + 0.2)
+	var ret_end := end_ret.lerp(foot, t_end)
+	for e in 2:
+		var off: Vector2 = ret_w if e == 0 else -ret_w
+		_wing_rail("wing_rail_%s_ret%d" % [tag, e],
+			Vector2(end_ret.x, end_ret.z) + off, end_ret.y,
+			Vector2(ret_end.x, ret_end.z) + off, ret_end.y)
+	# Round the landing: its outer face and its west face, which together with
+	# the two leg rails close the whole open side of the hairpin.
+	_wing_rail("wing_rail_%s_land_out" % tag,
+		Vector2(lc.x - lw * 0.5, e_out), ly, Vector2(lc.x + lw * 0.5, e_out), ly)
+	_wing_rail("wing_rail_%s_land_west" % tag,
+		Vector2(turn_out.x - half_w - 0.4, lc.y - ld * 0.5), ly,
+		Vector2(turn_out.x - half_w - 0.4, lc.y + ld * 0.5), ly)
 
 	# --- the planting ---
 	#
 	# The terraces are what turn this from civil engineering into a garden, and
-	# they are the reason the thing is worth looking back at from the pier. Beds
-	# stepping down the inner side of the wing, between the deck and the bluff.
+	# they are the reason the thing is worth looking back at from the pier.
+	#
+	# They go in the **pocket** the hairpin encloses — between the return leg and
+	# the outbound leg above it — which is the shape's own reward for doubling
+	# back and did not exist when the wing was one straight run. The pocket is a
+	# wedge, 4.7m across at the springing and 2.4m at the turn, because the
+	# outbound leg runs true north–south and the return leg sweeps away from it.
+	# So the beds hang off the *return* leg's edge rather than sitting in the
+	# middle of a gap whose middle moves, and each one carries a plinth down to
+	# the court: consecutive plinths overlap, so the terrace wall is continuous
+	# and the pocket has a floor rather than a slot down its length.
 	var beds := 7
+	var bed_n := -_wing_west(ret) * (half_w + 1.4)
+	var bed_theta := atan2(ret.x, ret.y)
 	for i in beds:
 		var t := (float(i) + 0.5) / float(beds)
-		var p := a.lerp(b, t)
-		var py := -drop * t
-		var inn := -out_n * (Plan.WING_W * 0.5 + 1.5)
-		var bx := p.x + inn.x
-		var bz := p.y + inn.y
-		_box("wing_bed_%s_%d" % [tag, i], Vector3(bx, py - 0.1, bz), Vector3.ZERO,
-			Vector3(2.6, 0.5, 3.4), "accent", theta)
-		_box("wing_soil_%s_%d" % [tag, i], Vector3(bx, py + 0.2, bz), Vector3.ZERO,
-			Vector3(2.2, 0.3, 3.0), "planting", theta, false)
+		var p := turn_out.lerp(foot, t)
+		var bx := p.x + bed_n.x
+		var bz := p.z + bed_n.y
+		_box("wing_bed_plinth_%s_%d" % [tag, i],
+			Vector3(bx, (p.y + WING_BASE_Y) * 0.5, bz), Vector3.ZERO,
+			Vector3(2.4, p.y - WING_BASE_Y, 3.0), "building", bed_theta)
+		_box("wing_bed_%s_%d" % [tag, i], Vector3(bx, p.y - 0.1, bz), Vector3.ZERO,
+			Vector3(2.2, 0.5, 3.2), "accent", bed_theta)
+		_box("wing_soil_%s_%d" % [tag, i], Vector3(bx, p.y + 0.2, bz), Vector3.ZERO,
+			Vector3(1.8, 0.3, 2.8), "planting", bed_theta, false)
 		for k in 5:
-			var hx := bx + (_hash01(i * 7 + k, 3, 29) - 0.5) * 1.7
-			var hz := bz + (_hash01(i * 7 + k, 5, 31) - 0.5) * 2.4
+			var hx := bx + (_hash01(i * 7 + k, 3, 29) - 0.5) * 1.4
+			var hz := bz + (_hash01(i * 7 + k, 5, 31) - 0.5) * 2.2
 			var bloom: String = ["bloom_warm", "bloom_pink", "bloom_pale"][(i + k) % 3]
 			_sphere("wing_bloom_%s_%d_%d" % [tag, i, k],
-				Vector3(hx, py + 0.5, hz), 0.26 + _hash01(k, 2, 17) * 0.14, bloom)
+				Vector3(hx, p.y + 0.5, hz), Vector3.ZERO,
+				0.26 + _hash01(k, 2, 17) * 0.14, bloom)
 
 
 	# The seam used to be three nodes here — preload at the head of the flight,
@@ -2228,6 +3770,142 @@ func _entrance() -> void:
 	_street_booths()
 	_gate()
 	_apron()
+	_entrance_lights()
+
+
+## The arrival, after dark — and until now there was none at all.
+##
+## `entrance.tscn` was the one scene on the plaza's side of the park with zero
+## lights in it. Not dim: zero. Fifty-seven metres of street, ten shopfronts,
+## three game booths, a walk-in arcade, the turnstiles and the apron outside
+## them, all of it pitch black from about half past eight, while the plaza it
+## leads to was fully lit. The gap survived a whole lighting pass and a capture
+## run because no vantage in `night_capture.gd` pointed south.
+##
+## It matters more than its area suggests, for two reasons the design has
+## already argued elsewhere. The street is the answer to "the hub is a junction,
+## not a destination" — the thing that stops the park being gate-straight-into-
+## plaza — and a corridor nobody can see is not a corridor. And it is a midway:
+## small commerce, close frontage, awnings, booths. A midway that goes dark is
+## just an alley you cross to get somewhere better.
+func _entrance_lights() -> void:
+	_street_shop_lights()
+	_street_festoons()
+	_booth_lights()
+	_arcade_lights()
+	_gate_lights()
+	_apron_lights()
+
+
+## The three game booths, lit.
+##
+## Emitted from here rather than from inside `_booth`, and that is not a matter
+## of tidiness — it is the seam rule applied one level down. `_add` hands every
+## shape a displacement by build order, so the bulbs *inside* `_booth` pushed the
+## ordinal of every shape emitted after them: the prize walls, the two later
+## booths, the gate, the apron and the whole parking lot. `coplanar_test` caught
+## it immediately — `booth_hoops_counter` came to rest with its underside exactly
+## on the street paving, 2.04m² of z-fight in the middle of the walk, in geometry
+## nobody had touched.
+##
+## The same lesson the scene write order carries: append, never insert. Adding
+## shapes at the end of a run is free; adding them in the middle re-planes
+## everything downstream.
+func _booth_lights() -> void:
+	for row in STREET_BOOTHS:
+		var nm: String = row[0]
+		var base: Vector3 = row[1]
+		var theta: float = row[2]
+		var width: float = row[3]
+		var n := width * 0.5
+		var depth := 3.2
+		# Bulbs along the valance. A game booth is the one thing on the street
+		# that has to read as *staffed and open* after dark — it is a counter
+		# somebody stands behind, and unlit it reads as shut for the season.
+		# Same vocabulary as the threshold mouths and the alley: a row of lights
+		# is what says a thing is open.
+		var lamps: int = maxi(4, int(width * 1.2))
+		for i in lamps:
+			var t := (float(i) + 0.5) / float(lamps)
+			_sphere(nm + "_bulb_%d" % i, base,
+				Vector3(lerpf(-n + 0.3, n - 0.3, t), 2.72, depth * 0.5 + 0.62),
+				0.11, "bulb", theta)
+		# Warm and low, over the counter rather than the room — the prize wall
+		# is the thing worth seeing and it is 3m back.
+		_omni(nm + "_glow", _place(base, Vector3(0, 2.6, depth * 0.5 - 0.4), theta),
+			"warm", 2.6, 8.0, LIGHT_FIXTURE, true)
+
+
+## A lamp under every awning, both ranges.
+##
+## The awnings are already what make this a street rather than two walls — the
+## comment in `_shopfronts` says so — and lighting *under* them rather than
+## floodlighting the buildings keeps that true after dark. It puts a row of warm
+## pools down each side at head height with dark above, so the street reads as a
+## colonnade you walk along, and the shopfronts read as premises rather than as
+## the sides of a corridor.
+func _street_shop_lights() -> void:
+	var n := 0
+	for pair in [[STREET_WEST, -1.0], [STREET_EAST, 1.0]]:
+		var rows: Array = pair[0]
+		var side: float = pair[1]
+		var face: float = ST_X + side * ST_HALF
+		for row in rows:
+			var z: float = row[0]
+			var length: float = row[1]
+			# Under the awning's outer lip, not against the wall. Against the
+			# wall it lights the shopfront and leaves the walk in shadow, which
+			# is backwards — the walk is where the player and the crowd are.
+			_omni("street_awning_%d" % n,
+				Vector3(face + side * 1.25, 2.82, z), "warm", 2.2, 8.5,
+				LIGHT_FIXTURE, n % 3 == 0)
+			# A second for the long units, or a 12m frontage gets one pool in the
+			# middle and two dark ends.
+			if length > 10.5:
+				_omni("street_awning_%d_b" % n,
+					Vector3(face + side * 1.25, 2.82, z + length * 0.3),
+					"warm", 1.6, 7.0)
+			n += 1
+
+
+## Festoons strung across the street, gable to gable.
+##
+## The one move that says "midway" louder than anything else available, and it
+## costs almost nothing: the bulbs are the same `bulb` material as the boardwalk
+## masts and the threshold valances, so they come up with the rest of the park
+## and need no light of their own. Overhead and *across* the street rather than
+## along it, which is the whole difference — a line of lights down a street is
+## street lighting, and a line of lights across it is a fair.
+##
+## Hung above the awnings and below the parapets, so they read against the sky
+## from the gate and against the frontage from underneath.
+const STREET_STRING_Y := 5.6
+const STREET_STRING_SAG := 0.85
+const STREET_STRING_STEPS := 8
+
+
+func _street_festoons() -> void:
+	var z := 58.0
+	var i := 0
+	while z <= 108.0:
+		var x0 := ST_X - ST_HALF + 0.3
+		var x1 := ST_X + ST_HALF - 0.3
+		var points: Array[Vector3] = []
+		for s in STREET_STRING_STEPS + 1:
+			var t := float(s) / float(STREET_STRING_STEPS)
+			points.append(Vector3(lerpf(x0, x1, t),
+				STREET_STRING_Y - STREET_STRING_SAG * sin(PI * t), z))
+		for s in STREET_STRING_STEPS:
+			_strut("street_wire_%d_%d" % [i, s], points[s], points[s + 1], 0.045, "metal")
+		for b in STREET_STRING_STEPS - 1:
+			_sphere("street_bulb_%d_%d" % [i, b], points[b + 1], Vector3.ZERO, 0.13, "bulb")
+		# One light per string at the sag, low, so the street's asphalt is warmer
+		# under a string than between strings. The bulbs carry the look; this
+		# only stops the middle of the street being the darkest part of it.
+		_omni("street_string_%d_glow" % i,
+			Vector3(ST_X, STREET_STRING_Y - STREET_STRING_SAG, z), "warm", 1.7, 12.0)
+		z += 10.0
+		i += 1
 
 
 ## Both sides of the street, one building deep, fronting the walk. This is the
@@ -2237,25 +3915,36 @@ func _entrance() -> void:
 ## Depths and heights vary per building so the run reads as a street of separate
 ## businesses. A constant depth gives two long walls, which is what the boardwalk
 ## frontage got wrong at close range.
+## The street's two ranges: z, length, depth, height, material, kind.
+##
+## Hoisted out of `_street_frontage` because the lighting reads them too — every
+## shop gets a lamp under its own awning, and an awning is at the building's z
+## with the building's length. Left as locals they would have had to be typed a
+## second time in `_entrance_lights`, which is the same duplication the cafe
+## tables had before `ParkPlan.PLAZA_CAFE` collapsed them, at the same cost:
+## move a shop and its light stays where the shop used to be.
+##
+## Kinds alternate across the street rather than down it, so neither side is a
+## run of the same thing and the arcades face something other than each other.
+const STREET_WEST := [
+	[56.0, 10.0, 9.0, 6.5, "far_warm", "store"],
+	[67.0, 11.0, 10.0, 5.0, "accent", "cafe"],
+	[78.0, 10.0, 8.0, 7.0, "far_warm", "arcade"],
+	[88.0, 9.0, 9.5, 5.5, "white", "store"],
+	[99.0, 12.0, 8.5, 6.0, "accent", "cafe"],
+]
+const STREET_EAST := [
+	[57.0, 11.0, 9.0, 5.5, "accent", "cafe"],
+	[69.0, 12.0, 10.0, 7.0, "far_warm", "store"],
+	[81.0, 11.0, 8.0, 5.0, "white", "arcade"],
+	[92.0, 10.0, 9.0, 6.5, "accent", "store"],
+	[102.0, 9.0, 8.5, 5.5, "far_warm", "cafe"],
+]
+
+
 func _street_frontage() -> void:
-	# Kinds alternate across the street rather than down it, so neither side is a
-	# run of the same thing and the arcades face something other than each other.
-	var west := [
-		[56.0, 10.0, 9.0, 6.5, "far_warm", "store"],
-		[67.0, 11.0, 10.0, 5.0, "accent", "cafe"],
-		[78.0, 10.0, 8.0, 7.0, "far_warm", "arcade"],
-		[88.0, 9.0, 9.5, 5.5, "white", "store"],
-		[99.0, 12.0, 8.5, 6.0, "accent", "cafe"],
-	]
-	var east := [
-		[57.0, 11.0, 9.0, 5.5, "accent", "cafe"],
-		[69.0, 12.0, 10.0, 7.0, "far_warm", "store"],
-		[81.0, 11.0, 8.0, 5.0, "white", "arcade"],
-		[92.0, 10.0, 9.0, 6.5, "accent", "store"],
-		[102.0, 9.0, 8.5, 5.5, "far_warm", "cafe"],
-	]
-	_shopfronts(west, -1.0, 0)
-	_shopfronts(east, 1.0, 10)
+	_shopfronts(STREET_WEST, -1.0, 0)
+	_shopfronts(STREET_EAST, 1.0, 10)
 
 
 ## `side` is -1 for the west range and +1 for the east. Buildings grow away from
@@ -2301,6 +3990,121 @@ func _shopfronts(rows: Array, side: float, id_from: int) -> void:
 		_front("shop_%d" % n, Vector3(face, 0.0, z), theta,
 			minf(length - 2.0, 7.5), kind, not walk_in)
 		n += 1
+
+
+## The arcade, which is the only interior on the street and the only room in the
+## park the player can walk into.
+##
+## So it gets the one lighting scheme in the plaza that is not warm white, and
+## the reason is diegetic rather than decorative: an arcade in 1997 is a dark
+## room lit by forty CRTs, and the light coming out of its door is *blue*. That
+## is a specific memory of a specific kind of place, and it is free — the room
+## is already built, already walkable, and currently pitch dark.
+##
+## What it buys structurally is a reason to look sideways on the walk up the
+## street. Everything else on the frontage is a face; this is an opening with
+## light pouring out of it, and it is on the west side where the evening sun has
+## already gone. Before this the arcade was indistinguishable from a shopfront
+## after eight o'clock.
+func _arcade_lights() -> void:
+	# Only the walk-in one — the east range's arcade is a front, not a room.
+	for row in STREET_WEST:
+		if String(row[5]) != "arcade":
+			continue
+		var z: float = row[0]
+		var face := ST_X - ST_HALF
+		var mid := (face + ARC_BACK) * 0.5
+
+		# The cabinets, down the back and the side walls. Cold and low, so the
+		# room is lit from its own machines rather than from a ceiling it does
+		# not have.
+		for i in 3:
+			var cz: float = z - 2.4 + float(i) * 2.4
+			_omni("arc_glow_%d" % i, Vector3(ARC_BACK + 2.2, 1.5, cz),
+				"cyan", 2.4, 9.0)
+		_omni("arc_glow_mid", Vector3(mid, 2.6, z), "cyan", 1.8, 12.0)
+
+		# At the mouth, throwing out onto the walk. This is the one the street
+		# sees: a cold rectangle in a warm frontage, which is exactly what an
+		# arcade door looks like from outside at night.
+		_omni("arc_door_spill", Vector3(face - 1.4, 1.9, z), "cyan", 2.6, 8.0,
+			LIGHT_FIXTURE, true)
+
+
+## The turnstiles, which are the park's face.
+##
+## This is the first thing the player sees and the last thing they walk out
+## through, and it stands on the gate axis with the 40m clock tower directly
+## behind it — the tower is already floodlit and its clock already lit, so an
+## unlit gate leaves a black band across the bottom of the park's best view from
+## the apron.
+##
+## Lit from under its own canopy rather than washed from outside, for the same
+## reason the bandstand is: a canopy with light under it reads as somewhere still
+## open. The sign gets its own pair from below, because a name board is the one
+## piece of the park that has to be *readable* rather than merely visible.
+func _gate_lights() -> void:
+	# Under the canopy, across the lanes. Three, so the opening is evenly bright
+	# and the stiles cast down onto the brick rather than along it.
+	for i in 3:
+		var x := ST_X - 4.0 + float(i) * 4.0
+		_omni("gate_canopy_glow_%d" % i, Vector3(x, 3.9, GATE_Z),
+			"warm", 2.8, 10.0, LIGHT_FIXTURE, i == 1)
+
+	# The name board, from below and close, on the apron side — it is read on the
+	# way in. Cool against the canopy's warm so it separates from the structure
+	# holding it up.
+	for side in [-1.0, 1.0]:
+		_uplight("gate_sign_wash_%d" % int(side + 1),
+			Vector3(ST_X + side * 3.2, 1.0, GATE_Z + 4.4),
+			Vector3(ST_X + side * 1.2, 5.6, GATE_Z + 2.9),
+			"wash", 3.0, 12.0, 34.0)
+
+	# A window in each booth. Somebody sells the tickets, and two lit windows
+	# either side of the opening is what makes the gate read as staffed rather
+	# than as an arch with a roof.
+	for side in [-1.0, 1.0]:
+		_omni("gate_booth_glow_%d" % int(side + 1),
+			Vector3(ST_X + side * (ST_HALF - 2.25), 2.0, GATE_Z + 2.2),
+			"warm", 1.5, 6.0, LIGHT_SERVICE)
+
+
+## The apron and the lot beyond it.
+##
+## The six `apron_pole` cylinders have stood there since the entrance was built
+## and have never been anything — 8m white posts with nothing on top, which in
+## daylight read as flagpoles nobody hung a flag on. They are the car park's
+## lighting and always were; this finishes them.
+##
+## Cool rather than warm, and that is the one place in the park where cold light
+## is a *boundary* rather than a feature. Sodium and mercury vapour is what a
+## real lot is lit with, it is nobody's idea of welcoming, and the step from that
+## into the warm street under the turnstiles is the arrival doing its job. The
+## park should feel warmer than the place you parked.
+func _apron_lights() -> void:
+	for i in range(6):
+		var x := ST_X - 15.0 + float(i) * 6.0
+		# A head on the pole, so there is something to be lit *by*. The pole tops
+		# out at 8.0.
+		_box("apron_head_%d" % i, Vector3.ZERO, Vector3(x, 7.86, GATE_Z + 9.0),
+			Vector3(0.6, 0.22, 0.9), "lamp_glass", 0.0, false)
+		_omni("apron_lamp_%d" % i, Vector3(x, 7.6, GATE_Z + 9.0),
+			"lamp", 3.0, 22.0, LIGHT_FIXTURE, i == 2 or i == 3)
+
+	# The lot itself, as backdrop. Four standards over the parked cars, tall and
+	# far apart the way a real lot is lit. No shadows and no detail — this is
+	# 40m past the rail the player cannot cross, and its whole job is to say the
+	# world does not stop at the apron.
+	for i in 4:
+		var x := ST_X - 34.0 + float(i) * 23.0
+		for j in 2:
+			var z := 138.0 + float(j) * 24.0
+			_cyl("lot_pole_%d_%d" % [i, j], Vector3.ZERO, Vector3(x, 5.0, z),
+				0.16, 10.0, "far_shade", 0.0, 6, false)
+			_box("lot_head_%d_%d" % [i, j], Vector3.ZERO, Vector3(x, 9.9, z),
+				Vector3(0.8, 0.24, 1.2), "lamp_glass", 0.0, false)
+			_omni("lot_lamp_%d_%d" % [i, j], Vector3(x, 9.6, z),
+				"lamp", 2.2, 26.0)
 
 
 ## Turnstiles under a canopy. The threshold is a squeeze between two booths
@@ -2435,11 +4239,29 @@ func _thresholds() -> void:
 ## belongs to the plan; what colour its sign is belongs to a section that does
 ## not exist yet, and inventing plan facts about four unbuilt places is how the
 ## plan stops being a record of the park.
+## `tint` is the colour the mouth *glows* after dark, and it carries the same
+## argument the sign colours and cap shapes already carry, one step further.
+##
+## Four identical arches at four bearings read as one thing repeated; the point
+## of these is that the park continues in five different directions, and the
+## board colour and finial are how that is said in daylight. Both stop saying it
+## at sunset — a red board and a yellow board are the same grey under one warm
+## lamp. Giving each mouth its own colour of light keeps the four ways out
+## distinguishable from the fountain at night, which is when the plaza most
+## needs them to be: an unlit passage reads as closed, and four identically lit
+## ones read as one exit repeated.
+##
+## Matched to the board rather than chosen freshly, so the mouth is the same
+## place by day and by night.
 const THRESHOLD_MOUTH := {
-	"nnw": {"sign": "canvas_alt", "valance": "canvas", "h": 2.6, "cap": "spire"},
-	"ne": {"sign": "wood", "valance": "canvas", "h": 2.2, "cap": "block"},
-	"se": {"sign": "yellow", "valance": "canvas_alt", "h": 1.8, "cap": "ball"},
-	"sw": {"sign": "red", "valance": "canvas_alt", "h": 2.4, "cap": "drum"},
+	"nnw": {"sign": "canvas_alt", "valance": "canvas", "h": 2.6, "cap": "spire",
+		"tint": "cyan"},
+	"ne": {"sign": "wood", "valance": "canvas", "h": 2.2, "cap": "block",
+		"tint": "warm"},
+	"se": {"sign": "yellow", "valance": "canvas_alt", "h": 1.8, "cap": "ball",
+		"tint": "amber"},
+	"sw": {"sign": "red", "valance": "canvas_alt", "h": 2.4, "cap": "drum",
+		"tint": "rose"},
 }
 
 
@@ -2488,8 +4310,27 @@ func _threshold_mouth(nm: String, base: Vector3, theta: float, w: float) -> void
 	for i in bulbs:
 		var t := (float(i) + 0.5) / float(bulbs)
 		var bx: float = lerpf(-n + 0.5, n - 0.5, t)
-		_sphere("way_%s_bulb_%d" % [nm, i],
-			_place(base, Vector3(bx, 4.1 * MOUTH_H, -1.5), theta), 0.13, "yellow")
+		_sphere("way_%s_bulb_%d" % [nm, i], base,
+			Vector3(bx, 4.1 * MOUTH_H, -1.5), 0.13, "bulb", theta)
+
+	# One pool for the whole valance rather than one per bulb. Eleven omnis in a
+	# row two metres apart produce a single even wash at a tenth of the price of
+	# one, and the *reading* of a bulb run comes from the emissive spheres — the
+	# light on the ground under it only has to say the mouth is open.
+	_omni("way_%s_glow" % nm, _place(base, Vector3(0, 3.9 * MOUTH_H, -1.5), theta),
+		spec["tint"], 3.2, 13.0)
+
+	# And the passage behind it, which is the actual point. A threshold is a
+	# bend you cannot see the end of; unlit after dark it is a black rectangle
+	# and reads as closed rather than as somewhere the park continues. Set back
+	# under the lintel so the source is not visible from the plaza.
+	# The throat stays warm whatever the mouth is. The colour belongs to the
+	# *sign* — it says which land this is — and carrying it down the passage
+	# would say the land itself is lit that colour, which is a claim about four
+	# places nobody has built. Warm light receding behind a coloured mouth also
+	# reads as depth; the same colour twice reads as one flat plane.
+	_omni("way_%s_throat" % nm, _place(base, Vector3(0, 3.4 * MOUTH_H, 2.6), theta),
+		"warm", 2.2, 11.0)
 
 	# The board, lapping the beam. Wide but not full width: a sign the width of
 	# its own opening reads as a lid on it.
@@ -2515,7 +4356,7 @@ func _mouth_cap(nm: String, base: Vector3, sx: float, theta: float, kind: String
 		"ball":
 			_box(nm + "_plinth", base, Vector3(sx, 4.8 * k, -0.45),
 				Vector3(1.3, 0.4 * k, 1.8), "far_shade", theta, false)
-			_sphere(nm, _place(base, Vector3(sx, 5.5 * k, -0.45), theta), 0.55 * k, "white")
+			_sphere(nm, base, Vector3(sx, 5.5 * k, -0.45), 0.55 * k, "white", theta)
 		"drum":
 			_box(nm + "_plinth", base, Vector3(sx, 4.8 * k, -0.45),
 				Vector3(1.3, 0.4 * k, 1.8), "far_shade", theta, false)
@@ -2727,10 +4568,20 @@ func _booth(nm: String, base: Vector3, theta: float, width: float, mat: String) 
 
 ## Freestanding on the walk rather than against a wall, so the street has
 ## something in the middle of it and a reason to weave.
+## Name, position, bearing, width, material. Hoisted for the same reason the two
+## street ranges were: the lighting has to hang bulbs on these valances, and a
+## second typed copy of three positions is how a booth ends up lit where it used
+## to stand.
+const STREET_BOOTHS := [
+	["booth_ring", Vector3(ST_X - 4.2, 0.0, 64.0), PI * 0.5, 4.5, "far_warm"],
+	["booth_darts", Vector3(ST_X + 4.2, 0.0, 75.0), -PI * 0.5, 4.5, "accent"],
+	["booth_hoops", Vector3(ST_X - 4.2, 0.0, 91.0), PI * 0.5, 4.0, "accent"],
+]
+
+
 func _street_booths() -> void:
-	_booth("booth_ring", Vector3(ST_X - 4.2, 0.0, 64.0), PI * 0.5, 4.5, "far_warm")
-	_booth("booth_darts", Vector3(ST_X + 4.2, 0.0, 75.0), -PI * 0.5, 4.5, "accent")
-	_booth("booth_hoops", Vector3(ST_X - 4.2, 0.0, 91.0), PI * 0.5, 4.0, "accent")
+	for row in STREET_BOOTHS:
+		_booth(row[0], row[1], row[2], row[3], row[4])
 
 
 ## The arcade, built where it stands rather than swapped in behind a door.
@@ -2842,6 +4693,7 @@ func _boardwalk_section() -> void:
 	_boardwalk_pier()
 	_boardwalk_edges()
 	_boardwalk_props()
+	_boardwalk_lights()
 	_plaza_from_below()
 	# The terrace's own asphalt, on the plaza's floor, laid here as well as into
 	# `plaza_paving.tscn` — see `_terrace_paving`. It goes after
@@ -3052,7 +4904,15 @@ func _alley_mouth() -> void:
 			var t := (float(i) + 0.5) / float(bulbs)
 			var bz: float = lerpf(GAP_FROM + 1.2, GAP_TO - 1.2, t)
 			_sphere("alley_bulb_%s_%d" % [tag, i],
-				Vector3(fx + out * 1.2, SHORE_TOP + 3.95, bz), 0.13, "yellow")
+				Vector3(fx + out * 1.2, SHORE_TOP + 3.95, bz), Vector3.ZERO,
+				0.13, "bulb")
+
+		# The mouth's own glow, one per end. The lane end is the event and the
+		# promenade end is the acknowledgement — the same asymmetry the sign
+		# heights and colours carry — so the brighter one goes on the side you
+		# arrive from and the arrival stays a one-way reveal after dark.
+		_omni("alley_glow_%s" % tag, Vector3(fx + out * 1.2, SHORE_TOP + 3.8, ALLEY_Z),
+			"warm", 4.2 if tag == "lane" else 2.8, 15.0)
 
 		# The sign, lapping the beam by 0.15 so it sits on it, and standing
 		# 1.5m clear of the neighbours' rooflines so the lane sees it first.
@@ -3222,6 +5082,152 @@ func _boardwalk_pier() -> void:
 		Vector3(0.3, 2.8, 3.6), "wood", 0.0, false)
 
 
+## The boardwalk after dark, which is the section the whole thing is for.
+##
+## The plaza at night is a lit room; the strip is a lit *object*, seen end-on
+## down 160m of promenade and broadside from the overlook 40m above it. Its own
+## day curve says so — the boardwalk is at 100% at seven in the evening when the
+## plaza is falling, so this is the busiest place in the park at the exact hour
+## the sun goes into the water behind it. Everything here is built for that hour.
+##
+## Which is also why this is the one section allowed colour. The palette note on
+## `canvas` already says the boardwalk is the loud one; after dark that stops
+## being a claim about awnings and becomes a claim about light.
+func _boardwalk_lights() -> void:
+	_wheel_lights()
+	_pavilion_lights()
+	_coaster_lights()
+	_lane_lights()
+
+
+## The wheel: outlined, then washed.
+##
+## The outline is the part that matters and it is geometry rather than lighting —
+## twenty-four bulbs on the rim, on the `bulb` material like every other festoon
+## in the park, so they come up with everything else. A wheel is the one ride
+## whose real-world night presentation is *entirely* points of light on a circle,
+## and no amount of floodlighting substitutes for it: washed but not outlined it
+## reads as a large grey wheel that somebody has pointed a light at.
+##
+## In the Z–Y plane, because the wheel faces the plaza — the same constraint the
+## cars are placed under, and a bulb placed in X is a bulb threaded through the
+## axle.
+func _wheel_lights() -> void:
+	var base := Vector3(WHEEL_AT.x, SHORE_TOP, WHEEL_AT.y)
+	var hub := base + Vector3(0, 18.6, 0)
+	var r := Plan.WHEEL_RADIUS
+	for i in 24:
+		var a := TAU * float(i) / 24.0
+		_sphere("wheel_bulb_%d" % i, hub,
+			Vector3(0, sin(a) * r, cos(a) * r), 0.16, "bulb")
+
+	# Washed from the platform, up both flanks of the disc. Rose, and it is the
+	# one place in the park with a light this saturated: the wheel is the thing
+	# you are meant to see from the overlook and from the far end of the strip,
+	# and colour carries further than brightness once everything else is warm
+	# white.
+	var half := Plan.WHEEL_PLATFORM * 0.5
+	for side in [-1.0, 1.0]:
+		_uplight("wheel_wash_%s" % ["n" if side < 0.0 else "s"],
+			Vector3(base.x, SHORE_TOP + 0.9, base.z + side * (half.y - 1.0)),
+			Vector3(base.x, SHORE_TOP + 20.0, base.z + side * 3.0),
+			"rose", 4.0, 34.0, 30.0)
+
+	# The booth, which is where somebody is standing and therefore where the
+	# photographs are. Small, warm, and a fixture rather than a feature — a ride
+	# still selling tickets at half past nine is the park being open.
+	_omni("wheel_booth_glow",
+		Vector3(base.x + half.x + 1.4, SHORE_TOP + 2.5, base.z - 3.0),
+		"warm", 2.4, 9.0)
+
+
+## The pavilion at the pier head, which is what the sun sets behind.
+##
+## That is its whole job in the composition, and it means the pavilion has a
+## handover to make rather than a state: it is a silhouette against the sunset,
+## and then the sunset goes and it has to become the thing at the end of the pier
+## that is worth walking out to. Lit, it is a lantern at 130m over black water —
+## the only thing west of the frontage with any light on it at all, which is the
+## strongest reason the player has to walk the pier after dark.
+##
+## Cyan against the promenade's warm white. Cool light reads as further away, so
+## it separates from the strip behind it instead of joining the row.
+func _pavilion_lights() -> void:
+	var head := Vector3(PAVILION_AT.x, SHORE_TOP, PAVILION_AT.y)
+	for i in 4:
+		var a := TAU * float(i) / 4.0 + PI * 0.25
+		var p := head + Vector3(cos(a) * 8.4, 0.35, sin(a) * 9.0)
+		_uplight("pavilion_wash_%d" % i, p,
+			head + Vector3(cos(a) * 4.0, 8.4, sin(a) * 4.2),
+			"cyan", 3.2, 20.0, 40.0, LIGHT_FEATURE, i == 0)
+
+	# The spire, its own light. It stands 3m clear of the roof and a wash aimed
+	# at the box misses it entirely.
+	_uplight("pavilion_spire_wash", head + Vector3(2.2, 7.6, 0.0),
+		head + Vector3(0.0, 13.4, 0.0), "cyan", 2.0, 12.0, 22.0)
+
+	# Under the roof overhang, so the building has a lit underside as well as a
+	# lit face. Warm, unlike the wash — a cool building with a warm eave reads as
+	# a lit place inside a floodlit shell, which is what a closed pavilion with
+	# the lights left on should look like.
+	for side in [-1.0, 1.0]:
+		_omni("pavilion_eave_%s" % ["n" if side < 0.0 else "s"],
+			head + Vector3(0.0, 6.6, side * 6.2), "warm", 1.8, 10.0)
+
+
+## The coaster, which is a lattice and lights like one.
+##
+## Structure this open should be lit from *behind and below* rather than washed
+## flat: what makes a wooden coaster read at night is the depth of the bents
+## receding, and that only happens when the light is coming through it. So these
+## sit on the seaward side aiming back inland, and the player walking the
+## promenade sees ninety metres of timber with light between the members.
+func _coaster_lights() -> void:
+	var from_z := Plan.COASTER_FROM_Z
+	var to_z := Plan.COASTER_TO_Z
+	for i in 4:
+		var t := (float(i) + 0.5) / 4.0
+		var z: float = lerpf(from_z, to_z, t)
+		_uplight("coaster_wash_%d" % i,
+			Vector3(FRONT_X - 9.0, SHORE_TOP + 0.3, z),
+			Vector3(FRONT_X - 1.0, SHORE_TOP + 15.0, z),
+			"wash", 2.6, 26.0, 36.0)
+
+	# The station, which is the piece that matters at ten metres and the only
+	# roof in the section you see the underside of.
+	_omni("coaster_station_glow",
+		Vector3(FRONT_X, SHORE_TOP + 4.2, COASTER_STATION.y - 2.0),
+		"warm", 3.0, 14.0, LIGHT_FIXTURE, true)
+
+
+## The back lane, and the park's only lights that are still on at two in the
+## morning.
+##
+## `night.md` asks for a park that is "powered, and awake" rather than switched
+## off at the main — compressors running, a freezer humming, a cart with its
+## light still on. These are the visual half of that. They are deliberately few
+## and deliberately ugly: a service road lit by four bulkheads over ten back
+## doors is not composed, and that is the difference between the park at eleven
+## and the park at ten.
+##
+## They are also what keeps the arrival court from being a black hole after
+## close, which matters because the cascade lands in it and the player coming
+## down has to be able to see the ground.
+func _lane_lights() -> void:
+	var z := -40.0
+	var n := 0
+	while z < 60.0:
+		_omni("lane_service_%d" % n, Vector3(BACK_LANE_X - 5.4, SHORE_TOP + 3.6, z),
+			"lamp", 1.4, 11.0, LIGHT_SERVICE)
+		z += 25.0
+		n += 1
+	# The cart in the lane, with its light left on. One prop, and it is the
+	# single most load-bearing light in the after-close park: it is the thing
+	# that says somebody was here a minute ago.
+	_omni("lane_cart_glow", Vector3(BACK_LANE_X + 1.2, SHORE_TOP + 1.8, 22.0),
+		"warm", 1.6, 7.0, LIGHT_SERVICE)
+
+
 ## What stops the player walking off the edges of the section.
 ##
 ## Three different edges and three different answers, on purpose. The water gets
@@ -3308,7 +5314,14 @@ func _boardwalk_props() -> void:
 			_cyl("prom_lamp_%d" % m, Vector3.ZERO,
 				Vector3(PROMENADE_X, SHORE_TOP + 2.4, z), 0.11, 4.8, "metal", 0.0, 8)
 			_sphere("prom_lamp_%d_globe" % m,
-				Vector3(PROMENADE_X, SHORE_TOP + 5.0, z), 0.34, "white")
+				Vector3(PROMENADE_X, SHORE_TOP + 5.0, z), Vector3.ZERO,
+				0.34, "lamp_glass")
+			# Inside the globe, unlike the plaza's — this fitting is a translucent
+			# sphere rather than an opaque box, so the source belongs at its centre
+			# and the geometry reads as lit from within.
+			_omni("prom_lamp_%d_pool" % m,
+				Vector3(PROMENADE_X, SHORE_TOP + 5.0, z), "lamp", 3.0, 16.0,
+				LIGHT_FIXTURE, m % 2 == 0)
 			m += 1
 		z += 9.0
 
@@ -3407,7 +5420,18 @@ func _light_string(index: int, from_z: float, to_z: float) -> void:
 	for s in STRING_STEPS:
 		_strut("wire_%d_%d" % [index, s], points[s], points[s + 1], 0.05, "metal")
 	for b in STRING_STEPS - 1:
-		_sphere("bulb_%d_%d" % [index, b], points[b + 1], 0.11, "yellow")
+		_sphere("bulb_%d_%d" % [index, b], points[b + 1], Vector3.ZERO, 0.11, "bulb")
+
+	# One light for the span, at the sag. Five bulbs 2m apart is one wash, and
+	# the emissive spheres are what carry the *look* of a festoon — this is only
+	# here so the deck under it is warmer than the deck between spans, which is
+	# what stops 160m of promenade being lit like a corridor.
+	#
+	# Low energy and long range on purpose. The masts stand at the water's edge,
+	# so this is a rim light down the seaward side of the walk rather than
+	# another lamp: it catches the rail, the benches and the backs of the crowd,
+	# and leaves the shopfront side to the standards.
+	_omni("string_%d_glow" % index, points[STRING_STEPS / 2], "warm", 1.8, 13.0)
 
 
 ## Everything west of here is on the skyline from the boardwalk. It is the
@@ -3701,6 +5725,66 @@ func _plaza_frontage() -> void:
 	for i in runs.size():
 		_facade(runs[i], i)
 	_gate_house()
+	for i in runs.size():
+		_facade_wash(runs[i], i)
+
+
+## Floodlighting a perimeter run from close in against its own face.
+##
+## This is the change that decides whether the plaza is a room after dark. The
+## enclosure argument the 104m plaza was rebuilt around is entirely about the
+## walls: 13–19m of building at r≈36 subtends 23° from the hub, and that subtense
+## is what makes the space read as enclosed rather than as an open square. None
+## of it survives the sun going down unless the walls are lit — an unlit
+## perimeter is not a low wall, it is *no* wall, and the plaza opens onto black
+## in every direction.
+##
+## So the wash goes on the wall rather than on the ground in front of it, and the
+## fittings sit 2.2m off the face. That distance is doing the same work here as
+## on the cascade: `plaza_frontage.tscn` is 1,066 nodes of storey courses, window
+## reveals, awnings, cornices and pediments, and grazing light is the only thing
+## that turns relief into shadow. Lit from out in the plaza the same 1,066 nodes
+## come back as one evenly bright surface, which is the greybox slab the frontage
+## was laid to stop being.
+##
+## One station per 14m of run, which lands 2 to 5 on each of the perimeter's
+## eight ranges. Inset by `FRONT_INSET * 2` so the end stations do not fire
+## across a threshold gap into the passage behind it.
+func _facade_wash(run: Dictionary, index: int) -> void:
+	var at: Vector3 = run["at"]
+	var size: Vector3 = run["size"]
+	# Which way the run lies, and which way is into the plaza. A range's long
+	# axis is whichever of x and z is bigger; the short one is its thickness, and
+	# the inward normal points from the wall back towards the origin.
+	var along_x := size.x >= size.z
+	var length: float = size.x if along_x else size.z
+	var face: float = size.z if along_x else size.x
+	var inward := -signf(at.z if along_x else at.x)
+	if is_zero_approx(inward):
+		inward = 1.0
+
+	var usable := length - FRONT_INSET * 4.0
+	if usable <= 0.0:
+		return
+	var count: int = maxi(2, int(usable / 14.0))
+	var top: float = at.y + size.y * 0.5
+	for i in count:
+		var t := (float(i) + 0.5) / float(count)
+		var along: float = lerpf(-usable * 0.5, usable * 0.5, t)
+		var off := face * 0.5 + 2.2
+		var p: Vector3
+		var aim: Vector3
+		if along_x:
+			p = Vector3(at.x + along, 0.3, at.z + inward * off)
+			aim = Vector3(at.x + along, top - 1.5, at.z + inward * (face * 0.5 - 0.5))
+		else:
+			p = Vector3(at.x + inward * off, 0.3, at.z + along)
+			aim = Vector3(at.x + inward * (face * 0.5 - 0.5), top - 1.5, at.z + along)
+		# Aimed short of the parapet rather than over it. The roofline is meant
+		# to be a broken silhouette against the sky — that is what the pediments
+		# and the roof clutter are for — and washing it evenly to the top erases
+		# the one thing up there worth having.
+		_uplight("facade_wash_%d_%d" % [index, i], p, aim, "wash", 3.6, 26.0, 44.0)
 
 
 ## The arch's own face, which the perimeter's frontage does not reach.

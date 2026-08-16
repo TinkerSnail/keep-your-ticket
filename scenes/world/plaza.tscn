@@ -1,6 +1,7 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/world/plaza_props.tscn" id="1_props"]
+[ext_resource type="PackedScene" path="res://scenes/world/plaza_fountain.tscn" id="14_fountain"]
 [ext_resource type="PackedScene" path="res://scenes/world/plaza_frontage.tscn" id="13_frontage"]
 [ext_resource type="PackedScene" path="res://scenes/world/plaza_paving.tscn" id="10_paving"]
 [ext_resource type="Texture2D" path="res://assets/textures/brick_albedo.res" id="11_brick_albedo"]
@@ -46,46 +47,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00000, -0.50000, 0.00000)
 use_collision = true
 size = Vector3(104, 1, 104)
 material = SubResource("mat_ground")
-
-[node name="fountain_base" type="CSGCylinder3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00025, 0.44975, -0.00025)
-use_collision = true
-radius = 9
-height = 0.9
-sides = 32
-material = SubResource("mat_accent")
-
-[node name="fountain_bowl" type="CSGCylinder3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00050, 0.89950, -0.00050)
-use_collision = true
-radius = 6.4
-height = 1.4
-sides = 28
-material = SubResource("mat_building")
-
-[node name="fountain_plinth" type="CSGCylinder3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00075, 2.59925, -0.00075)
-use_collision = true
-radius = 3.4
-height = 2.4
-sides = 20
-material = SubResource("mat_accent")
-
-[node name="fountain_shaft" type="CSGCylinder3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00100, 5.09900, -0.00100)
-use_collision = true
-radius = 1.7
-height = 3
-sides = 16
-material = SubResource("mat_building")
-
-[node name="fountain_finial" type="CSGCylinder3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00125, 7.09875, -0.00125)
-use_collision = true
-radius = 0.85
-height = 1.6
-sides = 12
-material = SubResource("mat_accent")
 
 [node name="tower_shaft" type="CSGBox3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.50150, 14.99850, -32.00150)
@@ -425,6 +386,19 @@ transform = Transform3D(2.7, 0, 0, 0, 2.7, 0, 0, 0, 2.7, -1.5, 21.0, -29.1)
 script = ExtResource("4_tower_clock")
 
 [node name="paving" parent="." instance=ExtResource("10_paving")]
+
+; The fountain. It was five CSG cylinders written out above this line until
+; 2026-08-14c — a base, a bowl, a plinth, a shaft and a finial, which is a
+; wedding cake with no water in it. It is now 270-odd parts and two shaders, and
+; that is far past what belongs hand-typed in a scene file.
+;
+; It leaves `plaza.tscn` rather than growing inside it because of what this file
+; is *for*. The perimeter is hand-laid because it is a room shape being
+; designed, and `plaza_frontage.tscn` reads its runs back out of this text. The
+; fountain is not a room shape, it is an assembly, and every other assembly in
+; the park is generated output. What stays here is the ground, the walls and the
+; tower — the plaza itself, rather than the things standing in it.
+[node name="fountain" parent="." instance=ExtResource("14_fountain")]
 
 ; What the perimeter is made of. Generated output of `tools/gen_props.gd`, which
 ; reads the `perim_*` runs out of this very file and lays the frontage against

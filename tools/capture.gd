@@ -28,6 +28,18 @@ const SHOTS := [
 	{"name": "crowd_band", "yaw": 55.0, "pitch": -5.0, "pos": Vector3(-10.4, 0.2, -6.9)},
 	{"name": "crowd_cafe", "yaw": -55.0, "pitch": -6.0, "pos": Vector3(17.9, 0.2, 13)},
 	{"name": "guest_face", "yaw": 180.0, "pitch": -4.0, "pos": Vector3(0, 0.2, 12)},
+	# The fountain, at the three ranges it is read at. Permanent because it is
+	# the only thing in the park that *moves* on its own, and a still cannot show
+	# that — what these are actually for is the shape, the water's density and
+	# whether the stone separates from the perimeter behind it, all three of
+	# which took a screenshot each to get wrong on 2026-08-14c.
+	#
+	# `ring` is the one that matters: from the ring walkway you see the whole
+	# object against the clock tower, which is the composition the fountain's
+	# height was tuned to in 2026-08-13b and the one it must not break.
+	{"name": "fountain_ring", "yaw": 0.0, "pitch": 4.0, "pos": Vector3(0.0, 0.2, 20.0)},
+	{"name": "fountain_rim", "yaw": 0.0, "pitch": -14.0, "pos": Vector3(0.0, 0.2, 10.2)},
+	{"name": "fountain_oblique", "yaw": 34.5, "pitch": 2.0, "pos": Vector3(11.0, 0.2, 16.0)},
 	# The west opening, read as a sequence: the arch from inside the plaza, the
 	# passage under it, the view over the parapet, and the wheel that the north
 	# pier covers until you step out from behind it.

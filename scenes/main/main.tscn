@@ -1,10 +1,11 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/world/plaza.tscn" id="1_plaza"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="3_hud"]
 [ext_resource type="PackedScene" path="res://scenes/world/plaza_crowd.tscn" id="4_crowd"]
 [ext_resource type="Script" path="res://scenes/world/daylight.gd" id="5_daylight"]
+[ext_resource type="Script" path="res://scenes/world/park_lights.gd" id="8_lights"]
 [ext_resource type="Script" path="res://scenes/main/main.gd" id="6_main"]
 [ext_resource type="Script" path="res://scenes/ui/park_menu.gd" id="7_menu"]
 
@@ -41,6 +42,9 @@ environment = SubResource("env")
 script = ExtResource("5_daylight")
 sun_path = NodePath("../sun")
 world_environment_path = NodePath("../world_environment")
+
+[node name="park_lights" type="Node" parent="."]
+script = ExtResource("8_lights")
 
 [node name="sun" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.81915, 0, 0.57358, 0.49672, 0.5, -0.70938, -0.28679, 0.866, 0.40958, 0, 20, 0)

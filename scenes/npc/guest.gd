@@ -202,6 +202,14 @@ var _stroller_home := Transform3D.IDENTITY
 ## is lying down and has no head to track anybody with.
 var _passenger_heads: Array[Node3D] = []
 
+## The knot at the hand of a guest carrying a balloon, and null for everybody
+## else. It hangs under `arm_r`, so without a correction every frame it takes
+## the arm's swing — and a balloon is the one thing a person carries that does
+## not: string is not rigid, and helium points at the sky whatever the arm is
+## doing. See `_float_balloon`.
+var _balloon_knot: Node3D = null
+var _balloon_lean := 0.0
+
 var _leader: Guest = null
 var _companions: Array[Guest] = []
 
@@ -288,6 +296,9 @@ func _ready() -> void:
 	_knee_r = $body/hip_r/knee_r
 	_stand_rest_y = _body.position.y
 	_body_rest_y = _stand_rest_y
+	# Only the wrist-held one. The chair-borne balloon hangs off the chair,
+	# which does not swing, so there is nothing to correct and nothing to find.
+	_balloon_knot = _arm_r.get_node_or_null("balloon_knot") as Node3D
 
 	if wheelchair:
 		_mount_wheels("chair")
@@ -645,6 +656,13 @@ func _physics_process(delta: float) -> void:
 	_update_attention()
 	_update_head(delta)
 	_animate(delta, moved)
+	# After `_animate` rather than inside it, and that placement is the point:
+	# `_animate` returns early for a wheelchair and again for a seated guest, so
+	# a call in the walking branch would have missed the one case that needed it
+	# most — sitting down parks the arm at a fixed 0.35rad, which is a balloon
+	# held out at twenty degrees for as long as somebody stays on the bench.
+	# Out here it runs for every guest, every frame, with the arm already posed.
+	_float_balloon(delta)
 
 
 # --- movement ---------------------------------------------------------------
@@ -1278,6 +1296,36 @@ func _animate_seated() -> void:
 ## all the way over; the knee takes almost all of it back off, which leaves the
 ## shins vertical and the feet under the seat's front edge rather than out in
 ## front of it.
+## Keep a carried balloon pointing at the sky.
+##
+## The knot is a child of `arm_r`, so it inherits whatever the walk cycle or the
+## seated pose has done to that arm. Cancelling the arm's rotation on the knot
+## leaves the string vertical while its top stays in the fist, which is the
+## whole trick — the correction has to happen at the hand, because rotating the
+## string about its own centre would swing its top end out of the hand instead.
+##
+## Not cancelled *entirely*. A balloon on a string does lag behind the hand
+## towing it, so a tenth of the arm's angle is let through and chased rather
+## than snapped to, which gives a slow trail out of the same number that used to
+## give a rigid swing. `lerp` rather than an assignment for the same reason: at
+## the moment a guest sits down the arm jumps to 0.35rad in one frame, and a
+## balloon that corrected instantly would be the only thing in the park that
+## teleports.
+const BALLOON_LAG := 0.12
+const BALLOON_CHASE := 3.5
+
+
+func _float_balloon(delta: float) -> void:
+	if _balloon_knot == null:
+		return
+	var want := -_arm_r.rotation.x * (1.0 - BALLOON_LAG)
+	_balloon_lean = lerpf(_balloon_lean, want, clampf(BALLOON_CHASE * delta, 0.0, 1.0))
+	_balloon_knot.rotation.x = _balloon_lean
+	# The body rolls a little with each step and the balloon should not roll with
+	# it, for the same reason and by the same cancellation.
+	_balloon_knot.rotation.z = -_body.rotation.z
+
+
 func _apply_seated_pose() -> void:
 	_body.position.y = _body_rest_y
 	_hip_l.rotation.x = deg_to_rad(84.0)
