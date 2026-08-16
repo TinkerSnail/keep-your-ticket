@@ -133,7 +133,7 @@ func _build_plaza() -> bool:
 
 	_root.set("nodes", _graph_points)
 	_root.set("edges", _graph_edges)
-	_root.set("pois", _plaza_pois())
+	_root.set("pois", _reachable_pois("plaza", _plaza_pois(), _plaza_seats()))
 
 	# The way in and out, and where off-stage is. z=45 is the entrance street's
 	# own ground, six metres beyond the perimeter wall, in the middle lane
@@ -530,30 +530,244 @@ func _validate_graph() -> bool:
 	return ok
 
 
-## Things a guest might plausibly look at. Height matters: the sign tower is a
+## Things a guest might plausibly look at. Height matters: the clock tower is a
 ## different photograph looked up at than looked across.
+##
+## **Every entry is derived from where the thing actually is.** The list used to
+## be sixteen literals, and on 2026-08-14c all but three of them were measured
+## against the props they name:
+##
+## | written | claims to be | nearest real prop |
+## |---|---|---|
+## | (9, 6) | the photo hut counter | a bench on the fountain skirt, 0.5m |
+## | (5.8, 5.1) | the tied balloons | a bench leg, 3.2m |
+## | (-12, -12) | the bandstand stage | 7.2m from anything |
+## | (18, -16) | the sign board | a lamp head, 3.8m |
+## | (3, 7.5) | the newspaper boxes | 2.6m off |
+##
+## They are the **80m plaza's** coordinates. Everything else in this file was put
+## through `ParkPlan.plaza_out` when the plaza grew on 2026-08-13 and this was
+## not, so the whole crowd has been looking at where the park used to be for a
+## day. It is the same fault as the balloons and it stayed hidden for the same
+## reason: a guest staring at empty air two metres from a bench photographs as a
+## guest looking at a bench.
+##
+## So nothing here is typed twice. Plan data where there is plan data, and the
+## same `plaza_out` + `clear_of_walkways` pipeline the props themselves went
+## through where there is not — if a prop moves, the eyes follow it.
+##
+## **The three "over the wall" entries are gone.** The wheel, the observation
+## tower and the coaster were listed on the argument that "guests looking up and
+## out at rides they cannot reach is most of what sells the plaza as a hub",
+## which is a good argument and has never once fired: `guest.gd` asks
+## `poi_near` for something within nine metres, and those three are 31m, 37m and
+## 27m from the nearest node of the plaza's own graph. A landmark POI needs a
+## mechanism — a per-POI range, or a separate distant-attention pass — and not a
+## coordinate. Deleting them changes no behaviour whatsoever, which is exactly
+## the problem with having kept them.
 func _plaza_pois() -> PackedVector3Array:
-	var out := PackedVector3Array([
-		Vector3(0, 3.1, 0),           # the fountain column
-		Vector3(18, 12.5, -16),       # the sign board, high up
-		Vector3(-12, 1.4, -12),       # the bandstand stage
-		Vector3(9, 2.0, 6.0),         # the photo hut counter
-		Vector3(-6, 1.4, -10),        # the cart
-		Vector3(5.8, 1.7, 5.1),       # the tied balloons
-		Vector3(3, 1.0, 10),          # a-frame signs, which are there to be read
-		Vector3(-9, 1.0, -2),
-		Vector3(12, 1.0, -8),
-		Vector3(3.0, 0.9, 7.5),       # the newspaper boxes
-		Vector3(15.5, 4.6, -16),      # flagpole banners
-		Vector3(20.5, 4.6, -16),
-		# The park over the wall. Guests looking up and out at rides they
-		# cannot reach from here is most of what sells the plaza as a hub.
-		Vector3(-58, 14.0, -4),       # the wheel, west
-		Vector3(54, 24.0, -40),       # the tower, north-east
-		Vector3(-22, 12.0, -58),      # the coaster, north
-	])
+	var out := PackedVector3Array()
+	out.append_array(_fountain_pois())
+
+	# The clock, which is the park's one readout and the thing the entrance
+	# street is aimed at. Well over the head-pitch limit from anywhere a guest
+	# can stand, so what this actually produces is a head tilted as far back as
+	# it goes — which is the right picture.
+	out.append(Vector3(Plan.CLOCK_TOWER_AT.x, 21.0, Plan.CLOCK_TOWER_AT.y))
+	# The counter of the hut the player works out of.
+	out.append(Vector3(Plan.PHOTO_HUT_AT.x, 2.0, Plan.PHOTO_HUT_AT.y))
+	# The bandstand's stage. Hand-placed in `plaza.tscn` at final coordinates,
+	# and `_plaza_bench_spots` already knows the same number.
+	out.append(Vector3(BANDSTAND_AT.x, 1.6, BANDSTAND_AT.z))
+
+	for spec in Plan.PLAZA_CAFE:
+		var at: Vector2 = spec["at"]
+		out.append(Vector3(at.x, 1.15, at.y))
+
+	# The snack cart, the a-frames and the newspaper boxes, each through the
+	# same two steps `gen_props.gd` puts them through: the dilation, then the
+	# push off the paving with that prop's own margin. The margins are the ones
+	# in `_plaza_obstacles`, which is the list that already had to agree.
+	out.append(_prop_poi(Vector2(-6, -10), 1.5, 1.5))
+	for at in [Vector2(3, 10), Vector2(-9, -2), Vector2(12, -8)]:
+		out.append(_prop_poi(at, 0.8, 1.0))
+	out.append(_prop_poi(Vector2(3, 7.5), 0.8, 0.95))
+
+	# The two balloons on the rail of the hut's bench — which is where they have
+	# been since this morning and nowhere near where this list had them.
+	var bench := Vector3(Plan.PHOTO_HUT_AT.x, 0.0, Plan.PHOTO_HUT_AT.y) \
+		+ Plan.PHOTO_HUT_BENCH
+	out.append(bench + Basis(Vector3.UP, deg_to_rad(Plan.PHOTO_HUT_BENCH_YAW))
+		* Vector3(0.63, 2.2, -0.22))
+
+	# The banners, which hang off two poles 5m apart on one stand point.
+	var flags := Plan.clear_of_walkways(Plan.plaza_out2(Vector2(18, -16)), 3.0)
+	for dx in [-2.5, 2.5]:
+		out.append(Vector3(flags.x + dx, 4.6, flags.y))
+
 	for spot in _lamp_spots():
-		out.append(Vector3(spot.x, 4.1, spot.y))
+		var p := Plan.clear_of_walkways(Plan.plaza_out2(spot), 0.45)
+		out.append(Vector3(p.x, 4.1, p.y))
+	return out
+
+
+## The bandstand, which is hand-authored in `plaza.tscn` and so has no plan
+## constant to read. Written once here rather than at both the places in this
+## file that want it.
+const BANDSTAND_AT := Vector3(-20.0, 0.0, -20.0)
+
+## Everywhere a guest stands still in the plaza. Only used by the reachability
+## report, which is why it is allowed to be an approximate union rather than the
+## authority on seating — the authority is `_plaza_seated_groups`, and this is
+## the same three sources it draws from.
+func _plaza_seats() -> Array:
+	var out: Array = []
+	for bench in _plaza_bench_spots():
+		out.append(bench["at"])
+	for chair in _plaza_chair_spots():
+		out.append(chair["at"])
+	for group in _plaza_rim_spots():
+		for seat in group:
+			out.append(seat["at"])
+	return out
+
+
+## How far a guest will reach for something to look at. Mirrors the larger of
+## `guest.gd`'s two radii — the one a *stopped* guest uses; a walking one asks
+## for five and gets fewer answers, which is intended.
+##
+## Spelled out here rather than shared, because `guest.gd` is a scene script and
+## this is a `SceneTree` tool that cannot preload one. If that number moves, this
+## one has to move with it, and the check below is what makes the disagreement
+## visible rather than silent.
+const POI_REACH := 9.0
+
+
+## Whether anybody can actually get close enough to look at each of these.
+##
+## This exists because three POIs sat in the plaza's list from the day the west
+## was built until 2026-08-14c — the wheel, the observation tower and the
+## coaster — and not one of them had ever been selected. They are 31m, 37m and
+## 27m from the closest point on the plaza's own walkable graph, against a nine
+## metre reach. Nothing said so. The list is a `PackedVector3Array` of points
+## with no owner and no assertion attached, so a coordinate that means nothing
+## looks exactly like a coordinate that means something.
+##
+## Measured against the graph's **edges** rather than its nodes, because a guest
+## spends almost all their time between nodes and a POI beside a long edge is
+## perfectly reachable while being far from either end of it.
+##
+## **Dropped rather than fatal, and dropping is behaviour-neutral by
+## definition** — an unreachable POI is one that could never have been selected,
+## so removing it changes nothing at runtime and only makes the emitted data
+## honest. What it buys is that the source list stays free to describe *intent*:
+## the flagpole banners are left in above even though the flagpoles ended up
+## where nothing walks, and if the graph ever reaches them they come back on
+## their own. What it costs is nothing, because they were never doing anything.
+##
+## The printed count is the point. Silence is what let three landmarks sit in
+## this list for two days meaning nothing.
+func _reachable_pois(tag: String, pois: PackedVector3Array, seats: Array) -> PackedVector3Array:
+	var far: Array = []
+	var kept := PackedVector3Array()
+	for poi in pois:
+		var flat := Vector2(poi.x, poi.z)
+		var best := INF
+		for e in range(0, _graph_edges.size(), 2):
+			var a: Vector3 = _graph_points[_graph_edges[e]]
+			var b: Vector3 = _graph_points[_graph_edges[e + 1]]
+			best = minf(best, _flat_to_segment(flat, Vector2(a.x, a.z), Vector2(b.x, b.z)))
+		# **And every seat.** Measuring the graph alone was the first version and
+		# it was wrong in a way that would have driven the fix backwards: it
+		# called the fountain's jets unreachable, because the ring walkway keeps
+		# 15.6m off the middle — and then the obvious "fix" is to drag the POIs
+		# off the jets and out towards the walk, which is precisely the bug this
+		# whole pass is about. A seated guest is a guest, the benches sit on the
+		# fountain's skirt, and nine of them sit on its rim.
+		for seat in seats:
+			var at: Vector3 = seat
+			best = minf(best, flat.distance_to(Vector2(at.x, at.z)))
+		if best > POI_REACH:
+			far.append("%v is %.1fm from anywhere a guest can be" % [poi, best])
+		else:
+			kept.append(poi)
+	print("%s: %d POIs, %d dropped as unreachable" % [tag, pois.size(), far.size()])
+	for line in far:
+		push_warning("%s POI unreachable: %s" % [tag, line])
+		print("  dropped: ", line)
+	return kept
+
+
+func _flat_to_segment(p: Vector2, a: Vector2, b: Vector2) -> float:
+	var ab := b - a
+	var len2 := ab.length_squared()
+	if len2 < 0.0001:
+		return p.distance_to(a)
+	var t := clampf((p - a).dot(ab) / len2, 0.0, 1.0)
+	return p.distance_to(a + ab * t)
+
+
+## One prop, at the position the props generator actually left it.
+func _prop_poi(written: Vector2, margin: float, y: float) -> Vector3:
+	var p := Plan.clear_of_walkways(Plan.plaza_out2(written), margin)
+	return Vector3(p.x, y, p.y)
+
+
+## The fountain — and this is the whole reason the list was reopened.
+##
+## What was there was `Vector3(0, 3.1, 0)`, labelled "the fountain column". It
+## had two things wrong with it. The lesser is that there is no column any more;
+## 3.1 is the lower basin's rim, which is stone. The greater is that **it could
+## never be selected at all**: `poi_near` measures *horizontal* distance and
+## `guest.gd` asks for nine metres, and the fountain's own radius is nine — so
+## the nearest a guest could ever stand to the middle of it was the boundary
+## itself, and a walking guest, who only asks for five, was never in with a
+## chance. The plaza's centrepiece has never been looked at.
+##
+## The fix is to put the points on the *water*, which is also where they are
+## reachable from. Two kinds, alternating every thirty degrees:
+##
+##   - the **jets**, on their own ring at `FOUNTAIN_JET_R`. From the coping that
+##     is under three metres, so these are the one set of plaza POIs inside the
+##     *walking* radius as well — people look at the fountain on their way past
+##     it, which is the single biggest thing this change buys.
+##   - the **pool surface**, further out and below eye level, so the gaze goes
+##     down into the water rather than across it.
+##
+## Alternating by bearing is what stops the crowd converging: `poi_near` takes
+## the nearest, so a guest looks at the piece of water on their own side.
+##
+## **The plume is deliberately not here**, and that is geometry rather than
+## taste. For an observer outside the fountain, a point on an inner ring is
+## always further away than one on an outer ring at a similar bearing, so a
+## plume point at r≈1 could only ever win if the jets left a gap of about 120
+## degrees — a quarter of the fountain with no water to look at, to buy one
+## upward glance. The plume is what the fountain shows at twenty metres, and at
+## twenty metres `poi_near` is not reaching the fountain at all. That is
+## coherent: far away you see the plume, up close you watch the jets.
+const FOUNTAIN_POI_ARMS := 12
+
+
+func _fountain_pois() -> PackedVector3Array:
+	var out := PackedVector3Array()
+	var c := Plan.FOUNTAIN_AT
+	for i in FOUNTAIN_POI_ARMS:
+		var a := TAU * float(i) / float(FOUNTAIN_POI_ARMS)
+		var d := Vector2(cos(a), sin(a))
+		if i % 2 == 0:
+			# A jet, a little below its tip — the part of it that is thickest
+			# and most obviously moving.
+			var p := c + d * Plan.FOUNTAIN_JET_R
+			out.append(Vector3(p.x, Plan.FOUNTAIN_JET_TOP - 0.3, p.y))
+		else:
+			# Open water just inside the kerb — the nearest water to anybody
+			# standing outside, and the part of the pool a passer-by actually
+			# sees. It has to be out here for a second reason too: the crowd's
+			# ring walkway never comes closer than 15.6m to the middle, so a
+			# point much further in is out of a walking guest's five-metre
+			# reach and most of a stopped one's nine.
+			var p := c + d * (Plan.FOUNTAIN_RADIUS - 1.0)
+			out.append(Vector3(p.x, Plan.FOUNTAIN_POOL_TOP + 0.04, p.y))
 	return out
 
 
@@ -623,6 +837,64 @@ func _plaza_bench_spots() -> Array:
 		out.append({"at": p, "theta": atan2(d.x, d.z)})
 	out.append(_bench_spot(Vector3(-11, 0, 20), deg_to_rad(120.0)))
 	out.append(_bench_spot(Vector3(2, 0, 22), deg_to_rad(200.0)))
+	return out
+
+
+## The fountain's coping, which is fifty-four metres of seat and was empty until
+## 2026-08-14c.
+##
+## Unlike every other seat in the plaza there is no furniture to mirror — the
+## rim is a *surface*, so all this needs is the plan's radius and height. Seats
+## are spaced by **angle** rather than along the tangent: 0.78m of chord on an
+## 8.66m circle is 0.09 radians, and stepping in angle keeps every member of a
+## group exactly on the coping where stepping along the tangent would walk the
+## outer ones 3cm inboard of it. Small, but it is free to be exact.
+##
+## Facing is `atan2(-p.x, -p.z)` for outward, which is the guest convention —
+## a walking guest takes `atan2(-heading.x, -heading.z)`, so forward is −Z, and
+## the same expression that turns a ring *bench* to face the fountain turns a
+## *person* to face away from it. That coincidence is worth stating because it
+## is the kind of thing that gets "simplified" into a bug.
+##
+## **Most face out and one group faces in**, which is what people on a fountain
+## rim actually do: you sit with your back to the spray and watch the square,
+## unless you came to watch the water. It also matters to the job — a guest
+## facing the plaza is a guest the player can photograph without standing in
+## the pool.
+const RIM_SPACING := 0.78
+
+
+func _plaza_rim_spots() -> Array:
+	# Bearings picked to fall *between* the ring of five benches, which sit at
+	# 25, 95, 165, 305 and 340 degrees on the same parametrisation. Nothing
+	# actually collides — the benches are pushed out past radius 9 and these are
+	# at 8.66, so the fountain wall is between them — but a row of people sitting
+	# with their backs a metre from a bench reads as a queue rather than as two
+	# separate places to sit.
+	var plan := [
+		# The south-east arc. First because it is the one the entrance street
+		# points at and the one the player walks towards from the spawn.
+		{"deg": 78.0, "n": 3, "face_in": false},
+		{"deg": 128.0, "n": 2, "face_in": false},
+		# Turned in, watching the water, directly across from the bench at 25.
+		{"deg": 22.0, "n": 2, "face_in": true},
+		{"deg": 288.0, "n": 2, "face_in": false},
+	]
+	var out: Array = []
+	var r := Plan.FOUNTAIN_RIM_SEAT_R
+	var step := RIM_SPACING / r
+	for spec in plan:
+		var mid := deg_to_rad(float(spec["deg"]))
+		var n: int = spec["n"]
+		var seats: Array = []
+		for i in n:
+			var a: float = mid + (float(i) - (float(n) - 1.0) * 0.5) * step
+			var p := Vector3(cos(a) * r, 0.0, sin(a) * r)
+			var yaw := atan2(-p.x, -p.z)
+			if spec["face_in"]:
+				yaw += PI
+			seats.append({"at": p, "yaw": yaw})
+		out.append(seats)
 	return out
 
 
@@ -715,9 +987,11 @@ func _plaza_walking_groups() -> void:
 		_group_index += 1
 		var leader_name := ""
 		var kinds: Array = entry["kinds"]
+		var members: Array = []
 		for i in kinds.size():
 			var scatter := Vector3(_rng.randf_range(-1.0, 1.0), 0.0, _rng.randf_range(-1.0, 1.0))
 			var guest := _guest(kinds[i], origin + scatter, _rng.randf_range(0.0, TAU), group)
+			members.append(guest)
 			if i == 0:
 				leader_name = guest.name
 			else:
@@ -728,6 +1002,7 @@ func _plaza_walking_groups() -> void:
 				var behind: float = _rng.randf_range(0.4, 1.5) if kinds[i] == "adult" \
 					else _rng.randf_range(0.9, 2.4)
 				guest.set("follow_offset", Vector3(lateral, 0.0, behind))
+		_pace_group(members)
 
 
 ## Which seats are taken, and in what order they fill. Order is the whole point
@@ -747,19 +1022,56 @@ func _plaza_seated_groups() -> void:
 		var bench: Dictionary = benches[entry[0]]
 		var group := _group_index
 		_group_index += 1
-		for s in int(entry[1]):
+		var members: Array = []
+		var seats := int(entry[1])
+		for s in seats:
 			var side := -0.45 if s == 0 else 0.45
 			var offset: Vector3 = Basis(Vector3.UP, bench["theta"]) * Vector3(side, 0.0, 0.06)
 			var seat: Vector3 = bench["at"] + offset
-			var guest := _guest(
-				"adult" if _rng.randf() > 0.25 else "kid",
-				seat,
-				bench["theta"] + PI,
-				group)
+			var guest := _guest(_seat_kind(seats, 0.25), seat, bench["theta"] + PI, group)
 			guest.set("group_kind", "bench")
 			guest.set("seat_at", seat)
 			guest.set("seat_yaw", bench["theta"] + PI)
 			guest.set("seat_height", 0.51)
+			members.append(guest)
+		_pace_seated_group(members)
+
+	# The fountain rim, **after the benches and before the cafe**, and the
+	# position in this list is the whole design of it.
+	#
+	# These are `"bench"` rather than a fourth population, which is a claim that
+	# the rim is seating and fills like seating rather than a claim that it is
+	# special. `crowd.gd` only knows three kinds and would have warned and
+	# demoted a new one to `"wander"`, but that is not why — a fourth curve would
+	# have had to be invented, and the bench curve already says the true thing:
+	# people sit down in the afternoon because they have been walking since
+	# eleven, and in the evening because the light is good.
+	#
+	# Coming *after* the benches makes the rim the overflow, which is what a
+	# fountain rim is. `crowd.gd` admits groups in generation order within a
+	# kind, so at 0.15 of the bench peak the three people sitting down are on
+	# benches and the coping is bare; by the plateau every seat in the plaza is
+	# taken and there is a row of nine on the fountain. An empty rim is
+	# therefore a legible way of reading the hour, in the same way the cafe is —
+	# and it is the one the player is standing nearest.
+	#
+	# It raises the bench population's peak from 14 to 23, which raises how many
+	# the curve admits at every hour. That is intended: the plaza gained
+	# fifty-four metres of seat and should look like it.
+	for seats in _plaza_rim_spots():
+		var rim_group := _group_index
+		_group_index += 1
+		var members: Array = []
+		for seat in seats:
+			var at: Vector3 = seat["at"]
+			var yaw: float = seat["yaw"]
+			var guest := _guest(_seat_kind(seats.size(), 0.35), at, yaw, rim_group)
+			guest.set("group_kind", "bench")
+			guest.set("seat_at", at)
+			guest.set("seat_yaw", yaw)
+			guest.set("seat_height", Plan.FOUNTAIN_RIM_TOP)
+			members.append(guest)
+		_pace_seated_group(members)
 
 	# A table at a time, both chairs. Two people at one table is a pair having
 	# lunch; two people at two tables is two strangers, and the cafe fills more
@@ -768,6 +1080,7 @@ func _plaza_seated_groups() -> void:
 	for table in 3:
 		var group := _group_index
 		_group_index += 1
+		var members: Array = []
 		for j in 2:
 			var chair: Dictionary = chairs[table * 2 + j]
 			# One table has a pram parked at it. `guest.gd` swings it out to the
@@ -780,8 +1093,77 @@ func _plaza_seated_groups() -> void:
 			guest.set("seat_at", chair["at"])
 			guest.set("seat_yaw", chair["theta"] + PI)
 			guest.set("seat_height", 0.475)
+			members.append(guest)
 		if table == CAFE_PULL_UP_TABLE:
-			_cafe_pull_up(table, group)
+			# Appended before the pacing rather than after it, because somebody
+			# who pulled up to the table came to it with the people already
+			# sitting there — they are the group's slowest member as often as not.
+			members.append(_cafe_pull_up(table, group))
+		_pace_seated_group(members)
+
+
+## Who is sitting in a given seat, given how many seats the group has.
+##
+## **A seated group of one is always an adult.** The roll is not offered rather
+## than being offered and overridden, because a lone kid is not a rarer version
+## of a group — it is a different claim about the park, and not one this park is
+## making. A bench group has no leader and no `follow_offset`, so unlike a
+## walking group there is nothing in the data that says who the child came with;
+## a singleton that rolled `kid` was an unaccompanied eight-year-old crossing the
+## plaza, sitting down for two hours and going home alone.
+##
+## It bit once at 0.25 across four singleton benches in the plaza and two on the
+## boardwalk, which is a coin that comes up about four times in five runs.
+##
+## Skipping the draw rather than discarding it shifts every guest built after the
+## first singleton. That is accepted — the alternative is a dead random number
+## kept solely to hold a seed stream still, and the stream is not a fixture.
+func _seat_kind(seats: int, kid_chance: float) -> String:
+	if seats < 2:
+		return "adult"
+	return "kid" if _rng.randf() < kid_chance else "adult"
+
+
+## A seated group crosses the park at its slowest member's pace.
+##
+## Not `_pace_group`, and the difference is the whole reason this exists. That
+## one is about a *walking* group, where the spread between a tall adult and a
+## small child is wanted — a leader plus `follow_offset` turns it into a
+## straggler, which is a family. It only intervenes for wheels, which cannot
+## straggle without reading as abandonment.
+##
+## A seated group has neither. `crowd.gd:_admit` checks `_follows()`, finds no
+## `leader_path` on anything with a seat, and hands every member its own
+## `_way_in_for` route to its own place on the bench. They are a group for the
+## day curve and for nothing else. So the only thing keeping them together on
+## the way in is that they walk the same line at the same speed — and they did
+## not: `walk_speed` comes off height, and on one plaza bench an adult drew 1.19
+## against a child's 0.77. Over the forty metres from the gap at the south that
+## is the adult seated some eighteen seconds early, and a 1.10m child alone in
+## the middle of the plaza for the last stretch of it. Then again in reverse when
+## the visit ends, because `_retire` reads `_follows()` the same way.
+##
+## Everyone takes the slowest rather than the first member's, which is both the
+## true thing — a group moves at the pace of whoever is slowest in it — and the
+## one that does not depend on the order seats happen to be built in.
+##
+## No catch-up margin, unlike `_pace_group`. There is no station to keep here and
+## nobody to keep it on: every member is walking to a fixed point of their own,
+## so an exact match is what makes them arrive together.
+##
+## Draws no random numbers, for the reason `_pace_group` gives.
+func _pace_seated_group(members: Array) -> void:
+	var pace := 0.0
+	for guest in members:
+		if guest == null:
+			continue
+		var rolled: float = guest.get("walk_speed")
+		pace = rolled if pace == 0.0 else minf(pace, rolled)
+	if pace == 0.0:
+		return
+	for guest in members:
+		if guest != null:
+			guest.set("walk_speed", pace)
 
 
 ## Which table has a pram parked at it — a different one from the wheelchair's,
@@ -803,7 +1185,9 @@ const CAFE_PULL_UP_TABLE := 1
 const CAFE_PULL_UP := Vector3(0.05, 0.0, 1.1)
 
 
-func _cafe_pull_up(table: int, group: int) -> void:
+## Returns the guest so the table can pace itself around them. The `null` is the
+## abort path and nothing downstream ever sees it — `quit(1)` has already fired.
+func _cafe_pull_up(table: int, group: int) -> Node3D:
 	var spec: Dictionary = Plan.PLAZA_CAFE[table]
 	var at: Vector2 = spec["at"]
 	var seat := Vector3(at.x, 0.0, at.y) + CAFE_PULL_UP
@@ -815,7 +1199,7 @@ func _cafe_pull_up(table: int, group: int) -> void:
 		if (CAFE_PULL_UP - off).length() < 0.9:
 			push_error("cafe pull-up at %v stands on a chair at %v" % [CAFE_PULL_UP, off])
 			quit(1)
-			return
+			return null
 
 	# Facing the table, unlike the two on chairs — those take the chair's own
 	# bearing, which is near enough for furniture somebody is sitting in and
@@ -825,6 +1209,7 @@ func _cafe_pull_up(table: int, group: int) -> void:
 	guest.set("group_kind", "cafe")
 	guest.set("seat_at", seat)
 	guest.set("seat_yaw", atan2(-to_table.x, -to_table.z))
+	return guest
 
 
 ## Fill the cast out to `CAST_TARGET` with wandering groups nobody composed.
@@ -863,11 +1248,13 @@ func _pad_cast() -> void:
 		var group := _group_index
 		_group_index += 1
 		var leader_name := ""
+		var members: Array = []
 		for i in kinds.size():
 			if _guest_index >= CAST_TARGET:
 				break
 			var scatter := Vector3(pad.randf_range(-1.2, 1.2), 0.0, pad.randf_range(-1.2, 1.2))
 			var guest := _guest(kinds[i], origin + scatter, pad.randf_range(0.0, TAU), group)
+			members.append(guest)
 			if i == 0:
 				leader_name = guest.name
 			elif leader_name != "":
@@ -876,6 +1263,68 @@ func _pad_cast() -> void:
 				var behind: float = pad.randf_range(0.4, 1.5) if kinds[i] == "adult" \
 					else pad.randf_range(0.9, 2.4)
 				guest.set("follow_offset", Vector3(lateral, 0.0, behind))
+		# Reaches the one buggy shape in the table above. No shape there has a
+		# chair in it today, and this is what makes adding one a row in `shapes`
+		# rather than a row plus a rule somebody has to remember lives in the
+		# other two loops.
+		_pace_group(members)
+
+
+## How much faster than the group's pace a follower walks. Small on purpose: it
+## is catch-up, not a different speed, and at 8% a follower closes a metre of
+## lost station in about eleven seconds — long enough to read as drifting back
+## and coming up again rather than as snapping into formation.
+const GROUP_CATCH_UP := 1.08
+
+
+## Gear a group's walking speeds to whatever it brought on wheels.
+##
+## A follower has no notion of the pace in front of them: `guest.gd` walks them
+## at their own `walk_speed` towards a station behind the leader, and nothing
+## closes a gap faster than that. So a member slower than the leader falls
+## behind by the difference every second, for as long as the group is moving.
+## Between a tall adult and a small child that is wanted — it is the straggler
+## `follow_offset` is shaped to produce. Between a group and the chair or the
+## buggy it came with it is the group walking off and leaving somebody behind,
+## which is the one thing the ramp on the cascade's north wing exists so as not
+## to say. The rolls made it likely rather than possible: an adult draws
+## 0.98–1.42 and a chair_kid 0.77–0.96, so most of those two ranges do not
+## overlap at all.
+##
+## **A chair and a buggy are the same problem here and deliberately not the same
+## problem anywhere else in this file.** Everywhere else the two are kept apart
+## because they are opposite shapes — one is a body that is seated and moving,
+## the other is an ordinary walk with a prop rolling in front of it. But what
+## makes a group come apart is one member geared differently from the rest, and
+## a set of wheels is a set of wheels to the arithmetic. The buggy is the milder
+## case and much the commoner one: `_guest` takes 8% off a pusher rather than
+## handing them a range of their own, so the drift is slow — a metre every
+## twelve seconds against one every three. Slow enough that it reads as a parent
+## trailing rather than as a bug, which is exactly how it survived.
+##
+## The wheels set the pace and everybody else is geared off them, whichever
+## position they walk in — the leader gets exactly that pace, followers get the
+## catch-up margin over it. A group with two of them takes the slower, so the
+## family with a chair *and* a buggy in it is one rule rather than a case.
+##
+## The margin is the part that is easy to leave out and it is load-bearing: a
+## follower matched exactly to the leader can never recover the distance a turn
+## or a shove from `_apply_separation` opens, so it holds whatever gap it was
+## last knocked to and the group spreads anyway, slowly.
+##
+## Draws no random numbers, deliberately. It runs inside the same `_rng` stream
+## as the rest of the cast, and one draw here would shift every guest built
+## after it — the groups on wheels are meant to be the only thing this changes.
+func _pace_group(members: Array) -> void:
+	var pace := 0.0
+	for guest in members:
+		if guest.get("wheelchair") or guest.get("stroller"):
+			var rolled: float = guest.get("walk_speed")
+			pace = rolled if pace == 0.0 else minf(pace, rolled)
+	if pace == 0.0:
+		return
+	for i in members.size():
+		members[i].set("walk_speed", pace if i == 0 else pace * GROUP_CATCH_UP)
 
 
 ## Seven kinds: `adult`, `kid`, `chair_adult`, `chair_kid`, `stroller_adult`,
@@ -918,9 +1367,12 @@ func _guest(kind: String, at: Vector3, yaw: float, group: int) -> Node3D:
 		var pace := 1.05 + (height - 1.5) * 0.55
 		# Pushing something takes the top off a walking pace, and by the same few
 		# percent whoever is doing it — the brake is the thing out in front, not
-		# the legs behind it. It is small on purpose: a stroller that visibly
-		# lagged the group would pull every family apart down the length of the
-		# plaza, and `follow_offset` has no slack to absorb that.
+		# the legs behind it. It used to be small because a pusher who visibly
+		# lagged would pull the family apart down the length of the plaza, which
+		# `follow_offset` has no slack to absorb. `_pace_group` is what absorbs
+		# it now, so this is no longer holding a group together on its own: what
+		# it does today is decide how much slower the *whole* group walks, since
+		# a pusher is the member the rest get geared to.
 		if pushes != "":
 			pace *= 0.92
 		guest.set("walk_speed", pace * _rng.randf_range(0.9, 1.12))
@@ -1664,12 +2116,37 @@ func _build_carried(body: Node3D, head_pivot: Node3D, hips_h: float, torso_h: fl
 			# to arm length it came out at half a metre, which put the balloon
 			# beside the kid's head instead of over it — a floating ball rather
 			# than a balloon.
+			#
+			# **On its own knot at the hand rather than straight onto `arm_r`,
+			# since 2026-08-14c.** Hung off the arm it inherited the arm's
+			# rotation, and `_animate` swings an arm 25 degrees each way: a
+			# 1.6m lever off the shoulder then threw the balloon two thirds of a
+			# metre fore and aft, leaning the string that far off vertical.
+			# Seated was worse and constant — `_apply_seated_pose` parks the arm
+			# at 0.35rad, so every kid sitting down held their balloon out at 20
+			# degrees. What that reads as, at any distance where a 2cm string has
+			# stopped resolving, is a loose balloon drifting over the plaza.
+			#
+			# The knot is what `guest.gd` counter-rotates to keep upright, and
+			# it has to be a node of its own because the correction has to happen
+			# at the *hand*: spinning the string about its own centre leaves its
+			# top end swinging out of the fist.
+			#
+			# The chair-borne version below never had the fault, because it is
+			# tied to the chair and a chair does not swing. This is that idea
+			# applied to the wrist.
 			var shade := _pick("shirt_")
 			var string_length := 1.4
-			_part(arm_r, "balloon_string", Vector3(0.02, string_length, 0.02),
-				Vector3(0, hand_y + string_length * 0.5, 0), "shirt_white")
-			_sphere_part(arm_r, "balloon", 0.22,
-				Vector3(0, hand_y + string_length + 0.22, 0), shade)
+			var knot := Node3D.new()
+			knot.position = Vector3(0, hand_y, 0)
+			_add(knot, arm_r, "balloon_knot")
+			# 3cm rather than 2. A string is a millimetre in life, but at 20m a
+			# 2cm box is under two pixels and drops out entirely — and a balloon
+			# whose string has vanished is exactly the thing this is fixing.
+			_part(knot, "balloon_string", Vector3(0.03, string_length, 0.03),
+				Vector3(0, string_length * 0.5, 0), "shirt_white")
+			_sphere_part(knot, "balloon", 0.22,
+				Vector3(0, string_length + 0.22, 0), shade)
 		elif roll < 0.68:
 			_cyl_part(arm_r, "cup", 0.05, 0.16, Vector3(0, hand_y, -0.04), "plastic")
 		return
@@ -1725,7 +2202,10 @@ func _build_carried_seated(body: Node3D, chair: Node3D, head_pivot: Node3D,
 		elif roll < 0.56:
 			var shade := _pick("shirt_")
 			var string_length := 1.4
-			_part(chair, "balloon_string", Vector3(0.02, string_length, 0.02),
+			# No knot needed — the chair does not swing, which is the whole
+			# reason this one was moved off the wrist in the first place. It
+			# takes the 3cm string for the same reason the other one does.
+			_part(chair, "balloon_string", Vector3(0.03, string_length, 0.03),
 				handle + Vector3(0, string_length * 0.5, 0), "shirt_white")
 			_sphere_part(chair, "balloon", 0.22,
 				handle + Vector3(0, string_length + 0.22, 0), shade)
@@ -1869,7 +2349,7 @@ func _build_boardwalk() -> bool:
 
 	_root.set("nodes", _graph_points)
 	_root.set("edges", _graph_edges)
-	_root.set("pois", _boardwalk_pois())
+	_root.set("pois", _reachable_pois("boardwalk", _boardwalk_pois(), []))
 
 	_root.set("wander_day", BOARDWALK_WANDER_DAY)
 	_root.set("cafe_day", BOARDWALK_CAFE_DAY)
@@ -2171,9 +2651,11 @@ func _boardwalk_walking_groups() -> void:
 		_group_index += 1
 		var leader_name := ""
 		var kinds: Array = entry["kinds"]
+		var members: Array = []
 		for i in kinds.size():
 			var scatter := Vector3(_rng.randf_range(-1.0, 1.0), 0.0, _rng.randf_range(-1.0, 1.0))
 			var guest := _guest(kinds[i], origin + scatter, _rng.randf_range(0.0, TAU), group)
+			members.append(guest)
 			if i == 0:
 				leader_name = guest.name
 			else:
@@ -2182,6 +2664,7 @@ func _boardwalk_walking_groups() -> void:
 				var behind: float = _rng.randf_range(0.4, 1.5) if kinds[i] == "adult" \
 					else _rng.randf_range(0.9, 2.4)
 				guest.set("follow_offset", Vector3(lateral, 0.0, behind))
+		_pace_group(members)
 
 
 ## Who is sitting down, and in what order the seats fill.
@@ -2203,19 +2686,21 @@ func _boardwalk_seated_groups() -> void:
 		var bench: Dictionary = benches[entry[0]]
 		var group := _group_index
 		_group_index += 1
+		var members: Array = []
+		# The whole group, not the bench alone. Somebody sitting on their own
+		# with a wheelchair pulled up beside them came with company, and the
+		# singleton rule in `_seat_kind` is asking about company.
+		var party := int(entry[1]) + int(entry[2])
 		for s in int(entry[1]):
 			var side := -0.45 if s == 0 else 0.45
 			var offset: Vector3 = Basis(Vector3.UP, bench["theta"]) * Vector3(side, 0.0, 0.06)
 			var seat: Vector3 = bench["at"] + offset
-			var guest := _guest(
-				"adult" if _rng.randf() > 0.25 else "kid",
-				seat,
-				bench["theta"] + PI,
-				group)
+			var guest := _guest(_seat_kind(party, 0.25), seat, bench["theta"] + PI, group)
 			guest.set("group_kind", "bench")
 			guest.set("seat_at", seat)
 			guest.set("seat_yaw", bench["theta"] + PI)
 			guest.set("seat_height", 0.51)
+			members.append(guest)
 		for w in int(entry[2]):
 			# Past the end of the bench and a little back off the rail, so the
 			# chair stands beside the arm of it rather than through it. Facing
@@ -2232,11 +2717,14 @@ func _boardwalk_seated_groups() -> void:
 			guest.set("group_kind", "bench")
 			guest.set("seat_at", seat)
 			guest.set("seat_yaw", bench["theta"] + PI)
+			members.append(guest)
+		_pace_seated_group(members)
 
 	var chairs := _boardwalk_chair_spots()
 	for table in 4:
 		var group := _group_index
 		_group_index += 1
+		var members: Array = []
 		for j in 2:
 			var chair: Dictionary = chairs[table * 2 + j]
 			var guest := _guest("adult", chair["at"], chair["theta"] + PI, group)
@@ -2244,3 +2732,5 @@ func _boardwalk_seated_groups() -> void:
 			guest.set("seat_at", chair["at"])
 			guest.set("seat_yaw", chair["theta"] + PI)
 			guest.set("seat_height", 0.47)
+			members.append(guest)
+		_pace_seated_group(members)
