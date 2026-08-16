@@ -500,9 +500,38 @@ func _admit(visit: Dictionary, immediate: bool) -> void:
 	var members: Array = visit["members"]
 
 	if immediate:
+		# **A group is put down together.** `_home_point` rolls an independent
+		# graph node for every guest who has no seat, which for a leader is what
+		# is wanted and for their followers scattered the group across the whole
+		# plaza — and a follower's only instinct is to head for their leader, in
+		# a straight line, from wherever they woke up.
+		#
+		# That is where the guests walking through the fountain came from. Not
+		# from the wander graph, which `_validate_graph` keeps clear of it, and
+		# not from the leader, who is on the ring the whole time: from a follower
+		# put down 21m from their station on the far side and walking at it.
+		# Measured at radius 4.98 in an 8.26m pool.
+		#
+		# Members are in generation order and member 0 is the leader, so the
+		# first non-follower placed becomes the anchor for the rest of them.
+		# Seated guests keep their own seat — they are not following anybody
+		# across the plaza, they are going to a bench.
+		var anchor := Vector3.INF
 		for guest in members:
-			if is_instance_valid(guest):
-				guest.spawn_at(_home_point(guest))
+			if not is_instance_valid(guest):
+				continue
+			var at := _home_point(guest)
+			if guest.has_seat():
+				pass
+			elif _follows(guest) and anchor != Vector3.INF:
+				# Beside their leader rather than exactly on station: they walk
+				# onto station over the next stride, and starting them stacked
+				# on one point makes the group shove itself apart on frame one.
+				at = anchor + Vector3(
+					_rng.randf_range(-1.2, 1.2), 0.0, _rng.randf_range(-1.2, 1.2))
+			else:
+				anchor = at
+			guest.spawn_at(at)
 		visit["state"] = Visit.IN
 		return
 

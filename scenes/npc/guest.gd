@@ -471,6 +471,7 @@ func _on_ground(at: Vector3) -> Vector3:
 func spawn_at(at: Vector3) -> void:
 	_wake()
 	global_position = _on_ground(at)
+	_clear_trail()
 	if has_seat():
 		rotation.y = seat_yaw
 		_sit()
@@ -486,6 +487,7 @@ func spawn_at(at: Vector3) -> void:
 func arrive_from(hold: Vector3, via: Array[Vector3]) -> void:
 	_wake()
 	global_position = _on_ground(hold)
+	_clear_trail()
 	_waypoints = via.duplicate()
 	_then = Then.SIT if has_seat() else Then.WANDER
 	if not _waypoints.is_empty():
@@ -589,6 +591,7 @@ func _finish_waypoints() -> void:
 			# metre off a bench is sitting on the arm of it. It is the last
 			# frame of a walk, so it reads as settling rather than as a jump.
 			global_position = _on_ground(seat_at)
+			_clear_trail()
 			rotation.y = seat_yaw
 			_sit()
 		Then.WANDER:
@@ -652,6 +655,10 @@ func _physics_process(delta: float) -> void:
 	if not _seated:
 		moved = _update_movement(delta)
 		_speed = moved / maxf(delta, 0.0001)
+
+	# Before attention and animation, so a follower reading it this frame sees
+	# where their leader got to this frame rather than last.
+	_note_trail()
 
 	_update_attention()
 	_update_head(delta)
@@ -734,8 +741,7 @@ func _movement_target() -> Vector3:
 		if not is_instance_valid(_leader):
 			_leader = null
 		else:
-			var basis := Basis(Vector3.UP, _leader.rotation.y)
-			return _leader.global_position + basis * follow_offset
+			return _leader.trail_station(follow_offset.z, follow_offset.x)
 
 	if _route.is_empty():
 		_request_route()
@@ -748,6 +754,94 @@ func _movement_target() -> Vector3:
 	if _crowd == null:
 		return Vector3.INF
 	return _crowd.node_position(_route[_leg]) + _wander
+
+
+## Where a follower should be: **on the leader's own path**, `back` metres along
+## it, `lateral` metres to the side of it.
+##
+## This replaces `leader.global_position + basis * follow_offset`, which put the
+## follower's target beside the leader *now* and let them steer straight at it.
+## A straight line to a moving point is a chord, and a leader rounding something
+## means their followers cut across it — so a group walking the ring walkway
+## round the fountain sent everybody but the leader through the middle of the
+## pool. Measured at radius 5.3 to 6.9 in an 8.26m pool.
+##
+## Nothing caught it because the graph is *innocent*: `_validate_graph` checks
+## every edge against the fountain circle and passes, and the guests going
+## through the fountain are precisely the ones not using the graph. A follower
+## has no route, no waypoints, and no idea the fountain exists.
+##
+## Following the path instead of the position fixes it by construction rather
+## than by avoidance — a follower physically cannot cut a corner their leader did
+## not cut, whatever the obstacle is and whether or not anything knows it is
+## there. It also buys the look for free: a family rounds a corner in single
+## file the way a family actually does, instead of the back half swinging wide.
+func trail_station(back: float, lateral: float) -> Vector3:
+	var here := global_position
+	var at := here
+	var behind := here
+	var remaining := maxf(back, 0.0)
+
+	# Walk back down the breadcrumbs from the newest, spending `remaining`.
+	var i := _trail.size() - 1
+	while i >= 0 and remaining > 0.0:
+		var seg := at.distance_to(_trail[i])
+		if seg >= remaining:
+			behind = _trail[i]
+			at = at.lerp(_trail[i], remaining / maxf(seg, 0.0001))
+			remaining = 0.0
+			break
+		remaining -= seg
+		behind = _trail[i]
+		at = _trail[i]
+		i -= 1
+
+	# Which way the path was going *there*, so the sideways offset is across the
+	# leader's line rather than across whatever they happen to be facing now.
+	# Standing still there is no line, and the leader's own heading is the only
+	# honest answer — which is also what makes a halted group close up into a
+	# huddle facing the same way rather than a queue.
+	var along := at - behind
+	along.y = 0.0
+	if along.length_squared() < 0.000001:
+		along = Basis(Vector3.UP, rotation.y) * Vector3(0.0, 0.0, -1.0)
+	along = along.normalized()
+	return at + Vector3(along.z, 0.0, -along.x) * lateral
+
+
+## The last few metres this guest actually walked.
+##
+## Only leaders are ever read, but everyone without a leader keeps one — a solo
+## guest costs a handful of vectors and the alternative is the crowd having to
+## tell each guest whether anybody is behind them.
+const TRAIL_SPACING := 0.3
+## Long enough for the deepest station a follower can be given, with room to
+## spare: kids trail up to 2.4m and this holds nine.
+const TRAIL_POINTS := 30
+
+var _trail: PackedVector3Array = PackedVector3Array()
+
+
+func _note_trail() -> void:
+	if _leader != null:
+		return
+	if _trail.is_empty():
+		_trail.append(global_position)
+		return
+	if global_position.distance_squared_to(_trail[_trail.size() - 1]) \
+			< TRAIL_SPACING * TRAIL_SPACING:
+		return
+	_trail.append(global_position)
+	if _trail.size() > TRAIL_POINTS:
+		_trail.remove_at(0)
+
+
+## Every teleport clears it. A trail with a jump in it is a path through
+## whatever the jump crossed, which is the bug this exists to fix, dressed up as
+## the fix — the three places that move a guest without walking them are
+## spawning at opening, arriving from off-stage, and the last snap onto a seat.
+func _clear_trail() -> void:
+	_trail.clear()
 
 
 func _advance_route() -> void:

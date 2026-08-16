@@ -18,9 +18,19 @@ const ARRIVE := 1.6
 const STALL_FRAMES := 90
 const MAX_SECONDS := 22.0
 
-## How far below its own starting height a leg may take the player before it
-## counts as falling. Relative, not absolute: the boardwalk's floor is at −6 and
-## a fixed threshold of −3 called every leg down there a fall.
+## How far below the lower of a leg's own two ends it may take the player before
+## it counts as falling.
+##
+## Relative, not absolute: the boardwalk's floor is at −6 and a fixed threshold
+## of −3 called every leg down there a fall.
+##
+## **Below the lower end and not below the start, since 2026-08-15.** Measuring
+## from the start makes the threshold a cap on how far a leg is allowed to
+## descend, which is a different question and one this test has no business
+## asking — a leg from the head of the flight to its middle drops 3m by design,
+## and it began failing the moment the cascade went back to a 6m drop. A leg that
+## ends 4m below where it started has not fallen; a leg that dips 3m below *both*
+## of its ends has, whatever height either end is at.
 const FALL_BELOW := 3.0
 
 var _player: CharacterBody3D
@@ -189,29 +199,26 @@ func _cascade_legs() -> Array:
 	var y: float = ParkPlan.SHORE_TOP + 1.2
 	var arch := Vector3(ParkPlan.ARCH_ARRIVE_WEST.x, 1.2, axis)
 	var head := Vector3(top_x - 0.8, 1.2, axis)
-	var mid := _on_flight(0.5)
-	var foot := Vector3(ParkPlan.STAIR_FOOT.x, ParkPlan.SHORE_TOP + 0.2, axis)
+	var foot := Vector3(ParkPlan.STAIR_FOOT.x - 2.5, ParkPlan.SHORE_TOP + 0.2, axis)
 	var court := Vector3(ParkPlan.BACK_LANE_X, y, axis)
+	# **No legs down the middle since 2026-08-15.** The centre is the cascade —
+	# water, basins and terraces — and nobody walks it. What used to be three legs
+	# down a flight is now the approach along the bluff top to the head of each
+	# wing, which is below.
 	var out: Array = [
 		["cas arch -> head", arch, head, true],
-		["cas head -> mid", head, mid, true],
-		["cas mid -> foot", mid, foot, true],
+		["cas head -> arch", head, arch, true],
 		["cas foot -> court", foot, court, true],
 		["cas court -> foot", court, foot, true],
-		["cas foot -> mid", foot, mid, true],
-		["cas mid -> head", mid, head, true],
-		["cas head -> arch", head, arch, true],
 	]
-	# Each wing, vertex to vertex along its own hairpin — out, across the landing,
-	# back — and then the same three in reverse.
+	# Each wing, vertex to vertex along its own hairpin — out and down, across the
+	# turn, back in and down — then the same three in reverse.
 	#
 	# **Vertex to vertex and not in equal thirds**, which is the rule about
-	# waypoints applied to a route that now has corners in it. A leg is a straight
-	# walk towards a point, so thirds of a hairpin would send the player diagonally
-	# across the pocket, through the planting and off the side, and report it as
-	# broken geometry rather than as a badly aimed test. Aim a leg along the thing
-	# it is asking about; on a polyline that means the polyline's own segments.
-	for w in [[-1.0, "ramp"], [1.0, "stair"]]:
+	# waypoints applied to a route with corners in it: thirds of a hairpin send
+	# the player diagonally through the wall between the legs and report it as
+	# broken geometry rather than as a badly aimed test.
+	for w in [[-1.0, "north"], [1.0, "south"]]:
 		var side: float = w[0]
 		var nm: String = w[1]
 		var path: Array = ParkPlan.wing_path(side)
@@ -219,58 +226,25 @@ func _cascade_legs() -> Array:
 		for v in path:
 			stand.append(v + Vector3(0, 0.2, 0))
 		for i in 3:
-			out.append(["cas %s wing %d" % [nm, i], stand[i], stand[i + 1], true])
+			out.append(["cas %s %d" % [nm, i], stand[i], stand[i + 1], true])
 		for i in range(2, -1, -1):
-			out.append(["cas %s wing up %d" % [nm, i], stand[i + 1], stand[i], true])
-		# The two joints where a wing meets something that is not itself: the head
-		# of the bluff at the top, and the foot of the central flight at the
-		# bottom. **The second one is the design's own claim under test** — all
-		# three ways down are supposed to land together, and the old wing failed it
-		# by eighty-five metres while passing a leg that only asked whether it
-		# could walk eight metres further along its own line.
-		# **Onto the wing off the bluff top, which is the approach a player makes**
-		# and which nothing walked until the doorway turned out to be blocked.
-		# Not from `head`: that stands on the flight's second tread, half a metre
-		# below the head's top, so a leg from there asks whether the player can
-		# climb a step — which they cannot, by design, and which is not the
-		# question. They walk out beside the flight and turn west.
-		var beside := Vector3(top_x + 1.5, 1.2, stand[0].z)
-		out.append(["cas %s top -> wing" % nm, beside, stand[0], true])
-		out.append(["cas %s wing -> top" % nm, stand[0], head, true])
+			out.append(["cas %s up %d" % [nm, i], stand[i + 1], stand[i], true])
+		# The joints where a wing meets something that is not itself: the landing
+		# at the head, and the court at the foot. The second is the design's own
+		# claim under test — both wings are supposed to land beside the middle,
+		# and an earlier shape failed exactly that by eighty-five metres while
+		# passing a leg that only asked whether it could walk further along its
+		# own line.
+		var land := Vector3(top_x - 2.0, 1.2, axis)
+		out.append(["cas %s landing -> head" % nm, land, stand[0], true])
+		out.append(["cas %s head -> landing" % nm, stand[0], land, true])
 		out.append(["cas %s wing -> foot" % nm, stand[3], foot, true])
 		out.append(["cas %s foot -> wing" % nm, foot, stand[3], true])
-		# And the open sides, each a drop onto the court: the return leg's west
-		# edge, and the outer face of the landing at the turn.
-		var back := ParkPlan.wing_point(side, 0.85) + Vector3(0, 0.2, 0)
-		out.append(["cas %s wing rail holds" % nm, back,
-			back + Vector3(-8.0, 0.0, 0.0), false])
-		var turn := (stand[1] + stand[2]) * 0.5
-		out.append(["cas %s turn rail holds" % nm, turn,
-			turn + Vector3(0.0, 0.0, side * 8.0), false])
+		# The open side, which is a drop into the court the whole way down.
+		var mid := ParkPlan.wing_point(side, 0.25) + Vector3(0, 0.2, 0)
+		out.append(["cas %s rail holds" % nm, mid,
+			mid + Vector3(-9.0, 0.0, 0.0), false])
 	return out
-
-
-## A point on the flight, `t` of the way down, a stride above the treads.
-func _on_flight(t: float) -> Vector3:
-	var risers := int(round(ParkPlan.CASCADE_DROP / ParkPlan.FLIGHT_RISE))
-	var run: float = ParkPlan.FLIGHT_GOING * risers
-	return Vector3(ParkPlan.CASCADE_TOP_X - run * t,
-		-ParkPlan.CASCADE_DROP * t + 0.2, ParkPlan.CASCADE_AXIS_Z)
-
-
-## A point on one wing, a stride above the deck. `side` is −1 for the north wing,
-## which carries the ramp, and +1 for the south, which carries the garden stair.
-##
-## **This used to be a second copy of the wing's arithmetic** — a hand-written
-## lerp from the springing to the tip — which meant the test was walking a wing
-## it had computed for itself rather than the one the generator built. The two
-## agreed right up until the wing became a hairpin, at which point a straight
-## line between the same two endpoints would have run through the pocket, the
-## planting and thin air, and the failure would have looked like broken geometry
-## rather than a stale test. It reads `ParkPlan.wing_point` now, which is the
-## same function the generator hangs the wing off.
-func _on_wing(side: float, t: float) -> Vector3:
-	return ParkPlan.wing_point(side, t) + Vector3(0, 0.2, 0)
 
 
 ## The boardwalk, one section down. Eye height is the shore plus the same 1.2 the
@@ -364,7 +338,7 @@ func _physics_process(delta: float) -> void:
 	var flat_to := Vector3(_to.x, p.y, _to.z)
 	var arrived := p.distance_to(flat_to) < ARRIVE
 	var stalled := _still >= STALL_FRAMES
-	var fell := p.y < _from.y - FALL_BELOW
+	var fell := p.y < minf(_from.y, _to.y) - FALL_BELOW
 	if arrived or stalled or fell or _t > MAX_SECONDS:
 		Input.action_release("move_forward")
 		_finish_leg(arrived, stalled, fell, p)

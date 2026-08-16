@@ -211,14 +211,18 @@ const CAFE_CHAIRS := [Vector3(0.95, 0.0, 0.2), Vector3(-0.9, 0.0, -0.35)]
 # The ways out — six of them, in a 320m perimeter
 # ---------------------------------------------------------------------------
 
-## The west arch: a straight tube through the wall, on the plaza's own west axis.
+## The west arch: a straight cutting through the wall, on the plaza's own west
+## axis, open to the sky.
 ##
-## **It became a tunnel on 2026-08-14.** 6m wide and 5m clear over 13.5m of
-## depth, where it was 9 by 8.9 over 11 — a section nearly square is a hole in a
-## wall, and the section swap that happens inside it had only the fade to hide
-## behind. The extra depth is a gate house projecting into the plaza rather than
-## a thicker wall, because the wall's west face is the terrace's east edge and
-## the terrace has only six metres to give.
+## **It became a tunnel on 2026-08-14 and lost its top on 2026-08-16.** 6m wide
+## over 13.5m of depth, where it was 9 by 8.9 over 11 — a section nearly square
+## is a hole in a wall, so the depth went in and stayed. The lintel did not: a
+## soffit over a *deep* opening is limited by its far edge, and 5m of clear
+## height at the far edge of 13.5m is a 6.7° ceiling from the ring, which put the
+## top half of the wheel behind masonry from everywhere in the plaza. The depth
+## is a gate house projecting into the plaza rather than a thicker wall, because
+## the wall's west face is the terrace's east edge and the terrace has only six
+## metres to give.
 const ARCH_AT := Vector2(-39.0, -2.0)
 
 ## The two ends of the tube, as x. The mouth is the gate house's face, out in the
@@ -228,9 +232,61 @@ const ARCH_AT := Vector2(-39.0, -2.0)
 const ARCH_MOUTH_X := -30.5
 const ARCH_FAR_X := -44.0
 
-## The clear opening between the piers, and under the lintel.
+## The clear opening between the piers. Clear to the sky above it — what
+## `ARCH_HEIGHT` names is the soffit of the beam across the piers' plaza faces,
+## which is the *near* plane and so crops far less than the same number did at
+## the far end of a tube.
+##
+## Set by the wheel, and the number is `WHEEL_TOP` — 25.80, and read from there
+## rather than typed here, so the arch notices if the wheel ever moves again.
+##
+## **It has to be read and not reasoned about.** A figure of 21.9 sat in this
+## comment, in `CLAUDE.md` and in `west_capture.gd` for part of 2026-08-16 and was
+## wrong by 3.9m: it came from assuming the wheel sits 1.5m above `SHORE_TOP` and
+## adding two radii, rather than opening the file the generator had already
+## written. The soffit had never cleared the rim and every margin quoted off that
+## assumption was fiction. `WHEEL_TOP` exists because of it — before that the
+## wheel's geometry lived only inside `_wheel` and published nothing, which is
+## what made the number derivable in the first place.
+##
+## **The soffit does not clear the whole rim from the back of the west spoke, and
+## that is deliberate.** How much of the wheel shows is a lateral question before
+## it is a vertical one — it stands 14m north of the axis, so the 6m slot hides
+## most of it from far back and uncovers it as you approach:
+##
+##     player x   wheel visible laterally   soffit needed to clear the rim
+##       −11        12.1m  (46%)              7.19
+##       −13        13.1m  (50%)              6.79
+##       −16        15.0m  (57%)              6.16
+##       −20        18.9m  (72%)              5.24
+##       −24        26.4m (100%)              4.23
+##
+## Built at 6.30, so the rim is clipped at −11 and −13 and whole from −16 in.
+## Those two standpoints are the ones showing under half the wheel through a slot;
+## buying them costs 0.9m on the beam and pushes the sign up into the crane angle
+## that 2026-08-14c took it out of. A gateway that reveals more as you walk into
+## it is the behaviour worth having, so this is where it binds.
+##
+## Distances are to the **camera**, not the player: the spring arm is 2.6m and
+## sits it about 2.5m back, which is further from the mouth and so tighter than a
+## standing eye. Sizing this off `pos` overstates the clearance.
+##
+## And the camera's *height* moves with the shot's pitch, so the margin is a
+## property of the pose rather than of the geometry. Pitching up swings the arm
+## down, and a lower eye needs a lower soffit to clear the same rim: at camera
+## y 1.75 the rim would crop by 0.03m, at 1.55 it clears by 0.14m, and at the
+## y ≈ 1.2 measured in the running game it clears by 0.39m. All of those are the
+## same wall and the same wheel. Quote the pose with the margin or neither means
+## anything — which is the third time on 2026-08-16 that a single number turned
+## out to be a family of them.
 const ARCH_WIDTH := 6.0
-const ARCH_HEIGHT := 5.0
+const ARCH_HEIGHT := 6.3
+
+## The standpoint the clear height is bound at: the furthest back the whole rim is
+## required to show, not the furthest back anybody can stand. Behind this the
+## wheel is under half uncovered and its top is allowed to clip — see
+## `ARCH_HEIGHT`. Named so `west_capture` shoots the pose that holds the promise.
+const ARCH_RIM_CLEAR_X := -16.0
 
 ## The overlook, past the arch and above the boardwalk. The parapet is at
 ## x −50.5; this stands short of it, where you actually end up walking.
@@ -285,8 +341,30 @@ const APRON_Z := 123.0
 ## The drop off the parapet, and what is below it. The plaza stands on made
 ## ground; everything west of the parapet falls away here, which is what turns
 ## the parapet into an overlook rather than a fence.
-const SHORE_TOP := -3.0
-const WATER_TOP := -4.5
+## **Six metres again since 2026-08-15**, after eighteen hours at three.
+##
+## Three was arrived at by arithmetic and it was the right arithmetic for the
+## wrong thing: a 1:12 ramp needs twelve metres of run per metre of fall, so six
+## metres is seventy-two metres of ramp, and folding that into the bluff looked
+## impossible while the ramp had to *be* the wings. Halving the drop halved the
+## ramp and the wings fitted.
+##
+## What it cost was the monument. Oakland's cascade spreads its wings about four
+## times the height they fall; at three metres of drop and thirty-six metres of
+## ramp ours spread eighteen times, which is not a swept shoulder, it is a
+## flyover — and that is exactly how it photographed. The ratio is forced: the
+## ramp's length is 12× the rise and the spread is about half of that, so no
+## amount of folding gets a wing-borne ramp anywhere near 4:1.
+##
+## So the ramp comes off the wings and the drop goes back. Six
+## is what the site affords rather than a number chosen for the composition:
+## there are 23.5m from the bluff face to the backs of the shops, a flight at the
+## reference's own steepness spends 9.6 of them, and what is left is a court.
+const SHORE_TOP := -6.0
+
+## A metre and a half below the shore, and derived rather than typed — it was
+## −4.5 against a −3.0 shore, which is the same relationship written down twice.
+const WATER_TOP := SHORE_TOP - 1.5
 
 ## The shore band, east edge to west edge. The east edge is where the made
 ## ground of the bluff stops; the west edge is where the planking stops and the
@@ -320,99 +398,180 @@ const PROMENADE_X := -99.2
 ## The bluff, as its two faces. The west one is the drop the cascade is built
 ## against; the east one is where the plaza's made ground takes over.
 ##
-## **The drop is three metres, not six, since 2026-08-14b.** The shore came up to
-## meet the plaza rather than the descent stretching to reach the shore, and the
-## reason is arithmetic: a wheelchair gradient is 1:12, so six metres of drop is
-## seventy-two metres of ramp no matter what shape it takes. Three metres is
-## thirty-six, which fits one hairpin — and a 3m seawall is a thing you walk
-## down rather than a cliff you are let off the side of.
+## The drop is six metres. It was halved to three on 2026-08-14b to fit the ramp
+## and put back on 2026-08-15 when the ramp moved off the wings; see `SHORE_TOP`
+## for what the three cost and why the arithmetic that produced it was sound and
+## aimed at the wrong quantity.
 const BLUFF_FACE_X := -58.0
 const BLUFF_BACK_X := -51.0
 
 ## The cascade: the whole way down, as one monument on the arch's own axis.
 ##
 ## Modelled on the Cleveland Cascade in Oakland, which is a straight flight in
-## the middle, a wall with an arched niche at its foot, and two wings sweeping
+## the middle, a wall with an arched opening at its foot, and two wings sweeping
 ## out and down either side — a shape that reads, from the bottom, unmistakably
-## like a ray with its wings spread. **The wings are the wall, not the path.**
-## That is what lets one side be a ramp and the other a stair without the thing
-## losing its symmetry: the wall follows the same hairpin both ways and only the
-## surface riding on it differs.
+## like a ray with its wings spread.
 ##
-## Three ways down, and nobody has to take a service entrance to use one:
-## the central flight for anyone in a hurry, the north wing at 1:12 for a wheel-
-## chair, and the south wing as a garden stair of short flights and long
-## landings. They start together at the top and land together in the court —
-## which is a claim `WING_SPRING_X` had to be rebuilt to make true, and which
-## `walk_test` asks about by walking each of the three and checking where it
-## came out.
+## **The wings are the wall, and since 2026-08-15 they are only the wall.** They
+## used to carry the descent as well, one side a ramp and the other a garden
+## stair, on the theory that a single hairpin followed by both surfaces kept the
+## thing symmetrical. It did. What it could not keep was the proportion: a wing
+## carrying a 1:12 ramp is half as long as the ramp, the ramp is 12× the rise,
+## so the spread is stuck at about 6× the rise per side against the reference's
+## 2×. Straightening that out by folding more just turns a flyover into a fire
+## escape. The wings are masonry now, nobody walks on them, and the 1:12 has its
+## own route, which is not built yet — see the journal for 2026-08-15.
+##
+## Two ways down, then, and neither is a service entrance: the flight on the
+## axis, and the ramp beside it. They start within a few strides of each other on
+## the bluff top and land within a few strides of each other in the court, which
+## is what the shape is *for* and what `walk_test` asks about by walking both and
+## checking where each came out.
 const CASCADE_AXIS_Z := ARCH_AT.y
 const CASCADE_TOP_X := BLUFF_FACE_X
 const CASCADE_DROP := -SHORE_TOP
 
-## The middle flight: wide, direct, and the whole drop in one go.
-const FLIGHT_W := 10.0
+## The middle flight: direct, and the whole drop in one go.
+##
+## **Narrower and steeper than it was.** Ten metres of width in a monument
+## spreading twenty-eight is 36% of the whole, and the reference's flight is
+## nearer a quarter — a wide flight makes the wall either side of it a pair of
+## offcuts rather than the mass the wings spring from. And 0.55 of going is a
+## municipal gradient: 24 risers at that spends 13.2m of the 23.5 available
+## between the bluff face and the backs of the shops, which leaves no court to
+## land in. 0.40 is the reference's own steepness, spends 9.6, and leaves 12.
+const FLIGHT_W := 7.0
 const FLIGHT_RISE := 0.25
-const FLIGHT_GOING := 0.55
+const FLIGHT_GOING := 0.40
 
-## A wing, as the hairpin it is: out and down along the bluff face, a level
-## landing at the turn, then back in and down to the court beside the flight's
-## own foot.
-##
-## **It used to be one straight diagonal spending the whole 36m going away from
-## the axis**, out to z ±42.5, and three separate things were wrong with that.
-## It landed fourteen metres past the end of the back lane, on bare shore under
-## the coaster — so "all three ways down land together in the court" was simply
-## false, and a wheelchair taking the north wing arrived eighty-five metres from
-## where the flight put everyone it came down with, which is the one thing this
-## shape exists to prevent. Nothing in `WALKWAYS` described it, so no part of the
-## park except `walk_test` believed the route existed at all. And 3m of fall
-## stretched over 36m is a 4.8° slope: from the court the wings read as two low
-## walls running off past the frame rather than as a way down.
-##
-## Doubling back fixes all three at once and costs nothing, because a landing is
-## level — it carries none of the fall, so folding the run in half keeps the
-## gradient at 1:12 exactly. Same 36m, half the reach, and the silhouette from
-## the pier is better for it: two diagonals converging on the turn instead of one
-## rail. What the pocket between the legs is for is the planting.
-##
-## The outbound leg runs true north–south against the bluff face, which is why
-## its x never changes. That is not tidiness — it keeps the 0.3m slot between the
-## wing's wall and the rock closed for the whole run, and it means the *only*
-## sweep in plan is on the way back, aimed at the court.
-const WING_SPRING_X := CASCADE_TOP_X - 3.2
-const WING_SPRING_Z := FLIGHT_W * 0.5 + 2.6
-const WING_TURN_X := WING_SPRING_X
-const WING_TURN_Z := 27.0
-const WING_SEP := 6.0
-const WING_FOOT_X := -69.6
-const WING_FOOT_Z := 7.0
-const WING_W := 3.6
+## How many risers, and how far out from the bluff face the last one lands.
+## Derived, because three separate places were computing it from the drop.
+const FLIGHT_RISERS := int(CASCADE_DROP / FLIGHT_RISE + 0.5)
+const FLIGHT_RUN := FLIGHT_GOING * FLIGHT_RISERS
 
-## The landing is a square the width of the ramp, and both of those numbers are
-## the same number on purpose: a turn needs as much room across as the thing
-## turning in it is wide, and a wheelchair turning 180° needs all of it.
+## The wall the wings spring from and the flight runs out through: a mass across
+## the foot of the descent, with an arched opening on the axis.
 ##
-## It is also **what sets `WING_TURN_Z`**, which is why the reach is 27m and not
-## the 25 it was drawn at. The legs stop at the landing's inner edge rather than
-## running to the turn vertex — anything else has the landing overhanging a ramp,
-## and a level slab 20cm over a slope is a step in the middle of the descent. So
-## the sloping run is the leg length *less half a landing at each end*, and
-## getting 36m of that back out is what pushes the turn a metre and a half
-## further out. The landing eats what it needs and the gradient does not move.
-const WING_LAND_D := WING_W
+## **The arch used to stand five metres clear of this, out in the court, on its
+## own pair of piers.** It was put there for an alignment — the boardwalk's entry,
+## this, and the plaza's tunnel on one line at rising heights, seen from the head
+## of the pier — and the alignment was never once visible, because at a 3m drop
+## the frontage cropped the whole monument at that distance. What the freestanding
+## version *did* do was stand 6.9m tall in front of a 3m cascade and eclipse every
+## part of it from anywhere in the court. An arch is a hole in a mass; ours was a
+## mass in front of a hole. It is a hole again.
+## **A landing at the head level with the ground above, two flights down from its
+## sides, each ending at a landing and hairpinning back towards the centre.**
+##
+## That is the plan three square-on elevations could not give me, and it settles
+## everything. The landing's west face is the trapezoid's middle horizontal — the
+## tall flat wall with the niche in it. The outbound flights are the diagonals.
+## The return legs are the second, shallower handrail visible *outside* each
+## diagonal in the daylight photograph, which I looked straight at for half a day
+## without understanding.
+##
+## Every version before this ran the diagonals *away* along the bluff face. A
+## diagonal seen end-on is not a diagonal, which is why none of them read.
+##
+## **The wall is 7m and not 14m since 2026-08-16.** The whole monument was too
+## wide — see `WING_SLOPE_RUN` for the measurement — and it was the middle that
+## was wrong, not the wings. Nothing constrains this from inside any more: the
+## centre is water and the niche is blind, so it stopped being the width of a
+## flight the day the flight came out of it, and 7.0 was left over from when it
+## was. It went 7.0 → 5.5 → 4.5 → 3.5 in four passes against the same
+## photograph, which is the honest way to do this: the ratio is arithmetic and
+## how wide it *looks* is not.
+##
+## **Narrowing the middle narrows the monument twice over, and that is the point
+## of pulling this lever rather than the wings'.** The wings spring from
+## `CASCADE_AXIS_Z ± LANDING_HALF_W`, so a metre off the wall takes two off the
+## spread and the diagonals keep their own length, angle and proportion — they
+## just start closer in. Every other lever trades the wings against the wall.
+##
+## The floor is the niche, not the flight. At 3.5 there is 2.3m of wall either
+## side of a 2.4m niche, and the wall is 29% of the spread against the
+## photograph's ~25%. Much under this and the middle horizontal stops being the
+## mass the wings spring from and becomes a lintel over a hole.
+const LANDING_D := 5.0
+const LANDING_HALF_W := 3.5
+const CASCADE_WALL_X := CASCADE_TOP_X - LANDING_D
+const CASCADE_WALL_THICK := 1.6
 
-## Where the flight lands, and where a body stands there.
-const STAIR_FOOT := Vector3(
-	CASCADE_TOP_X - FLIGHT_GOING * int(CASCADE_DROP / FLIGHT_RISE) - 1.2,
+## The niche in the middle of that face. Blind and about two feet deep — it is
+## where the water comes out and nothing walks through it. Making it a doorway
+## was downstream of putting a staircase down the middle, and both were the same
+## mistake: the centre is the cascade and nobody walks it.
+const NICHE_W := 2.4
+const NICHE_H := 3.2
+const NICHE_DEEP := 0.6
+
+## A wing. The outbound leg runs behind the facade plane and the return leg in
+## front of it, which is what puts two rails at two angles on each side — exactly
+## what the daylight photograph shows.
+##
+## **These are stairs, not 1:12.** At 1:12 the same flight would be 36m long and
+## its diagonal would fall 4.4°, which is not a diagonal, it is a flat slab. That
+## arithmetic has driven every rebuild. The wheelchair route hairpins behind the
+## bank instead, out of the court's sight.
+##
+## **And they are shorter than they were, because the monument was half again as
+## wide as it read in the photographs.** The old comment here claimed 26m across
+## and 4.3:1 by counting the sloping run and forgetting that a leg also carries a
+## turn landing on its far end: the real half-spread is
+## `LANDING_HALF_W + WING_SLOPE_RUN + WING_LAND_D`, which was 7 + 6 + 3.2, so the
+## trapezoid was 32.4m across the toes and 35m across the turn slabs against a 6m
+## fall — **5.8:1**, where the reference photograph is nearer 3:1 and this file
+## has been claiming about 4. Measured off the emitted scene rather than off the
+## constants, which is the only reason it was ever caught; every number in the
+## paragraph it replaced was arithmetic nobody had checked against geometry.
+##
+## Now 3.5 + 4.8 + 2.0 = 10.3, so 20.6m across the toes and 22m across the turns
+## — **3.7:1**, against the photograph's ~3:1 and a claim of 4:1 this file made
+## for a day while measuring 5.8. The metre that came off each leg is the
+## difference between 1:2 and the *central flight's own* going: 12 risers at
+## `FLIGHT_GOING` is 4.8m, which is where the number comes from and what keeps
+## the diagonals and the middle at one angle instead of two that nearly match.
+##
+## **The wings are done and the two numbers below should stay where they are.**
+## `WING_SLOPE_RUN` is the gradient, and taking it under 4.8 pushes the diagonals
+## past the flight they were just made to agree with; `WING_LAND_D` at 2.0 is a
+## hairpin landing for a 3.0m deck, which is as short as a turn gets. Anything
+## further comes off `LANDING_HALF_W`, which is the lever that leaves the wings
+## alone — see there for why it is worth two of any other.
+const WING_W := 3.0
+const WING_SEP := 1.0
+const WING_LAND_D := 2.0
+## Reach is the sloping run *plus* the landing, not the sloping run. The legs
+## stop a full landing short of the turn — that is what keeps a level slab off
+## the end of a slope — so a reach equal to the slope alone leaves the landing
+## nowhere to be, which is what left a slot at the turn. `wing_leg_end` is the
+## one description of where a leg stops and both the legs and the landing are
+## laid off it.
+const WING_SLOPE_RUN := 4.8
+const WING_REACH := WING_SLOPE_RUN + WING_LAND_D
+const WING_TURN_Z := LANDING_HALF_W + WING_REACH
+const WING_RISE := 0.25
+
+## The three broad steps at the foot, on the axis. Levelling the court up to the
+## wall and nothing more — they became a plinth under the whole monument once,
+## and a 17m riser across where both wings land is a wall, not a step.
+const FOOT_STEPS := 3
+
+## The foot of the cascade on the axis, in front of the three steps. Nobody lands
+## here any more — the wings land either side of it and the middle is water — but
+## plenty of things still ask where the bottom of the descent is.
+const STAIR_FOOT := Vector3(CASCADE_WALL_X - WING_SEP - WING_W - 2.5,
 	SHORE_TOP, CASCADE_AXIS_Z)
 const STAIR_FOOT_STAND := Vector3(STAIR_FOOT.x, SHORE_TOP + 0.2, CASCADE_AXIS_Z)
 
 ## How far north and south of the arch's axis the bluff top can be walked. The
 ## terrace's own end walls stand on these lines, and without something on them
 ## the parapet gap opens onto a seven-metre ledge running the length of the map.
-const BLUFF_TOP_FROM_Z := -28.0
-const BLUFF_TOP_TO_Z := 9.5
+## Widened 2026-08-15 so the bluff top reaches past both wing heads. It used to
+## stop at −28/+9.5, which was drawn around a descent that has since become
+## ninety-four metres wide.
+const BLUFF_TOP_FROM_Z := -34.0
+const BLUFF_TOP_TO_Z := 16.0
 
 
 # ---------------------------------------------------------------------------
@@ -545,6 +704,24 @@ const ALLEY_Z := ARCH_AT.y
 const WHEEL_AT := Vector2(-103.0, -16.0)
 const WHEEL_RADIUS := 13.2
 const WHEEL_PLATFORM := Vector2(8.0, 26.0)
+
+## How high the wheel actually stands.
+##
+## `WHEEL_TOP` is the world height of the rim's crown, and it is here because
+## it is the number anything framing the west needs and the only one that could
+## not be reached without opening a generated scene. `_wheel` in `gen_props.gd`
+## builds the machine *to* these rather than these being a second survey of it:
+## the deck is the platform the ring is raised onto, the hub is the axle above
+## that deck, and the radius above is the rim.
+##
+## It was derived from outside once — an assumed 1.5m stand plus two radii —
+## and came out 3.9m low, and the beam over the west arch was then sized to
+## clear a wheel four metres shorter than the one in the park. Geometry a
+## generator owns privately is geometry somebody will eventually guess at, so
+## the height a landmark reaches is layout and belongs with the layout.
+const WHEEL_DECK := 0.6
+const WHEEL_HUB := 18.0
+const WHEEL_TOP := SHORE_TOP + WHEEL_DECK + WHEEL_HUB + WHEEL_RADIUS
 
 ## The coaster closes the north end. Out-and-back along the shore, station
 ## fronting the promenade, structure running away from the player — so it is a
@@ -864,34 +1041,39 @@ const WALKWAYS := {
 	## line until the court got wide enough to hold the run.
 	##
 	## The first segment is ground and is paved; the second is the flight.
+	## **It stops at the bluff top now**, because the middle is water and there is
+	## nothing down there to walk on. It is the approach across the terrace to the
+	## head of the descent, and the descent itself is the two wings below.
 	&"west_stair": [
-		Vector2(-46.0, CASCADE_AXIS_Z), Vector2(CASCADE_TOP_X, CASCADE_AXIS_Z),
-		Vector2(STAIR_FOOT.x, CASCADE_AXIS_Z),
+		Vector2(-46.0, CASCADE_AXIS_Z), Vector2(CASCADE_TOP_X + 1.0, CASCADE_AXIS_Z),
 	],
 
-	## The other two ways down, and **they were in no graph at all until the wings
-	## were rebuilt.** `west_stair` above described the central flight and nothing
-	## described the ramp or the garden stair, so the minimap drew one way off the
-	## bluff where there are three, and every rule that reads the park's
-	## circulation — where a prop may stand, where the paving goes — was answering
-	## about a monument two thirds of which it could not see.
+	## The two ways down, and **they were in no graph at all until the wings were
+	## rebuilt.** Nothing described them, so the minimap drew one way off the bluff
+	## where there are two, and every rule that reads the park's circulation was
+	## answering about a monument it could not see most of.
 	##
-	## Four vertices each, and they are `wing_path`'s four points flattened: the
-	## springing, the two ends of the landing, the foot. Written as constants
-	## rather than called, because a `const` dictionary cannot hold a function
-	## call — so if these and `wing_path` ever disagree it is because somebody
-	## edited one, which is what `walk_test` walking the wings is there to catch.
+	## Four vertices each: the landing's outer corner, both ends of the turn, and
+	## the foot. Written out rather than called, because a `const` dictionary
+	## cannot hold a function call — but every coordinate is the expression
+	## `wing_path` uses, and `walk_test` walks both wings to catch a disagreement.
 	&"west_wing_north": [
-		Vector2(WING_SPRING_X, CASCADE_AXIS_Z - WING_SPRING_Z),
-		Vector2(WING_TURN_X, CASCADE_AXIS_Z - WING_TURN_Z),
-		Vector2(WING_TURN_X - WING_SEP, CASCADE_AXIS_Z - WING_TURN_Z),
-		Vector2(WING_FOOT_X, CASCADE_AXIS_Z - WING_FOOT_Z),
+		Vector2(CASCADE_TOP_X + 1.0, CASCADE_AXIS_Z),
+		Vector2(CASCADE_WALL_X + WING_W * 0.5, CASCADE_AXIS_Z - LANDING_HALF_W),
+		Vector2(CASCADE_WALL_X + WING_W * 0.5, CASCADE_AXIS_Z - WING_TURN_Z),
+		Vector2(CASCADE_WALL_X - WING_SEP - WING_W * 0.5, CASCADE_AXIS_Z - WING_TURN_Z),
+		Vector2(CASCADE_WALL_X - WING_SEP - WING_W * 0.5, CASCADE_AXIS_Z - LANDING_HALF_W),
+		## And west into the back lane, where the two wings rejoin.
+		Vector2(BACK_LANE_X, CASCADE_AXIS_Z - LANDING_HALF_W),
 	],
 	&"west_wing_south": [
-		Vector2(WING_SPRING_X, CASCADE_AXIS_Z + WING_SPRING_Z),
-		Vector2(WING_TURN_X, CASCADE_AXIS_Z + WING_TURN_Z),
-		Vector2(WING_TURN_X - WING_SEP, CASCADE_AXIS_Z + WING_TURN_Z),
-		Vector2(WING_FOOT_X, CASCADE_AXIS_Z + WING_FOOT_Z),
+		Vector2(CASCADE_TOP_X + 1.0, CASCADE_AXIS_Z),
+		Vector2(CASCADE_WALL_X + WING_W * 0.5, CASCADE_AXIS_Z + LANDING_HALF_W),
+		Vector2(CASCADE_WALL_X + WING_W * 0.5, CASCADE_AXIS_Z + WING_TURN_Z),
+		Vector2(CASCADE_WALL_X - WING_SEP - WING_W * 0.5, CASCADE_AXIS_Z + WING_TURN_Z),
+		Vector2(CASCADE_WALL_X - WING_SEP - WING_W * 0.5, CASCADE_AXIS_Z + LANDING_HALF_W),
+		## And west into the back lane, where the two wings rejoin.
+		Vector2(BACK_LANE_X, CASCADE_AXIS_Z + LANDING_HALF_W),
 	],
 
 	## The boardwalk, below and west of everything above.
@@ -1009,8 +1191,8 @@ const WALKWAY_WIDTH := {
 	&"spoke_west": 8.0,
 	## The width of the flight it leads to.
 	&"west_stair": FLIGHT_W,
-	## The width of the deck, and no more. These run within a metre of the back
-	## lane's own band at the turn, so the default 6m would have the two arguing
+	## The width of the deck, and no more. The legs run within a metre of each
+	## other, so the default 6m would have consecutive legs of one route arguing
 	## about ground neither of them is on.
 	&"west_wing_north": WING_W,
 	&"west_wing_south": WING_W,
@@ -1047,74 +1229,68 @@ static func walkway_segments() -> Array:
 	return out
 
 
-## The four points a wing turns through, with their heights: the springing on
-## the bluff top, the two ends of the landing at the turn, and the foot out in
-## the court. `side` is −1 for the north wing and +1 for the south.
+## The four points a wing turns through: the landing's outer corner, the two ends
+## of the landing at the turn, and the foot back beside the middle. `side` is −1
+## for the north wing and +1 for the south.
 ##
-## Heights are computed from the running length rather than typed, so both legs
-## come out at the same gradient and stay there when any of the constants above
-## move. The landing is level, which is why it is two points and not one: it
-## carries none of the fall and none of the run, and it is the whole reason a
-## 36m ramp fits in an 18m reach.
-##
-## **Up here rather than in `gen_props.gd` because `walk_test.gd` was carrying
-## its own copy of the old wing's arithmetic** — a second survey of the same
-## geometry, which is the fault CLAUDE.md already records about the cafe tables.
-## It meant the test could keep passing against a wing the generator had stopped
-## building, which is the worst thing a walk test can do.
+## The turn is level and carries none of the fall, which is why it is two points
+## and not one, and it is what makes the hairpin free.
 static func wing_path(side: float) -> Array:
-	var a := Vector2(WING_SPRING_X, CASCADE_AXIS_Z + side * WING_SPRING_Z)
-	var p := Vector2(WING_TURN_X, CASCADE_AXIS_Z + side * WING_TURN_Z)
-	var q := Vector2(p.x - WING_SEP, p.y)
-	var c := Vector2(WING_FOOT_X, CASCADE_AXIS_Z + side * WING_FOOT_Z)
-	# Each leg's slope stops half a landing short of its turn vertex, so the fall
-	# is shared over that and not over the level part. See `WING_LAND_D`.
-	var half_land := WING_LAND_D * 0.5
-	var l1 := a.distance_to(p) - half_land
-	var l2 := q.distance_to(c) - half_land
-	var turn_y := -CASCADE_DROP * l1 / (l1 + l2)
+	var half := WING_W * 0.5
+	var out_x := CASCADE_WALL_X + half
+	var ret_x := CASCADE_WALL_X - WING_SEP - half
+	var near: float = CASCADE_AXIS_Z + side * LANDING_HALF_W
+	var far: float = CASCADE_AXIS_Z + side * WING_TURN_Z
 	return [
-		Vector3(a.x, 0.0, a.y), Vector3(p.x, turn_y, p.y),
-		Vector3(q.x, turn_y, q.y), Vector3(c.x, -CASCADE_DROP, c.y),
+		Vector3(out_x, 0.0, near),
+		Vector3(out_x, -CASCADE_DROP * 0.5, far),
+		Vector3(ret_x, -CASCADE_DROP * 0.5, far),
+		Vector3(ret_x, -CASCADE_DROP, near),
 	]
 
 
-## Where a leg's slope actually stops: the landing's inner edge, half a landing
-## short of the turn vertex it routes through. `leg` is 0 for the outbound leg
-## and 1 for the return. The stretch from here to the vertex is the landing, and
-## it is level.
-static func wing_leg_end(side: float, leg: int) -> Vector3:
+## Where a leg's slope actually stops: a full landing short of the turn it
+## touches. The stretch from here to the turn is level, and laying a sloping
+## surface over it puts a step in the middle of the descent.
+##
+## **The legs and the landing are both laid off this**, which is the whole reason
+## it exists. They used to be laid off two different assumptions — the legs ran
+## to the turn vertex and the landing started at it — so the two agreed only by
+## accident, and where they disagreed there was a slot.
+static func wing_leg_end(side: float, leg: int, end: int) -> Vector3:
 	var path := wing_path(side)
-	var from: Vector3 = path[0] if leg == 0 else path[3]
-	var to: Vector3 = path[1] if leg == 0 else path[2]
-	var d := Vector2(to.x - from.x, to.z - from.z)
-	var e := from.lerp(to, 1.0 - (WING_LAND_D * 0.5) / d.length())
+	var a: Vector3 = path[leg * 2]
+	var b: Vector3 = path[leg * 2 + 1]
+	var from: Vector3 = a if end == 1 else b
+	var to: Vector3 = b if end == 1 else a
+	# Only the ends that touch the turn are pulled in. The head of the outbound
+	# leg and the foot of the return are where the route starts and stops.
+	if (leg == 0 and end == 0) or (leg == 1 and end == 1):
+		return to
+	var d := absf(to.z - from.z)
+	if d < 0.01:
+		return to
+	var e := from.lerp(to, 1.0 - WING_LAND_D / d)
 	# The height is the turn's, not the lerp's: the leg has finished falling by
 	# the time it gets here, which is the whole distinction being drawn.
 	return Vector3(e.x, to.y, e.z)
 
 
-## The gradient a wing actually runs at, as 1 in this.
-##
-## Worth being able to ask rather than trusting the arithmetic: the ramp wing is
-## the park's only wheelchair route off the bluff, 1:12 is the entire reason the
-## drop was halved to 3m, and every one of the constants it falls out of is the
-## kind of number that gets nudged against a screenshot.
+## The gradient a wing runs at, as 1 in this. A stair here, so about 2 — asked
+## for the same reason a ramp's is: to catch a constant that moved without
+## anybody noticing what it moved.
 static func wing_gradient() -> float:
 	var path := wing_path(-1.0)
 	var run := 0.0
-	# Leg to leg-end, skipping the turn: the landing is level and is not run. A
-	# gradient is fall over the distance that falls, and counting the turn — or
-	# the last half-landing of either leg — would flatter it.
 	for leg in 2:
-		var from: Vector3 = path[0] if leg == 0 else path[3]
-		var e := wing_leg_end(-1.0, leg)
-		run += Vector2(from.x, from.z).distance_to(Vector2(e.x, e.z))
+		var a: Vector3 = path[0] if leg == 0 else path[2]
+		var b: Vector3 = path[1] if leg == 0 else path[3]
+		run += Vector2(a.x, a.z).distance_to(Vector2(b.x, b.z))
 	return run / CASCADE_DROP
 
 
-## A point on a wing, `t` of the way along it by distance — landing included, so
-## `t` measures walking rather than falling.
+## A point on a wing, `t` along it by distance — the turn included, so `t`
+## measures walking rather than falling.
 static func wing_point(side: float, t: float) -> Vector3:
 	var path := wing_path(side)
 	var seg := PackedFloat32Array()

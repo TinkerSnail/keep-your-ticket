@@ -998,9 +998,39 @@ func _plaza_walking_groups() -> void:
 				guest.set("leader_path", NodePath("../" + leader_name))
 				# Kids trail further back and wider, which is where the
 				# straggler comes from without anyone scripting one.
-				var lateral: float = _rng.randf_range(0.55, 1.15) * (1.0 if i % 2 == 0 else -1.0)
-				var behind: float = _rng.randf_range(0.4, 1.5) if kinds[i] == "adult" \
-					else _rng.randf_range(0.9, 2.4)
+				#
+				# **The test used to be `kinds[i] == "adult"`, and there are
+				# seven kinds.** Only the bare `adult` matched it, so every
+				# wheelchair user, every buggy pusher and every kid took the
+				# child's trailing range — a chair_adult was parked up to 2.4m
+				# behind their own group, permanently, and it read exactly like
+				# somebody being left behind. Which is the one thing the ramp on
+				# the cascade's north wing exists so as not to say.
+				#
+				# It is not a lag. `_pace_group` already gears the group to the
+				# wheels and gives followers a catch-up margin, so the chair was
+				# closing on its station the whole time — the station was two
+				# metres back. Nothing about speed would ever have fixed it.
+				#
+				# `ends_with("kid")` and `begins_with("chair")` are the file's
+				# own conventions, stated in `_guest` and used everywhere else
+				# that reads a kind. This one line used neither.
+				var is_kid: bool = kinds[i].ends_with("kid")
+				var wheels: bool = kinds[i].begins_with("chair")
+				# **Exactly two draws whatever the branch.** `_rng` is the cast's
+				# one stream, so a branch that rolls a different *number* of
+				# times shifts every guest generated after it — same reason
+				# `_pace_group` draws none at all. Different ranges are free;
+				# different counts are not.
+				var lateral: float = _rng.randf_range(0.95, 1.35) if wheels \
+					else _rng.randf_range(0.55, 1.15)
+				var behind: float = _rng.randf_range(0.1, 0.7) if wheels \
+					else (_rng.randf_range(0.9, 2.4) if is_kid
+						else _rng.randf_range(0.4, 1.5))
+				# A chair goes *beside* the group rather than behind it: wider
+				# across, barely back at all. Somebody is pushing it, and you
+				# walk alongside the person you are pushing.
+				lateral *= 1.0 if i % 2 == 0 else -1.0
 				guest.set("follow_offset", Vector3(lateral, 0.0, behind))
 		_pace_group(members)
 

@@ -66,11 +66,30 @@ void fragment() {
 	// ropes with nearly-clear water between them, so one slab reads as several
 	// falls and the stone behind shows through the gaps.
 	float s = pow(sin(across) * 0.5 + 0.5, 2.2);
-	float t = fract(w_pos.y * grain - TIME * flow);
 
-	// Thicker at the top of each travelling band and thinning below it: the
-	// difference between a moving stripe and water coming apart as it goes.
-	float body = mix(0.10, 1.0, s) * mix(0.35, 1.0, smoothstep(0.0, 0.55, t));
+	// **Plus, not minus, and the sign was wrong until somebody watched it.**
+	//
+	// A band sits where `y * grain + TIME * flow` is constant, so it travels at
+	// `dy/dTIME = -flow / grain`: positive `flow` carries it *down*, which is
+	// what the uniform says it means. Written with a minus the whole thing ran
+	// backwards — the sheets under each basin climbed their own lip at 1.1 m/s
+	// and the jets rained into their own nozzles.
+	//
+	// Nothing could have caught it but an eye. Both directions animate, both
+	// break up at the same rate, and every still frame of the two is identical;
+	// the only difference is which way the pattern goes, and a screenshot has no
+	// opinion about that. It is the same blind spot the coplanar rule has, and
+	// the fix is the same one: capture consecutive frames and measure the shift
+	// between them, which is what `tools/_flow_probe.gd` now does.
+	float t = fract(w_pos.y * grain + TIME * flow);
+
+	// Coherent where the water leaves, breaking up as it goes — so the thinning
+	// end has to follow the *direction of travel* rather than always being the
+	// bottom. A sheet is solid at the lip and ragged by the time it lands; a jet
+	// is solid at the nozzle and ragged at the top of its throw. Same expression,
+	// read the other way round.
+	float along = flow >= 0.0 ? t : 1.0 - t;
+	float body = mix(0.10, 1.0, s) * mix(0.35, 1.0, smoothstep(0.0, 0.55, along));
 
 	float f = 1.0;
 	if (fade_to != fade_from) {

@@ -19,3 +19,7 @@
 
 # Working material — stays local, same as documentation/
 /CLAUDE.md
+
+# Where the harness puts a session's isolated git worktree. A worktree living
+# inside the repository it points at must not be committed into it.
+/.claude/worktrees/

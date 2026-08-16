@@ -35,6 +35,31 @@ const APPROACH := [
 	# on the axis, so the far half of the west spoke has no view of the arch at
 	# all — which is a fact about the hub rather than a bad camera.
 	{"name": "01_from_the_ring", "yaw": 92.0, "pitch": 7.0, "pos": Vector3(-16.0, 0.2, 0.0)},
+	# The shot the top came off for: square on the axis, pitched up far enough to
+	# catch the wheel's rim, which tops at 25.80. Under a 5m soffit at the far end
+	# of 13.5m of tube this framed masonry from y=12 up, which is most of the
+	# height of the biggest silhouette in the west.
+	#
+	# **Shot from `ARCH_RIM_CLEAR_X`, which is where the promise binds and not
+	# where the geometry is tightest.** The wheel stands 14m off the axis, so the
+	# 6m slot hides most of it from far back and uncovers it as you approach —
+	# 46% of it at x −11, 57% here, all of it by x −24. The rim is clipped from
+	# −11 and −13 on purpose: those are the standpoints seeing under half a wheel
+	# through a slot, and buying them costs 0.9m of beam and puts the sign back
+	# into the crane angle. From here in, the rim must be whole.
+	#
+	# If the wheel is not whole here, the beam is too low or it has crept forward
+	# — or somebody has raised the wheel, which has happened once already.
+	#
+	# **Do not raise the pitch to frame it better.** The camera is on a 2.6m spring
+	# arm, so pitching up swings it *down*, and a lower eye needs a lower soffit to
+	# clear the same rim — which makes the shot easier to pass. Measured in the
+	# running game the camera sits near y 1.2 here and the margin is about 0.39m;
+	# at y 1.75 it would be −0.03m and this frame would crop. The tidying instinct
+	# and the test's sensitivity pull in opposite directions, so the pitch is part
+	# of the assertion and not part of the composition.
+	{"name": "01b_wheel_over_the_beam", "yaw": 90.0, "pitch": 11.0,
+		"pos": Vector3(ParkPlan.ARCH_RIM_CLEAR_X, 0.2, -2.0)},
 	# Off the axis, because the walk west off the ring does not arrive square to
 	# it. Kept on the spoke's own paving — anywhere off it is somewhere a tree may
 	# be standing this regeneration and not the last.
@@ -43,8 +68,14 @@ const APPROACH := [
 	# park saying the passage is not the plaza.
 	{"name": "03_forecourt", "yaw": 90.0, "pitch": 1.0, "pos": Vector3(-25.0, 0.2, -2.0)},
 	{"name": "04_mouth", "yaw": 90.0, "pitch": 0.0, "pos": Vector3(-29.5, 0.2, -2.0)},
-	# Inside, and short of the crossing. What this has to show is a far end that
-	# is a bright rectangle rather than a view.
+	# Inside, and short of the crossing.
+	#
+	# **This used to have to show a far end that was a bright rectangle rather
+	# than a view.** The top came off on 2026-08-16 and it is the opposite now:
+	# open sky overhead, the piers either side, and the west in the gap between
+	# them. What it has to show is that the cutting still narrows — the frame is
+	# 6m of pier at arm's length whichever way you look — and that the pitch below
+	# is doing nothing, because with no soffit there is nothing left to duck.
 	{"name": "05_in_the_tunnel", "yaw": 90.0, "pitch": 0.0, "pos": Vector3(-35.5, 0.2, -2.0)},
 ]
 
@@ -153,6 +184,47 @@ const SUNSET := [
 		"pos": Vector3(-98, -2.8, -34)},
 ]
 
+## The gate after dark, from the plaza side.
+##
+## It has to be shot here, in the middle of the run, and that is the whole reason
+## this list exists rather than four more entries in `SUNSET`. Everything timed in
+## this tool fires *after* the crossing, where the plaza is not mounted — so the
+## one entrance in the park these lights belong to was on the far side of a seam
+## from every night shot the west had.
+##
+## `gate_valance_glow` and `gate_throat` arrived with the entrance kit on
+## 2026-08-16 and are the first lights the arch has ever had. Two things to read:
+## a bulb run that reads as a *run* rather than as one smear, and a cutting that
+## reads as open rather than as a black slot — which is why the throat light is
+## set seven metres back rather than over the opening.
+##
+## 21:15 and 21:45, and the window is narrow at both ends. The fittings are not
+## fully up until the sun is 6° down, which is about 21:00 for this latitude, and
+## `park_lights.gd` follows the park closing — at 22:00 every bulb in the park
+## goes out. A night shot at 22:30 is a photograph of an unlit gate.
+const PLAZA_NIGHT := [
+	# From the ring's west vertex, which is where the four threshold mouths are
+	# judged from too. The question is whether the arch now reads as the fifth
+	# and biggest way out at the hour the four of them are doing their best work.
+	{"time": [21, 15], "name": "01n_gate_from_the_ring", "yaw": 92.0, "pitch": 7.0,
+		"pos": Vector3(-16.0, 0.2, 0.0)},
+	# Square on, close enough that the bulbs are individual lamps rather than a
+	# line. If the run smears here it will smear everywhere.
+	{"time": [21, 15], "name": "02n_gate_square", "yaw": 90.0, "pitch": 6.0,
+		"pos": Vector3(-22.0, 0.2, -2.0)},
+	# At the mouth, looking through. This is the throat light's shot: with the top
+	# off, 13.5m of unlit canyon at night is a slot of nothing, and a threshold
+	# that reads as closed is the failure the four mouths' throat lamps exist to
+	# prevent.
+	{"time": [21, 45], "name": "03n_into_the_cutting", "yaw": 90.0, "pitch": 0.0,
+		"pos": Vector3(-29.5, 0.2, -2.0)},
+	# Inside it, where the only lights are behind and ahead. What this catches is
+	# the reveals — 13.5m of blank pier either side, which the day shots already
+	# say is the standing cost of taking the top off.
+	{"time": [21, 45], "name": "04n_in_the_cutting", "yaw": 90.0, "pitch": 2.0,
+		"pos": Vector3(-35.5, 0.2, -2.0)},
+]
+
 const SETTLE_SECONDS := 7.0
 
 var _player: Node3D
@@ -179,6 +251,19 @@ func _run() -> void:
 
 	for shot in APPROACH:
 		await _shoot(shot, shot["name"])
+
+	# The gate after dark, before the crossing, because the plaza is only mounted
+	# on this side of it. See `PLAZA_NIGHT`.
+	for shot in PLAZA_NIGHT:
+		var nt: Array = shot["time"]
+		ParkClock.set_clock(nt[0], nt[1])
+		await get_tree().create_timer(2.5).timeout
+		await _shoot(shot, shot["name"])
+	# Back to the hour the rest of the run is judged in. Everything past the
+	# crossing is an evening-light pass and the boardwalk at 21:45 is a different
+	# set of pictures than the ones `ARRIVED` was written to ask about.
+	ParkClock.set_clock(HOUR, MINUTE)
+	await get_tree().create_timer(2.5).timeout
 
 	# Straight in rather than walked. The crossing itself is `section_test.gd`'s
 	# job and it already passes; what this run is for is what the far side looks
