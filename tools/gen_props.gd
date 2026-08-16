@@ -6333,6 +6333,209 @@ func _gate_frontispiece(face: float, head: float, top: float,
 	# a lit far end. Set well back so the source is not visible from the plaza.
 	_omni("gate_throat", Vector3(face - 7.0, 5.4, mid), "warm", 2.6, 13.0)
 
+	_gate_festoons(top, open_n, open_s)
+
+
+## The two ends of the run, as x. Clear of the beam's west face at −31.4 and
+## short of the wall's own west face at −44, so the whole thing is inside the
+## cutting and nothing hangs out over the terrace.
+const FESTOON_FROM_X := -31.7
+const FESTOON_TO_X := -43.3
+
+## Wires, not anchors — there is one more anchor than there are wires, and they
+## alternate reveals, so six wires is four pins on the north pier and three on
+## the south and a zigzag with a stride of 1.93m.
+const FESTOON_SPANS := 6
+
+## How far the wire drops at mid-span. Added to the anchor height along with the
+## flag drop, so that the *lowest* point of the run rides the free line rather
+## than the anchors doing so and everything else hanging through it.
+const FESTOON_SAG := 0.5
+
+## The flag, and the drop is **computed from it rather than typed**. A guessed
+## 0.7 left the tightest flag corner 51mm clear of the free line, which is
+## thinner than the beam's own 138mm against the wheel — so the decoration would
+## have been the tighter of the two constraints, which is precisely backwards.
+##
+## The corner and not the edge: a box rotated by `LEAN` puts its lowest point at
+## `h/2·cos + w/2·sin`, which is the rotated-box rule that cost three centimetres
+## on a wheelchair footplate and three metres on a cascade wing. It is 27mm here.
+## The rule does not care about the scale, and this is the third scale it has been
+## applied at.
+const FESTOON_FLAG_HANG := 0.34
+const FESTOON_FLAG_H := 0.6
+const FESTOON_FLAG_W := 0.5
+const FESTOON_FLAG_LEAN := 0.11
+
+## What the lowest thing on the run keeps off the plane the beam hides. Stated
+## rather than absorbed, so that anybody who changes the flag or the lean can see
+## what they are spending.
+const FESTOON_CLEAR := 0.2
+
+## Segments per wire. The flag runs are sampled finer because the flags hang at
+## the interior points: seven steps is six flags at 0.86m on a 5.9m wire, which
+## is bunting, and six steps is five bulbs at 1.03m, which is a light string.
+const FESTOON_BULB_STEPS := 6
+const FESTOON_FLAG_STEPS := 7
+
+## How far the pin stands out of the reveal. The wire ends on its tip; the
+## cylinder is drawn twice that long about the midpoint, so it laps the same
+## distance back into the masonry rather than being stuck on the face.
+const FESTOON_PIN := 0.42
+
+## **Both observed, and marked observed because that is the thing this file keeps
+## losing.** The camera is not at the player: the spring arm hangs it about 2.5m
+## back, which is further from the mouth and so tighter than a standing eye. Its
+## *height* moves with the shot's pitch — 1.10 to 1.47 measured in the running
+## game across the west poses — and a lower eye needs more clearance, so the run
+## is sized on 1.10 rather than on the middle of the range.
+const FESTOON_EYE := 1.10
+const FESTOON_ARM := 2.5
+
+## Signal flags, in the four colours the park already owns. No two adjacent are
+## alike and the cycle is nine against six flags a wire, so the pattern does not
+## line up wire to wire. One box each: at greybox fidelity a code flag is a
+## coloured rectangle in a row of coloured rectangles, and splitting each into
+## bands would put two 0.15m² faces on the same plane eighteen times over for
+## detail the rest of the park does not carry.
+const FESTOON_HOIST := ["red", "white", "blue", "yellow", "red", "blue",
+	"white", "yellow", "blue"]
+
+
+## Festoons across the cutting: bulb strings and signal-flag bunting, zigzagged
+## between the two pier reveals, alternating one and then the other.
+##
+## The cutting is 13.5m of open canyon with 12.5m walls and nothing spanning it
+## between the beam at the mouth and the sky. That is what the top coming off
+## bought and it is also what it cost — `_gate_frontispiece` makes the argument
+## for the near plane, that a gateway with nothing on the span reads as
+## unfinished, and past the beam the same sentence applies to the passage.
+##
+## **They hang above the beam's own sight-line and not where the tunnel's ceiling
+## was, and that difference is the whole of what 2026-08-16 bought.** The old
+## soffit ran flat at 5m. That plane is not "decoration slightly in the way of the
+## view" — it *is* the view: the beam clears the wheel's rim by 0.138m at
+## `ARCH_RIM_CLEAR_X`, 6.298 built against 6.16 required, so there is no band
+## under the beam that costs only sky. A wire at 5m sits 1.4m below the free line
+## at the mouth and 5.4m below it at the far end, and a run of bunting there would
+## draw itself straight across the west's biggest silhouette from everywhere in
+## the plaza. Which is the failure the lintel was removed for, rebuilt in cloth.
+##
+## So the run is hung on the plane the beam already hides. From the binding
+## standpoint the ray grazing the soffit rises 0.306 per metre west, putting the
+## free line at 6.30 at the mouth and 10.21 at the far end; anchors sit a sag and
+## a flag's drop above that, so the lowest flag at mid-span rides it. Standing
+## *closer* to the arch the beam subtends more and hides more, so the far
+## standpoint is the binding one — the same argument and the same standpoint
+## `ARCH_HEIGHT` is itself set at, which is what makes this safe by construction
+## rather than by a second survey. Nothing here can be the thing that crops the
+## wheel; the beam crops first, at every pose, or neither does.
+##
+## What that means for how it reads is worth saying out loud, because it is a
+## real trade and not a free one: this is **not** an invitation seen from the
+## fountain. From the plaza the run sits behind the beam and you get the sign and
+## the bulb row under it, exactly as before. It appears the moment you walk under
+## the beam, overhead — the strings lift away west and open the slot — and it is
+## a thing you look up at rather than ahead at, 44° to 79° above level from the
+## middle of the cutting. A passage dressed for the length of the passage rather
+## than a shopfront for it.
+##
+## **And it is only ever seen from the plaza's side of the seam.** This scene is
+## `plaza_frontage.tscn`, the seam is at `ARCH_SEAM_AT` in the middle of the
+## cutting, and `ParkSections` frees the plaza on the way across — so from the
+## terrace looking back there are no festoons, for the same reason there is no
+## sign, no valance and no bulb row: everything behind the arch out there is
+## `_plaza_from_below`'s massing copy, which carries shapes and deliberately not
+## detail. The run therefore reads over about seven metres of walking, from the
+## beam to the crossing. Putting it on the far side too would mean teaching the
+## stand-in to reproduce detail, which is the one thing that comment argues
+## against — it is a real limit, not an oversight, and it is the sign's limit
+## already.
+func _gate_festoons(top: float, open_n: float, open_s: float) -> void:
+	# The plane the beam hides, from the standpoint the beam is bound at.
+	var cam_x: float = Plan.ARCH_RIM_CLEAR_X + FESTOON_ARM
+	var rise: float = (Plan.ARCH_HEIGHT - FESTOON_EYE) / (cam_x - Plan.ARCH_MOUTH_X)
+	# The bottom corner of the lowest flag, measured from its own wire.
+	var drop: float = FESTOON_FLAG_HANG + FESTOON_CLEAR \
+		+ FESTOON_FLAG_H * 0.5 * cos(FESTOON_FLAG_LEAN) \
+		+ FESTOON_FLAG_W * 0.5 * sin(FESTOON_FLAG_LEAN)
+
+	var anchors: Array[Vector3] = []
+	for i in FESTOON_SPANS + 1:
+		var x := lerpf(FESTOON_FROM_X, FESTOON_TO_X, float(i) / float(FESTOON_SPANS))
+		var z: float = (open_n + FESTOON_PIN) if i % 2 == 0 else (open_s - FESTOON_PIN)
+		var free: float = Plan.ARCH_HEIGHT + (Plan.ARCH_MOUTH_X - x) * rise
+		anchors.append(Vector3(x, free + FESTOON_SAG + drop, z))
+
+	# Cheap and general: assert the run is where the run belongs. Everything is
+	# inside the cutting in x, and the highest anchor is under the pier top —
+	# which is the end the rising line runs at, and the one that would climb out
+	# through the sky if the eye height or the span ever moved.
+	for a in anchors:
+		if a.x > Plan.ARCH_MOUTH_X or a.x < Plan.ARCH_FAR_X:
+			push_error("a festoon anchor at x %.2f is outside the cutting" % a.x)
+			return
+	if anchors[FESTOON_SPANS].y > top - 0.6:
+		push_error("the west end of the festoon run stands at %.2f against a pier "
+			% anchors[FESTOON_SPANS].y + "top of %.2f — it is over the wall" % top)
+		return
+
+	# A pin per anchor, standing out of the reveal and lapping the same distance
+	# back into it, so the wire ends on something rather than in masonry.
+	for i in anchors.size():
+		var a: Vector3 = anchors[i]
+		var wall: float = open_n if i % 2 == 0 else open_s
+		_cyl("gate_festoon_pin_%d" % i, Vector3(a.x, a.y, (wall + a.z) * 0.5),
+			Vector3.ZERO, 0.06, absf(a.z - wall) * 2.0, "metal", 0.0, 8, false, PI * 0.5)
+
+	for w in FESTOON_SPANS:
+		var a: Vector3 = anchors[w]
+		var b: Vector3 = anchors[w + 1]
+		var flags: bool = w % 2 == 1
+		var steps: int = FESTOON_FLAG_STEPS if flags else FESTOON_BULB_STEPS
+		var pts: Array[Vector3] = []
+		for s in steps + 1:
+			var t := float(s) / float(steps)
+			var p := a.lerp(b, t)
+			p.y -= FESTOON_SAG * sin(PI * t)
+			pts.append(p)
+		for s in steps:
+			_strut("gate_festoon_wire_%d_%d" % [w, s], pts[s], pts[s + 1], 0.045, "metal")
+		if flags:
+			for f in steps - 1:
+				var p: Vector3 = pts[f + 1]
+				# Yaw off the neighbours rather than off one segment, so a flag on
+				# a sagging wire hangs along the curve instead of along the chord
+				# it happens to sit at the end of.
+				var d: Vector3 = pts[f + 2] - pts[f]
+				# A little wind. Alternating rather than random, because two
+				# adjacent flags leaning the same way read as a printing error and
+				# two leaning apart read as a breeze.
+				var lean: float = FESTOON_FLAG_LEAN * (1.0 if f % 2 == 0 else -1.0)
+				var hoist: String = FESTOON_HOIST[(w / 2 * (FESTOON_FLAG_STEPS - 1)
+					+ f) % FESTOON_HOIST.size()]
+				_box("gate_festoon_flag_%d_%d" % [w, f],
+					Vector3(p.x, p.y - FESTOON_FLAG_HANG, p.z), Vector3.ZERO,
+					Vector3(0.03, FESTOON_FLAG_H, FESTOON_FLAG_W), hoist,
+					atan2(d.x, d.z), false, lean)
+		else:
+			for bl in steps - 1:
+				_sphere("gate_festoon_bulb_%d_%d" % [w, bl], pts[bl + 1],
+					Vector3(0.0, -0.22, 0.0), 0.13, "bulb")
+
+	# Two pools, hung at the strings rather than over the floor. `gate_throat`
+	# already lights the floor from 5.4 and is the reason the cutting does not read
+	# as closed after dark; these are for the wires and the flags themselves and
+	# for the top of the reveals, which is 12.5m of masonry that nothing else in
+	# the park reaches. The emissive bulbs carry the look of the run, as they do
+	# on the street and on the promenade — this is so the bunting between them is
+	# a colour at night and not a silhouette.
+	for i in 2:
+		var w: int = 1 if i == 0 else 4
+		var mid: Vector3 = anchors[w].lerp(anchors[w + 1], 0.5)
+		_omni("gate_festoon_glow_%d" % i,
+			Vector3(mid.x, mid.y - FESTOON_SAG - 0.3, mid.z), "warm", 1.5, 12.0)
+
 
 ## One run of perimeter, from the pavement to the skyline.
 ##

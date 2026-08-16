@@ -181,10 +181,21 @@ material = SubResource("mat_building")
 ; was the thing cropping the west view, and it was cropping it in the one
 ; direction nobody had measured. A soffit at 5m over 13.5m of depth is not a 5m
 ; ceiling — the *far* edge is what limits, and from the ring's west vertex that
-; edge sits 28m off, which puts the ceiling on a 6.7° ray. The wheel stands 21.9m
-; tall at 87m: the ray reaches y=12 by the time it gets there, so the top half of
-; the section's biggest silhouette was behind masonry from everywhere in the
-; plaza. Lateral was never the problem and the arithmetic below is still true —
+; edge sits 28m off, which puts the ceiling on a 6.7° ray. The wheel's crown is
+; `ParkPlan.WHEEL_TOP`, 25.80, and it stands 87m off from that same vertex: the
+; ray reaches y=12 by the time it gets there, which is a hand under the hub — so
+; rather more than the top half of the section's biggest silhouette was behind
+; masonry from everywhere in the plaza.
+;
+; **That height read 21.9 here until 2026-08-16b and it was wrong by 3.9m**, the
+; last of the four places carrying a figure reconstructed from `SHORE_TOP` plus
+; two radii rather than read out of `west_far.tscn`. `CLAUDE.md`, `ParkPlan` and
+; `west_capture.gd` were corrected the day it was found and this file was missed,
+; which is the failure mode a fifth survey exists to produce: the *argument* here
+; was sound at 21.9 and is stronger at 25.8, so nothing looked wrong. Read
+; `WHEEL_TOP`; do not add anything up.
+;
+; Lateral was never the problem and the arithmetic below is still true —
 ; the pavilion and the pier fit inside the 6m slot whole, from every standpoint,
 ; and did under the 9m arch too. Height was the whole of it.
 ;
@@ -226,9 +237,20 @@ material = SubResource("mat_building")
 ; that stops at the reveal has nothing to sit on.
 ;
 ; 6.30 to 7.40. The soffit is set by the wheel and not by taste: it has to clear
-; y=21.9 at 87m from the furthest anyone stands on the axis, which is the ring's
-; west vertex at −16 with the fountain blocking everything behind it. 6.30 puts
-; the ceiling there at 24m. `ParkPlan.ARCH_HEIGHT` carries the number.
+; `ParkPlan.WHEEL_TOP` — 25.80, read and not reconstructed — at 87m from the
+; furthest anyone stands on the axis, which is the ring's west vertex at −16 with
+; the fountain blocking everything behind it.
+;
+; **What 6.30 buys is a range and not a number, so it is quoted as one.** The
+; camera is not at the standpoint: the spring arm hangs it about 2.5m back, and
+; its height moves with the shot's pitch — 1.10 to 1.47 measured in the running
+; game across the west poses. Over that range this soffit puts the ceiling at the
+; wheel's distance between **26.9m and 28.5m** (both computed, at the two
+; measured eye heights), against a crown at 25.80. It clears at either end.
+;
+; `ParkPlan.ARCH_HEIGHT` carries the number and the standpoint table with it.
+; Do not restate the required-soffit figures here — a fifth copy of them is how
+; the 21.9 above survived three corrections.
 ;
 ; Collides, because it is 6.3m up over a route the player walks and the boardwalk
 ; copy of it in `_plaza_from_below` is two metres from where they arrive.

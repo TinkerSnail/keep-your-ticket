@@ -77,6 +77,19 @@ const APPROACH := [
 	# 6m of pier at arm's length whichever way you look — and that the pitch below
 	# is doing nothing, because with no soffit there is nothing left to duck.
 	{"name": "05_in_the_tunnel", "yaw": 90.0, "pitch": 0.0, "pos": Vector3(-35.5, 0.2, -2.0)},
+	# The same standpoint with the head back, and the only shot in the run that
+	# looks at what is over the cutting.
+	#
+	# It exists because the festoons cannot be in any other shot and that is by
+	# construction rather than by oversight. They hang on the plane the beam
+	# already hides, which is 8.0m at the mouth rising to 11.6m at the far end —
+	# so from the plaza they are behind the beam, and from inside they are at 44°
+	# to 79° above a level view. There is nowhere lower for them to go: only 1.57°
+	# of sky separates the wheel's crown from the beam's soffit at
+	# `ParkPlan.ARCH_RIM_CLEAR_X`, so anything hung under this plane is hung across
+	# the wheel. A pitch this steep is not a tidy frame and is not meant to be; it
+	# is the angle a person's head actually goes to walking under a gateway.
+	{"name": "05a_over_the_cutting", "yaw": 90.0, "pitch": 58.0, "pos": Vector3(-35.5, 0.2, -2.0)},
 ]
 
 ## The far side, in walking order, beginning on the terrace — because the player
@@ -222,6 +235,12 @@ const PLAZA_NIGHT := [
 	# the reveals — 13.5m of blank pier either side, which the day shots already
 	# say is the standing cost of taking the top off.
 	{"time": [21, 45], "name": "04n_in_the_cutting", "yaw": 90.0, "pitch": 2.0,
+		"pos": Vector3(-35.5, 0.2, -2.0)},
+	# And the same head-back shot after dark, which is the one the festoons were
+	# actually hung for. Fifteen bulbs and two pools against 12.5m of unlit
+	# reveal: by day the run is flags over a canyon, by night it is the only thing
+	# in the cutting between `gate_throat` at 5.4 and the sky.
+	{"time": [21, 45], "name": "05n_over_the_cutting", "yaw": 90.0, "pitch": 58.0,
 		"pos": Vector3(-35.5, 0.2, -2.0)},
 ]
 
