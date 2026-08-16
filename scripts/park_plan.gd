@@ -497,13 +497,24 @@ const LANDING_HALF_W := 3.5
 const CASCADE_WALL_X := CASCADE_TOP_X - LANDING_D
 const CASCADE_WALL_THICK := 1.6
 
-## The niche in the middle of that face. Blind and about two feet deep — it is
-## where the water comes out and nothing walks through it. Making it a doorway
-## was downstream of putting a staircase down the middle, and both were the same
-## mistake: the centre is the cascade and nobody walks it.
+## The niche in the middle of that face. Blind — it is where the water comes out
+## and nothing walks through it. Making it a doorway was downstream of putting a
+## staircase down the middle, and both were the same mistake: the centre is the
+## cascade and nobody walks it.
+##
+## **A metre and a half deep since 2026-08-16, and it was two feet.** At 0.6 the
+## recess was a rebate rather than a room: anything set in it stood proud of the
+## wall, so the wall fountain the whole niche exists for would have been a lump
+## bolted to the facade instead of something the mass was hollowed out for. The
+## depth is what buys the shadow, and the shadow is what the arch is drawn round.
+##
+## It is free, which is why it can be spent. The recess cuts back into
+## `landing_fill` — five metres of buried mass between the wall and the bluff
+## face — so nothing structural is being thinned. `CASCADE_WALL_THICK` stays where
+## it is on purpose: `face` is derived from it, and the wings spring off `face`.
 const NICHE_W := 2.4
 const NICHE_H := 3.2
-const NICHE_DEEP := 0.6
+const NICHE_DEEP := 1.5
 
 ## A wing. The outbound leg runs behind the facade plane and the return leg in
 ## front of it, which is what puts two rails at two angles on each side — exactly

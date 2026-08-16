@@ -863,6 +863,54 @@ func _fountain_materials() -> void:
 		"base_alpha": 0.13, "glow": 0.40,
 		"fade_from": 6.60, "fade_to": 5.40,
 	})
+	# --- the wall fountain in the cascade's niche ---
+	#
+	# **Its own materials, and the reason is one uniform.** `centre` is a world
+	# position: the pool shader radiates its rings from it, so a surface wearing
+	# `water_basin` sixty metres west of the plaza gets rings that have long
+	# since flattened into parallel stripes travelling in one direction. It would
+	# have read as brushed metal, and it would have read that way in a screenshot
+	# without looking wrong — which is the same blind spot the flow direction sat
+	# in. Water is centred on the thing it is in.
+	#
+	# The trough is 1.7m by 2.0 against the plaza pool's 17, so the rings go
+	# tighter again than the basins': at the basin's 4.5 there is barely one wave
+	# on it.
+	var niche_c := Vector3(Plan.CASCADE_WALL_X, 0.0, Plan.CASCADE_AXIS_Z)
+	mats["water_niche"] = _shader_material(pool, {
+		"tint": Color(0.12, 0.27, 0.30),
+		"centre": niche_c,
+		"ring_scale": 11.0,
+		"chop": 6.0,
+		"rough": 0.05,
+	})
+	mats["water_niche_foam"] = _shader_material(pool, {
+		"tint": Color(0.50, 0.64, 0.67),
+		"centre": niche_c,
+		"ring_scale": 20.0,
+		"chop": 11.0,
+		"rough": 0.22,
+		"spec": 0.7,
+	})
+	# Two falls and not one, because `fade_from`/`fade_to` are **absolute world
+	# Y** and the two drops are at different heights. The plaza's pair got away
+	# with a fountain standing on y=0; everything down here is 6m under it, so a
+	# fade copied off the plaza's numbers would put the whole fade band above the
+	# spout. Both streams are round and about 10cm through, so `streaks` is set
+	# to put roughly one rope on that width — 70 rather than the veils' 64–80
+	# across a 40cm slab, which is the same rope, not a coarser one.
+	var nf := SHORE_TOP
+	mats["water_niche_spout"] = _shader_material(fall, {
+		"flow": 2.0, "streaks": 70.0, "grain": 3.2,
+		"base_alpha": 0.34, "glow": 0.40,
+		"fade_from": nf + 2.66, "fade_to": nf + 2.12,
+	})
+	mats["water_niche_fall"] = _shader_material(fall, {
+		"flow": 2.3, "streaks": 70.0, "grain": 2.8,
+		"base_alpha": 0.32, "glow": 0.34,
+		"fade_from": nf + 1.76, "fade_to": nf + 0.86,
+	})
+
 	# Froth. The pool shader rather than the fall shader, and that is not a
 	# detail: `water_fall` travels by *height*, so on a flat horizontal patch
 	# every fragment shares one value and the whole ring pulses in unison. The
@@ -1917,8 +1965,8 @@ func _foam_ring(nm: String, o: Vector3, segs: int, r: float, y: float,
 
 
 func _foam_patch(nm: String, o: Vector3, local: Vector3, radius: float,
-		a: float) -> void:
-	_water_cyl(nm, o, local, radius, 0.04, "water_foam", 10, a)
+		a: float, mat := "water_foam") -> void:
+	_water_cyl(nm, o, local, radius, 0.04, mat, 10, a)
 
 
 ## A cylinder standing on `foot` and leaning by `lean` about its own bearing.
@@ -3256,6 +3304,14 @@ func _flight_ramp(nm: String, top_a: Vector3, top_b: Vector3, theta: float,
 ## one end and cut at the other.
 const WING_BASE_Y := SHORE_TOP - 1.4
 
+## How far above the court a wing's west edge has to be before it wants a rail.
+## A step, near enough — under this the edge is a kerb and a guard on it is a
+## fence across the bottom of the descent. It is the *only* thing that decides
+## where the return leg's rail stops, and it is a height rather than a length on
+## purpose: a length has to be re-checked every time the monument's proportions
+## move, and the last one was not.
+const RAIL_FREEBOARD := 0.6
+
 
 ## The cascade: a landing at the head, a trapezoid facade under it, and a wing
 ## hairpinning down each side. See `ParkPlan.LANDING_D` for the plan and why
@@ -3274,6 +3330,14 @@ func _west_cascade() -> void:
 	_cascade_bank(1.0)
 	_cascade_bed(-1.0)
 	_cascade_bed(1.0)
+	# **Last of the geometry, and it belongs to the landing.** It is built here
+	# rather than inside `_cascade_landing` for the reason `_begin_scene` states:
+	# the seam displacement is handed out in build order and wraps at 21, so
+	# thirty-odd nodes inserted at the head of this scene move every shape after
+	# them cyclically and can put two untouched surfaces on one plane eighty
+	# metres away. Adding at the end shifts nothing. Read `_cascade_landing`
+	# first — that is where the hole this fills is cut.
+	_cascade_niche()
 	_cascade_lights()
 
 
@@ -3292,10 +3356,22 @@ func _cascade_landing() -> void:
 	var face := wx - thick * 0.5
 
 	# The deck, from the bluff face out to the wall.
+	#
+	# **The fill's west face is the back of the niche, and that is why it is
+	# written off `NICHE_DEEP` rather than off `wx`.** The recess is a hole in
+	# this mass, not a rebate in the facing in front of it — so when the niche
+	# got deep enough to stand a fountain in, the thing that had to move was the
+	# fill. At 0.6 the two happened to coincide (`wx` is `face + 0.8`, which was
+	# `NICHE_DEEP + 0.2`), and writing it as `wx` made a coincidence look like a
+	# derivation. The 0.2 is a void behind the facing, left deliberately: butting
+	# the fill against the facing's back would put the fill's ±Z faces on the
+	# facing's over an overlapping span, and that is a fight rather than an
+	# overlap.
 	var d0: float = Plan.CASCADE_TOP_X
+	var fill_x: float = face + Plan.NICHE_DEEP + 0.2
 	_box("landing_fill", Vector3.ZERO,
-		Vector3((d0 + wx) * 0.5, (base - 0.3) * 0.5, axis),
-		Vector3(absf(wx - d0), -base + 0.3, half * 2.0), "building")
+		Vector3((d0 + fill_x) * 0.5, (base - 0.3) * 0.5, axis),
+		Vector3(absf(fill_x - d0), -base + 0.3, half * 2.0), "building")
 	_box("landing_deck", Vector3.ZERO,
 		Vector3((d0 + wx) * 0.5, -0.25, axis),
 		Vector3(absf(wx - d0), 0.5, half * 2.0), "accent")
@@ -3323,14 +3399,22 @@ func _cascade_landing() -> void:
 	# invisible until the wall came in to 7m — at 14m the whole head was 17% of
 	# the wall and read as a smudge, and the narrowing is what made it big enough
 	# to see. A detail too small to check is a detail too small to be right.
+	#
+	# **They run the whole depth of the reveal, which is new and is the deep
+	# niche's doing.** At 0.6 a corbel 1.2m through was mostly buried and it did
+	# not matter what it did behind the face. At 1.5 the reveal is the biggest
+	# thing about the opening, and a head that stops partway along it is an arch
+	# with no soffit — from the court you would see the courses at the mouth and
+	# a flat ceiling behind them.
 	for i in 3:
 		var inset := 0.26 + float(2 - i) * 0.28
 		for k in 2:
 			var s := -1.0 if k == 0 else 1.0
 			_box("landing_niche_%d_%d" % [i, k], Vector3.ZERO,
-				Vector3(wx + 0.05, nh - 0.2 * (float(i) + 0.5),
+				Vector3(face + (Plan.NICHE_DEEP + 0.2) * 0.5,
+					nh - 0.2 * (float(i) + 0.5),
 					axis + s * (Plan.NICHE_W * 0.5 - inset * 0.5)),
-				Vector3(thick - 0.4, 0.2, inset), "building")
+				Vector3(Plan.NICHE_DEEP + 0.2, 0.2, inset), "building")
 	# The string course under the landing's lip, carried on down both wings by
 	# `_cascade_wing`. `trim`, so it lights itself after dark and draws the same
 	# line by night that the handrail draws by day.
@@ -3355,12 +3439,13 @@ func _cascade_landing() -> void:
 	# `half` either side of the axis lands it flush against the wing masses, and
 	# the return leg's own foot slab sets how far west it reaches.
 	var apron_far: float = Plan.wing_path(-1.0)[3].x - (Plan.WING_W + 0.7) * 0.5
-	# **Carried back under the wall, not stopped at its face.** The niche is a
-	# 0.6m recess and the apron used to end level with the front of it, which
-	# left a dark strip of asphalt across the bottom of the opening — the one
-	# part of the floor the arch actually frames. Running it back past the wall's
-	# thickness buries the surplus inside the masonry and costs nothing.
-	var apron_near := face + 0.7
+	# **Carried back to the back of the niche, not stopped at the wall's face.**
+	# The apron used to end level with the front of the recess, which left a dark
+	# strip of asphalt across the bottom of the opening — the one part of the
+	# floor the arch actually frames. It now runs to `fill_x`, so the recess has
+	# a stone floor for its whole depth; that was a nicety at 0.6 and is the
+	# fountain's foundation at 1.5.
+	var apron_near := fill_x
 	_box("cascade_apron", Vector3.ZERO,
 		Vector3((apron_near + apron_far) * 0.5, SHORE_TOP - 0.143, axis),
 		Vector3(absf(apron_near - apron_far), 0.36, half * 2.0), "accent")
@@ -3372,38 +3457,219 @@ func _cascade_landing() -> void:
 		Vector3(0.18, 0.3, half * 2.0 - 0.1), "trim")
 
 
+## The wall fountain in the niche.
+##
+## `ParkPlan` has said "the centre is water and the niche is blind — it is where
+## the water comes out" since the flight came out of the middle, and until now
+## nothing came out of it. The niche was a dark rectangle with a lamp in it.
+##
+## It is a **wall fountain**, not a scaled-down version of the plaza's: a bronze
+## spout high under the arch, a bracketed half-basin catching it at chest height,
+## two streams off that basin's ends, and a trough on the ground taking both. The
+## plaza's is a free-standing object you walk round and the vocabulary that
+## builds it is radial — rings of blocks, rings of falls, everything hung off one
+## axis. Nothing here is radial, because a wall fountain has a back, and the back
+## is the point: every part of it is cantilevered off one plane and the water
+## falls down that plane in three stages. Reusing `_rim_ring` and `_veil` would
+## have produced a small round fountain standing in a recess, which is a
+## different object.
+##
+## What it does share is the **materials**, and that is deliberate rather than
+## lazy. `fount_stone` is off the perimeter's hue by a measured margin and
+## `fount_wet` is what says a surface has had water over it — the two of them are
+## the park's existing answer to "this is masonry with water on it", and a second
+## answer would just be a second warm grey. The water materials are its own; see
+## `_fountain_materials` for why `centre` makes that mandatory.
+##
+## **Depth is what makes it a fountain rather than a relief.** At the old 0.6m
+## recess every one of these parts would have stood proud of the facade: the
+## trough alone is 1.65m deep. `NICHE_DEEP` went to 1.5 for this, and the whole
+## assembly then sits *inside* the arch with only the trough's lip crossing the
+## facade plane — which is what the reference photograph does and why the recess
+## reads as having been hollowed out to hold something.
+##
+## Nothing above the trough collides. The trough is 0.89m of stone across the
+## mouth of a recess nobody has any business standing in, so it is the barrier
+## and the six parts behind it can be scenery. That is the fountain kerb's
+## argument — 260 shapes inside the plaza's pool need no collision because 72
+## ring blocks are a fence — made with three boxes instead of seventy-two.
+func _cascade_niche() -> void:
+	# The niche's own frame: the wall's west face, the shore, the axis. Every
+	# number below is depth into the recess, height off the apron, and offset
+	# from the axis, which is the only way this stays legible against a wall at
+	# x = −63.8 standing on ground at y = −6.
+	var face: float = Plan.CASCADE_WALL_X - Plan.CASCADE_WALL_THICK * 0.5
+	var o := Vector3(face, SHORE_TOP, Plan.CASCADE_AXIS_Z)
+	# Where the recess ends. `_cascade_landing` cuts the fill back to
+	# `NICHE_DEEP + 0.2`; the plate stands 0.025 west of that and is what the
+	# player actually sees, so the clear depth is 1.475.
+	var back := Plan.NICHE_DEEP - 0.025
+
+	# --- the back ---
+	#
+	# A dressed panel rather than the bare fill, and wider than the opening so it
+	# closes the 0.2m slot behind the reveals at both sides. It is also the one
+	# surface in the recess that is lit, so it wants to be stone the fountain is
+	# made of rather than the wall it is cut into.
+	_box("niche_plate", o, Vector3(back + 0.275, 1.70, 0.0),
+		Vector3(0.55, 3.40, Plan.NICHE_W + 0.5), "fount_stone")
+	# The wetted band down the middle of it, standing 5cm proud. It costs one box
+	# and it is the only thing that says the water has been running for twenty
+	# summers — the alternative was staining the stone, which greybox cannot do.
+	# From the bowl's underside to the trough's lip, because that is the stretch
+	# the two falls run past rather than the whole plate.
+	_box("niche_stain", o, Vector3(back - 0.03, 1.30, 0.0),
+		Vector3(0.06, 1.48, 1.50), "fount_wet", 0.0, false)
+
+	# --- the trough ---
+	#
+	# Body, bed, and three rim walls. Three and not four: the fourth is the plate
+	# and a rim against it would be a course of stone nobody can see from any
+	# standpoint in the park.
+	var tw := 0.675  # centre of the trough in depth
+	_box("trough_body", o, Vector3(tw, 0.30, 0.0), Vector3(1.65, 0.60, 2.00),
+		"fount_stone")
+	_box("trough_bed", o, Vector3(0.70, 0.65, 0.0), Vector3(1.40, 0.14, 1.76),
+		"fount_bed", 0.0, false)
+	# Overhanging the body by 7cm, for the reason the plaza pool's coping does:
+	# the shadow line under a lip is what makes masonry read as cut stone.
+	_box("trough_rim_w", o, Vector3(-0.14, 0.74, 0.0), Vector3(0.16, 0.30, 2.14),
+		"fount_wet")
+	for k in 2:
+		var s := -1.0 if k == 0 else 1.0
+		_box("trough_rim_%d" % k, o, Vector3(tw, 0.74, s * 0.99),
+			Vector3(1.79, 0.30, 0.16), "fount_wet")
+	# 6cm of freeboard. Brimmed to the rim a trough reads as a painted panel.
+	_water_box("trough_water", o, Vector3(0.70, 0.74, 0.0),
+		Vector3(1.48, 0.18, 1.82), "water_niche")
+
+	# --- the basin on the wall ---
+	#
+	# A corbel, a stepped underside and three rim walls, all cantilevered off the
+	# plate. The underside is the part that does the work: this is seen from
+	# below by anybody standing in the court, so what reads is its shadow and its
+	# projection, not the dish.
+	#
+	# **It sits a quarter-metre higher than the first build put it.** At 1.6 the
+	# gap between the basin's underside and the trough's lip was 0.6m and the two
+	# falls in it were shorter than they were wide apart — three stages that read
+	# as two objects with a smear between them. Falling water needs *height* to
+	# be falling water, and the niche is 3.2m tall with nothing else asking for
+	# the top of it.
+	_box("bowl_corbel", o, Vector3(1.32, 1.56, 0.0), Vector3(0.42, 0.34, 0.85),
+		"fount_stone", 0.0, false)
+	_box("bowl_under", o, Vector3(1.24, 1.82, 0.0), Vector3(0.58, 0.20, 1.36),
+		"fount_stone", 0.0, false)
+	_box("bowl_rim_w", o, Vector3(1.02, 2.05, 0.0), Vector3(0.14, 0.28, 1.42),
+		"fount_wet", 0.0, false)
+	for k in 2:
+		var s := -1.0 if k == 0 else 1.0
+		_box("bowl_rim_%d" % k, o, Vector3(1.24, 2.05, s * 0.64),
+			Vector3(0.58, 0.28, 0.14), "fount_wet", 0.0, false)
+	_water_box("bowl_water", o, Vector3(1.31, 2.04, 0.0),
+		Vector3(0.44, 0.16, 1.28), "water_niche")
+
+	# --- the spout ---
+	#
+	# A boss on the wall and a lip out of it, 2.5m up under the arch's head. Two
+	# boxes rather than a cylinder, and that is a limit of the primitives rather
+	# than a choice: `_cyl` stands on its own Y and pointing one west would mean
+	# composing the offset in a rotated frame for a fitting 30cm long. A
+	# flattened bronze tongue is what the reference has anyway.
+	_box("spout_boss", o, Vector3(1.42, 2.80, 0.0), Vector3(0.22, 0.30, 0.34),
+		"fount_bronze", 0.0, false)
+	_box("spout_lip", o, Vector3(1.20, 2.72, 0.0), Vector3(0.30, 0.12, 0.26),
+		"fount_bronze", 0.0, false)
+
+	# --- the water in the air ---
+	#
+	# Three streams, all vertical. An arc is what the photograph shows and what
+	# this cannot have: an arc is four segments per stream and it lands wherever
+	# the last one stops, which is the argument `_fountain_jets` already settled
+	# for the plaza's ring. Vertical, each one starts inside the thing above it
+	# and fades out just above the thing below it, so neither end is an edge.
+	_water_cyl("spout_stream", o, Vector3(1.10, 2.40, 0.0), 0.055, 0.58,
+		"water_niche_spout", 8)
+	_water_cyl("spout_foam", o, Vector3(1.10, 2.13, 0.0), 0.13, 0.04,
+		"water_niche_foam", 10)
+	for k in 2:
+		var s := -1.0 if k == 0 else 1.0
+		# **West of the basin's front rim, not behind it.** They started at the
+		# corners of the well, which is where a real overflow would be and which
+		# put both of them behind 14cm of stone: from the court — the standpoint
+		# the whole monument is judged from — the middle stage of the fountain was
+		# simply missing, and it was visible only from close enough to be looking
+		# up into the basin. A fall has to clear the lip it comes off.
+		_water_cyl("bowl_fall_%d" % k, o, Vector3(0.90, 1.28, s * 0.62),
+			0.048, 0.98, "water_niche_fall", 8)
+		# Smaller than they were. At 0.20 a pair of 40cm discs on a 1.5m trough
+		# read as two lily pads rather than as the water being disturbed.
+		_water_cyl("trough_foam_%d" % k, o, Vector3(0.90, 0.84, s * 0.62),
+			0.14, 0.04, "water_niche_foam", 10)
+
+	# --- what stands either side of it ---
+	#
+	# Two pots against the facade, flanking the opening. They are outside the
+	# reveals rather than in the recess, so they frame the arch instead of
+	# crowding what is in it, and they are the same `planting`/`bloom` vocabulary
+	# `_cascade_bed` uses twenty metres away — which is the point. The monument's
+	# planting is what makes it a garden rather than civil engineering, and the
+	# fountain is the one part of it at arm's length.
+	for k in 2:
+		var s := -1.0 if k == 0 else 1.0
+		var z := s * (Plan.NICHE_W * 0.5 + 0.52)
+		_cyl("niche_pot_%d" % k, o, Vector3(-0.48, 0.29, z), 0.36, 0.58,
+			"fount_stone", 0.0, 12)
+		_cyl("niche_pot_soil_%d" % k, o, Vector3(-0.48, 0.60, z), 0.30, 0.10,
+			"planting", 0.0, 12, false)
+		for i in 4:
+			var a := TAU * (float(i) + 0.5) / 4.0
+			_sphere("niche_bloom_%d_%d" % [k, i], o,
+				Vector3(-0.48 + cos(a) * 0.17, 0.72 + _hash01(k * 7 + i, 3, 31) * 0.14,
+					z + sin(a) * 0.17),
+				0.16 + _hash01(i, 5, 37) * 0.10,
+				["bloom_pale", "bloom_warm", "bloom_pink"][(k + i) % 3])
+
+
 ## The crest: the line along the top of the whole monument, and the one thing in
 ## the reference photographs your eye actually follows.
 ##
 ## It used to be a single handrail straight across the landing's lip for the full
 ## 7m, which is the one arrangement the photograph does not show. What is there
-## instead has three parts and they are not separable:
+## instead is three parts:
 ##
-## 1. **Two piers**, standing a little taller than the parapet and a little proud
-##    of it, framing the middle. They are what makes the centre read as an
-##    opening rather than as the blank part of a wall.
-## 2. **A parapet** from each pier out to the wing mouth — solid, not a rail. A
-##    guard on a 6m drop wants to be mass at this scale; the rail belongs in the
-##    gap between the piers where you stand and look down.
-## 3. **A shoulder** at each end, sweeping the parapet's horizontal down onto the
-##    wing's diagonal. The trapezoid changes angle there, and in the reference
-##    that corner is not a corner — the line leaves the pier flat, falls away,
-##    and is running parallel to the wing by the time it reaches it.
+## 1. **Two piers**, standing taller than the crest and a little proud of it,
+##    framing the middle. They are what makes the centre read as an opening
+##    rather than as the blank part of a wall.
+## 2. **A rail** filling the whole span between them. With no parapet in that
+##    span the rail is the guard on a 6m drop rather than decoration on top of
+##    one, which is why it is three horizontals and six posts.
+## 3. **A globe under each pier**, and it is the only fitting on the monument
+##    whose geometry is its own light source.
 ##
-## **The shoulder is a quadratic and its control point is not a taste decision.**
-## The curve has to leave the parapet horizontal and arrive on the wing at the
-## wing's own gradient, and those two tangents intersect at exactly one point:
-## the height of the parapet, `par_top / m` inboard of the wing head. Put the
-## control point there and the curve is tangent at both ends by construction, so
-## there is no corner at either join and nothing to tune. Sampled into upright
-## slices for the same reason the wing's mass is — a rotated box swings its own
-## corners, and this is a shape whose ends have to land exactly.
+## **There is no shoulder, and this docstring described one for longer than the
+## code had one.** Four were built into the gap outboard of the piers on
+## 2026-08-16 — a quadratic fillet, a concave flare, a cubic S rolling off a
+## raised ledge, and a straight bevel — and all four came out. Every one of them
+## needed a lump of raised wall carried out over the wing to spring from, and the
+## lump was the fault each time: from the court it read as a block sitting on the
+## wing rather than as the wing's own top edge doing something. Removing only the
+## curve and leaving the ledge it stood on does not help; that was tried.
 ##
-## `CASCADE_CREST` history: nothing here is a curve for its own sake. The wings
-## themselves are straight and stay straight — a curved *wing* was tried on
-## 2026-08-15 and died, and the note in `ParkPlan` about it is still correct.
-## What that note did not cover is the join, which is where the reference's only
-## curve actually is.
+## The junction is a plain corner. The block's top is the landing deck, the wings
+## spring straight off it, and nothing stands outboard of the piers.
+##
+## Two things worth keeping from the attempts, because both are true and neither
+## is in the code any more. A quadratic tangent to the horizontal at one end and
+## to the wing at the other has its control point where those two tangents cross,
+## which is fixed at `crest height / gradient` inboard of the wing head — so the
+## curve silently decides how far out the piers may stand, and moving a pier past
+## it puts the control point behind the start of the curve. And a curve sampled
+## into upright slices draws a staircase when the sampled edge *is* the
+## silhouette; it needs thin plates laid along each chord, which is only safe
+## because a slice is short enough that tilting swings its corners by
+## centimetres. See `_cascade_wing` for the version of that argument where the
+## box was 5.9m tall and it went the other way.
 func _cascade_crest() -> void:
 	var axis := Plan.CASCADE_AXIS_Z
 	var half := Plan.LANDING_HALF_W
@@ -3717,16 +3983,36 @@ func _cascade_wing(side: float, smooth: bool) -> void:
 		# top of a setback that had already been made — three metres of unguarded
 		# edge at every turn end, and the rail visibly not reaching the landing.
 		#
-		# The one cut that stays is the last three metres of the return leg. By
-		# then the wing is flush with the court and a rail carried to the end
-		# fences the one place the descent is supposed to deliver you to; it did
-		# exactly that once already and both `wing -> court` legs timed out with
-		# the player sliding down the outside of it.
+		# The one cut that stays is at the bottom of the return leg. By then the
+		# wing is flush with the court and a rail carried to the end fences the
+		# one place the descent is supposed to deliver you to; it did exactly that
+		# once already and both `wing -> court` legs timed out with the player
+		# sliding down the outside of it.
+		#
+		# **It was a flat three metres and that number stopped being right when
+		# the monument narrowed.** Three metres was most of a leg when a leg was
+		# long; `LANDING_HALF_W` went 7.0 → 3.5 and `WING_SLOPE_RUN` came to 4.8,
+		# and the same constant then ate 3 of 4.8 — the rail ran 1.8m and quit,
+		# with the steepest, highest end of the descent unguarded and the line the
+		# reference is famous for drawn along a third of its diagonal. Nothing
+		# caught it: `walk_test` asks whether a rail is in the way, never whether
+		# it is there, and from the court a short rail is a rail.
+		#
+		# So it is derived from the thing it is for. A rail guards a drop, so it
+		# stops where the drop stops being one — `RAIL_FREEBOARD` above the court,
+		# which at this gradient is about a metre of run rather than three. Steepen
+		# the leg and the setback shrinks with it; that is the point of writing it
+		# this way rather than picking a smaller number.
 		var ra := a
 		var rb := b
 		if leg == 1:
 			var d := Vector2(b.x - a.x, b.z - a.z).length()
-			rb = a.lerp(b, 1.0 - 3.0 / d)
+			var fall := a.y - b.y
+			# Never more than half a leg, whatever the arithmetic says. A guard
+			# that has argued itself down to nothing is the failure this replaces,
+			# run the other way.
+			var back: float = minf(d * 0.5, RAIL_FREEBOARD * d / fall) if fall > 0.01 else 0.0
+			rb = a.lerp(b, 1.0 - back / d)
 		_wing_rail("wing_rail_%s_%d" % [tag, leg],
 			Vector2(ra.x - half - 0.2, ra.z), ra.y,
 			Vector2(rb.x - half - 0.2, rb.z), rb.y)
@@ -3831,16 +4117,36 @@ func _cascade_bank(side: float) -> void:
 		return
 	var cx := (x0 + x1) * 0.5
 	var w := x1 - x0
+	# **Six steps down the slope and a seventh across the turn, and the seventh
+	# is the whole reason this is a list of segments rather than a lerp.**
+	#
+	# The row used to run `a → wing_path[1]` in six, which is the leg's *vertex*
+	# — and the turn landing reaches `side * 0.9` past that vertex (see
+	# `_cascade_wing`, where `out_z` is written). So the last 0.7m of the strip
+	# between the wing and the bluff carried nothing: a notch at the end of a
+	# marching row, on the one stretch the row is ever seen end-on from, which is
+	# standing on the turn looking back up the descent.
+	#
+	# It is not a seventh of a longer lerp, and that is the point of the extra
+	# structure. The slope's six steps are laid on the slope and the turn is
+	# level, so extending the interpolation would tilt a landing that is flat and
+	# quietly re-space the six steps that were already right. The seventh is laid
+	# on the landing's own level — `b.y`, so it steps down once more from the
+	# sixth and stops there.
+	var segs: Array = []
 	for i in 6:
-		var t0 := float(i) / 6.0
-		var t1 := float(i + 1) / 6.0
-		var p0 := a.lerp(b, t0)
-		var p1 := a.lerp(b, t1)
-		var y: float = minf(-0.25, (p0.y + p1.y) * 0.5 + 1.4)
+		var p0 := a.lerp(b, float(i) / 6.0)
+		var p1 := a.lerp(b, float(i + 1) / 6.0)
+		segs.append([p0.z, p1.z, (p0.y + p1.y) * 0.5])
+	segs.append([b.z, b.z + side * 0.9, b.y])
+	for i in segs.size():
+		var z0: float = segs[i][0]
+		var z1: float = segs[i][1]
+		var y: float = minf(-0.25, float(segs[i][2]) + 1.4)
 		if y <= WING_BASE_Y + 0.4:
 			continue
-		var cz := (p0.z + p1.z) * 0.5
-		var d := absf(p1.z - p0.z) + 0.4
+		var cz := (z0 + z1) * 0.5
+		var d := absf(z1 - z0) + 0.4
 		_box("bank_%s_%d" % [tag, i], Vector3.ZERO,
 			Vector3(cx, (y + WING_BASE_Y - 0.4) * 0.5, cz),
 			Vector3(w, y - WING_BASE_Y + 0.4, d), "building")
@@ -3849,7 +4155,12 @@ func _cascade_bank(side: float) -> void:
 			"planting", 0.0, false)
 		for k in 6:
 			var hx: float = lerpf(x0 + 0.4, x1 - 0.4, _hash01(i * 19 + k, 3, 43))
-			var hz: float = lerpf(p0.z + 0.3, p1.z - 0.3, _hash01(i * 19 + k, 5, 47))
+			# `min`/`max` rather than `z0`/`z1`, which `_cascade_bed` has always
+			# done and this had not: the north bank runs in −z, so `z0 + 0.3` and
+			# `z1 − 0.3` *widened* the range there instead of insetting it and put
+			# the odd bloom over the edge of its own planter.
+			var hz: float = lerpf(minf(z0, z1) + 0.3, maxf(z0, z1) - 0.3,
+				_hash01(i * 19 + k, 5, 47))
 			var bloom: String = ["bloom_warm", "bloom_pink", "bloom_pale"][(i + k) % 3]
 			_sphere("bank_bloom_%s_%d_%d" % [tag, i, k],
 				Vector3(hx, y + 0.34, hz), Vector3.ZERO,
@@ -3937,8 +4248,22 @@ func _cascade_lights() -> void:
 	# arch is a hole, and the dramatic version of a hole is light coming out of
 	# it — truer here than when this was a doorway, because now there is water
 	# coming out of it too.
-	_omni("niche_glow", Vector3(wx + 0.15, floor_y + 1.2, axis),
-		"amber", 5.0, 12.0, LIGHT_FEATURE, true)
+	#
+	# **Behind and above the basin rather than out in the middle**, which is the
+	# deep niche's doing. At 0.6m of recess there was nowhere for a fitting to be
+	# except in the opening; at 1.5 there is a whole depth to hide one in, and a
+	# lamp tucked up behind the bowl throws the bowl's underside and the spout's
+	# shadow down the back plate. One in the middle of a 1.5m recess lights the
+	# back wall flat and puts the fitting itself in the frame.
+	_omni("niche_glow", Vector3(face + 1.25, floor_y + 2.40, axis),
+		"amber", 4.0, 9.0, LIGHT_FEATURE, true)
+	# And the falls from underneath, off the trough's own rim. Three stages of
+	# falling water in a dark alcove is the one thing on this monument that is
+	# better after dark than before it, and none of it shows unless something is
+	# under it — `water_fall` carries its brightness in `EMISSION`, but the stone
+	# behind it does not, and a lit stream against an unlit wall is a stripe.
+	_uplight("niche_wash", Vector3(face + 0.15, floor_y + 0.92, axis),
+		Vector3(face + 1.35, floor_y + 2.30, axis), "moon", 2.6, 5.0, 46.0)
 	# And the face either side of it, grazed from below so the trapezoid reads as
 	# one plane rather than as three lit patches.
 	for side in [-1.0, 1.0]:
