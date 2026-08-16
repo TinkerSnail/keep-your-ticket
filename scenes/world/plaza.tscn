@@ -168,24 +168,43 @@ use_collision = true
 size = Vector3(11, 12.5, 23)
 material = SubResource("mat_building")
 
-; The arch is a tunnel, and the three boxes below are the whole of it: two piers
-; and the mass over them.
+; The arch is a cutting, and the three boxes below are the whole of it: two piers
+; and a beam across their faces.
 ;
 ; It was 9m wide, 8.9m clear and 11m deep — a section nearly square, which is a
-; hole in a wall rather than a tunnel. You saw the entire far side from the ring,
-; and the section swap had nothing but the fade to hide behind.
+; hole in a wall rather than a passage. So on 2026-08-14 it became a tube: 6 by 5
+; over 13.5m, the depth got by projecting the piers 2.5m *into* the plaza rather
+; than thickening the wall, because the wall's west face is the terrace's east
+; edge and the terrace has only six metres to give.
 ;
-; 6m wide, 5m clear and 13.5m deep. The depth comes from projecting the piers and
-; the mass 2.5m *into* the plaza rather than thickening the wall, because the
-; wall's west face is the terrace's east edge and the terrace is only six metres
-; deep to begin with. What projects reads as a gate house, which is what a park
-; puts at the head of a land anyway.
+; **The top came off on 2026-08-16, and the depth stayed.** The tube's own lintel
+; was the thing cropping the west view, and it was cropping it in the one
+; direction nobody had measured. A soffit at 5m over 13.5m of depth is not a 5m
+; ceiling — the *far* edge is what limits, and from the ring's west vertex that
+; edge sits 28m off, which puts the ceiling on a 6.7° ray. The wheel stands 21.9m
+; tall at 87m: the ray reaches y=12 by the time it gets there, so the top half of
+; the section's biggest silhouette was behind masonry from everywhere in the
+; plaza. Lateral was never the problem and the arithmetic below is still true —
+; the pavilion and the pier fit inside the 6m slot whole, from every standpoint,
+; and did under the 9m arch too. Height was the whole of it.
 ;
-; The through-view survives the narrowing, and it had to: the overlook only works
-; because the arch frames the gap in the boardwalk's frontage and the gap frames
-; the pier. From the fountain the near mouth is 29m off and the far one 44m, so
-; on the axis the near opening projects 4.5m either side at the far plane — wider
-; than the far opening's own 3m. The whole of the far end is still in view.
+; So: two piers, 6m apart and 13.5m deep, cut clean through the wall to the sky,
+; with a beam across their plaza faces at 6.30 to carry the sign. The beam is at
+; the *near* plane, which is why it costs almost nothing — from the fountain rim
+; it is 18.5m off against the old far edge's 32, so the same 6.3m head clears the
+; wheel by four metres where 5m at the far edge missed it by ten.
+;
+; What is given up is the tube. The approach still narrows — 104m of plaza, an 8m
+; forecourt, a 6m slot — but it narrows in plan only, and the section swap that
+; happens inside it no longer has a roof to hide under. It does not need one:
+; `_hold_shot` cuts to a fixed camera and walks the player out of frame, which
+; has been the actual cover since the seam moved here.
+;
+; The through-view, unchanged and still what the overlook depends on: the arch
+; frames the gap in the boardwalk's frontage and the gap frames the pier. From
+; the fountain the near mouth is 29m off and the far one 44m, so on the axis the
+; near opening projects 4.5m either side at the far plane — wider than the far
+; opening's own 3m. The whole of the far end is still in view.
 [node name="arch_pier_north" type="CSGBox3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37.25125, 6.24875, -7.25125)
 use_collision = true
@@ -198,19 +217,57 @@ use_collision = true
 size = Vector3(13.5, 12.5, 4.5)
 material = SubResource("mat_building")
 
-[node name="arch_lintel" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37.25175, 8.74825, -1.75175)
+; The beam, which is what is left of the mass over the opening and the only part
+; of it that was ever doing a job the view could afford.
+;
+; Set in the front 0.9m of the cutting with its west face flush on the piers'
+; plaza faces, so it reads as a header bearing on both rather than as a slab of
+; wall left floating. It laps 2.2m onto each pier for the same reason — a beam
+; that stops at the reveal has nothing to sit on.
+;
+; 6.30 to 7.40. The soffit is set by the wheel and not by taste: it has to clear
+; y=21.9 at 87m from the furthest anyone stands on the axis, which is the ring's
+; west vertex at −16 with the fountain blocking everything behind it. 6.30 puts
+; the ceiling there at 24m. `ParkPlan.ARCH_HEIGHT` carries the number.
+;
+; Collides, because it is 6.3m up over a route the player walks and the boardwalk
+; copy of it in `_plaza_from_below` is two metres from where they arrive.
+[node name="arch_beam" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30.95175, 6.84825, -2.00175)
 use_collision = true
-size = Vector3(13.5, 7.5, 15.5)
+size = Vector3(0.9, 1.1, 10.4)
 material = SubResource("mat_building")
 
-; On the gate house's own face now rather than five metres back on the wall
-; line, and still standing clear above the roofline — which is what makes it
-; readable from the ring, where the decision to walk west actually gets made.
+; Standing on the beam, which is the only thing left at the entrance that spans.
+;
+; **Down from 14.1 to 8.51 on 2026-08-14c, into the wall it belongs on.** It used
+; to stand clear above the roofline on the argument that that is what makes it
+; readable from the ring, where the decision to walk west gets made. What it
+; actually did was leave 5.6m of blank white wall directly above a doorway — with
+; the board floating past the parapet against the sky above all of it.
+;
+; The readability argument does not survive being measured. From the ring's west
+; edge the arch face is 14.5m away, so at 14.1 the board sat 36 to 45 degrees up:
+; you had to crane at it. Centred in the wall band it sat at 19 to 31, which is
+; where a sign over a door belongs and is *easier* to read, not harder.
+;
+; **That band is kept, and the wall under it is not.** Taking the top off took
+; away the masonry the board was centred in, so it sits on the beam now: 7.20 to
+; 10.60, lapping 0.2 into the beam so the two overlap rather than meet. From the
+; ring that is 20.8 to 31.5 degrees — the same place on the eye, reached by
+; standing on something instead of by being flush with something.
+;
+; Thinner than it was, 0.45 against 0.8, and 0.425 of that stands proud into the
+; plaza. A board bolted to a wall can be as thick as it likes because no edge of
+; it shows; a board standing above a beam against open sky is seen end-on from
+; the ring walkway and reads as a slab at 0.8.
+;
+; 9.6 long inside a 10.4 beam, so the beam shows past it at both ends. A sign as
+; long as the thing carrying it reads as the thing carrying it.
 [node name="arch_sign" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30.05200, 14.09800, -1.75200)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30.30200, 8.89800, -2.00200)
 use_collision = false
-size = Vector3(0.8, 3.8, 11)
+size = Vector3(0.45, 3.4, 9.6)
 material = SubResource("mat_accent")
 
 [node name="overlook_wall_north" type="CSGBox3D" parent="."]
