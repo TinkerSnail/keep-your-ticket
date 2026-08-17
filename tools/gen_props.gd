@@ -964,12 +964,36 @@ func _fountain_materials() -> void:
 	# tighter again than the basins': at the basin's 4.5 there is barely one wave
 	# on it.
 	var niche_c := Vector3(Plan.CASCADE_WALL_X, 0.0, Plan.CASCADE_AXIS_Z)
+	# **The trough and the basin are two materials now, and the lamps are why.**
+	# `lamps` is a world-space array on the surface that carries it, so one
+	# material shared by both would put the trough's pair under the basin and the
+	# basin's inside the trough — the same class of mistake as `centre`, which is
+	# what made these their own materials in the first place.
+	#
+	# The positions are `ParkPlan.CASCADE_*` plus the same offsets `_cascade_niche`
+	# builds the lamps at, and that duplication is the one thing here worth
+	# watching: a lamp that moves in the geometry and not in the shader goes dark
+	# with no error anywhere. They are written next to each other for that reason.
+	var nx: float = Plan.CASCADE_WALL_X - Plan.CASCADE_WALL_THICK * 0.5
+	var nz: float = Plan.CASCADE_AXIS_Z
 	mats["water_niche"] = _shader_material(pool, {
 		"tint": Color(0.12, 0.27, 0.30),
 		"centre": niche_c,
 		"ring_scale": 11.0,
 		"chop": 6.0,
 		"rough": 0.05,
+		"lamp_a": Plane(nx + 0.52, nz - 0.34, 0.30, 1.0),
+		"lamp_b": Plane(nx + 0.52, nz + 0.34, 0.30, 1.0),
+	})
+	# The basin: one lamp, and a tighter ring scale because it is 0.44m by 1.28
+	# against the trough's 1.48 by 1.82.
+	mats["water_niche_bowl"] = _shader_material(pool, {
+		"tint": Color(0.12, 0.27, 0.30),
+		"centre": niche_c,
+		"ring_scale": 26.0,
+		"chop": 14.0,
+		"rough": 0.05,
+		"lamp_a": Plane(nx + 1.30, nz, 0.17, 1.0),
 	})
 	# The water directly over a submerged lamp. The **pool** shader, so it ripples
 	# — that is the entire difference between a lit patch of water and a saucer
@@ -3720,7 +3744,7 @@ func _cascade_niche() -> void:
 			Vector3(0.58, 0.28, 0.14), "niche_wet", 0.0, false)
 	var bowl_top := 2.04 + 0.16 * 0.5
 	_water_box("bowl_water", o, Vector3(1.31, 2.04, 0.0),
-		Vector3(0.44, 0.16, 1.28), "water_niche")
+		Vector3(0.44, 0.16, 1.28), "water_niche_bowl")
 
 	# --- the spout ---
 	#
@@ -3761,72 +3785,18 @@ func _cascade_niche() -> void:
 
 	# --- the lights in the water ---
 	#
-	# **Light passes through the water; the fitting does not.** That asymmetry is
-	# the whole design of these, and the first build had it wrong in the
-	# conservative direction.
+	# **There is no geometry here, and that is the fix.** Three builds put the
+	# glow on a disc lying on the surface — 4cm thick, then 13mm, then a small
+	# lens inside a rippling halo — and every one came back with the same note:
+	# they sit on top of the water. They did. A patch laid on a surface is a
+	# second surface, with its own height, its own rim, its own shading and, once
+	# the halo wore the pool shader, its own rings radiating from its own centre
+	# while the water's radiated from the fountain's.
 	#
-	# `water_niche` is the pool shader and the pool shader is opaque —
-	# `_fountain_pool` says so in as many words, which is why the plaza's pool
-	# carries a `fount_bed` under water nobody can see through. So a *disc*
-	# modelled where a real lens goes, down on the bed, is a lamp in a sealed box:
-	# geometry occludes geometry. The disc therefore lies a centimetre proud of
-	# the film, which is the trick `_foam_patch` plays a centimetre away and for
-	# the same reason.
-	#
-	# The **light** is a different question and the answer is the opposite one.
-	# `_uplight` builds a spot with `shadow := false`, and a shadowless light in
-	# Godot is not occluded by anything at all — not by the water, not by the
-	# trough's own stone. Sinking the sources to the bed where the real fittings
-	# sit was measured against leaving them above the film: 95.7% of the frame
-	# identical, 0.77% of pixels differing by more than 8/255, and every one of
-	# those inside the fountain. So they sit at the bed, which is the honest place
-	# for them, and it costs nothing.
-	#
-	# The caveat rides along with the same fact. Nothing stops these — the light
-	# that reaches the back plate also goes out sideways through 16cm of trough
-	# wall — so what contains them is `rng` and the cone, not the masonry. That is
-	# why they are 4.0 and 3.5 rather than the 9-and-up the floods carry.
-	#
-	# Neither half works alone: the disc without the spot is a sticker, the spot
-	# without the disc is light from nowhere.
-	#
-	# Off the axis and clear of `trough_foam_*`, which sits at z ±0.62 where the
-	# falls land. Two lamps in a 1.8m trough rather than one, because one on the
-	# axis lights the back plate flat and puts its own reflection behind the
-	# spout, where the spout's shadow is supposed to be.
-	#
-	# **A small lens inside a broad rippling halo, where this was one flat disc.**
-	# At 0.17 radius and `lamp_glass` the visible part was 34cm of near-white lying
-	# on the water — a saucer, which is what it got called. Two things were wrong
-	# and only one of them was the size. A real submerged lamp is a *lens* about
-	# 15cm across, and what you actually see from above is not the lens: it is the
-	# water over it, brighter than the water beside it and **moving**. A disc that
-	# holds still on a surface that ripples is a disc lying on top of it, however
-	# small it is.
-	#
-	# So the halo wears `water_niche_lit` — the pool shader, so it carries the
-	# same ripple as the water around it at a tighter scale — and the lens is a
-	# quarter the radius it was, sitting inside it as the bright point at the
-	# middle rather than as the whole effect.
-	for k in 2:
-		var s := -1.0 if k == 0 else 1.0
-		_water_film("trough_lamp_%d_glow" % k, o, 0.52, trough_top, s * 0.34,
-			0.32, "water_niche_lit", 14)
-		_water_film("trough_lamp_%d" % k, o, 0.52, trough_top, s * 0.34,
-			0.075, "lamp_glass", 10, 0.004)
-	# And one in the basin, which is the half of it you see from further back: the
-	# trough's pair are below the rim from anywhere but arm's length, and this one
-	# is at chest height with the spout and the arch head above it to catch.
-	#
-	# **These were at 1.919, which is 20cm under their own basin.** That number was
-	# the bowl's water surface before the basin went up a quarter-metre earlier the
-	# same day to give the falls some height, and nothing carried it along — so the
-	# lamp this whole feature is named after has been sealed inside opaque water
-	# since the hour it was added, invisible and impossible to see as wrong in a
-	# screenshot. `bowl_top` is derived now, like `trough_top`.
-	_water_film("bowl_lamp_glow", o, 1.30, bowl_top, 0.0, 0.17,
-		"water_niche_lit", 12)
-	_water_film("bowl_lamp", o, 1.30, bowl_top, 0.0, 0.055, "lamp_glass", 8, 0.004)
+	# The water draws them now: see `lamps` in `water_pool.gdshader` and the two
+	# materials in `_fountain_materials`. Nothing can float, because nothing is
+	# there. What is left in this function is the *stone* the light comes out
+	# from under, and the spots that do the uplighting are in `_cascade_lights`.
 
 	# --- what stands either side of it ---
 	#
@@ -4528,6 +4498,21 @@ func _cascade_lights() -> void:
 	# the recess `niche_glow` lights from behind and therefore leaves flat.
 	_uplight("bowl_lamp_up", Vector3(face + 1.30, floor_y + 1.99, axis),
 		Vector3(face + 1.42, floor_y + 3.00, axis), "lamp", 1.6, 3.5, 44.0)
+	# And a bead of light **just above** each lamp, which is the half the shader
+	# cannot do for itself. `water_pool`'s lamp term is albedo and gloss rather
+	# than emission — deliberately, because an emissive would glow flat at noon
+	# the way `_lit_material`'s doc block warns — so at night the lit patch is only
+	# as bright as whatever falls on it, and what falls on it is `niche_glow` from
+	# behind the basin. These are tiny and very short-ranged: not lighting
+	# anything, just giving the surface over each lamp something to be pale in.
+	# Driven by the clock like every other fitting, so they cost nothing by day.
+	for k in 2:
+		var s := -1.0 if k == 0 else 1.0
+		_omni("trough_lamp_%d_bead" % k,
+			Vector3(face + 0.52, floor_y + 0.86, axis + s * 0.34),
+			"lamp", 0.9, 1.1, LIGHT_FIXTURE)
+	_omni("bowl_lamp_bead", Vector3(face + 1.30, floor_y + 2.15, axis),
+		"lamp", 0.7, 0.8, LIGHT_FIXTURE)
 	# And the face either side of it, grazed from below so the trapezoid reads as
 	# one plane rather than as three lit patches.
 	#
