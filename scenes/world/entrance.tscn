@@ -62,145 +62,145 @@ roughness = 0.7
 albedo_color = Color(0.66, 0.68, 0.72, 1)
 roughness = 0.95
 
-[node name="entrance" type="Node3D" unique_id=519424483]
+[node name="entrance" type="Node3D" unique_id=864181245]
 
-[node name="entrance_ground" type="CSGBox3D" parent="." unique_id=1573888483]
+[node name="entrance_ground" type="CSGBox3D" parent="." unique_id=410091128]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.49775, -0.50775, 89.50225)
 use_collision = true
 size = Vector3(41, 1, 87)
 material = SubResource("StandardMaterial3D_cuqos")
 
-[node name="shop_0" type="CSGBox3D" parent="." unique_id=1085475114]
+[node name="shop_0" type="CSGBox3D" parent="." unique_id=1177583564]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.4975, 3.2225, 56.0025)
 use_collision = true
 size = Vector3(9, 6.56, 10)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="shop_0_cap" type="CSGBox3D" parent="." unique_id=754430808]
+[node name="shop_0_cap" type="CSGBox3D" parent="." unique_id=908017079]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.49725, 6.7027497, 56.00275)
 size = Vector3(9.5, 0.4, 10.5)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="shop_0_awning" type="CSGBox3D" parent="." unique_id=23761342]
+[node name="shop_0_awning" type="CSGBox3D" parent="." unique_id=131796371]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.877, 3.103, 56.003)
 size = Vector3(1.8, 0.18, 8.5)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="shop_0_post_a" type="CSGCylinder3D" parent="." unique_id=1937900586]
+[node name="shop_0_post_a" type="CSGCylinder3D" parent="." unique_id=241288577]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.69675, 1.55325, 52.00325)
 radius = 0.08
 height = 3.1
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_0_post_b" type="CSGCylinder3D" parent="." unique_id=1584807009]
+[node name="shop_0_post_b" type="CSGCylinder3D" parent="." unique_id=69133603]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.6965, 1.5534999, 60.0035)
 radius = 0.08
 height = 3.1
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_0_pier_l" type="CSGBox3D" parent="." unique_id=1801538260]
+[node name="shop_0_pier_l" type="CSGBox3D" parent="." unique_id=317516122]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.84625, 1.6837499, 59.60375)
 size = Vector3(0.3, 3.44, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_0_pier_r" type="CSGBox3D" parent="." unique_id=714356579]
+[node name="shop_0_pier_r" type="CSGBox3D" parent="." unique_id=57782722]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.846001, 1.6839999, 52.404003)
 size = Vector3(0.3, 3.44, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_0_glass" type="CSGBox3D" parent="." unique_id=2137476492]
+[node name="shop_0_glass" type="CSGBox3D" parent="." unique_id=2100050903]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.95575, 1.7042501, 56.00425)
 size = Vector3(6.8, 2.1, 0.12)
 material = SubResource("StandardMaterial3D_44oix")
 
-[node name="shop_0_bulkhead" type="CSGBox3D" parent="." unique_id=1175617061]
+[node name="shop_0_bulkhead" type="CSGBox3D" parent="." unique_id=2092640865]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.895499, 0.4395, 56.0045)
 size = Vector3(6.8, 0.93, 0.28)
 material = SubResource("StandardMaterial3D_32t5b")
 
-[node name="shop_0_door" type="CSGBox3D" parent="." unique_id=1284521538]
+[node name="shop_0_door" type="CSGBox3D" parent="." unique_id=1804661223]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.940249, 1.02475, 53.354748)
 size = Vector3(1, 2.17, 0.17)
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="shop_0_fascia" type="CSGBox3D" parent="." unique_id=1982229275]
+[node name="shop_0_fascia" type="CSGBox3D" parent="." unique_id=749895203]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.835, 3.555, 56.005)
 size = Vector3(7.5, 0.55, 0.32)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_0_sign" type="CSGBox3D" parent="." unique_id=1517813595]
+[node name="shop_0_sign" type="CSGBox3D" parent="." unique_id=366733770]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.64, 3.55, 56)
 size = Vector3(4.5, 0.385, 0.1)
 material = SubResource("StandardMaterial3D_1siwm")
 
-[node name="shop_1" type="CSGBox3D" parent="." unique_id=467760400]
+[node name="shop_1" type="CSGBox3D" parent="." unique_id=948217191]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.99975, 2.4702501, 67.00025)
 use_collision = true
 size = Vector3(10, 5.06, 11)
 material = SubResource("StandardMaterial3D_32t5b")
 
-[node name="shop_1_cap" type="CSGBox3D" parent="." unique_id=1069064779]
+[node name="shop_1_cap" type="CSGBox3D" parent="." unique_id=55755080]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.9995, 5.2005, 67.0005)
 size = Vector3(10.5, 0.4, 11.5)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="shop_1_awning" type="CSGBox3D" parent="." unique_id=650164389]
+[node name="shop_1_awning" type="CSGBox3D" parent="." unique_id=1312368795]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.879251, 3.10075, 67.00075)
 size = Vector3(1.8, 0.18, 9.5)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="shop_1_post_a" type="CSGCylinder3D" parent="." unique_id=1523119592]
+[node name="shop_1_post_a" type="CSGCylinder3D" parent="." unique_id=165363328]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.698999, 1.551, 62.501)
 radius = 0.08
 height = 3.1
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_1_post_b" type="CSGCylinder3D" parent="." unique_id=285614916]
+[node name="shop_1_post_b" type="CSGCylinder3D" parent="." unique_id=1934859884]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.69875, 1.55125, 71.50125)
 radius = 0.08
 height = 3.1
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_1_pier_l" type="CSGBox3D" parent="." unique_id=15137451]
+[node name="shop_1_pier_l" type="CSGBox3D" parent="." unique_id=2082877017]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.848499, 1.6815, 70.6015)
 size = Vector3(0.3, 3.44, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_1_pier_r" type="CSGBox3D" parent="." unique_id=700706084]
+[node name="shop_1_pier_r" type="CSGBox3D" parent="." unique_id=104457550]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.84825, 1.6817499, 63.401752)
 size = Vector3(0.3, 3.44, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_1_glass" type="CSGBox3D" parent="." unique_id=1722256735]
+[node name="shop_1_glass" type="CSGBox3D" parent="." unique_id=168918278]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.958, 1.702, 67.002)
 size = Vector3(6.8, 2.1, 0.12)
 material = SubResource("StandardMaterial3D_44oix")
 
-[node name="shop_1_bulkhead" type="CSGBox3D" parent="." unique_id=87997107]
+[node name="shop_1_bulkhead" type="CSGBox3D" parent="." unique_id=1408607140]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.89775, 0.43725, 67.00225)
 size = Vector3(6.8, 0.93, 0.28)
 material = SubResource("StandardMaterial3D_32t5b")
 
-[node name="shop_1_door" type="CSGBox3D" parent="." unique_id=87573103]
+[node name="shop_1_door" type="CSGBox3D" parent="." unique_id=624572434]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.9425, 1.0225, 64.3525)
 size = Vector3(1, 2.17, 0.17)
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="shop_1_fascia" type="CSGBox3D" parent="." unique_id=1853874358]
+[node name="shop_1_fascia" type="CSGBox3D" parent="." unique_id=1787345583]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.83725, 3.5527499, 67.00275)
 size = Vector3(7.5, 0.55, 0.32)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_1_sign" type="CSGBox3D" parent="." unique_id=2046899172]
+[node name="shop_1_sign" type="CSGBox3D" parent="." unique_id=2105121565]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.637, 3.553, 67.003)
 size = Vector3(4.5, 0.385, 0.1)
 material = SubResource("StandardMaterial3D_b4cvx")
 
-[node name="shop_1_table_0" type="CSGCylinder3D" parent="." unique_id=525089360]
+[node name="shop_1_table_0" type="CSGCylinder3D" parent="." unique_id=438789345]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -7.49675, 0.34325, 69.35325)
 use_collision = true
 radius = 0.36
@@ -208,28 +208,28 @@ height = 0.8
 sides = 10
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_1_table_0_leg" type="CSGCylinder3D" parent="." unique_id=713605745]
+[node name="shop_1_table_0_leg" type="CSGCylinder3D" parent="." unique_id=831937489]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -7.4965, 0.1835, 69.3535)
 radius = 0.1
 height = 0.36
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_1_stool_0_0" type="CSGCylinder3D" parent="." unique_id=925087152]
+[node name="shop_1_stool_0_0" type="CSGCylinder3D" parent="." unique_id=551143046]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -7.49625, 0.21374999, 70.10375)
 use_collision = true
 radius = 0.18
 height = 0.54
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="shop_1_stool_0_1" type="CSGCylinder3D" parent="." unique_id=675820141]
+[node name="shop_1_stool_0_1" type="CSGCylinder3D" parent="." unique_id=772567265]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -7.496, 0.21399999, 68.604)
 use_collision = true
 radius = 0.18
 height = 0.54
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="shop_1_table_1" type="CSGCylinder3D" parent="." unique_id=1863468037]
+[node name="shop_1_table_1" type="CSGCylinder3D" parent="." unique_id=1906310507]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -7.49575, 0.34425, 64.65425)
 use_collision = true
 radius = 0.36
@@ -237,363 +237,363 @@ height = 0.8
 sides = 10
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_1_table_1_leg" type="CSGCylinder3D" parent="." unique_id=575279808]
+[node name="shop_1_table_1_leg" type="CSGCylinder3D" parent="." unique_id=1759346651]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -7.4955, 0.18450001, 64.6545)
 radius = 0.1
 height = 0.36
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_1_stool_1_0" type="CSGCylinder3D" parent="." unique_id=1546198881]
+[node name="shop_1_stool_1_0" type="CSGCylinder3D" parent="." unique_id=1671913444]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -7.49525, 0.21474999, 65.404755)
 use_collision = true
 radius = 0.18
 height = 0.54
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="shop_1_stool_1_1" type="CSGCylinder3D" parent="." unique_id=1175023615]
+[node name="shop_1_stool_1_1" type="CSGCylinder3D" parent="." unique_id=1901692872]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -7.495, 0.21499999, 63.905003)
 use_collision = true
 radius = 0.18
 height = 0.54
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="arc_floor" type="CSGBox3D" parent="." unique_id=1772054487]
+[node name="arc_floor" type="CSGBox3D" parent="." unique_id=297092356]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, -0.24, 78)
 use_collision = true
 size = Vector3(20, 0.5, 10)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="arc_roof" type="CSGBox3D" parent="." unique_id=1876111598]
+[node name="arc_roof" type="CSGBox3D" parent="." unique_id=406535427]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.99975, 4.60025, 78.00025)
 use_collision = true
 size = Vector3(20.6, 0.4, 10.6)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="arc_back" type="CSGBox3D" parent="." unique_id=1343830348]
+[node name="arc_back" type="CSGBox3D" parent="." unique_id=1503350647]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29.2495, 2.2005, 78.0005)
 use_collision = true
 size = Vector3(0.5, 4.4, 10)
 material = SubResource("StandardMaterial3D_32t5b")
 
-[node name="arc_wall_n" type="CSGBox3D" parent="." unique_id=1804893926]
+[node name="arc_wall_n" type="CSGBox3D" parent="." unique_id=1448264641]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.99925, 2.20075, 73.25075)
 use_collision = true
 size = Vector3(20, 4.4, 0.5)
 material = SubResource("StandardMaterial3D_32t5b")
 
-[node name="arc_wall_s" type="CSGBox3D" parent="." unique_id=311459792]
+[node name="arc_wall_s" type="CSGBox3D" parent="." unique_id=1319387437]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.999, 2.201, 82.751)
 use_collision = true
 size = Vector3(20, 4.4, 0.5)
 material = SubResource("StandardMaterial3D_32t5b")
 
-[node name="arc_cheek_n" type="CSGBox3D" parent="." unique_id=1274789935]
+[node name="arc_cheek_n" type="CSGBox3D" parent="." unique_id=615164150]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.24375, 2.20125, 74.25125)
 use_collision = true
 size = Vector3(0.5, 4.4, 2.48)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="arc_cheek_s" type="CSGBox3D" parent="." unique_id=900618578]
+[node name="arc_cheek_s" type="CSGBox3D" parent="." unique_id=1799093162]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.2435, 2.2015, 81.7515)
 use_collision = true
 size = Vector3(0.5, 4.4, 2.48)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="arc_lintel" type="CSGBox3D" parent="." unique_id=1070963016]
+[node name="arc_lintel" type="CSGBox3D" parent="." unique_id=1421763448]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.24825, 3.50175, 78.00175)
 use_collision = true
 size = Vector3(0.5, 1.8, 5)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="arc_cab_0_0" type="CSGBox3D" parent="." unique_id=1315132255]
+[node name="arc_cab_0_0" type="CSGBox3D" parent="." unique_id=505330328]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27.897999, 0.852, 74.602)
 use_collision = true
 size = Vector3(0.9, 1.7, 0.8)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="arc_cab_0_0_screen" type="CSGBox3D" parent="." unique_id=1625877127]
+[node name="arc_cab_0_0_screen" type="CSGBox3D" parent="." unique_id=1134297893]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28.397749, 1.3022499, 74.60225)
 size = Vector3(0.1, 0.5, 0.6)
 material = SubResource("StandardMaterial3D_1siwm")
 
-[node name="arc_cab_0_0_top" type="CSGBox3D" parent="." unique_id=1039723324]
+[node name="arc_cab_0_0_top" type="CSGBox3D" parent="." unique_id=857578757]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27.9975, 1.8525001, 74.6025)
 size = Vector3(0.75, 0.3, 0.75)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="arc_cab_0_1" type="CSGBox3D" parent="." unique_id=1823362359]
+[node name="arc_cab_0_1" type="CSGBox3D" parent="." unique_id=1086290635]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27.89725, 0.85275, 76.869415)
 use_collision = true
 size = Vector3(0.9, 1.7, 0.8)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="arc_cab_0_1_screen" type="CSGBox3D" parent="." unique_id=1007699011]
+[node name="arc_cab_0_1_screen" type="CSGBox3D" parent="." unique_id=1878096313]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28.397, 1.303, 76.86967)
 size = Vector3(0.1, 0.5, 0.6)
 material = SubResource("StandardMaterial3D_1siwm")
 
-[node name="arc_cab_0_1_top" type="CSGBox3D" parent="." unique_id=1096257011]
+[node name="arc_cab_0_1_top" type="CSGBox3D" parent="." unique_id=1616554922]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27.99675, 1.85325, 76.86992)
 size = Vector3(0.75, 0.3, 0.75)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="arc_cab_0_2" type="CSGBox3D" parent="." unique_id=1943388479]
+[node name="arc_cab_0_2" type="CSGBox3D" parent="." unique_id=319181476]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27.8965, 0.8535, 79.13683)
 use_collision = true
 size = Vector3(0.9, 1.7, 0.8)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="arc_cab_0_2_screen" type="CSGBox3D" parent="." unique_id=1297682907]
+[node name="arc_cab_0_2_screen" type="CSGBox3D" parent="." unique_id=1623621471]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28.39625, 1.3037499, 79.137085)
 size = Vector3(0.1, 0.5, 0.6)
 material = SubResource("StandardMaterial3D_1siwm")
 
-[node name="arc_cab_0_2_top" type="CSGBox3D" parent="." unique_id=2125708383]
+[node name="arc_cab_0_2_top" type="CSGBox3D" parent="." unique_id=503530901]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27.996, 1.854, 79.13733)
 size = Vector3(0.75, 0.3, 0.75)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="arc_cab_0_3" type="CSGBox3D" parent="." unique_id=1059322444]
+[node name="arc_cab_0_3" type="CSGBox3D" parent="." unique_id=188009556]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27.89575, 0.85425, 81.40425)
 use_collision = true
 size = Vector3(0.9, 1.7, 0.8)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="arc_cab_0_3_screen" type="CSGBox3D" parent="." unique_id=630056140]
+[node name="arc_cab_0_3_screen" type="CSGBox3D" parent="." unique_id=1222047513]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28.3955, 1.3045, 81.4045)
 size = Vector3(0.1, 0.5, 0.6)
 material = SubResource("StandardMaterial3D_1siwm")
 
-[node name="arc_cab_0_3_top" type="CSGBox3D" parent="." unique_id=2065388967]
+[node name="arc_cab_0_3_top" type="CSGBox3D" parent="." unique_id=758431389]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27.99525, 1.85475, 81.404755)
 size = Vector3(0.75, 0.3, 0.75)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="arc_cab_1_0" type="CSGBox3D" parent="." unique_id=100729514]
+[node name="arc_cab_1_0" type="CSGBox3D" parent="." unique_id=1039526051]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.095, 0.855, 74.604996)
 use_collision = true
 size = Vector3(0.9, 1.7, 0.8)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="arc_cab_1_0_screen" type="CSGBox3D" parent="." unique_id=26114134]
+[node name="arc_cab_1_0_screen" type="CSGBox3D" parent="." unique_id=703322255]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.6, 1.3, 74.6)
 size = Vector3(0.1, 0.5, 0.6)
 material = SubResource("StandardMaterial3D_1siwm")
 
-[node name="arc_cab_1_0_top" type="CSGBox3D" parent="." unique_id=850535468]
+[node name="arc_cab_1_0_top" type="CSGBox3D" parent="." unique_id=1485035175]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.99975, 1.85025, 74.60025)
 size = Vector3(0.75, 0.3, 0.75)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="arc_cab_1_3" type="CSGBox3D" parent="." unique_id=552221911]
+[node name="arc_cab_1_3" type="CSGBox3D" parent="." unique_id=1614276935]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.099501, 0.85050005, 81.400505)
 use_collision = true
 size = Vector3(0.9, 1.7, 0.8)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="arc_cab_1_3_screen" type="CSGBox3D" parent="." unique_id=1108564233]
+[node name="arc_cab_1_3_screen" type="CSGBox3D" parent="." unique_id=647953348]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.599251, 1.3007499, 81.40075)
 size = Vector3(0.1, 0.5, 0.6)
 material = SubResource("StandardMaterial3D_1siwm")
 
-[node name="arc_cab_1_3_top" type="CSGBox3D" parent="." unique_id=578149934]
+[node name="arc_cab_1_3_top" type="CSGBox3D" parent="." unique_id=1433274398]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.999, 1.8510001, 81.401)
 size = Vector3(0.75, 0.3, 0.75)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="arc_counter" type="CSGBox3D" parent="." unique_id=484225653]
+[node name="arc_counter" type="CSGBox3D" parent="." unique_id=1418606038]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.99875, 0.55125004, 74.00125)
 use_collision = true
 size = Vector3(4.5, 1.1, 0.9)
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="arc_counter_top" type="CSGBox3D" parent="." unique_id=2106060308]
+[node name="arc_counter_top" type="CSGBox3D" parent="." unique_id=1065693434]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.9985, 1.1515, 74.0015)
 size = Vector3(4.9, 0.12, 1.1)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="arc_change" type="CSGBox3D" parent="." unique_id=687092873]
+[node name="arc_change" type="CSGBox3D" parent="." unique_id=1299344264]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28.09825, 0.90174997, 81.90175)
 use_collision = true
 size = Vector3(0.9, 1.8, 0.7)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="shop_2_awning" type="CSGBox3D" parent="." unique_id=182642132]
+[node name="shop_2_awning" type="CSGBox3D" parent="." unique_id=2040894129]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.878, 3.102, 78.002)
 size = Vector3(1.8, 0.18, 8.5)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="shop_2_post_a" type="CSGCylinder3D" parent="." unique_id=618241436]
+[node name="shop_2_post_a" type="CSGCylinder3D" parent="." unique_id=1792386153]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.69775, 1.5522499, 74.00225)
 radius = 0.08
 height = 3.1
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_2_post_b" type="CSGCylinder3D" parent="." unique_id=892608088]
+[node name="shop_2_post_b" type="CSGCylinder3D" parent="." unique_id=1379978065]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.6975, 1.5525, 82.0025)
 radius = 0.08
 height = 3.1
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_2_pier_l" type="CSGBox3D" parent="." unique_id=423183851]
+[node name="shop_2_pier_l" type="CSGBox3D" parent="." unique_id=2057046818]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.847249, 1.68275, 81.602745)
 size = Vector3(0.3, 3.44, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_2_pier_r" type="CSGBox3D" parent="." unique_id=1306311701]
+[node name="shop_2_pier_r" type="CSGBox3D" parent="." unique_id=815006822]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.847, 1.683, 74.403)
 size = Vector3(0.3, 3.44, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_2_soffit" type="CSGBox3D" parent="." unique_id=855125893]
+[node name="shop_2_soffit" type="CSGBox3D" parent="." unique_id=1889796059]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.75675, 2.8532498, 78.00325)
 size = Vector3(6.8, 0.3, 0.5)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="shop_2_fascia" type="CSGBox3D" parent="." unique_id=1338504765]
+[node name="shop_2_fascia" type="CSGBox3D" parent="." unique_id=2122896829]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.8365, 3.7035, 78.0035)
 size = Vector3(7.5, 0.9, 0.32)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_2_sign" type="CSGBox3D" parent="." unique_id=1536509464]
+[node name="shop_2_sign" type="CSGBox3D" parent="." unique_id=622755012]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.6362505, 3.7037501, 78.00375)
 size = Vector3(4.5, 0.63, 0.1)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="shop_3" type="CSGBox3D" parent="." unique_id=775428152]
+[node name="shop_3" type="CSGBox3D" parent="." unique_id=1752821346]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.746, 2.724, 88.004)
 use_collision = true
 size = Vector3(9.5, 5.56, 9)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_3_cap" type="CSGBox3D" parent="." unique_id=2009192371]
+[node name="shop_3_cap" type="CSGBox3D" parent="." unique_id=940485725]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.74575, 5.70425, 88.00425)
 size = Vector3(10, 0.4, 9.5)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="shop_3_awning" type="CSGBox3D" parent="." unique_id=1737966691]
+[node name="shop_3_awning" type="CSGBox3D" parent="." unique_id=1290884402]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.8755, 3.1044998, 88.0045)
 size = Vector3(1.8, 0.18, 7.5)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="shop_3_post_a" type="CSGCylinder3D" parent="." unique_id=1433849272]
+[node name="shop_3_post_a" type="CSGCylinder3D" parent="." unique_id=1237694663]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.69525, 1.55475, 84.50475)
 radius = 0.08
 height = 3.1
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_3_post_b" type="CSGCylinder3D" parent="." unique_id=825065093]
+[node name="shop_3_post_b" type="CSGCylinder3D" parent="." unique_id=948361276]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.695, 1.555, 91.505)
 radius = 0.08
 height = 3.1
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_3_pier_l" type="CSGBox3D" parent="." unique_id=1997860459]
+[node name="shop_3_pier_l" type="CSGBox3D" parent="." unique_id=1877199572]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.849999, 1.68, 91.35)
 size = Vector3(0.3, 3.44, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_3_pier_r" type="CSGBox3D" parent="." unique_id=1901314681]
+[node name="shop_3_pier_r" type="CSGBox3D" parent="." unique_id=1980980073]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.8497505, 1.6802499, 84.65025)
 size = Vector3(0.3, 3.44, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_3_glass" type="CSGBox3D" parent="." unique_id=1690137186]
+[node name="shop_3_glass" type="CSGBox3D" parent="." unique_id=1869343922]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.9595, 1.7005, 88.0005)
 size = Vector3(6.3, 2.1, 0.12)
 material = SubResource("StandardMaterial3D_44oix")
 
-[node name="shop_3_bulkhead" type="CSGBox3D" parent="." unique_id=1757922979]
+[node name="shop_3_bulkhead" type="CSGBox3D" parent="." unique_id=1398221917]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.89925, 0.43575, 88.00075)
 size = Vector3(6.3, 0.93, 0.28)
 material = SubResource("StandardMaterial3D_32t5b")
 
-[node name="shop_3_door" type="CSGBox3D" parent="." unique_id=174314552]
+[node name="shop_3_door" type="CSGBox3D" parent="." unique_id=1843533908]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.943999, 1.021, 85.601)
 size = Vector3(1, 2.17, 0.17)
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="shop_3_fascia" type="CSGBox3D" parent="." unique_id=510740933]
+[node name="shop_3_fascia" type="CSGBox3D" parent="." unique_id=1876250037]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.83875, 3.55125, 88.00125)
 size = Vector3(7, 0.55, 0.32)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_3_sign" type="CSGBox3D" parent="." unique_id=2048496337]
+[node name="shop_3_sign" type="CSGBox3D" parent="." unique_id=354680194]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.6385, 3.5514998, 88.0015)
 size = Vector3(4.2, 0.385, 0.1)
 material = SubResource("StandardMaterial3D_1siwm")
 
-[node name="shop_4" type="CSGBox3D" parent="." unique_id=1869177956]
+[node name="shop_4" type="CSGBox3D" parent="." unique_id=1617302453]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.24825, 2.97175, 99.00175)
 use_collision = true
 size = Vector3(8.5, 6.06, 12)
 material = SubResource("StandardMaterial3D_32t5b")
 
-[node name="shop_4_cap" type="CSGBox3D" parent="." unique_id=360683289]
+[node name="shop_4_cap" type="CSGBox3D" parent="." unique_id=912055113]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.248, 6.2019997, 99.002)
 size = Vector3(9, 0.4, 12.5)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="shop_4_awning" type="CSGBox3D" parent="." unique_id=969028533]
+[node name="shop_4_awning" type="CSGBox3D" parent="." unique_id=523262663]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.87775, 3.1022499, 99.00225)
 size = Vector3(1.8, 0.18, 10.5)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="shop_4_post_a" type="CSGCylinder3D" parent="." unique_id=1562820661]
+[node name="shop_4_post_a" type="CSGCylinder3D" parent="." unique_id=730854126]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.6975, 1.5525, 94.0025)
 radius = 0.08
 height = 3.1
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_4_post_b" type="CSGCylinder3D" parent="." unique_id=1716411136]
+[node name="shop_4_post_b" type="CSGCylinder3D" parent="." unique_id=1379255818]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.697249, 1.55275, 104.00275)
 radius = 0.08
 height = 3.1
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_4_pier_l" type="CSGBox3D" parent="." unique_id=790442711]
+[node name="shop_4_pier_l" type="CSGBox3D" parent="." unique_id=1565065305]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.846999, 1.683, 102.603)
 size = Vector3(0.3, 3.44, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_4_pier_r" type="CSGBox3D" parent="." unique_id=2040532107]
+[node name="shop_4_pier_r" type="CSGBox3D" parent="." unique_id=1775587291]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.84675, 1.68325, 95.40325)
 size = Vector3(0.3, 3.44, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_4_glass" type="CSGBox3D" parent="." unique_id=1007765285]
+[node name="shop_4_glass" type="CSGBox3D" parent="." unique_id=1292225532]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.9565, 1.7035, 99.0035)
 size = Vector3(6.8, 2.1, 0.12)
 material = SubResource("StandardMaterial3D_44oix")
 
-[node name="shop_4_bulkhead" type="CSGBox3D" parent="." unique_id=700422106]
+[node name="shop_4_bulkhead" type="CSGBox3D" parent="." unique_id=627224236]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.89625, 0.43875, 99.00375)
 size = Vector3(6.8, 0.93, 0.28)
 material = SubResource("StandardMaterial3D_32t5b")
 
-[node name="shop_4_door" type="CSGBox3D" parent="." unique_id=1646403526]
+[node name="shop_4_door" type="CSGBox3D" parent="." unique_id=1134240733]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.941, 1.0239999, 96.354)
 size = Vector3(1, 2.17, 0.17)
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="shop_4_fascia" type="CSGBox3D" parent="." unique_id=1089068185]
+[node name="shop_4_fascia" type="CSGBox3D" parent="." unique_id=1864945402]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.835751, 3.55425, 99.00425)
 size = Vector3(7.5, 0.55, 0.32)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_4_sign" type="CSGBox3D" parent="." unique_id=1609554464]
+[node name="shop_4_sign" type="CSGBox3D" parent="." unique_id=645943513]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8.6355, 3.5544999, 99.0045)
 size = Vector3(4.5, 0.385, 0.1)
 material = SubResource("StandardMaterial3D_b4cvx")
 
-[node name="shop_4_table_0" type="CSGCylinder3D" parent="." unique_id=1924431941]
+[node name="shop_4_table_0" type="CSGCylinder3D" parent="." unique_id=1451110107]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -7.49525, 0.34475002, 101.35475)
 use_collision = true
 radius = 0.36
@@ -601,28 +601,28 @@ height = 0.8
 sides = 10
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_4_table_0_leg" type="CSGCylinder3D" parent="." unique_id=1841531039]
+[node name="shop_4_table_0_leg" type="CSGCylinder3D" parent="." unique_id=345942850]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -7.495, 0.185, 101.354996)
 radius = 0.1
 height = 0.36
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_4_stool_0_0" type="CSGCylinder3D" parent="." unique_id=2006098774]
+[node name="shop_4_stool_0_0" type="CSGCylinder3D" parent="." unique_id=1067522514]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -7.5, 0.21, 102.1)
 use_collision = true
 radius = 0.18
 height = 0.54
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="shop_4_stool_0_1" type="CSGCylinder3D" parent="." unique_id=18012286]
+[node name="shop_4_stool_0_1" type="CSGCylinder3D" parent="." unique_id=1125353137]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -7.49975, 0.21024999, 100.60025)
 use_collision = true
 radius = 0.18
 height = 0.54
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="shop_4_table_1" type="CSGCylinder3D" parent="." unique_id=1763633066]
+[node name="shop_4_table_1" type="CSGCylinder3D" parent="." unique_id=280671117]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -7.4995, 0.3405, 96.650505)
 use_collision = true
 radius = 0.36
@@ -630,93 +630,93 @@ height = 0.8
 sides = 10
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_4_table_1_leg" type="CSGCylinder3D" parent="." unique_id=1521376857]
+[node name="shop_4_table_1_leg" type="CSGCylinder3D" parent="." unique_id=1102385126]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -7.49925, 0.18075001, 96.65075)
 radius = 0.1
 height = 0.36
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_4_stool_1_0" type="CSGCylinder3D" parent="." unique_id=1366727057]
+[node name="shop_4_stool_1_0" type="CSGCylinder3D" parent="." unique_id=1215568941]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -7.499, 0.211, 97.401)
 use_collision = true
 radius = 0.18
 height = 0.54
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="shop_4_stool_1_1" type="CSGCylinder3D" parent="." unique_id=589017315]
+[node name="shop_4_stool_1_1" type="CSGCylinder3D" parent="." unique_id=225735143]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -7.49875, 0.21124999, 95.90125)
 use_collision = true
 radius = 0.18
 height = 0.54
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="shop_10" type="CSGBox3D" parent="." unique_id=1325191407]
+[node name="shop_10" type="CSGBox3D" parent="." unique_id=1045919081]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5015, 2.7215, 57.0015)
 use_collision = true
 size = Vector3(9, 5.56, 11)
 material = SubResource("StandardMaterial3D_32t5b")
 
-[node name="shop_10_cap" type="CSGBox3D" parent="." unique_id=2086916043]
+[node name="shop_10_cap" type="CSGBox3D" parent="." unique_id=512178023]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.50175, 5.70175, 57.00175)
 size = Vector3(9.5, 0.4, 11.5)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="shop_10_awning" type="CSGBox3D" parent="." unique_id=1575329064]
+[node name="shop_10_awning" type="CSGBox3D" parent="." unique_id=1084667136]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.882, 3.102, 57.002)
 size = Vector3(1.8, 0.18, 9.5)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="shop_10_post_a" type="CSGCylinder3D" parent="." unique_id=159764490]
+[node name="shop_10_post_a" type="CSGCylinder3D" parent="." unique_id=1797206611]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.70225, 1.5522499, 52.50225)
 radius = 0.08
 height = 3.1
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_10_post_b" type="CSGCylinder3D" parent="." unique_id=1012370787]
+[node name="shop_10_post_b" type="CSGCylinder3D" parent="." unique_id=2058347158]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.7025, 1.5525, 61.5025)
 radius = 0.08
 height = 3.1
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_10_pier_l" type="CSGBox3D" parent="." unique_id=1034811569]
+[node name="shop_10_pier_l" type="CSGBox3D" parent="." unique_id=1081702554]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.8527503, 1.68275, 53.402752)
 size = Vector3(0.3, 3.44, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_10_pier_r" type="CSGBox3D" parent="." unique_id=990382610]
+[node name="shop_10_pier_r" type="CSGBox3D" parent="." unique_id=1282535299]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.8529997, 1.683, 60.602997)
 size = Vector3(0.3, 3.44, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_10_glass" type="CSGBox3D" parent="." unique_id=1614681637]
+[node name="shop_10_glass" type="CSGBox3D" parent="." unique_id=2122198724]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.96325, 1.70325, 57.00325)
 size = Vector3(6.8, 2.1, 0.12)
 material = SubResource("StandardMaterial3D_44oix")
 
-[node name="shop_10_bulkhead" type="CSGBox3D" parent="." unique_id=1956205352]
+[node name="shop_10_bulkhead" type="CSGBox3D" parent="." unique_id=1811387312]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.9035, 0.43850002, 57.0035)
 size = Vector3(6.8, 0.93, 0.28)
 material = SubResource("StandardMaterial3D_32t5b")
 
-[node name="shop_10_door" type="CSGBox3D" parent="." unique_id=205720779]
+[node name="shop_10_door" type="CSGBox3D" parent="." unique_id=1654463967]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.9487495, 1.02375, 59.65375)
 size = Vector3(1, 2.17, 0.17)
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="shop_10_fascia" type="CSGBox3D" parent="." unique_id=45112640]
+[node name="shop_10_fascia" type="CSGBox3D" parent="." unique_id=1695054565]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.8440003, 3.554, 57.004)
 size = Vector3(7.5, 0.55, 0.32)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_10_sign" type="CSGBox3D" parent="." unique_id=365979565]
+[node name="shop_10_sign" type="CSGBox3D" parent="." unique_id=203802819]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.64425, 3.55425, 57.00425)
 size = Vector3(4.5, 0.385, 0.1)
 material = SubResource("StandardMaterial3D_b4cvx")
 
-[node name="shop_10_table_0" type="CSGCylinder3D" parent="." unique_id=1069385292]
+[node name="shop_10_table_0" type="CSGCylinder3D" parent="." unique_id=1060283914]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 4.5045, 0.3445, 54.654503)
 use_collision = true
 radius = 0.36
@@ -724,28 +724,28 @@ height = 0.8
 sides = 10
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_10_table_0_leg" type="CSGCylinder3D" parent="." unique_id=991815782]
+[node name="shop_10_table_0_leg" type="CSGCylinder3D" parent="." unique_id=34552743]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 4.50475, 0.18475, 54.65475)
 radius = 0.1
 height = 0.36
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_10_stool_0_0" type="CSGCylinder3D" parent="." unique_id=838123246]
+[node name="shop_10_stool_0_0" type="CSGCylinder3D" parent="." unique_id=1983431447]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 4.505, 0.21499999, 53.905003)
 use_collision = true
 radius = 0.18
 height = 0.54
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="shop_10_stool_0_1" type="CSGCylinder3D" parent="." unique_id=1726345323]
+[node name="shop_10_stool_0_1" type="CSGCylinder3D" parent="." unique_id=2053788149]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 4.5, 0.21, 55.4)
 use_collision = true
 radius = 0.18
 height = 0.54
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="shop_10_table_1" type="CSGCylinder3D" parent="." unique_id=1567678941]
+[node name="shop_10_table_1" type="CSGCylinder3D" parent="." unique_id=180142232]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 4.50025, 0.34025002, 59.35025)
 use_collision = true
 radius = 0.36
@@ -753,333 +753,333 @@ height = 0.8
 sides = 10
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_10_table_1_leg" type="CSGCylinder3D" parent="." unique_id=392746467]
+[node name="shop_10_table_1_leg" type="CSGCylinder3D" parent="." unique_id=538364135]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 4.5005, 0.1805, 59.3505)
 radius = 0.1
 height = 0.36
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_10_stool_1_0" type="CSGCylinder3D" parent="." unique_id=1499631958]
+[node name="shop_10_stool_1_0" type="CSGCylinder3D" parent="." unique_id=1994305360]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 4.50075, 0.21075, 58.60075)
 use_collision = true
 radius = 0.18
 height = 0.54
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="shop_10_stool_1_1" type="CSGCylinder3D" parent="." unique_id=1236960659]
+[node name="shop_10_stool_1_1" type="CSGCylinder3D" parent="." unique_id=1474146985]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 4.501, 0.211, 60.100998)
 use_collision = true
 radius = 0.18
 height = 0.54
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="shop_11" type="CSGBox3D" parent="." unique_id=1980191352]
+[node name="shop_11" type="CSGBox3D" parent="." unique_id=713919102]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.00125, 3.47125, 69.00125)
 use_collision = true
 size = Vector3(10, 7.06, 12)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="shop_11_cap" type="CSGBox3D" parent="." unique_id=1154365860]
+[node name="shop_11_cap" type="CSGBox3D" parent="." unique_id=2016019644]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.0015, 7.2015, 69.0015)
 size = Vector3(10.5, 0.4, 12.5)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="shop_11_awning" type="CSGBox3D" parent="." unique_id=1547069422]
+[node name="shop_11_awning" type="CSGBox3D" parent="." unique_id=92226423]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.88175, 3.10175, 69.00175)
 size = Vector3(1.8, 0.18, 10.5)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="shop_11_post_a" type="CSGCylinder3D" parent="." unique_id=1736888727]
+[node name="shop_11_post_a" type="CSGCylinder3D" parent="." unique_id=1231659027]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.7019997, 1.5519999, 64.002)
 radius = 0.08
 height = 3.1
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_11_post_b" type="CSGCylinder3D" parent="." unique_id=584037446]
+[node name="shop_11_post_b" type="CSGCylinder3D" parent="." unique_id=203230857]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.70225, 1.5522499, 74.00225)
 radius = 0.08
 height = 3.1
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_11_pier_l" type="CSGBox3D" parent="." unique_id=552204075]
+[node name="shop_11_pier_l" type="CSGBox3D" parent="." unique_id=1511335765]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.8525004, 1.6825, 65.402504)
 size = Vector3(0.3, 3.44, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_11_pier_r" type="CSGBox3D" parent="." unique_id=1764658404]
+[node name="shop_11_pier_r" type="CSGBox3D" parent="." unique_id=157252454]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.85275, 1.68275, 72.602745)
 size = Vector3(0.3, 3.44, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_11_glass" type="CSGBox3D" parent="." unique_id=1592476312]
+[node name="shop_11_glass" type="CSGBox3D" parent="." unique_id=1818029124]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.963, 1.7030001, 69.003)
 size = Vector3(6.8, 2.1, 0.12)
 material = SubResource("StandardMaterial3D_44oix")
 
-[node name="shop_11_bulkhead" type="CSGBox3D" parent="." unique_id=2048628498]
+[node name="shop_11_bulkhead" type="CSGBox3D" parent="." unique_id=1607558018]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.90325, 0.43825, 69.00325)
 size = Vector3(6.8, 0.93, 0.28)
 material = SubResource("StandardMaterial3D_32t5b")
 
-[node name="shop_11_door" type="CSGBox3D" parent="." unique_id=893770549]
+[node name="shop_11_door" type="CSGBox3D" parent="." unique_id=1273503272]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.9484997, 1.0235, 71.6535)
 size = Vector3(1, 2.17, 0.17)
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="shop_11_fascia" type="CSGBox3D" parent="." unique_id=1884633270]
+[node name="shop_11_fascia" type="CSGBox3D" parent="." unique_id=497847733]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.84375, 3.55375, 69.00375)
 size = Vector3(7.5, 0.55, 0.32)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_11_sign" type="CSGBox3D" parent="." unique_id=1539323530]
+[node name="shop_11_sign" type="CSGBox3D" parent="." unique_id=522871342]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.644, 3.554, 69.004)
 size = Vector3(4.5, 0.385, 0.1)
 material = SubResource("StandardMaterial3D_1siwm")
 
-[node name="shop_12" type="CSGBox3D" parent="." unique_id=93576887]
+[node name="shop_12" type="CSGBox3D" parent="." unique_id=1278236712]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.00425, 2.47425, 81.00425)
 use_collision = true
 size = Vector3(8, 5.06, 11)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_12_cap" type="CSGBox3D" parent="." unique_id=1369376826]
+[node name="shop_12_cap" type="CSGBox3D" parent="." unique_id=1199901302]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.0045, 5.2044997, 81.0045)
 size = Vector3(8.5, 0.4, 11.5)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="shop_12_awning" type="CSGBox3D" parent="." unique_id=218976527]
+[node name="shop_12_awning" type="CSGBox3D" parent="." unique_id=1846744956]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.88475, 3.10475, 81.00475)
 size = Vector3(1.8, 0.18, 9.5)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="shop_12_post_a" type="CSGCylinder3D" parent="." unique_id=791470686]
+[node name="shop_12_post_a" type="CSGCylinder3D" parent="." unique_id=391732170]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.705, 1.555, 76.505)
 radius = 0.08
 height = 3.1
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_12_post_b" type="CSGCylinder3D" parent="." unique_id=449634148]
+[node name="shop_12_post_b" type="CSGCylinder3D" parent="." unique_id=991723696]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.7, 1.55, 85.5)
 radius = 0.08
 height = 3.1
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_12_pier_l" type="CSGBox3D" parent="." unique_id=1924454064]
+[node name="shop_12_pier_l" type="CSGBox3D" parent="." unique_id=1220102797]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.8502502, 1.6802499, 77.40025)
 size = Vector3(0.3, 3.44, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_12_pier_r" type="CSGBox3D" parent="." unique_id=1779357000]
+[node name="shop_12_pier_r" type="CSGBox3D" parent="." unique_id=1287089037]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.8505, 1.6804999, 84.6005)
 size = Vector3(0.3, 3.44, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_12_mouth" type="CSGBox3D" parent="." unique_id=737865294]
+[node name="shop_12_mouth" type="CSGBox3D" parent="." unique_id=1005148910]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.98075, 1.32575, 81.00075)
 size = Vector3(6.8, 2.75, 0.06)
 material = SubResource("StandardMaterial3D_44oix")
 
-[node name="shop_12_soffit" type="CSGBox3D" parent="." unique_id=1959747426]
+[node name="shop_12_soffit" type="CSGBox3D" parent="." unique_id=2134171316]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.761, 2.8509998, 81.001)
 size = Vector3(6.8, 0.3, 0.5)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="shop_12_cab_0" type="CSGBox3D" parent="." unique_id=1068132741]
+[node name="shop_12_cab_0" type="CSGBox3D" parent="." unique_id=1041763983]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.5812497, 0.77125, 78.25125)
 size = Vector3(0.72, 1.66, 0.6)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="shop_12_cab_0_screen" type="CSGBox3D" parent="." unique_id=648163254]
+[node name="shop_12_cab_0_screen" type="CSGBox3D" parent="." unique_id=919293565]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.2715, 1.2515, 78.2515)
 size = Vector3(0.5, 0.42, 0.06)
 material = SubResource("StandardMaterial3D_1siwm")
 
-[node name="shop_12_cab_1" type="CSGBox3D" parent="." unique_id=214850085]
+[node name="shop_12_cab_1" type="CSGBox3D" parent="." unique_id=488496211]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.58175, 0.77175, 79.62675)
 size = Vector3(0.72, 1.66, 0.6)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="shop_12_cab_1_screen" type="CSGBox3D" parent="." unique_id=2138039387]
+[node name="shop_12_cab_1_screen" type="CSGBox3D" parent="." unique_id=97141617]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.272, 1.252, 79.627)
 size = Vector3(0.5, 0.42, 0.06)
 material = SubResource("StandardMaterial3D_1siwm")
 
-[node name="shop_12_cab_2" type="CSGBox3D" parent="." unique_id=519497623]
+[node name="shop_12_cab_2" type="CSGBox3D" parent="." unique_id=126109508]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.58225, 0.77225, 81.00225)
 size = Vector3(0.72, 1.66, 0.6)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="shop_12_cab_2_screen" type="CSGBox3D" parent="." unique_id=1333098998]
+[node name="shop_12_cab_2_screen" type="CSGBox3D" parent="." unique_id=606176722]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.2725, 1.2525, 81.0025)
 size = Vector3(0.5, 0.42, 0.06)
 material = SubResource("StandardMaterial3D_1siwm")
 
-[node name="shop_12_cab_3" type="CSGBox3D" parent="." unique_id=1598366216]
+[node name="shop_12_cab_3" type="CSGBox3D" parent="." unique_id=1685070580]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.58275, 0.77274996, 82.37775)
 size = Vector3(0.72, 1.66, 0.6)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="shop_12_cab_3_screen" type="CSGBox3D" parent="." unique_id=519776734]
+[node name="shop_12_cab_3_screen" type="CSGBox3D" parent="." unique_id=2106544425]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.273, 1.253, 82.378)
 size = Vector3(0.5, 0.42, 0.06)
 material = SubResource("StandardMaterial3D_1siwm")
 
-[node name="shop_12_cab_4" type="CSGBox3D" parent="." unique_id=484156327]
+[node name="shop_12_cab_4" type="CSGBox3D" parent="." unique_id=1426586068]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.58325, 0.77325, 83.75325)
 size = Vector3(0.72, 1.66, 0.6)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="shop_12_cab_4_screen" type="CSGBox3D" parent="." unique_id=1209139887]
+[node name="shop_12_cab_4_screen" type="CSGBox3D" parent="." unique_id=786935589]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.2735, 1.2535, 83.7535)
 size = Vector3(0.5, 0.42, 0.06)
 material = SubResource("StandardMaterial3D_1siwm")
 
-[node name="shop_12_fascia" type="CSGBox3D" parent="." unique_id=245865533]
+[node name="shop_12_fascia" type="CSGBox3D" parent="." unique_id=831291214]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.84375, 3.7037501, 81.00375)
 size = Vector3(7.5, 0.9, 0.32)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_12_sign" type="CSGBox3D" parent="." unique_id=1893341453]
+[node name="shop_12_sign" type="CSGBox3D" parent="." unique_id=1575676117]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.644, 3.704, 81.004)
 size = Vector3(4.5, 0.63, 0.1)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="shop_13" type="CSGBox3D" parent="." unique_id=799275885]
+[node name="shop_13" type="CSGBox3D" parent="." unique_id=1317472167]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.50425, 3.22425, 92.00425)
 use_collision = true
 size = Vector3(9, 6.56, 10)
 material = SubResource("StandardMaterial3D_32t5b")
 
-[node name="shop_13_cap" type="CSGBox3D" parent="." unique_id=340598780]
+[node name="shop_13_cap" type="CSGBox3D" parent="." unique_id=1514300433]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5045, 6.7044997, 92.0045)
 size = Vector3(9.5, 0.4, 10.5)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="shop_13_awning" type="CSGBox3D" parent="." unique_id=1858421185]
+[node name="shop_13_awning" type="CSGBox3D" parent="." unique_id=74119648]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.88475, 3.10475, 92.00475)
 size = Vector3(1.8, 0.18, 8.5)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="shop_13_post_a" type="CSGCylinder3D" parent="." unique_id=161761328]
+[node name="shop_13_post_a" type="CSGCylinder3D" parent="." unique_id=516738679]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.705, 1.555, 88.005)
 radius = 0.08
 height = 3.1
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_13_post_b" type="CSGCylinder3D" parent="." unique_id=1991597525]
+[node name="shop_13_post_b" type="CSGCylinder3D" parent="." unique_id=1440200609]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.7, 1.55, 96)
 radius = 0.08
 height = 3.1
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_13_pier_l" type="CSGBox3D" parent="." unique_id=1276505444]
+[node name="shop_13_pier_l" type="CSGBox3D" parent="." unique_id=337645894]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.8502502, 1.6802499, 88.40025)
 size = Vector3(0.3, 3.44, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_13_pier_r" type="CSGBox3D" parent="." unique_id=1568632512]
+[node name="shop_13_pier_r" type="CSGBox3D" parent="." unique_id=1379746728]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.8505, 1.6804999, 95.6005)
 size = Vector3(0.3, 3.44, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_13_glass" type="CSGBox3D" parent="." unique_id=1137938417]
+[node name="shop_13_glass" type="CSGBox3D" parent="." unique_id=649265194]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.96075, 1.70075, 92.00075)
 size = Vector3(6.8, 2.1, 0.12)
 material = SubResource("StandardMaterial3D_44oix")
 
-[node name="shop_13_bulkhead" type="CSGBox3D" parent="." unique_id=1510019337]
+[node name="shop_13_bulkhead" type="CSGBox3D" parent="." unique_id=1427554372]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.901, 0.436, 92.001)
 size = Vector3(6.8, 0.93, 0.28)
 material = SubResource("StandardMaterial3D_32t5b")
 
-[node name="shop_13_door" type="CSGBox3D" parent="." unique_id=901361821]
+[node name="shop_13_door" type="CSGBox3D" parent="." unique_id=169758974]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.9462495, 1.02125, 94.65125)
 size = Vector3(1, 2.17, 0.17)
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="shop_13_fascia" type="CSGBox3D" parent="." unique_id=282146754]
+[node name="shop_13_fascia" type="CSGBox3D" parent="." unique_id=570923811]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.8415003, 3.5514998, 92.0015)
 size = Vector3(7.5, 0.55, 0.32)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_13_sign" type="CSGBox3D" parent="." unique_id=1525641132]
+[node name="shop_13_sign" type="CSGBox3D" parent="." unique_id=1561732208]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.64175, 3.55175, 92.00175)
 size = Vector3(4.5, 0.385, 0.1)
 material = SubResource("StandardMaterial3D_1siwm")
 
-[node name="shop_14" type="CSGBox3D" parent="." unique_id=1908797919]
+[node name="shop_14" type="CSGBox3D" parent="." unique_id=1715162376]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.252, 2.7220001, 102.002)
 use_collision = true
 size = Vector3(8.5, 5.56, 9)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="shop_14_cap" type="CSGBox3D" parent="." unique_id=1962158183]
+[node name="shop_14_cap" type="CSGBox3D" parent="." unique_id=396570581]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.25225, 5.70225, 102.00225)
 size = Vector3(9, 0.4, 9.5)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="shop_14_awning" type="CSGBox3D" parent="." unique_id=1409859145]
+[node name="shop_14_awning" type="CSGBox3D" parent="." unique_id=2015415794]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.8825, 3.1025, 102.0025)
 size = Vector3(1.8, 0.18, 7.5)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="shop_14_post_a" type="CSGCylinder3D" parent="." unique_id=1380673181]
+[node name="shop_14_post_a" type="CSGCylinder3D" parent="." unique_id=998548576]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.7027497, 1.55275, 98.50275)
 radius = 0.08
 height = 3.1
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_14_post_b" type="CSGCylinder3D" parent="." unique_id=1360698537]
+[node name="shop_14_post_b" type="CSGCylinder3D" parent="." unique_id=335050778]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.7029996, 1.553, 105.503)
 radius = 0.08
 height = 3.1
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_14_pier_l" type="CSGBox3D" parent="." unique_id=809202375]
+[node name="shop_14_pier_l" type="CSGBox3D" parent="." unique_id=1010314552]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.8532505, 1.68325, 98.65325)
 size = Vector3(0.3, 3.44, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_14_pier_r" type="CSGBox3D" parent="." unique_id=164912316]
+[node name="shop_14_pier_r" type="CSGBox3D" parent="." unique_id=1419861639]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.8535, 1.6834999, 105.3535)
 size = Vector3(0.3, 3.44, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_14_glass" type="CSGBox3D" parent="." unique_id=1041066327]
+[node name="shop_14_glass" type="CSGBox3D" parent="." unique_id=1816083079]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.96375, 1.70375, 102.00375)
 size = Vector3(6.3, 2.1, 0.12)
 material = SubResource("StandardMaterial3D_44oix")
 
-[node name="shop_14_bulkhead" type="CSGBox3D" parent="." unique_id=1189821215]
+[node name="shop_14_bulkhead" type="CSGBox3D" parent="." unique_id=2139602780]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.9040003, 0.439, 102.004)
 size = Vector3(6.3, 0.93, 0.28)
 material = SubResource("StandardMaterial3D_32t5b")
 
-[node name="shop_14_door" type="CSGBox3D" parent="." unique_id=7681309]
+[node name="shop_14_door" type="CSGBox3D" parent="." unique_id=1498552420]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.9492497, 1.02425, 104.40425)
 size = Vector3(1, 2.17, 0.17)
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="shop_14_fascia" type="CSGBox3D" parent="." unique_id=587463193]
+[node name="shop_14_fascia" type="CSGBox3D" parent="." unique_id=625824499]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.8445, 3.5544999, 102.0045)
 size = Vector3(7, 0.55, 0.32)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_14_sign" type="CSGBox3D" parent="." unique_id=1668147401]
+[node name="shop_14_sign" type="CSGBox3D" parent="." unique_id=115062106]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.6447496, 3.55475, 102.00475)
 size = Vector3(4.2, 0.385, 0.1)
 material = SubResource("StandardMaterial3D_b4cvx")
 
-[node name="shop_14_table_0" type="CSGCylinder3D" parent="." unique_id=913462415]
+[node name="shop_14_table_0" type="CSGCylinder3D" parent="." unique_id=1600352047]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 4.505, 0.345, 99.905)
 use_collision = true
 radius = 0.36
@@ -1087,28 +1087,28 @@ height = 0.8
 sides = 10
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_14_table_0_leg" type="CSGCylinder3D" parent="." unique_id=1578826756]
+[node name="shop_14_table_0_leg" type="CSGCylinder3D" parent="." unique_id=380713790]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 4.5, 0.18, 99.9)
 radius = 0.1
 height = 0.36
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_14_stool_0_0" type="CSGCylinder3D" parent="." unique_id=373630383]
+[node name="shop_14_stool_0_0" type="CSGCylinder3D" parent="." unique_id=1075376560]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 4.50025, 0.21024999, 99.15025)
 use_collision = true
 radius = 0.18
 height = 0.54
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="shop_14_stool_0_1" type="CSGCylinder3D" parent="." unique_id=184729676]
+[node name="shop_14_stool_0_1" type="CSGCylinder3D" parent="." unique_id=1198383203]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 4.5005, 0.21049999, 100.650505)
 use_collision = true
 radius = 0.18
 height = 0.54
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="shop_14_table_1" type="CSGCylinder3D" parent="." unique_id=907151147]
+[node name="shop_14_table_1" type="CSGCylinder3D" parent="." unique_id=1836270852]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 4.50075, 0.34075, 104.100746)
 use_collision = true
 radius = 0.36
@@ -1116,312 +1116,312 @@ height = 0.8
 sides = 10
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="shop_14_table_1_leg" type="CSGCylinder3D" parent="." unique_id=94554447]
+[node name="shop_14_table_1_leg" type="CSGCylinder3D" parent="." unique_id=1239674992]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 4.501, 0.18100001, 104.101)
 radius = 0.1
 height = 0.36
 sides = 6
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="shop_14_stool_1_0" type="CSGCylinder3D" parent="." unique_id=766126625]
+[node name="shop_14_stool_1_0" type="CSGCylinder3D" parent="." unique_id=1088334737]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 4.50125, 0.21124999, 103.35125)
 use_collision = true
 radius = 0.18
 height = 0.54
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="shop_14_stool_1_1" type="CSGCylinder3D" parent="." unique_id=223652850]
+[node name="shop_14_stool_1_1" type="CSGCylinder3D" parent="." unique_id=1437939586]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 4.5015, 0.21149999, 104.8515)
 use_collision = true
 radius = 0.18
 height = 0.54
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="booth_ring_back" type="CSGBox3D" parent="." unique_id=1911845995]
+[node name="booth_ring_back" type="CSGBox3D" parent="." unique_id=964322083]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -7.2982497, 1.60175, 64.00175)
 use_collision = true
 size = Vector3(4.5, 3.2, 0.3)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="booth_ring_side_l" type="CSGBox3D" parent="." unique_id=332248292]
+[node name="booth_ring_side_l" type="CSGBox3D" parent="." unique_id=1759849902]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -5.698, 1.602, 66.102)
 use_collision = true
 size = Vector3(0.3, 3.2, 3.2)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="booth_ring_side_r" type="CSGBox3D" parent="." unique_id=765349713]
+[node name="booth_ring_side_r" type="CSGBox3D" parent="." unique_id=1620947149]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -5.6977496, 1.60225, 61.902252)
 use_collision = true
 size = Vector3(0.3, 3.2, 3.2)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="booth_ring_counter" type="CSGBox3D" parent="." unique_id=412250623]
+[node name="booth_ring_counter" type="CSGBox3D" parent="." unique_id=1858340498]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -4.3974996, 0.5525, 64.0025)
 use_collision = true
 size = Vector3(3.9, 1.1, 0.6)
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="booth_ring_counter_top" type="CSGBox3D" parent="." unique_id=1414872749]
+[node name="booth_ring_counter_top" type="CSGBox3D" parent="." unique_id=1653190249]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -4.3972497, 1.14275, 64.00275)
 size = Vector3(4.2, 0.1, 0.8)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="booth_ring_canopy" type="CSGBox3D" parent="." unique_id=1108701306]
+[node name="booth_ring_canopy" type="CSGBox3D" parent="." unique_id=286371659]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -5.597, 3.303, 64.003)
 size = Vector3(5.3, 0.25, 4.2)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="booth_ring_valance" type="CSGBox3D" parent="." unique_id=205001773]
+[node name="booth_ring_valance" type="CSGBox3D" parent="." unique_id=941943282]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -3.5467498, 2.95325, 64.00325)
 size = Vector3(5.3, 0.5, 0.15)
 material = SubResource("StandardMaterial3D_b4cvx")
 
-[node name="booth_ring_prize_0_0" type="CSGBox3D" parent="." unique_id=261123441]
+[node name="booth_ring_prize_0_0" type="CSGBox3D" parent="." unique_id=1020112646]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -6.9465, 1.7035, 65.553505)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_b4cvx")
 
-[node name="booth_ring_prize_0_1" type="CSGBox3D" parent="." unique_id=670122538]
+[node name="booth_ring_prize_0_1" type="CSGBox3D" parent="." unique_id=1724845600]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -6.94625, 1.70375, 64.778755)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_1siwm")
 
-[node name="booth_ring_prize_0_2" type="CSGBox3D" parent="." unique_id=339609595]
+[node name="booth_ring_prize_0_2" type="CSGBox3D" parent="." unique_id=1723642872]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -6.9459996, 1.704, 64.004)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="booth_ring_prize_0_3" type="CSGBox3D" parent="." unique_id=1717694322]
+[node name="booth_ring_prize_0_3" type="CSGBox3D" parent="." unique_id=827952430]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -6.9457498, 1.7042501, 63.229248)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="booth_ring_prize_0_4" type="CSGBox3D" parent="." unique_id=1983063859]
+[node name="booth_ring_prize_0_4" type="CSGBox3D" parent="." unique_id=1372409537]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -6.9455, 1.7045001, 62.454502)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_b4cvx")
 
-[node name="booth_ring_prize_1_0" type="CSGBox3D" parent="." unique_id=199991587]
+[node name="booth_ring_prize_1_0" type="CSGBox3D" parent="." unique_id=2062298412]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -6.94525, 2.35475, 65.554756)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_1siwm")
 
-[node name="booth_ring_prize_1_1" type="CSGBox3D" parent="." unique_id=1880560336]
+[node name="booth_ring_prize_1_1" type="CSGBox3D" parent="." unique_id=1303826247]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -6.9449997, 2.355, 64.78)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="booth_ring_prize_1_2" type="CSGBox3D" parent="." unique_id=2072980037]
+[node name="booth_ring_prize_1_2" type="CSGBox3D" parent="." unique_id=404690897]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -6.95, 2.35, 64)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="booth_ring_prize_1_3" type="CSGBox3D" parent="." unique_id=1926470306]
+[node name="booth_ring_prize_1_3" type="CSGBox3D" parent="." unique_id=1675762457]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -6.94975, 2.35025, 63.22525)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_b4cvx")
 
-[node name="booth_ring_prize_1_4" type="CSGBox3D" parent="." unique_id=1931236657]
+[node name="booth_ring_prize_1_4" type="CSGBox3D" parent="." unique_id=556016986]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -6.9494996, 2.3504999, 62.4505)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_1siwm")
 
-[node name="booth_darts_back" type="CSGBox3D" parent="." unique_id=1899754452]
+[node name="booth_darts_back" type="CSGBox3D" parent="." unique_id=572509870]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 4.3007503, 1.60075, 75.00075)
 use_collision = true
 size = Vector3(4.5, 3.2, 0.3)
 material = SubResource("StandardMaterial3D_32t5b")
 
-[node name="booth_darts_side_l" type="CSGBox3D" parent="." unique_id=1372730676]
+[node name="booth_darts_side_l" type="CSGBox3D" parent="." unique_id=1605201570]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 2.701, 1.6010001, 72.901)
 use_collision = true
 size = Vector3(0.3, 3.2, 3.2)
 material = SubResource("StandardMaterial3D_32t5b")
 
-[node name="booth_darts_side_r" type="CSGBox3D" parent="." unique_id=124459973]
+[node name="booth_darts_side_r" type="CSGBox3D" parent="." unique_id=924838452]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 2.70125, 1.60125, 77.10125)
 use_collision = true
 size = Vector3(0.3, 3.2, 3.2)
 material = SubResource("StandardMaterial3D_32t5b")
 
-[node name="booth_darts_counter" type="CSGBox3D" parent="." unique_id=2036202516]
+[node name="booth_darts_counter" type="CSGBox3D" parent="." unique_id=879779001]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 1.4015001, 0.5515, 75.0015)
 use_collision = true
 size = Vector3(3.9, 1.1, 0.6)
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="booth_darts_counter_top" type="CSGBox3D" parent="." unique_id=1725993179]
+[node name="booth_darts_counter_top" type="CSGBox3D" parent="." unique_id=1674613890]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 1.4017501, 1.14175, 75.00175)
 size = Vector3(4.2, 0.1, 0.8)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="booth_darts_canopy" type="CSGBox3D" parent="." unique_id=1878636243]
+[node name="booth_darts_canopy" type="CSGBox3D" parent="." unique_id=1693163026]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 2.6020002, 3.302, 75.002)
 size = Vector3(5.3, 0.25, 4.2)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="booth_darts_valance" type="CSGBox3D" parent="." unique_id=578099411]
+[node name="booth_darts_valance" type="CSGBox3D" parent="." unique_id=199552751]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.55224997, 2.95225, 75.00225)
 size = Vector3(5.3, 0.5, 0.15)
 material = SubResource("StandardMaterial3D_b4cvx")
 
-[node name="booth_darts_prize_0_0" type="CSGBox3D" parent="." unique_id=663585086]
+[node name="booth_darts_prize_0_0" type="CSGBox3D" parent="." unique_id=1383586073]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 3.9525003, 1.7025001, 73.4525)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_b4cvx")
 
-[node name="booth_darts_prize_0_1" type="CSGBox3D" parent="." unique_id=1979920235]
+[node name="booth_darts_prize_0_1" type="CSGBox3D" parent="." unique_id=923463379]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 3.95275, 1.7027501, 74.227745)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_1siwm")
 
-[node name="booth_darts_prize_0_2" type="CSGBox3D" parent="." unique_id=1442649310]
+[node name="booth_darts_prize_0_2" type="CSGBox3D" parent="." unique_id=482826556]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 3.953, 1.7030001, 75.003)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="booth_darts_prize_0_3" type="CSGBox3D" parent="." unique_id=371335403]
+[node name="booth_darts_prize_0_3" type="CSGBox3D" parent="." unique_id=142279522]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 3.95325, 1.70325, 75.77825)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="booth_darts_prize_0_4" type="CSGBox3D" parent="." unique_id=773862922]
+[node name="booth_darts_prize_0_4" type="CSGBox3D" parent="." unique_id=1691202264]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 3.9534998, 1.7035, 76.553505)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_b4cvx")
 
-[node name="booth_darts_prize_1_0" type="CSGBox3D" parent="." unique_id=689649972]
+[node name="booth_darts_prize_1_0" type="CSGBox3D" parent="." unique_id=2032734180]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 3.9537504, 2.35375, 73.45375)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_1siwm")
 
-[node name="booth_darts_prize_1_1" type="CSGBox3D" parent="." unique_id=1225882407]
+[node name="booth_darts_prize_1_1" type="CSGBox3D" parent="." unique_id=1420732309]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 3.954, 2.3539999, 74.229)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="booth_darts_prize_1_2" type="CSGBox3D" parent="." unique_id=639228501]
+[node name="booth_darts_prize_1_2" type="CSGBox3D" parent="." unique_id=1988795804]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 3.95425, 2.35425, 75.00425)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="booth_darts_prize_1_3" type="CSGBox3D" parent="." unique_id=1364209112]
+[node name="booth_darts_prize_1_3" type="CSGBox3D" parent="." unique_id=1966744858]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 3.9545, 2.3544998, 75.7795)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_b4cvx")
 
-[node name="booth_darts_prize_1_4" type="CSGBox3D" parent="." unique_id=533724673]
+[node name="booth_darts_prize_1_4" type="CSGBox3D" parent="." unique_id=663263503]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 3.9547498, 2.35475, 76.554756)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_1siwm")
 
-[node name="booth_hoops_back" type="CSGBox3D" parent="." unique_id=977128923]
+[node name="booth_hoops_back" type="CSGBox3D" parent="." unique_id=2048596768]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -7.2949996, 1.605, 91.005)
 use_collision = true
 size = Vector3(4, 3.2, 0.3)
 material = SubResource("StandardMaterial3D_32t5b")
 
-[node name="booth_hoops_side_l" type="CSGBox3D" parent="." unique_id=2005610737]
+[node name="booth_hoops_side_l" type="CSGBox3D" parent="." unique_id=434855886]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -5.7, 1.6, 92.85)
 use_collision = true
 size = Vector3(0.3, 3.2, 3.2)
 material = SubResource("StandardMaterial3D_32t5b")
 
-[node name="booth_hoops_side_r" type="CSGBox3D" parent="." unique_id=1063815223]
+[node name="booth_hoops_side_r" type="CSGBox3D" parent="." unique_id=1763113678]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -5.69975, 1.60025, 89.15025)
 use_collision = true
 size = Vector3(0.3, 3.2, 3.2)
 material = SubResource("StandardMaterial3D_32t5b")
 
-[node name="booth_hoops_counter" type="CSGBox3D" parent="." unique_id=1369339676]
+[node name="booth_hoops_counter" type="CSGBox3D" parent="." unique_id=295488704]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -4.3994994, 0.55050004, 91.0005)
 use_collision = true
 size = Vector3(3.4, 1.1, 0.6)
 material = SubResource("StandardMaterial3D_nu7yw")
 
-[node name="booth_hoops_counter_top" type="CSGBox3D" parent="." unique_id=937958818]
+[node name="booth_hoops_counter_top" type="CSGBox3D" parent="." unique_id=1349774722]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -4.3992496, 1.1407499, 91.00075)
 size = Vector3(3.7, 0.1, 0.8)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="booth_hoops_canopy" type="CSGBox3D" parent="." unique_id=2125786295]
+[node name="booth_hoops_canopy" type="CSGBox3D" parent="." unique_id=1781664970]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -5.599, 3.3009999, 91.001)
 size = Vector3(4.8, 0.25, 4.2)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="booth_hoops_valance" type="CSGBox3D" parent="." unique_id=1030304803]
+[node name="booth_hoops_valance" type="CSGBox3D" parent="." unique_id=1734577129]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -3.5487497, 2.95125, 91.00125)
 size = Vector3(4.8, 0.5, 0.15)
 material = SubResource("StandardMaterial3D_b4cvx")
 
-[node name="booth_hoops_prize_0_0" type="CSGBox3D" parent="." unique_id=1823530332]
+[node name="booth_hoops_prize_0_0" type="CSGBox3D" parent="." unique_id=2122236765]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -6.9484997, 1.7015, 92.301506)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_b4cvx")
 
-[node name="booth_hoops_prize_0_1" type="CSGBox3D" parent="." unique_id=1053781782]
+[node name="booth_hoops_prize_0_1" type="CSGBox3D" parent="." unique_id=663961689]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -6.94825, 1.70175, 91.65175)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_1siwm")
 
-[node name="booth_hoops_prize_0_2" type="CSGBox3D" parent="." unique_id=98839136]
+[node name="booth_hoops_prize_0_2" type="CSGBox3D" parent="." unique_id=1700217139]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -6.948, 1.702, 91.002)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="booth_hoops_prize_0_3" type="CSGBox3D" parent="." unique_id=1358266062]
+[node name="booth_hoops_prize_0_3" type="CSGBox3D" parent="." unique_id=1113151301]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -6.9477496, 1.70225, 90.35225)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="booth_hoops_prize_0_4" type="CSGBox3D" parent="." unique_id=494580381]
+[node name="booth_hoops_prize_0_4" type="CSGBox3D" parent="." unique_id=1197018038]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -6.9474998, 1.7025001, 89.7025)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_b4cvx")
 
-[node name="booth_hoops_prize_1_0" type="CSGBox3D" parent="." unique_id=1050636896]
+[node name="booth_hoops_prize_1_0" type="CSGBox3D" parent="." unique_id=1731855845]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -6.94725, 2.3527498, 92.30275)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_1siwm")
 
-[node name="booth_hoops_prize_1_1" type="CSGBox3D" parent="." unique_id=1788229307]
+[node name="booth_hoops_prize_1_1" type="CSGBox3D" parent="." unique_id=1208802144]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -6.947, 2.353, 91.653)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="booth_hoops_prize_1_2" type="CSGBox3D" parent="." unique_id=1744220005]
+[node name="booth_hoops_prize_1_2" type="CSGBox3D" parent="." unique_id=2028308322]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -6.9467497, 2.3532498, 91.00325)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="booth_hoops_prize_1_3" type="CSGBox3D" parent="." unique_id=322255226]
+[node name="booth_hoops_prize_1_3" type="CSGBox3D" parent="." unique_id=1023210084]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -6.9465, 2.3535, 90.3535)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_b4cvx")
 
-[node name="booth_hoops_prize_1_4" type="CSGBox3D" parent="." unique_id=705760598]
+[node name="booth_hoops_prize_1_4" type="CSGBox3D" parent="." unique_id=1780765392]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -6.94625, 2.35375, 89.70375)
 size = Vector3(0.42, 0.5, 0.3)
 material = SubResource("StandardMaterial3D_1siwm")
 
-[node name="gate_booth_west" type="CSGBox3D" parent="." unique_id=304798838]
+[node name="gate_booth_west" type="CSGBox3D" parent="." unique_id=89279886]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.746, 1.724, 107.004)
 use_collision = true
 size = Vector3(4.5, 3.56, 4)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="gate_booth_east" type="CSGBox3D" parent="." unique_id=657200151]
+[node name="gate_booth_east" type="CSGBox3D" parent="." unique_id=973692985]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.75425, 1.7242501, 107.00425)
 use_collision = true
 size = Vector3(4.5, 3.56, 4)
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="gate_canopy" type="CSGBox3D" parent="." unique_id=823910525]
+[node name="gate_canopy" type="CSGBox3D" parent="." unique_id=347554105]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4955, 4.3045, 107.0045)
 size = Vector3(16, 0.5, 5.5)
 material = SubResource("StandardMaterial3D_61u2k")
 
-[node name="gate_post_west" type="CSGCylinder3D" parent="." unique_id=958124853]
+[node name="gate_post_west" type="CSGCylinder3D" parent="." unique_id=1016286730]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.19525, 2.15475, 107.00475)
 use_collision = true
 radius = 0.14
@@ -1429,7 +1429,7 @@ height = 4.3
 sides = 12
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="gate_post_east" type="CSGCylinder3D" parent="." unique_id=276747103]
+[node name="gate_post_east" type="CSGCylinder3D" parent="." unique_id=1844921354]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.205, 2.1550002, 107.005)
 use_collision = true
 radius = 0.14
@@ -1437,444 +1437,444 @@ height = 4.3
 sides = 12
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="gate_sign" type="CSGBox3D" parent="." unique_id=1586006830]
+[node name="gate_sign" type="CSGBox3D" parent="." unique_id=727749394]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 5.6, 109.6)
 size = Vector3(9, 2, 0.3)
 material = SubResource("StandardMaterial3D_b4cvx")
 
-[node name="stile_0" type="CSGBox3D" parent="." unique_id=1705337773]
+[node name="stile_0" type="CSGBox3D" parent="." unique_id=1454728333]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.49975, 0.50025, 107.00025)
 use_collision = true
 size = Vector3(0.25, 1, 3.4)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="stile_1" type="CSGBox3D" parent="." unique_id=1433583246]
+[node name="stile_1" type="CSGBox3D" parent="." unique_id=1087126914]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4995, 0.5005, 107.0005)
 use_collision = true
 size = Vector3(0.25, 1, 3.4)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="apron_pole_0" type="CSGCylinder3D" parent="." unique_id=530831209]
+[node name="apron_pole_0" type="CSGCylinder3D" parent="." unique_id=1517199312]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.49925, 4.00075, 116.00075)
 use_collision = true
 radius = 0.12
 height = 8.0
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="apron_pole_1" type="CSGCylinder3D" parent="." unique_id=857860747]
+[node name="apron_pole_1" type="CSGCylinder3D" parent="." unique_id=1724761236]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.499, 4.001, 116.001)
 use_collision = true
 radius = 0.12
 height = 8.0
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="apron_pole_2" type="CSGCylinder3D" parent="." unique_id=1062266968]
+[node name="apron_pole_2" type="CSGCylinder3D" parent="." unique_id=1131256652]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.49875, 4.00125, 116.00125)
 use_collision = true
 radius = 0.12
 height = 8.0
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="apron_pole_3" type="CSGCylinder3D" parent="." unique_id=872282691]
+[node name="apron_pole_3" type="CSGCylinder3D" parent="." unique_id=521001527]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5015, 4.0015, 116.0015)
 use_collision = true
 radius = 0.12
 height = 8.0
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="apron_pole_4" type="CSGCylinder3D" parent="." unique_id=422441171]
+[node name="apron_pole_4" type="CSGCylinder3D" parent="." unique_id=1582297747]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.50175, 4.00175, 116.00175)
 use_collision = true
 radius = 0.12
 height = 8.0
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="apron_pole_5" type="CSGCylinder3D" parent="." unique_id=1164123797]
+[node name="apron_pole_5" type="CSGCylinder3D" parent="." unique_id=1981868131]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.502, 4.002, 116.002)
 use_collision = true
 radius = 0.12
 height = 8.0
 material = SubResource("StandardMaterial3D_lmov5")
 
-[node name="apron_planter_west" type="CSGBox3D" parent="." unique_id=1236174907]
+[node name="apron_planter_west" type="CSGBox3D" parent="." unique_id=181901617]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.49775, 0.30225, 112.00225)
 use_collision = true
 size = Vector3(7, 0.6, 3)
 material = SubResource("StandardMaterial3D_32t5b")
 
-[node name="apron_planter_east" type="CSGBox3D" parent="." unique_id=1896370554]
+[node name="apron_planter_east" type="CSGBox3D" parent="." unique_id=378633327]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.5025, 0.3025, 112.0025)
 use_collision = true
 size = Vector3(7, 0.6, 3)
 material = SubResource("StandardMaterial3D_32t5b")
 
-[node name="apron_rail" type="CSGBox3D" parent="." unique_id=1466455753]
+[node name="apron_rail" type="CSGBox3D" parent="." unique_id=1770095761]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.49725, 0.55275, 123.00275)
 use_collision = true
 size = Vector3(41, 1.1, 0.4)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="apron_wall_west" type="CSGBox3D" parent="." unique_id=544373976]
+[node name="apron_wall_west" type="CSGBox3D" parent="." unique_id=1573289793]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.796999, 1.503, 116.003)
 use_collision = true
 size = Vector3(0.4, 3, 15)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="apron_wall_east" type="CSGBox3D" parent="." unique_id=359741188]
+[node name="apron_wall_east" type="CSGBox3D" parent="." unique_id=810348849]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.80325, 1.50325, 116.00325)
 use_collision = true
 size = Vector3(0.4, 3, 15)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="lot_ground" type="CSGBox3D" parent="." unique_id=1994020006]
+[node name="lot_ground" type="CSGBox3D" parent="." unique_id=870925525]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4965, -0.59650004, 157.0035)
 size = Vector3(150, 1, 68)
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="car_0" type="CSGBox3D" parent="." unique_id=1199253098]
+[node name="car_0" type="CSGBox3D" parent="." unique_id=1501039980]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46.49625, 0.70375, 132.00375)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="car_1" type="CSGBox3D" parent="." unique_id=180797882]
+[node name="car_1" type="CSGBox3D" parent="." unique_id=735944386]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -39.496, 0.704, 132.004)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_2" type="CSGBox3D" parent="." unique_id=2039385557]
+[node name="car_2" type="CSGBox3D" parent="." unique_id=1068970895]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32.49575, 0.70425, 132.00426)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_3" type="CSGBox3D" parent="." unique_id=16107802]
+[node name="car_3" type="CSGBox3D" parent="." unique_id=1855196347]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25.4955, 0.70449996, 132.0045)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="car_4" type="CSGBox3D" parent="." unique_id=1875471954]
+[node name="car_4" type="CSGBox3D" parent="." unique_id=327598770]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.49525, 0.70475, 132.00475)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_5" type="CSGBox3D" parent="." unique_id=2119659056]
+[node name="car_5" type="CSGBox3D" parent="." unique_id=1785124248]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.495, 0.705, 132.005)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_6" type="CSGBox3D" parent="." unique_id=1545467754]
+[node name="car_6" type="CSGBox3D" parent="." unique_id=1592333281]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 0.7, 132)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="car_7" type="CSGBox3D" parent="." unique_id=1608368927]
+[node name="car_7" type="CSGBox3D" parent="." unique_id=557324284]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.50025, 0.70024997, 132.00024)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_8" type="CSGBox3D" parent="." unique_id=1125990614]
+[node name="car_8" type="CSGBox3D" parent="." unique_id=776580225]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.5005, 0.7005, 132.0005)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_9" type="CSGBox3D" parent="." unique_id=607610402]
+[node name="car_9" type="CSGBox3D" parent="." unique_id=1617995188]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.50075, 0.70075, 132.00075)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="car_10" type="CSGBox3D" parent="." unique_id=1766287297]
+[node name="car_10" type="CSGBox3D" parent="." unique_id=1777181733]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23.501, 0.701, 132.001)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_11" type="CSGBox3D" parent="." unique_id=1247779773]
+[node name="car_11" type="CSGBox3D" parent="." unique_id=1447562101]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.50125, 0.70125, 132.00125)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_12" type="CSGBox3D" parent="." unique_id=1458329036]
+[node name="car_12" type="CSGBox3D" parent="." unique_id=1281836078]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 37.5015, 0.7015, 132.0015)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="car_13" type="CSGBox3D" parent="." unique_id=2139225151]
+[node name="car_13" type="CSGBox3D" parent="." unique_id=769395871]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.50175, 0.70175, 132.00175)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_14" type="CSGBox3D" parent="." unique_id=797415395]
+[node name="car_14" type="CSGBox3D" parent="." unique_id=458483065]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46.498, 0.70199996, 144.002)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_15" type="CSGBox3D" parent="." unique_id=1970273881]
+[node name="car_15" type="CSGBox3D" parent="." unique_id=668723440]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -39.49775, 0.70225, 144.00224)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="car_16" type="CSGBox3D" parent="." unique_id=1215477287]
+[node name="car_16" type="CSGBox3D" parent="." unique_id=1939295583]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32.4975, 0.7025, 144.0025)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_17" type="CSGBox3D" parent="." unique_id=2093218677]
+[node name="car_17" type="CSGBox3D" parent="." unique_id=386902253]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25.49725, 0.70274997, 144.00275)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_18" type="CSGBox3D" parent="." unique_id=1423917341]
+[node name="car_18" type="CSGBox3D" parent="." unique_id=731252571]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.497, 0.703, 144.003)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="car_19" type="CSGBox3D" parent="." unique_id=1536072505]
+[node name="car_19" type="CSGBox3D" parent="." unique_id=862853562]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.49675, 0.70325, 144.00325)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_20" type="CSGBox3D" parent="." unique_id=1742632294]
+[node name="car_20" type="CSGBox3D" parent="." unique_id=673471195]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.4965, 0.7035, 144.0035)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_21" type="CSGBox3D" parent="." unique_id=723680400]
+[node name="car_21" type="CSGBox3D" parent="." unique_id=1832634349]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.50375, 0.70375, 144.00375)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="car_22" type="CSGBox3D" parent="." unique_id=1131022926]
+[node name="car_22" type="CSGBox3D" parent="." unique_id=982422210]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.504, 0.704, 144.004)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_23" type="CSGBox3D" parent="." unique_id=1494530071]
+[node name="car_23" type="CSGBox3D" parent="." unique_id=2147227861]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.50425, 0.70425, 144.00426)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_24" type="CSGBox3D" parent="." unique_id=518114553]
+[node name="car_24" type="CSGBox3D" parent="." unique_id=1537401614]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23.5045, 0.70449996, 144.0045)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="car_25" type="CSGBox3D" parent="." unique_id=351648458]
+[node name="car_25" type="CSGBox3D" parent="." unique_id=408398783]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.50475, 0.70475, 144.00475)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_26" type="CSGBox3D" parent="." unique_id=661707199]
+[node name="car_26" type="CSGBox3D" parent="." unique_id=46277230]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 37.505, 0.705, 144.005)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_27" type="CSGBox3D" parent="." unique_id=1393502423]
+[node name="car_27" type="CSGBox3D" parent="." unique_id=158015340]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.5, 0.7, 144)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="car_28" type="CSGBox3D" parent="." unique_id=2068909083]
+[node name="car_28" type="CSGBox3D" parent="." unique_id=890345151]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46.49975, 0.70024997, 156.00024)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_29" type="CSGBox3D" parent="." unique_id=738965590]
+[node name="car_29" type="CSGBox3D" parent="." unique_id=429891517]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -39.4995, 0.7005, 156.0005)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_30" type="CSGBox3D" parent="." unique_id=928913161]
+[node name="car_30" type="CSGBox3D" parent="." unique_id=500947740]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32.49925, 0.70075, 156.00075)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="car_31" type="CSGBox3D" parent="." unique_id=2094896136]
+[node name="car_31" type="CSGBox3D" parent="." unique_id=1590306193]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25.499, 0.701, 156.001)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_32" type="CSGBox3D" parent="." unique_id=1521224117]
+[node name="car_32" type="CSGBox3D" parent="." unique_id=1134236041]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.49875, 0.70125, 156.00125)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_33" type="CSGBox3D" parent="." unique_id=538035743]
+[node name="car_33" type="CSGBox3D" parent="." unique_id=987146446]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.4985, 0.7015, 156.0015)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="car_34" type="CSGBox3D" parent="." unique_id=994201115]
+[node name="car_34" type="CSGBox3D" parent="." unique_id=910310483]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.49825, 0.70175, 156.00175)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_35" type="CSGBox3D" parent="." unique_id=146130634]
+[node name="car_35" type="CSGBox3D" parent="." unique_id=432691169]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.502, 0.70199996, 156.002)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_36" type="CSGBox3D" parent="." unique_id=1097244008]
+[node name="car_36" type="CSGBox3D" parent="." unique_id=219917772]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.50225, 0.70225, 156.00224)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="car_37" type="CSGBox3D" parent="." unique_id=2136872110]
+[node name="car_37" type="CSGBox3D" parent="." unique_id=755624526]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.5025, 0.7025, 156.0025)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_38" type="CSGBox3D" parent="." unique_id=52676285]
+[node name="car_38" type="CSGBox3D" parent="." unique_id=1998069317]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23.50275, 0.70274997, 156.00275)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_39" type="CSGBox3D" parent="." unique_id=677210488]
+[node name="car_39" type="CSGBox3D" parent="." unique_id=643759887]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.503, 0.703, 156.003)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="car_40" type="CSGBox3D" parent="." unique_id=885992237]
+[node name="car_40" type="CSGBox3D" parent="." unique_id=832689418]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 37.50325, 0.70325, 156.00325)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_41" type="CSGBox3D" parent="." unique_id=799384016]
+[node name="car_41" type="CSGBox3D" parent="." unique_id=335520159]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.5035, 0.7035, 156.0035)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_42" type="CSGBox3D" parent="." unique_id=912440451]
+[node name="car_42" type="CSGBox3D" parent="." unique_id=878417377]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46.49625, 0.70375, 168.00375)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="car_43" type="CSGBox3D" parent="." unique_id=1326165500]
+[node name="car_43" type="CSGBox3D" parent="." unique_id=1143021598]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -39.496, 0.704, 168.004)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_44" type="CSGBox3D" parent="." unique_id=1961825518]
+[node name="car_44" type="CSGBox3D" parent="." unique_id=1077785644]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32.49575, 0.70425, 168.00426)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_45" type="CSGBox3D" parent="." unique_id=717170869]
+[node name="car_45" type="CSGBox3D" parent="." unique_id=843253267]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25.4955, 0.70449996, 168.0045)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="car_46" type="CSGBox3D" parent="." unique_id=1844632153]
+[node name="car_46" type="CSGBox3D" parent="." unique_id=1992853618]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.49525, 0.70475, 168.00475)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_47" type="CSGBox3D" parent="." unique_id=1157257012]
+[node name="car_47" type="CSGBox3D" parent="." unique_id=1787514640]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.495, 0.705, 168.005)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_48" type="CSGBox3D" parent="." unique_id=2115881156]
+[node name="car_48" type="CSGBox3D" parent="." unique_id=1135883424]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 0.7, 168)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="car_49" type="CSGBox3D" parent="." unique_id=713323270]
+[node name="car_49" type="CSGBox3D" parent="." unique_id=1895861669]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.50025, 0.70024997, 168.00024)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_50" type="CSGBox3D" parent="." unique_id=1149157108]
+[node name="car_50" type="CSGBox3D" parent="." unique_id=1393255930]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.5005, 0.7005, 168.0005)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_51" type="CSGBox3D" parent="." unique_id=181500466]
+[node name="car_51" type="CSGBox3D" parent="." unique_id=1655660614]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.50075, 0.70075, 168.00075)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="car_52" type="CSGBox3D" parent="." unique_id=614034331]
+[node name="car_52" type="CSGBox3D" parent="." unique_id=1932885796]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23.501, 0.701, 168.001)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_53" type="CSGBox3D" parent="." unique_id=1001150626]
+[node name="car_53" type="CSGBox3D" parent="." unique_id=288054340]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.50125, 0.70125, 168.00125)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="car_54" type="CSGBox3D" parent="." unique_id=161102996]
+[node name="car_54" type="CSGBox3D" parent="." unique_id=1331835016]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 37.5015, 0.7015, 168.0015)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_uaeg6")
 
-[node name="car_55" type="CSGBox3D" parent="." unique_id=112121810]
+[node name="car_55" type="CSGBox3D" parent="." unique_id=2001574526]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.50175, 0.70175, 168.00175)
 size = Vector3(1.9, 1.4, 4.4)
 material = SubResource("StandardMaterial3D_6p7od")
 
-[node name="lot_tree_0" type="CSGCylinder3D" parent="." unique_id=311518456]
+[node name="lot_tree_0" type="CSGCylinder3D" parent="." unique_id=967603311]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -49.498, 3.502, 128.002)
 radius = 1.6
 height = 7.0
 sides = 6
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="lot_tree_1" type="CSGCylinder3D" parent="." unique_id=1825366245]
+[node name="lot_tree_1" type="CSGCylinder3D" parent="." unique_id=845727478]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37.49775, 3.50225, 128.00224)
 radius = 1.6
 height = 7.0
 sides = 6
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="lot_tree_2" type="CSGCylinder3D" parent="." unique_id=1656287281]
+[node name="lot_tree_2" type="CSGCylinder3D" parent="." unique_id=1897053686]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25.4975, 3.5025, 128.0025)
 radius = 1.6
 height = 7.0
 sides = 6
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="lot_tree_3" type="CSGCylinder3D" parent="." unique_id=1120786382]
+[node name="lot_tree_3" type="CSGCylinder3D" parent="." unique_id=957320423]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.49725, 3.50275, 128.00275)
 radius = 1.6
 height = 7.0
 sides = 6
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="lot_tree_4" type="CSGCylinder3D" parent="." unique_id=1766578946]
+[node name="lot_tree_4" type="CSGCylinder3D" parent="." unique_id=483888229]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.497, 3.503, 128.003)
 radius = 1.6
 height = 7.0
 sides = 6
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="lot_tree_5" type="CSGCylinder3D" parent="." unique_id=1164804155]
+[node name="lot_tree_5" type="CSGCylinder3D" parent="." unique_id=1736773387]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.50325, 3.50325, 128.00325)
 radius = 1.6
 height = 7.0
 sides = 6
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="lot_tree_6" type="CSGCylinder3D" parent="." unique_id=994446742]
+[node name="lot_tree_6" type="CSGCylinder3D" parent="." unique_id=1443723761]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.5035, 3.5035, 128.0035)
 radius = 1.6
 height = 7.0
 sides = 6
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="lot_tree_7" type="CSGCylinder3D" parent="." unique_id=1349035079]
+[node name="lot_tree_7" type="CSGCylinder3D" parent="." unique_id=1231666879]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 34.50375, 3.50375, 128.00375)
 radius = 1.6
 height = 7.0
 sides = 6
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="lot_tree_8" type="CSGCylinder3D" parent="." unique_id=574989397]
+[node name="lot_tree_8" type="CSGCylinder3D" parent="." unique_id=1267832736]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46.504, 3.504, 128.004)
 radius = 1.6
 height = 7.0
 sides = 6
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="street_awning_0" type="OmniLight3D" parent="." unique_id=48001322 groups=["park_light"]]
+[node name="street_awning_0" type="OmniLight3D" parent="." unique_id=465399866 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.25, 2.82, 56)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -1887,7 +1887,7 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.2
 metadata/light_kind = 0
 
-[node name="street_awning_1" type="OmniLight3D" parent="." unique_id=1876739925 groups=["park_light"]]
+[node name="street_awning_1" type="OmniLight3D" parent="." unique_id=760640375 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.25, 2.82, 67)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -1898,7 +1898,7 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.2
 metadata/light_kind = 0
 
-[node name="street_awning_1_b" type="OmniLight3D" parent="." unique_id=1417156812 groups=["park_light"]]
+[node name="street_awning_1_b" type="OmniLight3D" parent="." unique_id=1976462918 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.25, 2.82, 70.3)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -1909,7 +1909,7 @@ omni_attenuation = 1.6
 metadata/base_energy = 1.6
 metadata/light_kind = 0
 
-[node name="street_awning_2" type="OmniLight3D" parent="." unique_id=218525934 groups=["park_light"]]
+[node name="street_awning_2" type="OmniLight3D" parent="." unique_id=875414760 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.25, 2.82, 78)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -1920,7 +1920,7 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.2
 metadata/light_kind = 0
 
-[node name="street_awning_3" type="OmniLight3D" parent="." unique_id=410736976 groups=["park_light"]]
+[node name="street_awning_3" type="OmniLight3D" parent="." unique_id=1275263766 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.25, 2.82, 88)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -1933,7 +1933,7 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.2
 metadata/light_kind = 0
 
-[node name="street_awning_4" type="OmniLight3D" parent="." unique_id=206578187 groups=["park_light"]]
+[node name="street_awning_4" type="OmniLight3D" parent="." unique_id=2015624150 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.25, 2.82, 99)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -1944,7 +1944,7 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.2
 metadata/light_kind = 0
 
-[node name="street_awning_4_b" type="OmniLight3D" parent="." unique_id=783773294 groups=["park_light"]]
+[node name="street_awning_4_b" type="OmniLight3D" parent="." unique_id=1391592989 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.25, 2.82, 102.6)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -1955,7 +1955,7 @@ omni_attenuation = 1.6
 metadata/base_energy = 1.6
 metadata/light_kind = 0
 
-[node name="street_awning_5" type="OmniLight3D" parent="." unique_id=1903129849 groups=["park_light"]]
+[node name="street_awning_5" type="OmniLight3D" parent="." unique_id=1113659524 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.25, 2.82, 57)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -1966,7 +1966,7 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.2
 metadata/light_kind = 0
 
-[node name="street_awning_5_b" type="OmniLight3D" parent="." unique_id=434877811 groups=["park_light"]]
+[node name="street_awning_5_b" type="OmniLight3D" parent="." unique_id=2024749811 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.25, 2.82, 60.3)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -1977,7 +1977,7 @@ omni_attenuation = 1.6
 metadata/base_energy = 1.6
 metadata/light_kind = 0
 
-[node name="street_awning_6" type="OmniLight3D" parent="." unique_id=558205798 groups=["park_light"]]
+[node name="street_awning_6" type="OmniLight3D" parent="." unique_id=1830391713 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.25, 2.82, 69)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -1990,7 +1990,7 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.2
 metadata/light_kind = 0
 
-[node name="street_awning_6_b" type="OmniLight3D" parent="." unique_id=92386096 groups=["park_light"]]
+[node name="street_awning_6_b" type="OmniLight3D" parent="." unique_id=775429175 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.25, 2.82, 72.6)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -2001,7 +2001,7 @@ omni_attenuation = 1.6
 metadata/base_energy = 1.6
 metadata/light_kind = 0
 
-[node name="street_awning_7" type="OmniLight3D" parent="." unique_id=1434818029 groups=["park_light"]]
+[node name="street_awning_7" type="OmniLight3D" parent="." unique_id=516627944 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.25, 2.82, 81)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -2012,7 +2012,7 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.2
 metadata/light_kind = 0
 
-[node name="street_awning_7_b" type="OmniLight3D" parent="." unique_id=147974083 groups=["park_light"]]
+[node name="street_awning_7_b" type="OmniLight3D" parent="." unique_id=1408777765 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.25, 2.82, 84.3)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -2023,7 +2023,7 @@ omni_attenuation = 1.6
 metadata/base_energy = 1.6
 metadata/light_kind = 0
 
-[node name="street_awning_8" type="OmniLight3D" parent="." unique_id=1249660068 groups=["park_light"]]
+[node name="street_awning_8" type="OmniLight3D" parent="." unique_id=1686473367 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.25, 2.82, 92)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -2034,7 +2034,7 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.2
 metadata/light_kind = 0
 
-[node name="street_awning_9" type="OmniLight3D" parent="." unique_id=829150262 groups=["park_light"]]
+[node name="street_awning_9" type="OmniLight3D" parent="." unique_id=242695404 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.25, 2.82, 102)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -2047,101 +2047,101 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.2
 metadata/light_kind = 0
 
-[node name="street_string_0_pin_0" type="CSGCylinder3D" parent="." unique_id=1595932416]
+[node name="street_string_0_pin_0" type="CSGCylinder3D" parent="." unique_id=177013558]
 transform = Transform3D(-4.371139e-08, 1, -4.371139e-08, 0, -4.371139e-08, -1, -1, -4.371139e-08, 1.9106855e-15, -9.02075, 6.20425, 58.00425)
 radius = 0.06
 height = 0.65
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_string_0_pin_1" type="CSGCylinder3D" parent="." unique_id=1231328297]
+[node name="street_string_0_pin_1" type="CSGCylinder3D" parent="." unique_id=1753345007]
 transform = Transform3D(-4.371139e-08, 1, -4.371139e-08, 0, -4.371139e-08, -1, -1, -4.371139e-08, 1.9106855e-15, 6.0295, 5.2044997, 58.0045)
 radius = 0.06
 height = 0.65
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_0_0" type="CSGBox3D" parent="." unique_id=1725663882]
+[node name="street_wire_0_0" type="CSGBox3D" parent="." unique_id=464495121]
 transform = Transform3D(0, 0.22917499, -0.9733852, 0, 0.9733852, 0.22917499, 1, 0, 0, -8.189, 5.979609, 58.00475)
 size = Vector3(0.045, 0.045, 1.9647919)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_0_1" type="CSGBox3D" parent="." unique_id=1851771224]
+[node name="street_wire_0_1" type="CSGBox3D" parent="." unique_id=225264963]
 transform = Transform3D(0, 0.20509306, -0.9787425, 0, 0.9787425, 0.20509306, 1, 0, 0, -6.27625, 5.554339, 58.005)
 size = Vector3(0.045, 0.045, 1.9540384)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_0_2" type="CSGBox3D" parent="." unique_id=128569222]
+[node name="street_wire_0_2" type="CSGBox3D" parent="." unique_id=904419283]
 transform = Transform3D(0, 0.15962927, -0.987177, 0, 0.987177, 0.15962927, 1, 0, 0, -4.3687496, 5.1943307, 58)
 size = Vector3(0.045, 0.045, 1.9373424)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_0_3" type="CSGBox3D" parent="." unique_id=525923068]
+[node name="street_wire_0_3" type="CSGBox3D" parent="." unique_id=1912612978]
 transform = Transform3D(0, 0.09870647, -0.9951166, 0, 0.9951166, 0.09870647, 1, 0, 0, -2.4559999, 4.945101, 58.00025)
 size = Vector3(0.045, 0.045, 1.9218853)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_0_4" type="CSGBox3D" parent="." unique_id=688702183]
+[node name="street_wire_0_4" type="CSGBox3D" parent="." unique_id=456081259]
 transform = Transform3D(0, 0.03151244, -0.9995033, 0, 0.9995033, 0.03151244, 1, 0, 0, -0.54324996, 4.820351, 58.0005)
 size = Vector3(0.045, 0.045, 1.9134504)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_0_5" type="CSGBox3D" parent="." unique_id=432482491]
+[node name="street_wire_0_5" type="CSGBox3D" parent="." unique_id=1513589937]
 transform = Transform3D(0, -0.030968957, -0.99952036, 0, 0.99952036, -0.030968957, 1, 0, 0, 1.3694999, 4.8200808, 58.00075)
 size = Vector3(0.045, 0.045, 1.9134178)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_0_6" type="CSGBox3D" parent="." unique_id=722150138]
+[node name="street_wire_0_6" type="CSGBox3D" parent="." unique_id=590244129]
 transform = Transform3D(0, -0.07858481, -0.9969074, 0, 0.9969074, -0.07858481, 1, 0, 0, 3.28225, 4.9253387, 58.001)
 size = Vector3(0.045, 0.045, 1.9184331)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_0_7" type="CSGBox3D" parent="." unique_id=1564701296]
+[node name="street_wire_0_7" type="CSGBox3D" parent="." unique_id=195857745]
 transform = Transform3D(0, -0.10415262, -0.9945613, 0, 0.9945613, -0.10415262, 1, 0, 0, 5.195, 5.101109, 58.00125)
 size = Vector3(0.045, 0.045, 1.9229583)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_bulb_0_0" type="CSGSphere3D" parent="." unique_id=915092091]
+[node name="street_bulb_0_0" type="CSGSphere3D" parent="." unique_id=1187100773]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.236, 5.751219, 58.0015)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_0_1" type="CSGSphere3D" parent="." unique_id=985822336]
+[node name="street_bulb_0_1" type="CSGSphere3D" parent="." unique_id=522628517]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.32325, 5.350709, 58.00175)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_0_2" type="CSGSphere3D" parent="." unique_id=1910112895]
+[node name="street_bulb_0_2" type="CSGSphere3D" parent="." unique_id=108640102]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.4104998, 5.0417023, 58.002)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_0_3" type="CSGSphere3D" parent="." unique_id=577068326]
+[node name="street_bulb_0_3" type="CSGSphere3D" parent="." unique_id=1181162599]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.49775, 4.85225, 58.00225)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_0_4" type="CSGSphere3D" parent="." unique_id=919261512]
+[node name="street_bulb_0_4" type="CSGSphere3D" parent="." unique_id=1364002358]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.415, 4.7922025, 58.0025)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_0_5" type="CSGSphere3D" parent="." unique_id=1141328535]
+[node name="street_bulb_0_5" type="CSGSphere3D" parent="." unique_id=683617659]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.32775, 4.851709, 58.00275)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_0_6" type="CSGSphere3D" parent="." unique_id=1727266781]
+[node name="street_bulb_0_6" type="CSGSphere3D" parent="." unique_id=600503154]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.2405, 5.0027184, 58.003)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_string_0_glow" type="OmniLight3D" parent="." unique_id=1158974815 groups=["park_light"]]
+[node name="street_string_0_glow" type="OmniLight3D" parent="." unique_id=332399396 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 4.85, 58)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -2152,101 +2152,101 @@ omni_attenuation = 1.6
 metadata/base_energy = 1.7
 metadata/light_kind = 0
 
-[node name="street_string_1_pin_0" type="CSGCylinder3D" parent="." unique_id=450315609]
+[node name="street_string_1_pin_0" type="CSGCylinder3D" parent="." unique_id=274649287]
 transform = Transform3D(-4.371139e-08, 1, -4.371139e-08, 0, -4.371139e-08, -1, -1, -4.371139e-08, 1.9106855e-15, -9.0217495, 4.70325, 68.00325)
 radius = 0.06
 height = 0.65
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_string_1_pin_1" type="CSGCylinder3D" parent="." unique_id=467920218]
+[node name="street_string_1_pin_1" type="CSGCylinder3D" parent="." unique_id=1148119307]
 transform = Transform3D(-4.371139e-08, 1, -4.371139e-08, 0, -4.371139e-08, -1, -1, -4.371139e-08, 1.9106855e-15, 6.0285, 6.7035, 68.0035)
 radius = 0.06
 height = 0.65
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_1_0" type="CSGBox3D" parent="." unique_id=1759082362]
+[node name="street_wire_1_0" type="CSGBox3D" parent="." unique_id=649103341]
 transform = Transform3D(0, 0.03933224, -0.9992262, 0, 0.9992262, 0.03933224, 1, 0, 0, -8.190001, 4.666109, 68.00375)
 size = Vector3(0.045, 0.045, 1.9139805)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_1_1" type="CSGBox3D" parent="." unique_id=32305411]
+[node name="street_wire_1_1" type="CSGBox3D" parent="." unique_id=836259609]
 transform = Transform3D(0, 0.013467899, -0.99990934, 0, 0.99990934, 0.013467899, 1, 0, 0, -6.27725, 4.615839, 68.004)
 size = Vector3(0.045, 0.045, 1.9126738)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_1_2" type="CSGBox3D" parent="." unique_id=220933498]
+[node name="street_wire_1_2" type="CSGBox3D" parent="." unique_id=1991107673]
 transform = Transform3D(0, -0.034355365, -0.9994096, 0, 0.9994096, -0.034355365, 1, 0, 0, -4.3644996, 4.6360807, 68.00425)
 size = Vector3(0.045, 0.045, 1.9136297)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_1_3" type="CSGBox3D" parent="." unique_id=857052677]
+[node name="street_wire_1_3" type="CSGBox3D" parent="." unique_id=883706499]
 transform = Transform3D(0, -0.096436, -0.99533916, 0, 0.99533916, -0.096436, 1, 0, 0, -2.45175, 4.761851, 68.0045)
 size = Vector3(0.045, 0.045, 1.9214555)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_1_4" type="CSGBox3D" parent="." unique_id=1602090787]
+[node name="street_wire_1_4" type="CSGBox3D" parent="." unique_id=425858504]
 transform = Transform3D(0, -0.16236682, -0.98673046, 0, 0.98673046, -0.16236682, 1, 0, 0, -0.539, 5.0121007, 68.00475)
 size = Vector3(0.045, 0.045, 1.9382193)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_1_5" type="CSGBox3D" parent="." unique_id=1458930459]
+[node name="street_wire_1_5" type="CSGBox3D" parent="." unique_id=1982563546]
 transform = Transform3D(0, -0.22142592, -0.97517717, 0, 0.97517717, -0.22142592, 1, 0, 0, 1.37375, 5.386831, 68.005)
 size = Vector3(0.045, 0.045, 1.9611821)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_1_6" type="CSGBox3D" parent="." unique_id=254097273]
+[node name="street_wire_1_6" type="CSGBox3D" parent="." unique_id=638399951]
 transform = Transform3D(0, -0.26507312, -0.9642283, 0, 0.9642283, -0.26507312, 1, 0, 0, 3.28125, 5.861839, 68)
 size = Vector3(0.045, 0.045, 1.9834516)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_1_7" type="CSGBox3D" parent="." unique_id=1555199652]
+[node name="street_wire_1_7" type="CSGBox3D" parent="." unique_id=1778232538]
 transform = Transform3D(0, -0.2880512, -0.957615, 0, 0.957615, -0.2880512, 1, 0, 0, 5.1940002, 6.412609, 68.00025)
 size = Vector3(0.045, 0.045, 1.997149)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_bulb_1_0" type="CSGSphere3D" parent="." unique_id=1676167239]
+[node name="street_bulb_1_0" type="CSGSphere3D" parent="." unique_id=880944632]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.237, 4.625219, 68.0005)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_1_1" type="CSGSphere3D" parent="." unique_id=2085380421]
+[node name="street_bulb_1_1" type="CSGSphere3D" parent="." unique_id=458862006]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.3242497, 4.599709, 68.00075)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_1_2" type="CSGSphere3D" parent="." unique_id=1712381322]
+[node name="street_bulb_1_2" type="CSGSphere3D" parent="." unique_id=1764544138]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.4115, 4.6657023, 68.001)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_1_3" type="CSGSphere3D" parent="." unique_id=2091907069]
+[node name="street_bulb_1_3" type="CSGSphere3D" parent="." unique_id=874446965]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.49875, 4.8512497, 68.00125)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_1_4" type="CSGSphere3D" parent="." unique_id=933162794]
+[node name="street_bulb_1_4" type="CSGSphere3D" parent="." unique_id=1812838109]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.414, 5.1662025, 68.0015)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_1_5" type="CSGSphere3D" parent="." unique_id=20457768]
+[node name="street_bulb_1_5" type="CSGSphere3D" parent="." unique_id=2050561119]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.32675, 5.600709, 68.00175)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_1_6" type="CSGSphere3D" parent="." unique_id=1547974558]
+[node name="street_bulb_1_6" type="CSGSphere3D" parent="." unique_id=1242265385]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.2395, 6.1267185, 68.002)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_string_1_glow" type="OmniLight3D" parent="." unique_id=1989309926 groups=["park_light"]]
+[node name="street_string_1_glow" type="OmniLight3D" parent="." unique_id=318313125 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 4.85, 68)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -2257,101 +2257,101 @@ omni_attenuation = 1.6
 metadata/base_energy = 1.7
 metadata/light_kind = 0
 
-[node name="street_string_2_pin_0" type="CSGCylinder3D" parent="." unique_id=335185919]
+[node name="street_string_2_pin_0" type="CSGCylinder3D" parent="." unique_id=1224165178]
 transform = Transform3D(-4.371139e-08, 1, -4.371139e-08, 0, -4.371139e-08, -1, -1, -4.371139e-08, 1.9106855e-15, -9.02275, 4.10225, 78.00225)
 radius = 0.06
 height = 0.65
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_string_2_pin_1" type="CSGCylinder3D" parent="." unique_id=720082886]
+[node name="street_string_2_pin_1" type="CSGCylinder3D" parent="." unique_id=760642982]
 transform = Transform3D(-4.371139e-08, 1, -4.371139e-08, 0, -4.371139e-08, -1, -1, -4.371139e-08, 1.9106855e-15, 6.0275, 4.7025, 78.0025)
 radius = 0.06
 height = 0.65
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_2_0" type="CSGBox3D" parent="." unique_id=736460585]
+[node name="street_wire_2_0" type="CSGBox3D" parent="." unique_id=1488633416]
 transform = Transform3D(0, 0.12975945, -0.9915455, 0, 0.9915455, 0.12975945, 1, 0, 0, -8.191, 3.9776094, 78.00275)
 size = Vector3(0.045, 0.045, 1.9288065)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_2_1" type="CSGBox3D" parent="." unique_id=492764217]
+[node name="street_wire_2_1" type="CSGBox3D" parent="." unique_id=39779305]
 transform = Transform3D(0, 0.104398854, -0.99453557, 0, 0.99453557, 0.104398854, 1, 0, 0, -6.27825, 3.7523391, 78.003)
 size = Vector3(0.045, 0.045, 1.9230086)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_2_2" type="CSGBox3D" parent="." unique_id=451622116]
+[node name="street_wire_2_2" type="CSGBox3D" parent="." unique_id=1943190050]
 transform = Transform3D(0, 0.057034843, -0.9983722, 0, 0.9983722, 0.057034843, 1, 0, 0, -4.3654995, 3.5975807, 78.00325)
 size = Vector3(0.045, 0.045, 1.9156182)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_2_3" type="CSGBox3D" parent="." unique_id=548561148]
+[node name="street_wire_2_3" type="CSGBox3D" parent="." unique_id=1429420421]
 transform = Transform3D(0, -0.0053843795, -0.99998546, 0, 0.99998546, -0.0053843795, 1, 0, 0, -2.45275, 3.548351, 78.0035)
 size = Vector3(0.045, 0.045, 1.9125277)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_2_4" type="CSGBox3D" parent="." unique_id=864404691]
+[node name="street_wire_2_4" type="CSGBox3D" parent="." unique_id=141768986]
 transform = Transform3D(0, -0.07285286, -0.9973427, 0, 0.9973427, -0.07285286, 1, 0, 0, -0.53999996, 3.6236012, 78.00375)
 size = Vector3(0.045, 0.045, 1.9175956)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_2_5" type="CSGBox3D" parent="." unique_id=1116874568]
+[node name="street_wire_2_5" type="CSGBox3D" parent="." unique_id=1050936487]
 transform = Transform3D(0, -0.1343305, -0.9909366, 0, 0.9909366, -0.1343305, 1, 0, 0, 1.3727499, 3.8233306, 78.004)
 size = Vector3(0.045, 0.045, 1.9299923)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_2_6" type="CSGBox3D" parent="." unique_id=1886352522]
+[node name="street_wire_2_6" type="CSGBox3D" parent="." unique_id=767831616]
 transform = Transform3D(0, -0.1803949, -0.98359424, 0, 0.98359424, -0.1803949, 1, 0, 0, 3.2855, 4.128589, 78.00425)
 size = Vector3(0.045, 0.045, 1.9443995)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_2_7" type="CSGBox3D" parent="." unique_id=1776997051]
+[node name="street_wire_2_7" type="CSGBox3D" parent="." unique_id=1578568444]
 transform = Transform3D(0, -0.20485839, -0.9787916, 0, 0.9787916, -0.20485839, 1, 0, 0, 5.1982503, 4.5043592, 78.0045)
 size = Vector3(0.045, 0.045, 1.9539398)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_bulb_2_0" type="CSGSphere3D" parent="." unique_id=394966306]
+[node name="street_bulb_2_0" type="CSGSphere3D" parent="." unique_id=581347889]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.2327504, 3.854469, 78.00475)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_2_1" type="CSGSphere3D" parent="." unique_id=206366671]
+[node name="street_bulb_2_1" type="CSGSphere3D" parent="." unique_id=1653354033]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.3199997, 3.6539593, 78.005)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_2_2" type="CSGSphere3D" parent="." unique_id=658184606]
+[node name="street_bulb_2_2" type="CSGSphere3D" parent="." unique_id=1168338897]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.4125, 3.5397022, 78)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_2_3" type="CSGSphere3D" parent="." unique_id=820082986]
+[node name="street_bulb_2_3" type="CSGSphere3D" parent="." unique_id=549430954]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.49975, 3.55025, 78.00025)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_2_4" type="CSGSphere3D" parent="." unique_id=1208139348]
+[node name="street_bulb_2_4" type="CSGSphere3D" parent="." unique_id=1977157912]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.413, 3.6902022, 78.0005)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_2_5" type="CSGSphere3D" parent="." unique_id=540587204]
+[node name="street_bulb_2_5" type="CSGSphere3D" parent="." unique_id=1969526835]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.32575, 3.9497092, 78.00075)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_2_6" type="CSGSphere3D" parent="." unique_id=1603065147]
+[node name="street_bulb_2_6" type="CSGSphere3D" parent="." unique_id=1929551562]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.2385, 4.300719, 78.001)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_string_2_glow" type="OmniLight3D" parent="." unique_id=1657201962 groups=["park_light"]]
+[node name="street_string_2_glow" type="OmniLight3D" parent="." unique_id=1464227728 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 3.55, 78)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -2362,101 +2362,101 @@ omni_attenuation = 1.6
 metadata/base_energy = 1.7
 metadata/light_kind = 0
 
-[node name="street_string_3_pin_0" type="CSGCylinder3D" parent="." unique_id=1045845138]
+[node name="street_string_3_pin_0" type="CSGCylinder3D" parent="." unique_id=839127455]
 transform = Transform3D(-4.371139e-08, 1, -4.371139e-08, 0, -4.371139e-08, -1, -1, -4.371139e-08, 1.9106855e-15, -9.023749, 5.2012496, 88.00125)
 radius = 0.06
 height = 0.65
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_string_3_pin_1" type="CSGCylinder3D" parent="." unique_id=611958054]
+[node name="street_string_3_pin_1" type="CSGCylinder3D" parent="." unique_id=1676914682]
 transform = Transform3D(-4.371139e-08, 1, -4.371139e-08, 0, -4.371139e-08, -1, -1, -4.371139e-08, 1.9106855e-15, 6.0265, 6.2015, 88.0015)
 radius = 0.06
 height = 0.65
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_3_0" type="CSGBox3D" parent="." unique_id=1620050913]
+[node name="street_wire_3_0" type="CSGBox3D" parent="." unique_id=1232373058]
 transform = Transform3D(0, 0.10415265, -0.9945613, 0, 0.9945613, 0.10415265, 1, 0, 0, -8.192, 5.101609, 88.00175)
 size = Vector3(0.045, 0.045, 1.9229578)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_3_1" type="CSGBox3D" parent="." unique_id=1103281626]
+[node name="street_wire_3_1" type="CSGBox3D" parent="." unique_id=155843666]
 transform = Transform3D(0, 0.078584805, -0.9969075, 0, 0.9969075, 0.078584805, 1, 0, 0, -6.27925, 4.9263387, 88.002)
 size = Vector3(0.045, 0.045, 1.9184332)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_3_2" type="CSGBox3D" parent="." unique_id=797822386]
+[node name="street_wire_3_2" type="CSGBox3D" parent="." unique_id=1542677330]
 transform = Transform3D(0, 0.030968959, -0.99952036, 0, 0.99952036, 0.030968959, 1, 0, 0, -4.3664994, 4.821581, 88.00225)
 size = Vector3(0.045, 0.045, 1.9134177)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_3_3" type="CSGBox3D" parent="." unique_id=1185392185]
+[node name="street_wire_3_3" type="CSGBox3D" parent="." unique_id=1941230786]
 transform = Transform3D(0, -0.031512443, -0.9995033, 0, 0.9995033, -0.031512443, 1, 0, 0, -2.45375, 4.822351, 88.0025)
 size = Vector3(0.045, 0.045, 1.9134502)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_3_4" type="CSGBox3D" parent="." unique_id=1857611119]
+[node name="street_wire_3_4" type="CSGBox3D" parent="." unique_id=1818037688]
 transform = Transform3D(0, -0.09870646, -0.9951166, 0, 0.9951166, -0.09870646, 1, 0, 0, -0.541, 4.947601, 88.00275)
 size = Vector3(0.045, 0.045, 1.9218854)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_3_5" type="CSGBox3D" parent="." unique_id=1405558411]
+[node name="street_wire_3_5" type="CSGBox3D" parent="." unique_id=1019703791]
 transform = Transform3D(0, -0.15962926, -0.987177, 0, 0.987177, -0.15962926, 1, 0, 0, 1.37175, 5.1973305, 88.003)
 size = Vector3(0.045, 0.045, 1.9373425)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_3_6" type="CSGBox3D" parent="." unique_id=754766477]
+[node name="street_wire_3_6" type="CSGBox3D" parent="." unique_id=982170512]
 transform = Transform3D(0, -0.20509307, -0.9787425, 0, 0.9787425, -0.20509307, 1, 0, 0, 3.2845, 5.552589, 88.00325)
 size = Vector3(0.045, 0.045, 1.9540381)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_3_7" type="CSGBox3D" parent="." unique_id=470035571]
+[node name="street_wire_3_7" type="CSGBox3D" parent="." unique_id=857973725]
 transform = Transform3D(0, -0.22917493, -0.9733853, 0, 0.9733853, -0.22917493, 1, 0, 0, 5.1972504, 5.978359, 88.0035)
 size = Vector3(0.045, 0.045, 1.9647924)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_bulb_3_0" type="CSGSphere3D" parent="." unique_id=378869505]
+[node name="street_bulb_3_0" type="CSGSphere3D" parent="." unique_id=135788028]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.2337503, 5.0034685, 88.00375)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_3_1" type="CSGSphere3D" parent="." unique_id=324462400]
+[node name="street_bulb_3_1" type="CSGSphere3D" parent="." unique_id=892514998]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.3209996, 4.852959, 88.004)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_3_2" type="CSGSphere3D" parent="." unique_id=88156533]
+[node name="street_bulb_3_2" type="CSGSphere3D" parent="." unique_id=1669487419]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.4082499, 4.7939525, 88.00425)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_3_3" type="CSGSphere3D" parent="." unique_id=48919216]
+[node name="street_bulb_3_3" type="CSGSphere3D" parent="." unique_id=507160888]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4955, 4.8545, 88.0045)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_3_4" type="CSGSphere3D" parent="." unique_id=1997850519]
+[node name="street_bulb_3_4" type="CSGSphere3D" parent="." unique_id=1157143743]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.41725, 5.044452, 88.00475)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_3_5" type="CSGSphere3D" parent="." unique_id=452669718]
+[node name="street_bulb_3_5" type="CSGSphere3D" parent="." unique_id=2144709221]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.3300002, 5.353959, 88.005)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_3_6" type="CSGSphere3D" parent="." unique_id=1087633948]
+[node name="street_bulb_3_6" type="CSGSphere3D" parent="." unique_id=1389758126]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.2375, 5.7497187, 88)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_string_3_glow" type="OmniLight3D" parent="." unique_id=174571773 groups=["park_light"]]
+[node name="street_string_3_glow" type="OmniLight3D" parent="." unique_id=436328255 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 4.85, 88)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -2467,101 +2467,101 @@ omni_attenuation = 1.6
 metadata/base_energy = 1.7
 metadata/light_kind = 0
 
-[node name="street_string_4_pin_0" type="CSGCylinder3D" parent="." unique_id=1673615099]
+[node name="street_string_4_pin_0" type="CSGCylinder3D" parent="." unique_id=1143277793]
 transform = Transform3D(-4.371139e-08, 1, -4.371139e-08, 0, -4.371139e-08, -1, -1, -4.371139e-08, 1.9106855e-15, -9.02475, 5.7002497, 98.00025)
 radius = 0.06
 height = 0.65
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_string_4_pin_1" type="CSGCylinder3D" parent="." unique_id=431554241]
+[node name="street_string_4_pin_1" type="CSGCylinder3D" parent="." unique_id=1713205704]
 transform = Transform3D(-4.371139e-08, 1, -4.371139e-08, 0, -4.371139e-08, -1, -1, -4.371139e-08, 1.9106855e-15, 6.0255003, 5.2005, 98.0005)
 radius = 0.06
 height = 0.65
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_4_0" type="CSGBox3D" parent="." unique_id=1421857219]
+[node name="street_wire_4_0" type="CSGBox3D" parent="." unique_id=1192485865]
 transform = Transform3D(0, 0.19871773, -0.98005676, 0, 0.98005676, 0.19871773, 1, 0, 0, -8.193001, 5.5068593, 98.00075)
 size = Vector3(0.045, 0.045, 1.951417)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_4_1" type="CSGBox3D" parent="." unique_id=1207302659]
+[node name="street_wire_4_1" type="CSGBox3D" parent="." unique_id=679267386]
 transform = Transform3D(0, 0.17416464, -0.9847166, 0, 0.9847166, 0.17416464, 1, 0, 0, -6.28025, 5.1440887, 98.001)
 size = Vector3(0.045, 0.045, 1.9421836)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_4_2" type="CSGBox3D" parent="." unique_id=1074585716]
+[node name="street_wire_4_2" type="CSGBox3D" parent="." unique_id=214885133]
 transform = Transform3D(0, 0.12796235, -0.991779, 0, 0.991779, 0.12796235, 1, 0, 0, -4.3675, 4.8518305, 98.00125)
 size = Vector3(0.045, 0.045, 1.9283528)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_4_3" type="CSGBox3D" parent="." unique_id=2020700369]
+[node name="street_wire_4_3" type="CSGBox3D" parent="." unique_id=1477459948]
 transform = Transform3D(0, 0.0663645, -0.99779546, 0, 0.99779546, 0.0663645, 1, 0, 0, -2.45475, 4.665101, 98.0015)
 size = Vector3(0.045, 0.045, 1.9167254)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_4_4" type="CSGBox3D" parent="." unique_id=1839942405]
+[node name="street_wire_4_4" type="CSGBox3D" parent="." unique_id=337576686]
 transform = Transform3D(0, -0.0011516388, -0.9999993, 0, 0.9999993, -0.0011516388, 1, 0, 0, -0.542, 4.602851, 98.00175)
 size = Vector3(0.045, 0.045, 1.9125013)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_4_5" type="CSGBox3D" parent="." unique_id=345289258]
+[node name="street_wire_4_5" type="CSGBox3D" parent="." unique_id=178044904]
 transform = Transform3D(0, -0.06353493, -0.99797964, 0, 0.99797964, -0.06353493, 1, 0, 0, 1.37075, 4.6650805, 98.002)
 size = Vector3(0.045, 0.045, 1.9163718)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_4_6" type="CSGBox3D" parent="." unique_id=697427288]
+[node name="street_wire_4_6" type="CSGBox3D" parent="." unique_id=553569123]
 transform = Transform3D(0, -0.11082147, -0.9938403, 0, 0.9938403, -0.11082147, 1, 0, 0, 3.2835, 4.832839, 98.00225)
 size = Vector3(0.045, 0.045, 1.9243536)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_wire_4_7" type="CSGBox3D" parent="." unique_id=1956917641]
+[node name="street_wire_4_7" type="CSGBox3D" parent="." unique_id=517930187]
 transform = Transform3D(0, -0.13612297, -0.99069196, 0, 0.99069196, -0.13612297, 1, 0, 0, 5.1962504, 5.0711093, 98.0025)
 size = Vector3(0.045, 0.045, 1.9304688)
 material = SubResource("StandardMaterial3D_c6xqo")
 
-[node name="street_bulb_4_0" type="CSGSphere3D" parent="." unique_id=1140741928]
+[node name="street_bulb_4_0" type="CSGSphere3D" parent="." unique_id=471112586]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.2347503, 5.3149686, 98.00275)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_4_1" type="CSGSphere3D" parent="." unique_id=434763543]
+[node name="street_bulb_4_1" type="CSGSphere3D" parent="." unique_id=544836882]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.322, 4.9769588, 98.003)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_4_2" type="CSGSphere3D" parent="." unique_id=2104735106]
+[node name="street_bulb_4_2" type="CSGSphere3D" parent="." unique_id=861651664]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.40925, 4.7304525, 98.00325)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_4_3" type="CSGSphere3D" parent="." unique_id=373619205]
+[node name="street_bulb_4_3" type="CSGSphere3D" parent="." unique_id=1197056569]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4965, 4.6035, 98.0035)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_4_4" type="CSGSphere3D" parent="." unique_id=939094198]
+[node name="street_bulb_4_4" type="CSGSphere3D" parent="." unique_id=56463322]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.41625, 4.6059523, 98.00375)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_4_5" type="CSGSphere3D" parent="." unique_id=1224124940]
+[node name="street_bulb_4_5" type="CSGSphere3D" parent="." unique_id=1340118073]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.329, 4.727959, 98.004)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_bulb_4_6" type="CSGSphere3D" parent="." unique_id=1153171285]
+[node name="street_bulb_4_6" type="CSGSphere3D" parent="." unique_id=1609863836]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.2417502, 4.9414687, 98.00425)
 radius = 0.13
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="street_string_4_glow" type="OmniLight3D" parent="." unique_id=976772843 groups=["park_light"]]
+[node name="street_string_4_glow" type="OmniLight3D" parent="." unique_id=731056456 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 4.6, 98)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -2572,37 +2572,37 @@ omni_attenuation = 1.6
 metadata/base_energy = 1.7
 metadata/light_kind = 0
 
-[node name="booth_ring_bulb_0" type="CSGSphere3D" parent="." unique_id=253520870]
+[node name="booth_ring_bulb_0" type="CSGSphere3D" parent="." unique_id=767202429]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.4754999, 2.7245, 65.5645)
 radius = 0.11
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="booth_ring_bulb_1" type="CSGSphere3D" parent="." unique_id=706056323]
+[node name="booth_ring_bulb_1" type="CSGSphere3D" parent="." unique_id=409117155]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.4752498, 2.72475, 64.78475)
 radius = 0.11
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="booth_ring_bulb_2" type="CSGSphere3D" parent="." unique_id=407895345]
+[node name="booth_ring_bulb_2" type="CSGSphere3D" parent="." unique_id=1900003966]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.4749997, 2.7250001, 64.005)
 radius = 0.11
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="booth_ring_bulb_3" type="CSGSphere3D" parent="." unique_id=1148717047]
+[node name="booth_ring_bulb_3" type="CSGSphere3D" parent="." unique_id=1905849238]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.4799998, 2.72, 63.22)
 radius = 0.11
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="booth_ring_bulb_4" type="CSGSphere3D" parent="." unique_id=608788045]
+[node name="booth_ring_bulb_4" type="CSGSphere3D" parent="." unique_id=1043147491]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.4797497, 2.7202501, 62.44025)
 radius = 0.11
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="booth_ring_glow" type="OmniLight3D" parent="." unique_id=2036573062 groups=["park_light"]]
+[node name="booth_ring_glow" type="OmniLight3D" parent="." unique_id=295643925 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 2.6, 64)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -2615,37 +2615,37 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.6
 metadata/light_kind = 0
 
-[node name="booth_darts_bulb_0" type="CSGSphere3D" parent="." unique_id=15351502]
+[node name="booth_darts_bulb_0" type="CSGSphere3D" parent="." unique_id=1457625483]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4805, 2.7205, 73.440506)
 radius = 0.11
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="booth_darts_bulb_1" type="CSGSphere3D" parent="." unique_id=1625890072]
+[node name="booth_darts_bulb_1" type="CSGSphere3D" parent="." unique_id=400289517]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.48075002, 2.72075, 74.22075)
 radius = 0.11
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="booth_darts_bulb_2" type="CSGSphere3D" parent="." unique_id=649643529]
+[node name="booth_darts_bulb_2" type="CSGSphere3D" parent="." unique_id=1373415701]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.481, 2.721, 75.001)
 radius = 0.11
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="booth_darts_bulb_3" type="CSGSphere3D" parent="." unique_id=1714405209]
+[node name="booth_darts_bulb_3" type="CSGSphere3D" parent="." unique_id=376847862]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.48125002, 2.72125, 75.78125)
 radius = 0.11
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="booth_darts_bulb_4" type="CSGSphere3D" parent="." unique_id=469133246]
+[node name="booth_darts_bulb_4" type="CSGSphere3D" parent="." unique_id=58986854]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.48150003, 2.7215, 76.5615)
 radius = 0.11
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="booth_darts_glow" type="OmniLight3D" parent="." unique_id=1005202125 groups=["park_light"]]
+[node name="booth_darts_glow" type="OmniLight3D" parent="." unique_id=924564438 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 2.6, 75)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -2658,31 +2658,31 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.6
 metadata/light_kind = 0
 
-[node name="booth_hoops_bulb_0" type="CSGSphere3D" parent="." unique_id=1604214982]
+[node name="booth_hoops_bulb_0" type="CSGSphere3D" parent="." unique_id=602214941]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.4782498, 2.72175, 92.27675)
 radius = 0.11
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="booth_hoops_bulb_1" type="CSGSphere3D" parent="." unique_id=584497959]
+[node name="booth_hoops_bulb_1" type="CSGSphere3D" parent="." unique_id=2055298176]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.4779997, 2.7220001, 91.427)
 radius = 0.11
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="booth_hoops_bulb_2" type="CSGSphere3D" parent="." unique_id=1670259982]
+[node name="booth_hoops_bulb_2" type="CSGSphere3D" parent="." unique_id=1727220722]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.4777498, 2.72225, 90.57725)
 radius = 0.11
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="booth_hoops_bulb_3" type="CSGSphere3D" parent="." unique_id=1181566304]
+[node name="booth_hoops_bulb_3" type="CSGSphere3D" parent="." unique_id=495040164]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.4774997, 2.7225, 89.7275)
 radius = 0.11
 radial_segments = 10
 material = ExtResource("3_nylmg")
 
-[node name="booth_hoops_glow" type="OmniLight3D" parent="." unique_id=477143321 groups=["park_light"]]
+[node name="booth_hoops_glow" type="OmniLight3D" parent="." unique_id=1040815221 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 2.6, 91)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -2695,7 +2695,7 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.6
 metadata/light_kind = 0
 
-[node name="arc_glow_0" type="OmniLight3D" parent="." unique_id=856409789 groups=["park_light"]]
+[node name="arc_glow_0" type="OmniLight3D" parent="." unique_id=2088123294 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26.8, 1.5, 75.6)
 visible = false
 light_color = Color(0.62, 0.86, 1, 1)
@@ -2706,7 +2706,7 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.4
 metadata/light_kind = 0
 
-[node name="arc_glow_1" type="OmniLight3D" parent="." unique_id=1473303157 groups=["park_light"]]
+[node name="arc_glow_1" type="OmniLight3D" parent="." unique_id=991164053 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26.8, 1.5, 78)
 visible = false
 light_color = Color(0.62, 0.86, 1, 1)
@@ -2717,7 +2717,7 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.4
 metadata/light_kind = 0
 
-[node name="arc_glow_2" type="OmniLight3D" parent="." unique_id=884821057 groups=["park_light"]]
+[node name="arc_glow_2" type="OmniLight3D" parent="." unique_id=408985316 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26.8, 1.5, 80.4)
 visible = false
 light_color = Color(0.62, 0.86, 1, 1)
@@ -2728,7 +2728,7 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.4
 metadata/light_kind = 0
 
-[node name="arc_glow_mid" type="OmniLight3D" parent="." unique_id=1128477287 groups=["park_light"]]
+[node name="arc_glow_mid" type="OmniLight3D" parent="." unique_id=1944023964 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 2.6, 78)
 visible = false
 light_color = Color(0.62, 0.86, 1, 1)
@@ -2739,7 +2739,7 @@ omni_attenuation = 1.6
 metadata/base_energy = 1.8
 metadata/light_kind = 0
 
-[node name="arc_door_spill" type="OmniLight3D" parent="." unique_id=1911846342 groups=["park_light"]]
+[node name="arc_door_spill" type="OmniLight3D" parent="." unique_id=321360298 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.4, 1.9, 78)
 visible = false
 light_color = Color(0.62, 0.86, 1, 1)
@@ -2752,7 +2752,7 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.6
 metadata/light_kind = 0
 
-[node name="gate_canopy_glow_0" type="OmniLight3D" parent="." unique_id=518461799 groups=["park_light"]]
+[node name="gate_canopy_glow_0" type="OmniLight3D" parent="." unique_id=1157283149 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, 3.9, 107)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -2763,7 +2763,7 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.8
 metadata/light_kind = 0
 
-[node name="gate_canopy_glow_1" type="OmniLight3D" parent="." unique_id=953048097 groups=["park_light"]]
+[node name="gate_canopy_glow_1" type="OmniLight3D" parent="." unique_id=795567924 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 3.9, 107)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -2776,7 +2776,7 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.8
 metadata/light_kind = 0
 
-[node name="gate_canopy_glow_2" type="OmniLight3D" parent="." unique_id=1197062895 groups=["park_light"]]
+[node name="gate_canopy_glow_2" type="OmniLight3D" parent="." unique_id=1208697387 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 3.9, 107)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -2787,7 +2787,7 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.8
 metadata/light_kind = 0
 
-[node name="gate_sign_wash_0" type="SpotLight3D" parent="." unique_id=1538047138 groups=["park_light"]]
+[node name="gate_sign_wash_0" type="SpotLight3D" parent="." unique_id=1326998497 groups=["park_light"]]
 transform = Transform3D(0.6000001, -0.7028996, -0.38201064, 0, 0.4775133, -0.87862456, 0.79999995, 0.52717483, 0.28650802, -4.7, 1, 111.4)
 visible = false
 light_color = Color(1, 0.92, 0.8, 1)
@@ -2799,7 +2799,7 @@ spot_angle_attenuation = 1.7
 metadata/base_energy = 3.0
 metadata/light_kind = 1
 
-[node name="gate_sign_wash_2" type="SpotLight3D" parent="." unique_id=2100604414 groups=["park_light"]]
+[node name="gate_sign_wash_2" type="SpotLight3D" parent="." unique_id=256910913 groups=["park_light"]]
 transform = Transform3D(0.59999996, 0.70289963, 0.38201067, 0, 0.4775133, -0.8786245, -0.8, 0.52717465, 0.286508, 1.7, 1, 111.4)
 visible = false
 light_color = Color(1, 0.92, 0.8, 1)
@@ -2811,7 +2811,7 @@ spot_angle_attenuation = 1.7
 metadata/base_energy = 3.0
 metadata/light_kind = 1
 
-[node name="gate_booth_glow_0" type="OmniLight3D" parent="." unique_id=1746334591 groups=["park_light"]]
+[node name="gate_booth_glow_0" type="OmniLight3D" parent="." unique_id=815460340 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.75, 2, 109.2)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -2822,7 +2822,7 @@ omni_attenuation = 1.6
 metadata/base_energy = 1.5
 metadata/light_kind = 2
 
-[node name="gate_booth_glow_2" type="OmniLight3D" parent="." unique_id=1715649897 groups=["park_light"]]
+[node name="gate_booth_glow_2" type="OmniLight3D" parent="." unique_id=1132180059 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.75, 2, 109.2)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -2833,12 +2833,12 @@ omni_attenuation = 1.6
 metadata/base_energy = 1.5
 metadata/light_kind = 2
 
-[node name="apron_head_0" type="CSGBox3D" parent="." unique_id=101478709]
+[node name="apron_head_0" type="CSGBox3D" parent="." unique_id=1882406298]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.49725, 7.86275, 116.00275)
 size = Vector3(0.6, 0.22, 0.9)
 material = ExtResource("4_ssfnc")
 
-[node name="apron_lamp_0" type="OmniLight3D" parent="." unique_id=926434529 groups=["park_light"]]
+[node name="apron_lamp_0" type="OmniLight3D" parent="." unique_id=988808820 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.5, 7.6, 116)
 visible = false
 light_color = Color(1, 0.88, 0.68, 1)
@@ -2849,12 +2849,12 @@ omni_attenuation = 1.6
 metadata/base_energy = 3.0
 metadata/light_kind = 0
 
-[node name="apron_head_1" type="CSGBox3D" parent="." unique_id=1529266393]
+[node name="apron_head_1" type="CSGBox3D" parent="." unique_id=1440740845]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.497, 7.863, 116.003)
 size = Vector3(0.6, 0.22, 0.9)
 material = ExtResource("4_ssfnc")
 
-[node name="apron_lamp_1" type="OmniLight3D" parent="." unique_id=1163411891 groups=["park_light"]]
+[node name="apron_lamp_1" type="OmniLight3D" parent="." unique_id=632446376 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.5, 7.6, 116)
 visible = false
 light_color = Color(1, 0.88, 0.68, 1)
@@ -2865,12 +2865,12 @@ omni_attenuation = 1.6
 metadata/base_energy = 3.0
 metadata/light_kind = 0
 
-[node name="apron_head_2" type="CSGBox3D" parent="." unique_id=1758676087]
+[node name="apron_head_2" type="CSGBox3D" parent="." unique_id=1536939971]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.49675, 7.8632503, 116.00325)
 size = Vector3(0.6, 0.22, 0.9)
 material = ExtResource("4_ssfnc")
 
-[node name="apron_lamp_2" type="OmniLight3D" parent="." unique_id=936164964 groups=["park_light"]]
+[node name="apron_lamp_2" type="OmniLight3D" parent="." unique_id=529760206 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 7.6, 116)
 visible = false
 light_color = Color(1, 0.88, 0.68, 1)
@@ -2883,12 +2883,12 @@ omni_attenuation = 1.6
 metadata/base_energy = 3.0
 metadata/light_kind = 0
 
-[node name="apron_head_3" type="CSGBox3D" parent="." unique_id=1724054374]
+[node name="apron_head_3" type="CSGBox3D" parent="." unique_id=365860812]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5035, 7.8635, 116.0035)
 size = Vector3(0.6, 0.22, 0.9)
 material = ExtResource("4_ssfnc")
 
-[node name="apron_lamp_3" type="OmniLight3D" parent="." unique_id=1713916912 groups=["park_light"]]
+[node name="apron_lamp_3" type="OmniLight3D" parent="." unique_id=683642973 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 7.6, 116)
 visible = false
 light_color = Color(1, 0.88, 0.68, 1)
@@ -2901,12 +2901,12 @@ omni_attenuation = 1.6
 metadata/base_energy = 3.0
 metadata/light_kind = 0
 
-[node name="apron_head_4" type="CSGBox3D" parent="." unique_id=1730953872]
+[node name="apron_head_4" type="CSGBox3D" parent="." unique_id=1856155296]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.50375, 7.86375, 116.00375)
 size = Vector3(0.6, 0.22, 0.9)
 material = ExtResource("4_ssfnc")
 
-[node name="apron_lamp_4" type="OmniLight3D" parent="." unique_id=169918726 groups=["park_light"]]
+[node name="apron_lamp_4" type="OmniLight3D" parent="." unique_id=967320465 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 7.6, 116)
 visible = false
 light_color = Color(1, 0.88, 0.68, 1)
@@ -2917,12 +2917,12 @@ omni_attenuation = 1.6
 metadata/base_energy = 3.0
 metadata/light_kind = 0
 
-[node name="apron_head_5" type="CSGBox3D" parent="." unique_id=949696779]
+[node name="apron_head_5" type="CSGBox3D" parent="." unique_id=1402019237]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.504, 7.8640003, 116.004)
 size = Vector3(0.6, 0.22, 0.9)
 material = ExtResource("4_ssfnc")
 
-[node name="apron_lamp_5" type="OmniLight3D" parent="." unique_id=634306439 groups=["park_light"]]
+[node name="apron_lamp_5" type="OmniLight3D" parent="." unique_id=1639849075 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.5, 7.6, 116)
 visible = false
 light_color = Color(1, 0.88, 0.68, 1)
@@ -2933,19 +2933,19 @@ omni_attenuation = 1.6
 metadata/base_energy = 3.0
 metadata/light_kind = 0
 
-[node name="lot_pole_0_0" type="CSGCylinder3D" parent="." unique_id=440226251]
+[node name="lot_pole_0_0" type="CSGCylinder3D" parent="." unique_id=745980828]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35.49575, 5.00425, 138.00426)
 radius = 0.16
 height = 10.0
 sides = 6
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="lot_head_0_0" type="CSGBox3D" parent="." unique_id=35373362]
+[node name="lot_head_0_0" type="CSGBox3D" parent="." unique_id=80585445]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35.4955, 9.9045, 138.0045)
 size = Vector3(0.8, 0.24, 1.2)
 material = ExtResource("4_ssfnc")
 
-[node name="lot_lamp_0_0" type="OmniLight3D" parent="." unique_id=705145920 groups=["park_light"]]
+[node name="lot_lamp_0_0" type="OmniLight3D" parent="." unique_id=1061743591 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35.5, 9.6, 138)
 visible = false
 light_color = Color(1, 0.88, 0.68, 1)
@@ -2956,19 +2956,19 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.2
 metadata/light_kind = 0
 
-[node name="lot_pole_0_1" type="CSGCylinder3D" parent="." unique_id=573515203]
+[node name="lot_pole_0_1" type="CSGCylinder3D" parent="." unique_id=55448392]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35.49525, 5.00475, 162.00475)
 radius = 0.16
 height = 10.0
 sides = 6
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="lot_head_0_1" type="CSGBox3D" parent="." unique_id=613113982]
+[node name="lot_head_0_1" type="CSGBox3D" parent="." unique_id=728570828]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35.495, 9.905, 162.005)
 size = Vector3(0.8, 0.24, 1.2)
 material = ExtResource("4_ssfnc")
 
-[node name="lot_lamp_0_1" type="OmniLight3D" parent="." unique_id=1146130249 groups=["park_light"]]
+[node name="lot_lamp_0_1" type="OmniLight3D" parent="." unique_id=449894752 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35.5, 9.6, 162)
 visible = false
 light_color = Color(1, 0.88, 0.68, 1)
@@ -2979,19 +2979,19 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.2
 metadata/light_kind = 0
 
-[node name="lot_pole_1_0" type="CSGCylinder3D" parent="." unique_id=676446642]
+[node name="lot_pole_1_0" type="CSGCylinder3D" parent="." unique_id=1532658689]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.5, 5, 138)
 radius = 0.16
 height = 10.0
 sides = 6
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="lot_head_1_0" type="CSGBox3D" parent="." unique_id=61158219]
+[node name="lot_head_1_0" type="CSGBox3D" parent="." unique_id=1976856184]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.49975, 9.9002495, 138.00024)
 size = Vector3(0.8, 0.24, 1.2)
 material = ExtResource("4_ssfnc")
 
-[node name="lot_lamp_1_0" type="OmniLight3D" parent="." unique_id=1341833405 groups=["park_light"]]
+[node name="lot_lamp_1_0" type="OmniLight3D" parent="." unique_id=232223403 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.5, 9.6, 138)
 visible = false
 light_color = Color(1, 0.88, 0.68, 1)
@@ -3002,19 +3002,19 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.2
 metadata/light_kind = 0
 
-[node name="lot_pole_1_1" type="CSGCylinder3D" parent="." unique_id=1416477819]
+[node name="lot_pole_1_1" type="CSGCylinder3D" parent="." unique_id=797541990]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.4995, 5.0005, 162.0005)
 radius = 0.16
 height = 10.0
 sides = 6
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="lot_head_1_1" type="CSGBox3D" parent="." unique_id=274444775]
+[node name="lot_head_1_1" type="CSGBox3D" parent="." unique_id=662356745]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.49925, 9.900749, 162.00075)
 size = Vector3(0.8, 0.24, 1.2)
 material = ExtResource("4_ssfnc")
 
-[node name="lot_lamp_1_1" type="OmniLight3D" parent="." unique_id=1058731973 groups=["park_light"]]
+[node name="lot_lamp_1_1" type="OmniLight3D" parent="." unique_id=1822146488 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.5, 9.6, 162)
 visible = false
 light_color = Color(1, 0.88, 0.68, 1)
@@ -3025,19 +3025,19 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.2
 metadata/light_kind = 0
 
-[node name="lot_pole_2_0" type="CSGCylinder3D" parent="." unique_id=539826211]
+[node name="lot_pole_2_0" type="CSGCylinder3D" parent="." unique_id=481927106]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.501, 5.001, 138.001)
 radius = 0.16
 height = 10.0
 sides = 6
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="lot_head_2_0" type="CSGBox3D" parent="." unique_id=1257057136]
+[node name="lot_head_2_0" type="CSGBox3D" parent="." unique_id=175702321]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.50125, 9.90125, 138.00125)
 size = Vector3(0.8, 0.24, 1.2)
 material = ExtResource("4_ssfnc")
 
-[node name="lot_lamp_2_0" type="OmniLight3D" parent="." unique_id=1542968811 groups=["park_light"]]
+[node name="lot_lamp_2_0" type="OmniLight3D" parent="." unique_id=744505816 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5, 9.6, 138)
 visible = false
 light_color = Color(1, 0.88, 0.68, 1)
@@ -3048,19 +3048,19 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.2
 metadata/light_kind = 0
 
-[node name="lot_pole_2_1" type="CSGCylinder3D" parent="." unique_id=1316782137]
+[node name="lot_pole_2_1" type="CSGCylinder3D" parent="." unique_id=1879900082]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5015, 5.0015, 162.0015)
 radius = 0.16
 height = 10.0
 sides = 6
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="lot_head_2_1" type="CSGBox3D" parent="." unique_id=1587637830]
+[node name="lot_head_2_1" type="CSGBox3D" parent="." unique_id=1690846767]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.50175, 9.90175, 162.00175)
 size = Vector3(0.8, 0.24, 1.2)
 material = ExtResource("4_ssfnc")
 
-[node name="lot_lamp_2_1" type="OmniLight3D" parent="." unique_id=230982290 groups=["park_light"]]
+[node name="lot_lamp_2_1" type="OmniLight3D" parent="." unique_id=1373879038 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5, 9.6, 162)
 visible = false
 light_color = Color(1, 0.88, 0.68, 1)
@@ -3071,19 +3071,19 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.2
 metadata/light_kind = 0
 
-[node name="lot_pole_3_0" type="CSGCylinder3D" parent="." unique_id=645533588]
+[node name="lot_pole_3_0" type="CSGCylinder3D" parent="." unique_id=1624903050]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.502, 5.002, 138.002)
 radius = 0.16
 height = 10.0
 sides = 6
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="lot_head_3_0" type="CSGBox3D" parent="." unique_id=17586980]
+[node name="lot_head_3_0" type="CSGBox3D" parent="." unique_id=1955141572]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.50225, 9.902249, 138.00224)
 size = Vector3(0.8, 0.24, 1.2)
 material = ExtResource("4_ssfnc")
 
-[node name="lot_lamp_3_0" type="OmniLight3D" parent="." unique_id=884457100 groups=["park_light"]]
+[node name="lot_lamp_3_0" type="OmniLight3D" parent="." unique_id=1679046206 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.5, 9.6, 138)
 visible = false
 light_color = Color(1, 0.88, 0.68, 1)
@@ -3094,19 +3094,19 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.2
 metadata/light_kind = 0
 
-[node name="lot_pole_3_1" type="CSGCylinder3D" parent="." unique_id=1232023310]
+[node name="lot_pole_3_1" type="CSGCylinder3D" parent="." unique_id=617389450]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.5025, 5.0025, 162.0025)
 radius = 0.16
 height = 10.0
 sides = 6
 material = SubResource("StandardMaterial3D_va1s2")
 
-[node name="lot_head_3_1" type="CSGBox3D" parent="." unique_id=335543704]
+[node name="lot_head_3_1" type="CSGBox3D" parent="." unique_id=1026579916]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.50275, 9.90275, 162.00275)
 size = Vector3(0.8, 0.24, 1.2)
 material = ExtResource("4_ssfnc")
 
-[node name="lot_lamp_3_1" type="OmniLight3D" parent="." unique_id=255281032 groups=["park_light"]]
+[node name="lot_lamp_3_1" type="OmniLight3D" parent="." unique_id=203070145 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.5, 9.6, 162)
 visible = false
 light_color = Color(1, 0.88, 0.68, 1)

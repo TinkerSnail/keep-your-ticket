@@ -886,12 +886,29 @@ func _fountain_materials() -> void:
 		quit(1)
 		return
 
+	# **Twelve lamps under the twelve jets**, drawn by the water rather than laid
+	# on it — see `lamp_ring` in the shader, and the cascade's niche for the three
+	# builds it took to learn that a patch on a surface is a second surface.
+	#
+	# Under the jets rather than anywhere else because that is where a fountain
+	# puts them and because of what it does to the jets: `water_jet` carries its
+	# own `glow`, so a jet is already bright, and a jet rising out of unlit water
+	# is a bright rope with nothing at the bottom of it. Lighting the water it
+	# comes out of is what roots it.
+	#
+	# 0.55m of halo on a 6.5m ring, so no two of the twelve reach each other and
+	# the pool reads as twelve lamps rather than as a lit ring.
 	mats["water_pool"] = _shader_material(pool, {
 		"tint": Color(0.10, 0.24, 0.28),
 		"centre": Vector3(Plan.FOUNTAIN_AT.x, 0.0, Plan.FOUNTAIN_AT.y),
 		"ring_scale": 1.0,
 		"chop": 1.0,
 		"rough": 0.06,
+		"lamp_ring": Plane(Plan.FOUNTAIN_JET_R, 12.0, 0.55, 1.0),
+		# Sixteen froth patches where the lower basin's falls land, and the count
+		# is **negative** because `_foam_ring` spaced them at `i` steps while the
+		# jets are at `i + 0.5`. See the shader.
+		"foam_ring": Plane(4.03, -16.0, 0.52, 1.0),
 	})
 	# The basins are 8m and 4m across against the pool's 17, so they take the
 	# rings four and eight times as tight. At the pool's wavelength a basin has
@@ -984,6 +1001,9 @@ func _fountain_materials() -> void:
 		"rough": 0.05,
 		"lamp_a": Plane(nx + 0.52, nz - 0.34, 0.30, 1.0),
 		"lamp_b": Plane(nx + 0.52, nz + 0.34, 0.30, 1.0),
+		# And the two places the basin's falls land.
+		"foam_a": Plane(nx + 0.90, nz - 0.62, 0.22, 1.0),
+		"foam_b": Plane(nx + 0.90, nz + 0.62, 0.22, 1.0),
 	})
 	# The basin: one lamp, and a tighter ring scale because it is 0.44m by 1.28
 	# against the trough's 1.48 by 1.82.
@@ -994,27 +1014,8 @@ func _fountain_materials() -> void:
 		"chop": 14.0,
 		"rough": 0.05,
 		"lamp_a": Plane(nx + 1.30, nz, 0.17, 1.0),
-	})
-	# The water directly over a submerged lamp. The **pool** shader, so it ripples
-	# — that is the entire difference between a lit patch of water and a saucer
-	# lying on it, and it is the same call `water_foam` makes for the same reason:
-	# `water_fall` travels by height, so on a flat horizontal patch every fragment
-	# shares one value and the whole thing pulses in unison.
-	mats["water_niche_lit"] = _shader_material(pool, {
-		"tint": Color(0.42, 0.52, 0.50),
-		"centre": niche_c,
-		"ring_scale": 17.0,
-		"chop": 10.0,
-		"rough": 0.10,
-		"spec": 0.85,
-	})
-	mats["water_niche_foam"] = _shader_material(pool, {
-		"tint": Color(0.50, 0.64, 0.67),
-		"centre": niche_c,
-		"ring_scale": 20.0,
-		"chop": 11.0,
-		"rough": 0.22,
-		"spec": 0.7,
+		# Where the spout lands in it.
+		"foam_a": Plane(nx + 1.10, nz, 0.15, 1.0),
 	})
 	# Two falls and not one, because `fade_from`/`fade_to` are **absolute world
 	# Y** and the two drops are at different heights. The plaza's pair got away
@@ -1035,18 +1036,6 @@ func _fountain_materials() -> void:
 		"fade_from": nf + 1.76, "fade_to": nf + 0.86,
 	})
 
-	# Froth. The pool shader rather than the fall shader, and that is not a
-	# detail: `water_fall` travels by *height*, so on a flat horizontal patch
-	# every fragment shares one value and the whole ring pulses in unison. The
-	# pool shader travels across the surface, which is what froth does.
-	mats["water_foam"] = _shader_material(pool, {
-		"tint": Color(0.48, 0.63, 0.66),
-		"centre": Vector3(Plan.FOUNTAIN_AT.x, 0.0, Plan.FOUNTAIN_AT.y),
-		"ring_scale": 9.0,
-		"chop": 7.0,
-		"rough": 0.22,
-		"spec": 0.7,
-	})
 
 
 func _plain(albedo: Color, roughness: float, metallic: float) -> StandardMaterial3D:
@@ -1966,11 +1955,9 @@ func _fountain_basins(o: Vector3) -> void:
 	_veil("lb_veil", o, 16, 4.03, 3.16, 0.40, 0.07, "water_veil_lo")
 	_veil("ub_veil", o, 10, 2.03, 5.33, 3.30, 0.06, "water_veil_hi")
 
-	# Where the lower falls land. Flat, 1cm proud of the surface, and the one
-	# piece of water in the fountain that is neither falling nor still. One disc
-	# per fall, on the same bearings, so the froth is under the water that made
-	# it rather than being a decorative ring of its own.
-	_foam_ring("pool_foam", o, 16, 4.03, POOL_TOP, 0.52)
+	# Where the lower falls land is `foam_ring` on the pool's material now, not
+	# sixteen discs laid on the water. See the shader: froth is a patch of water
+	# that is white and broken, not an object floating on one.
 
 
 ## The nozzle and what comes out of it.
@@ -2029,8 +2016,7 @@ func _fountain_jets(o: Vector3) -> void:
 		var foot := Vector3(0.0, 0.34, JET_R)
 		foot = _leaning("jet_%02d_a" % i, o, foot, 0.075, 1.25, "water_jet", a, JET_LEAN, 8)
 		_leaning("jet_%02d_b" % i, o, foot, 0.050, 0.85, "water_jet", a, JET_LEAN, 6)
-		_foam_patch("jet_%02d_foam" % i, o, Vector3(0.0, POOL_TOP, JET_R),
-			0.34, a)
+
 
 
 ## A ring of stone blocks standing on edge — a basin's lip.
@@ -2074,20 +2060,6 @@ func _veil(nm: String, o: Vector3, segs: int, r: float, top: float, bottom: floa
 			Vector3(chord, h, thick), mat, a)
 
 
-## Froth, laid flat on a water surface where something is falling into it.
-##
-## Round, and the first build was square. A flat box on water is a *tile*: it
-## has four straight edges and two of them are parallel to nothing, so a ring of
-## them read as paving laid in the pool. Discs overlap into a scalloped band with
-## no straight edge anywhere in it, which is what disturbed water looks like from
-## six metres away, and they cost the same.
-func _foam_ring(nm: String, o: Vector3, segs: int, r: float, y: float,
-		radius: float) -> void:
-	for i in segs:
-		var a := TAU * float(i) / float(segs)
-		_foam_patch("%s_%02d" % [nm, i], o, Vector3(0.0, y, r), radius, a)
-
-
 ## How far a film lying on water stands proud of it, and how thick it is.
 ##
 ## **Ten millimetres and thirteen, where the first build of the niche's lamps was
@@ -2106,35 +2078,6 @@ const FILM_PROUD := 0.010
 const FILM_THICK := 0.013
 
 
-## A patch lying on a water surface: froth, or the glow over a submerged lamp.
-## `top` is the water's own top face, so callers say where the water is rather
-## than solving for where a disc's centre has to be — which is how `bowl_lamp`
-## came to sit 20cm under its own basin.
-func _water_film(nm: String, o: Vector3, x: float, top: float, z: float,
-		radius: float, mat: String, sides := 12, lift := 0.0, theta := 0.0) -> void:
-	_water_cyl(nm, o, Vector3(x, top + FILM_PROUD + lift - FILM_THICK * 0.5, z),
-		radius, FILM_THICK, mat, sides, theta)
-
-
-## **`local.y` is the water's own top face, and it used to be a disc centre.**
-##
-## Every caller passed `POOL_TOP + 0.01`, reading as "a centimetre above the
-## water" — and it was not, because the 4cm thickness was applied around it. The
-## patch spanned `POOL_TOP - 0.01` to `POOL_TOP + 0.03`, so all twenty-eight of
-## them in the plaza's fountain stood **three centimetres** out of the water they
-## are supposed to be the disturbance in. Froth is not a lily pad.
-##
-## Found in the cascade's niche, where the same arithmetic put a lamp lens 4.6cm
-## out of an 18cm trough and somebody said it looked like it was floating on top.
-## The plaza's has been doing it since the fountain was rebuilt on 2026-08-14c and
-## nobody saw it, which is the argument for a helper that takes the surface rather
-## than the centre: the caller can no longer say where a disc goes without saying
-## which water it is lying on.
-func _foam_patch(nm: String, o: Vector3, local: Vector3, radius: float,
-		a: float, mat := "water_foam") -> void:
-	_water_film(nm, o, local.x, local.y, local.z, radius, mat, 10, 0.0, a)
-
-
 ## A cylinder standing on `foot` and leaning by `lean` about its own bearing.
 ## Returns the far end, so segments chain into each other.
 ##
@@ -2151,6 +2094,14 @@ func _leaning(nm: String, o: Vector3, foot: Vector3, radius: float, height: floa
 	return foot + up * height
 
 
+## `_foam_ring`, `_foam_patch` and `_water_film` were here and are gone, with the
+## `FILM_PROUD`/`FILM_THICK` pair that tuned them. All three laid discs on a water
+## surface — froth in the plaza's pool, the glow over a submerged lamp in the
+## cascade's niche — and all of it is `water_pool.gdshader`'s job now: see
+## `foam_a`/`foam_ring`/`lamp_ring` there. They are removed rather than left
+## unused because the next person to want a patch on water should not find a
+## helper that makes one out of geometry; that is the mistake, not the API.
+##
 ## The two water primitives. Identical to `_box` and `_cyl` except that nothing
 ## they make collides or casts a shadow.
 ##
@@ -2644,6 +2595,73 @@ func _fountain_lights() -> void:
 		# the beam on the tier faces this station is actually in front of.
 		var aim := Vector3(c.x + dir.x * r * 0.22, 7.4, c.y + dir.y * r * 0.22)
 		_uplight("fountain_wash_%d" % i, p, aim, "wash", 2.8, 14.0, 38.0)
+
+	# --- and from inside the water ---
+	#
+	# The six above stand *outside* the kerb at 1.05m and rake the tiers from the
+	# plaza floor, which is floodlighting a monument. These are the other half and
+	# they are a different job: down in the pool, under the waterline, throwing
+	# light up the inside of the thing. It is what the plaza's fountain has never
+	# had and the one place a fountain is allowed to be theatrical.
+	#
+	# **Submerged, and the water does not stop them.** `_uplight` builds a spot
+	# with `shadow := false` and a shadowless light in Godot is occluded by
+	# nothing at all — measured in the cascade's niche, where sinking the sources
+	# under an opaque surface changed 0.77% of the frame. So these sit at the
+	# pool floor where a real lens does. What contains them is range and cone,
+	# never the water.
+	#
+	# Six, not twelve, and at every other jet: the shader's `lamp_ring` is what
+	# makes all twelve read, and these are for what the light *lands* on — the
+	# undersides of the two basins, which are stepped discs specifically so they
+	# have something to catch it. Twelve spots would be twelve times the cost for
+	# a second copy of the same wash.
+	var jr := Plan.FOUNTAIN_JET_R
+	for i in 6:
+		var th := TAU * (float(i * 2) + 0.5) / 12.0
+		var dir := Vector2(cos(th), sin(th))
+		_uplight("fountain_pool_up_%d" % i,
+			Vector3(c.x + dir.x * jr, Plan.FOUNTAIN_POOL_TOP - 0.16, c.y + dir.y * jr),
+			Vector3(c.x + dir.x * jr * 0.30, 4.6, c.y + dir.y * jr * 0.30),
+			"lamp", 2.0, 7.5, 46.0)
+
+	# --- and the surface itself ---
+	#
+	# **The water was black and sad after dark, and none of the above was ever
+	# going to fix it.** Six washes rake the *tiers* from outside the kerb and the
+	# six spots above throw light *up* the inside — every fitting on this fountain
+	# points at stone. Meanwhile the pool is `tint` 0.10/0.24/0.28 at roughness
+	# 0.06: a dark mirror, and what a mirror shows at eleven at night is a dark
+	# sky. Seventeen metres of it in the middle of the plaza.
+	#
+	# The shader's `lamp_ring` cannot rescue it either, because that term is
+	# albedo and gloss rather than emission — deliberately, so it does not glow at
+	# noon — which means it is only ever as bright as what falls on it. It needed
+	# something to fall on it.
+	#
+	# A bead over each jet, just above the film, very short-ranged: this is what
+	# makes the twelve lamps read as twelve lamps rather than as twelve slightly
+	# paler patches. It is the same fitting the cascade's niche needed for exactly
+	# the same reason, one fountain and sixty metres apart.
+	for i in JET_COUNT:
+		var th := TAU * (float(i) + 0.5) / float(JET_COUNT)
+		_omni("fountain_bead_%02d" % i,
+			Vector3(c.x + cos(th) * jr, Plan.FOUNTAIN_POOL_TOP + 0.05, c.y + sin(th) * jr),
+			"lamp", 1.3, 2.4, LIGHT_FIXTURE)
+	# And one broad soft one over the middle, which is the difference between a
+	# lit ring on black water and a lit pool. Hung at the lower basin's underside
+	# so it reads as the fountain's own light spilling down rather than as a lamp
+	# standard nobody can see; wide and weak, because the drama is the ring and
+	# this is only meant to stop the rest being a hole.
+	# **Two of them, high and wide.** One at 1.7 over 11m did not touch it: the
+	# pool is 17m across, so a single source at the middle falls off to nothing by
+	# the kerb, and the tint is dark enough that "nothing" is black. A pair hung
+	# at the two basins' undersides covers the whole disc and reads as the
+	# fountain's own light spilling down it, which is where a real one comes from.
+	_omni("fountain_pool_fill", Vector3(c.x, 2.60, c.y), "lamp", 2.6, 13.5,
+		LIGHT_FIXTURE)
+	_omni("fountain_pool_fill_hi", Vector3(c.x, 5.10, c.y), "lamp", 2.0, 12.0,
+		LIGHT_FIXTURE)
 
 
 ## The bandstand, lit from under its own roof.
@@ -3767,7 +3785,7 @@ func _cascade_niche() -> void:
 	# and fades out just above the thing below it, so neither end is an edge.
 	_water_cyl("spout_stream", o, Vector3(1.10, 2.40, 0.0), 0.055, 0.58,
 		"water_niche_spout", 8)
-	_water_film("spout_foam", o, 1.10, bowl_top, 0.0, 0.13, "water_niche_foam", 10)
+
 	for k in 2:
 		var s := -1.0 if k == 0 else 1.0
 		# **West of the basin's front rim, not behind it.** They started at the
@@ -3780,8 +3798,7 @@ func _cascade_niche() -> void:
 			0.048, 0.98, "water_niche_fall", 8)
 		# Smaller than they were. At 0.20 a pair of 40cm discs on a 1.5m trough
 		# read as two lily pads rather than as the water being disturbed.
-		_water_film("trough_foam_%d" % k, o, 0.90, trough_top, s * 0.62,
-			0.14, "water_niche_foam", 10)
+
 
 	# --- the lights in the water ---
 	#

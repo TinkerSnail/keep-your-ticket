@@ -68,6 +68,32 @@ uniform float spec : hint_range(0.0, 1.0) = 0.9;
 // basins: the trough has two lamps and the niche's bowl has one.
 uniform vec4 lamp_a = vec4(0.0);
 uniform vec4 lamp_b = vec4(0.0);
+
+// And a **ring** of them, because the plaza's pool has twelve and writing twelve
+// scalars would be writing the jets' own arithmetic out a second time in a
+// second language. `x` is the ring radius, `y` the count, `z` each lamp's
+// radius, `w` the strength; the ring is concentric with `centre`, which it
+// genuinely is — the same uniform the waves already radiate from.
+//
+// **The sign of the count carries the phase.** Positive puts spokes at
+// `(i + 0.5)` steps, which is `_fountain_jets`' convention; negative puts them at
+// `i` steps, which is `_foam_ring`'s. Two rings in this park use each, and
+// getting it wrong lands every patch exactly halfway between two of the things
+// it belongs to — which looks deliberate and is not. Packed into the sign rather
+// than given a uniform of its own because it is one bit.
+uniform vec4 lamp_ring = vec4(0.0);
+
+// **Froth, by the same argument.** It was 28 discs laid on the plaza's pool and
+// it read exactly as the niche's lamps did — "the lights still sit on top of the
+// water" turned out to be about these. Froth is not an object floating on water;
+// it is a patch of water that is white and broken instead of dark and glassy, so
+// it is the same term with the gloss going the other way.
+//
+// `foam_a`/`foam_b` are single patches, `foam_ring` a ring of them.
+uniform vec4 foam_a = vec4(0.0);
+uniform vec4 foam_b = vec4(0.0);
+uniform vec4 foam_ring = vec4(0.0);
+uniform vec3 foam_tint : source_color = vec3(0.62, 0.74, 0.76);
 uniform vec3 lamp_tint : source_color = vec3(1.0, 0.90, 0.72);
 
 varying vec3 w_pos;
@@ -112,8 +138,30 @@ float one_lamp(vec2 p, vec4 l) {
 	return l.w * (halo * halo * 0.6 + core * core);
 }
 
+// The nearest spoke of a ring, then the same falloff as a single lamp. Only the
+// nearest one can matter: the lamps are 0.55m across on a 13m circle, so no two
+// of their halos reach each other.
+float ring_lamps(vec2 p, vec4 ring) {
+	if (ring.w <= 0.0 || ring.y < 1.0) {
+		return 0.0;
+	}
+	vec2 d = p - centre.xz;
+	float n = abs(ring.y);
+	float step_a = 6.28318530718 / n;
+	float a = atan(d.y, d.x);
+	float half_step = ring.y > 0.0 ? 0.5 : 0.0;
+	float sa = (floor(a / step_a) + half_step) * step_a;
+	vec2 lp = centre.xz + vec2(cos(sa), sin(sa)) * ring.x;
+	return one_lamp(p, vec4(lp, ring.z, ring.w));
+}
+
+
+float foam_at(vec2 p) {
+	return one_lamp(p, foam_a) + one_lamp(p, foam_b) + ring_lamps(p, foam_ring);
+}
+
 float lamp_glow(vec2 p) {
-	return one_lamp(p, lamp_a) + one_lamp(p, lamp_b);
+	return one_lamp(p, lamp_a) + one_lamp(p, lamp_b) + ring_lamps(p, lamp_ring);
 }
 
 void fragment() {
@@ -132,10 +180,19 @@ void fragment() {
 	// by day as the lens showing through and by night under `niche_glow`, which
 	// is the omni already standing in the recess.
 	float lit = lamp_glow(w_pos.xz);
-	ALBEDO = mix(tint, lamp_tint, clamp(lit * 0.75, 0.0, 0.92));
-	ROUGHNESS = mix(rough, rough * 0.45, clamp(lit, 0.0, 1.0));
+	// Froth goes on **after** the lamps and pulls the opposite way on gloss:
+	// broken water scatters, so it is pale and matt where a lit patch is pale and
+	// glassy. Applied second so a lamp under froth reads as froth lit from below,
+	// which is what it would be.
+	float froth = clamp(foam_at(w_pos.xz), 0.0, 1.0);
+	vec3 col = mix(tint, lamp_tint, clamp(lit * 0.75, 0.0, 0.92));
+	float rg = mix(rough, rough * 0.45, clamp(lit, 0.0, 1.0));
+	float sp = mix(spec, 1.0, clamp(lit * 0.6, 0.0, 1.0));
+
+	ALBEDO = mix(col, foam_tint, froth * 0.85);
+	ROUGHNESS = mix(rg, 0.55, froth);
 	METALLIC = 0.0;
-	SPECULAR = mix(spec, 1.0, clamp(lit * 0.6, 0.0, 1.0));
+	SPECULAR = mix(sp, 0.35, froth);
 	// Deliberately opaque. A 25cm pool over a dark floor shows nothing through
 	// it worth the sorting, and the one thing transparency would definitely do
 	// is put a translucent disc in front of eleven translucent jets.
