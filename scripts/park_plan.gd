@@ -575,6 +575,32 @@ const STAIR_FOOT := Vector3(CASCADE_WALL_X - WING_SEP - WING_W - 2.5,
 	SHORE_TOP, CASCADE_AXIS_Z)
 const STAIR_FOOT_STAND := Vector3(STAIR_FOOT.x, SHORE_TOP + 0.2, CASCADE_AXIS_Z)
 
+## The west cascade as a **site**: the handful of numbers that say where a
+## cascade is, as opposed to what shape one is.
+##
+## Everything above this line is shape — `WING_W`, `WING_SEP`, `WING_LAND_D`,
+## `WING_SLOPE_RUN`, `LANDING_HALF_W`, `NICHE_*`, `FOOT_STEPS`, `FLIGHT_*` — and
+## it is shared by both cascades. These five are position, and there is a second
+## set of them in the east section.
+##
+## `wall_x` and `head_y` are derived and carried anyway, because a site is passed
+## around as a whole and a consumer that has to remember to subtract `LANDING_D`
+## itself is a consumer that will one day forget.
+##
+## `tag` is the sixth, and it is not position — it is how a consumer names a
+## thing *per site*. The niche fountain needs it: two of its four water materials
+## carry a world XZ centre and two carry an absolute world Y fade band, so they
+## cannot be shared between sites and each site's set has to be findable by name.
+## See the note above `water_niche_*` in `gen_props.gd`.
+const CASCADE_WEST := {
+	"tag": "west",
+	"axis_z": CASCADE_AXIS_Z,
+	"top_x": CASCADE_TOP_X,
+	"wall_x": CASCADE_WALL_X,
+	"floor_y": SHORE_TOP,
+	"head_y": SHORE_TOP + CASCADE_DROP,
+}
+
 ## How far north and south of the arch's axis the bluff top can be walked. The
 ## terrace's own end walls stand on these lines, and without something on them
 ## the parapet gap opens onto a seven-metre ledge running the length of the map.
@@ -631,6 +657,210 @@ const ARCH_ARRIVE_WEST := Vector3(ARCH_FAR_X - 2.0, 0.2, ARCH_AT.y)
 const ARCH_ARRIVE_WEST_YAW := PI * 0.5
 const ARCH_ARRIVE_EAST := Vector3(ARCH_MOUTH_X + 2.0, 0.2, ARCH_AT.y)
 const ARCH_ARRIVE_EAST_YAW := -PI * 0.5
+
+
+# ---------------------------------------------------------------------------
+# The east: the rim, the terraces, and the cascade that climbs to them
+# ---------------------------------------------------------------------------
+
+## The park sits in a breached crater. The lagoon fills the west of the bowl and
+## the rim rises from the north round to the south-east; it is **open to the
+## west**, which is not decoration — the sun sets on that bearing and
+## `daylight.gd` computes it from real solar geometry rather than posing it.
+## Closing the ring would put land where the boardwalk's best hour is.
+##
+## So the plaza has water falling away on one side and ground climbing on the
+## other, and the two are on one line through the fountain: `ARCH_AT.y`, shared
+## by the west arch, the west cascade, the east gap and the east cascade. Stand
+## at the fountain, turn west and the ground drops six metres; turn east and it
+## climbs six.
+##
+## **The east arm is what is built. The north arm is not**, and `RIM_PROFILE`
+## stops short of it deliberately rather than running to the map edge — a rim
+## that wraps north has to decide what it does about the grove and about the
+## coaster standing in `plaza_skyline`, and neither of those is decided.
+
+## The first shelf: the head of the east cascade, and the top of the climb the
+## player can actually make. Six metres, and the six is not free — it is
+## `CASCADE_DROP` reflected, and the monument's proportions were fought for over
+## two days of rebuilding against a six metre rise. A different rise here would
+## want the whole wing argument re-derived, starting with `WING_SLOPE_RUN`.
+const HILL_TOP := 6.0
+
+## Where the scarp stands: plaza ground below and west of it, shelf above and
+## east. The east's answer to `BLUFF_FACE_X`, and the same kind of number — the
+## line the made ground changes level at.
+##
+## 70 rather than tighter against the wall, because the monument is about ten
+## metres deep and the forecourt in front of it is what makes it a monument
+## rather than a retaining wall you walk into. The wall's outer face is at 47 and
+## the westmost masonry lands near 61, which leaves a fourteen metre court: a six
+## metre face seen from fourteen metres is a 24° elevation, which is about what
+## the reference photographs are taken at.
+const HILL_FACE_X := 70.0
+const SHELF_TO_X := 86.0
+
+## How far north and south the shelf is walkable. The wings reach z −14.3..10.3,
+## so this is five metres of margin either side and no more — the shelf is a
+## belvedere at the head of a climb, not a plateau. Ground past it drops six
+## metres to the terrace below, which is why it wants a parapet.
+const SHELF_FROM_Z := -20.0
+const SHELF_TO_Z := 16.0
+
+## The second terrace, and the one the two east sections stand on. Nothing is
+## built on it — these are footprints for silhouette, as `SECTION_GROUND` says —
+## but the level is a decision and it belongs here rather than being implied by
+## whatever gets drawn first.
+##
+## **This is what moved `frontier` and `kiddieland` off y = 0.** They used to sit
+## on the flat at the plaza's own level, which was fine while the east was flat.
+## An east that climbs has to put them somewhere, and the two honest options were
+## to route the rim's foot around them — a ridge with two bays chewed out of it —
+## or to put them on the hill. They are on the hill. **The cost is that the `ne`
+## and `se` passages now have twelve metres to climb and nothing in them climbs
+## yet**, which is real and is written down here rather than discovered later.
+const TERRACE_TWO_Y := 12.0
+const TERRACE_TWO_FROM_X := 86.0
+const TERRACE_TWO_TO_X := 120.0
+
+## The rim: massing, never reachable, and the only thing out here whose job is to
+## be seen from inside the plaza rather than walked on.
+##
+## **The crest height is set by the perimeter wall, not by taste.** An eye at 1.7
+## in the middle of the plaza clears the east wall's 11.5m top at x 36 on a 0.272
+## ray, so anything 150m out has to stand above 42.5 to show at all. A crest at 50
+## shows seven metres of itself from the fountain and twenty-four from the plaza's
+## west side, which is the right way round — a distant ridge should open up as you
+## back away from it.
+##
+## Through the gap it is cropped, and that is deliberate. From `EAST_NEAR_STAND_X`
+## the beam's soffit puts the ceiling at 29m by the time the ray reaches the
+## crest, so the opening frames rising ground and cuts the top off it. **That is
+## not the wheel's mistake repeated.** The wheel was visible *only* through the
+## west arch, so cropping it lost the thing entirely; the rim stands over the
+## whole east roofline from anywhere in the plaza. The gap shows its foot and the
+## cascade, the skyline shows its head.
+const RIM_FOOT_X := 120.0
+const RIM_CREST_X := 150.0
+
+## The crest, by bearing along the rim: nearest and tallest on the cascade's own
+## axis, falling away north and south. Interpolated between these, so the ridge
+## has a profile rather than being a wall of one height.
+##
+## It peaks on the axis because that is where the climb arrives. A rim that peaked
+## somewhere else would be telling the player the way up is somewhere else.
+const RIM_PROFILE := [
+	{"z": -170.0, "crest": 34.0},
+	{"z": -100.0, "crest": 42.0},
+	{"z": -40.0, "crest": 48.0},
+	{"z": ARCH_AT.y, "crest": 50.0},
+	{"z": 40.0, "crest": 46.0},
+	{"z": 100.0, "crest": 40.0},
+	{"z": 170.0, "crest": 32.0},
+]
+
+
+# ---------------------------------------------------------------------------
+# The east gap, and the gate in it
+# ---------------------------------------------------------------------------
+
+## The sixth way out becomes a seventh, and the plan has said six for a year.
+##
+## It is on the fountain's own east–west line, which is the whole reason for
+## cutting a new one rather than using the `ne` or `se` threshold already there.
+## Those sit at 62° and 121°; a cascade behind either is a cascade you come
+## across, and a cascade due east of the fountain is the west one's answer. The
+## plaza reads as a notch between two of them.
+##
+## **Mirrored in structure and not in coordinate.** The plaza is not symmetric —
+## the west wall stands at x −38.5 with faces at −33 and −44, the east at 41.5
+## with faces at 36 and 47 — so copying the west's numbers with the sign flipped
+## would have put the piers three metres adrift of their own wall. What is
+## mirrored is the arrangement: piers the full depth of the wall plus 2.5m proud
+## of its inner face, a 6m opening between them, and a beam at the near plane.
+const EAST_GAP_AT := Vector2(40.25, ARCH_AT.y)
+const EAST_GAP_MOUTH_X := 33.5
+const EAST_GAP_FAR_X := 47.0
+const EAST_GAP_WIDTH := ARCH_WIDTH
+
+## The beam's soffit, and the same number the west's carries for the same reason:
+## it is the clear height, it is what the view through the opening is cropped by,
+## and it is the one thing here that must not drift quietly. `_east_gate` asserts
+## the scene against it to the centimetre, exactly as `_gate_house` does.
+##
+## Equal to `ARCH_HEIGHT` by choice rather than by derivation. The two gates face
+## each other across the plaza and a player at the fountain sees both at once; a
+## centimetre of difference would be invisible and a metre would be a mistake
+## nobody could name.
+const EAST_GAP_HEIGHT := ARCH_HEIGHT
+
+## The standpoint the crop is measured from: furthest back anyone stands on the
+## axis, which is just past the fountain's coping rather than out at the ring.
+##
+## The west learned this on 2026-08-16 and the arithmetic is the same facing
+## either way. Walking *towards* an opening widens the visible band and raises the
+## ceiling at once, and the ceiling wins — so the tight case is the near
+## standpoint, not the far one. A margin quoted from one standpoint is not a
+## margin.
+const EAST_NEAR_STAND_X := 11.0
+
+
+# ---------------------------------------------------------------------------
+# The east cascade
+# ---------------------------------------------------------------------------
+
+## The same monument as the west's, climbing instead of descending.
+##
+## **It is a translation, not a mirror**, and that is the fact the whole thing
+## turns on. A cascade's face is always on its low side, so both of these face
+## west and on both of them downhill is −x. Nothing is reflected; the object is
+## picked up and put down somewhere else. So there is one description and two
+## sites, and every constant of shape above — `WING_W`, `WING_SEP`,
+## `WING_LAND_D`, `WING_SLOPE_RUN`, `LANDING_HALF_W`, `NICHE_*`, `FOOT_STEPS` —
+## is shared rather than copied.
+##
+## |      | top_x | floor | head |
+## |------|-------|-------|------|
+## | west | −58   | −6    | 0    |
+## | east | 70    | 0     | 6    |
+##
+## **What the east gets that the west never can is the angle.** Every photograph
+## of the Cleveland Cascade is taken from below, from the court, because that is
+## where a cascade is meant to be seen from. The west one descends, so from inside
+## the plaza you arrive at its top and look at its back — its face is only ever
+## seen from the boardwalk, on the far side of a section seam. The east one
+## presents its face to the plaza permanently, framed by the gap, from the moment
+## you come round the fountain.
+const CASCADE_EAST := {
+	"tag": "east",
+	"axis_z": ARCH_AT.y,
+	"top_x": HILL_FACE_X,
+	"wall_x": HILL_FACE_X - LANDING_D,
+	"floor_y": 0.0,
+	"head_y": HILL_TOP,
+}
+
+## The foot on the axis, in front of the three steps, and a standing point clear
+## of them. Nobody arrives here — the wings land either side and the middle is
+## water — but the forecourt's paving and the walk test both ask where the bottom
+## of the climb is. The west's `STAIR_FOOT` is the same point at the other site.
+const EAST_STAIR_FOOT := Vector3(
+	HILL_FACE_X - LANDING_D - WING_SEP - WING_W - 2.5, 0.0, ARCH_AT.y)
+const EAST_STAIR_FOOT_STAND := Vector3(EAST_STAIR_FOOT.x, 0.2, ARCH_AT.y)
+
+
+## The crest of the rim at a bearing, interpolated along `RIM_PROFILE`.
+static func rim_crest(z: float) -> float:
+	var p: Array = RIM_PROFILE
+	if z <= p[0]["z"]:
+		return p[0]["crest"]
+	for i in p.size() - 1:
+		var a: Dictionary = p[i]
+		var b: Dictionary = p[i + 1]
+		if z <= b["z"]:
+			var t: float = (z - a["z"]) / (b["z"] - a["z"])
+			return lerpf(a["crest"], b["crest"], t)
+	return p[p.size() - 1]["crest"]
 
 ## The held shot, per direction. `from` is where the camera stands and `look` is
 ## what it points at; both are world coordinates, because a seam's framing is
@@ -1246,17 +1476,27 @@ static func walkway_segments() -> Array:
 ##
 ## The turn is level and carries none of the fall, which is why it is two points
 ## and not one, and it is what makes the hairpin free.
-static func wing_path(side: float) -> Array:
+##
+## **`site` is which cascade**, and there are two — `CASCADE_WEST`, which falls
+## off the bluff to the boardwalk, and `CASCADE_EAST`, which climbs the rim to
+## the first terrace. See `CASCADE_EAST` for why one description serves both and
+## why that is not a coincidence: a cascade's face is always on its low side, so
+## the east one is the west one *translated*, not mirrored. Downhill is −x on
+## both, and only `top_x` and `floor_y` differ.
+static func wing_path(site: Dictionary, side: float) -> Array:
 	var half := WING_W * 0.5
-	var out_x := CASCADE_WALL_X + half
-	var ret_x := CASCADE_WALL_X - WING_SEP - half
-	var near: float = CASCADE_AXIS_Z + side * LANDING_HALF_W
-	var far: float = CASCADE_AXIS_Z + side * WING_TURN_Z
+	var wall_x: float = site["wall_x"]
+	var axis: float = site["axis_z"]
+	var head: float = site["head_y"]
+	var out_x := wall_x + half
+	var ret_x := wall_x - WING_SEP - half
+	var near: float = axis + side * LANDING_HALF_W
+	var far: float = axis + side * WING_TURN_Z
 	return [
-		Vector3(out_x, 0.0, near),
-		Vector3(out_x, -CASCADE_DROP * 0.5, far),
-		Vector3(ret_x, -CASCADE_DROP * 0.5, far),
-		Vector3(ret_x, -CASCADE_DROP, near),
+		Vector3(out_x, head, near),
+		Vector3(out_x, head - CASCADE_DROP * 0.5, far),
+		Vector3(ret_x, head - CASCADE_DROP * 0.5, far),
+		Vector3(ret_x, head - CASCADE_DROP, near),
 	]
 
 
@@ -1268,8 +1508,8 @@ static func wing_path(side: float) -> Array:
 ## it exists. They used to be laid off two different assumptions — the legs ran
 ## to the turn vertex and the landing started at it — so the two agreed only by
 ## accident, and where they disagreed there was a slot.
-static func wing_leg_end(side: float, leg: int, end: int) -> Vector3:
-	var path := wing_path(side)
+static func wing_leg_end(site: Dictionary, side: float, leg: int, end: int) -> Vector3:
+	var path := wing_path(site, side)
 	var a: Vector3 = path[leg * 2]
 	var b: Vector3 = path[leg * 2 + 1]
 	var from: Vector3 = a if end == 1 else b
@@ -1290,8 +1530,13 @@ static func wing_leg_end(side: float, leg: int, end: int) -> Vector3:
 ## The gradient a wing runs at, as 1 in this. A stair here, so about 2 — asked
 ## for the same reason a ramp's is: to catch a constant that moved without
 ## anybody noticing what it moved.
-static func wing_gradient() -> float:
-	var path := wing_path(-1.0)
+##
+## Both sites answer the same, because the two cascades differ only in where they
+## are and not in what shape they are. That makes this an equality check as well
+## as a measurement, and `walk_test` uses it as one: if the west is ever tuned in
+## a way that does not reach the east, this is where it shows.
+static func wing_gradient(site: Dictionary) -> float:
+	var path := wing_path(site, -1.0)
 	var run := 0.0
 	for leg in 2:
 		var a: Vector3 = path[0] if leg == 0 else path[2]
@@ -1300,10 +1545,31 @@ static func wing_gradient() -> float:
 	return run / CASCADE_DROP
 
 
+## The slope of a wing's sloping legs, as rise over run — **the one derivation of
+## it**, and the reason this function exists rather than the expression being
+## written out where it is needed.
+##
+## `(a.y − b.y) / |b.z − a.z|` was computed in three separate places by
+## 2026-08-16: inside `_cascade_wing` for the mass's pitch, inside
+## `_cascade_crest` for the shoulder's landing tangent, and inside the wing's own
+## rail. Three copies of one number is how `WING_SLOPE_RUN` could move and leave
+## one of them behind — and the shoulder is laid *tangent* to this, so a stale
+## copy would not look broken, it would look very slightly wrong in a way nobody
+## could name.
+##
+## Measured off the outbound leg of the north wing. Both wings and both legs run
+## at the same pitch by construction; if they ever stop doing, that is a bug in
+## `wing_path` rather than something a caller should be compensating for.
+static func wing_slope(site: Dictionary) -> float:
+	var a := wing_leg_end(site, -1.0, 0, 0)
+	var b := wing_leg_end(site, -1.0, 0, 1)
+	return (a.y - b.y) / maxf(0.01, absf(b.z - a.z))
+
+
 ## A point on a wing, `t` along it by distance — the turn included, so `t`
 ## measures walking rather than falling.
-static func wing_point(side: float, t: float) -> Vector3:
-	var path := wing_path(side)
+static func wing_point(site: Dictionary, side: float, t: float) -> Vector3:
+	var path := wing_path(site, side)
 	var seg := PackedFloat32Array()
 	var total := 0.0
 	for i in 3:

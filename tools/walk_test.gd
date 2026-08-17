@@ -221,7 +221,7 @@ func _cascade_legs() -> Array:
 	for w in [[-1.0, "north"], [1.0, "south"]]:
 		var side: float = w[0]
 		var nm: String = w[1]
-		var path: Array = ParkPlan.wing_path(side)
+		var path: Array = ParkPlan.wing_path(ParkPlan.CASCADE_WEST, side)
 		var stand: Array[Vector3] = []
 		for v in path:
 			stand.append(v + Vector3(0, 0.2, 0))
@@ -241,7 +241,8 @@ func _cascade_legs() -> Array:
 		out.append(["cas %s wing -> foot" % nm, stand[3], foot, true])
 		out.append(["cas %s foot -> wing" % nm, foot, stand[3], true])
 		# The open side, which is a drop into the court the whole way down.
-		var mid := ParkPlan.wing_point(side, 0.25) + Vector3(0, 0.2, 0)
+		var mid := ParkPlan.wing_point(ParkPlan.CASCADE_WEST, side, 0.25) \
+			+ Vector3(0, 0.2, 0)
 		out.append(["cas %s rail holds" % nm, mid,
 			mid + Vector3(-9.0, 0.0, 0.0), false])
 	return out

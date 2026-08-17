@@ -42,6 +42,7 @@ const SKYLINE_PATH := "res://scenes/world/plaza_skyline.tscn"
 ## it.
 const FOUNTAIN_PATH := "res://scenes/world/plaza_fountain.tscn"
 const STAIR_PATH := "res://scenes/world/west_stair.tscn"
+const EAST_CASCADE_PATH := "res://scenes/world/east_cascade.tscn"
 const ENTRANCE_PATH := "res://scenes/world/entrance.tscn"
 const THRESHOLD_PATH := "res://scenes/world/thresholds.tscn"
 
@@ -147,7 +148,7 @@ func _initialize() -> void:
 	_root = Node3D.new()
 	_root.name = "west_stair"
 	_begin_scene()
-	_west_cascade()
+	_cascade(Plan.CASCADE_WEST)
 	if not _save(_root, STAIR_PATH):
 		return
 
@@ -210,6 +211,23 @@ func _initialize() -> void:
 	_begin_scene()
 	_fountain()
 	if not _save(_root, FOUNTAIN_PATH):
+		return
+
+	# The east cascade: the same monument as `west_stair`, at the other site.
+	#
+	# **Appended at the very end, and that is not where it reads best.** It
+	# belongs next to the west cascade, twenty lines up, where somebody looking
+	# for it would find it. It cannot go there: `_begin_scene` hands each scene a
+	# seam seed five on from the last, so a scene inserted anywhere but the end
+	# shifts the displacement of every scene after it — and the ordinal wraps at
+	# 21, so a shift of ten is not a shift of nothing. Inserting this beside its
+	# twin would re-plane shapes in a dozen files nobody edited. See the note on
+	# `paving` above, which is here for the same reason and says so.
+	_root = Node3D.new()
+	_root.name = "east_cascade"
+	_begin_scene()
+	_cascade(Plan.CASCADE_EAST)
+	if not _save(_root, EAST_CASCADE_PATH):
 		return
 
 	quit()
@@ -980,61 +998,78 @@ func _fountain_materials() -> void:
 	# The trough is 1.7m by 2.0 against the plaza pool's 17, so the rings go
 	# tighter again than the basins': at the basin's 4.5 there is barely one wave
 	# on it.
-	var niche_c := Vector3(Plan.CASCADE_WALL_X, 0.0, Plan.CASCADE_AXIS_Z)
-	# **The trough and the basin are two materials now, and the lamps are why.**
-	# `lamps` is a world-space array on the surface that carries it, so one
-	# material shared by both would put the trough's pair under the basin and the
-	# basin's inside the trough — the same class of mistake as `centre`, which is
-	# what made these their own materials in the first place.
 	#
-	# The positions are `ParkPlan.CASCADE_*` plus the same offsets `_cascade_niche`
-	# builds the lamps at, and that duplication is the one thing here worth
-	# watching: a lamp that moves in the geometry and not in the shader goes dark
-	# with no error anywhere. They are written next to each other for that reason.
-	var nx: float = Plan.CASCADE_WALL_X - Plan.CASCADE_WALL_THICK * 0.5
-	var nz: float = Plan.CASCADE_AXIS_Z
-	mats["water_niche"] = _shader_material(pool, {
-		"tint": Color(0.12, 0.27, 0.30),
-		"centre": niche_c,
-		"ring_scale": 11.0,
-		"chop": 6.0,
-		"rough": 0.05,
-		"lamp_a": Plane(nx + 0.52, nz - 0.34, 0.30, 1.0),
-		"lamp_b": Plane(nx + 0.52, nz + 0.34, 0.30, 1.0),
-		# And the two places the basin's falls land.
-		"foam_a": Plane(nx + 0.90, nz - 0.62, 0.22, 1.0),
-		"foam_b": Plane(nx + 0.90, nz + 0.62, 0.22, 1.0),
-	})
-	# The basin: one lamp, and a tighter ring scale because it is 0.44m by 1.28
-	# against the trough's 1.48 by 1.82.
-	mats["water_niche_bowl"] = _shader_material(pool, {
-		"tint": Color(0.12, 0.27, 0.30),
-		"centre": niche_c,
-		"ring_scale": 26.0,
-		"chop": 14.0,
-		"rough": 0.05,
-		"lamp_a": Plane(nx + 1.30, nz, 0.17, 1.0),
-		# Where the spout lands in it.
-		"foam_a": Plane(nx + 1.10, nz, 0.15, 1.0),
-	})
-	# Two falls and not one, because `fade_from`/`fade_to` are **absolute world
-	# Y** and the two drops are at different heights. The plaza's pair got away
-	# with a fountain standing on y=0; everything down here is 6m under it, so a
-	# fade copied off the plaza's numbers would put the whole fade band above the
-	# spout. Both streams are round and about 10cm through, so `streaks` is set
-	# to put roughly one rope on that width — 70 rather than the veils' 64–80
-	# across a 40cm slab, which is the same rope, not a coarser one.
-	var nf := SHORE_TOP
-	mats["water_niche_spout"] = _shader_material(fall, {
-		"flow": 2.0, "streaks": 70.0, "grain": 3.2,
-		"base_alpha": 0.34, "glow": 0.40,
-		"fade_from": nf + 2.66, "fade_to": nf + 2.12,
-	})
-	mats["water_niche_fall"] = _shader_material(fall, {
-		"flow": 2.3, "streaks": 70.0, "grain": 2.8,
-		"base_alpha": 0.32, "glow": 0.34,
-		"fade_from": nf + 1.76, "fade_to": nf + 0.86,
-	})
+	# **Four per site, and that is what the loop is for.** There are two cascades
+	# and the argument above is exactly the argument against sharing one set
+	# between them: the east's niche stands 128m east of the west's and six metres
+	# above it, so a shared `centre` would hand it the same flattened stripes this
+	# whole block exists to avoid, and a shared fade band would sit six metres over
+	# the spout it is meant to dissolve.
+	#
+	# **The lamps made that argument twice over.** `lamp_*` and `foam_*` are world
+	# positions packed into a `Plane` as (x, z, radius, 1) — so they are the same
+	# class of uniform as `centre`, and sharing a material between the two
+	# *surfaces* would have put the trough's pair under the basin. Sharing one
+	# between the two *sites* puts the west's pair 128m from the water they are
+	# meant to be lighting, which is the same mistake at ninety times the distance
+	# and the one nothing would have printed an error about.
+	#
+	# Everything else below is shape and is shared: every tint, ring scale, chop
+	# and offset is identical at both sites, and the only things read out of `cs`
+	# are the three coordinates the site is.
+	for cs in [Plan.CASCADE_WEST, Plan.CASCADE_EAST]:
+		var ct: String = cs["tag"]
+		var niche_c := Vector3(cs["wall_x"], 0.0, cs["axis_z"])
+		# The positions are the site's own, plus the same offsets
+		# `_cascade_niche` builds the lamps at, and that duplication is the one
+		# thing here worth watching: a lamp that moves in the geometry and not in
+		# the shader goes dark with no error anywhere. They are written next to
+		# each other for that reason.
+		var nx: float = float(cs["wall_x"]) - Plan.CASCADE_WALL_THICK * 0.5
+		var nz: float = cs["axis_z"]
+		mats["water_niche_%s" % ct] = _shader_material(pool, {
+			"tint": Color(0.12, 0.27, 0.30),
+			"centre": niche_c,
+			"ring_scale": 11.0,
+			"chop": 6.0,
+			"rough": 0.05,
+			"lamp_a": Plane(nx + 0.52, nz - 0.34, 0.30, 1.0),
+			"lamp_b": Plane(nx + 0.52, nz + 0.34, 0.30, 1.0),
+			# And the two places the basin's falls land.
+			"foam_a": Plane(nx + 0.90, nz - 0.62, 0.22, 1.0),
+			"foam_b": Plane(nx + 0.90, nz + 0.62, 0.22, 1.0),
+		})
+		# The basin: one lamp, and a tighter ring scale because it is 0.44m by
+		# 1.28 against the trough's 1.48 by 1.82.
+		mats["water_niche_%s_bowl" % ct] = _shader_material(pool, {
+			"tint": Color(0.12, 0.27, 0.30),
+			"centre": niche_c,
+			"ring_scale": 26.0,
+			"chop": 14.0,
+			"rough": 0.05,
+			"lamp_a": Plane(nx + 1.30, nz, 0.17, 1.0),
+			# Where the spout lands in it.
+			"foam_a": Plane(nx + 1.10, nz, 0.15, 1.0),
+		})
+		# Two falls and not one, because `fade_from`/`fade_to` are **absolute
+		# world Y** and the two drops are at different heights. The plaza's pair
+		# got away with a fountain standing on y=0; the west niche is 6m under it
+		# and the east's 6m over it, so a fade copied off anybody else's numbers
+		# puts the whole band clear of the water. Hence `nf`, which is the site's
+		# own floor. Both streams are round and about 10cm through, so `streaks`
+		# is set to put roughly one rope on that width — 70 rather than the veils'
+		# 64–80 across a 40cm slab, which is the same rope, not a coarser one.
+		var nf: float = cs["floor_y"]
+		mats["water_niche_%s_spout" % ct] = _shader_material(fall, {
+			"flow": 2.0, "streaks": 70.0, "grain": 3.2,
+			"base_alpha": 0.34, "glow": 0.40,
+			"fade_from": nf + 2.66, "fade_to": nf + 2.12,
+		})
+		mats["water_niche_%s_fall" % ct] = _shader_material(fall, {
+			"flow": 2.3, "streaks": 70.0, "grain": 2.8,
+			"base_alpha": 0.32, "glow": 0.34,
+			"fade_from": nf + 1.76, "fade_to": nf + 0.86,
+		})
 
 
 
@@ -3483,10 +3518,17 @@ func _flight_ramp(nm: String, top_a: Vector3, top_b: Vector3, theta: float,
 		mat, theta, true, phi)
 
 
-## How far below its deck a wing's masonry reaches. Past the shore rather than
-## down to it, so a tilted box is buried at every point rather than floating at
-## one end and cut at the other.
-const WING_BASE_Y := SHORE_TOP - 1.4
+## How far below its deck a wing's masonry reaches. Past the floor rather than
+## down to it, so a box is buried at every point rather than floating at one end
+## and cut at the other.
+##
+## **A function of the site rather than a constant, since the east cascade.** It
+## was `SHORE_TOP - 1.4`, which is the west's floor and nobody else's; the east
+## one stands on the plaza at y 0 and its masonry has to reach 1.4 below *that*.
+## The 1.4 is the shared part and the floor is the sited part, which is the split
+## every other number in these functions makes.
+func _wing_base_y(site: Dictionary) -> float:
+	return float(site["floor_y"]) - 1.4
 
 ## How far above the court a wing's west edge has to be before it wants a rail.
 ## A step, near enough — under this the edge is a kerb and a guard on it is a
@@ -3500,25 +3542,39 @@ const RAIL_FREEBOARD := 0.6
 ## The cascade: a landing at the head, a trapezoid facade under it, and a wing
 ## hairpinning down each side. See `ParkPlan.LANDING_D` for the plan and why
 ## every earlier version failed to read.
-func _west_cascade() -> void:
+##
+## **There are two of these, and this builds either.** `ParkPlan.CASCADE_WEST`
+## falls off the bluff to the boardwalk; `ParkPlan.CASCADE_EAST` climbs the rim
+## to the first terrace. They are the same object at two sites rather than two
+## objects, because a cascade's face is always on its low side — so both face
+## west, downhill is −x on both, and the east one is the west one *translated*
+## rather than mirrored. See `ParkPlan.CASCADE_EAST`.
+##
+## Which means everything below reads its position out of `site` and its shape
+## out of the shared constants. If you find yourself adding a number here that
+## differs between the two, it belongs in the site dict.
+func _cascade(site: Dictionary) -> void:
 	# Cleared rather than trusted, for the reason `_begin_scene` clears
 	# `_stand_clear`: this is the only scene that fills it, and a leftover entry
-	# would hang a lamp in mid-air over a wing that no longer exists.
+	# would hang a lamp in mid-air over a wing that no longer exists. **And with
+	# two sites it is no longer merely hygiene** — the register is filled by one
+	# cascade and read by the next one built, so without this the east's lamps
+	# would stand on the west's rails.
 	_cascade_rails.clear()
 	_cascade_posts.clear()
-	_cascade_landing()
-	_cascade_wing(-1.0, true)
-	_cascade_wing(1.0, false)
+	_cascade_landing(site)
+	_cascade_wing(site, -1.0, true)
+	_cascade_wing(site, 1.0, false)
 	# **After the wings, because the crest reads off what they build.** It takes
 	# the wing's gradient from `wing_leg_end` rather than from a number repeated
 	# out of `wing_path`, so it wants a wing that already exists. The order also
 	# matters to `_begin_scene`'s displacement, which is drawn in build order —
 	# see the note there before moving any of these.
-	_cascade_crest()
-	_cascade_bank(-1.0)
-	_cascade_bank(1.0)
-	_cascade_bed(-1.0)
-	_cascade_bed(1.0)
+	_cascade_crest(site)
+	_cascade_bank(site, -1.0)
+	_cascade_bank(site, 1.0)
+	_cascade_bed(site, -1.0)
+	_cascade_bed(site, 1.0)
 	# **Last of the geometry, and it belongs to the landing.** It is built here
 	# rather than inside `_cascade_landing` for the reason `_begin_scene` states:
 	# the seam displacement is handed out in build order and wraps at 21, so
@@ -3526,8 +3582,8 @@ func _west_cascade() -> void:
 	# them cyclically and can put two untouched surfaces on one plane eighty
 	# metres away. Adding at the end shifts nothing. Read `_cascade_landing`
 	# first — that is where the hole this fills is cut.
-	_cascade_niche()
-	_cascade_lights()
+	_cascade_niche(site)
+	_cascade_lights(site)
 
 
 ## The landing at the head, the wall under it, the niche in that wall, and the
@@ -3536,15 +3592,26 @@ func _west_cascade() -> void:
 ## The landing is **level with the bluff top**, so walking west off the terrace
 ## you step onto it without a riser and the drop begins only when you turn. Its
 ## west face is the trapezoid's middle horizontal.
-func _cascade_landing() -> void:
-	var axis := Plan.CASCADE_AXIS_Z
-	var wx := Plan.CASCADE_WALL_X
+func _cascade_landing(site: Dictionary) -> void:
+	var axis: float = site["axis_z"]
+	var wx: float = site["wall_x"]
 	var half := Plan.LANDING_HALF_W
-	var base := SHORE_TOP - 0.8
+	# **`head` is the one addition the second site needed here**, and it is
+	# invisible in the west's own numbers because the west's head is zero. Every
+	# height in this function was written as a small negative — the deck at −0.25,
+	# the string course at −0.52, the facing topping out at −0.15 — and all of them
+	# meant "just under the head", not "just under sea level". At the east site the
+	# head is +6 and a literal −0.25 would have built the landing six metres
+	# underground. The floor is the other end of the same story: `base` and the
+	# apron hang off it.
+	var head: float = site["head_y"]
+	var floor_y: float = site["floor_y"]
+	var base := floor_y - 0.8
 	var thick := Plan.CASCADE_WALL_THICK
 	var face := wx - thick * 0.5
 
-	# The deck, from the bluff face out to the wall.
+	# The deck, from the ground behind out to the wall — the bluff face at the
+	# west site and the scarp at the east.
 	#
 	# **The fill's west face is the back of the niche, and that is why it is
 	# written off `NICHE_DEEP` rather than off `wx`.** The recess is a hole in
@@ -3556,28 +3623,30 @@ func _cascade_landing() -> void:
 	# the fill against the facing's back would put the fill's ±Z faces on the
 	# facing's over an overlapping span, and that is a fight rather than an
 	# overlap.
-	var d0: float = Plan.CASCADE_TOP_X
+	var d0: float = site["top_x"]
 	var fill_x: float = face + Plan.NICHE_DEEP + 0.2
 	_box("landing_fill", Vector3.ZERO,
-		Vector3((d0 + fill_x) * 0.5, (base - 0.3) * 0.5, axis),
-		Vector3(absf(fill_x - d0), -base + 0.3, half * 2.0), "building")
+		Vector3((d0 + fill_x) * 0.5, (base - 0.3 + head) * 0.5, axis),
+		Vector3(absf(fill_x - d0), head - base + 0.3, half * 2.0), "building")
 	_box("landing_deck", Vector3.ZERO,
-		Vector3((d0 + wx) * 0.5, -0.25, axis),
+		Vector3((d0 + wx) * 0.5, head - 0.25, axis),
 		Vector3(absf(wx - d0), 0.5, half * 2.0), "accent")
 
 	# The wall's facing, with the niche left out of it: two returns and a head.
 	# Built rather than cut — the park has no CSG subtraction in its vocabulary.
-	var nh: float = SHORE_TOP + Plan.NICHE_H
+	var nh: float = floor_y + Plan.NICHE_H
 	for k in 2:
 		var s := -1.0 if k == 0 else 1.0
 		var z0: float = axis + s * Plan.NICHE_W * 0.5
 		var z1: float = axis + s * half
 		_box("landing_face_%d" % k, Vector3.ZERO,
-			Vector3(face + Plan.NICHE_DEEP * 0.5, (base - 0.15) * 0.5, (z0 + z1) * 0.5),
-			Vector3(Plan.NICHE_DEEP, -base - 0.15, absf(z1 - z0)), "cascade_face")
+			Vector3(face + Plan.NICHE_DEEP * 0.5, (base + head - 0.15) * 0.5,
+				(z0 + z1) * 0.5),
+			Vector3(Plan.NICHE_DEEP, head - 0.15 - base, absf(z1 - z0)),
+			"cascade_face")
 	_box("landing_face_head", Vector3.ZERO,
-		Vector3(face + Plan.NICHE_DEEP * 0.5, (nh - 0.15) * 0.5, axis),
-		Vector3(Plan.NICHE_DEEP, -nh - 0.15, Plan.NICHE_W), "cascade_face")
+		Vector3(face + Plan.NICHE_DEEP * 0.5, (nh + head - 0.15) * 0.5, axis),
+		Vector3(Plan.NICHE_DEEP, head - 0.15 - nh, Plan.NICHE_W), "cascade_face")
 	# The head of the niche, stepped so it reads as an arch at greybox scale.
 	#
 	# **The inset grows with height, and it used to grow with `i`, which runs
@@ -3608,7 +3677,7 @@ func _cascade_landing() -> void:
 	# `_cascade_wing`. `trim`, so it lights itself after dark and draws the same
 	# line by night that the handrail draws by day.
 	_box("landing_band", Vector3.ZERO,
-		Vector3(face - 0.1, -0.52, axis), Vector3(0.2, 0.3, half * 2.0), "trim")
+		Vector3(face - 0.1, head - 0.52, axis), Vector3(0.2, 0.3, half * 2.0), "trim")
 	# The guard along the landing's own lip is `_cascade_crest` now — a parapet
 	# between two piers rather than a rail across the whole 7m. See there.
 
@@ -3627,7 +3696,8 @@ func _cascade_landing() -> void:
 	# both by construction rather than by a number that has to be kept in step:
 	# `half` either side of the axis lands it flush against the wing masses, and
 	# the return leg's own foot slab sets how far west it reaches.
-	var apron_far: float = Plan.wing_path(-1.0)[3].x - (Plan.WING_W + 0.7) * 0.5
+	var apron_far: float = Plan.wing_path(site, -1.0)[3].x \
+		- (Plan.WING_W + 0.7) * 0.5
 	# **Carried back to the back of the niche, not stopped at the wall's face.**
 	# The apron used to end level with the front of the recess, which left a dark
 	# strip of asphalt across the bottom of the opening — the one part of the
@@ -3636,13 +3706,13 @@ func _cascade_landing() -> void:
 	# fountain's foundation at 1.5.
 	var apron_near := fill_x
 	_box("cascade_apron", Vector3.ZERO,
-		Vector3((apron_near + apron_far) * 0.5, SHORE_TOP - 0.143, axis),
+		Vector3((apron_near + apron_far) * 0.5, floor_y - 0.143, axis),
 		Vector3(absf(apron_near - apron_far), 0.36, half * 2.0), "accent")
 	# A band along its west edge. Without it the slab stops dead against the
 	# asphalt and the court reads as having a rectangle painted on it; with it
 	# the apron has an edge and the edge is the thing you see.
 	_box("cascade_apron_edge", Vector3.ZERO,
-		Vector3(apron_far + 0.09, SHORE_TOP - 0.128, axis),
+		Vector3(apron_far + 0.09, floor_y - 0.128, axis),
 		Vector3(0.18, 0.3, half * 2.0 - 0.1), "trim")
 
 
@@ -3682,13 +3752,20 @@ func _cascade_landing() -> void:
 ## and the six parts behind it can be scenery. That is the fountain kerb's
 ## argument — 260 shapes inside the plaza's pool need no collision because 72
 ## ring blocks are a fence — made with three boxes instead of seventy-two.
-func _cascade_niche() -> void:
-	# The niche's own frame: the wall's west face, the shore, the axis. Every
-	# number below is depth into the recess, height off the apron, and offset
-	# from the axis, which is the only way this stays legible against a wall at
-	# x = −63.8 standing on ground at y = −6.
-	var face: float = Plan.CASCADE_WALL_X - Plan.CASCADE_WALL_THICK * 0.5
-	var o := Vector3(face, SHORE_TOP, Plan.CASCADE_AXIS_Z)
+func _cascade_niche(site: Dictionary) -> void:
+	# The niche's own frame: the wall's west face, the floor it stands on, the
+	# axis. Every number below is depth into the recess, height off the apron, and
+	# offset from the axis, which is the only way this stays legible against a
+	# wall at x = −63.8 on ground at y = −6, and the only reason the same
+	# arithmetic serves a wall at x = 58.6 on ground at y = 0.
+	var face: float = float(site["wall_x"]) - Plan.CASCADE_WALL_THICK * 0.5
+	var o := Vector3(face, site["floor_y"], site["axis_z"])
+	# **The water materials are the site's own**, for the reason written where
+	# they are built: two of the four carry a world XZ centre and two a world Y
+	# fade band, so there is a set per cascade and this picks the one belonging to
+	# the cascade being built. The stones above are shared, because a
+	# `StandardMaterial3D` carries no coordinates at all.
+	var wet := "water_niche_%s" % site["tag"]
 	# Where the recess ends. `_cascade_landing` cuts the fill back to
 	# `NICHE_DEEP + 0.2`; the plate stands 0.025 west of that and is what the
 	# player actually sees, so the clear depth is 1.475.
@@ -3735,7 +3812,7 @@ func _cascade_niche() -> void:
 	# of them was then written against a surface that had already moved.
 	var trough_top := 0.74 + 0.18 * 0.5
 	_water_box("trough_water", o, Vector3(0.70, 0.74, 0.0),
-		Vector3(1.48, 0.18, 1.82), "water_niche")
+		Vector3(1.48, 0.18, 1.82), wet)
 
 	# --- the basin on the wall ---
 	#
@@ -3762,7 +3839,7 @@ func _cascade_niche() -> void:
 			Vector3(0.58, 0.28, 0.14), "niche_wet", 0.0, false)
 	var bowl_top := 2.04 + 0.16 * 0.5
 	_water_box("bowl_water", o, Vector3(1.31, 2.04, 0.0),
-		Vector3(0.44, 0.16, 1.28), "water_niche_bowl")
+		Vector3(0.44, 0.16, 1.28), "%s_bowl" % wet)
 
 	# --- the spout ---
 	#
@@ -3784,7 +3861,8 @@ func _cascade_niche() -> void:
 	# for the plaza's ring. Vertical, each one starts inside the thing above it
 	# and fades out just above the thing below it, so neither end is an edge.
 	_water_cyl("spout_stream", o, Vector3(1.10, 2.40, 0.0), 0.055, 0.58,
-		"water_niche_spout", 8)
+		"%s_spout" % wet, 8)
+
 
 	for k in 2:
 		var s := -1.0 if k == 0 else 1.0
@@ -3795,7 +3873,7 @@ func _cascade_niche() -> void:
 		# simply missing, and it was visible only from close enough to be looking
 		# up into the basin. A fall has to clear the lip it comes off.
 		_water_cyl("bowl_fall_%d" % k, o, Vector3(0.90, 1.28, s * 0.62),
-			0.048, 0.98, "water_niche_fall", 8)
+			0.048, 0.98, "%s_fall" % wet, 8)
 		# Smaller than they were. At 0.20 a pair of 40cm discs on a 1.5m trough
 		# read as two lily pads rather than as the water being disturbed.
 
@@ -3878,10 +3956,14 @@ func _cascade_niche() -> void:
 ## because a slice is short enough that tilting swings its corners by
 ## centimetres. See `_cascade_wing` for the version of that argument where the
 ## box was 5.9m tall and it went the other way.
-func _cascade_crest() -> void:
-	var axis := Plan.CASCADE_AXIS_Z
+func _cascade_crest(site: Dictionary) -> void:
+	var axis: float = site["axis_z"]
 	var half := Plan.LANDING_HALF_W
-	var face: float = Plan.CASCADE_WALL_X - Plan.CASCADE_WALL_THICK * 0.5
+	var face: float = site["wall_x"] - Plan.CASCADE_WALL_THICK * 0.5
+	# Everything in this function stands *on* the block's top, so every height
+	# below is measured up from `head` rather than from zero. At the west site the
+	# two are the same number, which is exactly why they were never distinguished.
+	var head: float = site["head_y"]
 
 	# The band the whole crest is cut from, standing 5cm proud of the wall face
 	# so it reads as a coping and — the reason it is 5cm and not 0 — so its west
@@ -3939,7 +4021,7 @@ func _cascade_crest() -> void:
 
 	# The kerb, pier to pier, and the piers on top of it.
 	var kz: float = horn_z + horn_w * 0.5
-	_box("crest_kerb", Vector3.ZERO, Vector3(cx, kerb_top * 0.5, axis),
+	_box("crest_kerb", Vector3.ZERO, Vector3(cx, head + kerb_top * 0.5, axis),
 		Vector3(pd, kerb_top, kz * 2.0), "building")
 	for k in 2:
 		var s := -1.0 if k == 0 else 1.0
@@ -3951,7 +4033,7 @@ func _cascade_crest() -> void:
 		# `building`, and that is the whole of the contrast: a pale coping in the
 		# opening, blue either side of it.
 		_box("crest_horn_%d" % k, Vector3.ZERO,
-			Vector3(cx - 0.05, horn_top * 0.5, axis + s * horn_z),
+			Vector3(cx - 0.05, head + horn_top * 0.5, axis + s * horn_z),
 			Vector3(pd + 0.14, horn_top, horn_w), "cascade_face")
 
 		# A globe under each pier, on a stub bracket off the wall face.
@@ -3973,7 +4055,7 @@ func _cascade_crest() -> void:
 		# The stand-off goes with the radius rather than staying put, because
 		# what has to hold is the gap between the sphere and the masonry: at 0.28
 		# out a 0.33 globe buries a third of itself in the wall.
-		var globe_at := Vector3(globe_face - 0.46, -1.05, axis + s * horn_z)
+		var globe_at := Vector3(globe_face - 0.46, head - 1.05, axis + s * horn_z)
 		_box("crest_globe_%d_arm" % k, Vector3.ZERO,
 			Vector3(globe_face - 0.13, globe_at.y, globe_at.z),
 			Vector3(0.28, 0.12, 0.12), "metal")
@@ -3996,14 +4078,14 @@ func _cascade_crest() -> void:
 	var rz1: float = axis + horn_z - horn_w * 0.5
 	var rspan: float = absf(rz1 - rz0)
 	for i in 3:
-		var ry := 0.62 + float(i) * 0.32
+		var ry := head + 0.62 + float(i) * 0.32
 		_box("crest_rail_%d" % i, Vector3.ZERO,
 			Vector3(cx - 0.10 - float(i) * 0.012, ry, axis),
 			Vector3(0.10, 0.08 + float(i) * 0.008, rspan), "metal")
 	for i in 6:
 		var t := float(i) / 5.0
 		_cyl("crest_rail_post_%d" % i, Vector3.ZERO,
-			Vector3(cx - 0.10, 0.81, lerpf(rz0 + 0.14, rz1 - 0.14, t)),
+			Vector3(cx - 0.10, head + 0.81, lerpf(rz0 + 0.14, rz1 - 0.14, t)),
 			0.048, 1.02, "metal", 0.0, 6)
 
 
@@ -4013,10 +4095,11 @@ func _cascade_crest() -> void:
 ## The outbound leg runs *behind* the facade plane and the return leg in front of
 ## it, which is what puts two rails at two angles on each side — the thing the
 ## daylight photograph shows and the thing that took all day to see.
-func _cascade_wing(side: float, smooth: bool) -> void:
+func _cascade_wing(site: Dictionary, side: float, smooth: bool) -> void:
 	var tag := "n" if side < 0.0 else "s"
-	var path := Plan.wing_path(side)
+	var path := Plan.wing_path(site, side)
 	var half := Plan.WING_W * 0.5
+	var base_y := _wing_base_y(site)
 
 	for leg in 2:
 		# **Off `wing_leg_end`, not off the path vertices.** The vertex is where
@@ -4025,8 +4108,8 @@ func _cascade_wing(side: float, smooth: bool) -> void:
 		# and the landing outboard of it is two different answers to where a leg
 		# ends, and the gap between them is exactly the slot that showed at the
 		# turn.
-		var a := Plan.wing_leg_end(side, leg, 0)
-		var b := Plan.wing_leg_end(side, leg, 1)
+		var a := Plan.wing_leg_end(site, side, leg, 0)
+		var b := Plan.wing_leg_end(site, side, leg, 1)
 		var span := Vector2(b.x - a.x, b.z - a.z)
 		var length := span.length()
 		var theta := atan2(span.x, span.y)
@@ -4034,7 +4117,7 @@ func _cascade_wing(side: float, smooth: bool) -> void:
 		var mid := (a + b) * 0.5
 		var run := sqrt(length * length + pow(a.y - b.y, 2.0))
 		var up := (Basis(Vector3.UP, theta) * Basis(Vector3.RIGHT, slope)).y
-		var h: float = mid.y - WING_BASE_Y
+		var h: float = mid.y - base_y
 
 		# The mass under the flight. Its west face is the facade plane on the
 		# outbound leg, which is what makes the diagonal you see from the court.
@@ -4072,8 +4155,16 @@ func _cascade_wing(side: float, smooth: bool) -> void:
 		# buried faces at one depth still z-fight.
 		var mass_steps := maxi(1, int(round((a.y - b.y) / Plan.WING_RISE)))
 		var pad := 0.11 + float(leg) * 0.07
-		var grad: float = (a.y - b.y) / maxf(0.01, absf(b.z - a.z))
-		var mass_base: float = WING_BASE_Y - float(leg) * 0.15
+		# **The one derivation of the wing's gradient**, off `ParkPlan.wing_slope`
+		# rather than recomputed here. It was `(a.y - b.y) / maxf(0.01, absf(b.z -
+		# a.z))` written out in three places — here, in `_cascade_crest` and in the
+		# rail — which is three chances for `WING_SLOPE_RUN` to move and leave one
+		# behind. This one is load-bearing rather than cosmetic: it takes the pad's
+		# own fall back off each mass step's top, and getting it wrong stands the
+		# mass proud of the ramp by centimetres, which `CharacterBody3D` cannot
+		# climb.
+		var grad: float = Plan.wing_slope(site)
+		var mass_base: float = base_y - float(leg) * 0.15
 		for j in mass_steps:
 			var t0 := float(j) / float(mass_steps)
 			var t1 := float(j + 1) / float(mass_steps)
@@ -4244,7 +4335,7 @@ func _cascade_wing(side: float, smooth: bool) -> void:
 	# exactly and overhangs neither. Both edges come from `wing_leg_end`, so the
 	# landing cannot drift from the legs the way it did when it was laid out from
 	# the vertex with its own depth.
-	var stop_z: float = Plan.wing_leg_end(side, 0, 1).z
+	var stop_z: float = Plan.wing_leg_end(site, side, 0, 1).z
 	var out_z: float = p1.z + side * 0.9
 	var far_z := (stop_z + out_z) * 0.5
 	var land_d: float = absf(out_z - stop_z)
@@ -4260,8 +4351,8 @@ func _cascade_wing(side: float, smooth: bool) -> void:
 	# The constants said these surfaces were flush; they were not, and only a
 	# measurement said so.
 	_box("wing_land_wall_%s" % tag, Vector3.ZERO,
-		Vector3(cx, (y - 0.5 + WING_BASE_Y) * 0.5, far_z),
-		Vector3(w + 0.8, y - 0.5 - WING_BASE_Y, land_d + 0.8), "cascade_face")
+		Vector3(cx, (y - 0.5 + base_y) * 0.5, far_z),
+		Vector3(w + 0.8, y - 0.5 - base_y, land_d + 0.8), "cascade_face")
 	_box("wing_land_%s" % tag, Vector3.ZERO, Vector3(cx, y - 0.25, far_z),
 		Vector3(w, 0.5, land_d), "accent")
 	# Coping on the two edges nothing walks over — the far end and the west face.
@@ -4331,12 +4422,18 @@ func _wing_treads(tag: String, leg: int, a: Vector3, b: Vector3, theta: float,
 ## measurements said. Here the bank fills the wedge between the outbound leg and
 ## the bluff face, its surface following the flight down, and it is the planted
 ## hillside the reference's flanking stairs are cut into.
-func _cascade_bank(side: float) -> void:
+func _cascade_bank(site: Dictionary, side: float) -> void:
 	var tag := "n" if side < 0.0 else "s"
-	var a: Vector3 = Plan.wing_path(side)[0]
-	var b: Vector3 = Plan.wing_path(side)[1]
+	var path := Plan.wing_path(site, side)
+	var a: Vector3 = path[0]
+	var b: Vector3 = path[1]
+	var base_y := _wing_base_y(site)
+	# The bank's surface is capped just under the head, because past that it would
+	# stand above the ground it is retaining. `-0.25` meant that at the west site
+	# and meant "a quarter metre below sea level" everywhere else.
+	var head: float = site["head_y"]
 	var x0: float = a.x + Plan.WING_W * 0.5 + 0.4
-	var x1: float = Plan.CASCADE_TOP_X + 0.3
+	var x1: float = float(site["top_x"]) + 0.3
 	if x1 - x0 < 1.0:
 		return
 	var cx := (x0 + x1) * 0.5
@@ -4366,14 +4463,14 @@ func _cascade_bank(side: float) -> void:
 	for i in segs.size():
 		var z0: float = segs[i][0]
 		var z1: float = segs[i][1]
-		var y: float = minf(-0.25, float(segs[i][2]) + 1.4)
-		if y <= WING_BASE_Y + 0.4:
+		var y: float = minf(head - 0.25, float(segs[i][2]) + 1.4)
+		if y <= base_y + 0.4:
 			continue
 		var cz := (z0 + z1) * 0.5
 		var d := absf(z1 - z0) + 0.4
 		_box("bank_%s_%d" % [tag, i], Vector3.ZERO,
-			Vector3(cx, (y + WING_BASE_Y - 0.4) * 0.5, cz),
-			Vector3(w, y - WING_BASE_Y + 0.4, d), "building")
+			Vector3(cx, (y + base_y - 0.4) * 0.5, cz),
+			Vector3(w, y - base_y + 0.4, d), "building")
 		_box("bank_soil_%s_%d" % [tag, i], Vector3.ZERO,
 			Vector3(cx, y + 0.17, cz), Vector3(w - 0.4, 0.34, d - 0.2),
 			"planting", 0.0, false)
@@ -4411,10 +4508,16 @@ func _cascade_bank(side: float) -> void:
 ## It stops well short of the foot on purpose. The last stride of the descent is
 ## where the wing delivers you into the court, and `walk_test` walks it; a bed
 ## carried to the end would be a planter in the doorway.
-func _cascade_bed(side: float) -> void:
+func _cascade_bed(site: Dictionary, side: float) -> void:
 	var tag := "n" if side < 0.0 else "s"
-	var turn: Vector3 = Plan.wing_path(side)[2]
-	var foot: Vector3 = Plan.wing_path(side)[3]
+	var path := Plan.wing_path(site, side)
+	var turn: Vector3 = path[2]
+	var foot: Vector3 = path[3]
+	var base_y := _wing_base_y(site)
+	# The bed stands in the court, so its kerbs are measured off the court floor.
+	# That was `SHORE_TOP` written out — correct at the west site and meaningless
+	# at any other, since the east cascade's court is the plaza at y 0.
+	var floor_y: float = site["floor_y"]
 	# The west face of the return leg's mass, which is what the bed leans on.
 	var face: float = turn.x - (Plan.WING_W + Plan.WING_SEP + 0.64) * 0.5
 	var x1 := face + 0.25
@@ -4429,10 +4532,10 @@ func _cascade_bed(side: float) -> void:
 		var b: float = lerpf(z0, z1, t1)
 		# The kerb steps with the wall behind it — the leg falls from the turn to
 		# the foot, so the tier furthest out is the tallest.
-		var top: float = SHORE_TOP + 0.42 + 0.34 * float(i)
+		var top: float = floor_y + 0.42 + 0.34 * float(i)
 		_box("bed_%s_%d" % [tag, i], Vector3.ZERO,
-			Vector3((x0 + x1) * 0.5, (top + WING_BASE_Y) * 0.5, (a + b) * 0.5),
-			Vector3(x1 - x0, top - WING_BASE_Y, absf(b - a) + 0.3), "building")
+			Vector3((x0 + x1) * 0.5, (top + base_y) * 0.5, (a + b) * 0.5),
+			Vector3(x1 - x0, top - base_y, absf(b - a) + 0.3), "building")
 		_box("bed_soil_%s_%d" % [tag, i], Vector3.ZERO,
 			Vector3((x0 + x1) * 0.5, top + 0.16, (a + b) * 0.5),
 			Vector3(x1 - x0 - 0.36, 0.32, absf(b - a) - 0.06), "planting", 0.0, false)
@@ -4460,10 +4563,10 @@ func _cascade_bed(side: float) -> void:
 ## shadow across the tread below it, so the stair reads as a stair in the dark
 ## for the same reason it does at four in the afternoon. It is the cheapest
 ## safety feature in the park and the best-looking thing in it.
-func _cascade_lights() -> void:
-	var axis := Plan.CASCADE_AXIS_Z
-	var floor_y := SHORE_TOP
-	var wx := Plan.CASCADE_WALL_X
+func _cascade_lights(site: Dictionary) -> void:
+	var axis: float = site["axis_z"]
+	var floor_y: float = site["floor_y"]
+	var wx: float = site["wall_x"]
 	var face: float = wx - Plan.CASCADE_WALL_THICK * 0.5
 
 	# --- the niche ---
@@ -4572,8 +4675,8 @@ func _cascade_lights() -> void:
 	# at the outbound leg lights the back of the return one.
 	for side in [-1.0, 1.0]:
 		var tag := "n" if side < 0.0 else "s"
-		var p2: Vector3 = Plan.wing_path(side)[2]
-		var p3: Vector3 = Plan.wing_path(side)[3]
+		var p2: Vector3 = Plan.wing_path(site, side)[2]
+		var p3: Vector3 = Plan.wing_path(site, side)[3]
 		# The return leg's own west face, off the mass width rather than off
 		# `WING_W`: what you see is the mass, and it is a metre and a half wider
 		# than the leg walked down the middle of it.
@@ -4607,7 +4710,7 @@ func _cascade_lights() -> void:
 	# light because the wings have no room for a painted walkway.
 	for side in [-1.0, 1.0]:
 		var tag := "n" if side < 0.0 else "s"
-		var path := Plan.wing_path(side)
+		var path := Plan.wing_path(site, side)
 		for leg in 2:
 			var a: Vector3 = path[0] if leg == 0 else path[2]
 			var b: Vector3 = path[1] if leg == 0 else path[3]
@@ -4630,7 +4733,7 @@ func _cascade_lights() -> void:
 		var tag := "n" if side < 0.0 else "s"
 		for i in 3:
 			var t := 0.2 + float(i) * 0.3
-			var p := Plan.wing_point(side, t * 0.5)
+			var p := Plan.wing_point(site, side, t * 0.5)
 			_uplight("bank_light_%s_%d" % [tag, i],
 				Vector3(p.x + 1.6, p.y + 0.6, p.z),
 				Vector3(p.x + 3.4, p.y + 2.2, p.z), "amber", 2.2, 6.0, 54.0)
