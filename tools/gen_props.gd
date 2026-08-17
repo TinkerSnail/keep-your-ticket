@@ -695,9 +695,20 @@ func _build_materials() -> void:
 		# the chroma pulled toward the park's dustiness and masonry roughness,
 		# which is what painted stucco twenty summers old actually looks like.
 		"cascade_face": [Color(0.31, 0.46, 0.62), 0.88, 0.0],
-		# **Inside the niche** — the same wall carried into the recess, at a
-		# different value. Which way that value goes was settled by building both
-		# and looking, and the reasoning that went in first was wrong twice.
+		# **The back of the niche**, and only the back: the same wall carried into
+		# the recess, at a different value. Which way that value goes was settled
+		# by building both and looking, and the reasoning that went in first was
+		# wrong twice.
+		#
+		# **The arch head's corbels are `cascade_face`, not this.** They wore this
+		# for about an hour and it was the wrong reading of what they are: the
+		# stepped head is the *frame* of the opening rather than something inside
+		# it, cut from the same wall as the reveals either side — which have been
+		# `cascade_face` since the facade was painted, because they are the flanks
+		# of `landing_face`. Putting the corbels in the darker blue split the frame
+		# into a lighter surround and a darker head, and an arch whose head is a
+		# different colour from its jambs is two things rather than one. The value
+		# change belongs at the back plane, where the recess actually begins.
 		#
 		# The argument for going *lighter* was that a 1.5m recess in a west-facing
 		# wall is in its own shadow for most of the day, that shadow is worth
@@ -3470,7 +3481,7 @@ func _cascade_landing() -> void:
 				Vector3(face + (Plan.NICHE_DEEP + 0.2) * 0.5,
 					nh - 0.2 * (float(i) + 0.5),
 					axis + s * (Plan.NICHE_W * 0.5 - inset * 0.5)),
-				Vector3(Plan.NICHE_DEEP + 0.2, 0.2, inset), "niche_face")
+				Vector3(Plan.NICHE_DEEP + 0.2, 0.2, inset), "cascade_face")
 	# The string course under the landing's lip, carried on down both wings by
 	# `_cascade_wing`. `trim`, so it lights itself after dark and draws the same
 	# line by night that the handrail draws by day.
