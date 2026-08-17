@@ -695,6 +695,34 @@ func _build_materials() -> void:
 		# the chroma pulled toward the park's dustiness and masonry roughness,
 		# which is what painted stucco twenty summers old actually looks like.
 		"cascade_face": [Color(0.31, 0.46, 0.62), 0.88, 0.0],
+		# **Inside the niche** — the same wall carried into the recess, at a
+		# different value. Which way that value goes was settled by building both
+		# and looking, and the reasoning that went in first was wrong twice.
+		#
+		# The argument for going *lighter* was that a 1.5m recess in a west-facing
+		# wall is in its own shadow for most of the day, that shadow is worth
+		# about half the albedo, and a dark blue in there would land on near-black
+		# and cost the arch its head. Built at 0.50/0.66/0.79, none of that
+		# happened. The stepped head reads *better* dark, because what draws a
+		# corbel is the skylight on its upward face, and that face is bright
+		# against a dark reveal and invisible against a light one. And the recess
+		# stopped being a recess: at that value the niche reads as a patch of
+		# paler paint on the facade rather than as a hole in it, which is the one
+		# thing the depth was bought for.
+		#
+		# After dark it was worse and in the opposite direction. `niche_glow` is
+		# an amber lamp tucked behind the basin, and a light blue under it goes to
+		# cream — the blue disappears entirely and the whole opening blows out to
+		# a bright blob. Dark, the same lamp reads as warm light *inside* a blue
+		# box, which is the "an arch is a hole and the dramatic version of a hole
+		# is light coming out of it" that `_cascade_lights` claims to be doing and
+		# could not do against a pale back.
+		#
+		# The fountain in front separates on **hue** rather than value either way
+		# — `fount_stone` is a warm pale limestone against a cool wall, which is
+		# the argument the whole monument's lighting makes. Dark simply gives it
+		# more of both.
+		"niche_face": [Color(0.21, 0.32, 0.46), 0.88, 0.0],
 		# Washed toward the sky so distance reads without touching the environment.
 		"far": [Color(0.66, 0.68, 0.72), 0.95, 0.0],
 		"far_warm": [Color(0.72, 0.66, 0.63), 0.95, 0.0],
@@ -3442,7 +3470,7 @@ func _cascade_landing() -> void:
 				Vector3(face + (Plan.NICHE_DEEP + 0.2) * 0.5,
 					nh - 0.2 * (float(i) + 0.5),
 					axis + s * (Plan.NICHE_W * 0.5 - inset * 0.5)),
-				Vector3(Plan.NICHE_DEEP + 0.2, 0.2, inset), "building")
+				Vector3(Plan.NICHE_DEEP + 0.2, 0.2, inset), "niche_face")
 	# The string course under the landing's lip, carried on down both wings by
 	# `_cascade_wing`. `trim`, so it lights itself after dark and draws the same
 	# line by night that the handrail draws by day.
@@ -3540,7 +3568,7 @@ func _cascade_niche() -> void:
 	# surface in the recess that is lit, so it wants to be stone the fountain is
 	# made of rather than the wall it is cut into.
 	_box("niche_plate", o, Vector3(back + 0.275, 1.70, 0.0),
-		Vector3(0.55, 3.40, Plan.NICHE_W + 0.5), "fount_stone")
+		Vector3(0.55, 3.40, Plan.NICHE_W + 0.5), "niche_face")
 	# The wetted band down the middle of it, standing 5cm proud. It costs one box
 	# and it is the only thing that says the water has been running for twenty
 	# summers — the alternative was staining the stone, which greybox cannot do.
