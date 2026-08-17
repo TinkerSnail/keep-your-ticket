@@ -65,6 +65,11 @@ const FREE := [
 	{"name": "s_court_oblique", "pos": Vector3(-74.0, -4.2, 6.0), "yaw": -62.0, "pitch": 5.0},
 	# The descent itself, which is what the globes are for.
 	{"name": "t_wing_north", "pos": Vector3(-73.0, -4.0, -11.0), "yaw": -90.0, "pitch": 8.0},
+	# The north turn, from outside it, where the landing rail meets the return
+	# leg's. Two rails passing each other and two lamps 30cm apart both show here.
+	{"name": "u_turn_north", "pos": Vector3(-76.0, -1.2, -13.5), "yaw": -106.0, "pitch": -6.0},
+	# And the crest, which is what the horns are.
+	{"name": "v_crest", "pos": Vector3(-80.0, 1.5, -2.0), "yaw": -90.0, "pitch": -2.0},
 ]
 
 var _player: Node3D

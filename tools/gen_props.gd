@@ -3344,6 +3344,7 @@ func _west_cascade() -> void:
 	# `_stand_clear`: this is the only scene that fills it, and a leftover entry
 	# would hang a lamp in mid-air over a wing that no longer exists.
 	_cascade_rails.clear()
+	_cascade_posts.clear()
 	_cascade_landing()
 	_cascade_wing(-1.0, true)
 	_cascade_wing(1.0, false)
@@ -3762,9 +3763,16 @@ func _cascade_crest() -> void:
 		Vector3(pd, kerb_top, kz * 2.0), "building")
 	for k in 2:
 		var s := -1.0 if k == 0 else 1.0
+		# `cascade_face`, like the wall under them. The piers are the top of the
+		# facade rather than something standing on it — the wing springs off the
+		# outer face of each — so painting the wall and leaving these grey put a
+		# pale block at both ends of the blue, which read as the crest being a
+		# different structure bolted across the top. The kerb between them stays
+		# `building`, and that is the whole of the contrast: a pale coping in the
+		# opening, blue either side of it.
 		_box("crest_horn_%d" % k, Vector3.ZERO,
 			Vector3(cx - 0.05, horn_top * 0.5, axis + s * horn_z),
-			Vector3(pd + 0.14, horn_top, horn_w), "building")
+			Vector3(pd + 0.14, horn_top, horn_w), "cascade_face")
 
 		# A globe under each pier, on a stub bracket off the wall face.
 		#
@@ -4084,9 +4092,18 @@ func _cascade_wing(side: float, smooth: bool) -> void:
 		Vector3(w + 0.8, 0.4, 0.8), "trim")
 	_box("wing_land_cap_west_%s" % tag, Vector3.ZERO,
 		Vector3(x1 - 0.4, y + 0.2, far_z), Vector3(0.8, 0.4, land_d + 0.8), "trim")
+	# **On the leg rails' own line, `x1 - 0.2`, where this was `x1 - 0.5`.** The
+	# outer guard of a hairpin is one line — down leg 1, across the turn, and
+	# nothing about the corner makes it two — but the landing's was set out
+	# independently and landed 0.3m west of the legs'. That is far enough apart to
+	# read as two rails passing each other and near enough that their end posts
+	# stood in each other, which after the globes went on was two lamps 30cm apart
+	# at the one place on the descent you stop and look. It was also 0.1m past the
+	# outer face of `wing_land_wall`, so the last post had nothing under it.
+	# `_wing_rail` merges the shared corner post; see there.
 	_wing_rail("wing_land_rail_%s" % tag,
-		Vector2(x1 - 0.5, far_z - land_d * 0.5), y,
-		Vector2(x1 - 0.5, far_z + land_d * 0.5), y, true)
+		Vector2(x1 - 0.2, far_z - land_d * 0.5), y,
+		Vector2(x1 - 0.2, far_z + land_d * 0.5), y, true)
 
 
 ## The treads on the south wing, and only the south wing.
@@ -4450,6 +4467,26 @@ func _cascade_lights() -> void:
 ## this is what lets them be emitted last without knowing anything.
 var _cascade_rails: Array = []
 
+## Every post `_wing_rail` has put down this scene, lamped or not, so that two
+## runs meeting at a corner can share the one at the join.
+var _cascade_posts: Array = []
+
+## How close two posts have to be before they are the same post.
+##
+## A hairpin's outer guard is one line — down the return leg, across the turn —
+## and it is built as two runs because the leg falls and the turn is level, which
+## is the same reason the planted bank's seventh step is not a seventh of a
+## longer lerp. Two runs sharing an endpoint otherwise stand two posts in each
+## other, and once the globes went on that was two lamps 30cm apart at the one
+## place on the descent you stop and look back. Half a metre catches the join and
+## nothing else — **measured off the emitted scene rather than reasoned about**:
+## with the corner merged, the closest two posts that are genuinely different are
+## 1.445m apart, which is the turn landing's 2.9m rail over its two spans. The
+## first draft of this comment said 1.9m from arithmetic done in the head, and
+## the whole of this monument's recent history is numbers that were never checked
+## against the file they describe.
+const POST_MERGE := 0.5
+
 
 func _wing_rail(nm: String, a: Vector2, ya: float, b: Vector2, yb: float,
 		lamps := false) -> void:
@@ -4464,10 +4501,19 @@ func _wing_rail(nm: String, a: Vector2, ya: float, b: Vector2, yb: float,
 		var t := float(i) / float(posts)
 		var p := a.lerp(b, t)
 		var top: float = lerpf(ya, yb, t) + 1.1
+		var at := Vector3(p.x, top, p.y)
+		var shared := false
+		for q in _cascade_posts:
+			if at.distance_to(q) < POST_MERGE:
+				shared = true
+				break
+		if shared:
+			continue
+		_cascade_posts.append(at)
 		_cyl("%s_post_%d" % [nm, i], Vector3.ZERO,
-			Vector3(p.x, top - 0.55, p.y), 0.06, 1.1, "metal", 0.0, 6)
+			Vector3(at.x, top - 0.55, at.z), 0.06, 1.1, "metal", 0.0, 6)
 		if lamps:
-			_cascade_rails.append(Vector3(p.x, top, p.y))
+			_cascade_rails.append(at)
 	var m := (a + b) * 0.5
 	# **Nine centimetres, not one metre.** The doc above says "posts and a top rail
 	# rather than a slab" and the size said otherwise: a 1m tall panel spanning the
@@ -4684,33 +4730,108 @@ func _street_shop_lights() -> void:
 ## along it, which is the whole difference — a line of lights down a street is
 ## street lighting, and a line of lights across it is a fair.
 ##
-## Hung above the awnings and below the parapets, so they read against the sky
-## from the gate and against the frontage from underneath.
-const STREET_STRING_Y := 5.6
+## **Each end is tied to the wall it is tied to, and that took until
+## 2026-08-16.** The run was hung at a flat 5.6m between x's inset 0.3m from
+## both frontage faces, which meant no string in the street touched a building.
+## Every end stopped short of the masonry; three of them stopped *above* the
+## parapet they were nailed to — the west arcade tops out at 4.8 and its string
+## floated 0.8m over the roof — and the sixth, at z=108, spanned the turnstiles
+## at `GATE_Z` 107, where there is no frontage on either side at all.
+##
+## One cause under all three: a constant height across a frontage whose heights
+## are a table of six different values. It is the setback-written-as-a-length
+## trap in another costume — 5.6 was true of the buildings that happened to be
+## tall enough on the day it was typed, and nothing re-checked it for the ones
+## that were not, because a festoon photographs as a festoon whichever end of it
+## is in the sky.
+##
+## So an anchor is a relationship: a hand below its own building's wall head,
+## under the coping lip, with a pin lapping through the face so the wire ends on
+## something. A string between a 6.5m shop and a 5.5m one comes out tilted, and
+## should — the frontage table's whole job is to say these are separate
+## premises, and a run that leans to meet each roof says it again overhead.
+const STREET_STRING_DROP := 0.3
 const STREET_STRING_SAG := 0.85
 const STREET_STRING_STEPS := 8
+## The wire runs a hand *into* each wall rather than butting on its face: a butt
+## is a coplanar pair, and the pin is what the eye reads at the junction anyway.
+const STREET_STRING_LAP := 0.15
+## How far a pin laps back into the masonry, and how far it stands out of it.
+const STREET_STRING_PIN_IN := 0.35
+const STREET_STRING_PIN_OUT := 0.3
+
+
+## What a festoon can be tied to on one side of the street at `z`, as the height
+## of the wall head there, or -1.0 if there is no building at that z to tie to.
+##
+## Read off what is *built* rather than off the row's height column, which is
+## the same distinction `_shopfronts` itself draws: the west arcade's row says
+## 7.0 and `_arcade_room` ignores it, standing at `ARC_TALL`. A string hung on
+## the table's figure ends 2.6m above the roof it is fixed to.
+func _street_wall_top(rows: Array, side: float, z: float) -> float:
+	for row in rows:
+		var half: float = float(row[1]) * 0.5
+		if z < float(row[0]) - half or z > float(row[0]) + half:
+			continue
+		if side < 0.0 and String(row[5]) == "arcade":
+			return ARC_TALL
+		return float(row[3])
+	return -1.0
 
 
 func _street_festoons() -> void:
 	var z := 58.0
 	var i := 0
 	while z <= 108.0:
-		var x0 := ST_X - ST_HALF + 0.3
-		var x1 := ST_X + ST_HALF - 0.3
+		var tops := [_street_wall_top(STREET_WEST, -1.0, z),
+			_street_wall_top(STREET_EAST, 1.0, z)]
+		# Nothing to tie to on one side or the other. Past z≈105 the ranges have
+		# run out and the gate takes over, so a string there is two ends in open
+		# sky. Skipped rather than errored: the sweep is a rhythm and the
+		# frontage is a list of premises, and they are allowed to disagree at the
+		# ends of the street.
+		if tops[0] < 0.0 or tops[1] < 0.0:
+			z += 10.0
+			continue
+		var a := Vector3(ST_X - ST_HALF, tops[0] - STREET_STRING_DROP, z)
+		var b := Vector3(ST_X + ST_HALF, tops[1] - STREET_STRING_DROP, z)
+
+		# A pin per end, lapping through the face, so the wire ends on something
+		# rather than merely reaching a wall. The same fitting the cutting's run
+		# has had since the day it was built — see `_gate_festoons`.
+		#
+		# The position goes in as the **base** with a zero offset, because the
+		# `theta` that lays the cylinder along X is the same `theta` `_place`
+		# turns the local offset by: passed as an offset it comes out at
+		# (z, y, -x), which is the mistake that built the south wing's treads on
+		# the far side of the park.
+		for e in 2:
+			var p: Vector3 = a if e == 0 else b
+			var side := -1.0 if e == 0 else 1.0
+			_cyl("street_string_%d_pin_%d" % [i, e],
+				Vector3(p.x + side * (STREET_STRING_PIN_IN - STREET_STRING_PIN_OUT)
+					* 0.5, p.y, p.z), Vector3.ZERO,
+				0.06, STREET_STRING_PIN_IN + STREET_STRING_PIN_OUT, "metal",
+				PI * 0.5, 8, false, PI * 0.5)
+
+		var x0: float = a.x - STREET_STRING_LAP
+		var x1: float = b.x + STREET_STRING_LAP
 		var points: Array[Vector3] = []
 		for s in STREET_STRING_STEPS + 1:
 			var t := float(s) / float(STREET_STRING_STEPS)
 			points.append(Vector3(lerpf(x0, x1, t),
-				STREET_STRING_Y - STREET_STRING_SAG * sin(PI * t), z))
+				lerpf(a.y, b.y, t) - STREET_STRING_SAG * sin(PI * t), z))
 		for s in STREET_STRING_STEPS:
 			_strut("street_wire_%d_%d" % [i, s], points[s], points[s + 1], 0.045, "metal")
-		for b in STREET_STRING_STEPS - 1:
-			_sphere("street_bulb_%d_%d" % [i, b], points[b + 1], Vector3.ZERO, 0.13, "bulb")
+		for bl in STREET_STRING_STEPS - 1:
+			_sphere("street_bulb_%d_%d" % [i, bl], points[bl + 1], Vector3.ZERO, 0.13, "bulb")
 		# One light per string at the sag, low, so the street's asphalt is warmer
 		# under a string than between strings. The bulbs carry the look; this
 		# only stops the middle of the street being the darkest part of it.
+		# At the chord's own mid-height, which is the whole point of the change:
+		# on a tilted string a constant y is a pool that drifts off its own wire.
 		_omni("street_string_%d_glow" % i,
-			Vector3(ST_X, STREET_STRING_Y - STREET_STRING_SAG, z), "warm", 1.7, 12.0)
+			Vector3(ST_X, (a.y + b.y) * 0.5 - STREET_STRING_SAG, z), "warm", 1.7, 12.0)
 		z += 10.0
 		i += 1
 
