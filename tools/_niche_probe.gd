@@ -52,6 +52,21 @@ const NIGHT := [
 	{"name": "g_night_close", "yaw": -90.0, "pitch": -10.0, "pos": Vector3(-66.5, -5.5, -2.0)},
 ]
 
+## The elevation, from a free camera above the shop roofs — the one view of this
+## monument nobody can stand in, and the only one that shows the chevron whole.
+## `_cascade_probe.gd` takes it by day; these are the same frames after dark,
+## which is what the facade floods and the paint have to be judged against
+## together. Half of them are in mid-air, so a CharacterBody3D put here falls out
+## of the shot.
+const FREE := [
+	{"name": "p_elev", "pos": Vector3(-108.0, 12.0, -2.0), "yaw": -90.0, "pitch": -7.0},
+	{"name": "q_elev_near", "pos": Vector3(-92.0, 9.0, -2.0), "yaw": -90.0, "pitch": -9.0},
+	{"name": "r_court", "pos": Vector3(-74.0, -4.2, -2.0), "yaw": -90.0, "pitch": 5.0},
+	{"name": "s_court_oblique", "pos": Vector3(-74.0, -4.2, 6.0), "yaw": -62.0, "pitch": 5.0},
+	# The descent itself, which is what the globes are for.
+	{"name": "t_wing_north", "pos": Vector3(-73.0, -4.0, -11.0), "yaw": -90.0, "pitch": 8.0},
+]
+
 var _player: Node3D
 var _head: Node3D
 
@@ -83,7 +98,31 @@ func _run() -> void:
 	for shot in NIGHT:
 		await _shoot(shot)
 
+	# The elevation, free camera, after dark and then the same frames by day so
+	# the paint and the floods can be compared as one pair rather than as two
+	# impressions taken an hour apart.
+	var cam := Camera3D.new()
+	add_child(cam)
+	cam.current = true
+	for shot in FREE:
+		await _free(cam, shot, "night")
+	ParkClock.set_clock(16, 30)
+	await get_tree().create_timer(3.0).timeout
+	for shot in FREE:
+		await _free(cam, shot, "day")
+
 	get_tree().quit()
+
+
+func _free(cam: Camera3D, shot: Dictionary, when: String) -> void:
+	cam.global_position = shot["pos"]
+	cam.rotation = Vector3(deg_to_rad(shot["pitch"]), deg_to_rad(shot["yaw"]), 0.0)
+	for _i in 4:
+		await get_tree().physics_frame
+	await RenderingServer.frame_post_draw
+	var path := "user://niche_%s_%s.png" % [shot["name"], when]
+	get_viewport().get_texture().get_image().save_png(path)
+	print("saved ", path)
 
 
 func _shoot(shot: Dictionary) -> void:

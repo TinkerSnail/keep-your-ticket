@@ -672,6 +672,29 @@ func _build_materials() -> void:
 		# exactly and has to: parapets and pediments are the wall carrying on
 		# upward, and a shade out reads as a different building stacked on top.
 		"building": [Color(0.72, 0.71, 0.69), 0.9, 0.0],
+		# **The cascade's facade, and the one painted wall in the park.**
+		#
+		# Everything else that holds a silhouette here is `building`, which is
+		# the perimeter's grey — so the monument was the same colour as the
+		# hundred and twenty metres of wall it is nowhere near, and the only
+		# thing separating it from the bluff behind was that the bluff is also
+		# grey. A park paints the thing it wants you to look at.
+		#
+		# Blue for two reasons beyond taste. It is the one hue in the palette
+		# nothing else down here is using — the deck is `plank`, the court is
+		# asphalt, the treads are `accent` salmon and the planting is the only
+		# green — so the facade cannot be confused with anything it stands
+		# against. And it is what makes the night work: the monument is lit
+		# `moon` on the stone and `amber` on the route, and amber on blue goes
+		# to mud while moon on blue goes deeper. The cold/warm split was already
+		# there; the paint is what gives it something to bite on.
+		#
+		# Held back from the `blue` in this same table, which is signage: 0.27,
+		# 0.50, 0.72 at 0.7 roughness is enamel on a board 2m across, and a
+		# 24m-wide wall in it reads as a bouncy castle. This is that hue with
+		# the chroma pulled toward the park's dustiness and masonry roughness,
+		# which is what painted stucco twenty summers old actually looks like.
+		"cascade_face": [Color(0.31, 0.46, 0.62), 0.88, 0.0],
 		# Washed toward the sky so distance reads without touching the environment.
 		"far": [Color(0.66, 0.68, 0.72), 0.95, 0.0],
 		"far_warm": [Color(0.72, 0.66, 0.63), 0.95, 0.0],
@@ -3317,6 +3340,10 @@ const RAIL_FREEBOARD := 0.6
 ## hairpinning down each side. See `ParkPlan.LANDING_D` for the plan and why
 ## every earlier version failed to read.
 func _west_cascade() -> void:
+	# Cleared rather than trusted, for the reason `_begin_scene` clears
+	# `_stand_clear`: this is the only scene that fills it, and a leftover entry
+	# would hang a lamp in mid-air over a wing that no longer exists.
+	_cascade_rails.clear()
 	_cascade_landing()
 	_cascade_wing(-1.0, true)
 	_cascade_wing(1.0, false)
@@ -3385,10 +3412,10 @@ func _cascade_landing() -> void:
 		var z1: float = axis + s * half
 		_box("landing_face_%d" % k, Vector3.ZERO,
 			Vector3(face + Plan.NICHE_DEEP * 0.5, (base - 0.15) * 0.5, (z0 + z1) * 0.5),
-			Vector3(Plan.NICHE_DEEP, -base - 0.15, absf(z1 - z0)), "building")
+			Vector3(Plan.NICHE_DEEP, -base - 0.15, absf(z1 - z0)), "cascade_face")
 	_box("landing_face_head", Vector3.ZERO,
 		Vector3(face + Plan.NICHE_DEEP * 0.5, (nh - 0.15) * 0.5, axis),
-		Vector3(Plan.NICHE_DEEP, -nh - 0.15, Plan.NICHE_W), "building")
+		Vector3(Plan.NICHE_DEEP, -nh - 0.15, Plan.NICHE_W), "cascade_face")
 	# The head of the niche, stepped so it reads as an arch at greybox scale.
 	#
 	# **The inset grows with height, and it used to grow with `i`, which runs
@@ -3889,7 +3916,7 @@ func _cascade_wing(side: float, smooth: bool) -> void:
 				# shifting keeps leg 0's west face on the facade plane, which is
 				# the one alignment here that is wanted.
 				Vector3(Plan.WING_W + Plan.WING_SEP + 0.6 + float(leg) * 0.04,
-					top - mass_base, absf(z1 - z0)), "building")
+					top - mass_base, absf(z1 - z0)), "cascade_face")
 		# **The cap, and it is what makes one of these a ramp.** The mass under a
 		# leg steps once per tread, which is right for the south wing and wrong
 		# for the north: the north is the smooth one, and a sawtooth top edge
@@ -3906,7 +3933,7 @@ func _cascade_wing(side: float, smooth: bool) -> void:
 		# put an hourglass behind the niche.
 		var cap_half: float = (Plan.WING_W + Plan.WING_SEP + 0.6 + float(leg) * 0.04) * 0.5 + 0.03
 		_box("wing_cap_%s_%d" % [tag, leg], mid - up * 0.19, Vector3.ZERO,
-			Vector3(cap_half * 2.0, 0.34, run + 0.2), "building", theta, true, slope)
+			Vector3(cap_half * 2.0, 0.34, run + 0.2), "cascade_face", theta, true, slope)
 
 		# The string course, continuing the landing's line down the diagonal.
 		#
@@ -4015,7 +4042,7 @@ func _cascade_wing(side: float, smooth: bool) -> void:
 			rb = a.lerp(b, 1.0 - back / d)
 		_wing_rail("wing_rail_%s_%d" % [tag, leg],
 			Vector2(ra.x - half - 0.2, ra.z), ra.y,
-			Vector2(rb.x - half - 0.2, rb.z), rb.y)
+			Vector2(rb.x - half - 0.2, rb.z), rb.y, true)
 
 	# The turn: level, spanning both legs and the wall between them. The only
 	# place on the descent you can stop, turn round and look back up.
@@ -4046,7 +4073,7 @@ func _cascade_wing(side: float, smooth: bool) -> void:
 	# measurement said so.
 	_box("wing_land_wall_%s" % tag, Vector3.ZERO,
 		Vector3(cx, (y - 0.5 + WING_BASE_Y) * 0.5, far_z),
-		Vector3(w + 0.8, y - 0.5 - WING_BASE_Y, land_d + 0.8), "building")
+		Vector3(w + 0.8, y - 0.5 - WING_BASE_Y, land_d + 0.8), "cascade_face")
 	_box("wing_land_%s" % tag, Vector3.ZERO, Vector3(cx, y - 0.25, far_z),
 		Vector3(w, 0.5, land_d), "accent")
 	# Coping on the two edges nothing walks over — the far end and the west face.
@@ -4059,7 +4086,7 @@ func _cascade_wing(side: float, smooth: bool) -> void:
 		Vector3(x1 - 0.4, y + 0.2, far_z), Vector3(0.8, 0.4, land_d + 0.8), "trim")
 	_wing_rail("wing_land_rail_%s" % tag,
 		Vector2(x1 - 0.5, far_z - land_d * 0.5), y,
-		Vector2(x1 - 0.5, far_z + land_d * 0.5), y)
+		Vector2(x1 - 0.5, far_z + land_d * 0.5), y, true)
 
 
 ## The treads on the south wing, and only the south wing.
@@ -4266,11 +4293,70 @@ func _cascade_lights() -> void:
 		Vector3(face + 1.35, floor_y + 2.30, axis), "moon", 2.6, 5.0, 46.0)
 	# And the face either side of it, grazed from below so the trapezoid reads as
 	# one plane rather than as three lit patches.
+	#
+	# **Four sources and not two, which is the same argument one level down.** A
+	# 34° cone at 3.6 from one standpoint per flank put a hard-edged disc of light
+	# on each side of the niche — two lit patches on a wall whose whole point is
+	# to be one plane, which is exactly the fault this comment claims to be
+	# fixing. Two per flank at lower energy and a wider cone overlap into a wash,
+	# and the overlap is what hides where any of them start.
 	for side in [-1.0, 1.0]:
-		_uplight("landing_face_%d" % int(side + 1),
-			Vector3(face - 1.4, floor_y + 0.5, axis + side * 3.6),
-			Vector3(face - 0.6, floor_y + 4.0, axis + side * 2.6),
-			"moon", 3.0, 9.0, 34.0)
+		for i in 2:
+			var z: float = axis + side * (1.9 + float(i) * 1.4)
+			_uplight("landing_face_%d_%d" % [int(side + 1), i],
+				Vector3(face - 1.5, floor_y + 0.5, z),
+				Vector3(face - 0.5, floor_y + 4.2, z - side * 0.6),
+				"moon", 2.3, 9.0, 46.0)
+
+	# --- the facade ---
+	#
+	# **The chevron, which is the whole shape and had no light on it.** Everything
+	# above washes a *part* — the niche, the flanks of the middle wall, the
+	# treads, the planting — and the thing those parts add up to is a top edge
+	# running horizontal across the middle and falling away at both ends. By day
+	# that edge is drawn by `trim` and the sky. After dark it was drawn by
+	# nothing, so the monument stopped being a shape at sunset and became a set
+	# of lit patches at the bottom of a black bluff.
+	#
+	# So: a row of floods standing in the court, at the toe of what they light,
+	# raking up the face. Grazing rather than flooding — the aim point is only
+	# 1.2m out from the wall over 4m of rise, which is what throws the string
+	# course's own shadow up the plane and makes a flat greybox wall have a line
+	# on it. Cold, because the facade is painted and `moon` on that blue goes
+	# deeper while the route's amber would take it to mud. That is the split the
+	# tints were written for and it now has a colour to work against.
+	#
+	# **On the return legs and not the outbound ones**, which is a fact about the
+	# hairpin rather than a saving. Leg 0's mass stands on the facade plane at
+	# `face` and leg 1's stands 4m west of it over the same stretch of z — so
+	# from anywhere in the court leg 1 hides leg 0 completely, and a flood aimed
+	# at the outbound leg lights the back of the return one.
+	for side in [-1.0, 1.0]:
+		var tag := "n" if side < 0.0 else "s"
+		var p2: Vector3 = Plan.wing_path(side)[2]
+		var p3: Vector3 = Plan.wing_path(side)[3]
+		# The return leg's own west face, off the mass width rather than off
+		# `WING_W`: what you see is the mass, and it is a metre and a half wider
+		# than the leg walked down the middle of it.
+		var fx: float = p2.x - (Plan.WING_W + Plan.WING_SEP + 0.64) * 0.5
+		for i in 3:
+			var t := (float(i) + 0.5) / 3.0
+			var p := p2.lerp(p3, t)
+			_uplight("wing_face_%s_%d" % [tag, i],
+				Vector3(fx - 1.1, floor_y + 0.35, p.z),
+				Vector3(fx - 0.1, p.y + 1.6, p.z),
+				"moon", 3.2, 11.0, 38.0)
+
+	# The crest, from the landing deck. The piers and the rail between them are
+	# the top of the chevron and the only part of the monument seen against sky
+	# rather than against the bluff — which means it is the one part a wash from
+	# below cannot reach, because everything below it is what the wash is
+	# standing on.
+	for side in [-1.0, 1.0]:
+		_uplight("crest_graze_%d" % int(side + 1),
+			Vector3(face + 1.6, 0.15, axis + side * 2.4),
+			Vector3(face + 0.2, 2.2, axis + side * 1.2),
+			"moon", 2.4, 7.0, 30.0)
 
 	# --- the descent ---
 	#
@@ -4310,6 +4396,34 @@ func _cascade_lights() -> void:
 				Vector3(p.x + 1.6, p.y + 0.6, p.z),
 				Vector3(p.x + 3.4, p.y + 2.2, p.z), "amber", 2.2, 6.0, 54.0)
 
+	# --- the path ---
+	#
+	# **Fittings, and they are the first ones on the descent.** Everything above
+	# is an uplight buried at the foot of the thing it points at: staged light
+	# with no visible source, which is right for a monument and wrong for a
+	# route. Six metres of stair with no lamp *on* it reads as a lit sculpture
+	# you are not invited onto, and the wings are the way down.
+	#
+	# A globe on top of a rail post, which is the crest's motif carried down —
+	# `lamp_glass` with an omni at the sphere's own centre, the only fittings on
+	# this monument whose geometry is their own light source. Repeating it is
+	# what makes the two piers at the top and the run down each wing read as one
+	# scheme instead of as a feature and some safety lighting.
+	#
+	# `lamp` rather than `amber`: the rakes across the treads are the staged
+	# warm, and a fitting has to be tungsten or it stops reading as a fitting.
+	# Short range on purpose — 7m keeps each globe a pool you walk through
+	# rather than a wash that flattens the raking light it is standing in.
+	#
+	# The positions are **read out of `_cascade_rails`**, filled by `_wing_rail`
+	# while the wings were built. Nothing here knows where a leg ends or how far
+	# the bottom rail is set back, which is the point: those two numbers have
+	# both moved this week.
+	for i in _cascade_rails.size():
+		var at: Vector3 = _cascade_rails[i] + Vector3(0.0, 0.16, 0.0)
+		_sphere("wing_globe_%d" % i, at, Vector3.ZERO, 0.13, "lamp_glass")
+		_omni("wing_globe_%d_pool" % i, at, "lamp", 1.5, 7.0, LIGHT_FIXTURE)
+
 	# --- the ground ---
 	#
 	# Two in the court, throwing the monument's own shadow west and giving the
@@ -4323,7 +4437,22 @@ func _cascade_lights() -> void:
 
 ## A run of rail: posts and a top rail rather than a slab, between two points at
 ## two heights. Level or raking, and every rail on the monument is one of these.
-func _wing_rail(nm: String, a: Vector2, ya: float, b: Vector2, yb: float) -> void:
+## Where every rail post on the monument ended up, in world coordinates, at the
+## height of its own top.
+##
+## `_cascade_lights` hangs a globe on some of these, and it is a **record rather
+## than a recomputation** on purpose. The alternative is the lamp pass solving
+## the rail's arithmetic for itself — the leg ends, `half + 0.2` outboard, the
+## `RAIL_FREEBOARD` setback at the bottom of leg 1 — which is a second copy of a
+## thing that has already moved twice this week, and `walk_test` carrying its own
+## copy of the wing path is exactly how a test came to be walking a wing it had
+## computed for itself. The lamps are emitted last for seam-order reasons, and
+## this is what lets them be emitted last without knowing anything.
+var _cascade_rails: Array = []
+
+
+func _wing_rail(nm: String, a: Vector2, ya: float, b: Vector2, yb: float,
+		lamps := false) -> void:
 	var span := b - a
 	var length := span.length()
 	if length < 0.5:
@@ -4334,8 +4463,11 @@ func _wing_rail(nm: String, a: Vector2, ya: float, b: Vector2, yb: float) -> voi
 	for i in posts + 1:
 		var t := float(i) / float(posts)
 		var p := a.lerp(b, t)
+		var top: float = lerpf(ya, yb, t) + 1.1
 		_cyl("%s_post_%d" % [nm, i], Vector3.ZERO,
-			Vector3(p.x, lerpf(ya, yb, t) + 0.55, p.y), 0.06, 1.1, "metal", 0.0, 6)
+			Vector3(p.x, top - 0.55, p.y), 0.06, 1.1, "metal", 0.0, 6)
+		if lamps:
+			_cascade_rails.append(Vector3(p.x, top, p.y))
 	var m := (a + b) * 0.5
 	# **Nine centimetres, not one metre.** The doc above says "posts and a top rail
 	# rather than a slab" and the size said otherwise: a 1m tall panel spanning the
