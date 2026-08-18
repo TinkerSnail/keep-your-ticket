@@ -1264,6 +1264,29 @@ const WALKWAYS := {
 		Vector2(ARCH_FAR_X, ARCH_AT.y), Vector2(OVERLOOK_AT.x, OVERLOOK_AT.y),
 	],
 
+	## The same walk facing the other way: ring, bend onto the axis, through the
+	## gate, and out across the forecourt to the foot of the climb.
+	##
+	## **Five vertices to the west's five, and the middle three are the same three
+	## facts** — the ring's vertex, the gate's plaza face, the gate's far face.
+	## What differs is the last one. The west ends at the overlook, which is a
+	## place to stand and look at something; this ends at `EAST_STAIR_FOOT`, which
+	## is a place the climb starts. Neither is an arrival: nobody walks up the
+	## middle of a cascade, because the middle is water and the niche is blind.
+	## The wings are the way up and they are their own runs, or will be — see the
+	## note under `west_wing_north`, which had to be written the day somebody
+	## noticed the descent was in no graph at all.
+	##
+	## Not in any crowd graph either, and that is deliberate for now: a guest sent
+	## east would walk to the foot of a monument and stand there, because there is
+	## nothing past it yet.
+	&"spoke_east": [
+		Vector2(16.0, 0.0), Vector2(26.0, EAST_GAP_AT.y),
+		Vector2(EAST_GAP_MOUTH_X, EAST_GAP_AT.y),
+		Vector2(EAST_GAP_FAR_X, EAST_GAP_AT.y),
+		Vector2(EAST_STAIR_FOOT.x, EAST_GAP_AT.y),
+	],
+
 	## Across the terrace to the north end of it, out through the gap in the
 	## parapet, and down the bluff in two flights with the turn between them.
 	##
@@ -1430,6 +1453,10 @@ const WALKWAY_WIDTH := {
 	## asphalt in each pier, which is the other half of why the paving stops at
 	## the face while the route does not.
 	&"spoke_west": 8.0,
+	## The west spoke's width, for the west spoke's reason: the last few metres
+	## on the plaza side are a forecourt in front of the gate rather than a
+	## throat, and the 6m opening is narrower than the approach to it on purpose.
+	&"spoke_east": 8.0,
 	## The width of the flight it leads to.
 	&"west_stair": FLIGHT_W,
 	## The width of the deck, and no more. The legs run within a metre of each

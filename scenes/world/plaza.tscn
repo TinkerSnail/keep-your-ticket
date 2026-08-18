@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/world/plaza_props.tscn" id="1_props"]
 [ext_resource type="PackedScene" path="res://scenes/world/plaza_fountain.tscn" id="14_fountain"]
@@ -12,6 +12,7 @@
 [ext_resource type="PackedScene" path="res://scenes/world/entrance.tscn" id="6_entrance"]
 [ext_resource type="PackedScene" path="res://scenes/world/thresholds.tscn" id="7_thresholds"]
 [ext_resource type="PackedScene" path="res://scenes/world/west_shell.tscn" id="8_west_shell"]
+[ext_resource type="PackedScene" path="res://scenes/world/east_cascade.tscn" id="15_east_cascade"]
 [ext_resource type="PackedScene" path="res://scenes/world/west_far.tscn" id="9_west_far"]
 
 ; The plaza floor is brick and the walkways laid over it are asphalt, which is
@@ -102,22 +103,91 @@ use_collision = true
 size = Vector3(11, 9.5, 12.6)
 material = SubResource("mat_building")
 
+; **This run ends in the north pier, not at the gap's edge.** It used to run
+; z -19.4..2.0 and carry the whole of the east wall's middle; the gate takes
+; z -5.0..1.0 out of it, and the run stops at -9.0 so its end is buried half a
+; metre inside the pier that closes it. That is the west arch's arrangement
+; exactly — see `perim_w_arch_n`, which stops at -9.0 against `arch_pier_north`
+; for the same reason: a wall that stops *on* the reveal leaves a joint at the
+; one place the eye is aimed, and a wall that stops inside the pier leaves none.
 [node name="perim_e_mid_n" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.49625, 5.74625, -8.70375)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.49625, 5.74625, -14.20375)
 use_collision = true
-size = Vector3(11, 11.5, 21.4)
+size = Vector3(11, 11.5, 10.4)
 material = SubResource("mat_building")
 
+; And the same at the other end: 2.0 -> 4.0, so this begins inside the south
+; pier. **This is the 19m block, and it is the one asymmetry the east gate has
+; that the west arch does not** — the west's piers top their neighbours by 1.5
+; to 2m on both sides, and here the north neighbour is 11.5 and the south is 19.
+; Left standing rather than stepped down: it is the tallest thing on the
+; perimeter and the plaza's enclosure is measured off runs like it.
 [node name="perim_e_mid_s" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.49600, 9.49600, 13.39600)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.49600, 9.49600, 14.39600)
 use_collision = true
-size = Vector3(11, 19, 22.8)
+size = Vector3(11, 19, 20.8)
 material = SubResource("mat_building")
 
 [node name="perim_e_south" type="CSGBox3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.49575, 4.74575, 42.89575)
 use_collision = true
 size = Vector3(11, 9.5, 10.2)
+material = SubResource("mat_building")
+
+; The east gate: the seventh way out, and the only one that faces another.
+;
+; It is on the fountain's own east-west line, which is the whole reason for
+; cutting a new opening rather than using the `ne` or `se` threshold already in
+; this wall. Those sit at 62 and 121 degrees, and a monument behind either is a
+; monument you come across; due east of the fountain it is the west arch's
+; answer, and the plaza reads as a notch between the two of them. Turn west from
+; the coping and the ground falls six metres; turn east and it climbs six.
+;
+; **Mirrored in arrangement and not in coordinate.** The plaza is not symmetric —
+; the west wall stands at x -38.5 with faces at -33 and -44, the east at 41.5
+; with faces at 36 and 47 — so copying the arch's numbers with the sign flipped
+; would have put these piers three metres adrift of their own wall. What is
+; mirrored is the *arrangement*: piers the full depth of the wall plus 2.5m
+; proud of its inner face, a 6m opening between them, the walls either side
+; ending half a metre inside the piers, and a beam at the near plane. Every one
+; of those is measured off the east wall's own faces. `ParkPlan.EAST_GAP_AT`,
+; `EAST_GAP_MOUTH_X` and `EAST_GAP_FAR_X` are the same numbers written down for
+; the generators, and `_east_gate` asserts this scene against them.
+[node name="east_pier_north" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40.24925, 6.24925, -7.25075)
+use_collision = true
+size = Vector3(13.5, 12.5, 4.5)
+material = SubResource("mat_building")
+
+[node name="east_pier_south" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40.24900, 6.24900, 3.24900)
+use_collision = true
+size = Vector3(13.5, 12.5, 4.5)
+material = SubResource("mat_building")
+
+; The beam, and it is what the arch's is: a header bearing on both piers rather
+; than a slab of wall left floating. Set in the front 0.9m of the passage with
+; its plaza face flush on the piers', lapping 2.2m onto each.
+;
+; **6.30 to 7.40, and the soffit is the arch's exactly.** Equal by choice rather
+; than by derivation — the two gates face each other across 80m of plaza and a
+; player at the fountain sees both at once, so a centimetre of difference would
+; be invisible and a metre would be a mistake nobody could name.
+;
+; What it crops is not the arch's problem in reverse. West, the soffit had to
+; clear the wheel's rim and very nearly did not; east, it deliberately cuts the
+; rim's crest off — from `ParkPlan.EAST_NEAR_STAND_X` the ray reaches 29m by the
+; time it gets to the ridge, which stands at 50. That is not the wheel's mistake
+; repeated: the wheel was visible *only* through the arch, so cropping it lost
+; the thing entirely, and the ridge stands over the whole east roofline from
+; anywhere in the plaza. The gap shows its foot and the cascade; the skyline
+; shows its head.
+;
+; Collides, because it is 6.3m up over a route the player walks.
+[node name="east_beam" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.94875, 6.84875, -2.00125)
+use_collision = true
+size = Vector3(0.9, 1.1, 10.4)
 material = SubResource("mat_building")
 
 [node name="perim_s_west" type="CSGBox3D" parent="."]
@@ -418,10 +488,28 @@ use_collision = true
 size = Vector3(1, 3.6, 16.6)
 material = SubResource("mat_building")
 
-[node name="wall_east_mid" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50.99825, 1.79825, 2.69825)
+; **Two runs since the east gate was cut, and the gap between them is the gate's
+; own.** This is the plaza's outer boundary — the 3.6m wall at the edge of the
+; 104m slab that stops the player walking off it — and it ran unbroken past the
+; new opening, so the gate was a doorway onto a wall four metres further on. The
+; walk test found it and nothing else could have: from inside the plaza the gate
+; frames the monument perfectly well over the top of a 3.6m wall.
+;
+; The gap is z -14..9, which is the west's exactly. There it is 23m because the
+; terrace past the arch is walked along; here it is 23m because that is the width
+; of the monument the court is in front of — the wings reach -14.3 to 10.3 — so
+; the same number lands for a different reason, which is worth knowing if either
+; one moves.
+[node name="wall_east_mid_n" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50.99825, 1.79825, -16.70175)
 use_collision = true
-size = Vector3(1, 3.6, 44.2)
+size = Vector3(1, 3.6, 5.4)
+material = SubResource("mat_building")
+
+[node name="wall_east_mid_s" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50.99775, 1.79775, 16.89775)
+use_collision = true
+size = Vector3(1, 3.6, 15.8)
 material = SubResource("mat_building")
 
 [node name="wall_east_south" type="CSGBox3D" parent="."]
@@ -496,5 +584,11 @@ script = ExtResource("4_tower_clock")
 [node name="west_stair" parent="." instance=ExtResource("5_west_stair")]
 
 [node name="entrance" parent="." instance=ExtResource("6_entrance")]
+
+; The east cascade and the forecourt it stands in, which is what the gap in the
+; east wall is aimed at. Plaza only, and unlike `west_stair` it is mounted by one
+; section rather than two: the west's descent straddles a seam and this one is
+; wholly inside the plaza, because the section past it does not exist yet.
+[node name="east_cascade" parent="." instance=ExtResource("15_east_cascade")]
 
 [node name="thresholds" parent="." instance=ExtResource("7_thresholds")]

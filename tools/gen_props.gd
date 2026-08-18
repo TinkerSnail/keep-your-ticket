@@ -227,6 +227,10 @@ func _initialize() -> void:
 	_root.name = "east_cascade"
 	_begin_scene()
 	_cascade(Plan.CASCADE_EAST)
+	# After the monument and not before it: this scene's shapes take their seam
+	# displacement in build order, so a slab laid first would move all 460 of the
+	# cascade's nodes one ordinal on.
+	_east_court()
 	if not _save(_root, EAST_CASCADE_PATH):
 		return
 
@@ -1621,6 +1625,15 @@ func _paving() -> void:
 	# the street's asphalt comes down with it. Otherwise the two halves of the
 	# same walk sit at different heights where they meet at z=38.
 	_walkway_paving([&"street", &"apron"], GROUND_SEAM + PAVE_LIFT, "asphalt")
+	# The east spoke, in two pieces for the west spoke's reason and at two
+	# heights for the street's. Ring to the gate's plaza face is the plaza's own
+	# floor; the passage between the piers is left as brick, so you cross onto
+	# the plaza's material to walk through and the opening reads deeper for
+	# having its own floor; and the last leg is out in the forecourt, which sits
+	# a centimetre lower — so its asphalt comes down with it or the two halves of
+	# one walk sit at different heights where they meet.
+	_pave_run(&"spoke_east", PAVE_LIFT, "asphalt", 0, 2)
+	_pave_run(&"spoke_east", GROUND_SEAM + PAVE_LIFT, "asphalt", 3, 1)
 
 
 ## The paving on the far side of the tunnel, laid into whichever scene is being
@@ -3537,6 +3550,33 @@ func _wing_base_y(site: Dictionary) -> float:
 ## purpose: a length has to be re-checked every time the monument's proportions
 ## move, and the last one was not.
 const RAIL_FREEBOARD := 0.6
+
+
+## The forecourt the east cascade stands in: the ground between the plaza's east
+## wall and the foot of the climb.
+##
+## **It is the plaza's own ground carried through the gate**, not a section's
+## floor, which is why it is brick and why it sits at `GROUND_SEAM` under y=0
+## exactly as `entrance_ground` does. Two ground planes that meet have to
+## disagree by something or they z-fight over every square metre they share, and
+## the established answer in this park is that the newer one gives way downward.
+## The step lands at x=52, where the plaza's own 104m slab runs out, and is a
+## centimetre — the same one the street has had since it was laid.
+##
+## Fourteen metres from the wall's outer face to the westmost masonry, which is
+## what makes the monument a monument rather than a retaining wall you walk into:
+## a 6m face seen from fourteen is a 24° elevation, near enough what the
+## reference photographs are taken at.
+##
+## **Its north, south and east edges are raw, and will be until the scarp and the
+## shelf are built.** They are outside the cone the gap frames — from the near
+## standpoint the opening shows z −9.9..5.9 at the far side of the court, against
+## a slab running −28..24 — so nothing you can see through the gate can see the
+## end of it. Standing *in* the court is another matter, and that is the hill's
+## job rather than the gate's.
+func _east_court() -> void:
+	_box("east_court", Vector3.ZERO, Vector3(57.25, -1.0 + GROUND_SEAM, -2.0),
+		Vector3(26.5, 2.0, 52.0), "brick", 0.0, true)
 
 
 ## The cascade: a landing at the head, a trapezoid facade under it, and a wing
@@ -6983,9 +7023,18 @@ func _plaza_frontage() -> void:
 		return
 	for i in runs.size():
 		_facade(runs[i], i)
-	_gate_house()
+	_gate_house(GATE_WEST)
 	for i in runs.size():
 		_facade_wash(runs[i], i)
+	# **The east gate is dressed last, after the washes, and it is not where it
+	# reads best.** It belongs on the line above beside its twin. It cannot go
+	# there: `_begin_scene` hands every shape a fraction of a millimetre of
+	# displacement in build order and the ordinal wraps at 21, so eighty-odd nodes
+	# inserted in the middle of this scene move every shape after them cyclically
+	# and can put two untouched surfaces on one plane in a run nobody edited.
+	# Appending shifts nothing. `_cascade(CASCADE_EAST)` sits at the end of
+	# `_initialize` for the same reason and says so.
+	_gate_house(GATE_EAST)
 
 
 ## Floodlighting a perimeter run from close in against its own face.
@@ -7066,26 +7115,92 @@ func _facade_wash(run: Dictionary, index: int) -> void:
 ## and a cornice crossing six metres of nothing at twelve metres up is a lintel
 ## drawn in trim — the one thing taking the top off was meant to be rid of.
 ##
+## The two gates, as the facts that differ between them. Everything else about a
+## gate — the plinth's 0.09 stand-off, the jamb's 0.36, the valance's drop, the
+## thirteen bulbs — is shape, and shape is shared.
+##
+## `mass` is in the order the code reads it: north pier, south pier, beam. Named
+## rather than found by shape, because there is no rule over a box that says
+## "this one is a gate".
+##
+## The four `*_name` fields exist so the assertion can print the constant a
+## reader has to go and open. An error that says a number is wrong and does not
+## say where the other copy of it lives is an error somebody has to do the
+## search for.
+const GATE_WEST := {
+	"prefix": "gate",
+	"mass": ["arch_pier_north", "arch_pier_south", "arch_beam"],
+	"inward": 1.0,
+	"festoons": true,
+	"axis_z": Plan.ARCH_AT.y,
+	"width": Plan.ARCH_WIDTH,
+	"height": Plan.ARCH_HEIGHT,
+	"mouth_x": Plan.ARCH_MOUTH_X,
+	"far_x": Plan.ARCH_FAR_X,
+	"width_name": "ARCH_WIDTH",
+	"height_name": "ARCH_HEIGHT",
+	"mouth_name": "ARCH_MOUTH_X",
+	"far_name": "ARCH_FAR_X",
+}
+
+## The east gate, and the only field of substance that differs is `inward`.
+##
+## The prefix is `east_gate` rather than `gate_east` so the two gates' nodes do
+## not interleave when the scene is read as text, which is how everything in this
+## file finds anything.
+const GATE_EAST := {
+	"prefix": "east_gate",
+	"mass": ["east_pier_north", "east_pier_south", "east_beam"],
+	"inward": -1.0,
+	"festoons": false,
+	"axis_z": Plan.EAST_GAP_AT.y,
+	"width": Plan.EAST_GAP_WIDTH,
+	"height": Plan.EAST_GAP_HEIGHT,
+	"mouth_x": Plan.EAST_GAP_MOUTH_X,
+	"far_x": Plan.EAST_GAP_FAR_X,
+	"width_name": "EAST_GAP_WIDTH",
+	"height_name": "EAST_GAP_HEIGHT",
+	"mouth_name": "EAST_GAP_MOUTH_X",
+	"far_name": "EAST_GAP_FAR_X",
+}
+
+
 ## Read out of `plaza.tscn` like everything else here, so moving the arch in the
 ## editor moves its dressing. The three boxes are named rather than found by
 ## shape — an arch is the one thing in the perimeter with a hole in it, and there
 ## is no rule over a box that says "this one is a gate".
-func _gate_house() -> void:
+##
+## **There are two gates and this dresses either.** The east gap was cut on
+## 2026-08-17 on the fountain's own east-west line, and it is the west arch's
+## arrangement rather than its coordinates: the plaza is not symmetric, so the
+## piers are measured off the east wall's own faces and only their *relationship*
+## to that wall is mirrored. What that leaves differing between the two is six
+## facts, and they are in `GATE_WEST` and `GATE_EAST` below.
+##
+## `inward` is the one doing the real work. Every offset in this function and in
+## `_gate_frontispiece` is a depth off the gate's plaza face, and the plaza is at
+## +x from the west arch and −x from the east gate — so each is written once as
+## `face + inward * d` rather than twice with a sign flipped. Get that wrong and
+## the dressing builds itself inside the masonry, which is invisible rather than
+## wrong-looking.
+func _gate_house(gate: Dictionary) -> void:
+	var names: Array = gate["mass"]
+	var prefix: String = gate["prefix"]
+	var inward: float = gate["inward"]
 	var mass := {}
 	for box in _plaza_scene_boxes():
-		var nm: String = box["nm"]
-		if nm in ["arch_pier_north", "arch_pier_south", "arch_beam"]:
-			mass[nm] = box
+		if String(box["nm"]) in names:
+			mass[String(box["nm"])] = box
 	if mass.size() < 3:
-		push_error("the arch's three masses were not all found in %s — "
-			% PLAZA_SCENE_PATH + "the gate house would be dressed against nothing")
+		push_error("the %s's three masses were not all found in %s — "
+			% [prefix, PLAZA_SCENE_PATH] + "the gate would be dressed against nothing")
 		return
 
-	var north: Dictionary = mass["arch_pier_north"]
-	var south: Dictionary = mass["arch_pier_south"]
-	var beam: Dictionary = mass["arch_beam"]
+	var north: Dictionary = mass[names[0]]
+	var south: Dictionary = mass[names[1]]
+	var beam: Dictionary = mass[names[2]]
 	# The face you see from the plaza, the two outer edges, and the top.
-	var face: float = north["at"].x + north["size"].x * 0.5
+	var face: float = north["at"].x + inward * north["size"].x * 0.5
 	var from_z: float = north["at"].z - north["size"].z * 0.5
 	var to_z: float = south["at"].z + south["size"].z * 0.5
 	var top: float = north["at"].y + north["size"].y * 0.5
@@ -7093,39 +7208,64 @@ func _gate_house() -> void:
 	var open_n: float = north["at"].z + north["size"].z * 0.5
 	var open_s: float = south["at"].z - south["size"].z * 0.5
 	var head: float = beam["at"].y - beam["size"].y * 0.5
-	# The one number in the arch that is written down twice — here, where it is
-	# measured off the scene, and in `ParkPlan.ARCH_HEIGHT`, where everything that
-	# reasons about the west view reads it. It is the clear height, and the whole
-	# argument for taking the top off was about clear height, so it is exactly the
-	# number that must not drift quietly. A centimetre of tolerance covers the
-	# hand displacement and nothing else.
-	if absf(head - Plan.ARCH_HEIGHT) > 0.01:
-		push_error("the arch's clear height is %.3f in %s but ParkPlan.ARCH_HEIGHT "
-			% [head, PLAZA_SCENE_PATH] + "says %.3f" % Plan.ARCH_HEIGHT)
+	# The numbers written down twice — here, where they are measured off the
+	# scene, and in `ParkPlan`, where everything that reasons about the view
+	# through the opening reads them. The clear height is the one that matters
+	# most: the whole argument for taking the arch's top off was about clear
+	# height, so it is exactly the number that must not drift quietly. A
+	# centimetre of tolerance covers the hand displacement and nothing else.
+	#
+	# **The other three earn their place from the east.** `spoke_east` is laid
+	# out of `EAST_GAP_MOUTH_X` and `EAST_GAP_FAR_X` while the piers that make
+	# those faces are hand-typed in `plaza.tscn`, so a wall nudged in the editor
+	# would leave the paving running through a pier — and paving is the one thing
+	# in the park that draws itself over whatever it is standing in without
+	# complaint. The west has the same pair of constants and had never checked
+	# them either.
+	for check in [
+		[head, gate["height"], "clear height", gate["height_name"]],
+		[face, gate["mouth_x"], "plaza face", gate["mouth_name"]],
+		[north["at"].x - inward * north["size"].x * 0.5, gate["far_x"],
+			"far face", gate["far_name"]],
+		[open_s - open_n, gate["width"], "opening", gate["width_name"]],
+	]:
+		if absf(float(check[0]) - float(check[1])) > 0.01:
+			push_error("the %s's %s is %.3f in %s but ParkPlan.%s says %.3f"
+				% [prefix, check[2], check[0], PLAZA_SCENE_PATH, check[3], check[1]])
 
 	# Plinth and ground-floor course, both broken at the opening because you walk
 	# through it. The course sits at `FRONT_GROUND` so it runs on into the
 	# shopfronts either side rather than starting a line of its own.
+	# **Each run laps 2cm past the pier at both ends, which is the jambs' trick
+	# and for the jambs' stated reason: so that no face of theirs lands on a face
+	# of the piers'.** The plinth and the course had run exactly `from_z` to
+	# `open_n`, which *is* the pier's own z extent — two pairs of coplanar faces
+	# by construction, at the arch and at the gate both. The west got away with it
+	# for as long as it did on nothing but luck of the draw: the seam displacement
+	# is handed out in build order, the piers are hand-displaced in `plaza.tscn`,
+	# and the two happened to differ there. At the east gate they landed on the
+	# same plane and `coplanar_test` had four pairs. A coincidence that holds is
+	# still a coincidence — the lap is what makes it a rule.
 	for i in 2:
-		var a: float = from_z if i == 0 else open_s
-		var b: float = open_n if i == 0 else to_z
-		_box("gate_plinth_%d" % i, Vector3.ZERO,
-			Vector3(face + 0.09, 0.45, (a + b) * 0.5),
+		var a: float = (from_z - 0.02) if i == 0 else (open_s - 0.02)
+		var b: float = (open_n + 0.02) if i == 0 else (to_z + 0.02)
+		_box("%s_plinth_%d" % [prefix, i], Vector3.ZERO,
+			Vector3(face + inward * 0.09, 0.45, (a + b) * 0.5),
 			Vector3(0.34, 0.9, b - a), "far_shade", 0.0, false)
-		_box("gate_course_%d" % i, Vector3.ZERO,
-			Vector3(face + 0.06, FRONT_GROUND, (a + b) * 0.5),
+		_box("%s_course_%d" % [prefix, i], Vector3.ZERO,
+			Vector3(face + inward * 0.06, FRONT_GROUND, (a + b) * 0.5),
 			Vector3(0.28, 0.34, b - a), "white", 0.0, false)
 
 	# The surround. Two jambs and a head, each lapping 2cm into the opening so
 	# that no face of theirs lands on a face of the piers'.
 	for i in 2:
 		var jz: float = (open_n - 0.33) if i == 0 else (open_s + 0.33)
-		_box("gate_jamb_%d" % i, Vector3.ZERO,
-			Vector3(face + 0.17, head * 0.5, jz),
+		_box("%s_jamb_%d" % [prefix, i], Vector3.ZERO,
+			Vector3(face + inward * 0.17, head * 0.5, jz),
 			Vector3(0.36, head, 0.7), "white", 0.0, false)
-	_box("gate_head", Vector3.ZERO,
-		Vector3(face + 0.17, head + 0.36, Plan.ARCH_AT.y),
-		Vector3(0.36, 0.72, Plan.ARCH_WIDTH + 1.6), "white", 0.0, false)
+	_box("%s_head" % prefix, Vector3.ZERO,
+		Vector3(face + inward * 0.17, head + 0.36, gate["axis_z"]),
+		Vector3(0.36, 0.72, float(gate["width"]) + 1.6), "white", 0.0, false)
 
 	# Cornice and parapet, one run per pier. The parapet stands on the roof rather
 	# than on the face, which is what stops a 12.5m mass ending in a raw edge
@@ -7138,17 +7278,17 @@ func _gate_house() -> void:
 	for i in 2:
 		var ca: float = (from_z - 0.26) if i == 0 else open_s
 		var cb: float = open_n if i == 0 else (to_z + 0.26)
-		_box("gate_cornice_%d" % i, Vector3.ZERO,
-			Vector3(face + 0.14, top - FRONT_CORNICE * 0.5, (ca + cb) * 0.5),
+		_box("%s_cornice_%d" % [prefix, i], Vector3.ZERO,
+			Vector3(face + inward * 0.14, top - FRONT_CORNICE * 0.5, (ca + cb) * 0.5),
 			Vector3(0.5, FRONT_CORNICE, cb - ca), "white", 0.0, false)
 	for i in 2:
 		var pa: float = (from_z - 0.09) if i == 0 else open_s
 		var pb: float = open_n if i == 0 else (to_z + 0.09)
-		_box("gate_parapet_%d" % i, Vector3.ZERO,
-			Vector3(face - 0.52, top + 0.56, (pa + pb) * 0.5),
+		_box("%s_parapet_%d" % [prefix, i], Vector3.ZERO,
+			Vector3(face - inward * 0.52, top + 0.56, (pa + pb) * 0.5),
 			Vector3(1.24, 1.12, pb - pa), "building", 0.0, false)
 
-	_gate_frontispiece(face, head, top, from_z, to_z, open_n, open_s)
+	_gate_frontispiece(gate, face, head, top, from_z, to_z, open_n, open_s)
 
 
 ## The valance, the bulb run and the finials — the park's own entrance kit,
@@ -7173,17 +7313,20 @@ func _gate_house() -> void:
 ## The valance goes on the beam's face instead and the bulbs hang under the
 ## valance rather than under the beam, which lands them 47cm clear of the soffit.
 ## Anything added here later gets held to the same line.
-func _gate_frontispiece(face: float, head: float, top: float,
+func _gate_frontispiece(gate: Dictionary, face: float, head: float, top: float,
 		from_z: float, to_z: float, open_n: float, open_s: float) -> void:
-	var mid: float = Plan.ARCH_AT.y
+	var mid: float = gate["axis_z"]
+	var prefix: String = gate["prefix"]
+	var inward: float = gate["inward"]
+	var width: float = gate["width"]
 
 	# The canopy, in the blue against the board's terracotta. The four mouths
 	# pair a warm board with a cool valance and a cool board with a warm one for
 	# the same reason: the head of a gateway is three bands stacked within two
 	# metres of each other, and three warm browns is one brown.
-	_box("gate_valance", Vector3.ZERO,
-		Vector3(face + 0.58, head + 0.92, mid),
-		Vector3(0.6, 0.3, Plan.ARCH_WIDTH + 3.6), "canvas_alt", 0.0, false)
+	_box("%s_valance" % prefix, Vector3.ZERO,
+		Vector3(face + inward * 0.58, head + 0.92, mid),
+		Vector3(0.6, 0.3, width + 3.6), "canvas_alt", 0.0, false)
 
 	# A row of lights is what says a thing is open — the same sentence the alley
 	# mouths and the threshold valances are built on. Spread across the opening
@@ -7192,8 +7335,8 @@ func _gate_frontispiece(face: float, head: float, top: float,
 	var bulbs := 13
 	for i in bulbs:
 		var t := (float(i) + 0.5) / float(bulbs)
-		_sphere("gate_bulb_%d" % i, Vector3.ZERO,
-			Vector3(face + 0.78, head + 0.62, lerpf(mid - 4.3, mid + 4.3, t)),
+		_sphere("%s_bulb_%d" % [prefix, i], Vector3.ZERO,
+			Vector3(face + inward * 0.78, head + 0.62, lerpf(mid - 4.3, mid + 4.3, t)),
 			0.15, "bulb")
 
 	# Finials, one per pier, standing on the parapet. The caps are what carry a
@@ -7203,11 +7346,11 @@ func _gate_frontispiece(face: float, head: float, top: float,
 	# wall, so its outline is against sky rather than against more building.
 	for i in 2:
 		var pz: float = (from_z + open_n) * 0.5 if i == 0 else (open_s + to_z) * 0.5
-		_box("gate_finial_plinth_%d" % i, Vector3.ZERO,
-			Vector3(face - 0.52, top + 1.40, pz),
+		_box("%s_finial_plinth_%d" % [prefix, i], Vector3.ZERO,
+			Vector3(face - inward * 0.52, top + 1.40, pz),
 			Vector3(1.5, 0.56, 1.5), "far_shade", 0.0, false)
-		_sphere("gate_finial_%d" % i, Vector3.ZERO,
-			Vector3(face - 0.52, top + 2.30, pz), 0.62, "white")
+		_sphere("%s_finial_%d" % [prefix, i], Vector3.ZERO,
+			Vector3(face - inward * 0.52, top + 2.30, pz), 0.62, "white")
 
 	# Three pools rather than one, and rather than one per bulb.
 	#
@@ -7227,16 +7370,25 @@ func _gate_frontispiece(face: float, head: float, top: float,
 	# four. It is the gate to the section that is actually built.
 	for i in 3:
 		var gz: float = lerpf(mid - 3.0, mid + 3.0, (float(i) + 0.5) / 3.0)
-		_omni("gate_valance_glow_%d" % i, Vector3(face + 1.35, head + 0.30, gz),
-			"warm", 1.5, 11.0)
+		_omni("%s_valance_glow_%d" % [prefix, i],
+			Vector3(face + inward * 1.35, head + 0.30, gz), "warm", 1.5, 11.0)
 
 	# And the cutting behind it. A threshold unlit after dark is a black rectangle
 	# and reads as closed — more so now than when it was a tunnel, because 13.5m
 	# of open canyon at night is a slot of nothing where the tunnel at least had
 	# a lit far end. Set well back so the source is not visible from the plaza.
-	_omni("gate_throat", Vector3(face - 7.0, 5.4, mid), "warm", 2.6, 13.0)
+	_omni("%s_throat" % prefix, Vector3(face - inward * 7.0, 5.4, mid),
+		"warm", 2.6, 13.0)
 
-	_gate_festoons(top, open_n, open_s)
+	# **Festoons on the west only, and that is not an oversight.** Where they hang
+	# is derived from the wheel: the run rides the plane the beam already hides,
+	# because anything below it draws itself across the west's biggest silhouette.
+	# The east has no such plane to borrow — its beam crops the rim on purpose —
+	# so a run copied over here would be sized against a constraint that is not
+	# there. It wants its own argument, and the thing it would be strung over is
+	# a forecourt that has not been laid out yet.
+	if gate["festoons"]:
+		_gate_festoons(top, open_n, open_s)
 
 
 ## The two ends of the run, as x. Clear of the beam's west face at −31.4 and

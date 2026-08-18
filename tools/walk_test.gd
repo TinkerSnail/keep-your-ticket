@@ -168,6 +168,45 @@ func _ready() -> void:
 		for i in run.size() - 1:
 			_legs.append(["spoke %s %d" % [s[0], i], run[i], run[i + 1], true])
 
+	# The east gate and the forecourt behind it, both directions.
+	#
+	# **Walked rather than screenshotted, because a straight 6m opening on the
+	# fountain's axis is a route and not a view.** The four thresholds above bend,
+	# so what they need proving is that they hold; this one goes somewhere, and
+	# what it needs proving is that you get there and back. The court sits a
+	# centimetre under the plaza's own floor — `GROUND_SEAM`, the street's
+	# arrangement — and a centimetre is exactly the size of mistake that a
+	# `CharacterBody3D` with no step-up turns into a wall.
+	#
+	# Aimed along the axis at every leg. A waypoint the player can walk past is a
+	# test that lies both ways, and the two 22m diagonals on the cascade's wings
+	# are what taught that.
+	var ex := ParkPlan.EAST_GAP_AT
+	var ring_e := Vector3(16.0, 1.2, 0.0)
+	var bend_e := Vector3(26.0, 1.2, ex.y)
+	var mouth_e := Vector3(ex.x - 6.75, 1.2, ex.y)
+	var far_e := Vector3(ex.x + 6.75, 1.2, ex.y)
+	var foot_e := Vector3(ParkPlan.EAST_STAIR_FOOT.x, 1.2, ex.y)
+	_legs.append(["east spoke in", ring_e, bend_e, true])
+	_legs.append(["east spoke to mouth", bend_e, mouth_e, true])
+	_legs.append(["east gate through", mouth_e, far_e, true])
+	_legs.append(["east court out", far_e, foot_e, true])
+	_legs.append(["east court back", foot_e, far_e, true])
+	_legs.append(["east gate back", far_e, mouth_e, true])
+	_legs.append(["east spoke home", mouth_e, ring_e, true])
+	# The two piers, from inside the passage. The leak in a gate is never the
+	# middle.
+	_legs.append(["east pier n holds", Vector3(ex.x, 1.2, ex.y),
+		Vector3(ex.x, 1.2, ex.y - 10.0), false])
+	_legs.append(["east pier s holds", Vector3(ex.x, 1.2, ex.y),
+		Vector3(ex.x, 1.2, ex.y + 10.0), false])
+	# And the monument itself, which must stop you. The middle of a cascade is
+	# water and the niche behind it is blind — it stopped being a doorway when
+	# the fountain went into it, and nothing has walked up the middle since. If
+	# this leg arrives, the niche is a hole again.
+	_legs.append(["east cascade holds", foot_e,
+		Vector3(ParkPlan.HILL_FACE_X - 2.0, 1.2, ex.y), false])
+
 	# The four scaffolded section thresholds. Head-on plus both corners, because
 	# the leak in a gate is never the middle — it is the hand's width between
 	# the post and the wall it was supposed to meet.
