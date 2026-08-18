@@ -67,6 +67,7 @@ var _outbound: Array[Vector3] = []
 var _inbound: Array[Vector3] = []
 
 var _player: CharacterBody3D
+var _seam := 0
 var _phase := 0
 var _wp := 0
 var _t := 0.0
@@ -110,22 +111,67 @@ func _ready() -> void:
 	# the plaza's boundary — so if that slab is ever missing or mispositioned, the
 	# player crosses the arch and falls six metres to the shore, and this is what
 	# says so.
-	_outbound = [
-		Vector3(-18.0, 0.2, ParkPlan.ARCH_AT.y),
-		Vector3(-30.0, 0.2, ParkPlan.ARCH_AT.y),
-		Vector3(-46.0, 0.2, ParkPlan.ARCH_AT.y),
-	]
-	_inbound = [
-		Vector3(-42.0, 0.2, ParkPlan.ARCH_AT.y),
-		Vector3(-28.0, 0.2, ParkPlan.ARCH_AT.y),
-	]
+	# **Two seams since 2026-08-18, and it is a table now rather than one pair of
+	# routes.** The east gate got a load point mirroring the west's, and a test
+	# hard-wired to one seam would have left the new one uncovered — which is
+	# exactly the hole `walk_test` opened when its through-gate legs were pulled
+	# back off the crossing volume. Between them these two files must cover every
+	# seam in the park; neither covering it is how a seam goes untested.
+	_load_seam(0)
+	ParkSections.section_entered.connect(_on_entered)
 
-	# Onto the terrace by hand. Getting there from the spawn is `walk_test.gd`'s
-	# job and repeating it here only buys a longer run.
+
+## Every seam in the park, out and back. `out` and `in` both end past the
+## crossing at a point the player cannot reach on foot — walking at something
+## unreachable is how a seam gets tripped rather than merely approached.
+const SEAMS := [
+	{
+		"name": "the west arch",
+		"out": [Vector3(-18.0, 0.2, -2.0), Vector3(-30.0, 0.2, -2.0),
+			Vector3(-46.0, 0.2, -2.0)],
+		"in": [Vector3(-42.0, 0.2, -2.0), Vector3(-28.0, 0.2, -2.0)],
+		"to": &"boardwalk",
+	},
+	# The east gate. Its outbound landing is the forecourt slab and its inbound
+	# one the plaza's own paving, so a missing `east_court` puts the player on the
+	# hillside's footing three metres down and this is what says so.
+	{
+		"name": "the east gate",
+		"out": [Vector3(24.0, 0.2, -2.0), Vector3(36.0, 0.2, -2.0),
+			Vector3(60.0, 0.2, -2.0)],
+		"in": [Vector3(48.0, 0.2, -2.0), Vector3(20.0, 0.2, -2.0)],
+		"to": &"terraces",
+	},
+]
+
+## Arrival points, per seam, in the same order. Kept beside `SEAMS` rather than
+## in it because they are `ParkPlan` constants and a table of literals next to a
+## table of references is how one of them goes stale.
+func _arrivals(i: int) -> Array:
+	if i == 0:
+		return [ParkPlan.ARCH_ARRIVE_WEST, ParkPlan.ARCH_ARRIVE_EAST]
+	return [ParkPlan.EAST_ARRIVE_OUT, ParkPlan.EAST_ARRIVE_IN]
+
+
+## Put the player at the head of a seam's outbound route by hand. Getting there
+## from the spawn is `walk_test.gd`'s job and repeating it here only buys a
+## longer run — and after the first seam the player is on the far side of the
+## park from the second one.
+func _load_seam(i: int) -> void:
+	_seam = i
+	var spec: Dictionary = SEAMS[i]
+	_outbound.assign(spec["out"])
+	_inbound.assign(spec["in"])
+	_note("--- %s ---" % spec["name"])
 	_player.global_position = _outbound[0]
 	_player.velocity = Vector3.ZERO
 	_last = _player.global_position
-	ParkSections.section_entered.connect(_on_entered)
+	_phase = 0
+	_wp = 0
+	_t = 0.0
+	_still = 0
+	_waiting = false
+	_crossed = false
 
 
 func _on_entered(id: StringName) -> void:
@@ -170,11 +216,11 @@ func _physics_process(delta: float) -> void:
 		0:
 			_walk(_outbound)
 		1:
-			_check_landing(&"boardwalk", ParkPlan.ARCH_ARRIVE_WEST)
+			_check_landing(SEAMS[_seam]["to"], _arrivals(_seam)[0])
 		2:
 			_walk(_inbound)
 		3:
-			_check_landing(&"plaza", ParkPlan.ARCH_ARRIVE_EAST)
+			_check_landing(&"plaza", _arrivals(_seam)[1])
 
 
 ## Steer at the next waypoint and hold forward. Yaw is set rather than turned
@@ -240,6 +286,8 @@ func _check_landing(want: StringName, near: Vector3) -> void:
 		_t = 0.0
 		_last = at
 		_still = 0
+	elif _seam + 1 < SEAMS.size():
+		_load_seam(_seam + 1)
 	else:
 		_finish()
 

@@ -87,6 +87,37 @@ const SECTIONS := {
 			"res://scenes/world/boardwalk_crowd.tscn",
 		],
 	},
+	## The hillside east of the plaza: the forecourt, the cascade, the belvedere,
+	## the basin staircase and the bays cut into the hill.
+	##
+	## `east_cascade.tscn` is listed here *and* instanced inside `plaza.tscn`, for
+	## the reason `west_shell` is in both places: the plaza looks straight at this
+	## monument through its own east gate, and a swap frees everything the
+	## outgoing section owned. Without the double mount, crossing the gate deletes
+	## the thing you crossed it to reach.
+	##
+	## The crowd is the point of the split. Its graph is 22 nodes up a hillside
+	## that nobody in the plaza can walk to, and keeping it mounted while the
+	## player is at the fountain is a cast loaded for a place they are not in.
+	&"terraces": {
+		"name": "the terraces",
+	##
+	## `plaza_skyline.tscn` is in both lists for `west_shell`'s reason turned
+	## through ninety degrees: it holds the rim, the coaster and the observation
+	## tower, all of it massing with no collision, and the rim's toe is at x 120
+	## — thirty metres from the head of this section's own climb. A section that
+	## dropped it would put the player on a hillside with nothing behind it.
+	##
+	## `terraces_far.tscn` is the plaza standing as massing for the section that
+	## has just deleted it, which is what `boardwalk.tscn` carries for the same
+	## reason at the other gate.
+		"scenes": [
+			"res://scenes/world/east_cascade.tscn",
+			"res://scenes/world/plaza_skyline.tscn",
+			"res://scenes/world/terraces_far.tscn",
+			"res://scenes/world/terraces_crowd.tscn",
+		],
+	},
 }
 
 ## Where the player stands on arriving, per section, keyed by where they came

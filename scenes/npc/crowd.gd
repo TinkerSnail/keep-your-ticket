@@ -25,6 +25,17 @@ extends Node3D
 ## the generator has already checked that nothing stands on it.
 @export var nodes: PackedVector3Array = PackedVector3Array()
 @export var edges: PackedInt32Array = PackedInt32Array()
+## One byte per edge *pair*: 1 if that edge has steps on it, 0 if it does not.
+##
+## **This is the first thing in the park that wheels and legs disagree about.**
+## Until the east climb there was no edge anywhere with a step-free twin, so a
+## flag like this would have been scaffolding nothing could check. The cascade
+## and the staircase each carry a ramp on the north and a stair on the south
+## between the same two points, which is exactly the case it needs.
+##
+## Empty is legal and means "no edge has steps" — every scene generated before
+## this existed still loads and every guest still routes.
+@export var edge_steps: PackedByteArray = PackedByteArray()
 ## Points a guest might plausibly look at: the fountain, the sign, the
 ## bandstand, a lamp they are standing under. Height is part of the point —
 ## looking up at the sign tower is a different photograph than looking across.
@@ -147,9 +158,14 @@ var player_position := Vector3.ZERO
 var player_eye := Vector3.ZERO
 
 var _adjacency: Array[PackedInt32Array] = []
+## The step-free subset of the above, and the graph a guest on wheels walks.
+var _adjacency_flat: Array[PackedInt32Array] = []
 ## Hops from `entry_node`. How deep into the plaza a node is, which is both the
 ## flow bias and — walked downhill — the way out.
 var _depth: PackedInt32Array = PackedInt32Array()
+## The same sweep over step-free edges. −1 means a node no wheelchair, buggy or
+## pram can reach, which is a legitimate answer rather than a fault.
+var _depth_flat: PackedInt32Array = PackedInt32Array()
 var _roster: Array = []
 var _groups: Dictionary = {}
 var _visits: Array = []
@@ -199,10 +215,14 @@ func _ready() -> void:
 	ParkClock.clock_jumped.connect(func() -> void: _sync_population(true))
 
 
+## Two adjacencies off one edge list: everything, and the step-free subset a
+## guest on wheels is allowed. Built together so they cannot drift.
 func _build_adjacency() -> void:
 	_adjacency.resize(nodes.size())
+	_adjacency_flat.resize(nodes.size())
 	for i in nodes.size():
 		_adjacency[i] = PackedInt32Array()
+		_adjacency_flat[i] = PackedInt32Array()
 	var pairs := edges.size() / 2
 	for p in pairs:
 		var a := edges[p * 2]
@@ -212,6 +232,13 @@ func _build_adjacency() -> void:
 			continue
 		_adjacency[a].append(b)
 		_adjacency[b].append(a)
+		# Absent `edge_steps` means a graph written before steps existed, and the
+		# safe reading of that is "no steps" — the alternative strands every
+		# wheeled guest in the plaza on a flag nobody set.
+		if p < edge_steps.size() and edge_steps[p] != 0:
+			continue
+		_adjacency_flat[a].append(b)
+		_adjacency_flat[b].append(a)
 
 
 ## Breadth-first from the way out. Doing it once buys two things at no cost: a
@@ -219,28 +246,39 @@ func _build_adjacency() -> void:
 ## on, and a shortest path to the gate for free — walking downhill on a BFS
 ## depth *is* the path, so nothing here has to search.
 func _build_depth() -> void:
-	_depth = PackedInt32Array()
-	_depth.resize(nodes.size())
-	_depth.fill(-1)
-	if entry_node < 0 or entry_node >= nodes.size():
-		push_warning("crowd: no entry node — nobody can arrive or leave")
-		return
+	_depth = _sweep(_adjacency, true)
+	# And the same sweep over step-free edges only, which is how a guest on
+	# wheels finds its way out. It is allowed to leave nodes unreached — a stair
+	# with no ramp beside it is exactly that — so this one does not complain.
+	_depth_flat = _sweep(_adjacency_flat, false)
 
-	_depth[entry_node] = 0
+
+func _sweep(adjacency: Array, complain: bool) -> PackedInt32Array:
+	var depth := PackedInt32Array()
+	depth.resize(nodes.size())
+	depth.fill(-1)
+	if entry_node < 0 or entry_node >= nodes.size():
+		if complain:
+			push_warning("crowd: no entry node — nobody can arrive or leave")
+		return depth
+
+	depth[entry_node] = 0
 	var frontier := PackedInt32Array([entry_node])
 	while not frontier.is_empty():
 		var next := PackedInt32Array()
 		for i in frontier:
-			for option in _adjacency[i]:
-				if _depth[option] >= 0:
+			for option in adjacency[i]:
+				if depth[option] >= 0:
 					continue
-				_depth[option] = _depth[i] + 1
+				depth[option] = depth[i] + 1
 				next.append(option)
 		frontier = next
 
-	for i in nodes.size():
-		if _depth[i] < 0:
-			push_warning("crowd: node %d cannot reach the gate" % i)
+	if complain:
+		for i in nodes.size():
+			if depth[i] < 0:
+				push_warning("crowd: node %d cannot reach the gate" % i)
+	return depth
 
 
 func _connect_player() -> void:
@@ -563,7 +601,7 @@ func _retire(visit: Dictionary, immediate := false) -> void:
 			continue
 		var via: Array[Vector3] = []
 		if not _follows(guest):
-			via = _way_out_from(guest.global_position)
+			via = _way_out_from(guest.global_position, guest.is_wheeled())
 		guest.depart_via(via)
 	visit["state"] = Visit.LEAVING
 	visit["waiting"] = 0.0
@@ -603,7 +641,7 @@ func _way_in_for(guest: Node) -> Array[Vector3]:
 	# The way to a bench is the way from it, backwards. Walking the graph rather
 	# than the straight line matters here: the line from the gap to the west
 	# benches goes through the fountain.
-	var path := _path_to_entry(guest.seat_at)
+	var path := _path_to_entry(guest.seat_at, guest.is_wheeled())
 	for i in range(path.size() - 1, -1, -1):
 		if path[i] == entry_node:
 			continue
@@ -612,9 +650,9 @@ func _way_in_for(guest: Node) -> Array[Vector3]:
 	return via
 
 
-func _way_out_from(point: Vector3) -> Array[Vector3]:
+func _way_out_from(point: Vector3, wheeled := false) -> Array[Vector3]:
 	var via: Array[Vector3] = []
-	for i in _path_to_entry(point):
+	for i in _path_to_entry(point, wheeled):
 		via.append(nodes[i])
 	via.append(_scatter(hold_point))
 	return via
@@ -623,10 +661,12 @@ func _way_out_from(point: Vector3) -> Array[Vector3]:
 ## Downhill on `_depth`, which is a shortest path to the gate because the depth
 ## came from a breadth-first sweep out of it. Includes the node it starts from
 ## and ends on the entry.
-func _path_to_entry(point: Vector3) -> PackedInt32Array:
+func _path_to_entry(point: Vector3, wheeled := false) -> PackedInt32Array:
 	var path := PackedInt32Array()
-	var current := nearest_node(point)
-	if current < 0 or entry_node < 0 or _depth.is_empty():
+	var adjacency: Array = _adjacency_flat if wheeled else _adjacency
+	var depth: PackedInt32Array = _depth_flat if wheeled else _depth
+	var current := nearest_node(point, wheeled)
+	if current < 0 or entry_node < 0 or depth.is_empty():
 		return path
 
 	path.append(current)
@@ -636,10 +676,10 @@ func _path_to_entry(point: Vector3) -> PackedInt32Array:
 		if current == entry_node:
 			break
 		var best := -1
-		var best_depth := _depth[current]
-		for option in _adjacency[current]:
-			if _depth[option] >= 0 and _depth[option] < best_depth:
-				best_depth = _depth[option]
+		var best_depth := depth[current]
+		for option in adjacency[current]:
+			if depth[option] >= 0 and depth[option] < best_depth:
+				best_depth = depth[option]
 				best = option
 		if best < 0:
 			break
@@ -677,14 +717,23 @@ func node_position(index: int) -> Vector3:
 	return nodes[index]
 
 
-func nearest_node(point: Vector3) -> int:
+## **A wheeled guest snaps only to nodes it could actually leave.** Nearest by
+## distance alone will happily put a wheelchair on the middle of a garden stair,
+## where it then has no step-free edge and stands still forever. Falls back to
+## the plain nearest if the step-free sweep reached nothing, so a graph with no
+## flags behaves exactly as it did before.
+func nearest_node(point: Vector3, wheeled := false) -> int:
 	var best := -1
 	var best_distance := INF
 	for i in nodes.size():
+		if wheeled and not _depth_flat.is_empty() and _depth_flat[i] < 0:
+			continue
 		var d := point.distance_squared_to(nodes[i])
 		if d < best_distance:
 			best_distance = d
 			best = i
+	if best < 0 and wheeled:
+		return nearest_node(point, false)
 	return best
 
 
@@ -697,9 +746,10 @@ func nearest_node(point: Vector3) -> int:
 ## heading back out. `FLOW_WEIGHT` keeps that a bias and not an instruction —
 ## enough that the drift is visible over a minute of watching, not so much that
 ## anybody appears to be under orders.
-func route_from(point: Vector3, route_seed: int) -> PackedInt32Array:
+func route_from(point: Vector3, route_seed: int, wheeled := false) -> PackedInt32Array:
 	var route := PackedInt32Array()
-	var current := nearest_node(point)
+	var adjacency: Array = _adjacency_flat if wheeled else _adjacency
+	var current := nearest_node(point, wheeled)
 	if current < 0:
 		return route
 
@@ -708,7 +758,7 @@ func route_from(point: Vector3, route_seed: int) -> PackedInt32Array:
 	var previous := -1
 	var hops := _route_rng.randi_range(route_hops.x, route_hops.y)
 	for _i in hops:
-		var options := _adjacency[current]
+		var options: PackedInt32Array = adjacency[current]
 		if options.is_empty():
 			break
 		var choices := PackedInt32Array()

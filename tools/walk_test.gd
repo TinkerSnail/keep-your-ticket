@@ -189,23 +189,175 @@ func _ready() -> void:
 	var foot_e := Vector3(ParkPlan.EAST_STAIR_FOOT.x, 1.2, ex.y)
 	_legs.append(["east spoke in", ring_e, bend_e, true])
 	_legs.append(["east spoke to mouth", bend_e, mouth_e, true])
-	_legs.append(["east gate through", mouth_e, far_e, true])
+	var seam_w := Vector3(ParkPlan.EAST_SEAM_AT.x - 3.0, 1.2, ex.y)
+	var seam_e := Vector3(ParkPlan.EAST_SEAM_AT.x + 3.0, 1.2, ex.y)
+	_legs.append(["east gate to seam", mouth_e, seam_w, true])
+	# **Not through the gate any more.** The east seam went in on 2026-08-18 and
+	# `cross_terraces` sits on the wall's centre line, so a leg that walks the
+	# passage trips a section swap and the hold shot freezes the body — which
+	# arrives here as a timeout on the *return* leg and looks like broken
+	# geometry. Both sides are `section_test`'s now. This walks up to the mouth
+	# and stops, which is still the question walk_test can answer: is the passage
+	# clear to its own threshold.
 	_legs.append(["east court out", far_e, foot_e, true])
 	_legs.append(["east court back", foot_e, far_e, true])
-	_legs.append(["east gate back", far_e, mouth_e, true])
+	_legs.append(["east gate from seam", seam_e, far_e, true])
 	_legs.append(["east spoke home", mouth_e, ring_e, true])
 	# The two piers, from inside the passage. The leak in a gate is never the
 	# middle.
-	_legs.append(["east pier n holds", Vector3(ex.x, 1.2, ex.y),
-		Vector3(ex.x, 1.2, ex.y - 10.0), false])
-	_legs.append(["east pier s holds", Vector3(ex.x, 1.2, ex.y),
-		Vector3(ex.x, 1.2, ex.y + 10.0), false])
+	# **Started clear of the crossing volume, not on the gap's own centre line.**
+	# Both of these stood at `ex` until the seam went in, which is inside
+	# `cross_terraces` — so the probe tripped the swap, the plaza was freed, and
+	# the body fell through ground that no longer existed. It reported as FELL
+	# with `hit: nothing`, which reads exactly like a hole in the world and is
+	# the section machinery working. The piers are still probed; the standpoint
+	# is a stride back into the passage.
+	_legs.append(["east pier n holds", seam_w,
+		Vector3(seam_w.x, 1.2, ex.y - 10.0), false])
+	_legs.append(["east pier s holds", seam_w,
+		Vector3(seam_w.x, 1.2, ex.y + 10.0), false])
 	# And the monument itself, which must stop you. The middle of a cascade is
 	# water and the niche behind it is blind — it stopped being a doorway when
 	# the fountain went into it, and nothing has walked up the middle since. If
 	# this leg arrives, the niche is a hole again.
 	_legs.append(["east cascade holds", foot_e,
 		Vector3(ParkPlan.HILL_FACE_X - 2.0, 1.2, ex.y), false])
+
+	# **The climb, and the shelf at the top of it.** Both are new on 2026-08-18
+	# and neither had ever been walked — the east cascade's wings have existed
+	# since the day the monument was sited and every leg above only ever asked
+	# whether the *middle* of it stops you. A route nobody has walked is a route
+	# that does not work yet, and this one is six metres of rise with a hairpin
+	# in each half.
+	for w in [[-1.0, "n"], [1.0, "s"]]:
+		var side: float = w[0]
+		var nm: String = w[1]
+		# Out of `ParkPlan`, never re-derived here. The west's copy of this
+		# arithmetic agreed with the real wing right up until the shape changed,
+		# and then reported broken geometry rather than a stale test.
+		var path: Array = ParkPlan.wing_path(ParkPlan.CASCADE_EAST, side)
+		var stand: Array[Vector3] = []
+		for v in path:
+			stand.append(v + Vector3(0, 0.2, 0))
+		# Vertex to vertex, because thirds of a hairpin cut the corner and walk
+		# the player into the wall between the two legs.
+		_legs.append(["ehill %s foot" % nm, foot_e, stand[3], true])
+		for i in range(2, -1, -1):
+			_legs.append(["ehill %s up %d" % [nm, i], stand[i + 1], stand[i], true])
+		for i in 3:
+			_legs.append(["ehill %s down %d" % [nm, i], stand[i], stand[i + 1], true])
+		_legs.append(["ehill %s to foot" % nm, stand[3], foot_e, true])
+
+	# The head of the monument, the sill, and across the shelf. The sill is the
+	# single stride every route up here passes through and it laps two decks that
+	# meet on the scarp line — if a capsule can catch anywhere on this hill it
+	# catches there.
+	var head_y: float = ParkPlan.HILL_TOP + 1.2
+	# Typed rather than inferred: `wing_path` returns a bare `Array`, so its
+	# elements are Variant and `:=` cannot infer Vector3 from one.
+	var wing_head: Vector3 = ParkPlan.wing_path(ParkPlan.CASCADE_EAST, -1.0)[0] \
+		+ Vector3(0, 0.2, 0)
+	var land_e := Vector3(ParkPlan.HILL_FACE_X - 2.0, head_y, ex.y)
+	var sill_e := Vector3(ParkPlan.HILL_FACE_X + 2.0, head_y, ex.y)
+	var shelf_mid := Vector3(78.0, head_y, ex.y)
+	_legs.append(["ehill head -> landing", wing_head, land_e, true])
+	_legs.append(["ehill landing -> sill", land_e, sill_e, true])
+	_legs.append(["ehill sill -> shelf", sill_e, shelf_mid, true])
+	_legs.append(["ehill shelf -> sill", shelf_mid, sill_e, true])
+	_legs.append(["ehill sill -> landing", sill_e, land_e, true])
+	_legs.append(["ehill landing -> head", land_e, wing_head, true])
+	# The length of it, north to south, which is the walk the belvedere is for.
+	var shelf_n := Vector3(78.0, head_y, ParkPlan.SHELF_FROM_Z + 3.0)
+	var shelf_s := Vector3(78.0, head_y, ParkPlan.SHELF_TO_Z - 3.0)
+	_legs.append(["ehill shelf north", shelf_mid, shelf_n, true])
+	_legs.append(["ehill shelf south", shelf_n, shelf_s, true])
+	_legs.append(["ehill shelf back", shelf_s, shelf_mid, true])
+
+	# **The basin staircase**, which is six metres of rise in four flights and had
+	# never been walked when it was written. The reach profile comes out of
+	# `ParkPlan.climb_reaches` and is never re-derived here — see `wing_path` for
+	# what re-deriving a shape costs the first time the shape moves.
+	var cfz: float = ParkPlan.climb_flight_z()
+	for w in [[-1.0, "n"], [1.0, "s"]]:
+		var side: float = w[0]
+		var nm: String = w[1]
+		var zc: float = ex.y + side * cfz
+		var stand: Array[Vector3] = []
+		var xs: Array[float] = [ParkPlan.CLIMB_FROM_X]
+		for r in ParkPlan.climb_reaches():
+			xs.append(float(r[1]))
+		for x in xs:
+			stand.append(Vector3(x, ParkPlan.climb_floor_y(x) + 0.2, zc))
+		# Onto the strip off the belvedere first: the mouth is where the pool
+		# coping, the scarp and the flight all arrive at one stride.
+		_legs.append(["climb %s on" % nm, Vector3(76.0, head_y, zc), stand[0], true])
+		for i in stand.size() - 1:
+			_legs.append(["climb %s up %d" % [nm, i], stand[i], stand[i + 1], true])
+		for i in range(stand.size() - 1, 0, -1):
+			_legs.append(["climb %s down %d" % [nm, i], stand[i], stand[i - 1], true])
+		_legs.append(["climb %s off" % nm, stand[0], Vector3(76.0, head_y, zc), true])
+		# The bank outboard and the garden inboard. Neither is walkable and both
+		# are what stops the player leaving the cut sideways — probed at the
+		# mouth, where the bank is deepest and the wall under it is 2.4m.
+		var mid: Vector3 = stand[1]
+		_legs.append(["climb %s bank holds" % nm, mid,
+			mid + Vector3(0.0, 0.0, side * 7.0), false])
+		_legs.append(["climb %s garden holds" % nm, mid,
+			Vector3(mid.x, mid.y, ex.y), false])
+	# Across the top of the whole feature — **on terrace two, not at the head of
+	# the climb.** The first version crossed at `CLIMB_TO_X - 1`, which is still
+	# inside the cutting with the twelfth basin between the two strips, and it
+	# was blocked by `basin_11_bowl`. That is the chain doing its job: the garden
+	# is not a place you cross, and the crossing is the ground above it.
+	var climb_head := Vector3(ParkPlan.CLIMB_TO_X + 4.0,
+		ParkPlan.TERRACE_TWO_Y + 1.2, ex.y - cfz)
+	_legs.append(["climb head across", climb_head,
+		Vector3(climb_head.x, climb_head.y, ex.y + cfz), true])
+	# **The bays**, which are the reason the landings exist as more than a pause:
+	# each terrace opens left and right into a shelf cut into the hillside. New
+	# ground, so it gets walked — out from the landing, along the shelf, and a
+	# probe at the back wall, which is the hill and must stop you.
+	var bi := 0
+	var creaches := ParkPlan.climb_reaches()
+	for ri in creaches.size():
+		var r: Array = creaches[ri]
+		if bool(r[4]):
+			continue
+		var bx: float = (float(r[0]) + float(r[1])) * 0.5
+		var byy: float = float(r[2]) + 1.2
+		var bd: float = ParkPlan.CLIMB_BAY_D[mini(bi, ParkPlan.CLIMB_BAY_D.size() - 1)]
+		for w2 in [[-1.0, "n"], [1.0, "s"]]:
+			var sd: float = w2[0]
+			var bn: String = w2[1]
+			var onl := Vector3(bx, byy, ex.y + sd * (ParkPlan.CLIMB_HALF_Z + 1.5))
+			var deep := Vector3(bx, byy, ex.y + sd * (ParkPlan.CLIMB_HALF_Z + bd - 1.2))
+			_legs.append(["bay %d %s out" % [bi, bn],
+				Vector3(bx, byy, ex.y + sd * cfz), onl, true])
+			_legs.append(["bay %d %s deep" % [bi, bn], onl, deep, true])
+			_legs.append(["bay %d %s back" % [bi, bn], deep, onl, true])
+			# The hill behind it. A shelf you can walk off the back of is a hole.
+			_legs.append(["bay %d %s wall holds" % [bi, bn], deep,
+				Vector3(bx, byy, ex.y + sd * (ParkPlan.CLIMB_HALF_Z + bd + 6.0)),
+				false])
+		bi += 1
+	_legs.append(["climb head to strip", climb_head,
+		Vector3(ParkPlan.CLIMB_TO_X - 1.0, ParkPlan.TERRACE_TWO_Y + 1.2,
+			ex.y - cfz), true])
+	# Every edge of it, and there are four. Three are hillside and one is the
+	# parapet over a six metre drop onto brick — the notch was built the shape it
+	# is so that all four are structure rather than a rail, and this is the only
+	# thing that can say whether that came out true. Aimed square at each face:
+	# a probe that runs at a corner reports on its own aim.
+	_legs.append(["ehill parapet holds", Vector3(74.0, head_y, -12.0),
+		Vector3(66.0, head_y, -12.0), false])
+	_legs.append(["ehill parapet holds s", Vector3(74.0, head_y, 8.0),
+		Vector3(66.0, head_y, 8.0), false])
+	_legs.append(["ehill north wall holds", Vector3(78.0, head_y, -16.0),
+		Vector3(78.0, head_y, -27.0), false])
+	_legs.append(["ehill south wall holds", Vector3(78.0, head_y, 12.0),
+		Vector3(78.0, head_y, 23.0), false])
+	_legs.append(["ehill east wall holds", Vector3(82.0, head_y, ex.y),
+		Vector3(93.0, head_y, ex.y), false])
 
 	# The four scaffolded section thresholds. Head-on plus both corners, because
 	# the leak in a gate is never the middle — it is the hand's width between

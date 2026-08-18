@@ -15,6 +15,7 @@ extends SceneTree
 
 const OUT_PATH := "res://scenes/world/plaza_crowd.tscn"
 const BOARDWALK_PATH := "res://scenes/world/boardwalk_crowd.tscn"
+const TERRACES_PATH := "res://scenes/world/terraces_crowd.tscn"
 const GUEST_SCRIPT := "res://scenes/npc/guest.gd"
 const CROWD_SCRIPT := "res://scenes/npc/crowd.gd"
 
@@ -63,6 +64,9 @@ var _ring: TorusMesh
 var _graph_names: PackedStringArray = PackedStringArray()
 var _graph_points: PackedVector3Array = PackedVector3Array()
 var _graph_edges: PackedInt32Array = PackedInt32Array()
+## One byte per edge pair: 1 if it has steps on it. See `crowd.gd`'s `edge_steps`
+## for why this exists now and could not have meant anything before the climb.
+var _graph_steps: PackedByteArray = PackedByteArray()
 
 var _guest_index := 0
 var _group_index := 0
@@ -88,6 +92,8 @@ func _initialize() -> void:
 		return
 	if not _build_boardwalk():
 		return
+	if not _build_terraces():
+		return
 	quit()
 
 
@@ -99,6 +105,7 @@ func _begin(nm: String, floor_y: float, bounds: Rect2, seed_value: int) -> void:
 	_graph_names = PackedStringArray()
 	_graph_points = PackedVector3Array()
 	_graph_edges = PackedInt32Array()
+	_graph_steps = PackedByteArray()
 	_guest_index = 0
 	_group_index = 0
 	_floor = floor_y
@@ -133,6 +140,7 @@ func _build_plaza() -> bool:
 
 	_root.set("nodes", _graph_points)
 	_root.set("edges", _graph_edges)
+	_root.set("edge_steps", _graph_steps)
 	_root.set("pois", _reachable_pois("plaza", _plaza_pois(), _plaza_seats()))
 
 	# The way in and out, and where off-stage is. z=45 is the entrance street's
@@ -376,8 +384,112 @@ func _plaza_graph() -> void:
 		["ring_wnw", "ring_w"], ["ring_w", "ring_sw"], ["ring_sw", "ring_s"],
 	]
 	for link in links:
-		_graph_edges.append(_node_index(link[0]))
-		_graph_edges.append(_node_index(link[1]))
+		_edge(link[0], link[1], false)
+
+
+## One edge, and whether a foot has to leave the ground to use it.
+func _edge(a: String, b: String, stepped: bool) -> void:
+	_graph_edges.append(_node_index(a))
+	_graph_edges.append(_node_index(b))
+	_graph_steps.append(1 if stepped else 0)
+
+
+## **The east, and the first ground in the park where the route matters more than
+## the distance.** The plaza graph stopped at x 25 — eleven metres short of the
+## east wall's inner face — so no guest had ever been through the gate, into the
+## forecourt, onto the cascade or up the hill.
+##
+## Both climbs carry a ramp on the north and a stair on the south between the
+## same two points, so every level here is reachable either way and only one of
+## the two ways has steps in it. That is what makes `edge_steps` a fact about the
+## park rather than a flag nothing sets.
+##
+## Node heights are real. The rest of the graph is flat at `_floor` because the
+## plaza is; this climbs twelve metres, and a guest walking to a node whose y is
+## a lie walks into the hillside.
+func _east_graph() -> void:
+	var axis: float = Plan.ARCH_AT.y
+	var fz: float = Plan.climb_flight_z()
+
+	# Every node first, then every edge. `_node_index` resolves by name against
+	# what is already there, so a link written ahead of its node is a push_error
+	# and a −1 index rather than a forward reference.
+	_node("e_gate", Vector3(43.0, 0.0, axis))
+	_node("e_court", Vector3(52.0, 0.0, axis))
+	_node("e_belv", Vector3(74.0, Plan.HILL_TOP, axis))
+	_node("e_belv_n", Vector3(78.0, Plan.HILL_TOP, axis - 7.0))
+	_node("e_belv_s", Vector3(78.0, Plan.HILL_TOP, axis + 7.0))
+	_node("e_top", Vector3(Plan.CLIMB_TO_X + 4.0, Plan.TERRACE_TWO_Y, axis))
+	# **No link back to `ring_e`.** It was there while the east lived in the
+	# plaza's graph, and the split made it a dangling name: the plaza's ring is
+	# not in this section and the seam at the gate is what joins the two, not an
+	# edge. `e_gate` is the entry node, which is the same job `lane_s` does on the
+	# boardwalk.
+	_edge("e_gate", "e_court", false)
+
+	# The monument's own wings. North is the ramp and south the garden stair, and
+	# that difference is the whole reason this graph knows about steps.
+	for w in [[-1.0, "n", false], [1.0, "s", true]]:
+		var side: float = w[0]
+		var tag: String = w[1]
+		var stepped: bool = w[2]
+		var path: Array = Plan.wing_path(Plan.CASCADE_EAST, side)
+		for i in path.size():
+			var v: Vector3 = path[i]
+			_node("e_wing_%s_%d" % [tag, i], v)
+		_edge("e_court", "e_wing_%s_3" % tag, false)
+		for i in range(3, 0, -1):
+			_edge("e_wing_%s_%d" % [tag, i], "e_wing_%s_%d" % [tag, i - 1], stepped)
+		_edge("e_wing_%s_0" % tag, "e_belv", false)
+
+	# The belvedere, either side of the collecting pool.
+	_edge("e_belv", "e_belv_n", false)
+	_edge("e_belv", "e_belv_s", false)
+
+	# The staircase. One node per reach boundary on each run, so a guest walking
+	# it stops where the floor changes what it is doing.
+	var reaches: Array = Plan.climb_reaches()
+	var bay := 0
+	for w in [[-1.0, "n", false], [1.0, "s", true]]:
+		var side: float = w[0]
+		var tag: String = w[1]
+		var stepped: bool = w[2]
+		var zc: float = axis + side * fz
+		_node("e_climb_%s_0" % tag, Vector3(Plan.CLIMB_FROM_X, Plan.HILL_TOP, zc))
+		_edge("e_belv_%s" % tag, "e_climb_%s_0" % tag, false)
+		for ri in reaches.size():
+			var r: Array = reaches[ri]
+			_node("e_climb_%s_%d" % [tag, ri + 1],
+				Vector3(float(r[1]), float(r[3]), zc))
+			# A flight is stepped on the south run and a ramp on the north; a
+			# terrace is level on both, so it never is.
+			_edge("e_climb_%s_%d" % [tag, ri], "e_climb_%s_%d" % [tag, ri + 1],
+				stepped and bool(r[4]))
+		_edge("e_climb_%s_%d" % [tag, reaches.size()], "e_top", false)
+
+	# The bays, hung off the landing that serves them. Always step-free: a shelf
+	# you can only reach up a stair is a shop half the park cannot go into.
+	for ri in reaches.size():
+		var r: Array = reaches[ri]
+		if bool(r[4]):
+			continue
+		var bx: float = (float(r[0]) + float(r[1])) * 0.5
+		var bd: float = Plan.CLIMB_BAY_D[mini(bay, Plan.CLIMB_BAY_D.size() - 1)]
+		for w in [[-1.0, "n"], [1.0, "s"]]:
+			var side: float = w[0]
+			var tag: String = w[1]
+			_node("e_bay_%s_%d" % [tag, bay],
+				Vector3(bx, float(r[2]),
+					axis + side * (Plan.CLIMB_HALF_Z + bd * 0.55)))
+			_edge("e_climb_%s_%d" % [tag, ri + 1], "e_bay_%s_%d" % [tag, bay], false)
+		bay += 1
+
+
+func _node(name: String, at: Vector3) -> void:
+	if _graph_names.find(name) >= 0:
+		return
+	_graph_names.append(name)
+	_graph_points.append(at)
 
 
 func _node_index(name: String) -> int:
@@ -2379,6 +2491,7 @@ func _build_boardwalk() -> bool:
 
 	_root.set("nodes", _graph_points)
 	_root.set("edges", _graph_edges)
+	_root.set("edge_steps", _graph_steps)
 	_root.set("pois", _reachable_pois("boardwalk", _boardwalk_pois(), []))
 
 	_root.set("wander_day", BOARDWALK_WANDER_DAY)
@@ -2498,8 +2611,7 @@ func _boardwalk_graph() -> void:
 		["prom_s2", "prom_s3"], ["prom_s3", "prom_s4"],
 	]
 	for link in links:
-		_graph_edges.append(_node_index(link[0]))
-		_graph_edges.append(_node_index(link[1]))
+		_edge(link[0], link[1], false)
 
 
 ## Same rule as the plaza's: only things somebody would actually walk around.
@@ -2764,3 +2876,111 @@ func _boardwalk_seated_groups() -> void:
 			guest.set("seat_height", 0.47)
 			members.append(guest)
 		_pace_seated_group(members)
+
+
+## The hillside east of the plaza, and **the reason the graph moved out of the
+## plaza's crowd rather than staying in it.** Twenty-two of those nodes are up a
+## cascade nobody standing at the fountain can walk to, and a cast mounted for
+## ground the player is not on is a cast loaded for nothing. The seam at the east
+## gate is what makes the split possible; this is what it buys.
+##
+## Small on purpose. Nothing is on these terraces yet — the bays are cut and
+## empty — so the honest population is people making the climb and a few at the
+## top, not a crowd standing about in front of shops that do not exist.
+func _build_terraces() -> bool:
+	# Its own seed, or this is the plaza's cast in different clothes.
+	_begin("crowd", 0.0, Rect2(30.0, -32.0, 92.0, 64.0), 0x7E44)
+
+	_east_graph()
+	# No obstacle list. Everything solid out here is hill, masonry or water, and
+	# the graph is laid down the middle of the ground between them by
+	# construction — there is no furniture to walk into because there is no
+	# furniture. When the bays get their kiosks this wants filling in.
+	_obstacles = []
+	if not _validate_graph():
+		push_error("terraces graph is not walkable — fix the nodes above before regenerating")
+		quit(1)
+		return false
+
+	_root.set("nodes", _graph_points)
+	_root.set("edges", _graph_edges)
+	_root.set("edge_steps", _graph_steps)
+	_root.set("pois", _reachable_pois("terraces", _terraces_pois(), []))
+
+	# In through the gate, and off-stage back through it. Everyone up here walked
+	# out of the plaza, which is the same argument the boardwalk's back lane
+	# makes: a route with the crowd on it reads as the way in without a sign.
+	_root.set("entry_node", _node_index("e_gate"))
+	_root.set("hold_point", Vector3(34.0, 0.0, Plan.ARCH_AT.y))
+
+	_terraces_walking_groups()
+	_pad_cast()
+	return _finish(TERRACES_PATH)
+
+
+## What there is to look at up here. Read off the plan rather than typed, which
+## is the fix `gen_crowd`'s plaza POIs needed after they spent a fortnight in the
+## 80m plaza's coordinates.
+func _terraces_pois() -> PackedVector3Array:
+	var out := PackedVector3Array()
+	var axis: float = Plan.ARCH_AT.y
+	# The niche fountain, which is the monument's one lit interior.
+	out.append(Vector3(Plan.HILL_FACE_X - Plan.LANDING_D + 1.2, 2.4, axis))
+	# The collecting pool, and three bowls up the chain.
+	out.append(Vector3((Plan.POOL_FROM_X + Plan.CLIMB_FROM_X) * 0.5,
+		Plan.POOL_TOP_Y + 0.3, axis))
+	for i in [1, 5, 10]:
+		var bx: float = Plan.CLIMB_FROM_X + Plan.BASIN_STEP * (float(i) + 0.5)
+		out.append(Vector3(bx, Plan.climb_floor_y(bx) + 0.6, axis))
+	# Back down the axis at the clock tower, which is the view the belvedere is
+	# for and the only instrument the park has.
+	out.append(Vector3(Plan.CLOCK_TOWER_AT.x, 26.0, Plan.CLOCK_TOWER_AT.y))
+	return out
+
+
+## Who is on the hill. **Two of these groups are the routing, standing up.**
+##
+## The chair and the buggy start at the foot and are the first guests in the park
+## whose route differs from the person beside them: `edge_steps` marks the south
+## wing and the south run stepped, so they take the north ramp both times while
+## everybody else picks either. Nothing else in the park could have shown that.
+func _terraces_walking_groups() -> void:
+	var plan := [
+		{"start": "e_court", "kinds": ["adult", "adult"]},
+		{"start": "e_wing_n_3", "kinds": ["chair_adult", "adult"]},
+		{"start": "e_court", "kinds": ["stroller_adult", "adult", "kid"]},
+		{"start": "e_belv", "kinds": ["adult", "kid"]},
+		{"start": "e_belv_s", "kinds": ["adult", "adult"]},
+		{"start": "e_climb_s_2", "kinds": ["adult"]},
+		{"start": "e_bay_n_0", "kinds": ["adult", "adult"]},
+		{"start": "e_climb_n_4", "kinds": ["adult", "kid"]},
+		{"start": "e_top", "kinds": ["adult", "adult"]},
+	]
+	for entry in plan:
+		var origin: Vector3 = _graph_points[_node_index(entry["start"])]
+		var group := _group_index
+		_group_index += 1
+		var leader_name := ""
+		var kinds: Array = entry["kinds"]
+		var members: Array = []
+		for i in kinds.size():
+			var scatter := Vector3(_rng.randf_range(-1.0, 1.0), 0.0,
+				_rng.randf_range(-1.0, 1.0))
+			var guest := _guest(kinds[i], origin + scatter,
+				_rng.randf_range(0.0, TAU), group)
+			members.append(guest)
+			if i == 0:
+				leader_name = guest.name
+			else:
+				guest.set("leader_path", NodePath("../" + leader_name))
+				var lateral: float = _rng.randf_range(0.55, 1.15) \
+					* (1.0 if i % 2 == 0 else -1.0)
+				# `begins_with`, never `==`. The kind vocabulary has seven entries
+				# and a bare equality test drops `chair_adult`, `stroller_adult`,
+				# `twin_adult` and `pram_adult` into the child's range — which
+				# reads as somebody being left two metres behind their own group.
+				var behind: float = _rng.randf_range(0.4, 1.5) \
+					if not String(kinds[i]).ends_with("kid") \
+					else _rng.randf_range(0.9, 2.4)
+				guest.set("follow_offset", Vector3(lateral, 0.0, behind))
+		_pace_group(members)

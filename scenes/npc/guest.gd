@@ -161,6 +161,21 @@ const POSE_GATHER_DISTANCE := 2.6
 ## is not in the headcount and cannot be asked to pose. The one thing it does is
 ## turn its head, and that is driven from here.
 @export var stroller := false
+
+
+## Whether this guest is on wheels, and therefore may not use a stepped edge.
+##
+## **One question, both populations.** A wheelchair user and somebody pushing a
+## pram are opposite shapes to animate — the first is seated and moving, the
+## second walks normally and pushes something — but to the *graph* they are the
+## same guest: a pair of wheels that a flight of steps stops. Asking it once here
+## is what keeps `crowd.gd` from having to know the difference.
+##
+## Deliberately a method and not another exported flag. Three booleans that must
+## agree is two chances to disagree, and `follow_offset` has already been bitten
+## once by a kind test that went stale when the vocabulary grew.
+func is_wheeled() -> bool:
+	return wheelchair or stroller
 ## How far forward the arms are held to reach the handle, in radians. Solved by
 ## the generator against the bar it built, because these arms have no elbow to
 ## take up a difference and a typed angle puts the hands through the handle.
@@ -859,7 +874,7 @@ func _advance_route() -> void:
 func _request_route() -> void:
 	if _crowd == null:
 		return
-	_route = _crowd.route_from(global_position, _rng.randi())
+	_route = _crowd.route_from(global_position, _rng.randi(), is_wheeled())
 	_leg = 0
 	_wander = Vector3(_rng.randfn(0.0, 0.45), 0.0, _rng.randfn(0.0, 0.45))
 

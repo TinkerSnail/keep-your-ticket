@@ -43,6 +43,8 @@ const SKYLINE_PATH := "res://scenes/world/plaza_skyline.tscn"
 const FOUNTAIN_PATH := "res://scenes/world/plaza_fountain.tscn"
 const STAIR_PATH := "res://scenes/world/west_stair.tscn"
 const EAST_CASCADE_PATH := "res://scenes/world/east_cascade.tscn"
+const EAST_FAR_NUDGE := 0.006
+const TERRACES_FAR_PATH := "res://scenes/world/terraces_far.tscn"
 const ENTRANCE_PATH := "res://scenes/world/entrance.tscn"
 const THRESHOLD_PATH := "res://scenes/world/thresholds.tscn"
 
@@ -236,7 +238,30 @@ func _initialize() -> void:
 	# displacement in build order, so a slab laid first would move all 460 of the
 	# cascade's nodes one ordinal on.
 	_east_court()
+	# And the hill the monument is cut into, after the court for the same reason
+	# the court is after the monument: this scene's shapes take their seam
+	# displacement in build order, and anything laid ahead of the cascade moves
+	# all 460 of its nodes one ordinal on.
+	_east_hill()
+	# And the climb cut into it. Last of all: this is the final scene written, so
+	# nothing downstream can have its seam ordinal moved by what this emits.
+	_east_climb()
+	_climb_rails()
+	# The way back, which belongs to the section on this side of the wall.
+	_east_seam(&"terraces", &"plaza")
 	if not _save(_root, EAST_CASCADE_PATH):
+		return
+
+	# The plaza as massing, for the section that has just deleted it. Its own
+	# scene rather than a pass inside `east_cascade.tscn`, because that file is
+	# mounted by the plaza too and the plaza does not want a ghost of itself
+	# standing inside it. Written last: nothing comes after, so nothing downstream
+	# can have its seam ordinal moved by what this emits.
+	_root = Node3D.new()
+	_root.name = "terraces_far"
+	_begin_scene()
+	_plaza_from_the_east()
+	if not _save(_root, TERRACES_FAR_PATH):
 		return
 
 	quit()
@@ -379,17 +404,21 @@ const BULB_EMIT := Color(1.0, 0.72, 0.34)
 const LAMP_EMIT := Color(1.0, 0.86, 0.62)
 const EYE_EMIT := Color(1.0, 0.80, 0.50)
 
-## Cool, and the only cool light in the park. The trim runs along the cascade's
-## copings and the whole point is that it reads as *architecture* lit on purpose,
-## against a park lit in tungsten — warm everywhere else, cold on the monument.
-## Same colour the pavilion takes at the pier head, so the two cool things in the
-## west are the two built things worth walking to.
-## Saturated well past where it looks right in a swatch, because emission clips
-## toward white as it brightens and these are the largest emissive surfaces in
-## the park — 40m of coping down each wing, seen flat-on from the head of the
-## flight. At (0.60, 0.82, 1.0) the capture came back with two white-hot slabs
-## and no colour in them at all; the blue has to be deep enough to survive its
-## own brightness.
+## Cool, and the only cool light in the park. It reads as *architecture* lit on
+## purpose against a park lit in tungsten — warm everywhere else, cold on the
+## things worth walking to. Same colour the pavilion takes at the pier head.
+##
+## **It came off the cascade's facade and the saturation is the fossil of that.**
+## It used to run 40m of coping down each wing plus the landing's own 7m, which
+## made it far and away the largest emissive surface in the park and seen flat-on
+## from the head of the flight; at (0.60, 0.82, 1.0) the capture came back with
+## two white-hot slabs and no colour in them at all, because emission clips toward
+## white as it brightens. Hence a blue deep enough to survive its own brightness.
+## The string course is gone — a second outline parallel to the chevron's own,
+## see `_cascade_landing` — so nothing that large wears this any more and the
+## value is now conservative rather than load-bearing. Left as it is: the pavilion
+## and the apron edge are the remaining callers, the deep blue suits both, and
+## re-tuning a colour because its worst case retired is how a palette drifts.
 const TRIM_EMIT := Color(0.24, 0.55, 1.0)
 
 
@@ -772,6 +801,14 @@ func _build_materials() -> void:
 		"far": [Color(0.66, 0.68, 0.72), 0.95, 0.0],
 		"far_warm": [Color(0.72, 0.66, 0.63), 0.95, 0.0],
 		"far_shade": [Color(0.55, 0.56, 0.62), 0.95, 0.0],
+		# The rim, and further back in the haze than anything the west tableau
+		# wears: `far` is 87m away and this is 150 to 230. Bluer rather than
+		# paler, and that is a choice against the physics — aerial perspective
+		# washes a distant ridge toward the sky, and a pale ridge against a pale
+		# horizon is a ridge nobody can see. The plan's whole argument for the
+		# crest height is that it *shows* over the east roofline, so the value
+		# sits between `far` and `far_shade` and the hue does the distance.
+		"rim": [Color(0.56, 0.60, 0.69), 0.97, 0.0],
 		# The one surface in the park that is supposed to be shiny. Low roughness
 		# is the whole point: it is what turns a low sun into a glitter path, and
 		# the reason the boardwalk went west in the first place.
@@ -1125,6 +1162,101 @@ func _fountain_materials() -> void:
 			"fade_from": nf + 1.76, "fade_to": nf + 0.86,
 		})
 
+
+	# The basin chain, and **one material pair per basin, which is the
+	# architecture demanding it rather than laziness.** `water_pool`'s `centre` is
+	# a world XZ and `water_fall`'s fade band is an absolute world Y; twelve bowls
+	# two metres apart and half a metre down from each other share neither. One
+	# shared pair would hand every bowl the rings of a centre twelve metres away,
+	# which arrive as parallel stripes — the brushed-metal failure the pool
+	# shader's own comment is about — and a fade band six metres off its water.
+	#
+	# The honest fix is an object-space variant so a repeated object can carry a
+	# repeated material. That is shader work and this is not it; what this does is
+	# pay the real cost visibly rather than share a material that cannot be
+	# shared. Twenty-five materials, and every one of them is a place.
+	var cax: float = Plan.ARCH_AT.y
+	for i in Plan.BASIN_COUNT:
+		var bx: float = Plan.CLIMB_FROM_X + Plan.BASIN_STEP * (float(i) + 0.5)
+		var by: float = Plan.TERRACE_TWO_Y \
+			- (Plan.CLIMB_TO_X - bx) * (Plan.CLIMB_RISE / Plan.CLIMB_RUN)
+		mats["basin_pool_%d" % i] = _shader_material(pool, {
+			"tint": Color(0.12, 0.27, 0.30),
+			"centre": Vector3(bx, by, cax),
+			# A 1.5m bowl. Tighter than the trough's 11 because the whole surface
+			# is two rings across at this size and anything looser is one.
+			"ring_scale": 24.0,
+			"chop": 12.0,
+			"rough": 0.05,
+			# One lamp at the bowl's own centre. `Vector4` and not `Plane`: a
+			# Plane here serialises to null and the lamp is dark in the saved
+			# scene while being correct in this process.
+			"lamp_a": Vector4(bx, cax, 0.34, 1.0),
+			# Where the fall off the bowl above lands, which is its upstream lip.
+			"foam_a": Vector4(bx + Plan.BASIN_R * 0.86, cax, 0.20, 1.0),
+			# **Turquoise and luminous, and the tint is what does it.** `gc` runs
+			# from `tint` toward `lamp_tint` over the lit patch, and `lamp_tint`
+			# defaults to the fitting's own warm amber — so a bowl could be turned
+			# up as far as it liked and only got brighter, not bluer. Raising the
+			# glow without moving the tint is how you get a hot yellow puddle.
+			#
+			# `glow_body` carries most of the lift rather than `glow_lamp`,
+			# because a lit *lamp* on a dark pool is a torch under water and a lit
+			# *pool* is what the historic plates show — the whole surface reading
+			# as the brightest thing on the hillside.
+			"lamp_tint": Color(0.42, 1.0, 0.94),
+			"foam_tint": Color(0.72, 1.0, 0.98),
+			# **Weighted onto the moving terms, and that is the whole of "fairy
+			# fountain but grounded".** `glow_body` is the one flat part; the
+			# other two ride `lit` and `froth`, which move with the surface. Buy
+			# the brightness with the flat term and you get a sheet of light lying
+			# on water — the shader's own comment says so, and it is the same
+			# mistake three builds of the submerged lamps made in geometry. Buy it
+			# with the moving terms and the pool glows *and ripples*, which is the
+			# only thing keeping it a fountain rather than a portal.
+			"glow_body": 0.30,
+			"glow_lamp": 2.4,
+			"glow_froth": 2.8,
+			"night_glow": 7.0,
+		})
+		# The fall arriving in this bowl, off the lip of the one above. Its band
+		# is this bowl's own surface and the half-metre over it, so every one of
+		# the twelve is a different absolute Y.
+		mats["basin_fall_%d" % i] = _shader_material(fall, {
+			"flow": 2.1, "streaks": 58.0, "grain": 2.9,
+			"base_alpha": 0.36, "glow": 0.85,
+			"tint": Color(0.55, 0.96, 0.95),
+			"fade_from": by + Plan.BASIN_FALL, "fade_to": by,
+		})
+	# The collecting pool at the mouth, and the discharge into it.
+	var pcx: float = (Plan.POOL_FROM_X + Plan.CLIMB_FROM_X) * 0.5
+	mats["basin_pool_head"] = _shader_material(pool, {
+		"tint": Color(0.11, 0.26, 0.30),
+		"centre": Vector3(pcx, Plan.POOL_TOP_Y, cax),
+		"ring_scale": 7.0,
+		"chop": 5.0,
+		"rough": 0.05,
+		"foam_a": Vector4(Plan.CLIMB_FROM_X - 0.7, cax, 0.34, 1.0),
+		"lamp_a": Vector4(pcx - 1.6, cax - 1.9, 0.42, 1.0),
+		"lamp_b": Vector4(pcx - 1.6, cax + 1.9, 0.42, 1.0),
+		"lamp_tint": Color(0.42, 1.0, 0.94),
+		"foam_tint": Color(0.72, 1.0, 0.98),
+		# A shade under the bowls': it is 4.5m by 8.4 against their 1.5, and equal
+		# glow on unequal areas makes the big one the subject. The chain is the
+		# subject and the pool is what it arrives in.
+		"glow_body": 0.26,
+		"glow_lamp": 2.1,
+		"glow_froth": 2.6,
+		"night_glow": 6.0,
+	})
+	mats["basin_fall_head"] = _shader_material(fall, {
+		"flow": 2.4, "streaks": 54.0, "grain": 2.6,
+		"base_alpha": 0.34, "glow": 0.85,
+		"tint": Color(0.55, 0.96, 0.95),
+		"fade_from": Plan.TERRACE_TWO_Y - (Plan.CLIMB_RUN - Plan.BASIN_STEP * 0.5) \
+			* (Plan.CLIMB_RISE / Plan.CLIMB_RUN),
+		"fade_to": Plan.POOL_TOP_Y,
+	})
 
 
 func _plain(albedo: Color, roughness: float, metallic: float) -> StandardMaterial3D:
@@ -1721,15 +1853,33 @@ func _paving() -> void:
 	# the street's asphalt comes down with it. Otherwise the two halves of the
 	# same walk sit at different heights where they meet at z=38.
 	_walkway_paving([&"street", &"apron"], GROUND_SEAM + PAVE_LIFT, "asphalt")
-	# The east spoke, in two pieces for the west spoke's reason and at two
-	# heights for the street's. Ring to the gate's plaza face is the plaza's own
-	# floor; the passage between the piers is left as brick, so you cross onto
-	# the plaza's material to walk through and the opening reads deeper for
-	# having its own floor; and the last leg is out in the forecourt, which sits
-	# a centimetre lower — so its asphalt comes down with it or the two halves of
-	# one walk sit at different heights where they meet.
+	# The east spoke, laid whole: ring, passage, forecourt, one unbroken surface
+	# from the fountain to the foot of the climb.
+	#
+	# **The passage used to be left as brick**, on the theory that crossing onto
+	# the plaza's own material gave the opening a floor of its own and made it
+	# read deeper. That is the same theory the west tunnel was built on and it
+	# lost there for the same reason: walked rather than looked at, the asphalt
+	# reads as giving up at the wall. `_terrace_paving` carries the note.
+	#
+	# `EAST_GAP_WIDTH` for that range rather than the spoke's 8m, and the width
+	# override exists for exactly this: the opening is 6m clear, so the extra
+	# metre either side would be asphalt buried in a pier.
+	#
+	# **One height for the whole run, and it is the plaza's.** The last leg was
+	# laid a centimetre lower because it ends out in the forecourt, which is
+	# where `GROUND_SEAM` puts the court's brick — but the ground underfoot does
+	# not change at the segment boundary. The plaza's own 104m slab runs to
+	# `PLAZA_HALF`, five metres *past* the gate's outer face, so the low leg was
+	# floating 2mm over plaza brick for its first stretch and the step between
+	# the two heights would have landed at x=47, in the middle of continuous
+	# ground — a hairline of brick across the walk at the one joint this whole
+	# change is about. At one height the asphalt stands 12mm over the plaza and
+	# 22mm over the court, and a quad with no side faces and no shadow shows
+	# neither.
 	_pave_run(&"spoke_east", PAVE_LIFT, "asphalt", 0, 2)
-	_pave_run(&"spoke_east", GROUND_SEAM + PAVE_LIFT, "asphalt", 3, 1)
+	_pave_run(&"spoke_east", PAVE_LIFT, "asphalt", 2, 1, Plan.EAST_GAP_WIDTH)
+	_pave_run(&"spoke_east", PAVE_LIFT, "asphalt", 3, 1)
 
 
 ## The paving on the far side of the tunnel, laid into whichever scene is being
@@ -3456,6 +3606,7 @@ func _west_far() -> void:
 	# and only the plaza's — it is thrown away at the moment of the crossing,
 	# which is exactly the life a gate pointing west should have.
 	_arch_seam(&"plaza", &"boardwalk")
+	_east_seam(&"plaza", &"terraces")
 	# The north end of the strip, closed by the coaster rather than trailing off.
 	# Same origin the section builds it at, or the silhouette shifts eight metres
 	# when the player walks through the gate.
@@ -3691,8 +3842,274 @@ const RAIL_FREEBOARD := 0.6
 ## end of it. Standing *in* the court is another matter, and that is the hill's
 ## job rather than the gate's.
 func _east_court() -> void:
-	_box("east_court", Vector3.ZERO, Vector3(57.25, -1.0 + GROUND_SEAM, -2.0),
-		Vector3(26.5, 2.0, 52.0), "brick", 0.0, true)
+	# Extents out of the plan since 2026-08-18, because the hill behind now
+	# stands on this slab and the two have to end together. See
+	# `ParkPlan.EAST_GROUND_HALF_Z`.
+	var x0 := Plan.EAST_GROUND_FROM_X
+	var x1 := Plan.EAST_GROUND_TO_X
+	var hz := Plan.EAST_GROUND_HALF_Z
+	var axis: float = Plan.ARCH_AT.y
+	_box("east_court", Vector3.ZERO,
+		Vector3((x0 + x1) * 0.5, -1.0 + GROUND_SEAM, axis),
+		Vector3(x1 - x0, 2.0, hz * 2.0), "brick", 0.0, true)
+
+
+## The hill the east cascade climbs into: the scarp, the shelf at its head, and
+## the terrace above that.
+##
+## **The plan has described all of this since the cascade was sited and none of
+## it existed until 2026-08-18.** `HILL_FACE_X`, `HILL_TOP`, `SHELF_*` and
+## `TERRACE_TWO_*` were written the day the east cascade went in, and the effect
+## was a six metre monument standing in open ground with a crest you could climb
+## onto and then walk off the world from. The rim went in first because it is
+## what the gate frames; this is what the gate frames the *foot* of.
+##
+## **The shelf is a notch, not a plateau, and that is the shape decision.** The
+## plan calls it "a belvedere at the head of a climb", and the honest reading of
+## that is a bay cut into a hillside rather than a terrace with a fence around
+## it. So the hill stands a full twelve metres at the scarp line everywhere
+## except across `SHELF_FROM_Z … SHELF_TO_Z`, where it is cut back to six and
+## sixteen metres deep. What that buys is that every edge of the shelf is
+## finished by construction: hill on the north, hill on the south, the second
+## scarp on the east, and one parapet on the west where the view is. There is
+## nothing to fall off and nothing raw to see, which the alternative — a six
+## metre deck with a rail round three sides of it — could not say.
+##
+## It also settles what the belvedere is *for*. From up here you look west, back
+## down over the court and through the gate at the fountain, with the rim over
+## your shoulder. North and south are walls. A view has to be pointed somewhere
+## or it is just elevation.
+##
+## The way on and off is the cascade and only the cascade. The parapet's gap is
+## the landing's own width, so you come up a wing, cross the head of the monument
+## and step through — see `_east_hill_sill` for why that step is its own box.
+func _east_hill() -> void:
+	var axis: float = Plan.ARCH_AT.y
+	var hz := Plan.EAST_GROUND_HALF_Z
+	var gz0 := axis - hz
+	var gz1 := axis + hz
+	var x0 := Plan.HILL_FACE_X
+	var x1 := Plan.SHELF_TO_X
+	var x2 := Plan.TERRACE_TWO_TO_X
+	var y1 := Plan.HILL_TOP
+	var y2 := Plan.TERRACE_TWO_Y
+	var sz0 := Plan.SHELF_FROM_Z
+	var sz1 := Plan.SHELF_TO_Z
+
+	# The mass, in three pieces around the notch. Footed below the ground for
+	# the reason `COASTER_EMBED` and the rim's blocks are: a box bottomed at
+	# exactly y = 0 shares its underside with everything else standing on y = 0,
+	# and that is the coplanar case the build-order ordinal cannot reach because
+	# the two shapes can be four scenes apart.
+	var base := -HILL_EMBED
+	_hill_block("hill_north", x0, x2, base, y2, gz0, sz0)
+	_hill_block("hill_south", x0, x2, base, y2, sz1, gz1)
+	# From the head of the climb, not from the scarp: x1..CLIMB_TO_X is the
+	# ravine, and nothing subtracts here — these are sibling CSG boxes, so the
+	# void has to be left rather than cut. `_east_climb` lays the mass either
+	# side of it, tapering as the opening closes.
+	_hill_block("hill_back", Plan.CLIMB_TO_X, x2, base, y2, sz0, sz1)
+
+	# Under the shelf. Its top stops a deck's thickness short rather than level,
+	# so the deck laid over it is the only up-facing surface at six metres —
+	# 576m² of coplanar-but-displaced floor is a thing the seam ordinal would
+	# survive and nobody should ask it to.
+	#
+	# Run a metre into the two blocks either side, because a floor that butts a
+	# wall exactly leaves the zero-width seam a capsule catches on. Everything
+	# past `sz0`/`sz1` is buried.
+	_box("shelf_fill", Vector3.ZERO,
+		Vector3((x0 + x1) * 0.5, (base + y1 - SHELF_DECK_T) * 0.5, (sz0 + sz1) * 0.5),
+		Vector3(x1 - x0, y1 - SHELF_DECK_T - base, sz1 - sz0 + 2.0), "building")
+	# Brick, and the same brick as the court below and the plaza beyond it. The
+	# east is one continuous floor that happens to climb; changing material at
+	# the top of a climb would say the shelf belongs to something else, and
+	# there is nothing else here yet for it to belong to.
+	# **In three pieces, around the collecting pool.** The deck used to be one
+	# slab over the whole belvedere, and the pool is cut into that slab — so the
+	# water sat 35cm under a continuous brick floor and the thing the chain
+	# discharges into was invisible from every standpoint. Nothing subtracts here;
+	# a basin in a deck is three pieces of deck.
+	var ppz: float = Plan.POOL_HALF_Z + 0.25
+	var pfx: float = Plan.POOL_FROM_X
+	_box("shelf_deck_w", Vector3.ZERO,
+		Vector3((x0 - 0.3 + pfx) * 0.5, y1 - SHELF_DECK_T * 0.5, (sz0 + sz1) * 0.5),
+		Vector3(pfx - x0 + 0.3, SHELF_DECK_T, sz1 - sz0 + 1.2), "brick")
+	for k in 2:
+		var a: float = sz0 - 0.6 if k == 0 else axis + ppz
+		var b: float = axis - ppz if k == 0 else sz1 + 0.6
+		_box("shelf_deck_%s" % ("n" if k == 0 else "s"), Vector3.ZERO,
+			Vector3((pfx + x1 + 0.6) * 0.5, y1 - SHELF_DECK_T * 0.5, (a + b) * 0.5),
+			Vector3(x1 - pfx + 0.6, SHELF_DECK_T, b - a), "brick")
+	_east_hill_sill(axis, x0, y1)
+
+	# The parapet, either side of the way in.
+	for k in 2:
+		var a: float = sz0 - 0.6 if k == 0 else axis + Plan.LANDING_HALF_W
+		var b: float = axis - Plan.LANDING_HALF_W if k == 0 else sz1 + 0.6
+		_box("shelf_parapet_%s" % ("n" if k == 0 else "s"), Vector3.ZERO,
+			Vector3(x0 + Plan.SHELF_PARAPET_T * 0.5,
+				y1 + Plan.SHELF_PARAPET_H * 0.5, (a + b) * 0.5),
+			Vector3(Plan.SHELF_PARAPET_T, Plan.SHELF_PARAPET_H, b - a), "building")
+		# A coping, because a parapet you lean on wants a top rather than an
+		# edge, and because from the court six metres below this line is the
+		# only thing drawn on the scarp at all.
+		_box("shelf_coping_%s" % ("n" if k == 0 else "s"), Vector3.ZERO,
+			Vector3(x0 + Plan.SHELF_PARAPET_T * 0.5 - 0.06,
+				y1 + Plan.SHELF_PARAPET_H + 0.06, (a + b) * 0.5),
+			Vector3(Plan.SHELF_PARAPET_T + 0.28, 0.12, b - a), "accent", 0.0, false)
+
+	# The terrace above, capped in planting. Nothing stands on it and nothing
+	# will until a section does — `SECTION_GROUND` has `frontier` and
+	# `kiddieland` up here — so what it has to do is not read as a roof. Grey
+	# masonry with a grey top is a building; grey masonry with a green top is a
+	# retained bank, which is what it is.
+	_terrace_cap("terrace_two_n", x0, x2, y2, gz0, sz0)
+	_terrace_cap("terrace_two_s", x0, x2, y2, sz1, gz1)
+	_terrace_cap("terrace_two_e", Plan.CLIMB_TO_X, x2, y2, sz0, sz1)
+	# Last, so nothing above it moves an ordinal.
+	_shelf_buttresses(x0, x1, y1, y2, sz0, sz1)
+
+
+## How far below the ground the hill is footed. See `COASTER_EMBED`: a mass
+## bottomed at exactly y = 0 shares its underside with every other thing
+## standing on y = 0, and those can be four scenes away where the seam ordinal
+## cannot reach them.
+const HILL_EMBED := 3.0
+
+## The deck laid over the shelf's fill, and the cap laid over the terrace's
+## mass. Both exist so that a level has exactly one up-facing surface at its own
+## height — the mass beneath each stops short by this much, so there is never a
+## second floor a quarter of a millimetre away pretending to be the same one.
+const SHELF_DECK_T := 0.4
+const TERRACE_CAP_T := 0.5
+
+
+## One piece of the hill's mass, given the finished level of its top.
+##
+## **It lays its mass to a cap's thickness below that level**, which is the whole
+## reason it takes the finished number rather than its own. Every call site then
+## reads as the terrace height the plan states, and the offset that keeps the cap
+## and the mass off one plane lives in one place instead of at three call sites
+## where the fourth would eventually be written without it.
+func _hill_block(nm: String, x0: float, x1: float, y0: float, top: float,
+		z0: float, z1: float) -> void:
+	var y1 := top - TERRACE_CAP_T
+	_box(nm, Vector3.ZERO,
+		Vector3((x0 + x1) * 0.5, (y0 + y1) * 0.5, (z0 + z1) * 0.5),
+		Vector3(x1 - x0, y1 - y0, z1 - z0), "building")
+
+
+## The planted top of a hill block. No collision: nothing can reach twelve
+## metres — the shelf is six and walled, and the only climb in the east is the
+## cascade, which stops at the shelf.
+func _terrace_cap(nm: String, x0: float, x1: float, top: float,
+		z0: float, z1: float) -> void:
+	_box(nm, Vector3.ZERO,
+		Vector3((x0 + x1) * 0.5, top - TERRACE_CAP_T * 0.5, (z0 + z1) * 0.5),
+		Vector3(x1 - x0, TERRACE_CAP_T, z1 - z0), "planting", 0.0, false)
+
+
+## The one step from the monument onto the hill.
+##
+## Its own box because the shelf's deck stops dead on the scarp line: the deck's
+## west face *is* the top of the scarp, which is what lets the parapet stand on
+## the line rather than inboard of it, and what keeps brick out of the cascade's
+## planted banks for the other forty metres of that edge. So the doorway is the
+## one place the two floors have to meet, and this is the piece that laps them.
+##
+## A coplanar butt leaves a zero-width seam for the capsule to catch on, and this
+## is the single stride every route onto the shelf passes through — the worst
+## possible place to leave one. It runs two metres back over the landing's deck
+## and a metre out over the shelf's, and all three tops sit at `HILL_TOP` with
+## only the build-order displacement between them, which is exactly the case that
+## displacement is for.
+func _east_hill_sill(axis: float, x0: float, y1: float) -> void:
+	var half := Plan.LANDING_HALF_W
+	_box("shelf_sill", Vector3.ZERO,
+		Vector3(x0 - 0.5, y1 - SHELF_DECK_T * 0.5, axis),
+		Vector3(3.0, SHELF_DECK_T, half * 2.0), "brick")
+
+
+## Pilasters up the notch's three walls.
+##
+## **The same answer the bluff already gave to the same question.** A retaining
+## face gets a coping and buttresses on the stretch that is seen and nothing on
+## the stretch that is not, and this hill inverted that by accident: the wall a
+## player can put their hand on is the one inside the notch, and it went in as
+## 36m by 6m of flat grey. Blank is honest for a surface at eighty metres and it
+## is the boardwalk's back-lane problem at twelve.
+##
+## They stop at the terrace cap's underside rather than at the terrace level. A
+## buttress run the full height would stand half a metre proud of the green
+## above the wall, which reads as a post somebody left there rather than as the
+## wall thickening — the same lump that killed four separate shoulders at the
+## cascade's wing junction.
+func _shelf_buttresses(x0: float, x1: float, y1: float, y2: float,
+		sz0: float, sz1: float) -> void:
+	const W := 1.0
+	const D := 0.4
+	var top := y2 - TERRACE_CAP_T
+	var mid := (y1 - 0.2 + top) * 0.5
+	var h := top - y1 + 0.2
+	# North and south, across the notch's depth. Started clear of the parapet so
+	# the first one is not half-buried in it.
+	for k in 2:
+		var z: float = sz0 + D * 0.5 if k == 0 else sz1 - D * 0.5
+		var tag := "n" if k == 0 else "s"
+		for i in 4:
+			var x := x0 + 2.6 + float(i) * 4.3
+			_box("shelf_butt_%s_%d" % [tag, i], Vector3.ZERO,
+				Vector3(x, mid, z), Vector3(W, h, D), "building", 0.0, false)
+	# The east wall, which is the one you face when you turn round — and which
+	# has the ravine's mouth in it since the climb went in, so five of the seven
+	# stood in open air. Skipped rather than re-spaced: the survivors are the
+	# jambs, and moving them to spread evenly over what is left would put a
+	# pilaster where the wall stops instead of where the opening starts.
+	var mouth: float = Plan.CLIMB_OPEN_HALF
+	for i in 7:
+		var z: float = sz0 + 3.0 + float(i) * 5.0
+		if absf(z - Plan.ARCH_AT.y) < mouth + D:
+			continue
+		_box("shelf_butt_e_%d" % i, Vector3.ZERO,
+			Vector3(x1 - D * 0.5, mid, z), Vector3(D, h, W), "building", 0.0, false)
+
+	# **And a string course, because the pilasters alone drew nothing.**
+	#
+	# Built, shot, and invisible: 0.4m of relief in the wall's own colour, on a
+	# west-facing face at half past three with the sun straight down it. No
+	# shadow, no value change, no line — a flat grey wall with flat grey lumps
+	# on it. Depth was the wrong lever and more depth would have been more of the
+	# wrong lever, because the thing missing was not shape.
+	#
+	# The cascade settled this already and the note is in `trim`: a string course
+	# is the most legible thing in every photograph of the reference, and it works
+	# by *value* rather than by relief. So this is `accent` — the parapet's own
+	# coping colour, carried round the other three sides, which also stops the
+	# notch reading as a brick floor in a grey box with one terracotta edge.
+	#
+	# The pilasters stay. They do nothing at noon and they do the whole job at
+	# ten and at seven, when the sun rakes this wall instead of facing it — which
+	# is exactly the two hours a photographer is up here.
+	var cy := y1 + (top - y1) * 0.62
+	const CD := 0.26
+	const CH := 0.3
+	for k in 2:
+		var z: float = sz0 + CD * 0.5 if k == 0 else sz1 - CD * 0.5
+		_box("shelf_course_%s" % ("n" if k == 0 else "s"), Vector3.ZERO,
+			Vector3((x0 + x1) * 0.5, cy, z),
+			Vector3(x1 - x0, CH, CD), "accent", 0.0, false)
+	# In two pieces, either side of the ravine's mouth. A course that ran the
+	# full width would cross the opening as a bar hanging in it.
+	var eax: float = Plan.ARCH_AT.y
+	for k in 2:
+		var a: float = sz0 if k == 0 else eax + Plan.CLIMB_OPEN_HALF
+		var b: float = eax - Plan.CLIMB_OPEN_HALF if k == 0 else sz1
+		if b - a < 0.3:
+			continue
+		_box("shelf_course_e_%s" % ("n" if k == 0 else "s"), Vector3.ZERO,
+			Vector3(x1 - CD * 0.5, cy, (a + b) * 0.5),
+			Vector3(CD, CH, b - a), "accent", 0.0, false)
 
 
 ## The cascade: a landing at the head, a trapezoid facade under it, and a wing
@@ -3717,6 +4134,13 @@ func _cascade(site: Dictionary) -> void:
 	# cascade and read by the next one built, so without this the east's lamps
 	# would stand on the west's rails.
 	_cascade_rails.clear()
+	# **The east's treads are brick and the west's are not.** The east cascade
+	# stands on the plaza's own floor and its court, forecourt and belvedere are
+	# all brick, so a flat `accent` tread reads as orange plastic laid on a
+	# textured ground. The west may not have it at any price: "no brick west of
+	# the bluff" is a rule about the two sections disagreeing, and the boardwalk's
+	# whole floor argument depends on it. Same monument, two grounds.
+	_tread_mat = "brick" if String(site["tag"]) == "east" else "accent"
 	_cascade_posts.clear()
 	_cascade_landing(site)
 	_cascade_wing(site, -1.0, true)
@@ -3820,8 +4244,16 @@ func _cascade_landing(site: Dictionary) -> void:
 	# thing about the opening, and a head that stops partway along it is an arch
 	# with no soffit — from the court you would see the courses at the mouth and
 	# a flat ceiling behind them.
+	# **Scaled with the opening, because an inset written as a length stops being
+	# an arch when the thing it is set into grows.** These were 0.26/0.54/0.82,
+	# which took 68% of a 2.4m opening out at the top course and left 0.76m clear
+	# — a strong arch. Left as absolutes against a 3.3m opening they would leave
+	# 1.66m, and three small brackets under a wide flat head is a lintel, not an
+	# arch. The ratio to `NICHE_W` is the thing that was actually chosen, so it is
+	# the thing written down.
+	var corbel_scale: float = Plan.NICHE_W / 2.4
 	for i in 3:
-		var inset := 0.26 + float(2 - i) * 0.28
+		var inset := (0.26 + float(2 - i) * 0.28) * corbel_scale
 		for k in 2:
 			var s := -1.0 if k == 0 else 1.0
 			_box("landing_niche_%d_%d" % [i, k], Vector3.ZERO,
@@ -3829,11 +4261,27 @@ func _cascade_landing(site: Dictionary) -> void:
 					nh - 0.2 * (float(i) + 0.5),
 					axis + s * (Plan.NICHE_W * 0.5 - inset * 0.5)),
 				Vector3(Plan.NICHE_DEEP + 0.2, 0.2, inset), "cascade_face")
-	# The string course under the landing's lip, carried on down both wings by
-	# `_cascade_wing`. `trim`, so it lights itself after dark and draws the same
-	# line by night that the handrail draws by day.
-	_box("landing_band", Vector3.ZERO,
-		Vector3(face - 0.1, head - 0.52, axis), Vector3(0.2, 0.3, half * 2.0), "trim")
+	# **There is no string course, and its absence is the composition.** A `trim`
+	# band ran the landing's full 7m at `head - 0.52` and carried on down both
+	# wings from there — the brightest, most legible thing in every photograph of
+	# the reference, and by that argument the last thing anybody would take off.
+	#
+	# What the argument left out is what this facade is *of*. `ParkPlan` says the
+	# shape reads from the bottom as a ray with its wings spread, and a ray is one
+	# unbroken surface: a horizontal across the middle falling away at both ends,
+	# with two lit eyes on it and a mouth in the centre. A pale band tracing that
+	# top edge a hand below it does not draw the creature's outline, it draws a
+	# second outline parallel to the first — and where it crossed the globes it
+	# turned two eyes into two beads threaded on a line. Dropping the globes clear
+	# of it fixed the crossing and left the parallel line, which is the half of
+	# the problem the band *is*.
+	#
+	# So the edge is drawn by the crest coping and the sky by day, and after dark
+	# by the six `moon` floods and the two grazers that already exist for exactly
+	# that job — see `_cascade_lights`, where the whole facade block was written
+	# because the chevron had no light on it. Nothing there depended on the band;
+	# the grazing aim did throw its shadow up the plane, and now it rakes a plane
+	# with nothing on it to shadow, which is the one thing this costs.
 	# The guard along the landing's own lip is `_cascade_crest` now — a parapet
 	# between two piers rather than a rail across the whole 7m. See there.
 
@@ -3852,8 +4300,19 @@ func _cascade_landing(site: Dictionary) -> void:
 	# both by construction rather than by a number that has to be kept in step:
 	# `half` either side of the axis lands it flush against the wing masses, and
 	# the return leg's own foot slab sets how far west it reaches.
+	#
+	# **A hand past the feet, not flush with them, and the flush version was a
+	# coplanar pair by derivation.** `wing_foot`'s west face is
+	# `wing_path[3].x - (WING_W + 0.7) * 0.5`, and this was that same expression —
+	# so the two slabs did not merely happen to line up, they were equal to the
+	# bit. That is the one kind of fight the build-order hair cannot break: the
+	# hair is a fraction of a millimetre handed out by ordinal, and it had been
+	# hiding this pair for as long as the two shapes happened to land on different
+	# ordinals. Taking the string course off the facade removed five nodes ahead of
+	# them, every ordinal after it moved by five, and the pair surfaced in both
+	# sites at once. 0.12 is enough to be an overlap and too little to be a step.
 	var apron_far: float = Plan.wing_path(site, -1.0)[3].x \
-		- (Plan.WING_W + 0.7) * 0.5
+		- (Plan.WING_W + 0.7) * 0.5 - 0.12
 	# **Carried back to the back of the niche, not stopped at the wall's face.**
 	# The apron used to end level with the front of the recess, which left a dark
 	# strip of asphalt across the bottom of the opening — the one part of the
@@ -3861,9 +4320,13 @@ func _cascade_landing(site: Dictionary) -> void:
 	# a stone floor for its whole depth; that was a nicety at 0.6 and is the
 	# fountain's foundation at 1.5.
 	var apron_near := fill_x
+	# Brick, for the same reason the turn landings are: this is the ground in
+	# front of the niche, it runs back under the fountain, and it is what the
+	# arch of the recess frames along its bottom edge. In `accent` it was a slab
+	# of plain orange under a warm-lit alcove and the two warms fought.
 	_box("cascade_apron", Vector3.ZERO,
 		Vector3((apron_near + apron_far) * 0.5, floor_y - 0.143, axis),
-		Vector3(absf(apron_near - apron_far), 0.36, half * 2.0), "accent")
+		Vector3(absf(apron_near - apron_far), 0.36, half * 2.0), "brick")
 	# A band along its west edge. Without it the slab stops dead against the
 	# asphalt and the court reads as having a rectangle painted on it; with it
 	# the apron has an edge and the edge is the thing you see.
@@ -3933,8 +4396,16 @@ func _cascade_niche(site: Dictionary) -> void:
 	# closes the 0.2m slot behind the reveals at both sides. It is also the one
 	# surface in the recess that is lit, so it wants to be stone the fountain is
 	# made of rather than the wall it is cut into.
-	_box("niche_plate", o, Vector3(back + 0.275, 1.70, 0.0),
-		Vector3(0.55, 3.40, Plan.NICHE_W + 0.5), "niche_face")
+	#
+	# **Its height is `NICHE_H + 0.2`, and it was the literal 3.40 that number
+	# happened to equal.** The plate has to reach past the head of the opening or
+	# the top of the recess shows `landing_fill` — five metres of `building` grey
+	# behind a lit terracotta panel. That held for as long as the opening was 3.2
+	# and nothing said so; the width beside it was already written as a relation
+	# to `NICHE_W`, which is the tell that the height was the odd one out.
+	var plate_h: float = Plan.NICHE_H + 0.2
+	_box("niche_plate", o, Vector3(back + 0.275, plate_h * 0.5, 0.0),
+		Vector3(0.55, plate_h, Plan.NICHE_W + 0.5), "niche_face")
 	# The wetted band down the middle of it, standing 5cm proud. It costs one box
 	# and it is the only thing that says the water has been running for twenty
 	# summers — the alternative was staining the stone, which greybox cannot do.
@@ -4176,18 +4647,29 @@ func _cascade_crest(site: Dictionary) -> void:
 	var kerb_top := 0.32
 
 	# The kerb, pier to pier, and the piers on top of it.
+	#
+	# **`cascade_face`, and it was the last pale thing on the facade.** It stayed
+	# `building` on the argument that a grey coping in the opening with blue either
+	# side of it *was* the contrast — which is a good argument about a wall and the
+	# wrong one about this wall. Once the string course came off, the kerb was the
+	# only horizontal light band left, sitting exactly where the head's leading
+	# edge is, and it inherited the whole of the job the course had just been taken
+	# off for: a pale line drawn across the top of the chevron, parallel to the
+	# chevron's own edge. The contrast that is left is the rail and the globes,
+	# which are objects rather than lines, and the sky behind the crest.
 	var kz: float = horn_z + horn_w * 0.5
 	_box("crest_kerb", Vector3.ZERO, Vector3(cx, head + kerb_top * 0.5, axis),
-		Vector3(pd, kerb_top, kz * 2.0), "building")
+		Vector3(pd, kerb_top, kz * 2.0), "cascade_face")
 	for k in 2:
 		var s := -1.0 if k == 0 else 1.0
 		# `cascade_face`, like the wall under them. The piers are the top of the
 		# facade rather than something standing on it — the wing springs off the
 		# outer face of each — so painting the wall and leaving these grey put a
 		# pale block at both ends of the blue, which read as the crest being a
-		# different structure bolted across the top. The kerb between them stays
-		# `building`, and that is the whole of the contrast: a pale coping in the
-		# opening, blue either side of it.
+		# different structure bolted across the top. The kerb between them is
+		# `cascade_face` too now, so the whole crest is one colour; see there for
+		# why the pale-coping-in-the-opening reading did not survive the string
+		# course coming off.
 		_box("crest_horn_%d" % k, Vector3.ZERO,
 			Vector3(cx - 0.05, head + horn_top * 0.5, axis + s * horn_z),
 			Vector3(pd + 0.14, horn_top, horn_w), "cascade_face")
@@ -4196,10 +4678,9 @@ func _cascade_crest(site: Dictionary) -> void:
 		#
 		# Hung *below* the crest rather than stood on top of it, which is the
 		# whole point of them: a lamp on the parapet is a lamp, and a lamp under
-		# the parapet is the pier having something. It sits below the string
-		# course so the course reads as the line and the globe as a point on it,
-		# and it is the only fitting on the monument whose geometry is its own
-		# light source — everything else here is an uplight aimed at masonry.
+		# the parapet is the pier having something. It is also the only fitting on
+		# the monument whose geometry is its own light source — everything else
+		# here is an uplight aimed at masonry.
 		#
 		# `lamp_glass` and the omni at the sphere's own centre, like the
 		# promenade's standards: a translucent ball reads as lit from within, and
@@ -4211,7 +4692,31 @@ func _cascade_crest(site: Dictionary) -> void:
 		# The stand-off goes with the radius rather than staying put, because
 		# what has to hold is the gap between the sphere and the masonry: at 0.28
 		# out a 0.33 globe buries a third of itself in the wall.
-		var globe_at := Vector3(globe_face - 0.46, head - 1.05, axis + s * horn_z)
+		#
+		# **Clear of the string course from the court, which is a longer drop than
+		# the elevation asks for.** It hung at `head - 1.05`, whose top sits 5cm
+		# under the band's soffit: clear in a front elevation and clear from
+		# nowhere a player stands. The globe hangs 0.76m proud of the band's own
+		# west face and the court is six metres below, so the nearer object rides
+		# up the view — from the apron's west edge at x −67.35 with the eye at 1.7,
+		# the sphere's silhouette tops out at 52.1° against the band's lower edge
+		# at 47.0°, and the two lit globes cross the one bright line on the facade.
+		# **That line is the leading edge and these are the eyes.** From the bottom
+		# the monument reads as a ray with its wings spread — `CASCADE_AXIS_Z`'s
+		# block in `ParkPlan` says so, and it is the reference's whole silhouette —
+		# which makes the course the front edge of the wing and the globes the eyes
+		# under it. An eye sitting *on* the leading edge turns the line into a
+		# necklace and the globe into a bead threaded on it. That is what the old
+		# note here asked for in as many words, and it is the one reading the shape
+		# cannot afford.
+		#
+		# 1.95 is where the overlap clears with air left over at the worst
+		# standpoint: apparent top 43.4° against the band's 47.0°, about three and
+		# a half degrees of facade between them at the apron and four and a half by
+		# the back of the court. Measured against the parallax rather than the
+		# elevation — anything picked off a front view clears by centimetres and
+		# reads as touching, which is how 1.05 survived.
+		var globe_at := Vector3(globe_face - 0.46, head - 1.95, axis + s * horn_z)
 		_box("crest_globe_%d_arm" % k, Vector3.ZERO,
 			Vector3(globe_face - 0.13, globe_at.y, globe_at.z),
 			Vector3(0.28, 0.12, 0.12), "metal")
@@ -4370,16 +4875,18 @@ func _cascade_wing(site: Dictionary, side: float, smooth: bool) -> void:
 		_box("wing_cap_%s_%d" % [tag, leg], mid - up * 0.19, Vector3.ZERO,
 			Vector3(cap_half * 2.0, 0.34, run + 0.2), "cascade_face", theta, true, slope)
 
-		# The string course, continuing the landing's line down the diagonal.
+		# **No string course down the diagonal either**, and it goes with the
+		# landing's — see `_cascade_landing`, which carries the argument. A
+		# `wing_band` rode 0.52 under the cap on each leg, and it spent most of its
+		# life laid 1.92m out from the leg's centre line while the mass either side
+		# reached 2.3m, so the brightest line in the reference was buried inside the
+		# masonry and drew nothing at all. Measuring it off the cap's face finally
+		# put it where it could be seen, and seeing it is what showed it was a
+		# second outline running parallel to the wing's own top edge.
 		#
-		# **Off the cap's face, not off `half`.** It was laid 1.92m out from the
-		# leg's centre line while the mass either side of it reaches 2.3m, so the
-		# brightest line in every photograph of the reference has been buried
-		# inside the masonry for as long as the mass has been that wide. It draws
-		# nothing from the court because there is nothing of it to see.
-		_box("wing_band_%s_%d" % [tag, leg],
-			mid - up * 0.52 + Vector3(-(cap_half + 0.05), 0.0, 0.0), Vector3.ZERO,
-			Vector3(0.2, 0.3, run), "trim", theta, true, slope)
+		# The cap is the edge now. It is `cascade_face` like the mass under it, so
+		# the wing is one surface from spring to toe and what draws it is the blue
+		# meeting the sky.
 
 		# The treads, and the ramp under them that is the actual floor.
 		# `CharacterBody3D` has no step-up, so a stair here is a slab on the
@@ -4425,7 +4932,7 @@ func _cascade_wing(site: Dictionary, side: float, smooth: bool) -> void:
 			_box("wing_foot_%s" % tag,
 				Vector3(b.x, b.y - 0.28, b.z + signf(a.z - b.z) * -0.9),
 				Vector3.ZERO,
-				Vector3(Plan.WING_W + 0.7, 0.5, 2.4), "accent", theta)
+				Vector3(Plan.WING_W + 0.7, 0.5, 2.4), _tread_mat, theta)
 
 		# The handrail on the west edge, which is the brightest line in every
 		# photograph of the reference and the thing that draws the diagonal.
@@ -4509,8 +5016,15 @@ func _cascade_wing(site: Dictionary, side: float, smooth: bool) -> void:
 	_box("wing_land_wall_%s" % tag, Vector3.ZERO,
 		Vector3(cx, (y - 0.5 + base_y) * 0.5, far_z),
 		Vector3(w + 0.8, y - 0.5 - base_y, land_d + 0.8), "cascade_face")
+	# **Brick, not `accent`.** The turn is a floor you stand on, and it was the
+	# park's terracotta with nothing on it — a flat orange rectangle six metres
+	# up a blue wall, which from the court read as a painted panel rather than as
+	# ground. The court below it is brick and so is the apron at the foot, so the
+	# whole of what the descent delivers you onto is now one material and the
+	# only thing that changes down the route is your height. The treads stay
+	# `accent`: a tread is a piece of the stair, not a piece of the ground.
 	_box("wing_land_%s" % tag, Vector3.ZERO, Vector3(cx, y - 0.25, far_z),
-		Vector3(w, 0.5, land_d), "accent")
+		Vector3(w, 0.5, land_d), "brick")
 	# Coping on the two edges nothing walks over — the far end and the west face.
 	# Never the near edge: that is where both legs come in, and a 40cm kerb across
 	# it is a wall closing the turn the landing exists to make.
@@ -4528,9 +5042,29 @@ func _cascade_wing(site: Dictionary, side: float, smooth: bool) -> void:
 	# at the one place on the descent you stop and look. It was also 0.1m past the
 	# outer face of `wing_land_wall`, so the last post had nothing under it.
 	# `_wing_rail` merges the shared corner post; see there.
+	#
+	# **It runs a hand past the slab's far edge and then turns.** The west run
+	# used to stop dead on the outer corner at `out_z`, which is the far end of
+	# the whole hairpin — the outermost point of the monument, the one place the
+	# descent gives you to stand and look back up it, and a 3m drop over a 40cm
+	# kerb. The guard was continuous down leg 1 and across the turn and then
+	# simply ended, at the corner, in the air. Carrying it round the end is what
+	# the outer edge of a switchback is: one line from the head of the return leg
+	# round the turn and back, rather than a line that quits where the direction
+	# changes.
+	#
+	# Both runs sit `0.2` outboard of the slab, on their own coping, so the
+	# corner is a right angle with one post in it rather than two lines passing
+	# 20cm apart — the same fault `POST_MERGE` was written for, one corner along.
+	# The end run reaches `x0 + 0.2`, which is the far side of leg 0: east of
+	# that the planted bank comes up and there is no drop left to guard.
+	var corner_z: float = out_z + side * 0.2
 	_wing_rail("wing_land_rail_%s" % tag,
-		Vector2(x1 - 0.2, far_z - land_d * 0.5), y,
-		Vector2(x1 - 0.2, far_z + land_d * 0.5), y, true)
+		Vector2(x1 - 0.2, stop_z), y,
+		Vector2(x1 - 0.2, corner_z), y, true)
+	_wing_rail("wing_land_rail_end_%s" % tag,
+		Vector2(x1 - 0.2, corner_z), y,
+		Vector2(x0 + 0.2, corner_z), y, true)
 
 
 ## The treads on the south wing, and only the south wing.
@@ -4565,7 +5099,7 @@ func _wing_treads(tag: String, leg: int, a: Vector3, b: Vector3, theta: float,
 		var tn := a.lerp(b, float(i + 1) / float(risers))
 		_box("wing_tread_%s_%d_%d" % [tag, leg, i],
 			Vector3(tm.x, tn.y - 0.26, tm.z), Vector3.ZERO,
-			Vector3(Plan.WING_W + 0.7, 0.5, going), "accent", theta)
+			Vector3(Plan.WING_W + 0.7, 0.5, going), _tread_mat, theta)
 		_box("wing_nosing_%s_%d_%d" % [tag, leg, i],
 			Vector3(tn.x, tn.y + 0.015, tn.z), Vector3.ZERO,
 			Vector3(Plan.WING_W - 0.2, 0.03, 0.16), "far_shade", theta, false)
@@ -4610,12 +5144,31 @@ func _cascade_bank(site: Dictionary, side: float) -> void:
 	# quietly re-space the six steps that were already right. The seventh is laid
 	# on the landing's own level — `b.y`, so it steps down once more from the
 	# sixth and stops there.
+	#
+	# **A bay past each end, so the row runs out rather than stopping.** Six on
+	# the slope and one on the turn is the structure exactly, and from the court
+	# that read as a row of planters cut off square at both ends — the hillside
+	# beginning where the wing begins and ending where its masonry does, which is
+	# not how a hillside behaves. One more bay at the head carries the planting
+	# in past the spring of the wing onto the top deck, where it is a bed rather
+	# than a retained bank (the `head - 0.25` cap already flattens it there, so it
+	# arrives as planting let into the deck rather than as a wall standing on it);
+	# one more past the turn tucks a last bay into the strip against the bluff and
+	# steps it down a further half metre, so the row leaves the frame falling
+	# instead of stopping level.
+	#
+	# Both are laid at the slope's own going, which is the only reason they read
+	# as more of the same row rather than as two extra objects.
+	var going: float = (b.z - a.z) / 6.0
+	var fall: float = (a.y - b.y) / 6.0
 	var segs: Array = []
+	segs.append([a.z - going, a.z, a.y])
 	for i in 6:
 		var p0 := a.lerp(b, float(i) / 6.0)
 		var p1 := a.lerp(b, float(i + 1) / 6.0)
 		segs.append([p0.z, p1.z, (p0.y + p1.y) * 0.5])
 	segs.append([b.z, b.z + side * 0.9, b.y])
+	segs.append([b.z + side * 0.9, b.z + side * 0.9 + going, b.y - fall])
 	for i in segs.size():
 		var z0: float = segs[i][0]
 		var z1: float = segs[i][1]
@@ -4812,15 +5365,19 @@ func _cascade_lights(site: Dictionary) -> void:
 	# above washes a *part* — the niche, the flanks of the middle wall, the
 	# treads, the planting — and the thing those parts add up to is a top edge
 	# running horizontal across the middle and falling away at both ends. By day
-	# that edge is drawn by `trim` and the sky. After dark it was drawn by
-	# nothing, so the monument stopped being a shape at sunset and became a set
+	# that edge is drawn by the crest coping and the sky. After dark it was drawn
+	# by nothing, so the monument stopped being a shape at sunset and became a set
 	# of lit patches at the bottom of a black bluff.
 	#
 	# So: a row of floods standing in the court, at the toe of what they light,
 	# raking up the face. Grazing rather than flooding — the aim point is only
-	# 1.2m out from the wall over 4m of rise, which is what throws the string
-	# course's own shadow up the plane and makes a flat greybox wall have a line
-	# on it. Cold, because the facade is painted and `moon` on that blue goes
+	# 1.2m out from the wall over 4m of rise. That aim was chosen to throw the
+	# string course's own shadow up the plane, and the course has since come off
+	# the facade — see `_cascade_landing` — so the graze now rakes a plane with
+	# nothing on it to shadow. Kept at 1.2m regardless: grazing is also what puts
+	# a gradient on a flat surface, and it is the crest coping's underside and the
+	# niche's reveals that catch it now. Cold, because the facade is painted and
+	# `moon` on that blue goes
 	# deeper while the route's amber would take it to mud. That is the split the
 	# tints were written for and it now has a colour to work against.
 	#
@@ -4908,6 +5465,15 @@ func _cascade_lights(site: Dictionary) -> void:
 	# what makes the two piers at the top and the run down each wing read as one
 	# scheme instead of as a feature and some safety lighting.
 	#
+	# **Since 2026-08-18 they are the monument's decoration and not only its route
+	# lighting.** The facade lost its string course and its pale crest kerb that
+	# day, both of them lines drawn parallel to the chevron's own top edge, which
+	# is the one kind of ornament this shape cannot carry — see `_cascade_landing`.
+	# What is left articulating it is eighteen glass globes: sixteen down the
+	# wings and two under the piers. Points on a blank surface rather than lines
+	# across it, which is the whole distinction the facade argument turned on. A
+	# later pass wanting more detail here should add fittings, not stripes.
+	#
 	# `lamp` rather than `amber`: the rakes across the treads are the staged
 	# warm, and a fitting has to be tungsten or it stops reading as a fitting.
 	# Short range on purpose — 7m keeps each globe a pool you walk through
@@ -4946,6 +5512,9 @@ func _cascade_lights(site: Dictionary) -> void:
 ## copy of the wing path is exactly how a test came to be walking a wing it had
 ## computed for itself. The lamps are emitted last for seam-order reasons, and
 ## this is what lets them be emitted last without knowing anything.
+## Which material the cascade's treads wear, set per site by `_cascade`. See
+## there for why the east is brick and the west may never be.
+var _tread_mat := "accent"
 var _cascade_rails: Array = []
 
 ## Every post `_wing_rail` has put down this scene, lamped or not, so that two
@@ -4961,8 +5530,12 @@ var _cascade_posts: Array = []
 ## other, and once the globes went on that was two lamps 30cm apart at the one
 ## place on the descent you stop and look back. Half a metre catches the join and
 ## nothing else — **measured off the emitted scene rather than reasoned about**:
-## with the corner merged, the closest two posts that are genuinely different are
-## 1.445m apart, which is the turn landing's 2.9m rail over its two spans. The
+## with the corner merged, the closest two posts that are genuinely different
+## were 1.445m apart, which was the turn landing's 2.9m rail over its two spans.
+## That run is 3.1m now that the guard turns the outer corner, so the arithmetic
+## says 1.55 — **arithmetic, not a measurement**, and it wants re-checking off
+## the emitted scene the next time one is written. Half a metre has room either
+## way. The
 ## first draft of this comment said 1.9m from arithmetic done in the head, and
 ## the whole of this monument's recent history is numbers that were never checked
 ## against the file they describe.
@@ -4977,7 +5550,14 @@ func _wing_rail(nm: String, a: Vector2, ya: float, b: Vector2, yb: float,
 		return
 	var theta := atan2(span.x, span.y)
 	var phi := atan2(ya - yb, length)
-	var posts := maxi(2, int(length / 2.6))
+	# **`ceili`, not `int`.** Truncating makes the spacing *grow* with the run
+	# once it passes 5.2m: a 7.4m rail asks for 2 bays of 3.7m rather than 3 of
+	# 2.47, and with a globe on every post that is the difference between a line
+	# of lamps and three lamps. Nothing on the monument was long enough to show
+	# it until the guard turned the corner and picked up the landing's whole
+	# width. Inert for every run that existed before — the legs are 4.8 and 3.84
+	# and the turn 3.1, and `maxi(2, …)` already floors all three at two bays.
+	var posts := maxi(2, ceili(length / 2.6))
 	for i in posts + 1:
 		var t := float(i) / float(posts)
 		var p := a.lerp(b, t)
@@ -5031,6 +5611,181 @@ func _skyline() -> void:
 	# The west used to be built here. It is three scenes of its own now — see
 	# WEST_SHELL_PATH — because half of it has to survive the player crossing the
 	# gate and the other half has to be replaced when they do.
+	# East, and the largest thing in the park. Last in this scene rather than
+	# first, so that adding it moves nobody's seam ordinal: the coaster and the
+	# tower keep the displacement they were built with.
+	_rim()
+
+
+# ---------------------------------------------------------------------------
+# The rim
+# ---------------------------------------------------------------------------
+
+## How finely the ridge is cut along its length. 10m bands over the 340m the
+## profile spans, so 34 of them.
+##
+## The number is set by the crest line and not by the face. The face is smooth in
+## x — one slab carries a whole band from toe to crest — so the only artefact
+## banding can produce is a step in the silhouette where two bands meet, and the
+## steepest stretch of `RIM_PROFILE` falls 8m over 70m. Ten metres of band is
+## about 1.1m of step there and less everywhere else, which at 150m and up is a
+## third of a degree. `_rim_jag` puts more relief on it than that on purpose.
+const RIM_BAND := 10.0
+
+## Bands overlap rather than butt, because a butt is a zero-width seam and two
+## boxes meeting exactly are two faces at the same depth. Overlaps are the
+## house rule; the seam ordinal separates what is left.
+const RIM_BAND_LAP := 0.4
+
+## Measured on the normal to the slope, not vertically. Thick enough that the
+## ridge is a mass rather than a sheet from any oblique angle, and thin enough
+## that the perpendicular cut at the toe stays underground.
+const RIM_FACE_THICK := 16.0
+
+## How far the mass runs east of the crest. Nothing sees it. It exists so the
+## crest is an edge on something rather than the top of a plane.
+const RIM_BACK_D := 24.0
+
+## The chord runs two metres under the ground before it stops, so the ridge
+## comes out of the terrace rather than standing on it. `RIM_FOOT_X` stays the
+## design foot — the line the plan says the rise begins at — and the toe below
+## it is spare geometry for terrace two to bury when terrace two exists, which
+## on the axis is everything from about x 110 out to 120.
+const RIM_TOE_Y := -2.0
+
+## The mass behind the crest is footed below the ground for the reason
+## `COASTER_EMBED` is: a box bottomed at exactly y = 0 shares its underside with
+## everything else standing on y = 0, and that is the one coplanar case the
+## build-order ordinal cannot help with, because the two shapes can be two
+## hundred nodes and four scenes apart.
+const RIM_EMBED := 3.0
+
+## The relief, and how quickly it comes in off the axis. See `_rim_jag`.
+const RIM_JAG := 1.2
+const RIM_JAG_TAPER := 30.0
+
+
+## The park sits in a breached crater, and this is the wall of it: 340m of ridge
+## climbing out of the east, open to the west because that is the bearing the sun
+## sets on and `daylight.gd` computes rather than poses.
+##
+## **`ParkPlan` has held the whole of it since the east cascade went in and
+## nothing had ever drawn it.** Foot, crest, the seven-point profile and the
+## `rim_crest` accessor were all written, and `rim_crest` had no callers at all —
+## so the east gate has been framing a six metre monument with open sky behind
+## it, and the plan's claim that the ridge stands over the whole east roofline
+## was a claim about a file rather than about the park.
+##
+## **Massing, never reachable, no collision**, like the coaster and the tower it
+## shares this scene with. The player cannot get near the toe: the shelf that
+## would take them there is not built either, and the cascade stops them at x 70.
+##
+## Two views see two different halves of it, which is what the plan is arranged
+## around. From inside the plaza an eye at 1.7 clears the east wall's 11.5m top
+## on a shallow ray, so the fountain sees the top seven metres of a crest of 50
+## and the plaza's west side sees about twenty-four — the ridge opens up as you
+## back away from it, which is the right way round for distance. Through the east
+## gap you get the foot and the lower slope instead, cropped near 29m by the
+## beam. **Nothing sees the crest from above and nothing sees the back**, and the
+## mass below is allowed to assume that.
+##
+## What is deliberately not here: the north arm, which `RIM_PROFILE` stops short
+## of because a rim that wraps north has to decide what it does about the grove
+## and about the coaster standing forty metres in front of it, and neither is
+## decided. The ends at z ±170 are raw cuts for the same reason the east court's
+## are — from the fountain the far end of the ridge sits under a ray that clears
+## the wall at y 63, so there is no standpoint in the park that can see one.
+func _rim() -> void:
+	var p: Array = Plan.RIM_PROFILE
+	var from_z: float = p[0]["z"]
+	var to_z: float = p[p.size() - 1]["z"]
+	var bands := int(round((to_z - from_z) / RIM_BAND))
+	var run := Plan.RIM_CREST_X - Plan.RIM_FOOT_X
+	var width := RIM_BAND + RIM_BAND_LAP * 2.0
+	for i in bands:
+		var z := from_z + (float(i) + 0.5) * RIM_BAND
+		var crest := Plan.rim_crest(z) + _rim_jag(z)
+		# The slope the plan actually states, measured between the two points it
+		# names: the foot on terrace two and the crest. The toe below the foot is
+		# an extension of the same line, never a second gradient.
+		var alpha := atan2(crest - Plan.TERRACE_TWO_Y, run)
+		var toe_x: float = Plan.RIM_FOOT_X \
+			- (Plan.TERRACE_TWO_Y - RIM_TOE_Y) / tan(alpha)
+		var chord := Vector2(Plan.RIM_CREST_X - toe_x, crest - RIM_TOE_Y)
+		var mid := Vector2(toe_x + Plan.RIM_CREST_X, RIM_TOE_Y + crest) * 0.5
+		# The face is laid **on** the chord rather than centred on it, which is
+		# what puts the top-west corner exactly on `crest`. Centring would hang
+		# half the thickness out past the silhouette and make the emitted ridge
+		# taller than the number the plan quotes — the same class of mistake as
+		# deriving the wheel's height instead of reading it.
+		var inward := Vector2(sin(alpha), -cos(alpha))
+		var at := mid + inward * (RIM_FACE_THICK * 0.5)
+		_rim_face("rim_face_%d" % i, Vector3(at.x, at.y, z), width,
+			chord.length(), alpha)
+		# The mass behind the crest, half a metre below it so it can never be
+		# the thing on the skyline. Coarse on purpose — see the note on the
+		# hollow in `_rim_face`.
+		var top := crest - 0.5
+		_box("rim_core_%d" % i,
+			Vector3(Plan.RIM_CREST_X + RIM_BACK_D * 0.5,
+				(top - RIM_EMBED) * 0.5, z), Vector3.ZERO,
+			Vector3(RIM_BACK_D, top + RIM_EMBED, width), "rim", 0.0, false)
+
+
+## One band of the inner face, as a slab in its own tilted frame.
+##
+## **A wedge is not a rotated box; a face is.** The rule the cascade's wings paid
+## for is about a *tall* box tilted to a slope, where the height swings the
+## corners `height * sin(slope)` along the run and the legs overshoot both ends.
+## This is the other case and it is the safe one: the slab is thin on the axis it
+## is tilted about, its length is the chord's own length, and its ends are cut
+## perpendicular to the chord because that is where the geometry wants them —
+## the top cut becomes the ridge's back slope and the bottom cut is underground.
+## Nothing is built square and then turned.
+##
+## `theta` is a quarter turn and it is load-bearing. `_xform` yaws and then
+## pitches about local RIGHT, which after no yaw is a rotation in the y-z plane —
+## and this slope runs in x. A quarter turn first puts local z along the chord
+## and local y on its normal, so `phi = -alpha` is the slope and the size vector
+## reads (band, thickness, chord).
+##
+## **What is behind it is hollow, and that is a decision with a condition on it.**
+## From the west this slab is a continuous surface from the toe to the crest, so
+## the pocket between its back face and `rim_core` cannot be seen from any
+## standpoint the park has — the plaza is 150m west and 48m below the crest, the
+## gap crops at 29m, and the only elevation in the park is a shelf that is not
+## built. Filling it would be a stepped wedge per band and four times the nodes.
+## Anything that puts a camera over this ridge wants it filled first.
+func _rim_face(nm: String, at: Vector3, width: float, length: float,
+		alpha: float) -> void:
+	_box(nm, at, Vector3.ZERO, Vector3(width, RIM_FACE_THICK, length), "rim",
+		PI * 0.5, false, -alpha)
+
+
+## The relief on the crest line.
+##
+## A ridge interpolated straight off seven control points is a swept curve, and a
+## swept curve at this size reads as a tarpaulin over something rather than as
+## land. This is a fixed pair of sines rather than an RNG because the generator
+## has none and does not want one: the ridge has to come out the same on every
+## run or the coplanar report changes under whoever is reading it.
+##
+## It has a second job, and that is why it is a taper rather than a constant.
+## Two adjacent bands at the same crest have the same slope angle, and two slabs
+## at the same angle are two parallel faces a hair apart — which is the case the
+## seam ordinal exists to survive rather than the case it exists to prevent. A
+## crest that never repeats means two faces never line up to begin with. It also
+## buys the only tonal variation the ridge has: each band meets the sun at its
+## own angle, so 340m of one material still shades in patches.
+##
+## **Zero on the park's own axis**, and that is not tidiness. `ParkPlan` states
+## what a crest of 50 shows from the fountain and from the plaza's west side, and
+## those two numbers were measured off that 50. A metre of jag forty metres north
+## costs nothing; a metre of it on the axis would quietly make a documented
+## figure wrong, which is how the wheel's height went wrong for a week.
+func _rim_jag(z: float) -> float:
+	var taper := clampf(absf(z - Plan.ARCH_AT.y) / RIM_JAG_TAPER, 0.0, 1.0)
+	return (sin(z * 0.137) * 0.62 + sin(z * 0.331 + 1.7) * 0.38) * RIM_JAG * taper
 
 
 ## The arrival: everything south of the plaza's south wall.
@@ -7268,7 +8023,7 @@ const GATE_EAST := {
 	"prefix": "east_gate",
 	"mass": ["east_pier_north", "east_pier_south", "east_beam"],
 	"inward": -1.0,
-	"festoons": false,
+	"festoons": true,
 	"axis_z": Plan.EAST_GAP_AT.y,
 	"width": Plan.EAST_GAP_WIDTH,
 	"height": Plan.EAST_GAP_HEIGHT,
@@ -7496,15 +8251,16 @@ func _gate_frontispiece(gate: Dictionary, face: float, head: float, top: float,
 	_omni("%s_throat" % prefix, Vector3(face - inward * 7.0, 5.4, mid),
 		"warm", 2.6, 13.0)
 
-	# **Festoons on the west only, and that is not an oversight.** Where they hang
-	# is derived from the wheel: the run rides the plane the beam already hides,
-	# because anything below it draws itself across the west's biggest silhouette.
-	# The east has no such plane to borrow — its beam crops the rim on purpose —
-	# so a run copied over here would be sized against a constraint that is not
-	# there. It wants its own argument, and the thing it would be strung over is
-	# a forecourt that has not been laid out yet.
+	# **Both gates now, and the east's argument is different from the west's.**
+	# The west's run rides a rising plane derived from the wheel — the plane the
+	# beam already hides, because anything under it draws itself across the west's
+	# biggest silhouette. The east has no such plane to borrow and this file said
+	# so for a day: its beam crops the rim on purpose. What it has instead is a
+	# monument, a forecourt and a hill, none of which a wire at a constant height
+	# under the soffit crosses. So the east hangs level and the west hangs rising,
+	# and `rise` is the one number that differs.
 	if gate["festoons"]:
-		_gate_festoons(top, open_n, open_s)
+		_gate_festoons(gate, top, open_n, open_s)
 
 
 ## The two ends of the run, as x. Clear of the beam's west face at −31.4 and
@@ -7622,20 +8378,35 @@ const FESTOON_HOIST := ["red", "white", "blue", "yellow", "red", "blue",
 ## stand-in to reproduce detail, which is the one thing that comment argues
 ## against — it is a real limit, not an oversight, and it is the sign's limit
 ## already.
-func _gate_festoons(top: float, open_n: float, open_s: float) -> void:
-	# The plane the beam hides, from the standpoint the beam is bound at.
-	var cam_x: float = Plan.ARCH_RIM_CLEAR_X + FESTOON_ARM
-	var rise: float = (Plan.ARCH_HEIGHT - FESTOON_EYE) / (cam_x - Plan.ARCH_MOUTH_X)
+func _gate_festoons(gate: Dictionary, top: float, open_n: float, open_s: float) -> void:
+	var inward: float = gate["inward"]
+	var mouth: float = gate["mouth_x"]
+	var far: float = gate["far_x"]
+	var height: float = gate["height"]
+	# The plane the beam hides, from the standpoint the beam is bound at — west
+	# only. `ARCH_RIM_CLEAR_X` is a fact about looking at the wheel through the
+	# west arch and means nothing on this side of the park, so the east takes a
+	# level run and derives nothing.
+	var rise := 0.0
+	if inward > 0.0:
+		var cam_x: float = Plan.ARCH_RIM_CLEAR_X + FESTOON_ARM
+		rise = (Plan.ARCH_HEIGHT - FESTOON_EYE) / (cam_x - Plan.ARCH_MOUTH_X)
 	# The bottom corner of the lowest flag, measured from its own wire.
 	var drop: float = FESTOON_FLAG_HANG + FESTOON_CLEAR \
 		+ FESTOON_FLAG_H * 0.5 * cos(FESTOON_FLAG_LEAN) \
 		+ FESTOON_FLAG_W * 0.5 * sin(FESTOON_FLAG_LEAN)
 
+	# The run's ends, off the gate's own mouth and far face rather than off two
+	# constants that were the west's. Same insets: 1.2m in from the mouth so the
+	# first span is clear of the beam, 0.7m short of the far face so nothing hangs
+	# out past the wall.
+	var from_x: float = mouth - inward * 1.2
+	var to_x: float = far + inward * 0.7
 	var anchors: Array[Vector3] = []
 	for i in FESTOON_SPANS + 1:
-		var x := lerpf(FESTOON_FROM_X, FESTOON_TO_X, float(i) / float(FESTOON_SPANS))
+		var x := lerpf(from_x, to_x, float(i) / float(FESTOON_SPANS))
 		var z: float = (open_n + FESTOON_PIN) if i % 2 == 0 else (open_s - FESTOON_PIN)
-		var free: float = Plan.ARCH_HEIGHT + (Plan.ARCH_MOUTH_X - x) * rise
+		var free: float = height + (mouth - x) * inward * rise
 		anchors.append(Vector3(x, free + FESTOON_SAG + drop, z))
 
 	# Cheap and general: assert the run is where the run belongs. Everything is
@@ -7643,7 +8414,7 @@ func _gate_festoons(top: float, open_n: float, open_s: float) -> void:
 	# which is the end the rising line runs at, and the one that would climb out
 	# through the sky if the eye height or the span ever moved.
 	for a in anchors:
-		if a.x > Plan.ARCH_MOUTH_X or a.x < Plan.ARCH_FAR_X:
+		if (a.x - mouth) * inward > 0.0 or (a.x - far) * inward < 0.0:
 			push_error("a festoon anchor at x %.2f is outside the cutting" % a.x)
 			return
 	if anchors[FESTOON_SPANS].y > top - 0.6:
@@ -7656,7 +8427,7 @@ func _gate_festoons(top: float, open_n: float, open_s: float) -> void:
 	for i in anchors.size():
 		var a: Vector3 = anchors[i]
 		var wall: float = open_n if i % 2 == 0 else open_s
-		_cyl("gate_festoon_pin_%d" % i, Vector3(a.x, a.y, (wall + a.z) * 0.5),
+		_cyl("%s_festoon_pin_%d" % [gate["prefix"], i], Vector3(a.x, a.y, (wall + a.z) * 0.5),
 			Vector3.ZERO, 0.06, absf(a.z - wall) * 2.0, "metal", 0.0, 8, false, PI * 0.5)
 
 	for w in FESTOON_SPANS:
@@ -7671,7 +8442,7 @@ func _gate_festoons(top: float, open_n: float, open_s: float) -> void:
 			p.y -= FESTOON_SAG * sin(PI * t)
 			pts.append(p)
 		for s in steps:
-			_strut("gate_festoon_wire_%d_%d" % [w, s], pts[s], pts[s + 1], 0.045, "metal")
+			_strut("%s_festoon_wire_%d_%d" % [gate["prefix"], w, s], pts[s], pts[s + 1], 0.045, "metal")
 		if flags:
 			for f in steps - 1:
 				var p: Vector3 = pts[f + 1]
@@ -7685,13 +8456,13 @@ func _gate_festoons(top: float, open_n: float, open_s: float) -> void:
 				var lean: float = FESTOON_FLAG_LEAN * (1.0 if f % 2 == 0 else -1.0)
 				var hoist: String = FESTOON_HOIST[(w / 2 * (FESTOON_FLAG_STEPS - 1)
 					+ f) % FESTOON_HOIST.size()]
-				_box("gate_festoon_flag_%d_%d" % [w, f],
+				_box("%s_festoon_flag_%d_%d" % [gate["prefix"], w, f],
 					Vector3(p.x, p.y - FESTOON_FLAG_HANG, p.z), Vector3.ZERO,
 					Vector3(0.03, FESTOON_FLAG_H, FESTOON_FLAG_W), hoist,
 					atan2(d.x, d.z), false, lean)
 		else:
 			for bl in steps - 1:
-				_sphere("gate_festoon_bulb_%d_%d" % [w, bl], pts[bl + 1],
+				_sphere("%s_festoon_bulb_%d_%d" % [gate["prefix"], w, bl], pts[bl + 1],
 					Vector3(0.0, -0.22, 0.0), 0.13, "bulb")
 
 	# Two pools, hung at the strings rather than over the floor. `gate_throat`
@@ -7704,7 +8475,7 @@ func _gate_festoons(top: float, open_n: float, open_s: float) -> void:
 	for i in 2:
 		var w: int = 1 if i == 0 else 4
 		var mid: Vector3 = anchors[w].lerp(anchors[w + 1], 0.5)
-		_omni("gate_festoon_glow_%d" % i,
+		_omni("%s_festoon_glow_%d" % [gate["prefix"], i],
 			Vector3(mid.x, mid.y - FESTOON_SAG - 0.3, mid.z), "warm", 1.5, 12.0)
 
 
@@ -8040,6 +8811,45 @@ func _roofline(tag: String, base: Vector3, theta: float, idx: int,
 ## seventeen metres short. On the boardwalk side the approach is the terrace,
 ## which is a dead end with a stair at one corner and an arch at the other, so
 ## stepping off the head of the flight is already a commitment to the walk east.
+
+## The east seam, and it is `_arch_seam` at the other gate. **Sited on the wall's
+## own centre line and nothing else** — the cascade, the belvedere and the
+## staircase are what the section carries, not what the load point is measured
+## against.
+##
+## `eastward` is the outbound direction here, so the signs are the arch's flipped
+## and the two hold poses swap roles: leaving the plaza looks east through the
+## gate, coming back looks west through it.
+func _east_seam(belongs: StringName, leads: StringName) -> void:
+	var eastward := belongs == &"plaza"
+	var hold: Dictionary = Plan.EAST_HOLD_OUT if eastward else Plan.EAST_HOLD_IN
+	var walk := Vector3(1.0, 0.0, 0.0) if eastward else Vector3(-1.0, 0.0, 0.0)
+
+	if eastward:
+		_gate_area("preload_%s" % leads, Plan.EAST_PRELOAD_AT,
+			Plan.EAST_PRELOAD_SIZE, 0, leads, belongs)
+	else:
+		_gate_area("preload_%s" % leads,
+			Vector3(56.0, 1.5, Plan.ARCH_AT.y), Vector3(9.0, 3.0, 7.0),
+			0, leads, belongs)
+
+	_gate_area("cross_%s" % leads, Plan.EAST_SEAM_AT, Plan.EAST_SEAM_SIZE,
+		1, leads, belongs, hold["from"], hold["look"], walk, Plan.ARCH_HOLD_SECONDS)
+
+	# **Named for where the player has come *from*, which inverts against the
+	# branch.** The plaza's copy is `arrival_from_terraces` and puts you down
+	# *inside the plaza*; the terraces' copy is `arrival_from_plaza` and puts you
+	# in the forecourt. Written the other way round it reads plausibly and drops
+	# the player onto the section that has just been freed — `section_test` caught
+	# it as an 11m fall through the world one frame after the swap.
+	if eastward:
+		_marker("arrival_from_%s" % leads, Plan.EAST_ARRIVE_IN,
+			Plan.EAST_ARRIVE_IN_YAW)
+	else:
+		_marker("arrival_from_%s" % leads, Plan.EAST_ARRIVE_OUT,
+			Plan.EAST_ARRIVE_OUT_YAW)
+
+
 func _arch_seam(belongs: StringName, leads: StringName) -> void:
 	var westward := belongs == &"plaza"
 	var hold: Dictionary = Plan.ARCH_HOLD_WEST if westward else Plan.ARCH_HOLD_EAST
@@ -8065,3 +8875,528 @@ func _arch_seam(belongs: StringName, leads: StringName) -> void:
 	else:
 		_marker("arrival_from_%s" % leads, Plan.ARCH_ARRIVE_WEST,
 			Plan.ARCH_ARRIVE_WEST_YAW)
+
+
+
+## The basin chain's own line, which is **not** the floor's. Constant 1:4 from
+## the head to the mouth; see `BASIN_COUNT` for why it runs straight through a
+## stair that steps.
+func _climb_channel_y(x: float) -> float:
+	return Plan.TERRACE_TWO_Y - (Plan.CLIMB_TO_X - x) * (Plan.CLIMB_RISE / Plan.CLIMB_RUN)
+
+
+## Half the ravine's opening at a station: the floor's own half-width plus
+## whatever the bank has laid back over the depth still to be retained.
+func _climb_open_half(x: float) -> float:
+	return Plan.CLIMB_HALF_Z + _climb_bank_d(x) * Plan.CLIMB_BANK_BATTER
+
+
+## How much of the cut's depth the planted bank takes at a station, and how much
+## is left for the retaining wall under it. Capped by `CLIMB_BANK_MAX_D`, which
+## is what keeps the mouth from eating the belvedere's east wall.
+func _climb_bank_d(x: float) -> float:
+	return minf(Plan.TERRACE_TWO_Y - Plan.climb_floor_y(x), Plan.CLIMB_BANK_MAX_D)
+
+
+## The ravine, and the park climbing into the hill.
+##
+## **Nothing here subtracts.** These are sibling `CSGBox3D`s under a plain
+## `Node3D`, not a combiner, so a cutting cannot be cut — the hill has to be
+## *built around* the void, which is why `hill_back` is gone and this lays the
+## mass either side itself. The tell that it matters: the faces taper, so there
+## was never a single box that could have been notched anyway.
+func _east_climb() -> void:
+	var axis: float = Plan.ARCH_AT.y
+	var x0: float = Plan.CLIMB_FROM_X
+	var x1: float = Plan.CLIMB_TO_X
+	var top: float = Plan.TERRACE_TWO_Y
+	var base := -HILL_EMBED
+	var sz0: float = Plan.SHELF_FROM_Z
+	var sz1: float = Plan.SHELF_TO_Z
+	var segs := 10
+	var half: float = Plan.CLIMB_HALF_Z
+
+	# --- the earthwork -----------------------------------------------------
+	#
+	# **The sides alternate bank, bay, bank.** Along a flight the hill lays back
+	# as planting over a retaining wall; at a terrace it opens into a bay cut in
+	# at that terrace's own level, so each landing is a path running left and
+	# right into a shelf rather than a place the stair merely pauses. That is what
+	# makes this circulation for a hillside district instead of a monument with
+	# steps on it.
+	#
+	# Iterated by reach and not by even segments, because a bay's edges are a
+	# reach's edges — spacing them independently put the opening's corner
+	# somewhere the stair had no feature.
+	var reaches := Plan.climb_reaches()
+	var si := 0
+	var bay := 0
+	for ri in reaches.size():
+		var r: Array = reaches[ri]
+		var rx0: float = r[0]
+		var rx1: float = r[1]
+		if not bool(r[4]):
+			# A bay. Its floor is the landing's own level carried out to the
+			# hillside; its ends are the cut faces of the banks either side and
+			# its back is the hill. Nothing needs a parapet — it is a bite out of
+			# a slope, walled by what it was cut from on three sides.
+			var by: float = r[2]
+			var bd: float = Plan.CLIMB_BAY_D[mini(bay, Plan.CLIMB_BAY_D.size() - 1)]
+			for s in 2:
+				var side := -1.0 if s == 0 else 1.0
+				var tag := "n" if s == 0 else "s"
+				# Started inboard of the wall's inner face rather than on it.
+				var iz: float = axis + side * (half - 0.3)
+				var oz: float = axis + side * (half + bd)
+				var ez: float = sz0 if s == 0 else sz1
+				_box("climb_bay_%s_%d" % [tag, bay], Vector3.ZERO,
+					Vector3((rx0 + rx1) * 0.5, (base - 0.2 + by - 0.14) * 0.5,
+						(iz + oz) * 0.5),
+					Vector3(rx1 - rx0 + 0.12, by + 0.06 - base, absf(oz - iz)),
+					"building")
+				# Brick, like the belvedere and the court and the plaza past it.
+				# The east is one floor that happens to climb.
+				_box("climb_bay_deck_%s_%d" % [tag, bay], Vector3.ZERO,
+					Vector3((rx0 + rx1) * 0.5, by - 0.07, (iz + oz) * 0.5),
+					Vector3(rx1 - rx0 + 0.12, 0.14, absf(oz - iz)), "brick")
+				# The hill behind it, and the face that is the bay's back wall.
+				if absf(ez - oz) > 0.2:
+					_box("climb_bayhill_%s_%d" % [tag, bay], Vector3.ZERO,
+						Vector3((rx0 + rx1) * 0.5,
+							(base + top - TERRACE_CAP_T) * 0.5, (oz + ez) * 0.5),
+						Vector3(rx1 - rx0, top - TERRACE_CAP_T - base,
+							absf(ez - oz)), "building")
+					_box("climb_bayhill_cap_%s_%d" % [tag, bay], Vector3.ZERO,
+						Vector3((rx0 + rx1) * 0.5, top - TERRACE_CAP_T * 0.5,
+							(oz + ez) * 0.5),
+						Vector3(rx1 - rx0, TERRACE_CAP_T, absf(ez - oz)),
+						"planting", 0.0, false)
+					# A course on the back wall, `accent`. The belvedere settled
+					# this: relief on a west-facing face draws nothing and value
+					# draws everything, and these faces look the same way.
+					_box("climb_bay_course_%s_%d" % [tag, bay], Vector3.ZERO,
+						Vector3((rx0 + rx1) * 0.5, by + (top - by) * 0.62,
+							oz - side * 0.13),
+						Vector3(rx1 - rx0 + 0.12, 0.3, 0.26), "accent", 0.0, false)
+			bay += 1
+			continue
+		# A flight: banked hillside either side, in three reaches so the taper
+		# reads rather than stepping once per flight.
+		for k in 3:
+			var xa: float = lerpf(rx0, rx1, float(k) / 3.0)
+			var xb: float = lerpf(rx0, rx1, float(k + 1) / 3.0)
+			var xm := (xa + xb) * 0.5
+			var fy := Plan.climb_floor_y(xm)
+			var w := _climb_open_half(xm)
+			var depth := top - fy
+			var bank_d := _climb_bank_d(xm)
+			var wall_h: float = depth - bank_d
+			for s in 2:
+				var side := -1.0 if s == 0 else 1.0
+				var tag := "n" if s == 0 else "s"
+				var oz: float = axis + side * w
+				var ez: float = sz0 if s == 0 else sz1
+				if wall_h > 0.05:
+					_box("climb_wall_%s_%d" % [tag, si], Vector3.ZERO,
+						Vector3(xm, (base + fy + wall_h) * 0.5,
+							axis + side * (half + 0.3)),
+						Vector3(xb - xa + 0.06, fy + wall_h - base, 0.6),
+						"building")
+					_box("climb_wall_course_%s_%d" % [tag, si], Vector3.ZERO,
+						Vector3(xm, fy + wall_h + 0.07,
+							axis + side * (half + 0.3)),
+						Vector3(xb - xa + 0.06, 0.14, 0.78), "accent", 0.0, false)
+				if absf(ez - oz) > 0.2:
+					_box("climb_hill_%s_%d" % [tag, si], Vector3.ZERO,
+						Vector3(xm, (base + top - TERRACE_CAP_T) * 0.5,
+							(oz + ez) * 0.5),
+						Vector3(xb - xa, top - TERRACE_CAP_T - base,
+							absf(ez - oz)), "building")
+					_box("climb_hill_cap_%s_%d" % [tag, si], Vector3.ZERO,
+						Vector3(xm, top - TERRACE_CAP_T * 0.5, (oz + ez) * 0.5),
+						Vector3(xb - xa, TERRACE_CAP_T, absf(ez - oz)),
+						"planting", 0.0, false)
+				for c in 4:
+					var jit: float = (_hash01(si * 41 + c, 17, 71) - 0.5) * 0.22
+					var t0: float = clampf(float(c) / 4.0 + (0.0 if c == 0 else jit), 0.0, 1.0)
+					var t1: float = clampf(float(c + 1) / 4.0 + (0.0 if c == 3 else jit), 0.0, 1.0)
+					var iz: float = axis + side * lerpf(half, w, t0)
+					var jz: float = axis + side * lerpf(half, w, t1)
+					var ty: float = fy + wall_h + bank_d * t1
+					var by0: float = fy + wall_h - 1.2
+					_box("climb_bank_%s_%d_%d" % [tag, si, c], Vector3.ZERO,
+						Vector3(xm, (by0 + ty) * 0.5, (iz + jz) * 0.5),
+						Vector3(xb - xa + 0.11, ty - by0, absf(jz - iz) + 0.25),
+						"planting")
+					for b in 2:
+						var hx: float = lerpf(xa + 0.3, xb - 0.3, _hash01(si * 31 + c * 7 + b, 5, 41))
+						var hz: float = lerpf(minf(iz, jz) + 0.25, maxf(iz, jz) - 0.25,
+							_hash01(si * 31 + c * 7 + b, 13, 61))
+						var bloom: String = ["bloom_pale", "bloom_warm", "bloom_pink"][(si + c + b) % 3]
+						_sphere("climb_bloom_%s_%d_%d_%d" % [tag, si, c, b],
+							Vector3(hx, ty + 0.2, hz), Vector3.ZERO,
+							0.09 + _hash01(b, 3, 29) * 0.10, bloom)
+			si += 1
+
+	# --- the two flights ---------------------------------------------------
+	#
+	# One strip either side of the garden, running the whole 24m: ramped where
+	# the reach is a flight and level where it is a terrace. The mass under a
+	# flight is **one box per riser**, not one box tilted to the slope — the rule
+	# the west's wings cost three rebuilds to learn, and it applies here at a
+	# tenth of the size for the same reason.
+	var fz: float = Plan.climb_flight_z()
+	for ri in reaches.size():
+		var r: Array = reaches[ri]
+		var ra: float = r[0]
+		var rb: float = r[1]
+		var ya: float = r[2]
+		var yb: float = r[3]
+		for s in 2:
+			var side := -1.0 if s == 0 else 1.0
+			var tag := "n" if s == 0 else "s"
+			var zc: float = axis + side * fz
+			# **North is a ramp and south a garden stair**, which is the wings of
+			# the monument below carried up the hill. The whole climb is then one
+			# pair of routes rather than two features that happen to meet: the
+			# smooth way and the stepped way, unbroken from the forecourt to
+			# terrace two. `_cascade_wing` records what happens if this is
+			# forgotten — treads built unconditionally made every leg a stair and
+			# the two wings stopped differing at all.
+			#
+			# The landings stay on both, because a landing is where the route
+			# rests rather than part of how it climbs.
+			var smooth := s == 0
+			if bool(r[4]):
+				# **The ramp's top face *is* the nosing line**, and everything
+				# else hangs off it — the construction `_wing_treads` proves and
+				# the one this got wrong first time by topping each mass step at
+				# its own lower edge and then putting the upper edge's height at
+				# the lower edge's station. That builds a stair whose treads
+				# stand a full riser through the surface you walk on.
+				#
+				# So: treads a hair under the line and wider than the ramp, so
+				# they show past it; nosings a hair over it and narrower, so the
+				# strip reads without becoming a kerb across the walk.
+				var fa := Vector3(ra, ya, zc)
+				var fb := Vector3(rb, yb, zc)
+				for j in Plan.CLIMB_FLIGHT_RISERS:
+					var tm: Vector3 = fa.lerp(fb,
+						(float(j) + 0.5) / float(Plan.CLIMB_FLIGHT_RISERS))
+					# **The segment's lower end, not its upper one**, and that is
+					# the whole difference between this and `_wing_treads`. A
+					# tread topped at its upper end stands `riser - 1cm` proud of
+					# the ramp across its whole going; the wing survives that at
+					# `WING_RISE`, and at `FLIGHT_RISE` it is a 24cm wall that
+					# blocked all four ascending flights on both strips. Topped at
+					# the lower end the tread is at the ramp where they meet and
+					# under it everywhere else, so it shows past the ramp's sides
+					# and never in its path.
+					var tn: Vector3 = fa.lerp(fb,
+						float(j) / float(Plan.CLIMB_FLIGHT_RISERS))
+					# The mass, stopping under the tread. Padded past its span so
+					# neighbours overlap rather than share an end face; safe to
+					# pad here precisely because its top is half a metre below
+					# the walking surface and cannot stand proud of it.
+					_box("climb_step_%s_%d_%d" % [tag, ri, j], Vector3.ZERO,
+						Vector3(tm.x, (base + tn.y - 0.5) * 0.5, zc),
+						Vector3(Plan.FLIGHT_GOING + 0.08, tn.y - 0.5 - base,
+							Plan.CLIMB_FLIGHT_W - (0.14 if smooth else 0.0)),
+						"building")
+					if smooth:
+						continue
+					_box("climb_tread_%s_%d_%d" % [tag, ri, j], Vector3.ZERO,
+						Vector3(tm.x, tn.y - 0.26, zc),
+						Vector3(Plan.FLIGHT_GOING, 0.5,
+							Plan.CLIMB_FLIGHT_W + 0.5), "accent")
+					_box("climb_nose_%s_%d_%d" % [tag, ri, j], Vector3.ZERO,
+						Vector3(tn.x, tn.y + 0.015, zc),
+						Vector3(0.16, 0.03, Plan.CLIMB_FLIGHT_W - 0.2),
+						"far_shade", 0.0, false)
+				_flight_ramp("climb_ramp_%s_%d" % [tag, ri], fa, fb, PI * 0.5,
+					Plan.CLIMB_FLIGHT_W, "accent")
+			else:
+				# Wider and deeper than the flight mass it butts, on purpose.
+				# At matching width off a matching base the landing and the next
+				# flight's first step shared both side faces *and* their
+				# undersides — three coplanar pairs per junction, and only on the
+				# south strip, because the seam ordinal happened to save the
+				# north one. Overlapping is the rule here; lining up is the fault.
+				_box("climb_land_%s_%d" % [tag, ri], Vector3.ZERO,
+					Vector3((ra + rb) * 0.5, (base - 0.35 + ya) * 0.5, zc),
+					Vector3(rb - ra + 0.08, ya - base + 0.35,
+						Plan.CLIMB_FLIGHT_W + 0.12), "building")
+				_box("climb_land_top_%s_%d" % [tag, ri], Vector3.ZERO,
+					Vector3((ra + rb) * 0.5, ya - 0.05, zc),
+					Vector3(rb - ra, 0.1, Plan.CLIMB_FLIGHT_W), "accent")
+
+	# --- the garden between them -------------------------------------------
+	#
+	# The beds take up the difference between a stair that steps and a chute that
+	# does not: their tops ride the channel's straight line, so where the flights
+	# are level the planting is still falling and where the flights drop it is
+	# still climbing away from them. That mismatch is the whole reason the middle
+	# reads as a garden and not as a landing.
+	for i in Plan.BASIN_COUNT:
+		var ba: float = x0 + Plan.BASIN_STEP * float(i)
+		var bb: float = ba + Plan.BASIN_STEP
+		var bm := (ba + bb) * 0.5
+		var cy := _climb_channel_y(bm)
+		for s in 2:
+			var side := -1.0 if s == 0 else 1.0
+			var tag := "n" if s == 0 else "s"
+			var iz: float = axis + side * (Plan.CLIMB_CHANNEL_HALF + 0.1)
+			var oz: float = axis + side * Plan.CLIMB_BED_TO
+			# Based a little under the hill's own foot: at a matching base its
+			# underside lined up with `hill_back`'s, which is the one pair the
+			# build-order ordinal cannot separate because the two are hundreds of
+			# nodes apart.
+			_box("climb_bed_%s_%d" % [tag, i], Vector3.ZERO,
+				Vector3(bm, (base - 0.2 + cy - 0.12) * 0.5, (iz + oz) * 0.5),
+				Vector3(bb - ba + 0.06, cy + 0.08 - base, absf(oz - iz)),
+				"planting")
+			# **The edging, and it is a guard rather than a detail.** The bed's
+			# top runs within a hand of the flight beside it, so the walk test
+			# stepped straight off the stair into the planting. The reference
+			# edges every bed for the same reason a park does: the kerb is what
+			# makes the flowers a thing you look at rather than walk through.
+			var ktop: float = maxf(cy - 0.12, Plan.climb_floor_y(bm)) + 0.26
+			_box("climb_bedkerb_%s_%d" % [tag, i], Vector3.ZERO,
+				Vector3(bm, (cy - 1.4 + ktop) * 0.5, oz - side * 0.11),
+				Vector3(bb - ba + 0.06, ktop - cy + 1.4, 0.22), "accent")
+			for b in 3:
+				var hx: float = lerpf(ba + 0.3, bb - 0.3, _hash01(i * 17 + b, 7, 43))
+				var hz: float = lerpf(minf(iz, oz) + 0.3, maxf(iz, oz) - 0.3,
+					_hash01(i * 17 + b, 19, 67))
+				var bloom: String = ["bloom_pale", "bloom_warm", "bloom_pink"][(i + b) % 3]
+				_sphere("climb_bedbloom_%s_%d_%d" % [tag, i, b],
+					Vector3(hx, cy + 0.06, hz), Vector3.ZERO,
+					0.10 + _hash01(b, 5, 31) * 0.11, bloom)
+
+	# --- the chain ----------------------------------------------------------
+	#
+	# Twelve bowls, each spilling half a metre into the one below. Terracotta and
+	# not the facade's blue, because it is the niche fountain's own stone — this
+	# is the same water feature and the niche is the bottom of it.
+	for i in Plan.BASIN_COUNT:
+		var bx: float = x0 + Plan.BASIN_STEP * (float(i) + 0.5)
+		var by := _climb_channel_y(bx)
+		var o := Vector3(bx, 0.0, axis)
+		# The bed the bowl stands on, carried down to the mass so no bowl floats.
+		_box("basin_%d_plinth" % i, o,
+			Vector3(0.0, (base - 0.15 + by - 0.42) * 0.5, 0.0),
+			Vector3(Plan.BASIN_STEP + 0.06, by - 0.27 - base,
+				Plan.BASIN_R * 2.0 + 0.5), "niche_stone")
+		_cyl("basin_%d_bowl" % i, o, Vector3(0.0, by - 0.2, 0.0),
+			Plan.BASIN_R, 0.44, "niche_stone", 0.0, 16)
+		_water_cyl("basin_%d_water" % i, o, Vector3(0.0, by, 0.0),
+			Plan.BASIN_R - 0.07, 0.12, "basin_pool_%d" % i)
+		# The fall arriving off the lip above. Downhill is -x, so it lands on
+		# this bowl's *upstream* side, which is +x of its centre.
+		if i < Plan.BASIN_COUNT - 1:
+			_water_cyl("basin_%d_fall" % i, o,
+				Vector3(Plan.BASIN_R * 0.86, by + Plan.BASIN_FALL * 0.5, 0.0),
+				0.30, Plan.BASIN_FALL, "basin_fall_%d" % i)
+	# The discharge into the collecting pool, off the lowest bowl.
+	var b0x: float = x0 + Plan.BASIN_STEP * 0.5
+	var b0y := _climb_channel_y(b0x)
+	_water_box("basin_spill", Vector3(b0x - Plan.BASIN_R - 0.35, 0.0, axis),
+		Vector3(0.0, (b0y + Plan.POOL_TOP_Y) * 0.5, 0.0),
+		Vector3(0.7, b0y - Plan.POOL_TOP_Y, 0.9), "basin_fall_head")
+
+	# --- the collecting pool ------------------------------------------------
+	#
+	# On the belvedere, at the mouth of the ravine, and the reason the shelf was
+	# never going to stay a bare deck. It is what the chain is aimed at and what
+	# the whole climb is read across from the parapet.
+	var pz: float = Plan.POOL_HALF_Z
+	var px0: float = Plan.POOL_FROM_X
+	var px1: float = Plan.CLIMB_FROM_X
+	var prim: float = Plan.HILL_TOP + 0.18
+	# **Three sides, not four.** The east is where the chain arrives, and a coping
+	# across it is a dam at the one place the water is supposed to come in. It
+	# also shared its west face with the first tread of the south flight, which is
+	# how it got noticed — the pair was the symptom and the dam was the fault.
+	for s in 3:
+		var hx := s < 2
+		var cx: float = (px0 + px1) * 0.5 if hx else (px0 - 0.3 if s == 2 else px1 + 0.3)
+		var cz: float = (axis - pz - 0.3 if s == 0 else axis + pz + 0.3) if hx else axis
+		var sx: float = px1 - px0 + 1.2 if hx else 0.6
+		var sz: float = 0.6 if hx else pz * 2.0 + 1.2
+		_box("pool_coping_%d" % s, Vector3.ZERO,
+			Vector3(cx, prim - 0.28, cz), Vector3(sx, 0.56, sz), "niche_stone")
+	# Carried past the scarp line rather than stopped on it: `shelf_fill` ends at
+	# `SHELF_TO_X` too, and two slabs ending on one plane is the seam a capsule
+	# catches and a z-fight both.
+	_box("pool_floor", Vector3.ZERO,
+		Vector3((px0 + px1 + 0.35) * 0.5, Plan.HILL_TOP - 0.62, axis),
+		Vector3(px1 - px0 + 0.35, 0.5, pz * 2.0), "niche_stone")
+	_water_box("pool_water", Vector3.ZERO,
+		Vector3((px0 + px1) * 0.5, Plan.POOL_TOP_Y, axis),
+		Vector3(px1 - px0, 0.16, pz * 2.0), "basin_pool_head")
+
+	# --- the chain after dark ----------------------------------------------
+	#
+	# **The historic photograph is a night photograph**, and lighting the chain is
+	# not a finishing pass on it — it is half of what the feature is. Each bowl
+	# gets a lens at its own bed and a short omni just above the water.
+	#
+	# Two fittings and not one, for the reason the niche fountain records: the
+	# shader brightens *itself* over `lamp_a`, which needs the surface to have
+	# something to be pale in after dark, and a lens with no light is a sticker
+	# while a light with no lens is a glow from nowhere. `_uplight` carries
+	# `shadow := false`, so what contains one of these is its range, never the
+	# masonry it looks like it sits inside.
+	for i in Plan.BASIN_COUNT:
+		var lx: float = x0 + Plan.BASIN_STEP * (float(i) + 0.5)
+		var ly := _climb_channel_y(lx)
+		_sphere("basin_%d_lens" % i, Vector3(lx, ly - 0.14, axis), Vector3.ZERO,
+			0.10, "lamp_glass")
+		# **Cyan, not amber, and the frame said so before any argument did.** The
+		# shader was already putting turquoise in the water and these were washing
+		# the terracotta bowls warm from above, so the chain read as a line of
+		# orange lamps with blue-green puddles lost inside it. The fitting has to
+		# agree with the water or the brighter of the two wins — here that was a
+		# 2.4m omni beating a 1.4m disc.
+		#
+		# This is the niche's rule inverted rather than broken: down there a warm
+		# pocket in a cold monument is the point, and cool light up through water
+		# is a swimming pool. Up here the water *is* the subject and there is no
+		# masonry pocket to keep warm.
+		_omni("basin_%d_lamp" % i, Vector3(lx, ly + 0.10, axis), "cyan",
+			2.1, 2.6)
+	# The pool at the foot takes two, matching the pair its own shader carries.
+	for k in 2:
+		var lz: float = axis + (-1.9 if k == 0 else 1.9)
+		var lx: float = (Plan.POOL_FROM_X + Plan.CLIMB_FROM_X) * 0.5 - 1.6
+		_sphere("pool_lens_%d" % k, Vector3(lx, Plan.POOL_TOP_Y - 0.16, lz),
+			Vector3.ZERO, 0.12, "lamp_glass")
+		_omni("pool_lamp_%d" % k, Vector3(lx, Plan.POOL_TOP_Y + 0.12, lz),
+			"cyan", 2.4, 4.0)
+
+
+## Rails on the climb, and **the monument's own rail rather than one like it**.
+##
+## `_wing_rail` is the whole construction — post spacing by `ceili` so the bays
+## do not grow with the run, a 9cm top rail rather than a slab, and the
+## `POST_MERGE` that stops two rails meeting at a corner from putting two lamps
+## 30cm apart. One call per reach on each edge, so the guard steps and ramps with
+## the floor it guards instead of cutting the corner of every landing.
+##
+## **Globes on the outer run only.** Both edges get a rail because a public stair
+## has handrails on both sides and the reference plainly does; but a globe on
+## every post of every edge is sixty omnis on one hillside, and the outer line is
+## the one that draws the shape of the climb from the belvedere and from the
+## court below it.
+func _climb_rails() -> void:
+	var axis: float = Plan.ARCH_AT.y
+	var fz: float = Plan.climb_flight_z()
+	var hw: float = Plan.CLIMB_FLIGHT_W * 0.5 - 0.12
+	# Where the monument's own rails stop, so the globe pass below can tell the
+	# climb's posts from the wings' without knowing anything about either.
+	var first := _cascade_rails.size()
+	for s in 2:
+		var side := -1.0 if s == 0 else 1.0
+		var tag := "n" if s == 0 else "s"
+		for e in 2:
+			var outer := e == 1
+			var ez: float = axis + side * (fz + (hw if outer else -hw))
+			var en := "o" if outer else "i"
+			var reaches := Plan.climb_reaches()
+			for ri in reaches.size():
+				var r: Array = reaches[ri]
+				# **No outer rail across a terrace**, because that is where the
+				# landing turns into the bay and the thing being guarded is a
+				# doorway. It ran continuously at first and the walk test was
+				# blunt about it: all six ways into the shelves stopped on
+				# `climb_rail_*_o_*_rail`. A guard belongs beside a drop, and
+				# along a terrace the outer side is floor.
+				if outer and not bool(r[4]):
+					continue
+				_wing_rail("climb_rail_%s_%s_%d" % [tag, en, ri],
+					Vector2(float(r[0]), ez), float(r[2]),
+					Vector2(float(r[1]), ez), float(r[3]), outer)
+	for i in range(first, _cascade_rails.size()):
+		var at: Vector3 = _cascade_rails[i] + Vector3(0.0, 0.16, 0.0)
+		_sphere("climb_globe_%d" % i, at, Vector3.ZERO, 0.13, "lamp_glass")
+		_omni("climb_globe_%d_pool" % i, at, "lamp", 1.5, 7.0, LIGHT_FIXTURE)
+
+
+## The plaza seen from the terraces, and **the answer to standing on the
+## belvedere and finding the park gone.**
+##
+## `ParkSections` frees everything the outgoing section owned, so crossing the
+## east gate deletes the plaza, its walls, its tower and its skyline all at once —
+## and the terraces look straight back down their own axis at all four. It is
+## `_plaza_from_below`'s problem at the other gate, and it takes the same answer:
+## read the hand-authored plaza as text and stand a massing copy of it up in the
+## section that can see it.
+##
+## Two differences from the west's version, both because of where the seam is.
+## **The east perimeter is the *near* boundary here** — the forecourt runs to
+## x 33 now, so the player stands against the outer face of a wall the plaza used
+## to own. Those runs get the plaza's own material and collide, or you walk
+## through the back of the gate you just came out of. Everything else is a
+## silhouette at sixty metres and stays washed and passable.
+##
+## Snapped to the centimetre for `_plaza_from_below`'s reason, which is the one
+## piece of this that is genuinely subtle: the plaza's own hand displacement runs
+## opposite to the generator's ring, so a verbatim copy cancels it exactly and
+## lands shapes on shared planes. Snapping throws it away and lets this scene's
+## ring do the separating.
+func _plaza_from_the_east() -> void:
+	var n := 0
+	for box in _plaza_scene_boxes():
+		var nm: String = box["nm"]
+		var at: Vector3 = box["at"]
+		var size: Vector3 = box["size"]
+		if size.y < BELOW_MIN_H:
+			continue
+		# The near boundary: the east wall's runs and the gate that is cut through
+		# them. Named rather than found by position, because "the wall you are
+		# standing against" is not a thing a bounding box says about itself.
+		var near := nm.begins_with("perim_e") or nm.begins_with("east_pier") \
+			or nm.begins_with("east_beam")
+		# Everything else has to be worth drawing from sixty metres east: the
+		# tower because it is the one thing that clears its own wall and the view
+		# back down the axis at it is what the belvedere is *for*, and the far
+		# perimeter because a plaza with no far side reads as a wall with sky
+		# behind it.
+		if not (near or nm.begins_with("tower_") or nm.begins_with("perim_")
+				or nm == "ground"):
+			continue
+		var mat := "far_warm" if nm.begins_with("tower_") else "far"
+		if near:
+			mat = "building"
+		# **The floor is not haze.** `far` is the west's distance wash and it is
+		# right there — ninety metres of lagoon between the promenade and the
+		# plaza's silhouette. From the belvedere the same floor is forty metres
+		# away through a six metre gap, and washed out it read as a white sheet
+		# between the crest's two piers: the park stopped at the wall and became
+		# fog. It gets the plaza's own brick, which is world-space triplanar and
+		# so lines up with the forecourt this section is standing on.
+		if nm == "ground":
+			mat = "brick"
+		# The plaza's `ground` is 104m of up-facing floor at exactly y = 0, and so
+		# is the forecourt this scene stands on. Two floors on one plane is five
+		# hundred square metres of fight; a hand's width settles it, and at sixty
+		# metres through a six metre gap it costs nothing.
+		var drop: float = 0.0 if near else BELOW_FRAMED_DROP
+		# **Six millimetres east of where `_plaza_from_below` puts its copy**, and
+		# it is about the test rather than about the render. Both functions stand
+		# a massing copy of the same hand-authored boxes and both snap to the same
+		# centimetre grid, so identical sources land on identical planes — and
+		# `coplanar_test.py` compares every scene against every other with no
+		# notion of which of them are ever mounted together. `boardwalk` and
+		# `terraces` are mutually exclusive sections and a player cannot see both
+		# copies at once, so the pair it reports is real arithmetic about an
+		# impossible frame. A permanently-red test is worse than the pair, because
+		# the next real one hides behind it.
+		_box("efar_%s" % nm, Vector3.ZERO,
+			at.snapped(Vector3.ONE * 0.01)
+				+ Vector3(EAST_FAR_NUDGE, -drop, 0.0), size,
+			mat, 0.0, near)
+		n += 1
+	if n < 6:
+		push_error("only %d plaza masses read for the view from the east — "
+			% n + "the parse found nothing, or the perimeter has been renamed")

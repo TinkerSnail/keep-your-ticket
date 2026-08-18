@@ -549,7 +549,7 @@ size = Vector3(1, 3.6, 43)
 material = SubResource("mat_building")
 
 [node name="tower_clock" type="Node3D" parent="."]
-transform = Transform3D(2.7, 0, 0, 0, 2.7, 0, 0, 0, 2.7, -1.5, 21.0, -29.1)
+transform = Transform3D(2.7, 0, 0, 0, 2.7, 0, 0, 0, 2.7, -1.5, 21.0, -32.0)
 script = ExtResource("4_tower_clock")
 
 [node name="paving" parent="." instance=ExtResource("10_paving")]

@@ -512,8 +512,26 @@ const CASCADE_WALL_THICK := 1.6
 ## `landing_fill` — five metres of buried mass between the wall and the bluff
 ## face — so nothing structural is being thinned. `CASCADE_WALL_THICK` stays where
 ## it is on purpose: `face` is derived from it, and the wings spring off `face`.
-const NICHE_W := 2.4
-const NICHE_H := 3.2
+##
+## **Wider and taller since 2026-08-18, and the string course coming off is why.**
+## At 2.4 × 3.2 in a 7m × 6m face the opening was the reference's own proportion
+## and it was sized for a facade that had a pale line running across it. Taking
+## that line off left the largest unbroken surface on the monument with exactly
+## one feature on it, and the same opening that read as *an* incident on a
+## detailed wall reads as a small hole in a blank one. Enlarging is the cheap
+## half of restoring the detail, because everything inside the recess is a
+## fixed-size object standing on its floor — the trough, the basin, the spout are
+## sized to a person and stay where they are — so a bigger opening shows more of
+## the fountain and more of the terracotta rather than scaling a picture up.
+##
+## 3.3 is 47% of the block's width against 34%, and 3.8 puts the crown level with
+## the crest globes at `head − 1.95` rather than a metre below them. Level is the
+## intent: on the shape this facade reads as, the eyes sit at the corners of the
+## head and the mouth is a wide slot between them, so width carries the increase
+## and height only follows far enough to keep the arch from squatting. The
+## proportion goes 1:1.33 to 1:1.15.
+const NICHE_W := 3.3
+const NICHE_H := 3.8
 const NICHE_DEEP := 1.5
 
 ## A wing. The outbound leg runs behind the facade plane and the return leg in
@@ -707,6 +725,51 @@ const SHELF_TO_X := 86.0
 const SHELF_FROM_Z := -20.0
 const SHELF_TO_Z := 16.0
 
+## How far the made ground east of the gate runs, and the one place it is
+## written down.
+##
+## **The court and the hill have to end together.** `_east_court` laid its slab
+## as literals, and the hill standing on that slab was written afterwards — two
+## copies of one extent, which is the cafe-table bug with a bigger footprint: a
+## hill half a metre longer than the ground under it is a retaining wall with
+## daylight beneath it, and a hill half a metre shorter is a strip of court with
+## nothing behind it. Both read as a hole and neither is visible from anywhere a
+## screenshot gets taken.
+##
+## 26m either side of the axis is what the court was already built to. It is
+## generous for the court alone and it is the binding number for the hill, which
+## is why it moved here rather than staying a literal in the slab that happened
+## to be laid first.
+const EAST_GROUND_HALF_Z := 26.0
+## **Under the gate, not up to it, and 44 → 33 on 2026-08-18 because of the
+## seam.** The court used to start a metre outside the wall's outer face, which
+## was right while the plaza owned this ground and wrong the moment the east
+## became its own section: crossing back west, the player left the forecourt,
+## walked into the passage and fell, because the floor under the arch belonged to
+## a section that had just been freed.
+##
+## `west_shell` has always solved the same problem the same way — it is the
+## ground *and* the horizon, mounted on both sides of the west seam, which is
+## what makes the cut at that gate continuous. This is that, at the other gate:
+## `east_cascade.tscn` is in both section lists, so a court that reaches past the
+## wall's inner face at 36 gives either section a floor under the passage.
+##
+## 33 rather than 36 so it laps the plaza's own paving rather than butting it —
+## `GROUND_SEAM` keeps the two off one plane.
+const EAST_GROUND_FROM_X := 33.0
+const EAST_GROUND_TO_X := HILL_FACE_X + 0.5
+
+## The guard on the shelf's open side, and the only one it needs: the notch is
+## walled by the hill on its other three sides, so this is a parapet across one
+## edge rather than a fence around a plateau.
+##
+## Height is the drop's, not the fashion's. Six metres onto brick wants a solid
+## parapet rather than the crest's three-bar rail — the rail is what you get when
+## the thing behind it is the monument you are standing on, and this is what you
+## get when the thing in front of it is a courtyard.
+const SHELF_PARAPET_H := 1.1
+const SHELF_PARAPET_T := 0.5
+
 ## The second terrace, and the one the two east sections stand on. Nothing is
 ## built on it — these are footprints for silhouette, as `SECTION_GROUND` says —
 ## but the level is a decision and it belongs here rather than being implied by
@@ -723,8 +786,199 @@ const TERRACE_TWO_Y := 12.0
 const TERRACE_TWO_FROM_X := 86.0
 const TERRACE_TWO_TO_X := 120.0
 
+## The basin staircase: the rest of the Cleveland Cascade, cut into the hill
+## behind the belvedere.
+##
+## **The monument at the gate is the head-house, and this is what it is the foot
+## of.** In the reference the arched head-house stands at the street with a long
+## twin-flight stair climbing the hillside above it, and a chain of basins down
+## the middle spilling one into the next. This park had the head-house — the
+## facade, the blind niche, the wall fountain in it — and stopped there, so the
+## thing was a monument to a climb that did not exist. `_cascade_niche` was
+## always the bottom of this.
+##
+## **Cut into the hill, not standing on it** — but cut as a ravine rather than as
+## a slot, which is where the belvedere's own argument stops applying. The notch
+## below is a bay with three built walls because it is a room; this is a
+## hillside, and a hillside falls into a cut at the angle earth stands at. Every
+## reference photograph is mostly *planting*: green banks either side of the
+## flights, trees closing over the top of them, masonry emerging from vegetation
+## rather than a box cut in stone. Vertical grey walls up both sides would have
+## been the notch's logic carried one step past where it was true.
+##
+## So the sides are battered and planted, at `CLIMB_BANK_BATTER` — **above a
+## retaining wall, and that pairing is the whole section rather than a detail.**
+## A pure batter cannot work here and the arithmetic says so plainly: 1.4 over
+## six metres of depth opens the mouth to 16.4 either side of the axis against a
+## belvedere that is 18, which does not cut a doorway in that room's east wall,
+## it removes the wall. The pilasters and string course that went onto it are on
+## the only face the belvedere has to turn round and look at.
+##
+## The reference answers this and the photographs are unambiguous once looked at
+## for it: the bottom of the real cascade is *masonry*, and planting takes over
+## further up where the cut is shallow enough to lay back in the width available.
+## A slope that cannot fit stands up as a wall. So the bank lays back from the
+## floor edge at its own angle for as much height as `CLIMB_OPEN_HALF` allows —
+## 3.57m — and whatever depth is left under it is a retaining wall standing at
+## the floor edge. At the mouth that is 2.4m of wall with 3.6m of planting over
+## it; by the head there is no wall and no bank, because there is no cut.
+##
+## The opening is then 26m in a 36m wall, which is a portal with five metres of
+## masonry either side of it rather than a missing side.
+##
+## It also means terrace two barely pays for it. A staircase standing clear of
+## the scarp would have eaten the whole depth from 86 to 110 across the notch's
+## full width; this takes a slot at the floor and a taper above it.
+const CLIMB_FROM_X := SHELF_TO_X
+const CLIMB_TO_X := 110.0
+## The floor's half-width, and **derived rather than chosen**: the bank has to
+## spring from the outer edge of the flight, or the 1.3m strip between them is a
+## verge with no floor under it that the walk test finds by falling down it.
+const CLIMB_HALF_Z := CLIMB_BED_TO + CLIMB_FLIGHT_W
+
+## How far the bank lies back per metre it climbs. 1.4 is a planted slope rather
+## than a revetment — steeper reads as a wall somebody has thrown soil at, and it
+## is what sets the mouth's width: 8.0 of floor plus six metres of depth at 1.4
+## is 16.4 either side of the axis, against the belvedere's 18. Widening the
+## floor or steepening the batter past this puts the ravine's mouth wider than
+## the room it opens off, and then the notch's own side walls have a hole in
+## them that nothing closes.
+const CLIMB_BANK_BATTER := 1.4
+
+## How far the ravine may open at its widest, as a half-width off the axis. This
+## is the number that keeps the belvedere's east wall in existence, and it is set
+## against `SHELF_FROM_Z`/`SHELF_TO_Z` at 18 rather than against anything the
+## climb wants for itself: 13 leaves five metres of wall each side of the mouth,
+## which is enough to read as a jamb and enough to carry the pilasters.
+##
+## It is a *cap on the batter*, not on the cut. Depth the bank cannot lay back
+## inside this becomes wall height instead — see `CLIMB_BANK_MAX_D`, which is the
+## same fact stated as the quantity the generator actually needs.
+const CLIMB_OPEN_HALF := 13.0
+const CLIMB_BANK_MAX_D := (CLIMB_OPEN_HALF - CLIMB_HALF_Z) / CLIMB_BANK_BATTER
+
+## Four flights of six risers, three planted terraces between them. Both of these
+## are the park's own stair constants rather than new ones, and the two sums
+## below are exact rather than nearly: 4 x 6 x `FLIGHT_GOING` plus 3 x
+## `CLIMB_TERRACE_D` is 24.0, which is `CLIMB_TO_X - CLIMB_FROM_X`; and
+## 4 x 6 x `FLIGHT_RISE` is 6.0, which is `TERRACE_TWO_Y - HILL_TOP`.
+##
+## They are exact because the terrace depth was solved for after the flights were
+## fixed, not chosen. If any of the four moves, re-derive the other three — a
+## staircase that arrives half a riser under its own terrace is the kind of thing
+## no screenshot shows and every ankle finds.
+const CLIMB_FLIGHTS := 4
+const CLIMB_FLIGHT_RISERS := 6
+const CLIMB_TERRACE_D := 4.8
+const CLIMB_RUN := CLIMB_TO_X - CLIMB_FROM_X
+const CLIMB_RISE := TERRACE_TWO_Y - HILL_TOP
+
+## The cross-section, as half-widths off the axis: the channel down the middle,
+## planting either side of it, then a flight, then the bank against the cut face.
+##
+## The flights are 2.1 rather than `WING_W`'s 3.0. A wing on the monument below
+## carries the whole descent and is the only way down; there are two of these and
+## they flank a garden, which is a public stair rather than a route.
+const CLIMB_CHANNEL_HALF := 1.1
+const CLIMB_BED_TO := 4.6
+const CLIMB_FLIGHT_W := 2.1
+
+## The chain, and the one thing here that is not a stair.
+##
+## **The channel runs at its own constant gradient and the flights step either
+## side of it.** That is the historic photograph rather than the modern one: an
+## unbroken run of bowls from head to foot, where what is there today is a flat
+## runnel across each terrace with a stepped reach between. Following the
+## flights' broken profile would have put three basins in a huddle at each flight
+## and a dry trough across each terrace, and the beds either side are exactly
+## what takes up the difference between a straight chute and a stepped stair.
+##
+## Twelve basins over six metres is half a metre of fall each, one every two
+## metres of run — 1:4, which is the whole feature's mean gradient and therefore
+## the only slope on the hill that does not need a second number.
+const BASIN_COUNT := 12
+const BASIN_FALL := CLIMB_RISE / BASIN_COUNT
+const BASIN_STEP := CLIMB_RUN / BASIN_COUNT
+const BASIN_R := 0.75
+
+## The collecting pool at the foot, on the belvedere, and the reason the shelf
+## was never going to stay a bare deck. The chain discharges into it at the cut's
+## mouth and it reads west across the parapet to the plaza beyond.
+## Shortened 79 → 81.5 on 2026-08-18: at seven metres it reached most of the way
+## across the belvedere toward the parapet, so the shelf read as a pool with a
+## walkway round it rather than as a room with a pool at one end of it. Four and
+## a half is still generous against an 8.4m width — it is the *basin* the chain
+## is aimed at, and the belvedere's job is to be the floor you see it from.
+const POOL_FROM_X := 81.5
+const POOL_HALF_Z := 4.2
+const POOL_TOP_Y := HILL_TOP - 0.35
+
+## The landing at the top of the whole feature, between the head of the cutting
+## and the rim's toe. Terrace two's own level, so the cutting's banks die into it
+## rather than it being a notch of its own.
+const CLIMB_HEAD_TO_X := RIM_FOOT_X
+
+## How far each terrace's bay reaches into the hillside, as a depth off the
+## floor's edge, lowest first.
+##
+## **Graduated, because the hill is 12m and the terraces are 1.5m apart.** A bay
+## at 7.5 has four and a half metres of hill behind it and can carry a shopfront;
+## one at 10.5 has a metre and a half and is a widening with a view. Making all
+## three the same would either shrink the lowest to the highest's means or lift a
+## ridge over terrace two that the rim's sightlines have never been checked
+## against. A real terraced street gets shallower as it nears the crest.
+##
+## Capped by what is actually there to cut: the floor edge is at `CLIMB_HALF_Z`
+## and `SHELF_FROM_Z`/`SHELF_TO_Z` are 18 off the axis, so 11.3m is the whole
+## budget before a bay would break into `hill_north`/`hill_south`, which are laid
+## at full height across the entire east.
+const CLIMB_BAY_D := [10.0, 8.0, 6.0]
+
+## The reaches of the climb, west to east, as `[x0, x1, y0, y1, is_flight]`.
+##
+## **The one description of where the stair goes**, for the reason `wing_path`
+## is: `gen_props` builds off this and `walk_test` walks it, and the west's wings
+## spent a shape change being tested against a copy of their own arithmetic that
+## had stopped being true. A straight line between the same two endpoints then
+## runs through the planting and reports broken geometry rather than a stale test.
+static func climb_reaches() -> Array:
+	var out: Array = []
+	var x := CLIMB_FROM_X
+	var y := HILL_TOP
+	var run := CLIMB_FLIGHT_RISERS * FLIGHT_GOING
+	var rise := CLIMB_FLIGHT_RISERS * FLIGHT_RISE
+	for i in CLIMB_FLIGHTS:
+		out.append([x, x + run, y, y + rise, true])
+		x += run
+		y += rise
+		if i < CLIMB_FLIGHTS - 1:
+			out.append([x, x + CLIMB_TERRACE_D, y, y, false])
+			x += CLIMB_TERRACE_D
+	return out
+
+
+## The walking surface at a station on the climb: flat across a terrace, on the
+## nosing line up a flight.
+static func climb_floor_y(x: float) -> float:
+	for r in climb_reaches():
+		if x <= float(r[1]) + 0.001:
+			var t := clampf((x - float(r[0])) / maxf(float(r[1]) - float(r[0]), 0.001),
+				0.0, 1.0)
+			return lerpf(float(r[2]), float(r[3]), t)
+	return TERRACE_TWO_Y
+
+
+## The centre line of a flight strip, as a z offset off the axis.
+static func climb_flight_z() -> float:
+	return CLIMB_BED_TO + CLIMB_FLIGHT_W * 0.5
+
 ## The rim: massing, never reachable, and the only thing out here whose job is to
 ## be seen from inside the plaza rather than walked on.
+##
+## **Drawn since 2026-08-18**, by `_rim` in `gen_props.gd`, into
+## `plaza_skyline.tscn` — and until that day `rim_crest` had no callers at all,
+## so every figure below was a statement about this file rather than about the
+## park.
 ##
 ## **The crest height is set by the perimeter wall, not by taste.** An eye at 1.7
 ## in the middle of the plaza clears the east wall's 11.5m top at x 36 on a 0.272
@@ -732,6 +986,23 @@ const TERRACE_TWO_TO_X := 120.0
 ## shows seven metres of itself from the fountain and twenty-four from the plaza's
 ## west side, which is the right way round — a distant ridge should open up as you
 ## back away from it.
+##
+## **Both of those are datums and neither is a standpoint**, which the first run
+## of `_rim_probe.gd` established and nothing before it had asked. The slope of
+## the clearing ray is set by the eye's distance from the *wall*, not from the
+## ridge, so how much shows is a property of where you stand and the two figures
+## above are the values at x = 0 and x = -36. Nobody can stand at x = 0: the
+## fountain is eighteen metres across and sitting on it. What a player can reach
+## on this line, worked from the same ray and then shot:
+##
+##   x = +11  the fountain's east coping     none of it — the wall has it all
+##   x = -11  the west coping                about 15m
+##   x = -16  the ring's west vertex         about 17m
+##   x = -36  **inside the west gate house**, because the arch is on this axis
+##
+## So the nearest anyone can stand to the middle sees no ridge at all, and the
+## deepest view east in the park is taken from the mouth of the way west. Quote
+## these with their x or do not quote them.
 ##
 ## Through the gap it is cropped, and that is deliberate. From `EAST_NEAR_STAND_X`
 ## the beam's soffit puts the ceiling at 29m by the time the ray reaches the
@@ -793,6 +1064,43 @@ const EAST_GAP_WIDTH := ARCH_WIDTH
 ## centimetre of difference would be invisible and a metre would be a mistake
 ## nobody could name.
 const EAST_GAP_HEIGHT := ARCH_HEIGHT
+
+## The seam, and **it mirrors the west gate rather than sitting anywhere near the
+## cascade.** The load point is the passage, full stop: the arch's is at the west
+## wall's own centre line and this is at the east wall's, which is
+## `EAST_GAP_AT.x`. What stands beyond it — forecourt, monument, belvedere,
+## staircase, hill — is scenery the section carries, not a thing the seam is
+## sited against.
+##
+## Neither gate is a true tunnel any more. The west lost its lid on 2026-08-16
+## and this one never had one, and both still work as load points for the reason
+## `ParkSections` gives: what hides the swap is the *held shot*, not the ceiling.
+const EAST_SEAM_AT := Vector3(EAST_GAP_AT.x, 1.5, ARCH_AT.y)
+const EAST_SEAM_SIZE := Vector3(2.6, 3.0, EAST_GAP_WIDTH)
+
+## Far enough back down the east spoke that the load has the walk to the mouth to
+## finish in, and inside the plaza where the player is always coming from.
+const EAST_PRELOAD_AT := Vector3(24.0, 1.5, ARCH_AT.y)
+const EAST_PRELOAD_SIZE := Vector3(4.0, 3.0, 13.0)
+
+## The held shot, per direction, and on the spoke's own centre line for the
+## reason `ARCH_HOLD_WEST` gives: anywhere off the paving is somewhere a tree may
+## be standing this regeneration.
+const EAST_HOLD_OUT := {
+	"from": Vector3(26.5, 3.5, -1.0),
+	"look": Vector3(44.0, 2.4, -2.2),
+}
+const EAST_HOLD_IN := {
+	"from": Vector3(50.5, 3.4, -2.0),
+	"look": Vector3(38.0, 2.6, -2.0),
+}
+
+## Where the walk resumes, a stride past the gate on each side and on the spoke.
+## Never inside the crossing volume, or arriving trips the gate that sent you.
+const EAST_ARRIVE_IN := Vector3(30.0, 0.0, ARCH_AT.y)
+const EAST_ARRIVE_IN_YAW := 90.0
+const EAST_ARRIVE_OUT := Vector3(50.5, 0.0, ARCH_AT.y)
+const EAST_ARRIVE_OUT_YAW := -90.0
 
 ## The standpoint the crop is measured from: furthest back anyone stands on the
 ## axis, which is just past the fountain's coping rather than out at the ring.
@@ -1098,6 +1406,7 @@ const SECTION_GROUND := {
 ## out of the park rather than into a section.
 const SPOKE_LEADS_TO := {
 	&"west": &"boardwalk",
+	&"east": &"terraces",
 	&"nnw": &"grove",
 	&"ne": &"frontier",
 	&"se": &"kiddieland",
@@ -1677,8 +1986,14 @@ const PLAZA_MASSES := [
 	{"at": Vector2(25.0, -41.5), "half": Vector2(11.0, 5.5)},
 	# east side, inner face x = 36
 	{"at": Vector2(41.5, -41.7), "half": Vector2(5.5, 6.3)},
-	{"at": Vector2(41.5, -8.7), "half": Vector2(5.5, 10.7)},
-	{"at": Vector2(41.5, 13.4), "half": Vector2(5.5, 11.4)},
+	# **These two used to meet at z +2 with no gap between them**, which said the
+	# east wall was solid across the very place the gate was cut on 2026-08-17.
+	# Nothing noticed for a day because this table is only read by the crowd's
+	# walkability check and the crowd's graph stopped eleven metres short of the
+	# wall — the first node put out there was blocked by a wall that is not
+	# there. The opening is `ARCH_AT.y` ± 3, so the runs stop at −5 and +1.
+	{"at": Vector2(41.5, -12.2), "half": Vector2(5.5, 7.2)},
+	{"at": Vector2(41.5, 12.9), "half": Vector2(5.5, 11.9)},
 	{"at": Vector2(41.5, 42.9), "half": Vector2(5.5, 5.1)},
 	# south side, inner face z = 36
 	{"at": Vector2(-42.15, 41.5), "half": Vector2(5.85, 5.5)},
