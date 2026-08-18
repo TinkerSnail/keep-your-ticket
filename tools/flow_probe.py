@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Which way did the water move?
 
-Reads the frame sequences `tools/_flow_probe.gd` saves and cross-correlates each
+Reads the frame sequences `tools/flow_probe.gd` saves and cross-correlates each
 consecutive pair vertically. Positive means the pattern travelled *down* the
 screen; negative means up.
 

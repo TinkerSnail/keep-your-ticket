@@ -1,6 +1,6 @@
 extends Node
 
-## Dev tool: is anybody standing in the fountain?
+## Test: is anybody standing in the fountain?
 ##
 ## Rim sitters are placed at radius 8.66, which is *inside* `FOUNTAIN_RADIUS` —
 ## deliberately, because that is where the coping is. That makes "no guest
@@ -8,22 +8,24 @@ extends Node
 ## one: the pool's surface runs out to 8.26, so anybody whose body is inside
 ## that is standing in it.
 ##
-## **This currently FAILS, and the failure is a real pre-existing bug it was
-## written to pin down.** Three guests per run walk over the water, and all
-## three turn out to be *followers*: `leader=../guest_NN`, zero waypoints,
-## walking at full speed. A follower does not route — it steers straight at its
-## leader's current position — so when the leader rounds the fountain on the
-## ring walkway, the follower takes the chord and cuts straight through the
-## middle of it.
+## **It was written failing and it passes now**, which is why it is a test rather
+## than a probe. What it was written to pin down: three guests per run walked
+## over the water, and all three were *followers* — `leader=../guest_NN`, zero
+## waypoints, full speed. A follower does not route, it steers straight at its
+## leader's current position, so when the leader rounded the fountain on the ring
+## walkway the follower took the chord and cut through the middle of it.
 ##
-## Nothing else catches that. `_validate_graph` checks every *edge* against the
-## fountain circle and the graph is clean; the guests going through it are the
-## ones not using it. It has nothing to do with the fountain rebuild — an 18m
-## obstacle in the middle of the ring just makes the oldest chord in the plaza
-## the most visible one.
+## Nothing else catches that, and that has not changed. `_validate_graph` checks
+## every *edge* against the fountain circle and the graph is clean; the guests
+## going through it are the ones not using it. So the assertion is worth keeping
+## standing even though it is green: the closest approach it measures is 8.66 at
+## the two busy hours, which is the rim sitters and nobody else, and 10.21 at
+## noon. The margin over the water's 8.26 is 40cm, and a follower taking a chord
+## again would spend it immediately.
 ##
-## Leave it failing until followers either route or steer around what their
-## leader went around.
+## Renamed out of `_inpool_probe` when it went green. The `_` prefix was the
+## project's mark for a throwaway written for one question; this one outlived its
+## question.
 const WATER_R := 8.26
 
 func _ready() -> void:

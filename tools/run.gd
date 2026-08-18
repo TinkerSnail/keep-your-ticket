@@ -6,14 +6,14 @@ extends Node
 ## **Why this has to exist.** `godot --script res://tools/<x>.gd` compiles the
 ## script before the project's autoloads are registered, so any tool naming
 ## `ParkClock`, `ParkSections`, `ParkGuests`, `ParkSettings` or `PhotoAlbum`
-## dies at compile with "Identifier not found" and never runs a line. Nineteen of
-## the twenty-two tools in this directory do exactly that, which means the
+## dies at compile with "Identifier not found" and never runs a line. Twelve of
+## the fifteen tools in this directory do exactly that, which means the
 ## documented way to run them worked for three of them.
 ##
 ## `gen_props.gd` documents the same trap from the other side and dodges it by
 ## `load`-ing late; that works because it only needs a *script* at runtime. A
 ## tool that names an autoload in its own body cannot dodge it, because the name
-## has to resolve at compile time. The fix is not to rewrite nineteen tools, it
+## has to resolve at compile time. The fix is not to rewrite twelve tools, it
 ## is to stop compiling them before the tree exists — which is what running a
 ## scene does.
 ##
@@ -24,12 +24,11 @@ extends Node
 ##   `_ready`       a `Node`, needs a tree. Everything else.
 ##
 ## **One runner rather than a scene per tool.** Each tool could have its own
-## two-line `.tscn` and two of them used to, but half the directory is
-## deliberately throwaway — the `_*_probe.gd` files say so in their own headers,
-## and they are written for one question, answered, and left in the history. A
-## permanent scene file per throwaway probe enshrines the scratch work; a runner
-## that takes the tool's name enshrines nothing and covers the ones not written
-## yet.
+## two-line `.tscn` and two of them used to. A runner that takes the tool's name
+## covers the ones not written yet, and this directory turns over: it held ten
+## `_*_probe.gd` files written for one question each, and eight of them were
+## deleted once their question was answered. A scene file per tool is a second
+## thing to remember to delete.
 ##
 ## Usage, with the tool named after a bare `--`:
 ##

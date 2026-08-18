@@ -71,6 +71,7 @@ func _run(main: Node) -> void:
 		for _i in 4:
 			await get_tree().physics_frame
 		var last := Time.get_ticks_msec()
+		var worst := 0
 		for f in FRAMES:
 			await get_tree().create_timer(GAP).timeout
 			await RenderingServer.frame_post_draw
@@ -78,6 +79,26 @@ func _run(main: Node) -> void:
 			var img := get_viewport().get_texture().get_image()
 			img.save_png("user://flow_%s_%02d.png" % [view["name"], f])
 			print("flow_%s_%02d  +%dms" % [view["name"], f, now - last])
+			worst = maxi(worst, now - last)
 			last = now
+		# **Say so when the frames are too far apart to mean anything.**
+		#
+		# `flow_probe.py` measures how far the pattern moved between consecutive
+		# frames, which only answers a direction while the pattern moves less than
+		# half its own period in `GAP`. Miss that and the correlation aliases: the
+		# shifts come back alternating at the window limit and the median is
+		# noise, but it is a *signed* noise and it reads exactly like a verdict.
+		#
+		# Which is not hypothetical. On a box with no GPU — lavapipe under Xvfb,
+		# which is how this runs in a web session — 90ms of intent arrives as 500
+		# to 1000ms, and the probe cheerfully reported the falls and the jets both
+		# running UP. That is the original bug's own signature, so the failure
+		# mode here is not a wrong number, it is a convincing false regression on
+		# the one shader this tool exists to watch.
+		if worst > int(GAP * 1000.0) * 2:
+			push_warning(("flow_%s: frames up to %dms apart against a %dms gap — "
+				+ "too slow for the correlation to resolve a direction. The "
+				+ "verdict from these frames is not usable; run on a real GPU.")
+				% [view["name"], worst, int(GAP * 1000.0)])
 
 	get_tree().quit()

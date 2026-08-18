@@ -75,8 +75,7 @@ godot --headless --path . --script res://tools/gen_props.gd
 Everything else is a `Node` with a `_ready`, and needs a tree with the autoloads
 in it. `--script` compiles before autoloads are registered, so a tool naming
 `ParkClock` or `ParkSections` dies at compile without running a line — which is
-nineteen of the twenty-three. Those go through `run.tscn`, named after a bare
-`--`:
+twelve of the fifteen. Those go through `run.tscn`, named after a bare `--`:
 
 ```bash
 godot --headless --path . tools/run.tscn -- walk_test
