@@ -3235,27 +3235,176 @@ func _west_shell() -> void:
 	_box("bluff", Vector3.ZERO,
 		Vector3((Plan.BLUFF_FACE_X + Plan.BLUFF_BACK_X) * 0.5, -6.0 + GROUND_SEAM, 0.0),
 		Vector3(Plan.BLUFF_BACK_X - Plan.BLUFF_FACE_X, 12.0, 341.0), "far_warm")
-	# The face, dressed. Six metres of blank plane is what the player looks back at
-	# from the lane, and until 2026-08-14 that is exactly what it was — the reason
-	# the two sides of the descent did not read as the same place was half the
-	# hidden stair and half this.
-	#
-	# A seawall, then: a coping along the top edge and buttresses down it at eight
-	# metres. Only over the stretch the boardwalk can see; north and south of that
-	# it is scenery at ninety metres and a blank cliff is correct.
-	var face := Plan.BLUFF_FACE_X
-	_box("bluff_coping", Vector3.ZERO, Vector3(face + 0.15, -0.35, 0.0),
-		Vector3(1.1, 0.7, 150.0), "far_shade", 0.0, false)
-	for i in 19:
-		var bz := -72.0 + float(i) * 8.0
-		_box("bluff_buttress_%d" % i, Vector3.ZERO,
-			Vector3(face - 0.24, -3.43, bz), Vector3(0.5, 5.26, 1.2), "far_warm", 0.0, false)
+	_bluff_face()
 	# The ground the boardwalk stands on: back lane, frontage, promenade. Runs
 	# 2m east under the bluff's west face rather than butting against it.
 	var width := SHORE_FROM_X - SHORE_EDGE
 	_box("shore", Vector3.ZERO,
 		Vector3((SHORE_FROM_X + SHORE_EDGE) * 0.5, SHORE_TOP - 3.0, 0),
 		Vector3(width, 6.0, 340), "far_warm")
+
+
+## How far either side of the axis the bluff's face is dressed.
+##
+## The face runs 341m and the boardwalk can see about 150 of it. Beyond that it
+## is scenery at ninety metres, where a blank cliff is correct and cheaper.
+const BLUFF_DRESS_Z := 75.0
+
+## The buttresses, at eight metres, and the stretch they cover.
+const BLUFF_BUTTRESS_STEP := 8.0
+const BLUFF_BUTTRESS_FROM := -72.0
+const BLUFF_BUTTRESS_COUNT := 19
+
+## The coping's underside and top, which four other things are laid off.
+const BLUFF_COPING_TOP := 0.0
+const BLUFF_COPING_DEEP := 0.7
+
+
+## The face, dressed: coping, plinth, buttresses, and an end at each end.
+##
+## Six metres of blank plane is what the player looks back at from the lane, and
+## until 2026-08-14 that is exactly what it was — the reason the two sides of the
+## descent did not read as the same place was half the hidden stair and half
+## this. A seawall was the answer and still is; what follows is the rest of it.
+##
+## **The buttresses did not reach the coping.** Every one of the nineteen stopped
+## at −0.797 under a coping whose underside is at −0.697, so the whole row has
+## been standing in a 100mm shadow gap since the day it went in. At six metres
+## and in the sun it reads as a row of posts leaning on a shelf rather than as
+## masonry, which is the opposite of the point. They are laid off the coping's
+## own underside now, with 20mm of overlap, so the two cannot part again — the
+## same fix as everywhere else in this file, which is to derive the number rather
+## than type it in two places.
+##
+## **A plinth, because a wall has to stand on something.** The face met the shore
+## at a hard right angle for the full 150m. Nothing in the park does that: the
+## kerb, the coping and every retaining wall on the cascade are all thicker at
+## the bottom than the thing above them. A course 0.8m high and 0.65m proud is
+## what carries the buttresses down to the ground and gives the foot a shadow
+## line, and it is the single cheapest shape on the face — one box for 150m.
+##
+## **And the dressing stops rather than ends.** The coping runs to z ±75 and is
+## sawn off square against 341m of continuing cliff, which is exactly what you
+## are looking down from the pier. A terminal pier at each end is the ordinary
+## answer: heavier than a buttress, deeper than the coping, and the coping dies
+## into it instead of into air.
+func _bluff_face() -> void:
+	var face := Plan.BLUFF_FACE_X
+	_box("bluff_coping", Vector3.ZERO,
+		Vector3(face + 0.15, BLUFF_COPING_TOP - BLUFF_COPING_DEEP * 0.5, 0.0),
+		Vector3(1.1, BLUFF_COPING_DEEP, BLUFF_DRESS_Z * 2.0), "far_shade", 0.0, false)
+
+	# The plinth, a touch longer than the coping so it reads as running under it
+	# rather than as a second course of the same length stopping at the same
+	# place. Sunk into the shore rather than sat on it, for the reason every
+	# ground-meeting shape in this file is: a face flush with the floor is a
+	# coplanar pair waiting for the displacement to be one step the wrong way.
+	# **This one collides, and the coping and buttresses do not.** The plinth is
+	# the proudest thing on the face at standing height, so it is what a body
+	# actually meets; the buttresses sit behind its outer face and the coping is
+	# six metres up. Before it existed the player stopped against the bluff at
+	# −58.3 and stood 190mm inside every buttress they passed, which is the sort
+	# of thing that only shows up in a screenshot taken from the right place.
+	_box("bluff_plinth", Vector3.ZERO,
+		Vector3(face - 0.175, SHORE_TOP - 0.1, 0.0),
+		Vector3(0.95, 1.4, BLUFF_DRESS_Z * 2.0 + 0.8), "far_shade")
+
+	# **Laid off the coping, not off a typed height.** Top is the coping's
+	# underside plus an overlap; bottom is under the shore. The height is what
+	# falls out of the two, so moving either end moves the buttress with it.
+	var top := BLUFF_COPING_TOP - BLUFF_COPING_DEEP + 0.02
+	var bottom := SHORE_TOP - 0.06
+	for i in BLUFF_BUTTRESS_COUNT:
+		var bz := BLUFF_BUTTRESS_FROM + float(i) * BLUFF_BUTTRESS_STEP
+		_box("bluff_buttress_%d" % i, Vector3.ZERO,
+			Vector3(face - 0.24, (top + bottom) * 0.5, bz),
+			Vector3(0.5, top - bottom, 1.2), "far_warm", 0.0, false)
+
+	# The ends. Set in from the coping's own end so the coping oversails it in
+	# plan, which is what stops the pier reading as a buttress that grew.
+	#
+	# **And standing 120mm above the coping rather than flush with it.** Flush is
+	# what it was, and flush meant the pier's top face and the coping's top face
+	# were the same plane — `coplanar_test` caught it as a 1.01m² pair at y 0.003,
+	# which is the whole reason that test exists. The displacement in `_add`
+	# separates shapes that merely touch; two shapes *authored* onto one plane are
+	# a coincidence it cannot be expected to undo. A pier that caps its coping is
+	# also simply what a pier does.
+	var pier_top := BLUFF_COPING_TOP + 0.12
+	for side in [-1.0, 1.0]:
+		var tag := "n" if side < 0.0 else "s"
+		_box("bluff_pier_%s" % tag, Vector3.ZERO,
+			Vector3(face - 0.36, (pier_top + bottom) * 0.5,
+				side * (BLUFF_DRESS_Z - 1.1)),
+			Vector3(0.8, pier_top - bottom, 2.4), "far_shade")
+
+	_bluff_beds()
+
+
+## Where the foot planting starts and how far it runs, either side of the axis.
+##
+## It starts clear of the wings — `WING_TURN_Z` is 10.3, so nothing before 12
+## can foul the turn — and stops well short of the dressed stretch's ends. The
+## point is a monument whose landscaping runs out along the foot of the cliff,
+## not a planted cliff.
+const BLUFF_BED_FROM := 12.0
+const BLUFF_BED_SEGS := 4
+const BLUFF_BED_LEN := 4.4
+const BLUFF_BED_GAP := 0.4
+
+
+## The planting at the foot of the face, flanking the cascade.
+##
+## `_cascade_bank` plants the wedge behind the outbound leg and `_cascade_bed`
+## the foot of the return leg, and both stop dead where the wings stop — so the
+## terracing that makes the descent read as a cut hillside ends exactly at the
+## monument's own footprint, and the face either side of it meets the shore at a
+## bare right angle. From the lane that is the join you actually look at: an
+## elaborate planted object with nothing growing within twenty metres of it.
+##
+## So the same three-part vocabulary the other two beds use — kerb, soil, blooms
+## — carried out along the foot and **stepping down as it goes**. Four segments a
+## side, each lower than the last, ending at half the height it started. That is
+## the half that matters: a run of equal beds would read as a planted promenade
+## and make the whole lane ornamental, and the lane is the service side. Beds
+## that get shallower and stop say the planting belongs to the cascade and is
+## running out of reasons to be there, which is what is true.
+##
+## Not carried past `BLUFF_BED_FROM + 4 * (LEN + GAP)`, about 31m out. Beyond
+## that the face is buttresses and plinth, which is what a working seawall is.
+func _bluff_beds() -> void:
+	var face := Plan.BLUFF_FACE_X
+	# In front of the plinth, overlapping it, so the two read as one base rather
+	# than as a planter parked against a wall.
+	var x1 := face - 0.6
+	var x0 := x1 - 1.4
+	for side in [-1.0, 1.0]:
+		var tag := "n" if side < 0.0 else "s"
+		for i in BLUFF_BED_SEGS:
+			# Stepping down: full height at the monument, half of it at the end.
+			var rise: float = lerpf(0.95, 0.5, float(i) / float(BLUFF_BED_SEGS - 1))
+			var top: float = SHORE_TOP + rise
+			var za: float = side * (BLUFF_BED_FROM + float(i) * (BLUFF_BED_LEN + BLUFF_BED_GAP))
+			var zb: float = za + side * BLUFF_BED_LEN
+			_box("bluff_bed_%s_%d" % [tag, i], Vector3.ZERO,
+				Vector3((x0 + x1) * 0.5, (top + SHORE_TOP - 1.0) * 0.5,
+					(za + zb) * 0.5),
+				Vector3(x1 - x0, top - SHORE_TOP + 1.0, absf(zb - za)), "building")
+			_box("bluff_bed_soil_%s_%d" % [tag, i], Vector3.ZERO,
+				Vector3((x0 + x1) * 0.5, top + 0.16, (za + zb) * 0.5),
+				Vector3(x1 - x0 - 0.36, 0.32, absf(zb - za) - 0.24), "planting",
+				0.0, false)
+			for k in 5:
+				var hx: float = lerpf(x0 + 0.35, x1 - 0.35, _hash01(i * 29 + k, 13, 61))
+				# `min`/`max` rather than `za`/`zb`, because the north run counts
+				# down in z and the naive form widens the range instead of
+				# insetting it — the same trap `_cascade_bank` documents.
+				var hz: float = lerpf(minf(za, zb) + 0.35, maxf(za, zb) - 0.35,
+					_hash01(i * 29 + k, 17, 67))
+				var bloom: String = ["bloom_pale", "bloom_warm", "bloom_pink"][(i + k) % 3]
+				_sphere("bluff_bloom_%s_%d_%d" % [tag, i, k],
+					Vector3(hx, top + 0.33, hz), Vector3.ZERO,
+					0.15 + _hash01(k, 5, 31) * 0.13, bloom)
 
 
 # ---------------------------------------------------------------------------

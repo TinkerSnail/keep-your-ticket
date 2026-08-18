@@ -215,6 +215,32 @@ const ARRIVED := [
 	{"name": "34a_cascade_from_pier", "yaw": -90.0, "pitch": 6.0, "pos": Vector3(-140, STAND_SHORE, -2)},
 	{"name": "34b_cascade_close", "yaw": -90.0, "pitch": 4.0, "pos": Vector3(-96, STAND_SHORE, -2)},
 	{"name": "35_bluff", "yaw": -118.0, "pitch": 7.0, "pos": Vector3(-66.5, STAND_SHORE, -2)},
+	# **The face itself, along its length, which nothing here looked at.**
+	#
+	# `35_bluff` is named for the bluff and points at the niche — it is a shot of
+	# the cascade wall from two metres away, and every other shot on this side
+	# either faces west or is inside the monument's own footprint. So the largest
+	# surface in the west, 150m of dressed seawall, had no picture of it at all,
+	# and the two things wrong with it — nineteen buttresses hanging 100mm short
+	# of their coping, and a coping sawn off square against 341m of cliff — were
+	# not visible from anywhere the capture stood.
+	#
+	# From the back lane, which is the only place the face is seen at length: the
+	# frontage is one building deep and hides it completely from the promenade and
+	# the pier. Angled off the lane's axis rather than square to it, so the face
+	# recedes across the frame instead of standing flat at one end of it.
+	{"name": "35a_face_north", "yaw": -28.0, "pitch": 3.0,
+		"pos": Vector3(-70.0, STAND_SHORE, 34.0)},
+	{"name": "35b_face_south", "yaw": -152.0, "pitch": 3.0,
+		"pos": Vector3(-70.0, STAND_SHORE, -38.0)},
+	# The end of the dressing, which is the thing a terminal pier has to earn: at
+	# 75m out the coping stops and the cliff carries on for another ninety-five.
+	# Looking *north*, up the face towards where it stops. The first version of
+	# this stood at the same place facing south and framed the cascade, which is
+	# the one thing on this stretch already photographed five times — the pier is
+	# at z −73.9 and was squarely behind the camera.
+	{"name": "35c_dressing_ends", "yaw": -22.0, "pitch": 2.0,
+		"pos": Vector3(-68.0, STAND_SHORE, -58.0)},
 ]
 
 ## The reason the boardwalk is west. Sunset is about 20:20 for this latitude, so
