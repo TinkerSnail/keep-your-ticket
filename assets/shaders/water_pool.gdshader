@@ -160,7 +160,15 @@ float one_lamp(vec2 p, vec4 l) {
 // Rounding asks the question the comment above claims to be asking — which spoke
 // is nearest — instead of asking which cell this is in and hoping they agree.
 float ring_lamps(vec2 p, vec4 ring) {
-	if (ring.w <= 0.0 || ring.y < 1.0) {
+	// **`abs`, and it was not.** The count carries the phase in its sign — which
+	// is what `half_step` four lines down reads it for — and this guard tested the
+	// signed count, so the froth ring, whose count is −16, was rejected before it
+	// drew a single patch. Every froth patch in the plaza's fountain vanished the
+	// moment this shader took the job over, the generator reported success, the
+	// coplanar test passed, and it took somebody looking at the pool to say the
+	// foam was gone. A convention introduced in one hunk and a guard left assuming
+	// the old one, written in the same edit, minutes apart.
+	if (ring.w <= 0.0 || abs(ring.y) < 1.0) {
 		return 0.0;
 	}
 	vec2 d = p - centre.xz;
