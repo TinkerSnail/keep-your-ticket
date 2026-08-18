@@ -21,7 +21,31 @@ extends Node
 
 const FOV := 22.0
 const FRAMES := 8
-const GAP := 0.09
+
+## Seconds between frames, and it is `flow_probe.py`'s number rather than this
+## file's.
+##
+## **It was 0.09 and the analysis was written for 0.035**, which is the kind of
+## disagreement that does not announce itself. `SEARCH` over there is 34 pixels,
+## sized so it is wider than one frame of travel and narrower than half the band
+## spacing: at 35ms the three views travel about 13, 20 and 11 pixels against
+## bands 161, 141 and 62 apart. Scale that to 90ms and the jets travel about 51,
+## which is outside a 34-pixel window — so the correlation cannot reach the true
+## peak, returns whatever sits at the edge of its range, and reports a *sign*
+## rather than a shift. Both values had been in the tree unchanged since the day
+## the pair was written, so they never agreed.
+##
+## Which way to fix it is not arbitrary. Widening `SEARCH` to reach 51 would put
+## it past the plume's own wrap point of 31 and start matching one band onto the
+## next; shortening the gap moves every view further inside both limits at once.
+## So the gap comes down to what the window was cut for.
+##
+## Not verified in a web session and it cannot be: `create_timer` sets a floor,
+## not a ceiling, and lavapipe delivers frames 150-1000ms apart whatever this
+## says. Under that, travel is more than a whole band per frame for every view
+## and the reading is modulo the pattern - see the warning at the foot of the
+## capture loop, which is there to stop the result being read as a verdict.
+const GAP := 0.035
 
 ## Both directions, because fixing a sign is exactly the change that can put the
 ## error in the other one. The jets should climb and the sheets should fall, and

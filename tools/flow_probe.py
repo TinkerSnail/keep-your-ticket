@@ -104,8 +104,20 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # How far to search, in pixels. Wider than one frame of travel and narrower than
 # half the band spacing — beyond that the match wraps onto the next band and the
 # sign flips for no reason. At the probe's 35ms gap the three views travel about
-# 13, 20 and 11 pixels and their bands are 161, 141 and 62 apart, so the
-# tightest wrap point is 31 and this sits under it.
+# 13, 20 and 11 pixels and their bands are 161, 141 and 62 apart.
+#
+# The gap this is sized for is `GAP` in `tools/flow_probe.gd`, and for a long
+# while it was not: that file said 0.09 while this paragraph said 35ms, and the
+# two had never agreed. At 90ms the jets travel about 51 pixels, which is outside
+# this window entirely — the correlation cannot reach the real peak and returns
+# whatever is at the edge of its range instead. `GAP` is 0.035 now. If it moves
+# again, this number has to move with it or stop meaning anything.
+#
+# **It does exceed the plume's own wrap point of 31**, and that is knowingly
+# left. Narrowing to 31 would cost the jets their margin at the far end, and the
+# plume is reported rather than asserted for exactly this sort of reason: it is a
+# sliver against open sky whose bands are 62 apart, and it is covered by the jet
+# row anyway — same shader family, same sign of `flow`.
 SEARCH = 34
 
 
