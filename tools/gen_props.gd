@@ -76,6 +76,11 @@ var _root: Node3D
 var mats: Dictionary = {}
 
 
+## Set when a material came out wrong. `_save` refuses to write anything once it
+## is up — see there for why `quit()` alone is not enough.
+var _fatal := false
+
+
 func _initialize() -> void:
 	_build_textures()
 	_build_materials()
@@ -238,6 +243,13 @@ func _initialize() -> void:
 
 
 func _save(node: Node3D, path: String) -> bool:
+	# Nothing is written after a material lost a uniform. `quit()` only asks the
+	# main loop to stop, and the whole park is built inside one call before the
+	# loop gets a turn — so on its own it reports the fault and then writes every
+	# scene anyway, which is the same silence this check exists to break.
+	if _fatal:
+		return false
+
 	var packed := PackedScene.new()
 	var err := packed.pack(node)
 	if err != OK:
@@ -927,10 +939,10 @@ func _fountain_materials() -> void:
 		"chop": 1.0,
 		"rough": 0.06,
 		"lamp_ring": Vector4(Plan.FOUNTAIN_JET_R, 12.0, 0.55, 1.0),
-		# Sixteen froth patches where the lower basin's falls land, and the count
-		# is **negative** because `_foam_ring` spaced them at `i` steps while the
-		# jets are at `i + 0.5`. See the shader.
-		"foam_ring": Vector4(4.03, -16.0, 0.52, 1.0),
+		# A froth patch where each of the lower basin's falls lands, and the count
+		# is **negative** because `_veil` spaces them at `i` steps while the jets
+		# are at `i + 0.5`. See the shader.
+		"foam_ring": Vector4(LB_VEIL_R, -float(LB_VEIL_N), 0.52, 1.0),
 		# **The glow, and this is the restrained end of it.** The plaza's fountain
 		# is a civic one in a room with 1,066 nodes of lit frontage round it, so
 		# it wants to be the brightest thing in the square rather than the only
@@ -943,6 +955,21 @@ func _fountain_materials() -> void:
 	# rings four and eight times as tight. At the pool's wavelength a basin has
 	# one and a half waves on it, which does not read as water at all — it reads
 	# as a dent.
+	#
+	# **And neither basin gets a landing ring, which was tried and measured.** The
+	# upper lip sheds ten falls onto the lower basin at radius 2.03, so a froth
+	# ring there is the obvious companion to the pool's — it was built, and then
+	# it was looked at. The lower basin's water is at 3.30 and its rim stands 5cm
+	# proud of it; the eye is at 1.60. Every sightline that reaches the height of
+	# that surface is already travelling upward and keeps going, so the surface is
+	# not merely hard to see from the plaza floor, it cannot be seen from anywhere
+	# below it — and there is nowhere in the park above it to stand. Rendered from
+	# a camera at 6.6m, where it *is* visible, 0.70 froth against `ring_scale` 4.5
+	# was still barely a haze.
+	#
+	# So the falls between the basins are drawn and their landing is not, which is
+	# the honest split: the veils hang in plain sight from the floor and the water
+	# they hit is over the horizon of the rim they are behind.
 	mats["water_basin"] = _shader_material(pool, {
 		"tint": Color(0.13, 0.28, 0.31),
 		"centre": Vector3(Plan.FOUNTAIN_AT.x, 0.0, Plan.FOUNTAIN_AT.y),
@@ -1111,25 +1138,56 @@ func _plain(albedo: Color, roughness: float, metallic: float) -> StandardMateria
 ## One `ShaderMaterial` per uniform set. Shared by every part that takes it, so
 ## the packed scene carries one copy and not one per node.
 ##
-## **A `vec4` uniform must be given a `Vector4`, never a `Plane`.** Godot accepts
-## a `Plane` here and `get_shader_parameter` hands it straight back, so the
-## material is correct in this process and every check made inside the generator
-## passes. It does not survive `ResourceSaver.save`: the parameter is written to
-## the `.tscn` as `null`, `load()` returns null, and the uniform falls back to its
-## declared default with no error at any point. The game reads the saved scene, so
-## the value only ever exists in the process that could not use it.
+## **A `vec4` uniform must be given a `Vector4`, never a `Plane`.** A `Plane` is
+## what a `vec4` took in Godot *3*. In 4 the mismatch fails in the worst way
+## available: `set_shader_parameter` takes the Plane, `get_shader_parameter`
+## hands it straight back, and nothing anywhere says no — so the material is
+## correct in this process and every check made inside the generator passes. It
+## does not survive `ResourceSaver.save`: the parameter is written into the
+## `.tscn` as `null`, `load()` returns null, and the uniform falls back to its
+## declared default with no error at any point. The game reads the saved scene,
+## so the value only ever exists in the one process that cannot use it.
 ##
-## That is how the cascade's submerged lamps and the plaza fountain's `lamp_ring`
-## and `foam_ring` were dark in every built scene on the day they were written —
-## eight call sites, all of them `Plane`, all of them null in the output. It is the
-## same shape of failure as `PortableCompressedTexture2D` dropping its own pixels:
-## it fails by succeeding, and the only thing that shows it is reading the
-## emitted file back. Grep the output for `= null` after adding a uniform.
+## That is how every `vec4` in both water shaders — the cascades' submerged
+## lamps, the froth patches, the plaza fountain's `lamp_ring` and `foam_ring` —
+## was dark in every built scene on the day it was written: eight call sites, all
+## of them `Plane`, with the generator running clean and printing its node counts
+## the whole time. They were in the source, in the shader and in the commit
+## message, and had never once been on screen. It is the same shape as
+## `PortableCompressedTexture2D` dropping its own pixels: it fails by succeeding.
+##
+## **So the read-back below is not belt and braces, it is the only thing that
+## catches a dropped uniform — and it has to go through `get_property_list`.**
+## Asking the material for the parameter straight after setting it returns the
+## Plane, because the value is sitting in the cache, wrong type and all. It is
+## fetching the property list that discards it, because that is where the
+## declared type is compared against what is held. `ResourceSaver` asks for the
+## list and then for each value, in that order, so a check that skips the list is
+## asking a question the saver never asks, and gets an answer the saved file will
+## not agree with. Walk the list, exactly as the saver walks it — and grep the
+## emitted scene for `= null` after adding a uniform.
 func _shader_material(shader: Shader, params: Dictionary) -> ShaderMaterial:
 	var m := ShaderMaterial.new()
 	m.shader = shader
 	for key in params:
 		m.set_shader_parameter(key, params[key])
+
+	for pi in m.get_property_list():
+		var prop := String(pi["name"])
+		if not prop.begins_with("shader_parameter/"):
+			continue
+		var key := prop.trim_prefix("shader_parameter/")
+		# Only what this call asked for. Every other uniform reads back null by
+		# design — that is what "left at the shader's default" looks like here.
+		if params.has(key) and m.get(prop) == null:
+			push_error(("gen_props: %s did not survive on %s. The shader declares "
+				+ "it as %s and it was given a %s, so it would have saved as null "
+				+ "and drawn as the shader's default.")
+				% [key, shader.resource_path, type_string(pi["type"]),
+					type_string(typeof(params[key]))])
+			_fatal = true
+			quit(1)
+			return m
 	return m
 
 
@@ -2001,6 +2059,23 @@ func _fountain_pedestal(o: Vector3) -> void:
 	_cyl("ped_cap", o, Vector3(0.0, 2.35, 0.0), 1.92, 0.24, "fount_stone", 0.0, 20, false)
 
 
+## Where each ring of falls hangs from, and how many falls are in it.
+##
+## Here rather than at the two `_veil` calls because the lower ring's froth needs
+## the same two numbers: a landing ring is drawn at the radius the falls come off
+## with one patch per fall. Typed twice they drift, and the failure is quiet —
+## a ring of froth 20cm inside a ring of falls still looks like a ring of froth.
+##
+## The upper pair is here for symmetry rather than for a second reader. It is
+## worth the two lines anyway: the next person to reach for a landing ring under
+## the upper falls should find its radius already named, and the note in
+## `_fountain_materials` saying why there isn't one.
+const LB_VEIL_R := 4.03
+const LB_VEIL_N := 16
+const UB_VEIL_R := 2.03
+const UB_VEIL_N := 10
+
+
 ## The two basins, each built the same way: an underside that steps *outward*
 ## going up, a rim ring, and water inside the ring.
 ##
@@ -2038,12 +2113,15 @@ func _fountain_basins(o: Vector3) -> void:
 	# water. What makes the full drop affordable is the fade: the shader thins it
 	# out over its length, so it is bright at the lip and a ghost by the time it
 	# reaches the surface, where the froth ring takes over.
-	_veil("lb_veil", o, 16, 4.03, 3.16, 0.40, 0.07, "water_veil_lo")
-	_veil("ub_veil", o, 10, 2.03, 5.33, 3.30, 0.06, "water_veil_hi")
+	_veil("lb_veil", o, LB_VEIL_N, LB_VEIL_R, 3.16, 0.40, 0.07, "water_veil_lo")
+	_veil("ub_veil", o, UB_VEIL_N, UB_VEIL_R, 5.33, 3.30, 0.06, "water_veil_hi")
 
-	# Where the lower falls land is `foam_ring` on the pool's material now, not
-	# sixteen discs laid on the water. See the shader: froth is a patch of water
-	# that is white and broken, not an object floating on one.
+	# Where the lower sixteen land is `foam_ring` on the pool's material, off
+	# `LB_VEIL_R`/`LB_VEIL_N` so the froth cannot drift from the falls that make
+	# it — not sixteen discs laid on the water. See the shader: froth is a patch
+	# of water that is white and broken, not an object floating on one. The upper
+	# ten land in the lower basin, which no eye in the park is high enough to see
+	# into; `_fountain_materials` has the measurement.
 
 
 ## The nozzle and what comes out of it.

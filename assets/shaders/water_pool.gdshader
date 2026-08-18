@@ -104,9 +104,10 @@ uniform vec4 lamp_b = vec4(0.0);
 //
 // **The sign of the count carries the phase.** Positive puts spokes at
 // `(i + 0.5)` steps, which is `_fountain_jets`' convention; negative puts them at
-// `i` steps, which is `_foam_ring`'s. Two rings in this park use each, and
-// getting it wrong lands every patch exactly halfway between two of the things
-// it belongs to — which looks deliberate and is not. Packed into the sign rather
+// `i` steps, which is `_veil`'s. The plaza's pool wears one of each — its lamps
+// under the jets and its froth under the falls — and getting the sign wrong
+// lands every patch exactly halfway between two of the things it belongs to,
+// which looks deliberate and is not. Packed into the sign rather
 // than given a uniform of its own because it is one bit.
 uniform vec4 lamp_ring = vec4(0.0);
 
@@ -116,7 +117,10 @@ uniform vec4 lamp_ring = vec4(0.0);
 // it is a patch of water that is white and broken instead of dark and glassy, so
 // it is the same term with the gloss going the other way.
 //
-// `foam_a`/`foam_b` are single patches, `foam_ring` a ring of them.
+// `foam_a`/`foam_b` are single patches, `foam_ring` a ring of them — one patch
+// per fall, at the radius the falls hang from. The plaza's pool takes the ring,
+// for the sixteen falls off the lower lip; the niche's trough and bowl take the
+// singles, for the two off its basin and the one off its spout.
 uniform vec4 foam_a = vec4(0.0);
 uniform vec4 foam_b = vec4(0.0);
 uniform vec4 foam_ring = vec4(0.0);
@@ -168,8 +172,30 @@ float one_lamp(vec2 p, vec4 l) {
 // The nearest spoke of a ring, then the same falloff as a single lamp. Only the
 // nearest one can matter: the lamps are 0.55m across on a 13m circle, so no two
 // of their halos reach each other.
+//
+// **`round` about the spoke, not `floor` into the cell, and the two are only the
+// same thing for half the rings this draws.** At `i + 0.5` a spoke sits at the
+// middle of its cell, so `floor` lands on the cell containing the fragment and
+// the spoke it names is the nearest one — which is why the jets' lamp ring came
+// out right. At `i` a spoke sits on the *boundary* between two cells, and `floor`
+// always names the one below: every fragment in the anticlockwise half of a
+// patch is measured against the spoke a whole step away and comes back with no
+// froth at all. Sixteen landings would have drawn as sixteen half-moons, each
+// cut dead straight through its own centre, and nothing had ever seen it because
+// every `vec4` on this shader was arriving null (see `_shader_material`).
+//
+// Rounding asks the question the comment above claims to be asking — which spoke
+// is nearest — instead of asking which cell this is in and hoping they agree.
 float ring_lamps(vec2 p, vec4 ring) {
-	if (ring.w <= 0.0 || ring.y < 1.0) {
+	// **`abs`, and it was not.** The count carries the phase in its sign — which
+	// is what `half_step` four lines down reads it for — and this guard tested the
+	// signed count, so the froth ring, whose count is −16, was rejected before it
+	// drew a single patch. Every froth patch in the plaza's fountain vanished the
+	// moment this shader took the job over, the generator reported success, the
+	// coplanar test passed, and it took somebody looking at the pool to say the
+	// foam was gone. A convention introduced in one hunk and a guard left assuming
+	// the old one, written in the same edit, minutes apart.
+	if (ring.w <= 0.0 || abs(ring.y) < 1.0) {
 		return 0.0;
 	}
 	vec2 d = p - centre.xz;
@@ -177,7 +203,7 @@ float ring_lamps(vec2 p, vec4 ring) {
 	float step_a = 6.28318530718 / n;
 	float a = atan(d.y, d.x);
 	float half_step = ring.y > 0.0 ? 0.5 : 0.0;
-	float sa = (floor(a / step_a) + half_step) * step_a;
+	float sa = (round(a / step_a - half_step) + half_step) * step_a;
 	vec2 lp = centre.xz + vec2(cos(sa), sin(sa)) * ring.x;
 	return one_lamp(p, vec4(lp, ring.z, ring.w));
 }
