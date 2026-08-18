@@ -59,13 +59,35 @@ scripts/
 tools/
   gen_props.gd — rebuilds plaza_props.tscn
   capture.gd — poses the player and saves screenshots
+  run.tscn — runs any tool that needs the autoloads
 ```
 
-The tools are development-only and never run as part of the game:
+The tools are development-only and never run as part of the game, and they
+start two different ways depending on what they need.
+
+The generators and `clearance_test` are `MainLoop`s with an `_initialize`, and
+run with `--script`:
 
 ```bash
 godot --headless --path . --script res://tools/gen_props.gd
 ```
+
+Everything else is a `Node` with a `_ready`, and needs a tree with the autoloads
+in it. `--script` compiles before autoloads are registered, so a tool naming
+`ParkClock` or `ParkSections` dies at compile without running a line — which is
+nineteen of the twenty-three. Those go through `run.tscn`, named after a bare
+`--`:
+
+```bash
+godot --headless --path . tools/run.tscn -- walk_test
+godot --path . --rendering-driver vulkan tools/run.tscn -- west_capture
+```
+
+Run it with no tool named and it lists what it can start, and which ones want
+`--script` instead. Use `--headless` for anything that only reads the scene, and
+a real rendering driver for anything that saves a frame: headless selects a
+dummy renderer that draws nothing, so a capture pass under it writes grey and
+reports success.
 
 `plaza_props.tscn` is generated output — edit `gen_props.gd` and re-run rather than moving props by hand, or the next regeneration discards the change. It builds transforms with `Transform3D.rotated()` and `Basis(axis, angle)` rather than writing basis components, because the `.tscn` format serialises basis *rows* while `basis.x/y/z` are the *columns*, and hand-writing the nine numbers silently yields the transpose.
 
