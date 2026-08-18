@@ -926,11 +926,11 @@ func _fountain_materials() -> void:
 		"ring_scale": 1.0,
 		"chop": 1.0,
 		"rough": 0.06,
-		"lamp_ring": Plane(Plan.FOUNTAIN_JET_R, 12.0, 0.55, 1.0),
+		"lamp_ring": Vector4(Plan.FOUNTAIN_JET_R, 12.0, 0.55, 1.0),
 		# Sixteen froth patches where the lower basin's falls land, and the count
 		# is **negative** because `_foam_ring` spaced them at `i` steps while the
 		# jets are at `i + 0.5`. See the shader.
-		"foam_ring": Plane(4.03, -16.0, 0.52, 1.0),
+		"foam_ring": Vector4(4.03, -16.0, 0.52, 1.0),
 	})
 	# The basins are 8m and 4m across against the pool's 17, so they take the
 	# rings four and eight times as tight. At the pool's wavelength a basin has
@@ -1037,11 +1037,11 @@ func _fountain_materials() -> void:
 			"ring_scale": 11.0,
 			"chop": 6.0,
 			"rough": 0.05,
-			"lamp_a": Plane(nx + 0.52, nz - 0.34, 0.30, 1.0),
-			"lamp_b": Plane(nx + 0.52, nz + 0.34, 0.30, 1.0),
+			"lamp_a": Vector4(nx + 0.52, nz - 0.34, 0.30, 1.0),
+			"lamp_b": Vector4(nx + 0.52, nz + 0.34, 0.30, 1.0),
 			# And the two places the basin's falls land.
-			"foam_a": Plane(nx + 0.90, nz - 0.62, 0.22, 1.0),
-			"foam_b": Plane(nx + 0.90, nz + 0.62, 0.22, 1.0),
+			"foam_a": Vector4(nx + 0.90, nz - 0.62, 0.22, 1.0),
+			"foam_b": Vector4(nx + 0.90, nz + 0.62, 0.22, 1.0),
 		})
 		# The basin: one lamp, and a tighter ring scale because it is 0.44m by
 		# 1.28 against the trough's 1.48 by 1.82.
@@ -1051,9 +1051,9 @@ func _fountain_materials() -> void:
 			"ring_scale": 26.0,
 			"chop": 14.0,
 			"rough": 0.05,
-			"lamp_a": Plane(nx + 1.30, nz, 0.17, 1.0),
+			"lamp_a": Vector4(nx + 1.30, nz, 0.17, 1.0),
 			# Where the spout lands in it.
-			"foam_a": Plane(nx + 1.10, nz, 0.15, 1.0),
+			"foam_a": Vector4(nx + 1.10, nz, 0.15, 1.0),
 		})
 		# Two falls and not one, because `fade_from`/`fade_to` are **absolute
 		# world Y** and the two drops are at different heights. The plaza's pair
@@ -1087,6 +1087,21 @@ func _plain(albedo: Color, roughness: float, metallic: float) -> StandardMateria
 
 ## One `ShaderMaterial` per uniform set. Shared by every part that takes it, so
 ## the packed scene carries one copy and not one per node.
+##
+## **A `vec4` uniform must be given a `Vector4`, never a `Plane`.** Godot accepts
+## a `Plane` here and `get_shader_parameter` hands it straight back, so the
+## material is correct in this process and every check made inside the generator
+## passes. It does not survive `ResourceSaver.save`: the parameter is written to
+## the `.tscn` as `null`, `load()` returns null, and the uniform falls back to its
+## declared default with no error at any point. The game reads the saved scene, so
+## the value only ever exists in the process that could not use it.
+##
+## That is how the cascade's submerged lamps and the plaza fountain's `lamp_ring`
+## and `foam_ring` were dark in every built scene on the day they were written —
+## eight call sites, all of them `Plane`, all of them null in the output. It is the
+## same shape of failure as `PortableCompressedTexture2D` dropping its own pixels:
+## it fails by succeeding, and the only thing that shows it is reading the
+## emitted file back. Grep the output for `= null` after adding a uniform.
 func _shader_material(shader: Shader, params: Dictionary) -> ShaderMaterial:
 	var m := ShaderMaterial.new()
 	m.shader = shader
