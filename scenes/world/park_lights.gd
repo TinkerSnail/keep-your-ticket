@@ -189,6 +189,21 @@ func _apply(force: bool) -> void:
 	_eye.emission_energy_multiplier = EYE_EMISSION * level * fixture_on
 	_trim.emission_energy_multiplier = TRIM_EMISSION * level * feature_on
 
+	# And the water, which is the one emissive surface in the park that is not a
+	# material this node holds a handle to. Every water material carries its own
+	# world position — a `centre` to radiate rings from, a fade band in absolute
+	# world Y, a pair of submerged lamps — so there is no shared resource to
+	# write to the way there is for the bulbs and the trim. What *is* shared is
+	# the hour, so that is what goes global and the pools read it.
+	#
+	# **It takes `feature_on`, not `fixture_on`.** A glowing fountain is the park
+	# presenting itself, which is the same argument the trim's floodlighting
+	# makes: after close it goes out completely. `night.md` is explicit that the
+	# uplighting goes and that the shut park reads as recently vacated rather
+	# than as a light show with nobody in it.
+	RenderingServer.global_shader_parameter_set(
+		&"park_night", level * feature_on)
+
 	if _stale:
 		_rescan()
 

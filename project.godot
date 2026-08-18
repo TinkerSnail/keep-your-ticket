@@ -141,3 +141,22 @@ menu_next_tab={
 [rendering]
 
 anti_aliasing/quality/msaa_3d=2
+
+[shader_globals]
+
+; How lit the park is, 0 to 1, on the same curve `park_lights.gd` raises the
+; lamps along — which is the sun's own altitude and not a clock time somebody
+; typed. A global rather than a per-material uniform because it is the one
+; property of the water that genuinely is park-wide: every other uniform on
+; those materials is a world position or a fade band, and is a fact about one
+; pool. `park_lights.gd` writes it; `water_pool.gdshader` reads it.
+;
+; Registered here rather than added at runtime with
+; `global_shader_parameter_add`, because a shader declaring a global that is not
+; registered fails to *compile* — and a shader that fails to compile behind a
+; well-formed scene is the trap `water_pool`'s own uniform-array comment is
+; about. Declared in the project, it exists before anything loads.
+park_night={
+"type": "float",
+"value": 0.0
+}

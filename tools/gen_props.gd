@@ -931,6 +931,13 @@ func _fountain_materials() -> void:
 		# is **negative** because `_foam_ring` spaced them at `i` steps while the
 		# jets are at `i + 0.5`. See the shader.
 		"foam_ring": Vector4(4.03, -16.0, 0.52, 1.0),
+		# **The glow, and this is the restrained end of it.** The plaza's fountain
+		# is a civic one in a room with 1,066 nodes of lit frontage round it, so
+		# it wants to be the brightest thing in the square rather than the only
+		# one — at 1.6 it reads as a lit fountain and at 3 it reads as a portal.
+		# The grotto in the cascade's niche takes nearly twice this, because it
+		# is a dark alcove with one lamp in it and nothing to compete with.
+		"night_glow": 1.6,
 	})
 	# The basins are 8m and 4m across against the pool's 17, so they take the
 	# rings four and eight times as tight. At the pool's wavelength a basin has
@@ -942,6 +949,11 @@ func _fountain_materials() -> void:
 		"ring_scale": 4.5,
 		"chop": 3.0,
 		"rough": 0.05,
+		# Brighter than the pool, because the basins are what the falls come off
+		# and a lit sheet leaving an unlit lip is a rope with nothing at the top
+		# of it — the same argument the pool's own lamps were put in for, at the
+		# other end of the water.
+		"night_glow": 2.1,
 	})
 	# `streaks` is radians per world metre, so it has to be read against how wide
 	# the thing wearing it is. The falls take 64 and 80 where the jets take 34,
@@ -1042,6 +1054,12 @@ func _fountain_materials() -> void:
 			# And the two places the basin's falls land.
 			"foam_a": Vector4(nx + 0.90, nz - 0.62, 0.22, 1.0),
 			"foam_b": Vector4(nx + 0.90, nz + 0.62, 0.22, 1.0),
+			# A grotto rather than a civic fountain, so nearly twice the plaza's.
+			# It is a 1.5m recess with one amber omni in it and a dark blue plate
+			# behind — there is nothing else in the frame for it to be brighter
+			# than, and the whole reason the niche was deepened was to make the
+			# opening read as occupied.
+			"night_glow": 2.8,
 		})
 		# The basin: one lamp, and a tighter ring scale because it is 0.44m by
 		# 1.28 against the trough's 1.48 by 1.82.
@@ -1054,6 +1072,11 @@ func _fountain_materials() -> void:
 			"lamp_a": Vector4(nx + 1.30, nz, 0.17, 1.0),
 			# Where the spout lands in it.
 			"foam_a": Vector4(nx + 1.10, nz, 0.15, 1.0),
+			# The brightest water in the park. It is the highest of the three
+			# stages, it is the one the spout lands in, and it is what the two
+			# falls leave — so it is where the eye goes and the only one small
+			# enough that the whole surface is a highlight.
+			"night_glow": 3.2,
 		})
 		# Two falls and not one, because `fade_from`/`fade_to` are **absolute
 		# world Y** and the two drops are at different heights. The plaza's pair

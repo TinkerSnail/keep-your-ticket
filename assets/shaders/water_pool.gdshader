@@ -41,6 +41,33 @@ uniform float rough : hint_range(0.0, 1.0) = 0.06;
 // needs anything drawn on it.
 uniform float spec : hint_range(0.0, 1.0) = 0.9;
 
+// **How lit the park is, 0 to 1** — the sun's own altitude on the curve
+// `park_lights.gd` raises the lamps along, not a clock time. Global because it
+// is the one thing about this material that is not a fact about one pool.
+global uniform float park_night;
+
+// How much the water glows of its own accord after dark, and it is per-material
+// on purpose: the plaza's pool is a civic fountain and the cascade's niche is a
+// grotto, and they should not want the same amount.
+//
+// **The emission is gated on `park_night` and this is the whole reason it is
+// allowed to exist.** This shader carried "albedo and gloss, not emission" for
+// as long as it had no way to know the hour — an emissive term with nothing
+// driving it glows just as hard at noon, which reads as a bug rather than as
+// magic, and that is what the note here used to warn about. Given the hour it
+// becomes the opposite: a fountain that is water by day and a light source after
+// dark, which is what a park's fountain actually does once its lamps come up.
+uniform float night_glow : hint_range(0.0, 4.0) = 0.0;
+
+// What the glow is made of, in three parts, because a flat wash over the whole
+// surface reads as fog on top of the pool rather than as water with light in it.
+// The body is the faint overall lift, the lamps are where it concentrates, and
+// the froth carries the most because broken water is what actually scatters
+// light — which is why the brightest thing in a lit fountain is the white.
+uniform float glow_body : hint_range(0.0, 1.0) = 0.18;
+uniform float glow_lamp : hint_range(0.0, 4.0) = 1.0;
+uniform float glow_froth : hint_range(0.0, 4.0) = 1.6;
+
 // Submerged lamps, drawn **by the water** rather than laid on top of it.
 //
 // Three builds of the cascade's niche put the glow on separate geometry — a
@@ -172,13 +199,11 @@ void fragment() {
 	vec3 n = normalize(vec3(-g.x, 1.0, -g.y));
 	NORMAL = normalize((VIEW_MATRIX * vec4(n, 0.0)).xyz);
 
-	// **Albedo and gloss, not emission.** An emissive term would need driving off
-	// the clock the way `_lit_material` is, or it would glow flat at noon — which
-	// is the fault that doc block warns about. Brightening the water instead
-	// costs nothing and is closer to true: a lamp under water does not make the
-	// surface a light source, it makes that patch of it pale and glassy. It reads
-	// by day as the lens showing through and by night under `niche_glow`, which
-	// is the omni already standing in the recess.
+	// **Albedo and gloss first, and emission only after dark.** By day a lamp
+	// under water does not make the surface a light source — it makes that patch
+	// of it pale and glassy, which is what this does and what it did before the
+	// glow existed. The emissive term below is added on top and is gated on
+	// `park_night`, so at noon this shader behaves exactly as it always has.
 	float lit = lamp_glow(w_pos.xz);
 	// Froth goes on **after** the lamps and pulls the opposite way on gloss:
 	// broken water scatters, so it is pale and matt where a lit patch is pale and
@@ -193,6 +218,29 @@ void fragment() {
 	ROUGHNESS = mix(rg, 0.55, froth);
 	METALLIC = 0.0;
 	SPECULAR = mix(sp, 0.35, froth);
+
+	// The glow. Three parts against one flat wash, for the reason the uniforms
+	// give — and all three ride `park_night`, so this is nothing at all until the
+	// sun is low enough that `park_lights.gd` has begun bringing the lamps up.
+	//
+	// **The ripple is in it, and that is what keeps it water.** `lit` and `froth`
+	// both move with the surface, so the glow moves with the surface too; a
+	// constant term added to a rippling material is a sheet of light lying on
+	// top of one, which is the same mistake three builds of the submerged lamps
+	// made in geometry and it does not get better for being made in a shader.
+	// Only `glow_body` is flat, and it is the smallest of the three.
+	float night = clamp(park_night, 0.0, 1.0);
+	if (night_glow > 0.0 && night > 0.0) {
+		float g = glow_body
+			+ lit * glow_lamp
+			+ froth * glow_froth;
+		// Toward the lamp's own colour where it is lit and toward the froth's
+		// where it is broken, so the glow is the colour of the thing making it
+		// rather than one tint over the whole pool.
+		vec3 gc = mix(tint, lamp_tint, clamp(lit * 0.8, 0.0, 1.0));
+		gc = mix(gc, foam_tint, clamp(froth * 0.7, 0.0, 1.0));
+		EMISSION = gc * g * night_glow * night;
+	}
 	// Deliberately opaque. A 25cm pool over a dark floor shows nothing through
 	// it worth the sorting, and the one thing transparency would definitely do
 	// is put a translucent disc in front of eleven translucent jets.
