@@ -1484,6 +1484,20 @@ const WALKWAY_WIDTH := {
 # Reading it
 # ---------------------------------------------------------------------------
 
+## Every walkway as the polyline it is, with the width it is paved to.
+##
+## The companion to `walkway_segments`, and the difference matters to anything
+## that draws paving rather than lines: a run's joints are its own business, and
+## a consumer handed loose segments has to guess which of them meet. The minimap
+## drew the segments and every joint in the park came out as a butt end.
+static func walkway_runs() -> Array:
+	var out := []
+	for id in WALKWAYS:
+		out.append({"id": id, "points": WALKWAYS[id],
+			"width": WALKWAY_WIDTH.get(id, 6.0)})
+	return out
+
+
 ## Every walkway as a flat list of (from, to) segment pairs, which is what a
 ## line-drawing consumer actually wants. Built rather than stored so the
 ## polylines above stay the single description.
