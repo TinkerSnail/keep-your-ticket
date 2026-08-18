@@ -1,6 +1,6 @@
 ---
 name: run-the-park
-description: Launch and drive Keep Your Ticket in a headless Linux container — walk the player, raise the Instamatic, fire the shutter, and collect screenshots. Use this whenever you need to see a change working in the real game rather than in a test: "run it", "start the game", "screenshot the fountain", "does this actually look right", "check it in game". Also the prerequisite for re-running `tools/gen_props.gd` or any `tools/_*_probe.gd`, because it is what puts a matching Godot binary and a working renderer on the box. Do not try to launch Godot without reading this first — the two failures that eat the most time (a dummy renderer that saves blank PNGs, and a scene that will not load because the class registry was never built) both look like something else.
+description: Launch and drive Keep Your Ticket — in a headless Linux container, or through the installed app on macOS — walk the player, raise the Instamatic, fire the shutter, and collect screenshots. Use this whenever you need to see a change working in the real game rather than in a test: "run it", "start the game", "screenshot the fountain", "does this actually look right", "check it in game". Also the prerequisite for re-running `tools/gen_props.gd` or any `tools/_*_probe.gd`, because it is what puts a matching Godot binary and a working renderer on the box. Do not try to launch Godot without reading this first — the two failures that eat the most time (a dummy renderer that saves blank PNGs, and a scene that will not load because the class registry was never built) both look like something else.
 ---
 
 # Running the park
@@ -9,6 +9,45 @@ The game is Godot 4.7.x, Forward+, GDScript. A container has no GPU and no
 display, so "run it" means three things that are easy to get wrong
 separately: a renderer that actually rasterises, an X server for it to talk
 to, and an imported project so `class_name` resolves.
+
+## On macOS, none of the above applies
+
+`drive.sh` and `setup_headless.sh` are for a Linux container and will not run
+here: the primary machine is a Mac with a real GPU and a real display, so there
+is no ICD to install and nothing to fake a screen with. The failure if you try
+anyway is `xvfb-run: command not found`, and it arrives *after* the script has
+already spent a minute pretending to install packages, which reads like a
+half-finished setup rather than the wrong platform entirely.
+
+Launch the installed app instead, and write the scene wrapper yourself, because
+`drive.sh` is what normally does that for a bare script:
+
+```bash
+open -n -a /Applications/Godot.app --args --path "/absolute/path/to/Keep Your Ticket" _my_probe.tscn
+```
+
+Four things differ from the container flow:
+
+- **The path has to be absolute.** `open` goes through LaunchServices and the
+  child does not inherit the shell's working directory, so `--path .` lands
+  somewhere with no project in it and Godot falls back to the project manager —
+  which idles at about 2% CPU forever and looks exactly like a capture that is
+  still settling.
+- **`open` returns immediately.** It does not block on the run, so poll for the
+  *last* frame the driver writes rather than the first.
+- **Delete the frames before the run, not after.** This is the standing trap in
+  `CLAUDE.md` and `open` sharpens it: the launch returning instantly means a
+  poll for "the last frame exists" is satisfied by the previous run's pictures
+  before this one has drawn anything. A complete, well-formed, entirely stale
+  set is worse than a missing file.
+- **`user://` is somewhere else** — `~/Library/Application Support/Godot/app_userdata/Keep Your Ticket/`,
+  not `~/.local/share/godot/...`.
+
+Everything below about *driving* the game still holds — the input mechanisms,
+holding rather than tapping `F`, freezing the clock, where to stand. What does
+not carry over is the timing: this is hardware rendering, so a run is seconds
+rather than the several minutes lavapipe takes, and the `--headless` warning is
+still exactly as true.
 
 ## Setup, once per container
 
