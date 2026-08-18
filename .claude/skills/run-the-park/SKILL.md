@@ -47,15 +47,25 @@ and run it:
 .claude/skills/run-the-park/scripts/drive.sh /path/to/your_driver.gd
 ```
 
+`drive.sh` also takes a `.tscn` and runs it as-is, which is what the tools that
+already carry their own scene need — `tools/capture.tscn`, `tools/west_capture.tscn`.
+
 Screenshots and anything the game writes to `user://` land in
 `~/.local/share/godot/app_userdata/Keep Your Ticket/`; the Instamatic's photos
 go in `photos/` under that. **Look at the PNGs.** A blank or black frame means
 the launch failed, not that the scene is empty.
 
-A run takes several minutes under software rendering. Give the Bash tool a
-timeout well past its 120s default or it will be killed mid-run, and a killed
-run can leave an X lock behind — `drive.sh` clears stale locks on the way in,
-because the symptom otherwise is a bare `exit 144` with no message.
+A run takes several minutes under software rendering — the full `west_capture`
+pass and its 50 shots takes the best part of ten. Give the Bash tool a timeout
+well past its 120s default or it will be killed mid-run, and a killed run can
+leave an X lock behind — `drive.sh` clears stale locks on the way in, because
+the symptom otherwise is a bare `exit 144` with no message.
+
+Do not clear those locks by typing `pkill -f Xvfb` at a prompt. `pkill -f`
+matches whole command lines, so a shell running a command that mentions Xvfb
+matches its own argv and kills itself; the symptom is a command that stops dead
+part-way through with no error, which reads like the *game* having crashed. It
+is safe inside `drive.sh` because a script's argv is just its path.
 
 ### Input: two mechanisms, and using the wrong one fails silently
 
@@ -107,10 +117,18 @@ binary this skill installs — `$GODOT` below is what `setup_headless.sh` prints
 python3 tools/coplanar_test.py                                   # z-fight check, seconds
 ```
 
-The probes (`tools/_*_probe.gd`) are scenes, not scripts — run them through
-`drive.sh` like any driver. `--headless` is right for the generator, which
-writes `.tscn` files and never renders; it is wrong for anything that saves a
-PNG.
+The probes (`tools/_*_probe.gd`) are bare scripts that need the scene wrapper,
+so hand them to `drive.sh` and it does that for you. `--headless` is right for
+the generator, which writes `.tscn` files and never renders; it is wrong for
+anything that saves a PNG.
+
+Two of the capture tools ship their own scene rather than borrowing a wrapper,
+and the reason is worth knowing before you write a third: `--script` compiles a
+file *before* the project's autoloads register, so any tool that names
+`ParkClock` or `ParkSections` at the top level dies at compile with "Identifier
+not found" before drawing a frame. `gen_props.gd` dodges it by loading late;
+a tool whose whole job is to drive the clock across a section boundary cannot,
+so it runs as a scene instead.
 
 Godot writes a `.uid` beside every script it imports. The repo tracks those,
 but do not commit ones for throwaway drivers — delete the driver and its
