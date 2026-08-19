@@ -5411,6 +5411,13 @@ func _wing_treads(tag: String, leg: int, a: Vector3, b: Vector3, theta: float,
 ## measurements said. Here the bank fills the wedge between the outbound leg and
 ## the bluff face, its surface following the flight down, and it is the planted
 ## hillside the reference's flanking stairs are cut into.
+## How far the bank's far end runs into what it backs onto. Buried either way —
+## the second exists only so the west site's does not land on the bluff plinth's
+## own embed, which is `BLUFF_FACE_X + 0.3` and reached from the other file.
+const BANK_EMBED := 0.3
+const BANK_EMBED_AT_PLINTH := 0.45
+
+
 func _cascade_bank(site: Dictionary, side: float) -> void:
 	var tag := "n" if side < 0.0 else "s"
 	var path := Plan.wing_path(site, side)
@@ -5422,7 +5429,21 @@ func _cascade_bank(site: Dictionary, side: float) -> void:
 	# and meant "a quarter metre below sea level" everywhere else.
 	var head: float = site["head_y"]
 	var x0: float = a.x + Plan.WING_W * 0.5 + 0.4
-	var x1: float = float(site["top_x"]) + 0.3
+	# **The far end is buried, and it may not be buried by the same amount as the
+	# bluff's plinth.** `CASCADE_TOP_X` *is* `BLUFF_FACE_X`, so at the west site
+	# `top_x + 0.3` and the plinth's own 0.3 embed are not two numbers that
+	# happen to be close — they are one number arrived at twice, and the two east
+	# faces became one plane the moment the plinth was built. Neither face is
+	# visible: both sit inside the bluff mass, which is why nothing showed and
+	# why `coplanar_test.py` reported it anyway. It reports it *forever*, though,
+	# and a permanently-red line hides the next real one.
+	#
+	# So the bank goes in deeper than the plinth rather than level with it. The
+	# east site has no plinth to miss — its `top_x` is `HILL_FACE_X` — and takes
+	# the plain embed.
+	var x1: float = float(site["top_x"]) + BANK_EMBED
+	if is_equal_approx(float(site["top_x"]), Plan.BLUFF_FACE_X):
+		x1 = float(site["top_x"]) + BANK_EMBED_AT_PLINTH
 	if x1 - x0 < 1.0:
 		return
 	var cx := (x0 + x1) * 0.5
