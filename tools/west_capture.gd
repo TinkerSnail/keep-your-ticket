@@ -17,6 +17,24 @@ extends Node
 const HOUR := 19
 const MINUTE := 0
 
+## Where a standing player's origin is, each side of the seam.
+##
+## **Derived, because typing it is what broke it.** Every vantage west of the
+## arch used to be a literal `-2.8`, which is `SHORE_TOP + 0.2` against a shore
+## at −3.0 — the height the shore had for one day on 2026-08-14b, while the drop
+## was halved to fit the ramp on the wings. `SHORE_TOP` went back to −6.0 on
+## 2026-08-15 when the ramp moved off them, and these did not go with it, so
+## every shot on this side of the crossing has been taken 3.16m in the air ever
+## since: the camera hangs over the deck, the player falls out of frame in the
+## four physics frames `_shoot` waits, and the pictures the boardwalk was being
+## judged from were all taken from a ladder.
+##
+## Nothing catches that. It is not a collision — the capture teleports a body
+## rather than walking it — and a floating camera renders a perfectly plausible
+## frame. What catches it is not writing the number down twice.
+const STAND_PLAZA := 0.2
+const STAND_SHORE := ParkPlan.SHORE_TOP + 0.2
+
 ## The plaza's side of the seam, which is now everything *before* the middle of
 ## the tunnel — the crossing sits at x −38.5 and these all stand east of it.
 ##
@@ -120,35 +138,60 @@ const ARRIVED := [
 	# Straight down it. No ledge walk and no deck: the flight leaves the bluff's
 	# own edge heading the way you were already going.
 	{"name": "10_head_of_the_flight", "yaw": 90.0, "pitch": -20.0, "pos": Vector3(-56.0, 0.2, -2.0)},
-	{"name": "11_halfway_down", "yaw": 90.0, "pitch": -8.0, "pos": Vector3(-63.0, -2.8, -2.0)},
-	{"name": "12_at_the_foot", "yaw": 90.0, "pitch": 0.0, "pos": Vector3(-69.0, -2.8, -2.0)},
+	# **On the wing, because that is where the way down is.** This stood on the
+	# axis at x −63, which is not halfway down anything — the axis carries the
+	# niche and its trough, and the shot was standing in the fountain. The descent
+	# is the wings, and has been since the flight and the wings were separated.
+	#
+	# Written off the plan's own numbers rather than measured off a screenshot:
+	# the outbound leg's centre line is `CASCADE_WALL_X + WING_W * 0.5`, and its
+	# midpoint in z is halfway between the landing's edge and the turn. Facing
+	# south, down the leg towards the turn, which is the direction of travel.
+	{"name": "11_halfway_down", "yaw": 180.0, "pitch": -8.0,
+		"pos": Vector3(ParkPlan.CASCADE_WALL_X + ParkPlan.WING_W * 0.5,
+			-ParkPlan.CASCADE_DROP * 0.25 + 1.0,
+			ParkPlan.CASCADE_AXIS_Z + (ParkPlan.LANDING_HALF_W + ParkPlan.WING_TURN_Z) * 0.5)},
+	{"name": "12_at_the_foot", "yaw": 90.0, "pitch": 0.0, "pos": Vector3(-69.0, STAND_SHORE, -2.0)},
 	# The ramp, which is the other way down and has to read as one.
 	{"name": "13_ramp_head", "yaw": 2.0, "pitch": -10.0, "pos": Vector3(-60.0, 0.2, -25.0)},
-	{"name": "14_ramp_from_court", "yaw": -40.0, "pitch": 12.0, "pos": Vector3(-78.0, -2.8, -20.0)},
-	{"name": "15_the_court", "yaw": 90.0, "pitch": 2.0, "pos": Vector3(-62.0, -2.8, -2.0)},
-	{"name": "16_court_back_east", "yaw": -90.0, "pitch": 10.0, "pos": Vector3(-78.0, -2.8, -2.0)},
-	{"name": "17_entry", "yaw": 90.0, "pitch": 0.0, "pos": Vector3(-64.5, -2.8, -2)},
-	{"name": "18_in_the_alley", "yaw": 90.0, "pitch": 0.0, "pos": Vector3(-70, -2.8, -2)},
-	{"name": "19_reveal", "yaw": 90.0, "pitch": 1.0, "pos": Vector3(-92, -2.8, -2)},
-	{"name": "20_reveal_north", "yaw": 20.0, "pitch": 2.0, "pos": Vector3(-92, -2.8, -2)},
-	{"name": "21_reveal_south", "yaw": 160.0, "pitch": 0.0, "pos": Vector3(-92, -2.8, -2)},
+	{"name": "14_ramp_from_court", "yaw": -40.0, "pitch": 12.0, "pos": Vector3(-78.0, STAND_SHORE, -20.0)},
+	# **West of the wall by more than the spring arm.** This stood at x −62,
+	# inside `landing_fill`, and rendered as a flat blue plane — the inside of the
+	# masonry.
+	#
+	# The clearance that matters is the *camera's*, not the body's, and they are
+	# 2.6m apart: the view is third person on a spring arm, so a shot facing west
+	# puts the camera that far back to the east. Standing the player just clear of
+	# the wall's west face at −63.8 therefore left the camera still inside it, and
+	# the frame came back as the underside of the niche. The body has to be a full
+	# arm west of the masonry before the picture is of the court.
+	#
+	# The east end of the court, looking west across it, which pairs with `16`
+	# looking back the other way.
+	{"name": "15_the_court", "yaw": 90.0, "pitch": 2.0, "pos": Vector3(-67.0, STAND_SHORE, -2.0)},
+	{"name": "16_court_back_east", "yaw": -90.0, "pitch": 10.0, "pos": Vector3(-78.0, STAND_SHORE, -2.0)},
+	{"name": "17_entry", "yaw": 90.0, "pitch": 0.0, "pos": Vector3(-64.5, STAND_SHORE, -2)},
+	{"name": "18_in_the_alley", "yaw": 90.0, "pitch": 0.0, "pos": Vector3(-70, STAND_SHORE, -2)},
+	{"name": "19_reveal", "yaw": 90.0, "pitch": 1.0, "pos": Vector3(-92, STAND_SHORE, -2)},
+	{"name": "20_reveal_north", "yaw": 20.0, "pitch": 2.0, "pos": Vector3(-92, STAND_SHORE, -2)},
+	{"name": "21_reveal_south", "yaw": 160.0, "pitch": 0.0, "pos": Vector3(-92, STAND_SHORE, -2)},
 	# The strip, both ways, from the middle of the paving.
-	{"name": "22_prom_north", "yaw": 0.0, "pitch": 2.0, "pos": Vector3(-96, -2.8, 6)},
-	{"name": "23_prom_south", "yaw": 180.0, "pitch": 0.0, "pos": Vector3(-96, -2.8, -20)},
-	{"name": "24_shopfronts", "yaw": 125.0, "pitch": 2.0, "pos": Vector3(-98, -2.8, 8)},
+	{"name": "22_prom_north", "yaw": 0.0, "pitch": 2.0, "pos": Vector3(-96, STAND_SHORE, 6)},
+	{"name": "23_prom_south", "yaw": 180.0, "pitch": 0.0, "pos": Vector3(-96, STAND_SHORE, -20)},
+	{"name": "24_shopfronts", "yaw": 125.0, "pitch": 2.0, "pos": Vector3(-98, STAND_SHORE, 8)},
 	# The three anchors, close enough to judge as objects rather than silhouettes.
-	{"name": "25_wheel", "yaw": 90.0, "pitch": 22.0, "pos": Vector3(-94, -2.8, -16)},
-	{"name": "26_wheel_along", "yaw": 12.0, "pitch": 14.0, "pos": Vector3(-96, -2.8, 2)},
-	{"name": "27_coaster", "yaw": -60.0, "pitch": 8.0, "pos": Vector3(-98, -2.8, -30)},
-	{"name": "28_under_coaster", "yaw": 20.0, "pitch": 12.0, "pos": Vector3(-94, -2.8, -58)},
-	{"name": "29_pier_mouth", "yaw": 90.0, "pitch": 0.0, "pos": Vector3(-104, -2.8, -2)},
-	{"name": "30_pier_out", "yaw": 90.0, "pitch": 2.0, "pos": Vector3(-128, -2.8, -2)},
-	{"name": "31_pavilion", "yaw": 90.0, "pitch": 10.0, "pos": Vector3(-146, -2.8, -2)},
+	{"name": "25_wheel", "yaw": 90.0, "pitch": 22.0, "pos": Vector3(-94, STAND_SHORE, -16)},
+	{"name": "26_wheel_along", "yaw": 12.0, "pitch": 14.0, "pos": Vector3(-96, STAND_SHORE, 2)},
+	{"name": "27_coaster", "yaw": -60.0, "pitch": 8.0, "pos": Vector3(-98, STAND_SHORE, -30)},
+	{"name": "28_under_coaster", "yaw": 20.0, "pitch": 12.0, "pos": Vector3(-94, STAND_SHORE, -58)},
+	{"name": "29_pier_mouth", "yaw": 90.0, "pitch": 0.0, "pos": Vector3(-104, STAND_SHORE, -2)},
+	{"name": "30_pier_out", "yaw": 90.0, "pitch": 2.0, "pos": Vector3(-128, STAND_SHORE, -2)},
+	{"name": "31_pavilion", "yaw": 90.0, "pitch": 10.0, "pos": Vector3(-146, STAND_SHORE, -2)},
 	# The section photographing itself, which is the argument for the pier being
 	# walkable at all: forty metres offshore is the only place the whole strip is
 	# in one frame.
-	{"name": "32_from_the_pier", "yaw": -80.0, "pitch": 3.0, "pos": Vector3(-140, -2.8, -2)},
-	{"name": "33_from_the_pier_n", "yaw": -50.0, "pitch": 4.0, "pos": Vector3(-140, -2.8, -2)},
+	{"name": "32_from_the_pier", "yaw": -80.0, "pitch": 3.0, "pos": Vector3(-140, STAND_SHORE, -2)},
+	{"name": "33_from_the_pier_n", "yaw": -50.0, "pitch": 4.0, "pos": Vector3(-140, STAND_SHORE, -2)},
 	# Back east at the bluff, and both of these were aimed at things they had
 	# stopped showing. `29` stood on the gap's own axis, so what filled the frame
 	# was the alley mouth rather than the rise behind it; `30` had been walked
@@ -165,13 +208,39 @@ const ARRIVED := [
 	# Through the gap you can, and it is the whole west composition run backwards:
 	# from the overlook the arch frames the gap and the gap frames the pier; from
 	# the pier the gap frames the bluff and the plaza standing on it.
-	{"name": "34_back_east", "yaw": -90.0, "pitch": 12.0, "pos": Vector3(-104, -2.8, -2)},
+	{"name": "34_back_east", "yaw": -90.0, "pitch": 12.0, "pos": Vector3(-104, STAND_SHORE, -2)},
 	# The cascade from the head of the pier, which is what it is *for*: three
 	# arches on one axis at rising heights — the boardwalk's entry, the portal, the
 	# plaza's tunnel — with the wings spread between them.
-	{"name": "34a_cascade_from_pier", "yaw": -90.0, "pitch": 6.0, "pos": Vector3(-140, -2.8, -2)},
-	{"name": "34b_cascade_close", "yaw": -90.0, "pitch": 4.0, "pos": Vector3(-96, -2.8, -2)},
-	{"name": "35_bluff", "yaw": -118.0, "pitch": 7.0, "pos": Vector3(-66.5, -2.8, -2)},
+	{"name": "34a_cascade_from_pier", "yaw": -90.0, "pitch": 6.0, "pos": Vector3(-140, STAND_SHORE, -2)},
+	{"name": "34b_cascade_close", "yaw": -90.0, "pitch": 4.0, "pos": Vector3(-96, STAND_SHORE, -2)},
+	{"name": "35_bluff", "yaw": -118.0, "pitch": 7.0, "pos": Vector3(-66.5, STAND_SHORE, -2)},
+	# **The face itself, along its length, which nothing here looked at.**
+	#
+	# `35_bluff` is named for the bluff and points at the niche — it is a shot of
+	# the cascade wall from two metres away, and every other shot on this side
+	# either faces west or is inside the monument's own footprint. So the largest
+	# surface in the west, 150m of dressed seawall, had no picture of it at all,
+	# and the two things wrong with it — nineteen buttresses hanging 100mm short
+	# of their coping, and a coping sawn off square against 341m of cliff — were
+	# not visible from anywhere the capture stood.
+	#
+	# From the back lane, which is the only place the face is seen at length: the
+	# frontage is one building deep and hides it completely from the promenade and
+	# the pier. Angled off the lane's axis rather than square to it, so the face
+	# recedes across the frame instead of standing flat at one end of it.
+	{"name": "35a_face_north", "yaw": -28.0, "pitch": 3.0,
+		"pos": Vector3(-70.0, STAND_SHORE, 34.0)},
+	{"name": "35b_face_south", "yaw": -152.0, "pitch": 3.0,
+		"pos": Vector3(-70.0, STAND_SHORE, -38.0)},
+	# The end of the dressing, which is the thing a terminal pier has to earn: at
+	# 75m out the coping stops and the cliff carries on for another ninety-five.
+	# Looking *north*, up the face towards where it stops. The first version of
+	# this stood at the same place facing south and framed the cascade, which is
+	# the one thing on this stretch already photographed five times — the pier is
+	# at z −73.9 and was squarely behind the camera.
+	{"name": "35c_dressing_ends", "yaw": -22.0, "pitch": 2.0,
+		"pos": Vector3(-68.0, STAND_SHORE, -58.0)},
 ]
 
 ## The reason the boardwalk is west. Sunset is about 20:20 for this latitude, so
@@ -179,22 +248,22 @@ const ARRIVED := [
 ## pavilion at the head of the pier.
 const SUNSET := [
 	{"time": [19, 30], "name": "31_evening_strip", "yaw": 172.0, "pitch": 3.0,
-		"pos": Vector3(-98, -2.8, -34)},
+		"pos": Vector3(-98, STAND_SHORE, -34)},
 	{"time": [20, 20], "name": "32_sunset_pier", "yaw": 90.0, "pitch": 4.0,
-		"pos": Vector3(-98, -2.8, -2)},
+		"pos": Vector3(-98, STAND_SHORE, -2)},
 	{"time": [20, 20], "name": "33_sunset_wheel", "yaw": 118.0, "pitch": 14.0,
-		"pos": Vector3(-92, -2.8, -6)},
+		"pos": Vector3(-92, STAND_SHORE, -6)},
 	{"time": [21, 15], "name": "34_dusk_bulbs", "yaw": 160.0, "pitch": 2.0,
-		"pos": Vector3(-100, -2.8, -30)},
+		"pos": Vector3(-100, STAND_SHORE, -30)},
 	# The claim, and the same frame twice to test it. `design.md` asks the player
 	# to read the hour off the park; the plaza does it with a headcount and with
 	# whether the cafe is full. The boardwalk's version is that it is nearly
 	# empty when the plaza is busy and full when the plaza is going home. If
 	# these two pictures are the same picture, the curves are a number in a file.
 	{"time": [11, 0], "name": "35_eleven_am", "yaw": 172.0, "pitch": 1.0,
-		"pos": Vector3(-98, -2.8, -34)},
+		"pos": Vector3(-98, STAND_SHORE, -34)},
 	{"time": [19, 0], "name": "36_seven_pm", "yaw": 172.0, "pitch": 1.0,
-		"pos": Vector3(-98, -2.8, -34)},
+		"pos": Vector3(-98, STAND_SHORE, -34)},
 ]
 
 ## The gate after dark, from the plaza side.
@@ -311,10 +380,30 @@ func _run() -> void:
 	get_tree().quit()
 
 
+## How long to let a teleported body find the floor before reading the frame.
+##
+## 120 physics frames is two seconds, which covers a fall of about 19m — more
+## than the bluff is tall, so a shot placed anywhere above its own ground lands
+## before this runs out. It is a cap rather than a wait: the loop leaves the
+## moment the body is standing, so a shot already on the floor costs one frame.
+const SETTLE_FRAMES := 120
+
+
 func _shoot(shot: Dictionary, label: String) -> void:
 	_player.global_position = shot["pos"]
 	_player.rotation.y = deg_to_rad(shot["yaw"])
 	_head.rotation.x = deg_to_rad(shot["pitch"])
+	# **Land before reading the frame.** A vantage is a place in the park, not a
+	# height above it, and the four frames this used to wait were nowhere near
+	# enough to fall the 3.16m the whole list was out by — so every shot was read
+	# mid-drop and looked plausible anyway. Letting the body settle means a typed
+	# `y` only has to be *above* its ground rather than exactly on it, which is
+	# the one thing a hand-maintained list can be trusted to be.
+	for _i in SETTLE_FRAMES:
+		await get_tree().physics_frame
+		if _player.is_on_floor():
+			break
+	# Then the original beat, so the landing itself is not in shot.
 	for _i in 4:
 		await get_tree().physics_frame
 	await RenderingServer.frame_post_draw

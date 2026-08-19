@@ -21,7 +21,31 @@ extends Node
 
 const FOV := 22.0
 const FRAMES := 8
-const GAP := 0.09
+
+## Seconds between frames, and it is `flow_probe.py`'s number rather than this
+## file's.
+##
+## **It was 0.09 and the analysis was written for 0.035**, which is the kind of
+## disagreement that does not announce itself. `SEARCH` over there is 34 pixels,
+## sized so it is wider than one frame of travel and narrower than half the band
+## spacing: at 35ms the three views travel about 13, 20 and 11 pixels against
+## bands 161, 141 and 62 apart. Scale that to 90ms and the jets travel about 51,
+## which is outside a 34-pixel window — so the correlation cannot reach the true
+## peak, returns whatever sits at the edge of its range, and reports a *sign*
+## rather than a shift. Both values had been in the tree unchanged since the day
+## the pair was written, so they never agreed.
+##
+## Which way to fix it is not arbitrary. Widening `SEARCH` to reach 51 would put
+## it past the plume's own wrap point of 31 and start matching one band onto the
+## next; shortening the gap moves every view further inside both limits at once.
+## So the gap comes down to what the window was cut for.
+##
+## Not verified in a web session and it cannot be: `create_timer` sets a floor,
+## not a ceiling, and lavapipe delivers frames 150-1000ms apart whatever this
+## says. Under that, travel is more than a whole band per frame for every view
+## and the reading is modulo the pattern - see the warning at the foot of the
+## capture loop, which is there to stop the result being read as a verdict.
+const GAP := 0.035
 
 ## Both directions, because fixing a sign is exactly the change that can put the
 ## error in the other one. The jets should climb and the sheets should fall, and
@@ -71,6 +95,7 @@ func _run(main: Node) -> void:
 		for _i in 4:
 			await get_tree().physics_frame
 		var last := Time.get_ticks_msec()
+		var worst := 0
 		for f in FRAMES:
 			await get_tree().create_timer(GAP).timeout
 			await RenderingServer.frame_post_draw
@@ -78,6 +103,26 @@ func _run(main: Node) -> void:
 			var img := get_viewport().get_texture().get_image()
 			img.save_png("user://flow_%s_%02d.png" % [view["name"], f])
 			print("flow_%s_%02d  +%dms" % [view["name"], f, now - last])
+			worst = maxi(worst, now - last)
 			last = now
+		# **Say so when the frames are too far apart to mean anything.**
+		#
+		# `flow_probe.py` measures how far the pattern moved between consecutive
+		# frames, which only answers a direction while the pattern moves less than
+		# half its own period in `GAP`. Miss that and the correlation aliases: the
+		# shifts come back alternating at the window limit and the median is
+		# noise, but it is a *signed* noise and it reads exactly like a verdict.
+		#
+		# Which is not hypothetical. On a box with no GPU — lavapipe under Xvfb,
+		# which is how this runs in a web session — 90ms of intent arrives as 500
+		# to 1000ms, and the probe cheerfully reported the falls and the jets both
+		# running UP. That is the original bug's own signature, so the failure
+		# mode here is not a wrong number, it is a convincing false regression on
+		# the one shader this tool exists to watch.
+		if worst > int(GAP * 1000.0) * 2:
+			push_warning(("flow_%s: frames up to %dms apart against a %dms gap — "
+				+ "too slow for the correlation to resolve a direction. The "
+				+ "verdict from these frames is not usable; run on a real GPU.")
+				% [view["name"], worst, int(GAP * 1000.0)])
 
 	get_tree().quit()

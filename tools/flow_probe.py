@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Which way did the water move?
 
-Reads the frame sequences `tools/_flow_probe.gd` saves and cross-correlates each
+Reads the frame sequences `tools/flow_probe.gd` saves and cross-correlates each
 consecutive pair vertically. Positive means the pattern travelled *down* the
 screen; negative means up.
 
@@ -13,6 +13,9 @@ frames and subtract them, and the only way to keep seeing it is to have
 something do that on demand.
 
 Usage:  python3 tools/flow_probe.py [user-data-dir]
+
+Finds Godot's user-data folder itself on macOS, Linux and Windows; the argument
+and $GODOT_USER_DIR override it, in that order.
 """
 
 import sys, os, glob, re
@@ -22,14 +25,99 @@ try:
 except ImportError:
     sys.exit("needs Pillow: python3 -m pip install pillow")
 
-DEFAULT_DIR = os.path.expanduser(
-    "~/Library/Application Support/Godot/app_userdata/Keep Your Ticket")
+def project_name(root):
+    """The project's name, read from project.godot rather than written twice.
+
+    It is what Godot names the user-data folder after, so a rename over there
+    silently moves the frames this reads. Falling back to the literal keeps the
+    tool working if the file is ever unreadable, but the file is the truth.
+    """
+    try:
+        with open(os.path.join(root, "project.godot"), encoding="utf-8") as f:
+            m = re.search(r'^config/name="([^"]*)"', f.read(), re.M)
+            if m:
+                return m.group(1)
+    except OSError:
+        pass
+    return "Keep Your Ticket"
+
+
+def user_dirs(root):
+    """Where Godot puts `user://` on this platform, best guess first.
+
+    Three platforms and three different answers, and the tool used to know only
+    one of them: it had the macOS path hardcoded, so on Linux it found nothing,
+    said "no frames" three times, and then printed FAIL - which is the same thing
+    it prints when the water really is going the wrong way. A missing directory
+    and a broken shader are not the same result and should not look alike.
+
+    Godot's own rule, from `OS::get_user_data_dir`: the platform's app-data root,
+    then `Godot/app_userdata/<project name>`. Linux follows the XDG spec and
+    lowercases the `godot`; macOS and Windows do not.
+    """
+    name = project_name(root)
+    out = []
+    if sys.platform == "darwin":
+        out.append(os.path.expanduser(
+            "~/Library/Application Support/Godot/app_userdata/" + name))
+    elif os.name == "nt":
+        appdata = os.environ.get("APPDATA")
+        if appdata:
+            out.append(os.path.join(appdata, "Godot", "app_userdata", name))
+    else:
+        xdg = os.environ.get("XDG_DATA_HOME") or os.path.expanduser("~/.local/share")
+        out.append(os.path.join(xdg, "godot", "app_userdata", name))
+    # The others anyway, last, so a folder copied between machines still reads.
+    for extra in (
+        os.path.expanduser("~/Library/Application Support/Godot/app_userdata/" + name),
+        os.path.expanduser("~/.local/share/godot/app_userdata/" + name),
+    ):
+        if extra not in out:
+            out.append(extra)
+    return out
+
+
+def resolve_dir(root, argv):
+    """An explicit path, then `$GODOT_USER_DIR`, then the platform's own.
+
+    Says which paths it tried when none of them is there, because the failure
+    this replaces was a silent one.
+    """
+    if len(argv) > 1:
+        return argv[1]
+    env = os.environ.get("GODOT_USER_DIR")
+    if env:
+        return env
+    tried = user_dirs(root)
+    for d in tried:
+        if os.path.isdir(d):
+            return d
+    sys.exit("no Godot user-data folder found. Tried:\n  "
+             + "\n  ".join(tried)
+             + "\n\nRun the probe first:\n"
+               "  godot --path . tools/run.tscn -- flow_probe\n"
+             + "or name the folder: python3 tools/flow_probe.py <dir>")
+
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # How far to search, in pixels. Wider than one frame of travel and narrower than
 # half the band spacing — beyond that the match wraps onto the next band and the
 # sign flips for no reason. At the probe's 35ms gap the three views travel about
-# 13, 20 and 11 pixels and their bands are 161, 141 and 62 apart, so the
-# tightest wrap point is 31 and this sits under it.
+# 13, 20 and 11 pixels and their bands are 161, 141 and 62 apart.
+#
+# The gap this is sized for is `GAP` in `tools/flow_probe.gd`, and for a long
+# while it was not: that file said 0.09 while this paragraph said 35ms, and the
+# two had never agreed. At 90ms the jets travel about 51 pixels, which is outside
+# this window entirely — the correlation cannot reach the real peak and returns
+# whatever is at the edge of its range instead. `GAP` is 0.035 now. If it moves
+# again, this number has to move with it or stop meaning anything.
+#
+# **It does exceed the plume's own wrap point of 31**, and that is knowingly
+# left. Narrowing to 31 would cost the jets their margin at the far end, and the
+# plume is reported rather than asserted for exactly this sort of reason: it is a
+# sliver against open sky whose bands are 62 apart, and it is covered by the jet
+# row anyway — same shader family, same sign of `flow`.
 SEARCH = 34
 
 
@@ -105,7 +193,8 @@ def run(folder, tag):
 
 
 if __name__ == "__main__":
-    folder = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_DIR
+    folder = resolve_dir(PROJECT_ROOT, sys.argv)
+    print("reading %s" % folder)
     print("A band moving down the screen is positive.\n")
     got = {t: run(folder, t) for t in ("fall", "jet", "plume")}
     print()

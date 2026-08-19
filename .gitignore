@@ -17,6 +17,10 @@
 *.blend1
 *.blend2
 
+# Python bytecode, from the .py tools
+__pycache__/
+*.pyc
+
 # Working material — stays local, same as documentation/
 /CLAUDE.md
 

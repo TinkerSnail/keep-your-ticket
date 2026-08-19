@@ -19,18 +19,23 @@ and the process sits there looking like a hang.
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . --script res://tools/gen_props.gd
 ```
 
-**`extends Node` → needs a scene root.** Everything else. Godot can only run a
-scene, so write a one-node wrapper, run it, and delete it afterwards:
+**`extends Node` → `tools/run.tscn`.** Everything else, which is twelve of the
+fifteen. Godot can only run a scene, and a tool that names an autoload at the
+top level *must* have one, because `--script` compiles before autoloads
+register — so `ParkClock` or `ParkSections` dies at compile without running a
+line. `run.tscn` is that scene. Name the tool after a bare `--`:
 
 ```bash
-printf '[gd_scene load_steps=2 format=3]\n\n[ext_resource type="Script" path="res://tools/walk_test.gd" id="1"]\n\n[node name="t" type="Node"]\nscript = ExtResource("1")\n' > _t.tscn
-/Applications/Godot.app/Contents/MacOS/Godot --headless --fixed-fps 60 --path . _t.tscn
-rm _t.tscn
+/Applications/Godot.app/Contents/MacOS/Godot --headless --fixed-fps 60 --path . tools/run.tscn -- walk_test
 ```
 
-Two tools ship their own wrapper and need none: `capture.tscn` and
-`west_capture.tscn`. A tool that names an autoload at the top level *must* have
-one, because `--script` compiles before autoloads register.
+Run it with no tool named and it lists what it can start, and which ones want
+`--script` instead. `capture.tscn` and `west_capture.tscn` still ship their own
+wrappers and need no argument.
+
+This replaced writing a one-node wrapper by hand and deleting it afterwards. If
+you find a stray `_*.tscn` at the repository root, it is left over from that
+and is not tracked.
 
 **`--headless` forces the dummy renderer.** Fine for anything that only asserts
 or writes `.tscn`. Fatal for anything that saves a PNG — the run completes, the
@@ -38,7 +43,7 @@ script reports success, and every image is a blank few-KB file. Capture tools
 and probes need a real renderer:
 
 ```bash
-open -n -a /Applications/Godot.app --args --path "$PWD" _t.tscn
+open -n -a /Applications/Godot.app --args --path "$PWD" tools/run.tscn -- west_capture
 ```
 
 The path must be absolute: `open` goes through LaunchServices and the child does
@@ -74,11 +79,12 @@ merge.
 | `day_test.gd` | Does each section's crowd have a day — the curves, the admitting and the sending home? | `--headless --fixed-fps 60`, about ninety seconds. |
 | `night_test.gd` | Do the lights come on and go off again? | `park_lights.gd` fails by succeeding: miss the emissive materials and the lights still light. |
 | `menu_test.gd` | Does the pause menu respond to real input — tabs, cursor wrap, backing out of quit, and is the park actually stopped? | A still shows a screen draws, not that it works. |
+| `inpool_test.gd` | Is anybody standing in the fountain? | Samples over twelve seconds, not one instant — the single-instant version reported three offenders one run and none the next. Guards a 40cm margin: rim sitters at 8.66 against water ending at 8.26. |
 | `clearance_test.gd` | Is anything standing in a walkway, or in another prop? | `extends SceneTree`. Hand-placed props have no equivalent of `open_spots`' rejection sampling. |
 | `perf_test.gd` | What does the crowd cost per frame, hour by hour? | Measurement, not an assertion. Re-measure before building any tiering scheme. |
 | `coplanar_test.py` | Which surfaces will z-fight? | Seconds, no Godot needed. Reads CSG *and* meshes, so it covers guests as well as the world. |
 | `seat_test.py` | Is every seated guest sitting on something? | Wheelchair users excluded — they bring their own. |
-| `flow_probe.py` | Which way did the water actually move? | Analyses frames from `_flow_probe.gd`. A still cannot show a direction and will look correct either way. |
+| `flow_probe.py` | Which way did the water actually move? | Analyses frames from `flow_probe.gd`. A still cannot show a direction and will look correct either way. |
 
 ## Capture tools
 
@@ -104,12 +110,11 @@ wrapper and, where they save images, a real renderer.
 | `_cascade_probe.gd` | The west cascade square-on against the reference — a view no player standpoint can take. |
 | `_east_probe.gd` | The east gate at seven distances, both sides, off-axis and after dark. |
 | `_festoon_probe.gd` | Do the street's festoons actually meet the frontage they hang off? |
-| `_flow_probe.gd` | Captures the consecutive frames `flow_probe.py` measures. |
+| `flow_probe.gd` | Captures the consecutive frames `flow_probe.py` measures. |
 | `_front_probe.gd` | The perimeter's upper storeys, from the fountain and from close enough to count them. |
 | `_fountain_probe.gd` | Walks into the fountain's kerb from sixteen bearings. |
 | `_glow_probe.gd` | The water's night glow, always paired against the same frame by day. |
 | `_hill_probe.gd` | The east hill: the scarp from the court, the climb, and the belvedere at the top of it. |
-| `_inpool_probe.gd` | Is anybody standing in the fountain? Samples over twelve seconds, not one instant. |
 | `_niche_probe.gd` | The wall fountain in the west cascade's niche, from the court. |
 | `_pfoam_probe.gd` | The plaza fountain's froth, shot low at the waterline. |
 | `_rim_probe.gd` | Does the east rim stand over the roofline, and does it open up as you back away? |
