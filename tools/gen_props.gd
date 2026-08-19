@@ -338,6 +338,10 @@ const PLANK_NORMAL_PATH := "res://assets/textures/plank_normal.res"
 const PLANK_X_ALBEDO_PATH := "res://assets/textures/plank_cross_albedo.res"
 const PLANK_X_NORMAL_PATH := "res://assets/textures/plank_cross_normal.res"
 
+## The ridge. See `RIM_SIZE` for why this one is not sized like the others.
+const RIM_ALBEDO_PATH := "res://assets/textures/rim_albedo.res"
+const RIM_NORMAL_PATH := "res://assets/textures/rim_normal.res"
+
 ## A 200x100mm clay paver, which is the real brick, at 512px over 3.2m: 16 across
 ## and 32 courses, both dividing the tile exactly. That last part is the whole
 ## trick — a brick that does not fit a whole number of times leaves a ruled line
@@ -364,6 +368,73 @@ const ASPHALT_METRES := 3.0
 const PLANK_SIZE := 512
 const PLANK_METRES := 2.24
 const PLANK_BOARDS := 16
+
+## The rim's own surface, and the one texture in the park sized by *viewing
+## distance* rather than by the thing it depicts.
+##
+## Every other tile here is measured against an object with a real size — a
+## 200x100 paver, a 140mm board, a 12mm chip — and the tile is then made fine
+## enough to resolve it. That reasoning gives the wrong answer for a landform.
+## The rim is 150 to 230m out, and the park's own 3m ground tile subtends about
+## twenty pixels at that range: every feature in it lands under the first mip or
+## two, the whole tile averages to its own mean, and the surface comes back
+## exactly as flat as it started. A texture that mips away is not a texture, it
+## is a slower way of writing the albedo down.
+##
+## So the tile is 48m and the structure inside it is 3 to 12m — features that
+## still span two or three hundred pixels from the plaza, which is what makes
+## them survive minification and shade. That is coarse enough to be nothing at
+## all up close, and nothing ever is: the ridge has no collision, the shelf that
+## would take a player near the toe is not built, and the cascade stops them at
+## x 70. **Anything that puts a camera near this face wants a second, finer
+## layer** — the ridge has no detail of its own at arm's length.
+##
+## 512px over 48m is 9.4cm to the pixel. Kept at 512 rather than dropped, because
+## the cost of a tile is its compressed size and a field this smooth compresses
+## to almost nothing.
+const RIM_SIZE := 512
+const RIM_METRES := 48.0
+
+## What the albedo tile averages to, and the reason `mats["rim"]` is not built
+## in the `defs` table with the other flat colours.
+##
+## `_ground_material` multiplies its tint by the texture, so a tile with a mean
+## of 0.85 darkens whatever colour it is handed by 15%. The rim's colour is
+## argued for in the palette — bluer rather than paler, sitting between `far` and
+## `far_shade` so the crest shows against the sky — and none of that argument is
+## about this texture. So the tint is the palette colour *divided* by the mean
+## and the ridge's average value is unchanged: this pass adds variation to the
+## surface and does not repaint it.
+##
+## The swing is deliberately small — ±17% about the mean, so nothing in it clips
+## and the tile needs no headroom. A hillside at this range wants relief that
+## shades, not albedo that patches; the normal map is what does the work here and
+## the albedo only keeps it company. Pushed harder it reads as snow.
+const RIM_TEX_MEAN := 0.85
+const RIM_TINT := Color(0.56, 0.60, 0.69)
+
+## How hard the relief is baked into the normal *map*, which is not the
+## material's `normal_scale` and must not be handed to it — `_normal_from` takes
+## a gradient multiplier in height-units-per-pixel and `normal_scale` takes a
+## small runtime factor around one. The material gets 1.0; all of the slope is in
+## the tile.
+##
+## Much larger than the ground tiles' 0.6–2.0, and it is a unit difference rather
+## than a taste one. `_normal_from` works on the height field's gradient *per
+## pixel*, and the field is 0..1 across the tile whatever the tile measures — so
+## the same numbers over 48m instead of 3m describe a slope sixteen times
+## gentler.
+##
+## **Set by looking, after the ratio argument alone came out too low.** Sixteen
+## times the ground's figure is about 14, and 14 renders as a faint cloud on the
+## face rather than as ground: the estimate had counted the tile ratio and not
+## the *feature* ratio, and a 12m swell spread over 128 pixels has a far shallower
+## per-pixel gradient than a 5cm one over eight. 40 lands the coarse features
+## somewhere near thirty degrees off the face's own normal, which is a gully. It
+## can go higher before it reads as noise — at 3 to 12m the features are far too
+## broad to sparkle — but past here the ridge starts to look eroded rather than
+## grassed.
+const RIM_RELIEF := 40.0
 
 
 # ---------------------------------------------------------------------------
@@ -427,6 +498,7 @@ func _build_textures() -> void:
 	_brick_texture()
 	_asphalt_texture()
 	_plank_texture()
+	_rim_texture()
 
 
 ## Running bond, because stack bond reads as a grid and a grid at this size reads
@@ -611,6 +683,72 @@ func _plank_texture() -> void:
 	_save_texture(_normal_from(height, n, 1.6), PLANK_NORMAL_PATH, true)
 	_save_texture(_transposed(albedo), PLANK_X_ALBEDO_PATH, false)
 	_save_texture(_normal_from(height_t, n, 1.6), PLANK_X_NORMAL_PATH, true)
+
+
+## The rim's hillside: mottling and coarse relief, and nothing that has a
+## direction.
+##
+## **Isotropic on purpose, and the reason is the failure it is being laid over.**
+## The obvious thing to draw on a ridge is gullies running down the slope, and it
+## is the one thing this must not do. The face is 34 slabs each tilted to its own
+## band angle, so it already reads as a fan of flat facets — a folded screen
+## rather than a hill — and a pattern of parallel lines running down every facet
+## is what a folded screen is made of. Blotches break the plane; stripes would
+## agree with the fold.
+##
+## It could not carry a direction reliably anyway. The material is world-space
+## triplanar, which is not a preference here but the only option: a band is a
+## slab in its own rotated frame and there are 34 of them overlapping, so surface
+## UVs would give every band its own tiling rate and put a visible break at every
+## one of the 33 seams. Projected from world position the pattern runs straight
+## through the seams and the ridge is one surface. What triplanar costs is
+## control of the in-plane direction — a face this steep is read mostly off the
+## x-facing and the top-down projections at once, and their axes disagree.
+##
+## The albedo is derived from the relief rather than rolled beside it, for the
+## reason the brick is: a gully that is dark in the shading and pale in the
+## texture is two surfaces disagreeing about where it is. Partially, though, not
+## wholly — the broad patch layer is independent, because what actually varies
+## the colour of a hillside is scrub and bare ground, and that does not follow the
+## contours.
+func _rim_texture() -> void:
+	var n := RIM_SIZE
+	var height := PackedFloat32Array()
+	height.resize(n * n)
+	var albedo := Image.create_empty(n, n, true, Image.FORMAT_RGB8)
+	for py in n:
+		for px in n:
+			var u := float(px) / float(n)
+			var v := float(py) / float(n)
+			# 12m, 6m and 3m over the 48m tile. Nothing finer: the asphalt's
+			# lesson is that grain below the scale the surface is actually seen
+			# at is white noise to the derivative — it will not compress, no mip
+			# level means anything, and it glitters. Down here that threshold is
+			# not a centimetre, it is metres, because the nearest standpoint is
+			# a hundred and fifty of them away.
+			var relief := 0.55 * _vnoise(u, v, 4, 61) \
+				+ 0.30 * _vnoise(u, v, 8, 63) \
+				+ 0.15 * _vnoise(u, v, 16, 65)
+			height[py * n + px] = relief
+			# Scrub against bare ground, at 16m. Independent of the relief, so
+			# the colour patches cross the spurs instead of tracing them.
+			var patch := _vnoise(u, v, 3, 67)
+			# The only fine layer, and it is there for the mips rather than for
+			# the first frame: 2m features average out honestly into the coarse
+			# ones instead of leaving the tile perfectly smooth between them.
+			var fine := _vnoise(u, v, 24, 69)
+			# Zero-mean by construction, so the tile averages exactly
+			# `RIM_TEX_MEAN` and `RIM_TINT` can be divided by it. Amplitudes sum
+			# to 0.34, so the tile spans 0.70 to 1.00 and never clips.
+			var swing := 0.20 * (relief - 0.5) \
+				+ 0.09 * (patch - 0.5) \
+				+ 0.05 * (fine - 0.5)
+			var w: float = clampf(RIM_TEX_MEAN * (1.0 + swing), 0.0, 1.0)
+			albedo.set_pixel(px, py, Color(w, w, w))
+	albedo.generate_mipmaps()
+
+	_save_texture(albedo, RIM_ALBEDO_PATH, false)
+	_save_texture(_normal_from(height, n, RIM_RELIEF), RIM_NORMAL_PATH, true)
 
 
 ## The same image with its two axes swapped. Mips are regenerated rather than
@@ -801,14 +939,6 @@ func _build_materials() -> void:
 		"far": [Color(0.66, 0.68, 0.72), 0.95, 0.0],
 		"far_warm": [Color(0.72, 0.66, 0.63), 0.95, 0.0],
 		"far_shade": [Color(0.55, 0.56, 0.62), 0.95, 0.0],
-		# The rim, and further back in the haze than anything the west tableau
-		# wears: `far` is 87m away and this is 150 to 230. Bluer rather than
-		# paler, and that is a choice against the physics — aerial perspective
-		# washes a distant ridge toward the sky, and a pale ridge against a pale
-		# horizon is a ridge nobody can see. The plan's whole argument for the
-		# crest height is that it *shows* over the east roofline, so the value
-		# sits between `far` and `far_shade` and the hue does the distance.
-		"rim": [Color(0.56, 0.60, 0.69), 0.97, 0.0],
 		# The one surface in the park that is supposed to be shiny. Low roughness
 		# is the whole point: it is what turns a low sun into a glitter path, and
 		# the reason the boardwalk went west in the first place.
@@ -863,6 +993,26 @@ func _build_materials() -> void:
 		PLANK_ALBEDO_PATH, PLANK_NORMAL_PATH, PLANK_METRES, 0.8, 0.95)
 	mats["plank_cross"] = _ground_material(Color(0.68, 0.62, 0.54),
 		PLANK_X_ALBEDO_PATH, PLANK_X_NORMAL_PATH, PLANK_METRES, 0.8, 0.95)
+
+	# The rim, and the one textured surface that is not ground. It is here rather
+	# than in `defs` because it needs the same treatment the ground does and for
+	# the same reason: it is a single continuous surface built as many separate
+	# pieces, so the pattern has to come from the world and not from each piece's
+	# own UVs. See `_rim_texture`.
+	#
+	# The colour is unchanged and the arithmetic is what keeps it that way.
+	# `RIM_TINT` is further back in the haze than anything the west tableau wears
+	# — `far` is 87m away and this is 150 to 230 — and bluer rather than paler,
+	# which is a choice against the physics: aerial perspective washes a distant
+	# ridge toward the sky, and a pale ridge against a pale horizon is a ridge
+	# nobody can see. The plan's whole argument for the crest height is that it
+	# *shows* over the east roofline, so the value sits between `far` and
+	# `far_shade` and the hue does the distance. Dividing by the tile's mean is
+	# what stops a texture pass quietly moving it.
+	mats["rim"] = _ground_material(
+		Color(RIM_TINT.r / RIM_TEX_MEAN, RIM_TINT.g / RIM_TEX_MEAN,
+			RIM_TINT.b / RIM_TEX_MEAN),
+		RIM_ALBEDO_PATH, RIM_NORMAL_PATH, RIM_METRES, 1.0, 0.97)
 
 	# The three that light up. Saved to disk, then loaded back — see MAT_DIR.
 	DirAccess.make_dir_recursive_absolute(MAT_DIR)
@@ -5621,29 +5771,35 @@ func _skyline() -> void:
 # The rim
 # ---------------------------------------------------------------------------
 
-## How finely the ridge is cut along its length. 10m bands over the 340m the
-## profile spans, so 34 of them.
+## How finely the ridge is sampled along its length: one column of the mesh
+## every 2.5m, so 137 of them over the 340m the profile spans.
 ##
-## The number is set by the crest line and not by the face. The face is smooth in
-## x — one slab carries a whole band from toe to crest — so the only artefact
-## banding can produce is a step in the silhouette where two bands meet, and the
-## steepest stretch of `RIM_PROFILE` falls 8m over 70m. Ten metres of band is
-## about 1.1m of step there and less everywhere else, which at 150m and up is a
-## third of a degree. `_rim_jag` puts more relief on it than that on purpose.
-const RIM_BAND := 10.0
+## **This replaced 34 ten-metre bands on 2026-08-18, and the change is what the
+## number means rather than what it is.** A band was a *slab* — a rigid box laid
+## on its own chord at its own slope angle — so the sampling rate was also the
+## rate at which the surface was allowed to be a different shape, and every
+## boundary between two of them was a real discontinuity: a step in the crest,
+## a lap edge drawing a dark line the full height of the face, and a toe cut
+## perpendicular to its own chord leaving a tooth against the ground. 33 seams,
+## and once the face was textured they were the loudest thing on it. A column is
+## not a slab. It is two vertices, its neighbour is welded to it, and there is no
+## boundary to see — so this can be as fine as the crest curve wants and costs
+## nothing but vertices.
+##
+## 2.5m is well past the point where it matters. `_rim_jag`'s faster term has a
+## 19m wavelength, so eight columns carry it; at 150m one column is about half a
+## degree. The old 10m was chosen against a 1.1m step it could not avoid, which
+## is a constraint that no longer exists.
+const RIM_STEP := 2.5
 
-## Bands overlap rather than butt, because a butt is a zero-width seam and two
-## boxes meeting exactly are two faces at the same depth. Overlaps are the
-## house rule; the seam ordinal separates what is left.
-const RIM_BAND_LAP := 0.4
-
-## Measured on the normal to the slope, not vertically. Thick enough that the
-## ridge is a mass rather than a sheet from any oblique angle, and thin enough
-## that the perpendicular cut at the toe stays underground.
-const RIM_FACE_THICK := 16.0
-
-## How far the mass runs east of the crest. Nothing sees it. It exists so the
-## crest is an edge on something rather than the top of a plane.
+## How far the ridge runs east of the crest before its back is underground.
+##
+## It used to be the depth of a separate block behind each band, there so the
+## crest was an edge on something rather than the top of a plane. It is the back
+## slope of the mesh now, which does the same job by being the same object: the
+## crest is a crease between two strips rather than a line where one strip stops.
+## Nothing has ever seen it and nothing can — the plaza is 150m west and 48m
+## below the crest.
 const RIM_BACK_D := 24.0
 
 ## The chord runs two metres under the ground before it stops, so the ridge
@@ -5653,12 +5809,6 @@ const RIM_BACK_D := 24.0
 ## on the axis is everything from about x 110 out to 120.
 const RIM_TOE_Y := -2.0
 
-## The mass behind the crest is footed below the ground for the reason
-## `COASTER_EMBED` is: a box bottomed at exactly y = 0 shares its underside with
-## everything else standing on y = 0, and that is the one coplanar case the
-## build-order ordinal cannot help with, because the two shapes can be two
-## hundred nodes and four scenes apart.
-const RIM_EMBED := 3.0
 
 ## The relief, and how quickly it comes in off the axis. See `_rim_jag`.
 const RIM_JAG := 1.2
@@ -5699,84 +5849,209 @@ func _rim() -> void:
 	var p: Array = Plan.RIM_PROFILE
 	var from_z: float = p[0]["z"]
 	var to_z: float = p[p.size() - 1]["z"]
-	var bands := int(round((to_z - from_z) / RIM_BAND))
 	var run := Plan.RIM_CREST_X - Plan.RIM_FOOT_X
-	var width := RIM_BAND + RIM_BAND_LAP * 2.0
-	for i in bands:
-		var z := from_z + (float(i) + 0.5) * RIM_BAND
-		var crest := Plan.rim_crest(z) + _rim_jag(z)
+	var cols := int(round((to_z - from_z) / RIM_STEP)) + 1
+
+	# Three lines down the ridge, sampled together so a column is one place on
+	# it rather than three independent ones: the toe, buried; the crest; and the
+	# back foot, buried again. The mesh is the two strips between them.
+	var toe := PackedVector3Array()
+	var crest := PackedVector3Array()
+	var back := PackedVector3Array()
+	for j in cols:
+		var z: float = from_z + float(j) * RIM_STEP
+		var top: float = Plan.rim_crest(z) + _rim_jag(z)
 		# The slope the plan actually states, measured between the two points it
 		# names: the foot on terrace two and the crest. The toe below the foot is
 		# an extension of the same line, never a second gradient.
-		var alpha := atan2(crest - Plan.TERRACE_TWO_Y, run)
+		var alpha := atan2(top - Plan.TERRACE_TWO_Y, run)
 		var toe_x: float = Plan.RIM_FOOT_X \
 			- (Plan.TERRACE_TWO_Y - RIM_TOE_Y) / tan(alpha)
-		var chord := Vector2(Plan.RIM_CREST_X - toe_x, crest - RIM_TOE_Y)
-		var mid := Vector2(toe_x + Plan.RIM_CREST_X, RIM_TOE_Y + crest) * 0.5
-		# The face is laid **on** the chord rather than centred on it, which is
-		# what puts the top-west corner exactly on `crest`. Centring would hang
-		# half the thickness out past the silhouette and make the emitted ridge
-		# taller than the number the plan quotes — the same class of mistake as
-		# deriving the wheel's height instead of reading it.
-		var inward := Vector2(sin(alpha), -cos(alpha))
-		var at := mid + inward * (RIM_FACE_THICK * 0.5)
-		_rim_face("rim_face_%d" % i, Vector3(at.x, at.y, z), width,
-			chord.length(), alpha)
-		# The mass behind the crest, half a metre below it so it can never be
-		# the thing on the skyline. Coarse on purpose — see the note on the
-		# hollow in `_rim_face`.
-		var top := crest - 0.5
-		_box("rim_core_%d" % i,
-			Vector3(Plan.RIM_CREST_X + RIM_BACK_D * 0.5,
-				(top - RIM_EMBED) * 0.5, z), Vector3.ZERO,
-			Vector3(RIM_BACK_D, top + RIM_EMBED, width), "rim", 0.0, false)
+		toe.append(Vector3(toe_x, RIM_TOE_Y, z))
+		crest.append(Vector3(Plan.RIM_CREST_X, top, z))
+		back.append(Vector3(Plan.RIM_CREST_X + RIM_BACK_D, RIM_TOE_Y, z))
+
+	_rim_mesh("rim", toe, crest, back)
 
 
-## One band of the inner face, as a slab in its own tilted frame.
+## The ridge as one welded surface, and the reason it is the only thing in the
+## park built this way.
 ##
-## **A wedge is not a rotated box; a face is.** The rule the cascade's wings paid
-## for is about a *tall* box tilted to a slope, where the height swings the
-## corners `height * sin(slope)` along the run and the legs overshoot both ends.
-## This is the other case and it is the safe one: the slab is thin on the axis it
-## is tilted about, its length is the chord's own length, and its ends are cut
-## perpendicular to the chord because that is where the geometry wants them —
-## the top cut becomes the ridge's back slope and the bottom cut is underground.
-## Nothing is built square and then turned.
+## **A ridge cannot be made of boxes.** It was 34 of them until 2026-08-18 — one
+## slab per band, each laid on its own chord at its own slope angle — and every
+## artefact that made the thing read as a folded paper screen rather than as land
+## came from that and could not be tuned out of it. A box is rigid, so its top
+## edge is a straight horizontal line in z; a ridge whose crest rises and falls
+## therefore steps at every boundary. The slabs lapped 0.4m so as not to butt,
+## which is the house rule and correct, and the lap showed as a dark line the
+## full height of the face because the two slabs either side of it were at
+## different angles and one stood proud. The bottom of each slab was cut
+## perpendicular to its own chord, so the row of toes came out as teeth. None of
+## those is a bug in the band code. They are what a band *is*.
 ##
-## `theta` is a quarter turn and it is load-bearing. `_xform` yaws and then
-## pitches about local RIGHT, which after no yaw is a rotation in the y-z plane —
-## and this slope runs in x. A quarter turn first puts local z along the chord
-## and local y on its normal, so `phi = -alpha` is the slope and the size vector
-## reads (band, thickness, chord).
+## Finer bands do not help — 33 seams become 99 fainter ones, and the node count
+## triples. The fix is to stop having boundaries: a column here shares its
+## vertices with its neighbour, so there is nothing at a column to see, and the
+## sampling rate stops being a shape decision and becomes a smoothness one.
 ##
-## **What is behind it is hollow, and that is a decision with a condition on it.**
-## From the west this slab is a continuous surface from the toe to the crest, so
-## the pocket between its back face and `rim_core` cannot be seen from any
-## standpoint the park has — the plaza is 150m west and 48m below the crest, the
-## gap crops at 29m, and the only elevation in the park is a shelf that is not
-## built. Filling it would be a stepped wedge per band and four times the nodes.
-## Anything that puts a camera over this ridge wants it filled first.
-func _rim_face(nm: String, at: Vector3, width: float, length: float,
-		alpha: float) -> void:
-	_box(nm, at, Vector3.ZERO, Vector3(width, RIM_FACE_THICK, length), "rim",
-		PI * 0.5, false, -alpha)
+## **The crest is a crease and the face is not, and what holds that is the smooth
+## group.** Normals are averaged along z so the face shades as a continuous
+## surface; that is the whole point of building it this way. But the same
+## averaging carried across the crest rounds the ridge line off into a soft hump,
+## and the crest is the one line on this object the entire east composition is
+## aimed at.
+##
+## Two `_rim_strip` calls do not prevent that, and neither do distinct UVs.
+## Godot 4's `generate_normals` welds by **position and smooth group only** — it
+## hashes a `SmoothGroupVertex`, which carries no UV at all — so the front
+## strip's crest row and the back strip's crest row are the same positions and
+## are averaged together whatever else differs about them. Measured, not assumed:
+## built without the groups, 813 of the 816 vertices on the crest plane came back
+## with a normal pointing *east*, which is the mean of a west-facing face at 51
+## degrees and an east-facing back at 64. Every way a scene can be inspected said
+## it was fine — right node, right vertex count, right AABB, no error anywhere.
+##
+## So the two strips are given different smooth groups and the crest stays an
+## edge. The V offset between them is kept as well, because it costs nothing and
+## a tangent frame that does not flip across the crease is worth having, but it
+## is not what does this job and must not be mistaken for it.
+##
+## `_rim_creased` is the guard, and it is here rather than in a test because
+## nothing outside this file knows the crest is supposed to be sharp.
+##
+## UVs are laid out but never sampled — the material is world-space triplanar, so
+## they exist only because `generate_tangents` needs them, and without tangents
+## the normal map has no frame to be applied in and the relief silently does
+## nothing. That is the same shape of failure as the uniforms that save as null:
+## a well-formed scene with the important part missing.
+##
+## **The winding is asserted rather than reasoned about.** Front faces are a
+## convention, and a surface built the wrong way round is invisible from the one
+## direction it exists to be seen from — which on a 340m ridge behind a wall
+## reads as "the rim did not generate" rather than as a winding bug. The check
+## costs one dot product.
+func _rim_mesh(nm: String, toe: PackedVector3Array, crest: PackedVector3Array,
+		back: PackedVector3Array) -> void:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	# Two groups, and this is the line that keeps the crest sharp.
+	st.set_smooth_group(0)
+	_rim_strip(st, toe, crest, 0.0)
+	st.set_smooth_group(1)
+	_rim_strip(st, crest, back, 2.0)
+	st.generate_normals()
+	st.generate_tangents()
+	var mesh := st.commit()
+
+	var arrays := mesh.surface_get_arrays(0)
+	var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+
+	# The face has to point west, downhill, at the park. Sampled at the toe,
+	# which is the one row on the front strip that cannot have been contaminated
+	# by the crest even if the crease has failed — checking a crest vertex here
+	# would have passed while the ridge was rounding off.
+	var lowest := 0
+	for i in verts.size():
+		if verts[i].y < verts[lowest].y:
+			lowest = i
+	var probe: Vector3 = normals[lowest]
+	if probe.x > -0.2 or probe.y < 0.0:
+		push_error(("gen_props: the rim's face is wound backwards — its normal "
+			+ "came out %s, and it has to point west and up. The strip is "
+			+ "invisible from the plaza built this way round.") % probe)
+		_fatal = true
+		quit(1)
+		return
+
+	if not _rim_creased(verts, normals):
+		return
+
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.material_override = mats["rim"]
+	_add(mi, nm)
+
+
+## One strip between two lines of the ridge, in world coordinates.
+##
+## `v0` is where this strip starts in the V direction. It is the only thing the
+## two calls differ by, and it is load-bearing rather than cosmetic: it is what
+## keeps the crest rows of the two strips from welding into one. See `_rim_mesh`.
+func _rim_strip(st: SurfaceTool, low: PackedVector3Array,
+		high: PackedVector3Array, v0: float) -> void:
+	var cols := low.size()
+	for j in cols - 1:
+		var u0 := float(j) / float(cols - 1)
+		var u1 := float(j + 1) / float(cols - 1)
+		# Wound so that `generate_normals` puts the normal on the outside — see
+		# the assertion in `_rim_mesh`, which is what actually holds this.
+		_rim_tri(st, low[j], u0, v0, high[j], u0, v0 + 1.0,
+			low[j + 1], u1, v0)
+		_rim_tri(st, high[j], u0, v0 + 1.0, high[j + 1], u1, v0 + 1.0,
+			low[j + 1], u1, v0)
+
+
+## Every vertex on the crest plane should carry one of two normals — the face's
+## and the back's — and never their average.
+##
+## This exists because the failure it catches is invisible. A welded crest is a
+## well-formed mesh: it loads, it draws, it has the right vertex count and the
+## right bounds, and from the plaza it is a 340m ridge whose top edge is very
+## slightly soft at a range where nobody would think to look for a normal bug.
+## The only cheap way to know is to ask the geometry, so this asks it.
+func _rim_creased(verts: PackedVector3Array,
+		normals: PackedVector3Array) -> bool:
+	var west := 0
+	var east := 0
+	for i in verts.size():
+		if absf(verts[i].x - Plan.RIM_CREST_X) > 0.001:
+			continue
+		if normals[i].x < 0.0:
+			west += 1
+		else:
+			east += 1
+	# Both rows are laid the same way, so a sound crease is an even split. A
+	# weld collapses one of them onto the other and leaves a handful of strays.
+	if west < 1 or east < 1 or absf(west - east) > maxi(west, east) / 4:
+		push_error(("gen_props: the rim's crest is not a crease — %d of its "
+			+ "vertices face west and %d face east, where an even split is "
+			+ "wanted. The two strips have been welded and the ridge line is "
+			+ "rounding off. Check the smooth groups in `_rim_mesh`.")
+			% [west, east])
+		_fatal = true
+		quit(1)
+		return false
+	return true
+
+
+func _rim_tri(st: SurfaceTool, a: Vector3, au: float, av: float,
+		b: Vector3, bu: float, bv: float,
+		c: Vector3, cu: float, cv: float) -> void:
+	st.set_uv(Vector2(au, av))
+	st.add_vertex(a)
+	st.set_uv(Vector2(bu, bv))
+	st.add_vertex(b)
+	st.set_uv(Vector2(cu, cv))
+	st.add_vertex(c)
 
 
 ## The relief on the crest line.
 ##
-## A ridge interpolated straight off seven control points is a swept curve, and a
-## swept curve at this size reads as a tarpaulin over something rather than as
-## land. This is a fixed pair of sines rather than an RNG because the generator
-## has none and does not want one: the ridge has to come out the same on every
-## run or the coplanar report changes under whoever is reading it.
+## A fixed pair of sines rather than an RNG because the generator has none and
+## does not want one: the ridge has to come out the same on every run or the
+## coplanar report changes under whoever is reading it.
 ##
-## It has a second job, and that is why it is a taper rather than a constant.
-## Two adjacent bands at the same crest have the same slope angle, and two slabs
-## at the same angle are two parallel faces a hair apart — which is the case the
-## seam ordinal exists to survive rather than the case it exists to prevent. A
-## crest that never repeats means two faces never line up to begin with. It also
-## buys the only tonal variation the ridge has: each band meets the sun at its
-## own angle, so 340m of one material still shades in patches.
+## **It used to have a second job and no longer does.** While the ridge was 34
+## slabs, two adjacent bands at the same crest were two parallel faces a hair
+## apart, and a crest that never repeats was what stopped them lining up. There
+## are no bands now, so that argument is retired — and so is the claim that this
+## buys the ridge its only tonal variation, which was true when a band was a flat
+## facet meeting the sun at its own angle. The surface is welded and smooth in z
+## now, and what shades it is the normal map. This is left in because the *shape*
+## reason still stands on its own: a ridge interpolated straight off seven
+## control points is a swept curve, and a swept curve at this size reads as a
+## tarpaulin over something rather than as land.
 ##
 ## **Zero on the park's own axis**, and that is not tidiness. `ParkPlan` states
 ## what a crest of 50 shows from the fountain and from the plaza's west side, and

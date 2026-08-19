@@ -78,6 +78,13 @@ MESH_DEFAULTS = {
     'CylinderMesh': {'top_radius': 0.5, 'bottom_radius': 0.5, 'height': 2.0},
     'SphereMesh':   {'radius': 0.5, 'height': 1.0},
     'TorusMesh':    {'inner_radius': 0.5, 'outer_radius': 1.0},
+    # A generated surface. It carries no size properties at all -- its extent is
+    # the `aabb` inside `_surfaces`, which is what `mesh_half` reads. Added when
+    # the rim stopped being 34 boxes and became one welded strip on 2026-08-18,
+    # and the reason it is here rather than left unhandled is that an unknown
+    # mesh type is dropped *silently*: the census went from 8682 shapes to 8614
+    # and nothing anywhere said that a 340m ridge had stopped being looked at.
+    'ArrayMesh':    {},
 }
 
 
@@ -104,6 +111,12 @@ def _vec(chunk, key, fallback):
 # same flaw was in the CSG path from the beginning.
 FLAT_AXES = {
     'BoxMesh': {0, 1, 2}, 'PlaneMesh': {0, 1, 2},
+    # No flat face by construction, which is the honest answer rather than a
+    # convenience: an ArrayMesh here is a landform, and the whole point of it is
+    # that no part of it is an axis-aligned plane. It is counted in the census
+    # and in the "no flat face at all" line, and never compared -- the same
+    # treatment a sphere gets, for the same reason.
+    'ArrayMesh': set(),
     'CylinderMesh': {1}, 'SphereMesh': set(), 'TorusMesh': set(),
     'CSGBox3D': {0, 1, 2}, 'CSGCylinder3D': {1},
     'CSGSphere3D': set(), 'CSGTorus3D': set(),
@@ -115,6 +128,16 @@ def mesh_half(typ, chunk):
     d = MESH_DEFAULTS.get(typ)
     if d is None:
         return None
+    if typ == 'ArrayMesh':
+        # AABB is position-then-size, and the position is in the mesh's own
+        # space rather than centred on it -- so a half-extent alone would put
+        # the shape in the wrong place. Nothing here is ever compared, so the
+        # bound only has to be big enough to be honest about what it covers.
+        m = re.search(r'"aabb": AABB\(([^)]*)\)', chunk)
+        if not m:
+            return None
+        v = [float(x) for x in m.group(1).split(',')]
+        return [v[3] / 2, v[4] / 2, v[5] / 2]
     if typ == 'BoxMesh':
         s = _vec(chunk, 'size', d['size'])
         return [s[0] / 2, s[1] / 2, s[2] / 2]

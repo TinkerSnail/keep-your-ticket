@@ -329,38 +329,17 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30.95175, 6.84825, -2.00175)
 use_collision = true
 size = Vector3(0.9, 1.1, 10.4)
 material = SubResource("mat_building")
-
-; Standing on the beam, which is the only thing left at the entrance that spans.
+; **The sign board came off on 2026-08-18**, so the west gate matches the east.
+; It was 9.6m by 3.4 hung on the beam's plaza face — the largest single flat
+; thing in the plaza and the one piece of the west gate the east had no answer
+; to, because a board here would have to name a land and the sections past both
+; of these are undecided. The beam, the valance, the bulbs and the finials all
+; stay: those are the entrance kit and both gates wear it. What has gone is the
+; naming.
 ;
-; **Down from 14.1 to 8.51 on 2026-08-14c, into the wall it belongs on.** It used
-; to stand clear above the roofline on the argument that that is what makes it
-; readable from the ring, where the decision to walk west gets made. What it
-; actually did was leave 5.6m of blank white wall directly above a doorway — with
-; the board floating past the parapet against the sky above all of it.
-;
-; The readability argument does not survive being measured. From the ring's west
-; edge the arch face is 14.5m away, so at 14.1 the board sat 36 to 45 degrees up:
-; you had to crane at it. Centred in the wall band it sat at 19 to 31, which is
-; where a sign over a door belongs and is *easier* to read, not harder.
-;
-; **That band is kept, and the wall under it is not.** Taking the top off took
-; away the masonry the board was centred in, so it sits on the beam now: 7.20 to
-; 10.60, lapping 0.2 into the beam so the two overlap rather than meet. From the
-; ring that is 20.8 to 31.5 degrees — the same place on the eye, reached by
-; standing on something instead of by being flush with something.
-;
-; Thinner than it was, 0.45 against 0.8, and 0.425 of that stands proud into the
-; plaza. A board bolted to a wall can be as thick as it likes because no edge of
-; it shows; a board standing above a beam against open sky is seen end-on from
-; the ring walkway and reads as a slab at 0.8.
-;
-; 9.6 long inside a 10.4 beam, so the beam shows past it at both ends. A sign as
-; long as the thing carrying it reads as the thing carrying it.
-[node name="arch_sign" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30.30200, 8.89800, -2.00200)
-use_collision = false
-size = Vector3(0.45, 3.4, 9.6)
-material = SubResource("mat_accent")
+; `boardwalk.tscn`'s `far_arch_sign` goes with it by construction — that scene
+; reads the plaza's massing out of this file as text, so it loses the board on
+; the next generation without anybody editing it.
 
 [node name="overlook_wall_north" type="CSGBox3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.50225, 1.79775, -14.50225)

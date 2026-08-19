@@ -108,9 +108,11 @@ wrapper and, where they save images, a real renderer.
 | `_front_probe.gd` | The perimeter's upper storeys, from the fountain and from close enough to count them. |
 | `_fountain_probe.gd` | Walks into the fountain's kerb from sixteen bearings. |
 | `_glow_probe.gd` | The water's night glow, always paired against the same frame by day. |
+| `_hill_probe.gd` | The east hill: the scarp from the court, the climb, and the belvedere at the top of it. |
 | `_inpool_probe.gd` | Is anybody standing in the fountain? Samples over twelve seconds, not one instant. |
 | `_niche_probe.gd` | The wall fountain in the west cascade's niche, from the court. |
 | `_pfoam_probe.gd` | The plaza fountain's froth, shot low at the waterline. |
+| `_rim_probe.gd` | Does the east rim stand over the roofline, and does it open up as you back away? |
 | `_wheel_probe.gd` | The tableau's wheel and the section's, from one camera on both sides of the seam. |
 
 Godot writes a `.uid` beside every script it imports. Those are tracked — but
