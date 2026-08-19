@@ -6,9 +6,13 @@ extends Node
 ## **Why this has to exist.** `godot --script res://tools/<x>.gd` compiles the
 ## script before the project's autoloads are registered, so any tool naming
 ## `ParkClock`, `ParkSections`, `ParkGuests`, `ParkSettings` or `PhotoAlbum`
-## dies at compile with "Identifier not found" and never runs a line. Twelve of
-## the fifteen tools in this directory do exactly that, which means the
-## documented way to run them worked for three of them.
+## dies at compile with "Identifier not found" and never runs a line. Every tool
+## in this directory does exactly that except the three `SceneTree`s, which means
+## the documented way to run them worked for three of them.
+##
+## Counted rather than named, this line said "twelve of the fifteen" and was
+## wrong within a day: it was written where eight probes had been deleted, and
+## restoring them moved the figure without touching the sentence.
 ##
 ## `gen_props.gd` documents the same trap from the other side and dodges it by
 ## `load`-ing late; that works because it only needs a *script* at runtime. A

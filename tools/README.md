@@ -19,8 +19,8 @@ and the process sits there looking like a hang.
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . --script res://tools/gen_props.gd
 ```
 
-**`extends Node` → `tools/run.tscn`.** Everything else, which is twelve of the
-fifteen. Godot can only run a scene, and a tool that names an autoload at the
+**`extends Node` → `tools/run.tscn`.** Everything else — this directory turns
+over, so it is named as "everything but the three above" rather than counted. Godot can only run a scene, and a tool that names an autoload at the
 top level *must* have one, because `--script` compiles before autoloads
 register — so `ParkClock` or `ParkSections` dies at compile without running a
 line. `run.tscn` is that scene. Name the tool after a bare `--`:
