@@ -1771,8 +1771,19 @@ const WALKWAYS := {
 	&"boardwalk_promenade": [
 		Vector2(PROMENADE_X, WALK_FROM_Z), Vector2(PROMENADE_X, WALK_TO_Z),
 	],
+	## **From the promenade, not from the pier's own root.** `PIER_ROOT` is where
+	## the *deck* starts, at `SHORE_EDGE`, and the promenade's line is 8.8m
+	## inland of that — so a run written root-to-head drew a pier with no way
+	## onto it. It survived while the pier sat on `ALLEY_Z`, because then the
+	## alley, the promenade crossing and the pier were all on z -2 and the gap
+	## read as one straight line west with a dashed bit in the middle. Off the
+	## axis it reads as what it always was: a line floating in the water.
+	##
+	## A walkway is where the player can go, and the eight metres from the strip
+	## to the deck are somewhere they can go.
 	&"boardwalk_pier": [
-		PIER_ROOT, Vector2(PIER_ROOT.x - PIER_LENGTH, PIER_ROOT.y),
+		Vector2(PROMENADE_X, PIER_Z),
+		Vector2(PIER_ROOT.x - PIER_LENGTH, PIER_ROOT.y),
 	],
 
 	## The four spokes to the scaffolded thresholds. Each runs from the ring to

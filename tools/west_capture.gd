@@ -186,7 +186,26 @@ const ARRIVED := [
 	# The strip, both ways, from the middle of the paving.
 	{"name": "22_prom_north", "yaw": 0.0, "pitch": 2.0, "pos": Vector3(-96, STAND_SHORE, 6)},
 	{"name": "23_prom_south", "yaw": 180.0, "pitch": 0.0, "pos": Vector3(-96, STAND_SHORE, -20)},
-	{"name": "24_shopfronts", "yaw": 125.0, "pitch": 2.0, "pos": Vector3(-98, STAND_SHORE, 8)},
+	# **This pointed at the sea, and had done for longer than the pier move.**
+	# It is named for the shopfronts and its yaw was 125, which is
+	# `(-sin, -cos)` = west-south-west — 7.5m of open deck and then the water.
+	# The frontage is *east*. It was blamed on the pier moving under it, which
+	# was wrong and worth recording: the pier arriving in frame made the shot
+	# obviously broken, but the pre-move frame is water and masts too.
+	#
+	# Now on the southern run, which is the long one — custard, studio, the 11m
+	# funhouse, games, restrooms, shuttered, taffy — looking east-north-east so
+	# the row recedes and the roofline steps. Chosen against two other
+	# standpoints rather than reasoned: south-east down the row put the near
+	# unit's blank flank across half the frame, and standing closer filled it
+	# with one shopfront.
+	#
+	# `x -96` rather than `-98` is not a framing preference. The spring arm puts
+	# the camera 2.6m back along the view, so at -98 the camera lands at -100.1,
+	# *west* of the lamp standards at `PROMENADE_X`, and one of them cuts the
+	# frame. At -96 the camera sits east of that line and the lamps fall behind
+	# it. The pose is the body; the picture is taken 2.6m away.
+	{"name": "24_shopfronts", "yaw": -55.0, "pitch": 4.0, "pos": Vector3(-96, STAND_SHORE, 53)},
 	# The three anchors, close enough to judge as objects rather than silhouettes.
 	{"name": "25_wheel", "yaw": 90.0, "pitch": 22.0, "pos": Vector3(-94, STAND_SHORE, -16)},
 	{"name": "26_wheel_along", "yaw": 12.0, "pitch": 14.0, "pos": Vector3(-96, STAND_SHORE, 2)},

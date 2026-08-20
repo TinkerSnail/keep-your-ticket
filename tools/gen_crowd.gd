@@ -2630,7 +2630,16 @@ func _boardwalk_graph() -> void:
 		# day and took the booth and the queue to the water's edge with it, so
 		# the whole band is open: back on the promenade's own line, where a
 		# spine belongs.
-		"wheel_q": Vector2(Plan.PROMENADE_X, -19.0),
+		# Just east of `PROMENADE_X` rather than on it. The lamp standards stand
+		# on that line at 9m centres and they are deliberately *not* obstacles —
+		# a 22cm post is something people brush past, and treating one as a wall
+		# closes a promenade. Which means the validator cannot see them, so a
+		# spine laid down the middle of the paving is a spine that walks through
+		# a lamp the day the spacing changes. Every other node on this run is
+		# offset for the same reason; this one was put on the centre line when
+		# the wheel left the promenade and the offset is the half of that which
+		# was missing.
+		"wheel_q": Vector2(Plan.PROMENADE_X + 1.7, -19.0),
 		"prom_n2": Vector2(-94.5, -28.0),
 		"station_q": Vector2(-95, -41.0),
 		"prom_n3": Vector2(-98, -55.0),
