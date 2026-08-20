@@ -487,6 +487,27 @@ func _boardwalk_legs() -> Array:
 		["bw south along strip", Vector3(-98, y, 10.0), Vector3(-98, y, 62.0), true],
 		["bw south end holds", Vector3(-98, y, 70.0), Vector3(-98, y, 92.0), false],
 		# Probes. None of these may arrive.
+		# **The jetty, which is a new open edge.** The promenade's rail breaks
+		# across the wheel's 26m, because a rail along the front of a boarding
+		# platform is a rail across the ride — so what stops the player there is
+		# the platform's own east face, half a metre proud, and nothing else.
+		# That is a barrier only because `CharacterBody3D` has no step-up, which
+		# is a fact about the engine rather than about the geometry, and exactly
+		# the kind of thing that has to be walked rather than reasoned about.
+		# Three legs: the middle of the break and both of its ends.
+		#
+		# They start at x -103 rather than at the promenade's own line, and the
+		# first run of this probe is why. `holds s` began at -98, walked 0.8m,
+		# stopped dead on `prom_lamp_8` and reported ok — a leg that asks
+		# whether an edge holds and never reaches the edge passes for the wrong
+		# reason, which is worse than failing. The lamp standards stand at
+		# `PROMENADE_X`; start west of them.
+		["bw jetty holds", Vector3(-103, y, ParkPlan.WHEEL_AT.y),
+			Vector3(-120, y, ParkPlan.WHEEL_AT.y), false],
+		["bw jetty holds n", Vector3(-103, y, ParkPlan.WHEEL_FROM_Z + 1.0),
+			Vector3(-120, y, ParkPlan.WHEEL_FROM_Z + 1.0), false],
+		["bw jetty holds s", Vector3(-103, y, ParkPlan.WHEEL_TO_Z - 1.0),
+			Vector3(-120, y, ParkPlan.WHEEL_TO_Z - 1.0), false],
 		["bw water holds", Vector3(-98, y, 30.0), Vector3(-120, y, 30.0), false],
 		["bw water holds n", Vector3(-98, y, -50.0), Vector3(-120, y, -50.0), false],
 		["bw shops hold", Vector3(-96, y, 26.0), Vector3(-60.0, y, 26.0), false],

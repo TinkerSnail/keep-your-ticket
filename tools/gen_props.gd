@@ -3668,6 +3668,27 @@ const WALK_TO_Z := Plan.WALK_TO_Z
 const FRONT_FROM_Z := Plan.FRONT_FROM_Z
 const FRONT_TO_Z := Plan.FRONT_TO_Z
 const WHEEL_AT := Plan.WHEEL_AT
+
+## How far either side of the pier's centre line the promenade's own furniture
+## stands off. `PIER_HALF_W` plus a stride — the deck is 8m wide and what has to
+## be clear is the deck plus the room to turn onto it. Read by the edge posts,
+## the lamp masts and the lamp standards, which used to carry it as three
+## separate 5.0s and one omission.
+const PIER_MOUTH_CLEAR := Plan.PIER_HALF_W + 1.0
+
+
+## Whether the promenade's west edge at this z is the wheel's jetty rather than
+## the water.
+##
+## The rail, the posts and the masts all stand a hand inside `SHORE_EDGE`, and
+## the jetty's east face *is* `SHORE_EDGE`, so across its 26m they would run
+## along the front of a boarding platform — a rail across the ride, and a mast
+## in the middle of it. Nothing can be walked off there either: the platform
+## deck stands 0.6m proud and `CharacterBody3D` has no step-up, so its own east
+## face is the guard the rail would have been. The break is the honest shape and
+## it is also the safe one.
+func _over_the_jetty(z: float) -> bool:
+	return z > Plan.WHEEL_FROM_Z - 0.4 and z < Plan.WHEEL_TO_Z + 0.4
 const COASTER_STATION := Plan.COASTER_STATION
 const COASTER_TO_Z := Plan.COASTER_TO_Z
 const PIER_ROOT := Plan.PIER_ROOT
@@ -7573,6 +7594,26 @@ func _boardwalk_wheel() -> void:
 	var half := Plan.WHEEL_PLATFORM * 0.5
 	_wheel(base, "white", "plank", "red", "yellow", PI * 0.5)
 
+	# The jetty stands in the water, so it stands on piles — the pier's, at the
+	# pier's spacing and in the pier's material, because they are the same
+	# structure doing the same job forty metres apart and two different answers
+	# would read as two different piers. Four rows: the platform is 8m across
+	# and the pier is 8m across, and the pier uses two rows at ±3, so this uses
+	# the same inset off each edge and fills between.
+	#
+	# The wheel's own legs come down at z ±11 from the axle, which lands between
+	# rows either way; they are carried by the deck rather than by a pile of
+	# their own, which is what the deck is for.
+	var pn := 0
+	var pz := Plan.WHEEL_FROM_Z + 2.5
+	while pz <= Plan.WHEEL_TO_Z - 2.4:
+		for px in [base.x - half.x + 1.0, base.x - 1.4, base.x + 1.4,
+				base.x + half.x - 1.0]:
+			_cyl("wheel_pile_%d" % pn, Vector3.ZERO,
+				Vector3(px, WATER_TOP - 0.4, pz), 0.28, 4.0, "far_shade", 0.0, 6, false)
+			pn += 1
+		pz += 5.0
+
 	# The fence round the platform, open on the east side where the queue and
 	# the booth are. Posts along three sides, at 2m.
 	var n := 0
@@ -7877,7 +7918,7 @@ func _boardwalk_edges() -> void:
 	var z := WALK_FROM_Z
 	while z <= WALK_TO_Z:
 		# The break for the pier. Everything else gets a post.
-		if absf(z - PIER_ROOT.y) > 5.0:
+		if absf(z - PIER_ROOT.y) > PIER_MOUTH_CLEAR and not _over_the_jetty(z):
 			_box("edge_post_%d" % n, Vector3.ZERO,
 				Vector3(SHORE_EDGE + 0.4, SHORE_TOP + 0.6, z),
 				Vector3(0.14, 1.3, 0.14), "wood")
@@ -7887,7 +7928,23 @@ func _boardwalk_edges() -> void:
 	# posts are 2.4m apart and the player is 0.8 across, so a decorative rail
 	# between colliding posts is a gap the player walks through and off the edge
 	# — which looks exactly like a rail right up until somebody tries it.
-	var runs := [[WALK_FROM_Z, PIER_ROOT.y - 5.0], [PIER_ROOT.y + 5.0, WALK_TO_Z]]
+	# Three cuts, so four runs: the north end, the jetty, the pier's mouth, the
+	# south end. Built as a list of gaps rather than as literals, because the
+	# pier and the wheel have both moved this week and a hand-written run is a
+	# run that is right until something does.
+	var gaps := [
+		[Plan.WHEEL_FROM_Z - 0.4, Plan.WHEEL_TO_Z + 0.4],
+		[PIER_ROOT.y - PIER_MOUTH_CLEAR, PIER_ROOT.y + PIER_MOUTH_CLEAR],
+	]
+	gaps.sort_custom(func(a, b): return a[0] < b[0])
+	var runs := []
+	var from_z := WALK_FROM_Z
+	for gap in gaps:
+		if gap[0] > from_z:
+			runs.append([from_z, gap[0]])
+		from_z = maxf(from_z, gap[1])
+	if from_z < WALK_TO_Z:
+		runs.append([from_z, WALK_TO_Z])
 	for i in runs.size():
 		var run: Array = runs[i]
 		var from: float = run[0]
@@ -7945,9 +8002,27 @@ func _boardwalk_props() -> void:
 	var m := 0
 	var z := WALK_FROM_Z + 6.0
 	while z < WALK_TO_Z:
-		# The wheel's platform occupies the centre line for 26m; a lamp there is
-		# a lamp inside the ride.
-		if absf(z - WHEEL_AT.y) > 15.0:
+		# **One skip now, and it is not the one that used to be here.**
+		#
+		# This line skipped the wheel's 26m and nothing else, because a lamp on
+		# the centre line inside a ride is a lamp inside a ride. The wheel went
+		# onto its own jetty on 2026-08-20 and the centre line there is open
+		# deck, so that skip was protecting an object that had left — which
+		# would have put a 54m stretch of unlit promenade directly in front of
+		# the section's biggest thing. Removed with the reason that made it.
+		#
+		# What it never skipped is the pier's mouth, and it is the only one of
+		# the three runs along this strip that did not: the edge posts and the
+		# lamp masts have both stood off `PIER_ROOT.y` since they were written.
+		# It cost nothing while the pier sat on `ALLEY_Z` and the 9m lamp
+		# spacing happened to straddle it. The pier moved 8m south the same day
+		# and `prom_lamp` at z 5 landed a metre off the deck's centre line —
+		# 4.8m of steel standing in the only doorway on the strip.
+		#
+		# Three call sites skipping the same opening, two by rule and one by
+		# luck, and the luck is invisible until the opening moves.
+		# `PIER_MOUTH_CLEAR` is the rule and all three read it.
+		if absf(z - PIER_ROOT.y) > PIER_MOUTH_CLEAR:
 			_cyl("prom_lamp_%d" % m, Vector3.ZERO,
 				Vector3(PROMENADE_X, SHORE_TOP + 2.4, z), 0.11, 4.8, "metal", 0.0, 8)
 			_sphere("prom_lamp_%d_globe" % m,
@@ -7973,7 +8048,7 @@ func _boardwalk_props() -> void:
 	var had_prev := false
 	z = WALK_FROM_Z + 4.0
 	while z < WALK_TO_Z:
-		if absf(z - PIER_ROOT.y) > 5.0:
+		if absf(z - PIER_ROOT.y) > PIER_MOUTH_CLEAR and not _over_the_jetty(z):
 			_cyl("mast_%d" % k, Vector3.ZERO,
 				Vector3(SHORE_EDGE + 1.6, SHORE_TOP + 4.0, z), 0.22, 8.0, "wood", 0.0, 6)
 			if had_prev and z - prev_mast < 12.0:

@@ -1252,13 +1252,57 @@ const ALLEY_Z := ARCH_AT.y
 ## thin thing, not a circle. Worth stating because the obvious mistake is to
 ## give it a round platform sized to its radius, and a 13m radius does not fit
 ## in a 17.5m promenade while a 2m axle fits anywhere.
-## Set well west so the promenade passes on the *inland* side of it with room to
-## spare — 8.5m against 1m on the water side. A wheel in the middle of a strip
-## pinches it twice; a wheel against the rail pinches it once and puts the queue
-## where the shops are, which is where a queue belongs.
-const WHEEL_AT := Vector2(-103.0, -16.0)
+## **It stands off the end of the promenade since 2026-08-20, on its own jetty.**
+## The platform's east edge *is* `SHORE_EDGE`, so `WHEEL_AT.x` is derived and
+## not typed: the whole 8m of it is over the water, and the strip runs past
+## behind it at its full 17.5m.
+##
+## It used to stand on the promenade — axle at x -103, platform -107..-99 —
+## which left 8.5m of walking room between it and the shopfronts, and the note
+## here called that "room to spare". It is room to spare for *a walk*. It is not
+## room for a walk plus a ride's boarding platform plus a ticket booth plus the
+## queue for it, which is what was actually in it: the booth alone reached
+## x -96.5 and the queue rail stood at -96, so the strip's clear half was 5.5m
+## and everything that made the wheel a *ride* was standing in the promenade.
+##
+## A wheel is 26m across and the strip is 17.5m wide. There was never a position
+## on the deck that did not have this problem; the question is only which way it
+## faces. So the wheel steps off the boards and the promenade gets all of itself
+## back, which is what the reference does too — a big ride on the water side
+## goes on a structure of its own, and a wheel on a jetty is what Santa Monica
+## has been a photograph of for a century.
+##
+## What it buys, measured: 14.5m from the queue rail to the shopfronts where
+## there were 5.5m, and nothing belonging to the wheel standing on the walk at
+## all except the booth and its rail, both of which are now east of the water's
+## edge rather than in the middle of the deck.
+##
+## Two things follow and neither is optional. The platform and the wheel's feet
+## are over water, so they carry piles like the pier's. And the promenade's
+## edge rail, posts and lamp masts break across the platform's z-span — the
+## thing beyond the edge there is the jetty, and a rail along the front of a
+## boarding platform is a rail across the ride.
 const WHEEL_RADIUS := 13.2
 const WHEEL_PLATFORM := Vector2(8.0, 26.0)
+
+## How far the jetty runs back *under* the shore rather than butting against it.
+##
+## `COASTER_EMBED`'s lesson at the other end of the strip, and it has to be
+## stated because the derivation below produces the failure on its own: the
+## shore's west face is `SHORE_EDGE` and a platform whose east edge is also
+## `SHORE_EDGE` meets it exactly. Emitted, that came out as a one-millimetre
+## overlap — which is the coplanar butt the house rule exists to forbid, and a
+## zero-width seam is what the capsule catches on. Overlap, never meet.
+const JETTY_EMBED := 0.4
+const WHEEL_AT := Vector2(
+	SHORE_EDGE - WHEEL_PLATFORM.x * 0.5 + JETTY_EMBED, -16.0)
+
+## The platform's own edges, which four things need and none of them should
+## re-derive: the jetty's piles, the break in the promenade's rail, the break in
+## the lamp masts, and the crowd's obstacle for it.
+const WHEEL_FROM_Z := WHEEL_AT.y - WHEEL_PLATFORM.y * 0.5
+const WHEEL_TO_Z := WHEEL_AT.y + WHEEL_PLATFORM.y * 0.5
+const WHEEL_EAST_X := WHEEL_AT.x + WHEEL_PLATFORM.x * 0.5
 
 ## How high the wheel actually stands.
 ##
@@ -1376,13 +1420,28 @@ const BENCH_STEP := 12.0
 
 
 ## The bench positions, skipping the two places the promenade is not free — the
-## pier mouth and the length of the wheel's platform. Built rather than listed so
-## the furniture and the people sitting on it cannot drift apart.
+## pier mouth and the wheel's frontage. Built rather than listed so the furniture
+## and the people sitting on it cannot drift apart.
+##
+## The wheel's skip is its platform's z-span and not a radius any more. It was
+## `absf(z - WHEEL_AT.y) > 9.0`, written when the platform stood *on* the
+## promenade and the thing to avoid was the platform itself. The wheel moved
+## onto its own jetty on 2026-08-20 and what is on the deck now is its
+## frontage — the ticket booth at z -17.7..-20.3 and the queue rail running
+## back to -28.4 — which the old radius did not cover: it reached -25 and the
+## queue reaches -28.4. It produced the right answer anyway, because the bench
+## spacing happens to put nothing between them. `BENCH_X` is -105.4 and the
+## queue stands at -105.0, so the bench that rule was one step away from
+## emitting would have been four centimetres from a queue post.
+##
+## The span covers both by construction, because the booth and the queue are
+## laid out off the platform's own east edge.
 static func bench_line() -> Array:
 	var out := []
 	var z := BENCH_FIRST_Z
 	while z < WALK_TO_Z - 8.0:
-		if absf(z - PIER_ROOT.y) > 7.0 and absf(z - WHEEL_AT.y) > 9.0:
+		var clear_of_wheel := z < WHEEL_FROM_Z - 1.0 or z > WHEEL_TO_Z + 1.0
+		if absf(z - PIER_ROOT.y) > 7.0 and clear_of_wheel:
 			out.append(Vector2(BENCH_X, z))
 		z += BENCH_STEP
 	return out

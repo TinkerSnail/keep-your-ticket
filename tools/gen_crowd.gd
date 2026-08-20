@@ -2589,18 +2589,26 @@ func _boardwalk_graph() -> void:
 		"prom_gap": Vector2(-94, Plan.ALLEY_Z),
 		"pier_mouth": Vector2(-96.0, Plan.PIER_ROOT.y),
 		# North, past the wheel to the coaster.
-		# West of the tables outside the corn-dog stand and east of the wheel
-		# platform, which between them leave a 4m gap. The validator found this:
-		# -66.5 put a graph node a metre inside a table.
+		# West of the tables outside the corn-dog stand. It used to be east of
+		# the wheel's platform as well — the comment here reasoned about "a 4m
+		# gap" between the two, and both halves of that are gone: the platform
+		# left the promenade on 2026-08-20, and the gap was never 4m anyway,
+		# because the arithmetic was done against a ticket booth the obstacle
+		# list had 16m out of place. The validator found the older bug: -66.5
+		# put a graph node a metre inside a table.
 		"prom_n1": Vector2(-96.5, -10.0),
 		# **`wheel_q` was at -97.0 and stood inside the ticket booth.** It was
 		# placed against the phantom booth the obstacle list carried 16m inland
 		# — see `_boardwalk_obstacles` — so it validated cleanly and put the
-		# promenade's spine through the one solid object on that stretch. The
-		# slot it has now is 0.8m wide, between the booth's clearance circle and
-		# the corn-dog tables, and that narrowness is a fact about the wheel's
-		# landing rather than about this node.
-		"wheel_q": Vector2(-95.2, -19.0),
+		# promenade's spine through the one solid object on that stretch.
+		#
+		# It moved to -95.2 to clear the real one, into an 0.8m slot between the
+		# booth's clearance and the corn-dog tables, and that was the tightest
+		# node on the strip. The wheel went onto its own jetty later the same
+		# day and took the booth and the queue to the water's edge with it, so
+		# the whole band is open: back on the promenade's own line, where a
+		# spine belongs.
+		"wheel_q": Vector2(Plan.PROMENADE_X, -19.0),
 		"prom_n2": Vector2(-94.5, -28.0),
 		"station_q": Vector2(-95, -41.0),
 		"prom_n3": Vector2(-98, -55.0),
