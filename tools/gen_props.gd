@@ -2032,14 +2032,19 @@ func _paving() -> void:
 	_pave_run(&"spoke_east", PAVE_LIFT, "asphalt", 3, 1)
 
 
-## The paving on the far side of the tunnel, laid into whichever scene is being
-## written — which is both of them.
+## The paving on the far side of the tunnel. **Into `plaza_paving.tscn` only,
+## since 2026-08-19.**
 ##
 ## The terrace is on the boardwalk's side of the seam and the plaza's side of the
 ## wall, so both sections have to show it: the plaza sees it framed by the arch
-## from as far back as the ring, and the boardwalk stands on it. `plaza_paving`
-## is not mounted past the arch and `boardwalk` is not mounted before it, so the
-## only way for the ground to be the same in both is to lay it twice.
+## from as far back as the ring, and the boardwalk stands on it. That used to
+## mean laying it twice, because `plaza_paving` was not mounted past the arch and
+## `boardwalk` was not mounted before it.
+##
+## The boardwalk mounts `plaza_paving.tscn` now — it is in that section's own
+## list, with the frontage, the fountain, the props and the clock — so the second
+## copy became two identical quads a quarter-millimetre apart underfoot. One
+## description again, and it is the mounted one.
 ##
 ## Two stretches, and the second is the point. The west spoke's last segment runs
 ## out of the tunnel to the parapet, which is where the view is; the stair's first
@@ -7320,10 +7325,16 @@ func _boardwalk_section() -> void:
 	_boardwalk_props()
 	_boardwalk_lights()
 	_plaza_from_below()
-	# The terrace's own asphalt, on the plaza's floor, laid here as well as into
-	# `plaza_paving.tscn` — see `_terrace_paving`. It goes after
-	# `_plaza_from_below` because that is what puts the floor under it.
-	_terrace_paving()
+	# **The terrace's asphalt is not laid here any more**, and the reason is a
+	# change in what this section mounts rather than a change of mind about the
+	# ground. `plaza_paving.tscn` is in the boardwalk's own scene list since
+	# 2026-08-19 — see `ParkSections` — so its six terrace runs are already
+	# standing when this scene is, and laying them again put two identical quads
+	# a quarter-millimetre apart on ground the player walks on. That is under
+	# `coplanar_test.py`'s floor and over the eye's, which is the worst of both.
+	#
+	# Laying it twice was right for as long as neither section mounted the other's
+	# paving. It stopped being right the moment one of them did.
 
 	_arch_seam(&"boardwalk", &"plaza")
 
@@ -7579,6 +7590,15 @@ func _boardwalk_wheel() -> void:
 
 	# The booth stands off the platform's east side, facing the promenade, with
 	# the queue rail running back along the frontage.
+	#
+	# **North, since 2026-08-20, and it used to run south.** Which way a queue
+	# lies is not decoration: it is 8m of the promenade's width committed to
+	# standing still, and it was committed to the eight metres immediately north
+	# of the alley — z -17.6 to -9.6, which is the stretch everybody coming
+	# through the gap walks into. Turned about the booth it lies alongside the
+	# platform instead, on the quiet run between the wheel and the coaster,
+	# where the only thing behind it is more wheel. Same rail, same length, same
+	# distance off the frontage; the whole change is the sign of one term.
 	var booth := Vector3(base.x + half.x + 1.4, SHORE_TOP, base.z - 3.0)
 	_box("wheel_booth", Vector3.ZERO, booth + Vector3(0, 1.3, 0),
 		Vector3(2.2, 2.6, 2.6), "white")
@@ -7586,9 +7606,12 @@ func _boardwalk_wheel() -> void:
 		Vector3(2.8, 0.3, 3.2), "blue", 0.0, false)
 	_box("wheel_booth_sign", Vector3.ZERO, booth + Vector3(-1.2, 3.5, 0),
 		Vector3(0.2, 1.4, 2.6), "red", 0.0, false)
+	# Six posts at 1.6m, laid north off the booth. The run ends at z -28.4,
+	# which is inside the platform's own span (-29..-3), so the queue is beside
+	# the machine for its whole length rather than trailing past the end of it.
 	for i in 6:
 		_box("wheel_queue_%d" % i, Vector3.ZERO,
-			booth + Vector3(1.6, 0.5, 1.4 + i * 1.6), Vector3(0.08, 1.0, 0.08), "metal")
+			booth + Vector3(1.6, 0.5, -1.4 - i * 1.6), Vector3(0.08, 1.0, 0.08), "metal")
 
 
 ## The coaster closes the north end.
@@ -8079,12 +8102,23 @@ const BELOW_MIN_H := 1.0
 ## failure the plan file exists to prevent — and the fix is the plan file's own
 ## first answer: generate it, rather than describe it a second time.
 ##
-## Two things it deliberately does not carry. The **frontage** is applied to
-## inner faces only, so from the west there is nothing of it to see — the outer
-## faces are blank and the massing is right to be blank with them. And the
-## **roof clutter** would show a metre or two of cupola over the roofline from
-## the promenade; it is left off, because a stand-in that reproduces detail is a
-## stand-in that has to be kept in step with detail.
+## **It carries the walls and nothing hung on them, and that is now the whole of
+## its job.** This used to say the frontage was applied to inner faces only, so
+## there was nothing of it to see from the west, and that the roof clutter was
+## left off because a stand-in that reproduces detail has to be kept in step with
+## detail. The second half is sound and is the reason none of it is copied here.
+## The first half was simply not true, and one screenshot through the arch said
+## so: the parapets, cornices and cupolas sit *on top* of the walls and read from
+## either side, and the gate's own kit — jamb, course, valance, thirteen bulbs,
+## two festoon runs — is inside the passage, which is where the player stands
+## after crossing. All of it vanished at two metres.
+##
+## The answer was not to copy it. `plaza_frontage.tscn`, `plaza_fountain.tscn`,
+## `plaza_paving.tscn`, `plaza_props.tscn` and `plaza_clock.tscn` are in this
+## section's own scene list since 2026-08-19, so the dressing out here is the
+## real thing and cannot drift from itself. The haze stops at the walls, which is
+## the one part a stand-in has to own: the near run must collide and the far runs
+## must not, and no mounted copy of the plaza can be two things at once.
 func _plaza_from_below() -> void:
 	var n := 0
 	for box in _plaza_scene_boxes():
@@ -8109,6 +8143,18 @@ func _plaza_from_below() -> void:
 		var mat := "far_warm" if nm.begins_with("tower_") else "far"
 		if near:
 			mat = "accent" if nm.ends_with("_sign") else "building"
+		# **The floor is not haze**, which `_plaza_from_the_east` worked out on its
+		# own side and this one never inherited. `far` is the distance wash, and it
+		# is the right answer for a silhouette ninety metres out across the lagoon;
+		# applied to the plaza's own 104m of up-facing floor it came back as a
+		# white sheet framed by the arch. From the overlook, six metres from the
+		# reveal, the plaza did not read as hazy — it read as unbuilt.
+		#
+		# The plaza's own brick, which is world-space triplanar, so it lines up
+		# with `terrace_floor` on this side of the wall without either of them
+		# knowing about the other.
+		if nm == "ground":
+			mat = "brick"
 		# Snapped to the centimetre, and that is not tidiness.
 		#
 		# The plaza's shapes carry hand displacement, and it runs *downward and

@@ -78,6 +78,34 @@ const SECTIONS := {
 	## lists of scenes precisely so that a section can be more than one file, and
 	## the alternative — a third persistent tier mounted outside sections — buys
 	## nothing while exactly one thing is shared.
+
+	## **The plaza's own dressing, mounted from the sections that can see it.**
+	##
+	## `boardwalk.tscn` and `terraces_far.tscn` stand a *massing* copy of the
+	## plaza's hand-authored walls, and for the walls that is right — the near
+	## boundary has to collide and the far runs must not. It was never right for
+	## everything hung on them. Shot from the same camera on both sides of a swap,
+	## the plaza went from a skyline of cornices, parapets, cupolas, water tanks,
+	## awnings and a working clock to four blank boxes and a tan obelisk; through
+	## the west arch, from two metres away, the arch lost its own jamb, valance,
+	## bulbs and festoons.
+	##
+	## These four are mounted rather than copied because there is nothing to copy
+	## cheaply *to*. The frontage and the paving carry no collision at all, and
+	## every prop and every part of the fountain stands inside the plaza's wall
+	## line, which the massing seals — so from out here they are decoration and
+	## nothing else, and a stand-in for decoration is a second description of it.
+	## That is the drift `_plaza_from_below`'s own docstring was written about,
+	## which is the argument against re-emitting them in `far` grey and the reason
+	## the haze stops at the walls.
+	##
+	## The distance wash is a west-side idea and it stays a west-side idea: the
+	## promenade is ninety metres out, the belvedere is forty, and the east's own
+	## floor already gave up its haze for exactly that reason.
+	## `plaza_clock.tscn` for the same reason and one of its own: the tower is
+	## forty metres, so it is the one thing that clears its own perimeter wall
+	## from either neighbour, and the clock on it is the only readout the time
+	## gets anywhere in the game.
 	&"boardwalk": {
 		"name": "the boardwalk",
 		"scenes": [
@@ -85,6 +113,11 @@ const SECTIONS := {
 			"res://scenes/world/west_stair.tscn",
 			"res://scenes/world/boardwalk.tscn",
 			"res://scenes/world/boardwalk_crowd.tscn",
+			"res://scenes/world/plaza_frontage.tscn",
+			"res://scenes/world/plaza_fountain.tscn",
+			"res://scenes/world/plaza_paving.tscn",
+			"res://scenes/world/plaza_props.tscn",
+			"res://scenes/world/plaza_clock.tscn",
 		],
 	},
 	## The hillside east of the plaza: the forecourt, the cascade, the belvedere,
@@ -111,11 +144,31 @@ const SECTIONS := {
 	## `terraces_far.tscn` is the plaza standing as massing for the section that
 	## has just deleted it, which is what `boardwalk.tscn` carries for the same
 	## reason at the other gate.
+	##
+	## The four plaza scenes and the clock are here for the reason given over the
+	## boardwalk's list, and the east is the side that needed them most: the
+	## belvedere and the head of the climb both look *down* into the plaza over a
+	## wall the west never gets above.
 		"scenes": [
 			"res://scenes/world/east_cascade.tscn",
 			"res://scenes/world/plaza_skyline.tscn",
 			"res://scenes/world/terraces_far.tscn",
 			"res://scenes/world/terraces_crowd.tscn",
+			"res://scenes/world/plaza_frontage.tscn",
+			"res://scenes/world/plaza_fountain.tscn",
+			"res://scenes/world/plaza_paving.tscn",
+			"res://scenes/world/plaza_props.tscn",
+			"res://scenes/world/plaza_clock.tscn",
+			## **The west's tableau, and only in this list.** From the head of the
+			## climb the plaza is a skyline, and in the plaza's own frame the wheel
+			## stands just clear of the tower — 250m off and the one landmark on
+			## that horizon. It is collision-free massing already washed for
+			## distance, so it costs nothing to look at from further away still.
+			##
+			## Never in the boardwalk's list: that section builds the wheel for
+			## real, off the same `_wheel` call, and mounting both would stand two
+			## of them in one place.
+			"res://scenes/world/west_far.tscn",
 		],
 	},
 }

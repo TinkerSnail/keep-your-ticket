@@ -166,6 +166,14 @@ var _depth: PackedInt32Array = PackedInt32Array()
 ## The same sweep over step-free edges. −1 means a node no wheelchair, buggy or
 ## pram can reach, which is a legitimate answer rather than a fault.
 var _depth_flat: PackedInt32Array = PackedInt32Array()
+
+## Whether this section's graph has any height in it at all. The plaza and the
+## boardwalk are each one plane, so `ground_height` can answer them with a
+## constant and nothing pays for a projection it does not need.
+var _flat := true
+
+## Filled on first use by `_step_free_nodes`.
+var _step_free: PackedInt32Array = PackedInt32Array()
 var _roster: Array = []
 var _groups: Dictionary = {}
 var _visits: Array = []
@@ -205,6 +213,7 @@ func _ready() -> void:
 
 	_build_adjacency()
 	_build_depth()
+	_measure_relief()
 	_build_visits()
 	_sync_population(true)
 	call_deferred("_connect_player")
@@ -567,6 +576,7 @@ func _admit(visit: Dictionary, immediate: bool) -> void:
 				# on one point makes the group shove itself apart on frame one.
 				at = anchor + Vector3(
 					_rng.randf_range(-1.2, 1.2), 0.0, _rng.randf_range(-1.2, 1.2))
+				at.y = ground_height(at)
 			else:
 				anchor = at
 			guest.spawn_at(at)
@@ -628,8 +638,38 @@ func _home_point(guest: Node) -> Vector3:
 		return guest.seat_at
 	if nodes.is_empty():
 		return global_position
+	# **Somewhere this guest could have got to.** A plain roll over every node
+	# strands a wheeled guest on ground they cannot legally be standing on:
+	# the east's south run is a garden stair, so a step-free sweep reaches only
+	# the odd terrace off it, and a buggy put down on one then routes to the
+	# nearest node it *can* use — which is up at the head of the climb, thirteen
+	# metres away with nothing between. What that looks like is somebody walking
+	# diagonally through the flights instead of up them, and it is the same
+	# guard `nearest_node` already carries for the same reason.
+	# The roll happens first and is only ever re-rolled, never conditioned, so a
+	# graph with nothing out of reach draws exactly the numbers it drew before
+	# this guard existed — the plaza and the boardwalk place the same crowd in
+	# the same places as they did the day before it went in.
 	var pick := _rng.randi_range(0, nodes.size() - 1)
-	return nodes[pick] + Vector3(_rng.randfn(0.0, 0.8), 0.0, _rng.randfn(0.0, 0.8))
+	if guest.is_wheeled() and not _depth_flat.is_empty() and _depth_flat[pick] < 0:
+		var reachable := _step_free_nodes()
+		if not reachable.is_empty():
+			pick = reachable[_rng.randi_range(0, reachable.size() - 1)]
+	var at: Vector3 = nodes[pick] \
+		+ Vector3(_rng.randfn(0.0, 0.8), 0.0, _rng.randfn(0.0, 0.8))
+	at.y = ground_height(at)
+	return at
+
+
+## Every node a wheeled guest could have reached, worked out once. Empty on any
+## graph where nothing is out of reach, which is every graph but the terraces.
+func _step_free_nodes() -> PackedInt32Array:
+	if not _step_free.is_empty():
+		return _step_free
+	for i in nodes.size():
+		if _depth_flat[i] >= 0:
+			_step_free.append(i)
+	return _step_free
 
 
 func _way_in_for(guest: Node) -> Array[Vector3]:
@@ -709,6 +749,62 @@ func _threshold_is_watched() -> bool:
 
 
 # --- the graph --------------------------------------------------------------
+
+
+## Is this section's floor one plane?
+func _measure_relief() -> void:
+	_flat = true
+	for i in nodes.size():
+		if is_equal_approx(nodes[i].y, nodes[0].y):
+			continue
+		_flat = false
+		return
+
+
+## The height of the walkable surface under `point`, off the nearest graph edge
+## in plan.
+##
+## **For putting somebody down, not for walking them.** Everything the crowd
+## places is placed *near* a node rather than on it — `_home_point` scatters by
+## most of a metre so that a group at opening is a group and not a bus queue,
+## and a follower is put down beside their leader — and until the terraces every
+## section was one plane, so a scattered point kept the node's height and the
+## node's height was the only height there was. On a hillside it is not: three
+## guests spawned around the head of a flight stood at the top step's height
+## over ground more than half a metre below it, and stayed there until they
+## walked.
+##
+## Deliberately not what a guest reads each frame. The nearest edge in plan is a
+## discontinuous field wherever two routes pass at different heights — the
+## cascade's wings are a hairpin whose legs are 4m apart with 3m between them,
+## so the line down the middle is a cliff — and `guest.gd` walks a leg it is
+## already on for that reason. Answering once, for a point that is a metre from
+## a node, is a different question with no such trap in it.
+func ground_height(point: Vector3) -> float:
+	if _flat or nodes.is_empty():
+		return point.y
+	var here := Vector2(point.x, point.z)
+	var best := INF
+	var height := point.y
+	var pairs := edges.size() / 2
+	for p in pairs:
+		var ia := edges[p * 2]
+		var ib := edges[p * 2 + 1]
+		if ia < 0 or ib < 0 or ia >= nodes.size() or ib >= nodes.size():
+			continue
+		var a: Vector3 = nodes[ia]
+		var b: Vector3 = nodes[ib]
+		var pa := Vector2(a.x, a.z)
+		var span := Vector2(b.x, b.z) - pa
+		var t := 0.0
+		if span.length_squared() > 0.000001:
+			t = clampf((here - pa).dot(span) / span.length_squared(), 0.0, 1.0)
+		var d := here.distance_squared_to(pa + span * t)
+		if d >= best:
+			continue
+		best = d
+		height = lerpf(a.y, b.y, t)
+	return height
 
 
 func node_position(index: int) -> Vector3:

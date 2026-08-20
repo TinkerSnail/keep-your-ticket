@@ -115,6 +115,7 @@ wrapper and, where they save images, a real renderer.
 | `_fountain_probe.gd` | Walks into the fountain's kerb from sixteen bearings. |
 | `_glow_probe.gd` | The water's night glow, always paired against the same frame by day. |
 | `_hill_probe.gd` | The east hill: the scarp from the court, the climb, and the belvedere at the top of it. |
+| `_massing_probe.gd` | Does the plaza's stand-in look like the plaza? One free camera, held still while the section swaps under it, shot in `plaza`, `boardwalk` and `terraces` — the only way to see a stand-in beside its original, since the sections are mutually exclusive and no standpoint holds both. |
 | `_niche_probe.gd` | The wall fountain in the west cascade's niche, from the court. |
 | `_pfoam_probe.gd` | The plaza fountain's froth, shot low at the waterline. |
 | `_rim_probe.gd` | Does the east rim stand over the roofline, and does it open up as you back away? |

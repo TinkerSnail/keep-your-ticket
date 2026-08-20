@@ -460,15 +460,21 @@ func _boardwalk_legs() -> Array:
 	var alley_in := Vector3(ParkPlan.BACK_LANE_X, y, ParkPlan.ALLEY_Z)
 	var alley_out := Vector3(ParkPlan.PROMENADE_X + 5.0, y, ParkPlan.ALLEY_Z)
 	var prom := Vector3(ParkPlan.PROMENADE_X + 5.0, y, ParkPlan.ALLEY_Z)
+	# The pier is 8m south of the alley's axis since 2026-08-20, so getting onto
+	# it is two legs rather than one — out of the alley, then south along the
+	# promenade to the mouth. Walked as two legs and not one diagonal on
+	# purpose: a shallow diagonal is the waypoint trap this file already
+	# records, and the junction opening up is the whole point of the move.
+	var pz := ParkPlan.PIER_ROOT.y
+	var mouth := Vector3(ParkPlan.PROMENADE_X + 5.0, y, pz)
 	return _cascade_legs() + [
 		["bw lane -> alley", alley_in, alley_out, true],
-		["bw alley -> pier head", prom, Vector3(-106, y, ParkPlan.ALLEY_Z), true],
-		["bw out the pier", Vector3(-106, y, ParkPlan.ALLEY_Z),
-			Vector3(-149, y, ParkPlan.ALLEY_Z), true],
-		["bw pavilion holds", Vector3(-149, y, ParkPlan.ALLEY_Z),
-			Vector3(-162, y, ParkPlan.ALLEY_Z), false],
-		["bw back down pier", Vector3(-149, y, ParkPlan.ALLEY_Z),
-			Vector3(-102, y, ParkPlan.ALLEY_Z), true],
+		["bw alley -> pier mouth", prom, mouth, true],
+		["bw onto the pier", mouth, Vector3(-106, y, pz), true],
+		["bw out the pier", Vector3(-106, y, pz), Vector3(-149, y, pz), true],
+		["bw pavilion holds", Vector3(-149, y, pz), Vector3(-162, y, pz), false],
+		["bw back down pier", Vector3(-149, y, pz), Vector3(-102, y, pz), true],
+		["bw mouth -> alley", mouth, prom, true],
 		# The walk north weaves, and both pinches are real. The tables outside the
 		# corn-dog stand and the wheel's platform leave 4m between them; then the
 		# wheel's ticket booth takes the west half of what is left. A straight

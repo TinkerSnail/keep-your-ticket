@@ -35,6 +35,14 @@ const MINUTE := 0
 const STAND_PLAZA := 0.2
 const STAND_SHORE := ParkPlan.SHORE_TOP + 0.2
 
+## The pier's own axis, which stopped being the alley's on 2026-08-20 — see
+## `ParkPlan.PIER_Z`. Every pose that stands *on the deck* is written against
+## this and not against `ALLEY_Z`; the poses aimed *through the gap* stay on
+## `ALLEY_Z`, because that is a shot about the gap and not about the pier. The
+## two were one number for as long as the pier was on the axis, which is exactly
+## why they had to be told apart by hand.
+const PIER_Z := ParkPlan.PIER_ROOT.y
+
 ## The plaza's side of the seam, which is now everything *before* the middle of
 ## the tunnel — the crossing sits at x −38.5 and these all stand east of it.
 ##
@@ -184,14 +192,14 @@ const ARRIVED := [
 	{"name": "26_wheel_along", "yaw": 12.0, "pitch": 14.0, "pos": Vector3(-96, STAND_SHORE, 2)},
 	{"name": "27_coaster", "yaw": -60.0, "pitch": 8.0, "pos": Vector3(-98, STAND_SHORE, -30)},
 	{"name": "28_under_coaster", "yaw": 20.0, "pitch": 12.0, "pos": Vector3(-94, STAND_SHORE, -58)},
-	{"name": "29_pier_mouth", "yaw": 90.0, "pitch": 0.0, "pos": Vector3(-104, STAND_SHORE, -2)},
-	{"name": "30_pier_out", "yaw": 90.0, "pitch": 2.0, "pos": Vector3(-128, STAND_SHORE, -2)},
-	{"name": "31_pavilion", "yaw": 90.0, "pitch": 10.0, "pos": Vector3(-146, STAND_SHORE, -2)},
+	{"name": "29_pier_mouth", "yaw": 90.0, "pitch": 0.0, "pos": Vector3(-104, STAND_SHORE, PIER_Z)},
+	{"name": "30_pier_out", "yaw": 90.0, "pitch": 2.0, "pos": Vector3(-128, STAND_SHORE, PIER_Z)},
+	{"name": "31_pavilion", "yaw": 90.0, "pitch": 10.0, "pos": Vector3(-146, STAND_SHORE, PIER_Z)},
 	# The section photographing itself, which is the argument for the pier being
 	# walkable at all: forty metres offshore is the only place the whole strip is
 	# in one frame.
-	{"name": "32_from_the_pier", "yaw": -80.0, "pitch": 3.0, "pos": Vector3(-140, STAND_SHORE, -2)},
-	{"name": "33_from_the_pier_n", "yaw": -50.0, "pitch": 4.0, "pos": Vector3(-140, STAND_SHORE, -2)},
+	{"name": "32_from_the_pier", "yaw": -80.0, "pitch": 3.0, "pos": Vector3(-140, STAND_SHORE, PIER_Z)},
+	{"name": "33_from_the_pier_n", "yaw": -50.0, "pitch": 4.0, "pos": Vector3(-140, STAND_SHORE, PIER_Z)},
 	# Back east at the bluff, and both of these were aimed at things they had
 	# stopped showing. `29` stood on the gap's own axis, so what filled the frame
 	# was the alley mouth rather than the rise behind it; `30` had been walked
@@ -212,7 +220,7 @@ const ARRIVED := [
 	# The cascade from the head of the pier, which is what it is *for*: three
 	# arches on one axis at rising heights — the boardwalk's entry, the portal, the
 	# plaza's tunnel — with the wings spread between them.
-	{"name": "34a_cascade_from_pier", "yaw": -90.0, "pitch": 6.0, "pos": Vector3(-140, STAND_SHORE, -2)},
+	{"name": "34a_cascade_from_pier", "yaw": -90.0, "pitch": 6.0, "pos": Vector3(-140, STAND_SHORE, PIER_Z)},
 	{"name": "34b_cascade_close", "yaw": -90.0, "pitch": 4.0, "pos": Vector3(-96, STAND_SHORE, -2)},
 	{"name": "35_bluff", "yaw": -118.0, "pitch": 7.0, "pos": Vector3(-66.5, STAND_SHORE, -2)},
 	# **The face itself, along its length, which nothing here looked at.**
@@ -250,7 +258,7 @@ const SUNSET := [
 	{"time": [19, 30], "name": "31_evening_strip", "yaw": 172.0, "pitch": 3.0,
 		"pos": Vector3(-98, STAND_SHORE, -34)},
 	{"time": [20, 20], "name": "32_sunset_pier", "yaw": 90.0, "pitch": 4.0,
-		"pos": Vector3(-98, STAND_SHORE, -2)},
+		"pos": Vector3(-98, STAND_SHORE, PIER_Z)},
 	{"time": [20, 20], "name": "33_sunset_wheel", "yaw": 118.0, "pitch": 14.0,
 		"pos": Vector3(-92, STAND_SHORE, -6)},
 	{"time": [21, 15], "name": "34_dusk_bulbs", "yaw": 160.0, "pitch": 2.0,

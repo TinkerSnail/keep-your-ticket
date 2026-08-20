@@ -1238,9 +1238,15 @@ const ALLEY_Z := ARCH_AT.y
 ## interest at one end gives the walk a direction, and a strip with it in the
 ## middle gives the walk two dead ends.
 ##
-## The wheel is 15m north of the alley's axis rather than on it, which is
-## inherited from when it was scenery and is still right: from the fountain the
-## pier's north rail covers it, and a step or two north uncovers it.
+## The wheel is 14m north of the alley's axis rather than on it, which is
+## inherited from when it was scenery and is still right — the alley delivers
+## you level with the machine rather than under it.
+##
+## Its platform is the reason the pier is no longer on that axis. 26m of the
+## promenade's length, with the south fence at z -3, and the pier's mouth used
+## to reach z -6 — three metres *inside* that span rather than short of it. See
+## `PIER_Z`. There is 4.94m of clear promenade between them now, and the wheel's
+## boarding side is out of the junction.
 ## The wheel's disc stands in the Z–Y plane so that it is face-on from the
 ## plaza, which means its footprint is 22m along z and about two across — a long
 ## thin thing, not a circle. Worth stating because the obvious mistake is to
@@ -1280,14 +1286,46 @@ const COASTER_HEADING := 0.0
 const COASTER_FROM_Z := -38.0
 const COASTER_TO_Z := -82.0
 
-## The pier, rooted at the promenade edge on the alley's axis and running west
-## over the water to the pavilion at its head. The pavilion is the section's
-## landmark and the reason the boardwalk is west at all: it is what the sun sets
-## behind, seen from the plaza, at the hour the light is worth photographing.
-const PIER_ROOT := Vector2(SHORE_EDGE, ALLEY_Z)
+## The pier, rooted at the promenade edge and running west over the water to the
+## pavilion at its head. The pavilion is the section's landmark and the reason
+## the boardwalk is west at all: it is what the sun sets behind, seen from the
+## plaza, at the hour the light is worth photographing.
+##
+## **It came off the alley's axis on 2026-08-20, and the reason is the wheel's
+## landing rather than the pier.** Measured off the emitted scene rather than
+## off these constants, which is the house rule and the only reason the real
+## shape of it turned up: the wheel's platform runs z -29..-3 and the pier's
+## mouth ran z -6..+2. They did not nearly meet, they **overlapped by three
+## metres** — the pier's north rail stood inside the platform's own span, and
+## the platform's south-west corner was the first thing you walked past getting
+## onto the deck. So the machine's boarding side and the mouth of the pier were
+## the same three metres of promenade, at the one junction where the alley, the
+## strip and the pier all arrive at once.
+##
+## `PIER_Z` is 6.0 and that number is pinned at both ends rather than picked.
+## Below it the overlap is only reduced. Above it the pier's south rail passes
+## `GAP_TO` and the mouth stops being wholly inside the hole in the frontage —
+## and the hole framing the *whole* pier is what the west composition is: the
+## arch frames a gap, the gap frames the pier. So the pier goes as far south as
+## it can while still being framed, and the junction gets **4.94m of clear
+## promenade** — measured, fence face to deck edge — where it had a 3m overlap.
+##
+## Five metres is a junction rather than a plaza, and it is what the frontage
+## allows. If it wants to be more, the lever is the wheel: the platform's south
+## fence at z -3 is the other half of every number here.
+##
+## What it costs is the axis. The pier is no longer the thing you are aimed at
+## walking west out of the tunnel; it is 8m off that line, about 4 degrees at
+## the pavilion, and the gap still holds all of it from the fountain, the arch
+## and the alley mouth. That is a real loss and it was taken deliberately, in
+## exchange for the junction being walkable. Anything that assumed the pier was
+## on `ALLEY_Z` reads `PIER_ROOT.y` now — the crowd's graph, the sea's corridor,
+## `walk_test` and `west_capture` all did, and all had to be told.
+const PIER_Z := 6.0
+const PIER_ROOT := Vector2(SHORE_EDGE, PIER_Z)
 const PIER_LENGTH := 44.0
 const PIER_HALF_W := 4.0
-const PAVILION_AT := Vector2(SHORE_EDGE - PIER_LENGTH - 6.0, ALLEY_Z)
+const PAVILION_AT := Vector2(SHORE_EDGE - PIER_LENGTH - 6.0, PIER_Z)
 
 ## The row, unit by unit, and the one description of it. Three things read this:
 ## the tableau draws each span as a slab with a lip, the section draws the same

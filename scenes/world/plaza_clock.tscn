@@ -1,0 +1,27 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/world/tower_clock.gd" id="1_clock"]
+
+; The clock faces, as a scene of their own rather than a node inside
+; `plaza.tscn`, and the reason is which sections need them.
+;
+; The clock is the only readout the time gets — no HUD clock, by design — and
+; the tower is forty metres, which makes it the one thing in the plaza that
+; clears its own perimeter wall. So it is visible from the boardwalk and from
+; the east hill, where the plaza itself has been freed and only a massing
+; stand-in remains. A blank tower is exactly the tell that turns that stand-in
+; back into a mock-up.
+;
+; Lifted out here so the three sections that can see it mount one description
+; instead of the plaza owning it and the two stand-in generators each writing a
+; second copy of its position and scale. It is the arrangement `west_shell`,
+; `plaza_skyline` and `east_cascade` already have for the same reason.
+;
+; The 2.7x is on this node rather than in the script's constants because
+; `tower_clock.gd` builds itself as children, and one factor cannot leave a
+; hand behind. The origin is the tower's own axis at (-1.5, -32) — see
+; `plaza.tscn`'s `tower_shaft`, which is where that pair is authored.
+
+[node name="plaza_clock" type="Node3D"]
+transform = Transform3D(2.7, 0, 0, 0, 2.7, 0, 0, 0, 2.7, -1.5, 21.0, -32.0)
+script = ExtResource("1_clock")

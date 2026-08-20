@@ -1494,7 +1494,15 @@ func _guest(kind: String, at: Vector3, yaw: float, group: int) -> Node3D:
 
 	var guest := AnimatableBody3D.new()
 	guest.set_script(load(GUEST_SCRIPT))
-	guest.transform = Transform3D(Basis(Vector3.UP, yaw), Vector3(at.x, _floor, at.z))
+	# **Placed at the height it was handed, not at the section's floor.** `_floor`
+	# was flattening every guest onto one plane, which is the right answer for a
+	# plaza and for a promenade and no answer at all for a hillside: the
+	# terraces climb twelve metres, so the two groups on terrace two were
+	# authored twelve metres inside the hill and the belvedere's three were six.
+	# Every caller derives `at` from a graph node or a seat, and those already
+	# carry the floor in the two flat sections — so this changes nothing there
+	# and is the whole of it here.
+	guest.transform = Transform3D(Basis(Vector3.UP, yaw), at)
 	_add(guest, _root, "guest_%02d" % _guest_index)
 	_guest_index += 1
 
@@ -2573,22 +2581,38 @@ func _boardwalk_graph() -> void:
 		"alley_e": Vector2(-82.5, Plan.ALLEY_Z),
 		"alley_w": Vector2(-89, Plan.ALLEY_Z),
 		# Where the strip and the pier meet, which is where everybody ends up.
+		# The alley arrives here and the pier hangs off `pier_mouth`, 8m south,
+		# because the pier came off the alley's axis and a single node cannot be
+		# on both lines. Two nodes rather than one bent edge: an edge from the
+		# alley straight onto the deck would cut the corner of the promenade
+		# that the mouth is supposed to be entered from.
 		"prom_gap": Vector2(-94, Plan.ALLEY_Z),
+		"pier_mouth": Vector2(-96.0, Plan.PIER_ROOT.y),
 		# North, past the wheel to the coaster.
 		# West of the tables outside the corn-dog stand and east of the wheel
 		# platform, which between them leave a 4m gap. The validator found this:
 		# -66.5 put a graph node a metre inside a table.
 		"prom_n1": Vector2(-96.5, -10.0),
-		"wheel_q": Vector2(-97.0, -19.0),
+		# **`wheel_q` was at -97.0 and stood inside the ticket booth.** It was
+		# placed against the phantom booth the obstacle list carried 16m inland
+		# — see `_boardwalk_obstacles` — so it validated cleanly and put the
+		# promenade's spine through the one solid object on that stretch. The
+		# slot it has now is 0.8m wide, between the booth's clearance circle and
+		# the corn-dog tables, and that narrowness is a fact about the wheel's
+		# landing rather than about this node.
+		"wheel_q": Vector2(-95.2, -19.0),
 		"prom_n2": Vector2(-94.5, -28.0),
 		"station_q": Vector2(-95, -41.0),
 		"prom_n3": Vector2(-98, -55.0),
 		"prom_n4": Vector2(-98, -72.0),
-		# Out over the water.
-		"pier_root": Vector2(-105, Plan.ALLEY_Z),
-		"pier_mid": Vector2(-123, Plan.ALLEY_Z),
-		"pier_head": Vector2(-146, Plan.ALLEY_Z),
-		"pavilion_door": Vector2(-150.5, Plan.ALLEY_Z),
+		# Out over the water. On the pier's own axis, which stopped being the
+		# alley's on 2026-08-20 — see `ParkPlan.PIER_Z`. Read off `PIER_ROOT`
+		# rather than `ALLEY_Z`, or the spine runs out over open water beside
+		# the deck and the pavilion door opens into the sea.
+		"pier_root": Vector2(-105, Plan.PIER_ROOT.y),
+		"pier_mid": Vector2(-123, Plan.PIER_ROOT.y),
+		"pier_head": Vector2(-146, Plan.PIER_ROOT.y),
+		"pavilion_door": Vector2(-150.5, Plan.PIER_ROOT.y),
 		# South, which is the quiet end and stays that way.
 		"prom_s1": Vector2(-96.5, 12.0),
 		"prom_s2": Vector2(-98, 30.0),
@@ -2605,9 +2629,10 @@ func _boardwalk_graph() -> void:
 		["lane_n", "alley_e"], ["alley_e", "alley_w"], ["alley_w", "prom_gap"],
 		["prom_gap", "prom_n1"], ["prom_n1", "wheel_q"], ["wheel_q", "prom_n2"],
 		["prom_n2", "station_q"], ["station_q", "prom_n3"], ["prom_n3", "prom_n4"],
-		["prom_gap", "pier_root"], ["pier_root", "pier_mid"],
+		["prom_gap", "pier_mouth"], ["pier_mouth", "pier_root"],
+		["pier_root", "pier_mid"],
 		["pier_mid", "pier_head"], ["pier_head", "pavilion_door"],
-		["prom_gap", "prom_s1"], ["prom_s1", "prom_s2"],
+		["pier_mouth", "prom_s1"], ["prom_s1", "prom_s2"],
 		["prom_s2", "prom_s3"], ["prom_s3", "prom_s4"],
 	]
 	for link in links:
@@ -2624,8 +2649,18 @@ func _boardwalk_graph() -> void:
 func _boardwalk_obstacles() -> Array:
 	var out: Array = []
 
+	# The wheel's ticket booth. **This was at x -81.6 until 2026-08-20**, which
+	# is sixteen metres inland of the booth `gen_props._boardwalk_wheel` builds
+	# — the same sixteen metres the strip moved west on 2026-08-14b, and the
+	# same bug the sea's comment below records being fixed on the day. So the
+	# validator has been keeping people out of a phantom in the middle of the
+	# walking band and letting them through the real booth, which is why the
+	# promenade beside the wheel reads as choked: `prom_n1` and `wheel_q` were
+	# placed against clearances measured from a booth that is not there.
+	var booth := Vector2(Plan.WHEEL_AT.x + Plan.WHEEL_PLATFORM.x * 0.5 + 1.4,
+		Plan.WHEEL_AT.y - 3.0)
 	var circles := [
-		[Vector2(-81.6, -19.0), 1.6],   # the wheel's ticket booth
+		[booth, 1.6],
 	]
 	for at in Plan.TABLES:
 		circles.append([at, 1.15])
@@ -2658,8 +2693,18 @@ func _boardwalk_obstacles() -> Array:
 		# shore's own edge rather than typed: the strip moved sixteen metres west
 		# on 2026-08-14b and a hand-placed sea ended up thirty metres inland,
 		# blocking half the promenade.
-		[Vector2(Plan.SHORE_EDGE - 31.0, -50.0), Vector2(31.0, 40.0)],
-		[Vector2(Plan.SHORE_EDGE - 31.0, 50.0), Vector2(31.0, 40.0)],
+		#
+		# The corridor between them is the pier's own, and it is measured off
+		# `PIER_ROOT.y` for the same reason the x is measured off `SHORE_EDGE`.
+		# It was typed as -10..+10 while the pier sat on `ALLEY_Z`, where it
+		# happened to be four metres clear either side; the pier moved eight
+		# metres south on 2026-08-20 and a hand-typed corridor would have left
+		# the deck's south half standing in the sea and open water walkable off
+		# its north rail.
+		[Vector2(Plan.SHORE_EDGE - 31.0, Plan.PIER_ROOT.y - Plan.PIER_HALF_W - 4.0 - 44.0),
+			Vector2(31.0, 44.0)],
+		[Vector2(Plan.SHORE_EDGE - 31.0, Plan.PIER_ROOT.y + Plan.PIER_HALF_W + 4.0 + 44.0),
+			Vector2(31.0, 44.0)],
 	]
 	for rect in rects:
 		out.append({"kind": "rect", "at": rect[0], "half": rect[1]})

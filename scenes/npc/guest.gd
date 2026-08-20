@@ -233,6 +233,16 @@ var _leg := 0
 var _wait := 0.0
 var _wander := Vector3.ZERO
 
+## The two ends of the leg being walked, for `_settle_height`. `_leg_from` is
+## where the guest was standing when this target was handed to them rather than
+## the node behind them, because a guest joins a leg wherever they happen to be
+## — spawned beside it, shoved onto it, or arriving off the one before.
+var _leg_from := Vector3.ZERO
+var _leg_target := Vector3.INF
+## Far enough that re-rolled wander or a leader breathing counts as the same
+## leg, near enough that the next node never does.
+const LEG_MOVED := 0.05
+
 ## Somewhere to be that is not the graph: the walk in from off-stage, the walk
 ## out to it, and the last few metres to a seat. Takes precedence over the
 ## route, because a guest on their way home is not wandering.
@@ -730,8 +740,104 @@ func _update_movement(delta: float) -> float:
 	elif _leader == null and not _posing:
 		_advance_route()
 
+	# Height last, and after the separation, so that whatever else moved this
+	# guest this frame is already in the position it reads.
 	_apply_separation(delta)
+	_settle_height(target)
 	return (global_position - before).length()
+
+
+## **The floor is not flat any more, and until the east climb nothing in the park
+## had noticed.** `_update_movement` flattens `to_target` before it steers, which
+## is right — a guest should walk at the same pace up a slope as across a plaza,
+## and steering in three dimensions makes a climb read as slower ground. But the
+## height was then never taken at all, so a guest kept whatever y they were put
+## down at for their whole visit. On the plaza and the boardwalk that is
+## invisible, because every node in both graphs is at the section's own floor.
+## The terraces climb twelve metres: a guest spawned in the forecourt walked
+## horizontally into the cascade and out through the back of it, and one spawned
+## on terrace two walked out over the forecourt in mid air.
+##
+## **The height is read off the leg, never added to.** The first version took a
+## share of the remaining climb each frame in proportion to the ground just
+## crossed, which is exact for a guest walking a leg on their own and ratchets
+## for one in a crowd: `_apply_separation` shoves people horizontally without
+## touching y, so a guest pushed back down a slope kept the height they had
+## already gained and then climbed again from there. Measured at 1.33m on a leg
+## that only rises 1.5 — a group bunched at the head of a flight walked itself up
+## into the air, a step at a time, and the error was bounded only by the leg. So
+## this is a function of where the guest *is* between the two ends of the leg,
+## and a shove backwards takes the height back with it.
+##
+## Nearest-edge-in-the-whole-graph would be the obvious alternative and is what
+## `climb_test` asserts with, but it must not be what the guest walks on: the
+## wings are a hairpin whose two legs pass 4m apart with 3m of height between
+## them, so the line halfway between them is a 3m cliff in the height field, and
+## a metre of lateral drift across it would teleport somebody. A leg is
+## continuous with the leg before it because they share a node.
+##
+## Two targets are not legs and are handled first:
+##
+## **A follower** stands on their leader's own trail, which is ground the leader
+## actually walked, so the height comes from the nearest point on it — not from
+## the station they are walking to. The station is up to 2.4m back along the
+## path and they stop half a metre short of it, and on a flight rising 1.5m in
+## 4.8 that pair of lags was most of a 1.33m error: a child trailing their
+## parent up a flight walked at the height their parent had been at, which is
+## knee deep in the step. Projecting instead of taking the target makes the lag
+## irrelevant, because the answer is a function of where the follower is.
+##
+## **A pose anchor** is derived from the player's position rather than from the
+## floor, so a guest gathering to a player standing a flight above them would
+## climb to the player. A gather is a stride and a half on ground they are
+## already standing on; it has no business changing anybody's height.
+func _settle_height(target: Vector3) -> void:
+	if _posing:
+		return
+	if _leader != null and _waypoints.is_empty():
+		# No trail yet — the leader has just been put down and has not walked
+		# anywhere. Keep the height they were placed at rather than taking the
+		# leader's: a follower stands a metre or so away, and on a flight that
+		# is most of a riser's difference. It is a handful of frames after a
+		# spawn either way, and the placement is the better answer for them.
+		var on_trail := _leader.trail_height(global_position)
+		if on_trail != INF:
+			global_position.y = on_trail
+		return
+
+	if target.distance_squared_to(_leg_target) > LEG_MOVED * LEG_MOVED:
+		_leg_from = global_position
+		# **The height the leg starts at is the node behind it, not the height
+		# this guest happens to be standing at.** They are the same number for a
+		# guest who walked the last leg alone, and they diverge for one who was
+		# shoved off it, stopped `ARRIVE_DISTANCE` short of it, or joined it
+		# sideways — and taking the guest's own y carries that divergence into
+		# the next leg, and the next. Measured: a guest who left a flight 0.1m
+		# low then walked a *level* terrace 0.5m low, because a flat leg from a
+		# low start is a flat leg at the wrong height. The previous target is
+		# the node they are leaving, so the two ends of every leg are the two
+		# ends of the edge and nothing accumulates.
+		if _leg_target != Vector3.INF:
+			_leg_from.y = _leg_target.y
+		_leg_target = target
+
+	# **Progress is measured along the leg, not as distance to the end of it.**
+	# The two are the same for somebody walking the line and they diverge for
+	# anybody standing to one side, because a lateral metre adds to the distance
+	# remaining exactly as a metre of the walk does — so a guest a stride wide of
+	# a descending flight reads as further from the bottom than they are and
+	# stays high. Measured at 0.58m, which is more than two of that flight's
+	# risers. Projecting onto the leg's own direction throws the sideways part
+	# away, which is what it is: sideways.
+	var leg := Vector2(_leg_target.x - _leg_from.x, _leg_target.z - _leg_from.z)
+	var total := leg.length()
+	if total < 0.01:
+		global_position.y = _leg_target.y
+		return
+	var along := Vector2(global_position.x - _leg_from.x,
+		global_position.z - _leg_from.z).dot(leg / total)
+	global_position.y = lerpf(_leg_from.y, _leg_target.y,
+		clampf(along / total, 0.0, 1.0))
 
 
 func _movement_target() -> Vector3:
@@ -824,6 +930,51 @@ func trail_station(back: float, lateral: float) -> Vector3:
 	return at + Vector3(along.z, 0.0, -along.x) * lateral
 
 
+## The height of the path under `at`, from the nearest point on this guest's own
+## trail in plan. `INF` if there is not enough trail to answer with.
+##
+## Read by followers rather than by the leader themselves. It is the same
+## projection `climb_test` does against the crowd's graph, restricted to one
+## path — and the restriction is the point: the graph's own nearest-edge field
+## has a 3m cliff down the middle of the cascade's hairpin, where the two legs
+## pass 4m apart at different heights, and a trail cannot cross itself in one
+## frame.
+func trail_height(at: Vector3) -> float:
+	if _trail.size() < 2:
+		return INF
+	var here := Vector2(at.x, at.z)
+	var best := INF
+	var height := INF
+	# The newest point is `TRAIL_SPACING` behind where this guest is standing
+	# now, so the live position closes the polyline. Without it a follower who
+	# has caught up reads the second-newest segment and lags by a stride.
+	var points := _trail.duplicate()
+	points.append(global_position)
+	for i in range(points.size() - 1):
+		var a: Vector3 = points[i]
+		var b: Vector3 = points[i + 1]
+		var pa := Vector2(a.x, a.z)
+		var span := Vector2(b.x, b.z) - pa
+		var length := span.length()
+		var t := 0.0
+		if length > 0.001:
+			# **The oldest segment runs backwards past its own start.** A trail
+			# holds nine metres and begins empty, so a follower a metre back
+			# spends the first strides of every visit behind the oldest
+			# breadcrumb there is — and clamped there, the answer is the height
+			# of ground *ahead* of them, which on a flight is most of a riser
+			# out. The leader arrived along that segment, so continuing its
+			# gradient back is the honest reading of where they came from.
+			var floor_t: float = -BEHIND_TRAIL / length if i == 0 else 0.0
+			t = clampf((here - pa).dot(span) / (length * length), floor_t, 1.0)
+		var d := here.distance_squared_to(pa + span * t)
+		if d >= best:
+			continue
+		best = d
+		height = lerpf(a.y, b.y, t)
+	return height
+
+
 ## The last few metres this guest actually walked.
 ##
 ## Only leaders are ever read, but everyone without a leader keeps one — a solo
@@ -833,6 +984,9 @@ const TRAIL_SPACING := 0.3
 ## Long enough for the deepest station a follower can be given, with room to
 ## spare: kids trail up to 2.4m and this holds nine.
 const TRAIL_POINTS := 30
+## How far back past the oldest breadcrumb the trail still answers for. A little
+## more than the deepest station a follower is ever given.
+const BEHIND_TRAIL := 3.0
 
 var _trail: PackedVector3Array = PackedVector3Array()
 
@@ -857,6 +1011,10 @@ func _note_trail() -> void:
 ## spawning at opening, arriving from off-stage, and the last snap onto a seat.
 func _clear_trail() -> void:
 	_trail.clear()
+	# The leg goes with it, and for the same reason: `_leg_from` is a place this
+	# guest was standing, and after a teleport it is a place they no longer have
+	# any relationship to.
+	_leg_target = Vector3.INF
 
 
 func _advance_route() -> void:

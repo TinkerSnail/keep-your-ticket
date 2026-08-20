@@ -7,7 +7,7 @@
 [ext_resource type="Texture2D" path="res://assets/textures/brick_albedo.res" id="11_brick_albedo"]
 [ext_resource type="Texture2D" path="res://assets/textures/brick_normal.res" id="12_brick_normal"]
 [ext_resource type="PackedScene" path="res://scenes/world/plaza_skyline.tscn" id="2_skyline"]
-[ext_resource type="Script" path="res://scenes/world/tower_clock.gd" id="4_tower_clock"]
+[ext_resource type="PackedScene" path="res://scenes/world/plaza_clock.tscn" id="4_clock"]
 [ext_resource type="PackedScene" path="res://scenes/world/west_stair.tscn" id="5_west_stair"]
 [ext_resource type="PackedScene" path="res://scenes/world/entrance.tscn" id="6_entrance"]
 [ext_resource type="PackedScene" path="res://scenes/world/thresholds.tscn" id="7_thresholds"]
@@ -527,9 +527,7 @@ use_collision = true
 size = Vector3(1, 3.6, 43)
 material = SubResource("mat_building")
 
-[node name="tower_clock" type="Node3D" parent="."]
-transform = Transform3D(2.7, 0, 0, 0, 2.7, 0, 0, 0, 2.7, -1.5, 21.0, -32.0)
-script = ExtResource("4_tower_clock")
+[node name="tower_clock" parent="." instance=ExtResource("4_clock")]
 
 [node name="paving" parent="." instance=ExtResource("10_paving")]
 
