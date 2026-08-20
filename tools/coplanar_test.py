@@ -165,14 +165,34 @@ IDENTITY = ([[1.0, 0, 0], [0, 1.0, 0], [0, 0, 1.0]], [0.0, 0.0, 0.0])
 
 
 def read_transform(chunk):
-    """Godot writes the basis as three basis *vectors* -- that is, columns."""
+    """Godot serialises Transform3D ROW-major: the first triple is row 0.
+
+    This said the opposite until 2026-08-20 -- "three basis *vectors*, that is,
+    columns" -- and built the transpose of every basis in the park. It is an
+    easy thing to believe, because `Basis.x` in GDScript *is* a column and the
+    text looks like three vectors; the resolution is that the text is not those
+    vectors. Measured rather than argued: `_xform(PI/2, -0.18)` prints
+    `basis.x = (0, 0, -1)`, and the node it emits serialises as
+    `Transform3D(-4.4e-08, -0.179, 0.9838, ...)`. That triple is row 0.
+
+    **The transpose hid four real fights and could only ever hide them in one
+    place.** For an axis-aligned box the transpose of a signed permutation maps
+    a symmetric extent onto the same world box, so every wall, kerb and slab in
+    the park came out identical either way -- which is why this survived from
+    the day the tool was written. Guest parts are nested three and four deep
+    inside frames rotated to a heading, and there `compose` was evaluating
+    `A^T B^T`, which is `(BA)^T`: the composition in the wrong order. Reading it
+    correctly turned up `leg_l`/`leg_r` against `tyre` on `guest_09`.
+
+    The lesson generalises past this file: any check that parses `.tscn`
+    transforms has this decision to get wrong, and it fails by *quietly
+    agreeing* everywhere the geometry is axis-aligned.
+    """
     tr = re.search(r'transform = Transform3D\(([^)]*)\)', chunk)
     if not tr:
         return IDENTITY
     v = [float(x) for x in tr.group(1).split(',')]
-    cols = [v[0:3], v[3:6], v[6:9]]
-    m = [[cols[c][r] for c in range(3)] for r in range(3)]
-    return m, v[9:12]
+    return [v[0:3], v[3:6], v[6:9]], v[9:12]
 
 
 def compose(parent, child):

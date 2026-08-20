@@ -7417,6 +7417,76 @@ func _boardwalk_paving() -> void:
 ## enough for a greybox building to read as a shop rather than as a crate — the
 ## bay says there is an inside, the awning says it is hot, and the sign says
 ## somebody is trying to sell you something.
+## How far an awning reaches out from the frontage, how far it falls doing it,
+## and how thick it is. `AWN_FALL` is in radians and it is a fall *outward*,
+## which is the only direction an awning has ever sloped.
+const AWN_PROJ := 2.6
+const AWN_FALL := 0.18
+const AWN_THICK := 0.16
+const AWN_SINK := 0.02
+
+
+## An awning over a boardwalk shopfront, on two posts.
+##
+## **It sloped sideways until 2026-08-20, and the cause is `_xform`.** The call
+## passed `phi = -0.18` for a fall outward and got a 10 degree *roll along the
+## frontage* instead: `_xform` pitches about the box's own local RIGHT, and with
+## no `theta` that is world X, which runs across the awning's projection rather
+## than along it. So the rotation landed in the y-z plane. A 10.4m awning rolled
+## 10 degrees drops 0.93m at one end and lifts 0.93m at the other — a 1.86m
+## fall across a shopfront, which is what made these read as parallelograms
+## stuck to the wall.
+##
+## `theta = PI * 0.5` is the fix and it is the same quarter turn `_rim_band`
+## needs for the same reason: it swaps the box's local X onto world -Z, so the
+## pitch that follows happens in x-y where the fall belongs. `size` swaps with
+## it — local X is now the run along the frontage and local Z is the
+## projection. The position goes in as `base` with a zero `local`, because
+## `_place` rotates a local offset by `theta` and a world point handed in as an
+## offset is the bug that built twelve treads on the far side of the park.
+##
+## Two more faults went with it, both of the same family — a part written by its
+## own centre and never checked against what it meets:
+##
+## - The back edge stood at `front_face - 1.1 + 1.3 = front_face + 0.2`, which
+##   is 20cm *short of* the wall rather than into it. A gap, not a butt, and
+##   visible as daylight between the canvas and the shopfront. It is sunk
+##   `AWN_SINK` now, which is what the entrance street's awnings have always
+##   done, in a comment that says why: butted exactly, the awning's back face
+##   and the shop's face are the same plane and fight.
+## - The posts topped out at `SHORE_TOP + 3.2` under an awning at
+##   `SHORE_TOP + 3.42`. They held nothing up, and they never could have, since
+##   they were a fixed height under a surface that was supposed to slope. They
+##   are derived off the awning's underside at their own x now, and they
+##   overlap into it rather than meeting it.
+func _awning(nm: String, front_face: float, mid: float, run: float,
+		mat: String) -> void:
+	var fall := sin(AWN_FALL)
+	var reach := cos(AWN_FALL)
+	# The wall end, and the outer end derived from it. Every other number here
+	# is one of these two.
+	var back_x := front_face + AWN_SINK
+	var back_y := SHORE_TOP + 3.72
+	var out_x := back_x - AWN_PROJ * reach
+	var out_y := back_y - AWN_PROJ * fall
+	_box("%s_awning" % nm, Vector3((back_x + out_x) * 0.5, (back_y + out_y) * 0.5, mid),
+		Vector3.ZERO, Vector3(run, AWN_THICK, AWN_PROJ), mat, PI * 0.5, false,
+		-AWN_FALL)
+
+	# The posts stand a little inboard of the lip, so the canvas oversails them
+	# the way a real one does. Their height is whatever reaches the underside
+	# *at their own x* — the surface slopes, so a shared height is wrong for at
+	# least one of them by construction.
+	var post_x := out_x + 0.25
+	var under := out_y + 0.25 * (fall / reach) - (AWN_THICK * 0.5) / reach
+	var top := under + 0.06
+	for side in [-1.0, 1.0]:
+		var tag := "n" if side < 0.0 else "s"
+		_box("%s_post_%s" % [nm, tag], Vector3.ZERO,
+			Vector3(post_x, (SHORE_TOP + top) * 0.5, mid + side * (run * 0.5 - 0.2)),
+			Vector3(0.14, top - SHORE_TOP, 0.14), "metal")
+
+
 func _boardwalk_frontage() -> void:
 	var front_face := FRONT_X - FRONT_DEPTH * 0.5
 	var back_face := FRONT_X + FRONT_DEPTH * 0.5
@@ -7446,15 +7516,7 @@ func _boardwalk_frontage() -> void:
 
 		if kind != "shut":
 			var awn := "canvas" if i % 2 == 0 else "canvas_alt"
-			_box("shop_%s_awning" % nm, Vector3.ZERO,
-				Vector3(front_face - 1.1, SHORE_TOP + 3.5, mid),
-				Vector3(2.6, 0.16, depth - 1.6), awn, 0.0, false, -0.18)
-			_box("shop_%s_post_n" % nm, Vector3.ZERO,
-				Vector3(front_face - 2.2, SHORE_TOP + 1.6, mid - depth * 0.5 + 1.0),
-				Vector3(0.14, 3.2, 0.14), "metal")
-			_box("shop_%s_post_s" % nm, Vector3.ZERO,
-				Vector3(front_face - 2.2, SHORE_TOP + 1.6, mid + depth * 0.5 - 1.0),
-				Vector3(0.14, 3.2, 0.14), "metal")
+			_awning("shop_%s" % nm, front_face, mid, depth - 1.6, awn)
 
 		# The sign is what makes a roofline a street. Sat above the parapet on
 		# the tall units and flat on the wall on the short ones, because a row

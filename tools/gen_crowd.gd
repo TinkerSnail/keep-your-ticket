@@ -1814,6 +1814,12 @@ func _build_body(guest: Node3D, h: float, build: float, is_kid: bool,
 ## because a wheel is a stack of discs on one axis: the tyre, the push rim and
 ## the hub plate are three different radii at three different widths, and the
 ## seat pan is sunk into the hips rather than laid against them.
+## The front post down to the caster. Named because the caster's own width is
+## derived from it — see `_build_chair` — and two literals that have to differ
+## are two literals that will one day match.
+const LEG_W := 0.032
+
+
 func _build_chair(guest: Node3D, wheel_r: float, seat_y: float, sole: float,
 		hip_w: float, hips_h: float, torso_h: float, depth: float, limb: float,
 		thigh: float, shoe_z: float) -> Node3D:
@@ -1851,7 +1857,7 @@ func _build_chair(guest: Node3D, wheel_r: float, seat_y: float, sole: float,
 		# The side rail under the seat, and the front post down to the caster.
 		_part(chair, "rail_" + s, Vector3(0.034, 0.048, thigh * 1.2),
 			Vector3(side * (hub_x - 0.045), seat_y - 0.075, -thigh * 0.36), frame)
-		_part(chair, "leg_" + s, Vector3(0.032, seat_y - caster_r - 0.03, 0.032),
+		_part(chair, "leg_" + s, Vector3(LEG_W, seat_y - caster_r - 0.03, LEG_W),
 			Vector3(side * (hub_x - 0.05), (seat_y + caster_r) * 0.5, caster_z), frame)
 
 		# The rear wheel: pivot at the hub, everything that turns hung off it.
@@ -1875,7 +1881,23 @@ func _build_chair(guest: Node3D, wheel_r: float, seat_y: float, sole: float,
 		var caster := Node3D.new()
 		caster.position = Vector3(side * (hub_x - 0.05), caster_r, caster_z)
 		_add(caster, chair, "caster_" + s)
-		_disc(caster, "tyre", caster_r, tyre_w * 0.7, Vector3.ZERO, "tyre")
+		# **Narrower than the leg that comes down into it, and by a stated
+		# margin rather than by luck.** The post and the caster share a centre
+		# in x and in z — a stem straddling its own wheel, which is right — so
+		# the only thing keeping their side faces off each other is that the two
+		# widths differ. They were `0.032` and `tyre_w * 0.7`, and `tyre_w` is
+		# `limb * 0.42`, so at a limb of 0.109 they are *equal*: four coplanar
+		# faces in two materials, on whichever guests happen to be that size.
+		# `guest_09` on the boardwalk was one, and it is the same case the seat
+		# pan states two dozen lines up — level with the hips is the one thing
+		# it may not be.
+		#
+		# It went unreported for as long as it existed, because
+		# `coplanar_test.py` was reading every basis transposed and could only
+		# ever miss fights inside rotated nested frames, which is exactly what a
+		# guest is. Both fixed on 2026-08-20.
+		_disc(caster, "tyre", caster_r, minf(tyre_w * 0.7, LEG_W - 0.012),
+			Vector3.ZERO, "tyre")
 
 	# The footplate, placed against the sole the fold actually produced rather
 	# than against the height the fold was asked for — the shortest legs in the
