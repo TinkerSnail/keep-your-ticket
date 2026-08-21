@@ -32,6 +32,26 @@ const Plan := preload("res://scripts/park_plan.gd")
 
 const SETTLE_FRAMES := 8
 
+## How far off the floor a live guest may be, on a section that has relief.
+##
+## **This is `climb_test.TOLERANCE` and it has to stay that number.** The two
+## tools ask overlapping questions and only one of them asks the tight version:
+## `climb_test` reads the floor off the crowd's own graph per guest and knows
+## what a follower on a slope is allowed to be, and this only wants to know that
+## nobody is live at the dormant height or hanging over the park. Asserting
+## something *stricter* here than the tool that measures it properly is how you
+## get a red line that means nothing.
+##
+## The terraces found it immediately: a guest 0.14m under the forecourt during
+## the drain, which is a fifth of what `climb_test` accepts and passes there.
+##
+## Flat sections keep 0.05 — see `FLAT_SLACK` — because on one level a live
+## guest really should be at the floor, and that check has caught things.
+const RELIEF_SLACK := 0.75
+
+## And the tight one, for a section that is a single plane.
+const FLAT_SLACK := 0.05
+
 ## The two windows worth walking, rather than all twelve hours. Everything the
 ## second pass can catch happens during a turnover, and the turnovers are the
 ## morning fill and the evening drain — the middle of the day is a plateau
@@ -51,6 +71,22 @@ const SETTLE_FRAMES := 8
 ## `floor_y` is the height a live guest stands at. It was a bare `absf(y) > 0.05`
 ## against zero, which is the sort of assumption a second section is the only
 ## thing that ever finds.
+##
+## `floor_rise` is how far *above* that the ground goes, and a third section is
+## what found the next assumption in the same line: a single height is a claim
+## that the section is flat. The plaza and the boardwalk are each one level and
+## the terraces climb twelve metres, so out there a point test fails every guest
+## who is doing the thing the section is for.
+##
+## It is a band and not a per-guest floor **on purpose**, and the distinction is
+## worth stating because widening a tolerance usually means giving up. What this
+## check is actually for is catching a guest who is live at the *dormant*
+## height, or hanging in the air over a section — and a band catches both.
+## Whether a particular guest is standing on the particular tread under them is
+## `climb_test`'s question, it reads the floor off the crowd's own graph to
+## answer it, and duplicating that here would be a second survey of the same
+## park with a worse instrument. `RELIEF_SLACK` is where that hand-off is
+## written down.
 ##
 ## `idle` is where the player is parked so they are not staring at the way in,
 ## and `watch` is where they are parked so that they are.
@@ -91,6 +127,54 @@ const SECTIONS := [
 			# the drain is a single hour after the sun goes down.
 			{"name": "the fill", "hour": 16, "minute": 30, "seconds": 900.0},
 			{"name": "the drain", "hour": 20, "minute": 30, "seconds": 1100.0},
+		],
+	},
+	{
+		# **Added 2026-08-20, two days after the section shipped with a crowd.**
+		# `SECTIONS` had two entries and `CLAUDE.md` described this tool as
+		# checking "each section's day, section by section", which had been
+		# describing two of three since the third arrived. Nothing had ever
+		# measured the hillside.
+		"id": &"terraces",
+		# The forecourt, at the plaza's own level.
+		"floor_y": 0.0,
+		# And twelve metres of climb above it — the belvedere at `HILL_TOP` and
+		# terrace two at the head of the basin staircase. This is the section
+		# that made `floor_rise` necessary; see the note on it above.
+		"floor_rise": Plan.TERRACE_TWO_Y,
+		# The court, on the gate's own axis, which is where `EAST_ARRIVE_OUT`
+		# puts the player crossing east and therefore ground that `section_test`
+		# already lands a body on. Both poses stand in the same place and differ
+		# only in facing, because the one thing being varied is whether the way
+		# in is in shot — and the way in here is a 6m opening on one axis rather
+		# than a gap you can be beside.
+		#
+		# **x 55 and not 52, because `e_court` is at 52.** Parking the player on
+		# a graph node puts a body in the doorway: every guest routing through
+		# the court has to squeeze past them, in a court six metres wide, for
+		# the whole window. It is a bad standpoint for a pose whose entire job
+		# is to be out of the way, whatever else it does.
+		#
+		# It is also the one thing I changed that might explain a `guest_08 is
+		# live at y=-0.14` this test threw on its first terraces run. Might.
+		# Sweeping every frame of the whole drain afterwards found nobody below
+		# the floor at all, so the reading is unreproduced rather than
+		# explained, and 0.14m is a fifth of what `climb_test` accepts and
+		# passes on this section. Removed as a plausible contributor, not fixed
+		# as a known cause — and said that way round on purpose.
+		"idle": {"at": Vector3(55.0, 0.2, Plan.ARCH_AT.y), "yaw": -PI * 0.5},
+		"watch": {"at": Vector3(55.0, 0.2, Plan.ARCH_AT.y), "yaw": PI * 0.5},
+		# **The plaza's windows, because these are the plaza's curves.**
+		# `_build_terraces` sets no `wander_day`, `cafe_day`, `bench_day` or
+		# `flow_day`, so `crowd.gd`'s exports keep their plaza defaults — unlike
+		# the boardwalk, which overrides all four. That is defensible rather
+		# than an oversight: everybody up here walked out of the plaza and the
+		# hillside has nothing on it yet to give it a rhythm of its own. But it
+		# is inherited rather than chosen, and the day this section gets kiosks
+		# in its bays is the day these windows want re-picking with the curves.
+		"windows": [
+			{"name": "the fill", "hour": 10, "minute": 0, "seconds": 900.0},
+			{"name": "the drain", "hour": 19, "minute": 30, "seconds": 1100.0},
 		],
 	},
 ]
@@ -390,8 +474,11 @@ func _check_placement(hour: int) -> void:
 		var live: bool = guest.is_live()
 		var y: float = guest.global_position.y
 		var floor_y: float = _section.get("floor_y", 0.0)
-		if live and absf(y - floor_y) > 0.05:
-			_fail("%s: %s is live at y=%.2f" % [when, guest.name, y])
+		var rise: float = _section.get("floor_rise", 0.0)
+		var slack: float = RELIEF_SLACK if rise > 0.0 else FLAT_SLACK
+		if live and (y < floor_y - slack or y > floor_y + rise + slack):
+			_fail("%s: %s is live at y=%.2f, outside %.2f..%.2f"
+				% [when, guest.name, y, floor_y - slack, floor_y + rise + slack])
 			return
 		if not live and guest.visible:
 			_fail("%s: %s is dormant and visible" % [when, guest.name])

@@ -803,6 +803,26 @@ func _settle_height(target: Vector3) -> void:
 		var on_trail := _leader.trail_height(global_position)
 		if on_trail != INF:
 			global_position.y = on_trail
+			return
+		# **And when the placement is *not* the better answer, this used to
+		# return anyway.** `trail_height` gives INF until the leader has laid
+		# two breadcrumbs, and this branch then left `global_position.y`
+		# untouched — which is the only path through `_settle_height` that can
+		# set no height at all. On one level that is invisible, because the
+		# height it declines to correct was already right. The terraces climb
+		# twelve metres, and the first thing `day_test` found there on the day
+		# it learned about the section was a follower live at **y = -3.89** on
+		# ground whose floor is 0: `_leg_from` still (0,0,0), `_leg_target`
+		# still INF, no waypoints, a leader with an empty trail. Nothing was
+		# ever going to bring them back, because nothing else assigns y to a
+		# guest in that state.
+		#
+		# So the fallback is the leader's own height, which is exactly the
+		# answer the comment above argues against — and it is right to argue
+		# against it and wrong to prefer nothing to it. A riser of error is
+		# bounded and lasts a handful of frames; keeping a stale height is
+		# unbounded and lasts until the guest happens to get a leg.
+		global_position.y = _leader.global_position.y
 		return
 
 	if target.distance_squared_to(_leg_target) > LEG_MOVED * LEG_MOVED:
@@ -950,6 +970,15 @@ func trail_height(at: Vector3) -> float:
 	# has caught up reads the second-newest segment and lags by a stride.
 	var points := _trail.duplicate()
 	points.append(global_position)
+	# **The band the answer has to land in.** A point on somebody's trail is
+	# ground they have stood on, so a height read off it cannot be outside the
+	# heights they have been at. That is an invariant rather than a tolerance,
+	# and it is here because the extrapolation below can leave the world.
+	var low := INF
+	var high := -INF
+	for p in points:
+		low = minf(low, p.y)
+		high = maxf(high, p.y)
 	for i in range(points.size() - 1):
 		var a: Vector3 = points[i]
 		var b: Vector3 = points[i + 1]
@@ -971,7 +1000,22 @@ func trail_height(at: Vector3) -> float:
 		if d >= best:
 			continue
 		best = d
-		height = lerpf(a.y, b.y, t)
+		# **Clamped, because `floor_t` bounds the extrapolation in *distance*
+		# and not in gradient.** `t` may run back to `-BEHIND_TRAIL / length`,
+		# so the height it reaches is `BEHIND_TRAIL` times the oldest segment's
+		# gradient — and that gradient is a height difference over `length`,
+		# which is normally `TRAIL_SPACING` and can be very much less whenever
+		# the leader slowed, stopped or turned. A 5cm segment turns a 3m
+		# reach-back into a factor of sixty.
+		#
+		# It cost nothing while every floor was one plane, since a flat trail
+		# extrapolates flat at any gradient. `day_test` learned about the
+		# terraces on 2026-08-20 and found it the same day: a follower live at
+		# **y = -3.89** on ground whose floor is 0, behind a leader standing
+		# perfectly correctly at 3.39 on the cascade's north wing. The leader
+		# was fine, the trail was fine, and the reading off it was seven metres
+		# out.
+		height = clampf(lerpf(a.y, b.y, t), low, high)
 	return height
 
 
