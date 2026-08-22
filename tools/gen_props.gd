@@ -11242,22 +11242,57 @@ func _east_climb() -> void:
 							oz - side * (HILL_FACE_T * 0.5 - HILL_FACE_OUT)),
 						Vector3(rx1 - rx0 - 0.3, HILL_BRICK_H + 0.3, HILL_FACE_T),
 						"brick", 0.0, false)
+					# Its coping, because from the flights the top of this wall is a
+					# raw brick edge against green and a wall with an unfinished top
+					# reads as scenery rather than masonry.
+					_box("climb_bay_brickcap_%s_%d" % [tag, bay], Vector3.ZERO,
+						Vector3((rx0 + rx1) * 0.5, by + HILL_BRICK_H + 0.06,
+							oz - side * (HILL_FACE_T * 0.5 - HILL_FACE_OUT)),
+						Vector3(rx1 - rx0 - 0.18, 0.13, HILL_FACE_T + 0.12),
+						"accent", 0.0, false)
 					# The side walls too, which the back-wall pass of 2026-08-21
 					# missed: a bay has three cut faces and only one got dressed, so
 					# standing in one you had brick behind you and the perimeter's
-					# bare grey an arm's length away on both sides. Same panel, turned
-					# ninety degrees, buried in the flight masses either side.
+					# bare grey an arm's length away on both sides.
+					#
+					# **Stepped down toward the mouth, with a coping on every step,
+					# and both of those are the difference between a retaining wall
+					# and a blade.** The first version was one flat panel at head
+					# height for its whole depth: the bank beside a bay falls toward
+					# the mouth while the panel's top stayed level, so from the
+					# flights each bay read as a row of thin brick teeth standing
+					# proud of the hillside — freestanding walls on a slope rather
+					# than the lining of a cut. Two steps per side, tall at the back
+					# corner where the cut is deep and dropping to garden-wall height
+					# at the mouth, is the return walls' own vocabulary one size
+					# down, and the coping is what says the exposed top is a top.
 					for e in 2:
 						var ex: float = rx0 if e == 0 else rx1
 						var edir: float = -1.0 if e == 0 else 1.0
-						_box("climb_bay_sidebrick_%s_%d_%d" % [tag, bay, e],
-							Vector3.ZERO,
-							Vector3(ex + edir * (HILL_FACE_T * 0.5 - HILL_FACE_OUT),
-								by + (HILL_BRICK_H - 0.3) * 0.5,
-								(iz + oz) * 0.5 + side * 0.1),
-							Vector3(HILL_FACE_T, HILL_BRICK_H + 0.3,
-								absf(oz - iz) - 0.5),
-							"brick", 0.0, false)
+						var wx: float = ex + edir * (HILL_FACE_T * 0.5 - HILL_FACE_OUT)
+						for st_i in 2:
+							# Step 0 is the mouth half, low; step 1 the back half,
+							# full brick height. The mouth end starts 0.35 in so the
+							# wall never reaches past the cut it lines.
+							var za: float = iz + side * 0.35 if st_i == 0 \
+								else (iz + oz) * 0.5
+							var zb: float = (iz + oz) * 0.5 + side * 0.14 if st_i == 0 \
+								else oz - side * 0.12
+							var st_top: float = by + 1.5 if st_i == 0 \
+								else by + HILL_BRICK_H
+							_box("climb_bay_sidebrick_%s_%d_%d_%d" % [tag, bay, e, st_i],
+								Vector3.ZERO,
+								Vector3(wx, (by - 0.3 + st_top) * 0.5,
+									(za + zb) * 0.5),
+								Vector3(HILL_FACE_T, st_top - by + 0.3,
+									absf(zb - za)),
+								"brick", 0.0, false)
+							_box("climb_bay_sidecap_%s_%d_%d_%d" % [tag, bay, e, st_i],
+								Vector3.ZERO,
+								Vector3(wx, st_top + 0.06, (za + zb) * 0.5),
+								Vector3(HILL_FACE_T + 0.12, 0.13,
+									absf(zb - za) - 0.1),
+								"accent", 0.0, false)
 			bay += 1
 			continue
 		# A flight: banked hillside either side, in three reaches so the taper
