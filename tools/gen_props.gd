@@ -4748,6 +4748,10 @@ func _earth_strip(st: SurfaceTool, low: PackedVector3Array,
 ## the head of the climb you are looking down on grey.
 const HILL_BRICK_H := 2.6
 
+## How far a bay's paving is laid below the landing it opens off. See the note at
+## `climb_bay_deck`, which is where the reasoning is.
+const BAY_DECK_DROP := 0.012
+
 ## How far a facing stands proud of the wall it faces, and how thick it is.
 ##
 ## Proud rather than flush, because flush is the coplanar case and the house rule
@@ -10754,8 +10758,31 @@ func _east_climb() -> void:
 					"building")
 				# Brick, like the belvedere and the court and the plaza past it.
 				# The east is one floor that happens to climb.
+				#
+				# **Laid `BAY_DECK_DROP` under the landing beside it, and that is the
+				# whole of what stops it sharing a plane with it.** A bay's floor and
+				# the landing it opens off are the same terrace level by construction —
+				# `by` and the reach's `ya` are both `r[2]` — and the two overlap by
+				# 0.3m in z, because the deck starts inboard of the wall's inner face
+				# and `climb_land_top` reaches out to `CLIMB_HALF_Z`. Topped level that
+				# is 1.8m² of brick and `accent` on one plane, in the middle of a floor
+				# the player walks over.
+				#
+				# **It reported before the landform pass and did not after**, which is
+				# the reason it is worth a paragraph: nothing about it changed except
+				# which way the build-order ordinal fell. A green coplanar report can be
+				# luck, and adding nodes anywhere re-rolls it.
+				#
+				# The route yields nothing and the side space does: a landing is on the
+				# way up and a bay is somewhere you step aside into, so the landing's
+				# surface stays unbroken and the brick laps under its edge. A dozen
+				# millimetres is a construction tolerance rather than a step — a real
+				# one here would be a riser wanting a nosing, which is a different
+				# decision — and it is 240 times `coplanar_test`'s floor, where the
+				# quarter-millimetre the ordinal was giving it is four.
 				_box("climb_bay_deck_%s_%d" % [tag, bay], Vector3.ZERO,
-					Vector3((rx0 + rx1) * 0.5, by - 0.07, (iz + oz) * 0.5),
+					Vector3((rx0 + rx1) * 0.5, by - 0.07 - BAY_DECK_DROP,
+						(iz + oz) * 0.5),
 					Vector3(rx1 - rx0 + 0.12, 0.14, absf(oz - iz)), "brick")
 				# The hill behind it, and the face that is the bay's back wall.
 				if absf(ez - oz) > 0.2:
