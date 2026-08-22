@@ -88,6 +88,49 @@ const FREE := [
 	{"name": "n_elev_high", "pos": Vector3(-20.0, 70.0, -2.0), "yaw": -90.0, "pitch": -14.0},
 	# Along the ridge rather than at it, which is where banding would show.
 	{"name": "o_elev_along", "pos": Vector3(96.0, 46.0, -150.0), "yaw": -14.0, "pitch": -6.0},
+	# **The whole wrap, which no standpoint on the ground can hold.** The east
+	# arm is 340m and the north arm another 250 at right angles to it, so the
+	# only frame that can answer "does this read as a crater" is a plan view.
+	{"name": "p_elev_wrap", "pos": Vector3(-10.0, 330.0, -70.0), "yaw": 0.0, "pitch": -78.0},
+	{"name": "q_elev_north_arm", "pos": Vector3(0.0, 120.0, 40.0), "yaw": 0.0, "pitch": -20.0},
+]
+
+## **From the boardwalk, which is the half of this the plaza cannot see.** The
+## north arm's whole justification is that it comes down to a headland 183m
+## almost due north of the pavilion — the bearing the promenade is walked along,
+## and the one direction the strip has never had anything on its horizon.
+##
+## Free camera and an explicit section swap rather than a walk, for
+## `_massing_probe`'s reason: half of these standpoints are on ground the plaza
+## does not own, and a crossing moves the player to an arrival marker anyway.
+##
+## **Yaw 0 is north.** Godot's forward is −Z and a yaw of θ points at
+## `(−sin θ, −cos θ)`, so θ = 0 is (0, −1). Worth stating because it is not
+## consistent everywhere in this drawer — `_hill_probe`'s `f_belvedere_north` and
+## `k_shelf_north` are both posed at yaw 180, which is due *south*.
+const WEST := [
+	{"name": "r_promenade_north", "pos": Vector3(-98.0, -4.3, -70.0), "yaw": 0.0, "pitch": 2.0},
+	{"name": "s_promenade_nnw", "pos": Vector3(-98.0, -4.3, -70.0), "yaw": 20.0, "pitch": 2.0},
+	{"name": "t_pier_north", "pos": Vector3(-140.0, -4.3, 6.0), "yaw": 0.0, "pitch": 2.0},
+	# x −145 and not −151: the pavilion's own mass begins about −151.6 (the walk
+	# test stops against it there), and a pose inside a building photographs the
+	# inside of a building. The pier deck runs out to about −147.
+	{"name": "u_pier_head_north", "pos": Vector3(-145.0, -4.3, 6.0), "yaw": 0.0, "pitch": 3.0},
+	# East off the promenade, where the skyline scene now arrives with the arm.
+	# The coaster at (−22, −58) and the tower at (54, −40) come with it, over the
+	# bluff and behind the plaza's own massing, and this is the frame that says
+	# whether that reads as the park continuing or as clutter on a horizon that
+	# was clean.
+	{"name": "v_promenade_east", "pos": Vector3(-98.0, -4.3, -40.0), "yaw": -90.0, "pitch": 6.0},
+]
+
+## **The breach, and the one thing the arm was not allowed to touch.** Sunset is
+## azimuth 294 at this latitude and declination, which is world direction
+## (−0.914, −0.407) and therefore a camera yaw of 66. If the hook has crept into
+## the sunset it is in this frame and nowhere else.
+const SUNSET := [
+	{"name": "w_sunset_pier_head", "pos": Vector3(-145.0, -4.3, 6.0), "yaw": 66.0, "pitch": 2.0, "h": 19, "m": 30},
+	{"name": "x_sunset_promenade", "pos": Vector3(-98.0, -4.3, -40.0), "yaw": 66.0, "pitch": 2.0, "h": 19, "m": 30},
 ]
 
 var _player: Node3D
@@ -132,6 +175,21 @@ func _run() -> void:
 	ParkClock.set_clock(15, 30)
 	await get_tree().create_timer(3.0).timeout
 	for shot in FREE:
+		await _free(cam, shot)
+
+	# Over to the boardwalk, holding the same free camera. `enter` moves the
+	# player and re-parents the world under it; the camera is a child of this
+	# probe rather than of the section, so it survives — but the swap makes the
+	# player's own camera current again, and `current` has to be taken back.
+	await ParkSections.enter(&"boardwalk", &"plaza")
+	await get_tree().create_timer(4.0).timeout
+	cam.current = true
+	for shot in WEST:
+		await _free(cam, shot)
+	for shot in SUNSET:
+		ParkClock.set_clock(shot["h"], shot["m"])
+		await get_tree().create_timer(3.0).timeout
+		cam.current = true
 		await _free(cam, shot)
 
 	get_tree().quit()

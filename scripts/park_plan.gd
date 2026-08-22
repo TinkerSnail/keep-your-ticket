@@ -693,10 +693,11 @@ const ARCH_ARRIVE_EAST_YAW := -PI * 0.5
 ## at the fountain, turn west and the ground drops six metres; turn east and it
 ## climbs six.
 ##
-## **The east arm is what is built. The north arm is not**, and `RIM_PROFILE`
-## stops short of it deliberately rather than running to the map edge — a rim
-## that wraps north has to decide what it does about the grove and about the
-## coaster standing in `plaza_skyline`, and neither of those is decided.
+## **Both arms are built since 2026-08-21.** The east arm runs at `RIM_CREST_X`
+## and then turns west behind the grove and comes down to a headland in the water
+## north of the pier, so the crater is closed everywhere except the bearing the
+## sun sets on. See `RIM_PATH`, which is where the grove, the coaster and the
+## sunset are each measured against rather than deferred.
 
 ## The first shelf: the head of the east cascade, and the top of the climb the
 ## player can actually make. Six metres, and the six is not free — it is
@@ -1014,21 +1015,143 @@ static func climb_flight_z() -> float:
 const RIM_FOOT_X := 120.0
 const RIM_CREST_X := 150.0
 
-## The crest, by bearing along the rim: nearest and tallest on the cascade's own
-## axis, falling away north and south. Interpolated between these, so the ridge
-## has a profile rather than being a wall of one height.
+## The rim's crest line, in plan, ordered **headland to north arm to south end**
+## — the far end of the breach, round the back of the park, and down the east
+## side.
 ##
-## It peaks on the axis because that is where the climb arrives. A rim that peaked
-## somewhere else would be telling the player the way up is somewhere else.
-const RIM_PROFILE := [
-	{"z": -170.0, "crest": 34.0},
-	{"z": -100.0, "crest": 42.0},
-	{"z": -40.0, "crest": 48.0},
-	{"z": ARCH_AT.y, "crest": 50.0},
-	{"z": 40.0, "crest": 46.0},
-	{"z": 100.0, "crest": 40.0},
-	{"z": 170.0, "crest": 32.0},
+## **It was `RIM_PROFILE`, a list of (z, crest) pairs, until 2026-08-21, and a
+## list keyed on z can only describe a wall that runs north and south.** That was
+## the east arm, which is all there was: one straight ridge at `RIM_CREST_X`, and
+## `_rim` swept it along z with every other coordinate held fixed. `_rim`'s own
+## docstring called the park "a breached crater" and then built one wall of it,
+## which does not read as a crater — it reads as a ridge, and it was the only
+## landform on the map.
+##
+## So this is a *path*: control points the sweep follows, with the cross-section
+## taken perpendicular to the local tangent. The east stretch is the old profile
+## verbatim, x pinned to `RIM_CREST_X` and the same seven crests, so nothing the
+## plan says about what shows over the east roofline has moved. Past z −100 it
+## turns west and comes down to a headland in the water north of the pier.
+##
+## **The order is load-bearing and not cosmetic, and it is written this way round
+## because of the winding.** `_rim_strip` winds its triangles assuming the
+## columns advance in one particular direction, which the old sweep satisfied by
+## running z from −170 up to +170. Authored the other way — south end first, as
+## this list was on the first attempt — every triangle comes out backwards and
+## the whole ridge is inside out, which does not read as a winding bug at all: it
+## reads as the rim having failed to generate. `_rim_mesh` asserts it at the toe
+## on the park's axis rather than trusting it, and that assertion is what caught
+## it. Inward is the tangent turned to `Vector2(-t.y, t.x)`, which follows from
+## the same choice.
+##
+## `crest` is the top; `foot` is the level the slope arrives at `RIM_RUN` inward,
+## and it is what sets the gradient. It stays `TERRACE_TWO_Y` down the east arm,
+## because that is the ground the ridge has always risen out of there and every
+## documented sightline was measured against it. It comes down through the turn
+## to the plaza's own level, and to the water at the headland — a rim that kept a
+## twelve metre foot out over the sea would arrive at a nine degree gradient and
+## read as a sandbank.
+##
+## **Where the north arm goes was the decided-nothing that kept it unbuilt.** The
+## note this replaces said a wrapping rim "has to decide what it does about the
+## grove and about the coaster standing in `plaza_skyline`, and neither of those
+## is decided". Measured rather than decided, in the end: the skyline coaster is
+## at z −58 and the observation tower at z −40, `SECTION_GROUND[&"grove"]` reaches
+## z −146, and the arm's crest runs at −190 to −224 with its foot no further in
+## than about −160. Everything built or planned is south of it by twelve metres
+## at the tightest, which is the back-of-house strip a section wants anyway.
+##
+## **And it clears the sunset, which is the one thing it could not be allowed to
+## touch.** `daylight.gd` puts the sun at `LATITUDE_DEG` 32.75 and
+## `DECLINATION_DEG` 20, so `cos H = -tan d tan phi` = −0.234 and the sunset
+## azimuth is 294 degrees — direction (−0.914, −0.407). From the pavilion that
+## sightline does not reach z −180 until it is 457m out and past x −568. The
+## breach stays open; the crater is closed everywhere the sun is not.
+const RIM_PATH := [
+	# **Every `foot` down here is well under the water, and that is what keeps the
+	# toe short.** The inward offset a column carries is
+	# `RIM_RUN + RIM_TOE_BURY / tan(alpha)`, so a shallow gradient makes a long
+	# toe — and a long toe on a curve is what folds. Authored against the water
+	# line the tail ran at 20-24m of rise over a 30m run, an offset of 53m; at a
+	# 30m rise it is 44m, and the headland's own radius of curvature is 58.
+	#
+	# **The tail, and it is what stops the headland being a cliff of nothing.**
+	# The path's far end is a raw cut — the same condition the east arm's ends
+	# have always had — and that was free while no standpoint could see either of
+	# them. This one is 180m from the pier and dead ahead of the promenade, so
+	# the first build put a vertical wall of land across the bay with sky behind
+	# it. A headland ends by going under the water, so the crest dives past
+	# `WATER_TOP` and the slab hides the rest; the last point's own end is four
+	# metres under an opaque surface.
+	{"at": Vector2(-170.0, -167.0), "crest": -12.0, "foot": -42.0},
+	{"at": Vector2(-155.0, -173.0), "crest": 4.0, "foot": -26.0},
+	# The headland. It stands in the water — `_west_shell`'s slab reaches z −200
+	# and x −318, so this is inside it — and north of the shore's own end at −170,
+	# which is what makes it a promontory rather than more beach. From the
+	# pavilion it is 183m off and very nearly due north, which is the bearing the
+	# promenade walks.
+	{"at": Vector2(-142.0, -177.0), "crest": 16.0, "foot": -14.0},
+	{"at": Vector2(-112.0, -193.0), "crest": 19.0, "foot": -11.0},
+	# The north arm, running east behind everything.
+	{"at": Vector2(-65.0, -210.0), "crest": 21.0, "foot": -9.0},
+	{"at": Vector2(-5.0, -221.0), "crest": 23.0, "foot": -7.0},
+	# **The turn is an arc of `RIM_TURN_R`, and it is placed rather than drawn.**
+	# It was three points eyeballed through the corner, and the offset folded: at
+	# 38-43m of radius against a 44m inward offset the toe line crosses itself,
+	# which came out as a pleat down the face and a V notch in the silhouette.
+	# An arc tangent to both arms has one radius by construction and the radius
+	# is a number you can compare with the offset.
+	#
+	# Centre is `(RIM_CREST_X - R, -222 + R)` — the point equidistant from the
+	# east arm's line and the north arm's — so the tangent points are
+	# `(RIM_CREST_X - R, -222)` and `(RIM_CREST_X, -222 + R)`, and the three
+	# between them are the arc at 22.5 degree steps. At R = 70 that is centre
+	# (80, -152), which is why these numbers look arbitrary and are not.
+	{"at": Vector2(80.0, -222.0), "crest": 25.0, "foot": -5.0},
+	{"at": Vector2(106.8, -216.7), "crest": 28.0, "foot": -2.0},
+	{"at": Vector2(129.5, -201.5), "crest": 31.0, "foot": 1.0},
+	{"at": Vector2(144.7, -178.8), "crest": 35.0, "foot": 5.0},
+	{"at": Vector2(150.0, -152.0), "crest": 38.0, "foot": 8.0},
+	# The east arm, which is the old `RIM_PROFILE` verbatim: x pinned to
+	# `RIM_CREST_X` and the same crests on the same z, so nothing the plan states
+	# about what shows over the east roofline has moved.
+	{"at": Vector2(RIM_CREST_X, -100.0), "crest": 42.0, "foot": TERRACE_TWO_Y},
+	{"at": Vector2(RIM_CREST_X, -40.0), "crest": 48.0, "foot": TERRACE_TWO_Y},
+	{"at": Vector2(RIM_CREST_X, ARCH_AT.y), "crest": 50.0, "foot": TERRACE_TWO_Y},
+	{"at": Vector2(RIM_CREST_X, 40.0), "crest": 46.0, "foot": TERRACE_TWO_Y},
+	{"at": Vector2(RIM_CREST_X, 100.0), "crest": 40.0, "foot": TERRACE_TWO_Y},
+	{"at": Vector2(RIM_CREST_X, 170.0), "crest": 32.0, "foot": TERRACE_TWO_Y},
 ]
+
+## How far in from the crest the slope's foot stands, and where the jag is zero.
+##
+## The run is the east arm's own — `RIM_CREST_X` less `RIM_FOOT_X` — carried
+## round the turn unchanged, so the ridge keeps one section everywhere and only
+## its height and its footing vary.
+const RIM_RUN := RIM_CREST_X - RIM_FOOT_X
+const RIM_AXIS_AT := Vector2(RIM_CREST_X, ARCH_AT.y)
+
+## The radius of the turn between the two arms, and the reason it is a number
+## rather than a shape somebody drew.
+##
+## **A swept profile folds wherever the sweep curves tighter than the profile
+## reaches inward.** The ridge reaches `RIM_RUN` in to its foot and further again
+## to its buried toe — 44m in total at a 45 degree gradient — so any part of the
+## crest line whose radius of curvature is under that has a toe crossing its own
+## neighbours. Measured at 70: the tightest column on the whole path is the
+## headland at 58m of radius against 44m of offset, 13.7m in hand.
+const RIM_TURN_R := 70.0
+
+## Catmull-Rom exponent and how finely each span is walked before resampling.
+##
+## **0.5 is centripetal, and uniform is what folded the tail.** The control
+## points here are spaced from 16m to 85m apart, and uniform Catmull-Rom on
+## unevenly spaced points overshoots: it put a 27m wiggle into a stretch of the
+## headland whose control polygon is very nearly straight, and the toe folded
+## there for no reason visible in the data. Centripetal is the standard answer to
+## exactly that and it costs one `pow` per span.
+const RIM_ALPHA := 0.5
+const RIM_SUBDIV := 32
 
 
 # ---------------------------------------------------------------------------
@@ -1157,18 +1280,126 @@ const EAST_STAIR_FOOT := Vector3(
 const EAST_STAIR_FOOT_STAND := Vector3(EAST_STAIR_FOOT.x, 0.2, ARCH_AT.y)
 
 
-## The crest of the rim at a bearing, interpolated along `RIM_PROFILE`.
-static func rim_crest(z: float) -> float:
-	var p: Array = RIM_PROFILE
-	if z <= p[0]["z"]:
-		return p[0]["crest"]
-	for i in p.size() - 1:
-		var a: Dictionary = p[i]
-		var b: Dictionary = p[i + 1]
-		if z <= b["z"]:
-			var t: float = (z - a["z"]) / (b["z"] - a["z"])
-			return lerpf(a["crest"], b["crest"], t)
-	return p[p.size() - 1]["crest"]
+## The rim's crest line, resampled at even spacing along its own length.
+##
+## **This replaced `rim_crest(z)`, and the old accessor could not survive the
+## wrap.** A crest keyed on z is single-valued by construction; the moment the
+## ridge turns west there are two crests at most values of z and none at all past
+## the headland. Anything still asking "how high is the rim at this z" is asking
+## a question the shape no longer answers.
+##
+## Returns, per sample: `at` (the crest in plan), `crest`, `foot`, `inward` (the
+## unit normal pointing at the park) and `arc` (distance along the path from the
+## start, which is what the jag is phased on — z would give a constant offset
+## along the whole west arm and no variation at all).
+##
+## Catmull-Rom rather than straight lines between the control points, because a
+## polyline's corners are creases and this is land. The dense pass is subdivided
+## far finer than `step` and then resampled by arc length, so the spacing is even
+## whatever the control points do — a curve parameter is not a distance, and
+## sampling one as though it were bunches the columns through every turn.
+static func rim_samples(step: float) -> Array:
+	# **Reflected phantom ends, not duplicated ones.** Clamping the first span by
+	# repeating `RIM_PATH[0]` gives that span a zero-length chord, and a zero
+	# chord raised to `RIM_ALPHA` is a zero-width knot interval — every term in
+	# the evaluation below divides by one. Reflecting the second point through
+	# the first keeps the knots strictly increasing and leaves the end tangent
+	# where a straight run wants it.
+	var ctrl: Array = [_rim_reflect(RIM_PATH[0], RIM_PATH[1])]
+	ctrl.append_array(RIM_PATH)
+	ctrl.append(_rim_reflect(RIM_PATH[RIM_PATH.size() - 1],
+		RIM_PATH[RIM_PATH.size() - 2]))
+
+	var dense: Array = []
+	for i in range(1, ctrl.size() - 2):
+		var g: Array = [ctrl[i - 1], ctrl[i], ctrl[i + 1], ctrl[i + 2]]
+		var kn := PackedFloat32Array([0.0, 0.0, 0.0, 0.0])
+		for j in 3:
+			var d: float = maxf((g[j]["at"] as Vector2)
+				.distance_to(g[j + 1]["at"]), 0.0001)
+			kn[j + 1] = kn[j] + pow(d, RIM_ALPHA)
+		for k in RIM_SUBDIV:
+			var t: float = kn[1] + (kn[2] - kn[1]) * float(k) / float(RIM_SUBDIV)
+			dense.append({
+				"at": Vector2(
+					_rim_bg(g[0]["at"].x, g[1]["at"].x, g[2]["at"].x, g[3]["at"].x, kn, t),
+					_rim_bg(g[0]["at"].y, g[1]["at"].y, g[2]["at"].y, g[3]["at"].y, kn, t)),
+				"crest": _rim_bg(g[0]["crest"], g[1]["crest"], g[2]["crest"],
+					g[3]["crest"], kn, t),
+				"foot": _rim_bg(g[0]["foot"], g[1]["foot"], g[2]["foot"],
+					g[3]["foot"], kn, t),
+			})
+	var last: Dictionary = RIM_PATH[RIM_PATH.size() - 1]
+	dense.append({"at": last["at"], "crest": last["crest"], "foot": last["foot"]})
+
+	# Cumulative length, then one pass picking the dense point at each multiple of
+	# `step`. Linear between the two straddling it, which is exact enough at 32
+	# subdivisions a span.
+	var run: PackedFloat32Array = PackedFloat32Array()
+	run.append(0.0)
+	for i in range(1, dense.size()):
+		var a: Vector2 = dense[i - 1]["at"]
+		var b: Vector2 = dense[i]["at"]
+		run.append(run[i - 1] + a.distance_to(b))
+	var total: float = run[run.size() - 1]
+
+	var out: Array = []
+	var cols := int(round(total / step)) + 1
+	var j := 0
+	for c in cols:
+		var want: float = minf(float(c) * step, total)
+		while j < run.size() - 2 and run[j + 1] < want:
+			j += 1
+		var span: float = maxf(run[j + 1] - run[j], 0.0001)
+		var t: float = clampf((want - run[j]) / span, 0.0, 1.0)
+		var a: Dictionary = dense[j]
+		var b: Dictionary = dense[j + 1]
+		out.append({
+			"at": (a["at"] as Vector2).lerp(b["at"], t),
+			"crest": lerpf(a["crest"], b["crest"], t),
+			"foot": lerpf(a["foot"], b["foot"], t),
+			"arc": want,
+		})
+
+	# Tangents by central difference on the finished samples, so `inward` is the
+	# normal of the line actually built rather than of the curve it came from.
+	for i in out.size():
+		var prev: Vector2 = out[maxi(i - 1, 0)]["at"]
+		var next: Vector2 = out[mini(i + 1, out.size() - 1)]["at"]
+		var tan: Vector2 = (next - prev)
+		if tan.length() < 0.0001:
+			tan = Vector2(0.0, -1.0)
+		tan = tan.normalized()
+		# Turned one way, and which way is the whole of what keeps the ridge right
+		# side out. Down the east arm the tangent is (0, 1) and this is (-1, 0),
+		# which points at the park; along the north arm the tangent is (1, 0) and
+		# this is (0, 1), which points at the park again. See `RIM_PATH` on why the
+		# list is ordered the way it is — the two are one decision.
+		out[i]["inward"] = Vector2(-tan.y, tan.x)
+	return out
+
+
+## One control point mirrored through another, for the phantom ends.
+static func _rim_reflect(a: Dictionary, b: Dictionary) -> Dictionary:
+	return {
+		"at": (a["at"] as Vector2) * 2.0 - (b["at"] as Vector2),
+		"crest": float(a["crest"]) * 2.0 - float(b["crest"]),
+		"foot": float(a["foot"]) * 2.0 - float(b["foot"]),
+	}
+
+
+## Barry-Goldman: a Catmull-Rom span evaluated against arbitrary knots, which is
+## what makes the parameterization a choice rather than an assumption. With
+## evenly spaced knots it is the uniform spline; with `RIM_ALPHA` at 0.5 it is
+## the centripetal one. Three nested lerps and no special cases.
+static func _rim_bg(v0: float, v1: float, v2: float, v3: float,
+		kn: PackedFloat32Array, t: float) -> float:
+	var a1 := ((kn[1] - t) * v0 + (t - kn[0]) * v1) / (kn[1] - kn[0])
+	var a2 := ((kn[2] - t) * v1 + (t - kn[1]) * v2) / (kn[2] - kn[1])
+	var a3 := ((kn[3] - t) * v2 + (t - kn[2]) * v3) / (kn[3] - kn[2])
+	var b1 := ((kn[2] - t) * a1 + (t - kn[0]) * a2) / (kn[2] - kn[0])
+	var b2 := ((kn[3] - t) * a2 + (t - kn[1]) * a3) / (kn[3] - kn[1])
+	return ((kn[2] - t) * b1 + (t - kn[1]) * b2) / (kn[2] - kn[1])
 
 ## The held shot, per direction. `from` is where the camera stands and `look` is
 ## what it points at; both are world coordinates, because a seam's framing is

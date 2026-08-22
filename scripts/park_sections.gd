@@ -110,6 +110,26 @@ const SECTIONS := {
 		"name": "the boardwalk",
 		"scenes": [
 			"res://scenes/world/west_shell.tscn",
+			## **`plaza_skyline.tscn` since 2026-08-21, and it was never here
+			## before because there was nothing in it this section could see.**
+			## It holds the rim, and the rim was one straight ridge at x 150 —
+			## two hundred and fifty metres east of the promenade and behind
+			## both the bluff and the whole plaza. Mounting it here would have
+			## cost a scene load to render nothing.
+			##
+			## The north arm changed that. `RIM_PATH` now turns west behind the
+			## grove and comes down to a headland at (−142, −177), which is 183m
+			## from the pavilion and very nearly due north — the bearing the
+			## promenade is walked along, and the one direction the strip has no
+			## horizon feature at all. Without this line the arm is built and
+			## invisible from the only place it was built for.
+			##
+			## It brings the skyline coaster at (−22, −58) and the observation
+			## tower at (54, −40) onto this horizon with it, over the bluff and
+			## behind the plaza's own massing. That is the park continuing east
+			## rather than a mistake, but it is a change to what the boardwalk
+			## sees and it is the reason this is one line with a paragraph on it.
+			"res://scenes/world/plaza_skyline.tscn",
 			"res://scenes/world/west_stair.tscn",
 			"res://scenes/world/boardwalk.tscn",
 			"res://scenes/world/boardwalk_crowd.tscn",
