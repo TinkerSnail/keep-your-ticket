@@ -124,8 +124,82 @@ func _initialize() -> void:
 	for h in hits:
 		print("%-22s %-22s by %5.2fm  at (%7.2f, %7.2f)" % [
 			h["a"], h["b"], h["depth"], h["at"].x, h["at"].y])
-	print("--- %d pairs of %d assemblies ---\n" % [hits.size(), solids.size()])
-	quit(1 if rows.size() + hits.size() > 0 else 0)
+	print("--- %d pairs of %d assemblies ---" % [hits.size(), solids.size()])
+
+	print("\n--- section footprints standing in a landform ---")
+	var land := _footprints()
+	if land.is_empty():
+		print("none")
+	for f in land:
+		print("%-14s contains %-24s at (%7.2f, %7.2f)" % [f[0], f[1], f[2].x, f[2].y])
+	print("--- %d of %d footprints ---\n" % [land.size(), Plan.SECTION_GROUND.size()])
+	quit(1 if rows.size() + hits.size() + land.size() > 0 else 0)
+
+
+## **A footprint is a claim too, and this is the one claim nothing was making.**
+##
+## `SECTION_GROUND` says where each section's ground is and at what level, and
+## until 2026-08-22 its `floor_y` had *no code consumer at all* while `at` and
+## `size` were read only by the minimap's markers — which take the centre and
+## ignore the extent. So the table was not going stale slowly, it was simply
+## never true again after the first thing moved: `frontier` reached x 151, past
+## `RIM_CREST_X`, with thirty-one metres of its floor inside a ridge that rises
+## fifty, and six metres of it inside the east hill's own ground. Nothing in the
+## project could have said so.
+##
+## The rule is the one the plan already states in prose and had no way to check:
+## a section's floor ends where the landform standing on it begins. So no crest
+## and no *foot* of the rim may fall inside a footprint — the buried toe below
+## the foot may, and must, because covering it is what terrace two is for — and
+## no footprint may overlap the east hill's ground, which is the terraces' floor
+## and the one section with no entry in the table.
+##
+## Half a metre of inset, because the fix puts `frontier`'s east edge exactly on
+## `RIM_FOOT_X`. That is the intended relationship rather than a violation, and a
+## test that fails on things touching is a test nobody can satisfy.
+##
+## **And it is a claim about height as well as plan, which the first version was
+## not.** Written as "no rim sample inside the rectangle" it fired immediately on
+## `boardwalk`, whose footprint runs the shore's full 340m and takes in the water
+## either side of the pier — and the headland's foot at (−158.6, −139.2) is
+## inside it. That is not a section with a ridge growing out of its floor, it is
+## a promontory standing in a bay, which is the whole of what the headland is
+## for: its foot there is more than twenty metres under `SHORE_TOP`, buried in
+## the seabed. The claim worth testing is that no part of the rim *rises out of*
+## a section's floor, so the sample only counts if its own footing is at or above
+## that floor.
+func _footprints() -> Array:
+	var out: Array = []
+	var axis: float = Plan.ARCH_AT.y
+	var hill := Rect2(Plan.HILL_FACE_X, axis - Plan.EAST_GROUND_HALF_Z,
+		Plan.TERRACE_TWO_TO_X - Plan.HILL_FACE_X,
+		Plan.EAST_GROUND_HALF_Z * 2.0)
+	var rim: Array = Plan.rim_samples(5.0)
+	for key in Plan.SECTION_GROUND:
+		var g: Dictionary = Plan.SECTION_GROUND[key]
+		var at: Vector2 = g["at"]
+		var size: Vector2 = g["size"]
+		var r := Rect2(at - size * 0.5, size).grow(-0.5)
+		var named := false
+		var floor_y: float = g["floor_y"]
+		for sm in rim:
+			# Below the section's own floor it is buried, not in the way.
+			if float(sm["foot"]) < floor_y - 0.5:
+				continue
+			var crest: Vector2 = sm["at"]
+			var foot: Vector2 = crest + (sm["inward"] as Vector2) * Plan.RIM_RUN
+			if r.has_point(crest):
+				out.append([key, "the rim's crest", crest])
+				named = true
+				break
+			if r.has_point(foot):
+				out.append([key, "the rim's foot", foot])
+				named = true
+				break
+		if not named and r.intersects(hill):
+			out.append([key, "the east hill's ground",
+				r.intersection(hill).get_center()])
+	return out
 
 
 ## The companion fault, and the one the walkway rule *creates*: two props pushed

@@ -1706,6 +1706,16 @@ static func bench_line() -> Array:
 ## the park, z -170 to +170, and the ground past it is the boardwalk's, six
 ## metres down. That is why the south-west section is a narrow strip rather than
 ## the square the other three are: there is nowhere for it to widen into.
+## Where the two east sections stop, and it is the landform saying so rather than
+## a number picked for them. See `SECTION_GROUND`.
+const EAST_SECTION_TO_X := RIM_FOOT_X
+const FRONTIER_FROM_X := 61.0
+const KIDDIELAND_FROM_X := 65.0
+## Its south edge is the east hill's north edge, so the two abut rather than
+## claiming the same ground.
+const FRONTIER_FROM_Z := ARCH_AT.y - EAST_GROUND_HALF_Z
+const FRONTIER_TO_Z := -98.0
+
 const SECTION_GROUND := {
 	&"plaza": {"at": Vector2(0.0, 0.0), "size": Vector2(104.0, 104.0), "floor_y": 0.0},
 	## Out to the pavilion rather than to the water's edge. The pier is ground
@@ -1720,11 +1730,44 @@ const SECTION_GROUND := {
 	},
 	# Pushed out along their own bearings by the 12m the wall line moved, so each
 	# still sits just beyond its threshold rather than overlapping the bigger
-	# plaza. Sizes unchanged — these are footprints for silhouette, and none of
-	# them is built.
+	# plaza. These are footprints for silhouette and none of them is built.
+	#
+	# **The two east ones were wrong in three ways at once and none of it could
+	# have been noticed**, because `floor_y` here has no code consumer at all —
+	# not one — and the `at`/`size` pair is read only by the minimap's markers,
+	# which take the centre and ignore the extent. A table nothing reads does not
+	# go stale slowly; it is simply never true again after the first thing moves.
+	#
+	# `floor_y` said 0.0 for `frontier` and `kiddieland` while `TERRACE_TWO_Y`,
+	# thirty lines up this file, says in bold that this is what moved those two
+	# off y = 0 and onto the hill. The prose was the decision and the table never
+	# followed it.
+	#
+	# `frontier` reached x 151, which is past `RIM_CREST_X`: thirty-one metres of
+	# its ground was inside a ridge that rises fifty. `kiddieland` reached 123 and
+	# was three metres in. Both stop at `RIM_FOOT_X` now — a section's floor ends
+	# where the landform standing on it begins, and the toe buried below that line
+	# is exactly what terrace two is there to cover.
+	#
+	# And `frontier`'s south edge was z −22, six metres inside the east hill's own
+	# ground, which is what put part of it under `_hill_roll`'s swell and off
+	# level. It starts at the hill's north edge now, so the two describe adjacent
+	# ground rather than the same ground twice — the argument
+	# `EAST_GROUND_HALF_Z` already makes about the court and the hill, one
+	# boundary further out.
 	&"grove": {"at": Vector2(-9.0, -104.0), "size": Vector2(62.0, 84.0), "floor_y": 0.0},
-	&"frontier": {"at": Vector2(106.0, -60.0), "size": Vector2(90.0, 76.0), "floor_y": 0.0},
-	&"kiddieland": {"at": Vector2(94.0, 63.0), "size": Vector2(58.0, 58.0), "floor_y": 0.0},
+	&"frontier": {
+		"at": Vector2((FRONTIER_FROM_X + EAST_SECTION_TO_X) * 0.5,
+			(FRONTIER_TO_Z + FRONTIER_FROM_Z) * 0.5),
+		"size": Vector2(EAST_SECTION_TO_X - FRONTIER_FROM_X,
+			FRONTIER_FROM_Z - FRONTIER_TO_Z),
+		"floor_y": TERRACE_TWO_Y,
+	},
+	&"kiddieland": {
+		"at": Vector2((KIDDIELAND_FROM_X + EAST_SECTION_TO_X) * 0.5, 63.0),
+		"size": Vector2(EAST_SECTION_TO_X - KIDDIELAND_FROM_X, 58.0),
+		"floor_y": TERRACE_TWO_Y,
+	},
 	&"fairground": {"at": Vector2(-29.0, 91.0), "size": Vector2(26.0, 76.0), "floor_y": 0.0},
 }
 
