@@ -43,6 +43,25 @@ const SKYLINE_PATH := "res://scenes/world/plaza_skyline.tscn"
 const FOUNTAIN_PATH := "res://scenes/world/plaza_fountain.tscn"
 const STAIR_PATH := "res://scenes/world/west_stair.tscn"
 const EAST_CASCADE_PATH := "res://scenes/world/east_cascade.tscn"
+## How far east the terraces' massing copy of the plaza stands from the
+## boardwalk's. See `_plaza_from_the_east`, which explains what it is for.
+##
+## **It separates the two copies from each other and nothing else, and it took a
+## run of false starts to establish that it cannot do more.** The obvious reading
+## is that it is also what keeps a massing box off `plaza_frontage.tscn`, which
+## is mounted alongside both — and that is not a job an offset can do at any
+## value. Every frontage face sits at a wall's inner face plus some multiple of
+## 5mm, and the seam ring's own swing is 5.25mm, *wider than that pitch*: for any
+## nudge there is a frontage plane the ring can walk onto. Raising this from 6mm
+## to 37mm to clear the ring duly moved one 15m² pair off `efar_perim_w_north`
+## and put a 2.7m² one onto `efar_perim_n_far_east`, sixty metres away.
+##
+## What actually carries that separation is `_mass_thinned`, which moves every
+## far run's inner face five and a half metres back into the wall. This is left
+## at six millimetres because the only planes it still has to keep apart are the
+## two copies' own, and they are identical shapes in scenes that are never
+## mounted together anyway — the pair is real arithmetic about an impossible
+## frame, and the report is what it is being kept quiet for.
 const EAST_FAR_NUDGE := 0.006
 const TERRACES_FAR_PATH := "res://scenes/world/terraces_far.tscn"
 const ENTRANCE_PATH := "res://scenes/world/entrance.tscn"
@@ -8256,6 +8275,47 @@ const BELOW_MIN_H := 1.0
 ## real thing and cannot drift from itself. The haze stops at the walls, which is
 ## the one part a stand-in has to own: the near run must collide and the far runs
 ## must not, and no mounted copy of the plaza can be two things at once.
+## A far massing run, thinned to half its depth with its outer face left where it
+## was.
+##
+## **The nudge cannot be made safe by choosing a better value, and this is what
+## replaces trying.** `EAST_FAR_NUDGE` separates two massing copies from each
+## other, and it was also carrying the separation between a massing copy and
+## `plaza_frontage.tscn`, which is mounted alongside both. That second job is not
+## one an offset can do: every frontage face sits at the wall's inner face plus
+## some multiple of 5mm, and the seam ring's own swing is 5.25mm — wider than
+## that pitch — so for *any* nudge there is a frontage plane the ring can walk
+## onto. Three different pairs turned up in three consecutive runs, each in a
+## different scene, each a genuine 2 to 15 m² fight and each one only there
+## because a node count somewhere else had changed.
+##
+## Halving the depth moves the inner face five and a half metres back into the
+## wall, which is a hundred times any offset the frontage uses, so the class is
+## gone rather than dodged. It costs nothing: these runs are silhouette seen from
+## sixty to ninety metres, they carry no collision, and the face that does the
+## work — the one away from the fountain — does not move at all.
+##
+## Near-boundary runs are left alone. Their outer face is what the player stands
+## against and their depth is what the gate passage is cut through.
+func _mass_thinned(box: Dictionary) -> Dictionary:
+	var at: Vector3 = box["at"]
+	var size: Vector3 = box["size"]
+	if not String(box["nm"]).begins_with("perim_"):
+		return {"at": at, "size": size}
+	var along_x := _run_along_x(size)
+	var depth: float = size.z if along_x else size.x
+	var keep := depth * 0.5
+	if along_x:
+		return {
+			"at": at + Vector3(0.0, 0.0, signf(at.z) * depth * 0.25),
+			"size": Vector3(size.x, size.y, keep),
+		}
+	return {
+		"at": at + Vector3(signf(at.x) * depth * 0.25, 0.0, 0.0),
+		"size": Vector3(keep, size.y, size.z),
+	}
+
+
 func _plaza_from_below() -> void:
 	var n := 0
 	for box in _plaza_scene_boxes():
@@ -8277,7 +8337,7 @@ func _plaza_from_below() -> void:
 		# under. Everything else here is still a silhouette seen from ninety
 		# metres down on the promenade and stays washed and passable.
 		var near := _near_boundary(nm)
-		var mat := "far_warm" if nm.begins_with("tower_") else "far"
+		var mat := _mass_material(box, "far")
 		if near:
 			mat = "accent" if nm.ends_with("_sign") else "building"
 		# **The floor is not haze**, which `_plaza_from_the_east` worked out on its
@@ -8311,8 +8371,10 @@ func _plaza_from_below() -> void:
 		# metre aperture, so a 12cm drop costs nothing and settles it for all of
 		# them rather than special-casing the one that collides.
 		var drop := 0.0 if (near or at.x < BELOW_WEST_X) else BELOW_FRAMED_DROP
+		var thin := {"at": at, "size": size} if near else _mass_thinned(box)
 		_box("far_%s" % nm, Vector3.ZERO,
-			at.snapped(Vector3.ONE * 0.01) - Vector3(0.0, drop, 0.0), size,
+			Vector3(thin["at"]).snapped(Vector3.ONE * 0.01)
+				- Vector3(0.0, drop, 0.0), thin["size"],
 			mat, 0.0, near)
 		n += 1
 	if n < 6:
@@ -8458,13 +8520,15 @@ func _plaza_scene_boxes() -> Array:
 	var nm := ""
 	var origin := Vector3.ZERO
 	var size := Vector3.ZERO
+	var mat := ""
 	for raw in text.split("\n"):
 		var line := raw.strip_edges()
 		if line.begins_with("[node "):
-			_keep_box(nm, origin, size)
+			_keep_box(nm, origin, size, mat)
 			nm = _quoted(line, "name=\"")
 			origin = Vector3.ZERO
 			size = Vector3.ZERO
+			mat = ""
 		elif line.begins_with("transform = Transform3D("):
 			var n := _numbers(line)
 			if n.size() >= 12:
@@ -8473,13 +8537,34 @@ func _plaza_scene_boxes() -> Array:
 			var n := _numbers(line)
 			if n.size() >= 3:
 				size = Vector3(n[0], n[1], n[2])
-	_keep_box(nm, origin, size)
+		elif line.begins_with("material = SubResource("):
+			mat = _quoted(line, "SubResource(\"")
+	_keep_box(nm, origin, size, mat)
 	return _plaza_boxes
 
 
-func _keep_box(nm: String, origin: Vector3, size: Vector3) -> void:
+func _keep_box(nm: String, origin: Vector3, size: Vector3, mat: String) -> void:
 	if nm != "" and size.length() > 0.0:
-		_plaza_boxes.append({"nm": nm, "at": origin, "size": size})
+		_plaza_boxes.append({"nm": nm, "at": origin, "size": size, "mat": mat})
+
+
+## What a massing copy of a hand-authored plaza box should be painted.
+##
+## **A wash is for distance; it is not for identity.** Both stand-ins used to
+## take a name prefix — `far_warm` for `tower_*`, `far` for everything else — and
+## the clock tower is four boxes in two colours: a grey shaft and belfry with a
+## terracotta cap and spire. Flattened to one tan, the one landmark that clears
+## its own perimeter wall from either neighbour came back as a plain obelisk,
+## which is most of what "the plaza looks oversimplified from out here" was
+## about. It is the wheel's cars again — what *identifies* a thing has to be the
+## same colour on both sides of a seam, and only what merely describes it gets
+## hazed.
+##
+## So the accent reads its own accent and the rest takes the wash the caller
+## asked for. Read off `plaza.tscn` rather than listed here, so repainting a box
+## in the editor repaints both copies of it.
+func _mass_material(box: Dictionary, wash: String) -> String:
+	return "accent" if String(box.get("mat", "")) == "mat_accent" else wash
 
 
 ## The perimeter runs.
@@ -8535,6 +8620,15 @@ func _plaza_frontage() -> void:
 	# `_initialize` for the same reason and says so.
 	_gate_house(GATE_EAST)
 
+	# **The backs, appended for the reason the line above is appended.** Every
+	# one of these is a surface a player stands against in the boardwalk or the
+	# terraces and none of them had anything on it; they go last so that not one
+	# shape already in this scene changes its seam displacement.
+	for i in runs.size():
+		_rear(runs[i], i)
+	_gate_rear(GATE_WEST)
+	_gate_rear(GATE_EAST)
+
 
 ## Floodlighting a perimeter run from close in against its own face.
 ##
@@ -8563,7 +8657,7 @@ func _facade_wash(run: Dictionary, index: int) -> void:
 	# Which way the run lies, and which way is into the plaza. A range's long
 	# axis is whichever of x and z is bigger; the short one is its thickness, and
 	# the inward normal points from the wall back towards the origin.
-	var along_x := size.x >= size.z
+	var along_x := _run_along_x(size)
 	var length: float = size.x if along_x else size.z
 	var face: float = size.z if along_x else size.x
 	var inward := -signf(at.z if along_x else at.x)
@@ -8775,8 +8869,15 @@ func _gate_house(gate: Dictionary) -> void:
 	# building with a gap punched in it. That is the silhouette the cutting wants:
 	# the piers already stand 1.5–2m above the walls either side of them.
 	for i in 2:
-		var ca: float = (from_z - 0.26) if i == 0 else open_s
-		var cb: float = open_n if i == 0 else (to_z + 0.26)
+		# Lapped 3cm into the opening, which the plinth and the course above have
+		# done since 2026-08-17 and this had not. `open_s` *is* the south pier's
+		# own reveal face, so a run ending exactly there is a coplanar pair by
+		# construction; it survived on the luck of the two displacements until a
+		# change to this scene's node count reshuffled the ring. Three
+		# centimetres at eleven metres up changes nothing about the two-towers
+		# reading the paragraph above is protecting.
+		var ca: float = (from_z - 0.26) if i == 0 else (open_s - 0.03)
+		var cb: float = (open_n + 0.03) if i == 0 else (to_z + 0.26)
 		_box("%s_cornice_%d" % [prefix, i], Vector3.ZERO,
 			Vector3(face + inward * 0.14, top - FRONT_CORNICE * 0.5, (ca + cb) * 0.5),
 			Vector3(0.5, FRONT_CORNICE, cb - ca), "white", 0.0, false)
@@ -9113,10 +9214,66 @@ func _gate_festoons(gate: Dictionary, top: float, open_n: float, open_s: float) 
 ## number below is read the way you would read it standing in front of the
 ## building. Which face is the inner one is decided by which side of the run the
 ## fountain is on, so nothing here has to know which wall it is working on.
+## The perimeter's own depth, worked out from the runs rather than written down.
+##
+## Every range of the perimeter is one wall of one thickness — that is what makes
+## it a perimeter — so the depth is the horizontal dimension the fifteen runs
+## agree on, and the *other* horizontal dimension of a run is its length. Which
+## sounds like a long way round "the longer side is the length", and is not: the
+## east wall is 11m deep and `perim_e_mid_n` is 10.4m long, because the gate ate
+## most of it. **That one run was shorter than the wall was thick**, so the
+## longer-side rule turned it ninety degrees and dressed its north end face
+## instead of its elevation. Its whole frontage was built at z −9, which is
+## buried inside `east_pier_north`, and the face beside the gate that both the
+## belvedere and the forecourt look straight at had nothing on it at all. It read
+## as the plaza being unfinished in the one direction somebody had just cut a
+## gate through.
+##
+## A mode rather than a minimum, because the runs are not all the same length and
+## `perim_s_west` is 11.7 by 11 — near enough to the depth that any tolerance
+## wide enough to catch `perim_e_mid_n` would catch that as well and turn a
+## corner block the wrong way instead.
+var _perim_depth := 0.0
+
+
+func _perimeter_depth() -> float:
+	if _perim_depth > 0.0:
+		return _perim_depth
+	var tally := {}
+	for run in _perimeter_runs():
+		var s: Vector3 = run["size"]
+		for d in [snappedf(s.x, 0.01), snappedf(s.z, 0.01)]:
+			tally[d] = int(tally.get(d, 0)) + 1
+	var best := 0.0
+	var best_n := 0
+	for d in tally:
+		if int(tally[d]) > best_n:
+			best_n = int(tally[d])
+			best = float(d)
+	_perim_depth = best
+	return _perim_depth
+
+
+## True when this run's length is measured along X — so its faces point along Z.
+##
+## Decided by which dimension is the wall's depth, never by which is longer. See
+## `_perimeter_depth`. Falls back to the longer side for a run that is square in
+## plan, where the question has no answer and either is as good.
+func _run_along_x(size: Vector3) -> bool:
+	var depth := _perimeter_depth()
+	var dx := absf(size.x - depth) < 0.005
+	var dz := absf(size.z - depth) < 0.005
+	if dz and not dx:
+		return true
+	if dx and not dz:
+		return false
+	return size.x >= size.z
+
+
 func _facade(run: Dictionary, idx: int) -> void:
 	var c: Vector3 = run["at"]
 	var s: Vector3 = run["size"]
-	var along_x: bool = s.x > s.z
+	var along_x: bool = _run_along_x(s)
 	var length: float = s.x if along_x else s.z
 	var thick: float = s.z if along_x else s.x
 	var h: float = s.y
@@ -9424,6 +9581,412 @@ func _roofline(tag: String, base: Vector3, theta: float, idx: int,
 			# Two in six get a flat roof, and they are what makes the other four
 			# read as incidents rather than as a pattern.
 			pass
+
+
+## Where the dark band at the foot of a rear elevation stops.
+##
+## Knee height rather than the front's 0.9m plinth: out here it is a kerb-and-
+## splash band under brickwork, not the base of a shopfront, and the two faces
+## of one block should not agree about a line neither of them can see the other
+## draw.
+const REAR_PLINTH := 1.15
+
+## How far the plinth and the downpipes go below the paving.
+##
+## Not a detail: at zero the plinth's underside is on the plaza box's own
+## underside, which both massing copies stand a duplicate of, and on the foot of
+## every pipe standing on it.
+const REAR_BURY := 0.22
+
+## How far the gate's own rear banding sits above the perimeter's. See the
+## comment on `_gate_rear`'s plinth: 43mm, because `_rear` jogs by multiples of
+## 31 and this must not land on one or come within the seam ring's 5.25mm of one.
+const GATE_REAR_JOG := 0.043
+
+
+## The outside of the perimeter, which is a **back** and not a second front.
+##
+## `_facade` is applied to inner faces only, and that was right for as long as
+## the plaza was the only place anybody stood. It has not been right since the
+## west seam moved to the arch: crossing it puts the player on the terrace two
+## metres from the outer face of `perim_w_arch_n`, and the east gate delivers
+## them into a fourteen-metre forecourt against `perim_e_mid_s`, which is
+## nineteen metres of wall with nothing whatever on it. Shot from either, the
+## park was a grey cliff — no opening, no course, no colour, and a roofline that
+## is a raw edge, because the front's parapet stands eleven metres away on the
+## far side of the block.
+##
+## **The runs are 11m deep, so these are two elevations of one building rather
+## than two treatments of one wall.** That is the whole argument for what goes on
+## here: a back has a smaller vocabulary than a front by nature, and the smaller
+## vocabulary is also the cheap one. Brick to the first floor where the front is
+## rendered and glazed, plain openings sitting on their own course with no heads
+## and no awnings, service doors and roller shutters instead of display bays,
+## pilasters and downpipes, and on about half the runs the painted sign that a
+## front never carries because a front has a fascia to put its name on.
+##
+## The storey ladder and the bay count are `_facade`'s, read from the same `jog`,
+## so the courses meet round the corner and the two faces agree about where the
+## party walls are. Everything else disagrees on purpose.
+##
+## **Every run gets one, not only the two a player can reach today.** Which
+## outer faces are stood against is exactly the kind of list that goes stale the
+## day a section is built — the north and south backs are behind unbuilt ground
+## now and will be somebody's approach later — and the cost of being general
+## here is about forty nodes a run.
+func _rear(run: Dictionary, idx: int) -> void:
+	var c: Vector3 = run["at"]
+	var s: Vector3 = run["size"]
+	var along_x: bool = _run_along_x(s)
+	var length: float = s.x if along_x else s.z
+	var thick: float = s.z if along_x else s.x
+	var h: float = s.y
+	# `_facade`'s normal with the sign flipped: +Z now points *away* from the
+	# fountain, so every offset below reads the way you would read it standing on
+	# the terrace or in the forecourt.
+	var normal := (Vector3(0.0, 0.0, signf(c.z)) if along_x
+		else Vector3(signf(c.x), 0.0, 0.0))
+	if normal.length_squared() < 0.5:
+		normal = Vector3(0.0, 0.0, 1.0) if along_x else Vector3(1.0, 0.0, 0.0)
+	var theta := atan2(normal.x, normal.z)
+	var base := Vector3(c.x, 0.0, c.z) + normal * (thick * 0.5 - FRONT_SINK)
+	var tag := "r%02d" % idx
+
+	var usable := length - FRONT_INSET * 2.0
+	var bays: int = maxi(1, int(ceil(usable / FRONT_BAY_MAX)))
+	var bw := usable / float(bays)
+
+	var jog := 0.031 * float((idx * 3) % 5)
+	var upper := h - FRONT_GROUND - jog - FRONT_CORNICE
+	var storeys := _storey_count(upper)
+	var floors := _storey_heights(upper, storeys)
+	var ground := FRONT_GROUND + jog
+	var wall_top := h + jog - FRONT_CORNICE
+
+	# The service storey: a dark band to knee height and brickwork above it to
+	# the first floor line. **This is where the colour comes from**, and it is
+	# put at the bottom rather than over the whole face on purpose — the plaza's
+	# palette is grey with accents in it, and repainting a hundred and twenty
+	# metres of perimeter terracotta would move the park to answer a complaint
+	# about one elevation. At the bottom it is the part the player is standing in
+	# front of, and the silhouette against the sky is untouched.
+	#
+	# `brick` rather than a flat tint because it is the one warm material the
+	# park already has that is *textured*, and half of "featureless" is that a
+	# CSG box has no surface at all. It is world-space triplanar, so it needs no
+	# UVs on a vertical face and tiles continuously across the run's own joints.
+	# Bottomed a hand *below* the paving rather than on it. At y=0 its underside
+	# is on the plaza box's own underside — which the two massing copies stand a
+	# duplicate of — and on every downpipe's foot: three coplanar pairs from one
+	# number, and a plinth that stops exactly at the ground is the one that looks
+	# wrong anyway.
+	_box("%s_plinth" % tag, base,
+		Vector3(0.0, (REAR_PLINTH - REAR_BURY) * 0.5, 0.09),
+		Vector3(length - 0.4, REAR_PLINTH + REAR_BURY, 0.24),
+		"far_shade", theta, false)
+	# Bottomed *inside* the plinth rather than on top of it: two boxes that meet
+	# exactly share a horizontal plane, and the house rule is that parts run into
+	# each other rather than butting.
+	_box("%s_base" % tag, base,
+		Vector3(0.0, (ground + REAR_PLINTH - 0.3) * 0.5, 0.06),
+		Vector3(length - 0.5, ground - REAR_PLINTH + 0.3, 0.18),
+		"brick", theta, false)
+
+	# Floor lines. Thinner and shallower than the front's, and they double as the
+	# windows' sills — which is why there are no separate sills below. A back
+	# gets one horizontal per storey and that is all it gets.
+	var course_y: Array = []
+	var y := ground
+	for st in storeys:
+		var k: float = floors[st] / floors[0]
+		course_y.append(y)
+		_box("%s_course_%d" % [tag, st], base, Vector3(0.0, y, 0.10),
+			Vector3(length - 0.7, 0.20 * k, 0.34 * k), "white", theta, false)
+		y += floors[st]
+
+	# Pilasters on the bay joints, carried in the brick rather than in render.
+	# They are the piece that stops the wall being a plane: four of them across a
+	# twenty metre run put a vertical shadow every five metres, which is what the
+	# eye reads as structure at the range the forecourt puts you at.
+	for j in bays + 1:
+		var px := -usable * 0.5 + bw * float(j)
+		_box("%s_pil_%d" % [tag, j], base,
+			Vector3(px, (REAR_PLINTH + wall_top) * 0.5, 0.07),
+			Vector3(0.62, wall_top - REAR_PLINTH, 0.2), "brick", theta, false)
+
+	# One run in two carries a painted wall sign, and it takes the top storey's
+	# windows with it. A blank top floor with lettering across it is what a back
+	# actually looks like, and it is the only place on this elevation with room
+	# for something big enough to read from the far side of a forecourt.
+	var sign: bool = storeys >= 2 and _hash01(idx, 11, 61) < 0.5
+	var glazed: int = storeys - 1 if sign else storeys
+
+	for b in bays:
+		var bx := -usable * 0.5 + bw * (float(b) + 0.5)
+		var at := _place(base, Vector3(bx, 0.0, 0.0), theta)
+		var nm := "%s_b%d" % [tag, b]
+		# Ground level is doors. Half of them are a loading shutter and half a
+		# pair of leaves with a lintel over — the shutter is what says the far
+		# side of this is a stockroom rather than a room.
+		# **Proud of the plinth, and cut into the paving.** Both were wrong the
+		# first time and neither showed in a screenshot taken from standing: at
+		# 0.13 the leaf sat *behind* the plinth's own face, so its bottom metre
+		# was buried in the band it is supposed to open through, and at y=0 its
+		# underside shared a plane with the massing copy of the wall it is in.
+		var dw := minf(bw * 0.42, 3.4)
+		if _hash01(idx, b, 29) < 0.5:
+			_box("%s_shutter" % nm, at, Vector3(0.0, 1.6, 0.26),
+				Vector3(dw, 3.4, 0.14), "metal", theta, false)
+			_box("%s_shutter_head" % nm, at, Vector3(0.0, 3.46, 0.3),
+				Vector3(dw + 0.4, 0.32, 0.22), "far_shade", theta, false)
+		else:
+			var paints := ["blue", "red", "wood", "canvas_alt"]
+			_box("%s_door" % nm, at, Vector3(0.0, 1.2, 0.26),
+				Vector3(minf(dw, 1.9), 2.6, 0.14),
+				paints[(idx * 2 + b) % paints.size()], theta, false)
+			_box("%s_door_head" % nm, at, Vector3(0.0, 2.62, 0.3),
+				Vector3(minf(dw, 1.9) + 0.36, 0.26, 0.22), "white", theta, false)
+
+		# Openings. Nothing but a dark panel standing on the course — no head, no
+		# reveal, no surround. The front's windows are an illusion of depth built
+		# out of three shapes; a back window is a hole, and one shape is what a
+		# hole looks like.
+		var wins := 2 if bw < 7.6 else 3
+		var ww0 := minf(1.15, bw / (float(wins) * 2.6))
+		for st in glazed:
+			var sh: float = floors[st]
+			var k: float = sh / float(floors[0])
+			var ww := ww0 * k
+			var wh := sh * 0.44
+			for w in wins:
+				var t := (float(w) + 0.5) / float(wins)
+				var wx := lerpf(-bw * 0.5 + ww0 * 1.4, bw * 0.5 - ww0 * 1.4, t)
+				_box("%s_win_%d_%d" % [nm, st, w], at,
+					Vector3(wx, float(course_y[st]) + 0.16 + wh * 0.5, 0.08),
+					Vector3(ww, wh, 0.16), "glass", theta, false)
+
+	if sign:
+		var st: int = storeys - 1
+		var sh: float = float(floors[st])
+		var colours := ["red", "blue", "accent", "yellow"]
+		_box("%s_sign" % tag, base,
+			Vector3(0.0, float(course_y[st]) + sh * 0.52, 0.09),
+			Vector3(minf(usable * 0.72, 13.0), sh * 0.62, 0.14),
+			colours[(idx * 5) % colours.size()], theta, false)
+		_box("%s_sign_rule" % tag, base,
+			Vector3(0.0, float(course_y[st]) + sh * 0.52, 0.13),
+			Vector3(minf(usable * 0.72, 13.0) - 0.9, sh * 0.20, 0.1),
+			"white", theta, false)
+
+	# Downpipes, which are the cheapest thing on this list and the one nobody
+	# would put on a front. Offset off the pilasters rather than on them, so a
+	# pipe reads as bolted to the wall beside a pier instead of as a moulding
+	# down the middle of one.
+	for j in bays + 1:
+		var px := -usable * 0.5 + bw * float(j) + (0.55 if j == 0 else -0.55)
+		# `metal`, and thin. At `far_shade` and 22cm across they came out as pale
+		# columns standing beside the pilasters rather than as pipework on the
+		# wall — the same value as the plinth and the parapet cap, in full sun,
+		# on the one element here whose whole job is to be a dark vertical.
+		_cyl("%s_pipe_%d" % [tag, j], base,
+			Vector3(px, (wall_top - REAR_BURY * 2.0) * 0.5, 0.2), 0.075,
+			wall_top + REAR_BURY * 2.0, "metal", theta, 8, false)
+		_box("%s_hopper_%d" % [tag, j], base,
+			Vector3(px, wall_top - 0.45, 0.22),
+			Vector3(0.34, 0.5, 0.34), "metal", theta, false)
+
+	# A cornice and a parapet of its own. Without them the block's outer edge is
+	# the top of a raw box against the sky — the front's parapet is eleven metres
+	# away on the other side of an 11m-deep roof and does nothing for this side.
+	_box("%s_cornice" % tag, base,
+		Vector3(0.0, wall_top + FRONT_CORNICE * 0.25, 0.16),
+		Vector3(length - 0.3, FRONT_CORNICE * 0.5, 0.54), "white", theta, false)
+	_box("%s_parapet" % tag, base, Vector3(0.0, h + jog + 0.40, 0.0),
+		Vector3(length + 0.06, 1.0, 0.66), "building", theta, false)
+	_box("%s_par_cap" % tag, base, Vector3(0.0, h + jog + 0.95, 0.03),
+		Vector3(length + 0.18, 0.18, 0.86), "far_shade", theta, false)
+
+
+## A gate from outside, and the passage through it.
+##
+## `_gate_house` dresses the plaza face and stops there, which left the two
+## surfaces the player actually walks up to and along completely bare: the outer
+## face, which is what the terrace and the forecourt look at head-on, and the two
+## reveals of the throat, which are 13.5m long and 6m apart and fill most of the
+## frame for the whole length of the crossing.
+##
+## **There is no head out here and there must not be.** The cutting is open to
+## the sky and the beam is at the plaza face, so from outside the opening is a
+## slot between two towers. A band across the top of it would be the lintel
+## drawn in trim, which is the thing taking the arch's top off was meant to be
+## rid of — `_gate_house` says so about its own cornice.
+##
+## It takes the gate dicts, so `inward` does the same work here it does there —
+## with the sign flipped once, into `out`, because everything on this side is a
+## depth off the *far* face.
+func _gate_rear(gate: Dictionary) -> void:
+	var names: Array = gate["mass"]
+	var prefix: String = gate["prefix"]
+	var inward: float = gate["inward"]
+	var mass := {}
+	for box in _plaza_scene_boxes():
+		if String(box["nm"]) in names:
+			mass[String(box["nm"])] = box
+	if mass.size() < 3:
+		push_error("the %s's three masses were not all found in %s — "
+			% [prefix, PLAZA_SCENE_PATH] + "its outer face would be left bare")
+		return
+
+	var north: Dictionary = mass[names[0]]
+	var south: Dictionary = mass[names[1]]
+	var out: float = -inward
+	var outer: float = north["at"].x + out * north["size"].x * 0.5
+	var face: float = north["at"].x + inward * north["size"].x * 0.5
+	var from_z: float = north["at"].z - north["size"].z * 0.5
+	var to_z: float = south["at"].z + south["size"].z * 0.5
+	var top: float = north["at"].y + north["size"].y * 0.5
+	var open_n: float = north["at"].z + north["size"].z * 0.5
+	var open_s: float = south["at"].z - south["size"].z * 0.5
+
+	# Plinth, brick base and course, each in two runs broken at the opening,
+	# lapping 2cm past the pier at both ends for the reason `_gate_house` gives:
+	# a run that stops exactly on the pier's own z extent is a coplanar pair by
+	# construction, and the west only got away with it on the luck of the draw.
+	for i in 2:
+		var a: float = (from_z - 0.02) if i == 0 else (open_s - 0.02)
+		var b: float = (open_n + 0.02) if i == 0 else (to_z + 0.02)
+		# **Lifted by a jog of its own**, which is `_facade`'s trick for the same
+		# problem: this run and the perimeter run beside it lap past each other
+		# inside the pier, and both put their plinth top at exactly `REAR_PLINTH`
+		# and their base top at exactly `FRONT_GROUND`. Four pairs, and none of
+		# them anything a seam ring can help with — a gate and a wall are sixty
+		# nodes apart in build order. `_rear` jogs by multiples of 31mm, so this
+		# is 43: never equal to one, and never within the ring's swing of one.
+		_box("%s_rear_plinth_%d" % [prefix, i], Vector3.ZERO,
+			Vector3(outer + out * 0.09,
+				(REAR_PLINTH - REAR_BURY) * 0.5 + GATE_REAR_JOG, (a + b) * 0.5),
+			Vector3(0.24, REAR_PLINTH + REAR_BURY, b - a), "far_shade", 0.0, false)
+		_box("%s_rear_base_%d" % [prefix, i], Vector3.ZERO,
+			Vector3(outer + out * 0.06,
+				(FRONT_GROUND + REAR_PLINTH - 0.3) * 0.5 + GATE_REAR_JOG,
+				(a + b) * 0.5),
+			Vector3(0.18, FRONT_GROUND - REAR_PLINTH + 0.3, b - a),
+			"brick", 0.0, false)
+		_box("%s_rear_course_%d" % [prefix, i], Vector3.ZERO,
+			Vector3(outer + out * 0.10, FRONT_GROUND + GATE_REAR_JOG,
+				(a + b) * 0.5),
+			Vector3(0.34, 0.28, b - a), "white", 0.0, false)
+
+	# The quoin strips on the two outer corners of the opening, run the pier's
+	# full height. This is what makes the slot read as cut through a building
+	# rather than as the gap between two slabs, and it is the one piece of the
+	# frontispiece's vocabulary that belongs on a back.
+	for i in 2:
+		var jz: float = (open_n - 0.33) if i == 0 else (open_s + 0.33)
+		_box("%s_rear_jamb_%d" % [prefix, i], Vector3.ZERO,
+			Vector3(outer + out * 0.15, top * 0.5, jz),
+			Vector3(0.3, top, 0.7), "white", 0.0, false)
+
+	for i in 2:
+		# Lapped 3cm into the opening at its inner end rather than stopped on
+		# the reveal, which is the plinth's rule two paragraphs up: `open_s` *is*
+		# the pier's own face, so a run that ends there is a coplanar pair by
+		# construction. `_gate_house`'s cornice stops dead and gets away with it
+		# on the hand displacement in `plaza.tscn`; this one landed on it.
+		var ca: float = (from_z - 0.26) if i == 0 else (open_s - 0.03)
+		var cb: float = (open_n + 0.03) if i == 0 else (to_z + 0.26)
+		# Topped 6cm under the pier's own roof rather than flush with it. Flush is
+		# what `_gate_house`'s cornice does on the other face, and it is on that
+		# plane too — it has simply never been caught, because the ring happened
+		# to be separating it. A member that stops a hand short of a parapet is
+		# what a cornice does anyway.
+		_box("%s_rear_cornice_%d" % [prefix, i], Vector3.ZERO,
+			Vector3(outer + out * 0.13, top - FRONT_CORNICE * 0.5 - 0.06,
+				(ca + cb) * 0.5),
+			Vector3(0.46, FRONT_CORNICE, cb - ca), "white", 0.0, false)
+
+	# A lantern either side of the opening. The throat has six of its own and the
+	# plaza face has thirteen bulbs and two festoon runs; this face had nothing,
+	# and it is the one the player walks *up to* — from the terrace at the west
+	# and out of the forecourt at the east, both of which are arrivals at a
+	# doorway rather than passages through one. Set outboard of the quoin so the
+	# pair frames the opening instead of standing in it.
+	for i in 2:
+		var lz: float = (open_n - 1.5) if i == 0 else (open_s + 1.5)
+		var at := Vector3(outer + out * 0.44, 3.3, lz)
+		_box("%s_rear_arm_%d" % [prefix, i], Vector3.ZERO,
+			Vector3(outer + out * 0.24, 3.54, lz),
+			Vector3(0.44, 0.09, 0.09), "metal", 0.0, false)
+		_box("%s_rear_lamp_%d" % [prefix, i], Vector3.ZERO, at,
+			Vector3(0.32, 0.46, 0.32), "lamp_glass", 0.0, false)
+		_omni("%s_rear_glow_%d" % [prefix, i], at, "lamp", 1.8, 8.0, LIGHT_FIXTURE)
+
+	_gate_throat(gate, outer, face, top, open_n, open_s)
+
+
+## The two reveals of a gate passage.
+##
+## Thirteen and a half metres of blank wall on either side of a six metre gap, at
+## arm's length, for the whole of a crossing that is meant to be the park's most
+## composed piece of sequence. It gets the same three horizontals the outer face
+## does so the dressing turns the corner, pilasters at the spacing of the piers'
+## own depth, and lanterns — which are the first light of any kind inside either
+## passage, the west having had one omni in the throat and nothing to look at.
+##
+## Local space is each reveal's: +X along the passage and +Z out of the wall into
+## it. The south reveal is turned by pi, so its offsets mirror the north's about
+## the axis, which is what a passage should do anyway.
+func _gate_throat(gate: Dictionary, outer: float, face: float, top: float,
+		open_n: float, open_s: float) -> void:
+	var prefix: String = gate["prefix"]
+	var mid_x: float = (outer + face) * 0.5
+	var depth: float = absf(face - outer)
+	var head: float = minf(top, float(gate["height"]))
+	var piers: int = maxi(2, int(round(depth / 3.4)))
+
+	for i in 2:
+		var side := "n" if i == 0 else "s"
+		var wz: float = (open_n - FRONT_SINK) if i == 0 else (open_s + FRONT_SINK)
+		var theta: float = 0.0 if i == 0 else PI
+		var base := Vector3(mid_x, 0.0, wz)
+
+		_box("%s_throat_%s_plinth" % [prefix, side], base,
+			Vector3(0.0, (REAR_PLINTH - REAR_BURY) * 0.5, 0.09),
+			Vector3(depth - 0.3, REAR_PLINTH + REAR_BURY, 0.24),
+			"far_shade", theta, false)
+		_box("%s_throat_%s_base" % [prefix, side], base,
+			Vector3(0.0, (FRONT_GROUND + REAR_PLINTH - 0.3) * 0.5, 0.06),
+			Vector3(depth - 0.4, FRONT_GROUND - REAR_PLINTH + 0.3, 0.18),
+			"brick", theta, false)
+		_box("%s_throat_%s_course" % [prefix, side], base,
+			Vector3(0.0, FRONT_GROUND, 0.10),
+			Vector3(depth - 0.5, 0.26, 0.32), "white", theta, false)
+
+		# Pilasters run from the plinth to the clear height rather than to the
+		# pier top: above the beam's soffit the cutting is open to the sky and
+		# the reveal is a cliff edge, not a room.
+		for j in piers:
+			var px := lerpf(-depth * 0.5 + 0.9, depth * 0.5 - 0.9,
+				float(j) / float(piers - 1))
+			_box("%s_throat_%s_pil_%d" % [prefix, side, j], base,
+				Vector3(px, (REAR_PLINTH + head) * 0.5, 0.07),
+				Vector3(0.54, head - REAR_PLINTH, 0.22), "brick", theta, false)
+
+		# Lanterns between the pilasters. Bracket, glass, and an omni at the
+		# glass's own centre — the fitting is its own source here, which is the
+		# cascade's rule for a globe and the opposite of the facade wash's.
+		for j in piers - 1:
+			var lx := lerpf(-depth * 0.5 + 0.9, depth * 0.5 - 0.9,
+				(float(j) + 0.5) / float(piers - 1))
+			_box("%s_throat_%s_arm_%d" % [prefix, side, j], base,
+				Vector3(lx, 3.6, 0.28), Vector3(0.09, 0.09, 0.44),
+				"metal", theta, false)
+			_box("%s_throat_%s_lamp_%d" % [prefix, side, j], base,
+				Vector3(lx, 3.36, 0.5), Vector3(0.32, 0.46, 0.32),
+				"lamp_glass", theta, false)
+			_omni("%s_throat_%s_glow_%d" % [prefix, side, j],
+				_place(base, Vector3(lx, 3.36, 0.5), theta),
+				"lamp", 1.6, 7.0, LIGHT_FIXTURE)
 
 
 ## The west seam, at the arch.
@@ -9993,7 +10556,7 @@ func _plaza_from_the_east() -> void:
 		if not (near or nm.begins_with("tower_") or nm.begins_with("perim_")
 				or nm == "ground"):
 			continue
-		var mat := "far_warm" if nm.begins_with("tower_") else "far"
+		var mat := _mass_material(box, "far")
 		if near:
 			mat = "building"
 		# **The floor is not haze.** `far` is the west's distance wash and it is
@@ -10010,6 +10573,7 @@ func _plaza_from_the_east() -> void:
 		# hundred square metres of fight; a hand's width settles it, and at sixty
 		# metres through a six metre gap it costs nothing.
 		var drop: float = 0.0 if near else BELOW_FRAMED_DROP
+		var thin := {"at": at, "size": size} if near else _mass_thinned(box)
 		# **Six millimetres east of where `_plaza_from_below` puts its copy**, and
 		# it is about the test rather than about the render. Both functions stand
 		# a massing copy of the same hand-authored boxes and both snap to the same
@@ -10021,8 +10585,8 @@ func _plaza_from_the_east() -> void:
 		# impossible frame. A permanently-red test is worse than the pair, because
 		# the next real one hides behind it.
 		_box("efar_%s" % nm, Vector3.ZERO,
-			at.snapped(Vector3.ONE * 0.01)
-				+ Vector3(EAST_FAR_NUDGE, -drop, 0.0), size,
+			Vector3(thin["at"]).snapped(Vector3.ONE * 0.01)
+				+ Vector3(EAST_FAR_NUDGE, -drop, 0.0), thin["size"],
 			mat, 0.0, near)
 		n += 1
 	if n < 6:
