@@ -276,6 +276,10 @@ func _initialize() -> void:
 	_east_earth(1.0, "s")
 	# The way back, which belongs to the section on this side of the wall.
 	_east_seam(&"terraces", &"plaza")
+	# The shoulders, after everything: two meshes and a handful of walls at the
+	# end of the build, so nothing already in this scene moves an ordinal.
+	_east_shoulder(-1.0, "n")
+	_east_shoulder(1.0, "s")
 	if not _save(_root, EAST_CASCADE_PATH):
 		return
 
@@ -4808,6 +4812,312 @@ func _earth_cap(st: SurfaceTool, foot: Vector3, waist: Vector3, brow: Vector3,
 				_rim_tri(st, la, u0, 6.0, a, u0, 7.0, b, u1, 7.0)
 			else:
 				_rim_tri(st, la, u0, 6.0, b, u1, 7.0, a, u0, 7.0)
+
+
+## The shoulders: the hill's ground carried north and south across the two
+## unbuilt sections' footprints until the rim takes over, and the west face that
+## brings it down to the park.
+##
+## **The hill was an island until these went in.** Its flanks at the ground's
+## edge were `hill_north` and `hill_south` seen bare — twelve metres of vertical
+## `building` wall under a green lid, standing on nothing, with the rim behind
+## reading as land and the hill in front reading as a warehouse. `ParkPlan` has
+## said since the terraces were sited that `frontier` and `kiddieland` stand *on*
+## the hill at `TERRACE_TWO_Y`; nothing drew their ground, so the plan's east
+## shelf existed for thirty metres of its hundred-and-ninety and stopped at a
+## sawn face on both sides.
+##
+## The shoulder is that shelf: the plateau's own rolled ground continuing to each
+## footprint's far edge, a west face coming down at the ravine's own
+## `CLIMB_BANK_BATTER`, and a descent at the far end so the landform ends by
+## reaching the ground rather than by being cut off. The built terraces are then
+## cuts *in* the hillside rather than architecture in front of it, which is what
+## the plan's prose always described.
+##
+## **The west face cannot reach the ground where the `ne` and `se` passages
+## stand, and the ravine's own rule answers it**: a slope that cannot fit stands
+## up as a wall. Behind each passage the foot of the slope is a retaining wall at
+## `SHOULDER_FOOT_X`, tall enough that the batter above it still lands on the
+## plateau at `HILL_FACE_X`; past the passage the wall steps down and the batter
+## runs out to its natural toe. The wall line is chosen off the emitted
+## thresholds scene, not off the plan: the passages reach x 61.0 at their
+## furthest (`way_ne_ahead`, `way_se_ahead`), and the wall's west face at 60.7
+## laps their back walls without entering anybody's interior.
+##
+## **One height function and everything reads it.** `_shoulder_y` is min() of
+## three surfaces — the west face, the plateau via `_east_ground_y`, the far
+## descent — so the hips where they meet are a consequence rather than a seam,
+## and the masonry samples the same function the mesh does, which is
+## `_east_bank_y`'s rule about two things standing on one slope.
+const SHOULDER_BATTER := 1.4
+const SHOULDER_FOOT_X := 61.55
+const SHOULDER_TRANS_D := 6.0
+const SHOULDER_STEP_Z := 2.0
+const SHOULDER_WEST_X := 50.3
+const SHOULDER_BOW := 0.7
+
+
+## Where the west face's foot stands at a station, as (x, y).
+##
+## Inside the wall band it is the retaining wall's earth line at the wall's own
+## top; past it the foot eases out to the natural toe over `SHOULDER_TRANS_D`,
+## which is the span the stepped end of the wall covers. The wall-top height is
+## derived, not chosen: it is exactly the height the batter cannot lay back over
+## the run between the wall and the brow, so the face always lands on the
+## plateau at `HILL_FACE_X` — `CLIMB_BANK_MAX_D`'s arithmetic at the other scale.
+func _shoulder_foot(dist: float, wall_to: float) -> Vector2:
+	var top: float = Plan.TERRACE_TWO_Y + GROUND_LIFT
+	var wall_y: float = top - (Plan.HILL_FACE_X - SHOULDER_FOOT_X) / SHOULDER_BATTER
+	var toe_x: float = Plan.HILL_FACE_X - top * SHOULDER_BATTER
+	if dist <= wall_to:
+		return Vector2(SHOULDER_FOOT_X, wall_y)
+	var t := clampf((dist - wall_to) / SHOULDER_TRANS_D, 0.0, 1.0)
+	t = t * t * (3.0 - 2.0 * t)
+	return Vector2(lerpf(SHOULDER_FOOT_X, toe_x, t), wall_y * (1.0 - t))
+
+
+## The finished level of the shoulder at a point on it.
+##
+## Three surfaces, lowest wins. The west face and the descent are both bowed for
+## `_east_bank_y`'s reason — a welded planar batter has one normal and therefore
+## one tone, which is a ramp and not land — and the bow is zero at the foot and
+## the brow by the same construction, because those lines are where the masonry
+## and the plateau are. The descent's brow carries a fixed-sine jag so the far
+## end of the landform is not a ruled line, which is `_hill_roll`'s reason for
+## being deterministic: the coplanar report must not change under its reader.
+func _shoulder_y(x: float, z: float, side: float, prm: Dictionary) -> float:
+	var axis: float = Plan.ARCH_AT.y
+	var dist := (z - axis) * side
+	var top: float = Plan.TERRACE_TWO_Y + GROUND_LIFT
+	var f := _shoulder_foot(dist, float(prm["wall_to"]))
+	var fw := f.y + (x - f.x) / SHOULDER_BATTER
+	if fw > f.y and fw < top:
+		var t := (fw - f.y) / maxf(top - f.y, 0.001)
+		fw += sin(t * PI) * SHOULDER_BOW * (0.62 + 0.38 * sin(z * 0.37))
+	var nd := top
+	var brow: float = float(prm["brow"]) \
+		+ (sin(x * 0.17) * 0.6 + sin(x * 0.29 + 1.7) * 0.4) * 1.6
+	if dist > brow:
+		nd = top - (dist - brow) / SHOULDER_BATTER
+		var tn := clampf((top - nd) / top, 0.0, 1.0)
+		nd += sin(tn * PI) * SHOULDER_BOW * (0.62 + 0.38 * sin(x * 0.31))
+	return minf(minf(fw, _east_ground_y(x, z)), nd)
+
+
+## The two sides differ in more than sign, and the differences are all read off
+## the neighbours rather than chosen. North: the court's own north-east corner is
+## open ground (the court slab reaches z -28 but the walkable court stops at the
+## ne passage's flank), so the shoulder carries a corner band of bank rows over
+## it, and the wall band runs to one metre past the passage's north end at
+## z -42.9. South: the se passage's flank *is* the court's south edge, so there
+## is no corner band, and the hill skin's own edge at z +24 is the boundary. The
+## far edges are `frontier`'s and `kiddieland`'s footprints less the descent.
+func _shoulder_prm(side: float) -> Dictionary:
+	if side < 0.0:
+		return {
+			"corner": true,
+			"rows_head": PackedFloat32Array([-18.8, -20.6, -22.4, -24.2,
+				-26.0, -27.85, -28.9]),
+			"wall_to": 42.0,
+			"brow": 92.0,
+			"end": 112.0,
+			"ret_z": -18.8,
+			"ret_face": 1.0,
+			"wall_z0": -44.0,
+			"wall_z1": -18.4,
+		}
+	return {
+		"corner": false,
+		"rows_head": PackedFloat32Array([23.9, 24.55, 26.4]),
+		"wall_to": 48.5,
+		"brow": 90.0,
+		"end": 110.0,
+		# 24.6 rather than the wall band's own 24.9: the hill skin's south edge is
+		# z 24.0, and a return wall centred with the retaining wall left a 0.4m
+		# slot between its north face and the scarp's south jamb that read as a
+		# green slit from the court. 0.1m of clearance to the skin edge closes it.
+		"ret_z": 24.6,
+		"ret_face": -1.0,
+		"wall_z0": 24.4,
+		"wall_z1": 46.5,
+	}
+
+
+## One shoulder: the mesh, the masonry at its foot, and the planting on it.
+##
+## The mesh is `_east_earth`'s construction — an x-sweep of shared columns,
+## strips laid by `_earth_strip`, one trimesh body — with the rows in z instead
+## of four named lines, because a shoulder is all ground and has no crease to
+## keep. Where it meets the hill skin it tucks 7cm *under* the skin's last tenth
+## of a metre rather than sharing the edge line vertex for vertex: two meshes
+## that sample one function still normal their shared boundary from their own
+## quads only, and a tucked lap hides that seam the way every butt joint in the
+## park hides its own.
+##
+## The open west edge is handled three ways by band, and each edge lands in
+## masonry or below the world: wall-band rows stop at the column inside the
+## retaining wall; transition rows stop at the moving foot, inside the stepped
+## end; open rows run their batter past y 0 to a buried toe, `RIM_TOE_BURY`'s
+## trick at a tenth of the depth.
+func _east_shoulder(side: float, tag: String) -> void:
+	var axis: float = Plan.ARCH_AT.y
+	var prm := _shoulder_prm(side)
+	var wall_to := float(prm["wall_to"])
+
+	var cols := PackedFloat32Array()
+	var cx: float = SHOULDER_WEST_X
+	while cx < Plan.TERRACE_TWO_TO_X - 0.6:
+		cols.append(cx)
+		cx += EARTH_STEP
+	cols.append(Plan.TERRACE_TWO_TO_X)
+
+	var rows := PackedFloat32Array()
+	for r in prm["rows_head"]:
+		rows.append(float(r))
+	var d: float = absf(rows[rows.size() - 1] - axis)
+	while d + SHOULDER_STEP_Z < float(prm["end"]):
+		d += SHOULDER_STEP_Z
+		rows.append(axis + side * d)
+	rows.append(axis + side * float(prm["end"]))
+
+	var lines: Array[PackedVector3Array] = []
+	for zi in rows.size():
+		var z: float = rows[zi]
+		var dist := (z - axis) * side
+		var line := PackedVector3Array()
+		for c in cols:
+			var h := _shoulder_y(c, z, side, prm)
+			# The tuck under the hill skin. 26.05 is just past the skin's own
+			# half-width of 26, so only rows lying under its edge dip.
+			if dist < 26.05 and c > 69.9:
+				h -= 0.07
+			line.append(Vector3(c, h, z))
+		lines.append(line)
+
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(0)
+	for j in lines.size() - 1:
+		var dmid := ((rows[j] + rows[j + 1]) * 0.5 - axis) * side
+		var wlim := -1.0e9
+		var elim := 1.0e9
+		if dmid <= wall_to:
+			wlim = SHOULDER_FOOT_X - 0.15
+		elif dmid < wall_to + SHOULDER_TRANS_D:
+			wlim = _shoulder_foot(dmid, wall_to).x - 0.2
+		if bool(prm["corner"]) and dmid < 25.95:
+			# The corner band reaches the tuck column and no further: east of it
+			# the skin already owns the ground.
+			elim = 71.6
+		if not bool(prm["corner"]) and dmid < 26.35:
+			# The south's one sliver of tuck strip. Bank quads here would hang
+			# over the court's own lip, so only the plateau lap is laid.
+			wlim = 69.9
+		var keep := PackedByteArray()
+		for c in cols:
+			keep.append(1 if c >= wlim and c <= elim else 0)
+		_earth_strip(st, lines[j], lines[j + 1], side, float(j), keep)
+	st.generate_normals()
+	st.generate_tangents()
+	var mesh := st.commit()
+
+	var body := StaticBody3D.new()
+	_add(body, "east_shoulder_%s" % tag)
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.material_override = mats["planting"]
+	mi.name = "skin"
+	body.add_child(mi)
+	mi.owner = _root
+	var shape := CollisionShape3D.new()
+	shape.shape = mesh.create_trimesh_shape()
+	shape.name = "shape"
+	body.add_child(shape)
+	shape.owner = _root
+
+	_shoulder_masonry(side, tag, prm)
+	_shoulder_blooms(side, tag, prm)
+
+
+## The retaining wall behind the passage, its stepped end, and the return wall
+## at the court corner — the masonry that lets the hillside stop where walkable
+## ground needs the room.
+##
+## Every top is sampled from `_shoulder_y` plus a freeboard rather than written
+## down, which is the setback lesson: a height written as a number has to be
+## re-checked every time the slope behind it changes, and nobody ever does.
+func _shoulder_masonry(side: float, tag: String, prm: Dictionary) -> void:
+	var axis: float = Plan.ARCH_AT.y
+	var z0 := float(prm["wall_z0"])
+	var z1 := float(prm["wall_z1"])
+	var wall_top := _shoulder_foot(0.0, float(prm["wall_to"])).y + 0.42
+	_box("shoulder_wall_%s" % tag, Vector3.ZERO,
+		Vector3(61.225, (wall_top - 0.55) * 0.5 - 0.275, (z0 + z1) * 0.5),
+		Vector3(1.05, wall_top + 0.55, absf(z1 - z0)), "building")
+	# Brick to head height on the exposed face, `_hill_brick`'s decision carried
+	# to the one new retaining face the ground level can see.
+	_box("shoulder_wall_brick_%s" % tag, Vector3.ZERO,
+		Vector3(60.68, 1.1, (z0 + z1) * 0.5),
+		Vector3(HILL_FACE_T, 3.0, absf(z1 - z0) - 0.6), "brick", 0.0, false)
+
+	# The stepped end, three boxes walking the foot down to the toe. Spans and
+	# tops both come off `_shoulder_foot`, laps are generous on purpose: these
+	# cover the mesh's masked edge columns, and a step that stops where the edge
+	# is leaves the edge showing the day the foot moves.
+	var wall_to := float(prm["wall_to"])
+	for k in 3:
+		var d0 := wall_to + float(k) * 2.0
+		var d1 := d0 + 2.4
+		var f0 := _shoulder_foot(d0, wall_to)
+		var f1 := _shoulder_foot(d1, wall_to)
+		var xe: float = 61.75 if k == 0 else _shoulder_foot(d0 - 2.0, wall_to).x + 0.5
+		var top := f0.y + 1.1
+		var za := axis + side * d0
+		var zb := axis + side * d1
+		_box("shoulder_step_%s_%d" % [tag, k], Vector3.ZERO,
+			Vector3((f1.x - 0.45 + xe) * 0.5, (top - 0.55) * 0.5 - 0.275,
+				(za + zb) * 0.5),
+			Vector3(xe - f1.x + 0.45, top + 0.55, absf(zb - za)), "building")
+
+	# The return wall at the court corner: the cut face between the shoulder's
+	# bank and the court floor, stepped up from the retaining wall to the scarp.
+	# The court side gets the brick base the scarp's own faces wear.
+	var rz := float(prm["ret_z"])
+	var face := float(prm["ret_face"])
+	var xs := PackedFloat32Array([60.7, 64.0, 67.2, 70.4])
+	for k in 3:
+		var xa := xs[k]
+		var xb := xs[k + 1]
+		var top := _shoulder_y(xb, rz + side * 1.1, side, prm) + 0.38
+		_box("shoulder_ret_%s_%d" % [tag, k], Vector3.ZERO,
+			Vector3((xa + xb) * 0.5, (top - 0.62) * 0.5 - 0.31, rz),
+			Vector3(xb - xa, top + 0.62, 1.0), "building")
+	_box("shoulder_ret_brick_%s" % tag, Vector3.ZERO,
+		Vector3((60.9 + 70.2) * 0.5, 1.1, rz + face * 0.44),
+		Vector3(70.2 - 60.9, 3.0, HILL_FACE_T), "brick", 0.0, false)
+
+
+## Clumps on the bank, the ravine's planting rule at the shoulder's scale:
+## groups of three small blooms, never singles, because one opaque sphere on a
+## bare green plane is an egg on a lawn.
+func _shoulder_blooms(side: float, tag: String, prm: Dictionary) -> void:
+	var axis: float = Plan.ARCH_AT.y
+	var d_from: float = 17.5 if bool(prm["corner"]) else 27.5
+	var d_to := float(prm["brow"]) - 8.0
+	for i in 14:
+		var dist := lerpf(d_from, d_to, _hash01(i, 7, 43))
+		var f := _shoulder_foot(dist, float(prm["wall_to"]))
+		var hx := lerpf(f.x + 1.4, Plan.HILL_FACE_X - 1.0, _hash01(i, 11, 47))
+		var hz := axis + side * dist
+		var bloom: String = ["bloom_pale", "bloom_warm", "bloom_pink"][i % 3]
+		for q in 3:
+			var qx := hx + (_hash01(i * 7 + q, 19, 53) - 0.5) * 0.4
+			var qz := hz + (_hash01(i * 7 + q, 23, 59) - 0.5) * 0.4
+			_sphere("shoulder_bloom_%s_%d_%d" % [tag, i, q],
+				Vector3(qx, _shoulder_y(qx, qz, side, prm) + 0.03, qz),
+				Vector3.ZERO,
+				0.055 + _hash01(q * 5 + i, 3, 29) * 0.055, bloom)
+
 
 ## How far up a retaining face the brick carries.
 ##
