@@ -4567,38 +4567,44 @@ func _east_inner(x: float) -> Dictionary:
 		return {"half": Plan.SHELF_TO_Z - axis, "bank": false}
 	if x > Plan.CLIMB_TO_X:
 		return {"half": 0.0, "bank": false}
-	var bay := 0
 	for r in Plan.climb_reaches():
 		if x > float(r[1]) + 0.001:
-			if not bool(r[4]):
-				bay += 1
 			continue
-		if bool(r[4]):
+		# A narrow landing is a pause in the stair and not a room off it, so
+		# its sides stay banked and the hillside runs unbroken past it — see
+		# `CLIMB_BAY_MIN_T`, which is where the rule is stated.
+		if bool(r[4]) or float(r[1]) - float(r[0]) < Plan.CLIMB_BAY_MIN_T:
 			return {"half": _climb_open_half(x), "bank": true}
-		var bd: float = Plan.CLIMB_BAY_D[mini(bay, Plan.CLIMB_BAY_D.size() - 1)]
-		return {"half": Plan.CLIMB_HALF_Z + bd, "bank": false}
+		return {"half": Plan.CLIMB_HALF_Z + Plan.CLIMB_BAY_D, "bank": false}
 	return {"half": 0.0, "bank": false}
 
 
 ## Where the landform is sampled along x.
 ##
-## Every reach boundary appears **twice**, a hair either side of itself, and that
-## is what builds the end wall of a bay. The inner edge jumps outward by metres
-## at a bay's mouth — `CLIMB_BAY_D` runs 6 to 3.2 against an opening near 12 —
+## Every **bay** boundary appears **twice**, a hair either side of itself, and
+## that is what builds the end wall of a bay. The inner edge jumps outward by
+## metres at a bay's mouth — `CLIMB_BAY_D` is 6.5 against an opening near 12 —
 ## so two columns 4mm apart put a vertical face there, which is the cut face the
 ## banks either side used to draw with their own ends. One column would have
-## sloped it across the whole reach.
+## sloped it across the whole reach. Boundaries where the bank simply continues
+## — flight into narrow landing — are not doubled: the surface is continuous
+## across them, and a doubled column on a continuous surface is a pair of
+## 4mm quads with no reliable normal to hand the weld.
 func _east_columns() -> PackedFloat32Array:
 	var out := PackedFloat32Array()
-	# Every reach boundary but the last. At `CLIMB_TO_X` the inner edge falls
-	# from the head's own half-width to nothing at one level — the ground closing
-	# across the axis rather than a face — so doubling there would ask for a
-	# 6.7m quad four millimetres wide, and a sliver that thin has no reliable
-	# normal. That one interpolates over a step like everything else.
+	# At `CLIMB_TO_X` the inner edge falls from the head's own half-width to
+	# nothing at one level — the ground closing across the axis rather than a
+	# face — so that one interpolates over a step like everything else.
+	# `CLIMB_FROM_X` stays doubled: the notch's own half-width hands off to the
+	# ravine's there, and that jump is the notch's east reveal.
 	var edges := PackedFloat32Array([Plan.CLIMB_FROM_X])
 	var reaches := Plan.climb_reaches()
-	for i in reaches.size() - 1:
-		edges.append(float(reaches[i][1]))
+	for i in reaches.size():
+		var r: Array = reaches[i]
+		if bool(r[4]) or float(r[1]) - float(r[0]) < Plan.CLIMB_BAY_MIN_T:
+			continue
+		edges.append(float(r[0]))
+		edges.append(float(r[1]))
 	var x: float = Plan.HILL_FACE_X
 	while x < Plan.TERRACE_TWO_TO_X:
 		out.append(x)
@@ -11163,13 +11169,17 @@ func _east_climb() -> void:
 		var r: Array = reaches[ri]
 		var rx0: float = r[0]
 		var rx1: float = r[1]
-		if not bool(r[4]):
+		# A narrow landing takes the flight branch below: its sides are banked
+		# hillside like the flight's own, and `climb_floor_y` is flat across it,
+		# which is all the difference there is. Only a terrace deep enough for
+		# a room gets cut — see `CLIMB_BAY_MIN_T`.
+		if not bool(r[4]) and rx1 - rx0 >= Plan.CLIMB_BAY_MIN_T:
 			# A bay. Its floor is the landing's own level carried out to the
 			# hillside; its ends are the cut faces of the banks either side and
 			# its back is the hill. Nothing needs a parapet — it is a bite out of
 			# a slope, walled by what it was cut from on three sides.
 			var by: float = r[2]
-			var bd: float = Plan.CLIMB_BAY_D[mini(bay, Plan.CLIMB_BAY_D.size() - 1)]
+			var bd: float = Plan.CLIMB_BAY_D
 			for s in 2:
 				var side := -1.0 if s == 0 else 1.0
 				var tag := "n" if s == 0 else "s"
@@ -11295,8 +11305,9 @@ func _east_climb() -> void:
 								"accent", 0.0, false)
 			bay += 1
 			continue
-		# A flight: banked hillside either side, in three reaches so the taper
-		# reads rather than stepping once per flight.
+		# A flight — or a narrow landing, which is banked exactly the same way
+		# and differs only in `climb_floor_y` being flat across it. Three
+		# segments so the taper reads rather than stepping once per reach.
 		for k in 3:
 			var xa: float = lerpf(rx0, rx1, float(k) / 3.0)
 			var xb: float = lerpf(rx0, rx1, float(k + 1) / 3.0)

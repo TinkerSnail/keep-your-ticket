@@ -471,10 +471,11 @@ func _east_graph() -> void:
 	# you can only reach up a stair is a shop half the park cannot go into.
 	for ri in reaches.size():
 		var r: Array = reaches[ri]
-		if bool(r[4]):
+		# Narrow landings carry no bay — see `CLIMB_BAY_MIN_T`.
+		if bool(r[4]) or float(r[1]) - float(r[0]) < Plan.CLIMB_BAY_MIN_T:
 			continue
 		var bx: float = (float(r[0]) + float(r[1])) * 0.5
-		var bd: float = Plan.CLIMB_BAY_D[mini(bay, Plan.CLIMB_BAY_D.size() - 1)]
+		var bd: float = Plan.CLIMB_BAY_D
 		for w in [[-1.0, "n"], [1.0, "s"]]:
 			var side: float = w[0]
 			var tag: String = w[1]

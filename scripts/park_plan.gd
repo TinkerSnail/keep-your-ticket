@@ -845,8 +845,8 @@ const TERRACE_TWO_TO_X := 120.0
 ## full width; this takes a slot at the floor and a taper above it.
 const CLIMB_FROM_X := SHELF_TO_X
 ## 94.8 is derived, not chosen: `CLIMB_FROM_X` 78 plus 4 x 6 x `FLIGHT_GOING`
-## (9.6) plus 3 x `CLIMB_TERRACE_D` (7.2). It cannot be written as that
-## expression because `CLIMB_TERRACE_D` is declared below it; if any of the
+## (9.6) plus the sum of `CLIMB_TERRACE_DS` (7.2). It cannot be written as that
+## expression because `CLIMB_TERRACE_DS` is declared below it; if any of the
 ## four inputs moves, re-derive this by hand — the exactness note at
 ## `CLIMB_FLIGHTS` is about precisely this number.
 const CLIMB_TO_X := 94.8
@@ -878,8 +878,8 @@ const CLIMB_BANK_MAX_D := (CLIMB_OPEN_HALF - CLIMB_HALF_Z) / CLIMB_BANK_BATTER
 
 ## Four flights of six risers, three planted terraces between them. Both of these
 ## are the park's own stair constants rather than new ones, and the two sums
-## below are exact rather than nearly: 4 x 6 x `FLIGHT_GOING` plus 3 x
-## `CLIMB_TERRACE_D` is 16.8, which is `CLIMB_TO_X - CLIMB_FROM_X`; and
+## below are exact rather than nearly: 4 x 6 x `FLIGHT_GOING` plus the sum of
+## `CLIMB_TERRACE_DS` is 16.8, which is `CLIMB_TO_X - CLIMB_FROM_X`; and
 ## 4 x 6 x `FLIGHT_RISE` is 6.0, which is `TERRACE_TWO_Y - HILL_TOP`.
 ##
 ## They are exact because the terrace depth was solved for after the flights were
@@ -891,13 +891,21 @@ const CLIMB_BANK_MAX_D := (CLIMB_OPEN_HALF - CLIMB_HALF_Z) / CLIMB_BANK_BATTER
 ## rather than a stair one.** At 4.8 the climb ran 24m for its 6m of rise — 1:4,
 ## which from the fountain 90m away is a surface seen nearly edge-on, and with
 ## the crest of the monument in front of it the whole feature read as a green
-## wall with railings on it. At 2.4 the run is 16.8m and the grade 1:2.8, so the
+## wall with railings on it. At 16.8m of run the grade is 1:2.8, so the
 ## flights stack frontally and the rise spends less of itself below the crop
 ## ray. The rise did not change and must not: six is `CASCADE_DROP` reflected,
 ## and the monument was fought for against that number.
+##
+## **And then the terraces went unequal, because uniform 2.4 starved the bays.**
+## A bay's mouth is its terrace's span, and a room six metres deep behind a
+## 2.4m opening is a corridor — walked into and reported as exactly that. The
+## sum is untouched: two 1.2m landings that are pauses in the stair and nothing
+## more, and one 4.8m garden terrace at the half-height, which is the one place
+## a bay was ever going to be a room. Steepness bought back the sightline; the
+## unequal split buys the room back without giving any of the steepness up.
 const CLIMB_FLIGHTS := 4
 const CLIMB_FLIGHT_RISERS := 6
-const CLIMB_TERRACE_D := 2.4
+const CLIMB_TERRACE_DS := [1.2, 4.8, 1.2]
 const CLIMB_RUN := CLIMB_TO_X - CLIMB_FROM_X
 const CLIMB_RISE := TERRACE_TWO_Y - HILL_TOP
 
@@ -968,10 +976,15 @@ const CLIMB_HEAD_TO_X := RIM_FOOT_X
 ## budget before a bay would break into `hill_north`/`hill_south`, which are laid
 ## at full height across the entire east.
 ##
-## Shallower since the terraces went to 2.4: a bay's mouth is its terrace's own
-## span, and a room ten metres deep behind a 2.4m opening is a corridor, not a
-## bay. These keep the mouth-to-depth proportion the old 4.8m terraces had.
-const CLIMB_BAY_D := [6.0, 4.5, 3.2]
+## **One scalar since the terraces went unequal, and one bay per side with it.**
+## Three graduated bays made sense on three 4.8m terraces; on 1.2m landings a
+## bay of any depth is a slot, so only a terrace at least `CLIMB_BAY_MIN_T`
+## deep carries one — which today is the middle terrace alone, at the climb's
+## half-height, a 4.8 by 6.5 room either side. The narrow landings keep their
+## banks unbroken instead, which is most of what un-cluttered the flanks: fewer
+## cuts is fewer walls, fewer caps and fewer corners.
+const CLIMB_BAY_D := 6.5
+const CLIMB_BAY_MIN_T := 3.0
 
 ## The reaches of the climb, west to east, as `[x0, x1, y0, y1, is_flight]`.
 ##
@@ -991,8 +1004,9 @@ static func climb_reaches() -> Array:
 		x += run
 		y += rise
 		if i < CLIMB_FLIGHTS - 1:
-			out.append([x, x + CLIMB_TERRACE_D, y, y, false])
-			x += CLIMB_TERRACE_D
+			var d: float = CLIMB_TERRACE_DS[i]
+			out.append([x, x + d, y, y, false])
+			x += d
 	return out
 
 

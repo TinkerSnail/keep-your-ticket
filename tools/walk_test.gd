@@ -328,11 +328,12 @@ func _ready() -> void:
 	var creaches := ParkPlan.climb_reaches()
 	for ri in creaches.size():
 		var r: Array = creaches[ri]
-		if bool(r[4]):
+		# Narrow landings carry no bay — see `CLIMB_BAY_MIN_T`.
+		if bool(r[4]) or float(r[1]) - float(r[0]) < ParkPlan.CLIMB_BAY_MIN_T:
 			continue
 		var bx: float = (float(r[0]) + float(r[1])) * 0.5
 		var byy: float = float(r[2]) + 1.2
-		var bd: float = ParkPlan.CLIMB_BAY_D[mini(bi, ParkPlan.CLIMB_BAY_D.size() - 1)]
+		var bd: float = ParkPlan.CLIMB_BAY_D
 		for w2 in [[-1.0, "n"], [1.0, "s"]]:
 			var sd: float = w2[0]
 			var bn: String = w2[1]
