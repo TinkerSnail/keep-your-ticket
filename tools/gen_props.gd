@@ -4752,6 +4752,15 @@ const HILL_BRICK_H := 2.6
 ## `climb_bay_deck`, which is where the reasoning is.
 const BAY_DECK_DROP := 0.012
 
+## How far a bed's mass stops below the slab laid over it: half a basin's fall
+## plus the slab's own thickness, so a flat top clears a falling one across its
+## whole span. See the note in the garden block.
+const BED_MASS_DROP := 0.42
+
+## How far short of `CLIMB_BED_TO` the planting stops, so that the kerb standing
+## on that line is the outermost thing rather than sharing its face.
+const BED_KERB_TUCK := 0.06
+
 ## How far a landing's mass stops below its own paving, and how far that paving
 ## laps past the mass on each side. See `climb_land`.
 const LAND_MASS_DROP := 0.02
@@ -11063,41 +11072,109 @@ func _east_climb() -> void:
 	# are level the planting is still falling and where the flights drop it is
 	# still climbing away from them. That mismatch is the whole reason the middle
 	# reads as a garden and not as a landing.
+	#
+	# **The tops are one slab a side since 2026-08-22, and were twelve boxes.**
+	# `BASIN_STEP` is 2m and `BASIN_FALL` is half a metre, so a chute the plan
+	# describes as running at its own constant 1:4 came out as a staircase with
+	# half-metre risers — the box-approximating-a-line defect the rim and the
+	# east hill were both rebuilt for, a third time and at a third of the scale.
+	# Here it does not want a mesh: the surface is a plane, not a landform, and a
+	# plane is what `_flight_ramp` already lays. One call a side covers the whole
+	# 24m, because the channel's gradient never changes.
+	for s in 2:
+		var side := -1.0 if s == 0 else 1.0
+		var tag := "n" if s == 0 else "s"
+		var iz: float = axis + side * (Plan.CLIMB_CHANNEL_HALF + 0.1)
+		# **Stopped `BED_KERB_TUCK` short of `CLIMB_BED_TO`, so the kerb is the
+		# outermost thing and the planting dies inside it.** Run to the same line
+		# the kerb's outer face is on, the bed shares a plane with it — which was
+		# always true and was reported by nothing, because the two used to be built
+		# one after the other and the seam ordinal lends consecutive nodes a quarter
+		# of a millimetre. Splitting this block into a slab pass, a mass pass and a
+		# kerb pass moved them hundreds of nodes apart and the cover came off: 14
+		# pairs, brick-on-planting, down both sides of the garden.
+		var oz: float = axis + side * (Plan.CLIMB_BED_TO - BED_KERB_TUCK)
+		_flight_ramp("climb_bedramp_%s" % tag,
+			Vector3(x0, _climb_channel_y(x0) - 0.12, (iz + oz) * 0.5),
+			Vector3(x1, _climb_channel_y(x1) - 0.12, (iz + oz) * 0.5),
+			PI * 0.5, absf(oz - iz), "planting")
+
+	# The mass under it, still one box a basin because nothing about it is seen —
+	# it is what stops you looking under the garden, and the slab is the surface.
+	# Topped `BED_MASS_DROP` below the channel so it clears the slab's underside
+	# at the *high* end of its own span, where a flat top comes closest to a
+	# falling one: half a basin's fall plus the slab's thickness is what that
+	# number is.
+	#
+	# **The footings alternate**, and that is not decoration. Twenty-four boxes in
+	# a row all bottomed at one depth, each overlapping its neighbour by the 6cm
+	# of padding that keeps them from butting, is twenty-three shared underside
+	# planes — reported by nothing today only because consecutive nodes are a
+	# quarter-millimetre apart in the seam ordinal, which is the arrangement that
+	# put a landing's grey mass five millimetres over its own paving.
 	for i in Plan.BASIN_COUNT:
 		var ba: float = x0 + Plan.BASIN_STEP * float(i)
 		var bb: float = ba + Plan.BASIN_STEP
 		var bm := (ba + bb) * 0.5
 		var cy := _climb_channel_y(bm)
+		var foot: float = base - 0.2 - (0.12 if i % 2 == 1 else 0.0)
 		for s in 2:
 			var side := -1.0 if s == 0 else 1.0
 			var tag := "n" if s == 0 else "s"
 			var iz: float = axis + side * (Plan.CLIMB_CHANNEL_HALF + 0.1)
-			var oz: float = axis + side * Plan.CLIMB_BED_TO
-			# Based a little under the hill's own foot: at a matching base its
-			# underside lined up with `hill_back`'s, which is the one pair the
-			# build-order ordinal cannot separate because the two are hundreds of
-			# nodes apart.
+			var oz: float = axis + side * (Plan.CLIMB_BED_TO - BED_KERB_TUCK)
+			var mtop := cy - BED_MASS_DROP
 			_box("climb_bed_%s_%d" % [tag, i], Vector3.ZERO,
-				Vector3(bm, (base - 0.2 + cy - 0.12) * 0.5, (iz + oz) * 0.5),
-				Vector3(bb - ba + 0.06, cy + 0.08 - base, absf(oz - iz)),
-				"planting")
-			# **The edging, and it is a guard rather than a detail.** The bed's
-			# top runs within a hand of the flight beside it, so the walk test
-			# stepped straight off the stair into the planting. The reference
-			# edges every bed for the same reason a park does: the kerb is what
-			# makes the flowers a thing you look at rather than walk through.
-			var ktop: float = maxf(cy - 0.12, Plan.climb_floor_y(bm)) + 0.26
-			_box("climb_bedkerb_%s_%d" % [tag, i], Vector3.ZERO,
-				Vector3(bm, (cy - 1.4 + ktop) * 0.5, oz - side * 0.11),
-				Vector3(bb - ba + 0.06, ktop - cy + 1.4, 0.22), "accent")
-			for b in 3:
+				Vector3(bm, (foot + mtop) * 0.5, (iz + oz) * 0.5),
+				Vector3(bb - ba + 0.06, mtop - foot, absf(oz - iz)), "planting")
+			# The planting on it, clumped and small for the reason the banks' are —
+			# a single opaque sphere on a bare green plane is an egg on a lawn, and
+			# these were the last ones left scattered. Sat on the slab rather than
+			# on the channel line, which is where they used to be: 12cm over the
+			# bed's own top, so every one of them was floating.
+			for b in 2:
 				var hx: float = lerpf(ba + 0.3, bb - 0.3, _hash01(i * 17 + b, 7, 43))
 				var hz: float = lerpf(minf(iz, oz) + 0.3, maxf(iz, oz) - 0.3,
 					_hash01(i * 17 + b, 19, 67))
 				var bloom: String = ["bloom_pale", "bloom_warm", "bloom_pink"][(i + b) % 3]
-				_sphere("climb_bedbloom_%s_%d_%d" % [tag, i, b],
-					Vector3(hx, cy + 0.06, hz), Vector3.ZERO,
-					0.10 + _hash01(b, 5, 31) * 0.11, bloom)
+				for q in 3:
+					var qx: float = hx + (_hash01(i * 5 + b * 13 + q, 29, 47) - 0.5) * 0.34
+					var qz: float = hz + (_hash01(i * 5 + b * 13 + q, 31, 59) - 0.5) * 0.34
+					_sphere("climb_bedbloom_%s_%d_%d_%d" % [tag, i, b, q],
+						Vector3(qx, _climb_channel_y(qx) - 0.09, qz),
+						Vector3.ZERO,
+						0.055 + _hash01(q * 7 + b, 5, 31) * 0.055, bloom)
+
+	# **The kerb steps with the stair, and it is sampled at the stair's own
+	# pitch.** It guards the flight's edge against a bed that can sit most of a
+	# metre lower — the floor runs 1.5m up a 2.4m flight where the channel runs
+	# 0.6, so at the head of every flight the planting is 0.9m down — which is
+	# why its top is a max of the two rather than either. That max changes at
+	# every riser and it was being sampled every `BASIN_STEP`, five risers apart,
+	# so the guard was a twelve-step staircase agreeing with neither the stair it
+	# edges nor the bed it retains. At `FLIGHT_GOING` it lands on the risers
+	# exactly and crosses each terrace in six.
+	#
+	# Taken at the segment's *upper* end rather than its middle: both terms rise
+	# with x, so that is the max over the span, and a guard sampled at its middle
+	# is half a riser short for half its length.
+	var kn := int(round((x1 - x0) / Plan.FLIGHT_GOING))
+	for i in kn:
+		var ka: float = x0 + Plan.FLIGHT_GOING * float(i)
+		var kb: float = ka + Plan.FLIGHT_GOING
+		var kc := _climb_channel_y(kb) - 0.12
+		var ktop: float = maxf(kc, Plan.climb_floor_y(kb)) + 0.26
+		for s in 2:
+			var side := -1.0 if s == 0 else 1.0
+			var tag := "n" if s == 0 else "s"
+			var oz: float = axis + side * Plan.CLIMB_BED_TO
+			# Padded 4cm and not 6, which is the bed mass's figure. The first and
+			# last of each run start and finish on the same station, so a shared
+			# padding puts their end faces on one plane — the same four pairs, at
+			# the ends instead of down the sides.
+			_box("climb_bedkerb_%s_%d" % [tag, i], Vector3.ZERO,
+				Vector3((ka + kb) * 0.5, (kc - 1.4 + ktop) * 0.5, oz - side * 0.11),
+				Vector3(kb - ka + 0.04, ktop - kc + 1.4, 0.22), "accent")
 
 	# --- the chain ----------------------------------------------------------
 	#
