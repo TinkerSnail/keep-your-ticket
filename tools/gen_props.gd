@@ -4675,6 +4675,16 @@ func _east_earth(side: float, tag: String) -> void:
 	st.set_smooth_group(0)
 	_earth_strip(st, foot, waist, side, 0.0, banked)
 	_earth_strip(st, waist, brow, side, 1.0, banked)
+	# Group 3: the cut face at each end of a bank, which is the one surface on
+	# this hill that was described in prose and never built. See `_earth_cap`.
+	st.set_smooth_group(3)
+	for j in banked.size():
+		if banked[j] == 0:
+			continue
+		if j == 0 or banked[j - 1] == 0:
+			_earth_cap(st, foot[j], waist[j], brow[j], -1.0, side)
+		if j == banked.size() - 1 or banked[j + 1] == 0:
+			_earth_cap(st, foot[j], waist[j], brow[j], 1.0, side)
 	# Group 1: the ground above. Its inner row is the banks' outer row, position
 	# for position — the weld is what would round the top of the cut off, and the
 	# group is what stops it.
@@ -4732,6 +4742,72 @@ func _earth_strip(st: SurfaceTool, low: PackedVector3Array,
 				high[j], u0, v0 + 1.0)
 			_rim_tri(st, high[j], u0, v0 + 1.0, low[j + 1], u1, v0,
 				high[j + 1], u1, v0 + 1.0)
+
+
+## The cut face where a bank stops: the triangle of earth left standing when the
+## batter is sliced across.
+##
+## **`_east_climb` has described this surface since the day the bays went in and
+## nothing ever built it.** Its comment says a bay's "ends are the cut faces of
+## the banks either side", and the banks are a zero-thickness single-sided skin —
+## so what was actually there was an open edge with the inside of the hill behind
+## it. `climb_bankcore` was believed to close it and cannot: the core is topped at
+## the retaining wall's own level, which is the *lowest* the skin gets, so it sits
+## under the batter and the whole wedge between the two is air. Every one of the
+## eight bank ends was a hole four and a half metres tall, and because a skin
+## shows nothing from behind, standing in a bay you looked through the hillside at
+## the plaza with the blooms hanging in the sky over it.
+##
+## Nothing could have caught it. `coplanar_test.py` has no opinion about a surface
+## that is missing — the same blind spot the cascade's unguarded handrail sat in —
+## `walk_test` asks whether something is in the way and never whether it is there,
+## and from the axis, which is where every shot of this climb has been taken, the
+## banks are edge-on ribbons that read as ending in front of the rim rather than
+## through it.
+##
+## The low edge is `foot.y` rather than a level of its own, and that is not
+## shorthand: `_east_bank_y` puts the foot at `TERRACE_TWO_Y - _climb_bank_d(x)`
+## with the bow at zero, which is the retaining wall's top where there is a wall
+## and the landing's own floor where the bank has run out of depth to retain. So
+## the face is full height at the brow and closes to nothing at the foot, which is
+## what a slice through a batter is, and it lands on masonry at both ends by
+## construction rather than by a number that has to be kept in step.
+##
+## Winding turns on `facing * side`, for `_earth_strip`'s reason doubled: the two
+## halves of the hill face opposite ways and the two ends of a run do as well, so
+## the four cases are two windings. Wrong, a cut face is invisible from the bay it
+## walls and solid from inside the hill, which is the same failure it is here to
+## fix and would look exactly like this one still being unfixed.
+func _earth_cap(st: SurfaceTool, foot: Vector3, waist: Vector3, brow: Vector3,
+		facing: float, side: float) -> void:
+	var y0 := foot.y
+	# The head of the climb, where the cut has closed and the bank is already
+	# nothing. Both tests, and the second is the one that matters: at
+	# `CLIMB_TO_X` the batter has no width at all but the brow is still
+	# `GROUND_LIFT` over the foot, so a height-only guard passes and emits a
+	# zero-area triangle — which has no reliable normal to hand the weld.
+	if brow.y - y0 < 0.01 or absf(brow.z - foot.z) < 0.01:
+		return
+	var top := [foot, waist, brow]
+	var flip := facing * side < 0.0
+	for k in 2:
+		var a: Vector3 = top[k]
+		var b: Vector3 = top[k + 1]
+		var la := Vector3(a.x, y0, a.z)
+		var lb := Vector3(b.x, y0, b.z)
+		var u0 := float(k) * 0.5
+		var u1 := u0 + 0.5
+		if b.y - y0 > 0.001:
+			if flip:
+				_rim_tri(st, la, u0, 6.0, b, u1, 7.0, lb, u1, 6.0)
+			else:
+				_rim_tri(st, la, u0, 6.0, lb, u1, 6.0, b, u1, 7.0)
+		# Skipped at the foot, where `la` and `a` are the same point.
+		if a.y - y0 > 0.001:
+			if flip:
+				_rim_tri(st, la, u0, 6.0, a, u0, 7.0, b, u1, 7.0)
+			else:
+				_rim_tri(st, la, u0, 6.0, b, u1, 7.0, a, u0, 7.0)
 
 ## How far up a retaining face the brick carries.
 ##
@@ -10870,10 +10946,15 @@ func _east_climb() -> void:
 				# The core under the bank. Topped a hand below the retaining
 				# wall's own level, which is the lowest the skin gets over this
 				# span — so it sits under the batter everywhere rather than only
-				# at its foot, and it is what keeps the wedge behind the skin
-				# sealed. The skin is a single surface: with nothing solid under
-				# it you see its back faces from the mouth, which is to say you
-				# see through the hill.
+				# at its foot. The skin is a single surface: with nothing solid
+				# under it you see its back faces from the mouth, which is to say
+				# you see through the hill.
+				#
+				# **It does not seal the wedge and this comment used to say it
+				# did.** Topping at the skin's *lowest* point is exactly what
+				# leaves the batter above it hollow, and the hollow was open at
+				# both ends of every bank — see `_earth_cap`, which is what
+				# closes it. A block under a slope is a floor, not a fill.
 				#
 				# **It clears the wall on all three shared faces, and it took a run
 				# of the coplanar test to find the two that were not the obvious
