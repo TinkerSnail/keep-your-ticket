@@ -4752,6 +4752,11 @@ const HILL_BRICK_H := 2.6
 ## `climb_bay_deck`, which is where the reasoning is.
 const BAY_DECK_DROP := 0.012
 
+## How far a landing's mass stops below its own paving, and how far that paving
+## laps past the mass on each side. See `climb_land`.
+const LAND_MASS_DROP := 0.02
+const LAND_TOP_LAP := 0.2
+
 ## How far a facing stands proud of the wall it faces, and how thick it is.
 ##
 ## Proud rather than flush, because flush is the coplanar case and the house rule
@@ -11010,13 +11015,46 @@ func _east_climb() -> void:
 				# undersides — three coplanar pairs per junction, and only on the
 				# south strip, because the seam ordinal happened to save the
 				# north one. Overlapping is the rule here; lining up is the fault.
+				# **The mass stops `LAND_MASS_DROP` under its own paving, and the
+				# paving laps past it.** Both of these topped out at `ya`, and the
+				# only thing keeping them apart was the build-order ordinal — a
+				# quarter of a millimetre, five times out of six. The sixth is
+				# what gave it away: `_add`'s displacement wraps at `SEAM_STEPS`,
+				# so once every 21 nodes the separation it lends changes *sign*,
+				# and on `climb_land_n_5` the grey mass came out five millimetres
+				# **above** the accent plate. The plate is narrower, so it was not
+				# merely fighting — it was buried, and that landing rendered as
+				# `building` while its five siblings rendered as `accent`.
+				#
+				# `walk_test` had been reporting it for as long as it existed and
+				# nobody had read it that way: "bay 2 n out" lands on
+				# `climb_land_n_5` where its opposite number lands on
+				# `climb_land_top_s_5`. A leg naming the mass instead of the
+				# paving is the tell.
+				#
+				# **The paving laps rather than the mass narrowing**, because the
+				# mass's width is doing a job already: it is deliberately wider
+				# than the flight mass it butts, and at a matching width the
+				# landing and the next flight's first step shared both side faces
+				# and their undersides. Narrowing it to fit under the plate would
+				# have walked it back towards `climb_step`'s own dimensions to fix
+				# a problem at the other end of the box. Lapping the plate leaves
+				# every one of those clearances alone and leaves no mass top
+				# exposed, so there is no border and no lip — the accent is the
+				# whole walking surface.
+				#
+				# The lap is only needed in z. In x the mass overhangs by 4cm at
+				# each end and both ends are buried under the neighbouring flight's
+				# ramp, which arrives at `ya` exactly where the landing stops.
 				_box("climb_land_%s_%d" % [tag, ri], Vector3.ZERO,
-					Vector3((ra + rb) * 0.5, (base - 0.35 + ya) * 0.5, zc),
-					Vector3(rb - ra + 0.08, ya - base + 0.35,
+					Vector3((ra + rb) * 0.5,
+						(base - 0.35 + ya - LAND_MASS_DROP) * 0.5, zc),
+					Vector3(rb - ra + 0.08, ya - base + 0.35 - LAND_MASS_DROP,
 						Plan.CLIMB_FLIGHT_W + 0.12), "building")
 				_box("climb_land_top_%s_%d" % [tag, ri], Vector3.ZERO,
 					Vector3((ra + rb) * 0.5, ya - 0.05, zc),
-					Vector3(rb - ra, 0.1, Plan.CLIMB_FLIGHT_W), "accent")
+					Vector3(rb - ra, 0.1,
+						Plan.CLIMB_FLIGHT_W + LAND_TOP_LAP), "accent")
 
 	# --- the garden between them -------------------------------------------
 	#
