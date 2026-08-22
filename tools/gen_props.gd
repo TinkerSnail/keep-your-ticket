@@ -280,6 +280,17 @@ func _initialize() -> void:
 	# end of the build, so nothing already in this scene moves an ordinal.
 	_east_shoulder(-1.0, "n")
 	_east_shoulder(1.0, "s")
+	# The seal along the rim's toe. The ground meshes — hill skin and both
+	# shoulders — all end at `TERRACE_TWO_TO_X` as open single-sided edges, and
+	# the rim's face crosses that line at the height of its own foot, so any
+	# millimetre the ground stands proud of the rim is a see-through slot into
+	# the inside of the ridge. `_hill_roll`'s east fade brings the edge down to
+	# within centimetres of the rim's foot; this closes the rest, top a hair
+	# above the ground edge so the seam is a lip of the same green rather than
+	# a slot of sky.
+	_box("east_toe_fill", Vector3.ZERO,
+		Vector3(Plan.TERRACE_TWO_TO_X, 11.3, -3.0),
+		Vector3(0.7, 1.52, 186.0), "planting")
 	if not _save(_root, EAST_CASCADE_PATH):
 		return
 
@@ -4256,7 +4267,9 @@ func _east_court() -> void:
 ## that is a bay cut into a hillside rather than a terrace with a fence around
 ## it. So the hill stands a full twelve metres at the scarp line everywhere
 ## except across `SHELF_FROM_Z … SHELF_TO_Z`, where it is cut back to six and
-## sixteen metres deep. What that buys is that every edge of the shelf is
+## eight metres deep — sixteen until 2026-08-22, halved because the flat pause
+## at exactly the crest's height was what hid the whole climb from the plaza;
+## see `SHELF_TO_X`. What that buys is that every edge of the shelf is
 ## finished by construction: hill on the north, hill on the south, the second
 ## scarp on the east, and one parapet on the west where the view is. There is
 ## nothing to fall off and nothing raw to see, which the alternative — a six
@@ -4472,8 +4485,17 @@ func _hill_roll(x: float, z: float) -> float:
 	var t := clampf((x - Plan.HILL_FACE_X - HILL_SWELL_FROM) / HILL_SWELL_RUN,
 		0.0, 1.0)
 	var ease := t * t * (3.0 - 2.0 * t)
+	# Faded out again over the last few metres before the rim's toe, and this is
+	# a closure rather than a taste: the ground's east edge is an open
+	# single-sided boundary at `TERRACE_TWO_TO_X`, and the swell stood it up to
+	# three metres proud of the rim's own face there — a slot you could look
+	# through into the inside of the ridge, from anywhere on the meadow. A
+	# ridge's bench meets its toe in a dip anyway; `east_toe_fill` seals what
+	# millimetres remain.
+	var efade := clampf((Plan.TERRACE_TWO_TO_X - 2.0 - x) / 8.0, 0.0, 1.0)
+	efade = efade * efade * (3.0 - 2.0 * efade)
 	var jag := (sin(z * 0.113) * 0.6 + sin(z * 0.271 + 1.3) * 0.4) * HILL_JAG
-	return HILL_SWELL * ease + jag * ease * guard
+	return (HILL_SWELL * ease + jag * ease * guard) * efade
 
 
 ## The finished level of the hill's top at a point on it.
@@ -4562,7 +4584,7 @@ func _east_inner(x: float) -> Dictionary:
 ##
 ## Every reach boundary appears **twice**, a hair either side of itself, and that
 ## is what builds the end wall of a bay. The inner edge jumps outward by metres
-## at a bay's mouth — `CLIMB_BAY_D` is 10, 8 and 6 against an opening near 12 —
+## at a bay's mouth — `CLIMB_BAY_D` runs 6 to 3.2 against an opening near 12 —
 ## so two columns 4mm apart put a vertical face there, which is the cut face the
 ## banks either side used to draw with their own ends. One column would have
 ## sloped it across the whole reach.
@@ -5136,7 +5158,11 @@ const HILL_BRICK_H := 2.6
 
 ## How far a bay's paving is laid below the landing it opens off. See the note at
 ## `climb_bay_deck`, which is where the reasoning is.
-const BAY_DECK_DROP := 0.012
+## 0.019 rather than 0.012 since 2026-08-22: at the steeper climb the first
+## south bay's deck top landed on the same plane as the neighbouring flight's
+## first tread, in the 6cm strip where the deck laps the reach boundary. Still
+## a construction tolerance underfoot, still far above the tester's floor.
+const BAY_DECK_DROP := 0.019
 
 ## How far a bed's mass stops below the slab laid over it: half a basin's fall
 ## plus the slab's own thickness, so a flat top clears a falling one across its
@@ -11080,9 +11106,9 @@ func _arch_seam(belongs: StringName, leads: StringName) -> void:
 
 
 
-## The basin chain's own line, which is **not** the floor's. Constant 1:4 from
-## the head to the mouth; see `BASIN_COUNT` for why it runs straight through a
-## stair that steps.
+## The basin chain's own line, which is **not** the floor's. Constant at the
+## climb's own mean grade from the head to the mouth; see `BASIN_COUNT` for why
+## it runs straight through a stair that steps.
 func _climb_channel_y(x: float) -> float:
 	return Plan.TERRACE_TWO_Y - (Plan.CLIMB_TO_X - x) * (Plan.CLIMB_RISE / Plan.CLIMB_RUN)
 
@@ -11150,7 +11176,10 @@ func _east_climb() -> void:
 				# Started inboard of the wall's inner face rather than on it.
 				var iz: float = axis + side * (half - 0.3)
 				var oz: float = axis + side * (half + bd)
-				var ez: float = sz0 if s == 0 else sz1
+				# Past the notch line rather than to it, buried in the hill
+				# blocks: ending exactly at `SHELF_FROM_Z` put this face on the
+				# same plane as the shelf buttresses standing on that line.
+				var ez: float = sz0 - 0.35 if s == 0 else sz1 + 0.35
 				_box("climb_bay_%s_%d" % [tag, bay], Vector3.ZERO,
 					Vector3((rx0 + rx1) * 0.5, (base - 0.2 + by - 0.14) * 0.5,
 						(iz + oz) * 0.5),
@@ -11185,11 +11214,16 @@ func _east_climb() -> void:
 						(iz + oz) * 0.5),
 					Vector3(rx1 - rx0 + 0.12, 0.14, absf(oz - iz)), "brick")
 				# The hill behind it, and the face that is the bay's back wall.
+				# Footed and topped a hair inside the hill blocks' own levels,
+				# because its end is buried in those blocks since 2026-08-22 and
+				# a shared volume with shared top and bottom planes is two
+				# coplanar pairs. The top hides under the skin either way.
 				if absf(ez - oz) > 0.2:
 					_box("climb_bayhill_%s_%d" % [tag, bay], Vector3.ZERO,
-						Vector3((rx0 + rx1) * 0.5, (base + top) * 0.5,
+						Vector3((rx0 + rx1) * 0.5, (base + 0.28 + top - 0.02) * 0.5,
 							(oz + ez) * 0.5),
-						Vector3(rx1 - rx0, top - base, absf(ez - oz)), "building")
+						Vector3(rx1 - rx0, top - 0.02 - base - 0.28, absf(ez - oz)),
+						"building")
 					# A course on the back wall, `accent`. The belvedere settled
 					# this: relief on a west-facing face draws nothing and value
 					# draws everything, and these faces look the same way.
@@ -11208,6 +11242,22 @@ func _east_climb() -> void:
 							oz - side * (HILL_FACE_T * 0.5 - HILL_FACE_OUT)),
 						Vector3(rx1 - rx0 - 0.3, HILL_BRICK_H + 0.3, HILL_FACE_T),
 						"brick", 0.0, false)
+					# The side walls too, which the back-wall pass of 2026-08-21
+					# missed: a bay has three cut faces and only one got dressed, so
+					# standing in one you had brick behind you and the perimeter's
+					# bare grey an arm's length away on both sides. Same panel, turned
+					# ninety degrees, buried in the flight masses either side.
+					for e in 2:
+						var ex: float = rx0 if e == 0 else rx1
+						var edir: float = -1.0 if e == 0 else 1.0
+						_box("climb_bay_sidebrick_%s_%d_%d" % [tag, bay, e],
+							Vector3.ZERO,
+							Vector3(ex + edir * (HILL_FACE_T * 0.5 - HILL_FACE_OUT),
+								by + (HILL_BRICK_H - 0.3) * 0.5,
+								(iz + oz) * 0.5 + side * 0.1),
+							Vector3(HILL_FACE_T, HILL_BRICK_H + 0.3,
+								absf(oz - iz) - 0.5),
+							"brick", 0.0, false)
 			bay += 1
 			continue
 		# A flight: banked hillside either side, in three reaches so the taper

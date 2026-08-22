@@ -259,16 +259,23 @@ func _ready() -> void:
 		+ Vector3(0, 0.2, 0)
 	var land_e := Vector3(ParkPlan.HILL_FACE_X - 2.0, head_y, ex.y)
 	var sill_e := Vector3(ParkPlan.HILL_FACE_X + 2.0, head_y, ex.y)
-	var shelf_mid := Vector3(78.0, head_y, ex.y)
+	# In front of the pool's west coping, derived off `POOL_FROM_X` rather than
+	# typed: the literal 78 this held was fine on a 16m belvedere and was inside
+	# the collecting pool the day the shelf shrank to 8 — five legs BLOCKED on
+	# copings, all of them the test walking through water rather than the room
+	# failing. The room circulates west of the pool and around its ends.
+	var shelf_mid := Vector3(ParkPlan.POOL_FROM_X - 1.2, head_y, ex.y)
 	_legs.append(["ehill head -> landing", wing_head, land_e, true])
 	_legs.append(["ehill landing -> sill", land_e, sill_e, true])
 	_legs.append(["ehill sill -> shelf", sill_e, shelf_mid, true])
 	_legs.append(["ehill shelf -> sill", shelf_mid, sill_e, true])
 	_legs.append(["ehill sill -> landing", sill_e, land_e, true])
 	_legs.append(["ehill landing -> head", land_e, wing_head, true])
-	# The length of it, north to south, which is the walk the belvedere is for.
-	var shelf_n := Vector3(78.0, head_y, ParkPlan.SHELF_FROM_Z + 3.0)
-	var shelf_s := Vector3(78.0, head_y, ParkPlan.SHELF_TO_Z - 3.0)
+	# The length of it, north to south, which is the walk the belvedere is for —
+	# down the strip west of the pool, which is the only lane that runs the full
+	# length now that the pool owns the room's east half.
+	var shelf_n := Vector3(ParkPlan.POOL_FROM_X - 1.2, head_y, ParkPlan.SHELF_FROM_Z + 3.0)
+	var shelf_s := Vector3(ParkPlan.POOL_FROM_X - 1.2, head_y, ParkPlan.SHELF_TO_Z - 3.0)
 	_legs.append(["ehill shelf north", shelf_mid, shelf_n, true])
 	_legs.append(["ehill shelf south", shelf_n, shelf_s, true])
 	_legs.append(["ehill shelf back", shelf_s, shelf_mid, true])

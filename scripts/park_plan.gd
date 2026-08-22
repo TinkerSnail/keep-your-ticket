@@ -716,8 +716,18 @@ const HILL_TOP := 6.0
 ## the westmost masonry lands near 61, which leaves a fourteen metre court: a six
 ## metre face seen from fourteen metres is a 24° elevation, which is about what
 ## the reference photographs are taken at.
+##
+## **The belvedere is 8m deep since 2026-08-22, and it was 16.** Measured from
+## the fountain's own sightline: the ray that grazes the monument's 6.2m crest
+## does not come back to earth until it is most of the way up a staircase that
+## starts 16m further back at the crest's own height — so the whole climb, the
+## thing the gate axis exists to frame, was hidden behind a flat pause exactly
+## as tall as itself and only the top two metres ever showed from anywhere in
+## the plaza. The reference is unambiguous here: Cleveland's flights spring
+## straight off the head-house. Half the pause puts the first riser 8m behind
+## the crest and most of the climb's rise above the crop ray.
 const HILL_FACE_X := 70.0
-const SHELF_TO_X := 86.0
+const SHELF_TO_X := 78.0
 
 ## How far north and south the shelf is walkable. The wings reach z −14.3..10.3,
 ## so this is five metres of margin either side and no more — the shelf is a
@@ -774,7 +784,10 @@ const SHELF_PARAPET_T := 0.5
 ## The second terrace, and the one the two east sections stand on. Nothing is
 ## built on it — these are footprints for silhouette, as `SECTION_GROUND` says —
 ## but the level is a decision and it belongs here rather than being implied by
-## whatever gets drawn first.
+## whatever gets drawn first. `TERRACE_TWO_FROM_X` follows `SHELF_TO_X`, the
+## notch's own back scarp — nothing reads it today, which is exactly the
+## condition this file's own comment on `SECTION_GROUND` warns about, so it is
+## kept true rather than trusted.
 ##
 ## **This is what moved `frontier` and `kiddieland` off y = 0.** They used to sit
 ## on the flat at the plaza's own level, which was fine while the east was flat.
@@ -784,7 +797,7 @@ const SHELF_PARAPET_T := 0.5
 ## and `se` passages now have twelve metres to climb and nothing in them climbs
 ## yet**, which is real and is written down here rather than discovered later.
 const TERRACE_TWO_Y := 12.0
-const TERRACE_TWO_FROM_X := 86.0
+const TERRACE_TWO_FROM_X := SHELF_TO_X
 const TERRACE_TWO_TO_X := 120.0
 
 ## The basin staircase: the rest of the Cleveland Cascade, cut into the hill
@@ -831,7 +844,12 @@ const TERRACE_TWO_TO_X := 120.0
 ## the scarp would have eaten the whole depth from 86 to 110 across the notch's
 ## full width; this takes a slot at the floor and a taper above it.
 const CLIMB_FROM_X := SHELF_TO_X
-const CLIMB_TO_X := 110.0
+## 94.8 is derived, not chosen: `CLIMB_FROM_X` 78 plus 4 x 6 x `FLIGHT_GOING`
+## (9.6) plus 3 x `CLIMB_TERRACE_D` (7.2). It cannot be written as that
+## expression because `CLIMB_TERRACE_D` is declared below it; if any of the
+## four inputs moves, re-derive this by hand — the exactness note at
+## `CLIMB_FLIGHTS` is about precisely this number.
+const CLIMB_TO_X := 94.8
 ## The floor's half-width, and **derived rather than chosen**: the bank has to
 ## spring from the outer edge of the flight, or the 1.3m strip between them is a
 ## verge with no floor under it that the walk test finds by falling down it.
@@ -861,16 +879,25 @@ const CLIMB_BANK_MAX_D := (CLIMB_OPEN_HALF - CLIMB_HALF_Z) / CLIMB_BANK_BATTER
 ## Four flights of six risers, three planted terraces between them. Both of these
 ## are the park's own stair constants rather than new ones, and the two sums
 ## below are exact rather than nearly: 4 x 6 x `FLIGHT_GOING` plus 3 x
-## `CLIMB_TERRACE_D` is 24.0, which is `CLIMB_TO_X - CLIMB_FROM_X`; and
+## `CLIMB_TERRACE_D` is 16.8, which is `CLIMB_TO_X - CLIMB_FROM_X`; and
 ## 4 x 6 x `FLIGHT_RISE` is 6.0, which is `TERRACE_TWO_Y - HILL_TOP`.
 ##
 ## They are exact because the terrace depth was solved for after the flights were
 ## fixed, not chosen. If any of the four moves, re-derive the other three — a
 ## staircase that arrives half a riser under its own terrace is the kind of thing
 ## no screenshot shows and every ankle finds.
+##
+## **The terraces went 4.8 → 2.4 on 2026-08-22, and it is a sightline decision
+## rather than a stair one.** At 4.8 the climb ran 24m for its 6m of rise — 1:4,
+## which from the fountain 90m away is a surface seen nearly edge-on, and with
+## the crest of the monument in front of it the whole feature read as a green
+## wall with railings on it. At 2.4 the run is 16.8m and the grade 1:2.8, so the
+## flights stack frontally and the rise spends less of itself below the crop
+## ray. The rise did not change and must not: six is `CASCADE_DROP` reflected,
+## and the monument was fought for against that number.
 const CLIMB_FLIGHTS := 4
 const CLIMB_FLIGHT_RISERS := 6
-const CLIMB_TERRACE_D := 4.8
+const CLIMB_TERRACE_D := 2.4
 const CLIMB_RUN := CLIMB_TO_X - CLIMB_FROM_X
 const CLIMB_RISE := TERRACE_TWO_Y - HILL_TOP
 
@@ -894,10 +921,15 @@ const CLIMB_FLIGHT_W := 2.1
 ## and a dry trough across each terrace, and the beds either side are exactly
 ## what takes up the difference between a straight chute and a stepped stair.
 ##
-## Twelve basins over six metres is half a metre of fall each, one every two
-## metres of run — 1:4, which is the whole feature's mean gradient and therefore
-## the only slope on the hill that does not need a second number.
-const BASIN_COUNT := 12
+## Eight basins over six metres is three quarters of a metre of fall each, one
+## every 2.1m of run — 1:2.8, the whole feature's mean gradient and therefore
+## the only slope on the hill that does not need a second number. Eight rather
+## than the twelve the chain carried at the old 24m run, for two reasons that
+## arrive together: at 16.8m twelve bowls of `BASIN_R` 0.75 would overlap their
+## own neighbours, and a 0.75m fall face is half again as much white water per
+## lip — which matters, because the falls are the one part of this feature that
+## faces the plaza instead of receding from it.
+const BASIN_COUNT := 8
 const BASIN_FALL := CLIMB_RISE / BASIN_COUNT
 const BASIN_STEP := CLIMB_RUN / BASIN_COUNT
 const BASIN_R := 0.75
@@ -907,10 +939,12 @@ const BASIN_R := 0.75
 ## mouth and it reads west across the parapet to the plaza beyond.
 ## Shortened 79 → 81.5 on 2026-08-18: at seven metres it reached most of the way
 ## across the belvedere toward the parapet, so the shelf read as a pool with a
-## walkway round it rather than as a room with a pool at one end of it. Four and
-## a half is still generous against an 8.4m width — it is the *basin* the chain
-## is aimed at, and the belvedere's job is to be the floor you see it from.
-const POOL_FROM_X := 81.5
+## walkway round it rather than as a room with a pool at one end of it — and
+## derived off the mouth since 2026-08-22, because the belvedere is 8m deep now
+## and a literal 81.5 would have put the pool inside the hill. 3.5m of pool
+## against an 8m room keeps the same proportion the 2026-08-18 note argued for:
+## the *basin* the chain is aimed at, on a floor you see it from.
+const POOL_FROM_X := SHELF_TO_X - 3.5
 const POOL_HALF_Z := 4.2
 const POOL_TOP_Y := HILL_TOP - 0.35
 
@@ -933,7 +967,11 @@ const CLIMB_HEAD_TO_X := RIM_FOOT_X
 ## and `SHELF_FROM_Z`/`SHELF_TO_Z` are 18 off the axis, so 11.3m is the whole
 ## budget before a bay would break into `hill_north`/`hill_south`, which are laid
 ## at full height across the entire east.
-const CLIMB_BAY_D := [10.0, 8.0, 6.0]
+##
+## Shallower since the terraces went to 2.4: a bay's mouth is its terrace's own
+## span, and a room ten metres deep behind a 2.4m opening is a corridor, not a
+## bay. These keep the mouth-to-depth proportion the old 4.8m terraces had.
+const CLIMB_BAY_D := [6.0, 4.5, 3.2]
 
 ## The reaches of the climb, west to east, as `[x0, x1, y0, y1, is_flight]`.
 ##
