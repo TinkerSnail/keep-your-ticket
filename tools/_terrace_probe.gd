@@ -50,6 +50,18 @@ const FREE := [
 	# off the frame.
 	{"name": "r_dart_topdown", "pos": Vector3(106.0, 30.0, 5.0), "yaw": 0.0, "pitch": -89.0},
 	{"name": "s_dart_low", "pos": Vector3(103.5, 18.6, 3.0), "yaw": -120.0, "pitch": -10.0},
+	# Standing at each court's mouth at eye height, looking out over the back
+	# wall — the standpoint of the 2026-08-23 "still see through the hill"
+	# report, where the bay-edge column jump tears the plateau strip.
+	{"name": "t_mouth10s", "pos": Vector3(87.4, 11.3, 3.8), "yaw": 180.0, "pitch": 5.0},
+	{"name": "u_mouth14s", "pos": Vector3(98.6, 15.3, 3.8), "yaw": 180.0, "pitch": 5.0},
+	{"name": "v_mouth10n", "pos": Vector3(87.4, 11.3, -7.8), "yaw": 0.0, "pitch": 5.0},
+	{"name": "w_mouth14n", "pos": Vector3(98.6, 15.3, -7.8), "yaw": 0.0, "pitch": 5.0},
+	# The junction where the climb delivers onto the head landing — the "weird
+	# ledge before the landing" report. Both route heads and the median's end.
+	{"name": "x_head_edge", "pos": Vector3(111.0, 19.6, -2.0), "yaw": 90.0, "pitch": -14.0},
+	{"name": "y_ramp_head", "pos": Vector3(109.6, 19.4, -7.65), "yaw": 90.0, "pitch": -16.0},
+	{"name": "z_stair_head", "pos": Vector3(109.6, 19.4, 3.65), "yaw": 90.0, "pitch": -16.0},
 ]
 
 

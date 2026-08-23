@@ -4489,11 +4489,14 @@ const EARTH_TO_X := 127.0
 ## finer bands only ever bought more seams.
 const EARTH_STEP := 1.25
 
-## How many intermediate rows the plateau strip carries between the brow and
-## the edge. Nine puts a row roughly every 2.5m across the widest span, which
-## resolves the roll's shortest wavelength (23m) comfortably — see the note in
-## `_east_earth` on why two rows was a shape bug and not a smoothness one.
-const EARTH_MID_ROWS := 9
+## Where the plateau strip's intermediate rows sit, as distances off the axis.
+## Fixed rather than fractions of each column's span — see the note in
+## `_east_earth`: fractional rows smear a doubled column's brow jump down the
+## whole strip as skewed slivers. Spacing ~2m resolves the roll's shortest
+## wavelength (23m) comfortably; rows inside a column's own brow clamp onto it
+## and are dropped by the degenerate guard. The edge row at 26 is separate.
+const EARTH_ROW_DISTS: Array[float] = [4.0, 8.0, 11.0, 13.0, 14.5, 16.0,
+	18.0, 20.0, 22.0, 24.0]
 
 ## How far the skin's edge is buried into the masonry behind it where the two
 ## meet on a plateau edge.
@@ -4683,12 +4686,20 @@ func _east_inner(x: float) -> Dictionary:
 ## 4mm quads with no reliable normal to hand the weld.
 func _east_columns() -> PackedFloat32Array:
 	var out := PackedFloat32Array()
-	# At `CLIMB_TO_X` the inner edge falls from the head's own half-width to
-	# nothing at one level — the ground closing across the axis rather than a
-	# face — so that one interpolates over a step like everything else.
-	# `CLIMB_FROM_X` stays doubled: the notch's own half-width hands off to the
-	# ravine's there, and that jump is the notch's east reveal.
-	var edges := PackedFloat32Array([Plan.CLIMB_FROM_X])
+	# `CLIMB_TO_X` is doubled since 2026-08-23, and the old note here argued
+	# the opposite — that the ground closes across the axis rather than at a
+	# face, so it should interpolate like everything else. Measured, that
+	# interpolation was a hole: the brow sweeps from the ravine's 6.7m
+	# half-width to the axis across one full column spacing, the garden median
+	# ends at `CLIMB_TO_X` exactly, and the wedge between them was open to
+	# `hill_back` six metres down — a raycast on the axis at x 108.25 hit
+	# nothing above y 12, one stride in front of the head landing. Doubled,
+	# the strip closes the ravine's east end as a near-vertical face at the
+	# head, which the median's own headwall now stands against.
+	# `CLIMB_FROM_X` stays doubled for the reason it always was: the notch's
+	# own half-width hands off to the ravine's there, and that jump is the
+	# notch's east reveal.
+	var edges := PackedFloat32Array([Plan.CLIMB_FROM_X, Plan.CLIMB_TO_X])
 	var reaches := Plan.climb_reaches()
 	for i in reaches.size():
 		var r: Array = reaches[i]
@@ -4822,15 +4833,26 @@ func _east_earth(side: float, tag: String) -> void:
 	# looked straight through the hillside at the fill masses, which is where
 	# the grey staircases in the 2026-08-23 play reports were standing. A
 	# function sampled at two points is a line, whatever it does in between.
+	# **Rows at fixed distances, clamped to the brow, not fractions of the
+	# span.** Parametric sub-rows lerped z per column, and at a doubled column
+	# — a bay edge, the head — the brow jumps by metres in 4mm of x, so every
+	# sub-row inherited a share of the jump: a ladder of skewed sliver quads
+	# down the whole strip, whose normals and winding tear — the diagonal
+	# teeth on the slope and the see-through crease behind the courts' back
+	# walls, both from play on 2026-08-23. Fixed distances put the whole jump
+	# into the one band between the brow and the first row past it, as a
+	# single near-vertical quad. Rows inside a column's brow clamp onto it and
+	# the degenerate guard in `_earth_strip` drops them.
 	st.set_smooth_group(1)
 	var prev := brow
-	for k in range(1, EARTH_MID_ROWS + 1):
-		var t := float(k) / float(EARTH_MID_ROWS + 1)
+	for k in EARTH_ROW_DISTS.size():
+		var dist: float = EARTH_ROW_DISTS[k]
 		var row := PackedVector3Array()
 		for j in cols.size():
-			var rz := lerpf(brow[j].z, edge[j].z, t)
+			var d := maxf(dist, absf(brow[j].z - axis))
+			var rz := axis + side * d
 			row.append(Vector3(cols[j], _east_ground_y(cols[j], rz), rz))
-		_earth_strip(st, prev, row, side, 2.0 + t, PackedByteArray())
+		_earth_strip(st, prev, row, side, 2.0 + 0.1 * float(k), PackedByteArray())
 		prev = row
 	_earth_strip(st, prev, edge, side, 3.0, PackedByteArray())
 	# Group 2: the skirt down onto the mass at the world's edge.
@@ -11467,11 +11489,23 @@ func _east_climb() -> void:
 				# a shared volume with shared top and bottom planes is two
 				# coplanar pairs. The top hides under the skin either way.
 				if absf(ez - oz) > 0.2:
-					_box("climb_bayhill_%s_%d" % [tag, bay], Vector3.ZERO,
-						Vector3((rx0 + rx1) * 0.5, (base + 0.28 + btop) * 0.5,
-							(oz + ez) * 0.5),
-						Vector3(rx1 - rx0, btop - base - 0.28, absf(ez - oz)),
-						"building")
+					# In three steps along x, each topped at its own west end:
+					# one flat top under a skin that rises 0.4m across the bay
+					# either pokes at one end or opens a hand of air at the
+					# other, and the air is what the courts' mouths look into
+					# — a lit slot between wall top and floating skin, straight
+					# through the hillside. Steps track the rise to a tenth.
+					for bs in 3:
+						var bxa: float = lerpf(rx0, rx1, float(bs) / 3.0)
+						var bxb: float = lerpf(rx0, rx1, float(bs + 1) / 3.0) \
+							+ (0.06 if bs < 2 else 0.0)
+						var bst: float = Plan.east_ground_base(bxa) - 0.03
+						_box("climb_bayhill_%s_%d_%d" % [tag, bay, bs],
+							Vector3.ZERO,
+							Vector3((bxa + bxb) * 0.5,
+								(base + 0.28 + bst) * 0.5, (oz + ez) * 0.5),
+							Vector3(bxb - bxa, bst - base - 0.28, absf(ez - oz)),
+							"building")
 					# A course on the back wall, `accent`. The belvedere settled
 					# this: relief on a west-facing face draws nothing and value
 					# draws everything, and these faces look the same way.
@@ -12010,6 +12044,23 @@ func _east_climb() -> void:
 	_water_box("basin_spill", Vector3(b0x - Plan.BASIN_R - 0.35, 0.0, axis),
 		Vector3(0.0, (b0y + Plan.POOL_TOP_Y) * 0.5, 0.0),
 		Vector3(0.7, b0y - Plan.POOL_TOP_Y, 0.9), "basin_fall_head")
+	# **The source, at the other end.** The chain's top bowl had no feed and
+	# the median simply stopped at `CLIMB_TO_X` — which read from the landing
+	# as a raw ledge, and was one until the skin closed the ravine's east end
+	# (see `_east_columns`). A headwall in the fountain's own stone stands
+	# against that face, its top a bed-kerb's height proud of the landing lip
+	# so the drop into the garden is guarded, and the water arrives over it —
+	# the classic cascade source, and the plate's own arrangement: the chain
+	# begins at a wall, not in mid-grass. Footed in the top bowl's plinth.
+	var bhx: float = x1 - Plan.BASIN_STEP * 0.5
+	var bhy := _climb_channel_y(bhx)
+	_box("basin_source_wall", Vector3.ZERO,
+		Vector3(107.9, (16.9 + 18.16) * 0.5, axis),
+		Vector3(0.5, 1.26, 2.7), "niche_stone")
+	_water_ramp("basin_source_spill",
+		Vector3(bhx + 0.58, bhy + 0.07, axis),
+		Vector3(107.70, 17.99, axis),
+		0.5, "basin_fall_%d" % (Plan.BASIN_COUNT - 1))
 
 	# --- the collecting pool ------------------------------------------------
 	#
