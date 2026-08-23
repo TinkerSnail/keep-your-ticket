@@ -286,6 +286,10 @@ func _initialize() -> void:
 	# The crest terraces last: the walled court that used to sit mid-climb,
 	# moved to the head when the landings narrowed to pauses.
 	_climb_crest_courts()
+	# And the head landing, appended after everything for the ordinal reason:
+	# the terrace `CLIMB_HEAD_TO_X` has named since the climb doubled, drawn at
+	# last — see `_east_head_landing`.
+	_east_head_landing()
 	if not _save(_root, EAST_CASCADE_PATH):
 		return
 
@@ -1410,17 +1414,21 @@ func _fountain_materials() -> void:
 			# chain's value reads against.
 			"tint": Color(0.17, 0.36, 0.38),
 			"centre": Vector3(bx, by, cax),
-			# A 1.5m bowl. Tighter than the trough's 11 because the whole surface
-			# is two rings across at this size and anything looser is one.
-			"ring_scale": 24.0,
-			"chop": 12.0,
+			# A 1.5m bowl. 10 puts about two rings across the surface; the 24 it
+			# wore first put six, and from play the whole chain read as coiled
+			# rope — at this diameter the rings alias into a moiré spiral well
+			# before they read as ripples. The trough family's 11 was always
+			# the right neighbourhood.
+			"ring_scale": 10.0,
+			"chop": 7.0,
 			"rough": 0.05,
 			# One lamp at the bowl's own centre. `Vector4` and not `Plane`: a
 			# Plane here serialises to null and the lamp is dark in the saved
 			# scene while being correct in this process.
 			"lamp_a": Vector4(bx, cax, 0.34, 1.0),
-			# Where the fall off the bowl above lands, which is its upstream lip.
-			"foam_a": Vector4(bx + Plan.BASIN_R * 0.86, cax, 0.20, 1.0),
+			# Where the spill off the bowl above enters, just inside the
+			# upstream rim — `basin_%d_spill`'s own low end.
+			"foam_a": Vector4(bx + 0.60, cax, 0.20, 1.0),
 			# **Turquoise and luminous, and the tint is what does it.** `gc` runs
 			# from `tint` toward `lamp_tint` over the lit patch, and `lamp_tint`
 			# defaults to the fitting's own warm amber — so a bowl could be turned
@@ -1456,9 +1464,15 @@ func _fountain_materials() -> void:
 		# white lips against dark planting are the brightest thing on the hill.
 		# Opacity and a near-white tint are what survive distance; glow is the
 		# night half and only nudges.
+		# Worn only by the spill ribbons since the standing tubes went. Denser
+		# and more opaque than the monument's veils on purpose: a ribbon lies
+		# on a slope over terracotta, so the shader's translucent gaps show
+		# plinth through it, and at the old 2.9 grain the bands came back as a
+		# zebra ramp. Fine grain and high alpha read as white water with
+		# streaks in it; the night glow rides the same uniform it always did.
 		mats["basin_fall_%d" % i] = _shader_material(fall, {
-			"flow": 2.1, "streaks": 58.0, "grain": 2.9,
-			"base_alpha": 0.60, "glow": 1.0,
+			"flow": 2.1, "streaks": 72.0, "grain": 5.5,
+			"base_alpha": 0.78, "glow": 1.0,
 			"tint": Color(0.86, 0.97, 0.95),
 			"fade_from": by + Plan.BASIN_FALL, "fade_to": by,
 		})
@@ -2675,6 +2689,24 @@ func _water_cyl(nm: String, o: Vector3, local: Vector3, radius: float,
 func _water_box(nm: String, o: Vector3, local: Vector3, size: Vector3,
 		mat: String, theta := 0.0) -> void:
 	_box(nm, o, local, size, mat, theta, false)
+	_last_unlit()
+
+
+## A sloped ribbon of water: `_flight_ramp`'s construction at a water sheet's
+## thickness, with the top face on the line from `top_a` to `top_b`. Water
+## weight — no collision, no shadow — which is why it does not simply call
+## `_flight_ramp`. A thin sheet tilted is a face, not a tall box; the rotated
+## -box rule is about the other case.
+func _water_ramp(nm: String, top_a: Vector3, top_b: Vector3, width: float,
+		mat: String) -> void:
+	var span := top_b - top_a
+	var horizontal := Vector2(span.x, span.z).length()
+	var phi := atan2(-span.y, horizontal)
+	var theta := PI * 0.5 if absf(span.x) >= absf(span.z) else 0.0
+	var mid := (top_a + top_b) * 0.5
+	var up := (Basis(Vector3.UP, theta) * Basis(Vector3.RIGHT, phi)).y
+	_box(nm, mid - up * 0.035, Vector3.ZERO,
+		Vector3(width, 0.07, span.length()), mat, theta, false, phi)
 	_last_unlit()
 
 
@@ -4431,6 +4463,14 @@ const HILL_JAG := 1.1
 ## reason is arithmetic rather than taste.
 const HILL_ROLL_GUARD := 6.0
 
+## The head landing's extent: the flat half-width in z across its band, and
+## where the band ends short of the rim's toe. 22 spans the hill's own ground
+## less a verge to the skin edge at 26, which is "the length of the east
+## section" as the section is built today; 118 leaves two metres of meadow
+## before `RIM_FOOT_X` so the terrace ends in ground rather than in the ridge.
+const HEAD_LAND_HALF := 22.0
+const HEAD_LAND_TO_X := 118.0
+
 ## Where the east's ground meshes stop, and it is **not** `TERRACE_TWO_TO_X`
 ## any more. The sections still end at 120, but the ground now stands at
 ## `CLIMB_HEAD_Y` there while the rim's face crosses that line at its own 12m
@@ -4448,6 +4488,12 @@ const EARTH_TO_X := 127.0
 ## and where the argument is written out. As bands it was a shape decision, and
 ## finer bands only ever bought more seams.
 const EARTH_STEP := 1.25
+
+## How many intermediate rows the plateau strip carries between the brow and
+## the edge. Nine puts a row roughly every 2.5m across the widest span, which
+## resolves the roll's shortest wavelength (23m) comfortably — see the note in
+## `_east_earth` on why two rows was a shape bug and not a smoothness one.
+const EARTH_MID_ROWS := 9
 
 ## How far the skin's edge is buried into the masonry behind it where the two
 ## meet on a plateau edge.
@@ -4502,7 +4548,17 @@ const GROUND_LIFT := 0.02
 ## wave in the one line the wall is there to draw.
 func _hill_roll(x: float, z: float) -> float:
 	var axis: float = Plan.ARCH_AT.y
-	var guard := clampf((absf(z - axis) - Plan.CLIMB_OPEN_HALF)
+	# The flat zone is the ravine corridor for most of the climb, and the whole
+	# terrace across the head landing's band: `CLIMB_HEAD_TO_X` has named the
+	# landing between the head of the cutting and the rim's toe since the climb
+	# doubled, and a promenade cut through rolling swell is a trench rather than
+	# a landing. Eased over 4m at both ends so the meadow hands over instead of
+	# stepping — see `_east_head_landing`, which paves what this flattens.
+	var hb := clampf((x - (Plan.CLIMB_TO_X - 2.0)) / 4.0, 0.0, 1.0) \
+		* clampf((HEAD_LAND_TO_X + 2.0 - x) / 4.0, 0.0, 1.0)
+	hb = hb * hb * (3.0 - 2.0 * hb)
+	var flat_half := lerpf(Plan.CLIMB_OPEN_HALF, HEAD_LAND_HALF, hb)
+	var guard := clampf((absf(z - axis) - flat_half)
 		/ HILL_ROLL_GUARD, 0.0, 1.0)
 	if guard <= 0.0:
 		return 0.0
@@ -4572,7 +4628,16 @@ func _east_bank_y(x: float, z: float) -> float:
 	#
 	# Modulated along the climb so it is not one extrusion repeated — a constant
 	# bow swept up a hill is a moulding.
-	return y + sin(t * PI) * BANK_BOW * (0.62 + 0.38 * sin(x * 0.41))
+	#
+	# **And scaled by the bank's own depth**, because the bow did not die with
+	# the bank: near the head the three rows converge to one line as the cut
+	# runs out, and a bow still pumping 0.3m of height into a strip of zero
+	# width folds it into sliver-fins — the grey paper darts among the last
+	# flight's blooms in the 2026-08-23 play reports, found by hiding node
+	# families until they vanished. Full bow above 2m of depth, dying linearly
+	# with the cut below it.
+	return y + sin(t * PI) * BANK_BOW * (0.62 + 0.38 * sin(x * 0.41)) \
+		* clampf(_climb_bank_d(x) * 0.5, 0.0, 1.0)
 
 
 ## The plateau's inner edge at a station: how far off the axis the hill's own
@@ -4746,8 +4811,28 @@ func _east_earth(side: float, tag: String) -> void:
 	# Group 1: the ground above. Its inner row is the banks' outer row, position
 	# for position — the weld is what would round the top of the cut off, and the
 	# group is what stops it.
+	#
+	# **Subdivided in z since 2026-08-23, and the reason is arithmetic rather
+	# than smoothness.** Two rows meant one quad spanning brow to edge — up to
+	# 26m — so `_hill_roll`'s guard, fade and swell were only ever *sampled at
+	# the edge row* and the profile between came back as a straight ramp off the
+	# brow: the flat corridor never existed in the mesh, the crest courts
+	# drowned in interpolated swell with only their wall caps showing, and from
+	# inside a court the underside of that ramp is a culled backface — you
+	# looked straight through the hillside at the fill masses, which is where
+	# the grey staircases in the 2026-08-23 play reports were standing. A
+	# function sampled at two points is a line, whatever it does in between.
 	st.set_smooth_group(1)
-	_earth_strip(st, brow, edge, side, 2.0, PackedByteArray())
+	var prev := brow
+	for k in range(1, EARTH_MID_ROWS + 1):
+		var t := float(k) / float(EARTH_MID_ROWS + 1)
+		var row := PackedVector3Array()
+		for j in cols.size():
+			var rz := lerpf(brow[j].z, edge[j].z, t)
+			row.append(Vector3(cols[j], _east_ground_y(cols[j], rz), rz))
+		_earth_strip(st, prev, row, side, 2.0 + t, PackedByteArray())
+		prev = row
+	_earth_strip(st, prev, edge, side, 3.0, PackedByteArray())
 	# Group 2: the skirt down onto the mass at the world's edge.
 	st.set_smooth_group(2)
 	_earth_strip(st, edge, hem, side, 4.0, PackedByteArray())
@@ -4787,6 +4872,13 @@ func _earth_strip(st: SurfaceTool, low: PackedVector3Array,
 	var cols := low.size()
 	for j in cols - 1:
 		if keep.size() > 0 and (keep[j] == 0 or keep[j + 1] == 0):
+			continue
+		# A quad whose two rows coincide is zero area, and `generate_normals`
+		# hands zero-area triangles junk — which renders as lit-white slivers,
+		# not as nothing. Distance and not z-span, because the skirt's two rows
+		# share their z on purpose and differ only in height.
+		if low[j].distance_squared_to(high[j]) < 0.0004 \
+				and low[j + 1].distance_squared_to(high[j + 1]) < 0.0004:
 			continue
 		var u0 := float(j) / float(cols - 1)
 		var u1 := float(j + 1) / float(cols - 1)
@@ -4844,7 +4936,13 @@ func _earth_cap(st: SurfaceTool, foot: Vector3, waist: Vector3, brow: Vector3,
 	# `CLIMB_TO_X` the batter has no width at all but the brow is still
 	# `GROUND_LIFT` over the foot, so a height-only guard passes and emits a
 	# zero-area triangle — which has no reliable normal to hand the weld.
-	if brow.y - y0 < 0.01 or absf(brow.z - foot.z) < 0.01:
+	#
+	# 0.3 rather than 0.01 since 2026-08-23: over the last flight the bank
+	# tapers through knee height, and a cap under 30cm is a paper sliver lying
+	# on the grass with a near-degenerate normal — white confetti along the
+	# head in the play reports. A cut face that shallow closes nothing the eye
+	# can see through; the real faces at the bays are 2m and more.
+	if brow.y - y0 < 0.3 or absf(brow.z - foot.z) < 0.01:
 		return
 	var top := [foot, waist, brow]
 	var flip := facing * side < 0.0
@@ -5222,6 +5320,47 @@ func _climb_crest_courts() -> void:
 			_box("crest_court_%scap_%s" % [nm, tag], Vector3.ZERO,
 				Vector3(c.x, top + 0.055, c.z),
 				Vector3(sz.x + 0.12, 0.12, sz.z + 0.12), "accent", 0.0, false)
+
+
+## The head landing: the terrace at the top of the whole feature, between the
+## head of the cutting and the rim's toe. `CLIMB_HEAD_TO_X` has named it since
+## the climb doubled, and until 2026-08-23 nothing drew it — the ground past
+## the head was rolling meadow to the toe, so the climb arrived at nothing in
+## particular. `_hill_roll` holds the ground flat across the band
+## (`HEAD_LAND_HALF` either side of the axis, out to `HEAD_LAND_TO_X`); this
+## lays the floor: brick, because the east is one floor that happens to climb,
+## in five slabs set out around the two crest courts so the courts stand *on*
+## the terrace rather than beside it.
+##
+## Paving-style — 12mm proud of the skin, no collision, the crest court deck's
+## own construction — because the skin underneath already collides and a slab
+## the player could stand on is a kerb round the whole terrace. The slabs are
+## gapped 15cm rather than butted or lapped: a butt is the zero-width seam, a
+## lap of two identical tops is a coplanar pair, and at this depth the joints
+## read as planting lines between pavements.
+func _east_head_landing() -> void:
+	var axis: float = Plan.ARCH_AT.y
+	var gy: float = Plan.CLIMB_HEAD_Y + GROUND_LIFT
+	var x0: float = Plan.CLIMB_TO_X + 0.25
+	var x1: float = HEAD_LAND_TO_X
+	# [tag, x0, x1, dz0, dz1] with dz off the axis. The margins clear the
+	# courts' copings by at least 0.12 on every side — measured against
+	# `_climb_crest_courts`' own offsets, not guessed.
+	var slabs := [
+		["w", x0, 109.40, -12.70, 12.70],
+		["mid", 109.55, 115.55, -7.32, 7.32],
+		["e", 115.78, x1, -12.70, 12.70],
+		["n", x0, x1, -HEAD_LAND_HALF, -12.85],
+		["s", x0, x1, 12.85, HEAD_LAND_HALF],
+	]
+	for s in slabs:
+		var sx0 := float(s[1])
+		var sx1 := float(s[2])
+		var sz0: float = axis + float(s[3])
+		var sz1: float = axis + float(s[4])
+		_box("head_land_%s" % s[0], Vector3.ZERO,
+			Vector3((sx0 + sx1) * 0.5, gy - 0.058, (sz0 + sz1) * 0.5),
+			Vector3(sx1 - sx0, 0.14, sz1 - sz0), "brick", 0.0, false)
 
 
 ## How far up a retaining face the brick carries.
@@ -11271,7 +11410,14 @@ func _east_climb() -> void:
 			# bench constant ends two metres below its own bay's floor — the
 			# probe walked out over it and fell onto the buried block. The
 			# datum-fork bug, at its third site.
-			var btop: float = Plan.east_ground_base((rx0 + rx1) * 0.5) - 0.03
+			#
+			# **At the reach's west end, not its middle.** The ground base
+			# rises ~0.35/m through the ramp, so a flat top set to the middle
+			# station stood most of half a metre proud of the skin at the west
+			# end of a 3.6m bay — one grey tooth per bay along the brow, in
+			# the 2026-08-23 play reports. A flat top under rising ground is
+			# set by the low end or it is not under the ground.
+			var btop: float = Plan.east_ground_base(rx0) - 0.03
 			for s in 2:
 				var side := -1.0 if s == 0 else 1.0
 				var tag := "n" if s == 0 else "s"
@@ -11338,11 +11484,18 @@ func _east_climb() -> void:
 					# nor in the notch. A bay is a room you stand in with its back
 					# wall an arm's length away, so it is the last place the cut
 					# should be wearing the plaza perimeter's grey.
+					# Full width less a hair, not `- 0.3`: the back facing used
+					# to stop 15cm short of each side facing, and the strip
+					# between them was the bay's one un-dressed vertical — a
+					# pale grey slit of bare mass at both back corners, in the
+					# 2026-08-23 play reports. It laps into the side facings'
+					# ends now; a corner overlap is the house rule, a gap is
+					# the fault.
 					_box("climb_bay_brick_%s_%d" % [tag, bay], Vector3.ZERO,
 						Vector3((rx0 + rx1) * 0.5,
 							by + (HILL_BRICK_H - 0.3) * 0.5,
 							oz - side * (HILL_FACE_T * 0.5 - HILL_FACE_OUT)),
-						Vector3(rx1 - rx0 - 0.3, HILL_BRICK_H + 0.3, HILL_FACE_T),
+						Vector3(rx1 - rx0 - 0.02, HILL_BRICK_H + 0.3, HILL_FACE_T),
 						"brick", 0.0, false)
 					# Its coping, because from the flights the top of this wall is a
 					# raw brick edge against green and a wall with an unfinished top
@@ -11415,7 +11568,15 @@ func _east_climb() -> void:
 			for s in 2:
 				var side := -1.0 if s == 0 else 1.0
 				var tag := "n" if s == 0 else "s"
-				var oz: float = axis + side * w
+				# The fill's inner edge takes the opening at the segment's
+				# *west* end, not its middle: the cut narrows as it climbs, so
+				# at `xa` the ravine is wider than at `xm`, and a box set to
+				# the middle stands its inner-west corner inside the cut —
+				# through the descending bank, as a grey tetrahedron among the
+				# blooms. Named by bisection (`_dart2_probe`), 2026-08-23:
+				# `climb_hill_s_24`. The height fix above does not cover it,
+				# because this poke is lateral.
+				var oz: float = axis + side * (_climb_open_half(xa) + 0.05)
 				# Past the notch line and buried in the hill blocks, for the
 				# reason the bay branch's `ez` is: ending exactly at
 				# `SHELF_FROM_Z` shares a plane with the shelf buttresses.
@@ -11447,11 +11608,18 @@ func _east_climb() -> void:
 				# because its end is buried in them now and shared volumes with
 				# shared top and bottom planes are coplanar pairs — the bay
 				# branch's lesson, at the flight branch.
+				# Topped at the segment's *west* end, not `ltop` — the bay
+				# branch's lesson at the flight branch: `ltop` is the middle
+				# station and the ground rises through the segment, so a flat
+				# top at the middle stands ~15cm through the skin at the west
+				# end of every third-of-a-reach on the ramp. A row of grey
+				# teeth along both brows, from play, 2026-08-23.
+				var htop: float = Plan.east_ground_base(xa) - 0.03
 				if absf(ez - oz) > 0.2:
 					_box("climb_hill_%s_%d" % [tag, si], Vector3.ZERO,
-						Vector3(xm, (base + 0.26 + ltop - 0.03) * 0.5,
+						Vector3(xm, (base + 0.26 + htop) * 0.5,
 							(oz + ez) * 0.5),
-						Vector3(xb - xa, ltop - 0.03 - base - 0.26, absf(ez - oz)),
+						Vector3(xb - xa, htop - base - 0.26, absf(ez - oz)),
 						"building")
 				# The core under the bank. Topped a hand below the retaining
 				# wall's own level, which is the lowest the skin gets over this
@@ -11479,12 +11647,22 @@ func _east_climb() -> void:
 				# strip it gives up is the one the wall is standing in anyway.
 				# Skipped where the bank has run out near the head, or the span goes
 				# negative and the box turns itself inside out.
+				# Topped at the segment's *west* end, like `climb_hill` above and
+				# for the same arithmetic: the skin's foot line is the floor
+				# where there is no wall, the floor climbs a third of a metre
+				# across a segment, and a flat top set to the middle station
+				# put every core's west corners through the batter — grey
+				# tetrahedra among the blooms along the last flight, where no
+				# proud retaining wall stood in front of the seam to hide it.
+				var fy0 := Plan.climb_floor_y(xa)
+				var wall_h0 := maxf(Plan.east_ground_base(xa) - fy0
+					- _climb_bank_d(xa), 0.0)
 				var core_z: float = half + 0.5
 				if w > core_z + 0.1:
 					_box("climb_bankcore_%s_%d" % [tag, si], Vector3.ZERO,
-						Vector3(xm, (base + 0.4 + fy + wall_h - 0.02) * 0.5,
+						Vector3(xm, (base + 0.4 + fy0 + wall_h0 - 0.02) * 0.5,
 							axis + side * (core_z + w) * 0.5),
-						Vector3(xb - xa + 0.11, fy + wall_h - 0.42 - base,
+						Vector3(xb - xa + 0.11, fy0 + wall_h0 - 0.42 - base,
 							absf(w - core_z)), "building", 0.0, false)
 				# The planting on the bank, sat on the skin rather than on a
 				# plate's flat top. `_east_bank_y` is the one description of
@@ -11796,12 +11974,36 @@ func _east_climb() -> void:
 			Plan.BASIN_R, 0.44, "niche_stone", 0.0, 16)
 		_water_cyl("basin_%d_water" % i, o, Vector3(0.0, by, 0.0),
 			Plan.BASIN_R - 0.07, 0.12, "basin_pool_%d" % i)
-		# The fall arriving off the lip above. Downhill is -x, so it lands on
-		# this bowl's *upstream* side, which is +x of its centre.
+		# The spill arriving off the lip above — **a sloped sheet, not a
+		# standing tube.** The bowls are 1.5m across on a 2.5m spacing, so a
+		# metre of dry plinth stands between each pair, and the old fall
+		# cylinder was drawn on *this* bowl's upstream lip — 1.1m downstream
+		# of the lip the water actually leaves, connected to nothing at
+		# either end. From play it read as a row of striped tubes hovering
+		# over the garden, which is exactly what it was. The reference plate
+		# settles the shape: between basins the Cleveland Cascade runs sloped
+		# chutes, so the water leaves the upper lip and slides as one ribbon
+		# into this bowl over its own rim. The material's fade band already
+		# spans exactly this drop. Downhill is -x, so the ribbon climbs +x
+		# from just inside this bowl's water to the upstream bowl's lip.
+		# **Two segments, because the plinth has a shelf in it.** The upper
+		# bowl stands on its own plinth, whose top runs half a metre past the
+		# lip before stepping down — so one straight ribbon from lip to bowl
+		# lies tangent along that shelf corner, and its translucent bands
+		# zebra against the terracotta a millimetre beneath. The water's real
+		# path is a short fall off the lip *onto* the shelf, then a chute off
+		# the shelf corner over the lower rim — which is also the plate's own
+		# stacked-lips reading, one lip more per basin.
 		if i < Plan.BASIN_COUNT - 1:
-			_water_cyl("basin_%d_fall" % i, o,
-				Vector3(Plan.BASIN_R * 0.86, by + Plan.BASIN_FALL * 0.5, 0.0),
-				0.30, Plan.BASIN_FALL, "basin_fall_%d" % i)
+			_water_ramp("basin_%d_spill_a" % i,
+				o + Vector3(1.42, by + 0.63, 0.0),
+				o + Vector3(Plan.BASIN_STEP - Plan.BASIN_R + 0.03,
+					by + Plan.BASIN_FALL + 0.04, 0.0),
+				0.44, "basin_fall_%d" % i)
+			_water_ramp("basin_%d_spill_b" % i,
+				o + Vector3(0.58, by + 0.06, 0.0),
+				o + Vector3(1.46, by + 0.64, 0.0),
+				0.44, "basin_fall_%d" % i)
 	# The discharge into the collecting pool, off the lowest bowl.
 	var b0x: float = x0 + Plan.BASIN_STEP * 0.5
 	var b0y := _climb_channel_y(b0x)

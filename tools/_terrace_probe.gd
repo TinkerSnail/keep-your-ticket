@@ -1,0 +1,82 @@
+extends Node
+
+## Dev probe: the east climb's walled courts, banks, and basin chain.
+##
+## Throwaway diagnostic for the 2026-08-23 reports from play: masonry colliding
+## with the ground skin at the courts, missing faces on the green, floating
+## fall tubes on the chain. Free cameras only — half these standpoints are in
+## mid-air, and the ones that are not are inside courts the player screenshots
+## came from.
+
+const SETTLE := 6.0
+
+## Yaw convention (see `_east_probe.gd`): forward is (-sin yaw, -cos yaw), so
+## 0 = north (-z), -90 = east (+x), +90 = west (-x), 180 = south (+z).
+const FREE := [
+	# The y=10 south walled court (terrace at x 85.6..89.2), from above and
+	# outside — the standpoint of the player's first two screenshots.
+	{"name": "a_court10s_above", "pos": Vector3(87.4, 14.5, 18.0), "yaw": 0.0, "pitch": -28.0},
+	# Standing in it, facing along the cut — the frame that found the bank-end
+	# holes on 2026-08-22.
+	{"name": "b_court10s_east", "pos": Vector3(87.4, 11.6, 10.0), "yaw": -90.0, "pitch": -4.0},
+	{"name": "c_court10s_back", "pos": Vector3(87.4, 11.6, 8.5), "yaw": 180.0, "pitch": -6.0},
+	# The y=14 south court (terrace at x 96.8..100.4), same three ways.
+	{"name": "d_court14s_above", "pos": Vector3(98.6, 18.5, 18.0), "yaw": 0.0, "pitch": -28.0},
+	{"name": "e_court14s_east", "pos": Vector3(98.6, 15.6, 10.0), "yaw": -90.0, "pitch": -4.0},
+	{"name": "f_court14s_stair", "pos": Vector3(95.5, 16.5, 3.5), "yaw": 155.0, "pitch": -22.0},
+	# North side for the winding-dependent faults.
+	{"name": "g_court14n_above", "pos": Vector3(98.6, 18.5, -22.0), "yaw": 180.0, "pitch": -28.0},
+	{"name": "h_court10n_east", "pos": Vector3(87.4, 11.6, -14.0), "yaw": -90.0, "pitch": -4.0},
+	# Across the ravine, low: what the far bank shows through its own holes.
+	{"name": "i_across_ravine", "pos": Vector3(89.0, 12.0, -9.0), "yaw": 168.0, "pitch": -6.0},
+	# The chain from the head looking down — the player's basin screenshot.
+	{"name": "j_chain_from_head", "pos": Vector3(112.0, 21.0, 0.0), "yaw": 90.0, "pitch": -18.0},
+	# The chain from the belvedere looking up.
+	{"name": "k_chain_from_foot", "pos": Vector3(79.5, 8.3, -1.0), "yaw": -90.0, "pitch": -6.0},
+	# One bowl close up, side on.
+	{"name": "l_bowl_close", "pos": Vector3(96.0, 14.2, -3.2), "yaw": 145.0, "pitch": -18.0},
+	# The head of the climb and the crest courts.
+	{"name": "m_head", "pos": Vector3(103.0, 21.5, -16.0), "yaw": -145.0, "pitch": -18.0},
+	# Aerial: the whole climb corridor.
+	{"name": "n_aerial", "pos": Vector3(80.0, 42.0, 0.0), "yaw": -90.0, "pitch": -52.0},
+	# From the west, plaza side of the hill, mid-height: the scarp and both
+	# court flanks in one frame.
+	{"name": "o_from_west", "pos": Vector3(62.0, 22.0, 0.0), "yaw": -90.0, "pitch": -14.0},
+	# The structure at the head of the chain and the grey sail leaning on it,
+	# from both flanks — close enough to name the node.
+	{"name": "p_head_chain_s", "pos": Vector3(102.0, 20.0, 6.0), "yaw": -40.0, "pitch": -12.0},
+	{"name": "q_head_chain_n", "pos": Vector3(103.0, 20.0, -9.0), "yaw": -151.0, "pitch": -12.0},
+	# Straight down over the white dart seen from p, to read its plan position
+	# off the frame.
+	{"name": "r_dart_topdown", "pos": Vector3(106.0, 30.0, 5.0), "yaw": 0.0, "pitch": -89.0},
+	{"name": "s_dart_low", "pos": Vector3(103.5, 18.6, 3.0), "yaw": -120.0, "pitch": -10.0},
+]
+
+
+func _ready() -> void:
+	add_child(load("res://scenes/main/main.tscn").instantiate())
+	_run()
+
+
+func _run() -> void:
+	ParkClock.running = false
+	ParkClock.set_clock(15, 0)
+	await get_tree().create_timer(SETTLE).timeout
+
+	var cam := Camera3D.new()
+	add_child(cam)
+	cam.current = true
+	for shot in FREE:
+		await _free(cam, shot)
+	get_tree().quit()
+
+
+func _free(cam: Camera3D, shot: Dictionary) -> void:
+	cam.global_position = shot["pos"]
+	cam.rotation = Vector3(deg_to_rad(shot["pitch"]), deg_to_rad(shot["yaw"]), 0.0)
+	for _i in 4:
+		await get_tree().physics_frame
+	await RenderingServer.frame_post_draw
+	var path := "user://terrace_%s.png" % shot["name"]
+	get_viewport().get_texture().get_image().save_png(path)
+	print("saved ", path)
