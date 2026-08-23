@@ -1396,7 +1396,11 @@ func _fountain_materials() -> void:
 	var cax: float = Plan.ARCH_AT.y
 	for i in Plan.BASIN_COUNT:
 		var bx: float = Plan.CLIMB_FROM_X + Plan.BASIN_STEP * (float(i) + 0.5)
-		var by: float = Plan.TERRACE_TWO_Y \
+		# The channel line, and it must agree with `_climb_channel_y` to the
+		# millimetre — these are the world-space centres and fade bands the
+		# bowls' own shaders radiate from, and a band computed off a different
+		# head constant is the six-metres-of-sunken-garden bug wearing water.
+		var by: float = Plan.CLIMB_HEAD_Y \
 			- (Plan.CLIMB_TO_X - bx) * (Plan.CLIMB_RISE / Plan.CLIMB_RUN)
 		mats["basin_pool_%d" % i] = _shader_material(pool, {
 			"tint": Color(0.12, 0.27, 0.30),
@@ -11171,8 +11175,17 @@ func _arch_seam(belongs: StringName, leads: StringName) -> void:
 ## The basin chain's own line, which is **not** the floor's. Constant at the
 ## climb's own mean grade from the head to the mouth; see `BASIN_COUNT` for why
 ## it runs straight through a stair that steps.
+##
+## Anchored at `CLIMB_HEAD_Y`, and the day that constant was born this said
+## `TERRACE_TWO_Y` — which *was* the head's level right up until the climb
+## doubled, and was six metres low from that hour on. The whole median hung
+## 6m below its own flights behind kerbs that rode the floor line, and it was
+## reported from play as "why is the center sunk down?" before any tool said a
+## word: the walk test walks the flights, the coplanar test has no opinion on
+## a chute that is consistently elsewhere, and every screenshot of a sunken
+## garden looks like a sunken garden on purpose.
 func _climb_channel_y(x: float) -> float:
-	return Plan.TERRACE_TWO_Y - (Plan.CLIMB_TO_X - x) * (Plan.CLIMB_RISE / Plan.CLIMB_RUN)
+	return Plan.CLIMB_HEAD_Y - (Plan.CLIMB_TO_X - x) * (Plan.CLIMB_RISE / Plan.CLIMB_RUN)
 
 
 ## Half the ravine's opening at a station: the floor's own half-width plus
@@ -11620,20 +11633,23 @@ func _east_climb() -> void:
 
 	# --- the garden between them -------------------------------------------
 	#
-	# The beds take up the difference between a stair that steps and a chute that
-	# does not: their tops ride the channel's straight line, so where the flights
-	# are level the planting is still falling and where the flights drop it is
-	# still climbing away from them. That mismatch is the whole reason the middle
-	# reads as a garden and not as a landing.
+	# **The beds step with the stair since the climb doubled, and the chute's
+	# reveal is what absorbs the difference now.** They used to ride the
+	# channel's straight line — deliberate, and the mechanism that made the
+	# middle read as a garden at the old scale — but the floor climbs 2m up a
+	# 3.2m flight where the channel climbs 1.5, so at the head of every flight
+	# the planting sat most of a metre down behind its own kerb, and over twelve
+	# near-continuous metres of rise the centre read as a sunken median trench
+	# between two raised stairs. The reference plate reads the other way round:
+	# the borders hug the stairs, and it is the *bowls* that sit deeper or
+	# shallower in the planting as the constant chute crosses the stepping
+	# ground. So the beds hold a hand below the adjacent flight's own line, the
+	# chain keeps its constant grade, and the basins stand 0.1 to 0.7 proud of
+	# the beds depending on where the two lines are in their cycle — which is
+	# the plate's own look, relocated to the one element built to carry it.
 	#
-	# **The tops are one slab a side since 2026-08-22, and were twelve boxes.**
-	# `BASIN_STEP` is 2m and `BASIN_FALL` is half a metre, so a chute the plan
-	# describes as running at its own constant 1:4 came out as a staircase with
-	# half-metre risers — the box-approximating-a-line defect the rim and the
-	# east hill were both rebuilt for, a third time and at a third of the scale.
-	# Here it does not want a mesh: the surface is a plane, not a landform, and a
-	# plane is what `_flight_ramp` already lays. One call a side covers the whole
-	# 24m, because the channel's gradient never changes.
+	# One slab per reach rather than one per side: the bed's line is the
+	# floor's now, and the floor bends at every reach boundary.
 	for s in 2:
 		var side := -1.0 if s == 0 else 1.0
 		var tag := "n" if s == 0 else "s"
@@ -11647,10 +11663,13 @@ func _east_climb() -> void:
 		# kerb pass moved them hundreds of nodes apart and the cover came off: 14
 		# pairs, brick-on-planting, down both sides of the garden.
 		var oz: float = axis + side * (Plan.CLIMB_BED_TO - BED_KERB_TUCK)
-		_flight_ramp("climb_bedramp_%s" % tag,
-			Vector3(x0, _climb_channel_y(x0) - 0.12, (iz + oz) * 0.5),
-			Vector3(x1, _climb_channel_y(x1) - 0.12, (iz + oz) * 0.5),
-			PI * 0.5, absf(oz - iz), "planting")
+		var bri := 0
+		for r in reaches:
+			_flight_ramp("climb_bedramp_%s_%d" % [tag, bri],
+				Vector3(float(r[0]), float(r[2]) - 0.15, (iz + oz) * 0.5),
+				Vector3(float(r[1]), float(r[3]) - 0.15, (iz + oz) * 0.5),
+				PI * 0.5, absf(oz - iz), "planting")
+			bri += 1
 
 	# The mass under it, still one box a basin because nothing about it is seen —
 	# it is what stops you looking under the garden, and the slab is the surface.
@@ -11676,7 +11695,9 @@ func _east_climb() -> void:
 			var tag := "n" if s == 0 else "s"
 			var iz: float = axis + side * (Plan.CLIMB_CHANNEL_HALF + 0.1)
 			var oz: float = axis + side * (Plan.CLIMB_BED_TO - BED_KERB_TUCK)
-			var mtop := cy - BED_MASS_DROP
+			# Below the floor line now that the slabs ride it — at the span's low
+			# end, which is where a flat top comes closest to a climbing one.
+			var mtop := Plan.climb_floor_y(ba) - 0.45
 			_box("climb_bed_%s_%d" % [tag, i], Vector3.ZERO,
 				Vector3(bm, (foot + mtop) * 0.5, (iz + oz) * 0.5),
 				Vector3(bb - ba + 0.06, mtop - foot, absf(oz - iz)), "planting")
@@ -11694,7 +11715,7 @@ func _east_climb() -> void:
 					var qx: float = hx + (_hash01(i * 5 + b * 13 + q, 29, 47) - 0.5) * 0.34
 					var qz: float = hz + (_hash01(i * 5 + b * 13 + q, 31, 59) - 0.5) * 0.34
 					_sphere("climb_bedbloom_%s_%d_%d_%d" % [tag, i, b, q],
-						Vector3(qx, _climb_channel_y(qx) - 0.09, qz),
+						Vector3(qx, Plan.climb_floor_y(qx) - 0.12, qz),
 						Vector3.ZERO,
 						0.055 + _hash01(q * 7 + b, 5, 31) * 0.055, bloom)
 
@@ -11716,7 +11737,10 @@ func _east_climb() -> void:
 		var ka: float = x0 + Plan.FLIGHT_GOING * float(i)
 		var kb: float = ka + Plan.FLIGHT_GOING
 		var kc := _climb_channel_y(kb) - 0.12
-		var ktop: float = maxf(kc, Plan.climb_floor_y(kb)) + 0.26
+		# A low garden edge rather than a retaining guard: the bed holds a hand
+		# below the floor now, so the kerb has nothing deep to hold back and a
+		# tall one is what made the old sunken beds read as a moat.
+		var ktop: float = Plan.climb_floor_y(kb) + 0.14
 		for s in 2:
 			var side := -1.0 if s == 0 else 1.0
 			var tag := "n" if s == 0 else "s"
