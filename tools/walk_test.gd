@@ -317,7 +317,7 @@ func _ready() -> void:
 	# was blocked by `basin_11_bowl`. That is the chain doing its job: the garden
 	# is not a place you cross, and the crossing is the ground above it.
 	var climb_head := Vector3(ParkPlan.CLIMB_TO_X + 4.0,
-		ParkPlan.TERRACE_TWO_Y + 1.2, ex.y - cfz)
+		ParkPlan.CLIMB_HEAD_Y + 1.2, ex.y - cfz)
 	_legs.append(["climb head across", climb_head,
 		Vector3(climb_head.x, climb_head.y, ex.y + cfz), true])
 	# **The bays**, which are the reason the landings exist as more than a pause:
@@ -349,7 +349,7 @@ func _ready() -> void:
 				false])
 		bi += 1
 	_legs.append(["climb head to strip", climb_head,
-		Vector3(ParkPlan.CLIMB_TO_X - 1.0, ParkPlan.TERRACE_TWO_Y + 1.2,
+		Vector3(ParkPlan.CLIMB_TO_X - 1.0, ParkPlan.CLIMB_HEAD_Y + 1.2,
 			ex.y - cfz), true])
 	# Every edge of it, and there are four. Three are hillside and one is the
 	# parapet over a six metre drop onto brick — the notch was built the shape it
@@ -364,8 +364,13 @@ func _ready() -> void:
 		Vector3(78.0, head_y, -27.0), false])
 	_legs.append(["ehill south wall holds", Vector3(78.0, head_y, 12.0),
 		Vector3(78.0, head_y, 23.0), false])
-	_legs.append(["ehill east wall holds", Vector3(82.0, head_y, ex.y),
-		Vector3(93.0, head_y, ex.y), false])
+	# Off the ravine's line, because on the axis the way east is the climb and
+	# the pool — the wall this probes is the notch's east reveal beside the
+	# mouth. The old start of x 82 was on the shelf when the shelf ran to 86
+	# and was over the ravine's channel the day it shrank to 78; a probe that
+	# spawns inside the cut reports on the cut's plumbing, not the wall.
+	_legs.append(["ehill east wall holds", Vector3(74.0, head_y, -10.0),
+		Vector3(85.0, head_y, -10.0), false])
 
 	# The four scaffolded section thresholds. Head-on plus both corners, because
 	# the leak in a gate is never the middle — it is the hand's width between

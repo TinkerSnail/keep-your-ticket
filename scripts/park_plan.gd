@@ -844,12 +844,12 @@ const TERRACE_TWO_TO_X := 120.0
 ## the scarp would have eaten the whole depth from 86 to 110 across the notch's
 ## full width; this takes a slot at the floor and a taper above it.
 const CLIMB_FROM_X := SHELF_TO_X
-## 94.8 is derived, not chosen: `CLIMB_FROM_X` 78 plus 4 x 6 x `FLIGHT_GOING`
-## (9.6) plus the sum of `CLIMB_TERRACE_DS` (7.2). It cannot be written as that
-## expression because `CLIMB_TERRACE_DS` is declared below it; if any of the
-## four inputs moves, re-derive this by hand — the exactness note at
+## 103.2 is derived, not chosen: `CLIMB_FROM_X` 78 plus 6 x 8 x `FLIGHT_GOING`
+## (19.2) plus the sum of `CLIMB_TERRACE_DS` (6.0). It cannot be written as
+## that expression because `CLIMB_TERRACE_DS` is declared below it; if any of
+## the four inputs moves, re-derive this by hand — the exactness note at
 ## `CLIMB_FLIGHTS` is about precisely this number.
-const CLIMB_TO_X := 94.8
+const CLIMB_TO_X := 103.2
 ## The floor's half-width, and **derived rather than chosen**: the bank has to
 ## spring from the outer edge of the flight, or the 1.3m strip between them is a
 ## verge with no floor under it that the walk test finds by falling down it.
@@ -876,38 +876,58 @@ const CLIMB_BANK_BATTER := 1.4
 const CLIMB_OPEN_HALF := 13.0
 const CLIMB_BANK_MAX_D := (CLIMB_OPEN_HALF - CLIMB_HALF_Z) / CLIMB_BANK_BATTER
 
-## Four flights of six risers, three planted terraces between them. Both of these
-## are the park's own stair constants rather than new ones, and the two sums
-## below are exact rather than nearly: 4 x 6 x `FLIGHT_GOING` plus the sum of
-## `CLIMB_TERRACE_DS` is 16.8, which is `CLIMB_TO_X - CLIMB_FROM_X`; and
-## 4 x 6 x `FLIGHT_RISE` is 6.0, which is `TERRACE_TWO_Y - HILL_TOP`.
+## Six flights of eight risers, five narrow landings between them. The sums are
+## exact rather than nearly: 6 x 8 x `FLIGHT_GOING` (19.2) plus the sum of
+## `CLIMB_TERRACE_DS` (6.0) is 25.2, which is `CLIMB_TO_X - CLIMB_FROM_X`; and
+## 6 x 8 x `FLIGHT_RISE` is 12.0, which is `CLIMB_HEAD_Y - HILL_TOP`.
 ##
-## They are exact because the terrace depth was solved for after the flights were
+## They are exact because the landing depth was solved for after the flights were
 ## fixed, not chosen. If any of the four moves, re-derive the other three — a
 ## staircase that arrives half a riser under its own terrace is the kind of thing
 ## no screenshot shows and every ankle finds.
 ##
-## **The terraces went 4.8 → 2.4 on 2026-08-22, and it is a sightline decision
-## rather than a stair one.** At 4.8 the climb ran 24m for its 6m of rise — 1:4,
-## which from the fountain 90m away is a surface seen nearly edge-on, and with
-## the crest of the monument in front of it the whole feature read as a green
-## wall with railings on it. At 16.8m of run the grade is 1:2.8, so the
-## flights stack frontally and the rise spends less of itself below the crop
-## ray. The rise did not change and must not: six is `CASCADE_DROP` reflected,
-## and the monument was fought for against that number.
+## **These numbers are measured off the reference photograph, and that is the
+## whole 2026-08-22 story in one line.** The historic plate of the Cleveland
+## Cascade — shown as the spec repeatedly before anyone measured against it —
+## has the hillside rising about three times the head-house's height behind it,
+## as a near-continuous ribbon whose landings are pauses rather than shelves.
+## This climb rose exactly 1.0 times its own monument at 1:4, then 1:2.8, and
+## no run compression could fix what was a *rise* deficit: from the court, the
+## photograph's own standpoint, a 6m climb can never show over a 6m crest. So:
+## twelve metres of rise — monument 6, climb 12, three heights stacked — at
+## 1:2.1 overall, landings 1.2m, and the chain unbroken. The bays left the
+## stair with the wide terrace (no landing passes `CLIMB_BAY_MIN_T` now); the
+## walled court moved to the head as the crest terraces.
 ##
-## **And then the terraces went unequal, because uniform 2.4 starved the bays.**
-## A bay's mouth is its terrace's span, and a room six metres deep behind a
-## 2.4m opening is a corridor — walked into and reported as exactly that. The
-## sum is untouched: two 1.2m landings that are pauses in the stair and nothing
-## more, and one 4.8m garden terrace at the half-height, which is the one place
-## a bay was ever going to be a room. Steepness bought back the sightline; the
-## unequal split buys the room back without giving any of the steepness up.
-const CLIMB_FLIGHTS := 4
-const CLIMB_FLIGHT_RISERS := 6
-const CLIMB_TERRACE_DS := [1.2, 4.8, 1.2]
+## The rise above the belvedere is `CLIMB_HEAD_Y - HILL_TOP`, and `HILL_TOP`
+## is still `CASCADE_DROP` reflected — the monument did not move. What grew is
+## the hill behind it: the east's ground ramps from `TERRACE_TWO_Y` at the
+## shoulder bench up to `CLIMB_HEAD_Y` at the head — see `east_ground_base` —
+## so the climb stays a cut in rising land rather than a stair on a spur.
+const CLIMB_FLIGHTS := 6
+const CLIMB_FLIGHT_RISERS := 8
+const CLIMB_TERRACE_DS := [1.2, 1.2, 1.2, 1.2, 1.2]
+const CLIMB_HEAD_Y := 18.0
 const CLIMB_RUN := CLIMB_TO_X - CLIMB_FROM_X
-const CLIMB_RISE := TERRACE_TWO_Y - HILL_TOP
+const CLIMB_RISE := CLIMB_HEAD_Y - HILL_TOP
+
+## Where the east's ground starts rising off the shoulder bench toward the
+## head. West of this the shelf is `TERRACE_TWO_Y` — the bench the shoulders'
+## west face was derived against, which is why that face's arithmetic did not
+## move when the hill grew.
+const EAST_RAMP_FROM_X := 82.0
+
+
+## The east hill's base level at a station: the bench, the ramp behind the
+## scarp, and the head's own level. **In the plan because three files stand on
+## it** — `gen_props` builds the ground and the ravine's banks off it,
+## `gen_crowd` sets graph node heights on it, `walk_test` walks it — and the
+## cafe-table rule is that anything two generators need is written down once.
+static func east_ground_base(x: float) -> float:
+	var t := clampf((x - EAST_RAMP_FROM_X) / (CLIMB_TO_X - EAST_RAMP_FROM_X),
+		0.0, 1.0)
+	t = t * t * (3.0 - 2.0 * t)
+	return TERRACE_TWO_Y + (CLIMB_HEAD_Y - TERRACE_TWO_Y) * t
 
 ## The cross-section, as half-widths off the axis: the channel down the middle,
 ## planting either side of it, then a flight, then the bank against the cut face.
@@ -929,15 +949,14 @@ const CLIMB_FLIGHT_W := 2.1
 ## and a dry trough across each terrace, and the beds either side are exactly
 ## what takes up the difference between a straight chute and a stepped stair.
 ##
-## Eight basins over six metres is three quarters of a metre of fall each, one
-## every 2.1m of run — 1:2.8, the whole feature's mean gradient and therefore
-## the only slope on the hill that does not need a second number. Eight rather
-## than the twelve the chain carried at the old 24m run, for two reasons that
-## arrive together: at 16.8m twelve bowls of `BASIN_R` 0.75 would overlap their
-## own neighbours, and a 0.75m fall face is half again as much white water per
-## lip — which matters, because the falls are the one part of this feature that
-## faces the plaza instead of receding from it.
-const BASIN_COUNT := 8
+## Twelve basins over twelve metres is a full metre of fall each, one every
+## 2.1m of run — 1:2.1, the whole feature's mean gradient and therefore the
+## only slope on the hill that does not need a second number. The spacing is
+## the one the eight-bowl chain proved at the shorter run; the count grew with
+## the rise and the fall grew to a metre, which is the reference plate's own
+## reading — a torrent of white lips stacked up the hill, and the falls are
+## the one part of this feature that faces the plaza instead of receding.
+const BASIN_COUNT := 12
 const BASIN_FALL := CLIMB_RISE / BASIN_COUNT
 const BASIN_STEP := CLIMB_RUN / BASIN_COUNT
 const BASIN_R := 0.75
@@ -1018,7 +1037,7 @@ static func climb_floor_y(x: float) -> float:
 			var t := clampf((x - float(r[0])) / maxf(float(r[1]) - float(r[0]), 0.001),
 				0.0, 1.0)
 			return lerpf(float(r[2]), float(r[3]), t)
-	return TERRACE_TWO_Y
+	return CLIMB_HEAD_Y
 
 
 ## The centre line of a flight strip, as a z offset off the axis.

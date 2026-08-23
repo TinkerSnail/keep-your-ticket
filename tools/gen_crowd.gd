@@ -419,7 +419,7 @@ func _east_graph() -> void:
 	_node("e_belv", Vector3(74.0, Plan.HILL_TOP, axis))
 	_node("e_belv_n", Vector3(78.0, Plan.HILL_TOP, axis - 7.0))
 	_node("e_belv_s", Vector3(78.0, Plan.HILL_TOP, axis + 7.0))
-	_node("e_top", Vector3(Plan.CLIMB_TO_X + 4.0, Plan.TERRACE_TWO_Y, axis))
+	_node("e_top", Vector3(Plan.CLIMB_TO_X + 4.0, Plan.CLIMB_HEAD_Y, axis))
 	# **No link back to `ring_e`.** It was there while the east lived in the
 	# plaza's graph, and the split made it a dangling name: the plaza's ring is
 	# not in this section and the seam at the gate is what joins the two, not an
