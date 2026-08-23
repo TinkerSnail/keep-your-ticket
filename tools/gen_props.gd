@@ -1414,21 +1414,26 @@ func _fountain_materials() -> void:
 			# chain's value reads against.
 			"tint": Color(0.17, 0.36, 0.38),
 			"centre": Vector3(bx, by, cax),
-			# A 1.5m bowl. 10 puts about two rings across the surface; the 24 it
-			# wore first put six, and from play the whole chain read as coiled
-			# rope — at this diameter the rings alias into a moiré spiral well
-			# before they read as ripples. The trough family's 11 was always
-			# the right neighbourhood.
+			# A 3.9m water surface since the bowls went half-round. 10 was set
+			# at the old 1.5m diameter, where the 24 it wore first put six
+			# rings across the disc and from play the chain read as coiled
+			# rope; the alias is rings per metre, not rings per bowl, so the
+			# same 10 on the bigger surface stays comfortably under it and
+			# simply shows more of the same wavelength.
 			"ring_scale": 10.0,
 			"chop": 7.0,
 			"rough": 0.05,
-			# One lamp at the bowl's own centre. `Vector4` and not `Plane`: a
+			# One lamp at the bowl's own centre, its patch scaled with the
+			# bowl — at the old 0.34 on this diameter it read as a torch under
+			# water rather than a lit pool. `Vector4` and not `Plane`: a
 			# Plane here serialises to null and the lamp is dark in the saved
 			# scene while being correct in this process.
-			"lamp_a": Vector4(bx, cax, 0.34, 1.0),
-			# Where the spill off the bowl above enters, just inside the
-			# upstream rim — `basin_%d_spill`'s own low end.
-			"foam_a": Vector4(bx + 0.60, cax, 0.20, 1.0),
+			"lamp_a": Vector4(bx, cax, 0.7, 1.0),
+			# Where the fall off the lip above lands: against the flat back,
+			# a hand downhill of the pedestal face — `basin_%d_fall`'s own
+			# low end.
+			"foam_a": Vector4(bx + Plan.BASIN_STEP - Plan.BASIN_R - 0.07,
+				cax, 0.45, 1.0),
 			# **Turquoise and luminous, and the tint is what does it.** `gc` runs
 			# from `tint` toward `lamp_tint` over the lit patch, and `lamp_tint`
 			# defaults to the fitting's own warm amber — so a bowl could be turned
@@ -1464,12 +1469,14 @@ func _fountain_materials() -> void:
 		# white lips against dark planting are the brightest thing on the hill.
 		# Opacity and a near-white tint are what survive distance; glow is the
 		# night half and only nudges.
-		# Worn only by the spill ribbons since the standing tubes went. Denser
-		# and more opaque than the monument's veils on purpose: a ribbon lies
-		# on a slope over terracotta, so the shader's translucent gaps show
-		# plinth through it, and at the old 2.9 grain the bands came back as a
-		# zebra ramp. Fine grain and high alpha read as white water with
-		# streaks in it; the night glow rides the same uniform it always did.
+		# Worn by the fall curtains — vertical sheets, lip into water, since
+		# the bowls went half-round and the chutes went with the plinths they
+		# lay on. The density stays: it was retuned for ribbons lying on
+		# terracotta, but what the fine grain and high alpha buy is white
+		# water that survives the court's forty metres, and the curtain is
+		# now the plate's own stacked white lip — the one part of the chain
+		# that faces the plaza. The night glow rides the same uniform it
+		# always did.
 		mats["basin_fall_%d" % i] = _shader_material(fall, {
 			"flow": 2.1, "streaks": 72.0, "grain": 5.5,
 			"base_alpha": 0.78, "glow": 1.0,
@@ -1484,7 +1491,10 @@ func _fountain_materials() -> void:
 		"ring_scale": 7.0,
 		"chop": 5.0,
 		"rough": 0.05,
-		"foam_a": Vector4(Plan.CLIMB_FROM_X - 0.7, cax, 0.34, 1.0),
+		# Under the lowest lip, which overhangs the pool by most of a metre
+		# now that the bowls are half-rounds — the discharge curtain's own x.
+		"foam_a": Vector4(Plan.CLIMB_FROM_X + Plan.BASIN_STEP * 0.5
+			- Plan.BASIN_R - 0.07, cax, 0.5, 1.0),
 		"lamp_a": Vector4(pcx - 1.6, cax - 1.9, 0.42, 1.0),
 		"lamp_b": Vector4(pcx - 1.6, cax + 1.9, 0.42, 1.0),
 		"lamp_tint": Color(0.42, 1.0, 0.94),
@@ -4557,12 +4567,20 @@ func _hill_roll(x: float, z: float) -> float:
 	# doubled, and a promenade cut through rolling swell is a trench rather than
 	# a landing. Eased over 4m at both ends so the meadow hands over instead of
 	# stepping — see `_east_head_landing`, which paves what this flattens.
-	var hb := clampf((x - (Plan.CLIMB_TO_X - 2.0)) / 4.0, 0.0, 1.0) \
-		* clampf((HEAD_LAND_TO_X + 2.0 - x) / 4.0, 0.0, 1.0)
+	# Eased over 10m in x and the guard band *widens* with the flat zone —
+	# 6m of rise beside the corridor, 14m beside the landing — with the jag
+	# damped to half near the terrace. The first cut of this used 4m and the
+	# corridor's own 6m guard everywhere, and the meadow answered with 2–3m
+	# scarps folded around the landing at near-45°: angular shaded wedges
+	# full of shadow acne, reported from play as tears in the meadows either
+	# side of the terrace. A terrace in a meadow is bedded in, not walled in.
+	var hb := clampf((x - (Plan.CLIMB_TO_X - 6.0)) / 10.0, 0.0, 1.0) \
+		* clampf((HEAD_LAND_TO_X + 4.0 - x) / 8.0, 0.0, 1.0)
 	hb = hb * hb * (3.0 - 2.0 * hb)
 	var flat_half := lerpf(Plan.CLIMB_OPEN_HALF, HEAD_LAND_HALF, hb)
-	var guard := clampf((absf(z - axis) - flat_half)
-		/ HILL_ROLL_GUARD, 0.0, 1.0)
+	var guard_run := lerpf(HILL_ROLL_GUARD, 14.0, hb)
+	var guard := clampf((absf(z - axis) - flat_half) / guard_run, 0.0, 1.0)
+	guard = guard * guard * (3.0 - 2.0 * guard)
 	if guard <= 0.0:
 		return 0.0
 	var t := clampf((x - Plan.HILL_FACE_X - HILL_SWELL_FROM) / HILL_SWELL_RUN,
@@ -4669,7 +4687,19 @@ func _east_inner(x: float) -> Dictionary:
 		# `CLIMB_BAY_MIN_T`, which is where the rule is stated.
 		if bool(r[4]) or float(r[1]) - float(r[0]) < Plan.CLIMB_BAY_MIN_T:
 			return {"half": _climb_open_half(x), "bank": true}
-		return {"half": Plan.CLIMB_HALF_Z + Plan.CLIMB_BAY_D, "bank": false}
+		# `brow_min`: the skin's edge over a bay lands ON the bay's masonry —
+		# the back wall's cap line — never at bare plateau base. The base can
+		# run over a metre below the wall top across a bay's west half, and a
+		# brow left at base level sank the whole rear of each court into a
+		# rectangular trench behind its own wall, with an open slot at the
+		# bottom: the "tears along the bays", from play, 2026-08-23.
+		# The raise fades over the bay's first and last metre, so the bund
+		# arrives at the boundary columns already down at ground and the
+		# transition band beside the bay is a slope, not a blade.
+		var bend := minf(x - float(r[0]), float(r[1]) - x)
+		return {"half": Plan.CLIMB_HALF_Z + Plan.CLIMB_BAY_D, "bank": false,
+			"brow_min": float(r[2]) + HILL_BRICK_H + 0.15
+				- maxf(1.0 - bend, 0.0) * 1.4}
 	return {"half": 0.0, "bank": false}
 
 
@@ -4677,7 +4707,7 @@ func _east_inner(x: float) -> Dictionary:
 ##
 ## Every **bay** boundary appears **twice**, a hair either side of itself, and
 ## that is what builds the end wall of a bay. The inner edge jumps outward by
-## metres at a bay's mouth — `CLIMB_BAY_D` is 6.5 against an opening near 12 —
+## metres at a bay's mouth — `CLIMB_BAY_D` is 9.5 against an opening near 12 —
 ## so two columns 4mm apart put a vertical face there, which is the cut face the
 ## banks either side used to draw with their own ends. One column would have
 ## sloped it across the whole reach. Boundaries where the bank simply continues
@@ -4783,7 +4813,10 @@ func _east_earth(side: float, tag: String) -> void:
 			# No inset, so their edges butt with identical normals rather than
 			# leaving a 30cm slot down the middle of the ground.
 			bz = axis
-		brow.append(Vector3(x, _east_ground_y(x, bz), bz))
+		# Over a bay the edge rides the masonry, not the bare base — see
+		# `_east_inner`'s `brow_min`, which is the back wall's cap line.
+		var bm := float(inner.get("brow_min", -1.0e9))
+		brow.append(Vector3(x, maxf(_east_ground_y(x, bz), bm), bz))
 		# Through the shared accessor rather than inlined, so the skin and the
 		# blooms standing on it cannot come to disagree about where the slope is.
 		# Three lines and not two, because a bow needs a row of vertices in the
@@ -4843,15 +4876,46 @@ func _east_earth(side: float, tag: String) -> void:
 	# into the one band between the brow and the first row past it, as a
 	# single near-vertical quad. Rows inside a column's brow clamp onto it and
 	# the degenerate guard in `_earth_strip` drops them.
+	# The bay bund, smoothed along x before any row reads it: the raised edge
+	# over a bay's masonry has to die off *sideways* at the same 1:2 it dies
+	# off outward, or it ends at the bay's boundary columns as a vertical
+	# green wall — the "slice in the land beyond each bay", from play,
+	# 2026-08-23. Each column takes the strongest claim any bay column within
+	# reach makes on it.
+	var bund := PackedFloat32Array()
+	for j in cols.size():
+		bund.append(-1.0e9)
+	for j in cols.size():
+		var inner := _east_inner(cols[j])
+		var bm := float(inner.get("brow_min", -1.0e9))
+		if bm < -1.0e8:
+			continue
+		for k in cols.size():
+			var claim := bm - absf(cols[k] - cols[j]) * 0.5
+			if claim > bund[k]:
+				bund[k] = claim
 	st.set_smooth_group(1)
 	var prev := brow
+	var bay_edge_d: float = Plan.CLIMB_HALF_Z + Plan.CLIMB_BAY_D + EARTH_INSET
 	for k in EARTH_ROW_DISTS.size():
 		var dist: float = EARTH_ROW_DISTS[k]
 		var row := PackedVector3Array()
 		for j in cols.size():
-			var d := maxf(dist, absf(brow[j].z - axis))
-			var rz := axis + side * d
-			row.append(Vector3(cols[j], _east_ground_y(cols[j], rz), rz))
+			var bd := absf(brow[j].z - axis)
+			if dist <= bd + 0.001:
+				# Inside the brow: the row collapses onto the brow point
+				# itself — copied, not re-evaluated, because a raised brow
+				# (see `brow_min`) no longer sits on the ground function and
+				# a re-evaluated copy would hang a vertical flap under it.
+				row.append(brow[j])
+				continue
+			var rz := axis + side * dist
+			# The collar tapers back into the meadow at 1:2 in both plan
+			# directions, so the ground behind a court reads as a bund over
+			# the wall and not a moat behind it or a blade beside it.
+			var ry := maxf(_east_ground_y(cols[j], rz),
+				bund[j] - maxf(dist - bay_edge_d, 0.0) * 0.5)
+			row.append(Vector3(cols[j], ry, rz))
 		_earth_strip(st, prev, row, side, 2.0 + 0.1 * float(k), PackedByteArray())
 		prev = row
 	_earth_strip(st, prev, edge, side, 3.0, PackedByteArray())
@@ -4895,16 +4959,38 @@ func _earth_strip(st: SurfaceTool, low: PackedVector3Array,
 	for j in cols - 1:
 		if keep.size() > 0 and (keep[j] == 0 or keep[j + 1] == 0):
 			continue
-		# A quad whose two rows coincide is zero area, and `generate_normals`
-		# hands zero-area triangles junk — which renders as lit-white slivers,
-		# not as nothing. Distance and not z-span, because the skirt's two rows
-		# share their z on purpose and differ only in height.
-		if low[j].distance_squared_to(high[j]) < 0.0004 \
-				and low[j + 1].distance_squared_to(high[j + 1]) < 0.0004:
+		# **No zero-area triangle, ever.** A clamped ladder row coincides with
+		# the brow at some columns, so a quad here can be degenerate at one
+		# end or both. The half-degenerate case is the dangerous one: emitted
+		# as two triangles, one has two coincident corners — zero area with
+		# distinct UVs — and `generate_normals`/`generate_tangents` divide by
+		# that area, so the NaN spreads through the weld into every triangle
+		# sharing the vertex. The *collision* trimesh takes positions only and
+		# stays sound, which is why the ray grid swore the ground was whole
+		# while the renderer dropped it in sheets — the torn meadows in the
+		# 2026-08-23 play reports, moving with every rebuild. Distance and not
+		# z-span, because the skirt's rows share their z on purpose.
+		var dega := low[j].distance_squared_to(high[j]) < 0.0004
+		var degb := low[j + 1].distance_squared_to(high[j + 1]) < 0.0004
+		if dega and degb:
 			continue
 		var u0 := float(j) / float(cols - 1)
 		var u1 := float(j + 1) / float(cols - 1)
-		if side < 0.0:
+		if dega:
+			if side < 0.0:
+				_rim_tri(st, low[j], u0, v0, high[j + 1], u1, v0 + 1.0,
+					low[j + 1], u1, v0)
+			else:
+				_rim_tri(st, low[j], u0, v0, low[j + 1], u1, v0,
+					high[j + 1], u1, v0 + 1.0)
+		elif degb:
+			if side < 0.0:
+				_rim_tri(st, low[j], u0, v0, high[j], u0, v0 + 1.0,
+					low[j + 1], u1, v0)
+			else:
+				_rim_tri(st, low[j], u0, v0, low[j + 1], u1, v0,
+					high[j], u0, v0 + 1.0)
+		elif side < 0.0:
 			_rim_tri(st, low[j], u0, v0, high[j], u0, v0 + 1.0,
 				low[j + 1], u1, v0)
 			_rim_tri(st, high[j], u0, v0 + 1.0, high[j + 1], u1, v0 + 1.0,
@@ -11376,8 +11462,16 @@ func _climb_open_half(x: float) -> float:
 ## is left for the retaining wall under it. Capped by `CLIMB_BANK_MAX_D`, which
 ## is what keeps the mouth from eating the belvedere's east wall.
 func _climb_bank_d(x: float) -> float:
-	return minf(Plan.east_ground_base(x) - Plan.climb_floor_y(x),
-		Plan.CLIMB_BANK_MAX_D)
+	# Clamped at zero, and the zero is load-bearing: near the top of every
+	# flight the stair momentarily outruns the rising plateau, so the raw
+	# difference goes *negative* — and a negative depth put the brow inboard
+	# of the foot, turning the bank strips inside out. Flipped triangles cull
+	# from above, which is a see-through slit along the ravine's edge at every
+	# upper flight — beside the bays, where play kept reporting a slice in the
+	# land no pass would die. Zero depth collapses the bank to nothing there
+	# and the degenerate guard drops it, which is what a cut of no depth is.
+	return clampf(Plan.east_ground_base(x) - Plan.climb_floor_y(x),
+		0.0, Plan.CLIMB_BANK_MAX_D)
 
 
 ## The ravine, and the park climbing into the hill.
@@ -11749,6 +11843,20 @@ func _east_climb() -> void:
 		var rb: float = r[1]
 		var ya: float = r[2]
 		var yb: float = r[3]
+		# **The top flight tops out at the finished ground, not at the base.**
+		# The reaches end at `CLIMB_HEAD_Y`, which is the head band's *base*;
+		# the ground the climb delivers you to is the skin, `GROUND_LIFT` above
+		# it. Arriving at the base left the closing face's top two centimetres
+		# standing across both strip mouths — a lip right where the landing
+		# meets the steps, with the head paving's edge a hand behind it. The
+		# bottom never had this, because the belvedere's deck is masonry topped
+		# at `HILL_TOP` exactly; only the head hands over to a floating skin.
+		# The ramp, treads and nosings all hang off `fb`, so the whole strip
+		# absorbs it — two and a half millimetres a riser, and the arrival is
+		# flush with the skin, the paving's own 12mm proudness being the same
+		# edge every path in the park wears.
+		if ri == reaches.size() - 1:
+			yb += GROUND_LIFT
 		for s in 2:
 			var side := -1.0 if s == 0 else 1.0
 			var tag := "n" if s == 0 else "s"
@@ -11992,58 +12100,80 @@ func _east_climb() -> void:
 
 	# --- the chain ----------------------------------------------------------
 	#
-	# Twelve bowls, each spilling half a metre into the one below. Terracotta and
-	# not the facade's blue, because it is the niche fountain's own stone — this
-	# is the same water feature and the niche is the bottom of it.
+	# Twelve bowls, each a full metre above the next, and **each one a
+	# half-round by burial rather than by profile**: the bowl is a full
+	# cylinder whose uphill cap is swallowed by the pedestal carrying the bowl
+	# above, so what shows is a semi-circular tub backed against a flat wall —
+	# the reference plate's own construction, every basin tucked under the
+	# masonry of the one over it. Terracotta and not the facade's blue,
+	# because it is the niche fountain's own stone — this is the same water
+	# feature and the niche is the bottom of it.
+	#
+	# **The radius is `BASIN_R`'s direct-pour arithmetic** (see the plan): the
+	# lip the water leaves is the bowl's downhill-most point, `step - R` uphill
+	# of the bowl below's centre, and at 2.0 on the 2.5 spacing that point
+	# stands over the lower bowl's open water with the back wall a hand behind
+	# it. So the spill is a plain vertical curtain, lip into water, and the
+	# chutes that used to carry it across a metre of dry plinth are gone with
+	# the plinth they lay on.
+	var br: float = Plan.BASIN_R
+	# The flat back stands 0.1 uphill of where the fall off the lip above
+	# lands, which is where the plate lands every one of its pours.
+	var back_off: float = Plan.BASIN_STEP - br + 0.1
 	for i in Plan.BASIN_COUNT:
 		var bx: float = x0 + Plan.BASIN_STEP * (float(i) + 0.5)
 		var by := _climb_channel_y(bx)
 		var o := Vector3(bx, 0.0, axis)
-		# The bed the bowl stands on, carried down to the mass so no bowl floats.
-		_box("basin_%d_plinth" % i, o,
-			Vector3(0.0, (base - 0.15 + by - 0.42) * 0.5, 0.0),
-			Vector3(Plan.BASIN_STEP + 0.06, by - 0.27 - base,
-				Plan.BASIN_R * 2.0 + 0.5), "niche_stone")
+		# The drum under the bowl, inset a hand so the lip overhangs it in
+		# shadow. Footings alternate for the bed masses' reason: 3.6m drums on
+		# a 2.5m spacing overlap their neighbours in plan, and a row sharing
+		# one underside plane is the roll-call the alternation exists for.
+		var dfoot: float = base - 0.15 - (0.12 if i % 2 == 1 else 0.0)
+		_cyl("basin_%d_drum" % i, o,
+			Vector3(0.0, (dfoot + by - 0.38) * 0.5, 0.0),
+			br - 0.2, by - 0.38 - dfoot, "niche_stone", 0.0, 24)
 		_cyl("basin_%d_bowl" % i, o, Vector3(0.0, by - 0.2, 0.0),
-			Plan.BASIN_R, 0.44, "niche_stone", 0.0, 16)
+			br, 0.44, "niche_stone", 0.0, 24)
 		_water_cyl("basin_%d_water" % i, o, Vector3(0.0, by, 0.0),
-			Plan.BASIN_R - 0.07, 0.12, "basin_pool_%d" % i)
-		# The spill arriving off the lip above — **a sloped sheet, not a
-		# standing tube.** The bowls are 1.5m across on a 2.5m spacing, so a
-		# metre of dry plinth stands between each pair, and the old fall
-		# cylinder was drawn on *this* bowl's upstream lip — 1.1m downstream
-		# of the lip the water actually leaves, connected to nothing at
-		# either end. From play it read as a row of striped tubes hovering
-		# over the garden, which is exactly what it was. The reference plate
-		# settles the shape: between basins the Cleveland Cascade runs sloped
-		# chutes, so the water leaves the upper lip and slides as one ribbon
-		# into this bowl over its own rim. The material's fade band already
-		# spans exactly this drop. Downhill is -x, so the ribbon climbs +x
-		# from just inside this bowl's water to the upstream bowl's lip.
-		# **Two segments, because the plinth has a shelf in it.** The upper
-		# bowl stands on its own plinth, whose top runs half a metre past the
-		# lip before stepping down — so one straight ribbon from lip to bowl
-		# lies tangent along that shelf corner, and its translucent bands
-		# zebra against the terracotta a millimetre beneath. The water's real
-		# path is a short fall off the lip *onto* the shelf, then a chute off
-		# the shelf corner over the lower rim — which is also the plate's own
-		# stacked-lips reading, one lip more per basin.
-		if i < Plan.BASIN_COUNT - 1:
-			_water_ramp("basin_%d_spill_a" % i,
-				o + Vector3(1.42, by + 0.63, 0.0),
-				o + Vector3(Plan.BASIN_STEP - Plan.BASIN_R + 0.03,
-					by + Plan.BASIN_FALL + 0.04, 0.0),
-				0.44, "basin_fall_%d" % i)
-			_water_ramp("basin_%d_spill_b" % i,
-				o + Vector3(0.58, by + 0.06, 0.0),
-				o + Vector3(1.46, by + 0.64, 0.0),
-				0.44, "basin_fall_%d" % i)
-	# The discharge into the collecting pool, off the lowest bowl.
+			br - 0.07, 0.12, "basin_pool_%d" % i, 24)
+		# The pedestal: the flat back the half-round reads against, and the
+		# masonry the bowl above stands over. Its downhill face is the back
+		# wall; its far end dies under the next drum, whose own edge sits 0.1
+		# uphill of the face and never shows through it. The top basin's stays
+		# *below* its own bowl rim — there is no bowl above to stand over, and
+		# built to the others' height it was a four-metre terracotta stage
+		# 0.16 proud of the head landing; the flat back above the water line
+		# there is `basin_source_wall`'s job. z half-width and footing both
+		# alternate — twelve boxes in a row at one width is twelve shared
+		# side planes.
+		var head := i == Plan.BASIN_COUNT - 1
+		var wx: float = bx + (0.9 if head else back_off)
+		var pex: float = minf(bx + Plan.BASIN_STEP, x1 + 0.7)
+		var pfoot: float = base - 0.5 - (0.12 if i % 2 == 0 else 0.0)
+		var ptop: float = by + (-0.08 if head else 0.6)
+		var phz: float = br + (0.02 if i % 2 == 1 else 0.06)
+		_box("basin_%d_back" % i, o,
+			Vector3((wx + pex) * 0.5 - bx, (pfoot + ptop) * 0.5, 0.0),
+			Vector3(pex - wx, ptop - pfoot, phz * 2.0), "niche_stone")
+		# The fall arriving off the lip above — a vertical curtain now that
+		# the lip is over this bowl's water. Only the downhill arc of a lip
+		# pours anywhere a bowl catches it, so this is one flat sheet across
+		# that arc rather than a ring: a full wrap would hang water down the
+		# drum's sides where nothing spills, which is the striped-tubes
+		# failure bent into a circle. The top bowl is fed by
+		# `basin_source_spill` off the headwall instead.
+		if not head:
+			_water_box("basin_%d_fall" % i, o,
+				Vector3(Plan.BASIN_STEP - br - 0.07, by + 0.515, 0.0),
+				Vector3(0.12, 1.07, 1.5), "basin_fall_%d" % i)
+	# The discharge into the collecting pool, straight off the lowest lip —
+	# which overhangs the pool's own water now, so the finale is the same
+	# pour as every step above it.
 	var b0x: float = x0 + Plan.BASIN_STEP * 0.5
 	var b0y := _climb_channel_y(b0x)
-	_water_box("basin_spill", Vector3(b0x - Plan.BASIN_R - 0.35, 0.0, axis),
-		Vector3(0.0, (b0y + Plan.POOL_TOP_Y) * 0.5, 0.0),
-		Vector3(0.7, b0y - Plan.POOL_TOP_Y, 0.9), "basin_fall_head")
+	_water_box("basin_spill", Vector3(b0x - br - 0.07, 0.0, axis),
+		Vector3(0.0, (b0y + 0.05 + Plan.POOL_TOP_Y - 0.03) * 0.5, 0.0),
+		Vector3(0.12, b0y + 0.08 - Plan.POOL_TOP_Y, 1.6), "basin_fall_head")
 	# **The source, at the other end.** The chain's top bowl had no feed and
 	# the median simply stopped at `CLIMB_TO_X` — which read from the landing
 	# as a raw ledge, and was one until the skin closed the ravine's east end
@@ -12051,12 +12181,17 @@ func _east_climb() -> void:
 	# against that face, its top a bed-kerb's height proud of the landing lip
 	# so the drop into the garden is guarded, and the water arrives over it —
 	# the classic cascade source, and the plate's own arrangement: the chain
-	# begins at a wall, not in mid-grass. Footed in the top bowl's plinth.
+	# begins at a wall and not in mid-grass. As wide as the half-round bowl
+	# it backs since the bowls grew, footed in the top basin's pedestal, and
+	# its face 2cm proud of that pedestal's — two boxes cut on one plane is
+	# a fight, and the curb is the one that shows. The ramp's low end lands
+	# in the top bowl's open water, a stride in front of the wall, which is
+	# the direct-pour rule the whole chain runs on now.
 	var bhx: float = x1 - Plan.BASIN_STEP * 0.5
 	var bhy := _climb_channel_y(bhx)
 	_box("basin_source_wall", Vector3.ZERO,
-		Vector3(107.9, (16.9 + 18.16) * 0.5, axis),
-		Vector3(0.5, 1.26, 2.7), "niche_stone")
+		Vector3(bhx + 1.13, (16.9 + 18.16) * 0.5, axis),
+		Vector3(0.5, 1.26, Plan.BASIN_R * 2.0 + 0.12), "niche_stone")
 	_water_ramp("basin_source_spill",
 		Vector3(bhx + 0.58, bhy + 0.07, axis),
 		Vector3(107.70, 17.99, axis),

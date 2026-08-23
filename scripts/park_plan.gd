@@ -965,10 +965,22 @@ const CLIMB_FLIGHT_W := 2.1
 ## the rise and the fall grew to a metre, which is the reference plate's own
 ## reading — a torrent of white lips stacked up the hill, and the falls are
 ## the one part of this feature that faces the plaza instead of receding.
+##
+## **The radius is direct-pour arithmetic, not a look.** Each bowl reads as a
+## half-round because its uphill cap is buried in the pedestal carrying the
+## bowl above — the plate's own construction — and the water leaves the lip at
+## the bowl's downhill-most point, `BASIN_STEP - BASIN_R` uphill of the next
+## bowl's centre. That point is only over the lower bowl's open water when
+## `BASIN_R > BASIN_STEP / 2`; at the old 0.75 every lip stood a metre of dry
+## plinth short of the next bowl and the water had to cross it as a chute. At
+## 2.0 on the 2.5 spacing the lip overhangs the next bowl by a metre and a
+## half, the fall lands in water a hand in front of the flat back, and the
+## chain pours lip to bowl the whole way down, which is what the plate is a
+## photograph of.
 const BASIN_COUNT := 12
 const BASIN_FALL := CLIMB_RISE / BASIN_COUNT
 const BASIN_STEP := CLIMB_RUN / BASIN_COUNT
-const BASIN_R := 0.75
+const BASIN_R := 2.0
 
 ## The collecting pool at the foot, on the belvedere, and the reason the shelf
 ## was never going to stay a bare deck. The chain discharges into it at the cut's
@@ -1007,11 +1019,19 @@ const CLIMB_HEAD_TO_X := RIM_FOOT_X
 ## **One scalar since the terraces went unequal, and one bay per side with it.**
 ## Three graduated bays made sense on three 4.8m terraces; on 1.2m landings a
 ## bay of any depth is a slot, so only a terrace at least `CLIMB_BAY_MIN_T`
-## deep carries one — which today is the middle terrace alone, at the climb's
-## half-height, a 4.8 by 6.5 room either side. The narrow landings keep their
-## banks unbroken instead, which is most of what un-cluttered the flanks: fewer
-## cuts is fewer walls, fewer caps and fewer corners.
-const CLIMB_BAY_D := 6.5
+## deep carries one — which today is the two garden terraces. The narrow
+## landings keep their banks unbroken instead, which is most of what
+## un-cluttered the flanks: fewer cuts is fewer walls, fewer caps and fewer
+## corners.
+##
+## 9.5 since 2026-08-23 — extended back into the greenery: at 6.5 a bay was a
+## niche you stepped aside into, and the meadow behind its wall was most of
+## five metres of hill nothing used. At 9.5 it is a garden court pushed into
+## the hillside, back wall at 16.2 off the axis, with 1.8m of hill still
+## standing between the wall and the blocks — inside the 11.3m budget above,
+## and enough that the back reads as a cut face rather than a shell over
+## `hill_north`/`hill_south`.
+const CLIMB_BAY_D := 9.5
 const CLIMB_BAY_MIN_T := 3.0
 
 ## The reaches of the climb, west to east, as `[x0, x1, y0, y1, is_flight]`.

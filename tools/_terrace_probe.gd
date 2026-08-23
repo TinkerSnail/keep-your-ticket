@@ -62,6 +62,27 @@ const FREE := [
 	{"name": "x_head_edge", "pos": Vector3(111.0, 19.6, -2.0), "yaw": 90.0, "pitch": -14.0},
 	{"name": "y_ramp_head", "pos": Vector3(109.6, 19.4, -7.65), "yaw": 90.0, "pitch": -16.0},
 	{"name": "z_stair_head", "pos": Vector3(109.6, 19.4, 3.65), "yaw": 90.0, "pitch": -16.0},
+	# The surroundings: standing on the meadow and the shoulders, where the
+	# 2026-08-23 "tears" reports come from. The skin/shoulder junction runs
+	# along z -28 and 24 — half of these look straight down it.
+	{"name": "aa_meadow_n", "pos": Vector3(112.0, 20.5, -22.0), "yaw": 135.0, "pitch": -10.0},
+	{"name": "ab_meadow_s", "pos": Vector3(112.0, 20.5, 18.0), "yaw": 45.0, "pitch": -10.0},
+	{"name": "ac_rim_toe", "pos": Vector3(124.0, 21.5, -2.0), "yaw": 90.0, "pitch": -8.0},
+	{"name": "ad_join_n", "pos": Vector3(80.0, 17.5, -28.0), "yaw": -90.0, "pitch": -12.0},
+	{"name": "ae_join_s", "pos": Vector3(80.0, 17.5, 24.0), "yaw": -90.0, "pitch": -12.0},
+	{"name": "af_shoulder_n", "pos": Vector3(72.0, 17.0, -40.0), "yaw": -140.0, "pitch": -10.0},
+	{"name": "ag_shoulder_s", "pos": Vector3(72.0, 17.0, 36.0), "yaw": -40.0, "pitch": -10.0},
+	{"name": "ah_aerial_wide", "pos": Vector3(90.0, 55.0, -2.0), "yaw": -90.0, "pitch": -62.0},
+	# Close along each bay's boundary line from the meadow side — the
+	# 2026-08-23 "tears along the bays" report. `rel` cameras stand on the
+	# ground the raycast finds plus an eye height, because three fixed-height
+	# passes in a row buried the camera inside the meadow and photographed
+	# fill masses through culled backfaces.
+	{"name": "ba_bay14s_rear", "pos": Vector3(100.9, 1.7, 14.5), "yaw": 35.0, "pitch": -28.0, "rel": true},
+	{"name": "bb_bay14s_rear_w", "pos": Vector3(96.2, 1.7, 14.5), "yaw": -30.0, "pitch": -28.0, "rel": true},
+	{"name": "bc_bay10s_rear", "pos": Vector3(89.5, 1.7, 14.0), "yaw": 15.0, "pitch": -25.0, "rel": true},
+	{"name": "bd_bay14n_rear", "pos": Vector3(98.6, 1.7, -16.5), "yaw": 170.0, "pitch": -28.0, "rel": true},
+	{"name": "be_along_bays", "pos": Vector3(109.0, 1.7, 8.0), "yaw": 105.0, "pitch": -8.0, "rel": true},
 ]
 
 
@@ -84,7 +105,15 @@ func _run() -> void:
 
 
 func _free(cam: Camera3D, shot: Dictionary) -> void:
-	cam.global_position = shot["pos"]
+	var pos: Vector3 = shot["pos"]
+	if shot.get("rel", false):
+		var space := get_viewport().get_world_3d().direct_space_state
+		var q := PhysicsRayQueryParameters3D.create(
+			Vector3(pos.x, 60.0, pos.z), Vector3(pos.x, -5.0, pos.z))
+		var hit := space.intersect_ray(q)
+		if not hit.is_empty():
+			pos.y = hit["position"].y + pos.y
+	cam.global_position = pos
 	cam.rotation = Vector3(deg_to_rad(shot["pitch"]), deg_to_rad(shot["yaw"]), 0.0)
 	for _i in 4:
 		await get_tree().physics_frame
