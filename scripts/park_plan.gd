@@ -844,12 +844,12 @@ const TERRACE_TWO_TO_X := 120.0
 ## the scarp would have eaten the whole depth from 86 to 110 across the notch's
 ## full width; this takes a slot at the floor and a taper above it.
 const CLIMB_FROM_X := SHELF_TO_X
-## 103.2 is derived, not chosen: `CLIMB_FROM_X` 78 plus 6 x 8 x `FLIGHT_GOING`
-## (19.2) plus the sum of `CLIMB_TERRACE_DS` (6.0). It cannot be written as
+## 108.0 is derived, not chosen: `CLIMB_FROM_X` 78 plus 6 x 8 x `FLIGHT_GOING`
+## (19.2) plus the sum of `CLIMB_TERRACE_DS` (10.8). It cannot be written as
 ## that expression because `CLIMB_TERRACE_DS` is declared below it; if any of
 ## the four inputs moves, re-derive this by hand — the exactness note at
 ## `CLIMB_FLIGHTS` is about precisely this number.
-const CLIMB_TO_X := 103.2
+const CLIMB_TO_X := 108.0
 ## The floor's half-width, and **derived rather than chosen**: the bank has to
 ## spring from the outer edge of the flight, or the 1.3m strip between them is a
 ## verge with no floor under it that the walk test finds by falling down it.
@@ -876,10 +876,11 @@ const CLIMB_BANK_BATTER := 1.4
 const CLIMB_OPEN_HALF := 13.0
 const CLIMB_BANK_MAX_D := (CLIMB_OPEN_HALF - CLIMB_HALF_Z) / CLIMB_BANK_BATTER
 
-## Six flights of eight risers, five narrow landings between them. The sums are
-## exact rather than nearly: 6 x 8 x `FLIGHT_GOING` (19.2) plus the sum of
-## `CLIMB_TERRACE_DS` (6.0) is 25.2, which is `CLIMB_TO_X - CLIMB_FROM_X`; and
-## 6 x 8 x `FLIGHT_RISE` is 12.0, which is `CLIMB_HEAD_Y - HILL_TOP`.
+## Six flights of eight risers, five landings between them — three pauses and
+## two garden terraces. The sums are exact rather than nearly: 6 x 8 x
+## `FLIGHT_GOING` (19.2) plus the sum of `CLIMB_TERRACE_DS` (10.8) is 30.0,
+## which is `CLIMB_TO_X - CLIMB_FROM_X`; and 6 x 8 x `FLIGHT_RISE` is 12.0,
+## which is `CLIMB_HEAD_Y - HILL_TOP`.
 ##
 ## They are exact because the landing depth was solved for after the flights were
 ## fixed, not chosen. If any of the four moves, re-derive the other three — a
@@ -895,9 +896,17 @@ const CLIMB_BANK_MAX_D := (CLIMB_OPEN_HALF - CLIMB_HALF_Z) / CLIMB_BANK_BATTER
 ## no run compression could fix what was a *rise* deficit: from the court, the
 ## photograph's own standpoint, a 6m climb can never show over a 6m crest. So:
 ## twelve metres of rise — monument 6, climb 12, three heights stacked — at
-## 1:2.1 overall, landings 1.2m, and the chain unbroken. The bays left the
-## stair with the wide terrace (no landing passes `CLIMB_BAY_MIN_T` now); the
-## walled court moved to the head as the crest terraces.
+## 1:2.1 overall with every landing a 1.2m pause.
+##
+## **The garden terraces came back the same day the rise proved itself.** All
+## pauses was the plate's ribbon at its purest, and it cost the climb the
+## terrace moments the east is named for — so the second and fourth landings
+## widened to 3.6, at the one-third and two-thirds heights, and both pass
+## `CLIMB_BAY_MIN_T` again: the walled courts stand off their flanks at y 10
+## and y 14, with the crest terraces above and the belvedere below making it
+## a room every three metres of rise. 1:2.5 overall now, which the 12m rise
+## can afford: from the court the head still clears the crest's crop ray by
+## half a metre, checked before the width went in.
 ##
 ## The rise above the belvedere is `CLIMB_HEAD_Y - HILL_TOP`, and `HILL_TOP`
 ## is still `CASCADE_DROP` reflected — the monument did not move. What grew is
@@ -906,7 +915,7 @@ const CLIMB_BANK_MAX_D := (CLIMB_OPEN_HALF - CLIMB_HALF_Z) / CLIMB_BANK_BATTER
 ## so the climb stays a cut in rising land rather than a stair on a spur.
 const CLIMB_FLIGHTS := 6
 const CLIMB_FLIGHT_RISERS := 8
-const CLIMB_TERRACE_DS := [1.2, 1.2, 1.2, 1.2, 1.2]
+const CLIMB_TERRACE_DS := [1.2, 3.6, 1.2, 3.6, 1.2]
 const CLIMB_HEAD_Y := 18.0
 const CLIMB_RUN := CLIMB_TO_X - CLIMB_FROM_X
 const CLIMB_RISE := CLIMB_HEAD_Y - HILL_TOP

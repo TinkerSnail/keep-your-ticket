@@ -5176,8 +5176,10 @@ func _climb_crest_courts() -> void:
 	for s in 2:
 		var side := -1.0 if s == 0 else 1.0
 		var tag := "n" if s == 0 else "s"
-		var x0 := 104.6
-		var x1 := 110.6
+		# East of the climb's head — the last flight tops out at `CLIMB_TO_X`
+		# and a court overlapping the stair is a wall across it.
+		var x0 := 109.6
+		var x1 := 115.6
 		var z0: float = axis + side * 7.5
 		var z1: float = axis + side * 12.6
 		_box("crest_court_deck_%s" % tag, Vector3.ZERO,
@@ -11213,7 +11215,6 @@ func _east_climb() -> void:
 	var axis: float = Plan.ARCH_AT.y
 	var x0: float = Plan.CLIMB_FROM_X
 	var x1: float = Plan.CLIMB_TO_X
-	var top: float = Plan.TERRACE_TWO_Y
 	var base := -HILL_EMBED
 	var sz0: float = Plan.SHELF_FROM_Z
 	var sz1: float = Plan.SHELF_TO_Z
@@ -11250,6 +11251,12 @@ func _east_climb() -> void:
 			# a slope, walled by what it was cut from on three sides.
 			var by: float = r[2]
 			var bd: float = Plan.CLIMB_BAY_D
+			# The local ground, not `TERRACE_TWO_Y`: the hill behind an upper
+			# bay stands at the ramp's height, and a back mass topped at the
+			# bench constant ends two metres below its own bay's floor — the
+			# probe walked out over it and fell onto the buried block. The
+			# datum-fork bug, at its third site.
+			var btop: float = Plan.east_ground_base((rx0 + rx1) * 0.5) - 0.03
 			for s in 2:
 				var side := -1.0 if s == 0 else 1.0
 				var tag := "n" if s == 0 else "s"
@@ -11300,15 +11307,15 @@ func _east_climb() -> void:
 				# coplanar pairs. The top hides under the skin either way.
 				if absf(ez - oz) > 0.2:
 					_box("climb_bayhill_%s_%d" % [tag, bay], Vector3.ZERO,
-						Vector3((rx0 + rx1) * 0.5, (base + 0.28 + top - 0.02) * 0.5,
+						Vector3((rx0 + rx1) * 0.5, (base + 0.28 + btop) * 0.5,
 							(oz + ez) * 0.5),
-						Vector3(rx1 - rx0, top - 0.02 - base - 0.28, absf(ez - oz)),
+						Vector3(rx1 - rx0, btop - base - 0.28, absf(ez - oz)),
 						"building")
 					# A course on the back wall, `accent`. The belvedere settled
 					# this: relief on a west-facing face draws nothing and value
 					# draws everything, and these faces look the same way.
 					_box("climb_bay_course_%s_%d" % [tag, bay], Vector3.ZERO,
-						Vector3((rx0 + rx1) * 0.5, by + (top - by) * 0.62,
+						Vector3((rx0 + rx1) * 0.5, by + (btop - by) * 0.62,
 							oz - side * 0.13),
 						Vector3(rx1 - rx0 + 0.12, 0.3, 0.26), "accent", 0.0, false)
 					# And the brick to head height, which is `_hill_brick`'s rule
@@ -11384,7 +11391,10 @@ func _east_climb() -> void:
 			var xm := (xa + xb) * 0.5
 			var fy := Plan.climb_floor_y(xm)
 			var w := _climb_open_half(xm)
-			var depth := top - fy
+			# Local ground, not `TERRACE_TWO_Y`: the bench constant would
+			# understate the cut everywhere the ramp has risen.
+			var ltop: float = Plan.east_ground_base(xm)
+			var depth := ltop - fy
 			var bank_d := _climb_bank_d(xm)
 			var wall_h: float = depth - bank_d
 			for s in 2:
@@ -11424,9 +11434,9 @@ func _east_climb() -> void:
 				# branch's lesson, at the flight branch.
 				if absf(ez - oz) > 0.2:
 					_box("climb_hill_%s_%d" % [tag, si], Vector3.ZERO,
-						Vector3(xm, (base + 0.26 + top - 0.03) * 0.5,
+						Vector3(xm, (base + 0.26 + ltop - 0.03) * 0.5,
 							(oz + ez) * 0.5),
-						Vector3(xb - xa, top - 0.03 - base - 0.26, absf(ez - oz)),
+						Vector3(xb - xa, ltop - 0.03 - base - 0.26, absf(ez - oz)),
 						"building")
 				# The core under the bank. Topped a hand below the retaining
 				# wall's own level, which is the lowest the skin gets over this

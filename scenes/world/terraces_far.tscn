@@ -27,126 +27,126 @@ roughness = 0.85
 albedo_color = Color(0.72, 0.71, 0.69, 1)
 roughness = 0.9
 
-[node name="terraces_far" type="Node3D" unique_id=804651940]
+[node name="terraces_far" type="Node3D" unique_id=34712979]
 
-[node name="efar_ground" type="CSGBox3D" parent="." unique_id=110917770]
+[node name="efar_ground" type="CSGBox3D" parent="." unique_id=1076756760]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.010500001, -0.61550003, 0.0045000003)
 size = Vector3(104, 1, 104)
 material = SubResource("StandardMaterial3D_qkv3r")
 
-[node name="efar_tower_shaft" type="CSGBox3D" parent="." unique_id=1663901952]
+[node name="efar_tower_shaft" type="CSGBox3D" parent="." unique_id=1723915343]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.48925, 14.88475, -31.99525)
 size = Vector3(5.6, 30, 5.6)
 material = SubResource("StandardMaterial3D_p1uyn")
 
-[node name="efar_tower_cap" type="CSGBox3D" parent="." unique_id=953522900]
+[node name="efar_tower_cap" type="CSGBox3D" parent="." unique_id=669755753]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.489, 29.984997, -31.995)
 size = Vector3(7.4, 1.2, 7.4)
 material = SubResource("StandardMaterial3D_32t5b")
 
-[node name="efar_tower_belfry" type="CSGBox3D" parent="." unique_id=1904297393]
+[node name="efar_tower_belfry" type="CSGBox3D" parent="." unique_id=1040568338]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.494, 32.28, -32)
 size = Vector3(4.2, 4.2, 4.2)
 material = SubResource("StandardMaterial3D_p1uyn")
 
-[node name="efar_tower_spire" type="CSGBox3D" parent="." unique_id=942954526]
+[node name="efar_tower_spire" type="CSGBox3D" parent="." unique_id=1628775864]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.49375, 36.880253, -31.99975)
 size = Vector3(1.9, 5.6, 1.9)
 material = SubResource("StandardMaterial3D_32t5b")
 
-[node name="efar_perim_n_west" type="CSGBox3D" parent="." unique_id=164999007]
+[node name="efar_perim_n_west" type="CSGBox3D" parent="." unique_id=1402982235]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36.4435, 7.8805003, -44.2495)
 size = Vector3(23.1, 16, 5.5)
 material = SubResource("StandardMaterial3D_p1uyn")
 
-[node name="efar_perim_n_east" type="CSGBox3D" parent="." unique_id=1926527290]
+[node name="efar_perim_n_east" type="CSGBox3D" parent="." unique_id=110267657]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.55675, 6.13075, -44.24925)
 size = Vector3(22.9, 12.5, 5.5)
 material = SubResource("StandardMaterial3D_p1uyn")
 
-[node name="efar_perim_n_far_east" type="CSGBox3D" parent="." unique_id=206072930]
+[node name="efar_perim_n_far_east" type="CSGBox3D" parent="." unique_id=1839367952]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.007, 5.131, -44.249)
 size = Vector3(22, 10.5, 5.5)
 material = SubResource("StandardMaterial3D_p1uyn")
 
-[node name="efar_perim_e_north" type="CSGBox3D" parent="." unique_id=118181480]
+[node name="efar_perim_e_north" type="CSGBox3D" parent="." unique_id=709863820]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.50725, 4.75125, -41.69875)
 use_collision = true
 size = Vector3(11, 9.5, 12.6)
 material = SubResource("StandardMaterial3D_8ih5h")
 
-[node name="efar_perim_e_mid_n" type="CSGBox3D" parent="." unique_id=2111190424]
+[node name="efar_perim_e_mid_n" type="CSGBox3D" parent="." unique_id=620649644]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.5075, 5.7515, -14.1985)
 use_collision = true
 size = Vector3(11, 11.5, 10.4)
 material = SubResource("StandardMaterial3D_8ih5h")
 
-[node name="efar_perim_e_mid_s" type="CSGBox3D" parent="." unique_id=494600267]
+[node name="efar_perim_e_mid_s" type="CSGBox3D" parent="." unique_id=7769499]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.50775, 9.50175, 14.40175)
 use_collision = true
 size = Vector3(11, 19, 20.8)
 material = SubResource("StandardMaterial3D_8ih5h")
 
-[node name="efar_perim_e_south" type="CSGBox3D" parent="." unique_id=1180967427]
+[node name="efar_perim_e_south" type="CSGBox3D" parent="." unique_id=1772636394]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.508, 4.752, 42.901997)
 use_collision = true
 size = Vector3(11, 9.5, 10.2)
 material = SubResource("StandardMaterial3D_8ih5h")
 
-[node name="efar_east_pier_north" type="CSGBox3D" parent="." unique_id=1552905784]
+[node name="efar_east_pier_north" type="CSGBox3D" parent="." unique_id=1740447221]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40.25825, 6.25225, -7.24775)
 use_collision = true
 size = Vector3(13.5, 12.5, 4.5)
 material = SubResource("StandardMaterial3D_8ih5h")
 
-[node name="efar_east_pier_south" type="CSGBox3D" parent="." unique_id=1168987472]
+[node name="efar_east_pier_south" type="CSGBox3D" parent="." unique_id=573410353]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40.2585, 6.2525, 3.2525)
 use_collision = true
 size = Vector3(13.5, 12.5, 4.5)
 material = SubResource("StandardMaterial3D_8ih5h")
 
-[node name="efar_east_beam" type="CSGBox3D" parent="." unique_id=244904475]
+[node name="efar_east_beam" type="CSGBox3D" parent="." unique_id=1557204217]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.95875, 6.85275, -1.99725)
 use_collision = true
 size = Vector3(0.9, 1.1, 10.4)
 material = SubResource("StandardMaterial3D_8ih5h")
 
-[node name="efar_perim_s_west" type="CSGBox3D" parent="." unique_id=1653955066]
+[node name="efar_perim_s_west" type="CSGBox3D" parent="." unique_id=1892882124]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -42.141, 4.883, 44.253)
 size = Vector3(11.7, 10, 5.5)
 material = SubResource("StandardMaterial3D_p1uyn")
 
-[node name="efar_perim_s_mid" type="CSGBox3D" parent="." unique_id=291916840]
+[node name="efar_perim_s_mid" type="CSGBox3D" parent="." unique_id=560484464]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.640749, 5.63325, 44.25325)
 size = Vector3(17.3, 11.5, 5.5)
 material = SubResource("StandardMaterial3D_p1uyn")
 
-[node name="efar_perim_s_east" type="CSGBox3D" parent="." unique_id=299719775]
+[node name="efar_perim_s_east" type="CSGBox3D" parent="." unique_id=1511987420]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.5095, 6.1335, 44.2435)
 size = Vector3(21, 12.5, 5.5)
 material = SubResource("StandardMaterial3D_p1uyn")
 
-[node name="efar_perim_s_far_east" type="CSGBox3D" parent="." unique_id=1367441470]
+[node name="efar_perim_s_far_east" type="CSGBox3D" parent="." unique_id=1482005669]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 37.50975, 4.63375, 44.25375)
 size = Vector3(21, 9.5, 5.5)
 material = SubResource("StandardMaterial3D_p1uyn")
 
-[node name="efar_perim_w_north" type="CSGBox3D" parent="." unique_id=2091974670]
+[node name="efar_perim_w_north" type="CSGBox3D" parent="." unique_id=1466915277]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -41.239998, 5.8840003, -35.496)
 size = Vector3(5.5, 12, 25)
 material = SubResource("StandardMaterial3D_p1uyn")
 
-[node name="efar_perim_w_arch_n" type="CSGBox3D" parent="." unique_id=467573671]
+[node name="efar_perim_w_arch_n" type="CSGBox3D" parent="." unique_id=388221720]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -41.23975, 5.38425, -15.99575)
 size = Vector3(5.5, 11, 14)
 material = SubResource("StandardMaterial3D_p1uyn")
 
-[node name="efar_perim_w_arch_s" type="CSGBox3D" parent="." unique_id=794030171]
+[node name="efar_perim_w_arch_s" type="CSGBox3D" parent="." unique_id=1355363982]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -41.2395, 5.1345, 14.5045)
 size = Vector3(5.5, 10.5, 21)
 material = SubResource("StandardMaterial3D_p1uyn")
 
-[node name="efar_perim_w_south" type="CSGBox3D" parent="." unique_id=291709764]
+[node name="efar_perim_w_south" type="CSGBox3D" parent="." unique_id=1028692664]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -41.23925, 6.13475, 36.50475)
 size = Vector3(5.5, 12.5, 23)
 material = SubResource("StandardMaterial3D_p1uyn")
