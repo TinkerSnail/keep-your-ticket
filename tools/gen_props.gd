@@ -1403,7 +1403,12 @@ func _fountain_materials() -> void:
 		var by: float = Plan.CLIMB_HEAD_Y \
 			- (Plan.CLIMB_TO_X - bx) * (Plan.CLIMB_RISE / Plan.CLIMB_RUN)
 		mats["basin_pool_%d" % i] = _shader_material(pool, {
-			"tint": Color(0.12, 0.27, 0.30),
+			# Lifted from the trough family's 0.12 dark: the bowls are read from
+			# the court at forty metres and the fountain at ninety, and a dark
+			# disc at that range is a hole in the plinth. The collecting pool
+			# below keeps the dark tint on purpose — it is the ground the
+			# chain's value reads against.
+			"tint": Color(0.17, 0.36, 0.38),
 			"centre": Vector3(bx, by, cax),
 			# A 1.5m bowl. Tighter than the trough's 11 because the whole surface
 			# is two rings across at this size and anything looser is one.
@@ -1444,10 +1449,17 @@ func _fountain_materials() -> void:
 		# The fall arriving in this bowl, off the lip of the one above. Its band
 		# is this bowl's own surface and the half-metre over it, so every one of
 		# the twelve is a different absolute Y.
+		# **White water, and it is a value decision measured at the court's own
+		# distance.** At 0.36 alpha and a glassy teal the falls were honest
+		# close up and nearly absent at forty metres — the grey rails carried
+		# more contrast than the water, and the plate's ribbon is the opposite:
+		# white lips against dark planting are the brightest thing on the hill.
+		# Opacity and a near-white tint are what survive distance; glow is the
+		# night half and only nudges.
 		mats["basin_fall_%d" % i] = _shader_material(fall, {
 			"flow": 2.1, "streaks": 58.0, "grain": 2.9,
-			"base_alpha": 0.36, "glow": 0.85,
-			"tint": Color(0.55, 0.96, 0.95),
+			"base_alpha": 0.60, "glow": 1.0,
+			"tint": Color(0.86, 0.97, 0.95),
 			"fade_from": by + Plan.BASIN_FALL, "fade_to": by,
 		})
 	# The collecting pool at the mouth, and the discharge into it.
@@ -1473,9 +1485,12 @@ func _fountain_materials() -> void:
 	})
 	mats["basin_fall_head"] = _shader_material(fall, {
 		"flow": 2.4, "streaks": 54.0, "grain": 2.6,
-		"base_alpha": 0.34, "glow": 0.85,
-		"tint": Color(0.55, 0.96, 0.95),
-		"fade_from": Plan.TERRACE_TWO_Y - (Plan.CLIMB_RUN - Plan.BASIN_STEP * 0.5) \
+		"base_alpha": 0.58, "glow": 1.0,
+		"tint": Color(0.86, 0.97, 0.95),
+		# `CLIMB_HEAD_Y`, the datum-fork family's fourth member: written off
+		# `TERRACE_TWO_Y` this band sat six metres under the spill it fades,
+		# fully faded before its own water started.
+		"fade_from": Plan.CLIMB_HEAD_Y - (Plan.CLIMB_RUN - Plan.BASIN_STEP * 0.5) \
 			* (Plan.CLIMB_RISE / Plan.CLIMB_RUN),
 		"fade_to": Plan.POOL_TOP_Y,
 	})
