@@ -4976,6 +4976,36 @@ func _earth_strip(st: SurfaceTool, low: PackedVector3Array,
 			continue
 		var u0 := float(j) / float(cols - 1)
 		var u1 := float(j + 1) / float(cols - 1)
+		# A bay edge is a real cut in the land, not a crease in the meadow. The
+		# doubled columns make that cut out of the strip's own transition quads,
+		# but the ordinary side winding points away from the bay on both ends: at
+		# the west edge it faces west and at the east edge it faces east. Those
+		# faces are sound and collide, yet are back-face culled from the court, so
+		# the fill behind the meadow shows through. Reorient only the quads whose
+		# z jump crosses a bay; once both rows are back on the same meadow line the
+		# surface is continuous again and keeps its normal winding.
+		var bay_face := _earth_bay_edge_facing((low[j].x + low[j + 1].x) * 0.5)
+		var has_cut := bay_face != 0.0 and (
+			absf(low[j].z - low[j + 1].z) > 0.1
+			or absf(high[j].z - high[j + 1].z) > 0.1)
+		if has_cut:
+			var hint := Vector3(bay_face, 0.0, 0.0)
+			if dega:
+				_earth_oriented_tri(st, low[j], Vector2(u0, v0),
+					high[j + 1], Vector2(u1, v0 + 1.0),
+					low[j + 1], Vector2(u1, v0), hint)
+			elif degb:
+				_earth_oriented_tri(st, low[j], Vector2(u0, v0),
+					high[j], Vector2(u0, v0 + 1.0),
+					low[j + 1], Vector2(u1, v0), hint)
+			else:
+				_earth_oriented_tri(st, low[j], Vector2(u0, v0),
+					high[j], Vector2(u0, v0 + 1.0),
+					low[j + 1], Vector2(u1, v0), hint)
+				_earth_oriented_tri(st, high[j], Vector2(u0, v0 + 1.0),
+					high[j + 1], Vector2(u1, v0 + 1.0),
+					low[j + 1], Vector2(u1, v0), hint)
+			continue
 		if dega:
 			if side < 0.0:
 				_rim_tri(st, low[j], u0, v0, high[j + 1], u1, v0 + 1.0,
@@ -5000,6 +5030,39 @@ func _earth_strip(st: SurfaceTool, low: PackedVector3Array,
 				high[j], u0, v0 + 1.0)
 			_rim_tri(st, high[j], u0, v0 + 1.0, low[j + 1], u1, v0,
 				high[j + 1], u1, v0 + 1.0)
+
+
+## The direction a bay's cut face must show into its court. The meadow has a
+## column pair at every bay edge, so the midpoint is enough to identify the
+## reach. A west edge faces east and an east edge faces west, independent of
+## which side of the ravine is being built.
+func _earth_bay_edge_facing(x: float) -> float:
+	for r in Plan.climb_reaches():
+		if bool(r[4]) or float(r[1]) - float(r[0]) < Plan.CLIMB_BAY_MIN_T:
+			continue
+		if absf(x - float(r[0])) < 0.01:
+			return 1.0
+		if absf(x - float(r[1])) < 0.01:
+			return -1.0
+	return 0.0
+
+
+## Emit a triangle with a requested geometric facing. The cut faces are the
+## only triangles in this surface whose useful normal is along x; choosing the
+## order from the points themselves keeps the fix valid for both side strips and
+## for the half-degenerate transition triangles at a doubled column.
+func _earth_oriented_tri(st: SurfaceTool, a: Vector3, uv_a: Vector2,
+		b: Vector3, uv_b: Vector2, c: Vector3, uv_c: Vector2,
+		hint: Vector3) -> void:
+	var normal := (b - a).cross(c - a)
+	if normal.length_squared() < 0.00000001:
+		return
+	if normal.dot(hint) < 0.0:
+		_rim_tri(st, a, uv_a.x, uv_a.y, c, uv_c.x, uv_c.y,
+			b, uv_b.x, uv_b.y)
+	else:
+		_rim_tri(st, a, uv_a.x, uv_a.y, b, uv_b.x, uv_b.y,
+			c, uv_c.x, uv_c.y)
 
 
 ## The cut face where a bank stops: the triangle of earth left standing when the
@@ -5053,7 +5116,6 @@ func _earth_cap(st: SurfaceTool, foot: Vector3, waist: Vector3, brow: Vector3,
 	if brow.y - y0 < 0.3 or absf(brow.z - foot.z) < 0.01:
 		return
 	var top := [foot, waist, brow]
-	var flip := facing * side < 0.0
 	for k in 2:
 		var a: Vector3 = top[k]
 		var b: Vector3 = top[k + 1]
@@ -5062,16 +5124,14 @@ func _earth_cap(st: SurfaceTool, foot: Vector3, waist: Vector3, brow: Vector3,
 		var u0 := float(k) * 0.5
 		var u1 := u0 + 0.5
 		if b.y - y0 > 0.001:
-			if flip:
-				_rim_tri(st, la, u0, 6.0, b, u1, 7.0, lb, u1, 6.0)
-			else:
-				_rim_tri(st, la, u0, 6.0, lb, u1, 6.0, b, u1, 7.0)
+			_earth_oriented_tri(st, la, Vector2(u0, 6.0),
+				b, Vector2(u1, 7.0), lb, Vector2(u1, 6.0),
+				Vector3(facing, 0.0, 0.0))
 		# Skipped at the foot, where `la` and `a` are the same point.
 		if a.y - y0 > 0.001:
-			if flip:
-				_rim_tri(st, la, u0, 6.0, a, u0, 7.0, b, u1, 7.0)
-			else:
-				_rim_tri(st, la, u0, 6.0, b, u1, 7.0, a, u0, 7.0)
+			_earth_oriented_tri(st, la, Vector2(u0, 6.0),
+				a, Vector2(u0, 7.0), b, Vector2(u1, 7.0),
+				Vector3(facing, 0.0, 0.0))
 
 
 ## The shoulders: the hill's ground carried north and south across the two
