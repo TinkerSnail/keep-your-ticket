@@ -455,6 +455,28 @@ func _east_graph() -> void:
 	_edge("e_end_n_4", "e_tower_0", false)
 	for i in tower_path.size() - 2:
 		_edge("e_tower_%d" % i, "e_tower_%d" % (i + 1), false)
+	# Frontier is the continuation; the tower gate is a side destination. Its
+	# route branches at tower node three (the published path's penultimate
+	# point), then reaches a short street with food and games on either side of
+	# the walking line. The west node stops in front of the themed closure.
+	var frontier_path: Array[Vector3] = Plan.east_frontier_path()
+	for i in range(1, frontier_path.size()):
+		_node("e_frontier_%d" % (i - 1), frontier_path[i])
+	_edge("e_tower_3", "e_frontier_0", false)
+	for i in frontier_path.size() - 2:
+		_edge("e_frontier_%d" % i, "e_frontier_%d" % (i + 1), false)
+	_node("e_frontier_street_mid", Vector3(84.0, Plan.EAST_FRONTIER_FLOOR_Y,
+		Plan.EAST_FRONTIER_STREET_Z))
+	_node("e_frontier_street_w", Vector3(76.2, Plan.EAST_FRONTIER_FLOOR_Y,
+		Plan.EAST_FRONTIER_STREET_Z))
+	_node("e_frontier_food", Vector3(88.0, Plan.EAST_FRONTIER_FLOOR_Y,
+		Plan.EAST_FRONTIER_FRONT_Z + 1.72))
+	_node("e_frontier_games", Vector3(78.6, Plan.EAST_FRONTIER_FLOOR_Y,
+		Plan.EAST_FRONTIER_FRONT_Z + 1.72))
+	_edge("e_frontier_4", "e_frontier_street_mid", false)
+	_edge("e_frontier_street_mid", "e_frontier_street_w", false)
+	_edge("e_frontier_street_mid", "e_frontier_food", false)
+	_edge("e_frontier_street_w", "e_frontier_games", false)
 	# **No link back to `ring_e`.** It was there while the east lived in the
 	# plaza's graph, and the split made it a dangling name: the plaza's ring is
 	# not in this section and the seam at the gate is what joins the two, not an
@@ -618,6 +640,34 @@ func _terraces_obstacles() -> Array:
 		"kind": "rect",
 		"at": Vector2(tower_bench.x, tower_bench.z),
 		"half": Vector2(1.15, 1.15),
+	})
+	# The Frontier fronts close the north edge of the trestle street. Guests may
+	# approach their counters but not wander through the shallow sheds; the
+	# boarded closure is the hard western end until the land behind it exists.
+	for spec in Plan.EAST_FRONTIER_BUILDINGS:
+		var x0: float = spec["x0"]
+		var x1: float = spec["x1"]
+		out.append({
+			"kind": "rect",
+			"at": Vector2((x0 + x1) * 0.5,
+				Plan.EAST_FRONTIER_FRONT_Z - 1.375),
+			"half": Vector2((x1 - x0) * 0.5, 1.375),
+		})
+	out.append({
+		"kind": "rect",
+		"at": Vector2(Plan.EAST_FRONTIER_CLOSURE_X,
+			Plan.EAST_FRONTIER_STREET_Z),
+		"half": Vector2(0.34, Plan.EAST_FRONTIER_STREET_HALF_Z - 0.18),
+	})
+	out.append({
+		"kind": "rect",
+		"at": Vector2(86.0, Plan.EAST_FRONTIER_STREET_Z + 3.22),
+		"half": Vector2(1.0, 0.42),
+	})
+	out.append({
+		"kind": "rect",
+		"at": Vector2(78.6, Plan.EAST_FRONTIER_STREET_Z + 3.28),
+		"half": Vector2(1.8, 0.20),
 	})
 	return out
 
@@ -3198,6 +3248,15 @@ func _terraces_pois() -> PackedVector3Array:
 	# the landmark rather than at the centre of its concrete footing.
 	var tower := Plan.east_tower_center()
 	out.append(tower + Vector3(0.0, 32.0, 0.0))
+	# The first three reasons to continue past the tower: two occupied fronts and
+	# the mine-train portal visible beyond the temporary closure. The portal may
+	# be unreachable; a POI is what a guest looks at, not where they stand.
+	out.append(Vector3(78.6, Plan.EAST_FRONTIER_FLOOR_Y + 2.5,
+		Plan.EAST_FRONTIER_FRONT_Z + 0.25))
+	out.append(Vector3(88.0, Plan.EAST_FRONTIER_FLOOR_Y + 2.5,
+		Plan.EAST_FRONTIER_FRONT_Z + 0.25))
+	out.append(Vector3(68.2, Plan.EAST_FRONTIER_FLOOR_Y + 3.2,
+		Plan.EAST_FRONTIER_STREET_Z))
 	# Back down the axis at the clock tower, which is the view the belvedere is
 	# for and the only instrument the park has.
 	out.append(Vector3(Plan.CLOCK_TOWER_AT.x, 26.0, Plan.CLOCK_TOWER_AT.y))
@@ -3229,6 +3288,9 @@ func _terraces_walking_groups() -> void:
 		{"start": "e_end_s_3", "kinds": ["stroller_adult", "adult", "kid"]},
 		{"start": "e_tower_4", "kinds": ["adult", "adult", "kid"]},
 		{"start": "e_tower_2", "kinds": ["adult", "kid"]},
+		{"start": "e_frontier_street_mid", "kinds": ["adult", "adult", "kid"]},
+		{"start": "e_frontier_street_w", "kinds": ["adult", "kid"]},
+		{"start": "e_frontier_food", "kinds": ["adult", "adult"]},
 	]
 	for entry in plan:
 		var origin: Vector3 = _graph_points[_node_index(entry["start"])]

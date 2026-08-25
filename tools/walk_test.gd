@@ -379,6 +379,37 @@ func _ready() -> void:
 	var tower_probe := ParkPlan.east_tower_point(0.0, -5.5) + Vector3(0.0, 1.2, 0.0)
 	_legs.append(["east tower base holds", tower_probe,
 		ParkPlan.east_tower_center() + Vector3(0.0, 1.2, 0.0), false])
+	# The tower is now beside the way to Frontier. Walk every sloped trestle
+	# segment in both directions, continue along the short street, and prove the
+	# three intended boundaries: closure, occupied frontage and overlook rail.
+	var frontier_route: Array[Vector3] = ParkPlan.east_frontier_path()
+	var frontier_stand: Array[Vector3] = []
+	for v in frontier_route:
+		frontier_stand.append(v + Vector3(0.0, 1.2, 0.0))
+	for i in frontier_stand.size() - 1:
+		_legs.append(["east frontier out %d" % i,
+			frontier_stand[i], frontier_stand[i + 1], true])
+	for i in range(frontier_stand.size() - 1, 0, -1):
+		_legs.append(["east frontier back %d" % i,
+			frontier_stand[i], frontier_stand[i - 1], true])
+	var frontier_mid := Vector3(84.0, ParkPlan.EAST_FRONTIER_FLOOR_Y + 1.2,
+		ParkPlan.EAST_FRONTIER_STREET_Z)
+	var frontier_west := Vector3(76.2, ParkPlan.EAST_FRONTIER_FLOOR_Y + 1.2,
+		ParkPlan.EAST_FRONTIER_STREET_Z)
+	_legs.append(["east frontier street in", frontier_stand[-1], frontier_mid, true])
+	_legs.append(["east frontier street west", frontier_mid, frontier_west, true])
+	_legs.append(["east frontier street east", frontier_west, frontier_mid, true])
+	_legs.append(["east frontier closure holds", frontier_west,
+		Vector3(71.8, ParkPlan.EAST_FRONTIER_FLOOR_Y + 1.2,
+			ParkPlan.EAST_FRONTIER_STREET_Z), false])
+	_legs.append(["east frontier food front holds", frontier_mid,
+		Vector3(88.0, ParkPlan.EAST_FRONTIER_FLOOR_Y + 1.2,
+			ParkPlan.EAST_FRONTIER_FRONT_Z - 0.8), false])
+	_legs.append(["east frontier overlook rail holds",
+		Vector3(82.0, ParkPlan.EAST_FRONTIER_FLOOR_Y + 1.2,
+			ParkPlan.EAST_FRONTIER_STREET_Z),
+		Vector3(82.0, ParkPlan.EAST_FRONTIER_FLOOR_Y + 1.2,
+			ParkPlan.EAST_FRONTIER_STREET_Z + 6.0), false])
 	# **The bays**, which are the reason the landings exist as more than a pause:
 	# each terrace opens left and right into a shelf cut into the hillside. New
 	# ground, so it gets walked — out from the landing, along the shelf, and a

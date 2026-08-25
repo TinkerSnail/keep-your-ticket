@@ -1505,6 +1505,30 @@ const EAST_TOWER_PAD_R := 7.0
 const EAST_TOWER_BASE_R := 2.65
 const EAST_TOWER_GRADE_RUN := 3.5
 
+## The tower is a destination beside this route, not the route's terminus.
+## Guests fork before its gate, skirt the outside of the fenced court and arrive
+## on a small trestle terrace at the first built piece of Frontier. The terrace
+## is intentionally above Frontier's 12m bench: it lets the accessible upper
+## promenade lose only 1.5m over a 27m approach, while a later land can take the
+## remaining descent behind the temporary closure instead of forcing it into
+## one steep path here.
+const EAST_FRONTIER_PATH_W := 4.6
+const EAST_FRONTIER_FLOOR_Y := 18.5
+const EAST_FRONTIER_DECK_T := 0.42
+const EAST_FRONTIER_STREET_FROM_X := 73.0
+const EAST_FRONTIER_STREET_TO_X := 94.0
+const EAST_FRONTIER_STREET_Z := -93.0
+const EAST_FRONTIER_STREET_HALF_Z := 4.0
+const EAST_FRONTIER_CLOSURE_X := 73.8
+const EAST_FRONTIER_FRONT_Z := -97.05
+
+## Two shallow tenants facing the street. Widths and centres are plan data
+## because the crowd routes to their fronts and treats the bodies as obstacles.
+const EAST_FRONTIER_BUILDINGS := [
+	{"tag": "games", "x0": 74.8, "x1": 82.4, "h": 6.1},
+	{"tag": "food", "x0": 83.6, "x1": 92.2, "h": 5.3},
+]
+
 
 static func east_tower_center() -> Vector3:
 	return Vector3(EAST_TOWER_X, EAST_TOWER_FLOOR_Y, ARCH_AT.y - EAST_TOWER_D)
@@ -1522,6 +1546,23 @@ static func east_tower_path() -> Array[Vector3]:
 		Vector3(103.2, EAST_TOWER_FLOOR_Y, axis - 68.0),
 		Vector3(106.0, EAST_TOWER_FLOOR_Y, axis - 72.0),
 		Vector3(107.6, EAST_TOWER_FLOOR_Y, axis - 76.0),
+	]
+
+
+## The through-route branches at the penultimate tower-path point. Starting at
+## the tower gate would send the first segment back through the fenced circle;
+## this point is ten metres from the mast, so a 4.6m path keeps its whole width
+## outside the rail. The descent is a steady 1.5m over roughly 27m.
+static func east_frontier_path() -> Array[Vector3]:
+	var axis: float = ARCH_AT.y
+	return [
+		Vector3(106.0, EAST_TOWER_FLOOR_Y, axis - 72.0),
+		Vector3(99.0, 19.72, axis - 72.3),
+		Vector3(94.2, 19.32, axis - 76.4),
+		Vector3(93.3, 18.92, axis - 84.0),
+		Vector3(94.0, 18.68, axis - 88.0),
+		Vector3(EAST_FRONTIER_STREET_TO_X, EAST_FRONTIER_FLOOR_Y,
+			EAST_FRONTIER_STREET_Z),
 	]
 
 
@@ -2439,6 +2480,56 @@ static func walkway_runs() -> Array:
 	for id in WALKWAYS:
 		out.append({"id": id, "points": WALKWAYS[id],
 			"width": WALKWAY_WIDTH.get(id, 6.0)})
+	# The east's built circulation is generated from height-aware paths rather
+	# than stored in `WALKWAYS`: flights, ramps and the tower approach all need Y
+	# for the ground and crowd even though the minimap only needs x/z. Publish a
+	# plan projection here so the map shows the route the player is actually on,
+	# without making the plaza paving generator lay asphalt over a hillside.
+	for run in east_public_walkway_runs():
+		out.append(run)
+	return out
+
+
+static func _plan_run(id: StringName, points3: Array, width: float) -> Dictionary:
+	var points2: Array[Vector2] = []
+	for p in points3:
+		points2.append(Vector2(p.x, p.z))
+	return {"id": id, "points": points2, "width": width}
+
+
+## The full public route over the east hill, projected for the minimap. These
+## are arrangements of the same paths the ground, crowd and walk tests consume;
+## no hand-drawn map line gets a second opinion about where a route bends.
+static func east_public_walkway_runs() -> Array:
+	var out := []
+	var axis: float = ARCH_AT.y
+	for entry in [[-1.0, &"n"], [1.0, &"s"]]:
+		var side: float = entry[0]
+		var tag: StringName = entry[1]
+		var wing: Array = wing_path(CASCADE_EAST, side)
+		out.append(_plan_run(StringName("east_wing_%s" % tag), wing, WING_W))
+
+		var climb: Array[Vector3] = [
+			Vector3(CLIMB_FROM_X, HILL_TOP, axis + side * climb_flight_z()),
+		]
+		for reach in climb_reaches():
+			climb.append(Vector3(float(reach[1]), float(reach[3]),
+				axis + side * climb_flight_z()))
+		climb.append(Vector3(CLIMB_TO_X + 4.0, CLIMB_HEAD_Y, axis))
+		out.append(_plan_run(StringName("east_climb_%s" % tag), climb,
+			CLIMB_FLIGHT_W))
+
+		var end: Array[Vector3] = [
+			Vector3(CLIMB_TO_X + 4.0, CLIMB_HEAD_Y, axis),
+		]
+		end.append_array(east_end_path(side))
+		out.append(_plan_run(StringName("east_end_%s" % tag), end,
+			EAST_END_PATH_HALF_W * 2.0))
+
+	out.append(_plan_run(&"east_tower", east_tower_path(),
+		EAST_END_PATH_HALF_W * 2.0))
+	out.append(_plan_run(&"east_frontier", east_frontier_path(),
+		EAST_FRONTIER_PATH_W))
 	return out
 
 
