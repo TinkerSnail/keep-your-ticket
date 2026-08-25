@@ -290,6 +290,12 @@ func _initialize() -> void:
 	# the terrace `CLIMB_HEAD_TO_X` has named since the climb doubled, drawn at
 	# last — see `_east_head_landing`.
 	_east_head_landing()
+	# The two mouth returns append last for the same ordinal reason. They close
+	# existing geometry and derive entirely from the plan, so build order has no
+	# shape meaning; putting them inside `_east_climb` would move every climb,
+	# meadow and terrace node one seam offset on for no visual reason.
+	_east_mouth_cut(-1.0, "n")
+	_east_mouth_cut(1.0, "s")
 	if not _save(_root, EAST_CASCADE_PATH):
 		return
 
@@ -4499,15 +4505,6 @@ const EARTH_TO_X := 127.0
 ## finer bands only ever bought more seams.
 const EARTH_STEP := 1.25
 
-## Where the plateau strip's intermediate rows sit, as distances off the axis.
-## Fixed rather than fractions of each column's span — see the note in
-## `_east_earth`: fractional rows smear a doubled column's brow jump down the
-## whole strip as skewed slivers. Spacing ~2m resolves the roll's shortest
-## wavelength (23m) comfortably; rows inside a column's own brow clamp onto it
-## and are dropped by the degenerate guard. The edge row at 26 is separate.
-const EARTH_ROW_DISTS: Array[float] = [4.0, 8.0, 11.0, 13.0, 14.5, 16.0,
-	18.0, 20.0, 22.0, 24.0]
-
 ## How far the skin's edge is buried into the masonry behind it where the two
 ## meet on a plateau edge.
 ##
@@ -4516,6 +4513,17 @@ const EARTH_ROW_DISTS: Array[float] = [4.0, 8.0, 11.0, 13.0, 14.5, 16.0,
 ## plane are two surfaces pointing the same way at the same depth, which is the
 ## house rule's whole subject. Buried, there is nothing to fight.
 const EARTH_INSET := 0.15
+
+## The back edge shared by every bay and the meadow beyond it.
+const EARTH_BAY_EDGE_D := Plan.CLIMB_HALF_Z + Plan.CLIMB_BAY_D + EARTH_INSET
+
+## Where each independent meadow patch is sampled across the slope. Bay edges
+## are patch boundaries now, never doubled columns inside one strip. Including
+## the bay's own back line here makes the two patches on either side of a court
+## meet vertex-for-vertex over their shared outer meadow, with no T-junction to
+## open under rasterization.
+const EARTH_ROW_DISTS: Array[float] = [4.0, 8.0, 11.0, 13.0, 14.5, 16.0,
+	EARTH_BAY_EDGE_D, 18.0, 20.0, 22.0, 24.0]
 
 ## How far the middle of a planted bank stands proud of the straight line
 ## between its foot and its brow. See `_east_bank_y`.
@@ -4660,93 +4668,60 @@ func _east_bank_y(x: float, z: float) -> float:
 	return y + sin(t * PI) * BANK_BOW * (0.62 + 0.38 * sin(x * 0.41)) \
 		* clampf(_climb_bank_d(x) * 0.5, 0.0, 1.0)
 
-
-## The plateau's inner edge at a station: how far off the axis the hill's own
-## ground begins, and what is holding it up there.
-##
-## Four regions west to east, and each hands off to different masonry. Beside the
-## belvedere it is the notch's own buttressed wall; up a flight it is the top of
-## the planted bank, which is the one case where the skin carries the slope
-## itself; at a terrace it is the back of a bay; past the head of the climb there
-## is no cut left and the ground runs across the axis.
-##
-## `bank` is what the caller needs to know rather than which region it is in: a
-## bank means the skin drops to the retaining wall's top and the wall closes it,
-## and anything else means the skin ends at plateau height and needs a skirt.
-func _east_inner(x: float) -> Dictionary:
-	var axis: float = Plan.ARCH_AT.y
-	if x < Plan.CLIMB_FROM_X:
-		return {"half": Plan.SHELF_TO_Z - axis, "bank": false}
-	if x > Plan.CLIMB_TO_X:
-		return {"half": 0.0, "bank": false}
+## The meadow is a set of patches whose boundaries are the actual cuts in it.
+## A bay used to be represented by two columns 4mm apart inside one long strip:
+## the inner row jumped from the ravine brow to the bay's back wall while the
+## outer rows stayed put. That necessarily made tall, near-vertical quads across
+## the whole meadow. Depending on their winding they were either gaping holes or
+## giant green sheets. A top surface must never bridge a cut. Separate patches
+## share their outer vertices but stop independently at the court edge.
+func _east_earth_patches() -> Array:
+	var out: Array = [{
+		"x0": Plan.HILL_FACE_X,
+		"x1": Plan.CLIMB_FROM_X,
+		"kind": &"shelf",
+	}]
 	for r in Plan.climb_reaches():
-		if x > float(r[1]) + 0.001:
-			continue
-		# A narrow landing is a pause in the stair and not a room off it, so
-		# its sides stay banked and the hillside runs unbroken past it — see
-		# `CLIMB_BAY_MIN_T`, which is where the rule is stated.
-		if bool(r[4]) or float(r[1]) - float(r[0]) < Plan.CLIMB_BAY_MIN_T:
-			return {"half": _climb_open_half(x), "bank": true}
-		# `brow_min`: the skin's edge over a bay lands ON the bay's masonry —
-		# the back wall's cap line — never at bare plateau base. The base can
-		# run over a metre below the wall top across a bay's west half, and a
-		# brow left at base level sank the whole rear of each court into a
-		# rectangular trench behind its own wall, with an open slot at the
-		# bottom: the "tears along the bays", from play, 2026-08-23.
-		# The raise fades over the bay's first and last metre, so the bund
-		# arrives at the boundary columns already down at ground and the
-		# transition band beside the bay is a slope, not a blade.
-		var bend := minf(x - float(r[0]), float(r[1]) - x)
-		return {"half": Plan.CLIMB_HALF_Z + Plan.CLIMB_BAY_D, "bank": false,
-			"brow_min": float(r[2]) + HILL_BRICK_H + 0.15
-				- maxf(1.0 - bend, 0.0) * 1.4}
-	return {"half": 0.0, "bank": false}
-
-
-## Where the landform is sampled along x.
-##
-## Every **bay** boundary appears **twice**, a hair either side of itself, and
-## that is what builds the end wall of a bay. The inner edge jumps outward by
-## metres at a bay's mouth — `CLIMB_BAY_D` is 9.5 against an opening near 12 —
-## so two columns 4mm apart put a vertical face there, which is the cut face the
-## banks either side used to draw with their own ends. One column would have
-## sloped it across the whole reach. Boundaries where the bank simply continues
-## — flight into narrow landing — are not doubled: the surface is continuous
-## across them, and a doubled column on a continuous surface is a pair of
-## 4mm quads with no reliable normal to hand the weld.
-func _east_columns() -> PackedFloat32Array:
-	var out := PackedFloat32Array()
-	# `CLIMB_TO_X` is doubled since 2026-08-23, and the old note here argued
-	# the opposite — that the ground closes across the axis rather than at a
-	# face, so it should interpolate like everything else. Measured, that
-	# interpolation was a hole: the brow sweeps from the ravine's 6.7m
-	# half-width to the axis across one full column spacing, the garden median
-	# ends at `CLIMB_TO_X` exactly, and the wedge between them was open to
-	# `hill_back` six metres down — a raycast on the axis at x 108.25 hit
-	# nothing above y 12, one stride in front of the head landing. Doubled,
-	# the strip closes the ravine's east end as a near-vertical face at the
-	# head, which the median's own headwall now stands against.
-	# `CLIMB_FROM_X` stays doubled for the reason it always was: the notch's
-	# own half-width hands off to the ravine's there, and that jump is the
-	# notch's east reveal.
-	var edges := PackedFloat32Array([Plan.CLIMB_FROM_X, Plan.CLIMB_TO_X])
-	var reaches := Plan.climb_reaches()
-	for i in reaches.size():
-		var r: Array = reaches[i]
-		if bool(r[4]) or float(r[1]) - float(r[0]) < Plan.CLIMB_BAY_MIN_T:
-			continue
-		edges.append(float(r[0]))
-		edges.append(float(r[1]))
-	var x: float = Plan.HILL_FACE_X
-	while x < EARTH_TO_X:
-		out.append(x)
-		for e in edges:
-			if e > x and e < x + EARTH_STEP:
-				out.append(e - 0.002)
-				out.append(e + 0.002)
-		x += EARTH_STEP
-	out.append(EARTH_TO_X)
+		var is_bay := not bool(r[4]) \
+			and float(r[1]) - float(r[0]) >= Plan.CLIMB_BAY_MIN_T
+		out.append({
+			"x0": float(r[0]),
+			"x1": float(r[1]),
+			"kind": &"bay" if is_bay else &"bank",
+		})
+	out.append({
+		"x0": Plan.CLIMB_TO_X,
+		"x1": EARTH_TO_X,
+		"kind": &"closed",
+	})
 	return out
+
+
+## Samples for one patch, including each endpoint exactly once. Adjacent patches
+## intentionally repeat their common endpoint in their own arrays; SurfaceTool
+## welds matching positions within a smooth group, while no triangle crosses
+## from one patch to the other.
+func _east_patch_columns(x0: float, x1: float) -> PackedFloat32Array:
+	var out := PackedFloat32Array([x0])
+	var x := x0 + EARTH_STEP
+	while x < x1 - 0.001:
+		out.append(x)
+		x += EARTH_STEP
+	if absf(out[-1] - x1) > 0.0001:
+		out.append(x1)
+	return out
+
+
+func _east_patch_half(kind: StringName, x: float) -> float:
+	match kind:
+		&"shelf":
+			return Plan.SHELF_TO_Z - Plan.ARCH_AT.y
+		&"bank":
+			return _climb_open_half(x)
+		&"bay":
+			return Plan.CLIMB_HALF_Z + Plan.CLIMB_BAY_D
+		_:
+			return 0.0
 
 
 ## The hill, as one welded surface per side.
@@ -4789,142 +4764,78 @@ func _east_earth(side: float, tag: String) -> void:
 	var axis: float = Plan.ARCH_AT.y
 	var out_z: float = axis + side * Plan.EAST_GROUND_HALF_Z
 	var mass_top: float = Plan.TERRACE_TWO_Y
-	var cols := _east_columns()
-
-	# Four lines down the hill, sampled together so a column is one place on it
-	# rather than four independent ones: the foot of the bank at the retaining
-	# wall's top, the break of slope, the outer edge, and the skirt's foot.
-	var foot := PackedVector3Array()
-	var waist := PackedVector3Array()
-	var brow := PackedVector3Array()
-	var edge := PackedVector3Array()
-	var hem := PackedVector3Array()
-	var banked := PackedByteArray()
-	for x in cols:
-		var inner := _east_inner(x)
-		var is_bank: bool = bool(inner["bank"])
-		var ih: float = float(inner["half"])
-		# The break of slope. On a bank it is the top of the batter and the skin
-		# carries the slope below it; anywhere else the skin simply ends, buried
-		# a little way into whatever masonry is holding the ground up there.
-		var bz: float = axis + side * (ih if is_bank else ih + EARTH_INSET)
-		if x > Plan.CLIMB_TO_X:
-			# Past the head there is no cut and the two sides meet on the axis.
-			# No inset, so their edges butt with identical normals rather than
-			# leaving a 30cm slot down the middle of the ground.
-			bz = axis
-		# Over a bay the edge rides the masonry, not the bare base — see
-		# `_east_inner`'s `brow_min`, which is the back wall's cap line.
-		var bm := float(inner.get("brow_min", -1.0e9))
-		brow.append(Vector3(x, maxf(_east_ground_y(x, bz), bm), bz))
-		# Through the shared accessor rather than inlined, so the skin and the
-		# blooms standing on it cannot come to disagree about where the slope is.
-		# Three lines and not two, because a bow needs a row of vertices in the
-		# middle of the batter to be carried on — sampled at the same half-way
-		# station `_east_bank_y` puts its own crown at.
-		var fz: float = axis + side * Plan.CLIMB_HALF_Z
-		var wz: float = axis + side * (Plan.CLIMB_HALF_Z + _climb_open_half(x)) * 0.5
-		foot.append(Vector3(x, _east_bank_y(x, fz), fz))
-		waist.append(Vector3(x, _east_bank_y(x, wz), wz))
-		edge.append(Vector3(x, _east_ground_y(x, out_z), out_z))
-		hem.append(Vector3(x, mass_top, out_z))
-		banked.append(1 if is_bank else 0)
-
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	# Group 0: the banks. Skipped wherever there is no cut to lay back into, so
-	# the strip is broken at every bay rather than running through it.
-	# Group 0: the banks, in two strips about the waist so the bow has a row to
-	# ride on. **One group across both**, because the bow is a curve and not a
-	# break — the crease is the brow, where the cut stops, and putting the waist
-	# in a group of its own would draw a second line down the middle of every
-	# bank saying nothing.
-	st.set_smooth_group(0)
-	_earth_strip(st, foot, waist, side, 0.0, banked)
-	_earth_strip(st, waist, brow, side, 1.0, banked)
-	# Group 3: the cut face at each end of a bank, which is the one surface on
-	# this hill that was described in prose and never built. See `_earth_cap`.
-	st.set_smooth_group(3)
-	for j in banked.size():
-		if banked[j] == 0:
-			continue
-		if j == 0 or banked[j - 1] == 0:
-			_earth_cap(st, foot[j], waist[j], brow[j], -1.0, side)
-		if j == banked.size() - 1 or banked[j + 1] == 0:
-			_earth_cap(st, foot[j], waist[j], brow[j], 1.0, side)
-	# Group 1: the ground above. Its inner row is the banks' outer row, position
-	# for position — the weld is what would round the top of the cut off, and the
-	# group is what stops it.
-	#
-	# **Subdivided in z since 2026-08-23, and the reason is arithmetic rather
-	# than smoothness.** Two rows meant one quad spanning brow to edge — up to
-	# 26m — so `_hill_roll`'s guard, fade and swell were only ever *sampled at
-	# the edge row* and the profile between came back as a straight ramp off the
-	# brow: the flat corridor never existed in the mesh, the crest courts
-	# drowned in interpolated swell with only their wall caps showing, and from
-	# inside a court the underside of that ramp is a culled backface — you
-	# looked straight through the hillside at the fill masses, which is where
-	# the grey staircases in the 2026-08-23 play reports were standing. A
-	# function sampled at two points is a line, whatever it does in between.
-	# **Rows at fixed distances, clamped to the brow, not fractions of the
-	# span.** Parametric sub-rows lerped z per column, and at a doubled column
-	# — a bay edge, the head — the brow jumps by metres in 4mm of x, so every
-	# sub-row inherited a share of the jump: a ladder of skewed sliver quads
-	# down the whole strip, whose normals and winding tear — the diagonal
-	# teeth on the slope and the see-through crease behind the courts' back
-	# walls, both from play on 2026-08-23. Fixed distances put the whole jump
-	# into the one band between the brow and the first row past it, as a
-	# single near-vertical quad. Rows inside a column's brow clamp onto it and
-	# the degenerate guard in `_earth_strip` drops them.
-	# The bay bund, smoothed along x before any row reads it: the raised edge
-	# over a bay's masonry has to die off *sideways* at the same 1:2 it dies
-	# off outward, or it ends at the bay's boundary columns as a vertical
-	# green wall — the "slice in the land beyond each bay", from play,
-	# 2026-08-23. Each column takes the strongest claim any bay column within
-	# reach makes on it.
-	var bund := PackedFloat32Array()
-	for j in cols.size():
-		bund.append(-1.0e9)
-	for j in cols.size():
-		var inner := _east_inner(cols[j])
-		var bm := float(inner.get("brow_min", -1.0e9))
-		if bm < -1.0e8:
-			continue
-		for k in cols.size():
-			var claim := bm - absf(cols[k] - cols[j]) * 0.5
-			if claim > bund[k]:
-				bund[k] = claim
-	st.set_smooth_group(1)
-	var prev := brow
-	var bay_edge_d: float = Plan.CLIMB_HALF_Z + Plan.CLIMB_BAY_D + EARTH_INSET
-	for k in EARTH_ROW_DISTS.size():
-		var dist: float = EARTH_ROW_DISTS[k]
-		var row := PackedVector3Array()
-		for j in cols.size():
-			var bd := absf(brow[j].z - axis)
-			if dist <= bd + 0.001:
-				# Inside the brow: the row collapses onto the brow point
-				# itself — copied, not re-evaluated, because a raised brow
-				# (see `brow_min`) no longer sits on the ground function and
-				# a re-evaluated copy would hang a vertical flap under it.
-				row.append(brow[j])
-				continue
-			var rz := axis + side * dist
-			# The collar tapers back into the meadow at 1:2 in both plan
-			# directions, so the ground behind a court reads as a bund over
-			# the wall and not a moat behind it or a blade beside it.
-			var ry := maxf(_east_ground_y(cols[j], rz),
-				bund[j] - maxf(dist - bay_edge_d, 0.0) * 0.5)
-			row.append(Vector3(cols[j], ry, rz))
-		_earth_strip(st, prev, row, side, 2.0 + 0.1 * float(k), PackedByteArray())
-		prev = row
-	_earth_strip(st, prev, edge, side, 3.0, PackedByteArray())
+	var patches := _east_earth_patches()
+	var skirt_cols := PackedFloat32Array()
+	for pi in patches.size():
+		var patch: Dictionary = patches[pi]
+		var kind: StringName = patch["kind"]
+		var cols := _east_patch_columns(float(patch["x0"]), float(patch["x1"]))
+		for x in cols:
+			if skirt_cols.is_empty() or absf(skirt_cols[-1] - x) > 0.0001:
+				skirt_cols.append(x)
+
+		var brow := PackedVector3Array()
+		var foot := PackedVector3Array()
+		var waist := PackedVector3Array()
+		var is_bank := kind == &"bank"
+		for x in cols:
+			var ih := _east_patch_half(kind, x)
+			var bz := axis + side * (ih if is_bank else ih + EARTH_INSET)
+			if kind == &"closed":
+				bz = axis
+			brow.append(Vector3(x, _east_ground_y(x, bz), bz))
+			if is_bank:
+				var fz := axis + side * Plan.CLIMB_HALF_Z
+				var wz := axis + side \
+					* (Plan.CLIMB_HALF_Z + _climb_open_half(x)) * 0.5
+				foot.append(Vector3(x, _east_bank_y(x, fz), fz))
+				waist.append(Vector3(x, _east_bank_y(x, wz), wz))
+
+		# The planted bank is a separate smooth group from the meadow so the
+		# break of slope remains a crease. It is emitted only inside bank patches;
+		# there is no mask and therefore no accidental bridge across a court.
+		if is_bank:
+			st.set_smooth_group(0)
+			_earth_strip(st, foot, waist, side, 0.0, PackedByteArray())
+			_earth_strip(st, waist, brow, side, 1.0, PackedByteArray())
+
+		# Every patch uses the same fixed cross-rows. Where two patches share an
+		# endpoint, all rows outside the deeper brow are identical positions and
+		# weld; the shallower patch's extra rows simply end at the court wall.
+		st.set_smooth_group(1)
+		var prev := brow
+		for k in EARTH_ROW_DISTS.size():
+			var dist: float = EARTH_ROW_DISTS[k]
+			var row := PackedVector3Array()
+			for j in cols.size():
+				var bd := absf(brow[j].z - axis)
+				if dist <= bd + 0.001:
+					row.append(brow[j])
+				else:
+					var rz := axis + side * dist
+					row.append(Vector3(cols[j], _east_ground_y(cols[j], rz), rz))
+			_earth_strip(st, prev, row, side, 2.0 + 0.1 * float(k),
+				PackedByteArray())
+			prev = row
+		var edge := PackedVector3Array()
+		for x in cols:
+			edge.append(Vector3(x, _east_ground_y(x, out_z), out_z))
+		_earth_strip(st, prev, edge, side, 3.0, PackedByteArray())
+
 	# Group 2: the skirt down onto the mass at the world's edge.
+	var edge := PackedVector3Array()
+	var hem := PackedVector3Array()
+	for x in skirt_cols:
+		edge.append(Vector3(x, _east_ground_y(x, out_z), out_z))
+		hem.append(Vector3(x, mass_top, out_z))
 	st.set_smooth_group(2)
 	_earth_strip(st, edge, hem, side, 4.0, PackedByteArray())
 	st.generate_normals()
 	st.generate_tangents()
 	var mesh := st.commit()
+	_earth_winding_sound(mesh, tag)
 
 	var body := StaticBody3D.new()
 	_add(body, "east_earth_%s" % tag)
@@ -4939,6 +4850,29 @@ func _east_earth(side: float, tag: String) -> void:
 	shape.name = "shape"
 	body.add_child(shape)
 	shape.owner = _root
+
+
+## The renderer's front-face convention is easy to invert and the failure is
+## catastrophic here: one reversed triangle can cull a meadow-sized patch from
+## above. Keep the winding rule beside the generator rather than in a throwaway
+## visual probe, and also reject the NaN normals produced by degenerate faces.
+func _earth_winding_sound(mesh: ArrayMesh, tag: String) -> void:
+	var arrays := mesh.surface_get_arrays(0)
+	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+	assert(vertices.size() == normals.size(),
+		"east meadow %s has incomplete normals" % tag)
+	var upward := 0
+	for i in range(0, vertices.size(), 3):
+		var visible := (vertices[i + 2] - vertices[i]).cross(
+			vertices[i + 1] - vertices[i])
+		assert(visible.is_finite() and normals[i].is_finite(),
+			"east meadow %s has an invalid face at triangle %d" % [tag, i / 3])
+		assert(visible.y >= -0.00001,
+			"east meadow %s reverses at triangle %d" % [tag, i / 3])
+		if visible.y > 0.00001:
+			upward += 1
+	assert(upward > 0, "east meadow %s has no upward faces" % tag)
 
 
 ## One strip of the hill between two of its lines.
@@ -4976,36 +4910,6 @@ func _earth_strip(st: SurfaceTool, low: PackedVector3Array,
 			continue
 		var u0 := float(j) / float(cols - 1)
 		var u1 := float(j + 1) / float(cols - 1)
-		# A bay edge is a real cut in the land, not a crease in the meadow. The
-		# doubled columns make that cut out of the strip's own transition quads,
-		# but the ordinary side winding points away from the bay on both ends: at
-		# the west edge it faces west and at the east edge it faces east. Those
-		# faces are sound and collide, yet are back-face culled from the court, so
-		# the fill behind the meadow shows through. Reorient only the quads whose
-		# z jump crosses a bay; once both rows are back on the same meadow line the
-		# surface is continuous again and keeps its normal winding.
-		var bay_face := _earth_bay_edge_facing((low[j].x + low[j + 1].x) * 0.5)
-		var has_cut := bay_face != 0.0 and (
-			absf(low[j].z - low[j + 1].z) > 0.1
-			or absf(high[j].z - high[j + 1].z) > 0.1)
-		if has_cut:
-			var hint := Vector3(bay_face, 0.0, 0.0)
-			if dega:
-				_earth_oriented_tri(st, low[j], Vector2(u0, v0),
-					high[j + 1], Vector2(u1, v0 + 1.0),
-					low[j + 1], Vector2(u1, v0), hint)
-			elif degb:
-				_earth_oriented_tri(st, low[j], Vector2(u0, v0),
-					high[j], Vector2(u0, v0 + 1.0),
-					low[j + 1], Vector2(u1, v0), hint)
-			else:
-				_earth_oriented_tri(st, low[j], Vector2(u0, v0),
-					high[j], Vector2(u0, v0 + 1.0),
-					low[j + 1], Vector2(u1, v0), hint)
-				_earth_oriented_tri(st, high[j], Vector2(u0, v0 + 1.0),
-					high[j + 1], Vector2(u1, v0 + 1.0),
-					low[j + 1], Vector2(u1, v0), hint)
-			continue
 		if dega:
 			if side < 0.0:
 				_rim_tri(st, low[j], u0, v0, high[j + 1], u1, v0 + 1.0,
@@ -5031,33 +4935,19 @@ func _earth_strip(st: SurfaceTool, low: PackedVector3Array,
 			_rim_tri(st, high[j], u0, v0 + 1.0, low[j + 1], u1, v0,
 				high[j + 1], u1, v0 + 1.0)
 
-
-## The direction a bay's cut face must show into its court. The meadow has a
-## column pair at every bay edge, so the midpoint is enough to identify the
-## reach. A west edge faces east and an east edge faces west, independent of
-## which side of the ravine is being built.
-func _earth_bay_edge_facing(x: float) -> float:
-	for r in Plan.climb_reaches():
-		if bool(r[4]) or float(r[1]) - float(r[0]) < Plan.CLIMB_BAY_MIN_T:
-			continue
-		if absf(x - float(r[0])) < 0.01:
-			return 1.0
-		if absf(x - float(r[1])) < 0.01:
-			return -1.0
-	return 0.0
-
-
-## Emit a triangle with a requested geometric facing. The cut faces are the
-## only triangles in this surface whose useful normal is along x; choosing the
-## order from the points themselves keeps the fix valid for both side strips and
-## for the half-degenerate transition triangles at a doubled column.
+## Emit a triangle with a requested visible facing. Godot treats clockwise
+## triangles as front faces, so its visible geometric normal is `(c-a) x
+## (b-a)`, the reverse of the conventional right-hand-rule normal. Using the
+## conventional cross here inverted every requested bay face: it was solid from
+## inside the hill and culled from the court, exactly the fault this helper was
+## meant to remove.
 func _earth_oriented_tri(st: SurfaceTool, a: Vector3, uv_a: Vector2,
 		b: Vector3, uv_b: Vector2, c: Vector3, uv_c: Vector2,
 		hint: Vector3) -> void:
-	var normal := (b - a).cross(c - a)
-	if normal.length_squared() < 0.00000001:
+	var visible_normal := (c - a).cross(b - a)
+	if visible_normal.length_squared() < 0.00000001:
 		return
-	if normal.dot(hint) < 0.0:
+	if visible_normal.dot(hint) < 0.0:
 		_rim_tri(st, a, uv_a.x, uv_a.y, c, uv_c.x, uv_c.y,
 			b, uv_b.x, uv_b.y)
 	else:
@@ -5065,74 +4955,161 @@ func _earth_oriented_tri(st: SurfaceTool, a: Vector3, uv_a: Vector2,
 			c, uv_c.x, uv_c.y)
 
 
-## The cut face where a bank stops: the triangle of earth left standing when the
-## batter is sliced across.
-##
-## **`_east_climb` has described this surface since the day the bays went in and
-## nothing ever built it.** Its comment says a bay's "ends are the cut faces of
-## the banks either side", and the banks are a zero-thickness single-sided skin —
-## so what was actually there was an open edge with the inside of the hill behind
-## it. `climb_bankcore` was believed to close it and cannot: the core is topped at
-## the retaining wall's own level, which is the *lowest* the skin gets, so it sits
-## under the batter and the whole wedge between the two is air. Every one of the
-## eight bank ends was a hole four and a half metres tall, and because a skin
-## shows nothing from behind, standing in a bay you looked through the hillside at
-## the plaza with the blooms hanging in the sky over it.
-##
-## Nothing could have caught it. `coplanar_test.py` has no opinion about a surface
-## that is missing — the same blind spot the cascade's unguarded handrail sat in —
-## `walk_test` asks whether something is in the way and never whether it is there,
-## and from the axis, which is where every shot of this climb has been taken, the
-## banks are edge-on ribbons that read as ending in front of the rim rather than
-## through it.
-##
-## The low edge is `foot.y` rather than a level of its own, and that is not
-## shorthand: `_east_bank_y` puts the foot at `TERRACE_TWO_Y - _climb_bank_d(x)`
-## with the bow at zero, which is the retaining wall's top where there is a wall
-## and the landing's own floor where the bank has run out of depth to retain. So
-## the face is full height at the brow and closes to nothing at the foot, which is
-## what a slice through a batter is, and it lands on masonry at both ends by
-## construction rather than by a number that has to be kept in step.
-##
-## Winding turns on `facing * side`, for `_earth_strip`'s reason doubled: the two
-## halves of the hill face opposite ways and the two ends of a run do as well, so
-## the four cases are two windings. Wrong, a cut face is invisible from the bay it
-## walls and solid from inside the hill, which is the same failure it is here to
-## fix and would look exactly like this one still being unfixed.
-func _earth_cap(st: SurfaceTool, foot: Vector3, waist: Vector3, brow: Vector3,
-		facing: float, side: float) -> void:
-	var y0 := foot.y
-	# The head of the climb, where the cut has closed and the bank is already
-	# nothing. Both tests, and the second is the one that matters: at
-	# `CLIMB_TO_X` the batter has no width at all but the brow is still
-	# `GROUND_LIFT` over the foot, so a height-only guard passes and emits a
-	# zero-area triangle — which has no reliable normal to hand the weld.
-	#
-	# 0.3 rather than 0.01 since 2026-08-23: over the last flight the bank
-	# tapers through knee height, and a cap under 30cm is a paper sliver lying
-	# on the grass with a near-degenerate normal — white confetti along the
-	# head in the play reports. A cut face that shallow closes nothing the eye
-	# can see through; the real faces at the bays are 2m and more.
-	if brow.y - y0 < 0.3 or absf(brow.z - foot.z) < 0.01:
-		return
-	var top := [foot, waist, brow]
-	for k in 2:
-		var a: Vector3 = top[k]
-		var b: Vector3 = top[k + 1]
-		var la := Vector3(a.x, y0, a.z)
-		var lb := Vector3(b.x, y0, b.z)
-		var u0 := float(k) * 0.5
-		var u1 := u0 + 0.5
-		if b.y - y0 > 0.001:
-			_earth_oriented_tri(st, la, Vector2(u0, 6.0),
-				b, Vector2(u1, 7.0), lb, Vector2(u1, 6.0),
-				Vector3(facing, 0.0, 0.0))
-		# Skipped at the foot, where `la` and `a` are the same point.
-		if a.y - y0 > 0.001:
-			_earth_oriented_tri(st, la, Vector2(u0, 6.0),
-				a, Vector2(u0, 7.0), b, Vector2(u1, 7.0),
-				Vector3(facing, 0.0, 0.0))
+## Add one wall quad with a front face chosen in world space. The wall meshes
+## use this rather than relying on vertex order: the north and south courts are
+## mirrors, while the two ends of each court face opposite directions.
+func _earth_wall_quad(st: SurfaceTool, low_a: Vector3, low_b: Vector3,
+		top_a: Vector3, top_b: Vector3, hint: Vector3) -> void:
+	var span := maxf(low_a.distance_to(low_b), 0.01)
+	var ha := maxf(top_a.y - low_a.y, 0.0)
+	var hb := maxf(top_b.y - low_b.y, 0.0)
+	_earth_oriented_tri(st, low_a, Vector2(0.0, 0.0),
+		top_b, Vector2(span, hb), low_b, Vector2(span, 0.0), hint)
+	_earth_oriented_tri(st, low_a, Vector2(0.0, 0.0),
+		top_a, Vector2(0.0, ha), top_b, Vector2(span, hb), hint)
 
+
+## The finished height along a bay's side cut. Inside the ravine opening this
+## follows the planted bank; outside it follows the meadow. This is deliberately
+## the same pair of functions `_east_earth` samples, so the brick face and green
+## surface meet vertex-for-vertex instead of being two unrelated approximations.
+func _east_bay_cut_top(x: float, z: float, floor_y: float) -> float:
+	var d := absf(z - Plan.ARCH_AT.y)
+	if d <= _climb_open_half(x) + 0.001:
+		return maxf(floor_y, _east_bank_y(x, z))
+	return maxf(floor_y, _east_ground_y(x, z))
+
+
+## Close all three faces of one court with a single brick mesh: both side cuts
+## and the back cut. The old construction stopped its box walls at fixed heights
+## while the meadow rolled metres above them. From a landing that exposed the
+## back of the single-sided meadow as the enormous holes reported in play.
+func _east_bay_cut(side: float, tag: String, bay: int, x0: float, x1: float,
+		floor_y: float) -> void:
+	var axis: float = Plan.ARCH_AT.y
+	var half: float = Plan.CLIMB_HALF_Z
+	var back_d: float = half + Plan.CLIMB_BAY_D + EARTH_INSET
+	var back_z := axis + side * back_d
+	var bottom_y := floor_y - 0.3
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+
+	# Court ends. Sample at every meadow ladder row plus the exact ravine brow,
+	# because those are the points at which the top surface changes slope.
+	for e in 2:
+		var wall_x := x0 if e == 0 else x1
+		var facing := Vector3(1.0 if e == 0 else -1.0, 0.0, 0.0)
+		# The buried bank mass ends on the authored cut plane. Keep the top
+		# vertex on that plane so it still welds to the meadow, but lean the
+		# wall's foot four centimetres into the court so its visible face sits
+		# decisively in front of the mass instead of z-fighting with it.
+		var low_x := wall_x + facing.x * 0.04
+		var ds := PackedFloat32Array([half])
+		var open_d := _climb_open_half(wall_x)
+		if open_d > half + 0.01 and open_d < back_d - 0.01:
+			ds.append(open_d)
+		for row_d in EARTH_ROW_DISTS:
+			if row_d > half + 0.01 and row_d < back_d - 0.01:
+				ds.append(row_d)
+		ds.sort()
+		if absf(ds[-1] - back_d) > 0.001:
+			ds.append(back_d)
+		st.set_smooth_group(10 + e)
+		for i in ds.size() - 1:
+			var za := axis + side * ds[i]
+			var zb := axis + side * ds[i + 1]
+			var low_a := Vector3(low_x, bottom_y, za)
+			var low_b := Vector3(low_x, bottom_y, zb)
+			var top_a := Vector3(wall_x,
+				_east_bay_cut_top(wall_x, za, floor_y), za)
+			var top_b := Vector3(wall_x,
+				_east_bay_cut_top(wall_x, zb, floor_y), zb)
+			_earth_wall_quad(st, low_a, low_b, top_a, top_b, facing)
+
+	# Court back. Its columns are exactly the bay patch's columns, so its upper
+	# edge is the meadow patch's inner edge with no tolerance gap between them.
+	var cols := _east_patch_columns(x0, x1)
+	st.set_smooth_group(12)
+	for i in cols.size() - 1:
+		var xa: float = cols[i]
+		var xb: float = cols[i + 1]
+		var low_a := Vector3(xa, bottom_y, back_z)
+		var low_b := Vector3(xb, bottom_y, back_z)
+		var top_a := Vector3(xa, _east_ground_y(xa, back_z), back_z)
+		var top_b := Vector3(xb, _east_ground_y(xb, back_z), back_z)
+		_earth_wall_quad(st, low_a, low_b, top_a, top_b,
+			Vector3(0.0, 0.0, -side))
+
+	st.generate_normals()
+	st.generate_tangents()
+	var mesh := st.commit()
+	var body := StaticBody3D.new()
+	_add(body, "climb_bay_cut_%s_%d" % [tag, bay])
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.material_override = mats["brick"]
+	mi.name = "face"
+	body.add_child(mi)
+	mi.owner = _root
+	var shape := CollisionShape3D.new()
+	shape.shape = mesh.create_trimesh_shape()
+	shape.name = "shape"
+	body.add_child(shape)
+	shape.owner = _root
+
+
+## The bank's exposed cross-section at the mouth of the climb.
+##
+## The green bank is a surface and the support beneath it is stepped along x.
+## From the belvedere, looking straight into the climb, that exposed every
+## support top and every uphill segment end through the open side of the earth —
+## a stack of grey blocks under an otherwise continuous planted slope. This is
+## the retaining return that closes that side. Its top is sampled from the same
+## bank function as the green mesh, and its bottom leans ten centimetres toward
+## the room so it stands in front of the support's 5.5cm segment overlap without
+## sharing its plane.
+func _east_mouth_cut(side: float, tag: String) -> void:
+	var axis: float = Plan.ARCH_AT.y
+	var wall_x: float = Plan.CLIMB_FROM_X
+	var low_x := wall_x - 0.10
+	var half: float = Plan.CLIMB_HALF_Z
+	var open_d := _climb_open_half(wall_x)
+	var bottom_y := Plan.HILL_TOP - 0.35
+	var ds := PackedFloat32Array([half])
+	for row_d in EARTH_ROW_DISTS:
+		if row_d > half + 0.01 and row_d < open_d - 0.01:
+			ds.append(row_d)
+	ds.sort()
+	if absf(ds[-1] - open_d) > 0.001:
+		ds.append(open_d)
+
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(20)
+	for i in ds.size() - 1:
+		var za := axis + side * ds[i]
+		var zb := axis + side * ds[i + 1]
+		var low_a := Vector3(low_x, bottom_y, za)
+		var low_b := Vector3(low_x, bottom_y, zb)
+		var top_a := Vector3(wall_x, _east_bank_y(wall_x, za), za)
+		var top_b := Vector3(wall_x, _east_bank_y(wall_x, zb), zb)
+		_earth_wall_quad(st, low_a, low_b, top_a, top_b, Vector3.LEFT)
+	st.generate_normals()
+	st.generate_tangents()
+	var mesh := st.commit()
+	var body := StaticBody3D.new()
+	_add(body, "climb_mouth_cut_%s" % tag)
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.material_override = mats["brick"]
+	mi.name = "face"
+	body.add_child(mi)
+	mi.owner = _root
+	var shape := CollisionShape3D.new()
+	shape.shape = mesh.create_trimesh_shape()
+	shape.name = "shape"
+	body.add_child(shape)
+	shape.owner = _root
 
 ## The shoulders: the hill's ground carried north and south across the two
 ## unbuilt sections' footprints until the rim takes over, and the west face that
@@ -5565,7 +5542,14 @@ const BED_KERB_TUCK := 0.06
 
 ## How far a landing's mass stops below its own paving, and how far that paving
 ## laps past the mass on each side. See `climb_land`.
-const LAND_MASS_DROP := 0.02
+##
+## Four centimetres keeps the hidden mass's top below a neighbouring bay deck
+## through the full `SEAM_STEPS` displacement range. At two centimetres, adding
+## the two mouth-return nodes re-rolled the ordinals and put `climb_land_n_3`
+## exactly on `climb_bay_deck_n_0` again — proof that a green coplanar run was
+## only luck. The paving overlaps the mass by six centimetres at this drop, so
+## the change never reaches the walking surface.
+const LAND_MASS_DROP := 0.04
 const LAND_TOP_LAP := 0.2
 
 ## How far a facing stands proud of the wall it faces, and how thick it is.
@@ -11593,21 +11577,24 @@ func _east_climb() -> void:
 			# end of a 3.6m bay — one grey tooth per bay along the brow, in
 			# the 2026-08-23 play reports. A flat top under rising ground is
 			# set by the low end or it is not under the ground.
-			var btop: float = Plan.east_ground_base(rx0) - 0.03
 			for s in 2:
 				var side := -1.0 if s == 0 else 1.0
 				var tag := "n" if s == 0 else "s"
 				# Started inboard of the wall's inner face rather than on it.
 				var iz: float = axis + side * (half - 0.3)
 				var oz: float = axis + side * (half + bd)
+				# The court closes on the meadow patch's exact inner edge. The old
+				# floor stopped at `oz` while the skin began `EARTH_INSET` behind it,
+				# leaving a slot even when the wall happened to be tall enough.
+				var cz: float = oz + side * EARTH_INSET
 				# Past the notch line rather than to it, buried in the hill
 				# blocks: ending exactly at `SHELF_FROM_Z` put this face on the
 				# same plane as the shelf buttresses standing on that line.
 				var ez: float = sz0 - 0.35 if s == 0 else sz1 + 0.35
 				_box("climb_bay_%s_%d" % [tag, bay], Vector3.ZERO,
 					Vector3((rx0 + rx1) * 0.5, (base - 0.2 + by - 0.14) * 0.5,
-						(iz + oz) * 0.5),
-					Vector3(rx1 - rx0 + 0.12, by + 0.06 - base, absf(oz - iz)),
+						(iz + cz) * 0.5),
+					Vector3(rx1 - rx0 + 0.12, by + 0.06 - base, absf(cz - iz)),
 					"building")
 				# Brick, like the belvedere and the court and the plaza past it.
 				# The east is one floor that happens to climb.
@@ -11635,14 +11622,22 @@ func _east_climb() -> void:
 				# quarter-millimetre the ordinal was giving it is four.
 				_box("climb_bay_deck_%s_%d" % [tag, bay], Vector3.ZERO,
 					Vector3((rx0 + rx1) * 0.5, by - 0.07 - BAY_DECK_DROP,
-						(iz + oz) * 0.5),
-					Vector3(rx1 - rx0 + 0.12, 0.14, absf(oz - iz)), "brick")
+						(iz + cz) * 0.5),
+					Vector3(rx1 - rx0 + 0.12, 0.14, absf(cz - iz)), "brick")
+
+				# The three visible cut faces are one exact mesh, sampled from the
+				# same height functions as the meadow above them.
+				_east_bay_cut(side, tag, bay, rx0, rx1, by)
 				# The hill behind it, and the face that is the bay's back wall.
 				# Footed and topped a hair inside the hill blocks' own levels,
 				# because its end is buried in those blocks since 2026-08-22 and
 				# a shared volume with shared top and bottom planes is two
 				# coplanar pairs. The top hides under the skin either way.
 				if absf(ez - oz) > 0.2:
+					# Start behind the exact brick cut, not at the old nominal wall
+					# line. Starting at `oz` put the grey fill 15cm in front of the
+					# new back face and exposed its side at both rear corners.
+					var fill_z := cz + side * 0.04
 					# In three steps along x, each topped at its own west end:
 					# one flat top under a skin that rises 0.4m across the bay
 					# either pokes at one end or opens a hand of air at the
@@ -11653,89 +11648,23 @@ func _east_climb() -> void:
 						var bxa: float = lerpf(rx0, rx1, float(bs) / 3.0)
 						var bxb: float = lerpf(rx0, rx1, float(bs + 1) / 3.0) \
 							+ (0.06 if bs < 2 else 0.0)
-						var bst: float = Plan.east_ground_base(bxa) - 0.03
+						var bst: float = minf(
+							_east_ground_y(bxa, cz), _east_ground_y(bxb, cz)) - 0.03
 						_box("climb_bayhill_%s_%d_%d" % [tag, bay, bs],
 							Vector3.ZERO,
 							Vector3((bxa + bxb) * 0.5,
-								(base + 0.28 + bst) * 0.5, (oz + ez) * 0.5),
-							Vector3(bxb - bxa, bst - base - 0.28, absf(ez - oz)),
+								(base + 0.28 + bst) * 0.5, (fill_z + ez) * 0.5),
+							Vector3(bxb - bxa, bst - base - 0.28, absf(ez - fill_z)),
 							"building")
+					var btop: float = minf(_east_ground_y(rx0, cz),
+						_east_ground_y(rx1, cz)) - 0.03
 					# A course on the back wall, `accent`. The belvedere settled
 					# this: relief on a west-facing face draws nothing and value
 					# draws everything, and these faces look the same way.
 					_box("climb_bay_course_%s_%d" % [tag, bay], Vector3.ZERO,
 						Vector3((rx0 + rx1) * 0.5, by + (btop - by) * 0.62,
-							oz - side * 0.13),
+							cz - side * 0.04),
 						Vector3(rx1 - rx0 + 0.12, 0.3, 0.26), "accent", 0.0, false)
-					# And the brick to head height, which is `_hill_brick`'s rule
-					# reaching the one retaining face that is neither on the scarp
-					# nor in the notch. A bay is a room you stand in with its back
-					# wall an arm's length away, so it is the last place the cut
-					# should be wearing the plaza perimeter's grey.
-					# Full width less a hair, not `- 0.3`: the back facing used
-					# to stop 15cm short of each side facing, and the strip
-					# between them was the bay's one un-dressed vertical — a
-					# pale grey slit of bare mass at both back corners, in the
-					# 2026-08-23 play reports. It laps into the side facings'
-					# ends now; a corner overlap is the house rule, a gap is
-					# the fault.
-					_box("climb_bay_brick_%s_%d" % [tag, bay], Vector3.ZERO,
-						Vector3((rx0 + rx1) * 0.5,
-							by + (HILL_BRICK_H - 0.3) * 0.5,
-							oz - side * (HILL_FACE_T * 0.5 - HILL_FACE_OUT)),
-						Vector3(rx1 - rx0 - 0.02, HILL_BRICK_H + 0.3, HILL_FACE_T),
-						"brick", 0.0, false)
-					# Its coping, because from the flights the top of this wall is a
-					# raw brick edge against green and a wall with an unfinished top
-					# reads as scenery rather than masonry.
-					_box("climb_bay_brickcap_%s_%d" % [tag, bay], Vector3.ZERO,
-						Vector3((rx0 + rx1) * 0.5, by + HILL_BRICK_H + 0.06,
-							oz - side * (HILL_FACE_T * 0.5 - HILL_FACE_OUT)),
-						Vector3(rx1 - rx0 - 0.18, 0.13, HILL_FACE_T + 0.12),
-						"accent", 0.0, false)
-					# The side walls too, which the back-wall pass of 2026-08-21
-					# missed: a bay has three cut faces and only one got dressed, so
-					# standing in one you had brick behind you and the perimeter's
-					# bare grey an arm's length away on both sides.
-					#
-					# **Stepped down toward the mouth, with a coping on every step,
-					# and both of those are the difference between a retaining wall
-					# and a blade.** The first version was one flat panel at head
-					# height for its whole depth: the bank beside a bay falls toward
-					# the mouth while the panel's top stayed level, so from the
-					# flights each bay read as a row of thin brick teeth standing
-					# proud of the hillside — freestanding walls on a slope rather
-					# than the lining of a cut. Two steps per side, tall at the back
-					# corner where the cut is deep and dropping to garden-wall height
-					# at the mouth, is the return walls' own vocabulary one size
-					# down, and the coping is what says the exposed top is a top.
-					for e in 2:
-						var ex: float = rx0 if e == 0 else rx1
-						var edir: float = -1.0 if e == 0 else 1.0
-						var wx: float = ex + edir * (HILL_FACE_T * 0.5 - HILL_FACE_OUT)
-						for st_i in 2:
-							# Step 0 is the mouth half, low; step 1 the back half,
-							# full brick height. The mouth end starts 0.35 in so the
-							# wall never reaches past the cut it lines.
-							var za: float = iz + side * 0.35 if st_i == 0 \
-								else (iz + oz) * 0.5
-							var zb: float = (iz + oz) * 0.5 + side * 0.14 if st_i == 0 \
-								else oz - side * 0.12
-							var st_top: float = by + 1.5 if st_i == 0 \
-								else by + HILL_BRICK_H
-							_box("climb_bay_sidebrick_%s_%d_%d_%d" % [tag, bay, e, st_i],
-								Vector3.ZERO,
-								Vector3(wx, (by - 0.3 + st_top) * 0.5,
-									(za + zb) * 0.5),
-								Vector3(HILL_FACE_T, st_top - by + 0.3,
-									absf(zb - za)),
-								"brick", 0.0, false)
-							_box("climb_bay_sidecap_%s_%d_%d_%d" % [tag, bay, e, st_i],
-								Vector3.ZERO,
-								Vector3(wx, st_top + 0.06, (za + zb) * 0.5),
-								Vector3(HILL_FACE_T + 0.12, 0.13,
-									absf(zb - za) - 0.1),
-								"accent", 0.0, false)
 			bay += 1
 			continue
 		# A flight — or a narrow landing, which is banked exactly the same way
@@ -11816,11 +11745,18 @@ func _east_climb() -> void:
 				# under it you see its back faces from the mouth, which is to say
 				# you see through the hill.
 				#
+				# `_east_mouth_cut` closes the whole cross-section with one face
+				# sampled to the planted bank. The core is brick too because its
+				# padded first segment meets that raked face at the inner heel: a
+				# support allowed to show by a centimetre still has to be the same
+				# retaining masonry, not a grey shard through it.
+				#
 				# **It does not seal the wedge and this comment used to say it
 				# did.** Topping at the skin's *lowest* point is exactly what
-				# leaves the batter above it hollow, and the hollow was open at
-				# both ends of every bank — see `_earth_cap`, which is what
-				# closes it. A block under a slope is a floor, not a fill.
+				# leaves the batter above it hollow. At a court, `_east_bay_cut`
+				# closes that whole section with the brick face sampled from the
+				# same bank and meadow heights. A block under a slope is a floor,
+				# not a fill.
 				#
 				# **It clears the wall on all three shared faces, and it took a run
 				# of the coplanar test to find the two that were not the obvious
@@ -11851,7 +11787,7 @@ func _east_climb() -> void:
 						Vector3(xm, (base + 0.4 + fy0 + wall_h0 - 0.02) * 0.5,
 							axis + side * (core_z + w) * 0.5),
 						Vector3(xb - xa + 0.11, fy0 + wall_h0 - 0.42 - base,
-							absf(w - core_z)), "building", 0.0, false)
+							absf(w - core_z)), "brick", 0.0, false)
 				# The planting on the bank, sat on the skin rather than on a
 				# plate's flat top. `_east_bank_y` is the one description of
 				# where that surface is and `_east_earth` builds off the same
