@@ -8,8 +8,8 @@ extends Node
 ##
 ## **The question is whether the gate frames the cascade.** Everything here is on
 ## the fountain's east-west line or deliberately off it, because that line is the
-## entire argument for cutting a seventh way out rather than using the `ne` or
-## `se` threshold that were already in this wall. If the monument does not read
+## entire argument for cutting a dedicated way out rather than using the `se`
+## threshold that was already in this wall. If the monument does not read
 ## through the opening, the gate is in the wrong place and no amount of dressing
 ## fixes it.
 ##

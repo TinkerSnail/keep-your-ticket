@@ -1,7 +1,7 @@
 extends Node
 
 ## Dev tool: drives the real player down the entrance street and back, round the
-## four scaffolded passages, and — once the seam is crossed — over every route on
+## three scaffolded passages, and — once the seam is crossed — over every route on
 ## the boardwalk, probing every open edge of all of it.
 ##
 ## Pressing the actual input actions rather than setting velocity, so the run
@@ -147,18 +147,18 @@ func _ready() -> void:
 		["arcade north holds", Vector3(-20.0, 1.2, 78), Vector3(-20.0, 1.2, 62), false],
 		["arcade south holds", Vector3(-20.0, 1.2, 78), Vector3(-20.0, 1.2, 94), false],
 	]
-	# The four spokes, ring to passage mouth, one leg per dogleg.
+	# Three threshold spokes and the dark-ride approach, one leg per dogleg.
 	#
 	# **These are the legs that were missing.** Every threshold test below starts
 	# at the mouth, so nothing here had ever walked the plaza itself — and three
 	# of the four spokes in `ParkPlan.WALKWAYS` turned out to run through
-	# buildings, `spoke_ne` for 21m of it. A passage nothing can reach passes
+	# buildings, the former `spoke_ne` for 21m of it. A passage nothing can reach passes
 	# every test aimed at the passage.
 	for s in [
 		["nnw", [Vector3(-8.0, 1.2, -13.86), Vector3(-14.0, 1.2, -30.0),
 			Vector3(-16.9, 1.2, -46.0)]],
-		["ne", [Vector3(13.86, 1.2, -8.0), Vector3(30.0, 1.2, -24.0),
-			Vector3(46.0, 1.2, -27.4)]],
+		["dark ride", [Vector3(13.86, 1.2, -8.0), Vector3(27.8, 1.2, -20.8),
+			Vector3(31.0, 1.2, -27.4), Vector3(33.5, 1.2, -27.4)]],
 		["se", [Vector3(13.86, 1.2, 8.0), Vector3(27.0, 1.2, 13.0),
 			Vector3(34.0, 1.2, 26.0), Vector3(46.0, 1.2, 31.3)]],
 		["sw", [Vector3(-8.0, 1.2, 13.86), Vector3(-28.0, 1.2, 30.0),
@@ -167,11 +167,13 @@ func _ready() -> void:
 		var run: Array = s[1]
 		for i in run.size() - 1:
 			_legs.append(["spoke %s %d" % [s[0], i], run[i], run[i + 1], true])
+	_legs.append(["dark ride front holds", Vector3(31.5, 1.2, -27.4),
+		Vector3(45.0, 1.2, -27.4), false])
 
 	# The east gate and the forecourt behind it, both directions.
 	#
 	# **Walked rather than screenshotted, because a straight 6m opening on the
-	# fountain's axis is a route and not a view.** The four thresholds above bend,
+	# fountain's axis is a route and not a view.** The three thresholds above bend,
 	# so what they need proving is that they hold; this one goes somewhere, and
 	# what it needs proving is that you get there and back. The court sits a
 	# centimetre under the plaza's own floor — `GROUND_SEAM`, the street's
@@ -411,7 +413,7 @@ func _ready() -> void:
 	_legs.append(["ehill east wall holds", Vector3(74.0, head_y, -10.0),
 		Vector3(85.0, head_y, -10.0), false])
 
-	# The four scaffolded section thresholds. Head-on plus both corners, because
+	# The three scaffolded section thresholds. Head-on plus both corners, because
 	# the leak in a gate is never the middle — it is the hand's width between
 	# the post and the wall it was supposed to meet.
 	# For each passage: walk in from the plaza and reach the bend, make the turn
@@ -419,7 +421,6 @@ func _ready() -> void:
 	# the three is the one that matters — a passage that leaks is a hole.
 	for t in [
 		["nnw", Vector3(-16.9, 1.2, -46), Vector3(-16.9, 1.2, -58), Vector3(-27.9, 1.2, -58), Vector3(-45, 1.2, -58)],
-		["ne", Vector3(46, 1.2, -27.4), Vector3(58, 1.2, -27.4), Vector3(58, 1.2, -38.4), Vector3(58, 1.2, -56)],
 		["se", Vector3(46, 1.2, 31.3), Vector3(58, 1.2, 31.3), Vector3(58, 1.2, 41.3), Vector3(58, 1.2, 59)],
 		["sw", Vector3(-31.3, 1.2, 46), Vector3(-31.3, 1.2, 58), Vector3(-41.3, 1.2, 58), Vector3(-59, 1.2, 58)],
 	]:

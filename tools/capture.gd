@@ -75,7 +75,7 @@ const SHOTS := [
 	{"name": "room_300", "yaw": 60.0, "pitch": -1.0, "pos": Vector3(8.5, 0.2, 8.5)},
 	# Each new opening from close enough to see whether the turn hides its end.
 	{"name": "way_nnw", "yaw": 0.0, "pitch": -1.0, "pos": Vector3(-18.2, 0.2, -42)},
-	{"name": "way_ne", "yaw": -90.0, "pitch": -1.0, "pos": Vector3(40.2, 0.2, -28.1)},
+	{"name": "dark_ride", "yaw": -45.0, "pitch": 2.0, "pos": Vector3(24.0, 0.2, -19.0)},
 	{"name": "way_se", "yaw": -90.0, "pitch": -1.0, "pos": Vector3(39.4, 0.2, 31.6)},
 	{"name": "way_sw", "yaw": 180.0, "pitch": -1.0, "pos": Vector3(-31.6, 0.2, 39.4)},
 ]

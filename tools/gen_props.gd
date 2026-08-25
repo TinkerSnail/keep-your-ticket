@@ -2104,9 +2104,12 @@ const PAVE_LIFT := 0.012
 
 ## Everything the plaza side walks on.
 ##
-## The four threshold spokes are included even though what they lead to is
+## The three threshold spokes are included even though what they lead to is
 ## scaffolding, because the paving is what makes a scaffolded passage read as a
-## way out rather than as a gap in the wall.
+## way out rather than as a gap in the wall. `spoke_ne` stays for the opposite
+## reason: it no longer reaches a threshold, but gives the indoor dark ride a
+## proper approach court instead of leaving its facade stranded behind the
+## clock tower.
 ##
 ## `west_stair` is not paved: it is a flight of steps, and a flat quad laid over
 ## treads would either float above them or cut through them. The boardwalk's runs
@@ -2114,7 +2117,8 @@ const PAVE_LIFT := 0.012
 ## would be paving on planking.
 func _paving() -> void:
 	_walkway_paving([&"plaza_ring", &"spoke_south", &"spoke_nnw",
-		&"spoke_ne", &"spoke_se", &"spoke_sw"], PAVE_LIFT, "asphalt")
+		&"spoke_se", &"spoke_sw"], PAVE_LIFT, "asphalt")
+	_dark_ride_paving()
 	# The west spoke's plaza half only: ring, bend, and up to the gate house's
 	# face. The tunnel past it is the plaza's own brick and the terrace past
 	# *that* is laid by `_terrace_paving`, into this scene and the boardwalk both.
@@ -2151,6 +2155,71 @@ func _paving() -> void:
 	_pave_run(&"spoke_east", PAVE_LIFT, "asphalt", 0, 2)
 	_pave_run(&"spoke_east", PAVE_LIFT, "asphalt", 2, 1, Plan.EAST_GAP_WIDTH)
 	_pave_run(&"spoke_east", PAVE_LIFT, "asphalt", 3, 1)
+
+
+## The former north-east section spoke, redrawn at the scale of the attraction
+## that now terminates it.
+##
+## A constant eight-metre strip ending square against the wall kept saying
+## "road through a gate" after the gate was gone. This is one continuous mesh:
+## six metres wide, turning with the planned centre line, and ending parallel to
+## the facade at `PLAZA_DARK_RIDE_COURT_AT`. The last 4.5m are the plaza's brick,
+## so the surface itself distinguishes circulation from standing and queueing.
+## Keeping both asphalt legs in one surface is not just tidier — two coplanar
+## quads overlapped at the bend in the first pass, and a fractional height offset
+## would have traded an overlap for a visible asphalt seam.
+func _dark_ride_paving() -> void:
+	var run: Array = Plan.WALKWAYS[&"spoke_ne"]
+	assert(run.size() == 4, "dark-ride paving expects a bend, court and arrival")
+	var a: Vector2 = run[0]
+	var b: Vector2 = run[1]
+	var c: Vector2 = run[2]
+	var half: float = float(Plan.WALKWAY_WIDTH[&"spoke_ne"]) * 0.5
+	var d0 := (b - a).normalized()
+	var d1 := (c - b).normalized()
+	var n0 := Vector2(-d0.y, d0.x)
+	var n1 := Vector2(-d1.y, d1.x)
+
+	# The shared bend is a true mitre, so the two halves meet without a bare
+	# wedge on the outside or a diamond of excess asphalt on the inside.
+	var miter := (n0 + n1).normalized()
+	var reach := half / maxf(miter.dot(n1), 0.001)
+	var b_left := b + miter * reach
+	var b_right := b - miter * reach
+	var a_left := a + n0 * half
+	var a_right := a - n0 * half
+
+	# End parallel to the facade rather than perpendicular to the diagonal walk.
+	# This is a material threshold, not another bend in the route.
+	var end_left := Vector2(c.x, c.y + half)
+	var end_right := Vector2(c.x, c.y - half)
+
+	var verts := PackedVector2Array([
+		a_left, a_right, b_right,
+		a_left, b_right, b_left,
+		b_left, b_right, end_right,
+		b_left, end_right, end_left,
+	])
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for p in verts:
+		st.set_normal(Vector3.UP)
+		st.set_uv(p)
+		st.add_vertex(Vector3(p.x, PAVE_LIFT, p.y))
+	st.generate_tangents()
+	var mesh := st.commit()
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.material_override = mats["asphalt"]
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_add(mi, "pave_spoke_ne")
+
+	# A narrow blue reveal makes the asphalt-to-brick line read as an authored
+	# threshold rather than a missing paving segment. One millimetre above the
+	# asphalt, so the intentional overlay cannot z-fight with it.
+	_pave_quad("pave_dark_ride_threshold",
+		Vector3(c.x + 0.06, PAVE_LIFT + 0.001, c.y),
+		Vector2(0.18, half * 2.0), 0.0, "blue")
 
 
 ## The paving on the far side of the tunnel. **Into `plaza_paving.tscn` only,
@@ -5276,15 +5345,16 @@ func _east_mouth_cut(side: float, tag: String) -> void:
 ## cuts *in* the hillside rather than architecture in front of it, which is what
 ## the plan's prose always described.
 ##
-## **The west face cannot reach the ground where the `ne` and `se` passages
-## stand, and the ravine's own rule answers it**: a slope that cannot fit stands
-## up as a wall. Behind each passage the foot of the slope is a retaining wall at
+## **The west face cannot reach the ground where the south-east passage stands,
+## and the ravine's own rule answers it**: a slope that cannot fit stands up as
+## a wall. Behind that passage the foot of the slope is a retaining wall at
 ## `SHOULDER_FOOT_X`, tall enough that the batter above it still lands on the
-## plateau at `HILL_FACE_X`; past the passage the wall steps down and the batter
-## runs out to its natural toe. The wall line is chosen off the emitted
-## thresholds scene, not off the plan: the passages reach x 61.0 at their
-## furthest (`way_ne_ahead`, `way_se_ahead`), and the wall's west face at 60.7
-## laps their back walls without entering anybody's interior.
+## plateau at `HILL_FACE_X`; past it the wall steps down and the batter runs out
+## to its natural toe. The wall line is chosen off the emitted thresholds scene:
+## the passage reaches x 61.0 at its furthest (`way_se_ahead`), and the wall's
+## west face at 60.7 laps its back wall without entering the interior. The north
+## wall remains as structure behind the dark-ride hall and its service strip; it
+## is no longer exposed to a plaza route.
 ##
 ## **One height function and everything reads it.** `_shoulder_y` is min() of
 ## three surfaces — the west face, the plateau via `_east_ground_y`, the far
@@ -5353,10 +5423,9 @@ func _shoulder_y(x: float, z: float, side: float, prm: Dictionary) -> float:
 
 ## The two sides differ in more than sign, and the differences are all read off
 ## the neighbours rather than chosen. North: the court's own north-east corner is
-## open ground (the court slab reaches z -28 but the walkable court stops at the
-## ne passage's flank), so the shoulder carries a corner band of bank rows over
-## it, and the wall band runs to one metre past the passage's north end at
-## z -42.9. South: the se passage's flank *is* the court's south edge, so there
+## open ground behind the closed dark-ride hall, so the shoulder carries a corner
+## band of bank rows over it and the wall band runs to z -42.9. South: the se
+## passage's flank *is* the court's south edge, so there
 ## is no corner band, and the hill skin's own edge at z +24 is the boundary. The
 ## far edges are `frontier`'s and `kiddieland`'s footprints less the descent.
 func _shoulder_prm(side: float) -> Dictionary:
@@ -9203,7 +9272,7 @@ func _apron() -> void:
 			1.6, 7.0, "far_shade", 0.0, 6, false)
 
 
-## Scaffolding: a short passage out of each of the four section openings.
+## Scaffolding: a short passage out of each of the three section openings.
 ##
 ## These exist to test one thing — whether an 80m plaza survives being punched
 ## six times. Enclosure is what makes it a room rather than a crossroads, and
@@ -9221,8 +9290,9 @@ func _apron() -> void:
 ##
 ## Bearings are approximate on purpose. The star is a skeleton — points anchor a
 ## section's centre line, edges are free — so these sit where the perimeter had
-## room rather than on exact rays. From the fountain: roughly 342, 62, 121 and
-## 211 degrees, against a west arch at 273 and the entrance street at 182.
+## room rather than on exact rays. From the fountain: roughly 342, 121 and 211
+## degrees, against a west arch at 273 and the entrance street at 182. The old
+## 62-degree mouth is now the indoor dark ride in the closed north-east wall.
 const THRESHOLDS := Plan.THRESHOLDS
 
 const REACH := Plan.REACH
@@ -9238,7 +9308,7 @@ const BEND := Plan.BEND
 ## the file: it put a passage wall on the same plane as a plaza wall in a scene
 ## nobody had edited, twice, and a bulkhead on a door for good measure.
 ##
-## Passages first, in their original order, then the mouths appended. The four
+## Passages first, in their original order, then the mouths appended. The three
 ## passages keep exactly the displacement they had.
 func _thresholds() -> void:
 	for t in THRESHOLDS:
@@ -9249,10 +9319,10 @@ func _thresholds() -> void:
 
 ## What each way in looks like from the fountain.
 ##
-## Colour and height per land rather than four identical arches, because four
-## identical arches at four bearings read as a pattern — one thing repeated —
+## Colour and height per land rather than three identical arches, because three
+## identical arches at three bearings read as a pattern — one thing repeated —
 ## and the whole reason these exist is that the park should read as continuing
-## in five *different* directions. Four ways that look alike say there is one
+## in *different* directions. Three ways that look alike say there is one
 ## kind of elsewhere.
 ##
 ## `sign` is the board, `valance` the canopy under the beam, `cap` the finial on
@@ -9261,18 +9331,18 @@ func _thresholds() -> void:
 ##
 ## This is generator data and not `ParkPlan` data on purpose. Where a section is
 ## belongs to the plan; what colour its sign is belongs to a section that does
-## not exist yet, and inventing plan facts about four unbuilt places is how the
+## not exist yet, and inventing plan facts about unbuilt places is how the
 ## plan stops being a record of the park.
 ## `tint` is the colour the mouth *glows* after dark, and it carries the same
 ## argument the sign colours and cap shapes already carry, one step further.
 ##
-## Four identical arches at four bearings read as one thing repeated; the point
-## of these is that the park continues in five different directions, and the
+## Three identical arches at three bearings read as one thing repeated; the point
+## of these is that the park continues in different directions, and the
 ## board colour and finial are how that is said in daylight. Both stop saying it
 ## at sunset — a red board and a yellow board are the same grey under one warm
-## lamp. Giving each mouth its own colour of light keeps the four ways out
+## lamp. Giving each mouth its own colour of light keeps the three ways out
 ## distinguishable from the fountain at night, which is when the plaza most
-## needs them to be: an unlit passage reads as closed, and four identically lit
+## needs them to be: an unlit passage reads as closed, and three identically lit
 ## ones read as one exit repeated.
 ##
 ## Matched to the board rather than chosen freshly, so the mouth is the same
@@ -9280,8 +9350,6 @@ func _thresholds() -> void:
 const THRESHOLD_MOUTH := {
 	"nnw": {"sign": "canvas_alt", "valance": "canvas", "h": 2.6, "cap": "spire",
 		"tint": "cyan"},
-	"ne": {"sign": "wood", "valance": "canvas", "h": 2.2, "cap": "block",
-		"tint": "warm"},
 	"se": {"sign": "yellow", "valance": "canvas_alt", "h": 1.8, "cap": "ball",
 		"tint": "amber"},
 	"sw": {"sign": "red", "valance": "canvas_alt", "h": 2.4, "cap": "drum",
@@ -9365,7 +9433,7 @@ func _threshold_mouth(nm: String, base: Vector3, theta: float, w: float) -> void
 		Vector3(w * 0.8 - 2.0, sh - 0.8, 0.4), "white", theta, false)
 
 
-## A finial, four ways. Cheap, and the only thing distinguishing the four ways
+## A finial, three ways. Cheap, and the only thing distinguishing the three ways
 ## out at the distance most of them are seen from.
 ##
 ## Every height here is scaled by `MOUTH_H` along with its own thickness rather
@@ -9387,7 +9455,7 @@ func _mouth_cap(nm: String, base: Vector3, sx: float, theta: float, kind: String
 			_cyl(nm, base, Vector3(sx, 5.4 * k, -0.45), 0.55 * k, 1.0 * k, "white",
 				theta, 10, false)
 		_:
-			# A mast, which is the tallest of the four and reads as trees rather
+			# A mast, which is the tallest and reads as trees rather
 			# than as masonry from a distance.
 			_box(nm + "_plinth", base, Vector3(sx, 4.8 * k, -0.45),
 				Vector3(1.3, 0.4 * k, 1.8), "far_shade", theta, false)
@@ -11256,7 +11324,7 @@ func _gate_house(gate: Dictionary) -> void:
 ##
 ## The west arch is the most important of the six ways out and until 2026-08-16
 ## it was the barest: a board on a wall, no valance, no bulbs, and **no night
-## treatment of any kind** while all four scaffolded threshold mouths glow. It
+## treatment of any kind** while all three scaffolded threshold mouths glow. It
 ## got away with that while it was a hole in a flat wall, because a hole in a
 ## wall is read by its surround. Taking the top off made it a gateway — two masses
 ## and something spanning — and a gateway with nothing on the span reads as
@@ -11266,7 +11334,7 @@ func _gate_house(gate: Dictionary) -> void:
 ## This is that, at the scale of a 15m masonry gate house.
 ##
 ## **Everything here sits at or above the beam's soffit, and that is the whole
-## constraint.** A valance hangs *below* the beam on the four mouths, because down
+## constraint.** A valance hangs *below* the beam on the three mouths, because down
 ## there the sign is the point and nothing is looked at through the opening. Here
 ## the opening is the view west — it is why the top came off — so a canopy hung
 ## 30cm proud under the soffit would give back a third of what the day bought.
@@ -11630,7 +11698,131 @@ func _run_along_x(size: Vector3) -> bool:
 	return size.x >= size.z
 
 
+## The attraction that replaces the north-east threshold.
+##
+## The old passage gave this sixteen-metre gap a monumental mouth and then
+## delivered the player to a dead dogleg against the hill's retaining wall. Once
+## the due-east gate became the real route into the east section, that second
+## opening was all signal and no destination. The perimeter closes here now, but
+## the approach remains useful: it ends at a small indoor dark ride built into
+## the wall.
+##
+## This is deliberately a facade rather than a ride interior. The milestone's
+## rides are static, and the building mass is the honest collision boundary; a
+## dark loading mouth, guide rails and one car say what happens behind it without
+## promising a room the player can enter. The upper wall gets its own carnival
+## front instead of `_facade_bay`'s shops, because a row of ordinary storefronts
+## would close the hole and throw away the reason to walk down this spur.
+func _dark_ride_facade(run: Dictionary, idx: int) -> void:
+	var c: Vector3 = run["at"]
+	var s: Vector3 = run["size"]
+	var along_x := _run_along_x(s)
+	var length: float = s.x if along_x else s.z
+	var thick: float = s.z if along_x else s.x
+	var h: float = s.y
+	var normal := (Vector3(0.0, 0.0, -signf(c.z)) if along_x
+		else Vector3(-signf(c.x), 0.0, 0.0))
+	var theta := atan2(normal.x, normal.z)
+	var base := Vector3(c.x, 0.0, c.z) + normal * (thick * 0.5 - FRONT_SINK)
+	var tag := "dark_ride_%02d" % idx
+
+	# A broad loading mouth, framed heavily enough to read from the ring. The
+	# panel is relief on the solid building, like every other plaza opening.
+	_box("%s_mouth" % tag, base, Vector3(0.0, 1.72, 0.10),
+		Vector3(8.2, 3.55, 0.16), "glass", theta, false)
+	for side in [-1.0, 1.0]:
+		var sx: float = side * 4.35
+		_box("%s_jamb_%s" % [tag, "l" if side < 0.0 else "r"], base,
+			Vector3(sx, 2.05, 0.36), Vector3(0.72, 4.25, 0.72), "white", theta, false)
+	_box("%s_head" % tag, base, Vector3(0.0, 3.96, 0.38),
+		Vector3(9.4, 0.72, 0.78), "white", theta, false)
+	_box("%s_valance" % tag, base, Vector3(0.0, 3.58, 0.82),
+		Vector3(8.7, 0.20, 1.15), "blue", theta, false)
+
+	# Guided track and one waiting car. None collides: the building is the stop,
+	# and decorative rails should not snag a body approaching the sign.
+	for side in [-1.0, 1.0]:
+		_box("%s_track_%s" % [tag, "l" if side < 0.0 else "r"], base,
+			Vector3(side * 1.12, 0.035, 1.75), Vector3(0.11, 0.07, 3.5),
+			"metal", theta, false)
+	_box("%s_car_bumper" % tag, base, Vector3(0.0, 0.32, 0.92),
+		Vector3(3.35, 0.34, 2.05), "far_shade", theta, false)
+	_box("%s_car_body" % tag, base, Vector3(0.0, 0.63, 0.88),
+		Vector3(2.85, 0.72, 1.7), "red", theta, false)
+	_box("%s_car_seat" % tag, base, Vector3(0.0, 1.06, 0.42),
+		Vector3(2.0, 0.68, 0.46), "blue", theta, false)
+	for side in [-1.0, 1.0]:
+		_sphere("%s_car_lamp_%s" % [tag, "l" if side < 0.0 else "r"], base,
+			Vector3(side * 0.82, 0.72, 1.77), 0.16, "bulb", theta)
+
+	# Operator windows at both hands make the mouth a loading station rather than
+	# a painted garage door. The lower sill is also the counter.
+	for side in [-1.0, 1.0]:
+		var sx: float = side * 6.15
+		var suffix := "l" if side < 0.0 else "r"
+		_box("%s_ops_%s" % [tag, suffix], base, Vector3(sx, 1.85, 0.14),
+			Vector3(2.15, 2.05, 0.18), "glass", theta, false)
+		_box("%s_ops_frame_%s" % [tag, suffix], base, Vector3(sx, 2.93, 0.24),
+			Vector3(2.55, 0.25, 0.44), "white", theta, false)
+		_box("%s_ops_counter_%s" % [tag, suffix], base, Vector3(sx, 0.76, 0.48),
+			Vector3(2.55, 0.28, 0.92), "wood", theta, false)
+
+	# Layered carnival marquee. A blank sign still reads as a sign at this scale;
+	# the colours and bulbs distinguish it from the four-shop frontage next door.
+	_box("%s_marquee_back" % tag, base, Vector3(0.0, 5.15, 0.34),
+		Vector3(11.7, 2.05, 0.72), "red", theta, false)
+	_box("%s_marquee_face" % tag, base, Vector3(0.0, 5.15, 0.76),
+		Vector3(9.65, 1.28, 0.18), "yellow", theta, false)
+	_box("%s_marquee_rule" % tag, base, Vector3(0.0, 4.18, 0.82),
+		Vector3(11.2, 0.18, 0.98), "blue", theta, false)
+	for i in 13:
+		var bx := lerpf(-5.2, 5.2, float(i) / 12.0)
+		_sphere("%s_bulb_%d" % [tag, i], base, Vector3(bx, 4.02, 1.18),
+			0.13, "bulb", theta)
+
+	# The ride hall's upper face: three coloured pilasters, two rows of small dark
+	# panels and a stepped crown. It is busier than the shops but still one
+	# building, not a freestanding fairground front pasted onto the perimeter.
+	for i in 3:
+		var px := (float(i) - 1.0) * 4.4
+		var pm: String = ["red", "blue", "yellow"][i]
+		_box("%s_pilaster_%d" % [tag, i], base, Vector3(px, 9.35, 0.20),
+			Vector3(0.62, 6.2, 0.46), pm, theta, false)
+	for row in 2:
+		var py := 7.45 + float(row) * 3.25
+		for col in 4:
+			var px := lerpf(-5.7, 5.7, (float(col) + 0.5) / 4.0)
+			_box("%s_panel_%d_%d" % [tag, row, col], base,
+				Vector3(px, py, 0.12), Vector3(1.65, 1.42, 0.20),
+				"glass", theta, false)
+			_box("%s_panel_head_%d_%d" % [tag, row, col], base,
+				Vector3(px, py + 0.82, 0.18), Vector3(1.95, 0.18, 0.34),
+				"white", theta, false)
+
+	_box("%s_cornice" % tag, base, Vector3(0.0, h - 0.34, 0.28),
+		Vector3(length - 0.25, 0.55, 0.68), "white", theta, false)
+	_box("%s_parapet" % tag, base, Vector3(0.0, h + 0.40, 0.04),
+		Vector3(length + 0.12, 1.05, 0.78), "building", theta, false)
+	_box("%s_crown" % tag, base, Vector3(0.0, h + 1.65, 0.08),
+		Vector3(7.2, 1.55, 0.86), "red", theta, false)
+	_box("%s_crown_face" % tag, base, Vector3(0.0, h + 1.65, 0.58),
+		Vector3(5.3, 0.82, 0.16), "yellow", theta, false)
+	for side in [-1.0, 1.0]:
+		var sx: float = side * 3.15
+		_box("%s_crown_post_%s" % [tag, "l" if side < 0.0 else "r"], base,
+			Vector3(sx, h + 2.9, -0.25), Vector3(0.18, 2.3, 0.18),
+			"metal", theta, false)
+		_sphere("%s_crown_finial_%s" % [tag, "l" if side < 0.0 else "r"], base,
+			Vector3(sx, h + 4.08, -0.25), 0.27, "bulb", theta)
+
+	_omni("%s_glow" % tag, _place(base, Vector3(0.0, 3.4, 3.0), theta),
+		"rose", 2.8, 12.0)
+
+
 func _facade(run: Dictionary, idx: int) -> void:
+	if String(run["nm"]) == "perim_e_dark_ride":
+		_dark_ride_facade(run, idx)
+		return
 	var c: Vector3 = run["at"]
 	var s: Vector3 = run["size"]
 	var along_x: bool = _run_along_x(s)

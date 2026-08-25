@@ -312,9 +312,9 @@ const SUNSET := [
 ## `park_lights.gd` follows the park closing — at 22:00 every bulb in the park
 ## goes out. A night shot at 22:30 is a photograph of an unlit gate.
 const PLAZA_NIGHT := [
-	# From the ring's west vertex, which is where the four threshold mouths are
+	# From the ring's west vertex, which is where the three threshold mouths are
 	# judged from too. The question is whether the arch now reads as the fifth
-	# and biggest way out at the hour the four of them are doing their best work.
+	# and biggest way out at the hour the three of them are doing their best work.
 	{"time": [21, 15], "name": "01n_gate_from_the_ring", "yaw": 92.0, "pitch": 7.0,
 		"pos": Vector3(-16.0, 0.2, 0.0)},
 	# Square on, close enough that the bulbs are individual lamps rather than a

@@ -323,6 +323,11 @@ func _plaza_graph() -> void:
 		"street_n": Vector2(22.0, 11.0),
 		"east": Vector2(25.0, -2.0),
 		"east_n": Vector2(24.0, -18.0),
+		# The former north-east section spoke now ends at the indoor dark ride.
+		# Two nodes keep the dogleg loose enough for families to turn without
+		# putting their wander offset into the new perimeter building.
+		"dark_ride_walk": Vector2(29.0, -23.0),
+		"dark_ride_entry": Vector2(32.5, -27.4),
 		"north": Vector2(5.0, -25.0),
 		# In front of the clock tower. The node kept its name when the tower moved
 		# onto the axis, because what it means — the walk under the sign — did not.
@@ -369,6 +374,7 @@ func _plaza_graph() -> void:
 		["hut_walk", "ring_se"],
 		["street_n", "east"], ["street_n", "ring_se"], ["street_n", "ring_e"],
 		["east", "ring_e"], ["east", "east_n"],
+		["east_n", "dark_ride_walk"], ["dark_ride_walk", "dark_ride_entry"],
 		["east_n", "north"], ["east_n", "ring_ne"],
 		["north", "sign"], ["north", "ring_n"], ["north", "ring_ne"],
 		["sign", "band_e"], ["sign", "band_n"], ["sign", "ring_n"],
@@ -818,6 +824,9 @@ func _plaza_pois() -> PackedVector3Array:
 	out.append(Vector3(Plan.CLOCK_TOWER_AT.x, 21.0, Plan.CLOCK_TOWER_AT.y))
 	# The counter of the hut the player works out of.
 	out.append(Vector3(Plan.PHOTO_HUT_AT.x, 2.0, Plan.PHOTO_HUT_AT.y))
+	# The bulb-fronted loading mouth of the indoor dark ride. Its graph endpoint
+	# is three metres away, close enough for ordinary POI attention to fire.
+	out.append(Vector3(Plan.PLAZA_DARK_RIDE_AT.x, 4.8, Plan.PLAZA_DARK_RIDE_AT.y))
 	# The bandstand's stage. Hand-placed in `plaza.tscn` at final coordinates,
 	# and `_plaza_bench_spots` already knows the same number.
 	out.append(Vector3(BANDSTAND_AT.x, 1.6, BANDSTAND_AT.z))
@@ -1179,6 +1188,7 @@ func _plaza_walking_groups() -> void:
 		{"start": "gate", "kinds": ["adult", "adult", "kid"]},
 		{"start": "south_east", "kinds": ["adult", "kid", "kid"]},
 		{"start": "ring_ne", "kinds": ["adult", "adult", "kid", "kid"]},
+		{"start": "dark_ride_walk", "kinds": ["adult", "kid", "kid"]},
 		{"start": "band_e", "kinds": ["adult", "adult", "kid"]},
 		# The family the cascade was built for, and it is early in the list on
 		# purpose: a group that has to plan its route round the park is a group

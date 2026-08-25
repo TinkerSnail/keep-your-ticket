@@ -103,6 +103,17 @@ use_collision = true
 size = Vector3(11, 9.5, 12.6)
 material = SubResource("mat_building")
 
+; The north-east passage retired when the real east gate and its hillside became
+; the east section's entrance. It had no section behind it and left the player
+; in a dogleg looking at the shoulder's retaining work. This is the same sixteen
+; metres closed as an indoor attraction hall: a perimeter run with a plaza face,
+; a dressed back in the terraces stand-in and enough depth to hide the hill joint.
+[node name="perim_e_dark_ride" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.49635, 6.99635, -27.40365)
+use_collision = true
+size = Vector3(11, 14, 16)
+material = SubResource("mat_building")
+
 ; **This run ends in the north pier, not at the gap's edge.** It used to run
 ; z -19.4..2.0 and carry the whole of the east wall's middle; the gate takes
 ; z -5.0..1.0 out of it, and the run stops at -9.0 so its end is buried half a
@@ -134,11 +145,11 @@ use_collision = true
 size = Vector3(11, 9.5, 10.2)
 material = SubResource("mat_building")
 
-; The east gate: the seventh way out, and the only one that faces another.
+; The east gate: the sixth way out, and the only one that faces another.
 ;
 ; It is on the fountain's own east-west line, which is the whole reason for
-; cutting a new opening rather than using the `ne` or `se` threshold already in
-; this wall. Those sit at 62 and 121 degrees, and a monument behind either is a
+; cutting a new opening rather than using the `se` threshold already in this
+; wall. It sits at 121 degrees, and a monument behind it is a
 ; monument you come across; due east of the fountain it is the west arch's
 ; answer, and the plaza reads as a notch between the two of them. Turn west from
 ; the coping and the ground falls six metres; turn east and it climbs six.
@@ -465,6 +476,12 @@ material = SubResource("mat_building")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50.99850, 1.79850, -43.70150)
 use_collision = true
 size = Vector3(1, 3.6, 16.6)
+material = SubResource("mat_building")
+
+[node name="wall_east_dark_ride" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50.99838, 1.79838, -27.40162)
+use_collision = true
+size = Vector3(1, 3.6, 16)
 material = SubResource("mat_building")
 
 ; **Two runs since the east gate was cut, and the gap between them is the gate's

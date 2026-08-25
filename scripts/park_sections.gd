@@ -51,7 +51,7 @@ const WORLD_GROUP := &"world"
 ## and regenerated on different days. Mounting a list means no wrapper scene has
 ## to exist and be kept in step with the generators.
 ##
-## An empty `scenes` is a section that is planned and not built. The four
+## An empty `scenes` is a section that is planned and not built. The three
 ## scaffolded thresholds in the plaza wall are exactly that: they are passages
 ## that bend and stop, and walking to the end of one has to do nothing rather
 ## than crash. They are not named here because naming them would be inventing
@@ -249,7 +249,7 @@ func section_name(id: StringName) -> String:
 	return SECTIONS[id]["name"]
 
 
-## Whether a section is built. The four scaffolded thresholds answer false, and
+## Whether a section is built. The three scaffolded thresholds answer false, and
 ## every caller has to cope with that rather than assume the park is finished.
 func is_built(id: StringName) -> bool:
 	if not SECTIONS.has(id):

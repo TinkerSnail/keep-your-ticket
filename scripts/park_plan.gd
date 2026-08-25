@@ -292,29 +292,44 @@ const ARCH_RIM_CLEAR_X := -16.0
 ## x −50.5; this stands short of it, where you actually end up walking.
 const OVERLOOK_AT := Vector2(-49.0, -2.0)
 
-## The four scaffolded passages, moved here verbatim from `gen_props.gd`.
+## The three scaffolded passages, moved here verbatim from `gen_props.gd`.
 ##
 ## Bearings are approximate on purpose. The star is a skeleton — points anchor a
 ## section's centre line, edges are free — so these sit where the perimeter had
-## room rather than on exact rays. From the fountain: roughly 342, 62, 121 and
-## 211 degrees, against a west arch at 273 and the entrance street at 182.
-## Moved out to the new wall line along the same bearings, so the star the
-## design describes is unchanged — 342, 62, 121 and 211 still, to within a
-## fraction of a degree. Only the radius grew.
+## room rather than on exact rays. From the fountain: roughly 342, 121 and 211
+## degrees, against a west arch at 273 and the entrance street at 182.
+##
+## The old north-east passage at 62 degrees came out on 2026-08-25. Once the
+## due-east gate opened onto a real section, a second east opening no longer
+## clarified the park: it competed with the gate, led to an unbuilt land twelve
+## metres above it and exposed the retaining work below the north shoulder. Its
+## plaza approach now terminates at `PLAZA_DARK_RIDE_AT`; the future northern
+## land belongs off the upper terrace instead of through a second ground-level
+## hole in the same wall.
 ##
 ## Widened with the plaza. A 12m mouth in a 78m wall and a 12m mouth in a 102m
 ## wall are not the same opening: the second reads as a crack. These are scaled
 ## by roughly the same 1.3 the perimeter is.
 const THRESHOLDS := [
 	{"name": "nnw", "at": Vector3(-16.9, 0.0, -51.5), "theta": PI, "width": 16.0, "turn": 1.0},
-	{"name": "ne", "at": Vector3(51.5, 0.0, -27.4), "theta": PI * 0.5, "width": 16.0, "turn": 1.0},
 	{"name": "se", "at": Vector3(51.5, 0.0, 31.3), "theta": PI * 0.5, "width": 13.0, "turn": -1.0},
 	{"name": "sw", "at": Vector3(-31.3, 0.0, 51.5), "theta": 0.0, "width": 10.0, "turn": -1.0},
 ]
 
+## The destination at the end of the former north-east spoke. The building's
+## inner face is x 36; this stands half a metre in front of its dark-ride mouth
+## so map markers, crowd attention and tests all point at the same entrance.
+const PLAZA_DARK_RIDE_AT := Vector2(35.5, -27.4)
+
+## Where the asphalt approach gives way to the ride's brick standing court.
+## Parallel to the facade and 4.5m in front of it: enough room to gather without
+## preserving the retired passage's road all the way into the loading mouth.
+const PLAZA_DARK_RIDE_COURT_AT := Vector2(31.0, -27.4)
+
 ## How far a passage runs before it bends, and how far it carries after. The
 ## bend is what buys a section load its cover, so it is plan data rather than a
-## detail of the shape — every spoke needs one whether or not it has shops yet.
+## detail of the shape — every remaining threshold needs one whether or not its
+## section has shops yet.
 const REACH := 9.0
 const BEND := 7.0
 
@@ -793,9 +808,10 @@ const SHELF_PARAPET_T := 0.5
 ## on the flat at the plaza's own level, which was fine while the east was flat.
 ## An east that climbs has to put them somewhere, and the two honest options were
 ## to route the rim's foot around them — a ridge with two bays chewed out of it —
-## or to put them on the hill. They are on the hill. **The cost is that the `ne`
-## and `se` passages now have twelve metres to climb and nothing in them climbs
-## yet**, which is real and is written down here rather than discovered later.
+## or to put them on the hill. They are on the hill. **The cost is that the `se`
+## passage now has twelve metres to climb and nothing in it climbs yet**, which
+## is real and is written down here rather than discovered later. The north-east
+## passage no longer exists; `frontier` will branch from the upper terrace.
 const TERRACE_TWO_Y := 12.0
 const TERRACE_TWO_FROM_X := SHELF_TO_X
 const TERRACE_TWO_TO_X := 120.0
@@ -1267,13 +1283,14 @@ const RIM_SUBDIV := 32
 # The east gap, and the gate in it
 # ---------------------------------------------------------------------------
 
-## The sixth way out becomes a seventh, and the plan has said six for a year.
+## The due-east way made seven; retiring the north-east threshold brings the
+## plaza back to six without giving up this axis.
 ##
 ## It is on the fountain's own east–west line, which is the whole reason for
-## cutting a new one rather than using the `ne` or `se` threshold already there.
-## Those sit at 62° and 121°; a cascade behind either is a cascade you come
-## across, and a cascade due east of the fountain is the west one's answer. The
-## plaza reads as a notch between two of them.
+## cutting a new one rather than using the `se` threshold already there. That
+## sits at 121°; a cascade behind it is a cascade you come across, and a cascade
+## due east of the fountain is the west one's answer. The plaza reads as a notch
+## between two of them.
 ##
 ## **Mirrored in structure and not in coordinate.** The plaza is not symmetric —
 ## the west wall stands at x −38.5 with faces at −33 and −44, the east at 41.5
@@ -1963,9 +1980,10 @@ const SECTION_GROUND := {
 		"size": Vector2(SHORE_FROM_X - PAVILION_AT.x + 12.0, 340.0),
 		"floor_y": SHORE_TOP,
 	},
-	# Pushed out along their own bearings by the 12m the wall line moved, so each
-	# still sits just beyond its threshold rather than overlapping the bigger
-	# plaza. These are footprints for silhouette and none of them is built.
+	# Pushed out along their own bearings by the 12m the wall line moved. Grove,
+	# kiddieland and fairground still sit beyond their thresholds; frontier starts
+	# at the north shoulder and will be entered from the upper east promenade.
+	# These are footprints for silhouette and none of them is built.
 	#
 	# **The two east ones were wrong in three ways at once and none of it could
 	# have been noticed**, because `floor_y` here has no code consumer at all —
@@ -2014,7 +2032,6 @@ const SPOKE_LEADS_TO := {
 	&"west": &"boardwalk",
 	&"east": &"terraces",
 	&"nnw": &"grove",
-	&"ne": &"frontier",
 	&"se": &"kiddieland",
 	&"sw": &"fairground",
 	&"south": &"",
@@ -2053,13 +2070,14 @@ const SECTION_THEME := {
 ## foldout. `at` is the true world position for the things that want it — the
 ## minimap is to scale and the massing model is the park.
 ##
-## **The four thresholds used to be nameless, and now their sections are not.**
+## **The scaffolded thresholds used to be nameless, and now their sections are
+## not.**
 ## The rule was that naming a section ahead of its design is inventing park
 ## content, and it held while nothing needed the park to read as a whole. Massing
 ## the park to its edges needs exactly that, so `SECTION_GROUND` above names all
 ## six and this table points the passages at them.
 ##
-## What survives of the rule: `built` is still false for all four, the passages
+## What survives of the rule: `built` is still false for all three, the passages
 ## still bend and stop, `ParkSections.SECTIONS` still has no entry to mount, and
 ## a name here buys a footprint and a silhouette and nothing else. `id` on a
 ## `way_` entry is still a bearing mnemonic rather than a place name — the place
@@ -2070,6 +2088,7 @@ const PLACES := [
 	{"id": &"gate", "at": Vector2(STREET_X, GATE_Z), "section": &"plaza", "built": true},
 	{"id": &"apron", "at": Vector2(STREET_X, APRON_Z), "section": &"plaza", "built": true},
 	{"id": &"overlook", "at": OVERLOOK_AT, "section": &"plaza", "built": true},
+	{"id": &"dark_ride", "at": PLAZA_DARK_RIDE_AT, "section": &"plaza", "built": true},
 
 	## Behind the gate at the foot of the stair, and the three things standing on
 	## it. `built` on these tracks what the generator has actually emitted, which
@@ -2083,7 +2102,6 @@ const PLACES := [
 	## Passages that bend and stop, and the sections behind them. Massed, not
 	## built: there is a shape on the horizon and nothing to walk into.
 	{"id": &"way_nnw", "at": Vector2(-13.0, -39.5), "section": &"grove", "built": false},
-	{"id": &"way_ne", "at": Vector2(39.5, -21.0), "section": &"frontier", "built": false},
 	{"id": &"way_se", "at": Vector2(39.5, 24.0), "section": &"kiddieland", "built": false},
 	{"id": &"way_sw", "at": Vector2(-24.0, 39.5), "section": &"fairground", "built": false},
 
@@ -2295,9 +2313,9 @@ const WALKWAYS := {
 		Vector2(PIER_ROOT.x - PIER_LENGTH, PIER_ROOT.y),
 	],
 
-	## The four spokes to the scaffolded thresholds. Each runs from the ring to
-	## the mouth of its passage; what happens past the mouth belongs to the
-	## passage, and past the bend belongs to a section that does not exist yet.
+	## Three spokes to scaffolded thresholds, plus the north-east walk to the
+	## indoor dark ride. Threshold runs stop at their mouths; the attraction walk
+	## stops at its loading facade and goes no farther.
 	##
 	## **These were straight, and three of them ran through buildings.** Written
 	## when this file's only consumer was the minimap, they were drawn as rays
@@ -2315,7 +2333,7 @@ const WALKWAYS := {
 	## collides with, measured along the centre line — enough that the route is
 	## walkable, not merely drawable.
 	##
-	## Two of them start from a different point on the ring than they used to,
+	## Two threshold runs start from a different point on the ring than they used to,
 	## because the old start was on the wrong side of an obstacle: `spoke_se`
 	## from due east rather than the south-east vertex, since the photo hut sits
 	## square in the way of the latter, and `spoke_sw` from the south-south-west
@@ -2327,12 +2345,15 @@ const WALKWAYS := {
 		Vector2(-8.0, -13.86), Vector2(-14.0, -30.0), Vector2(-16.9, -51.5),
 	],
 
-	## North of `perim_e_north`, past the foot of the sign tower, and out through
-	## the gap between `wall_east_north` and `wall_east_mid`. The tower is 3.6m
-	## off the centre line, which is close, and right: a clock you walk past is
-	## worth more than a clock you look at.
+	## North of the ring, past the foot of the sign tower, and into the small court
+	## in front of the indoor dark ride. This used to continue through the
+	## north-east threshold; the route continues across brick after
+	## `PLAZA_DARK_RIDE_COURT_AT` and ends at the building's plaza face. The clock
+	## is still 3.6m off the centre line, which is close, and right: a clock you
+	## walk past is worth more than a clock you look at.
 	&"spoke_ne": [
-		Vector2(13.86, -8.0), Vector2(30.0, -24.0), Vector2(51.5, -27.4),
+		Vector2(13.86, -8.0), Vector2(27.8, -20.8),
+		PLAZA_DARK_RIDE_COURT_AT, PLAZA_DARK_RIDE_AT,
 	],
 
 	## Off the ring due east, south down the eight-metre street between the photo
@@ -2400,7 +2421,11 @@ const WALKWAY_WIDTH := {
 	&"boardwalk_promenade": 16.0,
 	&"boardwalk_pier": 8.0,
 	&"spoke_nnw": 8.0,
-	&"spoke_ne": 8.0,
+	## A forecourt rather than a section spoke, but it keeps the bearing mnemonic
+	## because that is how the plaza's paving and walk tests have always named it.
+	## Six metres keeps it a generous pedestrian walk without preserving the old
+	## gate road's eight-metre scale; the paving flares only at the loading mouth.
+	&"spoke_ne": 6.0,
 	&"spoke_se": 7.0,
 	&"spoke_sw": 6.0,
 }
@@ -2565,7 +2590,7 @@ static func place(id: StringName) -> Dictionary:
 
 
 ## The places belonging to a section. An empty `of` returns the ones that belong
-## to no section — the four passages that bend and stop, which is the set a
+## to no section — the three passages that bend and stop, which is the set a
 ## drawing wants when it needs to show the park has more ways out than places.
 static func places_in(of: StringName) -> Array:
 	var out := []
@@ -2603,6 +2628,7 @@ const PLAZA_MASSES := [
 	{"at": Vector2(25.0, -41.5), "half": Vector2(11.0, 5.5)},
 	# east side, inner face x = 36
 	{"at": Vector2(41.5, -41.7), "half": Vector2(5.5, 6.3)},
+	{"at": Vector2(41.5, -27.4), "half": Vector2(5.5, 8.0)},
 	# **These two used to meet at z +2 with no gap between them**, which said the
 	# east wall was solid across the very place the gate was cut on 2026-08-17.
 	# Nothing noticed for a day because this table is only read by the crowd's
