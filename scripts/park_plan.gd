@@ -1507,14 +1507,23 @@ const EAST_TOWER_GRADE_RUN := 3.5
 
 ## The tower is a destination beside this route, not the route's terminus.
 ## Guests fork before its gate, skirt the outside of the fenced court and arrive
-## on a small trestle terrace at the first built piece of Frontier. The terrace
-## is intentionally above Frontier's 12m bench: it lets the accessible upper
-## promenade lose only 1.5m over a 27m approach, while a later land can take the
-## remaining descent behind the temporary closure instead of forcing it into
-## one steep path here.
+## at the first built piece of Frontier. **The route and street stand on the
+## north shoulder now, not on a guest trestle.** The first build held this same
+## 18.5m datum above the shoulder on timber piers, postponing the difference
+## between the tower's 20m court and Frontier's old 12m footprint until somewhere
+## behind a closure. It solved one approach and made the land look detached from
+## the park carrying it.
+##
+## Frontier begins on the high contour instead. The ground is graded to this
+## route and the whole future land spends its length descending toward the grove;
+## no short threshold structure is asked to swallow that descent. Timber trestle
+## is reserved for the mine train, where it says what it is. The built route
+## still loses only 1.5m over roughly 27m, and the unbuilt continuation begins
+## beyond the western closure on the street's own axis.
 const EAST_FRONTIER_PATH_W := 4.6
 const EAST_FRONTIER_FLOOR_Y := 18.5
-const EAST_FRONTIER_DECK_T := 0.42
+const EAST_FRONTIER_PATH_GRADE_RUN := 7.5
+const EAST_FRONTIER_STREET_GRADE_RUN := 9.0
 const EAST_FRONTIER_STREET_FROM_X := 73.0
 const EAST_FRONTIER_STREET_TO_X := 94.0
 const EAST_FRONTIER_STREET_Z := -93.0

@@ -949,6 +949,10 @@ func _build_materials() -> void:
 		# surface rather than a third generated ground texture; the small arrival
 		# street needs a material read, not close-up geology.
 		"frontier_dust": [Color(0.52, 0.39, 0.27), 0.98, 0.0],
+		# Scenic mine rock: warmer and darker than the distant rim, so the ride
+		# belongs to Frontier rather than reading as another exposed piece of the
+		# park's perimeter landform.
+		"frontier_rock": [Color(0.46, 0.36, 0.29), 0.97, 0.0],
 		"metal": [Color(0.3, 0.31, 0.33), 0.55, 0.2],
 		"white": [Color(0.87, 0.86, 0.82), 0.8, 0.0],
 		"red": [Color(0.84, 0.27, 0.24), 0.7, 0.0],
@@ -5327,6 +5331,48 @@ func _shoulder_foot(dist: float, wall_to: float) -> Vector2:
 	return Vector2(lerpf(SHOULDER_FOOT_X, toe_x, t), wall_y * (1.0 - t))
 
 
+## Bed Frontier's first public route into the north shoulder. This is kept out
+## of `_east_ground_y`: the protected cascade terraces and fountain cut use that
+## surface, while Frontier begins more than forty metres north of their outer
+## edge. Applying the grade only to the north shoulder makes the boundary
+## explicit and prevents a future change to the street from quietly reshaping
+## the cascade composition.
+##
+## The path pulls a broad planted verge to its published centreline height. The
+## street then flattens the overlap to one arrival datum. Both eases are wider
+## than the paving they support, so the public way reads as ground following a
+## contour rather than as a slab perched on a narrow berm.
+func _east_frontier_grade_y(x: float, z: float, uncut_y: float) -> float:
+	var p := Vector2(x, z)
+	var y := uncut_y
+	var path: Array[Vector3] = Plan.east_frontier_path()
+	for i in path.size() - 1:
+		var a := Vector2(path[i].x, path[i].z)
+		var b := Vector2(path[i + 1].x, path[i + 1].z)
+		var ab := b - a
+		var t := clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.001),
+			0.0, 1.0)
+		var dist := maxf(p.distance_to(a + ab * t)
+			- Plan.EAST_FRONTIER_PATH_W * 0.5, 0.0)
+		if dist >= Plan.EAST_FRONTIER_PATH_GRADE_RUN:
+			continue
+		var w := 1.0 - dist / Plan.EAST_FRONTIER_PATH_GRADE_RUN
+		w = w * w * (3.0 - 2.0 * w)
+		var target := lerpf(path[i].y, path[i + 1].y, t)
+		y = lerpf(y, target, w)
+
+	var dx := maxf(maxf(Plan.EAST_FRONTIER_STREET_FROM_X - x,
+		x - Plan.EAST_FRONTIER_STREET_TO_X), 0.0)
+	var dz := maxf(absf(z - Plan.EAST_FRONTIER_STREET_Z)
+		- Plan.EAST_FRONTIER_STREET_HALF_Z, 0.0)
+	var street_dist := Vector2(dx, dz).length()
+	if street_dist < Plan.EAST_FRONTIER_STREET_GRADE_RUN:
+		var w := 1.0 - street_dist / Plan.EAST_FRONTIER_STREET_GRADE_RUN
+		w = w * w * (3.0 - 2.0 * w)
+		y = lerpf(y, Plan.EAST_FRONTIER_FLOOR_Y, w)
+	return y
+
+
 ## The finished level of the shoulder at a point on it.
 ##
 ## Three surfaces, lowest wins. The west face and the descent are both bowed for
@@ -5357,7 +5403,10 @@ func _shoulder_y(x: float, z: float, side: float, prm: Dictionary) -> float:
 		nd = p - (dist - brow) / SHOULDER_BATTER
 		var tn := clampf((p - nd) / maxf(p, 0.001), 0.0, 1.0)
 		nd += sin(tn * PI) * SHOULDER_BOW * (0.62 + 0.38 * sin(x * 0.31))
-	return minf(minf(fw, p), nd)
+	var y := minf(minf(fw, p), nd)
+	if side < 0.0:
+		y = _east_frontier_grade_y(x, z, y)
+	return y
 
 
 ## The two sides differ in more than sign, and the differences are all read off
@@ -5770,8 +5819,12 @@ func _east_north_service_yard() -> void:
 		var face_top := f0.y + 1.1 - 0.275
 		var za: float = Plan.ARCH_AT.y - d0
 		var zb: float = Plan.ARCH_AT.y - d1
-		var face_h := face_top + 0.40
-		var face_y := (face_top - 0.40) * 0.5
+		# Stop the vertical skin 2cm below the masonry block's own top. The white
+		# cap covers that edge; carrying the skin exactly to `face_top` gives its
+		# thin upward face the same plane as the block beneath it.
+		var skin_top := face_top - 0.02
+		var face_h := skin_top + 0.40
+		var face_y := (skin_top - 0.40) * 0.5
 		_box("east_service_step_%d_front" % k, Vector3.ZERO,
 			Vector3((xmin + xe) * 0.5, face_y, za + 0.04),
 			Vector3(xe - xmin + 0.04, face_h, 0.12), "brick", 0.0, false)
@@ -6101,7 +6154,8 @@ func _east_end_path_plate(nm: String, top_a: Vector3, top_b: Vector3,
 ## boxes would either overlap at every turn or leave triangular holes there;
 ## shared vertices make the bend one surface and keep paving a visual layer over
 ## the colliding ground rather than a row of kerbs.
-func _east_path_ribbon(nm: String, points: Array[Vector3], width: float) -> void:
+func _east_path_ribbon(nm: String, points: Array[Vector3], width: float,
+		mat := "brick") -> void:
 	assert(points.size() >= 2, "%s needs at least two points" % nm)
 	var left := PackedVector3Array()
 	var right := PackedVector3Array()
@@ -6132,7 +6186,7 @@ func _east_path_ribbon(nm: String, points: Array[Vector3], width: float) -> void
 	st.generate_tangents()
 	var mi := MeshInstance3D.new()
 	mi.mesh = st.commit()
-	mi.material_override = mats["brick"]
+	mi.material_override = mats[mat]
 	_add(mi, nm)
 
 
@@ -6546,138 +6600,45 @@ func _east_observation_tower() -> void:
 
 
 ## The observation tower now sits beside a route instead of terminating one.
-## A narrow timber trestle forks before its gate, wraps outside the fenced court
-## and loses only 1.5m before reaching a small Frontier arrival street. The
-## trestle is the honest answer to the hill here: Frontier's bench is six metres
-## lower at the west end, and raising a huge green shelf to the tower would make
-## a landform-sized retaining wall for twenty metres of programme.
+## Frontier begins on the same high shoulder: a packed-earth midway forks before
+## the tower gate, follows the contour and reaches a small arrival street bedded
+## into planted ground. The former guest trestle came out because it made a
+## section-sized elevation decision look like temporary carpentry. The future
+## street spends the length of Frontier descending toward the grove instead.
 ##
-## The street is deliberately a beginning rather than a fake finished land:
-## food, games and seating make it somewhere to arrive, while a boarded timber
-## closure and a mine-train portal beyond it promise the continuation without
-## letting the player walk into unbuilt ground.
+## Food, games and seating make this first slice somewhere to arrive, while a
+## boarded closure holds the unbuilt through-route. The mine-train teaser beyond
+## it keeps its timber trestle, where exposed structure has a thematic reason.
 func _east_frontier_arrival() -> void:
-	_east_frontier_trestle()
+	_east_frontier_ground_path()
 	_east_frontier_street()
 	_east_frontier_buildings()
 	_east_frontier_closure()
+	_east_frontier_backdrop()
+	_east_frontier_festoons()
 	_east_frontier_furniture()
-
-
-## A colliding tilted deck segment whose top follows the two published path
-## heights. Unlike `_east_path_ribbon`, this cannot be visual-only: the natural
-## shoulder is several metres below the western half of the approach.
-func _east_frontier_deck_segment(nm: String, a: Vector3, b: Vector3,
-		width: float, mat: String) -> void:
-	var span := b - a
-	var horizontal := Vector2(span.x, span.z).length()
-	var theta := atan2(span.x, span.z)
-	var phi := atan2(-span.y, horizontal)
-	var up := (Basis(Vector3.UP, theta) * Basis(Vector3.RIGHT, phi)).y
-	var t: float = Plan.EAST_FRONTIER_DECK_T
-	# The midpoint is the assembly base, not a local offset. `_box` rotates local
-	# offsets by `theta`; passing a finished world point there rotates the whole
-	# route around the origin and leaves only its supports where they belong.
-	_box(nm, (a + b) * 0.5 - up * (t * 0.5), Vector3.ZERO,
-		Vector3(width, t, span.length() + 0.16), mat, theta, true, phi)
-
-
-func _east_frontier_rail_segment(nm: String, a: Vector3, b: Vector3) -> void:
-	var span := b - a
-	var horizontal := Vector2(span.x, span.z).length()
-	var theta := atan2(span.x, span.z)
-	var phi := atan2(-span.y, horizontal)
-	_box(nm, (a + b) * 0.5, Vector3.ZERO,
-		Vector3(0.11, 0.11, span.length() + 0.10), "metal", theta, true, phi)
-
-
-func _east_frontier_edge(points: Array[Vector3], i: int, side: float) -> Vector3:
-	var prev: Vector3 = points[maxi(i - 1, 0)]
-	var next: Vector3 = points[mini(i + 1, points.size() - 1)]
-	var tangent := Vector2(next.x - prev.x, next.z - prev.z).normalized()
-	var normal := Vector2(-tangent.y, tangent.x)
-	return points[i] + Vector3(normal.x, 0.0, normal.y) \
-		* (Plan.EAST_FRONTIER_PATH_W * 0.5 - 0.14) * side
 
 
 func _east_frontier_ground_y(x: float, z: float) -> float:
 	return _shoulder_y(x, z, -1.0, _shoulder_prm(-1.0))
 
 
-func _east_frontier_support(nm: String, at: Vector3, deck_under: float) -> void:
+## Only the mine teaser gets exposed timber supports. The public route reads as
+## part of the hill; the ride may advertise its construction.
+func _east_frontier_mine_support(nm: String, at: Vector3,
+		deck_under: float) -> void:
 	var ground := _east_frontier_ground_y(at.x, at.z)
 	var h := deck_under - ground + 0.18
 	if h < 0.34:
 		return
 	_box(nm, Vector3.ZERO,
 		Vector3(at.x, ground + h * 0.5 - 0.12, at.z),
-		Vector3(0.28, h + 0.24, 0.28), "wood")
+		Vector3(0.34, h + 0.24, 0.34), "wood")
 
 
-func _east_frontier_trestle() -> void:
-	var path: Array[Vector3] = Plan.east_frontier_path()
-	for i in path.size() - 1:
-		_east_frontier_deck_segment("east_frontier_path_%d" % i,
-			path[i], path[i + 1], Plan.EAST_FRONTIER_PATH_W, "plank")
-
-	# Two posts under every bend. The first pair is omitted because the fork is
-	# still sitting on the tower approach's graded earth rather than in the air.
-	for i in range(1, path.size()):
-		for side in [-1.0, 1.0]:
-			var edge := _east_frontier_edge(path, i, side)
-			_east_frontier_support("east_frontier_path_support_%d_%s" % [i,
-				"l" if side < 0.0 else "r"], edge,
-				path[i].y - Plan.EAST_FRONTIER_DECK_T)
-			# The west-side post at the final point would stand in the turn onto
-			# the street. Its support remains below deck; only the guard opens.
-			if i == path.size() - 1 and side < 0.0:
-				continue
-			_cyl("east_frontier_path_post_%d_%s" % [i,
-				"l" if side < 0.0 else "r"], edge,
-				Vector3(0.0, 0.58, 0.0), 0.065, 1.24, "metal", 0.0, 8)
-
-	# Leave the tower side of the first segment open: that opening is the fork
-	# into the attraction gate. The downhill edge is guarded immediately, and
-	# both edges are guarded after the route has cleared the junction.
-	for i in path.size() - 1:
-		for side in [-1.0, 1.0]:
-			# Both sides of segment zero stay open at the tower fork. At the other
-			# end, the west rail opens for the right turn onto the street.
-			if i == 0 or (i == path.size() - 2 and side < 0.0):
-				continue
-			var a := _east_frontier_edge(path, i, side)
-			var b := _east_frontier_edge(path, i + 1, side)
-			_east_frontier_rail_segment("east_frontier_path_rail_low_%d_%s" % [i,
-				"l" if side < 0.0 else "r"],
-				a + Vector3(0.0, 0.58, 0.0), b + Vector3(0.0, 0.58, 0.0))
-			_east_frontier_rail_segment("east_frontier_path_rail_high_%d_%s" % [i,
-				"l" if side < 0.0 else "r"],
-				a + Vector3(0.0, 1.08, 0.0), b + Vector3(0.0, 1.08, 0.0))
-
-	# Segment zero is open only for the first half, where it is still the fork.
-	# Past that point the deck has pulled away from the meadow and wants a guard
-	# on both sides. Starting the rails halfway along leaves 3.5m of clear mouth
-	# for the tower branch while protecting the elevated half of the span.
-	var start_center: Vector3 = path[0].lerp(path[1], 0.5)
-	var first_tangent := Vector2(path[1].x - path[0].x,
-		path[1].z - path[0].z).normalized()
-	var first_normal := Vector2(-first_tangent.y, first_tangent.x)
-	for side in [-1.0, 1.0]:
-		var a: Vector3 = start_center + Vector3(first_normal.x, 0.0, first_normal.y) \
-			* (Plan.EAST_FRONTIER_PATH_W * 0.5 - 0.14) * side
-		var b: Vector3 = _east_frontier_edge(path, 1, side)
-		_east_frontier_support("east_frontier_path_support_fork_%s" % (
-			"l" if side < 0.0 else "r"), a,
-			start_center.y - Plan.EAST_FRONTIER_DECK_T)
-		_cyl("east_frontier_path_post_fork_%s" % (
-			"l" if side < 0.0 else "r"), a,
-			Vector3(0.0, 0.58, 0.0), 0.065, 1.24, "metal", 0.0, 8)
-		_east_frontier_rail_segment("east_frontier_path_rail_fork_low_%s" % (
-			"l" if side < 0.0 else "r"),
-			a + Vector3(0.0, 0.58, 0.0), b + Vector3(0.0, 0.58, 0.0))
-		_east_frontier_rail_segment("east_frontier_path_rail_fork_high_%s" % (
-			"l" if side < 0.0 else "r"),
-			a + Vector3(0.0, 1.08, 0.0), b + Vector3(0.0, 1.08, 0.0))
+func _east_frontier_ground_path() -> void:
+	_east_path_ribbon("east_frontier_path", Plan.east_frontier_path(),
+		Plan.EAST_FRONTIER_PATH_W, "frontier_dust")
 
 
 func _east_frontier_street() -> void:
@@ -6686,12 +6647,8 @@ func _east_frontier_street() -> void:
 	var z: float = Plan.EAST_FRONTIER_STREET_Z
 	var gy: float = Plan.EAST_FRONTIER_FLOOR_Y
 	var half_z: float = Plan.EAST_FRONTIER_STREET_HALF_Z
-	var t: float = Plan.EAST_FRONTIER_DECK_T
-	_box("east_frontier_street_deck", Vector3.ZERO,
-		Vector3((x0 + x1) * 0.5, gy - t * 0.5, z),
-		Vector3(x1 - x0, t, half_z * 2.0), "plank")
-	# Packed dirt between plank sidewalks: a visual skin over the one colliding
-	# deck, so the material change cannot become a kerb.
+	# The shoulder mesh is the colliding floor. These are paving skins only, so
+	# the street cannot become a platform merely because its material changes.
 	_box("east_frontier_street_dust", Vector3.ZERO,
 		Vector3((x0 + x1) * 0.5, gy + 0.016, z),
 		Vector3(x1 - x0 - 0.32, 0.032, 5.15), "frontier_dust", 0.0, false)
@@ -6702,28 +6659,27 @@ func _east_frontier_street() -> void:
 				z + side * (half_z - 0.70)),
 			Vector3(x1 - x0 - 0.24, 0.044, 1.22), "plank_cross", 0.0, false)
 
-	# The trestle reads from the open south side. North supports are included too
-	# because they show through the gap between the two shallow false fronts.
-	var xs := [73.25, 78.2, 83.5, 88.8, 93.75]
-	for i in xs.size():
-		for side in [-1.0, 1.0]:
-			var p := Vector3(float(xs[i]), gy,
-				z + side * (half_z - 0.28))
-			_east_frontier_support("east_frontier_street_support_%d_%s" % [i,
-				"n" if side < 0.0 else "s"], p, gy - t)
-
-	# Rail only the overlook edge. The buildings close most of the north side;
-	# the western end is the themed closure and the east end is the way in.
-	var rail_z := z + half_z - 0.16
+	# A masonry overlook edge makes the raised contour read as a permanent park
+	# terrace. It stops short of the eastern end, leaving the full approach mouth
+	# open where the curved midway enters the street. Projecting piers break its
+	# long civil-engineering line into a sequence of small overlook rooms without
+	# interrupting the safety boundary or the panorama beyond it.
+	var wall_x1 := x1 - 3.6
+	var wall_z := z + half_z - 0.19
+	_box("east_frontier_street_parapet", Vector3.ZERO,
+		Vector3((x0 + wall_x1) * 0.5, gy + 0.45, wall_z),
+		Vector3(wall_x1 - x0, 1.12, 0.46), "brick")
+	_box("east_frontier_street_parapet_cap", Vector3.ZERO,
+		Vector3((x0 + wall_x1) * 0.5, gy + 1.08, wall_z),
+		Vector3(wall_x1 - x0 + 0.18, 0.16, 0.66), "accent", 0.0, false)
 	for i in 5:
-		var px := lerpf(x0 + 0.35, x1 - 0.35, float(i) / 4.0)
-		_cyl("east_frontier_street_rail_post_%d" % i,
-			Vector3(px, gy, rail_z), Vector3(0.0, 0.58, 0.0),
-			0.07, 1.24, "metal", 0.0, 8)
-	for h in [0.58, 1.08]:
-		_box("east_frontier_street_rail_%d" % int(h * 100.0), Vector3.ZERO,
-			Vector3((x0 + x1) * 0.5, gy + h, rail_z),
-			Vector3(x1 - x0 - 0.70, 0.11, 0.11), "metal")
+		var px := lerpf(x0 + 0.35, wall_x1 - 0.35, float(i) / 4.0)
+		_box("east_frontier_street_parapet_pier_%d" % i, Vector3.ZERO,
+			Vector3(px, gy + 0.57, wall_z - 0.03),
+			Vector3(0.50, 1.24, 0.64), "brick")
+		_box("east_frontier_street_parapet_pier_cap_%d" % i, Vector3.ZERO,
+			Vector3(px, gy + 1.25, wall_z - 0.03),
+			Vector3(0.68, 0.14, 0.80), "accent", 0.0, false)
 
 
 func _east_frontier_buildings() -> void:
@@ -6807,31 +6763,86 @@ func _east_frontier_closure() -> void:
 	var x: float = Plan.EAST_FRONTIER_CLOSURE_X
 	var z: float = Plan.EAST_FRONTIER_STREET_Z
 	var gy: float = Plan.EAST_FRONTIER_FLOOR_Y
-	# A real colliding boarded gate, dressed as part of the land rather than a
-	# construction fence. The high portal beyond it is visible from the street.
-	_box("east_frontier_closure", Vector3.ZERO,
-		Vector3(x, gy + 1.18, z), Vector3(0.34, 2.36, 7.34), "wood")
+	# The closure is the boarded entrance inside a mine-train station front now,
+	# not a fence stretched across the end of the world. Two shallow wings turn
+	# the north frontage around the corner; the south wing stays lower so the
+	# panoramic side of the street remains open.
+	_box("east_frontier_station_north_body", Vector3.ZERO,
+		Vector3(x - 0.82, gy + 2.26, z - 2.62),
+		Vector3(2.28, 4.68, 2.42), "wood")
+	_box("east_frontier_station_south_body", Vector3.ZERO,
+		Vector3(x - 0.68, gy + 1.86, z + 2.55),
+		Vector3(2.02, 3.82, 2.20), "wood")
+	_box("east_frontier_station_north_front", Vector3.ZERO,
+		Vector3(x + 0.38, gy + 2.42, z - 2.62),
+		Vector3(0.24, 4.92, 2.72), "accent")
+	_box("east_frontier_station_south_front", Vector3.ZERO,
+		Vector3(x + 0.34, gy + 2.04, z + 2.55),
+		Vector3(0.24, 4.18, 2.48), "accent")
+	_box("east_frontier_station_north_cornice", Vector3.ZERO,
+		Vector3(x + 0.43, gy + 4.92, z - 2.62),
+		Vector3(0.38, 0.24, 3.02), "blue", 0.0, false)
+	_box("east_frontier_station_south_cornice", Vector3.ZERO,
+		Vector3(x + 0.39, gy + 4.20, z + 2.55),
+		Vector3(0.38, 0.24, 2.76), "red", 0.0, false)
+
+	# A colliding ride gate fills the central station opening without hiding the
+	# portal, ore car and lift hill that explain why the street ends here. The
+	# closely spaced uprights stop the player; visually it is a closed attraction,
+	# not a wall where the authored park runs out.
+	for i in 7:
+		var gate_z := z + lerpf(-1.42, 1.42, float(i) / 6.0)
+		_box("east_frontier_closure_picket_%d" % i, Vector3.ZERO,
+			Vector3(x, gy + 1.18, gate_z),
+			Vector3(0.30, 2.36, 0.16), "wood")
 	for r in 3:
 		_box("east_frontier_closure_rail_%d" % r, Vector3.ZERO,
-			Vector3(x + 0.20, gy + 0.48 + float(r) * 0.72, z),
-			Vector3(0.10, 0.13, 6.82), "metal", 0.0, false)
+			Vector3(x + 0.12, gy + 0.42 + float(r) * 0.72, z),
+			Vector3(0.16, 0.14, 3.18), "metal", 0.0, false)
 	for side in [-1.0, 1.0]:
 		_box("east_frontier_closure_post_%s" % ("n" if side < 0.0 else "s"),
-			Vector3.ZERO, Vector3(x, gy + 2.05, z + side * 3.42),
-			Vector3(0.46, 4.10, 0.46), "wood")
+			Vector3.ZERO, Vector3(x, gy + 2.30, z + side * 1.72),
+			Vector3(0.48, 4.60, 0.48), "wood")
 	_box("east_frontier_closure_beam", Vector3.ZERO,
-		Vector3(x, gy + 3.82, z), Vector3(0.56, 0.52, 7.45), "wood")
+		Vector3(x, gy + 4.30, z), Vector3(0.58, 0.54, 3.92), "wood")
+	_strut("east_frontier_station_gable_n",
+		Vector3(x + 0.08, gy + 4.48, z - 2.05),
+		Vector3(x + 0.08, gy + 6.15, z), 0.30, "wood")
+	_strut("east_frontier_station_gable_s",
+		Vector3(x + 0.08, gy + 6.15, z),
+		Vector3(x + 0.08, gy + 4.48, z + 2.05), 0.30, "wood")
+	_box("east_frontier_station_canopy", Vector3.ZERO,
+		Vector3(x + 1.02, gy + 3.86, z),
+		Vector3(1.52, 0.18, 6.18), "canvas_alt", 0.0, false)
+	for side in [-1.0, 1.0]:
+		_cyl("east_frontier_station_canopy_post_%s" % (
+			"n" if side < 0.0 else "s"),
+			Vector3(x + 1.62, gy, z + side * 2.72),
+			Vector3(0.0, 1.91, 0.0), 0.075, 3.82, "wood", 0.0, 8)
 	_box("east_frontier_closure_sign", Vector3.ZERO,
-		Vector3(x + 0.34, gy + 3.18, z), Vector3(0.10, 0.86, 3.45), "yellow", 0.0, false)
+		Vector3(x + 0.34, gy + 5.22, z), Vector3(0.10, 0.86, 3.30), "yellow", 0.0, false)
 	_box("east_frontier_closure_sign_rule", Vector3.ZERO,
-		Vector3(x + 0.40, gy + 3.18, z), Vector3(0.04, 0.13, 2.55), "red", 0.0, false)
+		Vector3(x + 0.40, gy + 5.22, z), Vector3(0.04, 0.13, 2.42), "red", 0.0, false)
+	var station_lamp := Vector3(x + 1.58, gy + 3.68, z)
+	_sphere("east_frontier_station_lamp_globe", station_lamp,
+		Vector3.ZERO, 0.13, "lamp_glass")
+	_omni("east_frontier_station_lamp", station_lamp,
+		"warm", 1.8, 7.2, LIGHT_FIXTURE)
 
 	# A short, unreachable trestle and ore car make the timber portal read as a
 	# mine-train attraction rather than as another gate in a fence.
-	var portal_x := 68.2
+	var portal_x: float = 68.2
 	_box("east_frontier_mine_teaser_deck", Vector3.ZERO,
 		Vector3((portal_x + x) * 0.5, gy - 0.18, z),
 		Vector3(x - portal_x + 0.35, 0.36, 3.65), "plank", 0.0, false)
+	# This is the one exposed trestle in the arrival slice: ride structure, not
+	# public circulation. Two bents make that distinction visible past the gate.
+	for ix in [69.15, 71.55]:
+		for side in [-1.0, 1.0]:
+			_east_frontier_mine_support(
+				"east_frontier_mine_support_%d_%s" % [int(ix * 10.0),
+					"n" if side < 0.0 else "s"],
+				Vector3(ix, gy, z + side * 1.48), gy - 0.36)
 	for side in [-1.0, 1.0]:
 		_box("east_frontier_mine_portal_post_%s" % ("n" if side < 0.0 else "s"),
 			Vector3.ZERO, Vector3(portal_x, gy + 2.0, z + side * 1.82),
@@ -6864,6 +6875,187 @@ func _east_frontier_closure() -> void:
 				0.0, 10, false, PI * 0.5)
 
 
+## The street's rear edge is scenery, not exposed map boundary. A mine cut and
+## lift hill provide the attraction silhouette at the closed end; a water tower
+## and a loose line of pines carry that silhouette behind the shallow fronts.
+## Everything tall stays north of the street, preserving the open south-west
+## panorama across the plaza, clock, wheel and coaster.
+func _east_frontier_backdrop() -> void:
+	var gy: float = Plan.EAST_FRONTIER_FLOOR_Y
+	var z: float = Plan.EAST_FRONTIER_STREET_Z
+	var portal_x := 68.2
+
+	# Rock shoulders hide the raw end of the graded shelf while leaving the dark
+	# portal itself readable. They are scenic shells and do not collide in the
+	# unreachable ride area.
+	var rocks := [
+		[Vector3(portal_x - 0.90, gy + 1.45, z - 2.55), 2.20, 0.98],
+		[Vector3(portal_x - 1.25, gy + 1.25, z + 2.45), 2.00, 0.94],
+		[Vector3(portal_x - 2.70, gy + 2.65, z - 0.20), 2.65, 0.90],
+	]
+	for i in rocks.size():
+		var r: Array = rocks[i]
+		var rock_at: Vector3 = r[0]
+		_sphere("east_frontier_mine_rock_%d" % i, rock_at, Vector3.ZERO,
+			float(r[1]), "frontier_rock", float(i) * 0.7, float(r[2]))
+
+	_east_frontier_mine_lift()
+	_east_frontier_water_tower(Vector3(80.2,
+		_east_frontier_ground_y(80.2, -101.4), -101.4))
+
+	# The backs of the false fronts are never the horizon. A staggered grove is
+	# dense enough for overlapping crowns to become one park edge, but irregular
+	# enough that it does not read as six screening trees placed on a survey line.
+	var trees := [
+		[Vector2(71.8, -103.4), 8.2, 1.95, -0.35],
+		[Vector2(76.4, -105.0), 7.1, 1.70, 0.55],
+		[Vector2(82.6, -104.1), 8.8, 2.10, -0.45],
+		[Vector2(87.7, -105.7), 7.6, 1.82, 0.35],
+		[Vector2(93.1, -103.5), 8.3, 1.95, -0.55],
+		[Vector2(98.0, -101.2), 6.7, 1.58, 0.42],
+	]
+	for i in trees.size():
+		var spec: Array = trees[i]
+		var p: Vector2 = spec[0]
+		_east_frontier_tree("east_frontier_tree_%d" % i,
+			Vector3(p.x, _east_frontier_ground_y(p.x, p.y), p.y),
+			float(spec[1]), float(spec[2]), float(spec[3]))
+
+
+func _east_frontier_mine_lift() -> void:
+	# Run behind the storefronts on the shoulder itself. The first lift climbed
+	# north-west over the landform's open edge and recreated the rejected guest
+	# trestle at attraction scale: spectacular from the street, absurd from any
+	# higher view. Every bent here is measured from the local finished ground, so
+	# the ride announces itself above the roofs without pretending the park ends
+	# in a forest of twenty-metre piers.
+	var plan_a := Vector2(68.6, -99.2)
+	var plan_b := Vector2(92.4, -101.8)
+	var plan_dir: Vector2 = (plan_b - plan_a).normalized()
+	var across: Vector3 = Vector3(-plan_dir.y, 0.0, plan_dir.x) * 0.48
+	var tops: Array[Vector3] = []
+	for i in 11:
+		var t: float = float(i) / 10.0
+		var p: Vector2 = plan_a.lerp(plan_b, t)
+		var ground: float = _east_frontier_ground_y(p.x, p.y)
+		# A low first bent disappears behind the mine cut; the far end clears the
+		# food roof by enough to make a lift-hill silhouette from the approach.
+		tops.append(Vector3(p.x, ground + 2.65 + t * 6.4, p.y))
+	for i in tops.size() - 1:
+		for side_value in [-1.0, 1.0]:
+			var side: float = float(side_value)
+			_strut("east_frontier_mine_lift_rail_%d_%s" % [i,
+				"l" if side < 0.0 else "r"],
+				tops[i] + across * side, tops[i + 1] + across * side,
+				0.16, "metal")
+	for i in tops.size():
+		var top: Vector3 = tops[i]
+		_strut("east_frontier_mine_lift_tie_%d" % i,
+			top - across * 1.25, top + across * 1.25, 0.14, "wood")
+		if i % 2 != 0:
+			continue
+		for side_value in [-1.0, 1.0]:
+			var side: float = float(side_value)
+			var rail: Vector3 = top + across * side
+			var ground: float = _east_frontier_ground_y(rail.x, rail.z)
+			_strut("east_frontier_mine_lift_post_%d_%s" % [i,
+				"l" if side < 0.0 else "r"],
+				Vector3(rail.x, ground - 0.18, rail.z),
+				rail - Vector3(0.0, 0.18, 0.0), 0.28, "wood")
+		if i > 0:
+			var prev: Vector3 = tops[i - 2]
+			var prev_ground: float = _east_frontier_ground_y(prev.x, prev.z)
+			_strut("east_frontier_mine_lift_brace_%d" % i,
+				Vector3(prev.x, prev_ground + 0.25, prev.z) - across,
+				top + across - Vector3(0.0, 0.35, 0.0), 0.20, "wood")
+
+	# One visible ore car halfway up proves this is a ride and not another piece
+	# of boundary structure.
+	var car_at: Vector3 = tops[4].lerp(tops[5], 0.2)
+	var span: Vector3 = tops[5] - tops[4]
+	var theta: float = atan2(span.x, span.z)
+	var phi: float = atan2(-span.y, Vector2(span.x, span.z).length())
+	_box("east_frontier_mine_lift_car", car_at, Vector3.ZERO,
+		Vector3(1.35, 0.70, 1.72), "red", theta, false, phi)
+
+
+func _east_frontier_water_tower(base: Vector3) -> void:
+	var tank_y: float = 8.2
+	for ix_value in [-1.05, 1.05]:
+		var ix: float = float(ix_value)
+		for iz_value in [-1.05, 1.05]:
+			var iz: float = float(iz_value)
+			_strut("east_frontier_water_leg_%s_%s" % [str(ix), str(iz)],
+				base + Vector3(ix, -0.15, iz),
+				base + Vector3(ix * 0.76, tank_y - 0.55, iz * 0.76),
+				0.24, "wood")
+	for h_value in [2.6, 5.15]:
+		var h: float = float(h_value)
+		_strut("east_frontier_water_brace_a_%s" % str(h),
+			base + Vector3(-1.0, h - 0.75, -1.0),
+			base + Vector3(1.0, h + 0.75, -1.0), 0.16, "wood")
+		_strut("east_frontier_water_brace_b_%s" % str(h),
+			base + Vector3(-1.0, h + 0.75, 1.0),
+			base + Vector3(1.0, h - 0.75, 1.0), 0.16, "wood")
+	_cyl("east_frontier_water_tank", base,
+		Vector3(0.0, tank_y + 0.85, 0.0), 1.65, 2.35, "wood", 0.0, 16, false)
+	_cyl("east_frontier_water_band_low", base,
+		Vector3(0.0, tank_y + 0.15, 0.0), 1.72, 0.16, "metal", 0.0, 16, false)
+	_cyl("east_frontier_water_band_high", base,
+		Vector3(0.0, tank_y + 1.55, 0.0), 1.72, 0.16, "metal", 0.0, 16, false)
+	_cyl("east_frontier_water_roof", base,
+		Vector3(0.0, tank_y + 2.16, 0.0), 1.88, 0.26, "red", 0.0, 16, false)
+	_box("east_frontier_water_sign", base,
+		Vector3(0.0, tank_y + 0.90, 1.69),
+		Vector3(2.05, 0.72, 0.10), "yellow", 0.0, false)
+
+
+func _east_frontier_tree(nm: String, base: Vector3, h: float,
+		spread: float, lean: float) -> void:
+	_cyl(nm + "_trunk", base, Vector3(0.0, h * 0.40, 0.0),
+		0.22, h * 0.80, "wood", 0.0, 8, false)
+	_sphere(nm + "_crown_a", base,
+		Vector3(lean * 0.35, h * 0.75, -lean * 0.18),
+		spread, "foliage", 0.0, 0.78)
+	_sphere(nm + "_crown_b", base,
+		Vector3(-lean * 0.55, h * 0.92, spread * 0.26),
+		spread * 0.76, "foliage", 0.0, 0.84)
+	_sphere(nm + "_crown_c", base,
+		Vector3(spread * 0.44, h * 0.80, -spread * 0.32),
+		spread * 0.62, "foliage", 0.0, 0.80)
+
+
+## Three shallow festoons make this a park street after dark and a room by day.
+## They cross the street rather than run along the horizon, so their sag frames
+## the panoramic opening instead of drawing a wire through it.
+func _east_frontier_festoons() -> void:
+	var gy: float = Plan.EAST_FRONTIER_FLOOR_Y
+	var north_z: float = Plan.EAST_FRONTIER_FRONT_Z + 0.55
+	var south_z: float = Plan.EAST_FRONTIER_STREET_Z + 3.58
+	for ix_value in [78.6, 84.7, 89.8]:
+		var ix: float = float(ix_value)
+		var pole: Vector3 = Vector3(ix, gy, south_z)
+		_cyl("east_frontier_festoon_pole_%d" % int(ix * 10.0), pole,
+			Vector3(0.0, 2.10, 0.0), 0.075, 4.20, "wood", 0.0, 8)
+		var a: Vector3 = Vector3(ix, gy + 4.16, north_z)
+		var b: Vector3 = Vector3(ix, gy + 4.02, south_z)
+		var prev: Vector3 = a
+		for bulb in 7:
+			var t: float = float(bulb + 1) / 8.0
+			var at: Vector3 = a.lerp(b, t)
+			at.y -= sin(t * PI) * 0.62
+			_strut("east_frontier_festoon_wire_%d_%d" % [int(ix * 10.0), bulb],
+				prev, at, 0.025, "metal")
+			_sphere("east_frontier_festoon_bulb_%d_%d" % [int(ix * 10.0), bulb],
+				at, Vector3(0.0, -0.07, 0.0), 0.085, "bulb")
+			prev = at
+		_strut("east_frontier_festoon_wire_%d_end" % int(ix * 10.0),
+			prev, b, 0.025, "metal")
+		_omni("east_frontier_festoon_light_%d" % int(ix * 10.0),
+			(a + b) * 0.5 - Vector3(0.0, 0.38, 0.0),
+			"warm", 1.25, 6.2, LIGHT_FIXTURE)
+
+
 func _east_frontier_furniture() -> void:
 	var gy: float = Plan.EAST_FRONTIER_FLOOR_Y
 	var z: float = Plan.EAST_FRONTIER_STREET_Z
@@ -6872,7 +7064,7 @@ func _east_frontier_furniture() -> void:
 	_bench("east_frontier_overlook_bench", Vector3(86.0, gy, z + 3.22), 0.0)
 	for x in [77.0, 80.2]:
 		_cyl("east_frontier_hitch_post_%s" % str(x),
-			Vector3(x, gy, z + 3.28), Vector3(0.0, 0.52, 0.0),
+			Vector3(x, gy - 0.05, z + 3.28), Vector3(0.0, 0.52, 0.0),
 			0.09, 1.04, "wood", 0.0, 8)
 	_strut("east_frontier_hitch_rail", Vector3(77.0, gy + 0.72, z + 3.28),
 		Vector3(80.2, gy + 0.72, z + 3.28), 0.12, "wood")
