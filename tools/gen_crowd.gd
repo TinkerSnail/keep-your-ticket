@@ -511,6 +511,29 @@ func _terraces_obstacles() -> Array:
 				"at": Vector2(bx, axis + side * (back_d - 0.55)),
 				"half": Vector2(1.35, 0.85),
 			})
+	# The forecourt's two seating groves. These are comfortably outside the
+	# graph's fan from `e_court` to the wing feet, but registering the real
+	# footprints keeps future wander edges from quietly cutting through them.
+	for s in 2:
+		var side := -1.0 if s == 0 else 1.0
+		for tx in Plan.EAST_ARRIVAL_TREE_XS:
+			out.append({
+				"kind": "rect",
+				"at": Vector2(float(tx), axis + side * Plan.EAST_ARRIVAL_TREE_D),
+				"half": Vector2(0.86, 0.86),
+			})
+		out.append({
+			"kind": "rect",
+			"at": Vector2(Plan.EAST_ARRIVAL_BENCH_X,
+				axis + side * Plan.EAST_ARRIVAL_BENCH_D),
+			"half": Vector2(0.42, 1.02),
+		})
+		out.append({
+			"kind": "rect",
+			"at": Vector2(Plan.EAST_ARRIVAL_BOARD_X,
+				axis + side * Plan.EAST_ARRIVAL_BOARD_D),
+			"half": Vector2(0.20, 1.15),
+		})
 	return out
 
 
@@ -3063,6 +3086,12 @@ func _terraces_pois() -> PackedVector3Array:
 		var side := -1.0 if s == 0 else 1.0
 		var crest_z := axis + side * ((Plan.CREST_COURT_FROM_D + Plan.CREST_COURT_TO_D) * 0.5)
 		out.append(Vector3(crest_x, Plan.CLIMB_HEAD_Y + 0.8, crest_z))
+	# The two route directories in the arrival court. Guests pausing to read
+	# them are what turns the room below the cascade into a gathering place.
+	for s in 2:
+		var side := -1.0 if s == 0 else 1.0
+		out.append(Vector3(Plan.EAST_ARRIVAL_BOARD_X - 0.2, 1.6,
+			axis + side * Plan.EAST_ARRIVAL_BOARD_D))
 	# Back down the axis at the clock tower, which is the view the belvedere is
 	# for and the only instrument the park has.
 	out.append(Vector3(Plan.CLOCK_TOWER_AT.x, 26.0, Plan.CLOCK_TOWER_AT.y))

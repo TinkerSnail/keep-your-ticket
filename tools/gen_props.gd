@@ -5602,6 +5602,73 @@ func _east_dressing() -> void:
 	_east_crest_dressing()
 	_east_head_dressing()
 	_east_bay_garden_edges()
+	_east_arrival_dressing()
+
+
+## The court below the first cascade is an arrival room rather than spare brick:
+## a directory at the edge of the approach, a bench beyond it, and two clipped
+## trees making a small grove on either flank. Everything stays outside the
+## wing turns, so the monument's ray silhouette and both routes up remain clear
+## from the fountain axis.
+##
+## Appended after the hillside dressing so this can grow without changing any
+## of the landform's seam ordinals. Positions live in `ParkPlan` because the
+## crowd generator routes around the same furniture.
+func _east_arrival_dressing() -> void:
+	var axis: float = Plan.ARCH_AT.y
+	for s in 2:
+		var side := -1.0 if s == 0 else 1.0
+		var tag := "n" if s == 0 else "s"
+		var tree_z := axis + side * Plan.EAST_ARRIVAL_TREE_D
+		for i in Plan.EAST_ARRIVAL_TREE_XS.size():
+			var tx: float = Plan.EAST_ARRIVAL_TREE_XS[i]
+			var base := Vector3(tx, 0.0, tree_z)
+			# A square raised planter gives each trunk a deliberate footing on
+			# the otherwise unbroken court, with the soil held visibly above the
+			# brick rather than sharing its top plane.
+			_box("east_arrival_tree_%s_%d_planter" % [tag, i], base,
+				Vector3(0.0, 0.22, 0.0), Vector3(1.55, 0.46, 1.55), "brick")
+			_box("east_arrival_tree_%s_%d_soil" % [tag, i], base,
+				Vector3(0.0, 0.49, 0.0), Vector3(1.30, 0.10, 1.30),
+				"planting", 0.0, false)
+			var h := 3.65 + float(i) * 0.18
+			var spread := 1.42 + float((i + s) % 2) * 0.10
+			_cyl("east_arrival_tree_%s_%d_trunk" % [tag, i], base,
+				Vector3(0.0, 0.50 + h * 0.5, 0.0), 0.19, h, "wood", 0.0, 8)
+			_sphere("east_arrival_tree_%s_%d_crown_a" % [tag, i], base,
+				Vector3(0.0, 0.50 + h + spread * 0.50, 0.0),
+				spread, "foliage", 0.0, 0.76)
+			_sphere("east_arrival_tree_%s_%d_crown_b" % [tag, i], base,
+				Vector3(0.42 * spread, 0.50 + h + spread * 0.86,
+					-side * 0.24 * spread), spread * 0.64,
+				"foliage", 0.0, 0.82)
+
+		# The bench faces east toward the monument. Its back is toward the grove,
+		# leaving the broad court and the two wing approaches in front of it.
+		_bench("east_arrival_bench_%s" % tag,
+			Vector3(Plan.EAST_ARRIVAL_BENCH_X, 0.0,
+				axis + side * Plan.EAST_ARRIVAL_BENCH_D), PI * 0.5)
+
+		# A low two-post directory, broad in Z and thin in X. The coloured face
+		# looks west toward guests arriving through the gate; alternating blue
+		# and yellow keeps the pair legible as two route markers rather than a
+		# repeated billboard.
+		var bz := axis + side * Plan.EAST_ARRIVAL_BOARD_D
+		var face_mat := "blue" if s == 0 else "yellow"
+		for p in 2:
+			var pz := bz + (-0.84 if p == 0 else 0.84)
+			_cyl("east_arrival_board_%s_post_%d" % [tag, p],
+				Vector3(Plan.EAST_ARRIVAL_BOARD_X, 0.0, pz),
+				Vector3(0.0, 0.78, 0.0), 0.07, 1.56, "metal", 0.0, 8)
+		_box("east_arrival_board_%s_panel" % tag, Vector3.ZERO,
+			Vector3(Plan.EAST_ARRIVAL_BOARD_X, 1.58, bz),
+			Vector3(0.16, 1.10, 2.08), "wood")
+		_box("east_arrival_board_%s_face" % tag, Vector3.ZERO,
+			Vector3(Plan.EAST_ARRIVAL_BOARD_X - 0.10, 1.58, bz),
+			Vector3(0.06, 0.82, 1.78), face_mat, 0.0, false)
+		_box("east_arrival_board_%s_rule" % tag, Vector3.ZERO,
+			Vector3(Plan.EAST_ARRIVAL_BOARD_X - 0.135, 1.81, bz),
+			Vector3(0.04, 0.10, 1.34), "white", 0.0, false)
 
 
 ## Level coping draws the low retaining edge clearly against the planted bank,

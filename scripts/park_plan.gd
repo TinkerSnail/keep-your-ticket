@@ -1387,6 +1387,22 @@ const EAST_STAIR_FOOT := Vector3(
 	HILL_FACE_X - LANDING_D - WING_SEP - WING_W - 2.5, 0.0, ARCH_AT.y)
 const EAST_STAIR_FOOT_STAND := Vector3(EAST_STAIR_FOOT.x, 0.2, ARCH_AT.y)
 
+## The two small seating groves in the court below the east cascade. These are
+## in the plan because the props generator builds them and the crowd generator
+## has to route around the same footprints. Distances are off the gate/cascade
+## axis, so the whole arrangement follows that line if the east ever moves.
+##
+## Trees sit outside the monument's 10.3m wing turn, framing rather than
+## covering its silhouette. The benches step inward from them and the directory
+## boards sit inward again, beside the 8m asphalt approach but clear of it. That
+## order is the room: information at arrival, a place to wait, then the climb.
+const EAST_ARRIVAL_TREE_XS := [53.5, 60.0]
+const EAST_ARRIVAL_TREE_D := 13.0
+const EAST_ARRIVAL_BENCH_X := 55.8
+const EAST_ARRIVAL_BENCH_D := 9.1
+const EAST_ARRIVAL_BOARD_X := 54.0
+const EAST_ARRIVAL_BOARD_D := 6.2
+
 
 ## The rim's crest line, resampled at even spacing along its own length.
 ##
