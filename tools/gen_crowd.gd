@@ -420,6 +420,13 @@ func _east_graph() -> void:
 	_node("e_belv_n", Vector3(78.0, Plan.HILL_TOP, axis - 7.0))
 	_node("e_belv_s", Vector3(78.0, Plan.HILL_TOP, axis + 7.0))
 	_node("e_top", Vector3(Plan.CLIMB_TO_X + 4.0, Plan.CLIMB_HEAD_Y, axis))
+	var crest_x := (Plan.CREST_COURT_X0 + Plan.CREST_COURT_X1) * 0.5
+	for s in 2:
+		var side := -1.0 if s == 0 else 1.0
+		var tag := "n" if s == 0 else "s"
+		var crest_z := axis + side * ((Plan.CREST_COURT_FROM_D + Plan.CREST_COURT_TO_D) * 0.5)
+		_node("e_crest_%s" % tag, Vector3(crest_x, Plan.CLIMB_HEAD_Y, crest_z))
+		_edge("e_top", "e_crest_%s" % tag, false)
 	# **No link back to `ring_e`.** It was there while the east lived in the
 	# plaza's graph, and the split made it a dangling name: the plaza's ring is
 	# not in this section and the seam at the gate is what joins the two, not an
@@ -483,7 +490,28 @@ func _east_graph() -> void:
 				Vector3(bx, float(r[2]),
 					axis + side * (Plan.CLIMB_HALF_Z + bd * 0.55)))
 			_edge("e_climb_%s_%d" % [tag, ri + 1], "e_bay_%s_%d" % [tag, bay], false)
-		bay += 1
+			bay += 1
+
+
+## The kiosk bodies sit at the back of each bay. The graph nodes stop well short
+## of them, but keeping their approximate footprints here prevents a later edge
+## or a wander target from routing through a counter.
+func _terraces_obstacles() -> Array:
+	var out: Array = []
+	var axis: float = Plan.ARCH_AT.y
+	for r in Plan.climb_reaches():
+		if bool(r[4]) or float(r[1]) - float(r[0]) < Plan.CLIMB_BAY_MIN_T:
+			continue
+		var bx: float = (float(r[0]) + float(r[1])) * 0.5
+		var back_d: float = Plan.CLIMB_HALF_Z + Plan.CLIMB_BAY_D + 0.15
+		for s in 2:
+			var side := -1.0 if s == 0 else 1.0
+			out.append({
+				"kind": "rect",
+				"at": Vector2(bx, axis + side * (back_d - 0.55)),
+				"half": Vector2(1.35, 0.85),
+			})
+	return out
 
 
 func _node(name: String, at: Vector3) -> void:
@@ -2977,11 +3005,10 @@ func _build_terraces() -> bool:
 	_begin("crowd", 0.0, Rect2(30.0, -32.0, 92.0, 64.0), 0x7E44)
 
 	_east_graph()
-	# No obstacle list. Everything solid out here is hill, masonry or water, and
-	# the graph is laid down the middle of the ground between them by
-	# construction — there is no furniture to walk into because there is no
-	# furniture. When the bays get their kiosks this wants filling in.
-	_obstacles = []
+	# Kiosks now occupy the back of each bay. Their approach remains clear, but
+	# the validator still knows the four footprints so a future graph edge cannot
+	# quietly route through a counter.
+	_obstacles = _terraces_obstacles()
 	if not _validate_graph():
 		push_error("terraces graph is not walkable — fix the nodes above before regenerating")
 		quit(1)
@@ -3017,6 +3044,25 @@ func _terraces_pois() -> PackedVector3Array:
 	for i in [1, 5, 10]:
 		var bx: float = Plan.CLIMB_FROM_X + Plan.BASIN_STEP * (float(i) + 0.5)
 		out.append(Vector3(bx, Plan.climb_floor_y(bx) + 0.6, axis))
+	# The four kiosk fronts, two terraces on either side of the chain. These are
+	# kept close to the bay nodes so they are actual destinations rather than
+	# points in decorative geometry nobody can reach.
+	for r in Plan.climb_reaches():
+		if bool(r[4]) or float(r[1]) - float(r[0]) < Plan.CLIMB_BAY_MIN_T:
+			continue
+		var bx: float = (float(r[0]) + float(r[1])) * 0.5
+		var back_d: float = Plan.CLIMB_HALF_Z + Plan.CLIMB_BAY_D + 0.15
+		for s in 2:
+			var side := -1.0 if s == 0 else 1.0
+			out.append(Vector3(bx, float(r[2]) + 1.7,
+				axis + side * (back_d - 1.0)))
+	# The two crest courts are destinations in their own right now that they
+	# have seating, rather than merely being geometry beside the head landing.
+	var crest_x := (Plan.CREST_COURT_X0 + Plan.CREST_COURT_X1) * 0.5
+	for s in 2:
+		var side := -1.0 if s == 0 else 1.0
+		var crest_z := axis + side * ((Plan.CREST_COURT_FROM_D + Plan.CREST_COURT_TO_D) * 0.5)
+		out.append(Vector3(crest_x, Plan.CLIMB_HEAD_Y + 0.8, crest_z))
 	# Back down the axis at the clock tower, which is the view the belvedere is
 	# for and the only instrument the park has.
 	out.append(Vector3(Plan.CLOCK_TOWER_AT.x, 26.0, Plan.CLOCK_TOWER_AT.y))
@@ -3040,6 +3086,8 @@ func _terraces_walking_groups() -> void:
 		{"start": "e_bay_n_0", "kinds": ["adult", "adult"]},
 		{"start": "e_climb_n_4", "kinds": ["adult", "kid"]},
 		{"start": "e_top", "kinds": ["adult", "adult"]},
+		{"start": "e_crest_n", "kinds": ["adult"]},
+		{"start": "e_crest_s", "kinds": ["adult"]},
 	]
 	for entry in plan:
 		var origin: Vector3 = _graph_points[_node_index(entry["start"])]

@@ -1001,6 +1001,14 @@ const POOL_TOP_Y := HILL_TOP - 0.35
 ## rather than it being a notch of its own.
 const CLIMB_HEAD_TO_X := RIM_FOOT_X
 
+## The two small courts at the crest of the climb. Their walls and dressing both
+## need the same footprint, and the crowd needs destinations inside them rather
+## than stopping at the centre line. Distances are off the cascade axis.
+const CREST_COURT_X0 := 109.6
+const CREST_COURT_X1 := 115.6
+const CREST_COURT_FROM_D := 7.5
+const CREST_COURT_TO_D := 12.6
+
 ## How far each terrace's bay reaches into the hillside, as a depth off the
 ## floor's edge, lowest first.
 ##

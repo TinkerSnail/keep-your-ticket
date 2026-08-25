@@ -296,6 +296,10 @@ func _initialize() -> void:
 	# meadow and terrace node one seam offset on for no visual reason.
 	_east_mouth_cut(-1.0, "n")
 	_east_mouth_cut(1.0, "s")
+	# The landform is finished before its small destinations are added. These
+	# props are appended so adding a bench or kiosk cannot re-plane any of the
+	# collision-critical earthwork above it.
+	_east_dressing()
 	if not _save(_root, EAST_CASCADE_PATH):
 		return
 
@@ -4514,6 +4518,20 @@ const EARTH_STEP := 1.25
 ## house rule's whole subject. Buried, there is nothing to fight.
 const EARTH_INSET := 0.15
 
+## The garden courts are held by a low, level retaining edge, with the earth
+## behind it graded back into the existing meadow. The wall height is measured
+## from each landing rather than from world zero, so both courts carry the same
+## human-scale edge even though they sit four metres apart vertically.
+##
+## The two runs are deliberately different. Along x there is a full flight on
+## either side to absorb the grade; behind the kiosk there is only the verge
+## before the outer hill blocks, so that handover has to finish sooner.
+const BAY_GARDEN_WALL_H := 1.05
+const BAY_GARDEN_SIDE_RUN := 2.4
+const BAY_GARDEN_BACK_RUN := 1.8
+const BAY_GARDEN_COPING_T := 0.14
+
+
 ## The back edge shared by every bay and the meadow beyond it.
 const EARTH_BAY_EDGE_D := Plan.CLIMB_HALF_Z + Plan.CLIMB_BAY_D + EARTH_INSET
 
@@ -4607,11 +4625,48 @@ func _hill_roll(x: float, z: float) -> float:
 	return (HILL_SWELL * ease + jag * ease * guard) * efade
 
 
-## The finished level of the hill's top at a point on it. The base is the
-## plan's own ramp — bench at `TERRACE_TWO_Y`, rising behind the scarp to
-## `CLIMB_HEAD_Y` — and the roll rides on top of it.
-func _east_ground_y(x: float, z: float) -> float:
+## The uncut level of the hill's top at a point on it. The base is the plan's
+## own ramp — bench at `TERRACE_TWO_Y`, rising behind the scarp to
+## `CLIMB_HEAD_Y` — and the roll rides on top of it. `_east_ground_y` below
+## grades this surface down around the garden courts.
+func _east_ground_raw_y(x: float, z: float) -> float:
 	return Plan.east_ground_base(x) + GROUND_LIFT + _hill_roll(x, z)
+
+
+## Grade any planted surface around a garden court down to the court's low
+## retaining edge. Distance is measured from the court rectangle in two axes:
+## beside it the meadow rises over `BAY_GARDEN_SIDE_RUN`; behind it the bank
+## rises over `BAY_GARDEN_BACK_RUN`; at a corner both participate. This is the
+## actual recut. Lowering only the brick faces leaves a single-sided meadow
+## floating over them, which is the white wedge the first visual experiment
+## exposed.
+func _east_court_grade_y(x: float, z: float, uncut_y: float) -> float:
+	var d := absf(z - Plan.ARCH_AT.y)
+	var half: float = Plan.CLIMB_HALF_Z
+	var back_d: float = half + Plan.CLIMB_BAY_D + EARTH_INSET
+	var y := uncut_y
+	for r in Plan.climb_reaches():
+		if bool(r[4]) or float(r[1]) - float(r[0]) < Plan.CLIMB_BAY_MIN_T:
+			continue
+		var x0: float = r[0]
+		var x1: float = r[1]
+		var dx := maxf(maxf(x0 - x, x - x1), 0.0)
+		var dd := maxf(maxf(half - d, d - back_d), 0.0)
+		var q := Vector2(dx / BAY_GARDEN_SIDE_RUN,
+			dd / BAY_GARDEN_BACK_RUN).length()
+		if q >= 1.0:
+			continue
+		var t := clampf(q, 0.0, 1.0)
+		t = t * t * (3.0 - 2.0 * t)
+		var wall_y: float = float(r[2]) + BAY_GARDEN_WALL_H
+		y = lerpf(wall_y, y, t)
+	return y
+
+
+## The finished level of the hill's top, including the planted shoulders around
+## the two garden courts.
+func _east_ground_y(x: float, z: float) -> float:
+	return _east_court_grade_y(x, z, _east_ground_raw_y(x, z))
 
 
 ## The level of the planted bank at a point on it: the batter between the
@@ -4628,7 +4683,7 @@ func _east_ground_y(x: float, z: float) -> float:
 ## depth the bank could not lay back inside `CLIMB_OPEN_HALF`, so its top is the
 ## plateau less what the bank took. Written the other way round it is two
 ## subtractions that have to agree with each other.
-func _east_bank_y(x: float, z: float) -> float:
+func _east_bank_raw_y(x: float, z: float) -> float:
 	var axis: float = Plan.ARCH_AT.y
 	var w := _climb_open_half(x)
 	var half: float = Plan.CLIMB_HALF_Z
@@ -4668,6 +4723,14 @@ func _east_bank_y(x: float, z: float) -> float:
 	return y + sin(t * PI) * BANK_BOW * (0.62 + 0.38 * sin(x * 0.41)) \
 		* clampf(_climb_bank_d(x) * 0.5, 0.0, 1.0)
 
+
+## The finished bank surface. Keeping the court grade here as well as on the
+## meadow is what makes the side shoulders one continuous planted slope across
+## the ravine brow rather than a lowered plateau with the old batter poking
+## through it.
+func _east_bank_y(x: float, z: float) -> float:
+	return _east_court_grade_y(x, z, _east_bank_raw_y(x, z))
+
 ## The meadow is a set of patches whose boundaries are the actual cuts in it.
 ## A bay used to be represented by two columns 4mm apart inside one long strip:
 ## the inner row jumped from the ravine brow to the bay's back wall while the
@@ -4701,6 +4764,13 @@ func _east_earth_patches() -> Array:
 ## intentionally repeat their common endpoint in their own arrays; SurfaceTool
 ## welds matching positions within a smooth group, while no triangle crosses
 ## from one patch to the other.
+##
+## The thirds are the buried mass boundaries from `_east_climb`. The court
+## shoulders made their height curve sharply enough that a mesh chord spanning
+## across one of those boundaries could pass below the support's flat top even
+## when both were sampled from the same function — four pale strips exposed in
+## the first render. A shared x sample makes the skin and its support agree at
+## the place the support actually ends.
 func _east_patch_columns(x0: float, x1: float) -> PackedFloat32Array:
 	var out := PackedFloat32Array([x0])
 	var x := x0 + EARTH_STEP
@@ -4709,7 +4779,14 @@ func _east_patch_columns(x0: float, x1: float) -> PackedFloat32Array:
 		x += EARTH_STEP
 	if absf(out[-1] - x1) > 0.0001:
 		out.append(x1)
-	return out
+	for k in [1, 2]:
+		out.append(lerpf(x0, x1, float(k) / 3.0))
+	out.sort()
+	var clean := PackedFloat32Array()
+	for sample in out:
+		if clean.is_empty() or absf(clean[-1] - sample) > 0.0001:
+			clean.append(sample)
+	return clean
 
 
 func _east_patch_half(kind: StringName, x: float) -> float:
@@ -4851,7 +4928,6 @@ func _east_earth(side: float, tag: String) -> void:
 	body.add_child(shape)
 	shape.owner = _root
 
-
 ## The renderer's front-face convention is easy to invert and the failure is
 ## catastrophic here: one reversed triangle can cull a meadow-sized patch from
 ## above. Keep the winding rule beside the generator rather than in a throwaway
@@ -4981,9 +5057,10 @@ func _east_bay_cut_top(x: float, z: float, floor_y: float) -> float:
 
 
 ## Close all three faces of one court with a single brick mesh: both side cuts
-## and the back cut. The old construction stopped its box walls at fixed heights
-## while the meadow rolled metres above them. From a landing that exposed the
-## back of the single-sided meadow as the enormous holes reported in play.
+## and the back cut. Their upper edge is now the level garden wall produced by
+## `_east_court_grade_y`; the same function pulls the meadow down to that edge
+## and lets it rise behind it. The mesh still reaches the buried floor, because
+## a low *visible* wall does not make the earth it retains stop existing.
 func _east_bay_cut(side: float, tag: String, bay: int, x0: float, x1: float,
 		floor_y: float) -> void:
 	var axis: float = Plan.ARCH_AT.y
@@ -5436,10 +5513,10 @@ func _climb_crest_courts() -> void:
 		var tag := "n" if s == 0 else "s"
 		# East of the climb's head — the last flight tops out at `CLIMB_TO_X`
 		# and a court overlapping the stair is a wall across it.
-		var x0 := 109.6
-		var x1 := 115.6
-		var z0: float = axis + side * 7.5
-		var z1: float = axis + side * 12.6
+		var x0: float = Plan.CREST_COURT_X0
+		var x1: float = Plan.CREST_COURT_X1
+		var z0: float = axis + side * Plan.CREST_COURT_FROM_D
+		var z1: float = axis + side * Plan.CREST_COURT_TO_D
 		_box("crest_court_deck_%s" % tag, Vector3.ZERO,
 			Vector3((x0 + x1) * 0.5, gy - 0.058, (z0 + z1) * 0.5),
 			Vector3(x1 - x0, 0.14, absf(z1 - z0)), "brick", 0.0, false)
@@ -5506,6 +5583,179 @@ func _east_head_landing() -> void:
 		_box("head_land_%s" % s[0], Vector3.ZERO,
 			Vector3((sx0 + sx1) * 0.5, gy - 0.058, (sz0 + sz1) * 0.5),
 			Vector3(sx1 - sx0, 0.14, sz1 - sz0), "brick", 0.0, false)
+
+
+## The first tenants of the east's empty rooms: small kiosks in the two garden
+## bays, benches in the crest courts, and a pair of lamps on the head landing.
+## The section is a hillside garden rather than four unoccupied retaining cuts;
+## these are deliberately modest so the basin and the planting remain the hero
+## from the belvedere and from the plaza below.
+const EAST_KIOSK_W := 2.45
+const EAST_KIOSK_BACK_D := 0.15
+const EAST_KIOSK_FRONT_D := 1.0
+const EAST_KIOSK_DEPTH := 1.45
+const EAST_KIOSK_BODY_H := 2.25
+
+
+func _east_dressing() -> void:
+	_east_bay_kiosks()
+	_east_crest_dressing()
+	_east_head_dressing()
+	_east_bay_garden_edges()
+
+
+## Level coping draws the low retaining edge clearly against the planted bank,
+## and three shrubs soften the two back corners without turning the court into
+## another flower bed. Appended after all existing dressing so this landform
+## correction cannot move the seam offsets of the kiosks, benches or lamps.
+func _east_bay_garden_edges() -> void:
+	var axis: float = Plan.ARCH_AT.y
+	var half: float = Plan.CLIMB_HALF_Z
+	var back_d: float = half + Plan.CLIMB_BAY_D + EARTH_INSET
+	var bay := 0
+	for r in Plan.climb_reaches():
+		if bool(r[4]) or float(r[1]) - float(r[0]) < Plan.CLIMB_BAY_MIN_T:
+			continue
+		var x0: float = r[0]
+		var x1: float = r[1]
+		var wall_y: float = float(r[2]) + BAY_GARDEN_WALL_H
+		for s in 2:
+			var side := -1.0 if s == 0 else 1.0
+			var tag := "n" if s == 0 else "s"
+			var front_z := axis + side * half
+			var back_z := axis + side * back_d
+			# Stop the side caps just shy of the rear cap. They meet visually,
+			# but do not overlap into a pair of identical horizontal faces.
+			var side_end_z := back_z - side * BAY_GARDEN_COPING_T * 0.5
+			for e in 2:
+				var wall_x := x0 if e == 0 else x1
+				_box("climb_bay_coping_%s_%d_side_%d" % [tag, bay, e],
+					Vector3.ZERO,
+					Vector3(wall_x, wall_y + 0.05,
+						(front_z + side_end_z) * 0.5),
+					Vector3(0.26, BAY_GARDEN_COPING_T,
+						absf(side_end_z - front_z)), "accent", 0.0, false)
+			_box("climb_bay_coping_%s_%d_back" % [tag, bay], Vector3.ZERO,
+				Vector3((x0 + x1) * 0.5, wall_y + 0.05, back_z),
+				Vector3(x1 - x0 + 0.26, BAY_GARDEN_COPING_T, 0.26),
+				"accent", 0.0, false)
+
+			# Two shoulders and one rear-bank shrub: enough structure to mark
+			# the garden transition while leaving the kiosk and sightline clear.
+			var shrub_points := [
+				Vector2(x0 - 0.72, back_d - 1.55),
+				Vector2(x1 + 0.72, back_d - 1.55),
+				Vector2((x0 + x1) * 0.5, back_d + 0.62),
+			]
+			for i in shrub_points.size():
+				var p: Vector2 = shrub_points[i]
+				var pz := axis + side * p.y
+				var radius := 0.38 + 0.06 * float((bay + s + i) % 3)
+				_sphere("climb_bay_shrub_%s_%d_%d" % [tag, bay, i],
+					Vector3(p.x, _east_ground_y(p.x, pz) + radius * 0.68, pz),
+					Vector3.ZERO, radius, "foliage", 0.0, 0.82)
+		bay += 1
+
+
+## A simple park kiosk, not a building: back panel, open service counter, striped
+## canopy and a small sign board. The two sides alternate colour so the four
+## rooms do not read as one repeated wall when the climb is viewed from above.
+func _east_bay_kiosks() -> void:
+	var axis: float = Plan.ARCH_AT.y
+	var bay := 0
+	for r in Plan.climb_reaches():
+		if bool(r[4]) or float(r[1]) - float(r[0]) < Plan.CLIMB_BAY_MIN_T:
+			continue
+		var x0: float = r[0]
+		var x1: float = r[1]
+		var floor_y: float = float(r[2]) - BAY_DECK_DROP
+		var bx := (x0 + x1) * 0.5
+		var back_d := Plan.CLIMB_HALF_Z + Plan.CLIMB_BAY_D + EARTH_INSET
+		for s in 2:
+			var side := -1.0 if s == 0 else 1.0
+			var tag := "n" if s == 0 else "s"
+			var back_z := axis + side * (back_d - EAST_KIOSK_BACK_D)
+			var front_z := axis + side * (back_d - EAST_KIOSK_FRONT_D)
+			var body_mat := "accent" if (bay + s) % 2 == 0 else "building"
+			var canopy_mat := "canvas" if (bay + s) % 2 == 0 else "canvas_alt"
+			var sign_mat: String = ["yellow", "red", "blue", "yellow"][(bay * 2 + s) % 4]
+			var base := Vector3.ZERO
+			_box("east_kiosk_%s_%d_back" % [tag, bay], base,
+				Vector3(bx, floor_y + EAST_KIOSK_BODY_H * 0.5, back_z),
+				Vector3(EAST_KIOSK_W, EAST_KIOSK_BODY_H, 0.28), body_mat)
+			# The posts keep the front open; the counter is the one solid object
+			# a guest approaches, and it stops short of the route's centre line.
+			for p in 2:
+				var px := bx + (-1.0 if p == 0 else 1.0) * (EAST_KIOSK_W * 0.5 - 0.18)
+				_box("east_kiosk_%s_%d_post_%d" % [tag, bay, p], base,
+					Vector3(px, floor_y + 1.15, front_z),
+					Vector3(0.18, EAST_KIOSK_BODY_H, 0.24), body_mat)
+			_box("east_kiosk_%s_%d_counter" % [tag, bay], base,
+				Vector3(bx, floor_y + 1.02, front_z - side * 0.05),
+				Vector3(EAST_KIOSK_W - 0.12, 0.16, 0.72), "wood")
+			_box("east_kiosk_%s_%d_canopy" % [tag, bay], base,
+				Vector3(bx, floor_y + 2.52,
+					axis + side * (back_d - EAST_KIOSK_DEPTH * 0.5)),
+				Vector3(EAST_KIOSK_W + 0.34, 0.16, EAST_KIOSK_DEPTH), canopy_mat,
+				0.0, false)
+			_box("east_kiosk_%s_%d_sign" % [tag, bay], base,
+				Vector3(bx, floor_y + 2.88, front_z - side * 0.08),
+				Vector3(1.35, 0.42, 0.08), sign_mat, 0.0, false)
+			# One small fitting per room. It makes the bays discoverable at night
+			# without competing with the cool chain down the middle.
+			var lamp_at := Vector3(bx, floor_y + 2.20, front_z - side * 0.14)
+			_sphere("east_kiosk_%s_%d_lamp" % [tag, bay], lamp_at,
+				Vector3.ZERO, 0.10, "lamp_glass")
+			_omni("east_kiosk_%s_%d_light" % [tag, bay], lamp_at, "lamp", 1.2, 5.0,
+				LIGHT_FIXTURE)
+			# Two low pots frame the service opening. Flowers stay in the rooms'
+			# corners so the central approach remains clear.
+			for p in 2:
+				var px := bx + (-1.0 if p == 0 else 1.0) * 0.93
+				var pz := front_z - side * 0.38
+				_box("east_kiosk_%s_%d_pot_%d" % [tag, bay, p], base,
+					Vector3(px, floor_y + 0.26, pz), Vector3(0.48, 0.52, 0.48),
+					"niche_stone")
+				for q in 3:
+					var bloom: String = ["bloom_pale", "bloom_warm", "bloom_pink"][(p + q + bay) % 3]
+					_sphere("east_kiosk_%s_%d_bloom_%d_%d" % [tag, bay, p, q], base,
+						Vector3(px + (float(q) - 1.0) * 0.11,
+							floor_y + 0.62 + 0.04 * float(q),
+							pz + (float(q) - 1.0) * 0.09), 0.09, bloom)
+		bay += 1
+
+
+## The crest courts are the quiet places at the top: one bench and one lamp in
+## each, set against the east half-wall so the open side still frames the chain.
+func _east_crest_dressing() -> void:
+	var axis: float = Plan.ARCH_AT.y
+	var gy: float = Plan.CLIMB_HEAD_Y + GROUND_LIFT
+	var bx := (Plan.CREST_COURT_X0 + Plan.CREST_COURT_X1) * 0.5
+	for s in 2:
+		var side := -1.0 if s == 0 else 1.0
+		var tag := "n" if s == 0 else "s"
+		var z := axis + side * ((Plan.CREST_COURT_FROM_D + Plan.CREST_COURT_TO_D) * 0.5)
+		_bench("east_crest_bench_%s" % tag, Vector3(bx + 0.95, gy, z), -PI * 0.5)
+		var lamp_base := Vector3(Plan.CREST_COURT_X1 - 0.72, gy, z - side * 1.65)
+		_cyl("east_crest_lamp_%s_pole" % tag, lamp_base, Vector3(0, 1.25, 0),
+			0.07, 2.5, "metal", 0.0, 8)
+		_sphere("east_crest_lamp_%s_globe" % tag,
+			lamp_base + Vector3(0, 2.62, 0), Vector3.ZERO, 0.13, "lamp_glass")
+		_omni("east_crest_lamp_%s_light" % tag,
+			lamp_base + Vector3(0, 2.52, 0), "lamp", 1.5, 7.0, LIGHT_FIXTURE)
+
+
+## Two benches at the far edge of the head landing, looking back down the axis.
+## They give the long flat band a reason to be a destination and leave the
+## central sightline over the source wall untouched.
+func _east_head_dressing() -> void:
+	var axis: float = Plan.ARCH_AT.y
+	var gy: float = Plan.CLIMB_HEAD_Y + GROUND_LIFT
+	for s in 2:
+		var side := -1.0 if s == 0 else 1.0
+		var tag := "n" if s == 0 else "s"
+		_bench("east_head_bench_%s" % tag,
+			Vector3(HEAD_LAND_TO_X - 1.25, gy, axis + side * 17.2), -PI * 0.5)
 
 
 ## How far up a retaining face the brick carries.
@@ -11731,7 +11981,13 @@ func _east_climb() -> void:
 				# top at the middle stands ~15cm through the skin at the west
 				# end of every third-of-a-reach on the ramp. A row of grey
 				# teeth along both brows, from play, 2026-08-23.
-				var htop: float = Plan.east_ground_base(xa) - 0.03
+				# The garden courts now grade the meadow down beside their low
+				# walls. A mass top derived from the uncut ramp stands through that
+				# new slope as a grey shelf, so take the lowest finished ground at
+				# the four top corners of this buried block instead.
+				var htop: float = minf(
+					minf(_east_ground_y(xa, oz), _east_ground_y(xb, oz)),
+					minf(_east_ground_y(xa, ez), _east_ground_y(xb, ez))) - 0.03
 				if absf(ez - oz) > 0.2:
 					_box("climb_hill_%s_%d" % [tag, si], Vector3.ZERO,
 						Vector3(xm, (base + 0.26 + htop) * 0.5,
