@@ -2106,10 +2106,8 @@ const PAVE_LIFT := 0.012
 ##
 ## The three threshold spokes are included even though what they lead to is
 ## scaffolding, because the paving is what makes a scaffolded passage read as a
-## way out rather than as a gap in the wall. `spoke_ne` stays for the opposite
-## reason: it no longer reaches a threshold, but gives the indoor dark ride a
-## proper approach court instead of leaving its facade stranded behind the
-## clock tower.
+## way out rather than as a gap in the wall. The indoor dark ride gets no spoke:
+## it is a plaza frontage and opens directly onto the plaza's brick floor.
 ##
 ## `west_stair` is not paved: it is a flight of steps, and a flat quad laid over
 ## treads would either float above them or cut through them. The boardwalk's runs
@@ -2118,7 +2116,10 @@ const PAVE_LIFT := 0.012
 func _paving() -> void:
 	_walkway_paving([&"plaza_ring", &"spoke_south", &"spoke_nnw",
 		&"spoke_se", &"spoke_sw"], PAVE_LIFT, "asphalt")
-	_dark_ride_paving()
+	# The retired north-east spoke used two surface ordinals. Keep those slots
+	# empty so deleting its geometry does not re-plane every later paving piece;
+	# the street otherwise moves half a millimetre onto a shop table leg.
+	_seam_ordinal += 2
 	# The west spoke's plaza half only: ring, bend, and up to the gate house's
 	# face. The tunnel past it is the plaza's own brick and the terrace past
 	# *that* is laid by `_terrace_paving`, into this scene and the boardwalk both.
@@ -2155,71 +2156,6 @@ func _paving() -> void:
 	_pave_run(&"spoke_east", PAVE_LIFT, "asphalt", 0, 2)
 	_pave_run(&"spoke_east", PAVE_LIFT, "asphalt", 2, 1, Plan.EAST_GAP_WIDTH)
 	_pave_run(&"spoke_east", PAVE_LIFT, "asphalt", 3, 1)
-
-
-## The former north-east section spoke, redrawn at the scale of the attraction
-## that now terminates it.
-##
-## A constant eight-metre strip ending square against the wall kept saying
-## "road through a gate" after the gate was gone. This is one continuous mesh:
-## six metres wide, turning with the planned centre line, and ending parallel to
-## the facade at `PLAZA_DARK_RIDE_COURT_AT`. The last 4.5m are the plaza's brick,
-## so the surface itself distinguishes circulation from standing and queueing.
-## Keeping both asphalt legs in one surface is not just tidier — two coplanar
-## quads overlapped at the bend in the first pass, and a fractional height offset
-## would have traded an overlap for a visible asphalt seam.
-func _dark_ride_paving() -> void:
-	var run: Array = Plan.WALKWAYS[&"spoke_ne"]
-	assert(run.size() == 4, "dark-ride paving expects a bend, court and arrival")
-	var a: Vector2 = run[0]
-	var b: Vector2 = run[1]
-	var c: Vector2 = run[2]
-	var half: float = float(Plan.WALKWAY_WIDTH[&"spoke_ne"]) * 0.5
-	var d0 := (b - a).normalized()
-	var d1 := (c - b).normalized()
-	var n0 := Vector2(-d0.y, d0.x)
-	var n1 := Vector2(-d1.y, d1.x)
-
-	# The shared bend is a true mitre, so the two halves meet without a bare
-	# wedge on the outside or a diamond of excess asphalt on the inside.
-	var miter := (n0 + n1).normalized()
-	var reach := half / maxf(miter.dot(n1), 0.001)
-	var b_left := b + miter * reach
-	var b_right := b - miter * reach
-	var a_left := a + n0 * half
-	var a_right := a - n0 * half
-
-	# End parallel to the facade rather than perpendicular to the diagonal walk.
-	# This is a material threshold, not another bend in the route.
-	var end_left := Vector2(c.x, c.y + half)
-	var end_right := Vector2(c.x, c.y - half)
-
-	var verts := PackedVector2Array([
-		a_left, a_right, b_right,
-		a_left, b_right, b_left,
-		b_left, b_right, end_right,
-		b_left, end_right, end_left,
-	])
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for p in verts:
-		st.set_normal(Vector3.UP)
-		st.set_uv(p)
-		st.add_vertex(Vector3(p.x, PAVE_LIFT, p.y))
-	st.generate_tangents()
-	var mesh := st.commit()
-	var mi := MeshInstance3D.new()
-	mi.mesh = mesh
-	mi.material_override = mats["asphalt"]
-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	_add(mi, "pave_spoke_ne")
-
-	# A narrow blue reveal makes the asphalt-to-brick line read as an authored
-	# threshold rather than a missing paving segment. One millimetre above the
-	# asphalt, so the intentional overlay cannot z-fight with it.
-	_pave_quad("pave_dark_ride_threshold",
-		Vector3(c.x + 0.06, PAVE_LIFT + 0.001, c.y),
-		Vector2(0.18, half * 2.0), 0.0, "blue")
 
 
 ## The paving on the far side of the tunnel. **Into `plaza_paving.tscn` only,
@@ -2836,6 +2772,9 @@ func _trees() -> void:
 		_sphere("tree_%d_crown_b" % i, b,
 			Vector3(spread * 0.4, h + spread * 0.95, -spread * 0.3),
 			spread * 0.66, "foliage", 0.0, 0.8)
+		# Furniture is sampled after the trees. Register the trunk footprint so a
+		# lamp or bin cannot claim the same newly freed patch of plaza brick.
+		_note_stood(p, 0.24)
 
 
 ## Lamps, bins and benches for the outer room, on the same rules. The inner ring
@@ -3510,15 +3449,11 @@ func _newsboxes() -> void:
 	_stand_clear = 0.0
 
 
-## A pair, and built as one assembly for the reason `_newsboxes` gives — but here
-## the failure is the opposite one and just as bad. The two poles stood 5m apart
-## on the same line, and only the eastern one was in `spoke_ne`; pushed one at a
-## time, one would move and one would not, and two flagpoles that no longer
-## agree about where the line is are not a pair any more.
+## A pair, and built as one assembly for the reason `_newsboxes` gives. Props
+## that belong on one line must move together or not at all; otherwise automatic
+## placement can turn a deliberate pair into two unrelated poles.
 ## `_stand_clear` is asked for on the **base**, so a wide assembly has to ask for
-## its own half-width on top of the margin it wants. Five metres of pair is 2.5
-## of that, and asking for 0.5 like a single pole would left the base clear and
-## the east pole still half a metre inside `spoke_ne`.
+## its own half-width on top of the margin it wants.
 func _flagpoles() -> void:
 	_stand_clear = 3.0
 	var b := Vector3(18.0, 0, -16.0)

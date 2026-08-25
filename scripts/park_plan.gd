@@ -303,9 +303,9 @@ const OVERLOOK_AT := Vector2(-49.0, -2.0)
 ## due-east gate opened onto a real section, a second east opening no longer
 ## clarified the park: it competed with the gate, led to an unbuilt land twelve
 ## metres above it and exposed the retaining work below the north shoulder. Its
-## plaza approach now terminates at `PLAZA_DARK_RIDE_AT`; the future northern
-## land belongs off the upper terrace instead of through a second ground-level
-## hole in the same wall.
+## old opening is occupied by the indoor dark ride at `PLAZA_DARK_RIDE_AT`;
+## the future northern land belongs off the upper terrace instead of through a
+## second ground-level hole in the same wall.
 ##
 ## Widened with the plaza. A 12m mouth in a 78m wall and a 12m mouth in a 102m
 ## wall are not the same opening: the second reads as a crack. These are scaled
@@ -316,15 +316,11 @@ const THRESHOLDS := [
 	{"name": "sw", "at": Vector3(-31.3, 0.0, 51.5), "theta": 0.0, "width": 10.0, "turn": -1.0},
 ]
 
-## The destination at the end of the former north-east spoke. The building's
-## inner face is x 36; this stands half a metre in front of its dark-ride mouth
-## so map markers, crowd attention and tests all point at the same entrance.
+## The indoor dark ride's plaza entrance. The building's inner face is x 36;
+## this stands half a metre in front of its loading mouth so map markers, crowd
+## attention and tests all point at the same entrance. It is a plaza place, not
+## the destination of a spoke: the surrounding brick is its forecourt.
 const PLAZA_DARK_RIDE_AT := Vector2(35.5, -27.4)
-
-## Where the asphalt approach gives way to the ride's brick standing court.
-## Parallel to the facade and 4.5m in front of it: enough room to gather without
-## preserving the retired passage's road all the way into the loading mouth.
-const PLAZA_DARK_RIDE_COURT_AT := Vector2(31.0, -27.4)
 
 ## How far a passage runs before it bends, and how far it carries after. The
 ## bend is what buys a section load its cover, so it is plan data rather than a
@@ -2313,15 +2309,13 @@ const WALKWAYS := {
 		Vector2(PIER_ROOT.x - PIER_LENGTH, PIER_ROOT.y),
 	],
 
-	## Three spokes to scaffolded thresholds, plus the north-east walk to the
-	## indoor dark ride. Threshold runs stop at their mouths; the attraction walk
-	## stops at its loading facade and goes no farther.
+	## Three spokes to scaffolded thresholds. Each run stops at its mouth.
 	##
 	## **These were straight, and three of them ran through buildings.** Written
 	## when this file's only consumer was the minimap, they were drawn as rays
 	## from the ring to each threshold and never checked against `plaza.tscn`,
-	## which is hand-placed and did not agree: `spoke_ne` spent 21m inside
-	## `perim_e_north`, `spoke_se` 28m inside `perim_e_south`, `spoke_sw` 11m
+	## which is hand-placed and did not agree: the retired north-east spoke spent
+	## 21m inside `perim_e_north`, `spoke_se` 28m inside `perim_e_south`, `spoke_sw` 11m
 	## inside `building_south_west`. On a map at that scale a line through a wall
 	## is a few pixels and looks like nothing. Paving them made it visible in one
 	## screenshot, which is the whole argument for a plan being built rather than
@@ -2343,17 +2337,6 @@ const WALKWAYS := {
 	## `building_north` and `perim_nw` that the north wall's gap opens onto.
 	&"spoke_nnw": [
 		Vector2(-8.0, -13.86), Vector2(-14.0, -30.0), Vector2(-16.9, -51.5),
-	],
-
-	## North of the ring, past the foot of the sign tower, and into the small court
-	## in front of the indoor dark ride. This used to continue through the
-	## north-east threshold; the route continues across brick after
-	## `PLAZA_DARK_RIDE_COURT_AT` and ends at the building's plaza face. The clock
-	## is still 3.6m off the centre line, which is close, and right: a clock you
-	## walk past is worth more than a clock you look at.
-	&"spoke_ne": [
-		Vector2(13.86, -8.0), Vector2(27.8, -20.8),
-		PLAZA_DARK_RIDE_COURT_AT, PLAZA_DARK_RIDE_AT,
 	],
 
 	## Off the ring due east, south down the eight-metre street between the photo
@@ -2421,11 +2404,6 @@ const WALKWAY_WIDTH := {
 	&"boardwalk_promenade": 16.0,
 	&"boardwalk_pier": 8.0,
 	&"spoke_nnw": 8.0,
-	## A forecourt rather than a section spoke, but it keeps the bearing mnemonic
-	## because that is how the plaza's paving and walk tests have always named it.
-	## Six metres keeps it a generous pedestrian walk without preserving the old
-	## gate road's eight-metre scale; the paving flares only at the loading mouth.
-	&"spoke_ne": 6.0,
 	&"spoke_se": 7.0,
 	&"spoke_sw": 6.0,
 }

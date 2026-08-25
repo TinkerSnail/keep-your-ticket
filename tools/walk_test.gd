@@ -147,18 +147,15 @@ func _ready() -> void:
 		["arcade north holds", Vector3(-20.0, 1.2, 78), Vector3(-20.0, 1.2, 62), false],
 		["arcade south holds", Vector3(-20.0, 1.2, 78), Vector3(-20.0, 1.2, 94), false],
 	]
-	# Three threshold spokes and the dark-ride approach, one leg per dogleg.
+	# Three threshold spokes, one leg per dogleg.
 	#
 	# **These are the legs that were missing.** Every threshold test below starts
 	# at the mouth, so nothing here had ever walked the plaza itself — and three
-	# of the four spokes in `ParkPlan.WALKWAYS` turned out to run through
-	# buildings, the former `spoke_ne` for 21m of it. A passage nothing can reach passes
-	# every test aimed at the passage.
+	# of the four original spokes in `ParkPlan.WALKWAYS` turned out to run through
+	# buildings. A passage nothing can reach passes every test aimed at the passage.
 	for s in [
 		["nnw", [Vector3(-8.0, 1.2, -13.86), Vector3(-14.0, 1.2, -30.0),
 			Vector3(-16.9, 1.2, -46.0)]],
-		["dark ride", [Vector3(13.86, 1.2, -8.0), Vector3(27.8, 1.2, -20.8),
-			Vector3(31.0, 1.2, -27.4), Vector3(33.5, 1.2, -27.4)]],
 		["se", [Vector3(13.86, 1.2, 8.0), Vector3(27.0, 1.2, 13.0),
 			Vector3(34.0, 1.2, 26.0), Vector3(46.0, 1.2, 31.3)]],
 		["sw", [Vector3(-8.0, 1.2, 13.86), Vector3(-28.0, 1.2, 30.0),
@@ -167,6 +164,12 @@ func _ready() -> void:
 		var run: Array = s[1]
 		for i in run.size() - 1:
 			_legs.append(["spoke %s %d" % [s[0], i], run[i], run[i + 1], true])
+	# The ride remains reachable across ordinary plaza brick, but this is not a
+	# spoke and does not reserve or pave a corridor in the plan.
+	_legs.append(["plaza brick -> dark ride court", Vector3(24.0, 1.2, -18.0),
+		Vector3(29.0, 1.2, -29.0), true])
+	_legs.append(["dark ride court -> front", Vector3(29.0, 1.2, -29.0),
+		Vector3(33.5, 1.2, -27.4), true])
 	_legs.append(["dark ride front holds", Vector3(31.5, 1.2, -27.4),
 		Vector3(45.0, 1.2, -27.4), false])
 
