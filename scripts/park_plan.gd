@@ -1403,6 +1403,17 @@ const EAST_ARRIVAL_BENCH_D := 9.1
 const EAST_ARRIVAL_BOARD_X := 54.0
 const EAST_ARRIVAL_BOARD_D := 6.2
 
+## The furniture on the six-metre belvedere between the two east climbs. The
+## viewer sits close to the west parapet, the bench behind it and farther out,
+## and the lamp against the back corner. This keeps the pool-side routes at
+## `climb_flight_z()` open while making both broad side strips into overlooks.
+const EAST_BELVEDERE_VIEWER_X := 71.35
+const EAST_BELVEDERE_VIEWER_D := 9.4
+const EAST_BELVEDERE_BENCH_X := 74.2
+const EAST_BELVEDERE_BENCH_D := 13.2
+const EAST_BELVEDERE_LAMP_X := 76.2
+const EAST_BELVEDERE_LAMP_D := 15.3
+
 
 ## The rim's crest line, resampled at even spacing along its own length.
 ##

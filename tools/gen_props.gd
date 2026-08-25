@@ -5603,6 +5603,7 @@ func _east_dressing() -> void:
 	_east_head_dressing()
 	_east_bay_garden_edges()
 	_east_arrival_dressing()
+	_east_belvedere_dressing()
 
 
 ## The court below the first cascade is an arrival room rather than spare brick:
@@ -5669,6 +5670,55 @@ func _east_arrival_dressing() -> void:
 		_box("east_arrival_board_%s_rule" % tag, Vector3.ZERO,
 			Vector3(Plan.EAST_ARRIVAL_BOARD_X - 0.135, 1.81, bz),
 			Vector3(0.04, 0.10, 1.34), "white", 0.0, false)
+
+
+## The shelf between the cascade head-house and the long basin climb is an
+## overlook, and the furniture says which way it looks. A bench and a
+## coin-operated viewer face west on each side of the collecting pool, back
+## through the gate at the plaza; one lamp holds each corner after dark.
+##
+## The viewer is intentionally a small assembly rather than a sign board. Its
+## long hood, blue lens and eyecup give the belvedere a piece of park-specific
+## furniture, while the solid base remains well under the parapet sightline.
+func _east_belvedere_dressing() -> void:
+	var axis: float = Plan.ARCH_AT.y
+	var gy: float = Plan.HILL_TOP
+	for s in 2:
+		var side := -1.0 if s == 0 else 1.0
+		var tag := "n" if s == 0 else "s"
+
+		var vz := axis + side * Plan.EAST_BELVEDERE_VIEWER_D
+		var viewer := Vector3(Plan.EAST_BELVEDERE_VIEWER_X, gy, vz)
+		_box("east_belvedere_viewer_%s_plinth" % tag, viewer,
+			Vector3(0.0, 0.12, 0.0), Vector3(0.54, 0.24, 0.54), "niche_stone")
+		_cyl("east_belvedere_viewer_%s_pole" % tag, viewer,
+			Vector3(0.0, 0.82, 0.0), 0.11, 1.40, "metal", 0.0, 10)
+		_box("east_belvedere_viewer_%s_coin" % tag, viewer,
+			Vector3(0.0, 1.02, -0.17), Vector3(0.30, 0.42, 0.22),
+			"accent", -PI * 0.5, false)
+		_box("east_belvedere_viewer_%s_head" % tag, viewer,
+			Vector3(0.0, 1.58, 0.0), Vector3(0.52, 0.40, 0.82),
+			"metal", -PI * 0.5, false)
+		_box("east_belvedere_viewer_%s_lens" % tag, viewer,
+			Vector3(0.0, 1.58, 0.44), Vector3(0.30, 0.24, 0.08),
+			"blue", -PI * 0.5, false)
+		_box("east_belvedere_viewer_%s_eye" % tag, viewer,
+			Vector3(0.0, 1.58, -0.47), Vector3(0.24, 0.20, 0.16),
+			"far_shade", -PI * 0.5, false)
+
+		_bench("east_belvedere_bench_%s" % tag,
+			Vector3(Plan.EAST_BELVEDERE_BENCH_X, gy,
+				axis + side * Plan.EAST_BELVEDERE_BENCH_D), -PI * 0.5)
+
+		var lamp_base := Vector3(Plan.EAST_BELVEDERE_LAMP_X, gy,
+			axis + side * Plan.EAST_BELVEDERE_LAMP_D)
+		_cyl("east_belvedere_lamp_%s_pole" % tag, lamp_base,
+			Vector3(0.0, 1.35, 0.0), 0.07, 2.70, "metal", 0.0, 8)
+		_sphere("east_belvedere_lamp_%s_globe" % tag, lamp_base,
+			Vector3(0.0, 2.82, 0.0), 0.14, "lamp_glass")
+		_omni("east_belvedere_lamp_%s_light" % tag,
+			lamp_base + Vector3(0.0, 2.70, 0.0), "lamp", 1.6, 7.5,
+			LIGHT_FIXTURE)
 
 
 ## Level coping draws the low retaining edge clearly against the planted bank,

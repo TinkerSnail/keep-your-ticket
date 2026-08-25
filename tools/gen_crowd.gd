@@ -534,6 +534,22 @@ func _terraces_obstacles() -> Array:
 				axis + side * Plan.EAST_ARRIVAL_BOARD_D),
 			"half": Vector2(0.20, 1.15),
 		})
+	# On the belvedere the viewer and bench are the things a guest walks around;
+	# the lamp stays out of the register like every other slender fixture.
+	for s in 2:
+		var side := -1.0 if s == 0 else 1.0
+		out.append({
+			"kind": "rect",
+			"at": Vector2(Plan.EAST_BELVEDERE_VIEWER_X,
+				axis + side * Plan.EAST_BELVEDERE_VIEWER_D),
+			"half": Vector2(0.38, 0.38),
+		})
+		out.append({
+			"kind": "rect",
+			"at": Vector2(Plan.EAST_BELVEDERE_BENCH_X,
+				axis + side * Plan.EAST_BELVEDERE_BENCH_D),
+			"half": Vector2(0.42, 1.02),
+		})
 	return out
 
 
@@ -3092,6 +3108,12 @@ func _terraces_pois() -> PackedVector3Array:
 		var side := -1.0 if s == 0 else 1.0
 		out.append(Vector3(Plan.EAST_ARRIVAL_BOARD_X - 0.2, 1.6,
 			axis + side * Plan.EAST_ARRIVAL_BOARD_D))
+	# The two coin viewers are reachable attractions on the belvedere. The clock
+	# remains the long view; these are the nearby objects guests can pause at.
+	for s in 2:
+		var side := -1.0 if s == 0 else 1.0
+		out.append(Vector3(Plan.EAST_BELVEDERE_VIEWER_X, Plan.HILL_TOP + 1.55,
+			axis + side * Plan.EAST_BELVEDERE_VIEWER_D))
 	# Back down the axis at the clock tower, which is the view the belvedere is
 	# for and the only instrument the park has.
 	out.append(Vector3(Plan.CLOCK_TOWER_AT.x, 26.0, Plan.CLOCK_TOWER_AT.y))
