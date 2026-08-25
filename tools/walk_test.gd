@@ -320,6 +320,45 @@ func _ready() -> void:
 		ParkPlan.CLIMB_HEAD_Y + 1.2, ex.y - cfz)
 	_legs.append(["climb head across", climb_head,
 		Vector3(climb_head.x, climb_head.y, ex.y + cfz), true])
+	# The two attraction promenades beyond the crest courts. Their first bend
+	# clears the courts' west parapets, then the route climbs with the graded
+	# shoulder to each ride gate. Walk both directions and push into the ride
+	# machinery once, so a pretty path that falls through its bank or a fenced
+	# deck with nothing solid in it cannot pass by appearance alone.
+	var end_head := Vector3(ParkPlan.CLIMB_TO_X + 4.0,
+		ParkPlan.CLIMB_HEAD_Y + 1.2, ex.y)
+	for w in [[-1.0, "n"], [1.0, "s"]]:
+		var side: float = w[0]
+		var nm: String = w[1]
+		var route := ParkPlan.east_end_path(side)
+		var stand: Array[Vector3] = []
+		for v in route:
+			stand.append(v + Vector3(0.0, 1.2, 0.0))
+		_legs.append(["east end %s on" % nm, end_head, stand[0], true])
+		for i in stand.size() - 1:
+			_legs.append(["east end %s out %d" % [nm, i], stand[i], stand[i + 1], true])
+		for i in range(stand.size() - 1, 0, -1):
+			_legs.append(["east end %s back %d" % [nm, i], stand[i], stand[i - 1], true])
+		_legs.append(["east end %s off" % nm, stand[0], end_head, true])
+		_legs.append(["east end %s ride holds" % nm, stand[-1],
+			Vector3(ParkPlan.EAST_END_RIDE_X, ParkPlan.EAST_END_FLOOR_Y + 1.2,
+				ex.y + side * ParkPlan.EAST_END_RIDE_D), false])
+	# The observation tower branches around the north ride's queue. Walk the
+	# actual bends both ways, then push into the lift house from the clear side of
+	# the court so a fence post cannot make an empty tower base look solid.
+	var tower_route: Array[Vector3] = ParkPlan.east_tower_path()
+	var tower_stand: Array[Vector3] = []
+	for v in tower_route:
+		tower_stand.append(v + Vector3(0.0, 1.2, 0.0))
+	for i in tower_stand.size() - 1:
+		_legs.append(["east tower out %d" % i,
+			tower_stand[i], tower_stand[i + 1], true])
+	for i in range(tower_stand.size() - 1, 0, -1):
+		_legs.append(["east tower back %d" % i,
+			tower_stand[i], tower_stand[i - 1], true])
+	var tower_probe := ParkPlan.east_tower_point(0.0, -5.5) + Vector3(0.0, 1.2, 0.0)
+	_legs.append(["east tower base holds", tower_probe,
+		ParkPlan.east_tower_center() + Vector3(0.0, 1.2, 0.0), false])
 	# **The bays**, which are the reason the landings exist as more than a pause:
 	# each terrace opens left and right into a shelf cut into the hillside. New
 	# ground, so it gets walked — out from the landing, along the shelf, and a

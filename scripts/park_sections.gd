@@ -124,11 +124,11 @@ const SECTIONS := {
 			## horizon feature at all. Without this line the arm is built and
 			## invisible from the only place it was built for.
 			##
-			## It brings the skyline coaster at (−22, −58) and the observation
-			## tower at (54, −40) onto this horizon with it, over the bluff and
-			## behind the plaza's own massing. That is the park continuing east
-			## rather than a mistake, but it is a change to what the boardwalk
-			## sees and it is the reason this is one line with a paragraph on it.
+			## It brings the skyline coaster at (−22, −58) onto this horizon with
+			## it, over the bluff and behind the plaza's own massing. The old
+			## collisionless observation tower moved out of this file and into the
+			## playable east scene, which the boardwalk does not mount; the shops
+			## hid it from here even before it moved.
 			"res://scenes/world/plaza_skyline.tscn",
 			"res://scenes/world/west_stair.tscn",
 			"res://scenes/world/boardwalk.tscn",
@@ -156,10 +156,12 @@ const SECTIONS := {
 		"name": "the terraces",
 	##
 	## `plaza_skyline.tscn` is in both lists for `west_shell`'s reason turned
-	## through ninety degrees: it holds the rim, the coaster and the observation
-	## tower, all of it massing with no collision, and the rim's toe is at x 120
-	## — thirty metres from the head of this section's own climb. A section that
-	## dropped it would put the player on a hillside with nothing behind it.
+	## through ninety degrees: it holds the rim and the coaster, both massing with
+	## no collision, and the rim's toe is at x 120 — thirty metres from the head
+	## of this section's own climb. The observation tower is part of
+	## `east_cascade.tscn` now, with real collision and an upper-shoulder court. A
+	## section that dropped the skyline would still put the player on a hillside
+	## with nothing behind it.
 	##
 	## `terraces_far.tscn` is the plaza standing as massing for the section that
 	## has just deleted it, which is what `boardwalk.tscn` carries for the same

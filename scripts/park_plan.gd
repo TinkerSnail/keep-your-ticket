@@ -1164,10 +1164,11 @@ const RIM_CREST_X := 150.0
 ## note this replaces said a wrapping rim "has to decide what it does about the
 ## grove and about the coaster standing in `plaza_skyline`, and neither of those
 ## is decided". Measured rather than decided, in the end: the skyline coaster is
-## at z −58 and the observation tower at z −40, `SECTION_GROUND[&"grove"]` reaches
-## z −146, and the arm's crest runs at −190 to −224 with its foot no further in
-## than about −160. Everything built or planned is south of it by twelve metres
-## at the tightest, which is the back-of-house strip a section wants anyway.
+## at z −58, the observation tower now stands on the playable east shoulder at
+## z −84, `SECTION_GROUND[&"grove"]` reaches z −146, and the arm's crest runs at
+## −190 to −224 with its foot no further in than about −160. Everything built or
+## planned is south of it by twelve metres at the tightest, which is the
+## back-of-house strip a section wants anyway.
 ##
 ## **And it clears the sunset, which is the one thing it could not be allowed to
 ## touch.** `daylight.gd` puts the sun at `LATITUDE_DEG` 32.75 and
@@ -1413,6 +1414,105 @@ const EAST_BELVEDERE_BENCH_X := 74.2
 const EAST_BELVEDERE_BENCH_D := 13.2
 const EAST_BELVEDERE_LAMP_X := 76.2
 const EAST_BELVEDERE_LAMP_D := 15.3
+
+## The two attraction courts beyond the crest gardens. They share a promenade
+## and a footprint, but not a ride: the north court takes the taller swing ride
+## that announces the frontier side, while the south stays low for kiddieland.
+##
+## The shoulder is rolling ground, not a level slab. The promenade therefore
+## rises from the head landing's 18m floor to a 20m ride court over its first
+## eight metres. Props, crowd nodes and walk probes all read the same profile so
+## nobody is posed under the meadow or sent through a retaining bank.
+const EAST_END_PATH_X := 108.4
+const EAST_END_PATH_HALF_W := 1.8
+const EAST_END_PATH_FROM_D := 22.2
+const EAST_END_PATH_RISE_TO_D := 30.0
+const EAST_END_PATH_TO_D := 60.0
+const EAST_END_FLOOR_Y := 20.0
+const EAST_END_RIDE_X := 114.0
+const EAST_END_RIDE_D := 52.0
+const EAST_END_RIDE_PAD_R := 5.4
+const EAST_END_QUEUE_X := 105.6
+const EAST_END_QUEUE_HALF := Vector2(2.4, 5.5)
+const EAST_END_GRADE_RUN := 3.0
+
+
+static func east_end_path_y(dist: float) -> float:
+	var t := clampf((dist - EAST_END_PATH_FROM_D) /
+		(EAST_END_PATH_RISE_TO_D - EAST_END_PATH_FROM_D), 0.0, 1.0)
+	t = t * t * (3.0 - 2.0 * t)
+	return lerpf(CLIMB_HEAD_Y, EAST_END_FLOOR_Y, t)
+
+
+## From the central head landing, round the west side of a crest court and out
+## to the ride gate. `side` is -1 north and +1 south.
+static func east_end_path(side: float) -> Array[Vector3]:
+	var axis: float = ARCH_AT.y
+	var ds := [6.0, 16.0, EAST_END_PATH_FROM_D, EAST_END_PATH_RISE_TO_D,
+		42.0, EAST_END_RIDE_D]
+	var out: Array[Vector3] = []
+	for d in ds:
+		out.append(Vector3(EAST_END_PATH_X, east_end_path_y(float(d)),
+			axis + side * float(d)))
+	return out
+
+
+## The observation tower's real site, beyond the north ride court and before
+## the shoulder rolls down. Its old skyline-only origin was `(54, 0, -40)`: at
+## the foot of the hill beside the north-east threshold, with no path, no base
+## and no collision. `(104, 20, -84)` is almost exactly the same ray from the
+## fountain, so the landmark keeps its place in the plaza composition while its
+## footing moves onto the highest public ground in the east. Its x position is
+## eight metres west of the climb's head, enough that its mast and the chair
+## swing's mast do not merge into one object from the central landing.
+##
+## The approach forks west before the swing queue, passes its booth on the
+## outside, then bends back to the tower gate. That bend is not dressing. A
+## straight continuation of `EAST_END_PATH_X` runs through the swing's gate
+## post, so props, crowd and walk tests all read this one route.
+const EAST_TOWER_X := 104.0
+const EAST_TOWER_D := 82.0
+const EAST_TOWER_FLOOR_Y := EAST_END_FLOOR_Y
+const EAST_TOWER_PAD_R := 7.0
+const EAST_TOWER_BASE_R := 2.65
+const EAST_TOWER_GRADE_RUN := 3.5
+
+
+static func east_tower_center() -> Vector3:
+	return Vector3(EAST_TOWER_X, EAST_TOWER_FLOOR_Y, ARCH_AT.y - EAST_TOWER_D)
+
+
+## Centreline from the existing north promenade to the tower court. The first
+## point is shared with `east_end_path(-1)[4]`; consumers adding graph nodes skip
+## it so the fork does not become a zero-length edge.
+static func east_tower_path() -> Array[Vector3]:
+	var axis: float = ARCH_AT.y
+	return [
+		Vector3(EAST_END_PATH_X, EAST_TOWER_FLOOR_Y, axis - 42.0),
+		Vector3(101.3, EAST_TOWER_FLOOR_Y, axis - 46.0),
+		Vector3(101.3, EAST_TOWER_FLOOR_Y, axis - 62.0),
+		Vector3(103.2, EAST_TOWER_FLOOR_Y, axis - 68.0),
+		Vector3(106.0, EAST_TOWER_FLOOR_Y, axis - 72.0),
+		Vector3(107.6, EAST_TOWER_FLOOR_Y, axis - 76.0),
+	]
+
+
+## Outward from the tower centre toward the promenade gate, in plan.
+static func east_tower_gate_dir() -> Vector2:
+	var gate: Vector3 = east_tower_path()[-1]
+	var center := east_tower_center()
+	return Vector2(gate.x - center.x, gate.z - center.z).normalized()
+
+
+## A point on the tower court in the gate's own frame: `radial` is outward
+## toward the approach and `lateral` is across it. The operator booth, bench and
+## crowd obstacles use this so they cannot drift apart when the gate turns.
+static func east_tower_point(radial: float, lateral: float) -> Vector3:
+	var center := east_tower_center()
+	var gate := east_tower_gate_dir()
+	var tangent := Vector2(-gate.y, gate.x)
+	var p := Vector2(center.x, center.z) + gate * radial + tangent * lateral
+	return Vector3(p.x, EAST_TOWER_FLOOR_Y, p.y)
 
 
 ## The rim's crest line, resampled at even spacing along its own length.

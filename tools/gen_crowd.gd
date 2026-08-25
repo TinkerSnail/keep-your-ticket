@@ -427,6 +427,27 @@ func _east_graph() -> void:
 		var crest_z := axis + side * ((Plan.CREST_COURT_FROM_D + Plan.CREST_COURT_TO_D) * 0.5)
 		_node("e_crest_%s" % tag, Vector3(crest_x, Plan.CLIMB_HEAD_Y, crest_z))
 		_edge("e_top", "e_crest_%s" % tag, false)
+	# Beyond the crest gardens, one promenade goes to each ride court. The first
+	# two points take the west side of the court parapet; the remaining points
+	# follow the graded shoulder profile published by `ParkPlan`.
+	for w in [[-1.0, "n"], [1.0, "s"]]:
+		var side: float = w[0]
+		var tag: String = w[1]
+		var path := Plan.east_end_path(side)
+		for i in path.size():
+			_node("e_end_%s_%d" % [tag, i], path[i])
+		_edge("e_top", "e_end_%s_0" % tag, false)
+		for i in path.size() - 1:
+			_edge("e_end_%s_%d" % [tag, i], "e_end_%s_%d" % [tag, i + 1], false)
+	# The tower path forks at north node four, before the swing queue. Index zero
+	# in the published path is that same position, so only the remaining points
+	# become nodes; a duplicated first node would create a zero-length edge.
+	var tower_path: Array[Vector3] = Plan.east_tower_path()
+	for i in range(1, tower_path.size()):
+		_node("e_tower_%d" % (i - 1), tower_path[i])
+	_edge("e_end_n_4", "e_tower_0", false)
+	for i in tower_path.size() - 2:
+		_edge("e_tower_%d" % i, "e_tower_%d" % (i + 1), false)
 	# **No link back to `ring_e`.** It was there while the east lived in the
 	# plaza's graph, and the split made it a dangling name: the plaza's ring is
 	# not in this section and the seam at the gate is what joins the two, not an
@@ -550,6 +571,47 @@ func _terraces_obstacles() -> Array:
 				axis + side * Plan.EAST_BELVEDERE_BENCH_D),
 			"half": Vector2(0.42, 1.02),
 		})
+	# The ride machinery fills the fenced circle; guests route to the gate rather
+	# than through it. Operator booths and benches are the other real footprints
+	# on each queue court. Rails, lamps, bins and height boards stay slender.
+	for s in 2:
+		var side := -1.0 if s == 0 else 1.0
+		var ride_z := axis + side * Plan.EAST_END_RIDE_D
+		out.append({
+			"kind": "circle",
+			"at": Vector2(Plan.EAST_END_RIDE_X, ride_z),
+			"r": Plan.EAST_END_RIDE_PAD_R - 0.65,
+		})
+		out.append({
+			"kind": "rect",
+			"at": Vector2(Plan.EAST_END_QUEUE_X - 0.8, ride_z + side * 4.25),
+			"half": Vector2(0.95, 0.85),
+		})
+		out.append({
+			"kind": "rect",
+			"at": Vector2(Plan.EAST_END_QUEUE_X - 0.8, ride_z - side * 4.25),
+			"half": Vector2(0.42, 1.02),
+		})
+	# The tower court itself stays walkable. Only the lift house, booth and bench
+	# are obstacles; the fence is its boundary and the graph stops at the gate.
+	var tower := Plan.east_tower_center()
+	out.append({
+		"kind": "circle",
+		"at": Vector2(tower.x, tower.z),
+		"r": Plan.EAST_TOWER_BASE_R + 0.35,
+	})
+	var tower_booth := Plan.east_tower_point(3.25, -3.35)
+	out.append({
+		"kind": "rect",
+		"at": Vector2(tower_booth.x, tower_booth.z),
+		"half": Vector2(1.15, 1.15),
+	})
+	var tower_bench := Plan.east_tower_point(1.75, 4.65)
+	out.append({
+		"kind": "rect",
+		"at": Vector2(tower_bench.x, tower_bench.z),
+		"half": Vector2(1.15, 1.15),
+	})
 	return out
 
 
@@ -3041,7 +3103,7 @@ func _boardwalk_seated_groups() -> void:
 ## top, not a crowd standing about in front of shops that do not exist.
 func _build_terraces() -> bool:
 	# Its own seed, or this is the plaza's cast in different clothes.
-	_begin("crowd", 0.0, Rect2(30.0, -32.0, 92.0, 64.0), 0x7E44)
+	_begin("crowd", 0.0, Rect2(30.0, -100.0, 100.0, 172.0), 0x7E44)
 
 	_east_graph()
 	# Kiosks now occupy the back of each bay. Their approach remains clear, but
@@ -3114,6 +3176,17 @@ func _terraces_pois() -> PackedVector3Array:
 		var side := -1.0 if s == 0 else 1.0
 		out.append(Vector3(Plan.EAST_BELVEDERE_VIEWER_X, Plan.HILL_TOP + 1.55,
 			axis + side * Plan.EAST_BELVEDERE_VIEWER_D))
+	# The ride cars, not the blank centre of each deck. One point high on the
+	# swing chairs and one among the carousel horses gives nearby guests the
+	# attraction they actually stopped to watch.
+	out.append(Vector3(Plan.EAST_END_RIDE_X, Plan.EAST_END_FLOOR_Y + 6.0,
+		axis - Plan.EAST_END_RIDE_D))
+	out.append(Vector3(Plan.EAST_END_RIDE_X, Plan.EAST_END_FLOOR_Y + 1.7,
+		axis + Plan.EAST_END_RIDE_D))
+	# The glazed observation pod, high enough that guests at the gate look up at
+	# the landmark rather than at the centre of its concrete footing.
+	var tower := Plan.east_tower_center()
+	out.append(tower + Vector3(0.0, 32.0, 0.0))
 	# Back down the axis at the clock tower, which is the view the belvedere is
 	# for and the only instrument the park has.
 	out.append(Vector3(Plan.CLOCK_TOWER_AT.x, 26.0, Plan.CLOCK_TOWER_AT.y))
@@ -3139,6 +3212,12 @@ func _terraces_walking_groups() -> void:
 		{"start": "e_top", "kinds": ["adult", "adult"]},
 		{"start": "e_crest_n", "kinds": ["adult"]},
 		{"start": "e_crest_s", "kinds": ["adult"]},
+		{"start": "e_end_n_5", "kinds": ["adult", "adult", "kid"]},
+		{"start": "e_end_n_3", "kinds": ["adult", "kid"]},
+		{"start": "e_end_s_5", "kinds": ["adult", "kid", "kid"]},
+		{"start": "e_end_s_3", "kinds": ["stroller_adult", "adult", "kid"]},
+		{"start": "e_tower_4", "kinds": ["adult", "adult", "kid"]},
+		{"start": "e_tower_2", "kinds": ["adult", "kid"]},
 	]
 	for entry in plan:
 		var origin: Vector3 = _graph_points[_node_index(entry["start"])]

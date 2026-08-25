@@ -3698,14 +3698,6 @@ func _wooden_coaster(origin: Vector3, heading: float, mat: String, vscale := 1.0
 		prev = top
 
 
-## Slender shaft, observation deck, spire. The park's landmark.
-func _tower(origin: Vector3, mat: String, accent: String) -> void:
-	_far_cyl("tower_shaft", origin + Vector3(0, 21, 0), 1.7, 42.0, mat, 10)
-	_far_cyl("tower_deck", origin + Vector3(0, 32, 0), 5.6, 2.4, accent, 14)
-	_far_cyl("tower_deck_roof", origin + Vector3(0, 33.6, 0), 6.3, 0.7, mat, 14)
-	_far_cyl("tower_spire", origin + Vector3(0, 46, 0), 0.45, 9.0, mat, 6)
-
-
 ## A wheel is a ring on two legs; the ring is what carries at distance.
 ##
 ## `heading` turns the whole assembly about Y. Standing the torus up alone
@@ -4663,10 +4655,86 @@ func _east_court_grade_y(x: float, z: float, uncut_y: float) -> float:
 	return y
 
 
+func _flat_segment_distance(p: Vector2, a: Vector2, b: Vector2) -> float:
+	var ab := b - a
+	var len2 := ab.length_squared()
+	if len2 < 0.0001:
+		return p.distance_to(a)
+	var t := clampf((p - a).dot(ab) / len2, 0.0, 1.0)
+	return p.distance_to(a + ab * t)
+
+
+## Grade the rolling shoulder into the two ride courts, the observation-tower
+## court and the promenades that reach them. This is the terrain decision behind
+## the attractions: without it a deck placed at one sampled height floats at one
+## edge and disappears into a two-metre swell at the other. The main routes rise
+## by the profile in `ParkPlan`; every attraction settles at the same 20m upper
+## midway level. A three-to-four-metre ease keeps every cut a planted bank
+## instead of a vertical green wall.
+func _east_end_grade_y(x: float, z: float, uncut_y: float) -> float:
+	var axis: float = Plan.ARCH_AT.y
+	var p := Vector2(x, z)
+	var y := uncut_y
+	for s in 2:
+		var side := -1.0 if s == 0 else 1.0
+		var ride := Vector2(Plan.EAST_END_RIDE_X,
+			axis + side * Plan.EAST_END_RIDE_D)
+		var path_mid_d := (Plan.EAST_END_PATH_FROM_D + Plan.EAST_END_PATH_TO_D) * 0.5
+		var path_half_d := (Plan.EAST_END_PATH_TO_D - Plan.EAST_END_PATH_FROM_D) * 0.5
+		var path_q := Vector2(
+			absf(x - Plan.EAST_END_PATH_X) - Plan.EAST_END_PATH_HALF_W,
+			absf(z - (axis + side * path_mid_d)) - path_half_d)
+		var path_dist := Vector2(maxf(path_q.x, 0.0), maxf(path_q.y, 0.0)).length()
+		if path_dist < Plan.EAST_END_GRADE_RUN:
+			var w := 1.0 - clampf(path_dist / Plan.EAST_END_GRADE_RUN, 0.0, 1.0)
+			w = w * w * (3.0 - 2.0 * w)
+			y = lerpf(y, Plan.east_end_path_y(absf(z - axis)), w)
+
+		var queue_q := Vector2(
+			absf(x - Plan.EAST_END_QUEUE_X) - Plan.EAST_END_QUEUE_HALF.x,
+			absf(z - ride.y) - Plan.EAST_END_QUEUE_HALF.y)
+		var queue_dist := Vector2(maxf(queue_q.x, 0.0),
+			maxf(queue_q.y, 0.0)).length()
+		if queue_dist < Plan.EAST_END_GRADE_RUN:
+			var w := 1.0 - clampf(queue_dist / Plan.EAST_END_GRADE_RUN, 0.0, 1.0)
+			w = w * w * (3.0 - 2.0 * w)
+			y = lerpf(y, Plan.EAST_END_FLOOR_Y, w)
+
+		var ride_dist := maxf(p.distance_to(ride) - Plan.EAST_END_RIDE_PAD_R, 0.0)
+		if ride_dist < Plan.EAST_END_GRADE_RUN:
+			var w := 1.0 - clampf(ride_dist / Plan.EAST_END_GRADE_RUN, 0.0, 1.0)
+			w = w * w * (3.0 - 2.0 * w)
+			y = lerpf(y, Plan.EAST_END_FLOOR_Y, w)
+
+	# The tower approach bends around the swing's queue, so it is graded as the
+	# actual polyline rather than as a broad north-south strip that would flatten
+	# the ride court and the meadow between them.
+	var tower_path: Array[Vector3] = Plan.east_tower_path()
+	for i in tower_path.size() - 1:
+		var a := Vector2(tower_path[i].x, tower_path[i].z)
+		var b := Vector2(tower_path[i + 1].x, tower_path[i + 1].z)
+		var path_dist := maxf(_flat_segment_distance(p, a, b)
+			- Plan.EAST_END_PATH_HALF_W, 0.0)
+		if path_dist < Plan.EAST_TOWER_GRADE_RUN:
+			var w := 1.0 - clampf(path_dist / Plan.EAST_TOWER_GRADE_RUN, 0.0, 1.0)
+			w = w * w * (3.0 - 2.0 * w)
+			y = lerpf(y, Plan.EAST_TOWER_FLOOR_Y, w)
+
+	var tower := Plan.east_tower_center()
+	var tower_dist := maxf(p.distance_to(Vector2(tower.x, tower.z))
+		- Plan.EAST_TOWER_PAD_R, 0.0)
+	if tower_dist < Plan.EAST_TOWER_GRADE_RUN:
+		var w := 1.0 - clampf(tower_dist / Plan.EAST_TOWER_GRADE_RUN, 0.0, 1.0)
+		w = w * w * (3.0 - 2.0 * w)
+		y = lerpf(y, Plan.EAST_TOWER_FLOOR_Y, w)
+	return y
+
+
 ## The finished level of the hill's top, including the planted shoulders around
-## the two garden courts.
+## the two garden courts and the two attraction courts.
 func _east_ground_y(x: float, z: float) -> float:
-	return _east_court_grade_y(x, z, _east_ground_raw_y(x, z))
+	var y := _east_court_grade_y(x, z, _east_ground_raw_y(x, z))
+	return _east_end_grade_y(x, z, y)
 
 
 ## The level of the planted bank at a point on it: the batter between the
@@ -5604,6 +5672,7 @@ func _east_dressing() -> void:
 	_east_bay_garden_edges()
 	_east_arrival_dressing()
 	_east_belvedere_dressing()
+	_east_end_attractions()
 
 
 ## The court below the first cascade is an arrival room rather than spare brick:
@@ -5719,6 +5788,513 @@ func _east_belvedere_dressing() -> void:
 		_omni("east_belvedere_lamp_%s_light" % tag,
 			lamp_base + Vector3(0.0, 2.70, 0.0), "lamp", 1.6, 7.5,
 			LIGHT_FIXTURE)
+
+
+## The broad shoulders north and south of the crest are attraction ground, not
+## more overlook furniture. The north gets a chair swing tall enough to mark the
+## frontier side; the south gets a low carousel for kiddieland. Both have a real
+## ride court around them — paved approach, queue rails, operator booth, height
+## board, bench, bin, lamps and a fenced deck — so they read as park operations
+## rather than sculptures left in a meadow.
+##
+## Static is honest at this milestone: the crowd is on the clock and nothing
+## else is. Cars, chains and horses make the ride type legible without implying
+## an operating system the game does not have yet.
+func _east_end_attractions() -> void:
+	_east_end_paths()
+	_east_swing_ride()
+	_east_carousel()
+	# New work stays after both existing rides. `_add`'s seam displacement is
+	# build-order dependent; inserting the ribbon ahead of them re-planed their
+	# decks against the old promenade even though neither object had moved.
+	_east_path_ribbon("east_tower_path", Plan.east_tower_path(),
+		Plan.EAST_END_PATH_HALF_W * 2.0)
+	_east_observation_tower()
+
+
+## Paving over the graded terrain. The first eight metres are a shallow ramp
+## from the 18m head landing to the 20m ride court; the long part is flat. Thin
+## and non-colliding like every other paving plate here — the ground mesh is the
+## floor, so a visible slab cannot become a kerb round the route.
+func _east_end_paths() -> void:
+	var axis: float = Plan.ARCH_AT.y
+	var width := Plan.EAST_END_PATH_HALF_W * 2.0
+	for s in 2:
+		var side := -1.0 if s == 0 else 1.0
+		var tag := "n" if s == 0 else "s"
+		var a := Vector3(Plan.EAST_END_PATH_X,
+			Plan.CLIMB_HEAD_Y + 0.012,
+			axis + side * Plan.EAST_END_PATH_FROM_D)
+		var b := Vector3(Plan.EAST_END_PATH_X,
+			Plan.EAST_END_FLOOR_Y + 0.012,
+			axis + side * Plan.EAST_END_PATH_RISE_TO_D)
+		_east_end_path_plate("east_end_path_%s_rise" % tag, a, b, width,
+			PI if side < 0.0 else 0.0)
+
+		var d0 := Plan.EAST_END_PATH_RISE_TO_D + 0.08
+		var d1 := Plan.EAST_END_PATH_TO_D
+		_box("east_end_path_%s_flat" % tag, Vector3.ZERO,
+			Vector3(Plan.EAST_END_PATH_X, Plan.EAST_END_FLOOR_Y + 0.006,
+				axis + side * (d0 + d1) * 0.5),
+			Vector3(width, 0.012, d1 - d0), "brick", 0.0, false)
+
+func _east_end_path_plate(nm: String, top_a: Vector3, top_b: Vector3,
+		width: float, theta: float) -> void:
+	var span := top_b - top_a
+	var horizontal := Vector2(span.x, span.z).length()
+	var phi := atan2(-span.y, horizontal)
+	var thickness := 0.04
+	var up := (Basis(Vector3.UP, theta) * Basis(Vector3.RIGHT, phi)).y
+	_box(nm, (top_a + top_b) * 0.5 - up * (thickness * 0.5), Vector3.ZERO,
+		Vector3(width, thickness, span.length() + 0.08), "brick", theta, false, phi)
+
+
+## One continuous paving ribbon through an arbitrary centreline. A chain of
+## boxes would either overlap at every turn or leave triangular holes there;
+## shared vertices make the bend one surface and keep paving a visual layer over
+## the colliding ground rather than a row of kerbs.
+func _east_path_ribbon(nm: String, points: Array[Vector3], width: float) -> void:
+	assert(points.size() >= 2, "%s needs at least two points" % nm)
+	var left := PackedVector3Array()
+	var right := PackedVector3Array()
+	for i in points.size():
+		var prev: Vector3 = points[maxi(i - 1, 0)]
+		var next: Vector3 = points[mini(i + 1, points.size() - 1)]
+		var tangent := Vector2(next.x - prev.x, next.z - prev.z).normalized()
+		var normal := Vector2(-tangent.y, tangent.x)
+		var p: Vector3 = points[i] + Vector3(0.0, 0.018, 0.0)
+		left.append(p + Vector3(normal.x, 0.0, normal.y) * width * 0.5)
+		right.append(p - Vector3(normal.x, 0.0, normal.y) * width * 0.5)
+
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(0)
+	for i in points.size() - 1:
+		var l0 := left[i]
+		var r0 := right[i]
+		var l1 := left[i + 1]
+		var r1 := right[i + 1]
+		_earth_oriented_tri(st, l0, Vector2(l0.x, l0.z) * 0.35,
+			l1, Vector2(l1.x, l1.z) * 0.35,
+			r0, Vector2(r0.x, r0.z) * 0.35, Vector3.UP)
+		_earth_oriented_tri(st, r0, Vector2(r0.x, r0.z) * 0.35,
+			l1, Vector2(l1.x, l1.z) * 0.35,
+			r1, Vector2(r1.x, r1.z) * 0.35, Vector3.UP)
+	st.generate_normals()
+	st.generate_tangents()
+	var mi := MeshInstance3D.new()
+	mi.mesh = st.commit()
+	mi.material_override = mats["brick"]
+	_add(mi, nm)
+
+
+func _east_ride_center(side: float) -> Vector3:
+	return Vector3(Plan.EAST_END_RIDE_X, Plan.EAST_END_FLOOR_Y,
+		Plan.ARCH_AT.y + side * Plan.EAST_END_RIDE_D)
+
+
+## One fenced circular court, with the west arc left open at the ride gate.
+func _east_ride_court(prefix: String, center: Vector3) -> void:
+	_cyl(prefix + "_deck", Vector3.ZERO,
+		center + Vector3(0.0, 0.026, 0.0), Plan.EAST_END_RIDE_PAD_R,
+		0.052, "accent", 0.0, 24, false)
+
+	var r := Plan.EAST_END_RIDE_PAD_R - 0.18
+	var n := 18
+	var points: Array[Vector3] = []
+	var keep := PackedByteArray()
+	for i in n:
+		var a := TAU * float(i) / float(n)
+		var p := center + Vector3(cos(a) * r, 0.0, sin(a) * r)
+		points.append(p)
+		# The opening is due west, where the promenade and queue arrive.
+		var open := absf(wrapf(a - PI, -PI, PI)) < 0.38
+		keep.append(0 if open else 1)
+		if not open:
+			_cyl(prefix + "_fence_post_%d" % i, p,
+				Vector3(0.0, 0.63, 0.0), 0.06, 1.36, "metal", 0.0, 8)
+			_sphere(prefix + "_fence_finial_%d" % i, p,
+				Vector3(0.0, 1.34, 0.0), 0.09, "white")
+	for i in n:
+		var j := (i + 1) % n
+		if keep[i] == 0 or keep[j] == 0:
+			continue
+		_strut(prefix + "_fence_mid_%d" % i,
+			points[i] + Vector3(0.0, 0.62, 0.0),
+			points[j] + Vector3(0.0, 0.62, 0.0), 0.055, "metal")
+		_strut(prefix + "_fence_top_%d" % i,
+			points[i] + Vector3(0.0, 1.10, 0.0),
+			points[j] + Vector3(0.0, 1.10, 0.0), 0.055, "metal")
+
+
+## Queue and operations kit shared by both rides. `side` points outboard, so the
+## booth and bench exchange sides while each remains beside rather than inside
+## the queue.
+func _east_ride_support(prefix: String, center: Vector3, side: float,
+		accent_mat: String) -> void:
+	var gy := Plan.EAST_END_FLOOR_Y
+	# Queue court, a second few centimetres above the promenade and below the
+	# circular deck so the three overlapping surfaces never share a plane.
+	_box(prefix + "_queue_paving", Vector3.ZERO,
+		Vector3(Plan.EAST_END_QUEUE_X, gy + 0.018, center.z),
+		Vector3(Plan.EAST_END_QUEUE_HALF.x * 2.0, 0.036,
+			Plan.EAST_END_QUEUE_HALF.y * 2.0), "brick", 0.0, false)
+
+	# Three rails make two switchback lanes. Their east ends stop short of the
+	# gate posts, leaving a clear turn into the fenced deck.
+	for lane in 3:
+		var z := center.z + (float(lane) - 1.0) * 1.55
+		var xa := Plan.EAST_END_QUEUE_X - Plan.EAST_END_QUEUE_HALF.x + 0.35
+		var xb := Plan.EAST_END_QUEUE_X + Plan.EAST_END_QUEUE_HALF.x - 0.35
+		for end in 2:
+			var x := xa if end == 0 else xb
+			_cyl(prefix + "_queue_post_%d_%d" % [lane, end],
+				Vector3(x, gy, z), Vector3(0.0, 0.58, 0.0),
+				0.055, 1.16, "metal", 0.0, 8)
+		_strut(prefix + "_queue_rail_%d" % lane,
+			Vector3(xa, gy + 0.88, z), Vector3(xb, gy + 0.88, z),
+			0.055, "metal")
+
+	var gate_x := center.x - Plan.EAST_END_RIDE_PAD_R - 0.02
+	for p in 2:
+		var pz := center.z + (-1.15 if p == 0 else 1.15)
+		_cyl(prefix + "_gate_post_%d" % p, Vector3(gate_x, gy, pz),
+			Vector3(0.0, 1.28, 0.0), 0.09, 2.56, "metal", 0.0, 10)
+	_box(prefix + "_gate_board", Vector3.ZERO,
+		Vector3(gate_x, gy + 2.30, center.z),
+		Vector3(0.18, 0.62, 2.65), accent_mat)
+	for b in 5:
+		_sphere(prefix + "_gate_bulb_%d" % b, Vector3.ZERO,
+			Vector3(gate_x - 0.12, gy + 2.30,
+				center.z + lerpf(-1.0, 1.0, float(b) / 4.0)),
+			0.10, "bulb")
+
+	# Height board beside the queue entrance: a human-scale sliver that makes the
+	# blank coloured gateway read as ride operations rather than a land sign.
+	var height_z := center.z - side * 2.8
+	_cyl(prefix + "_height_post", Vector3(Plan.EAST_END_QUEUE_X - 2.0, gy, height_z),
+		Vector3(0.0, 0.78, 0.0), 0.05, 1.56, "metal", 0.0, 8)
+	_box(prefix + "_height_board", Vector3.ZERO,
+		Vector3(Plan.EAST_END_QUEUE_X - 1.92, gy + 1.35, height_z),
+		Vector3(0.10, 0.80, 0.48), "yellow")
+	_box(prefix + "_height_rule", Vector3.ZERO,
+		Vector3(Plan.EAST_END_QUEUE_X - 1.98, gy + 1.35, height_z),
+		Vector3(0.04, 0.58, 0.07), "far_shade", 0.0, false)
+
+	var booth := Vector3(Plan.EAST_END_QUEUE_X - 0.8, gy,
+		center.z + side * 4.25)
+	# Bottomed into the court rather than exactly on it: queue paving crosses the
+	# booth footprint, and matching undersides are a hidden coplanar pair.
+	_box(prefix + "_booth_body", booth, Vector3(0.0, 0.84, 0.0),
+		Vector3(1.65, 1.84, 1.45), "building")
+	_box(prefix + "_booth_window", booth, Vector3(0.86, 1.13, 0.0),
+		Vector3(0.08, 0.62, 0.82), "blue", 0.0, false)
+	_box(prefix + "_booth_roof", booth, Vector3(0.0, 1.88, 0.0),
+		Vector3(2.05, 0.20, 1.82), accent_mat)
+
+	var bench := Vector3(Plan.EAST_END_QUEUE_X - 0.8, gy,
+		center.z - side * 4.25)
+	_bench(prefix + "_bench", bench, PI * 0.5)
+	_cyl(prefix + "_bin", Vector3(Plan.EAST_END_QUEUE_X + 1.55, gy,
+		center.z - side * 4.25), Vector3(0.0, 0.42, 0.0),
+		0.22, 0.84, "metal", 0.0, 10)
+
+	var lamp := Vector3(Plan.EAST_END_QUEUE_X + 1.55, gy,
+		center.z + side * 4.25)
+	_cyl(prefix + "_lamp_pole", lamp, Vector3(0.0, 1.55, 0.0),
+		0.07, 3.10, "metal", 0.0, 8)
+	_sphere(prefix + "_lamp_globe", lamp, Vector3(0.0, 3.22, 0.0),
+		0.16, "lamp_glass")
+	_omni(prefix + "_lamp_light", lamp + Vector3(0.0, 3.08, 0.0),
+		"lamp", 1.8, 8.0, LIGHT_FIXTURE)
+
+
+## North: a chair swing. The mast and canopy carry the silhouette; ten hanging
+## seats make it unmistakably a ride from the promenade and from the cascade.
+func _east_swing_ride() -> void:
+	var center := _east_ride_center(-1.0)
+	var gy := center.y
+	_east_ride_court("east_swing", center)
+	_east_ride_support("east_swing", center, -1.0, "red")
+
+	_cyl("east_swing_base", center, Vector3(0.0, 0.55, 0.0),
+		1.45, 1.10, "wood", 0.0, 16)
+	_cyl("east_swing_mast", center, Vector3(0.0, 5.40, 0.0),
+		0.40, 10.8, "metal", 0.0, 12)
+	_cyl("east_swing_canopy_lower", center, Vector3(0.0, 10.10, 0.0),
+		4.35, 0.34, "wood", 0.0, 18, false)
+	_cyl("east_swing_canopy_upper", center, Vector3(0.0, 10.42, 0.0),
+		3.45, 0.30, "red", 0.0, 18, false)
+	_sphere("east_swing_finial", center, Vector3(0.0, 10.92, 0.0),
+		0.30, "yellow")
+
+	var hub := center + Vector3(0.0, 10.04, 0.0)
+	var colors := ["red", "yellow", "blue"]
+	for i in 10:
+		var a := TAU * float(i) / 10.0
+		var arm := center + Vector3(cos(a) * 4.12, 9.92, sin(a) * 4.12)
+		_strut("east_swing_arm_%d" % i, hub, arm, 0.12, "metal")
+		var chair := center + Vector3(cos(a) * 4.02,
+			4.65 + float(i % 2) * 0.32, sin(a) * 4.02)
+		_strut("east_swing_chain_%d" % i, arm,
+			chair + Vector3(0.0, 0.42, 0.0), 0.045, "metal")
+		var theta := -a
+		_box("east_swing_chair_%d_seat" % i, chair, Vector3.ZERO,
+			Vector3(0.78, 0.18, 0.56), colors[i % colors.size()], theta, false)
+		_box("east_swing_chair_%d_back" % i, chair,
+			Vector3(0.0, 0.38, -0.22), Vector3(0.78, 0.64, 0.14),
+			colors[i % colors.size()], theta, false)
+		_sphere("east_swing_bulb_%d" % i, center,
+			Vector3(cos(a) * 4.28, 9.93, sin(a) * 4.28), 0.12, "bulb")
+	_omni("east_swing_light", center + Vector3(0.0, 9.70, 0.0),
+		"warm", 3.2, 11.0, LIGHT_FEATURE)
+
+
+## South: a compact carousel. A stepped striped canopy, ten poles and ten small
+## horses keep the massing low while giving kiddieland a ride with real cars.
+func _east_carousel() -> void:
+	var center := _east_ride_center(1.0)
+	_east_ride_court("east_carousel", center)
+	_east_ride_support("east_carousel", center, 1.0, "yellow")
+
+	_cyl("east_carousel_base", center, Vector3(0.0, 0.45, 0.0),
+		1.25, 0.90, "red", 0.0, 16)
+	_cyl("east_carousel_mast", center, Vector3(0.0, 2.72, 0.0),
+		0.24, 5.45, "metal", 0.0, 12)
+	_cyl("east_carousel_roof_lower", center, Vector3(0.0, 4.92, 0.0),
+		4.65, 0.30, "red", 0.0, 20, false)
+	_cyl("east_carousel_roof_upper", center, Vector3(0.0, 5.24, 0.0),
+		3.55, 0.30, "yellow", 0.0, 20, false)
+	_sphere("east_carousel_finial", center, Vector3(0.0, 5.72, 0.0),
+		0.28, "blue")
+
+	var hub := center + Vector3(0.0, 5.02, 0.0)
+	var colors := ["blue", "yellow", "red"]
+	for i in 10:
+		var a := TAU * float(i) / 10.0
+		var pole_at := center + Vector3(cos(a) * 3.55, 0.0, sin(a) * 3.55)
+		_cyl("east_carousel_pole_%d" % i, pole_at,
+			Vector3(0.0, 2.58, 0.0), 0.045, 4.82, "metal", 0.0, 8, false)
+		_strut("east_carousel_spoke_%d" % i, hub,
+			pole_at + Vector3(0.0, 4.90, 0.0), 0.09, "wood")
+		var bob := 1.20 + float(i % 2) * 0.34
+		var horse := pole_at + Vector3(0.0, bob, 0.0)
+		var theta := -a + PI * 0.5
+		_box("east_carousel_horse_%d_body" % i, horse, Vector3.ZERO,
+			Vector3(0.95, 0.42, 0.34), colors[i % colors.size()], theta, false)
+		_sphere("east_carousel_horse_%d_head" % i, horse,
+			Vector3(0.48, 0.30, 0.0), 0.25, colors[i % colors.size()], theta)
+		for leg in 2:
+			_box("east_carousel_horse_%d_leg_%d" % [i, leg], horse,
+				Vector3(-0.26 + float(leg) * 0.52, -0.42, 0.0),
+				Vector3(0.10, 0.72, 0.10), "wood", theta, false)
+		_sphere("east_carousel_bulb_%d" % i, center,
+			Vector3(cos(a) * 4.50, 4.82, sin(a) * 4.50), 0.11, "bulb")
+	_omni("east_carousel_light", center + Vector3(0.0, 4.55, 0.0),
+		"warm", 2.8, 9.0, LIGHT_FEATURE)
+
+
+## The observation tower, moved out of `plaza_skyline.tscn` and onto the upper
+## north shoulder. It keeps the old landmark bearing from the fountain, but is
+## a real attraction now: graded access, fenced court, queue, operator booth,
+## entry doors, service base, lit observation pod and a beacon. The ride remains
+## static with the swing and carousel; nothing except the crowd is on the clock
+## in this milestone.
+func _east_observation_tower() -> void:
+	var center := Plan.east_tower_center()
+	var gy := center.y
+	var gate2 := Plan.east_tower_gate_dir()
+	var gate_dir := Vector3(gate2.x, 0.0, gate2.y)
+	var tangent := Vector3(-gate_dir.z, 0.0, gate_dir.x)
+	var gate_at := center + gate_dir * (Plan.EAST_TOWER_PAD_R - 0.22)
+	# Local Z along the gate tangent, so thin-X boxes face the approach.
+	var gate_theta := atan2(tangent.x, tangent.z)
+
+	# The court is brick rather than another ride's salmon deck. A yellow ring at
+	# the base and a blue entry board carry the attraction palette without making
+	# thirty-eight metres of shaft a carnival sign.
+	_cyl("east_observation_court", Vector3.ZERO,
+		center + Vector3(0.0, 0.026, 0.0), Plan.EAST_TOWER_PAD_R,
+		0.052, "brick", 0.0, 28, false)
+
+	var fence_r := Plan.EAST_TOWER_PAD_R - 0.18
+	var fence_n := 24
+	var fence_points: Array[Vector3] = []
+	var fence_keep := PackedByteArray()
+	for i in fence_n:
+		var a := TAU * float(i) / float(fence_n)
+		var outward := Vector2(cos(a), sin(a))
+		var p := center + Vector3(outward.x * fence_r, 0.0, outward.y * fence_r)
+		fence_points.append(p)
+		var open := outward.dot(gate2) > cos(0.43)
+		fence_keep.append(0 if open else 1)
+		if not open:
+			_cyl("east_observation_fence_post_%d" % i, p,
+				Vector3(0.0, 0.61, 0.0), 0.06, 1.42, "metal", 0.0, 8)
+			_sphere("east_observation_fence_finial_%d" % i, p,
+				Vector3(0.0, 1.40, 0.0), 0.09, "white")
+	for i in fence_n:
+		var j := (i + 1) % fence_n
+		if fence_keep[i] == 0 or fence_keep[j] == 0:
+			continue
+		_strut("east_observation_fence_mid_%d" % i,
+			fence_points[i] + Vector3(0.0, 0.64, 0.0),
+			fence_points[j] + Vector3(0.0, 0.64, 0.0), 0.055, "metal")
+		_strut("east_observation_fence_top_%d" % i,
+			fence_points[i] + Vector3(0.0, 1.14, 0.0),
+			fence_points[j] + Vector3(0.0, 1.14, 0.0), 0.055, "metal")
+
+	# A bulb-fronted threshold makes the break in the circular fence an entrance
+	# rather than missing rail. Its diagonal follows the route instead of forcing
+	# the tower court back onto the world axes.
+	for p in 2:
+		var post := gate_at + tangent * (-1.48 if p == 0 else 1.48)
+		_cyl("east_observation_gate_post_%d" % p, post,
+			Vector3(0.0, 1.30, 0.0), 0.09, 2.68, "metal", 0.0, 10)
+	_box("east_observation_gate_board", gate_at,
+		Vector3(0.0, 2.42, 0.0), Vector3(0.20, 0.68, 3.30),
+		"blue", gate_theta)
+	_box("east_observation_gate_rule", gate_at,
+		Vector3(-0.12, 2.42, 0.0), Vector3(0.05, 0.12, 2.68),
+		"yellow", gate_theta, false)
+	for b in 7:
+		_sphere("east_observation_gate_bulb_%d" % b, Vector3.ZERO,
+			gate_at - gate_dir * 0.13 + Vector3(0.0, 2.42, 0.0)
+				+ tangent * lerpf(-1.26, 1.26, float(b) / 6.0),
+			0.10, "bulb")
+
+	# Two switchback lanes from the threshold to the lift doors. Posts collide;
+	# the thin rails are visual, matching the two ride queues nearby.
+	var queue_outer := center + gate_dir * (Plan.EAST_TOWER_PAD_R - 0.92)
+	var queue_inner := center + gate_dir * (Plan.EAST_TOWER_BASE_R + 0.72)
+	for lane in 3:
+		var lateral := (float(lane) - 1.0) * 0.82
+		var a := queue_outer + tangent * lateral
+		var b := queue_inner + tangent * lateral
+		for end in 2:
+			var post := a if end == 0 else b
+			_cyl("east_observation_queue_post_%d_%d" % [lane, end], post,
+				Vector3(0.0, 0.55, 0.0), 0.055, 1.18, "metal", 0.0, 8)
+		_strut("east_observation_queue_rail_%d" % lane,
+			a + Vector3(0.0, 0.90, 0.0), b + Vector3(0.0, 0.90, 0.0),
+			0.055, "metal")
+
+	# Foundation and lift house. The plinth is buried into the court, and the
+	# drum overlaps it, so neither depends on a zero-width butt at floor level.
+	_cyl("east_observation_plinth", center, Vector3(0.0, 0.34, 0.0),
+		3.05, 0.90, "brick", 0.0, 18)
+	_cyl("east_observation_base", center, Vector3(0.0, 1.48, 0.0),
+		Plan.EAST_TOWER_BASE_R, 2.55, "building", 0.0, 18)
+	_cyl("east_observation_base_cap", center, Vector3(0.0, 2.76, 0.0),
+		2.88, 0.24, "yellow", 0.0, 18, false)
+
+	var door := center + gate_dir * (Plan.EAST_TOWER_BASE_R + 0.035)
+	_box("east_observation_doors", door, Vector3(0.0, 1.34, 0.0),
+		Vector3(0.12, 2.12, 1.48), "blue", gate_theta, false)
+	_box("east_observation_door_split", door, Vector3(-0.075, 1.34, 0.0),
+		Vector3(0.035, 1.82, 0.08), "metal", gate_theta, false)
+	_box("east_observation_entry_awning", door + gate_dir * 0.38,
+		Vector3(0.0, 2.52, 0.0), Vector3(0.92, 0.18, 2.02),
+		"red", gate_theta, false)
+
+	# Court operations: one booth beside the queue, one bench opposite it, a
+	# height board, bin and two lamps. All sit in the gate's frame so rotating the
+	# entrance keeps the room together.
+	var booth := Plan.east_tower_point(3.25, -3.35)
+	var booth_theta := _facing(booth, center)
+	_box("east_observation_booth_body", booth, Vector3(0.0, 0.86, 0.0),
+		Vector3(1.82, 1.92, 1.52), "building", booth_theta)
+	_box("east_observation_booth_window", booth, Vector3(0.0, 1.16, 0.79),
+		Vector3(1.18, 0.66, 0.08), "blue", booth_theta, false)
+	_box("east_observation_booth_roof", booth, Vector3(0.0, 1.94, 0.0),
+		Vector3(2.18, 0.20, 1.88), "blue", booth_theta)
+
+	var bench := Plan.east_tower_point(1.75, 4.65)
+	_bench("east_observation_bench", bench, _facing(bench, center))
+	var bin := Plan.east_tower_point(3.35, 3.55)
+	_cyl("east_observation_bin", bin, Vector3(0.0, 0.42, 0.0),
+		0.22, 0.84, "metal", 0.0, 10)
+
+	var info := Plan.east_tower_point(5.05, 2.20)
+	_cyl("east_observation_info_post", info, Vector3(0.0, 0.82, 0.0),
+		0.055, 1.64, "metal", 0.0, 8)
+	_box("east_observation_info_board", info, Vector3(0.0, 1.48, 0.0),
+		Vector3(0.12, 0.92, 0.62), "yellow", gate_theta, false)
+	_box("east_observation_info_rule", info, Vector3(-0.075, 1.48, 0.0),
+		Vector3(0.035, 0.66, 0.08), "far_shade", gate_theta, false)
+
+	for side in [-1.0, 1.0]:
+		var lamp := Plan.east_tower_point(-0.25, side * 5.75)
+		_cyl("east_observation_lamp_%s_pole" % ("l" if side < 0.0 else "r"),
+			lamp, Vector3(0.0, 1.60, 0.0), 0.07, 3.20, "metal", 0.0, 8)
+		_sphere("east_observation_lamp_%s_globe" % ("l" if side < 0.0 else "r"),
+			lamp, Vector3(0.0, 3.34, 0.0), 0.17, "lamp_glass")
+		_omni("east_observation_lamp_%s_light" % ("l" if side < 0.0 else "r"),
+			lamp + Vector3(0.0, 3.18, 0.0), "lamp", 1.9, 8.5, LIGHT_FIXTURE)
+
+	# The tower itself. A restrained shaft keeps it slender; blue collars and a
+	# lift track give the long middle a scale, while the glazed pod, radial braces,
+	# bulbs and beacon carry the silhouette from both the plaza and the upper
+	# midway. The world top is 67m — taller than the old 50.5m skyline model, but
+	# more than twice as far from the fountain, so it no longer looms over the
+	# north-east wall.
+	_cyl("east_observation_shaft", center, Vector3(0.0, 20.40, 0.0),
+		1.20, 37.0, "metal", 0.0, 16)
+	var track_at := center + gate_dir * 1.23
+	_box("east_observation_lift_track", track_at,
+		Vector3(0.0, 17.0, 0.0), Vector3(0.18, 28.0, 0.72),
+		"blue", gate_theta, false)
+	for h in [7.0, 14.0, 21.0, 28.0]:
+		_cyl("east_observation_shaft_band_%d" % int(h), center,
+			Vector3(0.0, h, 0.0), 1.38, 0.30, "blue", 0.0, 16, false)
+
+	var brace_hub := center + Vector3(0.0, 27.2, 0.0)
+	for i in 8:
+		var a := TAU * float(i) / 8.0
+		var rim := center + Vector3(cos(a) * 4.65, 30.30, sin(a) * 4.65)
+		_strut("east_observation_deck_brace_%d" % i,
+			brace_hub, rim, 0.16, "metal")
+	_cyl("east_observation_deck_trim", center, Vector3(0.0, 30.28, 0.0),
+		5.82, 0.20, "yellow", 0.0, 24, false)
+	_cyl("east_observation_deck", center, Vector3(0.0, 30.65, 0.0),
+		5.45, 0.72, "red", 0.0, 24, false)
+	_cyl("east_observation_windows", center, Vector3(0.0, 32.15, 0.0),
+		4.92, 2.40, "blue", 0.0, 24, false)
+	for i in 12:
+		var a := TAU * float(i) / 12.0
+		_cyl("east_observation_window_mullion_%d" % i, center,
+			Vector3(cos(a) * 4.96, 32.15, sin(a) * 4.96),
+			0.065, 2.46, "metal", 0.0, 8, false)
+	_cyl("east_observation_roof", center, Vector3(0.0, 33.55, 0.0),
+		5.88, 0.56, "red", 0.0, 24, false)
+	_cyl("east_observation_roof_cap", center, Vector3(0.0, 34.02, 0.0),
+		4.82, 0.34, "yellow", 0.0, 24, false)
+	for i in 16:
+		var a := TAU * float(i) / 16.0
+		_sphere("east_observation_roof_bulb_%d" % i, center,
+			Vector3(cos(a) * 5.68, 33.60, sin(a) * 5.68), 0.12, "bulb")
+
+	_cyl("east_observation_spire", center, Vector3(0.0, 40.25, 0.0),
+		0.30, 12.4, "metal", 0.0, 10, false)
+	_cyl("east_observation_beacon_collar", center,
+		Vector3(0.0, 46.30, 0.0), 0.52, 0.34, "red", 0.0, 10, false)
+	_sphere("east_observation_beacon", center,
+		Vector3(0.0, 46.72, 0.0), 0.28, "bulb")
+	# Four close washes reveal the shaft's collars and the deck's underside after
+	# close. One light in the middle of the opaque window drum lit nothing outside
+	# it; exterior fixtures are the geometry's actual lighting condition.
+	for i in 4:
+		var a := TAU * float(i) / 4.0 + PI * 0.25
+		var outward := Vector3(cos(a), 0.0, sin(a))
+		var foot := center + outward * 2.65 + Vector3(0.0, 0.42, 0.0)
+		var aim := center + outward * 0.30 + Vector3(0.0, 36.0, 0.0)
+		_uplight("east_observation_shaft_wash_%d" % i, foot, aim,
+			"wash", 4.8, 44.0, 18.0, LIGHT_FEATURE, i == 0)
+		var pod_light := center + outward * 5.05 + Vector3(0.0, 32.1, 0.0)
+		_omni("east_observation_pod_light_%d" % i, pod_light,
+			"warm", 1.35, 8.0, LIGHT_FEATURE)
+	_omni("east_observation_beacon_light", center + Vector3(0.0, 47.05, 0.0),
+		"warm", 1.5, 7.0, LIGHT_FIXTURE)
 
 
 ## Level coping draws the low retaining edge clearly against the planted bank,
@@ -7625,8 +8201,14 @@ func _skyline() -> void:
 	# here — moving the ride in or out barely changes the ratio of wall distance
 	# to ride distance, which is what decides how much shows.
 	_wooden_coaster(Vector3(-22, 0, -58), deg_to_rad(72.0), "far_warm", 1.3)
-	# North-east, visible over the low corner between perim_ne and building_east.
-	_tower(Vector3(54, 0, -40), "far", "far_warm")
+	# The observation tower used to be four collisionless cylinders here at
+	# `(54, 0, -40)`, beside the north-east threshold and under the hillside it
+	# was meant to advertise. It is a real attraction in `east_cascade.tscn` now,
+	# on the upper north shoulder along almost exactly the same plaza sightline.
+	# Reserve its four old seam ordinals so moving it cannot re-plane the rim,
+	# which is generated after it and has hundreds of welded faces depending on
+	# one stable offset.
+	_seam_ordinal += 4
 	# The west used to be built here. It is three scenes of its own now — see
 	# WEST_SHELL_PATH — because half of it has to survive the player crossing the
 	# gate and the other half has to be replaced when they do.
