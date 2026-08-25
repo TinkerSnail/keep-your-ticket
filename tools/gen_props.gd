@@ -5677,6 +5677,245 @@ func _east_dressing() -> void:
 	_east_arrival_dressing()
 	_east_belvedere_dressing()
 	_east_end_attractions()
+	# Last because it is new work against finished earthwork. Appending the yard
+	# keeps every existing east prop on its established seam ordinal.
+	_east_north_service_yard()
+
+
+## The strip behind the north-east perimeter is the dark ride's service yard.
+##
+## It used to be neither ground nor void by design: the plaza slab stopped at
+## x 52, the east court stopped at z -28, and the shoulder's retaining wall did
+## not begin until x 60.7. From the two-metre ribbon that remained walkable, the
+## missing rectangle read as a grey pit with three raw earthwork blocks at its
+## end. The old observation tower happened to mask it; moving the tower merely
+## made the unfinished relationship visible.
+##
+## A buried brick slab closes the hole for collision in both sections, while a
+## thin asphalt skin says this is back-of-house rather than a resurrected public
+## spoke. The skin is not a `ParkPlan.WALKWAYS` entry and never reaches the
+## minimap. A closed staff gate stops the lane before the shoulder steps, and a
+## spare dark-ride car under a maintenance canopy gives the yard a reason to be
+## here. Tool boxes, prop crates, wall lights and finished retaining-wall trim
+## fill the rest without narrowing the clear walk down its centre.
+func _east_north_service_yard() -> void:
+	var x0: float = Plan.EAST_SERVICE_FROM_X
+	var x1: float = Plan.EAST_SERVICE_TO_X
+	var z0: float = Plan.EAST_SERVICE_FROM_Z
+	var zg: float = Plan.EAST_SERVICE_GATE_Z
+	var mid := Vector3((x0 + x1) * 0.5, -1.0 + GROUND_SEAM - 0.003,
+		(z0 + zg) * 0.5)
+
+	# Collision floor first. It laps under the plaza ground on the west and the
+	# east court on the south, but gives way three millimetres below the latter so
+	# the two generated floors cannot share an up-facing plane.
+	_box("east_service_floor", Vector3.ZERO, mid,
+		Vector3(x1 - x0, 2.0, z0 - zg), "brick")
+
+	# One continuous service surface across the old and new ground. Thin and
+	# non-colliding like the park's other paving: the slab is what the body walks
+	# on, and the asphalt cannot become a kerb around itself.
+	_box("east_service_asphalt", Vector3.ZERO,
+		Vector3((x0 + x1) * 0.5, 0.006, (z0 + zg) * 0.5),
+		Vector3(x1 - x0 - 0.35, 0.012, z0 - zg - 0.25),
+		"asphalt", 0.0, false)
+
+	# A parking bay, not a centre line. Keeping the yellow marks under the canopy
+	# prevents the surface from reading as the north-east road that came out.
+	for px in [56.15, 59.75]:
+		_box("east_service_bay_line_%d" % int(round(px * 10.0)), Vector3.ZERO,
+			Vector3(px, 0.017, -32.9), Vector3(0.11, 0.010, 6.0),
+			"yellow", 0.0, false)
+	_box("east_service_bay_stop", Vector3.ZERO,
+		Vector3(57.95, 0.017, -35.84), Vector3(3.7, 0.010, 0.11),
+		"yellow", 0.0, false)
+
+	# Finish the long retaining face as architecture. The wall itself is sampled
+	# from the shoulder; these pieces only give its exposed west face a coping,
+	# a course over the brick base and three structural rhythms.
+	var prm := _shoulder_prm(-1.0)
+	var nominal_top := _shoulder_foot(0.0, float(prm["wall_to"])).y + 0.42
+	var visible_top := nominal_top - 0.275
+	var wall_mid_z := (float(prm["wall_z0"]) + float(prm["wall_z1"])) * 0.5
+	var wall_d := absf(float(prm["wall_z1"]) - float(prm["wall_z0"]))
+	_box("east_service_wall_cap", Vector3.ZERO,
+		Vector3(61.22, visible_top + 0.10, wall_mid_z),
+		Vector3(1.45, 0.28, wall_d + 0.10), "white", 0.0, false)
+	_box("east_service_wall_course", Vector3.ZERO,
+		Vector3(60.48, 2.78, wall_mid_z),
+		Vector3(0.30, 0.26, wall_d - 0.30), "white", 0.0, false)
+	for i in 3:
+		var pz := -23.3 - float(i) * 8.0
+		_box("east_service_wall_pilaster_%d" % i, Vector3.ZERO,
+			Vector3(60.43, visible_top * 0.5, pz),
+			Vector3(0.34, visible_top, 0.62), "brick", 0.0, false)
+
+	# Carry the finish over the shoulder's three descending masonry blocks and
+	# around its return into the east court. These are skins on the sampled
+	# earthwork, so their tops are derived from the same foot and shoulder
+	# functions as the blocks beneath them; the brick can never expose a grey
+	# step merely because the bank profile moves later.
+	var wall_to := float(prm["wall_to"])
+	for k in 3:
+		var d0 := wall_to + float(k) * 2.0
+		var d1 := d0 + 2.4
+		var f0 := _shoulder_foot(d0, wall_to)
+		var f1 := _shoulder_foot(d1, wall_to)
+		var xe: float = 61.75 if k == 0 else _shoulder_foot(d0 - 2.0, wall_to).x + 0.5
+		var xmin := f1.x - 0.45
+		var face_top := f0.y + 1.1 - 0.275
+		var za: float = Plan.ARCH_AT.y - d0
+		var zb: float = Plan.ARCH_AT.y - d1
+		var face_h := face_top + 0.40
+		var face_y := (face_top - 0.40) * 0.5
+		_box("east_service_step_%d_front" % k, Vector3.ZERO,
+			Vector3((xmin + xe) * 0.5, face_y, za + 0.04),
+			Vector3(xe - xmin + 0.04, face_h, 0.12), "brick", 0.0, false)
+		_box("east_service_step_%d_side" % k, Vector3.ZERO,
+			Vector3(xmin - 0.04, face_y, (za + zb) * 0.5),
+			Vector3(0.12, face_h, absf(zb - za) - 0.14), "brick", 0.0, false)
+		_box("east_service_step_%d_cap" % k, Vector3.ZERO,
+			Vector3((xmin + xe) * 0.5, face_top + 0.08, (za + zb) * 0.5),
+			Vector3(xe - xmin + 0.16, 0.18, absf(zb - za) + 0.14),
+			"white", 0.0, false)
+
+	var rz := float(prm["ret_z"])
+	var rxs := PackedFloat32Array([60.7, 64.0, 67.2, 70.4])
+	for k in 3:
+		var xa := rxs[k]
+		var xb := rxs[k + 1]
+		var top := _shoulder_y(xb, rz - 1.1, -1.0, prm) + 0.38 - 0.31
+		_box("east_service_return_cap_%d" % k, Vector3.ZERO,
+			Vector3((xa + xb) * 0.5, top + 0.08, rz),
+			Vector3(xb - xa + 0.14, 0.18, 1.16), "white", 0.0, false)
+	_box("east_service_return_course", Vector3.ZERO,
+		Vector3((60.9 + 70.2) * 0.5, 2.78, rz + 0.55),
+		Vector3(70.2 - 60.9, 0.26, 0.16), "white", 0.0, false)
+
+	# A staff door makes the dark ride's long side wall belong to the yard. It is
+	# relief on the colliding attraction mass, matching the guest-facing facade's
+	# promise of a building without inventing a backstage interior.
+	_box("east_service_staff_door", Vector3.ZERO,
+		Vector3(47.055, 1.28, -27.2), Vector3(0.10, 2.56, 1.55),
+		"blue", 0.0, false)
+	_box("east_service_staff_door_head", Vector3.ZERO,
+		Vector3(47.12, 2.66, -27.2), Vector3(0.10, 0.18, 1.82),
+		"white", 0.0, false)
+	_box("east_service_staff_door_sign", Vector3.ZERO,
+		Vector3(47.12, 1.68, -27.2), Vector3(0.06, 0.34, 0.72),
+		"yellow", 0.0, false)
+	_sphere("east_service_staff_door_knob", Vector3.ZERO,
+		Vector3(47.15, 1.02, -26.73), 0.08, "metal")
+
+	# A lean-to maintenance bay against the retaining wall. The spare car uses
+	# the same red/blue/yellow vocabulary as the guest-facing car, but its raised
+	# bonnet and tool tray make this one read as equipment under repair.
+	var bay := Vector3(58.05, 0.0, -32.9)
+	_box("east_service_canopy_roof", bay, Vector3(0.0, 2.72, 0.0),
+		Vector3(4.45, 0.22, 6.35), "blue", 0.0, false)
+	_box("east_service_canopy_valance", bay, Vector3(-2.20, 2.48, 0.0),
+		Vector3(0.18, 0.55, 6.35), "yellow", 0.0, false)
+	for s in [-1.0, 1.0]:
+		_box("east_service_canopy_post_%s" % ("n" if s < 0.0 else "s"), bay,
+			Vector3(-2.05, 1.30, s * 2.80), Vector3(0.18, 2.60, 0.18),
+			"metal")
+		_box("east_service_canopy_brace_%s" % ("n" if s < 0.0 else "s"), bay,
+			Vector3(-1.05, 2.56, s * 2.80), Vector3(2.20, 0.14, 0.14),
+			"metal", 0.0, false)
+
+	var car := Vector3(58.05, 0.0, -32.8)
+	_box("east_service_spare_car_chassis", car, Vector3(0.0, 0.34, 0.0),
+		Vector3(2.05, 0.46, 3.05), "far_shade")
+	_box("east_service_spare_car_body", car, Vector3(0.0, 0.70, 0.10),
+		Vector3(1.90, 0.70, 2.60), "red", 0.0, false)
+	_box("east_service_spare_car_seat", car, Vector3(0.0, 1.10, -0.55),
+		Vector3(1.45, 0.68, 0.52), "blue", 0.0, false)
+	_box("east_service_spare_car_hood", car, Vector3(0.0, 1.12, 0.88),
+		Vector3(1.62, 0.18, 0.95), "yellow", 0.0, false)
+	_box("east_service_spare_car_bumper", car, Vector3(0.0, 0.46, 1.58),
+		Vector3(2.18, 0.24, 0.24), "metal", 0.0, false)
+	for s in [-1.0, 1.0]:
+		_sphere("east_service_spare_car_lamp_%s" % ("l" if s < 0.0 else "r"), car,
+			Vector3(s * 0.58, 0.79, 1.38), 0.14, "bulb")
+
+	# Tool cart beside the building and a few scenic crates near the staff gate.
+	# Each is one colliding base with decoration hung off it, so the player cannot
+	# stand inside a pile made from six tiny collision shapes.
+	var tools := Vector3(49.20, 0.0, -35.2)
+	_box("east_service_tool_cart", tools, Vector3(0.0, 0.60, 0.0),
+		Vector3(1.20, 1.20, 0.72), "red")
+	_box("east_service_tool_cart_top", tools, Vector3(0.0, 1.26, 0.0),
+		Vector3(1.30, 0.14, 0.82), "metal", 0.0, false)
+	for i in 3:
+		_box("east_service_tool_drawer_%d" % i, tools,
+			Vector3(-0.62, 0.50 + float(i) * 0.27, 0.0),
+			Vector3(0.06, 0.16, 0.52), "yellow", 0.0, false)
+
+	var crates := [
+		[Vector3(49.20, 0.0, -41.0), Vector3(1.15, 0.85, 1.05), "blue"],
+		[Vector3(50.40, 0.0, -41.2), Vector3(1.05, 1.10, 0.95), "wood"],
+		[Vector3(49.20, 0.85, -41.0), Vector3(0.82, 0.72, 0.78), "yellow"],
+	]
+	for i in crates.size():
+		var spec: Array = crates[i]
+		var ca: Vector3 = spec[0]
+		var cs: Vector3 = spec[1]
+		_box("east_service_crate_%d" % i, ca, Vector3(0.0, cs.y * 0.5, 0.0),
+			cs, String(spec[2]))
+		_box("east_service_crate_%d_lid" % i, ca,
+			Vector3(0.0, cs.y + 0.05, 0.0),
+			Vector3(cs.x + 0.08, 0.10, cs.z + 0.08), "metal", 0.0, false)
+
+	# Closed double gate: it terminates the service yard before the shoulder's
+	# stepped end and keeps the observation tower in the sky above it. A bright
+	# staff panel makes the stop read as operational rather than as a wall placed
+	# across a road by accident.
+	var gate_z: float = Plan.EAST_SERVICE_GATE_Z + 0.22
+	for s in [-1.0, 1.0]:
+		var gx := 47.55 if s < 0.0 else 60.15
+		_box("east_service_gate_pier_%s" % ("w" if s < 0.0 else "e"), Vector3.ZERO,
+			Vector3(gx, 1.18, gate_z), Vector3(0.72, 2.36, 0.72), "brick")
+		_box("east_service_gate_cap_%s" % ("w" if s < 0.0 else "e"), Vector3.ZERO,
+			Vector3(gx, 2.43, gate_z), Vector3(0.92, 0.22, 0.92), "white", 0.0, false)
+	var gap_from := 47.95
+	var gap_to := 59.75
+	var panel_w := (gap_to - gap_from) * 0.5 - 0.04
+	for i in 2:
+		var gx := gap_from + panel_w * 0.5 + float(i) * (panel_w + 0.08)
+		_box("east_service_gate_panel_%d" % i, Vector3.ZERO,
+			Vector3(gx, 1.12, gate_z + 0.03),
+			Vector3(panel_w, 1.86, 0.18), "blue")
+		for r in 3:
+			_box("east_service_gate_panel_%d_rail_%d" % [i, r], Vector3.ZERO,
+				Vector3(gx, 0.46 + float(r) * 0.64, gate_z + 0.15),
+				Vector3(panel_w - 0.20, 0.10, 0.10), "metal", 0.0, false)
+	_box("east_service_gate_sign", Vector3.ZERO,
+		Vector3((gap_from + gap_to) * 0.5, 1.35, gate_z + 0.17),
+		Vector3(2.60, 0.72, 0.08), "yellow", 0.0, false)
+	_box("east_service_gate_sign_rule", Vector3.ZERO,
+		Vector3((gap_from + gap_to) * 0.5, 1.35, gate_z + 0.22),
+		Vector3(1.90, 0.14, 0.05), "red", 0.0, false)
+
+	# Three wall fittings make the court usable after dusk and continue the
+	# retaining wall's new rhythm. They are ordinary park fixtures, not service
+	# lights that remain powered after close.
+	for i in 3:
+		var lz := -23.3 - float(i) * 8.0
+		_box("east_service_wall_lamp_%d_back" % i, Vector3.ZERO,
+			Vector3(60.28, 4.18, lz), Vector3(0.20, 0.62, 0.44), "metal", 0.0, false)
+		_sphere("east_service_wall_lamp_%d_globe" % i, Vector3.ZERO,
+			Vector3(60.00, 4.18, lz), 0.18, "lamp_glass")
+		_omni("east_service_wall_lamp_%d_pool" % i,
+			Vector3(59.70, 3.90, lz), "lamp", 1.7, 8.0, LIGHT_FIXTURE)
+	for i in 2:
+		var lx := 63.8 + float(i) * 3.4
+		_box("east_service_return_lamp_%d_back" % i, Vector3.ZERO,
+			Vector3(lx, 4.18, rz + 0.58), Vector3(0.44, 0.62, 0.20),
+			"metal", 0.0, false)
+		_sphere("east_service_return_lamp_%d_globe" % i, Vector3.ZERO,
+			Vector3(lx, 4.18, rz + 0.86), 0.18, "lamp_glass")
+		_omni("east_service_return_lamp_%d_pool" % i,
+			Vector3(lx, 3.90, rz + 1.16), "lamp", 1.7, 8.0, LIGHT_FIXTURE)
 
 
 ## The court below the first cascade is an arrival room rather than spare brick:
@@ -11638,16 +11877,16 @@ func _run_along_x(size: Vector3) -> bool:
 ## The old passage gave this sixteen-metre gap a monumental mouth and then
 ## delivered the player to a dead dogleg against the hill's retaining wall. Once
 ## the due-east gate became the real route into the east section, that second
-## opening was all signal and no destination. The perimeter closes here now, but
-## the approach remains useful: it ends at a small indoor dark ride built into
-## the wall.
+## opening was all signal and no destination. The perimeter closes here now,
+## and the indoor dark ride opens directly onto the plaza's existing brick — no
+## replacement spoke survives on the ground or on the minimap.
 ##
 ## This is deliberately a facade rather than a ride interior. The milestone's
 ## rides are static, and the building mass is the honest collision boundary; a
 ## dark loading mouth, guide rails and one car say what happens behind it without
 ## promising a room the player can enter. The upper wall gets its own carnival
 ## front instead of `_facade_bay`'s shops, because a row of ordinary storefronts
-## would close the hole and throw away the reason to walk down this spur.
+## would close the hole and throw away the reason to cross the brick court.
 func _dark_ride_facade(run: Dictionary, idx: int) -> void:
 	var c: Vector3 = run["at"]
 	var s: Vector3 = run["size"]

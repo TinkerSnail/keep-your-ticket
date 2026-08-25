@@ -781,6 +781,21 @@ const EAST_GROUND_HALF_Z := 26.0
 const EAST_GROUND_FROM_X := 33.0
 const EAST_GROUND_TO_X := HILL_FACE_X + 0.5
 
+## The dark ride's back-of-house yard, in the strip between the east perimeter
+## buildings and the north shoulder's retaining wall.
+##
+## This is deliberately **not a walkway**. The retired north-east spoke stays
+## retired: nothing here appears on the minimap or promises another land. It is
+## a short service court reached from the real east forecourt, ending at a
+## closed staff gate before the shoulder steps down. The west edge overlaps the
+## plaza floor so either side of the section seam owns a floor underfoot; the
+## east edge dies inside the retaining wall rather than leaving a slit beside it.
+const EAST_SERVICE_FROM_X := 47.0
+const EAST_SERVICE_TO_X := 60.7
+const EAST_SERVICE_FROM_Z := -18.4
+const EAST_SERVICE_GATE_Z := -43.6
+const EAST_SERVICE_LANE_X := 53.4
+
 ## The guard on the shelf's open side, and the only one it needs: the notch is
 ## walled by the hill on its other three sides, so this is a parapet across one
 ## edge rather than a fence around a plateau.

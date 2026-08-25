@@ -172,6 +172,21 @@ func _ready() -> void:
 		Vector3(33.5, 1.2, -27.4), true])
 	_legs.append(["dark ride front holds", Vector3(31.5, 1.2, -27.4),
 		Vector3(45.0, 1.2, -27.4), false])
+	# The dark ride's back-of-house court is reachable from the east forecourt,
+	# but remains absent from the public walkway plan and minimap. Walk the clear
+	# lane both ways, then prove the staff gate and retaining wall terminate it.
+	var service_x := ParkPlan.EAST_SERVICE_LANE_X
+	_legs.append(["east service yard north",
+		Vector3(service_x, 1.2, ParkPlan.EAST_SERVICE_FROM_Z - 1.0),
+		Vector3(service_x, 1.2, ParkPlan.EAST_SERVICE_GATE_Z + 2.0), true])
+	_legs.append(["east service yard south",
+		Vector3(service_x, 1.2, ParkPlan.EAST_SERVICE_GATE_Z + 2.0),
+		Vector3(service_x, 1.2, ParkPlan.EAST_SERVICE_FROM_Z - 1.0), true])
+	_legs.append(["east service gate holds",
+		Vector3(service_x, 1.2, ParkPlan.EAST_SERVICE_GATE_Z + 2.0),
+		Vector3(service_x, 1.2, ParkPlan.EAST_SERVICE_GATE_Z - 7.0), false])
+	_legs.append(["east service wall holds",
+		Vector3(service_x, 1.2, -25.0), Vector3(67.0, 1.2, -25.0), false])
 
 	# The east gate and the forecourt behind it, both directions.
 	#
