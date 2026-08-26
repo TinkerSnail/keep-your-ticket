@@ -172,21 +172,26 @@ func _ready() -> void:
 		Vector3(33.5, 1.2, -27.4), true])
 	_legs.append(["dark ride front holds", Vector3(31.5, 1.2, -27.4),
 		Vector3(45.0, 1.2, -27.4), false])
-	# The dark ride's back-of-house court is reachable from the east forecourt,
-	# but remains absent from the public walkway plan and minimap. Walk the clear
-	# lane both ways, then prove the staff gate and retaining wall terminate it.
-	var service_x := ParkPlan.EAST_SERVICE_LANE_X
-	_legs.append(["east service yard north",
-		Vector3(service_x, 1.2, ParkPlan.EAST_SERVICE_FROM_Z - 1.0),
-		Vector3(service_x, 1.2, ParkPlan.EAST_SERVICE_GATE_Z + 2.0), true])
-	_legs.append(["east service yard south",
-		Vector3(service_x, 1.2, ParkPlan.EAST_SERVICE_GATE_Z + 2.0),
-		Vector3(service_x, 1.2, ParkPlan.EAST_SERVICE_FROM_Z - 1.0), true])
-	_legs.append(["east service gate holds",
-		Vector3(service_x, 1.2, ParkPlan.EAST_SERVICE_GATE_Z + 2.0),
-		Vector3(service_x, 1.2, ParkPlan.EAST_SERVICE_GATE_Z - 7.0), false])
-	_legs.append(["east service wall holds",
-		Vector3(service_x, 1.2, -25.0), Vector3(67.0, 1.2, -25.0), false])
+	# The first Park Promenade segment is a through-route around the dark ride,
+	# not the Waterworks dead end it replaced. Walk the east leg both ways and the
+	# northeast turn onto the north frontage; the retaining wall still has to hold.
+	var promenade_x := ParkPlan.PROMENADE_EAST_X
+	_legs.append(["park promenade east north",
+		Vector3(promenade_x, 1.2, ParkPlan.PROMENADE_EAST_FROM_Z - 1.0),
+		Vector3(promenade_x, 1.2, ParkPlan.PROMENADE_EAST_TURN_Z + 2.0), true])
+	_legs.append(["park promenade east south",
+		Vector3(promenade_x, 1.2, ParkPlan.PROMENADE_EAST_TURN_Z + 2.0),
+		Vector3(promenade_x, 1.2, ParkPlan.PROMENADE_EAST_FROM_Z - 1.0), true])
+	# Follow the authored bend. A single diagonal to x=24 cuts the inside corner
+	# of the L and asks the controller to invent a route through a building.
+	_legs.append(["park promenade northeast turn",
+		Vector3(promenade_x, 1.2, ParkPlan.PROMENADE_EAST_TURN_Z + 2.0),
+		Vector3(49.0, 1.2, ParkPlan.PROMENADE_NORTH_Z), true])
+	_legs.append(["park promenade north west",
+		Vector3(49.0, 1.2, ParkPlan.PROMENADE_NORTH_Z),
+		Vector3(24.0, 1.2, ParkPlan.PROMENADE_NORTH_Z), true])
+	_legs.append(["east promenade retaining wall holds",
+		Vector3(promenade_x, 1.2, -25.0), Vector3(67.0, 1.2, -25.0), false])
 
 	# The east gate and the forecourt behind it, both directions.
 	#
@@ -410,6 +415,21 @@ func _ready() -> void:
 			ParkPlan.EAST_FRONTIER_STREET_Z),
 		Vector3(82.0, ParkPlan.EAST_FRONTIER_FLOOR_Y + 1.2,
 			ParkPlan.EAST_FRONTIER_STREET_Z + 6.0), false])
+	# The new attraction is only connective if its branch is genuinely part of
+	# the walk. Traverse every grade both ways, then prove the loading gate stops
+	# the player before the static bullwheel and cabins.
+	var sky_route: Array[Vector3] = ParkPlan.sky_ride_access_path()
+	var sky_stand: Array[Vector3] = []
+	for v in sky_route:
+		sky_stand.append(v + Vector3(0.0, 1.2, 0.0))
+	for i in sky_stand.size() - 1:
+		_legs.append(["sky ride access out %d" % i,
+			sky_stand[i], sky_stand[i + 1], true])
+	for i in range(sky_stand.size() - 1, 0, -1):
+		_legs.append(["sky ride access back %d" % i,
+			sky_stand[i], sky_stand[i - 1], true])
+	_legs.append(["sky ride loading gate holds", sky_stand[-1],
+		ParkPlan.SKY_RIDE_FRONTIER_AT + Vector3(0.0, 1.2, 0.0), false])
 	# **The bays**, which are the reason the landings exist as more than a pause:
 	# each terrace opens left and right into a shelf cut into the hillside. New
 	# ground, so it gets walked — out from the landing, along the shelf, and a

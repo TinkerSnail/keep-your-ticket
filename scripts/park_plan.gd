@@ -781,20 +781,67 @@ const EAST_GROUND_HALF_Z := 26.0
 const EAST_GROUND_FROM_X := 33.0
 const EAST_GROUND_TO_X := HILL_FACE_X + 0.5
 
-## The dark ride's back-of-house yard, in the strip between the east perimeter
-## buildings and the north shoulder's retaining wall.
+## The first built piece of the Park Promenade: outside the plaza buildings,
+## inside the themed lands, and connecting the spokes without making the hub the
+## price of every move. The old safety wall at x 51.5 made the eleven-metre-deep
+## perimeter blocks look like stage flats with a back lot behind them. Removing
+## only the obsolete north-east runs reveals their real outer faces at x 47 and
+## z -47; those become public fronts on a street rather than dressed backs.
 ##
-## This is deliberately **not a walkway**. The retired north-east spoke stays
-## retired: nothing here appears on the minimap or promises another land. It is
-## a short service court reached from the real east forecourt, ending at a
-## closed staff gate before the shoulder steps down. The west edge overlaps the
-## plaza floor so either side of the section seam owns a floor underfoot; the
-## east edge dies inside the retaining wall rather than leaving a slit beside it.
-const EAST_SERVICE_FROM_X := 47.0
-const EAST_SERVICE_TO_X := 60.7
-const EAST_SERVICE_FROM_Z := -18.4
-const EAST_SERVICE_GATE_Z := -43.6
-const EAST_SERVICE_LANE_X := 53.4
+## The east leg begins north of the protected cascade forecourt, turns on level
+## ground around the dark ride and follows the north frontage to the Grove mouth.
+## It does not move or support the east cascade, its terraces, the fountain climb
+## or their terrain. The eventual junction at the east gate remains a protected
+## design decision; this first segment simply arrives beside it.
+const PROMENADE_EAST_FROM_X := 47.0
+const PROMENADE_EAST_TO_X := 60.7
+const PROMENADE_EAST_FROM_Z := -18.4
+const PROMENADE_EAST_TURN_Z := -43.6
+const PROMENADE_EAST_X := 53.8
+const PROMENADE_WIDTH := 6.4
+const PROMENADE_NORTH_Z := -50.0
+
+## Ground outside the old 104m plaza slab. The inner half of the north walk is
+## already carried by the plaza floor; this strip supports only the part beyond
+## z -52 and laps the east leg around the corner. Its west end stops on the east
+## side of the NNW passage, whose own floor carries the Grove approach.
+const PROMENADE_NORTH_GROUND_FROM_X := -8.7
+const PROMENADE_NORTH_GROUND_TO_X := 60.7
+const PROMENADE_NORTH_GROUND_FROM_Z := -51.7
+const PROMENADE_NORTH_GROUND_TO_Z := -59.0
+const PROMENADE_WATERWORKS_AT := Vector2(43.0, -56.0)
+
+
+## The public centreline through the first segment. One broad ribbon handles the
+## bend; a narrower final link passes south of the NNW mouth's east pier before
+## turning into its opening. The pinch is architectural, not a routing accident.
+const PROMENADE_NE_POINTS := [
+	Vector2(PROMENADE_EAST_X, PROMENADE_EAST_FROM_Z),
+	Vector2(PROMENADE_EAST_X, -39.2),
+	Vector2(55.0, -46.0),
+	Vector2(49.0, PROMENADE_NORTH_Z),
+	Vector2(24.0, PROMENADE_NORTH_Z),
+	Vector2(-4.0, PROMENADE_NORTH_Z),
+]
+const PROMENADE_NNW_LINK_POINTS := [
+	Vector2(-4.0, PROMENADE_NORTH_Z),
+	Vector2(-6.8, -48.6),
+	Vector2(-16.9, -48.6),
+]
+
+
+static func promenade_ne_path() -> Array[Vector3]:
+	var out: Array[Vector3] = []
+	for p in PROMENADE_NE_POINTS:
+		out.append(Vector3(p.x, 0.0, p.y))
+	return out
+
+
+static func promenade_nnw_link() -> Array[Vector3]:
+	var out: Array[Vector3] = []
+	for p in PROMENADE_NNW_LINK_POINTS:
+		out.append(Vector3(p.x, 0.0, p.y))
+	return out
 
 ## The guard on the shelf's open side, and the only one it needs: the notch is
 ## walled by the hill on its other three sides, so this is a parapet across one
@@ -1538,6 +1585,33 @@ const EAST_FRONTIER_BUILDINGS := [
 	{"tag": "food", "x0": 83.6, "x1": 92.2, "h": 5.3},
 ]
 
+## The park's north-rim sky ride, from the high Frontier shoulder to the future
+## Grove. It is deliberately not a chord through the hub. Both terminals and
+## the whole line stay around z = -100, so the fountain and the two cascade axes
+## remain free of cables and towers; from the plaza the clock hides the middle
+## of the line while cabins appear on either side of it.
+##
+## The two stations speak their districts and the line speaks for the whole
+## park. Frontier gets a timber depot on the same high contour as its street;
+## Grove gets a green-roofed picnic pavilion on the low ground. Red, yellow and
+## blue open buckets travel between them as a shared classic-park attraction.
+## The ride is static at this milestone, like every ride except the crowd.
+const SKY_RIDE_FRONTIER_AT := Vector3(108.0, EAST_END_FLOOR_Y, -97.5)
+const SKY_RIDE_GROVE_AT := Vector3(-18.0, 0.0, -104.0)
+const SKY_RIDE_FRONTIER_CABLE_Y := 27.4
+const SKY_RIDE_GROVE_CABLE_Y := 8.1
+const SKY_RIDE_LANE_HALF := 1.65
+const SKY_RIDE_ACCESS_W := 4.2
+const SKY_RIDE_ACCESS_GRADE_RUN := 5.5
+const SKY_RIDE_STATION_GRADE_RUN := 6.0
+
+## Intermediate supports only where a themed section can explain their feet.
+## The long middle span crosses the unbuilt transition without putting another
+## isolated structure in the void between Frontier and Grove.
+const SKY_RIDE_TOWERS := [
+	{"t": 0.82, "ground_y": 0.0, "cable_y": 12.2},
+]
+
 
 static func east_tower_center() -> Vector3:
 	return Vector3(EAST_TOWER_X, EAST_TOWER_FLOOR_Y, ARCH_AT.y - EAST_TOWER_D)
@@ -1573,6 +1647,24 @@ static func east_frontier_path() -> Array[Vector3]:
 		Vector3(EAST_FRONTIER_STREET_TO_X, EAST_FRONTIER_FLOOR_Y,
 			EAST_FRONTIER_STREET_Z),
 	]
+
+
+## A short branch from Frontier's arrival mouth to the sky-ride depot. It stays
+## on the shoulder and passes north of the observation-tower court; the final
+## point is outside the station gate rather than under the cable machinery.
+static func sky_ride_access_path() -> Array[Vector3]:
+	return [
+		Vector3(EAST_FRONTIER_STREET_TO_X, EAST_FRONTIER_FLOOR_Y,
+			EAST_FRONTIER_STREET_Z),
+		Vector3(98.6, 18.85, -92.8),
+		Vector3(103.2, 19.40, -92.6),
+		Vector3(107.8, EAST_END_FLOOR_Y, -92.8),
+	]
+
+
+static func sky_ride_plan_at(t: float) -> Vector2:
+	return Vector2(SKY_RIDE_FRONTIER_AT.x, SKY_RIDE_FRONTIER_AT.z).lerp(
+		Vector2(SKY_RIDE_GROVE_AT.x, SKY_RIDE_GROVE_AT.z), t)
 
 
 ## Outward from the tower centre toward the promenade gate, in plan.
@@ -2404,6 +2496,13 @@ const WALKWAYS := {
 		Vector2(-8.0, -13.86), Vector2(-14.0, -30.0), Vector2(-16.9, -51.5),
 	],
 
+	## The first orbital connection. It starts beside the east-gate forecourt,
+	## turns behind the dark ride and meets the NNW/Grove mouth from its plaza
+	## side. These are public brick walks rather than asphalt plaza spokes; the
+	## separate entries preserve the narrower architectural pinch at the mouth.
+	&"promenade_ne": PROMENADE_NE_POINTS,
+	&"promenade_nnw_link": PROMENADE_NNW_LINK_POINTS,
+
 	## Off the ring due east, south down the eight-metre street between the photo
 	## hut and `building_east`, then east again between `perim_e_south` and
 	## `building_south_east`.
@@ -2469,6 +2568,8 @@ const WALKWAY_WIDTH := {
 	&"boardwalk_promenade": 16.0,
 	&"boardwalk_pier": 8.0,
 	&"spoke_nnw": 8.0,
+	&"promenade_ne": PROMENADE_WIDTH,
+	&"promenade_nnw_link": 3.0,
 	&"spoke_se": 7.0,
 	&"spoke_sw": 6.0,
 }
@@ -2539,6 +2640,8 @@ static func east_public_walkway_runs() -> Array:
 		EAST_END_PATH_HALF_W * 2.0))
 	out.append(_plan_run(&"east_frontier", east_frontier_path(),
 		EAST_FRONTIER_PATH_W))
+	out.append(_plan_run(&"sky_ride_access", sky_ride_access_path(),
+		SKY_RIDE_ACCESS_W))
 	return out
 
 

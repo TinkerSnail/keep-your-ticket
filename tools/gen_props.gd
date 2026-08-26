@@ -43,6 +43,7 @@ const SKYLINE_PATH := "res://scenes/world/plaza_skyline.tscn"
 const FOUNTAIN_PATH := "res://scenes/world/plaza_fountain.tscn"
 const STAIR_PATH := "res://scenes/world/west_stair.tscn"
 const EAST_CASCADE_PATH := "res://scenes/world/east_cascade.tscn"
+const SKY_RIDE_PATH := "res://scenes/world/north_sky_ride.tscn"
 ## How far east the terraces' massing copy of the plaza stands from the
 ## boardwalk's. See `_plaza_from_the_east`, which explains what it is for.
 ##
@@ -313,6 +314,16 @@ func _initialize() -> void:
 	_begin_scene()
 	_plaza_from_the_east()
 	if not _save(_root, TERRACES_FAR_PATH):
+		return
+
+	# The sky ride is shared scenery and a real Frontier destination. Appended
+	# after every established scene so introducing it cannot change the seam
+	# seeds of unrelated generated geometry.
+	_root = Node3D.new()
+	_root.name = "north_sky_ride"
+	_begin_scene()
+	_north_sky_ride()
+	if not _save(_root, SKY_RIDE_PATH):
 		return
 
 	quit()
@@ -958,6 +969,7 @@ func _build_materials() -> void:
 		"red": [Color(0.84, 0.27, 0.24), 0.7, 0.0],
 		"yellow": [Color(0.93, 0.76, 0.24), 0.7, 0.0],
 		"blue": [Color(0.27, 0.5, 0.72), 0.7, 0.0],
+		"sky_green": [Color(0.25, 0.48, 0.31), 0.78, 0.0],
 		"accent": [Color(0.78, 0.54, 0.42), 0.85, 0.0],
 		# The perimeter's own masonry. Matches `mat_building` in `plaza.tscn`
 		# exactly and has to: parapets and pediments are the wall carrying on
@@ -1258,6 +1270,19 @@ func _fountain_materials() -> void:
 		# of it — the same argument the pool's own lamps were put in for, at the
 		# other end of the water.
 		"night_glow": 2.1,
+	})
+	# The service reservoir is standing water, but it is not another fountain.
+	# Broad rings come off the pump intake and the crossing ripples are slow; no
+	# part of the surface emits after dark. One warm utility lamp above it gives
+	# the low-roughness water something real to catch instead.
+	mats["water_reservoir"] = _shader_material(pool, {
+		"tint": Color(0.085, 0.19, 0.20),
+		"centre": Vector3(Plan.PROMENADE_WATERWORKS_AT.x, 0.0,
+			Plan.PROMENADE_WATERWORKS_AT.y),
+		"ring_scale": 0.48,
+		"chop": 0.58,
+		"rough": 0.09,
+		"spec": 0.86,
 	})
 	# `streaks` is radians per world metre, so it has to be read against how wide
 	# the thing wearing it is. The falls take 64 and 80 where the jets take 34,
@@ -5370,6 +5395,42 @@ func _east_frontier_grade_y(x: float, z: float, uncut_y: float) -> float:
 		var w := 1.0 - street_dist / Plan.EAST_FRONTIER_STREET_GRADE_RUN
 		w = w * w * (3.0 - 2.0 * w)
 		y = lerpf(y, Plan.EAST_FRONTIER_FLOOR_Y, w)
+
+	# The sky-ride branch climbs the last metre and a half on the landform, not
+	# on a path skin floating above it. It is deliberately evaluated after the
+	# street, so the shared first point remains the street's datum and the grade
+	# rises only as the branch leaves that room.
+	var access: Array[Vector3] = Plan.sky_ride_access_path()
+	for i in access.size() - 1:
+		var a := Vector2(access[i].x, access[i].z)
+		var b := Vector2(access[i + 1].x, access[i + 1].z)
+		var ab := b - a
+		var t := clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.001),
+			0.0, 1.0)
+		var dist := maxf(p.distance_to(a + ab * t)
+			- Plan.SKY_RIDE_ACCESS_W * 0.5, 0.0)
+		if dist >= Plan.SKY_RIDE_ACCESS_GRADE_RUN:
+			continue
+		var w := 1.0 - dist / Plan.SKY_RIDE_ACCESS_GRADE_RUN
+		w = w * w * (3.0 - 2.0 * w)
+		var target := lerpf(access[i].y, access[i + 1].y, t)
+		y = lerpf(y, target, w)
+
+	# The Frontier depot is a building on the shoulder, not another deck. Flatten
+	# its own footprint and ease the surrounding meadow into it.
+	var ride_d := _sky_ride_direction()
+	var ride_r := Vector2(ride_d.y, -ride_d.x)
+	var rel := p - Vector2(Plan.SKY_RIDE_FRONTIER_AT.x,
+		Plan.SKY_RIDE_FRONTIER_AT.z)
+	var across := absf(rel.dot(ride_r))
+	var along := rel.dot(ride_d)
+	var station_dx := maxf(across - 4.15, 0.0)
+	var station_dz := maxf(absf(along + 4.0) - 4.75, 0.0)
+	var station_dist := Vector2(station_dx, station_dz).length()
+	if station_dist < Plan.SKY_RIDE_STATION_GRADE_RUN:
+		var w := 1.0 - station_dist / Plan.SKY_RIDE_STATION_GRADE_RUN
+		w = w * w * (3.0 - 2.0 * w)
+		y = lerpf(y, Plan.SKY_RIDE_FRONTIER_AT.y, w)
 	return y
 
 
@@ -5730,12 +5791,12 @@ func _east_dressing() -> void:
 	_east_arrival_dressing()
 	_east_belvedere_dressing()
 	_east_end_attractions()
-	# Last because it is new work against finished earthwork. Appending the yard
+	# Last because it is new work against finished earthwork. Appending the promenade
 	# keeps every existing east prop on its established seam ordinal.
-	_east_north_service_yard()
+	_east_north_promenade()
 
 
-## The strip behind the north-east perimeter is the dark ride's service yard.
+## The first piece of the Park Promenade, around the plaza's north-east corner.
 ##
 ## It used to be neither ground nor void by design: the plaza slab stopped at
 ## x 52, the east court stopped at z -28, and the shoulder's retaining wall did
@@ -5744,44 +5805,45 @@ func _east_dressing() -> void:
 ## end. The old observation tower happened to mask it; moving the tower merely
 ## made the unfinished relationship visible.
 ##
-## A buried brick slab closes the hole for collision in both sections, while a
-## thin asphalt skin says this is back-of-house rather than a resurrected public
-## spoke. The skin is not a `ParkPlan.WALKWAYS` entry and never reaches the
-## minimap. A closed staff gate stops the lane before the shoulder steps, and a
-## spare dark-ride car under a maintenance canopy gives the yard a reason to be
-## here. Tool boxes, prop crates, wall lights and finished retaining-wall trim
-## fill the rest without narrowing the clear walk down its centre.
-func _east_north_service_yard() -> void:
-	var x0: float = Plan.EAST_SERVICE_FROM_X
-	var x1: float = Plan.EAST_SERVICE_TO_X
-	var z0: float = Plan.EAST_SERVICE_FROM_Z
-	var zg: float = Plan.EAST_SERVICE_GATE_Z
+## Removing the obsolete outer safety walls changes the useful width from the
+## narrow strip east of x 51.5 to the full apron against the building face at
+## x 47. The brick ground then turns west along the north frontage and meets the
+## Grove mouth. This is circulation first; the little Waterworks equipment is a
+## side vignette beside it rather than the reason a dead end exists.
+func _east_north_promenade() -> void:
+	var x0: float = Plan.PROMENADE_EAST_FROM_X
+	var x1: float = Plan.PROMENADE_EAST_TO_X
+	var z0: float = Plan.PROMENADE_EAST_FROM_Z
+	var zg: float = Plan.PROMENADE_EAST_TURN_Z
 	var mid := Vector3((x0 + x1) * 0.5, -1.0 + GROUND_SEAM - 0.003,
 		(z0 + zg) * 0.5)
 
 	# Collision floor first. It laps under the plaza ground on the west and the
 	# east court on the south, but gives way three millimetres below the latter so
 	# the two generated floors cannot share an up-facing plane.
-	_box("east_service_floor", Vector3.ZERO, mid,
+	_box("east_promenade_east_floor", Vector3.ZERO, mid,
 		Vector3(x1 - x0, 2.0, z0 - zg), "brick")
+	# A second slab carries the bend beyond the old Waterworks overlook, and a
+	# shallow northern strip carries only the part of the walk outside the plaza's
+	# own 104m floor. Each gives way by another centimetre and laps its neighbour,
+	# so no two broad upward faces occupy the same plane.
+	var corner_to_z: float = Plan.PROMENADE_NORTH_GROUND_FROM_Z - 0.18
+	_box("east_promenade_corner_floor", Vector3.ZERO,
+		Vector3((x0 + x1) * 0.5, -1.0 + GROUND_SEAM - 0.013,
+			(zg - 0.24 + corner_to_z) * 0.5),
+		Vector3(x1 - x0, 2.0, zg - 0.24 - corner_to_z), "brick")
+	var nx0: float = Plan.PROMENADE_NORTH_GROUND_FROM_X
+	var nx1: float = Plan.PROMENADE_NORTH_GROUND_TO_X
+	var nz0: float = Plan.PROMENADE_NORTH_GROUND_FROM_Z
+	var nz1: float = Plan.PROMENADE_NORTH_GROUND_TO_Z
+	_box("east_promenade_north_floor", Vector3.ZERO,
+		Vector3((nx0 + nx1) * 0.5, -1.0 + GROUND_SEAM - 0.023,
+			(nz0 + nz1) * 0.5),
+		Vector3(nx1 - nx0, 2.0, nz0 - nz1), "brick")
 
-	# One continuous service surface across the old and new ground. Thin and
-	# non-colliding like the park's other paving: the slab is what the body walks
-	# on, and the asphalt cannot become a kerb around itself.
-	_box("east_service_asphalt", Vector3.ZERO,
-		Vector3((x0 + x1) * 0.5, 0.006, (z0 + zg) * 0.5),
-		Vector3(x1 - x0 - 0.35, 0.012, z0 - zg - 0.25),
-		"asphalt", 0.0, false)
-
-	# A parking bay, not a centre line. Keeping the yellow marks under the canopy
-	# prevents the surface from reading as the north-east road that came out.
-	for px in [56.15, 59.75]:
-		_box("east_service_bay_line_%d" % int(round(px * 10.0)), Vector3.ZERO,
-			Vector3(px, 0.017, -32.9), Vector3(0.11, 0.010, 6.0),
-			"yellow", 0.0, false)
-	_box("east_service_bay_stop", Vector3.ZERO,
-		Vector3(57.95, 0.017, -35.84), Vector3(3.7, 0.010, 0.11),
-		"yellow", 0.0, false)
+	# The slab's own textured brick is the finish. Asphalt and parking marks were
+	# tried here and made every later piece read as decoration in a back alley;
+	# removing those two cues changes the identity of the whole approach.
 
 	# Finish the long retaining face as architecture. The wall itself is sampled
 	# from the shoulder; these pieces only give its exposed west face a coping,
@@ -5849,109 +5911,34 @@ func _east_north_service_yard() -> void:
 		Vector3((60.9 + 70.2) * 0.5, 2.78, rz + 0.55),
 		Vector3(70.2 - 60.9, 0.26, 0.16), "white", 0.0, false)
 
-	# A staff door makes the dark ride's long side wall belong to the yard. It is
-	# relief on the colliding attraction mass, matching the guest-facing facade's
-	# promise of a building without inventing a backstage interior.
-	_box("east_service_staff_door", Vector3.ZERO,
-		Vector3(47.055, 1.28, -27.2), Vector3(0.10, 2.56, 1.55),
+	# The dark ride now has a public exit and photo-counter door on its second
+	# face. It is relief on the colliding attraction mass, not an invented room,
+	# but its canopy and marquee make the outer promenade a real address.
+	_box("east_promenade_dark_ride_exit", Vector3.ZERO,
+		Vector3(47.08, 1.28, -27.2), Vector3(0.12, 2.56, 1.55),
 		"blue", 0.0, false)
-	_box("east_service_staff_door_head", Vector3.ZERO,
-		Vector3(47.12, 2.66, -27.2), Vector3(0.10, 0.18, 1.82),
+	_box("east_promenade_dark_ride_exit_head", Vector3.ZERO,
+		Vector3(47.16, 2.66, -27.2), Vector3(0.12, 0.18, 1.82),
 		"white", 0.0, false)
-	_box("east_service_staff_door_sign", Vector3.ZERO,
-		Vector3(47.12, 1.68, -27.2), Vector3(0.06, 0.34, 0.72),
+	_box("east_promenade_dark_ride_exit_sign", Vector3.ZERO,
+		Vector3(47.17, 1.68, -27.2), Vector3(0.08, 0.34, 0.72),
 		"yellow", 0.0, false)
-	_sphere("east_service_staff_door_knob", Vector3.ZERO,
-		Vector3(47.15, 1.02, -26.73), 0.08, "metal")
+	_sphere("east_promenade_dark_ride_exit_knob", Vector3.ZERO,
+		Vector3(47.22, 1.02, -26.73), 0.08, "metal")
+	_box("east_promenade_dark_ride_exit_canopy", Vector3.ZERO,
+		Vector3(47.88, 2.92, -27.2), Vector3(1.72, 0.18, 2.20),
+		"blue", 0.0, false)
+	_box("east_promenade_dark_ride_exit_valance", Vector3.ZERO,
+		Vector3(48.70, 2.70, -27.2), Vector3(0.10, 0.34, 2.02),
+		"yellow", 0.0, false)
 
-	# A lean-to maintenance bay against the retaining wall. The spare car uses
-	# the same red/blue/yellow vocabulary as the guest-facing car, but its raised
-	# bonnet and tool tray make this one read as equipment under repair.
-	var bay := Vector3(58.05, 0.0, -32.9)
-	_box("east_service_canopy_roof", bay, Vector3(0.0, 2.72, 0.0),
-		Vector3(4.45, 0.22, 6.35), "blue", 0.0, false)
-	_box("east_service_canopy_valance", bay, Vector3(-2.20, 2.48, 0.0),
-		Vector3(0.18, 0.55, 6.35), "yellow", 0.0, false)
-	for s in [-1.0, 1.0]:
-		_box("east_service_canopy_post_%s" % ("n" if s < 0.0 else "s"), bay,
-			Vector3(-2.05, 1.30, s * 2.80), Vector3(0.18, 2.60, 0.18),
-			"metal")
-		_box("east_service_canopy_brace_%s" % ("n" if s < 0.0 else "s"), bay,
-			Vector3(-1.05, 2.56, s * 2.80), Vector3(2.20, 0.14, 0.14),
-			"metal", 0.0, false)
+	_east_promenade_furniture()
 
-	var car := Vector3(58.05, 0.0, -32.8)
-	_box("east_service_spare_car_chassis", car, Vector3(0.0, 0.34, 0.0),
-		Vector3(2.05, 0.46, 3.05), "far_shade")
-	_box("east_service_spare_car_body", car, Vector3(0.0, 0.70, 0.10),
-		Vector3(1.90, 0.70, 2.60), "red", 0.0, false)
-	_box("east_service_spare_car_seat", car, Vector3(0.0, 1.10, -0.55),
-		Vector3(1.45, 0.68, 0.52), "blue", 0.0, false)
-	_box("east_service_spare_car_hood", car, Vector3(0.0, 1.12, 0.88),
-		Vector3(1.62, 0.18, 0.95), "yellow", 0.0, false)
-	_box("east_service_spare_car_bumper", car, Vector3(0.0, 0.46, 1.58),
-		Vector3(2.18, 0.24, 0.24), "metal", 0.0, false)
-	for s in [-1.0, 1.0]:
-		_sphere("east_service_spare_car_lamp_%s" % ("l" if s < 0.0 else "r"), car,
-			Vector3(s * 0.58, 0.79, 1.38), 0.14, "bulb")
-
-	# Tool cart beside the building and a few scenic crates near the staff gate.
-	# Each is one colliding base with decoration hung off it, so the player cannot
-	# stand inside a pile made from six tiny collision shapes.
-	var tools := Vector3(49.20, 0.0, -35.2)
-	_box("east_service_tool_cart", tools, Vector3(0.0, 0.60, 0.0),
-		Vector3(1.20, 1.20, 0.72), "red")
-	_box("east_service_tool_cart_top", tools, Vector3(0.0, 1.26, 0.0),
-		Vector3(1.30, 0.14, 0.82), "metal", 0.0, false)
-	for i in 3:
-		_box("east_service_tool_drawer_%d" % i, tools,
-			Vector3(-0.62, 0.50 + float(i) * 0.27, 0.0),
-			Vector3(0.06, 0.16, 0.52), "yellow", 0.0, false)
-
-	var crates := [
-		[Vector3(49.20, 0.0, -41.0), Vector3(1.15, 0.85, 1.05), "blue"],
-		[Vector3(50.40, 0.0, -41.2), Vector3(1.05, 1.10, 0.95), "wood"],
-		[Vector3(49.20, 0.85, -41.0), Vector3(0.82, 0.72, 0.78), "yellow"],
-	]
-	for i in crates.size():
-		var spec: Array = crates[i]
-		var ca: Vector3 = spec[0]
-		var cs: Vector3 = spec[1]
-		_box("east_service_crate_%d" % i, ca, Vector3(0.0, cs.y * 0.5, 0.0),
-			cs, String(spec[2]))
-		_box("east_service_crate_%d_lid" % i, ca,
-			Vector3(0.0, cs.y + 0.05, 0.0),
-			Vector3(cs.x + 0.08, 0.10, cs.z + 0.08), "metal", 0.0, false)
-
-	# Closed double gate: it terminates the service yard before the shoulder's
-	# stepped end and keeps the observation tower in the sky above it. A bright
-	# staff panel makes the stop read as operational rather than as a wall placed
-	# across a road by accident.
-	var gate_z: float = Plan.EAST_SERVICE_GATE_Z + 0.22
-	for s in [-1.0, 1.0]:
-		var gx := 47.55 if s < 0.0 else 60.15
-		_box("east_service_gate_pier_%s" % ("w" if s < 0.0 else "e"), Vector3.ZERO,
-			Vector3(gx, 1.18, gate_z), Vector3(0.72, 2.36, 0.72), "brick")
-		_box("east_service_gate_cap_%s" % ("w" if s < 0.0 else "e"), Vector3.ZERO,
-			Vector3(gx, 2.43, gate_z), Vector3(0.92, 0.22, 0.92), "white", 0.0, false)
-	var gap_from := 47.95
-	var gap_to := 59.75
-	var panel_w := (gap_to - gap_from) * 0.5 - 0.04
-	for i in 2:
-		var gx := gap_from + panel_w * 0.5 + float(i) * (panel_w + 0.08)
-		_box("east_service_gate_panel_%d" % i, Vector3.ZERO,
-			Vector3(gx, 1.12, gate_z + 0.03),
-			Vector3(panel_w, 1.86, 0.18), "blue")
-		for r in 3:
-			_box("east_service_gate_panel_%d_rail_%d" % [i, r], Vector3.ZERO,
-				Vector3(gx, 0.46 + float(r) * 0.64, gate_z + 0.15),
-				Vector3(panel_w - 0.20, 0.10, 0.10), "metal", 0.0, false)
-	_box("east_service_gate_sign", Vector3.ZERO,
-		Vector3((gap_from + gap_to) * 0.5, 1.35, gate_z + 0.17),
-		Vector3(2.60, 0.72, 0.08), "yellow", 0.0, false)
-	_box("east_service_gate_sign_rule", Vector3.ZERO,
-		Vector3((gap_from + gap_to) * 0.5, 1.35, gate_z + 0.22),
-		Vector3(1.90, 0.14, 0.05), "red", 0.0, false)
+	# The route continues around the corner now. The shoulder steps remain exactly
+	# where the protected landform put them and become its planted east bank; the
+	# Waterworks survives as a small raised display beside the north promenade.
+	_east_waterworks_step_gardens()
+	_east_promenade_waterworks()
 
 	# Three wall fittings make the court usable after dusk and continue the
 	# retaining wall's new rhythm. They are ordinary park fixtures, not service
@@ -5973,6 +5960,397 @@ func _east_north_service_yard() -> void:
 			Vector3(lx, 4.18, rz + 0.86), 0.18, "lamp_glass")
 		_omni("east_service_return_lamp_%d_pool" % i,
 			Vector3(lx, 3.90, rz + 1.16), "lamp", 1.7, 8.0, LIGHT_FIXTURE)
+
+	# New public-facing pieces stay last. `_add` gives coplanar-prone generated props
+	# a tiny ordinal offset, so inserting these earlier would microscopically move
+	# every established promenade fixture that follows them.
+	_east_promenade_frontages()
+
+
+## The pieces that turn a strip between two walls into a garden room.
+##
+## The first finish of this ground was a service yard: asphalt, parking marks,
+## a repair canopy and loose equipment. The reservoir beyond it was attractive
+## in isolation and changed nothing about the sequence, because a guest had
+## already read "back alley" twenty metres before reaching the water. These are
+## the opposite cues — places to sit, planted edges, framed posters and three
+## shallow festoons — while the middle remains a broad, obvious public walk.
+func _east_promenade_furniture() -> void:
+	# Two benches face the planted wall and leave the lane's centre completely
+	# clear. The nearer one is offset from the side door and its canopy.
+	for i in 2:
+		var at := Vector3(49.25, 0.0, -32.1 - float(i) * 6.75)
+		_bench("east_waterworks_bench_%d" % i, at, PI * 0.5)
+
+	# Three clipped shrubs in raised brick beds make the tall retaining wall a
+	# garden edge rather than the side of a cutting. Their crowns stay below the
+	# wall lamps and below every long view to the ride silhouettes.
+	for i in 3:
+		var pz := -23.7 - float(i) * 7.65
+		var base := Vector3(58.82, 0.0, pz)
+		_box("east_waterworks_planter_%d" % i, base,
+			Vector3(0.0, 0.24, 0.0), Vector3(1.55, 0.48, 2.35), "brick")
+		_box("east_waterworks_planter_%d_soil" % i, base,
+			Vector3(0.0, 0.52, 0.0), Vector3(1.30, 0.10, 2.08),
+			"planting", 0.0, false)
+		_cyl("east_waterworks_shrub_%d_trunk" % i, base,
+			Vector3(0.0, 1.45, 0.0), 0.13, 1.90, "wood", 0.0, 8, false)
+		_sphere("east_waterworks_shrub_%d_crown_a" % i, base,
+			Vector3(0.0, 2.22, -0.18), 0.76, "foliage", 0.0, 0.92)
+		_sphere("east_waterworks_shrub_%d_crown_b" % i, base,
+			Vector3(-0.12, 2.68, 0.26), 0.62, "foliage", 0.0, 0.86)
+
+	# Blue garden trellises and loose vine masses break the remaining grey upper
+	# wall into bays. They sit proud of its west face, sharing no plane with the
+	# sampled shoulder skin behind them.
+	for i in 3:
+		var pz := -23.7 - float(i) * 7.65
+		for j in 3:
+			_box("east_waterworks_trellis_%d_v_%d" % [i, j], Vector3.ZERO,
+				Vector3(60.08, 2.58, pz - 1.08 + float(j) * 1.08),
+				Vector3(0.10, 3.20, 0.10), "blue", 0.0, false)
+		for j in 3:
+			_box("east_waterworks_trellis_%d_h_%d" % [i, j], Vector3.ZERO,
+				Vector3(60.08, 1.35 + float(j) * 1.10, pz),
+				Vector3(0.10, 0.10, 2.28), "blue", 0.0, false)
+		_sphere("east_waterworks_vine_%d_a" % i, Vector3.ZERO,
+			Vector3(59.93, 2.08, pz - 0.42), 0.58, "planting", 0.0, 0.86)
+		_sphere("east_waterworks_vine_%d_b" % i, Vector3.ZERO,
+			Vector3(59.93, 3.03, pz + 0.35), 0.50, "foliage", 0.0, 0.92)
+
+	# Two framed dark-ride posters answer the trellis bays across the walk. They
+	# sit on the attraction's real outer face now that the obsolete safety wall is
+	# gone, rather than floating four metres out in the public route.
+	for i in 2:
+		var pz := -33.9 - float(i) * 5.45
+		_box("east_waterworks_poster_%d_frame" % i, Vector3.ZERO,
+			Vector3(47.08, 2.12, pz), Vector3(0.12, 2.48, 2.75),
+			"blue", 0.0, false)
+		_box("east_waterworks_poster_%d_field" % i, Vector3.ZERO,
+			Vector3(47.16, 2.12, pz), Vector3(0.08, 1.98, 2.25),
+			"yellow" if i == 0 else "red", 0.0, false)
+		_box("east_waterworks_poster_%d_rule" % i, Vector3.ZERO,
+			Vector3(47.21, 2.12, pz), Vector3(0.05, 0.22, 1.55),
+			"red" if i == 0 else "yellow", 0.0, false)
+
+	# Three cross-court festoons make the garden feel like part of the same park
+	# as the Frontier street. They sag across the short dimension, so no wire runs
+	# along and strengthens the alley's already-long perspective.
+	for i in 3:
+		var pz := -23.7 - float(i) * 7.65
+		var a := Vector3(47.35, 4.55, pz)
+		var b := Vector3(60.05, 4.38, pz)
+		var prev := a
+		for bulb in 7:
+			var t := float(bulb + 1) / 8.0
+			var at := a.lerp(b, t)
+			at.y -= sin(t * PI) * 0.58
+			_strut("east_waterworks_festoon_%d_wire_%d" % [i, bulb],
+				prev, at, 0.025, "metal")
+			_sphere("east_waterworks_festoon_%d_bulb_%d" % [i, bulb],
+				at, Vector3(0.0, -0.065, 0.0), 0.078, "bulb")
+			prev = at
+		_strut("east_waterworks_festoon_%d_wire_end" % i,
+			prev, b, 0.025, "metal")
+		_omni("east_waterworks_festoon_%d_glow" % i,
+			(a + b) * 0.5 - Vector3(0.0, 0.46, 0.0),
+			"warm", 1.15, 6.0, LIGHT_FIXTURE)
+
+
+## The route itself and the second public face of the plaza blocks.
+##
+## The perimeter generator already gives every run an outer elevation, but it
+## deliberately speaks a service-yard language: shutters, downpipes and plain
+## doors. That was correct when the outer apron was scenery and becomes exactly
+## the wrong cue when it is a public circuit. These shopfront overlays cover the
+## ground-storey service openings on the first built segment while preserving the
+## shared upper-storey courses, windows, cornices and roofline behind them.
+func _east_promenade_frontages() -> void:
+	# A blue edge and brick field make the route legible across the larger brick
+	# apron without turning it into asphalt. The final NNW link narrows deliberately
+	# south of the gateway pier, then releases into the existing passage floor.
+	var broad: Array[Vector3] = Plan.promenade_ne_path()
+	_east_path_ribbon("park_promenade_ne_edge", broad, Plan.PROMENADE_WIDTH + 0.42,
+		"blue")
+	var broad_field: Array[Vector3] = []
+	for p in broad:
+		broad_field.append(p + Vector3(0.0, 0.004, 0.0))
+	_east_path_ribbon("park_promenade_ne_field", broad_field,
+		Plan.PROMENADE_WIDTH, "brick")
+	var link: Array[Vector3] = Plan.promenade_nnw_link()
+	_east_path_ribbon("park_promenade_nnw_edge", link, 3.42, "blue")
+	var link_field: Array[Vector3] = []
+	for p in link:
+		link_field.append(p + Vector3(0.0, 0.004, 0.0))
+	_east_path_ribbon("park_promenade_nnw_field", link_field, 3.0, "brick")
+
+	# The dark ride's exit and photo counter. The broad dark glazing belongs to
+	# the same attraction as the plaza marquee, while the primary-colour awnings
+	# make this a second entrance address rather than a decorated rear wall.
+	var east_bays := [
+		{"z": -21.8, "w": 3.55, "accent": "red"},
+		{"z": -32.2, "w": 4.05, "accent": "yellow"},
+		{"z": -40.2, "w": 4.20, "accent": "red"},
+	]
+	for i in east_bays.size():
+		var spec: Dictionary = east_bays[i]
+		var pz: float = spec["z"]
+		var w: float = spec["w"]
+		var accent: String = spec["accent"]
+		_box("east_promenade_front_e_%d_back" % i, Vector3.ZERO,
+			Vector3(47.20, 1.72, pz), Vector3(0.28, 3.28, w),
+			"far_shade", 0.0, false)
+		_box("east_promenade_front_e_%d_glass" % i, Vector3.ZERO,
+			Vector3(47.38, 1.82, pz), Vector3(0.12, 2.34, w - 0.56),
+			"glass", 0.0, false)
+		_box("east_promenade_front_e_%d_bulkhead" % i, Vector3.ZERO,
+			Vector3(47.40, 0.48, pz), Vector3(0.14, 0.78, w - 0.42),
+			accent, 0.0, false)
+		_box("east_promenade_front_e_%d_awning" % i, Vector3.ZERO,
+			Vector3(48.12, 3.20, pz), Vector3(1.68, 0.16, w + 0.18),
+			"blue", 0.0, false)
+		_box("east_promenade_front_e_%d_valance" % i, Vector3.ZERO,
+			Vector3(48.92, 3.02, pz), Vector3(0.10, 0.30, w - 0.08),
+			accent, 0.0, false)
+
+	# Four shallow tenants along the north range. Each field covers one or two of
+	# the old rear bays, so the upper storeys keep their irregular rhythm while the
+	# promenade gets an unmistakably public ground floor.
+	var north_shops := [
+		{"x": -3.6, "w": 7.0, "accent": "blue"},
+		{"x": 6.0, "w": 7.4, "accent": "yellow"},
+		{"x": 18.2, "w": 8.4, "accent": "red"},
+		{"x": 30.6, "w": 8.0, "accent": "yellow"},
+	]
+	for i in north_shops.size():
+		var spec: Dictionary = north_shops[i]
+		var px: float = spec["x"]
+		var w: float = spec["w"]
+		var accent: String = spec["accent"]
+		_box("east_promenade_front_n_%d_back" % i, Vector3.ZERO,
+			Vector3(px, 1.72, -47.20), Vector3(w, 3.28, 0.28),
+			"far_shade", 0.0, false)
+		_box("east_promenade_front_n_%d_glass" % i, Vector3.ZERO,
+			Vector3(px, 1.82, -47.38), Vector3(w - 0.64, 2.34, 0.12),
+			"glass", 0.0, false)
+		_box("east_promenade_front_n_%d_bulkhead" % i, Vector3.ZERO,
+			Vector3(px, 0.48, -47.40), Vector3(w - 0.46, 0.78, 0.14),
+			accent, 0.0, false)
+		_box("east_promenade_front_n_%d_awning" % i, Vector3.ZERO,
+			Vector3(px, 3.20, -48.12), Vector3(w + 0.20, 0.16, 1.68),
+			"blue", 0.0, false)
+		_box("east_promenade_front_n_%d_valance" % i, Vector3.ZERO,
+			Vector3(px, 3.02, -48.92), Vector3(w - 0.10, 0.30, 0.10),
+			accent, 0.0, false)
+		_box("east_promenade_front_n_%d_sign" % i, Vector3.ZERO,
+			Vector3(px, 3.72, -47.48), Vector3(w * 0.56, 0.48, 0.12),
+			accent, 0.0, false)
+
+	# The end of the L is a frontage too. Its wall is the north end of the east
+	# range at z=-48, one metre proud of the north range's common z=-47 face, so it
+	# cannot use the loop above: the first attempt did, and everything but its deep
+	# awning was buried inside the colliding block. These depths are measured from
+	# this wall's real face.
+	_box("east_promenade_corner_back", Vector3.ZERO,
+		Vector3(41.5, 1.72, -48.12), Vector3(9.0, 3.28, 0.20),
+		"far_shade", 0.0, false)
+	_box("east_promenade_corner_glass", Vector3.ZERO,
+		Vector3(41.5, 1.82, -48.26), Vector3(8.30, 2.34, 0.10),
+		"glass", 0.0, false)
+	_box("east_promenade_corner_bulkhead", Vector3.ZERO,
+		Vector3(41.5, 0.48, -48.30), Vector3(8.48, 0.78, 0.12),
+		"red", 0.0, false)
+	for i in 2:
+		_box("east_promenade_corner_mullion_%d" % i, Vector3.ZERO,
+			Vector3(39.5 + float(i) * 4.0, 1.82, -48.34),
+			Vector3(0.14, 2.38, 0.08), "white", 0.0, false)
+	_box("east_promenade_corner_door", Vector3.ZERO,
+		Vector3(45.05, 1.34, -48.36), Vector3(1.05, 2.55, 0.08),
+		"blue", 0.0, false)
+	_box("east_promenade_corner_awning", Vector3.ZERO,
+		Vector3(41.5, 3.20, -49.05), Vector3(9.20, 0.16, 1.82),
+		"blue", 0.0, false)
+	_box("east_promenade_corner_valance", Vector3.ZERO,
+		Vector3(41.5, 3.02, -49.91), Vector3(8.90, 0.30, 0.10),
+		"red", 0.0, false)
+
+	# A taller corner marker lets the turn announce itself before the guest is in
+	# it. It stays on the plaza block, below its cornice, and frames rather than
+	# competes with the coaster and sky-ride silhouettes beyond the promenade.
+	_box("east_promenade_corner_marquee", Vector3.ZERO,
+		Vector3(41.5, 4.55, -48.34), Vector3(5.6, 0.72, 0.18),
+		"blue", 0.0, false)
+	_box("east_promenade_corner_marquee_rule", Vector3.ZERO,
+		Vector3(41.5, 4.55, -48.45), Vector3(3.7, 0.18, 0.08),
+		"yellow", 0.0, false)
+	for i in 5:
+		_sphere("east_promenade_corner_marquee_bulb_%d" % i,
+			Vector3.ZERO, Vector3(39.65 + float(i) * 0.925, 4.18, -48.49),
+			0.075, "bulb")
+
+	# A rhythm of park globes defines the outer edge and lights faces rather than
+	# the centre of the route. Their spacing leaves the Waterworks display and the
+	# NNW gateway as the two stronger incidents.
+	for i in 5:
+		var px := 35.0 - float(i) * 9.0
+		_cyl("east_promenade_n_lamp_%d_post" % i, Vector3.ZERO,
+			Vector3(px, 1.20, -54.15), 0.075, 2.40, "blue", 0.0, 10, false)
+		_sphere("east_promenade_n_lamp_%d_globe" % i, Vector3.ZERO,
+			Vector3(px, 2.50, -54.15), 0.19, "lamp_glass")
+		_omni("east_promenade_n_lamp_%d_glow" % i,
+			Vector3(px, 2.36, -53.82), "warm", 1.65, 7.2, LIGHT_FIXTURE)
+
+	# Low planted beds turn the open side into a park edge without closing the
+	# panorama. Their gaps line up with the lamps, Waterworks display and NNW
+	# junction, so the coaster, sky ride and distant ridge remain available in one
+	# wide shot instead of being screened by a continuous hedge.
+	for i in 4:
+		var px := 30.5 - float(i) * 10.0
+		_box("east_promenade_n_verge_%d" % i, Vector3.ZERO,
+			Vector3(px, 0.22, -57.35), Vector3(7.0, 0.44, 1.05),
+			"brick")
+		_box("east_promenade_n_verge_%d_soil" % i, Vector3.ZERO,
+			Vector3(px, 0.49, -57.35), Vector3(6.64, 0.10, 0.72),
+			"planting", 0.0, false)
+		for j in 3:
+			_sphere("east_promenade_n_verge_%d_shrub_%d" % [i, j],
+				Vector3.ZERO,
+				Vector3(px - 2.15 + float(j) * 2.15, 0.76, -57.35),
+				0.36, "foliage" if (i + j) % 2 == 0 else "planting",
+				0.0, 0.78)
+
+	# The NNW passage already bends and carries its own arcade; this small marker
+	# makes the side of its first pier read as the edge of a junction court rather
+	# than exposed grey structure. It adds no gate and does not imply the future
+	# Grove section is open.
+	_box("east_promenade_nnw_pier_panel", Vector3.ZERO,
+		Vector3(-7.72, 2.30, -51.05), Vector3(0.12, 2.85, 1.08),
+		"blue", 0.0, false)
+	_box("east_promenade_nnw_pier_rule", Vector3.ZERO,
+		Vector3(-7.64, 2.30, -51.05), Vector3(0.06, 0.28, 0.72),
+		"yellow", 0.0, false)
+	_box("east_promenade_nnw_map_base", Vector3.ZERO,
+		Vector3(-4.8, 0.28, -56.55), Vector3(3.4, 0.56, 1.25),
+		"brick")
+	_box("east_promenade_nnw_map_board", Vector3.ZERO,
+		Vector3(-4.8, 1.42, -56.55), Vector3(2.30, 1.45, 0.16),
+		"blue", 0.0, false)
+	_box("east_promenade_nnw_map_field", Vector3.ZERO,
+		Vector3(-4.8, 1.42, -56.44), Vector3(1.72, 0.86, 0.06),
+		"yellow", 0.0, false)
+
+
+## A cute maintenance display beside the route, not a route pretending to be
+## an attraction. The raised trough, pump cabinet and exposed pipe preserve the
+## Waterworks character while remaining a two-minute visual incident on the
+## promenade's planted outer edge. Nothing is deep enough to become another pit.
+func _east_promenade_waterworks() -> void:
+	var c := Vector3(Plan.PROMENADE_WATERWORKS_AT.x, 0.0,
+		Plan.PROMENADE_WATERWORKS_AT.y)
+	_box("east_promenade_waterworks_base", c,
+		Vector3(0.0, 0.28, 0.0), Vector3(7.0, 0.56, 3.25), "brick")
+	_box("east_promenade_waterworks_bed", c,
+		Vector3(-0.35, 0.58, 0.0), Vector3(5.55, 0.16, 2.18),
+		"fount_bed", 0.0, false)
+	_water_box("east_promenade_waterworks_water", c,
+		Vector3(-0.35, 0.69, 0.0), Vector3(5.24, 0.055, 1.88),
+		"water_reservoir")
+	for side in [-1.0, 1.0]:
+		_box("east_promenade_waterworks_coping_%s" %
+			("n" if side < 0.0 else "s"), c,
+			Vector3(-0.35, 0.78, side * 1.18),
+			Vector3(5.85, 0.18, 0.24), "white", 0.0, false)
+	_box("east_promenade_waterworks_coping_w", c,
+		Vector3(-3.08, 0.78, 0.0), Vector3(0.24, 0.18, 2.56),
+		"white", 0.0, false)
+
+	# The cabinet is small enough to be equipment and bright enough to belong to
+	# the park. Its pipe visibly feeds the trough, which is all the story needs.
+	var pump := c + Vector3(2.65, 0.0, 0.0)
+	_box("east_promenade_waterworks_pump", pump,
+		Vector3(0.0, 1.18, 0.0), Vector3(1.35, 2.20, 1.65), "building")
+	_box("east_promenade_waterworks_pump_door", pump,
+		Vector3(-0.70, 1.08, 0.0), Vector3(0.10, 1.72, 1.12),
+		"blue", 0.0, false)
+	_box("east_promenade_waterworks_pump_roof", pump,
+		Vector3(0.0, 2.36, 0.0), Vector3(1.78, 0.24, 2.02),
+		"red", 0.0, false)
+	_strut("east_promenade_waterworks_feed_pipe",
+		pump + Vector3(-0.58, 1.48, -0.45),
+		c + Vector3(1.45, 0.58, -0.45), 0.12, "metal")
+	_cyl("east_promenade_waterworks_valve", Vector3.ZERO,
+		c + Vector3(1.05, 1.02, -0.45), 0.22, 0.10,
+		"yellow", 0.0, 10, false, PI * 0.5)
+
+	_box("east_promenade_waterworks_sign", c,
+		Vector3(-1.10, 1.34, 1.30), Vector3(2.55, 0.70, 0.12),
+		"blue", 0.0, false)
+	_box("east_promenade_waterworks_sign_rule", c,
+		Vector3(-1.10, 1.34, 1.37), Vector3(1.82, 0.15, 0.05),
+		"yellow", 0.0, false)
+	_cyl("east_promenade_waterworks_lamp_post", Vector3.ZERO,
+		c + Vector3(-3.55, 1.25, 1.15), 0.075, 2.50,
+		"blue", 0.0, 10, false)
+	_sphere("east_promenade_waterworks_lamp_globe", Vector3.ZERO,
+		c + Vector3(-3.55, 2.60, 1.15), 0.19, "lamp_glass")
+	_omni("east_promenade_waterworks_lamp_glow",
+		c + Vector3(-3.40, 2.42, 0.78), "warm", 1.85, 7.5, LIGHT_FIXTURE)
+
+
+## Garden fronts on the three shoulder steps beside the promenade turn.
+##
+## These masses cannot be removed casually: they close the masked edge of the
+## sampled hill and hold the north shoulder up. The rejected pond layout ignored
+## their footprint and drove both pier and pump house through them. The promenade
+## treats them as a terraced garden edge, with one planted trellis on each south
+## face. Structure becomes garden wall without moving a
+## single part of the protected cascade terrain further south.
+func _east_waterworks_step_gardens() -> void:
+	var prm := _shoulder_prm(-1.0)
+	var wall_to := float(prm["wall_to"])
+	for k in 3:
+		var d0 := wall_to + float(k) * 2.0
+		var d1 := d0 + 2.4
+		var f0 := _shoulder_foot(d0, wall_to)
+		var f1 := _shoulder_foot(d1, wall_to)
+		var xe: float = 61.75 if k == 0 \
+			else _shoulder_foot(d0 - 2.0, wall_to).x + 0.5
+		var xmin := f1.x - 0.45
+		var face_top := f0.y + 1.1 - 0.275
+		var front_z: float = Plan.ARCH_AT.y - d0 + 0.15
+		var panel_w := minf(xe - xmin - 0.54, 4.4)
+		var panel_x := (xmin + xe) * 0.5
+		var panel_from_y := 0.42
+		var panel_to_y := minf(face_top - 0.42, 4.35)
+		var panel_h := maxf(0.72, panel_to_y - panel_from_y)
+		var panel_mid_y := panel_from_y + panel_h * 0.5
+
+		# A low white trough roots each trellis in the same coping vocabulary as
+		# the whole wall and gives the loose foliage an architectural base.
+		_box("east_waterworks_step_garden_%d_trough" % k, Vector3.ZERO,
+			Vector3(panel_x, 0.30, front_z + 0.08),
+			Vector3(panel_w + 0.20, 0.28, 0.34), "white", 0.0, false)
+		for j in 3:
+			var px := lerpf(panel_x - panel_w * 0.42,
+				panel_x + panel_w * 0.42, float(j) * 0.5)
+			_box("east_waterworks_step_garden_%d_v_%d" % [k, j], Vector3.ZERO,
+				Vector3(px, panel_mid_y, front_z),
+				Vector3(0.10, panel_h, 0.10), "blue", 0.0, false)
+		for j in 3:
+			var py := lerpf(panel_from_y + panel_h * 0.18,
+				panel_to_y - panel_h * 0.12, float(j) * 0.5)
+			_box("east_waterworks_step_garden_%d_h_%d" % [k, j], Vector3.ZERO,
+				Vector3(panel_x, py, front_z),
+				Vector3(panel_w * 0.86, 0.10, 0.10), "blue", 0.0, false)
+
+		var vine_r := minf(0.42, panel_h * 0.15)
+		for j in 3:
+			var px := panel_x + (-0.30 + float(j) * 0.30) * panel_w
+			var py := panel_from_y + panel_h * \
+				(0.28 + float((j * 2 + k) % 3) * 0.22)
+			_sphere("east_waterworks_step_garden_%d_vine_%d" % [k, j],
+				Vector3.ZERO, Vector3(px, py, front_z + 0.10), vine_r,
+				"foliage" if (j + k) % 2 == 0 else "planting", 0.0, 0.76)
 
 
 ## The court below the first cascade is an arrival room rather than spare brick:
@@ -7087,6 +7465,338 @@ func _east_frontier_furniture() -> void:
 			Vector3(0.0, 3.40, 0.0), 0.17, "lamp_glass")
 		_omni("east_frontier_lamp_%d_light" % i,
 			lamp + Vector3(0.0, 3.24, 0.0), "lamp", 1.9, 8.5, LIGHT_FIXTURE)
+
+
+# ---------------------------------------------------------------------------
+# The north-rim sky ride
+# ---------------------------------------------------------------------------
+
+## A vintage open-bucket ride connecting High Country Frontier to the future
+## Grove. Its structure is shared park infrastructure while each station belongs
+## to the district under it: timber depot above, picnic pavilion below.
+func _north_sky_ride() -> void:
+	_east_path_ribbon("sky_ride_frontier_access", Plan.sky_ride_access_path(),
+		Plan.SKY_RIDE_ACCESS_W, "frontier_dust")
+	_sky_ride_frontier_station()
+	_sky_ride_grove_station()
+	for i in Plan.SKY_RIDE_TOWERS.size():
+		_sky_ride_tower(i, Plan.SKY_RIDE_TOWERS[i])
+	_sky_ride_cables()
+
+
+func _sky_ride_direction() -> Vector2:
+	return (Vector2(Plan.SKY_RIDE_GROVE_AT.x, Plan.SKY_RIDE_GROVE_AT.z)
+		- Vector2(Plan.SKY_RIDE_FRONTIER_AT.x,
+			Plan.SKY_RIDE_FRONTIER_AT.z)).normalized()
+
+
+func _sky_ride_theta() -> float:
+	var d := _sky_ride_direction()
+	return atan2(d.x, d.y)
+
+
+## Local x is the ride's right-hand side and local z points toward the Grove.
+func _sky_ride_at(base: Vector3, across: float, up: float,
+		along: float) -> Vector3:
+	var d := _sky_ride_direction()
+	var right := Vector2(d.y, -d.x)
+	return base + Vector3(right.x * across + d.x * along, up,
+		right.y * across + d.y * along)
+
+
+func _sky_ride_frontier_station() -> void:
+	var base: Vector3 = Plan.SKY_RIDE_FRONTIER_AT
+	var theta := _sky_ride_theta()
+
+	# The terminal point is the west end of a timber depot. The building extends
+	# back onto the high shoulder rather than out over it, so no public platform
+	# or station structure needs exposed piers.
+	_box("sky_frontier_platform", base, Vector3(0.0, 0.028, -4.0),
+		Vector3(7.6, 0.056, 9.0), "plank_cross", theta, false)
+	for side_value in [-1.0, 1.0]:
+		var side: float = float(side_value)
+		for along_value in [-7.25, -3.9, -0.65]:
+			var along: float = float(along_value)
+			_cyl("sky_frontier_post_%s_%s" % [str(side), str(along)],
+				base, Vector3(side * 3.18, 3.85, along),
+				0.13, 7.70, "wood", theta, 8)
+			_strut("sky_frontier_knee_%s_%s" % [str(side), str(along)],
+				_sky_ride_at(base, side * 3.18, 6.62, along),
+				_sky_ride_at(base, side * 2.08, 7.78, along), 0.16, "wood")
+	_box("sky_frontier_roof", base, Vector3(0.0, 7.92, -4.0),
+		Vector3(8.35, 0.28, 9.55), "red", theta, false)
+	_box("sky_frontier_roof_crown", base, Vector3(0.0, 8.20, -4.0),
+		Vector3(5.65, 0.24, 8.75), "yellow", theta, false)
+	for along_value in [-7.1, -4.0, -0.9]:
+		var along: float = float(along_value)
+		_strut("sky_frontier_crossbeam_%s" % str(along),
+			_sky_ride_at(base, -3.35, 7.60, along),
+			_sky_ride_at(base, 3.35, 7.60, along), 0.22, "wood")
+
+	# A horizontal bullwheel and its mast make the terminal machinery readable
+	# above the canopy. The line meets its rim; the station is not just a shed
+	# placed near two unexplained wires.
+	_cyl("sky_frontier_bullwheel", base, Vector3(0.0,
+		Plan.SKY_RIDE_FRONTIER_CABLE_Y - base.y, 0.0),
+		2.35, 0.26, "red", theta, 22, false)
+	_cyl("sky_frontier_bullwheel_hub", base, Vector3(0.0,
+		Plan.SKY_RIDE_FRONTIER_CABLE_Y - base.y + 0.16, 0.0),
+		0.58, 0.40, "yellow", theta, 14, false)
+	_cyl("sky_frontier_terminal_mast", base, Vector3(0.0, 6.45, 0.0),
+		0.24, 1.90, "metal", theta, 10)
+
+	# A closed loading gate faces the short branch from the Frontier street.
+	# Guests can reach the attraction and watch its buckets without walking into
+	# the static machinery during this milestone.
+	for along_value in [-1.55, 1.25]:
+		var along: float = float(along_value)
+		_cyl("sky_frontier_gate_post_%s" % str(along), base,
+			Vector3(3.46, 1.22, along), 0.09, 2.44, "metal", theta, 8)
+	# Pickets preserve the boundary without turning the end of the path into one
+	# large blue rectangle. Seeing the timber deck, machinery and buckets through
+	# the gate is what makes this read as a ride that happens to be closed today.
+	for up in [0.48, 1.25]:
+		_box("sky_frontier_gate_rail_%s" % str(up), base,
+			Vector3(3.47, up, -0.15), Vector3(0.18, 0.15, 2.68),
+			"blue", theta)
+	for i in 6:
+		var along := lerpf(-1.38, 1.08, float(i) / 5.0)
+		_box("sky_frontier_gate_picket_%d" % i, base,
+			Vector3(3.47, 0.85, along), Vector3(0.18, 1.48, 0.12),
+			"blue", theta)
+	_box("sky_frontier_sign", base, Vector3(3.49, 2.34, -0.15),
+		Vector3(0.12, 0.72, 3.12), "yellow", theta, false)
+	for i in 5:
+		_sphere("sky_frontier_sign_bulb_%d" % i, base,
+			Vector3(3.58, 2.34, lerpf(-1.25, 0.95, float(i) / 4.0)),
+			0.09, "bulb", theta)
+	var lamp := _sky_ride_at(base, 3.05, 3.55, -3.35)
+	_sphere("sky_frontier_station_globe", lamp, Vector3.ZERO,
+		0.17, "lamp_glass")
+	_omni("sky_frontier_station_light", lamp, "warm", 2.0, 8.0, LIGHT_FIXTURE)
+
+
+func _sky_ride_grove_station() -> void:
+	var base: Vector3 = Plan.SKY_RIDE_GROVE_AT
+	# This is the first authored room in the future Grove: an octagonal picnic-
+	# pavilion terminal on a planted court, not a generic copy of Frontier's shed.
+	# Its broad floor is the whole planned Grove footprint in massing, so the
+	# station and its one support stand on a district rather than on two green
+	# islands in an otherwise unfinished void.
+	var grove: Dictionary = Plan.SECTION_GROUND[&"grove"]
+	var grove_at: Vector2 = grove["at"]
+	var grove_size: Vector2 = grove["size"]
+	_box("sky_grove_ground", Vector3.ZERO,
+		Vector3(grove_at.x, -0.66, grove_at.y),
+		Vector3(grove_size.x, 1.08, grove_size.y), "planting", 0.0, false)
+	_cyl("sky_grove_lawn", base, Vector3(0.0, -0.32, 0.0),
+		12.2, 0.64, "planting", 0.0, 20, false)
+	_cyl("sky_grove_platform", base, Vector3(0.0, 0.035, 0.0),
+		5.65, 0.07, "brick", 0.0, 20, false)
+	for i in 8:
+		var a := TAU * float(i) / 8.0
+		var p := base + Vector3(cos(a) * 4.55, 0.0, sin(a) * 4.55)
+		_cyl("sky_grove_post_%d" % i, p, Vector3(0.0, 4.0, 0.0),
+			0.12, 8.0, "white", 0.0, 8)
+	_cyl("sky_grove_roof", base, Vector3(0.0, 8.55, 0.0),
+		5.45, 0.28, "sky_green", 0.0, 8, false)
+	_cyl("sky_grove_roof_upper", base, Vector3(0.0, 8.85, 0.0),
+		3.85, 0.24, "yellow", 0.0, 8, false)
+	_cyl("sky_grove_lantern", base, Vector3(0.0, 9.55, 0.0),
+		1.18, 1.18, "white", 0.0, 8, false)
+	_cyl("sky_grove_lantern_roof", base, Vector3(0.0, 10.25, 0.0),
+		1.48, 0.20, "sky_green", 0.0, 8, false)
+	# A deep segmented valance brings the eave back to human scale while leaving
+	# the cable and bullwheel clear through the middle. The south panel carries
+	# the public face of the station toward the Grove approach.
+	var valance_r := 5.02
+	var valance_chord := 2.0 * valance_r * sin(PI / 8.0) * 1.05
+	for i in 8:
+		var a := TAU * float(i) / 8.0
+		_box("sky_grove_valance_%d" % i, base,
+			Vector3(0.0, 7.73, valance_r),
+			Vector3(valance_chord, 0.66, 0.20), "sky_green", a, false)
+	_box("sky_grove_sign", base, Vector3(0.0, 7.48, 5.17),
+		Vector3(3.45, 0.74, 0.15), "yellow", 0.0, false)
+	for i in 5:
+		_sphere("sky_grove_sign_bulb_%d" % i, base,
+			Vector3(lerpf(-1.35, 1.35, float(i) / 4.0), 7.48, 5.28),
+			0.09, "bulb")
+
+	_cyl("sky_grove_bullwheel", base, Vector3(0.0,
+		Plan.SKY_RIDE_GROVE_CABLE_Y, 0.0),
+		2.35, 0.26, "sky_green", 0.0, 22, false)
+	_cyl("sky_grove_bullwheel_hub", base, Vector3(0.0,
+		Plan.SKY_RIDE_GROVE_CABLE_Y + 0.16, 0.0),
+		0.58, 0.40, "yellow", 0.0, 14, false)
+	_cyl("sky_grove_terminal_mast", base, Vector3(0.0, 6.65, 0.0),
+		0.24, 3.0, "metal", 0.0, 10, false)
+
+	# A small operating room and a compact switchback occupy the south half of
+	# the pavilion. These are shared park operations in Grove colours, not
+	# Frontier scenery copied downhill. The east lane remains a clear entrance.
+	var queue_z0 := 0.15
+	var queue_z1 := 3.45
+	for lane in 3:
+		var queue_x := -2.65 + float(lane) * 1.15
+		for end in 2:
+			var queue_z := queue_z0 if end == 0 else queue_z1
+			_cyl("sky_grove_queue_post_%d_%d" % [lane, end], base,
+				Vector3(queue_x, 0.55, queue_z), 0.055, 1.10,
+				"metal", 0.0, 8)
+		_strut("sky_grove_queue_rail_%d" % lane,
+			base + Vector3(queue_x, 0.88, queue_z0),
+			base + Vector3(queue_x, 0.88, queue_z1), 0.055, "metal")
+	var booth := base + Vector3(2.75, 0.0, 2.10)
+	_box("sky_grove_booth_body", booth, Vector3(0.0, 0.82, 0.0),
+		Vector3(1.55, 1.76, 1.35), "white")
+	_box("sky_grove_booth_window", booth, Vector3(0.0, 1.10, 0.71),
+		Vector3(0.92, 0.58, 0.08), "blue", 0.0, false)
+	_box("sky_grove_booth_roof", booth, Vector3(0.0, 1.82, 0.0),
+		Vector3(1.92, 0.20, 1.70), "sky_green")
+	var bench := base + Vector3(-6.85, 0.0, 2.80)
+	_bench("sky_grove_bench", bench, _facing(bench, base))
+	_cyl("sky_grove_bin", base, Vector3(-5.65, 0.42, 4.15),
+		0.22, 0.84, "metal", 0.0, 10)
+
+	# Mature crowns make the low terminal unmistakably Grove even before that
+	# section exists. The opening faces south toward the NNW return passage.
+	var trees := [
+		[Vector2(-8.7, -4.8), 8.3, 2.05, -0.4],
+		[Vector2(8.9, -5.6), 7.6, 1.85, 0.5],
+		[Vector2(-9.8, 5.2), 9.0, 2.15, 0.3],
+		[Vector2(9.4, 5.8), 8.1, 1.95, -0.5],
+	]
+	for i in trees.size():
+		var tree: Array = trees[i]
+		var p: Vector2 = tree[0]
+		_east_frontier_tree("sky_grove_tree_%d" % i,
+			base + Vector3(p.x, 0.0, p.y), float(tree[1]),
+			float(tree[2]), float(tree[3]))
+	for i in 8:
+		var a := TAU * float(i) / 8.0
+		_sphere("sky_grove_roof_bulb_%d" % i, base,
+			Vector3(cos(a) * 5.12, 8.46, sin(a) * 5.12), 0.10, "bulb")
+	_omni("sky_grove_station_light", base + Vector3(0.0, 7.50, 0.0),
+		"warm", 2.4, 10.0, LIGHT_FEATURE)
+
+
+func _sky_ride_tower(index: int, spec: Dictionary) -> void:
+	var t: float = spec["t"]
+	var p: Vector2 = Plan.sky_ride_plan_at(t)
+	var ground: float = spec["ground_y"]
+	var top_y: float = spec["cable_y"]
+	var base := Vector3(p.x, ground, p.y)
+	# Blue steel is the shared park kit between two differently themed stations.
+	# Splayed legs and diagonals make a ride tower rather than another naked pier.
+	for side_value in [-1.0, 1.0]:
+		var side: float = float(side_value)
+		_strut("sky_tower_%d_leg_%s" % [index, str(side)],
+			_sky_ride_at(base, side * 3.25, -0.25, 0.0),
+			_sky_ride_at(base, side * 2.25, top_y - ground - 0.55, 0.0),
+			0.30, "blue")
+		_strut("sky_tower_%d_brace_%s" % [index, str(side)],
+			_sky_ride_at(base, -side * 3.05, 0.85, 0.0),
+			_sky_ride_at(base, side * 2.15,
+				(top_y - ground) * 0.63, 0.0), 0.18, "white")
+	_strut("sky_tower_%d_crossarm" % index,
+		_sky_ride_at(base, -3.55, top_y - ground, 0.0),
+		_sky_ride_at(base, 3.55, top_y - ground, 0.0), 0.28, "white")
+	for lane_value in [-1.0, 1.0]:
+		var lane: float = float(lane_value) * Plan.SKY_RIDE_LANE_HALF
+		var sheave := _sky_ride_at(base, lane, top_y - ground + 0.10, 0.0)
+		_sphere("sky_tower_%d_sheave_%s" % [index, str(lane_value)],
+			sheave, Vector3.ZERO, 0.30, "yellow")
+	_sphere("sky_tower_%d_marker_l" % index,
+		_sky_ride_at(base, -3.45, top_y - ground + 0.22, 0.0),
+		Vector3.ZERO, 0.09, "bulb")
+	_sphere("sky_tower_%d_marker_r" % index,
+		_sky_ride_at(base, 3.45, top_y - ground + 0.22, 0.0),
+		Vector3.ZERO, 0.09, "bulb")
+
+
+func _sky_ride_supports() -> Array:
+	var out := [{"t": 0.0, "y": Plan.SKY_RIDE_FRONTIER_CABLE_Y}]
+	for spec in Plan.SKY_RIDE_TOWERS:
+		out.append({"t": float(spec["t"]), "y": float(spec["cable_y"])})
+	out.append({"t": 1.0, "y": Plan.SKY_RIDE_GROVE_CABLE_Y})
+	return out
+
+
+func _sky_ride_cable_y(t: float) -> float:
+	var supports := _sky_ride_supports()
+	for i in supports.size() - 1:
+		var a: Dictionary = supports[i]
+		var b: Dictionary = supports[i + 1]
+		if t > float(b["t"]) and i < supports.size() - 2:
+			continue
+		var u := inverse_lerp(float(a["t"]), float(b["t"]), t)
+		var pa := Plan.sky_ride_plan_at(float(a["t"]))
+		var pb := Plan.sky_ride_plan_at(float(b["t"]))
+		var sag := clampf(pa.distance_to(pb) * 0.026, 0.55, 1.75)
+		return lerpf(float(a["y"]), float(b["y"]), u) - sin(u * PI) * sag
+	return Plan.SKY_RIDE_GROVE_CABLE_Y
+
+
+func _sky_ride_cable_point(t: float, lane: float) -> Vector3:
+	var p := Plan.sky_ride_plan_at(t)
+	var d := _sky_ride_direction()
+	var right := Vector2(d.y, -d.x)
+	return Vector3(p.x + right.x * lane, _sky_ride_cable_y(t),
+		p.y + right.y * lane)
+
+
+func _sky_ride_cables() -> void:
+	var supports := _sky_ride_supports()
+	for lane_index in 2:
+		var lane := (-1.0 if lane_index == 0 else 1.0) * Plan.SKY_RIDE_LANE_HALF
+		for span in supports.size() - 1:
+			var ta: float = supports[span]["t"]
+			var tb: float = supports[span + 1]["t"]
+			var previous := _sky_ride_cable_point(ta, lane)
+			for segment in 12:
+				var t := lerpf(ta, tb, float(segment + 1) / 12.0)
+				var at := _sky_ride_cable_point(t, lane)
+				_strut("sky_cable_%d_%d_%d" % [lane_index, span, segment],
+					previous, at, 0.045, "metal")
+				previous = at
+
+	var runs := [
+		{"lane": -Plan.SKY_RIDE_LANE_HALF,
+			"ts": [0.08, 0.25, 0.46, 0.67, 0.90], "reverse": false},
+		{"lane": Plan.SKY_RIDE_LANE_HALF,
+			"ts": [0.16, 0.36, 0.57, 0.78, 0.96], "reverse": true},
+	]
+	var colors := ["red", "yellow", "blue"]
+	var cabin_index := 0
+	for run in runs:
+		for value in run["ts"]:
+			var t: float = value
+			_sky_ride_cabin(cabin_index,
+				_sky_ride_cable_point(t, float(run["lane"])),
+				colors[cabin_index % colors.size()], bool(run["reverse"]))
+			cabin_index += 1
+
+
+func _sky_ride_cabin(index: int, cable: Vector3, color: String,
+		reverse: bool) -> void:
+	var theta := _sky_ride_theta() + (PI if reverse else 0.0)
+	var body := cable - Vector3(0.0, 2.35, 0.0)
+	_strut("sky_cabin_%d_hanger" % index, cable,
+		body + Vector3(0.0, 0.72, 0.0), 0.08, "metal")
+	_box("sky_cabin_%d_bucket" % index, body, Vector3.ZERO,
+		Vector3(1.45, 0.72, 1.18), color, theta, false)
+	_box("sky_cabin_%d_seat" % index, body, Vector3(0.0, 0.48, 0.12),
+		Vector3(1.10, 0.13, 0.78), "white", theta, false)
+	for side_value in [-1.0, 1.0]:
+		var side: float = float(side_value)
+		_box("sky_cabin_%d_upright_%s" % [index, str(side)], body,
+			Vector3(side * 0.58, 0.88, 0.0), Vector3(0.08, 1.15, 0.08),
+			"metal", theta, false)
+	_box("sky_cabin_%d_canopy" % index, body, Vector3(0.0, 1.48, 0.0),
+		Vector3(1.65, 0.15, 1.38), color, theta, false)
+	_sphere("sky_cabin_%d_bulb" % index, body,
+		Vector3(0.0, 1.58, 0.0), 0.075, "bulb")
 
 
 ## Level coping draws the low retaining edge clearly against the planted bank,

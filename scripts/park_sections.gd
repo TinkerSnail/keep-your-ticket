@@ -130,6 +130,9 @@ const SECTIONS := {
 			## playable east scene, which the boardwalk does not mount; the shops
 			## hid it from here even before it moved.
 			"res://scenes/world/plaza_skyline.tscn",
+			# The sky ride is a park-wide northern silhouette. Its Grove terminal
+			# and cabins remain visible from the promenade after the plaza unloads.
+			"res://scenes/world/north_sky_ride.tscn",
 			"res://scenes/world/west_stair.tscn",
 			"res://scenes/world/boardwalk.tscn",
 			"res://scenes/world/boardwalk_crowd.tscn",
@@ -173,6 +176,11 @@ const SECTIONS := {
 	## wall the west never gets above.
 		"scenes": [
 			"res://scenes/world/east_cascade.tscn",
+			# The promenade now reaches the NNW passage from outside the plaza.
+			# Mount the passage on this side of the east seam too, or the junction
+			# disappears precisely when the player enters the section that owns it.
+			"res://scenes/world/thresholds.tscn",
+			"res://scenes/world/north_sky_ride.tscn",
 			"res://scenes/world/plaza_skyline.tscn",
 			"res://scenes/world/terraces_far.tscn",
 			"res://scenes/world/terraces_crowd.tscn",

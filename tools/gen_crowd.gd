@@ -427,6 +427,15 @@ func _east_graph() -> void:
 	_node("e_belv_n", Vector3(78.0, Plan.HILL_TOP, axis - 7.0))
 	_node("e_belv_s", Vector3(78.0, Plan.HILL_TOP, axis + 7.0))
 	_node("e_top", Vector3(Plan.CLIMB_TO_X + 4.0, Plan.CLIMB_HEAD_Y, axis))
+	# The first orbital street is real circulation, not scenery. Its final broad
+	# point stops outside the still-unbuilt Grove handoff; the narrower threshold
+	# link belongs to that future section and should not send this crowd into a
+	# passage that cannot yet complete a section swap.
+	var promenade_path: Array[Vector3] = Plan.promenade_ne_path()
+	_node("e_promenade_entry", Vector3(50.2, 0.0, -11.4))
+	_node("e_promenade_entry_n", Vector3(50.2, 0.0, -16.8))
+	for i in promenade_path.size():
+		_node("e_promenade_%d" % i, promenade_path[i])
 	var crest_x := (Plan.CREST_COURT_X0 + Plan.CREST_COURT_X1) * 0.5
 	for s in 2:
 		var side := -1.0 if s == 0 else 1.0
@@ -477,12 +486,28 @@ func _east_graph() -> void:
 	_edge("e_frontier_street_mid", "e_frontier_street_w", false)
 	_edge("e_frontier_street_mid", "e_frontier_food", false)
 	_edge("e_frontier_street_w", "e_frontier_games", false)
+	# The sky ride is the northern continuation rather than an isolated object.
+	# Index zero is the Frontier path's final node, so the branch publishes only
+	# the three new bends and ends immediately outside the closed loading gate.
+	var sky_path: Array[Vector3] = Plan.sky_ride_access_path()
+	for i in range(1, sky_path.size()):
+		_node("e_sky_%d" % (i - 1), sky_path[i])
+	_edge("e_frontier_4", "e_sky_0", false)
+	for i in sky_path.size() - 2:
+		_edge("e_sky_%d" % i, "e_sky_%d" % (i + 1), false)
 	# **No link back to `ring_e`.** It was there while the east lived in the
 	# plaza's graph, and the split made it a dangling name: the plaza's ring is
 	# not in this section and the seam at the gate is what joins the two, not an
 	# edge. `e_gate` is the entry node, which is the same job `lane_s` does on the
 	# boardwalk.
 	_edge("e_gate", "e_court", false)
+	# Slip west of the forecourt's seating grove before joining the new street;
+	# a direct diagonal clips the north tree even though both endpoints are clear.
+	_edge("e_court", "e_promenade_entry", false)
+	_edge("e_promenade_entry", "e_promenade_entry_n", false)
+	_edge("e_promenade_entry_n", "e_promenade_0", false)
+	for i in promenade_path.size() - 1:
+		_edge("e_promenade_%d" % i, "e_promenade_%d" % (i + 1), false)
 
 	# The monument's own wings. North is the ramp and south the garden stair, and
 	# that difference is the whole reason this graph knows about steps.
@@ -668,6 +693,14 @@ func _terraces_obstacles() -> Array:
 		"kind": "rect",
 		"at": Vector2(78.6, Plan.EAST_FRONTIER_STREET_Z + 3.28),
 		"half": Vector2(1.8, 0.20),
+	})
+	# The terminal machinery is visible through its gate but never part of a
+	# wander route. The public graph stops just outside this circle.
+	out.append({
+		"kind": "circle",
+		"at": Vector2(Plan.SKY_RIDE_FRONTIER_AT.x,
+			Plan.SKY_RIDE_FRONTIER_AT.z),
+		"r": 2.55,
 	})
 	return out
 
@@ -3164,7 +3197,10 @@ func _boardwalk_seated_groups() -> void:
 ## top, not a crowd standing about in front of shops that do not exist.
 func _build_terraces() -> bool:
 	# Its own seed, or this is the plaza's cast in different clothes.
-	_begin("crowd", 0.0, Rect2(30.0, -100.0, 100.0, 172.0), 0x7E44)
+	# The east section now owns the first orbital street as far west as the NNW
+	# approach. Widen the sanity bound to describe that real footprint; obstacles
+	# remain the authority on where a guest can actually walk inside it.
+	_begin("crowd", 0.0, Rect2(-30.0, -110.0, 170.0, 182.0), 0x7E44)
 
 	_east_graph()
 	# Kiosks now occupy the back of each bay. Their approach remains clear, but
@@ -3257,6 +3293,11 @@ func _terraces_pois() -> PackedVector3Array:
 		Plan.EAST_FRONTIER_FRONT_Z + 0.25))
 	out.append(Vector3(68.2, Plan.EAST_FRONTIER_FLOOR_Y + 3.2,
 		Plan.EAST_FRONTIER_STREET_Z))
+	# The loading wheel and first bright bucket turn the branch into a reason to
+	# keep walking even while the attraction itself remains static and closed.
+	out.append(Vector3(Plan.SKY_RIDE_FRONTIER_AT.x,
+		Plan.SKY_RIDE_FRONTIER_CABLE_Y,
+		Plan.SKY_RIDE_FRONTIER_AT.z))
 	# Back down the axis at the clock tower, which is the view the belvedere is
 	# for and the only instrument the park has.
 	out.append(Vector3(Plan.CLOCK_TOWER_AT.x, 26.0, Plan.CLOCK_TOWER_AT.y))
@@ -3291,6 +3332,12 @@ func _terraces_walking_groups() -> void:
 		{"start": "e_frontier_street_mid", "kinds": ["adult", "adult", "kid"]},
 		{"start": "e_frontier_street_w", "kinds": ["adult", "kid"]},
 		{"start": "e_frontier_food", "kinds": ["adult", "adult"]},
+		{"start": "e_sky_1", "kinds": ["adult", "adult", "kid"]},
+		# New promenade groups stay last so adding the orbital street does not
+		# consume the seeded random sequence ahead of every established guest.
+		{"start": "e_promenade_1", "kinds": ["adult", "kid"]},
+		{"start": "e_promenade_3", "kinds": ["adult", "adult", "kid"]},
+		{"start": "e_promenade_4", "kinds": ["stroller_adult", "adult", "kid"]},
 	]
 	for entry in plan:
 		var origin: Vector3 = _graph_points[_node_index(entry["start"])]
