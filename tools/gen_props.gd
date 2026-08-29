@@ -5447,7 +5447,8 @@ func _shoulder_y(x: float, z: float, side: float, prm: Dictionary) -> float:
 	var axis: float = Plan.ARCH_AT.y
 	var dist := (z - axis) * side
 	var top: float = Plan.TERRACE_TWO_Y + GROUND_LIFT
-	var f := _shoulder_foot(dist, float(prm["wall_to"]))
+	var wall_to := float(prm["wall_to"])
+	var f := _shoulder_foot(dist, wall_to)
 	var fw := f.y + (x - f.x) / SHOULDER_BATTER
 	if fw > f.y and fw < top:
 		var t := (fw - f.y) / maxf(top - f.y, 0.001)
@@ -5535,6 +5536,13 @@ func _east_shoulder(side: float, tag: String) -> void:
 		cols.append(cx)
 		cx += EARTH_STEP
 	cols.append(EARTH_TO_X)
+	# The north transition has a published public toe rather than the shoulder's
+	# natural one. Make that toe a real shared mesh column: clipping to the first
+	# coarse sample east of it leaves the entire edge above pavement and renders
+	# the bank as long unsupported sheets when seen from below.
+	if side < 0.0:
+		cols.append(Plan.PROMENADE_EAST_X + Plan.PROMENADE_WIDTH * 0.5 + 0.15)
+		cols.sort()
 
 	var rows := PackedFloat32Array()
 	for r in prm["rows_head"]:
@@ -5570,6 +5578,13 @@ func _east_shoulder(side: float, tag: String) -> void:
 			wlim = SHOULDER_FOOT_X - 0.15
 		elif dmid < wall_to + SHOULDER_TRANS_D:
 			wlim = _shoulder_foot(dmid, wall_to).x - 0.2
+			# The north transition runs beside the public promenade. Its sampled
+			# foot used to push almost three metres into that 6.4m walk, hidden by
+			# the second masonry step. Hold both earth and masonry outside the
+			# walking edge instead of treating a clear centreline as a clear route.
+			if side < 0.0:
+				wlim = maxf(wlim,
+					Plan.PROMENADE_EAST_X + Plan.PROMENADE_WIDTH * 0.5 + 0.15)
 		if bool(prm["corner"]) and dmid < 25.95:
 			# The corner band reaches the tuck column and no further: east of it
 			# the skin already owns the ground.
@@ -5578,6 +5593,13 @@ func _east_shoulder(side: float, tag: String) -> void:
 			# The south's one sliver of tuck strip. Bank quads here would hang
 			# over the court's own lip, so only the plateau lap is laid.
 			wlim = 69.9
+		if side < 0.0:
+			# Keep the north shoulder's upper plateau but retire its whole exposed
+			# west batter. The moving-foot strips were designed to land inside the
+			# masonry that has now gone; seen from the promenade they are hanging
+			# landscape sheets. Closed planting terraces below now own this public
+			# edge, while the plateau still supports the ride and upper paths.
+			wlim = maxf(wlim, 69.9)
 		var keep := PackedByteArray()
 		for c in cols:
 			keep.append(1 if c >= wlim and c <= elim else 0)
@@ -5601,7 +5623,81 @@ func _east_shoulder(side: float, tag: String) -> void:
 	shape.owner = _root
 
 	_shoulder_masonry(side, tag, prm)
+	if side < 0.0:
+		_north_promenade_terrace_bank(wall_to)
 	_shoulder_blooms(side, tag, prm)
+
+
+## Closed planting terraces where the north shoulder meets the promenade.
+##
+## This six-metre station used to be hidden by the stepped masonry end. A raw
+## sampled surface here exposes its underside because the natural toe lies in
+## the public walk. Closed, shallow terraces make the cut intentional while all
+## vertical faces run parallel to the route rather than closing its end.
+func _north_promenade_terrace_bank(wall_to: float) -> void:
+	var toe_x := Plan.PROMENADE_EAST_X + Plan.PROMENADE_WIDTH * 0.5 + 0.15
+	var to_x := Plan.HILL_FACE_X + 0.15
+	var heights := PackedFloat32Array([0.45, 1.05, 2.0, 3.35, 5.15, 7.35, 9.8, 12.02])
+	var band_w := (to_x - toe_x) / float(heights.size())
+	var bank_from := wall_to - 6.0
+	var bank_to := wall_to + 48.0
+	var z := Plan.ARCH_AT.y - (bank_from + bank_to) * 0.5
+	for i in heights.size():
+		var h := heights[i]
+		var xa := toe_x + float(i) * band_w
+		var xb := xa + band_w
+		_box("east_promenade_bank_%d" % i, Vector3.ZERO,
+			Vector3((xa + xb) * 0.5, (h - 0.08) * 0.5, z),
+			Vector3(band_w + 0.03, h + 0.08, bank_to - bank_from + 0.16),
+			"brick")
+		_box("east_promenade_bank_%d_soil" % i, Vector3.ZERO,
+			Vector3((xa + xb) * 0.5, h + 0.035, z),
+			Vector3(band_w - 0.12, 0.10, bank_to - bank_from - 0.12),
+			"planting", 0.0, false)
+		_box("east_promenade_bank_%d_coping" % i, Vector3.ZERO,
+			Vector3(xa - 0.035, h + 0.07, z),
+			Vector3(0.16, 0.16, bank_to - bank_from + 0.08),
+			"white", 0.0, false)
+
+	# Broken hedge ribbons cover enough masonry for this to read as a garden,
+	# while the gaps keep the bank from becoming one diagrammatic green stripe.
+	# Everything sits beyond the route edge: planting can make the wall softer
+	# without making the walk narrower again.
+	var hedge_bands := PackedInt32Array([1, 3, 5, 7])
+	for row in hedge_bands.size():
+		var bi := hedge_bands[row]
+		var hx := toe_x + (float(bi) + 0.5) * band_w
+		var hy := heights[bi] + 0.28
+		var first_z := -43.0 - float(row % 2) * 7.0
+		for run in 4:
+			var hz := first_z - float(run) * 14.0
+			_box("east_promenade_bank_hedge_%d_%d" % [row, run], Vector3.ZERO,
+				Vector3(hx, hy, hz), Vector3(band_w - 0.34, 0.46, 6.2),
+				"foliage" if (row + run) % 2 == 0 else "planting", 0.0, false)
+
+	# Six staggered shrubs provide a slower vertical rhythm above those low
+	# ribbons. They are deliberately distributed among the terraces rather than
+	# marching down the promenade edge like another line of street furniture.
+	var station_zs := PackedFloat32Array([-42.0, -51.0, -60.0, -69.0, -78.0, -87.0])
+	var station_bands := PackedInt32Array([2, 5, 3, 6, 4, 2])
+	for i in station_zs.size():
+		var bi := station_bands[i]
+		var bx := toe_x + (float(bi) + 0.5) * band_w
+		var by := heights[bi] + 0.10
+		var bz := station_zs[i]
+		_cyl("east_promenade_bank_shrub_%d_trunk" % i, Vector3.ZERO,
+			Vector3(bx, by + 0.42, bz), 0.09, 0.84, "wood", 0.0, 8, false)
+		_sphere("east_promenade_bank_shrub_%d_a" % i, Vector3.ZERO,
+			Vector3(bx, by + 1.00, bz), 0.52,
+			"foliage" if i % 2 == 0 else "planting", 0.0, 0.84)
+		_sphere("east_promenade_bank_shrub_%d_b" % i, Vector3.ZERO,
+			Vector3(bx + 0.22, by + 1.28, bz - 0.18), 0.34,
+			"planting" if i % 2 == 0 else "foliage", 0.0, 0.82)
+		for j in 3:
+			_sphere("east_promenade_bank_flower_%d_%d" % [i, j], Vector3.ZERO,
+				Vector3(bx - 0.44 + float(j) * 0.40, by + 0.25,
+					bz + 0.34 - float(j) * 0.30), 0.14,
+				["red", "yellow", "white"][posmod(i + j, 3)], 0.0, 0.78)
 
 
 ## The retaining wall behind the passage, its stepped end, and the return wall
@@ -5625,24 +5721,30 @@ func _shoulder_masonry(side: float, tag: String, prm: Dictionary) -> void:
 		Vector3(60.68, 1.1, (z0 + z1) * 0.5),
 		Vector3(HILL_FACE_T, 3.0, absf(z1 - z0) - 0.6), "brick", 0.0, false)
 
-	# The stepped end, three boxes walking the foot down to the toe. Spans and
-	# tops both come off `_shoulder_foot`, laps are generous on purpose: these
-	# cover the mesh's masked edge columns, and a step that stops where the edge
-	# is leaves the edge showing the day the foot moves.
+	# The stepped end walks the foot down to the toe on the south, where it retains
+	# the passage flank. There is no north stepped end: even clipped outside the
+	# nominal stripe it closes the turn, pinches the sightline and functionally
+	# occupies the promenade. The north earthwork is clipped to the public edge
+	# above and meets the court as a planted bank instead.
 	var wall_to := float(prm["wall_to"])
-	for k in 3:
+	var step_count := 0 if side < 0.0 else 3
+	for k in step_count:
 		var d0 := wall_to + float(k) * 2.0
 		var d1 := d0 + 2.4
 		var f0 := _shoulder_foot(d0, wall_to)
 		var f1 := _shoulder_foot(d1, wall_to)
 		var xe: float = 61.75 if k == 0 else _shoulder_foot(d0 - 2.0, wall_to).x + 0.5
+		var xmin := f1.x - 0.45
+		if side < 0.0:
+			xmin = maxf(xmin,
+				Plan.PROMENADE_EAST_X + Plan.PROMENADE_WIDTH * 0.5 + 0.15)
 		var top := f0.y + 1.1
 		var za := axis + side * d0
 		var zb := axis + side * d1
 		_box("shoulder_step_%s_%d" % [tag, k], Vector3.ZERO,
-			Vector3((f1.x - 0.45 + xe) * 0.5, (top - 0.55) * 0.5 - 0.275,
+			Vector3((xmin + xe) * 0.5, (top - 0.55) * 0.5 - 0.275,
 				(za + zb) * 0.5),
-			Vector3(xe - f1.x + 0.45, top + 0.55, absf(zb - za)), "building")
+			Vector3(xe - xmin, top + 0.55, absf(zb - za)), "building")
 
 	# The return wall at the court corner: the cut face between the shoulder's
 	# bank and the court floor, stepped up from the retaining wall to the scarp.
@@ -5865,39 +5967,9 @@ func _east_north_promenade() -> void:
 			Vector3(60.43, visible_top * 0.5, pz),
 			Vector3(0.34, visible_top, 0.62), "brick", 0.0, false)
 
-	# Carry the finish over the shoulder's three descending masonry blocks and
-	# around its return into the east court. These are skins on the sampled
-	# earthwork, so their tops are derived from the same foot and shoulder
-	# functions as the blocks beneath them; the brick can never expose a grey
-	# step merely because the bank profile moves later.
-	var wall_to := float(prm["wall_to"])
-	for k in 3:
-		var d0 := wall_to + float(k) * 2.0
-		var d1 := d0 + 2.4
-		var f0 := _shoulder_foot(d0, wall_to)
-		var f1 := _shoulder_foot(d1, wall_to)
-		var xe: float = 61.75 if k == 0 else _shoulder_foot(d0 - 2.0, wall_to).x + 0.5
-		var xmin := f1.x - 0.45
-		var face_top := f0.y + 1.1 - 0.275
-		var za: float = Plan.ARCH_AT.y - d0
-		var zb: float = Plan.ARCH_AT.y - d1
-		# Stop the vertical skin 2cm below the masonry block's own top. The white
-		# cap covers that edge; carrying the skin exactly to `face_top` gives its
-		# thin upward face the same plane as the block beneath it.
-		var skin_top := face_top - 0.02
-		var face_h := skin_top + 0.40
-		var face_y := (skin_top - 0.40) * 0.5
-		_box("east_service_step_%d_front" % k, Vector3.ZERO,
-			Vector3((xmin + xe) * 0.5, face_y, za + 0.04),
-			Vector3(xe - xmin + 0.04, face_h, 0.12), "brick", 0.0, false)
-		_box("east_service_step_%d_side" % k, Vector3.ZERO,
-			Vector3(xmin - 0.04, face_y, (za + zb) * 0.5),
-			Vector3(0.12, face_h, absf(zb - za) - 0.14), "brick", 0.0, false)
-		_box("east_service_step_%d_cap" % k, Vector3.ZERO,
-			Vector3((xmin + xe) * 0.5, face_top + 0.08, (za + zb) * 0.5),
-			Vector3(xe - xmin + 0.16, 0.18, absf(zb - za) + 0.14),
-			"white", 0.0, false)
-
+	# The north stepped end was removed to leave the promenade turn functionally
+	# open, so there is no finish to carry over it. The return beyond the walking
+	# corner remains capped below.
 	var rz := float(prm["ret_z"])
 	var rxs := PackedFloat32Array([60.7, 64.0, 67.2, 70.4])
 	for k in 3:
@@ -5982,11 +6054,14 @@ func _east_promenade_furniture() -> void:
 		var at := Vector3(49.25, 0.0, -32.1 - float(i) * 6.75)
 		_bench("east_waterworks_bench_%d" % i, at, PI * 0.5)
 
-	# Three clipped shrubs in raised brick beds make the tall retaining wall a
-	# garden edge rather than the side of a cutting. Their crowns stay below the
-	# wall lamps and below every long view to the ride silhouettes.
-	for i in 3:
-		var pz := -23.7 - float(i) * 7.65
+	# Two clipped shrubs in raised brick beds make the tall retaining wall a
+	# garden edge rather than the side of a cutting. The entrance and turn stay
+	# visually open, while the two remaining bays keep the long wall from reading
+	# as an unbroken service face. Their crowns stay below the wall lamps and
+	# below every long view to the ride silhouettes.
+	var bay_zs := PackedFloat32Array([-28.0, -38.5])
+	for i in bay_zs.size():
+		var pz: float = bay_zs[i]
 		var base := Vector3(58.82, 0.0, pz)
 		_box("east_waterworks_planter_%d" % i, base,
 			Vector3(0.0, 0.24, 0.0), Vector3(1.55, 0.48, 2.35), "brick")
@@ -6002,9 +6077,10 @@ func _east_promenade_furniture() -> void:
 
 	# Blue garden trellises and loose vine masses break the remaining grey upper
 	# wall into bays. They sit proud of its west face, sharing no plane with the
-	# sampled shoulder skin behind them.
-	for i in 3:
-		var pz := -23.7 - float(i) * 7.65
+	# sampled shoulder skin behind them. They use the same two bays as the beds,
+	# so the dressing reads as a pair rather than as a repeating fence.
+	for i in bay_zs.size():
+		var pz: float = bay_zs[i]
 		for j in 3:
 			_box("east_waterworks_trellis_%d_v_%d" % [i, j], Vector3.ZERO,
 				Vector3(60.08, 2.58, pz - 1.08 + float(j) * 1.08),
@@ -6033,11 +6109,11 @@ func _east_promenade_furniture() -> void:
 			Vector3(47.21, 2.12, pz), Vector3(0.05, 0.22, 1.55),
 			"red" if i == 0 else "yellow", 0.0, false)
 
-	# Three cross-court festoons make the garden feel like part of the same park
+	# Two cross-court festoons make the garden feel like part of the same park
 	# as the Frontier street. They sag across the short dimension, so no wire runs
 	# along and strengthens the alley's already-long perspective.
-	for i in 3:
-		var pz := -23.7 - float(i) * 7.65
+	for i in bay_zs.size():
+		var pz: float = bay_zs[i]
 		var a := Vector3(47.35, 4.55, pz)
 		var b := Vector3(60.05, 4.38, pz)
 		var prev := a
@@ -6071,14 +6147,14 @@ func _east_promenade_frontages() -> void:
 	# south of the gateway pier, then releases into the existing passage floor.
 	var broad: Array[Vector3] = Plan.promenade_ne_path()
 	_east_path_ribbon("park_promenade_ne_edge", broad, Plan.PROMENADE_WIDTH + 0.42,
-		"blue")
+		"niche_stone")
 	var broad_field: Array[Vector3] = []
 	for p in broad:
 		broad_field.append(p + Vector3(0.0, 0.004, 0.0))
 	_east_path_ribbon("park_promenade_ne_field", broad_field,
 		Plan.PROMENADE_WIDTH, "brick")
 	var link: Array[Vector3] = Plan.promenade_nnw_link()
-	_east_path_ribbon("park_promenade_nnw_edge", link, 3.42, "blue")
+	_east_path_ribbon("park_promenade_nnw_edge", link, 3.42, "niche_stone")
 	var link_field: Array[Vector3] = []
 	for p in link:
 		link_field.append(p + Vector3(0.0, 0.004, 0.0))
@@ -6112,6 +6188,60 @@ func _east_promenade_frontages() -> void:
 		_box("east_promenade_front_e_%d_valance" % i, Vector3.ZERO,
 			Vector3(48.92, 3.02, pz), Vector3(0.10, 0.30, w - 0.08),
 			accent, 0.0, false)
+		# Mullions, a door leaf and a compact fascia turn broad dark rectangles
+		# into operating park tenants. Everything remains relief on the wall;
+		# the awning is still the deepest piece and already clears the edge zone.
+		for j in 2:
+			var mz := pz - w * 0.22 + float(j) * w * 0.44
+			_box("east_promenade_front_e_%d_mullion_%d" % [i, j],
+				Vector3.ZERO, Vector3(47.47, 1.86, mz),
+				Vector3(0.08, 2.28, 0.10), "white", 0.0, false)
+		var door_z := pz + w * 0.30
+		_box("east_promenade_front_e_%d_door" % i, Vector3.ZERO,
+			Vector3(47.49, 1.34, door_z), Vector3(0.08, 2.55, 0.82),
+			accent, 0.0, false)
+		_box("east_promenade_front_e_%d_sign" % i, Vector3.ZERO,
+			Vector3(47.37, 3.78, pz), Vector3(0.14, 0.46, w * 0.56),
+			accent, 0.0, false)
+		_box("east_promenade_front_e_%d_sign_rule" % i, Vector3.ZERO,
+			Vector3(47.46, 3.78, pz), Vector3(0.05, 0.12, w * 0.36),
+			"white", 0.0, false)
+
+	# The entry bay announces the promenade overhead instead of putting another
+	# sign on the ground. Its lamps complete the festoon rhythm already used in
+	# the two garden bays farther north.
+	var entry_a := Vector3(47.35, 4.65, -19.0)
+	var entry_b := Vector3(60.05, 4.48, -19.0)
+	var entry_prev := entry_a
+	for i in 8:
+		var t := float(i + 1) / 9.0
+		var at := entry_a.lerp(entry_b, t)
+		at.y -= sin(t * PI) * 0.54
+		_strut("east_promenade_entry_festoon_wire_%d" % i,
+			entry_prev, at, 0.025, "metal")
+		_sphere("east_promenade_entry_festoon_bulb_%d" % i,
+			at, Vector3(0.0, -0.065, 0.0), 0.078, "bulb")
+		entry_prev = at
+	_strut("east_promenade_entry_festoon_wire_end", entry_prev, entry_b,
+		0.025, "metal")
+	_omni("east_promenade_entry_festoon_glow",
+		(entry_a + entry_b) * 0.5 - Vector3(0.0, 0.42, 0.0),
+		"warm", 1.2, 6.2, LIGHT_FIXTURE)
+
+	# A bin and drinking fountain occupy the storefront edge between doors. They
+	# supply the ordinary amenities that make this a place guests can linger,
+	# without entering the 6.4m walking ribbon.
+	_cyl("east_promenade_entry_bin", Vector3.ZERO,
+		Vector3(49.15, 0.47, -24.6), 0.25, 0.94, "blue", 0.0, 10)
+	_box("east_promenade_entry_bin_lid", Vector3.ZERO,
+		Vector3(49.15, 0.96, -24.6), Vector3(0.58, 0.10, 0.58),
+		"metal", 0.0, false)
+	_cyl("east_promenade_fountain_pedestal", Vector3.ZERO,
+		Vector3(49.12, 0.48, -35.4), 0.18, 0.96, "niche_stone", 0.0, 10)
+	_sphere("east_promenade_fountain_bowl", Vector3.ZERO,
+		Vector3(49.12, 1.00, -35.4), 0.25, "niche_stone", 0.0, 0.65)
+	_cyl("east_promenade_fountain_spout", Vector3.ZERO,
+		Vector3(49.12, 1.20, -35.4), 0.035, 0.22, "metal", 0.0, 8, false)
 
 	# Four shallow tenants along the north range. Each field covers one or two of
 	# the old rear bays, so the upper storeys keep their irregular rhythm while the
@@ -6145,6 +6275,22 @@ func _east_promenade_frontages() -> void:
 		_box("east_promenade_front_n_%d_sign" % i, Vector3.ZERO,
 			Vector3(px, 3.72, -47.48), Vector3(w * 0.56, 0.48, 0.12),
 			accent, 0.0, false)
+		# Carry the operating-shop language round the corner. The broad glazing
+		# used to become four dark rectangles here even though the east leg had
+		# doors, mullions and signed fascias; that visual drop was where the
+		# promenade stopped feeling continuous.
+		for j in 2:
+			var mx := px - w * 0.22 + float(j) * w * 0.44
+			_box("east_promenade_front_n_%d_mullion_%d" % [i, j],
+				Vector3.ZERO, Vector3(mx, 1.86, -47.47),
+				Vector3(0.10, 2.28, 0.08), "white", 0.0, false)
+		var door_x := px + w * 0.30
+		_box("east_promenade_front_n_%d_door" % i, Vector3.ZERO,
+			Vector3(door_x, 1.34, -47.49), Vector3(0.86, 2.55, 0.08),
+			accent, 0.0, false)
+		_box("east_promenade_front_n_%d_sign_rule" % i, Vector3.ZERO,
+			Vector3(px, 3.72, -47.57), Vector3(w * 0.36, 0.12, 0.05),
+			"white", 0.0, false)
 
 	# The end of the L is a frontage too. Its wall is the north end of the east
 	# range at z=-48, one metre proud of the north range's common z=-47 face, so it
@@ -6193,12 +6339,43 @@ func _east_promenade_frontages() -> void:
 	# NNW gateway as the two stronger incidents.
 	for i in 5:
 		var px := 35.0 - float(i) * 9.0
+		var carries_festoon := i % 2 == 0
+		var post_h := 4.45 if carries_festoon else 2.40
 		_cyl("east_promenade_n_lamp_%d_post" % i, Vector3.ZERO,
-			Vector3(px, 1.20, -54.15), 0.075, 2.40, "blue", 0.0, 10, false)
+			Vector3(px, post_h * 0.5, -54.15), 0.075, post_h,
+			"blue", 0.0, 10, false)
+		var globe_z := -53.82 if carries_festoon else -54.15
+		if carries_festoon:
+			_strut("east_promenade_n_lamp_%d_arm" % i,
+				Vector3(px, 2.50, -54.15), Vector3(px, 2.50, globe_z),
+				0.055, "blue")
+			_sphere("east_promenade_n_lamp_%d_finial" % i, Vector3.ZERO,
+				Vector3(px, 4.51, -54.15), 0.105, "yellow")
 		_sphere("east_promenade_n_lamp_%d_globe" % i, Vector3.ZERO,
-			Vector3(px, 2.50, -54.15), 0.19, "lamp_glass")
+			Vector3(px, 2.50, globe_z), 0.19, "lamp_glass")
 		_omni("east_promenade_n_lamp_%d_glow" % i,
 			Vector3(px, 2.36, -53.82), "warm", 1.65, 7.2, LIGHT_FIXTURE)
+		if carries_festoon:
+			# Three cross-street strings turn with the route. Their outer anchors
+			# are the taller lamp standards, so the lighting adds no second row of
+			# poles and no new obstacle along the walking edge.
+			var a := Vector3(px, 4.58, -47.45)
+			var b := Vector3(px, 4.45, -54.15)
+			var prev := a
+			for bulb in 5:
+				var t := float(bulb + 1) / 6.0
+				var at := a.lerp(b, t)
+				at.y -= sin(t * PI) * 0.42
+				_strut("east_promenade_n_festoon_%d_wire_%d" % [i, bulb],
+					prev, at, 0.025, "metal")
+				_sphere("east_promenade_n_festoon_%d_bulb_%d" % [i, bulb],
+					at, Vector3(0.0, -0.065, 0.0), 0.078, "bulb")
+				prev = at
+			_strut("east_promenade_n_festoon_%d_wire_end" % i,
+				prev, b, 0.025, "metal")
+			_omni("east_promenade_n_festoon_%d_glow" % i,
+				(a + b) * 0.5 - Vector3(0.0, 0.38, 0.0),
+				"warm", 1.05, 5.8, LIGHT_FIXTURE)
 
 	# Low planted beds turn the open side into a park edge without closing the
 	# panorama. Their gaps line up with the lamps, Waterworks display and NNW
@@ -6212,6 +6389,13 @@ func _east_promenade_frontages() -> void:
 		_box("east_promenade_n_verge_%d_soil" % i, Vector3.ZERO,
 			Vector3(px, 0.49, -57.35), Vector3(6.64, 0.10, 0.72),
 			"planting", 0.0, false)
+		# Alternate beds carry an integrated timber seat on their promenade face.
+		# It supplies places to pause without introducing freestanding furniture
+		# into the same circulation band that was just cleared.
+		if i % 2 == 1:
+			_box("east_promenade_n_verge_%d_seat" % i, Vector3.ZERO,
+				Vector3(px, 0.56, -56.76), Vector3(2.45, 0.13, 0.54),
+				"wood", 0.0, false)
 		for j in 3:
 			_sphere("east_promenade_n_verge_%d_shrub_%d" % [i, j],
 				Vector3.ZERO,
@@ -6297,60 +6481,11 @@ func _east_promenade_waterworks() -> void:
 		c + Vector3(-3.40, 2.42, 0.78), "warm", 1.85, 7.5, LIGHT_FIXTURE)
 
 
-## Garden fronts on the three shoulder steps beside the promenade turn.
-##
-## These masses cannot be removed casually: they close the masked edge of the
-## sampled hill and hold the north shoulder up. The rejected pond layout ignored
-## their footprint and drove both pier and pump house through them. The promenade
-## treats them as a terraced garden edge, with one planted trellis on each south
-## face. Structure becomes garden wall without moving a
-## single part of the protected cascade terrain further south.
+## The shoulder-step gardens were retired when the north bank was clipped to the
+## promenade edge. They had no structural role and rebuilt the visual half-wall
+## that correction removed.
 func _east_waterworks_step_gardens() -> void:
-	var prm := _shoulder_prm(-1.0)
-	var wall_to := float(prm["wall_to"])
-	for k in 3:
-		var d0 := wall_to + float(k) * 2.0
-		var d1 := d0 + 2.4
-		var f0 := _shoulder_foot(d0, wall_to)
-		var f1 := _shoulder_foot(d1, wall_to)
-		var xe: float = 61.75 if k == 0 \
-			else _shoulder_foot(d0 - 2.0, wall_to).x + 0.5
-		var xmin := f1.x - 0.45
-		var face_top := f0.y + 1.1 - 0.275
-		var front_z: float = Plan.ARCH_AT.y - d0 + 0.15
-		var panel_w := minf(xe - xmin - 0.54, 4.4)
-		var panel_x := (xmin + xe) * 0.5
-		var panel_from_y := 0.42
-		var panel_to_y := minf(face_top - 0.42, 4.35)
-		var panel_h := maxf(0.72, panel_to_y - panel_from_y)
-		var panel_mid_y := panel_from_y + panel_h * 0.5
-
-		# A low white trough roots each trellis in the same coping vocabulary as
-		# the whole wall and gives the loose foliage an architectural base.
-		_box("east_waterworks_step_garden_%d_trough" % k, Vector3.ZERO,
-			Vector3(panel_x, 0.30, front_z + 0.08),
-			Vector3(panel_w + 0.20, 0.28, 0.34), "white", 0.0, false)
-		for j in 3:
-			var px := lerpf(panel_x - panel_w * 0.42,
-				panel_x + panel_w * 0.42, float(j) * 0.5)
-			_box("east_waterworks_step_garden_%d_v_%d" % [k, j], Vector3.ZERO,
-				Vector3(px, panel_mid_y, front_z),
-				Vector3(0.10, panel_h, 0.10), "blue", 0.0, false)
-		for j in 3:
-			var py := lerpf(panel_from_y + panel_h * 0.18,
-				panel_to_y - panel_h * 0.12, float(j) * 0.5)
-			_box("east_waterworks_step_garden_%d_h_%d" % [k, j], Vector3.ZERO,
-				Vector3(panel_x, py, front_z),
-				Vector3(panel_w * 0.86, 0.10, 0.10), "blue", 0.0, false)
-
-		var vine_r := minf(0.42, panel_h * 0.15)
-		for j in 3:
-			var px := panel_x + (-0.30 + float(j) * 0.30) * panel_w
-			var py := panel_from_y + panel_h * \
-				(0.28 + float((j * 2 + k) % 3) * 0.22)
-			_sphere("east_waterworks_step_garden_%d_vine_%d" % [k, j],
-				Vector3.ZERO, Vector3(px, py, front_z + 0.10), vine_r,
-				"foliage" if (j + k) % 2 == 0 else "planting", 0.0, 0.76)
+	pass
 
 
 ## The court below the first cascade is an arrival room rather than spare brick:
@@ -6391,32 +6526,26 @@ func _east_arrival_dressing() -> void:
 					-side * 0.24 * spread), spread * 0.64,
 				"foliage", 0.0, 0.82)
 
-		# The bench faces east toward the monument. Its back is toward the grove,
-		# leaving the broad court and the two wing approaches in front of it.
+		# Seating stays behind the route edge with the grove. It faces west toward
+		# the arrival court and cannot become an island in the gate-to-promenade turn.
 		_bench("east_arrival_bench_%s" % tag,
 			Vector3(Plan.EAST_ARRIVAL_BENCH_X, 0.0,
-				axis + side * Plan.EAST_ARRIVAL_BENCH_D), PI * 0.5)
+				axis + side * Plan.EAST_ARRIVAL_BENCH_D), -PI * 0.5)
 
-		# A low two-post directory, broad in Z and thin in X. The coloured face
-		# looks west toward guests arriving through the gate; alternating blue
-		# and yellow keeps the pair legible as two route markers rather than a
-		# repeated billboard.
+		# Route information is wall-mounted. The former two-post directories stood
+		# in the desire line and divided arriving traffic before it reached the
+		# promenade; these have no ground footprint.
 		var bz := axis + side * Plan.EAST_ARRIVAL_BOARD_D
 		var face_mat := "blue" if s == 0 else "yellow"
-		for p in 2:
-			var pz := bz + (-0.84 if p == 0 else 0.84)
-			_cyl("east_arrival_board_%s_post_%d" % [tag, p],
-				Vector3(Plan.EAST_ARRIVAL_BOARD_X, 0.0, pz),
-				Vector3(0.0, 0.78, 0.0), 0.07, 1.56, "metal", 0.0, 8)
 		_box("east_arrival_board_%s_panel" % tag, Vector3.ZERO,
-			Vector3(Plan.EAST_ARRIVAL_BOARD_X, 1.58, bz),
-			Vector3(0.16, 1.10, 2.08), "wood")
+			Vector3(Plan.EAST_ARRIVAL_BOARD_X, 1.68, bz),
+			Vector3(0.14, 1.48, 2.12), "wood", 0.0, false)
 		_box("east_arrival_board_%s_face" % tag, Vector3.ZERO,
-			Vector3(Plan.EAST_ARRIVAL_BOARD_X - 0.10, 1.58, bz),
-			Vector3(0.06, 0.82, 1.78), face_mat, 0.0, false)
+			Vector3(Plan.EAST_ARRIVAL_BOARD_X + 0.10, 1.68, bz),
+			Vector3(0.06, 1.14, 1.78), face_mat, 0.0, false)
 		_box("east_arrival_board_%s_rule" % tag, Vector3.ZERO,
-			Vector3(Plan.EAST_ARRIVAL_BOARD_X - 0.135, 1.81, bz),
-			Vector3(0.04, 0.10, 1.34), "white", 0.0, false)
+			Vector3(Plan.EAST_ARRIVAL_BOARD_X + 0.135, 1.94, bz),
+			Vector3(0.04, 0.12, 1.34), "white", 0.0, false)
 
 
 ## The shelf between the cascade head-house and the long basin climb is an
@@ -7482,6 +7611,10 @@ func _north_sky_ride() -> void:
 	for i in Plan.SKY_RIDE_TOWERS.size():
 		_sky_ride_tower(i, Plan.SKY_RIDE_TOWERS[i])
 	_sky_ride_cables()
+	# Appended after every established ride part. The Grove transition is ground
+	# and a side room beneath the line, not another piece of cable machinery; at
+	# the end it cannot change the seam offsets of cabins, towers or stations.
+	_sky_grove_transition()
 
 
 func _sky_ride_direction() -> Vector2:
@@ -7797,6 +7930,190 @@ func _sky_ride_cabin(index: int, cable: Vector3, color: String,
 		Vector3(1.65, 0.15, 1.38), color, theta, false)
 	_sphere("sky_cabin_%d_bulb" % index, body,
 		Vector3(0.0, 1.58, 0.0), 0.075, "bulb")
+
+
+## The missing ground between the Grove lawn and the north shoulder.
+##
+## `sky_grove_ground` ends at x 22 while the public terraced bank begins at
+## x 57.15. Between them was thirty-five metres of nothing: from the north
+## promenade the Grove floated as a green slab, and looking east exposed the
+## grey world below both it and the twelve-metre shoulder. This is not a new
+## land. It is the made ground those two already require in order to stand in
+## the same park.
+##
+## The south half stays level with the Grove and becomes a screened operations
+## court at the foot of the terraces. Asphalt is kept behind the public edge and
+## enters from the future Grove, so the Park Promenade remains a brick garden
+## street rather than becoming the service yard that an earlier finish made it.
+## North of the court, one smooth planted shoulder widens into the existing
+## high ground and then comes down with it. The broad sky-ride/pavilion view is
+## left empty; every shed, cart and light stays on the east edge.
+func _sky_grove_transition() -> void:
+	var grove: Dictionary = Plan.SECTION_GROUND[&"grove"]
+	var grove_at: Vector2 = grove["at"]
+	var grove_size: Vector2 = grove["size"]
+	var grove_e := grove_at.x + grove_size.x * 0.5
+	var promenade_n := Plan.PROMENADE_NORTH_GROUND_TO_Z
+	var toe_x := Plan.PROMENADE_EAST_X + Plan.PROMENADE_WIDTH * 0.5 + 0.15
+	var prm := _shoulder_prm(-1.0)
+	var bank_to: float = float(prm["wall_to"]) + 48.0
+	var court_n := Plan.ARCH_AT.y - bank_to
+
+	# A closed mass, lapped under all three neighbours. Its top sits between the
+	# promenade's brick and the Grove slab, so the overlaps cannot share a plane.
+	var court_s := promenade_n + 0.22
+	var court_w := grove_e - 0.38
+	_box("sky_grove_transition_ground", Vector3.ZERO,
+		Vector3((court_w + toe_x) * 0.5, -0.64, (court_s + court_n) * 0.5),
+		Vector3(toe_x - court_w + 0.22, 1.12, court_s - court_n + 0.22),
+		"planting", 0.0, false)
+
+	# The staff lane comes in sideways from the future Grove. The larger pad at
+	# its east end is the service court; neither surface points out of the public
+	# promenade as though it were an unfinished continuation of that route.
+	_box("sky_grove_service_lane", Vector3.ZERO,
+		Vector3(34.0, -0.045, -79.0), Vector3(24.6, 0.05, 5.8),
+		"asphalt", 0.0, false)
+	_box("sky_grove_service_apron", Vector3.ZERO,
+		Vector3(49.1, -0.042, -78.0), Vector3(13.7, 0.056, 18.2),
+		"asphalt", 0.0, false)
+
+	# The public edge is a low brick guard, not a row of service fencing. It is
+	# behind the promenade's planted beds and Waterworks display, where its base
+	# disappears, but high enough to make the still-unbuilt ground clearly closed.
+	var guard_x0 := grove_e + 0.10
+	var guard_x1 := toe_x + 0.18
+	var guard_z := promenade_n - 0.22
+	_box("sky_grove_service_guard", Vector3.ZERO,
+		Vector3((guard_x0 + guard_x1) * 0.5, 0.43, guard_z),
+		Vector3(guard_x1 - guard_x0, 0.94, 0.46), "brick")
+	_box("sky_grove_service_guard_coping", Vector3.ZERO,
+		Vector3((guard_x0 + guard_x1) * 0.5, 0.94, guard_z),
+		Vector3(guard_x1 - guard_x0 + 0.20, 0.16, 0.62),
+		"white", 0.0, false)
+
+	# A compact maintenance shed gives the apron a reason to exist and scales the
+	# terraces behind it. All of its height is below the first long sky-ride view.
+	var shed := Vector3(52.0, -0.08, -78.2)
+	_box("sky_grove_service_shed", shed, Vector3(0.0, 1.58, 0.0),
+		Vector3(5.8, 3.32, 6.8), "building")
+	_box("sky_grove_service_shed_plinth", shed, Vector3(0.0, 0.18, 0.0),
+		Vector3(6.15, 0.36, 7.15), "brick")
+	_box("sky_grove_service_shed_roof", shed, Vector3(0.0, 3.32, 0.0),
+		Vector3(6.45, 0.24, 7.45), "sky_green", 0.0, false)
+	_box("sky_grove_service_shed_door", shed, Vector3(0.0, 1.18, 3.46),
+		Vector3(1.55, 2.36, 0.10), "blue", 0.0, false)
+	_box("sky_grove_service_shed_door_rule", shed,
+		Vector3(0.0, 1.62, 3.53), Vector3(0.92, 0.16, 0.05),
+		"yellow", 0.0, false)
+	_box("sky_grove_service_shed_canopy", shed,
+		Vector3(-3.50, 2.52, 0.35), Vector3(1.65, 0.18, 5.15),
+		"blue", 0.0, false)
+	for end in [-1.0, 1.0]:
+		_cyl("sky_grove_service_canopy_post_%s" % str(end), shed,
+			Vector3(-4.12, 1.18, 0.35 + end * 2.18), 0.07, 2.36,
+			"metal", 0.0, 8)
+
+	# Ordinary operating residue, kept low and close to the shed. The empty lawn
+	# west of the lane remains the foreground for the pavilion and cable line.
+	for i in 2:
+		_cyl("sky_grove_service_bin_%d" % i, Vector3.ZERO,
+			Vector3(45.2 + float(i) * 0.75, 0.43, -71.8),
+			0.27, 0.86, "metal", 0.0, 10)
+	var cart := Vector3(41.2, -0.08, -81.2)
+	_box("sky_grove_service_cart_body", cart, Vector3(0.0, 0.66, 0.0),
+		Vector3(1.55, 1.15, 2.25), "blue")
+	_box("sky_grove_service_cart_roof", cart, Vector3(0.0, 1.70, 0.0),
+		Vector3(2.05, 0.15, 2.75), "white", 0.0, false)
+	for side in [-1.0, 1.0]:
+		for end in [-1.0, 1.0]:
+			_cyl("sky_grove_service_cart_wheel_%s_%s" % [str(side), str(end)],
+				cart, Vector3(side * 0.84, 0.25, end * 0.72),
+				0.22, 0.12, "metal", 0.0, 10, false, PI * 0.5)
+	for i in 3:
+		_box("sky_grove_service_crate_%d" % i, Vector3.ZERO,
+			Vector3(46.0 + float(i % 2) * 0.88,
+				0.34 + float(i / 2) * 0.68, -84.9),
+			Vector3(0.78, 0.68, 0.78), "wood", float(i - 1) * 0.08)
+
+	# Two broken hedge screens keep the apron subordinate from the promenade.
+	# Their gap preserves the oblique view along the lane into the future Grove.
+	for i in 2:
+		var hx := 31.0 + float(i) * 13.0
+		_box("sky_grove_service_screen_%d" % i, Vector3.ZERO,
+			Vector3(hx, 0.38, -63.0), Vector3(8.0, 0.76, 1.10),
+			"foliage" if i == 0 else "planting", 0.0, false)
+
+	# One fixture over the service door. It remains a park light, so closing time
+	# still turns it off with the rest rather than leaving a convenient beacon in
+	# the middle of the night sweep.
+	_box("sky_grove_service_lamp_back", shed, Vector3(0.0, 2.58, 3.58),
+		Vector3(0.42, 0.42, 0.16), "metal", 0.0, false)
+	_sphere("sky_grove_service_lamp_globe", shed,
+		Vector3(0.0, 2.58, 3.73), 0.16, "lamp_glass")
+	_omni("sky_grove_service_lamp", shed + Vector3(0.0, 2.48, 3.95),
+		"lamp", 1.65, 7.0, LIGHT_FIXTURE)
+
+	_sky_grove_transition_land(grove_e, toe_x, court_n, prm)
+
+
+## Carry the level-zero Grove into the north shoulder after the formal terrace
+## bank ends. The moving east edge follows the existing shoulder rather than
+## inventing a second profile, and the broad surface swells gently so it reads
+## as land instead of the planar ramp this gap used to tempt.
+func _sky_grove_transition_land(grove_e: float, toe_x: float, court_n: float,
+		prm: Dictionary) -> void:
+	var rows := PackedFloat32Array([court_n, -98.0, -104.0, -112.0, -120.0,
+		-124.0])
+	var lines: Array[PackedVector3Array] = []
+	for z in rows:
+		var dist := (z - Plan.ARCH_AT.y) * -1.0
+		var spread := clampf((dist - 90.0) / 12.0, 0.0, 1.0)
+		spread = spread * spread * (3.0 - 2.0 * spread)
+		var east_x := lerpf(toe_x, 69.9, spread)
+		var shoulder_y := maxf(_shoulder_y(69.9, z, -1.0, prm), -0.08)
+		var east_y := lerpf(0.45, shoulder_y, spread)
+		var line := PackedVector3Array()
+		for i in 9:
+			var u := float(i) / 8.0
+			var ease := u * u * (3.0 - 2.0 * u)
+			var y := lerpf(-0.08, east_y, ease)
+			y += sin(u * PI) * sin((z + 117.0) * 0.23) * 0.18 * spread
+			line.append(Vector3(lerpf(grove_e - 0.18, east_x, u), y, z))
+		lines.append(line)
+
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(0)
+	for row in lines.size() - 1:
+		for col in 8:
+			var a: Vector3 = lines[row][col]
+			var b: Vector3 = lines[row][col + 1]
+			var c: Vector3 = lines[row + 1][col]
+			var p11: Vector3 = lines[row + 1][col + 1]
+			_earth_oriented_tri(st, a, Vector2(col, row), b,
+				Vector2(col + 1, row), c, Vector2(col, row + 1), Vector3.UP)
+			_earth_oriented_tri(st, b, Vector2(col + 1, row), p11,
+				Vector2(col + 1, row + 1), c, Vector2(col, row + 1), Vector3.UP)
+	st.generate_normals()
+	st.generate_tangents()
+	var mesh := st.commit()
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.material_override = mats["planting"]
+	_attach(mi, "sky_grove_transition_land")
+
+	# Beyond the shoulder's buried end the Grove remains level. This lap closes
+	# the last raw rectangle to the district's north edge without pretending to
+	# design any of the future land above it.
+	var grove: Dictionary = Plan.SECTION_GROUND[&"grove"]
+	var grove_at: Vector2 = grove["at"]
+	var grove_size: Vector2 = grove["size"]
+	var grove_n := grove_at.y - grove_size.y * 0.5
+	_box("sky_grove_transition_north_ground", Vector3.ZERO,
+		Vector3((grove_e + 69.9) * 0.5, -0.68, (rows[-1] + grove_n) * 0.5),
+		Vector3(69.9 - grove_e + 0.24, 1.20, rows[-1] - grove_n + 0.20),
+		"planting", 0.0, false)
 
 
 ## Level coping draws the low retaining edge clearly against the planted bank,

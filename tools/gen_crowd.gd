@@ -603,12 +603,7 @@ func _terraces_obstacles() -> Array:
 				axis + side * Plan.EAST_ARRIVAL_BENCH_D),
 			"half": Vector2(0.42, 1.02),
 		})
-		out.append({
-			"kind": "rect",
-			"at": Vector2(Plan.EAST_ARRIVAL_BOARD_X,
-				axis + side * Plan.EAST_ARRIVAL_BOARD_D),
-			"half": Vector2(0.20, 1.15),
-		})
+		# Route maps are wall-mounted and have no ground footprint.
 	# On the belvedere the viewer and bench are the things a guest walks around;
 	# the lamp stays out of the register like every other slender fixture.
 	for s in 2:
@@ -3261,12 +3256,7 @@ func _terraces_pois() -> PackedVector3Array:
 		var side := -1.0 if s == 0 else 1.0
 		var crest_z := axis + side * ((Plan.CREST_COURT_FROM_D + Plan.CREST_COURT_TO_D) * 0.5)
 		out.append(Vector3(crest_x, Plan.CLIMB_HEAD_Y + 0.8, crest_z))
-	# The two route directories in the arrival court. Guests pausing to read
-	# them are what turns the room below the cascade into a gathering place.
-	for s in 2:
-		var side := -1.0 if s == 0 else 1.0
-		out.append(Vector3(Plan.EAST_ARRIVAL_BOARD_X - 0.2, 1.6,
-			axis + side * Plan.EAST_ARRIVAL_BOARD_D))
+	# The route maps are wall-mounted wayfinding rather than gathering POIs.
 	# The two coin viewers are reachable attractions on the belvedere. The clock
 	# remains the long view; these are the nearby objects guests can pause at.
 	for s in 2:

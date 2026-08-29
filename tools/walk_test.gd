@@ -190,6 +190,15 @@ func _ready() -> void:
 	_legs.append(["park promenade north west",
 		Vector3(49.0, 1.2, ParkPlan.PROMENADE_NORTH_Z),
 		Vector3(24.0, 1.2, ParkPlan.PROMENADE_NORTH_Z), true])
+	_legs.append(["park promenade north east",
+		Vector3(24.0, 1.2, ParkPlan.PROMENADE_NORTH_Z),
+		Vector3(49.0, 1.2, ParkPlan.PROMENADE_NORTH_Z), true])
+	# The Grove transition closes what used to be open world below the north
+	# frontage. Start in the narrow planting strip beyond the older verge, then
+	# push square through the new retaining edge; the verge cannot make this pass.
+	_legs.append(["grove transition guard holds",
+		Vector3(34.0, 1.2, ParkPlan.PROMENADE_NORTH_GROUND_TO_Z + 1.2),
+		Vector3(34.0, 1.2, ParkPlan.PROMENADE_NORTH_GROUND_TO_Z - 9.0), false])
 	_legs.append(["east promenade retaining wall holds",
 		Vector3(promenade_x, 1.2, -25.0), Vector3(67.0, 1.2, -25.0), false])
 

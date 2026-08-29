@@ -801,13 +801,15 @@ const PROMENADE_EAST_X := 53.8
 const PROMENADE_WIDTH := 6.4
 const PROMENADE_NORTH_Z := -50.0
 
-## Ground outside the old 104m plaza slab. The inner half of the north walk is
-## already carried by the plaza floor; this strip supports only the part beyond
-## z -52 and laps the east leg around the corner. Its west end stops on the east
-## side of the NNW passage, whose own floor carries the Grove approach.
+## Ground under the north walk. It used to support only the half outside the old
+## 104m plaza slab, which worked while the plaza stood and became a hole when the
+## terraces section replaced it. The strip now carries the centreline and full
+## public width itself; its inner half simply sits below the plaza floor when
+## that section is mounted. Its west end stops on the east side of the NNW
+## passage, whose own floor carries the Grove approach.
 const PROMENADE_NORTH_GROUND_FROM_X := -8.7
 const PROMENADE_NORTH_GROUND_TO_X := 60.7
-const PROMENADE_NORTH_GROUND_FROM_Z := -51.7
+const PROMENADE_NORTH_GROUND_FROM_Z := -46.8
 const PROMENADE_NORTH_GROUND_TO_Z := -59.0
 const PROMENADE_WATERWORKS_AT := Vector2(43.0, -56.0)
 
@@ -1468,16 +1470,17 @@ const EAST_STAIR_FOOT_STAND := Vector3(EAST_STAIR_FOOT.x, 0.2, ARCH_AT.y)
 ## has to route around the same footprints. Distances are off the gate/cascade
 ## axis, so the whole arrangement follows that line if the east ever moves.
 ##
-## Trees sit outside the monument's 10.3m wing turn, framing rather than
-## covering its silhouette. The benches step inward from them and the directory
-## boards sit inward again, beside the 8m asphalt approach but clear of it. That
-## order is the room: information at arrival, a place to wait, then the climb.
-const EAST_ARRIVAL_TREE_XS := [53.5, 60.0]
+## One tree anchors each grove at its outer edge. The first arrangement stepped
+## freestanding benches and directory boards inward from it, directly into the
+## desire line from the gate to the north promenade. Seating now stays with the
+## grove beyond the public edge, while route information is mounted on the
+## attraction wall and has no ground footprint at all.
+const EAST_ARRIVAL_TREE_XS := [59.0]
 const EAST_ARRIVAL_TREE_D := 13.0
-const EAST_ARRIVAL_BENCH_X := 55.8
-const EAST_ARRIVAL_BENCH_D := 9.1
-const EAST_ARRIVAL_BOARD_X := 54.0
-const EAST_ARRIVAL_BOARD_D := 6.2
+const EAST_ARRIVAL_BENCH_X := 58.9
+const EAST_ARRIVAL_BENCH_D := 9.8
+const EAST_ARRIVAL_BOARD_X := 47.25
+const EAST_ARRIVAL_BOARD_D := 16.5
 
 ## The furniture on the six-metre belvedere between the two east climbs. The
 ## viewer sits close to the west parapet, the bench behind it and farther out,
