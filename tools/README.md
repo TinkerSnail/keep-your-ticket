@@ -64,7 +64,7 @@ run.
 
 | tool | what it builds |
 |---|---|
-| `gen_props.gd` | The ground textures and fourteen world scenes: props, skyline, the three west scenes, cascades, entrance, thresholds, paving, frontage, fountain. **The order it writes them in is load-bearing** — each scene gets a seam seed five on from the last, so inserting a scene anywhere but the end shifts every scene after it. Run `coplanar_test.py` after touching that order. |
+| `gen_props.gd` | The ground textures and fifteen world scenes: props, skyline, the three west scenes, cascades, entrance, thresholds, paving, frontage, fountain and the persistent park-transit layer. **The order it writes them in is load-bearing** — each scene gets a seam seed five on from the last, so inserting a scene anywhere but the end shifts every scene after it. Run `coplanar_test.py` after touching that order. |
 | `gen_crowd.gd` | Both crowds — the plaza's and the boardwalk's — in one run. Bodies and placement only; behaviour lives in `scenes/npc/guest.gd` and is hand-written. |
 
 ## Tests
@@ -75,6 +75,7 @@ merge.
 | tool | asks | notes |
 |---|---|---|
 | `walk_test.gd` | Can the player actually walk every route, in both directions, and does every open edge hold? | ~96 legs. The main defence against coplanar snags, missing step-up and holes behind platforms — none of which a screenshot shows. |
+| `transit_test.gd` | Do the Kiddieland railway and Grand Circuit form usable loops, move with riders while open, and park empty after close? | Run at `--fixed-fps 60`; also guards the sampled grades and the five station-to-route alignments. |
 | `section_test.gd` | Does crossing the west seam in both directions land the player on a floor rather than inside the bluff? | |
 | `day_test.gd` | Does each section's crowd have a day — the curves, the admitting and the sending home? | `--headless --fixed-fps 60`, about ninety seconds. |
 | `night_test.gd` | Do the lights come on and go off again? | `park_lights.gd` fails by succeeding: miss the emissive materials and the lights still light. |

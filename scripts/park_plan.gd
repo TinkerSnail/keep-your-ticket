@@ -330,44 +330,210 @@ const REACH := 9.0
 const BEND := 7.0
 
 ## The first piece of Kiddieland, beginning at the south-facing end of the
-## south-east passage. The court stays at plaza height, then one broad family
-## spine starts the climb: Kiddieland's twelve-metre rise belongs across the
-## whole land rather than in a connector hidden behind the gate.
+## south-east passage. It is also the missing inside-the-gates connection to the
+## entrance street: families arriving through the turnstiles can turn into this
+## land before being forced through the plaza, and guests leaving Kiddieland
+## have a second way out. The two routes meet in a level commons rather than at
+## an attraction queue.
 ##
-## The railway station and photo bay are short branches off that spine. They are
-## published with it because the generated ground and the walking test must
-## agree on every public centreline. The final spine point is a temporary seam,
-## not the eventual section entrance.
+## From that junction the family spine makes one long, shallow S across the
+## south shoulder. This is the stroller route, so its steepest published segment
+## stays under 1:12; the old diagonal climbed at 1:8.6, crossed the miniature
+## railway almost immediately, then aimed its unfinished gate at the parking
+## lot. The new line spends horizontal distance instead, and its last segment
+## points north-east toward the carousel and the eventual south-crest loop.
+##
+## The railway station and photo bay are short branches inside the S. The track
+## stays on their side of the promenade and never crosses the through route.
+## They are published with it because generated ground and walking tests must
+## agree on every public centreline. The final spine point is still a temporary
+## seam, not the eventual section entrance.
 const KIDDIE_ARRIVAL_POINTS: Array[Vector3] = [
 	Vector3(54.0, 0.0, 44.0),
 	Vector3(54.0, 0.0, 52.0),
-	Vector3(61.0, 0.80, 59.0),
-	Vector3(74.0, 2.45, 67.0),
-	Vector3(90.0, 4.40, 72.0),
+	Vector3(48.0, 0.0, 60.0),
+	Vector3(42.0, 0.0, 69.0),
+	Vector3(43.0, 0.20, 78.0),
+	Vector3(54.0, 0.80, 86.0),
+	Vector3(68.0, 1.75, 89.0),
+	Vector3(82.0, 2.85, 86.0),
+	Vector3(93.0, 3.85, 78.0),
+	Vector3(101.0, 4.75, 67.0),
 ]
 const KIDDIE_ARRIVAL_PATH_W := 8.0
-const KIDDIE_ARRIVAL_BANK_W := 18.0
+const KIDDIE_ARRIVAL_BANK_W := 12.0
 const KIDDIE_ARRIVAL_GRADE_RUN := 7.0
 const KIDDIE_ARRIVAL_PATH_LIFT := 0.16
-const KIDDIE_STATION_AT := Vector3(62.0, 0.72, 53.2)
+## The entrance-street leg. Its first point is the clear opening through the east
+## frontage; its last is a tee on the family spine, not a second paved court.
+const KIDDIE_ENTRANCE_LINK: Array[Vector3] = [
+	Vector3(6.0, 0.0, 81.0),
+	Vector3(18.0, 0.0, 81.0),
+	Vector3(29.0, 0.0, 79.0),
+	Vector3(43.0, 0.20, 78.0),
+]
+const KIDDIE_ENTRANCE_LINK_W := 7.5
+const KIDDIE_ENTRANCE_PORTAL_Z := 81.0
+const KIDDIE_ENTRANCE_PORTAL_W := 7.0
+
+const KIDDIE_STATION_AT := Vector3(54.0, 0.25, 69.5)
 const KIDDIE_STATION_SPUR: Array[Vector3] = [
-	Vector3(61.0, 0.80, 59.0),
-	Vector3(62.0, 0.72, 56.1),
+	Vector3(42.0, 0.0, 69.0),
+	Vector3(47.0, 0.12, 69.0),
+	Vector3(51.0, 0.25, 69.5),
 ]
-const KIDDIE_STATION_SPUR_W := 3.6
+const KIDDIE_STATION_SPUR_W := 3.8
 const KIDDIE_STATION_GRADE_RUN := 4.0
-const KIDDIE_TRACK_POINTS: Array[Vector3] = [
-	Vector3(66.5, 0.50, 45.0),
-	Vector3(66.5, 1.72, 65.0),
+## A ride, not a decorative length of rail. The west tangent stays exactly where
+## the first platform was built; the rest closes into a small oval inside the S
+## of the family route. It has no public crossing. The east side rises by 45cm
+## metre over half a circuit — 3.0% at the steepest sampled chord — which is
+## enough to belong to the shoulder without asking a miniature locomotive to
+## climb the land's full grade.
+const KIDDIE_RAIL_CENTRE := Vector2(69.5, 69.5)
+const KIDDIE_RAIL_RADIUS := Vector2(11.0, 7.5)
+const KIDDIE_RAIL_WEST_Y := 0.35
+const KIDDIE_RAIL_EAST_Y := 0.80
+const KIDDIE_RAIL_STEPS := 48
+const KIDDIE_RAIL_GAUGE := 1.24
+const KIDDIE_TRACK_GRADE_RUN := 3.0
+
+
+static func kiddie_rail_loop() -> Array[Vector3]:
+	var out: Array[Vector3] = []
+	# Begin on the west tangent beside the platform and run clockwise. Repeating
+	# the first point at the end makes both track emission and distance sampling
+	# ordinary open-polyline work with a closed result.
+	for i in KIDDIE_RAIL_STEPS + 1:
+		var a := PI + TAU * float(i) / float(KIDDIE_RAIL_STEPS)
+		var x := KIDDIE_RAIL_CENTRE.x + cos(a) * KIDDIE_RAIL_RADIUS.x
+		var z := KIDDIE_RAIL_CENTRE.y + sin(a) * KIDDIE_RAIL_RADIUS.y
+		var across := (x - (KIDDIE_RAIL_CENTRE.x - KIDDIE_RAIL_RADIUS.x)) \
+			/ (KIDDIE_RAIL_RADIUS.x * 2.0)
+		var y := lerpf(KIDDIE_RAIL_WEST_Y, KIDDIE_RAIL_EAST_Y, across)
+		out.append(Vector3(x, y, z))
+	return out
+
+
+## The whole-park transport line. This is a rubber-tyred road train rather than
+## a second railway: the park falls from +20m on the east shoulder to -6m on the
+## boardwalk, and a train-sized rail grade would either consume a land in loops
+## or force structures through both protected cascades. A road train can take
+## the long outer gradients and still read as the local park's answer to a grand
+## circle railroad.
+##
+## The route is persistent park infrastructure. It stays outside the pedestrian
+## spines, dives under the east highland, descends behind the boardwalk frontage,
+## and uses the parking-edge void for its main station. Future lands inherit this
+## right-of-way; they do not get to build over it and solve transport afterwards.
+const GRAND_TRAM_LANE_W := 5.4
+const GRAND_TRAM_ENTRY_ACCESS: Array[Vector3] = [
+	Vector3(37.0, 0.0, 106.0),
+	Vector3(37.0, 0.0, 118.2),
 ]
-const KIDDIE_TRACK_GRADE_RUN := 2.5
+const GRAND_TRAM_ENTRY_ACCESS_W := 5.2
+const GRAND_TRAM_CONTROLS: Array[Vector3] = [
+	Vector3(12.0, 0.0, 123.0),
+	Vector3(37.0, 0.0, 123.0), # main gate / Kiddieland station
+	Vector3(70.0, 0.5, 123.0),
+	Vector3(102.0, 3.0, 104.0),
+	Vector3(116.0, 5.0, 78.0),
+	Vector3(116.0, 5.0, 20.0),
+	Vector3(116.0, 5.0, -70.0), # east-highland tunnel station
+	Vector3(96.0, 4.0, -104.0),
+	Vector3(55.0, 2.0, -126.0),
+	Vector3(2.0, 0.0, -140.0), # Grove station
+	Vector3(-38.0, 0.0, -130.0),
+	Vector3(-58.0, -1.0, -108.0),
+	Vector3(-68.0, -3.0, -82.0),
+	Vector3(-72.0, -6.0, -50.0),
+	Vector3(-72.0, -6.0, 18.0), # boardwalk station
+	Vector3(-72.0, -6.0, 62.0),
+	Vector3(-63.0, -3.0, 92.0),
+	Vector3(-48.0, 0.0, 116.0), # fairground station
+	Vector3(-15.0, 0.0, 132.0),
+]
+const GRAND_TRAM_STATIONS := [
+	{"id": &"entry", "at": Vector3(37.0, 0.0, 123.0), "theta": 0.0},
+	{"id": &"east", "at": Vector3(116.0, 5.0, -70.0), "theta": PI * 0.5},
+	{"id": &"grove", "at": Vector3(2.0, 0.0, -140.0), "theta": 0.0},
+	{"id": &"boardwalk", "at": Vector3(-72.0, -6.0, 18.0), "theta": PI * 0.5},
+	{"id": &"fairground", "at": Vector3(-48.0, 0.0, 116.0), "theta": -0.42},
+]
+
+
+## Smooth enough for the articulated vehicles to turn continuously, sampled
+## densely enough that the generated lane can use straight chords without
+## showing corners. Uniform Catmull-Rom is safe here because the controls are
+## deliberately kept within one order of spacing; this is a transport reserve,
+## not the rim's irregular survey where centripetal knots are load-bearing.
+static func grand_tram_loop(samples_per_span := 8) -> Array[Vector3]:
+	var out: Array[Vector3] = []
+	var n := GRAND_TRAM_CONTROLS.size()
+	for i in n:
+		var p0: Vector3 = GRAND_TRAM_CONTROLS[posmod(i - 1, n)]
+		var p1: Vector3 = GRAND_TRAM_CONTROLS[i]
+		var p2: Vector3 = GRAND_TRAM_CONTROLS[(i + 1) % n]
+		var p3: Vector3 = GRAND_TRAM_CONTROLS[(i + 2) % n]
+		for j in samples_per_span:
+			var t := float(j) / float(samples_per_span)
+			var t2 := t * t
+			var t3 := t2 * t
+			out.append(0.5 * ((2.0 * p1)
+				+ (-p0 + p2) * t
+				+ (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * t2
+				+ (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * t3))
+	if not out.is_empty():
+		out.append(out[0])
+	return out
+
+
 const KIDDIE_PHOTO_SPUR: Array[Vector3] = [
-	Vector3(68.0, 1.69, 63.3),
-	Vector3(65.5, 1.68, 68.3),
+	Vector3(68.0, 1.75, 89.0),
+	Vector3(63.0, 1.40, 84.0),
+	Vector3(60.0, 1.05, 80.5),
 ]
 const KIDDIE_PHOTO_SPUR_W := 3.2
-const KIDDIE_PHOTO_AT := Vector3(65.5, 1.68, 69.4)
+const KIDDIE_PHOTO_AT := Vector3(60.0, 1.05, 79.2)
 const KIDDIE_PHOTO_GRADE_RUN := 3.0
+
+## The first piece of the fairground, beginning at the west-facing end of the
+## south-west passage. This is a midway in the literal sense: one continuous
+## public route with things to do along it, not a sequence of attractions the
+## through-crowd has to cross. The first bend gets the route clear of the
+## threshold, then the spine runs south between game aprons and the big-top
+## court. Its last point is a temporary seam for the later western sunset loop.
+const FAIR_ARRIVAL_POINTS: Array[Vector3] = [
+	Vector3(-43.5, 0.0, 55.5),
+	Vector3(-43.5, 0.0, 62.0),
+	Vector3(-40.0, 0.0, 68.0),
+	Vector3(-40.0, 0.0, 81.0),
+	Vector3(-40.0, 0.0, 94.0),
+	Vector3(-37.0, 0.0, 104.0),
+]
+const FAIR_ARRIVAL_PATH_W := 7.5
+const FAIR_ARRIVAL_PATH_LIFT := 0.018
+const FAIR_BIG_TOP_AT := Vector3(-28.5, 0.0, 91.0)
+const FAIR_BIG_TOP_SPUR: Array[Vector3] = [
+	Vector3(-40.0, 0.0, 89.0),
+	Vector3(-35.5, 0.0, 91.0),
+]
+const FAIR_BIG_TOP_SPUR_W := 3.8
+## The existing walk-in arcade is the fairground's second public door. Its rear
+## exit turns the first build into a loop through the entrance street instead
+## of making every guest return through the southwest passage.
+const FAIR_ARCADE_SPUR: Array[Vector3] = [
+	Vector3(-40.0, 0.0, 78.0),
+	Vector3(-34.0, 0.0, 78.0),
+	Vector3(-29.5, 0.0, 78.0),
+]
+const FAIR_ARCADE_SPUR_W := 4.5
+const FAIR_PHOTO_AT := Vector3(-46.0, 0.0, 98.0)
+const FAIR_PHOTO_SPUR: Array[Vector3] = [
+	Vector3(-39.0, 0.0, 97.3),
+	Vector3(-44.5, 0.0, 98.0),
+]
+const FAIR_PHOTO_SPUR_W := 3.2
 
 
 # ---------------------------------------------------------------------------
@@ -2150,10 +2316,12 @@ static func bench_line() -> Array:
 ## noted. `floor_y` is there because the boardwalk's is not zero and a consumer
 ## that assumes it is will place things six metres in the air.
 ##
-## **Nothing here may go west of x -38.** The bluff runs the whole west edge of
-## the park, z -170 to +170, and the ground past it is the boardwalk's, six
-## metres down. That is why the south-west section is a narrow strip rather than
-## the square the other three are: there is nowhere for it to widen into.
+## **Nothing public here may go west of `BLUFF_BACK_X`.** The bluff runs the
+## whole west edge of the park, z -170 to +170, and the ground past its west face
+## is the boardwalk's, six metres down. That is why the south-west section is a
+## narrow strip rather than the square the other three are: there is nowhere for
+## it to widen into. The old x -38 limit predated the bluff's move to -58 and
+## contradicted both the threshold at -43.5 and the footprint below.
 ## Where the two east sections stop, and it is the landform saying so rather than
 ## a number picked for them. See `SECTION_GROUND`.
 const EAST_SECTION_TO_X := RIM_FOOT_X
@@ -2217,7 +2385,7 @@ const SECTION_GROUND := {
 		"size": Vector2(EAST_SECTION_TO_X - KIDDIELAND_FROM_X, 58.0),
 		"floor_y": TERRACE_TWO_Y,
 	},
-	&"fairground": {"at": Vector2(-29.0, 91.0), "size": Vector2(26.0, 76.0), "floor_y": 0.0},
+	&"fairground": {"at": Vector2(-38.0, 91.0), "size": Vector2(26.0, 76.0), "floor_y": 0.0},
 }
 
 ## Which way out leads where. The keys are the threshold names in `THRESHOLDS`

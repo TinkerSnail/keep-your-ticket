@@ -129,7 +129,7 @@ func _ready() -> void:
 		["street -> plaza", Vector3(-1.5, 1.2, 72), Vector3(0, 1.2, 24), true],
 		# Edge probes. Each must NOT arrive: something should stop the player.
 		["probe west shops", Vector3(-1.5, 1.2, 67), Vector3(-30, 1.2, 67), false],
-		["probe east shops", Vector3(-1.5, 1.2, 82), Vector3(28, 1.2, 82), false],
+		["probe east shops", Vector3(-1.5, 1.2, 92), Vector3(28, 1.2, 92), false],
 		["probe west shops far", Vector3(-1.5, 1.2, 97), Vector3(-30, 1.2, 97), false],
 		# Clear of the flagpole row, which stopped the first run's probes before
 		# they ever reached the walls they were aimed at.
@@ -139,13 +139,25 @@ func _ready() -> void:
 		["probe apron sw", Vector3(-1.5, 1.2, 119), Vector3(-30, 1.2, 142), false],
 		["probe apron se", Vector3(-1.5, 1.2, 119), Vector3(28, 1.2, 142), false],
 		["probe street seam", Vector3(-1.5, 1.2, 53), Vector3(-30, 1.2, 53), false],
-		# The arcade, which is a room you walk into rather than a scene that
-		# loads. In and back out under your own power, and the back wall holds.
+		# The arcade, which is a room you walk through rather than a scene that
+		# loads. Its rear door is now the second public route into the fairground.
 		["arcade in", Vector3(-6.0, 1.2, 78), Vector3(-20.0, 1.2, 78), true],
 		["arcade back out", Vector3(-20.0, 1.2, 78), Vector3(-4.0, 1.2, 78), true],
-		["arcade rear holds", Vector3(-20.0, 1.2, 78), Vector3(-40.0, 1.2, 78), false],
+		["arcade rear to fairground", Vector3(-20.0, 1.2, 78), Vector3(-34.0, 1.2, 78), true],
+		["fairground through arcade", Vector3(-34.0, 1.2, 78), Vector3(-20.0, 1.2, 78), true],
 		["arcade north holds", Vector3(-20.0, 1.2, 78), Vector3(-20.0, 1.2, 62), false],
 		["arcade south holds", Vector3(-20.0, 1.2, 78), Vector3(-20.0, 1.2, 94), false],
+		# The east opening is circulation, not an arcade attraction. It must carry
+		# opposing traffic cleanly and the south edge of its commons must still
+		# hold before the non-colliding parking backdrop.
+		["family portal to commons", Vector3(3.0, 1.2, 81), Vector3(20.0, 1.2, 81), true],
+		["family portal to street", Vector3(20.0, 1.2, 81), Vector3(3.0, 1.2, 81), true],
+		["family commons to grand tram", Vector3(37.0, 1.2, 107.0),
+			Vector3(37.0, 1.34, 118.0), true],
+		["grand tram to family commons", Vector3(37.0, 1.34, 118.0),
+			Vector3(37.0, 1.2, 107.0), true],
+		["grand tram lane holds", Vector3(37.0, 1.34, 118.0),
+			Vector3(37.0, 1.34, 126.0), false],
 	]
 	# Three threshold spokes, one leg per dogleg.
 	#
@@ -499,7 +511,6 @@ func _ready() -> void:
 	# last is the one that matters — a passage that leaks is a hole.
 	for t in [
 		["nnw", Vector3(-16.9, 1.2, -46), Vector3(-16.9, 1.2, -58), Vector3(-27.9, 1.2, -58), Vector3(-45, 1.2, -58)],
-		["sw", Vector3(-31.3, 1.2, 46), Vector3(-31.3, 1.2, 58), Vector3(-41.3, 1.2, 58), Vector3(-59, 1.2, 58)],
 	]:
 		_legs.append(["way %s in" % t[0], t[1], t[2], true])
 		_legs.append(["way %s turn" % t[0], t[2], t[3], true])
@@ -518,6 +529,15 @@ func _ready() -> void:
 	for i in range(kiddie.size() - 1, 0, -1):
 		_legs.append(["kiddie return %d" % i,
 			kiddie[i] + Vector3.UP * 1.2, kiddie[i - 1] + Vector3.UP * 1.2, true])
+	var family_link: Array[Vector3] = ParkPlan.KIDDIE_ENTRANCE_LINK
+	for i in family_link.size() - 1:
+		_legs.append(["family link in %d" % i,
+			family_link[i] + Vector3.UP * 1.2,
+			family_link[i + 1] + Vector3.UP * 1.2, true])
+	for i in range(family_link.size() - 1, 0, -1):
+		_legs.append(["family link out %d" % i,
+			family_link[i] + Vector3.UP * 1.2,
+			family_link[i - 1] + Vector3.UP * 1.2, true])
 	var station_spur: Array[Vector3] = ParkPlan.KIDDIE_STATION_SPUR
 	_legs.append(["kiddie station in", station_spur[0] + Vector3.UP * 1.2,
 		station_spur[1] + Vector3.UP * 1.2, true])
@@ -528,8 +548,44 @@ func _ready() -> void:
 		ParkPlan.KIDDIE_PHOTO_AT + Vector3.UP * 1.2, true])
 	_legs.append(["kiddie photo out", ParkPlan.KIDDIE_PHOTO_AT + Vector3.UP * 1.2,
 		photo_spur[0] + Vector3.UP * 1.2, true])
+	var kiddie_end_dir := Vector2(kiddie[-1].x - kiddie[-2].x,
+		kiddie[-1].z - kiddie[-2].z).normalized()
 	_legs.append(["kiddie arrival holds", kiddie[-1] + Vector3.UP * 1.2,
-		Vector3(100.0, kiddie[-1].y + 1.2, 74.0), false])
+		Vector3(kiddie[-1].x + kiddie_end_dir.x * 10.0,
+			kiddie[-1].y + 1.2, kiddie[-1].z + kiddie_end_dir.y * 10.0),
+		false])
+
+	# Southwest now opens onto a midway. The big top's queue and the photo bay are
+	# side trips; the spine itself is walked in both directions and ends at a
+	# temporary gate so opening the threshold cannot become a map leak.
+	var fair: Array[Vector3] = ParkPlan.FAIR_ARRIVAL_POINTS
+	_legs.append(["way sw in", Vector3(-31.3, 1.2, 46.0),
+		Vector3(-31.3, 1.2, 58.0), true])
+	_legs.append(["way sw turn", Vector3(-31.3, 1.2, 58.0),
+		fair[0] + Vector3.UP * 1.2, true])
+	for i in fair.size() - 1:
+		_legs.append(["fair arrival %d" % i,
+			fair[i] + Vector3.UP * 1.2, fair[i + 1] + Vector3.UP * 1.2, true])
+	for i in range(fair.size() - 1, 0, -1):
+		_legs.append(["fair return %d" % i,
+			fair[i] + Vector3.UP * 1.2, fair[i - 1] + Vector3.UP * 1.2, true])
+	var top_spur: Array[Vector3] = ParkPlan.FAIR_BIG_TOP_SPUR
+	_legs.append(["fair big top queue in", top_spur[0] + Vector3.UP * 1.2,
+		top_spur[1] + Vector3.UP * 1.2, true])
+	_legs.append(["fair big top queue out", top_spur[1] + Vector3.UP * 1.2,
+		top_spur[0] + Vector3.UP * 1.2, true])
+	var arcade_spur: Array[Vector3] = ParkPlan.FAIR_ARCADE_SPUR
+	_legs.append(["fair arcade link in", arcade_spur[0] + Vector3.UP * 1.2,
+		arcade_spur[-1] + Vector3.UP * 1.2, true])
+	_legs.append(["fair arcade link out", arcade_spur[-1] + Vector3.UP * 1.2,
+		arcade_spur[0] + Vector3.UP * 1.2, true])
+	var fair_photo: Array[Vector3] = ParkPlan.FAIR_PHOTO_SPUR
+	_legs.append(["fair photo in", fair_photo[0] + Vector3.UP * 1.2,
+		fair_photo[1] + Vector3.UP * 1.2, true])
+	_legs.append(["fair photo out", fair_photo[1] + Vector3.UP * 1.2,
+		fair_photo[0] + Vector3.UP * 1.2, true])
+	_legs.append(["fair arrival holds", fair[-1] + Vector3.UP * 1.2,
+		Vector3(-37.0, 1.2, 114.0), false])
 	_start_leg()
 
 
@@ -616,6 +672,15 @@ func _boardwalk_legs() -> Array:
 	var alley_in := Vector3(ParkPlan.BACK_LANE_X, y, ParkPlan.ALLEY_Z)
 	var alley_out := Vector3(ParkPlan.PROMENADE_X + 5.0, y, ParkPlan.ALLEY_Z)
 	var prom := Vector3(ParkPlan.PROMENADE_X + 5.0, y, ParkPlan.ALLEY_Z)
+	# The Grand Circuit stop is a side destination off the back lane, ten metres
+	# south of the alley reveal. Walk in through the platform's north end, its
+	# full length, and back out before continuing to the boardwalk. The lane-side
+	# probe is the safety question: until boarding interaction can open a gate,
+	# the platform must not become a pedestrian crossing into a moving service.
+	var tram_lane := Vector3(ParkPlan.BACK_LANE_X, y, 5.0)
+	var tram_apron := Vector3(-76.85, y, 5.0)
+	var tram_north := Vector3(-76.85, y, 11.0)
+	var tram_south := Vector3(-76.85, y, 25.0)
 	# The pier is 8m south of the alley's axis since 2026-08-20, so getting onto
 	# it is two legs rather than one — out of the alley, then south along the
 	# promenade to the mouth. Walked as two legs and not one diagonal on
@@ -624,6 +689,16 @@ func _boardwalk_legs() -> Array:
 	var pz := ParkPlan.PIER_ROOT.y
 	var mouth := Vector3(ParkPlan.PROMENADE_X + 5.0, y, pz)
 	return _cascade_legs() + [
+		["bw lane -> tram", alley_in, tram_lane, true],
+		["bw tram apron", tram_lane, tram_apron, true],
+		["bw tram platform in", tram_apron, tram_north, true],
+		["bw tram platform length", tram_north, tram_south, true],
+		["bw tram platform back", tram_south, tram_north, true],
+		["bw tram platform out", tram_north, tram_apron, true],
+		["bw tram -> lane", tram_apron, tram_lane, true],
+		["bw tram lane guard holds", Vector3(-76.85, y, 18.0),
+			Vector3(-70.0, y, 18.0), false],
+		["bw tram -> alley", tram_lane, alley_in, true],
 		["bw lane -> alley", alley_in, alley_out, true],
 		["bw alley -> pier mouth", prom, mouth, true],
 		["bw onto the pier", mouth, Vector3(-106, y, pz), true],

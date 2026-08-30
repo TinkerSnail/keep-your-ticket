@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/world/plaza.tscn" id="1_plaza"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://scenes/world/park_lights.gd" id="8_lights"]
 [ext_resource type="Script" path="res://scenes/main/main.gd" id="6_main"]
 [ext_resource type="Script" path="res://scenes/ui/park_menu.gd" id="7_menu"]
+[ext_resource type="PackedScene" path="res://scenes/world/park_transit.tscn" id="9_transit"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
 sky_top_color = Color(0.35, 0.55, 0.78, 1)
@@ -63,6 +64,8 @@ light_color = Color(1, 0.95, 0.86, 1)
 light_energy = 1.8
 shadow_enabled = true
 directional_shadow_max_distance = 120.0
+
+[node name="park_transit" parent="." instance=ExtResource("9_transit")]
 
 [node name="sections" type="Node3D" parent="." groups=["section_host"]]
 

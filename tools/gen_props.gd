@@ -44,6 +44,7 @@ const FOUNTAIN_PATH := "res://scenes/world/plaza_fountain.tscn"
 const STAIR_PATH := "res://scenes/world/west_stair.tscn"
 const EAST_CASCADE_PATH := "res://scenes/world/east_cascade.tscn"
 const SKY_RIDE_PATH := "res://scenes/world/north_sky_ride.tscn"
+const TRANSIT_PATH := "res://scenes/world/park_transit.tscn"
 ## How far east the terraces' massing copy of the plaza stands from the
 ## boardwalk's. See `_plaza_from_the_east`, which explains what it is for.
 ##
@@ -96,6 +97,11 @@ const BOARDWALK_PATH := "res://scenes/world/boardwalk.tscn"
 
 var _root: Node3D
 var mats: Dictionary = {}
+## Cached once because `_east_kiddie_grade_y` is called for every shoulder mesh
+## sample. Rebuilding a 49-point loop inside that height function turns one
+## design curve into tens of thousands of short-lived vectors.
+var _kiddie_rail: Array[Vector3] = []
+var _grand_tram: Array[Vector3] = []
 
 
 ## Set when a material came out wrong. `_save` refuses to write anything once it
@@ -106,6 +112,8 @@ var _fatal := false
 func _initialize() -> void:
 	_build_textures()
 	_build_materials()
+	_kiddie_rail = Plan.kiddie_rail_loop()
+	_grand_tram = Plan.grand_tram_loop()
 
 	_root = Node3D.new()
 	_root.name = "props"
@@ -324,6 +332,16 @@ func _initialize() -> void:
 	_begin_scene()
 	_north_sky_ride()
 	if not _save(_root, SKY_RIDE_PATH):
+		return
+
+	# Park-wide infrastructure lives outside section ownership and is instanced
+	# by `main.tscn`. Appended after every established output so introducing it
+	# cannot move another scene's seam seed or rewrite unrelated geometry.
+	_root = Node3D.new()
+	_root.name = "park_transit"
+	_begin_scene()
+	_grand_tram_infrastructure()
+	if not _save(_root, TRANSIT_PATH):
 		return
 
 	quit()
@@ -1858,12 +1876,29 @@ func _add(node: Node3D, nm: String) -> void:
 ## compiles cleanly. Anything here that touches a script naming an autoload has
 ## to be loaded late for the same reason.
 var _section_gate: Script = null
+var _ride_vehicle: Script = null
 
 
 func _gate_script() -> Script:
 	if _section_gate == null:
 		_section_gate = load("res://scenes/world/section_gate.gd")
 	return _section_gate
+
+
+func _ride_vehicle_script() -> Script:
+	if _ride_vehicle == null:
+		_ride_vehicle = load("res://scenes/world/ride_vehicle.gd")
+	return _ride_vehicle
+
+
+func _ride_vehicle_node(nm: String, service: int) -> void:
+	var vehicle := Node3D.new()
+	vehicle.set_script(_ride_vehicle_script())
+	if vehicle.get_script() == null:
+		push_error("gen_props: ride_vehicle.gd did not compile — '%s' would not move" % nm)
+		return
+	vehicle.set("service", service)
+	_attach(vehicle, nm)
 
 ## Added without the seam displacement `_add` applies. That offset exists to
 ## stop two CSG surfaces sharing a plane; a trigger volume and a spawn point are
@@ -5447,7 +5482,7 @@ func _east_kiddie_grade_y(x: float, z: float, uncut_y: float) -> float:
 	# smaller verges without turning the whole shoulder into one flat court.
 	for route in [
 		# Track first so the public routes own the final datum at crossings.
-		[Plan.KIDDIE_TRACK_POINTS, 1.7, Plan.KIDDIE_TRACK_GRADE_RUN, 0.0],
+		[_kiddie_rail, 1.7, Plan.KIDDIE_TRACK_GRADE_RUN, 0.0],
 		# The route bed sits above this cut. The shoulder is sampled on a coarse
 		# grid, and grading it to the exact paving datum let interpolated triangles
 		# stand up to 39cm through the road between samples — a traversable route
@@ -10630,6 +10665,10 @@ func _entrance() -> void:
 	_gate()
 	_apron()
 	_entrance_lights()
+	# Appended so opening the arcade's rear does not re-plane the gate, apron or
+	# any of their lights. `_arcade_room` keeps one call in its old back-wall slot
+	# as the header; these are the two cheeks that make the opening a door.
+	_arcade_rear_exit()
 
 
 ## The arrival, after dark — and until now there was none at all.
@@ -10870,7 +10909,9 @@ const STREET_WEST := [
 const STREET_EAST := [
 	[57.0, 11.0, 9.0, 5.5, "accent", "cafe"],
 	[69.0, 12.0, 10.0, 7.0, "far_warm", "store"],
-	[81.0, 11.0, 8.0, 5.0, "white", "arcade"],
+	# A public breezeway rather than a painted arcade front. It is the entrance
+	# street's connection to the family commons and has daylight at both ends.
+	[81.0, 11.0, 8.0, 5.0, "white", "portal"],
 	[92.0, 10.0, 9.0, 6.5, "accent", "store"],
 	[102.0, 9.0, 8.5, 5.5, "far_warm", "cafe"],
 ]
@@ -10894,6 +10935,11 @@ func _shopfronts(rows: Array, side: float, id_from: int) -> void:
 		var mat: String = row[4]
 		var kind: String = row[5]
 		var cx := face + side * depth * 0.5
+		var family_portal: bool = kind == "portal" and side > 0.0
+		if family_portal:
+			_family_entrance_portal(n, face, z, length, depth, height)
+			n += 1
+			continue
 		var walk_in: bool = kind == "arcade" and side < 0.0
 		if walk_in:
 			_arcade_room(face, z, length)
@@ -10928,6 +10974,56 @@ func _shopfronts(rows: Array, side: float, id_from: int) -> void:
 		_front("shop_%d" % n, Vector3(face, 0.0, z), theta,
 			minf(length - 2.0, 7.5), kind, not walk_in)
 		n += 1
+
+
+## The east frontage opens here instead of making the family route pass through
+## an attraction. Two short shop-sized cheeks and a deep header keep the street
+## wall continuous, but the seven-metre clear opening is plainly a public way:
+## brick underfoot, daylight at the far end, matching markers on both faces.
+##
+## The old object at this address was a solid box with an arcade front pasted on
+## it. It looked like somewhere to go and then stopped the player at the glass —
+## exactly the false choice the southern circulation loop cannot afford.
+func _family_entrance_portal(id: int, face: float, z: float, length: float,
+		depth: float, height: float) -> void:
+	var clear_w: float = Plan.KIDDIE_ENTRANCE_PORTAL_W
+	var cheek_d: float = (length - clear_w) * 0.5
+	var cx: float = face + depth * 0.5
+	for side in [-1.0, 1.0]:
+		var cz: float = z + float(side) * (clear_w * 0.5 + cheek_d * 0.5)
+		_box("shop_%d_portal_%s" % [id, "n" if side < 0.0 else "s"],
+			Vector3.ZERO, Vector3(cx, 1.72, cz),
+			Vector3(depth, 3.50, cheek_d), "white")
+	# Wider in both plan dimensions than the cheeks, so their outer faces lap at
+	# different planes rather than becoming coplanar rectangles under the eave.
+	_box("shop_%d" % id, Vector3.ZERO,
+		Vector3(cx, 4.22, z), Vector3(depth + 0.30, 1.70, length + 0.30),
+		"white")
+	_box("shop_%d_cap" % id, Vector3.ZERO,
+		Vector3(cx, height + 0.20, z),
+		Vector3(depth + 0.70, 0.40, length + 0.70), "far_shade", 0.0, false)
+
+	# A shallow canopy and coloured rule on each face make the same opening
+	# legible from the entrance street and from the commons. Neither reaches down
+	# into the clear width and neither carries collision.
+	for back in [false, true]:
+		var x := face - 0.16 if not back else face + depth + 0.16
+		var tag := "street" if not back else "commons"
+		_box("shop_%d_portal_%s_canopy" % [id, tag], Vector3.ZERO,
+			Vector3(x, 3.22, z), Vector3(1.05, 0.18, clear_w + 0.80),
+			"yellow", 0.0, false)
+		_box("shop_%d_portal_%s_rule" % [id, tag], Vector3.ZERO,
+			Vector3(x + (-0.56 if not back else 0.56), 3.78, z),
+			Vector3(0.10, 0.52, clear_w - 1.0), "blue", 0.0, false)
+	# Low side panels say family-scale colour without putting a board above a
+	# route whose destination is already visible through it.
+	for side in [-1.0, 1.0]:
+		_box("shop_%d_portal_panel_%s" % [id, "n" if side < 0.0 else "s"],
+			Vector3.ZERO,
+			Vector3(face - 0.07, 1.45, z + side * (clear_w * 0.5 + 0.35)),
+			Vector3(0.12, 1.35, 0.56), "red", 0.0, false)
+	_omni("shop_%d_portal_glow" % id,
+		Vector3(cx, 2.75, z), "amber", 2.2, 10.0, LIGHT_FIXTURE, true)
 
 
 ## The arcade, which is the only interior on the street and the only room in the
@@ -11169,6 +11265,9 @@ func _thresholds() -> void:
 	# Appended so none of the three established passage ordinals moves. This is
 	# the first authored piece beyond one of them, not a fourth passage part.
 	_kiddieland_arrival()
+	# Appended after Kiddieland for the same reason. Neither arrival is allowed to
+	# re-plane the scaffold that made it possible to reach it.
+	_fairground_arrival()
 
 
 ## What each way in looks like from the fountain.
@@ -11349,16 +11448,23 @@ func _passage(nm: String, base: Vector3, theta: float, w: float, turn: float) ->
 	# Straight ahead as you come through the opening. This is what makes the
 	# passage a turn rather than a corridor: from the plaza it reads as a wall
 	# with somewhere behind it, not as a view of a dead end.
-	_box("way_%s_ahead" % nm, base, Vector3(t * BEND * 0.5, 1.75, REACH + 0.25),
-		Vector3(w + BEND + 1.0, 3.5, 0.5), "far_warm", theta)
+	# Southwest keeps that screen across the original sightline but gives up its
+	# last five metres at the far end. The fairground route turns south there;
+	# leaving the full generic wall made the newly lifted header technically open
+	# and the path beyond it physically blocked.
+	var ahead_trim := 5.0 if nm == "sw" else 0.0
+	var ahead_shift := -t * ahead_trim * 0.5
+	_box("way_%s_ahead" % nm, base,
+		Vector3(t * BEND * 0.5 + ahead_shift, 1.75, REACH + 0.25),
+		Vector3(w + BEND + 1.0 - ahead_trim, 3.5, 0.5), "far_warm", theta)
 	_box("way_%s_inner" % nm, base,
 		Vector3(t * (n + BEND * 0.5 + 0.25), 1.75, REACH - w - 0.25),
 		Vector3(BEND + 0.5, 3.5, 0.5), "far_warm", theta)
 	# The end, only visible once you have made the turn. Where a section joins.
-	# Southeast is the first passage with something real beyond it: keep this
+	# Southeast and southwest now have something real beyond them: keep this
 	# exact call in the exact build-order slot, but lift its wall into a header so
 	# the route opens only after the bend. The other two remain honest closures.
-	if nm == "se":
+	if nm == "se" or nm == "sw":
 		_box("way_%s_end" % nm, base,
 			Vector3(t * (n + BEND + 0.25), 3.15, REACH - w * 0.5),
 			Vector3(0.5, 0.7, w), "far_shade", theta, false)
@@ -11378,21 +11484,31 @@ func _passage(nm: String, base: Vector3, theta: float, w: float, turn: float) ->
 		theta + t * PI * 0.5, 5.0, "cafe" if t > 0.0 else "store")
 
 
-## The southeast passage's reveal: a small, bright court feeding one continuous
-## family spine, with the miniature railway station and a photography turnout
-## hanging off it. Low massing is deliberate. From inside the plaza the bend
-## still hides all of this; after the turn, the route remains the first read and
-## the train and striped station become an optional promise beside it.
+## The southeast passage's reveal and the lower family loop. One public spine
+## comes out of the passage, opens into a commons, and spends a long S climbing
+## the south shoulder toward the carousel. A second public leg arrives through
+## the entrance-street frontage. The two meet on paving, not in a ride court.
+##
+## This replaces two circulation failures at once: a rectangular hole between
+## the entrance range and the shoulder, and a short uphill chute that crossed the
+## miniature railway before pointing its temporary gate at the parking lot. The
+## commons gives that missing land an operational use; the train, photo bay,
+## stroller parking and picnic shelter all sit beside the route rather than in
+## it. Low massing is deliberate so the station and distant carousel remain the
+## wayfinding marks.
 func _kiddieland_arrival() -> void:
 	var points: Array[Vector3] = Plan.KIDDIE_ARRIVAL_POINTS
+	var entrance_link: Array[Vector3] = Plan.KIDDIE_ENTRANCE_LINK
 	var path_w: float = Plan.KIDDIE_ARRIVAL_PATH_W
 	var bank_w: float = Plan.KIDDIE_ARRIVAL_BANK_W
 
-	# A level court receives the passage and gives the railway a place to cross
-	# before the shoulder takes over. It laps under the old floor by half a metre;
-	# the graded shoulder mesh carries everything east of it.
+	# The old court still laps under the passage. The commons then fills the whole
+	# missing wedge to the entrance range; its top stays four centimetres below
+	# public paving, so overlapping it with the court and shoulder cannot produce
+	# a coplanar floor.
 	_box("kiddie_arrival_court_ground", Vector3.ZERO,
-		Vector3(55.0, -0.50, 52.5), Vector3(15.0, 1.0, 19.0), "planting")
+		Vector3(53.0, -0.50, 55.0), Vector3(20.0, 1.0, 24.0), "planting")
+	_kiddie_family_commons()
 
 	# `_east_kiddie_grade_y` pulls the south shoulder itself down to this route;
 	# the brick is only a skin over that colliding land, never a floating ramp.
@@ -11400,16 +11516,30 @@ func _kiddieland_arrival() -> void:
 	# triangles cross the diagonal route between samples. The court already owns
 	# the first level segment; every climbing segment and both branches get one.
 	# Its collision is a welded ribbon below, because overlapping boxes can steer
-	# a CharacterBody sideways at their joints.
+	# a CharacterBody sideways at their joints. Branch fills are emitted segment
+	# by segment now that neither side route is a single straight line.
 	for i in range(1, points.size() - 1):
 		_kiddie_arrival_bridge("kiddie_arrival_bed_%d" % i,
 			points[i], points[i + 1], path_w)
-	_kiddie_arrival_bridge("kiddie_station_bed", Plan.KIDDIE_STATION_SPUR[0],
-		Plan.KIDDIE_STATION_SPUR[1], Plan.KIDDIE_STATION_SPUR_W)
-	_kiddie_arrival_bridge("kiddie_photo_bed", Plan.KIDDIE_PHOTO_SPUR[0],
-		Plan.KIDDIE_PHOTO_SPUR[1], Plan.KIDDIE_PHOTO_SPUR_W)
+	for branch in [
+		["kiddie_station_bed", Plan.KIDDIE_STATION_SPUR,
+			Plan.KIDDIE_STATION_SPUR_W],
+		["kiddie_photo_bed", Plan.KIDDIE_PHOTO_SPUR,
+			Plan.KIDDIE_PHOTO_SPUR_W],
+	]:
+		var branch_points: Array[Vector3] = branch[1]
+		for i in branch_points.size() - 1:
+			_kiddie_arrival_bridge("%s_%d" % [branch[0], i],
+				branch_points[i], branch_points[i + 1], branch[2])
 	_east_path_ribbon("kiddie_arrival_path", points, path_w, "brick",
 		Plan.KIDDIE_ARRIVAL_PATH_LIFT)
+	_east_path_ribbon("kiddie_entrance_link", entrance_link,
+		Plan.KIDDIE_ENTRANCE_LINK_W, "brick", Plan.KIDDIE_ARRIVAL_PATH_LIFT + 0.002)
+	_kiddie_arrival_bridge("grand_tram_entry_access_bed",
+		Plan.GRAND_TRAM_ENTRY_ACCESS[0], Plan.GRAND_TRAM_ENTRY_ACCESS[1],
+		Plan.GRAND_TRAM_ENTRY_ACCESS_W)
+	_east_path_ribbon("grand_tram_entry_access", Plan.GRAND_TRAM_ENTRY_ACCESS,
+		Plan.GRAND_TRAM_ENTRY_ACCESS_W, "brick", Plan.KIDDIE_ARRIVAL_PATH_LIFT + 0.006)
 	_east_path_ribbon("kiddie_station_spur", Plan.KIDDIE_STATION_SPUR,
 		Plan.KIDDIE_STATION_SPUR_W, "brick", Plan.KIDDIE_ARRIVAL_PATH_LIFT + 0.002)
 	_east_path_ribbon("kiddie_photo_spur", Plan.KIDDIE_PHOTO_SPUR,
@@ -11424,6 +11554,14 @@ func _kiddieland_arrival() -> void:
 	for i in range(1, points.size()):
 		spine_collision.append(points[i])
 	_east_path_collision("kiddie_arrival_walk", spine_collision, path_w, 0.14)
+	var link_collision: Array[Vector3] = [
+		Vector3(entrance_link[0].x - 2.0, -0.14, entrance_link[0].z),
+	]
+	link_collision.append_array(entrance_link)
+	_east_path_collision("kiddie_entrance_walk", link_collision,
+		Plan.KIDDIE_ENTRANCE_LINK_W, 0.14)
+	_east_path_collision("grand_tram_entry_walk", Plan.GRAND_TRAM_ENTRY_ACCESS,
+		Plan.GRAND_TRAM_ENTRY_ACCESS_W, 0.14)
 	_east_path_collision("kiddie_station_walk", Plan.KIDDIE_STATION_SPUR,
 		Plan.KIDDIE_STATION_SPUR_W, 0.14)
 	_east_path_collision("kiddie_photo_walk", Plan.KIDDIE_PHOTO_SPUR,
@@ -11431,49 +11569,196 @@ func _kiddieland_arrival() -> void:
 	_box("kiddie_photo_pad", Plan.KIDDIE_PHOTO_AT,
 		Vector3(0.0, 0.08, 0.0), Vector3(4.8, 0.16, 4.0), "brick")
 
-	# Two rails climb gently north-south and cross the spine only after its choice
-	# is clear. The parked train stays north of that crossing beside its platform.
-	var track: Array[Vector3] = Plan.KIDDIE_TRACK_POINTS
-	for side in [-1.0, 1.0]:
-		_strut("kiddie_track_rail_%s" % ("w" if side < 0.0 else "e"),
-			track[0] + Vector3(side * 0.62, 0.22, 0.0),
-			track[1] + Vector3(side * 0.62, 0.22, 0.0), 0.12, "metal")
-	for i in 23:
-		var t := float(i) / 22.0
-		var tie_at := track[0].lerp(track[1], t) + Vector3.UP * 0.17
-		_box("kiddie_track_tie_%02d" % i, tie_at, Vector3.ZERO,
-			Vector3(2.15, 0.07, 0.16), "wood", 0.0, false)
-
-	_kiddie_train(Vector3(66.5, 0.72, 49.3))
+	# A closed railway inside the S, with no public crossing. The moving train is
+	# one scripted assembly while the right-of-way remains generated geometry;
+	# both sample the same published loop, so the locomotive cannot drift off its
+	# own rails when the oval changes.
+	_rail_loop("kiddie_track", _kiddie_rail, Plan.KIDDIE_RAIL_GAUGE)
+	_ride_vehicle_node("kiddie_train", 0)
 	_kiddie_station(Plan.KIDDIE_STATION_AT)
+	_kiddie_station_barrier()
 
 	# A waist-high sighting rail identifies the turnout as somewhere to stop,
 	# while its open ends keep it usable from either direction.
 	var photo := Plan.KIDDIE_PHOTO_AT
 	for x in [-1.8, 0.0, 1.8]:
 		_box("kiddie_photo_rail_post_%s" % str(x), photo,
-			Vector3(x, 0.52, 1.65), Vector3(0.10, 1.04, 0.10), "white")
-	_box("kiddie_photo_rail", photo, Vector3(0.0, 0.92, 1.65),
+			Vector3(x, 0.52, -1.65), Vector3(0.10, 1.04, 0.10), "white")
+	_box("kiddie_photo_rail", photo, Vector3(0.0, 0.92, -1.65),
 		Vector3(3.7, 0.11, 0.11), "blue", 0.0, false)
 
-	# Court lamps and a low planted edge make this feel like a child-sized land,
-	# not another service yard. The south edge is guarded where the greybox drops.
-	for lamp_at in [Vector3(51.0, 0.0, 59.2), Vector3(80.0, 3.18, 72.0)]:
-		var i := 0 if lamp_at.x < 60.0 else 1
-		_cyl("kiddie_arrival_lamp_%d_pole" % i, lamp_at,
-			Vector3(0.0, 2.0, 0.0), 0.075, 4.0, "white", 0.0, 8)
-		_box("kiddie_arrival_lamp_%d_head" % i, lamp_at,
-			Vector3(0.0, 3.96, 0.0), Vector3(0.42, 0.22, 0.42), "lamp_glass", 0.0, false)
-		_omni("kiddie_arrival_lamp_%d_glow" % i,
-			lamp_at + Vector3(0.0, 3.82, 0.0), "warm", 2.0, 10.0, LIGHT_FIXTURE)
 	# Temporary section seam. A picket gate keeps the unfinished land out of the
 	# walk while its low sign and the carousel beyond keep the route aspirational.
-	_kiddie_guard("kiddie_arrival_end_guard", Vector3(90.5, 4.40, 72.0),
-		bank_w - 0.8, PI * 0.5)
-	_box("kiddie_arrival_end_board", Vector3.ZERO,
-		Vector3(90.18, 5.60, 72.0), Vector3(0.20, 1.05, 4.2), "yellow", 0.0, false)
-	_box("kiddie_arrival_end_board_rule", Vector3.ZERO,
-		Vector3(90.05, 5.60, 72.0), Vector3(0.08, 0.14, 3.2), "red", 0.0, false)
+	# It is perpendicular to the actual final segment rather than hard-coded to a
+	# coordinate axis, so changing the approach cannot turn the gate into a rail
+	# running along the path.
+	var end: Vector3 = points[-1]
+	var before: Vector3 = points[-2]
+	var tangent := Vector2(end.x - before.x, end.z - before.z).normalized()
+	var guard_at := end + Vector3(tangent.x, 0.0, tangent.y) * 0.45
+	var guard_theta := atan2(tangent.x, tangent.y)
+	_kiddie_guard("kiddie_arrival_end_guard", guard_at,
+		bank_w - 0.8, guard_theta)
+	_box("kiddie_arrival_end_board", guard_at,
+		Vector3(0.0, 1.20, -0.14), Vector3(4.2, 1.05, 0.20),
+		"yellow", guard_theta, false)
+	_box("kiddie_arrival_end_board_rule", guard_at,
+		Vector3(0.0, 1.20, -0.27), Vector3(3.2, 0.14, 0.08),
+		"red", guard_theta, false)
+
+
+## The missing ground between Kiddieland, the entrance range and the parking
+## backdrop becomes a family support commons. It is not another themed land and
+## has no attraction on its centreline: a care/restroom building, stroller bay
+## and shaded picnic tables are the things a working kiddieland actually needs,
+## all set in side bays off one broad public route.
+func _kiddie_family_commons() -> void:
+	# x 14..60 laps the backs of the entrance shops and the shoulder; z 48..116
+	# stops seven metres before the parking backdrop. Top at -4cm, below every
+	# public floor it supports.
+	_box("kiddie_commons_ground", Vector3.ZERO,
+		Vector3(37.0, -0.54, 82.0), Vector3(46.0, 1.0, 68.0), "planting")
+
+	_kiddie_family_services(Vector3(23.0, 0.0, 101.0))
+	_kiddie_stroller_corral(Vector3(29.0, 0.0, 90.5))
+	_kiddie_picnic_shelter(Vector3(46.5, 0.0, 101.0))
+
+	# A real inside/outside edge. Cars and lot standards remain visible above the
+	# planting, but guests cannot mistake the grey backdrop for another route.
+	# The Grand Circuit station replaces the middle six metres of the boundary.
+	# This is a deliberate public door, not a hole in the car-park guard: brick
+	# carries through it to a platform and the platform's own rail stops the lane.
+	for side in [-1.0, 1.0]:
+		var x := 24.0 if side < 0.0 else 50.0
+		_box("kiddie_commons_south_kerb_%s" % str(side), Vector3.ZERO,
+			Vector3(x, 0.24, 115.3), Vector3(20.0, 0.48, 0.62), "brick")
+		_kiddie_guard("kiddie_commons_south_guard_%s" % str(side),
+			Vector3(x, 0.42, 115.25), 19.4, 0.0)
+	for i in 2:
+		var x := 21.0 + float(i) * 32.0
+		_box("kiddie_commons_buffer_%d" % i, Vector3.ZERO,
+			Vector3(x, 0.20, 111.7), Vector3(10.5, 0.40, 1.55), "brick")
+		_box("kiddie_commons_buffer_%d_soil" % i, Vector3.ZERO,
+			Vector3(x, 0.45, 111.7), Vector3(10.10, 0.10, 1.15),
+			"planting", 0.0, false)
+		for j in 4:
+			_sphere("kiddie_commons_buffer_%d_shrub_%d" % [i, j],
+				Vector3.ZERO, Vector3(x - 3.6 + float(j) * 2.4, 0.78, 111.7),
+				0.42, "foliage", 0.0, 0.76)
+	for tree in [
+		["a", Vector3(17.5, 0.0, 107.0), 4.6, 1.45, -0.3],
+		["c", Vector3(56.0, 0.0, 107.0), 4.8, 1.55, -0.2],
+	]:
+		_east_frontier_tree("kiddie_commons_tree_%s" % tree[0],
+			tree[1], tree[2], tree[3], tree[4])
+
+	# Lamps sit on the stopping side of the route, never down its centreline.
+	# Ten-to-fourteen metre spacing is the night version of the paving ribbon:
+	# each pool overlaps the next just enough that the S remains one route, while
+	# the carousel on the crest stays brighter than the road leading to it.
+	for row in [
+		["portal", Vector2(19.0, 86.2)],
+		["link", Vector2(30.0, 84.2)],
+		["lower", Vector2(48.0, 54.5)],
+		["station", Vector2(36.8, 66.0)],
+		["junction", Vector2(38.0, 83.2)],
+		["curve_a", Vector2(51.5, 91.0)],
+		["curve_b", Vector2(68.0, 94.2)],
+		["curve_c", Vector2(84.0, 91.0)],
+		["curve_d", Vector2(97.0, 82.0)],
+		["seam", Vector2(105.0, 70.0)],
+	]:
+		var p: Vector2 = row[1]
+		var at := Vector3(p.x, 0.0, p.y)
+		if p.x >= SHOULDER_WEST_X:
+			at.y = _shoulder_y(p.x, p.y, 1.0, _shoulder_prm(1.0)) + 0.02
+		_kiddie_commons_lamp(row[0], at)
+
+
+func _kiddie_family_services(at: Vector3) -> void:
+	_box("kiddie_family_services", at, Vector3(0.0, 2.10, 0.0),
+		Vector3(13.0, 4.30, 8.0), "far_warm")
+	_box("kiddie_family_services_roof", at, Vector3(0.0, 4.38, 0.0),
+		Vector3(13.8, 0.30, 8.8), "far_shade", 0.0, false)
+	# North-facing doors and windows address the commons rather than the car park.
+	for i in 2:
+		var x := -3.3 + float(i) * 2.25
+		_box("kiddie_family_services_door_%d" % i, at,
+			Vector3(x, 1.12, -4.04), Vector3(1.35, 2.20, 0.10),
+			"blue", 0.0, false)
+	for i in 2:
+		_box("kiddie_family_services_window_%d" % i, at,
+			Vector3(1.7 + float(i) * 2.2, 1.72, -4.04),
+			Vector3(1.35, 1.15, 0.10), "glass", 0.0, false)
+	_box("kiddie_family_services_awning", at, Vector3(0.0, 3.15, -4.48),
+		Vector3(11.0, 0.18, 1.0), "yellow", 0.0, false)
+	_box("kiddie_family_services_sign", at, Vector3(0.0, 3.72, -4.10),
+		Vector3(5.0, 0.66, 0.10), "blue", 0.0, false)
+	_box("kiddie_family_services_sign_rule", at, Vector3(0.0, 3.72, -4.17),
+		Vector3(3.8, 0.13, 0.05), "yellow", 0.0, false)
+	_omni("kiddie_family_services_glow", at + Vector3(0.0, 2.75, -4.8),
+		"warm", 2.1, 8.5, LIGHT_FIXTURE, true)
+
+
+func _kiddie_stroller_corral(at: Vector3) -> void:
+	_box("kiddie_stroller_pad", at, Vector3(0.0, 0.025, 0.0),
+		Vector3(7.0, 0.05, 4.5), "brick", 0.0, false)
+	for x in [-3.25, 3.25]:
+		for z in [-1.85, 1.85]:
+			_box("kiddie_stroller_post_%s_%s" % [str(x), str(z)], at,
+				Vector3(x, 0.50, z), Vector3(0.10, 1.0, 0.10), "blue")
+	for x in [-3.25, 3.25]:
+		_box("kiddie_stroller_side_%s" % str(x), at,
+			Vector3(x, 0.82, 0.0), Vector3(0.10, 0.12, 3.8),
+			"blue", 0.0, false)
+	# Open on the route side; the back rail is what keeps the bay from reading as
+	# another path continuing south.
+	_box("kiddie_stroller_back", at, Vector3(0.0, 0.82, 1.85),
+		Vector3(6.6, 0.12, 0.10), "blue", 0.0, false)
+	for i in 3:
+		var sx := -2.0 + float(i) * 2.0
+		_box("kiddie_stroller_%d_seat" % i, at,
+			Vector3(sx, 0.58, 0.25), Vector3(0.62, 0.58, 0.90),
+			"red" if i % 2 == 0 else "yellow", 0.0, false)
+		_box("kiddie_stroller_%d_handle" % i, at,
+			Vector3(sx, 1.02, 0.62), Vector3(0.72, 0.08, 0.08),
+			"metal", 0.0, false)
+		for side in [-1.0, 1.0]:
+			_cyl("kiddie_stroller_%d_wheel_%s" % [i, str(side)], at,
+				Vector3(sx + side * 0.34, 0.23, -0.22), 0.16, 0.08,
+				"metal", PI * 0.5, 8, false, PI * 0.5)
+
+
+func _kiddie_picnic_shelter(at: Vector3) -> void:
+	_box("kiddie_picnic_pad", at, Vector3(0.0, 0.02, 0.0),
+		Vector3(10.5, 0.04, 8.5), "brick", 0.0, false)
+	for x in [-4.2, 4.2]:
+		for z in [-3.2, 3.2]:
+			_cyl("kiddie_picnic_post_%s_%s" % [str(x), str(z)], at,
+				Vector3(x, 1.65, z), 0.09, 3.30, "white", 0.0, 8)
+	_box("kiddie_picnic_canopy", at, Vector3(0.0, 3.40, 0.0),
+		Vector3(10.0, 0.22, 8.0), "yellow", 0.0, false)
+	_box("kiddie_picnic_valance_n", at, Vector3(0.0, 3.10, -3.96),
+		Vector3(9.6, 0.46, 0.12), "red", 0.0, false)
+	for i in 2:
+		var z := -1.45 + float(i) * 2.9
+		_box("kiddie_picnic_table_%d_top" % i, at,
+			Vector3(0.0, 0.76, z), Vector3(2.2, 0.10, 0.95), "wood")
+		for side in [-1.0, 1.0]:
+			_box("kiddie_picnic_table_%d_bench_%s" % [i, str(side)], at,
+				Vector3(side * 1.35, 0.46, z), Vector3(1.25, 0.10, 0.42), "wood")
+	_omni("kiddie_picnic_glow", at + Vector3(0.0, 3.05, 0.0),
+		"warm", 2.0, 9.0, LIGHT_FIXTURE, true)
+
+
+func _kiddie_commons_lamp(tag: String, at: Vector3) -> void:
+	_cyl("kiddie_commons_lamp_%s_pole" % tag, at,
+		Vector3(0.0, 2.0, 0.0), 0.075, 4.0, "white", 0.0, 8)
+	_box("kiddie_commons_lamp_%s_head" % tag, at,
+		Vector3(0.0, 3.96, 0.0), Vector3(0.42, 0.22, 0.42),
+		"lamp_glass", 0.0, false)
+	_omni("kiddie_commons_lamp_%s_glow" % tag,
+		at + Vector3(0.0, 3.82, 0.0), "warm", 2.2, 12.0, LIGHT_FIXTURE)
 
 
 ## Visible fill under a route ribbon. It deliberately does not collide: adjacent
@@ -11494,24 +11779,54 @@ func _kiddie_arrival_bridge(nm: String, a: Vector3, b: Vector3, width: float) ->
 		"brick", theta, false, phi)
 
 
-func _kiddie_train(at: Vector3) -> void:
-	# A three-quarter-scale park train: unmistakable at the reveal, but low
-	# enough that it cannot compete with the carousel on the ridge beyond.
-	_box("kiddie_train_engine", at, Vector3(0.0, 0.70, 0.0),
-		Vector3(1.55, 1.15, 2.45), "red", 0.0, false)
-	_cyl("kiddie_train_boiler", at, Vector3(0.0, 1.23, -0.35),
-		0.53, 1.55, "blue", 0.0, 12, false, PI * 0.5)
-	_box("kiddie_train_cab", at, Vector3(0.0, 1.42, 0.78),
-		Vector3(1.40, 1.55, 0.90), "yellow", 0.0, false)
-	_box("kiddie_train_cab_roof", at, Vector3(0.0, 2.24, 0.78),
-		Vector3(1.72, 0.14, 1.18), "canvas_alt", 0.0, false)
-	_cyl("kiddie_train_stack", at, Vector3(0.0, 2.00, -0.82),
-		0.20, 0.82, "metal", 0.0, 10, false)
-	for z in [-0.78, 0.72]:
-		for x in [-0.82, 0.82]:
-			_cyl("kiddie_train_wheel_%s_%s" % [str(x), str(z)], at,
-				Vector3(x, 0.42, z), 0.40, 0.16, "metal",
-				PI * 0.5, 12, false, PI * 0.5)
+func _rail_loop(nm: String, path: Array[Vector3], gauge: float) -> void:
+	var tie := 0
+	for i in path.size() - 1:
+		var a := path[i]
+		var b := path[i + 1]
+		var along := Vector2(b.x - a.x, b.z - a.z)
+		if along.length_squared() < 0.001:
+			continue
+		along = along.normalized()
+		var normal := Vector2(along.y, -along.x)
+		for side in [-1.0, 1.0]:
+			var offset := Vector3(normal.x * gauge * 0.5, 0.22,
+				normal.y * gauge * 0.5)
+			_strut("%s_rail_%02d_%s" % [nm, i, "a" if side < 0.0 else "b"],
+				a + offset, b + offset, 0.12, "metal")
+
+		# Ties are placed by metres rather than one-per-segment, so increasing the
+		# curve's sampling does not turn the railway into a solid timber ribbon.
+		var count := maxi(1, int(ceil(a.distance_to(b) / 0.72)))
+		var theta := atan2(along.x, along.y)
+		for j in count:
+			var t := (float(j) + 0.5) / float(count)
+			var at := a.lerp(b, t) + Vector3.UP * 0.17
+			_box("%s_tie_%03d" % [nm, tie], at, Vector3.ZERO,
+				Vector3(gauge + 0.90, 0.07, 0.16), "wood", theta, false)
+			tie += 1
+
+
+## The platform is outside the oval, so nobody crosses the track to queue. A
+## low fence carries the platform edge and leaves two loading gates; the ride
+## vehicle itself is non-colliding, and this is the thing that keeps a player
+## from discovering that by walking through it.
+func _kiddie_station_barrier() -> void:
+	var x := 57.18
+	for span in [
+		[66.45, 2.20],
+		[72.55, 2.20],
+	]:
+		var z: float = span[0]
+		var length: float = span[1]
+		for end in [-1.0, 1.0]:
+			_box("kiddie_station_gate_post_%s_%s" % [str(z), str(end)],
+				Vector3.ZERO, Vector3(x, 0.56, z + end * length * 0.5),
+				Vector3(0.12, 1.12, 0.12), "white")
+		for y in [0.42, 0.92]:
+			_box("kiddie_station_gate_rail_%s_%s" % [str(z), str(y)],
+				Vector3.ZERO, Vector3(x, y, z), Vector3(0.10, 0.11, length),
+				"blue", 0.0, false)
 
 
 func _kiddie_station(at: Vector3) -> void:
@@ -11527,9 +11842,16 @@ func _kiddie_station(at: Vector3) -> void:
 		Vector3(0.14, 0.55, 5.7), "red", 0.0, false)
 	_box("kiddie_station_sign", at, Vector3(-2.96, 3.48, 0.0),
 		Vector3(0.12, 0.72, 3.6), "blue", 0.0, false)
-	var lamp := at + Vector3(-2.74, 2.85, 0.0)
-	_sphere("kiddie_station_bulb", lamp, Vector3.ZERO, 0.12, "lamp_glass")
-	_omni("kiddie_station_glow", lamp, "amber", 1.8, 7.0, LIGHT_FIXTURE)
+	# A working loading platform needs two pools. One end lamp left the train and
+	# the far half of the platform unreadable at 21:15 even though the carousel
+	# beyond it was still presenting itself.
+	for side in [-1.0, 1.0]:
+		var tag := "w" if side < 0.0 else "e"
+		var lamp := at + Vector3(side * 2.74, 2.85, 0.0)
+		_sphere("kiddie_station_bulb_%s" % tag, lamp, Vector3.ZERO,
+			0.12, "lamp_glass")
+		_omni("kiddie_station_glow_%s" % tag, lamp, "amber", 1.9, 7.5,
+			LIGHT_FIXTURE, side < 0.0)
 
 
 func _kiddie_guard(nm: String, at: Vector3, length: float, theta: float) -> void:
@@ -11541,6 +11863,235 @@ func _kiddie_guard(nm: String, at: Vector3, length: float, theta: float) -> void
 	for y in [0.42, 0.92]:
 		_box("%s_rail_%s" % [nm, str(y)], at, Vector3(0.0, y, 0.0),
 			Vector3(length, 0.12, 0.14), "blue", theta, false)
+
+
+## The Grand Circuit is persistent infrastructure, generated into its own scene
+## and mounted above section swaps. A rubber-tyred road train gets a real lane
+## rather than ornamental rails: that is what lets it descend to the boardwalk,
+## and it makes its relationship to pedestrians legible at every station.
+func _grand_tram_infrastructure() -> void:
+	_east_path_ribbon("grand_tram_lane", _grand_tram,
+		Plan.GRAND_TRAM_LANE_W, "asphalt", 0.028)
+	for station in Plan.GRAND_TRAM_STATIONS:
+		_grand_tram_stop(station["id"], station["at"], station["theta"])
+	_ride_vehicle_node("grand_tram", 1)
+
+
+func _grand_tram_stop(id: StringName, at: Vector3, theta: float) -> void:
+	# Every platform is on local -Z. The lane is local X through the stop, so the
+	# four-metre offset gives a full vehicle half-width plus a safety gap.
+	var platform := Vector3(0.0, 0.05, -4.85)
+	_box("grand_tram_%s_platform" % id, at, platform,
+		Vector3(20.0, 0.18, 4.1), "brick", theta)
+	for x in [-8.6, 8.6]:
+		for z in [-5.75, -3.95]:
+			_cyl("grand_tram_%s_post_%s_%s" % [id, str(x), str(z)], at,
+				Vector3(x, 1.70, z), 0.085, 3.40, "white", theta, 8)
+	_box("grand_tram_%s_canopy" % id, at, Vector3(0.0, 3.47, -4.85),
+		Vector3(18.2, 0.22, 3.5), "sky_green", theta, false)
+	_box("grand_tram_%s_valance" % id, at, Vector3(0.0, 3.15, -3.18),
+		Vector3(17.6, 0.48, 0.12), "yellow", theta, false)
+	_box("grand_tram_%s_sign" % id, at, Vector3(0.0, 3.65, -3.10),
+		Vector3(6.4, 0.78, 0.14), "sky_green", theta, false)
+	_box("grand_tram_%s_sign_rule" % id, at, Vector3(0.0, 3.65, -3.19),
+		Vector3(5.0, 0.13, 0.06), "yellow", theta, false)
+
+	# Continuous waist rail except for two boarding gates. Both posts and rails
+	# collide: the vehicles are visual until boarding exists, so an apparently
+	# open platform edge would currently be a route into the service lane. The
+	# two gaps reserve future controlled gates without turning the whole platform
+	# into a pedestrian crossing.
+	for x in [-9.5, -4.8, -1.3, 1.3, 4.8, 9.5]:
+		_box("grand_tram_%s_lane_post_%s" % [id, str(x)], at,
+			Vector3(x, 0.57, -2.95), Vector3(0.13, 1.14, 0.13),
+			"white", theta)
+	for span in [[-7.15, 4.45], [0.0, 2.35], [7.15, 4.45]]:
+		for y in [0.43, 0.94]:
+			_box("grand_tram_%s_lane_rail_%s_%s" % [id, str(span[0]), str(y)],
+				at, Vector3(span[0], y, -2.95), Vector3(span[1], 0.12, 0.12),
+				"sky_green", theta)
+	for gate_x in [-3.05, 3.05]:
+		for y in [0.43, 0.94]:
+			_box("grand_tram_%s_boarding_gate_%s_%s" % [id, str(gate_x), str(y)],
+				at, Vector3(gate_x, y, -2.94), Vector3(3.34, 0.12, 0.14),
+				"yellow", theta)
+	# Twenty metres of platform needs a pool at each end. One lamp technically
+	# made the fixture live and left the vehicle, gates and opposite half dark.
+	for side in [-1.0, 1.0]:
+		var tag := "a" if side < 0.0 else "b"
+		var lamp := _place(at, Vector3(side * 8.35, 3.18, -4.85), theta)
+		_sphere("grand_tram_%s_bulb_%s" % [id, tag], lamp, Vector3.ZERO,
+			0.15, "lamp_glass")
+		_omni("grand_tram_%s_glow_%s" % [id, tag], lamp,
+			"warm", 2.3, 10.5, LIGHT_FIXTURE, side < 0.0)
+
+
+## The southwest reveal. A fairground can become visual noise very easily, so
+## the route is deliberately the largest and quietest shape in it. Booths face
+## a watching apron west of the spine; the big top and its queue court sit east;
+## and the player gets a turnout beyond both. None of those stopping places is
+## part of the centreline that carries guests toward the future entrance-side
+## connection.
+func _fairground_arrival() -> void:
+	var path: Array[Vector3] = Plan.FAIR_ARRIVAL_POINTS
+	var path_w: float = Plan.FAIR_ARRIVAL_PATH_W
+
+	# Fill the hole between the threshold, entrance range and bluff top. Its east
+	# edge laps under `entrance_ground`; its west edge meets the bluff's back face.
+	# The top is a hair low so the brick ribbons remain the legible public floor.
+	_box("fair_arrival_ground", Vector3.ZERO,
+		Vector3(-36.0, -0.51, 81.0), Vector3(30.0, 1.0, 58.0), "planting")
+	_east_path_ribbon("fair_arrival_path", path, path_w, "brick",
+		Plan.FAIR_ARRIVAL_PATH_LIFT)
+	_east_path_ribbon("fair_big_top_spur", Plan.FAIR_BIG_TOP_SPUR,
+		Plan.FAIR_BIG_TOP_SPUR_W, "brick", Plan.FAIR_ARRIVAL_PATH_LIFT + 0.002)
+	_east_path_ribbon("fair_arcade_spur", Plan.FAIR_ARCADE_SPUR,
+		Plan.FAIR_ARCADE_SPUR_W, "brick", Plan.FAIR_ARRIVAL_PATH_LIFT + 0.003)
+	_east_path_ribbon("fair_photo_spur", Plan.FAIR_PHOTO_SPUR,
+		Plan.FAIR_PHOTO_SPUR_W, "brick", Plan.FAIR_ARRIVAL_PATH_LIFT + 0.005)
+
+	# Two open game counters. Their fronts stop several metres short of the route,
+	# leaving a real spectator apron instead of turning the midway into the queue.
+	_booth("fair_game_bottles", Vector3(-48.0, 0.0, 75.5), PI * 0.5, 5.2,
+		"far_warm")
+	_booth("fair_game_rings", Vector3(-48.0, 0.0, 84.0), PI * 0.5, 5.2,
+		"accent")
+	for z in [75.5, 84.0]:
+		_box("fair_game_apron_%s" % str(z), Vector3.ZERO,
+			Vector3(-44.0, 0.012, z), Vector3(5.6, 0.024, 6.2), "brick", 0.0, false)
+
+	_fair_big_top(Plan.FAIR_BIG_TOP_AT)
+	_fair_queue(Plan.FAIR_BIG_TOP_SPUR[-1])
+	_fair_photo_turnout(Plan.FAIR_PHOTO_AT)
+
+	# Three light pools keep the route continuous after close. The festoons cross
+	# it high enough to read as fairground dressing without becoming low ceilings.
+	var lamp_positions := [
+		Vector3(-37.0, 0.0, 64.0),
+		Vector3(-35.0, 0.0, 79.0),
+		Vector3(-43.5, 0.0, 102.0),
+	]
+	for i in lamp_positions.size():
+		var lamp_at: Vector3 = lamp_positions[i]
+		_cyl("fair_lamp_%d_pole" % i, lamp_at, Vector3(0.0, 2.25, 0.0),
+			0.08, 4.5, "metal", 0.0, 8)
+		_sphere("fair_lamp_%d_globe" % i, lamp_at, Vector3(0.0, 4.55, 0.0),
+			0.23, "lamp_glass")
+		_omni("fair_lamp_%d_glow" % i, lamp_at + Vector3(0.0, 4.35, 0.0),
+			"warm", 2.3, 10.0, LIGHT_FIXTURE, i == 1)
+	_fair_festoon("fair_string_n", Vector3(-48.0, 4.7, 72.0),
+		Vector3(-32.5, 5.5, 72.0))
+	_fair_festoon("fair_string_s", Vector3(-48.0, 4.8, 88.0),
+		Vector3(-34.0, 5.7, 88.0))
+
+	# The unfinished continuation is a gate, not a wall. It stops the player but
+	# keeps the brick centreline, low board and bulbs visible through its rails.
+	_fair_guard("fair_arrival_end_guard", Vector3(-37.0, 0.0, 106.0),
+		path_w - 0.6, 0.0)
+	_box("fair_arrival_end_board", Vector3.ZERO,
+		Vector3(-37.0, 1.75, 106.15), Vector3(4.0, 0.85, 0.18), "red", 0.0, false)
+
+
+## A solid striped drum with a twelve-panel roof. The public route stops at its
+## queue court in this pass, so the dark entrance is a promise rather than a
+## fake walkable room. Its mast is tall enough to be the southwest silhouette
+## over the plaza range without requiring the tent footprint to grow.
+func _fair_big_top(at: Vector3) -> void:
+	var radius := 6.5
+	_cyl("fair_big_top_wall", at, Vector3(0.0, 2.1, 0.0), radius, 4.2,
+		"canvas_alt", 0.0, 24)
+	for i in 6:
+		var a := TAU * float(i) / 6.0
+		var stripe_at := at + Vector3(cos(a) * (radius + 0.01), 2.1,
+			sin(a) * (radius + 0.01))
+		_box("fair_big_top_wall_stripe_%d" % i, Vector3.ZERO, stripe_at,
+			Vector3(1.35, 4.05, 0.12), "red", PI * 0.5 - a, false)
+	_fair_tent_roof(at, radius, 4.15, 13.0)
+	_cyl("fair_big_top_mast", at, Vector3(0.0, 8.9, 0.0),
+		0.12, 10.0, "metal", 0.0, 10, false)
+	_box("fair_big_top_flag", at, Vector3(0.8, 13.8, 0.0),
+		Vector3(1.6, 0.75, 0.08), "yellow", 0.0, false)
+	# West-facing entrance and marquee, directly opposite the queue spur.
+	_box("fair_big_top_door", Vector3.ZERO,
+		at + Vector3(-radius - 0.035, 1.45, 0.0), Vector3(0.10, 2.9, 3.1),
+		"glass", 0.0, false)
+	_box("fair_big_top_marquee", Vector3.ZERO,
+		at + Vector3(-radius - 0.12, 3.65, 0.0), Vector3(0.18, 0.85, 4.2),
+		"yellow", 0.0, false)
+	_omni("fair_big_top_glow", at + Vector3(-radius - 0.8, 3.2, 0.0),
+		"rose", 3.0, 12.0, LIGHT_FEATURE, true)
+
+
+func _fair_tent_roof(at: Vector3, radius: float, eave_y: float, peak_y: float) -> void:
+	var sides := 12
+	for parity in 2:
+		var st := SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		for i in sides:
+			if i % 2 != parity:
+				continue
+			var a0 := TAU * float(i) / float(sides)
+			var a1 := TAU * float(i + 1) / float(sides)
+			var p0 := at + Vector3(cos(a0) * radius, eave_y, sin(a0) * radius)
+			var p1 := at + Vector3(cos(a1) * radius, eave_y, sin(a1) * radius)
+			var peak := at + Vector3(0.0, peak_y, 0.0)
+			var normal := (peak - p0).cross(p1 - p0).normalized()
+			for v in [[p0, Vector2(0.0, 1.0)], [peak, Vector2(0.5, 0.0)],
+				[p1, Vector2(1.0, 1.0)]]:
+				st.set_normal(normal)
+				st.set_uv(v[1])
+				st.add_vertex(v[0])
+		var mi := MeshInstance3D.new()
+		mi.mesh = st.commit()
+		mi.material_override = mats["red" if parity == 0 else "canvas_alt"]
+		_add(mi, "fair_big_top_roof_%d" % parity)
+
+
+func _fair_queue(at: Vector3) -> void:
+	_box("fair_big_top_queue_pad", Vector3.ZERO,
+		Vector3(at.x, 0.012, at.z), Vector3(6.0, 0.024, 7.0), "brick", 0.0, false)
+	for side in [-1.0, 1.0]:
+		for z in [-2.7, 0.0, 2.7]:
+			_cyl("fair_queue_post_%s_%s" % [str(side), str(z)], at,
+				Vector3(side * 2.6, 0.52, z), 0.06, 1.04, "metal", 0.0, 8)
+		_box("fair_queue_rail_%s" % str(side), at, Vector3(side * 2.6, 0.82, 0.0),
+			Vector3(0.10, 0.10, 5.5), "red", 0.0, false)
+
+
+func _fair_photo_turnout(at: Vector3) -> void:
+	_box("fair_photo_pad", Vector3.ZERO,
+		at + Vector3(0.0, 0.014, 0.0), Vector3(5.0, 0.028, 4.2), "brick", 0.0, false)
+	# The rail faces the tent and marks a deliberate standing bay. Its open north
+	# and south ends let the player step out without backing into the midway.
+	for z in [-1.65, 0.0, 1.65]:
+		_box("fair_photo_rail_post_%s" % str(z), at, Vector3(-2.2, 0.55, z),
+			Vector3(0.12, 1.10, 0.12), "metal")
+	_box("fair_photo_rail", at, Vector3(-2.2, 0.95, 0.0),
+		Vector3(0.12, 0.12, 3.45), "yellow", 0.0, false)
+	_box("fair_photo_sign", at, Vector3(-2.1, 1.35, 0.0),
+		Vector3(0.10, 0.55, 0.85), "red", 0.0, false)
+
+
+func _fair_guard(nm: String, at: Vector3, length: float, theta: float) -> void:
+	var posts := maxi(3, int(length / 1.5) + 1)
+	for i in posts:
+		var x := lerpf(-length * 0.5, length * 0.5, float(i) / float(posts - 1))
+		_box("%s_post_%02d" % [nm, i], at, Vector3(x, 0.60, 0.0),
+			Vector3(0.14, 1.20, 0.18), "metal", theta)
+	for y in [0.45, 0.95]:
+		_box("%s_rail_%s" % [nm, str(y)], at, Vector3(0.0, y, 0.0),
+			Vector3(length, 0.12, 0.14), "red", theta, false)
+
+
+func _fair_festoon(nm: String, a: Vector3, b: Vector3) -> void:
+	var last := a
+	for i in 8:
+		var t := float(i + 1) / 8.0
+		var p := a.lerp(b, t)
+		p.y -= 0.75 * sin(PI * t)
+		_strut("%s_wire_%d" % [nm, i], last, p, 0.025, "metal")
+		_sphere("%s_bulb_%d" % [nm, i], p, Vector3.ZERO, 0.10, "bulb")
+		last = p
 
 ## A frontage stamped onto an existing wall. Local +Z faces out into the space
 ## the front is read from.
@@ -11670,9 +12221,12 @@ func _booth(nm: String, base: Vector3, theta: float, width: float, mat: String) 
 	_box(nm + "_side_r", base, Vector3(n - 0.15, 1.6, 0), Vector3(0.3, 3.2, depth), mat, theta)
 	# Waist high and solid: the counter is the thing that makes it a booth rather
 	# than a shed, and the thing the player leans on to shoot across.
-	_box(nm + "_counter", base, Vector3(0, 0.55, depth * 0.5 - 0.3),
+	# Sunk below the paving datum. This was the last booth part still relying on
+	# the seam-displacement ring to miss y=0; opening the east portal changed its
+	# ordinal and put the darts counter's underside exactly on the street paving.
+	_box(nm + "_counter", base, Vector3(0, 0.53, depth * 0.5 - 0.3),
 		Vector3(width - 0.6, 1.1, 0.6), "wood", theta)
-	_box(nm + "_counter_top", base, Vector3(0, 1.14, depth * 0.5 - 0.3),
+	_box(nm + "_counter_top", base, Vector3(0, 1.12, depth * 0.5 - 0.3),
 		Vector3(width - 0.3, 0.1, 0.8), "white", theta, false)
 	_box(nm + "_canopy", base, Vector3(0, 3.3, 0.1), Vector3(width + 0.8, 0.25, depth + 1.0),
 		"red", theta, false)
@@ -11722,6 +12276,7 @@ func _street_booths() -> void:
 const ARC_BACK := -29.0
 const ARC_TALL := 4.4
 const ARC_DOOR := 5.0
+const ARC_REAR_DOOR := 4.2
 
 
 func _arcade_room(face: float, z: float, length: float) -> void:
@@ -11740,8 +12295,13 @@ func _arcade_room(face: float, z: float, length: float) -> void:
 		Vector3(depth, 0.5, length), "far_shade")
 	_box("arc_roof", Vector3.ZERO, Vector3(mid, ARC_TALL + 0.2, z),
 		Vector3(depth + 0.6, 0.4, length + 0.6), "far_warm")
-	_box("arc_back", Vector3.ZERO, Vector3(ARC_BACK - 0.25, ARC_TALL * 0.5, z),
-		Vector3(0.5, ARC_TALL, length), "accent")
+	# The original single back wall keeps its build-order slot as the header over
+	# a real rear exit. The two cheeks are appended at the end of `_entrance`, so
+	# cutting this door does not change the seam ordinal of everything after the
+	# arcade. Entrance street and fairground now form a public loop through here.
+	_box("arc_back", Vector3.ZERO,
+		Vector3(ARC_BACK - 0.25, (ARC_TALL + 3.0) * 0.5, z),
+		Vector3(0.5, ARC_TALL - 3.0, ARC_REAR_DOOR), "accent")
 	_box("arc_wall_n", Vector3.ZERO, Vector3(mid, ARC_TALL * 0.5, z - half + 0.25),
 		Vector3(depth, ARC_TALL, 0.5), "accent")
 	_box("arc_wall_s", Vector3.ZERO, Vector3(mid, ARC_TALL * 0.5, z + half - 0.25),
@@ -11764,6 +12324,23 @@ func _arcade_room(face: float, z: float, length: float) -> void:
 		var facing := -1.0 if row == 0 else 1.0
 		for i in range(4):
 			var cz := z - half + 1.6 + float(i) * ((length - 3.2) / 3.0)
+			# Two machines used to stand in the new rear doorway. Keep their three
+			# build slots apiece, but turn them onto the side walls; deleting them
+			# would re-plane the whole entrance scene downstream.
+			if row == 0 and cz > z - ARC_REAR_DOOR * 0.5 and cz < z + ARC_REAR_DOOR * 0.5:
+				var side := -1.0 if i < 2 else 1.0
+				var side_x := mid + (-2.1 if side < 0.0 else 2.1)
+				var side_z := z + side * (half - 0.8)
+				var side_nm := "arc_cab_%d_%d" % [row, i]
+				_box(side_nm, Vector3.ZERO, Vector3(side_x, 0.85, side_z),
+					Vector3(0.9, 1.7, 0.8), "far_shade")
+				_box(side_nm + "_screen", Vector3.ZERO,
+					Vector3(side_x, 1.3, side_z - side * 0.5),
+					Vector3(0.6, 0.5, 0.1), "blue", 0.0, false)
+				_box(side_nm + "_top", Vector3.ZERO,
+					Vector3(side_x, 1.85, side_z - side * 0.1),
+					Vector3(0.75, 0.3, 0.75), "red", 0.0, false)
+				continue
 			if row == 1 and cz > dn - 0.8 and cz < ds + 0.8:
 				continue
 			var nm := "arc_cab_%d_%d" % [row, i]
@@ -11781,6 +12358,29 @@ func _arcade_room(face: float, z: float, length: float) -> void:
 		Vector3(4.9, 0.12, 1.1), "white", 0.0, false)
 	_box("arc_change", Vector3.ZERO, Vector3(ARC_BACK + 0.9, 0.9, z + half - 1.1),
 		Vector3(0.9, 1.8, 0.7), "red")
+
+
+## The arcade's rear face, emitted after the rest of the entrance scene. The
+## doorway is wide enough for opposing guest traffic and its marquee faces the
+## fairground, making the second route visible before someone reaches the turn.
+func _arcade_rear_exit() -> void:
+	var z := 78.0
+	var length := 10.0
+	var cheek := (length - ARC_REAR_DOOR) * 0.5
+	for i in 2:
+		var side := -1.0 if i == 0 else 1.0
+		var cz: float = z + side * (ARC_REAR_DOOR * 0.5 + cheek * 0.5)
+		_box("arc_back_%s" % ("n" if side < 0.0 else "s"), Vector3.ZERO,
+			Vector3(ARC_BACK - 0.25, ARC_TALL * 0.5, cz),
+			Vector3(0.5, ARC_TALL, cheek), "accent")
+	_box("arc_rear_marquee", Vector3.ZERO,
+		Vector3(ARC_BACK - 0.55, 3.45, z), Vector3(0.24, 0.72, 5.1),
+		"red", 0.0, false)
+	_box("arc_rear_marquee_panel", Vector3.ZERO,
+		Vector3(ARC_BACK - 0.70, 3.45, z), Vector3(0.12, 0.42, 3.4),
+		"yellow", 0.0, false)
+	_omni("arc_rear_spill", Vector3(ARC_BACK - 1.2, 2.1, z),
+		"cyan", 2.5, 8.5, LIGHT_FIXTURE, true)
 
 
 # ---------------------------------------------------------------------------
