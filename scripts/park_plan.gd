@@ -329,6 +329,46 @@ const PLAZA_DARK_RIDE_AT := Vector2(35.5, -27.4)
 const REACH := 9.0
 const BEND := 7.0
 
+## The first piece of Kiddieland, beginning at the south-facing end of the
+## south-east passage. The court stays at plaza height, then one broad family
+## spine starts the climb: Kiddieland's twelve-metre rise belongs across the
+## whole land rather than in a connector hidden behind the gate.
+##
+## The railway station and photo bay are short branches off that spine. They are
+## published with it because the generated ground and the walking test must
+## agree on every public centreline. The final spine point is a temporary seam,
+## not the eventual section entrance.
+const KIDDIE_ARRIVAL_POINTS: Array[Vector3] = [
+	Vector3(54.0, 0.0, 44.0),
+	Vector3(54.0, 0.0, 52.0),
+	Vector3(61.0, 0.80, 59.0),
+	Vector3(74.0, 2.45, 67.0),
+	Vector3(90.0, 4.40, 72.0),
+]
+const KIDDIE_ARRIVAL_PATH_W := 8.0
+const KIDDIE_ARRIVAL_BANK_W := 18.0
+const KIDDIE_ARRIVAL_GRADE_RUN := 7.0
+const KIDDIE_ARRIVAL_PATH_LIFT := 0.16
+const KIDDIE_STATION_AT := Vector3(62.0, 0.72, 53.2)
+const KIDDIE_STATION_SPUR: Array[Vector3] = [
+	Vector3(61.0, 0.80, 59.0),
+	Vector3(62.0, 0.72, 56.1),
+]
+const KIDDIE_STATION_SPUR_W := 3.6
+const KIDDIE_STATION_GRADE_RUN := 4.0
+const KIDDIE_TRACK_POINTS: Array[Vector3] = [
+	Vector3(66.5, 0.50, 45.0),
+	Vector3(66.5, 1.72, 65.0),
+]
+const KIDDIE_TRACK_GRADE_RUN := 2.5
+const KIDDIE_PHOTO_SPUR: Array[Vector3] = [
+	Vector3(68.0, 1.69, 63.3),
+	Vector3(65.5, 1.68, 68.3),
+]
+const KIDDIE_PHOTO_SPUR_W := 3.2
+const KIDDIE_PHOTO_AT := Vector3(65.5, 1.68, 69.4)
+const KIDDIE_PHOTO_GRADE_RUN := 3.0
+
 
 # ---------------------------------------------------------------------------
 # The entrance street, south to the gate

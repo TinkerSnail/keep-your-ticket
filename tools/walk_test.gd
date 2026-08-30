@@ -491,20 +491,45 @@ func _ready() -> void:
 	_legs.append(["ehill east wall holds", Vector3(74.0, head_y, -10.0),
 		Vector3(85.0, head_y, -10.0), false])
 
-	# The three scaffolded section thresholds. Head-on plus both corners, because
+	# The scaffolded section thresholds. Head-on plus both corners, because
 	# the leak in a gate is never the middle — it is the hand's width between
 	# the post and the wall it was supposed to meet.
-	# For each passage: walk in from the plaza and reach the bend, make the turn
-	# and reach the end, then push on past the end and be stopped. The last of
-	# the three is the one that matters — a passage that leaks is a hole.
+	# For each still-closed passage: walk in from the plaza and reach the bend,
+	# make the turn and reach the end, then push on past it and be stopped. The
+	# last is the one that matters — a passage that leaks is a hole.
 	for t in [
 		["nnw", Vector3(-16.9, 1.2, -46), Vector3(-16.9, 1.2, -58), Vector3(-27.9, 1.2, -58), Vector3(-45, 1.2, -58)],
-		["se", Vector3(46, 1.2, 31.3), Vector3(58, 1.2, 31.3), Vector3(58, 1.2, 41.3), Vector3(58, 1.2, 59)],
 		["sw", Vector3(-31.3, 1.2, 46), Vector3(-31.3, 1.2, 58), Vector3(-41.3, 1.2, 58), Vector3(-59, 1.2, 58)],
 	]:
 		_legs.append(["way %s in" % t[0], t[1], t[2], true])
 		_legs.append(["way %s turn" % t[0], t[2], t[3], true])
 		_legs.append(["way %s holds" % t[0], t[3], t[4], false])
+
+	# Southeast is no longer a closure. Walk the old approach and bend, then the
+	# uninterrupted family spine all the way to its temporary section gate. The
+	# station and photo bay are tested as out-and-back side destinations so either
+	# can hold a queue or a player without becoming part of the through movement.
+	var kiddie: Array[Vector3] = ParkPlan.KIDDIE_ARRIVAL_POINTS
+	_legs.append(["way se in", Vector3(46, 1.2, 31.3), Vector3(58, 1.2, 31.3), true])
+	_legs.append(["way se turn", Vector3(58, 1.2, 31.3), kiddie[0] + Vector3.UP * 1.2, true])
+	for i in kiddie.size() - 1:
+		_legs.append(["kiddie arrival %d" % i,
+			kiddie[i] + Vector3.UP * 1.2, kiddie[i + 1] + Vector3.UP * 1.2, true])
+	for i in range(kiddie.size() - 1, 0, -1):
+		_legs.append(["kiddie return %d" % i,
+			kiddie[i] + Vector3.UP * 1.2, kiddie[i - 1] + Vector3.UP * 1.2, true])
+	var station_spur: Array[Vector3] = ParkPlan.KIDDIE_STATION_SPUR
+	_legs.append(["kiddie station in", station_spur[0] + Vector3.UP * 1.2,
+		station_spur[1] + Vector3.UP * 1.2, true])
+	_legs.append(["kiddie station out", station_spur[1] + Vector3.UP * 1.2,
+		station_spur[0] + Vector3.UP * 1.2, true])
+	var photo_spur: Array[Vector3] = ParkPlan.KIDDIE_PHOTO_SPUR
+	_legs.append(["kiddie photo in", photo_spur[0] + Vector3.UP * 1.2,
+		ParkPlan.KIDDIE_PHOTO_AT + Vector3.UP * 1.2, true])
+	_legs.append(["kiddie photo out", ParkPlan.KIDDIE_PHOTO_AT + Vector3.UP * 1.2,
+		photo_spur[0] + Vector3.UP * 1.2, true])
+	_legs.append(["kiddie arrival holds", kiddie[-1] + Vector3.UP * 1.2,
+		Vector3(100.0, kiddie[-1].y + 1.2, 74.0), false])
 	_start_leg()
 
 

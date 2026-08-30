@@ -5434,6 +5434,76 @@ func _east_frontier_grade_y(x: float, z: float, uncut_y: float) -> float:
 	return y
 
 
+## Kiddieland's lower route cut into the south shoulder. The old shoulder rose
+## as a continuous batter immediately behind the south-east passage, which is
+## the drop-off the arrival is replacing: anything placed at plaza height was
+## buried by six metres of land before the player reached it. Pulling a generous
+## verge to the route's published height makes the passage and the shoulder one
+## landform, with the remaining climb left for the future section.
+func _east_kiddie_grade_y(x: float, z: float, uncut_y: float) -> float:
+	var p := Vector2(x, z)
+	var y := uncut_y
+	# The spine owns the broad valley. Shorter destinations then refine their own
+	# smaller verges without turning the whole shoulder into one flat court.
+	for route in [
+		# Track first so the public routes own the final datum at crossings.
+		[Plan.KIDDIE_TRACK_POINTS, 1.7, Plan.KIDDIE_TRACK_GRADE_RUN, 0.0],
+		# The route bed sits above this cut. The shoulder is sampled on a coarse
+		# grid, and grading it to the exact paving datum let interpolated triangles
+		# stand up to 39cm through the road between samples — a traversable route
+		# that visibly disappeared. Seventy centimetres buys the road bed one
+		# continuous pocket even at that coarse diagonal without changing its
+		# published walking grade.
+		[Plan.KIDDIE_ARRIVAL_POINTS, Plan.KIDDIE_ARRIVAL_PATH_W,
+			Plan.KIDDIE_ARRIVAL_GRADE_RUN, 0.70],
+		[Plan.KIDDIE_STATION_SPUR, Plan.KIDDIE_STATION_SPUR_W,
+			Plan.KIDDIE_STATION_GRADE_RUN, 0.50],
+		[Plan.KIDDIE_PHOTO_SPUR, Plan.KIDDIE_PHOTO_SPUR_W,
+			Plan.KIDDIE_PHOTO_GRADE_RUN, 0.50],
+	]:
+		var path: Array[Vector3] = route[0]
+		var path_w: float = route[1]
+		var grade_run: float = route[2]
+		var bed_cut: float = route[3]
+		for i in path.size() - 1:
+			var a := Vector2(path[i].x, path[i].z)
+			var b := Vector2(path[i + 1].x, path[i + 1].z)
+			var ab := b - a
+			var t := clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.001),
+				0.0, 1.0)
+			var dist := maxf(p.distance_to(a + ab * t) - path_w * 0.5, 0.0)
+			if dist >= grade_run:
+				continue
+			var w := 1.0 - dist / grade_run
+			w = w * w * (3.0 - 2.0 * w)
+			var target := lerpf(path[i].y, path[i + 1].y, t) - bed_cut
+			y = lerpf(y, target, w)
+
+	# The station platform is part of the land rather than a deck bridging it.
+	# Flatten its small footprint after the routes so the canopy posts and train
+	# share one datum, then ease back into the valley around it.
+	var station: Vector3 = Plan.KIDDIE_STATION_AT
+	var dx := maxf(absf(x - station.x) - 3.0, 0.0)
+	var dz := maxf(absf(z - station.z) - 3.3, 0.0)
+	var station_dist := Vector2(dx, dz).length()
+	if station_dist < Plan.KIDDIE_STATION_GRADE_RUN:
+		var station_w := 1.0 - station_dist / Plan.KIDDIE_STATION_GRADE_RUN
+		station_w = station_w * station_w * (3.0 - 2.0 * station_w)
+		y = lerpf(y, station.y, station_w)
+
+	# The photo turnout is a pause off the route. A small level patch is what
+	# lets the player frame the train without standing in the guest stream.
+	var photo: Vector3 = Plan.KIDDIE_PHOTO_AT
+	dx = maxf(absf(x - photo.x) - 2.4, 0.0)
+	dz = maxf(absf(z - photo.z) - 2.0, 0.0)
+	var photo_dist := Vector2(dx, dz).length()
+	if photo_dist < Plan.KIDDIE_PHOTO_GRADE_RUN:
+		var photo_w := 1.0 - photo_dist / Plan.KIDDIE_PHOTO_GRADE_RUN
+		photo_w = photo_w * photo_w * (3.0 - 2.0 * photo_w)
+		y = lerpf(y, photo.y, photo_w)
+	return y
+
+
 ## The finished level of the shoulder at a point on it.
 ##
 ## Three surfaces, lowest wins. The west face and the descent are both bowed for
@@ -5468,6 +5538,8 @@ func _shoulder_y(x: float, z: float, side: float, prm: Dictionary) -> float:
 	var y := minf(minf(fw, p), nd)
 	if side < 0.0:
 		y = _east_frontier_grade_y(x, z, y)
+	else:
+		y = _east_kiddie_grade_y(x, z, y)
 	return y
 
 
@@ -5593,6 +5665,14 @@ func _east_shoulder(side: float, tag: String) -> void:
 			# The south's one sliver of tuck strip. Bank quads here would hang
 			# over the court's own lip, so only the plateau lap is laid.
 			wlim = 69.9
+		if side > 0.0 and dmid >= 50.0 and dmid <= 82.0:
+			# The Kiddieland valley reaches west of the shoulder's old moving
+			# foot. Height grading alone cannot open a route if `_earth_strip`
+			# still discards every column beneath it: that leaves the old clip
+			# line as a vertical collision face exactly where the court hands off.
+			# Extend this band to the shoulder mesh's published west column; the
+			# height function keeps everything outside the graded verge buried.
+			wlim = SHOULDER_WEST_X
 		if side < 0.0:
 			# Keep the north shoulder's upper plateau but retire its whole exposed
 			# west batter. The moving-foot strips were designed to land inside the
@@ -5721,13 +5801,15 @@ func _shoulder_masonry(side: float, tag: String, prm: Dictionary) -> void:
 		Vector3(60.68, 1.1, (z0 + z1) * 0.5),
 		Vector3(HILL_FACE_T, 3.0, absf(z1 - z0) - 0.6), "brick", 0.0, false)
 
-	# The stepped end walks the foot down to the toe on the south, where it retains
-	# the passage flank. There is no north stepped end: even clipped outside the
-	# nominal stripe it closes the turn, pinches the sightline and functionally
-	# occupies the promenade. The north earthwork is clipped to the public edge
-	# above and meets the court as a planted bank instead.
+	# The stepped end used to walk the foot all the way down to the south toe.
+	# Kiddieland's valley replaces its last two blocks: both stood directly across
+	# the new centreline even after the earth behind them had been graded away.
+	# One step still finishes the retaining wall beside the passage; after it, the
+	# planted valley is the finished edge. There is no north stepped end: even
+	# clipped outside the nominal stripe it closes the turn and pinches the public
+	# promenade.
 	var wall_to := float(prm["wall_to"])
-	var step_count := 0 if side < 0.0 else 3
+	var step_count := 0 if side < 0.0 else 1
 	for k in step_count:
 		var d0 := wall_to + float(k) * 2.0
 		var d1 := d0 + 2.4
@@ -6662,8 +6744,18 @@ func _east_end_path_plate(nm: String, top_a: Vector3, top_b: Vector3,
 ## shared vertices make the bend one surface and keep paving a visual layer over
 ## the colliding ground rather than a row of kerbs.
 func _east_path_ribbon(nm: String, points: Array[Vector3], width: float,
-		mat := "brick") -> void:
-	assert(points.size() >= 2, "%s needs at least two points" % nm)
+		mat := "brick", lift := 0.018) -> void:
+	var mi := MeshInstance3D.new()
+	mi.mesh = _east_path_mesh(points, width, lift)
+	mi.material_override = mats[mat]
+	_add(mi, nm)
+
+
+## The mesh half of a path is shared by its visible skin and its collider. This
+## keeps movement and paving on the same turns without asking a chain of boxes
+## to agree at every joint.
+func _east_path_mesh(points: Array[Vector3], width: float, lift: float) -> ArrayMesh:
+	assert(points.size() >= 2, "a path needs at least two points")
 	var left := PackedVector3Array()
 	var right := PackedVector3Array()
 	for i in points.size():
@@ -6671,7 +6763,7 @@ func _east_path_ribbon(nm: String, points: Array[Vector3], width: float,
 		var next: Vector3 = points[mini(i + 1, points.size() - 1)]
 		var tangent := Vector2(next.x - prev.x, next.z - prev.z).normalized()
 		var normal := Vector2(-tangent.y, tangent.x)
-		var p: Vector3 = points[i] + Vector3(0.0, 0.018, 0.0)
+		var p: Vector3 = points[i] + Vector3(0.0, lift, 0.0)
 		left.append(p + Vector3(normal.x, 0.0, normal.y) * width * 0.5)
 		right.append(p - Vector3(normal.x, 0.0, normal.y) * width * 0.5)
 
@@ -6691,10 +6783,19 @@ func _east_path_ribbon(nm: String, points: Array[Vector3], width: float,
 			r1, Vector2(r1.x, r1.z) * 0.35, Vector3.UP)
 	st.generate_normals()
 	st.generate_tangents()
-	var mi := MeshInstance3D.new()
-	mi.mesh = st.commit()
-	mi.material_override = mats[mat]
-	_add(mi, nm)
+	return st.commit()
+
+
+func _east_path_collision(nm: String, points: Array[Vector3], width: float,
+		lift: float) -> void:
+	var mesh := _east_path_mesh(points, width, lift)
+	var body := StaticBody3D.new()
+	_add(body, nm)
+	var shape := CollisionShape3D.new()
+	shape.name = "shape"
+	shape.shape = mesh.create_trimesh_shape()
+	body.add_child(shape)
+	shape.owner = _root
 
 
 func _east_ride_center(side: float) -> Vector3:
@@ -11065,6 +11166,9 @@ func _thresholds() -> void:
 		_passage(t["name"], t["at"], t["theta"], t["width"], t["turn"])
 	for t in THRESHOLDS:
 		_threshold_mouth(t["name"], t["at"], t["theta"], t["width"])
+	# Appended so none of the three established passage ordinals moves. This is
+	# the first authored piece beyond one of them, not a fourth passage part.
+	_kiddieland_arrival()
 
 
 ## What each way in looks like from the fountain.
@@ -11251,9 +11355,17 @@ func _passage(nm: String, base: Vector3, theta: float, w: float, turn: float) ->
 		Vector3(t * (n + BEND * 0.5 + 0.25), 1.75, REACH - w - 0.25),
 		Vector3(BEND + 0.5, 3.5, 0.5), "far_warm", theta)
 	# The end, only visible once you have made the turn. Where a section joins.
-	_box("way_%s_end" % nm, base,
-		Vector3(t * (n + BEND + 0.25), 1.75, REACH - w * 0.5),
-		Vector3(0.5, 3.5, w), "far_shade", theta)
+	# Southeast is the first passage with something real beyond it: keep this
+	# exact call in the exact build-order slot, but lift its wall into a header so
+	# the route opens only after the bend. The other two remain honest closures.
+	if nm == "se":
+		_box("way_%s_end" % nm, base,
+			Vector3(t * (n + BEND + 0.25), 3.15, REACH - w * 0.5),
+			Vector3(0.5, 0.7, w), "far_shade", theta, false)
+	else:
+		_box("way_%s_end" % nm, base,
+			Vector3(t * (n + BEND + 0.25), 1.75, REACH - w * 0.5),
+			Vector3(0.5, 3.5, w), "far_shade", theta)
 
 	# What you meet on walking in. An arcade, because an open dark mouth says the
 	# park carries on through here better than a sign saying so — and because a
@@ -11264,6 +11376,171 @@ func _passage(nm: String, base: Vector3, theta: float, w: float, turn: float) ->
 	# And one along the flank, so the passage has two sides worth looking at.
 	_front("way_%s_shop" % nm, _place(base, Vector3(-t * n, 0, REACH * 0.45), theta),
 		theta + t * PI * 0.5, 5.0, "cafe" if t > 0.0 else "store")
+
+
+## The southeast passage's reveal: a small, bright court feeding one continuous
+## family spine, with the miniature railway station and a photography turnout
+## hanging off it. Low massing is deliberate. From inside the plaza the bend
+## still hides all of this; after the turn, the route remains the first read and
+## the train and striped station become an optional promise beside it.
+func _kiddieland_arrival() -> void:
+	var points: Array[Vector3] = Plan.KIDDIE_ARRIVAL_POINTS
+	var path_w: float = Plan.KIDDIE_ARRIVAL_PATH_W
+	var bank_w: float = Plan.KIDDIE_ARRIVAL_BANK_W
+
+	# A level court receives the passage and gives the railway a place to cross
+	# before the shoulder takes over. It laps under the old floor by half a metre;
+	# the graded shoulder mesh carries everything east of it.
+	_box("kiddie_arrival_court_ground", Vector3.ZERO,
+		Vector3(55.0, -0.50, 52.5), Vector3(15.0, 1.0, 19.0), "planting")
+
+	# `_east_kiddie_grade_y` pulls the south shoulder itself down to this route;
+	# the brick is only a skin over that colliding land, never a floating ramp.
+	# A buried visual bed is continuous even where the shoulder's coarse
+	# triangles cross the diagonal route between samples. The court already owns
+	# the first level segment; every climbing segment and both branches get one.
+	# Its collision is a welded ribbon below, because overlapping boxes can steer
+	# a CharacterBody sideways at their joints.
+	for i in range(1, points.size() - 1):
+		_kiddie_arrival_bridge("kiddie_arrival_bed_%d" % i,
+			points[i], points[i + 1], path_w)
+	_kiddie_arrival_bridge("kiddie_station_bed", Plan.KIDDIE_STATION_SPUR[0],
+		Plan.KIDDIE_STATION_SPUR[1], Plan.KIDDIE_STATION_SPUR_W)
+	_kiddie_arrival_bridge("kiddie_photo_bed", Plan.KIDDIE_PHOTO_SPUR[0],
+		Plan.KIDDIE_PHOTO_SPUR[1], Plan.KIDDIE_PHOTO_SPUR_W)
+	_east_path_ribbon("kiddie_arrival_path", points, path_w, "brick",
+		Plan.KIDDIE_ARRIVAL_PATH_LIFT)
+	_east_path_ribbon("kiddie_station_spur", Plan.KIDDIE_STATION_SPUR,
+		Plan.KIDDIE_STATION_SPUR_W, "brick", Plan.KIDDIE_ARRIVAL_PATH_LIFT + 0.002)
+	_east_path_ribbon("kiddie_photo_spur", Plan.KIDDIE_PHOTO_SPUR,
+		Plan.KIDDIE_PHOTO_SPUR_W, "brick", Plan.KIDDIE_ARRIVAL_PATH_LIFT + 0.004)
+	# Collision is one welded ribbon rather than the overlapping bed boxes. Solid
+	# boxes steered the real controller sideways at their joints even though the
+	# paving looked continuous. Begin with a short ramp out of the level court so
+	# the first fourteen centimetres are a slope rather than a step.
+	var spine_collision: Array[Vector3] = [
+		Vector3(points[1].x, -0.14, points[1].z - 2.0),
+	]
+	for i in range(1, points.size()):
+		spine_collision.append(points[i])
+	_east_path_collision("kiddie_arrival_walk", spine_collision, path_w, 0.14)
+	_east_path_collision("kiddie_station_walk", Plan.KIDDIE_STATION_SPUR,
+		Plan.KIDDIE_STATION_SPUR_W, 0.14)
+	_east_path_collision("kiddie_photo_walk", Plan.KIDDIE_PHOTO_SPUR,
+		Plan.KIDDIE_PHOTO_SPUR_W, 0.14)
+	_box("kiddie_photo_pad", Plan.KIDDIE_PHOTO_AT,
+		Vector3(0.0, 0.08, 0.0), Vector3(4.8, 0.16, 4.0), "brick")
+
+	# Two rails climb gently north-south and cross the spine only after its choice
+	# is clear. The parked train stays north of that crossing beside its platform.
+	var track: Array[Vector3] = Plan.KIDDIE_TRACK_POINTS
+	for side in [-1.0, 1.0]:
+		_strut("kiddie_track_rail_%s" % ("w" if side < 0.0 else "e"),
+			track[0] + Vector3(side * 0.62, 0.22, 0.0),
+			track[1] + Vector3(side * 0.62, 0.22, 0.0), 0.12, "metal")
+	for i in 23:
+		var t := float(i) / 22.0
+		var tie_at := track[0].lerp(track[1], t) + Vector3.UP * 0.17
+		_box("kiddie_track_tie_%02d" % i, tie_at, Vector3.ZERO,
+			Vector3(2.15, 0.07, 0.16), "wood", 0.0, false)
+
+	_kiddie_train(Vector3(66.5, 0.72, 49.3))
+	_kiddie_station(Plan.KIDDIE_STATION_AT)
+
+	# A waist-high sighting rail identifies the turnout as somewhere to stop,
+	# while its open ends keep it usable from either direction.
+	var photo := Plan.KIDDIE_PHOTO_AT
+	for x in [-1.8, 0.0, 1.8]:
+		_box("kiddie_photo_rail_post_%s" % str(x), photo,
+			Vector3(x, 0.52, 1.65), Vector3(0.10, 1.04, 0.10), "white")
+	_box("kiddie_photo_rail", photo, Vector3(0.0, 0.92, 1.65),
+		Vector3(3.7, 0.11, 0.11), "blue", 0.0, false)
+
+	# Court lamps and a low planted edge make this feel like a child-sized land,
+	# not another service yard. The south edge is guarded where the greybox drops.
+	for lamp_at in [Vector3(51.0, 0.0, 59.2), Vector3(80.0, 3.18, 72.0)]:
+		var i := 0 if lamp_at.x < 60.0 else 1
+		_cyl("kiddie_arrival_lamp_%d_pole" % i, lamp_at,
+			Vector3(0.0, 2.0, 0.0), 0.075, 4.0, "white", 0.0, 8)
+		_box("kiddie_arrival_lamp_%d_head" % i, lamp_at,
+			Vector3(0.0, 3.96, 0.0), Vector3(0.42, 0.22, 0.42), "lamp_glass", 0.0, false)
+		_omni("kiddie_arrival_lamp_%d_glow" % i,
+			lamp_at + Vector3(0.0, 3.82, 0.0), "warm", 2.0, 10.0, LIGHT_FIXTURE)
+	# Temporary section seam. A picket gate keeps the unfinished land out of the
+	# walk while its low sign and the carousel beyond keep the route aspirational.
+	_kiddie_guard("kiddie_arrival_end_guard", Vector3(90.5, 4.40, 72.0),
+		bank_w - 0.8, PI * 0.5)
+	_box("kiddie_arrival_end_board", Vector3.ZERO,
+		Vector3(90.18, 5.60, 72.0), Vector3(0.20, 1.05, 4.2), "yellow", 0.0, false)
+	_box("kiddie_arrival_end_board_rule", Vector3.ZERO,
+		Vector3(90.05, 5.60, 72.0), Vector3(0.08, 0.14, 3.2), "red", 0.0, false)
+
+
+## Visible fill under a route ribbon. It deliberately does not collide: adjacent
+## pieces overlap to hide the coarse shoulder, and those same overlaps were
+## enough to steer the player off a diagonal path. `_east_path_collision` owns
+## the walking surface as one welded mesh instead.
+func _kiddie_arrival_bridge(nm: String, a: Vector3, b: Vector3, width: float) -> void:
+	var top_a := a + Vector3.UP * 0.14
+	var top_b := b + Vector3.UP * 0.14
+	var span := top_b - top_a
+	var horizontal := Vector2(span.x, span.z).length()
+	var theta := atan2(span.x, span.z)
+	var phi := atan2(-span.y, horizontal)
+	var thickness := 0.36
+	var up := (Basis(Vector3.UP, theta) * Basis(Vector3.RIGHT, phi)).y
+	_box(nm, (top_a + top_b) * 0.5 - up * thickness * 0.5,
+		Vector3.ZERO, Vector3(width, thickness, span.length() + 0.70),
+		"brick", theta, false, phi)
+
+
+func _kiddie_train(at: Vector3) -> void:
+	# A three-quarter-scale park train: unmistakable at the reveal, but low
+	# enough that it cannot compete with the carousel on the ridge beyond.
+	_box("kiddie_train_engine", at, Vector3(0.0, 0.70, 0.0),
+		Vector3(1.55, 1.15, 2.45), "red", 0.0, false)
+	_cyl("kiddie_train_boiler", at, Vector3(0.0, 1.23, -0.35),
+		0.53, 1.55, "blue", 0.0, 12, false, PI * 0.5)
+	_box("kiddie_train_cab", at, Vector3(0.0, 1.42, 0.78),
+		Vector3(1.40, 1.55, 0.90), "yellow", 0.0, false)
+	_box("kiddie_train_cab_roof", at, Vector3(0.0, 2.24, 0.78),
+		Vector3(1.72, 0.14, 1.18), "canvas_alt", 0.0, false)
+	_cyl("kiddie_train_stack", at, Vector3(0.0, 2.00, -0.82),
+		0.20, 0.82, "metal", 0.0, 10, false)
+	for z in [-0.78, 0.72]:
+		for x in [-0.82, 0.82]:
+			_cyl("kiddie_train_wheel_%s_%s" % [str(x), str(z)], at,
+				Vector3(x, 0.42, z), 0.40, 0.16, "metal",
+				PI * 0.5, 12, false, PI * 0.5)
+
+
+func _kiddie_station(at: Vector3) -> void:
+	_box("kiddie_station_platform", at, Vector3(0.0, 0.08, 0.0),
+		Vector3(5.4, 0.16, 5.8), "brick")
+	for x in [-2.2, 2.2]:
+		for z in [-2.25, 2.25]:
+			_cyl("kiddie_station_post_%s_%s" % [str(x), str(z)], at,
+				Vector3(x, 1.68, z), 0.08, 3.36, "white", 0.0, 8)
+	_box("kiddie_station_canopy", at, Vector3(0.0, 3.40, 0.0),
+		Vector3(5.9, 0.20, 6.3), "yellow", 0.0, false)
+	_box("kiddie_station_valance", at, Vector3(-2.86, 3.10, 0.0),
+		Vector3(0.14, 0.55, 5.7), "red", 0.0, false)
+	_box("kiddie_station_sign", at, Vector3(-2.96, 3.48, 0.0),
+		Vector3(0.12, 0.72, 3.6), "blue", 0.0, false)
+	var lamp := at + Vector3(-2.74, 2.85, 0.0)
+	_sphere("kiddie_station_bulb", lamp, Vector3.ZERO, 0.12, "lamp_glass")
+	_omni("kiddie_station_glow", lamp, "amber", 1.8, 7.0, LIGHT_FIXTURE)
+
+
+func _kiddie_guard(nm: String, at: Vector3, length: float, theta: float) -> void:
+	var posts := maxi(3, int(length / 1.6) + 1)
+	for i in posts:
+		var x := lerpf(-length * 0.5, length * 0.5, float(i) / float(posts - 1))
+		_box("%s_post_%02d" % [nm, i], at, Vector3(x, 0.58, 0.0),
+			Vector3(0.14, 1.16, 0.18), "white", theta)
+	for y in [0.42, 0.92]:
+		_box("%s_rail_%s" % [nm, str(y)], at, Vector3(0.0, y, 0.0),
+			Vector3(length, 0.12, 0.14), "blue", theta, false)
 
 ## A frontage stamped onto an existing wall. Local +Z faces out into the space
 ## the front is read from.
