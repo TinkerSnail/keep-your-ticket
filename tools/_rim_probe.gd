@@ -100,9 +100,8 @@ const FREE := [
 ## almost due north of the pavilion — the bearing the promenade is walked along,
 ## and the one direction the strip has never had anything on its horizon.
 ##
-## Free camera and an explicit section swap rather than a walk, for
-## `_massing_probe`'s reason: half of these standpoints are on ground the plaza
-## does not own, and a crossing moves the player to an arrival marker anyway.
+## Free camera and an explicit logical-area change rather than a walk: half of
+## these standpoints are elevated or otherwise unsuitable for the player body.
 ##
 ## **Yaw 0 is north.** Godot's forward is −Z and a yaw of θ points at
 ## `(−sin θ, −cos θ)`, so θ = 0 is (0, −1). Worth stating because it is not
@@ -177,10 +176,8 @@ func _run() -> void:
 	for shot in FREE:
 		await _free(cam, shot)
 
-	# Over to the boardwalk, holding the same free camera. `enter` moves the
-	# player and re-parents the world under it; the camera is a child of this
-	# probe rather than of the section, so it survives — but the swap makes the
-	# player's own camera current again, and `current` has to be taken back.
+	# Over to the boardwalk. `enter` now changes logical area context only; all
+	# real geometry and this free camera remain standing continuously.
 	await ParkSections.enter(&"boardwalk", &"plaza")
 	await get_tree().create_timer(4.0).timeout
 	cam.current = true

@@ -1,0 +1,996 @@
+[gd_scene format=4]
+
+[ext_resource type="Texture2D" path="res://assets/textures/asphalt_albedo.res" id="1_rbgi3"]
+[ext_resource type="Texture2D" path="res://assets/textures/asphalt_normal.res" id="2_02a1p"]
+[ext_resource type="Texture2D" path="res://assets/textures/brick_albedo.res" id="3_x2mhn"]
+[ext_resource type="Texture2D" path="res://assets/textures/brick_normal.res" id="4_63fq1"]
+[ext_resource type="Material" path="res://assets/materials/lamp_glass.res" id="5_arp8v"]
+[ext_resource type="Script" path="res://scenes/world/ride_vehicle.gd" id="6_p218l"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_asvco"]
+albedo_color = Color(0.27, 0.268, 0.265, 1)
+albedo_texture = ExtResource("1_rbgi3")
+roughness = 0.97
+normal_enabled = true
+normal_scale = 0.9
+normal_texture = ExtResource("2_02a1p")
+uv1_scale = Vector3(0.33333334, 0.33333334, 0.33333334)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 5
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_3a20j"]
+_surfaces = [{
+"aabb": AABB(-75.359116, -6.1917267, -142.69733, 195.5239, 11.366211, 277.39438),
+"attribute_data": PackedByteArray("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"),
+"format": 34359738391,
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 912,
+"vertex_data": PackedByteArray("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/H+V//z/AMDFf/3//f//v/F//v/+//+/8X/+//7//7/Ff/3//f//v4R//P/8/wDAxX/9//3//79uf/r/+v8BwIR//P/8/wDAhH/8//z/AMBuf/r/+v8BwFZ/+f/5/wHAbn/6//r/AcBUf/n/+f8CwFZ/+f/5/wHAVn/5//n/AcBUf/n/+f8CwGB/+f/5/wHAVH/5//n/AsBvf/v/+/8BwGB/+f/5/wHAYH/5//n/AcBvf/v/+/8BwJd//P/8/wDAb3/7//v/AcCyf/3//f//v5d//P/8/wDAl3/8//z/AMCyf/3//f//v+V//v/+//+/sn/9//3//7/9f/7//v//v+V//v/+//+/5X/+//7//7/9f/7//v//v/5/3//+//+//X/+//7//7/+f9f//v//v/5/3//+//+//n/f//7//7/+f9f//v//v/5/y//9//+//n/X//7//7/9f8n//f8AwP5/y//9//+//n/L//3//7/9f8n//f8AwP1/yf/9/wDA/X/J//3/AMD+f8v//f//v/1/yf/9/wDA/X/J//3/AMD+f8v//f//v/5/1P/9//+//n/L//3//7/+f9v//v//v/5/1P/9//+//n/U//3//7/+f9v//v//v/9/7v/+//+//n/b//7//7//f/r//v//v/9/7v/+//+//3/u//7//7//f/r//v//v+J//v/+//+//3/6//7//7/Lf/z//P8AwOJ//v/+//+/4n/+//7//7/Lf/z//P8AwJF/+P/4/wLAy3/8//z/AMBkf/D/8P8GwJF/+P/4/wLAkX/4//j/AsBkf/D/8P8GwAh/4v/i/w3AZH/w//D/BsDBfsz/zP8YwAh/4v/i/w3ACH/i/+L/DcDBfsz/zP8YwFJ+sv+x/yXAwX7M/8z/GMD3fYr/if86wFJ+sv+x/yXAUn6y/7H/JcD3fYr/if86wHx9Yf9e/0/A932K/4n/OsD8fB3/Gf9ywHx9Yf9e/0/AfH1h/17/T8D8fB3/Gf9ywHV84P7a/pHA/Hwd/xn/csDYe3v+c/7FwHV84P7a/pHAdXzg/tr+kcDYe3v+c/7FwGJ7Nf4q/unA2Ht7/nP+xcDJesH9s/0lwWJ7Nf4q/unAYns1/ir+6cDJesH9s/0lwX56hf12/UPByXrB/bP9JcEOeiP9EP12wX56hf12/UPBfnqF/Xb9Q8EOeiP9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/3////7//7//f///////v/9///////+//3///////7//f///////v/9///////+//3///////7//f///////v/9////+//+//3///////7//f////v//v/9////+//+//3////7//7//f////v//v/9////+//+//3////7//7//f///////v/9////+//+//3////7//7//f///////v/9///////+//3///////7//f////v//v/9///////+//3///////7//f////v//v/9///////+//3////7//7//f////v//v/9///////+/")
+}]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lmqqj"]
+albedo_color = Color(0.64, 0.5, 0.43, 1)
+albedo_texture = ExtResource("3_x2mhn")
+roughness = 0.94
+normal_enabled = true
+normal_scale = 0.6
+normal_texture = ExtResource("4_63fq1")
+uv1_scale = Vector3(0.3125, 0.3125, 0.3125)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a0367"]
+albedo_color = Color(0.87, 0.86, 0.82, 1)
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8uewh"]
+albedo_color = Color(0.25, 0.48, 0.31, 1)
+roughness = 0.78
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_74m04"]
+albedo_color = Color(0.93, 0.76, 0.24, 1)
+roughness = 0.7
+
+[node name="park_transit" type="Node3D" unique_id=390300814]
+
+[node name="grand_tram_lane" type="MeshInstance3D" parent="." unique_id=1612111522]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00175, 0.00175, 0.00175)
+material_override = SubResource("StandardMaterial3D_asvco")
+mesh = SubResource("ArrayMesh_3a20j")
+
+[node name="grand_tram_entry_platform" type="CSGBox3D" parent="." unique_id=618969436]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 37.002, 0.052, 118.152)
+use_collision = true
+size = Vector3(20, 0.18, 4.1)
+material = SubResource("StandardMaterial3D_lmqqj")
+
+[node name="grand_tram_entry_post_-8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=510024014]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28.40225, 1.70225, 117.25225)
+use_collision = true
+radius = 0.085
+height = 3.4
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_entry_post_-8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=1080926555]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28.4025, 1.7025001, 119.052505)
+use_collision = true
+radius = 0.085
+height = 3.4
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_entry_post_8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=1726416542]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.60275, 1.7027501, 117.25275)
+use_collision = true
+radius = 0.085
+height = 3.4
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_entry_post_8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=1803129741]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.602997, 1.7030001, 119.053)
+use_collision = true
+radius = 0.085
+height = 3.4
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_entry_canopy" type="CSGBox3D" parent="." unique_id=296822450]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 37.00325, 3.47325, 118.15325)
+size = Vector3(18.2, 0.22, 3.5)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_entry_valance" type="CSGBox3D" parent="." unique_id=1506375040]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 37.0035, 3.1535, 119.8235)
+size = Vector3(17.6, 0.48, 0.12)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_entry_sign" type="CSGBox3D" parent="." unique_id=579970177]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 37.00375, 3.6537502, 119.903755)
+size = Vector3(6.4, 0.78, 0.14)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_entry_sign_rule" type="CSGBox3D" parent="." unique_id=868237775]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 37.004, 3.654, 119.813995)
+size = Vector3(5, 0.13, 0.06)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_entry_lane_post_-9_5" type="CSGBox3D" parent="." unique_id=1762823620]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.50425, 0.57425, 120.05425)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_entry_lane_post_-4_8" type="CSGBox3D" parent="." unique_id=368805385]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.204502, 0.57449996, 120.054504)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_entry_lane_post_-1_3" type="CSGBox3D" parent="." unique_id=1119098587]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35.70475, 0.57475, 120.054756)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_entry_lane_post_1_3" type="CSGBox3D" parent="." unique_id=302627587]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38.305, 0.575, 120.055)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_entry_lane_post_4_8" type="CSGBox3D" parent="." unique_id=727131122]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.8, 0.57, 120.05)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_entry_lane_post_9_5" type="CSGBox3D" parent="." unique_id=225167993]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46.50025, 0.57025, 120.050255)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_entry_lane_rail_-7_15_0_43" type="CSGBox3D" parent="." unique_id=1788147470]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 29.8505, 0.4305, 120.05051)
+use_collision = true
+size = Vector3(4.45, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_entry_lane_rail_-7_15_0_94" type="CSGBox3D" parent="." unique_id=206237842]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 29.85075, 0.94075, 120.05075)
+use_collision = true
+size = Vector3(4.45, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_entry_lane_rail_0_0_0_43" type="CSGBox3D" parent="." unique_id=1664519577]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 37.001, 0.431, 120.051)
+use_collision = true
+size = Vector3(2.35, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_entry_lane_rail_0_0_0_94" type="CSGBox3D" parent="." unique_id=960925338]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 37.00125, 0.94125, 120.051254)
+use_collision = true
+size = Vector3(2.35, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_entry_lane_rail_7_15_0_43" type="CSGBox3D" parent="." unique_id=1192932309]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.1515, 0.43150002, 120.051506)
+use_collision = true
+size = Vector3(4.45, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_entry_lane_rail_7_15_0_94" type="CSGBox3D" parent="." unique_id=583544275]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.151752, 0.94175, 120.05175)
+use_collision = true
+size = Vector3(4.45, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_entry_boarding_gate_-3_05_0_43" type="CSGBox3D" parent="." unique_id=1083011090]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.952, 0.432, 120.062)
+use_collision = true
+size = Vector3(3.34, 0.12, 0.14)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_entry_boarding_gate_-3_05_0_94" type="CSGBox3D" parent="." unique_id=1697199081]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.95225, 0.94225, 120.06225)
+use_collision = true
+size = Vector3(3.34, 0.12, 0.14)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_entry_boarding_gate_3_05_0_43" type="CSGBox3D" parent="." unique_id=727406044]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40.052498, 0.4325, 120.0625)
+use_collision = true
+size = Vector3(3.34, 0.12, 0.14)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_entry_boarding_gate_3_05_0_94" type="CSGBox3D" parent="." unique_id=1987740224]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40.05275, 0.94275, 120.062744)
+use_collision = true
+size = Vector3(3.34, 0.12, 0.14)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_entry_bulb_a" type="CSGSphere3D" parent="." unique_id=1655681441]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28.653, 3.183, 118.153)
+radius = 0.15
+radial_segments = 10
+material = ExtResource("5_arp8v")
+
+[node name="grand_tram_entry_glow_a" type="OmniLight3D" parent="." unique_id=1527261764 groups=["park_light"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28.65, 3.18, 118.15)
+visible = false
+light_color = Color(1, 0.78, 0.48, 1)
+light_energy = 0.0
+light_specular = 0.4
+shadow_enabled = true
+shadow_bias = 0.04
+omni_range = 10.5
+omni_attenuation = 1.6
+metadata/base_energy = 2.3
+metadata/light_kind = 0
+
+[node name="grand_tram_entry_bulb_b" type="CSGSphere3D" parent="." unique_id=324875623]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.35325, 3.18325, 118.15325)
+radius = 0.15
+radial_segments = 10
+material = ExtResource("5_arp8v")
+
+[node name="grand_tram_entry_glow_b" type="OmniLight3D" parent="." unique_id=610156368 groups=["park_light"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.35, 3.18, 118.15)
+visible = false
+light_color = Color(1, 0.78, 0.48, 1)
+light_energy = 0.0
+light_specular = 0.4
+omni_range = 10.5
+omni_attenuation = 1.6
+metadata/base_energy = 2.3
+metadata/light_kind = 0
+
+[node name="grand_tram_east_platform" type="CSGBox3D" parent="." unique_id=1648299360]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 111.1535, 5.0535, -69.9965)
+use_collision = true
+size = Vector3(20, 0.18, 4.1)
+material = SubResource("StandardMaterial3D_lmqqj")
+
+[node name="grand_tram_east_post_-8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=152562754]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 110.25375, 6.7037497, -61.39625)
+use_collision = true
+radius = 0.085
+height = 3.4
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_east_post_-8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=1144829649]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 112.054, 6.704, -61.396)
+use_collision = true
+radius = 0.085
+height = 3.4
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_east_post_8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=20062543]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 110.25425, 6.70425, -78.59575)
+use_collision = true
+radius = 0.085
+height = 3.4
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_east_post_8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=1774790992]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 112.054504, 6.7044997, -78.5955)
+use_collision = true
+radius = 0.085
+height = 3.4
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_east_canopy" type="CSGBox3D" parent="." unique_id=1017004843]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 111.154755, 8.4747505, -69.99525)
+size = Vector3(18.2, 0.22, 3.5)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_east_valance" type="CSGBox3D" parent="." unique_id=1508228524]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 112.825, 8.155, -69.995)
+size = Vector3(17.6, 0.48, 0.12)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_east_sign" type="CSGBox3D" parent="." unique_id=988057918]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 112.9, 8.65, -70)
+size = Vector3(6.4, 0.78, 0.14)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_east_sign_rule" type="CSGBox3D" parent="." unique_id=2141667624]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 112.81025, 8.6502495, -69.99975)
+size = Vector3(5, 0.13, 0.06)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_east_lane_post_-9_5" type="CSGBox3D" parent="." unique_id=91387491]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 113.05051, 5.5705004, -60.4995)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_east_lane_post_-4_8" type="CSGBox3D" parent="." unique_id=1063640482]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 113.05075, 5.57075, -65.19925)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_east_lane_post_-1_3" type="CSGBox3D" parent="." unique_id=1195006573]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 113.051, 5.571, -68.699)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_east_lane_post_1_3" type="CSGBox3D" parent="." unique_id=16166239]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 113.051254, 5.57125, -71.29875)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_east_lane_post_4_8" type="CSGBox3D" parent="." unique_id=1327888074]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 113.051506, 5.5715003, -74.7985)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_east_lane_post_9_5" type="CSGBox3D" parent="." unique_id=68577225]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 113.05175, 5.57175, -79.49825)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_east_lane_rail_-7_15_0_43" type="CSGBox3D" parent="." unique_id=264867628]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 113.052, 5.4319997, -62.848)
+use_collision = true
+size = Vector3(4.45, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_east_lane_rail_-7_15_0_94" type="CSGBox3D" parent="." unique_id=409746561]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 113.05225, 5.9422503, -62.847748)
+use_collision = true
+size = Vector3(4.45, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_east_lane_rail_0_0_0_43" type="CSGBox3D" parent="." unique_id=1392712815]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 113.052505, 5.4325, -69.9975)
+use_collision = true
+size = Vector3(2.35, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_east_lane_rail_0_0_0_94" type="CSGBox3D" parent="." unique_id=1999890711]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 113.05275, 5.94275, -69.99725)
+use_collision = true
+size = Vector3(2.35, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_east_lane_rail_7_15_0_43" type="CSGBox3D" parent="." unique_id=1729905785]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 113.053, 5.4329996, -77.147)
+use_collision = true
+size = Vector3(4.45, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_east_lane_rail_7_15_0_94" type="CSGBox3D" parent="." unique_id=1673516845]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 113.05325, 5.94325, -77.14675)
+use_collision = true
+size = Vector3(4.45, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_east_boarding_gate_-3_05_0_43" type="CSGBox3D" parent="." unique_id=730111971]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 113.0635, 5.4335, -66.946495)
+use_collision = true
+size = Vector3(3.34, 0.12, 0.14)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_east_boarding_gate_-3_05_0_94" type="CSGBox3D" parent="." unique_id=1700763892]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 113.06375, 5.94375, -66.94624)
+use_collision = true
+size = Vector3(3.34, 0.12, 0.14)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_east_boarding_gate_3_05_0_43" type="CSGBox3D" parent="." unique_id=1131473519]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 113.063995, 5.434, -73.046005)
+use_collision = true
+size = Vector3(3.34, 0.12, 0.14)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_east_boarding_gate_3_05_0_94" type="CSGBox3D" parent="." unique_id=517218818]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 113.06425, 5.94425, -73.04575)
+use_collision = true
+size = Vector3(3.34, 0.12, 0.14)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_east_bulb_a" type="CSGSphere3D" parent="." unique_id=702312768]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 111.1545, 8.184501, -61.6455)
+radius = 0.15
+radial_segments = 10
+material = ExtResource("5_arp8v")
+
+[node name="grand_tram_east_glow_a" type="OmniLight3D" parent="." unique_id=2049078929 groups=["park_light"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 111.15, 8.18, -61.65)
+visible = false
+light_color = Color(1, 0.78, 0.48, 1)
+light_energy = 0.0
+light_specular = 0.4
+shadow_enabled = true
+shadow_bias = 0.04
+omni_range = 10.5
+omni_attenuation = 1.6
+metadata/base_energy = 2.3
+metadata/light_kind = 0
+
+[node name="grand_tram_east_bulb_b" type="CSGSphere3D" parent="." unique_id=776267691]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 111.154755, 8.184751, -78.345245)
+radius = 0.15
+radial_segments = 10
+material = ExtResource("5_arp8v")
+
+[node name="grand_tram_east_glow_b" type="OmniLight3D" parent="." unique_id=607323124 groups=["park_light"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 111.15, 8.18, -78.35)
+visible = false
+light_color = Color(1, 0.78, 0.48, 1)
+light_energy = 0.0
+light_specular = 0.4
+omni_range = 10.5
+omni_attenuation = 1.6
+metadata/base_energy = 2.3
+metadata/light_kind = 0
+
+[node name="grand_tram_grove_platform" type="CSGBox3D" parent="." unique_id=731613831]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 2.0050006, 0.055, -135.14499)
+use_collision = true
+size = Vector3(20, 0.18, 4.1)
+material = SubResource("StandardMaterial3D_lmqqj")
+
+[node name="grand_tram_grove_post_-8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=1234020014]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 10.600001, 1.7, -134.25)
+use_collision = true
+radius = 0.085
+height = 3.4
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_grove_post_-8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=1745577168]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 10.60025, 1.70025, -136.04976)
+use_collision = true
+radius = 0.085
+height = 3.4
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_grove_post_8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=1499413155]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -6.599499, 1.7005, -134.2495)
+use_collision = true
+radius = 0.085
+height = 3.4
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_grove_post_8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=1030883497]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -6.5992503, 1.70075, -136.04926)
+use_collision = true
+radius = 0.085
+height = 3.4
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_grove_canopy" type="CSGBox3D" parent="." unique_id=1700361955]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 2.0010004, 3.471, -135.14899)
+size = Vector3(18.2, 0.22, 3.5)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_grove_valance" type="CSGBox3D" parent="." unique_id=1945625021]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 2.0012503, 3.1512501, -136.81876)
+size = Vector3(17.6, 0.48, 0.12)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_grove_sign" type="CSGBox3D" parent="." unique_id=510708880]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 2.0015001, 3.6515, -136.8985)
+size = Vector3(6.4, 0.78, 0.14)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_grove_sign_rule" type="CSGBox3D" parent="." unique_id=962704181]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 2.0017502, 3.65175, -136.80824)
+size = Vector3(5, 0.13, 0.06)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_grove_lane_post_-9_5" type="CSGBox3D" parent="." unique_id=862164043]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 11.502, 0.57199997, -137.048)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_grove_lane_post_-4_8" type="CSGBox3D" parent="." unique_id=38326034]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 6.802251, 0.57225, -137.04776)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_grove_lane_post_-1_3" type="CSGBox3D" parent="." unique_id=413355702]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 3.3025002, 0.5725, -137.0475)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_grove_lane_post_1_3" type="CSGBox3D" parent="." unique_id=280965699]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0.70275027, 0.57275, -137.04726)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_grove_lane_post_4_8" type="CSGBox3D" parent="." unique_id=1819841654]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -2.7969997, 0.573, -137.047)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_grove_lane_post_9_5" type="CSGBox3D" parent="." unique_id=1697487805]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -7.49675, 0.57325, -137.04675)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_grove_lane_rail_-7_15_0_43" type="CSGBox3D" parent="." unique_id=1464992319]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 9.153501, 0.43350002, -137.04651)
+use_collision = true
+size = Vector3(4.45, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_grove_lane_rail_-7_15_0_94" type="CSGBox3D" parent="." unique_id=1757419714]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 9.15375, 0.94375, -137.04625)
+use_collision = true
+size = Vector3(4.45, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_grove_lane_rail_0_0_0_43" type="CSGBox3D" parent="." unique_id=1155087364]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 2.0040002, 0.43400002, -137.046)
+use_collision = true
+size = Vector3(2.35, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_grove_lane_rail_0_0_0_94" type="CSGBox3D" parent="." unique_id=54880276]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 2.0042503, 0.94425, -137.04575)
+use_collision = true
+size = Vector3(2.35, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_grove_lane_rail_7_15_0_43" type="CSGBox3D" parent="." unique_id=752550094]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -5.1454997, 0.4345, -137.0455)
+use_collision = true
+size = Vector3(4.45, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_grove_lane_rail_7_15_0_94" type="CSGBox3D" parent="." unique_id=1772875942]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -5.14525, 0.94475, -137.04526)
+use_collision = true
+size = Vector3(4.45, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_grove_boarding_gate_-3_05_0_43" type="CSGBox3D" parent="." unique_id=1352761840]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 5.0550003, 0.435, -137.055)
+use_collision = true
+size = Vector3(3.34, 0.12, 0.14)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_grove_boarding_gate_-3_05_0_94" type="CSGBox3D" parent="." unique_id=1041160579]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 5.05, 0.94, -137.06)
+use_collision = true
+size = Vector3(3.34, 0.12, 0.14)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_grove_boarding_gate_3_05_0_43" type="CSGBox3D" parent="." unique_id=889332602]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -1.0497497, 0.43025002, -137.05975)
+use_collision = true
+size = Vector3(3.34, 0.12, 0.14)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_grove_boarding_gate_3_05_0_94" type="CSGBox3D" parent="." unique_id=1697267967]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -1.0494998, 0.9405, -137.0595)
+use_collision = true
+size = Vector3(3.34, 0.12, 0.14)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_grove_bulb_a" type="CSGSphere3D" parent="." unique_id=1176536673]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.35075, 3.1807501, -135.14925)
+radius = 0.15
+radial_segments = 10
+material = ExtResource("5_arp8v")
+
+[node name="grand_tram_grove_glow_a" type="OmniLight3D" parent="." unique_id=1166895328 groups=["park_light"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.35, 3.18, -135.15)
+visible = false
+light_color = Color(1, 0.78, 0.48, 1)
+light_energy = 0.0
+light_specular = 0.4
+shadow_enabled = true
+shadow_bias = 0.04
+omni_range = 10.5
+omni_attenuation = 1.6
+metadata/base_energy = 2.3
+metadata/light_kind = 0
+
+[node name="grand_tram_grove_bulb_b" type="CSGSphere3D" parent="." unique_id=365452787]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.3490005, 3.181, -135.14899)
+radius = 0.15
+radial_segments = 10
+material = ExtResource("5_arp8v")
+
+[node name="grand_tram_grove_glow_b" type="OmniLight3D" parent="." unique_id=2061732662 groups=["park_light"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.3500004, 3.18, -135.15)
+visible = false
+light_color = Color(1, 0.78, 0.48, 1)
+light_energy = 0.0
+light_specular = 0.4
+omni_range = 10.5
+omni_attenuation = 1.6
+metadata/base_energy = 2.3
+metadata/light_kind = 0
+
+[node name="grand_tram_boardwalk_platform" type="CSGBox3D" parent="." unique_id=1820902362]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -76.84875, -5.94875, 18.00125)
+use_collision = true
+size = Vector3(20, 0.18, 4.1)
+material = SubResource("StandardMaterial3D_lmqqj")
+
+[node name="grand_tram_boardwalk_post_-8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=1980985073]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -77.7485, -4.2985, 26.6015)
+use_collision = true
+radius = 0.085
+height = 3.4
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_boardwalk_post_-8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=2058106877]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -75.94825, -4.29825, 26.601751)
+use_collision = true
+radius = 0.085
+height = 3.4
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_boardwalk_post_8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=1340458869]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -77.748, -4.2980003, 9.401999)
+use_collision = true
+radius = 0.085
+height = 3.4
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_boardwalk_post_8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=1051671232]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -75.94775, -4.29775, 9.402249)
+use_collision = true
+radius = 0.085
+height = 3.4
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_boardwalk_canopy" type="CSGBox3D" parent="." unique_id=1430760244]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -76.847496, -2.5275, 18.0025)
+size = Vector3(18.2, 0.22, 3.5)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_boardwalk_valance" type="CSGBox3D" parent="." unique_id=307359492]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -75.17725, -2.84725, 18.00275)
+size = Vector3(17.6, 0.48, 0.12)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_boardwalk_sign" type="CSGBox3D" parent="." unique_id=483840551]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -75.097, -2.347, 18.003)
+size = Vector3(6.4, 0.78, 0.14)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_boardwalk_sign_rule" type="CSGBox3D" parent="." unique_id=506184655]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -75.18675, -2.34675, 18.00325)
+size = Vector3(5, 0.13, 0.06)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_boardwalk_lane_post_-9_5" type="CSGBox3D" parent="." unique_id=654586070]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -74.946495, -5.4265, 27.5035)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_boardwalk_lane_post_-4_8" type="CSGBox3D" parent="." unique_id=998319471]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -74.94624, -5.42625, 22.80375)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_boardwalk_lane_post_-1_3" type="CSGBox3D" parent="." unique_id=1150298749]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -74.946, -5.4259996, 19.303999)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_boardwalk_lane_post_1_3" type="CSGBox3D" parent="." unique_id=352503148]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -74.94575, -5.42575, 16.70425)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_boardwalk_lane_post_4_8" type="CSGBox3D" parent="." unique_id=799366254]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -74.945496, -5.4255, 13.2045)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_boardwalk_lane_post_9_5" type="CSGBox3D" parent="." unique_id=1944859088]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -74.945244, -5.42525, 8.50475)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_boardwalk_lane_rail_-7_15_0_43" type="CSGBox3D" parent="." unique_id=1315885104]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -74.945, -5.565, 25.154999)
+use_collision = true
+size = Vector3(4.45, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_boardwalk_lane_rail_-7_15_0_94" type="CSGBox3D" parent="." unique_id=1355930323]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -74.95, -5.06, 25.15)
+use_collision = true
+size = Vector3(4.45, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_boardwalk_lane_rail_0_0_0_43" type="CSGBox3D" parent="." unique_id=1846196442]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -74.949745, -5.5697503, 18.00025)
+use_collision = true
+size = Vector3(2.35, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_boardwalk_lane_rail_0_0_0_94" type="CSGBox3D" parent="." unique_id=1428929571]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -74.94949, -5.0594997, 18.0005)
+use_collision = true
+size = Vector3(2.35, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_boardwalk_lane_rail_7_15_0_43" type="CSGBox3D" parent="." unique_id=248870927]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -74.94925, -5.56925, 10.85075)
+use_collision = true
+size = Vector3(4.45, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_boardwalk_lane_rail_7_15_0_94" type="CSGBox3D" parent="." unique_id=776112856]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -74.949, -5.059, 10.851001)
+use_collision = true
+size = Vector3(4.45, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_boardwalk_boarding_gate_-3_05_0_43" type="CSGBox3D" parent="." unique_id=495473835]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -74.93875, -5.5687504, 21.051249)
+use_collision = true
+size = Vector3(3.34, 0.12, 0.14)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_boardwalk_boarding_gate_-3_05_0_94" type="CSGBox3D" parent="." unique_id=1462966591]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -74.9385, -5.0585, 21.051498)
+use_collision = true
+size = Vector3(3.34, 0.12, 0.14)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_boardwalk_boarding_gate_3_05_0_43" type="CSGBox3D" parent="." unique_id=1657608512]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -74.938255, -5.56825, 14.951751)
+use_collision = true
+size = Vector3(3.34, 0.12, 0.14)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_boardwalk_boarding_gate_3_05_0_94" type="CSGBox3D" parent="." unique_id=22151819]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -74.938, -5.058, 14.952001)
+use_collision = true
+size = Vector3(3.34, 0.12, 0.14)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_boardwalk_bulb_a" type="CSGSphere3D" parent="." unique_id=771825515]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -76.84775, -2.81775, 26.352251)
+radius = 0.15
+radial_segments = 10
+material = ExtResource("5_arp8v")
+
+[node name="grand_tram_boardwalk_glow_a" type="OmniLight3D" parent="." unique_id=503824996 groups=["park_light"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -76.85, -2.82, 26.35)
+visible = false
+light_color = Color(1, 0.78, 0.48, 1)
+light_energy = 0.0
+light_specular = 0.4
+shadow_enabled = true
+shadow_bias = 0.04
+omni_range = 10.5
+omni_attenuation = 1.6
+metadata/base_energy = 2.3
+metadata/light_kind = 0
+
+[node name="grand_tram_boardwalk_bulb_b" type="CSGSphere3D" parent="." unique_id=1726084160]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -76.847496, -2.8174999, 9.652499)
+radius = 0.15
+radial_segments = 10
+material = ExtResource("5_arp8v")
+
+[node name="grand_tram_boardwalk_glow_b" type="OmniLight3D" parent="." unique_id=1907152161 groups=["park_light"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -76.85, -2.82, 9.65)
+visible = false
+light_color = Color(1, 0.78, 0.48, 1)
+light_energy = 0.0
+light_specular = 0.4
+omni_range = 10.5
+omni_attenuation = 1.6
+metadata/base_energy = 2.3
+metadata/light_kind = 0
+
+[node name="grand_tram_fairground_platform" type="CSGBox3D" parent="." unique_id=84959653]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -46.01961, 0.052750003, 111.574265)
+use_collision = true
+size = Vector3(20, 0.18, 4.1)
+material = SubResource("StandardMaterial3D_lmqqj")
+
+[node name="grand_tram_fairground_post_-8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=700069247]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -53.504944, 1.7030001, 107.245995)
+use_collision = true
+radius = 0.085
+height = 3.4
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_fairground_post_-8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=2013060579]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -54.238663, 1.70325, 108.88981)
+use_collision = true
+radius = 0.085
+height = 3.4
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_fairground_post_8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=297299894]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -37.79931, 1.7035, 114.25998)
+use_collision = true
+radius = 0.085
+height = 3.4
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_fairground_post_8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=1925737480]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -38.53303, 1.70375, 115.90379)
+use_collision = true
+radius = 0.085
+height = 3.4
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_fairground_canopy" type="CSGBox3D" parent="." unique_id=386960157]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -46.01836, 3.474, 111.575516)
+size = Vector3(18.2, 0.22, 3.5)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_fairground_valance" type="CSGBox3D" parent="." unique_id=229091485]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -46.699074, 3.1542501, 113.100624)
+size = Vector3(17.6, 0.48, 0.12)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_fairground_sign" type="CSGBox3D" parent="." unique_id=1361396012]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -46.73144, 3.6545, 113.17393)
+size = Vector3(6.4, 0.78, 0.14)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_fairground_sign_rule" type="CSGBox3D" parent="." unique_id=2032444691]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -46.694496, 3.65475, 113.092)
+size = Vector3(5, 0.13, 0.06)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_fairground_lane_post_-9_5" type="CSGBox3D" parent="." unique_id=1411734094]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -55.46645, 0.575, 109.43766)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_fairground_lane_post_-4_8" type="CSGBox3D" parent="." unique_id=327513459]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -51.17993, 0.57, 111.34914)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_fairground_lane_post_-1_3" type="CSGBox3D" parent="." unique_id=792918280]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -47.98387, 0.57025, 112.77655)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_fairground_lane_post_1_3" type="CSGBox3D" parent="." unique_id=446206539]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -45.609592, 0.5705, 113.83698)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_fairground_lane_post_4_8" type="CSGBox3D" parent="." unique_id=212849416]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -42.41353, 0.57075, 115.26439)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_fairground_lane_post_9_5" type="CSGBox3D" parent="." unique_id=799887489]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -38.12176, 0.571, 117.181114)
+use_collision = true
+size = Vector3(0.13, 1.14, 0.13)
+material = SubResource("StandardMaterial3D_a0367")
+
+[node name="grand_tram_fairground_lane_rail_-7_15_0_43" type="CSGBox3D" parent="." unique_id=738136035]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -53.32444, 0.43125, 110.39215)
+use_collision = true
+size = Vector3(4.45, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_fairground_lane_rail_-7_15_0_94" type="CSGBox3D" parent="." unique_id=1559929823]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -53.324192, 0.9415, 110.3924)
+use_collision = true
+size = Vector3(4.45, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_fairground_lane_rail_0_0_0_43" type="CSGBox3D" parent="." unique_id=284619165]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -46.795357, 0.43175, 113.308136)
+use_collision = true
+size = Vector3(2.35, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_fairground_lane_rail_0_0_0_94" type="CSGBox3D" parent="." unique_id=132898675]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -46.79511, 0.942, 113.30839)
+use_collision = true
+size = Vector3(2.35, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_fairground_lane_rail_7_15_0_43" type="CSGBox3D" parent="." unique_id=1603548145]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -40.26627, 0.43225, 116.22413)
+use_collision = true
+size = Vector3(4.45, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_fairground_lane_rail_7_15_0_94" type="CSGBox3D" parent="." unique_id=344258624]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -40.26602, 0.9425, 116.22438)
+use_collision = true
+size = Vector3(4.45, 0.12, 0.12)
+material = SubResource("StandardMaterial3D_8uewh")
+
+[node name="grand_tram_fairground_boarding_gate_-3_05_0_43" type="CSGBox3D" parent="." unique_id=535208641]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -49.583355, 0.43275002, 112.07459)
+use_collision = true
+size = Vector3(3.34, 0.12, 0.14)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_fairground_boarding_gate_-3_05_0_94" type="CSGBox3D" parent="." unique_id=1931956852]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -49.583107, 0.943, 112.074844)
+use_collision = true
+size = Vector3(3.34, 0.12, 0.14)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_fairground_boarding_gate_3_05_0_43" type="CSGBox3D" parent="." unique_id=2110916386]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -44.013012, 0.43325, 114.56244)
+use_collision = true
+size = Vector3(3.34, 0.12, 0.14)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_fairground_boarding_gate_3_05_0_94" type="CSGBox3D" parent="." unique_id=1242207761]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -44.01276, 0.9435, 114.56269)
+use_collision = true
+size = Vector3(3.34, 0.12, 0.14)
+material = SubResource("StandardMaterial3D_74m04")
+
+[node name="grand_tram_fairground_bulb_a" type="CSGSphere3D" parent="." unique_id=45270854]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -53.642906, 3.1837502, 108.17047)
+radius = 0.15
+radial_segments = 10
+material = ExtResource("5_arp8v")
+
+[node name="grand_tram_fairground_glow_a" type="OmniLight3D" parent="." unique_id=371992111 groups=["park_light"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -53.646656, 3.18, 108.16672)
+visible = false
+light_color = Color(1, 0.78, 0.48, 1)
+light_energy = 0.0
+light_specular = 0.4
+shadow_enabled = true
+shadow_bias = 0.04
+omni_range = 10.5
+omni_attenuation = 1.6
+metadata/base_energy = 2.3
+metadata/light_kind = 0
+
+[node name="grand_tram_fairground_bulb_b" type="CSGSphere3D" parent="." unique_id=1470905130]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38.39407, 3.184, 114.980316)
+radius = 0.15
+radial_segments = 10
+material = ExtResource("5_arp8v")
+
+[node name="grand_tram_fairground_glow_b" type="OmniLight3D" parent="." unique_id=760919345 groups=["park_light"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38.39807, 3.18, 114.97632)
+visible = false
+light_color = Color(1, 0.78, 0.48, 1)
+light_energy = 0.0
+light_specular = 0.4
+omni_range = 10.5
+omni_attenuation = 1.6
+metadata/base_energy = 2.3
+metadata/light_kind = 0
+
+[node name="grand_tram" type="Node3D" parent="." unique_id=2063774702]
+script = ExtResource("6_p218l")
+service = 1

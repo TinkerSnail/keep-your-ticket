@@ -173,9 +173,8 @@ func _process(_delta: float) -> void:
 
 
 func _on_section_entered(_id: StringName) -> void:
-	# The crowd belongs to the section and is thrown away with it, so the cached
-	# reference has to go at the seam rather than being checked for validity
-	# every frame forever.
+	# All crowds remain standing; the logical area decides which graph supplies
+	# nearby points of interest.
 	_crowd = null
 
 
@@ -187,8 +186,8 @@ func _scale() -> float:
 	return RADIUS / RANGE_M
 
 
-## Cached, but re-found whenever the reference has gone stale — a section swap
-## frees the old crowd, and a tool harness may build its tree in any order.
+## Cached, but re-found whenever the reference has gone stale. Tool harnesses
+## may still build their trees in any order.
 func _find(group: StringName, cached: Node) -> Node:
 	if is_instance_valid(cached):
 		return cached
@@ -225,7 +224,8 @@ func _survey() -> void:
 	_runs = []
 	if not _standing:
 		return
-	_crowd = _find(&"crowd", _crowd)
+	if not is_instance_valid(_crowd):
+		_crowd = ParkSections.current_crowd()
 	_at = _player.global_position
 	_yaw = _player.global_rotation.y
 

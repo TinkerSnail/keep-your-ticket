@@ -26,8 +26,10 @@ Usage:  python3 tools/seat_test.py
 import re, sys, math
 
 CROWD = "scenes/world/plaza_crowd.tscn"
-PROPS = "scenes/world/plaza_props.tscn"
-FOUNTAIN = "scenes/world/plaza_fountain.tscn"
+# These tests parse node text rather than instantiating a scene, so they read
+# the generated sources beneath the stable editor-owned wrappers.
+PROPS = "scenes/world/generated/plaza_props.tscn"
+FOUNTAIN = "scenes/world/generated/plaza_fountain.tscn"
 
 # A seat is 0.42–0.55m across, so a guest more than this from the middle of one
 # is not on it. Loose enough for the two-to-a-bench offset, which is 0.45.

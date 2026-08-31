@@ -27,8 +27,8 @@ func _run() -> void:
 	for i in SETTLE_FRAMES:
 		await get_tree().process_frame
 
-	var mini := get_node_or_null("main/sections/plaza/thresholds/kiddie_train")
-	var grand := get_node_or_null("main/park_transit/grand_tram")
+	var mini := get_node_or_null("main/park_world/places/thresholds/kiddie_train")
+	var grand := get_node_or_null("main/park_world/shared/park_transit/grand_tram")
 	if mini == null or grand == null:
 		_fail("the land-local railway or persistent Grand Circuit did not mount")
 		_finish()

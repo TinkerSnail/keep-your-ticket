@@ -26,7 +26,7 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not event.is_action_pressed("interact"):
 		return
-	var crowd := get_tree().get_first_node_in_group("crowd")
+	var crowd := ParkSections.current_crowd()
 	if crowd == null or _camera == null:
 		return
 

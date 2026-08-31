@@ -1,18 +1,17 @@
 extends Node
 
 ## Dev tool: drives the real player down the entrance street and back, round the
-## three scaffolded passages, and — once the seam is crossed — over every route on
-## the boardwalk, probing every open edge of all of it.
+## the three radial land approaches and over every route on the boardwalk,
+## probing every open edge of the continuously loaded park.
 ##
 ## Pressing the actual input actions rather than setting velocity, so the run
 ## goes through `_physics_process` and `_try_step` exactly as a player's would.
 ## Teleporting the body would test the geometry and skip the controller, and on
 ## the west stair it was the controller that was wrong.
 ##
-## The boardwalk legs run in a second phase, after `ParkSections.enter`, because
-## a section that is not mounted has no floor and every leg in it would report
-## the same thing: fell. `tools/section_test.gd` owns the crossing itself; this
-## owns what is on either side of it.
+## The boardwalk legs remain a second phase only to keep the report readable.
+## They use the same standing world as the plaza legs; no load or teleport sits
+## between the phases.
 
 const ARRIVE := 1.6
 const STALL_FRAMES := 90
@@ -43,15 +42,11 @@ var _still := 0
 var _min_y := 1e9
 var _last := Vector3.ZERO
 var _fails: Array = []
-## Whether the run has already dropped into the boardwalk. One-way: the plaza
+## Whether the run has already queued the boardwalk phase. One-way: the plaza
 ## legs are done by then and there is nothing to go back for.
 var _crossed := false
 
 
-## Mount the boardwalk and queue its legs. `enter` is awaited rather than called
-## and hoped at — it fades, swaps and places the player, and starting a leg
-## mid-fade teleports the body out from under a transition that is still holding
-## it.
 ## Every crowd standing, not the first one found. `get_first_node_in_group` was
 ## fine while the plaza was the only section with a cast in it.
 ##
@@ -73,26 +68,7 @@ func _clear_crowds() -> void:
 
 
 func _enter_boardwalk() -> void:
-	print("--- crossing to the boardwalk ---")
-	await ParkSections.enter(&"boardwalk", &"plaza")
-	for i in 4:
-		await get_tree().physics_frame
-	if ParkSections.current() != &"boardwalk":
-		_fails.append("could not mount the boardwalk")
-		_report()
-		return
-
-	# Clear the crowd again. The one freed at startup was the plaza's — the
-	# section swap stands up a second one, 57 guests on a 17m strip, and this
-	# test is geometry only for the reason stated up there.
-	#
-	# It failed as a *timeout* rather than a block, which is why it went
-	# unnoticed: bodies pushing back do not stop the player, they slow him to a
-	# third of his pace, and whether 52m fits in the budget then depends on how
-	# many guests the hour has put on the promenade — which depends on how long
-	# the run took to get here. Adding geometry anywhere in the park was enough
-	# to tip it. A test whose verdict moves when an unrelated scene grows is
-	# worse than no test.
+	print("--- boardwalk routes ---")
 	_clear_crowds()
 	_legs = _boardwalk_legs()
 	_leg = 0
@@ -159,7 +135,10 @@ func _ready() -> void:
 		["grand tram lane holds", Vector3(37.0, 1.34, 118.0),
 			Vector3(37.0, 1.34, 126.0), false],
 	]
-	# Three threshold spokes, one leg per dogleg.
+	# The two still-closed threshold spokes, one leg per dogleg. Kiddieland's open
+	# route is read from `ParkPlan` below and walked in both directions; keeping a
+	# second hard-coded copy here let the obsolete SE dogleg keep passing over the
+	# plaza's general brick floor after its actual paving had moved.
 	#
 	# **These are the legs that were missing.** Every threshold test below starts
 	# at the mouth, so nothing here had ever walked the plaza itself — and three
@@ -168,8 +147,6 @@ func _ready() -> void:
 	for s in [
 		["nnw", [Vector3(-8.0, 1.2, -13.86), Vector3(-14.0, 1.2, -30.0),
 			Vector3(-16.9, 1.2, -46.0)]],
-		["se", [Vector3(13.86, 1.2, 8.0), Vector3(27.0, 1.2, 13.0),
-			Vector3(34.0, 1.2, 26.0), Vector3(46.0, 1.2, 31.3)]],
 		["sw", [Vector3(-8.0, 1.2, 13.86), Vector3(-28.0, 1.2, 30.0),
 			Vector3(-31.3, 1.2, 46.0)]],
 	]:
@@ -238,16 +215,10 @@ func _ready() -> void:
 	var seam_w := Vector3(ParkPlan.EAST_SEAM_AT.x - 3.0, 1.2, ex.y)
 	var seam_e := Vector3(ParkPlan.EAST_SEAM_AT.x + 3.0, 1.2, ex.y)
 	_legs.append(["east gate to seam", mouth_e, seam_w, true])
-	# **Not through the gate any more.** The east seam went in on 2026-08-18 and
-	# `cross_terraces` sits on the wall's centre line, so a leg that walks the
-	# passage trips a section swap and the hold shot freezes the body — which
-	# arrives here as a timeout on the *return* leg and looks like broken
-	# geometry. Both sides are `section_test`'s now. This walks up to the mouth
-	# and stops, which is still the question walk_test can answer: is the passage
-	# clear to its own threshold.
-	_legs.append(["east court out", far_e, foot_e, true])
+	_legs.append(["east gate through", seam_w, seam_e, true])
+	_legs.append(["east court out", seam_e, foot_e, true])
 	_legs.append(["east court back", foot_e, far_e, true])
-	_legs.append(["east gate from seam", seam_e, far_e, true])
+	_legs.append(["east gate back", seam_e, seam_w, true])
 	_legs.append(["east spoke home", mouth_e, ring_e, true])
 	# The two piers, from inside the passage. The leak in a gate is never the
 	# middle.
@@ -503,30 +474,112 @@ func _ready() -> void:
 	_legs.append(["ehill east wall holds", Vector3(74.0, head_y, -10.0),
 		Vector3(85.0, head_y, -10.0), false])
 
-	# The scaffolded section thresholds. Head-on plus both corners, because
-	# the leak in a gate is never the middle — it is the hand's width between
-	# the post and the wall it was supposed to meet.
-	# For each still-closed passage: walk in from the plaza and reach the bend,
-	# make the turn and reach the end, then push on past it and be stopped. The
-	# last is the one that matters — a passage that leaks is a hole.
-	for t in [
-		["nnw", Vector3(-16.9, 1.2, -46), Vector3(-16.9, 1.2, -58), Vector3(-27.9, 1.2, -58), Vector3(-45, 1.2, -58)],
-	]:
-		_legs.append(["way %s in" % t[0], t[1], t[2], true])
-		_legs.append(["way %s turn" % t[0], t[2], t[3], true])
-		_legs.append(["way %s holds" % t[0], t[3], t[4], false])
+	# Northwest is no longer a closure. The hidden bend still does its reveal,
+	# then the Grove takes over as one broad through spine with a quieter garden
+	# loop and side destinations. Every segment is walked independently in both
+	# directions so a clean arrival cannot hide a bad joint deeper in the land.
+	var grove: Array[Vector3] = ParkPlan.GROVE_ARRIVAL_POINTS
+	_legs.append(["way nnw in", Vector3(-16.9, 1.2, -46.0),
+		Vector3(-16.9, 1.2, -58.0), true])
+	_legs.append(["way nnw bend", Vector3(-16.9, 1.2, -58.0),
+		Vector3(-27.9, 1.2, -58.0), true])
+	_legs.append(["way nnw to grove", Vector3(-27.9, 1.2, -58.0),
+		grove[0] + Vector3.UP * 1.2, true])
+	for i in grove.size() - 1:
+		_legs.append(["grove spine %d" % i,
+			grove[i] + Vector3.UP * 1.2, grove[i + 1] + Vector3.UP * 1.2, true])
+	for i in range(grove.size() - 1, 0, -1):
+		_legs.append(["grove spine return %d" % i,
+			grove[i] + Vector3.UP * 1.2, grove[i - 1] + Vector3.UP * 1.2, true])
 
-	# Southeast is no longer a closure. Walk the old approach and bend, then the
-	# uninterrupted family spine all the way to its temporary section gate. The
-	# station and photo bay are tested as out-and-back side destinations so either
-	# can hold a queue or a player without becoming part of the through movement.
+	var garden: Array[Vector3] = ParkPlan.GROVE_GARDEN_LOOP
+	for i in garden.size() - 1:
+		_legs.append(["grove garden %d" % i,
+			garden[i] + Vector3.UP * 1.2, garden[i + 1] + Vector3.UP * 1.2, true])
+	for i in range(garden.size() - 1, 0, -1):
+		_legs.append(["grove garden return %d" % i,
+			garden[i] + Vector3.UP * 1.2, garden[i - 1] + Vector3.UP * 1.2, true])
+
+	for branch in [
+		["sky ride", ParkPlan.GROVE_SKY_RIDE_SPUR],
+		["grand tram", ParkPlan.GROVE_TRAM_ACCESS],
+	]:
+		var branch_points: Array[Vector3] = branch[1]
+		for i in branch_points.size() - 1:
+			_legs.append(["grove %s in %d" % [branch[0], i],
+				branch_points[i] + Vector3.UP * 1.2,
+				branch_points[i + 1] + Vector3.UP * 1.2, true])
+		for i in range(branch_points.size() - 1, 0, -1):
+			_legs.append(["grove %s out %d" % [branch[0], i],
+				branch_points[i] + Vector3.UP * 1.2,
+				branch_points[i - 1] + Vector3.UP * 1.2, true])
+	var grove_photo: Array[Vector3] = ParkPlan.GROVE_PHOTO_SPUR
+	_legs.append(["grove photo in", grove_photo[0] + Vector3.UP * 1.2,
+		ParkPlan.GROVE_PHOTO_AT + Vector3.UP * 1.2, true])
+	_legs.append(["grove photo out", ParkPlan.GROVE_PHOTO_AT + Vector3.UP * 1.2,
+		grove_photo[0] + Vector3.UP * 1.2, true])
+
+	var frontier: Array[Vector3] = ParkPlan.GROVE_FRONTIER_HANDOFF
+	for i in frontier.size() - 1:
+		_legs.append(["grove frontier %d" % i,
+			frontier[i] + Vector3.UP * 1.2,
+			frontier[i + 1] + Vector3.UP * 1.2, true])
+	for i in range(frontier.size() - 1, 0, -1):
+		_legs.append(["grove frontier return %d" % i,
+			frontier[i] + Vector3.UP * 1.2,
+			frontier[i - 1] + Vector3.UP * 1.2, true])
+	_legs.append(["grove frontier gate holds", frontier[-1] + Vector3.UP * 1.2,
+		Vector3(28.0, 1.2, -99.0), false])
+	_legs.append(["grove tram lane holds",
+		ParkPlan.GROVE_TRAM_ACCESS[-1] + Vector3.UP * 1.2,
+		Vector3(2.0, 1.34, -143.0), false])
+	_legs.append(["grove west boundary holds", Vector3(-34.0, 1.2, -108.0),
+		Vector3(-49.0, 1.2, -108.0), false])
+	_legs.append(["grove north boundary holds", Vector3(-16.0, 1.2, -139.0),
+		Vector3(-16.0, 1.2, -154.0), false])
+
+	# Southeast is no longer a closure. The plaza connection is secondary, but it
+	# must still read and walk as one open gateway in both directions: straight
+	# through the arch, one broad turn outside it, and on to the family commons.
+	# The entrance frontage is the primary arrival; both routes share the family
+	# spine beyond the commons. The station and photo bay remain out-and-back side
+	# destinations.
+	var se_spoke: Array = ParkPlan.WALKWAYS[&"spoke_se"]
+	var expected_se := [Vector2(-1.5, 31.3), Vector2(51.5, 31.3)]
+	if se_spoke.size() != expected_se.size() \
+			or not se_spoke[0].is_equal_approx(expected_se[0]) \
+			or not se_spoke[1].is_equal_approx(expected_se[1]):
+		_fails.append("Kiddieland plaza link is not the direct entrance-axis corridor")
+	for i in se_spoke.size() - 1:
+		var a: Vector2 = se_spoke[i]
+		var b: Vector2 = se_spoke[i + 1]
+		_legs.append(["plaza se link %d" % i,
+			Vector3(a.x, 1.2, a.y), Vector3(b.x, 1.2, b.y), true])
+	for i in range(se_spoke.size() - 1, 0, -1):
+		var a: Vector2 = se_spoke[i]
+		var b: Vector2 = se_spoke[i - 1]
+		_legs.append(["plaza se link return %d" % i,
+			Vector3(a.x, 1.2, a.y), Vector3(b.x, 1.2, b.y), true])
 	var kiddie: Array[Vector3] = ParkPlan.KIDDIE_ARRIVAL_POINTS
-	_legs.append(["way se in", Vector3(46, 1.2, 31.3), Vector3(58, 1.2, 31.3), true])
-	_legs.append(["way se turn", Vector3(58, 1.2, 31.3), kiddie[0] + Vector3.UP * 1.2, true])
-	for i in kiddie.size() - 1:
+	var plaza_side := Vector3(46.0, 1.2, 31.3)
+	var land_side := kiddie[1] + Vector3.UP * 1.2
+	_legs.append(["way se arch in", plaza_side, land_side, true])
+	_legs.append(["way se arch out", land_side, plaza_side, true])
+	# Walk both edges of the whole architectural opening. The arch is thirteen
+	# metres wide; the old eight-metre route passed on its centreline while its
+	# north edge hung over a rectangular void and its south return carried a wall.
+	# Centreline-only testing declared both defects fine.
+	for edge in [[25.6, "north"], [37.0, "south"]]:
+		var z: float = edge[0]
+		var tag: String = edge[1]
+		var plaza_edge := Vector3(46.0, 1.2, z)
+		var land_edge := Vector3(60.0, 1.2, z)
+		_legs.append(["way se %s edge in" % tag, plaza_edge, land_edge, true])
+		_legs.append(["way se %s edge out" % tag, land_edge, plaza_edge, true])
+	for i in range(1, kiddie.size() - 1):
 		_legs.append(["kiddie arrival %d" % i,
 			kiddie[i] + Vector3.UP * 1.2, kiddie[i + 1] + Vector3.UP * 1.2, true])
-	for i in range(kiddie.size() - 1, 0, -1):
+	for i in range(kiddie.size() - 1, 1, -1):
 		_legs.append(["kiddie return %d" % i,
 			kiddie[i] + Vector3.UP * 1.2, kiddie[i - 1] + Vector3.UP * 1.2, true])
 	var family_link: Array[Vector3] = ParkPlan.KIDDIE_ENTRANCE_LINK
@@ -538,6 +591,15 @@ func _ready() -> void:
 		_legs.append(["family link out %d" % i,
 			family_link[i] + Vector3.UP * 1.2,
 			family_link[i - 1] + Vector3.UP * 1.2, true])
+	var garden_link: Array[Vector3] = ParkPlan.KIDDIE_COMMONS_GARDEN_LINK
+	for i in garden_link.size() - 1:
+		_legs.append(["family garden link %d" % i,
+			garden_link[i] + Vector3.UP * 1.2,
+			garden_link[i + 1] + Vector3.UP * 1.2, true])
+	for i in range(garden_link.size() - 1, 0, -1):
+		_legs.append(["family garden return %d" % i,
+			garden_link[i] + Vector3.UP * 1.2,
+			garden_link[i - 1] + Vector3.UP * 1.2, true])
 	var station_spur: Array[Vector3] = ParkPlan.KIDDIE_STATION_SPUR
 	_legs.append(["kiddie station in", station_spur[0] + Vector3.UP * 1.2,
 		station_spur[1] + Vector3.UP * 1.2, true])
@@ -659,14 +721,8 @@ func _cascade_legs() -> Array:
 ## both directions with the pier out of the middle of it. Everything after that
 ## is a probe — the water, the shops, the bluff, and both ends of the strip.
 ##
-## **The stair is in this list rather than the plaza's since 2026-08-14.** The
-## seam moved to the arch, so the player descends it with the boardwalk standing
-## and the plaza gone — different neighbours, different scene, and the flight is
-## a scene mounted with this one. It was walked in the plaza's phase until the
-## seam moved and then in neither, because `section_test.gd` gave it up the same
-## day and nothing picked it up — and what nothing was walking turned out to be a
-## flight buried inside the boardwalk's own fill for the slot it descends. A
-## route nothing walks is a route that is not walkable, and this one was not.
+## The stair is in this list because it is the first part of the boardwalk
+## journey, although its scene now stands from launch with everything else.
 func _boardwalk_legs() -> Array:
 	var y := ParkPlan.SHORE_TOP + 1.2
 	var alley_in := Vector3(ParkPlan.BACK_LANE_X, y, ParkPlan.ALLEY_Z)

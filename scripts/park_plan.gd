@@ -292,7 +292,7 @@ const ARCH_RIM_CLEAR_X := -16.0
 ## x −50.5; this stands short of it, where you actually end up walking.
 const OVERLOOK_AT := Vector2(-49.0, -2.0)
 
-## The three scaffolded passages, moved here verbatim from `gen_props.gd`.
+## The three threshold mouths, moved here verbatim from `gen_props.gd`.
 ##
 ## Bearings are approximate on purpose. The star is a skeleton — points anchor a
 ## section's centre line, edges are free — so these sit where the perimeter had
@@ -312,7 +312,10 @@ const OVERLOOK_AT := Vector2(-49.0, -2.0)
 ## by roughly the same 1.3 the perimeter is.
 const THRESHOLDS := [
 	{"name": "nnw", "at": Vector3(-16.9, 0.0, -51.5), "theta": PI, "width": 16.0, "turn": 1.0},
-	{"name": "se", "at": Vector3(51.5, 0.0, 31.3), "theta": PI * 0.5, "width": 13.0, "turn": -1.0},
+	# Kiddieland is built enough to be a destination. Its threshold is an open
+	# public gateway, not one of the concealed placeholder passages.
+	{"name": "se", "at": Vector3(51.5, 0.0, 31.3), "theta": PI * 0.5,
+		"width": 13.0, "turn": -1.0, "open": true},
 	{"name": "sw", "at": Vector3(-31.3, 0.0, 51.5), "theta": 0.0, "width": 10.0, "turn": -1.0},
 ]
 
@@ -322,19 +325,19 @@ const THRESHOLDS := [
 ## the destination of a spoke: the surrounding brick is its forecourt.
 const PLAZA_DARK_RIDE_AT := Vector2(35.5, -27.4)
 
-## How far a passage runs before it bends, and how far it carries after. The
-## bend is what buys a section load its cover, so it is plan data rather than a
-## detail of the shape — every remaining threshold needs one whether or not its
-## section has shops yet.
+## How far an unopened passage runs before it bends, and how far it carries
+## after. The bend buys a future section load its cover. It no longer applies to
+## the SE gateway: keeping that placeholder baffle after Kiddieland opened made
+## a connected route read as a chain of walls and service alleys.
 const REACH := 9.0
 const BEND := 7.0
 
-## The first piece of Kiddieland, beginning at the south-facing end of the
-## south-east passage. It is also the missing inside-the-gates connection to the
-## entrance street: families arriving through the turnstiles can turn into this
-## land before being forced through the plaza, and guests leaving Kiddieland
-## have a second way out. The two routes meet in a level commons rather than at
-## an attraction queue.
+## The first piece of Kiddieland, beginning on the plaza face of the south-east
+## gateway. The entrance-street breezeway is the land's primary arrival:
+## families can turn into Kiddieland before being forced through the plaza. The
+## open gateway is the secondary link back to the hub. Both routes meet on one
+## level commons rather than at an attraction queue, and the shared family spine
+## begins at that junction.
 ##
 ## From that junction the family spine makes one long, shallow S across the
 ## south shoulder. This is the stroller route, so its steepest published segment
@@ -349,36 +352,63 @@ const BEND := 7.0
 ## agree on every public centreline. The final spine point is still a temporary
 ## seam, not the eventual section entrance.
 const KIDDIE_ARRIVAL_POINTS: Array[Vector3] = [
-	Vector3(54.0, 0.0, 44.0),
-	Vector3(54.0, 0.0, 52.0),
-	Vector3(48.0, 0.0, 60.0),
-	Vector3(42.0, 0.0, 69.0),
-	Vector3(43.0, 0.20, 78.0),
-	Vector3(54.0, 0.80, 86.0),
-	Vector3(68.0, 1.75, 89.0),
-	Vector3(82.0, 2.85, 86.0),
-	Vector3(93.0, 3.85, 78.0),
+	# Straight through the arch before making the one visible turn outside it.
+	Vector3(51.5, 0.0, 31.3),
+	Vector3(58.0, 0.0, 31.3),
+	Vector3(58.0, 0.0, 44.0),
+	Vector3(55.0, 0.0, 55.0),
+	Vector3(49.0, 0.05, 67.0),
+	# The primary entrance route arrives dead straight on this commons junction.
+	Vector3(43.0, 0.20, 81.0),
+	Vector3(54.0, 0.80, 88.0),
+	Vector3(68.0, 1.75, 91.0),
+	Vector3(82.0, 2.85, 88.0),
+	Vector3(93.0, 3.85, 79.0),
 	Vector3(101.0, 4.75, 67.0),
 ]
-const KIDDIE_ARRIVAL_PATH_W := 8.0
+## Points zero through two are the broad gateway itself. Its width matches the
+## architectural opening: a thirteen-metre arch over an eight-metre path left
+## two strips of the apparent public way hanging over open world, and made the
+## retaining return beside it look as though it stood in the route. Points two
+## through five are the quieter plaza return; point five is the commons junction
+## and every point after it is the primary family spine shared by both arrivals.
+const KIDDIE_GATEWAY_INDEX := 2
+const KIDDIE_COMMONS_INDEX := 5
+const KIDDIE_GATEWAY_W := 13.0
+const KIDDIE_PLAZA_LINK_W := 5.5
+const KIDDIE_PRIMARY_PATH_W := 8.0
 const KIDDIE_ARRIVAL_BANK_W := 12.0
-const KIDDIE_ARRIVAL_GRADE_RUN := 7.0
+## A broad planted valley, not a path-width trench through the shoulder.
+const KIDDIE_ARRIVAL_GRADE_RUN := 12.0
 const KIDDIE_ARRIVAL_PATH_LIFT := 0.16
 ## The entrance-street leg. Its first point is the clear opening through the east
-## frontage; its last is a tee on the family spine, not a second paved court.
+## frontage; it stays on one sightline all the way to the family spine.
 const KIDDIE_ENTRANCE_LINK: Array[Vector3] = [
 	Vector3(6.0, 0.0, 81.0),
 	Vector3(18.0, 0.0, 81.0),
-	Vector3(29.0, 0.0, 79.0),
-	Vector3(43.0, 0.20, 78.0),
+	Vector3(30.0, 0.05, 81.0),
+	Vector3(43.0, 0.20, 81.0),
 ]
 const KIDDIE_ENTRANCE_LINK_W := 7.5
 const KIDDIE_ENTRANCE_PORTAL_Z := 81.0
-const KIDDIE_ENTRANCE_PORTAL_W := 7.0
+const KIDDIE_ENTRANCE_PORTAL_W := 9.5
+
+## A quiet garden link across the family commons. Together with the primary
+## entrance route and the plaza return it makes a complete walking loop, so the
+## support lawn is useful circulation rather than a rectangle guests enter and
+## have to back out of. It is deliberately narrower than either public arrival.
+const KIDDIE_COMMONS_GARDEN_LINK: Array[Vector3] = [
+	Vector3(26.0, 0.0, 81.0),
+	Vector3(26.0, 0.0, 70.0),
+	Vector3(31.0, 0.0, 63.0),
+	Vector3(42.0, 0.0, 63.0),
+	Vector3(49.0, 0.05, 67.0),
+]
+const KIDDIE_COMMONS_GARDEN_W := 3.8
 
 const KIDDIE_STATION_AT := Vector3(54.0, 0.25, 69.5)
 const KIDDIE_STATION_SPUR: Array[Vector3] = [
-	Vector3(42.0, 0.0, 69.0),
+	Vector3(49.0, 0.05, 67.0),
 	Vector3(47.0, 0.12, 69.0),
 	Vector3(51.0, 0.25, 69.5),
 ]
@@ -456,7 +486,10 @@ const GRAND_TRAM_CONTROLS: Array[Vector3] = [
 const GRAND_TRAM_STATIONS := [
 	{"id": &"entry", "at": Vector3(37.0, 0.0, 123.0), "theta": 0.0},
 	{"id": &"east", "at": Vector3(116.0, 5.0, -70.0), "theta": PI * 0.5},
-	{"id": &"grove", "at": Vector3(2.0, 0.0, -140.0), "theta": 0.0},
+	# The northern loop runs east-west here and the public land is to its south.
+	# Facing the stop through PI keeps the platform on that inside edge; at zero
+	# it stood north of the lane and any Grove access had to cross the vehicles.
+	{"id": &"grove", "at": Vector3(2.0, 0.0, -140.0), "theta": PI},
 	{"id": &"boardwalk", "at": Vector3(-72.0, -6.0, 18.0), "theta": PI * 0.5},
 	{"id": &"fairground", "at": Vector3(-48.0, 0.0, 116.0), "theta": -0.42},
 ]
@@ -489,7 +522,7 @@ static func grand_tram_loop(samples_per_span := 8) -> Array[Vector3]:
 
 
 const KIDDIE_PHOTO_SPUR: Array[Vector3] = [
-	Vector3(68.0, 1.75, 89.0),
+	Vector3(68.0, 1.75, 91.0),
 	Vector3(63.0, 1.40, 84.0),
 	Vector3(60.0, 1.05, 80.5),
 ]
@@ -534,6 +567,92 @@ const FAIR_PHOTO_SPUR: Array[Vector3] = [
 	Vector3(-44.5, 0.0, 98.0),
 ]
 const FAIR_PHOTO_SPUR_W := 3.2
+
+
+## The first public room in the Grove. The north-north-west passage turns west
+## before it opens, so the route begins on that heading and then spends one
+## broad movement turning north-east toward the sky-ride pavilion. From the
+## arrival court the pavilion is the near landmark and the Grand Circuit canopy
+## is the far one; neither attraction sits on the through centreline.
+##
+## The main spine stops at a tee behind the transit platform. Its west branch is
+## a quieter garden loop, its short centre branch is the sky ride, and its east
+## spur reserves the eventual climb through Frontier. That last route remains a
+## gate because the eighteen-metre grade belongs to the full northern land, not
+## to a short connector improvised at this boundary.
+const GROVE_ARRIVAL_POINTS: Array[Vector3] = [
+	# Through the north side of the west-facing header, then one continuous
+	# clockwise turn into the land. The old centre-header point at z −52.5 aimed
+	# the reveal out across the bluff before doubling back north; this curve keeps
+	# the first thing beyond the passage inside the Grove arrival pocket.
+	Vector3(-32.45, 0.0, -58.0),
+	Vector3(-36.0, 0.0, -62.0),
+	Vector3(-35.5, 0.0, -68.0),
+	Vector3(-30.0, 0.0, -75.0),
+	Vector3(-18.0, 0.0, -84.0),
+	Vector3(-7.0, 0.0, -89.0),
+	Vector3(2.0, 0.0, -99.0),
+	Vector3(7.0, 0.0, -111.0),
+	Vector3(6.0, 0.0, -122.0),
+	Vector3(3.0, 0.0, -130.0),
+]
+const GROVE_ARRIVAL_PATH_W := 8.0
+
+## A second route round the shaded side of the land. It rejoins the primary
+## spine before the tram court, so picnic groups and photographers never have
+## to reverse through the arrival passage.
+const GROVE_GARDEN_LOOP: Array[Vector3] = [
+	Vector3(-30.0, 0.0, -75.0),
+	Vector3(-36.0, 0.0, -83.0),
+	Vector3(-36.0, 0.0, -96.0),
+	Vector3(-34.0, 0.0, -109.0),
+	Vector3(-31.0, 0.0, -122.0),
+	Vector3(-20.0, 0.0, -129.0),
+	Vector3(-8.0, 0.0, -127.0),
+	Vector3(6.0, 0.0, -122.0),
+]
+const GROVE_GARDEN_PATH_W := 4.8
+
+## Side destinations leave the through flow before anyone queues or stops. The
+## sky-ride spur meets the clear south face of its octagonal platform; the tram
+## approach rises fifteen centimetres into the back of its inward-facing court.
+const GROVE_SKY_RIDE_SPUR: Array[Vector3] = [
+	Vector3(-18.0, 0.0, -84.0),
+	Vector3(-18.0, 0.0, -91.0),
+	Vector3(-18.0, 0.07, -97.7),
+]
+const GROVE_SKY_RIDE_SPUR_W := 4.8
+const GROVE_TRAM_ACCESS: Array[Vector3] = [
+	Vector3(3.0, 0.0, -130.0),
+	# Onto the public half of the platform, not merely up to its outer kerb. The
+	# lane-side rail remains another 2.25m north, so this is usable arrival space
+	# without becoming a crossing. One straight run also keeps this very short
+	# spur from growing a pointed paving seam at an unnecessary intermediate bend.
+	Vector3(2.0, 0.14, -134.8),
+]
+const GROVE_TRAM_ACCESS_W := 5.2
+
+const GROVE_FRONTIER_HANDOFF: Array[Vector3] = [
+	Vector3(7.0, 0.0, -111.0),
+	Vector3(13.0, 0.0, -109.0),
+	# Stop a walking-width short of the boundary gate. The ribbon's cap reaches
+	# it, while a test/player placed at the published endpoint begins clear of
+	# the collision instead of being depenetrated through it.
+	Vector3(20.4, 0.0, -104.1),
+]
+const GROVE_FRONTIER_HANDOFF_W := 5.2
+const GROVE_FRONTIER_GATE_AT := Vector3(22.0, 0.0, -103.0)
+const GROVE_FRONTIER_GATE_W := 6.0
+
+const GROVE_PHOTO_SPUR: Array[Vector3] = [
+	Vector3(-31.0, 0.0, -122.0),
+	Vector3(-28.2, 0.0, -120.5),
+	Vector3(-26.8, 0.0, -118.8),
+]
+const GROVE_PHOTO_SPUR_W := 3.2
+const GROVE_PHOTO_AT := Vector3(-26.2, 0.0, -118.2)
+const GROVE_POND_AT := Vector3(-19.5, 0.0, -118.0)
+const GROVE_POND_R := 5.4
 
 
 # ---------------------------------------------------------------------------
@@ -2514,24 +2633,21 @@ const WALKWAYS := {
 		Vector2(16.0, 0.0),
 	],
 
-	## South out of the plaza and down the street to the gate and the apron.
-	## The dogleg is real: the ring is centred on the fountain and the street
-	## is not, so the walk bends onto the street's centre line rather than
-	## meeting it at an angle.
+	## South out of the plaza and down the street to the gate and the apron. The
+	## extra node at z 31.3 is the junction with Kiddieland's secondary route:
+	## people arriving through the gate can take one legible turn onto it instead
+	## of walking past the corridor, circling the photo hut, and doubling back.
+	## The small dogleg before it remains real: the ring is centred on the fountain
+	## and the street is not, so the walk bends onto the street's centre line.
 	##
-	## This run is pinched twice and the centre line is threading a gap rather
-	## than crossing open ground — `bench_south` at (−5, 19) and `bench_se` at
-	## (2, 22) leave about 5m between them, and the two south planters at
-	## (−7, 26) and (4, 26) leave about 8m. Hence the narrow width below; a
-	## generous spoke here would be paving drawn straight through the furniture.
-	##
-	## Worth recording because the crowd's wander graph has **no south through
-	## route at all** — `gen_crowd.gd` validates at 0.45 clearance and finds no
-	## walkable gap, so a guest never crosses here. That is a real fact about
-	## the plaza rather than a bug in either description: a person can walk it,
-	## a wandering guest is not given it. The two disagree on purpose.
+	## The run is pinched between the ring and z 30 — `bench_south` at (−5,19)
+	## and `bench_se` at (2,22) leave about five metres between them — so its six-
+	## metre paving is the most this approach can honestly claim. At z 31.3 it
+	## opens into the long east corridor. The crowd graph names that junction and
+	## follows it toward Kiddieland, so player paving and guest traffic agree.
 	&"spoke_south": [
-		Vector2(0.0, 16.0), Vector2(-1.5, 30.0), Vector2(-1.5, STREET_FROM_Z),
+		Vector2(0.0, 16.0), Vector2(-1.5, 30.0), Vector2(-1.5, 31.3),
+		Vector2(-1.5, STREET_FROM_Z),
 	],
 	&"street": [
 		Vector2(STREET_X, STREET_FROM_Z), Vector2(STREET_X, GATE_Z),
@@ -2677,7 +2793,7 @@ const WALKWAYS := {
 		Vector2(PIER_ROOT.x - PIER_LENGTH, PIER_ROOT.y),
 	],
 
-	## Three spokes to scaffolded thresholds. Each run stops at its mouth.
+	## Three spokes to the outer sections. Each run stops at its mouth.
 	##
 	## **These were straight, and three of them ran through buildings.** Written
 	## when this file's only consumer was the minimap, they were drawn as rays
@@ -2689,17 +2805,11 @@ const WALKWAYS := {
 	## screenshot, which is the whole argument for a plan being built rather than
 	## only drawn.
 	##
-	## So they are doglegs now, and the doglegs are facts about the plaza rather
-	## than decoration: every one of them is the way round a building that is
-	## already there. Each keeps at least 1.4m of clearance from anything a body
-	## collides with, measured along the centre line — enough that the route is
-	## walkable, not merely drawable.
-	##
-	## Two threshold runs start from a different point on the ring than they used to,
-	## because the old start was on the wrong side of an obstacle: `spoke_se`
-	## from due east rather than the south-east vertex, since the photo hut sits
-	## square in the way of the latter, and `spoke_sw` from the south-south-west
-	## vertex to get east of the planters.
+	## The unopened NNW and SW spokes still bend around permanent buildings. The
+	## open SE route is different: it uses the long east-west corridor already
+	## visible from the entrance street. Its former dogleg was an attempt to keep
+	## a hand planter and generated furniture fixed; that made scenery dictate
+	## circulation, so those objects move and the public path stays straight.
 
 	## East of the bandstand, then into the twelve-metre corridor between
 	## `building_north` and `perim_nw` that the north wall's gap opens onto.
@@ -2714,22 +2824,13 @@ const WALKWAYS := {
 	&"promenade_ne": PROMENADE_NE_POINTS,
 	&"promenade_nnw_link": PROMENADE_NNW_LINK_POINTS,
 
-	## Off the ring due east, south down the eight-metre street between the photo
-	## hut and `building_east`, then east again between `perim_e_south` and
-	## `building_south_east`.
-	##
-	## It leaves from the 90° vertex rather than the 120° one that actually
-	## points at the threshold, and that is the photo hut's doing: the hut
-	## occupies x 6.5..11.5 directly south of the 120° vertex, so every line
-	## south-east from there goes through it. Leaving east and bending is the
-	## move Disneyland's hub makes anyway — a spoke aims at a land, it does not
-	## have to be a ray to it.
-	##
-	## The street it runs down was already there and had the cafe terrace in it,
-	## which is why the terrace moved. See `PLAZA_CAFE`.
+	## Kiddieland's secondary link: one straight run from the entrance/plaza axis
+	## through the south-east arch. The photo hut sits 6.8m north of its edge and
+	## the east frontage already opens around the arch, so there is no architectural
+	## reason to bend. The planter formerly at (8,29) moves into the south-side bay;
+	## generated trees, lamps and bins use `stand_score` and move automatically.
 	&"spoke_se": [
-		Vector2(13.86, 8.0), Vector2(27.0, 13.0), Vector2(34.0, 26.0),
-		Vector2(51.5, 31.3),
+		Vector2(-1.5, 31.3), Vector2(51.5, 31.3),
 	],
 
 	## The long way round, and there is no short one. West of
@@ -2781,7 +2882,9 @@ const WALKWAY_WIDTH := {
 	&"spoke_nnw": 8.0,
 	&"promenade_ne": PROMENADE_WIDTH,
 	&"promenade_nnw_link": 3.0,
-	&"spoke_se": 7.0,
+	## Still unmistakable from the hub, but subordinate to Kiddieland's 7.5–8m
+	## entrance-side primary route.
+	&"spoke_se": 5.5,
 	&"spoke_sw": 6.0,
 }
 
@@ -2808,6 +2911,12 @@ static func walkway_runs() -> Array:
 	# without making the plaza paving generator lay asphalt over a hillside.
 	for run in east_public_walkway_runs():
 		out.append(run)
+	# The Grove scaffold is flat, but it lives beyond a bending threshold and is
+	# generated with the shared northern scenery rather than plaza paving. Keep
+	# its plan projection beside the height-aware east paths so the minimap shows
+	# the public route without asking `_paving` to draw through another scene.
+	for run in grove_public_walkway_runs():
+		out.append(run)
 	return out
 
 
@@ -2824,6 +2933,25 @@ static func _plan_run(id: StringName, points3: Array, width: float) -> Dictionar
 static func east_public_walkway_runs() -> Array:
 	var out := []
 	var axis: float = ARCH_AT.y
+	# Kiddieland is already public ground even though its eventual section seam
+	# is not. Publishing all three hierarchy levels makes the minimap agree with
+	# what a guest can actually walk, including the family-commons loop.
+	var kiddie_gateway: Array[Vector3] = []
+	var kiddie_plaza: Array[Vector3] = []
+	var kiddie_primary: Array[Vector3] = []
+	for i in KIDDIE_GATEWAY_INDEX + 1:
+		kiddie_gateway.append(KIDDIE_ARRIVAL_POINTS[i])
+	for i in range(KIDDIE_GATEWAY_INDEX, KIDDIE_COMMONS_INDEX + 1):
+		kiddie_plaza.append(KIDDIE_ARRIVAL_POINTS[i])
+	for i in range(KIDDIE_COMMONS_INDEX, KIDDIE_ARRIVAL_POINTS.size()):
+		kiddie_primary.append(KIDDIE_ARRIVAL_POINTS[i])
+	out.append(_plan_run(&"kiddie_gateway", kiddie_gateway, KIDDIE_GATEWAY_W))
+	out.append(_plan_run(&"kiddie_plaza_return", kiddie_plaza, KIDDIE_PLAZA_LINK_W))
+	out.append(_plan_run(&"kiddie_primary", kiddie_primary, KIDDIE_PRIMARY_PATH_W))
+	out.append(_plan_run(&"kiddie_entrance", KIDDIE_ENTRANCE_LINK,
+		KIDDIE_ENTRANCE_LINK_W))
+	out.append(_plan_run(&"kiddie_commons_garden", KIDDIE_COMMONS_GARDEN_LINK,
+		KIDDIE_COMMONS_GARDEN_W))
 	for entry in [[-1.0, &"n"], [1.0, &"s"]]:
 		var side: float = entry[0]
 		var tag: StringName = entry[1]
@@ -2854,6 +2982,27 @@ static func east_public_walkway_runs() -> Array:
 	out.append(_plan_run(&"sky_ride_access", sky_ride_access_path(),
 		SKY_RIDE_ACCESS_W))
 	return out
+
+
+## The Grove's public hierarchy, projected for the minimap from the same paths
+## used by its paving and walking tests. The main and garden runs are through
+## routes; the remaining three deliberately stop at side destinations or at a
+## temporary future-land gate.
+static func grove_public_walkway_runs() -> Array:
+	return [
+		_plan_run(&"grove_arrival", GROVE_ARRIVAL_POINTS,
+			GROVE_ARRIVAL_PATH_W),
+		_plan_run(&"grove_garden_loop", GROVE_GARDEN_LOOP,
+			GROVE_GARDEN_PATH_W),
+		_plan_run(&"grove_sky_ride", GROVE_SKY_RIDE_SPUR,
+			GROVE_SKY_RIDE_SPUR_W),
+		_plan_run(&"grove_tram", GROVE_TRAM_ACCESS,
+			GROVE_TRAM_ACCESS_W),
+		_plan_run(&"grove_frontier_handoff", GROVE_FRONTIER_HANDOFF,
+			GROVE_FRONTIER_HANDOFF_W),
+		_plan_run(&"grove_photo", GROVE_PHOTO_SPUR,
+			GROVE_PHOTO_SPUR_W),
+	]
 
 
 ## Every walkway as a flat list of (from, to) segment pairs, which is what a
@@ -3049,7 +3198,10 @@ const PLAZA_MASSES := [
 	{"at": Vector2(-42.15, 41.5), "half": Vector2(5.85, 5.5)},
 	{"at": Vector2(-17.65, 41.5), "half": Vector2(8.65, 5.5)},
 	{"at": Vector2(16.5, 41.5), "half": Vector2(10.5, 5.5)},
-	{"at": Vector2(37.5, 41.5), "half": Vector2(10.5, 5.5)},
+	# Cut back at x 43 for the SE gateway forecourt. Its old east end at x 48
+	# projected 1.8m into the thirteen-metre opening, invisible on a centreline
+	# walk but a literal wall across the southern traffic lane.
+	{"at": Vector2(35.0, 41.5), "half": Vector2(8.0, 5.5)},
 	# west side, inner face x = -33, set in for the overlook terrace
 	{"at": Vector2(-38.5, -35.5), "half": Vector2(5.5, 12.5)},
 	{"at": Vector2(-38.5, -16.0), "half": Vector2(5.5, 7.0)},
@@ -3062,7 +3214,7 @@ const PLAZA_MASSES := [
 	{"at": PHOTO_HUT_AT, "half": Vector2(4.0, 3.25)},
 	{"at": Vector2(-20.0, -20.0), "half": Vector2(5.5, 5.5)},
 	{"at": Vector2(-12.0, 25.0), "half": Vector2(1.8, 1.8)},
-	{"at": Vector2(8.0, 29.0), "half": Vector2(1.8, 1.8)},
+	{"at": Vector2(8.0, 24.5), "half": Vector2(1.8, 1.8)},
 ]
 
 

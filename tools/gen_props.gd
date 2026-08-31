@@ -23,9 +23,10 @@ extends SceneTree
 ## pieces missing.
 const Plan := preload("res://scripts/park_plan.gd")
 
-const OUT_PATH := "res://scenes/world/plaza_props.tscn"
-const PAVING_PATH := "res://scenes/world/plaza_paving.tscn"
-const SKYLINE_PATH := "res://scenes/world/plaza_skyline.tscn"
+const GENERATED_DIR := "res://scenes/world/generated"
+const OUT_PATH := GENERATED_DIR + "/plaza_props.tscn"
+const PAVING_PATH := GENERATED_DIR + "/plaza_paving.tscn"
+const SKYLINE_PATH := GENERATED_DIR + "/plaza_skyline.tscn"
 
 ## The fountain, which used to be five stacked cylinders typed into
 ## `plaza.tscn` by hand and is now 190-odd parts and two shaders.
@@ -40,11 +41,11 @@ const SKYLINE_PATH := "res://scenes/world/plaza_skyline.tscn"
 ## in the park is generated. What stays in `plaza.tscn` is the ground, the walls
 ## and the tower — the things the plaza *is*, rather than the things standing in
 ## it.
-const FOUNTAIN_PATH := "res://scenes/world/plaza_fountain.tscn"
-const STAIR_PATH := "res://scenes/world/west_stair.tscn"
-const EAST_CASCADE_PATH := "res://scenes/world/east_cascade.tscn"
-const SKY_RIDE_PATH := "res://scenes/world/north_sky_ride.tscn"
-const TRANSIT_PATH := "res://scenes/world/park_transit.tscn"
+const FOUNTAIN_PATH := GENERATED_DIR + "/plaza_fountain.tscn"
+const STAIR_PATH := GENERATED_DIR + "/west_stair.tscn"
+const EAST_CASCADE_PATH := GENERATED_DIR + "/east_cascade.tscn"
+const SKY_RIDE_PATH := GENERATED_DIR + "/north_sky_ride.tscn"
+const TRANSIT_PATH := GENERATED_DIR + "/park_transit.tscn"
 ## How far east the terraces' massing copy of the plaza stands from the
 ## boardwalk's. See `_plaza_from_the_east`, which explains what it is for.
 ##
@@ -65,35 +66,15 @@ const TRANSIT_PATH := "res://scenes/world/park_transit.tscn"
 ## mounted together anyway — the pair is real arithmetic about an impossible
 ## frame, and the report is what it is being kept quiet for.
 const EAST_FAR_NUDGE := 0.006
-const TERRACES_FAR_PATH := "res://scenes/world/terraces_far.tscn"
-const ENTRANCE_PATH := "res://scenes/world/entrance.tscn"
-const THRESHOLD_PATH := "res://scenes/world/thresholds.tscn"
+const ENTRANCE_PATH := GENERATED_DIR + "/entrance.tscn"
+const THRESHOLD_PATH := GENERATED_DIR + "/thresholds.tscn"
 
-## The west, in three scenes rather than one, because the same ground has to be
-## standing in two different sections and only one section is ever mounted.
-##
-## `plaza_skyline.tscn` used to hold the whole west — water, bluff, shore,
-## frontage, pier, wheel — as a child of `plaza.tscn`. Which meant that crossing
-## the gate at the foot of the stair freed the water the player was walking
-## towards, the bluff they had just come down, and the pier they were looking at,
-## and left the boardwalk floating over nothing. Nothing caught it: the section
-## test only asks whether the player lands on a floor, and they did.
-##
-##   `west_shell.tscn`   water, bluff and shore. **Both sections instance this.**
-##                       It is the ground and the horizon, it is identical seen
-##                       from either side, and it is what makes the cut continuous.
-##   `west_far.tscn`     the tableau — frontage, pier, wheel and coaster as cheap
-##                       massing with no collision. **Plaza only.** What you look
-##                       at from the overlook.
-##   `boardwalk.tscn`    the same four things built for real, plus everything a
-##                       person walking there needs. **Boardwalk only.**
-##
-## So the swap at the gate is: keep the shell, throw away the tableau, stand up
-## the real thing. Which is the trade the design has been describing all along —
-## "the real one replaces the west tableau outright" — made literal.
-const WEST_SHELL_PATH := "res://scenes/world/west_shell.tscn"
-const WEST_FAR_PATH := "res://scenes/world/west_far.tscn"
-const BOARDWALK_PATH := "res://scenes/world/boardwalk.tscn"
+## The playable west is two canonical scenes in one persistent world: the shell
+## carries its land and water, and the boardwalk carries the place itself. The
+## former collisionless `west_far` tableau is retired; using the real boardwalk
+## everywhere removes the duplicate description that kept drifting from it.
+const WEST_SHELL_PATH := GENERATED_DIR + "/west_shell.tscn"
+const BOARDWALK_PATH := GENERATED_DIR + "/boardwalk.tscn"
 
 var _root: Node3D
 var mats: Dictionary = {}
@@ -162,13 +143,10 @@ func _initialize() -> void:
 	if not _save(_root, WEST_SHELL_PATH):
 		return
 
-	# What the west looks like from the overlook, and only from there.
-	_root = Node3D.new()
-	_root.name = "west_far"
+	# Retired `west_far` occupied this scene seed. Keep advancing the seed until
+	# generated seam displacement is keyed by scene identity rather than by the
+	# historical number of output files.
 	_begin_scene()
-	_west_far()
-	if not _save(_root, WEST_FAR_PATH):
-		return
 
 	# The same view with a floor under it.
 	_root = Node3D.new()
@@ -283,8 +261,6 @@ func _initialize() -> void:
 	# cheapest possible place to add to an ordinal-sensitive build order.
 	_east_earth(-1.0, "n")
 	_east_earth(1.0, "s")
-	# The way back, which belongs to the section on this side of the wall.
-	_east_seam(&"terraces", &"plaza")
 	# The shoulders, after everything: two meshes and a handful of walls at the
 	# end of the build, so nothing already in this scene moves an ordinal.
 	_east_shoulder(-1.0, "n")
@@ -312,17 +288,9 @@ func _initialize() -> void:
 	if not _save(_root, EAST_CASCADE_PATH):
 		return
 
-	# The plaza as massing, for the section that has just deleted it. Its own
-	# scene rather than a pass inside `east_cascade.tscn`, because that file is
-	# mounted by the plaza too and the plaza does not want a ghost of itself
-	# standing inside it. Written last: nothing comes after, so nothing downstream
-	# can have its seam ordinal moved by what this emits.
-	_root = Node3D.new()
-	_root.name = "terraces_far"
+	# Retired `terraces_far` occupied this seed. Preserve the seed boundary for
+	# downstream generated scenes while no longer writing a duplicate plaza.
 	_begin_scene()
-	_plaza_from_the_east()
-	if not _save(_root, TERRACES_FAR_PATH):
-		return
 
 	# The sky ride is shared scenery and a real Frontier destination. Appended
 	# after every established scene so introducing it cannot change the seam
@@ -5478,29 +5446,43 @@ func _east_frontier_grade_y(x: float, z: float, uncut_y: float) -> float:
 func _east_kiddie_grade_y(x: float, z: float, uncut_y: float) -> float:
 	var p := Vector2(x, z)
 	var y := uncut_y
-	# The spine owns the broad valley. Shorter destinations then refine their own
-	# smaller verges without turning the whole shoulder into one flat court.
+	# The spine owns the broad valley. Its three circulation tiers are graded at
+	# their actual widths: using the primary path's eight metres for the thirteen-
+	# metre gateway left the portal edges unsupported and let the shoulder crowd
+	# the first turn. Shorter destinations then refine their own smaller verges.
 	for route in [
 		# Track first so the public routes own the final datum at crossings.
-		[_kiddie_rail, 1.7, Plan.KIDDIE_TRACK_GRADE_RUN, 0.0],
+		[_kiddie_rail, 1.7, Plan.KIDDIE_TRACK_GRADE_RUN, 0.0,
+			0, _kiddie_rail.size() - 1],
 		# The route bed sits above this cut. The shoulder is sampled on a coarse
 		# grid, and grading it to the exact paving datum let interpolated triangles
 		# stand up to 39cm through the road between samples — a traversable route
 		# that visibly disappeared. Seventy centimetres buys the road bed one
 		# continuous pocket even at that coarse diagonal without changing its
 		# published walking grade.
-		[Plan.KIDDIE_ARRIVAL_POINTS, Plan.KIDDIE_ARRIVAL_PATH_W,
-			Plan.KIDDIE_ARRIVAL_GRADE_RUN, 0.70],
+		[Plan.KIDDIE_ARRIVAL_POINTS, Plan.KIDDIE_GATEWAY_W,
+			Plan.KIDDIE_ARRIVAL_GRADE_RUN, 0.70,
+			0, Plan.KIDDIE_GATEWAY_INDEX],
+		[Plan.KIDDIE_ARRIVAL_POINTS, Plan.KIDDIE_PLAZA_LINK_W,
+			Plan.KIDDIE_ARRIVAL_GRADE_RUN, 0.70,
+			Plan.KIDDIE_GATEWAY_INDEX, Plan.KIDDIE_COMMONS_INDEX],
+		[Plan.KIDDIE_ARRIVAL_POINTS, Plan.KIDDIE_PRIMARY_PATH_W,
+			Plan.KIDDIE_ARRIVAL_GRADE_RUN, 0.70,
+			Plan.KIDDIE_COMMONS_INDEX, Plan.KIDDIE_ARRIVAL_POINTS.size() - 1],
 		[Plan.KIDDIE_STATION_SPUR, Plan.KIDDIE_STATION_SPUR_W,
-			Plan.KIDDIE_STATION_GRADE_RUN, 0.50],
+			Plan.KIDDIE_STATION_GRADE_RUN, 0.50,
+			0, Plan.KIDDIE_STATION_SPUR.size() - 1],
 		[Plan.KIDDIE_PHOTO_SPUR, Plan.KIDDIE_PHOTO_SPUR_W,
-			Plan.KIDDIE_PHOTO_GRADE_RUN, 0.50],
+			Plan.KIDDIE_PHOTO_GRADE_RUN, 0.50,
+			0, Plan.KIDDIE_PHOTO_SPUR.size() - 1],
 	]:
 		var path: Array[Vector3] = route[0]
 		var path_w: float = route[1]
 		var grade_run: float = route[2]
 		var bed_cut: float = route[3]
-		for i in path.size() - 1:
+		var first_segment: int = route[4]
+		var after_last_segment: int = route[5]
+		for i in range(first_segment, after_last_segment):
 			var a := Vector2(path[i].x, path[i].z)
 			var b := Vector2(path[i + 1].x, path[i + 1].z)
 			var ab := b - a
@@ -5740,6 +5722,8 @@ func _east_shoulder(side: float, tag: String) -> void:
 	_shoulder_masonry(side, tag, prm)
 	if side < 0.0:
 		_north_promenade_terrace_bank(wall_to)
+	else:
+		_south_commons_retaining_face(prm)
 	_shoulder_blooms(side, tag, prm)
 
 
@@ -5827,14 +5811,20 @@ func _shoulder_masonry(side: float, tag: String, prm: Dictionary) -> void:
 	var z0 := float(prm["wall_z0"])
 	var z1 := float(prm["wall_z1"])
 	var wall_top := _shoulder_foot(0.0, float(prm["wall_to"])).y + 0.42
-	_box("shoulder_wall_%s" % tag, Vector3.ZERO,
-		Vector3(61.225, (wall_top - 0.55) * 0.5 - 0.275, (z0 + z1) * 0.5),
-		Vector3(1.05, wall_top + 0.55, absf(z1 - z0)), "building")
-	# Brick to head height on the exposed face, `_hill_brick`'s decision carried
-	# to the one new retaining face the ground level can see.
-	_box("shoulder_wall_brick_%s" % tag, Vector3.ZERO,
-		Vector3(60.68, 1.1, (z0 + z1) * 0.5),
-		Vector3(HILL_FACE_T, 3.0, absf(z1 - z0) - 0.6), "brick", 0.0, false)
+	if side < 0.0:
+		_box("shoulder_wall_%s" % tag, Vector3.ZERO,
+			Vector3(61.225, (wall_top - 0.55) * 0.5 - 0.275, (z0 + z1) * 0.5),
+			Vector3(1.05, wall_top + 0.55, absf(z1 - z0)), "building")
+		# Brick to head height on the exposed face, `_hill_brick`'s decision
+		# carried to the one new retaining face the ground level can see.
+		_box("shoulder_wall_brick_%s" % tag, Vector3.ZERO,
+			Vector3(60.68, 1.1, (z0 + z1) * 0.5),
+			Vector3(HILL_FACE_T, 3.0, absf(z1 - z0) - 0.6), "brick", 0.0, false)
+	# There is deliberately no matching south run. It belonged to the concealed
+	# threshold scaffold, and the public route had to cross it twice to reach the
+	# commons. The widened arrival court now supports this whole station while the
+	# shoulder is graded down around it, so another wall here would be obstruction
+	# rather than structure.
 
 	# The stepped end used to walk the foot all the way down to the south toe.
 	# Kiddieland's valley replaces its last two blocks: both stood directly across
@@ -5844,7 +5834,7 @@ func _shoulder_masonry(side: float, tag: String, prm: Dictionary) -> void:
 	# clipped outside the nominal stripe it closes the turn and pinches the public
 	# promenade.
 	var wall_to := float(prm["wall_to"])
-	var step_count := 0 if side < 0.0 else 1
+	var step_count := 0
 	for k in step_count:
 		var d0 := wall_to + float(k) * 2.0
 		var d1 := d0 + 2.4
@@ -5863,22 +5853,91 @@ func _shoulder_masonry(side: float, tag: String, prm: Dictionary) -> void:
 				(za + zb) * 0.5),
 			Vector3(xe - xmin, top + 0.55, absf(zb - za)), "building")
 
-	# The return wall at the court corner: the cut face between the shoulder's
-	# bank and the court floor, stepped up from the retaining wall to the scarp.
-	# The court side gets the brick base the scarp's own faces wear.
-	var rz := float(prm["ret_z"])
-	var face := float(prm["ret_face"])
-	var xs := PackedFloat32Array([60.7, 64.0, 67.2, 70.4])
-	for k in 3:
-		var xa := xs[k]
-		var xb := xs[k + 1]
-		var top := _shoulder_y(xb, rz + side * 1.1, side, prm) + 0.38
-		_box("shoulder_ret_%s_%d" % [tag, k], Vector3.ZERO,
-			Vector3((xa + xb) * 0.5, (top - 0.62) * 0.5 - 0.31, rz),
-			Vector3(xb - xa, top + 0.62, 1.0), "building")
-	_box("shoulder_ret_brick_%s" % tag, Vector3.ZERO,
-		Vector3((60.9 + 70.2) * 0.5, 1.1, rz + face * 0.44),
-		Vector3(70.2 - 60.9, 3.0, HILL_FACE_T), "brick", 0.0, false)
+	# The north court still needs a return where its retaining wall meets the
+	# uncut scarp. The south side does not: Kiddieland's full-width public gateway
+	# occupies that station, and the old unconditional return was a freestanding
+	# wall across its apparent walking surface.
+	if side < 0.0:
+		var rz := float(prm["ret_z"])
+		var face := float(prm["ret_face"])
+		var xs := PackedFloat32Array([60.7, 64.0, 67.2, 70.4])
+		for k in 3:
+			var xa := xs[k]
+			var xb := xs[k + 1]
+			var top := _shoulder_y(xb, rz + side * 1.1, side, prm) + 0.38
+			_box("shoulder_ret_%s_%d" % [tag, k], Vector3.ZERO,
+				Vector3((xa + xb) * 0.5, (top - 0.62) * 0.5 - 0.31, rz),
+				Vector3(xb - xa, top + 0.62, 1.0), "building")
+		_box("shoulder_ret_brick_%s" % tag, Vector3.ZERO,
+			Vector3((60.9 + 70.2) * 0.5, 1.1, rz + face * 0.44),
+			Vector3(70.2 - 60.9, 3.0, HILL_FACE_T), "brick", 0.0, false)
+
+
+## Close the south shoulder's public west edge against the family commons.
+##
+## The shoulder is a top surface. When its old retaining wall stopped at z 46.5,
+## every row after that exposed the underside of the mesh as grey open world —
+## exactly beside the route the commons was meant to complete. This sampled face
+## reaches the commons datum and follows the same terrain height as the shoulder.
+## It omits every public-route crossing, so it can retain land without becoming
+## another barrier somebody has to hunt around.
+func _south_commons_retaining_face(prm: Dictionary) -> void:
+	var x := SHOULDER_WEST_X - 0.035
+	var bottom_y := -0.06
+	var z_from := 50.5
+	var z_to := 116.0
+	var step := 1.0
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(31)
+	var faces := 0
+	var z := z_from
+	while z < z_to - 0.001:
+		var next_z := minf(z + step, z_to)
+		var mid := Vector2(x, (z + next_z) * 0.5)
+		var route_clear := false
+		for route in [
+			[Plan.KIDDIE_ARRIVAL_POINTS, Plan.KIDDIE_PRIMARY_PATH_W],
+			[Plan.KIDDIE_ENTRANCE_LINK, Plan.KIDDIE_ENTRANCE_LINK_W],
+		]:
+			var points: Array[Vector3] = route[0]
+			var clear: float = float(route[1]) * 0.5 + 0.8
+			for i in points.size() - 1:
+				if _flat_segment_distance(mid,
+						Vector2(points[i].x, points[i].z),
+						Vector2(points[i + 1].x, points[i + 1].z)) < clear:
+					route_clear = true
+					break
+			if route_clear:
+				break
+		if not route_clear:
+			var top_a_y := maxf(_shoulder_y(x + 0.08, z, 1.0, prm), bottom_y)
+			var top_b_y := maxf(_shoulder_y(x + 0.08, next_z, 1.0, prm), bottom_y)
+			if maxf(top_a_y, top_b_y) > bottom_y + 0.04:
+				_earth_wall_quad(st,
+					Vector3(x, bottom_y, z), Vector3(x, bottom_y, next_z),
+					Vector3(x, top_a_y, z), Vector3(x, top_b_y, next_z),
+					Vector3.LEFT)
+				faces += 1
+		z = next_z
+	if faces == 0:
+		return
+	st.generate_normals()
+	st.generate_tangents()
+	var mesh := st.commit()
+	var body := StaticBody3D.new()
+	_add(body, "south_commons_retaining_face")
+	var mi := MeshInstance3D.new()
+	mi.name = "face"
+	mi.mesh = mesh
+	mi.material_override = mats["brick"]
+	body.add_child(mi)
+	mi.owner = _root
+	var shape := CollisionShape3D.new()
+	shape.name = "shape"
+	shape.shape = mesh.create_trimesh_shape()
+	body.add_child(shape)
+	shape.owner = _root
 
 
 ## Clumps on the bank, the ravine's planting rule at the shoulder's scale:
@@ -7003,7 +7062,10 @@ func _east_carousel() -> void:
 	_east_ride_support("east_carousel", center, 1.0, "yellow")
 
 	_cyl("east_carousel_base", center, Vector3(0.0, 0.45, 0.0),
-		1.25, 0.90, "red", 0.0, 16)
+		# Match the swing's physical stopping radius. At 1.25m the player's
+		# capsule reached the ride origin before the podium stopped it, so the
+		# fenced court's only open gate also became a collision leak.
+		1.45, 0.90, "red", 0.0, 16)
 	_cyl("east_carousel_mast", center, Vector3(0.0, 2.72, 0.0),
 		0.24, 5.45, "metal", 0.0, 12)
 	_cyl("east_carousel_roof_lower", center, Vector3(0.0, 4.92, 0.0),
@@ -7855,9 +7917,13 @@ func _sky_ride_grove_station() -> void:
 	var grove: Dictionary = Plan.SECTION_GROUND[&"grove"]
 	var grove_at: Vector2 = grove["at"]
 	var grove_size: Vector2 = grove["size"]
+	# This stopped being distant massing when the NNW passage opened. Its top is
+	# a centimetre below the published y=0 paths, and it collides now: a guest may
+	# step into a picnic lawn, but may not fall through an otherwise finished
+	# district because they left the centre of the paving by half a metre.
 	_box("sky_grove_ground", Vector3.ZERO,
-		Vector3(grove_at.x, -0.66, grove_at.y),
-		Vector3(grove_size.x, 1.08, grove_size.y), "planting", 0.0, false)
+		Vector3(grove_at.x, -0.55, grove_at.y),
+		Vector3(grove_size.x, 1.08, grove_size.y), "planting")
 	_cyl("sky_grove_lawn", base, Vector3(0.0, -0.32, 0.0),
 		12.2, 0.64, "planting", 0.0, 20, false)
 	_cyl("sky_grove_platform", base, Vector3(0.0, 0.035, 0.0),
@@ -10977,9 +11043,10 @@ func _shopfronts(rows: Array, side: float, id_from: int) -> void:
 
 
 ## The east frontage opens here instead of making the family route pass through
-## an attraction. Two short shop-sized cheeks and a deep header keep the street
-## wall continuous, but the seven-metre clear opening is plainly a public way:
-## brick underfoot, daylight at the far end, matching markers on both faces.
+## an attraction. Two short gate piers and a shallow header keep the street wall
+## continuous without turning the primary Kiddieland arrival into an eight-metre
+## tunnel. Brick underfoot, daylight at the far end and matching markers on both
+## faces make it a public way from either side.
 ##
 ## The old object at this address was a solid box with an arcade front pasted on
 ## it. It looked like somewhere to go and then stopped the player at the glass —
@@ -10988,26 +11055,30 @@ func _family_entrance_portal(id: int, face: float, z: float, length: float,
 		depth: float, height: float) -> void:
 	var clear_w: float = Plan.KIDDIE_ENTRANCE_PORTAL_W
 	var cheek_d: float = (length - clear_w) * 0.5
-	var cx: float = face + depth * 0.5
+	# The neighbouring shops retain their real depth. This opening is a gateway,
+	# not a missing shop volume: three metres gives it a readable threshold and
+	# releases the player into the commons immediately.
+	var portal_depth := minf(depth, 3.0)
+	var cx: float = face + portal_depth * 0.5
 	for side in [-1.0, 1.0]:
 		var cz: float = z + float(side) * (clear_w * 0.5 + cheek_d * 0.5)
 		_box("shop_%d_portal_%s" % [id, "n" if side < 0.0 else "s"],
 			Vector3.ZERO, Vector3(cx, 1.72, cz),
-			Vector3(depth, 3.50, cheek_d), "white")
+			Vector3(portal_depth, 3.50, cheek_d), "white")
 	# Wider in both plan dimensions than the cheeks, so their outer faces lap at
 	# different planes rather than becoming coplanar rectangles under the eave.
 	_box("shop_%d" % id, Vector3.ZERO,
-		Vector3(cx, 4.22, z), Vector3(depth + 0.30, 1.70, length + 0.30),
+		Vector3(cx, 4.22, z), Vector3(portal_depth + 0.30, 1.70, length + 0.30),
 		"white")
 	_box("shop_%d_cap" % id, Vector3.ZERO,
 		Vector3(cx, height + 0.20, z),
-		Vector3(depth + 0.70, 0.40, length + 0.70), "far_shade", 0.0, false)
+		Vector3(portal_depth + 0.70, 0.40, length + 0.70), "far_shade", 0.0, false)
 
 	# A shallow canopy and coloured rule on each face make the same opening
 	# legible from the entrance street and from the commons. Neither reaches down
 	# into the clear width and neither carries collision.
 	for back in [false, true]:
-		var x := face - 0.16 if not back else face + depth + 0.16
+		var x := face - 0.16 if not back else face + portal_depth + 0.16
 		var tag := "street" if not back else "commons"
 		_box("shop_%d_portal_%s_canopy" % [id, tag], Vector3.ZERO,
 			Vector3(x, 3.22, z), Vector3(1.05, 0.18, clear_w + 0.80),
@@ -11186,7 +11257,9 @@ func _gate() -> void:
 func _apron() -> void:
 	for i in range(6):
 		var x := ST_X - 15.0 + float(i) * 6.0
-		_cyl("apron_pole_%d" % i, Vector3.ZERO, Vector3(x, 4.0, GATE_Z + 9.0),
+		# Continue below grade like a real light standard. Ending exactly at the
+		# apron surface lets generator displacement decide whether the two fight.
+		_cyl("apron_pole_%d" % i, Vector3.ZERO, Vector3(x, 3.94, GATE_Z + 9.0),
 			0.12, 8.0, "white", 0.0, 8)
 	_box("apron_planter_west", Vector3.ZERO, Vector3(ST_X - 13.0, 0.3, GATE_Z + 5.0),
 		Vector3(7.0, 0.6, 3.0), "accent")
@@ -11259,7 +11332,11 @@ const BEND := Plan.BEND
 ## passages keep exactly the displacement they had.
 func _thresholds() -> void:
 	for t in THRESHOLDS:
-		_passage(t["name"], t["at"], t["theta"], t["width"], t["turn"])
+		# The concealed dogleg is placeholder architecture. Kiddieland has a real
+		# public route now, so retaining its old baffles would make the paving and
+		# the buildings give opposite instructions.
+		if not bool(t.get("open", false)):
+			_passage(t["name"], t["at"], t["theta"], t["width"], t["turn"])
 	for t in THRESHOLDS:
 		_threshold_mouth(t["name"], t["at"], t["theta"], t["width"])
 	# Appended so none of the three established passage ordinals moves. This is
@@ -11268,6 +11345,10 @@ func _thresholds() -> void:
 	# Appended after Kiddieland for the same reason. Neither arrival is allowed to
 	# re-plane the scaffold that made it possible to reach it.
 	_fairground_arrival()
+	# The last closed passage now earns the same circulation scaffold. Appended
+	# after both southern lands so opening the Grove cannot move a single existing
+	# threshold, route or attraction onto a different seam plane.
+	_grove_arrival()
 
 
 ## What each way in looks like from the fountain.
@@ -11385,6 +11466,23 @@ func _threshold_mouth(nm: String, base: Vector3, theta: float, w: float) -> void
 	_box("way_%s_board_panel" % nm, base, Vector3(0, by, -0.85),
 		Vector3(w * 0.8 - 2.0, sh - 0.8, 0.4), "white", theta, false)
 
+	# The open Kiddieland gateway has to identify itself in both directions. The
+	# old threshold kit dressed only the plaza face, so the return connection was
+	# a grey beam lost among ride supports. This is the same architecture seen
+	# from the land side: one coloured panel and one shallow bulb valance, attached
+	# to the gate rather than another freestanding wayfinding obstruction.
+	if nm == "se":
+		_box("way_se_return_board_panel", base, Vector3(0, by, -0.20),
+			Vector3(w * 0.8 - 2.0, sh - 0.8, 0.08), "blue", theta, false)
+		_box("way_se_return_valance", base,
+			Vector3(0, 4.35 * MOUTH_H, 0.58),
+			Vector3(w + 1.2, 0.18, 0.42), "yellow", theta, false)
+		for i in bulbs:
+			var t := (float(i) + 0.5) / float(bulbs)
+			var bx: float = lerpf(-n + 0.5, n - 0.5, t)
+			_sphere("way_se_return_bulb_%d" % i, base,
+				Vector3(bx, 4.1 * MOUTH_H, 0.82), 0.13, "bulb", theta)
+
 
 ## A finial, three ways. Cheap, and the only thing distinguishing the three ways
 ## out at the distance most of them are seen from.
@@ -11460,11 +11558,11 @@ func _passage(nm: String, base: Vector3, theta: float, w: float, turn: float) ->
 	_box("way_%s_inner" % nm, base,
 		Vector3(t * (n + BEND * 0.5 + 0.25), 1.75, REACH - w - 0.25),
 		Vector3(BEND + 0.5, 3.5, 0.5), "far_warm", theta)
-	# The end, only visible once you have made the turn. Where a section joins.
-	# Southeast and southwest now have something real beyond them: keep this
-	# exact call in the exact build-order slot, but lift its wall into a header so
-	# the route opens only after the bend. The other two remain honest closures.
-	if nm == "se" or nm == "sw":
+	# The end, only visible once you have made the turn. Both remaining bending
+	# approaches have something real beyond them: lift the old wall into a header
+	# so the route opens only after the reveal. Kiddieland no longer calls this
+	# function at all; its reciprocal gateway is open from the first metre.
+	if nm == "sw" or nm == "nnw":
 		_box("way_%s_end" % nm, base,
 			Vector3(t * (n + BEND + 0.25), 3.15, REACH - w * 0.5),
 			Vector3(0.5, 0.7, w), "far_shade", theta, false)
@@ -11484,10 +11582,11 @@ func _passage(nm: String, base: Vector3, theta: float, w: float, turn: float) ->
 		theta + t * PI * 0.5, 5.0, "cafe" if t > 0.0 else "store")
 
 
-## The southeast passage's reveal and the lower family loop. One public spine
-## comes out of the passage, opens into a commons, and spends a long S climbing
-## the south shoulder toward the carousel. A second public leg arrives through
-## the entrance-street frontage. The two meet on paving, not in a ride court.
+## The southeast gateway and the lower family loop. The entrance-street
+## frontage is the primary arrival; it opens into a commons and continues on an
+## eight-metre family spine climbing the south shoulder toward the carousel. A
+## narrower secondary leg returns from that commons through an open, reciprocal
+## gateway to the plaza. The two meet on paving, not in a ride court.
 ##
 ## This replaces two circulation failures at once: a rectangular hole between
 ## the entrance range and the shoulder, and a short uphill chute that crossed the
@@ -11499,15 +11598,37 @@ func _passage(nm: String, base: Vector3, theta: float, w: float, turn: float) ->
 func _kiddieland_arrival() -> void:
 	var points: Array[Vector3] = Plan.KIDDIE_ARRIVAL_POINTS
 	var entrance_link: Array[Vector3] = Plan.KIDDIE_ENTRANCE_LINK
-	var path_w: float = Plan.KIDDIE_ARRIVAL_PATH_W
+	var garden_link: Array[Vector3] = Plan.KIDDIE_COMMONS_GARDEN_LINK
+	var primary_w: float = Plan.KIDDIE_PRIMARY_PATH_W
 	var bank_w: float = Plan.KIDDIE_ARRIVAL_BANK_W
+	var gateway: Array[Vector3] = []
+	var plaza_link: Array[Vector3] = []
+	var primary_spine: Array[Vector3] = []
+	for i in Plan.KIDDIE_GATEWAY_INDEX + 1:
+		gateway.append(points[i])
+	for i in range(Plan.KIDDIE_GATEWAY_INDEX, Plan.KIDDIE_COMMONS_INDEX + 1):
+		plaza_link.append(points[i])
+	for i in range(Plan.KIDDIE_COMMONS_INDEX, points.size()):
+		primary_spine.append(points[i])
+	# The route is raised fourteen centimetres over its support bed, but neither
+	# public entrance may present that as a kerb. Carry the same short ramp used by
+	# the collider into the visible paving and its bed, so feet, wheels and the eye
+	# all cross one continuous surface.
+	var gateway_approach := Vector3(points[0].x - 2.0, -0.14, points[0].z)
+	var gateway_paving: Array[Vector3] = [gateway_approach]
+	gateway_paving.append_array(gateway)
+	var entrance_approach := Vector3(
+		entrance_link[0].x - 2.0, -0.14, entrance_link[0].z)
+	var entrance_paving: Array[Vector3] = [entrance_approach]
+	entrance_paving.append_array(entrance_link)
 
-	# The old court still laps under the passage. The commons then fills the whole
-	# missing wedge to the entrance range; its top stays four centimetres below
-	# public paving, so overlapping it with the court and shoulder cannot produce
-	# a coplanar floor.
+	# One broad, level arrival terrace replaces the unsupported dogleg. It laps
+	# through the arch, under the first visible turn and into the old lower court,
+	# so no strip of paving can bridge open world at either edge. Its north edge
+	# extends past the thirteen-metre portal rather than beginning five metres
+	# inside it, which was the rectangular void visible from both directions.
 	_box("kiddie_arrival_court_ground", Vector3.ZERO,
-		Vector3(53.0, -0.50, 55.0), Vector3(20.0, 1.0, 24.0), "planting")
+		Vector3(58.0, -0.50, 45.5), Vector3(20.0, 1.0, 43.0), "planting")
 	_kiddie_family_commons()
 
 	# `_east_kiddie_grade_y` pulls the south shoulder itself down to this route;
@@ -11518,23 +11639,44 @@ func _kiddieland_arrival() -> void:
 	# Its collision is a welded ribbon below, because overlapping boxes can steer
 	# a CharacterBody sideways at their joints. Branch fills are emitted segment
 	# by segment now that neither side route is a single straight line.
-	for i in range(1, points.size() - 1):
+	for i in points.size() - 1:
+		var bed_w: float = Plan.KIDDIE_GATEWAY_W
+		if i >= Plan.KIDDIE_GATEWAY_INDEX and i < Plan.KIDDIE_COMMONS_INDEX:
+			bed_w = Plan.KIDDIE_PLAZA_LINK_W
+		elif i >= Plan.KIDDIE_COMMONS_INDEX:
+			bed_w = primary_w
 		_kiddie_arrival_bridge("kiddie_arrival_bed_%d" % i,
-			points[i], points[i + 1], path_w)
+			points[i], points[i + 1], bed_w)
+	_kiddie_arrival_bridge("kiddie_gateway_entry_bed", gateway_approach,
+		points[0], Plan.KIDDIE_GATEWAY_W)
+	_kiddie_arrival_bridge("kiddie_entrance_entry_bed", entrance_approach,
+		entrance_link[0], Plan.KIDDIE_ENTRANCE_LINK_W)
 	for branch in [
 		["kiddie_station_bed", Plan.KIDDIE_STATION_SPUR,
 			Plan.KIDDIE_STATION_SPUR_W],
 		["kiddie_photo_bed", Plan.KIDDIE_PHOTO_SPUR,
 			Plan.KIDDIE_PHOTO_SPUR_W],
+		["kiddie_commons_garden_bed", garden_link,
+			Plan.KIDDIE_COMMONS_GARDEN_W],
 	]:
 		var branch_points: Array[Vector3] = branch[1]
 		for i in branch_points.size() - 1:
 			_kiddie_arrival_bridge("%s_%d" % [branch[0], i],
 				branch_points[i], branch_points[i + 1], branch[2])
-	_east_path_ribbon("kiddie_arrival_path", points, path_w, "brick",
-		Plan.KIDDIE_ARRIVAL_PATH_LIFT)
-	_east_path_ribbon("kiddie_entrance_link", entrance_link,
+	# Carry the plaza's asphalt through the opening and around the first turn.
+	# Stopping it at the arch left a broad undifferentiated brick court facing a
+	# planted slope, which read as a dead end even after the route was physically
+	# open. The quieter plaza link changes to Kiddieland brick after that turn.
+	_east_path_ribbon("kiddie_gateway_path", gateway_paving,
+		Plan.KIDDIE_GATEWAY_W, "asphalt", Plan.KIDDIE_ARRIVAL_PATH_LIFT)
+	_east_path_ribbon("kiddie_plaza_link", plaza_link,
+		Plan.KIDDIE_PLAZA_LINK_W, "brick", Plan.KIDDIE_ARRIVAL_PATH_LIFT + 0.002)
+	_east_path_ribbon("kiddie_arrival_path", primary_spine, primary_w, "brick",
+		Plan.KIDDIE_ARRIVAL_PATH_LIFT + 0.004)
+	_east_path_ribbon("kiddie_entrance_link", entrance_paving,
 		Plan.KIDDIE_ENTRANCE_LINK_W, "brick", Plan.KIDDIE_ARRIVAL_PATH_LIFT + 0.002)
+	_east_path_ribbon("kiddie_commons_garden_link", garden_link,
+		Plan.KIDDIE_COMMONS_GARDEN_W, "brick", Plan.KIDDIE_ARRIVAL_PATH_LIFT + 0.003)
 	_kiddie_arrival_bridge("grand_tram_entry_access_bed",
 		Plan.GRAND_TRAM_ENTRY_ACCESS[0], Plan.GRAND_TRAM_ENTRY_ACCESS[1],
 		Plan.GRAND_TRAM_ENTRY_ACCESS_W)
@@ -11544,22 +11686,22 @@ func _kiddieland_arrival() -> void:
 		Plan.KIDDIE_STATION_SPUR_W, "brick", Plan.KIDDIE_ARRIVAL_PATH_LIFT + 0.002)
 	_east_path_ribbon("kiddie_photo_spur", Plan.KIDDIE_PHOTO_SPUR,
 		Plan.KIDDIE_PHOTO_SPUR_W, "brick", Plan.KIDDIE_ARRIVAL_PATH_LIFT + 0.004)
-	# Collision is one welded ribbon rather than the overlapping bed boxes. Solid
-	# boxes steered the real controller sideways at their joints even though the
-	# paving looked continuous. Begin with a short ramp out of the level court so
-	# the first fourteen centimetres are a slope rather than a step.
-	var spine_collision: Array[Vector3] = [
-		Vector3(points[1].x, -0.14, points[1].z - 2.0),
-	]
-	for i in range(1, points.size()):
+	# Collision remains one welded ribbon rather than the overlapping bed boxes or
+	# two meshes at the width change. Solid boxes steered the real controller
+	# sideways at their joints even though the paving looked continuous. Its broad
+	# invisible shoulder is harmless on walkable ground and keeps the commons merge
+	# seamless. Begin with a short ramp out of the level court so the first fourteen
+	# centimetres are a slope rather than a step.
+	var spine_collision: Array[Vector3] = [gateway_approach]
+	for i in points.size():
 		spine_collision.append(points[i])
-	_east_path_collision("kiddie_arrival_walk", spine_collision, path_w, 0.14)
-	var link_collision: Array[Vector3] = [
-		Vector3(entrance_link[0].x - 2.0, -0.14, entrance_link[0].z),
-	]
+	_east_path_collision("kiddie_arrival_walk", spine_collision, primary_w, 0.14)
+	var link_collision: Array[Vector3] = [entrance_approach]
 	link_collision.append_array(entrance_link)
 	_east_path_collision("kiddie_entrance_walk", link_collision,
 		Plan.KIDDIE_ENTRANCE_LINK_W, 0.14)
+	_east_path_collision("kiddie_commons_garden_walk", garden_link,
+		Plan.KIDDIE_COMMONS_GARDEN_W, 0.14)
 	_east_path_collision("grand_tram_entry_walk", Plan.GRAND_TRAM_ENTRY_ACCESS,
 		Plan.GRAND_TRAM_ENTRY_ACCESS_W, 0.14)
 	_east_path_collision("kiddie_station_walk", Plan.KIDDIE_STATION_SPUR,
@@ -11613,15 +11755,17 @@ func _kiddieland_arrival() -> void:
 ## and shaded picnic tables are the things a working kiddieland actually needs,
 ## all set in side bays off one broad public route.
 func _kiddie_family_commons() -> void:
-	# x 14..60 laps the backs of the entrance shops and the shoulder; z 48..116
-	# stops seven metres before the parking backdrop. Top at -4cm, below every
-	# public floor it supports.
+	# x 14..68 laps the backs of the entrance shops and runs under the shoulder's
+	# public edge; z 48..116 stops seven metres before the parking backdrop. The
+	# extra buried east reach means a raised route never reveals grey world below
+	# it. Top at -4cm, below every public floor it supports.
 	_box("kiddie_commons_ground", Vector3.ZERO,
-		Vector3(37.0, -0.54, 82.0), Vector3(46.0, 1.0, 68.0), "planting")
+		Vector3(41.0, -0.54, 82.0), Vector3(54.0, 1.0, 68.0), "planting")
 
 	_kiddie_family_services(Vector3(23.0, 0.0, 101.0))
 	_kiddie_stroller_corral(Vector3(29.0, 0.0, 90.5))
 	_kiddie_picnic_shelter(Vector3(46.5, 0.0, 101.0))
+	_kiddie_commons_garden(Vector3(36.5, 0.0, 72.0))
 
 	# A real inside/outside edge. Cars and lot standards remain visible above the
 	# planting, but guests cannot mistake the grey backdrop for another route.
@@ -11673,6 +11817,33 @@ func _kiddie_family_commons() -> void:
 		if p.x >= SHOULDER_WEST_X:
 			at.y = _shoulder_y(p.x, p.y, 1.0, _shoulder_prm(1.0)) + 0.02
 		_kiddie_commons_lamp(row[0], at)
+
+
+## The northern half of the commons used to be support ground with nothing to
+## support. A planted sitting garden occupies the centre of the new walking
+## loop: enough mass to make the space a place, kept wholly inside the loop so
+## no tree, bench or planter becomes another circulation obstacle.
+func _kiddie_commons_garden(at: Vector3) -> void:
+	_cyl("kiddie_commons_garden_ring", at, Vector3(0.0, 0.16, 0.0),
+		4.15, 0.32, "brick", 0.0, 28)
+	_cyl("kiddie_commons_garden_soil", at, Vector3(0.0, 0.34, 0.0),
+		3.82, 0.08, "planting", 0.0, 28, false)
+	_east_frontier_tree("kiddie_commons_garden_tree_a",
+		at + Vector3(-1.15, 0.38, -0.75), 4.5, 1.35, -0.25)
+	_east_frontier_tree("kiddie_commons_garden_tree_b",
+		at + Vector3(1.30, 0.38, 0.85), 4.1, 1.20, 0.35)
+	for i in 8:
+		var a := TAU * float(i) / 8.0
+		_sphere("kiddie_commons_garden_bloom_%d" % i, Vector3.ZERO,
+			at + Vector3(cos(a) * 3.05, 0.44, sin(a) * 3.05),
+			0.15, ["bloom_pale", "bloom_warm", "bloom_pink"][i % 3],
+			0.0, 0.82)
+	var west_bench := at + Vector3(-5.25, 0.0, 0.0)
+	var north_bench := at + Vector3(0.0, 0.0, -5.30)
+	_bench("kiddie_commons_garden_bench_w", west_bench,
+		_facing(west_bench, at))
+	_bench("kiddie_commons_garden_bench_n", north_bench,
+		_facing(north_bench, at))
 
 
 func _kiddie_family_services(at: Vector3) -> void:
@@ -12093,6 +12264,228 @@ func _fair_festoon(nm: String, a: Vector3, b: Vector3) -> void:
 		_sphere("%s_bulb_%d" % [nm, i], p, Vector3.ZERO, 0.10, "bulb")
 		last = p
 
+
+## The north-north-west threshold opens into the Grove's circulation rather
+## than into its attractions. One eight-metre spine makes the long move from the
+## passage to the Grand Circuit; the sky ride, pond, picnic tables, photograph
+## bay and future Frontier route all leave it on smaller paths. That hierarchy
+## is the scaffold: the land can change its rides later without changing how a
+## guest gets through it.
+func _grove_arrival() -> void:
+	var main: Array[Vector3] = Plan.GROVE_ARRIVAL_POINTS
+	var garden: Array[Vector3] = Plan.GROVE_GARDEN_LOOP
+
+	# The sky-ride scene owns the large Grove floor. This small patch closes the
+	# ten metres between that rectangle and the passage's west-facing outlet. Its
+	# top is lower than both neighbours; the welded route surface carries the
+	# physical seam and the brick skin hides it.
+	_box("grove_arrival_ground", Vector3.ZERO,
+		Vector3(-35.95, -0.525, -53.25), Vector3(8.30, 1.0, 17.80),
+		"planting")
+	_box("grove_arrival_court", Vector3.ZERO,
+		Vector3(-34.40, 0.006, -65.0), Vector3(10.80, 0.012, 15.0),
+		"brick", 0.0, false)
+
+	_grove_path("grove_spine", main, Plan.GROVE_ARRIVAL_PATH_W)
+	_grove_path("grove_garden", garden, Plan.GROVE_GARDEN_PATH_W)
+	_grove_path("grove_sky_ride", Plan.GROVE_SKY_RIDE_SPUR,
+		Plan.GROVE_SKY_RIDE_SPUR_W)
+	_grove_path("grove_tram", Plan.GROVE_TRAM_ACCESS,
+		Plan.GROVE_TRAM_ACCESS_W)
+	_grove_path("grove_frontier", Plan.GROVE_FRONTIER_HANDOFF,
+		Plan.GROVE_FRONTIER_HANDOFF_W)
+	_grove_path("grove_photo", Plan.GROVE_PHOTO_SPUR,
+		Plan.GROVE_PHOTO_SPUR_W)
+	_grove_arrival_marker()
+
+	_grove_picnic(Vector3(-28.0, 0.0, -89.5))
+	_grove_pond(Plan.GROVE_POND_AT, Plan.GROVE_POND_R)
+	_grove_photo_turnout(Plan.GROVE_PHOTO_AT)
+	_grove_frontier_gate()
+
+	# A Grove is shade before it is a ride list. These supplement the four mature
+	# trees already framing the sky-ride pavilion, always outside the full width
+	# of a public path and never in the Grand Circuit reserve.
+	var trees := [
+		[Vector3(-29.0, 0.0, -66.0), 7.8, 1.80, -0.25],
+		[Vector3(-39.0, 0.0, -73.0), 8.6, 2.00, 0.35],
+		[Vector3(-24.0, 0.0, -87.5), 8.1, 1.85, -0.45],
+		[Vector3(-39.0, 0.0, -104.0), 9.0, 2.10, 0.20],
+		[Vector3(-8.0, 0.0, -113.0), 8.4, 1.95, -0.30],
+		[Vector3(14.0, 0.0, -98.0), 8.8, 2.05, 0.40],
+		[Vector3(15.0, 0.0, -119.0), 7.9, 1.85, -0.20],
+	]
+	for i in trees.size():
+		var tree: Array = trees[i]
+		_east_frontier_tree("grove_tree_%d" % i, tree[0], tree[1],
+			tree[2], tree[3])
+
+	# Warm pools overlap along the primary route, while the existing sky-ride and
+	# transit fixtures carry their own courts. The garden loop is dimmer but never
+	# ambiguous after close.
+	for row in [
+		["arrival", Vector3(-28.8, 0.0, -70.0)],
+		["junction", Vector3(-23.0, 0.0, -88.5)],
+		["main_a", Vector3(4.0, 0.0, -92.0)],
+		["main_b", Vector3(12.0, 0.0, -108.0)],
+		["main_c", Vector3(12.0, 0.0, -121.0)],
+		["garden_a", Vector3(-39.2, 0.0, -92.0)],
+		["garden_b", Vector3(-38.0, 0.0, -114.0)],
+		["garden_c", Vector3(-25.0, 0.0, -133.0)],
+	]:
+		_grove_lamp(row[0], row[1])
+
+	# The visual Grove slab is real ground now, so its raw sides need a real park
+	# edge. Breaks are reserved for the passage, the two Grand Circuit crossings
+	# and the future Frontier handoff; no public path ends at an unguarded void.
+	# The taller first two runs make the passage reveal an enclosed arrival pocket
+	# instead of the water and bridge beyond the Grove's southwest corner.
+	_grove_boundary("arrival_s", Vector3(-40.05, 0.0, -44.35),
+		Vector3(-32.45, 0.0, -44.35), 1.90)
+	_grove_boundary("arrival_w", Vector3(-40.05, 0.0, -44.35),
+		Vector3(-40.05, 0.0, -62.15), 1.90)
+	_grove_boundary("south", Vector3(-29.0, 0.0, -62.15),
+		Vector3(22.0, 0.0, -62.15))
+	_grove_boundary("west_s", Vector3(-40.05, 0.0, -62.0),
+		Vector3(-40.05, 0.0, -123.0))
+	_grove_boundary("west_n", Vector3(-40.05, 0.0, -134.0),
+		Vector3(-40.05, 0.0, -146.0))
+	_grove_boundary("north", Vector3(-40.0, 0.0, -146.05),
+		Vector3(22.0, 0.0, -146.05))
+	_grove_boundary("east_s", Vector3(22.05, 0.0, -62.0),
+		Vector3(22.05, 0.0,
+			Plan.GROVE_FRONTIER_GATE_AT.z + Plan.GROVE_FRONTIER_GATE_W * 0.5))
+	_grove_boundary("east_mid", Vector3(22.05, 0.0,
+		Plan.GROVE_FRONTIER_GATE_AT.z - Plan.GROVE_FRONTIER_GATE_W * 0.5),
+		Vector3(22.05, 0.0, -129.0))
+	_grove_boundary("east_n", Vector3(22.05, 0.0, -141.0),
+		Vector3(22.05, 0.0, -146.0))
+
+
+## A narrow stone edge makes the hierarchy legible from above and at night; the
+## brick field is the actual route. The invisible welded collider rides at the
+## published centreline, one centimetre above the broad Grove floor and over the
+## deliberately lower threshold patch, so neither seam can catch the player.
+func _grove_path(nm: String, points: Array[Vector3], width: float) -> void:
+	_east_path_ribbon(nm + "_edge", points, width + 0.46,
+		"niche_stone", 0.012)
+	_east_path_ribbon(nm + "_field", points, width, "brick", 0.020)
+	_east_path_collision(nm + "_walk", points, width, 0.0)
+
+
+## The west-facing header cannot show the sky ride — its whole reason for being
+## is to hide the land until the bend. This marker gives that reveal a destination
+## of its own: straight ahead is the Grove palette and the path visibly turns
+## right beneath it. It sits on the protected edge, never in the walking width.
+func _grove_arrival_marker() -> void:
+	var at := Vector3(-39.45, 0.0, -53.4)
+	_box("grove_arrival_marker_board", at, Vector3(0.0, 2.18, 0.0),
+		Vector3(0.18, 1.72, 5.20), "sky_green", 0.0, false)
+	_box("grove_arrival_marker_panel", at, Vector3(0.11, 2.18, 0.0),
+		Vector3(0.07, 0.72, 4.10), "yellow", 0.0, false)
+	for z in [-2.18, 2.18]:
+		_cyl("grove_arrival_marker_post_%s" % str(z), at,
+			Vector3(-0.02, 1.22, z), 0.08, 2.44, "white", 0.0, 8, false)
+	for i in 5:
+		_sphere("grove_arrival_marker_bulb_%d" % i, at,
+			Vector3(0.18, 2.18, lerpf(-1.65, 1.65, float(i) / 4.0)),
+			0.09, "lamp_glass")
+	_omni("grove_arrival_marker_glow", at + Vector3(0.42, 2.25, 0.0),
+		"warm", 2.1, 9.0, LIGHT_FIXTURE, true)
+
+
+func _grove_picnic(at: Vector3) -> void:
+	_box("grove_picnic_pad", at, Vector3(0.0, 0.009, 0.0),
+		Vector3(8.5, 0.018, 9.0), "brick", 0.0, false)
+	for i in 2:
+		var z := -2.15 + float(i) * 4.30
+		_box("grove_picnic_%d_top" % i, at, Vector3(0.0, 0.76, z),
+			Vector3(2.5, 0.12, 1.0), "wood")
+		for side in [-1.0, 1.0]:
+			_box("grove_picnic_%d_bench_%s" % [i, str(side)], at,
+				Vector3(side * 1.48, 0.46, z), Vector3(1.35, 0.11, 0.46),
+				"wood")
+			_box("grove_picnic_%d_leg_%s" % [i, str(side)], at,
+				Vector3(side * 0.75, 0.36, z), Vector3(0.12, 0.72, 0.62),
+				"metal")
+
+
+func _grove_pond(at: Vector3, radius: float) -> void:
+	# A raised shallow basin rather than a terrain subtraction. Its broad brick
+	# lip is a physical edge, so water remains a view and a photographic foreground
+	# rather than another route across the garden loop.
+	_cyl("grove_pond_basin", at, Vector3(0.0, 0.035, 0.0),
+		radius + 0.62, 0.19, "brick", 0.0, 28)
+	_cyl("grove_pond_water", at, Vector3(0.0, 0.142, 0.0),
+		radius, 0.024, "water", 0.0, 28, false)
+	for i in 10:
+		var a := TAU * float(i) / 10.0
+		var p := at + Vector3(cos(a) * (radius + 0.32), 0.0,
+			sin(a) * (radius + 0.32))
+		_sphere("grove_pond_lily_%d" % i, p, Vector3(0.0, 0.17, 0.0),
+			0.16 + float(i % 3) * 0.04, "foliage", 0.0, 0.26)
+
+
+func _grove_photo_turnout(at: Vector3) -> void:
+	_box("grove_photo_pad", at, Vector3(0.0, 0.012, 0.0),
+		Vector3(5.0, 0.024, 4.2), "brick", 0.0, false)
+	# The low rail faces east across the pond to the sky-ride buckets. Its north
+	# and south ends remain open, so a player with the camera never backs into the
+	# garden route.
+	for z in [-1.65, 0.0, 1.65]:
+		_box("grove_photo_post_%s" % str(z), at, Vector3(2.20, 0.55, z),
+			Vector3(0.12, 1.10, 0.12), "metal")
+	_box("grove_photo_rail", at, Vector3(2.20, 0.95, 0.0),
+		Vector3(0.12, 0.12, 3.45), "sky_green", 0.0, false)
+	_box("grove_photo_sign", at, Vector3(2.10, 1.35, 0.0),
+		Vector3(0.10, 0.55, 0.85), "yellow", 0.0, false)
+
+
+func _grove_frontier_gate() -> void:
+	# A gate in the perimeter, not a freestanding barrier in front of it. The
+	# hedge runs terminate on these ends and the route meets its centre, so there
+	# is no grass shoulder round which a player can bypass the closure.
+	var at: Vector3 = Plan.GROVE_FRONTIER_GATE_AT
+	var theta := PI * 0.5
+	var width: float = Plan.GROVE_FRONTIER_GATE_W
+	var posts := 5
+	for i in posts:
+		var x := lerpf(-width * 0.5, width * 0.5, float(i) / float(posts - 1))
+		_box("grove_frontier_gate_post_%d" % i, at, Vector3(x, 0.58, 0.0),
+			Vector3(0.14, 1.16, 0.18), "white", theta)
+	for y in [0.42, 0.92]:
+		_box("grove_frontier_gate_rail_%s" % str(y), at,
+			Vector3(0.0, y, 0.0), Vector3(width, 0.12, 0.14),
+			"sky_green", theta)
+	_box("grove_frontier_gate_board", at, Vector3(0.0, 1.55, -0.12),
+		Vector3(3.7, 0.82, 0.18), "yellow", theta, false)
+
+
+func _grove_lamp(tag: String, at: Vector3) -> void:
+	_cyl("grove_lamp_%s_pole" % tag, at, Vector3(0.0, 2.05, 0.0),
+		0.075, 4.10, "sky_green", 0.0, 8)
+	_sphere("grove_lamp_%s_globe" % tag, at, Vector3(0.0, 4.20, 0.0),
+		0.22, "lamp_glass")
+	_omni("grove_lamp_%s_glow" % tag, at + Vector3(0.0, 4.05, 0.0),
+		"warm", 2.15, 11.0, LIGHT_FIXTURE, tag == "arrival")
+
+
+## A planted perimeter on a brick toe: substantial enough to stop the player,
+## low enough that the coaster, sky ride and ridge remain the Grove's horizon.
+func _grove_boundary(nm: String, a: Vector3, b: Vector3,
+		hedge_height := 0.64) -> void:
+	var d := b - a
+	var length := Vector2(d.x, d.z).length()
+	if length < 0.25:
+		return
+	var theta := atan2(d.x, d.z)
+	var at := (a + b) * 0.5
+	_box("grove_boundary_%s_toe" % nm, at, Vector3(0.0, 0.20, 0.0),
+		Vector3(0.60, 0.40, length), "brick", theta)
+	_box("grove_boundary_%s_hedge" % nm, at,
+		Vector3(0.0, 0.36 + hedge_height * 0.5, 0.0),
+		Vector3(0.82, hedge_height, length - 0.18), "foliage", theta)
+
 ## A frontage stamped onto an existing wall. Local +Z faces out into the space
 ## the front is read from.
 ##
@@ -12216,9 +12609,16 @@ func _booth(nm: String, base: Vector3, theta: float, width: float, mat: String) 
 	var n := width * 0.5
 	var depth := 3.2
 
-	_box(nm + "_back", base, Vector3(0, 1.6, -depth * 0.5), Vector3(width, 3.2, 0.3), mat, theta)
-	_box(nm + "_side_l", base, Vector3(-n + 0.15, 1.6, 0), Vector3(0.3, 3.2, depth), mat, theta)
-	_box(nm + "_side_r", base, Vector3(n - 0.15, 1.6, 0), Vector3(0.3, 3.2, depth), mat, theta)
+	# Sink the booth shell with the counter. Its walls formerly ended on the exact
+	# paving plane; moving the SE paving changed the seam ordinal and exposed the
+	# darts booth's right wall as a visible colour fight across the street floor.
+	var shell_y := 1.53
+	_box(nm + "_back", base, Vector3(0, shell_y, -depth * 0.5),
+		Vector3(width, 3.2, 0.3), mat, theta)
+	_box(nm + "_side_l", base, Vector3(-n + 0.15, shell_y, 0),
+		Vector3(0.3, 3.2, depth), mat, theta)
+	_box(nm + "_side_r", base, Vector3(n - 0.15, shell_y, 0),
+		Vector3(0.3, 3.2, depth), mat, theta)
 	# Waist high and solid: the counter is the thing that makes it a booth rather
 	# than a shed, and the thing the player leans on to shoot across.
 	# Sunk below the paving datum. This was the last booth part still relying on
@@ -12419,19 +12819,8 @@ func _boardwalk_section() -> void:
 	_boardwalk_edges()
 	_boardwalk_props()
 	_boardwalk_lights()
-	_plaza_from_below()
-	# **The terrace's asphalt is not laid here any more**, and the reason is a
-	# change in what this section mounts rather than a change of mind about the
-	# ground. `plaza_paving.tscn` is in the boardwalk's own scene list since
-	# 2026-08-19 — see `ParkSections` — so its six terrace runs are already
-	# standing when this scene is, and laying them again put two identical quads
-	# a quarter-millimetre apart on ground the player walks on. That is under
-	# `coplanar_test.py`'s floor and over the eye's, which is the worst of both.
-	#
-	# Laying it twice was right for as long as neither section mounted the other's
-	# paving. It stopped being right the moment one of them did.
-
-	_arch_seam(&"boardwalk", &"plaza")
+	# Plaza paving and geometry stand beside this scene in `park_world.tscn`.
+	# No massing copy and no transition trigger are emitted here.
 
 
 ## Everything the player can stand on, as three slabs: the promenade, the alley
@@ -13519,7 +13908,7 @@ func _near_boundary(nm: String) -> bool:
 ## writes. Loading it would make the generator depend on its own output, and the
 ## first run after a clean checkout — or any run where the output is missing —
 ## would fail on a dependency it is in the middle of creating.
-const FRONTAGE_PATH := "res://scenes/world/plaza_frontage.tscn"
+const FRONTAGE_PATH := GENERATED_DIR + "/plaza_frontage.tscn"
 const PLAZA_SCENE_PATH := "res://scenes/world/plaza.tscn"
 
 ## Bare wall left at each end of a run. Architecturally a quoin; practically the
@@ -13951,7 +14340,7 @@ func _gate_house(gate: Dictionary) -> void:
 ##
 ## The west arch is the most important of the six ways out and until 2026-08-16
 ## it was the barest: a board on a wall, no valance, no bulbs, and **no night
-## treatment of any kind** while all three scaffolded threshold mouths glow. It
+## treatment of any kind** while all three radial threshold mouths glow. It
 ## got away with that while it was a hole in a flat wall, because a hole in a
 ## wall is read by its surround. Taking the top off made it a gateway — two masses
 ## and something spanning — and a gateway with nothing on the span reads as
@@ -16164,10 +16553,15 @@ func _plaza_from_the_east() -> void:
 		# copies at once, so the pair it reports is real arithmetic about an
 		# impossible frame. A permanently-red test is worse than the pair, because
 		# the next real one hides behind it.
-		_box("efar_%s" % nm, Vector3.ZERO,
-			Vector3(thin["at"]).snapped(Vector3.ONE * 0.01)
-				+ Vector3(EAST_FAR_NUDGE, -drop, 0.0), thin["size"],
-			mat, 0.0, near)
+		var mass_at := Vector3(thin["at"]).snapped(Vector3.ONE * 0.01) \
+			+ Vector3(EAST_FAR_NUDGE, -drop, 0.0)
+		# The real plaza frontage and this terraces-only stand-in can never render
+		# together, but their gate cornices otherwise share the piers' exact top
+		# planes in the all-scenes coplanar census. Bury the stand-in piers 2cm; the
+		# gate silhouette is unchanged and real same-section fights remain visible.
+		if nm.begins_with("east_pier"):
+			mass_at.y -= 0.02
+		_box("efar_%s" % nm, Vector3.ZERO, mass_at, thin["size"], mat, 0.0, near)
 		n += 1
 	if n < 6:
 		push_error("only %d plaza masses read for the view from the east — "

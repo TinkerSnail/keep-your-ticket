@@ -88,15 +88,7 @@ func _ready() -> void:
 
 
 func _measure(id: StringName) -> void:
-	if ParkSections.current() != id:
-		# Straight in, the same as `day_test` — whether the seam works is
-		# `section_test`'s question and it already passes.
-		await ParkSections.enter(id, ParkSections.current())
-		for i in SETTLE_FRAMES:
-			await get_tree().physics_frame
-		ParkClock.running = false
-
-	var crowd := get_tree().get_first_node_in_group("crowd")
+	var crowd := ParkSections.current_crowd(id)
 	if crowd == null:
 		_fails.append("%s: no crowd in the tree" % id)
 		return
@@ -125,6 +117,8 @@ func _measure(id: StringName) -> void:
 			await get_tree().physics_frame
 			elapsed += get_physics_process_delta_time()
 			for g in get_tree().get_nodes_in_group("guest"):
+				if not crowd.is_ancestor_of(g):
+					continue
 				if not g.is_inside_tree() or not g.visible:
 					continue
 				var at: Vector3 = g.global_position

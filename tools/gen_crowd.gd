@@ -100,7 +100,8 @@ func _initialize() -> void:
 ## Reset everything a section owns. The two passes share the body-building and
 ## nothing else, and the plaza must come out byte-identical to what is committed
 ## — so it runs first, with its seed set here rather than once at startup.
-func _begin(nm: String, floor_y: float, bounds: Rect2, seed_value: int) -> void:
+func _begin(nm: String, area_id: StringName, floor_y: float,
+		bounds: Rect2, seed_value: int) -> void:
 	_rng.seed = seed_value
 	_graph_names = PackedStringArray()
 	_graph_points = PackedVector3Array()
@@ -114,6 +115,7 @@ func _begin(nm: String, floor_y: float, bounds: Rect2, seed_value: int) -> void:
 	_root = Node3D.new()
 	_root.name = nm
 	_root.set_script(load(CROWD_SCRIPT))
+	_root.set("area_id", area_id)
 
 
 func _finish(path: String) -> bool:
@@ -129,7 +131,7 @@ func _finish(path: String) -> bool:
 func _build_plaza() -> bool:
 	# Fixed seed: this file is committed, so the same source must produce the
 	# same scene or every run shows up as a diff.
-	_begin("crowd", 0.0, Rect2(-48.0, -48.0, 96.0, 96.0), 0x5150)
+	_begin("crowd", &"plaza", 0.0, Rect2(-48.0, -48.0, 96.0, 96.0), 0x5150)
 
 	_plaza_graph()
 	_obstacles = _plaza_obstacles()
@@ -303,23 +305,24 @@ func _pick(prefix: String) -> String:
 ## plus a per-guest wander offset, so a node is a loose destination and not a
 ## mark to stand on.
 func _plaza_graph() -> void:
-	# Every position here survived `_validate_graph`, and several of them are not
-	# where they were first put. What the validator turned up: the south side of
-	# the plaza is not a corridor. `bench_south`, `bench_sw` and `planter_b`
-	# between them leave no gap wide enough to walk along the south wall, so
-	# east–west traffic goes around the fountain instead. That is what a real
-	# plaza does, and it was found by checking rather than by deciding.
+	# Every position here survives `_validate_graph`. The southeast route is a
+	# deliberate exception to the old south-side pattern: once Kiddieland opened,
+	# the long corridor at z 31.3 became public circulation and its planter and
+	# loose furniture moved aside. Guests arriving from the gate now use the same
+	# legible line the player does instead of being routed around the fountain.
 	var points := {
 		# The plaza mouth, and the south walk in from it.
 		"gate": Vector2(-1.5, 41.0),
 		"south": Vector2(-1.5, 30.0),
 		"south_east": Vector2(12.0, 22.0),
 		"south_west": Vector2(-24.0, 26.0),
+		# Stops just inside the plaza section seam; Kiddieland owns the route beyond.
+		"kiddie_corridor": Vector2(45.0, 31.3),
 		# The photo hut, out at radius 28 now, with its queue on the south side.
 		"hut_walk": Vector2(14.0, 18.0),
 		"queue": Vector2(17.0, 27.0),
-		# The street out to the south-east threshold, which the crowd walks the
-		# near end of and no further — past the mouth is scaffolding.
+		# The quieter east-side pocket behind the photo hut. It is no longer asked
+		# to double as the route to Kiddieland.
 		"street_n": Vector2(22.0, 11.0),
 		"east": Vector2(25.0, -2.0),
 		"east_n": Vector2(24.0, -18.0),
@@ -369,7 +372,11 @@ func _plaza_graph() -> void:
 	# meant to learn about this place by walking it.
 	var links := [
 		["gate", "south"],
-		["south", "south_east"], ["south", "south_west"], ["south", "ring_s"],
+		# `south_east` is the photo-hut pocket and remains connected from the ring.
+		# Its former diagonal from `south` cut through the planter's new side bay;
+		# entrance traffic now takes the purpose-built Kiddieland corridor instead.
+		["south", "south_west"], ["south", "ring_s"],
+		["south", "kiddie_corridor"],
 		["south_east", "queue"], ["south_east", "hut_walk"],
 		["queue", "hut_walk"],
 		["hut_walk", "ring_se"],
@@ -2729,7 +2736,8 @@ func _build_boardwalk() -> bool:
 	# and the pier's last two nodes fell out of the world.
 	var west := Plan.PAVILION_AT.x - 8.0
 	var east := Plan.BLUFF_FACE_X + 6.0
-	_begin("crowd", Plan.SHORE_TOP, Rect2(west, -84.0, east - west, 164.0), 0x0B0A2D)
+	_begin("crowd", &"boardwalk", Plan.SHORE_TOP,
+		Rect2(west, -84.0, east - west, 164.0), 0x0B0A2D)
 
 	_boardwalk_graph()
 	_obstacles = _boardwalk_obstacles()
@@ -3195,7 +3203,8 @@ func _build_terraces() -> bool:
 	# The east section now owns the first orbital street as far west as the NNW
 	# approach. Widen the sanity bound to describe that real footprint; obstacles
 	# remain the authority on where a guest can actually walk inside it.
-	_begin("crowd", 0.0, Rect2(-30.0, -110.0, 170.0, 182.0), 0x7E44)
+	_begin("crowd", &"terraces", 0.0,
+		Rect2(-30.0, -110.0, 170.0, 182.0), 0x7E44)
 
 	_east_graph()
 	# Kiosks now occupy the back of each bay. Their approach remains clear, but

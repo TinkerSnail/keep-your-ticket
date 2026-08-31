@@ -1,18 +1,11 @@
 extends Node
 
-## Dev probe: **the terraces section, seen from inside itself.**
+## Dev probe: **the terraces district, seen from inside itself.**
 ##
-## Every other probe in this tree loads `main.tscn` and shoots, which means every
-## one of them photographs the *plaza* standing. `terraces_far.tscn` and the
-## section's own copy of `plaza_skyline.tscn` only exist after a crossing, so
-## nothing that has ever been shot could have shown them — the massing was
-## verified by reading its node list, which says where boxes are and nothing
-## about whether the view works.
-##
-## So this one walks east through the gate first, waits for the swap, and only
-## then poses a camera. What it is actually asking: crossing the seam used to
-## delete the plaza, the clock tower and the rim, and the player was left on a
-## hillside with sky in every direction. Is the park still there.
+## The park is persistent now, so this walks east to verify the actual continuous
+## composition rather than waiting for a section swap or photographing a far
+## copy. What it is asking remains useful: from every terrace level, is the park
+## still legible behind you and does the real rim close the view ahead?
 const SETTLE := 6.0
 const WALK_LIMIT := 25.0
 
@@ -23,7 +16,7 @@ const WALK_LIMIT := 25.0
 const START := Vector3(24.0, 0.2, -2.0)
 const AIM := Vector3(60.0, 0.2, -2.0)
 
-## Free-camera standpoints inside the terraces, once the swap has happened.
+## Free-camera standpoints inside the terraces, once the walk has happened.
 ##
 ## The first four are the whole question — back down the axis from the places the
 ## section delivers you to. The rest check the other three bearings, because a
@@ -41,15 +34,13 @@ const SHOTS := [
 	# From the head of the staircase, which is the deepest standpoint in the
 	# section and the furthest the massing has to carry.
 	{"name": "d_head_west", "pos": Vector3(112.0, 13.7, -2.0), "yaw": 90.0, "pitch": -5.0},
-	# East, at the rim. `plaza_skyline.tscn` is mounted by this section too, and
-	# if that were wrong this is where it would be sky.
+	# East, at the persistent rim. If the shared skyline is missing, this is sky.
 	{"name": "e_head_east", "pos": Vector3(108.0, 13.7, -2.0), "yaw": -90.0, "pitch": 4.0},
 	# North and south off the belvedere, for the two bearings nothing has asked
 	# about since the section existed.
 	{"name": "f_belvedere_north", "pos": Vector3(78.0, 7.7, -2.0), "yaw": 180.0, "pitch": 2.0},
 	{"name": "g_belvedere_south", "pos": Vector3(78.0, 7.7, -2.0), "yaw": 0.0, "pitch": 2.0},
-	# And from above, which is the only way to see that the massing is a shell
-	# rather than a park — worth knowing what the stand-in actually is.
+	# And from above, which is the only way to read the whole continuous join.
 	{"name": "h_over_the_gate", "pos": Vector3(70.0, 34.0, -2.0), "yaw": 90.0, "pitch": -26.0},
 ]
 

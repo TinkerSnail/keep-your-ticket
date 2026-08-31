@@ -68,32 +68,19 @@ const FLAT_SLACK := 0.05
 ## would measure a plateau at one end and a plateau at the other and call it a
 ## day.
 ##
-## `floor_y` is the height a live guest stands at. It was a bare `absf(y) > 0.05`
-## against zero, which is the sort of assumption a second section is the only
-## thing that ever finds.
-##
-## `floor_rise` is how far *above* that the ground goes, and a third section is
-## what found the next assumption in the same line: a single height is a claim
-## that the section is flat. The plaza and the boardwalk are each one level and
-## the terraces climb twelve metres, so out there a point test fails every guest
-## who is doing the thing the section is for.
-##
-## It is a band and not a per-guest floor **on purpose**, and the distinction is
-## worth stating because widening a tolerance usually means giving up. What this
-## check is actually for is catching a guest who is live at the *dormant*
-## height, or hanging in the air over a section — and a band catches both.
-## Whether a particular guest is standing on the particular tread under them is
-## `climb_test`'s question, it reads the floor off the crowd's own graph to
-## answer it, and duplicating that here would be a second survey of the same
-## park with a worse instrument. `RELIEF_SLACK` is where that hand-off is
-## written down.
+## The live floor band is measured from each crowd's own graph when that crowd
+## is selected. It used to be copied into this table as `floor_y` and
+## `floor_rise`; the east hill grew from 12m to 20m and left the test measuring
+## an old park. The band is still deliberately broad: this check catches a live
+## guest at the dormant height or hanging outside the district's entire vertical
+## range. `climb_test` asks the tighter per-guest question against the particular
+## path under their feet. `RELIEF_SLACK` is where that hand-off is written down.
 ##
 ## `idle` is where the player is parked so they are not staring at the way in,
 ## and `watch` is where they are parked so that they are.
 const SECTIONS := [
 	{
 		"id": &"plaza",
-		"floor_y": 0.0,
 		"idle": {"at": Vector3(0.0, 0.2, 6.0), "yaw": 0.0},
 		"watch": {"at": Vector3(-1.5, 0.2, 14.0), "yaw": PI},
 		"windows": [
@@ -115,7 +102,6 @@ const SECTIONS := [
 		# two poses were parked inland of the frontage. The whole boardwalk phase
 		# had been failing since that afternoon, which is a test that had stopped
 		# being able to say anything about the section it names.
-		"floor_y": Plan.SHORE_TOP,
 		# On the promenade at the mouth of the alley, facing the water — which is
 		# where a player actually stands and is a wall away from the back lane.
 		"idle": {"at": Vector3(-94.0, Plan.SHORE_TOP + 0.2, Plan.ALLEY_Z), "yaw": PI * 0.5},
@@ -136,12 +122,6 @@ const SECTIONS := [
 		# describing two of three since the third arrived. Nothing had ever
 		# measured the hillside.
 		"id": &"terraces",
-		# The forecourt, at the plaza's own level.
-		"floor_y": 0.0,
-		# And twelve metres of climb above it — the belvedere at `HILL_TOP` and
-		# terrace two at the head of the basin staircase. This is the section
-		# that made `floor_rise` necessary; see the note on it above.
-		"floor_rise": Plan.TERRACE_TWO_Y,
 		# The court, on the gate's own axis, which is where `EAST_ARRIVE_OUT`
 		# puts the player crossing east and therefore ground that `section_test`
 		# already lands a body on. Both poses stand in the same place and differ
@@ -191,6 +171,11 @@ var _peak := 0
 ## Whichever section is being measured. Everything below that used to name the
 ## plaza now reads this.
 var _section: Dictionary = {}
+## Global vertical range of the selected crowd's actual walk graph. Derived at
+## measurement time so terrain and graph edits cannot leave this harness testing
+## an obsolete copied height.
+var _floor_min := 0.0
+var _floor_max := 0.0
 
 
 func _ready() -> void:
@@ -219,18 +204,11 @@ func _measure(section: Dictionary) -> void:
 	_section = section
 	var id: StringName = section["id"]
 
-	if ParkSections.current() != id:
-		# Straight in. Whether the seam works is `section_test.gd`'s job and it
-		# already passes; what this needs is the section standing.
-		await ParkSections.enter(id, ParkSections.current())
-		for i in SETTLE_FRAMES:
-			await get_tree().physics_frame
-		ParkClock.running = false
-
-	_crowd = get_tree().get_first_node_in_group("crowd")
+	_crowd = ParkSections.current_crowd(id)
 	if _crowd == null:
 		_fail("%s: no crowd in the tree" % id)
 		return
+	_measure_floor_band()
 
 	print("")
 	print("=== %s ===" % ParkSections.section_name(id))
@@ -240,6 +218,22 @@ func _measure(section: Dictionary) -> void:
 	for window in section["windows"]:
 		await _walk_window(window)
 	await _watched_gate()
+
+
+func _measure_floor_band() -> void:
+	var graph: PackedVector3Array = _crowd.get("nodes")
+	if graph.is_empty():
+		_floor_min = 0.0
+		_floor_max = 0.0
+		return
+
+	_floor_min = INF
+	_floor_max = -INF
+	var crowd_3d := _crowd as Node3D
+	for point in graph:
+		var y := crowd_3d.to_global(point).y
+		_floor_min = minf(_floor_min, y)
+		_floor_max = maxf(_floor_max, y)
 
 
 ## Deduplicated on the message rather than appended blind. A guest stuck in a
@@ -470,20 +464,21 @@ func _leaving() -> int:
 
 func _check_placement(hour: int) -> void:
 	var when := "%d:00" % hour if hour >= 0 else ParkClock.clock_text()
+	var relief := _floor_max - _floor_min
+	var slack := RELIEF_SLACK if relief > 0.1 else FLAT_SLACK
 	for guest in get_tree().get_nodes_in_group("guest"):
+		if not _crowd.is_ancestor_of(guest):
+			continue
 		var live: bool = guest.is_live()
 		var y: float = guest.global_position.y
-		var floor_y: float = _section.get("floor_y", 0.0)
-		var rise: float = _section.get("floor_rise", 0.0)
-		var slack: float = RELIEF_SLACK if rise > 0.0 else FLAT_SLACK
-		if live and (y < floor_y - slack or y > floor_y + rise + slack):
+		if live and (y < _floor_min - slack or y > _floor_max + slack):
 			_fail("%s: %s is live at y=%.2f, outside %.2f..%.2f"
-				% [when, guest.name, y, floor_y - slack, floor_y + rise + slack])
+				% [when, guest.name, y, _floor_min - slack, _floor_max + slack])
 			return
 		if not live and guest.visible:
 			_fail("%s: %s is dormant and visible" % [when, guest.name])
 			return
-		if not live and y > floor_y - 100.0:
+		if not live and y > _floor_min - 100.0:
 			_fail("%s: %s is dormant at y=%.2f, not parked" % [when, guest.name, y])
 			return
 

@@ -341,47 +341,16 @@ def parse(path):
 
 AX = 'XYZ'
 
-# Which section each scene stands in. Two scenes that are never mounted together
-# cannot fight -- there is only ever one of them to draw.
-#
-# **Stated as membership rather than as a list of pairs**, which is how this
-# started. Every new scene needed a row against each of the nine it excluded, and
-# when boardwalk_crowd.tscn arrived it got none of them: its guests would have
-# been compared against the whole plaza, which stands in the same coordinates
-# with nothing mounted between them.
-#
-# The west is deliberately in both. `west_shell` and `west_stair` are mounted by
-# the plaza and by the boardwalk, because the seam is at the arch and the ground
-# either side of it has to be the same ground.
-SECTION = {
-    'plaza.tscn': 'plaza',
-    'plaza_props.tscn': 'plaza',
-    'plaza_frontage.tscn': 'plaza',
-    'plaza_paving.tscn': 'plaza',
-    'plaza_skyline.tscn': 'plaza',
-    'plaza_crowd.tscn': 'plaza',
-    'plaza_fountain.tscn': 'plaza',
-    'entrance.tscn': 'plaza',
-    'thresholds.tscn': 'plaza',
-    'west_far.tscn': 'plaza',
-    'boardwalk.tscn': 'boardwalk',
-    'boardwalk_crowd.tscn': 'boardwalk',
-    'west_shell.tscn': 'both',
-    'west_stair.tscn': 'both',
-}
-# Anything unlisted is treated as standing in both, which over-reports rather
-# than under-reports. A new scene shows up as noise here, not as silence.
-UNKNOWN = 'both'
-
-
 def coexist(a, b):
-    a = SECTION.get(a.split('/')[-1], UNKNOWN)
-    b = SECTION.get(b.split('/')[-1], UNKNOWN)
-    return a == b or a == 'both' or b == 'both'
+    # Every canonical scene now stands in one persistent world. Cross-file
+    # overlap is therefore just as real as overlap inside one generated output.
+    return True
 
 
 shapes = []
-for f in sorted(glob.glob('scenes/world/*.tscn')):
+sources = glob.glob('scenes/world/*.tscn')
+sources += glob.glob('scenes/world/generated/*.tscn')
+for f in sorted(sources):
     shapes.extend(parse(f))
 n_csg = sum(1 for s in shapes if s['kind'] == 'csg')
 n_mesh = len(shapes) - n_csg

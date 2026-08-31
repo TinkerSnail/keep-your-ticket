@@ -53,7 +53,7 @@ func _run() -> void:
 	await ParkSections.enter(&"boardwalk", &"plaza")
 	await get_tree().create_timer(SETTLE).timeout
 	if ParkSections.current() != &"boardwalk":
-		push_error("the boardwalk did not mount")
+		push_error("the boardwalk did not become the current logical area")
 		get_tree().quit(1)
 		return
 

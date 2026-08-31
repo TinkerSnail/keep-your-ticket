@@ -1,0 +1,60 @@
+[gd_scene load_steps=14 format=3]
+
+; The complete playable park, composed from one canonical scene per place.
+;
+; This file is deliberately hand-authored. Generators may rebuild the scenes
+; instanced below, but they must never rewrite this composition layer. That
+; gives the Godot editor a stable place for hand positioning, local overrides,
+; and new authored objects while generated assemblies continue to live beside
+; them.
+[ext_resource type="PackedScene" path="res://scenes/world/plaza.tscn" id="1_plaza"]
+[ext_resource type="PackedScene" path="res://scenes/world/entrance.tscn" id="2_entrance"]
+[ext_resource type="PackedScene" path="res://scenes/world/thresholds.tscn" id="3_thresholds"]
+[ext_resource type="PackedScene" path="res://scenes/world/plaza_skyline.tscn" id="4_skyline"]
+[ext_resource type="PackedScene" path="res://scenes/world/north_sky_ride.tscn" id="5_sky_ride"]
+[ext_resource type="PackedScene" path="res://scenes/world/west_shell.tscn" id="6_west_shell"]
+[ext_resource type="PackedScene" path="res://scenes/world/west_stair.tscn" id="7_west_stair"]
+[ext_resource type="PackedScene" path="res://scenes/world/boardwalk.tscn" id="8_boardwalk"]
+[ext_resource type="PackedScene" path="res://scenes/world/east_cascade.tscn" id="9_east_cascade"]
+[ext_resource type="PackedScene" path="res://scenes/world/park_transit.tscn" id="10_transit"]
+[ext_resource type="PackedScene" path="res://scenes/world/plaza_crowd.tscn" id="11_plaza_crowd"]
+[ext_resource type="PackedScene" path="res://scenes/world/boardwalk_crowd.tscn" id="12_boardwalk_crowd"]
+[ext_resource type="PackedScene" path="res://scenes/world/terraces_crowd.tscn" id="13_terraces_crowd"]
+
+[node name="park_world" type="Node3D" groups=["world"]]
+
+[node name="places" type="Node3D" parent="."]
+
+[node name="plaza" parent="places" instance=ExtResource("1_plaza")]
+
+[node name="entrance" parent="places" instance=ExtResource("2_entrance")]
+
+[node name="thresholds" parent="places" instance=ExtResource("3_thresholds")]
+
+[node name="west_shell" parent="places" instance=ExtResource("6_west_shell")]
+
+[node name="west_stair" parent="places" instance=ExtResource("7_west_stair")]
+
+[node name="boardwalk" parent="places" instance=ExtResource("8_boardwalk")]
+
+[node name="east_cascade" parent="places" instance=ExtResource("9_east_cascade")]
+
+[node name="shared" type="Node3D" parent="."]
+
+[node name="skyline" parent="shared" instance=ExtResource("4_skyline")]
+
+[node name="north_sky_ride" parent="shared" instance=ExtResource("5_sky_ride")]
+
+[node name="park_transit" parent="shared" instance=ExtResource("10_transit")]
+
+[node name="crowds" type="Node3D" parent="."]
+
+[node name="plaza_crowd" parent="crowds" instance=ExtResource("11_plaza_crowd")]
+
+[node name="boardwalk_crowd" parent="crowds" instance=ExtResource("12_boardwalk_crowd")]
+
+[node name="terraces_crowd" parent="crowds" instance=ExtResource("13_terraces_crowd")]
+
+; Hand additions that span districts can be placed here. District-specific
+; work should normally be made in that district's canonical scene instead.
+[node name="authored_additions" type="Node3D" parent="."]

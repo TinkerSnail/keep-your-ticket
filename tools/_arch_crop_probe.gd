@@ -4,8 +4,8 @@ extends Node
 ##
 ## The arithmetic and the picture disagree, so this is the tiebreaker. The ray
 ## from a 1.7m eye at `ARCH_NEAR_STAND_X` over the beam's near soffit reaches
-## y=23.4 at the wheel's plane, and the wheel's rim tops out at 25.80 — measured
-## off `west_far.tscn`, not quoted. That predicts about 2.4m of rim behind
+## y=23.4 at the wheel's plane, and the real wheel's rim tops out at 25.80 —
+## measured from the boardwalk scene, not quoted. That predicts about 2.4m behind
 ## masonry. A shot from the same standpoint reportedly shows it uncropped.
 ##
 ## Only one of those can be right, and the thing that would reconcile them is

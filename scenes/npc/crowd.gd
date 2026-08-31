@@ -21,6 +21,11 @@ extends Node3D
 ##
 ## The graph and the guests below it are generated — see `tools/gen_crowd.gd`.
 
+## Logical district identity. All district crowds coexist in `park_world.tscn`,
+## so interaction and HUD code select the right one by this tag rather than by
+## whichever node entered the `crowd` group first.
+@export var area_id: StringName = &"plaza"
+
 ## Flat pairs of node indices. Every edge is walkable in both directions, and
 ## the generator has already checked that nothing stands on it.
 @export var nodes: PackedVector3Array = PackedVector3Array()
@@ -449,6 +454,24 @@ func _target_for(kind: String, peak: int) -> int:
 ## Asked once per sync rather than per group, so that all three populations
 ## make the same decision about whether the way in is available this tick.
 func _sync_population(immediate: bool) -> void:
+	# A clock jump is a new snapshot, not a fast version of normal turnover.
+	# With one persistent park, every district keeps simulating while a dev tool
+	# measures another one. Some visits may therefore already be LEAVING when the
+	# clock jumps. The old section loader hid that by constructing a fresh crowd
+	# at each crossing; keeping those half-finished departures now carries people
+	# from the previous hour into the new one. Reset the snapshot completely,
+	# then admit exactly what the new hour asks for. Ordinary running never takes
+	# this branch and still walks every arrival and departure.
+	if immediate:
+		for visit in _visits:
+			if visit["state"] == Visit.OUT:
+				continue
+			for guest in visit["members"]:
+				if is_instance_valid(guest):
+					guest.go_dormant()
+			visit["state"] = Visit.OUT
+			visit["waiting"] = 0.0
+
 	var held := not immediate and _threshold_is_watched()
 	for kind in _visits_by_kind:
 		var list: Array = _visits_by_kind[kind]
@@ -494,6 +517,11 @@ func _sync_kind(list: Array, want: int, immediate: bool, held: bool) -> void:
 				continue
 			_admit(visit, immediate)
 			live = after
+			# During ordinary play one group enters per sync and visibly walks in.
+			# A jumped clock is a complete snapshot, so keep filling until the next
+			# group would cross the target.
+			if not immediate:
+				return
 		return
 
 	for i in range(list.size() - 1, -1, -1):

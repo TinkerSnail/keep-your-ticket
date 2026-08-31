@@ -59,13 +59,33 @@ the same rules with Xvfb and a fetched binary.
 
 ## Generators
 
-Output is checked in. Anything moved by hand in the editor is lost on the next
-run.
+Generated output is checked in, but it is no longer the scene you edit. The
+familiar scenes in `scenes/world/` are stable, editor-owned wrappers. Each one
+inherits a replaceable source with the same name from
+`scenes/world/generated/`, and `gen_props.gd` writes only those nested sources.
+
+For a visual edit, open the familiar wrapper — for example
+`scenes/world/plaza_skyline.tscn`, never the copy under `generated/`:
+
+1. Move, rotate or change a generated child in the inspector. Godot records a
+   property override in the wrapper, so regeneration can rebuild the source
+   without undoing the change.
+2. Put new hand-authored nodes under `authored_additions`. That node and its
+   children belong wholly to the wrapper and are never generated.
+3. Delete a hand-authored node normally. An inherited generated node cannot be
+   safely removed from the wrapper; hide it and disable its collision there, or
+   promote/remove that object in the generator when the deletion should become
+   structural.
+
+`plaza.tscn` and `park_world.tscn` are hand-authored directly. The three crowd
+scenes remain pure derived output and are not visual-authoring surfaces. A
+generator run is expected to change files only inside `scenes/world/generated/`
+plus those crowd scenes; a familiar world wrapper changing is a regression.
 
 | tool | what it builds |
 |---|---|
-| `gen_props.gd` | The ground textures and fifteen world scenes: props, skyline, the three west scenes, cascades, entrance, thresholds, paving, frontage, fountain and the persistent park-transit layer. **The order it writes them in is load-bearing** — each scene gets a seam seed five on from the last, so inserting a scene anywhere but the end shifts every scene after it. Run `coplanar_test.py` after touching that order. |
-| `gen_crowd.gd` | Both crowds — the plaza's and the boardwalk's — in one run. Bodies and placement only; behaviour lives in `scenes/npc/guest.gd` and is hand-written. |
+| `gen_props.gd` | The ground textures and thirteen generated world sources beneath the stable wrappers: props, skyline, west shell, real boardwalk, cascades, entrance, thresholds, paving, frontage, fountain, sky ride and the park-transit layer. It does not write `west_far` or `terraces_far`; the persistent world uses the real places. **The order it writes them in is load-bearing** — each scene gets a seam seed five on from the last, so the two retired seed slots remain until that system is replaced. Run `coplanar_test.py` after touching the order. |
+| `gen_crowd.gd` | The plaza, boardwalk and terraces crowds in one run. Each output carries an `area_id`, because all three coexist in `park_world.tscn`. Bodies and placement only; behaviour lives in `scenes/npc/guest.gd` and is hand-written. |
 
 ## Tests
 
@@ -74,9 +94,9 @@ merge.
 
 | tool | asks | notes |
 |---|---|---|
-| `walk_test.gd` | Can the player actually walk every route, in both directions, and does every open edge hold? | ~96 legs. The main defence against coplanar snags, missing step-up and holes behind platforms — none of which a screenshot shows. |
+| `walk_test.gd` | Can the player actually walk every route, in both directions, and does every open edge hold? | Hundreds of directed legs. The main defence against coplanar snags, missing step-up and holes behind platforms — none of which a screenshot shows. |
 | `transit_test.gd` | Do the Kiddieland railway and Grand Circuit form usable loops, move with riders while open, and park empty after close? | Run at `--fixed-fps 60`; also guards the sampled grades and the five station-to-route alignments. |
-| `section_test.gd` | Does crossing the west seam in both directions land the player on a floor rather than inside the bluff? | |
+| `section_test.gd` | Is the park one continuous standing world, with both plaza gates walkable in both directions and no load, teleport, far stand-in or transition gate? | Also verifies all canonical scenes and all three tagged crowds are present. |
 | `day_test.gd` | Does each section's crowd have a day — the curves, the admitting and the sending home? | `--headless --fixed-fps 60`, about ninety seconds. |
 | `night_test.gd` | Do the lights come on and go off again? | `park_lights.gd` fails by succeeding: miss the emissive materials and the lights still light. |
 | `menu_test.gd` | Does the pause menu respond to real input — tabs, cursor wrap, backing out of quit, and is the park actually stopped? | A still shows a screen draws, not that it works. |
@@ -116,11 +136,9 @@ wrapper and, where they save images, a real renderer.
 | `_fountain_probe.gd` | Walks into the fountain's kerb from sixteen bearings. |
 | `_glow_probe.gd` | The water's night glow, always paired against the same frame by day. |
 | `_hill_probe.gd` | The east hill: the scarp from the court, the climb, and the belvedere at the top of it. |
-| `_massing_probe.gd` | Does the plaza's stand-in look like the plaza? One free camera, held still while the section swaps under it, shot in `plaza`, `boardwalk` and `terraces` — the only way to see a stand-in beside its original, since the sections are mutually exclusive and no standpoint holds both. |
 | `_niche_probe.gd` | The wall fountain in the west cascade's niche, from the court. |
 | `_pfoam_probe.gd` | The plaza fountain's froth, shot low at the waterline. |
 | `_rim_probe.gd` | Does the east rim stand over the roofline, and does it open up as you back away? |
-| `_wheel_probe.gd` | The tableau's wheel and the section's, from one camera on both sides of the seam. |
 
 Godot writes a `.uid` beside every script it imports. Those are tracked — but
 delete the throwaway wrapper scene and its `.uid` when you are done.
