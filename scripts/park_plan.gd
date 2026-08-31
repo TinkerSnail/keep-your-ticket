@@ -1563,10 +1563,9 @@ const RIM_CREST_X := 150.0
 ##
 ## **Where the north arm goes was the decided-nothing that kept it unbuilt.** The
 ## note this replaces said a wrapping rim "has to decide what it does about the
-## grove and about the coaster standing in `plaza_skyline`, and neither of those
-## is decided". Measured rather than decided, in the end: the skyline coaster is
-## at z −58, the observation tower now stands on the playable east shoulder at
-## z −84, `SECTION_GROUND[&"grove"]` reaches z −146, and the arm's crest runs at
+## grove and the north skyline, and neither of those is decided". Measured rather
+## than decided, in the end: the observation tower now stands on the playable east
+## shoulder at z −84, `SECTION_GROUND[&"grove"]` reaches z −146, and the arm's crest runs at
 ## −190 to −224 with its foot no further in than about −160. Everything built or
 ## planned is south of it by twelve metres at the tightest, which is the
 ## back-of-house strip a section wants anyway.

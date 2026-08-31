@@ -41,7 +41,7 @@ const PLAN := 100.0
 ##
 ## Fewer than the plan has, and that is the whole of how big the park comes out.
 ## The plan's outermost band is empty on all four sides — nothing is drawn north
-## of the coaster or south of the gate — so sizing the paper to the full hundred
+## of the skyline tower or south of the gate — so sizing the paper to the full hundred
 ## leaves the drawing floating in the middle of it at about half height, which is
 ## the same fault as a square sheet in a landscape well one level further in. At
 ## 82 the park runs nearly the full height of the sheet and what is left at the
@@ -342,7 +342,7 @@ func _len(units: float) -> float:
 
 ## How far the drawing actually reaches either side of the plan's centre, in plan
 ## units before the spread. Not the plan's own half width, and the difference
-## matters: the water stops at 5 and the coaster at 86, so the plan's nominal
+## matters: the water stops at 5 and the skyline tower at 64, so the plan's nominal
 ## right-hand band is fifteen units of paper nothing is ever drawn on. Measuring
 ## the margin from there gives that paper to the margin and then leaves the
 ## compass sitting in the middle of it.
@@ -459,23 +459,11 @@ func _draw_water() -> void:
 	draw_polyline(edge, PAPER_LINE, LINE_FINE)
 
 
-## The things outside the walls that you can see from inside them and never
-## reach: the coaster north-east and the observation tower. They are drawn small
-## and pale, at the top of the sheet, because that is where they are and because
-## a map that draws them as boldly as the plaza would be promising a ride.
+## The thing outside the walls that you can see from inside them and never reach:
+## the observation tower. It is drawn small and pale, at the top of the sheet,
+## because that is where it is and because a map that draws it as boldly as the
+## plaza would be promising a ride.
 func _draw_skyline() -> void:
-	# The coaster: a lift hill and two drops, north-east.
-	var track := PackedVector2Array()
-	var profile := [
-		[Vector2(70.0, 26.0), 0.0], [Vector2(74.0, 26.0), 9.0], [Vector2(78.0, 26.0), 2.0],
-		[Vector2(82.0, 26.0), 6.5], [Vector2(86.0, 26.0), 1.0],
-	]
-	for entry in profile:
-		track.append(_rise(entry[0], entry[1]))
-	draw_polyline(track, Color(INK, 0.55), LINE_MID)
-	for entry in profile:
-		draw_line(_ground(entry[0]), _rise(entry[0], entry[1]), Color(INK, 0.28), LINE_FINE)
-
 	# The observation tower, north of the plaza.
 	var tower := Vector2(64.0, 20.0)
 	draw_line(_ground(tower), _rise(tower, 13.0), Color(INK, 0.55), LINE_MID)
@@ -706,7 +694,7 @@ func _draw_entrance() -> void:
 ##
 ## In the right margin, measured off the plan's own edge rather than off the
 ## paper's. It used to be at a fixed corner of a square sheet, which put it over
-## the coaster — the compass and the skyline were competing for the same inch of
+## the skyline — the compass and the skyline were competing for the same inch of
 ## paper, and the compass is the one that has to be read cold.
 func _draw_compass() -> void:
 	var block := _right_margin()

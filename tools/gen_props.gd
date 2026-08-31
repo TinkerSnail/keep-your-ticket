@@ -3703,20 +3703,18 @@ func _far_cyl(nm: String, origin: Vector3, radius: float, height: float, mat: St
 ## The classic wooden out-and-back: lift hill, first drop, then camelbacks.
 ## Built as a profile of support columns with the track line running over them.
 ##
-## `vscale` raises the profile without touching the footprint, and only the
-## plaza's skyline uses it. The boardwalk's coaster and its twin in the far
-## tableau must stay at 1.0 and stay identical to each other, or the silhouette
-## jumps when the player walks through the gate.
+## The boardwalk uses the same profile in every view, so the silhouette stays
+## identical when the player walks through the gate.
 const COASTER_EMBED := 0.5
 
-func _wooden_coaster(origin: Vector3, heading: float, mat: String, vscale := 1.0) -> void:
+func _wooden_coaster(origin: Vector3, heading: float, mat: String) -> void:
 	var profile := [3.0, 9.0, 15.0, 21.0, 26.0, 27.0, 9.0, 19.0, 8.0, 15.5, 7.0, 12.0, 6.5, 9.0, 5.0]
 	var step := 7.0
 	var dir := Basis(Vector3.UP, heading) * Vector3.FORWARD
 	var prev := Vector3.ZERO
 	for i in profile.size():
 		var foot: Vector3 = origin + dir * (i * step)
-		var h: float = profile[i] * vscale
+		var h: float = profile[i]
 		# Footed *into* the ground rather than onto it, which is both what a
 		# coaster's footings do and the only thing that keeps these fifteen
 		# columns off the underside of every building standing on the same shore.
@@ -3730,7 +3728,7 @@ func _wooden_coaster(origin: Vector3, heading: float, mat: String, vscale := 1.0
 			foot + Vector3(0, (h - COASTER_EMBED) * 0.5, 0),
 			0.55, h + COASTER_EMBED, mat, 6)
 		# cross-bracing, which is most of what reads as "wooden" at distance
-		if h > 8.0 * vscale:
+		if h > 8.0:
 			_strut("coaster_brace_%d" % i, foot + Vector3(0, 1.0, 0), foot + Vector3(0, h - 1.0, 0) + dir * 2.5, 0.35, mat)
 		var top: Vector3 = foot + Vector3(0, h, 0)
 		if i > 0:
@@ -10213,15 +10211,9 @@ func _wing_rail(nm: String, a: Vector2, ya: float, b: Vector2, yb: float,
 
 
 func _skyline() -> void:
-	# North, straight down the spawn sightline, cropped by building_north.
-	#
-	# A third taller than the boardwalk's, because the perimeter went to 13–19m
-	# on 2026-08-13 and at its old 27m crest the roofline ate it: the sightline
-	# from the fountain clears a 16m wall at 46m and passes 29m up by the time it
-	# reaches the crest column, 88m out. Height is the only lever that works
-	# here — moving the ride in or out barely changes the ratio of wall distance
-	# to ride distance, which is what decides how much shows.
-	_wooden_coaster(Vector3(-22, 0, -58), deg_to_rad(72.0), "far_warm", 1.3)
+	# The skyline coaster was retired. Keep its 38 generated seam slots reserved
+	# so removing it does not move the rim's material-displacement ordinal.
+	_seam_ordinal += 38
 	# The observation tower used to be four collisionless cylinders here at
 	# `(54, 0, -40)`, beside the north-east threshold and under the hillside it
 	# was meant to advertise. It is a real attraction in `east_cascade.tscn` now,
@@ -10234,8 +10226,8 @@ func _skyline() -> void:
 	# WEST_SHELL_PATH — because half of it has to survive the player crossing the
 	# gate and the other half has to be replaced when they do.
 	# East, and the largest thing in the park. Last in this scene rather than
-	# first, so that adding it moves nobody's seam ordinal: the coaster and the
-	# tower keep the displacement they were built with.
+	# first, so that adding it moves nobody's seam ordinal: the tower keeps the
+	# displacement it was built with.
 	_rim()
 
 

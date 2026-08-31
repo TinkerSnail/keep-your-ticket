@@ -116,10 +116,9 @@ const WEST := [
 	# inside of a building. The pier deck runs out to about −147.
 	{"name": "u_pier_head_north", "pos": Vector3(-145.0, -4.3, 6.0), "yaw": 0.0, "pitch": 3.0},
 	# East off the promenade, where the skyline scene now arrives with the arm.
-	# The coaster at (−22, −58) and the tower at (54, −40) come with it, over the
-	# bluff and behind the plaza's own massing, and this is the frame that says
-	# whether that reads as the park continuing or as clutter on a horizon that
-	# was clean.
+	# The observation tower comes with it, over the bluff and behind the plaza's
+	# own massing, and this is the frame that says whether that reads as the park
+	# continuing or as clutter on a horizon that was clean.
 	{"name": "v_promenade_east", "pos": Vector3(-98.0, -4.3, -40.0), "yaw": -90.0, "pitch": 6.0},
 ]
 
