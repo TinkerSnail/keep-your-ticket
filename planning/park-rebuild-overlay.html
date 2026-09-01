@@ -1,0 +1,2021 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src 'unsafe-inline' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Park Rebuild Overlay</title>
+<style>:root{color-scheme:light dark;background:light-dark(rgb(255 255 255), rgb(24 24 24))}html,body{margin:0}body{box-sizing:border-box;padding:1rem;background:inherit}iframe{display:block;width:100%;height:calc(100vh - 2rem);margin:0 auto;border:0}</style>
+</head>
+<body>
+<iframe sandbox="allow-scripts" referrerpolicy="no-referrer" title="Park Rebuild Overlay" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;&gt;
+&lt;meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#x27;none&#x27;; script-src &#x27;unsafe-inline&#x27; &#x27;unsafe-eval&#x27; &#x27;wasm-unsafe-eval&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src &#x27;unsafe-inline&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src &#x27;none&#x27;; object-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;&quot;&gt;
+&lt;title&gt;Park Rebuild Overlay&lt;/title&gt;
+&lt;style&gt;:root {
+  color-scheme: light dark;
+  background-color: var(
+    --background,
+    var(--color-background-primary, light-dark(rgb(255 255 255), rgb(24 24 24)))
+  ) !important;
+
+  /* Agent-facing contract; keep in sync with SKILL.md. */
+  --background: var(
+    --color-background-primary,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --card: color-mix(in oklab, var(--foreground) 5%, var(--background));
+  --card-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --popover: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255), rgb(45 45 45))
+  );
+  --popover-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --primary: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --primary-foreground: var(
+    --color-text-inverse,
+    light-dark(rgb(255 255 255), rgb(13 13 13))
+  );
+  --secondary: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255 / 96%), rgb(54 54 54 / 96%))
+  );
+  --secondary-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --muted: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --muted-foreground: var(
+    --color-text-secondary,
+    light-dark(rgb(26 28 31 / 49.4%), rgb(255 255 255 / 49.8%))
+  );
+  --accent: var(
+    --color-background-info,
+    light-dark(rgb(229 242 255), rgb(13 39 63))
+  );
+  --accent-foreground: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --destructive: var(
+    --color-text-warning,
+    light-dark(rgb(226 85 7), rgb(255 133 73))
+  );
+  --border: var(
+    --color-border-secondary,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+  --input: var(
+    --color-border-primary,
+    light-dark(
+      rgb(26 28 31 / 11.8%),
+      color-mix(in oklab, rgb(0 0 0) 10%, transparent)
+    )
+  );
+  --ring: var(
+    --color-ring-primary,
+    light-dark(rgb(51 156 255), rgb(131 195 255 / 76%))
+  );
+  --font-size-base: var(--font-text-md-size, 14px);
+  --blue: light-dark(rgb(51 156 255), rgb(51 156 255));
+  --orange: light-dark(rgb(226 85 7), rgb(251 106 34));
+  --green: light-dark(rgb(0 162 64), rgb(64 201 119));
+  --red: light-dark(rgb(224 46 42), rgb(255 103 100));
+  --purple: light-dark(rgb(146 79 247), rgb(173 123 249));
+  --yellow: light-dark(rgb(255 195 0), rgb(255 210 64));
+  --viz-series-1: var(--primary);
+  --viz-series-2: light-dark(rgb(243 136 59), rgb(245 154 86));
+  --viz-series-3: light-dark(rgb(93 201 119), rgb(116 213 139));
+  --viz-series-4: light-dark(rgb(235 119 177), rgb(240 143 192));
+  --viz-series-5: light-dark(rgb(155 121 236), rgb(170 145 239));
+  --viz-series-6: light-dark(rgb(58 185 177), rgb(90 203 194));
+
+  /* Internal implementation variables; not part of the agent contract. */
+  --font-sans: -apple-system, system-ui, &quot;Segoe UI&quot;, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, &quot;SF Mono&quot;, Menlo, Consolas, &quot;Liberation Mono&quot;,
+    monospace;
+  --font-size-normal: max(11px, var(--font-size-base));
+  --font-size-tooltip: calc(var(--font-size-base) - 1px);
+  --font-size-small: max(11px, calc(var(--font-size-base) - 2px));
+  --font-size-h1: calc(var(--font-size-normal) * 1.7142857143);
+  --font-size-h2: calc(var(--font-size-normal) * 1.4285714286);
+  --font-size-h3: calc(var(--font-size-normal) * 1.2857142857);
+  --font-weight-normal: 430;
+  --font-weight-medium: 500;
+  --line-height-normal: calc(var(--font-size-normal) * 1.5);
+  --line-height-tooltip: calc(var(--font-size-tooltip) * 1.4285714286);
+  --line-height-small: calc(var(--font-size-small) + 4px);
+  --radius: var(--border-radius-lg, 12.5px);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-2xl: calc(var(--radius) * 1.6);
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 8%);
+  --checkmark-image: url(&quot;data:image/svg+xml,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; viewBox=&#x27;0 0 17 17&#x27;%3E%3Cpath d=&#x27;M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z&#x27;/%3E%3C/svg%3E&quot;);
+
+  /* Legacy aliases; not part of the current agent contract. */
+  --viz-bg: transparent;
+  --viz-panel: var(--card);
+  --viz-border: var(--border);
+  --viz-text: var(--foreground);
+  --viz-muted: var(--muted-foreground);
+  --viz-accent: var(--primary);
+  --viz-accent-text: var(--primary-foreground);
+  --viz-accent-bg: var(--accent);
+  --viz-font-size: var(--font-size-base);
+  --viz-warning: var(--destructive);
+}
+
+:root[data-theme=&quot;light&quot;] {
+  color-scheme: light;
+}
+
+:root[data-theme=&quot;dark&quot;] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html &gt; body {
+  /* Preserve MCP aliases for older inline renderers without creating :root cycles. */
+  --color-background-primary: var(
+    --background,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --color-text-primary: var(
+    --foreground,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --color-border-secondary: var(
+    --border,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+
+  margin: 0;
+  padding: 5px;
+  color: var(--foreground);
+  background: transparent !important;
+  font-family: var(--font-sans) !important;
+  font-size: var(--font-size-normal);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+}
+
+a {
+  color: color-mix(in srgb, var(--viz-accent) 80%, var(--viz-text) 20%);
+  cursor: pointer;
+  font-weight: var(--font-weight-medium, 500);
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+
+a:is(:hover, :focus-visible) {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 0.5px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-block: 0;
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+}
+
+b,
+strong,
+th {
+  font-weight: var(--font-weight-medium);
+}
+
+code:not(pre code) {
+  display: inline;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1.5);
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  word-break: break-word;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--foreground);
+  font: inherit;
+  text-align: start;
+}
+
+.table :is(th, td) {
+  padding-block: 10px;
+  padding-inline: 0 24px;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.table-responsive &gt; .table :is(th, td) {
+  overflow-wrap: break-word;
+}
+
+.table :is(th, td):last-child {
+  padding-inline-end: 0;
+}
+
+.table :is(caption, thead th) {
+  font-weight: 600;
+}
+
+.table thead th {
+  padding-block: 8px;
+  border-bottom-color: color-mix(in srgb, var(--foreground) 16%, transparent);
+}
+
+.table tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+
+.table.table-sm :is(th, td) {
+  padding-block: 6px;
+}
+
+.table.table-sm :is(th, td):not(:last-child) {
+  padding-inline-end: 16px;
+}
+
+.table :is(.text-end, [align=&quot;right&quot;]) {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.table :is(.text-center, [align=&quot;center&quot;]) {
+  text-align: center;
+}
+
+.table .text-nowrap {
+  white-space: nowrap;
+}
+
+#widget {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  background: transparent !important;
+}
+
+.card {
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  border-radius: var(--radius-2xl);
+  corner-shape: superellipse(1.5);
+  color: var(--card-foreground);
+  background: var(--card);
+}
+
+#widget &gt; :not(.card, .progress) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: max-content;
+  max-width: min(
+    20rem,
+    var(--tooltip-available-width, calc(100vw - 10px)),
+    calc(100vw - 10px)
+  );
+  max-height: min(
+    var(--tooltip-available-height, calc(100vh - 10px)),
+    calc(100vh - 10px)
+  );
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--popover-foreground);
+  background: var(--popover);
+  box-shadow: none;
+  font-size: var(--font-size-tooltip);
+  line-height: var(--line-height-tooltip);
+  overflow-wrap: break-word;
+  white-space: normal;
+  pointer-events: none;
+  user-select: none;
+}
+
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(max(180px, 24%), 1fr));
+  gap: 10px;
+}
+
+.viz-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.viz-stat-value {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+.viz-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.progress {
+  display: flex;
+  height: 6px;
+  margin-block: calc((var(--line-height-normal, 1.5em) - 6px) / 2);
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+}
+
+.progress-bar {
+  height: 100%;
+  flex-shrink: 0;
+  border: 0;
+  background: var(--viz-series-1);
+}
+
+.viz-badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  color: var(--accent-foreground);
+  background: var(--accent);
+  font-weight: var(--font-weight-medium);
+}
+
+small,
+.text-small,
+.viz-badge {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+}
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.viz-controls &gt; .form-label {
+  display: grid;
+  min-width: min(100%, 260px);
+  flex: 1 1 280px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin-bottom: 0;
+}
+
+.viz-controls &gt; .form-label &gt; :is(.form-control, .form-range, .form-select) {
+  grid-column: 1 / -1;
+}
+
+.btn,
+.form-check-input,
+.form-control,
+.form-range,
+.form-select {
+  font: inherit;
+}
+
+.btn {
+  appearance: button;
+  display: inline-flex;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 8px;
+  -webkit-app-region: no-drag;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: var(--cursor-interaction, pointer);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.btn:is(.btn-block, .viz-tile) {
+  inline-size: 100%;
+}
+
+.btn.viz-tile {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+a.btn {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn-primary {
+  border-color: transparent;
+  color: var(--primary-foreground);
+  background: var(--foreground);
+  background-clip: padding-box;
+}
+
+.btn-primary .text-muted {
+  color: color-mix(in srgb, var(--primary-foreground) 50%, transparent);
+}
+
+.btn-primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 80%, transparent);
+  background-clip: padding-box;
+}
+
+.btn-ghost {
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.btn-ghost:not(:disabled):hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+[data-lucide] {
+  stroke-width: 1.6;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--foreground);
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--foreground);
+  background: var(--secondary);
+}
+
+.form-control::placeholder {
+  color: var(--muted-foreground);
+}
+
+.form-control[type=&quot;file&quot;] {
+  padding: 0;
+  overflow: hidden;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control[type=&quot;file&quot;]::file-selector-button {
+  min-height: 26px;
+  margin-right: 8px;
+  padding: 0 8px;
+  border: 0;
+  border-right: 1px solid var(--input);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: inherit;
+  font: inherit;
+}
+
+.form-control[type=&quot;file&quot;]:not(:disabled):hover::file-selector-button {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-control-color[type=&quot;color&quot;] {
+  width: 40px;
+  height: 28px;
+  padding: 3px;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch {
+  border: 0;
+  border-radius: calc(var(--radius-lg) - 4px);
+  corner-shape: superellipse(1.5);
+}
+
+textarea.form-control {
+  height: auto;
+  min-height: 72px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.form-control:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.form-select {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding: 0 32px 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--foreground);
+  background-color: var(--secondary);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted-foreground) 50%),
+    linear-gradient(135deg, var(--muted-foreground) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size: 4px 4px;
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-select:not(:disabled):hover {
+  background-color: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-check {
+  display: flex;
+  min-height: 20px;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-check-input {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 1px solid var(--input);
+  color: var(--primary-foreground);
+  background-color: transparent;
+  cursor: var(--cursor-interaction, default);
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;] {
+  border-color: var(--input);
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1.5);
+  background-color: var(--secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input:not(:disabled):not(:checked):hover {
+  background-color: var(--card);
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;]:checked {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input[type=&quot;checkbox&quot;]:checked::before {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-foreground);
+  content: &quot;&quot;;
+  mask: var(--checkmark-image) center / 12px 12px no-repeat;
+}
+
+.form-check-input[type=&quot;radio&quot;] {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+}
+
+.form-check-input[type=&quot;radio&quot;]:checked {
+  border: 2px solid var(--primary);
+  background:
+    radial-gradient(circle, var(--primary-foreground) 0 2.5px, transparent 3px),
+    var(--primary);
+}
+
+.form-check:not(.form-switch) .form-check-input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+}
+
+.form-switch .form-check-input:disabled,
+.form-switch .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-check-label {
+  color: var(--foreground);
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-switch .form-check-input {
+  position: relative;
+  width: 32px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  box-shadow: none;
+  transition: background-color 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 1px solid light-dark(var(--primary-foreground), var(--foreground));
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+  box-shadow: var(--shadow-sm);
+  content: &quot;&quot;;
+  transform: translate(2px, -50%);
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input:checked {
+  background: var(--primary);
+}
+
+.form-switch .form-check-input:checked::before {
+  transform: translate(14px, -50%);
+}
+
+.form-switch .form-check-input:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.form-range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 28px;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  outline: none;
+  border: 0;
+  accent-color: var(--primary);
+  background: linear-gradient(
+      color-mix(in srgb, var(--foreground) 7%, transparent),
+      color-mix(in srgb, var(--foreground) 7%, transparent)
+    )
+    center / 100% 2px no-repeat;
+}
+
+.form-range::-webkit-slider-runnable-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-webkit-slider-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range::-moz-range-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-moz-range-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.btn:not(.btn-primary, .viz-tile):is(
+  [aria-pressed=&quot;true&quot;],
+  [aria-selected=&quot;true&quot;],
+  .is-selected
+) {
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.btn.viz-tile:is([aria-pressed=&quot;true&quot;], [aria-selected=&quot;true&quot;], .is-selected) {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@media (pointer: coarse) {
+  .btn,
+  .form-control,
+  .form-select {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .form-control,
+  .form-select {
+    font-size: max(16px, var(--font-size-normal));
+  }
+
+  .form-control[type=&quot;file&quot;]::file-selector-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .form-control-color[type=&quot;color&quot;] {
+    width: 44px;
+    height: 44px;
+  }
+
+  .form-control:is(
+    [type=&quot;date&quot;],
+    [type=&quot;datetime-local&quot;],
+    [type=&quot;month&quot;],
+    [type=&quot;time&quot;],
+    [type=&quot;week&quot;]
+  ) {
+    min-width: 0;
+    max-width: 100%;
+    padding-block: 8px;
+  }
+
+  .form-check {
+    min-height: 44px;
+    padding-inline: 15px;
+  }
+
+  .form-check-input {
+    position: relative;
+  }
+
+  .form-check-input::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    content: &quot;&quot;;
+    transform: translate(-50%, -50%);
+  }
+
+  .form-check-label {
+    display: inline-flex;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .form-range {
+    height: 44px;
+    touch-action: pan-y;
+  }
+
+  .form-range::-webkit-slider-runnable-track {
+    height: 44px;
+  }
+
+  .form-range::-moz-range-track {
+    height: 44px;
+  }
+
+  .form-range::-webkit-slider-thumb {
+    margin-top: 12px;
+  }
+}
+
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+#widget &gt; svg {
+  width: 100%;
+}
+
+/* Model-authored chart rules can otherwise stretch icons after these styles load. */
+svg.lucide {
+  display: block;
+  width: 16px !important;
+  height: 16px !important;
+  flex: none;
+  margin: 0 !important;
+  stroke-width: 1.6;
+}
+
+.text-warning,
+.text-destructive {
+  color: var(--destructive);
+}
+
+html&gt;body{padding:0}&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;park-rebuild-overlay&quot;&gt;
+  &lt;h2&gt;Park rebuild overlay&lt;/h2&gt;
+
+  &lt;div class=&quot;viz-controls&quot; aria-label=&quot;Execution package controls&quot;&gt;
+    &lt;label class=&quot;form-label&quot; for=&quot;rebuild-package-select&quot;&gt;Inspect work package
+      &lt;select class=&quot;form-select&quot; id=&quot;rebuild-package-select&quot;&gt;
+        &lt;option value=&quot;all&quot;&gt;All — complete overlay&lt;/option&gt;
+        &lt;option value=&quot;strip&quot; selected&gt;01 — Strip inherited circulation&lt;/option&gt;
+        &lt;option value=&quot;terrain&quot;&gt;02 — Protect, grade, and retain&lt;/option&gt;
+        &lt;option value=&quot;trunks&quot;&gt;03 — Lay primary trunks&lt;/option&gt;
+        &lt;option value=&quot;loops&quot;&gt;04 — Close loops and ride courts&lt;/option&gt;
+        &lt;option value=&quot;service&quot;&gt;05 — Service, drainage, and planting&lt;/option&gt;
+        &lt;option value=&quot;qa&quot;&gt;06 — Navigation and acceptance&lt;/option&gt;
+      &lt;/select&gt;
+    &lt;/label&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;build-sequence text-small&quot; aria-label=&quot;Binding construction order&quot;&gt;
+    &lt;span&gt;&lt;b&gt;01&lt;/b&gt; Strip&lt;/span&gt;&lt;i aria-hidden=&quot;true&quot;&gt;→&lt;/i&gt;
+    &lt;span&gt;&lt;b&gt;02&lt;/b&gt; Grade&lt;/span&gt;&lt;i aria-hidden=&quot;true&quot;&gt;→&lt;/i&gt;
+    &lt;span&gt;&lt;b&gt;03&lt;/b&gt; Trunks&lt;/span&gt;&lt;i aria-hidden=&quot;true&quot;&gt;→&lt;/i&gt;
+    &lt;span&gt;&lt;b&gt;04&lt;/b&gt; Loops + pads&lt;/span&gt;&lt;i aria-hidden=&quot;true&quot;&gt;→&lt;/i&gt;
+    &lt;span&gt;&lt;b&gt;05&lt;/b&gt; Service + plant&lt;/span&gt;&lt;i aria-hidden=&quot;true&quot;&gt;→&lt;/i&gt;
+    &lt;span&gt;&lt;b&gt;06&lt;/b&gt; Nav + shots&lt;/span&gt;
+  &lt;/div&gt;
+
+  &lt;svg id=&quot;rebuild-map&quot; role=&quot;img&quot; aria-labelledby=&quot;rebuild-map-title rebuild-map-description&quot;&gt;
+    &lt;title id=&quot;rebuild-map-title&quot;&gt;Demolition and construction overlay for the park rebuild&lt;/title&gt;
+    &lt;desc id=&quot;rebuild-map-description&quot;&gt;A measured world-coordinate plan showing inherited paths to remove, protected monuments, final circulation, terrain edges, ride courts, service access, and acceptance points.&lt;/desc&gt;
+  &lt;/svg&gt;
+
+  &lt;div class=&quot;card package-summary&quot; aria-live=&quot;polite&quot;&gt;
+    &lt;div id=&quot;package-title&quot;&gt;&lt;/div&gt;
+    &lt;div id=&quot;package-detail&quot; class=&quot;text-small&quot;&gt;&lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;overlay-key text-small&quot; aria-label=&quot;Overlay key&quot;&gt;
+    &lt;span&gt;&lt;b class=&quot;key-line key-remove&quot;&gt;&lt;/b&gt; Remove completely&lt;/span&gt;
+    &lt;span&gt;&lt;b class=&quot;key-line key-absorb&quot;&gt;&lt;/b&gt; Retain / absorb&lt;/span&gt;
+    &lt;span&gt;&lt;b class=&quot;key-zone key-protect&quot;&gt;&lt;/b&gt; No-touch monument&lt;/span&gt;
+    &lt;span&gt;&lt;b class=&quot;key-line key-new&quot;&gt;&lt;/b&gt; New public route&lt;/span&gt;
+    &lt;span&gt;&lt;b class=&quot;key-line key-wall&quot;&gt;&lt;/b&gt; Retaining edge&lt;/span&gt;
+    &lt;span&gt;&lt;b class=&quot;key-pad&quot;&gt;&lt;/b&gt; Ride / queue court&lt;/span&gt;
+    &lt;span&gt;&lt;b class=&quot;key-line key-service&quot;&gt;&lt;/b&gt; Service access&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;style&gt;
+  #park-rebuild-overlay {
+    display: grid;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+    color: var(--foreground);
+  }
+  #park-rebuild-overlay h2 {
+    margin: 0;
+  }
+  #park-rebuild-overlay .viz-controls {
+    align-items: end;
+  }
+  #park-rebuild-overlay .form-label {
+    min-width: min(100%, 360px);
+  }
+  #park-rebuild-overlay .build-sequence {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    color: var(--muted-foreground);
+  }
+  #park-rebuild-overlay .build-sequence b {
+    color: var(--foreground);
+    font-weight: 500;
+  }
+  #park-rebuild-overlay .build-sequence i {
+    font-style: normal;
+  }
+  #park-rebuild-overlay #rebuild-map {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  #park-rebuild-overlay .package-summary {
+    display: grid;
+    gap: 4px;
+  }
+  #park-rebuild-overlay #package-title {
+    font-weight: 500;
+  }
+  #park-rebuild-overlay .overlay-key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px 18px;
+  }
+  #park-rebuild-overlay .overlay-key span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  #park-rebuild-overlay .key-line {
+    display: inline-block;
+    width: 22px;
+    height: 4px;
+  }
+  #park-rebuild-overlay .key-zone,
+  #park-rebuild-overlay .key-pad {
+    display: inline-block;
+    width: 18px;
+    height: 12px;
+  }
+  #park-rebuild-overlay .key-remove {
+    background: repeating-linear-gradient(90deg,var(--red) 0 6px,transparent 6px 10px);
+  }
+  #park-rebuild-overlay .key-absorb { background: var(--yellow); }
+  #park-rebuild-overlay .key-protect { background: color-mix(in oklab,var(--purple) 28%,transparent); }
+  #park-rebuild-overlay .key-new { background: var(--green); }
+  #park-rebuild-overlay .key-wall { background: var(--orange); }
+  #park-rebuild-overlay .key-pad { background: color-mix(in oklab,var(--blue) 24%,transparent); }
+  #park-rebuild-overlay .key-service {
+    background: repeating-linear-gradient(90deg,var(--orange) 0 3px,transparent 3px 7px);
+  }
+  #park-rebuild-overlay .map-water {
+    fill: var(--blue);
+    fill-opacity: 0.13;
+  }
+  #park-rebuild-overlay .map-land {
+    fill: var(--green);
+    fill-opacity: 0.055;
+    stroke: var(--muted-foreground);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+  }
+  #park-rebuild-overlay .map-frame,
+  #park-rebuild-overlay .map-grid {
+    fill: none;
+    stroke: var(--border);
+    stroke-width: 1;
+  }
+  #park-rebuild-overlay .map-grid {
+    stroke-dasharray: 2 6;
+  }
+  #park-rebuild-overlay .axis-copy,
+  #park-rebuild-overlay .map-label,
+  #park-rebuild-overlay .route-label,
+  #park-rebuild-overlay .junction-label,
+  #park-rebuild-overlay .removal-label,
+  #park-rebuild-overlay .protected-label,
+  #park-rebuild-overlay .terrain-label,
+  #park-rebuild-overlay .wall-label,
+  #park-rebuild-overlay .ride-label,
+  #park-rebuild-overlay .qa-label {
+    fill: var(--foreground);
+    font-size: 12px;
+  }
+  #park-rebuild-overlay .axis-copy {
+    fill: var(--muted-foreground);
+  }
+  #park-rebuild-overlay .map-label,
+  #park-rebuild-overlay .route-label,
+  #park-rebuild-overlay .junction-label,
+  #park-rebuild-overlay .removal-label,
+  #park-rebuild-overlay .protected-label,
+  #park-rebuild-overlay .terrain-label,
+  #park-rebuild-overlay .wall-label,
+  #park-rebuild-overlay .ride-label,
+  #park-rebuild-overlay .qa-label {
+    font-weight: 500;
+    paint-order: stroke;
+    stroke: var(--background);
+    stroke-width: 4;
+    stroke-linejoin: round;
+  }
+  #park-rebuild-overlay .terrain-band {
+    stroke: none;
+  }
+  #park-rebuild-overlay .terrain-band[data-level=&quot;T0&quot;] { fill: var(--blue); fill-opacity: 0.18; }
+  #park-rebuild-overlay .terrain-band[data-level=&quot;T1&quot;] { fill: var(--purple); fill-opacity: 0.12; }
+  #park-rebuild-overlay .terrain-band[data-level=&quot;T2&quot;] { fill: var(--green); fill-opacity: 0.07; }
+  #park-rebuild-overlay .terrain-band[data-level=&quot;T3&quot;] { fill: var(--yellow); fill-opacity: 0.10; }
+  #park-rebuild-overlay .terrain-band[data-level=&quot;T4&quot;] { fill: var(--green); fill-opacity: 0.13; }
+  #park-rebuild-overlay .terrain-band[data-level=&quot;T5&quot;] { fill: var(--orange); fill-opacity: 0.11; }
+  #park-rebuild-overlay .terrain-band[data-level=&quot;T6&quot;] { fill: var(--yellow); fill-opacity: 0.15; }
+  #park-rebuild-overlay .terrain-band[data-level=&quot;T7&quot;] { fill: var(--purple); fill-opacity: 0.13; }
+  #park-rebuild-overlay .old-path,
+  #park-rebuild-overlay .absorbed-path,
+  #park-rebuild-overlay .new-route,
+  #park-rebuild-overlay .retaining-line,
+  #park-rebuild-overlay .queue-line,
+  #park-rebuild-overlay .service-line,
+  #park-rebuild-overlay .landscape-line,
+  #park-rebuild-overlay .qa-walk {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  #park-rebuild-overlay .old-path {
+    stroke: var(--red);
+    stroke-width: 5;
+    stroke-dasharray: 10 7;
+  }
+  #park-rebuild-overlay .absorbed-path {
+    stroke: var(--yellow);
+    stroke-width: 6;
+    stroke-dasharray: 3 6;
+  }
+  #park-rebuild-overlay .new-route {
+    stroke: var(--green);
+    stroke-opacity: 0.88;
+  }
+  #park-rebuild-overlay .new-route.is-ghost {
+    stroke-opacity: 0.28;
+    stroke-width: 3 !important;
+    stroke-dasharray: 5 7;
+  }
+  #park-rebuild-overlay .new-route.is-muted {
+    stroke-opacity: 0.28;
+  }
+  #park-rebuild-overlay .protected-zone {
+    fill: var(--purple);
+    fill-opacity: 0.17;
+    stroke: var(--purple);
+    stroke-width: 2.5;
+    stroke-dasharray: 7 5;
+  }
+  #park-rebuild-overlay .protected-path {
+    fill: none;
+    stroke: var(--purple);
+    stroke-width: 5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  #park-rebuild-overlay .retaining-line {
+    stroke: var(--orange);
+    stroke-width: 4;
+  }
+  #park-rebuild-overlay .retaining-line[data-kind=&quot;local&quot;] {
+    stroke-width: 3;
+    stroke-dasharray: 6 5;
+  }
+  #park-rebuild-overlay .ride-pad {
+    fill: var(--blue);
+    fill-opacity: 0.18;
+    stroke: var(--blue);
+    stroke-width: 2;
+  }
+  #park-rebuild-overlay .queue-line {
+    stroke: var(--green);
+    stroke-width: 3;
+    stroke-dasharray: 4 4;
+  }
+  #park-rebuild-overlay .service-line {
+    stroke: var(--orange);
+    stroke-width: 3;
+    stroke-dasharray: 3 6;
+  }
+  #park-rebuild-overlay .landscape-line {
+    stroke: var(--green);
+    stroke-width: 8;
+    stroke-opacity: 0.24;
+  }
+  #park-rebuild-overlay .junction-dot {
+    fill: var(--background);
+    stroke: var(--green);
+    stroke-width: 3;
+  }
+  #park-rebuild-overlay .removal-dot {
+    fill: var(--red);
+    stroke: var(--background);
+    stroke-width: 2;
+  }
+  #park-rebuild-overlay .closure-mark {
+    stroke: var(--red);
+    stroke-width: 4;
+    stroke-linecap: round;
+  }
+  #park-rebuild-overlay .qa-dot {
+    fill: var(--yellow);
+    stroke: var(--background);
+    stroke-width: 2;
+  }
+  #park-rebuild-overlay .qa-walk {
+    stroke: var(--yellow);
+    stroke-width: 3;
+    stroke-dasharray: 2 7;
+  }
+  #park-rebuild-overlay .north-arrow {
+    fill: var(--foreground);
+    stroke: var(--foreground);
+  }
+  #park-rebuild-overlay .scale-bar {
+    stroke: var(--foreground);
+    stroke-width: 3;
+  }
+  @media (max-width: 520px) {
+    #park-rebuild-overlay .build-sequence {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    #park-rebuild-overlay .build-sequence i {
+      display: none;
+    }
+    #park-rebuild-overlay .overlay-key {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+  }
+&lt;/style&gt;
+
+&lt;script&gt;
+(() =&gt; {
+  const root = document.getElementById(&#x27;park-rebuild-overlay&#x27;);
+  const svg = root.querySelector(&#x27;#rebuild-map&#x27;);
+  const select = root.querySelector(&#x27;#rebuild-package-select&#x27;);
+  const packageTitle = root.querySelector(&#x27;#package-title&#x27;);
+  const packageDetail = root.querySelector(&#x27;#package-detail&#x27;);
+  const ns = &#x27;http://www.w3.org/2000/svg&#x27;;
+
+  const domain = {x0:-178,x1:164,z0:-160,z1:160};
+  const parkOutline = [
+    [-112,-151],[24,-153],[88,-140],[132,-111],[146,-62],[147,60],
+    [137,119],[104,145],[24,151],[-25,144],[-75,112],[-96,62],[-112,62]
+  ];
+
+  const routes = {
+    A:{name:&#x27;A · Entrance / Plaza / Headland&#x27;,label:[-35,-88],paths:[
+      {w:11,p:[[0,123],[0,107],[0,86],[0,62],[0,34],[0,18]]},
+      {w:11,p:[[0,-18],[-1,-35],[-3,-52],[-6,-68],[-10,-84],[-13,-101],[-16,-112]]},
+      {w:10,p:[[-16,-112],[-30,-114],[-37,-125],[-31,-138],[-16,-144],[0,-139],[6,-126],[1,-115],[-16,-112]]},
+      {w:18,p:[[0,18],[9,15],[16,8],[18,0],[16,-8],[9,-15],[0,-18],[-9,-15],[-16,-8],[-18,0],[-16,8],[-9,15],[0,18]]}
+    ]},
+    B:{name:&#x27;B · Waterfront spine + returns&#x27;,label:[-108,22],paths:[
+      {w:10,p:[[-96,-62],[-96,-40],[-96,-15],[-96,10],[-96,35],[-96,60]]},
+      {w:8,p:[[-6,-68],[-22,-66],[-40,-62],[-58,-58],[-75,-59],[-90,-62],[-96,-62]]},
+      {w:9,p:[[-18,0],[-32,-1],[-45,-2],[-52,-2],[-58,-2],[-72,-2],[-84,-2],[-96,-2]]},
+      {w:8,p:[[-96,60],[-88,64],[-82,72],[-80,84],[-75,95],[-64,101],[-53,98],[-47,90],[-48,78]]}
+    ]},
+    C:{name:&#x27;C · Coastal circuit&#x27;,label:[-74,94],paths:[
+      {w:8,p:[[-48,78],[-58,70],[-72,76],[-78,90],[-70,108],[-52,116],[-32,112],[-18,101],[-10,88],[-22,77],[-48,78]]},
+      {w:9,p:[[-10,88],[-4,87],[0,86]]},
+      {w:9,p:[[-22,77],[-18,62],[-13,44],[-10,28],[-12,14]]}
+    ]},
+    D:{name:&#x27;D · Kiddieland circuit&#x27;,label:[78,88],paths:[
+      {w:9,p:[[0,86],[12,82],[25,76],[38,70],[49,68]]},
+      {w:8,p:[[49,68],[58,55],[75,51],[91,56],[105,69],[108,86],[98,103],[80,111],[61,108],[46,96],[42,82],[49,68]]},
+      {w:10,p:[[49,68],[42,54],[34,39],[25,25],[15,14]]},
+      {w:9,p:[[58,55],[66,44],[72,32],[72,22]]}
+    ]},
+    E:{name:&#x27;E · Terraces orbit&#x27;,label:[111,17],paths:[
+      {w:8.5,p:[[46,0],[48,-18],[55,-30],[70,-42],[90,-50],[108,-52],[118,-40],[122,-20],[112,0],[120,14],[119,30],[108,43],[91,50],[74,48],[58,40],[49,26],[46,0]]},
+      {w:9,p:[[18,0],[32,0],[46,0]]},
+      {w:9,p:[[72,32],[74,40],[74,48]]},
+      {w:9,p:[[90,-50],[94,-58]]}
+    ]},
+    F:{name:&#x27;F · Northern ride circuit&#x27;,label:[57,-126],paths:[
+      {w:9,p:[[-6,-68],[4,-82],[20,-100],[40,-113],[63,-120],[86,-116],[106,-104],[120,-86],[124,-62],[118,-42],[107,-30],[94,-50],[78,-65],[58,-70],[39,-64],[20,-55],[-1,-58],[-6,-68]]},
+      {w:12,p:[[94,-50],[94,-58]]},
+      {w:12,p:[[-6,-68],[-3,-52]]}
+    ]}
+  };
+
+  const junctions = [
+    [&#x27;J1&#x27;,0,86],[&#x27;J2&#x27;,0,0],[&#x27;J3&#x27;,-6,-68],[&#x27;J4&#x27;,-16,-112],
+    [&#x27;J5&#x27;,-52,-2],[&#x27;J6&#x27;,-48,78],[&#x27;J7&#x27;,49,68],[&#x27;J8&#x27;,74,48],[&#x27;J9&#x27;,94,-58]
+  ];
+
+  const demolitions = [
+    {id:&#x27;X1&#x27;,name:&#x27;Plaza north doglegs&#x27;,label:[-9,-45],paths:[
+      [[-8,-13.86],[-14,-30],[-16.9,-51.5]],
+      [[53.8,-18.4],[53.8,-39.2],[55,-46],[49,-50],[24,-50],[-4,-50]],
+      [[-4,-50],[-6.8,-48.6],[-16.9,-48.6]]
+    ]},
+    {id:&#x27;X2&#x27;,name:&#x27;Kiddieland S-path + stubs&#x27;,label:[67,78],paths:[
+      [[-1.5,31.3],[51.5,31.3]],
+      [[51.5,31.3],[58,31.3],[58,44],[55,55],[49,67],[43,81],[54,88],[68,91],[82,88],[93,79],[101,67]],
+      [[6,81],[18,81],[30,81],[43,81]],
+      [[26,81],[26,70],[31,63],[42,63],[49,67]],
+      [[49,67],[47,69],[51,69.5]],
+      [[68,91],[63,84],[60,80.5]]
+    ]},
+    {id:&#x27;X3&#x27;,name:&#x27;Fairground straight spine + stubs&#x27;,label:[-42,91],paths:[
+      [[-8,13.86],[-28,30],[-31.3,51.5]],
+      [[-43.5,55.5],[-43.5,62],[-40,68],[-40,81],[-40,94],[-37,104]],
+      [[-40,89],[-35.5,91]],
+      [[-40,78],[-34,78],[-29.5,78]],
+      [[-39,97.3],[-44.5,98]]
+    ]},
+    {id:&#x27;X4&#x27;,name:&#x27;Grove double-back + dead-end spurs&#x27;,label:[-26,-104],paths:[
+      [[-32.45,-58],[-36,-62],[-35.5,-68],[-30,-75],[-18,-84],[-7,-89],[2,-99],[7,-111],[6,-122],[3,-130]],
+      [[-30,-75],[-36,-83],[-36,-96],[-34,-109],[-31,-122],[-20,-129],[-8,-127],[6,-122]],
+      [[-18,-84],[-18,-91],[-18,-97.7]],
+      [[3,-130],[2,-134.8]],
+      [[7,-111],[13,-109],[20.4,-104.1]],
+      [[-31,-122],[-28.2,-120.5],[-26.8,-118.8]]
+    ]},
+    {id:&#x27;X5&#x27;,name:&#x27;Frontier narrow approach&#x27;,label:[102,-86],labelDx:-12,labelAnchor:&#x27;end&#x27;,paths:[
+      [[108.4,-44],[101.3,-48],[101.3,-64],[103.2,-70],[106,-74],[107.6,-78]],
+      [[106,-74],[99,-74.3],[94.2,-78.4],[93.3,-86],[94,-90],[94,-93]],
+      [[94,-93],[98.6,-92.8],[103.2,-92.6],[107.8,-92.8]]
+    ]}
+  ];
+
+  const closurePoints = [
+    {id:&#x27;X6&#x27;,at:[-96,-62]},{id:&#x27;X6&#x27;,at:[-96,60]},
+    {id:&#x27;X6&#x27;,at:[-37,104]},{id:&#x27;X6&#x27;,at:[101,67]},
+    {id:&#x27;X6&#x27;,at:[22,-103]},{id:&#x27;X6&#x27;,at:[73.8,-97]}
+  ];
+
+  const absorbed = [
+    {id:&#x27;KEEP 1&#x27;,paths:[
+      [[16,0],[13.86,8],[8,13.86],[0,16],[-8,13.86],[-13.86,8],[-16,0],[-13.86,-8],[-8,-13.86],[0,-16],[8,-13.86],[13.86,-8],[16,0]],
+      [[0,16],[-1.5,30],[-1.5,50],[-1.5,123]]
+    ],label:[-18,39]},
+    {id:&#x27;KEEP 2&#x27;,paths:[
+      [[-16,0],[-26,-2],[-30.5,-2],[-44,-2],[-49,-2]],
+      [[-96,-62],[-96,60]]
+    ],label:[-108,6]},
+    {id:&#x27;SERVICE&#x27;,paths:[
+      [[-78,-30],[-78,40]],[[-78,-2],[-96,-2]]
+    ],label:[-80,46]}
+  ];
+
+  const protectedZones = [
+    {id:&#x27;NT-1&#x27;,name:&#x27;Cascading Staircases&#x27;,type:&#x27;rect&#x27;,x0:-74,x1:-55,z0:-15,z1:12,label:[-76,17],paths:[
+      [[-57,-2],[-72,-2]]
+    ]},
+    {id:&#x27;NT-2&#x27;,name:&#x27;Terraced Fountain&#x27;,type:&#x27;ellipse&#x27;,at:[86,0],rx:42,rz:36,label:[91,4],paths:[
+      [[46,0],[49,26],[58,40],[74,48]],
+      [[46,0],[48,-18],[55,-30],[70,-42],[90,-50],[94,-58]]
+    ]}
+  ];
+
+  const terrainBands = [
+    {id:&#x27;T0&#x27;,label:[-148,40],shapes:[[[-178,-160],[-112,-160],[-112,142],[-178,160]]]},
+    {id:&#x27;T2&#x27;,label:[-25,42],shapes:[[[-58,-151],[25,-153],[72,-142],[112,-126],[136,-103],[143,-62],[144,20],[141,84],[129,127],[101,145],[26,151],[-20,145],[-50,132],[-70,110],[-78,90],[-67,73],[-58,60]]]},
+    {id:&#x27;T1&#x27;,label:[-92,38],shapes:[[[-112,-150],[-58,-150],[-58,-14],[-57,-12],[-57,8],[-58,14],[-58,60],[-67,73],[-78,90],[-84,109],[-95,128],[-112,136]]]},
+    {id:&#x27;T3&#x27;,label:[-20,-130],shapes:[[[-45,-109],[-50,-126],[-43,-145],[-25,-156],[-3,-154],[13,-141],[15,-121],[4,-105],[-20,-100]]]},
+    {id:&#x27;T4&#x27;,label:[61,30],shapes:[[[33,-132],[30,-116],[37,-96],[45,-80],[52,-62],[55,-42],[51,-22],[52,-5],[55,15],[58,35],[60,55],[64,72],[58,91],[58,110],[70,128],[105,136],[128,123],[138,100],[141,60],[142,15],[140,-40],[136,-82],[122,-112],[92,-130],[58,-139]]]},
+    {id:&#x27;T5&#x27;,label:[101,86],shapes:[[[58,-137],[56,-122],[63,-106],[70,-91],[78,-73],[77,-54],[70,-35],[68,-16],[72,3],[75,25],[75,48],[84,60],[88,78],[80,99],[74,116],[90,130],[115,130],[132,112],[137,78],[138,35],[136,-15],[132,-60],[122,-97],[103,-120],[80,-133]]]},
+    {id:&#x27;T6&#x27;,label:[111,-72],shapes:[[[80,-132],[77,-117],[72,-104],[70,-92],[78,-79],[86,-66],[94,-56],[99,-41],[106,-25],[114,-8],[120,12],[128,31],[138,40],[141,-10],[139,-54],[132,-88],[119,-112],[101,-126]]]},
+    {id:&#x27;T7&#x27;,label:[144,-126],shapes:[
+      [[140,-110],[153,-99],[162,-65],[164,155],[145,160],[141,120],[145,70],[144,15],[142,-55],[134,-94]],
+      [[134,-94],[118,-119],[90,-139],[55,-150],[10,-156],[-38,-158],[-84,-151],[-124,-141],[-118,-124],[-80,-137],[-35,-142],[8,-140],[48,-136],[82,-126],[110,-111],[126,-88]]
+    ]}
+  ];
+
+  const walls = [
+    {id:&#x27;W1&#x27;,kind:&#x27;major&#x27;,label:[-67,-42],paths:[[[-58,-148],[-58,-14]],[[-58,12],[-58,61]]]},
+    {id:&#x27;W3&#x27;,kind:&#x27;major&#x27;,label:[62,24],paths:[[[70,-27],[70,-20]],[[70,16],[70,27]]]},
+    {id:&#x27;W4&#x27;,kind:&#x27;local&#x27;,label:[116,112],paths:[[[70,124],[96,125]],[[114,108],[125,98],[132,80]]]},
+    {id:&#x27;W5&#x27;,kind:&#x27;local&#x27;,label:[102,-29],paths:[[[71,-104],[70,-92],[78,-79]],[[94,-56],[99,-41],[106,-25],[114,-8]]]},
+    {id:&#x27;W6&#x27;,kind:&#x27;local&#x27;,label:[108,-94],paths:[[[92,-102],[104,-97]],[[111,-86],[120,-80]]]},
+    {id:&#x27;W7&#x27;,kind:&#x27;major&#x27;,label:[143,-139],paths:[
+      [[-120,-130],[-85,-140],[-35,-147],[20,-145],[70,-137],[105,-120],[126,-100],[138,-65],[143,10],[144,80],[140,150]],
+      [[151,150],[155,75],[154,5],[149,-63],[138,-101],[112,-127],[72,-146],[20,-154],[-38,-157],[-88,-149],[-124,-139]]
+    ]}
+  ];
+
+  const rides = [
+    {id:&#x27;R1&#x27;,type:&#x27;rect&#x27;,at:[-113,-20],size:[10,30],queue:[[-102,-15],[-107,-15],[-108,-9]],service:[[-118,-20],[-126,-20]]},
+    {id:&#x27;R2&#x27;,type:&#x27;polygon&#x27;,points:[[-92,-68],[-88,-121],[-58,-128],[-53,-87],[-68,-67]],label:[-73,-98],queue:[[-94,-55],[-88,-58],[-84,-66]],service:[[-60,-106],[-50,-119]]},
+    {id:&#x27;R3&#x27;,type:&#x27;rect&#x27;,at:[36,-28],size:[20,26],queue:[[24,-20],[29,-22],[32,-25]],service:[[46,-28],[52,-29]]},
+    {id:&#x27;R4&#x27;,type:&#x27;circle&#x27;,at:[-56,91],r:8.5,queue:[[-70,78],[-64,82],[-60,87]],service:[[-58,99],[-64,109]]},
+    {id:&#x27;R5&#x27;,type:&#x27;ellipse&#x27;,at:[68,88],radii:[17,12],queue:[[46,88],[52,88],[54,87]],service:[[68,100],[68,111]]},
+    {id:&#x27;R6&#x27;,type:&#x27;circle&#x27;,at:[95,96],r:7,queue:[[104,88],[101,92],[99,95]],service:[[100,101],[108,108]]},
+    {id:&#x27;R7&#x27;,type:&#x27;circle&#x27;,at:[109,62],r:7,queue:[[102,70],[104,66],[106,63]],service:[[116,62],[125,62]]},
+    {id:&#x27;R8&#x27;,type:&#x27;circle&#x27;,at:[116,-57],r:7.5,queue:[[108,-49],[111,-52],[113,-55]],service:[[123,-57],[131,-57]]},
+    {id:&#x27;R9&#x27;,type:&#x27;polygon&#x27;,points:[[9,-72],[15,-85],[27,-100],[41,-103],[48,-92],[39,-77],[28,-67],[16,-65]],label:[29,-84],queue:[[20,-56],[22,-64],[25,-71]],service:[[38,-97],[49,-108]]},
+    {id:&#x27;R10&#x27;,type:&#x27;polygon&#x27;,points:[[58,-80],[57,-102],[70,-116],[90,-114],[101,-101],[98,-83],[83,-72],[66,-72]],label:[79,-94],queue:[[67,-69],[69,-75],[71,-80]],service:[[84,-110],[90,-121]]},
+    {id:&#x27;R11&#x27;,type:&#x27;circle&#x27;,at:[111,-87],r:8,queue:[[119,-82],[116,-84],[114,-86]],service:[[119,-90],[128,-92]]},
+    {id:&#x27;R12&#x27;,type:&#x27;sky&#x27;,terminals:[[-18,-104],[112,-106]],label:[47,-105],
+      queue:[[-13,-99],[-17,-102]],queue2:[[106,-102],[110,-105]],
+      service:[[-18,-108],[-18,-119]],service2:[[112,-110],[116,-120]]}
+  ];
+
+  const serviceSpines = [
+    [[34,126],[75,126],[111,116],[130,100],[134,65],[134,20],[132,-25],[130,-65],[124,-100],[105,-122],[78,-132],[42,-135]],
+    [[-52,-124],[-68,-108],[-69,-80],[-64,-60],[-62,-38],[-62,-15]],
+    [[-34,126],[-40,127],[-70,120],[-80,105],[-73,80],[-64,61],[-62,18]]
+  ];
+
+  const landscapeLines = [
+    [[-90,115],[-35,107],[-8,112]],[[8,112],[35,107],[116,114]],
+    [[-86,88],[-82,108],[-63,126],[-25,125]],
+    [[-5,-75],[3,-98],[19,-116],[45,-119]],
+    [[8,-139],[123,-129],[132,-112]],
+    [[126,-106],[137,-101],[140,100],[130,112]]
+  ];
+
+  const qaPoints = [
+    {id:&#x27;Q1&#x27;,at:[0,123]},{id:&#x27;Q2&#x27;,at:[0,0]},{id:&#x27;Q3&#x27;,at:[-96,-2]},
+    {id:&#x27;Q4&#x27;,at:[49,68]},{id:&#x27;Q5&#x27;,at:[46,0]},{id:&#x27;Q6&#x27;,at:[94,-58]}
+  ];
+
+  const packages = {
+    all:{title:&#x27;All packages · one-way execution order&#x27;,detail:&#x27;Red work is removed first; amber cores and NT-1 / NT-2 are the only inherited circulation carried into routes A–F.&#x27;},
+    strip:{title:&#x27;01 · Strip inherited circulation&#x27;,detail:&#x27;Remove X1 plaza doglegs, X2 Kiddieland S-path and stubs, X3 Fairground spine and stubs, X4 Grove double-back and dead ends, X5 narrow Frontier approach, and all X6 guards / closures. Keep only the amber cores and purple monuments.&#x27;},
+    terrain:{title:&#x27;02 · Protect, grade, and retain&#x27;,detail:&#x27;Fence NT-1 and NT-2 before excavation. Form T0–T7, then W1 / W3 major scarps; W4–W6 stay short and planted, and W7 remains landform rather than a path wall.&#x27;},
+    trunks:{title:&#x27;03 · Lay primary trunks&#x27;,detail:&#x27;Build A from gate through hub to the lighthouse loop, then B as one continuous waterfront spine with north, monument, and south returns. Do not begin district paving until both trunks close.&#x27;},
+    loops:{title:&#x27;04 · Close loops and ride courts&#x27;,detail:&#x27;Build C–F as complete loops, set J1–J9 to their surveyed coordinates, then place R1–R12 pads. Every queue leaves a loop before its ride; no queue becomes through-circulation.&#x27;},
+    service:{title:&#x27;05 · Service, drainage, and planting&#x27;,detail:&#x27;Complete the orange outer service spines and rear ride gates before planting. Screens, berms, bioswales, and shade islands stay outside every public clear width and both monument envelopes.&#x27;},
+    qa:{title:&#x27;06 · Navigation and acceptance&#x27;,detail:&#x27;Pass only when A–F are continuous and bidirectional, J1–J9 have no pinches, no public cul-de-sacs remain, NT-1 / NT-2 are unchanged, grades match the section sheet, crowds traverse every loop, and all six Q shots read correctly.&#x27;}
+  };
+
+  let selected = &#x27;strip&#x27;;
+  let lastWidth = 0;
+
+  const make = (name,attrs={}) =&gt; {
+    const el = document.createElementNS(ns,name);
+    Object.entries(attrs).forEach(([key,value]) =&gt; el.setAttribute(key,value));
+    return el;
+  };
+  const clear = element =&gt; {
+    while (element.firstChild) element.removeChild(element.firstChild);
+  };
+  const addText = (parent,textValue,x,y,className,anchor=&#x27;start&#x27;) =&gt; {
+    const el = make(&#x27;text&#x27;,{x,y,class:className,&#x27;text-anchor&#x27;:anchor});
+    el.textContent = textValue;
+    parent.appendChild(el);
+    return el;
+  };
+
+  function draw() {
+    const width = Math.max(288,Math.round(root.getBoundingClientRect().width || 736));
+    const compact = width &lt; 520;
+    const margin = {left:compact ? 32 : 48,right:compact ? 16 : 34,top:compact ? 34 : 44,bottom:compact ? 32 : 40};
+    const scale = (width - margin.left - margin.right) / (domain.x1 - domain.x0);
+    const mapHeight = (domain.z1 - domain.z0) * scale;
+    const height = margin.top + mapHeight + margin.bottom;
+    const x = value =&gt; margin.left + (value - domain.x0) * scale;
+    const y = value =&gt; margin.top + (value - domain.z0) * scale;
+    const points = values =&gt; values.map(point =&gt; `${x(point[0])},${y(point[1])}`).join(&#x27; &#x27;);
+    const pathLine = (parent,values,className,attrs={}) =&gt; {
+      const el = make(&#x27;polyline&#x27;,{points:points(values),class:className,...attrs});
+      parent.appendChild(el);
+      return el;
+    };
+
+    clear(svg);
+    svg.setAttribute(&#x27;viewBox&#x27;,`0 0 ${width} ${height}`);
+    const title = make(&#x27;title&#x27;,{id:&#x27;rebuild-map-title&#x27;});
+    title.textContent = `${packages[selected].title} on the park world-coordinate plan`;
+    const desc = make(&#x27;desc&#x27;,{id:&#x27;rebuild-map-description&#x27;});
+    desc.textContent = packages[selected].detail;
+    svg.append(title,desc);
+
+    svg.appendChild(make(&#x27;rect&#x27;,{
+      x:x(domain.x0),y:y(domain.z0),width:(domain.x1-domain.x0)*scale,
+      height:(domain.z1-domain.z0)*scale,class:&#x27;map-water&#x27;
+    }));
+
+    const gridStep = compact ? 80 : 40;
+    for (let gx = -160; gx &lt;= 160; gx += gridStep) {
+      svg.appendChild(make(&#x27;line&#x27;,{x1:x(gx),y1:y(domain.z0),x2:x(gx),y2:y(domain.z1),class:&#x27;map-grid&#x27;}));
+      addText(svg,`${gx}`,x(gx),y(domain.z1)+18,&#x27;axis-copy&#x27;,&#x27;middle&#x27;);
+    }
+    for (let gz = -160; gz &lt;= 160; gz += gridStep) {
+      svg.appendChild(make(&#x27;line&#x27;,{x1:x(domain.x0),y1:y(gz),x2:x(domain.x1),y2:y(gz),class:&#x27;map-grid&#x27;}));
+      if (gz &gt; domain.z0 &amp;&amp; gz &lt; domain.z1) addText(svg,`${gz}`,x(domain.x0)-7,y(gz)+4,&#x27;axis-copy&#x27;,&#x27;end&#x27;);
+    }
+    svg.appendChild(make(&#x27;rect&#x27;,{
+      x:x(domain.x0),y:y(domain.z0),width:(domain.x1-domain.x0)*scale,
+      height:(domain.z1-domain.z0)*scale,class:&#x27;map-frame&#x27;,&#x27;data-chart-frame&#x27;:&#x27;true&#x27;
+    }));
+    svg.appendChild(make(&#x27;polygon&#x27;,{points:points(parkOutline),class:&#x27;map-land&#x27;}));
+
+    if (selected === &#x27;terrain&#x27; || selected === &#x27;all&#x27;) {
+      terrainBands.forEach(band =&gt; {
+        band.shapes.forEach(shape =&gt; svg.appendChild(make(&#x27;polygon&#x27;,{
+          points:points(shape),class:&#x27;terrain-band&#x27;,&#x27;data-level&#x27;:band.id
+        })));
+      });
+      if (selected === &#x27;terrain&#x27;) {
+        terrainBands.forEach(band =&gt; addText(svg,band.id,x(band.label[0]),y(band.label[1]),&#x27;terrain-label&#x27;,&#x27;middle&#x27;));
+      }
+    }
+
+    if (selected === &#x27;service&#x27; || selected === &#x27;all&#x27;) {
+      landscapeLines.forEach(line =&gt; pathLine(svg,line,&#x27;landscape-line&#x27;));
+      serviceSpines.forEach(line =&gt; pathLine(svg,line,&#x27;service-line&#x27;));
+    }
+
+    const routeMode = selected === &#x27;strip&#x27; || selected === &#x27;terrain&#x27; ? &#x27;ghost&#x27; : &#x27;active&#x27;;
+    const showRoute = id =&gt; {
+      if (selected === &#x27;trunks&#x27;) return id === &#x27;A&#x27; || id === &#x27;B&#x27;;
+      if (selected === &#x27;loops&#x27;) return true;
+      if (selected === &#x27;service&#x27; || selected === &#x27;qa&#x27; || selected === &#x27;all&#x27;) return true;
+      return routeMode === &#x27;ghost&#x27;;
+    };
+    Object.entries(routes).forEach(([id,route]) =&gt; {
+      if (!showRoute(id)) return;
+      const isGhost = routeMode === &#x27;ghost&#x27; || (selected === &#x27;trunks&#x27; &amp;&amp; id !== &#x27;A&#x27; &amp;&amp; id !== &#x27;B&#x27;);
+      const isMuted = selected === &#x27;service&#x27;;
+      route.paths.forEach(run =&gt; {
+        const className = `new-route${isGhost ? &#x27; is-ghost&#x27; : &#x27;&#x27;}${isMuted ? &#x27; is-muted&#x27; : &#x27;&#x27;}`;
+        pathLine(svg,run.p,className,{&#x27;data-route&#x27;:id,&#x27;stroke-width&#x27;:isGhost ? 3 : Math.max(4,run.w*scale)});
+      });
+      if (!compact &amp;&amp; !isGhost) {
+        addText(svg,selected === &#x27;all&#x27; ? id : route.name,
+          x(route.label[0]),y(route.label[1]),&#x27;route-label&#x27;,&#x27;middle&#x27;);
+      }
+    });
+
+    if (selected === &#x27;strip&#x27; || selected === &#x27;all&#x27;) {
+      demolitions.forEach(group =&gt; {
+        group.paths.forEach(line =&gt; pathLine(svg,line,&#x27;old-path&#x27;));
+        svg.appendChild(make(&#x27;circle&#x27;,{cx:x(group.label[0]),cy:y(group.label[1]),r:compact?7:9,class:&#x27;removal-dot&#x27;}));
+        if (!compact) {
+          if (selected === &#x27;strip&#x27;) {
+            addText(svg,`${group.id} · ${group.name}`,
+              x(group.label[0])+(group.labelDx ?? 12),y(group.label[1])+4,
+              &#x27;removal-label&#x27;,group.labelAnchor || &#x27;start&#x27;);
+          } else {
+            addText(svg,group.id,x(group.label[0]),y(group.label[1])+4,&#x27;removal-label&#x27;,&#x27;middle&#x27;);
+          }
+        }
+      });
+      closurePoints.forEach(item =&gt; {
+        const px=x(item.at[0]), py=y(item.at[1]), r=compact?5:7;
+        svg.appendChild(make(&#x27;line&#x27;,{x1:px-r,y1:py-r,x2:px+r,y2:py+r,class:&#x27;closure-mark&#x27;}));
+        svg.appendChild(make(&#x27;line&#x27;,{x1:px-r,y1:py+r,x2:px+r,y2:py-r,class:&#x27;closure-mark&#x27;}));
+      });
+      if (!compact &amp;&amp; selected === &#x27;strip&#x27;) {
+        addText(svg,&#x27;X6 · remove all six guards / closures&#x27;,x(-77),y(136),&#x27;removal-label&#x27;);
+      }
+      absorbed.forEach(group =&gt; {
+        group.paths.forEach(line =&gt; pathLine(svg,line,&#x27;absorbed-path&#x27;));
+        if (!compact &amp;&amp; selected === &#x27;strip&#x27;) {
+          addText(svg,group.id,x(group.label[0]),y(group.label[1]),&#x27;map-label&#x27;,&#x27;middle&#x27;);
+        }
+      });
+    }
+
+    protectedZones.forEach(zone =&gt; {
+      if (zone.type === &#x27;rect&#x27;) {
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(zone.x0),y:y(zone.z0),width:(zone.x1-zone.x0)*scale,
+          height:(zone.z1-zone.z0)*scale,class:&#x27;protected-zone&#x27;
+        }));
+      } else {
+        svg.appendChild(make(&#x27;ellipse&#x27;,{
+          cx:x(zone.at[0]),cy:y(zone.at[1]),rx:zone.rx*scale,ry:zone.rz*scale,class:&#x27;protected-zone&#x27;
+        }));
+      }
+      zone.paths.forEach(line =&gt; pathLine(svg,line,&#x27;protected-path&#x27;));
+      if (!compact || selected === &#x27;strip&#x27; || selected === &#x27;terrain&#x27;) {
+        const zoneCopy = compact || selected === &#x27;all&#x27; ? zone.id : `${zone.id} · ${zone.name}`;
+        addText(svg,zoneCopy,x(zone.label[0]),y(zone.label[1]),&#x27;protected-label&#x27;,&#x27;middle&#x27;);
+      }
+    });
+
+    if (selected === &#x27;terrain&#x27; || selected === &#x27;all&#x27;) {
+      walls.forEach(wall =&gt; {
+        wall.paths.forEach(line =&gt; pathLine(svg,line,&#x27;retaining-line&#x27;,{&#x27;data-kind&#x27;:wall.kind}));
+        if (!compact &amp;&amp; selected === &#x27;terrain&#x27;) {
+          addText(svg,wall.id,x(wall.label[0]),y(wall.label[1]),&#x27;wall-label&#x27;,&#x27;middle&#x27;);
+        }
+      });
+    }
+
+    if ([&#x27;loops&#x27;,&#x27;service&#x27;,&#x27;qa&#x27;,&#x27;all&#x27;].includes(selected)) {
+      rides.forEach(ride =&gt; {
+        if (ride.type === &#x27;rect&#x27;) {
+          svg.appendChild(make(&#x27;rect&#x27;,{
+            x:x(ride.at[0]-ride.size[0]/2),y:y(ride.at[1]-ride.size[1]/2),
+            width:ride.size[0]*scale,height:ride.size[1]*scale,class:&#x27;ride-pad&#x27;
+          }));
+        } else if (ride.type === &#x27;circle&#x27;) {
+          svg.appendChild(make(&#x27;circle&#x27;,{cx:x(ride.at[0]),cy:y(ride.at[1]),r:ride.r*scale,class:&#x27;ride-pad&#x27;}));
+        } else if (ride.type === &#x27;ellipse&#x27;) {
+          svg.appendChild(make(&#x27;ellipse&#x27;,{cx:x(ride.at[0]),cy:y(ride.at[1]),rx:ride.radii[0]*scale,ry:ride.radii[1]*scale,class:&#x27;ride-pad&#x27;}));
+        } else if (ride.type === &#x27;polygon&#x27;) {
+          svg.appendChild(make(&#x27;polygon&#x27;,{points:points(ride.points),class:&#x27;ride-pad&#x27;}));
+        } else if (ride.type === &#x27;sky&#x27;) {
+          pathLine(svg,ride.terminals,&#x27;ride-pad&#x27;);
+          ride.terminals.forEach(at =&gt; svg.appendChild(make(&#x27;circle&#x27;,{cx:x(at[0]),cy:y(at[1]),r:5*scale,class:&#x27;ride-pad&#x27;})));
+        }
+        if (selected === &#x27;loops&#x27; || selected === &#x27;all&#x27;) {
+          pathLine(svg,ride.queue,&#x27;queue-line&#x27;);
+          if (ride.queue2) pathLine(svg,ride.queue2,&#x27;queue-line&#x27;);
+        }
+        if (selected === &#x27;service&#x27; || selected === &#x27;all&#x27;) {
+          pathLine(svg,ride.service,&#x27;service-line&#x27;);
+          if (ride.service2) pathLine(svg,ride.service2,&#x27;service-line&#x27;);
+        }
+        const labelAt = ride.label || ride.at || ride.terminals[0];
+        if (!compact &amp;&amp; selected === &#x27;loops&#x27;) {
+          addText(svg,ride.id,x(labelAt[0]),y(labelAt[1])+4,&#x27;ride-label&#x27;,&#x27;middle&#x27;);
+        }
+      });
+    }
+
+    if ([&#x27;trunks&#x27;,&#x27;loops&#x27;,&#x27;service&#x27;,&#x27;qa&#x27;,&#x27;all&#x27;].includes(selected)) {
+      junctions.forEach(([id,jx,jz]) =&gt; {
+        svg.appendChild(make(&#x27;circle&#x27;,{cx:x(jx),cy:y(jz),r:compact?4:5,class:&#x27;junction-dot&#x27;}));
+        if (!compact &amp;&amp; [&#x27;trunks&#x27;,&#x27;loops&#x27;,&#x27;qa&#x27;].includes(selected)) {
+          addText(svg,id,x(jx)+7,y(jz)-7,&#x27;junction-label&#x27;);
+        }
+      });
+    }
+
+    if (selected === &#x27;qa&#x27;) {
+      qaPoints.forEach(point =&gt; {
+        svg.appendChild(make(&#x27;circle&#x27;,{cx:x(point.at[0]),cy:y(point.at[1]),r:compact?6:8,class:&#x27;qa-dot&#x27;}));
+        addText(svg,point.id,x(point.at[0]),y(point.at[1])+4,&#x27;qa-label&#x27;,&#x27;middle&#x27;);
+      });
+    }
+
+    const northX = x(domain.x1)-18;
+    const northY = y(domain.z0)+22;
+    svg.appendChild(make(&#x27;line&#x27;,{x1:northX,y1:northY+22,x2:northX,y2:northY-2,class:&#x27;north-arrow&#x27;}));
+    svg.appendChild(make(&#x27;polygon&#x27;,{points:`${northX},${northY-8} ${northX-5},${northY+2} ${northX+5},${northY+2}`,class:&#x27;north-arrow&#x27;}));
+    addText(svg,&#x27;N&#x27;,northX,northY-13,&#x27;map-label&#x27;,&#x27;middle&#x27;);
+
+    const barX = x(domain.x0)+12;
+    const barY = y(domain.z1)-13;
+    svg.appendChild(make(&#x27;line&#x27;,{x1:barX,y1:barY,x2:barX+40*scale,y2:barY,class:&#x27;scale-bar&#x27;}));
+    addText(svg,&#x27;40 m&#x27;,barX+20*scale,barY-7,&#x27;axis-copy&#x27;,&#x27;middle&#x27;);
+    addText(svg,&#x27;WORLD X (m)&#x27;,x((domain.x0+domain.x1)/2),height-7,&#x27;axis-copy&#x27;,&#x27;middle&#x27;);
+    addText(svg,&#x27;+Z SOUTH&#x27;,x(domain.x0)+3,y(domain.z0)+14,&#x27;axis-copy&#x27;);
+
+    packageTitle.textContent = packages[selected].title;
+    packageDetail.textContent = packages[selected].detail;
+    select.value = selected;
+    lastWidth = width;
+  }
+
+  select.addEventListener(&#x27;change&#x27;,event =&gt; {
+    selected = event.target.value;
+    draw();
+  });
+
+  const observer = new ResizeObserver(() =&gt; {
+    const width = Math.max(288,Math.round(root.getBoundingClientRect().width || 736));
+    if (width === lastWidth) return;
+    requestAnimationFrame(draw);
+  });
+  observer.observe(root);
+  draw();
+})();
+&lt;/script&gt;
+
+&lt;script src=&quot;https://unpkg.com/@floating-ui/core@1.7.3/dist/floating-ui.core.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://unpkg.com/@floating-ui/dom@1.7.4/dist/floating-ui.dom.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  if (window.FloatingUIDOM == null) {
+    return;
+  }
+  const { autoUpdate, computePosition, flip, offset, shift, size } =
+    window.FloatingUIDOM;
+  const tooltipPlacements = new Set([&quot;top&quot;, &quot;right&quot;, &quot;bottom&quot;, &quot;left&quot;]);
+  const tooltipId = `codex-visualization-tooltip-${
+    window.crypto?.randomUUID?.() ?? Date.now().toString(36)
+  }`;
+  const tooltipGap = 5;
+  const hoverDelay = 700;
+  const skipDelay = 300;
+  let activeTrigger = null;
+  let pendingTrigger = null;
+  let tooltip = null;
+  let openTimeout = null;
+  let autoUpdateCleanup = null;
+  let positionRequest = 0;
+  let skipDelayUntil = 0;
+  let lastPointerWasTouch = false;
+  let pinnedByTouch = false;
+
+  const getTrigger = (target) =&gt;
+    target?.nodeType === Node.ELEMENT_NODE
+      ? target.closest(&quot;[data-tooltip]&quot;)
+      : null;
+  const containsTarget = (trigger, target) =&gt;
+    target?.nodeType != null &amp;&amp; trigger.contains(target);
+  const getContent = (trigger) =&gt;
+    trigger.getAttribute(&quot;data-tooltip&quot;)?.trim() ?? &quot;&quot;;
+  const getPlacement = (trigger) =&gt; {
+    const placement = trigger.getAttribute(&quot;data-tooltip-placement&quot;);
+    return tooltipPlacements.has(placement) ? placement : &quot;top&quot;;
+  };
+  const getTooltip = () =&gt; {
+    if (tooltip == null) {
+      tooltip = document.createElement(&quot;div&quot;);
+      tooltip.id = tooltipId;
+      tooltip.className = &quot;tooltip&quot;;
+      tooltip.setAttribute(&quot;role&quot;, &quot;tooltip&quot;);
+    }
+    return tooltip;
+  };
+  const setDescribedBy = (trigger, described) =&gt; {
+    const ids = new Set(
+      (trigger.getAttribute(&quot;aria-describedby&quot;) ?? &quot;&quot;)
+        .split(/\s+/)
+        .filter(Boolean),
+    );
+    if (described) {
+      ids.add(tooltipId);
+    } else {
+      ids.delete(tooltipId);
+    }
+    if (ids.size === 0) {
+      trigger.removeAttribute(&quot;aria-describedby&quot;);
+    } else {
+      trigger.setAttribute(&quot;aria-describedby&quot;, [...ids].join(&quot; &quot;));
+    }
+  };
+  const clearOpenTimeout = () =&gt; {
+    if (openTimeout != null) {
+      window.clearTimeout(openTimeout);
+      openTimeout = null;
+    }
+    pendingTrigger = null;
+  };
+  const closeTooltip = (activateSkipDelay = true) =&gt; {
+    clearOpenTimeout();
+    pinnedByTouch = false;
+    positionRequest += 1;
+    autoUpdateCleanup?.();
+    autoUpdateCleanup = null;
+    if (activeTrigger == null) {
+      return;
+    }
+    setDescribedBy(activeTrigger, false);
+    activeTrigger = null;
+    tooltip?.remove();
+    if (activateSkipDelay) {
+      skipDelayUntil = Date.now() + skipDelay;
+    }
+  };
+  const updatePosition = (trigger, floating) =&gt; {
+    const request = ++positionRequest;
+    void computePosition(trigger, floating, {
+      middleware: [
+        offset(tooltipGap),
+        flip({ padding: tooltipGap }),
+        shift({ padding: tooltipGap }),
+        size({
+          padding: tooltipGap,
+          apply({ availableHeight, availableWidth, elements }) {
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-width&quot;,
+              `${Math.max(0, availableWidth)}px`,
+            );
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-height&quot;,
+              `${Math.max(0, availableHeight)}px`,
+            );
+          },
+        }),
+      ],
+      placement: getPlacement(trigger),
+      strategy: &quot;fixed&quot;,
+    })
+      .then(({ x, y }) =&gt; {
+        if (activeTrigger !== trigger || request !== positionRequest) {
+          return;
+        }
+        const scale = window.devicePixelRatio || 1;
+        floating.style.transform = `translate(${Math.round(x * scale) / scale}px, ${Math.round(y * scale) / scale}px)`;
+        floating.style.visibility = &quot;visible&quot;;
+      })
+      .catch(() =&gt; {
+        if (activeTrigger === trigger &amp;&amp; request === positionRequest) {
+          closeTooltip(false);
+        }
+      });
+  };
+  const openTooltip = (trigger) =&gt; {
+    const content = getContent(trigger);
+    if (!trigger.isConnected || content.length === 0) {
+      return;
+    }
+    clearOpenTimeout();
+    if (activeTrigger === trigger) {
+      return;
+    }
+    closeTooltip();
+    const floating = getTooltip();
+    floating.textContent = content;
+    floating.style.visibility = &quot;hidden&quot;;
+    floating.style.transform = &quot;translate(0, 0)&quot;;
+    document.body.appendChild(floating);
+    activeTrigger = trigger;
+    setDescribedBy(trigger, true);
+    autoUpdateCleanup = autoUpdate(trigger, floating, () =&gt; {
+      updatePosition(trigger, floating);
+    });
+  };
+  const requestOpen = (trigger, immediate = false) =&gt; {
+    if (
+      getContent(trigger).length === 0 ||
+      activeTrigger === trigger ||
+      pendingTrigger === trigger
+    ) {
+      return;
+    }
+    clearOpenTimeout();
+    pendingTrigger = trigger;
+    const delay =
+      immediate || activeTrigger != null || Date.now() &lt; skipDelayUntil
+        ? 0
+        : hoverDelay;
+    if (delay === 0) {
+      openTooltip(trigger);
+      return;
+    }
+    openTimeout = window.setTimeout(() =&gt; {
+      openTimeout = null;
+      pendingTrigger = null;
+      openTooltip(trigger);
+    }, delay);
+  };
+  const handlePointerOpen = (event) =&gt; {
+    if (event.pointerType === &quot;touch&quot;) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    requestOpen(trigger);
+  };
+  const handlePointer = (event) =&gt; {
+    lastPointerWasTouch =
+      event.type === &quot;pointerdown&quot; &amp;&amp; event.pointerType === &quot;touch&quot;;
+  };
+  const handleTouchClick = (event) =&gt; {
+    const isTouch = event.pointerType === &quot;touch&quot; || lastPointerWasTouch;
+    lastPointerWasTouch = false;
+    if (!isTouch || event.detail === 0) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (
+      trigger == null ||
+      !trigger.isConnected ||
+      getContent(trigger).length === 0 ||
+      (pinnedByTouch &amp;&amp; activeTrigger === trigger)
+    ) {
+      if (pinnedByTouch) {
+        closeTooltip();
+      }
+      return;
+    }
+    openTooltip(trigger);
+    pinnedByTouch = activeTrigger === trigger;
+    window.setTimeout(() =&gt; {
+      if (activeTrigger === trigger &amp;&amp; !trigger.isConnected) {
+        closeTooltip(false);
+      }
+    }, 0);
+  };
+  const handleLeave = (event) =&gt; {
+    if (pinnedByTouch) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const handleFocusIn = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (trigger?.matches(&quot;:focus-visible&quot;)) {
+      requestOpen(trigger, true);
+    }
+  };
+  const handleKeyDown = (event) =&gt; {
+    if (event.key === &quot;Escape&quot;) {
+      closeTooltip();
+    }
+  };
+  const handleContextMenu = (event) =&gt; {
+    lastPointerWasTouch = false;
+    const trigger = getTrigger(event.target);
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const destroy = () =&gt; {
+    closeTooltip(false);
+    lastPointerWasTouch = false;
+    document.removeEventListener(&quot;pointerover&quot;, handlePointerOpen);
+    document.removeEventListener(&quot;pointerdown&quot;, handlePointer);
+    document.removeEventListener(&quot;pointercancel&quot;, handlePointer);
+    document.removeEventListener(&quot;click&quot;, handleTouchClick);
+    document.removeEventListener(&quot;pointerout&quot;, handleLeave);
+    document.removeEventListener(&quot;focusin&quot;, handleFocusIn);
+    document.removeEventListener(&quot;focusout&quot;, handleLeave);
+    document.removeEventListener(&quot;keydown&quot;, handleKeyDown);
+    document.removeEventListener(&quot;contextmenu&quot;, handleContextMenu);
+    tooltip = null;
+  };
+
+  document.addEventListener(&quot;pointerover&quot;, handlePointerOpen);
+  document.addEventListener(&quot;pointerdown&quot;, handlePointer);
+  document.addEventListener(&quot;pointercancel&quot;, handlePointer);
+  document.addEventListener(&quot;click&quot;, handleTouchClick);
+  document.addEventListener(&quot;pointerout&quot;, handleLeave);
+  document.addEventListener(&quot;focusin&quot;, handleFocusIn);
+  document.addEventListener(&quot;focusout&quot;, handleLeave);
+  document.addEventListener(&quot;keydown&quot;, handleKeyDown);
+  document.addEventListener(&quot;contextmenu&quot;, handleContextMenu);
+  window.addEventListener(&quot;pagehide&quot;, destroy, { once: true });
+})();
+&lt;/script&gt;
+&lt;script id=&quot;codex-visualization-lucide&quot; async src=&quot;https://unpkg.com/lucide@1.17.0/dist/umd/lucide.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  const initialize = () =&gt; {
+    globalThis.lucide?.createIcons({ attrs: { width: 16, height: 16 } });
+  };
+  if (globalThis.lucide != null) {
+    initialize();
+    return;
+  }
+  document
+    .getElementById(&quot;codex-visualization-lucide&quot;)
+    ?.addEventListener(&quot;load&quot;, initialize, { once: true });
+})();
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+</body>
+</html>
