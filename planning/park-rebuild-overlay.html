@@ -995,12 +995,21 @@ html&gt;body{padding:0}&lt;/style&gt;
     &lt;label class=&quot;form-label&quot; for=&quot;rebuild-package-select&quot;&gt;Inspect work package
       &lt;select class=&quot;form-select&quot; id=&quot;rebuild-package-select&quot;&gt;
         &lt;option value=&quot;all&quot;&gt;All — complete overlay&lt;/option&gt;
-        &lt;option value=&quot;strip&quot; selected&gt;01 — Strip inherited circulation&lt;/option&gt;
+        &lt;option value=&quot;strip&quot;&gt;01 — Strip inherited circulation&lt;/option&gt;
         &lt;option value=&quot;terrain&quot;&gt;02 — Protect, grade, and retain&lt;/option&gt;
         &lt;option value=&quot;trunks&quot;&gt;03 — Lay primary trunks&lt;/option&gt;
-        &lt;option value=&quot;loops&quot;&gt;04 — Close loops and ride courts&lt;/option&gt;
+        &lt;option value=&quot;loops&quot;&gt;04 — Close loops and attractions&lt;/option&gt;
+        &lt;option value=&quot;parcels&quot;&gt;04A — Resolve R4 + P2 parcels&lt;/option&gt;
+        &lt;option value=&quot;lighthouse&quot;&gt;04B — Resolve P1 lighthouse&lt;/option&gt;
+        &lt;option value=&quot;bigtop&quot;&gt;04C — Resolve P3 Big Top&lt;/option&gt;
+        &lt;option value=&quot;playgarden&quot;&gt;04D — Resolve P4 play garden&lt;/option&gt;
+        &lt;option value=&quot;bandstand&quot;&gt;04E — Resolve P5 bandstand&lt;/option&gt;
         &lt;option value=&quot;service&quot;&gt;05 — Service, drainage, and planting&lt;/option&gt;
-        &lt;option value=&quot;qa&quot;&gt;06 — Navigation and acceptance&lt;/option&gt;
+        &lt;option value=&quot;creek&quot;&gt;05A — Daylight Coastal Creek&lt;/option&gt;
+        &lt;option value=&quot;qa&quot;&gt;06 — Navigation, sightlines, and acceptance&lt;/option&gt;
+        &lt;option value=&quot;mission&quot;&gt;07 — Mission and photography spine&lt;/option&gt;
+        &lt;option value=&quot;campaign&quot;&gt;08 — Assignment families and campaign progression&lt;/option&gt;
+        &lt;option value=&quot;photo&quot; selected&gt;09 — Photograph lifecycle and mission resolution&lt;/option&gt;
       &lt;/select&gt;
     &lt;/label&gt;
   &lt;/div&gt;
@@ -1009,14 +1018,23 @@ html&gt;body{padding:0}&lt;/style&gt;
     &lt;span&gt;&lt;b&gt;01&lt;/b&gt; Strip&lt;/span&gt;&lt;i aria-hidden=&quot;true&quot;&gt;→&lt;/i&gt;
     &lt;span&gt;&lt;b&gt;02&lt;/b&gt; Grade&lt;/span&gt;&lt;i aria-hidden=&quot;true&quot;&gt;→&lt;/i&gt;
     &lt;span&gt;&lt;b&gt;03&lt;/b&gt; Trunks&lt;/span&gt;&lt;i aria-hidden=&quot;true&quot;&gt;→&lt;/i&gt;
-    &lt;span&gt;&lt;b&gt;04&lt;/b&gt; Loops + pads&lt;/span&gt;&lt;i aria-hidden=&quot;true&quot;&gt;→&lt;/i&gt;
+    &lt;span&gt;&lt;b&gt;04&lt;/b&gt; Loops&lt;/span&gt;&lt;i aria-hidden=&quot;true&quot;&gt;→&lt;/i&gt;
+    &lt;span&gt;&lt;b&gt;04A&lt;/b&gt; R4 + P2 parcels&lt;/span&gt;&lt;i aria-hidden=&quot;true&quot;&gt;→&lt;/i&gt;
+    &lt;span&gt;&lt;b&gt;04B&lt;/b&gt; P1 lighthouse&lt;/span&gt;&lt;i aria-hidden=&quot;true&quot;&gt;→&lt;/i&gt;
+    &lt;span&gt;&lt;b&gt;04C&lt;/b&gt; P3 Big Top&lt;/span&gt;&lt;i aria-hidden=&quot;true&quot;&gt;→&lt;/i&gt;
+    &lt;span&gt;&lt;b&gt;04D&lt;/b&gt; P4 play garden&lt;/span&gt;&lt;i aria-hidden=&quot;true&quot;&gt;→&lt;/i&gt;
+    &lt;span&gt;&lt;b&gt;04E&lt;/b&gt; P5 bandstand&lt;/span&gt;&lt;i aria-hidden=&quot;true&quot;&gt;→&lt;/i&gt;
     &lt;span&gt;&lt;b&gt;05&lt;/b&gt; Service + plant&lt;/span&gt;&lt;i aria-hidden=&quot;true&quot;&gt;→&lt;/i&gt;
-    &lt;span&gt;&lt;b&gt;06&lt;/b&gt; Nav + shots&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;05A&lt;/b&gt; Coastal Creek&lt;/span&gt;&lt;i aria-hidden=&quot;true&quot;&gt;→&lt;/i&gt;
+    &lt;span&gt;&lt;b&gt;06&lt;/b&gt; Nav + reveals&lt;/span&gt;&lt;i aria-hidden=&quot;true&quot;&gt;→&lt;/i&gt;
+    &lt;span&gt;&lt;b&gt;07&lt;/b&gt; Mission spine&lt;/span&gt;&lt;i aria-hidden=&quot;true&quot;&gt;→&lt;/i&gt;
+    &lt;span&gt;&lt;b&gt;08&lt;/b&gt; Campaign ladder&lt;/span&gt;&lt;i aria-hidden=&quot;true&quot;&gt;→&lt;/i&gt;
+    &lt;span&gt;&lt;b&gt;09&lt;/b&gt; Photo lifecycle&lt;/span&gt;
   &lt;/div&gt;
 
   &lt;svg id=&quot;rebuild-map&quot; role=&quot;img&quot; aria-labelledby=&quot;rebuild-map-title rebuild-map-description&quot;&gt;
     &lt;title id=&quot;rebuild-map-title&quot;&gt;Demolition and construction overlay for the park rebuild&lt;/title&gt;
-    &lt;desc id=&quot;rebuild-map-description&quot;&gt;A measured world-coordinate plan showing inherited paths to remove, protected monuments, final circulation, terrain edges, ride courts, service access, and acceptance points.&lt;/desc&gt;
+    &lt;desc id=&quot;rebuild-map-description&quot;&gt;A measured world-coordinate plan showing inherited paths to remove, protected monuments, final circulation, terrain edges, ride courts including the High Terrace steel coaster, programmed guest attractions, service access, the daylighted Coastal Creek, six locked navigation and sightline checks, and the day, closing-sweep, and after-hours photography mission spine.&lt;/desc&gt;
   &lt;/svg&gt;
 
   &lt;div class=&quot;card package-summary&quot; aria-live=&quot;polite&quot;&gt;
@@ -1024,14 +1042,232 @@ html&gt;body{padding:0}&lt;/style&gt;
     &lt;div id=&quot;package-detail&quot; class=&quot;text-small&quot;&gt;&lt;/div&gt;
   &lt;/div&gt;
 
-  &lt;div class=&quot;overlay-key text-small&quot; aria-label=&quot;Overlay key&quot;&gt;
+  &lt;section id=&quot;parcel-details&quot; aria-label=&quot;Resolved parcel and systems plans&quot; hidden&gt;
+    &lt;figure data-detail=&quot;parcels&quot;&gt;
+      &lt;h3&gt;R4 · Fairground swinging ship&lt;/h3&gt;
+      &lt;svg id=&quot;r4-parcel-map&quot; class=&quot;parcel-map&quot; role=&quot;img&quot; aria-labelledby=&quot;r4-parcel-title r4-parcel-description&quot;&gt;&lt;/svg&gt;
+      &lt;figcaption class=&quot;parcel-notes text-small&quot;&gt;
+        &lt;span&gt;&lt;b&gt;Day&lt;/b&gt; Kinetic landmark with a dedicated ride-photo turnout.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;After close&lt;/b&gt; The operator panel permits one isolated cycle.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Pass&lt;/b&gt; C remains 8m clear; entry and exit stay separate; service stays locked during operation.&lt;/span&gt;
+      &lt;/figcaption&gt;
+    &lt;/figure&gt;
+    &lt;figure data-detail=&quot;parcels&quot;&gt;
+      &lt;h3&gt;P2 · Boardwalk walk-through funhouse&lt;/h3&gt;
+      &lt;svg id=&quot;p2-parcel-map&quot; class=&quot;parcel-map&quot; role=&quot;img&quot; aria-labelledby=&quot;p2-parcel-title p2-parcel-description&quot;&gt;&lt;/svg&gt;
+      &lt;figcaption class=&quot;parcel-notes text-small&quot;&gt;
+        &lt;span&gt;&lt;b&gt;Day&lt;/b&gt; Continuous walk-through with a level tunnel bypass.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;After close&lt;/b&gt; One-way interior exploration retains a staff escape.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Pass&lt;/b&gt; B remains 10m clear; entry and exit land 13m apart.&lt;/span&gt;
+      &lt;/figcaption&gt;
+    &lt;/figure&gt;
+    &lt;figure class=&quot;parcel-wide&quot; data-detail=&quot;lighthouse&quot;&gt;
+      &lt;h3&gt;P1 · Headland lighthouse experience&lt;/h3&gt;
+      &lt;svg id=&quot;p1-parcel-map&quot; class=&quot;parcel-map&quot; role=&quot;img&quot; aria-labelledby=&quot;p1-parcel-title p1-parcel-description&quot;&gt;&lt;/svg&gt;
+      &lt;figcaption class=&quot;parcel-notes text-small&quot;&gt;
+        &lt;span&gt;&lt;b&gt;Day&lt;/b&gt; Timed tower groups begin in the keeper’s exhibit; the camera obscura supplies the accessible ground-level experience.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;After close&lt;/b&gt; The keeper-room control starts the beacon and reveals the lens-maintenance sequence.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Pass&lt;/b&gt; Entry and exit stay separate; structure bases retain at least 1.7m beyond the 10m loop; no service road is added.&lt;/span&gt;
+      &lt;/figcaption&gt;
+    &lt;/figure&gt;
+    &lt;figure class=&quot;parcel-wide&quot; data-detail=&quot;bigtop&quot;&gt;
+      &lt;h3&gt;P3 · Fairground Big Top scheduled show&lt;/h3&gt;
+      &lt;svg id=&quot;p3-parcel-map&quot; class=&quot;parcel-map&quot; role=&quot;img&quot; aria-labelledby=&quot;p3-parcel-title p3-parcel-description&quot;&gt;&lt;/svg&gt;
+      &lt;figcaption class=&quot;parcel-notes text-small&quot;&gt;
+        &lt;span&gt;&lt;b&gt;Day&lt;/b&gt; Timed 120-seat shows load from the north ticket queue and release separately to the east side of C.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;After close&lt;/b&gt; The backstage cue desk runs beacon, music, ring-light, and rigging cues while both performer gates remain locked.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Pass&lt;/b&gt; The tent retains 4.3m beyond C’s paving and 4.9m from R4; the backstage yard retains 2.0m beyond C; the show crossing never opens during audience load or release.&lt;/span&gt;
+      &lt;/figcaption&gt;
+    &lt;/figure&gt;
+    &lt;figure class=&quot;parcel-wide&quot; data-detail=&quot;playgarden&quot;&gt;
+      &lt;h3&gt;P4 · Family commons play garden&lt;/h3&gt;
+      &lt;svg id=&quot;p4-parcel-map&quot; class=&quot;parcel-map&quot; role=&quot;img&quot; aria-labelledby=&quot;p4-parcel-title p4-parcel-description&quot;&gt;&lt;/svg&gt;
+      &lt;figcaption class=&quot;parcel-notes text-small&quot;&gt;
+        &lt;span&gt;&lt;b&gt;Day&lt;/b&gt; Two monitored public gates make an optional walk-through; a 1.8m inclusive loop links toddler, climbing, and sensory zones while strollers, shade, and the family-photo position stay inside the fence.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;After close&lt;/b&gt; The public gates latch; the south staff gate reaches a cue panel that runs four garden lanterns, a music-box chime, and one slow turn of the play-tower windmill.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Pass&lt;/b&gt; The 18 × 14m fence retains 4.3m from D’s 9m arrival paving and 4.5m from its 8m circuit; both public gates return to D and the service path crosses no public route.&lt;/span&gt;
+      &lt;/figcaption&gt;
+    &lt;/figure&gt;
+    &lt;figure class=&quot;parcel-wide&quot; data-detail=&quot;bandstand&quot;&gt;
+      &lt;h3&gt;P5 · Plaza bandstand performance court&lt;/h3&gt;
+      &lt;svg id=&quot;p5-parcel-map&quot; class=&quot;parcel-map&quot; role=&quot;img&quot; aria-labelledby=&quot;p5-parcel-title p5-parcel-description&quot;&gt;&lt;/svg&gt;
+      &lt;figcaption class=&quot;parcel-notes text-small&quot;&gt;
+        &lt;span&gt;&lt;b&gt;Day&lt;/b&gt; The relocated 12.4m bandstand faces a 96-chair event lawn with a level center aisle, four wheelchair-and-companion bays, two audience routes, ushers, and a dedicated photographer turnout.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;After close&lt;/b&gt; The locked stage-manager panel runs aisle lamps, footlights, canopy bulbs, and one short phonograph warm-up; performer gates stay shut.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Pass&lt;/b&gt; The event boundary retains 5.5m beyond the hub ring’s paving and 8.8m beyond B; the nearest structure remains 15.2m from NT-1. Audience holding, equipment load-in, and the photo bay never occupy a through-route.&lt;/span&gt;
+      &lt;/figcaption&gt;
+    &lt;/figure&gt;
+    &lt;figure class=&quot;parcel-wide&quot; data-detail=&quot;service&quot;&gt;
+      &lt;h3&gt;05 · Service, drainage, and planting skeleton&lt;/h3&gt;
+      &lt;svg id=&quot;service-parcel-map&quot; class=&quot;parcel-map&quot; role=&quot;img&quot; aria-labelledby=&quot;service-parcel-title service-parcel-description&quot;&gt;&lt;/svg&gt;
+      &lt;figcaption class=&quot;parcel-notes text-small&quot;&gt;
+        &lt;span&gt;&lt;b&gt;Operations&lt;/b&gt; Three 4m back-of-house spines enter from separate gates, terminate in 12m turning heads, and connect every permanent ride yard; only the lighthouse and north Boardwalk use public paving, before opening.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Water&lt;/b&gt; D2 remains concealed only from the Plaza to its daylight point, then becomes Coastal Creek; the other five catchments end in planted detention or controlled waterfront outfalls. No swale, pipe, basin, or open water uses either protected monument as a drainage shortcut.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Planting&lt;/b&gt; Shade allées sit beyond public paving, service screens wrap cue and load yards, and deep-rooted slope bands stabilize the retained edges while landmark and photography sightlines stay low and open.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Pass&lt;/b&gt; The two west service spines stop 8m short of NT-1; no permanent service lane enters NT-1 or NT-2; S2 crosses the creek on one locked 4m culvert; tree trunks remain at least 2.5m beyond paving edges and every drainage arrow reaches detention or the controlled creek outfall.&lt;/span&gt;
+      &lt;/figcaption&gt;
+    &lt;/figure&gt;
+    &lt;figure class=&quot;parcel-wide&quot; data-detail=&quot;creek&quot;&gt;
+      &lt;h3&gt;05A · Coastal Creek daylighting plan&lt;/h3&gt;
+      &lt;svg id=&quot;creek-parcel-map&quot; class=&quot;parcel-map&quot; role=&quot;img&quot; aria-labelledby=&quot;creek-parcel-title creek-parcel-description&quot;&gt;&lt;/svg&gt;
+      &lt;figcaption class=&quot;parcel-notes text-small&quot;&gt;
+        &lt;span&gt;&lt;b&gt;Water&lt;/b&gt; D2 emerges southeast of the Cascading Staircases as a 2.5–4m low-flow channel, meanders through an 8–12m planted corridor, widens into a 14 × 8m rain pond, and leaves through one controllable waterfront weir.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Crossings&lt;/b&gt; The funhouse garden loop crosses on a 4m footbridge and returns to B; B crosses on a full 10m promenade bridge; the locked S2 service spine uses one 4m culvert. No path ends at the water.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Edges&lt;/b&gt; Flood shelves, rushes, and low stone toes hold the ordinary banks. Hard retaining, railings, and headwalls are limited to bridge abutments and the outfall.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;After close&lt;/b&gt; Reflected ride lights, a slow current, and the pump-and-weir sound carry through the southwest seam without adding another attraction footprint.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Pass&lt;/b&gt; The planted corridor stays at least 7.2m outside NT-1 and 4.4m from the P2 foundation; both guest bridges retain their route widths; S2 stays locked; overflow reaches the outfall without entering public paving.&lt;/span&gt;
+      &lt;/figcaption&gt;
+    &lt;/figure&gt;
+    &lt;figure class=&quot;parcel-wide&quot; data-detail=&quot;qa&quot;&gt;
+      &lt;h3&gt;06 · Navigation, sightlines, and reveal sequence&lt;/h3&gt;
+      &lt;svg id=&quot;qa-parcel-map&quot; class=&quot;parcel-map&quot; role=&quot;img&quot; aria-labelledby=&quot;qa-parcel-title qa-parcel-description&quot;&gt;&lt;/svg&gt;
+      &lt;div class=&quot;shot-recipes text-small&quot; aria-label=&quot;Locked canonical view directions&quot;&gt;
+        &lt;span&gt;&lt;b&gt;Q1 · 000°&lt;/b&gt; Gate → Plaza fountain · lighthouse crown secondary&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Q2 · 271°&lt;/b&gt; Hub → Cascading Staircases · Boardwalk crowns held behind&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Q3 · 091°&lt;/b&gt; Boardwalk → Cascading Staircases · Plaza glow beyond&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Q4 · 029°&lt;/b&gt; Family threshold → Terraced Fountain · R13 crest secondary&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Q5 · 090°&lt;/b&gt; East axis → Terraced Fountain alone · coaster held right&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Q6 · 238°&lt;/b&gt; Upper terrace → Plaza panorama · Boardwalk skyline secondary&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;figcaption class=&quot;parcel-notes text-small&quot;&gt;
+        &lt;span&gt;&lt;b&gt;Visibility&lt;/b&gt; Inside every yellow cone, foreground planting stays at or below 1.2m and no new opaque mass enters the named landmark’s silhouette. Trees frame cone edges; trunks never sit on the axis.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Hierarchy&lt;/b&gt; Each view has one primary landmark and at most one purple secondary landmark. Ride stations, service yards, queue roofs, and attraction backs remain concealed until the guest crosses their district threshold.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Night&lt;/b&gt; Every Q position retains one warm path anchor and one cooler landmark anchor; the next junction remains readable if all signs are removed.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Pass&lt;/b&gt; Walk A–F in both directions, clear J1–J9 without a pinch or cul-de-sac, capture Q1–Q6 at the locked bearings, preserve both monuments unchanged, and reject any tree, roof, queue, service gate, or ride base that breaks a cone.&lt;/span&gt;
+      &lt;/figcaption&gt;
+    &lt;/figure&gt;
+    &lt;figure class=&quot;parcel-wide&quot; data-detail=&quot;mission&quot;&gt;
+      &lt;h3&gt;07 · One complete photography shift&lt;/h3&gt;
+      &lt;div class=&quot;mission-ledger text-small&quot; aria-label=&quot;Canonical shift beats&quot;&gt;
+        &lt;section&gt;
+          &lt;h4&gt;Day assignments&lt;/h4&gt;
+          &lt;span&gt;&lt;b&gt;H0 · 09:45&lt;/b&gt; Photo Hut · film, shot list, recurring faces&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;M1 · 10:20&lt;/b&gt; Play garden · proximity, reactions, clean timing&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;M2 · 12:15&lt;/b&gt; Terraced Fountain · foreground, depth, vertical layers&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;M3 · 14:30&lt;/b&gt; High Terrace coaster · predict the ride cycle&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;M4 · 16:45&lt;/b&gt; Lighthouse · timed group and an access clue&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;M5 · 19:20&lt;/b&gt; Boardwalk / Cascade axis · crowd and sunset light&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;M6 · 20:05&lt;/b&gt; Funhouse · lost-camera and claim-ticket thread&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;M7 · 21:10&lt;/b&gt; Swinging ship · recurring guest at show release&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;H1 · 21:45&lt;/b&gt; Photo Hut · handoff and closing brief&lt;/span&gt;
+        &lt;/section&gt;
+        &lt;section&gt;
+          &lt;h4&gt;Closing sweep&lt;/h4&gt;
+          &lt;span&gt;&lt;b&gt;SW1&lt;/b&gt; Family kiosk · collect the first film box&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;SW2&lt;/b&gt; Fairground · restock print paper&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;SW3&lt;/b&gt; Boardwalk · collect the waterfront film box&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;SW4&lt;/b&gt; Headland · retrieve the forgotten gear case&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;SW5&lt;/b&gt; Upper terrace · return the ride-photo cassette&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;H2 · 22:30&lt;/b&gt; Photo Hut · the legitimate end of the sweep&lt;/span&gt;
+        &lt;/section&gt;
+        &lt;section&gt;
+          &lt;h4&gt;First unlocked night&lt;/h4&gt;
+          &lt;span&gt;&lt;b&gt;N1&lt;/b&gt; Reuse the Terraced Fountain axis without signs&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;N2&lt;/b&gt; See impossible motion on the coaster crest&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;N3&lt;/b&gt; Reach the station and find the physical cause&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;N4&lt;/b&gt; Take the proof frame; the flash exposes the player&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;N5&lt;/b&gt; Escape by the learned northern loop, not a new route&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;H3&lt;/b&gt; Develop at the Photo Hut; discover the delayed background clue&lt;/span&gt;
+        &lt;/section&gt;
+      &lt;/div&gt;
+      &lt;figcaption class=&quot;parcel-notes text-small&quot;&gt;
+        &lt;span&gt;&lt;b&gt;Home&lt;/b&gt; The Photo Hut is briefing room, handoff, night refuge, development room, and the place every loop returns to.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Progress&lt;/b&gt; Required assignment frames advance the shift; unclaimed prints and recovered disposable cameras fill the album instead of behaving like arbitrary pickups.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Failure&lt;/b&gt; Being caught ends only the current after-hours objective and returns the player to the Photo Hut; accepted earlier photographs remain.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Unlock&lt;/b&gt; Early shifts finish with sweep and development. Playable nights begin only when the player receives a flash-capable camera.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Pass&lt;/b&gt; Every M beat has a daytime job, photographic problem, learnable routine, access clue, after-close reuse, and developed-photo payoff. NT-1 and NT-2 remain completely unchanged.&lt;/span&gt;
+      &lt;/figcaption&gt;
+    &lt;/figure&gt;
+    &lt;figure class=&quot;parcel-wide&quot; data-detail=&quot;campaign&quot;&gt;
+      &lt;h3&gt;08 · Assignment families and campaign progression&lt;/h3&gt;
+      &lt;div class=&quot;campaign-ledger text-small&quot; aria-label=&quot;Assignment families and campaign phases&quot;&gt;
+        &lt;section&gt;
+          &lt;h4&gt;Six assignment families&lt;/h4&gt;
+          &lt;span&gt;&lt;b&gt;A1 · People&lt;/b&gt; Portraits and posed groups teach proximity, direction, reactions, and recurring faces.&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;A2 · Motion&lt;/b&gt; Rides, parades, and releases teach cycle reading, anticipation, and the decisive frame.&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;A3 · Place&lt;/b&gt; Brochure work and picture spots teach light, layers, vantage routes, and looking behind the sanctioned view.&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;A4 · Recovery&lt;/b&gt; Claim tickets, lost cameras, and unclaimed prints turn memory and observation into collection.&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;A5 · Operations&lt;/b&gt; Booth triage, show calls, and crowd flow reveal schedules, doors, staff habits, and access windows.&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;A6 · Evidence&lt;/b&gt; After-close proof frames combine route knowledge, concealment, flash risk, a mundane cause, and one residue.&lt;/span&gt;
+        &lt;/section&gt;
+        &lt;section&gt;
+          &lt;h4&gt;Five campaign phases&lt;/h4&gt;
+          &lt;span&gt;&lt;b&gt;C1 · First week&lt;/b&gt; Instamatic, daylight, Photo Hut, Plaza, and family loop. Learn to stand close and wait.&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;C2 · The routine&lt;/b&gt; The whole daytime park opens; optional posts trade clock time for schedules, faces, and doors.&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;C3 · Flash shift&lt;/b&gt; A flash-capable camera opens the first playable night: the High Terrace coaster investigation.&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;C4 · The wrong count&lt;/b&gt; Boardwalk, Creek, Grove, and Headland nights accumulate explanations while the same girl keeps returning in developed film.&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;C5 · Last roll&lt;/b&gt; A player-shaped shot list and final sweep use every learned loop, shortcut, recurring face, and album thread before morning.&lt;/span&gt;
+        &lt;/section&gt;
+      &lt;/div&gt;
+      &lt;figcaption class=&quot;parcel-notes text-small&quot;&gt;
+        &lt;span&gt;&lt;b&gt;Pacing&lt;/b&gt; A phase may span several shifts. Day remains the majority of play; not every sweep becomes a night.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Introduction rule&lt;/b&gt; No after-close target appears before the player has worked beside it in daylight and noticed its useful route or routine.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Assignment rule&lt;/b&gt; Every required subject has one useful off-axis detail, and every picture spot has an equally valuable reverse view.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Album&lt;/b&gt; Commissioned work, unclaimed prints, and recovered disposable cameras advance separate but overlapping picture threads.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Her&lt;/b&gt; She first reads as an ordinary recurring guest, later helps quietly after close, and is understood only when the film comes back.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Pass&lt;/b&gt; Every district supports at least three assignment families, one daylight routine worth learning, and one night reuse without adding a night-only route.&lt;/span&gt;
+      &lt;/figcaption&gt;
+    &lt;/figure&gt;
+    &lt;figure class=&quot;parcel-wide&quot; data-detail=&quot;photo&quot;&gt;
+      &lt;h3&gt;09 · Photograph lifecycle and mission resolution&lt;/h3&gt;
+      &lt;svg id=&quot;photo-lifecycle-map&quot; class=&quot;parcel-map&quot; role=&quot;img&quot; aria-labelledby=&quot;photo-lifecycle-title photo-lifecycle-description&quot;&gt;&lt;/svg&gt;
+      &lt;div class=&quot;photo-ledger text-small&quot; aria-label=&quot;Exposure, resolution, and preservation rules&quot;&gt;
+        &lt;section&gt;
+          &lt;h4&gt;Recorded at exposure&lt;/h4&gt;
+          &lt;span&gt;Rendered frame and film position&lt;/span&gt;
+          &lt;span&gt;Time, camera pose, camera model, and flash&lt;/span&gt;
+          &lt;span&gt;Identifiable subjects and their current states&lt;/span&gt;
+          &lt;span&gt;Named ride, show, crowd, and world-event states&lt;/span&gt;
+          &lt;span&gt;Background story flags captured independently&lt;/span&gt;
+          &lt;span&gt;&lt;b&gt;Never:&lt;/b&gt; centering, thirds, beauty, or composition score&lt;/span&gt;
+        &lt;/section&gt;
+        &lt;section&gt;
+          &lt;h4&gt;Resolved after development&lt;/h4&gt;
+          &lt;span&gt;The player sees every candidate before choosing one&lt;/span&gt;
+          &lt;span&gt;The brief checks subject, required state, stated window, and stated vantage only&lt;/span&gt;
+          &lt;span&gt;Possible results are &lt;b&gt;fulfilled&lt;/b&gt;, &lt;b&gt;unfilled&lt;/b&gt;, and &lt;b&gt;unexpected&lt;/b&gt;&lt;/span&gt;
+          &lt;span&gt;Guest reactions remain human hints, never task confirmation&lt;/span&gt;
+          &lt;span&gt;Requested subject and background discovery resolve separately&lt;/span&gt;
+          &lt;span&gt;An unconventional but factually correct frame always counts&lt;/span&gt;
+        &lt;/section&gt;
+        &lt;section&gt;
+          &lt;h4&gt;Preserved and routed&lt;/h4&gt;
+          &lt;span&gt;Exposed photographs are immutable and never deleted as punishment&lt;/span&gt;
+          &lt;span&gt;Being caught costs access and remaining opportunity, not the roll already shot&lt;/span&gt;
+          &lt;span&gt;Commissioned work fills the job record&lt;/span&gt;
+          &lt;span&gt;Unclaimed prints fill the park’s public memory&lt;/span&gt;
+          &lt;span&gt;Disposable-camera rolls preserve other people’s complete days&lt;/span&gt;
+          &lt;span&gt;Night evidence uses this exact pipeline; flash adds visibility risk at exposure&lt;/span&gt;
+        &lt;/section&gt;
+      &lt;/div&gt;
+      &lt;figcaption class=&quot;parcel-notes text-small&quot;&gt;
+        &lt;span&gt;&lt;b&gt;No instant grade&lt;/b&gt; Pressing the shutter spends film and creates an exposure. It does not complete an assignment on screen.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Candidate rule&lt;/b&gt; The player may take several versions because certainty arrives only when the roll is developed.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Objective facts&lt;/b&gt; “The coaster train at the crest” may be tested. “A well-composed coaster photograph” may not.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Two pictures in one&lt;/b&gt; The commissioned subject and whatever occupied the edge or background are stored and resolved independently.&lt;/span&gt;
+        &lt;span&gt;&lt;b&gt;Pass&lt;/b&gt; Day, sweep, and night all use one exposure record, one development flow, and one preservation rule. No alternate supernatural camera system is introduced.&lt;/span&gt;
+      &lt;/figcaption&gt;
+    &lt;/figure&gt;
+  &lt;/section&gt;
+
+  &lt;div class=&quot;overlay-key text-small&quot; id=&quot;overlay-key&quot; aria-label=&quot;Overlay key&quot;&gt;
     &lt;span&gt;&lt;b class=&quot;key-line key-remove&quot;&gt;&lt;/b&gt; Remove completely&lt;/span&gt;
     &lt;span&gt;&lt;b class=&quot;key-line key-absorb&quot;&gt;&lt;/b&gt; Retain / absorb&lt;/span&gt;
     &lt;span&gt;&lt;b class=&quot;key-zone key-protect&quot;&gt;&lt;/b&gt; No-touch monument&lt;/span&gt;
     &lt;span&gt;&lt;b class=&quot;key-line key-new&quot;&gt;&lt;/b&gt; New public route&lt;/span&gt;
     &lt;span&gt;&lt;b class=&quot;key-line key-wall&quot;&gt;&lt;/b&gt; Retaining edge&lt;/span&gt;
-    &lt;span&gt;&lt;b class=&quot;key-pad&quot;&gt;&lt;/b&gt; Ride / queue court&lt;/span&gt;
+    &lt;span&gt;&lt;b class=&quot;key-pad&quot;&gt;&lt;/b&gt; Ride / queue / coaster&lt;/span&gt;
+    &lt;span&gt;&lt;b class=&quot;key-program&quot;&gt;&lt;/b&gt; Programmed attraction + branch&lt;/span&gt;
     &lt;span&gt;&lt;b class=&quot;key-line key-service&quot;&gt;&lt;/b&gt; Service access&lt;/span&gt;
+    &lt;span&gt;&lt;b class=&quot;key-line key-shared&quot;&gt;&lt;/b&gt; Pre-opening shared access&lt;/span&gt;
+    &lt;span&gt;&lt;b class=&quot;key-line key-creek&quot;&gt;&lt;/b&gt; Coastal Creek + planted banks&lt;/span&gt;
+    &lt;span&gt;&lt;b class=&quot;key-line key-sight&quot;&gt;&lt;/b&gt; Primary reveal cone + secondary axis&lt;/span&gt;
+    &lt;span&gt;&lt;b class=&quot;key-line key-mission-day&quot;&gt;&lt;/b&gt; Day assignment route&lt;/span&gt;
+    &lt;span&gt;&lt;b class=&quot;key-line key-mission-sweep&quot;&gt;&lt;/b&gt; Closing sweep&lt;/span&gt;
+    &lt;span&gt;&lt;b class=&quot;key-line key-mission-night&quot;&gt;&lt;/b&gt; After-hours inversion&lt;/span&gt;
+    &lt;span&gt;&lt;b class=&quot;key-assignment&quot;&gt;&lt;/b&gt; Repeated assignment family&lt;/span&gt;
+    &lt;span&gt;&lt;b class=&quot;key-line key-drain&quot;&gt;&lt;/b&gt; Drainage flow + basin&lt;/span&gt;
+    &lt;span&gt;&lt;b class=&quot;key-line key-plant&quot;&gt;&lt;/b&gt; Shade / screen / slope planting&lt;/span&gt;
   &lt;/div&gt;
 &lt;/div&gt;
 
@@ -1072,11 +1308,125 @@ html&gt;body{padding:0}&lt;/style&gt;
     height: auto;
     overflow: visible;
   }
+  #park-rebuild-overlay #rebuild-map[hidden],
+  #park-rebuild-overlay #overlay-key[hidden] {
+    display: none;
+  }
   #park-rebuild-overlay .package-summary {
     display: grid;
     gap: 4px;
   }
   #park-rebuild-overlay #package-title {
+    font-weight: 500;
+  }
+  #park-rebuild-overlay #parcel-details {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 18px;
+    align-items: start;
+  }
+  #park-rebuild-overlay #parcel-details[hidden] {
+    display: none;
+  }
+  #park-rebuild-overlay #parcel-details figure {
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+    margin: 0;
+  }
+  #park-rebuild-overlay #parcel-details figure[hidden] {
+    display: none;
+  }
+  #park-rebuild-overlay #parcel-details .parcel-wide {
+    grid-column: 1 / -1;
+  }
+  #park-rebuild-overlay #parcel-details h3 {
+    margin: 0;
+    font-weight: 500;
+  }
+  #park-rebuild-overlay .parcel-map {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  #park-rebuild-overlay .parcel-notes {
+    display: grid;
+    gap: 3px;
+    color: var(--muted-foreground);
+  }
+  #park-rebuild-overlay .parcel-notes b {
+    color: var(--foreground);
+    font-weight: 500;
+  }
+  #park-rebuild-overlay .shot-recipes {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 5px 18px;
+    color: var(--muted-foreground);
+  }
+  #park-rebuild-overlay .shot-recipes b {
+    color: var(--foreground);
+    font-weight: 500;
+  }
+  #park-rebuild-overlay .mission-ledger {
+    display: grid;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    gap: 16px 22px;
+    color: var(--muted-foreground);
+  }
+  #park-rebuild-overlay .mission-ledger section {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+  }
+  #park-rebuild-overlay .mission-ledger h4 {
+    margin: 0 0 2px;
+    color: var(--foreground);
+    font-weight: 500;
+  }
+  #park-rebuild-overlay .mission-ledger b {
+    color: var(--foreground);
+    font-weight: 500;
+  }
+  #park-rebuild-overlay .campaign-ledger {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 16px 24px;
+    color: var(--muted-foreground);
+  }
+  #park-rebuild-overlay .campaign-ledger section {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+  }
+  #park-rebuild-overlay .campaign-ledger h4 {
+    margin: 0 0 2px;
+    color: var(--foreground);
+    font-weight: 500;
+  }
+  #park-rebuild-overlay .campaign-ledger b {
+    color: var(--foreground);
+    font-weight: 500;
+  }
+  #park-rebuild-overlay .photo-ledger {
+    display: grid;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    gap: 16px 22px;
+    color: var(--muted-foreground);
+  }
+  #park-rebuild-overlay .photo-ledger section {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+  }
+  #park-rebuild-overlay .photo-ledger h4 {
+    margin: 0 0 2px;
+    color: var(--foreground);
+    font-weight: 500;
+  }
+  #park-rebuild-overlay .photo-ledger b {
+    color: var(--foreground);
     font-weight: 500;
   }
   #park-rebuild-overlay .overlay-key {
@@ -1095,7 +1445,9 @@ html&gt;body{padding:0}&lt;/style&gt;
     height: 4px;
   }
   #park-rebuild-overlay .key-zone,
-  #park-rebuild-overlay .key-pad {
+  #park-rebuild-overlay .key-pad,
+  #park-rebuild-overlay .key-program,
+  #park-rebuild-overlay .key-assignment {
     display: inline-block;
     width: 18px;
     height: 12px;
@@ -1108,9 +1460,35 @@ html&gt;body{padding:0}&lt;/style&gt;
   #park-rebuild-overlay .key-new { background: var(--green); }
   #park-rebuild-overlay .key-wall { background: var(--orange); }
   #park-rebuild-overlay .key-pad { background: color-mix(in oklab,var(--blue) 24%,transparent); }
+  #park-rebuild-overlay .key-program { background: color-mix(in oklab,var(--yellow) 30%,transparent); }
   #park-rebuild-overlay .key-service {
     background: repeating-linear-gradient(90deg,var(--orange) 0 3px,transparent 3px 7px);
   }
+  #park-rebuild-overlay .key-shared {
+    background: repeating-linear-gradient(90deg,var(--orange) 0 7px,transparent 7px 10px,var(--orange) 10px 12px,transparent 12px 16px);
+  }
+  #park-rebuild-overlay .key-creek {
+    background: var(--blue);
+    box-shadow: 0 0 0 3px color-mix(in oklab,var(--green) 32%,transparent);
+  }
+  #park-rebuild-overlay .key-sight {
+    background: linear-gradient(90deg,var(--yellow) 0 58%,transparent 58% 70%,var(--purple) 70% 100%);
+  }
+  #park-rebuild-overlay .key-mission-day { background: var(--blue); }
+  #park-rebuild-overlay .key-mission-sweep {
+    background: repeating-linear-gradient(90deg,var(--orange) 0 7px,transparent 7px 11px);
+  }
+  #park-rebuild-overlay .key-mission-night {
+    background: repeating-linear-gradient(90deg,var(--purple) 0 3px,transparent 3px 7px);
+  }
+  #park-rebuild-overlay .key-assignment {
+    background: linear-gradient(90deg,
+      var(--viz-series-1) 0 16.6%,var(--viz-series-2) 16.6% 33.2%,
+      var(--viz-series-3) 33.2% 49.8%,var(--viz-series-4) 49.8% 66.4%,
+      var(--viz-series-5) 66.4% 83%,var(--viz-series-6) 83% 100%);
+  }
+  #park-rebuild-overlay .key-drain { background: var(--blue); }
+  #park-rebuild-overlay .key-plant { background: var(--green); opacity: 0.55; }
   #park-rebuild-overlay .map-water {
     fill: var(--blue);
     fill-opacity: 0.13;
@@ -1123,12 +1501,15 @@ html&gt;body{padding:0}&lt;/style&gt;
     stroke-linejoin: round;
   }
   #park-rebuild-overlay .map-frame,
-  #park-rebuild-overlay .map-grid {
+  #park-rebuild-overlay .map-grid,
+  #park-rebuild-overlay .parcel-frame,
+  #park-rebuild-overlay .parcel-grid {
     fill: none;
     stroke: var(--border);
     stroke-width: 1;
   }
-  #park-rebuild-overlay .map-grid {
+  #park-rebuild-overlay .map-grid,
+  #park-rebuild-overlay .parcel-grid {
     stroke-dasharray: 2 6;
   }
   #park-rebuild-overlay .axis-copy,
@@ -1140,7 +1521,11 @@ html&gt;body{padding:0}&lt;/style&gt;
   #park-rebuild-overlay .terrain-label,
   #park-rebuild-overlay .wall-label,
   #park-rebuild-overlay .ride-label,
-  #park-rebuild-overlay .qa-label {
+  #park-rebuild-overlay .program-label,
+  #park-rebuild-overlay .parcel-label,
+  #park-rebuild-overlay .qa-label,
+  #park-rebuild-overlay .mission-label,
+  #park-rebuild-overlay .assignment-label {
     fill: var(--foreground);
     font-size: 12px;
   }
@@ -1155,7 +1540,11 @@ html&gt;body{padding:0}&lt;/style&gt;
   #park-rebuild-overlay .terrain-label,
   #park-rebuild-overlay .wall-label,
   #park-rebuild-overlay .ride-label,
-  #park-rebuild-overlay .qa-label {
+  #park-rebuild-overlay .program-label,
+  #park-rebuild-overlay .parcel-label,
+  #park-rebuild-overlay .qa-label,
+  #park-rebuild-overlay .mission-label,
+  #park-rebuild-overlay .assignment-label {
     font-weight: 500;
     paint-order: stroke;
     stroke: var(--background);
@@ -1177,10 +1566,26 @@ html&gt;body{padding:0}&lt;/style&gt;
   #park-rebuild-overlay .absorbed-path,
   #park-rebuild-overlay .new-route,
   #park-rebuild-overlay .retaining-line,
+  #park-rebuild-overlay .coaster-track,
+  #park-rebuild-overlay .program-access,
   #park-rebuild-overlay .queue-line,
   #park-rebuild-overlay .service-line,
+  #park-rebuild-overlay .service-shared,
+  #park-rebuild-overlay .drainage-line,
+  #park-rebuild-overlay .creek-bank,
+  #park-rebuild-overlay .creek-water,
+  #park-rebuild-overlay .creek-path,
+  #park-rebuild-overlay .sight-primary,
+  #park-rebuild-overlay .sight-secondary,
+  #park-rebuild-overlay .threshold-axis,
+  #park-rebuild-overlay .planting-line,
   #park-rebuild-overlay .landscape-line,
-  #park-rebuild-overlay .qa-walk {
+  #park-rebuild-overlay .qa-walk,
+  #park-rebuild-overlay .mission-day,
+  #park-rebuild-overlay .mission-sweep,
+  #park-rebuild-overlay .mission-night,
+  #park-rebuild-overlay .mission-evidence,
+  #park-rebuild-overlay .mission-background-clue {
     fill: none;
     stroke-linecap: round;
     stroke-linejoin: round;
@@ -1235,6 +1640,190 @@ html&gt;body{padding:0}&lt;/style&gt;
     stroke: var(--blue);
     stroke-width: 2;
   }
+  #park-rebuild-overlay .ride-pad.is-context {
+    fill-opacity: 0.07;
+    stroke-opacity: 0.58;
+  }
+  #park-rebuild-overlay .coaster-track {
+    stroke: var(--blue);
+    stroke-width: 4;
+  }
+  #park-rebuild-overlay .program-attraction {
+    fill: var(--yellow);
+    fill-opacity: 0.20;
+    stroke: var(--yellow);
+    stroke-width: 2.5;
+  }
+  #park-rebuild-overlay .program-attraction.is-context {
+    fill-opacity: 0.07;
+    stroke-opacity: 0.58;
+  }
+  #park-rebuild-overlay .program-access {
+    stroke: var(--yellow);
+    stroke-width: 3;
+    stroke-dasharray: 5 4;
+  }
+  #park-rebuild-overlay .parcel-ground {
+    fill: var(--green);
+    fill-opacity: 0.07;
+  }
+  #park-rebuild-overlay .parcel-envelope {
+    fill: var(--blue);
+    fill-opacity: 0.16;
+    stroke: var(--blue);
+    stroke-width: 2;
+  }
+  #park-rebuild-overlay .parcel-building {
+    fill: var(--yellow);
+    fill-opacity: 0.17;
+    stroke: var(--yellow);
+    stroke-width: 2;
+  }
+  #park-rebuild-overlay .parcel-forecourt {
+    fill: var(--yellow);
+    fill-opacity: 0.10;
+    stroke: var(--yellow);
+    stroke-width: 1.5;
+    stroke-dasharray: 5 4;
+  }
+  #park-rebuild-overlay .parcel-audience {
+    fill: var(--yellow);
+    fill-opacity: 0.09;
+    stroke: var(--yellow);
+    stroke-width: 2;
+  }
+  #park-rebuild-overlay .parcel-crowd-line {
+    fill: none;
+    stroke: var(--purple);
+    stroke-width: 2.5;
+    stroke-dasharray: 5 4;
+    stroke-linecap: round;
+  }
+  #park-rebuild-overlay .parcel-accessible {
+    fill: var(--purple);
+    fill-opacity: 0.25;
+    stroke: var(--purple);
+    stroke-width: 1;
+  }
+  #park-rebuild-overlay .parcel-gallery {
+    fill: none;
+    stroke: var(--yellow);
+    stroke-width: 2.5;
+  }
+  #park-rebuild-overlay .parcel-machine,
+  #park-rebuild-overlay .parcel-room {
+    fill: color-mix(in oklab,var(--blue) 22%,transparent);
+    stroke: var(--foreground);
+    stroke-width: 1.25;
+  }
+  #park-rebuild-overlay .parcel-room {
+    fill: none;
+    stroke: var(--muted-foreground);
+  }
+  #park-rebuild-overlay .parcel-platform,
+  #park-rebuild-overlay .parcel-entry,
+  #park-rebuild-overlay .parcel-exit,
+  #park-rebuild-overlay .parcel-interior,
+  #park-rebuild-overlay .parcel-bypass,
+  #park-rebuild-overlay .parcel-axis,
+  #park-rebuild-overlay .parcel-sightline {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  #park-rebuild-overlay .parcel-platform {
+    stroke: var(--foreground);
+    stroke-width: 5;
+    stroke-opacity: 0.7;
+  }
+  #park-rebuild-overlay .parcel-entry {
+    stroke: var(--green);
+    stroke-width: 3;
+    stroke-dasharray: 5 4;
+  }
+  #park-rebuild-overlay .parcel-exit {
+    stroke: var(--yellow);
+    stroke-width: 3;
+    stroke-dasharray: 5 4;
+  }
+  #park-rebuild-overlay .parcel-interior {
+    stroke: var(--foreground);
+    stroke-width: 2.5;
+  }
+  #park-rebuild-overlay .parcel-bypass {
+    stroke: var(--purple);
+    stroke-width: 2;
+    stroke-dasharray: 4 3;
+  }
+  #park-rebuild-overlay .parcel-axis {
+    stroke: var(--purple);
+    stroke-width: 2;
+    stroke-dasharray: 7 5;
+  }
+  #park-rebuild-overlay .parcel-sightline {
+    stroke: var(--yellow);
+    stroke-width: 1.5;
+    stroke-dasharray: 2 4;
+  }
+  #park-rebuild-overlay .parcel-photo {
+    fill: var(--yellow);
+    stroke: var(--background);
+    stroke-width: 2;
+  }
+  #park-rebuild-overlay .parcel-booth {
+    fill: var(--orange);
+    fill-opacity: 0.25;
+    stroke: var(--orange);
+    stroke-width: 1.5;
+  }
+  #park-rebuild-overlay .parcel-backstage {
+    fill: var(--orange);
+    fill-opacity: 0.12;
+    stroke: var(--orange);
+    stroke-width: 2;
+    stroke-dasharray: 6 4;
+  }
+  #park-rebuild-overlay .parcel-play-fence {
+    fill: var(--yellow);
+    fill-opacity: 0.10;
+    stroke: var(--yellow);
+    stroke-width: 2.5;
+    stroke-dasharray: 6 4;
+  }
+  #park-rebuild-overlay .parcel-playzone {
+    fill: var(--blue);
+    fill-opacity: 0.16;
+    stroke: var(--blue);
+    stroke-width: 1.75;
+  }
+  #park-rebuild-overlay .parcel-ring {
+    fill: var(--yellow);
+    fill-opacity: 0.10;
+    stroke: var(--yellow);
+    stroke-width: 2.5;
+  }
+  #park-rebuild-overlay .parcel-seating {
+    fill: none;
+    stroke: var(--foreground);
+    stroke-width: 1.5;
+    stroke-opacity: 0.62;
+    stroke-linecap: round;
+  }
+  #park-rebuild-overlay .parcel-dimension {
+    fill: none;
+    stroke: var(--purple);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 3;
+  }
+  #park-rebuild-overlay .parcel-gate {
+    stroke: var(--orange);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+  #park-rebuild-overlay .parcel-facade {
+    stroke: var(--yellow);
+    stroke-width: 5;
+  }
   #park-rebuild-overlay .queue-line {
     stroke: var(--green);
     stroke-width: 3;
@@ -1244,6 +1833,100 @@ html&gt;body{padding:0}&lt;/style&gt;
     stroke: var(--orange);
     stroke-width: 3;
     stroke-dasharray: 3 6;
+  }
+  #park-rebuild-overlay .service-shared {
+    stroke: var(--orange);
+    stroke-width: 3;
+    stroke-dasharray: 10 4 2 4;
+  }
+  #park-rebuild-overlay .service-turn {
+    fill: var(--background);
+    stroke: var(--orange);
+    stroke-width: 2;
+    stroke-dasharray: 4 3;
+  }
+  #park-rebuild-overlay .service-gate {
+    fill: var(--orange);
+    stroke: var(--background);
+    stroke-width: 1.5;
+  }
+  #park-rebuild-overlay .drainage-line {
+    stroke: var(--blue);
+    stroke-width: 2.5;
+    stroke-dasharray: 7 4;
+  }
+  #park-rebuild-overlay .drainage-basin {
+    fill: var(--blue);
+    fill-opacity: 0.13;
+    stroke: var(--blue);
+    stroke-width: 1.75;
+    stroke-dasharray: 5 4;
+  }
+  #park-rebuild-overlay .drainage-arrow {
+    fill: var(--blue);
+  }
+  #park-rebuild-overlay .creek-bank {
+    stroke: var(--green);
+    stroke-opacity: 0.28;
+  }
+  #park-rebuild-overlay .creek-water {
+    stroke: var(--blue);
+    stroke-opacity: 0.9;
+  }
+  #park-rebuild-overlay .creek-path {
+    stroke: var(--green);
+    stroke-opacity: 0.82;
+  }
+  #park-rebuild-overlay .creek-pond-bank {
+    fill: var(--green);
+    fill-opacity: 0.16;
+  }
+  #park-rebuild-overlay .creek-pond {
+    fill: var(--blue);
+    fill-opacity: 0.27;
+    stroke: var(--blue);
+    stroke-width: 1.75;
+  }
+  #park-rebuild-overlay .creek-bridge {
+    fill: var(--foreground);
+    fill-opacity: 0.18;
+    stroke: var(--foreground);
+    stroke-width: 1.5;
+  }
+  #park-rebuild-overlay .creek-culvert {
+    fill: var(--orange);
+    fill-opacity: 0.18;
+    stroke: var(--orange);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 2;
+  }
+  #park-rebuild-overlay .creek-clearance {
+    fill: none;
+    stroke: var(--purple);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 3;
+  }
+  #park-rebuild-overlay .creek-weir {
+    fill: none;
+    stroke: var(--foreground);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+  }
+  #park-rebuild-overlay .planting-line {
+    stroke: var(--green);
+  }
+  #park-rebuild-overlay .planting-line[data-kind=&quot;shade&quot;] {
+    stroke-width: 6;
+    stroke-opacity: 0.55;
+    stroke-dasharray: 1 8;
+  }
+  #park-rebuild-overlay .planting-line[data-kind=&quot;screen&quot;] {
+    stroke-width: 8;
+    stroke-opacity: 0.32;
+  }
+  #park-rebuild-overlay .planting-line[data-kind=&quot;slope&quot;] {
+    stroke-width: 11;
+    stroke-opacity: 0.15;
   }
   #park-rebuild-overlay .landscape-line {
     stroke: var(--green);
@@ -1275,6 +1958,154 @@ html&gt;body{padding:0}&lt;/style&gt;
     stroke-width: 3;
     stroke-dasharray: 2 7;
   }
+  #park-rebuild-overlay .sight-cone {
+    fill: var(--yellow);
+    fill-opacity: 0.10;
+    stroke: var(--yellow);
+    stroke-width: 1.5;
+    stroke-dasharray: 6 4;
+  }
+  #park-rebuild-overlay .sight-primary {
+    stroke: var(--yellow);
+    stroke-width: 2.5;
+  }
+  #park-rebuild-overlay .sight-secondary {
+    stroke: var(--purple);
+    stroke-width: 2;
+    stroke-dasharray: 5 4;
+  }
+  #park-rebuild-overlay .sight-target {
+    fill: var(--yellow);
+    stroke: var(--background);
+    stroke-width: 1.5;
+  }
+  #park-rebuild-overlay .sight-target.is-secondary {
+    fill: var(--purple);
+  }
+  #park-rebuild-overlay .threshold-axis {
+    stroke: var(--orange);
+    stroke-width: 4;
+  }
+  #park-rebuild-overlay .mission-day {
+    stroke: var(--blue);
+    stroke-width: 4;
+  }
+  #park-rebuild-overlay .mission-sweep {
+    stroke: var(--orange);
+    stroke-width: 3.5;
+    stroke-dasharray: 9 6;
+  }
+  #park-rebuild-overlay .mission-night {
+    stroke: var(--purple);
+    stroke-width: 3.5;
+    stroke-dasharray: 3 6;
+  }
+  #park-rebuild-overlay .mission-evidence {
+    stroke: var(--yellow);
+    stroke-width: 2.5;
+  }
+  #park-rebuild-overlay .mission-background-clue {
+    stroke: var(--purple);
+    stroke-width: 2;
+    stroke-dasharray: 5 4;
+  }
+  #park-rebuild-overlay .mission-node {
+    stroke: var(--background);
+    stroke-width: 2;
+  }
+  #park-rebuild-overlay .mission-node[data-phase=&quot;day&quot;] { fill: var(--blue); }
+  #park-rebuild-overlay .mission-node[data-phase=&quot;sweep&quot;] { fill: var(--orange); }
+  #park-rebuild-overlay .mission-node[data-phase=&quot;night&quot;] { fill: var(--purple); }
+  #park-rebuild-overlay .mission-home {
+    fill: var(--yellow);
+    stroke: var(--foreground);
+    stroke-width: 2;
+  }
+  #park-rebuild-overlay .mission-home-ring {
+    fill: none;
+    stroke: var(--yellow);
+    stroke-width: 2;
+    stroke-dasharray: 3 3;
+  }
+  #park-rebuild-overlay .mission-proof {
+    fill: var(--yellow);
+    stroke: var(--background);
+    stroke-width: 2;
+  }
+  #park-rebuild-overlay .assignment-node,
+  #park-rebuild-overlay .assignment-satellite {
+    stroke: var(--background);
+    stroke-width: 2;
+  }
+  #park-rebuild-overlay .assignment-node {
+    stroke-width: 2.5;
+  }
+  #park-rebuild-overlay [data-family=&quot;A1&quot;] { fill: var(--viz-series-1); }
+  #park-rebuild-overlay [data-family=&quot;A2&quot;] { fill: var(--viz-series-2); }
+  #park-rebuild-overlay [data-family=&quot;A3&quot;] { fill: var(--viz-series-3); }
+  #park-rebuild-overlay [data-family=&quot;A4&quot;] { fill: var(--viz-series-4); }
+  #park-rebuild-overlay [data-family=&quot;A5&quot;] { fill: var(--viz-series-5); }
+  #park-rebuild-overlay [data-family=&quot;A6&quot;] { fill: var(--viz-series-6); }
+  #park-rebuild-overlay .photo-stage {
+    stroke: var(--border);
+    stroke-width: 1.5;
+  }
+  #park-rebuild-overlay .photo-stage[data-kind=&quot;field&quot;] {
+    fill: var(--blue);
+    fill-opacity: 0.13;
+  }
+  #park-rebuild-overlay .photo-stage[data-kind=&quot;soft&quot;] {
+    fill: var(--yellow);
+    fill-opacity: 0.14;
+  }
+  #park-rebuild-overlay .photo-stage[data-kind=&quot;lab&quot;] {
+    fill: var(--purple);
+    fill-opacity: 0.12;
+  }
+  #park-rebuild-overlay .photo-stage[data-kind=&quot;outcome&quot;] {
+    fill: var(--green);
+    fill-opacity: 0.13;
+  }
+  #park-rebuild-overlay .photo-stage-title,
+  #park-rebuild-overlay .photo-stage-note,
+  #park-rebuild-overlay .photo-flow-label {
+    fill: var(--foreground);
+    font-size: 12px;
+  }
+  #park-rebuild-overlay .photo-stage-title {
+    font-weight: 500;
+  }
+  #park-rebuild-overlay .photo-stage-note,
+  #park-rebuild-overlay .photo-flow-label {
+    fill: var(--muted-foreground);
+  }
+  #park-rebuild-overlay .photo-flow,
+  #park-rebuild-overlay .photo-soft-flow,
+  #park-rebuild-overlay .photo-discovery-flow {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    marker-end: url(#photo-flow-arrow);
+  }
+  #park-rebuild-overlay .photo-flow {
+    stroke: var(--foreground);
+    stroke-width: 2;
+    stroke-opacity: 0.62;
+  }
+  #park-rebuild-overlay .photo-soft-flow {
+    stroke: var(--yellow);
+    stroke-width: 2;
+    stroke-dasharray: 5 4;
+  }
+  #park-rebuild-overlay .photo-discovery-flow {
+    stroke: var(--purple);
+    stroke-width: 2;
+    stroke-dasharray: 3 4;
+  }
+  #park-rebuild-overlay .photo-arrow {
+    fill: var(--foreground);
+    fill-opacity: 0.72;
+  }
   #park-rebuild-overlay .north-arrow {
     fill: var(--foreground);
     stroke: var(--foreground);
@@ -1284,6 +2115,9 @@ html&gt;body{padding:0}&lt;/style&gt;
     stroke-width: 3;
   }
   @media (max-width: 520px) {
+    #park-rebuild-overlay #parcel-details {
+      grid-template-columns: 1fr;
+    }
     #park-rebuild-overlay .build-sequence {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -1293,6 +2127,18 @@ html&gt;body{padding:0}&lt;/style&gt;
     }
     #park-rebuild-overlay .overlay-key {
       display: grid;
+      grid-template-columns: 1fr;
+    }
+    #park-rebuild-overlay .shot-recipes {
+      grid-template-columns: 1fr;
+    }
+    #park-rebuild-overlay .mission-ledger {
+      grid-template-columns: 1fr;
+    }
+    #park-rebuild-overlay .campaign-ledger {
+      grid-template-columns: 1fr;
+    }
+    #park-rebuild-overlay .photo-ledger {
       grid-template-columns: 1fr;
     }
   }
@@ -1305,12 +2151,26 @@ html&gt;body{padding:0}&lt;/style&gt;
   const select = root.querySelector(&#x27;#rebuild-package-select&#x27;);
   const packageTitle = root.querySelector(&#x27;#package-title&#x27;);
   const packageDetail = root.querySelector(&#x27;#package-detail&#x27;);
+  const overlayKey = root.querySelector(&#x27;#overlay-key&#x27;);
+  const parcelDetails = root.querySelector(&#x27;#parcel-details&#x27;);
+  const parcelFigures = [...parcelDetails.querySelectorAll(&#x27;[data-detail]&#x27;)];
+  const r4ParcelMap = root.querySelector(&#x27;#r4-parcel-map&#x27;);
+  const p2ParcelMap = root.querySelector(&#x27;#p2-parcel-map&#x27;);
+  const p1ParcelMap = root.querySelector(&#x27;#p1-parcel-map&#x27;);
+  const p3ParcelMap = root.querySelector(&#x27;#p3-parcel-map&#x27;);
+  const p4ParcelMap = root.querySelector(&#x27;#p4-parcel-map&#x27;);
+  const p5ParcelMap = root.querySelector(&#x27;#p5-parcel-map&#x27;);
+  const serviceParcelMap = root.querySelector(&#x27;#service-parcel-map&#x27;);
+  const creekParcelMap = root.querySelector(&#x27;#creek-parcel-map&#x27;);
+  const qaParcelMap = root.querySelector(&#x27;#qa-parcel-map&#x27;);
+  const photoLifecycleMap = root.querySelector(&#x27;#photo-lifecycle-map&#x27;);
   const ns = &#x27;http://www.w3.org/2000/svg&#x27;;
 
   const domain = {x0:-178,x1:164,z0:-160,z1:160};
   const parkOutline = [
-    [-112,-151],[24,-153],[88,-140],[132,-111],[146,-62],[147,60],
-    [137,119],[104,145],[24,151],[-25,144],[-75,112],[-96,62],[-112,62]
+    [-112,-151],[24,-153],[88,-140],[132,-111],[151,-67],[160,-42],
+    [161,36],[154,78],[141,122],[104,145],[24,151],[-25,144],[-75,112],
+    [-96,62],[-112,62]
   ];
 
   const routes = {
@@ -1451,7 +2311,11 @@ html&gt;body{padding:0}&lt;/style&gt;
     {id:&#x27;R1&#x27;,type:&#x27;rect&#x27;,at:[-113,-20],size:[10,30],queue:[[-102,-15],[-107,-15],[-108,-9]],service:[[-118,-20],[-126,-20]]},
     {id:&#x27;R2&#x27;,type:&#x27;polygon&#x27;,points:[[-92,-68],[-88,-121],[-58,-128],[-53,-87],[-68,-67]],label:[-73,-98],queue:[[-94,-55],[-88,-58],[-84,-66]],service:[[-60,-106],[-50,-119]]},
     {id:&#x27;R3&#x27;,type:&#x27;rect&#x27;,at:[36,-28],size:[20,26],queue:[[24,-20],[29,-22],[32,-25]],service:[[46,-28],[52,-29]]},
-    {id:&#x27;R4&#x27;,type:&#x27;circle&#x27;,at:[-56,91],r:8.5,queue:[[-70,78],[-64,82],[-60,87]],service:[[-58,99],[-64,109]]},
+    {id:&#x27;R4&#x27;,name:&#x27;Fairground swinging ship&#x27;,type:&#x27;polygon&#x27;,
+      points:[[-67,83],[-62,78],[-45,96],[-50,102]],label:[-56,90],
+      queue:[[-70,78],[-66,80],[-69,83],[-66,85],[-68,87],[-64,89],[-61,87]],
+      exit:[[-45,96],[-42,100],[-40,106],[-32,112]],
+      service:[[-50,102],[-57,109],[-65,115],[-70,120]],photo:[-69,96]},
     {id:&#x27;R5&#x27;,type:&#x27;ellipse&#x27;,at:[68,88],radii:[17,12],queue:[[46,88],[52,88],[54,87]],service:[[68,100],[68,111]]},
     {id:&#x27;R6&#x27;,type:&#x27;circle&#x27;,at:[95,96],r:7,queue:[[104,88],[101,92],[99,95]],service:[[100,101],[108,108]]},
     {id:&#x27;R7&#x27;,type:&#x27;circle&#x27;,at:[109,62],r:7,queue:[[102,70],[104,66],[106,63]],service:[[116,62],[125,62]]},
@@ -1461,39 +2325,269 @@ html&gt;body{padding:0}&lt;/style&gt;
     {id:&#x27;R11&#x27;,type:&#x27;circle&#x27;,at:[111,-87],r:8,queue:[[119,-82],[116,-84],[114,-86]],service:[[119,-90],[128,-92]]},
     {id:&#x27;R12&#x27;,type:&#x27;sky&#x27;,terminals:[[-18,-104],[112,-106]],label:[47,-105],
       queue:[[-13,-99],[-17,-102]],queue2:[[106,-102],[110,-105]],
-      service:[[-18,-108],[-18,-119]],service2:[[112,-110],[116,-120]]}
+      service:[[-18,-108],[-18,-119]],service2:[[112,-110],[116,-120]]},
+    {id:&#x27;R13&#x27;,name:&#x27;High Terrace steel coaster&#x27;,type:&#x27;coaster&#x27;,label:[150,0],
+      footprint:[[124,-38],[132,-52],[144,-52],[155,-38],[158,-12],[157,18],
+        [151,42],[139,51],[128,43],[133,27],[139,10],[138,-10],[131,-27]],
+      track:[[129,-41],[139,-46],[150,-38],[153,-20],[150,-2],[146,17],
+        [148,34],[141,44],[132,42],[137,29],[140,12],[140,-5],[143,-22],
+        [139,-35],[129,-41]],
+      station:{at:[129,-41],size:[14,8]},
+      queue:[[118,-40],[122,-41],[125,-41]],
+      service:[[136,-43],[146,-50],[151,-56]]}
+  ];
+
+  const programmedAttractions = [
+    {id:&#x27;P1&#x27;,name:&#x27;Headland lighthouse experience&#x27;,type:&#x27;circle&#x27;,at:[-16,-131],r:5,label:[-5,-133],
+      keeper:{at:[-22.5,-124],size:[8,6]},forecourt:{at:[-16,-118],radii:[7,4]},
+      access:[[-16,-112],[-16,-117],[-18,-121],[-18.5,-123]],
+      access2:[[-11,-131],[-7,-128],[-3,-121],[1,-115]],photo:[-7,-107]},
+    {id:&#x27;P2&#x27;,name:&#x27;Boardwalk walk-through funhouse&#x27;,type:&#x27;rect&#x27;,at:[-77,32],label:[-68,34],size:[12,14],
+      access:[[-96,27],[-90,27],[-87,25],[-84,27],[-83,27]],
+      access2:[[-83,37],[-88,37],[-91,40],[-96,40]],
+      service:[[-71,32],[-66,32],[-62,28]],photo:[-102,33]},
+    {id:&#x27;P3&#x27;,name:&#x27;Big Top scheduled show&#x27;,type:&#x27;ellipse&#x27;,at:[-32,92],radii:[9,6],label:[-32,92],
+      ring:{at:[-32,92],r:2.2},
+      access:[[-35,77.5],[-35,80.5],[-40,80.5],[-40,83],[-35.5,83],[-35.5,85.5],[-32,86]],
+      access2:[[-23,92],[-20,94],[-18,97],[-16.1,97.9]],
+      photo:[-4,91],photoAccess:[[-10,88],[-7,89.5],[-4,91]],
+      service:[[-32,98],[-32,106],[-32,112],[-34,118],[-34,120]],
+      service2:[[-34,126],[-40,127],[-70,120]],
+      backstage:{at:[-34,123],size:[14,6]},crossing:[-32,112]},
+    {id:&#x27;P4&#x27;,name:&#x27;Family commons play garden&#x27;,type:&#x27;ellipse&#x27;,at:[27,93],radii:[9,7],label:[27,93],
+      access:[[12,82],[17,84],[21.5,87.5]],
+      access2:[[36,93],[40,93],[45,92.5]],
+      photo:[21,96.5],
+      service:[[27,100],[27,105]],
+      service2:[[27,109],[30,117],[34,126],[75,126]],
+      support:{at:[27,107],size:[10,4]},
+      stroller:{at:[30,88],size:[4,2]},
+      host:{at:[23,88.5],size:[2,2]},
+      playLoop:{at:[27,93],radii:[7,5]}},
+    {id:&#x27;P5&#x27;,name:&#x27;Plaza bandstand performances&#x27;,type:&#x27;circle&#x27;,at:[-42,-32],r:6.2,label:[-42,-32],
+      audience:{at:[-31,-23.5],radii:[7,10],rotate:37.3},
+      access:[[-32,-1],[-32,-8],[-35,-13],[-37.1,-15.5]],
+      access2:[[-25.4,-19.3],[-21,-18],[-16,-16],[-9,-15]],
+      photo:[-20,-28],photoAccess:[[-25,-20],[-22,-23],[-20,-28]],
+      service:[[-62,-38],[-58,-38],[-58,-39]],
+      backstage:{at:[-53,-39],size:[10,6]},
+      host:{at:[-36,-16.5],size:[2,2]},host2:{at:[-27,-20.5],size:[2,2]}}
   ];
 
   const serviceSpines = [
-    [[34,126],[75,126],[111,116],[130,100],[134,65],[134,20],[132,-25],[130,-65],[124,-100],[105,-122],[78,-132],[42,-135]],
-    [[-52,-124],[-68,-108],[-69,-80],[-64,-60],[-62,-38],[-62,-15]],
-    [[-34,126],[-40,127],[-70,120],[-80,105],[-73,80],[-64,61],[-62,18]]
+    {id:&#x27;S1&#x27;,name:&#x27;West / Headland spine&#x27;,label:[-69,-77],
+      p:[[-52,-124],[-68,-108],[-69,-80],[-64,-60],[-62,-38],[-62,-23]]},
+    {id:&#x27;S2&#x27;,name:&#x27;Fairground / Boardwalk spine&#x27;,label:[-77,77],
+      p:[[-34,126],[-40,127],[-70,120],[-80,105],[-73,80],[-64,61],[-62,38],[-62,20]]},
+    {id:&#x27;S3&#x27;,name:&#x27;East / North perimeter spine&#x27;,label:[151,18],
+      p:[[34,126],[75,126],[111,116],[136,100],[149,75],[154,42],[155,10],[154,-22],[150,-55],[138,-82],[124,-100],[105,-122],[78,-132],[42,-135]]}
   ];
 
-  const landscapeLines = [
-    [[-90,115],[-35,107],[-8,112]],[[8,112],[35,107],[116,114]],
-    [[-86,88],[-82,108],[-63,126],[-25,125]],
-    [[-5,-75],[3,-98],[19,-116],[45,-119]],
-    [[8,-139],[123,-129],[132,-112]],
-    [[126,-106],[137,-101],[140,100],[130,112]]
+  const serviceLinks = [
+    [[-50,-119],[-52,-124]],
+    [[52,-29],[55,-46],[70,-56],[90,-63],[112,-66],[134,-65],[150,-55]],
+    [[68,111],[72,120],[75,126]],
+    [[108,108],[111,116]],
+    [[125,62],[138,67],[149,75]],
+    [[131,-57],[150,-55]],
+    [[49,-108],[62,-121],[78,-132]],
+    [[90,-121],[105,-122]],
+    [[128,-92],[138,-82]],
+    [[-18,-119],[-34,-124],[-52,-124]],
+    [[116,-120],[105,-122]]
   ];
 
-  const qaPoints = [
-    {id:&#x27;Q1&#x27;,at:[0,123]},{id:&#x27;Q2&#x27;,at:[0,0]},{id:&#x27;Q3&#x27;,at:[-96,-2]},
-    {id:&#x27;Q4&#x27;,at:[49,68]},{id:&#x27;Q5&#x27;,at:[46,0]},{id:&#x27;Q6&#x27;,at:[94,-58]}
+  const sharedServiceSegments = [
+    {id:&#x27;SH1&#x27;,name:&#x27;North Boardwalk · before opening&#x27;,p:[[-96,-62],[-90,-62],[-75,-59],[-64,-60]],label:[-88,-68]},
+    {id:&#x27;SH2&#x27;,name:&#x27;Lighthouse · before opening&#x27;,p:[[-13,-101],[-16,-112],[-16,-118],[-18,-121]],label:[-7,-113]}
   ];
 
-  const packages = {
-    all:{title:&#x27;All packages · one-way execution order&#x27;,detail:&#x27;Red work is removed first; amber cores and NT-1 / NT-2 are the only inherited circulation carried into routes A–F.&#x27;},
-    strip:{title:&#x27;01 · Strip inherited circulation&#x27;,detail:&#x27;Remove X1 plaza doglegs, X2 Kiddieland S-path and stubs, X3 Fairground spine and stubs, X4 Grove double-back and dead ends, X5 narrow Frontier approach, and all X6 guards / closures. Keep only the amber cores and purple monuments.&#x27;},
-    terrain:{title:&#x27;02 · Protect, grade, and retain&#x27;,detail:&#x27;Fence NT-1 and NT-2 before excavation. Form T0–T7, then W1 / W3 major scarps; W4–W6 stay short and planted, and W7 remains landform rather than a path wall.&#x27;},
-    trunks:{title:&#x27;03 · Lay primary trunks&#x27;,detail:&#x27;Build A from gate through hub to the lighthouse loop, then B as one continuous waterfront spine with north, monument, and south returns. Do not begin district paving until both trunks close.&#x27;},
-    loops:{title:&#x27;04 · Close loops and ride courts&#x27;,detail:&#x27;Build C–F as complete loops, set J1–J9 to their surveyed coordinates, then place R1–R12 pads. Every queue leaves a loop before its ride; no queue becomes through-circulation.&#x27;},
-    service:{title:&#x27;05 · Service, drainage, and planting&#x27;,detail:&#x27;Complete the orange outer service spines and rear ride gates before planting. Screens, berms, bioswales, and shade islands stay outside every public clear width and both monument envelopes.&#x27;},
-    qa:{title:&#x27;06 · Navigation and acceptance&#x27;,detail:&#x27;Pass only when A–F are continuous and bidirectional, J1–J9 have no pinches, no public cul-de-sacs remain, NT-1 / NT-2 are unchanged, grades match the section sheet, crowds traverse every loop, and all six Q shots read correctly.&#x27;}
+  const serviceNodes = [
+    {id:&#x27;G1&#x27;,kind:&#x27;gate&#x27;,at:[-34,126],label:[-47,137]},
+    {id:&#x27;G2&#x27;,kind:&#x27;gate&#x27;,at:[34,126],label:[22,137]},
+    {id:&#x27;G3&#x27;,kind:&#x27;gate&#x27;,at:[-96,-62],label:[-111,-69]},
+    {id:&#x27;G4&#x27;,kind:&#x27;gate&#x27;,at:[-126,-20],label:[-135,-27]},
+    {id:&#x27;H1&#x27;,kind:&#x27;turn&#x27;,at:[-62,-23],r:6,label:[-75,-24]},
+    {id:&#x27;H2&#x27;,kind:&#x27;turn&#x27;,at:[-62,20],r:6,label:[-75,20]},
+    {id:&#x27;H3&#x27;,kind:&#x27;turn&#x27;,at:[-52,-124],r:6,label:[-65,-132]},
+    {id:&#x27;H4&#x27;,kind:&#x27;turn&#x27;,at:[42,-135],r:6,label:[29,-144]}
+  ];
+
+  const drainageLines = [
+    {id:&#x27;D1&#x27;,name:&#x27;Headland / north Boardwalk outfall&#x27;,label:[-91,-73],
+      p:[[-16,-144],[-30,-143],[-44,-134],[-52,-124],[-62,-110],[-68,-92],[-69,-80],[-82,-70],[-96,-66],[-104,-62]]},
+    {id:&#x27;D2&#x27;,name:&#x27;Plaza / Coastal Creek feeder&#x27;,label:[-39,14],
+      p:[[-16,6],[-32,10],[-46,14],[-48,22]]},
+    {id:&#x27;D3&#x27;,name:&#x27;Fairground south garden&#x27;,label:[-42,138],
+      p:[[-70,120],[-52,128],[-34,130],[-18,131]]},
+    {id:&#x27;D4&#x27;,name:&#x27;Family commons garden&#x27;,label:[63,137],
+      p:[[34,126],[56,130],[75,128],[88,123]]},
+    {id:&#x27;D5&#x27;,name:&#x27;East perimeter detention&#x27;,label:[143,89],
+      p:[[150,-55],[154,-22],[155,10],[154,42],[149,75],[143,96],[133,112]]},
+    {id:&#x27;D6&#x27;,name:&#x27;North perimeter detention&#x27;,label:[92,-142],
+      p:[[150,-55],[138,-82],[124,-100],[105,-122],[78,-134],[45,-142]]}
+  ];
+
+  const drainageBasins = [
+    {id:&#x27;D1&#x27;,kind:&#x27;outfall&#x27;,at:[-104,-62],radii:[5,3]},
+    {id:&#x27;D3&#x27;,kind:&#x27;garden&#x27;,at:[-18,131],radii:[9,4]},
+    {id:&#x27;D4&#x27;,kind:&#x27;garden&#x27;,at:[88,123],radii:[9,4]},
+    {id:&#x27;D5&#x27;,kind:&#x27;basin&#x27;,at:[133,112],radii:[9,5]},
+    {id:&#x27;D6&#x27;,kind:&#x27;basin&#x27;,at:[45,-142],radii:[9,4]}
+  ];
+
+  const coastalCreek = {
+    id:&#x27;D2&#x27;,name:&#x27;Coastal Creek&#x27;,
+    channel:[[-48,22],[-54,29],[-59,37],[-62,44],[-70,50],[-79,54],[-88,55],[-96,55],[-104,55]],
+    pond:{at:[-88,55],radii:[7,4],bankRadii:[10,7]},
+    guestLoop:[[-77,39],[-77,46],[-76,58],[-86,61],[-96,60]],
+    crossings:[
+      {id:&#x27;CB1&#x27;,kind:&#x27;footbridge&#x27;,name:&#x27;Funhouse garden footbridge&#x27;,at:[-76,53],size:[4,11]},
+      {id:&#x27;CB2&#x27;,kind:&#x27;promenade&#x27;,name:&#x27;Boardwalk promenade bridge&#x27;,at:[-96,55],size:[10,12]},
+      {id:&#x27;CX1&#x27;,kind:&#x27;culvert&#x27;,name:&#x27;S2 locked service culvert&#x27;,at:[-62,44],size:[4,10]}
+    ],
+    outfall:[-104,55]
   };
 
-  let selected = &#x27;strip&#x27;;
+  const plantingBands = [
+    {id:&#x27;PL1&#x27;,kind:&#x27;shade&#x27;,paths:[
+      [[-10,112],[-10,86],[-10,62],[-10,38]],[[10,112],[10,86],[10,62],[10,38]],
+      [[-11,-23],[-12,-38],[-15,-52],[-20,-68],[-24,-84],[-27,-98]],
+      [[11,-23],[10,-38],[7,-52],[2,-68],[-2,-84],[-5,-98]],
+      [[-84,-58],[-84,-38],[-84,-15],[-84,10],[-84,34],[-84,55]]
+    ]},
+    {id:&#x27;PL2&#x27;,kind:&#x27;screen&#x27;,paths:[
+      [[-78,116],[-60,124],[-40,128]],[[34,120],[58,121],[80,118]],
+      [[-59,-47],[-54,-44],[-48,-41]],[[130,-71],[144,-65],[151,-57]]
+    ]},
+    {id:&#x27;PL3&#x27;,kind:&#x27;slope&#x27;,paths:[
+      [[-90,115],[-35,107],[-8,112]],[[8,112],[35,107],[116,114]],
+      [[-86,88],[-82,108],[-63,126],[-25,125]],
+      [[-5,-75],[3,-98],[19,-116],[45,-119]],
+      [[8,-139],[123,-129],[132,-112]],
+      [[126,-106],[137,-101],[140,100],[130,112]]
+    ]}
+  ];
+
+  const sightlines = [
+    {id:&#x27;Q1&#x27;,name:&#x27;Entrance axial reveal&#x27;,bearing:0,at:[0,123],label:[12,118],
+      primary:[0,0],primaryName:&#x27;Plaza fountain&#x27;,width:38,
+      secondary:[-16,-131],secondaryName:&#x27;Lighthouse crown&#x27;},
+    {id:&#x27;Q2&#x27;,name:&#x27;Hub west reveal&#x27;,bearing:271,at:[0,0],label:[13,15],
+      primary:[-64.5,-1.5],primaryName:&#x27;Cascading Staircases&#x27;,width:27,
+      secondary:[-108,-30],secondaryName:&#x27;Boardwalk crowns&#x27;},
+    {id:&#x27;Q3&#x27;,name:&#x27;Boardwalk east reveal&#x27;,bearing:91,at:[-96,-2],label:[-108,-10],
+      primary:[-64.5,-1.5],primaryName:&#x27;Cascading Staircases&#x27;,width:27,
+      secondary:[0,0],secondaryName:&#x27;Plaza glow&#x27;},
+    {id:&#x27;Q4&#x27;,name:&#x27;Family terrace reveal&#x27;,bearing:29,at:[49,68],label:[47,81],
+      primary:[86,0],primaryName:&#x27;Terraced Fountain&#x27;,width:56,
+      secondary:[145,0],secondaryName:&#x27;R13 crest&#x27;},
+    {id:&#x27;Q5&#x27;,name:&#x27;East ceremonial axis&#x27;,bearing:90,at:[46,0],label:[36,-13],
+      primary:[86,0],primaryName:&#x27;Terraced Fountain&#x27;,width:48,
+      secondary:[145,-20],secondaryName:&#x27;R13 held right&#x27;},
+    {id:&#x27;Q6&#x27;,name:&#x27;Upper terrace panorama&#x27;,bearing:238,at:[94,-58],label:[102,-66],
+      primary:[0,0],primaryName:&#x27;Plaza panorama&#x27;,width:80,
+      secondary:[-96,-35],secondaryName:&#x27;Boardwalk skyline&#x27;}
+  ];
+
+  const qaPoints = sightlines.map(view =&gt; ({id:view.id,at:view.at}));
+
+  const missionPlan = {
+    home:{id:&#x27;H0&#x27;,at:[21,18.5],label:[31,14],name:&#x27;PHOTO HUT&#x27;},
+    dayPath:[
+      [21,18.5],[16,8],[18,0],[15,14],[25,25],[34,39],[42,54],[49,68],
+      [38,70],[25,76],[12,82],[21,96.5],[12,82],[25,76],[38,70],[49,68],
+      [58,55],[66,44],[72,32],[74,40],[74,48],[58,40],[49,26],[46,0],
+      [48,-18],[55,-30],[70,-42],[90,-50],[94,-58],[90,-50],[78,-65],
+      [58,-70],[39,-64],[20,-55],[-1,-58],[-6,-68],[-10,-84],[-13,-101],
+      [-16,-112],[-7,-107],[-16,-112],[-13,-101],[-10,-84],[-6,-68],[-22,-66],
+      [-40,-62],[-58,-58],[-75,-59],[-90,-62],[-96,-62],[-96,-40],[-96,-15],
+      [-96,-2],[-96,10],[-96,27],[-102,33],[-96,35],[-96,60],[-88,64],
+      [-82,72],[-80,84],[-75,95],[-69,96],[-64,101],[-53,98],[-47,90],
+      [-48,78],[-22,77],[-10,88],[-4,87],[0,86],[0,62],[0,34],[0,18],
+      [9,15],[16,8],[21,18.5]
+    ],
+    dayNodes:[
+      {id:&#x27;M1&#x27;,at:[21,96.5],label:[31,104]},
+      {id:&#x27;M2&#x27;,at:[46,0],label:[38,-9]},
+      {id:&#x27;M3&#x27;,at:[94,-58],label:[83,-66]},
+      {id:&#x27;M4&#x27;,at:[-7,-107],label:[2,-113]},
+      {id:&#x27;M5&#x27;,at:[-96,-2],label:[-108,-10]},
+      {id:&#x27;M6&#x27;,at:[-102,33],label:[-116,43]},
+      {id:&#x27;M7&#x27;,at:[-69,96],label:[-80,108]}
+    ],
+    sweepPath:[
+      [21,18.5],[16,8],[18,0],[15,14],[25,25],[34,39],[42,54],[49,68],
+      [42,82],[38,70],[25,76],[12,82],[0,86],[-4,87],[-10,88],[-22,77],
+      [-48,78],[-58,70],[-72,76],[-78,90],[-80,84],[-82,72],[-88,64],
+      [-96,60],[-96,35],[-96,10],[-96,-15],[-96,-40],[-96,-62],[-90,-62],
+      [-75,-59],[-58,-58],[-40,-62],[-22,-66],[-6,-68],[-10,-84],[-13,-101],
+      [-16,-112],[-13,-101],[-10,-84],[-6,-68],[4,-82],[20,-100],[40,-113],
+      [63,-120],[86,-116],[106,-104],[120,-86],[124,-62],[118,-42],[107,-30],
+      [94,-50],[94,-58],[90,-50],[70,-42],[55,-30],[48,-18],[46,0],[32,0],
+      [18,0],[16,8],[21,18.5]
+    ],
+    sweepNodes:[
+      {id:&#x27;SW1&#x27;,at:[42,82],label:[51,89]},
+      {id:&#x27;SW2&#x27;,at:[-10,88],label:[-3,98]},
+      {id:&#x27;SW3&#x27;,at:[-96,35],label:[-108,48]},
+      {id:&#x27;SW4&#x27;,at:[-16,-112],label:[-30,-120]},
+      {id:&#x27;SW5&#x27;,at:[94,-58],label:[105,-66]}
+    ],
+    nightPath:[
+      [21,18.5],[16,8],[18,0],[32,0],[46,0],[48,-18],[55,-30],[70,-42],
+      [90,-50],[94,-58],[118,-42],[129,-41],[136,-43],[146,-50],[151,-56],
+      [138,-82],[124,-100],[106,-104],[86,-116],[63,-120],[40,-113],[20,-100],
+      [4,-82],[-6,-68],[-3,-52],[0,-35],[0,-18],[9,-15],[16,-8],[18,0],
+      [16,8],[21,18.5]
+    ],
+    nightNodes:[
+      {id:&#x27;N1&#x27;,at:[46,0],label:[55,8]},
+      {id:&#x27;N2&#x27;,at:[94,-58],label:[84,-51]},
+      {id:&#x27;N3&#x27;,at:[129,-41],label:[123,-31]},
+      {id:&#x27;N4&#x27;,at:[151,-56],label:[151,-66]},
+      {id:&#x27;N5&#x27;,at:[20,-100],label:[29,-94]}
+    ],
+    proof:{at:[151,-56],cause:[129,-41],background:[86,0]}
+  };
+
+  const campaignPlan = {
+    families:[
+      {id:&#x27;A1&#x27;,name:&#x27;PEOPLE&#x27;,at:[21,96.5],label:[33,108],
+        satellites:[[-7,-107],[-20,-28]]},
+      {id:&#x27;A2&#x27;,name:&#x27;MOTION&#x27;,at:[94,-58],label:[104,-70],
+        satellites:[[-69,96],[-73,-98],[68,88]]},
+      {id:&#x27;A3&#x27;,name:&#x27;PLACE&#x27;,at:[-96,-2],label:[-111,-13],
+        satellites:[[46,0],[0,123],[-7,-107]]},
+      {id:&#x27;A4&#x27;,name:&#x27;RECOVERY&#x27;,at:[21,18.5],label:[37,25],
+        satellites:[[-102,33],[49,68],[-48,78]]},
+      {id:&#x27;A5&#x27;,name:&#x27;OPERATIONS&#x27;,at:[-4,91],label:[-18,108],
+        satellites:[[-20,-28],[36,-28],[-7,-107]]},
+      {id:&#x27;A6&#x27;,name:&#x27;EVIDENCE&#x27;,at:[151,-56],label:[142,-73],
+        satellites:[[-76,53],[-22,-124],[29,-84]]}
+    ]
+  };
+
+  const packages = {
+    all:{title:&#x27;All packages · one-way execution order&#x27;,detail:&#x27;Red work is removed first; amber cores and NT-1 / NT-2 are the only inherited circulation carried into routes A–F. R13 occupies the expanded outer high shoulder beyond the Terraced Fountain; R4 and P1–P5 are complete operating parcels, backed by the resolved S1–S3 service system, D1–D6 drainage catchments, PL1–PL3 planting structure, the daylighted D2 Coastal Creek, six locked reveal checks at Q1–Q6, the H0 / M1–M7 / SW1–SW5 / N1–N5 mission spine, assignment families A1–A6 across campaign phases C1–C5, and the L1–L9 photograph lifecycle from paper brief to preserved print.&#x27;},
+    strip:{title:&#x27;01 · Strip inherited circulation&#x27;,detail:&#x27;Remove X1 plaza doglegs, X2 Kiddieland S-path and stubs, X3 Fairground spine and stubs, X4 Grove double-back and dead ends, X5 narrow Frontier approach, and all X6 guards / closures. Keep only the amber cores and purple monuments.&#x27;},
+    terrain:{title:&#x27;02 · Protect, grade, and retain&#x27;,detail:&#x27;Fence NT-1 and NT-2 before excavation. Form T0–T7 and reserve the outer T6 / T7 shoulder for R13, then build W1 / W3 major scarps; W4–W6 stay short and planted, and W7 remains landform rather than a path wall.&#x27;},
+    trunks:{title:&#x27;03 · Lay primary trunks&#x27;,detail:&#x27;Build A from gate through hub to the lighthouse loop, then B as one continuous waterfront spine with north, monument, and south returns. Do not begin district paving until both trunks close.&#x27;},
+    loops:{title:&#x27;04 · Close loops, ride courts, and attractions&#x27;,detail:&#x27;Build C–F, set J1–J9, then place R1–R13 and P1–P5. R4 is the Fairground swinging ship. P1 is the lighthouse experience, P2 the Boardwalk funhouse, P3 the Big Top show, P4 the family play garden, and P5 the programmed bandstand. R13 remains entirely beyond NT-2; every queue and yellow attraction branch leaves a loop before stopping guests.&#x27;},
+    parcels:{title:&#x27;04A · Resolve the first attraction parcels&#x27;,detail:&#x27;R4 receives a 26 × 10m operating envelope, in-court queue, separate exit to C, operator booth, photo turnout, and gated back-lane service. P2 receives a 12 × 14m show building, separate Boardwalk entry and exit, continuous interior route, level tunnel bypass, façade photo point, and rear staff gate. Neither changes a public through-route.&#x27;},
+    lighthouse:{title:&#x27;04B · Resolve the Headland lighthouse experience&#x27;,detail:&#x27;P1 keeps a 10m-diameter lighthouse on the boulevard axis, with a 14 × 8m low forecourt and an 8 × 6m keeper’s house to the west. Visitors enter through the exhibit, climb on the west stair, descend on the east stair, and rejoin the loop separately. A side-bay photo position keeps the boulevard clear; accessible camera-obscura content stays at ground level; servicing uses A only before opening.&#x27;},
+    bigtop:{title:&#x27;04C · Resolve the Fairground Big Top&#x27;,detail:&#x27;P3 moves inward to an 18 × 12m tent with a 2.2m central ring and 120 timed seats. The north ticket queue and east audience exit connect to different points on C; an exterior photo bay leaves the loop open. A 14 × 6m backstage yard meets the Fairground service spine, while a gated performer crossing stays shut through audience load and release. The cue desk owns the after-close beacon, music, ring lights, and one rigging sequence.&#x27;},
+    playgarden:{title:&#x27;04D · Resolve the Family commons play garden&#x27;,detail:&#x27;P4 becomes an 18 × 14m fenced play garden beside D, not inside it. West and east public gates connect different points of the family circuit through a 1.8m accessible loop around toddler, climbing, and sensory zones. A monitored host point, stroller bay, shaded family-photo position, and south staff gate complete the day plan. The screened support yard reaches the outer service spine without crossing D and owns the after-close lantern, chime, and windmill cues.&#x27;},
+    bandstand:{title:&#x27;04E · Resolve the Plaza bandstand performance court&#x27;,detail:&#x27;P5 moves the existing 12.4m bandstand to the north-west performance pocket, where it faces a 20 × 14m event lawn rather than the hub. Ninety-six removable chairs, a level center aisle, four wheelchair-and-companion bays, separate audience entry and release, two usher posts, and a side photo turnout make it operable. A 10 × 6m rear cue yard reaches the west service spine without crossing public circulation. A 5.5m no-queue strip keeps the full hub ring open during shows.&#x27;},
+    service:{title:&#x27;05 · Resolve service, drainage, and planting&#x27;,detail:&#x27;Three 4m back-of-house spines enter through separate freight gates, end in 12m turning heads, and collect the permanent ride, show, play, and stage yards. The lighthouse and north Boardwalk retain clearly marked pre-opening shared access instead of new roads. D2 stays concealed only to its creek daylight point; the other five catchments terminate in planted detention or controlled outfalls. Shade allées, service screens, and deep-rooted slope bands keep landmark and photography sightlines open.&#x27;},
+    creek:{title:&#x27;05A · Daylight Coastal Creek&#x27;,detail:&#x27;D2 now emerges southeast of NT-1, follows a 2.5–4m low-flow channel through an 8–12m planted corridor south of P2, widens into a 14 × 8m rain pond, and exits through one controlled waterfront weir. A 4m funhouse garden footbridge and full-width 10m Boardwalk bridge keep public movement continuous; S2 uses one locked 4m culvert. The corridor remains 7.2m outside NT-1 and 4.4m from the funhouse foundation.&#x27;},
+    qa:{title:&#x27;06 · Resolve navigation, sightlines, and reveals&#x27;,detail:&#x27;Routes A–F remain continuous in both directions and J1–J9 retain their full widths. Q1–Q6 now have locked world positions, bearings, primary landmarks, secondary skyline cues, and view cones. Foreground planting stays at or below 1.2m inside every cone; trees frame rather than occupy the axes; opaque roofs, ride bases, queue covers, service yards, and attraction backs stay out. Each night view retains one warm path anchor and one cooler landmark anchor without relying on signage.&#x27;},
+    mission:{title:&#x27;07 · Mission and photography spine&#x27;,detail:&#x27;The Photo Hut at H0 is the shift’s home: briefing, film handoff, closing instructions, night refuge, and development. M1–M7 form one complete day of increasingly demanding photography across every district. SW1–SW5 make the closing sweep a purposeful full-park retrace. N1–N5 invert learned viewpoints and routes for the first flash-enabled night, ending with a physical explanation in the proof frame and one delayed background clue on development.&#x27;},
+    campaign:{title:&#x27;08 · Assignment families and campaign progression&#x27;,detail:&#x27;A1–A6 make the park reusable without turning shifts into repeated errands: people, motion, place, recovery, operations, and evidence each recur in several districts and pay out a different kind of knowledge. C1–C5 advance from daylight Instamatic work through routine mastery, the flash unlock, the accumulating wrong count, and a player-shaped final roll. The Photo Hut remains the start, return, and development point throughout.&#x27;},
+    photo:{title:&#x27;09 · Photograph lifecycle and mission resolution&#x27;,detail:&#x27;L1–L9 carry every photograph from a paper obligation through finding, framing, exposure, development, factual resolution, background discovery, and preservation. Exposure records the rendered image and objective world facts only; guest reactions are hints, never completion signals. Development reveals every candidate, resolves the commissioned subject and background thread independently, and preserves the immutable result as work, public memory, or evidence. Day and night use the same system.&#x27;}
+  };
+
+  let selected = &#x27;photo&#x27;;
   let lastWidth = 0;
 
   const make = (name,attrs={}) =&gt; {
@@ -1510,10 +2604,1173 @@ html&gt;body{padding:0}&lt;/style&gt;
     parent.appendChild(el);
     return el;
   };
+  const addDrainageMarker = (parent,id) =&gt; {
+    const defs=make(&#x27;defs&#x27;);
+    const marker=make(&#x27;marker&#x27;,{
+      id,viewBox:&#x27;0 0 10 10&#x27;,refX:8,refY:5,
+      markerWidth:5,markerHeight:5,orient:&#x27;auto-start-reverse&#x27;
+    });
+    marker.appendChild(make(&#x27;path&#x27;,{d:&#x27;M 0 0 L 10 5 L 0 10 z&#x27;,class:&#x27;drainage-arrow&#x27;}));
+    defs.appendChild(marker);
+    parent.appendChild(defs);
+  };
+
+  function drawCoastalCreekBase(parent,x,y,scale,points,pathLine) {
+    pathLine(coastalCreek.channel,&#x27;creek-bank&#x27;,{
+      &#x27;stroke-width&#x27;:Math.max(8,10*scale)
+    });
+    parent.appendChild(make(&#x27;ellipse&#x27;,{
+      cx:x(coastalCreek.pond.at[0]),cy:y(coastalCreek.pond.at[1]),
+      rx:coastalCreek.pond.bankRadii[0]*scale,
+      ry:coastalCreek.pond.bankRadii[1]*scale,class:&#x27;creek-pond-bank&#x27;
+    }));
+    pathLine(coastalCreek.channel,&#x27;creek-water&#x27;,{
+      &#x27;stroke-width&#x27;:Math.max(3,3.5*scale)
+    });
+    parent.appendChild(make(&#x27;ellipse&#x27;,{
+      cx:x(coastalCreek.pond.at[0]),cy:y(coastalCreek.pond.at[1]),
+      rx:coastalCreek.pond.radii[0]*scale,
+      ry:coastalCreek.pond.radii[1]*scale,class:&#x27;creek-pond&#x27;
+    }));
+    pathLine([[-102,50.5],[-102,59.5]],&#x27;creek-weir&#x27;);
+  }
+
+  function drawCoastalCreekCrossings(parent,x,y,scale,pathLine) {
+    pathLine(coastalCreek.guestLoop,&#x27;creek-path&#x27;,{
+      &#x27;stroke-width&#x27;:Math.max(3,4*scale)
+    });
+    coastalCreek.crossings.forEach(crossing =&gt; {
+      parent.appendChild(make(&#x27;rect&#x27;,{
+        x:x(crossing.at[0]-crossing.size[0]/2),
+        y:y(crossing.at[1]-crossing.size[1]/2),
+        width:crossing.size[0]*scale,height:crossing.size[1]*scale,
+        class:crossing.kind === &#x27;culvert&#x27; ? &#x27;creek-culvert&#x27; : &#x27;creek-bridge&#x27;
+      }));
+    });
+  }
+
+  function sightConePoints(view) {
+    const dx=view.primary[0]-view.at[0];
+    const dz=view.primary[1]-view.at[1];
+    const length=Math.hypot(dx,dz) || 1;
+    const px=-dz/length;
+    const pz=dx/length;
+    const half=view.width/2;
+    return [
+      view.at,
+      [view.primary[0]+px*half,view.primary[1]+pz*half],
+      [view.primary[0]-px*half,view.primary[1]-pz*half]
+    ];
+  }
+
+  function sightThresholdPoints(view) {
+    const dx=view.primary[0]-view.at[0];
+    const dz=view.primary[1]-view.at[1];
+    const length=Math.hypot(dx,dz) || 1;
+    const px=-dz/length;
+    const pz=dx/length;
+    return [
+      [view.at[0]-px*5,view.at[1]-pz*5],
+      [view.at[0]+px*5,view.at[1]+pz*5]
+    ];
+  }
+
+  function drawSightlineLayer(parent,x,y,scale,points,pathLine,{compact=false,labels=true}={}) {
+    sightlines.forEach(view =&gt; {
+      parent.appendChild(make(&#x27;polygon&#x27;,{
+        points:points(sightConePoints(view)),class:&#x27;sight-cone&#x27;
+      }));
+      pathLine([view.at,view.primary],&#x27;sight-primary&#x27;);
+      pathLine([view.at,view.secondary],&#x27;sight-secondary&#x27;);
+      pathLine(sightThresholdPoints(view),&#x27;threshold-axis&#x27;);
+      parent.appendChild(make(&#x27;circle&#x27;,{
+        cx:x(view.primary[0]),cy:y(view.primary[1]),
+        r:Math.max(3,2.2*scale),class:&#x27;sight-target&#x27;
+      }));
+      parent.appendChild(make(&#x27;circle&#x27;,{
+        cx:x(view.secondary[0]),cy:y(view.secondary[1]),
+        r:Math.max(2.5,1.8*scale),class:&#x27;sight-target is-secondary&#x27;
+      }));
+      parent.appendChild(make(&#x27;circle&#x27;,{
+        cx:x(view.at[0]),cy:y(view.at[1]),r:compact?6:8,class:&#x27;qa-dot&#x27;
+      }));
+      if (labels) {
+        addText(parent,compact ? view.id : `${view.id} · ${String(view.bearing).padStart(3,&#x27;0&#x27;)}°`,
+          x(view.label[0]),y(view.label[1]),&#x27;qa-label&#x27;,&#x27;middle&#x27;);
+      }
+    });
+  }
+
+  function drawMissionLayer(parent,x,y,scale,pathLine,{compact=false,labels=true}={}) {
+    pathLine(missionPlan.dayPath,&#x27;mission-day&#x27;);
+    pathLine(missionPlan.sweepPath,&#x27;mission-sweep&#x27;);
+    pathLine(missionPlan.nightPath,&#x27;mission-night&#x27;);
+
+    pathLine([missionPlan.proof.at,missionPlan.proof.cause],&#x27;mission-evidence&#x27;);
+    pathLine([missionPlan.proof.cause,missionPlan.proof.background],&#x27;mission-background-clue&#x27;);
+
+    missionPlan.nightNodes.forEach(node =&gt; {
+      const radius=compact?8:10;
+      parent.appendChild(make(&#x27;polygon&#x27;,{
+        points:`${x(node.at[0])},${y(node.at[1])-radius} ${x(node.at[0])+radius},${y(node.at[1])} ${x(node.at[0])},${y(node.at[1])+radius} ${x(node.at[0])-radius},${y(node.at[1])}`,
+        class:&#x27;mission-node&#x27;,&#x27;data-phase&#x27;:&#x27;night&#x27;
+      }));
+    });
+
+    missionPlan.sweepNodes.forEach(node =&gt; {
+      const size=compact?8:11;
+      parent.appendChild(make(&#x27;rect&#x27;,{
+        x:x(node.at[0])-size/2,y:y(node.at[1])-size/2,width:size,height:size,
+        class:&#x27;mission-node&#x27;,&#x27;data-phase&#x27;:&#x27;sweep&#x27;
+      }));
+    });
+
+    missionPlan.dayNodes.forEach(node =&gt; {
+      parent.appendChild(make(&#x27;circle&#x27;,{
+        cx:x(node.at[0]),cy:y(node.at[1]),r:compact?4:5,
+        class:&#x27;mission-node&#x27;,&#x27;data-phase&#x27;:&#x27;day&#x27;
+      }));
+    });
+
+    if (labels) missionPlan.dayNodes.forEach(node =&gt;
+      addText(parent,node.id,x(node.label[0]),y(node.label[1]),&#x27;mission-label&#x27;,&#x27;middle&#x27;));
+    if (labels &amp;&amp; !compact) missionPlan.sweepNodes.forEach(node =&gt;
+      addText(parent,node.id,x(node.label[0]),y(node.label[1]),&#x27;mission-label&#x27;,&#x27;middle&#x27;));
+    if (labels &amp;&amp; !compact) missionPlan.nightNodes.forEach(node =&gt;
+      addText(parent,node.id,x(node.label[0]),y(node.label[1]),&#x27;mission-label&#x27;,&#x27;middle&#x27;));
+
+    const home=missionPlan.home;
+    const homeSize=compact?10:13;
+    parent.appendChild(make(&#x27;circle&#x27;,{
+      cx:x(home.at[0]),cy:y(home.at[1]),r:compact?10:14,class:&#x27;mission-home-ring&#x27;
+    }));
+    parent.appendChild(make(&#x27;rect&#x27;,{
+      x:x(home.at[0])-homeSize/2,y:y(home.at[1])-homeSize/2,
+      width:homeSize,height:homeSize,class:&#x27;mission-home&#x27;
+    }));
+    parent.appendChild(make(&#x27;circle&#x27;,{
+      cx:x(missionPlan.proof.at[0]),cy:y(missionPlan.proof.at[1]),
+      r:compact?8:11,class:&#x27;mission-home-ring&#x27;
+    }));
+    if (labels) {
+      const homeCopy=compact ? home.id : `${home.id} · ${home.name}`;
+      addText(parent,homeCopy,x(home.label[0]),y(home.label[1]),&#x27;mission-label&#x27;,&#x27;middle&#x27;);
+      if (!compact) addText(parent,&#x27;PROOF FRAME&#x27;,x(146),y(-72),&#x27;mission-label&#x27;,&#x27;middle&#x27;);
+    }
+  }
+
+  function drawCampaignLayer(parent,x,y,{compact=false,labels=true}={}) {
+    campaignPlan.families.forEach(family =&gt; {
+      family.satellites.forEach(at =&gt; {
+        parent.appendChild(make(&#x27;circle&#x27;,{
+          cx:x(at[0]),cy:y(at[1]),r:compact?3.5:4.5,
+          class:&#x27;assignment-satellite&#x27;,&#x27;data-family&#x27;:family.id
+        }));
+      });
+    });
+
+    campaignPlan.families.forEach(family =&gt; {
+      parent.appendChild(make(&#x27;circle&#x27;,{
+        cx:x(family.at[0]),cy:y(family.at[1]),r:compact?6.5:8.5,
+        class:&#x27;assignment-node&#x27;,&#x27;data-family&#x27;:family.id
+      }));
+      if (labels) {
+        const copy=compact ? family.id : `${family.id} · ${family.name}`;
+        addText(parent,copy,x(family.label[0]),y(family.label[1]),&#x27;assignment-label&#x27;,&#x27;middle&#x27;);
+      }
+    });
+  }
+
+  function parcelCanvas(svgElement,localDomain,titleText,descriptionText,paint) {
+    const width = Math.max(288,Math.round(svgElement.getBoundingClientRect().width || 340));
+    const compact = width &lt; 330;
+    const margin = {left:10,right:10,top:12,bottom:25};
+    const scale = (width-margin.left-margin.right)/(localDomain.x1-localDomain.x0);
+    const plotHeight = (localDomain.z1-localDomain.z0)*scale;
+    const height = margin.top+plotHeight+margin.bottom;
+    const x = value =&gt; margin.left+(value-localDomain.x0)*scale;
+    const y = value =&gt; margin.top+(value-localDomain.z0)*scale;
+    const points = values =&gt; values.map(point =&gt; `${x(point[0])},${y(point[1])}`).join(&#x27; &#x27;);
+    const pathLine = (values,className,attrs={}) =&gt; {
+      const el = make(&#x27;polyline&#x27;,{points:points(values),class:className,...attrs});
+      svgElement.appendChild(el);
+      return el;
+    };
+    const label = (copy,at,anchor=&#x27;start&#x27;) =&gt; addText(
+      svgElement,copy,x(at[0]),y(at[1]),&#x27;parcel-label&#x27;,anchor
+    );
+
+    clear(svgElement);
+    svgElement.setAttribute(&#x27;viewBox&#x27;,`0 0 ${width} ${height}`);
+    const title = make(&#x27;title&#x27;,{id:svgElement.id.replace(&#x27;-map&#x27;,&#x27;-title&#x27;)});
+    title.textContent = titleText;
+    const desc = make(&#x27;desc&#x27;,{id:svgElement.id.replace(&#x27;-map&#x27;,&#x27;-description&#x27;)});
+    desc.textContent = descriptionText;
+    svgElement.append(title,desc);
+    svgElement.appendChild(make(&#x27;rect&#x27;,{
+      x:x(localDomain.x0),y:y(localDomain.z0),
+      width:(localDomain.x1-localDomain.x0)*scale,
+      height:(localDomain.z1-localDomain.z0)*scale,class:&#x27;parcel-ground&#x27;
+    }));
+    const gridStep = localDomain.gridStep || 10;
+    const firstX = Math.ceil(localDomain.x0/gridStep)*gridStep;
+    const firstZ = Math.ceil(localDomain.z0/gridStep)*gridStep;
+    for (let gx=firstX;gx&lt;=localDomain.x1;gx+=gridStep) {
+      svgElement.appendChild(make(&#x27;line&#x27;,{
+        x1:x(gx),y1:y(localDomain.z0),x2:x(gx),y2:y(localDomain.z1),class:&#x27;parcel-grid&#x27;
+      }));
+    }
+    for (let gz=firstZ;gz&lt;=localDomain.z1;gz+=gridStep) {
+      svgElement.appendChild(make(&#x27;line&#x27;,{
+        x1:x(localDomain.x0),y1:y(gz),x2:x(localDomain.x1),y2:y(gz),class:&#x27;parcel-grid&#x27;
+      }));
+    }
+
+    paint({svg:svgElement,x,y,scale,points,pathLine,label,compact,domain:localDomain});
+
+    svgElement.appendChild(make(&#x27;rect&#x27;,{
+      x:x(localDomain.x0),y:y(localDomain.z0),
+      width:(localDomain.x1-localDomain.x0)*scale,
+      height:(localDomain.z1-localDomain.z0)*scale,class:&#x27;parcel-frame&#x27;,&#x27;data-chart-frame&#x27;:&#x27;true&#x27;
+    }));
+    const barX=x(localDomain.x0)+9;
+    const barY=y(localDomain.z1)-9;
+    svgElement.appendChild(make(&#x27;line&#x27;,{
+      x1:barX,y1:barY,x2:barX+10*scale,y2:barY,class:&#x27;scale-bar&#x27;
+    }));
+    addText(svgElement,&#x27;10m&#x27;,barX+5*scale,barY-6,&#x27;axis-copy&#x27;,&#x27;middle&#x27;);
+    addText(svgElement,&#x27;+Z SOUTH&#x27;,x(localDomain.x0)+3,y(localDomain.z0)+14,&#x27;axis-copy&#x27;);
+  }
+
+  function drawResolvedParcels() {
+    parcelCanvas(
+      r4ParcelMap,{x0:-82,x1:-28,z0:66,z1:122},
+      &#x27;Resolved plan for the R4 Fairground swinging ship&#x27;,
+      &#x27;A local world-coordinate plan showing the Coastal circuit, ride envelope, separate entry and exit, operator booth, photography turnout, and gated service route.&#x27;,
+      ({svg,x,y,scale,points,pathLine,label}) =&gt; {
+        pathLine([[-48,78],[-58,70],[-72,76],[-78,90],[-70,108],[-52,116],[-32,112]],
+          &#x27;new-route&#x27;,{&#x27;stroke-width&#x27;:Math.max(5,8*scale)});
+        svg.appendChild(make(&#x27;polygon&#x27;,{
+          points:points([[-67,83],[-62,78],[-45,96],[-50,102]]),class:&#x27;parcel-envelope&#x27;
+        }));
+        svg.appendChild(make(&#x27;polygon&#x27;,{
+          points:points([[-63,84],[-60,81],[-48,95],[-51,98]]),class:&#x27;parcel-machine&#x27;
+        }));
+        pathLine([[-61,87],[-52,96]],&#x27;parcel-platform&#x27;);
+        pathLine([[-70,78],[-66,80],[-69,83],[-66,85],[-68,87],[-64,89],[-61,87]],&#x27;parcel-entry&#x27;);
+        pathLine([[-45,96],[-42,100],[-40,106],[-32,112]],&#x27;parcel-exit&#x27;);
+        pathLine([[-50,102],[-57,109],[-65,115],[-70,120]],&#x27;service-line&#x27;);
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(-65.5),y:y(90.5),width:3*scale,height:3*scale,class:&#x27;parcel-booth&#x27;
+        }));
+        svg.appendChild(make(&#x27;circle&#x27;,{
+          cx:x(-69),cy:y(96),r:2.4*scale,class:&#x27;parcel-photo&#x27;
+        }));
+        pathLine([[-67,95],[-55,90]],&#x27;parcel-sightline&#x27;);
+        label(&#x27;C · PUBLIC LOOP&#x27;,[-77,72]);
+        label(&#x27;ENTRY + QUEUE&#x27;,[-72,84]);
+        label(&#x27;PHOTO&#x27;,[-76,100]);
+        label(&#x27;26 × 10m ENVELOPE&#x27;,[-42,79],&#x27;middle&#x27;);
+        label(&#x27;BOARD + OPERATOR&#x27;,[-65,96]);
+        label(&#x27;EXIT&#x27;,[-39,104]);
+        label(&#x27;SERVICE GATE&#x27;,[-58,119],&#x27;middle&#x27;);
+      }
+    );
+
+    parcelCanvas(
+      p2ParcelMap,{x0:-108,x1:-56,z0:18,z1:48},
+      &#x27;Resolved plan for the P2 Boardwalk walk-through funhouse&#x27;,
+      &#x27;A local world-coordinate plan showing the Boardwalk through-route, distinct attraction entry and exit, continuous interior, accessible bypass, marquee photo turnout, and rear service gate.&#x27;,
+      ({svg,x,y,scale,pathLine,label,compact}) =&gt; {
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(-108),y:y(18),width:7*scale,height:30*scale,class:&#x27;map-water&#x27;
+        }));
+        pathLine([[-96,18],[-96,48]],&#x27;new-route&#x27;,{&#x27;stroke-width&#x27;:Math.max(5,10*scale)});
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(-83),y:y(25),width:12*scale,height:14*scale,class:&#x27;parcel-building&#x27;
+        }));
+        svg.appendChild(make(&#x27;line&#x27;,{
+          x1:x(-83),y1:y(25),x2:x(-83),y2:y(39),class:&#x27;parcel-facade&#x27;
+        }));
+        svg.appendChild(make(&#x27;line&#x27;,{
+          x1:x(-83),y1:y(30),x2:x(-71),y2:y(30),class:&#x27;parcel-room&#x27;
+        }));
+        svg.appendChild(make(&#x27;line&#x27;,{
+          x1:x(-83),y1:y(34),x2:x(-71),y2:y(34),class:&#x27;parcel-room&#x27;
+        }));
+        pathLine([[-96,27],[-90,27],[-87,25],[-84,27],[-83,27]],&#x27;parcel-entry&#x27;);
+        pathLine([[-83,37],[-88,37],[-91,40],[-96,40]],&#x27;parcel-exit&#x27;);
+        pathLine([[-83,27],[-79,27],[-79,30],[-74,30],[-74,34],[-79,34],[-79,37],[-83,37]],&#x27;parcel-interior&#x27;);
+        pathLine([[-79,27],[-72.5,27.5],[-72.5,36],[-79,37]],&#x27;parcel-bypass&#x27;);
+        pathLine([[-71,32],[-66,32],[-62,28]],&#x27;service-line&#x27;);
+        svg.appendChild(make(&#x27;circle&#x27;,{
+          cx:x(-102),cy:y(33),r:2.3*scale,class:&#x27;parcel-photo&#x27;
+        }));
+        pathLine([[-100,33],[-83,32]],&#x27;parcel-sightline&#x27;);
+        label(&#x27;B · BOARDWALK&#x27;,[-100,21]);
+        label(&#x27;ENTRY&#x27;,[-91,29]);
+        label(&#x27;EXIT&#x27;,[-91,44]);
+        label(&#x27;PHOTO&#x27;,[-106,37]);
+        label(&#x27;12 × 14m SHOW BUILDING&#x27;,[-77,23],&#x27;middle&#x27;);
+        label(&#x27;CROOKED HALL&#x27;,[-77,28],&#x27;middle&#x27;);
+        label(&#x27;MIRRORS&#x27;,[-77,32.5],&#x27;middle&#x27;);
+        label(&#x27;TUNNEL&#x27;,[-77,36.5],&#x27;middle&#x27;);
+        label(&#x27;BYPASS&#x27;,[-70,39],&#x27;end&#x27;);
+        label(&#x27;REAR SERVICE&#x27;,[-63,26],&#x27;middle&#x27;);
+      }
+    );
+  }
+
+  function drawLighthouseParcel() {
+    parcelCanvas(
+      p1ParcelMap,{x0:-45,x1:12,z0:-151,z1:-98},
+      &#x27;Resolved plan for the P1 Headland lighthouse experience&#x27;,
+      &#x27;A local world-coordinate plan showing the preserved headland loop and boulevard axis, low forecourt, keeper’s exhibit, paired tower stairs, separate exit, accessible camera obscura, photography turnout, and shared pre-opening service approach.&#x27;,
+      ({svg,x,y,scale,pathLine,label,compact}) =&gt; {
+        pathLine([[-10,-98],[-13,-101],[-16,-112]],
+          &#x27;new-route&#x27;,{&#x27;stroke-width&#x27;:Math.max(5,11*scale)});
+        pathLine([[-16,-112],[-30,-114],[-37,-125],[-31,-138],[-16,-144],[0,-139],[6,-126],[1,-115],[-16,-112]],
+          &#x27;new-route&#x27;,{&#x27;stroke-width&#x27;:Math.max(5,10*scale)});
+        pathLine([[-16,-100],[-16,-139]],&#x27;parcel-axis&#x27;);
+
+        svg.appendChild(make(&#x27;ellipse&#x27;,{
+          cx:x(-16),cy:y(-118),rx:7*scale,ry:4*scale,class:&#x27;parcel-forecourt&#x27;
+        }));
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(-26.5),y:y(-127),width:8*scale,height:6*scale,class:&#x27;parcel-building&#x27;
+        }));
+        svg.appendChild(make(&#x27;line&#x27;,{
+          x1:x(-22.5),y1:y(-127),x2:x(-22.5),y2:y(-121),class:&#x27;parcel-room&#x27;
+        }));
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(-21.5),y:y(-126.5),width:2*scale,height:2*scale,class:&#x27;parcel-booth&#x27;
+        }));
+
+        svg.appendChild(make(&#x27;circle&#x27;,{
+          cx:x(-16),cy:y(-131),r:5*scale,class:&#x27;parcel-building&#x27;
+        }));
+        svg.appendChild(make(&#x27;circle&#x27;,{
+          cx:x(-16),cy:y(-131),r:6.2*scale,class:&#x27;parcel-gallery&#x27;
+        }));
+        svg.appendChild(make(&#x27;line&#x27;,{
+          x1:x(-16),y1:y(-136),x2:x(-16),y2:y(-126),class:&#x27;parcel-room&#x27;
+        }));
+
+        pathLine([[-16,-112],[-16,-117],[-18,-121],[-18.5,-123]],&#x27;parcel-entry&#x27;);
+        pathLine([[-18.5,-123],[-21,-123],[-26,-123],[-26,-126],[-22,-126],[-19,-126],[-19,-130],[-19,-131]],&#x27;parcel-interior&#x27;);
+        pathLine([[-13,-131],[-11,-131],[-7,-128],[-3,-121],[1,-115]],&#x27;parcel-exit&#x27;);
+
+        svg.appendChild(make(&#x27;circle&#x27;,{
+          cx:x(-7),cy:y(-107),r:2.2*scale,class:&#x27;parcel-photo&#x27;
+        }));
+        pathLine([[-9,-109],[-16,-131]],&#x27;parcel-sightline&#x27;);
+
+        if (compact) {
+          label(&#x27;HEADLAND LOOP&#x27;,[-42,-147]);
+          label(&#x27;LIGHTHOUSE&#x27;,[-16,-139],&#x27;middle&#x27;);
+          label(&#x27;UP / DOWN&#x27;,[-16,-131],&#x27;middle&#x27;);
+          label(&#x27;KEEPER + CAMERA&#x27;,[-35,-127]);
+          label(&#x27;ENTRY&#x27;,[-31,-116]);
+          label(&#x27;EXIT&#x27;,[2,-123],&#x27;end&#x27;);
+          label(&#x27;PHOTO&#x27;,[-2,-104],&#x27;end&#x27;);
+          label(&#x27;AXIAL VIEW&#x27;,[-43,-105]);
+        } else {
+          label(&#x27;A · HEADLAND LOOP&#x27;,[-41,-147]);
+          label(&#x27;10m TOWER + GALLERY&#x27;,[-16,-139],&#x27;middle&#x27;);
+          label(&#x27;UP&#x27;,[-18.2,-131],&#x27;middle&#x27;);
+          label(&#x27;DOWN&#x27;,[-13.6,-131],&#x27;middle&#x27;);
+          label(&#x27;14 × 8m FORECOURT&#x27;,[-10,-115],&#x27;middle&#x27;);
+          label(&#x27;ENTRY + TIMED QUEUE&#x27;,[-32,-116]);
+          label(&#x27;8 × 6m KEEPER HOUSE&#x27;,[-35,-130]);
+          label(&#x27;CAMERA OBSCURA&#x27;,[-22.5,-123.5],&#x27;middle&#x27;);
+          label(&#x27;NIGHT CONTROL&#x27;,[-29,-119]);
+          label(&#x27;SEPARATE EXIT&#x27;,[2,-123],&#x27;end&#x27;);
+          label(&#x27;PHOTO BAY&#x27;,[-2,-104],&#x27;end&#x27;);
+          label(&#x27;PROTECTED BOULEVARD VIEW&#x27;,[-43,-101]);
+          label(&#x27;SERVICE VIA A BEFORE OPEN&#x27;,[-43,-105]);
+        }
+      }
+    );
+  }
+
+  function drawBigTopParcel() {
+    parcelCanvas(
+      p3ParcelMap,{x0:-82,x1:5,z0:66,z1:132},
+      &#x27;Resolved plan for the P3 Fairground Big Top scheduled show&#x27;,
+      &#x27;A local world-coordinate plan showing the eight-metre Coastal circuit, the R4 swinging ship as context, an eighteen-by-twelve-metre Big Top with a central ring and timed seating, separate audience load and release paths, an exterior photography bay, a gated performer crossing, and a fourteen-by-six-metre backstage yard on the Fairground service spine.&#x27;,
+      ({svg,x,y,scale,points,pathLine,label,compact}) =&gt; {
+        const narrow = compact || p3ParcelMap.getBoundingClientRect().width &lt; 480;
+        const coastalLoop = [[-48,78],[-58,70],[-72,76],[-78,90],[-70,108],[-52,116],[-32,112],[-18,101],[-10,88],[-22,77],[-48,78]];
+        pathLine(coastalLoop,&#x27;new-route&#x27;,{&#x27;stroke-width&#x27;:Math.max(5,8*scale)});
+
+        svg.appendChild(make(&#x27;polygon&#x27;,{
+          points:points([[-67,83],[-62,78],[-45,96],[-50,102]]),
+          class:&#x27;ride-pad is-context&#x27;
+        }));
+
+        svg.appendChild(make(&#x27;ellipse&#x27;,{
+          cx:x(-32),cy:y(92),rx:9*scale,ry:6*scale,class:&#x27;parcel-building&#x27;
+        }));
+        svg.appendChild(make(&#x27;circle&#x27;,{
+          cx:x(-32),cy:y(92),r:2.2*scale,class:&#x27;parcel-ring&#x27;
+        }));
+
+        const arc = (rx,rz,a0,a1) =&gt; Array.from({length:25},(_,index) =&gt; {
+          const angle = (a0+(a1-a0)*index/24)*Math.PI/180;
+          return [-32+rx*Math.cos(angle),92+rz*Math.sin(angle)];
+        });
+        [[4,3.4],[5.2,4.3],[6.4,5.1]].forEach(([rx,rz]) =&gt; {
+          svg.appendChild(make(&#x27;polyline&#x27;,{points:points(arc(rx,rz,112,248)),class:&#x27;parcel-seating&#x27;}));
+          svg.appendChild(make(&#x27;polyline&#x27;,{points:points(arc(rx,rz,-68,68)),class:&#x27;parcel-seating&#x27;}));
+        });
+
+        pathLine([[-35,77.5],[-35,80.5],[-40,80.5],[-40,83],[-35.5,83],[-35.5,85.5],[-32,86]],&#x27;parcel-entry&#x27;);
+        pathLine([[-32,86],[-32,89.8]],&#x27;parcel-interior&#x27;);
+        pathLine([[-29.8,92],[-23,92],[-20,94],[-18,97],[-16.1,97.9]],&#x27;parcel-exit&#x27;);
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(-41),y:y(79.5),width:2.2*scale,height:2.2*scale,class:&#x27;parcel-booth&#x27;
+        }));
+
+        svg.appendChild(make(&#x27;circle&#x27;,{
+          cx:x(-4),cy:y(91),r:2.2*scale,class:&#x27;parcel-photo&#x27;
+        }));
+        pathLine([[-10,88],[-7,89.5],[-4,91]],&#x27;parcel-entry&#x27;);
+        pathLine([[-6.1,91],[-23,92]],&#x27;parcel-sightline&#x27;);
+
+        pathLine([[-32,98],[-32,106],[-32,112],[-34,118],[-34,120]],&#x27;service-line&#x27;);
+        pathLine([[-34,126],[-40,127],[-70,120]],&#x27;service-line&#x27;);
+        svg.appendChild(make(&#x27;line&#x27;,{
+          x1:x(-34),y1:y(108),x2:x(-30),y2:y(108),class:&#x27;parcel-gate&#x27;
+        }));
+        svg.appendChild(make(&#x27;line&#x27;,{
+          x1:x(-36),y1:y(116),x2:x(-32),y2:y(116),class:&#x27;parcel-gate&#x27;
+        }));
+
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(-41),y:y(120),width:14*scale,height:6*scale,class:&#x27;parcel-backstage&#x27;
+        }));
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(-40),y:y(121),width:5*scale,height:4*scale,class:&#x27;parcel-room&#x27;
+        }));
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(-34),y:y(121),width:6*scale,height:4*scale,class:&#x27;parcel-room&#x27;
+        }));
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(-31),y:y(121.5),width:2.2*scale,height:2*scale,class:&#x27;parcel-booth&#x27;
+        }));
+
+        if (!narrow) {
+          pathLine([[-45,96],[-40.56,93.85]],&#x27;parcel-dimension&#x27;);
+          pathLine([[-23.67,94.27],[-19.96,96.56]],&#x27;parcel-dimension&#x27;);
+          pathLine([[-41,120],[-41.34,117.95]],&#x27;parcel-dimension&#x27;);
+
+          label(&#x27;C · 8m COASTAL SHOW LOOP&#x27;,[-79,71]);
+          label(&#x27;R4 · SWINGING SHIP (CONTEXT)&#x27;,[-75,98]);
+          label(&#x27;TICKETS + AUDIENCE LOAD&#x27;,[-50,78]);
+          label(&#x27;18 × 12m BIG TOP&#x27;,[-32,84],&#x27;middle&#x27;);
+          label(&#x27;120 TIMED SEATS&#x27;,[-32,88],&#x27;middle&#x27;);
+          label(&#x27;RING&#x27;,[-32,92.5],&#x27;middle&#x27;);
+          label(&#x27;SEPARATE RELEASE&#x27;,[-14,102],&#x27;end&#x27;);
+          label(&#x27;PHOTO BAY&#x27;,[-1,87],&#x27;end&#x27;);
+          label(&#x27;4.9m&#x27;,[-45,91]);
+          label(&#x27;4.3m C EDGE CLEAR&#x27;,[-15,96]);
+          label(&#x27;LOCKED SHOW CROSSING&#x27;,[-28,113]);
+          label(&#x27;2.0m C EDGE CLEAR&#x27;,[-47,119]);
+          label(&#x27;14 × 6m BACKSTAGE YARD&#x27;,[-34,130],&#x27;middle&#x27;);
+          label(&#x27;DRESS&#x27;,[-37.5,124],&#x27;middle&#x27;);
+          label(&#x27;CUE&#x27;,[-31,124],&#x27;middle&#x27;);
+          label(&#x27;FAIRGROUND SERVICE&#x27;,[-70,127.5]);
+        } else {
+          label(&#x27;R4&#x27;,[-65,94],&#x27;middle&#x27;);
+          label(&#x27;ENTRY&#x27;,[-49,81]);
+          label(&#x27;18 × 12m BIG TOP&#x27;,[-32,84],&#x27;middle&#x27;);
+          label(&#x27;120 SEATS + RING&#x27;,[-32,92.5],&#x27;middle&#x27;);
+          label(&#x27;EXIT&#x27;,[-14,102],&#x27;end&#x27;);
+          label(&#x27;PHOTO&#x27;,[-1,87],&#x27;end&#x27;);
+          label(&#x27;LOCKED CROSSING&#x27;,[-28,113]);
+          label(&#x27;BACKSTAGE&#x27;,[-34,130],&#x27;middle&#x27;);
+          label(&#x27;SERVICE&#x27;,[-70,126.5]);
+        }
+      }
+    );
+  }
+
+  function drawPlayGardenParcel() {
+    parcelCanvas(
+      p4ParcelMap,{x0:-3,x1:92,z0:63,z1:130},
+      &#x27;Resolved plan for the P4 Family commons play garden&#x27;,
+      &#x27;A local world-coordinate plan showing the nine-metre family arrival and eight-metre Kiddieland circuit, R5 as context, an eighteen-by-fourteen-metre fenced play garden with two public gates and an inclusive internal loop, three play zones, host and stroller positions, a shaded family-photo point, and a south staff route to a screened support yard and the outer service spine.&#x27;,
+      ({svg,x,y,scale,points,pathLine,label,compact}) =&gt; {
+        const narrow = compact || p4ParcelMap.getBoundingClientRect().width &lt; 480;
+        const familyArrival = [[0,86],[12,82],[25,76],[38,70],[49,68]];
+        const familyCircuit = [[49,68],[42,82],[46,96],[61,108],[80,111]];
+        pathLine(familyArrival,&#x27;new-route&#x27;,{&#x27;stroke-width&#x27;:Math.max(5,9*scale)});
+        pathLine(familyCircuit,&#x27;new-route&#x27;,{&#x27;stroke-width&#x27;:Math.max(5,8*scale)});
+
+        svg.appendChild(make(&#x27;ellipse&#x27;,{
+          cx:x(68),cy:y(88),rx:17*scale,ry:12*scale,class:&#x27;ride-pad is-context&#x27;
+        }));
+
+        svg.appendChild(make(&#x27;ellipse&#x27;,{
+          cx:x(27),cy:y(93),rx:9*scale,ry:7*scale,class:&#x27;parcel-play-fence&#x27;
+        }));
+        const inclusiveLoop = Array.from({length:65},(_,index) =&gt; {
+          const angle = index*Math.PI/32;
+          return [27+7*Math.cos(angle),93+5*Math.sin(angle)];
+        });
+        svg.appendChild(make(&#x27;polyline&#x27;,{
+          points:points(inclusiveLoop),class:&#x27;parcel-bypass&#x27;
+        }));
+
+        pathLine([[12,82],[17,84],[21.5,87.5]],&#x27;parcel-entry&#x27;);
+        pathLine([[21.5,87.5],[22.2,88]],&#x27;parcel-interior&#x27;);
+        pathLine([[34,93],[36,93],[40,93],[45,92.5]],&#x27;parcel-entry&#x27;);
+
+        svg.appendChild(make(&#x27;ellipse&#x27;,{
+          cx:x(24),cy:y(91),rx:2.6*scale,ry:2.1*scale,class:&#x27;parcel-playzone&#x27;
+        }));
+        svg.appendChild(make(&#x27;circle&#x27;,{
+          cx:x(30),cy:y(92),r:2.7*scale,class:&#x27;parcel-playzone&#x27;
+        }));
+        svg.appendChild(make(&#x27;ellipse&#x27;,{
+          cx:x(29),cy:y(97),rx:3.4*scale,ry:1.5*scale,class:&#x27;parcel-playzone&#x27;
+        }));
+
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(22),y:y(87.5),width:2*scale,height:2*scale,class:&#x27;parcel-booth&#x27;
+        }));
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(28),y:y(87),width:4*scale,height:2*scale,class:&#x27;parcel-room&#x27;
+        }));
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(19.5),y:y(95),width:4*scale,height:3*scale,class:&#x27;parcel-forecourt&#x27;
+        }));
+        svg.appendChild(make(&#x27;circle&#x27;,{
+          cx:x(21),cy:y(96.5),r:2.1*scale,class:&#x27;parcel-photo&#x27;
+        }));
+        pathLine([[23,96],[30,92]],&#x27;parcel-sightline&#x27;);
+
+        pathLine([[27,100],[27,105]],&#x27;service-line&#x27;);
+        svg.appendChild(make(&#x27;line&#x27;,{
+          x1:x(24.8),y1:y(101),x2:x(29.2),y2:y(101),class:&#x27;parcel-gate&#x27;
+        }));
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(22),y:y(105),width:10*scale,height:4*scale,class:&#x27;parcel-backstage&#x27;
+        }));
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(23),y:y(106),width:4*scale,height:2*scale,class:&#x27;parcel-room&#x27;
+        }));
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(28.5),y:y(106),width:2.5*scale,height:2*scale,class:&#x27;parcel-booth&#x27;
+        }));
+        pathLine([[27,109],[30,117],[34,126],[75,126]],&#x27;service-line&#x27;);
+
+        if (!narrow) {
+          pathLine([[22.415,86.976],[20.578,82.998]],&#x27;parcel-dimension&#x27;);
+          pathLine([[35.787,91.485],[40.189,90.227]],&#x27;parcel-dimension&#x27;);
+
+          label(&#x27;D · 9m FAMILY ARRIVAL&#x27;,[2,66]);
+          label(&#x27;D · 8m FAMILY CIRCUIT&#x27;,[76,116],&#x27;end&#x27;);
+          label(&#x27;R5 · RIDE COURT (CONTEXT)&#x27;,[72,82],&#x27;middle&#x27;);
+          label(&#x27;WEST GATE&#x27;,[4,94]);
+          label(&#x27;EAST GATE&#x27;,[47,90]);
+          label(&#x27;18 × 14m PLAY GARDEN&#x27;,[27,80],&#x27;middle&#x27;);
+          label(&#x27;TODDLER&#x27;,[21,92.5],&#x27;end&#x27;);
+          label(&#x27;CLIMB&#x27;,[33,92.5]);
+          label(&#x27;SENSORY&#x27;,[29,97.5],&#x27;middle&#x27;);
+          label(&#x27;HOST + STROLLERS&#x27;,[27,87.5],&#x27;middle&#x27;);
+          label(&#x27;SHADE + PHOTO&#x27;,[17,100]);
+          label(&#x27;4.3m&#x27;,[17,84]);
+          label(&#x27;4.5m&#x27;,[41,86]);
+          label(&#x27;SOUTH STAFF GATE&#x27;,[32,102]);
+          label(&#x27;10 × 4m SUPPORT / CUE YARD&#x27;,[27,112],&#x27;middle&#x27;);
+          label(&#x27;OUTER SERVICE&#x27;,[56,124],&#x27;middle&#x27;);
+        } else {
+          label(&#x27;R5&#x27;,[68,88],&#x27;middle&#x27;);
+          label(&#x27;WEST&#x27;,[4,95]);
+          label(&#x27;EAST&#x27;,[49,89]);
+          label(&#x27;18 × 14m GARDEN&#x27;,[27,82.5],&#x27;middle&#x27;);
+          label(&#x27;3 ZONES&#x27;,[27,93],&#x27;middle&#x27;);
+          label(&#x27;PHOTO&#x27;,[16,101]);
+          label(&#x27;STAFF&#x27;,[35,103]);
+          label(&#x27;SUPPORT&#x27;,[27,112],&#x27;middle&#x27;);
+          label(&#x27;SERVICE&#x27;,[55,124],&#x27;middle&#x27;);
+        }
+      }
+    );
+  }
+
+  function drawBandstandParcel() {
+    parcelCanvas(
+      p5ParcelMap,{x0:-78,x1:12,z0:-58,z1:22},
+      &#x27;Resolved plan for the P5 Plaza bandstand performance court&#x27;,
+      &#x27;A local world-coordinate plan showing the full plaza hub ring, the north boulevard, the west waterfront spine, untouched Cascading Staircases, a relocated twelve-point-four-metre bandstand, a twenty-by-fourteen-metre audience lawn with ninety-six removable chairs and accessible seating, separate audience entry and release, a photography turnout, crowd-control boundary, and a rear cue yard connected to the west service spine.&#x27;,
+      ({svg,x,y,scale,points,pathLine,label,compact}) =&gt; {
+        const narrow = compact || p5ParcelMap.getBoundingClientRect().width &lt; 520;
+        const stage = [-42,-32];
+        const audience = [-31,-23.5];
+        const theta = 37.3*Math.PI/180;
+        const u = [Math.cos(theta),Math.sin(theta)];
+        const v = [-u[1],u[0]];
+        const offset = (at,along,across) =&gt; [
+          at[0]+u[0]*along+v[0]*across,
+          at[1]+u[1]*along+v[1]*across
+        ];
+        const audiencePoint = angle =&gt; {
+          const a=angle*Math.PI/180;
+          return offset(audience,7*Math.cos(a),10*Math.sin(a));
+        };
+
+        pathLine(routes.A.paths[1].p,&#x27;new-route&#x27;,{&#x27;stroke-width&#x27;:Math.max(5,11*scale)});
+        pathLine(routes.A.paths[3].p,&#x27;new-route&#x27;,{&#x27;stroke-width&#x27;:Math.max(5,18*scale)});
+        pathLine(routes.B.paths[2].p,&#x27;new-route&#x27;,{&#x27;stroke-width&#x27;:Math.max(5,9*scale)});
+
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(-74),y:y(-15),width:19*scale,height:27*scale,class:&#x27;protected-zone&#x27;
+        }));
+        pathLine([[-57,-2],[-72,-2]],&#x27;protected-path&#x27;);
+
+        pathLine([[-62,-58],[-62,-38],[-62,-15]],&#x27;service-line&#x27;);
+        pathLine([[-62,-38],[-58,-38],[-58,-39]],&#x27;service-line&#x27;);
+
+        svg.appendChild(make(&#x27;ellipse&#x27;,{
+          cx:x(audience[0]),cy:y(audience[1]),rx:7*scale,ry:10*scale,
+          transform:`rotate(37.3 ${x(audience[0])} ${y(audience[1])})`,class:&#x27;parcel-audience&#x27;
+        }));
+
+        const rowPositions = [-4.5,-3.4,-2.3,-1.2,-0.1,1,2.1,3.2];
+        rowPositions.forEach(along =&gt; {
+          const half = Math.max(3.2,9.2*Math.sqrt(1-(along*along)/(7*7)));
+          pathLine([offset(audience,along,-half),offset(audience,along,-0.8)],&#x27;parcel-seating&#x27;);
+          pathLine([offset(audience,along,0.8),offset(audience,along,half)],&#x27;parcel-seating&#x27;);
+        });
+        pathLine([offset(audience,-6.3,0),offset(audience,6.2,0)],&#x27;parcel-bypass&#x27;);
+
+        [-6.4,-4.8,4.8,6.4].forEach(across =&gt; {
+          const at=offset(audience,-4.8,across);
+          svg.appendChild(make(&#x27;rect&#x27;,{
+            x:x(at[0]-.65),y:y(at[1]-.65),width:1.3*scale,height:1.3*scale,
+            class:&#x27;parcel-accessible&#x27;
+          }));
+        });
+
+        svg.appendChild(make(&#x27;circle&#x27;,{
+          cx:x(stage[0]),cy:y(stage[1]),r:6.2*scale,class:&#x27;parcel-building&#x27;
+        }));
+        svg.appendChild(make(&#x27;circle&#x27;,{
+          cx:x(stage[0]),cy:y(stage[1]),r:4.9*scale,class:&#x27;parcel-gallery&#x27;
+        }));
+        pathLine([offset(stage,4.35,-4.2),offset(stage,4.35,4.2)],&#x27;parcel-facade&#x27;);
+        pathLine([offset(stage,5.6,0),offset(audience,-6.4,0)],&#x27;parcel-platform&#x27;);
+
+        pathLine([[-32,-1],[-32,-8],[-35,-13],[-37.1,-15.5]],&#x27;parcel-entry&#x27;);
+        pathLine([[-25.4,-19.3],[-21,-18],[-16,-16],[-9,-15]],&#x27;parcel-exit&#x27;);
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(-37),y:y(-17.5),width:2*scale,height:2*scale,class:&#x27;parcel-booth&#x27;
+        }));
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(-28),y:y(-21.5),width:2*scale,height:2*scale,class:&#x27;parcel-booth&#x27;
+        }));
+
+        const crowdArc=Array.from({length:37},(_,index) =&gt; audiencePoint(-72+index*4));
+        pathLine(crowdArc,&#x27;parcel-crowd-line&#x27;);
+
+        pathLine([[-25,-20],[-22,-23],[-20,-28]],&#x27;parcel-entry&#x27;);
+        svg.appendChild(make(&#x27;circle&#x27;,{
+          cx:x(-20),cy:y(-28),r:2.2*scale,class:&#x27;parcel-photo&#x27;
+        }));
+        pathLine([[-22,-28],[-42,-32]],&#x27;parcel-sightline&#x27;);
+
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(-58),y:y(-42),width:10*scale,height:6*scale,class:&#x27;parcel-backstage&#x27;
+        }));
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(-57),y:y(-41),width:4*scale,height:4*scale,class:&#x27;parcel-room&#x27;
+        }));
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(-52),y:y(-41),width:3*scale,height:4*scale,class:&#x27;parcel-room&#x27;
+        }));
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(-50.5),y:y(-40.5),width:1.6*scale,height:1.6*scale,class:&#x27;parcel-booth&#x27;
+        }));
+        pathLine([[-49,-38],[-47,-36],offset(stage,-5.8,0)],&#x27;parcel-interior&#x27;);
+        svg.appendChild(make(&#x27;line&#x27;,{
+          x1:x(-58),y1:y(-40.5),x2:x(-58),y2:y(-37.5),class:&#x27;parcel-gate&#x27;
+        }));
+        svg.appendChild(make(&#x27;line&#x27;,{
+          x1:x(-49),y1:y(-38.5),x2:x(-47),y2:y(-36.5),class:&#x27;parcel-gate&#x27;
+        }));
+
+        pathLine([[-26.47,-18.04],[-22.50,-14.23]],&#x27;parcel-dimension&#x27;);
+        pathLine([[-34.22,-14.50],[-34.90,-5.74]],&#x27;parcel-dimension&#x27;);
+        pathLine([[-45.76,-27.08],[-55,-15]],&#x27;parcel-dimension&#x27;);
+
+        if (!narrow) {
+          label(&#x27;A · 18m PLAZA HUB RING&#x27;,[5,17],&#x27;end&#x27;);
+          label(&#x27;A · NORTH BOULEVARD&#x27;,[5,-48],&#x27;end&#x27;);
+          label(&#x27;B · 9m WATERFRONT SPINE&#x27;,[-48,4],&#x27;middle&#x27;);
+          label(&#x27;NT-1 · CASCADING STAIRCASES&#x27;,[-64.5,10],&#x27;middle&#x27;);
+          label(&#x27;NO TOUCH&#x27;,[-64.5,-11],&#x27;middle&#x27;);
+          label(&#x27;12.4m BANDSTAND&#x27;,[-42,-32],&#x27;middle&#x27;);
+          label(&#x27;20 × 14m EVENT LAWN&#x27;,[-24,-34]);
+          label(&#x27;96 CHAIRS · LEVEL AISLE&#x27;,[-31,-23],&#x27;middle&#x27;);
+          label(&#x27;4 ACCESSIBLE BAYS + COMPANIONS&#x27;,[-43,-28],&#x27;end&#x27;);
+          label(&#x27;ENTRY + HOLDING&#x27;,[-43,-8],&#x27;end&#x27;);
+          label(&#x27;SEPARATE RELEASE&#x27;,[-5,-13],&#x27;end&#x27;);
+          label(&#x27;5.5m HUB CLEAR&#x27;,[-16,-10],&#x27;end&#x27;);
+          label(&#x27;8.8m FROM B&#x27;,[-27,-5],&#x27;middle&#x27;);
+          label(&#x27;PHOTO BAY&#x27;,[-13,-29],&#x27;end&#x27;);
+          label(&#x27;10 × 6m REAR CUE / LOAD YARD&#x27;,[-53,-46],&#x27;middle&#x27;);
+          label(&#x27;WEST SERVICE SPINE&#x27;,[-68,-51]);
+          label(&#x27;15.2m TO NT-1&#x27;,[-54,-24],&#x27;middle&#x27;);
+        } else {
+          label(&#x27;HUB RING&#x27;,[8,17],&#x27;end&#x27;);
+          label(&#x27;B SPINE&#x27;,[-48,4],&#x27;middle&#x27;);
+          label(&#x27;NT-1 · NO TOUCH&#x27;,[-64.5,9],&#x27;middle&#x27;);
+          label(&#x27;P5 STAGE&#x27;,[-42,-32],&#x27;middle&#x27;);
+          label(&#x27;96-SEAT LAWN&#x27;,[-31,-23.5],&#x27;middle&#x27;);
+          label(&#x27;ENTRY&#x27;,[-43,-10],&#x27;end&#x27;);
+          label(&#x27;RELEASE&#x27;,[-6,-13],&#x27;end&#x27;);
+          label(&#x27;5.5m HUB CLEAR&#x27;,[-9,-6],&#x27;end&#x27;);
+          label(&#x27;SERVICE + CUE&#x27;,[-68,-49]);
+        }
+      }
+    );
+  }
+
+  function drawServiceSystems() {
+    parcelCanvas(
+      serviceParcelMap,{x0:-140,x1:162,z0:-155,z1:150,gridStep:40},
+      &#x27;Resolved park-wide plan for service, drainage, and planting&#x27;,
+      &#x27;A measured world-coordinate systems plan showing three four-metre service spines with freight gates and twelve-metre turning heads, permanent links to ride and attraction yards, two pre-opening shared access runs, five concealed drainage catchments plus the daylighted D2 Coastal Creek, protected Cascading Staircases and Terraced Fountain envelopes, and shade, screening, and slope-stabilization planting bands outside public paving.&#x27;,
+      ({svg,x,y,scale,points,pathLine,label,compact}) =&gt; {
+        const narrow = compact || serviceParcelMap.getBoundingClientRect().width &lt; 520;
+        addDrainageMarker(svg,&#x27;drain-arrow-service&#x27;);
+
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(-140),y:y(-155),width:302*scale,height:305*scale,class:&#x27;map-water&#x27;
+        }));
+        svg.appendChild(make(&#x27;polygon&#x27;,{points:points(parkOutline),class:&#x27;map-land&#x27;}));
+
+        plantingBands.forEach(band =&gt; {
+          band.paths.forEach(line =&gt; pathLine(line,&#x27;planting-line&#x27;,{&#x27;data-kind&#x27;:band.kind}));
+        });
+
+        Object.values(routes).forEach(route =&gt; {
+          route.paths.forEach(run =&gt; pathLine(run.p,&#x27;new-route is-muted&#x27;,{
+            &#x27;stroke-width&#x27;:Math.max(3,run.w*scale)
+          }));
+        });
+
+        protectedZones.forEach(zone =&gt; {
+          if (zone.type === &#x27;rect&#x27;) {
+            svg.appendChild(make(&#x27;rect&#x27;,{
+              x:x(zone.x0),y:y(zone.z0),width:(zone.x1-zone.x0)*scale,
+              height:(zone.z1-zone.z0)*scale,class:&#x27;protected-zone&#x27;
+            }));
+          } else {
+            svg.appendChild(make(&#x27;ellipse&#x27;,{
+              cx:x(zone.at[0]),cy:y(zone.at[1]),rx:zone.rx*scale,ry:zone.rz*scale,
+              class:&#x27;protected-zone&#x27;
+            }));
+          }
+          zone.paths.forEach(line =&gt; pathLine(line,&#x27;protected-path&#x27;));
+        });
+
+        drainageLines.forEach(drain =&gt; pathLine(drain.p,&#x27;drainage-line&#x27;,{
+          &#x27;marker-end&#x27;:&#x27;url(#drain-arrow-service)&#x27;
+        }));
+        drainageBasins.forEach(basin =&gt; {
+          svg.appendChild(make(&#x27;ellipse&#x27;,{
+            cx:x(basin.at[0]),cy:y(basin.at[1]),
+            rx:basin.radii[0]*scale,ry:basin.radii[1]*scale,class:&#x27;drainage-basin&#x27;
+          }));
+        });
+        drawCoastalCreekBase(svg,x,y,scale,points,pathLine);
+
+        serviceLinks.forEach(line =&gt; pathLine(line,&#x27;service-line&#x27;));
+        rides.forEach(ride =&gt; {
+          pathLine(ride.service,&#x27;service-line&#x27;);
+          if (ride.service2) pathLine(ride.service2,&#x27;service-line&#x27;);
+        });
+        programmedAttractions.forEach(attraction =&gt; {
+          if (attraction.service) pathLine(attraction.service,&#x27;service-line&#x27;);
+          if (attraction.service2) pathLine(attraction.service2,&#x27;service-line&#x27;);
+        });
+        serviceSpines.forEach(spine =&gt; pathLine(spine.p,&#x27;service-line&#x27;,{
+          &#x27;stroke-width&#x27;:Math.max(4,4*scale)
+        }));
+        sharedServiceSegments.forEach(run =&gt; pathLine(run.p,&#x27;service-shared&#x27;));
+        drawCoastalCreekCrossings(svg,x,y,scale,pathLine);
+
+        serviceNodes.forEach(node =&gt; {
+          if (node.kind === &#x27;gate&#x27;) {
+            svg.appendChild(make(&#x27;rect&#x27;,{
+              x:x(node.at[0]-1.7),y:y(node.at[1]-1.7),
+              width:3.4*scale,height:3.4*scale,class:&#x27;service-gate&#x27;
+            }));
+          } else {
+            svg.appendChild(make(&#x27;circle&#x27;,{
+              cx:x(node.at[0]),cy:y(node.at[1]),r:node.r*scale,class:&#x27;service-turn&#x27;
+            }));
+          }
+        });
+
+        if (!narrow) {
+          label(&#x27;S1 · 4m WEST&#x27;,[-68,-88],&#x27;middle&#x27;);
+          label(&#x27;S2 · 4m SOUTH&#x27;,[-77,77],&#x27;middle&#x27;);
+          label(&#x27;S3 · 4m EAST / NORTH&#x27;,[157,18],&#x27;end&#x27;);
+          label(&#x27;SH1 · B PRE-OPEN&#x27;,[-82,-71],&#x27;middle&#x27;);
+          label(&#x27;SH2 · P1 PRE-OPEN&#x27;,[-31,-116],&#x27;middle&#x27;);
+          label(&#x27;G1&#x27;,[-34,123],&#x27;middle&#x27;);
+          label(&#x27;G2&#x27;,[34,139],&#x27;middle&#x27;);
+          label(&#x27;G3&#x27;,[-112,-66],&#x27;end&#x27;);
+          label(&#x27;G4&#x27;,[-128,-18],&#x27;middle&#x27;);
+          label(&#x27;H1 · 12m&#x27;,[-74,-24],&#x27;middle&#x27;);
+          label(&#x27;H2 · 12m&#x27;,[-78,16],&#x27;end&#x27;);
+          label(&#x27;H3 · 12m&#x27;,[-52,-139],&#x27;middle&#x27;);
+          label(&#x27;H4 · 12m&#x27;,[42,-146],&#x27;middle&#x27;);
+          label(&#x27;D1 · OUTFALL&#x27;,[-108,-54],&#x27;middle&#x27;);
+          label(&#x27;D2 · COASTAL CREEK&#x27;,[-73,62],&#x27;middle&#x27;);
+          label(&#x27;D3 · FAIRGROUND&#x27;,[-42,140],&#x27;middle&#x27;);
+          label(&#x27;D4 · FAMILY&#x27;,[80,137],&#x27;middle&#x27;);
+          label(&#x27;D5 · EAST BASIN&#x27;,[148,89],&#x27;end&#x27;);
+          label(&#x27;D6 · NORTH BASIN&#x27;,[92,-142],&#x27;middle&#x27;);
+          label(&#x27;PL1 · SHADE&#x27;,[-8,70],&#x27;middle&#x27;);
+          label(&#x27;PL2 · SCREENS&#x27;,[54,117],&#x27;middle&#x27;);
+          label(&#x27;PL3 · SLOPE&#x27;,[112,-126],&#x27;middle&#x27;);
+          label(&#x27;NT-1 · NO TOUCH&#x27;,[-64,4],&#x27;middle&#x27;);
+          label(&#x27;NT-2 · NO TOUCH&#x27;,[86,4],&#x27;middle&#x27;);
+          label(&#x27;8m&#x27;,[-62,-17],&#x27;middle&#x27;);
+          label(&#x27;8m&#x27;,[-62,15],&#x27;middle&#x27;);
+        } else {
+          label(&#x27;S1&#x27;,[-68,-88],&#x27;middle&#x27;);
+          label(&#x27;S2&#x27;,[-77,77],&#x27;middle&#x27;);
+          label(&#x27;S3&#x27;,[157,18],&#x27;end&#x27;);
+          label(&#x27;D1&#x27;,[-108,-54],&#x27;middle&#x27;);
+          label(&#x27;D2 CREEK&#x27;,[-73,62],&#x27;middle&#x27;);
+          label(&#x27;D3&#x27;,[-42,140],&#x27;middle&#x27;);
+          label(&#x27;D4&#x27;,[80,137],&#x27;middle&#x27;);
+          label(&#x27;D5&#x27;,[148,89],&#x27;end&#x27;);
+          label(&#x27;D6&#x27;,[92,-142],&#x27;middle&#x27;);
+          label(&#x27;G3&#x27;,[-112,-66],&#x27;end&#x27;);
+          label(&#x27;NT-1&#x27;,[-64,4],&#x27;middle&#x27;);
+          label(&#x27;NT-2&#x27;,[86,4],&#x27;middle&#x27;);
+          label(&#x27;SHADE&#x27;,[-8,70],&#x27;middle&#x27;);
+          label(&#x27;SCREEN&#x27;,[54,117],&#x27;middle&#x27;);
+          label(&#x27;SLOPE&#x27;,[105,-126],&#x27;middle&#x27;);
+        }
+      }
+    );
+  }
+
+  function drawCoastalCreekPlan() {
+    parcelCanvas(
+      creekParcelMap,{x0:-110,x1:-40,z0:-18,z1:68,gridStep:10},
+      &#x27;Resolved daylighting plan for Coastal Creek&#x27;,
+      &#x27;A local world-coordinate plan showing the D2 concealed feeder and daylight point, a planted low-flow creek south of the untouched Cascading Staircases and Boardwalk funhouse, a rain pond and controlled waterfront outfall, a full-width Boardwalk promenade bridge, a four-metre funhouse garden footbridge, one locked S2 service culvert, and measured monument and foundation clearances.&#x27;,
+      ({svg,x,y,scale,points,pathLine,label,compact}) =&gt; {
+        const narrow = compact || creekParcelMap.getBoundingClientRect().width &lt; 520;
+
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(-110),y:y(-18),width:6*scale,height:86*scale,class:&#x27;map-water&#x27;
+        }));
+
+        pathLine([[-96,-18],[-96,-2],[-96,10],[-96,35],[-96,60]],
+          &#x27;new-route is-muted&#x27;,{&#x27;stroke-width&#x27;:Math.max(5,10*scale)});
+
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(-74),y:y(-15),width:19*scale,height:27*scale,class:&#x27;protected-zone&#x27;
+        }));
+        pathLine([[-57,-2],[-72,-2]],&#x27;protected-path&#x27;);
+
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(-83),y:y(25),width:12*scale,height:14*scale,class:&#x27;program-attraction&#x27;
+        }));
+        pathLine([[-96,27],[-90,27],[-87,25],[-84,27],[-83,27]],&#x27;program-access&#x27;);
+        pathLine([[-83,37],[-88,37],[-91,40],[-96,40]],&#x27;program-access&#x27;);
+
+        pathLine([[-62,20],[-62,38],[-64,61]],&#x27;service-line&#x27;,{
+          &#x27;stroke-width&#x27;:Math.max(4,4*scale)
+        });
+        pathLine([[-40,12],[-46,14],[-48,22]],&#x27;drainage-line&#x27;);
+
+        drawCoastalCreekBase(svg,x,y,scale,points,pathLine);
+        pathLine([[-55,12],[-48,22]],&#x27;creek-clearance&#x27;);
+        pathLine([[-71,39],[-65.36,46.52]],&#x27;creek-clearance&#x27;);
+        drawCoastalCreekCrossings(svg,x,y,scale,pathLine);
+
+        if (!narrow) {
+          label(&#x27;NT-1 · CASCADING STAIRCASES&#x27;,[-64.5,-11],&#x27;middle&#x27;);
+          label(&#x27;NO TOUCH&#x27;,[-64.5,7],&#x27;middle&#x27;);
+          label(&#x27;7.2m MIN. CLEAR&#x27;,[-47.5,16],&#x27;end&#x27;);
+          label(&#x27;D2 CONCEALED FEEDER&#x27;,[-41,10],&#x27;end&#x27;);
+          label(&#x27;DAYLIGHT POINT&#x27;,[-46,24],&#x27;end&#x27;);
+          label(&#x27;S2 · 4m LOCKED SERVICE&#x27;,[-59,20]);
+          label(&#x27;4m SERVICE CULVERT&#x27;,[-59,49]);
+          label(&#x27;P2 · FUNHOUSE&#x27;,[-77,31],&#x27;middle&#x27;);
+          label(&#x27;P2 CLEAR · 4.4m&#x27;,[-69,44],&#x27;end&#x27;);
+          label(&#x27;2.5–4m LOW-FLOW CHANNEL&#x27;,[-43,33],&#x27;end&#x27;);
+          label(&#x27;8–12m PLANTED CORRIDOR&#x27;,[-43,37],&#x27;end&#x27;);
+          label(&#x27;4m GARDEN FOOTBRIDGE&#x27;,[-72,59]);
+          label(&#x27;14 × 8m RAIN POND&#x27;,[-88,57],&#x27;middle&#x27;);
+          label(&#x27;B · 10m WATERFRONT SPINE&#x27;,[-101,19]);
+          label(&#x27;10m PROMENADE BRIDGE&#x27;,[-102,49]);
+          label(&#x27;CONTROLLED WEIR + OUTFALL&#x27;,[-109,65]);
+        } else {
+          label(&#x27;NT-1 · NO TOUCH&#x27;,[-64.5,-10],&#x27;middle&#x27;);
+          label(&#x27;7.2m CLEAR&#x27;,[-47.5,16],&#x27;end&#x27;);
+          label(&#x27;D2 DAYLIGHT&#x27;,[-46,24],&#x27;end&#x27;);
+          label(&#x27;S2 CULVERT&#x27;,[-64,49],&#x27;end&#x27;);
+          label(&#x27;P2&#x27;,[-77,31],&#x27;middle&#x27;);
+          label(&#x27;4.4m CLEAR&#x27;,[-69,44],&#x27;end&#x27;);
+          label(&#x27;4m FOOTBRIDGE&#x27;,[-72,59]);
+          label(&#x27;RAIN POND&#x27;,[-88,57],&#x27;middle&#x27;);
+          label(&#x27;B BRIDGE&#x27;,[-102,49]);
+          label(&#x27;OUTFALL&#x27;,[-109,65]);
+        }
+      }
+    );
+  }
+
+  function drawSightlinePlan() {
+    parcelCanvas(
+      qaParcelMap,{x0:-130,x1:162,z0:-155,z1:145,gridStep:40},
+      &#x27;Resolved navigation, sightline, and reveal plan&#x27;,
+      &#x27;A park-wide world-coordinate plan showing routes A through F at final widths, junctions J1 through J9, six locked camera and guest-view positions with exact bearings, primary reveal cones, secondary skyline axes, district threshold planes, protected Cascading Staircases and Terraced Fountain envelopes, and the lighthouse, Plaza hub, Boardwalk skyline, and High Terrace coaster targets.&#x27;,
+      ({svg,x,y,scale,points,pathLine,label,compact}) =&gt; {
+        const narrow = compact || qaParcelMap.getBoundingClientRect().width &lt; 520;
+
+        svg.appendChild(make(&#x27;rect&#x27;,{
+          x:x(-130),y:y(-155),width:292*scale,height:300*scale,class:&#x27;map-water&#x27;
+        }));
+        svg.appendChild(make(&#x27;polygon&#x27;,{points:points(parkOutline),class:&#x27;map-land&#x27;}));
+
+        Object.entries(routes).forEach(([id,route]) =&gt; {
+          route.paths.forEach(run =&gt; pathLine(run.p,&#x27;new-route is-muted&#x27;,{
+            &#x27;stroke-width&#x27;:Math.max(3,run.w*scale)
+          }));
+          if (!narrow) label(id,route.label,&#x27;middle&#x27;);
+        });
+
+        protectedZones.forEach(zone =&gt; {
+          if (zone.type === &#x27;rect&#x27;) {
+            svg.appendChild(make(&#x27;rect&#x27;,{
+              x:x(zone.x0),y:y(zone.z0),width:(zone.x1-zone.x0)*scale,
+              height:(zone.z1-zone.z0)*scale,class:&#x27;protected-zone&#x27;
+            }));
+          } else {
+            svg.appendChild(make(&#x27;ellipse&#x27;,{
+              cx:x(zone.at[0]),cy:y(zone.at[1]),rx:zone.rx*scale,ry:zone.rz*scale,
+              class:&#x27;protected-zone&#x27;
+            }));
+          }
+          zone.paths.forEach(line =&gt; pathLine(line,&#x27;protected-path&#x27;));
+        });
+
+        svg.appendChild(make(&#x27;circle&#x27;,{
+          cx:x(0),cy:y(0),r:18*scale,class:&#x27;parcel-forecourt&#x27;
+        }));
+        svg.appendChild(make(&#x27;circle&#x27;,{
+          cx:x(-16),cy:y(-131),r:5*scale,class:&#x27;program-attraction&#x27;
+        }));
+        const terraceCoaster=rides.find(ride =&gt; ride.id === &#x27;R13&#x27;);
+        svg.appendChild(make(&#x27;polygon&#x27;,{
+          points:points(terraceCoaster.footprint),class:&#x27;ride-pad is-context&#x27;
+        }));
+        pathLine(terraceCoaster.track,&#x27;coaster-track&#x27;);
+
+        drawSightlineLayer(svg,x,y,scale,points,pathLine,{compact:narrow,labels:true});
+
+        junctions.forEach(([id,jx,jz]) =&gt; {
+          svg.appendChild(make(&#x27;circle&#x27;,{
+            cx:x(jx),cy:y(jz),r:narrow?3.5:4.5,class:&#x27;junction-dot&#x27;
+          }));
+          if (!narrow) label(id,[jx+6,jz-5]);
+        });
+
+        if (!narrow) {
+          label(&#x27;P1 · LIGHTHOUSE&#x27;,[-16,-143],&#x27;middle&#x27;);
+          label(&#x27;PLAZA HUB&#x27;,[0,25],&#x27;middle&#x27;);
+          label(&#x27;NT-1 · CASCADE&#x27;,[-64,17],&#x27;middle&#x27;);
+          label(&#x27;NT-2 · TERRACED FOUNTAIN&#x27;,[86,5],&#x27;middle&#x27;);
+          label(&#x27;BOARDWALK SKYLINE&#x27;,[-126,-43]);
+          label(&#x27;R13 · CREST ONLY&#x27;,[145,23],&#x27;middle&#x27;);
+          label(&#x27;≤1.2m PLANTING INSIDE CONES&#x27;,[-116,133]);
+        } else {
+          label(&#x27;LIGHTHOUSE&#x27;,[-16,-143],&#x27;middle&#x27;);
+          label(&#x27;HUB&#x27;,[0,25],&#x27;middle&#x27;);
+          label(&#x27;NT-1&#x27;,[-64,17],&#x27;middle&#x27;);
+          label(&#x27;NT-2&#x27;,[86,5],&#x27;middle&#x27;);
+          label(&#x27;R13&#x27;,[145,23],&#x27;middle&#x27;);
+        }
+      }
+    );
+  }
+
+  function drawPhotoLifecycle() {
+    const width = Math.max(288,Math.round(photoLifecycleMap.getBoundingClientRect().width || root.getBoundingClientRect().width || 736));
+    const compact = width &lt; 520;
+    const stageHeight = compact ? 58 : 60;
+    let height;
+    let stages;
+
+    if (compact) {
+      const margin = 16;
+      const gap = 12;
+      const fullWidth = width - margin * 2;
+      const halfWidth = (fullWidth - gap) / 2;
+      stages = {
+        L1:{x:margin,y:14,w:fullWidth,h:stageHeight,kind:&#x27;field&#x27;,title:&#x27;L1 · BRIEF&#x27;,note:&#x27;paper obligation&#x27;},
+        L2:{x:margin,y:86,w:fullWidth,h:stageHeight,kind:&#x27;field&#x27;,title:&#x27;L2 · FIND&#x27;,note:&#x27;routine + route&#x27;},
+        L3:{x:margin,y:158,w:fullWidth,h:stageHeight,kind:&#x27;field&#x27;,title:&#x27;L3 · FRAME&#x27;,note:&#x27;free aim · no snap&#x27;},
+        L4:{x:margin,y:230,w:fullWidth,h:stageHeight,kind:&#x27;field&#x27;,title:&#x27;L4 · EXPOSE&#x27;,note:&#x27;image + world facts&#x27;},
+        L5:{x:margin,y:316,w:halfWidth,h:stageHeight,kind:&#x27;soft&#x27;,title:&#x27;L5 · REACT&#x27;,note:&#x27;hint, not result&#x27;},
+        L6:{x:margin+halfWidth+gap,y:316,w:halfWidth,h:stageHeight,kind:&#x27;lab&#x27;,title:&#x27;L6 · DEVELOP&#x27;,note:&#x27;see candidates&#x27;},
+        L7:{x:margin,y:402,w:halfWidth,h:stageHeight,kind:&#x27;outcome&#x27;,title:&#x27;L7 · RESOLVE&#x27;,note:&#x27;brief facts&#x27;},
+        L8:{x:margin+halfWidth+gap,y:402,w:halfWidth,h:stageHeight,kind:&#x27;lab&#x27;,title:&#x27;L8 · DISCOVER&#x27;,note:&#x27;background thread&#x27;},
+        L9:{x:margin,y:488,w:fullWidth,h:stageHeight,kind:&#x27;outcome&#x27;,title:&#x27;L9 · KEEP&#x27;,note:&#x27;work · album · evidence&#x27;}
+      };
+      height = 564;
+    } else {
+      const margin = 18;
+      const gap = 18;
+      const stageWidth = Math.min(184,(width - margin * 2 - gap * 2) / 3);
+      const groupWidth = stageWidth * 3 + gap * 2;
+      const left = (width - groupWidth) / 2;
+      const middle = left + stageWidth + gap;
+      const right = middle + stageWidth + gap;
+      stages = {
+        L1:{x:left,y:18,w:stageWidth,h:stageHeight,kind:&#x27;field&#x27;,title:&#x27;L1 · BRIEF&#x27;,note:&#x27;paper obligation&#x27;},
+        L2:{x:middle,y:18,w:stageWidth,h:stageHeight,kind:&#x27;field&#x27;,title:&#x27;L2 · FIND&#x27;,note:&#x27;routine + route&#x27;},
+        L3:{x:right,y:18,w:stageWidth,h:stageHeight,kind:&#x27;field&#x27;,title:&#x27;L3 · FRAME&#x27;,note:&#x27;free aim · no snap&#x27;},
+        L4:{x:middle,y:105,w:stageWidth,h:stageHeight,kind:&#x27;field&#x27;,title:&#x27;L4 · EXPOSE&#x27;,note:&#x27;image + world facts&#x27;},
+        L5:{x:right,y:192,w:stageWidth,h:stageHeight,kind:&#x27;soft&#x27;,title:&#x27;L5 · REACT&#x27;,note:&#x27;hint only · no result&#x27;},
+        L6:{x:middle,y:192,w:stageWidth,h:stageHeight,kind:&#x27;lab&#x27;,title:&#x27;L6 · DEVELOP&#x27;,note:&#x27;see every candidate&#x27;},
+        L7:{x:left,y:279,w:stageWidth,h:stageHeight,kind:&#x27;outcome&#x27;,title:&#x27;L7 · RESOLVE&#x27;,note:&#x27;stated facts only&#x27;},
+        L8:{x:right,y:279,w:stageWidth,h:stageHeight,kind:&#x27;lab&#x27;,title:&#x27;L8 · DISCOVER&#x27;,note:&#x27;background separate&#x27;},
+        L9:{x:middle,y:366,w:stageWidth,h:stageHeight,kind:&#x27;outcome&#x27;,title:&#x27;L9 · KEEP&#x27;,note:&#x27;work · album · evidence&#x27;}
+      };
+      height = 444;
+    }
+
+    clear(photoLifecycleMap);
+    photoLifecycleMap.setAttribute(&#x27;viewBox&#x27;,`0 0 ${width} ${height}`);
+    const title = make(&#x27;title&#x27;,{id:&#x27;photo-lifecycle-title&#x27;});
+    title.textContent = &#x27;Photograph lifecycle and mission resolution&#x27;;
+    const desc = make(&#x27;desc&#x27;,{id:&#x27;photo-lifecycle-description&#x27;});
+    desc.textContent = &#x27;A nine-stage flow from paper brief, finding, free framing, and exposure to a non-binding human reaction, delayed development, separate factual assignment and background checks, and permanent routing to commissioned work, the album, or evidence. The reaction branch never completes the assignment.&#x27;;
+    photoLifecycleMap.append(title,desc);
+
+    const defs = make(&#x27;defs&#x27;);
+    const marker = make(&#x27;marker&#x27;,{
+      id:&#x27;photo-flow-arrow&#x27;,viewBox:&#x27;0 0 10 10&#x27;,refX:8,refY:5,
+      markerWidth:6,markerHeight:6,orient:&#x27;auto-start-reverse&#x27;
+    });
+    marker.appendChild(make(&#x27;path&#x27;,{d:&#x27;M 0 0 L 10 5 L 0 10 z&#x27;,class:&#x27;photo-arrow&#x27;}));
+    defs.appendChild(marker);
+    photoLifecycleMap.appendChild(defs);
+
+    const centerX = stage =&gt; stage.x + stage.w / 2;
+    const centerY = stage =&gt; stage.y + stage.h / 2;
+    const flow = (values,className=&#x27;photo-flow&#x27;) =&gt; {
+      photoLifecycleMap.appendChild(make(&#x27;polyline&#x27;,{
+        points:values.map(point =&gt; `${point[0]},${point[1]}`).join(&#x27; &#x27;),
+        class:className
+      }));
+    };
+
+    if (compact) {
+      flow([[centerX(stages.L1),stages.L1.y+stages.L1.h],[centerX(stages.L2),stages.L2.y]]);
+      flow([[centerX(stages.L2),stages.L2.y+stages.L2.h],[centerX(stages.L3),stages.L3.y]]);
+      flow([[centerX(stages.L3),stages.L3.y+stages.L3.h],[centerX(stages.L4),stages.L4.y]]);
+      const branchY = stages.L4.y + stages.L4.h + 14;
+      flow([
+        [stages.L4.x+stages.L4.w*0.3,stages.L4.y+stages.L4.h],
+        [stages.L4.x+stages.L4.w*0.3,branchY],
+        [centerX(stages.L5),branchY],
+        [centerX(stages.L5),stages.L5.y]
+      ],&#x27;photo-soft-flow&#x27;);
+      flow([
+        [stages.L4.x+stages.L4.w*0.7,stages.L4.y+stages.L4.h],
+        [stages.L4.x+stages.L4.w*0.7,branchY],
+        [centerX(stages.L6),branchY],
+        [centerX(stages.L6),stages.L6.y]
+      ]);
+      const resolveY = stages.L6.y + stages.L6.h + 14;
+      flow([
+        [stages.L6.x+stages.L6.w*0.3,stages.L6.y+stages.L6.h],
+        [stages.L6.x+stages.L6.w*0.3,resolveY],
+        [centerX(stages.L7),resolveY],
+        [centerX(stages.L7),stages.L7.y]
+      ]);
+      flow([
+        [stages.L6.x+stages.L6.w*0.7,stages.L6.y+stages.L6.h],
+        [stages.L6.x+stages.L6.w*0.7,resolveY],
+        [centerX(stages.L8),resolveY],
+        [centerX(stages.L8),stages.L8.y]
+      ],&#x27;photo-discovery-flow&#x27;);
+    } else {
+      flow([[stages.L1.x+stages.L1.w,centerY(stages.L1)],[stages.L2.x,centerY(stages.L2)]]);
+      flow([[stages.L2.x+stages.L2.w,centerY(stages.L2)],[stages.L3.x,centerY(stages.L3)]]);
+      const frameY = stages.L3.y + stages.L3.h + 13;
+      flow([
+        [centerX(stages.L3),stages.L3.y+stages.L3.h],
+        [centerX(stages.L3),frameY],
+        [centerX(stages.L4),frameY],
+        [centerX(stages.L4),stages.L4.y]
+      ]);
+      flow([[centerX(stages.L4),stages.L4.y+stages.L4.h],[centerX(stages.L6),stages.L6.y]]);
+      flow([
+        [stages.L4.x+stages.L4.w,centerY(stages.L4)],
+        [centerX(stages.L5),centerY(stages.L4)],
+        [centerX(stages.L5),stages.L5.y]
+      ],&#x27;photo-soft-flow&#x27;);
+      const resolveY = stages.L6.y + stages.L6.h + 13;
+      flow([
+        [stages.L6.x+stages.L6.w*0.35,stages.L6.y+stages.L6.h],
+        [stages.L6.x+stages.L6.w*0.35,resolveY],
+        [centerX(stages.L7),resolveY],
+        [centerX(stages.L7),stages.L7.y]
+      ]);
+      flow([
+        [stages.L6.x+stages.L6.w*0.65,stages.L6.y+stages.L6.h],
+        [stages.L6.x+stages.L6.w*0.65,resolveY],
+        [centerX(stages.L8),resolveY],
+        [centerX(stages.L8),stages.L8.y]
+      ],&#x27;photo-discovery-flow&#x27;);
+    }
+
+    const preserveY = stages.L7.y + stages.L7.h + 13;
+    flow([
+      [centerX(stages.L7),stages.L7.y+stages.L7.h],
+      [centerX(stages.L7),preserveY],
+      [stages.L9.x+stages.L9.w*0.27,preserveY],
+      [stages.L9.x+stages.L9.w*0.27,stages.L9.y]
+    ]);
+    flow([
+      [centerX(stages.L8),stages.L8.y+stages.L8.h],
+      [centerX(stages.L8),preserveY],
+      [stages.L9.x+stages.L9.w*0.73,preserveY],
+      [stages.L9.x+stages.L9.w*0.73,stages.L9.y]
+    ],&#x27;photo-discovery-flow&#x27;);
+
+    Object.values(stages).forEach(stage =&gt; {
+      photoLifecycleMap.appendChild(make(&#x27;rect&#x27;,{
+        x:stage.x,y:stage.y,width:stage.w,height:stage.h,
+        class:&#x27;photo-stage&#x27;,&#x27;data-kind&#x27;:stage.kind
+      }));
+      addText(photoLifecycleMap,stage.title,stage.x+10,stage.y+23,&#x27;photo-stage-title&#x27;);
+      addText(photoLifecycleMap,stage.note,stage.x+10,stage.y+43,&#x27;photo-stage-note&#x27;);
+    });
+  }
 
   function draw() {
     const width = Math.max(288,Math.round(root.getBoundingClientRect().width || 736));
     const compact = width &lt; 520;
+    const photoMode = selected === &#x27;photo&#x27;;
+    svg.toggleAttribute(&#x27;hidden&#x27;,photoMode);
+    overlayKey.toggleAttribute(&#x27;hidden&#x27;,photoMode);
     const margin = {left:compact ? 32 : 48,right:compact ? 16 : 34,top:compact ? 34 : 44,bottom:compact ? 32 : 40};
     const scale = (width - margin.left - margin.right) / (domain.x1 - domain.x0);
     const mapHeight = (domain.z1 - domain.z0) * scale;
@@ -1567,30 +3824,99 @@ html&gt;body{padding:0}&lt;/style&gt;
     }
 
     if (selected === &#x27;service&#x27; || selected === &#x27;all&#x27;) {
-      landscapeLines.forEach(line =&gt; pathLine(svg,line,&#x27;landscape-line&#x27;));
-      serviceSpines.forEach(line =&gt; pathLine(svg,line,&#x27;service-line&#x27;));
+      addDrainageMarker(svg,&#x27;drain-arrow-main&#x27;);
+      plantingBands.forEach(band =&gt; {
+        band.paths.forEach(line =&gt; pathLine(svg,line,&#x27;planting-line&#x27;,{&#x27;data-kind&#x27;:band.kind}));
+      });
+      drainageLines.forEach(drain =&gt; pathLine(svg,drain.p,&#x27;drainage-line&#x27;,{
+        &#x27;marker-end&#x27;:&#x27;url(#drain-arrow-main)&#x27;
+      }));
+      drainageBasins.forEach(basin =&gt; {
+        svg.appendChild(make(&#x27;ellipse&#x27;,{
+          cx:x(basin.at[0]),cy:y(basin.at[1]),
+          rx:basin.radii[0]*scale,ry:basin.radii[1]*scale,class:&#x27;drainage-basin&#x27;
+        }));
+      });
+      drawCoastalCreekBase(svg,x,y,scale,points,(values,className,attrs={}) =&gt;
+        pathLine(svg,values,className,attrs));
+      serviceLinks.forEach(line =&gt; pathLine(svg,line,&#x27;service-line&#x27;));
+      serviceSpines.forEach(spine =&gt; pathLine(svg,spine.p,&#x27;service-line&#x27;));
+      sharedServiceSegments.forEach(run =&gt; pathLine(svg,run.p,&#x27;service-shared&#x27;));
+      if (selected === &#x27;service&#x27;) {
+        serviceNodes.forEach(node =&gt; {
+          if (node.kind === &#x27;gate&#x27;) {
+            svg.appendChild(make(&#x27;rect&#x27;,{
+              x:x(node.at[0]-1.7),y:y(node.at[1]-1.7),
+              width:3.4*scale,height:3.4*scale,class:&#x27;service-gate&#x27;
+            }));
+          } else {
+            svg.appendChild(make(&#x27;circle&#x27;,{
+              cx:x(node.at[0]),cy:y(node.at[1]),r:node.r*scale,class:&#x27;service-turn&#x27;
+            }));
+          }
+        });
+      }
+    }
+
+    if (selected === &#x27;creek&#x27;) {
+      pathLine(svg,drainageLines.find(drain =&gt; drain.id === &#x27;D2&#x27;).p,&#x27;drainage-line&#x27;);
+      drawCoastalCreekBase(svg,x,y,scale,points,(values,className,attrs={}) =&gt;
+        pathLine(svg,values,className,attrs));
+      pathLine(svg,[[-62,20],[-62,38],[-64,61]],&#x27;service-line&#x27;,{
+        &#x27;stroke-width&#x27;:Math.max(4,4*scale)
+      });
     }
 
     const routeMode = selected === &#x27;strip&#x27; || selected === &#x27;terrain&#x27; ? &#x27;ghost&#x27; : &#x27;active&#x27;;
     const showRoute = id =&gt; {
       if (selected === &#x27;trunks&#x27;) return id === &#x27;A&#x27; || id === &#x27;B&#x27;;
       if (selected === &#x27;loops&#x27;) return true;
-      if (selected === &#x27;service&#x27; || selected === &#x27;qa&#x27; || selected === &#x27;all&#x27;) return true;
+      if (selected === &#x27;parcels&#x27;) return id === &#x27;B&#x27; || id === &#x27;C&#x27;;
+      if (selected === &#x27;lighthouse&#x27;) return id === &#x27;A&#x27;;
+      if (selected === &#x27;bigtop&#x27;) return id === &#x27;C&#x27;;
+      if (selected === &#x27;playgarden&#x27;) return id === &#x27;D&#x27;;
+      if (selected === &#x27;bandstand&#x27;) return id === &#x27;A&#x27; || id === &#x27;B&#x27;;
+      if (selected === &#x27;creek&#x27;) return id === &#x27;B&#x27; || id === &#x27;C&#x27;;
+      if (selected === &#x27;service&#x27; || selected === &#x27;qa&#x27; || selected === &#x27;mission&#x27; || selected === &#x27;campaign&#x27; || selected === &#x27;all&#x27;) return true;
       return routeMode === &#x27;ghost&#x27;;
     };
     Object.entries(routes).forEach(([id,route]) =&gt; {
       if (!showRoute(id)) return;
       const isGhost = routeMode === &#x27;ghost&#x27; || (selected === &#x27;trunks&#x27; &amp;&amp; id !== &#x27;A&#x27; &amp;&amp; id !== &#x27;B&#x27;);
-      const isMuted = selected === &#x27;service&#x27;;
+      const isMuted = selected === &#x27;service&#x27; || selected === &#x27;creek&#x27; || selected === &#x27;mission&#x27; || selected === &#x27;campaign&#x27;;
       route.paths.forEach(run =&gt; {
         const className = `new-route${isGhost ? &#x27; is-ghost&#x27; : &#x27;&#x27;}${isMuted ? &#x27; is-muted&#x27; : &#x27;&#x27;}`;
         pathLine(svg,run.p,className,{&#x27;data-route&#x27;:id,&#x27;stroke-width&#x27;:isGhost ? 3 : Math.max(4,run.w*scale)});
       });
-      if (!compact &amp;&amp; !isGhost) {
-        addText(svg,selected === &#x27;all&#x27; ? id : route.name,
-          x(route.label[0]),y(route.label[1]),&#x27;route-label&#x27;,&#x27;middle&#x27;);
+      if (!compact &amp;&amp; !isGhost &amp;&amp; selected !== &#x27;creek&#x27; &amp;&amp; selected !== &#x27;mission&#x27; &amp;&amp; selected !== &#x27;campaign&#x27;) {
+        const routeCopy = selected === &#x27;all&#x27; ? id
+          : selected === &#x27;parcels&#x27; ? `${id} · through-route`
+          : selected === &#x27;lighthouse&#x27; ? &#x27;A · boulevard + headland loop&#x27;
+          : selected === &#x27;bigtop&#x27; ? &#x27;C · coastal show loop&#x27;
+          : selected === &#x27;playgarden&#x27; ? &#x27;D · family circuit&#x27;
+          : selected === &#x27;bandstand&#x27; ? (id === &#x27;A&#x27; ? &#x27;A · plaza hub&#x27; : &#x27;B · west spine&#x27;)
+          : selected === &#x27;creek&#x27; ? `${id} · continuous guest route`
+          : selected === &#x27;qa&#x27; ? id
+          : route.name;
+        const routeLabelAt = (selected === &#x27;parcels&#x27; || selected === &#x27;bigtop&#x27;) &amp;&amp; id === &#x27;C&#x27;
+          ? [-72,70]
+          : selected === &#x27;playgarden&#x27; &amp;&amp; id === &#x27;D&#x27; ? [76,116]
+          : selected === &#x27;creek&#x27; &amp;&amp; id === &#x27;B&#x27; ? [-121,9]
+          : selected === &#x27;creek&#x27; &amp;&amp; id === &#x27;C&#x27; ? [-62,100]
+          : route.label;
+        addText(svg,routeCopy,
+          x(routeLabelAt[0]),y(routeLabelAt[1]),&#x27;route-label&#x27;,&#x27;middle&#x27;);
       }
     });
+
+    if (selected === &#x27;creek&#x27; || selected === &#x27;service&#x27; || selected === &#x27;all&#x27;) {
+      drawCoastalCreekCrossings(svg,x,y,scale,(values,className,attrs={}) =&gt;
+        pathLine(svg,values,className,attrs));
+      if (!compact &amp;&amp; selected === &#x27;creek&#x27;) {
+        addText(svg,&#x27;D2 · COASTAL CREEK&#x27;,x(-78),y(66),&#x27;parcel-label&#x27;,&#x27;middle&#x27;);
+        addText(svg,&#x27;DAYLIGHT&#x27;,x(-47),y(27),&#x27;parcel-label&#x27;,&#x27;end&#x27;);
+      }
+    }
 
     if (selected === &#x27;strip&#x27; || selected === &#x27;all&#x27;) {
       demolitions.forEach(group =&gt; {
@@ -1635,7 +3961,8 @@ html&gt;body{padding:0}&lt;/style&gt;
       }
       zone.paths.forEach(line =&gt; pathLine(svg,line,&#x27;protected-path&#x27;));
       if (!compact || selected === &#x27;strip&#x27; || selected === &#x27;terrain&#x27;) {
-        const zoneCopy = compact || selected === &#x27;all&#x27; ? zone.id : `${zone.id} · ${zone.name}`;
+        const zoneCopy = compact || selected === &#x27;all&#x27; || selected === &#x27;parcels&#x27; || selected === &#x27;lighthouse&#x27; || selected === &#x27;bigtop&#x27; || selected === &#x27;playgarden&#x27; || selected === &#x27;bandstand&#x27; || selected === &#x27;qa&#x27; || selected === &#x27;mission&#x27; || selected === &#x27;campaign&#x27;
+          ? zone.id : `${zone.id} · ${zone.name}`;
         addText(svg,zoneCopy,x(zone.label[0]),y(zone.label[1]),&#x27;protected-label&#x27;,&#x27;middle&#x27;);
       }
     });
@@ -1649,34 +3976,224 @@ html&gt;body{padding:0}&lt;/style&gt;
       });
     }
 
-    if ([&#x27;loops&#x27;,&#x27;service&#x27;,&#x27;qa&#x27;,&#x27;all&#x27;].includes(selected)) {
+    if ([&#x27;loops&#x27;,&#x27;parcels&#x27;,&#x27;bigtop&#x27;,&#x27;playgarden&#x27;,&#x27;service&#x27;,&#x27;mission&#x27;,&#x27;campaign&#x27;,&#x27;all&#x27;].includes(selected)) {
       rides.forEach(ride =&gt; {
+        if (selected === &#x27;parcels&#x27; &amp;&amp; ride.id !== &#x27;R4&#x27;) return;
+        if (selected === &#x27;bigtop&#x27; &amp;&amp; ride.id !== &#x27;R4&#x27;) return;
+        if (selected === &#x27;playgarden&#x27; &amp;&amp; ride.id !== &#x27;R5&#x27;) return;
+        if (selected === &#x27;mission&#x27; &amp;&amp; ride.id !== &#x27;R4&#x27; &amp;&amp; ride.id !== &#x27;R13&#x27;) return;
         if (ride.type === &#x27;rect&#x27;) {
           svg.appendChild(make(&#x27;rect&#x27;,{
             x:x(ride.at[0]-ride.size[0]/2),y:y(ride.at[1]-ride.size[1]/2),
-            width:ride.size[0]*scale,height:ride.size[1]*scale,class:&#x27;ride-pad&#x27;
+            width:ride.size[0]*scale,height:ride.size[1]*scale,
+            class:selected === &#x27;campaign&#x27; ? &#x27;ride-pad is-context&#x27; : &#x27;ride-pad&#x27;
           }));
         } else if (ride.type === &#x27;circle&#x27;) {
-          svg.appendChild(make(&#x27;circle&#x27;,{cx:x(ride.at[0]),cy:y(ride.at[1]),r:ride.r*scale,class:&#x27;ride-pad&#x27;}));
+          svg.appendChild(make(&#x27;circle&#x27;,{
+            cx:x(ride.at[0]),cy:y(ride.at[1]),r:ride.r*scale,
+            class:selected === &#x27;campaign&#x27; ? &#x27;ride-pad is-context&#x27; : &#x27;ride-pad&#x27;
+          }));
         } else if (ride.type === &#x27;ellipse&#x27;) {
-          svg.appendChild(make(&#x27;ellipse&#x27;,{cx:x(ride.at[0]),cy:y(ride.at[1]),rx:ride.radii[0]*scale,ry:ride.radii[1]*scale,class:&#x27;ride-pad&#x27;}));
+          svg.appendChild(make(&#x27;ellipse&#x27;,{
+            cx:x(ride.at[0]),cy:y(ride.at[1]),rx:ride.radii[0]*scale,ry:ride.radii[1]*scale,
+            class:selected === &#x27;playgarden&#x27; || selected === &#x27;campaign&#x27; ? &#x27;ride-pad is-context&#x27; : &#x27;ride-pad&#x27;
+          }));
         } else if (ride.type === &#x27;polygon&#x27;) {
-          svg.appendChild(make(&#x27;polygon&#x27;,{points:points(ride.points),class:&#x27;ride-pad&#x27;}));
+          svg.appendChild(make(&#x27;polygon&#x27;,{
+            points:points(ride.points),
+            class:selected === &#x27;bigtop&#x27; || selected === &#x27;mission&#x27; || selected === &#x27;campaign&#x27; ? &#x27;ride-pad is-context&#x27; : &#x27;ride-pad&#x27;
+          }));
         } else if (ride.type === &#x27;sky&#x27;) {
-          pathLine(svg,ride.terminals,&#x27;ride-pad&#x27;);
-          ride.terminals.forEach(at =&gt; svg.appendChild(make(&#x27;circle&#x27;,{cx:x(at[0]),cy:y(at[1]),r:5*scale,class:&#x27;ride-pad&#x27;})));
+          pathLine(svg,ride.terminals,selected === &#x27;campaign&#x27; ? &#x27;ride-pad is-context&#x27; : &#x27;ride-pad&#x27;);
+          ride.terminals.forEach(at =&gt; svg.appendChild(make(&#x27;circle&#x27;,{
+            cx:x(at[0]),cy:y(at[1]),r:5*scale,
+            class:selected === &#x27;campaign&#x27; ? &#x27;ride-pad is-context&#x27; : &#x27;ride-pad&#x27;
+          })));
+        } else if (ride.type === &#x27;coaster&#x27;) {
+          svg.appendChild(make(&#x27;polygon&#x27;,{
+            points:points(ride.footprint),
+            class:selected === &#x27;mission&#x27; || selected === &#x27;campaign&#x27; ? &#x27;ride-pad is-context&#x27; : &#x27;ride-pad&#x27;
+          }));
+          pathLine(svg,ride.track,&#x27;coaster-track&#x27;);
+          svg.appendChild(make(&#x27;rect&#x27;,{
+            x:x(ride.station.at[0]-ride.station.size[0]/2),
+            y:y(ride.station.at[1]-ride.station.size[1]/2),
+            width:ride.station.size[0]*scale,height:ride.station.size[1]*scale,
+            class:selected === &#x27;campaign&#x27; ? &#x27;ride-pad is-context&#x27; : &#x27;ride-pad&#x27;
+          }));
         }
-        if (selected === &#x27;loops&#x27; || selected === &#x27;all&#x27;) {
+        if (selected === &#x27;loops&#x27; || selected === &#x27;parcels&#x27; || selected === &#x27;all&#x27;) {
           pathLine(svg,ride.queue,&#x27;queue-line&#x27;);
           if (ride.queue2) pathLine(svg,ride.queue2,&#x27;queue-line&#x27;);
+          if (ride.exit) pathLine(svg,ride.exit,&#x27;program-access&#x27;);
         }
-        if (selected === &#x27;service&#x27; || selected === &#x27;all&#x27;) {
+        if (selected === &#x27;parcels&#x27; || selected === &#x27;service&#x27; || selected === &#x27;all&#x27;) {
           pathLine(svg,ride.service,&#x27;service-line&#x27;);
           if (ride.service2) pathLine(svg,ride.service2,&#x27;service-line&#x27;);
         }
-        const labelAt = ride.label || ride.at || ride.terminals[0];
-        if (!compact &amp;&amp; selected === &#x27;loops&#x27;) {
-          addText(svg,ride.id,x(labelAt[0]),y(labelAt[1])+4,&#x27;ride-label&#x27;,&#x27;middle&#x27;);
+        const labelAt = selected === &#x27;bigtop&#x27; &amp;&amp; ride.id === &#x27;R4&#x27;
+          ? [-67,91] : ride.label || ride.at || ride.terminals[0];
+        if (!compact &amp;&amp; (selected === &#x27;loops&#x27; || selected === &#x27;parcels&#x27; || selected === &#x27;bigtop&#x27; || selected === &#x27;playgarden&#x27;)) {
+          const rideCopy = selected === &#x27;parcels&#x27; ? `${ride.id} · Swinging ship`
+            : selected === &#x27;bigtop&#x27; ? ride.id
+            : selected === &#x27;playgarden&#x27; ? ride.id
+            : ride.id;
+          addText(svg,rideCopy,x(labelAt[0]),y(labelAt[1])+4,&#x27;ride-label&#x27;,&#x27;middle&#x27;);
+        }
+        if (selected === &#x27;parcels&#x27; &amp;&amp; ride.photo) {
+          svg.appendChild(make(&#x27;circle&#x27;,{
+            cx:x(ride.photo[0]),cy:y(ride.photo[1]),r:compact?5:7,class:&#x27;parcel-photo&#x27;
+          }));
+        }
+      });
+    }
+
+    if ([&#x27;loops&#x27;,&#x27;parcels&#x27;,&#x27;lighthouse&#x27;,&#x27;bigtop&#x27;,&#x27;playgarden&#x27;,&#x27;bandstand&#x27;,&#x27;service&#x27;,&#x27;creek&#x27;,&#x27;mission&#x27;,&#x27;campaign&#x27;,&#x27;all&#x27;].includes(selected)) {
+      programmedAttractions.forEach(attraction =&gt; {
+        if (selected === &#x27;parcels&#x27; &amp;&amp; attraction.id !== &#x27;P2&#x27;) return;
+        if (selected === &#x27;lighthouse&#x27; &amp;&amp; attraction.id !== &#x27;P1&#x27;) return;
+        if (selected === &#x27;bigtop&#x27; &amp;&amp; attraction.id !== &#x27;P3&#x27;) return;
+        if (selected === &#x27;playgarden&#x27; &amp;&amp; attraction.id !== &#x27;P4&#x27;) return;
+        if (selected === &#x27;bandstand&#x27; &amp;&amp; attraction.id !== &#x27;P5&#x27;) return;
+        if (selected === &#x27;creek&#x27; &amp;&amp; attraction.id !== &#x27;P2&#x27;) return;
+        if (selected === &#x27;mission&#x27; &amp;&amp; ![&#x27;P1&#x27;,&#x27;P2&#x27;,&#x27;P4&#x27;].includes(attraction.id)) return;
+        if (selected !== &#x27;service&#x27; &amp;&amp; selected !== &#x27;campaign&#x27;) {
+          pathLine(svg,attraction.access,&#x27;program-access&#x27;);
+          if (attraction.access2) pathLine(svg,attraction.access2,&#x27;program-access&#x27;);
+        }
+        if (attraction.audience &amp;&amp; (selected === &#x27;bandstand&#x27; || selected === &#x27;all&#x27;)) {
+          svg.appendChild(make(&#x27;ellipse&#x27;,{
+            cx:x(attraction.audience.at[0]),cy:y(attraction.audience.at[1]),
+            rx:attraction.audience.radii[0]*scale,ry:attraction.audience.radii[1]*scale,
+            transform:`rotate(${attraction.audience.rotate} ${x(attraction.audience.at[0])} ${y(attraction.audience.at[1])})`,
+            class:&#x27;parcel-audience&#x27;
+          }));
+        }
+        if (attraction.type === &#x27;rect&#x27;) {
+          svg.appendChild(make(&#x27;rect&#x27;,{
+            x:x(attraction.at[0]-attraction.size[0]/2),
+            y:y(attraction.at[1]-attraction.size[1]/2),
+            width:attraction.size[0]*scale,height:attraction.size[1]*scale,
+            class:selected === &#x27;campaign&#x27; ? &#x27;program-attraction is-context&#x27; : &#x27;program-attraction&#x27;
+          }));
+        } else if (attraction.type === &#x27;circle&#x27;) {
+          svg.appendChild(make(&#x27;circle&#x27;,{
+            cx:x(attraction.at[0]),cy:y(attraction.at[1]),
+            r:attraction.r*scale,
+            class:selected === &#x27;campaign&#x27; ? &#x27;program-attraction is-context&#x27; : &#x27;program-attraction&#x27;
+          }));
+        } else if (attraction.type === &#x27;ellipse&#x27;) {
+          svg.appendChild(make(&#x27;ellipse&#x27;,{
+            cx:x(attraction.at[0]),cy:y(attraction.at[1]),
+            rx:attraction.radii[0]*scale,ry:attraction.radii[1]*scale,
+            class:selected === &#x27;playgarden&#x27; ? &#x27;parcel-play-fence&#x27;
+              : selected === &#x27;campaign&#x27; ? &#x27;program-attraction is-context&#x27; : &#x27;program-attraction&#x27;
+          }));
+        }
+        if (attraction.keeper) {
+          svg.appendChild(make(&#x27;rect&#x27;,{
+            x:x(attraction.keeper.at[0]-attraction.keeper.size[0]/2),
+            y:y(attraction.keeper.at[1]-attraction.keeper.size[1]/2),
+            width:attraction.keeper.size[0]*scale,
+            height:attraction.keeper.size[1]*scale,
+            class:selected === &#x27;campaign&#x27; ? &#x27;program-attraction is-context&#x27; : &#x27;program-attraction&#x27;
+          }));
+        }
+        if (attraction.forecourt) {
+          svg.appendChild(make(&#x27;ellipse&#x27;,{
+            cx:x(attraction.forecourt.at[0]),cy:y(attraction.forecourt.at[1]),
+            rx:attraction.forecourt.radii[0]*scale,
+            ry:attraction.forecourt.radii[1]*scale,class:&#x27;parcel-forecourt&#x27;
+          }));
+        }
+        if (attraction.ring &amp;&amp; selected === &#x27;bigtop&#x27;) {
+          svg.appendChild(make(&#x27;circle&#x27;,{
+            cx:x(attraction.ring.at[0]),cy:y(attraction.ring.at[1]),
+            r:attraction.ring.r*scale,class:&#x27;parcel-ring&#x27;
+          }));
+        }
+        if (attraction.backstage &amp;&amp; (selected === &#x27;bigtop&#x27; || selected === &#x27;bandstand&#x27; || selected === &#x27;service&#x27; || selected === &#x27;all&#x27;)) {
+          svg.appendChild(make(&#x27;rect&#x27;,{
+            x:x(attraction.backstage.at[0]-attraction.backstage.size[0]/2),
+            y:y(attraction.backstage.at[1]-attraction.backstage.size[1]/2),
+            width:attraction.backstage.size[0]*scale,
+            height:attraction.backstage.size[1]*scale,class:&#x27;parcel-backstage&#x27;
+          }));
+        }
+        if (attraction.playLoop &amp;&amp; selected === &#x27;playgarden&#x27;) {
+          svg.appendChild(make(&#x27;ellipse&#x27;,{
+            cx:x(attraction.playLoop.at[0]),cy:y(attraction.playLoop.at[1]),
+            rx:attraction.playLoop.radii[0]*scale,
+            ry:attraction.playLoop.radii[1]*scale,class:&#x27;parcel-bypass&#x27;
+          }));
+        }
+        if (attraction.support &amp;&amp; (selected === &#x27;playgarden&#x27; || selected === &#x27;service&#x27; || selected === &#x27;all&#x27;)) {
+          svg.appendChild(make(&#x27;rect&#x27;,{
+            x:x(attraction.support.at[0]-attraction.support.size[0]/2),
+            y:y(attraction.support.at[1]-attraction.support.size[1]/2),
+            width:attraction.support.size[0]*scale,
+            height:attraction.support.size[1]*scale,class:&#x27;parcel-backstage&#x27;
+          }));
+        }
+        if (attraction.stroller &amp;&amp; selected === &#x27;playgarden&#x27;) {
+          svg.appendChild(make(&#x27;rect&#x27;,{
+            x:x(attraction.stroller.at[0]-attraction.stroller.size[0]/2),
+            y:y(attraction.stroller.at[1]-attraction.stroller.size[1]/2),
+            width:attraction.stroller.size[0]*scale,
+            height:attraction.stroller.size[1]*scale,class:&#x27;parcel-room&#x27;
+          }));
+        }
+        if (attraction.host &amp;&amp; selected === &#x27;playgarden&#x27;) {
+          svg.appendChild(make(&#x27;rect&#x27;,{
+            x:x(attraction.host.at[0]-attraction.host.size[0]/2),
+            y:y(attraction.host.at[1]-attraction.host.size[1]/2),
+            width:attraction.host.size[0]*scale,
+            height:attraction.host.size[1]*scale,class:&#x27;parcel-booth&#x27;
+          }));
+        }
+        if (attraction.host &amp;&amp; selected === &#x27;bandstand&#x27;) {
+          svg.appendChild(make(&#x27;rect&#x27;,{
+            x:x(attraction.host.at[0]-attraction.host.size[0]/2),
+            y:y(attraction.host.at[1]-attraction.host.size[1]/2),
+            width:attraction.host.size[0]*scale,
+            height:attraction.host.size[1]*scale,class:&#x27;parcel-booth&#x27;
+          }));
+          if (attraction.host2) {
+            svg.appendChild(make(&#x27;rect&#x27;,{
+              x:x(attraction.host2.at[0]-attraction.host2.size[0]/2),
+              y:y(attraction.host2.at[1]-attraction.host2.size[1]/2),
+              width:attraction.host2.size[0]*scale,
+              height:attraction.host2.size[1]*scale,class:&#x27;parcel-booth&#x27;
+            }));
+          }
+        }
+        if ((selected === &#x27;parcels&#x27; || selected === &#x27;bigtop&#x27; || selected === &#x27;playgarden&#x27; || selected === &#x27;bandstand&#x27; || selected === &#x27;service&#x27; || selected === &#x27;all&#x27;) &amp;&amp; attraction.service) {
+          pathLine(svg,attraction.service,&#x27;service-line&#x27;);
+          if (attraction.service2) pathLine(svg,attraction.service2,&#x27;service-line&#x27;);
+        }
+        if ((selected === &#x27;parcels&#x27; || selected === &#x27;lighthouse&#x27; || selected === &#x27;bigtop&#x27; || selected === &#x27;playgarden&#x27; || selected === &#x27;bandstand&#x27;) &amp;&amp; attraction.photo) {
+          if (attraction.photoAccess) pathLine(svg,attraction.photoAccess,&#x27;program-access&#x27;);
+          svg.appendChild(make(&#x27;circle&#x27;,{
+            cx:x(attraction.photo[0]),cy:y(attraction.photo[1]),r:compact?5:7,class:&#x27;parcel-photo&#x27;
+          }));
+        }
+        if (selected === &#x27;bigtop&#x27; &amp;&amp; attraction.crossing) {
+          svg.appendChild(make(&#x27;rect&#x27;,{
+            x:x(attraction.crossing[0]-1.2),y:y(attraction.crossing[1]-1.2),
+            width:2.4*scale,height:2.4*scale,class:&#x27;parcel-booth&#x27;
+          }));
+        }
+        if (!compact &amp;&amp; (selected === &#x27;loops&#x27; || selected === &#x27;parcels&#x27; || selected === &#x27;lighthouse&#x27; || selected === &#x27;bigtop&#x27; || selected === &#x27;playgarden&#x27; || selected === &#x27;bandstand&#x27; || selected === &#x27;creek&#x27;)) {
+          const attractionCopy = selected === &#x27;parcels&#x27; ? `${attraction.id} · Funhouse`
+            : selected === &#x27;lighthouse&#x27; ? `${attraction.id} · Lighthouse`
+            : selected === &#x27;bigtop&#x27; ? `${attraction.id} · Big Top`
+            : selected === &#x27;playgarden&#x27; ? `${attraction.id} · Play garden`
+            : selected === &#x27;bandstand&#x27; ? `${attraction.id} · Bandstand`
+            : selected === &#x27;creek&#x27; ? `${attraction.id} · Funhouse context`
+            : attraction.id;
+          const attractionLabelAt = attraction.label || attraction.at;
+          addText(svg,attractionCopy,x(attractionLabelAt[0]),y(attractionLabelAt[1])+4,
+            &#x27;program-label&#x27;,&#x27;middle&#x27;);
         }
       });
     }
@@ -1691,10 +4208,19 @@ html&gt;body{padding:0}&lt;/style&gt;
     }
 
     if (selected === &#x27;qa&#x27;) {
-      qaPoints.forEach(point =&gt; {
-        svg.appendChild(make(&#x27;circle&#x27;,{cx:x(point.at[0]),cy:y(point.at[1]),r:compact?6:8,class:&#x27;qa-dot&#x27;}));
-        addText(svg,point.id,x(point.at[0]),y(point.at[1])+4,&#x27;qa-label&#x27;,&#x27;middle&#x27;);
-      });
+      drawSightlineLayer(svg,x,y,scale,points,
+        (values,className,attrs={}) =&gt; pathLine(svg,values,className,attrs),
+        {compact,labels:true});
+    }
+
+    if (selected === &#x27;mission&#x27; || selected === &#x27;all&#x27;) {
+      drawMissionLayer(svg,x,y,scale,
+        (values,className,attrs={}) =&gt; pathLine(svg,values,className,attrs),
+        {compact,labels:selected === &#x27;mission&#x27;});
+    }
+
+    if (selected === &#x27;campaign&#x27; || selected === &#x27;all&#x27;) {
+      drawCampaignLayer(svg,x,y,{compact,labels:selected === &#x27;campaign&#x27;});
     }
 
     const northX = x(domain.x1)-18;
@@ -1712,6 +4238,20 @@ html&gt;body{padding:0}&lt;/style&gt;
 
     packageTitle.textContent = packages[selected].title;
     packageDetail.textContent = packages[selected].detail;
+    const detailPackage = selected === &#x27;parcels&#x27; || selected === &#x27;lighthouse&#x27; || selected === &#x27;bigtop&#x27; || selected === &#x27;playgarden&#x27; || selected === &#x27;bandstand&#x27; || selected === &#x27;service&#x27; || selected === &#x27;creek&#x27; || selected === &#x27;qa&#x27; || selected === &#x27;mission&#x27; || selected === &#x27;campaign&#x27; || selected === &#x27;photo&#x27;;
+    parcelDetails.hidden = !detailPackage;
+    parcelFigures.forEach(figure =&gt; {
+      figure.hidden = figure.dataset.detail !== selected;
+    });
+    if (selected === &#x27;parcels&#x27;) drawResolvedParcels();
+    if (selected === &#x27;lighthouse&#x27;) drawLighthouseParcel();
+    if (selected === &#x27;bigtop&#x27;) drawBigTopParcel();
+    if (selected === &#x27;playgarden&#x27;) drawPlayGardenParcel();
+    if (selected === &#x27;bandstand&#x27;) drawBandstandParcel();
+    if (selected === &#x27;service&#x27;) drawServiceSystems();
+    if (selected === &#x27;creek&#x27;) drawCoastalCreekPlan();
+    if (selected === &#x27;qa&#x27;) drawSightlinePlan();
+    if (selected === &#x27;photo&#x27;) drawPhotoLifecycle();
     select.value = selected;
     lastWidth = width;
   }
