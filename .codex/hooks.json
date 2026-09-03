@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/christina/Dropbox/Mac/Documents/Keep Your Ticket/.codex/hooks/session-start.sh'"
+          }
+        ]
+      }
+    ]
+  }
+}

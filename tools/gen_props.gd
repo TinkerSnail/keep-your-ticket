@@ -46,6 +46,11 @@ const STAIR_PATH := GENERATED_DIR + "/west_stair.tscn"
 const EAST_CASCADE_PATH := GENERATED_DIR + "/east_cascade.tscn"
 const SKY_RIDE_PATH := GENERATED_DIR + "/north_sky_ride.tscn"
 const TRANSIT_PATH := GENERATED_DIR + "/park_transit.tscn"
+const GROUNDWORKS_PATH := GENERATED_DIR + "/park_groundworks.tscn"
+const CIRCULATION_PATH := GENERATED_DIR + "/park_circulation.tscn"
+const ROUTES_PATH := GENERATED_DIR + "/park_routes.tscn"
+const PROGRAM_PATH := GENERATED_DIR + "/park_program.tscn"
+const LANDSCAPE_PATH := GENERATED_DIR + "/park_landscape.tscn"
 ## How far east the terraces' massing copy of the plaza stands from the
 ## boardwalk's. See `_plaza_from_the_east`, which explains what it is for.
 ##
@@ -83,6 +88,19 @@ var mats: Dictionary = {}
 ## design curve into tens of thousands of short-lived vectors.
 var _kiddie_rail: Array[Vector3] = []
 var _grand_tram: Array[Vector3] = []
+## Package-04 paths are rounded and graded once, then reused by paving, the
+## shoulder earth and every height lookup. Rebuilding the same curve inside a
+## terrain sampler is both expensive and, more importantly, lets two surfaces
+## that should meet derive subtly different answers.
+var _rebuild_graded_route_cache: Dictionary = {}
+## B and C overlap at a shallow angle before J6. Their widened shared-floor
+## record is derived once from both graded centrelines, then reused by the T2
+## opening, both collision exclusions and the final junction surface.
+var _rebuild_bc_floor_cache: Dictionary = {}
+## E and F converge into the same paved envelope at J9. Cache the one convex
+## court that owns that overlap so grading, collision clipping and construction
+## cannot each invent a slightly different junction.
+var _rebuild_j9_floor_cache: Dictionary = {}
 
 
 ## Set when a material came out wrong. `_save` refuses to write anything once it
@@ -110,12 +128,14 @@ func _initialize() -> void:
 	_newsboxes()
 	_flagpoles()
 	_cart()
-	_stroller()
-	_ladder()
+	# Package 01 removes the loose stroller and decorative ladder: both occupied
+	# the new D/E public handoffs. Kiddieland owns the permanent stroller corral;
+	# no replacement obstacle belongs in the Plaza route envelope.
 	_balloons()
 	_litter()
 	_picnic()
-	_crates()
+	# The former west-range crate pile left with the building P5 replaces. The
+	# performance parcel now carries its own prop rack inside the rear cue yard.
 	# Everything below is placed in final coordinates against the 104m plaza,
 	# so the dilation comes off first. These were never in the 80m plaza and
 	# have nothing to be mapped from — they exist because it grew.
@@ -285,6 +305,9 @@ func _initialize() -> void:
 	# props are appended so adding a bench or kiosk cannot re-plane any of the
 	# collision-critical earthwork above it.
 	_east_dressing()
+	# The former Kiddieland S-path is demolition X2 in the approved atlas.  Its
+	# replacement now lives with routes D and the package-04G+ program scene,
+	# outside this protected assembly.
 	if not _save(_root, EAST_CASCADE_PATH):
 		return
 
@@ -310,6 +333,47 @@ func _initialize() -> void:
 	_begin_scene()
 	_grand_tram_infrastructure()
 	if not _save(_root, TRANSIT_PATH):
+		return
+
+	# The rebuild is appended after every established output. New terrain or
+	# circulation can therefore change freely without moving a seam ordinal in
+	# either protected cascade or in any pre-existing generated assembly.
+	_root = Node3D.new()
+	_root.name = "park_groundworks"
+	_begin_scene()
+	_rebuild_groundworks()
+	if not _save(_root, GROUNDWORKS_PATH):
+		return
+
+	_root = Node3D.new()
+	_root.name = "park_circulation"
+	_begin_scene()
+	_rebuild_circulation()
+	if not _save(_root, CIRCULATION_PATH):
+		return
+
+	# Packages 04-05 stay in separately editable wrappers. They are appended
+	# after every established output, so their continuing development cannot
+	# move a seam ordinal in either protected cascade.
+	_root = Node3D.new()
+	_root.name = "park_routes"
+	_begin_scene()
+	_rebuild_district_routes()
+	if not _save(_root, ROUTES_PATH):
+		return
+
+	_root = Node3D.new()
+	_root.name = "park_program"
+	_begin_scene()
+	_rebuild_program()
+	if not _save(_root, PROGRAM_PATH):
+		return
+
+	_root = Node3D.new()
+	_root.name = "park_landscape"
+	_begin_scene()
+	_rebuild_landscape()
+	if not _save(_root, LANDSCAPE_PATH):
 		return
 
 	quit()
@@ -1859,13 +1923,16 @@ func _ride_vehicle_script() -> Script:
 	return _ride_vehicle
 
 
-func _ride_vehicle_node(nm: String, service: int) -> void:
+func _ride_vehicle_node(nm: String, service: int,
+		route_override := PackedVector3Array()) -> void:
 	var vehicle := Node3D.new()
 	vehicle.set_script(_ride_vehicle_script())
 	if vehicle.get_script() == null:
 		push_error("gen_props: ride_vehicle.gd did not compile — '%s' would not move" % nm)
 		return
 	vehicle.set("service", service)
+	if route_override.size() > 1:
+		vehicle.set("route_override", route_override)
 	_attach(vehicle, nm)
 
 ## Added without the seam displacement `_add` applies. That offset exists to
@@ -2150,23 +2217,18 @@ const PAVE_LIFT := 0.012
 ## are not paved either — down there the deck *is* the path, and a strip over it
 ## would be paving on planking.
 func _paving() -> void:
-	_walkway_paving([&"plaza_ring", &"spoke_south", &"spoke_nnw",
-		&"spoke_se", &"spoke_sw"], PAVE_LIFT, "asphalt")
-	# The retired north-east spoke used two surface ordinals. Keep those slots
-	# empty so deleting its geometry does not re-plane every later paving piece;
-	# the street otherwise moves half a millimetre onto a shop table leg.
-	_seam_ordinal += 2
-	# The west spoke's plaza half only: ring, bend, and up to the gate house's
-	# face. The tunnel past it is the plaza's own brick and the terrace past
-	# *that* is laid by `_terrace_paving`, into this scene and the boardwalk both.
-	_pave_run(&"spoke_west", PAVE_LIFT, "asphalt", 0, 2)
+	# A, B and their broad hub ring now live in `park_circulation.tscn`. None of
+	# the inherited plaza spokes is allowed to survive underneath that network:
+	# removing their visible planes here is what actually strips X1–X4 instead of
+	# painting a cleaner diagram over the same old doglegs.
+	#
+	# The west tunnel, terrace and monument handoff remain because they are part
+	# of protected NT-1. They begin at the gate mouth; the new B connector owns
+	# the plaza side and narrows deliberately into the existing six-metre throat.
 	_terrace_paving()
-	# The plaza's floor is at y=0; `entrance_ground` is `GROUND_SEAM` lower, so
-	# the street's asphalt comes down with it. Otherwise the two halves of the
-	# same walk sit at different heights where they meet at z=38.
-	_walkway_paving([&"street", &"apron"], GROUND_SEAM + PAVE_LIFT, "asphalt")
 	# The east spoke, laid whole: ring, passage, forecourt, one unbroken surface
-	# from the fountain to the foot of the climb.
+	# from the fountain to the foot of the climb. It is the retained access into
+	# protected NT-2, not one of the circulation fragments being demolished.
 	#
 	# **The passage used to be left as brick**, on the theory that crossing onto
 	# the plaza's own material gave the opening a floor of its own and made it
@@ -2924,7 +2986,7 @@ const HUT_BENCH_RAIL := 0.98
 
 
 func _benches() -> void:
-	# The ring of five round the fountain. They were on its skirt in the 80m
+	# The ring of four round the fountain. They were on its skirt in the 80m
 	# plaza and the dilation put them in the road: the hub grew by 1.8 and the
 	# ring walkway moved out further than that, so radius 7.5 came out at 13.5
 	# and the ring is paved from 12 to 20. `_stand_clear` walks them back onto
@@ -2945,54 +3007,28 @@ func _benches() -> void:
 	#
 	# So the ring gives up being even. It was never going to stay even anyway:
 	# the cart, the stroller, the newspaper boxes, an a-frame and two bins are all
-	# pushed onto the same three metres of skirt, and five benches spaced 72 apart
+	# pushed onto the same three metres of skirt, and tightly packed benches
 	# is a drawing rather than a plaza.
-	var degs := [25.0, 95.0, 165.0, 305.0, 340.0]
+	# Bearings interleave with the four picture-spot boards and the inner lamp
+	# standards. The old 95/165/305 trio snapped onto the same three pieces of
+	# verge and physically overlapped them after the hub ring widened.
+	var degs := [25.0, 145.0, 285.0, 340.0]
 	for i in degs.size():
 		var a := deg_to_rad(degs[i])
 		var p := Vector3(r * cos(a), 0.0, r * sin(a))
 		_bench("bench_%d" % i, p, _facing(p, Vector3.ZERO))
 	_bench("bench_south", Vector3(-5, 0, 19), deg_to_rad(186))
 
-	# The hut's own bench, and the bandstand's three, are placed against things
-	# that moved by hand rather than by `_plaza_out` — so they are placed by hand
-	# too, in final coordinates, with the dilation off. Run through the map they
-	# would each be dilated by their own radius and spread away from the object
-	# they belong to: the bandstand's ring of benches would come out 24m across
-	# around an 11m bandstand.
+	# The hut's own bench belongs to the hand-positioned hut, so it is placed in
+	# final coordinates with Plaza dilation off. P5 now owns every seat in the
+	# north-west performance pocket; the obsolete (-20,-20) bench ring must not
+	# survive as loose furniture inside Route A.
 	_dilate_plaza = false
 	var hut := Vector3(Plan.PHOTO_HUT_AT.x, 0.0, Plan.PHOTO_HUT_AT.y)
 	_bench("bench_hut", hut + HUT_BENCH_AT, deg_to_rad(HUT_BENCH_YAW))
-
-	# **The bandstand's three are re-beared rather than pushed, and that is the
-	# line between the two fixes.** A prop standing on open ground can be moved
-	# to the nearest clear metre and still be the same prop; a prop that belongs
-	# to a building cannot — pushed out of `spoke_nnw`, the east bench came out
-	# twelve metres away and stopped being one of a ring of three. So the ring
-	# keeps its radius and gives up the bearing instead.
-	#
-	# The bearing it gives up is the east one, because `spoke_nnw` runs down that
-	# side: from (−8, −13.86) to (−14, −30) it passes within four metres of the
-	# bandstand's east face, which is the paving's own half-width. There is no
-	# room for a bench there and there was not one before either — the old
-	# arrangement simply put one in the road. South, west and north it is, so you
-	# walk past the bandstand on one side and sit on the other three.
-	_stand_clear = 0.0
-	var band := Vector3(-20, 0, -20)
-	var bdegs := [90.0, 180.0, 270.0]
-	for i in bdegs.size():
-		var a := deg_to_rad(bdegs[i])
-		var p := band + Vector3(8.6 * cos(a), 0.0, 8.6 * sin(a))
-		_bench("bench_band_%d" % i, p, _facing(p, band))
-		# Told to the register by hand, because these are the one bench that is
-		# not pushed and `_plaza_out` only records what it moves. Without it the
-		# scatter that comes later cannot see them, and grew a tree through the
-		# west one — which is what opting out of the rule costs.
-		_note_stood(Vector2(p.x, p.z), BENCH_CLEAR)
 	_dilate_plaza = true
-	_stand_clear = BENCH_CLEAR
-	_bench("bench_sw", Vector3(-11, 0, 20), deg_to_rad(120))
-	_bench("bench_se", Vector3(2, 0, 22), deg_to_rad(200))
+	# The former south-west/south-east pair stood exactly where C and D now enter
+	# the hub. The atlas makes those broad public openings, not furniture slaloms.
 	_stand_clear = 0.0
 
 
@@ -3003,7 +3039,7 @@ func _lamps() -> void:
 	_stand_clear = 0.45
 	var spots := [
 		Vector2(13, -2), Vector2(9, -11), Vector2(-2, -13), Vector2(-13, -3),
-		Vector2(-11, 6), Vector2(-3, 13), Vector2(7, 14), Vector2(14, 9),
+		Vector2(-11, 6), Vector2(-8, 13), Vector2(7, 14), Vector2(14, 9),
 		Vector2(-19, 2), Vector2(-19, 12), Vector2(-18, -14), Vector2(-16, 20),
 	]
 	for i in spots.size():
@@ -3049,7 +3085,6 @@ func _lamp_light(nm: String, at: Vector3, shadow: bool) -> void:
 func _plaza_lights() -> void:
 	_tower_lights()
 	_fountain_lights()
-	_bandstand_lights()
 	_cafe_lights()
 	_tree_lights()
 	_plaza_service_lights()
@@ -3145,15 +3180,21 @@ func _plaza_service_lights() -> void:
 	if not hut.is_empty():
 		var at: Vector3 = hut["at"]
 		var size: Vector3 = hut["size"]
-		var west := at.x - size.x * 0.5
+		# Whichever x face looks inward. The hut moved from the east side of the
+		# Plaza to the west when D exposed its old footprint as a route blocker;
+		# naming a world-west face here would turn the serving light onto the wall.
+		var inward_x := at.x - signf(at.x) * size.x * 0.5
+		var inward_step := -signf(at.x)
 		# The serving window, facing the fountain.
-		_omni("hut_window", Vector3(west - 0.4, at.y + 0.2, at.z),
+		_omni("hut_window", Vector3(inward_x + inward_step * 0.4,
+			at.y + 0.2, at.z),
 			"warm", 2.4, 9.0, LIGHT_SERVICE, true)
 		# Under the eaves at each end, so the building has an outline rather than
 		# one bright patch. The roof sits at 3.85 with a 0.45 slab on it.
 		for i in 2:
 			var z: float = at.z + (-1.0 if i == 0 else 1.0) * (size.z * 0.5 - 0.8)
-			_omni("hut_eave_%d" % i, Vector3(west - 0.2, 3.55, z),
+			_omni("hut_eave_%d" % i,
+				Vector3(inward_x + inward_step * 0.2, 3.55, z),
 				"warm", 1.2, 6.0, LIGHT_SERVICE)
 
 	# The cart, with its light on. Placed against `_cart`'s own base and through
@@ -3316,32 +3357,6 @@ func _fountain_lights() -> void:
 		LIGHT_FIXTURE)
 
 
-## The bandstand, lit from under its own roof.
-##
-## Uplighting would be wrong here and it is worth saying why: the bandstand is
-## the one structure in the plaza the crowd goes *inside*, so the light belongs
-## where the band would be. Washed from outside it reads as a monument; lit from
-## within it reads as somewhere still open, which is what it is at nine in the
-## evening.
-func _bandstand_lights() -> void:
-	var roof := _plaza_box("bandstand_roof")
-	if roof.is_empty():
-		push_error("no bandstand_roof in %s" % PLAZA_SCENE_PATH)
-		return
-	var at: Vector3 = roof["at"]
-	var under := at.y - 0.5
-	_omni("bandstand_glow", Vector3(at.x, under, at.z), "warm", 3.4, 16.0,
-		LIGHT_FIXTURE, true)
-	# And four at the eaves, so the roof's underside is not one flat disc of
-	# light with a dark rim.
-	var q: float = roof["size"].x * 0.5 - 1.4
-	for i in 4:
-		var th := TAU * float(i) / 4.0 + PI * 0.25
-		_omni("bandstand_eave_%d" % i,
-			Vector3(at.x + cos(th) * q, under - 0.2, at.z + sin(th) * q),
-			"warm", 1.2, 8.0)
-
-
 ## The four inner bins sit on the fountain's skirt with the benches, and are
 ## written as bearings rather than as corners for that reason: on a circle they
 ## can be *interleaved* with the bench ring, and a bin pushed onto the skirt from
@@ -3358,7 +3373,7 @@ func _bins() -> void:
 	# were 2–3m apart as written and both halves of each pair are pushed outward,
 	# so they were converging rather than merely close.
 	spots.append_array([
-		Vector2(12, 12), Vector2(-14, 14), Vector2(3, -14),
+		Vector2(-14, 14), Vector2(3, -14),
 		Vector2(-19, 7), Vector2(-21, 20), Vector2(-10, 22), Vector2(8, 20),
 	])
 	for i in spots.size():
@@ -3419,44 +3434,41 @@ func _cafe() -> void:
 
 
 ## The queue belongs to the photo hut, so it is placed off `PHOTO_HUT_AT` rather
-## than dilated. The hut is one of the few things that moved by decision instead
-## of by the map — out to radius 28 because it was the one bearing with zero
-## clearance — and a queue that followed the map would have ended up 6m from the
-## door it is queuing at.
+## than dilated. Package 04 moves it again because the previous address was
+## inside both D and the widened hub ring; the queue follows the same shared
+## datum so a building move cannot leave five stanchions behind.
 func _queue() -> void:
 	_dilate_plaza = false
 	var hut := Plan.PHOTO_HUT_AT
-	var z := hut.y + 4.5
-	var xs := [hut.x - 3.5, hut.x - 2.0, hut.x - 0.5, hut.x + 1.0, hut.x + 2.5]
-	for i in xs.size():
-		_cyl("stanchion_%d" % i, Vector3(xs[i], 0, z), Vector3(0, 0.5, 0), 0.06, 1.0, "metal", 0.0, 8)
-	for i in xs.size() - 1:
-		var mid: float = (xs[i] + xs[i + 1]) * 0.5
-		_box("rope_%d" % i, Vector3(mid, 0, z), Vector3(0, 0.8, 0), Vector3(1.5, 0.05, 0.05), "red", 0.0, false)
+	# The line is on the inward, fountain-facing side of the southwest kiosk. It
+	# remains a side bay off the broad ring and C return, never part of either.
+	var x := hut.x + Plan.PHOTO_HUT_QUEUE_X_OFFSET
+	var zs := [hut.y - 2.8, hut.y - 1.4, hut.y,
+		hut.y + 1.4, hut.y + 2.8]
+	for i in zs.size():
+		_cyl("stanchion_%d" % i, Vector3(x, 0, zs[i]),
+			Vector3(0, 0.5, 0), 0.06, 1.0, "metal", 0.0, 8)
+		_note_stood(Vector2(x, zs[i]), 0.10)
+	for i in zs.size() - 1:
+		var mid: float = (zs[i] + zs[i + 1]) * 0.5
+		_box("rope_%d" % i, Vector3(x, 0, mid), Vector3(0, 0.8, 0),
+			Vector3(0.05, 0.05, 1.4), "red", 0.0, false)
 	_dilate_plaza = true
 
 
 func _bollards() -> void:
 	for i in 5:
 		_cyl("bollard_n_%d" % i, Vector3(-4 + i * 3.0, 0, -20), Vector3(0, 0.45, 0), 0.13, 0.9, "metal", 0.0, 8)
-	for i in 5:
-		_cyl("bollard_s_%d" % i, Vector3(-6 + i * 3.0, 0, 30), Vector3(0, 0.45, 0), 0.13, 0.9, "metal", 0.0, 8)
-	# Neither the bollard lines nor the planters are pushed — a bollard line
-	# crosses the walk because that is what bollards are for, and the planters
-	# stand at the ends of it. The planters go on the register anyway: they are
-	# 2.6m square, which is the largest thing in the plaza the tree scatter would
-	# otherwise be free to grow through.
-	var pl := [Vector2(-7, 26), Vector2(4, 26)]
-	for i in pl.size():
-		_box("planter_s_%d" % i, Vector3(pl[i].x, 0, pl[i].y), Vector3(0, 0.45, 0), Vector3(2.6, 0.9, 2.6), "accent")
-		_note_stood(Plan.plaza_out2(pl[i]), 2.0)
+	# The old south line and its flanking planters occupied the exact places
+	# where A, C and D now exchange. Package 01 removes that traffic-control
+	# composition in full; planting returns outside the route envelope in PL1.
 
 
 ## Two panels leaning together at the top. The tilt is about each panel's own
 ## X axis, and the offset is rotated by the same transform, so the tops meet.
 func _aframes() -> void:
 	_stand_clear = 0.8
-	var spots := [Vector2(3, 10), Vector2(-9, -2), Vector2(12, -8)]
+	var spots := [Vector2(3, 10), Vector2(-12, -9), Vector2(12, -8)]
 	var turns := [22.0, -40.0, 115.0]
 	var lean := deg_to_rad(11.0)
 	for i in spots.size():
@@ -3473,7 +3485,9 @@ func _aframes() -> void:
 ## inside each other, which is a worse fault than the one being fixed. Anything
 ## that reads as a pair gets built as a pair — see `_flagpoles` for the other.
 func _newsboxes() -> void:
-	_stand_clear = 0.8
+	# Clearance is measured at the assembly base. The old 0.8m request ignored
+	# the pair's own width and left its second lid inside route A's usable edge.
+	_stand_clear = 1.4
 	var b := Vector3(3.0, 0, 7.5)
 	for i in 2:
 		var th := deg_to_rad(12.0 + i * 20.0)
@@ -3607,22 +3621,9 @@ func _balloons() -> void:
 			Vector3(0.02, y - HUT_BENCH_RAIL, 0.02), "white", th, false)
 	_dilate_plaza = true
 
-	# One that came down, caught against a bollard at the south entrance with its
-	# string trailing on the ground. Sitting loose on open concrete it read as
-	# half-buried no matter where it was in Y — a ball resting on a plane and a
-	# ball sunk into one have the same silhouette. Leaning it on something and
-	# giving it a string is what makes it legible as a balloon.
-	#
-	# The base is the middle bollard of the south line, written the way
-	# `_bollards` writes it so the two cannot disagree about where it is.
-	var r := 0.22
-	var bollard := Vector3(-6.0 + 2.0 * 3.0, 0.0, 30.0)
-	var rest := Vector3(0.13 + r, 0.0, 0.06)
-	_sphere("balloon_2", bollard, rest + Vector3(0.0, r, 0.0), r, "blue")
-	# Trailing along z rather than at an angle, because the bollard line runs in
-	# x: a string parallel to the line reads as part of it.
-	_box("balloon_2_string", bollard, rest + Vector3(0.0, 0.012, 0.46),
-		Vector3(0.018, 0.018, 0.9), "white", 0.0, false)
+	# The loose balloon tied to the retired middle bollard retired with it. The
+	# pair at the Photo Hut still carry this small story without putting a prop in
+	# route A.
 
 
 func _litter() -> void:
@@ -3656,13 +3657,6 @@ func _picnic() -> void:
 		_box("picnic_%d_leg_a" % i, b, Vector3(-0.7, 0.37, 0), Vector3(0.1, 0.75, 1.7), "metal", th)
 		_box("picnic_%d_leg_b" % i, b, Vector3(0.7, 0.37, 0), Vector3(0.1, 0.75, 1.7), "metal", th)
 	_stand_clear = 0.0
-
-
-func _crates() -> void:
-	var c := Vector3(-19, 0, -6)
-	_box("crate_a", c, Vector3(0, 0.4, 0), Vector3(0.9, 0.8, 0.9), "wood", deg_to_rad(12.0))
-	_box("crate_b", c, Vector3(0.15, 1.12, 0.2), Vector3(0.85, 0.7, 0.85), "wood", deg_to_rad(-24.0))
-	_box("crate_c", c, Vector3(1.05, 0.35, -0.3), Vector3(0.8, 0.7, 0.8), "wood", deg_to_rad(40.0))
 
 
 # --- the park beyond the plaza ----------------------------------------------
@@ -3880,27 +3874,80 @@ const FRONTAGE := Plan.FRONTAGE_UNITS
 ## The shore collides now. It did not when the whole west was scenery, and that
 ## was correct then: nothing could reach it. It is the boardwalk's floor.
 func _west_shell() -> void:
-	_box("water", Vector3.ZERO, Vector3(-198, WATER_TOP - 4.0, 0),
-		Vector3(240, 8.0, 400), "water", 0.0, false)
+	# The sea is world geography, not the old 434 x 450m construction diagram.
+	# Its eastern edge still overlaps beneath the established shore; only the
+	# distant bounds move, so the Boardwalk waterline and both cascade datums are
+	# exactly unchanged.
+	var water_centre := Vector3(
+		(Plan.REBUILD_WORLD_WATER_FROM_X + Plan.REBUILD_WORLD_WATER_TO_X) * 0.5,
+		WATER_TOP - 4.0,
+		(Plan.REBUILD_WORLD_WATER_FROM_Z + Plan.REBUILD_WORLD_WATER_TO_Z) * 0.5)
+	var water_size := Vector3(
+		Plan.REBUILD_WORLD_WATER_TO_X - Plan.REBUILD_WORLD_WATER_FROM_X,
+		8.0,
+		Plan.REBUILD_WORLD_WATER_TO_Z - Plan.REBUILD_WORLD_WATER_FROM_Z)
+	_box("water", Vector3.ZERO, water_centre, water_size, "water", 0.0, false)
 	# The face the plaza stands on. Everything west of the parapet drops away
 	# here, which is what turns the parapet into an overlook rather than a fence.
 	#
-	# **One piece since 2026-08-14.** It used to be cut into five — two long runs
-	# with a slot between them, a floor under the slot and three fillers round it —
-	# because the stair descended *inside* the bluff and the rock had to be taken
-	# out of its way. The stair is hung on the face now, so the rock is just rock,
-	# and the top of it is a ledge the player can walk out onto through the gap in
-	# the parapet.
-	_box("bluff", Vector3.ZERO,
-		Vector3((Plan.BLUFF_FACE_X + Plan.BLUFF_BACK_X) * 0.5, -6.0 + GROUND_SEAM, 0.0),
-		Vector3(Plan.BLUFF_BACK_X - Plan.BLUFF_FACE_X, 12.0, 341.0), "far_warm")
-	_bluff_face()
+	# Route B now owns two genuine return cuts through this scarp. The inherited
+	# single 341m box was still a solid wall behind both new ramps, so a centreline
+	# test could look correct while the Player met rock. Derive both openings from
+	# the emitted mitered route edges and split the mass around them. NT-1's middle
+	# cascade opening is not part of this operation and remains untouched.
+	var cuts := _bluff_return_cuts()
+	var ranges := [
+		{"nm": "bluff_outer_north", "span": Vector2(
+			-260.5, -170.5), "mat": "planting"},
+		{"nm": "bluff_north", "span": Vector2(-170.5, cuts[0].x),
+			"mat": "far_warm"},
+		{"nm": "bluff", "span": Vector2(cuts[0].y, cuts[1].x),
+			"mat": "far_warm"},
+		{"nm": "bluff_south", "span": Vector2(cuts[1].y, 170.5),
+			"mat": "far_warm"},
+		{"nm": "bluff_outer_south", "span": Vector2(
+			170.5, 260.5), "mat": "planting"},
+	]
+	for i in ranges.size():
+		var record: Dictionary = ranges[i]
+		var span: Vector2 = record["span"]
+		assert(span.y > span.x, "a Route B bluff cut consumed the whole scarp")
+		_box(record["nm"], Vector3.ZERO,
+			Vector3((Plan.BLUFF_FACE_X + Plan.BLUFF_BACK_X) * 0.5,
+				-6.0 + GROUND_SEAM, (span.x + span.y) * 0.5),
+			Vector3(Plan.BLUFF_BACK_X - Plan.BLUFF_FACE_X, 12.0,
+				span.y - span.x), record["mat"])
+	_bluff_cut_returns(cuts)
+	_bluff_face(cuts)
 	# The ground the boardwalk stands on: back lane, frontage, promenade. Runs
 	# 2m east under the bluff's west face rather than butting against it.
 	var width := SHORE_FROM_X - SHORE_EDGE
+	# Keep the familiar pale made-ground only where the Boardwalk actually is.
+	# Beyond it, the same six-metre bench continues as planted coastal reserve;
+	# otherwise enlarging the world turns one local material into a kilometre-long
+	# runway visible from every aerial camera.
 	_box("shore", Vector3.ZERO,
-		Vector3((SHORE_FROM_X + SHORE_EDGE) * 0.5, SHORE_TOP - 3.0, 0),
-		Vector3(width, 6.0, 340), "far_warm")
+		Vector3((SHORE_FROM_X + SHORE_EDGE) * 0.5, SHORE_TOP - 3.0, 0.0),
+		Vector3(width, 6.0, 340.0), "far_warm")
+	var shore_mid_x := (SHORE_FROM_X + SHORE_EDGE) * 0.5
+	_flight_ramp("shore_north_transition",
+		Vector3(shore_mid_x, SHORE_TOP, -170.0),
+		Vector3(shore_mid_x, REBUILD_WORLD_RESERVE_Y, -260.0),
+		0.0, width, "planting")
+	_flight_ramp("shore_south_transition",
+		Vector3(shore_mid_x, SHORE_TOP, 170.0),
+		Vector3(shore_mid_x, REBUILD_WORLD_RESERVE_Y, 260.0),
+		0.0, width, "planting")
+	_box("shore_north_reserve", Vector3.ZERO,
+		Vector3(shore_mid_x, REBUILD_WORLD_RESERVE_Y - 3.0,
+			(Plan.REBUILD_WORLD_COAST_FROM_Z - 260.0) * 0.5),
+		Vector3(width, 6.0, -260.0 - Plan.REBUILD_WORLD_COAST_FROM_Z),
+		"planting")
+	_box("shore_south_reserve", Vector3.ZERO,
+		Vector3(shore_mid_x, REBUILD_WORLD_RESERVE_Y - 3.0,
+			(260.0 + Plan.REBUILD_WORLD_COAST_TO_Z) * 0.5),
+		Vector3(width, 6.0, Plan.REBUILD_WORLD_COAST_TO_Z - 260.0),
+		"planting")
 
 
 ## How far either side of the axis the bluff's face is dressed.
@@ -3917,6 +3964,86 @@ const BLUFF_BUTTRESS_COUNT := 19
 ## The coping's underside and top, which four other things are laid off.
 const BLUFF_COPING_TOP := 0.0
 const BLUFF_COPING_DEEP := 0.7
+const BLUFF_ROUTE_CUT_MARGIN := 0.75
+
+
+## Return the actual z envelope of one built route while it crosses the full
+## seven-metre bluff depth. Sampling the mitered left and right edges—not the
+## centre line—is what keeps the usable Player envelope open at an angle.
+func _bluff_route_cut(run_id: StringName) -> Vector2:
+	var found := false
+	var result := Vector2(INF, -INF)
+	for run in Plan.rebuild_build_runs():
+		if StringName(run["id"]) != run_id:
+			continue
+		found = true
+		var edges := _rebuild_path_edges(run["points"], float(run["width"]), false)
+		for side_name in ["left", "right"]:
+			var edge: PackedVector3Array = edges[side_name]
+			for i in edge.size() - 1:
+				var a := edge[i]
+				var b := edge[i + 1]
+				for p in [a, b]:
+					if p.x >= Plan.BLUFF_FACE_X - 0.001 \
+							and p.x <= Plan.BLUFF_BACK_X + 0.001:
+						result.x = minf(result.x, p.z)
+						result.y = maxf(result.y, p.z)
+				for x in [Plan.BLUFF_FACE_X, Plan.BLUFF_BACK_X]:
+					if absf(b.x - a.x) < 0.001:
+						continue
+					var t: float = (x - a.x) / (b.x - a.x)
+					if t >= -0.001 and t <= 1.001:
+						var z := lerpf(a.z, b.z, clampf(t, 0.0, 1.0))
+						result.x = minf(result.x, z)
+						result.y = maxf(result.y, z)
+		break
+	assert(found, "the bluff cannot find approved route %s" % run_id)
+	assert(is_finite(result.x) and is_finite(result.y) and result.y > result.x,
+		"route %s has no full-width bluff crossing" % run_id)
+	return Vector2(result.x - BLUFF_ROUTE_CUT_MARGIN,
+		result.y + BLUFF_ROUTE_CUT_MARGIN)
+
+
+func _bluff_return_cuts() -> Array[Vector2]:
+	var north := _bluff_route_cut(&"b_north_return")
+	var south := _bluff_route_cut(&"b_south_return")
+	assert(north.y < south.x, "the two Route B bluff cuts overlap")
+	var nt1: Dictionary = Plan.REBUILD_PROTECTED_ZONES[&"NT-1"]
+	assert(north.y < Vector2(nt1["min"]).y and south.x > Vector2(nt1["max"]).y,
+		"a Route B bluff cut enters NT-1")
+	return [north, south]
+
+
+## Finish each opening as a deliberate retained cut instead of leaving two raw
+## ends in a box. The side returns stand outside the route envelope by the same
+## 0.75m construction margin used to cut the mass.
+func _bluff_cut_returns(cuts: Array[Vector2]) -> void:
+	var face := Plan.BLUFF_FACE_X
+	var depth := Plan.BLUFF_BACK_X - Plan.BLUFF_FACE_X
+	for i in cuts.size():
+		var cut := cuts[i]
+		for side in [-1.0, 1.0]:
+			var z := cut.x if side < 0.0 else cut.y
+			_box("bluff_cut_%d_%s_return" % [i,
+				"north" if side < 0.0 else "south"], Vector3.ZERO,
+				Vector3(face + depth * 0.5, -3.0, z),
+				Vector3(depth, 6.0, 0.28), "far_shade")
+
+
+func _bluff_face_ranges(cuts: Array[Vector2]) -> Array[Vector2]:
+	var ranges: Array[Vector2] = [Vector2(-BLUFF_DRESS_Z, BLUFF_DRESS_Z)]
+	for cut in cuts:
+		var next: Array[Vector2] = []
+		for span in ranges:
+			if cut.y <= span.x or cut.x >= span.y:
+				next.append(span)
+				continue
+			if cut.x - span.x > 0.2:
+				next.append(Vector2(span.x, cut.x))
+			if span.y - cut.y > 0.2:
+				next.append(Vector2(cut.y, span.y))
+		ranges = next
+	return ranges
 
 
 ## The face, dressed: coping, plinth, buttresses, and an end at each end.
@@ -3947,11 +4074,18 @@ const BLUFF_COPING_DEEP := 0.7
 ## are looking down from the pier. A terminal pier at each end is the ordinary
 ## answer: heavier than a buttress, deeper than the coping, and the coping dies
 ## into it instead of into air.
-func _bluff_face() -> void:
+func _bluff_face(cuts: Array[Vector2]) -> void:
 	var face := Plan.BLUFF_FACE_X
-	_box("bluff_coping", Vector3.ZERO,
-		Vector3(face + 0.15, BLUFF_COPING_TOP - BLUFF_COPING_DEEP * 0.5, 0.0),
-		Vector3(1.1, BLUFF_COPING_DEEP, BLUFF_DRESS_Z * 2.0), "far_shade", 0.0, false)
+	var face_ranges := _bluff_face_ranges(cuts)
+	for i in face_ranges.size():
+		var span := face_ranges[i]
+		var suffix := "" if span.x <= 0.0 and span.y >= 0.0 else "_%d" % i
+		_box("bluff_coping%s" % suffix, Vector3.ZERO,
+			Vector3(face + 0.15,
+				BLUFF_COPING_TOP - BLUFF_COPING_DEEP * 0.5,
+				(span.x + span.y) * 0.5),
+			Vector3(1.1, BLUFF_COPING_DEEP, span.y - span.x),
+			"far_shade", 0.0, false)
 
 	# The plinth, a touch longer than the coping so it reads as running under it
 	# rather than as a second course of the same length stopping at the same
@@ -3964,9 +4098,13 @@ func _bluff_face() -> void:
 	# six metres up. Before it existed the player stopped against the bluff at
 	# −58.3 and stood 190mm inside every buttress they passed, which is the sort
 	# of thing that only shows up in a screenshot taken from the right place.
-	_box("bluff_plinth", Vector3.ZERO,
-		Vector3(face - 0.175, SHORE_TOP - 0.1, 0.0),
-		Vector3(0.95, 1.4, BLUFF_DRESS_Z * 2.0 + 0.8), "far_shade")
+	for i in face_ranges.size():
+		var span := face_ranges[i]
+		var suffix := "" if span.x <= 0.0 and span.y >= 0.0 else "_%d" % i
+		_box("bluff_plinth%s" % suffix, Vector3.ZERO,
+			Vector3(face - 0.175, SHORE_TOP - 0.1,
+				(span.x + span.y) * 0.5),
+			Vector3(0.95, 1.4, span.y - span.x), "far_shade")
 
 	# **Laid off the coping, not off a typed height.** Top is the coping's
 	# underside plus an overlap; bottom is under the shore. The height is what
@@ -3975,6 +4113,13 @@ func _bluff_face() -> void:
 	var bottom := SHORE_TOP - 0.06
 	for i in BLUFF_BUTTRESS_COUNT:
 		var bz := BLUFF_BUTTRESS_FROM + float(i) * BLUFF_BUTTRESS_STEP
+		var inside_cut := false
+		for cut in cuts:
+			if bz >= cut.x - 0.6 and bz <= cut.y + 0.6:
+				inside_cut = true
+				break
+		if inside_cut:
+			continue
 		_box("bluff_buttress_%d" % i, Vector3.ZERO,
 			Vector3(face - 0.24, (top + bottom) * 0.5, bz),
 			Vector3(0.5, top - bottom, 1.2), "far_warm", 0.0, false)
@@ -4178,6 +4323,8 @@ func _west_far_lights(masts: Array[float]) -> void:
 	# lit band across it would close it.
 	for i in FRONTAGE.size():
 		var unit: Dictionary = FRONTAGE[i]
+		if Plan.REBUILD_RETIRED_BOARDWALK_SHOPS.has(StringName(unit["nm"])):
+			continue
 		var from: float = unit["from"]
 		var to: float = unit["to"]
 		var mid := (from + to) * 0.5
@@ -4204,6 +4351,8 @@ func _west_far_lights(masts: Array[float]) -> void:
 func _frontage_far() -> void:
 	for i in FRONTAGE.size():
 		var unit: Dictionary = FRONTAGE[i]
+		if Plan.REBUILD_RETIRED_BOARDWALK_SHOPS.has(StringName(unit["nm"])):
+			continue
 		var from: float = unit["from"]
 		var to: float = unit["to"]
 		var height: float = unit["h"]
@@ -5432,6 +5581,12 @@ func _east_frontier_grade_y(x: float, z: float, uncut_y: float) -> float:
 		var w := 1.0 - station_dist / Plan.SKY_RIDE_STATION_GRADE_RUN
 		w = w * w * (3.0 - 2.0 * w)
 		y = lerpf(y, Plan.SKY_RIDE_FRONTIER_AT.y, w)
+	# X5's old narrow Frontier approach is implementation history outside NT-2.
+	# The protected envelope keeps the established surface unchanged in intent;
+	# beyond it, the approved E/F junction is now the only grading input.
+	if not _rebuild_in_protected(p, 0.0):
+		y = _rebuild_district_shoulder_grade(p, uncut_y, &"E")
+		return _rebuild_district_shoulder_grade(p, y, &"F")
 	return y
 
 
@@ -5516,6 +5671,11 @@ func _east_kiddie_grade_y(x: float, z: float, uncut_y: float) -> float:
 		var photo_w := 1.0 - photo_dist / Plan.KIDDIE_PHOTO_GRADE_RUN
 		photo_w = photo_w * photo_w * (3.0 - 2.0 * photo_w)
 		y = lerpf(y, photo.y, photo_w)
+	# X2's S-path, station spur and photo spur retired with package 01. Preserve
+	# their established effect only inside NT-2; outside that no-touch envelope,
+	# route D is the sole source of the family-side terrain cut.
+	if not _rebuild_in_protected(p, 0.0):
+		return _rebuild_district_shoulder_grade(p, uncut_y, &"D")
 	return y
 
 
@@ -5572,8 +5732,8 @@ func _shoulder_prm(side: float) -> Dictionary:
 			"rows_head": PackedFloat32Array([-18.8, -20.6, -22.4, -24.2,
 				-26.0, -27.85, -28.9]),
 			"wall_to": 42.0,
-			"brow": 92.0,
-			"end": 124.0,
+			"brow": absf(Plan.rebuild_expand_point(Vector2(0, -92)).y),
+			"end": absf(Plan.rebuild_expand_point(Vector2(0, -124)).y),
 			"ret_z": -18.8,
 			"ret_face": 1.0,
 			"wall_z0": -44.0,
@@ -5583,8 +5743,8 @@ func _shoulder_prm(side: float) -> Dictionary:
 		"corner": false,
 		"rows_head": PackedFloat32Array([23.9, 24.55, 26.4]),
 		"wall_to": 48.5,
-		"brow": 90.0,
-		"end": 122.0,
+		"brow": Plan.rebuild_expand_point(Vector2(0, 90)).y,
+		"end": Plan.rebuild_expand_point(Vector2(0, 122)).y,
 		# 24.6 rather than the wall band's own 24.9: the hill skin's south edge is
 		# z 24.0, and a return wall centred with the retaining wall left a 0.4m
 		# slot between its north face and the scarp's south jamb that read as a
@@ -5738,23 +5898,41 @@ func _north_promenade_terrace_bank(wall_to: float) -> void:
 	var band_w := (to_x - toe_x) / float(heights.size())
 	var bank_from := wall_to - 6.0
 	var bank_to := wall_to + 48.0
-	var z := Plan.ARCH_AT.y - (bank_from + bank_to) * 0.5
+	var z_min := Plan.ARCH_AT.y - bank_to
+	var z_max := Plan.ARCH_AT.y - bank_from
 	for i in heights.size():
 		var h := heights[i]
 		var xa := toe_x + float(i) * band_w
 		var xb := xa + band_w
-		_box("east_promenade_bank_%d" % i, Vector3.ZERO,
-			Vector3((xa + xb) * 0.5, (h - 0.08) * 0.5, z),
-			Vector3(band_w + 0.03, h + 0.08, bank_to - bank_from + 0.16),
-			"brick")
-		_box("east_promenade_bank_%d_soil" % i, Vector3.ZERO,
-			Vector3((xa + xb) * 0.5, h + 0.035, z),
-			Vector3(band_w - 0.12, 0.10, bank_to - bank_from - 0.12),
-			"planting", 0.0, false)
-		_box("east_promenade_bank_%d_coping" % i, Vector3.ZERO,
-			Vector3(xa - 0.035, h + 0.07, z),
-			Vector3(0.16, 0.16, bank_to - bank_from + 0.08),
-			"white", 0.0, false)
+		# F now crosses this inherited bank on the atlas line. Split every tread
+		# around that line so the new public route is a real opening through the
+		# retaining work, not asphalt painted over a sequence of brick walls.
+		var crossing := _rebuild_run_crossing_at_x(
+			&"f_inner_return", (xa + xb) * 0.5, -80.0)
+		var cut_half := 6.25
+		var spans := [
+			Vector2(z_min, minf(z_max, crossing.z - cut_half)),
+			Vector2(maxf(z_min, crossing.z + cut_half), z_max),
+		]
+		for segment in spans.size():
+			var z0: float = spans[segment].x
+			var z1: float = spans[segment].y
+			if z1 - z0 < 0.5:
+				continue
+			var z := (z0 + z1) * 0.5
+			var depth := z1 - z0
+			_box("east_promenade_bank_%d_%d" % [i, segment], Vector3.ZERO,
+				Vector3((xa + xb) * 0.5, (h - 0.08) * 0.5, z),
+				Vector3(band_w + 0.03, h + 0.08, depth + 0.16),
+				"brick")
+			_box("east_promenade_bank_%d_%d_soil" % [i, segment], Vector3.ZERO,
+				Vector3((xa + xb) * 0.5, h + 0.035, z),
+				Vector3(band_w - 0.12, 0.10, maxf(depth - 0.12, 0.1)),
+				"planting", 0.0, false)
+			_box("east_promenade_bank_%d_%d_coping" % [i, segment], Vector3.ZERO,
+				Vector3(xa - 0.035, h + 0.07, z),
+				Vector3(0.16, 0.16, depth + 0.08),
+				"white", 0.0, false)
 
 	# Broken hedge ribbons cover enough masonry for this to read as a garden,
 	# while the gaps keep the bank from becoming one diagrammatic green stripe.
@@ -5768,6 +5946,9 @@ func _north_promenade_terrace_bank(wall_to: float) -> void:
 		var first_z := -43.0 - float(row % 2) * 7.0
 		for run in 4:
 			var hz := first_z - float(run) * 14.0
+			if float(_rebuild_nearest_graded_route(&"F",
+					Vector2(hx, hz))["distance"]) <= 8.5:
+				continue
 			_box("east_promenade_bank_hedge_%d_%d" % [row, run], Vector3.ZERO,
 				Vector3(hx, hy, hz), Vector3(band_w - 0.34, 0.46, 6.2),
 				"foliage" if (row + run) % 2 == 0 else "planting", 0.0, false)
@@ -5782,6 +5963,9 @@ func _north_promenade_terrace_bank(wall_to: float) -> void:
 		var bx := toe_x + (float(bi) + 0.5) * band_w
 		var by := heights[bi] + 0.10
 		var bz := station_zs[i]
+		if float(_rebuild_nearest_graded_route(&"F",
+				Vector2(bx, bz))["distance"]) <= 6.0:
+			continue
 		_cyl("east_promenade_bank_shrub_%d_trunk" % i, Vector3.ZERO,
 			Vector3(bx, by + 0.42, bz), 0.09, 0.84, "wood", 0.0, 8, false)
 		_sphere("east_promenade_bank_shrub_%d_a" % i, Vector3.ZERO,
@@ -6066,10 +6250,12 @@ func _east_dressing() -> void:
 	_east_bay_garden_edges()
 	_east_arrival_dressing()
 	_east_belvedere_dressing()
-	_east_end_attractions()
-	# Last because it is new work against finished earthwork. Appending the promenade
-	# keeps every existing east prop on its established seam ordinal.
-	_east_north_promenade()
+	# The old fixed-coordinate ride pair and tower were provisional package-X5
+	# tenants. Their accepted replacements are R7, R8 and R11 in park_program;
+	# keeping both sets is what made the expanded map look merely pushed apart.
+	# X1's north-east promenade is intentionally not emitted. The route, its
+	# dogleg link and the closure it led to are replaced by the permanent A/B
+	# network rather than hidden below another paving layer.
 
 
 ## The first piece of the Park Promenade, around the plaza's north-east corner.
@@ -6782,16 +6968,13 @@ func _east_belvedere_dressing() -> void:
 ## else is. Cars, chains and horses make the ride type legible without implying
 ## an operating system the game does not have yet.
 func _east_end_attractions() -> void:
-	_east_end_paths()
+	# Keep the three skyline-scale attractions while X5's narrow path and boarded
+	# Frontier terminus are stripped. Their permanent courts connect when routes
+	# E and F arrive; preserving the visible ride silhouettes avoids turning a
+	# circulation demolition into an unrelated attraction demolition.
 	_east_swing_ride()
 	_east_carousel()
-	# New work stays after both existing rides. `_add`'s seam displacement is
-	# build-order dependent; inserting the ribbon ahead of them re-planed their
-	# decks against the old promenade even though neither object had moved.
-	_east_path_ribbon("east_tower_path", Plan.east_tower_path(),
-		Plan.EAST_END_PATH_HALF_W * 2.0)
 	_east_observation_tower()
-	_east_frontier_arrival()
 
 
 ## Paving over the graded terrain. The first eight metres are a shallow ramp
@@ -7926,7 +8109,11 @@ func _sky_ride_grove_station() -> void:
 		12.2, 0.64, "planting", 0.0, 20, false)
 	_cyl("sky_grove_platform", base, Vector3(0.0, 0.035, 0.0),
 		5.65, 0.07, "brick", 0.0, 20, false)
-	for i in 8:
+	# Route A passes the east side of this inherited pavilion. Five posts from
+	# the old complete ring occupied its full eleven-metre width; package 01
+	# opens that side as a broad arcade and keeps the three west posts as the
+	# canopy's greybox support. R12's final station parcel comes later.
+	for i in [3, 4, 5]:
 		var a := TAU * float(i) / 8.0
 		var p := base + Vector3(cos(a) * 4.55, 0.0, sin(a) * 4.55)
 		_cyl("sky_grove_post_%d" % i, p, Vector3(0.0, 4.0, 0.0),
@@ -7965,28 +8152,9 @@ func _sky_ride_grove_station() -> void:
 	_cyl("sky_grove_terminal_mast", base, Vector3(0.0, 6.65, 0.0),
 		0.24, 3.0, "metal", 0.0, 10, false)
 
-	# A small operating room and a compact switchback occupy the south half of
-	# the pavilion. These are shared park operations in Grove colours, not
-	# Frontier scenery copied downhill. The east lane remains a clear entrance.
-	var queue_z0 := 0.15
-	var queue_z1 := 3.45
-	for lane in 3:
-		var queue_x := -2.65 + float(lane) * 1.15
-		for end in 2:
-			var queue_z := queue_z0 if end == 0 else queue_z1
-			_cyl("sky_grove_queue_post_%d_%d" % [lane, end], base,
-				Vector3(queue_x, 0.55, queue_z), 0.055, 1.10,
-				"metal", 0.0, 8)
-		_strut("sky_grove_queue_rail_%d" % lane,
-			base + Vector3(queue_x, 0.88, queue_z0),
-			base + Vector3(queue_x, 0.88, queue_z1), 0.055, "metal")
-	var booth := base + Vector3(2.75, 0.0, 2.10)
-	_box("sky_grove_booth_body", booth, Vector3(0.0, 0.82, 0.0),
-		Vector3(1.55, 1.76, 1.35), "white")
-	_box("sky_grove_booth_window", booth, Vector3(0.0, 1.10, 0.71),
-		Vector3(0.92, 0.58, 0.08), "blue", 0.0, false)
-	_box("sky_grove_booth_roof", booth, Vector3(0.0, 1.82, 0.0),
-		Vector3(1.92, 0.20, 1.70), "sky_green")
+	# Its old switchback and booth also sat inside A. They are attraction parcel
+	# work, not inherited circulation, and return with R12 after the trunk is
+	# accepted. Seating on the west side stays outside the route.
 	var bench := base + Vector3(-6.85, 0.0, 2.80)
 	_bench("sky_grove_bench", bench, _facing(bench, base))
 	_cyl("sky_grove_bin", base, Vector3(-5.65, 0.42, 4.15),
@@ -10719,7 +10887,10 @@ func _entrance() -> void:
 		Vector3(41, 1, g_to - g_from), "brick", 0.0, true)
 
 	_street_frontage()
-	_street_booths()
+	# The three inherited midway booths stood inside the new eleven-metre A
+	# envelope. Package 01 removes them rather than squeezing the permanent
+	# arrival path around temporary commerce; package 04G has their replacement
+	# frontage outside the route.
 	_gate()
 	_apron()
 	_entrance_lights()
@@ -10747,7 +10918,6 @@ func _entrance() -> void:
 func _entrance_lights() -> void:
 	_street_shop_lights()
 	_street_festoons()
-	_booth_lights()
 	_arcade_lights()
 	_gate_lights()
 	_apron_lights()
@@ -10807,6 +10977,9 @@ func _street_shop_lights() -> void:
 		var side: float = pair[1]
 		var face: float = ST_X + side * ST_HALF
 		for row in rows:
+			if REBUILD_RETIRED_STREET_SHOPS.has(n):
+				n += 1
+				continue
 			var z: float = row[0]
 			var length: float = row[1]
 			# Under the awning's outer lip, not against the wall. Against the
@@ -10871,10 +11044,16 @@ const STREET_STRING_PIN_OUT := 0.3
 ## the same distinction `_shopfronts` itself draws: the west arcade's row says
 ## 7.0 and `_arcade_room` ignores it, standing at `ARC_TALL`. A string hung on
 ## the table's figure ends 2.6m above the roof it is fixed to.
-func _street_wall_top(rows: Array, side: float, z: float) -> float:
+func _street_wall_top(rows: Array, side: float, z: float,
+		id_from: int) -> float:
+	var n := id_from
 	for row in rows:
+		if REBUILD_RETIRED_STREET_SHOPS.has(n):
+			n += 1
+			continue
 		var half: float = float(row[1]) * 0.5
 		if z < float(row[0]) - half or z > float(row[0]) + half:
+			n += 1
 			continue
 		if side < 0.0 and String(row[5]) == "arcade":
 			return ARC_TALL
@@ -10885,9 +11064,9 @@ func _street_wall_top(rows: Array, side: float, z: float) -> float:
 func _street_festoons() -> void:
 	var z := 58.0
 	var i := 0
-	while z <= 108.0:
-		var tops := [_street_wall_top(STREET_WEST, -1.0, z),
-			_street_wall_top(STREET_EAST, 1.0, z)]
+	while z <= GATE_Z - 8.0:
+		var tops := [_street_wall_top(STREET_WEST, -1.0, z, 0),
+			_street_wall_top(STREET_EAST, 1.0, z, 10)]
 		# Nothing to tie to on one side or the other. Past z≈105 the ranges have
 		# run out and the gate takes over, so a string there is two ends in open
 		# sky. Skipped rather than errored: the sweep is a rhythm and the
@@ -10963,16 +11142,36 @@ const STREET_WEST := [
 	[78.0, 10.0, 8.0, 7.0, "far_warm", "arcade"],
 	[88.0, 9.0, 9.5, 5.5, "white", "store"],
 	[99.0, 12.0, 8.5, 6.0, "accent", "cafe"],
+	# New frontage occupies the thirty metres bought by the expanded footprint;
+	# none of the original buildings is stretched or pulled away from its door.
+	[111.5, 11.0, 9.0, 5.6, "white", "store"],
+	[124.0, 13.0, 8.5, 6.4, "far_warm", "cafe"],
 ]
 const STREET_EAST := [
-	[57.0, 11.0, 9.0, 5.5, "accent", "cafe"],
+	# Food fronts keep their awnings and signs, but loose tables belong in side
+	# courts rather than inside the new eleven-metre arrival route.
+	[57.0, 11.0, 9.0, 5.5, "accent", "food"],
 	[69.0, 12.0, 10.0, 7.0, "far_warm", "store"],
 	# A public breezeway rather than a painted arcade front. It is the entrance
 	# street's connection to the family commons and has daylight at both ends.
 	[81.0, 11.0, 8.0, 5.0, "white", "portal"],
 	[92.0, 10.0, 9.0, 6.5, "accent", "store"],
-	[102.0, 9.0, 8.5, 5.5, "far_warm", "cafe"],
+	# The widened A gate begins at z=105. The old nine-metre cafe ran 1.5m
+	# through its east booth; a shorter last premise leaves a real service joint
+	# while keeping the street frontage continuous to the threshold.
+	[101.0, 6.0, 8.5, 5.5, "far_warm", "food"],
+	[111.5, 11.0, 9.5, 6.2, "accent", "store"],
+	[124.0, 13.0, 8.5, 5.7, "white", "food"],
 ]
+
+# C replaces the entire inherited west frontage and D opens through the upper
+# east range. These stable IDs are skipped everywhere—shell, awning, light,
+# festoon anchor and arcade rear—so package 01 removes structures rather than
+# leaving invisible or decorative remnants across the approved routes.
+const REBUILD_RETIRED_STREET_SHOPS := {
+	0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true,
+	13: true, 14: true, 15: true,
+}
 
 
 func _street_frontage() -> void:
@@ -10986,6 +11185,9 @@ func _shopfronts(rows: Array, side: float, id_from: int) -> void:
 	var face := ST_X + side * ST_HALF
 	var n := id_from
 	for row in rows:
+		if REBUILD_RETIRED_STREET_SHOPS.has(n):
+			n += 1
+			continue
 		var z: float = row[0]
 		var length: float = row[1]
 		var depth: float = row[2]
@@ -11104,6 +11306,8 @@ func _family_entrance_portal(id: int, face: float, z: float, length: float,
 ## already gone. Before this the arcade was indistinguishable from a shopfront
 ## after eight o'clock.
 func _arcade_lights() -> void:
+	if REBUILD_RETIRED_STREET_SHOPS.has(2):
+		return
 	# Only the walk-in one — the east range's arcade is a front, not a room.
 	for row in STREET_WEST:
 		if String(row[5]) != "arcade":
@@ -11153,8 +11357,8 @@ func _gate_lights() -> void:
 	# holding it up.
 	for side in [-1.0, 1.0]:
 		_uplight("gate_sign_wash_%d" % int(side + 1),
-			Vector3(ST_X + side * 3.2, 1.0, GATE_Z + 4.4),
-			Vector3(ST_X + side * 1.2, 5.6, GATE_Z + 2.9),
+			Vector3(REBUILD_GATE_AXIS_X + side * 3.2, 1.0, GATE_Z + 4.4),
+			Vector3(REBUILD_GATE_AXIS_X + side * 1.2, 5.6, GATE_Z + 2.9),
 			"wash", 3.0, 12.0, 34.0)
 
 	# A window in each booth. Somebody sells the tickets, and two lit windows
@@ -11162,7 +11366,8 @@ func _gate_lights() -> void:
 	# than as an arch with a roof.
 	for side in [-1.0, 1.0]:
 		_omni("gate_booth_glow_%d" % int(side + 1),
-			Vector3(ST_X + side * (ST_HALF - 2.25), 2.0, GATE_Z + 2.2),
+			Vector3(REBUILD_GATE_AXIS_X + side * REBUILD_GATE_BOOTH_OFFSET,
+				2.0, GATE_Z + 2.2),
 			"warm", 1.5, 6.0, LIGHT_SERVICE)
 
 
@@ -11179,23 +11384,24 @@ func _gate_lights() -> void:
 ## into the warm street under the turnstiles is the arrival doing its job. The
 ## park should feel warmer than the place you parked.
 func _apron_lights() -> void:
-	for i in range(6):
-		var x := ST_X - 15.0 + float(i) * 6.0
+	var apron_xs := [-18.0, -12.0, 12.0, 18.0]
+	for i in apron_xs.size():
+		var x: float = apron_xs[i]
 		# A head on the pole, so there is something to be lit *by*. The pole tops
 		# out at 8.0.
 		_box("apron_head_%d" % i, Vector3.ZERO, Vector3(x, 7.86, GATE_Z + 9.0),
 			Vector3(0.6, 0.22, 0.9), "lamp_glass", 0.0, false)
 		_omni("apron_lamp_%d" % i, Vector3(x, 7.6, GATE_Z + 9.0),
-			"lamp", 3.0, 22.0, LIGHT_FIXTURE, i == 2 or i == 3)
+			"lamp", 3.0, 22.0, LIGHT_FIXTURE, i == 1 or i == 2)
 
 	# The lot itself, as backdrop. Four standards over the parked cars, tall and
 	# far apart the way a real lot is lit. No shadows and no detail — this is
 	# 40m past the rail the player cannot cross, and its whole job is to say the
 	# world does not stop at the apron.
-	for i in 4:
-		var x := ST_X - 34.0 + float(i) * 23.0
+	for i in 2:
+		var x := -44.0 if i == 0 else 44.0
 		for j in 2:
-			var z := 138.0 + float(j) * 24.0
+			var z := Plan.PARKING_FROM_Z + 8.0 + float(j) * 18.0
 			_cyl("lot_pole_%d_%d" % [i, j], Vector3.ZERO, Vector3(x, 5.0, z),
 				0.16, 10.0, "far_shade", 0.0, 6, false)
 			_box("lot_head_%d_%d" % [i, j], Vector3.ZERO, Vector3(x, 9.9, z),
@@ -11204,13 +11410,21 @@ func _apron_lights() -> void:
 				"lamp", 2.2, 26.0)
 
 
-## Turnstiles under a canopy. The threshold is a squeeze between two booths
-## rather than a doorway: you can see the whole street through it from outside,
+## Turnstiles under a canopy. Route A now controls this opening: its full
+## eleven-metre walking envelope passes between the booths, while two readers
+## sit just outside it. You can see the whole street through from outside,
 ## which is the opposite of the west stair's job and deliberately so. Arrival
 ## should promise; a section boundary should hide.
+const REBUILD_GATE_AXIS_X := 0.0
+const REBUILD_GATE_CLEAR := 12.0
+const REBUILD_GATE_BOOTH_W := 4.5
+const REBUILD_GATE_BOOTH_OFFSET := REBUILD_GATE_CLEAR * 0.5 \
+	+ REBUILD_GATE_BOOTH_W * 0.5
+
+
 func _gate() -> void:
-	var west_c := ST_X - ST_HALF + 2.25
-	var east_c := ST_X + ST_HALF - 2.25
+	var west_c := REBUILD_GATE_AXIS_X - REBUILD_GATE_BOOTH_OFFSET
+	var east_c := REBUILD_GATE_AXIS_X + REBUILD_GATE_BOOTH_OFFSET
 	# Both sunk 6cm rather than standing on the ground, for the same reason the
 	# cafe tables are: their undersides sat at exactly y=0, on the same plane as
 	# the street paving's, and nothing showed until a paving quad was added
@@ -11218,70 +11432,129 @@ func _gate() -> void:
 	# the floor is a building that will find the floor eventually — give way
 	# downward.
 	_box("gate_booth_west", Vector3.ZERO, Vector3(west_c, 1.72, GATE_Z),
-		Vector3(4.5, 3.56, 4.0), "white")
+		Vector3(REBUILD_GATE_BOOTH_W, 3.56, 4.0), "white")
 	_box("gate_booth_east", Vector3.ZERO, Vector3(east_c, 1.72, GATE_Z),
-		Vector3(4.5, 3.56, 4.0), "white")
-	_box("gate_canopy", Vector3.ZERO, Vector3(ST_X, 4.3, GATE_Z),
-		Vector3(ST_HALF * 2.0 + 1.0, 0.5, 5.5), "red", 0.0, false)
+		Vector3(REBUILD_GATE_BOOTH_W, 3.56, 4.0), "white")
+	_box("gate_canopy", Vector3.ZERO,
+		Vector3(REBUILD_GATE_AXIS_X, 4.3, GATE_Z),
+		Vector3((REBUILD_GATE_BOOTH_OFFSET + REBUILD_GATE_BOOTH_W * 0.5) * 2.0
+			+ 1.0, 0.5, 5.5), "red", 0.0, false)
 	_cyl("gate_post_west", Vector3.ZERO,
-		Vector3(ST_X - ST_HALF - 0.2, 2.15, GATE_Z), 0.14, 4.3, "metal")
+		Vector3(REBUILD_GATE_AXIS_X - REBUILD_GATE_BOOTH_OFFSET
+			- REBUILD_GATE_BOOTH_W * 0.5 - 0.2, 2.15, GATE_Z),
+		0.14, 4.3, "metal")
 	_cyl("gate_post_east", Vector3.ZERO,
-		Vector3(ST_X + ST_HALF + 0.2, 2.15, GATE_Z), 0.14, 4.3, "metal")
+		Vector3(REBUILD_GATE_AXIS_X + REBUILD_GATE_BOOTH_OFFSET
+			+ REBUILD_GATE_BOOTH_W * 0.5 + 0.2, 2.15, GATE_Z),
+		0.14, 4.3, "metal")
 	# The name board, read from the apron on the way in.
-	_box("gate_sign", Vector3.ZERO, Vector3(ST_X, 5.6, GATE_Z + 2.6),
+	_box("gate_sign", Vector3.ZERO,
+		Vector3(REBUILD_GATE_AXIS_X, 5.6, GATE_Z + 2.6),
 		Vector3(9.0, 2.0, 0.3), "yellow", 0.0, false)
-	# Stiles in the opening. Waist height and solid, so the gap reads as a count
-	# of lanes rather than a hole.
-	#
-	# Two dividers, not three, and neither on ST_X. Three evenly spaced stiles
-	# put one dead centre — a post in the middle of the doorway, on the exact
-	# line the street is aimed down. Two put a lane on the axis instead, which
-	# is what the walk into the park should find.
-	for i in range(2):
-		var x := ST_X - 1.0 + float(i) * 2.0
-		_box("stile_%d" % i, Vector3.ZERO, Vector3(x, 0.5, GATE_Z),
-			Vector3(0.25, 1.0, 3.4), "metal")
+	# Readers mark the threshold without turning the boulevard into slalom lanes.
+	# Their inner faces sit 0.65m beyond A's paving edge.
+	for side in [-1.0, 1.0]:
+		var x: float = REBUILD_GATE_AXIS_X \
+			+ float(side) * (REBUILD_GATE_CLEAR * 0.5 + 0.28)
+		_box("stile_%d" % int(side + 1), Vector3.ZERO,
+			Vector3(x, 0.5, GATE_Z), Vector3(0.25, 1.0, 1.4), "metal")
 
 
-## Outside the turnstiles. This is the piece the star scheme kept pointing at —
-## a place to arrive that is not yet the park. Closed at the south, because the
-## player does not get to leave: the parking lot is a view, not a destination.
+## Outside the turnstiles. The former 56-car backdrop filled the entire centre
+## line, and its waist rail literally closed the route at the apron. The expanded
+## arrival is one continuous fourteen-metre walk between two parking fields. A
+## rail still closes the playable world, but only at the real outer edge.
 func _apron() -> void:
-	for i in range(6):
-		var x := ST_X - 15.0 + float(i) * 6.0
+	var apron_xs := [-18.0, -12.0, 12.0, 18.0]
+	for i in apron_xs.size():
+		var x: float = apron_xs[i]
 		# Continue below grade like a real light standard. Ending exactly at the
 		# apron surface lets generator displacement decide whether the two fight.
 		_cyl("apron_pole_%d" % i, Vector3.ZERO, Vector3(x, 3.94, GATE_Z + 9.0),
 			0.12, 8.0, "white", 0.0, 8)
-	_box("apron_planter_west", Vector3.ZERO, Vector3(ST_X - 13.0, 0.3, GATE_Z + 5.0),
+	_box("apron_planter_west", Vector3.ZERO, Vector3(-14.0, 0.3, GATE_Z + 5.0),
 		Vector3(7.0, 0.6, 3.0), "accent")
-	_box("apron_planter_east", Vector3.ZERO, Vector3(ST_X + 13.0, 0.3, GATE_Z + 5.0),
+	_box("apron_planter_east", Vector3.ZERO, Vector3(14.0, 0.3, GATE_Z + 5.0),
 		Vector3(7.0, 0.6, 3.0), "accent")
-	# The far edge. Waist-high so the parking beyond stays visible over it, and
-	# solid because there is nothing walkable past it.
-	_box("apron_rail", Vector3.ZERO, Vector3(ST_X, 0.55, APRON_Z),
-		Vector3(41.0, 1.1, 0.4), "metal")
-	_box("apron_wall_west", Vector3.ZERO, Vector3(ST_X - 20.3, 1.5, 116.0),
-		Vector3(0.4, 3.0, 15.0), "far_shade")
-	_box("apron_wall_east", Vector3.ZERO, Vector3(ST_X + 17.3, 1.5, 116.0),
-		Vector3(0.4, 3.0, 15.0), "far_shade")
 
-	# The parking lot, which is a backdrop. No collision, never reached.
-	_box("lot_ground", Vector3.ZERO, Vector3(ST_X, -0.6, 157.0),
-		Vector3(150.0, 1.0, 68.0), "far_shade", 0.0, false)
+	# Side rails announce the apron edge without closing the boulevard. Their
+	# fifteen-metre middle opening is wider than route A and centred on its actual
+	# x=0 axis, not on the older street offset.
+	for side in [-1.0, 1.0]:
+		_box("apron_rail_%s" % ("west" if side < 0.0 else "east"),
+			Vector3.ZERO, Vector3(side * 14.0, 0.55, APRON_Z),
+			Vector3(13.0, 1.1, 0.4), "metal")
+	# Both former side walls were the legacy edge of the entry apron. C crosses
+	# the west line and I6 occupies the east arrival parcel, so the two approved
+	# buildings now define this room instead of an obsolete wall pair.
+
+	# The pedestrian arrival continues through the parking reserve. A buried
+	# colliding bed carries the player; the dark skin continues route A's visual
+	# language and laps under its cap at the apron.
+	var axis_from := APRON_Z - 2.0
+	var axis_to := Plan.ARRIVAL_AXIS_TO_Z
+	_box("parking_arrival_bed", Vector3.ZERO,
+		# One centimetre below `entrance_ground` where the two overlap. The dark
+		# path remains at grade; only the buried support yields, so the continuous
+		# arrival does not become 168 square metres of coincident ground faces.
+		Vector3(0.0, -0.52, (axis_from + axis_to) * 0.5),
+		Vector3(Plan.PARKING_AXIS_HALF_W * 2.0, 1.0, axis_to - axis_from),
+		"brick")
+	_box("parking_arrival_path", Vector3.ZERO,
+		Vector3(0.0, 0.012, (axis_from + axis_to) * 0.5),
+		Vector3(Plan.PARKING_AXIS_HALF_W * 2.0 - 0.6, 0.024,
+			axis_to - axis_from), "asphalt", 0.0, false)
+	for side in [-1.0, 1.0]:
+		_box("parking_axis_curb_%s" % ("west" if side < 0.0 else "east"),
+			Vector3.ZERO, Vector3(side * Plan.PARKING_AXIS_HALF_W, 0.16,
+				(axis_from + axis_to) * 0.5),
+			Vector3(0.26, 0.32, axis_to - axis_from), "white")
+
+	# Two distinct parking fields. Cars retain real dimensions and spacing; the
+	# empty middle is structural circulation, not a few deleted car instances.
+	var lot_width := Plan.PARKING_OUTER_X - Plan.PARKING_INNER_X
+	var lot_length := Plan.PARKING_TO_Z - Plan.PARKING_FROM_Z
+	for side in [-1.0, 1.0]:
+		var lot_x: float = side * (Plan.PARKING_INNER_X + lot_width * 0.5)
+		_box("lot_ground_%s" % ("west" if side < 0.0 else "east"),
+			Vector3.ZERO,
+			Vector3(lot_x, -0.55, (Plan.PARKING_FROM_Z + Plan.PARKING_TO_Z) * 0.5),
+			Vector3(lot_width, 1.0, lot_length), "far_shade", 0.0, false)
 	var n := 0
-	for row in range(4):
-		for col in range(14):
-			var x := ST_X - 45.0 + float(col) * 7.0
-			var z := 132.0 + float(row) * 12.0
-			_box("car_%d" % n, Vector3.ZERO, Vector3(x, 0.7, z),
-				Vector3(1.9, 1.4, 4.4), "far" if (n % 3) else "far_warm",
-				0.0, false)
-			n += 1
-	for i in range(9):
-		_cyl("lot_tree_%d" % i, Vector3.ZERO,
-			Vector3(ST_X - 48.0 + float(i) * 12.0, 3.5, 128.0),
-			1.6, 7.0, "far_shade", 0.0, 6, false)
+	for side in [-1.0, 1.0]:
+		for row in 3:
+			for col in 7:
+				var x: float = side * (19.0 + float(col) * 7.0)
+				var z := 187.0 + float(row) * 11.0
+				_box("car_%d" % n, Vector3.ZERO, Vector3(x, 0.7, z),
+					Vector3(1.9, 1.4, 4.4), "far" if (n % 3) else "far_warm",
+					0.0, false)
+				n += 1
+	for side in [-1.0, 1.0]:
+		for row in 3:
+			_cyl("lot_tree_%s_%d" % ["west" if side < 0.0 else "east", row],
+				Vector3.ZERO, Vector3(side * 72.0, 3.5, 186.0 + float(row) * 14.0),
+				1.6, 7.0, "far_shade", 0.0, 6, false)
+
+	# The one deliberate parking crossing: route A continues across the Grand
+	# Circuit, with a marked table instead of letting asphalt ribbons overlap and
+	# asking the player to infer priority.
+	for i in 7:
+		var x := -5.4 + float(i) * 1.8
+		_box("parking_crosswalk_%02d" % i, Vector3.ZERO,
+			Vector3(x, 0.035, Plan.ARRIVAL_TRAM_CROSSING_Z),
+			Vector3(0.82, 0.03, 5.0), "white", 0.0, false)
+
+	_box("parking_outer_rail", Vector3.ZERO,
+		Vector3(0.0, 0.55, Plan.ARRIVAL_AXIS_TO_Z + 0.6),
+		Vector3(Plan.PARKING_OUTER_X * 2.0 + 8.0, 1.1, 0.4), "metal")
+	for side in [-1.0, 1.0]:
+		_box("parking_outer_wall_%s" % ("west" if side < 0.0 else "east"),
+			Vector3.ZERO,
+			Vector3(side * (Plan.PARKING_OUTER_X + 4.0), 1.1,
+				(Plan.PARKING_FROM_Z + Plan.ARRIVAL_AXIS_TO_Z) * 0.5),
+			Vector3(0.4, 2.2, Plan.ARRIVAL_AXIS_TO_Z - Plan.PARKING_FROM_Z + 1.2),
+			"far_shade")
 
 
 ## Scaffolding: a short passage out of each of the three section openings.
@@ -11323,24 +11596,13 @@ const BEND := Plan.BEND
 ## Passages first, in their original order, then the mouths appended. The three
 ## passages keep exactly the displacement they had.
 func _thresholds() -> void:
-	for t in THRESHOLDS:
-		# The concealed dogleg is placeholder architecture. Kiddieland has a real
-		# public route now, so retaining its old baffles would make the paving and
-		# the buildings give opposite instructions.
-		if not bool(t.get("open", false)):
-			_passage(t["name"], t["at"], t["theta"], t["width"], t["turn"])
-	for t in THRESHOLDS:
-		_threshold_mouth(t["name"], t["at"], t["theta"], t["width"])
-	# Appended so none of the three established passage ordinals moves. This is
-	# the first authored piece beyond one of them, not a fourth passage part.
-	_kiddieland_arrival()
-	# Appended after Kiddieland for the same reason. Neither arrival is allowed to
-	# re-plane the scaffold that made it possible to reach it.
-	_fairground_arrival()
-	# The last closed passage now earns the same circulation scaffold. Appended
-	# after both southern lands so opening the Grove cannot move a single existing
-	# threshold, route or attraction onto a different seam plane.
-	_grove_arrival()
+	# Package 01 retires X1–X4 as complete structures, not just their paving.
+	# The NNW, SE and SW mouths belonged to those temporary doglegs and now stand
+	# directly across A, C and D. Routes C–F cut their own broad, visible public
+	# openings in the plaza perimeter; no placeholder passage survives beside
+	# them. Keep this stable wrapper empty until a finished district authors a
+	# threshold that follows—rather than contradicts—the atlas route.
+	return
 
 
 ## What each way in looks like from the fountain.
@@ -12038,6 +12300,125 @@ func _grand_tram_infrastructure() -> void:
 	for station in Plan.GRAND_TRAM_STATIONS:
 		_grand_tram_stop(station["id"], station["at"], station["theta"])
 	_ride_vehicle_node("grand_tram", 1)
+	# Crossings append after the established lane, stops and vehicle so marking a
+	# new public connection cannot re-plane any of that infrastructure.
+	for crossing in Plan.GRAND_TRAM_CROSSINGS:
+		if crossing["owner"] == &"park_transit":
+			_grand_tram_crossing(crossing)
+
+
+## A crossing is a named piece of the plan, not two ribbons accidentally drawn
+## over one another. White bars make the vehicle priority legible from above;
+## paired low posts mark the waiting edges without fencing the pedestrian run.
+func _grand_tram_crossing(crossing: Dictionary) -> void:
+	var requested: Vector3 = crossing["at"]
+	var nearest := _grand_tram_nearest(requested)
+	var at: Vector3 = nearest["at"]
+	var tangent: Vector3 = nearest["tangent"]
+	var theta := atan2(tangent.x, tangent.z)
+	var tag := String(crossing["id"])
+	for i in 7:
+		var along := -1.65 + float(i) * 0.55
+		_box("grand_tram_crossing_%s_stripe_%02d" % [tag, i], at,
+			Vector3(0.0, 0.047, along),
+			Vector3(Plan.GRAND_TRAM_LANE_W - 0.48, 0.024, 0.28),
+			"white", theta, false)
+	# A wait marker belongs at a crossing's corners, not on the pedestrian
+	# centreline. Find the named public run and put one post beyond each side of
+	# its complete envelope at both vehicle-lane edges. At compound crossings,
+	# keep walking outward until every captured public route is clear.
+	var pedestrian := _grand_tram_pedestrian_run(crossing["pedestrian"], at)
+	var pedestrian_normal: Vector2 = pedestrian["normal"]
+	var captured: Array = crossing.get("captures", [crossing["pedestrian"]])
+	var tram_normal := Vector2(cos(theta), -sin(theta))
+	for wait_side in [-1.0, 1.0]:
+		var wait2: Vector2 = Vector2(at.x, at.z) + tram_normal \
+			* wait_side * (Plan.GRAND_TRAM_LANE_W * 0.5 + 0.55)
+		for edge_side in [-1.0, 1.0]:
+			var edge_offset: float = float(pedestrian["width"]) * 0.5 + 0.55
+			var post2: Vector2 = wait2 + pedestrian_normal * edge_side * edge_offset
+			while not _grand_tram_post_clear(post2, captured, 0.35):
+				edge_offset += 0.40
+				assert(edge_offset <= float(pedestrian["width"]) * 0.5 + 5.0,
+					"crossing %s has no clear wait-post corner" % tag)
+				post2 = wait2 + pedestrian_normal * edge_side * edge_offset
+			var post_at := Vector3(post2.x, at.y, post2.y)
+			_cyl("grand_tram_crossing_%s_wait_%s_%s" % [tag,
+					"a" if wait_side < 0.0 else "b",
+					"l" if edge_side < 0.0 else "r"],
+				post_at, Vector3(0.0, 0.42, 0.0),
+				0.09, 0.84, "yellow", theta, 8)
+
+
+func _grand_tram_pedestrian_run(id: StringName, at: Vector3) -> Dictionary:
+	for run in Plan.rebuild_route_runs():
+		if StringName(run["id"]) != id:
+			continue
+		var points: Array = run["points"]
+		var nearest := _rebuild_nearest_plan_segment(points,
+			Vector2(at.x, at.z))
+		var tangent: Vector2 = nearest["tangent"]
+		return {"normal": Vector2(-tangent.y, tangent.x),
+			"width": float(run["width"])}
+	assert(false, "crossing pedestrian run %s is missing" % id)
+	return {"normal": Vector2.RIGHT, "width": 0.0}
+
+
+func _grand_tram_post_clear(point: Vector2, route_ids: Array,
+		margin: float) -> bool:
+	for id in route_ids:
+		for run in Plan.rebuild_route_runs():
+			if StringName(run["id"]) != StringName(id):
+				continue
+			var nearest := _rebuild_nearest_plan_segment(run["points"], point)
+			if float(nearest["distance"]) \
+					< float(run["width"]) * 0.5 + margin:
+				return false
+			break
+	return true
+
+
+func _rebuild_nearest_plan_segment(points: Array, point: Vector2) -> Dictionary:
+	var best_distance := INF
+	var best_tangent := Vector2.RIGHT
+	var best_at := point
+	for i in points.size() - 1:
+		var a3 = points[i]
+		var b3 = points[i + 1]
+		var a := Vector2(a3.x, a3.z) if a3 is Vector3 else Vector2(a3)
+		var b := Vector2(b3.x, b3.z) if b3 is Vector3 else Vector2(b3)
+		var ab := b - a
+		var t := clampf((point - a).dot(ab) /
+			maxf(ab.length_squared(), 0.001), 0.0, 1.0)
+		var q := a.lerp(b, t)
+		var distance := point.distance_to(q)
+		if distance < best_distance:
+			best_distance = distance
+			best_tangent = ab.normalized()
+			best_at = q
+	return {"distance": best_distance, "tangent": best_tangent, "at": best_at}
+
+
+func _grand_tram_nearest(point: Vector3) -> Dictionary:
+	var best_d := INF
+	var best_at := _grand_tram[0]
+	var best_tangent := Vector3.FORWARD
+	for i in _grand_tram.size() - 1:
+		var a: Vector3 = _grand_tram[i]
+		var b: Vector3 = _grand_tram[i + 1]
+		var av := Vector2(a.x, a.z)
+		var bv := Vector2(b.x, b.z)
+		var pv := Vector2(point.x, point.z)
+		var ab := bv - av
+		var t := clampf((pv - av).dot(ab) / maxf(ab.length_squared(), 0.001),
+			0.0, 1.0)
+		var q := a.lerp(b, t)
+		var d := pv.distance_to(Vector2(q.x, q.z))
+		if d < best_d:
+			best_d = d
+			best_at = q
+			best_tangent = b - a
+	return {"at": best_at, "tangent": best_tangent.normalized(), "distance": best_d}
 
 
 func _grand_tram_stop(id: StringName, at: Vector3, theta: float) -> void:
@@ -12342,7 +12723,12 @@ func _grove_arrival() -> void:
 		Vector3(-40.05, 0.0, -123.0))
 	_grove_boundary("west_n", Vector3(-40.05, 0.0, -134.0),
 		Vector3(-40.05, 0.0, -146.0))
-	_grove_boundary("north", Vector3(-40.0, 0.0, -146.05),
+	# The expanded tram walk is now a real northern continuation. Split the old
+	# boundary around its full operating width instead of drawing the new path
+	# through a hedge that still says the land ends here.
+	_grove_boundary("north_w", Vector3(-40.0, 0.0, -146.05),
+		Vector3(11.4, 0.0, -146.05))
+	_grove_boundary("north_e", Vector3(19.6, 0.0, -146.05),
 		Vector3(22.0, 0.0, -146.05))
 	_grove_boundary("east_s", Vector3(22.05, 0.0, -62.0),
 		Vector3(22.05, 0.0,
@@ -12756,6 +13142,8 @@ func _arcade_room(face: float, z: float, length: float) -> void:
 ## doorway is wide enough for opposing guest traffic and its marquee faces the
 ## fairground, making the second route visible before someone reaches the turn.
 func _arcade_rear_exit() -> void:
+	if REBUILD_RETIRED_STREET_SHOPS.has(2):
+		return
 	var z := 78.0
 	var length := 10.0
 	var cheek := (length - ARC_REAR_DOOR) * 0.5
@@ -12948,6 +13336,8 @@ func _boardwalk_frontage() -> void:
 	for i in FRONTAGE.size():
 		var unit: Dictionary = FRONTAGE[i]
 		var nm: String = unit["nm"]
+		if Plan.REBUILD_RETIRED_BOARDWALK_SHOPS.has(StringName(nm)):
+			continue
 		var from: float = unit["from"]
 		var to: float = unit["to"]
 		var h: float = unit["h"]
@@ -13206,10 +13596,17 @@ func _boardwalk_coaster() -> void:
 	# to where the walk stops.
 	var z := COASTER_STATION.y - 12.0
 	var n := 0
+	var north_return_z := Plan.rebuild_expand_point(Vector2(-96.0, -62.0)).y
 	while z > WALK_FROM_Z:
-		_box("coaster_fence_%d" % n, Vector3.ZERO,
-			Vector3(FRONT_X - FRONT_DEPTH * 0.5, SHORE_TOP + 0.75, z),
-			Vector3(0.1, 1.5, 3.6), "metal")
+		# Route B's north return moved outward with the expanded footprint. The
+		# fence opening follows that planned handoff instead of preserving its old
+		# z=-62 literal; otherwise a correct new ramp arrives at a closed fence.
+		# Twelve metres keeps the full eight-metre trunk and a two-metre shoulder
+		# on either side: this is a gateway, not a squeeze.
+		if absf(z - north_return_z) > 6.0:
+			_box("coaster_fence_%d" % n, Vector3.ZERO,
+				Vector3(FRONT_X - FRONT_DEPTH * 0.5, SHORE_TOP + 0.75, z),
+				Vector3(0.1, 1.5, 3.6), "metal")
 		z -= 4.0
 		n += 1
 
@@ -13491,16 +13888,9 @@ func _boardwalk_edges() -> void:
 			Vector3(SHORE_EDGE + 5.0, SHORE_TOP + 1.4, z_at),
 			Vector3(1.6, 0.9, 0.1), "white", 0.0, false)
 
-	# The east side of the promenade south of the row, so the strip is closed
-	# rather than fraying into raw shore.
-	var yz := FRONT_TO_Z
-	var m := 0
-	while yz < WALK_TO_Z:
-		_box("yard_fence_%d" % m, Vector3.ZERO,
-			Vector3(FRONT_X - FRONT_DEPTH * 0.5, SHORE_TOP + 0.75, yz),
-			Vector3(0.1, 1.5, 3.6), "metal")
-		yz += 4.0
-		m += 1
+	# The former yard fence across the south return was X6: a closure at the end
+	# of an obsolete strip. Route B now bends inland here, so the public paving
+	# itself supplies the edge and the fence does not survive package 01.
 
 
 ## Furniture. Benches facing the water, lamps, bins, and the masts with the
@@ -13518,6 +13908,9 @@ func _boardwalk_props() -> void:
 	# Lamp standards down the middle of the promenade.
 	var m := 0
 	var z := WALK_FROM_Z + 6.0
+	# D2 crosses the full promenade here. A standard in that twelve-metre bridge
+	# span is not lighting beside a route; it is a post in the route itself.
+	var creek_bridge_z := Plan.rebuild_expand_point(Vector2(-96, 55)).y
 	while z < WALK_TO_Z:
 		# **One skip now, and it is not the one that used to be here.**
 		#
@@ -13539,7 +13932,8 @@ func _boardwalk_props() -> void:
 		# Three call sites skipping the same opening, two by rule and one by
 		# luck, and the luck is invisible until the opening moves.
 		# `PIER_MOUTH_CLEAR` is the rule and all three read it.
-		if absf(z - PIER_ROOT.y) > PIER_MOUTH_CLEAR:
+		if absf(z - PIER_ROOT.y) > PIER_MOUTH_CLEAR \
+				and absf(z - creek_bridge_z) > 6.2:
 			_cyl("prom_lamp_%d" % m, Vector3.ZERO,
 				Vector3(PROMENADE_X, SHORE_TOP + 2.4, z), 0.11, 4.8, "metal", 0.0, 8)
 			_sphere("prom_lamp_%d_globe" % m,
@@ -13575,11 +13969,13 @@ func _boardwalk_props() -> void:
 			k += 1
 		z += 11.0
 
-	# Bins, and the two carts that say somebody works here.
+	# Bins sit between the through-route and the water-side furniture rather than
+	# on B's exact centreline. There is still more than a body width to both the
+	# ten-metre route edge and the benches behind them.
 	var b_at := [-30.0, -12.0, 8.0, 26.0, 46.0, 64.0]
 	for i in b_at.size():
 		_cyl("prom_bin_%d" % i, Vector3.ZERO,
-			Vector3(PROMENADE_X + 3.2, SHORE_TOP + 0.45, b_at[i]), 0.38, 0.9, "metal", 0.0, 8)
+			Vector3(PROMENADE_X - 3.0, SHORE_TOP + 0.45, b_at[i]), 0.38, 0.9, "metal", 0.0, 8)
 	_box("prom_cart", Vector3.ZERO, Vector3(PROMENADE_X - 3.0, SHORE_TOP + 0.7, 18.0),
 		Vector3(1.8, 1.4, 1.0), "blue")
 	_box("prom_cart_roof", Vector3.ZERO, Vector3(PROMENADE_X - 3.0, SHORE_TOP + 2.1, 18.0),
@@ -13614,7 +14010,11 @@ func _boardwalk_props() -> void:
 				Vector3(0.44, 0.06, 0.44), "wood")
 			_box("table_%d_chair_%d_back" % [i, j], seat, Vector3(0, 0.7, -0.2),
 				Vector3(0.44, 0.46, 0.06), "wood")
-			_cyl("table_%d_chair_%d_leg" % [i, j], seat, Vector3(0, 0.22, 0),
+			# The seated body is rooted at the chair centre, so a centred pedestal
+			# occupies the same two small floor patches as its shins. Keep the one-
+			# support silhouette, but carry it under the back half of the seat where
+			# neither leg can meet it.
+			_cyl("table_%d_chair_%d_leg" % [i, j], seat, Vector3(0, 0.22, -0.12),
 				0.06, 0.44, "metal", 0.0, 6)
 
 
@@ -14314,8 +14714,12 @@ func _gate_house(gate: Dictionary) -> void:
 		# reading the paragraph above is protecting.
 		var ca: float = (from_z - 0.26) if i == 0 else (open_s - 0.03)
 		var cb: float = (open_n + 0.03) if i == 0 else (to_z + 0.26)
+		# Finish a hand below the pier roof instead of sharing its top plane. The
+		# cornice still reads as the cap; the 6cm drop removes the colour fight at
+		# the only place the two materials otherwise occupy the same face.
 		_box("%s_cornice_%d" % [prefix, i], Vector3.ZERO,
-			Vector3(face + inward * 0.14, top - FRONT_CORNICE * 0.5, (ca + cb) * 0.5),
+			Vector3(face + inward * 0.14,
+				top - FRONT_CORNICE * 0.5 - 0.06, (ca + cb) * 0.5),
 			Vector3(0.5, FRONT_CORNICE, cb - ca), "white", 0.0, false)
 	for i in 2:
 		var pa: float = (from_z - 0.09) if i == 0 else open_s
@@ -16558,3 +16962,2884 @@ func _plaza_from_the_east() -> void:
 	if n < 6:
 		push_error("only %d plaza masses read for the view from the east — "
 			% n + "the parse found nothing, or the perimeter has been renamed")
+
+
+# ---------------------------------------------------------------------------
+# Park rebuild: surrounding world, terrain bands T2/T3, and primary routes A/B
+# ---------------------------------------------------------------------------
+
+const REBUILD_LOWLAND_Y := -0.06
+const REBUILD_HEADLAND_Y := 4.0
+const REBUILD_HEADLAND_INSET := 0.70
+const REBUILD_TERRAIN_GRID := 8.0
+const REBUILD_WORLD_RESERVE_Y := -0.16
+const REBUILD_WORLD_TERRAIN_STEP := 24.0
+const REBUILD_WORLD_FLAT_MARGIN := 100.0
+const REBUILD_COAST_LOW_Y := Plan.SHORE_TOP - 0.08
+const REBUILD_COAST_HIGH_Y := REBUILD_WORLD_RESERVE_Y - 0.08
+const REBUILD_COAST_TRANSITION_FROM_Z := 170.0
+const REBUILD_COAST_TRANSITION_TO_Z := 260.0
+const REBUILD_PATH_LIFT := 0.022
+const REBUILD_BED_MARGIN := 1.4
+const REBUILD_SOUTH_CUT_WIDTH := 10.2
+const REBUILD_SOUTH_CUT_SEED_MARGIN := 0.4
+const REBUILD_OUTER_HIGHLAND_FROM_X := 127.0
+const REBUILD_OUTER_HIGHLAND_TO_X := 178.0
+const REBUILD_OUTER_HIGHLAND_FROM_Z := -154.0
+const REBUILD_OUTER_HIGHLAND_TO_Z := 198.0
+const REBUILD_OUTER_HIGHLAND_STEP := 4.0
+const REBUILD_PUBLIC_MAX_GRADE := 0.125
+const REBUILD_FAMILY_MAX_GRADE := 1.0 / 12.0
+const REBUILD_ROUTE_EARTH_RUN := 16.0
+const REBUILD_COLLISION_PATH_CHORD := 0.50
+const REBUILD_COLLISION_PRISM_DEPTH := 0.24
+# The inherited shoulder is sampled more coarsely than the paving. A ten-
+# centimetre nominal bed still interpolated 21cm above Route D at the x=127
+# seam and turned both usable edges into a fall. Match the established family
+# cut: seventy centimetres keeps every coarse terrain triangle below the route
+# while the asphalt and its verge conceal the pocket.
+const REBUILD_DISTRICT_ROUTE_BED_CUT := 0.70
+const REBUILD_LOWLAND_ROUTE_BED_CUT := 1.10
+const REBUILD_LOWLAND_SUPPORT_TO_X := 50.2
+const REBUILD_SHARED_JUNCTION_BEFORE := 6.0
+const REBUILD_SHARED_JUNCTION_AFTER := 34.0
+const REBUILD_JUNCTION_STATION_MERGE := 0.50
+const REBUILD_BC_SHARED_DISTANCE := 10.0
+const REBUILD_BC_SHARED_MARGIN := 2.0
+const REBUILD_BC_SHARED_EXTEND_BEFORE := 1.0
+const REBUILD_BC_SHARED_EXTEND_AFTER := 6.0
+const REBUILD_AF_SHARED_DISTANCE := 11.0
+const REBUILD_F_INNER_GRADE_RESERVE := 0.05
+const REBUILD_F_HEADLAND_LEVEL_TAIL := 20.0
+const REBUILD_J9_INNER_FLOOR_LENGTH := 0.25
+const REBUILD_J9_INNER_LEVEL_LENGTH := 12.0
+const REBUILD_J9_FLOOR_MARGIN := 0.75
+const REBUILD_J9_FLOOR_DEPTH := 1.40
+
+
+## The atlas bands describe the developed park, not the edge of the world. Lay
+## the large, quiet geographic reserve first and keep it just below all authored
+## ground; the detailed bands then remain the sole visible and physical owners
+## wherever they exist. Two low coastal fans widen the island away from the
+## Boardwalk's fixed central waterline. T0/T1, T4–T7, W1, W3 and W7 retain their
+## canonical owners, while this scene supplies T2 and T3 on top of the reserve.
+func _rebuild_groundworks() -> void:
+	var world_reserve := _rebuild_world_reserve_mesh()
+	_rebuild_mesh_body("terrain_world_mainland_reserve", world_reserve,
+		"planting", true)
+
+	for coast in _rebuild_coastal_reserve_shapes():
+		var coast_mesh := _rebuild_coastal_polygon_mesh(coast)
+		_rebuild_mesh_body("terrain_world_coast_%s" % coast["id"], coast_mesh,
+			"planting", true)
+
+	var lowland: Array = Plan.rebuild_terrain_shape(&"T2")
+	var lowland_mesh := _rebuild_lowland_mesh(lowland)
+	_rebuild_mesh_body("terrain_T2_lowland", lowland_mesh, "planting", true)
+
+	var headland: Array = Plan.rebuild_terrain_shape(&"T3")
+	var headland_mesh := _rebuild_headland_mesh(headland)
+	_rebuild_mesh_body("terrain_T3_headland", headland_mesh, "planting", true)
+
+	# Moving the perimeter ridge east creates a real highland reserve rather than
+	# scaling the protected Terraced Fountain or its developed approach. This
+	# rolled shelf joins the existing east earth at x=127 and the relocated rim's
+	# thirty-metre face at x=178. It is a separate appended mesh, so neither
+	# cascade's generated scene or build order changes.
+	var outer_highland := _rebuild_outer_highland_mesh()
+	_rebuild_mesh_body("terrain_T6_outer_highland", outer_highland,
+		"planting", true)
+
+
+## A single continuous mainland underlay. Its quiet inner field sits ten
+## centimetres below T2 and sixteen below plaza grade, so it cannot replace or
+## z-fight any authored ground. Only after a hundred metres of clear land beyond the
+## developed envelope does it roll into low background country. Route cuts and
+## both protected envelopes remain true holes even in this lowest layer.
+func _rebuild_world_reserve_mesh() -> ArrayMesh:
+	var xs := _rebuild_axis_samples(Plan.REBUILD_WORLD_LAND_FROM_X,
+		Plan.REBUILD_WORLD_LAND_TO_X, REBUILD_WORLD_TERRAIN_STEP)
+	var zs := _rebuild_axis_samples(Plan.REBUILD_WORLD_LAND_FROM_Z,
+		Plan.REBUILD_WORLD_LAND_TO_Z, REBUILD_WORLD_TERRAIN_STEP)
+	var lowland_cuts := _rebuild_lowland_cuts()
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(0)
+	var emitted := 0
+	for zi in zs.size() - 1:
+		for xi in xs.size() - 1:
+			var p00 := Vector2(xs[xi], zs[zi])
+			var p10 := Vector2(xs[xi + 1], zs[zi])
+			var p11 := Vector2(xs[xi + 1], zs[zi + 1])
+			var p01 := Vector2(xs[xi], zs[zi + 1])
+			var probes := [p00, p10, p11, p01, (p00 + p11) * 0.5]
+			if probes.any(func(p: Vector2) -> bool:
+				return _rebuild_in_protected(p, 0.75) \
+					or _rebuild_in_lowland_cut(p, lowland_cuts, 0.35)):
+				continue
+			var a := Vector3(p00.x, _rebuild_world_reserve_y(p00), p00.y)
+			var b := Vector3(p10.x, _rebuild_world_reserve_y(p10), p10.y)
+			var c := Vector3(p11.x, _rebuild_world_reserve_y(p11), p11.y)
+			var d := Vector3(p01.x, _rebuild_world_reserve_y(p01), p01.y)
+			_earth_oriented_tri(st, a, p00 * 0.28, b, p10 * 0.28,
+				c, p11 * 0.28, Vector3.UP)
+			_earth_oriented_tri(st, a, p00 * 0.28, c, p11 * 0.28,
+				d, p01 * 0.28, Vector3.UP)
+			emitted += 1
+	assert(emitted > 1000, "the surrounding mainland reserve did not generate")
+	st.generate_normals()
+	st.generate_tangents()
+	return st.commit()
+
+
+func _rebuild_axis_samples(from: float, to: float, step: float) -> PackedFloat32Array:
+	var out := PackedFloat32Array([from])
+	var p := from + step
+	while p < to - 0.01:
+		out.append(p)
+		p += step
+	out.append(to)
+	return out
+
+
+func _rebuild_world_reserve_y(p: Vector2) -> float:
+	var north_start := Plan.REBUILD_FOOTPRINT_MIN_Z - REBUILD_WORLD_FLAT_MARGIN
+	var south_start := Plan.REBUILD_FOOTPRINT_MAX_Z + REBUILD_WORLD_FLAT_MARGIN
+	var east_start := Plan.REBUILD_FOOTPRINT_MAX_X + REBUILD_WORLD_FLAT_MARGIN
+	var north := clampf((north_start - p.y) /
+		(north_start - Plan.REBUILD_WORLD_LAND_FROM_Z), 0.0, 1.0)
+	var south := clampf((p.y - south_start) /
+		(Plan.REBUILD_WORLD_LAND_TO_Z - south_start), 0.0, 1.0)
+	var east := clampf((p.x - east_start) /
+		(Plan.REBUILD_WORLD_LAND_TO_X - east_start), 0.0, 1.0)
+	north = north * north * (3.0 - 2.0 * north)
+	south = south * south * (3.0 - 2.0 * south)
+	east = east * east * (3.0 - 2.0 * east)
+	var weight := maxf(north, maxf(south, east))
+	var rise := north * 4.0 + south * 3.0 + east * 5.0
+	var roll := (sin(p.x * 0.031) + sin(p.y * 0.027) * 0.7) * 0.32 * weight
+	return REBUILD_WORLD_RESERVE_Y + rise + roll
+
+
+## Keep the working Boardwalk shoreline at x=-108 through its central 140m,
+## then let the coast open outward around the northern and southern districts.
+## These are landscape reserve, not new attraction parcels; their eight-
+## centimetre underlap leaves the existing shore as the exact local datum.
+func _rebuild_coastal_reserve_shapes() -> Array:
+	return [
+		{
+			"id": "north",
+			"points": [
+				Vector2(Plan.SHORE_FROM_X, -70.0),
+				Vector2(Plan.SHORE_EDGE, -70.0),
+				Vector2(-132.0, -130.0),
+				Vector2(-145.0, -170.0),
+				Vector2(-170.0, -260.0),
+				Vector2(-220.0, -400.0),
+				Vector2(-340.0, -800.0),
+				Vector2(-500.0, -1400.0),
+				Vector2(-700.0, Plan.REBUILD_WORLD_COAST_FROM_Z),
+				Vector2(Plan.SHORE_FROM_X, Plan.REBUILD_WORLD_COAST_FROM_Z),
+				Vector2(Plan.SHORE_FROM_X, -260.0),
+				Vector2(Plan.SHORE_FROM_X, -170.0),
+			],
+		},
+		{
+			"id": "south",
+			"points": [
+				Vector2(Plan.SHORE_FROM_X, 70.0),
+				Vector2(Plan.SHORE_FROM_X, 170.0),
+				Vector2(Plan.SHORE_FROM_X, 260.0),
+				Vector2(Plan.SHORE_FROM_X, Plan.REBUILD_WORLD_COAST_TO_Z),
+				Vector2(-700.0, Plan.REBUILD_WORLD_COAST_TO_Z),
+				Vector2(-500.0, 1400.0),
+				Vector2(-340.0, 800.0),
+				Vector2(-220.0, 400.0),
+				Vector2(-170.0, 260.0),
+				Vector2(-145.0, 170.0),
+				Vector2(-132.0, 130.0),
+				Vector2(Plan.SHORE_EDGE, 70.0),
+			],
+		},
+	]
+
+
+func _rebuild_coastal_polygon_mesh(record: Dictionary) -> ArrayMesh:
+	var polygon := PackedVector2Array(record["points"])
+	var triangles := Geometry2D.triangulate_polygon(polygon)
+	assert(not triangles.is_empty(), "world coast %s did not triangulate" % record["id"])
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(0)
+	for i in range(0, triangles.size(), 3):
+		var a2 := polygon[triangles[i]]
+		var b2 := polygon[triangles[i + 1]]
+		var c2 := polygon[triangles[i + 2]]
+		_earth_oriented_tri(st,
+			Vector3(a2.x, _rebuild_coastal_reserve_y(a2), a2.y), a2 * 0.28,
+			Vector3(b2.x, _rebuild_coastal_reserve_y(b2), b2.y), b2 * 0.28,
+			Vector3(c2.x, _rebuild_coastal_reserve_y(c2), c2.y), c2 * 0.28,
+			Vector3.UP)
+	st.generate_normals()
+	st.generate_tangents()
+	return st.commit()
+
+
+func _rebuild_coastal_reserve_y(p: Vector2) -> float:
+	var distance := absf(p.y)
+	var t := clampf((distance - REBUILD_COAST_TRANSITION_FROM_Z) /
+		(REBUILD_COAST_TRANSITION_TO_Z - REBUILD_COAST_TRANSITION_FROM_Z),
+		0.0, 1.0)
+	t = t * t * (3.0 - 2.0 * t)
+	return lerpf(REBUILD_COAST_LOW_Y, REBUILD_COAST_HIGH_Y, t)
+
+
+## A dense Delaunay field lets us keep the atlas' irregular lowland outline and
+## discard every triangle that touches NT-1 or NT-2. Eight-metre sampling is
+## coarse enough for a greybox landform and fine enough that neither exclusion
+## boundary turns into a large accidental bay.
+func _rebuild_lowland_mesh(shape: Array) -> ArrayMesh:
+	var outline := PackedVector2Array()
+	var points := PackedVector2Array()
+	var seen := {}
+	for p in shape:
+		var q := Vector2(p)
+		outline.append(q)
+		_rebuild_add_plan_point(points, seen, q)
+
+	# Put vertices on both protected perimeters. Delaunay can otherwise bridge a
+	# sparse point cloud straight across a hole whose centre is later rejected.
+	var nt1: Dictionary = Plan.REBUILD_PROTECTED_ZONES[&"NT-1"]
+	var rmin: Vector2 = nt1["min"] - Vector2.ONE * 0.8
+	var rmax: Vector2 = nt1["max"] + Vector2.ONE * 0.8
+	for i in 12:
+		var t := float(i) / 11.0
+		_rebuild_add_plan_point(points, seen, Vector2(lerpf(rmin.x, rmax.x, t), rmin.y))
+		_rebuild_add_plan_point(points, seen, Vector2(lerpf(rmin.x, rmax.x, t), rmax.y))
+		_rebuild_add_plan_point(points, seen, Vector2(rmin.x, lerpf(rmin.y, rmax.y, t)))
+		_rebuild_add_plan_point(points, seen, Vector2(rmax.x, lerpf(rmin.y, rmax.y, t)))
+
+	var nt2: Dictionary = Plan.REBUILD_PROTECTED_ZONES[&"NT-2"]
+	var ec: Vector2 = nt2["centre"]
+	var er: Vector2 = nt2["radii"] + Vector2.ONE * 0.8
+	for i in 40:
+		var a := TAU * float(i) / 40.0
+		_rebuild_add_plan_point(points, seen,
+			ec + Vector2(cos(a) * er.x, sin(a) * er.y))
+
+	# Every public route that drops through T2 owns a real opening in the field.
+	# The first pass cut only B's south return, leaving the north return and C's
+	# waterfront shoulder under a flat y=0 sheet. From above that read as broken
+	# black paving; to the Player it was a ceiling. Seed every cut edge so the
+	# triangulation follows the whole approved route rather than bridging it.
+	var lowland_cuts := _rebuild_lowland_cuts()
+	for cut in lowland_cuts:
+		var cut_edges := _rebuild_path_edges(cut["points"],
+			float(cut["width"]) + REBUILD_SOUTH_CUT_SEED_MARGIN, false)
+		for side_name in ["left", "right"]:
+			var edge: PackedVector3Array = cut_edges[side_name]
+			for i in edge.size() - 1:
+				var steps := maxi(1, ceili(edge[i].distance_to(edge[i + 1]) / 1.5))
+				for step in steps + 1:
+					var q := edge[i].lerp(edge[i + 1], float(step) / float(steps))
+					_rebuild_add_plan_point(points, seen, Vector2(q.x, q.z))
+
+	# D and F rise out of the lowland toward the existing east shoulder. Their
+	# asphalt must sit on a continuous landform, not on a narrow ribbon above the
+	# old flat field. Seed both the paving edge and the outer earthwork edge so
+	# Delaunay has actual stations to follow instead of bridging the grade with
+	# arbitrary eight-metre grid diagonals.
+	for run in Plan.rebuild_district_build_runs():
+		if StringName(run["route"]) not in [&"D", &"F"]:
+			continue
+		var graded := _rebuild_graded_route(run)
+		for support_width in [float(run["width"]),
+				float(run["width"]) + REBUILD_ROUTE_EARTH_RUN * 2.0]:
+			var support_edges := _rebuild_path_edges(graded, support_width,
+				bool(run.get("closed", false)))
+			for side_name in ["left", "right"]:
+				var edge: PackedVector3Array = support_edges[side_name]
+				for i in edge.size() - 1:
+					var steps := maxi(1,
+						ceili(edge[i].distance_to(edge[i + 1]) / 2.0))
+					for step in steps + 1:
+						var q := edge[i].lerp(edge[i + 1],
+							float(step) / float(steps))
+						var q2 := Vector2(q.x, q.z)
+						if q2.x <= REBUILD_LOWLAND_SUPPORT_TO_X \
+								and Geometry2D.is_point_in_polygon(q2, outline) \
+								and not _rebuild_in_protected(q2, 0.35):
+							_rebuild_add_plan_point(points, seen, q2)
+
+	var minp := Vector2(1e9, 1e9)
+	var maxp := Vector2(-1e9, -1e9)
+	for p in outline:
+		minp = minp.min(p)
+		maxp = maxp.max(p)
+	var x := floorf(minp.x / REBUILD_TERRAIN_GRID) * REBUILD_TERRAIN_GRID
+	while x <= maxp.x:
+		var z := floorf(minp.y / REBUILD_TERRAIN_GRID) * REBUILD_TERRAIN_GRID
+		while z <= maxp.y:
+			var p := Vector2(x, z)
+			if Geometry2D.is_point_in_polygon(p, outline) \
+					and not _rebuild_in_protected(p, 0.35):
+				_rebuild_add_plan_point(points, seen, p)
+			z += REBUILD_TERRAIN_GRID
+		x += REBUILD_TERRAIN_GRID
+
+	var triangles := Geometry2D.triangulate_delaunay(points)
+	assert(not triangles.is_empty(), "T2 lowland did not triangulate")
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(0)
+	for i in range(0, triangles.size(), 3):
+		var a2: Vector2 = points[triangles[i]]
+		var b2: Vector2 = points[triangles[i + 1]]
+		var c2: Vector2 = points[triangles[i + 2]]
+		if not _rebuild_triangle_allowed(a2, b2, c2, outline, lowland_cuts):
+			continue
+		var a3 := Vector3(a2.x, _rebuild_lowland_surface_y(a2), a2.y)
+		var b3 := Vector3(b2.x, _rebuild_lowland_surface_y(b2), b2.y)
+		var c3 := Vector3(c2.x, _rebuild_lowland_surface_y(c2), c2.y)
+		_earth_oriented_tri(st, a3, a2 * 0.28, b3, b2 * 0.28,
+			c3, c2 * 0.28, Vector3.UP)
+	st.generate_normals()
+	st.generate_tangents()
+	return st.commit()
+
+
+func _rebuild_add_plan_point(points: PackedVector2Array, seen: Dictionary,
+		p: Vector2) -> void:
+	var key := p.snapped(Vector2.ONE * 0.001)
+	if seen.has(key):
+		return
+	seen[key] = true
+	points.append(p)
+
+
+func _rebuild_triangle_allowed(a: Vector2, b: Vector2, c: Vector2,
+		outline: PackedVector2Array, lowland_cuts: Array) -> bool:
+	# Point probes alone can miss a long skinny triangle that bridges the entire
+	# retaining cut while all of its vertices, edge midpoints and centroid remain
+	# outside. Test the corridor against the triangle itself before accepting it.
+	for cut in lowland_cuts:
+		if _rebuild_triangle_hits_cut(a, b, c, cut):
+			return false
+	var probes := [a, b, c, (a + b) * 0.5, (b + c) * 0.5,
+		(c + a) * 0.5, (a + b + c) / 3.0]
+	for p in probes:
+		if not Geometry2D.is_point_in_polygon(p, outline):
+			return false
+		if _rebuild_in_protected(p, 0.55):
+			return false
+		if _rebuild_in_lowland_cut(p, lowland_cuts, 0.15):
+			return false
+	return true
+
+
+func _rebuild_triangle_hits_cut(a: Vector2, b: Vector2, c: Vector2,
+		cut: Dictionary) -> bool:
+	var triangle := PackedVector2Array([a, b, c])
+	var spine: Array = cut["points"]
+	var radius := float(cut["width"]) * 0.5 + 0.15
+	for i in spine.size() - 1:
+		var p0 := Vector2(Vector3(spine[i]).x, Vector3(spine[i]).z)
+		var p1 := Vector2(Vector3(spine[i + 1]).x, Vector3(spine[i + 1]).z)
+		var steps := maxi(1, ceili(p0.distance_to(p1) / 0.75))
+		for step in steps + 1:
+			var q := p0.lerp(p1, float(step) / float(steps))
+			if Geometry2D.is_point_in_polygon(q, triangle):
+				return true
+			for edge in [[a, b], [b, c], [c, a]]:
+				if q.distance_to(Geometry2D.get_closest_point_to_segment(
+						q, edge[0], edge[1])) <= radius:
+					return true
+	return false
+
+
+func _rebuild_lowland_cuts() -> Array:
+	var cuts := []
+	for run in Plan.rebuild_build_runs():
+		if StringName(run["id"]) not in [&"b_north_return", &"b_south_return"]:
+			continue
+		for section in _rebuild_below_lowland_sections(run["points"]):
+			cuts.append({"points": section, "width": REBUILD_SOUTH_CUT_WIDTH})
+	for run in Plan.rebuild_district_build_runs():
+		if StringName(run["route"]) != &"C":
+			continue
+		var graded := _rebuild_graded_route(run)
+		for section in _rebuild_below_lowland_sections(graded):
+			cuts.append({"points": section,
+				"width": float(run["width"]) + 0.8})
+	# B and C overlap at a shallow angle, so their union is wider than either
+	# centreline's ordinary cut. The single junction floor below receives one
+	# matching earth opening instead of meeting the old T2 sheet at its edges.
+	var bc_floor := _rebuild_bc_junction_floor()
+	for section in _rebuild_below_lowland_sections(bc_floor["points"]):
+		cuts.append({"points": section,
+			"width": float(bc_floor["width"]) + 0.8})
+	# S2 is a real four-metre service route, not paint over T2. Its short dip
+	# into the C crossing therefore receives the same open cut as either public
+	# route instead of leaving the old lowland sheet at head height.
+	for spine in Plan.REBUILD_SERVICE_SPINES:
+		if StringName(spine["id"]) != &"S2":
+			continue
+		var expanded := Plan.rebuild_expand_points2(spine["points"])
+		var rounded := _rebuild_resample_route(
+			_rebuild_round_route(expanded, false, 1), 3.0)
+		var graded := _rebuild_service_s2_route(rounded)
+		for section in _rebuild_below_lowland_sections(graded):
+			cuts.append({"points": section, "width": 4.8})
+	assert(cuts.size() >= 3, "the lowland is missing an approved route cut")
+	return cuts
+
+
+## Return only the portions of a graded route that actually pass below T2.
+## Beginning the opening four centimetres above the field gives the asphalt a
+## clean handoff while leaving every level route on continuous ordinary ground.
+func _rebuild_below_lowland_sections(points: Array) -> Array:
+	const ENTER_Y := REBUILD_LOWLAND_Y + 0.04
+	var sections := []
+	var current: Array[Vector3] = []
+	for i in points.size() - 1:
+		var a := Vector3(points[i])
+		var b := Vector3(points[i + 1])
+		var a_below := a.y < ENTER_Y
+		var b_below := b.y < ENTER_Y
+		if a_below and current.is_empty():
+			current.append(a)
+		if a_below and b_below:
+			current.append(b)
+		elif a_below and not b_below:
+			var t := inverse_lerp(a.y, b.y, ENTER_Y)
+			current.append(a.lerp(b, clampf(t, 0.0, 1.0)))
+			if current.size() >= 2:
+				sections.append(current)
+			current = []
+		elif not a_below and b_below:
+			var t := inverse_lerp(a.y, b.y, ENTER_Y)
+			current = [a.lerp(b, clampf(t, 0.0, 1.0)), b]
+	if current.size() >= 2:
+		sections.append(current)
+	return sections
+
+
+## The developed east meadow ends at x=127 because the old rim began there.
+## The expanded park keeps that edge and the protected feature fixed, then lays
+## ordinary land outward to the new rim foot. The inner profile approximates the
+## established shoulder's broad 18m bench and its north/south descents; the outer
+## profile meets the ridge's published foot heights. Both are eased, so this is
+## landscape with a readable slope rather than one enormous tilted slab.
+func _rebuild_outer_highland_y(x: float, z: float) -> float:
+	var axis: float = Plan.ARCH_AT.y
+	var d := absf(z - axis)
+	var inner := 18.0
+	if d > 88.0:
+		var fall := clampf((d - 88.0) / 38.0, 0.0, 1.0)
+		fall = fall * fall * (3.0 - 2.0 * fall)
+		inner = lerpf(18.0, 0.0, fall)
+
+	var outer := 12.0
+	if z < -100.0:
+		outer = lerpf(12.0, 8.0, clampf((-100.0 - z) / 52.0, 0.0, 1.0))
+	elif z > 170.0:
+		var tail := clampf((z - 170.0) / 28.0, 0.0, 1.0)
+		tail = tail * tail * (3.0 - 2.0 * tail)
+		outer = lerpf(12.0, 3.0, tail)
+
+	var across := clampf((x - REBUILD_OUTER_HIGHLAND_FROM_X) /
+		(REBUILD_OUTER_HIGHLAND_TO_X - REBUILD_OUTER_HIGHLAND_FROM_X), 0.0, 1.0)
+	across = across * across * (3.0 - 2.0 * across)
+	var roll := sin(z * 0.071) * 0.34 * sin(PI * across)
+	return lerpf(inner, outer, across) + roll
+
+
+func _rebuild_outer_highland_mesh() -> ArrayMesh:
+	var xs := PackedFloat32Array()
+	var zs := PackedFloat32Array()
+	var x := REBUILD_OUTER_HIGHLAND_FROM_X
+	while x < REBUILD_OUTER_HIGHLAND_TO_X - 0.01:
+		xs.append(x)
+		x += REBUILD_OUTER_HIGHLAND_STEP
+	xs.append(REBUILD_OUTER_HIGHLAND_TO_X)
+	var z := REBUILD_OUTER_HIGHLAND_FROM_Z
+	while z < REBUILD_OUTER_HIGHLAND_TO_Z - 0.01:
+		zs.append(z)
+		z += REBUILD_OUTER_HIGHLAND_STEP
+	zs.append(REBUILD_OUTER_HIGHLAND_TO_Z)
+
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(0)
+	for zi in zs.size() - 1:
+		for xi in xs.size() - 1:
+			var p00 := Vector2(xs[xi], zs[zi])
+			var p10 := Vector2(xs[xi + 1], zs[zi])
+			var p11 := Vector2(xs[xi + 1], zs[zi + 1])
+			var p01 := Vector2(xs[xi], zs[zi + 1])
+			# NT-2 is immutable. Reject a complete cell when any part of it enters
+			# the envelope; the established east mesh remains the sole ground there.
+			var probes := [p00, p10, p11, p01, (p00 + p11) * 0.5]
+			if probes.any(func(p: Vector2) -> bool:
+				return _rebuild_in_protected(p, 0.10)):
+				continue
+			var a := Vector3(p00.x, _rebuild_outer_highland_y(p00.x, p00.y), p00.y)
+			var b := Vector3(p10.x, _rebuild_outer_highland_y(p10.x, p10.y), p10.y)
+			var c := Vector3(p11.x, _rebuild_outer_highland_y(p11.x, p11.y), p11.y)
+			var d3 := Vector3(p01.x, _rebuild_outer_highland_y(p01.x, p01.y), p01.y)
+			_earth_oriented_tri(st, a, p00 * 0.28, b, p10 * 0.28,
+				c, p11 * 0.28, Vector3.UP)
+			_earth_oriented_tri(st, a, p00 * 0.28, c, p11 * 0.28,
+				d3, p01 * 0.28, Vector3.UP)
+	st.generate_normals()
+	st.generate_tangents()
+	return st.commit()
+
+
+func _rebuild_in_lowland_cut(p: Vector2, cuts: Array,
+		padding := 0.0) -> bool:
+	for cut in cuts:
+		var spine: Array = cut["points"]
+		var radius := float(cut["width"]) * 0.5 + padding
+		for i in spine.size() - 1:
+			var av := Vector3(spine[i])
+			var bv := Vector3(spine[i + 1])
+			var a := Vector2(av.x, av.z)
+			var b := Vector2(bv.x, bv.z)
+			if p.distance_to(Geometry2D.get_closest_point_to_segment(p, a, b)) <= radius:
+				return true
+	return false
+
+
+func _rebuild_in_protected(p: Vector2, padding := 0.0) -> bool:
+	var nt1: Dictionary = Plan.REBUILD_PROTECTED_ZONES[&"NT-1"]
+	var rmin: Vector2 = nt1["min"] - Vector2.ONE * padding
+	var rmax: Vector2 = nt1["max"] + Vector2.ONE * padding
+	if p.x >= rmin.x and p.x <= rmax.x and p.y >= rmin.y and p.y <= rmax.y:
+		return true
+	var nt2: Dictionary = Plan.REBUILD_PROTECTED_ZONES[&"NT-2"]
+	var d := p - Vector2(nt2["centre"])
+	var r: Vector2 = nt2["radii"] + Vector2.ONE * padding
+	return (d.x * d.x) / (r.x * r.x) + (d.y * d.y) / (r.y * r.y) <= 1.0
+
+
+## T3 is a planted four-metre knoll rather than another flat slab. The outer
+## atlas polygon meets T2 at grade; a scaled copy forms the lighthouse plateau,
+## and one continuous sloped strip joins them. Route A's loop sits on the level
+## inner table while its approach climbs through the slope.
+func _rebuild_headland_mesh(shape: Array) -> ArrayMesh:
+	var outer := PackedVector2Array()
+	var centre := Vector2.ZERO
+	for p in shape:
+		var q := Vector2(p)
+		outer.append(q)
+		centre += q
+	centre /= float(outer.size())
+	var inner := PackedVector2Array()
+	for p in outer:
+		inner.append(centre + (p - centre) * REBUILD_HEADLAND_INSET)
+
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(0)
+	var cap := Geometry2D.triangulate_polygon(inner)
+	assert(not cap.is_empty(), "T3 headland cap did not triangulate")
+	for i in range(0, cap.size(), 3):
+		var a2: Vector2 = inner[cap[i]]
+		var b2: Vector2 = inner[cap[i + 1]]
+		var c2: Vector2 = inner[cap[i + 2]]
+		_earth_oriented_tri(st,
+			Vector3(a2.x, REBUILD_HEADLAND_Y, a2.y), a2 * 0.28,
+			Vector3(b2.x, REBUILD_HEADLAND_Y, b2.y), b2 * 0.28,
+			Vector3(c2.x, REBUILD_HEADLAND_Y, c2.y), c2 * 0.28,
+			Vector3.UP)
+
+	st.set_smooth_group(1)
+	for i in outer.size():
+		var j := (i + 1) % outer.size()
+		var oa := Vector3(outer[i].x, REBUILD_LOWLAND_Y + 0.025, outer[i].y)
+		var ob := Vector3(outer[j].x, REBUILD_LOWLAND_Y + 0.025, outer[j].y)
+		var ia := Vector3(inner[i].x, REBUILD_HEADLAND_Y, inner[i].y)
+		var ib := Vector3(inner[j].x, REBUILD_HEADLAND_Y, inner[j].y)
+		_earth_oriented_tri(st, oa, outer[i] * 0.28,
+			ib, inner[j] * 0.28, ob, outer[j] * 0.28, Vector3.UP)
+		_earth_oriented_tri(st, oa, outer[i] * 0.28,
+			ia, inner[i] * 0.28, ib, inner[j] * 0.28, Vector3.UP)
+	st.generate_normals()
+	st.generate_tangents()
+	return st.commit()
+
+
+func _rebuild_mesh_body(nm: String, mesh: ArrayMesh, mat: String,
+		collide: bool) -> void:
+	var body := StaticBody3D.new()
+	_add(body, nm)
+	var mi := MeshInstance3D.new()
+	mi.name = "surface"
+	mi.mesh = mesh
+	mi.material_override = mats[mat]
+	body.add_child(mi)
+	mi.owner = _root
+	if collide:
+		var shape := CollisionShape3D.new()
+		shape.name = "shape"
+		shape.shape = mesh.create_trimesh_shape()
+		body.add_child(shape)
+		shape.owner = _root
+
+
+## Build every new surface from the same route records the minimap projects.
+## The protected central return and existing boardwalk deck deliberately do not
+## appear in `rebuild_build_runs`; their canonical scenes already provide them.
+func _rebuild_circulation() -> void:
+	for run in Plan.rebuild_build_runs():
+		var points: Array = run["points"]
+		var width: float = run["width"]
+		var closed := bool(run.get("closed", false))
+		_rebuild_assert_route_clear(String(run["id"]), points, width, closed)
+		if bool(run.get("retained", false)):
+			_rebuild_retained_bed("bed_%s" % run["id"], points,
+				width + REBUILD_BED_MARGIN, closed)
+		_rebuild_path("route_%s" % run["id"], points, width, closed,
+			StringName(run.get("route", &"")))
+		if bool(run.get("retained", false)):
+			_rebuild_route_guards(String(run["id"]), points, width)
+
+
+func _rebuild_assert_route_clear(nm: String, points: Array, width: float,
+		closed: bool) -> void:
+	var edges := _rebuild_path_edges(points, width, closed)
+	for side in [edges["left"], edges["right"]]:
+		var line: PackedVector3Array = side
+		for i in line.size() - 1:
+			var steps := maxi(1, ceili(line[i].distance_to(line[i + 1]) / 1.5))
+			for step in steps + 1:
+				var p3 := line[i].lerp(line[i + 1], float(step) / float(steps))
+				assert(not _rebuild_in_protected(Vector2(p3.x, p3.z), 0.15),
+					"new route %s enters a protected cascade envelope at %s" % [nm, p3])
+
+
+## One node owns both the visual ribbon and the zero-lift collision surface.
+## The asphalt is raised only for rendering; the collider stays on the authored
+## grade, so meeting an existing plaza or boardwalk floor never creates the tiny
+## vertical kerb that a CharacterBody cannot step over.
+##
+## The collision is a chain of convex prisms rather than the visible ribbon's
+## concave triangle mesh. Godot exposes every triangle edge of a concave sloped
+## mesh to CharacterBody3D; the Player could keep a full forward velocity while
+## hanging forever on an invisible half-metre diagonal. Each prism presents its
+## complete top as one convex support, and adjacent prisms share their complete
+## end cross-section. The visible path and its authored grade do not change.
+func _rebuild_path(nm: String, points: Array, width: float, closed: bool,
+		route: StringName, collide := true) -> void:
+	var visual_lift := REBUILD_PATH_LIFT
+	if nm == "junction_bc_shared_floor":
+		visual_lift += 0.008
+	elif nm == "route_c_coastal_loop":
+		visual_lift += 0.002
+	elif nm == "service_S2":
+		visual_lift += 0.004
+	var body := StaticBody3D.new()
+	body.set_meta("route", route)
+	body.set_meta("points", PackedVector3Array(points))
+	body.set_meta("width", width)
+	body.set_meta("closed", closed)
+	_add(body, nm)
+	var visual := MeshInstance3D.new()
+	visual.name = "surface"
+	visual.mesh = _rebuild_path_mesh(points, width, closed, visual_lift)
+	visual.material_override = mats["asphalt"]
+	visual.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	body.add_child(visual)
+	visual.owner = _root
+	# The A hub ring lies wholly on the permanent hand-authored Plaza slab. Its
+	# asphalt is a circulation marking, not a second floor: a duplicate concave
+	# collider catches the Player exactly where D returns to the ring and can
+	# deflect a short arrival leg into the fountain. Keep one physical owner for
+	# this room, matching plaza_paving's long-standing no-collision contract.
+	if not collide or nm == "route_a_hub_ring":
+		return
+	var exclusions := _rebuild_path_owner_exclusions(nm)
+	_rebuild_path_collision_prisms(body, points, width, closed, exclusions)
+
+
+func _rebuild_path_mesh(points: Array, width: float, closed: bool,
+		lift: float) -> ArrayMesh:
+	var edges := _rebuild_path_edges(points, width, closed)
+	var left: PackedVector3Array = edges["left"]
+	var right: PackedVector3Array = edges["right"]
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(0)
+	# One shared vertex pair per path station. The earlier triangle-at-a-time
+	# mesh duplicated every cross-section, so the physics mesh treated a simple
+	# change of grade as two unrelated floor edges and could stop an uphill
+	# CharacterBody on the invisible join.
+	for i in left.size():
+		var l := left[i] + Vector3.UP * lift
+		var r := right[i] + Vector3.UP * lift
+		st.set_uv(Vector2(l.x, l.z) * 0.35)
+		st.add_vertex(l)
+		st.set_uv(Vector2(r.x, r.z) * 0.35)
+		st.add_vertex(r)
+	for i in left.size() - 1:
+		var l0 := i * 2
+		var r0 := l0 + 1
+		var l1 := (i + 1) * 2
+		var r1 := l1 + 1
+		# Godot's clockwise front-face convention: l0,r0,l1 and r0,r1,l1
+		# face upward for the left/right ordering returned above.
+		for index in [l0, r0, l1, r0, r1, l1]:
+			st.add_index(index)
+	st.generate_normals()
+	st.generate_tangents()
+	return st.commit()
+
+
+## Convex collision avoids the internal-edge trap of a concave ribbon while
+## preserving the exact mitered walking envelope. Half-metre stations also make
+## collision-owner handoffs precise: a skipped panel can extend at most 25cm
+## beyond the exclusion boundary, inside the owner's deliberate 50cm overlap.
+func _rebuild_path_collision_prisms(body: StaticBody3D, points: Array,
+		width: float, closed: bool, exclusions: Array) -> void:
+	var collision_points: Array = _rebuild_resample_path3(points,
+		REBUILD_COLLISION_PATH_CHORD)
+	var edges := _rebuild_path_edges(collision_points, width, closed)
+	var left: PackedVector3Array = edges["left"]
+	var right: PackedVector3Array = edges["right"]
+	var down := Vector3.DOWN * REBUILD_COLLISION_PRISM_DEPTH
+	var emitted := 0
+	for i in left.size() - 1:
+		if _rebuild_path_segment_excluded(Vector3(collision_points[i]),
+				Vector3(collision_points[i + 1]), exclusions):
+			continue
+		var hull := ConvexPolygonShape3D.new()
+		hull.points = PackedVector3Array([
+			left[i], right[i], left[i + 1], right[i + 1],
+			left[i] + down, right[i] + down,
+			left[i + 1] + down, right[i + 1] + down,
+		])
+		var shape := CollisionShape3D.new()
+		shape.name = "shape_%04d" % emitted
+		shape.shape = hull
+		body.add_child(shape)
+		shape.owner = _root
+		emitted += 1
+	assert(emitted > 0, "route %s emitted no collision prisms" % body.name)
+
+
+## A crossing has one collision owner. The established B ramp stays physically
+## continuous beneath its widened junction; C yields to that common floor, and
+## public C owns its meeting with locked S2. Later ribbons remain visually
+## continuous while their colliders stop inside a complete supporting envelope.
+func _rebuild_path_owner_exclusions(nm: String) -> Array:
+	var exclusions := []
+	if nm == "route_c_coastal_loop":
+		var junction := _rebuild_bc_junction_floor()
+		exclusions.append({"points": junction["points"],
+			"width": float(junction["width"]), "square_caps": true,
+			# The exclusion tests the branch centreline, while physical support
+			# must cover its complete four-metre half-width. Resume each branch
+			# with half a metre of shared floor still beneath its outside edge.
+			"clearance": -4.0})
+		# At named J6, away from the widened interior merge, B remains the sole
+		# physical owner. This keeps that exact endpoint free of duplicate planes.
+		for run in Plan.rebuild_build_runs():
+			if StringName(run["id"]) == &"b_south_return":
+				exclusions.append({"points": run["points"],
+					"width": float(run["width"])})
+				break
+	elif nm == "route_a_headland":
+		# F's headland link is the same centreline as this portion of A, but one
+		# metre wider. Let the wider junction surface own the shared collision;
+		# A remains visible and resumes at the link's two exact endpoints.
+		for run in Plan.rebuild_district_build_runs():
+			if StringName(run["id"]) == &"f_headland_link":
+				exclusions.append({"points": _rebuild_graded_route(run),
+					"width": float(run["width"]), "square_caps": true})
+				break
+	elif nm == "service_S2":
+		for run in Plan.rebuild_district_build_runs():
+			if StringName(run["id"]) == &"c_coastal_loop":
+				exclusions.append({"points": _rebuild_graded_route(run),
+					"width": float(run["width"]), "clearance": 0.75})
+				break
+	elif nm == "route_d_plaza_return":
+		# The hand-authored Plaza slab is the permanent floor once D crosses the
+		# wall line. Keep D's visible asphalt but stop its duplicate collider a
+		# half metre inside that slab, before it can form seams with the hub ring.
+		exclusions.append({
+			"min": Vector2(-Plan.PLAZA_HALF + 0.5, -Plan.PLAZA_HALF + 0.5),
+			"max": Vector2(Plan.PLAZA_HALF - 0.5, Plan.PLAZA_HALF - 0.5),
+		})
+	elif nm in ["route_f_outer_arc", "route_f_inner_return"]:
+		# Both halves of F arrive at J3 beside the wider headland link. Let that
+		# link own the common floor so the three-way choice has no solver seam.
+		for run in Plan.rebuild_district_build_runs():
+			if StringName(run["id"]) == &"f_headland_link":
+				exclusions.append({"points": _rebuild_graded_route(run),
+					"width": float(run["width"]), "square_caps": true})
+				break
+	elif nm == "R4_queue":
+		# The ship queue crosses C on its way to the loading court. C is the
+		# broad public floor here; the queue remains visible but cannot present
+		# the underside of a second collider to somebody walking the loop.
+		for run in Plan.rebuild_district_build_runs():
+			if StringName(run["id"]) == &"c_coastal_loop":
+				exclusions.append({"points": _rebuild_graded_route(run),
+					"width": float(run["width"]), "clearance": 0.75})
+				break
+	elif nm in ["R8_queue", "R10_queue"]:
+		# Ride queues attach to the highland circuit as narrow branches. Their
+		# visible paving can cross the junction, but the broad public route is the
+		# only physical floor inside its operating envelope.
+		for run in Plan.rebuild_district_build_runs():
+			var id := StringName(run["id"])
+			var wanted := (nm == "R8_queue" and id in [
+				&"f_terrace_link", &"f_inner_return"]) \
+				or (nm == "R10_queue" and id == &"f_inner_return")
+			if wanted:
+				exclusions.append({"points": _rebuild_graded_route(run),
+					"width": float(run["width"]), "clearance": 0.75})
+	elif nm == "R7_queue":
+		# The carousel branch begins on D as it should, but two coplanar collision
+		# ribbons at that junction caught the Player on the loop's outside edge.
+		# D owns the shared floor; the queue keeps its visible asphalt and resumes
+		# collision only after it has left the public operating envelope.
+		for run in Plan.rebuild_district_build_runs():
+			if StringName(run["id"]) == &"d_family_loop":
+				exclusions.append({"points": _rebuild_graded_route(run),
+					"width": float(run["width"])})
+				break
+	return exclusions
+
+
+func _rebuild_path_segment_excluded(a3: Vector3, b3: Vector3,
+		exclusions: Array) -> bool:
+	if exclusions.is_empty():
+		return false
+	var middle := Vector2((a3.x + b3.x) * 0.5, (a3.z + b3.z) * 0.5)
+	for exclusion in exclusions:
+		if exclusion.has("min") and exclusion.has("max"):
+			var rmin := Vector2(exclusion["min"])
+			var rmax := Vector2(exclusion["max"])
+			if middle.x >= rmin.x and middle.x <= rmax.x \
+					and middle.y >= rmin.y and middle.y <= rmax.y:
+				return true
+			continue
+		var owner: Array = exclusion["points"]
+		var square_caps := bool(exclusion.get("square_caps", false))
+		# Keep half a metre of owner floor beyond the clipped panel so numerical
+		# tolerance cannot turn the shared mathematical edge into a physics gap.
+		var radius := float(exclusion["width"]) * 0.5 - 0.50 \
+			+ float(exclusion.get("clearance", 0.0))
+		if square_caps:
+			var first_a3 := Vector3(owner[0])
+			var first_b3 := Vector3(owner[1])
+			var first_a := Vector2(first_a3.x, first_a3.z)
+			var first_ab := Vector2(first_b3.x, first_b3.z) - first_a
+			var first_t := (middle - first_a).dot(first_ab) \
+				/ maxf(first_ab.length_squared(), 0.001)
+			var last_a3 := Vector3(owner[-2])
+			var last_b3 := Vector3(owner[-1])
+			var last_a := Vector2(last_a3.x, last_a3.z)
+			var last_ab := Vector2(last_b3.x, last_b3.z) - last_a
+			var last_t := (middle - last_a).dot(last_ab) \
+				/ maxf(last_ab.length_squared(), 0.001)
+			# Reject the whole exclusion outside the two end planes. Letting every
+			# internal vertex contribute a clamped closest point erased panels well
+			# before and after the physical shared floor.
+			if first_t < 0.0 or last_t > 1.0:
+				continue
+		for i in owner.size() - 1:
+			var oa3 := Vector3(owner[i])
+			var ob3 := Vector3(owner[i + 1])
+			var oa := Vector2(oa3.x, oa3.z)
+			var ob := Vector2(ob3.x, ob3.z)
+			var ab := ob - oa
+			var raw_t := (middle - oa).dot(ab) / maxf(ab.length_squared(), 0.001)
+			var closest := oa + ab * clampf(raw_t, 0.0, 1.0)
+			if middle.distance_to(closest) <= radius:
+				return true
+	return false
+
+
+## Mitered plan edges for open or closed polylines. Closed runs ignore a
+## repeated final vertex while calculating their tangents, then append the first
+## result once so the last segment shares the seam exactly.
+func _rebuild_path_edges(points: Array, width: float, closed: bool) -> Dictionary:
+	assert(points.size() >= 2, "a rebuild path needs at least two points")
+	var count := points.size()
+	if closed and Vector3(points[0]).distance_to(Vector3(points[-1])) < 0.01:
+		count -= 1
+	var left := PackedVector3Array()
+	var right := PackedVector3Array()
+	var half := width * 0.5
+	for i in count:
+		var p := Vector3(points[i])
+		var offset := Vector2.ZERO
+		if not closed and i == 0:
+			var d := Vector2(Vector3(points[1]).x - p.x,
+				Vector3(points[1]).z - p.z).normalized()
+			offset = Vector2(-d.y, d.x) * half
+		elif not closed and i == count - 1:
+			var d := Vector2(p.x - Vector3(points[i - 1]).x,
+				p.z - Vector3(points[i - 1]).z).normalized()
+			offset = Vector2(-d.y, d.x) * half
+		else:
+			var previous := Vector3(points[(i - 1 + count) % count])
+			var following := Vector3(points[(i + 1) % count])
+			var into := Vector2(p.x - previous.x, p.z - previous.z).normalized()
+			var out := Vector2(following.x - p.x, following.z - p.z).normalized()
+			var n0 := Vector2(-into.y, into.x)
+			var n1 := Vector2(-out.y, out.x)
+			var miter := n0 + n1
+			if miter.length_squared() < 0.0001:
+				miter = n1
+			else:
+				miter = miter.normalized()
+			var reach := half / maxf(absf(miter.dot(n1)), 0.25)
+			offset = miter * minf(reach, width)
+		left.append(p + Vector3(offset.x, 0.0, offset.y))
+		right.append(p - Vector3(offset.x, 0.0, offset.y))
+	if closed:
+		left.append(left[0])
+		right.append(right[0])
+	return {"left": left, "right": right}
+
+
+## The two B returns cross the six-metre bluff as broad retained ramps. Their
+## asphalt remains the route; this slightly wider stone bed explains the grade
+## and closes both visible sides down to whichever terrain band is below it.
+func _rebuild_retained_bed(nm: String, points: Array, width: float,
+		closed: bool) -> void:
+	var edges := _rebuild_path_edges(points, width, closed)
+	var left: PackedVector3Array = edges["left"]
+	var right: PackedVector3Array = edges["right"]
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(0)
+	for i in left.size() - 1:
+		var l0 := left[i] - Vector3.UP * 0.035
+		var r0 := right[i] - Vector3.UP * 0.035
+		var l1 := left[i + 1] - Vector3.UP * 0.035
+		var r1 := right[i + 1] - Vector3.UP * 0.035
+		_earth_oriented_tri(st, l0, Vector2(l0.x, l0.z) * 0.3,
+			l1, Vector2(l1.x, l1.z) * 0.3,
+			r0, Vector2(r0.x, r0.z) * 0.3, Vector3.UP)
+		_earth_oriented_tri(st, r0, Vector2(r0.x, r0.z) * 0.3,
+			l1, Vector2(l1.x, l1.z) * 0.3,
+			r1, Vector2(r1.x, r1.z) * 0.3, Vector3.UP)
+
+		var lb0 := Vector3(l0.x, _rebuild_bed_floor(l0), l0.z)
+		var lb1 := Vector3(l1.x, _rebuild_bed_floor(l1), l1.z)
+		var rb0 := Vector3(r0.x, _rebuild_bed_floor(r0), r0.z)
+		var rb1 := Vector3(r1.x, _rebuild_bed_floor(r1), r1.z)
+		_earth_wall_quad(st, lb0, lb1, l0, l1,
+			Vector3(l0.x - r0.x, 0, l0.z - r0.z).normalized())
+		_earth_wall_quad(st, rb1, rb0, r1, r0,
+			Vector3(r0.x - l0.x, 0, r0.z - l0.z).normalized())
+	st.generate_normals()
+	st.generate_tangents()
+	_rebuild_mesh_body(nm, st.commit(), "brick", false)
+
+
+func _rebuild_bed_floor(p: Vector3) -> float:
+	return Plan.SHORE_TOP - 0.16 if p.x <= Plan.BLUFF_FACE_X else REBUILD_LOWLAND_Y - 0.16
+
+
+## A retained ramp with more than a step of exposed side gets a real guard on
+## both edges. Long rails follow the grade; posts are sampled at roughly three
+## metres so neither return becomes a line floating over a drop.
+func _rebuild_route_guards(nm: String, points: Array, width: float) -> void:
+	var edges := _rebuild_path_edges(points, width + 0.65, false)
+	for side_index in 2:
+		var edge: PackedVector3Array = edges["left" if side_index == 0 else "right"]
+		var side_tag := "l" if side_index == 0 else "r"
+		for i in edge.size() - 1:
+			var a: Vector3 = edge[i]
+			var b: Vector3 = edge[i + 1]
+			var exposed := maxf(a.y - _rebuild_bed_floor(a),
+				b.y - _rebuild_bed_floor(b))
+			if exposed < 0.65:
+				continue
+			_strut("guard_%s_%s_%d_top" % [nm, side_tag, i],
+				a + Vector3.UP * 1.08, b + Vector3.UP * 1.08, 0.11, "metal")
+			_strut("guard_%s_%s_%d_mid" % [nm, side_tag, i],
+				a + Vector3.UP * 0.56, b + Vector3.UP * 0.56, 0.08, "metal")
+			var post_count := maxi(1, ceili(a.distance_to(b) / 3.0))
+			for j in post_count + 1:
+				var t := float(j) / float(post_count)
+				var at := a.lerp(b, t)
+				_cyl("guard_%s_%s_%d_%d_post" % [nm, side_tag, i, j],
+					Vector3.ZERO, at + Vector3.UP * 0.54,
+					0.075, 1.08, "metal", 0.0, 8, false)
+
+
+# ---------------------------------------------------------------------------
+# Park rebuild: district loops C-F
+# ---------------------------------------------------------------------------
+
+## The atlas' secondary routes replace the old section-specific S-curves,
+## stubs and boarded termini.  The centre lines are rounded before grading, but
+## their endpoints and widths remain exact so every named junction still lands
+## on the primary network.
+func _rebuild_district_routes() -> void:
+	for run in Plan.rebuild_district_build_runs():
+		var id := StringName(run["id"])
+		var closed := bool(run.get("closed", false))
+		var points := _rebuild_graded_route(run)
+		_rebuild_assert_route_clear(String(run["id"]), points,
+			float(run["width"]), closed)
+		# C descends from the lowland to the six-metre waterfront bench. Give
+		# every below-grade portion a real retained bed inside the matching T2
+		# opening; the route is never a loose ribbon over a void.
+		if StringName(run["route"]) == &"C":
+			var section_index := 0
+			for section in _rebuild_below_lowland_sections(points):
+				_rebuild_retained_bed("bed_%s_%d" % [run["id"], section_index],
+					section, float(run["width"]) + REBUILD_BED_MARGIN, false)
+				section_index += 1
+		# E's J9 approach and F's terrace link are visibly two map lines but
+		# spatially one broad fork: their full walking envelopes overlap from
+		# their first stations onward. Their visuals remain as route markings;
+		# the shared court below is the sole physical floor.
+		var own_collision := id not in [&"e_junction_nine", &"f_terrace_link"]
+		_rebuild_path("route_%s" % run["id"], points, float(run["width"]),
+			closed, StringName(run["route"]), own_collision)
+
+	# The B/C overlap is a real widened junction. One retained bed and one
+	# collider cover the union of both complete walking envelopes; the two route
+	# ribbons remain visible as wayfinding but yield physical ownership here.
+	var bc_floor := _rebuild_bc_junction_floor()
+	_rebuild_retained_bed("bed_junction_bc_shared", bc_floor["points"],
+		float(bc_floor["width"]) + REBUILD_BED_MARGIN, false)
+	_rebuild_path("junction_bc_shared_floor", bc_floor["points"],
+		float(bc_floor["width"]), false, &"")
+
+	# The atlas draws E and F converging at J9, not one sloped path crossing the
+	# retaining side of another. One convex court covers the complete union of
+	# both approach envelopes and the inner-return mouth. This is appended ground
+	# outside NT-2; no protected terrace geometry, approach or datum is rebuilt.
+	_rebuild_j9_floor()
+
+	# Junctions are spatial beats rather than extra paths. A thin contrasting
+	# ring at the six newly built interchanges makes choices readable from guest
+	# height without putting a bollard or sign in the operating width.
+	for id in [&"J1", &"J3", &"J4", &"J6", &"J7", &"J9"]:
+		var p2: Vector2 = Plan.REBUILD_JUNCTIONS[id]
+		if _rebuild_in_protected(p2, 0.5):
+			continue
+		var route := &"D" if id == &"J7" else (&"F" if id == &"J9" else &"C")
+		var y := _rebuild_route_floor(route, p2)
+		_cyl("junction_%s_marker" % id, Vector3(p2.x, y, p2.y),
+			Vector3(0, 0.028, 0), 1.15, 0.045, "accent", 0.0, 24, false)
+
+
+## A Catmull-Rom route passes through every atlas control point. Chaikin was
+## initially used here, but it cuts every corner—including J1/J6/J7 and every
+## branch attachment—so visually smooth loops failed to meet the network they
+## described. Four chords per span retain the illustrated curves while
+## preserving every exact handoff.
+func _rebuild_curve_route(source: Array, closed: bool,
+		samples_per_span: int) -> Array[Vector2]:
+	var controls: Array[Vector2] = []
+	for point in source:
+		controls.append(Vector2(point))
+	if closed and controls.size() > 2 \
+			and controls[0].distance_to(controls[-1]) < 0.01:
+		controls.pop_back()
+	var out: Array[Vector2] = []
+	var spans := controls.size() if closed else controls.size() - 1
+	for i in spans:
+		var p0 := controls[posmod(i - 1, controls.size())] if closed \
+			else controls[maxi(i - 1, 0)]
+		var p1 := controls[i]
+		var p2 := controls[(i + 1) % controls.size()] if closed \
+			else controls[i + 1]
+		var p3 := controls[(i + 2) % controls.size()] if closed \
+			else controls[mini(i + 2, controls.size() - 1)]
+		for j in samples_per_span:
+			var t := float(j) / float(samples_per_span)
+			var t2 := t * t
+			var t3 := t2 * t
+			out.append(0.5 * ((2.0 * p1) + (-p0 + p2) * t
+				+ (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * t2
+				+ (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * t3))
+	if closed:
+		out.append(out[0])
+	else:
+		out.append(controls[-1])
+	return out
+
+
+func _rebuild_round_route(source: Array, closed: bool, passes: int) -> Array[Vector2]:
+	var points: Array[Vector2] = []
+	for point in source:
+		points.append(Vector2(point))
+	if closed and points.size() > 2 and points[0].distance_to(points[-1]) < 0.01:
+		points.pop_back()
+	for _pass in passes:
+		var next: Array[Vector2] = []
+		if closed:
+			for i in points.size():
+				var a := points[i]
+				var b := points[(i + 1) % points.size()]
+				next.append(a.lerp(b, 0.25))
+				next.append(a.lerp(b, 0.75))
+		else:
+			next.append(points[0])
+			for i in points.size() - 1:
+				var a := points[i]
+				var b := points[i + 1]
+				next.append(a.lerp(b, 0.25))
+				next.append(a.lerp(b, 0.75))
+			next.append(points[-1])
+		points = next
+	if closed:
+		points.append(points[0])
+	return points
+
+
+func _rebuild_resample_route(source: Array, max_chord: float) -> Array[Vector2]:
+	var out: Array[Vector2] = []
+	if source.is_empty():
+		return out
+	for i in source.size() - 1:
+		var a := Vector2(source[i])
+		var b := Vector2(source[i + 1])
+		if out.is_empty():
+			out.append(a)
+		var steps := maxi(1, ceili(a.distance_to(b) / maxf(max_chord, 0.1)))
+		for step in range(1, steps + 1):
+			out.append(a.lerp(b, float(step) / float(steps)))
+	return out
+
+
+func _rebuild_resample_path3(source: Array, max_chord: float) -> Array[Vector3]:
+	var out: Array[Vector3] = []
+	if source.is_empty():
+		return out
+	for i in source.size() - 1:
+		var a := Vector3(source[i])
+		var b := Vector3(source[i + 1])
+		if out.is_empty():
+			out.append(a)
+		var steps := maxi(1, ceili(a.distance_to(b) / maxf(max_chord, 0.1)))
+		for step in range(1, steps + 1):
+			out.append(a.lerp(b, float(step) / float(steps)))
+	return out
+
+
+## One vertical profile per complete atlas run. Plan expansion changes the
+## horizontal distance between controls, so deriving height independently from
+## x/z compressed several climbs into their last chord. Grade by accumulated
+## route length instead, with exact handoff datums at the protected approaches.
+func _rebuild_graded_route(run: Dictionary) -> Array:
+	var id := StringName(run["id"])
+	if _rebuild_graded_route_cache.has(id):
+		return _rebuild_graded_route_cache[id]
+	var closed := bool(run.get("closed", false))
+	# The expanded north fan gives F's inner return its tightest bend immediately
+	# after J9. Eight stations per span keep the nine-metre ribbon's inside edge
+	# changing continuously instead of asking the Player to cross one long miter
+	# panel with an abrupt normal change. Other routes retain the accepted four.
+	var samples_per_span := 8 if id == &"f_inner_return" else 4
+	var plan_points := _rebuild_curve_route(run["points"], closed,
+		samples_per_span)
+	var shared_pins: Dictionary = {}
+	if id == &"c_coastal_loop":
+		# The atlas deliberately crosses B before C closes at J6. Insert exact
+		# stations at that crossing and at both sides of its operating envelope;
+		# matching only the centre point leaves two sloped ribbons intersecting
+		# like blades and still blocks the real Player at one edge.
+		var shared := _rebuild_bc_shared_junction(plan_points)
+		plan_points = shared["points"]
+		shared_pins = shared["pins"]
+	var heights := PackedFloat32Array()
+	heights.resize(plan_points.size())
+	var grade_limit := REBUILD_PUBLIC_MAX_GRADE
+
+	match id:
+		&"c_coastal_loop":
+			for i in plan_points.size():
+				heights[i] = _rebuild_coastal_desired_floor(plan_points[i])
+			var pins := {0: 0.0}
+			pins[plan_points.size() - 1] = 0.0
+			for key in shared_pins:
+				pins[key] = shared_pins[key]
+			heights = _rebuild_limited_route_heights(plan_points, heights,
+				pins, 0.10)
+			grade_limit = 0.10
+		&"c_entrance_link", &"c_plaza_link", &"d_arrival", \
+				&"d_plaza_return", &"f_headland_link":
+			# These are the level joins into the entrance, Plaza and headland.
+			pass
+		&"d_family_loop":
+			for i in plan_points.size():
+				heights[i] = _rebuild_family_desired_floor(plan_points[i])
+			var pins := {0: 0.0}
+			# Sample four is the exact second atlas control, shared with the
+			# protected D terrace approach. It stays at the established datum.
+			pins[mini(4, plan_points.size() - 1)] = 0.0
+			pins[plan_points.size() - 1] = 0.0
+			heights = _rebuild_limited_route_heights(plan_points, heights,
+				pins, REBUILD_FAMILY_MAX_GRADE)
+			grade_limit = REBUILD_FAMILY_MAX_GRADE
+		&"e_junction_nine":
+			# E and F overlap in plan for this complete approach, so they must be
+			# one floor rather than two cross-sloped blades. J9's derived datum is
+			# the level of the whole fork outside the protected terrace envelope.
+			heights.fill(_rebuild_f_inner_j9_y())
+		&"f_outer_arc":
+			var end_y := _rebuild_established_highland_floor(plan_points[-1])
+			heights = _rebuild_linear_route_heights(plan_points, 0.0, end_y)
+			var pins := {
+				0: 0.0,
+				plan_points.size() - 1: end_y,
+			}
+			var a_points: Array = []
+			for primary in Plan.rebuild_build_runs():
+				if StringName(primary["id"]) == &"a_headland":
+					a_points = primary["points"]
+					break
+			assert(not a_points.is_empty(), "F has no Route A handoff at J3")
+			# A and F run almost parallel just north of J3. Their mapped walking
+			# envelopes overlap for the first eleven metres of separation, so F
+			# inherits A's local datum there and only begins its independent climb
+			# after the two public ways are visibly distinct.
+			for i in plan_points.size():
+				var nearest := _rebuild_nearest_plan_segment(a_points, plan_points[i])
+				if float(nearest["distance"]) <= REBUILD_AF_SHARED_DISTANCE:
+					pins[i] = _rebuild_polyline_height(a_points, plan_points[i])
+			heights = _rebuild_limited_route_heights(plan_points, heights,
+				pins, REBUILD_PUBLIC_MAX_GRADE)
+		&"f_inner_return":
+			# Begin at J9 on the established highland floor, after the protected
+			# terrace approach and its short built link. At the other end J3 is a
+			# broad three-way headland junction: descend at the public limit, then
+			# hold the available tail at zero so both ribbons become one floor.
+			for i in plan_points.size():
+				heights[i] = 0.0
+			var pins := {
+				0: _rebuild_f_inner_j9_y(),
+				plan_points.size() - 1: 0.0,
+			}
+			var from_j9 := 0.0
+			for i in plan_points.size():
+				if i > 0:
+					from_j9 += plan_points[i - 1].distance_to(plan_points[i])
+				if from_j9 <= REBUILD_J9_INNER_LEVEL_LENGTH + 0.001:
+					heights[i] = _rebuild_f_inner_j9_y()
+					pins[i] = _rebuild_f_inner_j9_y()
+			heights = _rebuild_limited_route_heights(plan_points, heights,
+				pins, REBUILD_PUBLIC_MAX_GRADE)
+			grade_limit = REBUILD_PUBLIC_MAX_GRADE
+		&"f_terrace_link":
+			heights.fill(_rebuild_f_inner_j9_y())
+		_:
+			for i in plan_points.size():
+				match StringName(run["route"]):
+					&"C": heights[i] = _rebuild_coastal_desired_floor(plan_points[i])
+					&"D": heights[i] = _rebuild_family_desired_floor(plan_points[i])
+					&"E", &"F": heights[i] = \
+						_rebuild_established_highland_floor(plan_points[i])
+
+	var points: Array[Vector3] = []
+	for i in plan_points.size():
+		points.append(Vector3(plan_points[i].x, heights[i], plan_points[i].y))
+	for i in range(1, points.size()):
+		var horizontal := plan_points[i - 1].distance_to(plan_points[i])
+		var grade := absf(heights[i] - heights[i - 1]) / maxf(horizontal, 0.001)
+		assert(grade <= grade_limit + 0.001,
+			"%s grade %.1f%% exceeds %.1f%%" %
+			[id, grade * 100.0, grade_limit * 100.0])
+	_rebuild_graded_route_cache[id] = points
+	return points
+
+
+## C and B meet once before their named J6 handoff. The plan view is already
+## correct; this resolves its missing vertical datum. B supplies the grade,
+## while C gains exact stations at the centre and at both limits of the shared
+## envelope. The endpoint intersection at J6 is ignored here.
+func _rebuild_bc_shared_junction(points: Array[Vector2]) -> Dictionary:
+	var b_points: Array = []
+	for run in Plan.rebuild_build_runs():
+		if StringName(run["id"]) == &"b_south_return":
+			b_points = run["points"]
+			break
+	assert(not b_points.is_empty(), "the B/C crossing has no south return")
+
+	var hit := Vector2.ZERO
+	var hit_distance := -1.0
+	var hit_y := 0.0
+	var travelled := 0.0
+	for i in points.size() - 1:
+		var a := points[i]
+		var b := points[i + 1]
+		var chord := a.distance_to(b)
+		for j in b_points.size() - 1:
+			var ba3 := Vector3(b_points[j])
+			var bb3 := Vector3(b_points[j + 1])
+			var ba := Vector2(ba3.x, ba3.z)
+			var bb := Vector2(bb3.x, bb3.z)
+			var intersection = Geometry2D.segment_intersects_segment(a, b, ba, bb)
+			if intersection == null:
+				continue
+			var q: Vector2 = intersection
+			# The closed C loop starts and ends at J6 on B. That named handoff is
+			# already exact; this helper owns only the interior crossing.
+			if q.distance_to(points[0]) < 1.0:
+				continue
+			var along_b := clampf((q - ba).dot(bb - ba) /
+				maxf(ba.distance_squared_to(bb), 0.001), 0.0, 1.0)
+			hit = q
+			hit_distance = travelled + a.distance_to(q)
+			hit_y = lerpf(ba3.y, bb3.y, along_b)
+			break
+		if hit_distance >= 0.0:
+			break
+		travelled += chord
+	assert(hit_distance >= 0.0,
+		"the approved C coastal loop no longer crosses B south return")
+
+	var targets := PackedFloat32Array([
+		hit_distance - REBUILD_SHARED_JUNCTION_BEFORE,
+		hit_distance,
+		hit_distance + REBUILD_SHARED_JUNCTION_AFTER,
+	])
+	var out: Array[Vector2] = []
+	var distances := PackedFloat32Array()
+	var distance := 0.0
+	var target_index := 0
+	out.append(points[0])
+	distances.append(0.0)
+	for i in points.size() - 1:
+		var a := points[i]
+		var b := points[i + 1]
+		var chord := a.distance_to(b)
+		while target_index < targets.size() \
+				and targets[target_index] <= distance + chord + 0.001:
+			var station := targets[target_index]
+			if station >= distance - 0.001:
+				var t := clampf((station - distance) / maxf(chord, 0.001),
+					0.0, 1.0)
+				var q := a.lerp(b, t)
+				# Explicit junction stations take precedence over a nearby curve
+				# sample. Keeping both made a thirteen-centimetre path panel whose
+				# miter collapsed one edge and presented the Player with a step.
+				if q.distance_to(out[-1]) <= REBUILD_JUNCTION_STATION_MERGE:
+					out[-1] = q
+					distances[-1] = station
+				else:
+					out.append(q)
+					distances.append(station)
+			target_index += 1
+		if b.distance_to(out[-1]) > REBUILD_JUNCTION_STATION_MERGE:
+			out.append(b)
+			distances.append(distance + chord)
+		distance += chord
+	assert(target_index == targets.size(),
+		"the B/C junction stations did not fit on C")
+	assert(out.any(func(p: Vector2) -> bool: return p.distance_to(hit) < 0.01),
+		"the B/C junction centre was not retained")
+
+	var pins := {}
+	for i in out.size():
+		if distances[i] >= hit_distance - REBUILD_SHARED_JUNCTION_BEFORE - 0.01 \
+				and distances[i] <= hit_distance + REBUILD_SHARED_JUNCTION_AFTER + 0.01:
+			pins[i] = _rebuild_polyline_height(b_points, out[i])
+	var hit_index := -1
+	var hit_error := INF
+	for i in out.size():
+		var error := out[i].distance_to(hit)
+		if error < hit_error:
+			hit_error = error
+			hit_index = i
+	assert(hit_index >= 0 and hit_error < 0.01,
+		"the B/C crossing centre has no exact inserted station")
+	assert(pins.has(hit_index),
+		"the B/C crossing centre fell outside the shared grade envelope")
+	assert(absf(float(pins[hit_index]) - hit_y) < 0.01,
+		"the B/C crossing centre lost B's exact datum")
+	return {"points": out, "pins": pins}
+
+
+## Build the one physical floor beneath B and C's shallow interior merge. The
+## two eight-metre paths overlap for long enough that assigning the collider to
+## either centreline leaves the other path's far edge unsupported. A midline
+## between them, widened by their measured separation, covers the exact union
+## while preserving both approved route centrelines as visible markings.
+func _rebuild_bc_junction_floor() -> Dictionary:
+	if not _rebuild_bc_floor_cache.is_empty():
+		return _rebuild_bc_floor_cache
+
+	var b_points: Array = []
+	for run in Plan.rebuild_build_runs():
+		if StringName(run["id"]) == &"b_south_return":
+			b_points = run["points"]
+			break
+	var c_points: Array = []
+	for run in Plan.rebuild_district_build_runs():
+		if StringName(run["id"]) == &"c_coastal_loop":
+			c_points = _rebuild_graded_route(run)
+			break
+	assert(not b_points.is_empty() and not c_points.is_empty(),
+		"the B/C shared floor is missing a route")
+
+	var groups: Array = []
+	var current: Array[int] = []
+	for i in c_points.size():
+		var c3 := Vector3(c_points[i])
+		var c2 := Vector2(c3.x, c3.z)
+		var nearest := _rebuild_nearest_plan_segment(b_points, c2)
+		var b_y := _rebuild_polyline_height(b_points, c2)
+		var shares_grade := absf(c3.y - b_y) <= 0.12
+		if float(nearest["distance"]) <= REBUILD_BC_SHARED_DISTANCE \
+				and shares_grade:
+			current.append(i)
+		elif not current.is_empty():
+			groups.append(current)
+			current = []
+	if not current.is_empty():
+		groups.append(current)
+
+	var selected: Array[int] = []
+	var closest := INF
+	for group in groups:
+		# The closed C loop also touches B at named J6. Keep that endpoint under
+		# B's established ownership; this floor belongs only to the interior merge.
+		if int(group[0]) <= 1 or int(group[-1]) >= c_points.size() - 2:
+			continue
+		var group_closest := INF
+		for index in group:
+			var p3 := Vector3(c_points[int(index)])
+			var nearest := _rebuild_nearest_plan_segment(b_points,
+				Vector2(p3.x, p3.z))
+			group_closest = minf(group_closest, float(nearest["distance"]))
+		if group_closest < closest:
+			closest = group_closest
+			selected = group
+	assert(selected.size() >= 2 and closest < 0.05,
+		"the B/C shared floor did not find the approved interior crossing")
+
+	var points: Array[Vector3] = []
+	var max_separation := 0.0
+	for index in selected:
+		var c3 := Vector3(c_points[int(index)])
+		var c2 := Vector2(c3.x, c3.z)
+		var nearest := _rebuild_nearest_plan_segment(b_points, c2)
+		var b2: Vector2 = nearest["at"]
+		var separation := float(nearest["distance"])
+		max_separation = maxf(max_separation, separation)
+		var middle := (c2 + b2) * 0.5
+		points.append(Vector3(middle.x,
+			_rebuild_polyline_height(b_points, c2), middle.y))
+	assert(points.size() >= 2, "the B/C shared floor has no usable span")
+	# Its collision owner has real square ends. Carry those ends slightly beyond
+	# the overlap group so B and C can stop their own colliders while there is
+	# still a complete common floor beneath the full walking envelope.
+	var start := Vector2(points[0].x, points[0].z)
+	var start_next := Vector2(points[1].x, points[1].z)
+	var start_extension := start + (start - start_next).normalized() \
+		* REBUILD_BC_SHARED_EXTEND_BEFORE
+	points.insert(0, Vector3(start_extension.x,
+		_rebuild_polyline_height(b_points, start_extension), start_extension.y))
+	var finish := Vector2(points[-1].x, points[-1].z)
+	var finish_previous := Vector2(points[-2].x, points[-2].z)
+	var finish_extension := finish + (finish - finish_previous).normalized() \
+		* REBUILD_BC_SHARED_EXTEND_AFTER
+	points.append(Vector3(finish_extension.x,
+		_rebuild_polyline_height(b_points, finish_extension), finish_extension.y))
+	var width := 8.0 + max_separation + REBUILD_BC_SHARED_MARGIN
+	assert(width <= 21.0,
+		"the B/C overlap has widened beyond a junction: %.2fm" % width)
+	_rebuild_bc_floor_cache = {"points": points, "width": width}
+	return _rebuild_bc_floor_cache
+
+
+## Return the exact beginning of a graded route, inserting a final station at
+## `length` when it falls inside a chord. Junction ownership then ends on a
+## deliberate cross-section instead of whichever Catmull sample happened to be
+## nearest that day.
+func _rebuild_path_prefix(points: Array, length: float) -> Array[Vector3]:
+	assert(points.size() >= 2 and length > 0.0,
+		"a junction prefix needs a route and a positive length")
+	var out: Array[Vector3] = [Vector3(points[0])]
+	var travelled := 0.0
+	for i in points.size() - 1:
+		var a := Vector3(points[i])
+		var b := Vector3(points[i + 1])
+		var chord := a.distance_to(b)
+		if travelled + chord < length - 0.001:
+			out.append(b)
+			travelled += chord
+			continue
+		var t := clampf((length - travelled) / maxf(chord, 0.001), 0.0, 1.0)
+		var finish := a.lerp(b, t)
+		if finish.distance_to(out[-1]) > 0.001:
+			out.append(finish)
+		return out
+	assert(false, "junction prefix %.2fm exceeds its route" % length)
+	return out
+
+
+## J9 is a broad three-way court, not three independently colliding ribbons.
+## E and the terrace link overlap over their complete length before meeting the
+## inner return, so the convex hull of their full operating envelopes is the
+## smallest seam-free floor that honours every approved centreline and width.
+func _rebuild_j9_junction_floor() -> Dictionary:
+	if not _rebuild_j9_floor_cache.is_empty():
+		return _rebuild_j9_floor_cache
+
+	var routes := {}
+	for run in Plan.rebuild_district_build_runs():
+		var id := StringName(run["id"])
+		if id in [&"e_junction_nine", &"f_terrace_link", &"f_inner_return"]:
+			routes[id] = {
+				"points": _rebuild_graded_route(run),
+				"width": float(run["width"]),
+			}
+	assert(routes.size() == 3, "J9 is missing one of its three approved routes")
+
+	var e_points: Array = routes[&"e_junction_nine"]["points"]
+	var link_points: Array = routes[&"f_terrace_link"]["points"]
+	var inner_points: Array = routes[&"f_inner_return"]["points"]
+	var floor_prefix := _rebuild_path_prefix(inner_points,
+		REBUILD_J9_INNER_FLOOR_LENGTH)
+	var arms := [
+		{"points": e_points, "width": float(routes[&"e_junction_nine"]["width"])},
+		{"points": link_points, "width": float(routes[&"f_terrace_link"]["width"])},
+		{"points": floor_prefix, "width": float(routes[&"f_inner_return"]["width"])},
+	]
+	var cloud := PackedVector2Array()
+	for arm in arms:
+		var arm_points: Array[Vector3] = []
+		for point in arm["points"]:
+			arm_points.append(Vector3(point))
+		# Carry the two incoming mouths a little past their nominal start planes.
+		# That overlap buries the court edge beneath the established shoulder and
+		# prevents a mathematical end-to-end contact becoming a capsule-sized gap.
+		if arm != arms[-1]:
+			var start := arm_points[0]
+			var toward := (arm_points[1] - start).normalized()
+			arm_points.insert(0, start - toward * REBUILD_J9_FLOOR_MARGIN)
+		var edges := _rebuild_path_edges(arm_points,
+			float(arm["width"]) + REBUILD_J9_FLOOR_MARGIN * 2.0, false)
+		for side_name in ["left", "right"]:
+			for p3 in edges[side_name]:
+				var p := Vector3(p3)
+				cloud.append(Vector2(p.x, p.z))
+
+	var raw_hull := Geometry2D.convex_hull(cloud)
+	var polygon := PackedVector2Array()
+	for p in raw_hull:
+		if polygon.is_empty() or Vector2(p).distance_to(polygon[-1]) > 0.001:
+			polygon.append(Vector2(p))
+	if polygon.size() > 2 and polygon[0].distance_to(polygon[-1]) < 0.001:
+		polygon.resize(polygon.size() - 1)
+	assert(polygon.size() >= 3, "J9 did not produce a junction polygon")
+	for i in polygon.size():
+		var a := polygon[i]
+		var b := polygon[(i + 1) % polygon.size()]
+		var steps := maxi(1, ceili(a.distance_to(b) / 1.0))
+		for step in steps + 1:
+			var p := a.lerp(b, float(step) / float(steps))
+			assert(not _rebuild_in_protected(p, 0.15),
+				"the J9 court enters a protected cascade envelope at %s" % p)
+
+	_rebuild_j9_floor_cache = {
+		"polygon": polygon,
+		"y": _rebuild_f_inner_j9_y(),
+	}
+	return _rebuild_j9_floor_cache
+
+
+## Emit J9 as one convex support. A triangulated concave collider would restore
+## the invisible internal-edge snag this court exists to remove; one hull has a
+## single continuous top face from every incoming operating edge to every exit.
+func _rebuild_j9_floor() -> void:
+	var floor := _rebuild_j9_junction_floor()
+	var polygon: PackedVector2Array = floor["polygon"]
+	var y := float(floor["y"])
+	var body := StaticBody3D.new()
+	_add(body, "junction_j9_shared_floor")
+
+	var top_st := SurfaceTool.new()
+	top_st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	top_st.set_smooth_group(0)
+	var triangles := Geometry2D.triangulate_polygon(polygon)
+	assert(not triangles.is_empty(), "J9's top did not triangulate")
+	for i in range(0, triangles.size(), 3):
+		var a2 := polygon[triangles[i]]
+		var b2 := polygon[triangles[i + 1]]
+		var c2 := polygon[triangles[i + 2]]
+		_earth_oriented_tri(top_st,
+			Vector3(a2.x, y + REBUILD_PATH_LIFT + 0.010, a2.y), a2 * 0.35,
+			Vector3(b2.x, y + REBUILD_PATH_LIFT + 0.010, b2.y), b2 * 0.35,
+			Vector3(c2.x, y + REBUILD_PATH_LIFT + 0.010, c2.y), c2 * 0.35,
+			Vector3.UP)
+	top_st.generate_normals()
+	top_st.generate_tangents()
+	var top := MeshInstance3D.new()
+	top.name = "surface"
+	top.mesh = top_st.commit()
+	top.material_override = mats["asphalt"]
+	top.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	body.add_child(top)
+	top.owner = _root
+
+	var centre := Vector2.ZERO
+	for p in polygon:
+		centre += p
+	centre /= float(polygon.size())
+	var skirt_st := SurfaceTool.new()
+	skirt_st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	skirt_st.set_smooth_group(0)
+	for i in polygon.size():
+		var a2 := polygon[i]
+		var b2 := polygon[(i + 1) % polygon.size()]
+		var top_a := Vector3(a2.x, y - 0.035, a2.y)
+		var top_b := Vector3(b2.x, y - 0.035, b2.y)
+		var low_a := top_a - Vector3.UP * REBUILD_J9_FLOOR_DEPTH
+		var low_b := top_b - Vector3.UP * REBUILD_J9_FLOOR_DEPTH
+		var outward2 := ((a2 + b2) * 0.5 - centre).normalized()
+		_earth_wall_quad(skirt_st, low_a, low_b, top_a, top_b,
+			Vector3(outward2.x, 0.0, outward2.y))
+	skirt_st.generate_normals()
+	skirt_st.generate_tangents()
+	var skirt := MeshInstance3D.new()
+	skirt.name = "retaining_edge"
+	skirt.mesh = skirt_st.commit()
+	skirt.material_override = mats["brick"]
+	body.add_child(skirt)
+	skirt.owner = _root
+
+	var hull_points := PackedVector3Array()
+	for p in polygon:
+		hull_points.append(Vector3(p.x, y, p.y))
+	for p in polygon:
+		hull_points.append(Vector3(p.x, y - REBUILD_J9_FLOOR_DEPTH, p.y))
+	var hull := ConvexPolygonShape3D.new()
+	hull.points = hull_points
+	var shape := CollisionShape3D.new()
+	shape.name = "shape"
+	shape.shape = hull
+	body.add_child(shape)
+	shape.owner = _root
+
+
+func _rebuild_polyline_height(points: Array, p: Vector2) -> float:
+	var best_distance := INF
+	var best_y := 0.0
+	for i in points.size() - 1:
+		var a3 := Vector3(points[i])
+		var b3 := Vector3(points[i + 1])
+		var a := Vector2(a3.x, a3.z)
+		var b := Vector2(b3.x, b3.z)
+		var ab := b - a
+		var t := clampf((p - a).dot(ab) /
+			maxf(ab.length_squared(), 0.001), 0.0, 1.0)
+		var distance := p.distance_to(a + ab * t)
+		if distance < best_distance:
+			best_distance = distance
+			best_y = lerpf(a3.y, b3.y, t)
+	return best_y
+
+
+func _rebuild_linear_route_heights(points: Array[Vector2], start_y: float,
+		end_y: float) -> PackedFloat32Array:
+	var distances := PackedFloat32Array()
+	distances.append(0.0)
+	for i in range(1, points.size()):
+		distances.append(distances[-1] + points[i - 1].distance_to(points[i]))
+	var total := maxf(distances[-1], 0.001)
+	var heights := PackedFloat32Array()
+	for distance in distances:
+		heights.append(lerpf(start_y, end_y, distance / total))
+	return heights
+
+
+## Project a desired profile into the public-grade envelope while keeping every
+## named handoff exact. Alternating forward and backward passes let an interior
+## protected pin constrain both sides without flattening the rest of the loop.
+func _rebuild_limited_route_heights(points: Array[Vector2], desired: PackedFloat32Array,
+		pins: Dictionary, max_grade: float) -> PackedFloat32Array:
+	var heights := desired.duplicate()
+	for key in pins:
+		heights[int(key)] = float(pins[key])
+	for _pass in 12:
+		for i in range(1, heights.size()):
+			if pins.has(i):
+				continue
+			var reach := points[i - 1].distance_to(points[i]) * max_grade
+			heights[i] = clampf(heights[i], heights[i - 1] - reach,
+				heights[i - 1] + reach)
+		for i in range(heights.size() - 2, -1, -1):
+			if pins.has(i):
+				continue
+			var reach := points[i].distance_to(points[i + 1]) * max_grade
+			heights[i] = clampf(heights[i], heights[i + 1] - reach,
+				heights[i + 1] + reach)
+		for key in pins:
+			heights[int(key)] = float(pins[key])
+	return heights
+
+
+func _rebuild_coastal_desired_floor(p: Vector2) -> float:
+	var shore := clampf((-p.x - 58.0) / 24.0, 0.0, 1.0)
+	var south_return := clampf((p.y - 112.0) / 30.0, 0.0, 1.0)
+	return lerpf(0.0, Plan.SHORE_TOP, shore * (1.0 - south_return))
+
+
+func _rebuild_family_desired_floor(p: Vector2) -> float:
+	if p.x <= 72.0:
+		return 0.0
+	var target_x := maxf(p.x, REBUILD_OUTER_HIGHLAND_FROM_X)
+	var target := _rebuild_outer_highland_y(target_x, p.y)
+	var t := clampf((p.x - 72.0) /
+		(REBUILD_OUTER_HIGHLAND_FROM_X - 72.0), 0.0, 1.0)
+	t = t * t * (3.0 - 2.0 * t)
+	return lerpf(0.0, target, t)
+
+
+func _rebuild_established_highland_floor(p: Vector2) -> float:
+	if p.x >= REBUILD_OUTER_HIGHLAND_FROM_X:
+		return _rebuild_outer_highland_y(p.x, p.y)
+	if p.x <= 28.0:
+		return 0.0
+	return maxf(0.0, _east_ground_y(p.x, p.y))
+
+
+## J9 is outside the protected terrace envelope. Set it from the measured inner
+## route length rather than from the unrelated shoulder roll: the first twelve
+## metres hold J9's shared court level and the final twenty metres hold plaza
+## grade beside the headland connector. The run between them sheds height at no
+## more than the park's 1:8 public maximum; five centimetres of vertical reserve
+## absorbs sampled-curve rounding. Both approaches and the return read this one
+## datum, so J9 is still a single floor.
+func _rebuild_f_inner_j9_y() -> float:
+	for run in Plan.rebuild_district_build_runs():
+		if StringName(run["id"]) != &"f_inner_return":
+			continue
+		var points := _rebuild_curve_route(run["points"], false, 8)
+		var total := 0.0
+		for i in range(1, points.size()):
+			total += points[i - 1].distance_to(points[i])
+		var established := _rebuild_established_highland_floor(points[0])
+		return minf(established,
+			(total - REBUILD_F_HEADLAND_LEVEL_TAIL
+				- REBUILD_J9_INNER_LEVEL_LENGTH) * REBUILD_PUBLIC_MAX_GRADE
+			- REBUILD_F_INNER_GRADE_RESERVE)
+	assert(false, "J9 has no F inner return")
+	return 0.0
+
+
+## Locate the selected graded run where it crosses a world-x station. The z
+## hint disambiguates loops; callers use this to cut inherited edge structures
+## to the same centreline that builds and validates the public route.
+func _rebuild_run_crossing_at_x(run_id: StringName, x: float,
+		z_hint: float) -> Vector3:
+	var found := false
+	var best := Vector3.ZERO
+	var best_error := INF
+	for run in Plan.rebuild_district_build_runs():
+		if StringName(run["id"]) != run_id:
+			continue
+		var points := _rebuild_graded_route(run)
+		for i in points.size() - 1:
+			var a := Vector3(points[i])
+			var b := Vector3(points[i + 1])
+			var dx := b.x - a.x
+			if absf(dx) < 0.001:
+				continue
+			var t := (x - a.x) / dx
+			if t < -0.001 or t > 1.001:
+				continue
+			var q := a.lerp(b, clampf(t, 0.0, 1.0))
+			var error := absf(q.z - z_hint)
+			if error < best_error:
+				found = true
+				best = q
+				best_error = error
+		break
+	assert(found, "%s does not cross world x %.2f" % [run_id, x])
+	return best
+
+
+func _rebuild_nearest_graded_route(route_id: StringName, p: Vector2) -> Dictionary:
+	var best_distance := INF
+	var best_y := 0.0
+	for run in Plan.rebuild_district_build_runs():
+		if StringName(run["route"]) != route_id:
+			continue
+		var points := _rebuild_graded_route(run)
+		for i in points.size() - 1:
+			var a := Vector3(points[i])
+			var b := Vector3(points[i + 1])
+			var a2 := Vector2(a.x, a.z)
+			var b2 := Vector2(b.x, b.z)
+			var ab := b2 - a2
+			var t := clampf((p - a2).dot(ab) /
+				maxf(ab.length_squared(), 0.001), 0.0, 1.0)
+			var distance := p.distance_to(a2 + ab * t)
+			if distance < best_distance:
+				best_distance = distance
+				best_y = lerpf(a.y, b.y, t)
+	return {"distance": best_distance, "y": best_y}
+
+
+func _rebuild_route_floor(route: StringName, p: Vector2) -> float:
+	match route:
+		&"C":
+			var nearest := _rebuild_nearest_graded_route(&"C", p)
+			if float(nearest["distance"]) <= REBUILD_ROUTE_EARTH_RUN + 8.0:
+				return float(nearest["y"])
+			return _rebuild_coastal_desired_floor(p)
+		&"D":
+			return _rebuild_family_floor(p)
+		&"E", &"F":
+			return _rebuild_highland_floor(p)
+		_:
+			return 0.0
+
+
+func _rebuild_family_floor(p: Vector2) -> float:
+	var nearest := _rebuild_nearest_graded_route(&"D", p)
+	if float(nearest["distance"]) <= REBUILD_ROUTE_EARTH_RUN + 14.0:
+		return float(nearest["y"])
+	return _rebuild_family_desired_floor(p)
+
+
+## Pull the established north/south shoulders onto the new district routes,
+## but never within either protected construction envelope. The path sits one
+## hand above the planted cut: enough to stop a coarse terrain triangle from
+## swallowing its edge, not enough to read as a bridge or retaining wall.
+func _rebuild_district_shoulder_grade(p: Vector2, uncut_y: float,
+		route_id: StringName) -> float:
+	var y := uncut_y
+	for run in Plan.rebuild_district_build_runs():
+		if StringName(run["route"]) != route_id:
+			continue
+		var points := _rebuild_graded_route(run)
+		for i in points.size() - 1:
+			var a3 := Vector3(points[i])
+			var b3 := Vector3(points[i + 1])
+			var a := Vector2(a3.x, a3.z)
+			var b := Vector2(b3.x, b3.z)
+			var ab := b - a
+			var t := clampf((p - a).dot(ab) /
+				maxf(ab.length_squared(), 0.001), 0.0, 1.0)
+			var distance := maxf(p.distance_to(a + ab * t)
+				- float(run["width"]) * 0.5, 0.0)
+			if distance >= 7.0:
+				continue
+			var weight := 1.0 - distance / 7.0
+			weight = weight * weight * (3.0 - 2.0 * weight)
+			var target := lerpf(a3.y, b3.y, t) \
+				- REBUILD_DISTRICT_ROUTE_BED_CUT
+			# Overlapping verges form the union of their cuts. A later route may
+			# deepen an earlier one, but it must never raise terrain back through a
+			# path that has already established the lower public floor.
+			var candidate := lerpf(uncut_y, target, weight)
+			y = minf(y, candidate)
+	return y
+
+
+func _rebuild_highland_floor(p: Vector2) -> float:
+	var nearest := _rebuild_nearest_graded_route(&"F", p)
+	if float(nearest["distance"]) <= REBUILD_ROUTE_EARTH_RUN + 28.0:
+		return float(nearest["y"])
+	return _rebuild_established_highland_floor(p)
+
+
+## T2 follows positive D/F grades until the canonical east shoulder takes over.
+## The field is triangulated on a coarser grid than the route ribbon; a full
+## 1.10m hidden bed cut keeps interpolated terrain below a path falling at the
+## 1:8 public maximum. Ten centimetres proved insufficient at F's inside edge.
+func _rebuild_lowland_surface_y(p: Vector2) -> float:
+	var y := REBUILD_LOWLAND_Y
+	if p.x > REBUILD_LOWLAND_SUPPORT_TO_X:
+		return y
+	for route_id in [&"D", &"F"]:
+		for run in Plan.rebuild_district_build_runs():
+			if StringName(run["route"]) != route_id:
+				continue
+			var points := _rebuild_graded_route(run)
+			for i in points.size() - 1:
+				var a3 := Vector3(points[i])
+				var b3 := Vector3(points[i + 1])
+				var a := Vector2(a3.x, a3.z)
+				var b := Vector2(b3.x, b3.z)
+				var ab := b - a
+				var t := clampf((p - a).dot(ab) /
+					maxf(ab.length_squared(), 0.001), 0.0, 1.0)
+				var distance := maxf(p.distance_to(a + ab * t)
+					- float(run["width"]) * 0.5, 0.0)
+				if distance >= REBUILD_ROUTE_EARTH_RUN:
+					continue
+				var weight := 1.0 - distance / REBUILD_ROUTE_EARTH_RUN
+				weight = weight * weight * (3.0 - 2.0 * weight)
+				var target := lerpf(a3.y, b3.y, t) \
+					- REBUILD_LOWLAND_ROUTE_BED_CUT
+				y = maxf(y, lerpf(REBUILD_LOWLAND_Y, target, weight))
+	return y
+
+
+func _rebuild_site(source: Vector2, zone: StringName) -> Vector3:
+	var p := Plan.rebuild_expand_point(source)
+	var y := 0.0
+	match zone:
+		&"boardwalk": y = Plan.SHORE_TOP
+		&"headland": y = REBUILD_HEADLAND_Y
+		&"family": y = _rebuild_family_floor(p)
+		&"highland", &"north": y = _rebuild_highland_floor(p)
+		_: y = 0.0
+	return Vector3(p.x, y, p.y)
+
+
+func _rebuild_access_path(nm: String, source: Array, zone: StringName,
+		width := 2.8, collide := true) -> void:
+	if source.size() < 2:
+		return
+	var points: Array[Vector3] = []
+	for point in source:
+		points.append(_rebuild_site(Vector2(point), zone))
+	_rebuild_path(nm, points, width, false, &"", collide)
+
+
+# ---------------------------------------------------------------------------
+# Park rebuild: package 04 program
+# ---------------------------------------------------------------------------
+
+func _rebuild_program() -> void:
+	for site in Plan.REBUILD_ATTRACTION_SITES:
+		match StringName(site["kind"]):
+			&"lighthouse": _rebuild_lighthouse(site)
+			&"funhouse": _rebuild_funhouse(site)
+			&"big_top": _rebuild_big_top(site)
+			&"play_garden": _rebuild_play_garden(site)
+			&"bandstand": _rebuild_bandstand(site)
+
+	for site in Plan.REBUILD_RIDE_SITES:
+		match StringName(site["kind"]):
+			&"ship": _rebuild_swinging_ship(site)
+			&"mini_rail": _rebuild_mini_rail(site)
+			&"tubs": _rebuild_spinning_tubs(site)
+			&"carousel": _rebuild_carousel_ride(site)
+			&"chair_swing": _rebuild_chair_swing(site)
+			&"water_ride": _rebuild_outline_ride(site, false)
+			&"mine_train": _rebuild_outline_ride(site, true)
+			&"observation": _rebuild_observation_ride(site)
+			&"sky_ride": _rebuild_atlas_sky_ride(site)
+			&"steel_coaster": _rebuild_coaster(site, false)
+			&"junior_coaster": _rebuild_coaster(site, true)
+
+	_rebuild_recurring_interiors()
+	_rebuild_midway_frontages()
+	_rebuild_kiddieland_support()
+
+
+func _rebuild_open_building(nm: String, at: Vector3, size: Vector2,
+		front_world: Vector3, mat: String, accent: String, height := 4.6) -> void:
+	var w := size.x
+	var d := size.y
+	_box(nm + "_floor", at, Vector3(0, 0.025, 0),
+		Vector3(w, 0.05, d), "brick", 0.0, false)
+
+	# Atlas footprints are axis-aligned operating envelopes. Rotating the whole
+	# shell to face its access enlarged every parcel and made otherwise valid
+	# buildings overlap routes and neighbours. Select the nearest cardinal face
+	# instead: the footprint stays exactly w x d while its three-metre opening
+	# still addresses the authored threshold.
+	var toward := Vector2(front_world.x - at.x, front_world.z - at.z)
+	if toward.length_squared() < 0.01:
+		toward = Vector2(0, 1)
+	var front_x := absf(toward.x) > absf(toward.y)
+	var sign_to_front := signf(toward.x if front_x else toward.y)
+	if is_zero_approx(sign_to_front):
+		sign_to_front = 1.0
+	var opening := 3.0
+	if front_x:
+		_box(nm + "_back", at,
+			Vector3(-sign_to_front * w * 0.5, height * 0.5, 0),
+			Vector3(0.32, height, d), mat)
+		for side in [-1.0, 1.0]:
+			_box(nm + ("_left" if side < 0 else "_right"), at,
+				Vector3(0, height * 0.5, side * d * 0.5),
+				Vector3(w, height, 0.32), mat)
+		var segment := maxf((d - opening) * 0.5, 0.6)
+		for side in [-1.0, 1.0]:
+			_box(nm + ("_front_l" if side < 0 else "_front_r"), at,
+				Vector3(sign_to_front * w * 0.5, height * 0.5,
+					side * (opening * 0.5 + segment * 0.5)),
+				Vector3(0.30, height, segment), mat)
+		_box(nm + "_awning", at,
+			Vector3(sign_to_front * (w * 0.5 + 0.7), height - 0.7, 0),
+			Vector3(1.45, 0.18, minf(d - 1.0, 7.0)), accent, 0.0, false)
+	else:
+		_box(nm + "_back", at,
+			Vector3(0, height * 0.5, -sign_to_front * d * 0.5),
+			Vector3(w, height, 0.32), mat)
+		for side in [-1.0, 1.0]:
+			_box(nm + ("_left" if side < 0 else "_right"), at,
+				Vector3(side * w * 0.5, height * 0.5, 0),
+				Vector3(0.32, height, d), mat)
+		var segment := maxf((w - opening) * 0.5, 0.6)
+		for side in [-1.0, 1.0]:
+			_box(nm + ("_front_l" if side < 0 else "_front_r"), at,
+				Vector3(side * (opening * 0.5 + segment * 0.5), height * 0.5,
+					sign_to_front * d * 0.5),
+				Vector3(segment, height, 0.30), mat)
+		_box(nm + "_awning", at,
+			Vector3(0, height - 0.7, sign_to_front * (d * 0.5 + 0.7)),
+			Vector3(minf(w - 1.0, 7.0), 0.18, 1.45), accent, 0.0, false)
+	_box(nm + "_roof", at, Vector3(0, height + 0.18, 0),
+		Vector3(w + 0.7, 0.34, d + 0.7), accent, 0.0, false)
+	var front_dir := Vector3(sign_to_front if front_x else 0.0, 0.0,
+		sign_to_front if not front_x else 0.0)
+	_omni(nm + "_interior_glow", at + Vector3.UP * (height - 1.0)
+		+ front_dir * minf(w, d) * 0.15, "warm", 1.8, 8.0,
+		LIGHT_SERVICE)
+
+
+func _rebuild_lighthouse(site: Dictionary) -> void:
+	var at := _rebuild_site(site["at"], &"headland")
+	_cyl("P1_forecourt", at, Vector3(0, 0.05, 0), 7.0, 0.10,
+		"brick", 0.0, 32, false)
+	_cyl("P1_lighthouse_base", at, Vector3(0, 1.0, 0), 4.6, 2.0,
+		"niche_stone", 0.0, 24)
+	_cyl("P1_lighthouse_tower", at, Vector3(0, 10.0, 0), 2.55, 18.0,
+		"white", 0.0, 24)
+	for h in [5.0, 10.0, 15.0]:
+		_cyl("P1_lighthouse_band_%d" % int(h), at, Vector3(0, h, 0),
+			2.67, 0.42, "red", 0.0, 24, false)
+	_cyl("P1_lantern_deck", at, Vector3(0, 19.2, 0), 3.5, 0.45,
+		"metal", 0.0, 24)
+	_cyl("P1_lantern_room", at, Vector3(0, 20.5, 0), 2.35, 2.4,
+		"glass", 0.0, 18, false)
+	_cyl("P1_lantern_roof", at, Vector3(0, 22.0, 0), 2.75, 0.5,
+		"red", 0.0, 18, false)
+	_cyl("P1_beacon", at, Vector3(0, 23.1, 0), 0.14, 1.8,
+		"metal", 0.0, 10, false)
+	_omni("P1_beacon_glow", at + Vector3(0, 20.6, 0), "warm", 4.0, 20.0,
+		LIGHT_FEATURE)
+	var keeper := _rebuild_site(site["keeper"], &"headland")
+	var access_world := _rebuild_site(Vector2(site["access"][-1]), &"headland")
+	_rebuild_open_building("P1_keeper_exhibit", keeper, site["keeper_size"],
+		access_world, "far_warm", "red", 4.0)
+	_rebuild_access_path("P1_public_access", site["access"], &"headland", 3.0)
+
+
+func _rebuild_funhouse(site: Dictionary) -> void:
+	var at := _rebuild_site(site["at"], &"boardwalk")
+	var front := _rebuild_site(Vector2(site["access"][-1]), &"boardwalk")
+	_rebuild_open_building("P2_funhouse", at, site["size"], front,
+		"far_shade", "red", 6.8)
+	# A striped marquee and crooked crown make this a destination from the
+	# promenade while the two separate paths preserve the walk-through flow.
+	for i in 7:
+		var x := -4.8 + float(i) * 1.6
+		_box("P2_marquee_stripe_%d" % i, at, Vector3(x, 6.35, 7.20),
+			Vector3(1.2, 0.65, 0.12), "yellow" if i % 2 == 0 else "red",
+			-PI * 0.5, false)
+	_rebuild_access_path("P2_entry", site["access"], &"boardwalk", 3.0)
+	_rebuild_access_path("P2_exit", site["exit"], &"boardwalk", 3.0)
+
+
+func _rebuild_big_top(site: Dictionary) -> void:
+	var at := _rebuild_site(site["at"], &"fairground")
+	var radii: Vector2 = site["radii"]
+	_cyl("P3_ring_floor", at, Vector3(0, 0.04, 0), radii.x,
+		0.08, "brick", 0.0, 32, false)
+	_cyl("P3_centre_mast", at, Vector3(0, 5.0, 0), 0.18, 10.0,
+		"metal", 0.0, 12)
+	var peak := at + Vector3(0, 9.8, 0)
+	for i in 16:
+		var a := TAU * float(i) / 16.0
+		var edge := at + Vector3(cos(a) * radii.x, 4.2,
+			sin(a) * radii.y)
+		_strut("P3_tent_panel_%02d" % i, edge, peak, 0.72,
+			"red" if i % 2 == 0 else "white")
+		if i % 2 == 0:
+			# Foot the post below the ring slab instead of sharing its underside.
+			_cyl("P3_perimeter_post_%02d" % i, edge - Vector3(0, 2.15, 0),
+				Vector3.ZERO, 0.10, 4.2, "metal", 0.0, 8)
+	_cyl("P3_ring", at, Vector3(0, 0.15, 0), 2.2, 0.30,
+		"accent", 0.0, 24, false)
+	_rebuild_access_path("P3_audience_entry", site["access"], &"fairground", 3.4)
+
+
+func _rebuild_play_garden(site: Dictionary) -> void:
+	var at := _rebuild_site(site["at"], &"family")
+	var radii: Vector2 = site["radii"]
+	_rebuild_ellipse_fence("P4_fence", at, radii, "sky_green", 28, 2)
+	_box("P4_play_tower", at, Vector3(-1.4, 2.2, 0.4),
+		Vector3(3.2, 4.4, 3.2), "yellow")
+	_box("P4_play_roof", at, Vector3(-1.4, 4.65, 0.4),
+		Vector3(4.0, 0.38, 4.0), "red", 0.0, false)
+	_strut("P4_slide", at + Vector3(0.1, 2.4, 0.4),
+		at + Vector3(4.4, 0.25, 1.2), 0.72, "blue")
+	for side in [-1.0, 1.0]:
+		_strut("P4_swing_leg_%s_a" % str(side),
+			at + Vector3(1.2, 0.1, side * 2.4),
+			at + Vector3(2.3, 3.3, side * 2.4), 0.16, "metal")
+	_strut("P4_swing_beam", at + Vector3(2.3, 3.3, -2.4),
+		at + Vector3(2.3, 3.3, 2.4), 0.18, "metal")
+	_rebuild_access_path("P4_public_entry", site["access"], &"family", 2.4)
+
+
+## A thin elliptical field authored as one mesh. Scaling a CSG cylinder makes
+## its collision disagree with its visible transform, while a rectangular lawn
+## would occupy the four corners the atlas deliberately leaves open for the two
+## audience routes. P5 needs the actual 20 x 14m oval.
+func _rebuild_ellipse_pad(nm: String, at: Vector3, radii: Vector2,
+		theta: float, mat: String, lift := 0.035) -> void:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(0)
+	var u := Basis(Vector3.UP, theta) * Vector3.RIGHT
+	var v := Basis(Vector3.UP, theta) * Vector3.BACK
+	var centre := at + Vector3.UP * lift
+	for i in 48:
+		var a := TAU * float(i) / 48.0
+		var b := TAU * float(i + 1) / 48.0
+		var pa := centre + u * (cos(a) * radii.x) + v * (sin(a) * radii.y)
+		var pb := centre + u * (cos(b) * radii.x) + v * (sin(b) * radii.y)
+		_earth_oriented_tri(st, centre, Vector2(0.5, 0.5),
+			pa, Vector2(0.5 + cos(a) * 0.5, 0.5 + sin(a) * 0.5),
+			pb, Vector2(0.5 + cos(b) * 0.5, 0.5 + sin(b) * 0.5),
+			Vector3.UP)
+	st.generate_normals()
+	st.generate_tangents()
+	_rebuild_mesh_body(nm, st.commit(), mat, false)
+
+
+## P5 is the north-west Plaza performance pocket in the approved atlas. It
+## replaces the inherited gazebo at (-20,-20); it does not merely add another
+## object near it. Every point below comes from the parcel handoff so Route A,
+## Route B and NT-1 keep the measured clearances shown on the map.
+func _rebuild_bandstand(site: Dictionary) -> void:
+	var stage := _rebuild_site(site["at"], &"plaza")
+	var audience := _rebuild_site(site["audience"], &"plaza")
+	var radius: float = site["radius"]
+	var radii: Vector2 = site["audience_radii"]
+	var map_theta := deg_to_rad(float(site["audience_rotation"]))
+	# The atlas angle is clockwise on its x/z page. Godot's positive Y rotation
+	# turns the other way, so the assembly uses its negative.
+	var theta := -map_theta
+	var u := Vector3(cos(map_theta), 0.0, sin(map_theta))
+	var v := Vector3(-sin(map_theta), 0.0, cos(map_theta))
+
+	for protected_sample in [Vector2(stage.x, stage.z),
+			Vector2(audience.x, audience.z), Vector2(site["backstage"])]:
+		assert(not _rebuild_in_protected(protected_sample, 0.5),
+			"P5 enters a protected cascade envelope at %s" % protected_sample)
+
+	# The 12.4m stage: a raised circular deck, inner gallery, front fascia and
+	# canopy. Eight perimeter posts leave the audience-facing opening broad.
+	_cyl("P5_stage_deck", stage, Vector3(0, 0.43, 0), radius, 0.86,
+		"far_warm", 0.0, 40)
+	_cyl("P5_stage_gallery", stage, Vector3(0, 0.91, 0), 4.9, 0.10,
+		"wood", 0.0, 40)
+	_box("P5_stage_front", stage, Vector3(4.35, 0.48, 0),
+		Vector3(0.30, 0.96, 8.4), "accent", theta)
+	for i in 8:
+		var a := TAU * float(i) / 8.0
+		# Keep the two front bays open toward the lawn and the short platform.
+		if absf(wrapf(a, -PI, PI)) < PI * 0.24:
+			continue
+		var post := stage + u * (cos(a) * 5.15) + v * (sin(a) * 5.15)
+		_cyl("P5_stage_post_%02d" % i, post, Vector3(0, 2.9, 0),
+			0.11, 5.8, "white", 0.0, 10)
+	_cyl("P5_canopy", stage, Vector3(0, 5.58, 0), radius + 0.18, 0.38,
+		"red", 0.0, 40, false)
+	_cyl("P5_canopy_cap", stage, Vector3(0, 5.93, 0), 2.2, 0.34,
+		"yellow", 0.0, 24, false)
+	_cyl("P5_canopy_finial", stage, Vector3(0, 6.45, 0), 0.12, 0.9,
+		"metal", 0.0, 10, false)
+
+	# The gap between deck and lawn is a short internal platform, not a third
+	# public entrance. The Plaza slab remains the only collider underneath it.
+	var bridge := [stage + u * 5.6 + Vector3.UP * 0.01,
+		audience - u * 6.4 + Vector3.UP * 0.01]
+	_rebuild_path("P5_stage_platform", bridge, 2.8, false, &"", false)
+
+	# 20 x 14m event lawn, exactly aligned to the parcel axis. A contrasting
+	# 1.6m centre aisle remains level and visually continuous through all rows.
+	_rebuild_ellipse_pad("P5_event_lawn", audience, radii, theta, "planting")
+	var aisle := [audience - u * 6.3, audience + u * 6.2]
+	_rebuild_path("P5_level_aisle", aisle, 1.6, false, &"", false)
+
+	# Eight rows x twelve removable chairs = 96. Six seats sit on either side
+	# of the aisle; the row length follows the same ellipse equation as the map.
+	var rows := [-4.5, -3.4, -2.3, -1.2, -0.1, 1.0, 2.1, 3.2]
+	var chair_count := 0
+	for row_index in rows.size():
+		var along: float = rows[row_index]
+		var half := maxf(3.2, 9.2 * sqrt(maxf(0.0,
+			1.0 - along * along / (radii.x * radii.x))))
+		for side in [-1.0, 1.0]:
+			for seat_index in 6:
+				var t := (float(seat_index) + 0.5) / 6.0
+				var across: float = lerpf(0.95, half - 0.30, t) * side
+				var chair: Vector3 = audience + u * along + v * across
+				var facing := _facing(chair, stage)
+				var tag := "P5_chair_%02d_%s_%02d" % [row_index,
+					"l" if side < 0.0 else "r", seat_index]
+				_box(tag + "_seat", chair, Vector3(0, 0.47, 0),
+					Vector3(0.54, 0.10, 0.50), "wood", facing)
+				_box(tag + "_back", chair, Vector3(0, 0.77, -0.21),
+					Vector3(0.54, 0.55, 0.09), "far_shade", facing)
+				chair_count += 1
+	assert(chair_count == 96, "P5 must emit exactly 96 removable chairs")
+
+	# Four 1.3m wheelchair positions occupy the back row, each paired with one
+	# companion chair just outside the marked bay. The pads are markings only;
+	# the Plaza floor remains physically continuous.
+	var accessible_across := [-6.4, -4.8, 4.8, 6.4]
+	for i in accessible_across.size():
+		var across: float = accessible_across[i]
+		var bay := audience + u * -4.8 + v * across
+		_box("P5_accessible_bay_%d" % i, bay, Vector3(0, 0.032, 0),
+			Vector3(1.3, 0.064, 1.3), "blue", theta, false)
+		# A small rail-and-seat silhouette makes the companion provision legible
+		# without pretending the wheelchair itself is park furniture.
+		var companion := bay - u * 1.15
+		var facing := _facing(companion, stage)
+		_box("P5_companion_%d_seat" % i, companion, Vector3(0, 0.47, 0),
+			Vector3(0.54, 0.10, 0.50), "wood", facing)
+		_box("P5_companion_%d_back" % i, companion, Vector3(0, 0.77, -0.21),
+			Vector3(0.54, 0.55, 0.09), "far_shade", facing)
+
+	# A low crowd-control arc contains the front of the lawn while leaving the
+	# mapped entry and release at opposite sides. It is deliberately non-solid:
+	# the two usher positions, not an invisible fence, govern audience flow.
+	var crowd_arc: Array[Vector3] = []
+	for i in 37:
+		var a := deg_to_rad(-72.0 + float(i) * 4.0)
+		crowd_arc.append(audience + u * (radii.x * cos(a))
+			+ v * (radii.y * sin(a)) + Vector3.UP * 0.58)
+	for i in crowd_arc.size() - 1:
+		_strut("P5_crowd_rail_%02d" % i, crowd_arc[i], crowd_arc[i + 1],
+			0.07, "metal")
+		if i % 3 == 0:
+			_cyl("P5_crowd_post_%02d" % i, crowd_arc[i] - Vector3.UP * 0.58,
+				Vector3(0, 0.58, 0), 0.055, 1.16, "metal", 0.0, 8, false)
+
+	# Separate audience load, release and photo turnout. These lie on the
+	# hand-authored Plaza slab, so duplicate collision is intentionally disabled.
+	_rebuild_access_path("P5_audience_entry", site["access"], &"plaza",
+		3.0, false)
+	_rebuild_access_path("P5_audience_release", site["exit"], &"plaza",
+		3.0, false)
+	_rebuild_access_path("P5_photo_access", site["photo_access"], &"plaza",
+		2.6, false)
+	var photo := _rebuild_site(site["photo"], &"plaza")
+	_cyl("P5_photo_turnout", photo, Vector3(0, 0.035, 0), 2.2, 0.07,
+		"brick", 0.0, 28, false)
+	_box("P5_photo_mark", photo, Vector3(0, 0.05, 0),
+		Vector3(0.55, 0.10, 0.55), "yellow", theta, false)
+
+	for host_data in [["entry", site["host"]], ["release", site["host2"]]]:
+		var host := _rebuild_site(Vector2(host_data[1]), &"plaza")
+		_box("P5_%s_usher_pad" % host_data[0], host, Vector3(0, 0.05, 0),
+			Vector3(2.0, 0.10, 2.0), "brick", 0.0, false)
+		_cyl("P5_%s_usher_post" % host_data[0], host, Vector3(0, 0.80, 0),
+			0.09, 1.6, "yellow", 0.0, 8, false)
+		_box("P5_%s_usher_board" % host_data[0], host,
+			Vector3(0, 1.42, 0), Vector3(0.8, 0.55, 0.08),
+			"far_shade", theta, false)
+
+	# Rear 10 x 6m cue/load yard. Its west gate meets S1; its open east side and
+	# short internal path point at the stage without crossing a public route.
+	var backstage := _rebuild_site(site["backstage"], &"plaza")
+	var backstage_size: Vector2 = site["backstage_size"]
+	_box("P5_backstage_floor", backstage, Vector3(0, 0.025, 0),
+		Vector3(backstage_size.x, 0.05, backstage_size.y), "brick", 0.0, false)
+	for side in [-1.0, 1.0]:
+		_box("P5_backstage_%s_rail" % ("north" if side < 0 else "south"),
+			backstage, Vector3(0, 0.65, side * backstage_size.y * 0.5),
+			Vector3(backstage_size.x, 1.30, 0.12), "far_shade")
+	for side in [-1.0, 1.0]:
+		_box("P5_backstage_west_%s" % ("north" if side < 0 else "south"),
+			backstage, Vector3(-backstage_size.x * 0.5, 0.65, side * 2.25),
+			Vector3(0.12, 1.30, 1.5), "far_shade")
+	_box("P5_backstage_prop_rack", backstage, Vector3(-2.0, 1.15, 0),
+		Vector3(3.2, 2.3, 1.0), "wood")
+	_box("P5_backstage_cue_desk", backstage, Vector3(2.2, 0.72, 0),
+		Vector3(2.1, 1.44, 0.8), "accent")
+	_rebuild_access_path("P5_service_access", site["service"], &"plaza",
+		2.8, false)
+	var performer_path := [backstage + Vector3(4.0, 0, 1.0),
+		Vector3(-47, 0, -36), stage - u * 5.8]
+	_rebuild_path("P5_performer_path", performer_path, 2.2, false, &"", false)
+
+	# P5 carries its own practicals now that the obsolete Plaza gazebo is gone.
+	_omni("P5_stage_glow", stage + Vector3(0, 5.0, 0), "warm", 3.4, 17.0,
+		LIGHT_FIXTURE, true)
+	for i in 8:
+		var a := TAU * float(i) / 8.0 + PI * 0.125
+		_omni("P5_canopy_bulb_%02d" % i,
+			stage + Vector3(cos(a) * 5.25, 5.22, sin(a) * 5.25),
+			"warm", 0.8, 5.5)
+
+
+func _rebuild_swinging_ship(site: Dictionary) -> void:
+	var at := _rebuild_site(site["at"], &"fairground")
+	var theta := -PI * 0.24
+	_box("R4_court", at, Vector3(0, 0.04, 0),
+		Vector3(26, 0.08, 10), "brick", theta, false)
+	for side in [-1.0, 1.0]:
+		_strut("R4_frame_%s_a" % str(side),
+			_place(at, Vector3(side * 7.8, 0, -3.8), theta),
+			_place(at, Vector3(side * 3.8, 9.4, 0), theta), 0.42, "metal")
+		_strut("R4_frame_%s_b" % str(side),
+			_place(at, Vector3(side * 7.8, 0, 3.8), theta),
+			_place(at, Vector3(side * 3.8, 9.4, 0), theta), 0.42, "metal")
+	_strut("R4_pivot", _place(at, Vector3(-4.2, 9.2, 0), theta),
+		_place(at, Vector3(4.2, 9.2, 0), theta), 0.50, "metal")
+	_box("R4_ship_hull", at, Vector3(0, 3.4, 0),
+		Vector3(12.5, 1.7, 3.1), "red", theta, false)
+	for x in [-5.2, -2.6, 0.0, 2.6, 5.2]:
+		_box("R4_seat_%s" % str(x), at, Vector3(x, 4.35, 0),
+			Vector3(1.7, 0.75, 2.5), "yellow", theta, false)
+	_rebuild_access_path("R4_queue", site["queue"], &"fairground", 2.4)
+
+
+func _rebuild_mini_rail(site: Dictionary) -> void:
+	var at := _rebuild_site(site["at"], &"family")
+	var radii: Vector2 = site["radii"]
+	var track: Array[Vector3] = []
+	for point in Plan.rebuild_kiddie_rail_loop():
+		track.append(Vector3(point.x, at.y + 0.24, point.z))
+	var outer: Array[Vector3] = []
+	var inner: Array[Vector3] = []
+	for i in Plan.KIDDIE_RAIL_STEPS + 1:
+		var a := PI + TAU * float(i) / float(Plan.KIDDIE_RAIL_STEPS)
+		outer.append(at + Vector3(cos(a) * (radii.x + 0.55), 0.24,
+			sin(a) * (radii.y + 0.55)))
+		inner.append(at + Vector3(cos(a) * (radii.x - 0.55), 0.24,
+			sin(a) * (radii.y - 0.55)))
+	for i in Plan.KIDDIE_RAIL_STEPS:
+		_strut("R5_outer_%02d" % i, outer[i], outer[i + 1], 0.13, "metal")
+		_strut("R5_inner_%02d" % i, inner[i], inner[i + 1], 0.13, "metal")
+		if i % 2 == 0:
+			_strut("R5_tie_%02d" % i, inner[i], outer[i], 0.10, "wood")
+	_ride_vehicle_node("kiddie_train", 0, PackedVector3Array(track))
+	var station := at + Vector3(-radii.x - 2.2, 0, 0)
+	_box("R5_station_platform", station, Vector3(0, 0.08, 0),
+		Vector3(6, 0.16, 4), "brick", 0.0, false)
+	_box("R5_station_canopy", station, Vector3(0, 3.0, 0),
+		Vector3(6.5, 0.25, 4.5), "yellow", 0.0, false)
+	for x in [-2.6, 2.6]:
+		for z in [-1.6, 1.6]:
+			_cyl("R5_station_post_%s_%s" % [str(x), str(z)], station,
+				Vector3(x, 1.5, z), 0.08, 3.0, "white", 0.0, 8)
+	_rebuild_access_path("R5_queue", site["queue"], &"family", 2.4)
+
+
+func _rebuild_spinning_tubs(site: Dictionary) -> void:
+	var at := _rebuild_site(site["at"], &"family")
+	var radius: float = site["radius"]
+	_cyl("R6_court", at, Vector3(0, 0.05, 0), radius, 0.10,
+		"brick", 0.0, 28, false)
+	_cyl("R6_hub", at, Vector3(0, 0.65, 0), 1.2, 1.3,
+		"yellow", 0.0, 16, false)
+	for i in 6:
+		var a := TAU * float(i) / 6.0
+		var pod := at + Vector3(cos(a) * 4.1, 0, sin(a) * 4.1)
+		_cyl("R6_tub_%d" % i, pod, Vector3(0, 0.60, 0), 1.25, 1.2,
+			"red" if i % 2 == 0 else "blue", 0.0, 16, false)
+	_rebuild_access_path("R6_queue", site["queue"], &"family", 2.2)
+
+
+func _rebuild_carousel_ride(site: Dictionary) -> void:
+	var at := _rebuild_site(site["at"], &"family")
+	var radius: float = site["radius"]
+	_cyl("R7_deck", at, Vector3(0, 0.22, 0), radius, 0.44,
+		"brick", 0.0, 32)
+	_cyl("R7_mast", at, Vector3(0, 3.8, 0), 0.20, 7.2,
+		"metal", 0.0, 12)
+	for i in 12:
+		var a := TAU * float(i) / 12.0
+		var horse := at + Vector3(cos(a) * 4.8, 0, sin(a) * 4.8)
+		_cyl("R7_pole_%02d" % i, horse, Vector3(0, 2.5, 0),
+			0.055, 5.0, "metal", 0.0, 8, false)
+		_box("R7_horse_%02d" % i, horse, Vector3(0, 1.15, 0),
+			Vector3(1.35, 0.70, 0.42), "white", -a, false)
+	for i in 16:
+		var a := TAU * float(i) / 16.0
+		_strut("R7_canopy_%02d" % i,
+			at + Vector3(cos(a) * radius, 5.4, sin(a) * radius),
+			at + Vector3(0, 7.4, 0), 0.68,
+			"yellow" if i % 2 == 0 else "red")
+	_rebuild_access_path("R7_queue", site["queue"], &"family", 2.2)
+
+
+func _rebuild_chair_swing(site: Dictionary) -> void:
+	var at := _rebuild_site(site["at"], &"highland")
+	var radius: float = site["radius"]
+	_cyl("R8_court", at, Vector3(0, 0.05, 0), radius, 0.10,
+		"brick", 0.0, 28, false)
+	_cyl("R8_tower", at, Vector3(0, 8.0, 0), 0.55, 16.0,
+		"red", 0.0, 14)
+	_cyl("R8_crown", at, Vector3(0, 13.8, 0), 4.8, 0.65,
+		"yellow", 0.0, 24, false)
+	for i in 12:
+		var a := TAU * float(i) / 12.0
+		var rim := at + Vector3(cos(a) * 4.4, 13.7, sin(a) * 4.4)
+		var seat := at + Vector3(cos(a) * 6.2, 7.0, sin(a) * 6.2)
+		_strut("R8_chain_%02d" % i, rim, seat, 0.045, "metal")
+		_box("R8_seat_%02d" % i, seat, Vector3(0, 0, 0),
+			Vector3(0.85, 0.70, 0.75), "blue" if i % 2 else "red",
+			-a, false)
+	_rebuild_access_path("R8_queue", site["queue"], &"highland", 2.4)
+
+
+func _rebuild_outline_ride(site: Dictionary, elevated: bool) -> void:
+	var source: Array = site["points"]
+	var centre := Vector2.ZERO
+	for point in source:
+		centre += Vector2(point)
+	centre /= float(source.size())
+	var at := _rebuild_site(centre, &"north")
+	var path: Array[Vector3] = []
+	for i in source.size() + 1:
+		var local := Vector2(source[i % source.size()]) - centre
+		var rise := 1.0
+		if elevated:
+			rise = 2.5 + sin(float(i) * 1.17) * 1.4
+		path.append(at + Vector3(local.x, rise, local.y))
+	for i in path.size() - 1:
+		_strut("%s_track_%02d" % [site["id"], i], path[i], path[i + 1],
+			0.28, "wood" if elevated else "blue")
+		if i % 2 == 0:
+			var ground := _rebuild_highland_floor(Vector2(path[i].x, path[i].z))
+			_strut("%s_support_%02d" % [site["id"], i],
+				Vector3(path[i].x, ground, path[i].z), path[i], 0.18,
+				"wood" if elevated else "metal")
+	if not elevated:
+		# A low blue inner ribbon gives the Grove attraction the unmistakable
+		# water channel promised by the district plan.
+		for i in path.size() - 1:
+			var a := path[i] - Vector3.UP * 0.72
+			var b := path[i + 1] - Vector3.UP * 0.72
+			_strut("R9_water_%02d" % i, a, b, 0.65, "water_pool")
+	_rebuild_access_path("%s_queue" % site["id"], site["queue"], &"north", 2.6)
+
+
+func _rebuild_observation_ride(site: Dictionary) -> void:
+	var at := _rebuild_site(site["at"], &"north")
+	var radius: float = site["radius"]
+	_cyl("R11_court", at, Vector3(0, 0.05, 0), radius, 0.10,
+		"brick", 0.0, 28, false)
+	_cyl("R11_base", at, Vector3(0, 1.25, 0), 2.7, 2.5,
+		"far_shade", 0.0, 18)
+	_cyl("R11_shaft", at, Vector3(0, 18.0, 0), 0.72, 34.0,
+		"red", 0.0, 16)
+	_cyl("R11_cabin", at, Vector3(0, 27.0, 0), 4.8, 1.7,
+		"glass", 0.0, 24, false)
+	_cyl("R11_roof", at, Vector3(0, 28.15, 0), 5.2, 0.6,
+		"yellow", 0.0, 24, false)
+	_cyl("R11_spire", at, Vector3(0, 34.7, 0), 0.13, 12.5,
+		"metal", 0.0, 10, false)
+	_rebuild_access_path("R11_queue", site["queue"], &"north", 2.6)
+
+
+func _rebuild_atlas_sky_ride(site: Dictionary) -> void:
+	var terminal_sources: Array = site["terminals"]
+	var a := _rebuild_site(terminal_sources[0], &"north")
+	var b := _rebuild_site(terminal_sources[1], &"north")
+	var cable_a := a + Vector3.UP * 12.0
+	var cable_b := b + Vector3.UP * 18.0
+	for terminal in [["grove", a, cable_a], ["frontier", b, cable_b]]:
+		var tag: String = terminal[0]
+		var base: Vector3 = terminal[1]
+		var cable: Vector3 = terminal[2]
+		_cyl("R12_%s_platform" % tag, base, Vector3(0, 0.18, 0),
+			6.0, 0.36, "brick", 0.0, 24, false)
+		for sx in [-3.8, 3.8]:
+			for sz in [-3.8, 3.8]:
+				_strut("R12_%s_leg_%s_%s" % [tag, str(sx), str(sz)],
+					base + Vector3(sx, 0, sz), cable + Vector3(sx * 0.35, -0.4, sz * 0.35),
+					0.24, "metal")
+		_cyl("R12_%s_bullwheel" % tag, cable, Vector3.ZERO,
+			2.6, 0.38, "yellow", PI * 0.5, 20, false, PI * 0.5)
+	for lane in [-1.0, 1.0]:
+		var off := Vector3(0, 0, lane * 1.5)
+		_strut("R12_cable_%s" % str(lane), cable_a + off, cable_b + off,
+			0.10, "metal")
+	for i in 9:
+		var t := (float(i) + 0.5) / 9.0
+		var car := cable_a.lerp(cable_b, t) + Vector3(0, -1.4,
+			1.5 if i % 2 == 0 else -1.5)
+		_strut("R12_hanger_%02d" % i, car + Vector3.UP * 1.4,
+			car + Vector3.UP * 0.35, 0.06, "metal")
+		_box("R12_car_%02d" % i, car, Vector3.ZERO, Vector3(1.5, 1.0, 1.2),
+			["red", "yellow", "blue"][i % 3], 0.0, false)
+
+
+func _rebuild_coaster(site: Dictionary, junior: bool) -> void:
+	var station_source: Vector2 = site["station"]
+	var track_anchor_source: Vector2 = site.get("track_anchor", station_source)
+	var zone := &"family" if junior else &"highland"
+	var track_at := _rebuild_site(track_anchor_source, zone)
+	var station_at := _rebuild_site(station_source, zone)
+	var source: Array = site["track"]
+	var track: Array[Vector3] = []
+	for i in source.size():
+		var local := Vector2(source[i]) - track_anchor_source
+		var phase := TAU * float(i) / maxf(float(source.size() - 1), 1.0)
+		var lift := (3.0 + (sin(phase - 0.8) + 1.0) * 2.3) if junior \
+			else (5.0 + (sin(phase - 1.1) + 1.0) * 7.5)
+		if i == 0 or i == source.size() - 1:
+			lift = 2.5 if junior else 3.5
+		track.append(track_at + Vector3(local.x, lift, local.y))
+	var id: String = String(site["id"])
+	for i in track.size() - 1:
+		_strut("%s_rail_%02d" % [id, i], track[i], track[i + 1],
+			0.32 if junior else 0.42, "blue" if junior else "red")
+		if i % 2 == 0:
+			var p := track[i]
+			var ground := _rebuild_family_floor(Vector2(p.x, p.z)) if junior \
+				else _rebuild_highland_floor(Vector2(p.x, p.z))
+			_strut("%s_support_%02d" % [id, i],
+				Vector3(p.x, ground, p.z), p, 0.20 if junior else 0.28,
+				"metal")
+	var station_size: Vector2 = site["station_size"]
+	var queue: Array = site["queue"]
+	var front := _rebuild_site(Vector2(queue[-1]),
+		&"family" if junior else &"highland")
+	_rebuild_open_building(id + "_station", station_at, station_size, front,
+		"far_shade", "yellow" if junior else "red", 5.0 if junior else 6.0)
+	_rebuild_access_path(id + "_queue", queue,
+		&"family" if junior else &"highland", 2.6)
+	if junior:
+		# Six small monitor faces form the promised exit viewing bank.
+		for i in 6:
+			_box("R14_screen_%d" % i, station_at,
+				Vector3(-2.5 + float(i), 2.0, 4.08),
+				Vector3(0.72, 0.55, 0.08), "glass", 0.0, false)
+
+
+func _rebuild_recurring_interiors() -> void:
+	for i in Plan.REBUILD_INTERIOR_SITES.size():
+		var site: Dictionary = Plan.REBUILD_INTERIOR_SITES[i]
+		var zone: StringName = site["district"]
+		var at := _rebuild_site(site["at"], zone)
+		var access: Array = site["access"]
+		var front := _rebuild_site(Vector2(access[-1]), zone)
+		var colors := [["far_warm", "red"], ["far_shade", "blue"],
+			["far_warm", "yellow"], ["far_shade", "red"],
+			["white", "blue"], ["far_warm", "yellow"]]
+		_rebuild_open_building(String(site["id"]), at, site["size"], front,
+			colors[i][0], colors[i][1], 4.8)
+		_rebuild_access_path("%s_threshold" % site["id"], access, zone, 2.6)
+
+
+func _rebuild_midway_frontages() -> void:
+	for i in Plan.REBUILD_MIDWAY_UNITS.size():
+		var site: Dictionary = Plan.REBUILD_MIDWAY_UNITS[i]
+		var id := String(site["id"])
+		var zone := &"boardwalk" if id.begins_with("B") else (
+			&"family" if id.begins_with("K") else &"fairground")
+		var at := _rebuild_site(site["at"], zone)
+		var direction := Vector3.ZERO
+		match StringName(site["front"]):
+			&"east": direction = Vector3.RIGHT
+			&"west": direction = Vector3.LEFT
+			&"north": direction = Vector3.FORWARD
+		var front := at + direction * 4.0
+		_rebuild_open_building("midway_%s" % id, at, Vector2(5, 5), front,
+			"far_warm", ["red", "yellow", "blue"][i % 3], 3.6)
+		# A low counter keeps each unit visibly open rather than reading as a
+		# generic closed shed from its route.
+		var theta := atan2(direction.x, direction.z)
+		_box("midway_%s_counter" % id, at, Vector3(0, 0.8, 2.65),
+			Vector3(4.3, 1.15, 0.62), "accent", theta)
+
+
+func _rebuild_ellipse_fence(nm: String, at: Vector3, radii: Vector2,
+		mat: String, steps := 24, gate_steps := 2) -> void:
+	var points: Array[Vector3] = []
+	for i in steps + 1:
+		var a := TAU * float(i) / float(steps)
+		points.append(at + Vector3(cos(a) * radii.x, 0, sin(a) * radii.y))
+	for i in steps:
+		# The west-facing two bays are the public gate; omitting both rails makes
+		# the opening real instead of painting a door on a continuous fence.
+		if i >= steps / 2 - gate_steps / 2 and i < steps / 2 + gate_steps / 2:
+			continue
+		var a := points[i]
+		var b := points[i + 1]
+		_strut("%s_%02d_low" % [nm, i], a + Vector3.UP * 0.48,
+			b + Vector3.UP * 0.48, 0.08, mat)
+		_strut("%s_%02d_high" % [nm, i], a + Vector3.UP * 0.95,
+			b + Vector3.UP * 0.95, 0.08, mat)
+		_cyl("%s_%02d_post" % [nm, i], a, Vector3(0, 0.50, 0),
+			0.07, 1.0, mat, 0.0, 8)
+
+
+func _rebuild_kiddieland_support() -> void:
+	# E5 · Family Support Lodge
+	var lodge := _rebuild_site(Vector2(27, 107), &"family")
+	var lodge_front := _rebuild_site(Vector2(27, 101), &"family")
+	_rebuild_open_building("E5_family_support", lodge, Vector2(10, 4),
+		lodge_front, "far_warm", "yellow", 3.8)
+
+	# KG1 · zero-depth Squirt Garden. The seven jets have no basin wall and the
+	# frog chain is independent of the protected Terraced Fountain system.
+	var garden := _rebuild_site(Vector2(31, 94), &"family")
+	_cyl("KG1_splash_pad", garden, Vector3(0, 0.035, 0), 4.1, 0.07,
+		"brick", 0.0, 32, false)
+	var jet_offsets := [Vector2(0, 0), Vector2(-2.2, -1), Vector2(-1, -1.8),
+		Vector2(1, -1.8), Vector2(2.2, -0.6), Vector2(1.4, 1.4),
+		Vector2(-1, 1.7)]
+	for i in jet_offsets.size():
+		var q: Vector2 = jet_offsets[i]
+		var foot := garden + Vector3(q.x, 0.08, q.y)
+		_cyl("KG1_jet_nozzle_%d" % i, foot, Vector3(0, 0.05, 0),
+			0.12, 0.10, "metal", 0.0, 10, false)
+		_strut("KG1_jet_%d" % i, foot + Vector3.UP * 0.10,
+			foot + Vector3.UP * (0.7 + 0.18 * float(i % 3)), 0.075,
+			"water_jet")
+	var frogs := [garden + Vector3(-2.5, 0, 0.7),
+		garden + Vector3(0, 0, -1.6), garden + Vector3(2.4, 0, 0.8)]
+	for i in frogs.size():
+		var frog: Vector3 = frogs[i]
+		_sphere("KG1_frog_%d_body" % i, frog, Vector3(0, 0.48, 0),
+			0.52, "sky_green", 0.0, 0.75)
+		_sphere("KG1_frog_%d_head" % i, frog, Vector3(0, 0.91, 0),
+			0.34, "sky_green", 0.0, 0.86)
+	for i in 2:
+		_rebuild_water_arc("KG1_frog_arc_%d" % i,
+			frogs[i] + Vector3.UP * 1.02, frogs[i + 1] + Vector3.UP * 0.78, 1.75)
+
+	# KC1 · Character Garden and a three-face stand-up.
+	var character := _rebuild_site(Vector2(43, 115), &"family")
+	_rebuild_ellipse_fence("KC1_character_fence", character,
+		Vector2(7, 5), "yellow", 24, 3)
+	_box("KC1_face_board", character, Vector3(0, 1.45, 4.0),
+		Vector3(6.0, 2.9, 0.22), "blue", 0.0, false)
+	for x in [-1.8, 0.0, 1.8]:
+		_cyl("KC1_face_hole_%s" % str(x), character,
+			Vector3(x, 1.65, 3.86), 0.34, 0.10, "far_shade",
+			PI * 0.5, 16, false, PI * 0.5)
+
+	# KC2 and KC3 · the district photo counter and birthday pavilion.
+	var photo := _rebuild_site(Vector2(55, 118), &"family")
+	_rebuild_open_building("KC2_family_photo", photo, Vector2(8, 5),
+		character, "white", "blue", 3.8)
+	var birthday := _rebuild_site(Vector2(70, 119), &"family")
+	_box("KC3_pavilion_pad", birthday, Vector3(0, 0.03, 0),
+		Vector3(12, 0.06, 6), "brick", 0.0, false)
+	_box("KC3_pavilion_canopy", birthday, Vector3(0, 3.5, 0),
+		Vector3(12.4, 0.28, 6.4), "yellow", 0.0, false)
+	for x in [-5.4, 5.4]:
+		for z in [-2.4, 2.4]:
+			_cyl("KC3_post_%s_%s" % [str(x), str(z)], birthday,
+				Vector3(x, 1.75, z), 0.09, 3.5, "white", 0.0, 8)
+
+	# KP1 · manual photo turnout and the R14 viewing counter.
+	var bay := _rebuild_site(Vector2(98.5, 78), &"family")
+	_box("KP1_photo_bay", bay, Vector3(0, 0.04, 0),
+		Vector3(4, 0.08, 4), "brick", 0.0, false)
+	_box("KP1_sighting_rail", bay, Vector3(0, 0.92, -1.65),
+		Vector3(3.6, 0.12, 0.12), "blue")
+
+
+func _rebuild_water_arc(nm: String, a: Vector3, b: Vector3,
+		height: float) -> void:
+	var previous := a
+	for i in range(1, 8):
+		var t := float(i) / 7.0
+		var p := a.lerp(b, t) + Vector3.UP * (4.0 * height * t * (1.0 - t))
+		_strut("%s_%02d" % [nm, i], previous, p, 0.07, "water_jet")
+		previous = p
+
+
+# ---------------------------------------------------------------------------
+# Park rebuild: package 05 service, creek and planting
+# ---------------------------------------------------------------------------
+
+func _rebuild_landscape() -> void:
+	_rebuild_service_network()
+	_rebuild_coastal_creek()
+	_rebuild_planting_structure()
+
+
+func _rebuild_service_network() -> void:
+	for spine in Plan.REBUILD_SERVICE_SPINES:
+		var source: Array = spine["points"]
+		var expanded := Plan.rebuild_expand_points2(source)
+		var rounded := _rebuild_round_route(expanded, false, 1)
+		var points: Array[Vector3] = []
+		if StringName(spine["id"]) == &"S2":
+			rounded = _rebuild_resample_route(rounded, 3.0)
+			points = _rebuild_service_s2_route(rounded)
+		else:
+			for point in rounded:
+				var p := Vector2(point)
+				var y := 0.0
+				if StringName(spine["id"]) == &"S3":
+					y = _rebuild_family_floor(p) if p.y > 40.0 \
+						else _rebuild_highland_floor(p)
+				points.append(Vector3(p.x, y, p.y))
+		if StringName(spine["id"]) == &"S2":
+			var section_index := 0
+			for section in _rebuild_below_lowland_sections(points):
+				_rebuild_retained_bed("bed_service_S2_%d" % section_index,
+					section, 4.0 + REBUILD_BED_MARGIN, false)
+				section_index += 1
+		_rebuild_path("service_%s" % spine["id"], points, 4.0, false, &"")
+		# A repeated low screen communicates back-of-house ownership without
+		# walling the whole park or hiding its district landmarks.
+		for i in range(1, points.size() - 1, 4):
+			var p: Vector3 = points[i]
+			_box("service_%s_screen_%02d" % [spine["id"], i], p,
+				Vector3(0, 1.1, 0), Vector3(3.2, 2.2, 0.20),
+				"sky_green", 0.0, false)
+
+
+## S2 crosses the public coastal loop at grade. Match C for six metres either
+## side of the crossing, then use the ordinary public grade limit to return to
+## the lowland. Its collider yields inside C's paved envelope, so this shared
+## profile is both a visual seam and a usable service-route handoff.
+func _rebuild_service_s2_route(plan_points: Array[Vector2]) -> Array[Vector3]:
+	var desired := PackedFloat32Array()
+	desired.resize(plan_points.size())
+	var pins := {0: 0.0}
+	pins[plan_points.size() - 1] = 0.0
+	for i in plan_points.size():
+		var nearest := _rebuild_nearest_graded_route(&"C", plan_points[i])
+		var distance := float(nearest["distance"])
+		if distance <= 6.0:
+			desired[i] = float(nearest["y"])
+			pins[i] = desired[i]
+		else:
+			desired[i] = 0.0
+	var heights := _rebuild_limited_route_heights(plan_points, desired,
+		pins, REBUILD_PUBLIC_MAX_GRADE)
+	var out: Array[Vector3] = []
+	for i in plan_points.size():
+		out.append(Vector3(plan_points[i].x, heights[i], plan_points[i].y))
+	for i in range(1, out.size()):
+		var run := Vector2(out[i].x, out[i].z).distance_to(
+			Vector2(out[i - 1].x, out[i - 1].z))
+		assert(absf(out[i].y - out[i - 1].y) / maxf(run, 0.001)
+			<= REBUILD_PUBLIC_MAX_GRADE + 0.001,
+			"S2 exceeds the public service grade at its C crossing")
+	return out
+
+
+func _rebuild_coastal_creek() -> void:
+	var source: Array = Plan.REBUILD_COASTAL_CREEK
+	var expanded := Plan.rebuild_expand_points2(source)
+	var rounded := _rebuild_round_route(expanded, false, 2)
+	var water: Array[Vector3] = []
+	for i in rounded.size():
+		var p := Vector2(rounded[i])
+		var t := float(i) / float(rounded.size() - 1)
+		var y := lerpf(-0.13, Plan.SHORE_TOP + 0.08, t)
+		water.append(Vector3(p.x, y, p.y))
+	var bank_mesh := _rebuild_path_mesh(water, 9.0, false, -0.05)
+	_rebuild_mesh_body("D2_creek_banks", bank_mesh, "planting", false)
+	var water_mesh := _rebuild_path_mesh(water, 3.2, false, 0.0)
+	_rebuild_mesh_body("D2_coastal_creek", water_mesh, "water_pool", false)
+
+	var pond := _rebuild_site(Vector2(-88, 55), &"boardwalk")
+	pond.y = lerpf(-0.13, Plan.SHORE_TOP + 0.08, 0.72)
+	_cyl("D2_rain_pond_bank", pond, Vector3(0, -0.03, 0), 10.0,
+		0.10, "planting", 0.0, 32, false)
+	_cyl("D2_rain_pond", pond, Vector3(0, 0.02, 0), 7.0,
+		0.06, "water_pool", 0.0, 32, false)
+
+	# Every crossing in the atlas is built: the garden footbridge, full-width
+	# promenade bridge and locked service culvert. No path terminates at water.
+	var foot := Plan.rebuild_expand_point(Vector2(-76, 53))
+	var foot_y := _rebuild_route_floor(&"C", foot)
+	_box("CB1_funhouse_footbridge", Vector3(foot.x, foot_y, foot.y),
+		Vector3(0, 0.10, 0), Vector3(4, 0.20, 11), "wood", 0.0, true)
+	var promenade := Plan.rebuild_expand_point(Vector2(-96, 55))
+	_box("CB2_boardwalk_bridge",
+		Vector3(promenade.x, Plan.SHORE_TOP, promenade.y),
+		Vector3(0, 0.08, 0), Vector3(10, 0.16, 12), "wood", 0.0, true)
+	var culvert := Plan.rebuild_expand_point(Vector2(-62, 44))
+	_box("CX1_service_culvert", Vector3(culvert.x, 0, culvert.y),
+		Vector3(0, 0.09, 0), Vector3(4, 0.18, 10), "brick", 0.0, true)
+	for bridge in [["CB1", foot, foot_y, 4.0],
+		["CB2", promenade, Plan.SHORE_TOP, 10.0]]:
+		var p: Vector2 = bridge[1]
+		var y: float = bridge[2]
+		var half: float = float(bridge[3]) * 0.5
+		for side in [-1.0, 1.0]:
+			_strut("%s_guard_%s" % [bridge[0], str(side)],
+				Vector3(p.x + side * half, y + 1.0, p.y - 5.3),
+				Vector3(p.x + side * half, y + 1.0, p.y + 5.3),
+				0.10, "metal")
+
+
+func _rebuild_planting_structure() -> void:
+	for band in Plan.REBUILD_PLANTING_BANDS:
+		var band_id := StringName(band["id"])
+		var points := Plan.rebuild_expand_points2(band["points"])
+		var ordinal := 0
+		for i in points.size() - 1:
+			var a: Vector2 = points[i]
+			var b: Vector2 = points[i + 1]
+			var count := maxi(1, int(ceil(a.distance_to(b) / 11.0)))
+			for j in count:
+				var t := (float(j) + 0.5) / float(count)
+				var p := a.lerp(b, t)
+				if _rebuild_in_protected(p, 2.5):
+					continue
+				# PL1_e predates package 04's Boardwalk frontage. The allée gives way
+				# wherever those later, binding parcels occupy its line: two pairs of
+				# midway booths, the funhouse frontage and the one surviving legacy
+				# restroom unit. A tree inside a wall is not planting structure, and
+				# keeping the gap here also leaves the rear stock doors readable.
+				if band_id == &"PL1_e" and _rebuild_boardwalk_planting_gap(p):
+					continue
+				var y := _rebuild_landscape_floor(p)
+				var screen := StringName(band["kind"]) == &"screen"
+				_rebuild_tree("%s_%02d" % [band["id"], ordinal],
+					Vector3(p.x, y, p.y), 4.5 if screen else 6.2,
+					1.6 if screen else 2.2)
+				ordinal += 1
+
+
+func _rebuild_boardwalk_planting_gap(p: Vector2) -> bool:
+	# All midway units are five metres square. Read their centres from the plan
+	# rather than repeating the four z positions that the program generator uses.
+	for unit in Plan.REBUILD_MIDWAY_UNITS:
+		if not String(unit["id"]).begins_with("B"):
+			continue
+		var at: Vector2 = Plan.rebuild_expand_point(unit["at"])
+		if absf(p.x - at.x) <= 3.0 and absf(p.y - at.y) <= 3.0:
+			return true
+
+	# P2 and the surviving restroom replace the allée as the visual edge through
+	# this stretch. Their combined frontage spans source z=24..55; those points
+	# are inside the identity region of the expansion map.
+	if p.x >= -93.0 and p.x <= -79.0 and p.y >= 24.0 and p.y <= 55.5:
+		return true
+	return false
+
+
+func _rebuild_landscape_floor(p: Vector2) -> float:
+	if p.x < -75.0 and p.y > -70.0 and p.y < 75.0:
+		return Plan.SHORE_TOP
+	if p.x > 75.0:
+		return _rebuild_family_floor(p) if p.y > 40.0 \
+			else _rebuild_highland_floor(p)
+	return 0.0
+
+
+func _rebuild_tree(nm: String, at: Vector3, height: float, radius: float) -> void:
+	_cyl(nm + "_trunk", at, Vector3(0, height * 0.36, 0),
+		0.18, height * 0.72, "wood", 0.0, 8)
+	_sphere(nm + "_crown_a", at, Vector3(-radius * 0.28, height * 0.78, 0),
+		radius, "foliage", 0.0, 0.82)
+	_sphere(nm + "_crown_b", at, Vector3(radius * 0.38, height * 0.84,
+		radius * 0.18), radius * 0.82, "foliage", 0.0, 0.92)

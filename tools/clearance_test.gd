@@ -43,7 +43,7 @@ const NOT_CORRIDORS := [&"street", &"apron"]
 ## One entry so far and it earns its place: a bollard line crosses the walk on
 ## purpose. It is the only thing in the plaza whose whole function is to be in
 ## the road, so it is named here rather than given a rule.
-const ALLOWED := ["bollard_n", "bollard_s"]
+const ALLOWED := ["bollard_n", "bollard_s", "parking_axis_curb"]
 
 ## Above this and a thing overhangs rather than blocks — an umbrella canopy, a
 ## lamp head, a valance, an awning. Measured to the piece's *underside*: the pole

@@ -47,6 +47,8 @@
     </label>
   </div>
 
+  <p class="text-small text-muted"><b>World datum:</b> The mapped 434 × 450m outline is the developed park envelope, not the island or render boundary. Planted mainland continues more than 2km north, south, and east; ocean continues nearly 4km west. This map stays close so its route widths and parcels remain legible.</p>
+
   <div class="build-sequence text-small" aria-label="Binding construction order">
     <span><b>01</b> Strip</span><i aria-hidden="true">→</i>
     <span><b>02</b> Grade</span><i aria-hidden="true">→</i>
@@ -73,7 +75,7 @@
 
   <svg id="rebuild-map" role="img" aria-labelledby="rebuild-map-title rebuild-map-description">
     <title id="rebuild-map-title">Demolition and construction overlay for the park rebuild</title>
-    <desc id="rebuild-map-description">A measured world-coordinate plan showing inherited paths to remove, protected monuments, final circulation, terrain edges, fourteen ride courts including the High Terrace and Kiddieland coasters, programmed guest attractions, twelve distributed playable interiors, twelve outdoor midway units arranged in three corridor bands, a completed three-room Kiddieland with a zero-depth jumping-water garden, service access, the daylighted Coastal Creek, six locked navigation and sightline checks, the day, closing-sweep, and after-hours photography mission spine, seven district mini-campaigns braided through the Photo Hut, four seasonal mission and decor overlays, and twelve original Feature Assignments synthesized from thirty-six mapped reference lenses.</desc>
+    <desc id="rebuild-map-description">A measured world-coordinate plan of the developed park, whose surrounding mainland and ocean continue for kilometres beyond the close map view, showing inherited paths to remove, protected monuments, final circulation, terrain edges, fourteen ride courts including the High Terrace and Kiddieland coasters, programmed guest attractions, twelve distributed playable interiors, twelve outdoor midway units arranged in three corridor bands, a completed three-room Kiddieland with a zero-depth jumping-water garden, service access, the daylighted Coastal Creek, six locked navigation and sightline checks, the day, closing-sweep, and after-hours photography mission spine, seven district mini-campaigns braided through the Photo Hut, four seasonal mission and decor overlays, and twelve original Feature Assignments synthesized from thirty-six mapped reference lenses.</desc>
   </svg>
 
   <div class="card package-summary" aria-live="polite">
@@ -2033,7 +2035,7 @@
       {w:9,p:[[90,-50],[94,-58]]}
     ]},
     F:{name:'F · Northern ride circuit',label:[57,-126],paths:[
-      {w:9,p:[[-6,-68],[4,-82],[20,-100],[40,-113],[63,-120],[86,-116],[106,-104],[120,-86],[124,-62],[118,-42],[107,-30],[94,-50],[78,-65],[58,-70],[39,-64],[20,-55],[-1,-58],[-6,-68]]},
+      {w:9,p:[[-6,-68],[4,-82],[20,-100],[40,-113],[63,-120],[86,-116],[106,-104],[120,-86],[124,-62],[118,-42],[107,-30],[94,-50],[94,-58],[78,-65],[58,-70],[39,-64],[20,-55],[-1,-58],[-6,-68]]},
       {w:12,p:[[94,-50],[94,-58]]},
       {w:12,p:[[-6,-68],[-3,-52]]}
     ]}
@@ -2164,8 +2166,8 @@
       track:[[129,-41],[139,-46],[150,-38],[153,-20],[150,-2],[146,17],
         [148,34],[141,44],[132,42],[137,29],[140,12],[140,-5],[143,-22],
         [139,-35],[129,-41]],
-      station:{at:[129,-41],size:[14,8]},
-      queue:[[118,-40],[122,-41],[125,-41]],
+      trackAnchor:[129,-41],station:{at:[135,-41],size:[14,8]},
+      queue:[[118,-40],[124,-40],[129,-41],[132.2,-41]],
       service:[[136,-43],[146,-50],[151,-56]]},
     {id:'R14',name:'Kiddieland junior coaster',type:'coaster',label:[123,84],
       footprint:[[113,72],[121,69],[128,76],[128,87],[121,98],[115,104],
@@ -2229,7 +2231,7 @@
       playLoop:{at:[27,93],radii:[7,5]}},
     {id:'P5',name:'Plaza bandstand performances',type:'circle',at:[-42,-32],r:6.2,label:[-42,-32],
       audience:{at:[-31,-23.5],radii:[7,10],rotate:37.3},
-      access:[[-32,-1],[-32,-8],[-35,-13],[-37.1,-15.5]],
+      access:[[-32,-1],[-28,-3],[-28,-12],[-35,-13],[-37.1,-15.5]],
       access2:[[-25.4,-19.3],[-21,-18],[-16,-16],[-9,-15]],
       photo:[-20,-28],photoAccess:[[-25,-20],[-22,-23],[-20,-28]],
       service:[[-62,-38],[-58,-38],[-58,-39]],
@@ -2238,12 +2240,12 @@
   ];
 
   const establishedInteriors = [
-    {id:'E1',name:'PHOTO HUT',district:'Plaza',type:'rect',at:[21,18.5],size:[8,7],label:[28,13],anchor:'start',routes:['A','D']},
+    {id:'E1',name:'PHOTO HUT',district:'Plaza',type:'rect',at:[-25,25],size:[8,7],label:[-35,33],anchor:'end',routes:['A','C']},
     {id:'E2',name:'LIGHTHOUSE EXHIBIT',district:'Headland',type:'rect',at:[-22.5,-124],size:[8,6],label:[-29,-133],anchor:'middle',routes:['A']},
     {id:'E3',name:'FUNHOUSE',district:'Boardwalk',type:'rect',at:[-77,32],size:[12,14],label:[-68,26],anchor:'start',routes:['B']},
     {id:'E4',name:'BIG TOP',district:'Fairground',type:'ellipse',at:[-32,92],radii:[9,6],label:[-32,80],anchor:'middle',routes:['C']},
     {id:'E5',name:'FAMILY SUPPORT',district:'Family Commons',type:'rect',at:[27,107],size:[10,4],label:[39,104],anchor:'start',routes:['D']},
-    {id:'E6',name:'COASTER STATION',district:'High Terrace',type:'rect',at:[129,-41],size:[14,8],label:[126,-31],anchor:'middle',routes:['E','F']}
+    {id:'E6',name:'COASTER STATION',district:'High Terrace',type:'rect',at:[135,-41],size:[14,8],label:[135,-31],anchor:'middle',routes:['E','F']}
   ];
 
   const newInteriors = [
@@ -2253,8 +2255,8 @@
       access:[[-96,-29],[-91,-29]],service:[[-75,-29],[-68,-30],[-62,-30]]},
     {id:'I3',name:'BOARDWALK CAFÉ',district:'Boardwalk',type:'rect',at:[-81,-48],size:[14,8],label:[-72,-56],anchor:'start',routes:['B'],
       access:[[-82,-60],[-82,-52]],service:[[-74,-48],[-68,-54],[-64,-60]]},
-    {id:'I4',name:'OVERLOOK CAFÉ',district:'High Terrace',type:'rect',at:[132,-73],size:[14,8],label:[130,-84],anchor:'middle',routes:['F'],
-      access:[[124,-62],[128,-67],[125,-73]],service:[[139,-73],[139,-80],[138,-82]]},
+    {id:'I4',name:'OVERLOOK CAFÉ',district:'High Terrace',type:'rect',at:[136,-73],size:[14,8],label:[136,-84],anchor:'middle',routes:['F'],
+      access:[[124,-62],[128,-67],[129,-73]],service:[[143,-73],[143,-80],[142,-82]]},
     {id:'I5',name:'LOST + FOUND / FIRST AID',district:'Entrance',type:'rect',at:[-16,116],size:[12,8],label:[-25,126],anchor:'end',routes:['A'],
       access:[[0,116],[-10,116]],service:[[-22,120],[-28,124],[-34,126]]},
     {id:'I6',name:'STAFF BREAK / OPERATIONS',district:'Entrance',type:'rect',at:[16,116],size:[12,8],label:[25,126],anchor:'start',routes:['A'],
@@ -2778,9 +2780,9 @@
   validateKiddielandPlan();
 
   const missionPlan = {
-    home:{id:'H0',at:[21,18.5],label:[31,14],name:'PHOTO HUT'},
+    home:{id:'H0',at:[-25,25],label:[-35,33],name:'PHOTO HUT'},
     dayPath:[
-      [21,18.5],[16,8],[18,0],[15,14],[25,25],[34,39],[42,54],[49,68],
+      [-25,25],[16,8],[18,0],[15,14],[25,25],[34,39],[42,54],[49,68],
       [38,70],[25,76],[12,82],[21,96.5],[12,82],[25,76],[38,70],[49,68],
       [58,55],[66,44],[72,32],[74,40],[74,48],[58,40],[49,26],[46,0],
       [48,-18],[55,-30],[70,-42],[90,-50],[94,-58],[90,-50],[78,-65],
@@ -2790,7 +2792,7 @@
       [-96,-2],[-96,10],[-96,27],[-102,33],[-96,35],[-96,60],[-88,64],
       [-82,72],[-80,84],[-75,95],[-69,96],[-64,101],[-53,98],[-47,90],
       [-48,78],[-22,77],[-10,88],[-4,87],[0,86],[0,62],[0,34],[0,18],
-      [9,15],[16,8],[21,18.5]
+      [9,15],[16,8],[-25,25]
     ],
     dayNodes:[
       {id:'M1',at:[21,96.5],label:[31,104]},
@@ -2802,7 +2804,7 @@
       {id:'M7',at:[-69,96],label:[-80,108]}
     ],
     sweepPath:[
-      [21,18.5],[16,8],[18,0],[15,14],[25,25],[34,39],[42,54],[49,68],
+      [-25,25],[16,8],[18,0],[15,14],[25,25],[34,39],[42,54],[49,68],
       [42,82],[38,70],[25,76],[12,82],[0,86],[-4,87],[-10,88],[-22,77],
       [-48,78],[-58,70],[-72,76],[-78,90],[-80,84],[-82,72],[-88,64],
       [-96,60],[-96,35],[-96,10],[-96,-15],[-96,-40],[-96,-62],[-90,-62],
@@ -2810,7 +2812,7 @@
       [-16,-112],[-13,-101],[-10,-84],[-6,-68],[4,-82],[20,-100],[40,-113],
       [63,-120],[86,-116],[106,-104],[120,-86],[124,-62],[118,-42],[107,-30],
       [94,-50],[94,-58],[90,-50],[70,-42],[55,-30],[48,-18],[46,0],[32,0],
-      [18,0],[16,8],[21,18.5]
+      [18,0],[16,8],[-25,25]
     ],
     sweepNodes:[
       {id:'SW1',at:[42,82],label:[51,89]},
@@ -2820,11 +2822,11 @@
       {id:'SW5',at:[94,-58],label:[105,-66]}
     ],
     nightPath:[
-      [21,18.5],[16,8],[18,0],[32,0],[46,0],[48,-18],[55,-30],[70,-42],
+      [-25,25],[16,8],[18,0],[32,0],[46,0],[48,-18],[55,-30],[70,-42],
       [90,-50],[94,-58],[118,-42],[129,-41],[136,-43],[146,-50],[151,-56],
       [138,-82],[124,-100],[106,-104],[86,-116],[63,-120],[40,-113],[20,-100],
       [4,-82],[-6,-68],[-3,-52],[0,-35],[0,-18],[9,-15],[16,-8],[18,0],
-      [16,8],[21,18.5]
+      [16,8],[-25,25]
     ],
     nightNodes:[
       {id:'N1',at:[46,0],label:[55,8]},
@@ -2844,7 +2846,7 @@
         satellites:[[-69,96],[-73,-98],[68,88]]},
       {id:'A3',name:'PLACE',at:[-96,-2],label:[-111,-13],
         satellites:[[46,0],[0,123],[-7,-107]]},
-      {id:'A4',name:'RECOVERY',at:[21,18.5],label:[37,25],
+      {id:'A4',name:'RECOVERY',at:[-25,25],label:[-39,36],
         satellites:[[-102,33],[49,68],[-48,78]]},
       {id:'A5',name:'OPERATIONS',at:[-4,91],label:[-18,108],
         satellites:[[-20,-28],[36,-28],[-7,-107]]},
@@ -2854,37 +2856,37 @@
   };
 
   const districtStoryPlan = {
-    home:{id:'H0',name:'PHOTO HUT',at:[21,18.5],label:[21,6]},
+    home:{id:'H0',name:'PHOTO HUT',at:[-25,25],label:[-25,37]},
     beats:['Postcard','Routine','Favor','After Close','Keepsake'],
     districts:[
       {id:'DS1',name:'BOARDWALK',at:[-96,-29],label:[-116,-37],
         cast:['Mari','Denny','Ruth'],cause:'salt-moisture camera cross-trigger',
         access:'ride-photo workroom + gantry turnout',residue:'unrecorded occupied seat',
-        returnPath:[[-96,-29],[-96,-15],[-96,-2],[-84,-2],[-72,-2],[-58,-2],[-45,-2],[-32,-1],[-18,0],[9,15],[16,8],[21,18.5]]},
+        returnPath:[[-96,-29],[-96,-15],[-96,-2],[-84,-2],[-72,-2],[-58,-2],[-45,-2],[-32,-1],[-18,0],[9,15],[16,8],[-25,25]]},
       {id:'DS2',name:'FAIRGROUND',at:[-48,92],label:[-48,109],
         cast:['Gloria','Cal','Nia'],cause:'worn Big Top cue relay',
         access:'backstage threshold + cue schedule',residue:'extra cleared audience presence',
-        returnPath:[[-48,92],[-48,78],[-22,77],[-10,88],[0,86],[0,62],[0,34],[0,18],[9,15],[16,8],[21,18.5]]},
+        returnPath:[[-48,92],[-48,78],[-22,77],[-10,88],[0,86],[0,62],[0,34],[0,18],[9,15],[16,8],[-25,25]]},
       {id:'DS3',name:'KIDDIELAND',at:[87,82],label:[91,104],
         cast:['Teresa','Eli','Gus'],cause:'pressure bleed + retained timer state',
         access:'Family Photo workroom + R14 turnout',residue:'girl beside isolated third frog',
-        returnPath:[[87,82],[91,56],[75,51],[58,55],[49,68],[38,70],[25,76],[12,82],[0,86],[0,62],[0,34],[0,18],[9,15],[16,8],[21,18.5]]},
+        returnPath:[[87,82],[91,56],[75,51],[58,55],[49,68],[38,70],[25,76],[12,82],[0,86],[0,62],[0,34],[0,18],[9,15],[16,8],[-25,25]]},
       {id:'DS4',name:'HIGH TERRACE',at:[118,-42],label:[123,-25],
         cast:['Nadia','Len','Barb'],cause:'wind-sensor diagnostic',
         access:'station control + safe elevated turnout',residue:'girl absent from both operating logs',
-        returnPath:[[118,-42],[108,-52],[90,-50],[70,-42],[55,-30],[48,-18],[46,0],[32,0],[18,0],[16,8],[21,18.5]]},
+        returnPath:[[118,-42],[108,-52],[90,-50],[70,-42],[55,-30],[48,-18],[46,0],[32,0],[18,0],[16,8],[-25,25]]},
       {id:'DS5',name:'FRONTIER',at:[91,-94],label:[103,-108],
         cast:['Buck','Yvonne','Jules'],cause:'leaking compressed-air branch',
         access:'false-front work passage',residue:'occupied window with no room',
-        returnPath:[[91,-94],[86,-116],[63,-120],[40,-113],[20,-100],[4,-82],[-6,-68],[-3,-52],[0,-35],[0,-18],[9,-15],[16,-8],[18,0],[16,8],[21,18.5]]},
+        returnPath:[[91,-94],[86,-116],[63,-120],[40,-113],[20,-100],[4,-82],[-6,-68],[-3,-52],[0,-35],[0,-18],[9,-15],[16,-8],[18,0],[16,8],[-25,25]]},
       {id:'DS6',name:'THE GROVE',at:[20,-91],label:[20,-109],
         cast:['June','Milo','Donna'],cause:'advancing irrigation zones',
         access:'garden gate + flume turnout',residue:'girl at the old picnic site',
-        returnPath:[[20,-91],[4,-82],[-6,-68],[-3,-52],[0,-35],[0,-18],[9,-15],[16,-8],[18,0],[16,8],[21,18.5]]},
+        returnPath:[[20,-91],[4,-82],[-6,-68],[-3,-52],[0,-35],[0,-18],[9,-15],[16,-8],[18,0],[16,8],[-25,25]]},
       {id:'DS7',name:'HEADLAND',at:[-16,-124],label:[-37,-143],
         cast:['Aggie','Tomas','Ellis'],cause:'sticky mechanical beacon timer',
         access:'keeper controls + lens stair',residue:'missing-year girl in obscura plate',
-        returnPath:[[-16,-124],[-13,-101],[-10,-84],[-6,-68],[-3,-52],[0,-35],[0,-18],[9,-15],[16,-8],[18,0],[16,8],[21,18.5]]}
+        returnPath:[[-16,-124],[-13,-101],[-10,-84],[-6,-68],[-3,-52],[0,-35],[0,-18],[9,-15],[16,-8],[18,0],[16,8],[-25,25]]}
     ]
   };
 
@@ -2911,7 +2913,7 @@
     B:{district:'BOARDWALK',at:[-96,-29],decorAt:[-83,-29],label:[-116,-37],socket:'frontage + ride-photo rail'},
     F:{district:'FAIRGROUND',at:[-48,92],decorAt:[-35,68],label:[-48,109],socket:'midway frontage + Big Top edge'},
     K:{district:'KIDDIELAND',at:[87,82],decorAt:[53,104],label:[91,104],socket:'Family Commons + Character Garden'},
-    T:{district:'HIGH TERRACE',at:[118,-42],decorAt:[132,-73],label:[123,-25],socket:'R13 station + overlook café'},
+    T:{district:'HIGH TERRACE',at:[118,-42],decorAt:[136,-73],label:[123,-25],socket:'R13 station + overlook café'},
     R:{district:'FRONTIER',at:[91,-94],decorAt:[105,-87],label:[103,-108],socket:'false fronts + show court'},
     G:{district:'THE GROVE',at:[20,-91],decorAt:[-2,-84],label:[20,-109],socket:'picnic shelters + planted arrival'},
     H:{district:'HEADLAND',at:[-16,-124],decorAt:[-22.5,-124],label:[-37,-143],socket:'keeper forecourt + exhibit windows'}
@@ -3012,7 +3014,7 @@
 
   const featureSites = {
     A:{name:'PARKWIDE',at:[0,0],label:[-18,15]},
-    P:{name:'PLAZA / PHOTO HUT',at:[21,18.5],label:[-2,37]},
+    P:{name:'PLAZA / PHOTO HUT',at:[-25,25],label:[-40,39]},
     B:{name:'BOARDWALK',at:[-96,-29],label:[-118,-41]},
     F:{name:'FAIRGROUND',at:[-48,92],label:[-48,112]},
     K:{name:'KIDDIELAND',at:[87,82],label:[92,105]},
@@ -4278,7 +4280,7 @@
         pathLine([offset(stage,4.35,-4.2),offset(stage,4.35,4.2)],'parcel-facade');
         pathLine([offset(stage,5.6,0),offset(audience,-6.4,0)],'parcel-platform');
 
-        pathLine([[-32,-1],[-32,-8],[-35,-13],[-37.1,-15.5]],'parcel-entry');
+        pathLine([[-32,-1],[-28,-3],[-28,-12],[-35,-13],[-37.1,-15.5]],'parcel-entry');
         pathLine([[-25.4,-19.3],[-21,-18],[-16,-16],[-9,-15]],'parcel-exit');
         svg.appendChild(make('rect',{
           x:x(-37),y:y(-17.5),width:2*scale,height:2*scale,class:'parcel-booth'

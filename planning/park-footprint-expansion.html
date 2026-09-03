@@ -1,0 +1,396 @@
+<div id="kyt-footprint-expansion">
+  <h2>Park footprint expansion</h2>
+  <div class="viz-controls" aria-label="Footprint comparison">
+    <button type="button" class="btn btn-primary" data-mode="expanded" aria-pressed="true">Expanded plan</button>
+    <button type="button" class="btn" data-mode="current" aria-pressed="false">Current footprint</button>
+    <span class="text-muted tabular-nums" data-readout aria-live="polite">434 × 450 m developed park · geography continues beyond</span>
+  </div>
+  <svg viewBox="0 0 760 760" role="img" aria-labelledby="kyt-expansion-title kyt-expansion-desc">
+    <title id="kyt-expansion-title">Measured proposal to expand the Keep Your Ticket developed park footprint</title>
+    <desc id="kyt-expansion-desc">Toggleable plan comparing the current compact park with a larger north, south, and east developed program envelope. This outline locates attractions and circulation; it is not the edge of the terrain or ocean, which continue for kilometres beyond it. The Plaza, Cascading Staircases, Terraced Fountain, and central Boardwalk connection stay fixed. Routes and outer districts stretch outward, parking moves south into two fields around a central walk, and the Grand Circuit moves to a separate outer reserve.</desc>
+    <g data-grid></g>
+    <g data-current-envelope></g>
+    <g data-growth></g>
+    <g data-park></g>
+    <g data-parking></g>
+    <g data-tram></g>
+    <g data-routes></g>
+    <g data-anchors></g>
+    <g data-labels></g>
+    <g data-measures></g>
+  </svg>
+  <p class="text-small text-muted" data-note>The outline is the developed park, not a terrain boundary. Outer parcels move; ride footprints and route widths do not scale.</p>
+</div>
+
+<style>
+  #kyt-footprint-expansion {
+    width: 100%;
+    color: var(--foreground);
+  }
+  #kyt-footprint-expansion h2 {
+    margin: 0 0 10px;
+    font-weight: 500;
+  }
+  #kyt-footprint-expansion .viz-controls {
+    margin-bottom: 8px;
+  }
+  #kyt-footprint-expansion svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 760px;
+  }
+  #kyt-footprint-expansion text {
+    fill: var(--foreground);
+    font-size: 12px;
+    font-weight: 500;
+    paint-order: stroke;
+    stroke: var(--background);
+    stroke-width: 3px;
+    stroke-linejoin: round;
+  }
+  #kyt-footprint-expansion .minor-label {
+    fill: var(--muted-foreground);
+    font-weight: 400;
+  }
+  #kyt-footprint-expansion .grid-line {
+    stroke: var(--border);
+    stroke-width: 1;
+    opacity: .42;
+  }
+  #kyt-footprint-expansion .grid-axis {
+    stroke: var(--muted-foreground);
+    stroke-width: 1;
+    opacity: .7;
+  }
+  #kyt-footprint-expansion .old-envelope {
+    fill: none;
+    stroke: var(--muted-foreground);
+    stroke-width: 1.5;
+    stroke-dasharray: 7 6;
+    opacity: .75;
+  }
+  #kyt-footprint-expansion .park-fill {
+    fill: color-mix(in srgb, var(--green) 17%, transparent);
+    stroke: var(--green);
+    stroke-width: 2;
+  }
+  #kyt-footprint-expansion .growth-fill {
+    fill: color-mix(in srgb, var(--viz-series-2) 12%, transparent);
+    stroke: none;
+  }
+  #kyt-footprint-expansion .district {
+    fill: color-mix(in srgb, var(--viz-series-3) 9%, transparent);
+    stroke: var(--viz-series-3);
+    stroke-width: 1;
+    stroke-dasharray: 4 4;
+  }
+  #kyt-footprint-expansion .route-under {
+    fill: none;
+    stroke: var(--background);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  #kyt-footprint-expansion .route {
+    fill: none;
+    stroke: var(--viz-series-1);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: .94;
+  }
+  #kyt-footprint-expansion .route.future {
+    stroke-dasharray: 7 4;
+    opacity: .78;
+  }
+  #kyt-footprint-expansion .tram-under {
+    fill: none;
+    stroke: var(--background);
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  #kyt-footprint-expansion .tram {
+    fill: none;
+    stroke: var(--orange);
+    stroke-width: 4;
+    stroke-dasharray: 10 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  #kyt-footprint-expansion .plaza {
+    fill: color-mix(in srgb, var(--yellow) 22%, transparent);
+    stroke: var(--yellow);
+    stroke-width: 1.5;
+  }
+  #kyt-footprint-expansion .protected {
+    fill: color-mix(in srgb, var(--purple) 28%, transparent);
+    stroke: var(--purple);
+    stroke-width: 2;
+  }
+  #kyt-footprint-expansion .lot {
+    fill: color-mix(in srgb, var(--muted) 72%, transparent);
+    stroke: var(--muted-foreground);
+    stroke-width: 1;
+  }
+  #kyt-footprint-expansion .arrival-walk {
+    fill: color-mix(in srgb, var(--yellow) 35%, transparent);
+    stroke: var(--yellow);
+    stroke-width: 1;
+  }
+  #kyt-footprint-expansion .car {
+    fill: var(--muted-foreground);
+    opacity: .65;
+  }
+  #kyt-footprint-expansion .conflict {
+    fill: color-mix(in srgb, var(--red) 25%, transparent);
+    stroke: var(--red);
+    stroke-width: 2;
+  }
+  #kyt-footprint-expansion .formal-crossing {
+    fill: var(--yellow);
+    stroke: var(--background);
+    stroke-width: 1.5;
+  }
+  #kyt-footprint-expansion .measure {
+    stroke: var(--foreground);
+    stroke-width: 1;
+    marker-start: url(#kyt-arrow-start);
+    marker-end: url(#kyt-arrow-end);
+  }
+  #kyt-footprint-expansion [data-note] {
+    margin: 7px 0 0;
+  }
+  @media (max-width: 520px) {
+    #kyt-footprint-expansion .district-name,
+    #kyt-footprint-expansion .growth-name,
+    #kyt-footprint-expansion .minor-label {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+(() => {
+  const root = document.getElementById('kyt-footprint-expansion');
+  if (!root) return;
+  const svg = root.querySelector('svg');
+  const ns = 'http://www.w3.org/2000/svg';
+  const groups = Object.fromEntries([
+    'grid','current-envelope','growth','park','parking','tram','routes','anchors','labels','measures'
+  ].map(name => [name, svg.querySelector(`[data-${name}]`)]));
+  const domain = {x0:-225,x1:235,z0:-235,z1:225};
+  const plot = {x:42,y:32,w:662,h:662};
+  const sx = x => plot.x + (x-domain.x0)/(domain.x1-domain.x0)*plot.w;
+  const sy = z => plot.y + (z-domain.z0)/(domain.z1-domain.z0)*plot.h;
+  const scale = plot.w/(domain.x1-domain.x0);
+  const make = (name, attrs={}) => {
+    const node = document.createElementNS(ns,name);
+    Object.entries(attrs).forEach(([k,v]) => node.setAttribute(k,String(v)));
+    return node;
+  };
+  const clear = node => { while (node.firstChild) node.removeChild(node.firstChild); };
+  const pathD = pts => pts.map((p,i) => `${i?'L':'M'} ${sx(p[0]).toFixed(2)} ${sy(p[1]).toFixed(2)}`).join(' ');
+  const poly = (parent,pts,cls) => parent.appendChild(make('path',{d:pathD(pts)+' Z',class:cls}));
+  const line = (parent,pts,cls,width) => parent.appendChild(make('path',{
+    d:pathD(pts),class:cls,'stroke-width':width
+  }));
+  const label = (parent,copy,at,cls='') => {
+    const node=make('text',{x:sx(at[0]),y:sy(at[1]),'text-anchor':'middle',class:cls});
+    node.textContent=copy;
+    parent.appendChild(node);
+    return node;
+  };
+  const rectWorld = (parent,x0,z0,x1,z1,cls) => parent.appendChild(make('rect',{
+    x:sx(x0),y:sy(z0),width:(x1-x0)*scale,height:(z1-z0)*scale,class:cls
+  }));
+
+  const currentOutline = [
+    [-112,-151],[24,-153],[88,-140],[132,-111],[151,-67],[160,-42],
+    [161,36],[154,78],[141,122],[104,145],[24,151],[-25,144],[-75,112],
+    [-96,62],[-112,62]
+  ];
+  const routes = {
+    A:[
+      {w:11,p:[[0,123],[0,107],[0,86],[0,62],[0,34],[0,18]]},
+      {w:11,p:[[0,-18],[-1,-35],[-3,-52],[-6,-68],[-10,-84],[-13,-101],[-16,-112]]},
+      {w:10,p:[[-16,-112],[-30,-114],[-37,-125],[-31,-138],[-16,-144],[0,-139],[6,-126],[1,-115],[-16,-112]]},
+      {w:18,p:[[0,18],[9,15],[16,8],[18,0],[16,-8],[9,-15],[0,-18],[-9,-15],[-16,-8],[-18,0],[-16,8],[-9,15],[0,18]]}
+    ],
+    B:[
+      {w:10,p:[[-96,-62],[-96,-40],[-96,-15],[-96,10],[-96,35],[-96,60]]},
+      {w:8,p:[[-6,-68],[-22,-66],[-40,-62],[-58,-58],[-75,-59],[-90,-62],[-96,-62]]},
+      {w:9,p:[[-18,0],[-32,-1],[-45,-2],[-52,-2],[-58,-2],[-72,-2],[-84,-2],[-96,-2]]},
+      {w:8,p:[[-96,60],[-88,64],[-82,72],[-80,84],[-75,95],[-64,101],[-53,98],[-47,90],[-48,78]]}
+    ],
+    C:[{w:8,p:[[-48,78],[-58,70],[-72,76],[-78,90],[-70,108],[-52,116],[-32,112],[-18,101],[-10,88],[-22,77],[-48,78]]},{w:9,p:[[-10,88],[-4,87],[0,86]]},{w:9,p:[[-22,77],[-18,62],[-13,44],[-10,28],[-12,14]]}],
+    D:[{w:9,p:[[0,86],[12,82],[25,76],[38,70],[49,68]]},{w:8,p:[[49,68],[58,55],[75,51],[91,56],[105,69],[108,86],[98,103],[80,111],[61,108],[46,96],[42,82],[49,68]]},{w:10,p:[[49,68],[42,54],[34,39],[25,25],[15,14]]},{w:9,p:[[58,55],[66,44],[72,32],[72,22]]}],
+    E:[{w:8.5,p:[[46,0],[48,-18],[55,-30],[70,-42],[90,-50],[108,-52],[118,-40],[122,-20],[112,0],[120,14],[119,30],[108,43],[91,50],[74,48],[58,40],[49,26],[46,0]]},{w:9,p:[[18,0],[32,0],[46,0]]},{w:9,p:[[72,32],[74,40],[74,48]]},{w:9,p:[[90,-50],[94,-58]]}],
+    F:[{w:9,p:[[-6,-68],[4,-82],[20,-100],[40,-113],[63,-120],[86,-116],[106,-104],[120,-86],[124,-62],[118,-42],[107,-30],[94,-50],[94,-58],[78,-65],[58,-70],[39,-64],[20,-55],[-1,-58],[-6,-68]]},{w:12,p:[[94,-50],[94,-58]]},{w:12,p:[[-6,-68],[-3,-52]]}]
+  };
+  const currentTram = [[12,123],[37,123],[70,123],[102,104],[116,78],[116,20],[116,-70],[96,-104],[55,-126],[2,-140],[-38,-130],[-58,-108],[-68,-82],[-72,-50],[-72,18],[-72,62],[-63,92],[-48,116],[-15,132],[12,123]];
+  const expandedTram = [[0,174],[44,172],[92,160],[146,136],[188,96],[208,45],[210,-24],[196,-91],[166,-145],[120,-185],[62,-214],[-12,-220],[-62,-204],[-88,-170],[-82,-124],[-72,-82],[-72,-20],[-72,44],[-73,92],[-75,137],[-48,166],[0,174]];
+
+  function expandPoint(point) {
+    const [x,z]=point;
+    let nx=x, nz=z;
+    if (z>52) {
+      nz=52+(z-52)*1.55;
+      if (x>49) nx=49+(x-49)*1.45;
+    } else if (z<-52) {
+      nz=-52+(z+52)*1.65;
+      if (x>20) nx=20+(x-20)*1.35;
+    } else if (x>128) {
+      nx=128+(x-128)*2.5;
+    }
+    if (x<-112) nx=-112+(x+112)*1.5;
+    return [nx,nz];
+  }
+  const expandedOutline=currentOutline.map(expandPoint);
+
+  const defs=make('defs');
+  const markerA=make('marker',{id:'kyt-arrow-start',viewBox:'0 0 10 10',refX:1,refY:5,markerWidth:6,markerHeight:6,orient:'auto-start-reverse'});
+  markerA.appendChild(make('path',{d:'M 10 0 L 0 5 L 10 10 z',fill:'var(--foreground)'}));
+  const markerB=make('marker',{id:'kyt-arrow-end',viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:6,markerHeight:6,orient:'auto'});
+  markerB.appendChild(make('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'var(--foreground)'}));
+  defs.append(markerA,markerB);
+  svg.insertBefore(defs,svg.firstChild);
+
+  function drawGrid() {
+    clear(groups.grid);
+    for(let v=-200;v<=200;v+=50){
+      groups.grid.appendChild(make('line',{x1:sx(v),y1:sy(-225),x2:sx(v),y2:sy(220),class:v===0?'grid-axis':'grid-line'}));
+      groups.grid.appendChild(make('line',{x1:sx(-212),y1:sy(v),x2:sx(222),y2:sy(v),class:v===0?'grid-axis':'grid-line'}));
+    }
+  }
+
+  function drawAnchors() {
+    clear(groups.anchors);
+    rectWorld(groups.anchors,-52,-52,52,52,'plaza');
+    const nt1=make('rect',{x:sx(-74),y:sy(-15),width:19*scale,height:27*scale,class:'protected'});
+    const nt2=make('ellipse',{cx:sx(86),cy:sy(0),rx:42*scale,ry:36*scale,class:'protected'});
+    groups.anchors.append(nt1,nt2);
+    label(groups.labels,'PLAZA · FIXED',[0,5]);
+    label(groups.labels,'NT-1 · FIXED',[-64.5,17],'minor-label');
+    label(groups.labels,'NT-2 · FIXED',[86,4],'minor-label');
+  }
+
+  function drawParking(expanded) {
+    clear(groups.parking);
+    if (expanded) {
+      rectWorld(groups.parking,-68,181,-13,215,'lot');
+      rectWorld(groups.parking,13,181,68,215,'lot');
+      rectWorld(groups.parking,-7,162,7,219,'arrival-walk');
+      for (const side of [-1,1]) {
+        for(let row=0;row<3;row++) for(let col=0;col<7;col++) {
+          const x=side*(19+col*7);
+          const z=187+row*11;
+          groups.parking.appendChild(make('rect',{x:sx(x)-1.2,y:sy(z)-3.1,width:2.4,height:6.2,class:'car'}));
+        }
+      }
+      label(groups.labels,'PARKING WEST',[-40,210],'minor-label');
+      label(groups.labels,'PARKING EAST',[40,210],'minor-label');
+      label(groups.labels,'CLEAR ARRIVAL AXIS',[0,185],'minor-label');
+      groups.parking.appendChild(make('rect',{x:sx(-5.5),y:sy(171.5),width:11*scale,height:5*scale,class:'formal-crossing'}));
+    } else {
+      rectWorld(groups.parking,-76,132,74,191,'lot');
+      for(let row=0;row<4;row++) for(let col=0;col<14;col++) {
+        const x=-46.5+col*7;
+        const z=132+row*12;
+        groups.parking.appendChild(make('rect',{x:sx(x)-1.2,y:sy(z)-3.1,width:2.4,height:6.2,class:'car'}));
+      }
+      label(groups.labels,'OLD 56-CAR GRID',[-2,181],'minor-label');
+    }
+  }
+
+  function drawDistricts(expanded) {
+    if (!expanded) return;
+    const zones=[
+      ['HEADLAND',[-46,-225,12,-174],[-17,-211]],
+      ['GROVE / NORTH RIDES',[-8,-185,167,-112],[78,-174]],
+      ['HIGH TERRACE',[75,-92,216,70],[151,-79]],
+      ['KIDDIELAND',[48,72,177,168],[118,157]],
+      ['FAIRGROUND / COASTAL',[-84,79,2,164],[-43,157]],
+      ['BOARDWALK · FIXED',[-111,-83,-82,82],[-97,-72]]
+    ];
+    zones.forEach(([name,b,l])=>{
+      rectWorld(groups.growth,b[0],b[1],b[2],b[3],'district');
+      label(groups.labels,name,l,'district-name');
+    });
+  }
+
+  function drawMeasures(expanded) {
+    clear(groups.measures);
+    if (!expanded) return;
+    groups.measures.appendChild(make('line',{x1:sx(-212),y1:sy(-228),x2:sx(222),y2:sy(-228),class:'measure'}));
+    label(groups.measures,'434 m', [5,-229],'minor-label');
+    groups.measures.appendChild(make('line',{x1:sx(226),y1:sy(-230),x2:sx(226),y2:sy(220),class:'measure'}));
+    const vertical=label(groups.measures,'450 m',[230,-5],'minor-label');
+    vertical.setAttribute('transform',`rotate(90 ${sx(230)} ${sy(-5)})`);
+  }
+
+  function draw(mode) {
+    const expanded=mode==='expanded';
+    Object.values(groups).forEach(clear);
+    drawGrid();
+    if(expanded){
+      rectWorld(groups['current-envelope'],-178,-160,164,160,'old-envelope');
+      poly(groups.park,expandedOutline,'park-fill');
+      rectWorld(groups.growth,-212,-230,222,-160,'growth-fill');
+      rectWorld(groups.growth,-212,160,222,220,'growth-fill');
+      rectWorld(groups.growth,164,-160,222,160,'growth-fill');
+      rectWorld(groups.growth,-212,-160,-178,160,'growth-fill');
+      drawDistricts(true);
+      label(groups.labels,'+70 m NORTH',[0,-224],'growth-name');
+      label(groups.labels,'+60 m SOUTH',[0,217],'growth-name');
+      label(groups.labels,'+58 m EAST',[211,92],'growth-name');
+      label(groups.labels,'+34 m WATER',[-202,92],'growth-name');
+    } else {
+      poly(groups.park,currentOutline,'park-fill');
+      rectWorld(groups['current-envelope'],-178,-160,164,160,'old-envelope');
+    }
+
+    Object.entries(routes).forEach(([id,runs])=>runs.forEach(run=>{
+      const pts=expanded?run.p.map(expandPoint):run.p;
+      const width=run.w*scale;
+      line(groups.routes,pts,'route-under',width+4);
+      line(groups.routes,pts,`route ${['A','B'].includes(id)?'':'future'}`,width);
+    }));
+    const routeLabels=expanded?{A:[-28,-145],B:[-104,5],C:[-52,143],D:[110,145],E:[114,20],F:[97,-149]}:{A:[-28,-88],B:[-105,5],C:[-70,105],D:[80,102],E:[112,20],F:[62,-120]};
+    Object.entries(routeLabels).forEach(([id,at])=>label(groups.labels,id,at));
+
+    const tram=expanded?expandedTram:currentTram;
+    line(groups.tram,tram,'tram-under',8);
+    line(groups.tram,tram,'tram',4);
+    label(groups.labels,expanded?'GRAND CIRCUIT · OUTER RESERVE':'GRAND CIRCUIT · LEGACY ALIGNMENT',expanded?[123,-205]:[80,-132],'minor-label');
+    drawParking(expanded);
+    drawAnchors();
+    drawMeasures(expanded);
+
+    if(!expanded){
+      const conflicts=[[0,128],[-4,-140],[-60,100]];
+      conflicts.forEach(p=>groups.labels.appendChild(make('circle',{cx:sx(p[0]),cy:sy(p[1]),r:8,class:'conflict'})));
+      label(groups.labels,'CARS + ENTRY',[16,135],'minor-label');
+      label(groups.labels,'TRAM + A',[-4,-151],'minor-label');
+      label(groups.labels,'TRAM + B',[-58,112],'minor-label');
+    } else {
+      [[0,174],[-77.3,-64.3],[-78,-2],[-96,60]].forEach(p=>groups.labels.appendChild(make('rect',{x:sx(p[0])-3,y:sy(p[1])-3,width:6,height:6,class:'formal-crossing'})));
+      label(groups.labels,'4 CONTROLLED CROSSINGS',[-135,214],'minor-label');
+    }
+
+    root.querySelector('[data-readout]').textContent=expanded
+      ? '434 × 450 m developed park · geography continues beyond'
+      : '342 × 320 m envelope · three measured circulation conflicts';
+    root.querySelector('[data-note]').textContent=expanded
+      ? 'The outline is the developed park, not a terrain boundary. Outer parcels move; ride footprints and route widths do not scale.'
+      : 'Measured now: the Grand Circuit centreline overlaps route A by 0.19 m and route B by 0.12 m; the old car grid also occupies the arrival axis.';
+    root.querySelectorAll('button[data-mode]').forEach(button=>{
+      const active=button.dataset.mode===mode;
+      button.setAttribute('aria-pressed',String(active));
+      button.classList.toggle('btn-primary',active);
+    });
+  }
+
+  root.querySelectorAll('button[data-mode]').forEach(button=>button.addEventListener('click',()=>draw(button.dataset.mode)));
+  draw('expanded');
+})();
+</script>

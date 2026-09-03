@@ -47,8 +47,12 @@ const REQUIRED := [
 	"places/west_stair",
 	"places/boardwalk",
 	"places/east_cascade",
+	"places/park_groundworks",
+	"places/park_circulation",
+	"places/park_routes",
+	"places/park_program",
+	"places/park_landscape",
 	"shared/skyline",
-	"shared/north_sky_ride",
 	"shared/park_transit",
 	"crowds/plaza_crowd",
 	"crowds/boardwalk_crowd",
@@ -162,7 +166,8 @@ func _physics_process(delta: float) -> void:
 	if step < 0.004:
 		_still += 1
 		if _still > STALL_FRAMES:
-			_fail("%s stalled at %s" % [spec["name"], _fmt(at)])
+			_fail("%s stalled at %s against %s" % [
+				spec["name"], _fmt(at), _blockers()])
 			return _report()
 	else:
 		_still = 0
@@ -192,6 +197,18 @@ func _fail(message: String) -> void:
 
 func _fmt(v: Vector3) -> String:
 	return "(%.1f, %.1f, %.1f)" % [v.x, v.y, v.z]
+
+
+func _blockers() -> String:
+	var seen := {}
+	for i in _player.get_slide_collision_count():
+		var collision := _player.get_slide_collision(i)
+		var collider := collision.get_collider()
+		if collider != null:
+			seen[String(collider.name)] = true
+	var names := seen.keys()
+	names.sort()
+	return ", ".join(names) if not names.is_empty() else "nothing"
 
 
 func _report() -> void:

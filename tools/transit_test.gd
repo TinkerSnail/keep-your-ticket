@@ -27,18 +27,26 @@ func _run() -> void:
 	for i in SETTLE_FRAMES:
 		await get_tree().process_frame
 
-	var mini := get_node_or_null("main/park_world/places/thresholds/kiddie_train")
-	var grand := get_node_or_null("main/park_world/shared/park_transit/grand_tram")
+	# The rebuilt railway belongs to persistent park_program rather than the
+	# retired threshold tableau. Locate both services by identity so this test
+	# remains about what actually mounts in the one-world assembly.
+	var mini := find_child("kiddie_train", true, false)
+	var grand := find_child("grand_tram", true, false)
 	if mini == null or grand == null:
 		_fail("the land-local railway or persistent Grand Circuit did not mount")
 		_finish()
 		return
 
-	_check_route("kiddie railway", Plan.kiddie_rail_loop(), 40.0, 80.0, 0.04)
+	var mini_route := Plan.rebuild_kiddie_rail_loop()
+	_check_route("kiddie railway", mini_route, 80.0, 105.0, 0.001)
 	_check_route("Grand Circuit", Plan.grand_tram_loop(), 600.0, 1200.0, 0.14)
 	_check_stations(Plan.grand_tram_loop())
 	_check_vehicle("kiddie railway", mini, 3, 4)
 	_check_vehicle("Grand Circuit", grand, 4, 18)
+	var planned_mini_length := _route_length(mini_route)
+	if absf(mini.route_length() - planned_mini_length) > 0.1:
+		_fail("kiddie railway vehicle uses a %.1fm loop, planned R5 is %.1fm" % [
+			mini.route_length(), planned_mini_length])
 
 	var mini_before: float = mini.route_distance()
 	var grand_before: float = grand.route_distance()
@@ -89,6 +97,13 @@ func _check_route(label: String, route: Array[Vector3], min_length: float,
 			label, steepest * 100.0, max_grade * 100.0])
 	print("  %-16s %6.1fm, steepest sampled grade %4.1f%%" % [
 		label, length, steepest * 100.0])
+
+
+func _route_length(route: Array[Vector3]) -> float:
+	var length := 0.0
+	for i in route.size() - 1:
+		length += route[i].distance_to(route[i + 1])
+	return length
 
 
 func _check_stations(route: Array[Vector3]) -> void:

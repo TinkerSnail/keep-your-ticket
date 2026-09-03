@@ -144,25 +144,35 @@ const PHOTO_HUT_BENCH_YAW := 8.0
 const RING_RADIUS := 16.0
 const RING_WIDTH := 8.0
 
-## The clock tower, moved onto the gate axis on 2026-08-13.
+## The clock tower sits beside the ceremonial boulevard, not in it.
 ##
-## It stood at (18, −16), off to the north-east, which made it a thing you
-## orient by. On the axis it is a thing you walk *at*: gate, street, the mouth of
-## the plaza, the fountain, and then the tower behind it, all on x = −1.5. The
-## park's one clock becomes the park's landmark, which is the same claim
-## `design.md` already makes from the other side — "the time is read off the
-## park, not off the screen".
-const CLOCK_TOWER_AT := Vector2(-1.5, -32.0)
+## The rebuild's reference plan makes the entrance–plaza–headland line the one
+## route that never apologises for itself. Keeping the tower on that centreline
+## would force the new 11m trunk into two narrow doglegs before it even left the
+## hub — exactly the inherited-path habit the rebuild removes. At (20, −28) the
+## clock keeps its full plaza silhouette, reads from the entrance as a landmark
+## on the right of the axis, and leaves the boulevard and its north portal open.
+## It is still the park's timepiece; it is now something you orient by rather
+## than an obstacle you route around.
+const CLOCK_TOWER_AT := Vector2(20.0, -28.0)
 
 ## The photo hut — the job's anchor, and the one building in the plaza the
 ## player has business inside.
 ##
-## It used to stand at (9, 8), which is radius 12 — *inside* what is now the
-## ring walkway, and against its outer edge even before the plaza grew. It was
-## the one bearing where the measured gap between the hub and the nearest
-## building was zero. Out at radius 28 it has the walk on one side and open
-## ground on the other, which is what a building people queue outside needs.
-const PHOTO_HUT_AT := Vector2(21.0, 18.5)
+## It used to stand at (9, 8), which is radius 12 — *inside* what became the
+## first ring walkway — and then moved to (21, 18.5). Package 04 exposed that
+## second address as another version of the same mistake: the approved 18m hub
+## ring covered its western corner and D's ten-metre Plaza return ran through
+## the building itself. The Player hit the south wall at (21.9, 21.0), slid
+## along it, and reached the fountain instead of the named J7→hub connection.
+##
+## The rebuild's instruction is unambiguous when a suggested building position
+## conflicts with its circulation: the path controls. At (-25, 25) the hut
+## occupies the open southwest edge, still faces the fountain, and has more than
+## four metres beyond both the hub ring and C's Plaza return. Its inward queue
+## stands between the kiosk and the fountain rather than across a through-route.
+const PHOTO_HUT_AT := Vector2(-25.0, 25.0)
+const PHOTO_HUT_QUEUE_X_OFFSET := 6.0
 
 ## The cafe terrace: three tables, and where they stand.
 ##
@@ -197,9 +207,12 @@ const PHOTO_HUT_AT := Vector2(21.0, 18.5)
 ## Moved out with everything else when the plaza grew — at the old radius these
 ## three would now be standing in the ring walkway.
 const PLAZA_CAFE := [
-	{"at": Vector2(-26.5, 4.0), "theta": 15.0},
-	{"at": Vector2(-27.0, 8.5), "theta": -25.0},
-	{"at": Vector2(-25.0, 12.5), "theta": 40.0},
+	# Shifted out and south of B's westbound monument route. This remains one
+	# coherent terrace against the west frontage; no chair projects into either
+	# the nine-metre connector or the broad hub ring.
+	{"at": Vector2(-31.0, 6.0), "theta": 15.0},
+	{"at": Vector2(-29.0, 10.5), "theta": -25.0},
+	{"at": Vector2(-27.0, 15.0), "theta": 40.0},
 ]
 
 ## Where the two chairs at a table sit, relative to it. Shared for the same
@@ -456,42 +469,75 @@ static func kiddie_rail_loop() -> Array[Vector3]:
 ## spines, dives under the east highland, descends behind the boardwalk frontage,
 ## and uses the parking-edge void for its main station. Future lands inherit this
 ## right-of-way; they do not get to build over it and solve transport afterwards.
+##
+## **Moved to the expanded reserve on 2026-09-02.** The compact loop was drawn
+## before the rebuild had an outer envelope. It consequently shared metres of
+## route A at the Headland, ran almost tangent to B's south return, and crossed
+## the Cascading Staircases construction envelope on the Boardwalk back lane.
+## The new line is the perimeter decision: north and south have the extra land
+## the approved footprint gives them, the eastern reach is below the highland,
+## and the Boardwalk chord holds at x=-78, 1.3m clear of NT-1 even after the
+## lane's full width is counted. Where it crosses B it does so transversely and
+## outside the monument, never by sharing a centreline.
 const GRAND_TRAM_LANE_W := 5.4
 const GRAND_TRAM_ENTRY_ACCESS: Array[Vector3] = [
 	Vector3(37.0, 0.0, 106.0),
-	Vector3(37.0, 0.0, 118.2),
+	Vector3(44.0, 0.14, 167.1),
 ]
 const GRAND_TRAM_ENTRY_ACCESS_W := 5.2
 const GRAND_TRAM_CONTROLS: Array[Vector3] = [
-	Vector3(12.0, 0.0, 123.0),
-	Vector3(37.0, 0.0, 123.0), # main gate / Kiddieland station
-	Vector3(70.0, 0.5, 123.0),
-	Vector3(102.0, 3.0, 104.0),
-	Vector3(116.0, 5.0, 78.0),
-	Vector3(116.0, 5.0, 20.0),
-	Vector3(116.0, 5.0, -70.0), # east-highland tunnel station
-	Vector3(96.0, 4.0, -104.0),
-	Vector3(55.0, 2.0, -126.0),
-	Vector3(2.0, 0.0, -140.0), # Grove station
-	Vector3(-38.0, 0.0, -130.0),
-	Vector3(-58.0, -1.0, -108.0),
-	Vector3(-68.0, -3.0, -82.0),
-	Vector3(-72.0, -6.0, -50.0),
-	Vector3(-72.0, -6.0, 18.0), # boardwalk station
-	Vector3(-72.0, -6.0, 62.0),
-	Vector3(-63.0, -3.0, 92.0),
-	Vector3(-48.0, 0.0, 116.0), # fairground station
-	Vector3(-15.0, 0.0, 132.0),
+	Vector3(0.0, 0.0, 174.0),
+	Vector3(44.0, 0.0, 172.0), # entry / Kiddieland station
+	Vector3(92.0, 2.0, 160.0),
+	Vector3(146.0, 4.0, 136.0),
+	Vector3(188.0, 6.0, 96.0),
+	Vector3(208.0, 5.0, 45.0),
+	Vector3(210.0, 5.0, -24.0),
+	Vector3(196.0, 7.0, -91.0),
+	Vector3(166.0, 7.2, -145.0), # east-highland station
+	Vector3(120.0, 6.0, -185.0),
+	Vector3(62.0, 0.0, -214.0), # Grove station
+	Vector3(-12.0, 0.0, -220.0),
+	Vector3(-62.0, -2.0, -204.0),
+	Vector3(-88.0, -4.5, -170.0),
+	Vector3(-78.0, -6.0, -82.0),
+	Vector3(-78.0, -6.0, -20.0),
+	Vector3(-78.0, -6.0, 24.0), # boardwalk station
+	Vector3(-78.0, -6.0, 44.0),
+	Vector3(-104.0, -5.0, 72.0),
+	Vector3(-104.0, -2.0, 130.0),
+	Vector3(-80.0, -0.5, 155.0),
+	Vector3(-48.0, 0.0, 166.0), # fairground station
 ]
 const GRAND_TRAM_STATIONS := [
-	{"id": &"entry", "at": Vector3(37.0, 0.0, 123.0), "theta": 0.0},
-	{"id": &"east", "at": Vector3(116.0, 5.0, -70.0), "theta": PI * 0.5},
+	{"id": &"entry", "at": Vector3(44.0, 0.0, 172.0), "theta": 0.0},
+	{"id": &"east", "at": Vector3(166.0, 7.2, -145.0), "theta": 2.08},
 	# The northern loop runs east-west here and the public land is to its south.
 	# Facing the stop through PI keeps the platform on that inside edge; at zero
 	# it stood north of the lane and any Grove access had to cross the vehicles.
-	{"id": &"grove", "at": Vector3(2.0, 0.0, -140.0), "theta": PI},
-	{"id": &"boardwalk", "at": Vector3(-72.0, -6.0, 18.0), "theta": PI * 0.5},
-	{"id": &"fairground", "at": Vector3(-48.0, 0.0, 116.0), "theta": -0.42},
+	{"id": &"grove", "at": Vector3(62.0, 0.0, -214.0), "theta": PI},
+	# East-facing platform: its twenty-metre length remains south of NT-1 and
+	# its public side occupies the open service lane, not the shop backs.
+	{"id": &"boardwalk", "at": Vector3(-78.0, -6.0, 24.0), "theta": -PI * 0.5},
+	{"id": &"fairground", "at": Vector3(-48.0, 0.0, 166.0), "theta": -0.20},
+]
+
+## Every place a public pedestrian trunk crosses the Grand Circuit. These are
+## authored decisions, not incidental overlaps: the transit generator marks
+## them, and `footprint_test.gd` proves each marker remains on both routes. The
+## arrival crossing is dressed by `entrance.tscn`; the three boardwalk-side
+## crossings belong to persistent transit infrastructure.
+const GRAND_TRAM_CROSSINGS := [
+	{"id": &"entry", "at": Vector3(0.0, 0.0, 174.0),
+		"pedestrian": &"a_parking_arrival", "owner": &"entrance"},
+	{"id": &"boardwalk_north", "at": Vector3(-77.3, -4.2, -64.3),
+		"pedestrian": &"b_north_return", "owner": &"park_transit"},
+	{"id": &"boardwalk_monument", "at": Vector3(-78.0, -6.0, -2.0),
+		"pedestrian": &"b_monument_return", "owner": &"park_transit"},
+	{"id": &"boardwalk_south", "at": Vector3(-96.0, -6.0, 60.0),
+		"pedestrian": &"b_waterfront",
+		"captures": [&"b_waterfront", &"b_south_return"],
+		"owner": &"park_transit"},
 ]
 
 
@@ -624,11 +670,13 @@ const GROVE_SKY_RIDE_SPUR: Array[Vector3] = [
 const GROVE_SKY_RIDE_SPUR_W := 4.8
 const GROVE_TRAM_ACCESS: Array[Vector3] = [
 	Vector3(3.0, 0.0, -130.0),
-	# Onto the public half of the platform, not merely up to its outer kerb. The
-	# lane-side rail remains another 2.25m north, so this is usable arrival space
-	# without becoming a crossing. One straight run also keeps this very short
-	# spur from growing a pointed paving seam at an unnecessary intermediate bend.
-	Vector3(2.0, 0.14, -134.8),
+	# A real continuation through the expanded northern reserve. It stays east of
+	# the Headland loop, then arrives on the public half of the new inward-facing
+	# platform without crossing the vehicle lane.
+	Vector3(15.0, 0.0, -145.0),
+	Vector3(27.0, 0.0, -166.0),
+	Vector3(42.0, 0.0, -188.0),
+	Vector3(58.0, 0.14, -209.1),
 ]
 const GROVE_TRAM_ACCESS_W := 5.2
 
@@ -660,14 +708,27 @@ const GROVE_POND_R := 5.4
 # ---------------------------------------------------------------------------
 
 ## The street's centre line and half-width, where it leaves the plaza, the
-## turnstiles, and the apron outside them. 56m of street, because the reference
-## parks all put something between the gate and the hub and going straight from
-## one to the other is the arrangement none of them use.
+## turnstiles, and the apron outside them.
+##
+## **Lengthened with the park footprint on 2026-09-02.** The gate and apron are
+## the southern instances of the approved 1.55 expansion, measured from z=52 so
+## the plaza wall and its protected core do not move. Buildings retain their
+## real widths; the extra thirty metres becomes more frontage rather than
+## stretched architecture. The clear arrival continues beyond the apron through
+## two parking fields to the outer boundary.
 const STREET_X := -1.5
 const STREET_HALF := 7.5
 const STREET_FROM_Z := 50.0
-const GATE_Z := 107.0
-const APRON_Z := 123.0
+const GATE_Z := 137.25
+const APRON_Z := 162.05
+
+const PARKING_FROM_Z := 181.0
+const PARKING_TO_Z := 215.0
+const PARKING_INNER_X := 13.0
+const PARKING_OUTER_X := 68.0
+const PARKING_AXIS_HALF_W := 7.0
+const ARRIVAL_AXIS_TO_Z := 219.0
+const ARRIVAL_TRAM_CROSSING_Z := 174.0
 
 
 # ---------------------------------------------------------------------------
@@ -1522,7 +1583,11 @@ static func climb_flight_z() -> float:
 ## whole east roofline from anywhere in the plaza. The gap shows its foot and the
 ## cascade, the skyline shows its head.
 const RIM_FOOT_X := 120.0
-const RIM_CREST_X := 150.0
+## The expanded park moves the perimeter ridge, not the Terraced Fountain or
+## the developed ground that meets its climb. The original crest at x=150 left
+## no east reserve at all; x=208 supplies the approved 58m while the separate
+## thirty-metre face below preserves the ridge's section and curvature rules.
+const RIM_CREST_X := 208.0
 
 ## The rim's crest line, in plan, ordered **headland to north arm to south end**
 ## — the far end of the breach, round the back of the park, and down the east
@@ -1604,6 +1669,7 @@ const RIM_PATH := [
 	# The north arm, running east behind everything.
 	{"at": Vector2(-65.0, -210.0), "crest": 21.0, "foot": -9.0},
 	{"at": Vector2(-5.0, -221.0), "crest": 23.0, "foot": -7.0},
+	{"at": Vector2(65.0, -222.0), "crest": 24.0, "foot": -6.0},
 	# **The turn is an arc of `RIM_TURN_R`, and it is placed rather than drawn.**
 	# It was three points eyeballed through the corner, and the offset folded: at
 	# 38-43m of radius against a 44m inward offset the toe line crosses itself,
@@ -1615,12 +1681,13 @@ const RIM_PATH := [
 	# east arm's line and the north arm's — so the tangent points are
 	# `(RIM_CREST_X - R, -222)` and `(RIM_CREST_X, -222 + R)`, and the three
 	# between them are the arc at 22.5 degree steps. At R = 70 that is centre
-	# (80, -152), which is why these numbers look arbitrary and are not.
-	{"at": Vector2(80.0, -222.0), "crest": 25.0, "foot": -5.0},
-	{"at": Vector2(106.8, -216.7), "crest": 28.0, "foot": -2.0},
-	{"at": Vector2(129.5, -201.5), "crest": 31.0, "foot": 1.0},
-	{"at": Vector2(144.7, -178.8), "crest": 35.0, "foot": 5.0},
-	{"at": Vector2(150.0, -152.0), "crest": 38.0, "foot": 8.0},
+	# (138, -152) after the footprint expansion. The five arc points retain the
+	# original 70m radius; only their world address changes.
+	{"at": Vector2(138.0, -222.0), "crest": 25.0, "foot": -5.0},
+	{"at": Vector2(164.8, -216.7), "crest": 28.0, "foot": -2.0},
+	{"at": Vector2(187.5, -201.5), "crest": 31.0, "foot": 1.0},
+	{"at": Vector2(202.7, -178.8), "crest": 35.0, "foot": 5.0},
+	{"at": Vector2(208.0, -152.0), "crest": 38.0, "foot": 8.0},
 	# The east arm, which is the old `RIM_PROFILE` verbatim: x pinned to
 	# `RIM_CREST_X` and the same crests on the same z, so nothing the plan states
 	# about what shows over the east roofline has moved.
@@ -1630,14 +1697,20 @@ const RIM_PATH := [
 	{"at": Vector2(RIM_CREST_X, 40.0), "crest": 46.0, "foot": TERRACE_TWO_Y},
 	{"at": Vector2(RIM_CREST_X, 100.0), "crest": 40.0, "foot": TERRACE_TWO_Y},
 	{"at": Vector2(RIM_CREST_X, 170.0), "crest": 32.0, "foot": TERRACE_TWO_Y},
+	# The expanded south end dives into its own land instead of exposing a raw
+	# 38m section beside the arrival reserve in aerial views.
+	{"at": Vector2(RIM_CREST_X, 195.0), "crest": 18.0, "foot": 4.0},
+	{"at": Vector2(RIM_CREST_X, 220.0), "crest": -4.0, "foot": -20.0},
 ]
 
 ## How far in from the crest the slope's foot stands, and where the jag is zero.
 ##
-## The run is the east arm's own — `RIM_CREST_X` less `RIM_FOOT_X` — carried
-## round the turn unchanged, so the ridge keeps one section everywhere and only
-## its height and its footing vary.
-const RIM_RUN := RIM_CREST_X - RIM_FOOT_X
+## The ridge keeps its established thirty-metre face after the crest moves. The
+## new highland reserve between the protected developed edge (`RIM_FOOT_X`) and
+## the face's actual foot (`RIM_CREST_X - RIM_RUN`) is separate groundworks; if
+## this were still derived by subtraction, expanding the park would silently
+## turn the ridge into an 88m ramp and invalidate every fold/curvature check.
+const RIM_RUN := 30.0
 const RIM_AXIS_AT := Vector2(RIM_CREST_X, ARCH_AT.y)
 
 ## The radius of the turn between the two arms, and the reason it is a number
@@ -2288,10 +2361,14 @@ const WHEEL_TOP := SHORE_TOP + WHEEL_DECK + WHEEL_HUB + WHEEL_RADIUS
 ## The coaster closes the north end. Out-and-back along the shore, station
 ## fronting the promenade, structure running away from the player — so it is a
 ## thing you walk towards and then walk under, rather than a thing you look at.
-const COASTER_STATION := Vector2(-94.0, -38.0)
+## The atlas puts R2's first public queue point at (-94,-55). The old station
+## remained seventeen metres south at z=-38 after the outer map expanded,
+## occupying I3's exact café parcel. Move the whole canonical ride—not I3—to
+## its approved northern address; this also uses the reserve added for R2.
+const COASTER_STATION := Vector2(-94.0, -55.0)
 const COASTER_HEADING := 0.0
-const COASTER_FROM_Z := -38.0
-const COASTER_TO_Z := -82.0
+const COASTER_FROM_Z := COASTER_STATION.y - 2.0
+const COASTER_TO_Z := COASTER_FROM_Z - 98.0
 
 ## The pier, rooted at the promenade edge and running west over the water to the
 ## pavilion at its head. The pavilion is the section's landmark and the reason
@@ -2360,9 +2437,26 @@ const FRONTAGE_UNITS := [
 	{"nm": "funhouse", "from": 26.0, "to": 38.0, "h": 11.0, "kind": "ride"},
 	{"nm": "games", "from": 38.0, "to": 48.0, "h": 6.0, "kind": "games"},
 	{"nm": "restrooms", "from": 48.0, "to": 55.0, "h": 4.5, "kind": "plain"},
-	{"nm": "shuttered", "from": 55.0, "to": 62.0, "h": 6.0, "kind": "shut"},
-	{"nm": "taffy", "from": 62.0, "to": FRONT_TO_Z, "h": 5.5, "kind": "shop"},
+	# Route B's south return crosses the frontage between z 55 and 68. This is a
+	# real gateway now, not a path drawn through the shuttered and taffy units
+	# that occupied the same thirteen metres. Their eventual replacements belong
+	# in the approved MW-B frontage band, outside the through-route.
 ]
+
+## Package 04F/G replaces the legacy Boardwalk row everywhere it overlaps the
+## approved recurring-interior, midway and funhouse parcels. Keep the names in
+## one shared set so the world generator, distant tableau and crowd avoidance
+## cannot disagree about which old shells still exist. `restrooms` is the only
+## surviving unit: it stands south of P2 and north of B's return opening.
+const REBUILD_RETIRED_BOARDWALK_SHOPS := {
+	&"arcade": true,
+	&"gallery": true,
+	&"corndogs": true,
+	&"custard": true,
+	&"studio": true,
+	&"funhouse": true,
+	&"games": true,
+}
 
 ## Where somebody can sit down, which two different generators have to agree
 ## about — `gen_props.gd` builds the furniture and `gen_crowd.gd` puts people on
@@ -2595,7 +2689,675 @@ const PLACES := [
 
 
 # ---------------------------------------------------------------------------
-# Walkways
+# Park rebuild atlas
+# ---------------------------------------------------------------------------
+
+## The approved DEVELOPED PARK envelope. The central 104m plaza and both
+## protected monuments are fixed; only coordinates outside the core are
+## remapped. These four extents locate the paths, rides and buildings; they are
+## not the edge of the island, the terrain, the ocean, or the renderable world.
+## Path widths, ride envelopes and buildings keep their physical dimensions.
+const REBUILD_FOOTPRINT_MIN_X := -212.0
+const REBUILD_FOOTPRINT_MAX_X := 222.0
+const REBUILD_FOOTPRINT_MIN_Z := -230.0
+const REBUILD_FOOTPRINT_MAX_Z := 220.0
+
+## The world around the developed park. These deliberately do not participate
+## in `rebuild_expand_point`: enlarging the scenery must never move a route or
+## attraction. The developed envelope has more than two kilometres of ordinary
+## land to the north, south and east, and nearly four kilometres of ocean to the
+## west. These are deliberately landscape-scale reserves: even the diagnostic
+## aerial cameras must not turn a terrain asset into the edge of the island.
+## That is the distinction the first footprint implementation missed when it
+## turned the atlas outline into a visible tabletop edge.
+const REBUILD_WORLD_LAND_FROM_X := SHORE_FROM_X
+const REBUILD_WORLD_LAND_TO_X := 2400.0
+const REBUILD_WORLD_LAND_FROM_Z := -2400.0
+const REBUILD_WORLD_LAND_TO_Z := 2400.0
+const REBUILD_WORLD_WATER_FROM_X := -4200.0
+const REBUILD_WORLD_WATER_TO_X := -70.0
+const REBUILD_WORLD_WATER_FROM_Z := -3200.0
+const REBUILD_WORLD_WATER_TO_Z := 3200.0
+const REBUILD_WORLD_COAST_FROM_Z := -2200.0
+const REBUILD_WORLD_COAST_TO_Z := 2200.0
+const REBUILD_WORLD_MIN_PROGRAM_MARGIN := 2000.0
+const REBUILD_FOOTPRINT_NORTH_ANCHOR_Z := -52.0
+const REBUILD_FOOTPRINT_SOUTH_ANCHOR_Z := 52.0
+const REBUILD_FOOTPRINT_EAST_ANCHOR_X := 128.0
+const REBUILD_FOOTPRINT_WEST_ANCHOR_X := -112.0
+# Exactly maps the old z=-160 water edge to the approved z=-230 boundary.
+const REBUILD_FOOTPRINT_NORTH_SCALE := 178.0 / 108.0
+const REBUILD_FOOTPRINT_SOUTH_SCALE := 1.55
+const REBUILD_FOOTPRINT_EAST_SCALE := 2.50
+const REBUILD_FOOTPRINT_WEST_SCALE := 1.50
+const REBUILD_FOOTPRINT_NE_SCALE := 1.35
+const REBUILD_FOOTPRINT_SE_SCALE := 1.45
+
+
+## Move an atlas coordinate into the expanded footprint while holding the core.
+## North/south are evaluated first because the east shoulder deliberately fans
+## by a smaller factor there; the central east edge receives the full expansion.
+## This is the same measured transform shown in the approved comparison map.
+static func rebuild_expand_point(p: Vector2) -> Vector2:
+	var q := p
+	if p.y > REBUILD_FOOTPRINT_SOUTH_ANCHOR_Z:
+		q.y = REBUILD_FOOTPRINT_SOUTH_ANCHOR_Z \
+			+ (p.y - REBUILD_FOOTPRINT_SOUTH_ANCHOR_Z) \
+			* REBUILD_FOOTPRINT_SOUTH_SCALE
+		if p.x > 49.0:
+			q.x = 49.0 + (p.x - 49.0) * REBUILD_FOOTPRINT_SE_SCALE
+	elif p.y < REBUILD_FOOTPRINT_NORTH_ANCHOR_Z:
+		q.y = REBUILD_FOOTPRINT_NORTH_ANCHOR_Z \
+			+ (p.y - REBUILD_FOOTPRINT_NORTH_ANCHOR_Z) \
+			* REBUILD_FOOTPRINT_NORTH_SCALE
+		if p.x > 20.0:
+			q.x = 20.0 + (p.x - 20.0) * REBUILD_FOOTPRINT_NE_SCALE
+	elif p.x > REBUILD_FOOTPRINT_EAST_ANCHOR_X:
+		q.x = REBUILD_FOOTPRINT_EAST_ANCHOR_X \
+			+ (p.x - REBUILD_FOOTPRINT_EAST_ANCHOR_X) \
+			* REBUILD_FOOTPRINT_EAST_SCALE
+	if p.x < REBUILD_FOOTPRINT_WEST_ANCHOR_X:
+		q.x = REBUILD_FOOTPRINT_WEST_ANCHOR_X \
+			+ (p.x - REBUILD_FOOTPRINT_WEST_ANCHOR_X) \
+			* REBUILD_FOOTPRINT_WEST_SCALE
+	return q
+
+
+static func rebuild_expand_position(p: Vector3) -> Vector3:
+	var q := rebuild_expand_point(Vector2(p.x, p.z))
+	return Vector3(q.x, p.y, q.y)
+
+
+static func _rebuild_expanded_points(points: Array) -> Array:
+	var out := []
+	for p in points:
+		out.append(rebuild_expand_position(p))
+	return out
+
+
+static func _rebuild_expanded_run(run: Dictionary) -> Dictionary:
+	var out := run.duplicate(true)
+	out["points"] = _rebuild_expanded_points(run["points"])
+	return out
+
+
+## The measured overlay is now executable plan data rather than a picture the
+## world is expected to imitate by eye. The coordinates below remain the
+## measured source atlas so every old-to-new relationship is reviewable;
+## `rebuild_terrain_shape`, `rebuild_route_runs` and `rebuild_build_runs` expose
+## only the expanded coordinates to world builders. Existing assemblies own T0,
+## T1 and T4–T7; the rebuild groundworks scene supplies the missing T2 lowland
+## and T3 headland without duplicating those established surfaces.
+const REBUILD_TERRAIN_BANDS := {
+	&"T0": {"owner": &"west_shell", "shapes": [[
+		Vector2(-178, -160), Vector2(-112, -160), Vector2(-112, 142),
+		Vector2(-178, 160),
+	]]},
+	&"T1": {"owner": &"west_shell", "shapes": [[
+		Vector2(-112, -150), Vector2(-58, -150), Vector2(-58, -14),
+		Vector2(-57, -12), Vector2(-57, 8), Vector2(-58, 14),
+		Vector2(-58, 60), Vector2(-67, 73), Vector2(-78, 90),
+		Vector2(-84, 109), Vector2(-95, 128), Vector2(-112, 136),
+	]]},
+	&"T2": {"owner": &"park_groundworks", "shapes": [[
+		Vector2(-58, -151), Vector2(25, -153), Vector2(72, -142),
+		Vector2(112, -126), Vector2(136, -103), Vector2(143, -62),
+		Vector2(144, 20), Vector2(141, 84), Vector2(129, 127),
+		Vector2(101, 145), Vector2(26, 151), Vector2(-20, 145),
+		Vector2(-50, 132), Vector2(-70, 110), Vector2(-78, 90),
+		Vector2(-67, 73), Vector2(-58, 60),
+	]]},
+	&"T3": {"owner": &"park_groundworks", "shapes": [[
+		Vector2(-45, -109), Vector2(-50, -126), Vector2(-43, -145),
+		Vector2(-25, -156), Vector2(-3, -154), Vector2(13, -141),
+		Vector2(15, -121), Vector2(4, -105), Vector2(-20, -100),
+	]]},
+	&"T4": {"owner": &"east_cascade", "shapes": [[
+		Vector2(33, -132), Vector2(30, -116), Vector2(37, -96),
+		Vector2(45, -80), Vector2(52, -62), Vector2(55, -42),
+		Vector2(51, -22), Vector2(52, -5), Vector2(55, 15),
+		Vector2(58, 35), Vector2(60, 55), Vector2(64, 72),
+		Vector2(58, 91), Vector2(58, 110), Vector2(70, 128),
+		Vector2(105, 136), Vector2(128, 123), Vector2(138, 100),
+		Vector2(141, 60), Vector2(142, 15), Vector2(140, -40),
+		Vector2(136, -82), Vector2(122, -112), Vector2(92, -130),
+		Vector2(58, -139),
+	]]},
+	&"T5": {"owner": &"east_cascade", "shapes": [[
+		Vector2(58, -137), Vector2(56, -122), Vector2(63, -106),
+		Vector2(70, -91), Vector2(78, -73), Vector2(77, -54),
+		Vector2(70, -35), Vector2(68, -16), Vector2(72, 3),
+		Vector2(75, 25), Vector2(75, 48), Vector2(84, 60),
+		Vector2(88, 78), Vector2(80, 99), Vector2(74, 116),
+		Vector2(90, 130), Vector2(115, 130), Vector2(132, 112),
+		Vector2(137, 78), Vector2(138, 35), Vector2(136, -15),
+		Vector2(132, -60), Vector2(122, -97), Vector2(103, -120),
+		Vector2(80, -133),
+	]]},
+	&"T6": {"owner": &"east_cascade", "shapes": [[
+		Vector2(80, -132), Vector2(77, -117), Vector2(72, -104),
+		Vector2(70, -92), Vector2(78, -79), Vector2(86, -66),
+		Vector2(94, -56), Vector2(99, -41), Vector2(106, -25),
+		Vector2(114, -8), Vector2(120, 12), Vector2(128, 31),
+		Vector2(138, 40), Vector2(141, -10), Vector2(139, -54),
+		Vector2(132, -88), Vector2(119, -112), Vector2(101, -126),
+	]]},
+	&"T7": {"owner": &"plaza_skyline", "shapes": [[
+		Vector2(140, -110), Vector2(153, -99), Vector2(162, -65),
+		Vector2(164, 155), Vector2(145, 160), Vector2(141, 120),
+		Vector2(145, 70), Vector2(144, 15), Vector2(142, -55),
+		Vector2(134, -94),
+	], [
+		Vector2(134, -94), Vector2(118, -119), Vector2(90, -139),
+		Vector2(55, -150), Vector2(10, -156), Vector2(-38, -158),
+		Vector2(-84, -151), Vector2(-124, -141), Vector2(-118, -124),
+		Vector2(-80, -137), Vector2(-35, -142), Vector2(8, -140),
+		Vector2(48, -136), Vector2(82, -126), Vector2(110, -111),
+		Vector2(126, -88),
+	]]},
+}
+
+## The two immutable construction envelopes. New ground and paving are rejected
+## if they enter either one; the only circulation inside NT-1 and NT-2 remains
+## the geometry already owned by the corresponding monument scene.
+const REBUILD_PROTECTED_ZONES := {
+	&"NT-1": {
+		"name": "Cascading Staircases",
+		"kind": &"rect",
+		"min": Vector2(-74.0, -15.0),
+		"max": Vector2(-55.0, 12.0),
+	},
+	&"NT-2": {
+		"name": "Terraced Fountain",
+		"kind": &"ellipse",
+		"centre": Vector2(86.0, 0.0),
+		"radii": Vector2(42.0, 36.0),
+	},
+}
+
+## Junctions stay named from the first trunk pass onward so later district
+## loops connect to an existing place rather than inventing nearby endpoints.
+const REBUILD_JUNCTIONS := {
+	&"J1": Vector2(0, 104.7),
+	&"J2": Vector2(0, 0),
+	&"J3": Vector2(-6, -78.4),
+	&"J4": Vector2(-16, -151.0),
+	&"J5": Vector2(-52, -2),
+	&"J6": Vector2(-48, 92.3),
+	&"J7": Vector2(49, 76.8),
+	&"J8": Vector2(74, 48),
+	&"J9": Vector2(119.9, -61.9),
+}
+
+## Routes A and B are the first permanent circulation. The x/z coordinates and
+## widths are the approved overlay's; y is the built grade added here. `build`
+## is false only where an inherited amber core already supplies the exact walk:
+## the boardwalk deck and the protected Cascading Staircases handoff. Those runs
+## still belong in this table because the minimap and future mission routing need
+## one unbroken description of the network.
+const REBUILD_PRIMARY_ROUTE_RUNS := [
+	# Final-world z=219 to the apron. The first point is expressed in source-atlas
+	# coordinates because this table passes through `rebuild_expand_point`;
+	# widths remain real metres and are never scaled.
+	{"id": &"a_parking_arrival", "route": &"A", "width": 14.0,
+		"build": false, "owner": &"entrance", "points": [
+			Vector3(0, 0, REBUILD_FOOTPRINT_SOUTH_ANCHOR_Z
+				+ (ARRIVAL_AXIS_TO_Z - REBUILD_FOOTPRINT_SOUTH_ANCHOR_Z)
+				/ REBUILD_FOOTPRINT_SOUTH_SCALE),
+			Vector3(0, 0, 123),
+		]},
+	{"id": &"a_entrance", "route": &"A", "width": 11.0, "build": true,
+		"points": [
+			Vector3(0, 0, 123), Vector3(0, 0, 107), Vector3(0, 0, 86),
+			Vector3(0, 0, 62), Vector3(0, 0, 34), Vector3(0, 0, 18),
+		]},
+	{"id": &"a_headland", "route": &"A", "width": 11.0, "build": true,
+		"points": [
+			Vector3(0, 0, -18), Vector3(-1, 0, -35),
+			Vector3(-3, 0, -52), Vector3(-6, 0, -68),
+			Vector3(-10, 1.0, -84), Vector3(-13, 2.8, -101),
+			# Same approved centreline, with one grade break at the outside edge
+			# of the lighthouse loop so the climb reaches its four-metre table
+			# before the two paving ribbons overlap.
+			Vector3(-14.64, 4.0, -107),
+			Vector3(-16, 4.0, -112),
+		]},
+	{"id": &"a_lighthouse_loop", "route": &"A", "width": 10.0,
+		"build": true, "closed": true, "points": [
+			Vector3(-16, 4, -112), Vector3(-30, 4, -114),
+			Vector3(-37, 4, -125), Vector3(-31, 4, -138),
+			Vector3(-16, 4, -144), Vector3(0, 4, -139),
+			Vector3(6, 4, -126), Vector3(1, 4, -115),
+			Vector3(-16, 4, -112),
+		]},
+	{"id": &"a_hub_ring", "route": &"A", "width": 18.0,
+		"build": true, "closed": true, "points": [
+			Vector3(0, 0, 18), Vector3(9, 0, 15), Vector3(16, 0, 8),
+			Vector3(18, 0, 0), Vector3(16, 0, -8), Vector3(9, 0, -15),
+			Vector3(0, 0, -18), Vector3(-9, 0, -15), Vector3(-16, 0, -8),
+			Vector3(-18, 0, 0), Vector3(-16, 0, 8), Vector3(-9, 0, 15),
+			Vector3(0, 0, 18),
+		]},
+	{"id": &"b_waterfront", "route": &"B", "width": 10.0,
+		"build": false, "owner": &"boardwalk", "points": [
+			Vector3(-96, SHORE_TOP, -62), Vector3(-96, SHORE_TOP, -40),
+			Vector3(-96, SHORE_TOP, -15), Vector3(-96, SHORE_TOP, 10),
+			Vector3(-96, SHORE_TOP, 35), Vector3(-96, SHORE_TOP, 60),
+		]},
+	{"id": &"b_north_return", "route": &"B", "width": 8.0,
+		"build": true, "retained": true, "points": [
+			# The full approach now carries the six-metre descent. Keeping the
+			# first fifty metres level compressed the same fall into one short
+			# chord at the bluff and produced a 21.7% break in an otherwise broad
+			# return. These are grade changes only; the approved atlas centreline
+			# and its eight-metre operating width remain untouched.
+			Vector3(-6, 0, -68), Vector3(-22, 0, -66),
+			Vector3(-40, -0.4, -62), Vector3(-58, -1.85, -58),
+			Vector3(-75, -4.1, -59), Vector3(-90, SHORE_TOP, -62),
+			Vector3(-96, SHORE_TOP, -62),
+		]},
+	{"id": &"b_monument_return", "route": &"B", "width": 9.0,
+		"build": false, "owner": &"west_stair", "points": [
+			Vector3(-18, 0, 0), Vector3(-32, 0, -1), Vector3(-45, 0, -2),
+			Vector3(-52, 0, -2), Vector3(-58, 0, -2),
+			Vector3(-72, SHORE_TOP, -2), Vector3(-84, SHORE_TOP, -2),
+			Vector3(-96, SHORE_TOP, -2),
+		]},
+	{"id": &"b_south_return", "route": &"B", "width": 8.0,
+		"build": true, "retained": true, "points": [
+			# The whole outer sweep is the climb. Holding the first nineteen metres
+			# level forced the final approach into a 1:5 pitch and made the path read
+			# as a flyover meeting a cliff. These elevations distribute the same six
+			# metres over the full 56m run and reach the bluff crest before its face.
+			Vector3(-96, SHORE_TOP, 60), Vector3(-88, -4.90, 64),
+			Vector3(-82, -3.67, 72),
+			# C crosses this chord exactly where the approved atlas draws it.  The
+			# two controls carry one shared gentle grade so the crossing is a
+			# junction, not one public route colliding with a bridge above it.
+			Vector3(-80, -2.17, 84), Vector3(-75, -1.07, 95),
+			# The shallow crown keeps paving and the inherited bluff cap from
+			# depth-fighting without changing the route's perceived grade.
+			Vector3(-64, 0.08, 101), Vector3(-53, 0.08, 98),
+			Vector3(-47, 0, 90),
+			Vector3(-48, 0, 78),
+		]},
+]
+
+## The route-B monument line is continuous in the plan, but its middle belongs
+## to NT-1 and therefore cannot be regenerated. These two short surfaces take
+## the new nine-metre hub branch down to the existing six-metre arch throat;
+## the tunnel, terrace, monument and boardwalk arrival remain their established
+## scenes from that point on.
+const REBUILD_PRIMARY_CONNECTORS := [
+	{"id": &"b_hub_west", "route": &"B", "width": 9.0, "points": [
+		Vector3(-18, 0, 0), Vector3(-25, 0, -0.5),
+	]},
+	{"id": &"b_west_throat", "route": &"B", "width": ARCH_WIDTH, "points": [
+		Vector3(-25, 0, -0.5), Vector3(ARCH_MOUTH_X, 0, ARCH_AT.y),
+	]},
+]
+
+## Routes C-F transcribed from the approved rebuild atlas.  These stay as
+## source-atlas Vector2s so the footprint transform is applied once to their
+## centre lines while widths remain literal metres.  A run with `build=false`
+## is still part of the public network, but its paving belongs to an existing
+## protected assembly.  In particular, the two E approaches around NT-2 are
+## descriptions of the Terraced Fountain's established walks, not permission
+## to draw a second surface over them.
+const REBUILD_DISTRICT_ROUTE_RUNS := [
+	{"id": &"c_coastal_loop", "route": &"C", "width": 8.0,
+		"build": true, "closed": true, "points": [
+			Vector2(-48, 78), Vector2(-58, 70), Vector2(-72, 76),
+			Vector2(-78, 90), Vector2(-70, 108), Vector2(-52, 116),
+			Vector2(-32, 112), Vector2(-18, 101), Vector2(-10, 88),
+			Vector2(-22, 77), Vector2(-48, 78),
+		]},
+	{"id": &"c_entrance_link", "route": &"C", "width": 9.0,
+		"build": true, "points": [
+			Vector2(-10, 88), Vector2(-4, 87), Vector2(0, 86),
+		]},
+	{"id": &"c_plaza_link", "route": &"C", "width": 9.0,
+		"build": true, "points": [
+			Vector2(-22, 77), Vector2(-18, 62), Vector2(-13, 44),
+			Vector2(-10, 28), Vector2(-12, 14),
+		]},
+
+	{"id": &"d_arrival", "route": &"D", "width": 9.0,
+		"build": true, "points": [
+			Vector2(0, 86), Vector2(12, 82), Vector2(25, 76),
+			Vector2(38, 70), Vector2(49, 68),
+		]},
+	{"id": &"d_family_loop", "route": &"D", "width": 8.0,
+		"build": true, "closed": true, "points": [
+			Vector2(49, 68), Vector2(58, 55), Vector2(75, 51),
+			Vector2(91, 56), Vector2(105, 69), Vector2(108, 86),
+			Vector2(98, 103), Vector2(80, 111), Vector2(61, 108),
+			Vector2(46, 96), Vector2(42, 82), Vector2(49, 68),
+		]},
+	{"id": &"d_plaza_return", "route": &"D", "width": 10.0,
+		"build": true, "points": [
+			Vector2(49, 68), Vector2(42, 54), Vector2(34, 39),
+			Vector2(25, 25), Vector2(15, 14),
+		]},
+	{"id": &"d_terrace_link", "route": &"D", "width": 9.0,
+		"build": false, "owner": &"east_cascade", "points": [
+			Vector2(58, 55), Vector2(66, 44), Vector2(72, 32),
+			Vector2(72, 22),
+		]},
+
+	{"id": &"e_south_protected", "route": &"E", "width": 8.5,
+		"build": false, "owner": &"east_cascade", "points": [
+			Vector2(46, 0), Vector2(48, -18), Vector2(55, -30),
+			Vector2(70, -42), Vector2(90, -50),
+		]},
+	{"id": &"e_outer_orbit", "route": &"E", "width": 8.5,
+		"build": false, "owner": &"east_cascade", "points": [
+			Vector2(90, -50), Vector2(108, -52), Vector2(118, -40),
+			Vector2(122, -20), Vector2(112, 0), Vector2(120, 14),
+			Vector2(119, 30), Vector2(108, 43), Vector2(91, 50),
+			Vector2(74, 48),
+		]},
+	{"id": &"e_north_protected", "route": &"E", "width": 8.5,
+		"build": false, "owner": &"east_cascade", "points": [
+			Vector2(74, 48), Vector2(58, 40), Vector2(49, 26),
+			Vector2(46, 0),
+		]},
+	{"id": &"e_axis", "route": &"E", "width": 9.0,
+		"build": false, "owner": &"east_cascade", "points": [
+			Vector2(18, 0), Vector2(32, 0), Vector2(46, 0),
+		]},
+	{"id": &"e_family_link", "route": &"E", "width": 9.0,
+		"build": false, "owner": &"east_cascade", "points": [
+			Vector2(72, 32), Vector2(74, 40), Vector2(74, 48),
+		]},
+	{"id": &"e_junction_nine", "route": &"E", "width": 9.0,
+		"build": true, "points": [Vector2(90, -50), Vector2(94, -58)]},
+
+	{"id": &"f_outer_arc", "route": &"F", "width": 9.0,
+		"build": true, "points": [
+			Vector2(-6, -68), Vector2(4, -82), Vector2(20, -100),
+			Vector2(40, -113), Vector2(63, -120), Vector2(86, -116),
+			Vector2(106, -104), Vector2(120, -86), Vector2(124, -62),
+			Vector2(118, -42),
+		]},
+	{"id": &"f_terrace_protected", "route": &"F", "width": 9.0,
+		"build": false, "owner": &"east_cascade", "points": [
+			Vector2(118, -42), Vector2(107, -30), Vector2(94, -50),
+		]},
+	{"id": &"f_inner_return", "route": &"F", "width": 9.0,
+		"build": true, "points": [
+			# Begin at named J9, after the twelve-metre terrace link. Starting at
+			# the protected (94,-50) handoff made the discontinuous north expansion
+			# pull the next control east, folding this return back across the link.
+			Vector2(94, -58),
+			Vector2(78, -65), Vector2(58, -70), Vector2(39, -64),
+			Vector2(20, -55), Vector2(-1, -58), Vector2(-6, -68),
+		]},
+	{"id": &"f_terrace_link", "route": &"F", "width": 12.0,
+		"build": true, "points": [Vector2(94, -50), Vector2(94, -58)]},
+	{"id": &"f_headland_link", "route": &"F", "width": 12.0,
+		"build": true, "points": [Vector2(-6, -68), Vector2(-3, -52)]},
+]
+
+## Package 04 program sites.  The atlas decides position, envelope and access;
+## the generator decides how a greybox ride or building depicts that record.
+## Existing R1/R2/R3 are deliberately absent because their canonical
+## Boardwalk scene already owns them. P5 is a programmed attraction below:
+## package 04E replaces the obsolete hand-authored Plaza bandstand outright.
+const REBUILD_RIDE_SITES := [
+	{"id": &"R4", "kind": &"ship", "at": Vector2(-56, 90),
+		"size": Vector2(26, 10), "queue": [Vector2(-70, 78), Vector2(-66, 80),
+			Vector2(-69, 83), Vector2(-66, 85), Vector2(-68, 87),
+			Vector2(-64, 89), Vector2(-61, 87)]},
+	{"id": &"R5", "kind": &"mini_rail", "at": Vector2(68, 88),
+		"radii": Vector2(17, 12), "queue": [Vector2(46, 88), Vector2(52, 88)]},
+	{"id": &"R6", "kind": &"tubs", "at": Vector2(95, 96), "radius": 7.0,
+		"queue": [Vector2(104, 88), Vector2(101, 92), Vector2(99, 95)]},
+	{"id": &"R7", "kind": &"carousel", "at": Vector2(109, 62), "radius": 7.0,
+		"queue": [Vector2(102, 70), Vector2(104, 66), Vector2(106, 63)]},
+	{"id": &"R8", "kind": &"chair_swing", "at": Vector2(116, -57),
+		"radius": 7.5, "queue": [Vector2(108, -49), Vector2(113, -55)]},
+	{"id": &"R9", "kind": &"water_ride", "points": [
+		Vector2(9, -72), Vector2(15, -85), Vector2(27, -100),
+		Vector2(41, -103), Vector2(48, -92), Vector2(39, -77),
+		Vector2(28, -67), Vector2(16, -65),
+	], "queue": [Vector2(20, -56), Vector2(22, -64), Vector2(25, -71)]},
+	{"id": &"R10", "kind": &"mine_train", "points": [
+		Vector2(58, -80), Vector2(57, -102), Vector2(70, -116),
+		Vector2(90, -114), Vector2(101, -101), Vector2(98, -83),
+		Vector2(83, -72), Vector2(66, -72),
+	], "queue": [Vector2(67, -69), Vector2(69, -75), Vector2(71, -80)]},
+	{"id": &"R11", "kind": &"observation", "at": Vector2(111, -87),
+		"radius": 8.0, "queue": [Vector2(119, -82), Vector2(114, -86)]},
+	{"id": &"R12", "kind": &"sky_ride", "terminals": [
+		Vector2(-18, -104), Vector2(112, -106),
+	]},
+	{"id": &"R13", "kind": &"steel_coaster", "track": [
+		Vector2(129, -41), Vector2(139, -46), Vector2(150, -38),
+		Vector2(153, -20), Vector2(150, -2), Vector2(146, 17),
+		Vector2(148, 34), Vector2(141, 44), Vector2(132, 42),
+		Vector2(137, 29), Vector2(140, 12), Vector2(140, -5),
+		Vector2(143, -22), Vector2(139, -35), Vector2(129, -41),
+	# Route F owns this edge. The track remains on the accepted R13 footprint,
+	# while the station shifts east into its operating parcel so its west wall no
+	# longer occupies the route's full walking envelope. `track_anchor` keeps the
+	# ride geometry fixed; the queue extends to the relocated public threshold.
+	], "track_anchor": Vector2(129, -41),
+		"station": Vector2(135, -41), "station_size": Vector2(14, 8),
+		"queue": [Vector2(118, -40), Vector2(124, -40),
+			Vector2(129, -41), Vector2(132.2, -41)]},
+	{"id": &"R14", "kind": &"junior_coaster", "track": [
+		Vector2(107, 110), Vector2(111, 104), Vector2(118, 98),
+		Vector2(125, 89), Vector2(126, 79), Vector2(121, 72),
+		Vector2(115, 75), Vector2(117, 86), Vector2(113, 96),
+		Vector2(108, 104), Vector2(107, 110),
+	], "station": Vector2(107, 111), "station_size": Vector2(10, 8),
+		"queue": [Vector2(98, 103), Vector2(100, 105), Vector2(102, 108.5)]},
+]
+
+
+## The package-04G+ miniature railway's horizontal centreline. Its atlas centre
+## is expanded exactly once while the approved 17m x 12m ride envelope keeps
+## its real size. Height belongs to the generated family terrain, so callers
+## lift this closed plan loop to the local rail datum.
+static func rebuild_kiddie_rail_loop() -> Array[Vector3]:
+	var site: Dictionary = {}
+	for candidate in REBUILD_RIDE_SITES:
+		if StringName(candidate["id"]) == &"R5":
+			site = candidate
+			break
+	assert(not site.is_empty(), "package 04G+ has no R5 miniature railway site")
+	var centre := rebuild_expand_point(Vector2(site["at"]))
+	var radii: Vector2 = site["radii"]
+	var out: Array[Vector3] = []
+	# Start on the west tangent beside the station and repeat it at the end so
+	# both rail emission and vehicle sampling see an ordinary closed polyline.
+	for i in KIDDIE_RAIL_STEPS + 1:
+		var angle := PI + TAU * float(i) / float(KIDDIE_RAIL_STEPS)
+		out.append(Vector3(
+			centre.x + cos(angle) * radii.x,
+			0.0,
+			centre.y + sin(angle) * radii.y))
+	return out
+
+
+const REBUILD_ATTRACTION_SITES := [
+	{"id": &"P1", "kind": &"lighthouse", "at": Vector2(-16, -131),
+		"keeper": Vector2(-22.5, -124), "keeper_size": Vector2(8, 6),
+		"access": [Vector2(-16, -112), Vector2(-16, -117),
+			Vector2(-18, -121), Vector2(-18.5, -123)]},
+	{"id": &"P2", "kind": &"funhouse", "at": Vector2(-77, 32),
+		"size": Vector2(12, 14), "access": [Vector2(-96, 27),
+			Vector2(-90, 27), Vector2(-87, 25), Vector2(-84, 27), Vector2(-83, 27)],
+		"exit": [Vector2(-83, 37), Vector2(-88, 37), Vector2(-91, 40), Vector2(-96, 40)]},
+	{"id": &"P3", "kind": &"big_top", "at": Vector2(-32, 92),
+		"radii": Vector2(9, 6), "access": [Vector2(-35, 77.5),
+			Vector2(-35, 80.5), Vector2(-40, 80.5), Vector2(-40, 83),
+			Vector2(-35.5, 83), Vector2(-35.5, 85.5), Vector2(-32, 86)]},
+	{"id": &"P4", "kind": &"play_garden", "at": Vector2(27, 93),
+		"radii": Vector2(9, 7), "access": [Vector2(12, 82),
+			Vector2(17, 84), Vector2(21.5, 87.5)]},
+	# P5 is inside the fixed Plaza datum, so these coordinates deliberately pass
+	# through the expansion map unchanged. This is the complete 04E parcel from
+	# the atlas, not the old bandstand that happened to stand at (-20, -20).
+	{"id": &"P5", "kind": &"bandstand", "at": Vector2(-42, -32),
+		"radius": 6.2,
+		"audience": Vector2(-31, -23.5), "audience_radii": Vector2(7, 10),
+		"audience_rotation": 37.3,
+		# The intermediate dogleg clears the protected west-arch north pier at its
+		# full three-metre operating width; start, holding point and lawn handoff
+		# remain the atlas' established P5 decisions.
+		"access": [Vector2(-32, -1), Vector2(-28, -3),
+			Vector2(-28, -12), Vector2(-35, -13), Vector2(-37.1, -15.5)],
+		"exit": [Vector2(-25.4, -19.3), Vector2(-21, -18),
+			Vector2(-16, -16), Vector2(-9, -15)],
+		"photo": Vector2(-20, -28),
+		"photo_access": [Vector2(-25, -20), Vector2(-22, -23),
+			Vector2(-20, -28)],
+		"service": [Vector2(-62, -38), Vector2(-58, -38),
+			Vector2(-58, -39)],
+		"backstage": Vector2(-53, -39), "backstage_size": Vector2(10, 6),
+		"host": Vector2(-36, -16.5), "host2": Vector2(-27, -20.5)},
+]
+
+const REBUILD_INTERIOR_SITES := [
+	{"id": &"I1", "at": Vector2(-35, 68), "size": Vector2(16, 10),
+		"district": &"fairground", "access": [Vector2(-35, 77), Vector2(-35, 73)]},
+	{"id": &"I2", "at": Vector2(-83, -29), "size": Vector2(16, 10),
+		"district": &"boardwalk", "access": [Vector2(-96, -29), Vector2(-91, -29)]},
+	{"id": &"I3", "at": Vector2(-81, -48), "size": Vector2(14, 8),
+		"district": &"boardwalk", "access": [Vector2(-82, -60), Vector2(-82, -52)]},
+	# The atlas' first I4 address put the west return wall inside route F after
+	# expansion. Move the complete café parcel east; its threshold remains a
+	# short branch from the same point on F rather than making the path bend.
+	{"id": &"I4", "at": Vector2(136, -73), "size": Vector2(14, 8),
+		"district": &"highland", "access": [Vector2(124, -62),
+			Vector2(128, -67), Vector2(129, -73)]},
+	{"id": &"I5", "at": Vector2(-16, 116), "size": Vector2(12, 8),
+		"district": &"entrance", "access": [Vector2(0, 116), Vector2(-10, 116)]},
+	{"id": &"I6", "at": Vector2(16, 116), "size": Vector2(12, 8),
+		"district": &"entrance", "access": [Vector2(0, 116), Vector2(10, 116)]},
+]
+
+const REBUILD_MIDWAY_UNITS := [
+	{"id": &"F1", "at": Vector2(-22.5, 24), "front": &"east"},
+	{"id": &"F2", "at": Vector2(-21.5, 31), "front": &"east"},
+	{"id": &"F3", "at": Vector2(-22, 38), "front": &"east"},
+	{"id": &"F4", "at": Vector2(-23.5, 45), "front": &"east"},
+	{"id": &"F5", "at": Vector2(-25.5, 52), "front": &"east"},
+	{"id": &"F6", "at": Vector2(-27.5, 59), "front": &"east"},
+	{"id": &"B1", "at": Vector2(-86.5, -19), "front": &"west"},
+	{"id": &"B2", "at": Vector2(-86.5, -11), "front": &"west"},
+	{"id": &"B3", "at": Vector2(-86.5, 9), "front": &"west"},
+	{"id": &"B4", "at": Vector2(-86.5, 17), "front": &"west"},
+	{"id": &"K1", "at": Vector2(9.5, 97), "front": &"north"},
+	{"id": &"K2", "at": Vector2(14.5, 91), "front": &"north"},
+]
+
+const REBUILD_SERVICE_SPINES := [
+	{"id": &"S1", "points": [Vector2(-52, -124), Vector2(-68, -108),
+		Vector2(-69, -80), Vector2(-64, -60), Vector2(-62, -38), Vector2(-62, -23)]},
+	{"id": &"S2", "points": [Vector2(-34, 126), Vector2(-40, 127),
+		Vector2(-70, 120), Vector2(-80, 105), Vector2(-73, 80),
+		Vector2(-64, 61), Vector2(-62, 38), Vector2(-62, 20)]},
+	{"id": &"S3", "points": [Vector2(34, 126), Vector2(75, 126),
+		Vector2(111, 116), Vector2(136, 100), Vector2(149, 75),
+		Vector2(154, 42), Vector2(155, 10), Vector2(154, -22),
+		Vector2(150, -55), Vector2(138, -82), Vector2(124, -100),
+		Vector2(105, -122), Vector2(78, -132), Vector2(42, -135)]},
+]
+
+const REBUILD_COASTAL_CREEK := [
+	Vector2(-48, 22), Vector2(-54, 29), Vector2(-59, 37),
+	Vector2(-62, 44), Vector2(-70, 50), Vector2(-79, 54),
+	Vector2(-88, 55), Vector2(-96, 55), Vector2(-104, 55),
+]
+
+const REBUILD_PLANTING_BANDS := [
+	{"id": &"PL1_a", "kind": &"shade", "points": [Vector2(-10, 112),
+		Vector2(-10, 86), Vector2(-10, 62), Vector2(-10, 38)]},
+	{"id": &"PL1_b", "kind": &"shade", "points": [Vector2(10, 112),
+		Vector2(10, 86), Vector2(10, 62), Vector2(10, 38)]},
+	{"id": &"PL1_c", "kind": &"shade", "points": [Vector2(-11, -23),
+		Vector2(-12, -38), Vector2(-15, -52), Vector2(-20, -68),
+		Vector2(-24, -84), Vector2(-27, -98)]},
+	{"id": &"PL1_d", "kind": &"shade", "points": [Vector2(11, -23),
+		Vector2(10, -38), Vector2(7, -52), Vector2(2, -68),
+		Vector2(-2, -84), Vector2(-5, -98)]},
+	{"id": &"PL1_e", "kind": &"shade", "points": [Vector2(-84, -58),
+		Vector2(-84, -38), Vector2(-84, -15), Vector2(-84, 10),
+		Vector2(-84, 34), Vector2(-84, 55)]},
+	{"id": &"PL2_a", "kind": &"screen", "points": [Vector2(-78, 116),
+		Vector2(-60, 124), Vector2(-40, 128)]},
+	{"id": &"PL2_b", "kind": &"screen", "points": [Vector2(34, 120),
+		Vector2(58, 121), Vector2(80, 118)]},
+	{"id": &"PL2_c", "kind": &"screen", "points": [Vector2(-59, -47),
+		Vector2(-54, -44), Vector2(-48, -41)]},
+	{"id": &"PL2_d", "kind": &"screen", "points": [Vector2(130, -71),
+		Vector2(144, -65), Vector2(151, -57)]},
+]
+
+
+static func rebuild_expand_points2(points: Array) -> Array[Vector2]:
+	var out: Array[Vector2] = []
+	for point in points:
+		out.append(rebuild_expand_point(Vector2(point)))
+	return out
+
+
+static func _rebuild_expand_plan_run(run: Dictionary) -> Dictionary:
+	var out := run.duplicate(true)
+	var points: Array[Vector2] = []
+	for point in run["points"]:
+		points.append(rebuild_expand_point(Vector2(point)))
+	out["points"] = points
+	return out
+
+
+static func rebuild_route_runs() -> Array:
+	var out := []
+	for run in REBUILD_PRIMARY_ROUTE_RUNS:
+		out.append(_plan_run(run["id"], _rebuild_expanded_points(run["points"]),
+			float(run["width"])))
+	for source in REBUILD_DISTRICT_ROUTE_RUNS:
+		var run := _rebuild_expand_plan_run(source)
+		out.append({
+			"id": run["id"],
+			"route": run["route"],
+			"points": run["points"],
+			"width": run["width"],
+			"closed": bool(run.get("closed", false)),
+		})
+	return out
+
+
+static func rebuild_build_runs() -> Array:
+	var out := []
+	for run in REBUILD_PRIMARY_ROUTE_RUNS:
+		if bool(run.get("build", false)):
+			out.append(_rebuild_expanded_run(run))
+	for connector in REBUILD_PRIMARY_CONNECTORS:
+		out.append(_rebuild_expanded_run(connector))
+	return out
+
+
+static func rebuild_district_build_runs() -> Array:
+	var out := []
+	for source in REBUILD_DISTRICT_ROUTE_RUNS:
+		if bool(source.get("build", false)):
+			out.append(_rebuild_expand_plan_run(source))
+	return out
+
+
+static func rebuild_terrain_shape(id: StringName, index := 0) -> Array:
+	var out := []
+	for p in REBUILD_TERRAIN_BANDS[id]["shapes"][index]:
+		out.append(rebuild_expand_point(p))
+	return out
+
+
+# ---------------------------------------------------------------------------
+# Inherited anchor walkways
 # ---------------------------------------------------------------------------
 
 ## The park's circulation, as centre lines.
@@ -2899,23 +3661,25 @@ const WALKWAY_WIDTH := {
 ## a consumer handed loose segments has to guess which of them meet. The minimap
 ## drew the segments and every joint in the park came out as a butt end.
 static func walkway_runs() -> Array:
-	var out := []
-	for id in WALKWAYS:
-		out.append({"id": id, "points": WALKWAYS[id],
-			"width": WALKWAY_WIDTH.get(id, 6.0)})
-	# The east's built circulation is generated from height-aware paths rather
-	# than stored in `WALKWAYS`: flights, ramps and the tower approach all need Y
-	# for the ground and crowd even though the minimap only needs x/z. Publish a
-	# plan projection here so the map shows the route the player is actually on,
-	# without making the plaza paving generator lay asphalt over a hillside.
-	for run in east_public_walkway_runs():
-		out.append(run)
-	# The Grove scaffold is flat, but it lives beyond a bending threshold and is
-	# generated with the shared northern scenery rather than plaza paving. Keep
-	# its plan projection beside the height-aware east paths so the minimap shows
-	# the public route without asking `_paving` to draw through another scene.
-	for run in grove_public_walkway_runs():
-		out.append(run)
+	# The minimap describes the complete approved rebuild instead of
+	# accumulating every temporary route the park has ever had. A, B, D and E
+	# include inherited spans with canonical owners, so callers still see one
+	# continuous network where the new generator correctly yields ownership.
+	var out := rebuild_route_runs()
+	# P5 is inside the fixed Plaza rather than a district route layer, but its
+	# entry, release and photo branch are still public circulation. Publishing
+	# them here gives the minimap, furniture scatter and clearance tooling the
+	# same complete walking envelope that package 04E builds and tests.
+	for site in REBUILD_ATTRACTION_SITES:
+		if StringName(site["id"]) != &"P5":
+			continue
+		out.append({"id": &"p5_audience_entry", "points": site["access"],
+			"width": 3.0})
+		out.append({"id": &"p5_audience_release", "points": site["exit"],
+			"width": 3.0})
+		out.append({"id": &"p5_photo_access", "points": site["photo_access"],
+			"width": 2.6})
+		break
 	return out
 
 
@@ -3009,11 +3773,11 @@ static func grove_public_walkway_runs() -> Array:
 ## polylines above stay the single description.
 static func walkway_segments() -> Array:
 	var out := []
-	for id in WALKWAYS:
-		var run: Array = WALKWAYS[id]
+	for entry in walkway_runs():
+		var run: Array = entry["points"]
 		for i in run.size() - 1:
-			out.append({"id": id, "from": run[i], "to": run[i + 1],
-				"width": WALKWAY_WIDTH.get(id, 6.0)})
+			out.append({"id": entry["id"], "from": run[i], "to": run[i + 1],
+				"width": entry["width"]})
 	return out
 
 
@@ -3178,7 +3942,9 @@ static func threshold(nm: String) -> Dictionary:
 ## Order is the order they ring the plaza, so a missing one is visible.
 const PLAZA_MASSES := [
 	# north side, inner face z = -36
-	{"at": Vector2(-36.45, -41.5), "half": Vector2(11.55, 5.5)},
+	# Package 04E pulls this corner's inner face back to make the approved P5
+	# performance pocket. Its outer face and the Plaza boundary do not move.
+	{"at": Vector2(-36.45, -43.5), "half": Vector2(11.55, 3.5)},
 	{"at": Vector2(2.55, -41.5), "half": Vector2(11.45, 5.5)},
 	{"at": Vector2(25.0, -41.5), "half": Vector2(11.0, 5.5)},
 	# east side, inner face x = 36
@@ -3202,8 +3968,9 @@ const PLAZA_MASSES := [
 	# walk but a literal wall across the southern traffic lane.
 	{"at": Vector2(35.0, 41.5), "half": Vector2(8.0, 5.5)},
 	# west side, inner face x = -33, set in for the overlook terrace
-	{"at": Vector2(-38.5, -35.5), "half": Vector2(5.5, 12.5)},
-	{"at": Vector2(-38.5, -16.0), "half": Vector2(5.5, 7.0)},
+	# The former 25m west range occupied P5's stage. Its retained north end now
+	# terminates at the performance pocket; the stage and cue yard close the gap.
+	{"at": Vector2(-38.5, -44.0), "half": Vector2(5.5, 4.0)},
 	{"at": Vector2(-38.5, 14.5), "half": Vector2(5.5, 10.5)},
 	{"at": Vector2(-38.5, 36.5), "half": Vector2(5.5, 11.5)},
 	{"at": Vector2(-38.5, -8.0), "half": Vector2(5.5, 1.5)},
@@ -3211,9 +3978,8 @@ const PLAZA_MASSES := [
 	# inside
 	{"at": CLOCK_TOWER_AT, "half": Vector2(2.8, 2.8)},
 	{"at": PHOTO_HUT_AT, "half": Vector2(4.0, 3.25)},
-	{"at": Vector2(-20.0, -20.0), "half": Vector2(5.5, 5.5)},
-	{"at": Vector2(-12.0, 25.0), "half": Vector2(1.8, 1.8)},
-	{"at": Vector2(8.0, 24.5), "half": Vector2(1.8, 1.8)},
+	{"at": Vector2(-42.0, -32.0), "half": Vector2(6.2, 6.2)},
+	{"at": Vector2(-53.0, -39.0), "half": Vector2(5.0, 3.0)},
 ]
 
 
@@ -3226,6 +3992,36 @@ static func mass_clearance(p: Vector2) -> float:
 		var dx: float = maxf(absf(p.x - at.x) - half.x, 0.0)
 		var dz: float = maxf(absf(p.y - at.y) - half.y, 0.0)
 		best = minf(best, Vector2(dx, dz).length())
+	return best
+
+
+## Clearance reserved for removable or scheduled Plaza program that should not
+## become a permanent crowd obstacle. P5's event lawn belongs here rather than
+## in `PLAZA_MASSES`: putting it in the structural obstacle list would make the
+## audience entry, release and photographer route invalidate themselves, while
+## omitting it lets the deterministic tree and furniture scatter grow straight
+## through the 96-chair event field.
+static func program_furnishing_clearance(p: Vector2) -> float:
+	var best := 1e9
+	for site in REBUILD_ATTRACTION_SITES:
+		if StringName(site["id"]) != &"P5":
+			continue
+		var at: Vector2 = site["audience"]
+		var radii: Vector2 = site["audience_radii"] + Vector2.ONE * 0.8
+		var theta := deg_to_rad(float(site["audience_rotation"]))
+		var u := Vector2(cos(theta), sin(theta))
+		var v := Vector2(-sin(theta), cos(theta))
+		var delta := p - at
+		var local := Vector2(delta.dot(u), delta.dot(v))
+		var normalized := Vector2(local.x / radii.x, local.y / radii.y)
+		var scale := normalized.length()
+		if scale <= 1.0:
+			return 0.0
+		# Distance to the ellipse along this ray. Exact Euclidean ellipse
+		# distance is unnecessary for scatter rejection; this is continuous,
+		# conservative at the boundary and expressed in metres.
+		best = minf(best, local.length() * (scale - 1.0) / scale)
+		break
 	return best
 
 
@@ -3252,7 +4048,9 @@ static func walkway_clearance(p: Vector2) -> float:
 ## benches want.
 static func stand_score(p: Vector2) -> float:
 	return minf(walkway_clearance(p),
-		minf(mass_clearance(p), p.length() - FOUNTAIN_RADIUS))
+		minf(mass_clearance(p),
+			minf(program_furnishing_clearance(p),
+				p.length() - FOUNTAIN_RADIUS)))
 
 
 ## The nearest place to `p` that is not standing in a walkway, by `clear` metres.
@@ -3368,6 +4166,8 @@ static func open_spots(count: int, salt: int, r_min: float, r_max: float,
 		if walkway_clearance(p) < clear:
 			continue
 		if mass_clearance(p) < clear:
+			continue
+		if program_furnishing_clearance(p) < clear:
 			continue
 		# Against `avoid` the margin is fixed and small, not `clear`. `clear` is
 		# how far this wants to be from a *wall* or a walkway, and a bench is

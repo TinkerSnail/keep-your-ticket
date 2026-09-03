@@ -21,6 +21,7 @@ enum Service {
 }
 
 @export var service := Service.KIDDIE_TRAIN
+@export var route_override := PackedVector3Array()
 
 const MINI_SPEED := 1.75
 const MINI_DWELL := 5.0
@@ -57,8 +58,12 @@ var _materials: Dictionary = {}
 
 
 func _ready() -> void:
-	_route = (Plan.kiddie_rail_loop() if service == Service.KIDDIE_TRAIN
-		else Plan.grand_tram_loop())
+	if route_override.size() > 1:
+		for point in route_override:
+			_route.append(point)
+	else:
+		_route = (Plan.kiddie_rail_loop() if service == Service.KIDDIE_TRAIN
+			else Plan.grand_tram_loop())
 	_speed = MINI_SPEED if service == Service.KIDDIE_TRAIN else TRAM_SPEED
 	_dwell_seconds = MINI_DWELL if service == Service.KIDDIE_TRAIN else TRAM_DWELL
 	_build_distance_table()

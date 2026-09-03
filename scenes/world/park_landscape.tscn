@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+; Stable editor-owned wrapper for package-05 service, creek and planting.
+; Manual landscape refinements belong under authored_additions so they survive
+; regeneration of the atlas-derived structural layer.
+[ext_resource type="PackedScene" path="res://scenes/world/generated/park_landscape.tscn" id="1_generated"]
+
+[node name="park_landscape" instance=ExtResource("1_generated")]
+
+[node name="authored_additions" type="Node3D" parent="."]

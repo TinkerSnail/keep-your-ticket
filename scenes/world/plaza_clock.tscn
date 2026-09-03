@@ -19,9 +19,9 @@
 ;
 ; The 2.7x is on this node rather than in the script's constants because
 ; `tower_clock.gd` builds itself as children, and one factor cannot leave a
-; hand behind. The origin is the tower's own axis at (-1.5, -32) — see
+; hand behind. The origin is the tower's own axis at (20, -28) — see
 ; `plaza.tscn`'s `tower_shaft`, which is where that pair is authored.
 
 [node name="plaza_clock" type="Node3D"]
-transform = Transform3D(2.7, 0, 0, 0, 2.7, 0, 0, 0, 2.7, -1.5, 21.0, -32.0)
+transform = Transform3D(2.7, 0, 0, 0, 2.7, 0, 0, 0, 2.7, 20.0, 21.0, -28.0)
 script = ExtResource("1_clock")

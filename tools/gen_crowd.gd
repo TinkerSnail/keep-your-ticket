@@ -315,14 +315,15 @@ func _plaza_graph() -> void:
 		"gate": Vector2(-1.5, 41.0),
 		"south": Vector2(-1.5, 30.0),
 		"south_east": Vector2(12.0, 22.0),
-		"south_west": Vector2(-24.0, 26.0),
+		"south_west": Vector2(-12.0, 31.0),
 		# Stops just inside the plaza section seam; Kiddieland owns the route beyond.
 		"kiddie_corridor": Vector2(45.0, 31.3),
-		# The photo hut, out at radius 28 now, with its queue on the south side.
-		"hut_walk": Vector2(14.0, 18.0),
-		"queue": Vector2(17.0, 27.0),
-		# The quieter east-side pocket behind the photo hut. It is no longer asked
-		# to double as the route to Kiddieland.
+		# The Photo Hut now occupies the southwest edge so D and the widened hub
+		# ring remain complete. These two points sit in its inward forecourt.
+		"hut_walk": Plan.PHOTO_HUT_AT + Vector2(8.0, -3.0),
+		"queue": Plan.PHOTO_HUT_AT + Vector2(8.0, 2.0),
+		# The quieter east-side pocket is no longer asked to double as the route to
+		# Kiddieland, and no longer has to route around the Photo Hut either.
 		"street_n": Vector2(22.0, 11.0),
 		"east": Vector2(25.0, -2.0),
 		"east_n": Vector2(24.0, -18.0),
@@ -336,9 +337,19 @@ func _plaza_graph() -> void:
 		# In front of the clock tower. The node kept its name when the tower moved
 		# onto the axis, because what it means — the walk under the sign — did not.
 		"sign": Vector2(-1.5, -26.0),
-		"band_e": Vector2(-11.0, -20.0),
-		"band_n": Vector2(-17.0, -31.0),
-		"band_w": Vector2(-31.0, -30.0),
+		# P5 uses the atlas' two separate audience routes plus its photo branch.
+		# These are the actual path vertices rather than inherited gazebo points.
+		"p5_entry_start": Vector2(-32.0, -1.0),
+		"p5_entry_turn": Vector2(-28.0, -3.0),
+		"p5_entry_mid": Vector2(-28.0, -12.0),
+		"p5_entry_hold": Vector2(-35.0, -13.0),
+		"p5_entry": Vector2(-37.1, -15.5),
+		"p5_release": Vector2(-25.4, -19.3),
+		"p5_release_mid": Vector2(-21.0, -18.0),
+		"p5_release_outer": Vector2(-16.0, -16.0),
+		"p5_photo_join": Vector2(-25.0, -20.0),
+		"p5_photo_mid": Vector2(-22.0, -23.0),
+		"p5_photo": Vector2(-20.0, -28.0),
 		"west": Vector2(-24.0, -6.0),
 		# In front of the arch, and it has to stay in front of it. This was
 		# (−30, −2), which was three metres clear of a wall face at −33; the arch
@@ -366,32 +377,45 @@ func _plaza_graph() -> void:
 		var p: Vector2 = points[name]
 		_graph_points.append(Vector3(p.x, _floor, p.y))
 
-	# `band_w` is deliberately a dead end. The crates parked against the west
-	# wall block the corridor down the bandstand's blind side, so the only way
-	# in is from the north — which is exactly the kind of thing the player is
-	# meant to learn about this place by walking it.
 	var links := [
 		["gate", "south"],
-		# `south_east` is the photo-hut pocket and remains connected from the ring.
-		# Its former diagonal from `south` cut through the planter's new side bay;
-		# entrance traffic now takes the purpose-built Kiddieland corridor instead.
+		# The Photo Hut is a side destination off the southwest Plaza circulation,
+		# not a diagonal shortcut across the court. `south_west` is the choice point;
+		# the counter forecourt returns to the hub ring through `hut_walk`.
 		["south", "south_west"], ["south", "ring_s"],
 		["south", "kiddie_corridor"],
-		["south_east", "queue"], ["south_east", "hut_walk"],
-		["queue", "hut_walk"],
-		["hut_walk", "ring_se"],
+		["south_west", "queue"], ["queue", "hut_walk"],
+		["hut_walk", "ring_sw"],
+		# The quieter southeast pocket stays useful without crossing the planter or
+		# pretending to be the way to a building on the opposite side of the Plaza.
+		["south_east", "ring_se"],
 		["street_n", "east"], ["street_n", "ring_se"], ["street_n", "ring_e"],
 		["east", "ring_e"], ["east", "east_n"],
 		["east_n", "dark_ride_court"], ["dark_ride_court", "dark_ride_entry"],
 		["east_n", "north"], ["east_n", "ring_ne"],
 		["north", "sign"], ["north", "ring_n"], ["north", "ring_ne"],
-		["sign", "band_e"], ["sign", "band_n"], ["sign", "ring_n"],
-		["band_e", "ring_n"],
-		["band_n", "band_w"],
+		["sign", "ring_n"],
+		# Audience load arrives from the west side; release returns independently
+		# to the hub ring. The photo turnout is a short attraction branch off the
+		# release, matching P5 rather than inventing a shortcut through the lawn.
+		["west_n", "p5_entry_start"],
+		["p5_entry_start", "p5_entry_turn"],
+		["p5_entry_turn", "p5_entry_mid"],
+		["p5_entry_mid", "p5_entry_hold"],
+		["p5_entry_hold", "p5_entry"],
+		["p5_release", "p5_release_mid"],
+		["p5_release_mid", "p5_release_outer"],
+		["p5_release_outer", "ring_nw"],
+		["p5_release", "p5_photo_join"],
+		["p5_photo_join", "p5_photo_mid"],
+		["p5_photo_mid", "p5_photo"],
 		["west", "west_n"], ["west", "cafe"], ["west", "ring_w"],
 		["west", "ring_wnw"],
-		["cafe", "west_s"], ["cafe", "ring_sw"],
-		["west_s", "south_west"],
+		# Package 01's retained west-side bench now occupies the old direct
+		# cafe–west_s chord. Both destinations remain joined through the ring,
+		# matching the broad public circulation instead of routing through a seat.
+		["cafe", "ring_sw"],
+		["west_s", "hut_walk"],
 		# The ring, closed.
 		["ring_s", "ring_se"], ["ring_se", "ring_e"], ["ring_e", "ring_ne"],
 		["ring_ne", "ring_n"], ["ring_n", "ring_nw"], ["ring_nw", "ring_wnw"],
@@ -748,13 +772,11 @@ func _plaza_obstacles() -> Array:
 	# there. Which is the same failure the terrace had, in the same file.
 	var circles := [
 		[Vector2(-6, -10), 1.3, 1.5],     # cart
-		[Vector2(-19, -6), 1.0, 0.0],     # crates
 		[Vector2(-13, 18), 1.3, 1.4],     # picnic tables
 		[Vector2(-17, 15), 1.3, 1.4],
 		[Vector2(3, 10), 0.65, 0.8],      # a-frames
-		[Vector2(-9, -2), 0.65, 0.8],
+		[Vector2(-12, -9), 0.65, 0.8],
 		[Vector2(12, -8), 0.65, 0.8],
-		[Vector2(19.3, 2.0), 0.6, 0.0],   # ladder
 	]
 	for spot in circles:
 		var at: Vector2 = Plan.plaza_out2(spot[0])
@@ -802,13 +824,17 @@ func _plaza_obstacles() -> Array:
 	for m in Plan.PLAZA_MASSES:
 		out.append({"kind": "rect", "at": m["at"], "half": m["half"]})
 
-	# The hut's queue rope, which belongs to the hut rather than to the plan.
-	out.append({"kind": "rect", "at": Vector2(Plan.PHOTO_HUT_AT.x, Plan.PHOTO_HUT_AT.y + 4.5),
-		"half": Vector2(3.2, 0.2)})
+	# The hut's short queue is on its fountain-facing side, outside every public
+	# operating edge.
+	out.append({"kind": "rect",
+		"at": Vector2(Plan.PHOTO_HUT_AT.x + Plan.PHOTO_HUT_QUEUE_X_OFFSET,
+			Plan.PHOTO_HUT_AT.y),
+		"half": Vector2(0.2, 3.0)})
 
-	# The bollard lines, which are props and so are dilated like the rest.
-	for at in [Vector2(2, -20), Vector2(0, 30)]:
-		out.append({"kind": "rect", "at": Plan.plaza_out2(at), "half": Vector2(8.0, 0.2)})
+	# Only the north bollard line remains. The south line occupied the A/C/D
+	# exchange and was removed with package 01.
+	out.append({"kind": "rect", "at": Plan.plaza_out2(Vector2(2, -20)),
+		"half": Vector2(8.0, 0.2)})
 
 	return out
 
@@ -913,9 +939,9 @@ func _plaza_pois() -> PackedVector3Array:
 	# The bulb-fronted loading mouth of the indoor dark ride. Its graph endpoint
 	# is three metres away, close enough for ordinary POI attention to fire.
 	out.append(Vector3(Plan.PLAZA_DARK_RIDE_AT.x, 4.8, Plan.PLAZA_DARK_RIDE_AT.y))
-	# The bandstand's stage. Hand-placed in `plaza.tscn` at final coordinates,
-	# and `_plaza_bench_spots` already knows the same number.
-	out.append(Vector3(BANDSTAND_AT.x, 1.6, BANDSTAND_AT.z))
+	# P5 owns its own event audience. The ordinary hub crowd does not receive a
+	# fake near-stage attention point: its dedicated photo turnout is twenty
+	# metres away by design, beyond this system's nine-metre ambient-look reach.
 
 	for spec in Plan.PLAZA_CAFE:
 		var at: Vector2 = spec["at"]
@@ -947,11 +973,6 @@ func _plaza_pois() -> PackedVector3Array:
 		out.append(Vector3(p.x, 4.1, p.y))
 	return out
 
-
-## The bandstand, which is hand-authored in `plaza.tscn` and so has no plan
-## constant to read. Written once here rather than at both the places in this
-## file that want it.
-const BANDSTAND_AT := Vector3(-20.0, 0.0, -20.0)
 
 ## Everywhere a guest stands still in the plaza. Only used by the reachability
 ## report, which is why it is allowed to be an approximate union rather than the
@@ -1111,7 +1132,7 @@ func _fountain_pois() -> PackedVector3Array:
 func _lamp_spots() -> Array:
 	return [
 		Vector2(13, -2), Vector2(9, -11), Vector2(-2, -13), Vector2(-13, -3),
-		Vector2(-11, 6), Vector2(-3, 13), Vector2(7, 14), Vector2(14, 9),
+		Vector2(-11, 6), Vector2(-8, 13), Vector2(7, 14), Vector2(14, 9),
 		Vector2(-19, 2), Vector2(-19, 12), Vector2(-18, -14), Vector2(-16, 20),
 	]
 
@@ -1119,8 +1140,8 @@ func _lamp_spots() -> Array:
 func _bin_spots() -> Array:
 	return [
 		Vector2(5.5, 6), Vector2(-6, 5.5), Vector2(-6.5, -6), Vector2(6, -6.5),
-		Vector2(12, 12), Vector2(-14, 14), Vector2(3, -14),
-		Vector2(-19, 7), Vector2(-17, 18), Vector2(-6.5, 24), Vector2(8, 20),
+		Vector2(-14, 14), Vector2(3, -14),
+		Vector2(-19, 7), Vector2(-21, 20), Vector2(-10, 22), Vector2(8, 20),
 	]
 
 
@@ -1152,7 +1173,7 @@ func _bench_spot(at: Vector3, theta: float, dilate := true) -> Dictionary:
 func _plaza_bench_spots() -> Array:
 	var out: Array = []
 	var r := 7.5
-	for deg in [25.0, 95.0, 165.0, 235.0, 305.0]:
+	for deg in [25.0, 145.0, 285.0, 340.0]:
 		var a := deg_to_rad(deg)
 		var spot := _bench_spot(Vector3(r * cos(a), 0.0, r * sin(a)), 0.0)
 		var p: Vector3 = spot["at"]
@@ -1163,17 +1184,6 @@ func _plaza_bench_spots() -> Array:
 	var hut := Vector3(Plan.PHOTO_HUT_AT.x, 0.0, Plan.PHOTO_HUT_AT.y)
 	out.append(_bench_spot(hut + Vector3(-6.0, 0, -4.0), deg_to_rad(8.0), false))
 
-	# The bandstand's three are not stood clear, because they moved a different
-	# way: they belong to the bandstand, so they gave up the east bearing rather
-	# than the radius. `spoke_nnw` runs down that side. See `gen_props._benches`.
-	var band := Vector3(-20, 0, -20)
-	for deg in [90.0, 180.0, 270.0]:
-		var a := deg_to_rad(deg)
-		var p: Vector3 = band + Vector3(8.6 * cos(a), 0.0, 8.6 * sin(a))
-		var d: Vector3 = band - p
-		out.append({"at": p, "theta": atan2(d.x, d.z)})
-	out.append(_bench_spot(Vector3(-11, 0, 20), deg_to_rad(120.0)))
-	out.append(_bench_spot(Vector3(2, 0, 22), deg_to_rad(200.0)))
 	return out
 
 
@@ -1275,7 +1285,7 @@ func _plaza_walking_groups() -> void:
 		{"start": "south_east", "kinds": ["adult", "kid", "kid"]},
 		{"start": "ring_ne", "kinds": ["adult", "adult", "kid", "kid"]},
 		{"start": "dark_ride_court", "kinds": ["adult", "kid", "kid"]},
-		{"start": "band_e", "kinds": ["adult", "adult", "kid"]},
+		{"start": "p5_release", "kinds": ["adult", "adult", "kid"]},
 		# The family the cascade was built for, and it is early in the list on
 		# purpose: a group that has to plan its route round the park is a group
 		# that comes when the park opens, not one that turns up at four.
@@ -1297,7 +1307,7 @@ func _plaza_walking_groups() -> void:
 		{"start": "west_s", "kinds": ["adult", "kid"]},
 		{"start": "ring_s", "kinds": ["adult"]},
 		{"start": "sign", "kinds": ["adult"]},
-		{"start": "band_w", "kinds": ["adult"]},
+		{"start": "p5_photo", "kinds": ["adult"]},
 		{"start": "south_west", "kinds": ["adult"]},
 		{"start": "ring_nw", "kinds": ["adult"]},
 		# Added when the day went on the clock. These are the afternoon — the
@@ -1307,7 +1317,7 @@ func _plaza_walking_groups() -> void:
 		{"start": "west_n", "kinds": ["adult", "adult"]},
 		{"start": "north", "kinds": ["adult", "chair_adult"]},
 		{"start": "hut_walk", "kinds": ["adult"]},
-		{"start": "band_n", "kinds": ["chair_adult"]},
+		{"start": "p5_entry", "kinds": ["chair_adult"]},
 		# A pram comes in early and goes home early, so this one is in the
 		# afternoon block rather than the opening one on purpose: it is the
 		# second outing of the day, not the first.
@@ -1385,7 +1395,11 @@ func _plaza_walking_groups() -> void:
 ## headcount does not already say.
 func _plaza_seated_groups() -> void:
 	var benches := _plaza_bench_spots()
-	var plan := [[0, 2], [2, 1], [5, 2], [7, 2], [1, 1], [4, 2], [8, 1], [10, 2], [6, 1]]
+	# Six ordinary Plaza benches remain after P5 retires the gazebo pair. Fill
+	# each at most once in a staggered order. The performance lawn's 96 removable
+	# chairs belong to scheduled events and must not silently become all-day
+	# ambient seating through this generic curve.
+	var plan := [[0, 2], [2, 1], [4, 2], [1, 2], [3, 2], [5, 2]]
 	for entry in plan:
 		var bench: Dictionary = benches[entry[0]]
 		var group := _group_index
@@ -2938,11 +2952,6 @@ func _boardwalk_obstacles() -> Array:
 	var front_x := Plan.FRONT_X
 	var half_d := Plan.FRONT_DEPTH * 0.5
 	var rects := [
-		# The frontage, in two runs with the hole between them.
-		[Vector2(front_x, (Plan.FRONT_FROM_Z + Plan.GAP_FROM) * 0.5),
-			Vector2(half_d, (Plan.GAP_FROM - Plan.FRONT_FROM_Z) * 0.5)],
-		[Vector2(front_x, (Plan.GAP_TO + Plan.FRONT_TO_Z) * 0.5),
-			Vector2(half_d, (Plan.FRONT_TO_Z - Plan.GAP_TO) * 0.5)],
 		# The coaster's station, which is a building on the same line.
 		[Vector2(front_x, Plan.COASTER_STATION.y - 4.0), Vector2(5.5, 6.0)],
 		# The bluff, the whole east edge. The stair well is filled from this side.
@@ -2972,6 +2981,30 @@ func _boardwalk_obstacles() -> Array:
 		[Vector2(Plan.SHORE_EDGE - 31.0, Plan.PIER_ROOT.y + Plan.PIER_HALF_W + 4.0 + 44.0),
 			Vector2(31.0, 44.0)],
 	]
+	# The canonical row now retains only units outside the approved rebuild
+	# parcels. Add each actual shell rather than the former two blanket strips,
+	# which would make the crowd avoid buildings package 04 explicitly removed.
+	for unit in Plan.FRONTAGE_UNITS:
+		if Plan.REBUILD_RETIRED_BOARDWALK_SHOPS.has(StringName(unit["nm"])):
+			continue
+		rects.append([Vector2(front_x,
+			(float(unit["from"]) + float(unit["to"])) * 0.5),
+			Vector2(half_d,
+			(float(unit["to"]) - float(unit["from"])) * 0.5)])
+	for site in Plan.REBUILD_INTERIOR_SITES:
+		if StringName(site["district"]) != &"boardwalk":
+			continue
+		var interior_size: Vector2 = site["size"]
+		rects.append([Vector2(site["at"]), interior_size * 0.5])
+	for site in Plan.REBUILD_MIDWAY_UNITS:
+		if not String(site["id"]).begins_with("B"):
+			continue
+		rects.append([Vector2(site["at"]), Vector2(2.5, 2.5)])
+	for site in Plan.REBUILD_ATTRACTION_SITES:
+		if StringName(site["id"]) != &"P2":
+			continue
+		var attraction_size: Vector2 = site["size"]
+		rects.append([Vector2(site["at"]), attraction_size * 0.5])
 	for rect in rects:
 		out.append({"kind": "rect", "at": rect[0], "half": rect[1]})
 
@@ -3017,6 +3050,8 @@ func _boardwalk_signs() -> Array:
 	var out: Array = []
 	var face := Plan.FRONT_X - Plan.FRONT_DEPTH * 0.5
 	for unit in Plan.FRONTAGE_UNITS:
+		if Plan.REBUILD_RETIRED_BOARDWALK_SHOPS.has(StringName(unit["nm"])):
+			continue
 		var mid: float = (unit["from"] + unit["to"]) * 0.5
 		var h: float = unit["h"]
 		var y: float = Plan.SHORE_TOP + (h + 1.9 if h >= 8.0 else h - 0.9)

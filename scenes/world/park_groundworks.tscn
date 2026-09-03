@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+; Stable editor-owned wrapper. The generator writes only
+; generated/park_groundworks.tscn; manual terrain refinements belong under
+; authored_additions so rebuilding the measured bands cannot erase them.
+[ext_resource type="PackedScene" path="res://scenes/world/generated/park_groundworks.tscn" id="1_generated"]
+
+[node name="park_groundworks" instance=ExtResource("1_generated")]
+
+[node name="authored_additions" type="Node3D" parent="."]

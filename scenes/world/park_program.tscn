@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+; Stable editor-owned wrapper for package-04 ride, attraction, interior,
+; midway and Kiddieland assemblies. Manual art belongs under
+; authored_additions; the generated source remains replaceable greybox.
+[ext_resource type="PackedScene" path="res://scenes/world/generated/park_program.tscn" id="1_generated"]
+
+[node name="park_program" instance=ExtResource("1_generated")]
+
+[node name="authored_additions" type="Node3D" parent="."]

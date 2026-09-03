@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+; Stable editor-owned wrapper for atlas routes C-F. The generator writes only
+; generated/park_routes.tscn; hand-authored district paving details belong
+; under authored_additions and survive every measured rebuild.
+[ext_resource type="PackedScene" path="res://scenes/world/generated/park_routes.tscn" id="1_generated"]
+
+[node name="park_routes" instance=ExtResource("1_generated")]
+
+[node name="authored_additions" type="Node3D" parent="."]

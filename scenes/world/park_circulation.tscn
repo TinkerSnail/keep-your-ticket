@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+; Stable editor-owned wrapper. The generator writes only
+; generated/park_circulation.tscn; hand-authored route dressing belongs under
+; authored_additions and survives every rebuild.
+[ext_resource type="PackedScene" path="res://scenes/world/generated/park_circulation.tscn" id="1_generated"]
+
+[node name="park_circulation" instance=ExtResource("1_generated")]
+
+[node name="authored_additions" type="Node3D" parent="."]

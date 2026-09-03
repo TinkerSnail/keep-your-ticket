@@ -26,7 +26,7 @@ register — so `ParkClock` or `ParkSections` dies at compile without running a
 line. `run.tscn` is that scene. Name the tool after a bare `--`:
 
 ```bash
-/Applications/Godot.app/Contents/MacOS/Godot --headless --fixed-fps 60 --path . tools/run.tscn -- walk_test
+/Applications/Godot.app/Contents/MacOS/Godot --headless --fixed-fps 60 --path . tools/run.tscn -- footprint_walk_test
 ```
 
 Run it with no tool named and it lists what it can start, and which ones want
@@ -54,7 +54,7 @@ in `~/Library/Application Support/Godot/app_userdata/Keep Your Ticket/`.
 Piped stdout from headless Godot is buffered until the process exits, so reading
 the log of a run still in progress tells you nothing. Redirect and read after.
 
-See `.claude/skills/run-the-park/SKILL.md` for the containerised route, which is
+See `.agents/skills/run-the-park/SKILL.md` for the containerised route, which is
 the same rules with Xvfb and a fetched binary.
 
 ## Generators
@@ -84,7 +84,7 @@ plus those crowd scenes; a familiar world wrapper changing is a regression.
 
 | tool | what it builds |
 |---|---|
-| `gen_props.gd` | The ground textures and thirteen generated world sources beneath the stable wrappers: props, skyline, west shell, real boardwalk, cascades, entrance, thresholds, paving, frontage, fountain, sky ride and the park-transit layer. It does not write `west_far` or `terraces_far`; the persistent world uses the real places. **The order it writes them in is load-bearing** — each scene gets a seam seed five on from the last, so the two retired seed slots remain until that system is replaced. Run `coplanar_test.py` after touching the order. |
+| `gen_props.gd` | The ground textures and eighteen generated world sources beneath the stable wrappers: established props/places plus groundworks, circulation, routes, program and landscape. It does not write `west_far` or `terraces_far`; the persistent world uses the real places. **The order it writes them in is load-bearing** — each scene gets a seam seed five on from the last, so the two retired seed slots remain until that system is replaced. Run `coplanar_test.py` after touching the order. |
 | `gen_crowd.gd` | The plaza, boardwalk and terraces crowds in one run. Each output carries an `area_id`, because all three coexist in `park_world.tscn`. Bodies and placement only; behaviour lives in `scenes/npc/guest.gd` and is hand-written. |
 
 ## Tests
@@ -94,8 +94,10 @@ merge.
 
 | tool | asks | notes |
 |---|---|---|
-| `walk_test.gd` | Can the player actually walk every route, in both directions, and does every open edge hold? | Hundreds of directed legs. The main defence against coplanar snags, missing step-up and holes behind platforms — none of which a screenshot shows. |
+| `walk_test.gd` | Historical regression probes for the pre-rebuild park. | Not a current release gate: many cases name retired section routes and pre-expansion boundaries. Preserve useful protected-anchor probes when this suite is split or rewritten in package 06. |
 | `transit_test.gd` | Do the Kiddieland railway and Grand Circuit form usable loops, move with riders while open, and park empty after close? | Run at `--fixed-fps 60`; also guards the sampled grades and the five station-to-route alignments. |
+| `footprint_test.gd` | Does the expanded developed park remain one connected hierarchy inside genuinely larger world geography? | Guards the 434x450m program envelope, 2km-plus land reserve, nearly 4km western ocean reserve, every primary handoff, the four crossing records and the retirement of the old NNW dead end. |
+| `footprint_walk_test.gd` | Can the real Player traverse every rebuilt public path in both directions? | Current A–F release gate: center and both operating edges of all generated segments, including shared junction floors and expanded-datum handoffs. |
 | `section_test.gd` | Is the park one continuous standing world, with both plaza gates walkable in both directions and no load, teleport, far stand-in or transition gate? | Also verifies all canonical scenes and all three tagged crowds are present. |
 | `day_test.gd` | Does each section's crowd have a day — the curves, the admitting and the sending home? | `--headless --fixed-fps 60`, about ninety seconds. |
 | `night_test.gd` | Do the lights come on and go off again? | `park_lights.gd` fails by succeeding: miss the emissive materials and the lights still light. |
@@ -117,6 +119,7 @@ These pose a camera and save PNGs. All need a real renderer.
 | `west_capture.gd` | The plaza-to-boardwalk walk in order, crossing the seam mid-run. Ships `west_capture.tscn`. |
 | `menu_capture.gd` | The HUD and all four pause-menu tabs, stacking consecutive frames of a tab change and a cursor move into strips — a still cannot show that either animates. |
 | `night_capture.gd` | The park through the evening, measuring what the lights cost while it does it. |
+| `footprint_capture.gd` | Ten real-world aerials covering the complete A–F hierarchy, arrival, Headland, west/east anchors, Plaza branches and the coastal, family and northern ride circuits. |
 
 ## Probes
 
