@@ -3085,8 +3085,12 @@ const REBUILD_RIDE_SITES := [
 		"queue": [Vector2(104, 88), Vector2(101, 92), Vector2(99, 95)]},
 	{"id": &"R7", "kind": &"carousel", "at": Vector2(109, 62), "radius": 7.0,
 		"queue": [Vector2(102, 70), Vector2(104, 66), Vector2(106, 63)]},
-	{"id": &"R8", "kind": &"chair_swing", "at": Vector2(116, -57),
-		"radius": 7.5, "queue": [Vector2(108, -49), Vector2(113, -55)]},
+	# Moved 2026-09-04: at (116, -57) the expanded court shared the coaster's
+	# footprint corner, its seats 8.9m from the rails. Clear of R13, F and R11
+	# by 16m or more now.
+	{"id": &"R8", "kind": &"chair_swing", "at": Vector2(104, -66),
+		"radius": 7.5, "queue": [Vector2(96, -53), Vector2(99, -56),
+			Vector2(101, -60), Vector2(103, -63)]},
 	{"id": &"R9", "kind": &"water_ride", "points": [
 		Vector2(9, -72), Vector2(15, -85), Vector2(27, -100),
 		Vector2(41, -103), Vector2(48, -92), Vector2(39, -77),
@@ -3108,10 +3112,10 @@ const REBUILD_RIDE_SITES := [
 		Vector2(148, 34), Vector2(141, 44), Vector2(132, 42),
 		Vector2(137, 29), Vector2(140, 12), Vector2(140, -5),
 		Vector2(143, -22), Vector2(139, -35), Vector2(129, -41),
-	# Route F owns this edge. The track remains on the accepted R13 footprint,
-	# while the station shifts east into its operating parcel so its west wall no
-	# longer occupies the route's full walking envelope. `track_anchor` keeps the
-	# ride geometry fixed; the queue extends to the relocated public threshold.
+	# Route F owns this edge. `track_anchor` keeps the ride geometry fixed and,
+	# since 2026-09-04, the station rides with the track as an open shed on
+	# posts; the earlier east shift of the station alone put the rails over its
+	# roof. `clearance_test` is what says whether its west end clears F.
 	], "track_anchor": Vector2(129, -41),
 		"station": Vector2(135, -41), "station_size": Vector2(14, 8),
 		"queue": [Vector2(118, -40), Vector2(124, -40),

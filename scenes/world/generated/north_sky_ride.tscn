@@ -112,130 +112,130 @@ _surfaces = [{
 "vertex_data": PackedByteArray("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")
 }]
 
-[node name="north_sky_ride" type="Node3D" unique_id=2083852877]
+[node name="north_sky_ride" type="Node3D" unique_id=1243601135]
 
-[node name="sky_ride_frontier_access" type="MeshInstance3D" parent="." unique_id=1894661396]
+[node name="sky_ride_frontier_access" type="MeshInstance3D" parent="." unique_id=1560596674]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0005, 0.0005, 0.0005)
 material_override = SubResource("StandardMaterial3D_tl06w")
 mesh = SubResource("ArrayMesh_qkdu0")
 
-[node name="sky_frontier_platform" type="CSGBox3D" parent="." unique_id=537940430]
+[node name="sky_frontier_platform" type="CSGBox3D" parent="." unique_id=659207841]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 111.99544, 20.02875, -97.293175)
 size = Vector3(7.6, 0.056, 9)
 material = SubResource("StandardMaterial3D_qyeh3")
 
-[node name="sky_frontier_post_-1_0_-7_25" type="CSGCylinder3D" parent="." unique_id=388478378]
+[node name="sky_frontier_post_-1_0_-7_25" type="CSGCylinder3D" parent="." unique_id=870794017]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 115.405205, 23.851, -100.30127)
 use_collision = true
 radius = 0.13
 height = 7.7
 material = SubResource("StandardMaterial3D_rs2bq")
 
-[node name="sky_frontier_knee_-1_0_-7_25" type="CSGBox3D" parent="." unique_id=1484433891]
+[node name="sky_frontier_knee_-1_0_-7_25" type="CSGBox3D" parent="." unique_id=298234896]
 transform = Transform3D(-0.998672, 0.037383493, 0.03544988, 0, 0.68809175, -0.7256237, -0.05151912, -0.7246601, -0.68717796, 115.37712, 27.20125, -99.75175)
 size = Vector3(0.16, 0.16, 1.5986271)
 material = SubResource("StandardMaterial3D_rs2bq")
 
-[node name="sky_frontier_post_-1_0_-3_9" type="CSGCylinder3D" parent="." unique_id=702587804]
+[node name="sky_frontier_post_-1_0_-3_9" type="CSGCylinder3D" parent="." unique_id=312044820]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 112.06015, 23.8515, -100.47335)
 use_collision = true
 radius = 0.13
 height = 7.7
 material = SubResource("StandardMaterial3D_rs2bq")
 
-[node name="sky_frontier_knee_-1_0_-3_9" type="CSGBox3D" parent="." unique_id=1697362804]
+[node name="sky_frontier_knee_-1_0_-3_9" type="CSGBox3D" parent="." unique_id=2134258749]
 transform = Transform3D(-0.9986724, 0.03737849, 0.035445116, 0, 0.6880916, -0.72562385, -0.05151221, -0.7246605, -0.687178, 112.03207, 27.201752, -99.923836)
 size = Vector3(0.16, 0.16, 1.5986269)
 material = SubResource("StandardMaterial3D_rs2bq")
 
-[node name="sky_frontier_post_-1_0_-0_65" type="CSGCylinder3D" parent="." unique_id=1761686682]
+[node name="sky_frontier_post_-1_0_-0_65" type="CSGCylinder3D" parent="." unique_id=1617079962]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 108.814964, 23.852001, -100.64029)
 use_collision = true
 radius = 0.13
 height = 7.7
 material = SubResource("StandardMaterial3D_rs2bq")
 
-[node name="sky_frontier_knee_-1_0_-0_65" type="CSGBox3D" parent="." unique_id=1634765371]
+[node name="sky_frontier_knee_-1_0_-0_65" type="CSGBox3D" parent="." unique_id=1636240750]
 transform = Transform3D(-0.998672, 0.037383493, 0.03544988, 0, 0.68809175, -0.7256237, -0.05151912, -0.7246601, -0.68717796, 108.78688, 27.202251, -100.09077)
 size = Vector3(0.16, 0.16, 1.5986271)
 material = SubResource("StandardMaterial3D_rs2bq")
 
-[node name="sky_frontier_post_1_0_-7_25" type="CSGCylinder3D" parent="." unique_id=2103712754]
+[node name="sky_frontier_post_1_0_-7_25" type="CSGCylinder3D" parent="." unique_id=1808614034]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 115.07905, 23.8525, -93.94821)
 use_collision = true
 radius = 0.13
 height = 7.7
 material = SubResource("StandardMaterial3D_rs2bq")
 
-[node name="sky_frontier_knee_1_0_-7_25" type="CSGBox3D" parent="." unique_id=311081536]
+[node name="sky_frontier_knee_1_0_-7_25" type="CSGBox3D" parent="." unique_id=392018156]
 transform = Transform3D(0.9986723, -0.037378866, -0.035445232, 0, 0.688089, -0.72562623, 0.05151256, 0.72466284, 0.6871755, 115.10762, 27.202751, -94.49724)
 size = Vector3(0.16, 0.16, 1.5986216)
 material = SubResource("StandardMaterial3D_rs2bq")
 
-[node name="sky_frontier_post_1_0_-3_9" type="CSGCylinder3D" parent="." unique_id=1116260867]
+[node name="sky_frontier_post_1_0_-3_9" type="CSGCylinder3D" parent="." unique_id=1841862117]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 111.733986, 23.853, -94.1203)
 use_collision = true
 radius = 0.13
 height = 7.7
 material = SubResource("StandardMaterial3D_rs2bq")
 
-[node name="sky_frontier_knee_1_0_-3_9" type="CSGBox3D" parent="." unique_id=185457966]
+[node name="sky_frontier_knee_1_0_-3_9" type="CSGBox3D" parent="." unique_id=847006300]
 transform = Transform3D(0.998672, -0.037383493, -0.03544988, 0, 0.68809175, -0.7256237, 0.05151912, 0.7246601, 0.68717796, 111.76257, 27.20325, -94.66932)
 size = Vector3(0.16, 0.16, 1.5986271)
 material = SubResource("StandardMaterial3D_rs2bq")
 
-[node name="sky_frontier_post_1_0_-0_65" type="CSGCylinder3D" parent="." unique_id=20954422]
+[node name="sky_frontier_post_1_0_-0_65" type="CSGCylinder3D" parent="." unique_id=1129214513]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 108.48881, 23.8535, -94.28723)
 use_collision = true
 radius = 0.13
 height = 7.7
 material = SubResource("StandardMaterial3D_rs2bq")
 
-[node name="sky_frontier_knee_1_0_-0_65" type="CSGBox3D" parent="." unique_id=846854989]
+[node name="sky_frontier_knee_1_0_-0_65" type="CSGBox3D" parent="." unique_id=1119219622]
 transform = Transform3D(0.998672, -0.037383493, -0.03544988, 0, 0.68809175, -0.7256237, 0.05151912, 0.7246601, 0.68717796, 108.517395, 27.20375, -94.83625)
 size = Vector3(0.16, 0.16, 1.5986271)
 material = SubResource("StandardMaterial3D_rs2bq")
 
-[node name="sky_frontier_roof" type="CSGBox3D" parent="." unique_id=2017587165]
+[node name="sky_frontier_roof" type="CSGBox3D" parent="." unique_id=1482922899]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 111.99869, 27.924, -97.289925)
 size = Vector3(8.35, 0.28, 9.55)
 material = SubResource("StandardMaterial3D_4eant")
 
-[node name="sky_frontier_roof_crown" type="CSGBox3D" parent="." unique_id=1578605960]
+[node name="sky_frontier_roof_crown" type="CSGBox3D" parent="." unique_id=1028300923]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 111.99894, 28.20425, -97.28967)
 size = Vector3(5.65, 0.24, 8.75)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="sky_frontier_crossbeam_-7_1" type="CSGBox3D" parent="." unique_id=1149165294]
+[node name="sky_frontier_crossbeam_-7_1" type="CSGBox3D" parent="." unique_id=1361327405]
 transform = Transform3D(-0.99867207, 0, 0.05151892, 0, 1.0000001, 0, -0.05151892, 0, -0.99867207, 115.09508, 27.6045, -97.129715)
 size = Vector3(0.22, 0.22, 6.6999984)
 material = SubResource("StandardMaterial3D_rs2bq")
 
-[node name="sky_frontier_crossbeam_-4_0" type="CSGBox3D" parent="." unique_id=1422613221]
+[node name="sky_frontier_crossbeam_-4_0" type="CSGBox3D" parent="." unique_id=1102577390]
 transform = Transform3D(-0.99867207, 0, 0.05151892, 0, 1.0000001, 0, -0.05151892, 0, -0.99867207, 111.99944, 27.60475, -97.28917)
 size = Vector3(0.22, 0.22, 6.6999984)
 material = SubResource("StandardMaterial3D_rs2bq")
 
-[node name="sky_frontier_crossbeam_-0_9" type="CSGBox3D" parent="." unique_id=1517501759]
+[node name="sky_frontier_crossbeam_-0_9" type="CSGBox3D" parent="." unique_id=786673882]
 transform = Transform3D(-0.99867207, 0, 0.051518865, 0, 1.0000001, 0, -0.051518865, 0, -0.99867207, 108.9038, 27.605, -97.44863)
 size = Vector3(0.22, 0.22, 6.700006)
 material = SubResource("StandardMaterial3D_rs2bq")
 
-[node name="sky_frontier_bullwheel" type="CSGCylinder3D" parent="." unique_id=408108609]
+[node name="sky_frontier_bullwheel" type="CSGCylinder3D" parent="." unique_id=1700030206]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 108, 27.4, -97.5)
 radius = 2.35
 height = 0.26
 sides = 22
 material = SubResource("StandardMaterial3D_4eant")
 
-[node name="sky_frontier_bullwheel_hub" type="CSGCylinder3D" parent="." unique_id=653147528]
+[node name="sky_frontier_bullwheel_hub" type="CSGCylinder3D" parent="." unique_id=242804614]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 108.00025, 27.56025, -97.49975)
 radius = 0.58
 height = 0.4
 sides = 14
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="sky_frontier_terminal_mast" type="CSGCylinder3D" parent="." unique_id=1414127534]
+[node name="sky_frontier_terminal_mast" type="CSGCylinder3D" parent="." unique_id=1994573670]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 108.0005, 26.4505, -97.4995)
 use_collision = true
 radius = 0.24
@@ -243,110 +243,110 @@ height = 1.9
 sides = 10
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_frontier_gate_post_-1_55" type="CSGCylinder3D" parent="." unique_id=1503087781]
+[node name="sky_frontier_gate_post_-1_55" type="CSGCylinder3D" parent="." unique_id=875995124]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 109.37044, 21.220749, -93.96399)
 use_collision = true
 radius = 0.09
 height = 2.44
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_frontier_gate_post_1_25" type="CSGCylinder3D" parent="." unique_id=925842262]
+[node name="sky_frontier_gate_post_1_25" type="CSGCylinder3D" parent="." unique_id=974319085]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 106.5744, 21.220999, -94.107994)
 use_collision = true
 radius = 0.09
 height = 2.44
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_frontier_gate_rail_0_48" type="CSGBox3D" parent="." unique_id=1060488006]
+[node name="sky_frontier_gate_rail_0_48" type="CSGBox3D" parent="." unique_id=1621707886]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 107.97228, 20.481249, -94.02563)
 use_collision = true
 size = Vector3(0.18, 0.15, 2.68)
 material = SubResource("StandardMaterial3D_b3snp")
 
-[node name="sky_frontier_gate_rail_1_25" type="CSGBox3D" parent="." unique_id=454317106]
+[node name="sky_frontier_gate_rail_1_25" type="CSGBox3D" parent="." unique_id=1088934282]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 107.972534, 21.2515, -94.025375)
 use_collision = true
 size = Vector3(0.18, 0.15, 2.68)
 material = SubResource("StandardMaterial3D_b3snp")
 
-[node name="sky_frontier_gate_picket_0" type="CSGBox3D" parent="." unique_id=896090706]
+[node name="sky_frontier_gate_picket_0" type="CSGBox3D" parent="." unique_id=26950671]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 109.20114, 20.851751, -93.96176)
 use_collision = true
 size = Vector3(0.18, 1.48, 0.12)
 material = SubResource("StandardMaterial3D_b3snp")
 
-[node name="sky_frontier_gate_picket_1" type="CSGBox3D" parent="." unique_id=1494631703]
+[node name="sky_frontier_gate_picket_1" type="CSGBox3D" parent="." unique_id=1135683311]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 108.71005, 20.852001, -93.98686)
 use_collision = true
 size = Vector3(0.18, 1.48, 0.12)
 material = SubResource("StandardMaterial3D_b3snp")
 
-[node name="sky_frontier_gate_picket_2" type="CSGBox3D" parent="." unique_id=1142780758]
+[node name="sky_frontier_gate_picket_2" type="CSGBox3D" parent="." unique_id=395271118]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 108.218956, 20.852251, -94.011955)
 use_collision = true
 size = Vector3(0.18, 1.48, 0.12)
 material = SubResource("StandardMaterial3D_b3snp")
 
-[node name="sky_frontier_gate_picket_3" type="CSGBox3D" parent="." unique_id=2039701075]
+[node name="sky_frontier_gate_picket_3" type="CSGBox3D" parent="." unique_id=1145524037]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 107.72786, 20.8525, -94.03705)
 use_collision = true
 size = Vector3(0.18, 1.48, 0.12)
 material = SubResource("StandardMaterial3D_b3snp")
 
-[node name="sky_frontier_gate_picket_4" type="CSGBox3D" parent="." unique_id=993909549]
+[node name="sky_frontier_gate_picket_4" type="CSGBox3D" parent="." unique_id=1663903561]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 107.236755, 20.85275, -94.06216)
 use_collision = true
 size = Vector3(0.18, 1.48, 0.12)
 material = SubResource("StandardMaterial3D_b3snp")
 
-[node name="sky_frontier_gate_picket_5" type="CSGBox3D" parent="." unique_id=762133109]
+[node name="sky_frontier_gate_picket_5" type="CSGBox3D" parent="." unique_id=356442042]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 106.74566, 20.853, -94.08725)
 use_collision = true
 size = Vector3(0.18, 1.48, 0.12)
 material = SubResource("StandardMaterial3D_b3snp")
 
-[node name="sky_frontier_sign" type="CSGBox3D" parent="." unique_id=561317286]
+[node name="sky_frontier_sign" type="CSGBox3D" parent="." unique_id=1076849448]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 107.97325, 22.34325, -94.003654)
 size = Vector3(0.12, 0.72, 3.12)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="sky_frontier_sign_bulb_0" type="CSGSphere3D" parent="." unique_id=438944947]
+[node name="sky_frontier_sign_bulb_0" type="CSGSphere3D" parent="." unique_id=268721202]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 109.067406, 22.3435, -93.85686)
 radius = 0.09
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_frontier_sign_bulb_1" type="CSGSphere3D" parent="." unique_id=44535197]
+[node name="sky_frontier_sign_bulb_1" type="CSGSphere3D" parent="." unique_id=447799280]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 108.51839, 22.34375, -93.88494)
 radius = 0.09
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_frontier_sign_bulb_2" type="CSGSphere3D" parent="." unique_id=38433246]
+[node name="sky_frontier_sign_bulb_2" type="CSGSphere3D" parent="." unique_id=1940642405]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 107.96936, 22.344, -93.913025)
 radius = 0.09
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_frontier_sign_bulb_3" type="CSGSphere3D" parent="." unique_id=231256082]
+[node name="sky_frontier_sign_bulb_3" type="CSGSphere3D" parent="." unique_id=1950538698]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 107.42034, 22.34425, -93.94111)
 radius = 0.09
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_frontier_sign_bulb_4" type="CSGSphere3D" parent="." unique_id=964860454]
+[node name="sky_frontier_sign_bulb_4" type="CSGSphere3D" parent="." unique_id=1149528799]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 106.87132, 22.3445, -93.96919)
 radius = 0.09
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_frontier_station_globe" type="CSGSphere3D" parent="." unique_id=1738934529]
+[node name="sky_frontier_station_globe" type="CSGSphere3D" parent="." unique_id=1247993429]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 111.19317, 23.554749, -94.27671)
 radius = 0.17
 radial_segments = 10
 material = ExtResource("4_1ecvs")
 
-[node name="sky_frontier_station_light" type="OmniLight3D" parent="." unique_id=1396091324 groups=["park_light"]]
+[node name="sky_frontier_station_light" type="OmniLight3D" parent="." unique_id=359328020 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 111.188416, 23.55, -94.28146)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -357,192 +357,192 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.0
 metadata/light_kind = 0
 
-[node name="sky_grove_ground" type="CSGBox3D" parent="." unique_id=1168736583]
+[node name="sky_grove_ground" type="CSGBox3D" parent="." unique_id=490433578]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.995, -0.545, -103.995)
 use_collision = true
 size = Vector3(62, 1.08, 84)
 material = SubResource("StandardMaterial3D_ifc7x")
 
-[node name="sky_grove_lawn" type="CSGCylinder3D" parent="." unique_id=797820294]
+[node name="sky_grove_lawn" type="CSGCylinder3D" parent="." unique_id=74165951]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, -0.32, -104)
 radius = 12.2
 height = 0.64
 sides = 20
 material = SubResource("StandardMaterial3D_ifc7x")
 
-[node name="sky_grove_platform" type="CSGCylinder3D" parent="." unique_id=16386226]
+[node name="sky_grove_platform" type="CSGCylinder3D" parent="." unique_id=670782918]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.99975, 0.03525, -103.99975)
 radius = 5.65
 height = 0.07
 sides = 20
 material = SubResource("StandardMaterial3D_lmqqj")
 
-[node name="sky_grove_post_3" type="CSGCylinder3D" parent="." unique_id=189635005]
+[node name="sky_grove_post_3" type="CSGCylinder3D" parent="." unique_id=1504179049]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.216837, 4.0005, -100.78216)
 use_collision = true
 radius = 0.12
 height = 8.0
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="sky_grove_post_4" type="CSGCylinder3D" parent="." unique_id=663228906]
+[node name="sky_grove_post_4" type="CSGCylinder3D" parent="." unique_id=419853457]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22.54925, 4.00075, -103.99925)
 use_collision = true
 radius = 0.12
 height = 8.0
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="sky_grove_post_5" type="CSGCylinder3D" parent="." unique_id=2045256202]
+[node name="sky_grove_post_5" type="CSGCylinder3D" parent="." unique_id=1022462693]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.216337, 4.001, -107.21634)
 use_collision = true
 radius = 0.12
 height = 8.0
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="sky_grove_roof" type="CSGCylinder3D" parent="." unique_id=1950131388]
+[node name="sky_grove_roof" type="CSGCylinder3D" parent="." unique_id=1187846773]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.99875, 8.55125, -103.99875)
 radius = 5.45
 height = 0.28
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="sky_grove_roof_upper" type="CSGCylinder3D" parent="." unique_id=770343761]
+[node name="sky_grove_roof_upper" type="CSGCylinder3D" parent="." unique_id=1561332354]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.9985, 8.8515005, -103.9985)
 radius = 3.85
 height = 0.24
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="sky_grove_lantern" type="CSGCylinder3D" parent="." unique_id=218005920]
+[node name="sky_grove_lantern" type="CSGCylinder3D" parent="." unique_id=426656875]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.99825, 9.55175, -103.99825)
 radius = 1.18
 height = 1.18
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="sky_grove_lantern_roof" type="CSGCylinder3D" parent="." unique_id=274834799]
+[node name="sky_grove_lantern_roof" type="CSGCylinder3D" parent="." unique_id=845344806]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.998, 10.252, -103.998)
 radius = 1.48
 height = 0.2
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="sky_grove_valance_0" type="CSGBox3D" parent="." unique_id=772928551]
+[node name="sky_grove_valance_0" type="CSGBox3D" parent="." unique_id=309199450]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.99775, 7.73225, -98.97775)
 size = Vector3(4.034249, 0.66, 0.2)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="sky_grove_valance_1" type="CSGBox3D" parent="." unique_id=866184019]
+[node name="sky_grove_valance_1" type="CSGBox3D" parent="." unique_id=1261424587]
 transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, -14.4478245, 7.7325, -100.44782)
 size = Vector3(4.034249, 0.66, 0.2)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="sky_grove_valance_2" type="CSGBox3D" parent="." unique_id=732515522]
+[node name="sky_grove_valance_2" type="CSGBox3D" parent="." unique_id=2024340159]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -12.977249, 7.73275, -103.99725)
 size = Vector3(4.034249, 0.66, 0.2)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="sky_grove_valance_3" type="CSGBox3D" parent="." unique_id=1659503848]
+[node name="sky_grove_valance_3" type="CSGBox3D" parent="." unique_id=2142040821]
 transform = Transform3D(-0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, -0.70710677, -14.447324, 7.733, -107.54668)
 size = Vector3(4.034249, 0.66, 0.2)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="sky_grove_valance_4" type="CSGBox3D" parent="." unique_id=161670953]
+[node name="sky_grove_valance_4" type="CSGBox3D" parent="." unique_id=926970958]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -17.99675, 7.73325, -109.01675)
 size = Vector3(4.034249, 0.66, 0.2)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="sky_grove_valance_5" type="CSGBox3D" parent="." unique_id=1703578131]
+[node name="sky_grove_valance_5" type="CSGBox3D" parent="." unique_id=494433383]
 transform = Transform3D(-0.7071068, 0, -0.7071067, 0, 1, 0, 0.7071067, 0, -0.7071068, -21.546175, 7.7335, -107.54617)
 size = Vector3(4.034249, 0.66, 0.2)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="sky_grove_valance_6" type="CSGBox3D" parent="." unique_id=150739]
+[node name="sky_grove_valance_6" type="CSGBox3D" parent="." unique_id=1310137657]
 transform = Transform3D(1.1924881e-08, 0, -1, 0, 1, 0, 1, 0, 1.1924881e-08, -23.01625, 7.73375, -103.99625)
 size = Vector3(4.034249, 0.66, 0.2)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="sky_grove_valance_7" type="CSGBox3D" parent="." unique_id=252447792]
+[node name="sky_grove_valance_7" type="CSGBox3D" parent="." unique_id=1085268031]
 transform = Transform3D(0.70710665, 0, -0.7071069, 0, 1, 0, 0.7071069, 0, 0.70710665, -21.545677, 7.734, -100.44633)
 size = Vector3(4.034249, 0.66, 0.2)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="sky_grove_sign" type="CSGBox3D" parent="." unique_id=1242481954]
+[node name="sky_grove_sign" type="CSGBox3D" parent="." unique_id=1064483206]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.99575, 7.48425, -98.82575)
 size = Vector3(3.45, 0.74, 0.15)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="sky_grove_sign_bulb_0" type="CSGSphere3D" parent="." unique_id=1390315873]
+[node name="sky_grove_sign_bulb_0" type="CSGSphere3D" parent="." unique_id=1809631858]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19.3455, 7.4845, -98.7155)
 radius = 0.09
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_grove_sign_bulb_1" type="CSGSphere3D" parent="." unique_id=1139464322]
+[node name="sky_grove_sign_bulb_1" type="CSGSphere3D" parent="." unique_id=668109328]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.67025, 7.48475, -98.71525)
 radius = 0.09
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_grove_sign_bulb_2" type="CSGSphere3D" parent="." unique_id=621911195]
+[node name="sky_grove_sign_bulb_2" type="CSGSphere3D" parent="." unique_id=536238036]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.995, 7.485, -98.715004)
 radius = 0.09
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_grove_sign_bulb_3" type="CSGSphere3D" parent="." unique_id=1161004838]
+[node name="sky_grove_sign_bulb_3" type="CSGSphere3D" parent="." unique_id=1751929819]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.325, 7.48, -98.72)
 radius = 0.09
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_grove_sign_bulb_4" type="CSGSphere3D" parent="." unique_id=961326564]
+[node name="sky_grove_sign_bulb_4" type="CSGSphere3D" parent="." unique_id=1985549508]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.64975, 7.48025, -98.71975)
 radius = 0.09
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_grove_bullwheel" type="CSGCylinder3D" parent="." unique_id=1056116469]
+[node name="sky_grove_bullwheel" type="CSGCylinder3D" parent="." unique_id=614456938]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.9995, 8.1005, -103.9995)
 radius = 2.35
 height = 0.26
 sides = 22
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="sky_grove_bullwheel_hub" type="CSGCylinder3D" parent="." unique_id=1947926099]
+[node name="sky_grove_bullwheel_hub" type="CSGCylinder3D" parent="." unique_id=1443788253]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.99925, 8.26075, -103.99925)
 radius = 0.58
 height = 0.4
 sides = 14
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="sky_grove_terminal_mast" type="CSGCylinder3D" parent="." unique_id=1374625532]
+[node name="sky_grove_terminal_mast" type="CSGCylinder3D" parent="." unique_id=1779858315]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.999, 6.651, -103.999)
 radius = 0.24
 height = 3.0
 sides = 10
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_grove_bench_seat" type="CSGBox3D" parent="." unique_id=781903403]
+[node name="sky_grove_bench_seat" type="CSGBox3D" parent="." unique_id=1976751721]
 transform = Transform3D(-0.3783701, 0, 0.9256544, 0, 1, 0, -0.9256544, 0, -0.3783701, -24.848751, 0.45125, -101.198746)
 use_collision = true
 size = Vector3(1.8, 0.12, 0.55)
 material = SubResource("StandardMaterial3D_rs2bq")
 
-[node name="sky_grove_bench_leg_l" type="CSGBox3D" parent="." unique_id=144222047]
+[node name="sky_grove_bench_leg_l" type="CSGBox3D" parent="." unique_id=974242254]
 transform = Transform3D(-0.3783701, 0, 0.9256544, 0, 1, 0, -0.9256544, 0, -0.3783701, -24.553373, 0.22649999, -100.47649)
 use_collision = true
 size = Vector3(0.14, 0.45, 0.5)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_grove_bench_leg_r" type="CSGBox3D" parent="." unique_id=354763886]
+[node name="sky_grove_bench_leg_r" type="CSGBox3D" parent="." unique_id=1179075489]
 transform = Transform3D(-0.3783701, 0, 0.9256544, 0, 1, 0, -0.9256544, 0, -0.3783701, -25.143377, 0.22675, -101.92026)
 use_collision = true
 size = Vector3(0.14, 0.45, 0.5)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_grove_bench_back" type="CSGBox3D" parent="." unique_id=1201754755]
+[node name="sky_grove_bench_back" type="CSGBox3D" parent="." unique_id=372352830]
 transform = Transform3D(-0.3783701, 0, 0.9256544, 0, 1, 0, -0.9256544, 0, -0.3783701, -25.051643, 0.722, -101.11475)
 use_collision = true
 size = Vector3(1.8, 0.52, 0.11)
 material = SubResource("StandardMaterial3D_rs2bq")
 
-[node name="sky_grove_bin" type="CSGCylinder3D" parent="." unique_id=1632359407]
+[node name="sky_grove_bin" type="CSGCylinder3D" parent="." unique_id=623715913]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.647749, 0.42224997, -99.84775)
 use_collision = true
 radius = 0.22
@@ -550,151 +550,151 @@ height = 0.84
 sides = 10
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_grove_tree_0_trunk" type="CSGCylinder3D" parent="." unique_id=503033955]
+[node name="sky_grove_tree_0_trunk" type="CSGCylinder3D" parent="." unique_id=752232349]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26.6975, 3.3225, -108.7975)
 radius = 0.22
 height = 6.64
 material = SubResource("StandardMaterial3D_rs2bq")
 
-[node name="sky_grove_tree_0_crown_a" type="CSGSphere3D" parent="." unique_id=1684088335]
+[node name="sky_grove_tree_0_crown_a" type="CSGSphere3D" parent="." unique_id=1189808381]
 transform = Transform3D(1, 0, 0, 0, 0.78, 0, 0, 0, 1, -26.83725, 6.22775, -108.72526)
 radius = 2.05
 radial_segments = 10
 material = SubResource("StandardMaterial3D_orv1v")
 
-[node name="sky_grove_tree_0_crown_b" type="CSGSphere3D" parent="." unique_id=584204011]
+[node name="sky_grove_tree_0_crown_b" type="CSGSphere3D" parent="." unique_id=2143655025]
 transform = Transform3D(1, 0, 0, 0, 0.84, 0, 0, 0, 1, -26.477001, 7.639, -108.26401)
 radius = 1.558
 radial_segments = 10
 material = SubResource("StandardMaterial3D_orv1v")
 
-[node name="sky_grove_tree_0_crown_c" type="CSGSphere3D" parent="." unique_id=1471088120]
+[node name="sky_grove_tree_0_crown_c" type="CSGSphere3D" parent="." unique_id=1390403769]
 transform = Transform3D(1, 0, 0, 0, 0.8, 0, 0, 0, 1, -25.79475, 6.64325, -109.45275)
 radius = 1.271
 radial_segments = 10
 material = SubResource("StandardMaterial3D_orv1v")
 
-[node name="sky_grove_tree_1_trunk" type="CSGCylinder3D" parent="." unique_id=1779547015]
+[node name="sky_grove_tree_1_trunk" type="CSGCylinder3D" parent="." unique_id=513243136]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.0965, 3.0435, -109.5965)
 radius = 0.22
 height = 6.08
 material = SubResource("StandardMaterial3D_rs2bq")
 
-[node name="sky_grove_tree_1_crown_a" type="CSGSphere3D" parent="." unique_id=16044455]
+[node name="sky_grove_tree_1_crown_a" type="CSGSphere3D" parent="." unique_id=282852797]
 transform = Transform3D(1, 0, 0, 0, 0.78, 0, 0, 0, 1, -8.92125, 5.7037497, -109.68624)
 radius = 1.85
 radial_segments = 10
 material = SubResource("StandardMaterial3D_orv1v")
 
-[node name="sky_grove_tree_1_crown_b" type="CSGSphere3D" parent="." unique_id=1364232591]
+[node name="sky_grove_tree_1_crown_b" type="CSGSphere3D" parent="." unique_id=612949729]
 transform = Transform3D(1, 0, 0, 0, 0.84, 0, 0, 0, 1, -9.371, 6.9960003, -109.115)
 radius = 1.406
 radial_segments = 10
 material = SubResource("StandardMaterial3D_orv1v")
 
-[node name="sky_grove_tree_1_crown_c" type="CSGSphere3D" parent="." unique_id=299143691]
+[node name="sky_grove_tree_1_crown_c" type="CSGSphere3D" parent="." unique_id=1695532452]
 transform = Transform3D(1, 0, 0, 0, 0.8, 0, 0, 0, 1, -8.281751, 6.08425, -110.18775)
 radius = 1.147
 radial_segments = 10
 material = SubResource("StandardMaterial3D_orv1v")
 
-[node name="sky_grove_tree_2_trunk" type="CSGCylinder3D" parent="." unique_id=500735860]
+[node name="sky_grove_tree_2_trunk" type="CSGCylinder3D" parent="." unique_id=857466735]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27.7955, 3.6044998, -98.7955)
 radius = 0.22
 height = 7.2
 material = SubResource("StandardMaterial3D_rs2bq")
 
-[node name="sky_grove_tree_2_crown_a" type="CSGSphere3D" parent="." unique_id=421218981]
+[node name="sky_grove_tree_2_crown_a" type="CSGSphere3D" parent="." unique_id=371141035]
 transform = Transform3D(1, 0, 0, 0, 0.78, 0, 0, 0, 1, -27.69025, 6.75475, -98.84925)
 radius = 2.15
 radial_segments = 10
 material = SubResource("StandardMaterial3D_orv1v")
 
-[node name="sky_grove_tree_2_crown_b" type="CSGSphere3D" parent="." unique_id=536368635]
+[node name="sky_grove_tree_2_crown_b" type="CSGSphere3D" parent="." unique_id=1844576768]
 transform = Transform3D(1, 0, 0, 0, 0.84, 0, 0, 0, 1, -27.960001, 8.285, -98.23601)
 radius = 1.634
 radial_segments = 10
 material = SubResource("StandardMaterial3D_orv1v")
 
-[node name="sky_grove_tree_2_crown_c" type="CSGSphere3D" parent="." unique_id=1448716251]
+[node name="sky_grove_tree_2_crown_c" type="CSGSphere3D" parent="." unique_id=2006443609]
 transform = Transform3D(1, 0, 0, 0, 0.8, 0, 0, 0, 1, -26.854, 7.2, -99.48801)
 radius = 1.333
 radial_segments = 10
 material = SubResource("StandardMaterial3D_orv1v")
 
-[node name="sky_grove_tree_3_trunk" type="CSGCylinder3D" parent="." unique_id=578142516]
+[node name="sky_grove_tree_3_trunk" type="CSGCylinder3D" parent="." unique_id=1070846064]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.5997505, 3.24025, -98.199745)
 radius = 0.22
 height = 6.48
 material = SubResource("StandardMaterial3D_rs2bq")
 
-[node name="sky_grove_tree_3_crown_a" type="CSGSphere3D" parent="." unique_id=447854630]
+[node name="sky_grove_tree_3_crown_a" type="CSGSphere3D" parent="." unique_id=13817368]
 transform = Transform3D(1, 0, 0, 0, 0.78, 0, 0, 0, 1, -8.774501, 6.0755, -98.1095)
 radius = 1.95
 radial_segments = 10
 material = SubResource("StandardMaterial3D_orv1v")
 
-[node name="sky_grove_tree_3_crown_b" type="CSGSphere3D" parent="." unique_id=131376476]
+[node name="sky_grove_tree_3_crown_b" type="CSGSphere3D" parent="." unique_id=1788704877]
 transform = Transform3D(1, 0, 0, 0, 0.84, 0, 0, 0, 1, -8.324251, 7.45275, -97.692245)
 radius = 1.482
 radial_segments = 10
 material = SubResource("StandardMaterial3D_orv1v")
 
-[node name="sky_grove_tree_3_crown_c" type="CSGSphere3D" parent="." unique_id=1770722872]
+[node name="sky_grove_tree_3_crown_c" type="CSGSphere3D" parent="." unique_id=793029129]
 transform = Transform3D(1, 0, 0, 0, 0.8, 0, 0, 0, 1, -7.7410007, 6.481, -98.823)
 radius = 1.209
 radial_segments = 10
 material = SubResource("StandardMaterial3D_orv1v")
 
-[node name="sky_grove_roof_bulb_0" type="CSGSphere3D" parent="." unique_id=458354079]
+[node name="sky_grove_roof_bulb_0" type="CSGSphere3D" parent="." unique_id=1533305803]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.87875, 8.46125, -103.99875)
 radius = 0.1
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_grove_roof_bulb_1" type="CSGSphere3D" parent="." unique_id=721042109]
+[node name="sky_grove_roof_bulb_1" type="CSGSphere3D" parent="." unique_id=788242320]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.378114, 8.4615, -100.37811)
 radius = 0.1
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_grove_roof_bulb_2" type="CSGSphere3D" parent="." unique_id=572769029]
+[node name="sky_grove_roof_bulb_2" type="CSGSphere3D" parent="." unique_id=1134426742]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.99825, 8.46175, -98.87825)
 radius = 0.1
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_grove_roof_bulb_3" type="CSGSphere3D" parent="." unique_id=124451532]
+[node name="sky_grove_roof_bulb_3" type="CSGSphere3D" parent="." unique_id=616029989]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.618385, 8.462, -100.37762)
 radius = 0.1
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_grove_roof_bulb_4" type="CSGSphere3D" parent="." unique_id=1915112032]
+[node name="sky_grove_roof_bulb_4" type="CSGSphere3D" parent="." unique_id=1602719922]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.117748, 8.46225, -103.99775)
 radius = 0.1
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_grove_roof_bulb_5" type="CSGSphere3D" parent="." unique_id=1101364959]
+[node name="sky_grove_roof_bulb_5" type="CSGSphere3D" parent="." unique_id=1834111817]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.617886, 8.4625, -107.61788)
 radius = 0.1
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_grove_roof_bulb_6" type="CSGSphere3D" parent="." unique_id=1623607423]
+[node name="sky_grove_roof_bulb_6" type="CSGSphere3D" parent="." unique_id=563879122]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.99725, 8.46275, -109.117256)
 radius = 0.1
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_grove_roof_bulb_7" type="CSGSphere3D" parent="." unique_id=2011074634]
+[node name="sky_grove_roof_bulb_7" type="CSGSphere3D" parent="." unique_id=1560603846]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.376614, 8.463, -107.617386)
 radius = 0.1
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_grove_station_light" type="OmniLight3D" parent="." unique_id=528392320 groups=["park_light"]]
+[node name="sky_grove_station_light" type="OmniLight3D" parent="." unique_id=1256308130 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 7.5, -104)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -705,728 +705,728 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.4
 metadata/light_kind = 1
 
-[node name="sky_tower_0_leg_-1_0" type="CSGBox3D" parent="." unique_id=593244393]
+[node name="sky_tower_0_leg_-1_0" type="CSGBox3D" parent="." unique_id=1765821432]
 transform = Transform3D(-0.9999906, -0.00036204603, 0.0043141153, -0.00432928, 0.083626516, -0.9964878, 0, -0.9964971, -0.083627306, 4.8249273, 5.70325, -105.5731)
 size = Vector3(0.3, 0.3, 11.941942)
 material = SubResource("StandardMaterial3D_b3snp")
 
-[node name="sky_tower_0_brace_-1_0" type="CSGBox3D" parent="." unique_id=1203534987]
+[node name="sky_tower_0_brace_-1_0" type="CSGBox3D" parent="." unique_id=1915654414]
 transform = Transform3D(0.998672, -0.041003827, -0.031190773, 0, 0.605426, -0.7959016, 0.051518716, 0.7948446, 0.60462207, 4.660317, 4.2715, -102.3771)
 size = Vector3(0.18, 0.18, 8.589002)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="sky_tower_0_leg_1_0" type="CSGBox3D" parent="." unique_id=688134584]
+[node name="sky_tower_0_leg_1_0" type="CSGBox3D" parent="." unique_id=791653346]
 transform = Transform3D(-0.9999906, -0.00036204603, -0.0043141153, 0.00432928, -0.083626516, -0.9964878, 0, -0.9964971, 0.083627306, 4.5420732, 5.7037497, -100.0799)
 size = Vector3(0.3, 0.3, 11.941942)
 material = SubResource("StandardMaterial3D_b3snp")
 
-[node name="sky_tower_0_brace_1_0" type="CSGBox3D" parent="." unique_id=829043348]
+[node name="sky_tower_0_brace_1_0" type="CSGBox3D" parent="." unique_id=1313557057]
 transform = Transform3D(-0.998672, 0.041003827, 0.031190773, 0, 0.605426, -0.7959016, -0.051518716, -0.7948446, -0.60462207, 4.707184, 4.2720003, -103.275406)
 size = Vector3(0.18, 0.18, 8.589002)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="sky_tower_0_crossarm" type="CSGBox3D" parent="." unique_id=412090809]
+[node name="sky_tower_0_crossarm" type="CSGBox3D" parent="." unique_id=2012144379]
 transform = Transform3D(-0.99867207, 0, 0.051518794, 0, 1.0000001, 0, -0.051518794, 0, -0.99867207, 4.6842504, 12.204249, -102.82575)
 size = Vector3(0.28, 0.28, 7.1000047)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="sky_tower_0_sheave_-1_0" type="CSGSphere3D" parent="." unique_id=964293717]
+[node name="sky_tower_0_sheave_-1_0" type="CSGSphere3D" parent="." unique_id=1467664259]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.7695065, 12.304501, -104.47331)
 radius = 0.3
 radial_segments = 10
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="sky_tower_0_sheave_1_0" type="CSGSphere3D" parent="." unique_id=1647497150]
+[node name="sky_tower_0_sheave_1_0" type="CSGSphere3D" parent="." unique_id=284310317]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.599744, 12.30475, -101.17744)
 radius = 0.3
 radial_segments = 10
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="sky_tower_0_marker_l" type="CSGSphere3D" parent="." unique_id=1619512098]
+[node name="sky_tower_0_marker_l" type="CSGSphere3D" parent="." unique_id=694057404]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.86274, 12.425, -106.270424)
 radius = 0.09
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_tower_0_marker_r" type="CSGSphere3D" parent="." unique_id=704682135]
+[node name="sky_tower_0_marker_r" type="CSGSphere3D" parent="." unique_id=1353485595]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5022607, 12.42, -99.38458)
 radius = 0.09
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_cable_0_0_0" type="CSGBox3D" parent="." unique_id=1157714386]
+[node name="sky_cable_0_0_0" type="CSGBox3D" parent="." unique_id=1499737984]
 transform = Transform3D(0.051518958, -0.19534327, 0.97938085, 0, 0.9806832, 0.19560301, -0.99867207, -0.010077263, 0.050523773, 103.78026, 26.54045, -99.369644)
 size = Vector3(0.045, 0.045, 8.791269)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_0_0_1" type="CSGBox3D" parent="." unique_id=1265396760]
+[node name="sky_cable_0_0_1" type="CSGBox3D" parent="." unique_id=514621766]
 transform = Transform3D(0.051518954, -0.19196776, 0.98004806, 0, 0.98135126, 0.19222304, -0.99867195, -0.00990313, 0.050558195, 95.17051, 24.836533, -99.81356)
 size = Vector3(0.045, 0.045, 8.785284)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_0_0_2" type="CSGBox3D" parent="." unique_id=1546461383]
+[node name="sky_cable_0_0_2" type="CSGBox3D" parent="." unique_id=2130857311]
 transform = Transform3D(0.051518075, -0.18542717, 0.98130655, 0, 0.98261136, 0.18567374, -0.99867207, -0.009565554, 0.050622247, 86.56075, 23.177864, -100.25748)
 size = Vector3(0.045, 0.045, 8.774017)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_0_0_3" type="CSGBox3D" parent="." unique_id=2082919924]
+[node name="sky_cable_0_0_3" type="CSGBox3D" parent="." unique_id=697172446]
 transform = Transform3D(0.051518954, -0.1761349, 0.98301697, 0, 0.9843241, 0.17636912, -0.998672, -0.009086353, 0.050711352, 77.951004, 21.591175, -100.70139)
 size = Vector3(0.045, 0.045, 8.758751)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_0_0_4" type="CSGBox3D" parent="." unique_id=2012474106]
+[node name="sky_cable_0_0_4" type="CSGBox3D" parent="." unique_id=714552864]
 transform = Transform3D(0.051518954, -0.16469018, 0.98499894, 0, 0.9863087, 0.16490918, -0.998672, -0.008495948, 0.050813597, 69.341255, 20.098291, -101.14531)
 size = Vector3(0.045, 0.045, 8.741127)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_0_0_5" type="CSGBox3D" parent="." unique_id=753815929]
+[node name="sky_cable_0_0_5" type="CSGBox3D" parent="." unique_id=1179909051]
 transform = Transform3D(0.051518977, -0.15184647, 0.98706055, 0, 0.98837304, 0.1520484, -0.998672, -0.007833377, 0.050919972, 60.731503, 18.714647, -101.589226)
 size = Vector3(0.045, 0.045, 8.722866)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_0_0_6" type="CSGBox3D" parent="." unique_id=355712232]
+[node name="sky_cable_0_0_6" type="CSGBox3D" parent="." unique_id=1799099690]
 transform = Transform3D(0.05151896, -0.13846755, 0.989026, 0, 0.9903412, 0.13865167, -0.99867207, -0.00714319, 0.051021345, 52.121758, 17.44823, -102.03315)
 size = Vector3(0.045, 0.045, 8.705535)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_0_0_7" type="CSGBox3D" parent="." unique_id=2010400210]
+[node name="sky_cable_0_0_7" type="CSGBox3D" parent="." unique_id=984396654]
 transform = Transform3D(0.051518932, -0.12547185, 0.9907586, 0, 0.99207604, 0.1256387, -0.998672, -0.0064727715, 0.0511107, 43.512, 16.299044, -102.477066)
 size = Vector3(0.045, 0.045, 8.690315)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_0_0_8" type="CSGBox3D" parent="." unique_id=245035977]
+[node name="sky_cable_0_0_8" type="CSGBox3D" parent="." unique_id=221834158]
 transform = Transform3D(0.05151812, -0.113765225, 0.992171, 0, 0.9934903, 0.1139165, -0.99867207, -0.005868764, 0.05118275, 34.902256, 15.259092, -102.92098)
 size = Vector3(0.045, 0.045, 8.677933)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_0_0_9" type="CSGBox3D" parent="." unique_id=1594145795]
+[node name="sky_cable_0_0_9" type="CSGBox3D" parent="." unique_id=864224754]
 transform = Transform3D(0.051518954, -0.10417068, 0.9932242, 0, 0.9945449, 0.1043092, -0.998672, -0.0053739008, 0.051237915, 26.29251, 14.312947, -103.36489)
 size = Vector3(0.045, 0.045, 8.668738)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_0_0_10" type="CSGBox3D" parent="." unique_id=810644713]
+[node name="sky_cable_0_0_10" type="CSGBox3D" parent="." unique_id=1009962688]
 transform = Transform3D(0.05151895, -0.09736882, 0.993914, 0, 0.9952357, 0.0974983, -0.998672, -0.00502301, 0.0512735, 17.682758, 13.438784, -103.808815)
 size = Vector3(0.045, 0.045, 8.662723)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_0_0_11" type="CSGBox3D" parent="." unique_id=2116169292]
+[node name="sky_cable_0_0_11" type="CSGBox3D" parent="." unique_id=522888913]
 transform = Transform3D(0.051518954, -0.0938423, 0.99425316, 0, 0.99557525, 0.09396709, -0.998672, -0.004841086, 0.051290996, 9.073007, 12.609867, -104.25273)
 size = Vector3(0.045, 0.045, 8.659767)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_0_1_0" type="CSGBox3D" parent="." unique_id=1427601168]
+[node name="sky_cable_0_1_0" type="CSGBox3D" parent="." unique_id=267501921]
 transform = Transform3D(0.05151671, -0.25246468, 0.9662338, 0, 0.96751845, 0.25280038, -0.99867207, -0.013023444, 0.049843375, 3.8232567, 11.956005, -104.523315)
 size = Vector3(0.045, 0.045, 1.956048)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_0_1_1" type="CSGBox3D" parent="." unique_id=536189832]
+[node name="sky_cable_0_1_1" type="CSGBox3D" parent="." unique_id=1395355320]
 transform = Transform3D(0.051520534, -0.24747649, 0.96752316, 0, 0.96880984, 0.24780558, -0.99867195, -0.012767076, 0.049913596, 1.9335034, 11.466972, -104.62056)
 size = Vector3(0.045, 0.045, 1.9534489)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_0_1_2" type="CSGBox3D" parent="." unique_id=432934726]
+[node name="sky_cable_0_1_2" type="CSGBox3D" parent="." unique_id=213866546]
 transform = Transform3D(0.05151693, -0.23778753, 0.96995, 0, 0.9712397, 0.2381037, -0.9986721, -0.012266372, 0.050035287, 0.043754015, 10.993206, -104.717804)
 size = Vector3(0.045, 0.045, 1.9485455)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_0_1_3" type="CSGBox3D" parent="." unique_id=1772012206]
+[node name="sky_cable_0_1_3" type="CSGBox3D" parent="." unique_id=226414662]
 transform = Transform3D(0.05152074, -0.22395945, 0.9732357, 0, 0.9745299, 0.22425729, -0.9986719, -0.011553901, 0.050208505, -1.8459916, 10.543728, -104.81506)
 size = Vector3(0.045, 0.045, 1.941975)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_0_1_4" type="CSGBox3D" parent="." unique_id=1268287463]
+[node name="sky_cable_0_1_4" type="CSGBox3D" parent="." unique_id=2142975179]
 transform = Transform3D(0.051516727, -0.20683976, 0.9770175, 0, 0.9783166, 0.20711477, -0.9986721, -0.010669875, 0.05039967, -3.7357407, 10.125898, -104.912315)
 size = Vector3(0.045, 0.045, 1.9344578)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_0_1_5" type="CSGBox3D" parent="." unique_id=1800254797]
+[node name="sky_cable_0_1_5" type="CSGBox3D" parent="." unique_id=1346962786]
 transform = Transform3D(0.051520534, -0.1875167, 0.98090935, 0, 0.9822138, 0.18776606, -0.99867195, -0.009673808, 0.05060418, -5.625494, 9.744929, -105.00956)
 size = Vector3(0.045, 0.045, 1.9267907)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_0_1_6" type="CSGBox3D" parent="." unique_id=1205217958]
+[node name="sky_cable_0_1_6" type="CSGBox3D" parent="." unique_id=2002552962]
 transform = Transform3D(0.051516704, -0.16728209, 0.9845622, 0, 0.9858713, 0.16750452, -0.9986721, -0.008629281, 0.050788842, -7.515248, 9.403512, -105.106804)
 size = Vector3(0.045, 0.045, 1.9196348)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_0_1_7" type="CSGBox3D" parent="." unique_id=982728203]
+[node name="sky_cable_0_1_7" type="CSGBox3D" parent="." unique_id=313424441]
 transform = Transform3D(0.051520742, -0.14753178, 0.9877145, 0, 0.9890281, 0.14772797, -0.99867195, -0.0076110545, 0.05095546, -9.404997, 9.101649, -105.20406)
 size = Vector3(0.045, 0.045, 1.9135077)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_0_1_8" type="CSGBox3D" parent="." unique_id=775083704]
+[node name="sky_cable_0_1_8" type="CSGBox3D" parent="." unique_id=914273097]
 transform = Transform3D(0.051516928, -0.1296731, 0.99021757, 0, 0.9915342, 0.12984551, -0.99867207, -0.006689242, 0.051080797, -11.299993, 8.831394, -105.306564)
 size = Vector3(0.045, 0.045, 1.9086632)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_0_1_9" type="CSGBox3D" parent="." unique_id=78395232]
+[node name="sky_cable_0_1_9" type="CSGBox3D" parent="." unique_id=1693597073]
 transform = Transform3D(0.051520534, -0.11499422, 0.99202925, 0, 0.99334854, 0.11514714, -0.99867195, -0.0059324424, 0.051177844, -13.189742, 8.59804, -105.40381)
 size = Vector3(0.045, 0.045, 1.9051929)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_0_1_10" type="CSGBox3D" parent="." unique_id=1504305584]
+[node name="sky_cable_0_1_10" type="CSGBox3D" parent="." unique_id=1748229763]
 transform = Transform3D(0.051516745, -0.10456971, 0.99318236, 0, 0.99450296, 0.10470875, -0.9986721, -0.0053942543, 0.051233556, -15.079494, 8.388971, -105.50105)
 size = Vector3(0.045, 0.045, 1.9029722)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_0_1_11" type="CSGBox3D" parent="." unique_id=1042951695]
+[node name="sky_cable_0_1_11" type="CSGBox3D" parent="." unique_id=1182935982]
 transform = Transform3D(0.051520742, -0.099159196, 0.9937369, 0, 0.9950585, 0.09929106, -0.99867195, -0.005115549, 0.05126615, -16.969244, 8.195171, -105.59831)
 size = Vector3(0.045, 0.045, 1.9019113)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_1_0_0" type="CSGBox3D" parent="." unique_id=657246973]
+[node name="sky_cable_1_0_0" type="CSGBox3D" parent="." unique_id=1000371937]
 transform = Transform3D(0.051518958, -0.19534327, 0.97938085, 0, 0.9806832, 0.19560301, -0.99867207, -0.010077263, 0.050523773, 103.61099, 26.541199, -96.07327)
 size = Vector3(0.045, 0.045, 8.791269)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_1_0_1" type="CSGBox3D" parent="." unique_id=296126030]
+[node name="sky_cable_1_0_1" type="CSGBox3D" parent="." unique_id=709051738]
 transform = Transform3D(0.051518954, -0.19196776, 0.98004806, 0, 0.98135126, 0.19222304, -0.99867195, -0.00990313, 0.050558195, 95.00124, 24.837282, -96.51719)
 size = Vector3(0.045, 0.045, 8.785284)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_1_0_2" type="CSGBox3D" parent="." unique_id=681500777]
+[node name="sky_cable_1_0_2" type="CSGBox3D" parent="." unique_id=1671199645]
 transform = Transform3D(0.051518075, -0.18542717, 0.98130655, 0, 0.98261136, 0.18567374, -0.99867207, -0.009565554, 0.050622247, 86.391495, 23.178614, -96.9611)
 size = Vector3(0.045, 0.045, 8.774017)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_1_0_3" type="CSGBox3D" parent="." unique_id=1755105984]
+[node name="sky_cable_1_0_3" type="CSGBox3D" parent="." unique_id=679207696]
 transform = Transform3D(0.051518954, -0.1761349, 0.98301697, 0, 0.9843241, 0.17636912, -0.998672, -0.009086353, 0.050711352, 77.78174, 21.591927, -97.40502)
 size = Vector3(0.045, 0.045, 8.758751)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_1_0_4" type="CSGBox3D" parent="." unique_id=40274752]
+[node name="sky_cable_1_0_4" type="CSGBox3D" parent="." unique_id=1007515474]
 transform = Transform3D(0.051518954, -0.16469018, 0.98499894, 0, 0.9863087, 0.16490918, -0.998672, -0.008495948, 0.050813597, 69.17199, 20.099043, -97.84894)
 size = Vector3(0.045, 0.045, 8.741127)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_1_0_5" type="CSGBox3D" parent="." unique_id=564569025]
+[node name="sky_cable_1_0_5" type="CSGBox3D" parent="." unique_id=446212453]
 transform = Transform3D(0.051518977, -0.15184647, 0.98706055, 0, 0.98837304, 0.1520484, -0.998672, -0.007833377, 0.050919972, 60.56224, 18.715399, -98.292854)
 size = Vector3(0.045, 0.045, 8.722866)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_1_0_6" type="CSGBox3D" parent="." unique_id=820228309]
+[node name="sky_cable_1_0_6" type="CSGBox3D" parent="." unique_id=102167925]
 transform = Transform3D(0.05151896, -0.13846755, 0.989026, 0, 0.9903412, 0.13865167, -0.99867207, -0.00714319, 0.051021345, 51.95249, 17.44898, -98.73677)
 size = Vector3(0.045, 0.045, 8.705535)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_1_0_7" type="CSGBox3D" parent="." unique_id=1534493350]
+[node name="sky_cable_1_0_7" type="CSGBox3D" parent="." unique_id=1324641221]
 transform = Transform3D(0.051518932, -0.12547185, 0.9907586, 0, 0.99207604, 0.1256387, -0.998672, -0.0064727715, 0.0511107, 43.34274, 16.299793, -99.180695)
 size = Vector3(0.045, 0.045, 8.690315)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_1_0_8" type="CSGBox3D" parent="." unique_id=627863515]
+[node name="sky_cable_1_0_8" type="CSGBox3D" parent="." unique_id=376869248]
 transform = Transform3D(0.05151812, -0.113765225, 0.992171, 0, 0.9934903, 0.1139165, -0.99867207, -0.005868764, 0.05118275, 34.73299, 15.259843, -99.62461)
 size = Vector3(0.045, 0.045, 8.677933)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_1_0_9" type="CSGBox3D" parent="." unique_id=16601551]
+[node name="sky_cable_1_0_9" type="CSGBox3D" parent="." unique_id=1692569792]
 transform = Transform3D(0.051518954, -0.10417068, 0.9932242, 0, 0.9945449, 0.1043092, -0.998672, -0.0053739008, 0.051237915, 26.123245, 14.313698, -100.06852)
 size = Vector3(0.045, 0.045, 8.668738)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_1_0_10" type="CSGBox3D" parent="." unique_id=760597736]
+[node name="sky_cable_1_0_10" type="CSGBox3D" parent="." unique_id=1784415904]
 transform = Transform3D(0.05151896, -0.09736884, 0.993914, 0, 0.9952357, 0.09749831, -0.998672, -0.005023012, 0.05127351, 17.513494, 13.439533, -100.512436)
 size = Vector3(0.045, 0.045, 8.662721)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_1_0_11" type="CSGBox3D" parent="." unique_id=306788502]
+[node name="sky_cable_1_0_11" type="CSGBox3D" parent="." unique_id=2126121440]
 transform = Transform3D(0.051518954, -0.0938423, 0.99425316, 0, 0.99557525, 0.09396709, -0.998672, -0.004841086, 0.051290996, 8.903745, 12.610617, -100.95635)
 size = Vector3(0.045, 0.045, 8.659767)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_1_1_0" type="CSGBox3D" parent="." unique_id=517843109]
+[node name="sky_cable_1_1_0" type="CSGBox3D" parent="." unique_id=1743265064]
 transform = Transform3D(0.051516727, -0.25246474, 0.9662337, 0, 0.9675183, 0.25280043, -0.99867207, -0.013023451, 0.049843382, 3.6539943, 11.956755, -101.226944)
 size = Vector3(0.045, 0.045, 1.9560477)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_1_1_1" type="CSGBox3D" parent="." unique_id=1969205364]
+[node name="sky_cable_1_1_1" type="CSGBox3D" parent="." unique_id=1695837112]
 transform = Transform3D(0.051520534, -0.24747649, 0.96752316, 0, 0.96880984, 0.24780558, -0.99867195, -0.012767076, 0.049913596, 1.7642415, 11.467722, -101.32419)
 size = Vector3(0.045, 0.045, 1.9534489)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_1_1_2" type="CSGBox3D" parent="." unique_id=2044906799]
+[node name="sky_cable_1_1_2" type="CSGBox3D" parent="." unique_id=1673400430]
 transform = Transform3D(0.05151693, -0.23778753, 0.96995, 0, 0.9712397, 0.2381037, -0.9986721, -0.012266372, 0.050035287, -0.12550798, 10.993957, -101.42143)
 size = Vector3(0.045, 0.045, 1.9485455)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_1_1_3" type="CSGBox3D" parent="." unique_id=1866311993]
+[node name="sky_cable_1_1_3" type="CSGBox3D" parent="." unique_id=697747988]
 transform = Transform3D(0.05152074, -0.22395945, 0.9732357, 0, 0.9745299, 0.22425729, -0.9986719, -0.011553901, 0.050208505, -2.0152535, 10.544478, -101.518684)
 size = Vector3(0.045, 0.045, 1.941975)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_1_1_4" type="CSGBox3D" parent="." unique_id=183577447]
+[node name="sky_cable_1_1_4" type="CSGBox3D" parent="." unique_id=393726474]
 transform = Transform3D(0.051516715, -0.20683973, 0.9770176, 0, 0.97831666, 0.20711474, -0.9986721, -0.010669871, 0.05039966, -3.905003, 10.126649, -101.615944)
 size = Vector3(0.045, 0.045, 1.9344581)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_1_1_5" type="CSGBox3D" parent="." unique_id=740696426]
+[node name="sky_cable_1_1_5" type="CSGBox3D" parent="." unique_id=284039328]
 transform = Transform3D(0.051520534, -0.1875167, 0.98090935, 0, 0.9822138, 0.18776606, -0.99867195, -0.009673808, 0.05060418, -5.8000064, 9.740429, -101.71844)
 size = Vector3(0.045, 0.045, 1.9267907)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_1_1_6" type="CSGBox3D" parent="." unique_id=63325791]
+[node name="sky_cable_1_1_6" type="CSGBox3D" parent="." unique_id=83902429]
 transform = Transform3D(0.051516734, -0.16728218, 0.98456216, 0, 0.98587126, 0.16750461, -0.9986721, -0.00862929, 0.05078887, -7.6897593, 9.399012, -101.81568)
 size = Vector3(0.045, 0.045, 1.9196339)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_1_1_7" type="CSGBox3D" parent="." unique_id=1512630825]
+[node name="sky_cable_1_1_7" type="CSGBox3D" parent="." unique_id=72803487]
 transform = Transform3D(0.051520742, -0.14753178, 0.9877145, 0, 0.9890281, 0.14772797, -0.99867195, -0.0076110545, 0.05095546, -9.579509, 9.097149, -101.91293)
 size = Vector3(0.045, 0.045, 1.9135077)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_1_1_8" type="CSGBox3D" parent="." unique_id=691445115]
+[node name="sky_cable_1_1_8" type="CSGBox3D" parent="." unique_id=125765450]
 transform = Transform3D(0.051516928, -0.1296731, 0.99021757, 0, 0.9915342, 0.12984551, -0.99867207, -0.006689242, 0.051080797, -11.4692545, 8.832144, -102.01019)
 size = Vector3(0.045, 0.045, 1.9086632)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_1_1_9" type="CSGBox3D" parent="." unique_id=881505767]
+[node name="sky_cable_1_1_9" type="CSGBox3D" parent="." unique_id=1563579615]
 transform = Transform3D(0.051520534, -0.11499422, 0.99202925, 0, 0.99334854, 0.11514714, -0.99867195, -0.0059324424, 0.051177844, -13.359003, 8.59879, -102.10744)
 size = Vector3(0.045, 0.045, 1.9051929)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_1_1_10" type="CSGBox3D" parent="." unique_id=2111609721]
+[node name="sky_cable_1_1_10" type="CSGBox3D" parent="." unique_id=365879456]
 transform = Transform3D(0.051516693, -0.10456961, 0.99318236, 0, 0.9945029, 0.10470865, -0.9986721, -0.005394243, 0.051233504, -15.248757, 8.389722, -102.20468)
 size = Vector3(0.045, 0.045, 1.9029741)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cable_1_1_11" type="CSGBox3D" parent="." unique_id=1196980753]
+[node name="sky_cable_1_1_11" type="CSGBox3D" parent="." unique_id=1551347353]
 transform = Transform3D(0.051520742, -0.099159196, 0.9937369, 0, 0.9950585, 0.09929106, -0.99867195, -0.005115549, 0.05126615, -17.138508, 8.195922, -102.30193)
 size = Vector3(0.045, 0.045, 1.9019113)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_0_hanger" type="CSGBox3D" parent="." unique_id=525621950]
+[node name="sky_cabin_0_hanger" type="CSGBox3D" parent="." unique_id=525672307]
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 98.00675, 24.575813, -99.66606)
 size = Vector3(0.08, 0.08, 1.6300011)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_0_bucket" type="CSGBox3D" parent="." unique_id=832403242]
+[node name="sky_cabin_0_bucket" type="CSGBox3D" parent="." unique_id=1828150819]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 98.007, 23.041063, -99.66581)
 size = Vector3(1.45, 0.72, 1.18)
 material = SubResource("StandardMaterial3D_4eant")
 
-[node name="sky_cabin_0_seat" type="CSGBox3D" parent="." unique_id=754811147]
+[node name="sky_cabin_0_seat" type="CSGBox3D" parent="." unique_id=595209706]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 97.88741, 23.521313, -99.67174)
 size = Vector3(1.1, 0.13, 0.78)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="sky_cabin_0_upright_-1_0" type="CSGBox3D" parent="." unique_id=1014839973]
+[node name="sky_cabin_0_upright_-1_0" type="CSGBox3D" parent="." unique_id=1789459794]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 98.03739, 23.921562, -100.24454)
 size = Vector3(0.08, 1.15, 0.08)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_0_upright_1_0" type="CSGBox3D" parent="." unique_id=1182703545]
+[node name="sky_cabin_0_upright_1_0" type="CSGBox3D" parent="." unique_id=1761033882]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 97.97787, 23.921812, -99.08583)
 size = Vector3(0.08, 1.15, 0.08)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_0_canopy" type="CSGBox3D" parent="." unique_id=1318321836]
+[node name="sky_cabin_0_canopy" type="CSGBox3D" parent="." unique_id=780585080]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 98.008, 24.522062, -99.66481)
 size = Vector3(1.65, 0.15, 1.38)
 material = SubResource("StandardMaterial3D_4eant")
 
-[node name="sky_cabin_0_bulb" type="CSGSphere3D" parent="." unique_id=1091718483]
+[node name="sky_cabin_0_bulb" type="CSGSphere3D" parent="." unique_id=86089277]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 98.008255, 24.622313, -99.66456)
 radius = 0.075
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_cabin_1_hanger" type="CSGBox3D" parent="." unique_id=297243793]
+[node name="sky_cabin_1_hanger" type="CSGBox3D" parent="." unique_id=382120284]
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 76.58851, 20.522976, -100.76931)
 size = Vector3(0.08, 0.08, 1.6300011)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_1_bucket" type="CSGBox3D" parent="." unique_id=1937723313]
+[node name="sky_cabin_1_bucket" type="CSGBox3D" parent="." unique_id=1141892052]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 76.58876, 18.988226, -100.76906)
 size = Vector3(1.45, 0.72, 1.18)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="sky_cabin_1_seat" type="CSGBox3D" parent="." unique_id=250094347]
+[node name="sky_cabin_1_seat" type="CSGBox3D" parent="." unique_id=1543687702]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 76.46916, 19.468475, -100.774994)
 size = Vector3(1.1, 0.13, 0.78)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="sky_cabin_1_upright_-1_0" type="CSGBox3D" parent="." unique_id=15757336]
+[node name="sky_cabin_1_upright_-1_0" type="CSGBox3D" parent="." unique_id=964349615]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 76.61914, 19.868725, -101.34779)
 size = Vector3(0.08, 1.15, 0.08)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_1_upright_1_0" type="CSGBox3D" parent="." unique_id=358288940]
+[node name="sky_cabin_1_upright_1_0" type="CSGBox3D" parent="." unique_id=1099349570]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 76.55962, 19.868975, -100.18908)
 size = Vector3(0.08, 1.15, 0.08)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_1_canopy" type="CSGBox3D" parent="." unique_id=1000058608]
+[node name="sky_cabin_1_canopy" type="CSGBox3D" parent="." unique_id=1651341761]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 76.58976, 20.469225, -100.76806)
 size = Vector3(1.65, 0.15, 1.38)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="sky_cabin_1_bulb" type="CSGSphere3D" parent="." unique_id=431025893]
+[node name="sky_cabin_1_bulb" type="CSGSphere3D" parent="." unique_id=1892913330]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 76.590004, 20.569475, -100.767815)
 radius = 0.075
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_cabin_2_hanger" type="CSGBox3D" parent="." unique_id=1184960664]
+[node name="sky_cabin_2_hanger" type="CSGBox3D" parent="." unique_id=1859985991]
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 50.125004, 16.340181, -102.13781)
 size = Vector3(0.08, 0.08, 1.6300001)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_2_bucket" type="CSGBox3D" parent="." unique_id=155549534]
+[node name="sky_cabin_2_bucket" type="CSGBox3D" parent="." unique_id=1719515502]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 50.125256, 14.805431, -102.13756)
 size = Vector3(1.45, 0.72, 1.18)
 material = SubResource("StandardMaterial3D_b3snp")
 
-[node name="sky_cabin_2_seat" type="CSGBox3D" parent="." unique_id=1171643915]
+[node name="sky_cabin_2_seat" type="CSGBox3D" parent="." unique_id=931354939]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 50.00566, 15.285681, -102.143486)
 size = Vector3(1.1, 0.13, 0.78)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="sky_cabin_2_upright_-1_0" type="CSGBox3D" parent="." unique_id=2010044094]
+[node name="sky_cabin_2_upright_-1_0" type="CSGBox3D" parent="." unique_id=1339723226]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 50.155636, 15.685931, -102.71629)
 size = Vector3(0.08, 1.15, 0.08)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_2_upright_1_0" type="CSGBox3D" parent="." unique_id=1613002308]
+[node name="sky_cabin_2_upright_1_0" type="CSGBox3D" parent="." unique_id=1978531826]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 50.096123, 15.686182, -101.55758)
 size = Vector3(0.08, 1.15, 0.08)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_2_canopy" type="CSGBox3D" parent="." unique_id=1648582152]
+[node name="sky_cabin_2_canopy" type="CSGBox3D" parent="." unique_id=245188186]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 50.126255, 16.28643, -102.13656)
 size = Vector3(1.65, 0.15, 1.38)
 material = SubResource("StandardMaterial3D_b3snp")
 
-[node name="sky_cabin_2_bulb" type="CSGSphere3D" parent="." unique_id=602080389]
+[node name="sky_cabin_2_bulb" type="CSGSphere3D" parent="." unique_id=1893993272]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50.126503, 16.38668, -102.13631)
 radius = 0.075
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_cabin_3_hanger" type="CSGBox3D" parent="." unique_id=1023076230]
+[node name="sky_cabin_3_hanger" type="CSGBox3D" parent="." unique_id=254150107]
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 23.666752, 13.215995, -103.50107)
 size = Vector3(0.08, 0.08, 1.6299992)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_3_bucket" type="CSGBox3D" parent="." unique_id=1390484987]
+[node name="sky_cabin_3_bucket" type="CSGBox3D" parent="." unique_id=509451232]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 23.667002, 11.681245, -103.50082)
 size = Vector3(1.45, 0.72, 1.18)
 material = SubResource("StandardMaterial3D_4eant")
 
-[node name="sky_cabin_3_seat" type="CSGBox3D" parent="." unique_id=947936313]
+[node name="sky_cabin_3_seat" type="CSGBox3D" parent="." unique_id=1585993239]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 23.547411, 12.161494, -103.506744)
 size = Vector3(1.1, 0.13, 0.78)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="sky_cabin_3_upright_-1_0" type="CSGBox3D" parent="." unique_id=300375039]
+[node name="sky_cabin_3_upright_-1_0" type="CSGBox3D" parent="." unique_id=1412984851]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 23.697382, 12.561745, -104.079544)
 size = Vector3(0.08, 1.15, 0.08)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_3_upright_1_0" type="CSGBox3D" parent="." unique_id=2128512832]
+[node name="sky_cabin_3_upright_1_0" type="CSGBox3D" parent="." unique_id=1604331465]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 23.63787, 12.5619955, -102.92084)
 size = Vector3(0.08, 1.15, 0.08)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_3_canopy" type="CSGBox3D" parent="." unique_id=1163250193]
+[node name="sky_cabin_3_canopy" type="CSGBox3D" parent="." unique_id=247102639]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, 23.668001, 13.162245, -103.49982)
 size = Vector3(1.65, 0.15, 1.38)
 material = SubResource("StandardMaterial3D_4eant")
 
-[node name="sky_cabin_3_bulb" type="CSGSphere3D" parent="." unique_id=256262008]
+[node name="sky_cabin_3_bulb" type="CSGSphere3D" parent="." unique_id=1348878235]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23.668251, 13.262495, -103.499565)
 radius = 0.075
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_cabin_4_hanger" type="CSGBox3D" parent="." unique_id=1545737316]
+[node name="sky_cabin_4_hanger" type="CSGBox3D" parent="." unique_id=1721122989]
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -5.3114877, 8.984783, -104.99431)
 size = Vector3(0.08, 0.08, 1.6300001)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_4_bucket" type="CSGBox3D" parent="." unique_id=143114729]
+[node name="sky_cabin_4_bucket" type="CSGBox3D" parent="." unique_id=1076665538]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, -5.311238, 7.4500337, -104.99406)
 size = Vector3(1.45, 0.72, 1.18)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="sky_cabin_4_seat" type="CSGBox3D" parent="." unique_id=67405750]
+[node name="sky_cabin_4_seat" type="CSGBox3D" parent="." unique_id=1105059554]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, -5.430828, 7.930284, -104.99999)
 size = Vector3(1.1, 0.13, 0.78)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="sky_cabin_4_upright_-1_0" type="CSGBox3D" parent="." unique_id=1283946884]
+[node name="sky_cabin_4_upright_-1_0" type="CSGBox3D" parent="." unique_id=1611988028]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, -5.2808566, 8.330533, -105.57279)
 size = Vector3(0.08, 1.15, 0.08)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_4_upright_1_0" type="CSGBox3D" parent="." unique_id=582044799]
+[node name="sky_cabin_4_upright_1_0" type="CSGBox3D" parent="." unique_id=300348791]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, -5.3403687, 8.330784, -104.41408)
 size = Vector3(0.08, 1.15, 0.08)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_4_canopy" type="CSGBox3D" parent="." unique_id=1234187106]
+[node name="sky_cabin_4_canopy" type="CSGBox3D" parent="." unique_id=1861857057]
 transform = Transform3D(-0.051518794, 0, -0.998672, 0, 1, 0, 0.998672, 0, -0.051518794, -5.310238, 8.931034, -104.99306)
 size = Vector3(1.65, 0.15, 1.38)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="sky_cabin_4_bulb" type="CSGSphere3D" parent="." unique_id=1975361385]
+[node name="sky_cabin_4_bulb" type="CSGSphere3D" parent="." unique_id=551916823]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.3099875, 9.031284, -104.99281)
 radius = 0.075
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_cabin_5_hanger" type="CSGBox3D" parent="." unique_id=340657602]
+[node name="sky_cabin_5_hanger" type="CSGBox3D" parent="." unique_id=1524502629]
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 87.75499, 22.612339, -96.89219)
 size = Vector3(0.08, 0.08, 1.6300011)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_5_bucket" type="CSGBox3D" parent="." unique_id=1416064704]
+[node name="sky_cabin_5_bucket" type="CSGBox3D" parent="." unique_id=603158472]
 transform = Transform3D(0.051518824, 0, 0.998672, 0, 1, 0, -0.998672, 0, 0.051518824, 87.75524, 21.077589, -96.89194)
 size = Vector3(1.45, 0.72, 1.18)
 material = SubResource("StandardMaterial3D_b3snp")
 
-[node name="sky_cabin_5_seat" type="CSGBox3D" parent="." unique_id=1436435321]
+[node name="sky_cabin_5_seat" type="CSGBox3D" parent="." unique_id=26674512]
 transform = Transform3D(0.051518824, 0, 0.998672, 0, 1, 0, -0.998672, 0, 0.051518824, 87.875336, 21.557838, -96.885506)
 size = Vector3(1.1, 0.13, 0.78)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="sky_cabin_5_upright_-1_0" type="CSGBox3D" parent="." unique_id=570509081]
+[node name="sky_cabin_5_upright_-1_0" type="CSGBox3D" parent="." unique_id=2028101171]
 transform = Transform3D(0.051518824, 0, 0.998672, 0, 1, 0, -0.998672, 0, 0.051518824, 87.72585, 21.958088, -96.31221)
 size = Vector3(0.08, 1.15, 0.08)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_5_upright_1_0" type="CSGBox3D" parent="." unique_id=1334654136]
+[node name="sky_cabin_5_upright_1_0" type="CSGBox3D" parent="." unique_id=1053844264]
 transform = Transform3D(0.051518824, 0, 0.998672, 0, 1, 0, -0.998672, 0, 0.051518824, 87.78587, 21.958338, -97.47042)
 size = Vector3(0.08, 1.15, 0.08)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_5_canopy" type="CSGBox3D" parent="." unique_id=905808191]
+[node name="sky_cabin_5_canopy" type="CSGBox3D" parent="." unique_id=1051459211]
 transform = Transform3D(0.051518824, 0, 0.998672, 0, 1, 0, -0.998672, 0, 0.051518824, 87.75624, 22.558588, -96.89094)
 size = Vector3(1.65, 0.15, 1.38)
 material = SubResource("StandardMaterial3D_b3snp")
 
-[node name="sky_cabin_5_bulb" type="CSGSphere3D" parent="." unique_id=852225311]
+[node name="sky_cabin_5_bulb" type="CSGSphere3D" parent="." unique_id=714088412]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 87.75649, 22.658838, -96.890686)
 radius = 0.075
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_cabin_6_hanger" type="CSGBox3D" parent="." unique_id=395328136]
+[node name="sky_cabin_6_hanger" type="CSGBox3D" parent="." unique_id=1361159255]
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 62.556744, 18.195591, -98.19044)
 size = Vector3(0.08, 0.08, 1.6300011)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_6_bucket" type="CSGBox3D" parent="." unique_id=1322105556]
+[node name="sky_cabin_6_bucket" type="CSGBox3D" parent="." unique_id=744548487]
 transform = Transform3D(0.051518824, 0, 0.998672, 0, 1, 0, -0.998672, 0, 0.051518824, 62.55699, 16.660841, -98.190186)
 size = Vector3(1.45, 0.72, 1.18)
 material = SubResource("StandardMaterial3D_4eant")
 
-[node name="sky_cabin_6_seat" type="CSGBox3D" parent="." unique_id=804358360]
+[node name="sky_cabin_6_seat" type="CSGBox3D" parent="." unique_id=1710801017]
 transform = Transform3D(0.051518824, 0, 0.998672, 0, 1, 0, -0.998672, 0, 0.051518824, 62.677086, 17.14109, -98.183754)
 size = Vector3(1.1, 0.13, 0.78)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="sky_cabin_6_upright_-1_0" type="CSGBox3D" parent="." unique_id=8870431]
+[node name="sky_cabin_6_upright_-1_0" type="CSGBox3D" parent="." unique_id=1891265256]
 transform = Transform3D(0.051518824, 0, 0.998672, 0, 1, 0, -0.998672, 0, 0.051518824, 62.52761, 17.54134, -97.61045)
 size = Vector3(0.08, 1.15, 0.08)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_6_upright_1_0" type="CSGBox3D" parent="." unique_id=1888015855]
+[node name="sky_cabin_6_upright_1_0" type="CSGBox3D" parent="." unique_id=1033687784]
 transform = Transform3D(0.051518824, 0, 0.998672, 0, 1, 0, -0.998672, 0, 0.051518824, 62.587624, 17.54159, -98.76867)
 size = Vector3(0.08, 1.15, 0.08)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_6_canopy" type="CSGBox3D" parent="." unique_id=1506797420]
+[node name="sky_cabin_6_canopy" type="CSGBox3D" parent="." unique_id=714567601]
 transform = Transform3D(0.051518824, 0, 0.998672, 0, 1, 0, -0.998672, 0, 0.051518824, 62.55799, 18.14184, -98.189186)
 size = Vector3(1.65, 0.15, 1.38)
 material = SubResource("StandardMaterial3D_4eant")
 
-[node name="sky_cabin_6_bulb" type="CSGSphere3D" parent="." unique_id=1232908993]
+[node name="sky_cabin_6_bulb" type="CSGSphere3D" parent="." unique_id=1120375373]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 62.558243, 18.24209, -98.188934)
 radius = 0.075
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_cabin_7_hanger" type="CSGBox3D" parent="." unique_id=862909533]
+[node name="sky_cabin_7_hanger" type="CSGBox3D" parent="." unique_id=1449908700]
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 36.098495, 14.59127, -99.55369)
 size = Vector3(0.08, 0.08, 1.6299992)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_7_bucket" type="CSGBox3D" parent="." unique_id=1160220887]
+[node name="sky_cabin_7_bucket" type="CSGBox3D" parent="." unique_id=1158605389]
 transform = Transform3D(0.051518824, 0, 0.998672, 0, 1, 0, -0.998672, 0, 0.051518824, 36.098743, 13.05652, -99.55344)
 size = Vector3(1.45, 0.72, 1.18)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="sky_cabin_7_seat" type="CSGBox3D" parent="." unique_id=1413642033]
+[node name="sky_cabin_7_seat" type="CSGBox3D" parent="." unique_id=1014850059]
 transform = Transform3D(0.051518824, 0, 0.998672, 0, 1, 0, -0.998672, 0, 0.051518824, 36.218838, 13.53677, -99.54701)
 size = Vector3(1.1, 0.13, 0.78)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="sky_cabin_7_upright_-1_0" type="CSGBox3D" parent="." unique_id=1508080954]
+[node name="sky_cabin_7_upright_-1_0" type="CSGBox3D" parent="." unique_id=1244760102]
 transform = Transform3D(0.051518824, 0, 0.998672, 0, 1, 0, -0.998672, 0, 0.051518824, 36.069363, 13.93702, -98.97371)
 size = Vector3(0.08, 1.15, 0.08)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_7_upright_1_0" type="CSGBox3D" parent="." unique_id=576584774]
+[node name="sky_cabin_7_upright_1_0" type="CSGBox3D" parent="." unique_id=1723382384]
 transform = Transform3D(0.051518824, 0, 0.998672, 0, 1, 0, -0.998672, 0, 0.051518824, 36.129375, 13.937271, -100.13192)
 size = Vector3(0.08, 1.15, 0.08)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_7_canopy" type="CSGBox3D" parent="." unique_id=1308082001]
+[node name="sky_cabin_7_canopy" type="CSGBox3D" parent="." unique_id=1784414126]
 transform = Transform3D(0.051518824, 0, 0.998672, 0, 1, 0, -0.998672, 0, 0.051518824, 36.099743, 14.53752, -99.55244)
 size = Vector3(1.65, 0.15, 1.38)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="sky_cabin_7_bulb" type="CSGSphere3D" parent="." unique_id=1939073056]
+[node name="sky_cabin_7_bulb" type="CSGSphere3D" parent="." unique_id=1648430189]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.099995, 14.637771, -99.55219)
 radius = 0.075
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_cabin_8_hanger" type="CSGBox3D" parent="." unique_id=1953447805]
+[node name="sky_cabin_8_hanger" type="CSGBox3D" parent="." unique_id=82483383]
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 9.634995, 11.859327, -100.92219)
 size = Vector3(0.08, 0.08, 1.6299992)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_8_bucket" type="CSGBox3D" parent="." unique_id=823242194]
+[node name="sky_cabin_8_bucket" type="CSGBox3D" parent="." unique_id=1045102663]
 transform = Transform3D(0.051518824, 0, 0.998672, 0, 1, 0, -0.998672, 0, 0.051518824, 9.635245, 10.324577, -100.921936)
 size = Vector3(1.45, 0.72, 1.18)
 material = SubResource("StandardMaterial3D_b3snp")
 
-[node name="sky_cabin_8_seat" type="CSGBox3D" parent="." unique_id=2027595750]
+[node name="sky_cabin_8_seat" type="CSGBox3D" parent="." unique_id=933111928]
 transform = Transform3D(0.051518824, 0, 0.998672, 0, 1, 0, -0.998672, 0, 0.051518824, 9.755336, 10.804827, -100.915504)
 size = Vector3(1.1, 0.13, 0.78)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="sky_cabin_8_upright_-1_0" type="CSGBox3D" parent="." unique_id=414745053]
+[node name="sky_cabin_8_upright_-1_0" type="CSGBox3D" parent="." unique_id=1169747948]
 transform = Transform3D(0.051518824, 0, 0.998672, 0, 1, 0, -0.998672, 0, 0.051518824, 9.605865, 11.205077, -100.34221)
 size = Vector3(0.08, 1.15, 0.08)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_8_upright_1_0" type="CSGBox3D" parent="." unique_id=687182387]
+[node name="sky_cabin_8_upright_1_0" type="CSGBox3D" parent="." unique_id=1065711362]
 transform = Transform3D(0.051518824, 0, 0.998672, 0, 1, 0, -0.998672, 0, 0.051518824, 9.665876, 11.205328, -101.50042)
 size = Vector3(0.08, 1.15, 0.08)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_8_canopy" type="CSGBox3D" parent="." unique_id=1556066373]
+[node name="sky_cabin_8_canopy" type="CSGBox3D" parent="." unique_id=2046132086]
 transform = Transform3D(0.051518824, 0, 0.998672, 0, 1, 0, -0.998672, 0, 0.051518824, 9.636246, 11.805577, -100.92094)
 size = Vector3(1.65, 0.15, 1.38)
 material = SubResource("StandardMaterial3D_b3snp")
 
-[node name="sky_cabin_8_bulb" type="CSGSphere3D" parent="." unique_id=190449690]
+[node name="sky_cabin_8_bulb" type="CSGSphere3D" parent="." unique_id=1103221547]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.636496, 11.9058275, -100.920685)
 radius = 0.075
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_cabin_9_hanger" type="CSGBox3D" parent="." unique_id=798345083]
+[node name="sky_cabin_9_hanger" type="CSGBox3D" parent="." unique_id=1281499483]
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -13.043255, 7.818318, -102.09044)
 size = Vector3(0.08, 0.08, 1.6300001)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_9_bucket" type="CSGBox3D" parent="." unique_id=2036143689]
+[node name="sky_cabin_9_bucket" type="CSGBox3D" parent="." unique_id=1417210076]
 transform = Transform3D(0.051518824, 0, 0.998672, 0, 1, 0, -0.998672, 0, 0.051518824, -13.043005, 6.283568, -102.09019)
 size = Vector3(1.45, 0.72, 1.18)
 material = SubResource("StandardMaterial3D_4eant")
 
-[node name="sky_cabin_9_seat" type="CSGBox3D" parent="." unique_id=1969846452]
+[node name="sky_cabin_9_seat" type="CSGBox3D" parent="." unique_id=255618272]
 transform = Transform3D(0.051518824, 0, 0.998672, 0, 1, 0, -0.998672, 0, 0.051518824, -12.9229145, 6.7638183, -102.083755)
 size = Vector3(1.1, 0.13, 0.78)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="sky_cabin_9_upright_-1_0" type="CSGBox3D" parent="." unique_id=367703887]
+[node name="sky_cabin_9_upright_-1_0" type="CSGBox3D" parent="." unique_id=1031678776]
 transform = Transform3D(0.051518824, 0, 0.998672, 0, 1, 0, -0.998672, 0, 0.051518824, -13.072386, 7.164068, -101.51045)
 size = Vector3(0.08, 1.15, 0.08)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_9_upright_1_0" type="CSGBox3D" parent="." unique_id=878963969]
+[node name="sky_cabin_9_upright_1_0" type="CSGBox3D" parent="." unique_id=646457975]
 transform = Transform3D(0.051518824, 0, 0.998672, 0, 1, 0, -0.998672, 0, 0.051518824, -13.012374, 7.164318, -102.66867)
 size = Vector3(0.08, 1.15, 0.08)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_cabin_9_canopy" type="CSGBox3D" parent="." unique_id=1364061198]
+[node name="sky_cabin_9_canopy" type="CSGBox3D" parent="." unique_id=300729723]
 transform = Transform3D(0.051518824, 0, 0.998672, 0, 1, 0, -0.998672, 0, 0.051518824, -13.042005, 7.764568, -102.08919)
 size = Vector3(1.65, 0.15, 1.38)
 material = SubResource("StandardMaterial3D_4eant")
 
-[node name="sky_cabin_9_bulb" type="CSGSphere3D" parent="." unique_id=73572055]
+[node name="sky_cabin_9_bulb" type="CSGSphere3D" parent="." unique_id=1735967429]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.041755, 7.864818, -102.088936)
 radius = 0.075
 radial_segments = 10
 material = ExtResource("3_wl5py")
 
-[node name="sky_grove_transition_ground" type="CSGBox3D" parent="." unique_id=1328355148]
+[node name="sky_grove_transition_ground" type="CSGBox3D" parent="." unique_id=797807678]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 39.3885, -0.6365, -75.3865)
 size = Vector3(35.75, 1.12, 33.44)
 material = SubResource("StandardMaterial3D_ifc7x")
 
-[node name="sky_grove_service_lane" type="CSGBox3D" parent="." unique_id=1793757600]
+[node name="sky_grove_service_lane" type="CSGBox3D" parent="." unique_id=1031814151]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 34.00375, -0.04125, -78.99625)
 size = Vector3(24.6, 0.05, 5.8)
 material = SubResource("StandardMaterial3D_asvco")
 
-[node name="sky_grove_service_apron" type="CSGBox3D" parent="." unique_id=630864546]
+[node name="sky_grove_service_apron" type="CSGBox3D" parent="." unique_id=911697777]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 49.104, -0.038, -77.996)
 size = Vector3(13.7, 0.056, 18.2)
 material = SubResource("StandardMaterial3D_asvco")
 
-[node name="sky_grove_service_guard" type="CSGBox3D" parent="." unique_id=1933108385]
+[node name="sky_grove_service_guard" type="CSGBox3D" parent="." unique_id=1817597096]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 39.71925, 0.43425, -59.21575)
 use_collision = true
 size = Vector3(35.23, 0.94, 0.46)
 material = SubResource("StandardMaterial3D_lmqqj")
 
-[node name="sky_grove_service_guard_coping" type="CSGBox3D" parent="." unique_id=1144130569]
+[node name="sky_grove_service_guard_coping" type="CSGBox3D" parent="." unique_id=703921877]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 39.7195, 0.94449997, -59.2155)
 size = Vector3(35.43, 0.16, 0.62)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="sky_grove_service_shed" type="CSGBox3D" parent="." unique_id=1184219216]
+[node name="sky_grove_service_shed" type="CSGBox3D" parent="." unique_id=1495063271]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.00475, 1.50475, -78.195244)
 use_collision = true
 size = Vector3(5.8, 3.32, 6.8)
 material = SubResource("StandardMaterial3D_4k5a5")
 
-[node name="sky_grove_service_shed_plinth" type="CSGBox3D" parent="." unique_id=1583008800]
+[node name="sky_grove_service_shed_plinth" type="CSGBox3D" parent="." unique_id=1809197828]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.005, 0.10500001, -78.195)
 use_collision = true
 size = Vector3(6.15, 0.36, 7.15)
 material = SubResource("StandardMaterial3D_lmqqj")
 
-[node name="sky_grove_service_shed_roof" type="CSGBox3D" parent="." unique_id=264303762]
+[node name="sky_grove_service_shed_roof" type="CSGBox3D" parent="." unique_id=717695185]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52, 3.24, -78.2)
 size = Vector3(6.45, 0.24, 7.45)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="sky_grove_service_shed_door" type="CSGBox3D" parent="." unique_id=1625200878]
+[node name="sky_grove_service_shed_door" type="CSGBox3D" parent="." unique_id=1498145643]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.00025, 1.1002499, -74.739746)
 size = Vector3(1.55, 2.36, 0.1)
 material = SubResource("StandardMaterial3D_b3snp")
 
-[node name="sky_grove_service_shed_door_rule" type="CSGBox3D" parent="." unique_id=483554735]
+[node name="sky_grove_service_shed_door_rule" type="CSGBox3D" parent="." unique_id=1077244064]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.0005, 1.5404999, -74.669495)
 size = Vector3(0.92, 0.16, 0.05)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="sky_grove_service_shed_canopy" type="CSGBox3D" parent="." unique_id=2077787889]
+[node name="sky_grove_service_shed_canopy" type="CSGBox3D" parent="." unique_id=1274456198]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 48.50075, 2.4407501, -77.84925)
 size = Vector3(1.65, 0.18, 5.15)
 material = SubResource("StandardMaterial3D_b3snp")
 
-[node name="sky_grove_service_canopy_post_-1_0" type="CSGCylinder3D" parent="." unique_id=658551073]
+[node name="sky_grove_service_canopy_post_-1_0" type="CSGCylinder3D" parent="." unique_id=1412600229]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 47.881, 1.101, -80.029)
 use_collision = true
 radius = 0.07
 height = 2.36
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_grove_service_canopy_post_1_0" type="CSGCylinder3D" parent="." unique_id=689615400]
+[node name="sky_grove_service_canopy_post_1_0" type="CSGCylinder3D" parent="." unique_id=488905258]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 47.881252, 1.1012499, -75.66875)
 use_collision = true
 radius = 0.07
 height = 2.36
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_grove_service_bin_0" type="CSGCylinder3D" parent="." unique_id=1325458380]
+[node name="sky_grove_service_bin_0" type="CSGCylinder3D" parent="." unique_id=1667589478]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.2015, 0.43150002, -71.7985)
 use_collision = true
 radius = 0.27
@@ -1434,7 +1434,7 @@ height = 0.86
 sides = 10
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_grove_service_bin_1" type="CSGCylinder3D" parent="." unique_id=1126682914]
+[node name="sky_grove_service_bin_1" type="CSGCylinder3D" parent="." unique_id=1881836008]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.95175, 0.43175, -71.798256)
 use_collision = true
 radius = 0.27
@@ -1442,85 +1442,85 @@ height = 0.86
 sides = 10
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_grove_service_cart_body" type="CSGBox3D" parent="." unique_id=1662647362]
+[node name="sky_grove_service_cart_body" type="CSGBox3D" parent="." unique_id=2088528270]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.202, 0.582, -81.198)
 use_collision = true
 size = Vector3(1.55, 1.15, 2.25)
 material = SubResource("StandardMaterial3D_b3snp")
 
-[node name="sky_grove_service_cart_roof" type="CSGBox3D" parent="." unique_id=772296843]
+[node name="sky_grove_service_cart_roof" type="CSGBox3D" parent="." unique_id=1900108150]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.20225, 1.62225, -81.19775)
 size = Vector3(2.05, 0.15, 2.75)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="sky_grove_service_cart_wheel_-1_0_-1_0" type="CSGCylinder3D" parent="." unique_id=1285399936]
+[node name="sky_grove_service_cart_wheel_-1_0_-1_0" type="CSGCylinder3D" parent="." unique_id=2140202466]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 40.3625, 0.1725, -81.917496)
 radius = 0.22
 height = 0.12
 sides = 10
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_grove_service_cart_wheel_-1_0_1_0" type="CSGCylinder3D" parent="." unique_id=1803522178]
+[node name="sky_grove_service_cart_wheel_-1_0_1_0" type="CSGCylinder3D" parent="." unique_id=1114467515]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 40.36275, 0.17275, -80.47725)
 radius = 0.22
 height = 0.12
 sides = 10
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_grove_service_cart_wheel_1_0_-1_0" type="CSGCylinder3D" parent="." unique_id=800807399]
+[node name="sky_grove_service_cart_wheel_1_0_-1_0" type="CSGCylinder3D" parent="." unique_id=245402126]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 42.043, 0.17300001, -81.917)
 radius = 0.22
 height = 0.12
 sides = 10
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_grove_service_cart_wheel_1_0_1_0" type="CSGCylinder3D" parent="." unique_id=629945923]
+[node name="sky_grove_service_cart_wheel_1_0_1_0" type="CSGCylinder3D" parent="." unique_id=761837912]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 42.04325, 0.17325, -80.476746)
 radius = 0.22
 height = 0.12
 sides = 10
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_grove_service_crate_0" type="CSGBox3D" parent="." unique_id=129888600]
+[node name="sky_grove_service_crate_0" type="CSGBox3D" parent="." unique_id=2019738690]
 transform = Transform3D(0.99680173, 0, -0.07991469, 0, 1, 0, 0.07991469, 0, 0.99680173, 52.641136, 0.34350002, -80.94889)
 use_collision = true
 size = Vector3(0.78, 0.68, 0.78)
 material = SubResource("StandardMaterial3D_rs2bq")
 
-[node name="sky_grove_service_crate_1" type="CSGBox3D" parent="." unique_id=8687914]
+[node name="sky_grove_service_crate_1" type="CSGBox3D" parent="." unique_id=2066826349]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46.88375, 0.34375, -84.89625)
 use_collision = true
 size = Vector3(0.78, 0.68, 0.78)
 material = SubResource("StandardMaterial3D_rs2bq")
 
-[node name="sky_grove_service_crate_2" type="CSGBox3D" parent="." unique_id=1139704457]
+[node name="sky_grove_service_crate_2" type="CSGBox3D" parent="." unique_id=1606466829]
 transform = Transform3D(0.99680173, 0, 0.07991469, 0, 1, 0, -0.07991469, 0, 0.99680173, 39.072124, 1.0239999, -88.30055)
 use_collision = true
 size = Vector3(0.78, 0.68, 0.78)
 material = SubResource("StandardMaterial3D_rs2bq")
 
-[node name="sky_grove_service_screen_0" type="CSGBox3D" parent="." unique_id=771531426]
+[node name="sky_grove_service_screen_0" type="CSGBox3D" parent="." unique_id=1676369088]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 31.00425, 0.38425, -62.99575)
 size = Vector3(8, 0.76, 1.1)
 material = SubResource("StandardMaterial3D_orv1v")
 
-[node name="sky_grove_service_screen_1" type="CSGBox3D" parent="." unique_id=1602041203]
+[node name="sky_grove_service_screen_1" type="CSGBox3D" parent="." unique_id=303897500]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.0045, 0.3845, -62.9955)
 size = Vector3(8, 0.76, 1.1)
 material = SubResource("StandardMaterial3D_ifc7x")
 
-[node name="sky_grove_service_lamp_back" type="CSGBox3D" parent="." unique_id=982401510]
+[node name="sky_grove_service_lamp_back" type="CSGBox3D" parent="." unique_id=434329306]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.00475, 2.50475, -74.61524)
 size = Vector3(0.42, 0.42, 0.16)
 material = SubResource("StandardMaterial3D_hsaxl")
 
-[node name="sky_grove_service_lamp_globe" type="CSGSphere3D" parent="." unique_id=1028746822]
+[node name="sky_grove_service_lamp_globe" type="CSGSphere3D" parent="." unique_id=1832368364]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.005, 2.505, -74.465)
 radius = 0.16
 radial_segments = 10
 material = ExtResource("4_1ecvs")
 
-[node name="sky_grove_service_lamp" type="OmniLight3D" parent="." unique_id=1249612286 groups=["park_light"]]
+[node name="sky_grove_service_lamp" type="OmniLight3D" parent="." unique_id=16585514 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52, 2.4, -74.25)
 visible = false
 light_color = Color(1, 0.88, 0.68, 1)
@@ -1531,11 +1531,11 @@ omni_attenuation = 1.6
 metadata/base_energy = 1.65
 metadata/light_kind = 0
 
-[node name="sky_grove_transition_land" type="MeshInstance3D" parent="." unique_id=1210017739]
+[node name="sky_grove_transition_land" type="MeshInstance3D" parent="." unique_id=1348784233]
 material_override = SubResource("StandardMaterial3D_ifc7x")
 mesh = SubResource("ArrayMesh_k7xid")
 
-[node name="sky_grove_transition_north_ground" type="CSGBox3D" parent="." unique_id=1378384174]
+[node name="sky_grove_transition_north_ground" type="CSGBox3D" parent="." unique_id=567563593]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.95, -0.68, -135)
 size = Vector3(48.14, 1.2, 22.2)
 material = SubResource("StandardMaterial3D_ifc7x")

@@ -18835,11 +18835,25 @@ func _rebuild_program() -> void:
 
 
 func _rebuild_open_building(nm: String, at: Vector3, size: Vector2,
-		front_world: Vector3, mat: String, accent: String, height := 4.6) -> void:
+		front_world: Vector3, mat: String, accent: String, height := 4.6,
+		through := false) -> void:
 	var w := size.x
 	var d := size.y
 	_box(nm + "_floor", at, Vector3(0, 0.025, 0),
 		Vector3(w, 0.05, d), "brick", 0.0, false)
+	if through:
+		# A coaster station is a shed the track runs through: floor, roof and
+		# four posts, no walls, so the rails pass at platform height.
+		for sx in [-1.0, 1.0]:
+			for sz in [-1.0, 1.0]:
+				_box(nm + "_post_%s%s" % ["w" if sx < 0 else "e", "n" if sz < 0 else "s"], at,
+					Vector3(sx * (w * 0.5 - 0.3), height * 0.5, sz * (d * 0.5 - 0.3)),
+					Vector3(0.45, height, 0.45), mat)
+		_box(nm + "_roof", at, Vector3(0, height + 0.18, 0),
+			Vector3(w + 0.7, 0.34, d + 0.7), accent, 0.0, false)
+		_omni(nm + "_interior_glow", at + Vector3.UP * (height - 1.0), "warm", 1.8, 8.0,
+			LIGHT_SERVICE)
+		return
 
 	# Atlas footprints are axis-aligned operating envelopes. Rotating the whole
 	# shell to face its access enlarged every parcel and made otherwise valid
@@ -19379,7 +19393,14 @@ func _rebuild_coaster(site: Dictionary, junior: bool) -> void:
 	var track_anchor_source: Vector2 = site.get("track_anchor", station_source)
 	var zone := &"family" if junior else &"highland"
 	var track_at := _rebuild_site(track_anchor_source, zone)
-	var station_at := _rebuild_site(station_source, zone)
+	# The station rides with the track rather than through the expansion on
+	# its own: R13's slid 15m east of its rails the day the footprint grew, and
+	# the train would have arrived on the roof.
+	var station_offset := station_source - track_anchor_source
+	var station_xz := Vector2(track_at.x + station_offset.x, track_at.z + station_offset.y)
+	var station_y := _rebuild_family_floor(station_xz) if junior \
+		else _rebuild_highland_floor(station_xz)
+	var station_at := Vector3(station_xz.x, station_y, station_xz.y)
 	var source: Array = site["track"]
 	var track: Array[Vector3] = []
 	for i in source.size():
@@ -19388,7 +19409,9 @@ func _rebuild_coaster(site: Dictionary, junior: bool) -> void:
 		var lift := (3.0 + (sin(phase - 0.8) + 1.0) * 2.3) if junior \
 			else (5.0 + (sin(phase - 1.1) + 1.0) * 7.5)
 		if i == 0 or i == source.size() - 1:
-			lift = 2.5 if junior else 3.5
+			# Platform height inside the station, whatever the ground does
+			# between the anchor and the station.
+			lift = station_at.y - track_at.y + 1.2
 		track.append(track_at + Vector3(local.x, lift, local.y))
 	var id: String = String(site["id"])
 	for i in track.size() - 1:
@@ -19406,7 +19429,7 @@ func _rebuild_coaster(site: Dictionary, junior: bool) -> void:
 	var front := _rebuild_site(Vector2(queue[-1]),
 		&"family" if junior else &"highland")
 	_rebuild_open_building(id + "_station", station_at, station_size, front,
-		"far_shade", "yellow" if junior else "red", 5.0 if junior else 6.0)
+		"far_shade", "yellow" if junior else "red", 5.0 if junior else 6.0, true)
 	_rebuild_access_path(id + "_queue", queue,
 		&"family" if junior else &"highland", 2.6)
 	if junior:
