@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+; Stable editor-owned wrapper for the package-02A parking clause: the approach
+; road, front road, entries, drop-off, hedges and berms. Manual refinements
+; belong under authored_additions so they survive regeneration.
+[ext_resource type="PackedScene" path="res://scenes/world/generated/park_approach.tscn" id="1_generated"]
+
+[node name="park_approach" instance=ExtResource("1_generated")]
+
+[node name="authored_additions" type="Node3D" parent="."]

@@ -23,6 +23,7 @@ func _ready() -> void:
 	_check_world_reserve()
 	_check_route_handoffs()
 	_check_grand_circuit()
+	_check_rim_clearance()
 	_check_arrival_scene()
 	_check_retired_geometry()
 	_finish()
@@ -44,6 +45,145 @@ func _check_envelope() -> void:
 						or point.y < lo.y - EPS or point.y > hi.y + EPS:
 					_fail("terrain %s leaves the expanded park envelope at %s" % [band, point])
 	print("  developed park envelope %.0fm x %.0fm" % [hi.x - lo.x, hi.y - lo.y])
+
+
+## Package 02A: the range's toe line keeps `RIM_CLEARANCE` clear of every route
+## edge, the Grand Circuit, both parking fields and every ride, interior,
+## attraction and midway parcel. The toe line is `ParkPlan.range_toe_line`, the
+## same line the generator raises the ground from.
+func _check_rim_clearance() -> void:
+	var toes: Array[Vector2] = Plan.range_toe_line(2.0)
+	var worst := {}
+	var nearest_toe := func(a: Vector2, b: Vector2) -> Vector2:
+		var best := toes[0]
+		var bd := INF
+		for t in toes:
+			var dd := t.distance_to(Geometry2D.get_closest_point_to_segment(t, a, b))
+			if dd < bd:
+				bd = dd
+				best = t
+		return best
+	var note := func(kind: String, d: float, what: String) -> void:
+		if not worst.has(kind) or d < worst[kind][0]:
+			worst[kind] = [d, what]
+
+	for run in Plan.rebuild_route_runs():
+		var pts: Array = run["points"]
+		var half := float(run["width"]) * 0.5
+		var closed := bool(run.get("closed", false))
+		var n := pts.size() if closed else pts.size() - 1
+		for i in n:
+			var a := _rim_xz(pts[i])
+			var b := _rim_xz(pts[(i + 1) % pts.size()])
+			note.call("route", _toes_to_segment(toes, a, b) - half,
+				"%s, toe near %s" % [run["id"], nearest_toe.call(a, b)])
+	var tram: Array = Plan.grand_tram_loop()
+	for i in tram.size():
+		var a := _rim_xz(tram[i])
+		var b := _rim_xz(tram[(i + 1) % tram.size()])
+		note.call("Grand Circuit", _toes_to_segment(toes, a, b)
+			- Plan.GRAND_TRAM_LANE_W * 0.5,
+			"circuit lane %s-%s, toe near %s" % [a, b, nearest_toe.call(a, b)])
+	for side in [-1.0, 1.0]:
+		var x0 := minf(side * Plan.PARKING_INNER_X, side * Plan.PARKING_OUTER_X)
+		var x1 := maxf(side * Plan.PARKING_INNER_X, side * Plan.PARKING_OUTER_X)
+		note.call("parking", _toes_to_rect(toes, x0, Plan.PARKING_FROM_Z, x1,
+			Plan.PARKING_TO_Z), "parking field")
+	for site in Plan.REBUILD_RIDE_SITES:
+		var id := String(site["id"])
+		if site.has("track"):
+			var anchor: Vector2 = site.get("track_anchor", site["station"])
+			var at := Plan.rebuild_expand_point(anchor)
+			var track: Array = site["track"]
+			for i in track.size() - 1:
+				note.call("ride", _toes_to_segment(toes, at + (Vector2(track[i]) - anchor),
+					at + (Vector2(track[i + 1]) - anchor)), id)
+			var st := Plan.rebuild_expand_point(site["station"])
+			var sz: Vector2 = site["station_size"]
+			note.call("ride", _toes_to_rect(toes, st.x - sz.x * 0.5, st.y - sz.y * 0.5,
+				st.x + sz.x * 0.5, st.y + sz.y * 0.5), id + " station")
+		elif site.has("points"):
+			var pts: Array = site["points"]
+			var centre := Vector2.ZERO
+			for q in pts:
+				centre += Vector2(q)
+			centre /= float(pts.size())
+			var at := Plan.rebuild_expand_point(centre)
+			for i in pts.size():
+				note.call("ride", _toes_to_segment(toes, at + (Vector2(pts[i]) - centre),
+					at + (Vector2(pts[(i + 1) % pts.size()]) - centre)), id)
+		elif site.has("terminals"):
+			for t in site["terminals"]:
+				note.call("ride", _toes_to_point(toes, Plan.rebuild_expand_point(t)) - 6.0, id)
+		else:
+			var at := Plan.rebuild_expand_point(site["at"])
+			var r := 0.0
+			if site.has("radius"):
+				r = float(site["radius"])
+			elif site.has("radii"):
+				r = maxf((site["radii"] as Vector2).x, (site["radii"] as Vector2).y)
+			elif site.has("size"):
+				r = maxf((site["size"] as Vector2).x, (site["size"] as Vector2).y) * 0.5
+			note.call("ride", _toes_to_point(toes, at) - r, id)
+	for site in Plan.REBUILD_ATTRACTION_SITES:
+		var at := Plan.rebuild_expand_point(site["at"])
+		var r := 8.0
+		if site.has("radius"):
+			r = float(site["radius"])
+		elif site.has("radii"):
+			r = maxf((site["radii"] as Vector2).x, (site["radii"] as Vector2).y)
+		elif site.has("size"):
+			r = maxf((site["size"] as Vector2).x, (site["size"] as Vector2).y) * 0.5
+		note.call("attraction", _toes_to_point(toes, at) - r, String(site["id"]))
+	for site in Plan.REBUILD_INTERIOR_SITES:
+		var at := Plan.rebuild_expand_point(site["at"])
+		var sz: Vector2 = site["size"]
+		note.call("interior", _toes_to_rect(toes, at.x - sz.x * 0.5, at.y - sz.y * 0.5,
+			at.x + sz.x * 0.5, at.y + sz.y * 0.5), String(site["id"]))
+	for site in Plan.REBUILD_MIDWAY_UNITS:
+		var at := Plan.rebuild_expand_point(site["at"])
+		note.call("midway", _toes_to_rect(toes, at.x - 2.5, at.y - 2.5, at.x + 2.5,
+			at.y + 2.5), String(site["id"]))
+
+	print("  range toe line: %d points about (%.0f, %.0f), inner %.0fm" % [
+		toes.size(), Plan.RIM_RANGE_CENTRE.x, Plan.RIM_RANGE_CENTRE.y,
+		Plan.RIM_RANGE_INNER_R + Plan.RIM_RANGE_TOE_D])
+	for kind in worst:
+		var d: float = worst[kind][0]
+		print("  rim toe to nearest %s: %.1fm (%s)" % [kind, d, worst[kind][1]])
+		if d < Plan.RIM_CLEARANCE - EPS:
+			_fail("rim toe leaves only %.1fm to %s %s, rule is %.0fm" % [
+				d, kind, worst[kind][1], Plan.RIM_CLEARANCE])
+
+
+func _rim_xz(v: Variant) -> Vector2:
+	if v is Vector3:
+		return Vector2((v as Vector3).x, (v as Vector3).z)
+	return v as Vector2
+
+
+func _toes_to_segment(toes: Array[Vector2], a: Vector2, b: Vector2) -> float:
+	var best := INF
+	for t in toes:
+		best = minf(best, t.distance_to(Geometry2D.get_closest_point_to_segment(t, a, b)))
+	return best
+
+
+func _toes_to_point(toes: Array[Vector2], q: Vector2) -> float:
+	var best := INF
+	for t in toes:
+		best = minf(best, t.distance_to(q))
+	return best
+
+
+func _toes_to_rect(toes: Array[Vector2], x0: float, z0: float, x1: float,
+		z1: float) -> float:
+	var best := INF
+	for t in toes:
+		var dx := maxf(maxf(x0 - t.x, 0.0), t.x - x1)
+		var dz := maxf(maxf(z0 - t.y, 0.0), t.y - z1)
+		best = minf(best, Vector2(dx, dz).length())
+	return best
 
 
 ## The atlas envelope is allowed to be tight around program; the world is not.

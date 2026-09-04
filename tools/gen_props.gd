@@ -51,6 +51,7 @@ const CIRCULATION_PATH := GENERATED_DIR + "/park_circulation.tscn"
 const ROUTES_PATH := GENERATED_DIR + "/park_routes.tscn"
 const PROGRAM_PATH := GENERATED_DIR + "/park_program.tscn"
 const LANDSCAPE_PATH := GENERATED_DIR + "/park_landscape.tscn"
+const APPROACH_PATH := GENERATED_DIR + "/park_approach.tscn"
 ## How far east the terraces' massing copy of the plaza stands from the
 ## boardwalk's. See `_plaza_from_the_east`, which explains what it is for.
 ##
@@ -376,6 +377,15 @@ func _initialize() -> void:
 	if not _save(_root, LANDSCAPE_PATH):
 		return
 
+	# The parking clause: roads, entries, drop-off, hedges and berms. Appended
+	# after every established output for the seam-ordinal reason.
+	_root = Node3D.new()
+	_root.name = "park_approach"
+	_begin_scene()
+	_rebuild_approach()
+	if not _save(_root, APPROACH_PATH):
+		return
+
 	quit()
 
 
@@ -554,7 +564,11 @@ const RIM_TEX_MEAN := 0.85
 ## horizon; darker is *more* legible against that sky, not less, so the plan's
 ## argument for the crest height still holds — but the composition is different
 ## and it was checked from both ends before this was changed.
-const RIM_TINT := Color(0.43, 0.45, 0.36)
+## Forest green since package 02A: the rim is a wooded foothill and reads as
+## canopy from every standpoint that can see it, until tree instancing gives it
+## real trees. The olive land colour it replaced is history — see the rim
+## supersession marker in `AGENTS.md`.
+const RIM_TINT := Color(0.19, 0.33, 0.18)
 
 ## How hard the relief is baked into the normal *map*, which is not the
 ## material's `normal_scale` and must not be handed to it — `_normal_from` takes
@@ -1120,6 +1134,16 @@ func _build_materials() -> void:
 		m.roughness = defs[key][1]
 		m.metallic = defs[key][2]
 		mats[key] = m
+	# The range wears its colour per vertex — meadow, forest, rock — so one
+	# material covers a landscape whose bands follow the landform.
+	var ground := StandardMaterial3D.new()
+	ground.albedo_color = Color(1.0, 1.0, 1.0)
+	ground.roughness = 0.97
+	ground.vertex_color_use_as_albedo = true
+	# The colours above are authored as seen; without this Godot reads them as
+	# linear and the whole range renders a stop and a half too pale.
+	ground.vertex_color_is_srgb = true
+	mats["ground_banded"] = ground
 
 	# The two ground surfaces. Brick is warm and a little dusty rather than new
 	# terracotta — a park floor has had twenty summers on it.
@@ -10396,381 +10420,9 @@ func _skyline() -> void:
 	# East, and the largest thing in the park. Last in this scene rather than
 	# first, so that adding it moves nobody's seam ordinal: the tower keeps the
 	# displacement it was built with.
-	_rim()
-
-
-# ---------------------------------------------------------------------------
-# The rim
-# ---------------------------------------------------------------------------
-
-## How finely the ridge is sampled along its length: one column of the mesh
-## every 2.5m, so 137 of them over the 340m the profile spans.
-##
-## **This replaced 34 ten-metre bands on 2026-08-18, and the change is what the
-## number means rather than what it is.** A band was a *slab* — a rigid box laid
-## on its own chord at its own slope angle — so the sampling rate was also the
-## rate at which the surface was allowed to be a different shape, and every
-## boundary between two of them was a real discontinuity: a step in the crest,
-## a lap edge drawing a dark line the full height of the face, and a toe cut
-## perpendicular to its own chord leaving a tooth against the ground. 33 seams,
-## and once the face was textured they were the loudest thing on it. A column is
-## not a slab. It is two vertices, its neighbour is welded to it, and there is no
-## boundary to see — so this can be as fine as the crest curve wants and costs
-## nothing but vertices.
-##
-## 2.5m is well past the point where it matters. `_rim_jag`'s faster term has a
-## 19m wavelength, so eight columns carry it; at 150m one column is about half a
-## degree. The old 10m was chosen against a 1.1m step it could not avoid, which
-## is a constraint that no longer exists.
-const RIM_STEP := 2.5
-
-## How far the ridge runs east of the crest before its back is underground.
-##
-## It used to be the depth of a separate block behind each band, there so the
-## crest was an edge on something rather than the top of a plane. It is the back
-## slope of the mesh now, which does the same job by being the same object: the
-## crest is a crease between two strips rather than a line where one strip stops.
-## Nothing has ever seen it and nothing can — the plaza is 150m west and 48m
-## below the crest.
-const RIM_BACK_D := 24.0
-
-## How far below its own foot the chord keeps going before it stops, so that the
-## ridge comes out of the ground rather than standing on it.
-##
-## **It was `RIM_TOE_Y := -2.0`, an absolute height, and an absolute height only
-## works while the whole ridge stands on one level.** Down the east arm the foot
-## is `TERRACE_TWO_Y` and −2 is fourteen metres under it — spare geometry for
-## terrace two to bury, which on the axis is everything from about x 110 out to
-## 120. The same −2 on the headland, whose foot is `WATER_TOP`, would have been
-## five metres *above* the ground it was supposed to be buried in.
-##
-## Fourteen, so the east arm comes out exactly where it always did.
-const RIM_TOE_BURY := 14.0
-
-
-## The relief, and how quickly it comes in off the axis. See `_rim_jag`.
-const RIM_JAG := 1.2
-const RIM_JAG_TAPER := 30.0
-
-
-## The park sits in a breached crater, and this is the wall of it: 340m of ridge
-## climbing out of the east, open to the west because that is the bearing the sun
-## sets on and `daylight.gd` computes rather than poses.
-##
-## **`ParkPlan` has held the whole of it since the east cascade went in and
-## nothing had ever drawn it.** Foot, crest, the seven-point profile and the
-## `rim_crest` accessor were all written, and `rim_crest` had no callers at all —
-## so the east gate has been framing a six metre monument with open sky behind
-## it, and the plan's claim that the ridge stands over the whole east roofline
-## was a claim about a file rather than about the park.
-##
-## **Massing, never reachable, no collision**, like the coaster and the tower it
-## shares this scene with. The player cannot get near the toe: the shelf that
-## would take them there is not built either, and the cascade stops them at x 70.
-##
-## Two views see two different halves of it, which is what the plan is arranged
-## around. From inside the plaza an eye at 1.7 clears the east wall's 11.5m top
-## on a shallow ray, so the fountain sees the top seven metres of a crest of 50
-## and the plaza's west side sees about twenty-four — the ridge opens up as you
-## back away from it, which is the right way round for distance. Through the east
-## gap you get the foot and the lower slope instead, cropped near 29m by the
-## beam. **Nothing sees the crest from above and nothing sees the back**, and the
-## mass below is allowed to assume that.
-##
-## What is deliberately not here: the north arm, which `RIM_PROFILE` stops short
-## of because a rim that wraps north has to decide what it does about the grove
-## and about the coaster standing forty metres in front of it, and neither is
-## decided. The ends at z ±170 are raw cuts for the same reason the east court's
-## are — from the fountain the far end of the ridge sits under a ray that clears
-## the wall at y 63, so there is no standpoint in the park that can see one.
-func _rim() -> void:
-	# **Swept along a path in plan since 2026-08-21, not along z.** Every
-	# coordinate below used to be a constant or a function of z, which is what a
-	# straight wall is; `ParkPlan.rim_samples` hands over the crest line, its
-	# inward normal and its arc length, and the cross-section is taken off that.
-	var samples: Array = Plan.rim_samples(RIM_STEP)
-
-	# Three lines down the ridge, sampled together so a column is one place on
-	# it rather than three independent ones: the toe, buried; the crest; and the
-	# back foot, buried again. The mesh is the two strips between them.
-	var toe := PackedVector3Array()
-	var crest := PackedVector3Array()
-	var back := PackedVector3Array()
-	# Kept so `_rim_unfolded` can compare each column's reach against the curve
-	# it is standing on. Recorded rather than recomputed, for `_cascade_rails`'
-	# reason: the offset is arithmetic on `alpha`, and a second derivation of it
-	# would agree until one of them changed.
-	var offs := PackedFloat32Array()
-	for sm in samples:
-		var at: Vector2 = sm["at"]
-		var inward: Vector2 = sm["inward"]
-		var foot_y: float = sm["foot"]
-		var top: float = float(sm["crest"]) + _rim_jag(sm)
-		# The slope the plan actually states, measured between the two points it
-		# names: the foot, and the crest `RIM_RUN` outboard of it. The toe below
-		# the foot is an extension of the same line, never a second gradient.
-		var alpha := atan2(top - foot_y, Plan.RIM_RUN)
-		var toe_y := foot_y - RIM_TOE_BURY
-		var reach: float = Plan.RIM_RUN + RIM_TOE_BURY / tan(alpha)
-		offs.append(reach)
-		var toe_at: Vector2 = at + inward * reach
-		var back_at: Vector2 = at - inward * RIM_BACK_D
-		toe.append(Vector3(toe_at.x, toe_y, toe_at.y))
-		crest.append(Vector3(at.x, top, at.y))
-		back.append(Vector3(back_at.x, toe_y, back_at.y))
-
-	if not _rim_unfolded(samples, offs):
-		return
-	_rim_mesh("rim", toe, crest, back)
-
-
-## No column may reach further inward than the curve it stands on can carry.
-##
-## **A swept profile folds wherever the sweep turns tighter than the profile
-## reaches**, and the fold is not subtle once you know to look for it: the toe
-## line crosses its own neighbours, the triangles between them invert, and it
-## comes out as a dark pleat running up the face with a V notch bitten out of the
-## silhouette at the bottom. It looks like a modelling mistake in a landform,
-## which is exactly what it is.
-##
-## It went unnoticed on the first build of the wrap because nothing in the data
-## says it. The control points are fine, the crest line is smooth, the mesh is
-## well formed, the winding and the crease both pass, and the AABB is right — the
-## defect only exists in the *relationship* between the offset and the curvature,
-## and neither of those is written down anywhere. Two separate causes were live
-## at once: a turn eyeballed at 38-43m of radius against a 44m reach, and uniform
-## Catmull-Rom overshooting on unevenly spaced control points, which put a 27m
-## wiggle into a stretch of the headland that is nearly straight.
-##
-## Measured over a plus-or-minus four column stencil — ten metres either side —
-## rather than over neighbours, because at 2.5m spacing three adjacent points are
-## nearly collinear and the circumradius of a sliver is numerical noise. The
-## first version of this check used neighbours and reported a 1.5m radius on a
-## curve that does not go below 58.
-func _rim_unfolded(samples: Array, offs: PackedFloat32Array) -> bool:
-	const W := 4
-	var worst := INF
-	var at := Vector2.ZERO
-	var rad_at := 0.0
-	for i in range(W, samples.size() - W):
-		var p: Vector2 = samples[i - W]["at"]
-		var q: Vector2 = samples[i]["at"]
-		var r: Vector2 = samples[i + W]["at"]
-		var area: float = absf((q.x - p.x) * (r.y - p.y)
-			- (q.y - p.y) * (r.x - p.x)) * 0.5
-		if area < 0.000001:
-			continue
-		var rad: float = p.distance_to(q) * q.distance_to(r) \
-			* p.distance_to(r) / (4.0 * area)
-		if rad - offs[i] < worst:
-			worst = rad - offs[i]
-			at = q
-			rad_at = rad
-	if worst < 0.0:
-		push_error(("gen_props: the rim folds at %s — the crest turns on a "
-			+ "%.1fm radius there and the section reaches %.1fm inward, so the "
-			+ "toe crosses itself and the face pleats. Open the turn out "
-			+ "(`RIM_TURN_R`), or steepen the gradient so the buried toe is "
-			+ "shorter.") % [at, rad_at, rad_at - worst])
-		_fatal = true
-		quit(1)
-		return false
-	return true
-
-
-## The ridge as one welded surface, and the reason it is the only thing in the
-## park built this way.
-##
-## **A ridge cannot be made of boxes.** It was 34 of them until 2026-08-18 — one
-## slab per band, each laid on its own chord at its own slope angle — and every
-## artefact that made the thing read as a folded paper screen rather than as land
-## came from that and could not be tuned out of it. A box is rigid, so its top
-## edge is a straight horizontal line in z; a ridge whose crest rises and falls
-## therefore steps at every boundary. The slabs lapped 0.4m so as not to butt,
-## which is the house rule and correct, and the lap showed as a dark line the
-## full height of the face because the two slabs either side of it were at
-## different angles and one stood proud. The bottom of each slab was cut
-## perpendicular to its own chord, so the row of toes came out as teeth. None of
-## those is a bug in the band code. They are what a band *is*.
-##
-## Finer bands do not help — 33 seams become 99 fainter ones, and the node count
-## triples. The fix is to stop having boundaries: a column here shares its
-## vertices with its neighbour, so there is nothing at a column to see, and the
-## sampling rate stops being a shape decision and becomes a smoothness one.
-##
-## **The crest is a crease and the face is not, and what holds that is the smooth
-## group.** Normals are averaged along z so the face shades as a continuous
-## surface; that is the whole point of building it this way. But the same
-## averaging carried across the crest rounds the ridge line off into a soft hump,
-## and the crest is the one line on this object the entire east composition is
-## aimed at.
-##
-## Two `_rim_strip` calls do not prevent that, and neither do distinct UVs.
-## Godot 4's `generate_normals` welds by **position and smooth group only** — it
-## hashes a `SmoothGroupVertex`, which carries no UV at all — so the front
-## strip's crest row and the back strip's crest row are the same positions and
-## are averaged together whatever else differs about them. Measured, not assumed:
-## built without the groups, 813 of the 816 vertices on the crest plane came back
-## with a normal pointing *east*, which is the mean of a west-facing face at 51
-## degrees and an east-facing back at 64. Every way a scene can be inspected said
-## it was fine — right node, right vertex count, right AABB, no error anywhere.
-##
-## So the two strips are given different smooth groups and the crest stays an
-## edge. The V offset between them is kept as well, because it costs nothing and
-## a tangent frame that does not flip across the crease is worth having, but it
-## is not what does this job and must not be mistaken for it.
-##
-## `_rim_creased` is the guard, and it is here rather than in a test because
-## nothing outside this file knows the crest is supposed to be sharp.
-##
-## UVs are laid out but never sampled — the material is world-space triplanar, so
-## they exist only because `generate_tangents` needs them, and without tangents
-## the normal map has no frame to be applied in and the relief silently does
-## nothing. That is the same shape of failure as the uniforms that save as null:
-## a well-formed scene with the important part missing.
-##
-## **The winding is asserted rather than reasoned about.** Front faces are a
-## convention, and a surface built the wrong way round is invisible from the one
-## direction it exists to be seen from — which on a 340m ridge behind a wall
-## reads as "the rim did not generate" rather than as a winding bug. The check
-## costs one dot product.
-func _rim_mesh(nm: String, toe: PackedVector3Array, crest: PackedVector3Array,
-		back: PackedVector3Array) -> void:
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	# Two groups, and this is the line that keeps the crest sharp.
-	st.set_smooth_group(0)
-	_rim_strip(st, toe, crest, 0.0)
-	st.set_smooth_group(1)
-	_rim_strip(st, crest, back, 2.0)
-	st.generate_normals()
-	st.generate_tangents()
-	var mesh := st.commit()
-
-	var arrays := mesh.surface_get_arrays(0)
-	var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
-	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
-
-	# The face has to point at the park. Sampled at the toe, which is the one row
-	# on the front strip that cannot have been contaminated by the crest even if
-	# the crease has failed — checking a crest vertex here would have passed while
-	# the ridge was rounding off.
-	#
-	# **Anchored to the toe on the park's own axis rather than to whichever vertex
-	# is lowest.** Lowest was safe while the whole ridge was footed at one height
-	# and is not now: `RIM_TOE_BURY` hangs off each column's own foot, so the
-	# deepest vertex is the headland's, two hundred metres away and pointing a
-	# different way — and toe and back share that height anyway, so "lowest" could
-	# always have picked a back vertex and failed a sound mesh. Here the direction
-	# is known, because on the axis inward is due west and always has been.
-	var pick := 0
-	for j in toe.size():
-		if Vector2(toe[j].x, toe[j].z).distance_to(Plan.RIM_AXIS_AT) \
-				< Vector2(toe[pick].x, toe[pick].z).distance_to(Plan.RIM_AXIS_AT):
-			pick = j
-	var lowest := -1
-	for i in verts.size():
-		if verts[i].distance_squared_to(toe[pick]) < 1e-6:
-			lowest = i
-			break
-	if lowest < 0:
-		push_error("gen_props: the rim's axis toe vertex is not in the mesh")
-		_fatal = true
-		quit(1)
-		return
-	var probe: Vector3 = normals[lowest]
-	if probe.x > -0.2 or probe.y < 0.0:
-		push_error(("gen_props: the rim's face is wound backwards — its normal "
-			+ "came out %s, and it has to point west and up. The strip is "
-			+ "invisible from the plaza built this way round.") % probe)
-		_fatal = true
-		quit(1)
-		return
-
-	if not _rim_creased(verts, normals, crest):
-		return
-
-	var mi := MeshInstance3D.new()
-	mi.mesh = mesh
-	mi.material_override = mats["rim"]
-	_add(mi, nm)
-
-
-## One strip between two lines of the ridge, in world coordinates.
-##
-## `v0` is where this strip starts in the V direction. It is the only thing the
-## two calls differ by, and it is load-bearing rather than cosmetic: it is what
-## keeps the crest rows of the two strips from welding into one. See `_rim_mesh`.
-func _rim_strip(st: SurfaceTool, low: PackedVector3Array,
-		high: PackedVector3Array, v0: float) -> void:
-	var cols := low.size()
-	for j in cols - 1:
-		var u0 := float(j) / float(cols - 1)
-		var u1 := float(j + 1) / float(cols - 1)
-		# Wound so that `generate_normals` puts the normal on the outside — see
-		# the assertion in `_rim_mesh`, which is what actually holds this.
-		_rim_tri(st, low[j], u0, v0, high[j], u0, v0 + 1.0,
-			low[j + 1], u1, v0)
-		_rim_tri(st, high[j], u0, v0 + 1.0, high[j + 1], u1, v0 + 1.0,
-			low[j + 1], u1, v0)
-
-
-## Every vertex on the crest plane should carry one of two normals — the face's
-## and the back's — and never their average.
-##
-## This exists because the failure it catches is invisible. A welded crest is a
-## well-formed mesh: it loads, it draws, it has the right vertex count and the
-## right bounds, and from the plaza it is a 340m ridge whose top edge is very
-## slightly soft at a range where nobody would think to look for a normal bug.
-## The only cheap way to know is to ask the geometry, so this asks it.
-func _rim_creased(verts: PackedVector3Array, normals: PackedVector3Array,
-		crest: PackedVector3Array) -> bool:
-	# **By membership of the crest line, not by a plane.** This used to ask
-	# whether a vertex sat at `RIM_CREST_X`, which is a fine question about a
-	# straight wall and meaningless about a ridge that turns west — past the bend
-	# no crest vertex is at that x at all, so the test would have found only the
-	# east arm's and quietly stopped covering two hundred and fifty metres of the
-	# thing it exists to check. `SurfaceTool` does not move positions, so the
-	# crest rows are still exactly the vectors handed to it and a millimetre key
-	# matches them outright.
-	var keys := {}
-	for c in crest:
-		keys[_rim_key(c)] = true
-	# Inward and outward rather than west and east, for the same reason. On the
-	# axis these are the same statement; on the north arm inward is south.
-	var inward := 0
-	var outward := 0
-	for i in verts.size():
-		if not keys.has(_rim_key(verts[i])):
-			continue
-		var to_park := Vector2(-verts[i].x, -verts[i].z)
-		if to_park.length() < 0.001:
-			continue
-		to_park = to_park.normalized()
-		if normals[i].x * to_park.x + normals[i].z * to_park.y > 0.0:
-			inward += 1
-		else:
-			outward += 1
-	# Both rows are laid the same way, so a sound crease is an even split. A
-	# weld collapses one of them onto the other and leaves a handful of strays.
-	if inward < 1 or outward < 1 \
-			or absf(inward - outward) > maxi(inward, outward) / 4:
-		push_error(("gen_props: the rim's crest is not a crease — %d of its "
-			+ "vertices face the park and %d face away, where an even split is "
-			+ "wanted. The two strips have been welded and the ridge line is "
-			+ "rounding off. Check the smooth groups in `_rim_mesh`.")
-			% [inward, outward])
-		_fatal = true
-		quit(1)
-		return false
-	return true
-
-
-## A vertex as a millimetre key, for asking whether the mesh still contains a
-## point the generator put into it.
-func _rim_key(v: Vector3) -> String:
-	return "%d,%d,%d" % [roundi(v.x * 1000.0), roundi(v.y * 1000.0),
-		roundi(v.z * 1000.0)]
+	# The swept rim retired on 2026-09-03: the crescent range surface in
+	# `park_groundworks` is the landform. The seam ordinals above stay so nothing
+	# downstream moves.
 
 
 func _rim_tri(st: SurfaceTool, a: Vector3, au: float, av: float,
@@ -10782,41 +10434,6 @@ func _rim_tri(st: SurfaceTool, a: Vector3, au: float, av: float,
 	st.add_vertex(b)
 	st.set_uv(Vector2(cu, cv))
 	st.add_vertex(c)
-
-
-## The relief on the crest line.
-##
-## A fixed pair of sines rather than an RNG because the generator has none and
-## does not want one: the ridge has to come out the same on every run or the
-## coplanar report changes under whoever is reading it.
-##
-## **It used to have a second job and no longer does.** While the ridge was 34
-## slabs, two adjacent bands at the same crest were two parallel faces a hair
-## apart, and a crest that never repeats was what stopped them lining up. There
-## are no bands now, so that argument is retired — and so is the claim that this
-## buys the ridge its only tonal variation, which was true when a band was a flat
-## facet meeting the sun at its own angle. The surface is welded and smooth in z
-## now, and what shades it is the normal map. This is left in because the *shape*
-## reason still stands on its own: a ridge interpolated straight off seven
-## control points is a swept curve, and a swept curve at this size reads as a
-## tarpaulin over something rather than as land.
-##
-## **Zero on the park's own axis**, and that is not tidiness. `ParkPlan` states
-## what a crest of 50 shows from the fountain and from the plaza's west side, and
-## those two numbers were measured off that 50. A metre of jag forty metres north
-## costs nothing; a metre of it on the axis would quietly make a documented
-## figure wrong, which is how the wheel's height went wrong for a week.
-func _rim_jag(sm: Dictionary) -> float:
-	# **Phased on arc length and tapered on distance in plan.** It used to be both
-	# of those in z, which is the same thing on a straight wall and useless on a
-	# ridge that turns: the west arm holds z at about −200 for two hundred and
-	# fifty metres, so a jag phased on z would have been one constant offset along
-	# the whole of it, and a taper on `absf(z - axis)` would have pinned it at full
-	# strength the entire way.
-	var at: Vector2 = sm["at"]
-	var taper := clampf(at.distance_to(Plan.RIM_AXIS_AT) / RIM_JAG_TAPER, 0.0, 1.0)
-	var a: float = sm["arc"]
-	return (sin(a * 0.137) * 0.62 + sin(a * 0.331 + 1.7) * 0.38) * RIM_JAG * taper
 
 
 ## The arrival: everything south of the plaza's south wall.
@@ -11545,9 +11162,30 @@ func _apron() -> void:
 			Vector3(x, 0.035, Plan.ARRIVAL_TRAM_CROSSING_Z),
 			Vector3(0.82, 0.03, 5.0), "white", 0.0, false)
 
-	_box("parking_outer_rail", Vector3.ZERO,
-		Vector3(0.0, 0.55, Plan.ARRIVAL_AXIS_TO_Z + 0.6),
-		Vector3(Plan.PARKING_OUTER_X * 2.0 + 8.0, 1.1, 0.4), "metal")
+	# The outer rail is broken where the parking clause connects the lots to
+	# the front road: at the arrival walk and at each of the four entries.
+	# It was one 144m rail across the whole south edge, and it stood across
+	# the drop-off and every entry the day they were built.
+	var rail_half: float = Plan.PARKING_OUTER_X + 4.0
+	var rail_gaps: Array = [[-9.0, 9.0]]
+	for ex in Plan.LOT_ENTRY_XS:
+		rail_gaps.append([float(ex) - 4.5, float(ex) + 4.5])
+	rail_gaps.sort_custom(func(a, b): return a[0] < b[0])
+	var rail_x := -rail_half
+	var rail_i := 0
+	for gap in rail_gaps:
+		var g0: float = gap[0]
+		var g1: float = gap[1]
+		if g0 - rail_x > 0.5:
+			_box("parking_outer_rail_%d" % rail_i, Vector3.ZERO,
+				Vector3((rail_x + g0) * 0.5, 0.55, Plan.ARRIVAL_AXIS_TO_Z + 0.6),
+				Vector3(g0 - rail_x, 1.1, 0.4), "metal")
+			rail_i += 1
+		rail_x = g1
+	if rail_half - rail_x > 0.5:
+		_box("parking_outer_rail_%d" % rail_i, Vector3.ZERO,
+			Vector3((rail_x + rail_half) * 0.5, 0.55, Plan.ARRIVAL_AXIS_TO_Z + 0.6),
+			Vector3(rail_half - rail_x, 1.1, 0.4), "metal")
 	for side in [-1.0, 1.0]:
 		_box("parking_outer_wall_%s" % ("west" if side < 0.0 else "east"),
 			Vector3.ZERO,
@@ -16974,6 +16612,8 @@ const REBUILD_HEADLAND_INSET := 0.70
 const REBUILD_TERRAIN_GRID := 8.0
 const REBUILD_WORLD_RESERVE_Y := -0.16
 const REBUILD_WORLD_TERRAIN_STEP := 24.0
+const REBUILD_WORLD_FINE_STEP := 8.0
+const REBUILD_WORLD_FINE_REACH := 720.0
 const REBUILD_WORLD_FLAT_MARGIN := 100.0
 const REBUILD_COAST_LOW_Y := Plan.SHORE_TOP - 0.08
 const REBUILD_COAST_HIGH_Y := REBUILD_WORLD_RESERVE_Y - 0.08
@@ -16984,7 +16624,8 @@ const REBUILD_BED_MARGIN := 1.4
 const REBUILD_SOUTH_CUT_WIDTH := 10.2
 const REBUILD_SOUTH_CUT_SEED_MARGIN := 0.4
 const REBUILD_OUTER_HIGHLAND_FROM_X := 127.0
-const REBUILD_OUTER_HIGHLAND_TO_X := 178.0
+const REBUILD_OUTER_HIGHLAND_COLS := 30
+const REBUILD_PLATEAU_OVERLAP := 8.0
 const REBUILD_OUTER_HIGHLAND_FROM_Z := -154.0
 const REBUILD_OUTER_HIGHLAND_TO_Z := 198.0
 const REBUILD_OUTER_HIGHLAND_STEP := 4.0
@@ -17026,12 +16667,12 @@ const REBUILD_J9_FLOOR_DEPTH := 1.40
 func _rebuild_groundworks() -> void:
 	var world_reserve := _rebuild_world_reserve_mesh()
 	_rebuild_mesh_body("terrain_world_mainland_reserve", world_reserve,
-		"planting", true)
+		"ground_banded", true)
 
 	for coast in _rebuild_coastal_reserve_shapes():
 		var coast_mesh := _rebuild_coastal_polygon_mesh(coast)
 		_rebuild_mesh_body("terrain_world_coast_%s" % coast["id"], coast_mesh,
-			"planting", true)
+			"ground_banded", true)
 
 	var lowland: Array = Plan.rebuild_terrain_shape(&"T2")
 	var lowland_mesh := _rebuild_lowland_mesh(lowland)
@@ -17057,10 +16698,11 @@ func _rebuild_groundworks() -> void:
 ## developed envelope does it roll into low background country. Route cuts and
 ## both protected envelopes remain true holes even in this lowest layer.
 func _rebuild_world_reserve_mesh() -> ArrayMesh:
-	var xs := _rebuild_axis_samples(Plan.REBUILD_WORLD_LAND_FROM_X,
-		Plan.REBUILD_WORLD_LAND_TO_X, REBUILD_WORLD_TERRAIN_STEP)
-	var zs := _rebuild_axis_samples(Plan.REBUILD_WORLD_LAND_FROM_Z,
-		Plan.REBUILD_WORLD_LAND_TO_Z, REBUILD_WORLD_TERRAIN_STEP)
+	# Fine near the park, where the foothill has to hold a crest, coarse beyond.
+	var xs := _rebuild_graded_axis(Plan.REBUILD_WORLD_LAND_FROM_X,
+		Plan.REBUILD_WORLD_LAND_TO_X)
+	var zs := _rebuild_graded_axis(Plan.REBUILD_WORLD_LAND_FROM_Z,
+		Plan.REBUILD_WORLD_LAND_TO_Z)
 	var lowland_cuts := _rebuild_lowland_cuts()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -17081,15 +16723,31 @@ func _rebuild_world_reserve_mesh() -> ArrayMesh:
 			var b := Vector3(p10.x, _rebuild_world_reserve_y(p10), p10.y)
 			var c := Vector3(p11.x, _rebuild_world_reserve_y(p11), p11.y)
 			var d := Vector3(p01.x, _rebuild_world_reserve_y(p01), p01.y)
-			_earth_oriented_tri(st, a, p00 * 0.28, b, p10 * 0.28,
-				c, p11 * 0.28, Vector3.UP)
-			_earth_oriented_tri(st, a, p00 * 0.28, c, p11 * 0.28,
-				d, p01 * 0.28, Vector3.UP)
+			var ca := _rebuild_ground_colour(p00, a.y)
+			var cb := _rebuild_ground_colour(p10, b.y)
+			var cc := _rebuild_ground_colour(p11, c.y)
+			var cd := _rebuild_ground_colour(p01, d.y)
+			_earth_coloured_tri(st, a, p00 * 0.28, ca, b, p10 * 0.28, cb,
+				c, p11 * 0.28, cc, Vector3.UP)
+			_earth_coloured_tri(st, a, p00 * 0.28, ca, c, p11 * 0.28, cc,
+				d, p01 * 0.28, cd, Vector3.UP)
 			emitted += 1
 	assert(emitted > 1000, "the surrounding mainland reserve did not generate")
 	st.generate_normals()
 	st.generate_tangents()
 	return st.commit()
+
+
+## Samples at `REBUILD_WORLD_FINE_STEP` within `REBUILD_WORLD_FINE_REACH` of
+## the origin and at the coarse step beyond, on one lattice.
+func _rebuild_graded_axis(from: float, to: float) -> PackedFloat32Array:
+	var out := PackedFloat32Array([from])
+	var p := from
+	while p < to - 0.01:
+		var near := absf(p) <= REBUILD_WORLD_FINE_REACH
+		p += REBUILD_WORLD_FINE_STEP if near else REBUILD_WORLD_TERRAIN_STEP
+		out.append(minf(p, to))
+	return out
 
 
 func _rebuild_axis_samples(from: float, to: float, step: float) -> PackedFloat32Array:
@@ -17100,6 +16758,182 @@ func _rebuild_axis_samples(from: float, to: float, step: float) -> PackedFloat32
 		p += step
 	out.append(to)
 	return out
+
+
+## The plateau east of the park ends on the range's toe line plus a small
+## overlap, so the crescent takes over exactly where the plateau stops. Solved
+## on the toe circle by iteration, since the bearing depends on x.
+func _rebuild_range_toe_x(z: float) -> float:
+	var c := Plan.RIM_RANGE_CENTRE
+	var x := c.x + Plan.RIM_RANGE_INNER_R + Plan.RIM_RANGE_TOE_D
+	for i in 3:
+		var theta := rad_to_deg(atan2(z - c.y, x - c.x))
+		var r := Plan.range_inner(theta) + Plan.RIM_RANGE_TOE_D
+		x = c.x + sqrt(maxf(r * r - (z - c.y) * (z - c.y), 0.0))
+	return x
+
+
+func _rebuild_plateau_end_x(z: float) -> float:
+	return _rebuild_range_toe_x(z) + REBUILD_PLATEAU_OVERLAP
+
+
+var _range_noise: Array = []
+
+
+func _rebuild_range_noise_setup() -> void:
+	if not _range_noise.is_empty():
+		return
+	for i in Plan.RIM_RANGE_NOISE.size():
+		var n := FastNoiseLite.new()
+		n.seed = Plan.RIM_RANGE_NOISE_SEED + i
+		n.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+		n.fractal_type = FastNoiseLite.FRACTAL_NONE
+		n.frequency = 1.0 / float(Plan.RIM_RANGE_NOISE[i][0])
+		_range_noise.append(n)
+
+
+## Package 02A: the crescent range, and since the swept rim retired the whole
+## landform outside the park. A profile of knots from the inner edge, its far
+## knots scaled to the summit line so three named summits stand out of it;
+## five spurs run down toward the park with valleys between them; a seeded
+## noise roughens it; both arms lower to the coast by bearing weight and the
+## whole of it fades to nothing at the shoreline. On the east the plateau
+## hands over at its own level (`base`). The approach road cuts its own grade
+## through it. Both the mainland reserve and the gridded coast meshes sample
+## this, so their seam carries the same height.
+func _rebuild_range_rise(p: Vector2) -> float:
+	var v := p - Plan.RIM_RANGE_CENTRE
+	var theta := rad_to_deg(atan2(v.y, v.x))
+	var w := Plan.range_weight(theta)
+	var base := 0.0
+	if p.y > REBUILD_OUTER_HIGHLAND_FROM_Z and p.y < REBUILD_OUTER_HIGHLAND_TO_Z \
+			and p.x >= _rebuild_range_toe_x(p.y) - 0.01:
+		base = _rebuild_outer_highland_y(_rebuild_plateau_end_x(p.y), p.y) \
+			- REBUILD_WORLD_RESERVE_Y
+	if w <= 0.0:
+		return _rebuild_road_cut(p, base)
+	var d := v.length() - Plan.range_inner(theta)
+	if d <= Plan.RIM_RANGE_TOE_D:
+		return _rebuild_road_cut(p, base)
+	var y := Plan.range_profile_y(d)
+	# The summit line: the far profile scaled to the named summits' heights.
+	var k: float = Plan.range_summit_line(theta) / Plan.RIM_RANGE_SUMMIT_REF
+	var far := clampf((d - 400.0) / 450.0, 0.0, 1.0)
+	far = far * far * (3.0 - 2.0 * far)
+	y *= lerpf(1.0, k, far)
+	# Spurs and valleys, scaled in past the foothill and eased off at the top
+	# so the summits stay peaks rather than the ends of ridges.
+	var ridge := Plan.range_spur(theta)
+	var relief_in := clampf((d + 45.0) / 300.0, 0.0, 1.0)
+	relief_in = relief_in * relief_in * (3.0 - 2.0 * relief_in)
+	var relief_out := clampf((d - 800.0) / 300.0, 0.0, 1.0)
+	var relief: float = Plan.RIM_RANGE_SPUR_RELIEF * relief_in * (1.0 - 0.4 * relief_out)
+	y *= 1.0 + relief * (2.0 * ridge - 1.0)
+	# Roughness: two octaves of seeded noise, relative to local height.
+	_rebuild_range_noise_setup()
+	var rough := clampf(d / 150.0, 0.0, 1.0)
+	var grain := 0.0
+	for i in _range_noise.size():
+		grain += float(Plan.RIM_RANGE_NOISE[i][1]) \
+			* (_range_noise[i] as FastNoiseLite).get_noise_2d(p.x, p.y)
+	y *= 1.0 + grain * rough
+	var shore := clampf((p.x - Plan.shore_x(p.y)) / 150.0, 0.0, 1.0)
+	shore = shore * shore * (3.0 - 2.0 * shore)
+	return _rebuild_road_cut(p, y * w * shore + base)
+
+
+## The approach road holds its own grade: within half a road width the ground
+## is the road's line, and out to the batter it blends back to the landform.
+func _rebuild_road_cut(p: Vector2, y: float) -> float:
+	var road: Array[Vector3] = Plan.approach_road_points()
+	var best := INF
+	var road_y := 0.0
+	for i in road.size() - 1:
+		var a := Vector2(road[i].x, road[i].z)
+		var b := Vector2(road[i + 1].x, road[i + 1].z)
+		var q := Geometry2D.get_closest_point_to_segment(p, a, b)
+		var dist := p.distance_to(q)
+		if dist < best:
+			best = dist
+			var t := a.distance_to(q) / maxf(a.distance_to(b), 0.001)
+			road_y = lerpf(road[i].y, road[i + 1].y, t)
+	var half: float = Plan.APPROACH_ROAD_W * 0.5 + 1.0
+	if best <= half:
+		return road_y - 0.06
+	var batter := clampf((best - half) / 18.0, 0.0, 1.0)
+	batter = batter * batter * (3.0 - 2.0 * batter)
+	return lerpf(road_y - 0.06, y, batter)
+
+
+## The coast's own features, on the coast meshes only: the north headland's
+## promontory along the -135 degree spur, cliffed coast with two coves north
+## of it, and the bluff with one cove south of the parking.
+func _rebuild_coast_feature(p: Vector2) -> float:
+	var y := 0.0
+	var ab: Vector2 = Plan.PROMONTORY_B - Plan.PROMONTORY_A
+	var length := ab.length()
+	var axis := ab / maxf(length, 0.001)
+	var rel := p - Plan.PROMONTORY_A
+	var along := rel.dot(axis)
+	var across := absf(rel.x * axis.y - rel.y * axis.x)
+	if along > -10.0 and along < length + 30.0 and across < Plan.PROMONTORY_HALF_W:
+		var climb := clampf((along - 20.0) / (length - 60.0), 0.0, 1.0)
+		climb = climb * climb * (3.0 - 2.0 * climb)
+		var side := cos(across / Plan.PROMONTORY_HALF_W * PI * 0.5)
+		var root := clampf((along + 10.0) / 20.0, 0.0, 1.0)
+		var h: float = lerpf(Plan.PROMONTORY_ROOT_Y, Plan.PROMONTORY_HEIGHT, climb)
+		y = maxf(y, h * root * side * side)
+	# The cliff bands live on the coast meshes only; the reserve east of the
+	# shore samples this function for the promontory's root and nothing else.
+	if p.x >= Plan.REBUILD_WORLD_LAND_FROM_X:
+		return y
+	var inland := p.x - Plan.shore_x(p.y)
+	if p.y > Plan.NORTH_CLIFF_Z.x and p.y < Plan.NORTH_CLIFF_Z.y:
+		var rise := clampf(inland / 25.0, 0.0, 1.0)
+		var cove := 1.0
+		for cz in Plan.NORTH_COVES:
+			cove = minf(cove, clampf((absf(p.y - float(cz)) - 10.0) / Plan.COVE_HALF_W, 0.0, 1.0))
+		var ends := clampf((p.y - Plan.NORTH_CLIFF_Z.x) / 30.0, 0.0, 1.0) \
+			* clampf((Plan.NORTH_CLIFF_Z.y - p.y) / 30.0, 0.0, 1.0)
+		y = maxf(y, Plan.NORTH_CLIFF_HEIGHT * rise * cove * ends)
+	if p.y > Plan.SOUTH_BLUFF_Z.x and p.y < Plan.SOUTH_BLUFF_Z.y and p.x < Plan.SOUTH_BLUFF_TO_X:
+		var rise := clampf((Plan.SOUTH_BLUFF_TO_X - p.x) / 30.0, 0.0, 1.0)
+		var cove := clampf((absf(p.y - Plan.SOUTH_COVE_Z) - 10.0) / Plan.COVE_HALF_W, 0.0, 1.0)
+		var ends := clampf((p.y - Plan.SOUTH_BLUFF_Z.x) / 15.0, 0.0, 1.0) \
+			* clampf((Plan.SOUTH_BLUFF_Z.y - p.y) / 15.0, 0.0, 1.0)
+		y = maxf(y, Plan.SOUTH_BLUFF_HEIGHT * rise * cove * ends)
+	return y
+
+
+func _rebuild_ground_colour(p: Vector2, y: float) -> Color:
+	var meadow := Color(0.36, 0.47, 0.31)
+	var forest := Color(0.19, 0.33, 0.18)
+	var rock := Color(0.52, 0.50, 0.45)
+	var rise := _rebuild_range_rise(p)
+	# A wide transition, or the band's edge stair-steps along the grid cells.
+	var f := clampf((rise - 5.0) / (Plan.RIM_RANGE_FOREST_RISE * 2.0), 0.0, 1.0)
+	f = f * f * (3.0 - 2.0 * f)
+	var r := clampf((y - Plan.RIM_RANGE_TREELINE_Y) / 60.0, 0.0, 1.0)
+	r = r * r * (3.0 - 2.0 * r)
+	var c := meadow.lerp(forest, f).lerp(rock, r)
+	var grain := 1.0 + sin(p.x * 0.37) * sin(p.y * 0.41) * 0.05
+	return Color(c.r * grain, c.g * grain, c.b * grain)
+
+
+## One triangle with vertex colours, oriented like `_earth_oriented_tri`.
+func _earth_coloured_tri(st: SurfaceTool, a: Vector3, uv_a: Vector2, col_a: Color,
+		b: Vector3, uv_b: Vector2, col_b: Color, c: Vector3, uv_c: Vector2,
+		col_c: Color, hint: Vector3) -> void:
+	var visible_normal := (c - a).cross(b - a)
+	if visible_normal.length_squared() < 0.00000001:
+		return
+	var order := [[a, uv_a, col_a], [b, uv_b, col_b], [c, uv_c, col_c]]
+	if visible_normal.dot(hint) < 0.0:
+		order = [[a, uv_a, col_a], [c, uv_c, col_c], [b, uv_b, col_b]]
+	for v in order:
+		st.set_color(v[2])
+		st.set_uv(v[1])
+		st.add_vertex(v[0])
 
 
 func _rebuild_world_reserve_y(p: Vector2) -> float:
@@ -17118,7 +16952,8 @@ func _rebuild_world_reserve_y(p: Vector2) -> float:
 	var weight := maxf(north, maxf(south, east))
 	var rise := north * 4.0 + south * 3.0 + east * 5.0
 	var roll := (sin(p.x * 0.031) + sin(p.y * 0.027) * 0.7) * 0.32 * weight
-	return REBUILD_WORLD_RESERVE_Y + rise + roll
+	return REBUILD_WORLD_RESERVE_Y + rise + roll + _rebuild_range_rise(p) \
+		+ _rebuild_coast_feature(p)
 
 
 ## Keep the working Boardwalk shoreline at x=-108 through its central 140m,
@@ -17126,60 +16961,114 @@ func _rebuild_world_reserve_y(p: Vector2) -> float:
 ## These are landscape reserve, not new attraction parcels; their eight-
 ## centimetre underlap leaves the existing shore as the exact local datum.
 func _rebuild_coastal_reserve_shapes() -> Array:
-	return [
-		{
-			"id": "north",
-			"points": [
-				Vector2(Plan.SHORE_FROM_X, -70.0),
-				Vector2(Plan.SHORE_EDGE, -70.0),
-				Vector2(-132.0, -130.0),
-				Vector2(-145.0, -170.0),
-				Vector2(-170.0, -260.0),
-				Vector2(-220.0, -400.0),
-				Vector2(-340.0, -800.0),
-				Vector2(-500.0, -1400.0),
-				Vector2(-700.0, Plan.REBUILD_WORLD_COAST_FROM_Z),
-				Vector2(Plan.SHORE_FROM_X, Plan.REBUILD_WORLD_COAST_FROM_Z),
-				Vector2(Plan.SHORE_FROM_X, -260.0),
-				Vector2(Plan.SHORE_FROM_X, -170.0),
-			],
-		},
-		{
-			"id": "south",
-			"points": [
-				Vector2(Plan.SHORE_FROM_X, 70.0),
-				Vector2(Plan.SHORE_FROM_X, 170.0),
-				Vector2(Plan.SHORE_FROM_X, 260.0),
-				Vector2(Plan.SHORE_FROM_X, Plan.REBUILD_WORLD_COAST_TO_Z),
-				Vector2(-700.0, Plan.REBUILD_WORLD_COAST_TO_Z),
-				Vector2(-500.0, 1400.0),
-				Vector2(-340.0, 800.0),
-				Vector2(-220.0, 400.0),
-				Vector2(-170.0, 260.0),
-				Vector2(-145.0, 170.0),
-				Vector2(-132.0, 130.0),
-				Vector2(Plan.SHORE_EDGE, 70.0),
-			],
-		},
-	]
+	# Both polygons are the plan's coast outlines closed back along the
+	# mainland reserve's west edge, so the coast is described once.
+	var north: Array = []
+	north.append(Vector2(Plan.SHORE_FROM_X, -70.0))
+	for q in Plan.COAST_NORTH_OUTLINE:
+		north.append(q)
+	north.append(Vector2(Plan.SHORE_FROM_X, Plan.REBUILD_WORLD_COAST_FROM_Z))
+	var south: Array = []
+	south.append(Vector2(Plan.SHORE_FROM_X, 70.0))
+	south.append(Vector2(Plan.SHORE_FROM_X, Plan.REBUILD_WORLD_COAST_TO_Z))
+	var south_outline: Array = Plan.COAST_SOUTH_OUTLINE.duplicate()
+	south_outline.reverse()
+	for q in south_outline:
+		south.append(q)
+	return [{"id": "north", "points": north}, {"id": "south", "points": south}]
 
 
 func _rebuild_coastal_polygon_mesh(record: Dictionary) -> ArrayMesh:
+	# Gridded since the crescent range: a polygon triangulated at its outline
+	# is a fan of triangles hundreds of metres long, and a 300m rise across it
+	# comes out as flat facets that tear away from the mainland grid along
+	# x -56. Each lattice cell is clipped to the polygon, so the outline is
+	# exact and the interior samples the height function as densely as the
+	# reserve does — on the same lattice, so the seam matches vertex for vertex.
 	var polygon := PackedVector2Array(record["points"])
-	var triangles := Geometry2D.triangulate_polygon(polygon)
-	assert(not triangles.is_empty(), "world coast %s did not triangulate" % record["id"])
+	var lo := polygon[0]
+	var hi := polygon[0]
+	for q in polygon:
+		lo = Vector2(minf(lo.x, q.x), minf(lo.y, q.y))
+		hi = Vector2(maxf(hi.x, q.x), maxf(hi.y, q.y))
+	# The same graded lattice as the mainland reserve: 8m within the fine reach,
+	# 24m beyond, both anchored on the reserve's west edge so the seam matches
+	# vertex for vertex. A 22m-wide promontory on a 24m grid was a block.
+	var xs := PackedFloat32Array()
+	var x0: float = Plan.REBUILD_WORLD_LAND_FROM_X
+	while x0 > lo.x:
+		xs.append(x0)
+		x0 -= REBUILD_WORLD_FINE_STEP if absf(x0) <= REBUILD_WORLD_FINE_REACH \
+			else REBUILD_WORLD_TERRAIN_STEP
+	xs.append(x0)
+	xs.reverse()
+	var zs := PackedFloat32Array()
+	var zc := 0.0
+	while zc > lo.y:
+		zc -= REBUILD_WORLD_FINE_STEP if absf(zc) <= REBUILD_WORLD_FINE_REACH \
+			else REBUILD_WORLD_TERRAIN_STEP
+	while zc < hi.y:
+		zs.append(zc)
+		zc += REBUILD_WORLD_FINE_STEP if absf(zc) <= REBUILD_WORLD_FINE_REACH \
+			else REBUILD_WORLD_TERRAIN_STEP
+	zs.append(zc)
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_smooth_group(0)
-	for i in range(0, triangles.size(), 3):
-		var a2 := polygon[triangles[i]]
-		var b2 := polygon[triangles[i + 1]]
-		var c2 := polygon[triangles[i + 2]]
-		_earth_oriented_tri(st,
-			Vector3(a2.x, _rebuild_coastal_reserve_y(a2), a2.y), a2 * 0.28,
-			Vector3(b2.x, _rebuild_coastal_reserve_y(b2), b2.y), b2 * 0.28,
-			Vector3(c2.x, _rebuild_coastal_reserve_y(c2), c2.y), c2 * 0.28,
-			Vector3.UP)
+	for xi in xs.size() - 1:
+		var x := xs[xi]
+		var xn := xs[xi + 1]
+		for zi in zs.size() - 1:
+			var z := zs[zi]
+			var zn := zs[zi + 1]
+			var cell := PackedVector2Array([Vector2(x, z), Vector2(xn, z),
+				Vector2(xn, zn), Vector2(x, zn)])
+			for piece in Geometry2D.intersect_polygons(cell, polygon):
+				var tris := Geometry2D.triangulate_polygon(piece)
+				for i in range(0, tris.size(), 3):
+					var a2: Vector2 = piece[tris[i]]
+					var b2: Vector2 = piece[tris[i + 1]]
+					var c2: Vector2 = piece[tris[i + 2]]
+					var a3 := Vector3(a2.x, _rebuild_coastal_reserve_y(a2), a2.y)
+					var b3 := Vector3(b2.x, _rebuild_coastal_reserve_y(b2), b2.y)
+					var c3 := Vector3(c2.x, _rebuild_coastal_reserve_y(c2), c2.y)
+					_earth_coloured_tri(st,
+						a3, a2 * 0.28, _rebuild_ground_colour(a2, a3.y),
+						b3, b2 * 0.28, _rebuild_ground_colour(b2, b3.y),
+						c3, c2 * 0.28, _rebuild_ground_colour(c2, c3.y),
+						Vector3.UP)
+	# A sea-cliff skirt: where the coast mesh's outline stands above the water,
+	# a wall from that edge down below the water line, or the promontory and
+	# the bluffs would show the underside of the land from the sea.
+	var centroid := Vector2.ZERO
+	for q in polygon:
+		centroid += q
+	centroid /= float(polygon.size())
+	for i in polygon.size():
+		var a2: Vector2 = polygon[i]
+		var b2: Vector2 = polygon[(i + 1) % polygon.size()]
+		# Only the sea edge gets a skirt: the polygon's inland seam along the
+		# reserve's west edge carries the range's full height and would stand a
+		# wall across the lighthouse's view.
+		if absf(a2.x - Plan.REBUILD_WORLD_LAND_FROM_X) < 0.5 \
+				and absf(b2.x - Plan.REBUILD_WORLD_LAND_FROM_X) < 0.5:
+			continue
+		var ya := _rebuild_coastal_reserve_y(a2)
+		var yb := _rebuild_coastal_reserve_y(b2)
+		if maxf(ya, yb) < Plan.WATER_TOP + 1.0:
+			continue
+		var steps := maxi(1, ceili(a2.distance_to(b2) / 12.0))
+		for k in steps:
+			var p0 := a2.lerp(b2, float(k) / float(steps))
+			var p1 := a2.lerp(b2, float(k + 1) / float(steps))
+			var mid := (p0 + p1) * 0.5
+			var outward := (mid - centroid).normalized()
+			_earth_wall_quad(st,
+				Vector3(p0.x, Plan.WATER_TOP - 6.0, p0.y),
+				Vector3(p1.x, Plan.WATER_TOP - 6.0, p1.y),
+				Vector3(p0.x, _rebuild_coastal_reserve_y(p0), p0.y),
+				Vector3(p1.x, _rebuild_coastal_reserve_y(p1), p1.y),
+				Vector3(outward.x, 0.0, outward.y))
 	st.generate_normals()
 	st.generate_tangents()
 	return st.commit()
@@ -17191,7 +17080,8 @@ func _rebuild_coastal_reserve_y(p: Vector2) -> float:
 		(REBUILD_COAST_TRANSITION_TO_Z - REBUILD_COAST_TRANSITION_FROM_Z),
 		0.0, 1.0)
 	t = t * t * (3.0 - 2.0 * t)
-	return lerpf(REBUILD_COAST_LOW_Y, REBUILD_COAST_HIGH_Y, t)
+	return lerpf(REBUILD_COAST_LOW_Y, REBUILD_COAST_HIGH_Y, t) \
+		+ _rebuild_range_rise(p) + _rebuild_coast_feature(p)
 
 
 ## A dense Delaunay field lets us keep the atlas' irregular lowland outline and
@@ -17441,47 +17331,48 @@ func _rebuild_outer_highland_y(x: float, z: float) -> float:
 
 	var outer := 12.0
 	if z < -100.0:
-		outer = lerpf(12.0, 8.0, clampf((-100.0 - z) / 52.0, 0.0, 1.0))
+		outer = lerpf(12.0, REBUILD_WORLD_RESERVE_Y,
+			clampf((-100.0 - z) / 52.0, 0.0, 1.0))
 	elif z > 170.0:
 		var tail := clampf((z - 170.0) / 28.0, 0.0, 1.0)
 		tail = tail * tail * (3.0 - 2.0 * tail)
 		outer = lerpf(12.0, 3.0, tail)
 
 	var across := clampf((x - REBUILD_OUTER_HIGHLAND_FROM_X) /
-		(REBUILD_OUTER_HIGHLAND_TO_X - REBUILD_OUTER_HIGHLAND_FROM_X), 0.0, 1.0)
+		(_rebuild_plateau_end_x(z) - REBUILD_OUTER_HIGHLAND_FROM_X), 0.0, 1.0)
 	across = across * across * (3.0 - 2.0 * across)
 	var roll := sin(z * 0.071) * 0.34 * sin(PI * across)
 	return lerpf(inner, outer, across) + roll
 
 
 func _rebuild_outer_highland_mesh() -> ArrayMesh:
-	var xs := PackedFloat32Array()
+	# A warped grid: every row runs from the plateau's west edge to the range's
+	# toe line at that z, with the same column count, so the topology is regular
+	# while the east edge follows the crescent.
 	var zs := PackedFloat32Array()
-	var x := REBUILD_OUTER_HIGHLAND_FROM_X
-	while x < REBUILD_OUTER_HIGHLAND_TO_X - 0.01:
-		xs.append(x)
-		x += REBUILD_OUTER_HIGHLAND_STEP
-	xs.append(REBUILD_OUTER_HIGHLAND_TO_X)
 	var z := REBUILD_OUTER_HIGHLAND_FROM_Z
 	while z < REBUILD_OUTER_HIGHLAND_TO_Z - 0.01:
 		zs.append(z)
 		z += REBUILD_OUTER_HIGHLAND_STEP
 	zs.append(REBUILD_OUTER_HIGHLAND_TO_Z)
+	var row_x := func(zz: float, i: int) -> float:
+		return lerpf(REBUILD_OUTER_HIGHLAND_FROM_X, _rebuild_plateau_end_x(zz),
+			float(i) / float(REBUILD_OUTER_HIGHLAND_COLS - 1))
 
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_smooth_group(0)
 	for zi in zs.size() - 1:
-		for xi in xs.size() - 1:
-			var p00 := Vector2(xs[xi], zs[zi])
-			var p10 := Vector2(xs[xi + 1], zs[zi])
-			var p11 := Vector2(xs[xi + 1], zs[zi + 1])
-			var p01 := Vector2(xs[xi], zs[zi + 1])
+		for xi in REBUILD_OUTER_HIGHLAND_COLS - 1:
+			var p00 := Vector2(row_x.call(zs[zi], xi), zs[zi])
+			var p10 := Vector2(row_x.call(zs[zi], xi + 1), zs[zi])
+			var p11 := Vector2(row_x.call(zs[zi + 1], xi + 1), zs[zi + 1])
+			var p01 := Vector2(row_x.call(zs[zi + 1], xi), zs[zi + 1])
 			# NT-2 is immutable. Reject a complete cell when any part of it enters
 			# the envelope; the established east mesh remains the sole ground there.
 			var probes := [p00, p10, p11, p01, (p00 + p11) * 0.5]
-			if probes.any(func(p: Vector2) -> bool:
-				return _rebuild_in_protected(p, 0.10)):
+			if probes.any(func(q: Vector2) -> bool:
+				return _rebuild_in_protected(q, 0.10)):
 				continue
 			var a := Vector3(p00.x, _rebuild_outer_highland_y(p00.x, p00.y), p00.y)
 			var b := Vector3(p10.x, _rebuild_outer_highland_y(p10.x, p10.y), p10.y)
@@ -18891,7 +18782,10 @@ func _rebuild_site(source: Vector2, zone: StringName) -> Vector3:
 	var y := 0.0
 	match zone:
 		&"boardwalk": y = Plan.SHORE_TOP
-		&"headland": y = REBUILD_HEADLAND_Y
+		&"headland":
+			var ground := _rebuild_coastal_reserve_y(p) if p.x < Plan.REBUILD_WORLD_LAND_FROM_X \
+				else REBUILD_WORLD_RESERVE_Y + _rebuild_coast_feature(p)
+			y = maxf(REBUILD_HEADLAND_Y, ground + 0.05)
 		&"family": y = _rebuild_family_floor(p)
 		&"highland", &"north": y = _rebuild_highland_floor(p)
 		_: y = 0.0
@@ -19662,6 +19556,88 @@ func _rebuild_water_arc(nm: String, a: Vector3, b: Vector3,
 # ---------------------------------------------------------------------------
 # Park rebuild: package 05 service, creek and planting
 # ---------------------------------------------------------------------------
+
+## The parking clause, built: the approach road on its own grade, the front
+## road behind both fields, four gated entries, the drop-off and the walk's
+## extension to it, the turning circle, hedges, and two planted berms on the
+## park side. Palms and canopy trees wait on tree instancing being measured.
+func _rebuild_approach() -> void:
+	var road: Array[Vector3] = Plan.approach_road_points()
+	_rebuild_path("approach_road", road, Plan.APPROACH_ROAD_W, false, &"", true)
+	var fz: float = Plan.FRONT_ROAD_Z
+	_rebuild_path("front_road", [Vector3(Plan.FRONT_ROAD_HALF_X, 0.0, fz),
+		Vector3(-Plan.FRONT_ROAD_HALF_X, 0.0, fz)], Plan.FRONT_ROAD_W, false, &"", true)
+	_cyl("turning_circle", Vector3(Plan.TURNING_CIRCLE.x, 0.0, Plan.TURNING_CIRCLE.y),
+		Vector3(0.0, 0.015, 0.0), Plan.TURNING_CIRCLE.z, 0.03, "asphalt", 0.0, 32, false)
+	for x in Plan.LOT_ENTRY_XS:
+		_rebuild_path("lot_entry_%d" % int(x), [Vector3(x, 0.0, fz),
+			Vector3(x, 0.0, Plan.PARKING_TO_Z)], 7.0, false, &"", true)
+	var bay: Rect2 = Plan.DROP_OFF
+	_rebuild_path("drop_off_bay", [Vector3(bay.position.x, 0.0, bay.get_center().y),
+		Vector3(bay.end.x, 0.0, bay.get_center().y)], bay.size.y, false, &"", true)
+	_rebuild_path("arrival_walk_extension", [Vector3(0.0, 0.0, Plan.ARRIVAL_AXIS_TO_Z),
+		Vector3(0.0, 0.0, Plan.ARRIVAL_WALK_EXTEND_TO_Z)], 14.0, false, &"", true)
+	# Hedges between the fields and the front road, broken at each entry.
+	for side_v in [-1.0, 1.0]:
+		var side: float = side_v
+		var x0: float = side * Plan.BERM_X.x
+		var x1: float = side * Plan.BERM_X.y
+		var lo := minf(x0, x1)
+		var hi := maxf(x0, x1)
+		var cuts: Array = []
+		for ex in Plan.LOT_ENTRY_XS:
+			if float(ex) > lo and float(ex) < hi:
+				cuts.append(float(ex))
+		cuts.sort()
+		var edges: Array = [lo]
+		for c in cuts:
+			edges.append(c - 4.5)
+			edges.append(c + 4.5)
+		edges.append(hi)
+		for i in range(0, edges.size(), 2):
+			var a: float = edges[i]
+			var b: float = edges[i + 1]
+			if b - a < 1.0:
+				continue
+			_box("hedge_%s_%d" % ["w" if side < 0.0 else "e", i / 2],
+				Vector3((a + b) * 0.5, 0.0, Plan.HEDGE_Z), Vector3(0.0, 0.6, 0.0),
+				Vector3(b - a, 1.2, 1.5), "planting", 0.0, false)
+		_rebuild_berm("berm_%s" % ["w" if side < 0.0 else "e"], lo, hi)
+
+
+## A planted berm: a cosine ridge, BERM_HEIGHT high on the BERM_Z base, run
+## between two x, with its own trimesh collision. Its ends taper over 6m.
+func _rebuild_berm(nm: String, x0: float, x1: float) -> void:
+	var z0: float = Plan.BERM_Z.x
+	var z1: float = Plan.BERM_Z.y
+	var cols := maxi(4, ceili((x1 - x0) / 3.0))
+	var rows := 8
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(0)
+	var h := func(x: float, z: float) -> float:
+		var u := (z - z0) / (z1 - z0)
+		var across := sin(u * PI)
+		var taper := clampf((x - x0) / 6.0, 0.0, 1.0) * clampf((x1 - x) / 6.0, 0.0, 1.0)
+		return REBUILD_LOWLAND_Y + Plan.BERM_HEIGHT * across * across * taper
+	for r in rows:
+		for c in cols:
+			var xa := lerpf(x0, x1, float(c) / float(cols))
+			var xb := lerpf(x0, x1, float(c + 1) / float(cols))
+			var za := lerpf(z0, z1, float(r) / float(rows))
+			var zb := lerpf(z0, z1, float(r + 1) / float(rows))
+			var a := Vector3(xa, h.call(xa, za), za)
+			var b := Vector3(xb, h.call(xb, za), za)
+			var c3 := Vector3(xb, h.call(xb, zb), zb)
+			var d3 := Vector3(xa, h.call(xa, zb), zb)
+			_earth_oriented_tri(st, a, Vector2(xa, za) * 0.28, b, Vector2(xb, za) * 0.28,
+				c3, Vector2(xb, zb) * 0.28, Vector3.UP)
+			_earth_oriented_tri(st, a, Vector2(xa, za) * 0.28, c3, Vector2(xb, zb) * 0.28,
+				d3, Vector2(xa, zb) * 0.28, Vector3.UP)
+	st.generate_normals()
+	st.generate_tangents()
+	_rebuild_mesh_body(nm, st.commit(), "planting", true)
+
 
 func _rebuild_landscape() -> void:
 	_rebuild_service_network()

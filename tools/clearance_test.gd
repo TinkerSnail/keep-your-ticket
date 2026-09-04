@@ -174,26 +174,23 @@ func _footprints() -> Array:
 	var hill := Rect2(Plan.HILL_FACE_X, axis - Plan.EAST_GROUND_HALF_Z,
 		Plan.TERRACE_TWO_TO_X - Plan.HILL_FACE_X,
 		Plan.EAST_GROUND_HALF_Z * 2.0)
-	var rim: Array = Plan.rim_samples(5.0)
+	var toe: Array[Vector2] = Plan.range_toe_line(3.0)
 	for key in Plan.SECTION_GROUND:
 		var g: Dictionary = Plan.SECTION_GROUND[key]
 		var at: Vector2 = g["at"]
 		var size: Vector2 = g["size"]
 		var r := Rect2(at - size * 0.5, size).grow(-0.5)
 		var named := false
-		var floor_y: float = g["floor_y"]
-		for sm in rim:
-			# Below the section's own floor it is buried, not in the way.
-			if float(sm["foot"]) < floor_y - 0.5:
+		# Since 2026-09-03 the landform is the crescent range, and its toe line
+		# is where it starts to rise out of the ground: no footprint may hold a
+		# point of it.
+		for pt in toe:
+			# West of the working shore is coastal landscape, not section floor:
+			# the Boardwalk's footprint takes in the bay and its headlands.
+			if pt.x < Plan.SHORE_EDGE:
 				continue
-			var crest: Vector2 = sm["at"]
-			var foot: Vector2 = crest + (sm["inward"] as Vector2) * Plan.RIM_RUN
-			if r.has_point(crest):
-				out.append([key, "the rim's crest", crest])
-				named = true
-				break
-			if r.has_point(foot):
-				out.append([key, "the rim's foot", foot])
+			if r.has_point(pt):
+				out.append([key, "the range's toe", pt])
 				named = true
 				break
 		if not named and r.intersects(hill):

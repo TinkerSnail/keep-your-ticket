@@ -47,6 +47,7 @@
     </label>
   </div>
 
+  <div id="plan-conflicts" class="text-small plan-conflicts" role="alert" hidden></div>
   <p class="text-small text-muted"><b>World datum:</b> The mapped 434 × 450m outline is the developed park envelope, not the island or render boundary. Planted mainland continues more than 2km north, south, and east; ocean continues nearly 4km west. This map stays close so its route widths and parcels remain legible.</p>
 
   <div class="build-sequence text-small" aria-label="Binding construction order">
@@ -103,7 +104,7 @@
       </figcaption>
     </figure>
     <figure class="parcel-wide" data-detail="lighthouse">
-      <h3>P1 · Headland lighthouse experience</h3>
+      <h3>P1 · Headland lighthouse experience — on the point since 2026-09-04</h3>
       <svg id="p1-parcel-map" class="parcel-map" role="img" aria-labelledby="p1-parcel-title p1-parcel-description"></svg>
       <figcaption class="parcel-notes text-small">
         <span><b>Day</b> Timed tower groups begin in the keeper’s exhibit; the camera obscura supplies the accessible ground-level experience.</span>
@@ -592,6 +593,13 @@
 </div>
 
 <style>
+  #park-rebuild-overlay .plan-conflicts {
+    color: var(--red);
+    border: 1px solid var(--red);
+    border-radius: 6px;
+    padding: 8px 12px;
+  }
+  #park-rebuild-overlay .plan-conflicts ul { margin: 4px 0 0; padding-left: 18px; }
   #park-rebuild-overlay {
     display: grid;
     gap: 12px;
@@ -2119,11 +2127,10 @@
     {id:'T3',label:[-20,-130],shapes:[[[-45,-109],[-50,-126],[-43,-145],[-25,-156],[-3,-154],[13,-141],[15,-121],[4,-105],[-20,-100]]]},
     {id:'T4',label:[61,30],shapes:[[[33,-132],[30,-116],[37,-96],[45,-80],[52,-62],[55,-42],[51,-22],[52,-5],[55,15],[58,35],[60,55],[64,72],[58,91],[58,110],[70,128],[105,136],[128,123],[138,100],[141,60],[142,15],[140,-40],[136,-82],[122,-112],[92,-130],[58,-139]]]},
     {id:'T5',label:[101,86],shapes:[[[58,-137],[56,-122],[63,-106],[70,-91],[78,-73],[77,-54],[70,-35],[68,-16],[72,3],[75,25],[75,48],[84,60],[88,78],[80,99],[74,116],[90,130],[115,130],[132,112],[137,78],[138,35],[136,-15],[132,-60],[122,-97],[103,-120],[80,-133]]]},
-    {id:'T6',label:[111,-72],shapes:[[[80,-132],[77,-117],[72,-104],[70,-92],[78,-79],[86,-66],[94,-56],[99,-41],[106,-25],[114,-8],[120,12],[128,31],[138,40],[141,-10],[139,-54],[132,-88],[119,-112],[101,-126]]]},
-    {id:'T7',label:[144,-126],shapes:[
-      [[140,-110],[153,-99],[162,-65],[164,155],[145,160],[141,120],[145,70],[144,15],[142,-55],[134,-94]],
-      [[134,-94],[118,-119],[90,-139],[55,-150],[10,-156],[-38,-158],[-84,-151],[-124,-141],[-118,-124],[-80,-137],[-35,-142],[8,-140],[48,-136],[82,-126],[110,-111],[126,-88]]
-    ]}
+    {id:'T6',label:[111,-72],shapes:[[[80,-132],[77,-117],[72,-104],[70,-92],[78,-79],[86,-66],[94,-56],[99,-41],[106,-25],[114,-8],[120,12],[128,31],[138,40],[141,-10],[139,-54],[132,-88],[119,-112],[101,-126]]]}
+    // T7, the perimeter rim, left this map on 2026-09-03. It is planned in world
+    // coordinates as package 02A on the footprint map, where its crest at x 270 and
+    // z -275 fits; this source-coordinate domain ends at x 164 and z -160.
   ];
 
   const walls = [
@@ -2203,10 +2210,15 @@
   };
 
   const programmedAttractions = [
-    {id:'P1',name:'Headland lighthouse experience',type:'circle',at:[-16,-131],r:5,label:[-5,-133],
-      keeper:{at:[-22.5,-124],size:[8,6]},forecourt:{at:[-16,-118],radii:[7,4]},
-      access:[[-16,-112],[-16,-117],[-18,-121],[-18.5,-123]],
-      access2:[[-11,-131],[-7,-128],[-3,-121],[1,-115]],photo:[-7,-107]},
+    // P1 stands on the point since 2026-09-04: source (-139.3,-170.2), which is
+    // world (-153,-247) on the promontory, beyond this map's domain. The
+    // keeper's exhibit and forecourt moved with it; the promontory walk leaves
+    // the headland loop's west vertex. Drawn in world coordinates on the
+    // footprint map.
+    {id:'P1',name:'Headland lighthouse experience',type:'circle',at:[-139.3,-170.2],r:5,label:[-128,-172],
+      keeper:{at:[-127.3,-166],size:[8,6]},forecourt:{at:[-133,-164],radii:[7,4]},
+      access:[[-37,-125],[-70,-153.2],[-100,-159.3],[-124,-165.3],[-139.3,-170.2]],
+      access2:[[-133,-164],[-116,-158],[-90,-150],[-55,-137],[-31,-138]],photo:[-16,-144]},
     {id:'P2',name:'Boardwalk walk-through funhouse',type:'rect',at:[-77,32],label:[-68,34],size:[12,14],
       access:[[-96,27],[-90,27],[-87,25],[-84,27],[-83,27]],
       access2:[[-83,37],[-88,37],[-91,40],[-96,40]],
@@ -2241,7 +2253,7 @@
 
   const establishedInteriors = [
     {id:'E1',name:'PHOTO HUT',district:'Plaza',type:'rect',at:[-25,25],size:[8,7],label:[-35,33],anchor:'end',routes:['A','C']},
-    {id:'E2',name:'LIGHTHOUSE EXHIBIT',district:'Headland',type:'rect',at:[-22.5,-124],size:[8,6],label:[-29,-133],anchor:'middle',routes:['A']},
+    {id:'E2',name:'LIGHTHOUSE EXHIBIT',district:'Headland',type:'rect',at:[-127.3,-166],size:[8,6],label:[-127,-158],anchor:'middle',routes:['A']},
     {id:'E3',name:'FUNHOUSE',district:'Boardwalk',type:'rect',at:[-77,32],size:[12,14],label:[-68,26],anchor:'start',routes:['B']},
     {id:'E4',name:'BIG TOP',district:'Fairground',type:'ellipse',at:[-32,92],radii:[9,6],label:[-32,80],anchor:'middle',routes:['C']},
     {id:'E5',name:'FAMILY SUPPORT',district:'Family Commons',type:'rect',at:[27,107],size:[10,4],label:[39,104],anchor:'start',routes:['D']},
@@ -2360,7 +2372,29 @@
       if (!covered.has(route)) throw new Error(`Public loop ${route} has no recurring interior`);
     });
   };
-  validateInteriorPlan();
+  // Plan validation reports into a visible panel instead of throwing. A thrown
+  // validation killed the whole map: `F1 overlaps E1` was correct, and the atlas
+  // rendered nothing from the day the Fairground midway went in (2026-09-01)
+  // until 2026-09-03, so the finding it carried was never seen.
+  const planConflicts = [];
+  function planCheck(fn) {
+    try { fn(); } catch (error) { planConflicts.push(error.message); }
+  }
+  function renderPlanConflicts() {
+    const panel = root.querySelector('#plan-conflicts');
+    if (!panel) return;
+    panel.innerHTML = '';
+    if (!planConflicts.length) { panel.hidden = true; return; }
+    panel.hidden = false;
+    const heading = document.createElement('b');
+    heading.textContent = `Plan conflicts (${planConflicts.length}) — resolve in the atlas before executing the affected package:`;
+    panel.appendChild(heading);
+    const list = document.createElement('ul');
+    planConflicts.forEach(message => { const item = document.createElement('li'); item.textContent = message; list.appendChild(item); });
+    panel.appendChild(list);
+  }
+
+  planCheck(validateInteriorPlan);
 
   const serviceSpines = [
     {id:'S1',name:'West / Headland spine',label:[-69,-77],
@@ -2649,7 +2683,7 @@
       });
     });
   };
-  validateMidwayPlan();
+  planCheck(validateMidwayPlan);
 
   const validateKiddielandPlan = () => {
     const familyRideIds=['R5','R6','R7','R14'];
@@ -2777,7 +2811,7 @@
       }
     }));
   };
-  validateKiddielandPlan();
+  planCheck(validateKiddielandPlan);
 
   const missionPlan = {
     home:{id:'H0',at:[-25,25],label:[-35,33],name:'PHOTO HUT'},
@@ -2907,7 +2941,7 @@
       }
     });
   };
-  validateDistrictStoryPlan();
+  planCheck(validateDistrictStoryPlan);
 
   const seasonalSites = {
     B:{district:'BOARDWALK',at:[-96,-29],decorAt:[-83,-29],label:[-116,-37],socket:'frontage + ride-photo rail'},
@@ -3010,7 +3044,7 @@
     });
     if (ids.size !== 28) throw new Error('Seasonal plan must contain twenty-eight unique district briefs');
   };
-  validateSeasonalPlan();
+  planCheck(validateSeasonalPlan);
 
   const featureSites = {
     A:{name:'PARKWIDE',at:[0,0],label:[-18,15]},
@@ -3117,12 +3151,12 @@
       if (!coveredSites.has(site)) throw new Error(`Feature slate does not reach ${featureSites[site].name}`);
     });
   };
-  validateFeaturePlan();
+  planCheck(validateFeaturePlan);
 
   const packages = {
     all:{title:'All packages · one-way execution order',detail:'Red work is removed first; amber cores and NT-1 / NT-2 are the only inherited circulation carried into routes A–F. R13 occupies the expanded outer high shoulder beyond the Terraced Fountain; R14 completes Kiddieland’s outer edge without changing D, W4, or S3; KG1 adds seven flush jets and a three-frog jumping-water chain inside P4 with independent recirculation; R4 and P1–P5 are complete operating parcels; E1–E6 and I1–I6 distribute twelve recurring interiors across every loop; MW-F, MW-B, and MW-K add twelve one-building-deep midway units without narrowing B, C, or D; and the plan is backed by the resolved S1–S3 service system, D1–D6 drainage catchments, PL1–PL3 planting structure, the daylighted D2 Coastal Creek, six locked reveal checks at Q1–Q6, the H0 / M1–M7 / SW1–SW5 / N1–N5 mission spine, assignment families A1–A6 across campaign phases C1–C5, seven five-beat district mini-campaigns returning to the Photo Hut, four mutually exclusive seasonal mission and decor overlays, twelve original Feature Assignments synthesized from thirty-six mapped reference lenses, and the L1–L9 photograph lifecycle from paper brief to preserved print.'},
     strip:{title:'01 · Strip inherited circulation',detail:'Remove X1 plaza doglegs, X2 Kiddieland S-path and stubs, X3 Fairground spine and stubs, X4 Grove double-back and dead ends, X5 narrow Frontier approach, and all X6 guards / closures. Keep only the amber cores and purple monuments.'},
-    terrain:{title:'02 · Protect, grade, and retain',detail:'Fence NT-1 and NT-2 before excavation. Form T0–T7 and reserve the outer T6 / T7 shoulder for R13, then build W1 / W3 major scarps; W4–W6 stay short and planted, and W7 remains landform rather than a path wall.'},
+    terrain:{title:'02 · Protect, grade, and retain',detail:'Fence NT-1 and NT-2 before excavation. Form T0–T6 and reserve the outer T6 shoulder for R13, then build W1 / W3 major scarps; W4–W6 stay short and planted, and W7 remains landform rather than a path wall. The perimeter rim (former T7) is package 02A on the footprint map, in world coordinates: crest x 270 / z −275, 16 to 28m high, its derived toe clearing every route, transit reserve, parking field and parcel by 12m.'},
     trunks:{title:'03 · Lay primary trunks',detail:'Build A from gate through hub to the lighthouse loop, then B as one continuous waterfront spine with north, monument, and south returns. Do not begin district paving until both trunks close.'},
     loops:{title:'04 · Close loops, ride courts, and attractions',detail:'Build C–F, set J1–J9, then place R1–R14 and P1–P5. R4 is the Fairground swinging ship; R14 is the Kiddieland junior coaster. P1 is the lighthouse experience, P2 the Boardwalk funhouse, P3 the Big Top show, P4 the family play garden, and P5 the programmed bandstand. R13 and R14 remain entirely beyond NT-2; every queue and yellow attraction branch leaves a loop before stopping guests.'},
     parcels:{title:'04A · Resolve the first attraction parcels',detail:'R4 receives a 26 × 10m operating envelope, in-court queue, separate exit to C, operator booth, photo turnout, and gated back-lane service. P2 receives a 12 × 14m show building, separate Boardwalk entry and exit, continuous interior route, level tunnel bypass, façade photo point, and rear staff gate. Neither changes a public through-route.'},
@@ -5645,6 +5679,7 @@
     if (selected === 'seasonal') renderSeasonalDetail();
     if (selected === 'features') renderFeatureDetail();
     if (selected === 'photo') drawPhotoLifecycle();
+    renderPlanConflicts();
     select.value = selected;
     seasonSelect.value = selectedSeason;
     featureSeasonSelect.value = selectedFeatureSeason;

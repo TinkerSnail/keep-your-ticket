@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=19 format=3]
 
 ; The complete playable park, composed from one canonical scene per place.
 ;
@@ -24,6 +24,7 @@
 [ext_resource type="PackedScene" path="res://scenes/world/park_routes.tscn" id="16_routes"]
 [ext_resource type="PackedScene" path="res://scenes/world/park_program.tscn" id="17_program"]
 [ext_resource type="PackedScene" path="res://scenes/world/park_landscape.tscn" id="18_landscape"]
+[ext_resource type="PackedScene" path="res://scenes/world/park_approach.tscn" id="19_approach"]
 
 [node name="park_world" type="Node3D" groups=["world"]]
 
@@ -52,6 +53,8 @@
 [node name="park_program" parent="places" instance=ExtResource("17_program")]
 
 [node name="park_landscape" parent="places" instance=ExtResource("18_landscape")]
+
+[node name="park_approach" parent="places" instance=ExtResource("19_approach")]
 
 [node name="shared" type="Node3D" parent="."]
 
