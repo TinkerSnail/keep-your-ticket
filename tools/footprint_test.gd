@@ -24,6 +24,7 @@ func _ready() -> void:
 	_check_route_handoffs()
 	_check_grand_circuit()
 	_check_rim_clearance()
+	_check_promontory()
 	_check_arrival_scene()
 	_check_retired_geometry()
 	_finish()
@@ -156,6 +157,64 @@ func _check_rim_clearance() -> void:
 				d, kind, worst[kind][1], Plan.RIM_CLEARANCE])
 
 
+## The promontory walk, the P1 forecourt and the keeper's exhibit stand on the
+## land, not on its edge: every walk station, the forecourt's rim and the
+## exhibit's corners keep `PROMONTORY_SHORE_CLEARANCE` inland of the coast
+## outline, and the spine itself does the same up to its tip. Written after
+## the first walk was laid along the cove-side shoreline to within a metre,
+## which nothing measured and one frame from the walk showed.
+func _check_promontory() -> void:
+	var clearance: float = Plan.PROMONTORY_SHORE_CLEARANCE
+	var site := {}
+	for record in Plan.REBUILD_ATTRACTION_SITES:
+		if StringName(record["id"]) == &"P1":
+			site = record
+	if site.is_empty():
+		_fail("the atlas program has no P1")
+		return
+	# A dictionary rather than two locals: a lambda captures a local by value,
+	# so a minimum kept in one never leaves the lambda. The first run printed
+	# INF and found nothing.
+	var nearest := {"d": INF, "what": ""}
+	var note := func(inland: float, what: String) -> void:
+		if inland < float(nearest["d"]):
+			nearest["d"] = inland
+			nearest["what"] = what
+	var spine: Array = Plan.PROMONTORY_SPINE
+	for i in spine.size() - 1:
+		note.call(Plan.coast_inland(spine[i]), "spine vertex %d at %s" % [i, spine[i]])
+	var access: Array = site["access"]
+	for i in access.size():
+		var p := Plan.rebuild_expand_point(Vector2(access[i]))
+		note.call(Plan.coast_inland(p), "walk station %d at %s" % [i, p])
+		if i > 0:
+			var q := Plan.rebuild_expand_point(Vector2(access[i - 1]))
+			var steps := maxi(1, ceili(p.distance_to(q) / 4.0))
+			for step in range(1, steps):
+				var m := q.lerp(p, float(step) / float(steps))
+				note.call(Plan.coast_inland(m), "walk between stations %d and %d at %s" % [i - 1, i, m])
+	var tower := Plan.rebuild_expand_point(site["at"])
+	note.call(Plan.coast_inland(tower) - 7.0, "P1 forecourt rim at %s" % tower)
+	var keeper := Plan.rebuild_expand_point(site["keeper"])
+	var half: Vector2 = (site["keeper_size"] as Vector2) * 0.5
+	for corner in [Vector2(-half.x, -half.y), Vector2(half.x, -half.y),
+			Vector2(half.x, half.y), Vector2(-half.x, half.y)]:
+		note.call(Plan.coast_inland(keeper + corner), "keeper's exhibit corner at %s" % (keeper + corner))
+	var worst := float(nearest["d"])
+	var worst_what := String(nearest["what"])
+	print("promontory: nearest approach to the shoreline %.1fm, %s" % [worst, worst_what])
+	if not is_finite(worst):
+		_fail("the promontory check measured nothing")
+	elif worst < clearance:
+		_fail("the promontory parcel stands %.1fm from the shoreline at %s, under the %.1fm clearance" % [
+			worst, worst_what, clearance])
+	# And the walk climbs: the tower's ground stands above the pad, so the
+	# walk is a climb and not a chord over a dip.
+	var tower_y: float = Plan.promontory_y(tower)
+	if tower_y < Plan.PROMONTORY_ROOT_Y + 8.0:
+		_fail("the promontory under P1 is only %.1fm high" % tower_y)
+
+
 func _rim_xz(v: Variant) -> Vector2:
 	if v is Vector3:
 		return Vector2((v as Vector3).x, (v as Vector3).z)
@@ -219,9 +278,25 @@ func _check_world_reserve() -> void:
 					or bounds.position.z > Plan.REBUILD_WORLD_LAND_FROM_Z + EPS \
 					or bounds.end.z < Plan.REBUILD_WORLD_LAND_TO_Z - EPS:
 				_fail("the mainland mesh does not reach all four published world bounds")
-	for id in ["north", "south"]:
-		if ground.find_child("terrain_world_coast_%s" % id, true, false) == null:
-			_fail("the %s coastal reserve is not mounted" % id)
+	# The coast meshes are the ground beyond the working strip (2026-09-04):
+	# the north one has to reach the world's north coast bound, the south one
+	# the point where the bay's far shore crosses onto the mainland reserve.
+	var south_to_z := minf(Plan.REBUILD_WORLD_COAST_TO_Z,
+		Plan.coast_south_crossing_z(Plan.SHORE_FROM_X))
+	for pair in [["north", Plan.REBUILD_WORLD_COAST_FROM_Z], ["south", south_to_z]]:
+		var coast := ground.find_child("terrain_world_coast_%s" % pair[0], true, false)
+		if coast == null:
+			_fail("the %s coastal reserve is not mounted" % pair[0])
+			continue
+		var coast_surface := coast.find_child("surface", false, false) as MeshInstance3D
+		if coast_surface == null or coast_surface.mesh == null:
+			_fail("the %s coastal reserve has no surface mesh" % pair[0])
+			continue
+		var coast_bounds := coast_surface.mesh.get_aabb()
+		var reach: float = coast_bounds.position.z if pair[0] == "north" else coast_bounds.end.z
+		if absf(reach - float(pair[1])) > 1.0:
+			_fail("the %s coast mesh ends at z %.1f, expected %.1f" % [
+				pair[0], reach, float(pair[1])])
 	ground.free()
 
 	var west: Node = load("res://scenes/world/west_shell.tscn").instantiate()
@@ -236,16 +311,21 @@ func _check_world_reserve() -> void:
 				or water_lo.z > Plan.REBUILD_WORLD_WATER_FROM_Z + EPS \
 				or water_hi.z < Plan.REBUILD_WORLD_WATER_TO_Z - EPS:
 			_fail("the ocean does not reach all four published world bounds")
-	var shore_n := west.find_child("shore_north_reserve", true, false) as CSGBox3D
-	var shore_s := west.find_child("shore_south_reserve", true, false) as CSGBox3D
-	if shore_n == null or shore_s == null:
-		_fail("the planted north/south coastal benches are missing")
+	# The bay's water lies under the whole of the far shore: from the ocean's
+	# east edge to past the outline's eastmost point, and from north of the
+	# crossing to the world's south coast bound.
+	var bay := west.find_child("water_bay", true, false) as CSGBox3D
+	if bay == null:
+		_fail("the bay water sheet is missing")
 	else:
-		var shore_lo := shore_n.position.z - shore_n.size.z * 0.5
-		var shore_hi := shore_s.position.z + shore_s.size.z * 0.5
-		if shore_lo > Plan.REBUILD_WORLD_COAST_FROM_Z + EPS \
-				or shore_hi < Plan.REBUILD_WORLD_COAST_TO_Z - EPS:
-			_fail("the coastal bench still stops inside the surrounding world")
+		var bay_lo := bay.position - bay.size * 0.5
+		var bay_hi := bay.position + bay.size * 0.5
+		var far: Vector2 = Plan.COAST_SOUTH_OUTLINE[Plan.COAST_SOUTH_OUTLINE.size() - 1]
+		var crossing := Plan.coast_south_crossing_z(Plan.REBUILD_WORLD_WATER_TO_X)
+		if bay_lo.x > Plan.REBUILD_WORLD_WATER_TO_X + EPS or bay_hi.x < far.x - EPS \
+				or bay_lo.z > crossing - 30.0 \
+				or bay_hi.z < Plan.REBUILD_WORLD_COAST_TO_Z - EPS:
+			_fail("the bay water does not lie under the whole of the far shore")
 	west.free()
 
 	print("  world reserve margins: E %.0fm, N %.0fm, S %.0fm, W ocean %.0fm" % [

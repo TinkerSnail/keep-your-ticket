@@ -94,8 +94,11 @@ func _build_legs() -> void:
 		{"node": world.get_node_or_null("places/park_program"),
 			"public_routes_only": false},
 	]
+	# The promontory walk joins them since 2026-09-04: an access path rather
+	# than a route run, and the only public path in the park that climbs a
+	# landform end to end, so it is walked centre and both edges like A-F.
 	var p5_public := [&"P5_audience_entry", &"P5_audience_release",
-		&"P5_photo_access"]
+		&"P5_photo_access", &"P1_public_access"]
 	for layer_spec in layers:
 		var layer: Node = layer_spec["node"]
 		if layer == null:

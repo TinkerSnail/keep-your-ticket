@@ -28,10 +28,12 @@ const SHOTS := [
 		"target": Vector3(200.0, 60.0, -260.0), "fov": 70.0},
 	{"name": "12_promenade_north", "position": Vector3(-98.0, -4.3, -70.0),
 		"target": Vector3(-140.0, 20.0, -420.0), "fov": 70.0},
-	{"name": "13_lighthouse_forecourt", "position": Vector3(-162.0, 22.5, -236.0),
+	{"name": "13_lighthouse_forecourt", "position": Vector3(-158.0, 22.0, -262.0),
 		"target": Vector3(0.0, 20.0, -90.0), "fov": 70.0},
-	{"name": "13b_promontory_walk", "position": Vector3(-60.0, 7.5, -217.0),
-		"target": Vector3(-200.0, 40.0, -262.0), "fov": 70.0},
+	{"name": "13b_promontory_walk", "position": Vector3(-52.0, 6.8, -240.0),
+		"target": Vector3(-153.0, 30.0, -268.0), "fov": 70.0},
+	{"name": "13c_promontory_from_the_cove", "position": Vector3(-75.0, 3.0, -205.0),
+		"target": Vector3(-160.0, 20.0, -262.0), "fov": 70.0},
 	{"name": "14_climb_head", "position": Vector3(118.0, 19.7, -2.0),
 		"target": Vector3(900.0, 250.0, -300.0), "fov": 70.0},
 	{"name": "15_east_forecourt", "position": Vector3(58.0, 1.7, -2.0),
@@ -40,6 +42,14 @@ const SHOTS := [
 		"target": Vector3(0.0, 30.0, -600.0), "fov": 70.0},
 	{"name": "17_parking_arrival_south", "position": Vector3(0.0, 1.7, 215.0),
 		"target": Vector3(120.0, 60.0, 700.0), "fov": 70.0},
+	# The bay (2026-09-04): its far shore from the pier head, the cove and the
+	# point from the coaster's end, and a plan of the whole bay.
+	{"name": "18_bay_from_pier_head", "position": Vector3(-150.0, -4.3, -2.0),
+		"target": Vector3(120.0, 20.0, 700.0), "fov": 70.0},
+	{"name": "19_cove_from_coaster_end", "position": Vector3(-100.0, -4.3, -150.0),
+		"target": Vector3(-170.0, 12.0, -262.0), "fov": 70.0},
+	{"name": "20_bay_plan", "position": Vector3(0.0, 2600.0, 400.0),
+		"target": Vector3(0.0, 0.0, 400.0), "orthographic": 2800.0},
 ]
 
 var _main: Node

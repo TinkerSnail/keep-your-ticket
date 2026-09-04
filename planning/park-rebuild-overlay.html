@@ -2213,15 +2213,17 @@
   };
 
   const programmedAttractions = [
-    // P1 stands on the point since 2026-09-04: source (-139.3,-170.2), which is
-    // world (-153,-247) on the promontory, beyond this map's domain. The
-    // keeper's exhibit and forecourt moved with it; the promontory walk leaves
-    // the headland loop's west vertex. Drawn in world coordinates on the
-    // footprint map.
-    {id:'P1',name:'Headland lighthouse experience',type:'circle',at:[-139.3,-170.2],r:5,label:[-128,-172],
-      keeper:{at:[-127.3,-166],size:[8,6]},forecourt:{at:[-133,-164],radii:[7,4]},
-      access:[[-37,-125],[-70,-153.2],[-100,-159.3],[-124,-165.3],[-139.3,-170.2]],
-      access2:[[-133,-164],[-116,-158],[-90,-150],[-55,-137],[-31,-138]],photo:[-16,-144]},
+    // P1 stands on the point since 2026-09-04: source (-139.3,-183.1), which is
+    // world (-153,-268) on the promontory's spine, beyond this map's domain.
+    // The keeper's exhibit stands ten metres north of the walk; the walk
+    // leaves the headland loop's west vertex and climbs the middle of the
+    // land, at least 8m inland of the shoreline. The first placement the same
+    // day, world (-153,-247), was the cove-side cliff edge. Drawn in world
+    // coordinates on the footprint map.
+    {id:'P1',name:'Headland lighthouse experience',type:'circle',at:[-139.3,-183.1],r:5,label:[-128,-185],
+      keeper:{at:[-122.7,-186.7],size:[8,6]},forecourt:{at:[-139.3,-183.1],radii:[7,7]},
+      access:[[-37,-125],[-50,-162.4],[-53,-168.5],[-57,-173.3],[-64,-176.4],[-74,-177.3],[-100,-177.0],[-120.7,-180.0],[-134.3,-182.3]],
+      access2:[[-137.3,-189.1],[-117.3,-186.7],[-90,-183.1],[-62,-175.8],[-44,-161.2],[-31,-138]],photo:[-16,-144]},
     {id:'P2',name:'Boardwalk walk-through funhouse',type:'rect',at:[-77,32],label:[-68,34],size:[12,14],
       access:[[-96,27],[-90,27],[-87,25],[-84,27],[-83,27]],
       access2:[[-83,37],[-88,37],[-91,40],[-96,40]],

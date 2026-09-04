@@ -1672,32 +1672,83 @@ const TURNING_CIRCLE := Vector3(-80.0, 236.0, 10.0)
 ## either side of the Boardwalk, z ±70, is protected as built. Both outlines
 ## run from the working shore outward and are the one description the coast
 ## meshes, the range's shore fade and the toe line all read.
+##
+## **Reshaped on 2026-09-04, because the first outlines were a V.** Both arms
+## ran out to sea south-west and north-west at about sixteen degrees, so the
+## park stood at the tip of a cape and the promontory was a tab on it; Half
+## Moon Bay is the opposite figure — a coast trending north-west to south-east
+## with Pillar Point standing out of it and the harbour in the point's lee.
+## So the coast north of the point now recedes north-north-west and stays
+## east of the point's x for four hundred metres, which is what lets the
+## promontory lead the coast rather than run parallel to it; and the south
+## shore holds x about −125 past the parking's front road, then sweeps
+## south-east across the mainland reserve's west edge and on to (700, 2200),
+## so from the pier the bay's far side recedes into the hills. The south
+## outline crossing `SHORE_FROM_X` is what makes the reserve carry a shore
+## (`coast_south_crossing_z`), and the sea under that corner is
+## `BAY_WATER_*`. Nothing in the developed envelope moved: the shore is 34m
+## from the front road's turning circle and the bluff south of the parking
+## keeps its cove.
 const COAST_NORTH_OUTLINE := [
 	Vector2(-108.0, -70.0), Vector2(-112.0, -130.0), Vector2(-108.0, -165.0),
 	Vector2(-100.0, -185.0), Vector2(-80.0, -205.0), Vector2(-72.0, -218.0),
 	Vector2(-90.0, -232.0), Vector2(-130.0, -240.0), Vector2(-170.0, -246.0),
 	Vector2(-205.0, -252.0), Vector2(-218.0, -262.0), Vector2(-205.0, -280.0),
-	Vector2(-170.0, -290.0), Vector2(-140.0, -296.0), Vector2(-150.0, -330.0),
-	Vector2(-190.0, -400.0), Vector2(-340.0, -800.0), Vector2(-500.0, -1400.0),
-	Vector2(-700.0, -2200.0),
+	Vector2(-170.0, -290.0), Vector2(-140.0, -296.0), Vector2(-132.0, -330.0),
+	Vector2(-128.0, -400.0), Vector2(-140.0, -520.0), Vector2(-180.0, -700.0),
+	Vector2(-270.0, -1000.0), Vector2(-420.0, -1500.0), Vector2(-600.0, -2200.0),
 ]
 const COAST_SOUTH_OUTLINE := [
-	Vector2(-108.0, 70.0), Vector2(-118.0, 130.0), Vector2(-138.0, 190.0),
-	Vector2(-165.0, 250.0), Vector2(-200.0, 320.0), Vector2(-240.0, 400.0),
-	Vector2(-300.0, 520.0), Vector2(-340.0, 800.0), Vector2(-500.0, 1400.0),
-	Vector2(-700.0, 2200.0),
+	Vector2(-108.0, 70.0), Vector2(-116.0, 140.0), Vector2(-124.0, 210.0),
+	Vector2(-126.0, 270.0), Vector2(-118.0, 340.0), Vector2(-100.0, 410.0),
+	Vector2(-72.0, 490.0), Vector2(-36.0, 580.0), Vector2(10.0, 680.0),
+	Vector2(70.0, 800.0), Vector2(140.0, 950.0), Vector2(230.0, 1150.0),
+	Vector2(340.0, 1400.0), Vector2(500.0, 1750.0), Vector2(700.0, 2200.0),
 ]
-## The promontory: a segment from the lighthouse headland's root to the
-## point, `PROMONTORY_HEIGHT` at its shoulders, tapering to the tip.
-## Since the lighthouse moved onto it (04B, 2026-09-04) the promontory rises
-## from the headland pad's level at its root to a cliffed point, so a walk
-## can climb it at about 1:9, and it does not taper: the sea-cliff skirt
-## makes the point.
-const PROMONTORY_A := Vector2(-44.0, -212.0)
-const PROMONTORY_B := Vector2(-200.0, -262.0)
+## The sea under the bay's far shore, where the south outline has crossed the
+## mainland reserve's west edge: a second sheet from the ocean's east edge out
+## to past the outline's eastmost point, rather than a wider ocean, so that no
+## hole in the developed ground north of it can show water through it. It
+## starts well north of the crossing and is under land there.
+const BAY_WATER_FROM_Z := 300.0
+const BAY_WATER_TO_X := 800.0
+## The promontory is the land the north outline draws between the cove head
+## and the point, and `PROMONTORY_SPINE` runs up the middle of that land from
+## the headland pad to the point. It was one segment, (-44,-212) to
+## (-200,-262), which is the cove-side shoreline to within a few metres: the
+## walk, the forecourt and the keeper's exhibit were all laid on the cliff
+## edge with their seaward halves over the skirt (2026-09-04, from play).
+## The height climbs along the spine from the pad's level, held flat under
+## the pad's own polygon, to `PROMONTORY_HEIGHT` at the point. Across the
+## land the crown is set by `coast_inland`, distance to the shoreline, and
+## not by distance to the spine: full height `PROMONTORY_EDGE_RUN` inland,
+## easing to `PROMONTORY_EDGE_FRACTION` of it at the cliff edge, so the top
+## is a table the walk can use and the sea-cliff skirt makes the cliff.
+## `PROMONTORY_HALF_W` only bounds the feature on the mainland side.
+const PROMONTORY_SPINE := [
+	# The turn west is five bends of under thirty degrees: `along` is measured
+	# to the nearest segment, so on the inside of a sharp corner it jumps by
+	# the corner's own depth and the height field folds a step there, which
+	# buried the walk's edge a third of a metre. The turn also crosses the
+	# coast mesh's inland seam at x -56 near z -252, where the coast base has
+	# all but closed on the reserve's; crossing at z -246 it stepped half a
+	# metre.
+	Vector2(-37.0, -172.0), Vector2(-50.0, -234.0), Vector2(-53.0, -244.0),
+	Vector2(-57.0, -252.0), Vector2(-64.0, -257.0), Vector2(-74.0, -258.5),
+	Vector2(-100.0, -258.0), Vector2(-150.0, -268.0), Vector2(-218.0, -262.0),
+]
 const PROMONTORY_ROOT_Y := 4.0
 const PROMONTORY_HEIGHT := 22.0
-const PROMONTORY_HALF_W := 30.0
+const PROMONTORY_HALF_W := 34.0
+## The climb waits until the spine is clear of the T3 pad's outer polygon and
+## finishes short of the tip, so the point itself is level.
+const PROMONTORY_CLIMB_FROM := 45.0
+const PROMONTORY_CLIMB_TAIL := 30.0
+const PROMONTORY_EDGE_RUN := 14.0
+const PROMONTORY_EDGE_FRACTION := 0.6
+## The walk's centreline, the forecourt and the exhibit stand at least this
+## far inland of the shoreline; `footprint_test` measures it.
+const PROMONTORY_SHORE_CLEARANCE := 8.0
 ## Cliffed coast with coves north of the point, a bluff with one cove south
 ## of the parking. Nothing above 10m in the sunset sector from the pier head.
 const NORTH_CLIFF_Z := Vector2(-420.0, -300.0)
@@ -1748,6 +1799,84 @@ static func range_profile_y(d: float) -> float:
 			t = 0.5 - 0.5 * cos(t * PI)
 			return lerpf(float(knots[i - 1][1]), float(knots[i][1]), t)
 	return float(knots[knots.size() - 1][1])
+
+
+## Where the south outline first reaches `xc` heading east — the far shore of
+## the bay recedes inland as it runs south, so past this z the land east of
+## the outline belongs to the mainland reserve rather than the coast mesh.
+## INF if it never gets there.
+static func coast_south_crossing_z(xc: float) -> float:
+	var outline: Array = COAST_SOUTH_OUTLINE
+	for i in outline.size() - 1:
+		var a: Vector2 = outline[i]
+		var b: Vector2 = outline[i + 1]
+		if a.x < xc and b.x >= xc:
+			return lerpf(a.y, b.y, (xc - a.x) / (b.x - a.x))
+	return INF
+
+
+## Distance from a point on land to the sea: the nearest segment of the coast
+## outline on that side of the working strip, or the strip's own shore edge.
+## The promontory's crown and the P1 shore-clearance check both read it.
+static func coast_inland(p: Vector2) -> float:
+	var best := INF
+	if absf(p.y) <= 70.0:
+		best = p.x - SHORE_EDGE
+	var outline: Array = COAST_NORTH_OUTLINE if p.y < 0.0 else COAST_SOUTH_OUTLINE
+	for i in outline.size() - 1:
+		var q := Geometry2D.get_closest_point_to_segment(p, outline[i], outline[i + 1])
+		best = minf(best, p.distance_to(q))
+	return best
+
+
+## Where a point stands relative to the promontory's spine: x is the arc
+## length along the spine to the nearest point on it, y the distance across
+## to that point. Before the root the along is zero and the across grows.
+static func promontory_station(p: Vector2) -> Vector2:
+	var best_across := INF
+	var best_along := 0.0
+	var run := 0.0
+	for i in PROMONTORY_SPINE.size() - 1:
+		var a: Vector2 = PROMONTORY_SPINE[i]
+		var b: Vector2 = PROMONTORY_SPINE[i + 1]
+		var q := Geometry2D.get_closest_point_to_segment(p, a, b)
+		var d := p.distance_to(q)
+		if d < best_across:
+			best_across = d
+			best_along = run + a.distance_to(q)
+		run += a.distance_to(b)
+	return Vector2(best_along, best_across)
+
+
+static func promontory_length() -> float:
+	var run := 0.0
+	for i in PROMONTORY_SPINE.size() - 1:
+		run += (PROMONTORY_SPINE[i] as Vector2).distance_to(PROMONTORY_SPINE[i + 1])
+	return run
+
+
+## The promontory's own height at a point, before the coast base and the
+## range are added: zero off the feature. One description for the coast
+## meshes, the mainland reserve's root and every site placed on it.
+static func promontory_y(p: Vector2) -> float:
+	var st := promontory_station(p)
+	var along := st.x
+	var across := st.y
+	if across >= PROMONTORY_HALF_W:
+		return 0.0
+	var length := promontory_length()
+	if along > length + 30.0:
+		return 0.0
+	var climb := clampf((along - PROMONTORY_CLIMB_FROM) /
+		(length - PROMONTORY_CLIMB_TAIL - PROMONTORY_CLIMB_FROM), 0.0, 1.0)
+	climb = climb * climb * (3.0 - 2.0 * climb)
+	var h := lerpf(PROMONTORY_ROOT_Y, PROMONTORY_HEIGHT, climb)
+	var edge := clampf(coast_inland(p) / PROMONTORY_EDGE_RUN, 0.0, 1.0)
+	edge = edge * edge * (3.0 - 2.0 * edge)
+	var crown := lerpf(PROMONTORY_EDGE_FRACTION, 1.0, edge)
+	var side := clampf((across - (PROMONTORY_HALF_W - 10.0)) / 10.0, 0.0, 1.0)
+	side = 1.0 - side * side * (3.0 - 2.0 * side)
+	return h * crown * side
 
 
 ## Where the sea is at a given z: the westmost point of the coast outline on
@@ -3156,15 +3285,24 @@ static func rebuild_kiddie_rail_loop() -> Array[Vector3]:
 
 
 const REBUILD_ATTRACTION_SITES := [
-	# P1 stands on the point since 2026-09-04 (04B): world (-153, -247) on the
-	# promontory, keeper's exhibit beside it, reached by the promontory walk
-	# from the headland loop's west vertex. Source coordinates, as this table
-	# passes through `rebuild_expand_point`; the tower is the one program
-	# element outside the developed envelope, by decision.
-	{"id": &"P1", "kind": &"lighthouse", "at": Vector2(-139.3, -170.2),
-		"keeper": Vector2(-127.3, -166.0), "keeper_size": Vector2(8, 6),
-		"access": [Vector2(-37, -125), Vector2(-70, -153.2),
-			Vector2(-100, -159.3), Vector2(-124, -165.3), Vector2(-139.3, -170.2)]},
+	# P1 stands on the point since 2026-09-04 (04B): world (-153, -268) on the
+	# promontory's spine, the keeper's exhibit ten metres north of the walk,
+	# reached by the promontory walk from the headland loop's west vertex up
+	# the middle of the land. It stood at world (-153, -247) for a day, which
+	# is the cove-side cliff edge. Source coordinates, as this table passes
+	# through `rebuild_expand_point`; the tower is the one program element
+	# outside the developed envelope, by decision.
+	{"id": &"P1", "kind": &"lighthouse", "at": Vector2(-139.3, -183.1),
+		"keeper": Vector2(-122.7, -186.7), "keeper_size": Vector2(8, 6),
+		# The walk ends at the forecourt's rim, not at the tower's centre: the
+		# controller walk of the last leg ran into the lighthouse base.
+		# The turn west at the seam is five gentle bends rather than one of
+		# 72 degrees: at a sharp corner the outer edge's mitre leaves the
+		# collision prisms and the capsule stalls on their side face.
+		"access": [Vector2(-37, -125), Vector2(-50, -162.4),
+			Vector2(-53, -168.5), Vector2(-57, -173.3), Vector2(-64, -176.4),
+			Vector2(-74, -177.3), Vector2(-100, -177.0), Vector2(-120.7, -180.0),
+			Vector2(-134.3, -182.3)]},
 	{"id": &"P2", "kind": &"funhouse", "at": Vector2(-77, 32),
 		"size": Vector2(12, 14), "access": [Vector2(-96, 27),
 			Vector2(-90, 27), Vector2(-87, 25), Vector2(-84, 27), Vector2(-83, 27)],

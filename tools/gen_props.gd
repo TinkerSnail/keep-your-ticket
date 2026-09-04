@@ -1124,6 +1124,8 @@ func _build_materials() -> void:
 		# terraces are the reason it reads as a garden rather than as civil
 		# engineering, so these are saturated where `foliage` is dusty.
 		"planting": [Color(0.36, 0.47, 0.31), 0.95, 0.0],
+		"palm_trunk": [Color(0.60, 0.49, 0.36), 0.92, 0.0],
+		"palm_frond": [Color(0.31, 0.50, 0.26), 0.9, 0.0],
 		"bloom_warm": [Color(0.88, 0.62, 0.28), 0.9, 0.0],
 		"bloom_pink": [Color(0.84, 0.46, 0.55), 0.9, 0.0],
 		"bloom_pale": [Color(0.93, 0.9, 0.76), 0.9, 0.0],
@@ -3953,25 +3955,26 @@ func _west_shell() -> void:
 	_box("shore", Vector3.ZERO,
 		Vector3((SHORE_FROM_X + SHORE_EDGE) * 0.5, SHORE_TOP - 3.0, 0.0),
 		Vector3(width, 6.0, 340.0), "far_warm")
-	var shore_mid_x := (SHORE_FROM_X + SHORE_EDGE) * 0.5
-	_flight_ramp("shore_north_transition",
-		Vector3(shore_mid_x, SHORE_TOP, -170.0),
-		Vector3(shore_mid_x, REBUILD_WORLD_RESERVE_Y, -260.0),
-		0.0, width, "planting")
-	_flight_ramp("shore_south_transition",
-		Vector3(shore_mid_x, SHORE_TOP, 170.0),
-		Vector3(shore_mid_x, REBUILD_WORLD_RESERVE_Y, 260.0),
-		0.0, width, "planting")
-	_box("shore_north_reserve", Vector3.ZERO,
-		Vector3(shore_mid_x, REBUILD_WORLD_RESERVE_Y - 3.0,
-			(Plan.REBUILD_WORLD_COAST_FROM_Z - 260.0) * 0.5),
-		Vector3(width, 6.0, -260.0 - Plan.REBUILD_WORLD_COAST_FROM_Z),
-		"planting")
-	_box("shore_south_reserve", Vector3.ZERO,
-		Vector3(shore_mid_x, REBUILD_WORLD_RESERVE_Y - 3.0,
-			(260.0 + Plan.REBUILD_WORLD_COAST_TO_Z) * 0.5),
-		Vector3(width, 6.0, Plan.REBUILD_WORLD_COAST_TO_Z - 260.0),
-		"planting")
+	# Beyond the working strip the coast meshes are the ground, since
+	# 2026-09-04. Two transition ramps and two planted bench boxes used to run
+	# on from here to z ±2200: straight 52m slabs laid regardless of the coast
+	# outline, so they filled the cove north of the coaster and hung a 0.4m
+	# ramp out over the water where the shore had already fallen away — the
+	# floating shoreline seen from the promenade's north end. The coast mesh
+	# carries the same −6 → reserve-level transition the ramps did, follows
+	# the outline exactly, collides, and skirts down to the water.
+	#
+	# The bay: south of the Boardwalk the shore sweeps south-east across the
+	# mainland reserve's west edge, so a second sheet of water lies under that
+	# corner of the reserve. A separate box rather than a wider ocean, so that
+	# no gap in the developed ground north of it can show water through it.
+	_box("water_bay", Vector3.ZERO,
+		Vector3((Plan.REBUILD_WORLD_WATER_TO_X + Plan.BAY_WATER_TO_X) * 0.5,
+			WATER_TOP - 4.0,
+			(Plan.BAY_WATER_FROM_Z + Plan.REBUILD_WORLD_WATER_TO_Z) * 0.5),
+		Vector3(Plan.BAY_WATER_TO_X - Plan.REBUILD_WORLD_WATER_TO_X, 8.0,
+			Plan.REBUILD_WORLD_WATER_TO_Z - Plan.BAY_WATER_FROM_Z),
+		"water", 0.0, false)
 
 
 ## How far either side of the axis the bluff's face is dressed.
@@ -12837,6 +12840,7 @@ func _boardwalk_section() -> void:
 	_boardwalk_edges()
 	_boardwalk_props()
 	_boardwalk_lights()
+	_boardwalk_palms()
 	# Plaza paving and geometry stand beside this scene in `park_world.tscn`.
 	# No massing copy and no transition trigger are emitted here.
 
@@ -16616,7 +16620,14 @@ const REBUILD_WORLD_FINE_STEP := 8.0
 const REBUILD_WORLD_FINE_REACH := 720.0
 const REBUILD_WORLD_FLAT_MARGIN := 100.0
 const REBUILD_COAST_LOW_Y := Plan.SHORE_TOP - 0.08
-const REBUILD_COAST_HIGH_Y := REBUILD_WORLD_RESERVE_Y - 0.08
+# Level with the reserve, not eight centimetres under it, since 2026-09-04:
+# the coast mesh is the ground beyond the working strip now that the bench
+# boxes are gone, and the seam at x -56 has to meet vertex for vertex.
+const REBUILD_COAST_HIGH_Y := REBUILD_WORLD_RESERVE_Y
+# A sea-cliff colour for every skirt that drops from a land mesh's edge to
+# below the water, so the cut faces read as rock rather than as the last
+# vertex colour the surface happened to set.
+const REBUILD_SEA_CLIFF_COLOUR := Color(0.47, 0.44, 0.39)
 const REBUILD_COAST_TRANSITION_FROM_Z := 170.0
 const REBUILD_COAST_TRANSITION_TO_Z := 260.0
 const REBUILD_PATH_LIFT := 0.022
@@ -16704,6 +16715,20 @@ func _rebuild_world_reserve_mesh() -> ArrayMesh:
 	var zs := _rebuild_graded_axis(Plan.REBUILD_WORLD_LAND_FROM_Z,
 		Plan.REBUILD_WORLD_LAND_TO_Z)
 	var lowland_cuts := _rebuild_lowland_cuts()
+	# The bay's far shore (2026-09-04): the south coast outline crosses this
+	# mesh's west edge and runs on south-east, so the cells it crosses are
+	# clipped to the outline exactly, as the coast meshes are, and the cells
+	# beyond it are sea and not emitted. The shore then gets the coast mesh's
+	# own skirt down below the water.
+	var sea := _reserve_sea_polygon()
+	var sea_lo := Vector2.ZERO
+	var sea_hi := Vector2.ZERO
+	if not sea.is_empty():
+		sea_lo = sea[0]
+		sea_hi = sea[0]
+		for q in sea:
+			sea_lo = Vector2(minf(sea_lo.x, q.x), minf(sea_lo.y, q.y))
+			sea_hi = Vector2(maxf(sea_hi.x, q.x), maxf(sea_hi.y, q.y))
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_smooth_group(0)
@@ -16719,6 +16744,19 @@ func _rebuild_world_reserve_mesh() -> ArrayMesh:
 				return _rebuild_in_protected(p, 0.75) \
 					or _rebuild_in_lowland_cut(p, lowland_cuts, 0.35)):
 				continue
+			if not sea.is_empty() and p11.x > sea_lo.x and p00.x < sea_hi.x \
+					and p11.y > sea_lo.y and p00.y < sea_hi.y:
+				var cell := PackedVector2Array([p00, p10, p11, p01])
+				var land: Array = Geometry2D.clip_polygons(cell, sea)
+				if land.is_empty():
+					continue
+				var whole := land.size() == 1 and (land[0] as PackedVector2Array).size() == 4 \
+					and absf(_polygon_area(land[0]) - _polygon_area(cell)) < 0.01
+				if not whole:
+					for piece in land:
+						_reserve_piece(st, piece)
+					emitted += 1
+					continue
 			var a := Vector3(p00.x, _rebuild_world_reserve_y(p00), p00.y)
 			var b := Vector3(p10.x, _rebuild_world_reserve_y(p10), p10.y)
 			var c := Vector3(p11.x, _rebuild_world_reserve_y(p11), p11.y)
@@ -16733,9 +16771,56 @@ func _rebuild_world_reserve_mesh() -> ArrayMesh:
 				d, p01 * 0.28, cd, Vector3.UP)
 			emitted += 1
 	assert(emitted > 1000, "the surrounding mainland reserve did not generate")
+	# The bay shore's skirt: from the reserve's edge on the outline down below
+	# the water, facing the sea, so the far shore reads as a low cliff rather
+	# than as the underside of the land seen from the pier.
+	var shore: Array = _coast_south_split()[1]
+	st.set_color(REBUILD_SEA_CLIFF_COLOUR)
+	for i in shore.size() - 1:
+		var a2: Vector2 = shore[i]
+		var b2: Vector2 = shore[i + 1]
+		var steps := maxi(1, ceili(a2.distance_to(b2) / 12.0))
+		var along := (b2 - a2).normalized()
+		var seaward := Vector3(-along.y, 0.0, along.x)
+		for k in steps:
+			var p0 := a2.lerp(b2, float(k) / float(steps))
+			var p1 := a2.lerp(b2, float(k + 1) / float(steps))
+			_earth_wall_quad(st,
+				Vector3(p0.x, Plan.WATER_TOP - 6.0, p0.y),
+				Vector3(p1.x, Plan.WATER_TOP - 6.0, p1.y),
+				Vector3(p0.x, _rebuild_world_reserve_y(p0), p0.y),
+				Vector3(p1.x, _rebuild_world_reserve_y(p1), p1.y),
+				seaward)
 	st.generate_normals()
 	st.generate_tangents()
 	return st.commit()
+
+
+func _polygon_area(poly: PackedVector2Array) -> float:
+	var area := 0.0
+	for i in poly.size():
+		var a: Vector2 = poly[i]
+		var b: Vector2 = poly[(i + 1) % poly.size()]
+		area += a.x * b.y - b.x * a.y
+	return absf(area) * 0.5
+
+
+## One clipped reserve cell piece, triangulated and coloured like the whole
+## cells around it.
+func _reserve_piece(st: SurfaceTool, piece: PackedVector2Array) -> void:
+	var tris := Geometry2D.triangulate_polygon(piece)
+	for i in range(0, tris.size(), 3):
+		var a2: Vector2 = piece[tris[i]]
+		var b2: Vector2 = piece[tris[i + 1]]
+		var c2: Vector2 = piece[tris[i + 2]]
+		var a3 := Vector3(a2.x, _rebuild_world_reserve_y(a2), a2.y)
+		var b3 := Vector3(b2.x, _rebuild_world_reserve_y(b2), b2.y)
+		var c3 := Vector3(c2.x, _rebuild_world_reserve_y(c2), c2.y)
+		_earth_coloured_tri(st,
+			a3, a2 * 0.28, _rebuild_ground_colour(a2, a3.y),
+			b3, b2 * 0.28, _rebuild_ground_colour(b2, b3.y),
+			c3, c2 * 0.28, _rebuild_ground_colour(c2, c3.y),
+			Vector3.UP)
 
 
 ## Samples at `REBUILD_WORLD_FINE_STEP` within `REBUILD_WORLD_FINE_REACH` of
@@ -16837,7 +16922,13 @@ func _rebuild_range_rise(p: Vector2) -> float:
 		grain += float(Plan.RIM_RANGE_NOISE[i][1]) \
 			* (_range_noise[i] as FastNoiseLite).get_noise_2d(p.x, p.y)
 	y *= 1.0 + grain * rough
-	var shore := clampf((p.x - Plan.shore_x(p.y)) / 150.0, 0.0, 1.0)
+	# Faded on the true distance to the shoreline, not on the run east from the
+	# westmost land at this z. Across the promontory's root that proxy read 80
+	# to 100m where the cove was 15m away, so a 13m range rise switched on over
+	# 22m of z, stood a wall up the cove side of the promontory and bulged the
+	# walk half a metre off an 8m lattice that cannot hold that curvature
+	# (2026-09-04, found by rays rather than by eye).
+	var shore := clampf(Plan.coast_inland(p) / 150.0, 0.0, 1.0)
 	shore = shore * shore * (3.0 - 2.0 * shore)
 	return _rebuild_road_cut(p, y * w * shore + base)
 
@@ -16869,20 +16960,11 @@ func _rebuild_road_cut(p: Vector2, y: float) -> float:
 ## promontory along the -135 degree spur, cliffed coast with two coves north
 ## of it, and the bluff with one cove south of the parking.
 func _rebuild_coast_feature(p: Vector2) -> float:
-	var y := 0.0
-	var ab: Vector2 = Plan.PROMONTORY_B - Plan.PROMONTORY_A
-	var length := ab.length()
-	var axis := ab / maxf(length, 0.001)
-	var rel := p - Plan.PROMONTORY_A
-	var along := rel.dot(axis)
-	var across := absf(rel.x * axis.y - rel.y * axis.x)
-	if along > -10.0 and along < length + 30.0 and across < Plan.PROMONTORY_HALF_W:
-		var climb := clampf((along - 20.0) / (length - 60.0), 0.0, 1.0)
-		climb = climb * climb * (3.0 - 2.0 * climb)
-		var side := cos(across / Plan.PROMONTORY_HALF_W * PI * 0.5)
-		var root := clampf((along + 10.0) / 20.0, 0.0, 1.0)
-		var h: float = lerpf(Plan.PROMONTORY_ROOT_Y, Plan.PROMONTORY_HEIGHT, climb)
-		y = maxf(y, h * root * side * side)
+	# The promontory is `Plan.promontory_y`: a spine up the middle of the land
+	# and a crown set by distance to the shoreline. It used to be a cos^2 ridge
+	# on a spine that ran along the cove-side shore, so its crest was the cliff
+	# edge and the north half of the land lay at sea level.
+	var y := Plan.promontory_y(p)
 	# The cliff bands live on the coast meshes only; the reserve east of the
 	# shore samples this function for the promontory's root and nothing else.
 	if p.x >= Plan.REBUILD_WORLD_LAND_FROM_X:
@@ -16970,12 +17052,57 @@ func _rebuild_coastal_reserve_shapes() -> Array:
 	north.append(Vector2(Plan.SHORE_FROM_X, Plan.REBUILD_WORLD_COAST_FROM_Z))
 	var south: Array = []
 	south.append(Vector2(Plan.SHORE_FROM_X, 70.0))
-	south.append(Vector2(Plan.SHORE_FROM_X, Plan.REBUILD_WORLD_COAST_TO_Z))
-	var south_outline: Array = Plan.COAST_SOUTH_OUTLINE.duplicate()
+	# The bay's far shore crosses the reserve's west edge (2026-09-04): the
+	# coast mesh stops on that crossing and the reserve carries the shore east
+	# of it, clipped to the same outline — see `_rebuild_world_reserve_mesh`.
+	var parts: Array = _coast_south_split()
+	var west_part: Array = parts[0]
+	if (parts[1] as Array).is_empty():
+		south.append(Vector2(Plan.SHORE_FROM_X, Plan.REBUILD_WORLD_COAST_TO_Z))
+	var south_outline: Array = west_part.duplicate()
 	south_outline.reverse()
 	for q in south_outline:
 		south.append(q)
 	return [{"id": "north", "points": north}, {"id": "south", "points": south}]
+
+
+## The south outline split at the mainland reserve's west edge: the part the
+## coast mesh draws, ending on the crossing, and the part the reserve draws,
+## beginning on it. The second is empty if the shore never gets that far east.
+func _coast_south_split() -> Array:
+	var west: Array = []
+	var east: Array = []
+	var outline: Array = Plan.COAST_SOUTH_OUTLINE
+	for i in outline.size():
+		var q: Vector2 = outline[i]
+		if not east.is_empty():
+			east.append(q)
+		elif q.x >= Plan.SHORE_FROM_X and i > 0:
+			var prev: Vector2 = outline[i - 1]
+			var t := (Plan.SHORE_FROM_X - prev.x) / (q.x - prev.x)
+			var cross := Vector2(Plan.SHORE_FROM_X, lerpf(prev.y, q.y, t))
+			west.append(cross)
+			east.append(cross)
+			east.append(q)
+		else:
+			west.append(q)
+	return [west, east]
+
+
+## The sea inside the mainland reserve's footprint: the far shore of the bay
+## east of the reserve's west edge, closed along the world's south edge. Empty
+## when the outline never crosses the edge.
+func _reserve_sea_polygon() -> PackedVector2Array:
+	var east: Array = _coast_south_split()[1]
+	if east.is_empty():
+		return PackedVector2Array()
+	var poly := PackedVector2Array()
+	for q in east:
+		poly.append(q)
+	var last: Vector2 = east[east.size() - 1]
+	poly.append(Vector2(last.x, Plan.REBUILD_WORLD_LAND_TO_Z))
+	poly.append(Vector2(Plan.SHORE_FROM_X, Plan.REBUILD_WORLD_LAND_TO_Z))
+	return poly
 
 
 func _rebuild_coastal_polygon_mesh(record: Dictionary) -> ArrayMesh:
@@ -17044,6 +17171,7 @@ func _rebuild_coastal_polygon_mesh(record: Dictionary) -> ArrayMesh:
 	for q in polygon:
 		centroid += q
 	centroid /= float(polygon.size())
+	st.set_color(REBUILD_SEA_CLIFF_COLOUR)
 	for i in polygon.size():
 		var a2: Vector2 = polygon[i]
 		var b2: Vector2 = polygon[(i + 1) % polygon.size()]
@@ -17080,7 +17208,14 @@ func _rebuild_coastal_reserve_y(p: Vector2) -> float:
 		(REBUILD_COAST_TRANSITION_TO_Z - REBUILD_COAST_TRANSITION_FROM_Z),
 		0.0, 1.0)
 	t = t * t * (3.0 - 2.0 * t)
-	return lerpf(REBUILD_COAST_LOW_Y, REBUILD_COAST_HIGH_Y, t) \
+	# Eight centimetres under the working strip's `shore` box while it is
+	# under it, and level with the box's top by the box's end at z ±170, so the
+	# ground the player walks off the strip onto has no kerb where the
+	# transition ramps used to start (2026-09-04).
+	var lip := clampf((distance - (REBUILD_COAST_TRANSITION_FROM_Z - 10.0)) / 10.0,
+		0.0, 1.0)
+	return lerpf(REBUILD_COAST_LOW_Y + (Plan.SHORE_TOP - REBUILD_COAST_LOW_Y) * lip,
+		REBUILD_COAST_HIGH_Y, t) \
 		+ _rebuild_range_rise(p) + _rebuild_coast_feature(p)
 
 
@@ -17448,8 +17583,14 @@ func _rebuild_headland_mesh(shape: Array) -> ArrayMesh:
 	st.set_smooth_group(1)
 	for i in outer.size():
 		var j := (i + 1) % outer.size()
-		var oa := Vector3(outer[i].x, REBUILD_LOWLAND_Y + 0.025, outer[i].y)
-		var ob := Vector3(outer[j].x, REBUILD_LOWLAND_Y + 0.025, outer[j].y)
+		# Footed on the reserve rather than at the lowland datum: the
+		# promontory's root lifts the reserve to the pad's own level on the
+		# west, where a skirt down to -0.06 would be buried and the walk off
+		# the pad would leave it standing on air.
+		var oa := Vector3(outer[i].x, maxf(REBUILD_LOWLAND_Y,
+			_rebuild_world_reserve_y(outer[i])) + 0.025, outer[i].y)
+		var ob := Vector3(outer[j].x, maxf(REBUILD_LOWLAND_Y,
+			_rebuild_world_reserve_y(outer[j])) + 0.025, outer[j].y)
 		var ia := Vector3(inner[i].x, REBUILD_HEADLAND_Y, inner[i].y)
 		var ib := Vector3(inner[j].x, REBUILD_HEADLAND_Y, inner[j].y)
 		_earth_oriented_tri(st, oa, outer[i] * 0.28,
@@ -18778,13 +18919,20 @@ func _rebuild_lowland_surface_y(p: Vector2) -> float:
 
 
 func _rebuild_site(source: Vector2, zone: StringName) -> Vector3:
-	var p := Plan.rebuild_expand_point(source)
+	return _rebuild_site_at(Plan.rebuild_expand_point(source), zone)
+
+
+## A site's floor at a world point. The headland reads the same functions the
+## coast meshes and the mainland reserve are built from, so a thing placed on
+## the promontory stands on the ground the mesh actually has there; the pad's
+## four metres is a floor under that, for the loop's own table.
+func _rebuild_site_at(p: Vector2, zone: StringName) -> Vector3:
 	var y := 0.0
 	match zone:
 		&"boardwalk": y = Plan.SHORE_TOP
 		&"headland":
 			var ground := _rebuild_coastal_reserve_y(p) if p.x < Plan.REBUILD_WORLD_LAND_FROM_X \
-				else REBUILD_WORLD_RESERVE_Y + _rebuild_coast_feature(p)
+				else _rebuild_world_reserve_y(p)
 			y = maxf(REBUILD_HEADLAND_Y, ground + 0.05)
 		&"family": y = _rebuild_family_floor(p)
 		&"highland", &"north": y = _rebuild_highland_floor(p)
@@ -18792,13 +18940,30 @@ func _rebuild_site(source: Vector2, zone: StringName) -> Vector3:
 	return Vector3(p.x, y, p.y)
 
 
+## `station` > 0 resamples the walk at that spacing and reads the ground at
+## every station, so a path over rising ground follows it instead of drawing
+## chords between its authored points; on a climb of the promontory's shape a
+## 25m chord stands a third of a metre off the surface at its middle.
 func _rebuild_access_path(nm: String, source: Array, zone: StringName,
-		width := 2.8, collide := true) -> void:
+		width := 2.8, collide := true, station := 0.0) -> void:
 	if source.size() < 2:
 		return
-	var points: Array[Vector3] = []
+	var world: Array[Vector2] = []
 	for point in source:
-		points.append(_rebuild_site(Vector2(point), zone))
+		world.append(Plan.rebuild_expand_point(Vector2(point)))
+	var stations: Array[Vector2] = []
+	if station > 0.0:
+		for i in world.size() - 1:
+			if stations.is_empty():
+				stations.append(world[i])
+			var steps := maxi(1, ceili(world[i].distance_to(world[i + 1]) / station))
+			for step in range(1, steps + 1):
+				stations.append(world[i].lerp(world[i + 1], float(step) / float(steps)))
+	else:
+		stations = world
+	var points: Array[Vector3] = []
+	for point in stations:
+		points.append(_rebuild_site_at(point, zone))
 	_rebuild_path(nm, points, width, false, &"", collide)
 
 
@@ -18936,7 +19101,8 @@ func _rebuild_lighthouse(site: Dictionary) -> void:
 	var access_world := _rebuild_site(Vector2(site["access"][-1]), &"headland")
 	_rebuild_open_building("P1_keeper_exhibit", keeper, site["keeper_size"],
 		access_world, "far_warm", "red", 4.0)
-	_rebuild_access_path("P1_public_access", site["access"], &"headland", 3.0)
+	_rebuild_access_path("P1_public_access", site["access"], &"headland", 3.0,
+		true, 8.0)
 
 
 func _rebuild_funhouse(site: Dictionary) -> void:
@@ -19584,6 +19750,57 @@ func _rebuild_water_arc(nm: String, a: Vector3, b: Vector3,
 ## road behind both fields, four gated entries, the drop-off and the walk's
 ## extension to it, the turning circle, hedges, and two planted berms on the
 ## park side. Palms and canopy trees wait on tree instancing being measured.
+## A palm: a tall thin trunk with a slight lean and a crown of seven fronds,
+## each a thin slab pitched down from the crown. About the cheapest thing that
+## still reads as a palm at fifty metres, which is where these are seen from.
+func _palm(nm: String, at: Vector3, height: float, yaw: float) -> void:
+	var lean := 0.06
+	var top := at + Vector3(cos(yaw) * lean * height, height, sin(yaw) * lean * height)
+	_strut(nm + "_trunk", at, top, 0.24, "palm_trunk")
+	_sphere(nm + "_crown", top, Vector3.ZERO, 0.55, "palm_frond")
+	for i in 7:
+		var a := yaw + TAU * float(i) / 7.0
+		var dir := Vector3(cos(a), 0.0, sin(a))
+		var tip := top + dir * 3.0 - Vector3.UP * 1.1
+		_strut(nm + "_frond_%d" % i, top + dir * 0.3, tip, 0.34, "palm_frond")
+
+
+## Palm rows on both edges of the arrival walk from the drop-off to the gate,
+## outside the 14m walk and inside the 26m clear axis, and along the front
+## road's south verge. The setting's palms live where the park meets the
+## water and where it meets the road, and nowhere else.
+func _approach_palms() -> void:
+	var i := 0
+	var z: float = Plan.ARRIVAL_WALK_EXTEND_TO_Z - 4.0
+	while z > 130.0:
+		for side_v in [-1.0, 1.0]:
+			var side: float = side_v
+			_palm("walk_palm_%d_%s" % [i, "w" if side < 0.0 else "e"],
+				Vector3(side * 11.5, 0.0, z), 8.5 + float((i * 7 + int(side + 1.0)) % 4) * 0.7,
+				float(i) * 1.7 + side)
+		i += 1
+		z -= 12.0
+	var x: float = -Plan.FRONT_ROAD_HALF_X + 6.0
+	var j := 0
+	while x < Plan.FRONT_ROAD_HALF_X - 5.0:
+		if absf(x) > 12.0:
+			_palm("front_palm_%d" % j, Vector3(x, 0.0, Plan.FRONT_ROAD_Z + 6.0),
+				8.0 + float(j % 3) * 0.8, float(j) * 2.1)
+		j += 1
+		x += 13.0
+
+
+## Palms along the Boardwalk deck's seaward edge, clear of the pier root and
+## the alley mouth so neither reveal gains a trunk on its axis.
+func _boardwalk_palms() -> void:
+	var i := 0
+	for z_v in [-66.0, -52.0, -38.0, -24.0, 20.0, 34.0, 48.0, 62.0]:
+		var z: float = z_v
+		_palm("deck_palm_%d" % i, Vector3(Plan.SHORE_EDGE + 3.0, Plan.SHORE_TOP, z),
+			8.0 + float(i % 3) * 0.9, float(i) * 1.3)
+		i += 1
+
+
 func _rebuild_approach() -> void:
 	var road: Array[Vector3] = Plan.approach_road_points()
 	_rebuild_path("approach_road", road, Plan.APPROACH_ROAD_W, false, &"", true)
@@ -19626,6 +19843,7 @@ func _rebuild_approach() -> void:
 				Vector3((a + b) * 0.5, 0.0, Plan.HEDGE_Z), Vector3(0.0, 0.6, 0.0),
 				Vector3(b - a, 1.2, 1.5), "planting", 0.0, false)
 		_rebuild_berm("berm_%s" % ["w" if side < 0.0 else "e"], lo, hi)
+	_approach_palms()
 
 
 ## A planted berm: a cosine ridge, BERM_HEIGHT high on the BERM_Z base, run

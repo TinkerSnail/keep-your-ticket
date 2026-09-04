@@ -33,545 +33,526 @@ roughness = 0.9
 albedo_color = Color(0.84, 0.46, 0.55, 1)
 roughness = 0.9
 
-[node name="west_shell" type="Node3D" unique_id=581057529]
+[node name="west_shell" type="Node3D" unique_id=2107888939]
 
-[node name="water" type="CSGBox3D" parent="." unique_id=5679898]
+[node name="water" type="CSGBox3D" parent="." unique_id=600164160]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2134.9976, -11.4975, 0.0025000002)
 size = Vector3(4130, 8, 6400)
 material = SubResource("StandardMaterial3D_ikd07")
 
-[node name="bluff_outer_north" type="CSGBox3D" parent="." unique_id=926159685]
+[node name="bluff_outer_north" type="CSGBox3D" parent="." unique_id=1664059502]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54.49725, -6.0072503, -215.49725)
 use_collision = true
 size = Vector3(7, 12, 90)
 material = SubResource("StandardMaterial3D_ifc7x")
 
-[node name="bluff_north" type="CSGBox3D" parent="." unique_id=591047964]
+[node name="bluff_north" type="CSGBox3D" parent="." unique_id=1540823632]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54.497, -6.0070004, -119.978264)
 use_collision = true
 size = Vector3(7, 12, 101.037476)
 material = SubResource("StandardMaterial3D_i35i5")
 
-[node name="bluff" type="CSGBox3D" parent="." unique_id=1649028205]
+[node name="bluff" type="CSGBox3D" parent="." unique_id=1631317138]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54.49675, -6.00675, 17.350786)
 use_collision = true
 size = Vector3(7, 12, 148.83443)
 material = SubResource("StandardMaterial3D_i35i5")
 
-[node name="bluff_south" type="CSGBox3D" parent="." unique_id=1585803448]
+[node name="bluff_south" type="CSGBox3D" parent="." unique_id=246811953]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54.4965, -6.0065002, 150.50667)
 use_collision = true
 size = Vector3(7, 12, 39.993652)
 material = SubResource("StandardMaterial3D_i35i5")
 
-[node name="bluff_outer_south" type="CSGBox3D" parent="." unique_id=1632230271]
+[node name="bluff_outer_south" type="CSGBox3D" parent="." unique_id=1435640653]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54.49625, -6.0062504, 215.50375)
 use_collision = true
 size = Vector3(7, 12, 90)
 material = SubResource("StandardMaterial3D_ifc7x")
 
-[node name="bluff_cut_0_north_return" type="CSGBox3D" parent="." unique_id=1970570347]
+[node name="bluff_cut_0_north_return" type="CSGBox3D" parent="." unique_id=1779242095]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54.496, -2.996, -69.45853)
 use_collision = true
 size = Vector3(7, 6, 0.28)
 material = SubResource("StandardMaterial3D_wgdx1")
 
-[node name="bluff_cut_0_south_return" type="CSGBox3D" parent="." unique_id=714529170]
+[node name="bluff_cut_0_south_return" type="CSGBox3D" parent="." unique_id=1338325220]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54.49575, -2.99575, -57.065426)
 use_collision = true
 size = Vector3(7, 6, 0.28)
 material = SubResource("StandardMaterial3D_wgdx1")
 
-[node name="bluff_cut_1_north_return" type="CSGBox3D" parent="." unique_id=1702046716]
+[node name="bluff_cut_1_north_return" type="CSGBox3D" parent="." unique_id=1176918584]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54.4955, -2.9955, 91.76925)
 use_collision = true
 size = Vector3(7, 6, 0.28)
 material = SubResource("StandardMaterial3D_wgdx1")
 
-[node name="bluff_cut_1_south_return" type="CSGBox3D" parent="." unique_id=584138822]
+[node name="bluff_cut_1_south_return" type="CSGBox3D" parent="." unique_id=1791611556]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54.49525, -2.99525, 130.5111)
 use_collision = true
 size = Vector3(7, 6, 0.28)
 material = SubResource("StandardMaterial3D_wgdx1")
 
-[node name="bluff_coping_0" type="CSGBox3D" parent="." unique_id=783390070]
+[node name="bluff_coping_0" type="CSGBox3D" parent="." unique_id=854186380]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -57.844997, -0.345, -72.226265)
 size = Vector3(1.1, 0.7, 5.5374756)
 material = SubResource("StandardMaterial3D_wgdx1")
 
-[node name="bluff_coping" type="CSGBox3D" parent="." unique_id=1119924921]
+[node name="bluff_coping" type="CSGBox3D" parent="." unique_id=316781232]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -57.85, -0.35, 8.965162)
 size = Vector3(1.1, 0.7, 132.06967)
 material = SubResource("StandardMaterial3D_wgdx1")
 
-[node name="bluff_plinth_0" type="CSGBox3D" parent="." unique_id=874570661]
+[node name="bluff_plinth_0" type="CSGBox3D" parent="." unique_id=27493804]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.174747, -6.09975, -72.23101)
 use_collision = true
 size = Vector3(0.95, 1.4, 5.5374756)
 material = SubResource("StandardMaterial3D_wgdx1")
 
-[node name="bluff_plinth" type="CSGBox3D" parent="." unique_id=96995796]
+[node name="bluff_plinth" type="CSGBox3D" parent="." unique_id=1458415375]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.1745, -6.0994997, 8.965662)
 use_collision = true
 size = Vector3(0.95, 1.4, 132.06967)
 material = SubResource("StandardMaterial3D_wgdx1")
 
-[node name="bluff_buttress_0" type="CSGBox3D" parent="." unique_id=829627126]
+[node name="bluff_buttress_0" type="CSGBox3D" parent="." unique_id=1190280408]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.23925, -3.3692498, -71.99925)
 size = Vector3(0.5, 5.38, 1.2)
 material = SubResource("StandardMaterial3D_i35i5")
 
-[node name="bluff_buttress_2" type="CSGBox3D" parent="." unique_id=616802020]
+[node name="bluff_buttress_2" type="CSGBox3D" parent="." unique_id=1667734954]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.239002, -3.369, -55.999)
 size = Vector3(0.5, 5.38, 1.2)
 material = SubResource("StandardMaterial3D_i35i5")
 
-[node name="bluff_buttress_3" type="CSGBox3D" parent="." unique_id=1331876127]
+[node name="bluff_buttress_3" type="CSGBox3D" parent="." unique_id=1838649529]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.23875, -3.3687499, -47.99875)
 size = Vector3(0.5, 5.38, 1.2)
 material = SubResource("StandardMaterial3D_i35i5")
 
-[node name="bluff_buttress_4" type="CSGBox3D" parent="." unique_id=1784836715]
+[node name="bluff_buttress_4" type="CSGBox3D" parent="." unique_id=999685687]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.238503, -3.3685, -39.9985)
 size = Vector3(0.5, 5.38, 1.2)
 material = SubResource("StandardMaterial3D_i35i5")
 
-[node name="bluff_buttress_5" type="CSGBox3D" parent="." unique_id=860579156]
+[node name="bluff_buttress_5" type="CSGBox3D" parent="." unique_id=228703200]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.23825, -3.36825, -31.99825)
 size = Vector3(0.5, 5.38, 1.2)
 material = SubResource("StandardMaterial3D_i35i5")
 
-[node name="bluff_buttress_6" type="CSGBox3D" parent="." unique_id=821772688]
+[node name="bluff_buttress_6" type="CSGBox3D" parent="." unique_id=1654595121]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.238003, -3.3679998, -23.998)
 size = Vector3(0.5, 5.38, 1.2)
 material = SubResource("StandardMaterial3D_i35i5")
 
-[node name="bluff_buttress_7" type="CSGBox3D" parent="." unique_id=1042213212]
+[node name="bluff_buttress_7" type="CSGBox3D" parent="." unique_id=1770677281]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.23775, -3.36775, -15.99775)
 size = Vector3(0.5, 5.38, 1.2)
 material = SubResource("StandardMaterial3D_i35i5")
 
-[node name="bluff_buttress_8" type="CSGBox3D" parent="." unique_id=158687925]
+[node name="bluff_buttress_8" type="CSGBox3D" parent="." unique_id=1756676453]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.237503, -3.3674998, -7.9975)
 size = Vector3(0.5, 5.38, 1.2)
 material = SubResource("StandardMaterial3D_i35i5")
 
-[node name="bluff_buttress_9" type="CSGBox3D" parent="." unique_id=1152717072]
+[node name="bluff_buttress_9" type="CSGBox3D" parent="." unique_id=230143232]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.23725, -3.36725, 0.0027500002)
 size = Vector3(0.5, 5.38, 1.2)
 material = SubResource("StandardMaterial3D_i35i5")
 
-[node name="bluff_buttress_10" type="CSGBox3D" parent="." unique_id=1758083644]
+[node name="bluff_buttress_10" type="CSGBox3D" parent="." unique_id=1190906605]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.237003, -3.3669999, 8.003)
 size = Vector3(0.5, 5.38, 1.2)
 material = SubResource("StandardMaterial3D_i35i5")
 
-[node name="bluff_buttress_11" type="CSGBox3D" parent="." unique_id=1959622335]
+[node name="bluff_buttress_11" type="CSGBox3D" parent="." unique_id=1229667431]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.23675, -3.36675, 16.00325)
 size = Vector3(0.5, 5.38, 1.2)
 material = SubResource("StandardMaterial3D_i35i5")
 
-[node name="bluff_buttress_12" type="CSGBox3D" parent="." unique_id=958284702]
+[node name="bluff_buttress_12" type="CSGBox3D" parent="." unique_id=1696007560]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.2365, -3.3665, 24.0035)
 size = Vector3(0.5, 5.38, 1.2)
 material = SubResource("StandardMaterial3D_i35i5")
 
-[node name="bluff_buttress_13" type="CSGBox3D" parent="." unique_id=617471391]
+[node name="bluff_buttress_13" type="CSGBox3D" parent="." unique_id=464107661]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.23625, -3.3662498, 32.00375)
 size = Vector3(0.5, 5.38, 1.2)
 material = SubResource("StandardMaterial3D_i35i5")
 
-[node name="bluff_buttress_14" type="CSGBox3D" parent="." unique_id=816518959]
+[node name="bluff_buttress_14" type="CSGBox3D" parent="." unique_id=282567684]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.236, -3.366, 40.004)
 size = Vector3(0.5, 5.38, 1.2)
 material = SubResource("StandardMaterial3D_i35i5")
 
-[node name="bluff_buttress_15" type="CSGBox3D" parent="." unique_id=1752640421]
+[node name="bluff_buttress_15" type="CSGBox3D" parent="." unique_id=694966220]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.235752, -3.3657498, 48.00425)
 size = Vector3(0.5, 5.38, 1.2)
 material = SubResource("StandardMaterial3D_i35i5")
 
-[node name="bluff_buttress_16" type="CSGBox3D" parent="." unique_id=2103504755]
+[node name="bluff_buttress_16" type="CSGBox3D" parent="." unique_id=55800461]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.2355, -3.3655, 56.0045)
 size = Vector3(0.5, 5.38, 1.2)
 material = SubResource("StandardMaterial3D_i35i5")
 
-[node name="bluff_buttress_17" type="CSGBox3D" parent="." unique_id=1483481194]
+[node name="bluff_buttress_17" type="CSGBox3D" parent="." unique_id=717506966]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.235252, -3.3652499, 64.00475)
 size = Vector3(0.5, 5.38, 1.2)
 material = SubResource("StandardMaterial3D_i35i5")
 
-[node name="bluff_buttress_18" type="CSGBox3D" parent="." unique_id=2005950659]
+[node name="bluff_buttress_18" type="CSGBox3D" parent="." unique_id=643178290]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.235, -3.3649998, 72.005)
 size = Vector3(0.5, 5.38, 1.2)
 material = SubResource("StandardMaterial3D_i35i5")
 
-[node name="bluff_pier_n" type="CSGBox3D" parent="." unique_id=2041430952]
+[node name="bluff_pier_n" type="CSGBox3D" parent="." unique_id=495516363]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.36, -2.97, -73.9)
 use_collision = true
 size = Vector3(0.8, 6.18, 2.4)
 material = SubResource("StandardMaterial3D_wgdx1")
 
-[node name="bluff_pier_s" type="CSGBox3D" parent="." unique_id=1211390571]
+[node name="bluff_pier_s" type="CSGBox3D" parent="." unique_id=726773554]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.35975, -2.96975, 73.90025)
 use_collision = true
 size = Vector3(0.8, 6.18, 2.4)
 material = SubResource("StandardMaterial3D_wgdx1")
 
-[node name="bluff_bed_n_0" type="CSGBox3D" parent="." unique_id=546599561]
+[node name="bluff_bed_n_0" type="CSGBox3D" parent="." unique_id=1193340935]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.2995, -6.0245, -14.1995)
 use_collision = true
 size = Vector3(1.4, 1.95, 4.4)
 material = SubResource("StandardMaterial3D_4k5a5")
 
-[node name="bluff_bed_soil_n_0" type="CSGBox3D" parent="." unique_id=1524034338]
+[node name="bluff_bed_soil_n_0" type="CSGBox3D" parent="." unique_id=977965614]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.299248, -4.88925, -14.19925)
 size = Vector3(1.04, 0.32, 4.16)
 material = SubResource("StandardMaterial3D_ifc7x")
 
-[node name="bluff_bloom_n_0_0" type="CSGSphere3D" parent="." unique_id=369813867]
+[node name="bluff_bloom_n_0_0" type="CSGSphere3D" parent="." unique_id=333976601]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.26645, -4.719, -13.7287855)
 radius = 0.18015976
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nqx8m")
 
-[node name="bluff_bloom_n_0_1" type="CSGSphere3D" parent="." unique_id=899096855]
+[node name="bluff_bloom_n_0_1" type="CSGSphere3D" parent="." unique_id=1951885192]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.638123, -4.71875, -15.205657)
 radius = 0.15800016
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nhsof")
 
-[node name="bluff_bloom_n_0_2" type="CSGSphere3D" parent="." unique_id=2025078232]
+[node name="bluff_bloom_n_0_2" type="CSGSphere3D" parent="." unique_id=1748093261]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.983707, -4.7184997, -13.714906)
 radius = 0.26984757
 radial_segments = 10
 material = SubResource("StandardMaterial3D_ygdoh")
 
-[node name="bluff_bloom_n_0_3" type="CSGSphere3D" parent="." unique_id=1909780425]
+[node name="bluff_bloom_n_0_3" type="CSGSphere3D" parent="." unique_id=1937185089]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.95505, -4.71825, -15.498063)
 radius = 0.19192095
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nqx8m")
 
-[node name="bluff_bloom_n_0_4" type="CSGSphere3D" parent="." unique_id=406594374]
+[node name="bluff_bloom_n_0_4" type="CSGSphere3D" parent="." unique_id=1591235349]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.38067, -4.718, -13.143724)
 radius = 0.21310659
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nhsof")
 
-[node name="bluff_bed_n_1" type="CSGBox3D" parent="." unique_id=1433794026]
+[node name="bluff_bed_n_1" type="CSGBox3D" parent="." unique_id=1608770664]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.29775, -6.0977497, -18.99775)
 use_collision = true
 size = Vector3(1.4, 1.8, 4.4)
 material = SubResource("StandardMaterial3D_4k5a5")
 
-[node name="bluff_bed_soil_n_1" type="CSGBox3D" parent="." unique_id=23411]
+[node name="bluff_bed_soil_n_1" type="CSGBox3D" parent="." unique_id=917904669]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.2975, -5.0375, -18.9975)
 size = Vector3(1.04, 0.32, 4.16)
 material = SubResource("StandardMaterial3D_ifc7x")
 
-[node name="bluff_bloom_n_1_0" type="CSGSphere3D" parent="." unique_id=1158754823]
+[node name="bluff_bloom_n_1_0" type="CSGSphere3D" parent="." unique_id=968793190]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.29438, -4.86725, -17.488033)
 radius = 0.18015976
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nhsof")
 
-[node name="bluff_bloom_n_1_1" type="CSGSphere3D" parent="." unique_id=2092821158]
+[node name="bluff_bloom_n_1_1" type="CSGSphere3D" parent="." unique_id=817906331]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.00503, -4.867, -18.55908)
 radius = 0.15800016
 radial_segments = 10
 material = SubResource("StandardMaterial3D_ygdoh")
 
-[node name="bluff_bloom_n_1_2" type="CSGSphere3D" parent="." unique_id=1751029748]
+[node name="bluff_bloom_n_1_2" type="CSGSphere3D" parent="." unique_id=375985191]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.500458, -4.86675, -19.517832)
 radius = 0.26984757
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nqx8m")
 
-[node name="bluff_bloom_n_1_3" type="CSGSphere3D" parent="." unique_id=1886238659]
+[node name="bluff_bloom_n_1_3" type="CSGSphere3D" parent="." unique_id=1563193433]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.978287, -4.8665, -18.038034)
 radius = 0.19192095
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nhsof")
 
-[node name="bluff_bloom_n_1_4" type="CSGSphere3D" parent="." unique_id=1911293140]
+[node name="bluff_bloom_n_1_4" type="CSGSphere3D" parent="." unique_id=932921608]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.614174, -4.86625, -19.57876)
 radius = 0.21310659
 radial_segments = 10
 material = SubResource("StandardMaterial3D_ygdoh")
 
-[node name="bluff_bed_n_2" type="CSGBox3D" parent="." unique_id=2073428247]
+[node name="bluff_bed_n_2" type="CSGBox3D" parent="." unique_id=841953118]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.295998, -6.171, -23.796)
 use_collision = true
 size = Vector3(1.4, 1.65, 4.4)
 material = SubResource("StandardMaterial3D_4k5a5")
 
-[node name="bluff_bed_soil_n_2" type="CSGBox3D" parent="." unique_id=1927594209]
+[node name="bluff_bed_soil_n_2" type="CSGBox3D" parent="." unique_id=1968123647]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.29575, -5.18575, -23.79575)
 size = Vector3(1.04, 0.32, 4.16)
 material = SubResource("StandardMaterial3D_ifc7x")
 
-[node name="bluff_bloom_n_2_0" type="CSGSphere3D" parent="." unique_id=1985260238]
+[node name="bluff_bloom_n_2_0" type="CSGSphere3D" parent="." unique_id=1875432336]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.182903, -5.0155, -24.020063)
 radius = 0.18015976
 radial_segments = 10
 material = SubResource("StandardMaterial3D_ygdoh")
 
-[node name="bluff_bloom_n_2_1" type="CSGSphere3D" parent="." unique_id=259092719]
+[node name="bluff_bloom_n_2_1" type="CSGSphere3D" parent="." unique_id=1293105732]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.223797, -5.01525, -23.055222)
 radius = 0.15800016
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nqx8m")
 
-[node name="bluff_bloom_n_2_2" type="CSGSphere3D" parent="." unique_id=360701452]
+[node name="bluff_bloom_n_2_2" type="CSGSphere3D" parent="." unique_id=1037472341]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.086826, -5.015, -22.195225)
 radius = 0.26984757
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nhsof")
 
-[node name="bluff_bloom_n_2_3" type="CSGSphere3D" parent="." unique_id=542767360]
+[node name="bluff_bloom_n_2_3" type="CSGSphere3D" parent="." unique_id=1537015927]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.481106, -5.02, -22.46919)
 radius = 0.19192095
 radial_segments = 10
 material = SubResource("StandardMaterial3D_ygdoh")
 
-[node name="bluff_bloom_n_2_4" type="CSGSphere3D" parent="." unique_id=642182011]
+[node name="bluff_bloom_n_2_4" type="CSGSphere3D" parent="." unique_id=1214448661]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.50416, -5.01975, -21.953815)
 radius = 0.21310659
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nqx8m")
 
-[node name="bluff_bed_n_3" type="CSGBox3D" parent="." unique_id=1166162978]
+[node name="bluff_bed_n_3" type="CSGBox3D" parent="." unique_id=529934037]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.2995, -6.2495, -28.5995)
 use_collision = true
 size = Vector3(1.4, 1.5, 4.4)
 material = SubResource("StandardMaterial3D_4k5a5")
 
-[node name="bluff_bed_soil_n_3" type="CSGBox3D" parent="." unique_id=1078710298]
+[node name="bluff_bed_soil_n_3" type="CSGBox3D" parent="." unique_id=261900390]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.299248, -5.33925, -28.59925)
 size = Vector3(1.04, 0.32, 4.16)
 material = SubResource("StandardMaterial3D_ifc7x")
 
-[node name="bluff_bloom_n_3_0" type="CSGSphere3D" parent="." unique_id=358512746]
+[node name="bluff_bloom_n_3_0" type="CSGSphere3D" parent="." unique_id=1430872085]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.402157, -5.169, -28.48713)
 radius = 0.18015976
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nqx8m")
 
-[node name="bluff_bloom_n_3_1" type="CSGSphere3D" parent="." unique_id=27194046]
+[node name="bluff_bloom_n_3_1" type="CSGSphere3D" parent="." unique_id=1226507058]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.25226, -5.1687503, -27.86578)
 radius = 0.15800016
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nhsof")
 
-[node name="bluff_bloom_n_3_2" type="CSGSphere3D" parent="." unique_id=810360831]
+[node name="bluff_bloom_n_3_2" type="CSGSphere3D" parent="." unique_id=305615381]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.048832, -5.1685, -28.50001)
 radius = 0.26984757
 radial_segments = 10
 material = SubResource("StandardMaterial3D_ygdoh")
 
-[node name="bluff_bloom_n_3_3" type="CSGSphere3D" parent="." unique_id=1428563363]
+[node name="bluff_bloom_n_3_3" type="CSGSphere3D" parent="." unique_id=692121948]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.369625, -5.16825, -30.420359)
 radius = 0.19192095
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nqx8m")
 
-[node name="bluff_bloom_n_3_4" type="CSGSphere3D" parent="." unique_id=1599431046]
+[node name="bluff_bloom_n_3_4" type="CSGSphere3D" parent="." unique_id=622439358]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.105293, -5.168, -28.248606)
 radius = 0.21310659
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nhsof")
 
-[node name="bluff_bed_s_0" type="CSGBox3D" parent="." unique_id=736671139]
+[node name="bluff_bed_s_0" type="CSGBox3D" parent="." unique_id=1851599098]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.29775, -6.02275, 14.20225)
 use_collision = true
 size = Vector3(1.4, 1.95, 4.4)
 material = SubResource("StandardMaterial3D_4k5a5")
 
-[node name="bluff_bed_soil_s_0" type="CSGBox3D" parent="." unique_id=1867506504]
+[node name="bluff_bed_soil_s_0" type="CSGBox3D" parent="." unique_id=1704459515]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.2975, -4.8875, 14.202499)
 size = Vector3(1.04, 0.32, 4.16)
 material = SubResource("StandardMaterial3D_ifc7x")
 
-[node name="bluff_bloom_s_0_0" type="CSGSphere3D" parent="." unique_id=775494179]
+[node name="bluff_bloom_s_0_0" type="CSGSphere3D" parent="." unique_id=1522335926]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.264698, -4.71725, 14.672964)
 radius = 0.18015976
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nqx8m")
 
-[node name="bluff_bloom_s_0_1" type="CSGSphere3D" parent="." unique_id=800981130]
+[node name="bluff_bloom_s_0_1" type="CSGSphere3D" parent="." unique_id=1846587577]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.636375, -4.717, 13.196094)
 radius = 0.15800016
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nhsof")
 
-[node name="bluff_bloom_s_0_2" type="CSGSphere3D" parent="." unique_id=2122167749]
+[node name="bluff_bloom_s_0_2" type="CSGSphere3D" parent="." unique_id=849332212]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.981956, -4.7167497, 14.686845)
 radius = 0.26984757
 radial_segments = 10
 material = SubResource("StandardMaterial3D_ygdoh")
 
-[node name="bluff_bloom_s_0_3" type="CSGSphere3D" parent="." unique_id=1945231323]
+[node name="bluff_bloom_s_0_3" type="CSGSphere3D" parent="." unique_id=954154298]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.9533, -4.7165, 12.903687)
 radius = 0.19192095
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nqx8m")
 
-[node name="bluff_bloom_s_0_4" type="CSGSphere3D" parent="." unique_id=26326993]
+[node name="bluff_bloom_s_0_4" type="CSGSphere3D" parent="." unique_id=816923861]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.378918, -4.71625, 15.258025)
 radius = 0.21310659
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nhsof")
 
-[node name="bluff_bed_s_1" type="CSGBox3D" parent="." unique_id=941527260]
+[node name="bluff_bed_s_1" type="CSGBox3D" parent="." unique_id=297200014]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.295998, -6.0959997, 19.004)
 use_collision = true
 size = Vector3(1.4, 1.8, 4.4)
 material = SubResource("StandardMaterial3D_4k5a5")
 
-[node name="bluff_bed_soil_s_1" type="CSGBox3D" parent="." unique_id=420863780]
+[node name="bluff_bed_soil_s_1" type="CSGBox3D" parent="." unique_id=443665016]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.29575, -5.03575, 19.00425)
 size = Vector3(1.04, 0.32, 4.16)
 material = SubResource("StandardMaterial3D_ifc7x")
 
-[node name="bluff_bloom_s_1_0" type="CSGSphere3D" parent="." unique_id=556630551]
+[node name="bluff_bloom_s_1_0" type="CSGSphere3D" parent="." unique_id=99733824]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.29263, -4.8655, 20.513716)
 radius = 0.18015976
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nhsof")
 
-[node name="bluff_bloom_s_1_1" type="CSGSphere3D" parent="." unique_id=151240152]
+[node name="bluff_bloom_s_1_1" type="CSGSphere3D" parent="." unique_id=1353727561]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.00328, -4.86525, 19.442669)
 radius = 0.15800016
 radial_segments = 10
 material = SubResource("StandardMaterial3D_ygdoh")
 
-[node name="bluff_bloom_s_1_2" type="CSGSphere3D" parent="." unique_id=1618151537]
+[node name="bluff_bloom_s_1_2" type="CSGSphere3D" parent="." unique_id=1121602649]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.498707, -4.865, 18.483917)
 radius = 0.26984757
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nqx8m")
 
-[node name="bluff_bloom_s_1_3" type="CSGSphere3D" parent="." unique_id=1227459376]
+[node name="bluff_bloom_s_1_3" type="CSGSphere3D" parent="." unique_id=770771481]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.98179, -4.87, 19.958466)
 radius = 0.19192095
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nhsof")
 
-[node name="bluff_bloom_s_1_4" type="CSGSphere3D" parent="." unique_id=1638850343]
+[node name="bluff_bloom_s_1_4" type="CSGSphere3D" parent="." unique_id=700443991]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.617672, -4.86975, 18.41774)
 radius = 0.21310659
 radial_segments = 10
 material = SubResource("StandardMaterial3D_ygdoh")
 
-[node name="bluff_bed_s_2" type="CSGBox3D" parent="." unique_id=271087993]
+[node name="bluff_bed_s_2" type="CSGBox3D" parent="." unique_id=456388577]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.2995, -6.1745, 23.800499)
 use_collision = true
 size = Vector3(1.4, 1.65, 4.4)
 material = SubResource("StandardMaterial3D_4k5a5")
 
-[node name="bluff_bed_soil_s_2" type="CSGBox3D" parent="." unique_id=54242447]
+[node name="bluff_bed_soil_s_2" type="CSGBox3D" parent="." unique_id=1243076793]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.299248, -5.18925, 23.800749)
 size = Vector3(1.04, 0.32, 4.16)
 material = SubResource("StandardMaterial3D_ifc7x")
 
-[node name="bluff_bloom_s_2_0" type="CSGSphere3D" parent="." unique_id=1218674503]
+[node name="bluff_bloom_s_2_0" type="CSGSphere3D" parent="." unique_id=475248588]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.186405, -5.019, 23.576437)
 radius = 0.18015976
 radial_segments = 10
 material = SubResource("StandardMaterial3D_ygdoh")
 
-[node name="bluff_bloom_s_2_1" type="CSGSphere3D" parent="." unique_id=2118893300]
+[node name="bluff_bloom_s_2_1" type="CSGSphere3D" parent="." unique_id=1335808393]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.227295, -5.01875, 24.541277)
 radius = 0.15800016
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nqx8m")
 
-[node name="bluff_bloom_s_2_2" type="CSGSphere3D" parent="." unique_id=808185304]
+[node name="bluff_bloom_s_2_2" type="CSGSphere3D" parent="." unique_id=58072180]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.09033, -5.0185, 25.401276)
 radius = 0.26984757
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nhsof")
 
-[node name="bluff_bloom_s_2_3" type="CSGSphere3D" parent="." unique_id=1489291825]
+[node name="bluff_bloom_s_2_3" type="CSGSphere3D" parent="." unique_id=1281456481]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.479355, -5.01825, 25.132559)
 radius = 0.19192095
 radial_segments = 10
 material = SubResource("StandardMaterial3D_ygdoh")
 
-[node name="bluff_bloom_s_2_4" type="CSGSphere3D" parent="." unique_id=339925383]
+[node name="bluff_bloom_s_2_4" type="CSGSphere3D" parent="." unique_id=929183917]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.502415, -5.018, 25.647936)
 radius = 0.21310659
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nqx8m")
 
-[node name="bluff_bed_s_3" type="CSGBox3D" parent="." unique_id=212422383]
+[node name="bluff_bed_s_3" type="CSGBox3D" parent="." unique_id=129513258]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.29775, -6.24775, 28.602251)
 use_collision = true
 size = Vector3(1.4, 1.5, 4.4)
 material = SubResource("StandardMaterial3D_4k5a5")
 
-[node name="bluff_bed_soil_s_3" type="CSGBox3D" parent="." unique_id=517026114]
+[node name="bluff_bed_soil_s_3" type="CSGBox3D" parent="." unique_id=1564045456]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.2975, -5.3375, 28.6025)
 size = Vector3(1.04, 0.32, 4.16)
 material = SubResource("StandardMaterial3D_ifc7x")
 
-[node name="bluff_bloom_s_3_0" type="CSGSphere3D" parent="." unique_id=747290620]
+[node name="bluff_bloom_s_3_0" type="CSGSphere3D" parent="." unique_id=1154169433]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.400406, -5.16725, 28.714622)
 radius = 0.18015976
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nqx8m")
 
-[node name="bluff_bloom_s_3_1" type="CSGSphere3D" parent="." unique_id=621606446]
+[node name="bluff_bloom_s_3_1" type="CSGSphere3D" parent="." unique_id=385786996]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.25051, -5.1670003, 29.335972)
 radius = 0.15800016
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nhsof")
 
-[node name="bluff_bloom_s_3_2" type="CSGSphere3D" parent="." unique_id=261144171]
+[node name="bluff_bloom_s_3_2" type="CSGSphere3D" parent="." unique_id=1098868597]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.04708, -5.16675, 28.701742)
 radius = 0.26984757
 radial_segments = 10
 material = SubResource("StandardMaterial3D_ygdoh")
 
-[node name="bluff_bloom_s_3_3" type="CSGSphere3D" parent="." unique_id=2090869045]
+[node name="bluff_bloom_s_3_3" type="CSGSphere3D" parent="." unique_id=463140200]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.367874, -5.1665, 26.781391)
 radius = 0.19192095
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nqx8m")
 
-[node name="bluff_bloom_s_3_4" type="CSGSphere3D" parent="." unique_id=1318499667]
+[node name="bluff_bloom_s_3_4" type="CSGSphere3D" parent="." unique_id=2071921958]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.103542, -5.16625, 28.953142)
 radius = 0.21310659
 radial_segments = 10
 material = SubResource("StandardMaterial3D_nhsof")
 
-[node name="shore" type="CSGBox3D" parent="." unique_id=1858495775]
+[node name="shore" type="CSGBox3D" parent="." unique_id=435224889]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -81.996, -8.996, 0.004)
 use_collision = true
 size = Vector3(52, 6, 340)
 material = SubResource("StandardMaterial3D_i35i5")
 
-[node name="shore_north_transition" type="CSGBox3D" parent="." unique_id=7321473]
-transform = Transform3D(1, 0, 0, 0, 0.9979013, 0.06475271, 0, -0.06475271, 0.9979013, -81.99575, -3.27533, -214.98279)
-use_collision = true
-size = Vector3(52, 0.4, 90.18928)
-material = SubResource("StandardMaterial3D_ifc7x")
-
-[node name="shore_south_transition" type="CSGBox3D" parent="." unique_id=931589866]
-transform = Transform3D(1, 0, 0, 0, 0.9979013, 0.06475271, 0, -0.06475271, 0.9979013, -81.9955, -3.2750802, 215.01746)
-use_collision = true
-size = Vector3(52, 0.4, 90.18928)
-material = SubResource("StandardMaterial3D_ifc7x")
-
-[node name="shore_north_reserve" type="CSGBox3D" parent="." unique_id=818475590]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -81.99525, -3.15525, -1229.9952)
-use_collision = true
-size = Vector3(52, 6, 1940)
-material = SubResource("StandardMaterial3D_ifc7x")
-
-[node name="shore_south_reserve" type="CSGBox3D" parent="." unique_id=2019633649]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -81.995, -3.155, 1230.005)
-use_collision = true
-size = Vector3(52, 6, 1940)
-material = SubResource("StandardMaterial3D_ifc7x")
+[node name="water_bay" type="CSGBox3D" parent="." unique_id=1704530812]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 365.00424, -11.49575, 1750.0043)
+size = Vector3(870, 8, 2900)
+material = SubResource("StandardMaterial3D_ikd07")
