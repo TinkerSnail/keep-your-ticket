@@ -1645,8 +1645,10 @@ const RIM_RANGE_NOISE := [[400.0, 0.12], [120.0, 0.05]]
 
 ## The approach road (parking clause): down the +75° valley at no more than
 ## 1:12, curving into the front road at z 236 behind both parking fields.
+## Since the highway (2026-09-04) the road ends at the trough junction where
+## it meets the highway, rather than climbing on up the ridge flank.
 const APPROACH_ROAD := [
-	Vector2(250.0, 520.0), Vector2(222.0, 400.0), Vector2(190.0, 300.0),
+	Vector2(204.0, 322.0), Vector2(190.0, 300.0),
 	Vector2(130.0, 262.0), Vector2(80.0, 236.0),
 ]
 const APPROACH_ROAD_W := 7.0
@@ -1712,6 +1714,81 @@ const COAST_SOUTH_OUTLINE := [
 ## starts well north of the crossing and is under land there.
 const BAY_WATER_FROM_Z := 300.0
 const BAY_WATER_TO_X := 800.0
+
+## The coast highway (package 02B, 2026-09-04): the Pacific Coast Highway
+## equivalent, and the road the character drives to work. The park fills the
+## shelf from the water to the range's toe, so a through road cannot pass it
+## along the shore; it goes behind the first ridge instead, in the trough the
+## range profile leaves at its inner edge — a level saddle about ten metres up
+## with almost no spur relief, all the way round the crescent. **The first
+## alignment looped the second ridge's dip valley 770m out and was rejected
+## by the generator the same day**: the spurs stand sixty to ninety metres
+## over the valleys between them right down to the foothill, so that loop
+## was seven tunnels totalling 2.7km, and the road could not climb the second
+## ridge at 1:12 fast enough to top it, so the crest turnout was buried.
+##
+## In drive order, north to south: down the north coast on the range's
+## shore-fade face about 90m inland, forty to ninety metres up, forest above
+## and the sea below through the trees; an oblique descent to 45m inland
+## round the arm's foot, where the bay and the park open beneath the road;
+## behind the headland into the trough; round the trough behind the park,
+## hidden by the foothill; the junction at the foothill's back where the
+## park's road, the built approach road, leaves it; on round behind the
+## parking; then out to the bay's far shore at 60m inland and on south-east.
+## This is the plan in XZ only. Heights come from the terrain in the
+## generator, held to `HIGHWAY_MAX_GRADE` by lowering, so the road is on the
+## surface where the ground allows it and in a cutting where it does not; a
+## stretch buried deeper than `HIGHWAY_TUNNEL_COVER` for longer than
+## `HIGHWAY_TUNNEL_MIN_LEN` is a tunnel. Every number here is a target the
+## reveal frames judge.
+const HIGHWAY_W := 8.0
+const HIGHWAY_MAX_GRADE := 1.0 / 12.0
+const HIGHWAY_STATION := 20.0
+const HIGHWAY_TUNNEL_COVER := 9.0
+const HIGHWAY_TUNNEL_MIN_LEN := 40.0
+## The trough: this far outside the range's inner edge, on every bearing.
+const HIGHWAY_TROUGH_D := 5.0
+## Where the wide view opens on the descent, and where the park's road leaves.
+const HIGHWAY_VIEW := Vector2(-118.0, -640.0)
+const HIGHWAY_JUNCTION := Vector2(204.0, 322.0)
+## Forest clearings on the road: the view bend, seaward, and two glimpse
+## bends on the high coast. [centre, radius].
+const HIGHWAY_CLEARINGS := [
+	[Vector2(-150.0, -620.0), 45.0],
+	[Vector2(-235.0, -1050.0), 28.0],
+	[Vector2(-360.0, -1400.0), 28.0],
+]
+
+
+## The highway's plan line, north to south.
+static func highway_path() -> Array[Vector2]:
+	var pts: Array[Vector2] = []
+	# The north coast: 60m inland on the mountain face, which the shore fade
+	# puts thirty to fifty metres up — at 90m inland it was over a hundred
+	# and the road was a 512m tunnel — easing to 45m inland by the headland's
+	# back so the road comes down round the arm's foot at about 1:12.
+	for q in [Vector2(-480.0, -2000.0), Vector2(-420.0, -1700.0),
+			Vector2(-330.0, -1400.0), Vector2(-270.0, -1200.0),
+			Vector2(-210.0, -1000.0), Vector2(-170.0, -900.0),
+			Vector2(-152.0, -800.0), Vector2(-135.0, -700.0),
+			Vector2(-115.0, -600.0), Vector2(-95.0, -520.0),
+			Vector2(-85.0, -450.0)]:
+		pts.append(q)
+	# Round the crescent in the trough behind the first ridge, from the
+	# headland's back to the parking's, and on to where the far shore begins.
+	var theta := -110.0
+	while theta <= 95.0 + 0.001:
+		var r := range_inner(theta) + HIGHWAY_TROUGH_D
+		pts.append(RIM_RANGE_CENTRE + Vector2(cos(deg_to_rad(theta)),
+			sin(deg_to_rad(theta))) * r)
+		theta += 5.0
+	# Out to the bay's far shore, 60m inland, and on south-east.
+	for q in [Vector2(0.0, 520.0), Vector2(60.0, 640.0), Vector2(115.0, 760.0),
+			Vector2(200.0, 950.0), Vector2(290.0, 1150.0), Vector2(400.0, 1400.0),
+			Vector2(560.0, 1750.0), Vector2(670.0, 2000.0), Vector2(740.0, 2150.0),
+			Vector2(820.0, 2350.0)]:
+		pts.append(q)
+	return pts
 ## The promontory is the land the north outline draws between the cove head
 ## and the point, and `PROMONTORY_SPINE` runs up the middle of that land from
 ## the headland pad to the point. It was one segment, (-44,-212) to

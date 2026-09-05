@@ -195,6 +195,22 @@ func replant() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed
 	var road: Array[Vector3] = Plan.approach_road_points()
+	# The highway (02B) as a coarse cell mask, since a distance test against
+	# its three hundred segments for every candidate would be most of the
+	# planting time: 8m cells, the three-by-three round every five-metre
+	# sample, about twelve metres of verge either side.
+	var road_mask := {}
+	var highway: Array[Vector2] = Plan.highway_path()
+	for i in highway.size() - 1:
+		var a: Vector2 = highway[i]
+		var b: Vector2 = highway[i + 1]
+		var steps := maxi(1, ceili(a.distance_to(b) / 5.0))
+		for k in range(steps + 1):
+			var q := a.lerp(b, float(k) / float(steps))
+			var cell := Vector2i(floori(q.x / 8.0), floori(q.y / 8.0))
+			for dx in range(-1, 2):
+				for dz in range(-1, 2):
+					road_mask[cell + Vector2i(dx, dz)] = true
 	var forest_t: Array[Transform3D] = []
 	var forest_c: Array[Color] = []
 	var leaf_t: Array[Transform3D] = []
@@ -239,6 +255,15 @@ func replant() -> void:
 					near_road = true
 					break
 			if near_road:
+				continue
+			if road_mask.has(Vector2i(floori(px / 8.0), floori(pz / 8.0))):
+				continue
+			var cleared := false
+			for clearing in Plan.HIGHWAY_CLEARINGS:
+				if p.distance_to(Vector2(clearing[0])) < float(clearing[1]):
+					cleared = true
+					break
+			if cleared:
 				continue
 			var query := PhysicsRayQueryParameters3D.create(
 				Vector3(px, 700.0, pz), Vector3(px, -40.0, pz), 1)

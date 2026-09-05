@@ -16887,6 +16887,12 @@ func _rebuild_range_noise_setup() -> void:
 ## through it. Both the mainland reserve and the gridded coast meshes sample
 ## this, so their seam carries the same height.
 func _rebuild_range_rise(p: Vector2) -> float:
+	return _rebuild_road_cut(p, _rebuild_range_rise_raw(p))
+
+
+## The same, before any road has cut it: what the highway's heights are read
+## from, since the cut is derived from those heights.
+func _rebuild_range_rise_raw(p: Vector2) -> float:
 	var v := p - Plan.RIM_RANGE_CENTRE
 	var theta := rad_to_deg(atan2(v.y, v.x))
 	var w := Plan.range_weight(theta)
@@ -16896,10 +16902,10 @@ func _rebuild_range_rise(p: Vector2) -> float:
 		base = _rebuild_outer_highland_y(_rebuild_plateau_end_x(p.y), p.y) \
 			- REBUILD_WORLD_RESERVE_Y
 	if w <= 0.0:
-		return _rebuild_road_cut(p, base)
+		return base
 	var d := v.length() - Plan.range_inner(theta)
 	if d <= Plan.RIM_RANGE_TOE_D:
-		return _rebuild_road_cut(p, base)
+		return base
 	var y := Plan.range_profile_y(d)
 	# The summit line: the far profile scaled to the named summits' heights.
 	var k: float = Plan.range_summit_line(theta) / Plan.RIM_RANGE_SUMMIT_REF
@@ -16930,15 +16936,16 @@ func _rebuild_range_rise(p: Vector2) -> float:
 	# (2026-09-04, found by rays rather than by eye).
 	var shore := clampf(Plan.coast_inland(p) / 150.0, 0.0, 1.0)
 	shore = shore * shore * (3.0 - 2.0 * shore)
-	return _rebuild_road_cut(p, y * w * shore + base)
+	return y * w * shore + base
 
 
 ## The approach road holds its own grade: within half a road width the ground
 ## is the road's line, and out to the batter it blends back to the landform.
 func _rebuild_road_cut(p: Vector2, y: float) -> float:
-	var road: Array[Vector3] = Plan.approach_road_points()
 	var best := INF
 	var road_y := 0.0
+	var half: float = Plan.APPROACH_ROAD_W * 0.5 + 1.0
+	var road: Array[Vector3] = Plan.approach_road_points()
 	for i in road.size() - 1:
 		var a := Vector2(road[i].x, road[i].z)
 		var b := Vector2(road[i + 1].x, road[i + 1].z)
@@ -16948,12 +16955,144 @@ func _rebuild_road_cut(p: Vector2, y: float) -> float:
 			best = dist
 			var t := a.distance_to(q) / maxf(a.distance_to(b), 0.001)
 			road_y = lerpf(road[i].y, road[i + 1].y, t)
-	var half: float = Plan.APPROACH_ROAD_W * 0.5 + 1.0
+	# The highway (02B): its open stations cut the ground the same way; its
+	# tunnel stations do not, so the hill stays over the tube.
+	var hw: Array = _highway_stations()
+	var open: PackedByteArray = _highway_open
+	var reach := Plan.HIGHWAY_W * 0.5 + 1.0 + 18.0
+	for i in hw.size() - 1:
+		if not open[i]:
+			continue
+		var s0: Vector3 = hw[i]
+		var s1: Vector3 = hw[i + 1]
+		if p.x < minf(s0.x, s1.x) - reach or p.x > maxf(s0.x, s1.x) + reach \
+				or p.y < minf(s0.z, s1.z) - reach or p.y > maxf(s0.z, s1.z) + reach:
+			continue
+		var a := Vector2(s0.x, s0.z)
+		var b := Vector2(s1.x, s1.z)
+		var q := Geometry2D.get_closest_point_to_segment(p, a, b)
+		var dist := p.distance_to(q) - (Plan.HIGHWAY_W - Plan.APPROACH_ROAD_W) * 0.5
+		if dist < best:
+			best = dist
+			var t := a.distance_to(q) / maxf(a.distance_to(b), 0.001)
+			road_y = lerpf(s0.y, s1.y, t)
 	if best <= half:
 		return road_y - 0.06
 	var batter := clampf((best - half) / 18.0, 0.0, 1.0)
 	batter = batter * batter * (3.0 - 2.0 * batter)
 	return lerpf(road_y - 0.06, y, batter)
+
+
+## The ground as the landform gives it, before any road: the mainland reserve's
+## formula east of the coast meshes' seam and the coast meshes' west of it,
+## both on the uncut range rise.
+func _rebuild_natural_y(p: Vector2) -> float:
+	if p.x >= Plan.REBUILD_WORLD_LAND_FROM_X:
+		var north_start := Plan.REBUILD_FOOTPRINT_MIN_Z - REBUILD_WORLD_FLAT_MARGIN
+		var south_start := Plan.REBUILD_FOOTPRINT_MAX_Z + REBUILD_WORLD_FLAT_MARGIN
+		var east_start := Plan.REBUILD_FOOTPRINT_MAX_X + REBUILD_WORLD_FLAT_MARGIN
+		var north := clampf((north_start - p.y) /
+			(north_start - Plan.REBUILD_WORLD_LAND_FROM_Z), 0.0, 1.0)
+		var south := clampf((p.y - south_start) /
+			(Plan.REBUILD_WORLD_LAND_TO_Z - south_start), 0.0, 1.0)
+		var east := clampf((p.x - east_start) /
+			(Plan.REBUILD_WORLD_LAND_TO_X - east_start), 0.0, 1.0)
+		north = north * north * (3.0 - 2.0 * north)
+		south = south * south * (3.0 - 2.0 * south)
+		east = east * east * (3.0 - 2.0 * east)
+		var weight := maxf(north, maxf(south, east))
+		var rise := north * 4.0 + south * 3.0 + east * 5.0
+		var roll := (sin(p.x * 0.031) + sin(p.y * 0.027) * 0.7) * 0.32 * weight
+		return REBUILD_WORLD_RESERVE_Y + rise + roll + _rebuild_range_rise_raw(p) \
+			+ _rebuild_coast_feature(p)
+	var distance := absf(p.y)
+	var t := clampf((distance - REBUILD_COAST_TRANSITION_FROM_Z) /
+		(REBUILD_COAST_TRANSITION_TO_Z - REBUILD_COAST_TRANSITION_FROM_Z), 0.0, 1.0)
+	t = t * t * (3.0 - 2.0 * t)
+	return lerpf(REBUILD_COAST_LOW_Y, REBUILD_COAST_HIGH_Y, t) \
+		+ _rebuild_range_rise_raw(p) + _rebuild_coast_feature(p)
+
+
+var _highway_cache: Array = []
+var _highway_open := PackedByteArray()
+var _highway_tunnels: Array = []
+
+
+## The highway's stations in 3D, computed once: the plan line resampled at
+## `HIGHWAY_STATION`, each station's height read off the natural ground a
+## little below the surface, the junction pinned to the approach road's upper
+## end, then held to `HIGHWAY_MAX_GRADE` by lowering only, forward and back,
+## so the road is on the surface where it can be and cut in where the ground
+## climbs faster than a road may. Where the ground stands more than
+## `HIGHWAY_TUNNEL_COVER` over the road for at least `HIGHWAY_TUNNEL_MIN_LEN`
+## the stations are closed: the ground is not cut there and a tunnel is built.
+func _highway_stations() -> Array:
+	if not _highway_cache.is_empty():
+		return _highway_cache
+	var plan: Array[Vector2] = Plan.highway_path()
+	var xz: Array[Vector2] = [plan[0]]
+	for i in range(1, plan.size()):
+		var a: Vector2 = plan[i - 1]
+		var b: Vector2 = plan[i]
+		var steps := maxi(1, ceili(a.distance_to(b) / Plan.HIGHWAY_STATION))
+		for k in range(1, steps + 1):
+			xz.append(a.lerp(b, float(k) / float(steps)))
+	var h := PackedFloat32Array()
+	for q in xz:
+		h.append(_rebuild_natural_y(q) - 0.4)
+	# The junction: the approach road's upper end is the height the park road
+	# hands over at, so the highway meets it there exactly.
+	var approach: Array[Vector3] = Plan.approach_road_points()
+	var top: Vector3 = approach[approach.size() - 1]
+	var junction_i := 0
+	var junction_d := INF
+	for i in xz.size():
+		var d := xz[i].distance_to(Vector2(top.x, top.z))
+		if d < junction_d:
+			junction_d = d
+			junction_i = i
+	h[junction_i] = minf(h[junction_i], top.y)
+	for pass_i in 2:
+		for i in range(1, xz.size()):
+			var reach := xz[i].distance_to(xz[i - 1]) * Plan.HIGHWAY_MAX_GRADE
+			h[i] = minf(h[i], h[i - 1] + reach)
+		for i in range(xz.size() - 2, -1, -1):
+			var reach := xz[i].distance_to(xz[i + 1]) * Plan.HIGHWAY_MAX_GRADE
+			h[i] = minf(h[i], h[i + 1] + reach)
+	var stations: Array = []
+	for i in xz.size():
+		stations.append(Vector3(xz[i].x, h[i], xz[i].y))
+	# Tunnels: runs of segments whose cover is deep along their whole length.
+	var deep := PackedByteArray()
+	for i in xz.size() - 1:
+		var min_cover := INF
+		for k in 3:
+			var q: Vector2 = xz[i].lerp(xz[i + 1], (float(k) + 0.5) / 3.0)
+			var road_y := lerpf(h[i], h[i + 1], (float(k) + 0.5) / 3.0)
+			min_cover = minf(min_cover, _rebuild_natural_y(q) - road_y)
+		deep.append(1 if min_cover > Plan.HIGHWAY_TUNNEL_COVER else 0)
+	_highway_open = PackedByteArray()
+	_highway_open.resize(xz.size() - 1)
+	_highway_open.fill(1)
+	_highway_tunnels = []
+	var i := 0
+	while i < deep.size():
+		if not deep[i]:
+			i += 1
+			continue
+		var j := i
+		while j + 1 < deep.size() and deep[j + 1]:
+			j += 1
+		var length := 0.0
+		for k in range(i, j + 1):
+			length += xz[k].distance_to(xz[k + 1])
+		if length >= Plan.HIGHWAY_TUNNEL_MIN_LEN:
+			for k in range(i, j + 1):
+				_highway_open[k] = 0
+			_highway_tunnels.append({"from": i, "to": j + 1, "length": length})
+		i = j + 1
+	_highway_cache = stations
+	return stations
 
 
 ## The coast's own features, on the coast meshes only: the north headland's
@@ -19844,6 +19983,56 @@ func _rebuild_approach() -> void:
 				Vector3(b - a, 1.2, 1.5), "planting", 0.0, false)
 		_rebuild_berm("berm_%s" % ["w" if side < 0.0 else "e"], lo, hi)
 	_approach_palms()
+	_rebuild_highway()
+
+
+## The coast highway (02B): the road ribbon over its stations, and a tunnel
+## wherever the stations are closed — a lined tube of walls and roof along the
+## run, a headwall of two pillars and a lintel at each portal standing across
+## the cut face the ground makes where the cut stops, and a lamp every 24m.
+## Appended after everything in this scene, so nothing before it moves.
+func _rebuild_highway() -> void:
+	var stations: Array = _highway_stations()
+	_rebuild_path("highway", stations, Plan.HIGHWAY_W, false, &"", true)
+	var n := 0
+	for run in _highway_tunnels:
+		var a: Vector3 = stations[run["from"]]
+		var b: Vector3 = stations[run["to"]]
+		var d := b - a
+		var horizontal := Vector2(d.x, d.z).length()
+		var theta := atan2(d.x, d.z)
+		var phi := atan2(-d.y, horizontal)
+		var length := d.length()
+		var mid := (a + b) * 0.5
+		var tag := "highway_tunnel_%d" % n
+		var w: float = Plan.HIGHWAY_W
+		_box(tag + "_wall_l", mid, Vector3(-(w * 0.5 + 1.0), 2.75, 0.0),
+			Vector3(0.6, 5.5, length + 1.0), "building", theta, false, phi)
+		_box(tag + "_wall_r", mid, Vector3(w * 0.5 + 1.0, 2.75, 0.0),
+			Vector3(0.6, 5.5, length + 1.0), "building", theta, false, phi)
+		_box(tag + "_roof", mid, Vector3(0.0, 5.5, 0.0),
+			Vector3(w + 2.6, 0.6, length + 1.0), "building", theta, false, phi)
+		for end in [[a, "a"], [b, "b"]]:
+			var at: Vector3 = end[0]
+			var e: String = end[1]
+			for side_v in [-1.0, 1.0]:
+				var side: float = side_v
+				_box("%s_portal_%s_pier_%s" % [tag, e, "l" if side < 0.0 else "r"], at,
+					Vector3(side * (w * 0.5 + 2.4), 4.5, 0.0),
+					Vector3(2.4, 9.0, 1.2), "building", theta, false)
+			_box("%s_portal_%s_lintel" % [tag, e], at, Vector3(0.0, 7.2, 0.0),
+				Vector3(w + 7.2, 2.4, 1.2), "building", theta, false)
+		var s := 12.0
+		var k := 0
+		while s < length - 6.0:
+			_omni("%s_lamp_%d" % [tag, k], a + d.normalized() * s + Vector3.UP * 4.9,
+				"lamp", 1.4, 16.0)
+			s += 24.0
+			k += 1
+		print("highway tunnel %d: %.0fm from (%.0f, %.0f) to (%.0f, %.0f), %s" % [
+			n, length, a.x, a.z, b.x, b.z, "%.0fm up" % a.y])
+		n += 1
+	print("highway: %d stations, %d tunnels" % [stations.size(), n])
 
 
 ## A planted berm: a cosine ridge, BERM_HEIGHT high on the BERM_Z base, run
