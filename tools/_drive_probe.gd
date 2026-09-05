@@ -69,7 +69,7 @@ func _plan() -> void:
 		if String(child.name).ends_with("_portal_a_lintel") or String(child.name).ends_with("_portal_b_lintel"):
 			portals.append(child)
 	print("drive probe: %d stations, %d portals" % [st.size(), portals.size()])
-	var lighthouse := Vector3(-153.0, 30.0, -268.0)
+	var lighthouse := Vector3(-205.0, 42.0, -300.0)
 	var tower := Vector3(-1.5, 30.0, -32.0)
 	# Q-3: high on the north coast, the first sight of the headland and the
 	# bay across the water.

@@ -17305,12 +17305,16 @@ func _rebuild_coastal_polygon_mesh(record: Dictionary) -> ArrayMesh:
 						Vector3.UP)
 	# A sea-cliff skirt: where the coast mesh's outline stands above the water,
 	# a wall from that edge down below the water line, or the promontory and
-	# the bluffs would show the underside of the land from the sea.
-	var centroid := Vector2.ZERO
-	for q in polygon:
-		centroid += q
-	centroid /= float(polygon.size())
-	st.set_color(REBUILD_SEA_CLIFF_COLOUR)
+	# the bluffs would show the underside of the land from the sea. Built from
+	# the mesh's own boundary edges since 2026-09-04, so the wall's top shares
+	# the exact vertices the ground has: it used to sample the height every
+	# 12m along the outline while the mesh's edge is a chord between its own
+	# boundary vertices, and once the headland's crown curved at the edge the
+	# two no longer met and a slot of sky opened between grass and rock. The
+	# wall faces seaward off the outline segment's own direction rather than
+	# away from the polygon's centroid, which on a headland's north face
+	# pointed inland.
+	var edges: Array = []
 	for i in polygon.size():
 		var a2: Vector2 = polygon[i]
 		var b2: Vector2 = polygon[(i + 1) % polygon.size()]
@@ -17320,22 +17324,37 @@ func _rebuild_coastal_polygon_mesh(record: Dictionary) -> ArrayMesh:
 		if absf(a2.x - Plan.REBUILD_WORLD_LAND_FROM_X) < 0.5 \
 				and absf(b2.x - Plan.REBUILD_WORLD_LAND_FROM_X) < 0.5:
 			continue
-		var ya := _rebuild_coastal_reserve_y(a2)
-		var yb := _rebuild_coastal_reserve_y(b2)
-		if maxf(ya, yb) < Plan.WATER_TOP + 1.0:
-			continue
-		var steps := maxi(1, ceili(a2.distance_to(b2) / 12.0))
-		for k in steps:
-			var p0 := a2.lerp(b2, float(k) / float(steps))
-			var p1 := a2.lerp(b2, float(k + 1) / float(steps))
-			var mid := (p0 + p1) * 0.5
-			var outward := (mid - centroid).normalized()
-			_earth_wall_quad(st,
-				Vector3(p0.x, Plan.WATER_TOP - 6.0, p0.y),
-				Vector3(p1.x, Plan.WATER_TOP - 6.0, p1.y),
-				Vector3(p0.x, _rebuild_coastal_reserve_y(p0), p0.y),
-				Vector3(p1.x, _rebuild_coastal_reserve_y(p1), p1.y),
-				Vector3(outward.x, 0.0, outward.y))
+		edges.append([a2, b2])
+	st.set_color(REBUILD_SEA_CLIFF_COLOUR)
+	for xi in xs.size() - 1:
+		for zi in zs.size() - 1:
+			var cell := PackedVector2Array([Vector2(xs[xi], zs[zi]), Vector2(xs[xi + 1], zs[zi]),
+				Vector2(xs[xi + 1], zs[zi + 1]), Vector2(xs[xi], zs[zi + 1])])
+			for piece in Geometry2D.intersect_polygons(cell, polygon):
+				for i in piece.size():
+					var p0: Vector2 = piece[i]
+					var p1: Vector2 = piece[(i + 1) % piece.size()]
+					if p0.distance_to(p1) < 0.05:
+						continue
+					for e in edges:
+						var ea: Vector2 = e[0]
+						var eb: Vector2 = e[1]
+						if p0.distance_to(Geometry2D.get_closest_point_to_segment(p0, ea, eb)) > 0.02 \
+								or p1.distance_to(Geometry2D.get_closest_point_to_segment(p1, ea, eb)) > 0.02:
+							continue
+						var ya := _rebuild_coastal_reserve_y(p0)
+						var yb := _rebuild_coastal_reserve_y(p1)
+						if maxf(ya, yb) < Plan.WATER_TOP + 1.0:
+							break
+						var d := (eb - ea).normalized()
+						var seaward := Vector3(d.y, 0.0, -d.x)
+						_earth_wall_quad(st,
+							Vector3(p0.x, Plan.WATER_TOP - 6.0, p0.y),
+							Vector3(p1.x, Plan.WATER_TOP - 6.0, p1.y),
+							Vector3(p0.x, ya, p0.y),
+							Vector3(p1.x, yb, p1.y),
+							seaward)
+						break
 	st.generate_normals()
 	st.generate_tangents()
 	return st.commit()
@@ -19136,6 +19155,42 @@ func _rebuild_program() -> void:
 	_rebuild_recurring_interiors()
 	_rebuild_midway_frontages()
 	_rebuild_kiddieland_support()
+	_rebuild_harbour()
+
+
+## The harbour cove in the headland's lee (02B, 2026-09-04): a short
+## breakwater arcing out from the headland's cove-side shore, a plank quay
+## on the cove's east shore under the coaster's beach, and two boats. Scenery
+## with no route to it; appended after everything in this scene so nothing
+## before it moves an ordinal.
+func _rebuild_harbour() -> void:
+	var arc := [Vector2(-104.0, -236.0), Vector2(-101.0, -224.0),
+		Vector2(-97.0, -213.0), Vector2(-93.0, -203.0)]
+	for i in arc.size() - 1:
+		var a: Vector2 = arc[i]
+		var b: Vector2 = arc[i + 1]
+		var mid := (a + b) * 0.5
+		var theta := atan2(b.x - a.x, b.y - a.y)
+		_box("harbour_breakwater_%d" % i, Vector3.ZERO,
+			Vector3(mid.x, WATER_TOP - 0.7, mid.y),
+			Vector3(5.0, 4.4, a.distance_to(b) + 1.2), "building", theta, false)
+	_box("harbour_breakwater_head", Vector3.ZERO,
+		Vector3(-92.5, WATER_TOP - 0.4, -201.5), Vector3(4.0, 5.0, 4.0), "building", 0.0, false)
+	_cyl("harbour_light", Vector3(-92.5, WATER_TOP + 2.1, -201.5), Vector3.ZERO,
+		0.25, 3.0, "white", 0.0, 10, false)
+	_omni("harbour_light_glow", Vector3(-92.5, WATER_TOP + 3.8, -201.5), "warm", 1.6, 12.0,
+		LIGHT_FEATURE)
+	_box("harbour_quay", Vector3.ZERO, Vector3(-83.0, WATER_TOP + 1.0, -208.0),
+		Vector3(6.0, 1.4, 16.0), "plank", 0.0, false)
+	for i in 3:
+		_cyl("harbour_bollard_%d" % i, Vector3(-85.4, WATER_TOP + 2.0, -214.0 + float(i) * 6.0),
+			Vector3.ZERO, 0.16, 0.6, "metal", 0.0, 8, false)
+	for boat in [[Vector2(-90.0, -212.0), 0.3, "white"], [Vector2(-88.5, -224.0), -0.2, "red"]]:
+		var at: Vector2 = boat[0]
+		_box("harbour_boat_%s_hull" % boat[2], Vector3.ZERO,
+			Vector3(at.x, WATER_TOP + 0.3, at.y), Vector3(2.2, 1.0, 6.0), boat[2], float(boat[1]), false)
+		_box("harbour_boat_%s_cabin" % boat[2], Vector3.ZERO,
+			Vector3(at.x, WATER_TOP + 1.3, at.y - 0.6), Vector3(1.6, 1.1, 2.0), "far_warm", float(boat[1]), false)
 
 
 func _rebuild_open_building(nm: String, at: Vector3, size: Vector2,

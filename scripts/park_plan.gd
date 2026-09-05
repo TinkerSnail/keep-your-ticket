@@ -1694,10 +1694,14 @@ const TURNING_CIRCLE := Vector3(-80.0, 236.0, 10.0)
 const COAST_NORTH_OUTLINE := [
 	Vector2(-108.0, -70.0), Vector2(-112.0, -130.0), Vector2(-108.0, -165.0),
 	Vector2(-100.0, -185.0), Vector2(-80.0, -205.0), Vector2(-72.0, -218.0),
-	Vector2(-90.0, -232.0), Vector2(-130.0, -240.0), Vector2(-170.0, -246.0),
-	Vector2(-205.0, -252.0), Vector2(-218.0, -262.0), Vector2(-205.0, -280.0),
-	Vector2(-170.0, -290.0), Vector2(-140.0, -296.0), Vector2(-132.0, -330.0),
-	Vector2(-128.0, -400.0), Vector2(-140.0, -520.0), Vector2(-180.0, -700.0),
+	# The headland as one landform (02B, 2026-09-04): about 240m long and up
+	# to 140m wide, the point at (-242, -295), its north-west face cliffed
+	# with the two coves under it. It was a 60m-wide promontory to (-218,
+	# -262) with the coast running straight on north of it.
+	Vector2(-100.0, -236.0), Vector2(-140.0, -248.0), Vector2(-185.0, -258.0),
+	Vector2(-225.0, -270.0), Vector2(-242.0, -295.0), Vector2(-228.0, -325.0),
+	Vector2(-198.0, -345.0), Vector2(-165.0, -356.0), Vector2(-142.0, -376.0),
+	Vector2(-131.0, -400.0), Vector2(-140.0, -520.0), Vector2(-180.0, -700.0),
 	Vector2(-270.0, -1000.0), Vector2(-420.0, -1500.0), Vector2(-600.0, -2200.0),
 ]
 const COAST_SOUTH_OUTLINE := [
@@ -1812,17 +1816,55 @@ const PROMONTORY_SPINE := [
 	# metre.
 	Vector2(-37.0, -172.0), Vector2(-50.0, -234.0), Vector2(-53.0, -244.0),
 	Vector2(-57.0, -252.0), Vector2(-64.0, -257.0), Vector2(-74.0, -258.5),
-	Vector2(-100.0, -258.0), Vector2(-150.0, -268.0), Vector2(-218.0, -262.0),
+	# Up the middle of the widened headland (02B, 2026-09-04) to its point.
+	# One curve with no bend over sixteen degrees, for the reason the seam's
+	# turn is: `along` jumps on the inside of a corner and the height field
+	# folds there, and a 45-degree bend at (-100, -258) floated the walk 0.7m
+	# over the lattice mesh that straddled the fold.
+	Vector2(-100.0, -263.0),
+	Vector2(-112.0, -266.0),
+	Vector2(-123.0, -272.0),
+	Vector2(-132.0, -281.0),
+	Vector2(-139.0, -291.0),
+	Vector2(-146.0, -300.0),
+	Vector2(-156.0, -306.0),
+	Vector2(-168.0, -309.0),
+	Vector2(-182.0, -307.0),
+	Vector2(-196.0, -303.0),
+	Vector2(-219.0, -298.0),
+	Vector2(-242.0, -295.0),
 ]
 const PROMONTORY_ROOT_Y := 4.0
-const PROMONTORY_HEIGHT := 22.0
+## Thirty, not the map's forty: the walk climbs the spine from the pad to the
+## level top, and 26m over the 199m the spine allows is 1:7.7, the last
+## grade under the public 1:8. Forty would have been 1:5.5.
+const PROMONTORY_HEIGHT := 30.0
+## The feature's reach across the spine: narrow through the turn off the pad,
+## where anything wider would lift the ground under the park's north-west
+## corner, and wide once the spine has turned west into the headland, where
+## the coast outline bounds it anyway. See `promontory_half_w`.
 const PROMONTORY_HALF_W := 34.0
+const PROMONTORY_HALF_W_WIDE := 95.0
+const PROMONTORY_WIDEN_FROM := 110.0
+const PROMONTORY_WIDEN_TO := 170.0
 ## The climb waits until the spine is clear of the T3 pad's outer polygon and
-## finishes short of the tip, so the point itself is level.
+## finishes short of the tip, so the point itself is level; the tower and the
+## exhibit stand on that level top.
 const PROMONTORY_CLIMB_FROM := 45.0
-const PROMONTORY_CLIMB_TAIL := 30.0
-const PROMONTORY_EDGE_RUN := 14.0
+const PROMONTORY_CLIMB_TAIL := 45.0
+## Twenty, and the walk keeps at least 26m from the shore: the crown's easing
+## over this band is a smoothstep, strongly curved near its top, and a walk
+## laid inside the band floats over the lattice mesh's flat cells by half a
+## metre — which is what the walk did at 22m from the cove with the band at
+## 24 (2026-09-04, `path_ground_test`).
+const PROMONTORY_EDGE_RUN := 20.0
 const PROMONTORY_EDGE_FRACTION := 0.6
+## At the two coves the cliff skirt drops to this fraction of the height, so
+## each cove has a floor a few metres over the water under the cliff.
+const PROMONTORY_COVE_FLOOR := 0.15
+## The forest keeps this far off the tower and its forecourt: a lighthouse
+## stands in a clearing, or its lantern is a red dot in a canopy.
+const P1_CLEARING_R := 30.0
 ## The walk's centreline, the forecourt and the exhibit stand at least this
 ## far inland of the shoreline; `footprint_test` measures it.
 const PROMONTORY_SHORE_CLEARANCE := 8.0
@@ -1935,11 +1977,19 @@ static func promontory_length() -> float:
 ## The promontory's own height at a point, before the coast base and the
 ## range are added: zero off the feature. One description for the coast
 ## meshes, the mainland reserve's root and every site placed on it.
+static func promontory_half_w(along: float) -> float:
+	var t := clampf((along - PROMONTORY_WIDEN_FROM) /
+		(PROMONTORY_WIDEN_TO - PROMONTORY_WIDEN_FROM), 0.0, 1.0)
+	t = t * t * (3.0 - 2.0 * t)
+	return lerpf(PROMONTORY_HALF_W, PROMONTORY_HALF_W_WIDE, t)
+
+
 static func promontory_y(p: Vector2) -> float:
 	var st := promontory_station(p)
 	var along := st.x
 	var across := st.y
-	if across >= PROMONTORY_HALF_W:
+	var half_w := promontory_half_w(along)
+	if across >= half_w:
 		return 0.0
 	var length := promontory_length()
 	if along > length + 30.0:
@@ -1950,8 +2000,16 @@ static func promontory_y(p: Vector2) -> float:
 	var h := lerpf(PROMONTORY_ROOT_Y, PROMONTORY_HEIGHT, climb)
 	var edge := clampf(coast_inland(p) / PROMONTORY_EDGE_RUN, 0.0, 1.0)
 	edge = edge * edge * (3.0 - 2.0 * edge)
-	var crown := lerpf(PROMONTORY_EDGE_FRACTION, 1.0, edge)
-	var side := clampf((across - (PROMONTORY_HALF_W - 10.0)) / 10.0, 0.0, 1.0)
+	# The coves on the north-west face: the skirt's foot drops to a floor
+	# there, over the cove's own half-width, and only on that face.
+	var floor_frac := PROMONTORY_EDGE_FRACTION
+	if p.y < -300.0:
+		var cove := 1.0
+		for cz in NORTH_COVES:
+			cove = minf(cove, clampf((absf(p.y - float(cz)) - 10.0) / COVE_HALF_W, 0.0, 1.0))
+		floor_frac = lerpf(PROMONTORY_COVE_FLOOR, PROMONTORY_EDGE_FRACTION, cove)
+	var crown := lerpf(floor_frac, 1.0, edge)
+	var side := clampf((across - (half_w - 10.0)) / 10.0, 0.0, 1.0)
 	side = 1.0 - side * side * (3.0 - 2.0 * side)
 	return h * crown * side
 
@@ -3369,8 +3427,12 @@ const REBUILD_ATTRACTION_SITES := [
 	# is the cove-side cliff edge. Source coordinates, as this table passes
 	# through `rebuild_expand_point`; the tower is the one program element
 	# outside the developed envelope, by decision.
-	{"id": &"P1", "kind": &"lighthouse", "at": Vector2(-139.3, -183.1),
-		"keeper": Vector2(-122.7, -186.7), "keeper_size": Vector2(8, 6),
+	# On the widened headland (02B, the same day): the tower at world
+	# (-205, -300) on the level top near the point, 37m from the tip and
+	# about 27m inside the cliffs on both faces; the keeper's exhibit at
+	# world (-185, -318); the walk up the spine to the forecourt's rim.
+	{"id": &"P1", "kind": &"lighthouse", "at": Vector2(-174.0, -202.5),
+		"keeper": Vector2(-160.7, -213.4), "keeper_size": Vector2(8, 6),
 		# The walk ends at the forecourt's rim, not at the tower's centre: the
 		# controller walk of the last leg ran into the lighthouse base.
 		# The turn west at the seam is five gentle bends rather than one of
@@ -3378,8 +3440,7 @@ const REBUILD_ATTRACTION_SITES := [
 		# collision prisms and the capsule stalls on their side face.
 		"access": [Vector2(-37, -125), Vector2(-50, -162.4),
 			Vector2(-53, -168.5), Vector2(-57, -173.3), Vector2(-64, -176.4),
-			Vector2(-74, -177.3), Vector2(-100, -177.0), Vector2(-120.7, -180.0),
-			Vector2(-134.3, -182.3)]},
+			Vector2(-74, -177.3), Vector2(-104.0, -180.0), Vector2(-112.0, -181.8), Vector2(-119.3, -185.5), Vector2(-125.3, -190.9), Vector2(-130.0, -197.0), Vector2(-134.7, -202.5), Vector2(-141.3, -206.1), Vector2(-149.3, -207.9), Vector2(-158.7, -206.7), Vector2(-168.0, -204.3)]},
 	{"id": &"P2", "kind": &"funhouse", "at": Vector2(-77, 32),
 		"size": Vector2(12, 14), "access": [Vector2(-96, 27),
 			Vector2(-90, 27), Vector2(-87, 25), Vector2(-84, 27), Vector2(-83, 27)],

@@ -28,7 +28,7 @@ const SHOTS := [
 		"target": Vector3(200.0, 60.0, -260.0), "fov": 70.0},
 	{"name": "12_promenade_north", "position": Vector3(-98.0, -4.3, -70.0),
 		"target": Vector3(-140.0, 20.0, -420.0), "fov": 70.0},
-	{"name": "13_lighthouse_forecourt", "position": Vector3(-158.0, 22.0, -262.0),
+	{"name": "13_lighthouse_forecourt", "position": Vector3(-212.0, 33.0, -294.0),
 		"target": Vector3(0.0, 20.0, -90.0), "fov": 70.0},
 	{"name": "13b_promontory_walk", "position": Vector3(-52.0, 6.8, -240.0),
 		"target": Vector3(-153.0, 30.0, -268.0), "fov": 70.0},

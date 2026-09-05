@@ -200,6 +200,10 @@ func replant() -> void:
 	# planting time: 8m cells, the three-by-three round every five-metre
 	# sample, about twelve metres of verge either side.
 	var road_mask := {}
+	var lighthouse := Vector2.ZERO
+	for record in Plan.REBUILD_ATTRACTION_SITES:
+		if StringName(record["id"]) == &"P1":
+			lighthouse = Plan.rebuild_expand_point(Vector2(record["at"]))
 	var highway: Array[Vector2] = Plan.highway_path()
 	for i in highway.size() - 1:
 		var a: Vector2 = highway[i]
@@ -263,6 +267,8 @@ func replant() -> void:
 				if p.distance_to(Vector2(clearing[0])) < float(clearing[1]):
 					cleared = true
 					break
+			if p.distance_to(lighthouse) < Plan.P1_CLEARING_R:
+				cleared = true
 			if cleared:
 				continue
 			var query := PhysicsRayQueryParameters3D.create(
