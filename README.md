@@ -79,7 +79,7 @@ all of them but the three above. Those go through `run.tscn`, named after a
 bare `--`:
 
 ```bash
-godot --headless --path . tools/run.tscn -- walk_test
+godot --headless --path . tools/run.tscn -- footprint_walk_test
 godot --path . --rendering-driver vulkan tools/run.tscn -- west_capture
 ```
 

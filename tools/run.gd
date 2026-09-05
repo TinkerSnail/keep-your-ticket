@@ -36,7 +36,7 @@ extends Node
 ##
 ## Usage, with the tool named after a bare `--`:
 ##
-##     godot --headless --path . tools/run.tscn -- walk_test
+##     godot --headless --path . tools/run.tscn -- footprint_walk_test
 ##     godot --path . --rendering-driver vulkan tools/run.tscn -- west_capture
 ##
 ## `--headless` for anything that only reads the scene, and a real driver for
@@ -45,7 +45,7 @@ extends Node
 
 ## What to say when the name does not resolve, rather than failing silently the
 ## way the old `--script` invocation did.
-const USAGE := "usage: godot --path . tools/run.tscn -- <tool>   (e.g. walk_test)"
+const USAGE := "usage: godot --path . tools/run.tscn -- <tool>   (e.g. footprint_walk_test)"
 
 
 func _ready() -> void:
@@ -82,7 +82,7 @@ func _ready() -> void:
 	add_child(tool_node)
 
 
-## Accepts `walk_test`, `walk_test.gd`, `tools/walk_test.gd` or a full `res://`
+## Accepts `footprint_walk_test`, `footprint_walk_test.gd`, `tools/footprint_walk_test.gd` or a full `res://`
 ## path, and answers empty if none of them is a file.
 func _resolve(name: String) -> String:
 	var tries: Array[String] = []

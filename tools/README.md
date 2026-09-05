@@ -89,12 +89,24 @@ plus those crowd scenes; a familiar world wrapper changing is a regression.
 
 ## Tests
 
-These assert. They print a verdict and are the things worth running before a
-merge.
+These assert. They print a verdict.
+
+**The acceptance set**, run before any commit that touches geometry, routes or
+crowds: `coplanar_test.py`, `footprint_test`, `footprint_walk_test`,
+`path_ground_test`, `clearance_test`, `anchor_walk_test`, `boardwalk_edge_test`,
+`section_test`, `transit_test`, `night_test`, `climb_test`. The rest are
+measurements or narrower checks and run when their subject changes. The legacy
+`walk_test.gd`, which named retired section routes and pre-expansion boundaries
+and reported 77 failures against the persistent park, was split into the two
+anchor and edge tests and deleted on 2026-09-05.
 
 | tool | asks | notes |
 |---|---|---|
-| `walk_test.gd` | Historical regression probes for the pre-rebuild park. | Not a current release gate: many cases name retired section routes and pre-expansion boundaries. Preserve useful protected-anchor probes when this suite is split or rewritten in package 06. |
+| `anchor_walk_test.gd` | Do both protected anchors walk? NT-1's wings, court and approach; NT-2's gate, forecourt, wings, belvedere, basin staircase, bays and notch edges. | Split from the retired `walk_test.gd` on 2026-09-05. Legs come off `ParkPlan.wing_path` and `climb_reaches`, never a copy. A failure is reported to Christina, not fixed in passing. Takes leg-label filters after the tool name. |
+| `boardwalk_edge_test.gd` | Does the pier walk both ways, and do the water, jetty, bluff, shop backs, yard and coaster fence all stop the player? | Split from `walk_test.gd` the same day, minus its pre-expansion strip-end probes. |
+| `path_ground_test.gd` | Does every programmed access path, road and street stand on the ground it was laid over, neither floating nor buried? | Prints per-path float and bury counts. |
+| `climb_test.gd` | Is every guest standing on the floor of the area they are in? | Reads the floor off the crowd's own graph. |
+| `ground_contact_test.gd` | Does every moving guest have real collision immediately underfoot? | |
 | `transit_test.gd` | Do the Kiddieland railway and Grand Circuit form usable loops, move with riders while open, and park empty after close? | Run at `--fixed-fps 60`; also guards the sampled grades and the five station-to-route alignments. |
 | `footprint_test.gd` | Does the expanded developed park remain one connected hierarchy inside genuinely larger world geography? | Guards the 434x450m program envelope, 2km-plus land reserve, nearly 4km western ocean reserve, every primary handoff, the four crossing records and the retirement of the old NNW dead end. |
 | `footprint_walk_test.gd` | Can the real Player traverse every rebuilt public path in both directions? | Current A–F release gate: center and both operating edges of all generated segments, including shared junction floors and expanded-datum handoffs. |
@@ -141,7 +153,19 @@ wrapper and, where they save images, a real renderer.
 | `_hill_probe.gd` | The east hill: the scarp from the court, the climb, and the belvedere at the top of it. |
 | `_niche_probe.gd` | The wall fountain in the west cascade's niche, from the court. |
 | `_pfoam_probe.gd` | The plaza fountain's froth, shot low at the waterline. |
-| `_rim_probe.gd` | Does the east rim stand over the roofline, and does it open up as you back away? |
+| `_drive_probe.gd` | The coast highway's three reveals from the car's own eye. |
+| `_forest_perf_probe.gd` | What the range forest costs to draw at several densities. |
+| `_hole_probe.gd` | Rain rays over the whole east and dump what they hit. |
+| `_ledge_probe.gd` | The walkable profile where the climb meets the head landing. |
+| `_lot_probe.gd` | Does the coast highway show from the parking lots? |
+| `_prom_probe.gd` | Rain rays over the promontory walk and dump what they hit. |
+| `_range_probe.gd` | The crescent range from far enough away to see its shape. |
+| `_seam_probe.gd` | The heights the coast meshes and the mainland reserve each give along their seam. |
+| `_sight_probe.gd` | What a standpoint is actually looking at. |
+| `_terrace_probe.gd` | The east climb's walled courts, banks and basin chain. |
+| `_terraces_probe.gd` | The terraces district, seen from inside itself. |
+| `_town_probe.gd` | The three towns of package 02B from the standpoints they are built for. |
+| `_town_site_probe.gd` | The natural ground along the coast highway and across the town sites, read off the generator without regenerating. |
 
 Godot writes a `.uid` beside every script it imports. Those are tracked — but
 delete the throwaway wrapper scene and its `.uid` when you are done.

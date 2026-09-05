@@ -10,7 +10,7 @@ extends Node
 ## straight through the cascade's steps instead of up them, and from the
 ## forecourt it is two people out over your head with nothing under them.
 ##
-## Nothing else in the tree could have reported it. `walk_test` drives the
+## Nothing else in the tree could have reported it. `anchor_walk_test` and `footprint_walk_test` drive the
 ## *player*, who has gravity; `day_test` counts heads and never asks where they
 ## are; `coplanar_test` has no opinion about a body six metres from the floor;
 ## and every screenshot of the east is taken from the axis, where a guest inside

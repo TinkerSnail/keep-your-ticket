@@ -124,7 +124,7 @@ func _build_legs() -> void:
 	# These two rebuild runs deliberately retain their established scene owners,
 	# so they have no generated `route_*` body to discover above. They are still
 	# ordinary broad paving and belong in the complete-envelope walk. The west
-	# monument and all NT-2-owned approaches remain with `walk_test.gd`, whose
+	# monument and all NT-2-owned approaches remain with `anchor_walk_test.gd`, whose
 	# authored legs follow the real cascade wings and terraces rather than drawing
 	# a fictitious straight line through either protected water feature.
 	for run in ParkPlan.REBUILD_PRIMARY_ROUTE_RUNS:

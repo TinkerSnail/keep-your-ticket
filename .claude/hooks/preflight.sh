@@ -5,9 +5,12 @@
 # the restart that follows a context compaction — and puts two things in front
 # of the model before it does anything else:
 #
-#   1. The instruction to perform the park preflight in full: reread the
-#      continuity packet rather than trusting a summary of it. The procedure
-#      is `.agents/skills/park-preflight/SKILL.md`, shared with Codex, and
+#   1. The instruction to perform the park preflight at the tier the task
+#      calls for: Tier 1 (AGENTS.md, newest journal, tree state) always, and
+#      Tier 2 (the full continuity packet and a history search) before touching
+#      design, the night, the atlas, a protected anchor, or a decision that is
+#      only remembered from chat. The procedure is
+#      `.agents/skills/park-preflight/SKILL.md`, shared with Codex, and
 #      `.claude/skills/park-preflight/SKILL.md` is the Claude Code entry to it.
 #   2. A current inventory of the documentation corpus — what exists, how big
 #      it is, when it last changed, which journal is newest, and whether the
@@ -76,14 +79,18 @@ hash_of() {
 
 echo "=== KEEP YOUR TICKET — SESSION PREFLIGHT (${SOURCE}: ${WHY}) ==="
 echo
-echo "MANDATORY before planning, answering about the park, or editing anything:"
-echo "  Invoke the \`park-preflight\` skill (.claude/skills/park-preflight/SKILL.md)"
-echo "  and perform it in full. It points at the shared procedure in"
-echo "  .agents/skills/park-preflight/SKILL.md. Reread the continuity packet below"
-echo "  completely — do not substitute remembered or summarized chat context for"
-echo "  the documents. Then say in your first reply that the preflight was done,"
-echo "  which handoff controls the task, which anchors are protected, and whether"
-echo "  any drift or conflict was found."
+echo "MANDATORY, in proportion to the task (procedure: .claude/skills/park-preflight/SKILL.md,"
+echo "which points at the shared .agents/skills/park-preflight/SKILL.md):"
+echo "  Tier 1, now and after every compaction: AGENTS.md (already in context through"
+echo "    CLAUDE.md's @AGENTS.md import), the newest journal named below in full, and"
+echo "    the tree state at the bottom. Say in the first reply that it was done."
+echo "  Tier 2, before touching design, tone, the night, the rebuild atlas, a protected"
+echo "    anchor, or any decision you only remember from chat: the full packet below,"
+echo "    the task-relevant maps, and a search of the journals and archives for the"
+echo "    task's nouns and for supersed/retired/rejected/protected/must not. Then say"
+echo "    which handoff controls the task, what is protected, and whether any drift"
+echo "    or conflict was found."
+echo "  Do not substitute remembered or summarized chat context for the documents."
 echo
 
 if [ ! -d documentation ]; then
@@ -93,8 +100,8 @@ if [ ! -d documentation ]; then
   echo
 fi
 
-echo "Continuity packet — read every one of these completely:"
-echo "  CLAUDE.md  (already loaded into context by the harness)"
+echo "Tier 2 continuity packet (read completely when the task qualifies):"
+echo "  AGENTS.md  (already in context: CLAUDE.md imports it)"
 for f in \
   documentation/design.md \
   documentation/night.md \
@@ -128,7 +135,7 @@ echo
 
 # Other documents in the corpus, so nothing is silently omitted.
 echo "Rest of the textual corpus (inventory, not the packet):"
-for f in documentation/design-archive.md; do echo "  $(finfo "$f")   <- tone/history reference; honour its supersession markers"; done
+for f in documentation/design-archive.md documentation/instructions-archive-*.md; do [ -f "$f" ] && echo "  $(finfo "$f")   <- history and reasoning, not spec; honour supersession markers"; done
 for f in documentation/screenshots/*/README.md; do [ -f "$f" ] && echo "  $(finfo "$f")"; done
 echo
 
@@ -152,32 +159,30 @@ for m in documentation/maps/*.html; do
 done
 echo
 
-# CLAUDE.md and AGENTS.md are meant to be the same document apart from the
-# preflight block naming each agent and one self-reference. Anything else is
-# drift, and the tracked AGENTS.md has been the more current of the two before.
-if [ -f AGENTS.md ] && [ -f CLAUDE.md ]; then
-  if command -v python3 >/dev/null 2>&1; then
-    python3 - <<'PY'
-import difflib, re
-def norm(p):
-    t = open(p, encoding="utf-8", errors="replace").read()
-    t = re.sub(r"## Mandatory session preflight.*?(?=\n## |\nFull description:)", "", t, count=1, flags=re.S)
-    t = t.replace("`AGENTS.md`", "`INSTRUCTIONS.md`").replace("`CLAUDE.md`", "`INSTRUCTIONS.md`")
-    return t.splitlines()
-a, c = norm("AGENTS.md"), norm("CLAUDE.md")
-d = [l for l in difflib.unified_diff(c, a, "CLAUDE.md", "AGENTS.md", n=0, lineterm="") if l[:1] in "+-" and l[:3] not in ("+++", "---")]
-if d:
-    print("CLAUDE.md vs AGENTS.md: DRIFT — %d differing lines beyond the preflight block." % len(d))
-    print("  Treat the tracked AGENTS.md as the reference and report the difference.")
-    for l in d[:8]:
-        print("   ", l[:140])
-    if len(d) > 8: print("    …")
-else:
-    print("CLAUDE.md vs AGENTS.md: in sync (only the preflight block differs).")
-PY
+# CLAUDE.md is a one-line import of AGENTS.md since 2026-09-05, so there is one
+# instruction file and nothing to drift. Check that it is still only that.
+if [ -f AGENTS.md ]; then
+  if [ ! -f CLAUDE.md ]; then
+    echo "CLAUDE.md: MISSING — it should hold the single line '@AGENTS.md'."
+  elif ! grep -qx '@AGENTS.md' CLAUDE.md; then
+    echo "CLAUDE.md: does NOT import AGENTS.md — Claude Code is reading a different"
+    echo "  instruction file from Codex. Restore the '@AGENTS.md' line and move any"
+    echo "  other content into AGENTS.md; report this."
+  else
+    EXTRA=$(grep -cvE '^\s*$|^@AGENTS\.md$|^#|^The instruction set is|^shared with Codex|^Edit ' CLAUDE.md)
+    if [ "${EXTRA:-0}" != "0" ]; then
+      echo "CLAUDE.md: imports AGENTS.md but carries ${EXTRA} other line(s) — content"
+      echo "  belongs in AGENTS.md; report it."
+    else
+      echo "CLAUDE.md: imports AGENTS.md (one instruction file, in sync by construction)."
+    fi
   fi
-  echo
+  AW=$(wc -w < AGENTS.md | tr -d ' ')
+  echo "AGENTS.md: ${AW} words (kept under 5,000 since 2026-09-05; history lives in the archive)."
+else
+  echo "AGENTS.md: MISSING."
 fi
+echo
 
 echo "Protected anchors — no direct or indirect change without Christina's approval:"
 echo "  NT-1 Cascading Staircases  (scenes/world/west_stair.tscn and its generator)"
