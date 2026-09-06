@@ -37,13 +37,19 @@ func _ready() -> void:
 		printerr("FAIL: the persistent world has no park_program layer")
 		get_tree().quit(1)
 		return
+	# The towns' streets (02B) are paths over the landform too, laid by the
+	# same ribbon and cut into the same ground, so they answer to this test.
+	var bodies: Array = program.find_children("*", "StaticBody3D", true, false)
+	var towns: Node = world.get_node_or_null("places/park_towns")
+	if towns != null:
+		bodies.append_array(towns.find_children("*", "StaticBody3D", true, false))
 	var filters := OS.get_cmdline_user_args().slice(1)
 	var space := get_viewport().get_world_3d().direct_space_state
 	var paths := 0
 	var samples := 0
 	var worst_float := 0.0
 	var worst_bury := 0.0
-	for body in program.find_children("*", "StaticBody3D", true, false):
+	for body in bodies:
 		var points: PackedVector3Array = body.get_meta("points", PackedVector3Array())
 		if points.size() < 2:
 			continue

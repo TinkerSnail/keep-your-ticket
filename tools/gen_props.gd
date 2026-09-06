@@ -52,6 +52,7 @@ const ROUTES_PATH := GENERATED_DIR + "/park_routes.tscn"
 const PROGRAM_PATH := GENERATED_DIR + "/park_program.tscn"
 const LANDSCAPE_PATH := GENERATED_DIR + "/park_landscape.tscn"
 const APPROACH_PATH := GENERATED_DIR + "/park_approach.tscn"
+const TOWNS_PATH := GENERATED_DIR + "/park_towns.tscn"
 ## How far east the terraces' massing copy of the plaza stands from the
 ## boardwalk's. See `_plaza_from_the_east`, which explains what it is for.
 ##
@@ -386,6 +387,17 @@ func _initialize() -> void:
 	if not _save(_root, APPROACH_PATH):
 		return
 
+	# The towns (02B): three pieces of scenery beyond the park, in their own
+	# scene appended after every established output for the seam-ordinal
+	# reason. Their streets are read by the ground cut during the groundworks
+	# above, from the plan; this only draws them.
+	_root = Node3D.new()
+	_root.name = "park_towns"
+	_begin_scene()
+	_rebuild_towns()
+	if not _save(_root, TOWNS_PATH):
+		return
+
 	quit()
 
 
@@ -619,6 +631,7 @@ const BULB_MAT_PATH := Plan.BULB_MATERIAL
 const LAMP_MAT_PATH := Plan.LAMP_MATERIAL
 const EYE_MAT_PATH := Plan.EYE_MATERIAL
 const TRIM_MAT_PATH := Plan.TRIM_MATERIAL
+const WINDOW_MAT_PATH := Plan.WINDOW_MATERIAL
 
 ## Emission colours, and they are deliberately not the albedo.
 ##
@@ -631,6 +644,10 @@ const TRIM_MAT_PATH := Plan.TRIM_MATERIAL
 const BULB_EMIT := Color(1.0, 0.72, 0.34)
 const LAMP_EMIT := Color(1.0, 0.86, 0.62)
 const EYE_EMIT := Color(1.0, 0.80, 0.50)
+## The towns' windows (02B): a lit room seen from outside, warmer than the
+## lamps and a little dimmer per square metre, since a window is bigger than
+## a globe and there are a few hundred of them across a valley.
+const WINDOW_EMIT := Color(1.0, 0.82, 0.55)
 
 ## Cool, and the only cool light in the park. It reads as *architecture* lit on
 ## purpose against a park lit in tungsten — warm everywhere else, cold on the
@@ -1146,6 +1163,17 @@ func _build_materials() -> void:
 	# linear and the whole range renders a stop and a half too pale.
 	ground.vertex_color_is_srgb = true
 	mats["ground_banded"] = ground
+	# The towns (02B): buildings as merged meshes wearing their colour per
+	# vertex, like the range, and their windows in the fifth lit material,
+	# the one `park_lights.gd` never dims after close because a town does not
+	# shut with the park.
+	var town := StandardMaterial3D.new()
+	town.albedo_color = Color(1.0, 1.0, 1.0)
+	town.roughness = 0.88
+	town.vertex_color_use_as_albedo = true
+	town.vertex_color_is_srgb = true
+	mats["town"] = town
+	mats["town_window"] = _lit_material(Color(0.30, 0.36, 0.46), WINDOW_EMIT, WINDOW_MAT_PATH)
 
 	# The two ground surfaces. Brick is warm and a little dusty rather than new
 	# terracotta — a park floor has had twenty summers on it.
@@ -3974,6 +4002,24 @@ func _west_shell() -> void:
 			(Plan.BAY_WATER_FROM_Z + Plan.REBUILD_WORLD_WATER_TO_Z) * 0.5),
 		Vector3(Plan.BAY_WATER_TO_X - Plan.REBUILD_WORLD_WATER_TO_X, 8.0,
 			Plan.REBUILD_WORLD_WATER_TO_Z - Plan.BAY_WATER_FROM_Z),
+		"water", 0.0, false)
+	# The sea north of the north shore (2026-09-05), the same way: from the
+	# ocean's east edge out to the far water bound, reaching south under the
+	# land, which is whole there; and the sea east of the island between it
+	# and the bay sheet, from well under the land.
+	_box("water_north", Vector3.ZERO,
+		Vector3((Plan.REBUILD_WORLD_WATER_TO_X + Plan.REBUILD_WORLD_WATER_FAR_X) * 0.5,
+			WATER_TOP - 4.0,
+			(Plan.REBUILD_WORLD_WATER_FROM_Z + Plan.NORTH_WATER_TO_Z) * 0.5),
+		Vector3(Plan.REBUILD_WORLD_WATER_FAR_X - Plan.REBUILD_WORLD_WATER_TO_X, 8.0,
+			Plan.NORTH_WATER_TO_Z - Plan.REBUILD_WORLD_WATER_FROM_Z),
+		"water", 0.0, false)
+	_box("water_east", Vector3.ZERO,
+		Vector3((Plan.EAST_WATER_FROM_X + Plan.REBUILD_WORLD_WATER_FAR_X) * 0.5,
+			WATER_TOP - 4.0,
+			(Plan.NORTH_WATER_TO_Z + Plan.BAY_WATER_FROM_Z) * 0.5),
+		Vector3(Plan.REBUILD_WORLD_WATER_FAR_X - Plan.EAST_WATER_FROM_X, 8.0,
+			Plan.BAY_WATER_FROM_Z - Plan.NORTH_WATER_TO_Z),
 		"water", 0.0, false)
 
 
@@ -16618,7 +16664,20 @@ const REBUILD_WORLD_RESERVE_Y := -0.16
 const REBUILD_WORLD_TERRAIN_STEP := 24.0
 const REBUILD_WORLD_FINE_STEP := 8.0
 const REBUILD_WORLD_FINE_REACH := 720.0
+## Fine-lattice zones beyond the reach, in world XZ: the north town's valley
+## (02B, 2026-09-05), where a 4.5m lane cut into the hillside with an 8m
+## batter cannot be carried by 24m cells — between its vertices the mesh
+## floated and buried the streets by a third of a metre. A zone refines
+## every column in its x range and every row in its z range, on both the
+## coast mesh and the mainland reserve, since the two share one axis walk.
+const REBUILD_WORLD_FINE_ZONES := [
+	[Rect2(-540.0, -2100.0, 430.0, 430.0), 4.0],
+	[Rect2(-130.0, 300.0, 150.0, 220.0), 4.0],
+]
 const REBUILD_WORLD_FLAT_MARGIN := 100.0
+## How far east of the coast seam the reserve's own lift (`_rebuild_reserve_swell`)
+## takes to come in, so that the seam carries none of it.
+const REBUILD_RESERVE_SWELL_FADE_X := 240.0
 const REBUILD_COAST_LOW_Y := Plan.SHORE_TOP - 0.08
 # Level with the reserve, not eight centimetres under it, since 2026-09-04:
 # the coast mesh is the ground beyond the working strip now that the bench
@@ -16711,28 +16770,36 @@ func _rebuild_groundworks() -> void:
 func _rebuild_world_reserve_mesh() -> ArrayMesh:
 	# Fine near the park, where the foothill has to hold a crest, coarse beyond.
 	var xs := _rebuild_graded_axis(Plan.REBUILD_WORLD_LAND_FROM_X,
-		Plan.REBUILD_WORLD_LAND_TO_X)
+		Plan.REBUILD_WORLD_LAND_TO_X, true)
 	var zs := _rebuild_graded_axis(Plan.REBUILD_WORLD_LAND_FROM_Z,
-		Plan.REBUILD_WORLD_LAND_TO_Z)
+		Plan.REBUILD_WORLD_LAND_TO_Z, false)
 	var lowland_cuts := _rebuild_lowland_cuts()
 	# The bay's far shore (2026-09-04): the south coast outline crosses this
 	# mesh's west edge and runs on south-east, so the cells it crosses are
 	# clipped to the outline exactly, as the coast meshes are, and the cells
 	# beyond it are sea and not emitted. The shore then gets the coast mesh's
 	# own skirt down below the water.
-	var sea := _reserve_sea_polygon()
-	var sea_lo := Vector2.ZERO
-	var sea_hi := Vector2.ZERO
-	if not sea.is_empty():
-		sea_lo = sea[0]
-		sea_hi = sea[0]
+	var seas: Array = _reserve_sea_polygons()
+	var sea_bounds: Array = []
+	for sea in seas:
+		var lo: Vector2 = sea[0]
+		var hi: Vector2 = sea[0]
 		for q in sea:
-			sea_lo = Vector2(minf(sea_lo.x, q.x), minf(sea_lo.y, q.y))
-			sea_hi = Vector2(maxf(sea_hi.x, q.x), maxf(sea_hi.y, q.y))
+			lo = Vector2(minf(lo.x, q.x), minf(lo.y, q.y))
+			hi = Vector2(maxf(hi.x, q.x), maxf(hi.y, q.y))
+		sea_bounds.append([lo, hi])
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_smooth_group(0)
 	var emitted := 0
+	# What closes an edge of this mesh (2026-09-05): the bay's shore faces
+	# the sea, the world's outer edges face outward, and the seam with the
+	# coast meshes is shared and gets nothing — see `_reserve_edge_walls`.
+	var north_east: Array = _coast_split(Plan.COAST_NORTH_OUTLINE)[1]
+	var closures := {"shores": [north_east, _coast_south_split()[1]],
+		"west_open_below_z": (north_east[0] as Vector2).y if not north_east.is_empty() \
+			else Plan.REBUILD_WORLD_COAST_FROM_Z,
+		"west_open_above_z": Plan.coast_south_crossing_z(Plan.SHORE_FROM_X)}
 	for zi in zs.size() - 1:
 		for xi in xs.size() - 1:
 			var p00 := Vector2(xs[xi], zs[zi])
@@ -16744,10 +16811,21 @@ func _rebuild_world_reserve_mesh() -> ArrayMesh:
 				return _rebuild_in_protected(p, 0.75) \
 					or _rebuild_in_lowland_cut(p, lowland_cuts, 0.35)):
 				continue
-			if not sea.is_empty() and p11.x > sea_lo.x and p00.x < sea_hi.x \
-					and p11.y > sea_lo.y and p00.y < sea_hi.y:
-				var cell := PackedVector2Array([p00, p10, p11, p01])
-				var land: Array = Geometry2D.clip_polygons(cell, sea)
+			var cell := PackedVector2Array([p00, p10, p11, p01])
+			var land: Array = [cell]
+			var clipped := false
+			for si in seas.size():
+				var lo: Vector2 = sea_bounds[si][0]
+				var hi: Vector2 = sea_bounds[si][1]
+				if p11.x > lo.x and p00.x < hi.x and p11.y > lo.y and p00.y < hi.y:
+					# By every sea the cell touches in turn: the two seas meet
+					# on the east coast, and a cell there is cut by both.
+					var next: Array = []
+					for piece in land:
+						next.append_array(Geometry2D.clip_polygons(piece, seas[si]))
+					land = next
+					clipped = true
+			if clipped:
 				if land.is_empty():
 					continue
 				var whole := land.size() == 1 and (land[0] as PackedVector2Array).size() == 4 \
@@ -16755,6 +16833,7 @@ func _rebuild_world_reserve_mesh() -> ArrayMesh:
 				if not whole:
 					for piece in land:
 						_reserve_piece(st, piece)
+						_reserve_edge_walls(st, piece, closures)
 					emitted += 1
 					continue
 			var a := Vector3(p00.x, _rebuild_world_reserve_y(p00), p00.y)
@@ -16769,31 +16848,83 @@ func _rebuild_world_reserve_mesh() -> ArrayMesh:
 				c, p11 * 0.28, cc, Vector3.UP)
 			_earth_coloured_tri(st, a, p00 * 0.28, ca, c, p11 * 0.28, cc,
 				d, p01 * 0.28, cd, Vector3.UP)
+			_reserve_edge_walls(st, PackedVector2Array([p00, p10, p11, p01]), closures)
 			emitted += 1
 	assert(emitted > 1000, "the surrounding mainland reserve did not generate")
-	# The bay shore's skirt: from the reserve's edge on the outline down below
-	# the water, facing the sea, so the far shore reads as a low cliff rather
-	# than as the underside of the land seen from the pier.
-	var shore: Array = _coast_south_split()[1]
-	st.set_color(REBUILD_SEA_CLIFF_COLOUR)
-	for i in shore.size() - 1:
-		var a2: Vector2 = shore[i]
-		var b2: Vector2 = shore[i + 1]
-		var steps := maxi(1, ceili(a2.distance_to(b2) / 12.0))
-		var along := (b2 - a2).normalized()
-		var seaward := Vector3(-along.y, 0.0, along.x)
-		for k in steps:
-			var p0 := a2.lerp(b2, float(k) / float(steps))
-			var p1 := a2.lerp(b2, float(k + 1) / float(steps))
-			_earth_wall_quad(st,
-				Vector3(p0.x, Plan.WATER_TOP - 6.0, p0.y),
-				Vector3(p1.x, Plan.WATER_TOP - 6.0, p1.y),
-				Vector3(p0.x, _rebuild_world_reserve_y(p0), p0.y),
-				Vector3(p1.x, _rebuild_world_reserve_y(p1), p1.y),
-				seaward)
 	st.generate_normals()
 	st.generate_tangents()
 	return st.commit()
+
+
+## Close the open edges of one reserve cell or clipped piece (2026-09-05).
+## The reserve is a single-sided surface, so every boundary edge standing
+## above the water is a face the world does not have: from outside it you
+## look straight through the mountain. Christina saw two of them from the
+## towns — the range's south arm dead-ending into the bay with its whole
+## west face open, where the sea polygon closed on a straight line at x 700,
+## and the reserve's summit north of the valley floating as a plate over the
+## 200m its west edge ran past the coast mesh. Three closures: the bay's
+## shore, a wall facing the sea; the world's own outer edges, a wall facing
+## outward; and the seam with the coast meshes, which is shared vertex for
+## vertex and gets nothing, except where no coast mesh stands beside it.
+## Built from the mesh's own edges so a wall's top shares the exact vertices
+## the ground has, which is the headland skirt's lesson: a skirt sampled every
+## 12m along the outline parted from the chord between the mesh's boundary
+## vertices, and the bay shore's skirt was still built that way. Nothing at
+## the water line: an edge whose two ends both sit under `WATER_TOP + 1` is
+## under the water already. `footprint_test` counts what this leaves open.
+func _reserve_edge_walls(st: SurfaceTool, poly: PackedVector2Array,
+		closures: Dictionary) -> void:
+	var bottom := Plan.WATER_TOP - 6.0
+	var shores: Array = closures["shores"]
+	for i in poly.size():
+		var a2: Vector2 = poly[i]
+		var b2: Vector2 = poly[(i + 1) % poly.size()]
+		if a2.distance_to(b2) < 0.05:
+			continue
+		var facing := Vector3.ZERO
+		if _both_on(a2, b2, false, Plan.REBUILD_WORLD_LAND_FROM_Z):
+			facing = Vector3(0.0, 0.0, -1.0)
+		elif _both_on(a2, b2, false, Plan.REBUILD_WORLD_LAND_TO_Z):
+			facing = Vector3(0.0, 0.0, 1.0)
+		elif _both_on(a2, b2, true, Plan.REBUILD_WORLD_LAND_TO_X):
+			facing = Vector3(1.0, 0.0, 0.0)
+		elif _both_on(a2, b2, true, Plan.REBUILD_WORLD_LAND_FROM_X):
+			var z := (a2.y + b2.y) * 0.5
+			if z < float(closures["west_open_below_z"]) + 0.02 \
+					or z > float(closures["west_open_above_z"]) - 0.02:
+				facing = Vector3(-1.0, 0.0, 0.0)
+		else:
+			for shore in shores:
+				for j in (shore as Array).size() - 1:
+					var ea: Vector2 = shore[j]
+					var eb: Vector2 = shore[j + 1]
+					# A tenth of a metre: the clipper hands back a sliver's
+					# corner a few centimetres off the line it was cut on.
+					if a2.distance_to(Geometry2D.get_closest_point_to_segment(a2, ea, eb)) > 0.1 \
+							or b2.distance_to(Geometry2D.get_closest_point_to_segment(b2, ea, eb)) > 0.1:
+						continue
+					var along := (eb - ea).normalized()
+					facing = Vector3(-along.y, 0.0, along.x)
+					break
+				if facing != Vector3.ZERO:
+					break
+		if facing == Vector3.ZERO:
+			continue
+		var ya := _rebuild_world_reserve_y(a2)
+		var yb := _rebuild_world_reserve_y(b2)
+		if maxf(ya, yb) < Plan.WATER_TOP + 1.0:
+			continue
+		st.set_color(REBUILD_SEA_CLIFF_COLOUR)
+		_earth_wall_quad(st,
+			Vector3(a2.x, bottom, a2.y), Vector3(b2.x, bottom, b2.y),
+			Vector3(a2.x, ya, a2.y), Vector3(b2.x, yb, b2.y), facing)
+
+
+func _both_on(a: Vector2, b: Vector2, axis_x: bool, value: float) -> bool:
+	if axis_x:
+		return absf(a.x - value) < 0.02 and absf(b.x - value) < 0.02
+	return absf(a.y - value) < 0.02 and absf(b.y - value) < 0.02
 
 
 func _polygon_area(poly: PackedVector2Array) -> float:
@@ -16824,14 +16955,52 @@ func _reserve_piece(st: SurfaceTool, piece: PackedVector2Array) -> void:
 
 
 ## Samples at `REBUILD_WORLD_FINE_STEP` within `REBUILD_WORLD_FINE_REACH` of
-## the origin and at the coarse step beyond, on one lattice.
-func _rebuild_graded_axis(from: float, to: float) -> PackedFloat32Array:
-	var out := PackedFloat32Array([from])
-	var p := from
-	while p < to - 0.01:
-		var near := absf(p) <= REBUILD_WORLD_FINE_REACH
-		p += REBUILD_WORLD_FINE_STEP if near else REBUILD_WORLD_TERRAIN_STEP
-		out.append(minf(p, to))
+## the origin and inside every fine zone, at the coarse step beyond, on one
+## lattice: walked outward from zero on both sides so the coast meshes,
+## which walk outward from the seam and from zero, land on the same values
+## (the mainland's upward walk from −2400 used to put its rows 8m off the
+## coast's north of z −720).
+func _rebuild_graded_axis(from: float, to: float, axis_x: bool) -> PackedFloat32Array:
+	if from < 0.0 and to > 0.0:
+		var neg := _rebuild_axis_walk(0.0, from, axis_x)
+		neg.reverse()
+		var pos := _rebuild_axis_walk(0.0, to, axis_x)
+		for i in range(1, pos.size()):
+			neg.append(pos[i])
+		return neg
+	return _rebuild_axis_walk(from, to, axis_x)
+
+
+## The lattice step to take from a point on an axis: a zone's own step
+## inside it (4m over the towns, where a kerb has to sit between two
+## vertices on its own street), the fine step within the reach, the coarse
+## step beyond.
+func _rebuild_axis_step_at(p: float, axis_x: bool) -> float:
+	var step := REBUILD_WORLD_TERRAIN_STEP
+	if absf(p) <= REBUILD_WORLD_FINE_REACH:
+		step = REBUILD_WORLD_FINE_STEP
+	for zone in REBUILD_WORLD_FINE_ZONES:
+		var r: Rect2 = zone[0]
+		var inside := (p >= r.position.x and p <= r.end.x) if axis_x \
+			else (p >= r.position.y and p <= r.end.y)
+		if inside:
+			step = minf(step, float(zone[1]))
+	return step
+
+
+## The lattice from `origin` to `to` in either direction, the step decided
+## by the point it leaves: fine inside the reach and the zones, coarse
+## beyond. Ends exactly on `to`.
+func _rebuild_axis_walk(origin: float, to: float, axis_x: bool) -> PackedFloat32Array:
+	var out := PackedFloat32Array([origin])
+	var p := origin
+	var dir := 1.0 if to > origin else -1.0
+	while absf(to - p) > 0.01:
+		var step := _rebuild_axis_step_at(p, axis_x)
+		p += dir * step
+		if (to - p) * dir < 0.0:
+			p = to
+		out.append(p)
 	return out
 
 
@@ -16887,7 +17056,9 @@ func _rebuild_range_noise_setup() -> void:
 ## through it. Both the mainland reserve and the gridded coast meshes sample
 ## this, so their seam carries the same height.
 func _rebuild_range_rise(p: Vector2) -> float:
-	return _rebuild_road_cut(p, _rebuild_range_rise_raw(p))
+	# Only the ground colour reads this now; the meshes cut their whole
+	# height (see `_rebuild_world_reserve_y`).
+	return _rebuild_road_cut(p, _rebuild_range_rise_raw(p), false)
 
 
 ## The same, before any road has cut it: what the highway's heights are read
@@ -16934,29 +17105,47 @@ func _rebuild_range_rise_raw(p: Vector2) -> float:
 	# 22m of z, stood a wall up the cove side of the promontory and bulged the
 	# walk half a metre off an 8m lattice that cannot hold that curvature
 	# (2026-09-04, found by rays rather than by eye).
-	var shore := clampf(Plan.coast_inland(p) / 150.0, 0.0, 1.0)
-	shore = shore * shore * (3.0 - 2.0 * shore)
+	# The north town's creek valley (02B, 2026-09-05): a notch in the range at
+	# the coast's north end whose floor is a twentieth of the range's height,
+	# because the face there is 1:1 into the sea and a town needs a floor.
+	# Applied to the range alone; the coast base and the beach are its own.
+	y *= Plan.north_valley_factor(p)
+	# The city's peninsula (02B, 2026-09-05): nothing on the downtown plain,
+	# the whole range again 700m out, so the city climbs out of its flat
+	# waterfront onto hills. `WORLD_HILLS` are added by `_rebuild_coast_feature`.
+	y *= Plan.city_relief_factor(p)
+	# Faded to nothing at the shore over the nearest shore's own run: the
+	# park's coast over 150m, the world's north and south coasts over 600
+	# (2026-09-05), where the range stands 250m and a short run made a wall
+	# into the sea rather than a mountain coming down to it.
+	var shore := Plan.coast_fade(p)
 	return y * w * shore + base
 
 
-## The approach road holds its own grade: within half a road width the ground
+## Every road holds its own grade: within a metre of a road's edge the ground
 ## is the road's line, and out to the batter it blends back to the landform.
-func _rebuild_road_cut(p: Vector2, y: float) -> float:
+## The approach road and the highway's open stations with 18m batters, the
+## towns' streets (02B) with `TOWN_STREET_BATTER` and a `TOWN_STREET_VERGE`
+## at the road's level beyond the kerb, because a street along a hillside
+## on 8m cells needs every vertex its edge interpolates between on its own
+## plane, or the mesh carries the slope back over the kerb (a third of a
+## metre on Second Street's north end, 2026-09-05). A tunnel's stations do
+## not cut, so the hill stays over the tube. Nearest road wins.
+func _rebuild_road_cut(p: Vector2, y: float, with_streets := true) -> float:
 	var best := INF
 	var road_y := 0.0
-	var half: float = Plan.APPROACH_ROAD_W * 0.5 + 1.0
+	var batter := 18.0
 	var road: Array[Vector3] = Plan.approach_road_points()
 	for i in road.size() - 1:
 		var a := Vector2(road[i].x, road[i].z)
 		var b := Vector2(road[i + 1].x, road[i + 1].z)
 		var q := Geometry2D.get_closest_point_to_segment(p, a, b)
-		var dist := p.distance_to(q)
+		var dist := p.distance_to(q) - Plan.APPROACH_ROAD_W * 0.5
 		if dist < best:
 			best = dist
+			batter = 18.0
 			var t := a.distance_to(q) / maxf(a.distance_to(b), 0.001)
 			road_y = lerpf(road[i].y, road[i + 1].y, t)
-	# The highway (02B): its open stations cut the ground the same way; its
-	# tunnel stations do not, so the hill stays over the tube.
 	var hw: Array = _highway_stations()
 	var open: PackedByteArray = _highway_open
 	var reach := Plan.HIGHWAY_W * 0.5 + 1.0 + 18.0
@@ -16971,16 +17160,40 @@ func _rebuild_road_cut(p: Vector2, y: float) -> float:
 		var a := Vector2(s0.x, s0.z)
 		var b := Vector2(s1.x, s1.z)
 		var q := Geometry2D.get_closest_point_to_segment(p, a, b)
-		var dist := p.distance_to(q) - (Plan.HIGHWAY_W - Plan.APPROACH_ROAD_W) * 0.5
+		var dist := p.distance_to(q) - Plan.HIGHWAY_W * 0.5
 		if dist < best:
 			best = dist
+			batter = 18.0
 			var t := a.distance_to(q) / maxf(a.distance_to(b), 0.001)
 			road_y = lerpf(s0.y, s1.y, t)
-	if best <= half:
+	var streets: Array = _town_street_stations() if with_streets else []
+	for street in streets:
+		var lo: Vector2 = street["lo"]
+		var hi: Vector2 = street["hi"]
+		if p.x < lo.x or p.x > hi.x or p.y < lo.y or p.y > hi.y:
+			continue
+		var pts: Array = street["points"]
+		var half: float = float(street["width"]) * 0.5
+		if _road_past_end(p, pts, bool(street.get("flush_start", false)),
+				bool(street.get("flush_end", false))):
+			continue
+		for i in pts.size() - 1:
+			var s0: Vector3 = pts[i]
+			var s1: Vector3 = pts[i + 1]
+			var a := Vector2(s0.x, s0.z)
+			var b := Vector2(s1.x, s1.z)
+			var q := Geometry2D.get_closest_point_to_segment(p, a, b)
+			var dist := p.distance_to(q) - half - (TOWN_STREET_VERGE - 1.0)
+			if dist < best:
+				best = dist
+				batter = TOWN_STREET_BATTER
+				var t := a.distance_to(q) / maxf(a.distance_to(b), 0.001)
+				road_y = lerpf(s0.y, s1.y, t)
+	if best <= 1.0:
 		return road_y - 0.06
-	var batter := clampf((best - half) / 18.0, 0.0, 1.0)
-	batter = batter * batter * (3.0 - 2.0 * batter)
-	return lerpf(road_y - 0.06, y, batter)
+	var blend := clampf((best - 1.0) / batter, 0.0, 1.0)
+	blend = blend * blend * (3.0 - 2.0 * blend)
+	return lerpf(road_y - 0.06, y, blend)
 
 
 ## The ground as the landform gives it, before any road: the mainland reserve's
@@ -16988,29 +17201,14 @@ func _rebuild_road_cut(p: Vector2, y: float) -> float:
 ## both on the uncut range rise.
 func _rebuild_natural_y(p: Vector2) -> float:
 	if p.x >= Plan.REBUILD_WORLD_LAND_FROM_X:
-		var north_start := Plan.REBUILD_FOOTPRINT_MIN_Z - REBUILD_WORLD_FLAT_MARGIN
-		var south_start := Plan.REBUILD_FOOTPRINT_MAX_Z + REBUILD_WORLD_FLAT_MARGIN
-		var east_start := Plan.REBUILD_FOOTPRINT_MAX_X + REBUILD_WORLD_FLAT_MARGIN
-		var north := clampf((north_start - p.y) /
-			(north_start - Plan.REBUILD_WORLD_LAND_FROM_Z), 0.0, 1.0)
-		var south := clampf((p.y - south_start) /
-			(Plan.REBUILD_WORLD_LAND_TO_Z - south_start), 0.0, 1.0)
-		var east := clampf((p.x - east_start) /
-			(Plan.REBUILD_WORLD_LAND_TO_X - east_start), 0.0, 1.0)
-		north = north * north * (3.0 - 2.0 * north)
-		south = south * south * (3.0 - 2.0 * south)
-		east = east * east * (3.0 - 2.0 * east)
-		var weight := maxf(north, maxf(south, east))
-		var rise := north * 4.0 + south * 3.0 + east * 5.0
-		var roll := (sin(p.x * 0.031) + sin(p.y * 0.027) * 0.7) * 0.32 * weight
-		return REBUILD_WORLD_RESERVE_Y + rise + roll + _rebuild_range_rise_raw(p) \
-			+ _rebuild_coast_feature(p)
+		return _beach_shore(p, REBUILD_WORLD_RESERVE_Y + _rebuild_reserve_swell(p)
+			+ _rebuild_range_rise_raw(p) + _rebuild_coast_feature(p))
 	var distance := absf(p.y)
 	var t := clampf((distance - REBUILD_COAST_TRANSITION_FROM_Z) /
 		(REBUILD_COAST_TRANSITION_TO_Z - REBUILD_COAST_TRANSITION_FROM_Z), 0.0, 1.0)
 	t = t * t * (3.0 - 2.0 * t)
-	return lerpf(REBUILD_COAST_LOW_Y, REBUILD_COAST_HIGH_Y, t) \
-		+ _rebuild_range_rise_raw(p) + _rebuild_coast_feature(p)
+	return _beach_shore(p, lerpf(REBUILD_COAST_LOW_Y, REBUILD_COAST_HIGH_Y, t)
+		+ _rebuild_range_rise_raw(p) + _rebuild_coast_feature(p))
 
 
 var _highway_cache: Array = []
@@ -17104,8 +17302,20 @@ func _rebuild_coast_feature(p: Vector2) -> float:
 	# on a spine that ran along the cove-side shore, so its crest was the cliff
 	# edge and the north half of the land lay at sea level.
 	var y := Plan.promontory_y(p)
-	# The cliff bands live on the coast meshes only; the reserve east of the
-	# shore samples this function for the promontory's root and nothing else.
+	# The world's far coasts (2026-09-05) on both meshes: cliffed headlands
+	# that rise over the first 25m inland, the way the park's headland does,
+	# and the hills that stand on their own, which are added to the ground
+	# rather than raised to.
+	var true_inland := Plan.coast_inland(p)
+	for cliff in Plan.WORLD_CLIFFS:
+		var ends := clampf(1.0 - p.distance_to(Vector2(cliff["at"])) / float(cliff["radius"]), 0.0, 1.0)
+		ends = ends * ends * (3.0 - 2.0 * ends)
+		var rise := clampf(true_inland / 25.0, 0.0, 1.0)
+		y = maxf(y, float(cliff["height"]) * rise * ends)
+	y += Plan.world_hills_y(p)
+	# The park's own cliff bands live on the coast meshes only; the reserve
+	# east of the shore samples this function for the promontory's root and
+	# the world's features and nothing else.
 	if p.x >= Plan.REBUILD_WORLD_LAND_FROM_X:
 		return y
 	var inland := p.x - Plan.shore_x(p.y)
@@ -17137,6 +17347,8 @@ func _rebuild_ground_colour(p: Vector2, y: float) -> Color:
 	var r := clampf((y - Plan.RIM_RANGE_TREELINE_Y) / 60.0, 0.0, 1.0)
 	r = r * r * (3.0 - 2.0 * r)
 	var c := meadow.lerp(forest, f).lerp(rock, r)
+	# Sand where a beach (02B) has brought the ground down to the water.
+	c = c.lerp(Color(0.78, 0.72, 0.58), Plan.beach_weight(p))
 	var grain := 1.0 + sin(p.x * 0.37) * sin(p.y * 0.41) * 0.05
 	return Color(c.r * grain, c.g * grain, c.b * grain)
 
@@ -17158,6 +17370,26 @@ func _earth_coloured_tri(st: SurfaceTool, a: Vector3, uv_a: Vector2, col_a: Colo
 
 
 func _rebuild_world_reserve_y(p: Vector2) -> float:
+	# The cut comes last, on the whole ground (2026-09-05): cut into the range
+	# rise alone, the coast base and a beach's lowering were added back on
+	# top of the road's line, and the beach road floated 1.4m over the sand
+	# it had been cut into. Under a road the ground is the road's line now.
+	return _rebuild_road_cut(p, _beach_shore(p, REBUILD_WORLD_RESERVE_Y
+		+ _rebuild_reserve_swell(p)
+		+ _rebuild_range_rise_raw(p) + _rebuild_coast_feature(p)))
+
+
+## The mainland reserve's own gentle lift toward the horizon — a few metres
+## rising north, south and east of the developed park, with a low roll — from
+## before the range, when it was the only relief there was. Faded to nothing
+## over `REBUILD_RESERVE_SWELL_FADE_X` from the seam with the coast meshes
+## (2026-09-05): the coast formula never carried it, so the seam at x −56
+## stood a step that grew from nothing at the park to 3.8m at the world's
+## north end, and a step in a single-sided surface is an open face 4km long.
+## Against a range two hundred metres high there, four metres over a 240m
+## fade is 1:60 and invisible; at the seam the two functions now agree to
+## the float, which `footprint_test`'s open-face census holds them to.
+func _rebuild_reserve_swell(p: Vector2) -> float:
 	var north_start := Plan.REBUILD_FOOTPRINT_MIN_Z - REBUILD_WORLD_FLAT_MARGIN
 	var south_start := Plan.REBUILD_FOOTPRINT_MAX_Z + REBUILD_WORLD_FLAT_MARGIN
 	var east_start := Plan.REBUILD_FOOTPRINT_MAX_X + REBUILD_WORLD_FLAT_MARGIN
@@ -17173,8 +17405,11 @@ func _rebuild_world_reserve_y(p: Vector2) -> float:
 	var weight := maxf(north, maxf(south, east))
 	var rise := north * 4.0 + south * 3.0 + east * 5.0
 	var roll := (sin(p.x * 0.031) + sin(p.y * 0.027) * 0.7) * 0.32 * weight
-	return REBUILD_WORLD_RESERVE_Y + rise + roll + _rebuild_range_rise(p) \
-		+ _rebuild_coast_feature(p)
+	var seam := clampf((p.x - Plan.REBUILD_WORLD_LAND_FROM_X)
+		/ REBUILD_RESERVE_SWELL_FADE_X, 0.0, 1.0)
+	seam = seam * seam * (3.0 - 2.0 * seam)
+	# And nothing of it on the city's downtown plain, which is flat.
+	return (rise + roll) * seam * Plan.city_relief_factor(p)
 
 
 ## Keep the working Boardwalk shoreline at x=-108 through its central 140m,
@@ -17183,17 +17418,20 @@ func _rebuild_world_reserve_y(p: Vector2) -> float:
 ## centimetre underlap leaves the existing shore as the exact local datum.
 func _rebuild_coastal_reserve_shapes() -> Array:
 	# Both polygons are the plan's coast outlines closed back along the
-	# mainland reserve's west edge, so the coast is described once.
+	# mainland reserve's west edge, so the coast is described once. Both
+	# outlines cross that edge now (the north since 2026-09-05, when the
+	# coast was carried round the world's north end): the coast mesh stops
+	# on the crossing and the reserve carries the shore east of it, clipped
+	# to the same outline — see `_rebuild_world_reserve_mesh`.
 	var north: Array = []
 	north.append(Vector2(Plan.SHORE_FROM_X, -70.0))
-	for q in Plan.COAST_NORTH_OUTLINE:
+	var north_parts: Array = _coast_split(Plan.COAST_NORTH_OUTLINE)
+	for q in north_parts[0]:
 		north.append(q)
-	north.append(Vector2(Plan.SHORE_FROM_X, Plan.REBUILD_WORLD_COAST_FROM_Z))
+	if (north_parts[1] as Array).is_empty():
+		north.append(Vector2(Plan.SHORE_FROM_X, Plan.REBUILD_WORLD_COAST_FROM_Z))
 	var south: Array = []
 	south.append(Vector2(Plan.SHORE_FROM_X, 70.0))
-	# The bay's far shore crosses the reserve's west edge (2026-09-04): the
-	# coast mesh stops on that crossing and the reserve carries the shore east
-	# of it, clipped to the same outline — see `_rebuild_world_reserve_mesh`.
 	var parts: Array = _coast_south_split()
 	var west_part: Array = parts[0]
 	if (parts[1] as Array).is_empty():
@@ -17205,13 +17443,16 @@ func _rebuild_coastal_reserve_shapes() -> Array:
 	return [{"id": "north", "points": north}, {"id": "south", "points": south}]
 
 
-## The south outline split at the mainland reserve's west edge: the part the
-## coast mesh draws, ending on the crossing, and the part the reserve draws,
-## beginning on it. The second is empty if the shore never gets that far east.
 func _coast_south_split() -> Array:
+	return _coast_split(Plan.COAST_SOUTH_OUTLINE)
+
+
+## An outline split at the mainland reserve's west edge: the part the coast
+## mesh draws, ending on the crossing, and the part the reserve draws,
+## beginning on it. The second is empty if the shore never gets that far east.
+func _coast_split(outline: Array) -> Array:
 	var west: Array = []
 	var east: Array = []
-	var outline: Array = Plan.COAST_SOUTH_OUTLINE
 	for i in outline.size():
 		var q: Vector2 = outline[i]
 		if not east.is_empty():
@@ -17228,20 +17469,32 @@ func _coast_south_split() -> Array:
 	return [west, east]
 
 
-## The sea inside the mainland reserve's footprint: the far shore of the bay
-## east of the reserve's west edge, closed along the world's south edge. Empty
-## when the outline never crosses the edge.
-func _reserve_sea_polygon() -> PackedVector2Array:
-	var east: Array = _coast_south_split()[1]
-	if east.is_empty():
-		return PackedVector2Array()
-	var poly := PackedVector2Array()
-	for q in east:
-		poly.append(q)
-	var last: Vector2 = east[east.size() - 1]
-	poly.append(Vector2(last.x, Plan.REBUILD_WORLD_LAND_TO_Z))
-	poly.append(Vector2(Plan.SHORE_FROM_X, Plan.REBUILD_WORLD_LAND_TO_Z))
-	return poly
+## The seas inside the mainland reserve's footprint: the bay's far shore and
+## the south coast east of the reserve's west edge, closed along the world's
+## south edge, and since 2026-09-05 the north shore closed along the north
+## edge. Each is empty when its outline never crosses the edge.
+func _reserve_sea_polygons() -> Array:
+	var seas: Array = []
+	for pair in [[Plan.COAST_NORTH_OUTLINE, Plan.REBUILD_WORLD_LAND_FROM_Z],
+			[Plan.COAST_SOUTH_OUTLINE, Plan.REBUILD_WORLD_LAND_TO_Z]]:
+		var east: Array = _coast_split(pair[0])[1]
+		if east.is_empty():
+			continue
+		var edge_z: float = pair[1]
+		var poly := PackedVector2Array()
+		for q in east:
+			poly.append(q)
+		var last: Vector2 = east[east.size() - 1]
+		# Out to the world's east bound at the outline's last point (the
+		# junction on the east coast, since the land became an island), then
+		# to the corner, then back along the world's edge to the seam.
+		if last.x < Plan.REBUILD_WORLD_LAND_TO_X - 0.01:
+			poly.append(Vector2(Plan.REBUILD_WORLD_LAND_TO_X, last.y))
+		if absf(last.y - edge_z) > 0.01:
+			poly.append(Vector2(Plan.REBUILD_WORLD_LAND_TO_X, edge_z))
+		poly.append(Vector2(Plan.SHORE_FROM_X, edge_z))
+		seas.append(poly)
+	return seas
 
 
 func _rebuild_coastal_polygon_mesh(record: Dictionary) -> ArrayMesh:
@@ -17257,27 +17510,19 @@ func _rebuild_coastal_polygon_mesh(record: Dictionary) -> ArrayMesh:
 	for q in polygon:
 		lo = Vector2(minf(lo.x, q.x), minf(lo.y, q.y))
 		hi = Vector2(maxf(hi.x, q.x), maxf(hi.y, q.y))
-	# The same graded lattice as the mainland reserve: 8m within the fine reach,
-	# 24m beyond, both anchored on the reserve's west edge so the seam matches
-	# vertex for vertex. A 22m-wide promontory on a 24m grid was a block.
-	var xs := PackedFloat32Array()
-	var x0: float = Plan.REBUILD_WORLD_LAND_FROM_X
-	while x0 > lo.x:
-		xs.append(x0)
-		x0 -= REBUILD_WORLD_FINE_STEP if absf(x0) <= REBUILD_WORLD_FINE_REACH \
-			else REBUILD_WORLD_TERRAIN_STEP
-	xs.append(x0)
+	# The same graded lattice as the mainland reserve: 8m within the fine
+	# reach and the fine zones, 24m beyond, from the same axis walk anchored
+	# on the reserve's west edge and on zero, so the seam matches vertex for
+	# vertex. A 22m-wide promontory on a 24m grid was a block.
+	var xs := _rebuild_axis_walk(Plan.REBUILD_WORLD_LAND_FROM_X,
+		lo.x - REBUILD_WORLD_TERRAIN_STEP, true)
 	xs.reverse()
+	var all_z := _rebuild_graded_axis(Plan.REBUILD_WORLD_LAND_FROM_Z,
+		Plan.REBUILD_WORLD_LAND_TO_Z, false)
 	var zs := PackedFloat32Array()
-	var zc := 0.0
-	while zc > lo.y:
-		zc -= REBUILD_WORLD_FINE_STEP if absf(zc) <= REBUILD_WORLD_FINE_REACH \
-			else REBUILD_WORLD_TERRAIN_STEP
-	while zc < hi.y:
-		zs.append(zc)
-		zc += REBUILD_WORLD_FINE_STEP if absf(zc) <= REBUILD_WORLD_FINE_REACH \
-			else REBUILD_WORLD_TERRAIN_STEP
-	zs.append(zc)
+	for zc in all_z:
+		if zc >= lo.y - REBUILD_WORLD_TERRAIN_STEP and zc <= hi.y + REBUILD_WORLD_TERRAIN_STEP:
+			zs.append(zc)
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_smooth_group(0)
@@ -17320,7 +17565,10 @@ func _rebuild_coastal_polygon_mesh(record: Dictionary) -> ArrayMesh:
 		var b2: Vector2 = polygon[(i + 1) % polygon.size()]
 		# Only the sea edge gets a skirt: the polygon's inland seam along the
 		# reserve's west edge carries the range's full height and would stand a
-		# wall across the lighthouse's view.
+		# wall across the lighthouse's view. The polygon's closing edge along
+		# the world's north bound is not the seam and does get one, facing
+		# north — outward — so the coast's north end is a solid cut rather
+		# than an open one (2026-09-05).
 		if absf(a2.x - Plan.REBUILD_WORLD_LAND_FROM_X) < 0.5 \
 				and absf(b2.x - Plan.REBUILD_WORLD_LAND_FROM_X) < 0.5:
 			continue
@@ -17372,9 +17620,11 @@ func _rebuild_coastal_reserve_y(p: Vector2) -> float:
 	# transition ramps used to start (2026-09-04).
 	var lip := clampf((distance - (REBUILD_COAST_TRANSITION_FROM_Z - 10.0)) / 10.0,
 		0.0, 1.0)
-	return lerpf(REBUILD_COAST_LOW_Y + (Plan.SHORE_TOP - REBUILD_COAST_LOW_Y) * lip,
-		REBUILD_COAST_HIGH_Y, t) \
-		+ _rebuild_range_rise(p) + _rebuild_coast_feature(p)
+	# The cut last, on the whole ground, as `_rebuild_world_reserve_y` says.
+	return _rebuild_road_cut(p, _beach_shore(p,
+		lerpf(REBUILD_COAST_LOW_Y + (Plan.SHORE_TOP - REBUILD_COAST_LOW_Y) * lip,
+		REBUILD_COAST_HIGH_Y, t)
+		+ _rebuild_range_rise_raw(p) + _rebuild_coast_feature(p)))
 
 
 ## A dense Delaunay field lets us keep the atlas' irregular lowland outline and
@@ -20304,3 +20554,908 @@ func _rebuild_tree(nm: String, at: Vector3, height: float, radius: float) -> voi
 		radius, "foliage", 0.0, 0.82)
 	_sphere(nm + "_crown_b", at, Vector3(radius * 0.38, height * 0.84,
 		radius * 0.18), radius * 0.82, "foliage", 0.0, 0.92)
+
+
+# ---------------------------------------------------------------------------
+# Package 02B: the towns
+# ---------------------------------------------------------------------------
+#
+# Three pieces of scenery beyond the park, built 2026-09-05: the north town in
+# its creek valley where the character lives, the beach town on the bay's
+# shelf south of the parking, and the city on a plain at the bay's far end.
+# Driven through and looked at, never walked, so every building is a face in
+# one merged mesh per town rather than a CSG node — a house is about forty
+# quads and a town has sixty houses, and sixty CSG boxes per house would be
+# most of the park again. Two meshes per town: the walls, coloured per vertex
+# like the range, and the windows in the lit material the night turns on.
+# Streets are the same road ribbons the highway is, cut into the ground by
+# `_rebuild_road_cut`, and every lot is placed along a street by rule: set
+# back from it, facing it, on ground under 1:3, clear of every road and every
+# other lot, off the beach and the water. Where a lot cannot stand there is
+# no house, which is what makes the hillside thin out as it climbs.
+
+## Flat shading for the town meshes: SurfaceTool welds normals by position
+## and smooth group, and a box corner shared by three faces would otherwise
+## come back rounded.
+const TOWN_FLAT := 4294967295
+const TOWN_STREET_BATTER := 8.0
+const TOWN_STREET_VERGE := 4.5
+const TOWN_JUNCTION_BAND := 8.0
+const TOWN_FOUNDATION := Color(0.44, 0.43, 0.41)
+const TOWN_DOOR := Color(0.30, 0.24, 0.20)
+const TOWN_POST := Color(0.22, 0.22, 0.24)
+const TOWN_WALLS := [
+	Color(0.93, 0.90, 0.82), Color(0.86, 0.82, 0.70), Color(0.80, 0.84, 0.80),
+	Color(0.74, 0.78, 0.82), Color(0.90, 0.78, 0.68), Color(0.96, 0.94, 0.90),
+	Color(0.70, 0.72, 0.66), Color(0.88, 0.86, 0.62),
+]
+const TOWN_ROOFS := [
+	Color(0.30, 0.30, 0.32), Color(0.42, 0.30, 0.26), Color(0.33, 0.38, 0.32),
+	Color(0.36, 0.34, 0.30), Color(0.50, 0.36, 0.30),
+]
+const TOWN_ACCENTS := [
+	Color(0.75, 0.25, 0.22), Color(0.20, 0.42, 0.62), Color(0.22, 0.50, 0.36),
+	Color(0.85, 0.70, 0.20),
+]
+## The city wears the old west tableau's haze palette, `far` and its
+## neighbours: at three kilometres with no fog in the project, distance is
+## painted, and these are the colours that were chosen for exactly that.
+const CITY_TOWERS := [
+	Color(0.66, 0.68, 0.72), Color(0.55, 0.56, 0.62), Color(0.72, 0.66, 0.63),
+	Color(0.60, 0.63, 0.70), Color(0.70, 0.71, 0.74),
+]
+
+var _tw: SurfaceTool
+var _tg: SurfaceTool
+var _town_street_cache: Array = []
+var _town_rng := RandomNumberGenerator.new()
+## What the runtime forest keeps off: (x, z, radius) per building, published
+## on the scene root as `clearings` for `range_forest.gd`.
+var _town_clearings := PackedVector3Array()
+
+
+## The towns' streets in 3D, computed once: each plan line resampled at 6m,
+## heights read off the ground as the highway and the approach road have
+## left it, a station at the turning circle at the front road's level, then
+## held to the street's grade by lowering only, as the highway is. No
+## tunnels: a street that would need one is in the wrong place. Each
+## carries the bounds the ground cut rejects by.
+##
+## **A street takes the road it meets at that road's own level, across the
+## junction and for `TOWN_JUNCTION_BAND` beyond its edge** — the highway,
+## the approach road, or a street laid before it — and any station inside
+## the other road's ribbon is held there after the grade clamp. Read as the
+## ground less thirty centimetres right up to the highway, a street ran
+## thirty centimetres under the highway's ribbon where the two overlapped,
+## and `path_ground_test` reported every junction in both towns
+## (2026-09-05).
+func _town_street_stations() -> Array:
+	if not _town_street_cache.is_empty():
+		return _town_street_cache
+	var roads: Array = [
+		{"points": _highway_stations(), "half": Plan.HIGHWAY_W * 0.5},
+		{"points": Plan.approach_road_points(), "half": Plan.APPROACH_ROAD_W * 0.5},
+	]
+	var out: Array = []
+	for street in Plan.town_streets():
+		var plan_pts: Array = street["points"]
+		var xz: Array[Vector2] = [plan_pts[0]]
+		for i in range(1, plan_pts.size()):
+			var a: Vector2 = plan_pts[i - 1]
+			var b: Vector2 = plan_pts[i]
+			var steps := maxi(1, ceili(a.distance_to(b) / 6.0))
+			for k in range(1, steps + 1):
+				xz.append(a.lerp(b, float(k) / float(steps)))
+		var h := PackedFloat32Array()
+		var on_road := PackedByteArray()
+		var flush := PackedByteArray()
+		for q in xz:
+			var near := _road_level_near(q, roads, TOWN_JUNCTION_BAND)
+			if near.y < INF:
+				h.append(near.x)
+				on_road.append(1 if near.y <= 0.5 else 0)
+			else:
+				h.append(_rebuild_road_cut(q, _rebuild_natural_y(q), false) - 0.3)
+				on_road.append(0)
+			flush.append(on_road[on_road.size() - 1])
+		# The turning circle is not a cut road, so a start on it is pinned to
+		# the front road's level and keeps its cap: flush there left the
+		# circle's ground seventy centimetres under the road's first metres.
+		var circle: Vector3 = Plan.TURNING_CIRCLE
+		for end_i in [0, xz.size() - 1]:
+			if xz[end_i].distance_to(Vector2(circle.x, circle.y)) < circle.z + 4.0:
+				h[end_i] = 0.0
+				on_road[end_i] = 1
+		# Held to the grade about the stations on another road, which do not
+		# move: the others are lowered into cut where the ground climbs faster
+		# than the grade and raised onto fill where it falls faster, since a
+		# street that meets a road at the road's level and then drops to the
+		# ground at 1:2 is a kerb across the junction. The highway only ever
+		# lowers; a street's fill is what the ground cut's batter is for.
+		var grade := float(street["grade"])
+		for round_i in 3:
+			for i in range(1, xz.size()):
+				if not on_road[i]:
+					h[i] = minf(h[i], h[i - 1] + xz[i].distance_to(xz[i - 1]) * grade)
+			for i in range(xz.size() - 2, -1, -1):
+				if not on_road[i]:
+					h[i] = minf(h[i], h[i + 1] + xz[i].distance_to(xz[i + 1]) * grade)
+			for i in range(1, xz.size()):
+				if not on_road[i]:
+					h[i] = maxf(h[i], h[i - 1] - xz[i].distance_to(xz[i - 1]) * grade)
+			for i in range(xz.size() - 2, -1, -1):
+				if not on_road[i]:
+					h[i] = maxf(h[i], h[i + 1] - xz[i].distance_to(xz[i + 1]) * grade)
+		var pts: Array[Vector3] = []
+		var lo := xz[0]
+		var hi := xz[0]
+		for i in xz.size():
+			pts.append(Vector3(xz[i].x, h[i], xz[i].y))
+			lo = Vector2(minf(lo.x, xz[i].x), minf(lo.y, xz[i].y))
+			hi = Vector2(maxf(hi.x, xz[i].x), maxf(hi.y, xz[i].y))
+		var margin := float(street["width"]) * 0.5 + 1.0 + TOWN_STREET_BATTER + 1.0
+		# An end that stands on another road is flush, so its band does not
+		# reach back over the road that feeds it; a free end keeps its round
+		# cap, the pad the mesh needs there or the hillside beyond
+		# interpolates back over the last metres (the lane's head, 2026-09-05).
+		var flush_start := flush[0] == 1
+		var flush_end := flush[xz.size() - 1] == 1
+		out.append({"id": street["id"], "points": pts, "width": float(street["width"]),
+			"lo": lo - Vector2.ONE * margin, "hi": hi + Vector2.ONE * margin,
+			"flush_start": flush_start, "flush_end": flush_end})
+		roads.append({"points": pts, "half": float(street["width"]) * 0.5, "street": true,
+			"flush_start": flush_start, "flush_end": flush_end})
+	_town_street_cache = out
+	return out
+
+
+## Whether a point lies beyond a road's own end: behind the start of its
+## first segment or past the end of its last by more than half a metre,
+## where that end is flush. A street's level band ends flush where the
+## street starts or ends on another road, or an 18m lot carries a round cap
+## of its plateau eleven metres back along the lane that feeds it and the
+## lane floats over it; a free end keeps its cap. Judged for the whole road
+## and not per segment: skipping only the first segment left the second to
+## catch the same point at its own lower station (2026-09-05).
+func _road_past_end(p: Vector2, pts: Array, flush_start: bool, flush_end: bool) -> bool:
+	if pts.size() < 2:
+		return false
+	if flush_start:
+		var a := Vector2((pts[0] as Vector3).x, (pts[0] as Vector3).z)
+		var b := Vector2((pts[1] as Vector3).x, (pts[1] as Vector3).z)
+		var d := b - a
+		if d.length() > 0.001 and (p - a).dot(d) / d.length() < -0.5:
+			return true
+	if flush_end:
+		var n := pts.size()
+		var a := Vector2((pts[n - 2] as Vector3).x, (pts[n - 2] as Vector3).z)
+		var b := Vector2((pts[n - 1] as Vector3).x, (pts[n - 1] as Vector3).z)
+		var d := b - a
+		if d.length() > 0.001 and (p - a).dot(d) / d.length() > d.length() + 0.5:
+			return true
+	return false
+
+
+## The nearest road's level at a point, as (level, distance beyond that
+## road's edge), for any road whose edge is within `band`; (0, INF) if none.
+## A street's band ends flush at its ends (`_road_past_end`).
+func _road_level_near(p: Vector2, roads: Array, band: float) -> Vector2:
+	var best := band
+	var level := 0.0
+	var found := false
+	for road in roads:
+		var pts: Array = road["points"]
+		var half: float = float(road["half"])
+		if _road_past_end(p, pts, bool(road.get("flush_start", false)),
+				bool(road.get("flush_end", false))):
+			continue
+		for i in pts.size() - 1:
+			var s0: Vector3 = pts[i]
+			var s1: Vector3 = pts[i + 1]
+			if absf(p.x - s0.x) > band + half + 40.0 or absf(p.y - s0.z) > band + half + 40.0:
+				continue
+			var a := Vector2(s0.x, s0.z)
+			var b := Vector2(s1.x, s1.z)
+			var q := Geometry2D.get_closest_point_to_segment(p, a, b)
+			var dist := p.distance_to(q) - half
+			if dist < best:
+				best = dist
+				found = true
+				var t := a.distance_to(q) / maxf(a.distance_to(b), 0.001)
+				level = lerpf(s0.y, s1.y, t)
+	return Vector2(level, best if found else INF)
+
+
+## A beach (02B): the ground eases down to the water over the last few tens
+## of metres before the shoreline where `Plan.BEACHES` says so, instead of
+## ending seven metres over the water on the sea-cliff skirt. Applied last in
+## every height function, so the valley, the range and the coast base all go
+## down with it and both meshes agree.
+func _beach_shore(p: Vector2, y: float) -> float:
+	var w: float = Plan.beach_weight(p)
+	if w <= 0.0:
+		return y
+	return lerpf(y, Plan.BEACH_TOP, w)
+
+
+## The ground a building stands on: the coast mesh's height west of the
+## reserve's seam and the reserve's east of it, road cuts included.
+func _town_ground_y(p: Vector2) -> float:
+	if p.x < Plan.REBUILD_WORLD_LAND_FROM_X:
+		return _rebuild_coastal_reserve_y(p)
+	return _rebuild_world_reserve_y(p)
+
+
+func _town_begin() -> void:
+	_tw = SurfaceTool.new()
+	_tw.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_tw.set_smooth_group(TOWN_FLAT)
+	_tg = SurfaceTool.new()
+	_tg.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_tg.set_smooth_group(TOWN_FLAT)
+
+
+func _town_end(nm: String) -> void:
+	_tw.generate_normals()
+	_rebuild_mesh_body(nm + "_buildings", _tw.commit(), "town", false)
+	_tg.generate_normals()
+	_rebuild_mesh_body(nm + "_windows", _tg.commit(), "town_window", false)
+
+
+## One triangle wound to face `hint`, the rule `_earth_coloured_tri` uses.
+func _town_tri(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, col: Color,
+		hint: Vector3) -> void:
+	var n := (c - a).cross(b - a)
+	if n.length_squared() < 0.00000001:
+		return
+	var order := [a, b, c] if n.dot(hint) >= 0.0 else [a, c, b]
+	for v in order:
+		st.set_color(col)
+		st.add_vertex(v)
+
+
+func _town_quad(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, d: Vector3,
+		col: Color, hint: Vector3) -> void:
+	_town_tri(st, a, b, c, col, hint)
+	_town_tri(st, a, c, d, col, hint)
+
+
+## The faces of an axis-aligned box in a local frame: bits 1 +x, 2 -x, 4 the
+## top, 8 the bottom, 16 +z (a building's front), 32 -z. 51 is the four
+## sides, 55 the sides and the top.
+func _town_box(st: SurfaceTool, xf: Transform3D, lo: Vector3, hi: Vector3, col: Color,
+		faces := 63) -> void:
+	var c := [
+		xf * Vector3(lo.x, lo.y, lo.z), xf * Vector3(hi.x, lo.y, lo.z),
+		xf * Vector3(hi.x, lo.y, hi.z), xf * Vector3(lo.x, lo.y, hi.z),
+		xf * Vector3(lo.x, hi.y, lo.z), xf * Vector3(hi.x, hi.y, lo.z),
+		xf * Vector3(hi.x, hi.y, hi.z), xf * Vector3(lo.x, hi.y, hi.z),
+	]
+	if faces & 1:
+		_town_quad(st, c[1], c[5], c[6], c[2], col, xf.basis.x)
+	if faces & 2:
+		_town_quad(st, c[0], c[3], c[7], c[4], col, -xf.basis.x)
+	if faces & 4:
+		_town_quad(st, c[4], c[5], c[6], c[7], col, xf.basis.y)
+	if faces & 8:
+		_town_quad(st, c[0], c[1], c[2], c[3], col, -xf.basis.y)
+	if faces & 16:
+		_town_quad(st, c[3], c[2], c[6], c[7], col, xf.basis.z)
+	if faces & 32:
+		_town_quad(st, c[0], c[1], c[5], c[4], col, -xf.basis.z)
+
+
+## A window: a quad on a wall, three centimetres proud of it, in the lit
+## mesh. `at` is its centre on the wall in the building's frame and `n` the
+## wall's outward normal there.
+func _town_window(xf: Transform3D, at: Vector3, w: float, h: float, n: Vector3) -> void:
+	var side := Vector3(n.z, 0.0, -n.x).normalized()
+	var p := at + n * 0.03
+	var a := xf * (p - side * w * 0.5 - Vector3.UP * h * 0.5)
+	var b := xf * (p + side * w * 0.5 - Vector3.UP * h * 0.5)
+	var c := xf * (p + side * w * 0.5 + Vector3.UP * h * 0.5)
+	var d := xf * (p - side * w * 0.5 + Vector3.UP * h * 0.5)
+	_town_quad(_tg, a, b, c, d, Color.WHITE, xf.basis * n)
+
+
+func _town_door(xf: Transform3D, at: Vector3, w: float, h: float) -> void:
+	var n := Vector3(0.0, 0.0, 1.0)
+	var p := at + n * 0.02
+	var a := xf * (p - Vector3.RIGHT * w * 0.5 - Vector3.UP * h * 0.5)
+	var b := xf * (p + Vector3.RIGHT * w * 0.5 - Vector3.UP * h * 0.5)
+	var c := xf * (p + Vector3.RIGHT * w * 0.5 + Vector3.UP * h * 0.5)
+	var d := xf * (p - Vector3.RIGHT * w * 0.5 + Vector3.UP * h * 0.5)
+	_town_quad(_tw, a, b, c, d, TOWN_DOOR, xf.basis.z)
+
+
+## A gabled roof over walls `w` across and `d` deep topping out at `he`, its
+## ridge along the street (`ridge_x`) or across it: the gable ends in the
+## wall colour, two slopes with an overhang, their undersides, and the eave's
+## edge so the roof has a thickness from the street.
+func _town_gable_roof(xf: Transform3D, w: float, d: float, he: float, walls: Color,
+		roof: Color, ridge_x: bool) -> void:
+	var rxf := xf
+	var rw := w
+	var rd := d
+	if not ridge_x:
+		rxf = xf * Transform3D(Basis(Vector3.UP, PI * 0.5), Vector3.ZERO)
+		rw = d
+		rd = w
+	var pitch := 0.52
+	var ov := 0.45
+	var hr := he + rd * 0.5 * pitch
+	var ye := he - ov * pitch
+	for sx_v in [-1.0, 1.0]:
+		var sx: float = sx_v
+		var x := sx * rw * 0.5
+		_town_tri(_tw, rxf * Vector3(x, he, -rd * 0.5), rxf * Vector3(x, he, rd * 0.5),
+			rxf * Vector3(x, hr, 0.0), walls, rxf.basis.x * sx)
+	var under := Color(roof.r * 0.7, roof.g * 0.7, roof.b * 0.7)
+	for sz_v in [-1.0, 1.0]:
+		var sz: float = sz_v
+		var z := sz * (rd * 0.5 + ov)
+		var a := rxf * Vector3(-rw * 0.5 - ov, ye, z)
+		var b := rxf * Vector3(rw * 0.5 + ov, ye, z)
+		var c := rxf * Vector3(rw * 0.5 + ov, hr, 0.0)
+		var d2 := rxf * Vector3(-rw * 0.5 - ov, hr, 0.0)
+		var up := rxf.basis.y + rxf.basis.z * sz * pitch
+		_town_quad(_tw, a, b, c, d2, roof, up)
+		_town_quad(_tw, a, b, c, d2, under, -up)
+		var a2 := rxf * Vector3(-rw * 0.5 - ov, ye - 0.14, z)
+		var b2 := rxf * Vector3(rw * 0.5 + ov, ye - 0.14, z)
+		_town_quad(_tw, a2, b2, b, a, roof, rxf.basis.z * sz)
+
+
+## A house: walls on a foundation that reaches the ground on the downhill
+## side, a gabled roof, a door and windows on the street face, windows on the
+## flanks and the back, sometimes a chimney and a porch. `at` is the floor's
+## centre, `yaw` turns the front (+z) to face the street.
+func _town_house(at: Vector3, yaw: float, w: float, d: float, storeys: int,
+		found: float, walls: Color, roof: Color, ridge_x: bool, chimney: bool,
+		porch: bool) -> void:
+	var xf := Transform3D(Basis(Vector3.UP, yaw), at)
+	var he := 2.9 * float(storeys) + 0.25
+	_town_box(_tw, xf, Vector3(-w * 0.5, -found, -d * 0.5),
+		Vector3(w * 0.5, 0.0, d * 0.5), TOWN_FOUNDATION, 51)
+	_town_box(_tw, xf, Vector3(-w * 0.5, 0.0, -d * 0.5),
+		Vector3(w * 0.5, he, d * 0.5), walls, 51)
+	_town_gable_roof(xf, w, d, he, walls, roof, ridge_x)
+	var dx := w * 0.25 * (1.0 if _town_rng.randf() < 0.5 else -1.0)
+	_town_door(xf, Vector3(dx, 1.03, d * 0.5), 0.9, 2.06)
+	var front := Vector3(0.0, 0.0, 1.0)
+	for k in storeys:
+		var y := 1.55 + 2.9 * float(k)
+		var n := maxi(1, int((w - 1.6) / 2.4))
+		for i in n:
+			var x := -w * 0.5 + 0.8 + (w - 1.6) * (float(i) + 0.5) / float(n)
+			if k == 0 and absf(x - dx) < 1.2:
+				continue
+			_town_window(xf, Vector3(x, y, d * 0.5), 1.1, 1.25, front)
+		var m := maxi(1, int((d - 1.6) / 3.0))
+		for i in m:
+			var z := -d * 0.5 + 0.8 + (d - 1.6) * (float(i) + 0.5) / float(m)
+			_town_window(xf, Vector3(w * 0.5, y, z), 1.0, 1.2, Vector3.RIGHT)
+			_town_window(xf, Vector3(-w * 0.5, y, z), 1.0, 1.2, Vector3.LEFT)
+		_town_window(xf, Vector3(-w * 0.15, y, -d * 0.5), 1.4, 1.2, -front)
+	if chimney:
+		var top := he + minf(w, d) * 0.5 * 0.52 + 0.4
+		_town_box(_tw, xf, Vector3(w * 0.22, he - 0.6, -d * 0.2),
+			Vector3(w * 0.22 + 0.65, top, -d * 0.2 + 0.65), TOWN_FOUNDATION, 55)
+	if porch:
+		_town_box(_tw, xf, Vector3(dx - 1.7, 2.32, d * 0.5),
+			Vector3(dx + 1.7, 2.46, d * 0.5 + 1.6), roof, 63)
+		_town_box(_tw, xf, Vector3(dx - 1.9, -0.08, d * 0.5),
+			Vector3(dx + 1.9, 0.12, d * 0.5 + 1.8), TOWN_FOUNDATION, 63)
+		for sx_v in [-1.0, 1.0]:
+			var sx: float = sx_v
+			_town_box(_tw, xf, Vector3(dx + sx * 1.45 - 0.07, 0.1, d * 0.5 + 1.3),
+				Vector3(dx + sx * 1.45 + 0.07, 2.32, d * 0.5 + 1.44), walls, 51)
+
+
+## A shop on a main street: flat-roofed, a parapet in its accent colour, a
+## window band and a door on the street, an awning over them, a sign on the
+## parapet, and a unit on the roof.
+func _town_shop(at: Vector3, yaw: float, w: float, d: float, h: float, found: float,
+		walls: Color, accent: Color, sign_col: Color) -> void:
+	var xf := Transform3D(Basis(Vector3.UP, yaw), at)
+	_town_box(_tw, xf, Vector3(-w * 0.5, -found, -d * 0.5),
+		Vector3(w * 0.5, 0.0, d * 0.5), TOWN_FOUNDATION, 51)
+	_town_box(_tw, xf, Vector3(-w * 0.5, 0.0, -d * 0.5),
+		Vector3(w * 0.5, h, d * 0.5), walls, 51)
+	_town_box(_tw, xf, Vector3(-w * 0.5 - 0.06, h - 0.05, -d * 0.5 - 0.06),
+		Vector3(w * 0.5 + 0.06, h + 0.55, d * 0.5 + 0.06), accent, 55)
+	_town_window(xf, Vector3(-0.9, 1.7, d * 0.5), w - 3.2, 1.9, Vector3(0.0, 0.0, 1.0))
+	_town_door(xf, Vector3(w * 0.5 - 1.25, 1.03, d * 0.5), 0.95, 2.06)
+	_town_box(_tw, xf, Vector3(-w * 0.5 + 0.35, 2.85, d * 0.5),
+		Vector3(w * 0.5 - 0.35, 3.0, d * 0.5 + 1.35), accent, 63)
+	_town_box(_tw, xf, Vector3(-w * 0.5 + 0.4, h + 0.6, d * 0.5 - 0.35),
+		Vector3(w * 0.5 - 0.4, h + 1.35, d * 0.5 + 0.05), sign_col, 63)
+	_town_box(_tw, xf, Vector3(-1.0, h, -d * 0.25),
+		Vector3(0.6, h + 1.1, -d * 0.25 + 1.4), TOWN_FOUNDATION, 55)
+	_town_window(xf, Vector3(-w * 0.2, 1.7, -d * 0.5), 1.4, 1.2, Vector3(0.0, 0.0, -1.0))
+
+
+## A gas station on the main street: a kiosk behind, a canopy on four posts
+## over two pumps, a band in the accent colour round the canopy.
+func _town_gas(at: Vector3, yaw: float, found: float, accent: Color) -> void:
+	var xf := Transform3D(Basis(Vector3.UP, yaw), at)
+	_town_box(_tw, xf, Vector3(-7.0, -found, -6.0), Vector3(7.0, 0.05, 6.0), TOWN_FOUNDATION, 63)
+	_town_box(_tw, xf, Vector3(-3.0, 0.0, -6.0), Vector3(3.0, 3.2, -2.5), TOWN_WALLS[5], 55)
+	_town_window(xf, Vector3(0.0, 1.6, -2.5), 4.0, 1.6, Vector3(0.0, 0.0, 1.0))
+	for sx_v in [-1.0, 1.0]:
+		var sx: float = sx_v
+		for sz_v in [-1.0, 1.0]:
+			var sz: float = sz_v
+			_town_box(_tw, xf, Vector3(sx * 4.8 - 0.2, 0.0, 1.6 + sz * 2.6 - 0.2),
+				Vector3(sx * 4.8 + 0.2, 4.4, 1.6 + sz * 2.6 + 0.2), TOWN_POST, 51)
+	_town_box(_tw, xf, Vector3(-6.0, 4.4, -1.8), Vector3(6.0, 4.9, 5.0), TOWN_WALLS[5], 63)
+	_town_box(_tw, xf, Vector3(-6.05, 4.5, -1.85), Vector3(6.05, 4.85, 5.05), accent, 51)
+	for sx_v in [-1.0, 1.0]:
+		var sx: float = sx_v
+		_town_box(_tw, xf, Vector3(sx * 2.4 - 0.3, 0.0, 1.0),
+			Vector3(sx * 2.4 + 0.3, 1.4, 2.2), accent, 55)
+	_town_box(_tw, xf, Vector3(5.6, 0.0, -5.6), Vector3(6.2, 6.0, -5.0), TOWN_POST, 51)
+	_town_box(_tw, xf, Vector3(4.6, 6.0, -5.5), Vector3(7.2, 7.4, -5.1), accent, 63)
+
+
+## A small white church: a nave with its gable to the street and a square
+## tower beside the door with a pyramid spire.
+func _town_church(at: Vector3, yaw: float, found: float) -> void:
+	var xf := Transform3D(Basis(Vector3.UP, yaw), at)
+	var w := 8.0
+	var d := 13.0
+	var he := 5.0
+	var white := Color(0.96, 0.95, 0.92)
+	var roof := Color(0.30, 0.30, 0.32)
+	_town_box(_tw, xf, Vector3(-w * 0.5, -found, -d * 0.5), Vector3(w * 0.5, 0.0, d * 0.5),
+		TOWN_FOUNDATION, 51)
+	_town_box(_tw, xf, Vector3(-w * 0.5, 0.0, -d * 0.5), Vector3(w * 0.5, he, d * 0.5), white, 51)
+	_town_gable_roof(xf, w, d, he, white, roof, false)
+	_town_door(xf, Vector3(0.0, 1.2, d * 0.5), 1.4, 2.4)
+	for k in 3:
+		var z := -d * 0.5 + 2.5 + float(k) * 3.5
+		_town_window(xf, Vector3(w * 0.5, 2.4, z), 0.9, 2.2, Vector3.RIGHT)
+		_town_window(xf, Vector3(-w * 0.5, 2.4, z), 0.9, 2.2, Vector3.LEFT)
+	var tx := w * 0.5 + 1.2
+	_town_box(_tw, xf, Vector3(tx - 1.5, -found, d * 0.5 - 3.0),
+		Vector3(tx + 1.5, 9.0, d * 0.5), white, 51)
+	_town_window(xf, Vector3(tx, 7.6, d * 0.5), 0.9, 1.6, Vector3(0.0, 0.0, 1.0))
+	var apex := xf * Vector3(tx, 13.0, d * 0.5 - 1.5)
+	var base := [
+		xf * Vector3(tx - 1.6, 9.0, d * 0.5 - 3.1), xf * Vector3(tx + 1.6, 9.0, d * 0.5 - 3.1),
+		xf * Vector3(tx + 1.6, 9.0, d * 0.5 + 0.1), xf * Vector3(tx - 1.6, 9.0, d * 0.5 + 0.1),
+	]
+	var centre := xf * Vector3(tx, 9.0, d * 0.5 - 1.5)
+	for i in 4:
+		var a: Vector3 = base[i]
+		var b: Vector3 = base[(i + 1) % 4]
+		var out := ((a + b) * 0.5 - centre)
+		_town_tri(_tw, a, b, apex, roof, out + Vector3.UP * 0.4)
+
+
+## A street lamp: a post in the walls mesh, a head in the lit mesh so it
+## reads as a lamp from across the valley, and a service light under it
+## that stays on all night, because a town's lamps do not close with the
+## park.
+func _town_lamp(nm: String, at: Vector3) -> void:
+	var xf := Transform3D(Basis.IDENTITY, at)
+	_town_box(_tw, xf, Vector3(-0.08, -0.3, -0.08), Vector3(0.08, 4.3, 0.08), TOWN_POST, 51)
+	_town_box(_tg, xf, Vector3(-0.24, 4.3, -0.24), Vector3(0.24, 4.56, 0.24), Color.WHITE, 63)
+	_omni(nm, at + Vector3.UP * 4.7, "lamp", 1.0, 12.0, LIGHT_SERVICE)
+
+
+## Lamps along a street every `spacing`, `setback` off the centreline on one
+## side, standing on the ground there.
+func _town_lamps_along(nm: String, points: Array, spacing: float, setback: float,
+		side: float) -> void:
+	var s := spacing * 0.5
+	var k := 0
+	var total := 0.0
+	for i in points.size() - 1:
+		total += Vector2((points[i] as Vector3).x, (points[i] as Vector3).z).distance_to(
+			Vector2((points[i + 1] as Vector3).x, (points[i + 1] as Vector3).z))
+	while s < total:
+		var acc := 0.0
+		for i in points.size() - 1:
+			var a := Vector2((points[i] as Vector3).x, (points[i] as Vector3).z)
+			var b := Vector2((points[i + 1] as Vector3).x, (points[i + 1] as Vector3).z)
+			var seg := a.distance_to(b)
+			if acc + seg < s:
+				acc += seg
+				continue
+			var q := a.lerp(b, (s - acc) / maxf(seg, 0.001))
+			var tangent := (b - a) / maxf(seg, 0.001)
+			var normal := Vector2(tangent.y, -tangent.x)
+			var c := q + normal * side * setback
+			_town_lamp("%s_lamp_%d" % [nm, k], Vector3(c.x, _town_ground_y(c), c.y))
+			k += 1
+			break
+		s += spacing
+
+
+## A tower in the city: a box with a plant on top, and a window band per
+## floor on every face in the lit mesh, which is what glows at night and
+## reads as floors by day.
+func _city_tower(at: Vector3, yaw: float, w: float, d: float, h: float, col: Color) -> void:
+	var xf := Transform3D(Basis(Vector3.UP, yaw), at)
+	_town_box(_tw, xf, Vector3(-w * 0.5, -2.0, -d * 0.5), Vector3(w * 0.5, h, d * 0.5), col, 55)
+	if h > 40.0:
+		_town_box(_tw, xf, Vector3(-w * 0.2, h, -d * 0.2), Vector3(w * 0.2, h + 2.4, d * 0.2),
+			Color(col.r * 0.85, col.g * 0.85, col.b * 0.85), 55)
+	var y := 2.2
+	while y + 1.5 < h - 1.2:
+		_town_window(xf, Vector3(0.0, y, d * 0.5), w - 1.6, 1.5, Vector3(0.0, 0.0, 1.0))
+		_town_window(xf, Vector3(0.0, y, -d * 0.5), w - 1.6, 1.5, Vector3(0.0, 0.0, -1.0))
+		_town_window(xf, Vector3(w * 0.5, y, 0.0), d - 1.6, 1.5, Vector3.RIGHT)
+		_town_window(xf, Vector3(-w * 0.5, y, 0.0), d - 1.6, 1.5, Vector3.LEFT)
+		y += 3.6
+
+
+## A low block on the city's plain: a box, and one window band.
+func _city_block(at: Vector3, yaw: float, w: float, d: float, h: float, col: Color) -> void:
+	var xf := Transform3D(Basis(Vector3.UP, yaw), at)
+	_town_box(_tw, xf, Vector3(-w * 0.5, -2.0, -d * 0.5), Vector3(w * 0.5, h, d * 0.5), col, 55)
+	_town_window(xf, Vector3(0.0, h * 0.5, d * 0.5), w - 2.0, 1.4, Vector3(0.0, 0.0, 1.0))
+	_town_window(xf, Vector3(-w * 0.5, h * 0.5, 0.0), d - 2.0, 1.4, Vector3.LEFT)
+
+
+## The lines every lot keeps off: the towns' streets, the highway and the
+## approach road, as points and half widths.
+func _town_keep_off() -> Array:
+	var out: Array = []
+	for street in _town_street_stations():
+		out.append({"points": street["points"], "half": float(street["width"]) * 0.5})
+	out.append({"points": _highway_stations(), "half": Plan.HIGHWAY_W * 0.5})
+	out.append({"points": Plan.approach_road_points(), "half": Plan.APPROACH_ROAD_W * 0.5})
+	return out
+
+
+## Whether a lot can stand: clear of every road by its own half-diagonal and
+## a metre and a half, clear of every lot already placed, off the beach and
+## the water, and on ground under 1:3 across its footprint with a foundation
+## under six and a half metres. Returns the floor height and the foundation
+## depth, or nothing.
+func _town_lot(c: Vector2, w: float, d: float, yaw: float, taken: Array,
+		keep_off: Array) -> Dictionary:
+	var half_diag := sqrt(w * w + d * d) * 0.5
+	for road in keep_off:
+		var pts: Array = road["points"]
+		var clear: float = float(road["half"]) + half_diag * 0.8 + 1.5
+		for i in pts.size() - 1:
+			var s0: Vector3 = pts[i]
+			var s1: Vector3 = pts[i + 1]
+			var a := Vector2(s0.x, s0.z)
+			var b := Vector2(s1.x, s1.z)
+			if c.distance_to(Geometry2D.get_closest_point_to_segment(c, a, b)) < clear:
+				return {}
+	for lot in taken:
+		var other: Vector2 = lot["at"]
+		var od: float = float(lot["half_diag"])
+		if c.distance_to(other) < (half_diag + od) * 0.9 + 1.5:
+			return {}
+	if Plan.beach_weight(c) > 0.06:
+		return {}
+	var basis := Basis(Vector3.UP, yaw)
+	var lo := INF
+	var hi := -INF
+	for corner in [Vector3(-w * 0.5, 0, -d * 0.5), Vector3(w * 0.5, 0, -d * 0.5),
+			Vector3(w * 0.5, 0, d * 0.5), Vector3(-w * 0.5, 0, d * 0.5), Vector3.ZERO]:
+		var q: Vector3 = basis * corner
+		var y := _town_ground_y(c + Vector2(q.x, q.z))
+		lo = minf(lo, y)
+		hi = maxf(hi, y)
+	if lo < Plan.WATER_TOP + 1.5:
+		return {}
+	if (hi - lo) / maxf(w, d) > 0.36:
+		return {}
+	var floor_y := hi + 0.12
+	var found := floor_y - lo + 0.5
+	if found > 6.5:
+		return {}
+	return {"floor": floor_y, "found": found}
+
+
+## Lots along a street: every `spacing` or so along the polyline, on the
+## sides asked for (-1 left, 1 right of the direction of travel), set back
+## from the centreline, facing the street, between `from` and `to` along it.
+## Each is placed only if `_town_lot` allows it.
+func _town_lots_along(points: Array, spacing: float, setback: float, sides: Array,
+		size: Vector2, taken: Array, keep_off: Array, from := 0.0, to := INF) -> Array:
+	var out: Array = []
+	var total := 0.0
+	for i in points.size() - 1:
+		total += Vector2((points[i] as Vector3).x, (points[i] as Vector3).z).distance_to(
+			Vector2((points[i + 1] as Vector3).x, (points[i + 1] as Vector3).z))
+	var s := from + spacing * 0.5
+	while s < minf(total, to) - spacing * 0.3:
+		var acc := 0.0
+		for i in points.size() - 1:
+			var a := Vector2((points[i] as Vector3).x, (points[i] as Vector3).z)
+			var b := Vector2((points[i + 1] as Vector3).x, (points[i + 1] as Vector3).z)
+			var seg := a.distance_to(b)
+			if acc + seg < s:
+				acc += seg
+				continue
+			var q := a.lerp(b, (s - acc) / maxf(seg, 0.001))
+			var tangent := (b - a) / maxf(seg, 0.001)
+			var normal := Vector2(tangent.y, -tangent.x)
+			for side_v in sides:
+				var side := float(side_v)
+				var w := size.x * _town_rng.randf_range(0.85, 1.15)
+				var dd := size.y * _town_rng.randf_range(0.85, 1.15)
+				var off := setback + dd * 0.5 + _town_rng.randf_range(-1.0, 1.0)
+				var c := q + normal * side * off + tangent * _town_rng.randf_range(-0.3, 0.3) * spacing
+				var front := -normal * side
+				var yaw := atan2(front.x, front.y)
+				var ground := _town_lot(c, w, dd, yaw, taken, keep_off)
+				if ground.is_empty():
+					continue
+				var lot := {"at": c, "yaw": yaw, "w": w, "d": dd, "s": s,
+					"floor": ground["floor"], "found": ground["found"],
+					"half_diag": sqrt(w * w + dd * dd) * 0.5}
+				taken.append(lot)
+				out.append(lot)
+			break
+		s += spacing * _town_rng.randf_range(0.9, 1.15)
+	return out
+
+
+## A hand-placed lot: sited exactly, and taken whether or not the ground
+## suits it, since the thing placed by hand is the thing the town is for.
+## Reports if it had to stand on ground the rule would have refused.
+func _town_place(nm: String, c: Vector2, w: float, d: float, yaw: float, taken: Array,
+		keep_off: Array) -> Dictionary:
+	var ground := _town_lot(c, w, d, yaw, taken, keep_off)
+	if ground.is_empty():
+		var basis := Basis(Vector3.UP, yaw)
+		var lo := INF
+		var hi := -INF
+		for corner in [Vector3(-w * 0.5, 0, -d * 0.5), Vector3(w * 0.5, 0, -d * 0.5),
+				Vector3(w * 0.5, 0, d * 0.5), Vector3(-w * 0.5, 0, d * 0.5)]:
+			var q: Vector3 = basis * corner
+			var y := _town_ground_y(c + Vector2(q.x, q.z))
+			lo = minf(lo, y)
+			hi = maxf(hi, y)
+		ground = {"floor": hi + 0.12, "found": hi + 0.12 - lo + 0.5}
+		print("town: %s stands where the lot rule would have refused (%.1fm of foundation at %s)" % [
+			nm, ground["found"], c])
+	var lot := {"at": c, "yaw": yaw, "w": w, "d": d, "s": 0.0, "floor": ground["floor"],
+		"found": ground["found"], "half_diag": sqrt(w * w + d * d) * 0.5}
+	taken.append(lot)
+	return lot
+
+
+func _town_build_house(lot: Dictionary, storeys: int) -> void:
+	var at: Vector2 = lot["at"]
+	_town_house(Vector3(at.x, float(lot["floor"]), at.y), float(lot["yaw"]), float(lot["w"]),
+		float(lot["d"]), storeys, float(lot["found"]),
+		TOWN_WALLS[_town_rng.randi() % TOWN_WALLS.size()],
+		TOWN_ROOFS[_town_rng.randi() % TOWN_ROOFS.size()],
+		_town_rng.randf() < 0.6, _town_rng.randf() < 0.4, _town_rng.randf() < 0.25)
+	_town_clearings.append(Vector3(at.x, at.y, float(lot["half_diag"]) + 3.0))
+
+
+func _town_build_shop(lot: Dictionary) -> void:
+	var at: Vector2 = lot["at"]
+	_town_shop(Vector3(at.x, float(lot["floor"]), at.y), float(lot["yaw"]), float(lot["w"]),
+		float(lot["d"]), _town_rng.randf_range(3.8, 4.6), float(lot["found"]),
+		TOWN_WALLS[_town_rng.randi() % TOWN_WALLS.size()],
+		TOWN_ACCENTS[_town_rng.randi() % TOWN_ACCENTS.size()],
+		TOWN_WALLS[_town_rng.randi() % TOWN_WALLS.size()])
+	_town_clearings.append(Vector3(at.x, at.y, float(lot["half_diag"]) + 3.0))
+
+
+func _rebuild_towns() -> void:
+	_town_rng.seed = 20260905
+	_town_clearings = PackedVector3Array()
+	for street in _town_street_stations():
+		_rebuild_path(String(street["id"]), street["points"], float(street["width"]),
+			false, &"", false)
+	var keep_off := _town_keep_off()
+	_rebuild_north_town(keep_off)
+	_rebuild_beach_town(keep_off)
+	_rebuild_far_city()
+	_root.set_meta("clearings", _town_clearings)
+	print("towns: %d buildings" % _town_clearings.size())
+
+
+## The north town, in its valley. The highway is the main street across the
+## valley floor: shops and a few houses along it, a gas station and the
+## church by hand. Houses along Second Street behind it, up Hill Road, and
+## along the lane that climbs the north side to the character's house,
+## which stands at the lane's head facing down the valley to the sea.
+func _rebuild_north_town(keep_off: Array) -> void:
+	_town_begin()
+	var taken: Array = []
+	var streets := {}
+	for street in _town_street_stations():
+		streets[String(street["id"])] = street["points"]
+	var u: Vector2 = Plan.NORTH_VALLEY["inland"]
+	var n := Vector2(-u.y, u.x)
+	var seaward := atan2(-u.x, -u.y)
+	var main: Array = []
+	for st in _highway_stations():
+		var f: Vector2 = Plan.valley_frame(Vector2(st.x, st.z))
+		if f.x > 20.0 and f.x < 140.0 and absf(f.y) < 160.0:
+			main.append(st)
+	# The gas station east of the highway north of Hill Road, the church on
+	# Hill Road's south side, and the house, all taken first so the street
+	# lots keep off them.
+	var gas := _town_place("gas station", Plan.valley_point(80.0, -58.0), 14.0, 12.0,
+		seaward, taken, keep_off)
+	var church := _town_place("church", Plan.valley_point(150.0, 36.0), 12.0, 13.0,
+		atan2(-n.x, -n.y), taken, keep_off)
+	var house_at: Vector2 = Plan.valley_point(Plan.NORTH_TOWN_HOUSE_ST.x, Plan.NORTH_TOWN_HOUSE_ST.y)
+	# Turned a third of the way from seaward toward the valley's axis, so the
+	# porch looks down the valley to the sea instead of into the north wall.
+	var house_front := (-u + n * 0.6).normalized()
+	var house_yaw := atan2(house_front.x, house_front.y)
+	var house := _town_place("the house", house_at, 8.5, 7.5, house_yaw, taken, keep_off)
+	for lot in _town_lots_along(main, 15.0, 8.5, [-1, 1], Vector2(10.0, 8.0), taken, keep_off):
+		if _town_rng.randf() < 0.7:
+			_town_build_shop(lot)
+		else:
+			_town_build_house(lot, 1 if _town_rng.randf() < 0.7 else 2)
+	for lot in _town_lots_along(streets["north_second_street"], 15.0, 6.5, [-1, 1],
+			Vector2(8.5, 8.0), taken, keep_off, 6.0):
+		_town_build_house(lot, 1 if _town_rng.randf() < 0.75 else 2)
+	for lot in _town_lots_along(streets["north_hill_road"], 17.0, 7.0, [-1, 1],
+			Vector2(9.0, 8.0), taken, keep_off, 24.0):
+		_town_build_house(lot, 1 if _town_rng.randf() < 0.7 else 2)
+	for lot in _town_lots_along(streets["north_house_lane"], 22.0, 6.0, [-1, 1],
+			Vector2(8.0, 7.0), taken, keep_off, 16.0, 150.0):
+		_town_build_house(lot, 1)
+	_town_gas(Vector3(gas["at"].x, float(gas["floor"]), gas["at"].y), float(gas["yaw"]),
+		float(gas["found"]), TOWN_ACCENTS[0])
+	_town_clearings.append(Vector3(gas["at"].x, gas["at"].y, 13.0))
+	_town_church(Vector3(church["at"].x, float(church["floor"]), church["at"].y),
+		float(church["yaw"]), float(church["found"]))
+	_town_clearings.append(Vector3(church["at"].x, church["at"].y, 12.0))
+	_town_house(Vector3(house_at.x, float(house["floor"]), house_at.y), house_yaw, 8.5, 7.5, 1,
+		float(house["found"]), Color(0.72, 0.80, 0.84), Color(0.30, 0.30, 0.32), true, true, true)
+	_town_clearings.append(Vector3(house_at.x, house_at.y, 10.0))
+	_root.set_meta("house", Vector3(house_at.x, float(house["floor"]), house_at.y))
+	_town_lamps_along("north_main", main, 28.0, 6.5, 1.0)
+	_town_lamps_along("north_hill", streets["north_hill_road"], 36.0, 5.0, -1.0)
+	_town_lamps_along("north_second", streets["north_second_street"], 36.0, 5.0, 1.0)
+	_town_end("north_town")
+
+
+## The beach town: houses along the beach road on both sides, the seaward
+## ones on the beach's inland edge where the rule lets them stand, the last
+## stretch before the highway junction as shops, houses along both cross
+## streets, and lamps on the road's seaward side.
+func _rebuild_beach_town(keep_off: Array) -> void:
+	_town_begin()
+	var taken: Array = []
+	var streets := {}
+	for street in _town_street_stations():
+		streets[String(street["id"])] = street["points"]
+	var road: Array = streets["beach_road"]
+	for lot in _town_lots_along(road, 14.0, 6.5, [-1, 1], Vector2(9.0, 8.0), taken, keep_off, 22.0):
+		# The shops stand between the two cross streets' junctions, where the
+		# road onto the highway leaves.
+		if float(lot["s"]) > 120.0 and float(lot["s"]) < 200.0:
+			_town_build_shop(lot)
+		else:
+			_town_build_house(lot, 1 if _town_rng.randf() < 0.7 else 2)
+	for id in ["beach_shore_street", "beach_second_street"]:
+		var pts: Array = streets[id]
+		var total := 0.0
+		for i in pts.size() - 1:
+			total += Vector2((pts[i] as Vector3).x, (pts[i] as Vector3).z).distance_to(
+				Vector2((pts[i + 1] as Vector3).x, (pts[i + 1] as Vector3).z))
+		for lot in _town_lots_along(pts, 14.0, 6.5, [-1, 1], Vector2(8.5, 8.0), taken,
+				keep_off, 8.0, total - 12.0):
+			_town_build_house(lot, 1 if _town_rng.randf() < 0.75 else 2)
+	_town_lamps_along("beach_road", road, 30.0, 4.5, -1.0)
+	_town_end("beach_town")
+
+
+## The city: a low plate over the bay's water with a skirt to below it, the
+## towers on a jittered grid about the centre, tallest in the middle, and
+## low blocks across the rest of the plain.
+func _rebuild_far_city() -> void:
+	# On its peninsula since 2026-09-05 (Christina: Singapore or Rio from
+	# across a bay, at something like San Francisco's scale, hills and all).
+	# It used to be a plate over the water. The towers cluster on the flat
+	# downtown, tallest about its centre; the blocks climb the rest of the
+	# built-up peninsula wherever the ground is under 1:2.5, on a grid with
+	# gaps; every building is footed on the lowest ground under its own
+	# footprint, so on a slope it digs in uphill rather than floating below.
+	_town_begin()
+	var plain := PackedVector2Array(Plan.FAR_CITY["plain"])
+	var built := PackedVector2Array(Plan.FAR_CITY["built"])
+	var centre: Vector2 = Plan.FAR_CITY["centre"]
+	var radius: float = Plan.FAR_CITY["radius"]
+	var towers := 0
+	var blocks := 0
+	var step := 32.0
+	var gx := centre.x - radius
+	while gx <= centre.x + radius:
+		var gz := centre.y - radius
+		while gz <= centre.y + radius:
+			var c := Vector2(gx + _town_rng.randf_range(-8.0, 8.0), gz + _town_rng.randf_range(-8.0, 8.0))
+			var r := c.distance_to(centre) / radius
+			gz += step
+			if r >= 1.0 or _town_rng.randf() > 0.85 or not _city_inside(c, plain, 12.0):
+				continue
+			var w := _town_rng.randf_range(13.0, 24.0)
+			var d := _town_rng.randf_range(13.0, 24.0)
+			var h := 24.0 + 100.0 * pow(1.0 - r, 2.0) + _town_rng.randf_range(-10.0, 16.0)
+			var yaw := _town_rng.randf_range(-0.15, 0.15)
+			_city_tower(Vector3(c.x, _city_foot(c, yaw, w, d), c.y), yaw, w, d,
+				clampf(h, 16.0, 130.0), CITY_TOWERS[_town_rng.randi() % CITY_TOWERS.size()])
+			_town_clearings.append(Vector3(c.x, c.y, maxf(w, d) * 0.75 + 4.0))
+			towers += 1
+		gx += step
+	var lo: Vector2 = built[0]
+	var hi: Vector2 = built[0]
+	for q in built:
+		lo = Vector2(minf(lo.x, q.x), minf(lo.y, q.y))
+		hi = Vector2(maxf(hi.x, q.x), maxf(hi.y, q.y))
+	var bstep := 22.0
+	var bx := lo.x
+	while bx <= hi.x:
+		var bz := lo.y
+		while bz <= hi.y:
+			var c := Vector2(bx + _town_rng.randf_range(-6.0, 6.0), bz + _town_rng.randf_range(-6.0, 6.0))
+			bz += bstep
+			if _town_rng.randf() > 0.78 or not _city_inside(c, built, 10.0):
+				continue
+			if c.distance_to(centre) < radius * 0.9 and Geometry2D.is_point_in_polygon(c, plain):
+				continue
+			var w := _town_rng.randf_range(16.0, 30.0)
+			var d := _town_rng.randf_range(13.0, 26.0)
+			var yaw := _town_rng.randf_range(-0.25, 0.25)
+			if _city_slope(c, yaw, w, d) > 0.4:
+				continue
+			var h := _town_rng.randf_range(6.0, 18.0)
+			_city_block(Vector3(c.x, _city_foot(c, yaw, w, d), c.y), yaw, w, d, h,
+				CITY_TOWERS[_town_rng.randi() % CITY_TOWERS.size()])
+			_town_clearings.append(Vector3(c.x, c.y, maxf(w, d) * 0.75 + 3.0))
+			blocks += 1
+		bx += bstep
+	print("city: %d towers, %d blocks" % [towers, blocks])
+	_town_end("far_city")
+
+
+## Inside a polygon and at least `margin` from its every edge.
+func _city_inside(c: Vector2, poly: PackedVector2Array, margin: float) -> bool:
+	if not Geometry2D.is_point_in_polygon(c, poly):
+		return false
+	for k in poly.size():
+		var a: Vector2 = poly[k]
+		var b: Vector2 = poly[(k + 1) % poly.size()]
+		if c.distance_to(Geometry2D.get_closest_point_to_segment(c, a, b)) < margin:
+			return false
+	return true
+
+
+func _city_corners(c: Vector2, yaw: float, w: float, d: float) -> Array:
+	var basis := Basis(Vector3.UP, yaw)
+	var out: Array = []
+	for corner in [Vector3(-w * 0.5, 0, -d * 0.5), Vector3(w * 0.5, 0, -d * 0.5),
+			Vector3(w * 0.5, 0, d * 0.5), Vector3(-w * 0.5, 0, d * 0.5)]:
+		var q: Vector3 = basis * corner
+		out.append(_rebuild_world_reserve_y(c + Vector2(q.x, q.z)))
+	return out
+
+
+## The lowest ground under a building's footprint, a hand down, which is
+## where its box is footed: the box carries a metre below its base already.
+func _city_foot(c: Vector2, yaw: float, w: float, d: float) -> float:
+	var lo := INF
+	for y in _city_corners(c, yaw, w, d):
+		lo = minf(lo, float(y))
+	return lo - 0.2
+
+
+## The fall across a footprint over its longer side, as a gradient.
+func _city_slope(c: Vector2, yaw: float, w: float, d: float) -> float:
+	var lo := INF
+	var hi := -INF
+	for y in _city_corners(c, yaw, w, d):
+		lo = minf(lo, float(y))
+		hi = maxf(hi, float(y))
+	return (hi - lo) / maxf(maxf(w, d), 1.0)

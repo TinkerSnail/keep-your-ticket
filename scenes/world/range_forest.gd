@@ -35,7 +35,11 @@ const Plan := preload("res://scripts/park_plan.gd")
 ## edge and the promontory, both inside this radius.
 @export var cards_from := 560.0
 @export var seed := 2026
-@export var reach := 2200.0
+## The forest is planted over the world's own rectangle since 2026-09-05 —
+## the land's bounds in `ParkPlan`, from the westmost coast to the east
+## edge — rather than a square about the crescent's centre that stopped
+## 2200m out and left a bare band along every outer edge of the land.
+@export var west_from := -720.0
 ## Off, and measured rather than assumed: with shadows the forest cost about
 ## 0.2ms per thousand trees and 45/ha ran 5ms over the vsync floor; without
 ## them the same forest sits on the floor. See the 2026-09-04 journal.
@@ -204,17 +208,42 @@ func replant() -> void:
 	for record in Plan.REBUILD_ATTRACTION_SITES:
 		if StringName(record["id"]) == &"P1":
 			lighthouse = Plan.rebuild_expand_point(Vector2(record["at"]))
-	var highway: Array[Vector2] = Plan.highway_path()
-	for i in highway.size() - 1:
-		var a: Vector2 = highway[i]
-		var b: Vector2 = highway[i + 1]
-		var steps := maxi(1, ceili(a.distance_to(b) / 5.0))
-		for k in range(steps + 1):
-			var q := a.lerp(b, float(k) / float(steps))
-			var cell := Vector2i(floori(q.x / 8.0), floori(q.y / 8.0))
-			for dx in range(-1, 2):
-				for dz in range(-1, 2):
-					road_mask[cell + Vector2i(dx, dz)] = true
+	var lines: Array = [Plan.highway_path()]
+	# And the towns' streets (02B), the same way.
+	for street in Plan.town_streets():
+		lines.append(street["points"])
+	for line in lines:
+		for i in (line as Array).size() - 1:
+			var a: Vector2 = line[i]
+			var b: Vector2 = line[i + 1]
+			var steps := maxi(1, ceili(a.distance_to(b) / 5.0))
+			for k in range(steps + 1):
+				var q := a.lerp(b, float(k) / float(steps))
+				var cell := Vector2i(floori(q.x / 8.0), floori(q.y / 8.0))
+				for dx in range(-1, 2):
+					for dz in range(-1, 2):
+						road_mask[cell + Vector2i(dx, dz)] = true
+	# The towns' buildings (02B): the towns scene publishes one clearing per
+	# building as (x, z, radius) on its root, so a hillside house stands in
+	# its own gap in the forest and the forest needs to know nothing about
+	# how the town was laid out.
+	var clearings := PackedVector3Array()
+	var towns := get_tree().root.find_child("park_towns", true, false)
+	if towns != null:
+		clearings = towns.get_meta("clearings", PackedVector3Array())
+	# As a cell mask like the roads (2026-09-05): the city's blocks took the
+	# count past five hundred, and a distance test against every clearing for
+	# every candidate was most of the planting time again.
+	var clearing_mask := {}
+	for c in clearings:
+		var cells := ceili(c.z / 8.0) + 1
+		var cc := Vector2i(floori(c.x / 8.0), floori(c.y / 8.0))
+		for dx in range(-cells, cells + 1):
+			for dz in range(-cells, cells + 1):
+				var cell := cc + Vector2i(dx, dz)
+				var centre_of := Vector2((float(cell.x) + 0.5) * 8.0, (float(cell.y) + 0.5) * 8.0)
+				if centre_of.distance_to(Vector2(c.x, c.y)) < c.z + 5.7:
+					clearing_mask[cell] = true
 	var forest_t: Array[Transform3D] = []
 	var forest_c: Array[Color] = []
 	var leaf_t: Array[Transform3D] = []
@@ -229,11 +258,11 @@ func replant() -> void:
 	var keep_meadow := meadow_per_hectare / maxf(top_density, 0.1)
 	var forest_col := Color(0.19, 0.33, 0.18)
 	var meadow_col := Color(0.30, 0.42, 0.26)
-	var x0 := centre.x - reach
-	var z := centre.y - reach
-	while z <= centre.y + reach:
+	var x0 := west_from
+	var z: float = Plan.REBUILD_WORLD_LAND_FROM_Z
+	while z <= Plan.REBUILD_WORLD_LAND_TO_Z:
 		var x := x0
-		while x <= centre.x + reach:
+		while x <= Plan.REBUILD_WORLD_LAND_TO_X:
 			var px := x + rng.randf_range(-0.45, 0.45) * step
 			var pz := z + rng.randf_range(-0.45, 0.45) * step
 			x += step
@@ -268,6 +297,8 @@ func replant() -> void:
 					cleared = true
 					break
 			if p.distance_to(lighthouse) < Plan.P1_CLEARING_R:
+				cleared = true
+			if not cleared and clearing_mask.has(Vector2i(floori(px / 8.0), floori(pz / 8.0))):
 				cleared = true
 			if cleared:
 				continue

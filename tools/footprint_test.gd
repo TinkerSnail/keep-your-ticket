@@ -21,10 +21,12 @@ var _fails: Array[String] = []
 func _ready() -> void:
 	_check_envelope()
 	_check_world_reserve()
+	_check_open_faces()
 	_check_route_handoffs()
 	_check_grand_circuit()
 	_check_rim_clearance()
 	_check_promontory()
+	_check_towns()
 	_check_arrival_scene()
 	_check_retired_geometry()
 	_finish()
@@ -326,10 +328,210 @@ func _check_world_reserve() -> void:
 				or bay_lo.z > crossing - 30.0 \
 				or bay_hi.z < Plan.REBUILD_WORLD_COAST_TO_Z - EPS:
 			_fail("the bay water does not lie under the whole of the far shore")
+	# The sea north of the north shore (2026-09-05): from the ocean's east
+	# edge to the world's east edge, reaching south under the land.
+	var north_sea := west.find_child("water_north", true, false) as CSGBox3D
+	if north_sea == null:
+		_fail("the north water sheet is missing")
+	else:
+		var lo := north_sea.position - north_sea.size * 0.5
+		var hi := north_sea.position + north_sea.size * 0.5
+		# The sheet has to reach south past the deepest cove of the north
+		# shore, so every bit of that shore stands over water.
+		var deepest_cove: float = -INF
+		for i in range(Plan.COAST_NORTH_FAR_FROM, Plan.COAST_NORTH_OUTLINE.size()):
+			var q: Vector2 = Plan.COAST_NORTH_OUTLINE[i]
+			# The north shore proper, not the east coast the outline runs on down.
+			if q.y < -2500.0:
+				deepest_cove = maxf(deepest_cove, q.y)
+		if lo.x > Plan.REBUILD_WORLD_WATER_TO_X + EPS or hi.x < Plan.REBUILD_WORLD_WATER_FAR_X - EPS \
+				or lo.z > Plan.REBUILD_WORLD_WATER_FROM_Z + EPS \
+				or hi.z < deepest_cove - EPS:
+			_fail("the north water does not lie under the whole of the north shore (x %.0f..%.0f, z %.0f..%.0f, deepest cove %.0f)" % [
+				lo.x, hi.x, lo.z, hi.z, deepest_cove])
+	# And the sea east of the island, between the north sheet and the bay's.
+	var east_sea := west.find_child("water_east", true, false) as CSGBox3D
+	if east_sea == null:
+		_fail("the east water sheet is missing")
+	else:
+		var lo := east_sea.position - east_sea.size * 0.5
+		var hi := east_sea.position + east_sea.size * 0.5
+		if lo.x > Plan.EAST_WATER_FROM_X + EPS or hi.x < Plan.REBUILD_WORLD_WATER_FAR_X - EPS \
+				or lo.z > Plan.NORTH_WATER_TO_Z + EPS or hi.z < Plan.BAY_WATER_FROM_Z - EPS:
+			_fail("the east water does not lie under the whole of the east coast")
 	west.free()
 
 	print("  world reserve margins: E %.0fm, N %.0fm, S %.0fm, W ocean %.0fm" % [
 		east, north, south, west_water])
+
+
+## The terrain is single-sided, so a boundary edge standing above the water
+## is a face the world does not have: from outside it you look straight
+## through the mountain. Found from the towns on 2026-09-05 — the range's
+## south arm dead-ending into the bay with its west face open, the reserve's
+## summit north of the valley floating over the 200m its west edge ran past
+## the coast mesh — and nothing had an opinion about it, because the census
+## counts faces that fight and the walk asks whether something is in the
+## way, never whether it is there. A boundary edge is one that exactly one
+## triangle uses. The coast meshes and the reserve share their seam vertex
+## for vertex, so an edge of one paired by an identical edge of the other is
+## closed, and a wall's top edge pairs with the ground edge it was built
+## from; edges that differ only by rounding are paired by their midpoints on
+## a quarter-metre grid. What remains with an end above `WATER_TOP + 1`,
+## outside the developed envelope where the park's own ground fills the
+## reserve's openings, is an open face.
+func _check_open_faces() -> void:
+	var ground: Node = load("res://scenes/world/park_groundworks.tscn").instantiate()
+	var edges := {}
+	var triangles := 0
+	for name in ["terrain_world_mainland_reserve", "terrain_world_coast_north",
+			"terrain_world_coast_south"]:
+		var node: Node = ground.find_child(name, true, false)
+		if node == null:
+			_fail("%s is not in the groundworks scene" % name)
+			continue
+		var surface := node.find_child("surface", false, false) as MeshInstance3D
+		if surface == null or surface.mesh == null:
+			_fail("%s has no surface mesh" % name)
+			continue
+		var xf := Transform3D.IDENTITY
+		var walk: Node = surface
+		while walk != null and walk != ground:
+			if walk is Node3D:
+				xf = (walk as Node3D).transform * xf
+			walk = walk.get_parent()
+		for si in surface.mesh.get_surface_count():
+			var arrays: Array = surface.mesh.surface_get_arrays(si)
+			var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+			# A SurfaceTool mesh committed without `index()` carries no index
+			# array at all; then every three vertices are one triangle.
+			var index := PackedInt32Array()
+			if arrays[Mesh.ARRAY_INDEX] != null:
+				index = arrays[Mesh.ARRAY_INDEX]
+			var n := index.size() if index.size() > 0 else verts.size()
+			for i in range(0, n, 3):
+				var tri: Array[Vector3] = []
+				for k in 3:
+					var vi: int = index[i + k] if index.size() > 0 else i + k
+					tri.append(xf * verts[vi])
+				for k in 3:
+					_count_edge(edges, tri[k], tri[(k + 1) % 3])
+				triangles += 1
+	var stray: Array = []
+	for key in edges:
+		var rec: Array = edges[key]
+		if int(rec[0]) == 1:
+			stray.append(rec)
+	var mids := {}
+	for rec in stray:
+		var mk := _mid_key(rec[1], rec[2])
+		mids[mk] = int(mids.get(mk, 0)) + 1
+	# A stray whose twin sits a few centimetres off — a wall's side edge at a
+	# shore vertex the clipper placed twice, a centimetre apart — is closed
+	# for any purpose the eye has; pair those by proximity.
+	var near_paired := {}
+	for i in stray.size():
+		if near_paired.has(i):
+			continue
+		var a1: Vector3 = stray[i][1]
+		var b1: Vector3 = stray[i][2]
+		for j in range(i + 1, stray.size()):
+			if near_paired.has(j):
+				continue
+			var a2: Vector3 = stray[j][1]
+			var b2: Vector3 = stray[j][2]
+			if (a1.distance_to(a2) < 0.3 and b1.distance_to(b2) < 0.3) \
+					or (a1.distance_to(b2) < 0.3 and b1.distance_to(a2) < 0.3):
+				near_paired[i] = true
+				near_paired[j] = true
+				break
+	var open: Array = []
+	var length := 0.0
+	# The coast meshes ramp from the strip's −6 to the reserve's level over
+	# |z| 170..260, inside and just outside the envelope; that ramp is the
+	# working strip's own hand-over and is covered by the park's ground.
+	var margin := 45.0
+	for si in stray.size():
+		var rec: Array = stray[si]
+		var a: Vector3 = rec[1]
+		var b: Vector3 = rec[2]
+		if int(mids[_mid_key(a, b)]) >= 2 or near_paired.has(si):
+			continue
+		if maxf(a.y, b.y) < Plan.WATER_TOP + 1.0:
+			continue
+		# A sliver: the clipper leaves the odd triangle a few centimetres
+		# across at a cell corner on the outline, the generator drops it as
+		# degenerate, and its neighbour's edge is left unpaired. Nothing to
+		# see through at that size.
+		if a.distance_to(b) < 0.3:
+			continue
+		# A wall's side edge, vertical: two panels meeting a hair apart at a
+		# shore vertex. The ground's own edge above it is what the census
+		# counts; a hairline between panels is nothing to see through.
+		if Vector2(a.x - b.x, a.z - b.z).length() < 0.3:
+			continue
+		var m := (a + b) * 0.5
+		if m.x > Plan.REBUILD_FOOTPRINT_MIN_X - margin and m.x < Plan.REBUILD_FOOTPRINT_MAX_X + margin \
+				and m.z > Plan.REBUILD_FOOTPRINT_MIN_Z - margin and m.z < Plan.REBUILD_FOOTPRINT_MAX_Z + margin:
+			continue
+		open.append(rec)
+		length += a.distance_to(b)
+	ground.free()
+	if open.is_empty():
+		print("  terrain: no open face above the water (%d triangles, %d boundary edges)" % [
+			triangles, stray.size()])
+		return
+	_fail("the terrain has %d open faces above the water, %.0fm in all" % [open.size(), length])
+	# Where they are, by the line they lie on, so a seam reads as a seam and
+	# a world edge as a world edge rather than as 371 coordinates.
+	var classes := {}
+	for rec in open:
+		var a: Vector3 = rec[1]
+		var b: Vector3 = rec[2]
+		var label := "elsewhere"
+		if absf(a.x - Plan.SHORE_FROM_X) < 0.05 and absf(b.x - Plan.SHORE_FROM_X) < 0.05:
+			label = "coast seam x %.0f" % Plan.SHORE_FROM_X
+		elif absf(a.z - Plan.REBUILD_WORLD_LAND_FROM_Z) < 0.05 and absf(b.z - Plan.REBUILD_WORLD_LAND_FROM_Z) < 0.05:
+			label = "world north edge"
+		elif absf(a.z - Plan.REBUILD_WORLD_LAND_TO_Z) < 0.05 and absf(b.z - Plan.REBUILD_WORLD_LAND_TO_Z) < 0.05:
+			label = "world south edge"
+		elif absf(a.x - Plan.REBUILD_WORLD_LAND_TO_X) < 0.05 and absf(b.x - Plan.REBUILD_WORLD_LAND_TO_X) < 0.05:
+			label = "world east edge"
+		if not classes.has(label):
+			classes[label] = {"count": 0, "length": 0.0, "z_lo": INF, "z_hi": -INF,
+				"x_lo": INF, "x_hi": -INF, "sample": rec}
+		var c: Dictionary = classes[label]
+		c["count"] = int(c["count"]) + 1
+		c["length"] = float(c["length"]) + a.distance_to(b)
+		c["z_lo"] = minf(float(c["z_lo"]), minf(a.z, b.z))
+		c["z_hi"] = maxf(float(c["z_hi"]), maxf(a.z, b.z))
+		c["x_lo"] = minf(float(c["x_lo"]), minf(a.x, b.x))
+		c["x_hi"] = maxf(float(c["x_hi"]), maxf(a.x, b.x))
+	for label in classes:
+		var c: Dictionary = classes[label]
+		print("    %s: %d edges, %.0fm, x %.0f..%.0f, z %.0f..%.0f, e.g. %s to %s" % [
+			label, int(c["count"]), float(c["length"]), float(c["x_lo"]), float(c["x_hi"]),
+			float(c["z_lo"]), float(c["z_hi"]), c["sample"][1], c["sample"][2]])
+
+
+func _count_edge(edges: Dictionary, a: Vector3, b: Vector3) -> void:
+	var qa := Vector3i((a * 100.0).round())
+	var qb := Vector3i((b * 100.0).round())
+	var key := ""
+	if qa.x < qb.x or (qa.x == qb.x and (qa.z < qb.z or (qa.z == qb.z and qa.y <= qb.y))):
+		key = "%d,%d,%d|%d,%d,%d" % [qa.x, qa.y, qa.z, qb.x, qb.y, qb.z]
+	else:
+		key = "%d,%d,%d|%d,%d,%d" % [qb.x, qb.y, qb.z, qa.x, qa.y, qa.z]
+	if edges.has(key):
+		var rec: Array = edges[key]
+		rec[0] = int(rec[0]) + 1
+	else:
+		edges[key] = [1, a, b]
+
+
+func _mid_key(a: Vector3, b: Vector3) -> String:
+	var m := (a + b) * 0.5
+	return "%d,%d,%d" % [roundi(m.x / 0.25), roundi(m.y / 0.25), roundi(m.z / 0.25)]
 
 
 func _check_route_handoffs() -> void:
@@ -549,6 +751,74 @@ func _point_ellipse_distance(point: Vector2, centre: Vector2, radii: Vector2) ->
 		var edge := centre + Vector2(cos(a) * radii.x, sin(a) * radii.y)
 		best = minf(best, point.distance_to(edge))
 	return best
+
+
+## The towns (02B, 2026-09-05) are scenery outside the developed envelope,
+## so no building of theirs may reach into it, into either parking field or
+## the front road's clearance, or stand inside the sunset sector from the
+## pier head; the city's plain lies over the bay's water sheet; the north
+## town's house is published; and the scene is mounted in the world.
+func _check_towns() -> void:
+	var towns: Node = load("res://scenes/world/park_towns.tscn").instantiate()
+	var clearings: PackedVector3Array = towns.get_meta("clearings", PackedVector3Array())
+	if clearings.size() < 60:
+		_fail("the towns publish only %d building clearings" % clearings.size())
+	if not towns.has_meta("house"):
+		_fail("the north town does not say where the character lives")
+	var envelope := Rect2(Plan.REBUILD_FOOTPRINT_MIN_X, Plan.REBUILD_FOOTPRINT_MIN_Z,
+		Plan.REBUILD_FOOTPRINT_MAX_X - Plan.REBUILD_FOOTPRINT_MIN_X,
+		Plan.REBUILD_FOOTPRINT_MAX_Z - Plan.REBUILD_FOOTPRINT_MIN_Z)
+	var pier := Vector2(-150.0, -2.0)
+	var front_a := Vector2(-Plan.FRONT_ROAD_HALF_X, Plan.FRONT_ROAD_Z)
+	var front_b := Vector2(Plan.FRONT_ROAD_HALF_X, Plan.FRONT_ROAD_Z)
+	var circle: Vector3 = Plan.TURNING_CIRCLE
+	var nearest_front := INF
+	var nearest_lot := INF
+	for c in clearings:
+		var p := Vector2(c.x, c.y)
+		if envelope.grow(c.z).has_point(p):
+			_fail("a town building at %s reaches into the developed envelope" % p)
+		for field in [[-Plan.PARKING_OUTER_X, -Plan.PARKING_INNER_X], [Plan.PARKING_INNER_X, Plan.PARKING_OUTER_X]]:
+			var lot := Rect2(float(field[0]), Plan.PARKING_FROM_Z,
+				float(field[1]) - float(field[0]), Plan.PARKING_TO_Z - Plan.PARKING_FROM_Z)
+			nearest_lot = minf(nearest_lot, _rect_distance(p, lot) - c.z)
+		nearest_front = minf(nearest_front,
+			p.distance_to(Geometry2D.get_closest_point_to_segment(p, front_a, front_b))
+			- Plan.FRONT_ROAD_W * 0.5 - c.z)
+		nearest_front = minf(nearest_front,
+			p.distance_to(Vector2(circle.x, circle.y)) - circle.z - c.z)
+		var v := p - pier
+		var azimuth := fmod(rad_to_deg(atan2(v.x, -v.y)) + 360.0, 360.0)
+		if azimuth >= 280.0 and azimuth <= 310.0:
+			_fail("a town building at %s stands in the sunset sector from the pier head" % p)
+	if nearest_lot < 8.0 - EPS:
+		_fail("a town building comes within %.1fm of a parking field" % nearest_lot)
+	if nearest_front < 8.0 - EPS:
+		_fail("a town building comes within %.1fm of the front road" % nearest_front)
+	# The city stands on its peninsula since 2026-09-05: its downtown plain
+	# and the built-up ground are land, inside the coast by a margin, and the
+	# whole of it lies over the bay's water sheet for the skirt to stand in.
+	for key in ["plain", "built"]:
+		for q in Plan.FAR_CITY[key]:
+			var corner: Vector2 = q
+			if Plan.coast_inland(corner) < 20.0 - EPS:
+				_fail("the city's %s corner %s is within 20m of the shore" % [key, corner])
+			if corner.x < Plan.REBUILD_WORLD_WATER_TO_X - EPS or corner.x > Plan.BAY_WATER_TO_X + EPS \
+					or corner.y < Plan.BAY_WATER_FROM_Z - EPS or corner.y > Plan.REBUILD_WORLD_WATER_TO_Z + EPS:
+				_fail("the city's %s corner %s is off the bay's water sheet" % [key, corner])
+	towns.free()
+	var world: Node = load("res://scenes/world/park_world.tscn").instantiate()
+	if world.find_child("park_towns", true, false) == null:
+		_fail("the towns are not mounted in the persistent world")
+	world.free()
+	print("  towns: %d buildings, nearest %.0fm to a parking field and %.0fm to the front road" % [
+		clearings.size(), nearest_lot, nearest_front])
+
+
+func _rect_distance(p: Vector2, r: Rect2) -> float:
+	var dx := maxf(maxf(r.position.x - p.x, 0.0), p.x - r.end.x)
+	var dz := maxf(maxf(r.position.y - p.y, 0.0), p.y - r.end.y)
+	return sqrt(dx * dx + dz * dz)
 
 
 func _fail(message: String) -> void:

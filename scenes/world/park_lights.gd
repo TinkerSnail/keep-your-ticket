@@ -100,11 +100,17 @@ const BULB_EMISSION := 2.6
 const LAMP_EMISSION := 1.3
 const EYE_EMISSION := 3.4
 const TRIM_EMISSION := 0.42
+## The towns' windows (02B): a lit room seen from across a valley or over
+## three kilometres of water, so above the lamps per unit area, and the one
+## material here that does not follow the park closing. A town's lights are
+## not the park's.
+const WINDOW_EMISSION := 1.9
 
 var _bulb: StandardMaterial3D
 var _lamp: StandardMaterial3D
 var _eye: StandardMaterial3D
 var _trim: StandardMaterial3D
+var _window: StandardMaterial3D
 
 ## The group is re-read when a section mounts rather than every frame. A section
 ## swap is the only thing that changes which lights exist, and the plaza's own
@@ -126,7 +132,8 @@ func _ready() -> void:
 	_lamp = load(Plan.LAMP_MATERIAL) as StandardMaterial3D
 	_eye = load(Plan.EYE_MATERIAL) as StandardMaterial3D
 	_trim = load(Plan.TRIM_MATERIAL) as StandardMaterial3D
-	if _bulb == null or _lamp == null or _eye == null or _trim == null:
+	_window = load(Plan.WINDOW_MATERIAL) as StandardMaterial3D
+	if _bulb == null or _lamp == null or _eye == null or _trim == null or _window == null:
 		# Loud, because the failure is otherwise invisible: the lights still come
 		# on and light the ground, and only the fittings stay dark. Which reads
 		# as an art problem rather than as a missing file.
@@ -188,6 +195,9 @@ func _apply(force: bool) -> void:
 	_lamp.emission_energy_multiplier = LAMP_EMISSION * level * fixture_on
 	_eye.emission_energy_multiplier = EYE_EMISSION * level * fixture_on
 	_trim.emission_energy_multiplier = TRIM_EMISSION * level * feature_on
+	# The towns' windows follow the sun and nothing else: a valley town at
+	# eleven at night is lit, whatever the park has done.
+	_window.emission_energy_multiplier = WINDOW_EMISSION * level
 
 	# And the water, which is the one emissive surface in the park that is not a
 	# material this node holds a handle to. Every water material carries its own

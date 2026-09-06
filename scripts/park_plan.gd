@@ -1703,13 +1703,97 @@ const COAST_NORTH_OUTLINE := [
 	Vector2(-198.0, -345.0), Vector2(-165.0, -356.0), Vector2(-142.0, -376.0),
 	Vector2(-131.0, -400.0), Vector2(-140.0, -520.0), Vector2(-180.0, -700.0),
 	Vector2(-270.0, -1000.0), Vector2(-420.0, -1500.0), Vector2(-600.0, -2200.0),
+	# The world's north end as geology, not as a cut (2026-09-05, Christina):
+	# the coast runs on north on its own trend, then turns east as a rocky
+	# north shore of headlands and coves across the whole of the land to the
+	# world's east edge. The range tapers into the sea along it on the long
+	# fade (`WORLD_COAST_FADE_RUN`), which begins at `COAST_NORTH_FAR_FROM`;
+	# the tail before the turn keeps the short fade so the valley's north
+	# wall, five hundred metres south of the shore, stands as it did. It used
+	# to stop at (-600, -2200) with the reserve running on 200m past it, and
+	# the reserve's west face over that run was open sky.
+	Vector2(-660.0, -2420.0), Vector2(-700.0, -2600.0),
+	Vector2(-670.0, -2660.0), Vector2(-600.0, -2700.0), Vector2(-520.0, -2640.0),
+	Vector2(-440.0, -2610.0), Vector2(-350.0, -2690.0), Vector2(-250.0, -2640.0),
+	Vector2(-150.0, -2600.0), Vector2(-40.0, -2650.0), Vector2(80.0, -2700.0),
+	Vector2(220.0, -2640.0), Vector2(380.0, -2620.0), Vector2(560.0, -2690.0),
+	Vector2(760.0, -2630.0), Vector2(960.0, -2600.0), Vector2(1180.0, -2680.0),
+	Vector2(1400.0, -2620.0), Vector2(1650.0, -2690.0), Vector2(1900.0, -2610.0),
+	Vector2(2150.0, -2680.0), Vector2(2400.0, -2640.0),
+	# And round the world's east end (later on 2026-09-05, for the aerials
+	# the start screen will be made of): the land is an island the range
+	# runs along, so no edge of it is a cut. The east coast comes down to
+	# `WORLD_JUNCTION`, where the south outline meets it.
+	Vector2(2700.0, -2600.0), Vector2(3000.0, -2660.0), Vector2(3250.0, -2560.0),
+	Vector2(3450.0, -2400.0), Vector2(3520.0, -2150.0), Vector2(3450.0, -1900.0),
+	Vector2(3600.0, -1650.0), Vector2(3480.0, -1400.0), Vector2(3420.0, -1100.0),
+	Vector2(3560.0, -850.0), Vector2(3500.0, -600.0), Vector2(3400.0, -350.0),
+	Vector2(3550.0, -100.0), Vector2(3500.0, 200.0),
 ]
+## The segment index from which each outline is the world's far coast and
+## fades the range over `WORLD_COAST_FADE_RUN` rather than `COAST_FADE_RUN`.
+const COAST_NORTH_FAR_FROM := 22
+const COAST_SOUTH_FAR_FROM := 14
+## How far inland the range takes to reach its height from a shore: the
+## short run on the park's own coast, where the 1:1 faces are the look the
+## valley and the headland were built against; the long one on the world's
+## north and south coasts, where the range stands 250m and a short run would
+## be a wall into the sea rather than a mountain coming down to it.
+const COAST_FADE_RUN := 150.0
+const WORLD_COAST_FADE_RUN := 600.0
 const COAST_SOUTH_OUTLINE := [
 	Vector2(-108.0, 70.0), Vector2(-116.0, 140.0), Vector2(-124.0, 210.0),
 	Vector2(-126.0, 270.0), Vector2(-118.0, 340.0), Vector2(-100.0, 410.0),
 	Vector2(-72.0, 490.0), Vector2(-36.0, 580.0), Vector2(10.0, 680.0),
 	Vector2(70.0, 800.0), Vector2(140.0, 950.0), Vector2(230.0, 1150.0),
 	Vector2(340.0, 1400.0), Vector2(500.0, 1750.0), Vector2(700.0, 2200.0),
+	# The far shore curves over (2026-09-05, Christina): past the beach town
+	# and close to the city, the shore turns west round a low neck and out
+	# round the city's peninsula, a flat plain the city stands on
+	# (`FAR_CITY.plain`, inside this by forty metres), then back east along a
+	# south coast of headlands and coves to the world's east edge. The shore
+	# used to stop at (700, 2200) with the sea polygon closed on a straight
+	# line at x 700, which left the range's south arm dead-ending into the
+	# bay with its whole west face open; the city was a plate over the water.
+	Vector2(750.0, 2300.0), Vector2(700.0, 2380.0), Vector2(600.0, 2420.0),
+	Vector2(480.0, 2400.0), Vector2(340.0, 2380.0), Vector2(200.0, 2400.0),
+	Vector2(100.0, 2470.0), Vector2(50.0, 2600.0), Vector2(60.0, 2760.0),
+	Vector2(130.0, 2900.0), Vector2(280.0, 2990.0), Vector2(430.0, 3000.0),
+	Vector2(580.0, 2960.0), Vector2(680.0, 2860.0), Vector2(720.0, 2720.0),
+	Vector2(740.0, 2600.0), Vector2(800.0, 2560.0), Vector2(950.0, 2590.0),
+	Vector2(1080.0, 2660.0), Vector2(1300.0, 2600.0), Vector2(1520.0, 2680.0),
+	Vector2(1750.0, 2610.0), Vector2(1980.0, 2690.0), Vector2(2200.0, 2620.0),
+	Vector2(2400.0, 2660.0),
+	# Up the east coast to meet the north outline at `WORLD_JUNCTION`.
+	Vector2(2650.0, 2600.0), Vector2(2900.0, 2680.0), Vector2(3150.0, 2560.0),
+	Vector2(3400.0, 2400.0), Vector2(3520.0, 2150.0), Vector2(3440.0, 1900.0),
+	Vector2(3580.0, 1650.0), Vector2(3480.0, 1400.0), Vector2(3420.0, 1100.0),
+	Vector2(3560.0, 850.0), Vector2(3470.0, 600.0), Vector2(3440.0, 350.0),
+	Vector2(3500.0, 200.0),
+]
+## Where the two outlines meet on the east coast: the land is an island.
+const WORLD_JUNCTION := Vector2(3500.0, 200.0)
+## Round hills standing on their own (2026-09-05), added to whatever the
+## ground is: a dome of `height` over `radius`, steep-sided when the height
+## is a good share of the radius. Two on the city's peninsula, for Christina's
+## Rio: a sugarloaf rising out of the water at the peninsula's south-west and
+## a broader hill behind the downtown, so the city climbs.
+const WORLD_HILLS := [
+	{"at": Vector2(150.0, 2830.0), "radius": 170.0, "height": 130.0},
+	{"at": Vector2(520.0, 2850.0), "radius": 230.0, "height": 70.0},
+]
+## Cliffed headlands on the world's far coasts (2026-09-05): the ground
+## rises to `height` over the first 25m inland within `radius` of the point,
+## the way the park's own headland carries its cliff bands, so a few of the
+## headlands stand up as rock rather than every one tapering into the water.
+const WORLD_CLIFFS := [
+	{"at": Vector2(-600.0, -2700.0), "radius": 120.0, "height": 30.0},
+	{"at": Vector2(560.0, -2690.0), "radius": 130.0, "height": 35.0},
+	{"at": Vector2(1650.0, -2690.0), "radius": 130.0, "height": 28.0},
+	{"at": Vector2(1080.0, 2660.0), "radius": 120.0, "height": 30.0},
+	{"at": Vector2(1980.0, 2690.0), "radius": 130.0, "height": 25.0},
+	{"at": Vector2(3600.0, -1650.0), "radius": 130.0, "height": 30.0},
+	{"at": Vector2(3580.0, 1650.0), "radius": 130.0, "height": 28.0},
 ]
 ## The sea under the bay's far shore, where the south outline has crossed the
 ## mainland reserve's west edge: a second sheet from the ocean's east edge out
@@ -1717,7 +1801,17 @@ const COAST_SOUTH_OUTLINE := [
 ## hole in the developed ground north of it can show water through it. It
 ## starts well north of the crossing and is under land there.
 const BAY_WATER_FROM_Z := 300.0
-const BAY_WATER_TO_X := 800.0
+## To the world's east edge since 2026-09-05: the south coast runs the whole
+## width of the land, so the sea south of it needs water under it all the
+## way; under the mainland the sheet is hidden, the reserve being whole there.
+const BAY_WATER_TO_X := REBUILD_WORLD_WATER_FAR_X
+## The sea north of the north shore (2026-09-05): from the ocean's east edge
+## to the world's east edge, and south to under the land, since the coves
+## reach no further south than -2600.
+const NORTH_WATER_TO_Z := -2400.0
+## The sea east of the island between the other two sheets, starting well
+## under the land, which is whole there.
+const EAST_WATER_FROM_X := 1000.0
 
 ## The coast highway (package 02B, 2026-09-04): the Pacific Coast Highway
 ## equivalent, and the road the character drives to work. The park fills the
@@ -1755,12 +1849,15 @@ const HIGHWAY_TROUGH_D := 5.0
 ## Where the wide view opens on the descent, and where the park's road leaves.
 const HIGHWAY_VIEW := Vector2(-118.0, -640.0)
 const HIGHWAY_JUNCTION := Vector2(204.0, 322.0)
-## Forest clearings on the road: the view bend, seaward, and two glimpse
-## bends on the high coast. [centre, radius].
+## Forest clearings on the road: the view bend, seaward; a glimpse bend on
+## the high coast between the two north tunnels; and one where the road
+## climbs the valley's south wall toward the tunnel, the last look back at
+## the town. [centre, radius]. The second glimpse used to stand at (-360,
+## -1400), which is inside the tunnel since the valley (2026-09-05).
 const HIGHWAY_CLEARINGS := [
 	[Vector2(-150.0, -620.0), 45.0],
 	[Vector2(-235.0, -1050.0), 28.0],
-	[Vector2(-360.0, -1400.0), 28.0],
+	[Vector2(-398.0, -1625.0), 28.0],
 ]
 
 
@@ -1771,7 +1868,7 @@ static func highway_path() -> Array[Vector2]:
 	# puts thirty to fifty metres up — at 90m inland it was over a hundred
 	# and the road was a 512m tunnel — easing to 45m inland by the headland's
 	# back so the road comes down round the arm's foot at about 1:12.
-	for q in [Vector2(-480.0, -2000.0), Vector2(-420.0, -1700.0),
+	for q in [Vector2(-540.0, -2200.0), Vector2(-480.0, -2000.0), Vector2(-420.0, -1700.0),
 			Vector2(-330.0, -1400.0), Vector2(-270.0, -1200.0),
 			Vector2(-210.0, -1000.0), Vector2(-170.0, -900.0),
 			Vector2(-152.0, -800.0), Vector2(-135.0, -700.0),
@@ -1790,9 +1887,271 @@ static func highway_path() -> Array[Vector2]:
 	for q in [Vector2(0.0, 520.0), Vector2(60.0, 640.0), Vector2(115.0, 760.0),
 			Vector2(200.0, 950.0), Vector2(290.0, 1150.0), Vector2(400.0, 1400.0),
 			Vector2(560.0, 1750.0), Vector2(670.0, 2000.0), Vector2(740.0, 2150.0),
-			Vector2(820.0, 2350.0)]:
+			Vector2(800.0, 2330.0),
+			# Across the neck and onto the city's plain (2026-09-05): a coast
+			# highway goes to the city, and the road used to stop in the
+			# forest at the world's old edge.
+			Vector2(790.0, 2440.0), Vector2(720.0, 2500.0), Vector2(640.0, 2540.0),
+			Vector2(585.0, 2560.0)]:
 		pts.append(q)
 	return pts
+## The towns (package 02B, built 2026-09-05). Scenery and never a section:
+## driven through and looked at. Each stands where the generator says land
+## for a town exists, which is not where the map first drew it. **The north
+## town**, where the character lives, is in a creek valley cut into the range
+## at the coast's north end (`NORTH_VALLEY`): the map's site between the two
+## north tunnels was a 1:1 face, eight metres up at twenty metres inland and
+## sixty at sixty, so a town there was a town on Devil's Slide. The valley
+## floor is a twentieth of the range's height with a beach at its mouth, the
+## highway crosses the floor and is the main street, and the streets and the
+## house's lane are `NORTH_TOWN_STREETS` in the valley's own frame
+## (`valley_point`). **The beach town** stands on the bay's flat shelf south
+## of the parking, off a beach road that leaves the front road's turning
+## circle, with its own beach in front. **The city** is on a low plain at the
+## bay's south-east end across the water (`FAR_CITY`): the map's site beyond
+## the far headland is 130 to 210m up the range, and the far shore itself is a
+## 1:1 mountainside at sixty metres inland. From the pier head it is a skyline
+## over three kilometres of water, just to the right of where the range's
+## south arm ends against the sky.
+const NORTH_VALLEY := {
+	# The valley's axis leaves the shore here and runs inland on `inland`,
+	# the coast's own perpendicular; across is along the coast, positive
+	# toward the park. The shore is straight through the valley's mouth, so
+	# the shoreline is the frame's across-axis exactly.
+	"shore": Vector2(-505.0, -1830.0),
+	"inland": Vector2(0.969, -0.249),
+	# Half-width at the mouth and at `narrow_by` inland; the floor as a
+	# fraction of the range's height; the side profile's power, a gentle toe
+	# and a steep wall so the lower slopes take houses at under 1:3; and where
+	# the valley fades back into the full range.
+	"half_w": 380.0,
+	"half_w_head": 200.0,
+	"narrow_by": 900.0,
+	"floor": 0.06,
+	"power": 2.5,
+	"fade_from": 800.0,
+	"fade_to": 1300.0,
+}
+## Beaches: the ground eases from its own height down to `BEACH_TOP` over
+## `run` from the shoreline between two z, tapering over 20m at each end,
+## instead of ending seven metres over the water on the sea-cliff skirt. The
+## north valley's mouth and the beach town's front.
+const BEACHES := [
+	{"from_z": -1990.0, "to_z": -1680.0, "run": 40.0},
+	{"from_z": 318.0, "to_z": 470.0, "run": 32.0},
+]
+const BEACH_TOP := WATER_TOP + 0.35
+## The north town's streets in the valley frame, (inland, across) metres. The
+## highway is the main street and is not repeated here: Second Street behind
+## it, Hill Road up the axis, the lane to the beach and its lot, and the lane
+## that climbs the north side to the character's house.
+const NORTH_TOWN_STREETS := [
+	{"id": "north_second_street", "st": [Vector2(100.0, -125.0), Vector2(100.0, 125.0)],
+		"width": 6.0, "grade": 0.125},
+	# 1:6, like the lane: at 1:8 from the highway's level Hill Road reached
+	# Second Street's crossing 0.6m low and stepped up at it (2026-09-05).
+	{"id": "north_hill_road", "st": [Vector2(62.0, 0.0), Vector2(200.0, 0.0), Vector2(380.0, 10.0)],
+		"width": 6.0, "grade": 0.1667},
+	{"id": "north_beach_lane", "st": [Vector2(62.0, 70.0), Vector2(40.0, 70.0)],
+		"width": 5.0, "grade": 0.125},
+	{"id": "north_beach_lot", "st": [Vector2(40.0, 70.0), Vector2(27.0, 70.0)],
+		"width": 18.0, "grade": 0.125},
+	# The lane climbs about 1:8 to thirty metres up the north side. It ran
+	# to (305, -150) first, where the ground is fifty metres up: the lane
+	# clamped to 1:6 ended eighteen metres below its own head in a cutting,
+	# and the house stood on ground the lot rule refuses.
+	{"id": "north_house_lane", "st": [Vector2(200.0, 0.0), Vector2(224.0, -45.0),
+		Vector2(256.0, -88.0), Vector2(290.0, -122.0)], "width": 4.5, "grade": 0.1667},
+]
+## Where the character lives: at the head of the lane, facing down the valley
+## to the sea. Valley frame.
+const NORTH_TOWN_HOUSE_ST := Vector2(302.0, -132.0)
+## The town's extent in the valley frame, for the map and the tests.
+const NORTH_TOWN_EXTENT_ST := Rect2(0.0, -200.0, 420.0, 400.0)
+## The beach town's streets in world metres: the beach road from the turning
+## circle south along the shore to the highway, and two cross streets to it.
+## The highway climbs the range's south arm here, three metres up at z 387
+## and eleven by z 486, and the ground between the shelf and the highway's
+## line rises at 1:4 over its last forty metres, which no street at a sane
+## grade can follow: a beach road run on to the highway at z 486 and then
+## at z 568 ended two metres short at 1:6 both times (2026-09-05,
+## `path_ground_test`). So the shore street at z 400, where the highway is
+## still at shelf level, is the town's way onto it; Second Street reaches
+## it at 1:6; and the beach road runs on south past both to a dead end at
+## the beach's far end with a lot, the way a shore road does.
+const BEACH_TOWN_STREETS := [
+	# 1:12: the cross streets meet it flat across their own width, so its
+	# slope along the crossing is what their kerbs are off by.
+	{"id": "beach_road", "points": [Vector2(-82.0, 244.0), Vector2(-84.0, 290.0),
+		Vector2(-80.0, 340.0), Vector2(-72.0, 400.0), Vector2(-58.0, 452.0),
+		Vector2(-44.0, 480.0), Vector2(-30.0, 492.0)],
+		"width": 6.0, "grade": 0.0833},
+	{"id": "beach_lot", "points": [Vector2(-30.0, 492.0), Vector2(-17.0, 498.0)],
+		"width": 16.0, "grade": 0.1667},
+	{"id": "beach_shore_street", "points": [Vector2(-72.0, 400.0), Vector2(8.0, 400.0)],
+		"width": 6.0, "grade": 0.1667},
+	{"id": "beach_second_street", "points": [Vector2(-62.0, 462.0), Vector2(5.0, 462.0)],
+		"width": 6.0, "grade": 0.1667},
+]
+const BEACH_TOWN_OUTLINE := [
+	Vector2(-118.0, 318.0), Vector2(-10.0, 318.0), Vector2(-4.0, 505.0),
+	Vector2(-50.0, 505.0), Vector2(-118.0, 470.0),
+]
+## The city (2026-09-05, Christina: Singapore or Rio from across a bay, at
+## something like San Francisco's scale, hills and all). It stands on the
+## peninsula the far shore curves out into (`COAST_SOUTH_OUTLINE` from
+## `COAST_SOUTH_FAR_FROM`), not on a plate over the water. `plain` is the
+## downtown, a flat waterfront where the range is held to nothing and the
+## towers cluster about `centre` within `radius`; beyond it the ground rises
+## back into the range over `ease` metres on a curve that keeps the near
+## slopes gentle, `WORLD_HILLS` puts two steep hills on the peninsula, and
+## the low blocks climb whatever slope is under 1:2.5 all over it. The
+## generator reads the ground under every building; nothing here is a height.
+const FAR_CITY := {
+	"plain": [Vector2(180.0, 2480.0), Vector2(300.0, 2420.0), Vector2(480.0, 2430.0),
+		Vector2(600.0, 2460.0), Vector2(610.0, 2570.0), Vector2(520.0, 2630.0),
+		Vector2(360.0, 2650.0), Vector2(220.0, 2610.0), Vector2(140.0, 2530.0)],
+	"ease": 700.0,
+	"ease_power": 1.6,
+	"centre": Vector2(380.0, 2530.0),
+	"radius": 250.0,
+	## The built-up peninsula, inside the coast by about thirty metres: where
+	## the blocks are placed and the forest keeps off.
+	"built": [Vector2(700.0, 2410.0), Vector2(600.0, 2450.0), Vector2(480.0, 2430.0),
+		Vector2(340.0, 2410.0), Vector2(210.0, 2430.0), Vector2(130.0, 2490.0),
+		Vector2(85.0, 2600.0), Vector2(95.0, 2750.0), Vector2(160.0, 2880.0),
+		Vector2(290.0, 2960.0), Vector2(430.0, 2970.0), Vector2(560.0, 2935.0),
+		Vector2(650.0, 2845.0), Vector2(690.0, 2720.0), Vector2(710.0, 2610.0),
+		Vector2(740.0, 2560.0), Vector2(760.0, 2470.0)],
+}
+
+
+## The range's share on and about the city (2026-09-05): nothing on the
+## downtown plain, rising back to the whole of it `ease` metres out on a
+## curve that stays low near the city. `WORLD_HILLS` are added afterwards
+## and do not read this.
+static func city_relief_factor(p: Vector2) -> float:
+	var plain := PackedVector2Array(FAR_CITY["plain"])
+	if Geometry2D.is_point_in_polygon(p, plain):
+		return 0.0
+	var d := INF
+	for i in plain.size():
+		var a: Vector2 = plain[i]
+		var b: Vector2 = plain[(i + 1) % plain.size()]
+		d = minf(d, p.distance_to(Geometry2D.get_closest_point_to_segment(p, a, b)))
+	var t := clampf(d / float(FAR_CITY["ease"]), 0.0, 1.0)
+	t = t * t * (3.0 - 2.0 * t)
+	return pow(t, float(FAR_CITY["ease_power"]))
+
+
+## The hills that stand on their own (`WORLD_HILLS`): a dome each, added to
+## the ground.
+static func world_hills_y(p: Vector2) -> float:
+	var y := 0.0
+	for hill in WORLD_HILLS:
+		var t := clampf(1.0 - p.distance_to(Vector2(hill["at"])) / float(hill["radius"]), 0.0, 1.0)
+		t = t * t * (3.0 - 2.0 * t)
+		y += float(hill["height"]) * t
+	return y
+
+
+## The shore's fade on the range: nothing at the water, the whole of it a
+## run inland, with the run belonging to the shore that is nearest — the
+## park's own coast fades over `COAST_FADE_RUN`, the world's far coasts over
+## `WORLD_COAST_FADE_RUN`. The minimum over every segment, so a headland
+## between two shores is low from both sides.
+static func coast_fade(p: Vector2) -> float:
+	var best := 1.0
+	if absf(p.y) <= 70.0:
+		var t := clampf((p.x - SHORE_EDGE) / COAST_FADE_RUN, 0.0, 1.0)
+		best = minf(best, t * t * (3.0 - 2.0 * t))
+	for pair in [[COAST_NORTH_OUTLINE, COAST_NORTH_FAR_FROM], [COAST_SOUTH_OUTLINE, COAST_SOUTH_FAR_FROM]]:
+		var outline: Array = pair[0]
+		var far_from: int = pair[1]
+		for i in outline.size() - 1:
+			var run := WORLD_COAST_FADE_RUN if i >= far_from else COAST_FADE_RUN
+			var q := Geometry2D.get_closest_point_to_segment(p, outline[i], outline[i + 1])
+			var t := clampf(p.distance_to(q) / run, 0.0, 1.0)
+			best = minf(best, t * t * (3.0 - 2.0 * t))
+	return best
+
+
+## A point's place in the north valley's frame: x inland from the shore along
+## the axis, y across it, positive toward the park.
+static func valley_frame(p: Vector2) -> Vector2:
+	var v: Vector2 = p - Vector2(NORTH_VALLEY["shore"])
+	var u: Vector2 = NORTH_VALLEY["inland"]
+	var n := Vector2(-u.y, u.x)
+	return Vector2(v.dot(u), v.dot(n))
+
+
+static func valley_point(s: float, t: float) -> Vector2:
+	var u: Vector2 = NORTH_VALLEY["inland"]
+	var n := Vector2(-u.y, u.x)
+	return Vector2(NORTH_VALLEY["shore"]) + u * s + n * t
+
+
+## What the valley leaves of the range's height at a point: the floor
+## fraction on the axis, rising by a power of the distance across to the rim,
+## narrowing inland, and fading back to the full range past the head. One on
+## every point the valley does not touch.
+static func north_valley_factor(p: Vector2) -> float:
+	var f := valley_frame(p)
+	var s := f.x
+	var t := absf(f.y)
+	var narrow := clampf(maxf(s, 0.0) / float(NORTH_VALLEY["narrow_by"]), 0.0, 1.0)
+	var half_w := lerpf(float(NORTH_VALLEY["half_w"]),
+		float(NORTH_VALLEY["half_w_head"]), narrow)
+	if t >= half_w:
+		return 1.0
+	var floor_frac := float(NORTH_VALLEY["floor"])
+	var factor := floor_frac + (1.0 - floor_frac) * pow(t / half_w, float(NORTH_VALLEY["power"]))
+	var fade := clampf((s - float(NORTH_VALLEY["fade_from"]))
+		/ (float(NORTH_VALLEY["fade_to"]) - float(NORTH_VALLEY["fade_from"])), 0.0, 1.0)
+	fade = fade * fade * (3.0 - 2.0 * fade)
+	return lerpf(factor, 1.0, fade)
+
+
+## How much of a beach a point is: one at the shoreline inside a beach's z
+## window, zero `run` inland and outside every window.
+static func beach_weight(p: Vector2) -> float:
+	var best := 0.0
+	for beach in BEACHES:
+		var z0 := float(beach["from_z"])
+		var z1 := float(beach["to_z"])
+		if p.y < z0 or p.y > z1:
+			continue
+		var ends := clampf((p.y - z0) / 20.0, 0.0, 1.0) * clampf((z1 - p.y) / 20.0, 0.0, 1.0)
+		var inland := clampf(coast_inland(p) / float(beach["run"]), 0.0, 1.0)
+		inland = inland * inland * (3.0 - 2.0 * inland)
+		best = maxf(best, (1.0 - inland) * ends)
+	return best
+
+
+## Every town street in world metres, for the ground cut, the forest mask and
+## the scene: the north town's converted out of the valley frame, the beach
+## town's as written.
+static func town_streets() -> Array:
+	var out: Array = []
+	for street in NORTH_TOWN_STREETS:
+		var pts: Array = []
+		for st in street["st"]:
+			pts.append(valley_point(float((st as Vector2).x), float((st as Vector2).y)))
+		out.append({"id": street["id"], "points": pts, "width": street["width"],
+			"grade": street["grade"]})
+	for street in BEACH_TOWN_STREETS:
+		out.append({"id": street["id"], "points": (street["points"] as Array).duplicate(),
+			"width": street["width"], "grade": street["grade"]})
+	return out
+
+
+## The north town's extent in world metres, as a polygon.
+static func north_town_outline() -> Array:
+	var r: Rect2 = NORTH_TOWN_EXTENT_ST
+	return [valley_point(r.position.x, r.position.y), valley_point(r.end.x, r.position.y),
+		valley_point(r.end.x, r.end.y), valley_point(r.position.x, r.end.y)]
+
+
 ## The promontory is the land the north outline draws between the cove head
 ## and the point, and `PROMONTORY_SPINE` runs up the middle of that land from
 ## the headland pad to the point. It was one segment, (-44,-212) to
@@ -2955,14 +3314,26 @@ const REBUILD_FOOTPRINT_MAX_Z := 220.0
 ## That is the distinction the first footprint implementation missed when it
 ## turned the atlas outline into a visible tabletop edge.
 const REBUILD_WORLD_LAND_FROM_X := SHORE_FROM_X
-const REBUILD_WORLD_LAND_TO_X := 2400.0
-const REBUILD_WORLD_LAND_FROM_Z := -2400.0
-const REBUILD_WORLD_LAND_TO_Z := 2400.0
-const REBUILD_WORLD_WATER_FROM_X := -4200.0
+## 3600 since 2026-09-05 (from 2400): the east coast lies inside it, its
+## easternmost headland touching the bound.
+const REBUILD_WORLD_LAND_TO_X := 3600.0
+## z -2700..3000 since 2026-09-05, from -2400..2400: the land ends in coasts
+## inside these bounds now, a north shore between -2600 and -2700 and a south
+## coast between 2560 and 2700 with the city's peninsula reaching 3000, so
+## the range has room to come down to the sea on the long fade.
+const REBUILD_WORLD_LAND_FROM_Z := -2700.0
+const REBUILD_WORLD_LAND_TO_Z := 3000.0
+## The sea to twenty kilometres every way since 2026-09-05, so that no
+## aerial the start screen is made of reaches its edge: the ocean west of
+## the coast and three sheets under the island's other shores, abutting it.
+const REBUILD_WORLD_WATER_FROM_X := -20000.0
 const REBUILD_WORLD_WATER_TO_X := -70.0
-const REBUILD_WORLD_WATER_FROM_Z := -3200.0
-const REBUILD_WORLD_WATER_TO_Z := 3200.0
-const REBUILD_WORLD_COAST_FROM_Z := -2200.0
+const REBUILD_WORLD_WATER_FAR_X := 20000.0
+## ±3800 since 2026-09-05 (from ±3200): the land reaches 3000 at the city's
+## peninsula and the water's edge stood 200m past its tip in every aerial.
+const REBUILD_WORLD_WATER_FROM_Z := -20000.0
+const REBUILD_WORLD_WATER_TO_Z := 20000.0
+const REBUILD_WORLD_COAST_FROM_Z := -2700.0
 const REBUILD_WORLD_COAST_TO_Z := 2200.0
 const REBUILD_WORLD_MIN_PROGRAM_MARGIN := 2000.0
 const REBUILD_FOOTPRINT_NORTH_ANCHOR_Z := -52.0
@@ -4574,3 +4945,7 @@ const EYE_MATERIAL := "res://assets/materials/cascade_eye.res"
 ## legible as the wall, which is what made the monument read flat in the first
 ## night capture.
 const TRIM_MATERIAL := "res://assets/materials/trim.res"
+
+## The towns' windows (02B, 2026-09-05): the fifth lit material, and the one
+## that never dims after close, because a town does not shut with the park.
+const WINDOW_MATERIAL := "res://assets/materials/town_window.res"
