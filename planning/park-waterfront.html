@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Park Waterfront · zoomed planning map</title>
+<body>
+<main class="map-page" id="section-map">
+  <nav><a href="park-world-beyond.html">← World map</a><a href="north-valley.html">North Valley</a><a href="beach-town.html">Beach Town</a><a href="city-peninsula.html">City Peninsula</a></nav>
+  <header><p class="eyebrow">Approved coastal expansion · section map 1 of 4</p><h1>Park Waterfront</h1><p>Boardwalk pier, protected western composition, Headland visitor cluster and working harbour · world coordinates · north up</p></header>
+  <p class="literal-rule"><b>Literal-use rule.</b> Orange marks only a named retrofit, replacement or extension of the grey host beside it; it is never a second object stacked over the host. No SVG path or coordinate may be traced into generated geometry. Pier, shoreline, harbour, visitor-court and rail shapes require editor-owned sources.</p>
+  <div class="controls"><button class="active" data-view="approved">Approved integration</button><button data-view="built">Existing hosts only</button><span>Grey = host · orange = retrofit/parcel · blue = water/boats · red = protected</span></div>
+  <svg viewBox="0 0 960 720" role="img" aria-label="Zoomed map of the Boardwalk pier, Headland and harbour">
+    <g id="base"></g><g id="approved" data-approved></g><g id="labels"></g>
+  </svg>
+  <section class="ledger">
+    <h2>Integration ledger</h2>
+    <article><b>Pier fishing</b><span>Host: existing 12 × 13m pavilion landing.</span><span>Change: rod rests in outer/south rail bays; benches, tackle cart and cleaning sink on the pavilion service edge; regular anglers use the landing.</span><span class="reject">Rejected: separate side platform.</span></article>
+    <article><b>Aquarium</b><span>Host: keeper’s exhibit visitor court and service approach.</span><span>Change: low courtyard wing sharing the Headland material family; tide pools, kelp, local fish, invertebrates and rehabilitation/education.</span><span class="protect">Must remain subordinate to the lighthouse; no marine mammals.</span></article>
+    <article><b>Marina and cannery</b><span>Host: sheltered cove, existing quay and breakwater.</span><span>Change: slips and gangways extend the quay; fuel shed, launch ramp and dry racks occupy its service end; cannery and two modest smokestacks close the landward working edge east of the visitor route; spur terminates at loading doors.</span></article>
+    <article><b>Seafood and water activity</b><span>Host: quay-to-road transition, harbour mouth and offshore water.</span><span>Change: seafood shacks front the working edge; moorings, working boats, sailboats and offshore anglers use separate authored loops while keeping the entrance clear.</span></article>
+  </section>
+  <section class="checks"><h2>Before Godot</h2><ul><li>Confirm the pier-head rail bays preserve the clear 8m approach and pavilion turnaround.</li><li>Check the aquarium wing from lighthouse, approach and Q−2 views.</li><li>Fit slips, launch and boat loops to real cove depth and breakwater clearance.</li><li>Keep NT-1, the west-arch pier reveal and the 280°–310° sunset sector unchanged.</li></ul></section>
+</main>
+<script>
+(() => {
+  const svg=document.querySelector('svg'), ns='http://www.w3.org/2000/svg';
+  const G={base:document.getElementById('base'),approved:document.getElementById('approved'),labels:document.getElementById('labels')};
+  const d={x0:-290,x1:-60,z0:-430,z1:60}, p={x:54,y:34,w:852,h:632};
+  const X=x=>p.x+(x-d.x0)/(d.x1-d.x0)*p.w, Y=z=>p.y+(d.z1-z)/(d.z1-d.z0)*p.h;
+  const el=(n,a={})=>{const q=document.createElementNS(ns,n);for(const[k,v]of Object.entries(a))q.setAttribute(k,v);return q};
+  const path=(g,pts,c,close=false)=>g.appendChild(el('path',{d:pts.map((v,i)=>`${i?'L':'M'} ${X(v[0])} ${Y(v[1])}`).join(' ')+(close?' Z':''),class:c}));
+  const rect=(g,x0,z0,x1,z1,c)=>g.appendChild(el('rect',{x:X(x0),y:Y(z1),width:X(x1)-X(x0),height:Y(z0)-Y(z1),class:c}));
+  const dot=(g,a,r,c)=>g.appendChild(el('circle',{cx:X(a[0]),cy:Y(a[1]),r,class:c}));
+  const label=(copy,a,c='label',anchor='start')=>{const q=el('text',{x:X(a[0]),y:Y(a[1]),class:c,'text-anchor':anchor});q.textContent=copy;G.labels.appendChild(q)};
+  for(let x=-275;x<=-75;x+=25)path(G.base,[[x,d.z0],[x,d.z1]],'grid');
+  for(let z=-400;z<=50;z+=50)path(G.base,[[d.x0,z],[d.x1,z]],'grid');
+  rect(G.base,d.x0,d.z0,d.x1,d.z1,'sea');
+  const land=[[-108,60],[-108,0],[-112,-130],[-100,-185],[-72,-218],[-100,-236],[-140,-248],[-185,-258],[-225,-270],[-242,-295],[-228,-325],[-198,-345],[-165,-356],[-142,-376],[-131,-400],[-60,-430],[-60,60]];
+  path(G.base,land,'land',true);
+  path(G.base,[[-100,55],[-100,-80]],'promenade');
+  path(G.base,[[-100,-2],[-144,-2]],'pier');
+  rect(G.base,-156,-8.5,-144,4.5,'host-strong');
+  path(G.base,[[-104,-236],[-101,-224],[-97,-213],[-93,-203]],'host-strong');
+  path(G.base,[[-83,-216],[-83,-200]],'host-strong');
+  path(G.base,[[-37,-172],[-74,-258],[-139,-291],[-205,-300]],'route');
+  dot(G.base,[-205,-300],7,'lighthouse'); rect(G.base,-202,-326,-180,-306,'host');
+  label('BOARDWALK PIER',[ -101,18],'host-label'); label('existing pavilion landing',[-158,-18],'host-label');
+  label('HEADLAND VISITOR CLUSTER',[-218,-347],'host-label'); label('existing quay + breakwater',[-126,-208],'host-label');
+  path(G.approved,[[-156,4.5],[-156,-8.5],[-144,-8.5]],'retrofit');
+  dot(G.approved,[-150,-2],5,'approved-dot'); label('FISHING RAIL BAYS + SERVICE EDGE',[-210,-3],'approved-label');
+  rect(G.approved,-180,-325,-166,-307,'approved-site');
+  label('AQUARIUM COURTYARD WING',[-218,-318],'approved-label');
+  path(G.approved,[[-83,-216],[-118,-228]],'retrofit');
+  [[-112,-229,-112,-254],[-102,-225,-102,-251],[-92,-220,-92,-246]].forEach(s=>path(G.approved,[[s[0],s[1]],[s[2],s[3]]],'marina'));
+  rect(G.approved,-92,-310,-64,-280,'approved-site'); label('CANNERY · EAST OF VISITOR ROUTE',[-140,-316],'approved-label');
+  path(G.approved,[[-60,-360],[-73,-335],[-82,-310]],'rail'); label('rail spur ends at loading doors',[-112,-360],'approved-label');
+  dot(G.approved,[-82,-290],4,'stack'); dot(G.approved,[-72,-290],4,'stack');
+  rect(G.approved,-134,-254,-119,-239,'approved-site'); label('seafood transition',[-160,-226],'approved-label');
+  rect(G.approved,-141,-266,-132,-257,'approved-site'); label('dry racks',[-168,-259],'approved-label');
+  rect(G.approved,-144,-249,-136,-241,'approved-site'); label('fuel',[-168,-242],'approved-label');
+  path(G.approved,[[-150,-252],[-158,-278]],'retrofit'); label('launch',[-178,-278],'approved-label');
+  path(G.approved,[[-128,-210],[-155,-192],[-190,-202],[-203,-225],[-170,-242],[-128,-210]],'boat-loop');
+  path(G.approved,[[-203,-225],[-245,-205],[-268,-235],[-238,-270],[-203,-225]],'boat-loop');
+  label('working-boat loop',[-224,-190],'water-label'); label('sailing loop',[-277,-278],'water-label');
+  path(G.approved,[[-150,-2],[-290,38],[-290,-52]],'protected',true); label('PROTECTED SUNSET + PIER REVEAL',[-282,48],'protected-label');
+  path(G.approved,[[-60,0],[-150,-2]],'protected-line');
+  document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{const on=b.dataset.view==='approved';G.approved.style.display=on?'':'none';G.labels.querySelectorAll('.approved-label,.water-label,.protected-label').forEach(n=>n.style.display=on?'':'none');document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x===b));}));
+})();
+</script>
+<style>
+:root{--bg:#f5f2e8;--fg:#262923;--muted:#d8d4c8;--muted-fg:#6d7168;--border:#c7c2b6;--blue:#247fa3;--green:#477d4b;--yellow:#d9a528;--orange:#d0642d;--red:#b84c46;--purple:#72569a}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,-apple-system,sans-serif}.map-page{width:min(1180px,100%);margin:auto;padding:24px}nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}nav a{color:var(--fg);text-decoration:none;border:1px solid var(--border);border-radius:99px;padding:5px 10px}header .eyebrow{color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:11px}h1{font-size:34px;line-height:1;margin:.2em 0}header>p:last-child{color:var(--muted-fg)}.literal-rule{max-width:92ch;border-left:4px solid var(--red);padding:10px 14px;background:color-mix(in srgb,var(--red) 7%,transparent)}.controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:18px 0 10px}.controls button{border:1px solid var(--border);background:var(--bg);border-radius:99px;padding:7px 12px;cursor:pointer}.controls button.active{background:var(--fg);color:var(--bg);border-color:var(--fg)}.controls span{color:var(--muted-fg);font-size:12px}svg{display:block;width:100%;height:auto;border:1px solid var(--border);border-radius:14px;background:var(--bg)}svg text{font:10px ui-sans-serif,system-ui;paint-order:stroke;stroke:var(--bg);stroke-width:3px;stroke-linejoin:round}.grid{fill:none;stroke:var(--border);stroke-width:1;opacity:.42}.sea{fill:color-mix(in srgb,var(--blue) 16%,var(--bg))}.land{fill:color-mix(in srgb,var(--green) 15%,var(--bg));stroke:var(--muted-fg);stroke-width:2}.promenade,.route{fill:none;stroke:var(--fg);stroke-width:5}.route{stroke-width:3;stroke-dasharray:5 3}.pier{fill:none;stroke:var(--muted-fg);stroke-width:18}.host{fill:var(--muted);stroke:var(--muted-fg);stroke-width:2}.host-strong{fill:var(--muted-fg);stroke:var(--muted-fg);stroke-width:7}.lighthouse{fill:var(--yellow);stroke:var(--fg);stroke-width:2}.host-label{fill:var(--muted-fg);font-weight:700}.retrofit{fill:none;stroke:var(--orange);stroke-width:9;stroke-linecap:round}.approved-dot,.stack{fill:var(--orange);stroke:var(--bg);stroke-width:2}.approved-site{fill:color-mix(in srgb,var(--orange) 22%,transparent);stroke:var(--orange);stroke-width:3;stroke-dasharray:7 4}.approved-label{fill:var(--orange);font-weight:800}.marina{fill:none;stroke:var(--orange);stroke-width:5}.rail{fill:none;stroke:var(--purple);stroke-width:4;stroke-dasharray:9 4}.boat-loop{fill:none;stroke:var(--blue);stroke-width:3;stroke-dasharray:8 5}.water-label{fill:var(--blue);font-weight:700}.protected{fill:color-mix(in srgb,var(--red) 10%,transparent);stroke:var(--red);stroke-width:2;stroke-dasharray:8 5}.protected-line{fill:none;stroke:var(--red);stroke-width:2;stroke-dasharray:8 5}.protected-label{fill:var(--red);font-weight:800}.ledger,.checks{margin-top:18px}.ledger{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.ledger h2{grid-column:1/-1}.ledger article{display:flex;flex-direction:column;gap:4px;padding:13px;border:1px solid var(--border);border-radius:10px}.ledger article>b{font-size:16px}.reject{color:var(--red);font-weight:700}.protect{color:var(--purple);font-weight:700}.checks{padding:14px 18px;border-left:4px solid var(--orange);background:color-mix(in srgb,var(--orange) 7%,transparent)}h2{margin:.3em 0}@media(max-width:700px){.map-page{padding:14px}.ledger{grid-template-columns:1fr}svg text{font-size:12px}}
+</style>
+</body></html>

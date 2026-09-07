@@ -1,17 +1,103 @@
 <div id="kyt-world-beyond">
   <h2>02B · The world beyond the park</h2>
   <div class="viz-controls" aria-label="World beyond the park controls">
-    <button type="button" class="btn btn-primary" data-layer="proposal" aria-pressed="true">Proposal</button>
+    <button type="button" class="btn btn-primary" data-layer="proposal" aria-pressed="true">Approved expansion</button>
     <button type="button" class="btn" data-layer="built" aria-pressed="false">Built only</button>
     <span class="text-muted tabular-nums" data-readout aria-live="polite">world coordinates · 2.2 × 5.3 km · north up</span>
   </div>
+  <div class="map-key" aria-label="Map legend">
+    <span><i class="key-built"></i>built host</span>
+    <span><i class="key-approved"></i>approved change</span>
+    <span><i class="key-water"></i>water and flood structure</span>
+    <span><i class="key-habitat"></i>habitat replacement</span>
+    <span><i class="key-protected"></i>protected view</span>
+  </div>
+  <nav class="zoom-map-links" aria-label="Zoomed section maps">
+    <span>Zoom maps</span>
+    <a href="park-waterfront.html">Park Waterfront</a>
+    <a href="north-valley.html">North Valley</a>
+    <a href="beach-town.html">Beach Town</a>
+    <a href="city-peninsula.html">City Peninsula</a>
+  </nav>
   <svg viewBox="0 0 760 1825" role="img" aria-labelledby="kyt-world-title kyt-world-desc">
-    <title id="kyt-world-title">The world beyond the park: the bay, the headland, the pass road and the towns</title>
-    <desc id="kyt-world-desc">Package 02B, drafted 2026-09-04; the coast highway and the headland built that day, the three towns on 2026-09-05. Everything outside the developed park that the commute and the reveal views need: the bay after Half Moon Bay, the headland as one landform with cliffs and coves on its outer face and a harbour cove in its lee, the coast highway with its tunnels, the north town in a creek valley at the coast's north end with the character's house up its side, the beach town on the shelf south of the parking with its beach, and the city on the peninsula the far shore curves out into, with hills; the world's north and south ends are coasts of headlands and coves since 2026-09-05, and later that day an east coast closed the land into an island the range runs along, with the sea to twenty kilometres every way, so that the aerials the start screen will be made of read as complete terrain. Still proposals, dashed: the sea stacks, the path down to a cove. Built elements are drawn from the same constants ParkPlan holds.</desc>
+    <title id="kyt-world-title">The world beyond the park: the bay, routes, watersheds, destinations and towns</title>
+    <desc id="kyt-world-desc">Package 02B, drafted 2026-09-04 and expanded 2026-09-06. Built context includes the coast highway, headland and three towns. The approved expansion layer adds the two source-to-sea watersheds, regional railway, beach-town public realm and skate district, north-town destinations and drive-in, working harbour and cannery, offshore volcanic plug, a pier-head fishing retrofit and aquarium wing, habitat regions, and a composed city waterfront. Approval applies to this feature scope, not to earlier time estimates. Dashed routes and outlined sites are planning claims, not finished construction.</desc>
     <g data-water></g><g data-land></g><g data-range></g><g data-grid></g><g data-park></g><g data-proposal></g><g data-frames></g><g data-labels></g>
   </svg>
+  <section class="integration-insets" aria-labelledby="integration-insets-title">
+    <h3 id="integration-insets-title">How the additions belong to their places</h3>
+    <p class="inset-intro">Grey is the existing host. Orange and blue show the part that is changed, replaced or completed—not an object set on top.</p>
+    <div class="inset-grid">
+      <figure>
+        <svg class="site-inset" viewBox="0 0 320 185" role="img" aria-label="Boardwalk pier head fishing retrofit">
+          <rect class="inset-water" x="0" y="0" width="260" height="185"/>
+          <rect class="inset-land" x="260" y="0" width="60" height="185"/>
+          <rect class="inset-existing" x="76" y="75" width="190" height="36"/>
+          <rect class="inset-existing-strong" x="26" y="59" width="50" height="68"/>
+          <path class="inset-approved-edge" d="M26 59 V127 H76"/>
+          <path class="inset-route" d="M286 93 H52"/>
+          <text x="274" y="81">promenade</text><text x="130" y="70">existing 8m pier</text>
+          <text class="inset-approved-text" x="15" y="147">fishing uses pavilion landing rail bays</text>
+          <text x="15" y="165">clear approach · same deck rhythm · no side pad</text>
+        </svg>
+        <figcaption><b>Boardwalk pier head.</b> Retrofit the existing 12 × 13m pavilion landing. Fishing occupies its outer rails and service edge.</figcaption>
+      </figure>
+      <figure>
+        <svg class="site-inset" viewBox="0 0 320 185" role="img" aria-label="Beach town public realm integrated with streets and lots">
+          <rect class="inset-water" x="0" y="0" width="74" height="185"/>
+          <rect class="inset-beach" x="74" y="0" width="48" height="185"/>
+          <path class="inset-existing-road" d="M142 0 V185 M142 55 H310 M142 126 H310"/>
+          <rect class="inset-approved-zone" x="122" y="8" width="20" height="169"/>
+          <path class="inset-approved-edge" d="M122 120 H36"/>
+          <rect class="inset-approved-zone" x="164" y="132" width="70" height="43"/>
+          <rect class="inset-existing" x="165" y="64" width="132" height="47"/>
+          <text x="166" y="59">shops become surf · skate · seafood row</text>
+          <text class="inset-approved-text" x="151" y="153">skate park replaces lot bay</text>
+          <text class="inset-approved-text" x="24" y="115">public pier</text><text x="78" y="25">dunes</text>
+        </svg>
+        <figcaption><b>Beach town.</b> The promenade rebuilds the shore-road edge; the pier continues that crossing and the skate park replaces part of the dead-end lot.</figcaption>
+      </figure>
+      <figure>
+        <svg class="site-inset" viewBox="0 0 320 185" role="img" aria-label="North town organized by its lake river streets and railway">
+          <path class="inset-valley" d="M0 25 Q150 70 320 20 V165 Q155 112 0 160 Z"/>
+          <ellipse class="inset-waterbody" cx="266" cy="90" rx="40" ry="25"/>
+          <path class="inset-river" d="M226 90 C185 88 164 101 128 96 S65 94 0 100"/>
+          <path class="inset-existing-road" d="M0 82 H210"/>
+          <path class="inset-rail" d="M58 0 C72 60 72 120 88 185"/>
+          <rect class="inset-approved-zone" x="100" y="58" width="82" height="49"/>
+          <rect class="inset-approved-zone" x="213" y="20" width="73" height="38"/>
+          <circle class="inset-crossing" cx="72" cy="98" r="5"/><circle class="inset-crossing" cx="128" cy="96" r="5"/>
+          <text x="108" y="54">main street reshaped at river</text>
+          <text class="inset-approved-text" x="218" y="16">drive-in uses upper bench</text>
+          <text x="226" y="95">lake</text><text x="8" y="116">beach mouth</text>
+        </svg>
+        <figcaption><b>North town.</b> Lake and river establish the valley floor first; streets, parcels, highway and railway meet them with real crossings.</figcaption>
+      </figure>
+      <figure>
+        <svg class="site-inset" viewBox="0 0 320 185" role="img" aria-label="Headland harbour additions grown from the cove quay and visitor cluster">
+          <path class="inset-land" d="M0 0 H320 V78 Q242 55 198 88 Q135 135 0 118 Z"/>
+          <path class="inset-water" d="M0 118 Q135 135 198 88 Q242 55 320 78 V185 H0 Z"/>
+          <path class="inset-existing-road" d="M270 0 Q250 42 205 73"/>
+          <path class="inset-existing-strong" d="M198 88 L112 123"/>
+          <path class="inset-approved-edge" d="M112 123 L62 144 M94 130 L106 164 M122 119 L139 154 M150 108 L169 143"/>
+          <rect class="inset-approved-zone" x="162" y="62" width="58" height="31"/>
+          <path class="inset-rail" d="M320 25 Q245 34 191 65"/>
+          <rect class="inset-existing" x="241" y="15" width="35" height="25"/>
+          <rect class="inset-approved-zone" x="221" y="12" width="20" height="31"/>
+          <text class="inset-approved-text" x="151" y="103">cannery closes landward quay edge</text>
+          <text class="inset-approved-text" x="30" y="163">marina extends existing quay into cove</text>
+          <text x="205" y="55">aquarium wing shares visitor court</text>
+        </svg>
+        <figcaption><b>Headland and harbour.</b> Marina, cannery and spur form one working edge; the aquarium is a wing of the existing visitor cluster.</figcaption>
+      </figure>
+    </div>
+  </section>
   <div class="kyt-world-notes">
-    <p><b>What this map is.</b> The footprint map's frame stops 240m south of the plaza and cannot hold a pass a kilometre out or a shore two kilometres long, so the world outside the developed envelope is planned here, in the same world metres, at a scale where the park is a small rectangle. <b>Built</b> layers are drawn from <code>ParkPlan</code>'s own numbers: both coast outlines and the promontory spine, the crescent range's toe and its named summits and spurs, the highway and its tunnels, the north valley's rim, the three towns' extents, streets and the house, the two beaches, the city's peninsula, downtown plain and hills, the north shore and the south coast, the approach road, the front road, the parking and the developed envelope. <b>Proposal</b> layers are dashed and exist only on this map until Christina has looked at them and a package builds them.</p>
+    <p><b>What this map is.</b> The footprint map's frame stops 240m south of the plaza and cannot hold a pass a kilometre out or a shore two kilometres long, so the world outside the developed envelope is planned here, in the same world metres, at a scale where the park is a small rectangle. <b>Built</b> layers are drawn from <code>ParkPlan</code>'s own numbers: both coast outlines and the promontory spine, the crescent range's toe and its named summits and spurs, the highway and its tunnels, the north valley's rim, the three towns' extents, streets and the house, the two beaches, the city's peninsula, downtown plain and hills, the north shore and the south coast, the approach road, the front road, the parking and the developed envelope. <b>Approved expansion</b> is the design layer for the 2026-09-06 coastal scope. Its dashed alignments and outlined sites are edited and reviewed here before downstream Godot construction.</p>
+    <p><b>Approval and workflow, 2026-09-06.</b> Christina approved the complete feature list, not its discarded timelines. The map now leads: water courses, rail right-of-way, crossings, districts and destination sites are planning claims here first. The rapid Godot breadth pass made the scope visible, but it is not allowed to overrule this map; any mismatched blockout moves when the map is reviewed. Exact grades, terrain fits, footprints and bridge spans remain provisional until measured. NT-1 and NT-2 and the pier's open sunset sector remain protected.</p>
+    <p><b>Integration rule, 2026-09-07.</b> No approved feature is placed as a freestanding object layer over an intact place. Each one names a host—street edge, lot, quay, visitor cluster, pier head, corridor, watershed or existing city block—and visibly replaces, retrofits or completes part of it. The pier fishing destination therefore uses the existing pavilion landing and its rail bays; the separate side deck shown in the rapid blockout is rejected.</p>
+    <p><b>Literal-use rule.</b> The SVGs are review diagrams, not construction coordinates. Do not trace a map line into <code>ParkPlan</code>, a generator, terrain or landscaping. An unlabelled line has no authority. Every artistic road, path, river, shoreline, rail course, terrain silhouette and footprint requires a named editor-owned source that Christina can reshape directly before construction begins.</p>
+    <p><b>Approved system sections.</b> Urban highway reaches receive curb-and-gutter and controlled crossings; rural highway reaches retain shoulders, drainage and concrete restraint. The regional rail reserve must resolve its own maximum grade, curve radius, cut/fill ribbon, bridges and tunnels before track; signals, whistle boards and telegraph poles belong to that resolved line. Habitat replacement uses redwood, Douglas-fir, oak/mixed evergreen, coastal scrub, chaparral/manzanita and grass/forb by exposure and shelter, with palms reserved for settled coastal edges.</p>
     <p><b>The line through it all is the coast highway, and the commute is a drive down it.</b> Christina's ask on 2026-09-04: a Pacific Coast Highway equivalent, and the reading that if this were Pacifica to Santa Cruz the character would live north of the park and the hills and the tunnel would be there. The park fills the shelf from the water to the range's toe, so a through highway cannot pass it along the shore; it goes behind the first ridge instead, in the trough the range profile leaves at its inner edge, a level saddle about ten metres up with almost no spur relief all the way round. <b>Built the same day, and it is the plan's second alignment.</b> The first looped the second ridge's dip valley 770m out with a crest turnout for a wide view down onto the park, and the generator rejected it: the spurs stand sixty to ninety metres over the valleys between them right down to the foothill, so that loop was seven tunnels totalling 2.7km, and the road could not climb the second ridge at 1:12 fast enough to top it, so the crest was buried. The drive as built, from the north (the town since 2026-09-05): the house thirty metres up the north side of a creek valley, down the lane to Hill Road and the main street, which is the highway across the valley floor; the climb up the valley's south wall and 443m of tunnel; out on the range's shore-fade face 60m inland, forty metres up, forest above and the sea below, with the headland and the lighthouse a speck across the water (Q−3, first sight); a glimpse bend and a second short tunnel where the face is steep; the descent round the arm's foot to 45m inland, where the bay opens with the lighthouse ahead and the tower behind it (Q−2); the trough behind the park, where the park never shows, which is the wait; the junction at the foothill's back, and the park's own road cresting the foothill with the gate, palms, wheel and tower ahead and the parking below (Q−1, the arrival). Far, opening, arrival. What this alignment does not give is a view down onto the park from height: a through road never climbs behind the park, and a high view would be a lookout of its own, not the highway. The same road in reverse is the drive home at close, and the one not taken on the night the player stays. The highway goes on round behind the parking and out to the bay's far shore to the south-east; the park sits on a spur off it, the built approach road, as a beach boardwalk sits off Highway 1.</p>
     <p><b>The headland, as one landform (Trinidad Head proportions). Built 2026-09-04.</b> The lighthouse district's 4m pad and the promontory were two things where the reference has one. Built: the north outline widened into a headland about 240m long and up to 140m wide with the point at (−242, −295); the spine up its middle as one curve with no bend over sixteen degrees; a level top at 30m near the point, not the forty first proposed, because the walk climbs the spine from the pad at 1:7.7 and forty would have been 1:5.5; the crown set by distance to the shoreline with a 20m cliff skirt, dropping to a low floor at the two coves on the north-west face, which the outline's cliff band cuts as before; the feature bounded narrowly through the turn off the pad and widely past it, so it lifts nothing under the park; the lighthouse and the keeper's exhibit on the level top 37m from the tip, about 27m inside the cliffs on both faces, with a forest clearing round them; the walk re-laid up the spine to the forecourt's rim, walked by the controller and standing on its ground; and in the cove's lee a short breakwater with a light at its head, a plank quay with bollards, and two boats. The lighthouse's frames and the drive's Q−2 and Q−3 were re-shot. What is not built: the path down to one cove, which needs 1:8 over a 25m drop on the cliff face and is a walk test of its own.</p>
     <p><b>South of the park.</b> Soft, long and mostly silhouette, since only the pier head, the wheel, the sky ride, the head of the east climb and the aerials look at it. The parking clause's 20m bluff and cove; the beach town and its beach on the shelf (built); then the long shore curving south-east under the hills the south arm brings down to it, still a green shelf with a skirt, where the proposals put a dune-backed beach with one or two sea stacks off it outside the sunset sector. Since 2026-09-05 (Christina: mend the open faces with geology; a peninsula for the city, Singapore or Rio from across a bay at something like San Francisco's scale) the far shore curves over past the beach town and close to the city into a low neck and a peninsula the city stands on, with a flat downtown on its waterfront and two steep hills behind, a sugarloaf rising out of the water at its south-west; beyond the peninsula a south coast of headlands and coves runs east to the world's edge, and the range's south arm comes down to it on a 600m fade. The highway crosses the neck to the city, through a 293m tunnel off the far shore's ridge. The land is an island: an east coast of the same kind, off this map at x 3400–3600, joins the two shores at (3500, 200), the sea reaches twenty kilometres every way, and the start-screen aerials (`a00`–`a03` in the world-ends record) show no edge. The north end is the same: past the valley the coast turns east as a north shore of headlands and coves, three of them cliffed, the range tapering to it on the same long fade so the valley's north wall, five hundred metres south, stands as it did.</p>
@@ -22,45 +108,112 @@
 </div>
 
 <style>
-  #kyt-world-beyond { width:100%; color: var(--foreground); }
-  #kyt-world-beyond h2 { margin:0 0 10px; font-weight:500; }
-  #kyt-world-beyond svg { display:block; width:100%; height:auto; max-height:1672px; }
-  #kyt-world-beyond text { font-size: 9px; fill: var(--foreground); font-family: inherit; }
-  #kyt-world-beyond .minor-label { fill: var(--muted-foreground); font-weight:400; font-size:8px; }
-  #kyt-world-beyond .proposal-label { fill: var(--orange); font-weight:500; font-size:8px; }
-  #kyt-world-beyond .ground-water { fill: color-mix(in srgb, var(--blue) 12%, transparent); stroke:none; }
-  #kyt-world-beyond .sea-top { fill: color-mix(in srgb, var(--blue) 14%, var(--background)); stroke: var(--muted-foreground); stroke-width:1; }
-  #kyt-world-beyond .ground-land { fill: color-mix(in srgb, var(--green) 10%, transparent); stroke: var(--muted-foreground); stroke-width:1; }
-  #kyt-world-beyond .ground-range { fill: color-mix(in srgb, var(--green) 24%, transparent); stroke:none; }
-  #kyt-world-beyond .range-toe { fill:none; stroke: var(--muted-foreground); stroke-dasharray:3 3; }
-  #kyt-world-beyond .range-spur { fill:none; stroke: var(--muted-foreground); stroke-width:1; opacity:.6; }
-  #kyt-world-beyond .summit { fill: var(--muted-foreground); }
-  #kyt-world-beyond .grid-line { stroke: var(--border); stroke-width:1; opacity:.42; }
-  #kyt-world-beyond .grid-axis { stroke: var(--muted-foreground); stroke-width:1; opacity:.7; }
-  #kyt-world-beyond .envelope { fill: color-mix(in srgb, var(--yellow) 16%, transparent); stroke: var(--yellow); stroke-width:1.2; }
-  #kyt-world-beyond .plaza { fill: color-mix(in srgb, var(--yellow) 30%, transparent); stroke: var(--yellow); stroke-width:1; }
-  #kyt-world-beyond .lot { fill: color-mix(in srgb, var(--muted) 72%, transparent); stroke: var(--muted-foreground); stroke-width:1; }
-  #kyt-world-beyond .road-built { fill:none; stroke: var(--foreground); stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
-  #kyt-world-beyond .road-proposed { fill:none; stroke: var(--orange); stroke-width:1.6; stroke-dasharray:5 3; stroke-linecap:round; stroke-linejoin:round; }
-  #kyt-world-beyond .road-local { fill:none; stroke: var(--orange); stroke-width:1; stroke-dasharray:2 3; opacity:.8; }
-  #kyt-world-beyond .tunnel { fill:none; stroke: var(--purple); stroke-width:3; stroke-linecap:butt; }
-  #kyt-world-beyond .road-built { fill:none; stroke: var(--foreground); stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
-  #kyt-world-beyond .proposal-land { fill: color-mix(in srgb, var(--orange) 14%, transparent); stroke: var(--orange); stroke-width:1.2; stroke-dasharray:4 3; }
-  #kyt-world-beyond .proposal-rock { fill: color-mix(in srgb, var(--muted-foreground) 40%, transparent); stroke: var(--orange); stroke-width:1; stroke-dasharray:2 2; }
-  #kyt-world-beyond .proposal-town { fill: color-mix(in srgb, var(--red) 12%, transparent); stroke: var(--red); stroke-width:1; stroke-dasharray:3 2; }
-  #kyt-world-beyond .proposal-city { fill: color-mix(in srgb, var(--purple) 14%, transparent); stroke: var(--purple); stroke-width:1; stroke-dasharray:3 2; }
-  #kyt-world-beyond .town-built { fill: color-mix(in srgb, var(--red) 14%, transparent); stroke: var(--red); stroke-width:1; }
-  #kyt-world-beyond .city-built { fill: color-mix(in srgb, var(--purple) 18%, transparent); stroke: var(--purple); stroke-width:1; }
-  #kyt-world-beyond .road-local-built { fill:none; stroke: var(--foreground); stroke-width:1; opacity:.8; }
-  #kyt-world-beyond .beach { fill: color-mix(in srgb, var(--yellow) 40%, transparent); stroke:none; }
-  #kyt-world-beyond .house { fill: var(--red); stroke: var(--background); stroke-width:1; }
-  #kyt-world-beyond .lighthouse { fill: var(--yellow); stroke: var(--background); stroke-width:1.5; }
-  #kyt-world-beyond .glimpse { fill: color-mix(in srgb, var(--blue) 30%, transparent); stroke: var(--blue); stroke-width:1; }
-  #kyt-world-beyond .frame-cone { fill: color-mix(in srgb, var(--yellow) 18%, transparent); stroke: var(--yellow); stroke-width:1; stroke-dasharray:4 3; }
-  #kyt-world-beyond .sunset { fill: color-mix(in srgb, var(--red) 8%, transparent); stroke: var(--red); stroke-width:1; stroke-dasharray:6 4; }
-  #kyt-world-beyond .promontory-spine { fill:none; stroke: var(--foreground); stroke-width:1; opacity:.7; }
-  #kyt-world-beyond .kyt-world-notes p { max-width: 72ch; }
-  @media (max-width: 720px) { #kyt-world-beyond .minor-label { display:none; } }
+  #kyt-world-beyond {
+    --map-bg: var(--background, #f5f2e8);
+    --map-fg: var(--foreground, #262923);
+    --map-muted: var(--muted, #d8d4c8);
+    --map-muted-fg: var(--muted-foreground, #6d7168);
+    --map-border: var(--border, #c7c2b6);
+    --map-blue: var(--blue, #247fa3);
+    --map-green: var(--green, #477d4b);
+    --map-yellow: var(--yellow, #d9a528);
+    --map-orange: var(--orange, #d0642d);
+    --map-red: var(--red, #b84c46);
+    --map-purple: var(--purple, #72569a);
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 100vh;
+    padding: 24px;
+    color: var(--map-fg);
+    background: var(--map-bg);
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  #kyt-world-beyond h2, #kyt-world-beyond .viz-controls, #kyt-world-beyond .map-key, #kyt-world-beyond .zoom-map-links, #kyt-world-beyond .integration-insets, #kyt-world-beyond .kyt-world-notes { width:min(100%,760px); margin-inline:auto; }
+  #kyt-world-beyond h2 { margin-top:0; margin-bottom:10px; font-weight:600; }
+  #kyt-world-beyond .viz-controls { display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+  #kyt-world-beyond .btn { border:1px solid var(--map-border); border-radius:999px; padding:6px 11px; color:var(--map-fg); background:var(--map-bg); cursor:pointer; }
+  #kyt-world-beyond .btn-primary { color:var(--map-bg); background:var(--map-fg); border-color:var(--map-fg); }
+  #kyt-world-beyond .text-muted { color:var(--map-muted-fg); }
+  #kyt-world-beyond .map-key { display:flex; flex-wrap:wrap; gap:7px 16px; margin-bottom:12px; color:var(--map-muted-fg); font-size:12px; }
+  #kyt-world-beyond .map-key span { display:inline-flex; align-items:center; gap:6px; }
+  #kyt-world-beyond .map-key i { display:inline-block; width:22px; height:7px; border-radius:99px; }
+  #kyt-world-beyond .key-built { background:var(--map-fg); }
+  #kyt-world-beyond .key-approved { background:var(--map-orange); }
+  #kyt-world-beyond .key-water { background:var(--map-blue); }
+  #kyt-world-beyond .key-habitat { background:var(--map-green); }
+  #kyt-world-beyond .key-protected { background:transparent; border:1px dashed var(--map-red); }
+  #kyt-world-beyond .zoom-map-links { display:flex; align-items:center; flex-wrap:wrap; gap:7px; margin-bottom:12px; font-size:12px; }
+  #kyt-world-beyond .zoom-map-links span { color:var(--map-muted-fg); font-weight:700; }
+  #kyt-world-beyond .zoom-map-links a { color:var(--map-fg); text-decoration:none; border:1px solid var(--map-border); border-radius:999px; padding:5px 9px; }
+  #kyt-world-beyond .zoom-map-links a:hover { border-color:var(--map-orange); color:var(--map-orange); }
+  #kyt-world-beyond > svg { display:block; width:min(100%,760px); height:auto; margin-inline:auto; background:var(--map-bg); border:1px solid var(--map-border); border-radius:12px; }
+  #kyt-world-beyond text { font-size:9px; fill:var(--map-fg); font-family:inherit; paint-order:stroke; stroke:var(--map-bg); stroke-width:1.5px; stroke-linejoin:round; }
+  #kyt-world-beyond .minor-label { fill:var(--map-muted-fg); font-weight:400; font-size:8px; }
+  #kyt-world-beyond .proposal-label { fill:var(--map-orange); font-weight:600; font-size:8px; }
+  #kyt-world-beyond .ground-water { fill:color-mix(in srgb,var(--map-blue) 12%,var(--map-bg)); stroke:none; }
+  #kyt-world-beyond .sea-top { fill:color-mix(in srgb,var(--map-blue) 14%,var(--map-bg)); stroke:var(--map-muted-fg); stroke-width:1; }
+  #kyt-world-beyond .ground-land { fill:color-mix(in srgb,var(--map-green) 10%,var(--map-bg)); stroke:var(--map-muted-fg); stroke-width:1; }
+  #kyt-world-beyond .ground-range { fill:color-mix(in srgb,var(--map-green) 24%,var(--map-bg)); stroke:none; }
+  #kyt-world-beyond .range-toe { fill:none; stroke:var(--map-muted-fg); stroke-dasharray:3 3; }
+  #kyt-world-beyond .range-spur { fill:none; stroke:var(--map-muted-fg); stroke-width:1; opacity:.6; }
+  #kyt-world-beyond .summit { fill:var(--map-muted-fg); }
+  #kyt-world-beyond .grid-line { stroke:var(--map-border); stroke-width:1; opacity:.42; }
+  #kyt-world-beyond .grid-axis { stroke:var(--map-muted-fg); stroke-width:1; opacity:.7; }
+  #kyt-world-beyond .envelope { fill:color-mix(in srgb,var(--map-yellow) 16%,transparent); stroke:var(--map-yellow); stroke-width:1.2; }
+  #kyt-world-beyond .plaza { fill:color-mix(in srgb,var(--map-yellow) 30%,transparent); stroke:var(--map-yellow); stroke-width:1; }
+  #kyt-world-beyond .lot { fill:color-mix(in srgb,var(--map-muted) 72%,transparent); stroke:var(--map-muted-fg); stroke-width:1; }
+  #kyt-world-beyond .road-built { fill:none; stroke:var(--map-fg); stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+  #kyt-world-beyond .road-proposed { fill:none; stroke:var(--map-orange); stroke-width:1.6; stroke-dasharray:5 3; stroke-linecap:round; stroke-linejoin:round; }
+  #kyt-world-beyond .road-local { fill:none; stroke:var(--map-orange); stroke-width:1; stroke-dasharray:2 3; opacity:.8; }
+  #kyt-world-beyond .tunnel { fill:none; stroke:var(--map-purple); stroke-width:3; stroke-linecap:butt; }
+  #kyt-world-beyond .proposal-land { fill:color-mix(in srgb,var(--map-orange) 14%,transparent); stroke:var(--map-orange); stroke-width:1.2; stroke-dasharray:4 3; }
+  #kyt-world-beyond .proposal-rock { fill:color-mix(in srgb,var(--map-muted-fg) 40%,transparent); stroke:var(--map-orange); stroke-width:1; stroke-dasharray:2 2; }
+  #kyt-world-beyond .proposal-town { fill:color-mix(in srgb,var(--map-red) 12%,transparent); stroke:var(--map-red); stroke-width:1; stroke-dasharray:3 2; }
+  #kyt-world-beyond .proposal-city { fill:color-mix(in srgb,var(--map-purple) 14%,transparent); stroke:var(--map-purple); stroke-width:1; stroke-dasharray:3 2; }
+  #kyt-world-beyond .town-built { fill:color-mix(in srgb,var(--map-red) 14%,transparent); stroke:var(--map-red); stroke-width:1; }
+  #kyt-world-beyond .city-built { fill:color-mix(in srgb,var(--map-purple) 18%,transparent); stroke:var(--map-purple); stroke-width:1; }
+  #kyt-world-beyond .road-local-built { fill:none; stroke:var(--map-fg); stroke-width:1; opacity:.8; }
+  #kyt-world-beyond .beach { fill:color-mix(in srgb,var(--map-yellow) 40%,transparent); stroke:none; }
+  #kyt-world-beyond .house { fill:var(--map-red); stroke:var(--map-bg); stroke-width:1; }
+  #kyt-world-beyond .lighthouse { fill:var(--map-yellow); stroke:var(--map-bg); stroke-width:1.5; }
+  #kyt-world-beyond .glimpse { fill:color-mix(in srgb,var(--map-blue) 30%,transparent); stroke:var(--map-blue); stroke-width:1; }
+  #kyt-world-beyond .frame-cone { fill:color-mix(in srgb,var(--map-yellow) 18%,transparent); stroke:var(--map-yellow); stroke-width:1; stroke-dasharray:4 3; }
+  #kyt-world-beyond .sunset { fill:color-mix(in srgb,var(--map-red) 8%,transparent); stroke:var(--map-red); stroke-width:1; stroke-dasharray:6 4; }
+  #kyt-world-beyond .promontory-spine { fill:none; stroke:var(--map-fg); stroke-width:1; opacity:.7; }
+  #kyt-world-beyond .approved-rail { fill:none; stroke:var(--map-orange); stroke-width:2; stroke-dasharray:7 3; stroke-linecap:round; stroke-linejoin:round; }
+  #kyt-world-beyond .approved-civil { fill:none; stroke:var(--map-orange); stroke-width:2.4; stroke-dasharray:1 2; stroke-linecap:round; opacity:.9; }
+  #kyt-world-beyond .approved-water { fill:none; stroke:var(--map-blue); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  #kyt-world-beyond .approved-waterbody { fill:color-mix(in srgb,var(--map-blue) 34%,transparent); stroke:var(--map-blue); stroke-width:1.2; }
+  #kyt-world-beyond .approved-site { fill:color-mix(in srgb,var(--map-orange) 18%,transparent); stroke:var(--map-orange); stroke-width:1.2; stroke-dasharray:4 2; }
+  #kyt-world-beyond .approved-destination { fill:var(--map-orange); stroke:var(--map-bg); stroke-width:1; }
+  #kyt-world-beyond .approved-crossing { fill:var(--map-bg); stroke:var(--map-blue); stroke-width:1.5; }
+  #kyt-world-beyond .approved-habitat { fill:color-mix(in srgb,var(--map-green) 18%,transparent); stroke:var(--map-green); stroke-width:1; stroke-dasharray:2 3; }
+  #kyt-world-beyond .integration-insets { padding-top:22px; }
+  #kyt-world-beyond .integration-insets h3 { margin:0 0 4px; font-size:18px; }
+  #kyt-world-beyond .inset-intro { margin:0 0 12px; color:var(--map-muted-fg); line-height:1.45; }
+  #kyt-world-beyond .inset-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+  #kyt-world-beyond figure { margin:0; padding:10px; border:1px solid var(--map-border); border-radius:10px; background:color-mix(in srgb,var(--map-bg) 82%,white); }
+  #kyt-world-beyond .site-inset { display:block; width:100%; height:auto; border:0; border-radius:7px; background:var(--map-bg); }
+  #kyt-world-beyond .site-inset text { font-size:9px; }
+  #kyt-world-beyond figcaption { margin-top:8px; color:var(--map-muted-fg); font-size:12px; line-height:1.4; }
+  #kyt-world-beyond .inset-water { fill:color-mix(in srgb,var(--map-blue) 20%,var(--map-bg)); }
+  #kyt-world-beyond .inset-land { fill:color-mix(in srgb,var(--map-green) 13%,var(--map-bg)); stroke:var(--map-muted-fg); stroke-width:1; }
+  #kyt-world-beyond .inset-beach { fill:color-mix(in srgb,var(--map-yellow) 32%,var(--map-bg)); }
+  #kyt-world-beyond .inset-valley { fill:color-mix(in srgb,var(--map-green) 15%,var(--map-bg)); stroke:var(--map-green); stroke-width:1; }
+  #kyt-world-beyond .inset-existing { fill:var(--map-muted); stroke:var(--map-muted-fg); stroke-width:1; }
+  #kyt-world-beyond .inset-existing-strong { fill:var(--map-muted-fg); stroke:var(--map-muted-fg); stroke-width:5; }
+  #kyt-world-beyond .inset-existing-road { fill:none; stroke:var(--map-fg); stroke-width:7; stroke-linecap:round; }
+  #kyt-world-beyond .inset-approved-zone { fill:color-mix(in srgb,var(--map-orange) 22%,transparent); stroke:var(--map-orange); stroke-width:2; stroke-dasharray:5 3; }
+  #kyt-world-beyond .inset-approved-edge { fill:none; stroke:var(--map-orange); stroke-width:5; stroke-linecap:round; stroke-linejoin:round; }
+  #kyt-world-beyond .inset-approved-text { fill:var(--map-orange); font-weight:600; }
+  #kyt-world-beyond .inset-route { fill:none; stroke:var(--map-fg); stroke-width:1.5; stroke-dasharray:4 3; }
+  #kyt-world-beyond .inset-waterbody { fill:color-mix(in srgb,var(--map-blue) 36%,var(--map-bg)); stroke:var(--map-blue); stroke-width:2; }
+  #kyt-world-beyond .inset-river { fill:none; stroke:var(--map-blue); stroke-width:7; stroke-linecap:round; }
+  #kyt-world-beyond .inset-rail { fill:none; stroke:var(--map-orange); stroke-width:4; stroke-dasharray:8 4; }
+  #kyt-world-beyond .inset-crossing { fill:var(--map-bg); stroke:var(--map-blue); stroke-width:2; }
+  #kyt-world-beyond .kyt-world-notes { padding-top:14px; }
+  #kyt-world-beyond .kyt-world-notes p { max-width:72ch; line-height:1.55; }
+  @media (max-width:720px) { #kyt-world-beyond { padding:14px; } #kyt-world-beyond .minor-label { display:none; } #kyt-world-beyond .inset-grid { grid-template-columns:1fr; } }
 </style>
 
 <script>
@@ -128,6 +281,32 @@
   const CITY_CENTRE=[380,2530];
   const VIEW=[-118,-640];
   const JUNCTION=[204,322];
+  // ---- Approved coastal expansion, 2026-09-06 ----
+  // These are map-authored planning claims. Exact terrain fit and civil
+  // sections are resolved here before any downstream scene is made canonical.
+  const NORTH_LAKE=[[-235,-1990],[-190,-2010],[-130,-1994],[-105,-1950],[-130,-1910],[-190,-1892],[-240,-1920],[-255,-1960]];
+  const NORTH_RIVER=[[-180,-1945],[-250,-1925],[-325,-1900],[-395,-1870],[-455,-1845],[-505,-1830]];
+  const COASTAL_CREEK=[[360,-430],[300,-340],[235,-250],[165,-155],[90,-70],[-10,10],CREEK_OUTFALL];
+  const REGIONAL_RAIL=[[-520,-2420],[-470,-2150],[-390,-1885],[-310,-1500],[-190,-1000],[-40,-520],[180,-260],[245,40],[235,180],[275,520],[350,900],[445,1450],[500,2000],[455,2500]];
+  const HARBOUR_RAIL_SPUR=[[-25,-430],[-95,-330],[-128,-276]];
+  const BEACH_PROMENADE=[[-103,330],[-101,475]];
+  const PUBLIC_PIER=[[-105,430],[-174,430]];
+  // The Boardwalk's existing pavilion landing is already wider than the pier.
+  // Fishing retrofits its outer rail bays; the rejected fast-pass side pad is
+  // intentionally absent from the plan.
+  const PIER_HEAD_RETROFIT=[[-156,-8.5],[-144,-8.5],[-144,4.5],[-156,4.5]];
+  const SKATE_PARK=[[-45,450],[-2,450],[-2,492],[-45,492]];
+  const DRIVE_IN=[[-218,-1855],[-112,-1882],[-105,-1780],[-205,-1765]];
+  const MARINA=[[-213,-274],[-126,-282],[-116,-235],[-196,-230]];
+  const CANNERY=[[-142,-298],[-92,-298],[-92,-265],[-142,-265]];
+  const CITY_WATERFRONT=[[150,2475],[260,2440],[390,2442],[520,2460],[600,2490]];
+  const CITY_PORT=[[170,2440],[290,2415],[330,2470],[205,2490]];
+  const HABITATS=[
+    [[[-610,-1700],[-470,-1710],[-330,-1350],[-430,-1280]],'redwood / Douglas-fir shelter'],
+    [[[20,-650],[210,-610],[270,-280],[90,-250]],'oak / mixed evergreen'],
+    [[[-130,300],[0,300],[30,540],[-125,520]],'coastal scrub / grass / palms'],
+    [[[240,650],[410,700],[520,1150],[330,1120]],'chaparral / grass-forb']
+  ];
   // The coast highway as built on 2026-09-04, the plan's second alignment.
   // The first looped the second ridge's dip valley 770m out with a crest
   // turnout and was rejected by the generator: seven tunnels totalling 2.7km
@@ -187,6 +366,7 @@
     line(groups.proposal,BREAKWATER,'tunnel'); line(groups.proposal,QUAY,'tunnel'); label(groups.labels,'HARBOUR COVE · BREAKWATER, QUAY, TWO BOATS · BUILT',[-30,-232],'minor-label','start');
     line(groups.proposal,COVE_PATH,'road-local'); label(groups.labels,'path down to one cove',[-700,-380],'proposal-label','start');
     SEA_STACKS.forEach(p=>dot(groups.proposal,p,4,'proposal-rock')); label(groups.labels,'sea stacks (outside the sunset sector)',[-700,700],'proposal-label','start');
+    HABITATS.forEach(([pts,name],i)=>{ poly(groups.proposal,pts,'approved-habitat'); const p=pts[0]; label(groups.labels,name,[p[0]+10,p[1]-14],'minor-label','start'); });
     // The towns, built: the valley's rim, the town's extent, its streets and the house; the beach town and its streets; the city's plain.
     line(groups.proposal,VALLEY_RIM,'range-toe'); label(groups.labels,'CREEK VALLEY · FLOOR 3–12 m · RIM DASHED',[-700,-2260],'minor-label','start');
     poly(groups.proposal,NORTH_TOWN,'town-built'); NORTH_STREETS.forEach(s=>line(groups.proposal,s,'road-local-built')); dot(groups.proposal,HOUSE,4,'house');
@@ -195,6 +375,45 @@
     poly(groups.proposal,BEACH_TOWN,'town-built'); BEACH_STREETS.forEach(s=>line(groups.proposal,s,'road-local-built'));
     label(groups.labels,'BEACH TOWN · ON THE SHELF · BUILT 2026-09-05 · ITS BEACH IN FRONT',[-700,600],'minor-label','start');
     poly(groups.proposal,CITY,'city-built'); poly(groups.proposal,CITY_PLAIN,'city-built'); dot(groups.proposal,CITY_CENTRE,3,'summit'); WORLD_HILLS.forEach(h=>dot(groups.proposal,[h[0],h[1]],h[2]*scale,'summit')); label(groups.labels,'THE CITY · ON ITS PENINSULA · HILLS · BUILT 2026-09-05 · 56 TOWERS, 184 BLOCKS',[-700,2330],'minor-label','start');
+    // Approved public realm and destinations. Orange outlines are sites, not
+    // finished footprints; blue lines reserve water before parcels harden.
+    NORTH_STREETS.forEach(s=>line(groups.proposal,s,'approved-civil'));
+    BEACH_STREETS.forEach(s=>line(groups.proposal,s,'approved-civil'));
+    line(groups.proposal,BEACH_PROMENADE,'approved-civil');
+    line(groups.proposal,PUBLIC_PIER,'approved-civil');
+    poly(groups.proposal,SKATE_PARK,'approved-site');
+    dot(groups.proposal,[-58,440],3.5,'approved-destination');
+    label(groups.labels,'BEACH PUBLIC REALM · PROMENADE, PIER, SURF + SKATE ROW, SKATE PARK, SEAFOOD',[-700,540],'proposal-label','start');
+    dot(groups.proposal,[-469,-1877],3.5,'approved-destination');
+    dot(groups.proposal,[-447,-1812],3.5,'approved-destination');
+    dot(groups.proposal,[-431,-1760],3.5,'approved-destination');
+    poly(groups.proposal,DRIVE_IN,'approved-site');
+    label(groups.labels,'NORTH MAIN STREET · CIVIL KIT, COFFEE, CINEMA, SKATE COUNTER IN SHOP BAY · DRIVE-IN ON UPPER BENCH',[-700,-1720],'proposal-label','start');
+    poly(groups.proposal,NORTH_LAKE,'approved-waterbody');
+    line(groups.proposal,NORTH_RIVER,'approved-water');
+    dot(groups.proposal,[-455,-1845],3.5,'approved-crossing');
+    dot(groups.proposal,[-390,-1885],3.5,'approved-crossing');
+    label(groups.labels,'NORTH WATERSHED · MOUNTAIN LAKE → TOWN RIVER → BEACH MOUTH · HIGHWAY + RAIL BRIDGES',[-700,-2040],'proposal-label','start');
+    line(groups.proposal,COASTAL_CREEK,'approved-water');
+    dot(groups.proposal,[235,-250],3.5,'approved-crossing');
+    label(groups.labels,'COASTAL CREEK WATERSHED · FOOTHILL SOURCE → PARK CHANNEL → CONTROLLED OUTFALL',[420,-180],'proposal-label','start');
+    poly(groups.proposal,MARINA,'approved-site');
+    poly(groups.proposal,CANNERY,'approved-site');
+    line(groups.proposal,HARBOUR_RAIL_SPUR,'approved-rail');
+    dot(groups.proposal,[-176,-316],3.5,'approved-destination');
+    label(groups.labels,'HEADLAND LEE · MARINA, WORKING BOATS, CANNERY + TWO STACKS · AQUARIUM ABOVE',[-700,-330],'proposal-label','start');
+    poly(groups.proposal,PIER_HEAD_RETROFIT,'approved-site');
+    label(groups.labels,'PIER-HEAD FISHING RETROFIT · EXISTING PAVILION LANDING · NO SIDE DECK',[-700,-70],'proposal-label','start');
+    dot(groups.proposal,[-500,650],8,'proposal-rock');
+    label(groups.labels,'OFFSHORE VOLCANIC PLUG · OUTSIDE SUNSET SECTOR',[-620,640],'proposal-label','start');
+    line(groups.proposal,REGIONAL_RAIL,'approved-rail');
+    [[-390,-1885],[235,180],[-12,430],[455,2500]].forEach(p=>dot(groups.proposal,p,3.5,'approved-destination'));
+    label(groups.labels,'REGIONAL RAIL · NORTH TOWN → INLAND PARK HALT → BEACH TOWN → CITY TERMINAL',[570,900],'proposal-label','start');
+    line(groups.proposal,CITY_WATERFRONT,'approved-civil');
+    poly(groups.proposal,CITY_PORT,'approved-site');
+    dot(groups.proposal,[350,2540],4,'approved-destination');
+    dot(groups.proposal,[420,2570],4,'approved-destination');
+    label(groups.labels,'CITY FACELIFT · WATERFRONT, TERMINAL, PORT EDGE, CORE, HILLSIDE DISTRICTS, SKYLINE ANCHORS',[-700,2700],'proposal-label','start');
     label(groups.labels,'NORTH SHORE · HEADLANDS, COVES, THREE CLIFFED · BUILT 2026-09-05',[-700,-2740],'minor-label','start');
     label(groups.labels,'SOUTH COAST · HEADLANDS AND COVES · BUILT 2026-09-05',[820,2740],'minor-label','start');
     label(groups.labels,'THE LAND IS AN ISLAND · EAST COAST AT x 3400–3600, OFF THIS MAP · 2026-09-05',[820,-2740],'minor-label','start');
