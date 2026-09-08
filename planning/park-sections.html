@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Park Section Atlas · zoomed planning maps</title>
+<body>
+<main class="atlas" id="park-section-atlas">
+  <nav class="top-nav"><a href="park-rebuild-overlay.html">← Complete rebuild atlas</a><a href="park-world-beyond.html">World beyond the park</a><a href="park-waterfront.html">Park Waterfront detail</a></nav>
+  <header>
+    <p class="eyebrow">Approved rebuild · nine coordinated zoom views</p>
+    <h1>Park Section Atlas</h1>
+    <p>Entrance and campaign home, followed by all seven outer districts · source-coordinate planning diagram · north up</p>
+  </header>
+
+  <p class="literal-rule"><b>Literal-use rule.</b> Every line below has one named job. Public routes, queues, exits, service paths, buildings, ride envelopes, water and protected views must remain separate unless the map explicitly names their crossing. These SVG courses and footprints are review diagrams—not construction input—and may not be traced into generated geometry. Final roads, paths, water, rails, terrain and footprints require editor-owned sources.</p>
+
+  <div class="section-tabs" role="group" aria-label="Choose a zoomed park section">
+    <button type="button" data-section="entrance">Entrance</button>
+    <button type="button" data-section="plaza">Plaza + Photo Hut</button>
+    <button type="button" data-section="boardwalk">Boardwalk</button>
+    <button type="button" data-section="fairground">Fairground</button>
+    <button type="button" data-section="kiddieland">Kiddieland</button>
+    <button type="button" data-section="high-terrace">High Terrace</button>
+    <button type="button" data-section="frontier">Frontier Street</button>
+    <button type="button" data-section="grove">The Grove</button>
+    <button type="button" data-section="headland">Headland</button>
+  </div>
+
+  <section class="section-heading" aria-live="polite">
+    <p class="counter" id="section-counter"></p>
+    <h2 id="section-title"></h2>
+    <p id="section-summary"></p>
+  </section>
+
+  <div class="layer-controls" aria-label="Map layers">
+    <label><input type="checkbox" data-layer="public" checked> Public circulation</label>
+    <label><input type="checkbox" data-layer="destinations" checked> Destinations + rides</label>
+    <label><input type="checkbox" data-layer="operations" checked> Queues + service</label>
+    <label><input type="checkbox" data-layer="protection" checked> Protected views + water</label>
+  </div>
+
+  <div class="legend" aria-label="Map legend">
+    <span><i class="route-key"></i>Approved public route</span>
+    <span><i class="context-key"></i>Approved neighboring connection</span>
+    <span><i class="ride-key"></i>Ride operating parcel</span>
+    <span><i class="sky-key"></i>Sky-ride cable · overhead</span>
+    <span><i class="place-key"></i>Building / programmed destination</span>
+    <span><i class="queue-key"></i>Queue, exit or public threshold</span>
+    <span><i class="service-key"></i>Staff / service only</span>
+    <span><i class="water-key"></i>Water / planted drainage</span>
+    <span><i class="shore-host-key"></i>Existing shoreline host</span>
+    <span><i class="shore-change-key"></i>Approved shoreline integration</span>
+    <span><i class="regional-rail-key"></i>Regional rail / working spur</span>
+    <span><i class="protected-key"></i>No-touch anchor or view</span>
+  </div>
+
+  <svg id="section-map" viewBox="0 0 1100 720" role="img" aria-labelledby="map-title map-desc">
+    <title id="map-title">Zoomed park section plan</title>
+    <desc id="map-desc">A selected park section showing the approved relationship between continuous public routes, destinations, ride parcels, queues, service access, water and protected sightlines.</desc>
+    <defs>
+      <pattern id="protected-hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="10" stroke="currentColor" stroke-width="3"/></pattern>
+      <marker id="view-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z"/></marker>
+      <clipPath id="map-clip"><rect x="30" y="30" width="1040" height="650" rx="12"/></clipPath>
+    </defs>
+    <rect class="map-ground" x="30" y="30" width="1040" height="650" rx="12"/>
+    <g clip-path="url(#map-clip)" id="drawing"></g>
+    <g class="north-arrow" transform="translate(1022 62)"><path d="M0 34V0M0 0l-7 12M0 0l7 12"/><text x="0" y="50" text-anchor="middle">N</text></g>
+  </svg>
+
+  <section class="relationship-ledger" aria-live="polite">
+    <article><h3>Public movement</h3><p id="public-note"></p></article>
+    <article><h3>Destinations</h3><p id="destination-note"></p></article>
+    <article><h3>Operations</h3><p id="operations-note"></p></article>
+    <article><h3>Protected relationship</h3><p id="protection-note"></p></article>
+  </section>
+
+  <section class="section-register">
+    <h2>What this view includes</h2>
+    <p id="section-register"></p>
+  </section>
+</main>
+
+<script>
+(() => {
+  const root=document.getElementById('park-section-atlas');
+  const svg=root.querySelector('#section-map');
+  const drawing=root.querySelector('#drawing');
+  const ns='http://www.w3.org/2000/svg';
+
+  const routes={
+    A:{name:'A · Entrance / Plaza / Headland',paths:[
+      {w:11,p:[[0,123],[0,107],[0,86],[0,62],[0,34],[0,18]]},
+      {w:11,p:[[0,-18],[-1,-35],[-3,-52],[-6,-68],[-10,-84],[-13,-101],[-16,-112]]},
+      {w:10,p:[[-16,-112],[-30,-114],[-37,-125],[-31,-138],[-16,-144],[0,-139],[6,-126],[1,-115],[-16,-112]]},
+      {w:18,p:[[0,18],[9,15],[16,8],[18,0],[16,-8],[9,-15],[0,-18],[-9,-15],[-16,-8],[-18,0],[-16,8],[-9,15],[0,18]]}
+    ]},
+    B:{name:'B · Waterfront spine + returns',paths:[
+      {w:10,p:[[-96,-62],[-96,-40],[-96,-15],[-96,10],[-96,35],[-96,60]]},
+      {w:8,p:[[-6,-68],[-22,-66],[-40,-62],[-58,-58],[-75,-59],[-90,-62],[-96,-62]]},
+      {w:9,p:[[-18,0],[-32,-1],[-45,-2],[-52,-2],[-58,-2],[-72,-2],[-84,-2],[-96,-2]]},
+      {w:8,p:[[-96,60],[-88,64],[-82,72],[-80,84],[-75,95],[-64,101],[-53,98],[-47,90],[-48,78]]}
+    ]},
+    C:{name:'C · Coastal circuit',paths:[
+      {w:8,p:[[-48,78],[-58,70],[-72,76],[-78,90],[-70,108],[-52,116],[-32,112],[-18,101],[-10,88],[-22,77],[-48,78]]},
+      {w:9,p:[[-10,88],[-4,87],[0,86]]},
+      {w:9,p:[[-22,77],[-18,62],[-13,44],[-10,28],[-12,14]]}
+    ]},
+    D:{name:'D · Kiddieland circuit',paths:[
+      {w:9,p:[[0,86],[12,82],[25,76],[38,70],[49,68]]},
+      {w:8,p:[[49,68],[58,55],[75,51],[91,56],[105,69],[108,86],[98,103],[80,111],[61,108],[46,96],[42,82],[49,68]]},
+      {w:10,p:[[49,68],[42,54],[34,39],[25,25],[15,14]]},
+      {w:9,p:[[58,55],[66,44],[72,32],[72,22]]}
+    ]},
+    E:{name:'E · Terraces orbit',paths:[
+      {w:8.5,p:[[46,0],[48,-18],[55,-30],[70,-42],[90,-50],[108,-52],[118,-40],[122,-20],[112,0],[120,14],[119,30],[108,43],[91,50],[74,48],[58,40],[49,26],[46,0]]},
+      {w:9,p:[[18,0],[32,0],[46,0]]},{w:9,p:[[72,32],[74,40],[74,48]]},{w:9,p:[[90,-50],[94,-58]]}
+    ]},
+    F:{name:'F · Northern ride circuit',paths:[
+      {w:9,p:[[-6,-68],[4,-82],[20,-100],[40,-113],[63,-120],[86,-116],[106,-104],[120,-86],[124,-62],[118,-42],[107,-30],[94,-50],[94,-58],[78,-65],[58,-70],[39,-64],[20,-55],[-1,-58],[-6,-68]]},
+      {w:12,p:[[94,-50],[94,-58]]},{w:12,p:[[-6,-68],[-3,-52]]}
+    ]}
+  };
+
+  const protectedZones=[
+    {id:'NT-1',name:'Cascading Staircases',type:'rect',x0:-74,x1:-55,z0:-15,z1:12},
+    {id:'NT-2',name:'Terraced Fountain',type:'ellipse',at:[86,0],rx:42,rz:36}
+  ];
+
+  const rides=[
+    {id:'R1',name:'Boardwalk wheel',type:'rect',at:[-113,-20],size:[10,30],queue:[[-102,-15],[-107,-15],[-108,-9]],service:[[-118,-20],[-126,-20]]},
+    {id:'R2',name:'Wooden coaster',type:'polygon',points:[[-92,-68],[-88,-121],[-58,-128],[-53,-87],[-68,-67]],queue:[[-94,-55],[-88,-58],[-84,-66]],service:[[-60,-106],[-50,-119]]},
+    {id:'R3',name:'Plaza dark ride',type:'rect',at:[36,-28],size:[20,26],queue:[[24,-20],[29,-22],[32,-25]],service:[[46,-28],[52,-29]]},
+    {id:'R4',name:'Swinging ship',type:'polygon',points:[[-67,83],[-62,78],[-45,96],[-50,102]],queue:[[-70,78],[-66,80],[-69,83],[-66,85],[-68,87],[-64,89],[-61,87]],exit:[[-45,96],[-42,100],[-40,106],[-32,112]],service:[[-50,102],[-57,109],[-65,115],[-70,120]],photo:[-69,96]},
+    {id:'R5',name:'Miniature railway',type:'ellipse',at:[68,88],rx:17,rz:12,queue:[[46,88],[49,88],[52,88]],service:[[68,100],[68,111]],photo:[68,71]},
+    {id:'R6',name:'Spinning tubs',type:'circle',at:[95,96],r:7,queue:[[104,88],[101,92],[99,95]],service:[[100,101],[108,108]],photo:[95,84]},
+    {id:'R7',name:'Carousel',type:'circle',at:[109,62],r:7,queue:[[102,70],[104,66],[106,63]],service:[[116,62],[125,62]],photo:[109,50]},
+    {id:'R8',name:'Chair swing',type:'circle',at:[104,-66],r:7.5,queue:[[96,-53],[99,-56],[101,-60],[103,-63]],service:[[111,-66],[119,-66]]},
+    {id:'R9',name:'Grove water ride',type:'polygon',points:[[9,-72],[15,-85],[27,-100],[41,-103],[48,-92],[39,-77],[28,-67],[16,-65]],queue:[[20,-56],[22,-64],[25,-71]],service:[[38,-97],[49,-108]]},
+    {id:'R10',name:'Frontier mine train',type:'polygon',points:[[58,-80],[57,-102],[70,-116],[90,-114],[101,-101],[98,-83],[83,-72],[66,-72]],queue:[[67,-69],[69,-75],[71,-80]],service:[[84,-110],[90,-121]]},
+    {id:'R11',name:'Observation tower',type:'circle',at:[111,-87],r:8,queue:[[119,-82],[116,-84],[114,-86]],service:[[119,-90],[128,-92]]},
+    {id:'R12',name:'Sky ride',type:'sky',terminals:[[-18,-104],[112,-106]],queue:[[-13,-99],[-17,-102]],queue2:[[106,-102],[110,-105]],service:[[-18,-108],[-18,-119]],service2:[[112,-110],[116,-120]]},
+    {id:'R13',name:'High Terrace steel coaster',type:'coaster',footprint:[[124,-38],[132,-52],[144,-52],[155,-38],[158,-12],[157,18],[151,42],[139,51],[128,43],[133,27],[139,10],[138,-10],[131,-27]],track:[[129,-41],[139,-46],[150,-38],[153,-20],[150,-2],[146,17],[148,34],[141,44],[132,42],[137,29],[140,12],[140,-5],[143,-22],[139,-35],[129,-41]],station:{at:[135,-41],size:[14,8]},queue:[[118,-40],[124,-40],[129,-41],[132.2,-41]],service:[[136,-43],[146,-50],[151,-56]]},
+    {id:'R14',name:'Kiddieland junior coaster',type:'coaster',footprint:[[113,72],[121,69],[128,76],[128,87],[121,98],[115,104],[108,110],[106,110],[106,106],[112,98],[115,87],[114,78]],track:[[107,110],[111,104],[118,98],[125,89],[126,79],[121,72],[115,75],[117,86],[113,96],[108,104],[107,110]],station:{at:[107,111],size:[10,8]},queue:[[98,103],[100,105],[102,108.5]],exit:[[102,113],[99,111],[94,106]],service:[[112,111],[115,114],[111,116]],photo:[98.5,78]}
+  ];
+
+  const places=[
+    {id:'P1',name:'Lighthouse experience',kind:'program',type:'circle',at:[-174,-202.5],r:5,access:[[-37,-125],[-50,-162.4],[-57,-173.3],[-74,-177.3],[-104,-180],[-119.3,-185.5],[-130,-197],[-141.3,-206.1],[-158,-207.2],[-169,-204.3]]},
+    {id:'P2',name:'Walk-through funhouse',kind:'program',type:'rect',at:[-77,32],size:[12,14],access:[[-96,27],[-90,27],[-87,25],[-84,27],[-83,27]],exit:[[-83,37],[-88,37],[-91,40],[-96,40]],service:[[-71,32],[-66,32],[-62,28]]},
+    {id:'P3',name:'Big Top scheduled show',kind:'program',type:'ellipse',at:[-32,92],rx:9,rz:6,access:[[-35,77.5],[-35,80.5],[-40,80.5],[-40,83],[-35.5,83],[-35.5,85.5],[-32,86]],exit:[[-23,92],[-20,94],[-18,97],[-16.1,97.9]],service:[[-32,98],[-32,106],[-32,112],[-34,120],[-34,126],[-40,127],[-70,120]]},
+    {id:'P4',name:'Family Commons play garden',kind:'program',type:'ellipse',at:[27,93],rx:9,rz:7,access:[[12,82],[17,84],[21.5,87.5]],exit:[[36,93],[40,93],[45,92.5]],service:[[27,100],[27,105],[27,109],[30,117],[34,126],[75,126]]},
+    {id:'P5',name:'Plaza bandstand',kind:'program',type:'circle',at:[-42,-32],r:6.2,access:[[-32,-1],[-28,-3],[-28,-12],[-35,-13],[-37.1,-15.5]],exit:[[-25.4,-19.3],[-21,-18],[-16,-16],[-9,-15]],service:[[-62,-38],[-58,-38],[-58,-39]]},
+    {id:'E1',name:'Photo Hut',kind:'interior',type:'rect',at:[-25,25],size:[8,7]},
+    {id:'E2',name:'Keeper exhibit',kind:'interior',type:'rect',at:[-160.7,-213.4],size:[8,6],access:[[-158,-207.2],[-159,-210.4]],service:[[-156.7,-216.4],[-146,-220],[-125,-221]]},
+    {id:'CW-AQ',name:'Regional aquarium courtyard wing',kind:'program',type:'rect',at:[-151.7,-213.4],size:[10,7],access:[[-158,-207.2],[-154.5,-209.9]],service:[[-146.7,-216.4],[-140,-220],[-125,-221]]},
+    {id:'I1',name:'Fairground Food Hall',kind:'interior',type:'rect',at:[-35,68],size:[16,10],access:[[-35,77],[-35,73]],service:[[-43,68],[-52,64],[-64,61]]},
+    {id:'I2',name:'Arcade + Ride Photo',kind:'interior',type:'rect',at:[-83,-29],size:[16,10],access:[[-96,-29],[-91,-29]],service:[[-75,-29],[-68,-30],[-62,-30]]},
+    {id:'I3',name:'Boardwalk Café',kind:'interior',type:'rect',at:[-81,-48],size:[14,8],access:[[-82,-60],[-82,-52]],service:[[-74,-48],[-68,-54],[-64,-60]]},
+    {id:'I4',name:'Overlook Café',kind:'interior',type:'rect',at:[136,-73],size:[14,8],access:[[124,-62],[128,-67],[129,-73]],service:[[143,-73],[143,-80],[142,-82]]},
+    {id:'I5',name:'Lost + Found / First Aid',kind:'interior',type:'rect',at:[-16,116],size:[12,8],access:[[0,116],[-10,116]],service:[[-22,120],[-28,124],[-34,126]]},
+    {id:'I6',name:'Staff Break / Operations',kind:'interior',type:'rect',at:[16,116],size:[12,8],access:[[0,116],[10,116]],service:[[22,120],[28,124],[34,126]]},
+    {id:'KS1',name:'Mini railway station',kind:'support',type:'rect',at:[55,88],size:[6,4]},
+    {id:'KG1',name:'Squirt Garden',kind:'support',type:'ellipse',at:[31,94],rx:3.5,rz:2.5},
+    {id:'KC1',name:'Character Garden',kind:'support',type:'ellipse',at:[43,115],rx:7,rz:5},
+    {id:'KC2',name:'Family Photo',kind:'support',type:'rect',at:[55,118],size:[8,5]},
+    {id:'KC3',name:'Birthday Pavilion',kind:'support',type:'rect',at:[70,119],size:[12,6]},
+    {id:'KP1',name:'R14 photo bay',kind:'support',type:'rect',at:[98.5,78],size:[4,4]}
+  ];
+
+  const midway=[
+    {id:'B1',name:'Derby Race',at:[-86.5,-19]},{id:'B2',name:'Coin Pitch',at:[-86.5,-11]},{id:'B3',name:'Basket Toss',at:[-86.5,9]},{id:'B4',name:'Taffy + Funnel Cake',at:[-86.5,17]},
+    {id:'F1',name:'Ring Toss',at:[-22.5,24]},{id:'F2',name:'Bottle Knockdown',at:[-21.5,31]},{id:'F3',name:'Shooting Gallery',at:[-22,38]},{id:'F4',name:'Water Race',at:[-23.5,45]},{id:'F5',name:'Balloon Darts',at:[-25.5,52]},{id:'F6',name:'Prize + Novelty',at:[-27.5,59]},
+    {id:'K1',name:'Duck Pond',at:[9.5,97]},{id:'K2',name:'Magnetic Fishing',at:[14.5,91]}
+  ].map(item=>({...item,type:'rect',size:[5,5],kind:'midway'}));
+
+  const serviceSpines=[
+    {id:'S1',name:'West / Headland spine',p:[[-52,-124],[-68,-108],[-69,-80],[-64,-60],[-62,-38],[-62,-23]]},
+    {id:'S2',name:'Fairground / Boardwalk spine',p:[[-34,126],[-40,127],[-70,120],[-80,105],[-73,80],[-64,61],[-62,38],[-62,20]]},
+    {id:'S3',name:'East / North perimeter spine',p:[[34,126],[75,126],[111,116],[136,100],[149,75],[154,42],[155,10],[154,-22],[150,-55],[138,-82],[124,-100],[105,-122],[78,-132],[42,-135]]}
+  ];
+
+  const sharedService=[
+    {id:'SH1',name:'North Boardwalk · before opening only',p:[[-96,-62],[-90,-62],[-75,-59],[-64,-60]]},
+    {id:'SH2',name:'Lighthouse visitor walk · servicing before opening only',p:[[-37,-125],[-50,-162.4],[-57,-173.3],[-74,-177.3],[-104,-180],[-119.3,-185.5],[-130,-197],[-141.3,-206.1],[-158,-207.2],[-169,-204.3]]}
+  ];
+
+  // Shoreline additions repeat the reviewed host relationships from
+  // park-waterfront.html. They are coordination marks only: their named host,
+  // separation and clear zones are authoritative; these SVG coordinates are not.
+  const shorelineDetails=[
+    {id:'BW-O',short:'OCEAN',name:'Existing ocean edge west of the Boardwalk',sections:['boardwalk'],type:'rect',at:[-139.5,0.5],size:[63,127],className:'shore-water',layer:'protection',background:true,labelAt:[-145,-50]},
+    {id:'BW-P',name:'Existing 8m pier',sections:['boardwalk'],type:'rect',at:[-130,6],size:[44,8],className:'shore-host',layer:'public',labelAt:[-132,3]},
+    {id:'BW-H',name:'Existing 12 × 13m pavilion landing',sections:['boardwalk'],type:'rect',at:[-158,6],size:[12,13],className:'shore-host',layer:'destinations',labelAt:[-160,-2]},
+    {id:'BW-V',name:'Existing terminal pavilion',sections:['boardwalk'],type:'rect',at:[-158,6],size:[7,5],className:'shore-host-building',layer:'destinations',showLabel:false},
+    {id:'BW-C',name:'Clear primary approach and pavilion turnaround',sections:['boardwalk'],type:'rect',at:[-133,6],size:[38,5.5],className:'clear-zone',layer:'operations',labelAt:[-132,11]},
+    {id:'BW-F',name:'Fishing retrofit · outer and south rail bays',sections:['boardwalk'],type:'paths',paths:[[[-164,0],[-164,4]],[[-164,6],[-164,10]],[[-164,12],[-159,12]],[[-157,12],[-152,12]]],className:'shore-change-line',layer:'destinations',labelAt:[-168,15]},
+    {id:'BW-S',name:'Benches · tackle cart · cleaning sink on pavilion service edge',sections:['boardwalk'],type:'fixtures',at:[-158,10.2],className:'shore-change',layer:'operations',showLabel:false},
+    {id:'HL-CV',short:'COVE',name:'Existing sheltered cove',sections:['headland'],type:'polygon',points:[[-190,-130],[-90,-130],[-90,-143],[-96,-149],[-104,-163],[-112,-178],[-190,-180]],className:'shore-water',layer:'protection',background:true,labelAt:[-145,-137]},
+    {id:'HL-B',name:'Existing breakwater',sections:['headland'],type:'line',p:[[-104,-163.7],[-101,-156.4],[-97,-149.7],[-93,-143.6]],className:'shore-host-line',layer:'protection',showLabel:false},
+    {id:'HL-Q',name:'Existing quay',sections:['headland'],type:'rect',at:[-83,-146.7],size:[6,10],className:'shore-host',layer:'destinations',labelAt:[-83,-139]},
+    {id:'HL-M',name:'Marina slips extend the existing quay',sections:['headland'],type:'paths',paths:[[[-86,-150],[-103,-150]],[[-86,-146.7],[-106,-146.7]],[[-86,-143.5],[-101,-143.5]]],className:'shore-change-line',layer:'destinations',labelAt:[-108,-153]},
+    {id:'HL-L',name:'Fuel shed · dry racks · launch ramp at quay service end',sections:['headland'],type:'rect',at:[-79,-133],size:[12,7],className:'shore-change',layer:'destinations',showLabel:false},
+    {id:'HL-S',name:'Seafood shacks face the working road',sections:['headland'],type:'rects',items:[{at:[-70,-136],size:[7,6]},{at:[-63,-134],size:[7,6]}],className:'shore-change',layer:'destinations',showLabel:false},
+    {id:'HL-W',name:'Working harbour road · outside the public visitor walk',sections:['headland'],type:'line',p:[[-80,-155],[-74,-149],[-67,-143]],className:'working-route',layer:'operations',labelAt:[-72,-146]},
+    {id:'HL-C',name:'Cannery · loading faces water, road and rail',sections:['headland'],type:'rect',at:[-58,-143],size:[18,12],className:'shore-change',layer:'destinations',labelAt:[-58,-134]},
+    {id:'HL-R',name:'Regional rail spur terminates at cannery loading doors · world map governs its approach',sections:['headland'],type:'line',p:[[-49,-143],[-43,-151]],className:'regional-rail',layer:'operations',labelAt:[-42,-154]},
+    {id:'HL-H',name:'Harbour mouth stays clear',sections:['headland'],type:'line',p:[[-108,-155],[-96,-149]],className:'clear-water',layer:'protection',showLabel:false},
+    {id:'HL-WB',name:'Working-boat loop through the harbour mouth',sections:['headland'],type:'line',p:[[-96,-149],[-110,-153],[-118,-160],[-110,-168],[-96,-162],[-96,-149]],className:'boat-loop',layer:'protection',showLabel:false},
+    {id:'HL-SA',name:'Sailing loop · outer water clear of marina and breakwater',sections:['headland'],type:'line',p:[[-122,-145],[-145,-151],[-154,-164],[-140,-177],[-116,-169],[-111,-155],[-122,-145]],className:'boat-loop',layer:'protection',showLabel:false}
+  ];
+
+  const water=[
+    {id:'D2',name:'Coastal Creek',p:[[-48,22],[-54,29],[-59,37],[-62,44],[-70,50],[-79,54],[-88,55],[-96,55],[-104,55]]},
+    {id:'POND',name:'Rain pond',type:'ellipse',at:[-88,55],rx:7,rz:4},
+    {id:'CB1',name:'Funhouse garden footbridge',type:'rect',at:[-76,53],size:[4,11]},
+    {id:'CB2',name:'Boardwalk promenade bridge',type:'rect',at:[-96,55],size:[10,12]},
+    {id:'CX1',name:'Locked service culvert',type:'rect',at:[-62,44],size:[4,10]}
+  ];
+
+  const sightlines=[
+    {id:'Q1',name:'Entrance axial reveal',at:[0,123],to:[0,0]},
+    {id:'Q2',name:'Hub west reveal',at:[0,0],to:[-64.5,-1.5]},
+    {id:'Q3',name:'Boardwalk east reveal',at:[-96,-2],to:[-64.5,-1.5]},
+    {id:'Q4',name:'Family terrace reveal',at:[49,68],to:[86,0]},
+    {id:'Q5',name:'East ceremonial axis',at:[46,0],to:[86,0]},
+    {id:'Q6',name:'Upper terrace panorama',at:[94,-58],to:[0,0]}
+  ];
+
+  const landmarks=[
+    {id:'PLAZA',name:'Plaza fountain',type:'circle',at:[0,0],r:5},
+    {id:'CLOCK',name:'Clock tower',type:'rect',at:[20,-28],size:[5.6,5.6]}
+  ];
+
+  const sections=[
+    {id:'entrance',title:'Entrance + Arrival',bounds:{x0:-48,x1:48,z0:72,z1:145},routes:['A'],context:['C','D'],places:['I5','I6'],rides:[],midway:[],service:['S2','S3'],shared:[],water:[],protected:[],views:['Q1'],
+      summary:'The south arrival is a threshold, not a themed land: route A remains a clear continuous walk into the Plaza while its two recurring interiors open from public side paths and receive service from opposite rear gates.',
+      publicNote:'Route A keeps its full operating width from the entry apron through J1. The I5 and I6 doors branch sideways from the arrival line; neither asks guests to walk through a building or service yard.',
+      destinationNote:'Lost + Found / First Aid and Staff Break / Operations flank the approach as real rooms. They do not shrink the central arrival view or turn the entrance into another plaza.',
+      operationsNote:'I5 returns west to G1 and S2; I6 returns east to G2 and S3. Public doors and staff doors occur on opposite faces.',
+      protectionNote:'Q1 begins on the arrival axis and stays open to the Plaza fountain, with the lighthouse crown as its distant secondary landmark.'},
+    {id:'plaza',title:'Plaza + Photo Hut',bounds:{x0:-82,x1:135,z0:-68,z1:55},routes:['A'],context:['B','C','D','E','F'],places:['E1','P5'],rides:['R3'],midway:[],service:['S1'],shared:[],water:['D2'],protected:['NT-1','NT-2'],views:['Q2','Q5'],landmarks:['PLAZA','CLOCK'],
+      summary:'The Plaza is the campaign home and the junction of the whole park. Its ring, Photo Hut, bandstand and dark ride remain destinations beside—never inside—the six outgoing route relationships.',
+      publicNote:'The brick room carries the A ring while B, C, D, E and F leave through named junctions. The bandstand audience load doglegs around the west arch pier instead of cutting through NT-1.',
+      destinationNote:'Photo Hut is home base. P5 has separate audience entry and release; R3 is a Plaza destination with its queue off the through path. The fountain and clock remain the primary landmarks.',
+      operationsNote:'Bandstand backstage connects west to S1. Ride and performance operations stay behind their destinations rather than crossing the ring or a spoke mouth.',
+      protectionNote:'NT-1 and NT-2 are no-touch compositions. Q2 keeps the west cascade visible; Q5 keeps the east fountain axis and the High Terrace coaster crest layered beyond it.'},
+    {id:'boardwalk',title:'Boardwalk',bounds:{x0:-171,x1:-48,z0:-135,z1:75},routes:['B'],context:['A','C'],places:['P2','I2','I3'],rides:['R1','R2'],midway:['B1','B2','B3','B4'],service:['S1','S2'],shared:['SH1'],water:['D2','POND','CB1','CB2','CX1'],protected:['NT-1'],views:['Q3'],
+      summary:'The waterfront spine stays continuous from the wooden coaster to the southern return, and the existing pier now ends in one integrated fishing destination rather than an attached deck. Every attraction and counter fronts B from a side parcel.',
+      publicNote:'B is the Boardwalk itself. The existing 8m pier branches west from the promenade and widens only at its existing pavilion landing; the primary approach and turnaround remain visibly clear.',
+      destinationNote:'Wheel, wooden coaster, funhouse, Arcade + Ride Photo and Boardwalk Café form one connected frontage. Fishing retrofits the landing’s outer and south rail bays; it does not create a separate platform.',
+      operationsNote:'Benches, tackle cart and cleaning sink stay on the pavilion service edge outside the clear zone. Northern work reaches S1; southern work reaches S2. CX1 remains a locked service culvert.',
+      protectionNote:'NT-1 is unchanged. Q3 keeps its fifteen-metre opening, the west-arch/pier reveal remains legible, and the sunset sector beyond the pier stays open water.'},
+    {id:'fairground',title:'Fairground',bounds:{x0:-88,x1:8,z0:18,z1:138},routes:['C'],context:['A','B'],places:['P3','I1'],rides:['R4'],midway:['F1','F2','F3','F4','F5','F6'],service:['S2'],shared:[],water:[],protected:[],views:[],
+      summary:'The Fairground is a closed coastal circuit, not a straight dead-end midway. Its six game fronts, Food Hall, Big Top and swinging ship all face C while their stock, backstage and ride work remain behind the public edge.',
+      publicNote:'C closes a loop and returns both toward B and J1. Booth standing aprons, the Big Top load path and the swinging-ship queue all sit outside the through-route envelope.',
+      destinationNote:'Six named midway booths step toward I1 Food Hall. P3 has distinct audience load and release paths; R4 has a separate queue, exit and photo position.',
+      operationsNote:'One continuous rear stock lane terminates at the Food Hall and joins S2. Big Top backstage and ride servicing also reach S2 without crossing C.',
+      protectionNote:'No new connection enters a protected cascade or sightline. The Fairground edge stays planted where it approaches the entrance and Boardwalk return.'},
+    {id:'kiddieland',title:'Kiddieland',bounds:{x0:-5,x1:140,z0:42,z1:138},routes:['D'],context:['A','E'],places:['P4','KS1','KG1','KC1','KC2','KC3','KP1'],rides:['R5','R6','R7','R14'],midway:['K1','K2'],service:['S3'],shared:[],water:[],protected:['NT-2'],views:['Q4'],
+      summary:'Three consecutive family rooms share one fixed public circuit: Arrival Commons, Ride Garden and Outer Adventure Edge. Every ride and family function gets a side court; none consumes route D.',
+      publicNote:'D keeps its 9m arrival and 8m family circuit. The miniature railway platform, ride queues, play-garden gates and photo turnouts all branch from D before guests wait or stop.',
+      destinationNote:'P4, two low games, Family Support functions, Squirt Garden and Character Garden make the arrival room; R5–R7 make the ride room; R14, Family Photo and Birthday Pavilion complete the outer edge.',
+      operationsNote:'Support, pavilion, rides and R14 station connect behind to S3. R14 has separate queue and exit, manual photo bay and service threshold; KG1 uses its own screened recirculation.',
+      protectionNote:'Q4 remains open from J7 to the Terraced Fountain and R13 crest. No Kiddieland queue, roof, sign, service route, coaster rail or water system enters NT-2.'},
+    {id:'high-terrace',title:'High Terrace',bounds:{x0:35,x1:165,z0:-95,z1:60},routes:['E'],context:['D','F'],places:['I4'],rides:['R8','R13'],midway:[],service:['S3'],shared:[],water:[],protected:['NT-2'],views:['Q5','Q6'],
+      summary:'The Terraces orbit and northern circuit meet at a scenic highland district. The chair swing, steel coaster station and Overlook Café occupy separate edge parcels, leaving the fountain and panoramic axes open.',
+      publicNote:'E loops around NT-2 and joins F at J9. R13 and R8 queues leave those routes into their own courts; the café threshold arrives from F without becoming a shortcut through the building.',
+      destinationNote:'R13 contains its station inside its own operating footprint. R8 stays clear of that footprint, F and the Frontier observation parcel. I4 fronts F from a separate overlook bay.',
+      operationsNote:'Coaster, chair swing and café service all turn outward to S3. No operation crosses E, F, the fountain approaches or the café’s public threshold.',
+      protectionNote:'No midway is added here. NT-2, Q5 and Q6 preserve the Terraced Fountain reveal, the Plaza panorama and the Boardwalk skyline.'},
+    {id:'frontier',title:'Frontier Street',bounds:{x0:48,x1:150,z0:-138,z1:-45},routes:['F'],context:['E'],places:[],rides:['R10','R11','R12'],midway:[],service:['S3'],shared:[],water:[],protected:[],views:[],
+      summary:'Frontier is the descending highland street between High Terrace and the Grove. Its mine train, observation tower and east sky-ride terminal are side destinations; the false-front work passage stays behind the public street.',
+      publicNote:'F is the visible next destination in both directions. Mine-train and observation queues branch out of the circuit, and the sky-ride terminal has its own approach rather than occupying the through-route.',
+      destinationNote:'R10 is the mine-train operating parcel, R11 the observation tower and R12 the cross-park sky ride. R12 overflies R10; its terminal, queue and ground access remain separate. False fronts and the show court remain a frontage relationship; this map does not invent new footprints for them.',
+      operationsNote:'Ride service reaches the north/east perimeter spine S3. The false-front work passage and seasonal sockets stay on the rear side of the street.',
+      protectionNote:'No local object closes the long views toward the Grove, Plaza or western skyline. Seasonal frontage dressing may not narrow F or create a temporary maze.'},
+    {id:'grove',title:'The Grove',bounds:{x0:-55,x1:65,z0:-145,z1:-45},routes:['F'],context:['A','B'],places:[],rides:['R9','R12'],midway:[],service:['S1','S3'],shared:[],water:[],protected:[],views:[],
+      summary:'The Grove is a planted arrival and garden loop around water, picnic use and the west sky-ride terminal. Its water ride and transport courts sit off the unmistakable through-route to Frontier and Headland.',
+      publicNote:'F crosses the Grove as the main public spine and keeps both onward choices visible. The water-ride queue and sky-ride terminal leave that spine into side courts before guests wait.',
+      destinationNote:'R9 is the water-ride envelope and R12 supplies the sky-ride choice. R12 crosses overhead; only its terminal and access occupy the ground. Picnic shelters, pond and planted arrival remain existing host areas; this review map does not fabricate replacement footprints for them.',
+      operationsNote:'Water-ride work reaches the outer S3 connection; the west terminal and Headland edge reach S1. Neither service route becomes a guest shortcut.',
+      protectionNote:'Planting frames the next destination without becoming an opaque wall. The Grove keeps cross-park views and the route toward the Headland open.'},
+    {id:'headland',title:'Headland + Working Harbour',bounds:{x0:-190,x1:18,z0:-215,z1:-110},routes:['A'],context:['B','F'],places:['P1','E2','CW-AQ'],rides:[],midway:[],service:['S1'],shared:['SH2'],water:[],protected:[],views:[],
+      summary:'The public Headland visitor cluster and the working harbour now read together without sharing circulation. The aquarium completes the keeper-exhibit court; marina, seafood and cannery complete the existing quay and sheltered cove.',
+      publicNote:'A closes the in-park loop, then the promontory walk reaches one shared lighthouse, keeper-exhibit and aquarium court. The final public path remains at least 8m inland of the shoreline and never becomes the harbour service road.',
+      destinationNote:'P1, E2 and CW-AQ form one visitor cluster. Marina slips grow from the existing quay; fuel, racks and launch share its service end; seafood fronts the working road; the cannery closes the landward working edge.',
+      operationsNote:'SH2 carries servicing on the visitor walk before opening only. At the harbour, the separate working road reaches the quay and cannery. The short rail mark records only its termination at the loading doors; the world map governs the regional approach.',
+      protectionNote:'The lighthouse remains dominant and visible to Q1. The harbour mouth stays clear, working boats use that mouth, and the wider sailing loop remains outside the marina and breakwater.'}
+  ];
+
+  let selected;
+  let scale=1;
+  let tx=0;
+  let ty=0;
+
+  const create=(tag,attrs={},parent=drawing)=>{
+    const node=document.createElementNS(ns,tag);
+    Object.entries(attrs).forEach(([key,value])=>node.setAttribute(key,value));
+    parent.appendChild(node);
+    return node;
+  };
+  const point=([x,z])=>[tx+x*scale,ty+z*scale];
+  const pathD=points=>points.map((p,index)=>`${index?'L':'M'}${point(p).join(' ')}`).join(' ');
+  const title=(node,value)=>{const t=create('title',{},node);t.textContent=value;};
+  const inBounds=([x,z],b)=>x>=b.x0&&x<=b.x1&&z>=b.z0&&z<=b.z1;
+  const centerOf=item=>{
+    if(item.at)return item.at;
+    const points=item.points||item.footprint||item.terminals;
+    return points.reduce((a,p)=>[a[0]+p[0]/points.length,a[1]+p[1]/points.length],[0,0]);
+  };
+  const line=(points,className,label,layer)=>{if(!points||points.length<2)return;const n=create('path',{d:pathD(points),class:className,'data-layer':layer});title(n,label);return n;};
+  const label=(at,id,name,className='map-label')=>{
+    const [x,y]=point(at);const text=create('text',{x,y,class:className,'text-anchor':'middle'});text.textContent=id;title(text,`${id} · ${name}`);return text;
+  };
+  const rectShape=(item,className,layer)=>{
+    const [cx,cy]=point(item.at);const w=item.size[0]*scale,h=item.size[1]*scale;
+    const n=create('rect',{x:cx-w/2,y:cy-h/2,width:w,height:h,rx:3,class:className,'data-layer':layer});title(n,`${item.id} · ${item.name}`);return n;
+  };
+  const ellipseShape=(item,className,layer)=>{
+    const [cx,cy]=point(item.at);const n=create('ellipse',{cx,cy,rx:(item.rx||item.r)*scale,ry:(item.rz||item.r)*scale,class:className,'data-layer':layer});title(n,`${item.id} · ${item.name}`);return n;
+  };
+  const polygonShape=(item,className,layer,points=item.points||item.footprint)=>{
+    const n=create('polygon',{points:points.map(point).map(p=>p.join(',')).join(' '),class:className,'data-layer':layer});title(n,`${item.id} · ${item.name}`);return n;
+  };
+
+  function drawRoute(id,active){
+    const route=routes[id];
+    route.paths.forEach(run=>{
+      const width=Math.max(4,run.w*scale);
+      line(run.p,active?'route-edge':'context-route-edge',route.name,'public').setAttribute('stroke-width',width+4);
+      line(run.p,active?'route':'context-route',route.name,'public').setAttribute('stroke-width',width);
+    });
+  }
+
+  function drawPlace(item){
+    const className=item.kind==='midway'?'midway':item.kind==='support'?'support-place':'place';
+    if(item.type==='rect')rectShape(item,className,'destinations');
+    else ellipseShape(item,className,'destinations');
+    (item.extra||[]).forEach(extra=>rectShape({...extra,id:item.id,name:`${item.name} support`},className,'destinations'));
+    label(item.at,item.id,item.name);
+    line(item.access,'public-link',`${item.id} public threshold`,'operations');
+    line(item.exit,'exit-link',`${item.id} public exit`,'operations');
+    line(item.service,'service-link',`${item.id} staff / service access`,'operations');
+  }
+
+  function drawRide(item){
+    if(item.type==='rect')rectShape(item,'ride','destinations');
+    if(item.type==='circle'||item.type==='ellipse')ellipseShape(item,'ride','destinations');
+    if(item.type==='polygon')polygonShape(item,'ride','destinations');
+    if(item.type==='coaster'){
+      polygonShape(item,'ride-envelope','destinations');
+      line(item.track,'ride-track',`${item.id} track inside operating parcel`,'destinations');
+      if(item.station)rectShape({...item.station,id:item.id,name:`${item.name} station`},'place','destinations');
+    }
+    if(item.type==='sky'){
+      line(item.terminals,'sky-cable',`${item.id} sky-ride cable`,'destinations');
+      item.terminals.forEach((at,index)=>ellipseShape({id:item.id,name:`${item.name} terminal ${index+1}`,at,r:4,type:'circle'},'ride','destinations'));
+    }
+    label(centerOf(item),item.id,item.name);
+    line(item.queue,'queue-link',`${item.id} queue leaves the through-route`,'operations');
+    line(item.queue2,'queue-link',`${item.id} second-terminal queue`,'operations');
+    line(item.exit,'exit-link',`${item.id} exit rejoins public circulation`,'operations');
+    line(item.service,'service-link',`${item.id} service access`,'operations');
+    line(item.service2,'service-link',`${item.id} second-terminal service access`,'operations');
+    if(item.photo){const [cx,cy]=point(item.photo);const n=create('circle',{cx,cy,r:5,class:'photo-point','data-layer':'destinations'});title(n,`${item.id} deliberate photo turnout`);}
+  }
+
+  function drawProtected(id){
+    const item=protectedZones.find(zone=>zone.id===id);let n;
+    if(item.type==='rect'){
+      const [x0,y0]=point([item.x0,item.z0]);const [x1,y1]=point([item.x1,item.z1]);
+      n=create('rect',{x:x0,y:y0,width:x1-x0,height:y1-y0,class:'protected-zone','data-layer':'protection'});
+    }else n=ellipseShape(item,'protected-zone','protection');
+    title(n,`${item.id} · ${item.name} · no-touch`);
+    label(item.type==='rect'?[(item.x0+item.x1)/2,(item.z0+item.z1)/2]:item.at,item.id,item.name,'protected-label');
+  }
+
+  function drawWater(id){
+    const item=water.find(entry=>entry.id===id);if(!item)return;
+    if(item.p)line(item.p,'water-line',`${item.id} · ${item.name}`,'protection');
+    else if(item.type==='rect')rectShape(item,'water-crossing','protection');
+    else ellipseShape(item,'water-place','protection');
+    label(item.at||item.p[Math.floor(item.p.length/2)],item.id,item.name,'water-label');
+  }
+
+  function drawView(id){
+    const item=sightlines.find(view=>view.id===id);const n=line([item.at,item.to],'sightline',`${item.id} · ${item.name}`,'protection');
+    n.setAttribute('marker-end','url(#view-arrow)');label(item.at,item.id,item.name,'view-label');
+  }
+
+  function drawLandmark(id){
+    const item=landmarks.find(mark=>mark.id===id);if(item.type==='rect')rectShape(item,'landmark','destinations');else ellipseShape(item,'landmark','destinations');label(item.at,item.id,item.name,'landmark-label');
+  }
+
+  function drawShorelineDetail(item){
+    const labelClass=item.className==='shore-host'||item.className==='shore-host-building'||item.className==='shore-host-line'?'shore-host-label':item.className==='regional-rail'?'regional-rail-label':item.className==='boat-loop'||item.className==='clear-water'||item.className==='shore-water'?'water-label':'shore-change-label';
+    if(item.type==='rect')rectShape(item,item.className,item.layer);
+    if(item.type==='polygon')polygonShape(item,item.className,item.layer);
+    if(item.type==='line')line(item.p,item.className,`${item.id} · ${item.name}`,item.layer);
+    if(item.type==='paths')item.paths.forEach(points=>line(points,item.className,`${item.id} · ${item.name}`,item.layer));
+    if(item.type==='rects')item.items.forEach((part,index)=>rectShape({...part,id:item.id,name:`${item.name} ${index+1}`},item.className,item.layer));
+    if(item.type==='fixtures')[-2.6,0,2.6].forEach((dx,index)=>rectShape({id:item.id,name:`${item.name} ${index+1}`,at:[item.at[0]+dx,item.at[1]],size:[1.5,1]},item.className,item.layer));
+    if(item.showLabel!==false)label(item.labelAt||item.at,item.short||item.id,item.name,labelClass);
+  }
+
+  function fit(bounds){
+    const w=bounds.x1-bounds.x0,h=bounds.z1-bounds.z0;
+    scale=Math.min(960/w,570/h);
+    tx=550-(bounds.x0+bounds.x1)*scale/2;
+    ty=355-(bounds.z0+bounds.z1)*scale/2;
+  }
+
+  function applyLayerVisibility(){
+    root.querySelectorAll('[data-layer]').forEach(node=>{
+      const control=root.querySelector(`input[data-layer="${node.dataset.layer}"]`);
+      node.style.display=control&&control.checked?'':'none';
+    });
+  }
+
+  function render(id){
+    selected=sections.find(section=>section.id===id)||sections[0];
+    drawing.replaceChildren();fit(selected.bounds);
+    const selectedShoreline=shorelineDetails.filter(item=>item.sections.includes(selected.id));
+    selectedShoreline.filter(item=>item.background).forEach(drawShorelineDetail);
+    selected.context.forEach(route=>drawRoute(route,false));
+    selected.routes.forEach(route=>drawRoute(route,true));
+    selected.water.forEach(drawWater);
+    selected.protected.forEach(drawProtected);
+    selected.views.forEach(drawView);
+    selectedShoreline.filter(item=>!item.background).forEach(drawShorelineDetail);
+    selected.service.forEach(id=>{const item=serviceSpines.find(spine=>spine.id===id);line(item.p,'service-spine',`${item.id} · ${item.name}`,'operations');label(item.p[Math.floor(item.p.length/2)],item.id,item.name,'service-label');});
+    selected.shared.forEach(id=>{const item=sharedService.find(path=>path.id===id);line(item.p,'shared-service',`${item.id} · ${item.name}`,'operations');label(item.p[Math.floor(item.p.length/2)],item.id,item.name,'service-label');});
+    selected.midway.map(id=>midway.find(item=>item.id===id)).forEach(drawPlace);
+    selected.places.map(id=>places.find(item=>item.id===id)).filter(Boolean).forEach(drawPlace);
+    selected.rides.map(id=>rides.find(item=>item.id===id)).filter(Boolean).forEach(drawRide);
+    (selected.landmarks||[]).forEach(drawLandmark);
+
+    root.querySelector('#section-title').textContent=selected.title;
+    root.querySelector('#section-summary').textContent=selected.summary;
+    root.querySelector('#section-counter').textContent=`Zoom ${sections.indexOf(selected)+1} of ${sections.length}`;
+    root.querySelector('#public-note').textContent=selected.publicNote;
+    root.querySelector('#destination-note').textContent=selected.destinationNote;
+    root.querySelector('#operations-note').textContent=selected.operationsNote;
+    root.querySelector('#protection-note').textContent=selected.protectionNote;
+    const included=[
+      ...selected.routes.map(id=>routes[id].name),
+      ...selected.rides.map(id=>{const item=rides.find(ride=>ride.id===id);return `${id} ${item.name}`;}),
+      ...selected.places.map(id=>{const item=places.find(place=>place.id===id);return `${id} ${item.name}`;}),
+      ...selected.midway.map(id=>{const item=midway.find(place=>place.id===id);return `${id} ${item.name}`;}),
+      ...selected.service,
+      ...selected.shared,
+      ...selected.water,
+      ...selected.protected,
+      ...selected.views,
+      ...selectedShoreline.map(item=>`${item.id} ${item.name}`)
+    ];
+    root.querySelector('#section-register').textContent=included.join(' · ');
+    root.querySelectorAll('[data-section]').forEach(button=>{
+      const active=button.dataset.section===selected.id;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));
+    });
+    svg.setAttribute('aria-label',`${selected.title}: ${selected.summary}`);
+    applyLayerVisibility();
+  }
+
+  root.querySelectorAll('[data-section]').forEach(button=>button.addEventListener('click',()=>{
+    history.replaceState(null,'',`#${button.dataset.section}`);render(button.dataset.section);
+  }));
+  root.querySelectorAll('input[data-layer]').forEach(input=>input.addEventListener('change',applyLayerVisibility));
+  window.addEventListener('hashchange',()=>render(location.hash.slice(1)));
+  render(location.hash.slice(1)||'entrance');
+})();
+</script>
+
+<style>
+:root{--bg:#f5f2e8;--fg:#252820;--muted:#d8d4c8;--muted-fg:#6e7167;--border:#c7c2b6;--route:#f4d483;--context:#a8cbd0;--blue:#247fa3;--green:#477d4b;--yellow:#d9a528;--orange:#cf692e;--red:#b84c46;--purple:#72569a;--service:#9a5438}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,-apple-system,sans-serif}.atlas{width:min(1220px,100%);margin:auto;padding:24px}.top-nav,.section-tabs,.layer-controls,.legend{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.top-nav{margin-bottom:20px}.top-nav a{color:var(--fg);text-decoration:none;border-bottom:1px solid var(--border)}header .eyebrow,.counter{color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:11px}h1{font-size:36px;line-height:1;margin:.2em 0}h2{margin:.25em 0}header>p:last-child,.section-heading>p:last-child{color:var(--muted-fg)}.literal-rule{max-width:106ch;border-left:4px solid var(--red);padding:10px 14px;background:color-mix(in srgb,var(--red) 7%,transparent)}.section-tabs{margin:18px 0 12px}.section-tabs button{border:1px solid var(--border);background:var(--bg);color:var(--fg);border-radius:99px;padding:7px 12px;cursor:pointer}.section-tabs button.active{background:var(--fg);color:var(--bg);border-color:var(--fg)}.section-heading{margin:14px 0 10px}.section-heading .counter{margin:0}.section-heading h2{font-size:26px}.section-heading p{max-width:92ch}.layer-controls{margin:10px 0}.layer-controls label{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:8px;padding:6px 9px}.legend{margin:8px 0 12px;color:var(--muted-fg);font-size:12px}.legend span{display:inline-flex;align-items:center;gap:5px}.legend i{display:inline-block;width:21px;height:9px;border-radius:2px}.route-key{background:var(--route);border:2px solid var(--fg)}.context-key{background:var(--context)}.ride-key{background:color-mix(in srgb,var(--orange) 32%,var(--bg));border:2px solid var(--orange)}.place-key{background:color-mix(in srgb,var(--purple) 22%,var(--bg));border:2px solid var(--purple)}.queue-key{background:var(--green)}.service-key{background:repeating-linear-gradient(90deg,var(--service) 0 6px,transparent 6px 10px);border-bottom:2px solid var(--service)}.water-key{background:var(--blue)}.protected-key{background:repeating-linear-gradient(45deg,var(--red) 0 2px,transparent 2px 6px);border:1px solid var(--red)}svg{display:block;width:100%;height:auto;background:var(--bg)}svg text{font:10px ui-sans-serif,system-ui;paint-order:stroke;stroke:var(--bg);stroke-width:3px;stroke-linejoin:round;fill:var(--fg)}.map-ground{fill:color-mix(in srgb,var(--green) 7%,var(--bg));stroke:var(--border);stroke-width:2}.route-edge{fill:none;stroke:var(--fg);stroke-linecap:round;stroke-linejoin:round}.route{fill:none;stroke:var(--route);stroke-linecap:round;stroke-linejoin:round}.context-route-edge{fill:none;stroke:color-mix(in srgb,var(--context) 65%,var(--fg));stroke-linecap:round;stroke-linejoin:round}.context-route{fill:none;stroke:var(--context);stroke-linecap:round;stroke-linejoin:round}.ride{fill:color-mix(in srgb,var(--orange) 28%,var(--bg));stroke:var(--orange);stroke-width:3}.ride-envelope{fill:color-mix(in srgb,var(--orange) 12%,transparent);stroke:var(--orange);stroke-width:2;stroke-dasharray:8 5}.ride-track{fill:none;stroke:var(--orange);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}.sky-cable{fill:none;stroke:var(--orange);stroke-width:3;stroke-dasharray:10 5}.place{fill:color-mix(in srgb,var(--purple) 22%,var(--bg));stroke:var(--purple);stroke-width:3}.support-place{fill:color-mix(in srgb,var(--blue) 20%,var(--bg));stroke:var(--blue);stroke-width:2}.midway{fill:color-mix(in srgb,var(--yellow) 28%,var(--bg));stroke:var(--yellow);stroke-width:2}.queue-link,.public-link{fill:none;stroke:var(--green);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}.exit-link{fill:none;stroke:var(--blue);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}.service-link,.service-spine,.shared-service{fill:none;stroke:var(--service);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:8 5}.service-spine{stroke-width:6}.shared-service{stroke:var(--purple);stroke-dasharray:3 4}.protected-zone{color:var(--red);fill:url(#protected-hatch);stroke:var(--red);stroke-width:3}.sightline{fill:none;stroke:var(--red);color:var(--red);stroke-width:3;stroke-dasharray:10 6}.water-line{fill:none;stroke:var(--blue);stroke-width:10;stroke-linecap:round}.water-place{fill:color-mix(in srgb,var(--blue) 28%,var(--bg));stroke:var(--blue);stroke-width:2}.water-crossing{fill:var(--route);stroke:var(--green);stroke-width:3}.landmark{fill:var(--yellow);stroke:var(--fg);stroke-width:3}.photo-point{fill:var(--red);stroke:var(--bg);stroke-width:2}.map-label{font-weight:700}.protected-label,.view-label{fill:var(--red);font-weight:800}.water-label{fill:var(--blue);font-weight:800}.service-label{fill:var(--service);font-weight:800}.landmark-label{fill:var(--fg);font-weight:800}.north-arrow path{fill:none;stroke:var(--fg);stroke-width:2}.north-arrow text{font-weight:800}.relationship-ledger{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.relationship-ledger article{border-top:3px solid var(--border);padding:10px 4px}.relationship-ledger article:nth-child(1){border-color:var(--yellow)}.relationship-ledger article:nth-child(2){border-color:var(--purple)}.relationship-ledger article:nth-child(3){border-color:var(--service)}.relationship-ledger article:nth-child(4){border-color:var(--red)}.relationship-ledger h3{margin:0 0 4px}.relationship-ledger p{margin:0;color:var(--muted-fg)}.section-register{margin-top:12px;padding:13px 16px;border-left:4px solid var(--green);background:color-mix(in srgb,var(--green) 7%,transparent)}.section-register p{margin:.35em 0;color:var(--muted-fg)}@media(max-width:720px){.atlas{padding:14px}h1{font-size:30px}.relationship-ledger{grid-template-columns:1fr}.layer-controls label{min-height:42px}svg text{font-size:12px}}
+.sky-key{background:repeating-linear-gradient(90deg,var(--orange) 0 6px,transparent 6px 10px);border-bottom:1px solid var(--orange)}
+.shore-host-key{background:var(--muted);border:2px solid var(--muted-fg)}
+.shore-change-key{background:color-mix(in srgb,var(--orange) 24%,var(--bg));border:2px solid var(--orange)}
+.regional-rail-key{background:repeating-linear-gradient(90deg,var(--purple) 0 6px,transparent 6px 10px);border-bottom:2px solid var(--purple)}
+.shore-water{fill:color-mix(in srgb,var(--blue) 18%,var(--bg));stroke:var(--blue);stroke-width:2}
+.shore-host{fill:var(--muted);stroke:var(--muted-fg);stroke-width:3}
+.shore-host-building{fill:var(--muted-fg);stroke:var(--fg);stroke-width:2}
+.shore-host-line{fill:none;stroke:var(--muted-fg);stroke-width:7;stroke-linecap:round}
+.shore-change{fill:color-mix(in srgb,var(--orange) 24%,var(--bg));stroke:var(--orange);stroke-width:2}
+.shore-change-line{fill:none;stroke:var(--orange);stroke-width:5;stroke-linecap:round}
+.clear-zone{fill:color-mix(in srgb,var(--green) 7%,transparent);stroke:var(--green);stroke-width:2;stroke-dasharray:7 5}
+.working-route{fill:none;stroke:var(--service);stroke-width:6;stroke-linecap:round}
+.regional-rail{fill:none;stroke:var(--purple);stroke-width:5;stroke-dasharray:10 5}
+.clear-water{fill:none;stroke:var(--green);stroke-width:4}
+.boat-loop{fill:none;stroke:var(--blue);stroke-width:3;stroke-dasharray:8 5}
+.shore-host-label{fill:var(--muted-fg);font-weight:800}
+.shore-change-label{fill:var(--orange);font-weight:800}
+.regional-rail-label{fill:var(--purple);font-weight:800}
+</style>
+</body>
+</html>
