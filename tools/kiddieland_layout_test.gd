@@ -45,7 +45,8 @@ func _check_required(root: Node) -> void:
 		"public_routes/d_family_loop",
 		"public_routes/d_plaza_return",
 		"public_routes/d_terrace_link",
-		"rides/R5", "rides/R6", "rides/R7", "rides/R14/track",
+		"rides/R5", "rides/R5/queue", "rides/R6", "rides/R6/queue",
+		"rides/R7", "rides/R7/queue", "rides/R14/track",
 		"rides/R14/station", "rides/R14/queue", "rides/R14/exit",
 		"rides/R14/service", "rides/R14/manual_photo",
 		"destinations/P4_play_garden", "destinations/P4_play_garden/access",
@@ -98,6 +99,7 @@ func _check_rides(root: Node) -> void:
 			_failures.append("missing %s ride source" % id)
 			continue
 		_check_point("%s centre" % id, source[id]["at"], built["at"])
+		_check_points("%s queue" % id, source[id]["queue"], built["queue"])
 		if built.has("radii"):
 			_check_vec2("%s radii" % id, source[id]["radii"], built["radii"])
 		else:

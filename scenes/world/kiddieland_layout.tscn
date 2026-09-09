@@ -105,15 +105,37 @@ position = Vector3(68, 0, 88)
 metadata/kind = "mini_rail"
 metadata/radii = Vector2(17, 12)
 
+[node name="queue" type="Node3D" parent="rides/R5"]
+[node name="p00" type="Marker3D" parent="rides/R5/queue"]
+position = Vector3(-22, 0, 0)
+[node name="p01" type="Marker3D" parent="rides/R5/queue"]
+position = Vector3(-16, 0, 0)
+
 [node name="R6" type="Marker3D" parent="rides"]
 position = Vector3(95, 0, 96)
 metadata/kind = "tubs"
 metadata/radius = 7.0
 
+[node name="queue" type="Node3D" parent="rides/R6"]
+[node name="p00" type="Marker3D" parent="rides/R6/queue"]
+position = Vector3(9, 0, -8)
+[node name="p01" type="Marker3D" parent="rides/R6/queue"]
+position = Vector3(6, 0, -4)
+[node name="p02" type="Marker3D" parent="rides/R6/queue"]
+position = Vector3(4, 0, -1)
+
 [node name="R7" type="Marker3D" parent="rides"]
 position = Vector3(109, 0, 62)
 metadata/kind = "carousel"
 metadata/radius = 7.0
+
+[node name="queue" type="Node3D" parent="rides/R7"]
+[node name="p00" type="Marker3D" parent="rides/R7/queue"]
+position = Vector3(-7, 0, 8)
+[node name="p01" type="Marker3D" parent="rides/R7/queue"]
+position = Vector3(-5, 0, 4)
+[node name="p02" type="Marker3D" parent="rides/R7/queue"]
+position = Vector3(-3, 0, 1)
 
 [node name="R14" type="Node3D" parent="rides"]
 editor_description = "Canonical junior-coaster layout. Move its track controls, station, queue, exit, service and photo markers here; the greybox builder reads this source directly."

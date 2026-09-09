@@ -70,6 +70,8 @@ static func ride_sites(root: Node) -> Dictionary:
 			site["radii"] = Vector2(ride.get_meta("radii"))
 		if ride.has_meta("radius"):
 			site["radius"] = float(ride.get_meta("radius"))
+		if ride.has_node("queue"):
+			site["queue"] = marker_points(ride.get_node("queue"), root)
 		out[StringName(ride.name)] = site
 	return out
 
