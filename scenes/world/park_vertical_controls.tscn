@@ -18,7 +18,7 @@ point_count = 21
 editor_description = "Editor-owned world-space controls for the approved terrain and height handoff. Edit these markers in Godot; never edit a generated scene to change a level. This source does not build terrain by itself."
 metadata/coordinate_space = "godot_world_metres"
 metadata/layout_version = 2
-metadata/status = "map_levels_promoted_terrain_pending"
+metadata/status = "map_levels_and_terrain_published"
 metadata/level_count = 50
 
 [node name="approved_levels" type="Node3D" parent="."]
@@ -382,7 +382,7 @@ editor_description = "Editor-owned terrain rims for the four approved drainage l
 
 [node name="D3_basin" type="Node3D" parent="approved_terrain_shapes"]
 editor_description = "Fairground garden fold. Keep Route C, P3 and I1 at their measured levels; only the planted pocket falls to D3_low."
-metadata/status = "approved_source_unpublished"
+metadata/status = "approved_source_published"
 metadata/low_level_id = "D3_low"
 metadata/hold_fixed = "route_C,P3_floor,I1_floor,NT-1"
 metadata/shape_source = "authored_in_godot_not_traced_from_svg"
@@ -406,7 +406,7 @@ position = Vector3(-30, 0, 182)
 
 [node name="D4_basin" type="Node3D" parent="approved_terrain_shapes"]
 editor_description = "Kiddieland garden low. Route D and every ride pad keep their measured grade; the low remains independent of NT-2."
-metadata/status = "approved_source_unpublished"
+metadata/status = "approved_source_published"
 metadata/low_level_id = "D4_low"
 metadata/hold_fixed = "route_D,ride_pads,NT-2,Q4"
 metadata/protection = "independent_from_NT-2"
@@ -431,7 +431,7 @@ position = Vector3(88, 3.43, 176)
 
 [node name="D5_basin" type="Node3D" parent="approved_terrain_shapes"]
 editor_description = "Kiddieland outer-edge detention low. It returns to local ground before S3 and has no terrain or drainage connection to NT-2."
-metadata/status = "approved_source_unpublished"
+metadata/status = "approved_source_published"
 metadata/low_level_id = "D5_low"
 metadata/hold_fixed = "route_D,ride_pads,S3,NT-2,Q4"
 metadata/protection = "independent_from_NT-2"
@@ -456,7 +456,7 @@ position = Vector3(157, 4.13, 157)
 
 [node name="D6_basin" type="Node3D" parent="approved_terrain_shapes"]
 editor_description = "Grove service-side low. The existing rising public spine remains intact while the outer shoulder falls locally to D6_low."
-metadata/status = "approved_source_unpublished"
+metadata/status = "approved_source_published"
 metadata/low_level_id = "D6_low"
 metadata/hold_fixed = "grove_spine,route_F,ride_pads,S3"
 metadata/shape_source = "authored_in_godot_not_traced_from_svg"

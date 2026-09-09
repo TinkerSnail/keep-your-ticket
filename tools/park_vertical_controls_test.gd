@@ -7,6 +7,8 @@ const Drainage = preload("res://scripts/park_drainage_terrain_source.gd")
 const Plan = preload("res://scripts/park_plan.gd")
 const Generator = preload("res://tools/gen_props.gd")
 const EPSILON := 0.011
+const EAST_CASCADE_PATH := "res://scenes/world/generated/east_cascade.tscn"
+const GROUNDWORKS_PATH := "res://scenes/world/generated/park_groundworks.tscn"
 
 var _failures: PackedStringArray = PackedStringArray()
 
@@ -18,6 +20,7 @@ func _initialize() -> void:
 	_check_terrain_shapes(root)
 	_check_drainage_derivation(root)
 	_check_generator_derivation(root)
+	_check_generated_scene_ownership()
 	_check_lighthouse(root)
 	_check_editor_ownership(root)
 	root.free()
@@ -27,11 +30,13 @@ func _initialize() -> void:
 		print("PARK VERTICAL CONTROLS FAIL: %d issue(s)" % _failures.size())
 		quit(1)
 		return
-	print("PARK VERTICAL CONTROLS PASS: fifty map levels, four authored terrain rims and localized P1 regrade")
+	print("PARK VERTICAL CONTROLS PASS: fifty map levels, four published terrain rims, localized P1 regrade and NT-2 output separation")
 	quit()
 
 
 func _check_levels(root: Node3D) -> void:
+	if root.get_meta("status", &"") != &"map_levels_and_terrain_published":
+		_failures.append("vertical source is not marked as published")
 	# Source x/z and literal y are the synchronized map's verticalPlans facts.
 	# The scene stores their expanded world x/z so it is directly useful in the
 	# editor; this test owns the coordinate-space conversion check.
@@ -131,7 +136,7 @@ func _check_terrain_shapes(root: Node3D) -> void:
 			_failures.append("missing authored terrain shape %s" % id)
 			continue
 		var basin: Dictionary = basins[id]
-		if basin["status"] != &"approved_source_unpublished":
+		if basin["status"] != &"approved_source_published":
 			_failures.append("%s has unexpected status %s" % [id, basin["status"]])
 		if basin["shape_source"] != &"authored_in_godot_not_traced_from_svg":
 			_failures.append("%s is not marked as an authored Godot shape" % id)
@@ -204,7 +209,64 @@ func _check_generator_derivation(root: Node3D) -> void:
 		generator._rebuild_outer_highland_y(d5.x, d5.z), d5.y)
 	_check_float("D6 lowland publication seam",
 		generator._rebuild_lowland_surface_y(Vector2(d6.x, d6.z)), d6.y)
+	# D4 and D5 may shape their own district ground, but neither their low nor
+	# any editable rim handle may enter the protected Terraced Fountain envelope.
+	var basins := Source.drainage_basins(root)
+	for id in [&"D4_basin", &"D5_basin"]:
+		var probes: Array[Vector3] = [basins[id]["low"]]
+		probes.append_array(basins[id]["rim"])
+		for probe in probes:
+			if generator._rebuild_in_protected(Vector2(probe.x, probe.z), 0.0):
+				_failures.append("%s control %s enters protected NT-2" % [id, probe])
 	generator.free()
+
+
+func _check_generated_scene_ownership() -> void:
+	var east := _instantiate_scene(EAST_CASCADE_PATH)
+	var groundworks := _instantiate_scene(GROUNDWORKS_PATH)
+	if east == null or groundworks == null:
+		if east != null:
+			east.free()
+		if groundworks != null:
+			groundworks.free()
+		return
+	var misplaced := PackedStringArray()
+	for child in east.get_children():
+		if _is_east_district_shoulder_node(child.name):
+			misplaced.append(String(child.name))
+	if not misplaced.is_empty():
+		_failures.append("protected east_cascade still owns %d district shoulder nodes (first: %s)" % [
+			misplaced.size(), misplaced[0]])
+	for required in [&"east_shoulder_n", &"east_shoulder_s"]:
+		if groundworks.get_node_or_null(NodePath(String(required))) == null:
+			_failures.append("park_groundworks is missing staged district terrain %s" % required)
+	var north_helpers := 0
+	for child in groundworks.get_children():
+		if String(child.name).begins_with("east_promenade_bank_"):
+			north_helpers += 1
+	if north_helpers == 0:
+		_failures.append("park_groundworks is missing the north shoulder retaining terraces")
+	east.free()
+	groundworks.free()
+
+
+func _instantiate_scene(path: String) -> Node:
+	var packed := load(path) as PackedScene
+	if packed == null:
+		_failures.append("could not load generated scene %s" % path)
+		return null
+	var instance := packed.instantiate()
+	if instance == null:
+		_failures.append("could not instantiate generated scene %s" % path)
+	return instance
+
+
+func _is_east_district_shoulder_node(node_name: StringName) -> bool:
+	var text := String(node_name)
+	return text.begins_with("east_shoulder_") \
+		or text.begins_with("shoulder_") \
+		or text.begins_with("east_promenade_bank_") \
+		or text == "south_commons_retaining_face"
 
 
 func _check_lighthouse(root: Node3D) -> void:

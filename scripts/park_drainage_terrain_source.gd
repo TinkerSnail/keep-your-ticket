@@ -16,8 +16,8 @@ func _init(source_root: Node3D = null) -> void:
 	var records := Controls.drainage_basins(root)
 	for id in records:
 		var record: Dictionary = records[id]
-		assert(record["status"] in [&"approved_source_unpublished", &"approved_source"],
-			"%s is not approved for terrain construction" % id)
+		assert(record["status"] == &"approved_source_published",
+			"%s is not published for terrain construction" % id)
 		assert(record["shape_source"] == &"authored_in_godot_not_traced_from_svg",
 			"%s must remain an editor-authored Godot shape" % id)
 		var rim3: Array[Vector3] = record["rim"]

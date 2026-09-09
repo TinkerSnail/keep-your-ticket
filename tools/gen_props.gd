@@ -88,6 +88,12 @@ const BOARDWALK_PATH := GENERATED_DIR + "/boardwalk.tscn"
 
 var _root: Node3D
 var mats: Dictionary = {}
+## The two district-scale shoulders used to be packed into the protected NT-2
+## scene even though their artistic course belongs to the surrounding park.
+## They are still built at their original point in the seam sequence, so moving
+## their output cannot re-plane the protected crest courts that follow them.
+## `_publish_staged_east_shoulders` adopts the nodes into park_groundworks.
+var _staged_east_shoulders: Node3D = null
 ## Cached once because `_east_kiddie_grade_y` is called for every shoulder mesh
 ## sample. Rebuilding a 49-point loop inside that height function turns one
 ## design curve into tens of thousands of short-lived vectors.
@@ -348,10 +354,11 @@ func _initialize() -> void:
 	# cheapest possible place to add to an ordinal-sensitive build order.
 	_east_earth(-1.0, "n")
 	_east_earth(1.0, "s")
-	# The shoulders, after everything: two meshes and a handful of walls at the
-	# end of the build, so nothing already in this scene moves an ordinal.
-	_east_shoulder(-1.0, "n")
-	_east_shoulder(1.0, "s")
+	# Build the district shoulders at their established seam ordinals, but stage
+	# them outside this protected scene. Christina approved this one-time output
+	# split on 2026-09-09: NT-2 keeps its hill, approaches, water, elevations and
+	# sightlines; the terrain beyond its envelope is published with groundworks.
+	_stage_east_shoulders()
 	# No toe seal any more: the ground meshes run to `EARTH_TO_X`, past where
 	# the rim's face climbs above them, so their open east edges hang inside
 	# the ridge's body and the rim itself is the seal — see `EARTH_TO_X`.
@@ -409,6 +416,10 @@ func _initialize() -> void:
 	_root.name = "park_groundworks"
 	_begin_scene()
 	_rebuild_groundworks()
+	# Last, so the general groundworks above retain their established seam
+	# ordinals. The staged nodes retain the exact transforms they had when they
+	# lived in east_cascade; only their output owner changes.
+	_publish_staged_east_shoulders()
 	if not _save(_root, GROUNDWORKS_PATH):
 		return
 
@@ -487,6 +498,44 @@ func _save(node: Node3D, path: String) -> bool:
 		return false
 	print("wrote %d nodes to %s" % [node.get_child_count(), path])
 	return true
+
+
+## Generate the outlying district shoulders at the same point in the protected
+## scene's build sequence where they historically stood, but under an un-packed
+## staging root. This preserves every later NT-2 seam displacement exactly.
+func _stage_east_shoulders() -> void:
+	assert(_staged_east_shoulders == null,
+		"east district shoulders were staged more than once")
+	var protected_root := _root
+	_staged_east_shoulders = Node3D.new()
+	_staged_east_shoulders.name = "east_district_shoulders_staging"
+	_root = _staged_east_shoulders
+	_east_shoulder(-1.0, "n")
+	_east_shoulder(1.0, "s")
+	_root = protected_root
+
+
+## Move the staged assembly into the ordinary generated terrain output without
+## rebuilding it. Re-own every descendant because PackedScene only saves nodes
+## owned by its root.
+func _publish_staged_east_shoulders() -> void:
+	assert(_staged_east_shoulders != null,
+		"east district shoulders were not staged")
+	for child in _staged_east_shoulders.get_children():
+		# Unset the old scene owner before reparenting; otherwise Godot correctly
+		# warns during the brief moment when that owner is no longer an ancestor.
+		_set_generated_owner(child, null)
+		_staged_east_shoulders.remove_child(child)
+		_root.add_child(child)
+		_set_generated_owner(child, _root)
+	_staged_east_shoulders.free()
+	_staged_east_shoulders = null
+
+
+func _set_generated_owner(node: Node, scene_owner: Node) -> void:
+	node.owner = scene_owner
+	for child in node.get_children():
+		_set_generated_owner(child, scene_owner)
 
 
 # ---------------------------------------------------------------------------
@@ -5871,9 +5920,11 @@ func _shoulder_y(x: float, z: float, side: float, prm: Dictionary) -> float:
 		y = _east_kiddie_grade_y(x, z, y)
 		# D4 is a local Kiddieland fold, independent of NT-2. The separately
 		# graded route and ride pads stay where they are while this planted skin
-		# reads the editor-owned rim and low point.
-		y = _drainage_terrain_source().terrain_y(Vector2(x, z), y,
-			[&"D4_basin"])
+		# reads the editor-owned rim and low point. The explicit protected-envelope
+		# guard prevents a future editor reshaping of D4 from reaching NT-2.
+		if not _rebuild_in_protected(Vector2(x, z), 0.0):
+			y = _drainage_terrain_source().terrain_y(Vector2(x, z), y,
+				[&"D4_basin"])
 	return y
 
 
