@@ -43,8 +43,23 @@ func _ready() -> void:
 	var towns: Node = world.get_node_or_null("places/park_towns")
 	if towns != null:
 		bodies.append_array(towns.find_children("*", "StaticBody3D", true, false))
+	# And the approach scene's roads (2026-09-05): the highway's two
+	# carriageways, the approach road, the interchange's ramps, the front
+	# road and the lot entries.
+	var approach: Node = world.get_node_or_null("places/park_approach")
+	if approach != null:
+		bodies.append_array(approach.find_children("*", "StaticBody3D", true, false))
 	var filters := OS.get_cmdline_user_args().slice(1)
 	var space := get_viewport().get_world_3d().direct_space_state
+	# Every access ribbon is transparent to this ray. At a junction, hitting
+	# another road answers whether two surfaces overlap, not whether either one
+	# stands on terrain; it produced false buries for the beach cross street and
+	# the ramp terminal. Surface-to-surface junction checks belong separately.
+	var path_rids: Array[RID] = []
+	for candidate in bodies:
+		var candidate_points: PackedVector3Array = candidate.get_meta("points", PackedVector3Array())
+		if candidate_points.size() >= 2:
+			path_rids.append(candidate.get_rid())
 	var paths := 0
 	var samples := 0
 	var worst_float := 0.0
@@ -62,8 +77,16 @@ func _ready() -> void:
 				continue
 		paths += 1
 		var half := float(body.get_meta("width", 0.0)) * 0.5 - EDGE_INSET
-		var own := [body.get_rid()]
+		# A road inside a hill has no ground under it and should not: the
+		# highway's ribbons carry their tunnel runs as station index pairs.
+		var tunnels: PackedInt32Array = body.get_meta("tunnels", PackedInt32Array())
 		for i in points.size() - 1:
+			var closed := false
+			for k in range(0, tunnels.size(), 2):
+				if i >= tunnels[k] and i < tunnels[k + 1]:
+					closed = true
+			if closed:
+				continue
 			var a := points[i]
 			var b := points[i + 1]
 			var steps := maxi(1, ceili(a.distance_to(b) / STATION))
@@ -75,9 +98,14 @@ func _ready() -> void:
 				for offset_v in [Vector3.ZERO, side, -side]:
 					var offset: Vector3 = offset_v
 					var q: Vector3 = at + offset
+					# At an at-grade junction the other ribbon, not terrain, owns
+					# the shared patch. It is checked as a junction by proximity in
+					# height; a grade-separated crossing still reaches the ground.
+					if _shares_path_surface(q, body, bodies):
+						continue
 					var query := PhysicsRayQueryParameters3D.create(
 						q + Vector3.UP * RAY_ABOVE, q - Vector3.UP * RAY_BELOW, WORLD_LAYER)
-					query.exclude = own
+					query.exclude = path_rids
 					var hit := space.intersect_ray(query)
 					samples += 1
 					if hit.is_empty():
@@ -109,3 +137,25 @@ func _ready() -> void:
 	if messages.size() > 60:
 		print("FAIL: ... %d more" % (messages.size() - 60))
 	get_tree().quit(1)
+
+
+func _shares_path_surface(q: Vector3, own: StaticBody3D, bodies: Array) -> bool:
+	var xz := Vector2(q.x, q.z)
+	for other in bodies:
+		if other == own:
+			continue
+		var pts: PackedVector3Array = other.get_meta("points", PackedVector3Array())
+		if pts.size() < 2:
+			continue
+		var half := float(other.get_meta("width", 0.0)) * 0.5 + 0.05
+		for i in pts.size() - 1:
+			var a := Vector2(pts[i].x, pts[i].z)
+			var b := Vector2(pts[i + 1].x, pts[i + 1].z)
+			var foot := Geometry2D.get_closest_point_to_segment(xz, a, b)
+			if xz.distance_to(foot) > half:
+				continue
+			var t := a.distance_to(foot) / maxf(a.distance_to(b), 0.001)
+			var y := lerpf(pts[i].y, pts[i + 1].y, t)
+			if absf(q.y - y) <= 0.6:
+				return true
+	return false

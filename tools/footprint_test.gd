@@ -10,6 +10,7 @@ extends Node
 ## body has to discover them.
 
 const Plan := preload("res://scripts/park_plan.gd")
+const LighthouseRegrade := preload("res://scripts/lighthouse_regrade_source.gd")
 
 const EPS := 0.12
 const CROSSING_CAPTURE := 12.0
@@ -185,16 +186,10 @@ func _check_promontory() -> void:
 	var spine: Array = Plan.PROMONTORY_SPINE
 	for i in spine.size() - 1:
 		note.call(Plan.coast_inland(spine[i]), "spine vertex %d at %s" % [i, spine[i]])
-	var access: Array = site["access"]
+	var access: Array[Vector3] = LighthouseRegrade.new().path_points(4.0)
 	for i in access.size():
-		var p := Plan.rebuild_expand_point(Vector2(access[i]))
+		var p := Vector2(access[i].x, access[i].z)
 		note.call(Plan.coast_inland(p), "walk station %d at %s" % [i, p])
-		if i > 0:
-			var q := Plan.rebuild_expand_point(Vector2(access[i - 1]))
-			var steps := maxi(1, ceili(p.distance_to(q) / 4.0))
-			for step in range(1, steps):
-				var m := q.lerp(p, float(step) / float(steps))
-				note.call(Plan.coast_inland(m), "walk between stations %d and %d at %s" % [i - 1, i, m])
 	var tower := Plan.rebuild_expand_point(site["at"])
 	note.call(Plan.coast_inland(tower) - 7.0, "P1 forecourt rim at %s" % tower)
 	var keeper := Plan.rebuild_expand_point(site["keeper"])
@@ -385,7 +380,7 @@ func _check_open_faces() -> void:
 	var edges := {}
 	var triangles := 0
 	for name in ["terrain_world_mainland_reserve", "terrain_world_coast_north",
-			"terrain_world_coast_south"]:
+			"terrain_world_coast_south", "terrain_road_corridor"]:
 		var node: Node = ground.find_child(name, true, false)
 		if node == null:
 			_fail("%s is not in the groundworks scene" % name)
@@ -415,7 +410,7 @@ func _check_open_faces() -> void:
 					var vi: int = index[i + k] if index.size() > 0 else i + k
 					tri.append(xf * verts[vi])
 				for k in 3:
-					_count_edge(edges, tri[k], tri[(k + 1) % 3])
+					_count_edge(edges, tri[k], tri[(k + 1) % 3], name)
 				triangles += 1
 	var stray: Array = []
 	for key in edges:
@@ -445,6 +440,13 @@ func _check_open_faces() -> void:
 				near_paired[i] = true
 				near_paired[j] = true
 				break
+	# A T-junction (2026-09-05): the road corridor's boundary is its rows'
+	# outer vertices, and the lattice cell clipped against it carries a
+	# vertex wherever a lattice line crosses that edge, so along the whole
+	# corridor one of its edges faces two or three of the lattice's. Closed
+	# if the short edges tile the long one within a hand, with their ends on
+	# it: collinear in plan and on its chord in height.
+	var t_closed := _pair_t_junctions(stray, near_paired, mids)
 	var open: Array = []
 	var length := 0.0
 	# The coast meshes ramp from the strip's −6 to the reserve's level over
@@ -455,7 +457,7 @@ func _check_open_faces() -> void:
 		var rec: Array = stray[si]
 		var a: Vector3 = rec[1]
 		var b: Vector3 = rec[2]
-		if int(mids[_mid_key(a, b)]) >= 2 or near_paired.has(si):
+		if int(mids[_mid_key(a, b)]) >= 2 or near_paired.has(si) or t_closed.has(si):
 			continue
 		if maxf(a.y, b.y) < Plan.WATER_TOP + 1.0:
 			continue
@@ -512,9 +514,130 @@ func _check_open_faces() -> void:
 		print("    %s: %d edges, %.0fm, x %.0f..%.0f, z %.0f..%.0f, e.g. %s to %s" % [
 			label, int(c["count"]), float(c["length"]), float(c["x_lo"]), float(c["x_hi"]),
 			float(c["z_lo"]), float(c["z_hi"]), c["sample"][1], c["sample"][2]])
+	# And by mesh, with a few in full, since a crack along the road corridor
+	# is one thing from the corridor's side and another from the lattice's.
+	var by_mesh := {}
+	for rec in open:
+		by_mesh[rec[3]] = int(by_mesh.get(rec[3], 0)) + 1
+	print("    by mesh: %s" % [by_mesh])
+	for i in mini(open.size(), 8):
+		var rec: Array = open[i]
+		print("      %s %.2fm %s to %s" % [rec[3], (rec[1] as Vector3).distance_to(rec[2]), rec[1], rec[2]])
+		# What the T-junction rule saw: every other-mesh stray touching an
+		# end, with the other end's offset from its chord.
+		var a: Vector3 = rec[1]
+		var b: Vector3 = rec[2]
+		for other in stray:
+			if other[3] == rec[3]:
+				continue
+			var c: Vector3 = other[1]
+			var d: Vector3 = other[2]
+			for pair in [[a, b], [b, a]]:
+				var v: Vector3 = pair[0]
+				var far: Vector3 = pair[1]
+				if c.distance_to(v) > 0.05 and d.distance_to(v) > 0.05:
+					continue
+				var cd := Vector2(d.x - c.x, d.z - c.z)
+				var t := Vector2(far.x - c.x, far.z - c.z).dot(cd) / maxf(cd.length_squared(), 0.0001)
+				var foot := Vector3(c.x, 0.0, c.z).lerp(Vector3(d.x, 0.0, d.z), t)
+				print("        touches %s %.2fm %s to %s: far end t=%.3f, %.3fm off in plan, %.3fm off in height" % [
+					other[3], c.distance_to(d), c, d, t, Vector2(far.x - foot.x, far.z - foot.z).length(),
+					far.y - lerpf(c.y, d.y, t)])
 
 
-func _count_edge(edges: Dictionary, a: Vector3, b: Vector3) -> void:
+## Stray edges closed as T-junctions: a stray is closed when strays of
+## other meshes collinear with it tile its whole length, within 15cm. The
+## partners may overlap its ends rather than lie within them, since the
+## clipper drops collinear vertices from a cut cell's outline and the two
+## meshes' vertices along a shared straight edge interleave rather than
+## nest (2026-09-06). Collinear means both of a partner's ends within 12cm
+## of this stray's line in plan and 30cm of its chord in height; the height
+## allows for the range rise's metre-scale grain across a 4m chord.
+func _pair_t_junctions(stray: Array, near_paired: Dictionary, mids: Dictionary) -> Dictionary:
+	var closed := {}
+	var buckets := {}
+	for i in stray.size():
+		var a: Vector3 = stray[i][1]
+		var b: Vector3 = stray[i][2]
+		var lo := Vector2i(floori(minf(a.x, b.x) / 16.0), floori(minf(a.z, b.z) / 16.0))
+		var hi := Vector2i(floori(maxf(a.x, b.x) / 16.0), floori(maxf(a.z, b.z) / 16.0))
+		for gx in range(lo.x, hi.x + 1):
+			for gz in range(lo.y, hi.y + 1):
+				var key := Vector2i(gx, gz)
+				if not buckets.has(key):
+					buckets[key] = []
+				(buckets[key] as Array).append(i)
+	for i in stray.size():
+		var a: Vector3 = stray[i][1]
+		var b: Vector3 = stray[i][2]
+		var run := Vector2(b.x - a.x, b.z - a.z).length()
+		if run < 0.05:
+			continue
+		var lo := Vector2i(floori(minf(a.x, b.x) / 16.0), floori(minf(a.z, b.z) / 16.0))
+		var hi := Vector2i(floori(maxf(a.x, b.x) / 16.0), floori(maxf(a.z, b.z) / 16.0))
+		var spans: Array = []
+		var seen := {}
+		for gx in range(lo.x, hi.x + 1):
+			for gz in range(lo.y, hi.y + 1):
+				var key := Vector2i(gx, gz)
+				if not buckets.has(key):
+					continue
+				for j in buckets[key]:
+					# Partners of any mesh, its own included: two cut cells'
+					# pieces meet along a lattice line with different vertices.
+					if j == i or seen.has(j):
+						continue
+					seen[j] = true
+					var c: Vector3 = stray[j][1]
+					var d: Vector3 = stray[j][2]
+					# Collinear, judged on the longer chord so a short one's
+					# slope is never extrapolated over the long one.
+					var longer := c.distance_to(d) > a.distance_to(b)
+					if longer:
+						if _on_line(a, c, d) == INF or _on_line(b, c, d) == INF:
+							continue
+					elif _on_line(c, a, b) == INF or _on_line(d, a, b) == INF:
+						continue
+					var cd := Vector2(b.x - a.x, b.z - a.z)
+					var tc := Vector2(c.x - a.x, c.z - a.z).dot(cd) / (run * run)
+					var td := Vector2(d.x - a.x, d.z - a.z).dot(cd) / (run * run)
+					var t0 := clampf(minf(tc, td), 0.0, 1.0)
+					var t1 := clampf(maxf(tc, td), 0.0, 1.0)
+					if t1 - t0 > 0.001:
+						spans.append([t0, t1])
+		if spans.is_empty():
+			continue
+		spans.sort_custom(func(p: Array, q: Array) -> bool: return float(p[0]) < float(q[0]))
+		var reached := 0.0
+		var whole := true
+		for span in spans:
+			if float(span[0]) * run > reached + 0.15:
+				whole = false
+				break
+			reached = maxf(reached, float(span[1]) * run)
+		if whole and reached >= run - 0.15:
+			closed[i] = true
+	return closed
+
+
+## Where a point lies along a chord's line as a fraction, beyond its ends
+## included, or INF if it is more than 12cm off the line in plan or 30cm
+## off the chord's height at that fraction.
+func _on_line(p: Vector3, c: Vector3, d: Vector3) -> float:
+	var cd := Vector2(d.x - c.x, d.z - c.z)
+	var run := cd.length()
+	if run < 0.01:
+		return INF
+	var t := Vector2(p.x - c.x, p.z - c.z).dot(cd) / (run * run)
+	var foot := Vector3(c.x, 0.0, c.z).lerp(Vector3(d.x, 0.0, d.z), t)
+	if Vector2(p.x - foot.x, p.z - foot.z).length() > 0.12:
+		return INF
+	if absf(p.y - lerpf(c.y, d.y, t)) > 0.30:
+		return INF
+	return t
+
+
+func _count_edge(edges: Dictionary, a: Vector3, b: Vector3, mesh := "") -> void:
 	var qa := Vector3i((a * 100.0).round())
 	var qb := Vector3i((b * 100.0).round())
 	var key := ""
@@ -526,7 +649,7 @@ func _count_edge(edges: Dictionary, a: Vector3, b: Vector3) -> void:
 		var rec: Array = edges[key]
 		rec[0] = int(rec[0]) + 1
 	else:
-		edges[key] = [1, a, b]
+		edges[key] = [1, a, b, mesh]
 
 
 func _mid_key(a: Vector3, b: Vector3) -> String:

@@ -26,7 +26,8 @@ extends RefCounted
 ## palette; the menu draws itself.
 
 ## Two faces, not one, and the references are what settle it. Donkey Kong
-## Country, Banjo-Kazooie and Hey Arnold are chunky, rounded and hand-drawn;
+## Country, Banjo-Kazooie, Crash Bandicoot and Hey Arnold are chunky, rounded
+## and hand-drawn;
 ## RollerCoaster Tycoon and Squaresoft's menus are small crisp sans. Those are
 ## not the same font and were never meant to be — DKC's *logo* is chunky and
 ## DKC's *menu text* is plain, and every one of these games works that way.
@@ -108,9 +109,10 @@ const PAPER_LINE := Color("8a7040")
 ## than as a hole in the screen, and the difference is entirely that you can
 ## make out what is behind them.
 ## It stays blue, and blue is the right canvas precisely because none of the
-## three references is blue — Looney Tunes, DKC and Banjo-Kazooie are all warm,
-## gold-forward and green. A warm panel under a gold accent is gold on gold, and
-## the accent stops being an accent. The blue is what makes the gold read.
+## four references is blue — Looney Tunes, DKC, Banjo-Kazooie and Crash
+## Bandicoot are all warm and gold-forward. A warm panel under a gold accent is
+## gold on gold, and the accent stops being an accent. The blue is what makes
+## the gold read.
 ##
 ## But it is a far more saturated blue than it was. The old value was a cool
 ## desaturated navy, which is a Squaresoft colour rather than a cartoon one, and
@@ -119,23 +121,23 @@ const PANEL := Color(0.098, 0.161, 0.541, 0.84)
 const PANEL_HI := Color("6fa8ff")
 const PANEL_LO := Color("070d2e")
 
-## Gold, and the one colour all three references share — DKC's banana, Banjo's
-## jiggy, the WB shield. This is the value the HUD prompts have been colouring
-## key names with since they were written, so `hud.gd` reads it from here rather
-## than keeping its own copy.
+## Gold, and the warm signal colour all four references share — DKC's banana,
+## Banjo's jiggy, Crash's Wumpa fruit and the WB shield. This is the value the
+## HUD prompts have been colouring key names with since they were written, so
+## `hud.gd` reads it from here rather than keeping its own copy.
 ##
 ## The old `eec84a` was a pale, slightly greyed gold that read as brass. A jiggy
-## is not brass. This is hotter and fully saturated, which is what lets it carry
-## the selection bar on its own without an outline.
+## or Wumpa fruit is not brass. This is hotter and fully saturated, which is
+## what lets it carry the selection bar on its own without an outline.
 const ACCENT := Color("ffc82e")
 const TEXT := Color("fffaf0")
 const DIM := Color("93a7d4")
 
 ## The frame around the body of the menu, and the one warm surface on the
 ## screen. It is a *material* rather than a colour — the thing the subscreen is
-## mounted in, the way a DKC signboard or a Banjo plaque is a wooden object with
-## something painted on it, and that is why it does not compete with `ACCENT`
-## the way a warm panel fill would. A frame is not a fill.
+## mounted in, the way a DKC signboard, Banjo plaque or Crash crate is a wooden
+## object with something painted on it, and that is why it does not compete
+## with `ACCENT` the way a warm panel fill would. A frame is not a fill.
 ##
 ## It is deliberately a darker, browner gold than `ACCENT`. Two golds on one
 ## screen only works if one of them is clearly the older, dimmer, more wooden of
@@ -161,9 +163,9 @@ const SELECT_TEXT := INK
 ## it. Keyed by tab id.
 ## Every one of these was a tint of its hue rather than the hue itself — a sage
 ## green, a dusty blue, a lilac, a brick. Cartoon colour is not tinted. Looney
-## Tunes title cards and Banjo's worlds both work in colours at or near full
-## chroma, and the darkness that keeps them from glaring comes from the black
-## line around them, not from muting the fill.
+## Tunes title cards, Banjo's worlds and Crash's worlds all work in colours at
+## or near full chroma, and the darkness that keeps them from glaring comes
+## from the black line around them, not from muting the fill.
 const TAB_COLOURS := {
 	&"map": Color("46b23d"),
 	&"album": Color("2b8ee8"),
@@ -200,10 +202,11 @@ const TEXT_SHADOW := Vector2i(2, 2)
 ## shadow was two period looks fighting and the shadow was the right one. That
 ## was written when the display face was Bungee, which is signwriting and does
 ## carry itself unoutlined. It does not survive contact with the references it
-## was claiming to serve: Donkey Kong Country, Banjo-Kazooie and Looney Tunes
-## all use outline *and* drop shadow together, on the same letters, and the
-## outline is the more definitional of the two. A cartoon letterform without a
-## black line around it is a font; with one it is a drawing.
+## was claiming to serve: Donkey Kong Country, Banjo-Kazooie, Crash Bandicoot
+## and Looney Tunes all give the same letters both a hard outline and offset
+## depth, and the outline is the more definitional of the two. A cartoon
+## letterform without a black line around it is a font; with one it is a
+## drawing.
 ##
 ## Body keeps `outline_size` at zero. A pixel face at 16 or 24 has strokes only
 ## two or three pixels wide, and a six-pixel line around those closes the

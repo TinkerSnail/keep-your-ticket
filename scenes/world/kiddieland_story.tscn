@@ -1,0 +1,71 @@
+[gd_scene load_steps=7 format=3]
+
+; Hand-authored runtime layer for Three Jumps and a Birthday. The board below is
+; an ordinary editor-owned object under the existing KC3 pavilion. It begins
+; hidden and becomes the visible return-day keepsake after the first four beats.
+
+[ext_resource type="Script" path="res://scenes/world/kiddieland_story.gd" id="1_story"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_frame"]
+albedo_color = Color(0.235294, 0.137255, 0.0705882, 1)
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_page"]
+albedo_color = Color(0.917647, 0.835294, 0.623529, 1)
+roughness = 0.72
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_photo"]
+albedo_color = Color(0.239216, 0.411765, 0.494118, 1)
+roughness = 0.68
+
+[sub_resource type="BoxMesh" id="BoxMesh_frame"]
+size = Vector3(0.18, 2.4, 4.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_page"]
+size = Vector3(0.1, 2.05, 4.42)
+
+[sub_resource type="BoxMesh" id="BoxMesh_photo"]
+size = Vector3(0.06, 0.72, 0.98)
+
+[node name="kiddieland_story" type="Node3D" groups=["district_story"]]
+script = ExtResource("1_story")
+
+[node name="birthday_album" type="Node3D" parent="."]
+position = Vector3(79.45, 3.12, 157.75)
+rotation = Vector3(0, 1.5708, 0)
+visible = false
+editor_description = "Visible Birthday Album keepsake under the KC3 pavilion. Move and dress it here in the editor; the story controller only changes visibility."
+
+[node name="frame" type="MeshInstance3D" parent="birthday_album"]
+mesh = SubResource("BoxMesh_frame")
+material_override = SubResource("StandardMaterial3D_frame")
+
+[node name="page" type="MeshInstance3D" parent="birthday_album"]
+position = Vector3(-0.115, 0, 0)
+mesh = SubResource("BoxMesh_page")
+material_override = SubResource("StandardMaterial3D_page")
+
+[node name="photo_field_trip" type="MeshInstance3D" parent="birthday_album"]
+position = Vector3(-0.185, 0.5, -1.45)
+mesh = SubResource("BoxMesh_photo")
+material_override = SubResource("StandardMaterial3D_photo")
+
+[node name="photo_mascot" type="MeshInstance3D" parent="birthday_album"]
+position = Vector3(-0.185, 0.5, -0.25)
+mesh = SubResource("BoxMesh_photo")
+material_override = SubResource("StandardMaterial3D_photo")
+
+[node name="photo_ride" type="MeshInstance3D" parent="birthday_album"]
+position = Vector3(-0.185, 0.5, 0.95)
+mesh = SubResource("BoxMesh_photo")
+material_override = SubResource("StandardMaterial3D_photo")
+
+[node name="photo_family" type="MeshInstance3D" parent="birthday_album"]
+position = Vector3(-0.185, -0.5, -0.85)
+mesh = SubResource("BoxMesh_photo")
+material_override = SubResource("StandardMaterial3D_photo")
+
+[node name="photo_splash" type="MeshInstance3D" parent="birthday_album"]
+position = Vector3(-0.185, -0.5, 0.55)
+mesh = SubResource("BoxMesh_photo")
+material_override = SubResource("StandardMaterial3D_photo")

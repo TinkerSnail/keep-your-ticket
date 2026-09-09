@@ -5,69 +5,107 @@
 <title>Park Waterfront · zoomed planning map</title>
 <body>
 <main class="map-page" id="section-map">
-  <nav><a href="park-world-beyond.html">← World map</a><a href="north-valley.html">North Valley</a><a href="beach-town.html">Beach Town</a><a href="city-peninsula.html">City Peninsula</a></nav>
+  <nav><a href="park-world-beyond.html">← World map</a><a href="north-valley.html">North Valley</a><a href="beach-town.html">Beach Town</a><a class="active" href="park-waterfront.html">Park Waterfront</a><a href="city-peninsula.html">City Peninsula</a></nav>
   <header><p class="eyebrow">Approved coastal expansion · section map 1 of 4</p><h1>Park Waterfront</h1><p>Boardwalk pier, protected western composition, Headland visitor cluster and working harbour · world coordinates · north up</p></header>
   <p class="literal-rule"><b>Literal-use rule.</b> Orange marks only a named retrofit, replacement or extension of the grey host beside it; it is never a second object stacked over the host. No SVG path or coordinate may be traced into generated geometry. Pier, shoreline, harbour, visitor-court and rail shapes require editor-owned sources.</p>
-  <div class="controls"><button class="active" data-view="approved">Approved integration</button><button data-view="built">Existing hosts only</button><span>Grey = host · orange = retrofit/parcel · blue = water/boats · red = protected</span></div>
-  <svg viewBox="0 0 960 720" role="img" aria-label="Zoomed map of the Boardwalk pier, Headland and harbour">
-    <g id="base"></g><g id="approved" data-approved></g><g id="labels"></g>
+  <div class="controls"><button class="active" aria-pressed="true" data-view="approved">Approved integration</button><button aria-pressed="false" data-view="built">Existing hosts only</button><span>Grey = existing host · orange = approved integration · blue = water/boats · purple = rail · red = protected</span></div>
+  <svg viewBox="0 0 1100 720" role="img" aria-labelledby="waterfront-title waterfront-desc">
+    <title id="waterfront-title">Park Waterfront integration map</title>
+    <desc id="waterfront-desc">A detailed plan of the existing Boardwalk pavilion landing and Headland harbour showing clear public and service routes, pier fishing rail-bay retrofits, an aquarium wing joined to the keeper exhibit, marina slips growing from the quay, a cannery served by road and rail, and separated boat loops.</desc>
+
+    <rect class="panel-water" x="20" y="20" width="420" height="680"/>
+    <path class="panel-land" d="M360 20 H440 V700 H355 C370 605 350 515 366 425 C350 320 370 210 360 20 Z"/>
+    <path class="protected" d="M18 188 L175 250 L390 285 L390 345 L175 380 L18 470 Z"/>
+    <path class="protected-line" d="M430 315 H175 M175 315 L18 230 M175 315 L18 428"/>
+    <path class="host-route" d="M382 55 V665"><title>Existing Boardwalk promenade</title></path>
+    <rect class="host wheel-host" x="365" y="176" width="62" height="76"/>
+    <path class="pier-host" d="M382 315 H175"><title>Existing eight-metre Boardwalk pier</title></path>
+    <rect class="landing-host" x="55" y="250" width="120" height="130"><title>Existing twelve by thirteen metre pavilion landing</title></rect>
+    <rect class="host" x="74" y="268" width="66" height="54"><title>Existing terminal pavilion</title></rect>
+    <path class="clear-zone" d="M370 286 H112 V344 H370"><title>Clear primary approach and pavilion turnaround</title></path>
+    <text class="panel-title" x="38" y="52">A · BOARDWALK PIER HEAD</text>
+    <text class="host-label" x="322" y="70">EXISTING PROMENADE</text>
+    <text class="host-label" x="275" y="166">EXISTING WHEEL PLATFORM</text>
+    <text class="host-label" x="235" y="305">8m EXISTING PIER</text>
+    <text class="host-label" x="68" y="243">12 × 13m EXISTING LANDING</text>
+    <text class="host-label" x="86" y="298">PAVILION</text>
+    <text class="clear-label" x="194" y="337">CLEAR APPROACH + TURNAROUND</text>
+    <text class="protected-label" x="38" y="178">PROTECTED WEST-ARCH / PIER REVEAL</text>
+    <text class="protected-label" x="38" y="486">SUNSET SECTOR REMAINS OPEN WATER</text>
+    <text class="protected-label" x="38" y="668">NT-1 APPROACH · UNCHANGED</text>
+
+    <g data-approved aria-label="Approved fishing retrofit on existing pavilion landing">
+      <path class="fishing-bay" d="M55 262 V292 M55 304 V334 M55 346 V370 M67 380 H96 M108 380 H137 M149 380 H168"/>
+      <rect class="service-fixture" x="76" y="352" width="22" height="8"/><rect class="service-fixture" x="104" y="352" width="12" height="8"/><rect class="service-fixture" x="122" y="352" width="14" height="8"/>
+      <text class="approved-label" x="37" y="405">FISHING USE RETROFITS OUTER + SOUTH RAIL BAYS</text>
+      <text class="approved-label" x="69" y="424">SERVICE EDGE: BENCHES · TACKLE CART · SINK</text>
+      <text class="approved-note" x="62" y="450">NO NEW DECK · NO FIXTURE IN THE CLEAR ZONE</text>
+    </g>
+
+    <rect class="panel-water" x="460" y="20" width="620" height="680"/>
+    <path class="headland" d="M716 20 H1080 V700 H566 L520 650 L548 590 L604 536 L681 496 L638 445 L612 380 L642 314 L700 258 L748 230 Z"/>
+    <text class="panel-title" x="478" y="52">B · HEADLAND + WORKING HARBOUR</text>
+    <text class="water-label" x="480" y="82">SHELTERED COVE</text>
+    <path class="breakwater" d="M724 355 C690 347 650 326 620 292"><title>Existing breakwater</title></path>
+    <path class="quay" d="M744 248 V342"><title>Existing quay</title></path>
+    <circle class="harbour-light" cx="620" cy="292" r="7"/>
+    <path class="visitor-route" d="M1080 486 L930 490 L800 520 L700 552 L630 584 L568 626"><title>Existing public Headland visitor walk</title></path>
+    <path class="service-approach" d="M1080 658 H844 L790 632 L758 615"><title>Existing visitor-cluster service approach</title></path>
+    <circle class="lighthouse" cx="568" cy="626" r="12"/><rect class="host" x="624" y="600" width="68" height="44"/><path class="court-host" d="M608 574 H722 V662 H608 Z"/>
+    <text class="host-label" x="482" y="646">LIGHTHOUSE</text>
+    <text class="host-label" x="627" y="628">KEEPER EXHIBIT</text>
+    <text class="host-label" x="820" y="544">HEADLAND VISITOR WALK · PUBLIC</text>
+    <text class="host-label" x="862" y="640">EXISTING SERVICE APPROACH</text>
+    <text class="host-label" x="642" y="235">EXISTING QUAY</text>
+    <text class="host-label" x="478" y="276">EXISTING BREAKWATER</text>
+    <path class="harbour-mouth" d="M578 305 l22 -16 M590 324 l22 -16"/>
+    <text class="clear-label" x="476" y="336">HARBOUR MOUTH · KEEP CLEAR</text>
+
+    <g data-approved aria-label="Approved Headland and working-harbour integration">
+      <path class="marina" d="M742 264 H674 M742 294 H660 M742 324 H686"/>
+      <path class="gangway" d="M722 252 L698 276 M722 282 L694 306 M722 312 L702 334"/>
+      <circle class="mooring" cx="676" cy="264" r="4"/><circle class="mooring" cx="662" cy="294" r="4"/><circle class="mooring" cx="688" cy="324" r="4"/>
+      <path class="working-road" d="M1080 302 H952 L884 294 L820 294 L744 294"><title>Working harbour service road</title></path>
+      <rect class="approved-site" x="790" y="258" width="28" height="24"/><rect class="approved-site" x="828" y="254" width="52" height="31"/>
+      <path class="launch" d="M774 326 L716 382"/><rect class="approved-site" x="760" y="298" width="30" height="24"/>
+      <rect class="seafood-site" x="786" y="300" width="38" height="30"/><rect class="seafood-site" x="830" y="300" width="38" height="30"/>
+      <rect class="cannery" x="900" y="338" width="112" height="82"/>
+      <path class="rail" d="M1080 430 L1020 412 L982 405"><title>Rail spur terminates at cannery loading doors</title></path>
+      <path class="loading-doors" d="M982 382 V412 M996 382 V412"/>
+      <path class="stack" d="M932 338 V315 M965 338 V315"/>
+      <path class="shared-court" d="M692 606 H746 V644 H692 M700 552 V606"><title>Shared public courtyard joining visitor walk, keeper exhibit and aquarium</title></path>
+      <rect class="aquarium" x="692" y="590" width="74" height="54"/><path class="aquarium-service" d="M758 615 H790"/>
+      <path class="working-loop" d="M700 318 C675 320 650 313 632 304 C603 286 559 287 526 310 C504 327 512 350 544 363 C580 378 616 348 632 304 C650 313 676 320 700 318"/>
+      <path class="sailing-loop" d="M604 215 C560 232 506 222 484 185 C468 156 488 120 530 110 C576 99 620 130 638 170 C648 190 632 207 604 215"/>
+      <text class="approved-label" x="620" y="224">MARINA EXTENDS THE QUAY</text>
+      <text class="approved-label" x="784" y="246">SERVICE END · FUEL + DRY RACKS</text>
+      <text class="approved-label" x="694" y="401">LAUNCH RAMP</text>
+      <text class="approved-label" x="760" y="362">SEAFOOD SHACKS FACE SERVICE ROAD</text>
+      <text class="approved-label" x="900" y="334">CANNERY · WORKING SIDE</text>
+      <text class="approved-note" x="920" y="434">2 MODEST STACKS</text>
+      <text class="rail-label" x="924" y="450">RAIL → LOADING DOORS</text>
+      <text class="approved-label" x="850" y="278">WORKING HARBOUR SERVICE ROAD</text>
+      <text class="water-label" x="486" y="368">WORKING-BOAT LOOP · THROUGH MOUTH</text>
+      <text class="water-label" x="486" y="102">SAILING LOOP · OUTER WATER</text>
+      <text class="approved-label" x="704" y="570">AQUARIUM WING · COMPLETES VISITOR CLUSTER</text>
+      <text class="approved-note" x="690" y="672">SHARED COURT · SEPARATE SERVICE DOOR</text>
+      <text class="approved-note" x="748" y="470">WORKING ROAD + RAIL STAY NORTH OF PUBLIC WALK</text>
+    </g>
+
+    <text class="coord" x="34" y="694">WORLD MAP GOVERNS BETWEEN-SITE CONNECTIONS</text>
+    <text class="coord" x="800" y="694">EXACT COURSES REQUIRE EDITOR-OWNED SOURCES</text>
   </svg>
   <section class="ledger">
     <h2>Integration ledger</h2>
     <article><b>Pier fishing</b><span>Host: existing 12 × 13m pavilion landing.</span><span>Change: rod rests in outer/south rail bays; benches, tackle cart and cleaning sink on the pavilion service edge; regular anglers use the landing.</span><span class="reject">Rejected: separate side platform.</span></article>
     <article><b>Aquarium</b><span>Host: keeper’s exhibit visitor court and service approach.</span><span>Change: low courtyard wing sharing the Headland material family; tide pools, kelp, local fish, invertebrates and rehabilitation/education.</span><span class="protect">Must remain subordinate to the lighthouse; no marine mammals.</span></article>
-    <article><b>Marina and cannery</b><span>Host: sheltered cove, existing quay and breakwater.</span><span>Change: slips and gangways extend the quay; fuel shed, launch ramp and dry racks occupy its service end; cannery and two modest smokestacks close the landward working edge east of the visitor route; spur terminates at loading doors.</span></article>
-    <article><b>Seafood and water activity</b><span>Host: quay-to-road transition, harbour mouth and offshore water.</span><span>Change: seafood shacks front the working edge; moorings, working boats, sailboats and offshore anglers use separate authored loops while keeping the entrance clear.</span></article>
+    <article><b>Marina and cannery</b><span>Host: sheltered cove, existing quay and breakwater.</span><span>Change: slips and gangways grow from the quay; fuel, launch and dry racks share its service end. A named working road serves them and the cannery without crossing the public visitor walk; the rail spur terminates at the cannery loading doors.</span></article>
+    <article><b>Seafood and water activity</b><span>Host: quay-to-road transition, harbour mouth and offshore water.</span><span>Change: seafood shacks face the working road. The working-boat loop uses the clear harbour mouth; the wider sailing loop stays outside the marina and breakwater.</span></article>
   </section>
   <section class="checks"><h2>Before Godot</h2><ul><li>Confirm the pier-head rail bays preserve the clear 8m approach and pavilion turnaround.</li><li>Check the aquarium wing from lighthouse, approach and Q−2 views.</li><li>Fit slips, launch and boat loops to real cove depth and breakwater clearance.</li><li>Keep NT-1, the west-arch pier reveal and the 280°–310° sunset sector unchanged.</li></ul></section>
 </main>
-<script>
-(() => {
-  const svg=document.querySelector('svg'), ns='http://www.w3.org/2000/svg';
-  const G={base:document.getElementById('base'),approved:document.getElementById('approved'),labels:document.getElementById('labels')};
-  const d={x0:-290,x1:-60,z0:-430,z1:60}, p={x:54,y:34,w:852,h:632};
-  const X=x=>p.x+(x-d.x0)/(d.x1-d.x0)*p.w, Y=z=>p.y+(d.z1-z)/(d.z1-d.z0)*p.h;
-  const el=(n,a={})=>{const q=document.createElementNS(ns,n);for(const[k,v]of Object.entries(a))q.setAttribute(k,v);return q};
-  const path=(g,pts,c,close=false)=>g.appendChild(el('path',{d:pts.map((v,i)=>`${i?'L':'M'} ${X(v[0])} ${Y(v[1])}`).join(' ')+(close?' Z':''),class:c}));
-  const rect=(g,x0,z0,x1,z1,c)=>g.appendChild(el('rect',{x:X(x0),y:Y(z1),width:X(x1)-X(x0),height:Y(z0)-Y(z1),class:c}));
-  const dot=(g,a,r,c)=>g.appendChild(el('circle',{cx:X(a[0]),cy:Y(a[1]),r,class:c}));
-  const label=(copy,a,c='label',anchor='start')=>{const q=el('text',{x:X(a[0]),y:Y(a[1]),class:c,'text-anchor':anchor});q.textContent=copy;G.labels.appendChild(q)};
-  for(let x=-275;x<=-75;x+=25)path(G.base,[[x,d.z0],[x,d.z1]],'grid');
-  for(let z=-400;z<=50;z+=50)path(G.base,[[d.x0,z],[d.x1,z]],'grid');
-  rect(G.base,d.x0,d.z0,d.x1,d.z1,'sea');
-  const land=[[-108,60],[-108,0],[-112,-130],[-100,-185],[-72,-218],[-100,-236],[-140,-248],[-185,-258],[-225,-270],[-242,-295],[-228,-325],[-198,-345],[-165,-356],[-142,-376],[-131,-400],[-60,-430],[-60,60]];
-  path(G.base,land,'land',true);
-  path(G.base,[[-100,55],[-100,-80]],'promenade');
-  path(G.base,[[-100,-2],[-144,-2]],'pier');
-  rect(G.base,-156,-8.5,-144,4.5,'host-strong');
-  path(G.base,[[-104,-236],[-101,-224],[-97,-213],[-93,-203]],'host-strong');
-  path(G.base,[[-83,-216],[-83,-200]],'host-strong');
-  path(G.base,[[-37,-172],[-74,-258],[-139,-291],[-205,-300]],'route');
-  dot(G.base,[-205,-300],7,'lighthouse'); rect(G.base,-202,-326,-180,-306,'host');
-  label('BOARDWALK PIER',[ -101,18],'host-label'); label('existing pavilion landing',[-158,-18],'host-label');
-  label('HEADLAND VISITOR CLUSTER',[-218,-347],'host-label'); label('existing quay + breakwater',[-126,-208],'host-label');
-  path(G.approved,[[-156,4.5],[-156,-8.5],[-144,-8.5]],'retrofit');
-  dot(G.approved,[-150,-2],5,'approved-dot'); label('FISHING RAIL BAYS + SERVICE EDGE',[-210,-3],'approved-label');
-  rect(G.approved,-180,-325,-166,-307,'approved-site');
-  label('AQUARIUM COURTYARD WING',[-218,-318],'approved-label');
-  path(G.approved,[[-83,-216],[-118,-228]],'retrofit');
-  [[-112,-229,-112,-254],[-102,-225,-102,-251],[-92,-220,-92,-246]].forEach(s=>path(G.approved,[[s[0],s[1]],[s[2],s[3]]],'marina'));
-  rect(G.approved,-92,-310,-64,-280,'approved-site'); label('CANNERY · EAST OF VISITOR ROUTE',[-140,-316],'approved-label');
-  path(G.approved,[[-60,-360],[-73,-335],[-82,-310]],'rail'); label('rail spur ends at loading doors',[-112,-360],'approved-label');
-  dot(G.approved,[-82,-290],4,'stack'); dot(G.approved,[-72,-290],4,'stack');
-  rect(G.approved,-134,-254,-119,-239,'approved-site'); label('seafood transition',[-160,-226],'approved-label');
-  rect(G.approved,-141,-266,-132,-257,'approved-site'); label('dry racks',[-168,-259],'approved-label');
-  rect(G.approved,-144,-249,-136,-241,'approved-site'); label('fuel',[-168,-242],'approved-label');
-  path(G.approved,[[-150,-252],[-158,-278]],'retrofit'); label('launch',[-178,-278],'approved-label');
-  path(G.approved,[[-128,-210],[-155,-192],[-190,-202],[-203,-225],[-170,-242],[-128,-210]],'boat-loop');
-  path(G.approved,[[-203,-225],[-245,-205],[-268,-235],[-238,-270],[-203,-225]],'boat-loop');
-  label('working-boat loop',[-224,-190],'water-label'); label('sailing loop',[-277,-278],'water-label');
-  path(G.approved,[[-150,-2],[-290,38],[-290,-52]],'protected',true); label('PROTECTED SUNSET + PIER REVEAL',[-282,48],'protected-label');
-  path(G.approved,[[-60,0],[-150,-2]],'protected-line');
-  document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{const on=b.dataset.view==='approved';G.approved.style.display=on?'':'none';G.labels.querySelectorAll('.approved-label,.water-label,.protected-label').forEach(n=>n.style.display=on?'':'none');document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x===b));}));
-})();
-</script>
+<script>document.querySelectorAll('[data-view]').forEach(button=>button.addEventListener('click',()=>{const approved=button.dataset.view==='approved';document.querySelectorAll('[data-approved]').forEach(node=>node.style.display=approved?'':'none');document.querySelectorAll('[data-view]').forEach(node=>{const active=node===button;node.classList.toggle('active',active);node.setAttribute('aria-pressed',String(active));});}));</script>
 <style>
-:root{--bg:#f5f2e8;--fg:#262923;--muted:#d8d4c8;--muted-fg:#6d7168;--border:#c7c2b6;--blue:#247fa3;--green:#477d4b;--yellow:#d9a528;--orange:#d0642d;--red:#b84c46;--purple:#72569a}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,-apple-system,sans-serif}.map-page{width:min(1180px,100%);margin:auto;padding:24px}nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}nav a{color:var(--fg);text-decoration:none;border:1px solid var(--border);border-radius:99px;padding:5px 10px}header .eyebrow{color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:11px}h1{font-size:34px;line-height:1;margin:.2em 0}header>p:last-child{color:var(--muted-fg)}.literal-rule{max-width:92ch;border-left:4px solid var(--red);padding:10px 14px;background:color-mix(in srgb,var(--red) 7%,transparent)}.controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:18px 0 10px}.controls button{border:1px solid var(--border);background:var(--bg);border-radius:99px;padding:7px 12px;cursor:pointer}.controls button.active{background:var(--fg);color:var(--bg);border-color:var(--fg)}.controls span{color:var(--muted-fg);font-size:12px}svg{display:block;width:100%;height:auto;border:1px solid var(--border);border-radius:14px;background:var(--bg)}svg text{font:10px ui-sans-serif,system-ui;paint-order:stroke;stroke:var(--bg);stroke-width:3px;stroke-linejoin:round}.grid{fill:none;stroke:var(--border);stroke-width:1;opacity:.42}.sea{fill:color-mix(in srgb,var(--blue) 16%,var(--bg))}.land{fill:color-mix(in srgb,var(--green) 15%,var(--bg));stroke:var(--muted-fg);stroke-width:2}.promenade,.route{fill:none;stroke:var(--fg);stroke-width:5}.route{stroke-width:3;stroke-dasharray:5 3}.pier{fill:none;stroke:var(--muted-fg);stroke-width:18}.host{fill:var(--muted);stroke:var(--muted-fg);stroke-width:2}.host-strong{fill:var(--muted-fg);stroke:var(--muted-fg);stroke-width:7}.lighthouse{fill:var(--yellow);stroke:var(--fg);stroke-width:2}.host-label{fill:var(--muted-fg);font-weight:700}.retrofit{fill:none;stroke:var(--orange);stroke-width:9;stroke-linecap:round}.approved-dot,.stack{fill:var(--orange);stroke:var(--bg);stroke-width:2}.approved-site{fill:color-mix(in srgb,var(--orange) 22%,transparent);stroke:var(--orange);stroke-width:3;stroke-dasharray:7 4}.approved-label{fill:var(--orange);font-weight:800}.marina{fill:none;stroke:var(--orange);stroke-width:5}.rail{fill:none;stroke:var(--purple);stroke-width:4;stroke-dasharray:9 4}.boat-loop{fill:none;stroke:var(--blue);stroke-width:3;stroke-dasharray:8 5}.water-label{fill:var(--blue);font-weight:700}.protected{fill:color-mix(in srgb,var(--red) 10%,transparent);stroke:var(--red);stroke-width:2;stroke-dasharray:8 5}.protected-line{fill:none;stroke:var(--red);stroke-width:2;stroke-dasharray:8 5}.protected-label{fill:var(--red);font-weight:800}.ledger,.checks{margin-top:18px}.ledger{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.ledger h2{grid-column:1/-1}.ledger article{display:flex;flex-direction:column;gap:4px;padding:13px;border:1px solid var(--border);border-radius:10px}.ledger article>b{font-size:16px}.reject{color:var(--red);font-weight:700}.protect{color:var(--purple);font-weight:700}.checks{padding:14px 18px;border-left:4px solid var(--orange);background:color-mix(in srgb,var(--orange) 7%,transparent)}h2{margin:.3em 0}@media(max-width:700px){.map-page{padding:14px}.ledger{grid-template-columns:1fr}svg text{font-size:12px}}
+:root{--bg:#f5f2e8;--fg:#262923;--muted:#d8d4c8;--muted-fg:#6d7168;--border:#c7c2b6;--blue:#247fa3;--green:#477d4b;--yellow:#d9a528;--orange:#d0642d;--red:#b84c46;--purple:#72569a}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,-apple-system,sans-serif}.map-page{width:min(1180px,100%);margin:auto;padding:24px}nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}nav a{color:var(--fg);text-decoration:none;border:1px solid var(--border);border-radius:99px;padding:5px 10px}nav a.active{background:var(--fg);color:var(--bg)}header .eyebrow{color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:11px}h1{font-size:34px;line-height:1;margin:.2em 0}header>p:last-child{color:var(--muted-fg)}.literal-rule{max-width:92ch;border-left:4px solid var(--red);padding:10px 14px;background:color-mix(in srgb,var(--red) 7%,transparent)}.controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:18px 0 10px}.controls button{border:1px solid var(--border);background:var(--bg);border-radius:99px;padding:7px 12px;cursor:pointer}.controls button.active{background:var(--fg);color:var(--bg);border-color:var(--fg)}.controls span{color:var(--muted-fg);font-size:12px}svg{display:block;width:100%;height:auto;border:1px solid var(--border);border-radius:14px;background:var(--bg)}svg text{font:10px ui-sans-serif,system-ui;paint-order:stroke;stroke:var(--bg);stroke-width:3px;stroke-linejoin:round}.panel-water{fill:color-mix(in srgb,var(--blue) 16%,var(--bg));stroke:var(--border);stroke-width:1}.panel-land,.headland{fill:color-mix(in srgb,var(--green) 15%,var(--bg));stroke:var(--muted-fg);stroke-width:2}.panel-title{fill:var(--fg);font-weight:800}.host-route{fill:none;stroke:var(--fg);stroke-width:7}.pier-host{fill:none;stroke:var(--muted-fg);stroke-width:32}.landing-host{fill:var(--muted);stroke:var(--muted-fg);stroke-width:4}.host{fill:var(--muted);stroke:var(--muted-fg);stroke-width:2}.clear-zone{fill:color-mix(in srgb,var(--green) 7%,transparent);stroke:var(--green);stroke-width:2;stroke-dasharray:7 5}.clear-label{fill:var(--green);font-weight:800}.protected{fill:color-mix(in srgb,var(--red) 8%,transparent);stroke:var(--red);stroke-width:2;stroke-dasharray:8 5}.protected-line{fill:none;stroke:var(--red);stroke-width:2;stroke-dasharray:8 5}.protected-label{fill:var(--red);font-weight:800}.host-label,.coord{fill:var(--muted-fg);font-weight:700}.fishing-bay{fill:none;stroke:var(--orange);stroke-width:7}.service-fixture{fill:var(--orange);stroke:var(--bg);stroke-width:1}.breakwater,.quay{fill:none;stroke:var(--muted-fg);stroke-width:12;stroke-linecap:round}.harbour-light{fill:var(--yellow);stroke:var(--fg);stroke-width:2}.visitor-route{fill:none;stroke:var(--fg);stroke-width:5;stroke-dasharray:7 4}.service-approach{fill:none;stroke:var(--muted-fg);stroke-width:4;stroke-dasharray:5 4}.court-host{fill:none;stroke:var(--muted-fg);stroke-width:2;stroke-dasharray:7 5}.lighthouse{fill:var(--yellow);stroke:var(--fg);stroke-width:2}.harbour-mouth{fill:none;stroke:var(--green);stroke-width:4}.marina,.gangway,.launch,.shared-court,.aquarium-service{fill:none;stroke:var(--orange);stroke-width:5;stroke-linecap:round}.gangway{stroke-width:3}.working-road{fill:none;stroke:var(--orange);stroke-width:10}.approved-site,.seafood-site,.cannery,.aquarium{fill:color-mix(in srgb,var(--orange) 22%,transparent);stroke:var(--orange);stroke-width:3}.approved-site{stroke-dasharray:6 4}.loading-doors,.stack{fill:none;stroke:var(--orange);stroke-width:5}.rail{fill:none;stroke:var(--purple);stroke-width:5;stroke-dasharray:10 5}.mooring{fill:var(--orange)}.working-loop,.sailing-loop{fill:none;stroke:var(--blue);stroke-width:3;stroke-dasharray:8 5}.approved-label{fill:var(--orange);font-weight:800}.approved-note{fill:var(--orange);font-weight:700}.rail-label{fill:var(--purple);font-weight:800}.water-label{fill:var(--blue);font-weight:700}.ledger,.checks{margin-top:18px}.ledger{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.ledger h2{grid-column:1/-1}.ledger article{display:flex;flex-direction:column;gap:4px;padding:13px;border:1px solid var(--border);border-radius:10px}.ledger article>b{font-size:16px}.reject{color:var(--red);font-weight:700}.protect{color:var(--purple);font-weight:700}.checks{padding:14px 18px;border-left:4px solid var(--orange);background:color-mix(in srgb,var(--orange) 7%,transparent)}h2{margin:.3em 0}@media(max-width:700px){.map-page{padding:14px}.ledger{grid-template-columns:1fr}svg text{font-size:12px}}
 </style>
 </body></html>

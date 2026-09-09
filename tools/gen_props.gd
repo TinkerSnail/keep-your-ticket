@@ -22,6 +22,9 @@ extends SceneTree
 ## script that is not itself and the generator emits well-formed output with
 ## pieces missing.
 const Plan := preload("res://scripts/park_plan.gd")
+const KiddielandSource := preload("res://scripts/kiddieland_layout_source.gd")
+const LighthouseRegradeSource := preload("res://scripts/lighthouse_regrade_source.gd")
+const DrainageTerrainSource := preload("res://scripts/park_drainage_terrain_source.gd")
 
 const GENERATED_DIR := "res://scenes/world/generated"
 const OUT_PATH := GENERATED_DIR + "/plaza_props.tscn"
@@ -95,6 +98,9 @@ var _grand_tram: Array[Vector3] = []
 ## terrain sampler is both expensive and, more importantly, lets two surfaces
 ## that should meet derive subtly different answers.
 var _rebuild_graded_route_cache: Dictionary = {}
+## Route D's course is editor-owned. Cache the merged, expanded district list
+## once so terrain, paving and validation all consume the same source records.
+var _rebuild_district_source_cache: Array = []
 ## B and C overlap at a shallow angle before J6. Their widened shared-floor
 ## record is derived once from both graded centrelines, then reused by the T2
 ## opening, both collision exclusions and the final junction surface.
@@ -103,6 +109,13 @@ var _rebuild_bc_floor_cache: Dictionary = {}
 ## court that owns that overlap so grading, collision clipping and construction
 ## cannot each invent a slightly different junction.
 var _rebuild_j9_floor_cache: Dictionary = {}
+## P1's artistic course and terrain cross-section live in the ordinary
+## editor-owned vertical-control scene. The generator derives construction
+## from this cached reader but never owns or overwrites that curve.
+var _lighthouse_regrade
+## D3-D6 are ordinary editor-owned Marker3D rings. This cached reader derives
+## the mesh heights, but the generator never writes their artistic source.
+var _drainage_terrain
 
 
 ## Set when a material came out wrong. `_save` refuses to write anything once it
@@ -110,10 +123,62 @@ var _rebuild_j9_floor_cache: Dictionary = {}
 var _fatal := false
 
 
+func _lighthouse_regrade_source():
+	if _lighthouse_regrade == null:
+		_lighthouse_regrade = LighthouseRegradeSource.new()
+	return _lighthouse_regrade
+
+
+func _drainage_terrain_source():
+	if _drainage_terrain == null:
+		_drainage_terrain = DrainageTerrainSource.new()
+	return _drainage_terrain
+
+
+func _rebuild_district_build_runs() -> Array:
+	if not _rebuild_district_source_cache.is_empty():
+		return _rebuild_district_source_cache
+	var root := KiddielandSource.instantiate()
+	var route_d := {}
+	for source in KiddielandSource.route_runs(root):
+		if bool(source["build"]):
+			route_d[StringName(source["id"])] = source
+	for built in Plan.rebuild_district_build_runs():
+		var record: Dictionary = built
+		if StringName(record["route"]) == &"D":
+			assert(route_d.has(StringName(record["id"])),
+				"Kiddieland source is missing built Route D run %s" % record["id"])
+			var source: Dictionary = route_d[StringName(record["id"])]
+			record = source.duplicate(true)
+			var expanded: Array = []
+			for point in source["points"]:
+				expanded.append(Plan.rebuild_expand_point(Vector2(point)))
+			record["points"] = expanded
+		_rebuild_district_source_cache.append(record)
+	root.free()
+	return _rebuild_district_source_cache
+
+
+func _kiddie_rail_loop_from_source() -> Array[Vector3]:
+	var root := KiddielandSource.instantiate()
+	var site: Dictionary = KiddielandSource.ride_sites(root)[&"R5"]
+	var centre := Plan.rebuild_expand_point(Vector2(site["at"]))
+	var radii: Vector2 = site["radii"]
+	var out: Array[Vector3] = []
+	for index in Plan.KIDDIE_RAIL_STEPS + 1:
+		var angle := PI + TAU * float(index) / float(Plan.KIDDIE_RAIL_STEPS)
+		out.append(Vector3(centre.x + cos(angle) * radii.x, 0.0,
+			centre.y + sin(angle) * radii.y))
+	root.free()
+	return out
+
+
 func _initialize() -> void:
+	_lighthouse_regrade_source()
+	_drainage_terrain_source()
 	_build_textures()
 	_build_materials()
-	_kiddie_rail = Plan.kiddie_rail_loop()
+	_kiddie_rail = _kiddie_rail_loop_from_source()
 	_grand_tram = Plan.grand_tram_loop()
 
 	_root = Node3D.new()
@@ -632,6 +697,7 @@ const LAMP_MAT_PATH := Plan.LAMP_MATERIAL
 const EYE_MAT_PATH := Plan.EYE_MATERIAL
 const TRIM_MAT_PATH := Plan.TRIM_MATERIAL
 const WINDOW_MAT_PATH := Plan.WINDOW_MATERIAL
+const SODIUM_MAT_PATH := Plan.SODIUM_MATERIAL
 
 ## Emission colours, and they are deliberately not the albedo.
 ##
@@ -648,6 +714,8 @@ const EYE_EMIT := Color(1.0, 0.80, 0.50)
 ## lamps and a little dimmer per square metre, since a window is bigger than
 ## a globe and there are a few hundred of them across a valley.
 const WINDOW_EMIT := Color(1.0, 0.82, 0.55)
+## High-pressure sodium: the orange every freeway was lit in the 1990s.
+const SODIUM_EMIT := Color(1.0, 0.60, 0.20)
 
 ## Cool, and the only cool light in the park. It reads as *architecture* lit on
 ## purpose against a park lit in tungsten — warm everywhere else, cold on the
@@ -1174,6 +1242,8 @@ func _build_materials() -> void:
 	town.vertex_color_is_srgb = true
 	mats["town"] = town
 	mats["town_window"] = _lit_material(Color(0.30, 0.36, 0.46), WINDOW_EMIT, WINDOW_MAT_PATH)
+	# The highway's sodium lamps (2026-09-05): the orange of a 1990s freeway.
+	mats["road_sodium"] = _lit_material(Color(0.92, 0.74, 0.46), SODIUM_EMIT, SODIUM_MAT_PATH)
 
 	# The two ground surfaces. Brick is warm and a little dusty rather than new
 	# terracotta — a park floor has had twenty summers on it.
@@ -2060,6 +2130,8 @@ const LIGHT_SERVICE := Plan.LIGHT_SERVICE
 const LIGHT_TINTS := {
 	"warm": Color(1.0, 0.78, 0.48),
 	"lamp": Color(1.0, 0.88, 0.68),
+	# The highway's cobra heads: high-pressure sodium, orange (2026-09-05).
+	"sodium": Color(1.0, 0.70, 0.36),
 	# Floodlighting, a touch cooler than the lamps so a washed wall separates
 	# from the pool of light at its foot instead of merging with it.
 	"wash": Color(1.0, 0.92, 0.80),
@@ -5117,6 +5189,15 @@ func _east_patch_columns(x0: float, x1: float) -> PackedFloat32Array:
 	return clean
 
 
+func _sorted_unique_floats(values: PackedFloat32Array) -> PackedFloat32Array:
+	values.sort()
+	var out := PackedFloat32Array()
+	for value in values:
+		if out.is_empty() or absf(out[-1] - value) > 0.0001:
+			out.append(value)
+	return out
+
+
 func _east_patch_half(kind: StringName, x: float) -> float:
 	match kind:
 		&"shelf":
@@ -5788,6 +5869,11 @@ func _shoulder_y(x: float, z: float, side: float, prm: Dictionary) -> float:
 		y = _east_frontier_grade_y(x, z, y)
 	else:
 		y = _east_kiddie_grade_y(x, z, y)
+		# D4 is a local Kiddieland fold, independent of NT-2. The separately
+		# graded route and ride pads stay where they are while this planted skin
+		# reads the editor-owned rim and low point.
+		y = _drainage_terrain_source().terrain_y(Vector2(x, z), y,
+			[&"D4_basin"])
 	return y
 
 
@@ -5862,7 +5948,12 @@ func _east_shoulder(side: float, tag: String) -> void:
 	# the bank as long unsupported sheets when seen from below.
 	if side < 0.0:
 		cols.append(Plan.PROMENADE_EAST_X + Plan.PROMENADE_WIDTH * 0.5 + 0.15)
-		cols.sort()
+	if side > 0.0:
+		for point_value in _drainage_terrain_source().control_points(&"D4_basin"):
+			var point: Vector3 = point_value
+			if point.x >= SHOULDER_WEST_X and point.x <= EARTH_TO_X:
+				cols.append(point.x)
+	cols = _sorted_unique_floats(cols)
 
 	var rows := PackedFloat32Array()
 	for r in prm["rows_head"]:
@@ -5872,6 +5963,13 @@ func _east_shoulder(side: float, tag: String) -> void:
 		d += SHOULDER_STEP_Z
 		rows.append(axis + side * d)
 	rows.append(axis + side * float(prm["end"]))
+	if side > 0.0:
+		for point_value in _drainage_terrain_source().control_points(&"D4_basin"):
+			var point: Vector3 = point_value
+			var point_d := (point.z - axis) * side
+			if point_d >= 0.0 and point_d <= float(prm["end"]):
+				rows.append(point.z)
+	rows = _sorted_unique_floats(rows)
 
 	var lines: Array[PackedVector3Array] = []
 	for zi in rows.size():
@@ -16744,6 +16842,11 @@ func _rebuild_groundworks() -> void:
 		_rebuild_mesh_body("terrain_world_coast_%s" % coast["id"], coast_mesh,
 			"ground_banded", true)
 
+	# The road corridors (2026-09-05): the ground under and beside every road
+	# cut into the landform, filling the holes the two meshes above leave.
+	_rebuild_mesh_body("terrain_road_corridor", _rebuild_road_corridor_mesh(),
+		"ground_banded", true)
+
 	var lowland: Array = Plan.rebuild_terrain_shape(&"T2")
 	var lowland_mesh := _rebuild_lowland_mesh(lowland)
 	_rebuild_mesh_body("terrain_T2_lowland", lowland_mesh, "planting", true)
@@ -16788,6 +16891,11 @@ func _rebuild_world_reserve_mesh() -> ArrayMesh:
 			lo = Vector2(minf(lo.x, q.x), minf(lo.y, q.y))
 			hi = Vector2(maxf(hi.x, q.x), maxf(hi.y, q.y))
 		sea_bounds.append([lo, hi])
+	# And the road corridors (2026-09-05), clipped out the same way and filled
+	# by their own mesh: see `_rebuild_road_corridor_mesh`.
+	for corridor in _road_corridor_polygons():
+		seas.append(corridor["poly"])
+		sea_bounds.append([corridor["lo"], corridor["hi"]])
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_smooth_group(0)
@@ -16936,10 +17044,24 @@ func _polygon_area(poly: PackedVector2Array) -> float:
 	return absf(area) * 0.5
 
 
+## A piece's triangles: the triangulator's, or a fan from its first vertex
+## where the triangulator refuses a thin sliver (2026-09-06: a three-metre
+## sliver between a lattice line and a corridor's edge came back empty,
+## and its neighbour's edge stood open).
+func _piece_triangles(piece: PackedVector2Array) -> PackedInt32Array:
+	var tris := Geometry2D.triangulate_polygon(piece)
+	if tris.is_empty() and piece.size() >= 3 and _polygon_area(piece) > 0.0004:
+		for i in range(1, piece.size() - 1):
+			tris.append(0)
+			tris.append(i)
+			tris.append(i + 1)
+	return tris
+
+
 ## One clipped reserve cell piece, triangulated and coloured like the whole
 ## cells around it.
 func _reserve_piece(st: SurfaceTool, piece: PackedVector2Array) -> void:
-	var tris := Geometry2D.triangulate_polygon(piece)
+	var tris := _piece_triangles(piece)
 	for i in range(0, tris.size(), 3):
 		var a2: Vector2 = piece[tris[i]]
 		var b2: Vector2 = piece[tris[i + 1]]
@@ -16985,6 +17107,15 @@ func _rebuild_axis_step_at(p: float, axis_x: bool) -> float:
 			else (p >= r.position.y and p <= r.end.y)
 		if inside:
 			step = minf(step, float(zone[1]))
+	# P1 needs a finer terrain lattice than the surrounding greybox. Its
+	# refinement rectangle follows the live editor curve, so reshaping the
+	# source cannot leave a copied generator-side zone behind.
+	var p1_source = _lighthouse_regrade_source()
+	var p1_bounds: Rect2 = p1_source.terrain_bounds()
+	var inside_p1 := (p >= p1_bounds.position.x and p <= p1_bounds.end.x) if axis_x \
+		else (p >= p1_bounds.position.y and p <= p1_bounds.end.y)
+	if inside_p1:
+		step = minf(step, p1_source.terrain_grid_step())
 	return step
 
 
@@ -17122,50 +17253,20 @@ func _rebuild_range_rise_raw(p: Vector2) -> float:
 	return y * w * shore + base
 
 
-## Every road holds its own grade: within a metre of a road's edge the ground
-## is the road's line, and out to the batter it blends back to the landform.
-## The approach road and the highway's open stations with 18m batters, the
-## towns' streets (02B) with `TOWN_STREET_BATTER` and a `TOWN_STREET_VERGE`
-## at the road's level beyond the kerb, because a street along a hillside
-## on 8m cells needs every vertex its edge interpolates between on its own
-## plane, or the mesh carries the slope back over the kerb (a third of a
-## metre on Second Street's north end, 2026-09-05). A tunnel's stations do
-## not cut, so the hill stays over the tube. Nearest road wins.
+## Every road holds its own grade. The towns' streets (02B) cut the 4m
+## lattice by the old rule, level within a metre of the edge and blended
+## back to the landform over `TOWN_STREET_BATTER` beyond a `TOWN_STREET_VERGE`
+## at the road's level, because a street along a hillside on a lattice
+## needs every vertex its edge interpolates between on its own plane. The
+## highway, the approach road and the interchange's ramps are
+## `_road_cut_records`: the same rule where they run on the lattice, and
+## inside their corridors the section itself (`_road_profile_y`). Nearest
+## road wins, by the distance beyond its edge. A tunnel's stations do not
+## cut, so the hill stays over the tube.
 func _rebuild_road_cut(p: Vector2, y: float, with_streets := true) -> float:
 	var best := INF
 	var road_y := 0.0
-	var batter := 18.0
-	var road: Array[Vector3] = Plan.approach_road_points()
-	for i in road.size() - 1:
-		var a := Vector2(road[i].x, road[i].z)
-		var b := Vector2(road[i + 1].x, road[i + 1].z)
-		var q := Geometry2D.get_closest_point_to_segment(p, a, b)
-		var dist := p.distance_to(q) - Plan.APPROACH_ROAD_W * 0.5
-		if dist < best:
-			best = dist
-			batter = 18.0
-			var t := a.distance_to(q) / maxf(a.distance_to(b), 0.001)
-			road_y = lerpf(road[i].y, road[i + 1].y, t)
-	var hw: Array = _highway_stations()
-	var open: PackedByteArray = _highway_open
-	var reach := Plan.HIGHWAY_W * 0.5 + 1.0 + 18.0
-	for i in hw.size() - 1:
-		if not open[i]:
-			continue
-		var s0: Vector3 = hw[i]
-		var s1: Vector3 = hw[i + 1]
-		if p.x < minf(s0.x, s1.x) - reach or p.x > maxf(s0.x, s1.x) + reach \
-				or p.y < minf(s0.z, s1.z) - reach or p.y > maxf(s0.z, s1.z) + reach:
-			continue
-		var a := Vector2(s0.x, s0.z)
-		var b := Vector2(s1.x, s1.z)
-		var q := Geometry2D.get_closest_point_to_segment(p, a, b)
-		var dist := p.distance_to(q) - Plan.HIGHWAY_W * 0.5
-		if dist < best:
-			best = dist
-			batter = 18.0
-			var t := a.distance_to(q) / maxf(a.distance_to(b), 0.001)
-			road_y = lerpf(s0.y, s1.y, t)
+	var batter := TOWN_STREET_BATTER
 	var streets: Array = _town_street_stations() if with_streets else []
 	for street in streets:
 		var lo: Vector2 = street["lo"]
@@ -17186,9 +17287,18 @@ func _rebuild_road_cut(p: Vector2, y: float, with_streets := true) -> float:
 			var dist := p.distance_to(q) - half - (TOWN_STREET_VERGE - 1.0)
 			if dist < best:
 				best = dist
-				batter = TOWN_STREET_BATTER
 				var t := a.distance_to(q) / maxf(a.distance_to(b), 0.001)
 				road_y = lerpf(s0.y, s1.y, t)
+	var records := _road_records_cut(p, y)
+	# A structured road owns its own ribbon. A nearby town street's broad
+	# batter used to win by edge distance inside the highway south of the
+	# beach town and pulled the corridor five metres below its carriageway.
+	# Outside the ribbon the normal nearest-edge rule still blends the two
+	# cuts together.
+	if bool(records[1]) and (float(records[2]) <= 0.0 or float(records[2]) < best):
+		return float(records[0])
+	if best == INF:
+		return y
 	if best <= 1.0:
 		return road_y - 0.06
 	var blend := clampf((best - 1.0) / batter, 0.0, 1.0)
@@ -17216,81 +17326,13 @@ var _highway_open := PackedByteArray()
 var _highway_tunnels: Array = []
 
 
-## The highway's stations in 3D, computed once: the plan line resampled at
-## `HIGHWAY_STATION`, each station's height read off the natural ground a
-## little below the surface, the junction pinned to the approach road's upper
-## end, then held to `HIGHWAY_MAX_GRADE` by lowering only, forward and back,
-## so the road is on the surface where it can be and cut in where the ground
-## climbs faster than a road may. Where the ground stands more than
-## `HIGHWAY_TUNNEL_COVER` over the road for at least `HIGHWAY_TUNNEL_MIN_LEN`
-## the stations are closed: the ground is not cut there and a tunnel is built.
+## The highway's centre-line stations in 3D, computed once by
+## `_highway_build` with everything else the road is: the lower
+## carriageway's level at each, which every older reader takes as the
+## road's. The carriageways themselves are `_highway_a` and `_highway_b`.
 func _highway_stations() -> Array:
-	if not _highway_cache.is_empty():
-		return _highway_cache
-	var plan: Array[Vector2] = Plan.highway_path()
-	var xz: Array[Vector2] = [plan[0]]
-	for i in range(1, plan.size()):
-		var a: Vector2 = plan[i - 1]
-		var b: Vector2 = plan[i]
-		var steps := maxi(1, ceili(a.distance_to(b) / Plan.HIGHWAY_STATION))
-		for k in range(1, steps + 1):
-			xz.append(a.lerp(b, float(k) / float(steps)))
-	var h := PackedFloat32Array()
-	for q in xz:
-		h.append(_rebuild_natural_y(q) - 0.4)
-	# The junction: the approach road's upper end is the height the park road
-	# hands over at, so the highway meets it there exactly.
-	var approach: Array[Vector3] = Plan.approach_road_points()
-	var top: Vector3 = approach[approach.size() - 1]
-	var junction_i := 0
-	var junction_d := INF
-	for i in xz.size():
-		var d := xz[i].distance_to(Vector2(top.x, top.z))
-		if d < junction_d:
-			junction_d = d
-			junction_i = i
-	h[junction_i] = minf(h[junction_i], top.y)
-	for pass_i in 2:
-		for i in range(1, xz.size()):
-			var reach := xz[i].distance_to(xz[i - 1]) * Plan.HIGHWAY_MAX_GRADE
-			h[i] = minf(h[i], h[i - 1] + reach)
-		for i in range(xz.size() - 2, -1, -1):
-			var reach := xz[i].distance_to(xz[i + 1]) * Plan.HIGHWAY_MAX_GRADE
-			h[i] = minf(h[i], h[i + 1] + reach)
-	var stations: Array = []
-	for i in xz.size():
-		stations.append(Vector3(xz[i].x, h[i], xz[i].y))
-	# Tunnels: runs of segments whose cover is deep along their whole length.
-	var deep := PackedByteArray()
-	for i in xz.size() - 1:
-		var min_cover := INF
-		for k in 3:
-			var q: Vector2 = xz[i].lerp(xz[i + 1], (float(k) + 0.5) / 3.0)
-			var road_y := lerpf(h[i], h[i + 1], (float(k) + 0.5) / 3.0)
-			min_cover = minf(min_cover, _rebuild_natural_y(q) - road_y)
-		deep.append(1 if min_cover > Plan.HIGHWAY_TUNNEL_COVER else 0)
-	_highway_open = PackedByteArray()
-	_highway_open.resize(xz.size() - 1)
-	_highway_open.fill(1)
-	_highway_tunnels = []
-	var i := 0
-	while i < deep.size():
-		if not deep[i]:
-			i += 1
-			continue
-		var j := i
-		while j + 1 < deep.size() and deep[j + 1]:
-			j += 1
-		var length := 0.0
-		for k in range(i, j + 1):
-			length += xz[k].distance_to(xz[k + 1])
-		if length >= Plan.HIGHWAY_TUNNEL_MIN_LEN:
-			for k in range(i, j + 1):
-				_highway_open[k] = 0
-			_highway_tunnels.append({"from": i, "to": j + 1, "length": length})
-		i = j + 1
-	_highway_cache = stations
-	return stations
+	_highway_build()
+	return _highway_cache
 
 
 ## The coast's own features, on the coast meshes only: the north headland's
@@ -17374,9 +17416,14 @@ func _rebuild_world_reserve_y(p: Vector2) -> float:
 	# rise alone, the coast base and a beach's lowering were added back on
 	# top of the road's line, and the beach road floated 1.4m over the sand
 	# it had been cut into. Under a road the ground is the road's line now.
-	return _rebuild_road_cut(p, _beach_shore(p, REBUILD_WORLD_RESERVE_Y
+	var standing := _rebuild_road_cut(p, _beach_shore(p, REBUILD_WORLD_RESERVE_Y
 		+ _rebuild_reserve_swell(p)
 		+ _rebuild_range_rise_raw(p) + _rebuild_coast_feature(p)))
+	# The quiet reserve lies beneath T2. Follow its two sub-zero drainage
+	# pockets twelve centimetres lower so it cannot show through their floors.
+	standing = _drainage_terrain_source().terrain_y(p, standing,
+		[&"D3_basin", &"D6_basin"], -0.12)
+	return _lighthouse_regrade_source().terrain_y(p, standing)
 
 
 ## The mainland reserve's own gentle lift toward the horizon — a few metres
@@ -17526,6 +17573,7 @@ func _rebuild_coastal_polygon_mesh(record: Dictionary) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_smooth_group(0)
+	var corridors: Array = _road_corridor_polygons()
 	for xi in xs.size() - 1:
 		var x := xs[xi]
 		var xn := xs[xi + 1]
@@ -17534,8 +17582,10 @@ func _rebuild_coastal_polygon_mesh(record: Dictionary) -> ArrayMesh:
 			var zn := zs[zi + 1]
 			var cell := PackedVector2Array([Vector2(x, z), Vector2(xn, z),
 				Vector2(xn, zn), Vector2(x, zn)])
-			for piece in Geometry2D.intersect_polygons(cell, polygon):
-				var tris := Geometry2D.triangulate_polygon(piece)
+			# Less the road corridors (2026-09-05), which carry their own mesh.
+			for piece in _road_clip_pieces(Geometry2D.intersect_polygons(cell, polygon),
+					Vector2(x, z), Vector2(xn, zn), corridors):
+				var tris := _piece_triangles(piece)
 				for i in range(0, tris.size(), 3):
 					var a2: Vector2 = piece[tris[i]]
 					var b2: Vector2 = piece[tris[i + 1]]
@@ -17621,10 +17671,11 @@ func _rebuild_coastal_reserve_y(p: Vector2) -> float:
 	var lip := clampf((distance - (REBUILD_COAST_TRANSITION_FROM_Z - 10.0)) / 10.0,
 		0.0, 1.0)
 	# The cut last, on the whole ground, as `_rebuild_world_reserve_y` says.
-	return _rebuild_road_cut(p, _beach_shore(p,
+	var standing := _rebuild_road_cut(p, _beach_shore(p,
 		lerpf(REBUILD_COAST_LOW_Y + (Plan.SHORE_TOP - REBUILD_COAST_LOW_Y) * lip,
 		REBUILD_COAST_HIGH_Y, t)
 		+ _rebuild_range_rise_raw(p) + _rebuild_coast_feature(p)))
+	return _lighthouse_regrade_source().terrain_y(p, standing)
 
 
 ## A dense Delaunay field lets us keep the atlas' irregular lowland outline and
@@ -17639,6 +17690,15 @@ func _rebuild_lowland_mesh(shape: Array) -> ArrayMesh:
 		var q := Vector2(p)
 		outline.append(q)
 		_rebuild_add_plan_point(points, seen, q)
+	# These vertices are the actual editor controls, not a trace of the planning
+	# SVG. Delaunay needs them explicitly or its eight-metre field may miss a
+	# shallow low entirely or chord across an irregular rim.
+	for basin_id in [&"D3_basin", &"D4_basin", &"D6_basin"]:
+		for point3 in _drainage_terrain_source().control_points(basin_id):
+			var q := Vector2(point3.x, point3.z)
+			if Geometry2D.is_point_in_polygon(q, outline) \
+					and not _rebuild_in_protected(q, 0.35):
+				_rebuild_add_plan_point(points, seen, q)
 
 	# Put vertices on both protected perimeters. Delaunay can otherwise bridge a
 	# sparse point cloud straight across a hole whose centre is later rejected.
@@ -17682,7 +17742,7 @@ func _rebuild_lowland_mesh(shape: Array) -> ArrayMesh:
 	# old flat field. Seed both the paving edge and the outer earthwork edge so
 	# Delaunay has actual stations to follow instead of bridging the grade with
 	# arbitrary eight-metre grid diagonals.
-	for run in Plan.rebuild_district_build_runs():
+	for run in _rebuild_district_build_runs():
 		if StringName(run["route"]) not in [&"D", &"F"]:
 			continue
 		var graded := _rebuild_graded_route(run)
@@ -17797,7 +17857,7 @@ func _rebuild_lowland_cuts() -> Array:
 			continue
 		for section in _rebuild_below_lowland_sections(run["points"]):
 			cuts.append({"points": section, "width": REBUILD_SOUTH_CUT_WIDTH})
-	for run in Plan.rebuild_district_build_runs():
+	for run in _rebuild_district_build_runs():
 		if StringName(run["route"]) != &"C":
 			continue
 		var graded := _rebuild_graded_route(run)
@@ -17885,7 +17945,9 @@ func _rebuild_outer_highland_y(x: float, z: float) -> float:
 		(_rebuild_plateau_end_x(z) - REBUILD_OUTER_HIGHLAND_FROM_X), 0.0, 1.0)
 	across = across * across * (3.0 - 2.0 * across)
 	var roll := sin(z * 0.071) * 0.34 * sin(PI * across)
-	return lerpf(inner, outer, across) + roll
+	var standing := lerpf(inner, outer, across) + roll
+	return _drainage_terrain_source().terrain_y(Vector2(x, z), standing,
+		[&"D5_basin"])
 
 
 func _rebuild_outer_highland_mesh() -> ArrayMesh:
@@ -17898,19 +17960,36 @@ func _rebuild_outer_highland_mesh() -> ArrayMesh:
 		zs.append(z)
 		z += REBUILD_OUTER_HIGHLAND_STEP
 	zs.append(REBUILD_OUTER_HIGHLAND_TO_Z)
-	var row_x := func(zz: float, i: int) -> float:
+	var column_ts := PackedFloat32Array()
+	for index in REBUILD_OUTER_HIGHLAND_COLS:
+		column_ts.append(float(index) / float(REBUILD_OUTER_HIGHLAND_COLS - 1))
+	# Insert both axes implied by each D5 control. At the control's own z row,
+	# its normalized column resolves back to its exact x, so the approved low
+	# and every rim handle survive the otherwise regular warped grid.
+	for point_value in _drainage_terrain_source().control_points(&"D5_basin"):
+		var point: Vector3 = point_value
+		if point.z >= REBUILD_OUTER_HIGHLAND_FROM_Z \
+				and point.z <= REBUILD_OUTER_HIGHLAND_TO_Z:
+			zs.append(point.z)
+			var span := _rebuild_plateau_end_x(point.z) \
+				- REBUILD_OUTER_HIGHLAND_FROM_X
+			column_ts.append(clampf((point.x - REBUILD_OUTER_HIGHLAND_FROM_X)
+				/ maxf(span, 0.001), 0.0, 1.0))
+	zs = _sorted_unique_floats(zs)
+	column_ts = _sorted_unique_floats(column_ts)
+	var row_x := func(zz: float, t: float) -> float:
 		return lerpf(REBUILD_OUTER_HIGHLAND_FROM_X, _rebuild_plateau_end_x(zz),
-			float(i) / float(REBUILD_OUTER_HIGHLAND_COLS - 1))
+			t)
 
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_smooth_group(0)
 	for zi in zs.size() - 1:
-		for xi in REBUILD_OUTER_HIGHLAND_COLS - 1:
-			var p00 := Vector2(row_x.call(zs[zi], xi), zs[zi])
-			var p10 := Vector2(row_x.call(zs[zi], xi + 1), zs[zi])
-			var p11 := Vector2(row_x.call(zs[zi + 1], xi + 1), zs[zi + 1])
-			var p01 := Vector2(row_x.call(zs[zi + 1], xi), zs[zi + 1])
+		for xi in column_ts.size() - 1:
+			var p00 := Vector2(row_x.call(zs[zi], column_ts[xi]), zs[zi])
+			var p10 := Vector2(row_x.call(zs[zi], column_ts[xi + 1]), zs[zi])
+			var p11 := Vector2(row_x.call(zs[zi + 1], column_ts[xi + 1]), zs[zi + 1])
+			var p01 := Vector2(row_x.call(zs[zi + 1], column_ts[xi]), zs[zi + 1])
 			# NT-2 is immutable. Reject a complete cell when any part of it enters
 			# the envelope; the established east mesh remains the sole ground there.
 			var probes := [p00, p10, p11, p01, (p00 + p11) * 0.5]
@@ -18079,6 +18158,10 @@ func _rebuild_path(nm: String, points: Array, width: float, closed: bool,
 		visual_lift += 0.002
 	elif nm == "service_S2":
 		visual_lift += 0.004
+	elif nm.begins_with("north_") or nm.begins_with("beach_") or nm.begins_with("ramp_"):
+		# A street ends on a carriageway and a ramp abuts one: four
+		# millimetres over it where they overlap, never on its plane.
+		visual_lift += 0.004
 	var body := StaticBody3D.new()
 	body.set_meta("route", route)
 	body.set_meta("points", PackedVector3Array(points))
@@ -18193,13 +18276,13 @@ func _rebuild_path_owner_exclusions(nm: String) -> Array:
 		# F's headland link is the same centreline as this portion of A, but one
 		# metre wider. Let the wider junction surface own the shared collision;
 		# A remains visible and resumes at the link's two exact endpoints.
-		for run in Plan.rebuild_district_build_runs():
+		for run in _rebuild_district_build_runs():
 			if StringName(run["id"]) == &"f_headland_link":
 				exclusions.append({"points": _rebuild_graded_route(run),
 					"width": float(run["width"]), "square_caps": true})
 				break
 	elif nm == "service_S2":
-		for run in Plan.rebuild_district_build_runs():
+		for run in _rebuild_district_build_runs():
 			if StringName(run["id"]) == &"c_coastal_loop":
 				exclusions.append({"points": _rebuild_graded_route(run),
 					"width": float(run["width"]), "clearance": 0.75})
@@ -18215,7 +18298,7 @@ func _rebuild_path_owner_exclusions(nm: String) -> Array:
 	elif nm in ["route_f_outer_arc", "route_f_inner_return"]:
 		# Both halves of F arrive at J3 beside the wider headland link. Let that
 		# link own the common floor so the three-way choice has no solver seam.
-		for run in Plan.rebuild_district_build_runs():
+		for run in _rebuild_district_build_runs():
 			if StringName(run["id"]) == &"f_headland_link":
 				exclusions.append({"points": _rebuild_graded_route(run),
 					"width": float(run["width"]), "square_caps": true})
@@ -18224,7 +18307,7 @@ func _rebuild_path_owner_exclusions(nm: String) -> Array:
 		# The ship queue crosses C on its way to the loading court. C is the
 		# broad public floor here; the queue remains visible but cannot present
 		# the underside of a second collider to somebody walking the loop.
-		for run in Plan.rebuild_district_build_runs():
+		for run in _rebuild_district_build_runs():
 			if StringName(run["id"]) == &"c_coastal_loop":
 				exclusions.append({"points": _rebuild_graded_route(run),
 					"width": float(run["width"]), "clearance": 0.75})
@@ -18233,7 +18316,7 @@ func _rebuild_path_owner_exclusions(nm: String) -> Array:
 		# Ride queues attach to the highland circuit as narrow branches. Their
 		# visible paving can cross the junction, but the broad public route is the
 		# only physical floor inside its operating envelope.
-		for run in Plan.rebuild_district_build_runs():
+		for run in _rebuild_district_build_runs():
 			var id := StringName(run["id"])
 			var wanted := (nm == "R8_queue" and id in [
 				&"f_terrace_link", &"f_inner_return"]) \
@@ -18246,7 +18329,7 @@ func _rebuild_path_owner_exclusions(nm: String) -> Array:
 		# ribbons at that junction caught the Player on the loop's outside edge.
 		# D owns the shared floor; the queue keeps its visible asphalt and resumes
 		# collision only after it has left the public operating envelope.
-		for run in Plan.rebuild_district_build_runs():
+		for run in _rebuild_district_build_runs():
 			if StringName(run["id"]) == &"d_family_loop":
 				exclusions.append({"points": _rebuild_graded_route(run),
 					"width": float(run["width"])})
@@ -18425,7 +18508,7 @@ func _rebuild_route_guards(nm: String, points: Array, width: float) -> void:
 ## their endpoints and widths remain exact so every named junction still lands
 ## on the primary network.
 func _rebuild_district_routes() -> void:
-	for run in Plan.rebuild_district_build_runs():
+	for run in _rebuild_district_build_runs():
 		var id := StringName(run["id"])
 		var closed := bool(run.get("closed", false))
 		var points := _rebuild_graded_route(run)
@@ -18820,7 +18903,7 @@ func _rebuild_bc_junction_floor() -> Dictionary:
 			b_points = run["points"]
 			break
 	var c_points: Array = []
-	for run in Plan.rebuild_district_build_runs():
+	for run in _rebuild_district_build_runs():
 		if StringName(run["id"]) == &"c_coastal_loop":
 			c_points = _rebuild_graded_route(run)
 			break
@@ -18933,7 +19016,7 @@ func _rebuild_j9_junction_floor() -> Dictionary:
 		return _rebuild_j9_floor_cache
 
 	var routes := {}
-	for run in Plan.rebuild_district_build_runs():
+	for run in _rebuild_district_build_runs():
 		var id := StringName(run["id"])
 		if id in [&"e_junction_nine", &"f_terrace_link", &"f_inner_return"]:
 			routes[id] = {
@@ -19159,7 +19242,7 @@ func _rebuild_established_highland_floor(p: Vector2) -> float:
 ## absorbs sampled-curve rounding. Both approaches and the return read this one
 ## datum, so J9 is still a single floor.
 func _rebuild_f_inner_j9_y() -> float:
-	for run in Plan.rebuild_district_build_runs():
+	for run in _rebuild_district_build_runs():
 		if StringName(run["id"]) != &"f_inner_return":
 			continue
 		var points := _rebuild_curve_route(run["points"], false, 8)
@@ -19183,7 +19266,7 @@ func _rebuild_run_crossing_at_x(run_id: StringName, x: float,
 	var found := false
 	var best := Vector3.ZERO
 	var best_error := INF
-	for run in Plan.rebuild_district_build_runs():
+	for run in _rebuild_district_build_runs():
 		if StringName(run["id"]) != run_id:
 			continue
 		var points := _rebuild_graded_route(run)
@@ -19210,7 +19293,7 @@ func _rebuild_run_crossing_at_x(run_id: StringName, x: float,
 func _rebuild_nearest_graded_route(route_id: StringName, p: Vector2) -> Dictionary:
 	var best_distance := INF
 	var best_y := 0.0
-	for run in Plan.rebuild_district_build_runs():
+	for run in _rebuild_district_build_runs():
 		if StringName(run["route"]) != route_id:
 			continue
 		var points := _rebuild_graded_route(run)
@@ -19258,7 +19341,7 @@ func _rebuild_family_floor(p: Vector2) -> float:
 func _rebuild_district_shoulder_grade(p: Vector2, uncut_y: float,
 		route_id: StringName) -> float:
 	var y := uncut_y
-	for run in Plan.rebuild_district_build_runs():
+	for run in _rebuild_district_build_runs():
 		if StringName(run["route"]) != route_id:
 			continue
 		var points := _rebuild_graded_route(run)
@@ -19299,31 +19382,34 @@ func _rebuild_highland_floor(p: Vector2) -> float:
 ## 1:8 public maximum. Ten centimetres proved insufficient at F's inside edge.
 func _rebuild_lowland_surface_y(p: Vector2) -> float:
 	var y := REBUILD_LOWLAND_Y
-	if p.x > REBUILD_LOWLAND_SUPPORT_TO_X:
-		return y
-	for route_id in [&"D", &"F"]:
-		for run in Plan.rebuild_district_build_runs():
-			if StringName(run["route"]) != route_id:
-				continue
-			var points := _rebuild_graded_route(run)
-			for i in points.size() - 1:
-				var a3 := Vector3(points[i])
-				var b3 := Vector3(points[i + 1])
-				var a := Vector2(a3.x, a3.z)
-				var b := Vector2(b3.x, b3.z)
-				var ab := b - a
-				var t := clampf((p - a).dot(ab) /
-					maxf(ab.length_squared(), 0.001), 0.0, 1.0)
-				var distance := maxf(p.distance_to(a + ab * t)
-					- float(run["width"]) * 0.5, 0.0)
-				if distance >= REBUILD_ROUTE_EARTH_RUN:
+	if p.x <= REBUILD_LOWLAND_SUPPORT_TO_X:
+		for route_id in [&"D", &"F"]:
+			for run in _rebuild_district_build_runs():
+				if StringName(run["route"]) != route_id:
 					continue
-				var weight := 1.0 - distance / REBUILD_ROUTE_EARTH_RUN
-				weight = weight * weight * (3.0 - 2.0 * weight)
-				var target := lerpf(a3.y, b3.y, t) \
-					- REBUILD_LOWLAND_ROUTE_BED_CUT
-				y = maxf(y, lerpf(REBUILD_LOWLAND_Y, target, weight))
-	return y
+				var points := _rebuild_graded_route(run)
+				for i in points.size() - 1:
+					var a3 := Vector3(points[i])
+					var b3 := Vector3(points[i + 1])
+					var a := Vector2(a3.x, a3.z)
+					var b := Vector2(b3.x, b3.z)
+					var ab := b - a
+					var t := clampf((p - a).dot(ab) /
+						maxf(ab.length_squared(), 0.001), 0.0, 1.0)
+					var distance := maxf(p.distance_to(a + ab * t)
+						- float(run["width"]) * 0.5, 0.0)
+					if distance >= REBUILD_ROUTE_EARTH_RUN:
+						continue
+					var weight := 1.0 - distance / REBUILD_ROUTE_EARTH_RUN
+					weight = weight * weight * (3.0 - 2.0 * weight)
+					var target := lerpf(a3.y, b3.y, t) \
+						- REBUILD_LOWLAND_ROUTE_BED_CUT
+					y = maxf(y, lerpf(REBUILD_LOWLAND_Y, target, weight))
+	y = _drainage_terrain_source().terrain_y(p, y,
+		[&"D3_basin", &"D6_basin"])
+	# D4's visible owner is the south shoulder. T2 follows the same depression
+	# just underneath it so their overlap cannot poke through or z-fight.
+	return _drainage_terrain_source().terrain_y(p, y, [&"D4_basin"], -0.08)
 
 
 func _rebuild_site(source: Vector2, zone: StringName) -> Vector3:
@@ -19380,32 +19466,47 @@ func _rebuild_access_path(nm: String, source: Array, zone: StringName,
 # ---------------------------------------------------------------------------
 
 func _rebuild_program() -> void:
+	# Package 04G+'s editor source owns Route D, all four rides and the local
+	# destination footprints. The generator still owns only their repetitive
+	# greybox construction.
+	var kiddieland_layout := KiddielandSource.instantiate()
+	var kiddieland_rides := KiddielandSource.ride_sites(kiddieland_layout)
+	var r14_source: Dictionary = kiddieland_rides[&"R14"]
+	var kiddieland_support := KiddielandSource.support_sites(kiddieland_layout)
+	var p4_source := KiddielandSource.p4_site(kiddieland_layout)
 	for site in Plan.REBUILD_ATTRACTION_SITES:
-		match StringName(site["kind"]):
-			&"lighthouse": _rebuild_lighthouse(site)
-			&"funhouse": _rebuild_funhouse(site)
-			&"big_top": _rebuild_big_top(site)
-			&"play_garden": _rebuild_play_garden(site)
-			&"bandstand": _rebuild_bandstand(site)
+		var effective: Dictionary = site
+		if StringName(site["id"]) == &"P4":
+			effective = p4_source
+		match StringName(effective["kind"]):
+			&"lighthouse": _rebuild_lighthouse(effective)
+			&"funhouse": _rebuild_funhouse(effective)
+			&"big_top": _rebuild_big_top(effective)
+			&"play_garden": _rebuild_play_garden(effective)
+			&"bandstand": _rebuild_bandstand(effective)
 
 	for site in Plan.REBUILD_RIDE_SITES:
-		match StringName(site["kind"]):
-			&"ship": _rebuild_swinging_ship(site)
-			&"mini_rail": _rebuild_mini_rail(site)
-			&"tubs": _rebuild_spinning_tubs(site)
-			&"carousel": _rebuild_carousel_ride(site)
-			&"chair_swing": _rebuild_chair_swing(site)
-			&"water_ride": _rebuild_outline_ride(site, false)
-			&"mine_train": _rebuild_outline_ride(site, true)
-			&"observation": _rebuild_observation_ride(site)
-			&"sky_ride": _rebuild_atlas_sky_ride(site)
-			&"steel_coaster": _rebuild_coaster(site, false)
-			&"junior_coaster": _rebuild_coaster(site, true)
+		var id := StringName(site["id"])
+		var effective: Dictionary = kiddieland_rides[id] \
+			if kiddieland_rides.has(id) else site
+		match StringName(effective["kind"]):
+			&"ship": _rebuild_swinging_ship(effective)
+			&"mini_rail": _rebuild_mini_rail(effective)
+			&"tubs": _rebuild_spinning_tubs(effective)
+			&"carousel": _rebuild_carousel_ride(effective)
+			&"chair_swing": _rebuild_chair_swing(effective)
+			&"water_ride": _rebuild_outline_ride(effective, false)
+			&"mine_train": _rebuild_outline_ride(effective, true)
+			&"observation": _rebuild_observation_ride(effective)
+			&"sky_ride": _rebuild_atlas_sky_ride(effective)
+			&"steel_coaster": _rebuild_coaster(effective, false)
+			&"junior_coaster": _rebuild_coaster(effective, true)
 
 	_rebuild_recurring_interiors()
 	_rebuild_midway_frontages()
-	_rebuild_kiddieland_support()
+	_rebuild_kiddieland_support(kiddieland_support, r14_source)
 	_rebuild_harbour()
+	kiddieland_layout.free()
 
 
 ## The harbour cove in the headland's lee (02B, 2026-09-04): a short
@@ -19542,11 +19643,14 @@ func _rebuild_lighthouse(site: Dictionary) -> void:
 	_omni("P1_beacon_glow", at + Vector3(0, 20.6, 0), "warm", 4.0, 20.0,
 		LIGHT_FEATURE)
 	var keeper := _rebuild_site(site["keeper"], &"headland")
-	var access_world := _rebuild_site(Vector2(site["access"][-1]), &"headland")
+	# Course and finished grade are sampled directly from the approved Path3D.
+	# Paving and collision remain derived construction; reshaping the walk stays
+	# an ordinary editor operation in park_vertical_controls.tscn.
+	var access_points: Array[Vector3] = _lighthouse_regrade_source().path_points(0.5)
+	var access_world: Vector3 = access_points[-1]
 	_rebuild_open_building("P1_keeper_exhibit", keeper, site["keeper_size"],
 		access_world, "far_warm", "red", 4.0)
-	_rebuild_access_path("P1_public_access", site["access"], &"headland", 3.0,
-		true, 8.0)
+	_rebuild_path("P1_public_access", access_points, 3.0, false, &"", true)
 
 
 func _rebuild_funhouse(site: Dictionary) -> void:
@@ -20108,7 +20212,7 @@ func _rebuild_ellipse_fence(nm: String, at: Vector3, radii: Vector2,
 			0.07, 1.0, mat, 0.0, 8)
 
 
-func _rebuild_kiddieland_support() -> void:
+func _rebuild_kiddieland_support(sites: Dictionary, r14: Dictionary) -> void:
 	# E5 · Family Support Lodge
 	var lodge := _rebuild_site(Vector2(27, 107), &"family")
 	var lodge_front := _rebuild_site(Vector2(27, 101), &"family")
@@ -20117,7 +20221,8 @@ func _rebuild_kiddieland_support() -> void:
 
 	# KG1 · zero-depth Squirt Garden. The seven jets have no basin wall and the
 	# frog chain is independent of the protected Terraced Fountain system.
-	var garden := _rebuild_site(Vector2(31, 94), &"family")
+	var squirt: Dictionary = sites[&"KG1"]
+	var garden := _rebuild_site(squirt["at"], &"family")
 	_cyl("KG1_splash_pad", garden, Vector3(0, 0.035, 0), 4.1, 0.07,
 		"brick", 0.0, 32, false)
 	var jet_offsets := [Vector2(0, 0), Vector2(-2.2, -1), Vector2(-1, -1.8),
@@ -20144,9 +20249,10 @@ func _rebuild_kiddieland_support() -> void:
 			frogs[i] + Vector3.UP * 1.02, frogs[i + 1] + Vector3.UP * 0.78, 1.75)
 
 	# KC1 · Character Garden and a three-face stand-up.
-	var character := _rebuild_site(Vector2(43, 115), &"family")
+	var character_site: Dictionary = sites[&"KC1"]
+	var character := _rebuild_site(character_site["at"], &"family")
 	_rebuild_ellipse_fence("KC1_character_fence", character,
-		Vector2(7, 5), "yellow", 24, 3)
+		character_site["radii"], "yellow", 24, 3)
 	_box("KC1_face_board", character, Vector3(0, 1.45, 4.0),
 		Vector3(6.0, 2.9, 0.22), "blue", 0.0, false)
 	for x in [-1.8, 0.0, 1.8]:
@@ -20155,25 +20261,30 @@ func _rebuild_kiddieland_support() -> void:
 			PI * 0.5, 16, false, PI * 0.5)
 
 	# KC2 and KC3 · the district photo counter and birthday pavilion.
-	var photo := _rebuild_site(Vector2(55, 118), &"family")
-	_rebuild_open_building("KC2_family_photo", photo, Vector2(8, 5),
+	var photo_site: Dictionary = sites[&"KC2"]
+	var photo := _rebuild_site(photo_site["at"], &"family")
+	_rebuild_open_building("KC2_family_photo", photo, photo_site["size"],
 		character, "white", "blue", 3.8)
-	var birthday := _rebuild_site(Vector2(70, 119), &"family")
+	var birthday_site: Dictionary = sites[&"KC3"]
+	var birthday := _rebuild_site(birthday_site["at"], &"family")
+	var birthday_size: Vector2 = birthday_site["size"]
 	_box("KC3_pavilion_pad", birthday, Vector3(0, 0.03, 0),
-		Vector3(12, 0.06, 6), "brick", 0.0, false)
+		Vector3(birthday_size.x, 0.06, birthday_size.y), "brick", 0.0, false)
 	_box("KC3_pavilion_canopy", birthday, Vector3(0, 3.5, 0),
-		Vector3(12.4, 0.28, 6.4), "yellow", 0.0, false)
+		Vector3(birthday_size.x + 0.4, 0.28, birthday_size.y + 0.4),
+		"yellow", 0.0, false)
 	for x in [-5.4, 5.4]:
 		for z in [-2.4, 2.4]:
 			_cyl("KC3_post_%s_%s" % [str(x), str(z)], birthday,
 				Vector3(x, 1.75, z), 0.09, 3.5, "white", 0.0, 8)
 
 	# KP1 · manual photo turnout and the R14 viewing counter.
-	var bay := _rebuild_site(Vector2(98.5, 78), &"family")
+	var bay := _rebuild_site(r14["photo"], &"family")
+	var bay_size: Vector2 = r14["photo_size"]
 	_box("KP1_photo_bay", bay, Vector3(0, 0.04, 0),
-		Vector3(4, 0.08, 4), "brick", 0.0, false)
+		Vector3(bay_size.x, 0.08, bay_size.y), "brick", 0.0, false)
 	_box("KP1_sighting_rail", bay, Vector3(0, 0.92, -1.65),
-		Vector3(3.6, 0.12, 0.12), "blue")
+		Vector3(bay_size.x - 0.4, 0.12, 0.12), "blue")
 
 
 func _rebuild_water_arc(nm: String, a: Vector3, b: Vector3,
@@ -20291,53 +20402,192 @@ func _rebuild_approach() -> void:
 	_rebuild_highway()
 
 
-## The coast highway (02B): the road ribbon over its stations, and a tunnel
-## wherever the stations are closed — a lined tube of walls and roof along the
-## run, a headwall of two pillars and a lintel at each portal standing across
-## the cut face the ground makes where the cut stops, and a lamp every 24m.
-## Appended after everything in this scene, so nothing before it moves.
+const HIGHWAY_TUNNEL_CLEAR_H := 5.5
+const HIGHWAY_TUNNEL_WALL_T := 0.6
+const HIGHWAY_TUNNEL_LAMP_SPACING := 18.0
+
+
+## One bore follows its carriageway station by station. The former single box
+## joined the portals by a chord: the 458m north tunnel's road rose 14m through
+## its roof, and the short curved tunnel put an edge of the carriageway through
+## a wall. Upright walls under thin sloping roof caps obey the same construction
+## rule as every other graded structure: a tall box is never tilted.
+func _highway_tunnel_bore(tag: String, pts: Array, i0: int, i1: int, w: float) -> void:
+	for i in range(i0, i1):
+		var a: Vector3 = pts[i]
+		var b: Vector3 = pts[i + 1]
+		var flat := Vector2(b.x - a.x, b.z - a.z)
+		var horizontal := flat.length()
+		if horizontal < 0.01:
+			continue
+		var d2 := flat / horizontal
+		# Local +x after `_xform`'s yaw, written explicitly because the wall
+		# remains upright while only the cap takes the road's pitch.
+		var across := Vector3(d2.y, 0.0, -d2.x)
+		var theta := atan2(flat.x, flat.y)
+		var mid := (a + b) * 0.5
+		var wall_bottom := minf(a.y, b.y) - 0.15
+		var wall_h := HIGHWAY_TUNNEL_CLEAR_H + absf(b.y - a.y) + 0.3
+		for side in [-1.0, 1.0]:
+			var at: Vector3 = mid + across * float(side) * (w * 0.5 + 1.0)
+			_box("%s_wall_%s_%d" % [tag, "l" if side < 0.0 else "r", i - i0],
+				Vector3(at.x, wall_bottom, at.z), Vector3(0.0, wall_h * 0.5, 0.0),
+				Vector3(HIGHWAY_TUNNEL_WALL_T, wall_h, horizontal + 1.0),
+				"building", theta, false)
+		var phi := atan2(-(b.y - a.y), horizontal)
+		_box("%s_roof_%d" % [tag, i - i0], mid,
+			Vector3(0.0, HIGHWAY_TUNNEL_CLEAR_H, 0.0),
+			Vector3(w + 2.6, 0.6, a.distance_to(b) + 1.0),
+			"building", theta, false, phi)
+	# Paired wall lights are interpolated along this bore's real polyline, so
+	# neither a bend nor a crest can bury them in the lining.
+	var bore_pts: Array = pts.slice(i0, i1 + 1)
+	var length := _road_length(bore_pts)
+	var s := HIGHWAY_TUNNEL_LAMP_SPACING * 0.5
+	var k := 0
+	while s < length - 4.0:
+		var q: Dictionary = _road_at(bore_pts, s)
+		var p: Vector3 = q["p"]
+		var r: Vector2 = q["r"]
+		var theta := atan2((q["d"] as Vector2).x, (q["d"] as Vector2).y)
+		for side in [-1.0, 1.0]:
+			var at: Vector3 = p + Vector3(r.x, 0.0, r.y) * float(side) * (w * 0.5 + 0.62) \
+				+ Vector3.UP * 4.25
+			_box("%s_lamp_case_%s_%d" % [tag, "l" if side < 0.0 else "r", k], at,
+				Vector3.ZERO, Vector3(0.34, 0.22, 0.28), "road_sodium", theta, false)
+			_omni("%s_lamp_%s_%d" % [tag, "l" if side < 0.0 else "r", k],
+				at - Vector3.UP * 0.08, "sodium", 2.4, 14.0, LIGHT_SERVICE)
+		s += HIGHWAY_TUNNEL_LAMP_SPACING
+		k += 1
+
+
+## A portal reads the heading at its own station, not the chord between both
+## mouths. This keeps the headwall square to a curved bore and removes the
+## needle-shaped overlaps seen at the old north abutments.
+func _highway_tunnel_portal(tag: String, pts: Array, idx: int, neighbour: int,
+		w: float, sides: Array, suffix: String) -> void:
+	var at: Vector3 = pts[idx]
+	var toward: Vector3 = pts[neighbour]
+	var d := Vector2(toward.x - at.x, toward.z - at.z).normalized()
+	var theta := atan2(d.x, d.y)
+	for side_v in sides:
+		var side: float = side_v
+		_box("%s_portal_%s_pier_%s" % [tag, suffix, "l" if side < 0.0 else "r"], at,
+			Vector3(side * (w * 0.5 + 1.7), 3.9, 0.0),
+			Vector3(2.0, 7.8, 1.2), "building", theta, false)
+	_box("%s_portal_%s_lintel" % [tag, suffix], at, Vector3(0.0, 6.8, 0.0),
+		Vector3(w + 5.4, 2.0, 1.2), "building", theta, false)
+
+
+## The coast highway (02B): two carriageway ribbons over their own stations
+## (`_highway_build`), and twin bores following those stations wherever the
+## centre-line ridge has enough cover. Appended after everything in this scene,
+## so nothing before it moves.
 func _rebuild_highway() -> void:
+	_highway_build()
 	var stations: Array = _highway_stations()
-	_rebuild_path("highway", stations, Plan.HIGHWAY_W, false, &"", true)
+	_rebuild_path("highway", _highway_a, Plan.HIGHWAY_CARRIAGEWAY_W, false, &"", true)
+	_rebuild_path("highway_b", _highway_b, Plan.HIGHWAY_CARRIAGEWAY_W, false, &"", true)
+	# A real underpass has one continuous formation beneath both carriageways.
+	# The surrounding corridor is triangulated as the union of six converging
+	# roads and can leave sub-metre corner holes around the bridge opening; this
+	# shallow slab is the relationship the structure requires, not a patch at
+	# each failed sample. Its top remains below the asphalt ribbons.
+	var cross_i: int = _highway_crossing["a"]
+	var cross_at: Vector3 = stations[cross_i]
+	var cross_d: Vector3 = stations[cross_i + 1] - stations[cross_i - 1]
+	var cross_theta := atan2(cross_d.x, cross_d.z)
+	var formation_w: float = _highway_m[cross_i] + Plan.HIGHWAY_CARRIAGEWAY_W * 2.0 + 4.0
+	_box("highway_underpass_formation", cross_at - Vector3.UP * 0.33, Vector3.ZERO,
+		Vector3(formation_w, 0.6, 64.0), "asphalt", cross_theta, true)
+	# South of the beach town, carriageway A crosses the lot's lower grading
+	# four metres above it. That is a short deck, not an earth batter stretched
+	# up through the road. Find it from the relationship to the town rather than
+	# publishing another station index that would drift with resampling.
+	var beach_i := 0
+	var beach_d := INF
+	for i in _highway_a.size():
+		var p: Vector3 = _highway_a[i]
+		var d := Vector2(p.x + 9.4, p.z - 492.0).length()
+		if d < beach_d:
+			beach_d = d
+			beach_i = i
+	beach_i = clampi(beach_i, 1, _highway_a.size() - 2)
+	var deck_a: Vector3 = _highway_a[beach_i - 1]
+	var deck_b: Vector3 = _highway_a[beach_i + 1]
+	var deck_d := deck_b - deck_a
+	var deck_flat := Vector2(deck_d.x, deck_d.z).length()
+	var deck_theta := atan2(deck_d.x, deck_d.z)
+	var deck_phi := atan2(-deck_d.y, deck_flat)
+	_box("highway_beach_town_deck", (deck_a + deck_b) * 0.5 - Vector3.UP * 0.43,
+		Vector3.ZERO, Vector3(Plan.HIGHWAY_CARRIAGEWAY_W + 1.4, 0.8, deck_d.length() + 1.0),
+		"building", deck_theta, true, deck_phi)
+	# Each ribbon says where it is inside a hill, by station index, so the
+	# ground test does not look for ground under a road in a tunnel.
+	var closed := PackedInt32Array()
+	for run in _highway_tunnels:
+		closed.append(int(run["from"]))
+		closed.append(int(run["to"]))
+	for nm in ["highway", "highway_b"]:
+		_root.get_node(nm).set_meta("tunnels", closed)
 	var n := 0
 	for run in _highway_tunnels:
-		var a: Vector3 = stations[run["from"]]
-		var b: Vector3 = stations[run["to"]]
-		var d := b - a
-		var horizontal := Vector2(d.x, d.z).length()
-		var theta := atan2(d.x, d.z)
-		var phi := atan2(-d.y, horizontal)
-		var length := d.length()
-		var mid := (a + b) * 0.5
-		var tag := "highway_tunnel_%d" % n
-		var w: float = Plan.HIGHWAY_W
-		_box(tag + "_wall_l", mid, Vector3(-(w * 0.5 + 1.0), 2.75, 0.0),
-			Vector3(0.6, 5.5, length + 1.0), "building", theta, false, phi)
-		_box(tag + "_wall_r", mid, Vector3(w * 0.5 + 1.0, 2.75, 0.0),
-			Vector3(0.6, 5.5, length + 1.0), "building", theta, false, phi)
-		_box(tag + "_roof", mid, Vector3(0.0, 5.5, 0.0),
-			Vector3(w + 2.6, 0.6, length + 1.0), "building", theta, false, phi)
-		for end in [[a, "a"], [b, "b"]]:
-			var at: Vector3 = end[0]
-			var e: String = end[1]
-			for side_v in [-1.0, 1.0]:
-				var side: float = side_v
-				_box("%s_portal_%s_pier_%s" % [tag, e, "l" if side < 0.0 else "r"], at,
-					Vector3(side * (w * 0.5 + 2.4), 4.5, 0.0),
-					Vector3(2.4, 9.0, 1.2), "building", theta, false)
-			_box("%s_portal_%s_lintel" % [tag, e], at, Vector3(0.0, 7.2, 0.0),
-				Vector3(w + 7.2, 2.4, 1.2), "building", theta, false)
-		var s := 12.0
-		var k := 0
-		while s < length - 6.0:
-			_omni("%s_lamp_%d" % [tag, k], a + d.normalized() * s + Vector3.UP * 4.9,
-				"lamp", 1.4, 16.0)
-			s += 24.0
-			k += 1
-		print("highway tunnel %d: %.0fm from (%.0f, %.0f) to (%.0f, %.0f), %s" % [
-			n, length, a.x, a.z, b.x, b.z, "%.0fm up" % a.y])
+		var i0: int = run["from"]
+		var i1: int = run["to"]
+		var m := minf(_highway_m[i0], _highway_m[i1])
+		# Twin bores always (2026-09-06): the carriageways split by up to 6m
+		# on the hillside, and one tube along the lower one put the upper
+		# carriageway through its roof. A narrow median gets one headwall of
+		# three pillars across both bores.
+		var bores: Array = [["l", _highway_a, Plan.HIGHWAY_CARRIAGEWAY_W], ["r", _highway_b, Plan.HIGHWAY_CARRIAGEWAY_W]]
+		var shared_headwall := m < 8.0
+		for bore in bores:
+			var pts: Array = bore[1]
+			var w: float = bore[2]
+			var tag := "highway_tunnel_%d%s" % [n, ("_" + String(bore[0])) if String(bore[0]) != "" else ""]
+			_highway_tunnel_bore(tag, pts, i0, i1, w)
+			# The outer pillar always; the inner one only where the median is
+			# wide enough for two, else the shared middle pillar below.
+			var outward := 1.0 if String(bore[0]) == "r" else -1.0
+			var sides: Array = [outward] if shared_headwall else [-1.0, 1.0]
+			_highway_tunnel_portal(tag, pts, i0, i0 + 1, w, sides, "a")
+			_highway_tunnel_portal(tag, pts, i1, i1 - 1, w, sides, "b")
+			if shared_headwall and String(bore[0]) == "r":
+				for end in [[i0, "a"], [i1, "b"]]:
+					var idx: int = end[0]
+					var e: String = end[1]
+					var c: Vector3 = stations[idx]
+					var lower := minf((_highway_a[idx] as Vector3).y, (_highway_b[idx] as Vector3).y)
+					var upper := maxf((_highway_a[idx] as Vector3).y, (_highway_b[idx] as Vector3).y)
+					var neighbour := idx + 1 if idx == i0 else idx - 1
+					var toward: Vector3 = stations[neighbour]
+					var theta := atan2(toward.x - c.x, toward.z - c.z)
+					_box("highway_tunnel_%d_portal_%s_pier_m" % [n, e], Vector3(c.x, lower, c.z),
+						Vector3(0.0, (upper - lower + 7.8) * 0.5, 0.0),
+						Vector3(1.6, upper - lower + 7.8, 1.2), "building", theta, false)
+		var a0: Vector3 = stations[i0]
+		var b0: Vector3 = stations[i1]
+		print("highway tunnel %d: %.0fm from (%.0f, %.0f) to (%.0f, %.0f), %.0fm up, %s" % [
+			n, run["length"], a0.x, a0.z, b0.x, b0.z, a0.y, "twin bores" if bores.size() == 2 else "one bore"])
 		n += 1
 	print("highway: %d stations, %d tunnels" % [stations.size(), n])
+	_rebuild_interchange()
+
+
+## The interchange's ramps as ribbons and the stub's turnaround. What stands
+## on and beside them comes with the road furniture pass.
+func _rebuild_interchange() -> void:
+	for ramp in _interchange_ramps():
+		_rebuild_path(String(ramp["id"]), ramp["points"], float(ramp["half"]) * 2.0, false, &"", true)
+	var ap: Array[Vector3] = Plan.approach_road_points()
+	var end: Vector3 = ap[ap.size() - 1]
+	var before: Vector3 = ap[ap.size() - 2]
+	var d_end := end - before
+	# Tilted with the stub's grade, so the road climbs onto it and not into it.
+	_cyl("turnaround", Vector3(end.x, end.y, end.z), Vector3(0.0, 0.015, 0.0),
+		float(Plan.INTERCHANGE["turnaround_r"]), 0.03, "asphalt", atan2(d_end.x, d_end.z), 32, false,
+		atan2(-d_end.y, Vector2(d_end.x, d_end.z).length()))
+	_road_furniture()
 
 
 ## A planted berm: a cosine ridge, BERM_HEIGHT high on the BERM_Z base, run
@@ -20539,12 +20789,14 @@ func _rebuild_boardwalk_planting_gap(p: Vector2) -> bool:
 
 
 func _rebuild_landscape_floor(p: Vector2) -> float:
+	var y := 0.0
 	if p.x < -75.0 and p.y > -70.0 and p.y < 75.0:
-		return Plan.SHORE_TOP
-	if p.x > 75.0:
-		return _rebuild_family_floor(p) if p.y > 40.0 \
+		y = Plan.SHORE_TOP
+	elif p.x > 75.0:
+		y = _rebuild_family_floor(p) if p.y > 40.0 \
 			else _rebuild_highland_floor(p)
-	return 0.0
+	return _drainage_terrain_source().terrain_y(p, y,
+		[&"D3_basin", &"D4_basin", &"D5_basin", &"D6_basin"])
 
 
 func _rebuild_tree(nm: String, at: Vector3, height: float, radius: float) -> void:
@@ -20632,8 +20884,10 @@ var _town_clearings := PackedVector3Array()
 func _town_street_stations() -> Array:
 	if not _town_street_cache.is_empty():
 		return _town_street_cache
+	_highway_build()
 	var roads: Array = [
-		{"points": _highway_stations(), "half": Plan.HIGHWAY_W * 0.5},
+		{"points": _highway_a, "half": Plan.HIGHWAY_CARRIAGEWAY_W * 0.5},
+		{"points": _highway_b, "half": Plan.HIGHWAY_CARRIAGEWAY_W * 0.5},
 		{"points": Plan.approach_road_points(), "half": Plan.APPROACH_ROAD_W * 0.5},
 	]
 	var out: Array = []
@@ -21047,7 +21301,7 @@ func _town_lamp(nm: String, at: Vector3) -> void:
 ## Lamps along a street every `spacing`, `setback` off the centreline on one
 ## side, standing on the ground there.
 func _town_lamps_along(nm: String, points: Array, spacing: float, setback: float,
-		side: float) -> void:
+		side: float, style := "post") -> void:
 	var s := spacing * 0.5
 	var k := 0
 	var total := 0.0
@@ -21067,7 +21321,15 @@ func _town_lamps_along(nm: String, points: Array, spacing: float, setback: float
 			var tangent := (b - a) / maxf(seg, 0.001)
 			var normal := Vector2(tangent.y, -tangent.x)
 			var c := q + normal * side * setback
-			_town_lamp("%s_lamp_%d" % [nm, k], Vector3(c.x, _town_ground_y(c), c.y))
+			var at := Vector3(c.x, _town_ground_y(c), c.y)
+			var toward := -normal * side
+			match style:
+				"lantern":
+					_town_lantern("%s_lamp_%d" % [nm, k], at, tangent)
+				"beach":
+					_town_beach_lamp("%s_lamp_%d" % [nm, k], at, toward)
+				_:
+					_town_post_lamp("%s_lamp_%d" % [nm, k], at, toward)
 			k += 1
 			break
 		s += spacing
@@ -21105,8 +21367,12 @@ func _town_keep_off() -> Array:
 	var out: Array = []
 	for street in _town_street_stations():
 		out.append({"points": street["points"], "half": float(street["width"]) * 0.5})
-	out.append({"points": _highway_stations(), "half": Plan.HIGHWAY_W * 0.5})
+	_highway_build()
+	out.append({"points": _highway_a, "half": Plan.HIGHWAY_CARRIAGEWAY_W * 0.5})
+	out.append({"points": _highway_b, "half": Plan.HIGHWAY_CARRIAGEWAY_W * 0.5})
 	out.append({"points": Plan.approach_road_points(), "half": Plan.APPROACH_ROAD_W * 0.5})
+	for ramp in _interchange_ramps():
+		out.append({"points": ramp["points"], "half": float(ramp["half"])})
 	return out
 
 
@@ -21255,6 +21521,7 @@ func _rebuild_towns() -> void:
 	_rebuild_north_town(keep_off)
 	_rebuild_beach_town(keep_off)
 	_rebuild_far_city()
+	_town_road_furniture()
 	_root.set_meta("clearings", _town_clearings)
 	print("towns: %d buildings" % _town_clearings.size())
 
@@ -21273,15 +21540,24 @@ func _rebuild_north_town(keep_off: Array) -> void:
 	var u: Vector2 = Plan.NORTH_VALLEY["inland"]
 	var n := Vector2(-u.y, u.x)
 	var seaward := atan2(-u.x, -u.y)
-	var main: Array = []
-	for st in _highway_stations():
+	# The main street is the highway's two carriageways (2026-09-05): lots
+	# and lamps stand on each one's outer side, past its kerb and sidewalk.
+	_highway_build()
+	var main_a: Array = []
+	var main_b: Array = []
+	for i in _highway_a.size():
+		var st: Vector3 = _highway_a[i]
 		var f: Vector2 = Plan.valley_frame(Vector2(st.x, st.z))
 		if f.x > 20.0 and f.x < 140.0 and absf(f.y) < 160.0:
-			main.append(st)
+			main_a.append(st)
+			main_b.append(_highway_b[i])
+	var main_setback: float = Plan.HIGHWAY_CARRIAGEWAY_W * 0.5 + 3.5
 	# The gas station east of the highway north of Hill Road, the church on
 	# Hill Road's south side, and the house, all taken first so the street
 	# lots keep off them.
-	var gas := _town_place("gas station", Plan.valley_point(80.0, -58.0), 14.0, 12.0,
+	# Twelve metres further inland than it stood (2026-09-05): the highway
+	# through the town is two carriageways and a median now, 23m across.
+	var gas := _town_place("gas station", Plan.valley_point(92.0, -58.0), 14.0, 12.0,
 		seaward, taken, keep_off)
 	var church := _town_place("church", Plan.valley_point(150.0, 36.0), 12.0, 13.0,
 		atan2(-n.x, -n.y), taken, keep_off)
@@ -21291,7 +21567,13 @@ func _rebuild_north_town(keep_off: Array) -> void:
 	var house_front := (-u + n * 0.6).normalized()
 	var house_yaw := atan2(house_front.x, house_front.y)
 	var house := _town_place("the house", house_at, 8.5, 7.5, house_yaw, taken, keep_off)
-	for lot in _town_lots_along(main, 15.0, 8.5, [-1, 1], Vector2(10.0, 8.0), taken, keep_off):
+	# Side -1 is the right of travel in station order, carriageway A's outer
+	# side; B's outer side is its left.
+	var main_lots: Array = _town_lots_along(main_a, 15.0, main_setback, [-1], Vector2(10.0, 8.0),
+		taken, keep_off)
+	main_lots.append_array(_town_lots_along(main_b, 15.0, main_setback, [1], Vector2(10.0, 8.0),
+		taken, keep_off))
+	for lot in main_lots:
 		if _town_rng.randf() < 0.7:
 			_town_build_shop(lot)
 		else:
@@ -21315,7 +21597,8 @@ func _rebuild_north_town(keep_off: Array) -> void:
 		float(house["found"]), Color(0.72, 0.80, 0.84), Color(0.30, 0.30, 0.32), true, true, true)
 	_town_clearings.append(Vector3(house_at.x, house_at.y, 10.0))
 	_root.set_meta("house", Vector3(house_at.x, float(house["floor"]), house_at.y))
-	_town_lamps_along("north_main", main, 28.0, 6.5, 1.0)
+	_town_lamps_along("north_main_a", main_a, 28.0, Plan.HIGHWAY_CARRIAGEWAY_W * 0.5 + 2.2, -1.0, "lantern")
+	_town_lamps_along("north_main_b", main_b, 28.0, Plan.HIGHWAY_CARRIAGEWAY_W * 0.5 + 2.2, 1.0, "lantern")
 	_town_lamps_along("north_hill", streets["north_hill_road"], 36.0, 5.0, -1.0)
 	_town_lamps_along("north_second", streets["north_second_street"], 36.0, 5.0, 1.0)
 	_town_end("north_town")
@@ -21348,7 +21631,7 @@ func _rebuild_beach_town(keep_off: Array) -> void:
 		for lot in _town_lots_along(pts, 14.0, 6.5, [-1, 1], Vector2(8.5, 8.0), taken,
 				keep_off, 8.0, total - 12.0):
 			_town_build_house(lot, 1 if _town_rng.randf() < 0.75 else 2)
-	_town_lamps_along("beach_road", road, 30.0, 4.5, -1.0)
+	_town_lamps_along("beach_road", road, 30.0, 4.5, -1.0, "beach")
 	_town_end("beach_town")
 
 
@@ -21459,3 +21742,2283 @@ func _city_slope(c: Vector2, yaw: float, w: float, d: float) -> float:
 		lo = minf(lo, float(y))
 		hi = maxf(hi, float(y))
 	return (hi - lo) / maxf(maxf(w, d), 1.0)
+
+
+# ---------------------------------------------------------------------------
+# Roads (2026-09-05): the divided highway, the road corridor in the ground,
+# the park's interchange, and what stands beside a road
+# ---------------------------------------------------------------------------
+##
+## Christina, 2026-09-05: no overpasses, no retaining walls, road seams
+## apart, no ditches, jagged Ls where curves should be, no paint, no signs
+## or signals, elevated roads without pylons or guardrails, highways and
+## towns without their own lights; highways here are two lanes each way with
+## a median, at minimum, often wide, or on two levels; on- and off-ramps in
+## both directions; and all of it as marks a screenshot can be read by.
+##
+## The ground had to change before any of it could stand. The world's
+## lattice is 24m beyond the park, 8m within 720m and 4m over the towns, and
+## nothing a metre wide can be held on it: a ditch is three vertices at
+## 80cm and a retaining wall's foot is a line. So every road cut into the
+## landform gets a **corridor**: a hole clipped out of the reserve and coast
+## meshes the way the sea is, filled by its own mesh sampled across the
+## road's section at every offset that matters (`ROAD_PROFILE`), from the
+## one height function both meshes share, so at the batter's end the
+## corridor meets the lattice's chords to the float. Inside it the section
+## is read off the ground per side: a verge at road level, a ditch where the
+## ground rises, a retaining face where it rises faster than an earth batter
+## can daylight, an embankment or a fill wall where it falls, and where it
+## falls more than `ROAD_VIADUCT_DROP` the carriageway's outer half is a
+## deck on pylons and the ground under it is left alone. The two
+## carriageways are graded on their own ground, held within
+## `HIGHWAY_SPLIT_MAX` of each other, and the median carries the step as a
+## wall. Where two corridors overlap, at the interchange, the union is
+## filled by Delaunay over every road's own samples; elsewhere a corridor is
+## rows of quads. Tapered to the old scooped cut over `ROAD_TAPER` at every
+## end, so a portal, a town's fine lattice and the world's edge meet it
+## without a step.
+
+## The section beyond a ribbon's edge, in metres: the verge, the ditch's
+## bottom and lip, the face's top, and the batter out to the natural ground.
+const ROAD_VERGE := 1.5
+const ROAD_DITCH_W := 1.6
+const ROAD_DITCH_D := 0.45
+const ROAD_WALL_RUN := 0.5
+const ROAD_WALL_MAX := 6.0
+const ROAD_BATTER := 18.0
+const ROAD_EXT := ROAD_VERGE + ROAD_DITCH_W + ROAD_WALL_RUN + ROAD_BATTER
+const ROAD_PROFILE := [0.0, 1.5, 2.3, 3.1, 3.6, 6.0, 9.0, 12.5, 16.5, 21.6]
+const ROAD_REF := 9.5
+const ROAD_FILL_FACE := 2.0
+const ROAD_TAPER := 24.0
+const ROAD_CUT_BATTER := 1.5
+const ROAD_FILL_BATTER := 2.0
+const ROAD_VIADUCT_DROP := 6.0
+const ROAD_GUARD_DROP := 1.5
+const ROAD_ROW := 4.0
+const ROAD_CHUNK_ROWS := 50
+const ROAD_TOWN_MEDIAN := 4.0
+const ROAD_DIP_FLAT := 22.0
+const ROAD_DIP_GRADE := 25.0
+## Colours the corridor wears per slot: the base under a ribbon, the gravel
+## verge, the damp ditch, the concrete of a face, the barrier.
+const ROAD_BASE_COLOUR := Color(0.24, 0.24, 0.23)
+const ROAD_VERGE_COLOUR := Color(0.55, 0.52, 0.46)
+const ROAD_DITCH_COLOUR := Color(0.30, 0.36, 0.26)
+const ROAD_CONCRETE := Color(0.60, 0.59, 0.56)
+const ROAD_CONCRETE_DARK := Color(0.50, 0.49, 0.47)
+const ROAD_STEEL := Color(0.62, 0.63, 0.65)
+const ROAD_POST := Color(0.26, 0.27, 0.29)
+const ROAD_PAINT_WHITE := Color(0.92, 0.92, 0.90)
+const ROAD_PAINT_YELLOW := Color(0.93, 0.78, 0.22)
+const ROAD_SIGN_RED := Color(0.72, 0.10, 0.10)
+const ROAD_PAINT_LIFT := 0.012
+
+var _highway_a: Array = []
+var _highway_b: Array = []
+var _highway_m := PackedFloat32Array()
+var _highway_r: Array = []
+var _highway_chain := PackedFloat32Array()
+var _highway_crossing := {}
+var _road_records_cache: Array = []
+var _road_ramps_cache: Array = []
+var _road_rows_cache: Dictionary = {}
+var _road_chunks_cache: Array = []
+var _rf: SurfaceTool
+var _rf_glow: SurfaceTool
+var _rf_asphalt: SurfaceTool
+
+
+## Whether a point lies in one of the towns' fine-lattice zones, where the
+## street cut on the 4m lattice stands and the corridor does not.
+func _road_in_fine_zone(p: Vector2) -> bool:
+	for zone in REBUILD_WORLD_FINE_ZONES:
+		var r: Rect2 = zone[0]
+		if p.x >= r.position.x and p.x <= r.end.x and p.y >= r.position.y and p.y <= r.end.y:
+			return true
+	return false
+
+
+func _road_smooth(v: PackedFloat32Array, reach: int) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	for i in v.size():
+		var sum := 0.0
+		var count := 0
+		for k in range(maxi(0, i - reach), mini(v.size() - 1, i + reach) + 1):
+			sum += v[k]
+			count += 1
+		out.append(sum / float(count))
+	return out
+
+
+## The highway in full: the centre line's stations, the median's width at
+## each, the two carriageways on their own ground, the dip under the park's
+## overpass, the split between the carriageways where the hillside is steep,
+## the tunnels. `_highway_stations()` returns the centre with the lower
+## carriageway's level, which every older reader takes as the road's.
+func _highway_build() -> void:
+	if not _highway_cache.is_empty():
+		return
+	var plan: Array[Vector2] = Plan.highway_path()
+	var xz: Array[Vector2] = [plan[0]]
+	for i in range(1, plan.size()):
+		var a: Vector2 = plan[i - 1]
+		var b: Vector2 = plan[i]
+		var steps := maxi(1, ceili(a.distance_to(b) / Plan.HIGHWAY_STATION))
+		for k in range(1, steps + 1):
+			xz.append(a.lerp(b, float(k) / float(steps)))
+	var n := xz.size()
+	_highway_r = []
+	_highway_chain = PackedFloat32Array()
+	var chain := 0.0
+	for i in n:
+		var d := Vector2.ZERO
+		if i + 1 < n:
+			d += (xz[i + 1] - xz[i]).normalized()
+		if i > 0:
+			d += (xz[i] - xz[i - 1]).normalized()
+			chain += xz[i].distance_to(xz[i - 1])
+		d = d.normalized()
+		# The right of the direction of travel in station order, which is the
+		# seaward side down the north coast and the park's side round the
+		# trough. Carriageway A is on it and carries that direction.
+		_highway_r.append(Vector2(-d.y, d.x))
+		_highway_chain.append(chain)
+	# The median by the cross-slope: wide on flat ground, narrow with a
+	# barrier where the hillside is steep, a planted strip through the towns.
+	var m_raw := PackedFloat32Array()
+	for i in n:
+		var c := xz[i]
+		var r: Vector2 = _highway_r[i]
+		var slope := absf(_rebuild_natural_y(c + r * 12.0) - _rebuild_natural_y(c - r * 12.0)) / 24.0
+		var steep := clampf((slope - 0.15) / 0.30, 0.0, 1.0)
+		steep = steep * steep * (3.0 - 2.0 * steep)
+		var m := lerpf(Plan.HIGHWAY_MEDIAN_MAX, Plan.HIGHWAY_MEDIAN_MIN, steep)
+		if _road_in_fine_zone(c):
+			m = ROAD_TOWN_MEDIAN
+		m_raw.append(m)
+	_highway_m = _road_smooth(_road_smooth(m_raw, 3), 3)
+	var half_c: float = Plan.HIGHWAY_CARRIAGEWAY_W * 0.5
+	_highway_a = []
+	_highway_b = []
+	var ha := PackedFloat32Array()
+	var hb := PackedFloat32Array()
+	for i in n:
+		var off: float = _highway_m[i] * 0.5 + half_c
+		var a: Vector2 = xz[i] + _highway_r[i] * off
+		var b: Vector2 = xz[i] - _highway_r[i] * off
+		_highway_a.append(Vector3(a.x, 0.0, a.y))
+		_highway_b.append(Vector3(b.x, 0.0, b.y))
+		ha.append(_rebuild_natural_y(a) - 0.4)
+		hb.append(_rebuild_natural_y(b) - 0.4)
+	# The interchange: both carriageways dip under the approach road's deck
+	# to give it its clearance, flat under the deck and rising at 1:25.
+	var cross: Vector3 = Plan.approach_crossing()
+	var dip: float = cross.y - float(Plan.INTERCHANGE["clearance"]) - float(Plan.INTERCHANGE["deck"])
+	var ap: Array[Vector3] = Plan.approach_road_points()
+	_highway_crossing = {}
+	for pair in [["a", _highway_a, ha], ["b", _highway_b, hb]]:
+		var pts: Array = pair[1]
+		var h: PackedFloat32Array = pair[2]
+		var cx := 0
+		var cd := INF
+		for i in n:
+			var q := Vector2((pts[i] as Vector3).x, (pts[i] as Vector3).z)
+			for j in ap.size() - 1:
+				var d := q.distance_to(Geometry2D.get_closest_point_to_segment(q,
+					Vector2(ap[j].x, ap[j].z), Vector2(ap[j + 1].x, ap[j + 1].z)))
+				if d < cd:
+					cd = d
+					cx = i
+		_highway_crossing[pair[0]] = cx
+		for i in n:
+			var d := absf(_highway_chain[i] - _highway_chain[cx])
+			h[i] = minf(h[i], dip + maxf(0.0, d - ROAD_DIP_FLAT) / ROAD_DIP_GRADE)
+	# Held to the grade by lowering, forward and back, on each carriageway's
+	# own ground; then the split between them capped by lowering the higher;
+	# and again, since a cap can put a station over the grade.
+	for round_i in 3:
+		for pair in [[_highway_a, ha], [_highway_b, hb]]:
+			var pts: Array = pair[0]
+			var h: PackedFloat32Array = pair[1]
+			for i in range(1, n):
+				var reach := (pts[i] as Vector3).distance_to(pts[i - 1]) * Plan.HIGHWAY_MAX_GRADE
+				h[i] = minf(h[i], h[i - 1] + reach)
+			for i in range(n - 2, -1, -1):
+				var reach := (pts[i] as Vector3).distance_to(pts[i + 1]) * Plan.HIGHWAY_MAX_GRADE
+				h[i] = minf(h[i], h[i + 1] + reach)
+		for i in n:
+			if ha[i] > hb[i] + Plan.HIGHWAY_SPLIT_MAX:
+				ha[i] = hb[i] + Plan.HIGHWAY_SPLIT_MAX
+			if hb[i] > ha[i] + Plan.HIGHWAY_SPLIT_MAX:
+				hb[i] = ha[i] + Plan.HIGHWAY_SPLIT_MAX
+			# Level across through a town: a main street has no step in its
+			# median, and a lane that took one carriageway's level floated
+			# over the ground at the other's (2026-09-06).
+			if _road_in_fine_zone(xz[i]):
+				var lower := minf(ha[i], hb[i])
+				ha[i] = lower
+				hb[i] = lower
+	var stations: Array = []
+	for i in n:
+		_highway_a[i] = Vector3((_highway_a[i] as Vector3).x, ha[i], (_highway_a[i] as Vector3).z)
+		_highway_b[i] = Vector3((_highway_b[i] as Vector3).x, hb[i], (_highway_b[i] as Vector3).z)
+		stations.append(Vector3(xz[i].x, minf(ha[i], hb[i]), xz[i].y))
+	# Tunnels belong to the mountain crossed by the highway's centre line, not
+	# to whichever separated carriageway happens to sit nearest its daylight
+	# face. Testing both outer ribbons made a real ridge crossing disappear as
+	# soon as one bore approached the slope, even though the centre of the road
+	# still passed under ample rock (the two far-shore tunnels, 2026-09-06).
+	# Read cover at the centre line against the higher carriageway: that is the
+	# conservative roof level shared by the twin bores without letting the low
+	# carriageway manufacture extra cover.
+	var deep := PackedByteArray()
+	for i in n - 1:
+		var min_cover := INF
+		for k in 3:
+			var t := (float(k) + 0.5) / 3.0
+			var q := xz[i].lerp(xz[i + 1], t)
+			var road_y := maxf(lerpf(ha[i], ha[i + 1], t), lerpf(hb[i], hb[i + 1], t))
+			min_cover = minf(min_cover, _rebuild_natural_y(q) - road_y)
+		deep.append(1 if min_cover > Plan.HIGHWAY_TUNNEL_COVER else 0)
+	_highway_open = PackedByteArray()
+	_highway_open.resize(n - 1)
+	_highway_open.fill(1)
+	_highway_tunnels = []
+	var i := 0
+	while i < deep.size():
+		if not deep[i]:
+			i += 1
+			continue
+		var j := i
+		while j + 1 < deep.size() and deep[j + 1]:
+			j += 1
+		var length := 0.0
+		for k in range(i, j + 1):
+			length += xz[k].distance_to(xz[k + 1])
+		if length >= Plan.HIGHWAY_TUNNEL_MIN_LEN:
+			for k in range(i, j + 1):
+				_highway_open[k] = 0
+			_highway_tunnels.append({"from": i, "to": j + 1, "length": length})
+		i = j + 1
+	_highway_cache = stations
+
+
+## The interchange's four ramps as roads: each carriageway's off-ramp leaves
+## its outer edge `ramp_run` before the bridge in its own direction of
+## travel, eases out to the line of its terminal and runs parallel to the
+## highway to end on the approach road there; its on-ramp leaves the same
+## terminal the other way and eases back to merge `ramp_run` past the
+## bridge. Heights run straight from the carriageway's level at the nose to
+## the approach road's at the terminal.
+func _interchange_ramps() -> Array:
+	if not _road_ramps_cache.is_empty():
+		return _road_ramps_cache
+	_highway_build()
+	var ap: Array[Vector3] = Plan.approach_road_points()
+	var cross: Vector3 = Plan.approach_crossing()
+	var ci := ap.size() - 2
+	var d_ap := Vector2(ap[ci].x - ap[ci - 1].x, ap[ci].z - ap[ci - 1].z).normalized()
+	var run := float(Plan.INTERCHANGE["ramp_run"])
+	var terminal := float(Plan.INTERCHANGE["terminal"])
+	var half_c: float = Plan.HIGHWAY_CARRIAGEWAY_W * 0.5
+	var ramp_half := float(Plan.INTERCHANGE["ramp_w"]) * 0.5
+	var out: Array = []
+	for side in [["a", _highway_a, 1.0, 1], ["b", _highway_b, -1.0, -1]]:
+		var tag: String = side[0]
+		var pts: Array = side[1]
+		var outward: float = side[2]
+		var travel: int = side[3]
+		var cx: int = _highway_crossing[tag]
+		# The terminal: on the approach road, `terminal` from the crossing,
+		# on this carriageway's side. The park's side for A, the stub for B.
+		var t_dir := -d_ap if outward > 0.0 else d_ap
+		var t_xz := Vector2(cross.x, cross.z) + t_dir * terminal
+		var t_y := _road_line_y(ap, t_xz)
+		# Chainage along this carriageway.
+		var chain := PackedFloat32Array([0.0])
+		for i in range(1, pts.size()):
+			chain.append(chain[i - 1] + (pts[i] as Vector3).distance_to(pts[i - 1]))
+		var at := func(c: float) -> Dictionary:
+			var i := 0
+			while i + 2 < pts.size() and chain[i + 1] < c:
+				i += 1
+			var t := clampf((c - chain[i]) / maxf(chain[i + 1] - chain[i], 0.001), 0.0, 1.0)
+			var p: Vector3 = (pts[i] as Vector3).lerp(pts[i + 1], t)
+			var d := Vector2((pts[i + 1] as Vector3).x - (pts[i] as Vector3).x,
+				(pts[i + 1] as Vector3).z - (pts[i] as Vector3).z).normalized()
+			return {"p": p, "r": Vector2(-d.y, d.x) * outward}
+		# The terminal's offset from this carriageway, measured on its own frame.
+		var base: Dictionary = at.call(chain[cx])
+		var t_off: float = (t_xz - Vector2((base["p"] as Vector3).x, (base["p"] as Vector3).z)).dot(base["r"])
+		for kind in ["off", "on"]:
+			# The nose sits before the bridge for an off-ramp and after it for
+			# an on-ramp, in this carriageway's direction of travel.
+			var sign := -1.0 if kind == "off" else 1.0
+			var nose_c: float = chain[cx] + sign * float(travel) * run
+			var plan_pts: Array = []
+			var nose: Dictionary = at.call(nose_c)
+			var nose_off := half_c + ramp_half
+			# Share the carriageway's edge only for the first twelve metres. The
+			# former 39m parallel hold left too little distance for ramp B's rise
+			# to the terminal and forced a 1:10 pitch despite a 1:12 contract.
+			var abut := run * 0.08
+			var steps := [[0.0, nose_off], [abut, nose_off + 2.0],
+				[run * 0.38, lerpf(nose_off, t_off, 0.55)],
+				[run * 0.62, t_off], [run - 10.0, t_off]]
+			for s in steps:
+				var c: float = nose_c - sign * float(travel) * float(s[0])
+				var q: Dictionary = at.call(c)
+				var p: Vector3 = q["p"]
+				var r: Vector2 = q["r"]
+				plan_pts.append(Vector2(p.x, p.z) + r * float(s[1]))
+			plan_pts.append(t_xz)
+			if kind == "on":
+				plan_pts.reverse()
+			var line: Array[Vector2] = Plan.fillet_polyline(plan_pts, 60.0, 0.0, 4.0)
+			var resampled := _rebuild_resample_route(line, 6.0)
+			var total := 0.0
+			for i in range(1, resampled.size()):
+				total += resampled[i].distance_to(resampled[i - 1])
+			# Heights use the whole run between the two fixed endpoints. Only the
+			# short shared edge follows the carriageway exactly; after the ramp
+			# has opened a gap it takes the straight, feasible grade to the
+			# terminal. Blending a moving `near_y` toward the terminal made the
+			# transition itself steeper than both endpoints require (1:10 on B).
+			var stations: Array[Vector3] = []
+			var s_acc := 0.0
+			var nose_y: float = (nose["p"] as Vector3).y
+			for i in resampled.size():
+				var q := resampled[i]
+				if i > 0:
+					s_acc += q.distance_to(resampled[i - 1])
+				var from_nose := s_acc if kind == "off" else total - s_acc
+				var best_d := INF
+				var near_y := 0.0
+				for k in pts.size() - 1:
+					var a2 := Vector2((pts[k] as Vector3).x, (pts[k] as Vector3).z)
+					var b2 := Vector2((pts[k + 1] as Vector3).x, (pts[k + 1] as Vector3).z)
+					var foot := Geometry2D.get_closest_point_to_segment(q, a2, b2)
+					var d := q.distance_to(foot)
+					if d < best_d:
+						best_d = d
+						var tt := a2.distance_to(foot) / maxf(a2.distance_to(b2), 0.001)
+						near_y = lerpf((pts[k] as Vector3).y, (pts[k + 1] as Vector3).y, tt)
+				var f := clampf(from_nose / maxf(total, 1.0), 0.0, 1.0)
+				var linear_y := lerpf(nose_y, t_y, f)
+				var follow := clampf(1.0 - from_nose / maxf(abut, 1.0), 0.0, 1.0)
+				follow = follow * follow * (3.0 - 2.0 * follow)
+				stations.append(Vector3(q.x, lerpf(linear_y, near_y, follow), q.y))
+			# And exactly the terminal's at the terminal.
+			var last := stations.size() - 1
+			var t_i := last if kind == "off" else 0
+			stations[t_i] = Vector3(stations[t_i].x, t_y, stations[t_i].z)
+			out.append({"id": "ramp_%s_%s" % [tag, kind], "points": stations, "half": ramp_half,
+				"terminal": Vector3(t_xz.x, t_y, t_xz.y), "carriageway": tag, "kind": kind,
+				"nose": nose["p"]})
+	_road_ramps_cache = out
+	return out
+
+
+## A road's height at a point projected onto its line.
+func _road_line_y(pts: Array, xz: Vector2) -> float:
+	var best := INF
+	var y := 0.0
+	for i in pts.size() - 1:
+		var a := Vector2((pts[i] as Vector3).x, (pts[i] as Vector3).z)
+		var b := Vector2((pts[i + 1] as Vector3).x, (pts[i + 1] as Vector3).z)
+		var q := Geometry2D.get_closest_point_to_segment(xz, a, b)
+		var d := xz.distance_to(q)
+		if d < best:
+			best = d
+			var t := a.distance_to(q) / maxf(a.distance_to(b), 0.001)
+			y = lerpf((pts[i] as Vector3).y, (pts[i + 1] as Vector3).y, t)
+	return y
+
+
+## Every road the ground is cut to, other than the towns' streets: the
+## highway carrying both carriageways and its median, the approach road
+## with its stub and turnaround, the four ramps. A record with `corridor`
+## owns a corridor in the ground; `runs` are its open, corridor-bearing
+## stretches by station index with whether each end tapers.
+func _road_cut_records() -> Array:
+	if not _road_records_cache.is_empty():
+		return _road_records_cache
+	_highway_build()
+	var out: Array = []
+	var hw_runs: Array = []
+	var i := 0
+	var n := _highway_cache.size()
+	while i < n - 1:
+		if not _highway_open[i]:
+			i += 1
+			continue
+		var j := i
+		while j + 1 < n - 1 and _highway_open[j + 1]:
+			j += 1
+		# The divided highway keeps its section through the fine town grids.
+		# Those grids resolve an ordinary street but not two carriageways and
+		# a median between their vertices; the structured road wins inside its
+		# ribbon in `_rebuild_road_cut`, so town streets still meet it cleanly.
+		var from_i := i
+		var to_i := j + 1
+		hw_runs.append({"from": from_i, "to": to_i, "taper_start": true, "taper_end": true})
+		i = j + 1
+	out.append({"id": "highway", "kind": "highway", "points": _highway_cache, "half": Plan.HIGHWAY_W * 0.5,
+		"corridor": true, "runs": hw_runs, "batter": 18.0})
+	var ap: Array[Vector3] = Plan.approach_road_points()
+	# The approach road's corridor starts a dozen metres up from the front
+	# road, where the lowland is flat and the front road's own furniture
+	# stands, and runs to the stub's end.
+	var ap_pts: Array = _rebuild_resample_path3(ap, ROAD_ROW)
+	var from_i := 0
+	var acc := 0.0
+	for k in range(1, ap_pts.size()):
+		acc += (ap_pts[k] as Vector3).distance_to(ap_pts[k - 1])
+		if acc >= 12.0:
+			from_i = k
+			break
+	# On the bridge the approach road is a deck and claims no ground: its
+	# segments across the highway's envelope are closed, the way a tunnel's
+	# are, or its ribbon buried the carriageway's outer edge two metres
+	# under the embankment's level (path_ground_test, 2026-09-06).
+	var cross: Vector3 = Plan.approach_crossing()
+	var cx: int = _highway_crossing["a"]
+	var bridge_half: float = _highway_m[cx] * 0.5 + Plan.HIGHWAY_CARRIAGEWAY_W + ROAD_VERGE + 0.7
+	var closed_ap := PackedByteArray()
+	closed_ap.resize(ap_pts.size() - 1)
+	closed_ap.fill(0)
+	for k in ap_pts.size() - 1:
+		var mid: Vector3 = (ap_pts[k] as Vector3).lerp(ap_pts[k + 1], 0.5)
+		if Vector2(mid.x - cross.x, mid.z - cross.z).length() <= bridge_half:
+			closed_ap[k] = 1
+	# Split the approach corridor around the bridge. `closed_ap` already kept
+	# the height function from cutting the highway beneath it, but feeding one
+	# uninterrupted run to the corridor triangulator still asked a single
+	# terrain sheet to occupy both the overpass and underpass levels. That made
+	# folded triangles and holes at all four bridge corners.
+	var ap_runs: Array = []
+	var ai := from_i
+	while ai < closed_ap.size():
+		if closed_ap[ai]:
+			ai += 1
+			continue
+		var aj := ai
+		while aj + 1 < closed_ap.size() and not closed_ap[aj + 1]:
+			aj += 1
+		ap_runs.append({"from": ai, "to": aj + 1,
+			"taper_start": ai == from_i, "taper_end": aj + 1 == ap_pts.size() - 1})
+		ai = aj + 1
+	out.append({"id": "approach", "kind": "road", "points": ap_pts, "half": Plan.APPROACH_ROAD_W * 0.5,
+		"corridor": true, "runs": ap_runs,
+		"batter": 18.0, "closed": closed_ap})
+	# The turnaround: a pad as wide as the circle along the stub's last
+	# stretch, on the stub's own grade, since a level pad at the top height
+	# stood 0.8m over the road climbing into it (path_ground_test, 2026-09-06).
+	var end: Vector3 = ap[ap.size() - 1]
+	var before: Vector3 = ap[ap.size() - 2]
+	var d_end := (end - before).normalized()
+	var pad_r := float(Plan.INTERCHANGE["turnaround_r"])
+	out.append({"id": "turnaround", "kind": "pad", "points": [end - d_end * (pad_r + 2.0), end],
+		"half": pad_r, "corridor": false, "runs": [], "batter": 18.0, "no_back": true})
+	for ramp in _interchange_ramps():
+		var pts: Array = ramp["points"]
+		out.append({"id": ramp["id"], "kind": "road", "points": pts, "half": float(ramp["half"]),
+			"corridor": true, "runs": [{"from": 0, "to": pts.size() - 1, "taper_start": false, "taper_end": false}],
+			"batter": 18.0})
+	# The front road and the turning circle, on the old rule: the front road's
+	# west end ran out over the coast mesh's ramp down to the strip and
+	# floated 1.4m over it (path_ground_test, 2026-09-06, the first time the
+	# approach scene was in the test).
+	var fz: float = Plan.FRONT_ROAD_Z
+	out.append({"id": "front_road", "kind": "road", "points": [Vector3(Plan.FRONT_ROAD_HALF_X, 0.0, fz),
+		Vector3(-Plan.FRONT_ROAD_HALF_X, 0.0, fz)], "half": Plan.FRONT_ROAD_W * 0.5, "corridor": false,
+		"runs": [], "batter": 12.0})
+	var circle: Vector3 = Plan.TURNING_CIRCLE
+	out.append({"id": "turning_circle", "kind": "pad", "points": [Vector3(circle.x, 0.0, circle.y),
+		Vector3(circle.x + 0.5, 0.0, circle.y)], "half": circle.z, "corridor": false, "runs": [], "batter": 12.0})
+	# And the lot entries: the west one ran across the coast mesh's ramp
+	# down to the strip and floated three metres over it.
+	for x in Plan.LOT_ENTRY_XS:
+		out.append({"id": "lot_entry_%d" % int(x), "kind": "road", "points": [Vector3(float(x), 0.0, Plan.PARKING_TO_Z),
+			Vector3(float(x), 0.0, fz)], "half": 3.5, "corridor": false, "runs": [], "batter": 12.0})
+	_road_records_cache = out
+	return out
+
+
+## The nearest road's cut at a point, over every road record: the old rule,
+## level within a metre of the ribbon's edge and blended back to the
+## landform over the batter, and inside a corridor the section itself,
+## tapered in over `ROAD_TAPER` from the corridor's ends. `y` is the ground
+## before any road. Returns [height, found].
+func _road_records_cut(p: Vector2, y: float) -> Array:
+	var best := INF
+	var best_rec: Dictionary = {}
+	var best_seg := -1
+	var best_t := 0.0
+	var best_o := 0.0
+	for rec in _road_cut_records():
+		var pts: Array = rec["points"]
+		var half: float = rec["half"]
+		var reach: float = half + ROAD_EXT + 2.0
+		var is_hw: bool = rec["kind"] == "highway"
+		var closed_segments: PackedByteArray = rec.get("closed", PackedByteArray())
+		for i in pts.size() - 1:
+			if is_hw and not _highway_open[i]:
+				continue
+			if i < closed_segments.size() and closed_segments[i]:
+				continue
+			var s0: Vector3 = pts[i]
+			var s1: Vector3 = pts[i + 1]
+			if p.x < minf(s0.x, s1.x) - reach or p.x > maxf(s0.x, s1.x) + reach \
+					or p.y < minf(s0.z, s1.z) - reach or p.y > maxf(s0.z, s1.z) + reach:
+				continue
+			var a := Vector2(s0.x, s0.z)
+			var b := Vector2(s1.x, s1.z)
+			# A pad that casts nothing behind its start: the turnaround's
+			# level stood over the stub climbing into it (2026-09-06).
+			if bool(rec.get("no_back", false)) and i == 0 and (p - a).dot(b - a) < 0.0:
+				continue
+			var q := Geometry2D.get_closest_point_to_segment(p, a, b)
+			var t := a.distance_to(q) / maxf(a.distance_to(b), 0.001)
+			var edge_half := half
+			# The true distance, radial past a segment's end, and never the
+			# projection onto the normal: a segment a hundred metres on has a
+			# small projection and would win a point it is nowhere near.
+			var o := p.distance_to(q)
+			if is_hw:
+				var m := lerpf(_highway_m[i], _highway_m[i + 1], t)
+				edge_half = m * 0.5 + Plan.HIGHWAY_CARRIAGEWAY_W
+				var r: Vector2 = (_highway_r[i] as Vector2).lerp(_highway_r[i + 1], t).normalized()
+				if (p - q).dot(r) < 0.0:
+					o = -o
+			var dist := absf(o) - edge_half
+			if dist < best:
+				best = dist
+				best_rec = rec
+				best_seg = i
+				best_t = t
+				best_o = o
+	if best_rec.is_empty():
+		return [y, false, INF]
+	var height := _road_record_y(best_rec, best_seg, best_t, best_o, best, y)
+	# Beyond every ribbon's verge, two roads side by side each want their
+	# own section, and where a ramp runs beside a carriageway in a cut the
+	# nearest-road rule switched between a wall's top and a verge from one
+	# sample to the next: a sawtooth (2026-09-06, `r11_trough_cut`). The
+	# lower section wins there, so a ramp beside a cut carriageway runs on
+	# the cut's floor with the wall behind it, which is what a ramp does.
+	if best > ROAD_VERGE:
+		for rec in _road_cut_records():
+			if rec == best_rec or not bool(rec["corridor"]):
+				continue
+			var near := _road_record_nearest(rec, p)
+			if near.is_empty() or float(near["best"]) > ROAD_EXT or float(near["best"]) <= ROAD_VERGE:
+				continue
+			height = minf(height, _road_record_y(rec, int(near["seg"]), float(near["t"]), float(near["o"]),
+				float(near["best"]), y))
+	return [height, true, best]
+
+
+## The nearest segment of one road record to a point, with the signed
+## offset and the distance beyond its ribbon's edge; empty if out of reach.
+func _road_record_nearest(rec: Dictionary, p: Vector2) -> Dictionary:
+	var pts: Array = rec["points"]
+	var half: float = rec["half"]
+	var reach: float = half + ROAD_EXT + 2.0
+	var is_hw: bool = rec["kind"] == "highway"
+	var best := INF
+	var out := {}
+	var closed_segments: PackedByteArray = rec.get("closed", PackedByteArray())
+	for i in pts.size() - 1:
+		if is_hw and not _highway_open[i]:
+			continue
+		if i < closed_segments.size() and closed_segments[i]:
+			continue
+		var s0: Vector3 = pts[i]
+		var s1: Vector3 = pts[i + 1]
+		if p.x < minf(s0.x, s1.x) - reach or p.x > maxf(s0.x, s1.x) + reach \
+				or p.y < minf(s0.z, s1.z) - reach or p.y > maxf(s0.z, s1.z) + reach:
+			continue
+		var a := Vector2(s0.x, s0.z)
+		var b := Vector2(s1.x, s1.z)
+		if bool(rec.get("no_back", false)) and i == 0 and (p - a).dot(b - a) < 0.0:
+			continue
+		var q := Geometry2D.get_closest_point_to_segment(p, a, b)
+		var t := a.distance_to(q) / maxf(a.distance_to(b), 0.001)
+		var edge_half := half
+		var o := p.distance_to(q)
+		if is_hw:
+			var m := lerpf(_highway_m[i], _highway_m[i + 1], t)
+			edge_half = m * 0.5 + Plan.HIGHWAY_CARRIAGEWAY_W
+			var r: Vector2 = (_highway_r[i] as Vector2).lerp(_highway_r[i + 1], t).normalized()
+			if (p - q).dot(r) < 0.0:
+				o = -o
+		var dist := absf(o) - edge_half
+		if dist < best:
+			best = dist
+			out = {"seg": i, "t": t, "o": o, "best": dist}
+	return out
+
+
+## One road record's ground at a point: the old rule, and inside a
+## corridor the section, tapered in from the corridor's ends.
+func _road_record_y(rec: Dictionary, seg: int, t: float, o: float, best: float, y: float) -> float:
+	var pts: Array = rec["points"]
+	var s0: Vector3 = pts[seg]
+	var s1: Vector3 = pts[seg + 1]
+	var level := lerpf(s0.y, s1.y, t)
+	if rec["kind"] == "highway":
+		var ha := lerpf((_highway_a[seg] as Vector3).y, (_highway_a[seg + 1] as Vector3).y, t)
+		var hb := lerpf((_highway_b[seg] as Vector3).y, (_highway_b[seg + 1] as Vector3).y, t)
+		level = ha if o >= 0.0 else hb
+	var old := level - 0.06
+	var batter: float = rec["batter"]
+	if best > 1.0:
+		var blend := clampf((best - 1.0) / batter, 0.0, 1.0)
+		blend = blend * blend * (3.0 - 2.0 * blend)
+		old = lerpf(level - 0.06, y, blend)
+	if not bool(rec["corridor"]):
+		return old
+	var taper := _road_taper(rec, seg, t)
+	if taper <= 0.0 or best > ROAD_EXT:
+		return old
+	var prof := _road_profile_y(rec, seg, t, o, y)
+	return lerpf(old, prof, taper)
+
+
+## How far into a corridor run a station is, 0 at a tapered end, 1 beyond
+## `ROAD_TAPER` from it; 0 outside every run.
+func _road_taper(rec: Dictionary, seg: int, t: float) -> float:
+	var pts: Array = rec["points"]
+	for run in rec["runs"]:
+		var from_i: int = run["from"]
+		var to_i: int = run["to"]
+		if seg < from_i or seg >= to_i:
+			continue
+		var w := 1.0
+		if bool(run["taper_start"]):
+			var d := 0.0
+			for k in range(from_i, seg):
+				d += (pts[k] as Vector3).distance_to(pts[k + 1])
+			d += (pts[seg] as Vector3).distance_to(pts[seg + 1]) * t
+			w = minf(w, clampf(d / ROAD_TAPER, 0.0, 1.0))
+		if bool(run["taper_end"]):
+			var d := 0.0
+			for k in range(seg + 1, to_i):
+				d += (pts[k] as Vector3).distance_to(pts[k + 1])
+			d += (pts[seg] as Vector3).distance_to(pts[seg + 1]) * (1.0 - t)
+			w = minf(w, clampf(d / ROAD_TAPER, 0.0, 1.0))
+		return w * w * (3.0 - 2.0 * w)
+	return 0.0
+
+
+## The corridor's section at a point: the road's level under the ribbon,
+## the median between the highway's carriageways, and beyond either edge
+## the side read off the ground there. `y` is the natural ground at the
+## point.
+func _road_profile_y(rec: Dictionary, seg: int, t: float, o: float, y: float) -> float:
+	var pts: Array = rec["points"]
+	var s0: Vector3 = pts[seg]
+	var s1: Vector3 = pts[seg + 1]
+	var foot := Vector2(s0.x, s0.z).lerp(Vector2(s1.x, s1.z), t)
+	var half: float = rec["half"]
+	var level := lerpf(s0.y, s1.y, t)
+	var r := Vector2(s1.x - s0.x, s1.z - s0.z).normalized()
+	r = Vector2(-r.y, r.x)
+	if rec["kind"] == "highway":
+		var m := lerpf(_highway_m[seg], _highway_m[seg + 1], t)
+		var ha := lerpf((_highway_a[seg] as Vector3).y, (_highway_a[seg + 1] as Vector3).y, t)
+		var hb := lerpf((_highway_b[seg] as Vector3).y, (_highway_b[seg + 1] as Vector3).y, t)
+		r = (_highway_r[seg] as Vector2).lerp(_highway_r[seg + 1], t).normalized()
+		if absf(o) <= m * 0.5:
+			return _road_median_y(o, m, ha, hb)
+		half = m * 0.5 + Plan.HIGHWAY_CARRIAGEWAY_W
+		level = ha if o >= 0.0 else hb
+	var side := 1.0 if o >= 0.0 else -1.0
+	var e := absf(o) - half
+	if e <= 0.0:
+		return level - 0.06
+	var edge := foot + r * side * half
+	var nat_ref := _rebuild_natural_y(edge + r * side * ROAD_REF)
+	var nat_wall := _rebuild_natural_y(edge + r * side * (ROAD_VERGE + ROAD_DITCH_W + ROAD_WALL_RUN))
+	var nat_fill := _rebuild_natural_y(edge + r * side * ROAD_FILL_FACE)
+	return _road_side_y(level, e, y, nat_ref, nat_wall, nat_fill)
+
+
+## The median's ground between the carriageways: level with each at its own
+## inner edge, the step between them as a face half a metre wide at the
+## middle, and on a wide flat median a shallow swale.
+func _road_median_y(o: float, m: float, ha: float, hb: float) -> float:
+	var f := clampf((o + 0.25) / 0.5, 0.0, 1.0)
+	var y := lerpf(hb, ha, f) - 0.06
+	var wide := clampf((m - 6.0) / 4.0, 0.0, 1.0) * clampf(1.0 - absf(ha - hb) / 0.5, 0.0, 1.0)
+	if wide > 0.0:
+		var u := absf(o) / (m * 0.5)
+		var swale := clampf(1.0 - u, 0.0, 1.0)
+		swale = swale * swale * (3.0 - 2.0 * swale)
+		var inner := clampf((m * 0.5 - absf(o) - Plan.HIGHWAY_SHOULDER_IN) / 1.0, 0.0, 1.0)
+		y -= 0.4 * swale * wide * inner
+	return y
+
+
+## One side of a road's section, `e` metres beyond the ribbon's edge at
+## road `level`: a verge at road level; where the ground rises beyond, a
+## ditch, then a retaining face as tall as the ground stands over its line
+## up to `ROAD_WALL_MAX`, then an earth batter that daylights into the
+## hill; where the ground falls, an embankment, or a fill wall where it
+## falls more than a couple of metres; and where it falls more than
+## `ROAD_VIADUCT_DROP` the deck spans it and the ground is left as it is.
+## `nat` is the natural ground at the point, `nat_ref` at `ROAD_REF` beyond
+## the edge, `nat_wall` at the cut face's line, `nat_fill` at the fill
+## face's. Every term is continuous in the ground, so a wall grows out of
+## the batter rather than switching on.
+func _road_side_y(level: float, e: float, nat: float, nat_ref: float, nat_wall: float,
+		nat_fill: float) -> float:
+	if e <= ROAD_VERGE:
+		return level - 0.06
+	var rise := nat_ref - level
+	var w_edge := clampf((e - (ROAD_EXT - 6.0)) / 6.0, 0.0, 1.0)
+	w_edge = w_edge * w_edge * (3.0 - 2.0 * w_edge)
+	if rise >= 0.0:
+		var cut := clampf(rise / 1.0, 0.0, 1.0)
+		var lip := ROAD_VERGE + ROAD_DITCH_W
+		if e <= lip:
+			var u := (e - ROAD_VERGE) / ROAD_DITCH_W
+			var v := 1.0 - absf(u * 2.0 - 1.0)
+			return level - 0.06 - ROAD_DITCH_D * v * cut
+		var wall_h := clampf(nat_wall - level, 0.0, ROAD_WALL_MAX) * cut
+		var top := lip + ROAD_WALL_RUN
+		if e <= top:
+			return level - 0.06 + wall_h * (e - lip) / ROAD_WALL_RUN
+		var batter := level + wall_h + (e - top) / ROAD_CUT_BATTER
+		return lerpf(minf(nat, batter), nat, w_edge)
+	var drop := -rise
+	if drop >= ROAD_VIADUCT_DROP:
+		return nat
+	var fill := clampf((drop - 2.5) / 1.0, 0.0, 1.0)
+	var wall_h := clampf(level - nat_fill, 0.0, ROAD_WALL_MAX) * fill
+	if e <= ROAD_FILL_FACE:
+		return level - 0.06 - wall_h * (e - ROAD_VERGE) / (ROAD_FILL_FACE - ROAD_VERGE)
+	var slope := level - wall_h - (e - ROAD_FILL_FACE) / ROAD_FILL_BATTER
+	return lerpf(maxf(nat, slope), nat, w_edge)
+
+
+## What a side of a road is at a station, for what stands beside it: the
+## cut face's height, the drop beyond the verge, whether the deck spans it.
+func _road_side_class(level: float, edge: Vector2, r_out: Vector2) -> Dictionary:
+	var nat_ref := _rebuild_natural_y(edge + r_out * ROAD_REF)
+	var nat_wall := _rebuild_natural_y(edge + r_out * (ROAD_VERGE + ROAD_DITCH_W + ROAD_WALL_RUN))
+	var nat_fill := _rebuild_natural_y(edge + r_out * ROAD_FILL_FACE)
+	var rise := nat_ref - level
+	var cut := clampf(rise / 1.0, 0.0, 1.0)
+	var wall := clampf(nat_wall - level, 0.0, ROAD_WALL_MAX) * cut if rise >= 0.0 else 0.0
+	var drop := maxf(0.0, -rise)
+	var fill := clampf((drop - 2.5) / 1.0, 0.0, 1.0)
+	var fill_wall := clampf(level - nat_fill, 0.0, ROAD_WALL_MAX) * fill if rise < 0.0 else 0.0
+	return {"rise": rise, "wall": wall, "drop": drop, "fill_wall": fill_wall,
+		"viaduct": drop >= ROAD_VIADUCT_DROP, "guard": drop >= ROAD_GUARD_DROP,
+		"ditch": cut > 0.05 and drop < ROAD_VIADUCT_DROP}
+
+
+## The ground the corridor and everything on it reads: the coast mesh's
+## height west of the reserve's seam and the reserve's east of it, cuts
+## included, which is `_town_ground_y` by another name.
+func _road_ground_y(p: Vector2) -> float:
+	# Inside a structured ribbon, that road owns the ground absolutely. Beyond
+	# its edge, town streets still cut the corridor's verge and batter so a
+	# cross street can climb through the highway earthwork to its junction.
+	# Applying either rule to the whole corridor made one road or the other
+	# float through the beach-town transition.
+	var natural := _rebuild_natural_y(p)
+	var record: Array = _road_records_cut(p, natural)
+	if bool(record[1]) and float(record[2]) <= 0.0:
+		return float(record[0])
+	return _town_ground_y(p)
+
+
+## The corridor's rows for one road record's runs: every `ROAD_ROW` along
+## the road, the row's centre, its normal, and the offsets and slots of its
+## section, from which both the polygon and the mesh are built.
+func _road_rows(rec: Dictionary) -> Array:
+	var id: String = rec["id"]
+	if _road_rows_cache.has(id):
+		return _road_rows_cache[id]
+	var pts: Array = rec["points"]
+	var is_hw: bool = rec["kind"] == "highway"
+	var rows: Array = []
+	for run in rec["runs"]:
+		var from_i: int = run["from"]
+		var to_i: int = run["to"]
+		var seg_pts: Array = pts.slice(from_i, to_i + 1)
+		var fine: Array = _rebuild_resample_path3(seg_pts, ROAD_ROW)
+		var run_rows: Array = []
+		for k in fine.size():
+			var p: Vector3 = fine[k]
+			var xz := Vector2(p.x, p.z)
+			# The station segment this row lies on, for the median and the
+			# carriageways' own values.
+			var seg := from_i
+			var t := 0.0
+			var best := INF
+			for i in range(from_i, to_i):
+				var a := Vector2((pts[i] as Vector3).x, (pts[i] as Vector3).z)
+				var b := Vector2((pts[i + 1] as Vector3).x, (pts[i + 1] as Vector3).z)
+				var q := Geometry2D.get_closest_point_to_segment(xz, a, b)
+				var d := xz.distance_to(q)
+				if d < best:
+					best = d
+					seg = i
+					t = a.distance_to(q) / maxf(a.distance_to(b), 0.001)
+			var d := Vector2.ZERO
+			if k + 1 < fine.size():
+				d += Vector2((fine[k + 1] as Vector3).x - p.x, (fine[k + 1] as Vector3).z - p.z).normalized()
+			if k > 0:
+				d += Vector2(p.x - (fine[k - 1] as Vector3).x, p.z - (fine[k - 1] as Vector3).z).normalized()
+			d = d.normalized()
+			var r := Vector2(-d.y, d.x)
+			var offsets: Array = []
+			var slots: Array = []
+			var half: float = rec["half"]
+			if is_hw:
+				var m := lerpf(_highway_m[seg], _highway_m[seg + 1], t)
+				r = (_highway_r[seg] as Vector2).lerp(_highway_r[seg + 1], t).normalized()
+				var hc: float = Plan.HIGHWAY_CARRIAGEWAY_W
+				half = m * 0.5 + hc
+				var outer: Array = ROAD_PROFILE.duplicate()
+				outer.reverse()
+				for e in outer:
+					offsets.append(-(half + float(e)))
+					slots.append(_road_slot(float(e)))
+				for e in [-half + hc * 0.5, -m * 0.5, -m * 0.5 + Plan.HIGHWAY_SHOULDER_IN,
+						-0.25, 0.25, m * 0.5 - Plan.HIGHWAY_SHOULDER_IN, m * 0.5, half - hc * 0.5]:
+					offsets.append(float(e))
+					slots.append("median" if absf(float(e)) < m * 0.5 - 0.01 else "base")
+				for e in ROAD_PROFILE:
+					offsets.append(half + float(e))
+					slots.append(_road_slot(float(e)))
+			else:
+				var outer: Array = ROAD_PROFILE.duplicate()
+				outer.reverse()
+				for e in outer:
+					offsets.append(-(half + float(e)))
+					slots.append(_road_slot(float(e)))
+				offsets.append(0.0)
+				slots.append("base")
+				for e in ROAD_PROFILE:
+					offsets.append(half + float(e))
+					slots.append(_road_slot(float(e)))
+			run_rows.append({"c": xz, "r": r, "seg": seg, "t": t, "offsets": offsets, "slots": slots,
+				"half": half, "y": p.y})
+		# A run's end row closes against the clipped terrain boundary. That
+		# boundary is a chord through its lattice crossings, so `_road_snap_row`
+		# reads that same chord at each road-profile crossing. The fine town
+		# grids take the boundary chord as their road surface. The coarse corridor
+		# keeps its cut and fills the difference to the boundary, which is the cut
+		# face a portal headwall stands across.
+		if bool(run["taper_start"]):
+			_road_snap_row(run_rows[0], -1.0)
+		if bool(run["taper_end"]):
+			_road_snap_row(run_rows[run_rows.size() - 1], 1.0)
+		rows.append(run_rows)
+	_road_rows_cache[id] = rows
+	return rows
+
+
+var _road_lattice_x := PackedFloat32Array()
+var _road_lattice_z := PackedFloat32Array()
+
+
+## The world's lattice lines, both meshes' in one list: the coast's walk
+## west from the seam and the reserve's walk from zero.
+func _road_lattice() -> void:
+	if not _road_lattice_x.is_empty():
+		return
+	var west := _rebuild_axis_walk(Plan.REBUILD_WORLD_LAND_FROM_X,
+		Plan.REBUILD_WORLD_LAND_FROM_X - 1400.0, true)
+	west.reverse()
+	var east := _rebuild_graded_axis(Plan.REBUILD_WORLD_LAND_FROM_X, Plan.REBUILD_WORLD_LAND_TO_X, true)
+	_road_lattice_x = PackedFloat32Array()
+	for x in west:
+		_road_lattice_x.append(x)
+	for i in range(1, east.size()):
+		_road_lattice_x.append(east[i])
+	_road_lattice_z = _rebuild_graded_axis(Plan.REBUILD_WORLD_LAND_FROM_Z, Plan.REBUILD_WORLD_LAND_TO_Z, false)
+
+
+## Give one row heights read off the terrain lattice's chords. Where the row's
+## line crosses a lattice line the surrounding terrain owns the height; between
+## two crossings it is the chord the clipped terrain mesh actually emits.
+func _road_snap_row(row: Dictionary, facing: float) -> void:
+	_road_lattice()
+	var c: Vector2 = row["c"]
+	var r: Vector2 = row["r"]
+	var offs: Array = row["offsets"]
+	var o0 := float(offs[0])
+	var o1 := float(offs[offs.size() - 1])
+	var p0 := c + r * o0
+	var p1 := c + r * o1
+	var d := p1 - p0
+	var ts: Array = [0.0, 1.0]
+	for axis in [[_road_lattice_x, true], [_road_lattice_z, false]]:
+		var lines: PackedFloat32Array = axis[0]
+		var is_x: bool = axis[1]
+		var comp0 := p0.x if is_x else p0.y
+		var dcomp := d.x if is_x else d.y
+		if absf(dcomp) < 0.0001:
+			continue
+		var lo := minf(comp0, comp0 + dcomp)
+		var hi := maxf(comp0, comp0 + dcomp)
+		for v in lines:
+			if v <= lo or v >= hi:
+				continue
+			var hit := (v - comp0) / dcomp
+			if not ts.any(func(t) -> bool: return absf(float(t) - hit) < 0.00001):
+				ts.append(hit)
+	ts.sort()
+	var ys := PackedFloat32Array()
+	for t in ts:
+		ys.append(_town_ground_y(p0 + d * float(t)))
+	var snapped := PackedFloat32Array()
+	for e in offs:
+		var t: float = (float(e) - o0) / (o1 - o0)
+		var k := 0
+		while k + 1 < ts.size() - 1 and float(ts[k + 1]) < t:
+			k += 1
+		var ta := float(ts[k])
+		var tb := float(ts[k + 1])
+		snapped.append(lerpf(ys[k], ys[k + 1],
+			clampf((t - ta) / maxf(tb - ta, 0.000001), 0.0, 1.0)))
+	if _road_in_fine_zone(c):
+		row["ys"] = snapped
+	else:
+		row["closure"] = snapped
+		row["closure_facing"] = facing
+
+
+func _road_slot(e: float) -> String:
+	if e <= 0.01:
+		return "edge"
+	if e <= ROAD_VERGE + 0.01:
+		return "verge"
+	if absf(e - (ROAD_VERGE + ROAD_DITCH_W)) < 0.01:
+		return "lip"
+	if e <= ROAD_VERGE + ROAD_DITCH_W + 0.01:
+		return "ditch"
+	if e <= ROAD_VERGE + ROAD_DITCH_W + ROAD_WALL_RUN + 0.01:
+		return "wall"
+	return "batter"
+
+
+## The corridor's chunks: every run of every corridor road cut into pieces
+## of `ROAD_CHUNK_ROWS` rows, each with its polygon, and grouped where their
+## polygons overlap, which is the interchange.
+func _road_chunks() -> Array:
+	if not _road_chunks_cache.is_empty():
+		return _road_chunks_cache
+	var chunks: Array = []
+	for rec in _road_cut_records():
+		if not bool(rec["corridor"]):
+			continue
+		for run_rows in _road_rows(rec):
+			var k := 0
+			while k < (run_rows as Array).size() - 1:
+				var to_k := mini(k + ROAD_CHUNK_ROWS, (run_rows as Array).size() - 1)
+				var rows: Array = (run_rows as Array).slice(k, to_k + 1)
+				# The polygon carries every vertex of its first and last rows,
+				# not just their two corners: the clipper keeps the subject's
+				# vertices, so the lattice mesh cut against it meets the
+				# corridor's end row vertex for vertex. With corners alone the
+				# lattice's chord ran straight across the cut and the two
+				# meshes interleaved along the row, 1,450 open edges' worth
+				# (2026-09-06, `_open_face_probe`).
+				var poly := PackedVector2Array()
+				var first: Dictionary = rows[0]
+				var f_offs: Array = first["offsets"]
+				for i in f_offs.size() - 1:
+					poly.append(Vector2(first["c"]) + Vector2(first["r"]) * float(f_offs[i]))
+				for row in rows:
+					var offs: Array = row["offsets"]
+					poly.append(Vector2(row["c"]) + Vector2(row["r"]) * float(offs[offs.size() - 1]))
+				var last: Dictionary = rows[rows.size() - 1]
+				var l_offs: Array = last["offsets"]
+				for i in range(l_offs.size() - 2, 0, -1):
+					poly.append(Vector2(last["c"]) + Vector2(last["r"]) * float(l_offs[i]))
+				for i in range(rows.size() - 1, -1, -1):
+					var row: Dictionary = rows[i]
+					var offs: Array = row["offsets"]
+					poly.append(Vector2(row["c"]) + Vector2(row["r"]) * float(offs[0]))
+				var lo: Vector2 = poly[0]
+				var hi: Vector2 = poly[0]
+				for q in poly:
+					lo = Vector2(minf(lo.x, q.x), minf(lo.y, q.y))
+					hi = Vector2(maxf(hi.x, q.x), maxf(hi.y, q.y))
+				chunks.append({"id": rec["id"], "rows": rows, "poly": poly, "lo": lo, "hi": hi, "group": -1})
+				k = to_k
+	# Group by overlap: a shared end row is not an overlap, a shared area is.
+	var parent := PackedInt32Array()
+	for i in chunks.size():
+		parent.append(i)
+	var find := func(i: int) -> int:
+		var root := i
+		while parent[root] != root:
+			root = parent[root]
+		return root
+	for i in chunks.size():
+		for j in range(i + 1, chunks.size()):
+			var a: Dictionary = chunks[i]
+			var b: Dictionary = chunks[j]
+			if (a["hi"] as Vector2).x < (b["lo"] as Vector2).x or (a["lo"] as Vector2).x > (b["hi"] as Vector2).x \
+					or (a["hi"] as Vector2).y < (b["lo"] as Vector2).y or (a["lo"] as Vector2).y > (b["hi"] as Vector2).y:
+				continue
+			var area := 0.0
+			for piece in Geometry2D.intersect_polygons(a["poly"], b["poly"]):
+				area += _polygon_area(piece)
+			if area > 4.0:
+				var ra: int = find.call(i)
+				var rb: int = find.call(j)
+				if ra != rb:
+					parent[rb] = ra
+	var groups := {}
+	for i in chunks.size():
+		var root: int = find.call(i)
+		if not groups.has(root):
+			groups[root] = []
+		(groups[root] as Array).append(i)
+		chunks[i]["group"] = root
+	_road_chunks_cache = [chunks, groups]
+	return _road_chunks_cache
+
+
+## Every corridor polygon, for the reserve and coast meshes to clip their
+## cells by, with bounds.
+func _road_corridor_polygons() -> Array:
+	var out: Array = []
+	var chunks: Array = _road_chunks()[0]
+	for chunk in chunks:
+		out.append({"poly": chunk["poly"], "lo": chunk["lo"], "hi": chunk["hi"]})
+	return out
+
+
+func _road_colour(slot: String, p: Vector2, y: float, wall_here: bool) -> Color:
+	match slot:
+		"base":
+			return ROAD_BASE_COLOUR
+		"edge", "verge":
+			return ROAD_VERGE_COLOUR
+		"ditch":
+			return ROAD_DITCH_COLOUR
+		"lip":
+			return ROAD_CONCRETE if wall_here else ROAD_VERGE_COLOUR
+		"wall":
+			return ROAD_CONCRETE if wall_here else _rebuild_ground_colour(p, y)
+		"median":
+			return ROAD_CONCRETE if wall_here else _rebuild_ground_colour(p, y)
+	return _rebuild_ground_colour(p, y)
+
+
+## The corridor mesh: rows of quads for a chunk standing alone, Delaunay
+## over every chunk's samples for a group that overlaps. Heights and
+## colours come from the shared height function at every sample.
+func _rebuild_road_corridor_mesh() -> ArrayMesh:
+	var packed: Array = _road_chunks()
+	var chunks: Array = packed[0]
+	var groups: Dictionary = packed[1]
+	var lowland_cuts := _rebuild_lowland_cuts()
+	var t2 := PackedVector2Array()
+	for q in Plan.rebuild_terrain_shape(&"T2"):
+		t2.append(Vector2(q))
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(0)
+	var tris := 0
+	# A closure face along a run's end row on the coarse lattice: from the road
+	# cut up to the terrain chord, facing back along the run.
+	var closure := func(row: Dictionary) -> void:
+		if not row.has("closure"):
+			return
+		var c: Vector2 = row["c"]
+		var r: Vector2 = row["r"]
+		var offs: Array = row["offsets"]
+		var chord: PackedFloat32Array = row["closure"]
+		var facing: float = row["closure_facing"]
+		var along := Vector3(-r.y, 0.0, r.x) * -facing
+		for i in offs.size() - 1:
+			var p0: Vector2 = c + r * float(offs[i])
+			var p1: Vector2 = c + r * float(offs[i + 1])
+			var road0 := _road_ground_y(p0)
+			var road1 := _road_ground_y(p1)
+			if chord[i] <= road0 + 0.02 and chord[i + 1] <= road1 + 0.02:
+				continue
+			var lo0 := Vector3(p0.x, road0, p0.y)
+			var lo1 := Vector3(p1.x, road1, p1.y)
+			var hi0 := Vector3(p0.x, maxf(chord[i], road0), p0.y)
+			var hi1 := Vector3(p1.x, maxf(chord[i + 1], road1), p1.y)
+			st.set_color(REBUILD_SEA_CLIFF_COLOUR)
+			_earth_wall_quad(st, lo0, lo1, hi0, hi1, along)
+			tris += 2
+	var sample := func(p: Vector2, slot: String, wall_here: bool) -> Array:
+		assert(not _rebuild_in_protected(p, 0.0) and not _rebuild_in_lowland_cut(p, lowland_cuts, 0.0)
+			and not Geometry2D.is_point_in_polygon(p, t2),
+			"a road corridor reaches into the park's own ground at %s" % p)
+		var y := _road_ground_y(p)
+		return [Vector3(p.x, y, p.y), _road_colour(slot, p, y, wall_here)]
+	for root in groups:
+		var members: Array = groups[root]
+		if members.size() == 1:
+			var chunk: Dictionary = chunks[members[0]]
+			var rows: Array = chunk["rows"]
+			var prev: Array = []
+			for row in rows:
+				var here: Array = []
+				var c: Vector2 = row["c"]
+				var r: Vector2 = row["r"]
+				var offs: Array = row["offsets"]
+				var slots: Array = row["slots"]
+				# A face is concrete where it stands more than a hand over its lip.
+				var ys := PackedFloat32Array()
+				if row.has("ys"):
+					ys = row["ys"]
+				else:
+					for i in offs.size():
+						ys.append(_road_ground_y(c + r * float(offs[i])))
+				for i in offs.size():
+					var wall_here := false
+					if slots[i] == "wall":
+						var lip_i := i - 1 if float(offs[i]) > 0.0 else i + 1
+						wall_here = ys[i] - ys[lip_i] > 0.3
+					elif slots[i] == "lip":
+						var wall_i := i + 1 if float(offs[i]) > 0.0 else i - 1
+						wall_here = ys[wall_i] - ys[i] > 0.3
+					elif slots[i] == "median" and absf(float(offs[i])) < 0.3:
+						# The step between split carriageways is a face.
+						wall_here = absf(ys[i + 1] - ys[i - 1]) > 0.6
+					var p: Vector2 = c + r * float(offs[i])
+					here.append([Vector3(p.x, ys[i], p.y), _road_colour(String(slots[i]), p, ys[i], wall_here)])
+				if not prev.is_empty():
+					for i in offs.size() - 1:
+						var a: Array = prev[i]
+						var b: Array = prev[i + 1]
+						var c3: Array = here[i + 1]
+						var d3: Array = here[i]
+						var pa: Vector3 = a[0]
+						_earth_coloured_tri(st, pa, Vector2(pa.x, pa.z) * 0.28, a[1],
+							b[0], Vector2((b[0] as Vector3).x, (b[0] as Vector3).z) * 0.28, b[1],
+							c3[0], Vector2((c3[0] as Vector3).x, (c3[0] as Vector3).z) * 0.28, c3[1], Vector3.UP)
+						_earth_coloured_tri(st, pa, Vector2(pa.x, pa.z) * 0.28, a[1],
+							c3[0], Vector2((c3[0] as Vector3).x, (c3[0] as Vector3).z) * 0.28, c3[1],
+							d3[0], Vector2((d3[0] as Vector3).x, (d3[0] as Vector3).z) * 0.28, d3[1], Vector3.UP)
+						tris += 2
+				prev = here
+			closure.call(rows[0])
+			closure.call(rows[rows.size() - 1])
+			continue
+		# A group: the union's outline, every member's samples, Delaunay.
+		# The union, chunk by chunk: each new chunk is merged into every
+		# piece it overlaps, and a piece it does not overlap is kept as it
+		# is. Merging only the first piece left a chunk that overlapped the
+		# second as its own piece, and the largest at the end lost it:
+		# whole chunks of the interchange with no ground (2026-09-06).
+		var outer := PackedVector2Array()
+		var merged: Array = [chunks[members[0]]["poly"]]
+		for mi in range(1, members.size()):
+			var acc: PackedVector2Array = chunks[members[mi]]["poly"]
+			var rest: Array = []
+			for piece in merged:
+				var result := Geometry2D.merge_polygons(acc, piece)
+				var outers: Array = []
+				for rp in result:
+					if not Geometry2D.is_polygon_clockwise(rp):
+						outers.append(rp)
+				if outers.size() == 1:
+					acc = outers[0]
+				else:
+					rest.append(piece)
+			rest.append(acc)
+			merged = rest
+		# Every outer piece counts: a union that touches along an edge can
+		# come back as two, and a triangle inside either is ground.
+		if merged.size() > 1:
+			push_warning("road corridor: a group of %d chunks merged into %d pieces" % [members.size(), merged.size()])
+		var outers_all: Array = merged
+		var best_area := 0.0
+		for piece in merged:
+			var area := _polygon_area(piece)
+			if area > best_area:
+				best_area = area
+				outer = piece
+		var points := PackedVector2Array()
+		var meta: Array = []
+		var fixed: Array = []
+		var seen := {}
+		var take := func(p: Vector2, slot: String, y: float) -> void:
+			var key := Vector2i(roundi(p.x / 0.3), roundi(p.y / 0.3))
+			if seen.has(key):
+				return
+			seen[key] = true
+			points.append(p)
+			meta.append(slot)
+			fixed.append(y)
+		# A run's end rows first, with their lattice heights, so they win
+		# the grid over the union outline's own copies of the same points.
+		for mi in members:
+			var chunk: Dictionary = chunks[mi]
+			for row in chunk["rows"]:
+				if not row.has("ys"):
+					continue
+				var c: Vector2 = row["c"]
+				var r: Vector2 = row["r"]
+				var offs: Array = row["offsets"]
+				var slots: Array = row["slots"]
+				var ys: PackedFloat32Array = row["ys"]
+				for i in offs.size():
+					take.call(c + r * float(offs[i]), String(slots[i]), ys[i])
+		for piece in outers_all:
+			for q in piece:
+				take.call(q, "batter", NAN)
+		for mi in members:
+			var chunk: Dictionary = chunks[mi]
+			for row in chunk["rows"]:
+				var c: Vector2 = row["c"]
+				var r: Vector2 = row["r"]
+				var offs: Array = row["offsets"]
+				var slots: Array = row["slots"]
+				for i in offs.size():
+					take.call(c + r * float(offs[i]), String(slots[i]), NAN)
+		var samples: Array = []
+		for i in points.size():
+			var sm: Array = sample.call(points[i], meta[i], false)
+			if not is_nan(float(fixed[i])):
+				sm[0] = Vector3(points[i].x, float(fixed[i]), points[i].y)
+			samples.append(sm)
+		for mi in members:
+			var chunk: Dictionary = chunks[mi]
+			var rows: Array = chunk["rows"]
+			closure.call(rows[0])
+			closure.call(rows[rows.size() - 1])
+		var index := Geometry2D.triangulate_delaunay(points)
+		for i in range(0, index.size(), 3):
+			var ia := index[i]
+			var ib := index[i + 1]
+			var ic := index[i + 2]
+			var centroid := (points[ia] + points[ib] + points[ic]) / 3.0
+			var inside := false
+			for piece in outers_all:
+				if Geometry2D.is_point_in_polygon(centroid, piece):
+					inside = true
+					break
+			if not inside:
+				continue
+			var a: Array = samples[ia]
+			var b: Array = samples[ib]
+			var c3: Array = samples[ic]
+			_earth_coloured_tri(st, a[0], points[ia] * 0.28, a[1], b[0], points[ib] * 0.28, b[1],
+				c3[0], points[ic] * 0.28, c3[1], Vector3.UP)
+			tris += 1
+	print("road corridor: %d chunks in %d groups, %d triangles" % [chunks.size(), groups.size(), tris])
+	assert(tris > 100, "the road corridor did not generate")
+	# Indexed, unlike the lattice meshes: every row's vertex is shared by four
+	# quads, and unshared it is 250,000 vertices of text in the scene file.
+	st.index()
+	st.generate_normals()
+	st.generate_tangents()
+	return st.commit()
+
+
+## A cell's land pieces less every corridor polygon whose bounds touch the
+## cell, for the coast meshes, which clip their cells to the coast outline
+## first.
+func _road_clip_pieces(pieces: Array, lo: Vector2, hi: Vector2, corridors: Array) -> Array:
+	var out: Array = pieces
+	for corridor in corridors:
+		var clo: Vector2 = corridor["lo"]
+		var chi: Vector2 = corridor["hi"]
+		if hi.x < clo.x or lo.x > chi.x or hi.y < clo.y or lo.y > chi.y:
+			continue
+		var next: Array = []
+		for piece in out:
+			next.append_array(Geometry2D.clip_polygons(piece, corridor["poly"]))
+		out = next
+	return out
+
+
+# ---------------------------------------------------------------------------
+# Road furniture (2026-09-05): what stands on and beside the roads
+# ---------------------------------------------------------------------------
+##
+## One merged mesh per material, like the towns, because a guardrail post
+## every two metres down seven kilometres of highway is thirty-five hundred
+## nodes as CSG. Read off the same rows the corridor is built from, so a
+## rail begins where the drop does and a coping sits on the face the ground
+## carries. The lamps' heads glow in `road_sodium`, the sixth lit material,
+## and each carries an `OmniLight3D` as a service light: a freeway does not
+## shut with the park.
+
+const ROAD_LAMP_H := 9.0
+const ROAD_LAMP_ARM := 3.6
+const ROAD_LAMP_SPACING := 45.0
+const ROAD_LAMP_REACH := 360.0
+const ROAD_SIGNAL_RED := Color(0.85, 0.10, 0.10)
+const ROAD_SIGNAL_AMBER := Color(0.95, 0.65, 0.10)
+const ROAD_SIGNAL_GREEN := Color(0.10, 0.70, 0.32)
+var _road_walk_cache: Array = []
+var _road_lamp_n := 0
+
+
+## A hexahedron between two top-centre points, `w` wide across the normals
+## given at each end and `h` deep under its top, every face wound outward.
+func _rf_bar(st: SurfaceTool, p0: Vector3, p1: Vector3, n0: Vector2, n1: Vector2,
+		w: float, h: float, col: Color) -> void:
+	var w0 := Vector3(n0.x, 0.0, n0.y) * (w * 0.5)
+	var w1 := Vector3(n1.x, 0.0, n1.y) * (w * 0.5)
+	var a0 := p0 + w0
+	var b0 := p0 - w0
+	var a1 := p1 + w1
+	var b1 := p1 - w1
+	var down := Vector3.DOWN * h
+	var along := p1 - p0
+	along.y = 0.0
+	if along.length_squared() < 0.0001:
+		return
+	along = along.normalized()
+	var side := Vector3(n0.x, 0.0, n0.y)
+	_town_quad(st, a0, a1, b1, b0, col, Vector3.UP)
+	_town_quad(st, a0 + down, b0 + down, b1 + down, a1 + down, col, Vector3.DOWN)
+	_town_quad(st, a0, a0 + down, a1 + down, a1, col, side)
+	_town_quad(st, b0, b1, b1 + down, b0 + down, col, -side)
+	_town_quad(st, a0, b0, b0 + down, a0 + down, col, -along)
+	_town_quad(st, a1, a1 + down, b1 + down, b1, col, along)
+
+
+## A square post standing on `base`.
+func _rf_post(st: SurfaceTool, base: Vector3, w: float, h: float, col: Color) -> void:
+	_town_box(st, Transform3D(Basis.IDENTITY, base), Vector3(-w * 0.5, 0.0, -w * 0.5),
+		Vector3(w * 0.5, h, w * 0.5), col, 55)
+
+
+## A regular polygon facing `normal`, as a fan.
+func _rf_polygon(st: SurfaceTool, centre: Vector3, normal: Vector3, radius: float, sides: int,
+		col: Color, phase := 0.0) -> void:
+	var up := Vector3.UP if absf(normal.dot(Vector3.UP)) < 0.9 else Vector3.RIGHT
+	var u := up.cross(normal).normalized()
+	var v := normal.cross(u).normalized()
+	var ring: Array = []
+	for i in sides:
+		var a := phase + TAU * float(i) / float(sides)
+		ring.append(centre + (u * cos(a) + v * sin(a)) * radius)
+	for i in sides:
+		_town_tri(st, centre, ring[i], ring[(i + 1) % sides], col, normal)
+
+
+## A frame looking along `d` from `origin`: local -z runs along the road,
+## local +x is the right of travel.
+func _road_frame(origin: Vector3, d: Vector2) -> Transform3D:
+	return Transform3D(Basis.looking_at(Vector3(d.x, 0.0, d.y), Vector3.UP), origin)
+
+
+## A polyline at a chainage: the point, the heading and its right.
+func _road_at(pts: Array, chain: float) -> Dictionary:
+	var acc := 0.0
+	for i in pts.size() - 1:
+		var a: Vector3 = pts[i]
+		var b: Vector3 = pts[i + 1]
+		var seg := Vector2(b.x - a.x, b.z - a.z).length()
+		if acc + seg >= chain or i == pts.size() - 2:
+			var t := clampf((chain - acc) / maxf(seg, 0.001), 0.0, 1.0)
+			var d := Vector2(b.x - a.x, b.z - a.z).normalized()
+			return {"p": a.lerp(b, t), "d": d, "r": Vector2(-d.y, d.x)}
+		acc += seg
+	var last: Vector3 = pts[pts.size() - 1]
+	var dl := Vector2(last.x - (pts[pts.size() - 2] as Vector3).x, last.z - (pts[pts.size() - 2] as Vector3).z).normalized()
+	return {"p": last, "d": dl, "r": Vector2(-dl.y, dl.x)}
+
+
+func _road_length(pts: Array) -> float:
+	var total := 0.0
+	for i in pts.size() - 1:
+		total += Vector2((pts[i + 1] as Vector3).x - (pts[i] as Vector3).x,
+			(pts[i + 1] as Vector3).z - (pts[i] as Vector3).z).length()
+	return total
+
+
+## The open highway every `ROAD_ROW` along its centre line, in runs of
+## consecutive open segments: what every piece of furniture on it reads.
+func _road_highway_walk() -> Array:
+	if not _road_walk_cache.is_empty():
+		return _road_walk_cache
+	_highway_build()
+	var rec: Dictionary = {}
+	for r in _road_cut_records():
+		if r["id"] == "highway":
+			rec = r
+	var pts: Array = _highway_cache
+	var runs: Array = []
+	var i := 0
+	while i < pts.size() - 1:
+		if not _highway_open[i]:
+			i += 1
+			continue
+		var j := i
+		while j + 1 < pts.size() - 1 and _highway_open[j + 1]:
+			j += 1
+		var fine: Array = _rebuild_resample_path3(pts.slice(i, j + 2), ROAD_ROW)
+		var rows: Array = []
+		for k in fine.size():
+			var p: Vector3 = fine[k]
+			var xz := Vector2(p.x, p.z)
+			var seg := i
+			var t := 0.0
+			var best := INF
+			for si in range(i, j + 1):
+				var a := Vector2((pts[si] as Vector3).x, (pts[si] as Vector3).z)
+				var b := Vector2((pts[si + 1] as Vector3).x, (pts[si + 1] as Vector3).z)
+				var q := Geometry2D.get_closest_point_to_segment(xz, a, b)
+				var d := xz.distance_to(q)
+				if d < best:
+					best = d
+					seg = si
+					t = a.distance_to(q) / maxf(a.distance_to(b), 0.001)
+			var m := lerpf(_highway_m[seg], _highway_m[seg + 1], t)
+			var r: Vector2 = (_highway_r[seg] as Vector2).lerp(_highway_r[seg + 1], t).normalized()
+			var ha := lerpf((_highway_a[seg] as Vector3).y, (_highway_a[seg + 1] as Vector3).y, t)
+			var hb := lerpf((_highway_b[seg] as Vector3).y, (_highway_b[seg + 1] as Vector3).y, t)
+			var chain := lerpf(_highway_chain[seg], _highway_chain[seg + 1], t)
+			rows.append({"c": xz, "r": r, "seg": seg, "t": t, "m": m, "ha": ha, "hb": hb, "chain": chain,
+				"half": m * 0.5 + Plan.HIGHWAY_CARRIAGEWAY_W, "fine": _road_in_fine_zone(xz),
+				"corridor": _road_taper(rec, seg, t) > 0.5})
+		runs.append(rows)
+		i = j + 1
+	_road_walk_cache = runs
+	return runs
+
+
+## Whether a point lies on another road's ribbon or verge, where no
+## furniture of this road may stand: a ramp's coping ran across the
+## approach road at its terminal (2026-09-06, `r03`).
+func _road_on_other_road(p: Vector2, own: String) -> bool:
+	for rec in _road_cut_records():
+		if rec["id"] == own:
+			continue
+		var near := _road_record_nearest(rec, p)
+		if not near.is_empty() and float(near["best"]) <= ROAD_VERGE + 0.5:
+			return true
+	for street in _town_street_stations():
+		var pts: Array = street["points"]
+		var half: float = float(street["width"]) * 0.5
+		var lo: Vector2 = street["lo"]
+		var hi: Vector2 = street["hi"]
+		if p.x < lo.x or p.x > hi.x or p.y < lo.y or p.y > hi.y:
+			continue
+		for i in pts.size() - 1:
+			var a := Vector2((pts[i] as Vector3).x, (pts[i] as Vector3).z)
+			var b := Vector2((pts[i + 1] as Vector3).x, (pts[i + 1] as Vector3).z)
+			if p.distance_to(Geometry2D.get_closest_point_to_segment(p, a, b)) <= half + ROAD_VERGE + 0.5:
+				return true
+	return false
+
+
+## What stands beside one side of a road between two rows: a guardrail
+## where the ground drops, the deck with its edge beam, parapet and rail
+## where the deck spans, a coping on a cut face, a kerb on a fill wall, a
+## pylon every fifth row under a deck.
+func _road_side_furniture(e0: Vector3, e1: Vector3, out0: Vector2, out1: Vector2,
+		cls0: Dictionary, cls1: Dictionary, pylon: bool) -> void:
+	var o0 := Vector3(out0.x, 0.0, out0.y)
+	var o1 := Vector3(out1.x, 0.0, out1.y)
+	var via := bool(cls0["viaduct"]) and bool(cls1["viaduct"])
+	if via:
+		_rf_bar(_rf, e0 + o0 * -2.1 + Vector3.UP * -0.10, e1 + o1 * -2.1 + Vector3.UP * -0.10,
+			out0, out1, 7.4, 1.0, ROAD_CONCRETE_DARK)
+		_rf_bar(_rf, e0 + o0 * 1.45, e1 + o1 * 1.45, out0, out1, 0.5, 1.7, ROAD_CONCRETE)
+		_rf_bar(_rf, e0 + o0 * 1.05 + Vector3.UP * 0.85, e1 + o1 * 1.05 + Vector3.UP * 0.85,
+			out0, out1, 0.35, 0.85, ROAD_CONCRETE)
+		_rf_bar(_rf, e0 + o0 * 1.05 + Vector3.UP * 1.06, e1 + o1 * 1.05 + Vector3.UP * 1.06,
+			out0, out1, 0.24, 0.10, ROAD_STEEL)
+		if pylon:
+			var foot := e0 + o0 * 0.4
+			var ground := _rebuild_natural_y(Vector2(foot.x, foot.z))
+			_town_box(_rf, Transform3D(Basis.IDENTITY, Vector3(foot.x, ground - 1.0, foot.z)),
+				Vector3(-0.45, 0.0, -0.45), Vector3(0.45, maxf(e0.y - 1.0 - (ground - 1.0), 0.5), 0.45),
+				ROAD_CONCRETE_DARK, 51)
+		return
+	if (bool(cls0["guard"]) or via) and (bool(cls1["guard"]) or via):
+		_rf_bar(_rf, e0 + o0 * 1.2 + Vector3.UP * 0.78, e1 + o1 * 1.2 + Vector3.UP * 0.78,
+			out0, out1, 0.08, 0.32, ROAD_STEEL)
+		_rf_post(_rf, e0 + o0 * 1.2 + Vector3.UP * -0.36, 0.15, 1.1, ROAD_POST)
+		_rf_post(_rf, (e0 + e1) * 0.5 + (o0 + o1) * 0.6 + Vector3.UP * -0.36, 0.15, 1.1, ROAD_POST)
+	if float(cls0["wall"]) > 0.4 and float(cls1["wall"]) > 0.4:
+		var lip := ROAD_VERGE + ROAD_DITCH_W + ROAD_WALL_RUN
+		_rf_bar(_rf, e0 + o0 * (lip - 0.1) + Vector3.UP * (float(cls0["wall"]) + 0.2),
+			e1 + o1 * (lip - 0.1) + Vector3.UP * (float(cls1["wall"]) + 0.2),
+			out0, out1, 0.8, 0.35, ROAD_CONCRETE)
+	if float(cls0["fill_wall"]) > 0.4 and float(cls1["fill_wall"]) > 0.4:
+		_rf_bar(_rf, e0 + o0 * 1.6 + Vector3.UP * 0.25, e1 + o1 * 1.6 + Vector3.UP * 0.25,
+			out0, out1, 0.5, 0.35, ROAD_CONCRETE)
+
+
+## The highway's own furniture, row by row: both outer sides, and the
+## median, which is a barrier where it is narrow, a wall with a coping and
+## a rail where the carriageways split, planted between kerbs in a town.
+func _road_highway_furniture() -> void:
+	for rows in _road_highway_walk():
+		for k in (rows as Array).size() - 1:
+			var r0: Dictionary = rows[k]
+			var r1: Dictionary = rows[k + 1]
+			for s_v in [1.0, -1.0]:
+				var s: float = s_v
+				var l0: float = r0["ha"] if s > 0.0 else r0["hb"]
+				var l1: float = r1["ha"] if s > 0.0 else r1["hb"]
+				var out0: Vector2 = (r0["r"] as Vector2) * s
+				var out1: Vector2 = (r1["r"] as Vector2) * s
+				var e0xz: Vector2 = (r0["c"] as Vector2) + out0 * float(r0["half"])
+				var e1xz: Vector2 = (r1["c"] as Vector2) + out1 * float(r1["half"])
+				var e0 := Vector3(e0xz.x, l0, e0xz.y)
+				var e1 := Vector3(e1xz.x, l1, e1xz.y)
+				if bool(r0["corridor"]) and bool(r1["corridor"]) \
+						and not _road_on_other_road(e0xz + out0 * 2.0, "highway") \
+						and not _road_on_other_road(e1xz + out1 * 2.0, "highway"):
+					_road_side_furniture(e0, e1, out0, out1, _road_side_class(l0, e0xz, out0),
+						_road_side_class(l1, e1xz, out1), k % 5 == 0)
+				elif bool(r0["fine"]) and not _town_at_street_mouth(e0xz, 2.5) \
+						and not _town_at_street_mouth(e1xz, 2.5):
+					# A town's kerb along the main street's outer edge.
+					_rf_bar(_rf, e0 + Vector3(out0.x, 0.0, out0.y) * 0.1 + Vector3.UP * 0.14,
+						e1 + Vector3(out1.x, 0.0, out1.y) * 0.1 + Vector3.UP * 0.14, out0, out1, 0.22, 0.2,
+						ROAD_CONCRETE)
+			var c0 := Vector3((r0["c"] as Vector2).x, 0.0, (r0["c"] as Vector2).y)
+			var c1 := Vector3((r1["c"] as Vector2).x, 0.0, (r1["c"] as Vector2).y)
+			var rr0: Vector2 = r0["r"]
+			var rr1: Vector2 = r1["r"]
+			var m: float = minf(r0["m"], r1["m"])
+			var split0: float = float(r0["ha"]) - float(r0["hb"])
+			var split1: float = float(r1["ha"]) - float(r1["hb"])
+			if bool(r0["fine"]) or bool(r1["fine"]):
+				if _town_at_street_mouth(r0["c"], 2.5) or _town_at_street_mouth(r1["c"], 2.5):
+					continue
+				for s_v in [1.0, -1.0]:
+					var s: float = s_v
+					var o := s * (m * 0.5 - 0.12)
+					var y0 := (float(r0["ha"]) if s > 0.0 else float(r0["hb"])) + 0.14
+					var y1 := (float(r1["ha"]) if s > 0.0 else float(r1["hb"])) + 0.14
+					_rf_bar(_rf, c0 + Vector3(rr0.x, 0.0, rr0.y) * o + Vector3.UP * y0,
+						c1 + Vector3(rr1.x, 0.0, rr1.y) * o + Vector3.UP * y1, rr0, rr1, 0.24, 0.2, ROAD_CONCRETE)
+			elif m < 5.0:
+				if absf(split0) < 0.6 and absf(split1) < 0.6:
+					var y0 := maxf(r0["ha"], r0["hb"]) - 0.06 + 0.85
+					var y1 := maxf(r1["ha"], r1["hb"]) - 0.06 + 0.85
+					_rf_bar(_rf, c0 + Vector3.UP * y0, c1 + Vector3.UP * y1, rr0, rr1, 0.6, 0.95, ROAD_CONCRETE)
+				elif absf(split0) >= 0.6 and absf(split1) >= 0.6 and signf(split0) == signf(split1):
+					var s_up := signf(split0)
+					var u0 := maxf(r0["ha"], r0["hb"])
+					var u1 := maxf(r1["ha"], r1["hb"])
+					_rf_bar(_rf, c0 + Vector3(rr0.x, 0.0, rr0.y) * (s_up * 0.35) + Vector3.UP * (u0 - 0.06 + 0.3),
+						c1 + Vector3(rr1.x, 0.0, rr1.y) * (s_up * 0.35) + Vector3.UP * (u1 - 0.06 + 0.3),
+						rr0, rr1, 0.5, 0.4, ROAD_CONCRETE)
+					var o := s_up * (m * 0.5 - 0.35)
+					_rf_bar(_rf, c0 + Vector3(rr0.x, 0.0, rr0.y) * o + Vector3.UP * (u0 + 0.72),
+						c1 + Vector3(rr1.x, 0.0, rr1.y) * o + Vector3.UP * (u1 + 0.72), rr0, rr1, 0.08, 0.32, ROAD_STEEL)
+					_rf_post(_rf, c0 + Vector3(rr0.x, 0.0, rr0.y) * o + Vector3.UP * (u0 - 0.36), 0.15, 1.1, ROAD_POST)
+
+
+## A single road's furniture from its corridor rows: both sides.
+func _road_single_furniture(rec: Dictionary) -> void:
+	var half: float = rec["half"]
+	for rows in _road_rows(rec):
+		for k in (rows as Array).size() - 1:
+			var r0: Dictionary = rows[k]
+			var r1: Dictionary = rows[k + 1]
+			for s_v in [1.0, -1.0]:
+				var s: float = s_v
+				var out0: Vector2 = (r0["r"] as Vector2) * s
+				var out1: Vector2 = (r1["r"] as Vector2) * s
+				var e0xz: Vector2 = (r0["c"] as Vector2) + out0 * half
+				var e1xz: Vector2 = (r1["c"] as Vector2) + out1 * half
+				var e0 := Vector3(e0xz.x, float(r0["y"]), e0xz.y)
+				var e1 := Vector3(e1xz.x, float(r1["y"]), e1xz.y)
+				if _road_on_other_road(e0xz + out0 * 2.0, String(rec["id"])) \
+						or _road_on_other_road(e1xz + out1 * 2.0, String(rec["id"])):
+					continue
+				_road_side_furniture(e0, e1, out0, out1, _road_side_class(float(r0["y"]), e0xz, out0),
+					_road_side_class(float(r1["y"]), e1xz, out1), k % 5 == 0)
+
+
+## Paint. A solid line along a polyline `offset` to the right of travel,
+## and a dashed one `on` metres on and `off` metres off, both `w` wide,
+## just proud of the ribbon.
+func _road_solid_line(pts: Array, offset: float, w: float, col: Color) -> void:
+	var fine: Array = _rebuild_resample_path3(pts, 4.0)
+	for i in fine.size() - 1:
+		var a: Vector3 = fine[i]
+		var b: Vector3 = fine[i + 1]
+		var d := Vector2(b.x - a.x, b.z - a.z).normalized()
+		var r := Vector3(-d.y, 0.0, d.x)
+		var lift := Vector3.UP * (REBUILD_PATH_LIFT + ROAD_PAINT_LIFT)
+		var pa := a + r * offset + lift
+		var pb := b + r * offset + lift
+		_town_quad(_rf, pa - r * (w * 0.5), pb - r * (w * 0.5), pb + r * (w * 0.5), pa + r * (w * 0.5),
+			col, Vector3.UP)
+
+
+func _road_dashed_line(pts: Array, offset: float, w: float, on: float, off: float, col: Color,
+		phase := 0.0) -> void:
+	var total := _road_length(pts)
+	var s := phase
+	var lift := Vector3.UP * (REBUILD_PATH_LIFT + ROAD_PAINT_LIFT)
+	while s + on < total:
+		var q0 := _road_at(pts, s)
+		var q1 := _road_at(pts, s + on)
+		var r0: Vector2 = q0["r"]
+		var r1: Vector2 = q1["r"]
+		var pa: Vector3 = (q0["p"] as Vector3) + Vector3(r0.x, 0.0, r0.y) * offset + lift
+		var pb: Vector3 = (q1["p"] as Vector3) + Vector3(r1.x, 0.0, r1.y) * offset + lift
+		var wa := Vector3(r0.x, 0.0, r0.y) * (w * 0.5)
+		var wb := Vector3(r1.x, 0.0, r1.y) * (w * 0.5)
+		_town_quad(_rf, pa - wa, pb - wb, pb + wb, pa + wa, col, Vector3.UP)
+		s += on + off
+
+
+## A bar across a road at a chainage, from `from_r` to `to_r` right of the
+## centre, `depth` along it: a stop bar, a crosswalk stripe.
+func _road_cross_bar(pts: Array, chain: float, from_r: float, to_r: float, depth: float, col: Color) -> void:
+	var q := _road_at(pts, chain)
+	var r: Vector2 = q["r"]
+	var d: Vector2 = q["d"]
+	var p: Vector3 = (q["p"] as Vector3) + Vector3.UP * (REBUILD_PATH_LIFT + ROAD_PAINT_LIFT)
+	var rv := Vector3(r.x, 0.0, r.y)
+	var dv := Vector3(d.x, 0.0, d.y) * (depth * 0.5)
+	_town_quad(_rf, p + rv * from_r - dv, p + rv * from_r + dv, p + rv * to_r + dv, p + rv * to_r - dv,
+		col, Vector3.UP)
+
+
+## A zebra crossing across a road at a chainage: stripes 0.5 wide.
+func _road_zebra(pts: Array, chain: float, half: float) -> void:
+	var x := -half + 0.35
+	while x + 0.5 <= half - 0.3:
+		_road_cross_bar(pts, chain, x, x + 0.5, 3.0, ROAD_PAINT_WHITE)
+		x += 1.0
+
+
+## A cobra-head lamp: a post, an arm reaching `toward` over the lane, a
+## head with a sodium lens under it, and the light itself, as a service
+## light. `twin` puts a second arm the other way, for a post in a median.
+func _road_cobra(base: Vector3, toward: Vector2, twin: bool) -> void:
+	_rf_post(_rf, base, 0.22, ROAD_LAMP_H, ROAD_POST)
+	var arms := [toward] if not twin else [toward, -toward]
+	for arm_v in arms:
+		var arm: Vector2 = arm_v
+		var n := Vector2(-arm.y, arm.x)
+		var top := base + Vector3.UP * (ROAD_LAMP_H - 0.1)
+		var tip := base + Vector3(arm.x, 0.0, arm.y) * ROAD_LAMP_ARM + Vector3.UP * (ROAD_LAMP_H + 0.35)
+		_rf_bar(_rf, top, tip, n, n, 0.14, 0.14, ROAD_POST)
+		var xf := _road_frame(tip, arm)
+		_town_box(_rf, xf, Vector3(-0.18, -0.16, -0.36), Vector3(0.18, 0.10, 0.36), ROAD_POST, 63)
+		var lens_c := tip + Vector3.UP * -0.17
+		var along := Vector3(arm.x, 0.0, arm.y) * 0.3
+		var across := Vector3(n.x, 0.0, n.y) * 0.13
+		_town_quad(_rf_glow, lens_c - along - across, lens_c + along - across, lens_c + along + across,
+			lens_c - along + across, Color.WHITE, Vector3.DOWN)
+		_omni("road_lamp_%d" % _road_lamp_n, tip + Vector3.UP * -0.45, "sodium", 3.4, 32.0, LIGHT_SERVICE)
+		_road_lamp_n += 1
+
+
+## A three-aspect signal head hanging with its top at `top`, facing `facing`.
+func _road_signal_head(top: Vector3, facing: Vector2) -> void:
+	var xf := _road_frame(top, -facing)
+	_town_box(_rf, xf, Vector3(-0.18, -1.05, -0.15), Vector3(0.18, 0.0, 0.15), ROAD_POST, 63)
+	var n := Vector3(facing.x, 0.0, facing.y)
+	var i := 0
+	for col in [ROAD_SIGNAL_RED, ROAD_SIGNAL_AMBER, ROAD_SIGNAL_GREEN]:
+		_rf_polygon(_rf, top + n * 0.16 + Vector3.UP * (-0.2 - 0.33 * float(i)), n, 0.12, 12, col)
+		i += 1
+
+
+## A signalised terminal: a mast on each of two opposite corners with two
+## heads over the road for the approach road's two directions, and a post
+## head for the ramp arriving.
+func _road_signal(t: Vector3, d_ap: Vector2, ramp_in: Vector2) -> void:
+	var r_ap := Vector2(-d_ap.y, d_ap.x)
+	for s_v in [1.0, -1.0]:
+		var s: float = s_v
+		var d := d_ap * s
+		var r := r_ap * s
+		var corner := t + Vector3(d.x, 0.0, d.y) * 7.0 + Vector3(r.x, 0.0, r.y) * 5.2
+		_rf_post(_rf, corner, 0.26, 6.2, ROAD_POST)
+		var top := corner + Vector3.UP * 6.0
+		var tip := corner - Vector3(r.x, 0.0, r.y) * 7.0 + Vector3.UP * 6.2
+		_rf_bar(_rf, top, tip, d, d, 0.16, 0.16, ROAD_POST)
+		for k in [2.6, 5.8]:
+			var at := top.lerp(tip, k / 7.0)
+			_road_signal_head(at + Vector3.UP * -0.1, -d)
+	var rr := Vector2(-ramp_in.y, ramp_in.x)
+	var post := t - Vector3(ramp_in.x, 0.0, ramp_in.y) * 6.5 + Vector3(rr.x, 0.0, rr.y) * 3.4
+	_rf_post(_rf, post, 0.12, 3.3, ROAD_POST)
+	_road_signal_head(post + Vector3.UP * 3.3, -ramp_in)
+
+
+## A stop sign facing back along `heading`, at `base`.
+func _road_stop_sign(base: Vector3, heading: Vector2) -> void:
+	_rf_post(_rf, base, 0.07, 2.35, ROAD_POST)
+	var n := -Vector3(heading.x, 0.0, heading.y)
+	var centre := base + Vector3.UP * 2.05
+	_rf_polygon(_rf, centre + n * 0.04, n, 0.42, 8, Color(0.95, 0.95, 0.93), PI / 8.0)
+	_rf_polygon(_rf, centre + n * 0.048, n, 0.37, 8, ROAD_SIGN_RED, PI / 8.0)
+
+
+## A fillet fan at a corner where a minor road meets a major one: the
+## quarter-round of asphalt a kerb return leaves, so the two ribbons meet
+## as one junction and not as two rectangles touching. `e` is the minor
+## road's end on the major's centre line, `d_in` its heading into the
+## major, `s` which of its two sides.
+func _road_fillet_fan(major: Array, major_half: float, e: Vector2, d_in: Vector2, minor_half: float,
+		s: float, radius: float) -> void:
+	var q := _road_at(major, _road_chain_at(major, e))
+	var d_m: Vector2 = q["d"]
+	var r_m: Vector2 = q["r"]
+	var near_sign := -signf(d_in.dot(r_m))
+	if near_sign == 0.0:
+		near_sign = 1.0
+	var r_in := Vector2(-d_in.y, d_in.x)
+	# The minor's edge on side s and the major's near edge, as lines.
+	var p_minor := e + r_in * s * minor_half
+	var p_major := e + r_m * near_sign * major_half
+	var corner := _road_line_cross(p_minor, d_in, p_major, d_m)
+	if corner == Vector2.INF:
+		return
+	# The two edge directions away from the corner into the open quadrant.
+	var u := -d_in
+	var v := d_m if (corner + d_m - e).length() > (corner - d_m - e).length() else -d_m
+	var theta := u.angle_to(v)
+	if absf(theta) < 0.05 or absf(theta) > PI - 0.05:
+		return
+	var tangent := radius / tan(absf(theta) * 0.5)
+	var t1 := corner + u * tangent
+	var t2 := corner + v * tangent
+	var centre := corner + (u + v).normalized() * (radius / sin(absf(theta) * 0.5))
+	var a0 := (t1 - centre).angle()
+	var a1 := (t2 - centre).angle()
+	var sweep := wrapf(a1 - a0, -PI, PI)
+	var n := maxi(3, ceili(absf(sweep) * radius / 1.5))
+	var ring: Array = [corner, t1]
+	for k in range(1, n):
+		var ang := a0 + sweep * float(k) / float(n)
+		ring.append(centre + Vector2(cos(ang), sin(ang)) * radius)
+	ring.append(t2)
+	var lift := REBUILD_PATH_LIFT + 0.004
+	for k in range(1, ring.size() - 1):
+		var pa: Vector2 = ring[0]
+		var pb: Vector2 = ring[k]
+		var pc: Vector2 = ring[k + 1]
+		var a3 := Vector3(pa.x, _road_line_y(major, pa) + lift, pa.y)
+		var b3 := Vector3(pb.x, _road_line_y(major, pb) + lift, pb.y)
+		var c3 := Vector3(pc.x, _road_line_y(major, pc) + lift, pc.y)
+		_earth_oriented_tri(_rf_asphalt, a3, pa * 0.35, b3, pb * 0.35, c3, pc * 0.35, Vector3.UP)
+
+
+func _road_chain_at(pts: Array, xz: Vector2) -> float:
+	var acc := 0.0
+	var best := INF
+	var best_chain := 0.0
+	for i in pts.size() - 1:
+		var a := Vector2((pts[i] as Vector3).x, (pts[i] as Vector3).z)
+		var b := Vector2((pts[i + 1] as Vector3).x, (pts[i + 1] as Vector3).z)
+		var q := Geometry2D.get_closest_point_to_segment(xz, a, b)
+		var d := xz.distance_to(q)
+		if d < best:
+			best = d
+			best_chain = acc + a.distance_to(q)
+		acc += a.distance_to(b)
+	return best_chain
+
+
+func _road_line_cross(p0: Vector2, d0: Vector2, p1: Vector2, d1: Vector2) -> Vector2:
+	var den := d0.x * d1.y - d0.y * d1.x
+	if absf(den) < 0.0001:
+		return Vector2.INF
+	var t := ((p1.x - p0.x) * d1.y - (p1.y - p0.y) * d1.x) / den
+	return p0 + d0 * t
+
+
+## A disc of asphalt at a bend where two ribbons' ends meet.
+func _road_disc(major: Array, centre: Vector2, radius: float) -> void:
+	var lift := REBUILD_PATH_LIFT + 0.004
+	var y := _road_line_y(major, centre) + lift
+	var c3 := Vector3(centre.x, y, centre.y)
+	for k in 24:
+		var a0 := TAU * float(k) / 24.0
+		var a1 := TAU * float(k + 1) / 24.0
+		var pa := centre + Vector2(cos(a0), sin(a0)) * radius
+		var pb := centre + Vector2(cos(a1), sin(a1)) * radius
+		_earth_oriented_tri(_rf_asphalt, c3, centre * 0.35, Vector3(pa.x, y, pa.y), pa * 0.35,
+			Vector3(pb.x, y, pb.y), pb * 0.35, Vector3.UP)
+
+
+## The overpass: the approach road's deck across both carriageways and the
+## median, on two piers in the median, between abutments at the highway
+## corridor's verges, with parapets and a rail.
+func _road_overpass() -> void:
+	_highway_build()
+	var ap: Array[Vector3] = Plan.approach_road_points()
+	var cross: Vector3 = Plan.approach_crossing()
+	var ci := ap.size() - 2
+	var d_ap := Vector2(ap[ci].x - ap[ci - 1].x, ap[ci].z - ap[ci - 1].z).normalized()
+	var r_ap := Vector2(-d_ap.y, d_ap.x)
+	var cx: int = _highway_crossing["a"]
+	var m: float = _highway_m[cx]
+	var r_hw: Vector2 = _highway_r[cx]
+	var half_len := m * 0.5 + Plan.HIGHWAY_CARRIAGEWAY_W + ROAD_VERGE
+	var deck: float = Plan.INTERCHANGE["deck"]
+	var top := func(along: float) -> Vector3:
+		var xz := Vector2(cross.x, cross.z) + d_ap * along
+		return Vector3(xz.x, _road_line_y(ap, xz), xz.y)
+	var p0: Vector3 = top.call(-half_len)
+	var p1: Vector3 = top.call(half_len)
+	# The slab carries collision, as one box tilted with the road's grade:
+	# the approach road's ribbon stands on it, and `path_ground_test` reads
+	# a road over a deck as a road on the ground.
+	var span := p1 - p0
+	var theta := atan2(span.x, span.z)
+	var phi := atan2(-span.y, Vector2(span.x, span.z).length())
+	_box("overpass_deck", (p0 + p1) * 0.5, Vector3(0.0, -0.1 - (deck - 0.1) * 0.5, 0.0),
+		Vector3(Plan.APPROACH_ROAD_W + 1.6, deck - 0.1, span.length()), "building", theta, true, phi)
+	for s_v in [1.0, -1.0]:
+		var s: float = s_v
+		var off := Vector3(r_ap.x, 0.0, r_ap.y) * (s * (Plan.APPROACH_ROAD_W * 0.5 + 0.45))
+		_rf_bar(_rf, p0 + off + Vector3.UP * 0.9, p1 + off + Vector3.UP * 0.9, r_ap, r_ap, 0.35, 1.0, ROAD_CONCRETE)
+		_rf_bar(_rf, p0 + off + Vector3.UP * 1.1, p1 + off + Vector3.UP * 1.1, r_ap, r_ap, 0.24, 0.1, ROAD_STEEL)
+	# Piers in the median, either side of its centre.
+	for s_v in [1.0, -1.0]:
+		var s: float = s_v
+		var at := Vector2(cross.x, cross.z) + r_hw * (s * (m * 0.5 - 1.3))
+		var ground := _road_ground_y(at)
+		var under := _road_line_y(ap, at) - deck - 0.1
+		_town_box(_rf, Transform3D(Basis.IDENTITY, Vector3(at.x, ground - 0.5, at.y)),
+			Vector3(-0.55, 0.0, -0.55), Vector3(0.55, maxf(under - ground + 0.5, 0.5), 0.55), ROAD_CONCRETE, 51)
+	# Abutments: a wall across the road's width at each end of the deck.
+	for s_v in [1.0, -1.0]:
+		var s: float = s_v
+		var at: Vector3 = top.call(s * (half_len + 0.7))
+		var w := Plan.APPROACH_ROAD_W + 2.4
+		var a := at + Vector3(r_ap.x, 0.0, r_ap.y) * (w * 0.5) + Vector3.UP * -0.1
+		var b := at - Vector3(r_ap.x, 0.0, r_ap.y) * (w * 0.5) + Vector3.UP * -0.1
+		var ground := minf(_road_ground_y(Vector2(a.x, a.z)), _road_ground_y(Vector2(b.x, b.z)))
+		ground = minf(ground, _road_ground_y(Vector2(at.x, at.z)))
+		var h := maxf(at.y - 0.1 - ground + 0.8, 1.0)
+		_box("overpass_abutment_%s" % ("far" if s > 0.0 else "near"), at,
+			Vector3(0.0, -0.1 - h * 0.5, 0.0), Vector3(w, h, 1.2), "building", atan2(d_ap.x, d_ap.y), true)
+
+
+## Everything on and beside the roads, in this scene: the highway's and the
+## single roads' furniture, the paint, the lamps, the signals, the signs,
+## the overpass, and the junction fans.
+func _road_furniture() -> void:
+	_rf = SurfaceTool.new()
+	_rf.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_rf.set_smooth_group(TOWN_FLAT)
+	_rf_glow = SurfaceTool.new()
+	_rf_glow.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_rf_glow.set_smooth_group(TOWN_FLAT)
+	_rf_asphalt = SurfaceTool.new()
+	_rf_asphalt.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_rf_asphalt.set_smooth_group(0)
+	_road_lamp_n = 0
+	_road_highway_furniture()
+	var approach_rec: Dictionary = {}
+	for rec in _road_cut_records():
+		if rec["kind"] == "road":
+			_road_single_furniture(rec)
+		if rec["id"] == "approach":
+			approach_rec = rec
+	# Paint: each carriageway in its own direction of travel, a yellow line
+	# on the median side, a dashed lane line, a white line on the outside.
+	var hc: float = Plan.HIGHWAY_CARRIAGEWAY_W * 0.5
+	var b_rev: Array = _highway_b.duplicate()
+	b_rev.reverse()
+	for pts in [_highway_a, b_rev]:
+		_road_solid_line(pts, -(hc - Plan.HIGHWAY_SHOULDER_IN - 0.06), 0.11, ROAD_PAINT_YELLOW)
+		_road_dashed_line(pts, -(hc - Plan.HIGHWAY_SHOULDER_IN - Plan.HIGHWAY_LANE_W), 0.11, 3.0, 9.0, ROAD_PAINT_WHITE)
+		_road_solid_line(pts, hc - Plan.HIGHWAY_SHOULDER_OUT + 0.06, 0.11, ROAD_PAINT_WHITE)
+	# A zebra across each carriageway a dozen metres from the main street's
+	# crossings in the towns: Hill Road and the beach lane in the north
+	# town, the shore street in the beach town.
+	for crossing in [Plan.valley_point(62.0, 0.0), Plan.valley_point(62.0, 70.0), Vector2(8.0, 400.0)]:
+		for pts in [_highway_a, b_rev]:
+			var chain := _road_chain_at(pts, crossing)
+			_road_zebra(pts, chain - 11.0, hc - 0.6)
+	var ap: Array[Vector3] = Plan.approach_road_points()
+	var ap_half: float = Plan.APPROACH_ROAD_W * 0.5
+	_road_dashed_line(ap, 0.0, 0.11, 3.0, 9.0, ROAD_PAINT_YELLOW)
+	_road_solid_line(ap, ap_half - 0.25, 0.11, ROAD_PAINT_WHITE)
+	_road_solid_line(ap, -(ap_half - 0.25), 0.11, ROAD_PAINT_WHITE)
+	var fz: float = Plan.FRONT_ROAD_Z
+	var front: Array = [Vector3(Plan.FRONT_ROAD_HALF_X, 0.0, fz), Vector3(-Plan.FRONT_ROAD_HALF_X, 0.0, fz)]
+	_road_dashed_line(front, 0.0, 0.11, 3.0, 9.0, ROAD_PAINT_YELLOW)
+	for ramp in _interchange_ramps():
+		var pts: Array = ramp["points"]
+		var half: float = ramp["half"]
+		_road_solid_line(pts, half - 0.25, 0.11, ROAD_PAINT_WHITE)
+		_road_solid_line(pts, -(half - 0.25), 0.11, ROAD_PAINT_WHITE)
+	# Lamps: twin cobra heads in the median through the interchange where
+	# the median is wide, single ones on each verge where it is not; along
+	# the ramps and the approach road on the right; a pair at every portal.
+	var cross_chain: float = _highway_chain[_highway_crossing["a"]]
+	for rows in _road_highway_walk():
+		var next := ROAD_LAMP_SPACING * 0.5
+		for row in rows:
+			var chain: float = row["chain"]
+			if absf(chain - cross_chain) > ROAD_LAMP_REACH:
+				continue
+			if chain < next:
+				continue
+			next = chain + ROAD_LAMP_SPACING
+			var c: Vector2 = row["c"]
+			var r: Vector2 = row["r"]
+			var m: float = row["m"]
+			if m >= 8.0:
+				var base := Vector3(c.x, _road_ground_y(c), c.y)
+				_road_cobra(base, r, true)
+			else:
+				for s_v in [1.0, -1.0]:
+					var s: float = s_v
+					var at := c + r * s * (float(row["half"]) + 1.0)
+					_road_cobra(Vector3(at.x, _road_ground_y(at), at.y), -r * s, false)
+	for ramp in _interchange_ramps():
+		var pts: Array = ramp["points"]
+		var half: float = ramp["half"]
+		var s := 20.0
+		var total := _road_length(pts)
+		while s < total - 15.0:
+			var q := _road_at(pts, s)
+			var r: Vector2 = q["r"]
+			var at := Vector2((q["p"] as Vector3).x, (q["p"] as Vector3).z) + r * (half + 1.0)
+			_road_cobra(Vector3(at.x, _road_ground_y(at), at.y), -r, false)
+			s += 40.0
+	var s_ap := 24.0
+	var ap_total := _road_length(ap)
+	while s_ap < ap_total - 8.0:
+		var q := _road_at(ap, s_ap)
+		var r: Vector2 = q["r"]
+		var at := Vector2((q["p"] as Vector3).x, (q["p"] as Vector3).z) + r * (ap_half + 1.0)
+		_road_cobra(Vector3(at.x, _road_ground_y(at), at.y), -r, false)
+		s_ap += 40.0
+	for run in _highway_tunnels:
+		for end in [[run["from"], -1.0], [run["to"], 1.0]]:
+			var i: int = end[0]
+			var outward: float = end[1]
+			var j := clampi(i + int(outward), 0, _highway_cache.size() - 1)
+			var c: Vector3 = _highway_cache[i]
+			var d := Vector2((_highway_cache[j] as Vector3).x - c.x, (_highway_cache[j] as Vector3).z - c.z).normalized()
+			var r: Vector2 = _highway_r[i]
+			var m: float = _highway_m[i]
+			for s_v in [1.0, -1.0]:
+				var s: float = s_v
+				var at := Vector2(c.x, c.z) + d * 12.0 + r * s * (m * 0.5 + Plan.HIGHWAY_CARRIAGEWAY_W + 1.0)
+				_road_cobra(Vector3(at.x, _road_ground_y(at), at.y), -r * s, false)
+	# The terminals: signals, stop bars, and the fans where each ramp meets
+	# the approach road.
+	var ci := ap.size() - 2
+	var d_ap := Vector2(ap[ci].x - ap[ci - 1].x, ap[ci].z - ap[ci - 1].z).normalized()
+	var terminals := {}
+	for ramp in _interchange_ramps():
+		var t: Vector3 = ramp["terminal"]
+		var pts: Array = ramp["points"]
+		var key := "%s" % ramp["carriageway"]
+		if ramp["kind"] == "off":
+			var n := pts.size()
+			var d_in := Vector2((pts[n - 1] as Vector3).x - (pts[n - 2] as Vector3).x,
+				(pts[n - 1] as Vector3).z - (pts[n - 2] as Vector3).z).normalized()
+			terminals[key] = {"t": t, "in": d_in}
+			_road_cross_bar(pts, _road_length(pts) - ap_half - 1.8, 0.0, float(ramp["half"]) - 0.2, 0.45, ROAD_PAINT_WHITE)
+			for s_v in [1.0, -1.0]:
+				var s: float = s_v
+				_road_fillet_fan(ap, ap_half, Vector2(t.x, t.z), d_in, float(ramp["half"]), s, 6.0)
+		else:
+			var d_out := Vector2((pts[1] as Vector3).x - (pts[0] as Vector3).x,
+				(pts[1] as Vector3).z - (pts[0] as Vector3).z).normalized()
+			for s_v in [1.0, -1.0]:
+				var s: float = s_v
+				_road_fillet_fan(ap, ap_half, Vector2(t.x, t.z), -d_out, float(ramp["half"]), s, 6.0)
+	for key in terminals:
+		var term: Dictionary = terminals[key]
+		var t: Vector3 = term["t"]
+		_road_signal(t, d_ap, term["in"])
+		var chain := _road_chain_at(ap, Vector2(t.x, t.z))
+		_road_cross_bar(ap, chain - 6.5, 0.0, ap_half - 0.2, 0.45, ROAD_PAINT_WHITE)
+		_road_cross_bar(ap, chain + 6.5, -(ap_half - 0.2), 0.0, 0.45, ROAD_PAINT_WHITE)
+	_road_overpass()
+	# The lot entries: a stop sign and a bar where each meets the front road,
+	# and the kerb returns; and a disc where the front road turns into the
+	# approach road.
+	for x in Plan.LOT_ENTRY_XS:
+		var entry: Array = [Vector3(x, 0.0, Plan.PARKING_TO_Z), Vector3(x, 0.0, fz)]
+		var heading := Vector2(0.0, 1.0)
+		_road_stop_sign(Vector3(float(x) + 4.1, 0.0, fz - Plan.FRONT_ROAD_W * 0.5 - 1.6), heading)
+		_road_cross_bar(entry, _road_length(entry) - Plan.FRONT_ROAD_W * 0.5 - 1.2, 0.0, 3.3, 0.45, ROAD_PAINT_WHITE)
+		for s_v in [1.0, -1.0]:
+			var s: float = s_v
+			_road_fillet_fan(front, Plan.FRONT_ROAD_W * 0.5, Vector2(x, fz), heading, 3.5, s, 4.0)
+	_road_disc(front, Vector2(Plan.FRONT_ROAD_HALF_X, fz), Plan.FRONT_ROAD_W * 0.5)
+	_rf.generate_normals()
+	_rebuild_mesh_body("road_furniture", _rf.commit(), "town", false)
+	_rf_glow.generate_normals()
+	_rebuild_mesh_body("road_lamps_glow", _rf_glow.commit(), "road_sodium", false)
+	_rf_asphalt.generate_normals()
+	_rf_asphalt.generate_tangents()
+	_rebuild_mesh_body("road_junction_fans", _rf_asphalt.commit(), "asphalt", false)
+	print("road furniture: %d lamps" % _road_lamp_n)
+
+
+# ---------------------------------------------------------------------------
+# Town roads (2026-09-05): lamps of their own, kerbs, signs, paint, fans
+# ---------------------------------------------------------------------------
+##
+## Three lamps, because three places: the north town's main street, which
+## is the highway through the valley, carries twin lanterns on green fluted
+## posts with a basket under the crossbar, the historic main-street fitting
+## Christina asked for; its residential streets carry a plain post with a
+## curved arm and a teardrop head; the beach town carries a weathered teal
+## post with a bracket and a hexagonal mariner's lantern. All three glow in
+## the towns' own lit material and never dim with the park.
+
+const TOWN_LANTERN_GREEN := Color(0.12, 0.24, 0.17)
+const TOWN_LANTERN_GOLD := Color(0.78, 0.62, 0.28)
+const TOWN_BASKET := Color(0.30, 0.48, 0.24)
+const TOWN_BEACH_POST := Color(0.30, 0.47, 0.46)
+const TOWN_LAMP_STYLES := ["post", "lantern", "beach"]
+var _town_sign_n := 0
+
+
+## A lantern: four corner posts, the glass between them in the lit mesh, a
+## stepped cap and a finial. `at` is the lantern's bottom centre.
+func _town_lantern_head(at: Vector3, size: float, col: Color) -> void:
+	var xf := Transform3D(Basis.IDENTITY, at)
+	var h := size * 1.4
+	var half := size * 0.5
+	for sx in [-1.0, 1.0]:
+		for sz in [-1.0, 1.0]:
+			var x: float = float(sx) * (half - 0.02)
+			var z: float = float(sz) * (half - 0.02)
+			_town_box(_tw, xf, Vector3(x - 0.02, 0.0, z - 0.02), Vector3(x + 0.02, h, z + 0.02), col, 51)
+	_town_box(_tw, xf, Vector3(-half, -0.04, -half), Vector3(half, 0.0, half), col, 63)
+	_town_box(_tg, xf, Vector3(-half + 0.03, 0.02, -half + 0.03), Vector3(half - 0.03, h - 0.02, half - 0.03),
+		Color.WHITE, 51)
+	_town_box(_tw, xf, Vector3(-half - 0.05, h, -half - 0.05), Vector3(half + 0.05, h + 0.06, half + 0.05), col, 63)
+	_town_box(_tw, xf, Vector3(-half * 0.6, h + 0.06, -half * 0.6), Vector3(half * 0.6, h + 0.14, half * 0.6), col, 55)
+	_town_box(_tw, xf, Vector3(-0.03, h + 0.14, -0.03), Vector3(0.03, h + 0.3, 0.03), TOWN_LANTERN_GOLD, 55)
+
+
+## The historic twin lantern: a plinth, a fluted post in two steps, a
+## collar, a crossbar with a lantern hanging at each end and a flower
+## basket under its middle. `along` is the street's direction, which the
+## crossbar stands across.
+func _town_lantern(nm: String, at: Vector3, along: Vector2) -> void:
+	var xf := _road_frame(at, along)
+	_town_box(_tw, xf, Vector3(-0.28, -0.3, -0.28), Vector3(0.28, 0.45, 0.28), TOWN_LANTERN_GREEN, 55)
+	_town_box(_tw, xf, Vector3(-0.09, 0.45, -0.09), Vector3(0.09, 2.3, 0.09), TOWN_LANTERN_GREEN, 51)
+	_town_box(_tw, xf, Vector3(-0.13, 2.3, -0.13), Vector3(0.13, 2.42, 0.13), TOWN_LANTERN_GOLD, 63)
+	_town_box(_tw, xf, Vector3(-0.07, 2.42, -0.07), Vector3(0.07, 4.1, 0.07), TOWN_LANTERN_GREEN, 51)
+	_town_box(_tw, xf, Vector3(-0.06, 4.1, -0.06), Vector3(0.06, 4.35, 0.06), TOWN_LANTERN_GOLD, 55)
+	# The crossbar across the street's direction: local x.
+	_town_box(_tw, xf, Vector3(-0.8, 3.72, -0.05), Vector3(0.8, 3.82, 0.05), TOWN_LANTERN_GREEN, 63)
+	var d := Vector3(along.x, 0.0, along.y)
+	var across := Vector3(-along.y, 0.0, along.x)
+	for s_v in [-1.0, 1.0]:
+		var s: float = s_v
+		var hang := at + across * (s * 0.72) + Vector3.UP * 3.72
+		_town_box(_tw, Transform3D(Basis.IDENTITY, hang), Vector3(-0.015, -0.12, -0.015),
+			Vector3(0.015, 0.0, 0.015), TOWN_LANTERN_GREEN, 51)
+		_town_lantern_head(hang + Vector3.UP * -0.62, 0.32, TOWN_LANTERN_GREEN)
+	# The basket, hung under the crossbar's middle.
+	_town_box(_tw, xf, Vector3(-0.01, 3.25, -0.01), Vector3(0.01, 3.72, 0.01), TOWN_LANTERN_GREEN, 51)
+	_town_box(_tw, xf, Vector3(-0.26, 2.95, -0.26), Vector3(0.26, 3.25, 0.26), TOWN_BASKET, 63)
+	_town_box(_tw, xf, Vector3(-0.32, 3.2, -0.32), Vector3(0.32, 3.42, 0.32), TOWN_BASKET, 63)
+	_omni(nm, at + Vector3.UP * 3.35, "lamp", 1.3, 15.0, LIGHT_SERVICE)
+
+
+## The residential post: a post, a curved arm, a teardrop head.
+func _town_post_lamp(nm: String, at: Vector3, toward: Vector2) -> void:
+	var xf := _road_frame(at, toward)
+	_town_box(_tw, xf, Vector3(-0.09, -0.3, -0.09), Vector3(0.09, 4.4, 0.09), TOWN_POST, 51)
+	# The arm: two straight pieces that read as a curve, reaching over the kerb.
+	_town_box(_tw, xf, Vector3(-0.04, 4.3, -0.5), Vector3(0.04, 4.38, 0.0), TOWN_POST, 63)
+	_town_box(_tw, xf, Vector3(-0.04, 4.36, -0.95), Vector3(0.04, 4.44, -0.5), TOWN_POST, 63)
+	var head := at + Vector3(toward.x, 0.0, toward.y) * 0.9
+	_town_box(_tw, Transform3D(Basis.IDENTITY, head), Vector3(-0.2, 4.34, -0.2), Vector3(0.2, 4.44, 0.2), TOWN_POST, 63)
+	_town_box(_tg, Transform3D(Basis.IDENTITY, head), Vector3(-0.15, 4.02, -0.15), Vector3(0.15, 4.34, 0.15), Color.WHITE, 59)
+	_town_box(_tw, Transform3D(Basis.IDENTITY, head), Vector3(-0.08, 3.92, -0.08), Vector3(0.08, 4.02, 0.08), TOWN_POST, 63)
+	_omni(nm, head + Vector3.UP * 3.98, "lamp", 1.0, 12.0, LIGHT_SERVICE)
+
+
+## The beach town's: a teal post, a bracket, a six-sided mariner's lantern.
+func _town_beach_lamp(nm: String, at: Vector3, toward: Vector2) -> void:
+	var xf := _road_frame(at, toward)
+	_town_box(_tw, xf, Vector3(-0.1, -0.3, -0.1), Vector3(0.1, 3.9, 0.1), TOWN_BEACH_POST, 51)
+	_town_box(_tw, xf, Vector3(-0.04, 3.5, -0.6), Vector3(0.04, 3.58, 0.0), TOWN_BEACH_POST, 63)
+	_town_box(_tw, xf, Vector3(-0.04, 3.1, -0.04), Vector3(0.04, 3.5, 0.0), TOWN_BEACH_POST, 63)
+	var hang := at + Vector3(toward.x, 0.0, toward.y) * 0.56 + Vector3.UP * 3.5
+	_town_box(_tw, Transform3D(Basis.IDENTITY, hang), Vector3(-0.015, -0.1, -0.015), Vector3(0.015, 0.0, 0.015),
+		TOWN_BEACH_POST, 51)
+	var base := hang + Vector3.UP * -0.62
+	var ring: Array = []
+	for i in 6:
+		var a := TAU * float(i) / 6.0
+		ring.append(Vector3(cos(a), 0.0, sin(a)) * 0.17)
+	for i in 6:
+		var p0: Vector3 = base + ring[i]
+		var p1: Vector3 = base + ring[(i + 1) % 6]
+		var n := (p0 + p1) * 0.5 - base
+		_town_quad(_tg, p0, p1, p1 + Vector3.UP * 0.44, p0 + Vector3.UP * 0.44, Color.WHITE, n)
+		_town_quad(_tw, p0 + Vector3.UP * 0.44, p1 + Vector3.UP * 0.44, (p1 - base) * 0.4 + base + Vector3.UP * 0.6,
+			(p0 - base) * 0.4 + base + Vector3.UP * 0.6, TOWN_BEACH_POST, n + Vector3.UP)
+		_town_quad(_tw, p0, p1, base + Vector3.UP * -0.03, base + Vector3.UP * -0.03, TOWN_BEACH_POST, Vector3.DOWN)
+	_omni(nm, base + Vector3.UP * 0.2, "lamp", 1.0, 12.0, LIGHT_SERVICE)
+
+
+## Whether a point on a main street lies at a side street's mouth, where a
+## kerb or a lamp must not stand.
+func _town_at_street_mouth(p: Vector2, reach: float) -> bool:
+	for street in _town_street_stations():
+		var pts: Array = street["points"]
+		var half: float = float(street["width"]) * 0.5
+		var lo: Vector2 = street["lo"]
+		var hi: Vector2 = street["hi"]
+		if p.x < lo.x or p.x > hi.x or p.y < lo.y or p.y > hi.y:
+			continue
+		for i in pts.size() - 1:
+			var a := Vector2((pts[i] as Vector3).x, (pts[i] as Vector3).z)
+			var b := Vector2((pts[i + 1] as Vector3).x, (pts[i + 1] as Vector3).z)
+			if p.distance_to(Geometry2D.get_closest_point_to_segment(p, a, b)) < half + reach:
+				return true
+	return false
+
+
+## The towns' road furniture, in the towns scene: kerbs along every street,
+## a stop sign where a street lands on a road, a dashed line on the through
+## streets, and the fans where streets meet.
+func _town_road_furniture() -> void:
+	_rf = SurfaceTool.new()
+	_rf.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_rf.set_smooth_group(TOWN_FLAT)
+	_rf_asphalt = SurfaceTool.new()
+	_rf_asphalt.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_rf_asphalt.set_smooth_group(0)
+	_highway_build()
+	var streets := _town_street_stations()
+	var roads: Array = [
+		{"id": "highway_a", "points": _highway_a, "half": Plan.HIGHWAY_CARRIAGEWAY_W * 0.5, "highway": true},
+		{"id": "highway_b", "points": _highway_b, "half": Plan.HIGHWAY_CARRIAGEWAY_W * 0.5, "highway": true},
+	]
+	for street in streets:
+		roads.append({"id": street["id"], "points": street["points"], "half": float(street["width"]) * 0.5,
+			"highway": false})
+	for street in streets:
+		var pts: Array = street["points"]
+		var half: float = float(street["width"]) * 0.5
+		var id: String = street["id"]
+		if id.ends_with("_lot"):
+			continue
+		# Kerbs, broken at other streets' mouths.
+		var fine: Array = _rebuild_resample_path3(pts, 3.0)
+		for i in fine.size() - 1:
+			var a: Vector3 = fine[i]
+			var b: Vector3 = fine[i + 1]
+			var mid := Vector2((a.x + b.x) * 0.5, (a.z + b.z) * 0.5)
+			var d := Vector2(b.x - a.x, b.z - a.z).normalized()
+			var r := Vector2(-d.y, d.x)
+			for s_v in [1.0, -1.0]:
+				var s: float = s_v
+				var edge := mid + r * s * half
+				if _town_at_street_mouth_other(edge, id, 2.5):
+					continue
+				var o := Vector3(r.x, 0.0, r.y) * (s * (half + 0.1))
+				_rf_bar(_rf, a + o + Vector3.UP * 0.12, b + o + Vector3.UP * 0.12, r, r, 0.2, 0.18, ROAD_CONCRETE)
+		# Paint on the through streets.
+		if id in ["beach_road", "north_hill_road"]:
+			_road_dashed_line(pts, 0.0, 0.1, 3.0, 9.0, ROAD_PAINT_YELLOW)
+		# A stop sign at every end that lands on a road, facing the traffic
+		# arriving there, and a bar across the lane.
+		for end in [[true, bool(street.get("flush_start", false))], [false, bool(street.get("flush_end", false))]]:
+			var at_start: bool = end[0]
+			if not bool(end[1]):
+				continue
+			var ordered: Array = pts.duplicate()
+			if at_start:
+				ordered.reverse()
+			var n := ordered.size()
+			var e := Vector2((ordered[n - 1] as Vector3).x, (ordered[n - 1] as Vector3).z)
+			var heading := (e - Vector2((ordered[n - 2] as Vector3).x, (ordered[n - 2] as Vector3).z)).normalized()
+			var back := _town_major_back(e, heading, roads, id)
+			if back < 0.0:
+				continue
+			var right := Vector2(-heading.y, heading.x)
+			var sign_at := e - heading * (back + 2.0) + right * (half + 0.7)
+			_road_stop_sign(Vector3(sign_at.x, _town_ground_y(sign_at) + 0.05, sign_at.y), heading)
+			_town_sign_n += 1
+			_road_cross_bar(ordered, _road_length(ordered) - back - 1.0, 0.0, half - 0.2, 0.4, ROAD_PAINT_WHITE)
+			# And the kerb returns onto the road it lands on.
+			var major := _town_major_points(e, roads, id)
+			if not major.is_empty():
+				for s_v in [1.0, -1.0]:
+					var s: float = s_v
+					_road_fillet_fan(major["points"], float(major["half"]), e, heading, half, s, 5.0)
+	_rf.generate_normals()
+	_rebuild_mesh_body("town_road_furniture", _rf.commit(), "town", false)
+	_rf_asphalt.generate_normals()
+	_rf_asphalt.generate_tangents()
+	_rebuild_mesh_body("town_junction_fans", _rf_asphalt.commit(), "asphalt", false)
+	print("town roads: %d signs" % _town_sign_n)
+
+
+func _town_at_street_mouth_other(p: Vector2, own: String, reach: float) -> bool:
+	for street in _town_street_stations():
+		if street["id"] == own:
+			continue
+		var pts: Array = street["points"]
+		var half: float = float(street["width"]) * 0.5
+		var lo: Vector2 = street["lo"]
+		var hi: Vector2 = street["hi"]
+		if p.x < lo.x or p.x > hi.x or p.y < lo.y or p.y > hi.y:
+			continue
+		# Only at the street's ends: the mouth is where it meets this one.
+		for end_i in [0, pts.size() - 1]:
+			var e := Vector2((pts[end_i] as Vector3).x, (pts[end_i] as Vector3).z)
+			if p.distance_to(e) < half + reach + 4.0:
+				return true
+	return false
+
+
+## How far back from a street's end its stop line stands: the nearest other
+## road's half width at the end, or the highway's whole near carriageway
+## and half the median where the end is on the highway's centre line.
+func _town_major_back(e: Vector2, heading: Vector2, roads: Array, own: String) -> float:
+	var major := _town_major_points(e, roads, own)
+	if major.is_empty():
+		return -1.0
+	if bool(major["highway"]):
+		var best := 0
+		var bd := INF
+		for i in _highway_cache.size():
+			var c: Vector3 = _highway_cache[i]
+			var d := Vector2(c.x, c.z).distance_to(e)
+			if d < bd:
+				bd = d
+				best = i
+		return _highway_m[best] * 0.5 + Plan.HIGHWAY_CARRIAGEWAY_W
+	return float(major["half"])
+
+
+func _town_major_points(e: Vector2, roads: Array, own: String) -> Dictionary:
+	var best := INF
+	var out := {}
+	for road in roads:
+		# Never its own line, which is nearest to its own end by nothing.
+		if String(road["id"]) == own:
+			continue
+		var pts: Array = road["points"]
+		for i in pts.size() - 1:
+			var a := Vector2((pts[i] as Vector3).x, (pts[i] as Vector3).z)
+			var b := Vector2((pts[i + 1] as Vector3).x, (pts[i + 1] as Vector3).z)
+			var d := e.distance_to(Geometry2D.get_closest_point_to_segment(e, a, b))
+			if d < best and d < 20.0:
+				best = d
+				out = road
+	return out

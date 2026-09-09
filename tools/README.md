@@ -108,6 +108,11 @@ anchor and edge tests and deleted on 2026-09-05.
 | `climb_test.gd` | Is every guest standing on the floor of the area they are in? | Reads the floor off the crowd's own graph. |
 | `ground_contact_test.gd` | Does every moving guest have real collision immediately underfoot? | |
 | `transit_test.gd` | Do the Kiddieland railway and Grand Circuit form usable loops, move with riders while open, and park empty after close? | Run at `--fixed-fps 60`; also guards the sampled grades and the five station-to-route alignments. |
+| `kiddieland_layout_test.gd` | Does the first editor-owned district source still reproduce the accepted Route D, R5–R7, R14, P4, support, S3, Q4 and NT-2 records while its generated publication is pending? | `extends SceneTree`; run with `--script`. It compile-checks the generator’s Route D consumer and moves both one instantiated R14 control and the whole ride in memory, proving the reader follows editor-owned transforms; it rewrites nothing. |
+| `park_vertical_controls_test.gd` | Does the editor-owned vertical handoff preserve all fifty map levels, four editable drainage rims, the localized P1 constraint and every held-fixed relationship while responding to editor transforms? | `extends SceneTree`; run with `--script`. It generates no terrain, rewrites nothing and compile-checks the terrain consumer. |
+| `lighthouse_regrade_test.gd` | Does the approved editor-owned P1 curve drive a localized cut-or-fill terrain ribbon and densely sampled paving while preserving its endpoints, 1:8 cap and shoreline gap? | `extends SceneTree`; run with `--script`. It rewrites nothing and proves cross-section edits are read live. |
+| `photo_exposure_test.gd` | Does a shutter press preserve an immutable, JSON-safe record of park time, camera pose, flash and objective scene facts without a score or composition judgment? | `extends SceneTree`; run with `--script`. It writes no photographs. |
+| `kiddieland_story_test.gd` | Does Three Jumps and a Birthday keep its five approved beats, three returning cast, factual developed evidence, after-close residue and pavilion keepsake without scoring a photograph? | `extends SceneTree`; run with `--script`. It writes no photographs and changes no story state. |
 | `footprint_test.gd` | Does the expanded developed park remain one connected hierarchy inside genuinely larger world geography? | Guards the 434x450m program envelope, 2km-plus land reserve, nearly 4km western ocean reserve, every primary handoff, the four crossing records and the retirement of the old NNW dead end. |
 | `footprint_walk_test.gd` | Can the real Player traverse every rebuilt public path in both directions? | Current A–F release gate: center and both operating edges of all generated segments, including shared junction floors and expanded-datum handoffs. |
 | `section_test.gd` | Is the park one continuous standing world, with both plaza gates walkable in both directions and no load, teleport, far stand-in or transition gate? | Also verifies all canonical scenes and all three tagged crowds are present. |
@@ -117,6 +122,7 @@ anchor and edge tests and deleted on 2026-09-05.
 | `inpool_test.gd` | Is anybody standing in the fountain? | Samples over twelve seconds, not one instant — the single-instant version reported three offenders one run and none the next. Guards a 40cm margin: rim sitters at 8.66 against water ending at 8.26. |
 | `clearance_test.gd` | Is anything standing in a walkway, or in another prop? | `extends SceneTree`. Hand-placed props have no equivalent of `open_spots`' rejection sampling. |
 | `perf_test.gd` | What does the crowd cost per frame, hour by hour? | Measurement, not an assertion. Re-measure before building any tiering scheme. |
+| `park_height_audit.gd` | What vertical datum, route-control levels, maximum grades, site floors and drainage-ground heights does the accepted build currently assign to the section atlas? | Read-only planning audit; `extends SceneTree`, runs with `--script`, writes no scene and is not a construction source. |
 | `coplanar_test.py` | Which surfaces will z-fight? | Seconds, no Godot needed. Reads CSG *and* meshes, so it covers guests as well as the world. |
 | `seat_test.py` | Is every seated guest sitting on something? | Wheelchair users excluded — they bring their own. |
 | `flow_probe.py` | Which way did the water actually move? | Analyses frames from `flow_probe.gd`. A still cannot show a direction and will look correct either way. |
@@ -159,6 +165,7 @@ wrapper and, where they save images, a real renderer.
 | `_ledge_probe.gd` | The walkable profile where the climb meets the head landing. |
 | `_lot_probe.gd` | Does the coast highway show from the parking lots? |
 | `_prom_probe.gd` | Rain rays over the promontory walk and dump what they hit. |
+| `_lighthouse_walk_probe.gd` | The emitted P1 contour climb from the real Player at five stations, its shore side and one oblique overview; pairs with filtered `footprint_walk_test` traversal and `path_ground_test` contact. |
 | `_range_probe.gd` | The crescent range from far enough away to see its shape. |
 | `_seam_probe.gd` | The heights the coast meshes and the mainland reserve each give along their seam. |
 | `_sight_probe.gd` | What a standpoint is actually looking at. |
@@ -166,6 +173,11 @@ wrapper and, where they save images, a real renderer.
 | `_terraces_probe.gd` | The terraces district, seen from inside itself. |
 | `_town_probe.gd` | The three towns of package 02B from the standpoints they are built for. |
 | `_town_site_probe.gd` | The natural ground along the coast highway and across the town sites, read off the generator without regenerating. |
+| `_tunnel_probe.gd` | The highway's five twin-bore locations as a car drives them: seconds at speed, each carriageway's segmented grade and turn, and the heading past each portal. Reads the generator's stations; regenerates nothing. |
+| `_road_profile_probe.gd` | The highway's and the approach road's section along their whole length, off the generator's height functions: cut depth, drop, dips, the plan lines after their fillets, the carriageways' split, the ramps, the corridor mesh's cost. `--script`; regenerates nothing. |
+| `_open_face_probe.gd` | The terrain's open edges by mesh, each with its nearest edge on another mesh: what a crack between the road corridor and the lattice is. `--script`; loads the groundworks scene. |
+| `_road_probe.gd` | The roads of 2026-09-05/06 from their standpoints: the interchange by day and night, the split-level coast, a walled cut, a portal, the towns' main streets, the beach road's bend. |
+| `_coastal_fast_probe.gd` | The one-hour coastal breadth pass from eight inspection cameras: beach town, north town, watersheds, harbour, park fishing deck, scenic railway and city. |
 
 Godot writes a `.uid` beside every script it imports. Those are tracked — but
 delete the throwaway wrapper scene and its `.uid` when you are done.

@@ -1,29 +1,143 @@
-<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>City Peninsula · zoomed planning map</title><body><main class="page">
-<nav><a href="park-world-beyond.html">← World map</a><a href="north-valley.html">North Valley</a><a href="beach-town.html">Beach Town</a><a href="park-waterfront.html">Park Waterfront</a><a class="active" href="city-peninsula.html">City Peninsula</a></nav>
-<header><p class="eyebrow">Approved coastal expansion · section map 4 of 4</p><h1>City Peninsula</h1><p>Waterfront, regional terminal, working port, downtown core, hillside neighborhoods and skyline anchors. The facelift replaces the undifferentiated massing; it does not add towers over it.</p></header>
-<p class="literal-rule"><b>Literal-use rule.</b> Filled replacement districts erase the grey massing beneath them; nothing is stacked. The railway ends inside the terminal. No SVG line or coordinate may be traced into generated geometry; shoreline, streets, rail and district footprints require named editor-owned sources.</p>
-<div class="legend"><span><i class="host"></i>existing massing</span><span><i class="replace"></i>replacement district/block</span><span><i class="water"></i>bay</span><span><i class="rail"></i>regional rail</span><span><i class="view"></i>park-facing silhouette</span></div>
-<svg viewBox="0 0 960 660" role="img" aria-label="City Peninsula planning map showing waterfront, port, railway, downtown and hillside districts">
-  <rect class="sea" x="24" y="28" width="912" height="604"/><path class="peninsula" d="M94 530 C132 438 210 390 302 365 C405 336 529 322 651 258 C755 204 850 140 920 70 V620 H122 Z"/>
-  <path class="waterfront" d="M106 514 C220 438 340 407 470 382 C585 359 689 304 782 245"/>
-  <path class="street-grid" d="M188 426 l94 150 M256 388 l105 166 M329 366 l109 157 M410 347 l108 142 M494 321 l105 124 M574 292 l101 106 M186 449 l468 -118 M222 500 l478 -123 M286 553 l447 -135"/>
-  <g class="old-blocks"><rect x="235" y="430" width="52" height="42"/><rect x="302" y="405" width="58" height="46"/><rect x="375" y="382" width="60" height="47"/><rect x="449" y="356" width="61" height="48"/><rect x="522" y="328" width="63" height="47"/><rect x="593" y="296" width="63" height="48"/><rect x="335" y="470" width="63" height="44"/><rect x="416" y="441" width="65" height="45"/><rect x="496" y="413" width="64" height="44"/><rect x="574" y="378" width="66" height="44"/></g>
-  <path class="port" d="M108 514 L206 454 L271 490 L171 557 Z"/><path class="quays" d="M128 510 l42 33 M155 491 l43 32 M183 472 l44 31"/>
-  <path class="downtown" d="M294 388 L531 310 L655 397 L398 493 Z"/>
-  <path class="rail-line" d="M820 42 C735 188 650 300 530 381 L500 411"/><rect class="terminal" x="425" y="389" width="93" height="53"/>
-  <path class="hill-neighborhood" d="M549 226 C635 165 742 133 836 114 L884 228 C766 241 680 284 608 334 Z"/>
-  <path class="hill-neighborhood second" d="M643 349 C732 294 808 258 895 248 L919 365 C816 358 751 384 687 424 Z"/>
-  <ellipse class="hill" cx="748" cy="186" rx="62" ry="45"/><ellipse class="hill" cx="821" cy="302" rx="46" ry="36"/>
-  <g class="anchors"><rect x="410" y="332" width="34" height="74"/><rect x="474" y="310" width="43" height="94"/><rect x="544" y="297" width="36" height="72"/></g>
-  <g class="port-kit"><path d="M151 431 v68 h45 M206 407 v67 h43"/><circle cx="151" cy="431" r="5"/><circle cx="206" cy="407" r="5"/></g>
-  <path class="view-cone" d="M106 514 L24 438 L24 590 Z"/>
-  <text class="replace-text" x="111" y="575">WORKING PORT REPLACES WATERFRONT BLOCKS</text><text class="replace-text" x="381" y="513">DOWNTOWN CORE</text><text class="rail-text" x="502" y="459">REGIONAL TERMINAL</text>
-  <text class="replace-text" x="606" y="105">HILLSIDE NEIGHBORHOODS FOLLOW CONTOURS</text><text class="replace-text" x="395" y="285">2–3 SKYLINE ANCHORS REPLACE SELECTED BLOCKS</text>
-  <text class="host-text" x="460" y="610">existing street grid is recomposed into waterfront → core → hills</text><text class="view-text" x="31" y="425">PARK-FACING SILHOUETTE</text><text class="water-text" x="55" y="86">BAY</text>
-  <text class="coord" x="30" y="643">world anchors: peninsula x 85–760, z 2410–2970 · waterfront/terminal near z 2475–2500 · city remains distant scenery at the 400m player far plane</text>
-</svg>
-<section class="cards"><article><h2>Waterfront hierarchy</h2><p>A continuous public/working edge replaces the old first row. Port quays occupy one end, the rail terminal joins the center, and the downtown core begins behind them.</p></article><article><h2>Block replacement</h2><p>Selected existing massing blocks become the terminal, port sheds and two or three skyline anchors. Nothing is stacked through an intact old block.</p></article><article><h2>Hillside city</h2><p>Neighborhood bands follow the two existing hills and their contours. The grid bends and thins as it climbs instead of continuing as a flat downtown carpet.</p></article><article><h2>Distance composition</h2><p>Waterfront band, anchor spacing and hill silhouettes are judged from park, pier, highway and aerial frames. Detail remains distance-painted while the 400m player far plane stands.</p></article></section>
-<section class="checks"><h2>Before Godot</h2><ul><li>Choose exactly which existing blocks are removed for port, terminal and skyline anchors.</li><li>Check the composed silhouette from the pier and highway view bends before adding detail.</li><li>Fit the terminal to the regional railway’s final grade and city approach.</li><li>Keep the port legible as a working edge without letting cranes or anchors compete with the park’s skyline.</li></ul></section>
-</main><style>
-:root{--bg:#f5f2e8;--fg:#262923;--muted:#d8d4c8;--muted-fg:#6d7168;--border:#c7c2b6;--blue:#247fa3;--green:#477d4b;--orange:#d0642d;--purple:#72569a;--red:#b84c46}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 ui-sans-serif,system-ui,-apple-system,sans-serif}.page{width:min(1180px,100%);margin:auto;padding:24px}nav,.legend{display:flex;gap:8px;flex-wrap:wrap}nav a{color:var(--fg);text-decoration:none;border:1px solid var(--border);border-radius:99px;padding:5px 10px}nav a.active{background:var(--fg);color:var(--bg)}.eyebrow{color:var(--orange);font-weight:800;text-transform:uppercase;letter-spacing:.08em;font-size:11px;margin-top:22px}h1{font-size:34px;line-height:1;margin:.2em 0}header>p:last-child{color:var(--muted-fg);max-width:82ch}.literal-rule{max-width:92ch;border-left:4px solid var(--red);padding:10px 14px;background:color-mix(in srgb,var(--red) 7%,transparent)}.legend{margin:18px 0 10px;color:var(--muted-fg);font-size:12px}.legend span{display:flex;gap:6px;align-items:center}.legend i{width:22px;height:7px;border-radius:99px}.legend .host{background:var(--muted-fg)}.legend .replace{background:var(--orange)}.legend .water{background:var(--blue)}.legend .rail{background:var(--purple)}.legend .view{background:var(--red)}svg{width:100%;height:auto;border:1px solid var(--border);border-radius:14px;background:var(--bg)}svg text{font:11px ui-sans-serif,system-ui;paint-order:stroke;stroke:var(--bg);stroke-width:4px;stroke-linejoin:round}.sea{fill:color-mix(in srgb,var(--blue) 18%,var(--bg))}.peninsula{fill:color-mix(in srgb,var(--green) 12%,var(--bg));stroke:var(--muted-fg);stroke-width:2}.waterfront{fill:none;stroke:var(--orange);stroke-width:12}.street-grid{fill:none;stroke:var(--muted-fg);stroke-width:4}.old-blocks rect{fill:var(--muted);stroke:var(--muted-fg);stroke-width:1.5}.port,.downtown{fill:color-mix(in srgb,var(--orange) 18%,var(--bg));stroke:var(--orange);stroke-width:3;stroke-dasharray:8 4}.hill-neighborhood{fill:color-mix(in srgb,var(--orange) 18%,transparent);stroke:var(--orange);stroke-width:3;stroke-dasharray:8 4}.quays{fill:none;stroke:var(--orange);stroke-width:5}.rail-line{fill:none;stroke:var(--purple);stroke-width:7;stroke-dasharray:13 6}.terminal{fill:color-mix(in srgb,var(--purple) 22%,var(--bg));stroke:var(--purple);stroke-width:3}.hill{fill:color-mix(in srgb,var(--green) 22%,transparent);stroke:var(--green);stroke-width:2}.anchors rect{fill:var(--orange);stroke:var(--bg);stroke-width:2}.port-kit path{fill:none;stroke:var(--orange);stroke-width:5}.port-kit circle{fill:var(--orange)}.view-cone{fill:color-mix(in srgb,var(--red) 9%,transparent);stroke:var(--red);stroke-width:2;stroke-dasharray:8 5}.replace-text{fill:var(--orange);font-weight:800}.rail-text{fill:var(--purple);font-weight:800}.water-text{fill:var(--blue);font-weight:800}.view-text{fill:var(--red);font-weight:800}.host-text,.coord{fill:var(--muted-fg);font-weight:700}.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}.cards article{border:1px solid var(--border);border-radius:10px;padding:12px}.cards h2,.cards p{margin:.2em 0}.checks{margin-top:16px;padding:14px 18px;border-left:4px solid var(--orange);background:color-mix(in srgb,var(--orange) 7%,transparent)}@media(max-width:700px){.page{padding:14px}.cards{grid-template-columns:1fr}svg text{font-size:13px}}
-.hill-neighborhood{fill:color-mix(in srgb,var(--orange) 18%,var(--bg))}</style></body></html>
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>City Peninsula · zoomed planning map</title>
+<body>
+<main class="map-page" id="section-map">
+  <nav><a href="park-world-beyond.html">← World map</a><a href="north-valley.html">North Valley</a><a href="beach-town.html">Beach Town</a><a href="park-waterfront.html">Park Waterfront</a><a class="active" href="city-peninsula.html">City Peninsula</a></nav>
+  <header><p class="eyebrow">Approved coastal expansion · section map 4 of 4</p><h1>City Peninsula</h1><p>Existing peninsula and two hills · working port · regional terminal · public waterfront · downtown · hillside neighborhoods · world coordinates · north up</p></header>
+  <p class="literal-rule"><b>Literal-use rule.</b> In the approved view, pale clearing shapes first remove the old grey massing; orange buildings then occupy those cleared blocks. Nothing is stacked through an intact building, road or hill. The railway ends inside the terminal. No SVG line or coordinate may be traced into generated geometry: shoreline, streets, rail, contours and footprints require named editor-owned sources.</p>
+  <div class="controls"><button class="active" aria-pressed="true" data-view="approved">Approved integration</button><button aria-pressed="false" data-view="built">Existing hosts only</button><span>Grey = existing host · orange = replacement city · blue = public waterfront · purple = regional rail · green = hills · red = protected view</span></div>
+
+  <svg viewBox="0 0 1100 760" role="img" aria-labelledby="city-title city-desc">
+    <title id="city-title">City Peninsula integration map</title>
+    <desc id="city-desc">A city plan where old massing is cleared before a working port, rail terminal, public waterfront, connected downtown street grid, contour-following hillside neighborhoods and three skyline anchors are built. Public, port, road and rail routes do not collide.</desc>
+
+    <rect class="sea" x="20" y="20" width="1060" height="720"/>
+    <path class="peninsula" d="M70 602 C151 521 260 476 390 440 C526 402 646 352 760 269 C863 194 957 107 1080 54 V740 H109 Z"/>
+    <path class="shore" d="M70 602 C151 521 260 476 390 440 C526 402 646 352 760 269 C863 194 957 107 1080 54"/>
+    <ellipse class="hill-host" cx="850" cy="369" rx="96" ry="82"/>
+    <ellipse class="hill-host" cx="949" cy="535" rx="92" ry="72"/>
+    <path class="existing-approach" d="M1080 697 C1004 682 940 656 873 620 L824 594"/>
+    <text class="host-label" x="860" y="716">EXISTING HIGHWAY / CITY APPROACH · CONNECTION HELD</text>
+
+    <g class="old-city" aria-label="Existing undifferentiated city massing">
+      <path class="old-grid" d="M158 563 L347 682 M230 504 L425 657 M310 468 L510 632 M405 435 L600 603 M493 403 L689 570 M582 366 L779 536 M208 611 L741 358 M278 669 L807 415 M409 711 L864 493"/>
+      <g class="old-blocks">
+        <rect x="145" y="575" width="63" height="42"/><rect x="221" y="531" width="68" height="46"/><rect x="297" y="492" width="72" height="46"/><rect x="379" y="460" width="70" height="49"/>
+        <rect x="214" y="621" width="70" height="44"/><rect x="302" y="576" width="72" height="48"/><rect x="392" y="537" width="74" height="48"/><rect x="479" y="502" width="74" height="48"/>
+        <rect x="492" y="430" width="66" height="47"/><rect x="568" y="402" width="69" height="48"/><rect x="646" y="368" width="70" height="48"/><rect x="575" y="482" width="72" height="46"/>
+        <rect x="657" y="446" width="73" height="48"/><rect x="728" y="405" width="70" height="46"/><rect x="756" y="332" width="63" height="44"/><rect x="816" y="295" width="62" height="43"/>
+        <rect x="806" y="395" width="62" height="44"/><rect x="865" y="451" width="62" height="44"/><rect x="900" y="532" width="64" height="43"/><rect x="974" y="573" width="62" height="44"/>
+      </g>
+      <text class="host-label" x="438" y="683">EXISTING JITTERED GRID + UNDIFFERENTIATED MASSING</text>
+    </g>
+
+    <g data-approved aria-label="Approved city replacement and integration">
+      <!-- These opaque clearings remove the old massing before any new footprint is drawn. -->
+      <path class="replacement-clear" d="M82 594 L275 482 L385 531 L250 704 L104 690 Z"/>
+      <path class="replacement-clear" d="M317 486 L466 425 L836 326 L889 560 L746 666 L392 694 L308 586 Z"/>
+      <ellipse class="hill-clear" cx="850" cy="369" rx="90" ry="76"/>
+      <ellipse class="hill-clear" cx="949" cy="535" rx="86" ry="66"/>
+
+      <path class="port-district" d="M82 594 L276 482 L371 532 L249 695 L106 685 Z"/>
+      <path class="port-fence" d="M271 491 L369 535 L251 688"/>
+      <path class="port-service" d="M171 656 C232 631 292 598 348 575 C468 690 650 715 824 650 L873 620"/>
+      <path class="quay" d="M111 590 L77 560 M150 565 L113 530 M191 541 L153 508 M230 516 L191 486"/>
+      <rect class="port-building" x="159" y="584" width="72" height="38"/><rect class="port-building" x="239" y="545" width="67" height="38"/>
+      <path class="crane" d="M124 551 V593 H157 M203 508 V552 H239"/><circle class="crane-head" cx="124" cy="551" r="5"/><circle class="crane-head" cx="203" cy="508" r="5"/>
+      <path class="loading-bays" d="M170 622 V635 M185 622 V635 M250 583 V597 M265 583 V597"/>
+      <circle class="port-gate" cx="348" cy="575" r="8"/>
+      <text class="approved-label" x="88" y="637">HEAVY WORKING PORT</text>
+      <text class="approved-note" x="95" y="655">QUAYS + SHEDS + CRANES</text>
+      <text class="approved-note" x="181" y="714">FENCED PORT · SERVICE TRAFFIC ONLY</text>
+      <text class="approved-note" x="317" y="569">PORT GATE</text>
+      <text class="approved-note" x="430" y="714">PORT SERVICE ROAD → CITY APPROACH</text>
+
+      <path class="promenade" d="M340 470 C391 454 457 437 532 417 C622 390 696 344 766 294"/>
+      <circle class="public-node" cx="340" cy="470" r="7"/><circle class="public-node" cx="484" cy="432" r="7"/><circle class="public-node" cx="640" cy="379" r="7"/><circle class="public-node" cx="766" cy="294" r="7"/>
+      <text class="water-label" x="307" y="452">PORT OVERLOOK</text>
+      <text class="water-label" x="463" y="408">TERMINAL SQUARE</text>
+      <text class="water-label" x="604" y="354">CIVIC WATERFRONT</text>
+      <text class="water-label" x="720" y="275">HARBOR WALK CONTINUES</text>
+
+      <path class="rail-reserve" d="M1060 121 C960 180 885 226 800 264 C688 315 588 399 474 501"/>
+      <path class="rail" d="M1060 121 C960 180 885 226 800 264 C688 315 588 399 474 501"/>
+      <path class="platform" d="M467 491 L426 516 M476 505 L435 530"/>
+      <path class="terminal" d="M385 493 L473 452 L535 491 L447 550 L383 535 Z"/>
+      <path class="terminal-hall" d="M400 500 L466 470 L507 493 L440 533 Z"/>
+      <path class="buffer-stop" d="M467 491 L479 506 M458 497 L470 512"/>
+      <path class="forecourt" d="M447 550 L535 492 L585 533 L494 592 Z"/>
+      <path class="terminal-walk" d="M484 432 L430 468 L414 492 M494 592 L535 611"/>
+      <text class="rail-label" x="813" y="203">REGIONAL RAIL RIGHT-OF-WAY</text>
+      <text class="rail-label" x="558" y="436">NO AT-GRADE ROAD CROSSING</text>
+      <text class="rail-label" x="375" y="471">TRACKS END INSIDE TERMINAL</text>
+      <text class="approved-label" x="379" y="576">REGIONAL TERMINAL</text>
+      <text class="approved-note" x="454" y="610">STATION FORECOURT</text>
+
+      <g class="downtown-grid" transform="rotate(-18 620 546)">
+        <path class="city-road" d="M500 423 H735 M500 487 H735 M500 551 H735 M500 615 H735 M535 401 V646 M600 401 V646 M665 401 V646 M730 401 V646"/>
+        <path class="city-road-center" d="M500 423 H735 M500 487 H735 M500 551 H735 M500 615 H735 M535 401 V646 M600 401 V646 M665 401 V646 M730 401 V646"/>
+        <g class="city-blocks">
+          <rect x="545" y="436" width="45" height="38"/><rect class="anchor-footprint" x="610" y="436" width="45" height="38"/><rect x="675" y="436" width="45" height="38"/>
+          <rect class="anchor-footprint" x="545" y="500" width="45" height="38"/><rect x="610" y="500" width="45" height="38"/><rect x="675" y="500" width="45" height="38"/>
+          <rect x="545" y="564" width="45" height="38"/><rect x="610" y="564" width="45" height="38"/><rect class="anchor-footprint" x="675" y="564" width="45" height="38"/>
+        </g>
+        <text class="anchor-id" x="633" y="461">A1</text><text class="anchor-id" x="568" y="525">A2</text><text class="anchor-id" x="698" y="589">A3</text>
+      </g>
+      <path class="station-street" d="M494 592 C577 633 691 655 824 620"/>
+      <path class="city-approach-link" d="M824 620 H873"/>
+      <path class="crosswalk" d="M525 592 l-5 12 M535 596 l-5 12 M809 589 l7 13 M819 585 l7 13"/>
+      <text class="approved-label" x="568" y="681">DOWNTOWN STREETS · TWO-SIDED SIDEWALKS</text>
+      <text class="approved-note" x="666" y="646">A1–A3 = THREE SELECTED REPLACEMENT BLOCKS</text>
+      <text class="approved-note" x="538" y="620">STATION STREET</text>
+
+      <path class="hill-road" d="M738 470 C764 444 787 421 809 397"/>
+      <path class="hill-road second" d="M824 594 C850 570 868 552 882 535"/>
+      <path class="hill-contour" d="M775 369 C805 320 865 303 914 328 C947 345 958 378 948 406 M809 397 C842 358 893 353 928 378"/>
+      <path class="hill-contour" d="M882 535 C907 497 961 481 1005 505 C1035 522 1044 550 1036 575 M906 562 C939 529 988 530 1019 556"/>
+      <g class="hill-homes">
+        <rect x="812" y="341" width="28" height="18" transform="rotate(-24 826 350)"/><rect x="850" y="329" width="28" height="18" transform="rotate(-8 864 338)"/><rect x="889" y="335" width="28" height="18" transform="rotate(10 903 344)"/><rect x="921" y="352" width="28" height="18" transform="rotate(22 935 361)"/>
+        <rect x="908" y="514" width="28" height="18" transform="rotate(-18 922 523)"/><rect x="950" y="504" width="28" height="18" transform="rotate(2 964 513)"/><rect x="991" y="516" width="28" height="18" transform="rotate(18 1005 525)"/>
+      </g>
+      <text class="green-label" x="778" y="287">NORTH HILL NEIGHBORHOODS</text>
+      <text class="green-label" x="885" y="474">SOUTH HILL NEIGHBORHOODS</text>
+      <text class="green-note" x="804" y="433">HOMES FACE CONTOUR STREETS</text>
+      <text class="green-note" x="888" y="597">GRID STOPS · HILL ROADS CLIMB</text>
+
+      <path class="view-cone" d="M76 594 L20 518 L20 688 Z"/>
+      <text class="view-label" x="32" y="504">PARK-FACING VIEW</text>
+    </g>
+
+    <text class="water-label" x="42" y="67">BAY</text>
+    <text class="coord" x="34" y="735">WORLD MAP GOVERNS CONNECTIONS · EXACT COURSES REQUIRE EDITOR-OWNED SOURCES · CITY REMAINS DISTANT SCENERY AT THE 400m PLAYER FAR PLANE</text>
+  </svg>
+  <p class="coordinate-note">City host reference: peninsula x 85–760, z 2410–2970; waterfront and terminal near z 2475–2500. These locate the existing host only—the drawn internal courses are relationship diagrams.</p>
+
+  <section class="route-ledger">
+    <h2>Every element has a host and a route</h2>
+    <article><b>Working port</b><span>Replaces the west waterfront blocks.</span><span>Quays, sheds and cranes face the water; loading faces the port-service road. A fence and one gate keep trucks out of the public waterfront.</span></article>
+    <article><b>Regional terminal</b><span>Replaces one central waterfront block.</span><span>Rail enters on its reserved corridor and stops inside the terminal. The seaward door opens to Terminal Square; the city door opens to a forecourt and Station Street.</span></article>
+    <article><b>Public waterfront</b><span>Completes the existing shoreline edge.</span><span>Harbor Walk runs continuously from the port overlook through Terminal Square and the civic waterfront. It never crosses loading bays, port traffic or railway track.</span></article>
+    <article><b>Downtown and hills</b><span>Replace the flat jittered massing.</span><span>The downtown grid is rebuilt around clear streets, continuous two-sided sidewalks and three selected anchor blocks. At the hills, the flat grid stops and access changes to contour streets with homes facing them.</span></article>
+  </section>
+  <section class="silhouette">
+    <div><h2>Park-facing silhouette order</h2><p>Keep the working waterfront low, step through the downtown roofline, leave air around the three anchors, and let the two existing hills close the composition. Detail stays in the established distance-painted palette.</p></div>
+    <svg viewBox="0 0 620 120" role="img" aria-label="Silhouette hierarchy from port and terminal to downtown anchors and hills">
+      <path class="silhouette-hills" d="M0 105 C90 102 175 98 250 89 C322 80 363 62 398 38 C439 9 483 23 506 50 C536 78 566 55 620 28 V120 H0 Z"/>
+      <path class="silhouette-waterfront" d="M15 101 H98 V91 H160 V99 H224 V87 H282 V99 H338 V120 H15 Z"/>
+      <path class="silhouette-core" d="M185 98 V75 H225 V62 H260 V82 H296 V54 H326 V77 H357 V68 H382 V98 Z"/>
+      <path class="silhouette-anchor" d="M235 62 V34 H259 V62 M292 54 V18 H318 V54 M345 68 V40 H369 V68"/>
+      <path class="silhouette-line" d="M0 105 H620"/>
+      <text class="approved-note" x="18" y="116">PORT</text><text class="water-label" x="92" y="116">TERMINAL + WATERFRONT</text><text class="approved-note" x="253" y="116">DOWNTOWN + A1–A3</text><text class="green-note" x="452" y="116">TWO EXISTING HILLS</text>
+    </svg>
+  </section>
+  <section class="checks"><h2>Before Godot</h2><ul><li>Author the shoreline, port boundary, rail, streets, contours and replacement footprints as editable sources; do not trace this SVG.</li><li>Confirm the port fence, terminal doors, forecourt, sidewalks and crossings against the final editor-owned footprints.</li><li>Review the rail approach grade without changing the frozen highway/tunnel layer or creating an at-grade carriageway crossing.</li><li>Judge the composed silhouette from the park pier, far-shore highway and aerial views before adding small detail.</li></ul></section>
+</main>
+<script>document.querySelectorAll('[data-view]').forEach(button=>button.addEventListener('click',()=>{const approved=button.dataset.view==='approved';document.querySelectorAll('[data-approved]').forEach(node=>node.style.display=approved?'':'none');document.querySelectorAll('[data-view]').forEach(node=>{const active=node===button;node.classList.toggle('active',active);node.setAttribute('aria-pressed',String(active));});}));</script>
+<style>
+:root{--bg:#f5f2e8;--fg:#262923;--muted:#d8d4c8;--muted-fg:#6d7168;--border:#c7c2b6;--blue:#247fa3;--green:#477d4b;--yellow:#d9a528;--orange:#d0642d;--red:#b84c46;--purple:#72569a;--land:#e8eadf;--hill:#d7e0cf}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,-apple-system,sans-serif}.map-page{width:min(1180px,100%);margin:auto;padding:24px}nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}nav a{color:var(--fg);text-decoration:none;border:1px solid var(--border);border-radius:99px;padding:5px 10px}nav a.active{background:var(--fg);color:var(--bg)}header .eyebrow{color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:11px}h1{font-size:34px;line-height:1;margin:.2em 0}header>p:last-child{color:var(--muted-fg)}.literal-rule{max-width:100ch;border-left:4px solid var(--red);padding:10px 14px;background:color-mix(in srgb,var(--red) 7%,transparent)}.controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:18px 0 10px}.controls button{border:1px solid var(--border);background:var(--bg);border-radius:99px;padding:7px 12px;cursor:pointer}.controls button.active{background:var(--fg);color:var(--bg);border-color:var(--fg)}.controls span{color:var(--muted-fg);font-size:12px}svg{display:block;width:100%;height:auto;border:1px solid var(--border);border-radius:14px;background:var(--bg)}svg text{font:10px ui-sans-serif,system-ui;paint-order:stroke;stroke:var(--bg);stroke-width:3px;stroke-linejoin:round}.coordinate-note{margin:7px 2px 0;color:var(--muted-fg);font-size:12px}.sea{fill:color-mix(in srgb,var(--blue) 17%,var(--bg))}.peninsula,.replacement-clear{fill:var(--land);stroke:var(--muted-fg);stroke-width:2}.shore{fill:none;stroke:var(--muted-fg);stroke-width:3}.hill-host,.hill-clear{fill:var(--hill);stroke:var(--green);stroke-width:2}.existing-approach{fill:none;stroke:var(--muted-fg);stroke-width:16;stroke-linecap:round}.old-grid{fill:none;stroke:var(--muted-fg);stroke-width:4;opacity:.65}.old-blocks rect{fill:var(--muted);stroke:var(--muted-fg);stroke-width:1.5}.replacement-clear{stroke:none}.hill-clear{stroke:none}.port-district{fill:color-mix(in srgb,var(--orange) 13%,var(--land));stroke:var(--orange);stroke-width:3}.port-fence{fill:none;stroke:var(--red);stroke-width:3;stroke-dasharray:8 5}.port-service,.station-street,.city-approach-link{fill:none;stroke:var(--orange);stroke-width:12;stroke-linecap:round}.quay{fill:none;stroke:var(--orange);stroke-width:9;stroke-linecap:round}.port-building,.terminal,.city-blocks rect,.hill-homes rect{fill:color-mix(in srgb,var(--orange) 24%,var(--land));stroke:var(--orange);stroke-width:2.5}.crane,.loading-bays{fill:none;stroke:var(--orange);stroke-width:5}.crane-head,.port-gate{fill:var(--orange);stroke:var(--bg);stroke-width:2}.promenade,.terminal-walk{fill:none;stroke:var(--blue);stroke-width:7;stroke-linecap:round;stroke-dasharray:10 5}.public-node{fill:var(--bg);stroke:var(--blue);stroke-width:4}.rail-reserve{fill:none;stroke:color-mix(in srgb,var(--purple) 16%,transparent);stroke-width:22}.rail,.platform,.buffer-stop{fill:none;stroke:var(--purple);stroke-width:6;stroke-linecap:round}.terminal{stroke:var(--purple);stroke-width:3}.terminal-hall{fill:color-mix(in srgb,var(--purple) 22%,var(--land));stroke:var(--purple);stroke-width:2}.forecourt{fill:color-mix(in srgb,var(--orange) 8%,var(--land));stroke:var(--orange);stroke-width:2;stroke-dasharray:6 4}.city-road{fill:none;stroke:var(--muted-fg);stroke-width:15}.city-road-center{fill:none;stroke:var(--land);stroke-width:9}.city-blocks .anchor-footprint{fill:var(--orange);stroke:var(--fg);stroke-width:2}.anchor-id{fill:var(--bg);font-weight:800;text-anchor:middle;dominant-baseline:middle;stroke:var(--orange);stroke-width:2}.crosswalk{fill:none;stroke:var(--bg);stroke-width:4}.hill-road{fill:none;stroke:var(--orange);stroke-width:11;stroke-linecap:round}.hill-contour{fill:none;stroke:var(--green);stroke-width:6;stroke-linecap:round}.hill-homes rect{fill:color-mix(in srgb,var(--orange) 18%,var(--hill))}.view-cone{fill:color-mix(in srgb,var(--red) 8%,transparent);stroke:var(--red);stroke-width:2;stroke-dasharray:8 5}.host-label,.coord{fill:var(--muted-fg);font-weight:700}.approved-label{fill:var(--orange);font-weight:800}.approved-note{fill:var(--orange);font-weight:700}.rail-label{fill:var(--purple);font-weight:800}.water-label{fill:var(--blue);font-weight:800}.green-label{fill:var(--green);font-weight:800}.green-note{fill:var(--green);font-weight:700}.view-label,.view-note{fill:var(--red);font-weight:800}.route-ledger{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:18px}.route-ledger h2{grid-column:1/-1}.route-ledger article{display:flex;flex-direction:column;gap:4px;padding:13px;border:1px solid var(--border);border-radius:10px}.route-ledger article>b{font-size:16px}.silhouette{display:grid;grid-template-columns:minmax(260px,.75fr) minmax(430px,1.25fr);gap:18px;align-items:center;margin-top:18px}.silhouette>svg{border:0;border-radius:0}.silhouette-hills{fill:var(--hill);stroke:var(--green);stroke-width:2}.silhouette-waterfront{fill:color-mix(in srgb,var(--blue) 28%,var(--bg));stroke:var(--blue);stroke-width:2}.silhouette-core{fill:color-mix(in srgb,var(--orange) 18%,var(--bg));stroke:var(--orange);stroke-width:2}.silhouette-anchor{fill:var(--orange);stroke:var(--orange);stroke-width:2}.silhouette-line{fill:none;stroke:var(--muted-fg);stroke-width:2}.checks{margin-top:18px;padding:14px 18px;border-left:4px solid var(--orange);background:color-mix(in srgb,var(--orange) 7%,transparent)}h2{margin:.3em 0}@media(max-width:700px){.map-page{padding:14px}.route-ledger{grid-template-columns:1fr}.silhouette{grid-template-columns:1fr}svg text{font-size:12px}}
+</style>
+</body>
+</html>

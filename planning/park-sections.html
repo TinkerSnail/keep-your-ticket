@@ -7,12 +7,12 @@
 <main class="atlas" id="park-section-atlas">
   <nav class="top-nav"><a href="park-rebuild-overlay.html">← Complete rebuild atlas</a><a href="park-world-beyond.html">World beyond the park</a><a href="park-waterfront.html">Park Waterfront detail</a></nav>
   <header>
-    <p class="eyebrow">Approved rebuild · nine coordinated zoom views</p>
+    <p class="eyebrow">Rebuild coordination · nine zoom views</p>
     <h1>Park Section Atlas</h1>
     <p>Entrance and campaign home, followed by all seven outer districts · source-coordinate planning diagram · north up</p>
   </header>
 
-  <p class="literal-rule"><b>Literal-use rule.</b> Every line below has one named job. Public routes, queues, exits, service paths, buildings, ride envelopes, water and protected views must remain separate unless the map explicitly names their crossing. These SVG courses and footprints are review diagrams—not construction input—and may not be traced into generated geometry. Final roads, paths, water, rails, terrain and footprints require editor-owned sources.</p>
+  <p class="literal-rule"><b>Literal-use rule.</b> Every line below has one named job. Public routes, queues, exits, service paths, buildings, ride envelopes, water and protected views must remain separate unless the map explicitly names their crossing. Horizontal SVG courses and footprints remain review diagrams—not construction input—and may not be traced into generated geometry. The terrain layer records the vertical handoff: <b>E</b> is existing/measured, <b>A</b> is an approved change not yet built, <b>P</b> is a proposal awaiting review and <b>NT</b> is protected. Final roads, paths, water, rails, terrain and footprints require editor-owned sources.</p>
 
   <div class="section-tabs" role="group" aria-label="Choose a zoomed park section">
     <button type="button" data-section="entrance">Entrance</button>
@@ -37,6 +37,7 @@
     <label><input type="checkbox" data-layer="destinations" checked> Destinations + rides</label>
     <label><input type="checkbox" data-layer="operations" checked> Queues + service</label>
     <label><input type="checkbox" data-layer="protection" checked> Protected views + water</label>
+    <label><input type="checkbox" data-layer="terrain" checked> Terrain + heights</label>
   </div>
 
   <div class="legend" aria-label="Map legend">
@@ -52,14 +53,24 @@
     <span><i class="shore-change-key"></i>Approved shoreline integration</span>
     <span><i class="regional-rail-key"></i>Regional rail / working spur</span>
     <span><i class="protected-key"></i>No-touch anchor or view</span>
+    <span><i class="terrain-key"></i>Broad terrain ownership band</span>
+    <span><i class="shape-key"></i>Terrain-shape review contour</span>
+    <span><i class="path-approved-key"></i>Approved editor-owned course (A)</span>
+    <span><i class="grade-key"></i>Measured grade run</span>
+    <span><i class="retaining-key"></i>Retaining edge · high side named</span>
+    <span><i class="approved-key"></i>Approved change (A)</span>
+    <span><i class="height-existing-key"></i>Existing measured height (E)</span>
+    <span><i class="height-proposed-key"></i>Proposed height (P)</span>
+    <span><i class="height-protected-key"></i>Protected height (NT)</span>
   </div>
 
   <svg id="section-map" viewBox="0 0 1100 720" role="img" aria-labelledby="map-title map-desc">
     <title id="map-title">Zoomed park section plan</title>
-    <desc id="map-desc">A selected park section showing the approved relationship between continuous public routes, destinations, ride parcels, queues, service access, water and protected sightlines.</desc>
+    <desc id="map-desc">A selected park section showing the coordinated relationship between continuous public routes, destinations, ride parcels, queues, service access, water, terrain, heights and protected sightlines.</desc>
     <defs>
       <pattern id="protected-hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="10" stroke="currentColor" stroke-width="3"/></pattern>
       <marker id="view-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z"/></marker>
+      <marker id="grade-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="context-stroke"/></marker>
       <clipPath id="map-clip"><rect x="30" y="30" width="1040" height="650" rx="12"/></clipPath>
     </defs>
     <rect class="map-ground" x="30" y="30" width="1040" height="650" rx="12"/>
@@ -67,11 +78,21 @@
     <g class="north-arrow" transform="translate(1022 62)"><path d="M0 34V0M0 0l-7 12M0 0l7 12"/><text x="0" y="50" text-anchor="middle">N</text></g>
   </svg>
 
+  <section class="grading-review" id="grading-review" hidden aria-live="polite">
+    <div>
+      <p class="counter" id="grading-counter"></p>
+      <h2 id="grading-title"></h2>
+    </div>
+    <div class="grade-sections" id="grade-sections"></div>
+    <p class="grading-rule"><b>Review rule.</b> These contours and sections describe the intended surface form; they are not horizontally scaled construction geometry. Exact curves remain editor-owned in Godot.</p>
+  </section>
+
   <section class="relationship-ledger" aria-live="polite">
     <article><h3>Public movement</h3><p id="public-note"></p></article>
     <article><h3>Destinations</h3><p id="destination-note"></p></article>
     <article><h3>Operations</h3><p id="operations-note"></p></article>
     <article><h3>Protected relationship</h3><p id="protection-note"></p></article>
+    <article><h3>Terrain + height handoff</h3><p id="vertical-note"></p></article>
   </section>
 
   <section class="section-register">
@@ -230,6 +251,245 @@
     {id:'CLOCK',name:'Clock tower',type:'rect',at:[20,-28],size:[5.6,5.6]}
   ];
 
+  // Vertical coordination uses the same source x/z coordinates as the plan.
+  // Y never passes through the footprint expansion, so these levels are also
+  // literal Godot world metres. E = existing/measured in the accepted build, NT = a
+  // protected no-change datum, P = a proposed level or course to approve
+  // before its editor-owned source is made. Terrain polygons remain ownership
+  // bands, not contours or construction geometry.
+  const terrainBands=[
+    {id:'T0',shapes:[[[-178,-160],[-112,-160],[-112,142],[-178,160]]]},
+    {id:'T1',shapes:[[[-112,-150],[-58,-150],[-58,-14],[-57,-12],[-57,8],[-58,14],[-58,60],[-67,73],[-78,90],[-84,109],[-95,128],[-112,136]]]},
+    {id:'T2',shapes:[[[-58,-151],[25,-153],[72,-142],[112,-126],[136,-103],[143,-62],[144,20],[141,84],[129,127],[101,145],[26,151],[-20,145],[-50,132],[-70,110],[-78,90],[-67,73],[-58,60]]]},
+    {id:'T3',shapes:[[[-45,-109],[-50,-126],[-43,-145],[-25,-156],[-3,-154],[13,-141],[15,-121],[4,-105],[-20,-100]]]},
+    {id:'T4',shapes:[[[33,-132],[30,-116],[37,-96],[45,-80],[52,-62],[55,-42],[51,-22],[52,-5],[55,15],[58,35],[60,55],[64,72],[58,91],[58,110],[70,128],[105,136],[128,123],[138,100],[141,60],[142,15],[140,-40],[136,-82],[122,-112],[92,-130],[58,-139]]]},
+    {id:'T5',shapes:[[[58,-137],[56,-122],[63,-106],[70,-91],[78,-73],[77,-54],[70,-35],[68,-16],[72,3],[75,25],[75,48],[84,60],[88,78],[80,99],[74,116],[90,130],[115,130],[132,112],[137,78],[138,35],[136,-15],[132,-60],[122,-97],[103,-120],[80,-133]]]},
+    {id:'T6',shapes:[[[80,-132],[77,-117],[72,-104],[70,-92],[78,-79],[86,-66],[94,-56],[99,-41],[106,-25],[114,-8],[120,12],[128,31],[138,40],[141,-10],[139,-54],[132,-88],[119,-112],[101,-126]]]}
+  ];
+
+  const verticalPlans={
+    entrance:{bands:['T2'],spots:[
+      {id:'GATE',at:[0,123],y:0,status:'measured',offset:[10,-9]},
+      {id:'J1',at:[0,86],y:0,status:'measured',offset:[10,-9]}
+    ],grades:[{p:[[0,123],[0,86]],label:'LEVEL · +0.00 · E'}],walls:[],
+      note:'Arrival paving, both side-room thresholds and J1 share +0.00m. Drainage falls away from the central walk into the two parking fields; no crossfall may enter Q1.'},
+    plaza:{bands:['T1','T2','T4'],spots:[
+      {id:'J2',at:[0,0],y:0,status:'measured',offset:[10,-11]},
+      {id:'NT-1 TOP',at:[-58,-2],y:0,status:'protected',offset:[-9,-12],anchor:'end'},
+      {id:'NT-1 LOW',at:[-72,-2],y:-6,status:'protected',offset:[-8,17],anchor:'end'},
+      {id:'NT-2 LOW',at:[46,0],y:0,status:'protected',offset:[9,17]},
+      {id:'NT-2 UPPER',at:[74,48],y:12,status:'protected',offset:[9,-10]}
+    ],grades:[],walls:[
+      {p:[[-58,-14],[-58,-4]],label:'W1 · HIGH EAST'},
+      {p:[[70,-27],[70,-20]],label:'W3 · HIGH EAST'}
+    ],note:'The Plaza and every spoke mouth hold +0.00m. NT-1 remains the protected 6m descent to the Boardwalk; NT-2 remains the protected 0→12m terraced rise. Their intermediate levels are read from the monuments, never redrawn here.'},
+    boardwalk:{bands:['T0','T1','T2'],spots:[
+      {id:'B DECK',at:[-96,-2],y:-6,status:'protected',offset:[9,-10]},
+      {id:'N CREST',at:[-6,-68],y:0,status:'measured',offset:[9,-10]},
+      {id:'S CREST',at:[-48,78],y:0,status:'measured',offset:[9,-10]},
+      {id:'PIER',at:[-130,6],y:-6,status:'protected',offset:[8,18]},
+      {id:'WATER',at:[-146,40],y:-7.5,status:'protected',offset:[8,-10]}
+    ],grades:[
+      {p:[[-6,-68],[-40,-62],[-75,-59],[-96,-62]],label:'B NORTH · 0→−6.00 · ≤13.2% · E'},
+      {p:[[-96,60],[-80,84],[-64,101],[-48,78]],label:'B SOUTH · −6.00→0 · ≤10.87% · E'}
+    ],walls:[{p:[[-58,-62],[-58,-14]],label:'W1 · HIGH EAST'}],
+      note:'All Boardwalk and pier decking holds −6.00m above the −7.50m water datum. The two long public returns earn the 6m climb; the protected central cascade remains the separate stair/ramp descent.'},
+    fairground:{bands:['T1','T2'],spots:[
+      {id:'J6',at:[-48,78],y:0,status:'measured',offset:[8,-10]},
+      {id:'C LOW',at:[-72,76],y:-1.74,status:'measured',offset:[-8,-10],anchor:'end'},
+      {id:'P3 FFL',at:[-32,92],y:0,status:'measured',offset:[9,-10]},
+      {id:'I1 FFL',at:[-35,68],y:0,status:'measured',offset:[9,18]},
+      {id:'D3 LOW',at:[-18,131],y:-0.3,status:'approved',offset:[8,-10]}
+    ],grading:{
+      contours:[
+        {p:[[-88,61],[-76,58],[-61,63],[-51,72],[-50,92],[-59,106],[-74,112],[-86,107]],label:'−0.50m',labelAt:[-57,64]},
+        {p:[[-88,68],[-77,65],[-66,68],[-58,76],[-58,91],[-66,101],[-80,104],[-88,100]],label:'−1.00m',labelAt:[-62,73]},
+        {p:[[-88,75],[-79,72],[-70,74],[-65,80],[-65,91],[-73,97],[-84,98],[-88,96]],label:'−1.50m',labelAt:[-68,79]},
+        {p:[[-30,127],[-27,124],[-18,123],[-9,125],[-6,131],[-9,136],[-18,138],[-27,136],[-30,127]],label:'D3 −0.10m',labelAt:[-8,126]},
+        {p:[[-27,130],[-23,127],[-18,126],[-12,128],[-10,131],[-13,135],[-19,136],[-25,134],[-27,130]],label:'−0.20m',labelAt:[-11,135]}
+      ],
+      slopes:[
+        {p:[[-42,60],[-60,70]],label:'gentle fall to coastal fold'},
+        {p:[[-39,92],[-60,88]],label:'gentle fall to coastal fold'},
+        {p:[[-51,124],[-18,131]],label:'surface drainage to D3'}
+      ],
+      sections:[
+        {id:'A',p:[[-86,78],[-28,78]]},
+        {id:'B',p:[[-52,131],[-6,131]]}
+      ],
+      labels:[
+        {at:[-33,55],text:'LEVEL ACTIVITY SHELF · +0.00m E'},
+        {at:[-73,115],text:'COASTAL FOLD · NO WALL'},
+        {at:[-19,119],text:'SHALLOW PLANTED SAUCER'}
+      ]
+    },grades:[{p:[[-48,78],[-72,76],[-70,108],[-48,78]],label:'C COASTAL DIP · ≤10.0% · E'}],walls:[],
+      note:'C returns to +0.00m at J6 and dips only where it meets the Boardwalk grade. Big Top and Food Hall finished floors are measured at +0.00m. D3’s approved planted-garden low is −0.30m and drains south without crossing C.'},
+    kiddieland:{bands:['T2','T4','T5'],spots:[
+      {id:'J7',at:[49,68],y:0,status:'measured',offset:[8,-10]},
+      {id:'KS1 FFL',at:[55,88],y:0,status:'measured',offset:[8,18]},
+      {id:'R5 RAIL',at:[68,88],y:0.14,status:'measured',offset:[8,-10]},
+      {id:'R6 PAD',at:[95,96],y:5.73,status:'measured',offset:[8,-10]},
+      {id:'R7 PAD',at:[109,62],y:5.05,status:'measured',offset:[8,-10]},
+      {id:'R14 FFL',at:[107,111],y:5.28,status:'measured',offset:[8,18]},
+      {id:'KC1 FFL',at:[43,115],y:0,status:'measured',offset:[-8,18],anchor:'end'},
+      {id:'KC2 FFL',at:[55,118],y:0.49,status:'measured',offset:[8,18]},
+      {id:'KC3 FFL',at:[70,119],y:1.74,status:'measured',offset:[8,-10]},
+      {id:'D4 LOW',at:[88,123],y:2.93,status:'approved',offset:[8,-10]},
+      {id:'D5 LOW',at:[133,112],y:3.63,status:'approved',offset:[-8,18],anchor:'end'}
+    ],grading:{
+      contours:[
+        {p:[[72,122],[77,116],[88,113],[99,116],[104,123],[99,130],[88,133],[77,130],[72,122]],label:'D4 rim · +3.43m E',labelAt:[74,116]},
+        {p:[[78,123],[82,119],[88,117],[96,120],[99,123],[95,128],[88,130],[81,127],[78,123]],label:'fall to +2.93m A',labelAt:[99,128]},
+        {p:[[119,111],[123,105],[133,102],[140,105],[140,119],[134,124],[125,122],[119,116],[119,111]],label:'D5 rim · +4.13m E',labelAt:[120,104]},
+        {p:[[125,112],[128,108],[134,107],[139,110],[139,116],[134,120],[128,118],[125,112]],label:'fall to +3.63m A',labelAt:[126,120]}
+      ],
+      slopes:[
+        {p:[[80,108],[87,120]],label:'local drainage to D4'},
+        {p:[[119,101],[132,110]],label:'outer-edge drainage to D5'}
+      ],
+      sections:[
+        {id:'C',p:[[69,123],[106,123]]},
+        {id:'D',p:[[116,112],[141,112]]}
+      ],
+      labels:[
+        {at:[88,136],text:'D4 GARDEN SAUCER · LOCAL 0.50m FALL'},
+        {at:[126,99],text:'D5 DETENTION BASIN · LOCAL 0.50m FALL'},
+        {at:[75,44],text:'ROUTE D + RIDE PADS KEEP MEASURED GRADE'}
+      ]
+    },grades:[{p:[[49,68],[75,51],[108,86],[80,111],[46,96],[49,68]],label:'D FAMILY LOOP · 0→+7.82→0 · ≤8.33% · E'}],walls:[
+      {p:[[70,124],[96,125]],label:'W4 · HIGH NORTH'},
+      {p:[[114,108],[125,98],[132,80]],label:'W4 · HIGH EAST'}
+    ],note:'Arrival Commons and KS1/KC1 hold +0.00m; KC2 and KC3 follow measured local ground at +0.49m and +1.74m. The family loop climbs at no more than 1:12 to the ride garden, then returns to J7. D4 and D5 are approved drainage lows 0.50m below local ground and remain independent of NT-2.'},
+    'high-terrace':{bands:['T2','T4','T5','T6'],spots:[
+      {id:'NT-2 LOW',at:[46,0],y:0,status:'protected',offset:[8,18]},
+      {id:'NT-2 UPPER',at:[74,48],y:12,status:'protected',offset:[8,-10]},
+      {id:'J9',at:[94,-58],y:14.72,status:'measured',offset:[8,-10]},
+      {id:'R8 PAD',at:[104,-66],y:14.72,status:'measured',offset:[8,18]},
+      {id:'R13 FFL',at:[135,-41],y:19.1,status:'measured',offset:[8,-10]},
+      {id:'F HIGH',at:[118,-42],y:20.66,status:'measured',offset:[-8,-10],anchor:'end'}
+    ],grades:[{p:[[94,-58],[118,-42]],label:'F TO OUTER ARC · ≤12.5% · E'}],walls:[
+      {p:[[70,-27],[70,-20]],label:'W3 · HIGH EAST'},
+      {p:[[94,-56],[106,-25],[114,-8]],label:'W5 · HIGH EAST'}
+    ],note:'NT-2 keeps its protected 0→12m sequence. J9 is one level +14.72m court shared by E and F. R13’s station floor is +19.10m; no surrounding grading may back-drive the protected fountain terrain.'},
+    frontier:{bands:['T2','T4','T5','T6'],spots:[
+      {id:'F WEST',at:[58,-70],y:9.41,status:'measured',offset:[8,18]},
+      {id:'R10 PAD',at:[80,-94],y:11.14,status:'measured',offset:[8,-10]},
+      {id:'R12 EAST',at:[112,-106],y:12.46,status:'measured',offset:[8,-10]},
+      {id:'R11 PAD',at:[111,-87],y:14.34,status:'measured',offset:[8,18]},
+      {id:'F EAST',at:[120,-86],y:14.75,status:'measured',offset:[8,-10]}
+    ],grades:[{p:[[58,-70],[86,-116],[120,-86]],label:'F HIGHLAND STREET · ≤12.5% · E'}],walls:[
+      {p:[[92,-102],[104,-97]],label:'W6 · HIGH NORTH'},
+      {p:[[111,-86],[120,-80]],label:'W6 · HIGH EAST'}
+    ],note:'Frontier is a continuously graded highland street, not a level shelf. Ride courts meet their local measured levels from the side and drain outward to D6/S3, never across F.'},
+    grove:{bands:['T2','T3','T4'],spots:[
+      {id:'J3',at:[-6,-68],y:0,status:'measured',offset:[8,18]},
+      {id:'F1',at:[4,-82],y:1.5,status:'measured',offset:[8,-10]},
+      {id:'R9 PAD',at:[28,-84],y:2.55,status:'measured',offset:[8,18]},
+      {id:'F2',at:[40,-113],y:6.05,status:'measured',offset:[8,-10]},
+      {id:'R12 WEST',at:[-18,-104],y:3.02,status:'measured',offset:[8,-10]},
+      {id:'D6 LOW',at:[45,-142],y:-0.5,status:'approved',offset:[8,18]}
+    ],grading:{
+      contours:[
+        {p:[[24,-135],[29,-140],[42,-145],[56,-144],[63,-139],[59,-132],[48,-128],[34,-130],[24,-135]],label:'D6 rim · +0.00m E',labelAt:[24,-128]},
+        {p:[[31,-137],[36,-141],[45,-144],[55,-141],[58,-137],[53,-133],[43,-132],[35,-134],[31,-137]],label:'fall to −0.50m A',labelAt:[58,-134]}
+      ],
+      slopes:[
+        {p:[[37,-118],[44,-137]],label:'outer drainage leaves the climb'},
+        {p:[[57,-126],[50,-139]],label:'service-side drainage to D6'}
+      ],
+      sections:[{id:'E',p:[[14,-120],[64,-141]]}],
+      labels:[
+        {at:[21,-111],text:'RISING GROVE SPINE · KEEP'},
+        {at:[44,-126],text:'D6 OUTER SAUCER · NO DISTRICT FLATTENING'}
+      ]
+    },grades:[{p:[[-6,-68],[20,-100],[40,-113]],label:'F GROVE CLIMB · ≤12.5% · E'}],walls:[],
+      note:'The Grove rises from J3 rather than sitting on one terrace. The water-ride court follows measured +2.55m ground and the west sky-ride threshold follows measured +3.02m ground. D6 is the approved low collecting the outer service-side drainage.'},
+    headland:{bands:['T0','T1','T2','T3'],spots:[
+      {id:'A LOOP',at:[-37,-125],y:4,status:'measured',offset:[8,18]},
+      {id:'P1 FFL',at:[-174,-202.5],y:31.1,status:'measured',offset:[8,-10]},
+      {id:'E2 FFL',at:[-160.7,-213.4],y:30.61,status:'measured',offset:[8,18]},
+      {id:'AQ FFL',at:[-151.7,-213.4],y:30.61,status:'approved',offset:[8,-10]},
+      {id:'QUAY',at:[-83,-146.7],y:-5.8,status:'measured',offset:[8,18]},
+      {id:'CANNERY FFL',at:[-58,-143],y:-5.8,status:'approved',offset:[8,-10]},
+      {id:'WATER',at:[-145,-155],y:-7.5,status:'protected',offset:[8,-10]}
+    ],grading:{
+      contours:[
+        {p:[[-68,-145],[-59,-151],[-61,-160],[-73,-165],[-86,-163]],label:'review contour · +10m',labelAt:[-61,-145]},
+        {p:[[-111,-170],[-99,-176],[-101,-186],[-116,-191],[-132,-188]],label:'review contour · +20m',labelAt:[-103,-169]},
+        {p:[[-177,-196],[-169,-211],[-153,-217],[-143,-209],[-151,-198],[-166,-194],[-177,-196]],label:'visitor table · +30.61m',labelAt:[-147,-218]},
+        {p:[[-89,-153],[-83,-156],[-78,-151],[-78,-139],[-66,-136],[-53,-137],[-49,-144],[-55,-150],[-70,-151],[-83,-153],[-89,-153]],label:'working floor · −5.80m',labelAt:[-60,-132]}
+      ],
+      paths:[
+        {p:[[-37,-125],[-46,-140],[-62,-147],[-78,-144],[-89,-151],[-77,-160],[-68,-168],[-84,-175],[-105,-172],[-120,-180],[-108,-188],[-123,-196],[-145,-193],[-160,-199],[-169,-204.3]],label:'A · approved editor curve · schematic map echo · 12.32% proved',approved:true}
+      ],
+      slopes:[
+        {p:[[-52,-137],[-68,-151]],label:'climb follows contours'},
+        {p:[[-93,-166],[-111,-178]],label:'climb follows contours'}
+      ],
+      sections:[
+        {id:'G',p:[[-37,-125],[-169,-204.3]]},
+        {id:'H',p:[[-170,-216],[-143,-208]]},
+        {id:'I',p:[[-145,-194],[-58,-143]]}
+      ],
+      labels:[
+        {at:[-91,-158],text:'A · APPROVED GODOT CURVE · MAP LINE IS SCHEMATIC'},
+        {at:[-157,-220],text:'E2 + AQUARIUM · ONE +30.61m COURT'},
+        {at:[-69,-128],text:'QUAY + CANNERY · ONE −5.80m WORKING FLOOR'}
+      ]
+    },grades:[{p:[[-37,-125],[-74,-177.3],[-130,-197],[-174,-202.5]],label:'A · LOCALIZED 1:8 CORRECTION · CURRENT MAX 21.95%',approved:true}],walls:[],
+      note:'Approved Godot source: keep the +4.00m loop, 30.6–31.1m lighthouse table, endpoints, shoreline and silhouette fixed. The 21-control editor curve provides 308.08m horizontal run, proves 12.32% maximum grade, remains at least 8.45m from shore and stays inside the 20m central-climb corridor. The blue A line is a schematic echo only; park_vertical_controls.tscn owns the exact course.'}
+  };
+
+  const gradingReviews={
+    fairground:{counter:'Fairground terrain · shape review',title:'One level activity shelf, two localized folds',profiles:[
+      {id:'A',aria:'Section A—A: the Fairground shelf folds down to the coastal low and returns to level ground',
+        ground:'M24 47 C92 47 112 50 146 83 S208 120 254 91 S318 47 416 47 L416 132 L24 132Z',
+        line:'M24 47 C92 47 112 50 146 83 S208 120 254 91 S318 47 416 47',datum:47,
+        labels:[{x:24,y:30,text:'+0.00m shelf'},{x:204,y:122,text:'C low · −1.74m',anchor:'middle'},{x:416,y:30,text:'+0.00m shelf',anchor:'end'}],
+        caption:'A—A · Coastal fold. Route C makes the descent and returns; the attraction floors do not tilt with it.'},
+      {id:'B',aria:'Section B—B: a shallow planted saucer falls from the Fairground shelf to the D3 drainage low',
+        ground:'M24 47 C128 47 148 50 178 59 S262 59 292 50 S340 47 416 47 L416 132 L24 132Z',
+        line:'M24 47 C128 47 148 50 178 59 S262 59 292 50 S340 47 416 47',datum:47,
+        labels:[{x:24,y:30,text:'+0.00m shelf'},{x:220,y:79,text:'D3 · −0.30m',anchor:'middle'},{x:416,y:30,text:'+0.00m shelf',anchor:'end'}],
+        caption:'B—B · D3 garden. A shallow planted saucer collects runoff without turning Route C into a drain.'}
+    ]},
+    kiddieland:{counter:'Kiddieland terrain · shape review',title:'Two half-metre garden lows within the existing family climb',profiles:[
+      {id:'C',aria:'Section C—C: the D4 garden falls half a metre below its measured local ground and returns',
+        ground:'M24 47 C112 47 146 49 174 66 S266 66 294 49 S356 47 416 47 L416 132 L24 132Z',
+        line:'M24 47 C112 47 146 49 174 66 S266 66 294 49 S356 47 416 47',datum:47,
+        labels:[{x:24,y:30,text:'local ground · +3.43m E'},{x:220,y:85,text:'D4 · +2.93m A',anchor:'middle'},{x:416,y:30,text:'route + ride grade held',anchor:'end'}],
+        caption:'C—C · D4 garden. The planted low is local to the garden; Route D and the ride pads keep their measured surfaces.'},
+      {id:'D',aria:'Section D—D: the D5 detention basin falls half a metre below its measured local ground and returns before the perimeter',
+        ground:'M24 47 C118 47 150 49 180 66 S268 66 298 49 S356 47 416 47 L416 132 L24 132Z',
+        line:'M24 47 C118 47 150 49 180 66 S268 66 298 49 S356 47 416 47',datum:47,
+        labels:[{x:24,y:30,text:'local ground · +4.13m E'},{x:224,y:85,text:'D5 · +3.63m A',anchor:'middle'},{x:416,y:30,text:'S3 edge held',anchor:'end'}],
+        caption:'D—D · D5 basin. The detention fold stays on the outer edge and has no terrain or drainage connection to NT-2.'}
+    ]},
+    grove:{counter:'The Grove terrain · shape review',title:'Keep the rising spine; place one separate service-side low',profiles:[
+      {id:'E',aria:'Section E—E: the Grove spine stays high while the outer shoulder falls to the separate D6 drainage low',
+        ground:'M24 40 C92 40 128 46 166 70 S244 91 284 96 S330 115 366 103 S396 96 416 96 L416 132 L24 132Z',
+        line:'M24 40 C92 40 128 46 166 70 S244 91 284 96 S330 115 366 103 S396 96 416 96',
+        labels:[{x:24,y:24,text:'F2 spine · +6.05m E'},{x:276,y:87,text:'local ground · +0.00m E',anchor:'middle'},{x:344,y:126,text:'D6 · −0.50m A',anchor:'middle'}],
+        caption:'E—E · Outer shoulder. The existing Grove climb remains intact; only the service-side edge folds into D6.'}
+    ]},
+    headland:{counter:'Headland terrain · shape review',title:'A longer contour climb above two deliberately separate working levels',profiles:[
+      {id:'G',aria:'Section G—G: the Headland visitor walk climbs from the four metre loop to the lighthouse court at no more than one in eight',
+        ground:'M24 118 C84 111 126 100 170 88 S260 62 314 48 S372 38 416 37 L416 132 L24 132Z',
+        line:'M24 118 C84 111 126 100 170 88 S260 62 314 48 S372 38 416 37',
+        labels:[{x:24,y:112,text:'+4.00m loop'},{x:234,y:74,text:'P · add ≈62.99m run in plan',anchor:'middle'},{x:416,y:24,text:'+30.61m court',anchor:'end'}],
+        caption:'G—G · Contour climb. Gentle bends add horizontal run inside the central corridor; the editor curve must prove every leg at or below 12.5%.'},
+      {id:'H',aria:'Section H—H: the keeper exhibit and aquarium share one level visitor court beneath the lighthouse threshold',
+        ground:'M24 50 L310 50 L338 45 L416 45 L416 132 L24 132Z',line:'M24 50 L310 50 L338 45 L416 45',datum:50,
+        labels:[{x:24,y:33,text:'E2 + Aquarium · +30.61m'},{x:416,y:28,text:'P1 threshold · +31.10m',anchor:'end'}],
+        caption:'H—H · Visitor court. Aquarium and keeper exhibit share one court; the lighthouse threshold makes only its measured half-metre step.'},
+      {id:'I',aria:'Section I—I: the high visitor table is separated by the cliff from the working quay and cannery floor above the water',
+        ground:'M24 32 L150 32 C178 36 190 62 206 100 L276 112 L416 112 L416 132 L24 132Z',
+        line:'M24 32 L150 32 C178 36 190 62 206 100 L276 112 L416 112',
+        labels:[{x:24,y:20,text:'visitor table · +30.61m'},{x:288,y:101,text:'quay + cannery · −5.80m'},{x:416,y:129,text:'water · −7.50m',anchor:'end'}],
+        caption:'I—I · Harbour separation. The cliff is the break between visitor and working terrain; this is not a public ramp through the harbour.'}
+    ]}
+  };
+
   const sections=[
     {id:'entrance',title:'Entrance + Arrival',bounds:{x0:-48,x1:48,z0:72,z1:145},routes:['A'],context:['C','D'],places:['I5','I6'],rides:[],midway:[],service:['S2','S3'],shared:[],water:[],protected:[],views:['Q1'],
       summary:'The south arrival is a threshold, not a themed land: route A remains a clear continuous walk into the Plaza while its two recurring interiors open from public side paths and receive service from opposite rear gates.',
@@ -273,13 +533,13 @@
       destinationNote:'R10 is the mine-train operating parcel, R11 the observation tower and R12 the cross-park sky ride. R12 overflies R10; its terminal, queue and ground access remain separate. False fronts and the show court remain a frontage relationship; this map does not invent new footprints for them.',
       operationsNote:'Ride service reaches the north/east perimeter spine S3. The false-front work passage and seasonal sockets stay on the rear side of the street.',
       protectionNote:'No local object closes the long views toward the Grove, Plaza or western skyline. Seasonal frontage dressing may not narrow F or create a temporary maze.'},
-    {id:'grove',title:'The Grove',bounds:{x0:-55,x1:65,z0:-145,z1:-45},routes:['F'],context:['A','B'],places:[],rides:['R9','R12'],midway:[],service:['S1','S3'],shared:[],water:[],protected:[],views:[],
+    {id:'grove',title:'The Grove',bounds:{x0:-55,x1:65,z0:-150,z1:-45},routes:['F'],context:['A','B'],places:[],rides:['R9','R12'],midway:[],service:['S1','S3'],shared:[],water:[],protected:[],views:[],
       summary:'The Grove is a planted arrival and garden loop around water, picnic use and the west sky-ride terminal. Its water ride and transport courts sit off the unmistakable through-route to Frontier and Headland.',
       publicNote:'F crosses the Grove as the main public spine and keeps both onward choices visible. The water-ride queue and sky-ride terminal leave that spine into side courts before guests wait.',
       destinationNote:'R9 is the water-ride envelope and R12 supplies the sky-ride choice. R12 crosses overhead; only its terminal and access occupy the ground. Picnic shelters, pond and planted arrival remain existing host areas; this review map does not fabricate replacement footprints for them.',
       operationsNote:'Water-ride work reaches the outer S3 connection; the west terminal and Headland edge reach S1. Neither service route becomes a guest shortcut.',
       protectionNote:'Planting frames the next destination without becoming an opaque wall. The Grove keeps cross-park views and the route toward the Headland open.'},
-    {id:'headland',title:'Headland + Working Harbour',bounds:{x0:-190,x1:18,z0:-215,z1:-110},routes:['A'],context:['B','F'],places:['P1','E2','CW-AQ'],rides:[],midway:[],service:['S1'],shared:['SH2'],water:[],protected:[],views:[],
+    {id:'headland',title:'Headland + Working Harbour',bounds:{x0:-190,x1:18,z0:-225,z1:-110},routes:['A'],context:['B','F'],places:['P1','E2','CW-AQ'],rides:[],midway:[],service:['S1'],shared:['SH2'],water:[],protected:[],views:[],
       summary:'The public Headland visitor cluster and the working harbour now read together without sharing circulation. The aquarium completes the keeper-exhibit court; marina, seafood and cannery complete the existing quay and sheltered cove.',
       publicNote:'A closes the in-park loop, then the promontory walk reaches one shared lighthouse, keeper-exhibit and aquarium court. The final public path remains at least 8m inland of the shoreline and never becomes the harbour service road.',
       destinationNote:'P1, E2 and CW-AQ form one visitor cluster. Marina slips grow from the existing quay; fuel, racks and launch share its service end; seafood fronts the working road; the cannery closes the landward working edge.',
@@ -402,6 +662,96 @@
     if(item.showLabel!==false)label(item.labelAt||item.at,item.short||item.id,item.name,labelClass);
   }
 
+  const level=value=>(value>=0?'+':'')+value.toFixed(2)+'m';
+  function drawVerticalPlan(id){
+    const plan=verticalPlans[id];if(!plan)return;
+    plan.bands.forEach(bandId=>{
+      const band=terrainBands.find(item=>item.id===bandId);
+      band.shapes.forEach(shape=>{
+        const n=polygonShape({id:band.id,name:band.id+' broad terrain ownership band',points:shape},'terrain-band','terrain',shape);
+        n.dataset.level=band.id;
+      });
+    });
+    const grading=plan.grading;
+    if(grading){
+      grading.contours.forEach(item=>{
+        line(item.p,'grading-contour','Shape-review contour · '+item.label,'terrain');
+        const [x,y]=point(item.labelAt);
+        const t=create('text',{x,y,class:'grading-label','data-layer':'terrain'});t.textContent=item.label;
+      });
+      (grading.paths||[]).forEach(item=>{
+        line(item.p,item.approved?'grading-path-approved':'grading-path-proposal',item.label,'terrain');
+      });
+      grading.slopes.forEach(item=>{
+        const n=line(item.p,'grading-slope',item.label,'terrain');
+        n.setAttribute('marker-end','url(#grade-arrow)');
+      });
+      grading.sections.forEach(item=>{
+        line(item.p,'grading-section','Section '+item.id+'—'+item.id,'terrain');
+        const [ax,ay]=point(item.p[0]);const [bx,by]=point(item.p[item.p.length-1]);
+        const a=create('text',{x:ax+5,y:ay-6,class:'section-label','data-layer':'terrain'});a.textContent=item.id;
+        const b=create('text',{x:bx-5,y:by-6,class:'section-label','text-anchor':'end','data-layer':'terrain'});b.textContent=item.id+'′';
+      });
+      grading.labels.forEach(item=>{
+        const [x,y]=point(item.at);
+        const t=create('text',{x,y,class:'surface-form-label','text-anchor':'middle','data-layer':'terrain'});t.textContent=item.text;
+      });
+    }
+    plan.grades.forEach(item=>{
+      const n=line(item.p,item.approved?'grade-run approved':'grade-run',item.label,'terrain');
+      n.setAttribute('marker-end','url(#grade-arrow)');
+      const at=item.p[Math.floor(item.p.length/2)];const [x,y]=point(at);
+      const t=create('text',{x:x+8,y:y-7,class:item.approved?'grade-label approved':'grade-label','data-layer':'terrain'});t.textContent=item.label;
+    });
+    plan.walls.forEach(item=>{
+      line(item.p,'height-wall',item.label,'terrain');
+      const at=item.p[Math.floor(item.p.length/2)];const [x,y]=point(at);
+      const t=create('text',{x:x+7,y:y-7,class:'wall-height-label','data-layer':'terrain'});t.textContent=item.label;
+    });
+    plan.spots.forEach(item=>{
+      const [x,y]=point(item.at);const status=item.status;
+      const symbol=create(status==='protected'?'rect':'circle',status==='protected'
+        ?{x:x-4,y:y-4,width:8,height:8,class:'height-spot '+status,'data-layer':'terrain'}
+        :{cx:x,cy:y,r:4,class:'height-spot '+status,'data-layer':'terrain'});
+      title(symbol,item.id+' · '+level(item.y)+' · '+status);
+      const offset=item.offset||[7,-7];
+      const t=create('text',{x:x+offset[0],y:y+offset[1],class:'height-label '+status,
+        'text-anchor':item.anchor||'start','data-layer':'terrain'});
+      const code=status==='measured'?'E':status==='protected'?'NT':status==='approved'?'A':'P';
+      t.textContent=item.id+' · '+level(item.y)+' · '+code;
+    });
+  }
+
+  function drawGradingReview(id){
+    const panel=root.querySelector('#grading-review');
+    const review=gradingReviews[id];
+    const figures=root.querySelector('#grade-sections');
+    figures.replaceChildren();
+    if(!review){
+      root.querySelector('#grading-counter').textContent='';
+      root.querySelector('#grading-title').textContent='';
+      return;
+    }
+    root.querySelector('#grading-counter').textContent=review.counter;
+    root.querySelector('#grading-title').textContent=review.title;
+    review.profiles.forEach(profile=>{
+      const figure=document.createElement('figure');
+      const profileSvg=create('svg',{viewBox:'0 0 440 150',role:'img','aria-label':profile.aria},figure);
+      create('path',{class:'profile-ground',d:profile.ground},profileSvg);
+      create('path',{class:'profile-line',d:profile.line},profileSvg);
+      if(profile.datum!==undefined)create('line',{class:'profile-datum',x1:24,y1:profile.datum,x2:416,y2:profile.datum},profileSvg);
+      profile.labels.forEach(item=>{
+        const t=create('text',{x:item.x,y:item.y,'text-anchor':item.anchor||'start'},profileSvg);
+        t.textContent=item.text;
+      });
+      const caption=document.createElement('figcaption');
+      caption.textContent=profile.caption;
+      figure.appendChild(caption);
+      figures.appendChild(figure);
+    });
+    panel.dataset.section=id;
+  }
+
   function fit(bounds){
     const w=bounds.x1-bounds.x0,h=bounds.z1-bounds.z0;
     scale=Math.min(960/w,570/h);
@@ -414,13 +764,17 @@
       const control=root.querySelector(`input[data-layer="${node.dataset.layer}"]`);
       node.style.display=control&&control.checked?'':'none';
     });
+    const terrain=root.querySelector('input[data-layer="terrain"]');
+    root.querySelector('#grading-review').hidden=!gradingReviews[selected.id]||!terrain.checked;
   }
 
   function render(id){
     selected=sections.find(section=>section.id===id)||sections[0];
     drawing.replaceChildren();fit(selected.bounds);
+    drawGradingReview(selected.id);
     const selectedShoreline=shorelineDetails.filter(item=>item.sections.includes(selected.id));
     selectedShoreline.filter(item=>item.background).forEach(drawShorelineDetail);
+    drawVerticalPlan(selected.id);
     selected.context.forEach(route=>drawRoute(route,false));
     selected.routes.forEach(route=>drawRoute(route,true));
     selected.water.forEach(drawWater);
@@ -441,6 +795,7 @@
     root.querySelector('#destination-note').textContent=selected.destinationNote;
     root.querySelector('#operations-note').textContent=selected.operationsNote;
     root.querySelector('#protection-note').textContent=selected.protectionNote;
+    root.querySelector('#vertical-note').textContent=verticalPlans[selected.id].note;
     const included=[
       ...selected.routes.map(id=>routes[id].name),
       ...selected.rides.map(id=>{const item=rides.find(ride=>ride.id===id);return `${id} ${item.name}`;}),
@@ -472,6 +827,42 @@
 
 <style>
 :root{--bg:#f5f2e8;--fg:#252820;--muted:#d8d4c8;--muted-fg:#6e7167;--border:#c7c2b6;--route:#f4d483;--context:#a8cbd0;--blue:#247fa3;--green:#477d4b;--yellow:#d9a528;--orange:#cf692e;--red:#b84c46;--purple:#72569a;--service:#9a5438}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,-apple-system,sans-serif}.atlas{width:min(1220px,100%);margin:auto;padding:24px}.top-nav,.section-tabs,.layer-controls,.legend{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.top-nav{margin-bottom:20px}.top-nav a{color:var(--fg);text-decoration:none;border-bottom:1px solid var(--border)}header .eyebrow,.counter{color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:11px}h1{font-size:36px;line-height:1;margin:.2em 0}h2{margin:.25em 0}header>p:last-child,.section-heading>p:last-child{color:var(--muted-fg)}.literal-rule{max-width:106ch;border-left:4px solid var(--red);padding:10px 14px;background:color-mix(in srgb,var(--red) 7%,transparent)}.section-tabs{margin:18px 0 12px}.section-tabs button{border:1px solid var(--border);background:var(--bg);color:var(--fg);border-radius:99px;padding:7px 12px;cursor:pointer}.section-tabs button.active{background:var(--fg);color:var(--bg);border-color:var(--fg)}.section-heading{margin:14px 0 10px}.section-heading .counter{margin:0}.section-heading h2{font-size:26px}.section-heading p{max-width:92ch}.layer-controls{margin:10px 0}.layer-controls label{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:8px;padding:6px 9px}.legend{margin:8px 0 12px;color:var(--muted-fg);font-size:12px}.legend span{display:inline-flex;align-items:center;gap:5px}.legend i{display:inline-block;width:21px;height:9px;border-radius:2px}.route-key{background:var(--route);border:2px solid var(--fg)}.context-key{background:var(--context)}.ride-key{background:color-mix(in srgb,var(--orange) 32%,var(--bg));border:2px solid var(--orange)}.place-key{background:color-mix(in srgb,var(--purple) 22%,var(--bg));border:2px solid var(--purple)}.queue-key{background:var(--green)}.service-key{background:repeating-linear-gradient(90deg,var(--service) 0 6px,transparent 6px 10px);border-bottom:2px solid var(--service)}.water-key{background:var(--blue)}.protected-key{background:repeating-linear-gradient(45deg,var(--red) 0 2px,transparent 2px 6px);border:1px solid var(--red)}svg{display:block;width:100%;height:auto;background:var(--bg)}svg text{font:10px ui-sans-serif,system-ui;paint-order:stroke;stroke:var(--bg);stroke-width:3px;stroke-linejoin:round;fill:var(--fg)}.map-ground{fill:color-mix(in srgb,var(--green) 7%,var(--bg));stroke:var(--border);stroke-width:2}.route-edge{fill:none;stroke:var(--fg);stroke-linecap:round;stroke-linejoin:round}.route{fill:none;stroke:var(--route);stroke-linecap:round;stroke-linejoin:round}.context-route-edge{fill:none;stroke:color-mix(in srgb,var(--context) 65%,var(--fg));stroke-linecap:round;stroke-linejoin:round}.context-route{fill:none;stroke:var(--context);stroke-linecap:round;stroke-linejoin:round}.ride{fill:color-mix(in srgb,var(--orange) 28%,var(--bg));stroke:var(--orange);stroke-width:3}.ride-envelope{fill:color-mix(in srgb,var(--orange) 12%,transparent);stroke:var(--orange);stroke-width:2;stroke-dasharray:8 5}.ride-track{fill:none;stroke:var(--orange);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}.sky-cable{fill:none;stroke:var(--orange);stroke-width:3;stroke-dasharray:10 5}.place{fill:color-mix(in srgb,var(--purple) 22%,var(--bg));stroke:var(--purple);stroke-width:3}.support-place{fill:color-mix(in srgb,var(--blue) 20%,var(--bg));stroke:var(--blue);stroke-width:2}.midway{fill:color-mix(in srgb,var(--yellow) 28%,var(--bg));stroke:var(--yellow);stroke-width:2}.queue-link,.public-link{fill:none;stroke:var(--green);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}.exit-link{fill:none;stroke:var(--blue);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}.service-link,.service-spine,.shared-service{fill:none;stroke:var(--service);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:8 5}.service-spine{stroke-width:6}.shared-service{stroke:var(--purple);stroke-dasharray:3 4}.protected-zone{color:var(--red);fill:url(#protected-hatch);stroke:var(--red);stroke-width:3}.sightline{fill:none;stroke:var(--red);color:var(--red);stroke-width:3;stroke-dasharray:10 6}.water-line{fill:none;stroke:var(--blue);stroke-width:10;stroke-linecap:round}.water-place{fill:color-mix(in srgb,var(--blue) 28%,var(--bg));stroke:var(--blue);stroke-width:2}.water-crossing{fill:var(--route);stroke:var(--green);stroke-width:3}.landmark{fill:var(--yellow);stroke:var(--fg);stroke-width:3}.photo-point{fill:var(--red);stroke:var(--bg);stroke-width:2}.map-label{font-weight:700}.protected-label,.view-label{fill:var(--red);font-weight:800}.water-label{fill:var(--blue);font-weight:800}.service-label{fill:var(--service);font-weight:800}.landmark-label{fill:var(--fg);font-weight:800}.north-arrow path{fill:none;stroke:var(--fg);stroke-width:2}.north-arrow text{font-weight:800}.relationship-ledger{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.relationship-ledger article{border-top:3px solid var(--border);padding:10px 4px}.relationship-ledger article:nth-child(1){border-color:var(--yellow)}.relationship-ledger article:nth-child(2){border-color:var(--purple)}.relationship-ledger article:nth-child(3){border-color:var(--service)}.relationship-ledger article:nth-child(4){border-color:var(--red)}.relationship-ledger h3{margin:0 0 4px}.relationship-ledger p{margin:0;color:var(--muted-fg)}.section-register{margin-top:12px;padding:13px 16px;border-left:4px solid var(--green);background:color-mix(in srgb,var(--green) 7%,transparent)}.section-register p{margin:.35em 0;color:var(--muted-fg)}@media(max-width:720px){.atlas{padding:14px}h1{font-size:30px}.relationship-ledger{grid-template-columns:1fr}.layer-controls label{min-height:42px}svg text{font-size:12px}}
+.height-existing-key{background:var(--green);border-radius:50%!important}
+.height-proposed-key{background:var(--bg);border:2px solid var(--orange);border-radius:50%!important}
+.height-protected-key{background:var(--red);border-radius:0!important}
+.terrain-key{background:color-mix(in srgb,var(--green) 13%,var(--bg));border:1px dashed var(--green)}
+.shape-key{background:repeating-linear-gradient(90deg,var(--orange) 0 3px,transparent 3px 6px);border-bottom:1px solid var(--orange)}
+.path-approved-key{background:var(--blue);border-bottom:2px solid var(--blue)}
+.grade-key{background:repeating-linear-gradient(90deg,var(--green) 0 6px,transparent 6px 10px);border-bottom:1px solid var(--green)}
+.retaining-key{background:var(--orange);height:5px!important}
+.approved-key{background:var(--blue);border:2px solid var(--blue)}
+.terrain-band{fill:color-mix(in srgb,var(--green) 8%,transparent);stroke:color-mix(in srgb,var(--green) 38%,transparent);stroke-width:1;stroke-dasharray:4 5}
+.grading-contour{fill:none;stroke:var(--orange);stroke-width:2;stroke-dasharray:5 4}
+.grading-path-proposal{fill:none;stroke:var(--purple);stroke-width:5;stroke-dasharray:10 6;stroke-linecap:round;stroke-linejoin:round}
+.grading-path-approved{fill:none;stroke:var(--blue);stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
+.grading-slope{fill:none;stroke:var(--purple);color:var(--purple);stroke-width:3}
+.grading-section{fill:none;stroke:var(--red);stroke-width:2;stroke-dasharray:3 4}
+.grading-label{fill:var(--orange);font-weight:800}
+.section-label{fill:var(--red);font-weight:900}
+.surface-form-label{fill:var(--orange);font-weight:900;font-size:9px}
+.grade-run{fill:none;stroke:color-mix(in srgb,var(--green) 82%,var(--fg));color:var(--green);stroke-width:3;stroke-dasharray:7 4}
+.grade-run.approved{stroke:var(--blue);color:var(--blue);stroke-width:5}
+.height-wall{fill:none;stroke:var(--orange);stroke-width:5;stroke-linecap:square}
+.height-spot.measured{fill:var(--green);stroke:var(--bg);stroke-width:2}
+.height-spot.approved{fill:var(--blue);stroke:var(--bg);stroke-width:2}
+.height-spot.proposed{fill:var(--bg);stroke:var(--orange);stroke-width:3}
+.height-spot.protected{fill:var(--red);stroke:var(--bg);stroke-width:2}
+.height-label{font-weight:900}
+.height-label.measured,.grade-label{fill:var(--green)}
+.height-label.approved{fill:var(--blue)}
+.grade-label.approved{fill:var(--blue)}
+.height-label.proposed,.wall-height-label{fill:var(--orange)}
+.height-label.protected{fill:var(--red)}
+.grade-label,.wall-height-label{font-size:9px;font-weight:800}
+.relationship-ledger article:nth-child(5){border-color:var(--green)}
+.grading-review{margin:14px 0;padding:14px 16px;border-left:4px solid var(--orange);background:color-mix(in srgb,var(--orange) 6%,transparent)}
+.grading-review .counter{margin:0}.grading-review h2{margin:.15em 0 .5em}.grade-sections{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.grade-sections figure{margin:0}.grade-sections svg{border:1px solid var(--border);background:color-mix(in srgb,var(--green) 5%,var(--bg))}.grade-sections figcaption{margin-top:5px;color:var(--muted-fg);font-size:12px}.profile-ground{fill:color-mix(in srgb,var(--green) 17%,var(--bg))}.profile-line{fill:none;stroke:var(--green);stroke-width:4}.profile-datum{stroke:var(--muted-fg);stroke-width:1;stroke-dasharray:5 4}.grading-rule{margin:.8em 0 0;color:var(--muted-fg)}
+@media(max-width:720px){.grade-sections{grid-template-columns:1fr}}
 .sky-key{background:repeating-linear-gradient(90deg,var(--orange) 0 6px,transparent 6px 10px);border-bottom:1px solid var(--orange)}
 .shore-host-key{background:var(--muted);border:2px solid var(--muted-fg)}
 .shore-change-key{background:color-mix(in srgb,var(--orange) 24%,var(--bg));border:2px solid var(--orange)}

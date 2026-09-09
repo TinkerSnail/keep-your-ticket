@@ -208,20 +208,25 @@ func replant() -> void:
 	for record in Plan.REBUILD_ATTRACTION_SITES:
 		if StringName(record["id"]) == &"P1":
 			lighthouse = Plan.rebuild_expand_point(Vector2(record["at"]))
-	var lines: Array = [Plan.highway_path()]
+	# The highway is a divided road since 2026-09-05, thirty metres across
+	# with its cut beside it, so its mask reaches three cells either side;
+	# a street keeps its one.
+	var lines: Array = [[Plan.highway_path(), 3]]
 	# And the towns' streets (02B), the same way.
 	for street in Plan.town_streets():
-		lines.append(street["points"])
-	for line in lines:
-		for i in (line as Array).size() - 1:
+		lines.append([street["points"], 1])
+	for entry in lines:
+		var line: Array = entry[0]
+		var reach: int = entry[1]
+		for i in line.size() - 1:
 			var a: Vector2 = line[i]
 			var b: Vector2 = line[i + 1]
 			var steps := maxi(1, ceili(a.distance_to(b) / 5.0))
 			for k in range(steps + 1):
 				var q := a.lerp(b, float(k) / float(steps))
 				var cell := Vector2i(floori(q.x / 8.0), floori(q.y / 8.0))
-				for dx in range(-1, 2):
-					for dz in range(-1, 2):
+				for dx in range(-reach, reach + 1):
+					for dz in range(-reach, reach + 1):
 						road_mask[cell + Vector2i(dx, dz)] = true
 	# The towns' buildings (02B): the towns scene publishes one clearing per
 	# building as (x, z, radius) on its root, so a hillside house stands in

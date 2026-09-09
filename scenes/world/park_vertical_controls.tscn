@@ -1,0 +1,512 @@
+[gd_scene load_steps=2 format=3]
+
+; Editor-owned source for the approved park vertical handoff.
+;
+; This is not terrain and is not mounted at runtime. It records world-space
+; levels and the localized lighthouse regrade as selectable Godot controls.
+; Terrain surfaces and curves may be authored against these controls, but no
+; generator may overwrite them and no planning-map polygon may be traced.
+
+[sub_resource type="Curve3D" id="Curve3D_p1_broad_s"]
+_data = {
+"points": PackedVector3Array(0.686, -0.032, 3.94, -0.686, 0.032, -3.94, -37, 4, -172.31, 0.67, -0.032, 3.943, -0.67, 0.032, -3.943, -39.058, 4.081, -184.131, 0.681, -0.032, 3.941, -0.681, 0.032, -3.941, -41.017, 4.161, -195.97, 0.768, -0.032, 3.925, -0.768, 0.032, -3.925, -43.145, 4.242, -207.78, 0.956, -0.032, 3.881, -0.956, 0.032, -3.881, -45.627, 4.323, -219.52, 0.027, -0.037, 4.591, -0.027, 0.037, -4.591, -48.88, 4.403, -231.065, 0.252, -0.307, 5.582, -0.252, 0.57, -5.582, -45.788, 4.513, -247.068, 3.305, -0.506, 3.697, -3.305, 0.506, -3.697, -50.392, 6.62, -264.556, 5.489, -0.564, -0.658, -5.489, 0.564, 0.658, -65.62, 8.476, -269.248, 5.089, -0.634, -3.565, -5.089, 0.634, 3.565, -83.325, 10.771, -260.606, 4.729, -0.523, -1.984, -4.729, 0.523, 1.984, -96.155, 12.877, -247.861, 4.506, -0.525, 2.493, -4.506, 0.525, -2.493, -111.7, 14.691, -248.7, 1.633, -0.593, 5.578, -1.633, 0.593, -5.578, -123.191, 16.811, -262.82, -0.361, -0.602, 5.887, 0.361, 0.602, -5.887, -121.501, 19.073, -282.165, 1.494, -0.454, 4.194, -1.494, 0.454, -4.194, -121.023, 20.935, -298.143, 4.659, -0.498, 1.464, -4.659, 0.498, -1.464, -130.464, 22.47, -307.328, 5.592, -0.594, -1.612, -5.592, 0.594, 1.612, -148.975, 24.626, -306.925, 3.729, -0.469, -2.689, -3.729, 0.469, 2.689, -164.018, 26.685, -297.657, 3.054, -0.318, -0.638, -3.054, 0.318, 0.638, -171.351, 27.855, -290.791, 4.108, -0.468, 2.036, -4.108, 0.468, -2.036, -182.344, 29.183, -293.831, 4.552, -0.559, 3.06, -4.552, 0.559, -3.06, -196, 31.1, -303.01),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+point_count = 21
+
+[node name="park_vertical_controls" type="Node3D"]
+editor_description = "Editor-owned world-space controls for the approved terrain and height handoff. Edit these markers in Godot; never edit a generated scene to change a level. This source does not build terrain by itself."
+metadata/coordinate_space = "godot_world_metres"
+metadata/layout_version = 2
+metadata/status = "map_levels_promoted_terrain_pending"
+metadata/level_count = 50
+
+[node name="approved_levels" type="Node3D" parent="."]
+editor_description = "All fifty measured, approved and protected spot levels from the synchronized park-sections vertical plan, in literal Godot world metres. Protected markers are context only. Later editor-owned terrain or footprint sources own visible shapes."
+
+[node name="D3_low" type="Marker3D" parent="approved_levels"]
+position = Vector3(-18, -0.3, 174.45)
+metadata/kind = "drainage_low"
+metadata/district = "fairground"
+metadata/status = "approved"
+metadata/map_id = "D3 LOW"
+
+[node name="D4_low" type="Marker3D" parent="approved_levels"]
+position = Vector3(105.55, 2.93, 162.05)
+metadata/kind = "drainage_low"
+metadata/district = "kiddieland"
+metadata/status = "approved"
+metadata/map_id = "D4 LOW"
+metadata/protection = "independent_from_NT-2"
+
+[node name="D5_low" type="Marker3D" parent="approved_levels"]
+position = Vector3(170.8, 3.63, 145)
+metadata/kind = "drainage_low"
+metadata/district = "kiddieland"
+metadata/status = "approved"
+metadata/map_id = "D5 LOW"
+metadata/protection = "independent_from_NT-2"
+
+[node name="D6_low" type="Marker3D" parent="approved_levels"]
+position = Vector3(53.75, -0.5, -200.33)
+metadata/kind = "drainage_low"
+metadata/district = "grove"
+metadata/status = "approved"
+metadata/map_id = "D6 LOW"
+
+[node name="aquarium_floor" type="Marker3D" parent="approved_levels"]
+position = Vector3(-171.55, 30.61, -318.01)
+metadata/kind = "finished_floor"
+metadata/district = "headland"
+metadata/status = "approved"
+metadata/map_id = "AQ FFL"
+metadata/relationship = "match_keeper_court"
+
+[node name="cannery_floor" type="Marker3D" parent="approved_levels"]
+position = Vector3(-58, -5.8, -201.98)
+metadata/kind = "finished_floor"
+metadata/district = "headland"
+metadata/status = "approved"
+metadata/map_id = "CANNERY FFL"
+metadata/relationship = "match_working_quay"
+
+[node name="entrance_gate" type="Marker3D" parent="approved_levels"]
+position = Vector3(0, 0, 162.05)
+metadata/kind = "route_level"
+metadata/district = "entrance"
+metadata/status = "measured"
+metadata/map_id = "GATE"
+
+[node name="entrance_j1" type="Marker3D" parent="approved_levels"]
+position = Vector3(0, 0, 104.7)
+metadata/kind = "junction"
+metadata/district = "entrance"
+metadata/status = "measured"
+metadata/map_id = "J1"
+
+[node name="plaza_j2" type="Marker3D" parent="approved_levels"]
+metadata/kind = "junction"
+metadata/district = "plaza"
+metadata/status = "measured"
+metadata/map_id = "J2"
+
+[node name="nt1_top" type="Marker3D" parent="approved_levels"]
+position = Vector3(-58, 0, -2)
+metadata/kind = "protected_datum"
+metadata/district = "plaza"
+metadata/status = "protected"
+metadata/map_id = "NT-1 TOP"
+
+[node name="nt1_low" type="Marker3D" parent="approved_levels"]
+position = Vector3(-72, -6, -2)
+metadata/kind = "protected_datum"
+metadata/district = "plaza"
+metadata/status = "protected"
+metadata/map_id = "NT-1 LOW"
+
+[node name="nt2_low" type="Marker3D" parent="approved_levels"]
+position = Vector3(46, 0, 0)
+metadata/kind = "protected_datum"
+metadata/district = "plaza,high_terrace"
+metadata/status = "protected"
+metadata/map_id = "NT-2 LOW"
+
+[node name="nt2_upper" type="Marker3D" parent="approved_levels"]
+position = Vector3(74, 12, 48)
+metadata/kind = "protected_datum"
+metadata/district = "plaza,high_terrace"
+metadata/status = "protected"
+metadata/map_id = "NT-2 UPPER"
+
+[node name="boardwalk_deck" type="Marker3D" parent="approved_levels"]
+position = Vector3(-96, -6, -2)
+metadata/kind = "protected_datum"
+metadata/district = "boardwalk"
+metadata/status = "protected"
+metadata/map_id = "B DECK"
+
+[node name="boardwalk_n_crest" type="Marker3D" parent="approved_levels"]
+position = Vector3(-6, 0, -78.37)
+metadata/kind = "route_level"
+metadata/district = "boardwalk"
+metadata/status = "measured"
+metadata/map_id = "N CREST"
+
+[node name="boardwalk_s_crest" type="Marker3D" parent="approved_levels"]
+position = Vector3(-48, 0, 92.3)
+metadata/kind = "route_level"
+metadata/district = "boardwalk"
+metadata/status = "measured"
+metadata/map_id = "S CREST"
+
+[node name="pier_deck" type="Marker3D" parent="approved_levels"]
+position = Vector3(-139, -6, 6)
+metadata/kind = "protected_datum"
+metadata/district = "boardwalk"
+metadata/status = "protected"
+metadata/map_id = "PIER"
+
+[node name="boardwalk_water" type="Marker3D" parent="approved_levels"]
+position = Vector3(-163, -7.5, 40)
+metadata/kind = "protected_datum"
+metadata/district = "boardwalk"
+metadata/status = "protected"
+metadata/map_id = "WATER"
+
+[node name="fairground_j6" type="Marker3D" parent="approved_levels"]
+position = Vector3(-48, 0, 92.3)
+metadata/kind = "junction"
+metadata/district = "fairground"
+metadata/status = "measured"
+metadata/map_id = "J6"
+
+[node name="fairground_c_low" type="Marker3D" parent="approved_levels"]
+position = Vector3(-72, -1.74, 89.2)
+metadata/kind = "route_level"
+metadata/district = "fairground"
+metadata/status = "measured"
+metadata/map_id = "C LOW"
+
+[node name="p3_floor" type="Marker3D" parent="approved_levels"]
+position = Vector3(-32, 0, 114)
+metadata/kind = "finished_floor"
+metadata/district = "fairground"
+metadata/status = "measured"
+metadata/map_id = "P3 FFL"
+
+[node name="i1_floor" type="Marker3D" parent="approved_levels"]
+position = Vector3(-35, 0, 76.8)
+metadata/kind = "finished_floor"
+metadata/district = "fairground"
+metadata/status = "measured"
+metadata/map_id = "I1 FFL"
+
+[node name="kiddieland_j7" type="Marker3D" parent="approved_levels"]
+position = Vector3(49, 0, 76.8)
+metadata/kind = "junction"
+metadata/district = "kiddieland"
+metadata/status = "measured"
+metadata/map_id = "J7"
+
+[node name="ks1_floor" type="Marker3D" parent="approved_levels"]
+position = Vector3(57.7, 0, 107.8)
+metadata/kind = "finished_floor"
+metadata/district = "kiddieland"
+metadata/status = "measured"
+metadata/map_id = "KS1 FFL"
+
+[node name="r5_rail" type="Marker3D" parent="approved_levels"]
+position = Vector3(76.55, 0.14, 107.8)
+metadata/kind = "ride_level"
+metadata/district = "kiddieland"
+metadata/status = "measured"
+metadata/map_id = "R5 RAIL"
+
+[node name="r6_pad" type="Marker3D" parent="approved_levels"]
+position = Vector3(115.7, 5.73, 120.2)
+metadata/kind = "ride_level"
+metadata/district = "kiddieland"
+metadata/status = "measured"
+metadata/map_id = "R6 PAD"
+
+[node name="r7_pad" type="Marker3D" parent="approved_levels"]
+position = Vector3(136, 5.05, 67.5)
+metadata/kind = "ride_level"
+metadata/district = "kiddieland"
+metadata/status = "measured"
+metadata/map_id = "R7 PAD"
+
+[node name="r14_floor" type="Marker3D" parent="approved_levels"]
+position = Vector3(133.1, 5.28, 143.45)
+metadata/kind = "finished_floor"
+metadata/district = "kiddieland"
+metadata/status = "measured"
+metadata/map_id = "R14 FFL"
+
+[node name="kc1_floor" type="Marker3D" parent="approved_levels"]
+position = Vector3(43, 0, 149.65)
+metadata/kind = "finished_floor"
+metadata/district = "kiddieland"
+metadata/status = "measured"
+metadata/map_id = "KC1 FFL"
+
+[node name="kc2_floor" type="Marker3D" parent="approved_levels"]
+position = Vector3(57.7, 0.49, 154.3)
+metadata/kind = "finished_floor"
+metadata/district = "kiddieland"
+metadata/status = "measured"
+metadata/map_id = "KC2 FFL"
+
+[node name="kc3_floor" type="Marker3D" parent="approved_levels"]
+position = Vector3(79.45, 1.74, 155.85)
+metadata/kind = "finished_floor"
+metadata/district = "kiddieland"
+metadata/status = "measured"
+metadata/map_id = "KC3 FFL"
+
+[node name="high_terrace_j9" type="Marker3D" parent="approved_levels"]
+position = Vector3(119.9, 14.72, -61.889)
+metadata/kind = "junction"
+metadata/district = "high_terrace"
+metadata/status = "measured"
+metadata/map_id = "J9"
+
+[node name="r8_pad" type="Marker3D" parent="approved_levels"]
+position = Vector3(133.4, 14.72, -75.074)
+metadata/kind = "ride_level"
+metadata/district = "high_terrace"
+metadata/status = "measured"
+metadata/map_id = "R8 PAD"
+
+[node name="r13_floor" type="Marker3D" parent="approved_levels"]
+position = Vector3(145.5, 19.1, -41)
+metadata/kind = "finished_floor"
+metadata/district = "high_terrace"
+metadata/status = "measured"
+metadata/map_id = "R13 FFL"
+
+[node name="f_high" type="Marker3D" parent="approved_levels"]
+position = Vector3(118, 20.66, -42)
+metadata/kind = "route_level"
+metadata/district = "high_terrace"
+metadata/status = "measured"
+metadata/map_id = "F HIGH"
+
+[node name="frontier_f_west" type="Marker3D" parent="approved_levels"]
+position = Vector3(71.3, 9.41, -81.667)
+metadata/kind = "route_level"
+metadata/district = "frontier"
+metadata/status = "measured"
+metadata/map_id = "F WEST"
+
+[node name="r10_pad" type="Marker3D" parent="approved_levels"]
+position = Vector3(101, 11.14, -121.222)
+metadata/kind = "ride_level"
+metadata/district = "frontier"
+metadata/status = "measured"
+metadata/map_id = "R10 PAD"
+
+[node name="r12_east" type="Marker3D" parent="approved_levels"]
+position = Vector3(144.2, 12.46, -141)
+metadata/kind = "ride_level"
+metadata/district = "frontier"
+metadata/status = "measured"
+metadata/map_id = "R12 EAST"
+
+[node name="r11_pad" type="Marker3D" parent="approved_levels"]
+position = Vector3(142.85, 14.34, -109.685)
+metadata/kind = "ride_level"
+metadata/district = "frontier"
+metadata/status = "measured"
+metadata/map_id = "R11 PAD"
+
+[node name="frontier_f_east" type="Marker3D" parent="approved_levels"]
+position = Vector3(155, 14.75, -108.037)
+metadata/kind = "route_level"
+metadata/district = "frontier"
+metadata/status = "measured"
+metadata/map_id = "F EAST"
+
+[node name="grove_j3" type="Marker3D" parent="approved_levels"]
+position = Vector3(-6, 0, -78.37)
+metadata/kind = "junction"
+metadata/district = "grove"
+metadata/status = "measured"
+metadata/map_id = "J3"
+
+[node name="grove_f1" type="Marker3D" parent="approved_levels"]
+position = Vector3(4, 1.5, -101.444)
+metadata/kind = "route_level"
+metadata/district = "grove"
+metadata/status = "measured"
+metadata/map_id = "F1"
+
+[node name="r9_pad" type="Marker3D" parent="approved_levels"]
+position = Vector3(30.8, 2.55, -104.741)
+metadata/kind = "ride_level"
+metadata/district = "grove"
+metadata/status = "measured"
+metadata/map_id = "R9 PAD"
+
+[node name="grove_f2" type="Marker3D" parent="approved_levels"]
+position = Vector3(47, 6.05, -152.537)
+metadata/kind = "route_level"
+metadata/district = "grove"
+metadata/status = "measured"
+metadata/map_id = "F2"
+
+[node name="r12_west" type="Marker3D" parent="approved_levels"]
+position = Vector3(-18, 3.02, -137.704)
+metadata/kind = "ride_level"
+metadata/district = "grove"
+metadata/status = "measured"
+metadata/map_id = "R12 WEST"
+
+[node name="headland_a_loop" type="Marker3D" parent="approved_levels"]
+position = Vector3(-37, 4, -172.315)
+metadata/kind = "route_level"
+metadata/district = "headland"
+metadata/status = "measured"
+metadata/map_id = "A LOOP"
+
+[node name="p1_floor" type="Marker3D" parent="approved_levels"]
+position = Vector3(-205, 31.1, -300.046)
+metadata/kind = "finished_floor"
+metadata/district = "headland"
+metadata/status = "measured"
+metadata/map_id = "P1 FFL"
+
+[node name="e2_floor" type="Marker3D" parent="approved_levels"]
+position = Vector3(-185.05, 30.61, -318.011)
+metadata/kind = "finished_floor"
+metadata/district = "headland"
+metadata/status = "measured"
+metadata/map_id = "E2 FFL"
+
+[node name="working_quay" type="Marker3D" parent="approved_levels"]
+position = Vector3(-83, -5.8, -208.08)
+metadata/kind = "finished_floor"
+metadata/district = "headland"
+metadata/status = "measured"
+metadata/map_id = "QUAY"
+
+[node name="headland_water" type="Marker3D" parent="approved_levels"]
+position = Vector3(-161.5, -7.5, -221.759)
+metadata/kind = "protected_datum"
+metadata/district = "headland"
+metadata/status = "protected"
+metadata/map_id = "WATER"
+
+[node name="approved_terrain_shapes" type="Node3D" parent="."]
+editor_description = "Editor-owned terrain rims for the four approved drainage lows. These simplified control rings express the accepted relationships without tracing the planning map's schematic contours. Move their Marker3D controls in Godot; derived terrain must join the saved rim and reach the linked low level."
+
+[node name="D3_basin" type="Node3D" parent="approved_terrain_shapes"]
+editor_description = "Fairground garden fold. Keep Route C, P3 and I1 at their measured levels; only the planted pocket falls to D3_low."
+metadata/status = "approved_source_unpublished"
+metadata/low_level_id = "D3_low"
+metadata/hold_fixed = "route_C,P3_floor,I1_floor,NT-1"
+metadata/shape_source = "authored_in_godot_not_traced_from_svg"
+
+[node name="rim_00" type="Marker3D" parent="approved_terrain_shapes/D3_basin"]
+position = Vector3(-32, 0, 172)
+[node name="rim_01" type="Marker3D" parent="approved_terrain_shapes/D3_basin"]
+position = Vector3(-27, 0, 163)
+[node name="rim_02" type="Marker3D" parent="approved_terrain_shapes/D3_basin"]
+position = Vector3(-17, 0, 160)
+[node name="rim_03" type="Marker3D" parent="approved_terrain_shapes/D3_basin"]
+position = Vector3(-7, 0, 165)
+[node name="rim_04" type="Marker3D" parent="approved_terrain_shapes/D3_basin"]
+position = Vector3(-4, 0, 174)
+[node name="rim_05" type="Marker3D" parent="approved_terrain_shapes/D3_basin"]
+position = Vector3(-8, 0, 183)
+[node name="rim_06" type="Marker3D" parent="approved_terrain_shapes/D3_basin"]
+position = Vector3(-19, 0, 187)
+[node name="rim_07" type="Marker3D" parent="approved_terrain_shapes/D3_basin"]
+position = Vector3(-30, 0, 182)
+
+[node name="D4_basin" type="Node3D" parent="approved_terrain_shapes"]
+editor_description = "Kiddieland garden low. Route D and every ride pad keep their measured grade; the low remains independent of NT-2."
+metadata/status = "approved_source_unpublished"
+metadata/low_level_id = "D4_low"
+metadata/hold_fixed = "route_D,ride_pads,NT-2,Q4"
+metadata/protection = "independent_from_NT-2"
+metadata/shape_source = "authored_in_godot_not_traced_from_svg"
+
+[node name="rim_00" type="Marker3D" parent="approved_terrain_shapes/D4_basin"]
+position = Vector3(81, 3.43, 161)
+[node name="rim_01" type="Marker3D" parent="approved_terrain_shapes/D4_basin"]
+position = Vector3(87, 3.43, 148)
+[node name="rim_02" type="Marker3D" parent="approved_terrain_shapes/D4_basin"]
+position = Vector3(104, 3.43, 143)
+[node name="rim_03" type="Marker3D" parent="approved_terrain_shapes/D4_basin"]
+position = Vector3(121, 3.43, 148)
+[node name="rim_04" type="Marker3D" parent="approved_terrain_shapes/D4_basin"]
+position = Vector3(130, 3.43, 162)
+[node name="rim_05" type="Marker3D" parent="approved_terrain_shapes/D4_basin"]
+position = Vector3(123, 3.43, 176)
+[node name="rim_06" type="Marker3D" parent="approved_terrain_shapes/D4_basin"]
+position = Vector3(105, 3.43, 181)
+[node name="rim_07" type="Marker3D" parent="approved_terrain_shapes/D4_basin"]
+position = Vector3(88, 3.43, 176)
+
+[node name="D5_basin" type="Node3D" parent="approved_terrain_shapes"]
+editor_description = "Kiddieland outer-edge detention low. It returns to local ground before S3 and has no terrain or drainage connection to NT-2."
+metadata/status = "approved_source_unpublished"
+metadata/low_level_id = "D5_low"
+metadata/hold_fixed = "route_D,ride_pads,S3,NT-2,Q4"
+metadata/protection = "independent_from_NT-2"
+metadata/shape_source = "authored_in_godot_not_traced_from_svg"
+
+[node name="rim_00" type="Marker3D" parent="approved_terrain_shapes/D5_basin"]
+position = Vector3(151, 4.13, 144)
+[node name="rim_01" type="Marker3D" parent="approved_terrain_shapes/D5_basin"]
+position = Vector3(156, 4.13, 132)
+[node name="rim_02" type="Marker3D" parent="approved_terrain_shapes/D5_basin"]
+position = Vector3(171, 4.13, 126)
+[node name="rim_03" type="Marker3D" parent="approved_terrain_shapes/D5_basin"]
+position = Vector3(184, 4.13, 132)
+[node name="rim_04" type="Marker3D" parent="approved_terrain_shapes/D5_basin"]
+position = Vector3(190, 4.13, 145)
+[node name="rim_05" type="Marker3D" parent="approved_terrain_shapes/D5_basin"]
+position = Vector3(186, 4.13, 157)
+[node name="rim_06" type="Marker3D" parent="approved_terrain_shapes/D5_basin"]
+position = Vector3(171, 4.13, 162)
+[node name="rim_07" type="Marker3D" parent="approved_terrain_shapes/D5_basin"]
+position = Vector3(157, 4.13, 157)
+
+[node name="D6_basin" type="Node3D" parent="approved_terrain_shapes"]
+editor_description = "Grove service-side low. The existing rising public spine remains intact while the outer shoulder falls locally to D6_low."
+metadata/status = "approved_source_unpublished"
+metadata/low_level_id = "D6_low"
+metadata/hold_fixed = "grove_spine,route_F,ride_pads,S3"
+metadata/shape_source = "authored_in_godot_not_traced_from_svg"
+
+[node name="rim_00" type="Marker3D" parent="approved_terrain_shapes/D6_basin"]
+position = Vector3(26, 0, -200)
+[node name="rim_01" type="Marker3D" parent="approved_terrain_shapes/D6_basin"]
+position = Vector3(34, 0, -186)
+[node name="rim_02" type="Marker3D" parent="approved_terrain_shapes/D6_basin"]
+position = Vector3(54, 0, -180)
+[node name="rim_03" type="Marker3D" parent="approved_terrain_shapes/D6_basin"]
+position = Vector3(73, 0, -185)
+[node name="rim_04" type="Marker3D" parent="approved_terrain_shapes/D6_basin"]
+position = Vector3(82, 0, -198)
+[node name="rim_05" type="Marker3D" parent="approved_terrain_shapes/D6_basin"]
+position = Vector3(75, 0, -212)
+[node name="rim_06" type="Marker3D" parent="approved_terrain_shapes/D6_basin"]
+position = Vector3(54, 0, -217)
+[node name="rim_07" type="Marker3D" parent="approved_terrain_shapes/D6_basin"]
+position = Vector3(34, 0, -212)
+
+[node name="approved_regrades" type="Node3D" parent="."]
+editor_description = "The correction stays within the named climbing corridor. The markers and measurements are evidence; the replacement path curve remains editor-authored."
+
+[node name="P1_lighthouse_walk" type="Node3D" parent="approved_regrades"]
+editor_description = "Keep the walk at or below 1:8 with gentle contour bends inside the current central climb. Do not move the endpoints, lighthouse table, shoreline or headland silhouette. Draw and review the exact curve in the editor; these controls do not invent it."
+metadata/status = "approved_not_built"
+metadata/curve_status = "approved_editor_curve"
+metadata/target_max_grade = 0.125
+metadata/current_max_grade = 0.2195
+metadata/current_length = 241.58
+metadata/violation_span = 118.13
+metadata/minimum_extra_run_if_landform_held = 62.99
+metadata/ownership = "localized_climb_corridor"
+metadata/hold_fixed = "headland_loop,lighthouse_table,path_endpoints,shoreline,headland_silhouette,NT-1,NT-2"
+metadata/terrain_bed_half_width = 2.4
+metadata/terrain_outer_seaward = 6.0
+metadata/terrain_outer_landward = 10.0
+metadata/terrain_bed_depth = 0.12
+metadata/terrain_sample_spacing = 0.75
+metadata/terrain_grid_step = 2.0
+
+[node name="target_path_curve" type="Path3D" parent="approved_regrades/P1_lighthouse_walk"]
+editor_description = "Approved editor-owned replacement curve using broad contour bends inside the central climb corridor. Reshape it here; generation derives only the local terrain ribbon and paving. The planning SVG is not construction geometry."
+curve = SubResource("Curve3D_p1_broad_s")
+metadata/status = "approved_source"
+metadata/source = "authored_in_godot_not_traced_from_svg"
+
+[node name="measured_peak_from" type="Marker3D" parent="approved_regrades/P1_lighthouse_walk"]
+position = Vector3(-122.95, 20.08, -272.03)
+
+[node name="measured_peak_to" type="Marker3D" parent="approved_regrades/P1_lighthouse_walk"]
+position = Vector3(-127.45, 21.47, -276.48)

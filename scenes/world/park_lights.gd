@@ -105,12 +105,16 @@ const TRIM_EMISSION := 0.42
 ## material here that does not follow the park closing. A town's lights are
 ## not the park's.
 const WINDOW_EMISSION := 1.9
+## The highway's sodium lamp heads (2026-09-05): a lens under a cobra head,
+## small and bright, and like the windows never the park's to switch off.
+const SODIUM_EMISSION := 2.4
 
 var _bulb: StandardMaterial3D
 var _lamp: StandardMaterial3D
 var _eye: StandardMaterial3D
 var _trim: StandardMaterial3D
 var _window: StandardMaterial3D
+var _sodium: StandardMaterial3D
 
 ## The group is re-read when a section mounts rather than every frame. A section
 ## swap is the only thing that changes which lights exist, and the plaza's own
@@ -133,7 +137,9 @@ func _ready() -> void:
 	_eye = load(Plan.EYE_MATERIAL) as StandardMaterial3D
 	_trim = load(Plan.TRIM_MATERIAL) as StandardMaterial3D
 	_window = load(Plan.WINDOW_MATERIAL) as StandardMaterial3D
-	if _bulb == null or _lamp == null or _eye == null or _trim == null or _window == null:
+	_sodium = load(Plan.SODIUM_MATERIAL) as StandardMaterial3D
+	if _bulb == null or _lamp == null or _eye == null or _trim == null or _window == null \
+			or _sodium == null:
 		# Loud, because the failure is otherwise invisible: the lights still come
 		# on and light the ground, and only the fittings stay dark. Which reads
 		# as an art problem rather than as a missing file.
@@ -198,6 +204,7 @@ func _apply(force: bool) -> void:
 	# The towns' windows follow the sun and nothing else: a valley town at
 	# eleven at night is lit, whatever the park has done.
 	_window.emission_energy_multiplier = WINDOW_EMISSION * level
+	_sodium.emission_energy_multiplier = SODIUM_EMISSION * level
 
 	# And the water, which is the one emissive surface in the park that is not a
 	# material this node holds a handle to. Every water material carries its own

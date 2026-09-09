@@ -1,0 +1,244 @@
+[gd_scene format=3]
+
+; Editor-owned source for the Kiddieland spatial handoff.
+;
+; This scene is deliberately a source rather than a runtime mount. It records
+; the current built ParkPlan relationships as ordinary Godot nodes that can be
+; selected and moved in the 3D editor. The HTML atlas remains a coordination
+; diagram and was not traced to make this file. Source-space x/z is preserved
+; here; consumers apply ParkPlan.rebuild_expand_point exactly once and derive
+; height from the standing terrain.
+;
+; Route D, R5-R7, R14, P4 and the Kiddieland support destinations now feed the
+; greybox builder. S3, Q4 and NT-2 remain context and validation boundaries.
+
+[node name="kiddieland_layout" type="Node3D"]
+editor_description = "Editor-owned source for Kiddieland. Open this scene in the Godot editor and edit the named points and footprints here, never in generated/park_routes.tscn or generated/park_program.tscn. Coordinates are rebuild-atlas source x/z before the one-time ParkPlan expansion."
+metadata/coordinate_space = "rebuild_source_before_expansion"
+metadata/layout_version = 2
+
+[node name="public_routes" type="Node3D" parent="."]
+editor_description = "Canonical Route D source. Its four runs remain separate because the Terraced Fountain owns the final link; the unbuilt link is protected context and is never emitted twice."
+
+[node name="d_arrival" type="Node3D" parent="public_routes"]
+metadata/route = "D"
+metadata/width = 9.0
+metadata/build = true
+
+[node name="p00" type="Marker3D" parent="public_routes/d_arrival"]
+position = Vector3(0, 0, 86)
+[node name="p01" type="Marker3D" parent="public_routes/d_arrival"]
+position = Vector3(12, 0, 82)
+[node name="p02" type="Marker3D" parent="public_routes/d_arrival"]
+position = Vector3(25, 0, 76)
+[node name="p03" type="Marker3D" parent="public_routes/d_arrival"]
+position = Vector3(38, 0, 70)
+[node name="p04" type="Marker3D" parent="public_routes/d_arrival"]
+position = Vector3(49, 0, 68)
+
+[node name="d_family_loop" type="Node3D" parent="public_routes"]
+metadata/route = "D"
+metadata/width = 8.0
+metadata/build = true
+metadata/closed = true
+
+[node name="p00" type="Marker3D" parent="public_routes/d_family_loop"]
+position = Vector3(49, 0, 68)
+[node name="p01" type="Marker3D" parent="public_routes/d_family_loop"]
+position = Vector3(58, 0, 55)
+[node name="p02" type="Marker3D" parent="public_routes/d_family_loop"]
+position = Vector3(75, 0, 51)
+[node name="p03" type="Marker3D" parent="public_routes/d_family_loop"]
+position = Vector3(91, 0, 56)
+[node name="p04" type="Marker3D" parent="public_routes/d_family_loop"]
+position = Vector3(105, 0, 69)
+[node name="p05" type="Marker3D" parent="public_routes/d_family_loop"]
+position = Vector3(108, 0, 86)
+[node name="p06" type="Marker3D" parent="public_routes/d_family_loop"]
+position = Vector3(98, 0, 103)
+[node name="p07" type="Marker3D" parent="public_routes/d_family_loop"]
+position = Vector3(80, 0, 111)
+[node name="p08" type="Marker3D" parent="public_routes/d_family_loop"]
+position = Vector3(61, 0, 108)
+[node name="p09" type="Marker3D" parent="public_routes/d_family_loop"]
+position = Vector3(46, 0, 96)
+[node name="p10" type="Marker3D" parent="public_routes/d_family_loop"]
+position = Vector3(42, 0, 82)
+[node name="p11" type="Marker3D" parent="public_routes/d_family_loop"]
+position = Vector3(49, 0, 68)
+
+[node name="d_plaza_return" type="Node3D" parent="public_routes"]
+metadata/route = "D"
+metadata/width = 10.0
+metadata/build = true
+
+[node name="p00" type="Marker3D" parent="public_routes/d_plaza_return"]
+position = Vector3(49, 0, 68)
+[node name="p01" type="Marker3D" parent="public_routes/d_plaza_return"]
+position = Vector3(42, 0, 54)
+[node name="p02" type="Marker3D" parent="public_routes/d_plaza_return"]
+position = Vector3(34, 0, 39)
+[node name="p03" type="Marker3D" parent="public_routes/d_plaza_return"]
+position = Vector3(25, 0, 25)
+[node name="p04" type="Marker3D" parent="public_routes/d_plaza_return"]
+position = Vector3(15, 0, 14)
+
+[node name="d_terrace_link" type="Node3D" parent="public_routes"]
+metadata/route = "D"
+metadata/width = 9.0
+metadata/build = false
+metadata/owner = "east_cascade"
+
+[node name="p00" type="Marker3D" parent="public_routes/d_terrace_link"]
+position = Vector3(58, 0, 55)
+[node name="p01" type="Marker3D" parent="public_routes/d_terrace_link"]
+position = Vector3(66, 0, 44)
+[node name="p02" type="Marker3D" parent="public_routes/d_terrace_link"]
+position = Vector3(72, 0, 32)
+[node name="p03" type="Marker3D" parent="public_routes/d_terrace_link"]
+position = Vector3(72, 0, 22)
+
+[node name="rides" type="Node3D" parent="."]
+
+[node name="R5" type="Marker3D" parent="rides"]
+position = Vector3(68, 0, 88)
+metadata/kind = "mini_rail"
+metadata/radii = Vector2(17, 12)
+
+[node name="R6" type="Marker3D" parent="rides"]
+position = Vector3(95, 0, 96)
+metadata/kind = "tubs"
+metadata/radius = 7.0
+
+[node name="R7" type="Marker3D" parent="rides"]
+position = Vector3(109, 0, 62)
+metadata/kind = "carousel"
+metadata/radius = 7.0
+
+[node name="R14" type="Node3D" parent="rides"]
+editor_description = "Canonical junior-coaster layout. Move its track controls, station, queue, exit, service and photo markers here; the greybox builder reads this source directly."
+metadata/kind = "junior_coaster"
+metadata/max_lift = 8.0
+
+[node name="track" type="Node3D" parent="rides/R14"]
+metadata/closed = true
+[node name="p00" type="Marker3D" parent="rides/R14/track"]
+position = Vector3(107, 0, 110)
+[node name="p01" type="Marker3D" parent="rides/R14/track"]
+position = Vector3(111, 0, 104)
+[node name="p02" type="Marker3D" parent="rides/R14/track"]
+position = Vector3(118, 0, 98)
+[node name="p03" type="Marker3D" parent="rides/R14/track"]
+position = Vector3(125, 0, 89)
+[node name="p04" type="Marker3D" parent="rides/R14/track"]
+position = Vector3(126, 0, 79)
+[node name="p05" type="Marker3D" parent="rides/R14/track"]
+position = Vector3(121, 0, 72)
+[node name="p06" type="Marker3D" parent="rides/R14/track"]
+position = Vector3(115, 0, 75)
+[node name="p07" type="Marker3D" parent="rides/R14/track"]
+position = Vector3(117, 0, 86)
+[node name="p08" type="Marker3D" parent="rides/R14/track"]
+position = Vector3(113, 0, 96)
+[node name="p09" type="Marker3D" parent="rides/R14/track"]
+position = Vector3(108, 0, 104)
+[node name="p10" type="Marker3D" parent="rides/R14/track"]
+position = Vector3(107, 0, 110)
+
+[node name="station" type="Marker3D" parent="rides/R14"]
+position = Vector3(107, 0, 111)
+metadata/size = Vector2(10, 8)
+
+[node name="queue" type="Node3D" parent="rides/R14"]
+[node name="p00" type="Marker3D" parent="rides/R14/queue"]
+position = Vector3(98, 0, 103)
+[node name="p01" type="Marker3D" parent="rides/R14/queue"]
+position = Vector3(100, 0, 105)
+[node name="p02" type="Marker3D" parent="rides/R14/queue"]
+position = Vector3(102, 0, 108.5)
+
+[node name="exit" type="Node3D" parent="rides/R14"]
+[node name="p00" type="Marker3D" parent="rides/R14/exit"]
+position = Vector3(102, 0, 113)
+[node name="p01" type="Marker3D" parent="rides/R14/exit"]
+position = Vector3(99, 0, 111)
+[node name="p02" type="Marker3D" parent="rides/R14/exit"]
+position = Vector3(94, 0, 106)
+
+[node name="service" type="Node3D" parent="rides/R14"]
+[node name="p00" type="Marker3D" parent="rides/R14/service"]
+position = Vector3(112, 0, 111)
+[node name="p01" type="Marker3D" parent="rides/R14/service"]
+position = Vector3(115, 0, 114)
+[node name="p02" type="Marker3D" parent="rides/R14/service"]
+position = Vector3(111, 0, 116)
+
+[node name="manual_photo" type="Marker3D" parent="rides/R14"]
+position = Vector3(98.5, 0, 78)
+metadata/size = Vector2(4, 4)
+
+[node name="destinations" type="Node3D" parent="."]
+
+[node name="P4_play_garden" type="Marker3D" parent="destinations"]
+position = Vector3(27, 0, 93)
+metadata/shape = "ellipse"
+metadata/radii = Vector2(9, 7)
+
+[node name="access" type="Node3D" parent="destinations/P4_play_garden"]
+[node name="p00" type="Marker3D" parent="destinations/P4_play_garden/access"]
+position = Vector3(-15, 0, -11)
+[node name="p01" type="Marker3D" parent="destinations/P4_play_garden/access"]
+position = Vector3(-10, 0, -9)
+[node name="p02" type="Marker3D" parent="destinations/P4_play_garden/access"]
+position = Vector3(-5.5, 0, -5.5)
+
+[node name="KG1_squirt_garden" type="Marker3D" parent="destinations"]
+position = Vector3(31, 0, 94)
+metadata/shape = "ellipse"
+metadata/radii = Vector2(3.5, 2.5)
+metadata/water_system = "independent_from_NT-2"
+
+[node name="KC1_character_garden" type="Marker3D" parent="destinations"]
+position = Vector3(43, 0, 115)
+metadata/shape = "ellipse"
+metadata/radii = Vector2(7, 5)
+
+[node name="KC2_family_photo" type="Marker3D" parent="destinations"]
+position = Vector3(55, 0, 118)
+metadata/shape = "rect"
+metadata/size = Vector2(8, 5)
+
+[node name="KC3_birthday_pavilion" type="Marker3D" parent="destinations"]
+position = Vector3(70, 0, 119)
+metadata/shape = "rect"
+metadata/size = Vector2(12, 6)
+
+[node name="operations" type="Node3D" parent="."]
+
+[node name="S3" type="Node3D" parent="operations"]
+editor_description = "East and north perimeter service spine. Context boundary for Kiddieland; not a public route."
+[node name="p00" type="Marker3D" parent="operations/S3"]
+position = Vector3(34, 0, 126)
+[node name="p01" type="Marker3D" parent="operations/S3"]
+position = Vector3(75, 0, 126)
+[node name="p02" type="Marker3D" parent="operations/S3"]
+position = Vector3(111, 0, 116)
+[node name="p03" type="Marker3D" parent="operations/S3"]
+position = Vector3(136, 0, 100)
+[node name="p04" type="Marker3D" parent="operations/S3"]
+position = Vector3(149, 0, 75)
+
+[node name="protection" type="Node3D" parent="."]
+
+[node name="NT-2" type="Marker3D" parent="protection"]
+position = Vector3(86, 0, 0)
+editor_description = "Protected Terraced Fountain envelope. Context only: no Kiddieland source may modify or enter it."
+metadata/shape = "ellipse"
+metadata/radii = Vector2(42, 36)
+
+[node name="Q4" type="Node3D" parent="protection"]
+editor_description = "Family terrace reveal from J7 to the Terraced Fountain; R13 crest remains secondary."
+[node name="standpoint" type="Marker3D" parent="protection/Q4"]
+position = Vector3(49, 0, 68)
+[node name="primary_target" type="Marker3D" parent="protection/Q4"]
+position = Vector3(86, 0, 0)

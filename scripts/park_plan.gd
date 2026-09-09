@@ -1839,9 +1839,33 @@ const EAST_WATER_FROM_X := 1000.0
 ## stretch buried deeper than `HIGHWAY_TUNNEL_COVER` for longer than
 ## `HIGHWAY_TUNNEL_MIN_LEN` is a tunnel. Every number here is a target the
 ## reveal frames judge.
-const HIGHWAY_W := 8.0
+## A divided road since 2026-09-05 (Christina: highways here have two lanes
+## each way with at minimum a median between, often several yards or more,
+## or on two levels). Each carriageway is two lanes with an inner and an
+## outer shoulder; the median is `HIGHWAY_MEDIAN_MAX` wide on flat ground and
+## narrows to `HIGHWAY_MEDIAN_MIN` with a barrier where the hillside is
+## steep, and there the two carriageways are graded on their own ground and
+## may stand up to `HIGHWAY_SPLIT_MAX` apart in level with a wall between,
+## which is the two-level case. `HIGHWAY_W` is the whole envelope at the
+## widest median, what the lots and the forest keep off.
+const HIGHWAY_LANE_W := 3.6
+const HIGHWAY_SHOULDER_IN := 0.6
+const HIGHWAY_SHOULDER_OUT := 1.8
+const HIGHWAY_CARRIAGEWAY_W := HIGHWAY_LANE_W * 2.0 + HIGHWAY_SHOULDER_IN + HIGHWAY_SHOULDER_OUT
+const HIGHWAY_MEDIAN_MIN := 3.0
+const HIGHWAY_MEDIAN_MAX := 12.0
+const HIGHWAY_SPLIT_MAX := 6.0
+const HIGHWAY_W := HIGHWAY_CARRIAGEWAY_W * 2.0 + HIGHWAY_MEDIAN_MAX
 const HIGHWAY_MAX_GRADE := 1.0 / 12.0
 const HIGHWAY_STATION := 20.0
+## The plan line's corners are rounded (`fillet_polyline`): a road turns on
+## an arc, and the trough arc met its straights in two right-angled Ls
+## (Christina, 2026-09-05). The minimum is what the road's cut corridor can
+## turn through without folding over itself.
+const HIGHWAY_FILLET_R := 120.0
+const HIGHWAY_FILLET_MIN_R := 90.0
+const APPROACH_FILLET_R := 40.0
+const STREET_FILLET_R := 10.0
 const HIGHWAY_TUNNEL_COVER := 9.0
 const HIGHWAY_TUNNEL_MIN_LEN := 40.0
 ## The trough: this far outside the range's inner edge, on every bearing.
@@ -1849,6 +1873,27 @@ const HIGHWAY_TROUGH_D := 5.0
 ## Where the wide view opens on the descent, and where the park's road leaves.
 const HIGHWAY_VIEW := Vector2(-118.0, -640.0)
 const HIGHWAY_JUNCTION := Vector2(204.0, 322.0)
+## The park's interchange (2026-09-05, Christina: on- and off-ramps in both
+## directions): a diamond. The approach road crosses the highway on an
+## overpass at `HIGHWAY_JUNCTION`, at the height its own grade brings it to,
+## runs on level for `stub` metres to a turnaround, and the highway dips
+## under the deck to give `clearance`. Each carriageway's off-ramp leaves its
+## outer edge `ramp_run` before the bridge, runs out to `ramp_offset` from
+## the carriageway's centre and climbs to a signalised terminal on the
+## approach road `terminal` metres from the crossing on that carriageway's
+## side; the on-ramp leaves the same terminal and merges `ramp_run` past it.
+const INTERCHANGE := {
+	"clearance": 5.0,
+	"deck": 1.3,
+	"ramp_w": 5.5,
+	# 150 rather than 230 (2026-09-06): at 230 the park-side on-ramp merged
+	# into the highway exactly where the beach town's shore street meets it.
+	"ramp_run": 150.0,
+	"ramp_offset": 24.0,
+	"terminal": 40.0,
+	"stub": 60.0,
+	"turnaround_r": 10.0,
+}
 ## Forest clearings on the road: the view bend, seaward; a glimpse bend on
 ## the high coast between the two north tunnels; and one where the road
 ## climbs the valley's south wall toward the tunnel, the last look back at
@@ -1858,11 +1903,19 @@ const HIGHWAY_CLEARINGS := [
 	[Vector2(-150.0, -620.0), 45.0],
 	[Vector2(-235.0, -1050.0), 28.0],
 	[Vector2(-398.0, -1625.0), 28.0],
+	# The interchange (2026-09-05): its ramps reach 260m either way along the
+	# highway, and an interchange is cleared ground.
+	[Vector2(204.0, 322.0), 300.0],
 ]
 
 
-## The highway's plan line, north to south.
+## The highway's plan line, north to south, rounded at every corner.
 static func highway_path() -> Array[Vector2]:
+	return fillet_polyline(highway_path_raw(), HIGHWAY_FILLET_R, HIGHWAY_FILLET_MIN_R, 10.0)
+
+
+## The highway's control line, north to south, as drawn.
+static func highway_path_raw() -> Array[Vector2]:
 	var pts: Array[Vector2] = []
 	# The north coast: 60m inland on the mountain face, which the shore fade
 	# puts thirty to fifty metres up — at 90m inland it was over a hundred
@@ -1895,6 +1948,74 @@ static func highway_path() -> Array[Vector2]:
 			Vector2(585.0, 2560.0)]:
 		pts.append(q)
 	return pts
+
+
+## Round a polyline's interior corners with circular arcs of `radius`. A
+## corner's arc takes r·tan(θ/2) off each leg, and may take at most half of
+## either, so a short leg shrinks the radius; where that leaves a corner
+## under `min_radius`, the neighbouring vertex on the short side is dropped
+## and the corner tried again, so a road's plan never turns tighter than a
+## road can. Endpoints never move, which is what lets a street still land
+## on the road it meets. `step` is the arc's chord.
+static func fillet_polyline(source: Array, radius: float, min_radius: float,
+		step: float) -> Array[Vector2]:
+	var pts: Array[Vector2] = []
+	for p in source:
+		pts.append(Vector2(p))
+	var guard := 0
+	while pts.size() > 2 and guard < 400:
+		guard += 1
+		var worst := -1
+		var worst_cap := INF
+		for i in range(1, pts.size() - 1):
+			var cap := _fillet_cap(pts, i)
+			if cap < min_radius and cap < worst_cap:
+				worst = i
+				worst_cap = cap
+		if worst < 0:
+			break
+		var prev_len := pts[worst].distance_to(pts[worst - 1])
+		var next_len := pts[worst].distance_to(pts[worst + 1])
+		var victim := worst - 1 if prev_len < next_len else worst + 1
+		if victim == 0 or victim == pts.size() - 1:
+			victim = worst
+		pts.remove_at(victim)
+	var out: Array[Vector2] = [pts[0]]
+	for i in range(1, pts.size() - 1):
+		var a := pts[i - 1]
+		var b := pts[i]
+		var c := pts[i + 1]
+		var din := (b - a).normalized()
+		var dout := (c - b).normalized()
+		var turn := din.angle_to(dout)
+		if absf(turn) < deg_to_rad(0.5):
+			out.append(b)
+			continue
+		var r := minf(radius, _fillet_cap(pts, i))
+		var t := r * tan(absf(turn) * 0.5)
+		var p0 := b - din * t
+		var p1 := b + dout * t
+		var centre := p0 + Vector2(-din.y, din.x) * signf(turn) * r
+		var a0 := (p0 - centre).angle()
+		var n := maxi(2, ceili(absf(turn) * r / maxf(step, 0.5)))
+		for k in range(0, n + 1):
+			var ang := a0 + turn * float(k) / float(n)
+			out.append(centre + Vector2(cos(ang), sin(ang)) * r)
+		if p1.distance_to(out[out.size() - 1]) > 0.05:
+			out.append(p1)
+	out.append(pts[pts.size() - 1])
+	return out
+
+
+## The largest fillet radius a corner's legs can carry.
+static func _fillet_cap(pts: Array[Vector2], i: int) -> float:
+	var din := (pts[i] - pts[i - 1]).normalized()
+	var dout := (pts[i + 1] - pts[i]).normalized()
+	var turn := absf(din.angle_to(dout))
+	if turn < deg_to_rad(0.5):
+		return INF
+	var leg := minf(pts[i].distance_to(pts[i - 1]), pts[i].distance_to(pts[i + 1]))
+	return 0.5 * leg / tan(turn * 0.5)
 ## The towns (package 02B, built 2026-09-05). Scenery and never a section:
 ## driven through and looked at. Each stands where the generator says land
 ## for a town exists, which is not where the map first drew it. **The north
@@ -2137,10 +2258,11 @@ static func town_streets() -> Array:
 		var pts: Array = []
 		for st in street["st"]:
 			pts.append(valley_point(float((st as Vector2).x), float((st as Vector2).y)))
-		out.append({"id": street["id"], "points": pts, "width": street["width"],
-			"grade": street["grade"]})
+		out.append({"id": street["id"], "points": fillet_polyline(pts, STREET_FILLET_R, 0.0, 3.0),
+			"width": street["width"], "grade": street["grade"]})
 	for street in BEACH_TOWN_STREETS:
-		out.append({"id": street["id"], "points": (street["points"] as Array).duplicate(),
+		out.append({"id": street["id"],
+			"points": fillet_polyline(street["points"], STREET_FILLET_R, 0.0, 3.0),
 			"width": street["width"], "grade": street["grade"]})
 	return out
 
@@ -2427,17 +2549,34 @@ static func range_spur(theta_deg: float) -> float:
 
 
 ## The approach road's height by chainage from the front road, at the
-## brief's grade, and its 3D line.
+## brief's grade, and its 3D line: rounded at its corners, up to the
+## crossing over the highway at `HIGHWAY_JUNCTION`, then the interchange's
+## stub beyond the bridge on the same heading and still climbing at the
+## grade, since the range's toe rises 30m over the next hundred metres and a
+## level stub would be a 29m cutting (2026-09-05, read off the ground). The
+## crossing is the point before last; `approach_crossing()` names it.
 static func approach_road_points() -> Array[Vector3]:
-	var pts: Array[Vector3] = []
 	var order: Array = APPROACH_ROAD.duplicate()
 	order.reverse()
+	var line: Array[Vector2] = fillet_polyline(order, APPROACH_FILLET_R, 0.0, 6.0)
+	var pts: Array[Vector3] = []
 	var chain := 0.0
-	for i in order.size():
+	for i in line.size():
 		if i > 0:
-			chain += (order[i] as Vector2).distance_to(order[i - 1])
-		pts.append(Vector3(order[i].x, chain * APPROACH_ROAD_MAX_GRADE, order[i].y))
+			chain += line[i].distance_to(line[i - 1])
+		pts.append(Vector3(line[i].x, chain * APPROACH_ROAD_MAX_GRADE, line[i].y))
+	var top := pts[pts.size() - 1]
+	var d := (line[line.size() - 1] - line[line.size() - 2]).normalized()
+	var stub := float(INTERCHANGE["stub"])
+	pts.append(Vector3(top.x + d.x * stub, top.y + stub * APPROACH_ROAD_MAX_GRADE,
+		top.z + d.y * stub))
 	return pts
+
+
+## Where the approach road crosses the highway, with its height there.
+static func approach_crossing() -> Vector3:
+	var pts := approach_road_points()
+	return pts[pts.size() - 2]
 
 
 ## The toe line in plan: where the range begins to rise, on every bearing that
@@ -3804,14 +3943,11 @@ const REBUILD_ATTRACTION_SITES := [
 	# world (-185, -318); the walk up the spine to the forecourt's rim.
 	{"id": &"P1", "kind": &"lighthouse", "at": Vector2(-174.0, -202.5),
 		"keeper": Vector2(-160.7, -213.4), "keeper_size": Vector2(8, 6),
-		# The walk ends at the forecourt's rim, not at the tower's centre: the
-		# controller walk of the last leg ran into the lighthouse base.
-		# The turn west at the seam is five gentle bends rather than one of
-		# 72 degrees: at a sharp corner the outer edge's mitre leaves the
-		# collision prisms and the capsule stalls on their side face.
-		"access": [Vector2(-37, -125), Vector2(-50, -162.4),
-			Vector2(-53, -168.5), Vector2(-57, -173.3), Vector2(-64, -176.4),
-			Vector2(-74, -177.3), Vector2(-104.0, -180.0), Vector2(-112.0, -181.8), Vector2(-119.3, -185.5), Vector2(-125.3, -190.9), Vector2(-130.0, -197.0), Vector2(-134.7, -202.5), Vector2(-141.3, -206.1), Vector2(-149.3, -207.9), Vector2(-158.7, -206.7), Vector2(-168.0, -204.3)]},
+		# P1's former generated access coordinate list left this table on
+		# 2026-09-09. The approved, editable Path3D in
+		# park_vertical_controls.tscn now owns the exact course and grade; keeping
+		# a second list here would let clearance tests and construction disagree.
+	},
 	{"id": &"P2", "kind": &"funhouse", "at": Vector2(-77, 32),
 		"size": Vector2(12, 14), "access": [Vector2(-96, 27),
 			Vector2(-90, 27), Vector2(-87, 25), Vector2(-84, 27), Vector2(-83, 27)],
@@ -4949,3 +5085,9 @@ const TRIM_MATERIAL := "res://assets/materials/trim.res"
 ## The towns' windows (02B, 2026-09-05): the fifth lit material, and the one
 ## that never dims after close, because a town does not shut with the park.
 const WINDOW_MATERIAL := "res://assets/materials/town_window.res"
+
+## The highway's own light (2026-09-05): high-pressure sodium, the orange of a
+## 1990s freeway interchange, in the cobra heads over the carriageways and
+## the ramps. The sixth lit material, and like the windows it follows the sun
+## and never the park's closing: the road does not shut.
+const SODIUM_MATERIAL := "res://assets/materials/road_sodium.res"

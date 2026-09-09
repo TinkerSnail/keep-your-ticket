@@ -6,6 +6,8 @@ extends CanvasLayer
 ## frame before the viewport is read — a photograph should not contain its own
 ## viewfinder.
 
+const PhotoExposure = preload("res://scripts/photo_exposure.gd")
+
 ## Control prompts, in the idiom of the period the game is set in: key names in
 ## a warm accent, the action in plain white, both in capitals, over a hard
 ## two-pixel shadow. Boxed keycaps are a much later convention — the late
@@ -172,8 +174,11 @@ func _on_shutter_requested() -> void:
 	_capturing = true
 
 	# Read before the overlay goes, because parallax depends on what the frame
-	# is pointed at and the raycast does not care that the lines are hidden.
+	# is pointed at and the raycast does not care that the lines are hidden. The
+	# exposure record is frozen here too: the park clock and a moving subject can
+	# both change while the viewport waits for the clean render frame.
 	var region := _picture_region()
+	var exposure := _capture_exposure(region)
 
 	visible = false
 	await RenderingServer.frame_post_draw
@@ -182,9 +187,44 @@ func _on_shutter_requested() -> void:
 
 	if region.size.x > 0 and region.size.y > 0:
 		image = image.get_region(region)
-	PhotoAlbum.add_photo(image)
+	PhotoAlbum.add_photo(image, exposure)
 	_jolt()
 	_capturing = false
+
+
+func _capture_exposure(region: Rect2i) -> Dictionary:
+	var camera := get_viewport().get_camera_3d()
+	if camera == null:
+		push_warning("hud: photograph has no active Camera3D; saving a legacy exposure")
+		return PhotoExposure.legacy()
+	return PhotoExposure.capture(
+		ParkClock.seconds,
+		camera.global_transform,
+		camera.fov,
+		false,
+		Vector2i(get_viewport().get_visible_rect().size),
+		region,
+		_collect_photo_facts(camera, region)
+	)
+
+
+## A source reports only objective facts visibly present in the photographed
+## crop: a named subject and state, a ride state, or a background condition.
+## It may return one Dictionary or an Array of Dictionaries. No source reports
+## whether the composition is good, centered or complete.
+func _collect_photo_facts(camera: Camera3D, region: Rect2i) -> Array:
+	var facts: Array = []
+	for source in get_tree().get_nodes_in_group("photo_fact_source"):
+		if not source.has_method("photo_facts_for_exposure"):
+			continue
+		var supplied: Variant = source.photo_facts_for_exposure(camera, region)
+		if supplied is Dictionary:
+			facts.append(supplied)
+		elif supplied is Array:
+			for fact in supplied:
+				if fact is Dictionary:
+					facts.append(fact)
+	return facts
 
 
 ## What the lens got, which is not what the finder showed. The bright lines mark
