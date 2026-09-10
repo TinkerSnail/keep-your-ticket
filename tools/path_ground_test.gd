@@ -22,6 +22,8 @@ const MAX_BURY := 0.25
 const RAY_ABOVE := 3.0
 const RAY_BELOW := 40.0
 const WORLD_LAYER := 1
+const JUNCTION_BODY_MARGIN := 0.05
+const JUNCTION_HEIGHT_TOLERANCE := 0.6
 
 var _fails: Array[String] = []
 
@@ -132,6 +134,16 @@ func _ready() -> void:
 		unique[failure] = true
 	var messages: Array = unique.keys()
 	messages.sort()
+	var failed_paths := {}
+	for message in messages:
+		var path_name: String = String(message).get_slice(" at (", 0)
+		failed_paths[path_name] = int(failed_paths.get(path_name, 0)) + 1
+	var failed_names: Array = failed_paths.keys()
+	failed_names.sort()
+	var summary := PackedStringArray()
+	for path_name in failed_names:
+		summary.append("%s=%d" % [path_name, failed_paths[path_name]])
+	print("FAILED PATHS: %s" % ", ".join(summary))
 	for i in mini(messages.size(), 60):
 		print("FAIL: %s" % messages[i])
 	if messages.size() > 60:
@@ -147,7 +159,12 @@ func _shares_path_surface(q: Vector3, own: StaticBody3D, bodies: Array) -> bool:
 		var pts: PackedVector3Array = other.get_meta("points", PackedVector3Array())
 		if pts.size() < 2:
 			continue
-		var half := float(other.get_meta("width", 0.0)) * 0.5 + 0.05
+		# Terrain yields beneath a public route for one Player-body margin beyond
+		# the visible asphalt. Treat the same band as the shared junction floor;
+		# otherwise this audit asks for queue earth where the movement test asks
+		# the broad public route to remain the sole physical owner.
+		var half := float(other.get_meta("width", 0.0)) * 0.5 \
+			+ JUNCTION_BODY_MARGIN
 		for i in pts.size() - 1:
 			var a := Vector2(pts[i].x, pts[i].z)
 			var b := Vector2(pts[i + 1].x, pts[i + 1].z)
@@ -156,6 +173,6 @@ func _shares_path_surface(q: Vector3, own: StaticBody3D, bodies: Array) -> bool:
 				continue
 			var t := a.distance_to(foot) / maxf(a.distance_to(b), 0.001)
 			var y := lerpf(pts[i].y, pts[i + 1].y, t)
-			if absf(q.y - y) <= 0.6:
+			if absf(q.y - y) <= JUNCTION_HEIGHT_TOLERANCE:
 				return true
 	return false

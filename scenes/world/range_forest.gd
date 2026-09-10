@@ -205,7 +205,7 @@ func replant() -> void:
 	# sample, about twelve metres of verge either side.
 	var road_mask := {}
 	var lighthouse := Vector2.ZERO
-	for record in Plan.REBUILD_ATTRACTION_SITES:
+	for record in Plan.rebuild_attraction_sites():
 		if StringName(record["id"]) == &"P1":
 			lighthouse = Plan.rebuild_expand_point(Vector2(record["at"]))
 	# The highway is a divided road since 2026-09-05, thirty metres across

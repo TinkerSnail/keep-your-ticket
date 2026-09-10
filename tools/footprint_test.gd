@@ -93,7 +93,7 @@ func _check_rim_clearance() -> void:
 		var x1 := maxf(side * Plan.PARKING_INNER_X, side * Plan.PARKING_OUTER_X)
 		note.call("parking", _toes_to_rect(toes, x0, Plan.PARKING_FROM_Z, x1,
 			Plan.PARKING_TO_Z), "parking field")
-	for site in Plan.REBUILD_RIDE_SITES:
+	for site in Plan.rebuild_ride_sites():
 		var id := String(site["id"])
 		if site.has("track"):
 			var anchor: Vector2 = site.get("track_anchor", site["station"])
@@ -129,7 +129,7 @@ func _check_rim_clearance() -> void:
 			elif site.has("size"):
 				r = maxf((site["size"] as Vector2).x, (site["size"] as Vector2).y) * 0.5
 			note.call("ride", _toes_to_point(toes, at) - r, id)
-	for site in Plan.REBUILD_ATTRACTION_SITES:
+	for site in Plan.rebuild_attraction_sites():
 		var at := Plan.rebuild_expand_point(site["at"])
 		var r := 8.0
 		if site.has("radius"):
@@ -139,12 +139,12 @@ func _check_rim_clearance() -> void:
 		elif site.has("size"):
 			r = maxf((site["size"] as Vector2).x, (site["size"] as Vector2).y) * 0.5
 		note.call("attraction", _toes_to_point(toes, at) - r, String(site["id"]))
-	for site in Plan.REBUILD_INTERIOR_SITES:
+	for site in Plan.rebuild_interior_sites():
 		var at := Plan.rebuild_expand_point(site["at"])
 		var sz: Vector2 = site["size"]
 		note.call("interior", _toes_to_rect(toes, at.x - sz.x * 0.5, at.y - sz.y * 0.5,
 			at.x + sz.x * 0.5, at.y + sz.y * 0.5), String(site["id"]))
-	for site in Plan.REBUILD_MIDWAY_UNITS:
+	for site in Plan.rebuild_midway_units():
 		var at := Plan.rebuild_expand_point(site["at"])
 		note.call("midway", _toes_to_rect(toes, at.x - 2.5, at.y - 2.5, at.x + 2.5,
 			at.y + 2.5), String(site["id"]))
@@ -169,7 +169,7 @@ func _check_rim_clearance() -> void:
 func _check_promontory() -> void:
 	var clearance: float = Plan.PROMONTORY_SHORE_CLEARANCE
 	var site := {}
-	for record in Plan.REBUILD_ATTRACTION_SITES:
+	for record in Plan.rebuild_attraction_sites():
 		if StringName(record["id"]) == &"P1":
 			site = record
 	if site.is_empty():

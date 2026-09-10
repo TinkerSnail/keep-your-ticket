@@ -2991,16 +2991,16 @@ func _boardwalk_obstacles() -> Array:
 			(float(unit["from"]) + float(unit["to"])) * 0.5),
 			Vector2(half_d,
 			(float(unit["to"]) - float(unit["from"])) * 0.5)])
-	for site in Plan.REBUILD_INTERIOR_SITES:
+	for site in Plan.rebuild_interior_sites():
 		if StringName(site["district"]) != &"boardwalk":
 			continue
 		var interior_size: Vector2 = site["size"]
 		rects.append([Vector2(site["at"]), interior_size * 0.5])
-	for site in Plan.REBUILD_MIDWAY_UNITS:
+	for site in Plan.rebuild_midway_units():
 		if not String(site["id"]).begins_with("B"):
 			continue
 		rects.append([Vector2(site["at"]), Vector2(2.5, 2.5)])
-	for site in Plan.REBUILD_ATTRACTION_SITES:
+	for site in Plan.rebuild_attraction_sites():
 		if StringName(site["id"]) != &"P2":
 			continue
 		var attraction_size: Vector2 = site["size"]

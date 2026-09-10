@@ -1,0 +1,888 @@
+[gd_scene load_steps=15 format=3]
+
+; Editor-owned Boardwalk scenery pass. The generated I2/I3/B1-B4 shells remain
+; collision and weather backing; every visible identity piece below is directly
+; selectable and reshapeable in Godot. Coordinates are local to the approved
+; layout footprints, so no generated source owns these artistic forms.
+
+[ext_resource type="Material" path="res://assets/materials/bulb.res" id="1_bulb"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_unit"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_unit"]
+radius = 0.5
+height = 1.0
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_unit"]
+top_radius = 0.5
+bottom_radius = 0.5
+height = 1.0
+
+[sub_resource type="TorusMesh" id="TorusMesh_unit"]
+inner_radius = 0.34
+outer_radius = 0.5
+rings = 18
+ring_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="Mat_cream"]
+albedo_color = Color(0.72, 0.63, 0.43, 1)
+roughness = 0.82
+
+[sub_resource type="StandardMaterial3D" id="Mat_turquoise"]
+albedo_color = Color(0.105, 0.47, 0.45, 1)
+roughness = 0.72
+
+[sub_resource type="StandardMaterial3D" id="Mat_mustard"]
+albedo_color = Color(0.67, 0.43, 0.07, 1)
+roughness = 0.76
+
+[sub_resource type="StandardMaterial3D" id="Mat_coral"]
+albedo_color = Color(0.64, 0.22, 0.16, 1)
+roughness = 0.78
+
+[sub_resource type="StandardMaterial3D" id="Mat_cobalt"]
+albedo_color = Color(0.08, 0.24, 0.48, 1)
+roughness = 0.7
+
+[sub_resource type="StandardMaterial3D" id="Mat_wood"]
+albedo_color = Color(0.24, 0.15, 0.095, 1)
+roughness = 0.92
+
+[sub_resource type="StandardMaterial3D" id="Mat_dark"]
+albedo_color = Color(0.025, 0.035, 0.045, 1)
+roughness = 0.48
+
+[sub_resource type="StandardMaterial3D" id="Mat_screen"]
+albedo_color = Color(0.12, 0.55, 0.48, 1)
+emission_enabled = true
+emission = Color(0.08, 0.54, 0.47, 1)
+emission_energy_multiplier = 0.55
+roughness = 0.28
+
+[sub_resource type="StandardMaterial3D" id="Mat_metal"]
+albedo_color = Color(0.19, 0.21, 0.21, 1)
+metallic = 0.45
+roughness = 0.5
+
+[sub_resource type="StandardMaterial3D" id="Mat_paper"]
+albedo_color = Color(0.8, 0.74, 0.58, 1)
+roughness = 0.88
+
+[node name="boardwalk_scenery" type="Node3D"]
+editor_description = "Editor-owned fidelity layer for Boardwalk I2, I3 and midway B1-B4. Edit these visible forms in the Inspector; approved footprints remain in boardwalk_layout.tscn."
+metadata/section = &"boardwalk"
+metadata/layout_source = "res://scenes/world/boardwalk_layout.tscn"
+metadata/fidelity_pass = 1
+
+[node name="I2_arcade_and_ride_photo" type="Node3D" parent="."]
+position = Vector3(-83, -6, -29)
+editor_description = "I2 · Arcade + Ride Photo. West-facing public front, central floor spine, arcade banks and east ride-photo work counter."
+
+[node name="north_frontage_field" type="MeshInstance3D" parent="I2_arcade_and_ride_photo"]
+position = Vector3(-8.18, 2.55, -3.25)
+scale = Vector3(0.12, 4.55, 3.5)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_cream")
+
+[node name="south_frontage_field" type="MeshInstance3D" parent="I2_arcade_and_ride_photo"]
+position = Vector3(-8.18, 2.55, 3.25)
+scale = Vector3(0.12, 4.55, 3.5)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_cream")
+
+[node name="turquoise_marquee_band" type="MeshInstance3D" parent="I2_arcade_and_ride_photo"]
+position = Vector3(-8.31, 4.15, 0)
+scale = Vector3(0.16, 0.78, 8.6)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="coral_marquee_panel" type="MeshInstance3D" parent="I2_arcade_and_ride_photo"]
+position = Vector3(-8.41, 5.45, 0)
+scale = Vector3(0.08, 0.52, 5.5)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="arcade_sign" type="Label3D" parent="I2_arcade_and_ride_photo"]
+position = Vector3(-8.47, 5.45, 0)
+rotation = Vector3(0, -1.570796, 0)
+text = "ARCADE  ·  RIDE PHOTOS"
+font_size = 80
+pixel_size = 0.008
+outline_size = 8
+modulate = Color(0.96, 0.87, 0.61, 1)
+
+[node name="marquee_post_n" type="MeshInstance3D" parent="I2_arcade_and_ride_photo"]
+position = Vector3(-8.38, 5.04, -2.35)
+scale = Vector3(0.12, 0.72, 0.16)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_metal")
+
+[node name="marquee_post_s" type="MeshInstance3D" parent="I2_arcade_and_ride_photo"]
+position = Vector3(-8.38, 5.04, 2.35)
+scale = Vector3(0.12, 0.72, 0.16)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_metal")
+
+[node name="north_display_dark" type="MeshInstance3D" parent="I2_arcade_and_ride_photo"]
+position = Vector3(-8.32, 2.25, -3.28)
+scale = Vector3(0.11, 2.25, 2.45)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark")
+
+[node name="south_display_dark" type="MeshInstance3D" parent="I2_arcade_and_ride_photo"]
+position = Vector3(-8.32, 2.25, 3.28)
+scale = Vector3(0.11, 2.25, 2.45)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark")
+
+[node name="north_display_frame_top" type="MeshInstance3D" parent="I2_arcade_and_ride_photo"]
+position = Vector3(-8.39, 3.44, -3.28)
+scale = Vector3(0.09, 0.16, 2.72)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="north_display_frame_bottom" type="MeshInstance3D" parent="I2_arcade_and_ride_photo"]
+position = Vector3(-8.39, 1.08, -3.28)
+scale = Vector3(0.09, 0.18, 2.72)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="south_display_frame_top" type="MeshInstance3D" parent="I2_arcade_and_ride_photo"]
+position = Vector3(-8.39, 3.44, 3.28)
+scale = Vector3(0.09, 0.16, 2.72)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="south_display_frame_bottom" type="MeshInstance3D" parent="I2_arcade_and_ride_photo"]
+position = Vector3(-8.39, 1.08, 3.28)
+scale = Vector3(0.09, 0.18, 2.72)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="north_pilaster" type="MeshInstance3D" parent="I2_arcade_and_ride_photo"]
+position = Vector3(-8.4, 2.45, -4.62)
+scale = Vector3(0.16, 4.35, 0.3)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="door_pilaster_n" type="MeshInstance3D" parent="I2_arcade_and_ride_photo"]
+position = Vector3(-8.4, 2.42, -1.47)
+scale = Vector3(0.16, 4.3, 0.28)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="door_pilaster_s" type="MeshInstance3D" parent="I2_arcade_and_ride_photo"]
+position = Vector3(-8.4, 2.42, 1.47)
+scale = Vector3(0.16, 4.3, 0.28)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="south_pilaster" type="MeshInstance3D" parent="I2_arcade_and_ride_photo"]
+position = Vector3(-8.4, 2.45, 4.62)
+scale = Vector3(0.16, 4.35, 0.3)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="entry_header" type="MeshInstance3D" parent="I2_arcade_and_ride_photo"]
+position = Vector3(-8.42, 3.75, 0)
+scale = Vector3(0.18, 0.25, 3.15)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="door_floor_spine" type="MeshInstance3D" parent="I2_arcade_and_ride_photo"]
+position = Vector3(-3.6, 0.075, 0)
+scale = Vector3(8.5, 0.05, 2.2)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_wood")
+cast_shadow = 0
+
+[node name="north_arcade_bank" type="Node3D" parent="I2_arcade_and_ride_photo"]
+
+[node name="cabinet_1" type="MeshInstance3D" parent="I2_arcade_and_ride_photo/north_arcade_bank"]
+position = Vector3(-5.6, 0.9, -3.7)
+scale = Vector3(0.82, 1.72, 0.8)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_cobalt")
+
+[node name="screen_1" type="MeshInstance3D" parent="I2_arcade_and_ride_photo/north_arcade_bank"]
+position = Vector3(-5.6, 1.18, -3.27)
+scale = Vector3(0.58, 0.48, 0.06)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_screen")
+
+[node name="cabinet_2" type="MeshInstance3D" parent="I2_arcade_and_ride_photo/north_arcade_bank"]
+position = Vector3(-3.45, 0.9, -3.7)
+scale = Vector3(0.82, 1.72, 0.8)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="screen_2" type="MeshInstance3D" parent="I2_arcade_and_ride_photo/north_arcade_bank"]
+position = Vector3(-3.45, 1.18, -3.27)
+scale = Vector3(0.58, 0.48, 0.06)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_screen")
+
+[node name="cabinet_3" type="MeshInstance3D" parent="I2_arcade_and_ride_photo/north_arcade_bank"]
+position = Vector3(-1.3, 0.9, -3.7)
+scale = Vector3(0.82, 1.72, 0.8)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="screen_3" type="MeshInstance3D" parent="I2_arcade_and_ride_photo/north_arcade_bank"]
+position = Vector3(-1.3, 1.18, -3.27)
+scale = Vector3(0.58, 0.48, 0.06)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_screen")
+
+[node name="south_arcade_bank" type="Node3D" parent="I2_arcade_and_ride_photo"]
+
+[node name="cabinet_1" type="MeshInstance3D" parent="I2_arcade_and_ride_photo/south_arcade_bank"]
+position = Vector3(-5.6, 0.9, 3.7)
+scale = Vector3(0.82, 1.72, 0.8)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="screen_1" type="MeshInstance3D" parent="I2_arcade_and_ride_photo/south_arcade_bank"]
+position = Vector3(-5.6, 1.18, 3.27)
+scale = Vector3(0.58, 0.48, 0.06)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_screen")
+
+[node name="cabinet_2" type="MeshInstance3D" parent="I2_arcade_and_ride_photo/south_arcade_bank"]
+position = Vector3(-3.45, 0.9, 3.7)
+scale = Vector3(0.82, 1.72, 0.8)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="screen_2" type="MeshInstance3D" parent="I2_arcade_and_ride_photo/south_arcade_bank"]
+position = Vector3(-3.45, 1.18, 3.27)
+scale = Vector3(0.58, 0.48, 0.06)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_screen")
+
+[node name="cabinet_3" type="MeshInstance3D" parent="I2_arcade_and_ride_photo/south_arcade_bank"]
+position = Vector3(-1.3, 0.9, 3.7)
+scale = Vector3(0.82, 1.72, 0.8)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_cobalt")
+
+[node name="screen_3" type="MeshInstance3D" parent="I2_arcade_and_ride_photo/south_arcade_bank"]
+position = Vector3(-1.3, 1.18, 3.27)
+scale = Vector3(0.58, 0.48, 0.06)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_screen")
+
+[node name="ride_photo_work_layer" type="Node3D" parent="I2_arcade_and_ride_photo"]
+
+[node name="counter" type="MeshInstance3D" parent="I2_arcade_and_ride_photo/ride_photo_work_layer"]
+position = Vector3(6.15, 0.58, 0)
+scale = Vector3(1.2, 1.1, 5.2)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="monitor_bank" type="MeshInstance3D" parent="I2_arcade_and_ride_photo/ride_photo_work_layer"]
+position = Vector3(7.78, 2.35, 0)
+scale = Vector3(0.12, 1.5, 5.8)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark")
+
+[node name="monitor_north" type="MeshInstance3D" parent="I2_arcade_and_ride_photo/ride_photo_work_layer"]
+position = Vector3(7.69, 2.4, -1.9)
+scale = Vector3(0.08, 0.82, 1.35)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_screen")
+
+[node name="monitor_center" type="MeshInstance3D" parent="I2_arcade_and_ride_photo/ride_photo_work_layer"]
+position = Vector3(7.69, 2.4, 0)
+scale = Vector3(0.08, 0.82, 1.35)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_screen")
+
+[node name="monitor_south" type="MeshInstance3D" parent="I2_arcade_and_ride_photo/ride_photo_work_layer"]
+position = Vector3(7.69, 2.4, 1.9)
+scale = Vector3(0.08, 0.82, 1.35)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_screen")
+
+[node name="claim_slip_stack" type="MeshInstance3D" parent="I2_arcade_and_ride_photo/ride_photo_work_layer"]
+position = Vector3(5.8, 1.18, -1.6)
+scale = Vector3(0.45, 0.08, 0.7)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_paper")
+
+[node name="operator_stool" type="MeshInstance3D" parent="I2_arcade_and_ride_photo/ride_photo_work_layer"]
+position = Vector3(4.8, 0.46, 1.9)
+scale = Vector3(0.75, 0.92, 0.75)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_metal")
+
+[node name="west_practical_fixture" type="MeshInstance3D" parent="I2_arcade_and_ride_photo"]
+position = Vector3(-8.62, 3.6, 0)
+scale = Vector3(0.26, 0.26, 0.26)
+mesh = SubResource("SphereMesh_unit")
+material_override = ExtResource("1_bulb")
+
+[node name="I2_front_practical" type="OmniLight3D" parent="I2_arcade_and_ride_photo" groups=["park_light"]]
+position = Vector3(-8.75, 3.5, 0)
+visible = false
+light_color = Color(1, 0.72, 0.4, 1)
+light_energy = 0.0
+light_specular = 0.35
+omni_range = 6.5
+omni_attenuation = 1.7
+metadata/base_energy = 1.55
+metadata/light_kind = 0
+
+[node name="I2_powered_work_light" type="OmniLight3D" parent="I2_arcade_and_ride_photo" groups=["park_light"]]
+position = Vector3(3.5, 2.25, 0)
+visible = false
+light_color = Color(0.72, 0.92, 0.82, 1)
+light_energy = 0.0
+light_specular = 0.25
+omni_range = 7.5
+omni_attenuation = 1.6
+metadata/base_energy = 1.35
+metadata/light_kind = 2
+
+[node name="I3_boardwalk_cafe" type="Node3D" parent="."]
+position = Vector3(-81, -4.9, -48)
+editor_description = "I3 · Boardwalk Café. South-facing service front, clear access spine, outdoor tables and east service face."
+
+[node name="west_frontage_field" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(-4.25, 2.48, -4.18)
+scale = Vector3(5.5, 4.45, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_cream")
+
+[node name="east_frontage_field" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(4.25, 2.48, -4.18)
+scale = Vector3(5.5, 4.45, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_cream")
+
+[node name="turquoise_fascia" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(0, 4.16, -4.31)
+scale = Vector3(12.8, 0.72, 0.16)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="cafe_sign_panel" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(0, 5.62, -4.41)
+scale = Vector3(5.4, 0.48, 0.08)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="cafe_sign" type="Label3D" parent="I3_boardwalk_cafe"]
+position = Vector3(0, 5.62, -4.48)
+rotation = Vector3(0, 3.141593, 0)
+text = "BOARDWALK CAFÉ"
+font_size = 82
+pixel_size = 0.009
+outline_size = 8
+modulate = Color(0.96, 0.87, 0.61, 1)
+
+[node name="cafe_marquee_post_w" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(-2.15, 5.2, -4.38)
+scale = Vector3(0.14, 0.76, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_metal")
+
+[node name="cafe_marquee_post_e" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(2.15, 5.2, -4.38)
+scale = Vector3(0.14, 0.76, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_metal")
+
+[node name="west_service_window" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(-4.25, 2.35, -4.31)
+scale = Vector3(3.65, 2.15, 0.1)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark")
+
+[node name="east_service_window" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(4.25, 2.35, -4.31)
+scale = Vector3(3.65, 2.15, 0.1)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark")
+
+[node name="door_pilaster_w" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(-1.55, 2.35, -4.4)
+scale = Vector3(0.3, 4.2, 0.16)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="door_pilaster_e" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(1.55, 2.35, -4.4)
+scale = Vector3(0.3, 4.2, 0.16)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="awning_stripe_1" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(-5.25, 3.45, -4.95)
+scale = Vector3(2.0, 0.16, 1.35)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="awning_stripe_2" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(-3.25, 3.45, -4.95)
+scale = Vector3(2.0, 0.16, 1.35)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_cream")
+
+[node name="awning_stripe_3" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(3.25, 3.45, -4.95)
+scale = Vector3(2.0, 0.16, 1.35)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_cream")
+
+[node name="awning_stripe_4" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(5.25, 3.45, -4.95)
+scale = Vector3(2.0, 0.16, 1.35)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="interior_counter" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(0, 0.58, 2.75)
+scale = Vector3(9.6, 1.1, 1.05)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="menu_board_w" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(-3.0, 2.7, 3.77)
+scale = Vector3(3.9, 1.35, 0.1)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_cobalt")
+
+[node name="menu_board_e" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(3.0, 2.7, 3.77)
+scale = Vector3(1.6, 1.35, 0.1)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="pie_case" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(-4.1, 1.4, 2.55)
+scale = Vector3(1.8, 0.55, 0.75)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_screen")
+
+[node name="outside_table_w" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(-5.1, 0.62, -7.1)
+scale = Vector3(1.75, 0.12, 1.75)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_cream")
+
+[node name="outside_table_w_post" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(-5.1, 0.3, -7.1)
+scale = Vector3(0.18, 0.6, 0.18)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_metal")
+
+[node name="outside_table_e" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(4.7, 0.62, -7.1)
+scale = Vector3(1.75, 0.12, 1.75)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_cream")
+
+[node name="outside_table_e_post" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(4.7, 0.3, -7.1)
+scale = Vector3(0.18, 0.6, 0.18)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_metal")
+
+[node name="freezer_service_box" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(7.45, 0.8, 1.5)
+scale = Vector3(0.8, 1.45, 2.1)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_metal")
+
+[node name="delivery_crate_1" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(7.55, 0.35, -1.45)
+scale = Vector3(0.75, 0.65, 0.9)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_wood")
+
+[node name="delivery_crate_2" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(7.48, 0.9, -1.3)
+scale = Vector3(0.7, 0.5, 0.75)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_wood")
+
+[node name="cafe_practical_fixture" type="MeshInstance3D" parent="I3_boardwalk_cafe"]
+position = Vector3(0, 3.25, -5.35)
+scale = Vector3(0.28, 0.28, 0.28)
+mesh = SubResource("SphereMesh_unit")
+material_override = ExtResource("1_bulb")
+
+[node name="I3_front_practical" type="OmniLight3D" parent="I3_boardwalk_cafe" groups=["park_light"]]
+position = Vector3(0, 3.15, -5.45)
+visible = false
+light_color = Color(1, 0.69, 0.36, 1)
+light_energy = 0.0
+light_specular = 0.35
+omni_range = 7.0
+omni_attenuation = 1.7
+metadata/base_energy = 1.6
+metadata/light_kind = 0
+
+[node name="I3_freezer_work_light" type="OmniLight3D" parent="I3_boardwalk_cafe" groups=["park_light"]]
+position = Vector3(2.5, 2.2, 1.8)
+visible = false
+light_color = Color(0.74, 0.92, 0.82, 1)
+light_energy = 0.0
+light_specular = 0.2
+omni_range = 6.5
+omni_attenuation = 1.7
+metadata/base_energy = 1.1
+metadata/light_kind = 2
+
+[node name="B1_derby_race" type="Node3D" parent="."]
+position = Vector3(-86.5, -6, -19)
+editor_description = "B1 · Derby Race. Five mechanical lanes face west; stock door and cart remain east."
+
+[node name="marquee" type="MeshInstance3D" parent="B1_derby_race"]
+position = Vector3(-2.95, 4.82, 0)
+scale = Vector3(0.18, 1.0, 4.3)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="sign" type="Label3D" parent="B1_derby_race"]
+position = Vector3(-3.08, 4.82, 0)
+rotation = Vector3(0, -1.570796, 0)
+text = "DERBY RACE"
+font_size = 66
+pixel_size = 0.008
+outline_size = 7
+modulate = Color(0.96, 0.84, 0.38, 1)
+
+[node name="lane_1" type="MeshInstance3D" parent="B1_derby_race"]
+position = Vector3(0.15, 1.25, -1.55)
+scale = Vector3(3.7, 0.12, 0.42)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_cream")
+
+[node name="lane_2" type="MeshInstance3D" parent="B1_derby_race"]
+position = Vector3(0.15, 1.25, -0.78)
+scale = Vector3(3.7, 0.12, 0.42)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_cream")
+
+[node name="lane_3" type="MeshInstance3D" parent="B1_derby_race"]
+position = Vector3(0.15, 1.25, 0)
+scale = Vector3(3.7, 0.12, 0.42)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_cream")
+
+[node name="lane_4" type="MeshInstance3D" parent="B1_derby_race"]
+position = Vector3(0.15, 1.25, 0.78)
+scale = Vector3(3.7, 0.12, 0.42)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_cream")
+
+[node name="lane_5" type="MeshInstance3D" parent="B1_derby_race"]
+position = Vector3(0.15, 1.25, 1.55)
+scale = Vector3(3.7, 0.12, 0.42)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_cream")
+
+[node name="horse_1" type="MeshInstance3D" parent="B1_derby_race"]
+position = Vector3(-0.85, 1.48, -1.55)
+scale = Vector3(0.55, 0.4, 0.3)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="horse_2" type="MeshInstance3D" parent="B1_derby_race"]
+position = Vector3(0.25, 1.48, -0.78)
+scale = Vector3(0.55, 0.4, 0.3)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="horse_3" type="MeshInstance3D" parent="B1_derby_race"]
+position = Vector3(0.8, 1.48, 0)
+scale = Vector3(0.55, 0.4, 0.3)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_cobalt")
+
+[node name="horse_4" type="MeshInstance3D" parent="B1_derby_race"]
+position = Vector3(-0.2, 1.48, 0.78)
+scale = Vector3(0.55, 0.4, 0.3)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="horse_5" type="MeshInstance3D" parent="B1_derby_race"]
+position = Vector3(1.1, 1.48, 1.55)
+scale = Vector3(0.55, 0.4, 0.3)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="B2_coin_pitch" type="Node3D" parent="."]
+position = Vector3(-86.5, -6, -11)
+editor_description = "B2 · Coin Pitch. Slab table and bright target grid identify the game without relying on its sign."
+
+[node name="marquee" type="MeshInstance3D" parent="B2_coin_pitch"]
+position = Vector3(-2.95, 4.72, 0)
+scale = Vector3(0.18, 0.72, 4.3)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_cobalt")
+
+[node name="sign" type="Label3D" parent="B2_coin_pitch"]
+position = Vector3(-3.08, 4.72, 0)
+rotation = Vector3(0, -1.570796, 0)
+text = "COIN PITCH"
+font_size = 64
+pixel_size = 0.008
+outline_size = 7
+modulate = Color(0.96, 0.84, 0.38, 1)
+
+[node name="pitch_table" type="MeshInstance3D" parent="B2_coin_pitch"]
+position = Vector3(0.2, 1.28, 0)
+scale = Vector3(3.45, 0.18, 3.75)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="plate_1" type="MeshInstance3D" parent="B2_coin_pitch"]
+position = Vector3(-0.8, 1.43, -1.1)
+scale = Vector3(0.42, 0.08, 0.42)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_cream")
+
+[node name="plate_2" type="MeshInstance3D" parent="B2_coin_pitch"]
+position = Vector3(0.25, 1.43, -1.1)
+scale = Vector3(0.32, 0.08, 0.32)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="plate_3" type="MeshInstance3D" parent="B2_coin_pitch"]
+position = Vector3(1.15, 1.43, -1.1)
+scale = Vector3(0.45, 0.08, 0.45)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_cream")
+
+[node name="plate_4" type="MeshInstance3D" parent="B2_coin_pitch"]
+position = Vector3(-0.8, 1.43, 0)
+scale = Vector3(0.32, 0.08, 0.32)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="plate_5" type="MeshInstance3D" parent="B2_coin_pitch"]
+position = Vector3(0.25, 1.43, 0)
+scale = Vector3(0.46, 0.08, 0.46)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_cream")
+
+[node name="plate_6" type="MeshInstance3D" parent="B2_coin_pitch"]
+position = Vector3(1.15, 1.43, 0)
+scale = Vector3(0.34, 0.08, 0.34)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="plate_7" type="MeshInstance3D" parent="B2_coin_pitch"]
+position = Vector3(-0.8, 1.43, 1.1)
+scale = Vector3(0.44, 0.08, 0.44)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_cream")
+
+[node name="plate_8" type="MeshInstance3D" parent="B2_coin_pitch"]
+position = Vector3(0.25, 1.43, 1.1)
+scale = Vector3(0.34, 0.08, 0.34)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="plate_9" type="MeshInstance3D" parent="B2_coin_pitch"]
+position = Vector3(1.15, 1.43, 1.1)
+scale = Vector3(0.42, 0.08, 0.42)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_cream")
+
+[node name="B3_basket_toss" type="Node3D" parent="."]
+position = Vector3(-86.5, -6, 9)
+editor_description = "B3 · Basket Toss. Backboard wall, three hoops and loose balls make the booth legible at a glance."
+
+[node name="marquee" type="MeshInstance3D" parent="B3_basket_toss"]
+position = Vector3(-2.95, 4.82, 0)
+scale = Vector3(0.18, 1.0, 4.3)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="sign" type="Label3D" parent="B3_basket_toss"]
+position = Vector3(-3.08, 4.82, 0)
+rotation = Vector3(0, -1.570796, 0)
+text = "BASKET TOSS"
+font_size = 62
+pixel_size = 0.008
+outline_size = 7
+modulate = Color(0.96, 0.87, 0.61, 1)
+
+[node name="backboard_wall" type="MeshInstance3D" parent="B3_basket_toss"]
+position = Vector3(2.34, 2.45, 0)
+scale = Vector3(0.14, 2.8, 4.2)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_cobalt")
+
+[node name="hoop_n" type="MeshInstance3D" parent="B3_basket_toss"]
+position = Vector3(2.12, 2.35, -1.25)
+rotation = Vector3(0, 0, 1.570796)
+scale = Vector3(0.62, 0.62, 0.62)
+mesh = SubResource("TorusMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="hoop_c" type="MeshInstance3D" parent="B3_basket_toss"]
+position = Vector3(2.12, 2.7, 0)
+rotation = Vector3(0, 0, 1.570796)
+scale = Vector3(0.62, 0.62, 0.62)
+mesh = SubResource("TorusMesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="hoop_s" type="MeshInstance3D" parent="B3_basket_toss"]
+position = Vector3(2.12, 2.35, 1.25)
+rotation = Vector3(0, 0, 1.570796)
+scale = Vector3(0.62, 0.62, 0.62)
+mesh = SubResource("TorusMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="ball_1" type="MeshInstance3D" parent="B3_basket_toss"]
+position = Vector3(-1.35, 1.3, -0.55)
+scale = Vector3(0.46, 0.46, 0.46)
+mesh = SubResource("SphereMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="ball_2" type="MeshInstance3D" parent="B3_basket_toss"]
+position = Vector3(-0.75, 1.3, 0.1)
+scale = Vector3(0.46, 0.46, 0.46)
+mesh = SubResource("SphereMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="ball_3" type="MeshInstance3D" parent="B3_basket_toss"]
+position = Vector3(-1.2, 1.3, 0.75)
+scale = Vector3(0.46, 0.46, 0.46)
+mesh = SubResource("SphereMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="B4_taffy_and_funnel_cake" type="Node3D" parent="."]
+position = Vector3(-86.5, -6, 17)
+editor_description = "B4 · Taffy + Funnel Cake. Food-service window, striped canopy, candy jars, menus and roof vent."
+
+[node name="marquee" type="MeshInstance3D" parent="B4_taffy_and_funnel_cake"]
+position = Vector3(-2.95, 4.82, 0)
+scale = Vector3(0.18, 1.0, 4.3)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="sign" type="Label3D" parent="B4_taffy_and_funnel_cake"]
+position = Vector3(-3.08, 4.82, 0)
+rotation = Vector3(0, -1.570796, 0)
+text = "TAFFY  ·  FUNNEL CAKE"
+font_size = 50
+pixel_size = 0.008
+outline_size = 7
+modulate = Color(0.96, 0.87, 0.61, 1)
+
+[node name="service_window" type="MeshInstance3D" parent="B4_taffy_and_funnel_cake"]
+position = Vector3(2.32, 2.35, 0)
+scale = Vector3(0.12, 2.25, 3.9)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark")
+
+[node name="menu_n" type="MeshInstance3D" parent="B4_taffy_and_funnel_cake"]
+position = Vector3(2.17, 2.65, -1.25)
+scale = Vector3(0.08, 1.2, 0.9)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="menu_s" type="MeshInstance3D" parent="B4_taffy_and_funnel_cake"]
+position = Vector3(2.17, 2.65, 1.25)
+scale = Vector3(0.08, 1.2, 0.9)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="taffy_jar_1" type="MeshInstance3D" parent="B4_taffy_and_funnel_cake"]
+position = Vector3(-1.4, 1.45, -0.8)
+scale = Vector3(0.42, 0.72, 0.42)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_screen")
+
+[node name="taffy_jar_2" type="MeshInstance3D" parent="B4_taffy_and_funnel_cake"]
+position = Vector3(-1.4, 1.45, 0)
+scale = Vector3(0.42, 0.72, 0.42)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="taffy_jar_3" type="MeshInstance3D" parent="B4_taffy_and_funnel_cake"]
+position = Vector3(-1.4, 1.45, 0.8)
+scale = Vector3(0.42, 0.72, 0.42)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="roof_vent" type="MeshInstance3D" parent="B4_taffy_and_funnel_cake"]
+position = Vector3(1.1, 4.75, 1.25)
+scale = Vector3(0.52, 1.7, 0.52)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_metal")
+
+[node name="roof_vent_cap" type="MeshInstance3D" parent="B4_taffy_and_funnel_cake"]
+position = Vector3(1.1, 5.62, 1.25)
+scale = Vector3(0.82, 0.16, 0.82)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_metal")
+
+[node name="shared_service_residue" type="Node3D" parent="."]
+editor_description = "Rear-side Boardwalk stock and closing residue. Kept off route B and out of the Q3 opening."
+
+[node name="north_stock_cart_body" type="MeshInstance3D" parent="shared_service_residue"]
+position = Vector3(-82.75, -5.25, -15)
+scale = Vector3(1.55, 0.75, 2.2)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_metal")
+
+[node name="north_stock_cart_handle" type="MeshInstance3D" parent="shared_service_residue"]
+position = Vector3(-82.3, -4.55, -15)
+scale = Vector3(0.12, 0.85, 1.75)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_metal")
+
+[node name="north_stock_crate" type="MeshInstance3D" parent="shared_service_residue"]
+position = Vector3(-82.65, -4.45, -15)
+scale = Vector3(1.1, 0.72, 1.35)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_wood")
+
+[node name="south_stock_cart_body" type="MeshInstance3D" parent="shared_service_residue"]
+position = Vector3(-82.75, -5.25, 13)
+scale = Vector3(1.55, 0.75, 2.2)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_metal")
+
+[node name="south_stock_cart_handle" type="MeshInstance3D" parent="shared_service_residue"]
+position = Vector3(-82.3, -4.55, 13)
+scale = Vector3(0.12, 0.85, 1.75)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_metal")
+
+[node name="south_stock_crate_1" type="MeshInstance3D" parent="shared_service_residue"]
+position = Vector3(-82.65, -4.45, 12.55)
+scale = Vector3(1.1, 0.72, 0.8)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_wood")
+
+[node name="south_stock_crate_2" type="MeshInstance3D" parent="shared_service_residue"]
+position = Vector3(-82.65, -4.45, 13.45)
+scale = Vector3(1.1, 0.72, 0.8)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_wood")
+
+[node name="service_light_fixture" type="MeshInstance3D" parent="shared_service_residue"]
+position = Vector3(-83.6, -2.8, 16.8)
+scale = Vector3(0.3, 0.3, 0.3)
+mesh = SubResource("SphereMesh_unit")
+material_override = ExtResource("1_bulb")
+
+[node name="B4_service_light" type="OmniLight3D" parent="shared_service_residue" groups=["park_light"]]
+position = Vector3(-83.2, -2.9, 16.8)
+visible = false
+light_color = Color(0.82, 0.9, 0.72, 1)
+light_energy = 0.0
+light_specular = 0.2
+omni_range = 5.5
+omni_attenuation = 1.8
+metadata/base_energy = 1.2
+metadata/light_kind = 2

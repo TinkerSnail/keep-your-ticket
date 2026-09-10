@@ -127,7 +127,7 @@ func _build_legs() -> void:
 	# monument and all NT-2-owned approaches remain with `anchor_walk_test.gd`, whose
 	# authored legs follow the real cascade wings and terraces rather than drawing
 	# a fictitious straight line through either protected water feature.
-	for run in ParkPlan.REBUILD_PRIMARY_ROUTE_RUNS:
+	for run in ParkPlan.rebuild_primary_route_sources():
 		if StringName(run["id"]) not in [&"a_parking_arrival", &"b_waterfront"]:
 			continue
 		var points: Array[Vector3] = []

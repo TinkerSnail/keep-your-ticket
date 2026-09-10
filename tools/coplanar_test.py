@@ -189,10 +189,34 @@ def read_transform(chunk):
     agreeing* everywhere the geometry is axis-aligned.
     """
     tr = re.search(r'transform = Transform3D\(([^)]*)\)', chunk)
-    if not tr:
-        return IDENTITY
-    v = [float(x) for x in tr.group(1).split(',')]
-    return [v[0:3], v[3:6], v[6:9]], v[9:12]
+    if tr:
+        v = [float(x) for x in tr.group(1).split(',')]
+        return [v[0:3], v[3:6], v[6:9]], v[9:12]
+
+    # Hand-authored scenes normally save inspector edits as separate position,
+    # rotation and scale properties. Treating those as identity stacked every
+    # ordinary editor-owned child at its parent's origin: the five separated
+    # Birthday Album photos became sixty imaginary coplanar pairs. Node3D's
+    # default Euler order is YXZ, equivalent here to Ry * Rx * Rz.
+    pos = _vec(chunk, 'position', (0.0, 0.0, 0.0))
+    rot = _vec(chunk, 'rotation', (0.0, 0.0, 0.0))
+    scale = _vec(chunk, 'scale', (1.0, 1.0, 1.0))
+
+    def mm(a, b):
+        return [[sum(a[r][k] * b[k][c] for k in range(3))
+                 for c in range(3)] for r in range(3)]
+
+    cx, sx = math.cos(rot[0]), math.sin(rot[0])
+    cy, sy = math.cos(rot[1]), math.sin(rot[1])
+    cz, sz = math.cos(rot[2]), math.sin(rot[2])
+    rx = [[1, 0, 0], [0, cx, -sx], [0, sx, cx]]
+    ry = [[cy, 0, sy], [0, 1, 0], [-sy, 0, cy]]
+    rz = [[cz, -sz, 0], [sz, cz, 0], [0, 0, 1]]
+    basis = mm(mm(ry, rx), rz)
+    for c in range(3):
+        for r in range(3):
+            basis[r][c] *= scale[c]
+    return basis, list(pos)
 
 
 def compose(parent, child):
@@ -350,6 +374,11 @@ def coexist(a, b):
 shapes = []
 sources = glob.glob('scenes/world/*.tscn')
 sources += glob.glob('scenes/world/generated/*.tscn')
+# This rapid breadth blockout was explicitly unmounted and retained only as
+# noncanonical visual evidence on 2026-09-07. It does not coexist with the
+# persistent world, so comparing its deliberately overlapping sketch pieces
+# against one another cannot report a runtime z-fight.
+sources = [f for f in sources if not f.endswith('/coastal_fast_pass.tscn')]
 for f in sorted(sources):
     shapes.extend(parse(f))
 n_csg = sum(1 for s in shapes if s['kind'] == 'csg')

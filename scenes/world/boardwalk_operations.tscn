@@ -1,0 +1,656 @@
+[gd_scene load_steps=15 format=3]
+
+; Editor-owned operating detail for R1, R2, P2 and the existing pier landing.
+; The generated structures remain load-bearing greybox. Every visible work
+; object below is directly selectable in Godot and may be reshaped by hand.
+
+[ext_resource type="Material" path="res://assets/materials/bulb.res" id="1_bulb"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_unit"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_unit"]
+top_radius = 0.5
+bottom_radius = 0.5
+height = 1.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_unit"]
+radius = 0.5
+height = 1.0
+
+[sub_resource type="TorusMesh" id="TorusMesh_unit"]
+inner_radius = 0.34
+outer_radius = 0.5
+rings = 18
+ring_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="Mat_worn_cream"]
+albedo_color = Color(0.66, 0.58, 0.42, 1)
+roughness = 0.88
+
+[sub_resource type="StandardMaterial3D" id="Mat_turquoise"]
+albedo_color = Color(0.08, 0.41, 0.4, 1)
+roughness = 0.75
+
+[sub_resource type="StandardMaterial3D" id="Mat_coral"]
+albedo_color = Color(0.63, 0.18, 0.12, 1)
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="Mat_mustard"]
+albedo_color = Color(0.72, 0.45, 0.06, 1)
+roughness = 0.78
+
+[sub_resource type="StandardMaterial3D" id="Mat_dark_metal"]
+albedo_color = Color(0.055, 0.068, 0.073, 1)
+metallic = 0.42
+roughness = 0.56
+
+[sub_resource type="StandardMaterial3D" id="Mat_galvanized"]
+albedo_color = Color(0.35, 0.39, 0.39, 1)
+metallic = 0.56
+roughness = 0.48
+
+[sub_resource type="StandardMaterial3D" id="Mat_wood"]
+albedo_color = Color(0.25, 0.15, 0.085, 1)
+roughness = 0.94
+
+[sub_resource type="StandardMaterial3D" id="Mat_rubber"]
+albedo_color = Color(0.018, 0.022, 0.024, 1)
+roughness = 0.72
+
+[sub_resource type="StandardMaterial3D" id="Mat_signal_green"]
+albedo_color = Color(0.08, 0.5, 0.22, 1)
+emission_enabled = true
+emission = Color(0.05, 0.55, 0.18, 1)
+emission_energy_multiplier = 0.7
+roughness = 0.3
+
+[sub_resource type="StandardMaterial3D" id="Mat_signal_red"]
+albedo_color = Color(0.68, 0.07, 0.035, 1)
+emission_enabled = true
+emission = Color(0.65, 0.04, 0.02, 1)
+emission_energy_multiplier = 0.55
+roughness = 0.34
+
+[sub_resource type="StandardMaterial3D" id="Mat_water_blue"]
+albedo_color = Color(0.04, 0.24, 0.32, 1)
+roughness = 0.42
+
+[node name="boardwalk_operations" type="Node3D"]
+editor_description = "Editor-owned Boardwalk operating layer: R1 wheel, R2 coaster, P2 funhouse, pier fishing and visible S1/S2 handoffs."
+metadata/section = &"boardwalk"
+metadata/layout_source = "res://scenes/world/boardwalk_layout.tscn"
+metadata/fidelity_pass = 2
+
+[node name="R1_wheel_operations" type="Node3D" parent="."]
+editor_description = "R1 load/exit separation, operator control and maintenance residue on the existing wheel deck."
+
+[node name="load_gate_post_n" type="MeshInstance3D" parent="R1_wheel_operations"]
+position = Vector3(-107.82, -4.77, -28.0)
+scale = Vector3(0.16, 1.25, 0.16)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="load_gate_post_s" type="MeshInstance3D" parent="R1_wheel_operations"]
+position = Vector3(-107.82, -4.77, -26.0)
+scale = Vector3(0.16, 1.25, 0.16)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="load_gate_bar" type="MeshInstance3D" parent="R1_wheel_operations"]
+position = Vector3(-107.94, -4.72, -27.0)
+scale = Vector3(0.12, 0.14, 1.9)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="load_sign" type="Label3D" parent="R1_wheel_operations"]
+position = Vector3(-108.08, -4.12, -27.0)
+rotation = Vector3(0, 1.570796, 0)
+text = "LOAD"
+font_size = 60
+pixel_size = 0.006
+outline_size = 7
+modulate = Color(0.96, 0.86, 0.58, 1)
+
+[node name="exit_gate_post_n" type="MeshInstance3D" parent="R1_wheel_operations"]
+position = Vector3(-107.82, -4.77, -7.1)
+scale = Vector3(0.16, 1.25, 0.16)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="exit_gate_post_s" type="MeshInstance3D" parent="R1_wheel_operations"]
+position = Vector3(-107.82, -4.77, -5.1)
+scale = Vector3(0.16, 1.25, 0.16)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="exit_gate_bar" type="MeshInstance3D" parent="R1_wheel_operations"]
+position = Vector3(-107.94, -4.72, -6.1)
+scale = Vector3(0.12, 0.14, 1.9)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="exit_sign" type="Label3D" parent="R1_wheel_operations"]
+position = Vector3(-108.08, -4.12, -6.1)
+rotation = Vector3(0, 1.570796, 0)
+text = "EXIT"
+font_size = 60
+pixel_size = 0.006
+outline_size = 7
+modulate = Color(0.75, 0.92, 0.82, 1)
+
+[node name="operator_console" type="MeshInstance3D" parent="R1_wheel_operations"]
+position = Vector3(-109.2, -4.82, -24.8)
+scale = Vector3(1.15, 1.18, 0.72)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="operator_panel" type="MeshInstance3D" parent="R1_wheel_operations"]
+position = Vector3(-108.61, -4.62, -24.8)
+scale = Vector3(0.06, 0.55, 0.58)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_worn_cream")
+
+[node name="ready_lamp" type="MeshInstance3D" parent="R1_wheel_operations"]
+position = Vector3(-108.56, -4.52, -24.98)
+scale = Vector3(0.1, 0.1, 0.1)
+mesh = SubResource("SphereMesh_unit")
+material_override = SubResource("Mat_signal_green")
+
+[node name="stop_button" type="MeshInstance3D" parent="R1_wheel_operations"]
+position = Vector3(-108.55, -4.52, -24.58)
+scale = Vector3(0.13, 0.13, 0.13)
+mesh = SubResource("SphereMesh_unit")
+material_override = SubResource("Mat_signal_red")
+
+[node name="operator_stool" type="MeshInstance3D" parent="R1_wheel_operations"]
+position = Vector3(-110.3, -5.02, -24.8)
+scale = Vector3(0.65, 0.78, 0.65)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="maintenance_chest" type="MeshInstance3D" parent="R1_wheel_operations"]
+position = Vector3(-114.25, -5.02, -5.0)
+scale = Vector3(1.6, 0.82, 0.78)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="maintenance_chest_lid" type="MeshInstance3D" parent="R1_wheel_operations"]
+position = Vector3(-114.25, -4.57, -5.0)
+scale = Vector3(1.68, 0.12, 0.86)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="wheel_work_fixture" type="MeshInstance3D" parent="R1_wheel_operations"]
+position = Vector3(-109.0, -3.72, -24.8)
+scale = Vector3(0.28, 0.28, 0.28)
+mesh = SubResource("SphereMesh_unit")
+material_override = ExtResource("1_bulb")
+
+[node name="wheel_work_light" type="OmniLight3D" parent="R1_wheel_operations" groups=["park_light"]]
+position = Vector3(-109.0, -3.82, -24.8)
+visible = false
+light_color = Color(0.78, 0.9, 0.72, 1)
+light_energy = 0.0
+light_specular = 0.25
+omni_range = 6.5
+omni_attenuation = 1.7
+metadata/base_energy = 1.25
+metadata/light_kind = 2
+
+[node name="R2_coaster_station_operations" type="Node3D" parent="."]
+editor_description = "R2 separate load/exit gates, brake console and before-opening SH1 work edge."
+
+[node name="queue_header" type="MeshInstance3D" parent="R2_coaster_station_operations"]
+position = Vector3(-91.05, -2.45, -55.2)
+scale = Vector3(0.16, 1.0, 3.1)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="queue_label" type="Label3D" parent="R2_coaster_station_operations"]
+position = Vector3(-91.18, -2.35, -55.2)
+rotation = Vector3(0, -1.570796, 0)
+text = "COASTER  ·  LOAD"
+font_size = 70
+pixel_size = 0.007
+outline_size = 8
+modulate = Color(0.97, 0.86, 0.58, 1)
+
+[node name="load_rail" type="MeshInstance3D" parent="R2_coaster_station_operations"]
+position = Vector3(-89.25, -4.45, -64.15)
+scale = Vector3(3.6, 0.14, 0.14)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="load_post_w" type="MeshInstance3D" parent="R2_coaster_station_operations"]
+position = Vector3(-90.95, -4.32, -64.15)
+scale = Vector3(0.16, 1.15, 0.16)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="load_post_e" type="MeshInstance3D" parent="R2_coaster_station_operations"]
+position = Vector3(-87.55, -4.32, -64.15)
+scale = Vector3(0.16, 1.15, 0.16)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="exit_rail" type="MeshInstance3D" parent="R2_coaster_station_operations"]
+position = Vector3(-83.45, -4.45, -53.82)
+scale = Vector3(2.45, 0.14, 0.14)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="exit_post_w" type="MeshInstance3D" parent="R2_coaster_station_operations"]
+position = Vector3(-84.57, -4.32, -53.82)
+scale = Vector3(0.16, 1.15, 0.16)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="exit_post_e" type="MeshInstance3D" parent="R2_coaster_station_operations"]
+position = Vector3(-82.33, -4.32, -53.82)
+scale = Vector3(0.16, 1.15, 0.16)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="exit_label" type="Label3D" parent="R2_coaster_station_operations"]
+position = Vector3(-83.45, -3.75, -53.7)
+text = "EXIT"
+font_size = 58
+pixel_size = 0.006
+outline_size = 7
+modulate = Color(0.72, 0.9, 0.82, 1)
+
+[node name="brake_console" type="MeshInstance3D" parent="R2_coaster_station_operations"]
+position = Vector3(-89.65, -4.25, -60.7)
+scale = Vector3(0.82, 1.32, 1.25)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="brake_panel" type="MeshInstance3D" parent="R2_coaster_station_operations"]
+position = Vector3(-90.09, -4.06, -60.7)
+scale = Vector3(0.06, 0.65, 1.0)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_worn_cream")
+
+[node name="block_lamp" type="MeshInstance3D" parent="R2_coaster_station_operations"]
+position = Vector3(-90.15, -3.96, -60.98)
+scale = Vector3(0.1, 0.1, 0.1)
+mesh = SubResource("SphereMesh_unit")
+material_override = SubResource("Mat_signal_green")
+
+[node name="emergency_stop" type="MeshInstance3D" parent="R2_coaster_station_operations"]
+position = Vector3(-90.15, -3.96, -60.42)
+scale = Vector3(0.14, 0.14, 0.14)
+mesh = SubResource("SphereMesh_unit")
+material_override = SubResource("Mat_signal_red")
+
+[node name="brake_label" type="Label3D" parent="R2_coaster_station_operations"]
+position = Vector3(-90.2, -4.45, -60.7)
+rotation = Vector3(0, -1.570796, 0)
+text = "BRAKE"
+font_size = 42
+pixel_size = 0.0045
+outline_size = 5
+modulate = Color(0.18, 0.2, 0.18, 1)
+
+[node name="maintenance_locker" type="MeshInstance3D" parent="R2_coaster_station_operations"]
+position = Vector3(-81.15, -3.88, -61.3)
+scale = Vector3(0.8, 2.05, 1.4)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="brake_hose" type="MeshInstance3D" parent="R2_coaster_station_operations"]
+position = Vector3(-81.58, -4.25, -60.15)
+rotation = Vector3(1.570796, 0, 0)
+scale = Vector3(0.6, 0.6, 0.18)
+mesh = SubResource("TorusMesh_unit")
+material_override = SubResource("Mat_rubber")
+
+[node name="SH1_before_opening_cart" type="Node3D" parent="R2_coaster_station_operations"]
+position = Vector3(-92.55, -4.9, -62.0)
+editor_description = "Parked clear after opening; SH1 itself remains the approved before-opening shared service route."
+
+[node name="body" type="MeshInstance3D" parent="R2_coaster_station_operations/SH1_before_opening_cart"]
+position = Vector3(0, 0.48, 0)
+scale = Vector3(1.5, 0.62, 0.82)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="handle" type="MeshInstance3D" parent="R2_coaster_station_operations/SH1_before_opening_cart"]
+position = Vector3(0.9, 0.72, 0)
+scale = Vector3(0.72, 0.12, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="coaster_work_fixture" type="MeshInstance3D" parent="R2_coaster_station_operations"]
+position = Vector3(-89.55, -1.0, -60.7)
+scale = Vector3(0.28, 0.28, 0.28)
+mesh = SubResource("SphereMesh_unit")
+material_override = ExtResource("1_bulb")
+
+[node name="coaster_work_light" type="OmniLight3D" parent="R2_coaster_station_operations" groups=["park_light"]]
+position = Vector3(-89.55, -1.1, -60.7)
+visible = false
+light_color = Color(0.82, 0.9, 0.7, 1)
+light_energy = 0.0
+light_specular = 0.25
+omni_range = 7.0
+omni_attenuation = 1.65
+metadata/base_energy = 1.35
+metadata/light_kind = 2
+
+[node name="P2_funhouse_operations" type="Node3D" parent="."]
+editor_description = "P2 replacement front embodies the approved separate entry at z=27 and exit at z=37; generated side/back/roof remain structural backing."
+
+[node name="front_north_end" type="CSGBox3D" parent="P2_funhouse_operations"]
+position = Vector3(-83.01, -2.6, 25.45)
+size = Vector3(0.28, 6.76, 0.9)
+use_collision = true
+material = SubResource("Mat_worn_cream")
+
+[node name="front_middle" type="CSGBox3D" parent="P2_funhouse_operations"]
+position = Vector3(-83.01, -2.6, 32.0)
+size = Vector3(0.28, 6.76, 7.5)
+use_collision = true
+material = SubResource("Mat_worn_cream")
+
+[node name="front_south_end" type="CSGBox3D" parent="P2_funhouse_operations"]
+position = Vector3(-83.01, -2.6, 38.55)
+size = Vector3(0.28, 6.76, 0.9)
+use_collision = true
+material = SubResource("Mat_worn_cream")
+
+[node name="entry_header" type="MeshInstance3D" parent="P2_funhouse_operations"]
+position = Vector3(-83.22, -0.2, 27.0)
+scale = Vector3(0.18, 0.62, 2.15)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="entry_label" type="Label3D" parent="P2_funhouse_operations"]
+position = Vector3(-83.36, -0.2, 27.0)
+rotation = Vector3(0, -1.570796, 0)
+text = "ENTER"
+font_size = 66
+pixel_size = 0.006
+outline_size = 7
+modulate = Color(0.96, 0.84, 0.54, 1)
+
+[node name="entry_turnstile_post" type="MeshInstance3D" parent="P2_funhouse_operations"]
+position = Vector3(-82.85, -5.16, 27.0)
+scale = Vector3(0.22, 1.55, 0.22)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="entry_turnstile_arm_a" type="MeshInstance3D" parent="P2_funhouse_operations"]
+position = Vector3(-83.35, -4.7, 27.0)
+scale = Vector3(1.0, 0.1, 0.1)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="exit_header" type="MeshInstance3D" parent="P2_funhouse_operations"]
+position = Vector3(-83.22, -0.2, 37.0)
+scale = Vector3(0.18, 0.62, 2.15)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="exit_label" type="Label3D" parent="P2_funhouse_operations"]
+position = Vector3(-83.36, -0.2, 37.0)
+rotation = Vector3(0, -1.570796, 0)
+text = "EXIT"
+font_size = 66
+pixel_size = 0.006
+outline_size = 7
+modulate = Color(0.72, 0.92, 0.82, 1)
+
+[node name="exit_push_gate_post" type="MeshInstance3D" parent="P2_funhouse_operations"]
+position = Vector3(-82.85, -5.16, 37.0)
+scale = Vector3(0.22, 1.55, 0.22)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="exit_push_bar" type="MeshInstance3D" parent="P2_funhouse_operations"]
+position = Vector3(-83.35, -4.7, 37.0)
+scale = Vector3(1.0, 0.1, 0.1)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="operator_box" type="MeshInstance3D" parent="P2_funhouse_operations"]
+position = Vector3(-81.55, -5.18, 28.55)
+scale = Vector3(1.0, 1.48, 1.25)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="operator_panel" type="MeshInstance3D" parent="P2_funhouse_operations"]
+position = Vector3(-82.08, -4.95, 28.55)
+scale = Vector3(0.06, 0.72, 1.0)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_worn_cream")
+
+[node name="show_stop" type="MeshInstance3D" parent="P2_funhouse_operations"]
+position = Vector3(-82.13, -4.83, 28.35)
+scale = Vector3(0.13, 0.13, 0.13)
+mesh = SubResource("SphereMesh_unit")
+material_override = SubResource("Mat_signal_red")
+
+[node name="service_door" type="MeshInstance3D" parent="P2_funhouse_operations"]
+position = Vector3(-70.82, -3.58, 32.0)
+scale = Vector3(0.08, 4.35, 2.2)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="service_label" type="Label3D" parent="P2_funhouse_operations"]
+position = Vector3(-70.72, -3.45, 32.0)
+rotation = Vector3(0, 1.570796, 0)
+text = "STAFF"
+font_size = 52
+pixel_size = 0.006
+outline_size = 6
+modulate = Color(0.17, 0.2, 0.2, 1)
+
+[node name="P2_service_fixture" type="MeshInstance3D" parent="P2_funhouse_operations"]
+position = Vector3(-70.62, -1.05, 32.0)
+scale = Vector3(0.26, 0.26, 0.26)
+mesh = SubResource("SphereMesh_unit")
+material_override = ExtResource("1_bulb")
+
+[node name="P2_service_light" type="OmniLight3D" parent="P2_funhouse_operations" groups=["park_light"]]
+position = Vector3(-70.5, -1.15, 32.0)
+visible = false
+light_color = Color(0.78, 0.9, 0.72, 1)
+light_energy = 0.0
+light_specular = 0.2
+omni_range = 5.8
+omni_attenuation = 1.8
+metadata/base_energy = 1.15
+metadata/light_kind = 2
+
+[node name="pier_fishing_operations" type="Node3D" parent="."]
+editor_description = "Fishing is integrated into the existing pavilion landing: outer and south rail bays only, with the approach/turnaround left clear."
+
+[node name="cleaning_sink_cabinet" type="MeshInstance3D" parent="pier_fishing_operations"]
+position = Vector3(-161.0, -5.28, 13.1)
+scale = Vector3(2.45, 1.35, 1.05)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="sink_basin" type="MeshInstance3D" parent="pier_fishing_operations"]
+position = Vector3(-161.0, -4.56, 13.1)
+scale = Vector3(2.12, 0.16, 0.78)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_water_blue")
+
+[node name="sink_back" type="MeshInstance3D" parent="pier_fishing_operations"]
+position = Vector3(-161.0, -4.42, 12.57)
+scale = Vector3(2.65, 1.1, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_worn_cream")
+
+[node name="sink_label" type="Label3D" parent="pier_fishing_operations"]
+position = Vector3(-161.0, -4.28, 12.7)
+text = "FISH CLEANING"
+font_size = 50
+pixel_size = 0.005
+outline_size = 7
+modulate = Color(0.88, 0.82, 0.63, 1)
+
+[node name="faucet_post" type="MeshInstance3D" parent="pier_fishing_operations"]
+position = Vector3(-161.15, -4.28, 13.1)
+scale = Vector3(0.11, 0.62, 0.11)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="cutting_board" type="MeshInstance3D" parent="pier_fishing_operations"]
+position = Vector3(-160.55, -4.45, 13.1)
+scale = Vector3(0.72, 0.05, 0.52)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_wood")
+
+[node name="drain_bucket" type="MeshInstance3D" parent="pier_fishing_operations"]
+position = Vector3(-159.25, -5.54, 13.25)
+scale = Vector3(0.52, 0.72, 0.52)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="tackle_cart" type="Node3D" parent="pier_fishing_operations"]
+position = Vector3(-155.5, -5.95, 13.25)
+
+[node name="body" type="MeshInstance3D" parent="pier_fishing_operations/tackle_cart"]
+position = Vector3(0, 0.62, 0)
+scale = Vector3(2.1, 0.92, 1.0)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="lid" type="MeshInstance3D" parent="pier_fishing_operations/tackle_cart"]
+position = Vector3(0, 1.13, 0)
+scale = Vector3(2.2, 0.12, 1.1)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_worn_cream")
+
+[node name="handle" type="MeshInstance3D" parent="pier_fishing_operations/tackle_cart"]
+position = Vector3(1.4, 0.78, 0)
+scale = Vector3(0.85, 0.12, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="wheel_n" type="MeshInstance3D" parent="pier_fishing_operations/tackle_cart"]
+position = Vector3(-0.62, 0.18, -0.55)
+rotation = Vector3(1.570796, 0, 0)
+scale = Vector3(0.42, 0.42, 0.18)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_rubber")
+
+[node name="wheel_s" type="MeshInstance3D" parent="pier_fishing_operations/tackle_cart"]
+position = Vector3(-0.62, 0.18, 0.55)
+rotation = Vector3(1.570796, 0, 0)
+scale = Vector3(0.42, 0.42, 0.18)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_rubber")
+
+[node name="rod_rack" type="MeshInstance3D" parent="pier_fishing_operations"]
+position = Vector3(-164.15, -3.82, 2.1)
+scale = Vector3(0.72, 3.0, 0.3)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_wood")
+
+[node name="rod_1" type="MeshInstance3D" parent="pier_fishing_operations"]
+position = Vector3(-164.55, -3.2, 2.0)
+rotation = Vector3(0, 0, 0.08)
+scale = Vector3(0.08, 4.0, 0.08)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="rod_2" type="MeshInstance3D" parent="pier_fishing_operations"]
+position = Vector3(-164.15, -3.2, 2.0)
+rotation = Vector3(0, 0, -0.05)
+scale = Vector3(0.08, 4.0, 0.08)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="rod_3" type="MeshInstance3D" parent="pier_fishing_operations"]
+position = Vector3(-163.75, -3.2, 2.0)
+rotation = Vector3(0, 0, 0.03)
+scale = Vector3(0.08, 4.0, 0.08)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="life_ring" type="MeshInstance3D" parent="pier_fishing_operations"]
+position = Vector3(-161.3, -3.0, 12.72)
+rotation = Vector3(1.570796, 0, 0)
+scale = Vector3(0.9, 0.9, 0.24)
+mesh = SubResource("TorusMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="cleanup_bin" type="MeshInstance3D" parent="pier_fishing_operations"]
+position = Vector3(-158.6, -5.26, 13.2)
+scale = Vector3(0.82, 1.4, 0.82)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="hose_reel" type="MeshInstance3D" parent="pier_fishing_operations"]
+position = Vector3(-163.6, -3.2, 12.72)
+rotation = Vector3(1.570796, 0, 0)
+scale = Vector3(0.62, 0.62, 0.2)
+mesh = SubResource("TorusMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="fishing_work_fixture" type="MeshInstance3D" parent="pier_fishing_operations"]
+position = Vector3(-162.4, -1.15, 11.8)
+scale = Vector3(0.3, 0.3, 0.3)
+mesh = SubResource("SphereMesh_unit")
+material_override = ExtResource("1_bulb")
+
+[node name="fishing_work_light" type="OmniLight3D" parent="pier_fishing_operations" groups=["park_light"]]
+position = Vector3(-162.4, -1.25, 11.8)
+visible = false
+light_color = Color(0.74, 0.9, 0.78, 1)
+light_energy = 0.0
+light_specular = 0.22
+omni_range = 7.5
+omni_attenuation = 1.7
+metadata/base_energy = 1.3
+metadata/light_kind = 2
+
+[node name="service_connections" type="Node3D" parent="."]
+editor_description = "Visible parked stock and door residue at the northern S1 and southern S2 handoffs; no new service route geometry."
+
+[node name="S1_north_stock_door" type="MeshInstance3D" parent="service_connections"]
+position = Vector3(-83.72, -3.58, -15.0)
+scale = Vector3(0.08, 4.35, 1.55)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="S1_arrow" type="Label3D" parent="service_connections"]
+position = Vector3(-83.62, -3.55, -15.0)
+rotation = Vector3(0, 1.570796, 0)
+text = "STOCK  →  S1"
+font_size = 48
+pixel_size = 0.005
+outline_size = 6
+modulate = Color(0.18, 0.21, 0.2, 1)
+
+[node name="S1_folded_cart" type="MeshInstance3D" parent="service_connections"]
+position = Vector3(-82.95, -5.46, -13.55)
+scale = Vector3(0.35, 0.9, 1.25)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="S2_south_stock_door" type="MeshInstance3D" parent="service_connections"]
+position = Vector3(-83.72, -3.58, 15.0)
+scale = Vector3(0.08, 4.35, 1.55)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="S2_arrow" type="Label3D" parent="service_connections"]
+position = Vector3(-83.62, -3.55, 15.0)
+rotation = Vector3(0, 1.570796, 0)
+text = "STOCK  →  S2"
+font_size = 48
+pixel_size = 0.005
+outline_size = 6
+modulate = Color(0.18, 0.21, 0.2, 1)
+
+[node name="S2_empty_crate" type="MeshInstance3D" parent="service_connections"]
+position = Vector3(-82.92, -5.52, 13.65)
+scale = Vector3(0.92, 0.72, 0.92)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_wood")

@@ -107,6 +107,24 @@ var _rebuild_graded_route_cache: Dictionary = {}
 ## Route D's course is editor-owned. Cache the merged, expanded district list
 ## once so terrain, paving and validation all consume the same source records.
 var _rebuild_district_source_cache: Array = []
+## Frontier's R10 queue is editor-owned in `frontier_layout.tscn`. Its short
+## terrain verge is sampled many times while the north shoulder is meshed, so
+## cache the expanded line and its final public height once.
+var _frontier_r10_queue: Array[Vector3] = []
+var _frontier_r10_queue_width := 2.6
+## R4's queue begins on Route C's coastal fold and returns to the level
+## Fairground shelf. Its editor-owned course and derived grade are cached for
+## both the T2 opening and the program-layer construction.
+var _fairground_r4_queue: Array[Vector3] = []
+var _fairground_r4_queue_width := 2.4
+## Editor-owned Grove, High Terrace and Frontier side paths that cross a
+## lowland/shoulder or old/new-highland seam. Each record is cached once for
+## the terrain samplers.
+var _highland_terrain_paths: Array = []
+## R6, R7 and R14 are measured Kiddieland ride-floor branches crossing T2 or
+## the inherited south shoulder (and, for R6, the outer highland). All three
+## terrain builders share these cached editor-derived verges.
+var _family_terrain_paths: Array = []
 ## B and C overlap at a shallow angle before J6. Their widened shared-floor
 ## record is derived once from both graded centrelines, then reused by the T2
 ## opening, both collision exclusions and the final junction surface.
@@ -144,24 +162,8 @@ func _drainage_terrain_source():
 func _rebuild_district_build_runs() -> Array:
 	if not _rebuild_district_source_cache.is_empty():
 		return _rebuild_district_source_cache
-	var root := KiddielandSource.instantiate()
-	var route_d := {}
-	for source in KiddielandSource.route_runs(root):
-		if bool(source["build"]):
-			route_d[StringName(source["id"])] = source
 	for built in Plan.rebuild_district_build_runs():
-		var record: Dictionary = built
-		if StringName(record["route"]) == &"D":
-			assert(route_d.has(StringName(record["id"])),
-				"Kiddieland source is missing built Route D run %s" % record["id"])
-			var source: Dictionary = route_d[StringName(record["id"])]
-			record = source.duplicate(true)
-			var expanded: Array = []
-			for point in source["points"]:
-				expanded.append(Plan.rebuild_expand_point(Vector2(point)))
-			record["points"] = expanded
-		_rebuild_district_source_cache.append(record)
-	root.free()
+		_rebuild_district_source_cache.append((built as Dictionary).duplicate(true))
 	return _rebuild_district_source_cache
 
 
@@ -179,6 +181,86 @@ func _kiddie_rail_loop_from_source() -> Array[Vector3]:
 	return out
 
 
+func _frontier_r10_queue_from_source() -> Array[Vector3]:
+	for site in Plan.rebuild_ride_sites():
+		if StringName(site["id"]) != &"R10":
+			continue
+		_frontier_r10_queue_width = float(site.get("queue_width", 2.6))
+		var out: Array[Vector3] = []
+		for source_point in site["queue"]:
+			var p := Plan.rebuild_expand_point(Vector2(source_point))
+			out.append(Vector3(p.x, _rebuild_highland_floor(p), p.y))
+		return out
+	assert(false, "Frontier source has no R10 queue")
+	return []
+
+
+func _fairground_r4_queue_from_source() -> Array[Vector3]:
+	for site in Plan.rebuild_ride_sites():
+		if StringName(site["id"]) != &"R4":
+			continue
+		_fairground_r4_queue_width = float(site.get("queue_width", 2.4))
+		var plan_points: Array[Vector2] = []
+		for source_point in site["queue"]:
+			plan_points.append(Plan.rebuild_expand_point(Vector2(source_point)))
+		var start := _rebuild_nearest_graded_route(&"C", plan_points[0])
+		var heights := _rebuild_linear_route_heights(plan_points,
+			float(start["y"]), 0.0)
+		var out: Array[Vector3] = []
+		for i in plan_points.size():
+			out.append(Vector3(plan_points[i].x, heights[i], plan_points[i].y))
+		return out
+	assert(false, "Fairground source has no R4 queue")
+	return []
+
+
+func _highland_terrain_paths_from_sources() -> Array:
+	var out: Array = []
+	for site in Plan.rebuild_ride_sites():
+		if StringName(site["id"]) in [&"R8", &"R9", &"R11", &"R13"]:
+			out.append(_highland_terrain_path(site["queue"],
+				float(site.get("queue_width", 2.6)), StringName(site["id"])))
+	for site in Plan.rebuild_interior_sites():
+		if StringName(site["id"]) == &"I4":
+			out.append(_highland_terrain_path(site["access"],
+				float(site.get("access_width", 2.6)), &"I4"))
+	return out
+
+
+func _highland_terrain_path(source: Array, width: float,
+		id: StringName) -> Dictionary:
+	var points: Array[Vector3] = []
+	for source_point in source:
+		var p := Plan.rebuild_expand_point(Vector2(source_point))
+		points.append(Vector3(p.x, _rebuild_highland_floor(p), p.y))
+	# R8 and R11 reach onto the outer highland's four-metre grid, while R9
+	# crosses T2 and R13/I4 remain on the inherited shoulder. A broader ease on
+	# the outer pair prevents that coarse mesh from chord-cutting their edges.
+	var ease := 14.0 if id in [&"R8", &"R11"] else 8.0
+	return {"id": id, "points": points, "width": width, "ease": ease}
+
+
+func _family_terrain_paths_from_source() -> Array:
+	var root := KiddielandSource.instantiate()
+	var sites := KiddielandSource.ride_sites(root)
+	var out: Array = []
+	for id in [&"R6", &"R7", &"R14"]:
+		var site: Dictionary = sites[id]
+		var points: Array[Vector3] = []
+		for source_point in site["queue"]:
+			var p := Plan.rebuild_expand_point(Vector2(source_point))
+			points.append(Vector3(p.x, _rebuild_family_floor(p), p.y))
+		out.append({
+			"id": id,
+			"points": points,
+			"width": float(site.get("queue_width", 2.6)),
+			"ease": 14.0 if id == &"R6" else 8.0,
+			"bed_cut": 0.12,
+		})
+	root.free()
+	return out
+
+
 func _initialize() -> void:
 	_lighthouse_regrade_source()
 	_drainage_terrain_source()
@@ -186,6 +268,10 @@ func _initialize() -> void:
 	_build_materials()
 	_kiddie_rail = _kiddie_rail_loop_from_source()
 	_grand_tram = Plan.grand_tram_loop()
+	_frontier_r10_queue = _frontier_r10_queue_from_source()
+	_fairground_r4_queue = _fairground_r4_queue_from_source()
+	_highland_terrain_paths = _highland_terrain_paths_from_sources()
+	_family_terrain_paths = _family_terrain_paths_from_source()
 
 	_root = Node3D.new()
 	_root.name = "props"
@@ -5789,7 +5875,104 @@ func _east_frontier_grade_y(x: float, z: float, uncut_y: float) -> float:
 	# beyond it, the approved E/F junction is now the only grading input.
 	if not _rebuild_in_protected(p, 0.0):
 		y = _rebuild_district_shoulder_grade(p, uncut_y, &"E")
-		return _rebuild_district_shoulder_grade(p, y, &"F")
+		y = _rebuild_district_shoulder_grade(p, y, &"F")
+		y = _frontier_r10_queue_grade_y(p, y)
+		y = _highland_side_path_grade_y(p, y)
+		# A local ride verge may meet a public route, but it may never rise back
+		# through that broader walking floor. Reapply both route cuts last.
+		y = _rebuild_public_route_priority_y(p, y, &"E")
+		return _rebuild_public_route_priority_y(p, y, &"F")
+	return y
+
+
+## R10's editable queue branches across the north shoulder instead of following
+## Route F's contour. Give that short branch its own narrow cut-or-fill verge:
+## the earth comes to one hand beneath the paving and eases back over four
+## metres. Before this source existed the queue was a flat generated ribbon,
+## buried by almost three metres at one end and hanging over open lowland at the
+## other. This grading follows the source markers, so reshaping the queue in the
+## editor reshapes only its local support and never NT-2.
+func _frontier_r10_queue_grade_y(p: Vector2, uncut_y: float) -> float:
+	if _frontier_r10_queue.size() < 2:
+		return uncut_y
+	var half_width := _frontier_r10_queue_width * 0.5
+	var ease_run := 4.0
+	var y := uncut_y
+	for i in _frontier_r10_queue.size() - 1:
+		var a3 := _frontier_r10_queue[i]
+		var b3 := _frontier_r10_queue[i + 1]
+		var a := Vector2(a3.x, a3.z)
+		var b := Vector2(b3.x, b3.z)
+		var ab := b - a
+		var t := clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.001),
+			0.0, 1.0)
+		var distance := maxf(p.distance_to(a + ab * t) - half_width, 0.0)
+		if distance >= ease_run:
+			continue
+		var weight := 1.0 - distance / ease_run
+		weight = weight * weight * (3.0 - 2.0 * weight)
+		var target := lerpf(a3.y, b3.y, t) - 0.12
+		y = lerpf(y, target, weight)
+	return y
+
+
+## R8/R11/R13/I4 cross a highland seam, while R9 climbs from T2 toward its
+## Grove ride. Every owning terrain mesh reads the same editor-owned lines and
+## eases to a point one hand beneath the paving, so moving a marker changes its
+## local cut or fill without turning the queue into a bridge.
+func _highland_side_path_grade_y(p: Vector2, uncut_y: float) -> float:
+	if _rebuild_in_protected(p, 0.0):
+		return uncut_y
+	var y := uncut_y
+	for record in _highland_terrain_paths:
+		var points: Array = record["points"]
+		var half_width := float(record["width"]) * 0.5
+		var ease_run := float(record["ease"])
+		for i in points.size() - 1:
+			var a3 := Vector3(points[i])
+			var b3 := Vector3(points[i + 1])
+			var a := Vector2(a3.x, a3.z)
+			var b := Vector2(b3.x, b3.z)
+			var ab := b - a
+			var t := clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.001),
+				0.0, 1.0)
+			var distance := maxf(p.distance_to(a + ab * t) - half_width, 0.0)
+			if distance >= ease_run:
+				continue
+			var weight := 1.0 - distance / ease_run
+			weight = weight * weight * (3.0 - 2.0 * weight)
+			var target := lerpf(a3.y, b3.y, t) - 0.12
+			y = lerpf(y, target, weight)
+	return y
+
+
+## The south shoulder and T2 both pass under R14's editor-owned queue. Raise or
+## cut only a small eased verge to one hidden bed below that measured ride-floor
+## line. The queue remains the editable artistic source; this is its derived
+## terrain consequence, and it cannot reach the protected NT-2 envelope.
+func _family_side_path_grade_y(p: Vector2, uncut_y: float) -> float:
+	if _rebuild_in_protected(p, 0.0):
+		return uncut_y
+	var y := uncut_y
+	for record in _family_terrain_paths:
+		var points: Array = record["points"]
+		var half_width := float(record["width"]) * 0.5
+		var ease_run := float(record["ease"])
+		for i in points.size() - 1:
+			var a3 := Vector3(points[i])
+			var b3 := Vector3(points[i + 1])
+			var a := Vector2(a3.x, a3.z)
+			var b := Vector2(b3.x, b3.z)
+			var ab := b - a
+			var t := clampf((p - a).dot(ab) /
+				maxf(ab.length_squared(), 0.001), 0.0, 1.0)
+			var distance := maxf(p.distance_to(a + ab * t) - half_width, 0.0)
+			if distance >= ease_run:
+				continue
+			var weight := 1.0 - distance / ease_run
+			weight = weight * weight * (3.0 - 2.0 * weight)
+			var target := lerpf(a3.y, b3.y, t) - float(record["bed_cut"])
+			y = lerpf(y, target, weight)
 	return y
 
 
@@ -5878,7 +6061,10 @@ func _east_kiddie_grade_y(x: float, z: float, uncut_y: float) -> float:
 	# their established effect only inside NT-2; outside that no-touch envelope,
 	# route D is the sole source of the family-side terrain cut.
 	if not _rebuild_in_protected(p, 0.0):
-		return _rebuild_district_shoulder_grade(p, uncut_y, &"D")
+		var district_y := _rebuild_district_shoulder_grade(p, uncut_y, &"D")
+		var family_y := _family_side_path_grade_y(p, district_y)
+		# Route D owns its complete public envelope where a ride branch joins it.
+		return _rebuild_public_route_priority_y(p, family_y, &"D")
 	return y
 
 
@@ -6004,6 +6190,22 @@ func _east_shoulder(side: float, tag: String) -> void:
 			var point: Vector3 = point_value
 			if point.x >= SHOULDER_WEST_X and point.x <= EARTH_TO_X:
 				cols.append(point.x)
+	# A smooth height function is not enough on this coarse Cartesian shoulder:
+	# a diagonal queue can pass between every original vertex. Insert both edges
+	# of the editor-owned highland side paths as real axes, so the emitted mesh
+	# rather than only its sampler carries their narrow local grading.
+	var side_paths: Array = _highland_terrain_paths if side < 0.0 \
+		else _family_terrain_paths
+	if not side_paths.is_empty():
+		for record in side_paths:
+			var stations := _rebuild_resample_path3(record["points"], 2.0)
+			var edges := _rebuild_path_edges(stations,
+				float(record["width"]), false)
+			for edge_name in ["left", "right"]:
+				for point_value in edges[edge_name]:
+					var point := Vector3(point_value)
+					if point.x >= SHOULDER_WEST_X and point.x <= EARTH_TO_X:
+						cols.append(point.x)
 	cols = _sorted_unique_floats(cols)
 
 	var rows := PackedFloat32Array()
@@ -6020,7 +6222,27 @@ func _east_shoulder(side: float, tag: String) -> void:
 			var point_d := (point.z - axis) * side
 			if point_d >= 0.0 and point_d <= float(prm["end"]):
 				rows.append(point.z)
+	if not side_paths.is_empty():
+		for record in side_paths:
+			var stations := _rebuild_resample_path3(record["points"], 2.0)
+			var edges := _rebuild_path_edges(stations,
+				float(record["width"]), false)
+			for edge_name in ["left", "right"]:
+				for point_value in edges[edge_name]:
+					var point := Vector3(point_value)
+					var point_d: float = (point.z - axis) * side
+					if point_d >= 0.0 and point_d <= float(prm["end"]):
+						rows.append(point.z)
 	rows = _sorted_unique_floats(rows)
+	# `_earth_strip` expects every side to run from the hill out toward its
+	# district. Numeric sorting preserves that order on the south, but reverses
+	# it on the north because its outward z values become more negative. The
+	# reversed north rows made the visible meadow's one-sided trimesh face down:
+	# raycasts fell through it to T2 and reported Frontier's queue as an eleven-
+	# metre bridge. Restore spatial order here rather than enabling back-face
+	# collision or changing the shared strip builder used by protected NT-2.
+	if side < 0.0:
+		rows.reverse()
 
 	var lines: Array[PackedVector3Array] = []
 	for zi in rows.size():
@@ -17815,6 +18037,27 @@ func _rebuild_lowland_mesh(shape: Array) -> ArrayMesh:
 								and not _rebuild_in_protected(q2, 0.35):
 							_rebuild_add_plan_point(points, seen, q2)
 
+	# The editor-owned ride branches crossing T2 need real triangulation axes.
+	# Seed both paving and eased-verge edges so the eight-metre Delaunay field
+	# cannot chord under or through a narrow queue between its coarse vertices.
+	for record in _family_terrain_paths + _highland_terrain_paths:
+		for support_width in [float(record["width"]),
+				float(record["width"]) + float(record["ease"]) * 2.0]:
+			var support_edges := _rebuild_path_edges(record["points"],
+				support_width, false)
+			for side_name in ["left", "right"]:
+				var edge: PackedVector3Array = support_edges[side_name]
+				for i in edge.size() - 1:
+					var steps := maxi(1,
+						ceili(edge[i].distance_to(edge[i + 1]) / 2.0))
+					for step in steps + 1:
+						var q := edge[i].lerp(edge[i + 1],
+							float(step) / float(steps))
+						var q2 := Vector2(q.x, q.z)
+						if Geometry2D.is_point_in_polygon(q2, outline) \
+								and not _rebuild_in_protected(q2, 0.35):
+							_rebuild_add_plan_point(points, seen, q2)
+
 	var minp := Vector2(1e9, 1e9)
 	var maxp := Vector2(-1e9, -1e9)
 	for p in outline:
@@ -17915,6 +18158,12 @@ func _rebuild_lowland_cuts() -> Array:
 		for section in _rebuild_below_lowland_sections(graded):
 			cuts.append({"points": section,
 				"width": float(run["width"]) + 0.8})
+	# R4 rises from C's low point to the Fairground's level activity shelf.
+	# Open the T2 skin only around that source-driven retained queue, or the
+	# level field buries the ramp while the coastal fold remains correct.
+	for section in _rebuild_below_lowland_sections(_fairground_r4_queue):
+		cuts.append({"points": section,
+			"width": _fairground_r4_queue_width + 0.8})
 	# B and C overlap at a shallow angle, so their union is wider than either
 	# centreline's ordinary cut. The single junction floor below receives one
 	# matching earth opening instead of meeting the old T2 sheet at its edges.
@@ -17925,7 +18174,7 @@ func _rebuild_lowland_cuts() -> Array:
 	# S2 is a real four-metre service route, not paint over T2. Its short dip
 	# into the C crossing therefore receives the same open cut as either public
 	# route instead of leaving the old lowland sheet at head height.
-	for spine in Plan.REBUILD_SERVICE_SPINES:
+	for spine in Plan.rebuild_service_spines():
 		if StringName(spine["id"]) != &"S2":
 			continue
 		var expanded := Plan.rebuild_expand_points2(spine["points"])
@@ -17997,8 +18246,16 @@ func _rebuild_outer_highland_y(x: float, z: float) -> float:
 	across = across * across * (3.0 - 2.0 * across)
 	var roll := sin(z * 0.071) * 0.34 * sin(PI * across)
 	var standing := lerpf(inner, outer, across) + roll
-	return _drainage_terrain_source().terrain_y(Vector2(x, z), standing,
+	standing = _drainage_terrain_source().terrain_y(Vector2(x, z), standing,
 		[&"D5_basin"])
+	standing = _highland_side_path_grade_y(Vector2(x, z), standing)
+	standing = _family_side_path_grade_y(Vector2(x, z), standing)
+	# The outer mesh also carries D and F; keep their broad floors authoritative
+	# where either queue verge reaches the same cell.
+	standing = _rebuild_public_route_priority_y(
+		Vector2(x, z), standing, &"D", true)
+	return _rebuild_public_route_priority_y(
+		Vector2(x, z), standing, &"F", true)
 
 
 func _rebuild_outer_highland_mesh() -> ArrayMesh:
@@ -18026,6 +18283,27 @@ func _rebuild_outer_highland_mesh() -> ArrayMesh:
 				- REBUILD_OUTER_HIGHLAND_FROM_X
 			column_ts.append(clampf((point.x - REBUILD_OUTER_HIGHLAND_FROM_X)
 				/ maxf(span, 0.001), 0.0, 1.0))
+	# Diagonal ride branches crossing x=127 need their own sampled axes too.
+	# Otherwise the regular four-metre grid can interpolate across the whole
+	# narrow verge even though the height function itself is exact.
+	for record in _highland_terrain_paths + _family_terrain_paths:
+		var stations := _rebuild_resample_path3(record["points"], 2.0)
+		var edges := _rebuild_path_edges(stations,
+			float(record["width"]), false)
+		for edge_name in ["left", "right"]:
+			for point_value in edges[edge_name]:
+				var point := Vector3(point_value)
+				if point.x < REBUILD_OUTER_HIGHLAND_FROM_X \
+						or point.z < REBUILD_OUTER_HIGHLAND_FROM_Z \
+						or point.z > REBUILD_OUTER_HIGHLAND_TO_Z \
+						or point.x > _rebuild_plateau_end_x(point.z):
+					continue
+				zs.append(point.z)
+				var span := _rebuild_plateau_end_x(point.z) \
+					- REBUILD_OUTER_HIGHLAND_FROM_X
+				column_ts.append(clampf((point.x \
+					- REBUILD_OUTER_HIGHLAND_FROM_X) / maxf(span, 0.001),
+					0.0, 1.0))
 	zs = _sorted_unique_floats(zs)
 	column_ts = _sorted_unique_floats(column_ts)
 	var row_x := func(zz: float, t: float) -> float:
@@ -18363,7 +18641,7 @@ func _rebuild_path_owner_exclusions(nm: String) -> Array:
 				exclusions.append({"points": _rebuild_graded_route(run),
 					"width": float(run["width"]), "clearance": 0.75})
 				break
-	elif nm in ["R8_queue", "R10_queue"]:
+	elif nm in ["R8_queue", "R9_queue", "R10_queue"]:
 		# Ride queues attach to the highland circuit as narrow branches. Their
 		# visible paving can cross the junction, but the broad public route is the
 		# only physical floor inside its operating envelope.
@@ -18371,11 +18649,12 @@ func _rebuild_path_owner_exclusions(nm: String) -> Array:
 			var id := StringName(run["id"])
 			var wanted := (nm == "R8_queue" and id in [
 				&"f_terrace_link", &"f_inner_return"]) \
+				or (nm == "R9_queue" and id == &"f_inner_return") \
 				or (nm == "R10_queue" and id == &"f_inner_return")
 			if wanted:
 				exclusions.append({"points": _rebuild_graded_route(run),
 					"width": float(run["width"]), "clearance": 0.75})
-	elif nm == "R7_queue":
+	elif nm in ["R7_queue", "R14_queue"]:
 		# The carousel branch begins on D as it should, but two coplanar collision
 		# ribbons at that junction caught the Player on the loop's outside edge.
 		# D owns the shared floor; the queue keeps its visible asphalt and resumes
@@ -18383,7 +18662,7 @@ func _rebuild_path_owner_exclusions(nm: String) -> Array:
 		for run in _rebuild_district_build_runs():
 			if StringName(run["id"]) == &"d_family_loop":
 				exclusions.append({"points": _rebuild_graded_route(run),
-					"width": float(run["width"])})
+					"width": float(run["width"]), "clearance": 0.75})
 				break
 	return exclusions
 
@@ -18486,7 +18765,7 @@ func _rebuild_path_edges(points: Array, width: float, closed: bool) -> Dictionar
 ## asphalt remains the route; this slightly wider stone bed explains the grade
 ## and closes both visible sides down to whichever terrain band is below it.
 func _rebuild_retained_bed(nm: String, points: Array, width: float,
-		closed: bool) -> void:
+		closed: bool, collide := false, floor_drop := INF) -> void:
 	var edges := _rebuild_path_edges(points, width, closed)
 	var left: PackedVector3Array = edges["left"]
 	var right: PackedVector3Array = edges["right"]
@@ -18509,17 +18788,57 @@ func _rebuild_retained_bed(nm: String, points: Array, width: float,
 		var lb1 := Vector3(l1.x, _rebuild_bed_floor(l1), l1.z)
 		var rb0 := Vector3(r0.x, _rebuild_bed_floor(r0), r0.z)
 		var rb1 := Vector3(r1.x, _rebuild_bed_floor(r1), r1.z)
+		# Local ride approaches only need enough retained depth to bridge their
+		# own vertical run plus a toe overlap, not a wall down to the coast datum.
+		if floor_drop < INF:
+			lb0.y = maxf(lb0.y, l0.y - floor_drop)
+			lb1.y = maxf(lb1.y, l1.y - floor_drop)
+			rb0.y = maxf(rb0.y, r0.y - floor_drop)
+			rb1.y = maxf(rb1.y, r1.y - floor_drop)
 		_earth_wall_quad(st, lb0, lb1, l0, l1,
 			Vector3(l0.x - r0.x, 0, l0.z - r0.z).normalized())
 		_earth_wall_quad(st, rb1, rb0, r1, r0,
 			Vector3(r0.x - l0.x, 0, r0.z - l0.z).normalized())
 	st.generate_normals()
 	st.generate_tangents()
-	_rebuild_mesh_body(nm, st.commit(), "brick", false)
+	_rebuild_mesh_body(nm, st.commit(), "brick", collide)
 
 
 func _rebuild_bed_floor(p: Vector3) -> float:
 	return Plan.SHORE_TOP - 0.16 if p.x <= Plan.BLUFF_FACE_X else REBUILD_LOWLAND_Y - 0.16
+
+
+## A short editor-owned access line can cross multiple independently meshed
+## terrain bands. Its visible shape remains the saved markers; this derived,
+## slightly wider earth core only closes interpolation cracks beneath it. The
+## retained depth follows the line's own vertical span plus a half-metre toe.
+func _rebuild_source_path_bed(nm: String, id: StringName, records: Array,
+		extra_width := REBUILD_BED_MARGIN) -> void:
+	for record in records:
+		if StringName(record["id"]) != id:
+			continue
+		var points := _rebuild_resample_path3(record["points"], 2.0)
+		var low := INF
+		var high := -INF
+		for point_value in points:
+			var point := Vector3(point_value)
+			low = minf(low, point.y)
+			high = maxf(high, point.y)
+		var bed_width := float(record["width"]) + extra_width
+		_rebuild_retained_bed(nm, points,
+			bed_width, false, true,
+			high - low + 0.5)
+		# An open miter can leave a tiny triangular hole under either rounded path
+		# end. Close both source-derived endpoints with the same shallow earth top.
+		var cap_height := 0.12
+		var cap_radius := bed_width * 0.5
+		for endpoint in [["start", points[0]], ["end", points[-1]]]:
+			var point := Vector3(endpoint[1])
+			_cyl("%s_%s" % [nm, endpoint[0]], Vector3.ZERO,
+				point - Vector3.UP * (0.05 + cap_height * 0.5),
+				cap_radius, cap_height, "brick", 0.0, 20, true)
+		return
+	assert(false, "%s has no cached editor path" % id)
 
 
 ## A retained ramp with more than a step of exposed side gets a real guard on
@@ -18715,10 +19034,11 @@ func _rebuild_graded_route(run: Dictionary) -> Array:
 		return _rebuild_graded_route_cache[id]
 	var closed := bool(run.get("closed", false))
 	# The expanded north fan gives F's inner return its tightest bend immediately
-	# after J9. Eight stations per span keep the nine-metre ribbon's inside edge
-	# changing continuously instead of asking the Player to cross one long miter
-	# panel with an abrupt normal change. Other routes retain the accepted four.
-	var samples_per_span := 8 if id == &"f_inner_return" else 4
+	# after J9. Route D has the same issue at its R7-side bend: one 7.6m sloped
+	# miter panel caught the Player on its own outside edge. Eight stations per
+	# span keep both broad ribbons changing continuously without altering their
+	# editor-owned Catmull courses or exact controls. Other routes retain four.
+	var samples_per_span := 8 if id in [&"f_inner_return", &"d_family_loop"] else 4
 	var plan_points := _rebuild_curve_route(run["points"], closed,
 		samples_per_span)
 	var shared_pins: Dictionary = {}
@@ -18753,9 +19073,10 @@ func _rebuild_graded_route(run: Dictionary) -> Array:
 			for i in plan_points.size():
 				heights[i] = _rebuild_family_desired_floor(plan_points[i])
 			var pins := {0: 0.0}
-			# Sample four is the exact second atlas control, shared with the
-			# protected D terrace approach. It stays at the established datum.
-			pins[mini(4, plan_points.size() - 1)] = 0.0
+			# The first span's final sample is the exact second atlas control,
+			# shared with the protected D terrace approach. Keep the relationship
+			# tied to sampling density rather than the former literal index four.
+			pins[mini(samples_per_span, plan_points.size() - 1)] = 0.0
 			pins[plan_points.size() - 1] = 0.0
 			heights = _rebuild_limited_route_heights(plan_points, heights,
 				pins, REBUILD_FAMILY_MAX_GRADE)
@@ -19420,6 +19741,42 @@ func _rebuild_district_shoulder_grade(p: Vector2, uncut_y: float,
 	return y
 
 
+## Ride verges may ease toward a route, but the route's paved envelope plus a
+## Player-body margin remains the final ground owner. This narrower form avoids
+## pulling the whole seven-metre landscape ease down beneath an adjacent queue.
+## Outer-highland heights are consulted while routes are first being solved, so
+## that caller uses cached_only and never asks an unfinished route for itself.
+func _rebuild_public_route_priority_y(p: Vector2, uncut_y: float,
+		route_id: StringName, cached_only := false) -> float:
+	var y := uncut_y
+	for run in _rebuild_district_build_runs():
+		if StringName(run["route"]) != route_id:
+			continue
+		var id := StringName(run["id"])
+		if cached_only and not _rebuild_graded_route_cache.has(id):
+			continue
+		var points := _rebuild_graded_route(run)
+		for i in points.size() - 1:
+			var a3 := Vector3(points[i])
+			var b3 := Vector3(points[i + 1])
+			var a := Vector2(a3.x, a3.z)
+			var b := Vector2(b3.x, b3.z)
+			var ab := b - a
+			var t := clampf((p - a).dot(ab) /
+				maxf(ab.length_squared(), 0.001), 0.0, 1.0)
+			var outside := maxf(p.distance_to(a + ab * t)
+				- float(run["width"]) * 0.5, 0.0)
+			var body_margin := 0.75
+			if outside >= body_margin:
+				continue
+			var weight := 1.0 - outside / body_margin
+			weight = weight * weight * (3.0 - 2.0 * weight)
+			var target := lerpf(a3.y, b3.y, t) \
+				- REBUILD_DISTRICT_ROUTE_BED_CUT
+			y = minf(y, lerpf(uncut_y, target, weight))
+	return y
+
+
 func _rebuild_highland_floor(p: Vector2) -> float:
 	var nearest := _rebuild_nearest_graded_route(&"F", p)
 	if float(nearest["distance"]) <= REBUILD_ROUTE_EARTH_RUN + 28.0:
@@ -19460,7 +19817,12 @@ func _rebuild_lowland_surface_y(p: Vector2) -> float:
 		[&"D3_basin", &"D6_basin"])
 	# D4's visible owner is the south shoulder. T2 follows the same depression
 	# just underneath it so their overlap cannot poke through or z-fight.
-	return _drainage_terrain_source().terrain_y(p, y, [&"D4_basin"], -0.08)
+	y = _drainage_terrain_source().terrain_y(p, y, [&"D4_basin"], -0.08)
+	y = _family_side_path_grade_y(p, y)
+	y = _highland_side_path_grade_y(p, y)
+	# Local ride earthworks yield to the two public routes on T2 as well.
+	y = _rebuild_public_route_priority_y(p, y, &"D")
+	return _rebuild_public_route_priority_y(p, y, &"F")
 
 
 func _rebuild_site(source: Vector2, zone: StringName) -> Vector3:
@@ -19512,6 +19874,21 @@ func _rebuild_access_path(nm: String, source: Array, zone: StringName,
 	_rebuild_path(nm, points, width, false, &"", collide)
 
 
+## A ride deck owns the final floor, while the terrain owns the rest of the
+## approach. Raising only the saved line's last marker lets its preceding leg
+## form a gentle threshold and preserves the editor-authored horizontal course.
+func _rebuild_deck_landing_path(nm: String, source: Array, zone: StringName,
+		width: float, landing_y: float) -> void:
+	if source.size() < 2:
+		return
+	var points: Array[Vector3] = []
+	for source_point in source:
+		var p := Plan.rebuild_expand_point(Vector2(source_point))
+		points.append(_rebuild_site_at(p, zone))
+	points[-1].y = landing_y
+	_rebuild_path(nm, points, width, false, &"")
+
+
 # ---------------------------------------------------------------------------
 # Park rebuild: package 04 program
 # ---------------------------------------------------------------------------
@@ -19525,7 +19902,7 @@ func _rebuild_program() -> void:
 	var r14_source: Dictionary = kiddieland_rides[&"R14"]
 	var kiddieland_support := KiddielandSource.support_sites(kiddieland_layout)
 	var p4_source := KiddielandSource.p4_site(kiddieland_layout)
-	for site in Plan.REBUILD_ATTRACTION_SITES:
+	for site in Plan.rebuild_attraction_sites():
 		var effective: Dictionary = site
 		if StringName(site["id"]) == &"P4":
 			effective = p4_source
@@ -19536,7 +19913,7 @@ func _rebuild_program() -> void:
 			&"play_garden": _rebuild_play_garden(effective)
 			&"bandstand": _rebuild_bandstand(effective)
 
-	for site in Plan.REBUILD_RIDE_SITES:
+	for site in Plan.rebuild_ride_sites():
 		var id := StringName(site["id"])
 		var effective: Dictionary = kiddieland_rides[id] \
 			if kiddieland_rides.has(id) else site
@@ -19747,7 +20124,10 @@ func _rebuild_play_garden(site: Dictionary) -> void:
 	var at := _rebuild_site(site["at"], &"family")
 	var radii: Vector2 = site["radii"]
 	_rebuild_ellipse_fence("P4_fence", at, radii, "sky_green", 28, 2)
-	_box("P4_play_tower", at, Vector3(-1.4, 2.2, 0.4),
+	# KG1's thin splash pad tucks under the tower's far corner in plan. Foot the
+	# tower twelve millimetres below grade so their hidden undersides do not share
+	# a plane; neither editor-owned footprint nor visible top moves.
+	_box("P4_play_tower", at, Vector3(-1.4, 2.2 - 0.012, 0.4),
 		Vector3(3.2, 4.4, 3.2), "yellow")
 	_box("P4_play_roof", at, Vector3(-1.4, 4.65, 0.4),
 		Vector3(4.0, 0.38, 4.0), "red", 0.0, false)
@@ -19834,8 +20214,13 @@ func _rebuild_bandstand(site: Dictionary) -> void:
 
 	# The gap between deck and lawn is a short internal platform, not a third
 	# public entrance. The Plaza slab remains the only collider underneath it.
-	var bridge := [stage + u * 5.6 + Vector3.UP * 0.01,
-		audience - u * 6.4 + Vector3.UP * 0.01]
+	# The stage end lands on the deck, not inside its 86cm thickness. The short
+	# platform then returns to the event lawn at an ordinary visible slope.
+	var stage_bridge := stage + u * 5.6
+	stage_bridge.y = stage.y + 0.88
+	var bridge := [stage_bridge, audience - u * 6.4 + Vector3.UP * 0.01]
+	_rebuild_retained_bed("bed_P5_stage_platform", bridge,
+		2.8 + REBUILD_BED_MARGIN, false, true)
 	_rebuild_path("P5_stage_platform", bridge, 2.8, false, &"", false)
 
 	# 20 x 14m event lawn, exactly aligned to the parcel axis. A contrasting
@@ -19934,18 +20319,36 @@ func _rebuild_bandstand(site: Dictionary) -> void:
 		_box("P5_backstage_%s_rail" % ("north" if side < 0 else "south"),
 			backstage, Vector3(0, 0.65, side * backstage_size.y * 0.5),
 			Vector3(backstage_size.x, 1.30, 0.12), "far_shade")
+	# The west rail leaves a gate wider than the 2.8m service ribbon's complete
+	# walking envelope. Deriving both short returns from that width keeps the
+	# approved service line from colliding with its own entrance rail.
+	var service_gate_half := 2.8 * 0.5 + 0.6
+	var service_rail_run := backstage_size.y * 0.5 - service_gate_half
+	var service_rail_offset := service_gate_half + service_rail_run * 0.5
 	for side in [-1.0, 1.0]:
 		_box("P5_backstage_west_%s" % ("north" if side < 0 else "south"),
-			backstage, Vector3(-backstage_size.x * 0.5, 0.65, side * 2.25),
-			Vector3(0.12, 1.30, 1.5), "far_shade")
+			backstage,
+			Vector3(-backstage_size.x * 0.5, 0.65,
+				side * service_rail_offset),
+			Vector3(0.12, 1.30, service_rail_run), "far_shade")
 	_box("P5_backstage_prop_rack", backstage, Vector3(-2.0, 1.15, 0),
 		Vector3(3.2, 2.3, 1.0), "wood")
 	_box("P5_backstage_cue_desk", backstage, Vector3(2.2, 0.72, 0),
 		Vector3(2.1, 1.44, 0.8), "accent")
-	_rebuild_access_path("P5_service_access", site["service"], &"plaza",
-		2.8, false)
+	var service_points: Array[Vector3] = []
+	for source_point in site["service"]:
+		var service_plan := Plan.rebuild_expand_point(Vector2(source_point))
+		service_points.append(Vector3(service_plan.x, 0.0, service_plan.y))
+	# S1 reaches the cue yard across the west bluff. A closed retained service
+	# bed makes that operational handoff read as a short loading bridge rather
+	# than another strip of paving suspended over shore ground.
+	_rebuild_retained_bed("bed_P5_service_access", service_points,
+		2.8 + REBUILD_BED_MARGIN, false, true)
+	_rebuild_path("P5_service_access", service_points, 2.8, false, &"", false)
+	var performer_stage := stage - u * 5.8
+	performer_stage.y = stage.y + 0.88
 	var performer_path := [backstage + Vector3(4.0, 0, 1.0),
-		Vector3(-47, 0, -36), stage - u * 5.8]
+		Vector3(-47, 0, -36), performer_stage]
 	_rebuild_path("P5_performer_path", performer_path, 2.2, false, &"", false)
 
 	# P5 carries its own practicals now that the obsolete Plaza gazebo is gone.
@@ -19977,7 +20380,23 @@ func _rebuild_swinging_ship(site: Dictionary) -> void:
 	for x in [-5.2, -2.6, 0.0, 2.6, 5.2]:
 		_box("R4_seat_%s" % str(x), at, Vector3(x, 4.35, 0),
 			Vector3(1.7, 0.75, 2.5), "yellow", theta, false)
-	_rebuild_access_path("R4_queue", site["queue"], &"fairground", 2.4)
+	# The ship stays on the Fairground's measured +0.00m activity shelf while
+	# Route C alone makes the coastal dip. Its queue begins on C and climbs back
+	# to the ride court; a narrow retained earth bed localizes that transition
+	# instead of moving the approved horizontal source or lifting the whole coast.
+	_rebuild_retained_bed("bed_R4_queue", _fairground_r4_queue,
+		_fairground_r4_queue_width + REBUILD_BED_MARGIN, false, true)
+	# Close the retained mesh's acute terminal miter beneath the ride court.
+	# The concave bed otherwise leaves three edge rays looking through its final
+	# triangle to the shore even though the visible asphalt reaches the shelf.
+	var queue_end := _fairground_r4_queue[-1]
+	var cap_height := 0.12
+	_cyl("bed_R4_queue_terminal", Vector3.ZERO,
+		queue_end - Vector3.UP * (0.05 + cap_height * 0.5),
+		(_fairground_r4_queue_width + REBUILD_BED_MARGIN) * 0.5,
+		cap_height, "brick", 0.0, 20, true)
+	_rebuild_path("R4_queue", _fairground_r4_queue,
+		_fairground_r4_queue_width, false, &"")
 
 
 func _rebuild_mini_rail(site: Dictionary) -> void:
@@ -20024,13 +20443,36 @@ func _rebuild_spinning_tubs(site: Dictionary) -> void:
 		var pod := at + Vector3(cos(a) * 4.1, 0, sin(a) * 4.1)
 		_cyl("R6_tub_%d" % i, pod, Vector3(0, 0.60, 0), 1.25, 1.2,
 			"red" if i % 2 == 0 else "blue", 0.0, 16, false)
-	_rebuild_access_path("R6_queue", site["queue"], &"family", 2.2)
+	# The source crosses the stitched shoulder/T2/outer-highland boundary. Its
+	# ordinary cut-or-fill verge carries most of the run; this narrow retained
+	# core closes sub-metre cracks where three separately triangulated terrains
+	# meet, with a depth derived from the queue's own rise.
+	for record in _family_terrain_paths:
+		if StringName(record["id"]) != &"R6":
+			continue
+		var queue_points: Array = record["points"]
+		var queue_span := absf(Vector3(queue_points[-1]).y \
+			- Vector3(queue_points[0]).y)
+		_rebuild_retained_bed("bed_R6_queue", queue_points,
+			float(record["width"]) + REBUILD_BED_MARGIN, false, true,
+			queue_span + 0.5)
+		# The queue begins at an acute miter. Close the three-ray triangular tip
+		# beneath that source marker rather than widening or moving the approach.
+		var queue_start := Vector3(queue_points[0])
+		var cap_height := 0.12
+		_cyl("bed_R6_queue_terminal", Vector3.ZERO,
+			queue_start - Vector3.UP * (0.05 + cap_height * 0.5),
+			(float(record["width"]) + REBUILD_BED_MARGIN) * 0.5,
+			cap_height, "brick", 0.0, 20, true)
+	_rebuild_access_path("R6_queue", site["queue"], &"family",
+		float(site.get("queue_width", 2.2)))
 
 
 func _rebuild_carousel_ride(site: Dictionary) -> void:
 	var at := _rebuild_site(site["at"], &"family")
 	var radius: float = site["radius"]
-	_cyl("R7_deck", at, Vector3(0, 0.22, 0), radius, 0.44,
+	var deck_height := 0.44
+	_cyl("R7_deck", at, Vector3(0, deck_height * 0.5, 0), radius, deck_height,
 		"brick", 0.0, 32)
 	_cyl("R7_mast", at, Vector3(0, 3.8, 0), 0.20, 7.2,
 		"metal", 0.0, 12)
@@ -20047,7 +20489,10 @@ func _rebuild_carousel_ride(site: Dictionary) -> void:
 			at + Vector3(cos(a) * radius, 5.4, sin(a) * radius),
 			at + Vector3(0, 7.4, 0), 0.68,
 			"yellow" if i % 2 == 0 else "red")
-	_rebuild_access_path("R7_queue", site["queue"], &"family", 2.2)
+	_rebuild_source_path_bed("bed_R7_queue", &"R7",
+		_family_terrain_paths, 0.0)
+	_rebuild_deck_landing_path("R7_queue", site["queue"], &"family",
+		float(site.get("queue_width", 2.2)), at.y + deck_height)
 
 
 func _rebuild_chair_swing(site: Dictionary) -> void:
@@ -20067,7 +20512,21 @@ func _rebuild_chair_swing(site: Dictionary) -> void:
 		_box("R8_seat_%02d" % i, seat, Vector3(0, 0, 0),
 			Vector3(0.85, 0.70, 0.75), "blue" if i % 2 else "red",
 			-a, false)
-	_rebuild_access_path("R8_queue", site["queue"], &"highland", 2.4)
+	# R8 traverses the same three-mesh seam from its high route to the chair
+	# court. A source-following retained core reaches only its own vertical span
+	# plus a toe overlap, keeping this a localized earthwork rather than a wall
+	# down to the lowland datum.
+	for record in _highland_terrain_paths:
+		if StringName(record["id"]) != &"R8":
+			continue
+		var queue_points: Array = record["points"]
+		var queue_span := absf(Vector3(queue_points[-1]).y \
+			- Vector3(queue_points[0]).y)
+		_rebuild_retained_bed("bed_R8_queue", queue_points,
+			float(record["width"]) + REBUILD_BED_MARGIN, false, true,
+			queue_span + 0.5)
+	_rebuild_access_path("R8_queue", site["queue"], &"highland",
+		float(site.get("queue_width", 2.4)))
 
 
 func _rebuild_outline_ride(site: Dictionary, elevated: bool) -> void:
@@ -20099,7 +20558,11 @@ func _rebuild_outline_ride(site: Dictionary, elevated: bool) -> void:
 			var a := path[i] - Vector3.UP * 0.72
 			var b := path[i + 1] - Vector3.UP * 0.72
 			_strut("R9_water_%02d" % i, a, b, 0.65, "water_pool")
-	_rebuild_access_path("%s_queue" % site["id"], site["queue"], &"north", 2.6)
+	if StringName(site["id"]) == &"R9":
+		_rebuild_source_path_bed("bed_R9_queue", &"R9",
+			_highland_terrain_paths, 0.0)
+	_rebuild_access_path("%s_queue" % site["id"], site["queue"], &"north",
+		float(site.get("queue_width", 2.6)))
 
 
 func _rebuild_observation_ride(site: Dictionary) -> void:
@@ -20117,6 +20580,8 @@ func _rebuild_observation_ride(site: Dictionary) -> void:
 		"yellow", 0.0, 24, false)
 	_cyl("R11_spire", at, Vector3(0, 34.7, 0), 0.13, 12.5,
 		"metal", 0.0, 10, false)
+	_rebuild_source_path_bed("bed_R11_queue", &"R11",
+		_highland_terrain_paths)
 	_rebuild_access_path("R11_queue", site["queue"], &"north", 2.6)
 
 
@@ -20195,6 +20660,9 @@ func _rebuild_coaster(site: Dictionary, junior: bool) -> void:
 		&"family" if junior else &"highland")
 	_rebuild_open_building(id + "_station", station_at, station_size, front,
 		"far_shade", "yellow" if junior else "red", 5.0 if junior else 6.0, true)
+	_rebuild_source_path_bed("bed_%s_queue" % id, StringName(id),
+		_family_terrain_paths if junior else _highland_terrain_paths,
+		0.0 if junior else REBUILD_BED_MARGIN)
 	_rebuild_access_path(id + "_queue", queue,
 		&"family" if junior else &"highland", 2.6)
 	if junior:
@@ -20206,23 +20674,46 @@ func _rebuild_coaster(site: Dictionary, junior: bool) -> void:
 
 
 func _rebuild_recurring_interiors() -> void:
-	for i in Plan.REBUILD_INTERIOR_SITES.size():
-		var site: Dictionary = Plan.REBUILD_INTERIOR_SITES[i]
+	var sites := Plan.rebuild_interior_sites()
+	for i in sites.size():
+		var site: Dictionary = sites[i]
 		var zone: StringName = site["district"]
 		var at := _rebuild_site(site["at"], zone)
 		var access: Array = site["access"]
 		var front := _rebuild_site(Vector2(access[-1]), zone)
+		var floor_lift := float(site.get("floor_lift", 0.0))
+		at.y += floor_lift
+		front.y += floor_lift
 		var colors := [["far_warm", "red"], ["far_shade", "blue"],
 			["far_warm", "yellow"], ["far_shade", "red"],
 			["white", "blue"], ["far_warm", "yellow"]]
 		_rebuild_open_building(String(site["id"]), at, site["size"], front,
 			colors[i][0], colors[i][1], 4.8)
-		_rebuild_access_path("%s_threshold" % site["id"], access, zone, 2.6)
+		var access_width := float(site.get("access_width", 2.6))
+		if floor_lift > 0.0:
+			var lifted: Array[Vector3] = []
+			for source_point in access:
+				var p := Plan.rebuild_expand_point(Vector2(source_point))
+				lifted.append(Vector3(p.x, Plan.SHORE_TOP + floor_lift, p.y))
+			# The lifted Boardwalk threshold is a real low landing, not paint
+			# suspended over the shore. Its editor-owned access markers still own
+			# the course; this narrow support follows them automatically.
+			_rebuild_retained_bed("bed_%s_threshold" % site["id"], lifted,
+				access_width + REBUILD_BED_MARGIN, false, true)
+			_rebuild_path("%s_threshold" % site["id"], lifted,
+				access_width, false, &"")
+		else:
+			if StringName(site["id"]) == &"I4":
+				_rebuild_source_path_bed("bed_I4_threshold", &"I4",
+					_highland_terrain_paths)
+			_rebuild_access_path("%s_threshold" % site["id"], access, zone,
+				access_width)
 
 
 func _rebuild_midway_frontages() -> void:
-	for i in Plan.REBUILD_MIDWAY_UNITS.size():
-		var site: Dictionary = Plan.REBUILD_MIDWAY_UNITS[i]
+	var sites := Plan.rebuild_midway_units()
+	for i in sites.size():
+		var site: Dictionary = sites[i]
 		var id := String(site["id"])
 		var zone := &"boardwalk" if id.begins_with("B") else (
 			&"family" if id.begins_with("K") else &"fairground")
@@ -20682,7 +21173,7 @@ func _rebuild_landscape() -> void:
 
 
 func _rebuild_service_network() -> void:
-	for spine in Plan.REBUILD_SERVICE_SPINES:
+	for spine in Plan.rebuild_service_spines():
 		var source: Array = spine["points"]
 		var expanded := Plan.rebuild_expand_points2(source)
 		var rounded := _rebuild_round_route(expanded, false, 1)
@@ -20746,7 +21237,7 @@ func _rebuild_service_s2_route(plan_points: Array[Vector2]) -> Array[Vector3]:
 
 
 func _rebuild_coastal_creek() -> void:
-	var source: Array = Plan.REBUILD_COASTAL_CREEK
+	var source: Array = Plan.rebuild_coastal_creek()
 	var expanded := Plan.rebuild_expand_points2(source)
 	var rounded := _rebuild_round_route(expanded, false, 2)
 	var water: Array[Vector3] = []
@@ -20824,7 +21315,7 @@ func _rebuild_planting_structure() -> void:
 func _rebuild_boardwalk_planting_gap(p: Vector2) -> bool:
 	# All midway units are five metres square. Read their centres from the plan
 	# rather than repeating the four z positions that the program generator uses.
-	for unit in Plan.REBUILD_MIDWAY_UNITS:
+	for unit in Plan.rebuild_midway_units():
 		if not String(unit["id"]).begins_with("B"):
 			continue
 		var at: Vector2 = Plan.rebuild_expand_point(unit["at"])

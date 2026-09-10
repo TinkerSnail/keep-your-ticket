@@ -48,6 +48,7 @@ static func r14_site(root: Node) -> Dictionary:
 		"station": marker_point(station, root),
 		"station_size": Vector2(station.get_meta("size")),
 		"queue": marker_points(ride.get_node("queue"), root),
+		"queue_width": float(ride.get_meta("queue_width", 2.6)),
 		"exit": marker_points(ride.get_node("exit"), root),
 		"service": marker_points(ride.get_node("service"), root),
 		"photo": marker_point(photo, root),
@@ -70,6 +71,8 @@ static func ride_sites(root: Node) -> Dictionary:
 			site["radii"] = Vector2(ride.get_meta("radii"))
 		if ride.has_meta("radius"):
 			site["radius"] = float(ride.get_meta("radius"))
+		if ride.has_meta("queue_width"):
+			site["queue_width"] = float(ride.get_meta("queue_width"))
 		if ride.has_node("queue"):
 			site["queue"] = marker_points(ride.get_node("queue"), root)
 		out[StringName(ride.name)] = site

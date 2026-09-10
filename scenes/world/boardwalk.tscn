@@ -1,8 +1,11 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 ; Stable editor-owned wrapper. The generator writes only generated/boardwalk.tscn.
 [ext_resource type="PackedScene" path="res://scenes/world/generated/boardwalk.tscn" id="1_generated"]
+[ext_resource type="PackedScene" path="res://scenes/world/boardwalk_operations.tscn" id="2_operations"]
 
 [node name="boardwalk" instance=ExtResource("1_generated")]
 
 [node name="authored_additions" type="Node3D" parent="."]
+
+[node name="boardwalk_operations" parent="authored_additions" instance=ExtResource("2_operations")]

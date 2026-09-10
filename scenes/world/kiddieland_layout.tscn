@@ -115,6 +115,7 @@ position = Vector3(-16, 0, 0)
 position = Vector3(95, 0, 96)
 metadata/kind = "tubs"
 metadata/radius = 7.0
+metadata/queue_width = 2.2
 
 [node name="queue" type="Node3D" parent="rides/R6"]
 [node name="p00" type="Marker3D" parent="rides/R6/queue"]
@@ -128,6 +129,7 @@ position = Vector3(4, 0, -1)
 position = Vector3(109, 0, 62)
 metadata/kind = "carousel"
 metadata/radius = 7.0
+metadata/queue_width = 2.2
 
 [node name="queue" type="Node3D" parent="rides/R7"]
 [node name="p00" type="Marker3D" parent="rides/R7/queue"]
@@ -141,6 +143,7 @@ position = Vector3(-3, 0, 1)
 editor_description = "Canonical junior-coaster layout. Move its track controls, station, queue, exit, service and photo markers here; the greybox builder reads this source directly."
 metadata/kind = "junior_coaster"
 metadata/max_lift = 8.0
+metadata/queue_width = 2.6
 
 [node name="track" type="Node3D" parent="rides/R14"]
 metadata/closed = true

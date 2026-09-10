@@ -1,10 +1,25 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 ; Stable editor-owned wrapper for package-04 ride, attraction, interior,
 ; midway and Kiddieland assemblies. Manual art belongs under
 ; authored_additions; the generated source remains replaceable greybox.
 [ext_resource type="PackedScene" path="res://scenes/world/generated/park_program.tscn" id="1_generated"]
+[ext_resource type="PackedScene" path="res://scenes/world/boardwalk_scenery.tscn" id="2_boardwalk_scenery"]
 
 [node name="park_program" instance=ExtResource("1_generated")]
 
+; P2's approved public entry and exit terminate at separate west-front
+; positions. The generated two-panel front leaves one central opening, so the
+; stable wrapper retires those panels and the editor-owned operations layer in
+; boardwalk.tscn supplies the three-part face and both operational thresholds.
+[node name="P2_funhouse_front_l" parent="." index="25"]
+visible = false
+use_collision = false
+
+[node name="P2_funhouse_front_r" parent="." index="26"]
+visible = false
+use_collision = false
+
 [node name="authored_additions" type="Node3D" parent="."]
+
+[node name="boardwalk_scenery" parent="authored_additions" instance=ExtResource("2_boardwalk_scenery")]

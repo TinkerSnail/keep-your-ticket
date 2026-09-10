@@ -1,6 +1,16 @@
 class_name ParkPlan
 extends RefCounted
 
+const SectionLayouts = preload("res://scripts/park_section_layout_source.gd")
+const KiddielandLayout = preload("res://scripts/kiddieland_layout_source.gd")
+
+# One construction run sees one saved editor state. Cache each assembled table
+# for that process: terrain and scatter ask the same plan questions thousands of
+# times, and reopening eight scenes for every sample turns a seconds-long lookup
+# into minutes. A new editor save or generator invocation starts a new process
+# and therefore reads the new scene state normally.
+static var _editor_source_cache: Dictionary = {}
+
 ## The park's plan, in world coordinates, as the one place it is written down.
 ##
 ## Not geometry and not a scene. This is the layout a park has on paper before
@@ -3910,7 +3920,7 @@ const REBUILD_RIDE_SITES := [
 ## lift this closed plan loop to the local rail datum.
 static func rebuild_kiddie_rail_loop() -> Array[Vector3]:
 	var site: Dictionary = {}
-	for candidate in REBUILD_RIDE_SITES:
+	for candidate in rebuild_ride_sites():
 		if StringName(candidate["id"]) == &"R5":
 			site = candidate
 			break
@@ -4076,12 +4086,120 @@ static func _rebuild_expand_plan_run(run: Dictionary) -> Dictionary:
 	return out
 
 
+## Editor-owned horizontal records, restored to the established ParkPlan order
+## so promoting their coordinates does not also reorder generated construction.
+## The constant tables below remain the migration baseline and relationship
+## catalogue; these accessors are the live spatial source for every consumer.
+static func _ordered_layout_records(group_name: StringName,
+		baseline: Array, additions: Array = []) -> Array:
+	var by_id := {}
+	for record in SectionLayouts.records(group_name):
+		by_id[StringName(record["id"])] = record
+	for record in additions:
+		by_id[StringName(record["id"])] = record
+	var out: Array = []
+	for old_record in baseline:
+		var id := StringName(old_record["id"])
+		assert(by_id.has(id), "%s editor source is missing %s" % [group_name, id])
+		out.append((by_id[id] as Dictionary).duplicate(true))
+	return out
+
+
+static func rebuild_primary_route_sources() -> Array:
+	if not _editor_source_cache.has(&"primary_routes"):
+		_editor_source_cache[&"primary_routes"] = _ordered_layout_records(
+			&"primary_routes", REBUILD_PRIMARY_ROUTE_RUNS)
+	return _editor_source_cache[&"primary_routes"]
+
+
+static func rebuild_primary_connector_sources() -> Array:
+	if not _editor_source_cache.has(&"primary_connectors"):
+		_editor_source_cache[&"primary_connectors"] = _ordered_layout_records(
+			&"primary_connectors", REBUILD_PRIMARY_CONNECTORS)
+	return _editor_source_cache[&"primary_connectors"]
+
+
+static func rebuild_district_route_sources() -> Array:
+	if _editor_source_cache.has(&"district_routes"):
+		return _editor_source_cache[&"district_routes"]
+	var kiddie_root := KiddielandLayout.instantiate()
+	var kiddie := KiddielandLayout.route_runs(kiddie_root)
+	kiddie_root.free()
+	_editor_source_cache[&"district_routes"] = _ordered_layout_records(&"district_routes",
+		REBUILD_DISTRICT_ROUTE_RUNS, kiddie)
+	return _editor_source_cache[&"district_routes"]
+
+
+static func rebuild_ride_sites() -> Array:
+	if _editor_source_cache.has(&"rides"):
+		return _editor_source_cache[&"rides"]
+	var kiddie_root := KiddielandLayout.instantiate()
+	var kiddie_by_id := KiddielandLayout.ride_sites(kiddie_root)
+	var kiddie: Array = []
+	for id in kiddie_by_id:
+		kiddie.append(kiddie_by_id[id])
+	kiddie_root.free()
+	_editor_source_cache[&"rides"] = _ordered_layout_records(
+		&"rides", REBUILD_RIDE_SITES, kiddie)
+	return _editor_source_cache[&"rides"]
+
+
+static func rebuild_attraction_sites() -> Array:
+	if _editor_source_cache.has(&"attractions"):
+		return _editor_source_cache[&"attractions"]
+	var kiddie_root := KiddielandLayout.instantiate()
+	var kiddie := [KiddielandLayout.p4_site(kiddie_root)]
+	kiddie_root.free()
+	_editor_source_cache[&"attractions"] = _ordered_layout_records(
+		&"attractions", REBUILD_ATTRACTION_SITES, kiddie)
+	return _editor_source_cache[&"attractions"]
+
+
+static func rebuild_interior_sites() -> Array:
+	if not _editor_source_cache.has(&"interiors"):
+		_editor_source_cache[&"interiors"] = _ordered_layout_records(
+			&"interiors", REBUILD_INTERIOR_SITES)
+	return _editor_source_cache[&"interiors"]
+
+
+static func rebuild_midway_units() -> Array:
+	# K1/K2 remain in the already-published Kiddieland source's generator-owned
+	# support pass. The eight-section handoff owns the B and F frontage markers.
+	if _editor_source_cache.has(&"midway"):
+		return _editor_source_cache[&"midway"]
+	var out := SectionLayouts.records(&"midway")
+	var by_id := {}
+	for record in out:
+		by_id[StringName(record["id"])] = record
+	var ordered: Array = []
+	for baseline in REBUILD_MIDWAY_UNITS:
+		var id := StringName(baseline["id"])
+		ordered.append((by_id[id] if by_id.has(id) else baseline).duplicate(true))
+	_editor_source_cache[&"midway"] = ordered
+	return _editor_source_cache[&"midway"]
+
+
+static func rebuild_service_spines() -> Array:
+	if not _editor_source_cache.has(&"services"):
+		_editor_source_cache[&"services"] = _ordered_layout_records(
+			&"services", REBUILD_SERVICE_SPINES)
+	return _editor_source_cache[&"services"]
+
+
+static func rebuild_coastal_creek() -> Array:
+	if not _editor_source_cache.has(&"water"):
+		var record := SectionLayouts.find_record(&"water", &"CW-AQ")
+		assert(not record.is_empty(), "Fairground source is missing Coastal Creek")
+		_editor_source_cache[&"water"] = (record["points"] as Array).duplicate(true)
+	return _editor_source_cache[&"water"]
+
+
 static func rebuild_route_runs() -> Array:
 	var out := []
-	for run in REBUILD_PRIMARY_ROUTE_RUNS:
+	for run in rebuild_primary_route_sources():
 		out.append(_plan_run(run["id"], _rebuild_expanded_points(run["points"]),
 			float(run["width"])))
-	for source in REBUILD_DISTRICT_ROUTE_RUNS:
+	for source in rebuild_district_route_sources():
 		var run := _rebuild_expand_plan_run(source)
 		out.append({
 			"id": run["id"],
@@ -4095,17 +4213,17 @@ static func rebuild_route_runs() -> Array:
 
 static func rebuild_build_runs() -> Array:
 	var out := []
-	for run in REBUILD_PRIMARY_ROUTE_RUNS:
+	for run in rebuild_primary_route_sources():
 		if bool(run.get("build", false)):
 			out.append(_rebuild_expanded_run(run))
-	for connector in REBUILD_PRIMARY_CONNECTORS:
+	for connector in rebuild_primary_connector_sources():
 		out.append(_rebuild_expanded_run(connector))
 	return out
 
 
 static func rebuild_district_build_runs() -> Array:
 	var out := []
-	for source in REBUILD_DISTRICT_ROUTE_RUNS:
+	for source in rebuild_district_route_sources():
 		if bool(source.get("build", false)):
 			out.append(_rebuild_expand_plan_run(source))
 	return out
@@ -4432,7 +4550,7 @@ static func walkway_runs() -> Array:
 	# entry, release and photo branch are still public circulation. Publishing
 	# them here gives the minimap, furniture scatter and clearance tooling the
 	# same complete walking envelope that package 04E builds and tests.
-	for site in REBUILD_ATTRACTION_SITES:
+	for site in rebuild_attraction_sites():
 		if StringName(site["id"]) != &"P5":
 			continue
 		out.append({"id": &"p5_audience_entry", "points": site["access"],
@@ -4765,7 +4883,7 @@ static func mass_clearance(p: Vector2) -> float:
 ## through the 96-chair event field.
 static func program_furnishing_clearance(p: Vector2) -> float:
 	var best := 1e9
-	for site in REBUILD_ATTRACTION_SITES:
+	for site in rebuild_attraction_sites():
 		if StringName(site["id"]) != &"P5":
 			continue
 		var at: Vector2 = site["audience"]

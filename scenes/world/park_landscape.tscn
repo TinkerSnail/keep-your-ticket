@@ -1,10 +1,70 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 ; Stable editor-owned wrapper for package-05 service, creek and planting.
 ; Manual landscape refinements belong under authored_additions so they survive
 ; regeneration of the atlas-derived structural layer.
 [ext_resource type="PackedScene" path="res://scenes/world/generated/park_landscape.tscn" id="1_generated"]
+[ext_resource type="PackedScene" path="res://scenes/world/boardwalk_water_edges.tscn" id="2_boardwalk_water_edges"]
 
 [node name="park_landscape" instance=ExtResource("1_generated")]
 
+; PL1 was laid before the Boardwalk's approved recurring-interior footprints.
+; These three trees now pass through I3 or I2 rather than forming its allée, so
+; the wrapper retires only the conflicting instances while leaving the source
+; planting rhythm and every other generated tree intact.
+[node name="PL1_e_01_trunk" parent="." index="189"]
+visible = false
+use_collision = false
+
+[node name="PL1_e_01_crown_a" parent="." index="190"]
+visible = false
+
+[node name="PL1_e_01_crown_b" parent="." index="191"]
+visible = false
+
+[node name="PL1_e_03_trunk" parent="." index="195"]
+visible = false
+use_collision = false
+
+[node name="PL1_e_03_crown_a" parent="." index="196"]
+visible = false
+
+[node name="PL1_e_03_crown_b" parent="." index="197"]
+visible = false
+
+[node name="PL1_e_04_trunk" parent="." index="198"]
+visible = false
+use_collision = false
+
+[node name="PL1_e_04_crown_a" parent="." index="199"]
+visible = false
+
+[node name="PL1_e_04_crown_b" parent="." index="200"]
+visible = false
+
+; These two occupied the protected fifteen-metre Q3 opening between the north
+; and south midway pairs. The reveal is an empty visual sector, not a planting
+; bay, so both complete tree assemblies retire here.
+[node name="PL1_e_05_trunk" parent="." index="201"]
+visible = false
+use_collision = false
+
+[node name="PL1_e_05_crown_a" parent="." index="202"]
+visible = false
+
+[node name="PL1_e_05_crown_b" parent="." index="203"]
+visible = false
+
+[node name="PL1_e_06_trunk" parent="." index="204"]
+visible = false
+use_collision = false
+
+[node name="PL1_e_06_crown_a" parent="." index="205"]
+visible = false
+
+[node name="PL1_e_06_crown_b" parent="." index="206"]
+visible = false
+
 [node name="authored_additions" type="Node3D" parent="."]
+
+[node name="boardwalk_water_edges" parent="authored_additions" instance=ExtResource("2_boardwalk_water_edges")]

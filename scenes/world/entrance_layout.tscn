@@ -1,0 +1,84 @@
+[gd_scene format=3]
+
+[node name="entrance_layout" type="Node3D" unique_id=1736358442]
+editor_description = "Editor-owned horizontal source for Entrance. Edit named markers here; generated scenes derive construction from them."
+metadata/coordinate_space = "rebuild_source_before_expansion"
+metadata/layout_version = 1
+metadata/section = &"entrance"
+
+[node name="primary_routes" type="Node3D" parent="." unique_id=417316273]
+
+[node name="a_parking_arrival" type="Node3D" parent="primary_routes" unique_id=804279857]
+metadata/point_type = &"vector3"
+metadata/route = &"A"
+metadata/width = 14.0
+metadata/build = false
+metadata/owner = &"entrance"
+
+[node name="points" type="Node3D" parent="primary_routes/a_parking_arrival" unique_id=1345271793]
+
+[node name="p00" type="Marker3D" parent="primary_routes/a_parking_arrival/points" unique_id=1823135246]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 159.74193)
+
+[node name="p01" type="Marker3D" parent="primary_routes/a_parking_arrival/points" unique_id=518331737]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 123)
+
+[node name="a_entrance" type="Node3D" parent="primary_routes" unique_id=619388892]
+metadata/point_type = &"vector3"
+metadata/route = &"A"
+metadata/width = 11.0
+metadata/build = true
+
+[node name="points" type="Node3D" parent="primary_routes/a_entrance" unique_id=162597339]
+
+[node name="p00" type="Marker3D" parent="primary_routes/a_entrance/points" unique_id=1565996586]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 123)
+
+[node name="p01" type="Marker3D" parent="primary_routes/a_entrance/points" unique_id=467011645]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 107)
+
+[node name="p02" type="Marker3D" parent="primary_routes/a_entrance/points" unique_id=11459528]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 86)
+
+[node name="p03" type="Marker3D" parent="primary_routes/a_entrance/points" unique_id=2013181993]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 62)
+
+[node name="p04" type="Marker3D" parent="primary_routes/a_entrance/points" unique_id=471548466]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 34)
+
+[node name="p05" type="Marker3D" parent="primary_routes/a_entrance/points" unique_id=1880224345]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 18)
+
+[node name="interiors" type="Node3D" parent="." unique_id=504580769]
+
+[node name="I5" type="Node3D" parent="interiors" unique_id=1189785324]
+metadata/point_type = &"vector2"
+metadata/size = Vector2(12, 8)
+metadata/district = &"entrance"
+
+[node name="at" type="Marker3D" parent="interiors/I5" unique_id=1852170098]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 116)
+
+[node name="access" type="Node3D" parent="interiors/I5" unique_id=486534713]
+
+[node name="p00" type="Marker3D" parent="interiors/I5/access" unique_id=1254921454]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 116)
+
+[node name="p01" type="Marker3D" parent="interiors/I5/access" unique_id=785809635]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, 116)
+
+[node name="I6" type="Node3D" parent="interiors" unique_id=1930923627]
+metadata/point_type = &"vector2"
+metadata/size = Vector2(12, 8)
+metadata/district = &"entrance"
+
+[node name="at" type="Marker3D" parent="interiors/I6" unique_id=771888223]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 0, 116)
+
+[node name="access" type="Node3D" parent="interiors/I6" unique_id=497428009]
+
+[node name="p00" type="Marker3D" parent="interiors/I6/access" unique_id=780213200]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 116)
+
+[node name="p01" type="Marker3D" parent="interiors/I6/access" unique_id=717757215]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 116)

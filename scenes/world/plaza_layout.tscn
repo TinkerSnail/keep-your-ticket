@@ -1,0 +1,138 @@
+[gd_scene format=3]
+
+[node name="plaza_layout" type="Node3D" unique_id=467189512]
+editor_description = "Editor-owned horizontal source for Plaza. Edit named markers here; generated scenes derive construction from them."
+metadata/coordinate_space = "rebuild_source_before_expansion"
+metadata/layout_version = 1
+metadata/section = &"plaza"
+
+[node name="primary_routes" type="Node3D" parent="." unique_id=715009141]
+
+[node name="a_hub_ring" type="Node3D" parent="primary_routes" unique_id=1478723897]
+metadata/point_type = &"vector3"
+metadata/route = &"A"
+metadata/width = 18.0
+metadata/build = true
+metadata/closed = true
+
+[node name="points" type="Node3D" parent="primary_routes/a_hub_ring" unique_id=342282454]
+
+[node name="p00" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=753371599]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 18)
+
+[node name="p01" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=855601975]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, 15)
+
+[node name="p02" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=995789269]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 0, 8)
+
+[node name="p03" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=981227329]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0, 0)
+
+[node name="p04" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=1580216512]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 0, -8)
+
+[node name="p05" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=1809292727]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, -15)
+
+[node name="p06" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=852199312]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -18)
+
+[node name="p07" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=1803040367]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, -15)
+
+[node name="p08" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=190718578]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, -8)
+
+[node name="p09" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=779864151]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0, 0)
+
+[node name="p10" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=2099875035]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 8)
+
+[node name="p11" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=1388803739]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 15)
+
+[node name="p12" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=1566863398]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 18)
+
+[node name="attractions" type="Node3D" parent="." unique_id=1955177121]
+
+[node name="P5" type="Node3D" parent="attractions" unique_id=1325746121]
+metadata/point_type = &"vector2"
+metadata/kind = &"bandstand"
+metadata/radius = 6.2
+metadata/audience_radii = Vector2(7, 10)
+metadata/audience_rotation = 37.3
+metadata/backstage_size = Vector2(10, 6)
+
+[node name="at" type="Marker3D" parent="attractions/P5" unique_id=1477067596]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -42, 0, -32)
+
+[node name="audience" type="Marker3D" parent="attractions/P5" unique_id=1136677551]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -31, 0, -23.5)
+
+[node name="access" type="Node3D" parent="attractions/P5" unique_id=1406854264]
+
+[node name="p00" type="Marker3D" parent="attractions/P5/access" unique_id=1332149080]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32, 0, -1)
+
+[node name="p01" type="Marker3D" parent="attractions/P5/access" unique_id=29663548]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28, 0, -3)
+
+[node name="p02" type="Marker3D" parent="attractions/P5/access" unique_id=1929789285]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28, 0, -12)
+
+[node name="p03" type="Marker3D" parent="attractions/P5/access" unique_id=1738257478]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35, 0, -13)
+
+[node name="p04" type="Marker3D" parent="attractions/P5/access" unique_id=1118154776]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37.1, 0, -15.5)
+
+[node name="exit" type="Node3D" parent="attractions/P5" unique_id=2083740448]
+
+[node name="p00" type="Marker3D" parent="attractions/P5/exit" unique_id=1462142799]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25.4, 0, -19.3)
+
+[node name="p01" type="Marker3D" parent="attractions/P5/exit" unique_id=1675126152]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21, 0, -18)
+
+[node name="p02" type="Marker3D" parent="attractions/P5/exit" unique_id=1193870287]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, -16)
+
+[node name="p03" type="Marker3D" parent="attractions/P5/exit" unique_id=30897064]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, -15)
+
+[node name="photo" type="Marker3D" parent="attractions/P5" unique_id=576560506]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0, -28)
+
+[node name="photo_access" type="Node3D" parent="attractions/P5" unique_id=324430897]
+
+[node name="p00" type="Marker3D" parent="attractions/P5/photo_access" unique_id=2145664733]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25, 0, -20)
+
+[node name="p01" type="Marker3D" parent="attractions/P5/photo_access" unique_id=1942395565]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 0, -23)
+
+[node name="p02" type="Marker3D" parent="attractions/P5/photo_access" unique_id=389195963]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0, -28)
+
+[node name="service" type="Node3D" parent="attractions/P5" unique_id=1762029050]
+
+[node name="p00" type="Marker3D" parent="attractions/P5/service" unique_id=1492391448]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -62, 0, -38)
+
+[node name="p01" type="Marker3D" parent="attractions/P5/service" unique_id=1497056049]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58, 0, -38)
+
+[node name="p02" type="Marker3D" parent="attractions/P5/service" unique_id=927820664]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58, 0, -39)
+
+[node name="backstage" type="Marker3D" parent="attractions/P5" unique_id=1855708636]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -53, 0, -39)
+
+[node name="host" type="Marker3D" parent="attractions/P5" unique_id=1084612704]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 0, -16.5)
+
+[node name="host2" type="Marker3D" parent="attractions/P5" unique_id=1014589214]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27, 0, -20.5)

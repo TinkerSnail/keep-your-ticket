@@ -16,9 +16,9 @@ func _initialize() -> void:
 	print("HEIGHT_AUDIT|datum|Boardwalk deck|%.2f|existing" % Plan.SHORE_TOP)
 	print("HEIGHT_AUDIT|datum|East upper terrace|%.2f|protected" % Plan.TERRACE_TWO_Y)
 
-	for run in Plan.REBUILD_PRIMARY_ROUTE_RUNS:
+	for run in Plan.rebuild_primary_route_sources():
 		_report_primary_run(run)
-	for run in Plan.REBUILD_DISTRICT_ROUTE_RUNS:
+	for run in Plan.rebuild_district_route_sources():
 		if not bool(run.get("build", false)):
 			continue
 		var graded: Array = generator.call("_rebuild_graded_route",

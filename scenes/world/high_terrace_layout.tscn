@@ -1,0 +1,277 @@
+[gd_scene format=3]
+
+[node name="high_terrace_layout" type="Node3D" unique_id=2036808757]
+editor_description = "Editor-owned horizontal source for High Terrace. Edit named markers here; generated scenes derive construction from them."
+metadata/coordinate_space = "rebuild_source_before_expansion"
+metadata/layout_version = 1
+metadata/section = &"high_terrace"
+
+[node name="district_routes" type="Node3D" parent="." unique_id=847756045]
+
+[node name="e_south_protected" type="Node3D" parent="district_routes" unique_id=1411375566]
+metadata/point_type = &"vector2"
+metadata/route = &"E"
+metadata/width = 8.5
+metadata/build = false
+metadata/owner = &"east_cascade"
+
+[node name="points" type="Node3D" parent="district_routes/e_south_protected" unique_id=537645232]
+
+[node name="p00" type="Marker3D" parent="district_routes/e_south_protected/points" unique_id=1038429870]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46, 0, 0)
+
+[node name="p01" type="Marker3D" parent="district_routes/e_south_protected/points" unique_id=1329645750]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 48, 0, -18)
+
+[node name="p02" type="Marker3D" parent="district_routes/e_south_protected/points" unique_id=280566600]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 55, 0, -30)
+
+[node name="p03" type="Marker3D" parent="district_routes/e_south_protected/points" unique_id=102164267]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70, 0, -42)
+
+[node name="p04" type="Marker3D" parent="district_routes/e_south_protected/points" unique_id=649678791]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 90, 0, -50)
+
+[node name="e_outer_orbit" type="Node3D" parent="district_routes" unique_id=1495285549]
+metadata/point_type = &"vector2"
+metadata/route = &"E"
+metadata/width = 8.5
+metadata/build = false
+metadata/owner = &"east_cascade"
+
+[node name="points" type="Node3D" parent="district_routes/e_outer_orbit" unique_id=1089072519]
+
+[node name="p00" type="Marker3D" parent="district_routes/e_outer_orbit/points" unique_id=507294542]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 90, 0, -50)
+
+[node name="p01" type="Marker3D" parent="district_routes/e_outer_orbit/points" unique_id=783111273]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 108, 0, -52)
+
+[node name="p02" type="Marker3D" parent="district_routes/e_outer_orbit/points" unique_id=1010418273]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 118, 0, -40)
+
+[node name="p03" type="Marker3D" parent="district_routes/e_outer_orbit/points" unique_id=1474678634]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 122, 0, -20)
+
+[node name="p04" type="Marker3D" parent="district_routes/e_outer_orbit/points" unique_id=1328274873]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 112, 0, 0)
+
+[node name="p05" type="Marker3D" parent="district_routes/e_outer_orbit/points" unique_id=1974223303]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 120, 0, 14)
+
+[node name="p06" type="Marker3D" parent="district_routes/e_outer_orbit/points" unique_id=415404560]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 119, 0, 30)
+
+[node name="p07" type="Marker3D" parent="district_routes/e_outer_orbit/points" unique_id=828917535]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 108, 0, 43)
+
+[node name="p08" type="Marker3D" parent="district_routes/e_outer_orbit/points" unique_id=1846995542]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 91, 0, 50)
+
+[node name="p09" type="Marker3D" parent="district_routes/e_outer_orbit/points" unique_id=454954904]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 74, 0, 48)
+
+[node name="e_north_protected" type="Node3D" parent="district_routes" unique_id=1946643048]
+metadata/point_type = &"vector2"
+metadata/route = &"E"
+metadata/width = 8.5
+metadata/build = false
+metadata/owner = &"east_cascade"
+
+[node name="points" type="Node3D" parent="district_routes/e_north_protected" unique_id=162779002]
+
+[node name="p00" type="Marker3D" parent="district_routes/e_north_protected/points" unique_id=392489099]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 74, 0, 48)
+
+[node name="p01" type="Marker3D" parent="district_routes/e_north_protected/points" unique_id=2027281824]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 58, 0, 40)
+
+[node name="p02" type="Marker3D" parent="district_routes/e_north_protected/points" unique_id=1194728811]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 49, 0, 26)
+
+[node name="p03" type="Marker3D" parent="district_routes/e_north_protected/points" unique_id=1739036493]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46, 0, 0)
+
+[node name="e_axis" type="Node3D" parent="district_routes" unique_id=1117341239]
+metadata/point_type = &"vector2"
+metadata/route = &"E"
+metadata/width = 9.0
+metadata/build = false
+metadata/owner = &"east_cascade"
+
+[node name="points" type="Node3D" parent="district_routes/e_axis" unique_id=1102149538]
+
+[node name="p00" type="Marker3D" parent="district_routes/e_axis/points" unique_id=549712453]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0, 0)
+
+[node name="p01" type="Marker3D" parent="district_routes/e_axis/points" unique_id=214824539]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 0, 0)
+
+[node name="p02" type="Marker3D" parent="district_routes/e_axis/points" unique_id=1727102765]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46, 0, 0)
+
+[node name="e_family_link" type="Node3D" parent="district_routes" unique_id=1611461042]
+metadata/point_type = &"vector2"
+metadata/route = &"E"
+metadata/width = 9.0
+metadata/build = false
+metadata/owner = &"east_cascade"
+
+[node name="points" type="Node3D" parent="district_routes/e_family_link" unique_id=1399421535]
+
+[node name="p00" type="Marker3D" parent="district_routes/e_family_link/points" unique_id=814579053]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 72, 0, 32)
+
+[node name="p01" type="Marker3D" parent="district_routes/e_family_link/points" unique_id=858621342]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 74, 0, 40)
+
+[node name="p02" type="Marker3D" parent="district_routes/e_family_link/points" unique_id=1780134413]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 74, 0, 48)
+
+[node name="e_junction_nine" type="Node3D" parent="district_routes" unique_id=1057025961]
+metadata/point_type = &"vector2"
+metadata/route = &"E"
+metadata/width = 9.0
+metadata/build = true
+
+[node name="points" type="Node3D" parent="district_routes/e_junction_nine" unique_id=1671925820]
+
+[node name="p00" type="Marker3D" parent="district_routes/e_junction_nine/points" unique_id=747375917]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 90, 0, -50)
+
+[node name="p01" type="Marker3D" parent="district_routes/e_junction_nine/points" unique_id=674606122]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 94, 0, -58)
+
+[node name="f_terrace_link" type="Node3D" parent="district_routes" unique_id=1613718346]
+metadata/point_type = &"vector2"
+metadata/route = &"F"
+metadata/width = 12.0
+metadata/build = true
+
+[node name="points" type="Node3D" parent="district_routes/f_terrace_link" unique_id=704393850]
+
+[node name="p00" type="Marker3D" parent="district_routes/f_terrace_link/points" unique_id=2108673957]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 94, 0, -50)
+
+[node name="p01" type="Marker3D" parent="district_routes/f_terrace_link/points" unique_id=205808002]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 94, 0, -58)
+
+[node name="rides" type="Node3D" parent="." unique_id=471783053]
+
+[node name="R8" type="Node3D" parent="rides" unique_id=1726869463]
+metadata/point_type = &"vector2"
+metadata/kind = &"chair_swing"
+metadata/radius = 7.5
+metadata/queue_width = 2.4
+
+[node name="at" type="Marker3D" parent="rides/R8" unique_id=1506292806]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 104, 0, -66)
+
+[node name="queue" type="Node3D" parent="rides/R8" unique_id=155913862]
+
+[node name="p00" type="Marker3D" parent="rides/R8/queue" unique_id=1828723407]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 96, 0, -53)
+
+[node name="p01" type="Marker3D" parent="rides/R8/queue" unique_id=647439979]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 99, 0, -56)
+
+[node name="p02" type="Marker3D" parent="rides/R8/queue" unique_id=376994567]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101, 0, -60)
+
+[node name="p03" type="Marker3D" parent="rides/R8/queue" unique_id=1330188004]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 103, 0, -63)
+
+[node name="R13" type="Node3D" parent="rides" unique_id=543090768]
+metadata/point_type = &"vector2"
+metadata/kind = &"steel_coaster"
+metadata/station_size = Vector2(14, 8)
+metadata/queue_width = 2.6
+
+[node name="track" type="Node3D" parent="rides/R13" unique_id=1991502893]
+
+[node name="p00" type="Marker3D" parent="rides/R13/track" unique_id=365543904]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 129, 0, -41)
+
+[node name="p01" type="Marker3D" parent="rides/R13/track" unique_id=1934019407]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 139, 0, -46)
+
+[node name="p02" type="Marker3D" parent="rides/R13/track" unique_id=1150759207]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 150, 0, -38)
+
+[node name="p03" type="Marker3D" parent="rides/R13/track" unique_id=1596364178]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 153, 0, -20)
+
+[node name="p04" type="Marker3D" parent="rides/R13/track" unique_id=1904244143]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 150, 0, -2)
+
+[node name="p05" type="Marker3D" parent="rides/R13/track" unique_id=240603542]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 146, 0, 17)
+
+[node name="p06" type="Marker3D" parent="rides/R13/track" unique_id=1355617540]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 148, 0, 34)
+
+[node name="p07" type="Marker3D" parent="rides/R13/track" unique_id=488555077]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 141, 0, 44)
+
+[node name="p08" type="Marker3D" parent="rides/R13/track" unique_id=673937959]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 132, 0, 42)
+
+[node name="p09" type="Marker3D" parent="rides/R13/track" unique_id=106334926]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 137, 0, 29)
+
+[node name="p10" type="Marker3D" parent="rides/R13/track" unique_id=960478234]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 140, 0, 12)
+
+[node name="p11" type="Marker3D" parent="rides/R13/track" unique_id=1758343573]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 140, 0, -5)
+
+[node name="p12" type="Marker3D" parent="rides/R13/track" unique_id=1178616584]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 143, 0, -22)
+
+[node name="p13" type="Marker3D" parent="rides/R13/track" unique_id=969755394]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 139, 0, -35)
+
+[node name="p14" type="Marker3D" parent="rides/R13/track" unique_id=33285309]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 129, 0, -41)
+
+[node name="track_anchor" type="Marker3D" parent="rides/R13" unique_id=1445592504]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 129, 0, -41)
+
+[node name="station" type="Marker3D" parent="rides/R13" unique_id=1289458601]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 135, 0, -41)
+
+[node name="queue" type="Node3D" parent="rides/R13" unique_id=565118273]
+
+[node name="p00" type="Marker3D" parent="rides/R13/queue" unique_id=631022729]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 118, 0, -40)
+
+[node name="p01" type="Marker3D" parent="rides/R13/queue" unique_id=1611230191]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 124, 0, -40)
+
+[node name="p02" type="Marker3D" parent="rides/R13/queue" unique_id=1059481147]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 129, 0, -41)
+
+[node name="p03" type="Marker3D" parent="rides/R13/queue" unique_id=518309155]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 132.2, 0, -41)
+
+[node name="interiors" type="Node3D" parent="." unique_id=1424221626]
+
+[node name="I4" type="Node3D" parent="interiors" unique_id=2040249388]
+metadata/point_type = &"vector2"
+metadata/size = Vector2(14, 8)
+metadata/district = &"highland"
+metadata/access_width = 2.6
+
+[node name="at" type="Marker3D" parent="interiors/I4" unique_id=628783676]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 136, 0, -73)
+
+[node name="access" type="Node3D" parent="interiors/I4" unique_id=897889933]
+
+[node name="p00" type="Marker3D" parent="interiors/I4/access" unique_id=2045570533]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 124, 0, -62)
+
+[node name="p01" type="Marker3D" parent="interiors/I4/access" unique_id=2102538286]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 128, 0, -67)
+
+[node name="p02" type="Marker3D" parent="interiors/I4/access" unique_id=231180080]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 129, 0, -73)
