@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 ; Stable editor-owned wrapper. The generator writes only generated/boardwalk.tscn.
 [ext_resource type="PackedScene" path="res://scenes/world/generated/boardwalk.tscn" id="1_generated"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://scenes/world/boardwalk_pier_head.tscn" id="5_pier_head"]
 [ext_resource type="PackedScene" path="res://scenes/world/boardwalk_pavilion.tscn" id="6_pavilion"]
 [ext_resource type="PackedScene" path="res://scenes/world/boardwalk_pacific_wheel.tscn" id="7_pacific_wheel"]
+[ext_resource type="PackedScene" path="res://scenes/world/boardwalk_wooden_coaster.tscn" id="8_wooden_coaster"]
 
 [node name="boardwalk" instance=ExtResource("1_generated")]
 
@@ -111,6 +112,115 @@ light_color = Color(1, 0.72, 0.34, 1)
 [node name="wheel_wash_s" parent="." index="570"]
 light_color = Color(1, 0.72, 0.34, 1)
 
+; R2's single-line generated profile and flat station were the original
+; silhouette greybox. The approved footprint and operating address remain,
+; while the editor-owned scene below now carries the artistic course, full
+; out-and-back construction, station form and parked train.
+[node name="coaster_col_0" parent="." index="113"]
+visible = false
+[node name="coaster_col_1" parent="." index="114"]
+visible = false
+[node name="coaster_brace_1" parent="." index="115"]
+visible = false
+[node name="coaster_track_1" parent="." index="116"]
+visible = false
+[node name="coaster_col_2" parent="." index="117"]
+visible = false
+[node name="coaster_brace_2" parent="." index="118"]
+visible = false
+[node name="coaster_track_2" parent="." index="119"]
+visible = false
+[node name="coaster_col_3" parent="." index="120"]
+visible = false
+[node name="coaster_brace_3" parent="." index="121"]
+visible = false
+[node name="coaster_track_3" parent="." index="122"]
+visible = false
+[node name="coaster_col_4" parent="." index="123"]
+visible = false
+[node name="coaster_brace_4" parent="." index="124"]
+visible = false
+[node name="coaster_track_4" parent="." index="125"]
+visible = false
+[node name="coaster_col_5" parent="." index="126"]
+visible = false
+[node name="coaster_brace_5" parent="." index="127"]
+visible = false
+[node name="coaster_track_5" parent="." index="128"]
+visible = false
+[node name="coaster_col_6" parent="." index="129"]
+visible = false
+[node name="coaster_brace_6" parent="." index="130"]
+visible = false
+[node name="coaster_track_6" parent="." index="131"]
+visible = false
+[node name="coaster_col_7" parent="." index="132"]
+visible = false
+[node name="coaster_brace_7" parent="." index="133"]
+visible = false
+[node name="coaster_track_7" parent="." index="134"]
+visible = false
+[node name="coaster_col_8" parent="." index="135"]
+visible = false
+[node name="coaster_track_8" parent="." index="136"]
+visible = false
+[node name="coaster_col_9" parent="." index="137"]
+visible = false
+[node name="coaster_brace_9" parent="." index="138"]
+visible = false
+[node name="coaster_track_9" parent="." index="139"]
+visible = false
+[node name="coaster_col_10" parent="." index="140"]
+visible = false
+[node name="coaster_track_10" parent="." index="141"]
+visible = false
+[node name="coaster_col_11" parent="." index="142"]
+visible = false
+[node name="coaster_brace_11" parent="." index="143"]
+visible = false
+[node name="coaster_track_11" parent="." index="144"]
+visible = false
+[node name="coaster_col_12" parent="." index="145"]
+visible = false
+[node name="coaster_track_12" parent="." index="146"]
+visible = false
+[node name="coaster_col_13" parent="." index="147"]
+visible = false
+[node name="coaster_brace_13" parent="." index="148"]
+visible = false
+[node name="coaster_track_13" parent="." index="149"]
+visible = false
+[node name="coaster_col_14" parent="." index="150"]
+visible = false
+[node name="coaster_track_14" parent="." index="151"]
+visible = false
+
+[node name="station_floor" parent="." index="152"]
+visible = false
+use_collision = false
+[node name="station_post_0" parent="." index="153"]
+visible = false
+use_collision = false
+[node name="station_post_1" parent="." index="154"]
+visible = false
+use_collision = false
+[node name="station_post_2" parent="." index="155"]
+visible = false
+use_collision = false
+[node name="station_post_3" parent="." index="156"]
+visible = false
+use_collision = false
+[node name="station_post_4" parent="." index="157"]
+visible = false
+use_collision = false
+[node name="station_post_5" parent="." index="158"]
+visible = false
+use_collision = false
+[node name="station_roof" parent="." index="159"]
+visible = false
+[node name="station_sign" parent="." index="160"]
+visible = false
+
 ; The generated apron was the source-handoff greybox. Christina approved the
 ; circulation-driven footprint revision on 2026-09-09, so the stable wrapper
 ; retires only that shape and mounts the directly editable replacement below.
@@ -167,6 +277,8 @@ use_collision = false
 [node name="authored_additions" type="Node3D" parent="."]
 
 [node name="boardwalk_pacific_wheel" parent="authored_additions" instance=ExtResource("7_pacific_wheel")]
+
+[node name="boardwalk_wooden_coaster" parent="authored_additions" instance=ExtResource("8_wooden_coaster")]
 
 [node name="boardwalk_pier_head" parent="authored_additions" instance=ExtResource("5_pier_head")]
 

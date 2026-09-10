@@ -1,0 +1,476 @@
+[gd_scene load_steps=18 format=3]
+
+; R2's course, station form and operating silhouette are directly editor-owned.
+; The attached tool script derives only repetitive track and timber construction
+; from the editable Curve3D below; it never writes this scene.
+
+[ext_resource type="Script" path="res://scenes/world/boardwalk_wooden_coaster.gd" id="1_script"]
+[ext_resource type="Material" path="res://assets/materials/bulb.res" id="2_bulb"]
+
+[sub_resource type="Curve3D" id="Curve3D_course"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -85.5, -3.6, -53.5, 0, 0, 0, 0, 0, 0, -84, -3.6, -60, 0, 0, 0, 0, 0, 0, -82.5, -1, -67, 0, 0, 0, 0, 0, 0, -81.5, 5, -74, 0, 0, 0, 0, 0, 0, -80.8, 12, -82, 0, 0, 0, 0, 0, 0, -80.4, 21, -90, 0, 0, 0, 0, 0, 0, -79.8, 5, -100, 0, 0, 0, 0, 0, 0, -78.5, 10, -108, 0, 0, 0, 0, 0, 0, -77, 0.5, -116, 0, 0, 0, 0, 0, 0, -74, 6, -123, 0, 0, 0, 0, 0, 0, -69, -1, -129, 0, 0, 0, 0, 0, 0, -62, -0.5, -127, 0, 0, 0, 0, 0, 0, -58, 3, -123, 0, 0, 0, 0, 0, 0, -57, 7, -116, 0, 0, 0, 0, 0, 0, -59, 0, -107, 0, 0, 0, 0, 0, 0, -61, 5, -98, 0, 0, 0, 0, 0, 0, -63, -0.5, -89, 0, 0, 0, 0, 0, 0, -66, 3, -80, 0, 0, 0, 0, 0, 0, -70, -2.5, -72, 0, 0, 0, 0, 0, 0, -76, -3.3, -67, 0, 0, 0, 0, 0, 0, -81, -3.5, -62, 0, 0, 0, 0, 0, 0, -85.5, -3.6, -58),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+point_count = 22
+closed = true
+bake_interval = 0.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_unit"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_wheel"]
+top_radius = 0.5
+bottom_radius = 0.5
+height = 1.0
+radial_segments = 10
+rings = 1
+
+[sub_resource type="SphereMesh" id="SphereMesh_bulb"]
+radius = 0.5
+height = 1.0
+radial_segments = 10
+rings = 5
+
+[sub_resource type="StandardMaterial3D" id="Mat_timber"]
+albedo_color = Color(0.48, 0.31, 0.17, 1)
+roughness = 0.94
+
+[sub_resource type="StandardMaterial3D" id="Mat_dark_timber"]
+albedo_color = Color(0.24, 0.14, 0.075, 1)
+roughness = 0.96
+
+[sub_resource type="StandardMaterial3D" id="Mat_rail"]
+albedo_color = Color(0.17, 0.19, 0.19, 1)
+metallic = 0.58
+roughness = 0.54
+
+[sub_resource type="StandardMaterial3D" id="Mat_catwalk"]
+albedo_color = Color(0.64, 0.51, 0.32, 1)
+roughness = 0.92
+
+[sub_resource type="StandardMaterial3D" id="Mat_cream"]
+albedo_color = Color(0.76, 0.70, 0.57, 1)
+roughness = 0.90
+
+[sub_resource type="StandardMaterial3D" id="Mat_turquoise"]
+albedo_color = Color(0.075, 0.39, 0.38, 1)
+roughness = 0.79
+
+[sub_resource type="StandardMaterial3D" id="Mat_coral"]
+albedo_color = Color(0.69, 0.22, 0.14, 1)
+roughness = 0.82
+
+[sub_resource type="StandardMaterial3D" id="Mat_mustard"]
+albedo_color = Color(0.78, 0.52, 0.08, 1)
+roughness = 0.80
+
+[sub_resource type="StandardMaterial3D" id="Mat_roof"]
+albedo_color = Color(0.07, 0.09, 0.10, 1)
+metallic = 0.12
+roughness = 0.73
+
+[sub_resource type="StandardMaterial3D" id="Mat_train_dark"]
+albedo_color = Color(0.035, 0.045, 0.048, 1)
+metallic = 0.32
+roughness = 0.62
+
+[sub_resource type="BoxShape3D" id="Shape_foundation"]
+size = Vector3(11, 1.1, 12)
+
+[sub_resource type="BoxShape3D" id="Shape_post"]
+size = Vector3(0.34, 5.2, 0.34)
+
+[node name="boardwalk_wooden_coaster" type="Node3D"]
+script = ExtResource("1_script")
+timber_material = SubResource("Mat_timber")
+dark_timber_material = SubResource("Mat_dark_timber")
+rail_material = SubResource("Mat_rail")
+catwalk_material = SubResource("Mat_catwalk")
+editor_description = "Directly editor-owned R2. Edit the course Path3D and station nodes here; repetitive rails and bents derive from the curve without overwriting it."
+metadata/section = &"boardwalk"
+metadata/map_id = &"R2"
+metadata/layout_source = "res://scenes/world/boardwalk_layout.tscn"
+metadata/approved_footprint_source = "res://documentation/maps/park-sections.html"
+metadata/course_bounds_xz = Rect2(-92, -129, 39, 76)
+metadata/station_footprint_metres = Vector2(11, 12)
+metadata/fidelity_pass = 6
+
+[node name="course" type="Path3D" parent="."]
+curve = SubResource("Curve3D_course")
+editor_description = "Canonical editable R2 circuit: station, lift, first drop, camelbacks, north turn and return. Keep the route inside the mapped R2 parcel."
+metadata/coordinate_space = "godot_world_metres"
+metadata/ownership = "editor"
+
+[node name="derived_construction" type="Node3D" parent="."]
+editor_description = "Preview/runtime construction derived from course. Do not hand-edit these transient children; edit the course or exported construction dimensions on the scene root."
+
+[node name="station_architecture" type="Node3D" parent="."]
+editor_description = "Open timber station retaining the established 11 × 12m floor, separate public load face and service-side working edge."
+
+[node name="foundation" type="MeshInstance3D" parent="station_architecture"]
+position = Vector3(-86, -5.45, -59)
+scale = Vector3(11, 1.1, 12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_timber")
+
+[node name="public_platform" type="MeshInstance3D" parent="station_architecture"]
+position = Vector3(-88.55, -4.84, -59)
+scale = Vector3(3.9, 0.12, 11.5)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_catwalk")
+
+[node name="exit_platform" type="MeshInstance3D" parent="station_architecture"]
+position = Vector3(-82.65, -4.84, -59)
+scale = Vector3(2.65, 0.12, 11.5)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_catwalk")
+
+[node name="track_trench" type="MeshInstance3D" parent="station_architecture"]
+position = Vector3(-85.5, -4.82, -59)
+scale = Vector3(1.7, 0.08, 11.5)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_train_dark")
+
+[node name="service_wall" type="MeshInstance3D" parent="station_architecture"]
+position = Vector3(-80.55, -3.05, -59)
+scale = Vector3(0.22, 3.5, 8.4)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_cream")
+
+[node name="service_door" type="MeshInstance3D" parent="station_architecture"]
+position = Vector3(-80.39, -3.35, -61.5)
+scale = Vector3(0.10, 2.55, 1.4)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="service_window" type="MeshInstance3D" parent="station_architecture"]
+position = Vector3(-80.38, -2.75, -57.4)
+scale = Vector3(0.08, 1.5, 2.2)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_train_dark")
+
+[node name="post_w_n" type="MeshInstance3D" parent="station_architecture"]
+position = Vector3(-90.4, -2.8, -63.6)
+scale = Vector3(0.34, 5.2, 0.34)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_timber")
+
+[node name="post_w_c" type="MeshInstance3D" parent="station_architecture"]
+position = Vector3(-90.4, -2.8, -59)
+scale = Vector3(0.34, 5.2, 0.34)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_timber")
+
+[node name="post_w_s" type="MeshInstance3D" parent="station_architecture"]
+position = Vector3(-90.4, -2.8, -54.4)
+scale = Vector3(0.34, 5.2, 0.34)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_timber")
+
+[node name="post_e_n" type="MeshInstance3D" parent="station_architecture"]
+position = Vector3(-81.6, -2.8, -63.6)
+scale = Vector3(0.34, 5.2, 0.34)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_timber")
+
+[node name="post_e_c" type="MeshInstance3D" parent="station_architecture"]
+position = Vector3(-81.6, -2.8, -59)
+scale = Vector3(0.34, 5.2, 0.34)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_timber")
+
+[node name="post_e_s" type="MeshInstance3D" parent="station_architecture"]
+position = Vector3(-81.6, -2.8, -54.4)
+scale = Vector3(0.34, 5.2, 0.34)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_timber")
+
+[node name="roof_west" type="MeshInstance3D" parent="station_architecture"]
+position = Vector3(-89.15, -0.02, -59)
+rotation = Vector3(0, 0, -0.235)
+scale = Vector3(6.8, 0.28, 14)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_roof")
+
+[node name="roof_east" type="MeshInstance3D" parent="station_architecture"]
+position = Vector3(-82.85, -0.02, -59)
+rotation = Vector3(0, 0, 0.235)
+scale = Vector3(6.8, 0.28, 14)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_roof")
+
+[node name="ridge_beam" type="MeshInstance3D" parent="station_architecture"]
+position = Vector3(-86, 0.77, -59)
+scale = Vector3(0.3, 0.3, 14.2)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_timber")
+
+[node name="west_eave" type="MeshInstance3D" parent="station_architecture"]
+position = Vector3(-92.25, -0.77, -59)
+scale = Vector3(0.28, 0.35, 14.2)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="east_eave" type="MeshInstance3D" parent="station_architecture"]
+position = Vector3(-79.75, -0.77, -59)
+scale = Vector3(0.28, 0.35, 14.2)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="front_fascia" type="MeshInstance3D" parent="station_architecture"]
+position = Vector3(-92.43, -1.28, -59)
+scale = Vector3(0.18, 1.05, 8.8)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="front_sign" type="Label3D" parent="station_architecture"]
+position = Vector3(-92.57, -1.22, -59)
+rotation = Vector3(0, -1.570796, 0)
+text = "WOODEN COASTER"
+font_size = 78
+pixel_size = 0.007
+outline_size = 9
+modulate = Color(0.98, 0.89, 0.66, 1)
+
+[node name="dispatch_board" type="MeshInstance3D" parent="station_architecture"]
+position = Vector3(-90.58, -2.75, -56.3)
+scale = Vector3(0.18, 1.5, 1.9)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_cream")
+
+[node name="dispatch_text" type="Label3D" parent="station_architecture"]
+position = Vector3(-90.77, -2.7, -56.3)
+rotation = Vector3(0, -1.570796, 0)
+text = "WAIT FOR\nOPERATOR"
+font_size = 46
+pixel_size = 0.005
+outline_size = 5
+modulate = Color(0.18, 0.17, 0.14, 1)
+
+[node name="station_train" type="Node3D" parent="."]
+editor_description = "Four-car parked train establishes scale and station machinery. Ride motion remains later systems work."
+
+[node name="car_0_body" type="MeshInstance3D" parent="station_train"]
+position = Vector3(-85.5, -3.05, -54.9)
+scale = Vector3(1.75, 0.75, 2.35)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="car_0_seat" type="MeshInstance3D" parent="station_train"]
+position = Vector3(-85.5, -2.48, -55.35)
+scale = Vector3(1.42, 0.72, 0.22)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_train_dark")
+
+[node name="car_0_lap" type="MeshInstance3D" parent="station_train"]
+position = Vector3(-85.5, -2.25, -54.7)
+scale = Vector3(1.25, 0.12, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="car_1_body" type="MeshInstance3D" parent="station_train"]
+position = Vector3(-85.5, -3.05, -57.55)
+scale = Vector3(1.75, 0.75, 2.35)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="car_1_seat" type="MeshInstance3D" parent="station_train"]
+position = Vector3(-85.5, -2.48, -58)
+scale = Vector3(1.42, 0.72, 0.22)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_train_dark")
+
+[node name="car_1_lap" type="MeshInstance3D" parent="station_train"]
+position = Vector3(-85.5, -2.25, -57.35)
+scale = Vector3(1.25, 0.12, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="car_2_body" type="MeshInstance3D" parent="station_train"]
+position = Vector3(-85.5, -3.05, -60.2)
+scale = Vector3(1.75, 0.75, 2.35)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="car_2_seat" type="MeshInstance3D" parent="station_train"]
+position = Vector3(-85.5, -2.48, -60.65)
+scale = Vector3(1.42, 0.72, 0.22)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_train_dark")
+
+[node name="car_2_lap" type="MeshInstance3D" parent="station_train"]
+position = Vector3(-85.5, -2.25, -60)
+scale = Vector3(1.25, 0.12, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="car_3_body" type="MeshInstance3D" parent="station_train"]
+position = Vector3(-85.5, -3.05, -62.85)
+scale = Vector3(1.75, 0.75, 2.35)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="car_3_seat" type="MeshInstance3D" parent="station_train"]
+position = Vector3(-85.5, -2.48, -63.3)
+scale = Vector3(1.42, 0.72, 0.22)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_train_dark")
+
+[node name="car_3_lap" type="MeshInstance3D" parent="station_train"]
+position = Vector3(-85.5, -2.25, -62.65)
+scale = Vector3(1.25, 0.12, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="front_bumper" type="MeshInstance3D" parent="station_train"]
+position = Vector3(-85.5, -3.2, -53.55)
+scale = Vector3(1.25, 0.28, 0.28)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_train_dark")
+
+[node name="brake_fin_0" type="MeshInstance3D" parent="station_train"]
+position = Vector3(-85.5, -3.95, -55.5)
+scale = Vector3(0.10, 0.65, 1.35)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_rail")
+
+[node name="brake_fin_1" type="MeshInstance3D" parent="station_train"]
+position = Vector3(-85.5, -3.95, -59)
+scale = Vector3(0.10, 0.65, 1.35)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_rail")
+
+[node name="brake_fin_2" type="MeshInstance3D" parent="station_train"]
+position = Vector3(-85.5, -3.95, -62.5)
+scale = Vector3(0.10, 0.65, 1.35)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_rail")
+
+[node name="station_lighting" type="Node3D" parent="."]
+editor_description = "Public eave bulbs follow the park fixture schedule; the existing R2 console worklight remains the separate after-close service practical."
+
+[node name="bulb_0" type="MeshInstance3D" parent="station_lighting"]
+position = Vector3(-92.42, -0.92, -64)
+scale = Vector3(0.16, 0.16, 0.16)
+mesh = SubResource("SphereMesh_bulb")
+material_override = ExtResource("2_bulb")
+
+[node name="bulb_1" type="MeshInstance3D" parent="station_lighting"]
+position = Vector3(-92.42, -0.92, -62.6)
+scale = Vector3(0.16, 0.16, 0.16)
+mesh = SubResource("SphereMesh_bulb")
+material_override = ExtResource("2_bulb")
+
+[node name="bulb_2" type="MeshInstance3D" parent="station_lighting"]
+position = Vector3(-92.42, -0.92, -61.2)
+scale = Vector3(0.16, 0.16, 0.16)
+mesh = SubResource("SphereMesh_bulb")
+material_override = ExtResource("2_bulb")
+
+[node name="bulb_3" type="MeshInstance3D" parent="station_lighting"]
+position = Vector3(-92.42, -0.92, -59.8)
+scale = Vector3(0.16, 0.16, 0.16)
+mesh = SubResource("SphereMesh_bulb")
+material_override = ExtResource("2_bulb")
+
+[node name="bulb_4" type="MeshInstance3D" parent="station_lighting"]
+position = Vector3(-92.42, -0.92, -58.4)
+scale = Vector3(0.16, 0.16, 0.16)
+mesh = SubResource("SphereMesh_bulb")
+material_override = ExtResource("2_bulb")
+
+[node name="bulb_5" type="MeshInstance3D" parent="station_lighting"]
+position = Vector3(-92.42, -0.92, -57)
+scale = Vector3(0.16, 0.16, 0.16)
+mesh = SubResource("SphereMesh_bulb")
+material_override = ExtResource("2_bulb")
+
+[node name="bulb_6" type="MeshInstance3D" parent="station_lighting"]
+position = Vector3(-92.42, -0.92, -55.6)
+scale = Vector3(0.16, 0.16, 0.16)
+mesh = SubResource("SphereMesh_bulb")
+material_override = ExtResource("2_bulb")
+
+[node name="bulb_7" type="MeshInstance3D" parent="station_lighting"]
+position = Vector3(-92.42, -0.92, -54.2)
+scale = Vector3(0.16, 0.16, 0.16)
+mesh = SubResource("SphereMesh_bulb")
+material_override = ExtResource("2_bulb")
+
+[node name="public_pool_n" type="OmniLight3D" parent="station_lighting" groups=["park_light"]]
+position = Vector3(-90, -1.35, -62)
+visible = false
+light_color = Color(1, 0.73, 0.42, 1)
+light_energy = 0.0
+light_specular = 0.25
+omni_range = 9.0
+omni_attenuation = 1.65
+metadata/base_energy = 1.55
+metadata/light_kind = 0
+
+[node name="public_pool_s" type="OmniLight3D" parent="station_lighting" groups=["park_light"]]
+position = Vector3(-90, -1.35, -56)
+visible = false
+light_color = Color(1, 0.73, 0.42, 1)
+light_energy = 0.0
+light_specular = 0.25
+omni_range = 9.0
+omni_attenuation = 1.65
+metadata/base_energy = 1.55
+metadata/light_kind = 0
+
+[node name="lattice_pool_s" type="OmniLight3D" parent="station_lighting" groups=["park_light"]]
+position = Vector3(-85.5, -3.5, -78)
+visible = false
+light_color = Color(1, 0.57, 0.27, 1)
+light_energy = 0.0
+light_specular = 0.18
+omni_range = 15.0
+omni_attenuation = 1.9
+metadata/base_energy = 1.05
+metadata/light_kind = 1
+
+[node name="lattice_pool_c" type="OmniLight3D" parent="station_lighting" groups=["park_light"]]
+position = Vector3(-74, -3.7, -101)
+visible = false
+light_color = Color(0.96, 0.50, 0.22, 1)
+light_energy = 0.0
+light_specular = 0.18
+omni_range = 17.0
+omni_attenuation = 1.95
+metadata/base_energy = 1.0
+metadata/light_kind = 1
+
+[node name="lattice_pool_n" type="OmniLight3D" parent="station_lighting" groups=["park_light"]]
+position = Vector3(-66, -3.8, -121)
+visible = false
+light_color = Color(1, 0.61, 0.30, 1)
+light_energy = 0.0
+light_specular = 0.18
+omni_range = 15.0
+omni_attenuation = 1.9
+metadata/base_energy = 0.95
+metadata/light_kind = 1
+
+[node name="station_collision" type="StaticBody3D" parent="."]
+
+[node name="foundation" type="CollisionShape3D" parent="station_collision"]
+position = Vector3(-86, -5.45, -59)
+shape = SubResource("Shape_foundation")
+
+[node name="post_w_n" type="CollisionShape3D" parent="station_collision"]
+position = Vector3(-90.4, -2.8, -63.6)
+shape = SubResource("Shape_post")
+
+[node name="post_w_s" type="CollisionShape3D" parent="station_collision"]
+position = Vector3(-90.4, -2.8, -54.4)
+shape = SubResource("Shape_post")
+
+[node name="post_e_n" type="CollisionShape3D" parent="station_collision"]
+position = Vector3(-81.6, -2.8, -63.6)
+shape = SubResource("Shape_post")
+
+[node name="post_e_s" type="CollisionShape3D" parent="station_collision"]
+position = Vector3(-81.6, -2.8, -54.4)
+shape = SubResource("Shape_post")
