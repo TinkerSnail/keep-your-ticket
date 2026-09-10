@@ -7,8 +7,9 @@ extends Node
 ## not "can I walk along it" but "does it stop me". Pushed square at the water,
 ## the wheel's jetty, the bluff, the shop backs, the yard and the coaster
 ## fence; none of those may arrive. The pier is walked out to the pavilion and
-## back, and the Grand Circuit platform in the back lane is walked and its
-## lane-side guard probed.
+## back, the editor-owned T-head loop is walked in both directions, every new
+## water edge is pushed, and the Grand Circuit platform in the back lane is
+## walked with its lane-side guard probed.
 ##
 ## Split out of the retired `walk_test.gd` on 2026-09-05, minus its strip-end
 ## probes, which named the pre-expansion boundary: the coast now tapers into
@@ -71,6 +72,14 @@ func _legs_list() -> Array:
 	# to the mouth: a shallow diagonal is the waypoint trap.
 	var pz := ParkPlan.PIER_ROOT.y
 	var mouth := Vector3(ParkPlan.PROMENADE_X + 5.0, y, pz)
+	# These points are the centre of the clear ring around the fixed pavilion.
+	# They follow the directly editable markers in boardwalk_pier_head.tscn; the
+	# test measures the emitted scene's approved route rather than the old apron.
+	var head_front := Vector3(-150.5, y, pz)
+	var head_n_e := Vector3(-150.5, y, -2.0)
+	var head_n_w := Vector3(-166.0, y, -2.0)
+	var head_s_w := Vector3(-166.0, y, 14.5)
+	var head_s_e := Vector3(-150.5, y, 14.5)
 	return [
 		["bw lane -> tram", alley_in, tram_lane, true],
 		["bw tram apron", tram_lane, tram_apron, true],
@@ -86,6 +95,25 @@ func _legs_list() -> Array:
 		["bw onto the pier", mouth, Vector3(-106, y, pz), true],
 		["bw out the pier", Vector3(-106, y, pz), Vector3(-149, y, pz), true],
 		["bw pavilion holds", Vector3(-149, y, pz), Vector3(-162, y, pz), false],
+		["bw head enter front", Vector3(-147, y, pz), head_front, true],
+		["bw head enter north", head_front, head_n_e, true],
+		["bw head north out", head_n_e, head_n_w, true],
+		["bw head outer south", head_n_w, head_s_w, true],
+		["bw head south return", head_s_w, head_s_e, true],
+		["bw head leave south", head_s_e, head_front, true],
+		["bw head leave front", head_front, Vector3(-147, y, pz), true],
+		["bw head enter front 2", Vector3(-147, y, pz), head_front, true],
+		["bw head enter south", head_front, head_s_e, true],
+		["bw head south out", head_s_e, head_s_w, true],
+		["bw head outer north", head_s_w, head_n_w, true],
+		["bw head north return", head_n_w, head_n_e, true],
+		["bw head leave north", head_n_e, head_front, true],
+		["bw head leave front 2", head_front, Vector3(-147, y, pz), true],
+		["bw head north rail", Vector3(-159, y, -2.0), Vector3(-159, y, -7.0), false],
+		["bw head outer rail", Vector3(-166, y, 6.5), Vector3(-172, y, 6.5), false],
+		["bw head south rail", Vector3(-159, y, 14.5), Vector3(-159, y, 20.0), false],
+		["bw head entry rail n", head_n_e, Vector3(-140, y, -2.0), false],
+		["bw head entry rail s", head_s_e, Vector3(-140, y, 14.5), false],
 		["bw back down pier", Vector3(-149, y, pz), Vector3(-102, y, pz), true],
 		["bw mouth -> alley", mouth, prom, true],
 		# The jetty: the promenade rail breaks across the wheel's platform, and

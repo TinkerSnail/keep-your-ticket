@@ -83,7 +83,7 @@ metadata/layout_source = "res://scenes/world/boardwalk_layout.tscn"
 metadata/fidelity_pass = 2
 
 [node name="R1_wheel_operations" type="Node3D" parent="."]
-editor_description = "R1 load/exit separation, operator control and maintenance residue on the existing wheel deck."
+editor_description = "R1 raised load/unload station, north/south passenger separation, step-free lift, operator control and maintenance residue within the fixed wheel deck."
 
 [node name="load_gate_post_n" type="MeshInstance3D" parent="R1_wheel_operations"]
 position = Vector3(-107.82, -4.77, -28.0)
@@ -197,6 +197,580 @@ omni_range = 6.5
 omni_attenuation = 1.7
 metadata/base_energy = 1.25
 metadata/light_kind = 2
+
+[node name="boarding_station" type="Node3D" parent="R1_wheel_operations"]
+editor_description = "Directly editable raised station within the fixed 8 × 26m jetty: north LOAD stair, level transfer bridge, south EXIT stair and compact step-free lift. This is operating infrastructure; crowd queue behavior is not implemented."
+
+[node name="transfer_platform" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -1.22, -16)
+scale = Vector3(2.58, 0.24, 4.48)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="platform_west_top_n" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-110.62, -0.02, -17.52)
+scale = Vector3(0.12, 0.1, 1.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="platform_west_top_s" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-110.62, -0.02, -14.48)
+scale = Vector3(0.12, 0.1, 1.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="platform_east_top" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-107.96, -0.02, -16)
+scale = Vector3(0.12, 0.1, 4.22)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="platform_east_post_n" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-107.96, -0.58, -17.9)
+scale = Vector3(0.1, 1.05, 0.1)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="platform_east_post_c" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-107.96, -0.58, -16)
+scale = Vector3(0.1, 1.05, 0.1)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="platform_east_post_s" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-107.96, -0.58, -14.1)
+scale = Vector3(0.1, 1.05, 0.1)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="platform_west_post_nn" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-110.62, -0.58, -18)
+scale = Vector3(0.1, 1.05, 0.1)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="platform_west_post_ns" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-110.62, -0.58, -17)
+scale = Vector3(0.1, 1.05, 0.1)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="platform_west_post_sn" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-110.62, -0.58, -15)
+scale = Vector3(0.1, 1.05, 0.1)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="platform_west_post_ss" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-110.62, -0.58, -14)
+scale = Vector3(0.1, 1.05, 0.1)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="transfer_sill" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-110.67, -1.02, -16)
+scale = Vector3(0.16, 0.12, 1.66)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="load_direction" type="Label3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-107.88, -0.34, -17.15)
+rotation = Vector3(0, 1.570796, 0)
+text = "LOAD  →"
+font_size = 42
+pixel_size = 0.004
+outline_size = 6
+modulate = Color(0.96, 0.86, 0.58, 1)
+
+[node name="unload_direction" type="Label3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-107.88, -0.34, -14.85)
+rotation = Vector3(0, 1.570796, 0)
+text = "→  EXIT"
+font_size = 42
+pixel_size = 0.004
+outline_size = 6
+modulate = Color(0.75, 0.92, 0.82, 1)
+
+[node name="load_step_00" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -5.1211, -25.4514)
+scale = Vector3(2.2, 0.14, 0.392)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="load_step_01" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -4.8922, -25.0542)
+scale = Vector3(2.2, 0.14, 0.392)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="load_step_02" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -4.6633, -24.6569)
+scale = Vector3(2.2, 0.14, 0.392)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="load_step_03" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -4.4344, -24.2597)
+scale = Vector3(2.2, 0.14, 0.392)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="load_step_04" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -4.2056, -23.8625)
+scale = Vector3(2.2, 0.14, 0.392)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="load_step_05" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -3.9767, -23.4653)
+scale = Vector3(2.2, 0.14, 0.392)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="load_step_06" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -3.7478, -23.0681)
+scale = Vector3(2.2, 0.14, 0.392)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="load_step_07" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -3.5189, -22.6708)
+scale = Vector3(2.2, 0.14, 0.392)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="load_step_08" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -3.2900, -22.2736)
+scale = Vector3(2.2, 0.14, 0.392)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="load_step_09" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -3.0611, -21.8764)
+scale = Vector3(2.2, 0.14, 0.392)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="load_step_10" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -2.8322, -21.4792)
+scale = Vector3(2.2, 0.14, 0.392)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="load_step_11" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -2.6033, -21.0819)
+scale = Vector3(2.2, 0.14, 0.392)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="load_step_12" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -2.3744, -20.6847)
+scale = Vector3(2.2, 0.14, 0.392)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="load_step_13" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -2.1456, -20.2875)
+scale = Vector3(2.2, 0.14, 0.392)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="load_step_14" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -1.9167, -19.8903)
+scale = Vector3(2.2, 0.14, 0.392)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="load_step_15" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -1.6878, -19.4931)
+scale = Vector3(2.2, 0.14, 0.392)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="load_step_16" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -1.4589, -19.0958)
+scale = Vector3(2.2, 0.14, 0.392)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="load_step_17" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -1.2300, -18.6986)
+scale = Vector3(2.2, 0.14, 0.392)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="exit_step_00" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -1.4589, -13.3556)
+scale = Vector3(2.2, 0.14, 0.384)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="exit_step_01" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -1.6878, -12.9667)
+scale = Vector3(2.2, 0.14, 0.384)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="exit_step_02" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -1.9167, -12.5778)
+scale = Vector3(2.2, 0.14, 0.384)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="exit_step_03" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -2.1456, -12.1889)
+scale = Vector3(2.2, 0.14, 0.384)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="exit_step_04" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -2.3744, -11.8000)
+scale = Vector3(2.2, 0.14, 0.384)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="exit_step_05" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -2.6033, -11.4111)
+scale = Vector3(2.2, 0.14, 0.384)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="exit_step_06" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -2.8322, -11.0222)
+scale = Vector3(2.2, 0.14, 0.384)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="exit_step_07" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -3.0611, -10.6333)
+scale = Vector3(2.2, 0.14, 0.384)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="exit_step_08" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -3.2900, -10.2444)
+scale = Vector3(2.2, 0.14, 0.384)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="exit_step_09" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -3.5189, -9.8556)
+scale = Vector3(2.2, 0.14, 0.384)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="exit_step_10" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -3.7478, -9.4667)
+scale = Vector3(2.2, 0.14, 0.384)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="exit_step_11" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -3.9767, -9.0778)
+scale = Vector3(2.2, 0.14, 0.384)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="exit_step_12" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -4.2056, -8.6889)
+scale = Vector3(2.2, 0.14, 0.384)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="exit_step_13" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -4.4344, -8.3000)
+scale = Vector3(2.2, 0.14, 0.384)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="exit_step_14" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -4.6633, -7.9111)
+scale = Vector3(2.2, 0.14, 0.384)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="exit_step_15" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -4.8922, -7.5222)
+scale = Vector3(2.2, 0.14, 0.384)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="exit_step_16" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -5.1211, -7.1333)
+scale = Vector3(2.2, 0.14, 0.384)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="exit_step_17" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-109.3, -5.3500, -6.7444)
+scale = Vector3(2.2, 0.14, 0.384)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="load_rail_post_west_0" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-110.55, -4.4500, -25.5500)
+scale = Vector3(0.09, 1.2, 0.09)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="load_rail_post_west_1" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-110.55, -3.4300, -23.7875)
+scale = Vector3(0.09, 1.2, 0.09)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="load_rail_post_west_2" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-110.55, -2.4100, -22.0250)
+scale = Vector3(0.09, 1.2, 0.09)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="load_rail_post_west_3" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-110.55, -1.3900, -20.2625)
+scale = Vector3(0.09, 1.2, 0.09)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="load_rail_post_west_4" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-110.55, -0.3700, -18.5000)
+scale = Vector3(0.09, 1.2, 0.09)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="load_rail_cap_west" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-110.55, -2.01, -22.025)
+rotation = Vector3(-0.524, 0, 0)
+scale = Vector3(0.1, 0.1, 8.14)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="load_rail_post_east_0" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-108.05, -4.4500, -25.5500)
+scale = Vector3(0.09, 1.2, 0.09)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="load_rail_post_east_1" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-108.05, -3.4300, -23.7875)
+scale = Vector3(0.09, 1.2, 0.09)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="load_rail_post_east_2" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-108.05, -2.4100, -22.0250)
+scale = Vector3(0.09, 1.2, 0.09)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="load_rail_post_east_3" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-108.05, -1.3900, -20.2625)
+scale = Vector3(0.09, 1.2, 0.09)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="load_rail_post_east_4" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-108.05, -0.3700, -18.5000)
+scale = Vector3(0.09, 1.2, 0.09)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="load_rail_cap_east" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-108.05, -2.01, -22.025)
+rotation = Vector3(-0.524, 0, 0)
+scale = Vector3(0.1, 0.1, 8.14)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="exit_rail_post_west_0" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-110.55, -0.3700, -13.5000)
+scale = Vector3(0.09, 1.2, 0.09)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="exit_rail_post_west_1" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-110.55, -1.3900, -11.7750)
+scale = Vector3(0.09, 1.2, 0.09)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="exit_rail_post_west_2" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-110.55, -2.4100, -10.0500)
+scale = Vector3(0.09, 1.2, 0.09)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="exit_rail_post_west_3" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-110.55, -3.4300, -8.3250)
+scale = Vector3(0.09, 1.2, 0.09)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="exit_rail_post_west_4" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-110.55, -4.4500, -6.6000)
+scale = Vector3(0.09, 1.2, 0.09)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="exit_rail_cap_west" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-110.55, -2.01, -10.05)
+rotation = Vector3(0.534, 0, 0)
+scale = Vector3(0.1, 0.1, 8.02)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="exit_rail_post_east_0" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-108.05, -0.3700, -13.5000)
+scale = Vector3(0.09, 1.2, 0.09)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="exit_rail_post_east_1" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-108.05, -1.3900, -11.7750)
+scale = Vector3(0.09, 1.2, 0.09)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="exit_rail_post_east_2" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-108.05, -2.4100, -10.0500)
+scale = Vector3(0.09, 1.2, 0.09)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="exit_rail_post_east_3" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-108.05, -3.4300, -8.3250)
+scale = Vector3(0.09, 1.2, 0.09)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="exit_rail_post_east_4" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-108.05, -4.4500, -6.6000)
+scale = Vector3(0.09, 1.2, 0.09)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="exit_rail_cap_east" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-108.05, -2.01, -10.05)
+rotation = Vector3(0.534, 0, 0)
+scale = Vector3(0.1, 0.1, 8.02)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="platform_support_nw" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-110.38, -3.28, -17.78)
+scale = Vector3(0.18, 4.05, 0.18)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="platform_support_ne" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-108.22, -3.28, -17.78)
+scale = Vector3(0.18, 4.05, 0.18)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="platform_support_sw" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-110.38, -3.28, -14.22)
+scale = Vector3(0.18, 4.05, 0.18)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="platform_support_se" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-108.22, -3.28, -14.22)
+scale = Vector3(0.18, 4.05, 0.18)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="load_stringer_west" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-110.18, -3.22, -22.025)
+rotation = Vector3(-0.524, 0, 0)
+scale = Vector3(0.18, 0.28, 8.14)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="load_stringer_east" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-108.42, -3.22, -22.025)
+rotation = Vector3(-0.524, 0, 0)
+scale = Vector3(0.18, 0.28, 8.14)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="exit_stringer_west" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-110.18, -3.22, -10.05)
+rotation = Vector3(0.534, 0, 0)
+scale = Vector3(0.18, 0.28, 8.02)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="exit_stringer_east" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station"]
+position = Vector3(-108.42, -3.22, -10.05)
+rotation = Vector3(0.534, 0, 0)
+scale = Vector3(0.18, 0.28, 8.02)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="step_free_lift" type="Node3D" parent="R1_wheel_operations/boarding_station"]
+editor_description = "Compact platform lift supplies the step-free change in level that a 1:12 ramp cannot fit inside the fixed 8 × 26m jetty."
+
+[node name="shaft_floor" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station/step_free_lift"]
+position = Vector3(-113.7, -5.3, -18.85)
+scale = Vector3(1.5, 0.18, 1.5)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="frame_nw" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station/step_free_lift"]
+position = Vector3(-114.38, -3.18, -19.53)
+scale = Vector3(0.12, 4.18, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="frame_ne" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station/step_free_lift"]
+position = Vector3(-113.02, -3.18, -19.53)
+scale = Vector3(0.12, 4.18, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="frame_sw" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station/step_free_lift"]
+position = Vector3(-114.38, -3.18, -18.17)
+scale = Vector3(0.12, 4.18, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="frame_se" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station/step_free_lift"]
+position = Vector3(-113.02, -3.18, -18.17)
+scale = Vector3(0.12, 4.18, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="lift_car" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station/step_free_lift"]
+position = Vector3(-113.7, -4.82, -18.85)
+scale = Vector3(1.28, 0.72, 1.28)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="top_header" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station/step_free_lift"]
+position = Vector3(-113.7, -0.98, -18.85)
+scale = Vector3(1.58, 0.16, 1.58)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="upper_bridge" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station/step_free_lift"]
+position = Vector3(-112.12, -1.22, -18.35)
+scale = Vector3(2.52, 0.24, 1.1)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="upper_bridge_n_rail" type="MeshInstance3D" parent="R1_wheel_operations/boarding_station/step_free_lift"]
+position = Vector3(-112.12, -0.5, -18.94)
+scale = Vector3(2.5, 1.18, 0.09)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+
+[node name="lift_label" type="Label3D" parent="R1_wheel_operations/boarding_station/step_free_lift"]
+position = Vector3(-112.92, -3.1, -18.14)
+text = "STEP-FREE LIFT"
+font_size = 48
+pixel_size = 0.0045
+outline_size = 6
+modulate = Color(0.75, 0.92, 0.82, 1)
 
 [node name="R2_coaster_station_operations" type="Node3D" parent="."]
 editor_description = "R2 separate load/exit gates, brake console and before-opening SH1 work edge."
@@ -465,7 +1039,7 @@ metadata/base_energy = 1.15
 metadata/light_kind = 2
 
 [node name="pier_fishing_operations" type="Node3D" parent="."]
-editor_description = "Fishing is integrated into the existing pavilion landing: outer and south rail bays only, with the approach/turnaround left clear."
+editor_description = "Fishing remains on the pavilion service wall and outer/south rail bays. The editor-owned 20 × 20m T-head leaves a separate public loop outside the sink and tackle cart."
 
 [node name="cleaning_sink_cabinet" type="MeshInstance3D" parent="pier_fishing_operations"]
 position = Vector3(-161.0, -5.28, 13.1)

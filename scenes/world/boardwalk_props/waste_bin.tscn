@@ -1,0 +1,51 @@
+[gd_scene load_steps=6 format=3]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_unit"]
+top_radius = 0.5
+bottom_radius = 0.5
+height = 1.0
+radial_segments = 12
+
+[sub_resource type="BoxMesh" id="BoxMesh_unit"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_green"]
+albedo_color = Color(0.055, 0.23, 0.20, 1)
+metallic = 0.12
+roughness = 0.78
+
+[sub_resource type="StandardMaterial3D" id="Mat_metal"]
+albedo_color = Color(0.20, 0.23, 0.23, 1)
+metallic = 0.55
+roughness = 0.52
+
+[sub_resource type="StandardMaterial3D" id="Mat_cream"]
+albedo_color = Color(0.74, 0.67, 0.48, 1)
+roughness = 0.82
+
+[node name="waste_bin" type="Node3D"]
+editor_description = "Late-1990s slatted-look promenade bin, kept against a furniture edge rather than in the through route."
+
+[node name="body" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.43, 0)
+scale = Vector3(0.68, 0.86, 0.68)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_green")
+
+[node name="lid" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.89, 0)
+scale = Vector3(0.78, 0.10, 0.78)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_metal")
+
+[node name="opening" type="MeshInstance3D" parent="."]
+position = Vector3(-0.30, 0.72, 0)
+scale = Vector3(0.035, 0.23, 0.32)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_metal")
+
+[node name="label" type="MeshInstance3D" parent="."]
+position = Vector3(-0.324, 0.42, 0)
+scale = Vector3(0.025, 0.22, 0.28)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_cream")

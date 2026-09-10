@@ -77,6 +77,11 @@ func _measure(hour: float, note: String) -> void:
 
 	var bulb := load(Plan.BULB_MATERIAL) as StandardMaterial3D
 	var trim := load(Plan.TRIM_MATERIAL) as StandardMaterial3D
+	var wheel_tube := 0.0
+	for path in Plan.WHEEL_TUBE_MATERIALS:
+		var tube := load(path) as StandardMaterial3D
+		if tube != null:
+			wheel_tube = maxf(wheel_tube, tube.emission_energy_multiplier)
 	_rows.append({
 		"hour": hour,
 		"note": note,
@@ -88,16 +93,17 @@ func _measure(hour: float, note: String) -> void:
 			+ total[Plan.LIGHT_SERVICE],
 		"emission": 0.0 if bulb == null else bulb.emission_energy_multiplier,
 		"trim": 0.0 if trim == null else trim.emission_energy_multiplier,
+		"wheel_tube": wheel_tube,
 	})
 
 
 func _report() -> void:
-	print("\n  hour   in scene   fixture  feature  service    energy  bulb  trim   note")
-	print("  " + "-".repeat(98))
+	print("\n  hour   in scene   fixture  feature  service    energy  bulb  trim  wheel   note")
+	print("  " + "-".repeat(106))
 	for r in _rows:
-		print("  %5.1f   %8d   %7d  %7d  %7d   %7.1f  %4.2f  %4.2f   %s" % [
+		print("  %5.1f   %8d   %7d  %7d  %7d   %7.1f  %4.2f  %4.2f  %5.2f   %s" % [
 			r["hour"], r["count"], r["fixture"], r["feature"], r["service"],
-			r["energy"], r["emission"], r["trim"], r["note"]])
+			r["energy"], r["emission"], r["trim"], r["wheel_tube"], r["note"]])
 
 	# The checks worth failing on, as opposed to the numbers worth reading.
 	var day: Dictionary = _rows[1]
@@ -113,12 +119,18 @@ func _report() -> void:
 	if not is_zero_approx(day["emission"]):
 		printerr("FAIL: bulbs are emitting at three in the afternoon")
 		bad += 1
+	if not is_zero_approx(day["wheel_tube"]):
+		printerr("FAIL: wheel tubes are emitting at three in the afternoon")
+		bad += 1
 	if night["fixture"] == 0 or night["feature"] == 0:
 		printerr("FAIL: the park is not lit at civil twilight")
 		bad += 1
 	if night["emission"] <= 0.0:
 		printerr("FAIL: the fittings are not lit at civil twilight — "
 			+ "the materials probably did not load")
+		bad += 1
+	if night["wheel_tube"] <= 0.0:
+		printerr("FAIL: R1's colored tubes are not lit at civil twilight")
 		bad += 1
 	if closed["feature"] > 0:
 		printerr("FAIL: %d uplights still burning after close" % closed["feature"])
@@ -135,6 +147,9 @@ func _report() -> void:
 		bad += 1
 	if closed["trim"] > 0.001:
 		printerr("FAIL: the cascade is still presenting itself after close")
+		bad += 1
+	if closed["wheel_tube"] > 0.001:
+		printerr("FAIL: R1's colored performance lights remain on after close")
 		bad += 1
 	if closed["emission"] >= night["emission"]:
 		printerr("FAIL: the fittings did not dim at close (%.2f then, %.2f now) — "

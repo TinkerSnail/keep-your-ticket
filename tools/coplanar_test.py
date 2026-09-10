@@ -251,7 +251,7 @@ def axis_aligned(m):
     return len(used) == 3
 
 
-def parse(path):
+def parse(path, retired=frozenset()):
     txt = open(path).read()
 
     meshes = {}
@@ -303,6 +303,14 @@ def parse(path):
         frames[node_path] = (frame, tf)
 
         if typ is None:
+            continue
+        # Stable wrappers retire generated geometry by overriding the inherited
+        # node with `visible = false`. The text audit reads source files rather
+        # than instantiating those wrappers, so carry that explicit runtime
+        # override into the source parse instead of reporting the replacement
+        # against geometry that cannot render. Derived below from the wrapper;
+        # never maintained as a second hand-written ownership table.
+        if node_path in retired:
             continue
 
         kind = None
@@ -379,8 +387,28 @@ sources += glob.glob('scenes/world/generated/*.tscn')
 # persistent world, so comparing its deliberately overlapping sketch pieces
 # against one another cannot report a runtime z-fight.
 sources = [f for f in sources if not f.endswith('/coastal_fast_pass.tscn')]
+
+# A generated scene only stands through its same-named stable wrapper. Collect
+# invisible direct-child overrides from that wrapper so the source parser sees
+# the runtime set. This also covers older retired landscape trees and prevents
+# every replacement from needing a matching exception in this test.
+retired_by_generated = defaultdict(set)
+for wrapper in glob.glob('scenes/world/*.tscn'):
+    generated = 'scenes/world/generated/' + os.path.basename(wrapper)
+    if not os.path.exists(generated):
+        continue
+    txt = open(wrapper).read()
+    for chunk in re.split(r'\n\[node ', txt)[1:]:
+        head = chunk.split('\n')[0]
+        body = chunk.split('\n[')[0]
+        if 'type=' in head or 'parent="."' not in head:
+            continue
+        name = re.search(r'name="([^"]+)"', head)
+        if name and re.search(r'^visible = false$', body, re.MULTILINE):
+            retired_by_generated[generated].add(name.group(1))
+
 for f in sorted(sources):
-    shapes.extend(parse(f))
+    shapes.extend(parse(f, retired_by_generated.get(f, frozenset())))
 n_csg = sum(1 for s in shapes if s['kind'] == 'csg')
 n_mesh = len(shapes) - n_csg
 print(f"{len(shapes)} shapes across {len(set(s['scene'] for s in shapes))} scenes "

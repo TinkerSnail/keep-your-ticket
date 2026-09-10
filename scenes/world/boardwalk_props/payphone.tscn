@@ -1,0 +1,71 @@
+[gd_scene load_steps=7 format=3]
+
+[sub_resource type="BoxMesh" id="BoxMesh_unit"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="TorusMesh" id="TorusMesh_cord"]
+inner_radius = 0.12
+outer_radius = 0.15
+rings = 12
+ring_segments = 6
+
+[sub_resource type="StandardMaterial3D" id="Mat_metal"]
+albedo_color = Color(0.28, 0.31, 0.31, 1)
+metallic = 0.58
+roughness = 0.48
+
+[sub_resource type="StandardMaterial3D" id="Mat_dark"]
+albedo_color = Color(0.025, 0.035, 0.04, 1)
+roughness = 0.54
+
+[sub_resource type="StandardMaterial3D" id="Mat_turquoise"]
+albedo_color = Color(0.07, 0.36, 0.35, 1)
+roughness = 0.72
+
+[sub_resource type="StandardMaterial3D" id="Mat_cream"]
+albedo_color = Color(0.77, 0.70, 0.52, 1)
+roughness = 0.84
+
+[node name="payphone" type="Node3D"]
+editor_description = "Wall-side late-1990s payphone. Backing belongs against the frontage, with its open face toward negative X."
+
+[node name="back" type="MeshInstance3D" parent="."]
+position = Vector3(0.08, 1.12, 0)
+scale = Vector3(0.14, 1.75, 0.82)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+[node name="hood" type="MeshInstance3D" parent="."]
+position = Vector3(-0.18, 1.88, 0)
+scale = Vector3(0.62, 0.14, 0.96)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+[node name="phone_body" type="MeshInstance3D" parent="."]
+position = Vector3(-0.17, 1.23, 0)
+scale = Vector3(0.35, 0.67, 0.48)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_metal")
+[node name="coin_panel" type="MeshInstance3D" parent="."]
+position = Vector3(-0.355, 1.38, -0.08)
+scale = Vector3(0.025, 0.22, 0.20)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_cream")
+[node name="handset" type="MeshInstance3D" parent="."]
+position = Vector3(-0.39, 1.23, 0.27)
+scale = Vector3(0.10, 0.52, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark")
+[node name="cord" type="MeshInstance3D" parent="."]
+position = Vector3(-0.39, 0.90, 0.23)
+rotation = Vector3(0, 0, 1.570796)
+scale = Vector3(1, 1.4, 1)
+mesh = SubResource("TorusMesh_cord")
+material_override = SubResource("Mat_dark")
+[node name="price" type="Label3D" parent="."]
+position = Vector3(-0.38, 1.68, 0)
+rotation = Vector3(0, -1.570796, 0)
+text = "LOCAL 25¢"
+font_size = 30
+pixel_size = 0.006
+outline_size = 4
+modulate = Color(0.82, 0.75, 0.55, 1)
+shaded = true

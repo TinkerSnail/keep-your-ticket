@@ -1,0 +1,111 @@
+[gd_scene load_steps=7 format=3]
+
+; Editor-owned Boardwalk planter family. Open this scene to reshape the family;
+; every placement remains an ordinary editable instance in boardwalk_density.
+
+[sub_resource type="BoxMesh" id="BoxMesh_unit"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_stem"]
+top_radius = 0.025
+bottom_radius = 0.04
+height = 1.0
+radial_segments = 6
+
+[sub_resource type="StandardMaterial3D" id="Mat_weathered_wood"]
+albedo_color = Color(0.31, 0.21, 0.12, 1)
+roughness = 0.96
+
+[sub_resource type="StandardMaterial3D" id="Mat_soil"]
+albedo_color = Color(0.105, 0.075, 0.045, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Mat_grass_a"]
+albedo_color = Color(0.24, 0.34, 0.13, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Mat_grass_b"]
+albedo_color = Color(0.43, 0.42, 0.18, 1)
+roughness = 0.88
+
+[node name="salt_planter" type="Node3D"]
+editor_description = "Low salt-tolerant Boardwalk planter. The long dimension belongs parallel to the circulation edge."
+
+[node name="box" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.34, 0)
+scale = Vector3(1.05, 0.68, 2.7)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_weathered_wood")
+
+[node name="soil" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.695, 0)
+scale = Vector3(0.82, 0.05, 2.44)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_soil")
+
+[node name="rim_w" type="MeshInstance3D" parent="."]
+position = Vector3(-0.49, 0.73, 0)
+scale = Vector3(0.10, 0.12, 2.82)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_weathered_wood")
+
+[node name="rim_e" type="MeshInstance3D" parent="."]
+position = Vector3(0.49, 0.73, 0)
+scale = Vector3(0.10, 0.12, 2.82)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_weathered_wood")
+
+[node name="rim_n" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.731, -1.31)
+scale = Vector3(0.90, 0.12, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_weathered_wood")
+
+[node name="rim_s" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.732, 1.31)
+scale = Vector3(0.90, 0.12, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_weathered_wood")
+
+[node name="grass_01" type="MeshInstance3D" parent="."]
+position = Vector3(-0.23, 1.08, -0.92)
+rotation = Vector3(0.08, 0, -0.15)
+scale = Vector3(1, 0.72, 1)
+mesh = SubResource("CylinderMesh_stem")
+material_override = SubResource("Mat_grass_a")
+[node name="grass_02" type="MeshInstance3D" parent="."]
+position = Vector3(0.18, 1.19, -0.67)
+rotation = Vector3(-0.12, 0, 0.10)
+scale = Vector3(1, 0.94, 1)
+mesh = SubResource("CylinderMesh_stem")
+material_override = SubResource("Mat_grass_b")
+[node name="grass_03" type="MeshInstance3D" parent="."]
+position = Vector3(-0.12, 1.26, -0.28)
+rotation = Vector3(0.10, 0, -0.08)
+scale = Vector3(1, 1.08, 1)
+mesh = SubResource("CylinderMesh_stem")
+material_override = SubResource("Mat_grass_a")
+[node name="grass_04" type="MeshInstance3D" parent="."]
+position = Vector3(0.25, 1.10, 0.02)
+rotation = Vector3(-0.06, 0, 0.14)
+scale = Vector3(1, 0.76, 1)
+mesh = SubResource("CylinderMesh_stem")
+material_override = SubResource("Mat_grass_b")
+[node name="grass_05" type="MeshInstance3D" parent="."]
+position = Vector3(-0.28, 1.18, 0.35)
+rotation = Vector3(0.12, 0, -0.12)
+scale = Vector3(1, 0.92, 1)
+mesh = SubResource("CylinderMesh_stem")
+material_override = SubResource("Mat_grass_a")
+[node name="grass_06" type="MeshInstance3D" parent="."]
+position = Vector3(0.10, 1.28, 0.68)
+rotation = Vector3(-0.12, 0, 0.08)
+scale = Vector3(1, 1.12, 1)
+mesh = SubResource("CylinderMesh_stem")
+material_override = SubResource("Mat_grass_b")
+[node name="grass_07" type="MeshInstance3D" parent="."]
+position = Vector3(-0.16, 1.11, 1.00)
+rotation = Vector3(0.08, 0, -0.1)
+scale = Vector3(1, 0.78, 1)
+mesh = SubResource("CylinderMesh_stem")
+material_override = SubResource("Mat_grass_a")

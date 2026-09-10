@@ -1,0 +1,97 @@
+[gd_scene load_steps=7 format=3]
+
+; Editor-owned Boardwalk middle-scale density. Each placement is an ordinary
+; scene instance; edit its transform here or open the family source beside it.
+; Public pieces hug established furniture/frontage edges. Nothing enters Q3,
+; the pier approach or turnaround, the wheel frontage, or the sunset sector.
+
+[ext_resource type="PackedScene" path="res://scenes/world/boardwalk_props/salt_planter.tscn" id="1_planter"]
+[ext_resource type="PackedScene" path="res://scenes/world/boardwalk_props/waste_bin.tscn" id="2_bin"]
+[ext_resource type="PackedScene" path="res://scenes/world/boardwalk_props/newspaper_box.tscn" id="3_news"]
+[ext_resource type="PackedScene" path="res://scenes/world/boardwalk_props/payphone.tscn" id="4_phone"]
+[ext_resource type="PackedScene" path="res://scenes/world/boardwalk_props/pier_cleat.tscn" id="5_cleat"]
+[ext_resource type="PackedScene" path="res://scenes/world/boardwalk_props/life_ring.tscn" id="6_ring"]
+
+[node name="boardwalk_density" type="Node3D"]
+editor_description = "Boardwalk planting and period-prop density, arranged by public edge rather than scattered through the promenade."
+metadata/section = &"boardwalk"
+metadata/layout_source = "res://scenes/world/boardwalk_layout.tscn"
+metadata/fidelity_pass = 4
+metadata/protected_clearances = "NT-1,Q3,pier_approach,pavilion_turnaround,west_arch_reveal,sunset_sector"
+
+[node name="salt_planters" type="Node3D" parent="."]
+editor_description = "Low planting terminates blank stretches without replacing the established palms or becoming a second allée."
+
+[node name="north_terminal" parent="salt_planters" instance=ExtResource("1_planter")]
+position = Vector3(-92.0, -5.94, -73.0)
+[node name="cafe_buffer" parent="salt_planters" instance=ExtResource("1_planter")]
+position = Vector3(-92.0, -5.94, -49.0)
+[node name="south_restroom" parent="salt_planters" instance=ExtResource("1_planter")]
+position = Vector3(-92.0, -5.94, 52.0)
+[node name="south_terminal" parent="salt_planters" instance=ExtResource("1_planter")]
+position = Vector3(-92.8, -5.94, 70.0)
+[node name="rail_north" parent="salt_planters" instance=ExtResource("1_planter")]
+position = Vector3(-106.25, -5.94, -54.0)
+[node name="rail_south" parent="salt_planters" instance=ExtResource("1_planter")]
+position = Vector3(-106.25, -5.94, 54.0)
+
+[node name="promenade_bins" type="Node3D" parent="."]
+editor_description = "Bins occupy the rail furniture strip halfway between benches, never the centre walking line."
+
+[node name="bin_north_01" parent="promenade_bins" instance=ExtResource("2_bin")]
+position = Vector3(-106.35, -5.94, -66.0)
+rotation = Vector3(0, 3.141593, 0)
+[node name="bin_north_02" parent="promenade_bins" instance=ExtResource("2_bin")]
+position = Vector3(-106.35, -5.94, -42.0)
+rotation = Vector3(0, 3.141593, 0)
+[node name="bin_south_01" parent="promenade_bins" instance=ExtResource("2_bin")]
+position = Vector3(-106.35, -5.94, 30.0)
+rotation = Vector3(0, 3.141593, 0)
+[node name="bin_south_02" parent="promenade_bins" instance=ExtResource("2_bin")]
+position = Vector3(-106.35, -5.94, 42.0)
+rotation = Vector3(0, 3.141593, 0)
+[node name="bin_south_03" parent="promenade_bins" instance=ExtResource("2_bin")]
+position = Vector3(-106.35, -5.94, 66.0)
+rotation = Vector3(0, 3.141593, 0)
+
+[node name="period_frontage_furniture" type="Node3D" parent="."]
+editor_description = "Small late-1990s street fixtures sit against the building edge and leave every public threshold legible."
+
+[node name="paper_cafe_arcade" parent="period_frontage_furniture" instance=ExtResource("3_news")]
+position = Vector3(-91.45, -5.94, -39.0)
+[node name="paper_south_midway" parent="period_frontage_furniture" instance=ExtResource("3_news")]
+position = Vector3(-91.45, -5.94, 21.5)
+[node name="paper_funhouse_restroom" parent="period_frontage_furniture" instance=ExtResource("3_news")]
+position = Vector3(-91.45, -5.94, 44.0)
+
+[node name="phone_north" parent="period_frontage_furniture" instance=ExtResource("4_phone")]
+position = Vector3(-91.15, -5.94, -37.0)
+[node name="phone_south" parent="period_frontage_furniture" instance=ExtResource("4_phone")]
+position = Vector3(-91.15, -5.94, 53.5)
+
+[node name="pier_edge_hardware" type="Node3D" parent="."]
+editor_description = "Mooring and safety hardware stays tight to the two pier rails. The full eight-metre approach and the pavilion turnaround remain empty."
+
+[node name="cleat_01_n" parent="pier_edge_hardware" instance=ExtResource("5_cleat")]
+position = Vector3(-118.0, -5.94, 2.35)
+[node name="cleat_01_s" parent="pier_edge_hardware" instance=ExtResource("5_cleat")]
+position = Vector3(-118.0, -5.94, 9.65)
+[node name="cleat_02_n" parent="pier_edge_hardware" instance=ExtResource("5_cleat")]
+position = Vector3(-128.0, -5.94, 2.35)
+[node name="cleat_02_s" parent="pier_edge_hardware" instance=ExtResource("5_cleat")]
+position = Vector3(-128.0, -5.94, 9.65)
+[node name="cleat_03_n" parent="pier_edge_hardware" instance=ExtResource("5_cleat")]
+position = Vector3(-138.0, -5.94, 2.35)
+[node name="cleat_03_s" parent="pier_edge_hardware" instance=ExtResource("5_cleat")]
+position = Vector3(-138.0, -5.94, 9.65)
+[node name="cleat_04_n" parent="pier_edge_hardware" instance=ExtResource("5_cleat")]
+position = Vector3(-148.0, -5.94, 2.35)
+[node name="cleat_04_s" parent="pier_edge_hardware" instance=ExtResource("5_cleat")]
+position = Vector3(-148.0, -5.94, 9.65)
+
+[node name="life_ring_01_n" parent="pier_edge_hardware" instance=ExtResource("6_ring")]
+position = Vector3(-123.0, -5.94, 2.12)
+[node name="life_ring_02_s" parent="pier_edge_hardware" instance=ExtResource("6_ring")]
+position = Vector3(-133.0, -5.94, 9.88)
+[node name="life_ring_03_n" parent="pier_edge_hardware" instance=ExtResource("6_ring")]
+position = Vector3(-143.0, -5.94, 2.12)

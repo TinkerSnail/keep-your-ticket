@@ -1,0 +1,252 @@
+[gd_scene load_steps=7 format=3]
+
+; Directly editor-owned replacement for the generated pavilion apron. The
+; pavilion remains fixed; the asymmetric T-head gives its outer face a real
+; turnaround and lets the south fishing work coexist with public circulation.
+
+[ext_resource type="Texture2D" path="res://assets/textures/plank_cross_albedo.res" id="1_albedo"]
+[ext_resource type="Texture2D" path="res://assets/textures/plank_cross_normal.res" id="2_normal"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_deck"]
+albedo_color = Color(0.68, 0.62, 0.54, 1)
+albedo_texture = ExtResource("1_albedo")
+roughness = 0.95
+normal_enabled = true
+normal_scale = 0.8
+normal_texture = ExtResource("2_normal")
+uv1_scale = Vector3(0.44642857, 0.44642857, 0.44642857)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 5
+
+[sub_resource type="StandardMaterial3D" id="Mat_rail"]
+albedo_color = Color(0.55, 0.42, 0.3, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Mat_pile"]
+albedo_color = Color(0.29, 0.25, 0.22, 1)
+roughness = 0.96
+
+[node name="boardwalk_pier_head" type="Node3D"]
+editor_description = "Editor-owned 20 × 20m pavilion T-head. Open this scene to reshape the landing, terminal stem rails, perimeter protection and supports. The 8m generated pier deck and 12 × 13m pavilion stay fixed."
+metadata/section = &"boardwalk"
+metadata/replaces_generated_node = "pavilion_apron"
+metadata/approved_size_metres = Vector2(20, 20)
+metadata/clear_ring_order = "entrance,outer,north,south"
+metadata/approved_clear_ring_metres = Vector4(4, 4, 3, 4)
+metadata/protected_relationships = "8m_pier_stem,west_arch_reveal,sunset_sector,NT-1"
+
+[node name="pier_head_deck" type="CSGBox3D" parent="."]
+position = Vector3(-158.0, -6.2075, 6.5)
+use_collision = true
+size = Vector3(20, 0.5, 20)
+material = SubResource("Mat_deck")
+
+[node name="stem_junction_rails" type="Node3D" parent="."]
+editor_description = "Editor-owned replacements for the two generated one-piece stem rails. They preserve the 8m approach and end 3m before the pavilion wall so people can turn into either side of the T-head."
+
+[node name="north_top" type="CSGBox3D" parent="stem_junction_rails"]
+position = Vector3(-128.5, -4.84675, 2.15325)
+use_collision = true
+size = Vector3(41, 0.14, 0.16)
+material = SubResource("Mat_rail")
+
+[node name="south_top" type="CSGBox3D" parent="stem_junction_rails"]
+position = Vector3(-128.5, -4.8465, 9.8535)
+use_collision = true
+size = Vector3(41, 0.14, 0.16)
+material = SubResource("Mat_rail")
+
+[node name="north_terminal_post" type="CSGBox3D" parent="stem_junction_rails"]
+position = Vector3(-149.0, -5.3975, 2.15325)
+use_collision = true
+size = Vector3(0.12, 1.2, 0.12)
+material = SubResource("Mat_rail")
+
+[node name="south_terminal_post" type="CSGBox3D" parent="stem_junction_rails"]
+position = Vector3(-149.0, -5.3965, 9.8535)
+use_collision = true
+size = Vector3(0.12, 1.2, 0.12)
+material = SubResource("Mat_rail")
+
+[node name="perimeter_rail" type="Node3D" parent="."]
+editor_description = "Continuous outer protection with an 8m opening aligned to the existing pier stem."
+
+[node name="north_top" type="CSGBox3D" parent="perimeter_rail"]
+position = Vector3(-158.0, -4.8075, -3.35)
+use_collision = true
+size = Vector3(19.4, 0.14, 0.16)
+material = SubResource("Mat_rail")
+
+[node name="south_top" type="CSGBox3D" parent="perimeter_rail"]
+position = Vector3(-158.0, -4.8065, 16.35)
+use_collision = true
+size = Vector3(19.4, 0.14, 0.16)
+material = SubResource("Mat_rail")
+
+[node name="outer_top" type="CSGBox3D" parent="perimeter_rail"]
+position = Vector3(-167.85, -4.8055, 6.5)
+use_collision = true
+size = Vector3(0.16, 0.14, 19.4)
+material = SubResource("Mat_rail")
+
+[node name="entrance_north_top" type="CSGBox3D" parent="perimeter_rail"]
+position = Vector3(-148.15, -4.8045, -1.2)
+use_collision = true
+size = Vector3(0.16, 0.14, 4.1)
+material = SubResource("Mat_rail")
+
+[node name="entrance_south_top" type="CSGBox3D" parent="perimeter_rail"]
+position = Vector3(-148.15, -4.8035, 13.75)
+use_collision = true
+size = Vector3(0.16, 0.14, 5.0)
+material = SubResource("Mat_rail")
+
+[node name="posts" type="Node3D" parent="perimeter_rail"]
+
+[node name="n_00" type="CSGBox3D" parent="perimeter_rail/posts"]
+position = Vector3(-148.35, -5.3975, -3.35)
+use_collision = true
+size = Vector3(0.12, 1.2, 0.12)
+material = SubResource("Mat_rail")
+[node name="n_01" type="CSGBox3D" parent="perimeter_rail/posts"]
+position = Vector3(-153.2, -5.3965, -3.35)
+use_collision = true
+size = Vector3(0.12, 1.2, 0.12)
+material = SubResource("Mat_rail")
+[node name="n_02" type="CSGBox3D" parent="perimeter_rail/posts"]
+position = Vector3(-158.0, -5.3955, -3.35)
+use_collision = true
+size = Vector3(0.12, 1.2, 0.12)
+material = SubResource("Mat_rail")
+[node name="n_03" type="CSGBox3D" parent="perimeter_rail/posts"]
+position = Vector3(-162.8, -5.3945, -3.35)
+use_collision = true
+size = Vector3(0.12, 1.2, 0.12)
+material = SubResource("Mat_rail")
+[node name="n_04" type="CSGBox3D" parent="perimeter_rail/posts"]
+position = Vector3(-167.65, -5.3935, -3.35)
+use_collision = true
+size = Vector3(0.12, 1.2, 0.12)
+material = SubResource("Mat_rail")
+
+[node name="s_00" type="CSGBox3D" parent="perimeter_rail/posts"]
+position = Vector3(-148.35, -5.3925, 16.35)
+use_collision = true
+size = Vector3(0.12, 1.2, 0.12)
+material = SubResource("Mat_rail")
+[node name="s_01" type="CSGBox3D" parent="perimeter_rail/posts"]
+position = Vector3(-153.2, -5.3915, 16.35)
+use_collision = true
+size = Vector3(0.12, 1.2, 0.12)
+material = SubResource("Mat_rail")
+[node name="s_02" type="CSGBox3D" parent="perimeter_rail/posts"]
+position = Vector3(-158.0, -5.3905, 16.35)
+use_collision = true
+size = Vector3(0.12, 1.2, 0.12)
+material = SubResource("Mat_rail")
+[node name="s_03" type="CSGBox3D" parent="perimeter_rail/posts"]
+position = Vector3(-162.8, -5.3895, 16.35)
+use_collision = true
+size = Vector3(0.12, 1.2, 0.12)
+material = SubResource("Mat_rail")
+[node name="s_04" type="CSGBox3D" parent="perimeter_rail/posts"]
+position = Vector3(-167.65, -5.3885, 16.35)
+use_collision = true
+size = Vector3(0.12, 1.2, 0.12)
+material = SubResource("Mat_rail")
+
+[node name="w_01" type="CSGBox3D" parent="perimeter_rail/posts"]
+position = Vector3(-167.85, -5.3875, 1.55)
+use_collision = true
+size = Vector3(0.12, 1.2, 0.12)
+material = SubResource("Mat_rail")
+[node name="w_02" type="CSGBox3D" parent="perimeter_rail/posts"]
+position = Vector3(-167.85, -5.3865, 6.5)
+use_collision = true
+size = Vector3(0.12, 1.2, 0.12)
+material = SubResource("Mat_rail")
+[node name="w_03" type="CSGBox3D" parent="perimeter_rail/posts"]
+position = Vector3(-167.85, -5.3855, 11.45)
+use_collision = true
+size = Vector3(0.12, 1.2, 0.12)
+material = SubResource("Mat_rail")
+
+[node name="e_n_01" type="CSGBox3D" parent="perimeter_rail/posts"]
+position = Vector3(-148.15, -5.3845, -0.75)
+use_collision = true
+size = Vector3(0.12, 1.2, 0.12)
+material = SubResource("Mat_rail")
+[node name="e_n_02" type="CSGBox3D" parent="perimeter_rail/posts"]
+position = Vector3(-148.15, -5.3835, 0.75)
+use_collision = true
+size = Vector3(0.12, 1.2, 0.12)
+material = SubResource("Mat_rail")
+[node name="e_s_01" type="CSGBox3D" parent="perimeter_rail/posts"]
+position = Vector3(-148.15, -5.3825, 11.35)
+use_collision = true
+size = Vector3(0.12, 1.2, 0.12)
+material = SubResource("Mat_rail")
+[node name="e_s_02" type="CSGBox3D" parent="perimeter_rail/posts"]
+position = Vector3(-148.15, -5.3815, 13.2)
+use_collision = true
+size = Vector3(0.12, 1.2, 0.12)
+material = SubResource("Mat_rail")
+
+[node name="support_piles" type="Node3D" parent="."]
+editor_description = "Visible marine supports under the enlarged head; they are scenery rather than navigation collision."
+
+[node name="pile_nw" type="CSGCylinder3D" parent="support_piles"]
+position = Vector3(-166.8, -7.898, -2.45)
+radius = 0.28
+height = 4.0
+sides = 8
+material = SubResource("Mat_pile")
+[node name="pile_n_mid" type="CSGCylinder3D" parent="support_piles"]
+position = Vector3(-159.0, -7.897, -2.45)
+radius = 0.28
+height = 4.0
+sides = 8
+material = SubResource("Mat_pile")
+[node name="pile_ne" type="CSGCylinder3D" parent="support_piles"]
+position = Vector3(-149.2, -7.896, -2.45)
+radius = 0.28
+height = 4.0
+sides = 8
+material = SubResource("Mat_pile")
+[node name="pile_w_mid" type="CSGCylinder3D" parent="support_piles"]
+position = Vector3(-166.8, -7.895, 6.5)
+radius = 0.28
+height = 4.0
+sides = 8
+material = SubResource("Mat_pile")
+[node name="pile_sw" type="CSGCylinder3D" parent="support_piles"]
+position = Vector3(-166.8, -7.894, 15.45)
+radius = 0.28
+height = 4.0
+sides = 8
+material = SubResource("Mat_pile")
+[node name="pile_s_mid" type="CSGCylinder3D" parent="support_piles"]
+position = Vector3(-159.0, -7.893, 15.45)
+radius = 0.28
+height = 4.0
+sides = 8
+material = SubResource("Mat_pile")
+[node name="pile_se" type="CSGCylinder3D" parent="support_piles"]
+position = Vector3(-149.2, -7.892, 15.45)
+radius = 0.28
+height = 4.0
+sides = 8
+material = SubResource("Mat_pile")
+
+[node name="circulation_markers" type="Node3D" parent="."]
+editor_description = "The standing walk test follows these directly editable markers in both directions."
+
+[node name="approach_north" type="Marker3D" parent="circulation_markers"]
+position = Vector3(-150.5, -5.95, -2.0)
+[node name="outer_north" type="Marker3D" parent="circulation_markers"]
+position = Vector3(-166.0, -5.95, -2.0)
+[node name="outer_south" type="Marker3D" parent="circulation_markers"]
+position = Vector3(-166.0, -5.95, 14.5)
+[node name="approach_south" type="Marker3D" parent="circulation_markers"]
+position = Vector3(-150.5, -5.95, 14.5)

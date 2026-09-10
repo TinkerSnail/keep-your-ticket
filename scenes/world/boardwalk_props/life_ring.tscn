@@ -1,0 +1,39 @@
+[gd_scene load_steps=5 format=3]
+
+[sub_resource type="TorusMesh" id="TorusMesh_ring"]
+inner_radius = 0.28
+outer_radius = 0.43
+rings = 18
+ring_segments = 8
+
+[sub_resource type="BoxMesh" id="BoxMesh_unit"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_ring"]
+albedo_color = Color(0.77, 0.14, 0.07, 1)
+roughness = 0.74
+
+[sub_resource type="StandardMaterial3D" id="Mat_rope"]
+albedo_color = Color(0.72, 0.63, 0.43, 1)
+roughness = 0.93
+
+[node name="life_ring" type="Node3D"]
+editor_description = "Rail-mounted life ring; its face lies in X/Y and its root sits at deck level."
+
+[node name="ring" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.05, 0)
+rotation = Vector3(1.570796, 0, 0)
+mesh = SubResource("TorusMesh_ring")
+material_override = SubResource("Mat_ring")
+[node name="strap_n" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.05, -0.035)
+rotation = Vector3(0, 0, 0.785398)
+scale = Vector3(0.68, 0.045, 0.06)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_rope")
+[node name="strap_s" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.05, -0.034)
+rotation = Vector3(0, 0, -0.785398)
+scale = Vector3(0.68, 0.045, 0.06)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_rope")

@@ -108,6 +108,10 @@ const WINDOW_EMISSION := 1.9
 ## The highway's sodium lamp heads (2026-09-05): a lens under a cobra head,
 ## small and bright, and like the windows never the park's to switch off.
 const SODIUM_EMISSION := 2.4
+## R1's colored tubes are feature lighting: vivid while the wheel performs for
+## guests, completely dark after close. Their narrow area needs more emission
+## than architectural trim but less than a clear point bulb.
+const WHEEL_TUBE_EMISSION := 2.1
 
 var _bulb: StandardMaterial3D
 var _lamp: StandardMaterial3D
@@ -115,6 +119,7 @@ var _eye: StandardMaterial3D
 var _trim: StandardMaterial3D
 var _window: StandardMaterial3D
 var _sodium: StandardMaterial3D
+var _wheel_tubes: Array[StandardMaterial3D] = []
 
 ## The group is re-read when a section mounts rather than every frame. A section
 ## swap is the only thing that changes which lights exist, and the plaza's own
@@ -138,8 +143,12 @@ func _ready() -> void:
 	_trim = load(Plan.TRIM_MATERIAL) as StandardMaterial3D
 	_window = load(Plan.WINDOW_MATERIAL) as StandardMaterial3D
 	_sodium = load(Plan.SODIUM_MATERIAL) as StandardMaterial3D
+	for path in Plan.WHEEL_TUBE_MATERIALS:
+		var tube := load(path) as StandardMaterial3D
+		if tube != null:
+			_wheel_tubes.append(tube)
 	if _bulb == null or _lamp == null or _eye == null or _trim == null or _window == null \
-			or _sodium == null:
+			or _sodium == null or _wheel_tubes.size() != Plan.WHEEL_TUBE_MATERIALS.size():
 		# Loud, because the failure is otherwise invisible: the lights still come
 		# on and light the ground, and only the fittings stay dark. Which reads
 		# as an art problem rather than as a missing file.
@@ -205,6 +214,8 @@ func _apply(force: bool) -> void:
 	# eleven at night is lit, whatever the park has done.
 	_window.emission_energy_multiplier = WINDOW_EMISSION * level
 	_sodium.emission_energy_multiplier = SODIUM_EMISSION * level
+	for tube in _wheel_tubes:
+		tube.emission_energy_multiplier = WHEEL_TUBE_EMISSION * level * feature_on
 
 	# And the water, which is the one emissive surface in the park that is not a
 	# material this node holds a handle to. Every water material carries its own

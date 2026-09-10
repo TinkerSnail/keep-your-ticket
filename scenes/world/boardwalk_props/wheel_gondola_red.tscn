@@ -1,0 +1,149 @@
+[gd_scene load_steps=4 format=3]
+
+; Directly editor-owned passenger cabin family for R1. The low tub, open upper
+; half, corner posts, guard rails, bench and shallow canopy replace the former
+; solid box while retaining the established gondola envelope.
+
+[sub_resource type="StandardMaterial3D" id="Mat_body"]
+albedo_color = Color(0.78, 0.105, 0.075, 1)
+roughness = 0.58
+
+[sub_resource type="StandardMaterial3D" id="Mat_trim"]
+albedo_color = Color(0.92, 0.9, 0.82, 1)
+metallic = 0.12
+roughness = 0.55
+
+[sub_resource type="StandardMaterial3D" id="Mat_dark"]
+albedo_color = Color(0.055, 0.075, 0.08, 1)
+metallic = 0.18
+roughness = 0.42
+
+[node name="wheel_gondola_red" type="Node3D"]
+editor_description = "R1 red passenger gondola: directly editable low tub, open rails, bench, corner posts and canopy."
+
+[node name="tub" type="CSGCylinder3D" parent="."]
+position = Vector3(0, -1.2, 0)
+scale = Vector3(0.9, 1, 0.66)
+radius = 1.0
+height = 0.58
+sides = 8
+material = SubResource("Mat_body")
+
+[node name="floor" type="CSGBox3D" parent="."]
+position = Vector3(0, -0.95, 0)
+size = Vector3(1.55, 0.1, 1.05)
+material = SubResource("Mat_dark")
+
+[node name="bench" type="CSGBox3D" parent="."]
+position = Vector3(0, -0.9, 0)
+size = Vector3(1.28, 0.14, 0.5)
+material = SubResource("Mat_dark")
+
+[node name="canopy" type="CSGCylinder3D" parent="."]
+position = Vector3(0, -0.42, 0)
+scale = Vector3(1.04, 1, 0.74)
+radius = 1.0
+height = 0.14
+sides = 8
+material = SubResource("Mat_dark")
+
+[node name="pivot_bar" type="CSGBox3D" parent="."]
+position = Vector3(0, -0.06, 0)
+size = Vector3(1.62, 0.1, 0.1)
+material = SubResource("Mat_trim")
+
+[node name="hanger_east" type="CSGBox3D" parent="."]
+position = Vector3(0.72, -0.22, 0)
+size = Vector3(0.09, 0.38, 0.09)
+material = SubResource("Mat_trim")
+
+[node name="hanger_west" type="CSGBox3D" parent="."]
+position = Vector3(-0.72, -0.22, 0)
+size = Vector3(0.09, 0.38, 0.09)
+material = SubResource("Mat_trim")
+
+[node name="post_east_n" type="CSGBox3D" parent="."]
+position = Vector3(0.83, -0.72, -0.57)
+size = Vector3(0.09, 0.58, 0.09)
+material = SubResource("Mat_trim")
+
+[node name="post_east_s" type="CSGBox3D" parent="."]
+position = Vector3(0.83, -0.72, 0.57)
+size = Vector3(0.09, 0.58, 0.09)
+material = SubResource("Mat_trim")
+
+[node name="post_west_n" type="CSGBox3D" parent="."]
+position = Vector3(-0.83, -0.72, -0.57)
+size = Vector3(0.09, 0.58, 0.09)
+material = SubResource("Mat_trim")
+
+[node name="post_west_s" type="CSGBox3D" parent="."]
+position = Vector3(-0.83, -0.72, 0.57)
+size = Vector3(0.09, 0.58, 0.09)
+material = SubResource("Mat_trim")
+
+[node name="east_guard_top" type="CSGBox3D" parent="."]
+position = Vector3(0.88, -0.7, 0)
+size = Vector3(0.08, 0.08, 1.08)
+material = SubResource("Mat_trim")
+
+[node name="east_guard_mid" type="CSGBox3D" parent="."]
+position = Vector3(0.88, -0.9, 0)
+size = Vector3(0.08, 0.07, 1.08)
+material = SubResource("Mat_trim")
+
+[node name="east_guard_n" type="CSGBox3D" parent="."]
+position = Vector3(0.88, -0.8, -0.36)
+size = Vector3(0.08, 0.34, 0.07)
+material = SubResource("Mat_trim")
+
+[node name="east_guard_s" type="CSGBox3D" parent="."]
+position = Vector3(0.88, -0.8, 0.36)
+size = Vector3(0.08, 0.34, 0.07)
+material = SubResource("Mat_trim")
+
+[node name="west_guard_top" type="CSGBox3D" parent="."]
+position = Vector3(-0.88, -0.7, 0)
+size = Vector3(0.08, 0.08, 1.08)
+material = SubResource("Mat_trim")
+
+[node name="west_guard_mid" type="CSGBox3D" parent="."]
+position = Vector3(-0.88, -0.9, 0)
+size = Vector3(0.08, 0.07, 1.08)
+material = SubResource("Mat_trim")
+
+[node name="west_guard_n" type="CSGBox3D" parent="."]
+position = Vector3(-0.88, -0.8, -0.36)
+size = Vector3(0.08, 0.34, 0.07)
+material = SubResource("Mat_trim")
+
+[node name="west_guard_s" type="CSGBox3D" parent="."]
+position = Vector3(-0.88, -0.8, 0.36)
+size = Vector3(0.08, 0.34, 0.07)
+material = SubResource("Mat_trim")
+
+[node name="number_east" type="Label3D" parent="."]
+position = Vector3(0.94, -1.18, -0.34)
+rotation = Vector3(0, 1.570796, 0)
+text = "00"
+font_size = 42
+pixel_size = 0.004
+outline_size = 5
+modulate = Color(0.96, 0.93, 0.82, 1)
+
+[node name="number_west" type="Label3D" parent="."]
+position = Vector3(-0.94, -1.18, 0.34)
+rotation = Vector3(0, -1.570796, 0)
+text = "00"
+font_size = 42
+pixel_size = 0.004
+outline_size = 5
+modulate = Color(0.96, 0.93, 0.82, 1)
+
+[node name="pivot_cap" type="CSGCylinder3D" parent="."]
+position = Vector3(0, -0.055, 0)
+rotation = Vector3(0, 0, 1.570796)
+radius = 0.13
+height = 0.28
+sides = 12
+material = SubResource("Mat_dark")

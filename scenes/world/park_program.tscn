@@ -1,10 +1,11 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 ; Stable editor-owned wrapper for package-04 ride, attraction, interior,
 ; midway and Kiddieland assemblies. Manual art belongs under
 ; authored_additions; the generated source remains replaceable greybox.
 [ext_resource type="PackedScene" path="res://scenes/world/generated/park_program.tscn" id="1_generated"]
 [ext_resource type="PackedScene" path="res://scenes/world/boardwalk_scenery.tscn" id="2_boardwalk_scenery"]
+[ext_resource type="PackedScene" path="res://scenes/world/boardwalk_frontage_architecture.tscn" id="3_boardwalk_architecture"]
 
 [node name="park_program" instance=ExtResource("1_generated")]
 
@@ -20,6 +21,132 @@ use_collision = false
 visible = false
 use_collision = false
 
+; The first Boardwalk fidelity pass added use-specific fronts and contents, but
+; these six places still stood on generic generated shells. Their artistic
+; construction is now directly editor-owned; floors, thresholds, counters and
+; scheduled lights remain generated because those relationships have not moved.
+[node name="I2_back" parent="." index="834"]
+visible = false
+use_collision = false
+[node name="I2_left" parent="." index="835"]
+visible = false
+use_collision = false
+[node name="I2_right" parent="." index="836"]
+visible = false
+use_collision = false
+[node name="I2_front_l" parent="." index="837"]
+visible = false
+use_collision = false
+[node name="I2_front_r" parent="." index="838"]
+visible = false
+use_collision = false
+[node name="I2_awning" parent="." index="839"]
+visible = false
+[node name="I2_roof" parent="." index="840"]
+visible = false
+
+[node name="I3_back" parent="." index="844"]
+visible = false
+use_collision = false
+[node name="I3_left" parent="." index="845"]
+visible = false
+use_collision = false
+[node name="I3_right" parent="." index="846"]
+visible = false
+use_collision = false
+[node name="I3_front_l" parent="." index="847"]
+visible = false
+use_collision = false
+[node name="I3_front_r" parent="." index="848"]
+visible = false
+use_collision = false
+[node name="I3_awning" parent="." index="849"]
+visible = false
+[node name="I3_roof" parent="." index="850"]
+visible = false
+
+[node name="midway_B1_back" parent="." index="948"]
+visible = false
+use_collision = false
+[node name="midway_B1_left" parent="." index="949"]
+visible = false
+use_collision = false
+[node name="midway_B1_right" parent="." index="950"]
+visible = false
+use_collision = false
+[node name="midway_B1_front_l" parent="." index="951"]
+visible = false
+use_collision = false
+[node name="midway_B1_front_r" parent="." index="952"]
+visible = false
+use_collision = false
+[node name="midway_B1_awning" parent="." index="953"]
+visible = false
+[node name="midway_B1_roof" parent="." index="954"]
+visible = false
+
+[node name="midway_B2_back" parent="." index="958"]
+visible = false
+use_collision = false
+[node name="midway_B2_left" parent="." index="959"]
+visible = false
+use_collision = false
+[node name="midway_B2_right" parent="." index="960"]
+visible = false
+use_collision = false
+[node name="midway_B2_front_l" parent="." index="961"]
+visible = false
+use_collision = false
+[node name="midway_B2_front_r" parent="." index="962"]
+visible = false
+use_collision = false
+[node name="midway_B2_awning" parent="." index="963"]
+visible = false
+[node name="midway_B2_roof" parent="." index="964"]
+visible = false
+
+[node name="midway_B3_back" parent="." index="968"]
+visible = false
+use_collision = false
+[node name="midway_B3_left" parent="." index="969"]
+visible = false
+use_collision = false
+[node name="midway_B3_right" parent="." index="970"]
+visible = false
+use_collision = false
+[node name="midway_B3_front_l" parent="." index="971"]
+visible = false
+use_collision = false
+[node name="midway_B3_front_r" parent="." index="972"]
+visible = false
+use_collision = false
+[node name="midway_B3_awning" parent="." index="973"]
+visible = false
+[node name="midway_B3_roof" parent="." index="974"]
+visible = false
+
+[node name="midway_B4_back" parent="." index="978"]
+visible = false
+use_collision = false
+[node name="midway_B4_left" parent="." index="979"]
+visible = false
+use_collision = false
+[node name="midway_B4_right" parent="." index="980"]
+visible = false
+use_collision = false
+[node name="midway_B4_front_l" parent="." index="981"]
+visible = false
+use_collision = false
+[node name="midway_B4_front_r" parent="." index="982"]
+visible = false
+use_collision = false
+[node name="midway_B4_awning" parent="." index="983"]
+visible = false
+[node name="midway_B4_roof" parent="." index="984"]
+visible = false
+
 [node name="authored_additions" type="Node3D" parent="."]
+
+[node name="boardwalk_frontage_architecture" parent="authored_additions" instance=ExtResource("3_boardwalk_architecture")]
 
 [node name="boardwalk_scenery" parent="authored_additions" instance=ExtResource("2_boardwalk_scenery")]

@@ -1,0 +1,650 @@
+[gd_scene load_steps=15 format=3]
+
+; Directly editor-owned replacement for the generated terminal pavilion shell.
+; Its footprint and total height preserve the protected pier composition while
+; the parts below make the building legible as a maintained coastal fishing
+; pavilion rather than an undecorated box.
+
+[ext_resource type="Texture2D" path="res://assets/textures/boardwalk/weathered_boardwalk_albedo.res" id="1_weathered"]
+[ext_resource type="Material" path="res://assets/materials/bulb.res" id="2_bulb"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_unit"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_cone"]
+top_radius = 0.18
+bottom_radius = 2.25
+height = 1.1
+radial_segments = 8
+rings = 1
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_finial"]
+top_radius = 0.1
+bottom_radius = 0.1
+height = 1.5
+radial_segments = 8
+
+[sub_resource type="SphereMesh" id="SphereMesh_finial"]
+radius = 0.2
+height = 0.4
+radial_segments = 12
+rings = 6
+
+[sub_resource type="StandardMaterial3D" id="Mat_weathered_cream"]
+albedo_color = Color(0.82, 0.75, 0.61, 1)
+albedo_texture = ExtResource("1_weathered")
+roughness = 0.94
+uv1_scale = Vector3(1.7, 1.7, 1.7)
+uv1_triplanar = true
+uv1_world_triplanar = true
+
+[sub_resource type="StandardMaterial3D" id="Mat_turquoise"]
+albedo_color = Color(0.055, 0.34, 0.33, 1)
+roughness = 0.86
+
+[sub_resource type="StandardMaterial3D" id="Mat_coral"]
+albedo_color = Color(0.59, 0.18, 0.12, 1)
+roughness = 0.87
+
+[sub_resource type="StandardMaterial3D" id="Mat_mustard"]
+albedo_color = Color(0.69, 0.45, 0.07, 1)
+roughness = 0.84
+
+[sub_resource type="StandardMaterial3D" id="Mat_roof"]
+albedo_color = Color(0.105, 0.135, 0.145, 1)
+roughness = 0.93
+
+[sub_resource type="StandardMaterial3D" id="Mat_glass"]
+albedo_color = Color(0.025, 0.095, 0.115, 1)
+metallic = 0.22
+roughness = 0.24
+
+[sub_resource type="StandardMaterial3D" id="Mat_galvanized"]
+albedo_color = Color(0.36, 0.39, 0.38, 1)
+metallic = 0.54
+roughness = 0.58
+
+[sub_resource type="StandardMaterial3D" id="Mat_bleached"]
+albedo_color = Color(0.68, 0.64, 0.54, 1)
+roughness = 0.97
+
+[node name="boardwalk_pavilion" type="Node3D"]
+editor_description = "Editor-owned terminal Pier House. Open this scene to reshape its walls, roof, cupola, openings, trim, service face and fixtures. Its 12 × 13m footprint and 13m total height preserve the approved west-arch and sunset compositions."
+metadata/section = &"boardwalk"
+metadata/replaces_generated_nodes = "pavilion,pavilion_roof,pavilion_band,pavilion_spire,pavilion_doors"
+metadata/approved_footprint_metres = Vector2(12, 13)
+metadata/approved_total_height_metres = 13.0
+metadata/protected_relationships = "8m_pier_stem,20m_T_head,Q3,west_arch_reveal,sunset_sector,NT-1"
+
+[node name="primary_construction" type="Node3D" parent="."]
+editor_description = "Fixed-footprint collision body, gabled roof and cupola. Roof panels are thin caps over upright walls."
+
+[node name="wall_body" type="CSGBox3D" parent="primary_construction"]
+position = Vector3(-158, -2.6, 6)
+use_collision = true
+size = Vector3(12, 6.8, 13)
+material = SubResource("Mat_weathered_cream")
+
+[node name="roof_west_slope" type="CSGBox3D" parent="primary_construction"]
+position = Vector3(-161.5, 1.88, 6)
+rotation = Vector3(0, 0, 0.245)
+size = Vector3(7.45, 0.28, 15)
+material = SubResource("Mat_roof")
+
+[node name="roof_east_slope" type="CSGBox3D" parent="primary_construction"]
+position = Vector3(-154.5, 1.881, 6)
+rotation = Vector3(0, 0, -0.245)
+size = Vector3(7.45, 0.28, 15)
+material = SubResource("Mat_roof")
+
+[node name="ridge_cap" type="MeshInstance3D" parent="primary_construction"]
+position = Vector3(-158, 2.798, 6)
+scale = Vector3(0.38, 0.3, 14.75)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="cupola_body" type="CSGBox3D" parent="primary_construction"]
+position = Vector3(-158, 3.46, 6)
+size = Vector3(3.2, 1.35, 3.2)
+material = SubResource("Mat_turquoise")
+
+[node name="cupola_east_window" type="MeshInstance3D" parent="primary_construction"]
+position = Vector3(-156.36, 3.48, 6)
+scale = Vector3(0.05, 0.72, 1.65)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_glass")
+
+[node name="cupola_west_window" type="MeshInstance3D" parent="primary_construction"]
+position = Vector3(-159.64, 3.481, 6)
+scale = Vector3(0.05, 0.72, 1.65)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_glass")
+
+[node name="cupola_north_window" type="MeshInstance3D" parent="primary_construction"]
+position = Vector3(-158, 3.482, 4.36)
+scale = Vector3(1.65, 0.72, 0.05)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_glass")
+
+[node name="cupola_south_window" type="MeshInstance3D" parent="primary_construction"]
+position = Vector3(-158, 3.483, 7.64)
+scale = Vector3(1.65, 0.72, 0.05)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_glass")
+
+[node name="cupola_roof" type="MeshInstance3D" parent="primary_construction"]
+position = Vector3(-158, 4.69, 6)
+mesh = SubResource("CylinderMesh_cone")
+material_override = SubResource("Mat_coral")
+
+[node name="finial" type="MeshInstance3D" parent="primary_construction"]
+position = Vector3(-158, 5.94, 6)
+mesh = SubResource("CylinderMesh_finial")
+material_override = SubResource("Mat_galvanized")
+
+[node name="finial_ball" type="MeshInstance3D" parent="primary_construction"]
+position = Vector3(-158, 6.82, 6)
+mesh = SubResource("SphereMesh_finial")
+material_override = SubResource("Mat_mustard")
+
+[node name="gable_infill" type="Node3D" parent="."]
+editor_description = "Stepped gable fields keep the late-1990s silhouette chunky and make the roof construction readable from both circulation sides."
+
+[node name="north_low" type="MeshInstance3D" parent="gable_infill"]
+position = Vector3(-158, 1.05, -0.57)
+scale = Vector3(10.8, 0.52, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_weathered_cream")
+
+[node name="north_mid" type="MeshInstance3D" parent="gable_infill"]
+position = Vector3(-158, 1.55, -0.575)
+scale = Vector3(7.2, 0.48, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_weathered_cream")
+
+[node name="north_high" type="MeshInstance3D" parent="gable_infill"]
+position = Vector3(-158, 2.0, -0.58)
+scale = Vector3(3.6, 0.42, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_weathered_cream")
+
+[node name="south_low" type="MeshInstance3D" parent="gable_infill"]
+position = Vector3(-158, 1.051, 12.57)
+scale = Vector3(10.8, 0.52, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_weathered_cream")
+
+[node name="south_mid" type="MeshInstance3D" parent="gable_infill"]
+position = Vector3(-158, 1.551, 12.575)
+scale = Vector3(7.2, 0.48, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_weathered_cream")
+
+[node name="south_high" type="MeshInstance3D" parent="gable_infill"]
+position = Vector3(-158, 2.001, 12.58)
+scale = Vector3(3.6, 0.42, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_weathered_cream")
+
+[node name="coastal_trim" type="Node3D" parent="."]
+editor_description = "Turquoise corner boards, fascia and salt-resistant lower skirt are the pavilion's Boardwalk identity field."
+
+[node name="east_fascia" type="MeshInstance3D" parent="coastal_trim"]
+position = Vector3(-150.85, 0.95, 6)
+scale = Vector3(0.22, 0.62, 15.05)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="west_fascia" type="MeshInstance3D" parent="coastal_trim"]
+position = Vector3(-165.15, 0.951, 6)
+scale = Vector3(0.22, 0.62, 15.05)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="north_barge_west" type="MeshInstance3D" parent="coastal_trim"]
+position = Vector3(-161.5, 1.91, -0.69)
+rotation = Vector3(0, 0, 0.245)
+scale = Vector3(7.35, 0.2, 0.14)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="north_barge_east" type="MeshInstance3D" parent="coastal_trim"]
+position = Vector3(-154.5, 1.911, -0.69)
+rotation = Vector3(0, 0, -0.245)
+scale = Vector3(7.35, 0.2, 0.14)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="south_barge_west" type="MeshInstance3D" parent="coastal_trim"]
+position = Vector3(-161.5, 1.912, 12.69)
+rotation = Vector3(0, 0, 0.245)
+scale = Vector3(7.35, 0.2, 0.14)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="south_barge_east" type="MeshInstance3D" parent="coastal_trim"]
+position = Vector3(-154.5, 1.913, 12.69)
+rotation = Vector3(0, 0, -0.245)
+scale = Vector3(7.35, 0.2, 0.14)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="corner_ne" type="MeshInstance3D" parent="coastal_trim"]
+position = Vector3(-151.92, -2.6, -0.53)
+scale = Vector3(0.22, 6.35, 0.22)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="corner_se" type="MeshInstance3D" parent="coastal_trim"]
+position = Vector3(-151.92, -2.599, 12.53)
+scale = Vector3(0.22, 6.35, 0.22)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="corner_nw" type="MeshInstance3D" parent="coastal_trim"]
+position = Vector3(-164.08, -2.598, -0.53)
+scale = Vector3(0.22, 6.35, 0.22)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="corner_sw" type="MeshInstance3D" parent="coastal_trim"]
+position = Vector3(-164.08, -2.597, 12.53)
+scale = Vector3(0.22, 6.35, 0.22)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="east_skirt" type="MeshInstance3D" parent="coastal_trim"]
+position = Vector3(-151.88, -5.65, 6)
+scale = Vector3(0.12, 0.58, 12.55)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="north_skirt" type="MeshInstance3D" parent="coastal_trim"]
+position = Vector3(-158, -5.649, -0.58)
+scale = Vector3(11.75, 0.58, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="south_skirt" type="MeshInstance3D" parent="coastal_trim"]
+position = Vector3(-158, -5.648, 12.58)
+scale = Vector3(11.75, 0.58, 0.12)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="west_skirt" type="MeshInstance3D" parent="coastal_trim"]
+position = Vector3(-164.12, -5.647, 6)
+scale = Vector3(0.12, 0.58, 12.55)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="pier_approach_facade" type="Node3D" parent="."]
+editor_description = "Closed but complete public face: double doors, two windows, a deep service canopy and one readable destination sign."
+
+[node name="window_frame_n" type="MeshInstance3D" parent="pier_approach_facade"]
+position = Vector3(-151.84, -2.25, 1.65)
+scale = Vector3(0.1, 2.85, 2.65)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="window_glass_n" type="MeshInstance3D" parent="pier_approach_facade"]
+position = Vector3(-151.76, -2.25, 1.65)
+scale = Vector3(0.055, 2.25, 2.05)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_glass")
+
+[node name="window_frame_s" type="MeshInstance3D" parent="pier_approach_facade"]
+position = Vector3(-151.84, -2.249, 10.35)
+scale = Vector3(0.1, 2.85, 2.65)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="window_glass_s" type="MeshInstance3D" parent="pier_approach_facade"]
+position = Vector3(-151.76, -2.249, 10.35)
+scale = Vector3(0.055, 2.25, 2.05)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_glass")
+
+[node name="door_n" type="MeshInstance3D" parent="pier_approach_facade"]
+position = Vector3(-151.77, -4.43, 5.08)
+scale = Vector3(0.13, 2.95, 1.72)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="door_s" type="MeshInstance3D" parent="pier_approach_facade"]
+position = Vector3(-151.77, -4.429, 6.92)
+scale = Vector3(0.13, 2.95, 1.72)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="door_glass_n" type="MeshInstance3D" parent="pier_approach_facade"]
+position = Vector3(-151.69, -3.88, 5.08)
+scale = Vector3(0.05, 1.2, 1.2)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_glass")
+
+[node name="door_glass_s" type="MeshInstance3D" parent="pier_approach_facade"]
+position = Vector3(-151.69, -3.879, 6.92)
+scale = Vector3(0.05, 1.2, 1.2)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_glass")
+
+[node name="door_kick_n" type="MeshInstance3D" parent="pier_approach_facade"]
+position = Vector3(-151.67, -5.56, 5.08)
+scale = Vector3(0.045, 0.48, 1.25)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="door_kick_s" type="MeshInstance3D" parent="pier_approach_facade"]
+position = Vector3(-151.67, -5.559, 6.92)
+scale = Vector3(0.045, 0.48, 1.25)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="entrance_canopy" type="MeshInstance3D" parent="pier_approach_facade"]
+position = Vector3(-151.38, -2.68, 6)
+scale = Vector3(1.25, 0.2, 4.7)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_roof")
+
+[node name="sign_board" type="MeshInstance3D" parent="pier_approach_facade"]
+position = Vector3(-151.76, -0.35, 6)
+scale = Vector3(0.14, 0.92, 5.6)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="sign" type="Label3D" parent="pier_approach_facade"]
+position = Vector3(-151.64, -0.35, 6)
+rotation = Vector3(0, 1.570796, 0)
+text = "PIER HOUSE"
+font_size = 92
+pixel_size = 0.006
+outline_size = 9
+modulate = Color(0.96, 0.85, 0.58, 1)
+
+[node name="window_muntin_n_v" type="MeshInstance3D" parent="pier_approach_facade"]
+position = Vector3(-151.68, -2.25, 1.65)
+scale = Vector3(0.04, 2.25, 0.11)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="window_muntin_n_h" type="MeshInstance3D" parent="pier_approach_facade"]
+position = Vector3(-151.67, -2.25, 1.65)
+scale = Vector3(0.04, 0.11, 2.05)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="window_muntin_s_v" type="MeshInstance3D" parent="pier_approach_facade"]
+position = Vector3(-151.68, -2.249, 10.35)
+scale = Vector3(0.04, 2.25, 0.11)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="window_muntin_s_h" type="MeshInstance3D" parent="pier_approach_facade"]
+position = Vector3(-151.67, -2.249, 10.35)
+scale = Vector3(0.04, 0.11, 2.05)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="north_public_facade" type="Node3D" parent="."]
+editor_description = "Three repeated window bays make the narrow north passage read as a building frontage rather than a blank ledge."
+
+[node name="window_frame_w" type="MeshInstance3D" parent="north_public_facade"]
+position = Vector3(-161.7, -2.3, -0.58)
+scale = Vector3(2.35, 2.75, 0.1)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="window_glass_w" type="MeshInstance3D" parent="north_public_facade"]
+position = Vector3(-161.7, -2.3, -0.66)
+scale = Vector3(1.78, 2.15, 0.055)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_glass")
+
+[node name="window_frame_mid" type="MeshInstance3D" parent="north_public_facade"]
+position = Vector3(-158, -2.299, -0.58)
+scale = Vector3(2.35, 2.75, 0.1)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="window_glass_mid" type="MeshInstance3D" parent="north_public_facade"]
+position = Vector3(-158, -2.299, -0.66)
+scale = Vector3(1.78, 2.15, 0.055)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_glass")
+
+[node name="window_frame_e" type="MeshInstance3D" parent="north_public_facade"]
+position = Vector3(-154.3, -2.298, -0.58)
+scale = Vector3(2.35, 2.75, 0.1)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="window_glass_e" type="MeshInstance3D" parent="north_public_facade"]
+position = Vector3(-154.3, -2.298, -0.66)
+scale = Vector3(1.78, 2.15, 0.055)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_glass")
+
+[node name="north_gable_louver" type="MeshInstance3D" parent="north_public_facade"]
+position = Vector3(-158, 1.47, -0.7)
+scale = Vector3(3.1, 0.74, 0.08)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_glass")
+
+[node name="muntin_w_v" type="MeshInstance3D" parent="north_public_facade"]
+position = Vector3(-161.7, -2.3, -0.7)
+scale = Vector3(0.11, 2.15, 0.04)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="muntin_w_h" type="MeshInstance3D" parent="north_public_facade"]
+position = Vector3(-161.7, -2.3, -0.71)
+scale = Vector3(1.78, 0.11, 0.04)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="muntin_mid_v" type="MeshInstance3D" parent="north_public_facade"]
+position = Vector3(-158, -2.299, -0.7)
+scale = Vector3(0.11, 2.15, 0.04)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="muntin_mid_h" type="MeshInstance3D" parent="north_public_facade"]
+position = Vector3(-158, -2.299, -0.71)
+scale = Vector3(1.78, 0.11, 0.04)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="muntin_e_v" type="MeshInstance3D" parent="north_public_facade"]
+position = Vector3(-154.3, -2.298, -0.7)
+scale = Vector3(0.11, 2.15, 0.04)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="muntin_e_h" type="MeshInstance3D" parent="north_public_facade"]
+position = Vector3(-154.3, -2.298, -0.71)
+scale = Vector3(1.78, 0.11, 0.04)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="fishing_service_facade" type="Node3D" parent="."]
+editor_description = "South-side hatch, splashback and overhead awning complete the fishing work wall without occupying the public bypass."
+
+[node name="service_hatch_frame" type="MeshInstance3D" parent="fishing_service_facade"]
+position = Vector3(-160.7, -2.42, 12.58)
+scale = Vector3(4.9, 2.55, 0.1)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="service_shutter" type="MeshInstance3D" parent="fishing_service_facade"]
+position = Vector3(-160.7, -2.42, 12.67)
+scale = Vector3(4.3, 1.95, 0.055)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_bleached")
+
+[node name="service_splashback" type="MeshInstance3D" parent="fishing_service_facade"]
+position = Vector3(-160.7, -4.65, 12.68)
+scale = Vector3(4.75, 1.25, 0.05)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="service_awning" type="MeshInstance3D" parent="fishing_service_facade"]
+position = Vector3(-160.7, -0.75, 13.05)
+scale = Vector3(5.8, 0.2, 1.15)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_roof")
+
+[node name="service_label" type="Label3D" parent="fishing_service_facade"]
+position = Vector3(-160.7, 0.02, 12.7)
+text = "FISHING  ·  TACKLE"
+font_size = 72
+pixel_size = 0.006
+outline_size = 8
+modulate = Color(0.96, 0.85, 0.58, 1)
+
+[node name="south_louver_frame" type="MeshInstance3D" parent="fishing_service_facade"]
+position = Vector3(-154.65, -2.42, 12.58)
+scale = Vector3(2.2, 2.55, 0.1)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="south_louver" type="MeshInstance3D" parent="fishing_service_facade"]
+position = Vector3(-154.65, -2.42, 12.67)
+scale = Vector3(1.65, 1.95, 0.055)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_glass")
+
+[node name="water_facade" type="Node3D" parent="."]
+editor_description = "Three dark framed windows turn the outer wall into a deliberate water-facing elevation while keeping it closed and collision-solid."
+
+[node name="window_frame_n" type="MeshInstance3D" parent="water_facade"]
+position = Vector3(-164.08, -2.3, 1.55)
+scale = Vector3(0.1, 2.75, 2.4)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="window_glass_n" type="MeshInstance3D" parent="water_facade"]
+position = Vector3(-164.17, -2.3, 1.55)
+scale = Vector3(0.055, 2.15, 1.82)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_glass")
+
+[node name="window_frame_mid" type="MeshInstance3D" parent="water_facade"]
+position = Vector3(-164.08, -2.299, 6)
+scale = Vector3(0.1, 2.75, 2.4)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="window_glass_mid" type="MeshInstance3D" parent="water_facade"]
+position = Vector3(-164.17, -2.299, 6)
+scale = Vector3(0.055, 2.15, 1.82)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_glass")
+
+[node name="window_frame_s" type="MeshInstance3D" parent="water_facade"]
+position = Vector3(-164.08, -2.298, 10.45)
+scale = Vector3(0.1, 2.75, 2.4)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="window_glass_s" type="MeshInstance3D" parent="water_facade"]
+position = Vector3(-164.17, -2.298, 10.45)
+scale = Vector3(0.055, 2.15, 1.82)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_glass")
+
+[node name="muntin_n_v" type="MeshInstance3D" parent="water_facade"]
+position = Vector3(-164.21, -2.3, 1.55)
+scale = Vector3(0.04, 2.15, 0.11)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="muntin_n_h" type="MeshInstance3D" parent="water_facade"]
+position = Vector3(-164.22, -2.3, 1.55)
+scale = Vector3(0.04, 0.11, 1.82)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="muntin_mid_v" type="MeshInstance3D" parent="water_facade"]
+position = Vector3(-164.21, -2.299, 6)
+scale = Vector3(0.04, 2.15, 0.11)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="muntin_mid_h" type="MeshInstance3D" parent="water_facade"]
+position = Vector3(-164.22, -2.299, 6)
+scale = Vector3(0.04, 0.11, 1.82)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="muntin_s_v" type="MeshInstance3D" parent="water_facade"]
+position = Vector3(-164.21, -2.298, 10.45)
+scale = Vector3(0.04, 2.15, 0.11)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="muntin_s_h" type="MeshInstance3D" parent="water_facade"]
+position = Vector3(-164.22, -2.298, 10.45)
+scale = Vector3(0.04, 0.11, 1.82)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="practical_fixtures" type="Node3D" parent="."]
+editor_description = "Visible eave lamps and flood housings correspond to the pavilion's existing warm-eave and cool-wash lighting."
+
+[node name="north_eave_bulb" type="MeshInstance3D" parent="practical_fixtures"]
+position = Vector3(-158, 0.56, -0.22)
+scale = Vector3(0.22, 0.22, 0.22)
+mesh = SubResource("SphereMesh_finial")
+material_override = ExtResource("2_bulb")
+
+[node name="south_eave_bulb" type="MeshInstance3D" parent="practical_fixtures"]
+position = Vector3(-158, 0.561, 12.22)
+scale = Vector3(0.22, 0.22, 0.22)
+mesh = SubResource("SphereMesh_finial")
+material_override = ExtResource("2_bulb")
+
+[node name="north_eave_service_light" type="OmniLight3D" parent="practical_fixtures" groups=["park_light"]]
+position = Vector3(-158, 0.48, -0.28)
+visible = false
+light_color = Color(1, 0.78, 0.48, 1)
+light_energy = 0.0
+light_specular = 0.25
+omni_range = 7.5
+omni_attenuation = 1.8
+metadata/base_energy = 1.15
+metadata/light_kind = 2
+
+[node name="south_eave_service_light" type="OmniLight3D" parent="practical_fixtures" groups=["park_light"]]
+position = Vector3(-158, 0.481, 12.28)
+visible = false
+light_color = Color(1, 0.78, 0.48, 1)
+light_energy = 0.0
+light_specular = 0.25
+omni_range = 7.5
+omni_attenuation = 1.8
+metadata/base_energy = 1.15
+metadata/light_kind = 2
+
+[node name="flood_ne" type="MeshInstance3D" parent="practical_fixtures"]
+position = Vector3(-152.1, 0.1, -0.62)
+scale = Vector3(0.42, 0.26, 0.24)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="flood_nw" type="MeshInstance3D" parent="practical_fixtures"]
+position = Vector3(-163.9, 0.101, -0.62)
+scale = Vector3(0.42, 0.26, 0.24)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="flood_se" type="MeshInstance3D" parent="practical_fixtures"]
+position = Vector3(-152.1, 0.102, 12.62)
+scale = Vector3(0.42, 0.26, 0.24)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+
+[node name="flood_sw" type="MeshInstance3D" parent="practical_fixtures"]
+position = Vector3(-163.9, 0.103, 12.62)
+scale = Vector3(0.42, 0.26, 0.24)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")

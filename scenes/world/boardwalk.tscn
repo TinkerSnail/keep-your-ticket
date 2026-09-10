@@ -1,11 +1,179 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=8 format=3]
 
 ; Stable editor-owned wrapper. The generator writes only generated/boardwalk.tscn.
 [ext_resource type="PackedScene" path="res://scenes/world/generated/boardwalk.tscn" id="1_generated"]
 [ext_resource type="PackedScene" path="res://scenes/world/boardwalk_operations.tscn" id="2_operations"]
+[ext_resource type="PackedScene" path="res://scenes/world/boardwalk_density.tscn" id="3_density"]
+[ext_resource type="PackedScene" path="res://scenes/world/boardwalk_finish.tscn" id="4_finish"]
+[ext_resource type="PackedScene" path="res://scenes/world/boardwalk_pier_head.tscn" id="5_pier_head"]
+[ext_resource type="PackedScene" path="res://scenes/world/boardwalk_pavilion.tscn" id="6_pavilion"]
+[ext_resource type="PackedScene" path="res://scenes/world/boardwalk_pacific_wheel.tscn" id="7_pacific_wheel"]
 
 [node name="boardwalk" instance=ExtResource("1_generated")]
 
+; Christina chose the original 1990s Santa Monica Pacific Wheel as R1's
+; visual reference. Retire only the generated eight-car machine here; its
+; approved deck, piles, fence, booth, queue and operational dressing remain.
+[node name="wheel_ring" parent="." index="48"]
+visible = false
+[node name="wheel_hub" parent="." index="49"]
+visible = false
+[node name="wheel_spoke_0" parent="." index="50"]
+visible = false
+[node name="wheel_spoke_1" parent="." index="51"]
+visible = false
+[node name="wheel_spoke_2" parent="." index="52"]
+visible = false
+[node name="wheel_spoke_3" parent="." index="53"]
+visible = false
+[node name="wheel_spoke_4" parent="." index="54"]
+visible = false
+[node name="wheel_spoke_5" parent="." index="55"]
+visible = false
+[node name="wheel_spoke_6" parent="." index="56"]
+visible = false
+[node name="wheel_spoke_7" parent="." index="57"]
+visible = false
+[node name="wheel_leg_a" parent="." index="58"]
+visible = false
+[node name="wheel_leg_b" parent="." index="59"]
+visible = false
+[node name="wheel_car_0" parent="." index="60"]
+visible = false
+[node name="wheel_car_1" parent="." index="61"]
+visible = false
+[node name="wheel_car_2" parent="." index="62"]
+visible = false
+[node name="wheel_car_3" parent="." index="63"]
+visible = false
+[node name="wheel_car_4" parent="." index="64"]
+visible = false
+[node name="wheel_car_5" parent="." index="65"]
+visible = false
+[node name="wheel_car_6" parent="." index="66"]
+visible = false
+[node name="wheel_car_7" parent="." index="67"]
+visible = false
+
+; The generated 24-point ring suggested a modern programmable display. The
+; editor-owned wheel instead carries a denser static incandescent outline.
+[node name="wheel_bulb_0" parent="." index="545"]
+visible = false
+[node name="wheel_bulb_1" parent="." index="546"]
+visible = false
+[node name="wheel_bulb_2" parent="." index="547"]
+visible = false
+[node name="wheel_bulb_3" parent="." index="548"]
+visible = false
+[node name="wheel_bulb_4" parent="." index="549"]
+visible = false
+[node name="wheel_bulb_5" parent="." index="550"]
+visible = false
+[node name="wheel_bulb_6" parent="." index="551"]
+visible = false
+[node name="wheel_bulb_7" parent="." index="552"]
+visible = false
+[node name="wheel_bulb_8" parent="." index="553"]
+visible = false
+[node name="wheel_bulb_9" parent="." index="554"]
+visible = false
+[node name="wheel_bulb_10" parent="." index="555"]
+visible = false
+[node name="wheel_bulb_11" parent="." index="556"]
+visible = false
+[node name="wheel_bulb_12" parent="." index="557"]
+visible = false
+[node name="wheel_bulb_13" parent="." index="558"]
+visible = false
+[node name="wheel_bulb_14" parent="." index="559"]
+visible = false
+[node name="wheel_bulb_15" parent="." index="560"]
+visible = false
+[node name="wheel_bulb_16" parent="." index="561"]
+visible = false
+[node name="wheel_bulb_17" parent="." index="562"]
+visible = false
+[node name="wheel_bulb_18" parent="." index="563"]
+visible = false
+[node name="wheel_bulb_19" parent="." index="564"]
+visible = false
+[node name="wheel_bulb_20" parent="." index="565"]
+visible = false
+[node name="wheel_bulb_21" parent="." index="566"]
+visible = false
+[node name="wheel_bulb_22" parent="." index="567"]
+visible = false
+[node name="wheel_bulb_23" parent="." index="568"]
+visible = false
+
+[node name="wheel_wash_n" parent="." index="569"]
+light_color = Color(1, 0.72, 0.34, 1)
+[node name="wheel_wash_s" parent="." index="570"]
+light_color = Color(1, 0.72, 0.34, 1)
+
+; The generated apron was the source-handoff greybox. Christina approved the
+; circulation-driven footprint revision on 2026-09-09, so the stable wrapper
+; retires only that shape and mounts the directly editable replacement below.
+[node name="pavilion_apron" parent="." index="223"]
+visible = false
+use_collision = false
+
+; The substantially revised terminal building is editor-owned beside its
+; T-head. Its footprint and total height retain the generated silhouette
+; envelope while replacing the undifferentiated box, slab and pole.
+[node name="pavilion" parent="." index="224"]
+visible = false
+use_collision = false
+
+[node name="pavilion_roof" parent="." index="225"]
+visible = false
+
+[node name="pavilion_band" parent="." index="226"]
+visible = false
+
+[node name="pavilion_spire" parent="." index="227"]
+visible = false
+
+[node name="pavilion_doors" parent="." index="228"]
+visible = false
+
+; The last two generated posts and the one-piece rails closed against the
+; pavilion wall. Their revised terminal members live with the editor-owned
+; T-head so the visible shape and the collision opening cannot drift apart.
+[node name="pier_post_19_n" parent="." index="201"]
+visible = false
+use_collision = false
+
+[node name="pier_post_19_s" parent="." index="202"]
+visible = false
+use_collision = false
+
+[node name="pier_post_20_n" parent="." index="203"]
+visible = false
+use_collision = false
+
+[node name="pier_post_20_s" parent="." index="204"]
+visible = false
+use_collision = false
+
+[node name="pier_rail_n" parent="." index="205"]
+visible = false
+use_collision = false
+
+[node name="pier_rail_s" parent="." index="206"]
+visible = false
+use_collision = false
+
 [node name="authored_additions" type="Node3D" parent="."]
 
+[node name="boardwalk_pacific_wheel" parent="authored_additions" instance=ExtResource("7_pacific_wheel")]
+
+[node name="boardwalk_pier_head" parent="authored_additions" instance=ExtResource("5_pier_head")]
+
+[node name="boardwalk_pavilion" parent="authored_additions" instance=ExtResource("6_pavilion")]
+
 [node name="boardwalk_operations" parent="authored_additions" instance=ExtResource("2_operations")]
+
+[node name="boardwalk_density" parent="authored_additions" instance=ExtResource("3_density")]
+
+[node name="boardwalk_finish" parent="authored_additions" instance=ExtResource("4_finish")]

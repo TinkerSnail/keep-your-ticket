@@ -1,0 +1,367 @@
+[gd_scene load_steps=15 format=3]
+
+; Editor-owned Boardwalk finish layer. The generated buildings remain collision
+; and weather backing; these directly selectable pieces carry material scale,
+; merchandise and wear whose location is explained by use. Nothing enters Q3,
+; the public pier centre, the pavilion turnaround or the sunset-water sector.
+
+[ext_resource type="Texture2D" path="res://assets/textures/boardwalk/weathered_boardwalk_albedo.res" id="1_weathered"]
+[ext_resource type="Material" path="res://assets/materials/bulb.res" id="2_bulb"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_unit"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_unit"]
+radius = 0.5
+height = 1.0
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_unit"]
+top_radius = 0.5
+bottom_radius = 0.5
+height = 1.0
+radial_segments = 12
+
+[sub_resource type="TorusMesh" id="TorusMesh_unit"]
+inner_radius = 0.28
+outer_radius = 0.5
+rings = 18
+ring_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="Mat_weathered_board"]
+albedo_texture = ExtResource("1_weathered")
+roughness = 0.9
+uv1_scale = Vector3(2.2, 2.2, 2.2)
+
+[sub_resource type="StandardMaterial3D" id="Mat_bleached"]
+albedo_color = Color(0.66, 0.62, 0.52, 1)
+roughness = 0.96
+
+[sub_resource type="StandardMaterial3D" id="Mat_turquoise_worn"]
+albedo_color = Color(0.075, 0.34, 0.32, 1)
+roughness = 0.88
+
+[sub_resource type="StandardMaterial3D" id="Mat_coral_worn"]
+albedo_color = Color(0.55, 0.16, 0.11, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Mat_mustard_worn"]
+albedo_color = Color(0.57, 0.36, 0.055, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Mat_dark_metal"]
+albedo_color = Color(0.055, 0.065, 0.065, 1)
+metallic = 0.48
+roughness = 0.62
+
+[sub_resource type="StandardMaterial3D" id="Mat_galvanized"]
+albedo_color = Color(0.33, 0.36, 0.35, 1)
+metallic = 0.52
+roughness = 0.58
+
+[sub_resource type="StandardMaterial3D" id="Mat_paper"]
+albedo_color = Color(0.82, 0.76, 0.62, 1)
+roughness = 0.96
+
+[sub_resource type="StandardMaterial3D" id="Mat_prize_blue"]
+albedo_color = Color(0.08, 0.23, 0.44, 1)
+roughness = 0.76
+
+[sub_resource type="StandardMaterial3D" id="Mat_prize_green"]
+albedo_color = Color(0.25, 0.46, 0.19, 1)
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="Mat_scuff"]
+albedo_color = Color(0.19, 0.17, 0.14, 1)
+roughness = 0.98
+
+[node name="boardwalk_finish" type="Node3D"]
+editor_description = "Editor-owned material, merchandise and caused-wear layer for the Boardwalk. Open this scene to move or replace every finish piece."
+metadata/section = &"boardwalk"
+metadata/layout_source = "res://scenes/world/boardwalk_layout.tscn"
+metadata/fidelity_pass = 5
+metadata/protected_clearances = "NT-1,Q3,pier_approach,pavilion_turnaround,west_arch_reveal,sunset_sector"
+
+[node name="weathered_cladding" type="Node3D" parent="."]
+editor_description = "Texture is concentrated on blank building fields; paths keep their established quiet plank direction."
+
+[node name="I2_north_side" type="MeshInstance3D" parent="weathered_cladding"]
+position = Vector3(-83.0, -3.6, -34.18)
+scale = Vector3(15.1, 4.0, 0.035)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_weathered_board")
+
+[node name="I2_south_side" type="MeshInstance3D" parent="weathered_cladding"]
+position = Vector3(-83.0, -3.6, -23.82)
+scale = Vector3(15.1, 4.0, 0.035)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_weathered_board")
+
+[node name="I3_west_side" type="MeshInstance3D" parent="weathered_cladding"]
+position = Vector3(-86.66, -2.48, -48.0)
+scale = Vector3(0.035, 4.15, 8.3)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_weathered_board")
+
+[node name="P2_centre_board_repair" type="MeshInstance3D" parent="weathered_cladding"]
+position = Vector3(-83.17, -2.63, 32.0)
+scale = Vector3(0.035, 5.65, 2.0)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_weathered_board")
+
+[node name="salt_and_maintenance_marks" type="Node3D" parent="."]
+editor_description = "Low salt lift, replaced boards and paint patches occur only on exposed lower faces."
+
+[node name="I3_salt_lift" type="MeshInstance3D" parent="salt_and_maintenance_marks"]
+position = Vector3(-86.69, -4.95, -48.65)
+scale = Vector3(0.025, 0.55, 3.6)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_bleached")
+
+[node name="I3_repaint_patch" type="MeshInstance3D" parent="salt_and_maintenance_marks"]
+position = Vector3(-86.72, -3.15, -45.45)
+scale = Vector3(0.02, 0.72, 1.15)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_turquoise_worn")
+
+[node name="P2_kick_patch" type="MeshInstance3D" parent="salt_and_maintenance_marks"]
+position = Vector3(-83.205, -5.35, 32.0)
+scale = Vector3(0.02, 0.48, 1.55)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_bleached")
+
+[node name="I2_ride_photo_merchandise" type="Node3D" parent="."]
+editor_description = "Ride-photo packets and sample mounts make the counter readable without adding another sign."
+
+[node name="sample_mount_n" type="MeshInstance3D" parent="I2_ride_photo_merchandise"]
+position = Vector3(-91.49, -3.35, -31.2)
+scale = Vector3(0.018, 0.72, 0.88)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_paper")
+[node name="sample_photo_n" type="MeshInstance3D" parent="I2_ride_photo_merchandise"]
+position = Vector3(-91.512, -3.35, -31.2)
+scale = Vector3(0.012, 0.48, 0.58)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_prize_blue")
+[node name="sample_mount_s" type="MeshInstance3D" parent="I2_ride_photo_merchandise"]
+position = Vector3(-91.49, -3.35, -26.8)
+scale = Vector3(0.018, 0.72, 0.88)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_paper")
+[node name="sample_photo_s" type="MeshInstance3D" parent="I2_ride_photo_merchandise"]
+position = Vector3(-91.512, -3.35, -26.8)
+scale = Vector3(0.012, 0.48, 0.58)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_coral_worn")
+
+[node name="packet_stack_01" type="MeshInstance3D" parent="I2_ride_photo_merchandise"]
+position = Vector3(-77.25, -4.74, -30.6)
+scale = Vector3(0.62, 0.12, 0.82)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_paper")
+[node name="packet_stack_02" type="MeshInstance3D" parent="I2_ride_photo_merchandise"]
+position = Vector3(-77.18, -4.62, -29.5)
+rotation = Vector3(0, 0.08, 0)
+scale = Vector3(0.68, 0.10, 0.9)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_paper")
+
+[node name="midway_merchandise" type="Node3D" parent="."]
+editor_description = "Prizes and stock belong to the game that awards or consumes them, rather than becoming generic midway clutter."
+
+[node name="B1_prize_rail" type="MeshInstance3D" parent="midway_merchandise"]
+position = Vector3(-84.15, -2.55, -19.0)
+scale = Vector3(0.12, 0.12, 3.55)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_dark_metal")
+[node name="B1_prize_01" type="MeshInstance3D" parent="midway_merchandise"]
+position = Vector3(-84.32, -3.05, -20.35)
+scale = Vector3(0.52, 0.78, 0.52)
+mesh = SubResource("SphereMesh_unit")
+material_override = SubResource("Mat_prize_blue")
+[node name="B1_prize_02" type="MeshInstance3D" parent="midway_merchandise"]
+position = Vector3(-84.32, -3.08, -19.45)
+scale = Vector3(0.48, 0.68, 0.48)
+mesh = SubResource("SphereMesh_unit")
+material_override = SubResource("Mat_mustard_worn")
+[node name="B1_prize_03" type="MeshInstance3D" parent="midway_merchandise"]
+position = Vector3(-84.32, -3.02, -18.55)
+scale = Vector3(0.54, 0.82, 0.54)
+mesh = SubResource("SphereMesh_unit")
+material_override = SubResource("Mat_coral_worn")
+[node name="B1_prize_04" type="MeshInstance3D" parent="midway_merchandise"]
+position = Vector3(-84.32, -3.07, -17.65)
+scale = Vector3(0.5, 0.72, 0.5)
+mesh = SubResource("SphereMesh_unit")
+material_override = SubResource("Mat_prize_green")
+
+[node name="B2_prize_shelf" type="MeshInstance3D" parent="midway_merchandise"]
+position = Vector3(-84.05, -3.2, -11.0)
+scale = Vector3(0.55, 0.10, 3.2)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_bleached")
+[node name="B2_prize_01" type="MeshInstance3D" parent="midway_merchandise"]
+position = Vector3(-84.22, -3.75, -12.0)
+scale = Vector3(0.42, 0.9, 0.42)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_turquoise_worn")
+[node name="B2_prize_02" type="MeshInstance3D" parent="midway_merchandise"]
+position = Vector3(-84.22, -3.7, -10.8)
+scale = Vector3(0.48, 0.8, 0.48)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_coral_worn")
+[node name="B2_prize_03" type="MeshInstance3D" parent="midway_merchandise"]
+position = Vector3(-84.22, -3.76, -9.65)
+scale = Vector3(0.4, 0.92, 0.4)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_mustard_worn")
+
+[node name="B3_ball_rack" type="MeshInstance3D" parent="midway_merchandise"]
+position = Vector3(-84.05, -3.9, 10.55)
+scale = Vector3(0.5, 1.65, 0.10)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_galvanized")
+[node name="B3_stock_ball_01" type="MeshInstance3D" parent="midway_merchandise"]
+position = Vector3(-84.34, -3.65, 10.48)
+scale = Vector3(0.42, 0.42, 0.42)
+mesh = SubResource("SphereMesh_unit")
+material_override = SubResource("Mat_coral_worn")
+[node name="B3_stock_ball_02" type="MeshInstance3D" parent="midway_merchandise"]
+position = Vector3(-84.34, -4.15, 10.48)
+scale = Vector3(0.42, 0.42, 0.42)
+mesh = SubResource("SphereMesh_unit")
+material_override = SubResource("Mat_mustard_worn")
+[node name="B3_stock_ball_03" type="MeshInstance3D" parent="midway_merchandise"]
+position = Vector3(-84.34, -4.65, 10.48)
+scale = Vector3(0.42, 0.42, 0.42)
+mesh = SubResource("SphereMesh_unit")
+material_override = SubResource("Mat_prize_blue")
+
+[node name="B4_paper_tray" type="MeshInstance3D" parent="midway_merchandise"]
+position = Vector3(-87.95, -4.42, 15.65)
+scale = Vector3(0.66, 0.06, 0.82)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_paper")
+[node name="B4_napkin_stack" type="MeshInstance3D" parent="midway_merchandise"]
+position = Vector3(-87.92, -4.3, 17.95)
+rotation = Vector3(0, -0.08, 0)
+scale = Vector3(0.42, 0.16, 0.5)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_paper")
+[node name="B4_condiment_red" type="MeshInstance3D" parent="midway_merchandise"]
+position = Vector3(-87.88, -4.0, 16.35)
+scale = Vector3(0.22, 0.62, 0.22)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_coral_worn")
+[node name="B4_condiment_yellow" type="MeshInstance3D" parent="midway_merchandise"]
+position = Vector3(-87.88, -4.0, 16.75)
+scale = Vector3(0.22, 0.62, 0.22)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_mustard_worn")
+
+[node name="cafe_working_residue" type="Node3D" parent="."]
+editor_description = "A used tray, stacked cups and wiped counter marks make the café look occupied and recently vacated."
+
+[node name="used_tray" type="MeshInstance3D" parent="cafe_working_residue"]
+position = Vector3(-86.1, -4.19, -55.1)
+rotation = Vector3(0, 0.18, 0)
+scale = Vector3(0.72, 0.035, 0.9)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_paper")
+[node name="funnel_cake_remnant" type="MeshInstance3D" parent="cafe_working_residue"]
+position = Vector3(-86.1, -4.12, -55.1)
+rotation = Vector3(0, 0, 0)
+scale = Vector3(0.52, 0.12, 0.52)
+mesh = SubResource("TorusMesh_unit")
+material_override = SubResource("Mat_mustard_worn")
+[node name="cup_01" type="MeshInstance3D" parent="cafe_working_residue"]
+position = Vector3(-76.9, -3.74, -50.2)
+scale = Vector3(0.18, 0.42, 0.18)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_paper")
+[node name="cup_02" type="MeshInstance3D" parent="cafe_working_residue"]
+position = Vector3(-76.55, -3.74, -50.05)
+scale = Vector3(0.18, 0.42, 0.18)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_paper")
+[node name="counter_wipe_mark" type="MeshInstance3D" parent="cafe_working_residue"]
+position = Vector3(-81.5, -3.715, -45.3)
+scale = Vector3(2.4, 0.025, 0.32)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_bleached")
+
+[node name="caused_wear" type="Node3D" parent="."]
+editor_description = "Darkened threshold boards follow foot traffic; pale rail caps follow hands and salt. All are non-colliding visual layers."
+
+[node name="I2_threshold_scuff" type="MeshInstance3D" parent="caused_wear"]
+position = Vector3(-91.15, -5.942, -29.0)
+scale = Vector3(1.15, 0.012, 2.05)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_scuff")
+cast_shadow = 0
+[node name="B1_threshold_scuff" type="MeshInstance3D" parent="caused_wear"]
+position = Vector3(-90.2, -5.942, -19.0)
+scale = Vector3(0.72, 0.012, 2.55)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_scuff")
+cast_shadow = 0
+[node name="B2_threshold_scuff" type="MeshInstance3D" parent="caused_wear"]
+position = Vector3(-90.2, -5.941, -11.0)
+scale = Vector3(0.72, 0.012, 2.35)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_scuff")
+cast_shadow = 0
+[node name="B3_threshold_scuff" type="MeshInstance3D" parent="caused_wear"]
+position = Vector3(-90.2, -5.94, 9.0)
+scale = Vector3(0.72, 0.012, 2.45)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_scuff")
+cast_shadow = 0
+[node name="B4_threshold_scuff" type="MeshInstance3D" parent="caused_wear"]
+position = Vector3(-90.2, -5.939, 17.0)
+scale = Vector3(0.72, 0.012, 2.45)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_scuff")
+cast_shadow = 0
+[node name="P2_entry_scuff" type="MeshInstance3D" parent="caused_wear"]
+position = Vector3(-83.7, -5.938, 27.0)
+scale = Vector3(0.95, 0.012, 1.5)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_scuff")
+cast_shadow = 0
+[node name="P2_exit_scuff" type="MeshInstance3D" parent="caused_wear"]
+position = Vector3(-83.7, -5.937, 37.0)
+scale = Vector3(0.95, 0.012, 1.5)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_scuff")
+cast_shadow = 0
+
+[node name="pier_hand_wear_n" type="MeshInstance3D" parent="caused_wear"]
+position = Vector3(-132.0, -4.766, 2.153)
+scale = Vector3(7.0, 0.025, 0.17)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_bleached")
+cast_shadow = 0
+[node name="pier_hand_wear_s" type="MeshInstance3D" parent="caused_wear"]
+position = Vector3(-139.0, -4.766, 9.853)
+scale = Vector3(6.0, 0.025, 0.17)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_bleached")
+cast_shadow = 0
+
+[node name="selective_practicals" type="Node3D" parent="."]
+editor_description = "One public midway practical supplements the existing Boardwalk light system; it fades with the public park rather than surviving close."
+[node name="B2_fixture" type="MeshInstance3D" parent="selective_practicals"]
+position = Vector3(-90.05, -1.95, -11.0)
+scale = Vector3(0.25, 0.25, 0.25)
+mesh = SubResource("SphereMesh_unit")
+material_override = ExtResource("2_bulb")
+[node name="B2_practical" type="OmniLight3D" parent="selective_practicals" groups=["park_light"]]
+position = Vector3(-90.2, -2.05, -11.0)
+visible = false
+light_color = Color(1, 0.74, 0.43, 1)
+light_energy = 0.0
+light_specular = 0.25
+omni_range = 5.5
+omni_attenuation = 1.75
+metadata/base_energy = 1.25
+metadata/light_kind = 0

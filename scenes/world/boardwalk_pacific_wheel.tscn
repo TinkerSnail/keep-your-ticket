@@ -1,0 +1,1061 @@
+[gd_scene load_steps=15 format=3]
+
+; Directly editor-owned R1 landmark form. The daytime structure follows the
+; red/yellow 1990s Santa Monica wheel: white open lattice, twenty faceted
+; gondolas with broad dark roofs, and yellow/red hub faces. Christina's supplied
+; night reference controls the grouped colored spoke tubes and yellow rim tube.
+; ParkPlan's fixed hub, radius, WHEEL_TOP and operating envelope remain intact.
+
+[ext_resource type="Material" path="res://assets/materials/bulb.res" id="1_bulb"]
+[ext_resource type="Script" path="res://scenes/world/boardwalk_pacific_wheel.gd" id="2_script"]
+[ext_resource type="PackedScene" path="res://scenes/world/boardwalk_props/wheel_gondola_red.tscn" id="3_red_cabin"]
+[ext_resource type="PackedScene" path="res://scenes/world/boardwalk_props/wheel_gondola_yellow.tscn" id="4_yellow_cabin"]
+[ext_resource type="Material" path="res://assets/materials/wheel_tube_aqua.tres" id="5_aqua"]
+[ext_resource type="Material" path="res://assets/materials/wheel_tube_yellow.tres" id="6_tube_yellow"]
+[ext_resource type="Material" path="res://assets/materials/wheel_tube_red.tres" id="7_tube_red"]
+[ext_resource type="Material" path="res://assets/materials/wheel_tube_blue.tres" id="8_blue"]
+[ext_resource type="Material" path="res://assets/materials/wheel_tube_pink.tres" id="9_pink"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_white"]
+albedo_color = Color(0.92, 0.9, 0.82, 1)
+metallic = 0.18
+roughness = 0.55
+
+[sub_resource type="StandardMaterial3D" id="Mat_red"]
+albedo_color = Color(0.78, 0.105, 0.075, 1)
+roughness = 0.58
+
+[sub_resource type="StandardMaterial3D" id="Mat_yellow"]
+albedo_color = Color(0.96, 0.7, 0.08, 1)
+roughness = 0.58
+
+[sub_resource type="StandardMaterial3D" id="Mat_dark"]
+albedo_color = Color(0.055, 0.075, 0.08, 1)
+metallic = 0.25
+roughness = 0.38
+
+[sub_resource type="StandardMaterial3D" id="Mat_glass"]
+albedo_color = Color(0.1, 0.26, 0.3, 0.72)
+transparency = 1
+roughness = 0.22
+
+[sub_resource type="SphereMesh" id="Sphere_bulb"]
+radius = 0.13
+height = 0.26
+radial_segments = 8
+rings = 4
+
+[sub_resource type="SphereMesh" id="Sphere_hub_bulb"]
+radius = 0.07
+height = 0.14
+radial_segments = 8
+rings = 4
+
+[sub_resource type="BoxMesh" id="Mesh_spoke_tube"]
+size = Vector3(0.075, 0.075, 12.1)
+
+[node name="boardwalk_pacific_wheel" type="Node3D"]
+editor_description = "R1 editor-owned landmark. 1990s red/yellow faceted cabins, dark octagonal roofs, indexed load dwell and grouped colored night tubes. Fixed ParkPlan dimensions and wheel top are unchanged."
+script = ExtResource("2_script")
+metadata/section = &"boardwalk"
+metadata/layout_source = "res://scenes/world/boardwalk_layout.tscn"
+metadata/reference = "1990s Santa Monica wheel cabin palette and construction; supplied Pacific Wheel night-light reference"
+metadata/protected_clearances = "WHEEL_TOP,west_arch_reveal,Q3,pier_approach,sunset_water_sector"
+
+[node name="machine" type="Node3D" parent="."]
+
+[node name="rim_west" type="CSGTorus3D" parent="machine"]
+transform = Transform3D(-4.371139e-08, 1, -4.371139e-08, 0, -4.371139e-08, -1, -1, -4.371139e-08, 1.9106855e-15, -112.25, 12.6, -16)
+inner_radius = 12.55
+outer_radius = 13.2
+sides = 40
+ring_sides = 8
+material = SubResource("Mat_white")
+
+[node name="rim_east" type="CSGTorus3D" parent="machine"]
+transform = Transform3D(-4.371139e-08, 1, -4.371139e-08, 0, -4.371139e-08, -1, -1, -4.371139e-08, 1.9106855e-15, -110.95, 12.6, -16)
+inner_radius = 12.55
+outer_radius = 13.2
+sides = 40
+ring_sides = 8
+material = SubResource("Mat_white")
+
+[node name="inner_ring_west" type="CSGTorus3D" parent="machine"]
+transform = Transform3D(-4.371139e-08, 1, -4.371139e-08, 0, -4.371139e-08, -1, -1, -4.371139e-08, 1.9106855e-15, -112.25, 12.6, -16)
+inner_radius = 4.25
+outer_radius = 4.58
+sides = 40
+ring_sides = 8
+material = SubResource("Mat_white")
+
+[node name="inner_ring_east" type="CSGTorus3D" parent="machine"]
+transform = Transform3D(-4.371139e-08, 1, -4.371139e-08, 0, -4.371139e-08, -1, -1, -4.371139e-08, 1.9106855e-15, -110.95, 12.6, -16)
+inner_radius = 4.25
+outer_radius = 4.58
+sides = 40
+ring_sides = 8
+material = SubResource("Mat_white")
+
+[node name="axle" type="CSGCylinder3D" parent="machine"]
+position = Vector3(-111.6, 12.6, -16)
+rotation = Vector3(0, 0, 1.570796)
+radius = 0.82
+height = 3.1
+sides = 16
+material = SubResource("Mat_dark")
+
+[node name="hub_face_east" type="CSGCylinder3D" parent="machine"]
+position = Vector3(-109.98, 12.6, -16)
+rotation = Vector3(0, 0, 1.570796)
+radius = 1.42
+height = 0.16
+sides = 24
+material = SubResource("Mat_yellow")
+
+[node name="hub_face_west" type="CSGCylinder3D" parent="machine"]
+position = Vector3(-113.22, 12.6, -16)
+rotation = Vector3(0, 0, 1.570796)
+radius = 1.42
+height = 0.16
+sides = 24
+material = SubResource("Mat_yellow")
+
+[node name="hub_title_east" type="Label3D" parent="machine"]
+position = Vector3(-109.86, 12.6, -16)
+rotation = Vector3(0, 1.570796, 0)
+text = "THE WHEEL"
+font_size = 62
+pixel_size = 0.008
+outline_size = 6
+modulate = Color(0.78, 0.105, 0.075, 1)
+
+[node name="hub_title_west" type="Label3D" parent="machine"]
+position = Vector3(-113.34, 12.6, -16)
+rotation = Vector3(0, -1.570796, 0)
+text = "THE WHEEL"
+font_size = 62
+pixel_size = 0.008
+outline_size = 6
+modulate = Color(0.78, 0.105, 0.075, 1)
+
+[node name="support_west_n" type="CSGBox3D" parent="machine"]
+position = Vector3(-112.35, 3.6, -21.5)
+rotation = Vector3(-1.022, 0, 0)
+size = Vector3(0.58, 0.58, 21.095)
+material = SubResource("Mat_white")
+
+[node name="support_west_s" type="CSGBox3D" parent="machine"]
+position = Vector3(-112.35, 3.6, -10.5)
+rotation = Vector3(1.022, 0, 0)
+size = Vector3(0.58, 0.58, 21.095)
+material = SubResource("Mat_white")
+
+[node name="support_east_n" type="CSGBox3D" parent="machine"]
+position = Vector3(-110.85, 3.6, -21.5)
+rotation = Vector3(-1.022, 0, 0)
+size = Vector3(0.58, 0.58, 21.095)
+material = SubResource("Mat_white")
+
+[node name="support_east_s" type="CSGBox3D" parent="machine"]
+position = Vector3(-110.85, 3.6, -10.5)
+rotation = Vector3(1.022, 0, 0)
+size = Vector3(0.58, 0.58, 21.095)
+material = SubResource("Mat_white")
+
+[node name="spokes" type="Node3D" parent="machine"]
+
+[node name="west_00" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-112.25, 12.6000, -9.6500)
+rotation = Vector3(0.000000, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+[node name="east_00" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-110.95, 12.6000, -9.6500)
+rotation = Vector3(0.000000, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+
+[node name="west_01" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-112.25, 14.5623, -9.9608)
+rotation = Vector3(-0.314159, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+[node name="east_01" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-110.95, 14.5623, -9.9608)
+rotation = Vector3(-0.314159, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+
+[node name="west_02" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-112.25, 16.3324, -10.8627)
+rotation = Vector3(-0.628319, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+[node name="east_02" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-110.95, 16.3324, -10.8627)
+rotation = Vector3(-0.628319, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+
+[node name="west_03" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-112.25, 17.7373, -12.2676)
+rotation = Vector3(-0.942478, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+[node name="east_03" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-110.95, 17.7373, -12.2676)
+rotation = Vector3(-0.942478, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+
+[node name="west_04" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-112.25, 18.6392, -14.0377)
+rotation = Vector3(-1.256637, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+[node name="east_04" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-110.95, 18.6392, -14.0377)
+rotation = Vector3(-1.256637, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+
+[node name="west_05" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-112.25, 18.9500, -16.0000)
+rotation = Vector3(-1.570796, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+[node name="east_05" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-110.95, 18.9500, -16.0000)
+rotation = Vector3(-1.570796, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+
+[node name="west_06" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-112.25, 18.6392, -17.9623)
+rotation = Vector3(-1.884956, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+[node name="east_06" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-110.95, 18.6392, -17.9623)
+rotation = Vector3(-1.884956, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+
+[node name="west_07" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-112.25, 17.7373, -19.7324)
+rotation = Vector3(-2.199115, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+[node name="east_07" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-110.95, 17.7373, -19.7324)
+rotation = Vector3(-2.199115, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+
+[node name="west_08" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-112.25, 16.3324, -21.1373)
+rotation = Vector3(-2.513274, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+[node name="east_08" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-110.95, 16.3324, -21.1373)
+rotation = Vector3(-2.513274, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+
+[node name="west_09" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-112.25, 14.5623, -22.0392)
+rotation = Vector3(-2.827433, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+[node name="east_09" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-110.95, 14.5623, -22.0392)
+rotation = Vector3(-2.827433, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+
+[node name="west_10" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-112.25, 12.6000, -22.3500)
+rotation = Vector3(-3.141593, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+[node name="east_10" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-110.95, 12.6000, -22.3500)
+rotation = Vector3(-3.141593, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+
+[node name="west_11" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-112.25, 10.6377, -22.0392)
+rotation = Vector3(2.827433, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+[node name="east_11" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-110.95, 10.6377, -22.0392)
+rotation = Vector3(2.827433, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+
+[node name="west_12" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-112.25, 8.8676, -21.1373)
+rotation = Vector3(2.513274, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+[node name="east_12" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-110.95, 8.8676, -21.1373)
+rotation = Vector3(2.513274, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+
+[node name="west_13" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-112.25, 7.4627, -19.7324)
+rotation = Vector3(2.199115, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+[node name="east_13" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-110.95, 7.4627, -19.7324)
+rotation = Vector3(2.199115, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+
+[node name="west_14" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-112.25, 6.5608, -17.9623)
+rotation = Vector3(1.884956, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+[node name="east_14" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-110.95, 6.5608, -17.9623)
+rotation = Vector3(1.884956, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+
+[node name="west_15" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-112.25, 6.2500, -16.0000)
+rotation = Vector3(1.570796, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+[node name="east_15" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-110.95, 6.2500, -16.0000)
+rotation = Vector3(1.570796, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+
+[node name="west_16" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-112.25, 6.5608, -14.0377)
+rotation = Vector3(1.256637, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+[node name="east_16" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-110.95, 6.5608, -14.0377)
+rotation = Vector3(1.256637, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+
+[node name="west_17" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-112.25, 7.4627, -12.2676)
+rotation = Vector3(0.942478, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+[node name="east_17" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-110.95, 7.4627, -12.2676)
+rotation = Vector3(0.942478, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+
+[node name="west_18" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-112.25, 8.8676, -10.8627)
+rotation = Vector3(0.628319, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+[node name="east_18" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-110.95, 8.8676, -10.8627)
+rotation = Vector3(0.628319, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+
+[node name="west_19" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-112.25, 10.6377, -9.9608)
+rotation = Vector3(0.314159, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+[node name="east_19" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-110.95, 10.6377, -9.9608)
+rotation = Vector3(0.314159, 0, 0)
+size = Vector3(0.15, 0.15, 12.7)
+material = SubResource("Mat_white")
+
+
+[node name="light_tube_00" type="MeshInstance3D" parent="machine/spokes"]
+position = Vector3(-110.68, 12.6000, -9.6500)
+rotation = Vector3(0.000000, 0, 0)
+mesh = SubResource("Mesh_spoke_tube")
+material_override = ExtResource("5_aqua")
+
+[node name="light_tube_01" type="MeshInstance3D" parent="machine/spokes"]
+position = Vector3(-110.68, 14.5623, -9.9608)
+rotation = Vector3(-0.314159, 0, 0)
+mesh = SubResource("Mesh_spoke_tube")
+material_override = ExtResource("5_aqua")
+
+[node name="light_tube_02" type="MeshInstance3D" parent="machine/spokes"]
+position = Vector3(-110.68, 16.3324, -10.8627)
+rotation = Vector3(-0.628319, 0, 0)
+mesh = SubResource("Mesh_spoke_tube")
+material_override = ExtResource("5_aqua")
+
+[node name="light_tube_03" type="MeshInstance3D" parent="machine/spokes"]
+position = Vector3(-110.68, 17.7373, -12.2676)
+rotation = Vector3(-0.942478, 0, 0)
+mesh = SubResource("Mesh_spoke_tube")
+material_override = ExtResource("5_aqua")
+
+[node name="light_tube_04" type="MeshInstance3D" parent="machine/spokes"]
+position = Vector3(-110.68, 18.6392, -14.0377)
+rotation = Vector3(-1.256637, 0, 0)
+mesh = SubResource("Mesh_spoke_tube")
+material_override = ExtResource("6_tube_yellow")
+
+[node name="light_tube_05" type="MeshInstance3D" parent="machine/spokes"]
+position = Vector3(-110.68, 18.9500, -16.0000)
+rotation = Vector3(-1.570796, 0, 0)
+mesh = SubResource("Mesh_spoke_tube")
+material_override = ExtResource("6_tube_yellow")
+
+[node name="light_tube_06" type="MeshInstance3D" parent="machine/spokes"]
+position = Vector3(-110.68, 18.6392, -17.9623)
+rotation = Vector3(-1.884956, 0, 0)
+mesh = SubResource("Mesh_spoke_tube")
+material_override = ExtResource("6_tube_yellow")
+
+[node name="light_tube_07" type="MeshInstance3D" parent="machine/spokes"]
+position = Vector3(-110.68, 17.7373, -19.7324)
+rotation = Vector3(-2.199115, 0, 0)
+mesh = SubResource("Mesh_spoke_tube")
+material_override = ExtResource("6_tube_yellow")
+
+[node name="light_tube_08" type="MeshInstance3D" parent="machine/spokes"]
+position = Vector3(-110.68, 16.3324, -21.1373)
+rotation = Vector3(-2.513274, 0, 0)
+mesh = SubResource("Mesh_spoke_tube")
+material_override = ExtResource("8_blue")
+
+[node name="light_tube_09" type="MeshInstance3D" parent="machine/spokes"]
+position = Vector3(-110.68, 14.5623, -22.0392)
+rotation = Vector3(-2.827433, 0, 0)
+mesh = SubResource("Mesh_spoke_tube")
+material_override = ExtResource("8_blue")
+
+[node name="light_tube_10" type="MeshInstance3D" parent="machine/spokes"]
+position = Vector3(-110.68, 12.6000, -22.3500)
+rotation = Vector3(-3.141593, 0, 0)
+mesh = SubResource("Mesh_spoke_tube")
+material_override = ExtResource("8_blue")
+
+[node name="light_tube_11" type="MeshInstance3D" parent="machine/spokes"]
+position = Vector3(-110.68, 10.6377, -22.0392)
+rotation = Vector3(2.827433, 0, 0)
+mesh = SubResource("Mesh_spoke_tube")
+material_override = ExtResource("8_blue")
+
+[node name="light_tube_12" type="MeshInstance3D" parent="machine/spokes"]
+position = Vector3(-110.68, 8.8676, -21.1373)
+rotation = Vector3(2.513274, 0, 0)
+mesh = SubResource("Mesh_spoke_tube")
+material_override = ExtResource("7_tube_red")
+
+[node name="light_tube_13" type="MeshInstance3D" parent="machine/spokes"]
+position = Vector3(-110.68, 7.4627, -19.7324)
+rotation = Vector3(2.199115, 0, 0)
+mesh = SubResource("Mesh_spoke_tube")
+material_override = ExtResource("7_tube_red")
+
+[node name="light_tube_14" type="MeshInstance3D" parent="machine/spokes"]
+position = Vector3(-110.68, 6.5608, -17.9623)
+rotation = Vector3(1.884956, 0, 0)
+mesh = SubResource("Mesh_spoke_tube")
+material_override = ExtResource("7_tube_red")
+
+[node name="light_tube_15" type="MeshInstance3D" parent="machine/spokes"]
+position = Vector3(-110.68, 6.2500, -16.0000)
+rotation = Vector3(1.570796, 0, 0)
+mesh = SubResource("Mesh_spoke_tube")
+material_override = ExtResource("7_tube_red")
+
+[node name="light_tube_16" type="MeshInstance3D" parent="machine/spokes"]
+position = Vector3(-110.68, 6.5608, -14.0377)
+rotation = Vector3(1.256637, 0, 0)
+mesh = SubResource("Mesh_spoke_tube")
+material_override = ExtResource("9_pink")
+
+[node name="light_tube_17" type="MeshInstance3D" parent="machine/spokes"]
+position = Vector3(-110.68, 7.4627, -12.2676)
+rotation = Vector3(0.942478, 0, 0)
+mesh = SubResource("Mesh_spoke_tube")
+material_override = ExtResource("9_pink")
+
+[node name="light_tube_18" type="MeshInstance3D" parent="machine/spokes"]
+position = Vector3(-110.68, 8.8676, -10.8627)
+rotation = Vector3(0.628319, 0, 0)
+mesh = SubResource("Mesh_spoke_tube")
+material_override = ExtResource("9_pink")
+
+[node name="light_tube_19" type="MeshInstance3D" parent="machine/spokes"]
+position = Vector3(-110.68, 10.6377, -9.9608)
+rotation = Vector3(0.314159, 0, 0)
+mesh = SubResource("Mesh_spoke_tube")
+material_override = ExtResource("9_pink")
+
+[node name="yellow_rim_tube" type="CSGTorus3D" parent="machine/spokes"]
+transform = Transform3D(-4.371139e-08, 1, -4.371139e-08, 0, -4.371139e-08, -1, -1, -4.371139e-08, 1.9106855e-15, -110.77, 12.6, -16)
+inner_radius = 13.01
+outer_radius = 13.16
+sides = 80
+ring_sides = 6
+material = ExtResource("6_tube_yellow")
+
+[node name="rim_cross_tie_00" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-111.6, 12.6, -3.3)
+size = Vector3(1.58, 0.13, 0.13)
+material = SubResource("Mat_white")
+
+[node name="rim_cross_tie_01" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-111.6, 16.5245, -3.9216)
+size = Vector3(1.58, 0.13, 0.13)
+material = SubResource("Mat_white")
+
+[node name="rim_cross_tie_02" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-111.6, 20.0649, -5.7255)
+size = Vector3(1.58, 0.13, 0.13)
+material = SubResource("Mat_white")
+
+[node name="rim_cross_tie_03" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-111.6, 22.8745, -8.5351)
+size = Vector3(1.58, 0.13, 0.13)
+material = SubResource("Mat_white")
+
+[node name="rim_cross_tie_04" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-111.6, 24.6784, -12.0755)
+size = Vector3(1.58, 0.13, 0.13)
+material = SubResource("Mat_white")
+
+[node name="rim_cross_tie_05" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-111.6, 25.3, -16)
+size = Vector3(1.58, 0.13, 0.13)
+material = SubResource("Mat_white")
+
+[node name="rim_cross_tie_06" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-111.6, 24.6784, -19.9245)
+size = Vector3(1.58, 0.13, 0.13)
+material = SubResource("Mat_white")
+
+[node name="rim_cross_tie_07" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-111.6, 22.8745, -23.4649)
+size = Vector3(1.58, 0.13, 0.13)
+material = SubResource("Mat_white")
+
+[node name="rim_cross_tie_08" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-111.6, 20.0649, -26.2745)
+size = Vector3(1.58, 0.13, 0.13)
+material = SubResource("Mat_white")
+
+[node name="rim_cross_tie_09" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-111.6, 16.5245, -28.0784)
+size = Vector3(1.58, 0.13, 0.13)
+material = SubResource("Mat_white")
+
+[node name="rim_cross_tie_10" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-111.6, 12.6, -28.7)
+size = Vector3(1.58, 0.13, 0.13)
+material = SubResource("Mat_white")
+
+[node name="rim_cross_tie_11" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-111.6, 8.6755, -28.0784)
+size = Vector3(1.58, 0.13, 0.13)
+material = SubResource("Mat_white")
+
+[node name="rim_cross_tie_12" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-111.6, 5.1351, -26.2745)
+size = Vector3(1.58, 0.13, 0.13)
+material = SubResource("Mat_white")
+
+[node name="rim_cross_tie_13" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-111.6, 2.3255, -23.4649)
+size = Vector3(1.58, 0.13, 0.13)
+material = SubResource("Mat_white")
+
+[node name="rim_cross_tie_14" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-111.6, 0.5216, -19.9245)
+size = Vector3(1.58, 0.13, 0.13)
+material = SubResource("Mat_white")
+
+[node name="rim_cross_tie_15" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-111.6, -0.1, -16)
+size = Vector3(1.58, 0.13, 0.13)
+material = SubResource("Mat_white")
+
+[node name="rim_cross_tie_16" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-111.6, 0.5216, -12.0755)
+size = Vector3(1.58, 0.13, 0.13)
+material = SubResource("Mat_white")
+
+[node name="rim_cross_tie_17" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-111.6, 2.3255, -8.5351)
+size = Vector3(1.58, 0.13, 0.13)
+material = SubResource("Mat_white")
+
+[node name="rim_cross_tie_18" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-111.6, 5.1351, -5.7255)
+size = Vector3(1.58, 0.13, 0.13)
+material = SubResource("Mat_white")
+
+[node name="rim_cross_tie_19" type="CSGBox3D" parent="machine/spokes"]
+position = Vector3(-111.6, 8.6755, -3.9216)
+size = Vector3(1.58, 0.13, 0.13)
+material = SubResource("Mat_white")
+
+[node name="gondolas" type="Node3D" parent="machine"]
+
+[node name="car_00" type="Node3D" parent="machine/gondolas"]
+position = Vector3(-111.6, 12.6, -3.3)
+
+[node name="cabin" parent="machine/gondolas/car_00" instance=ExtResource("3_red_cabin")]
+
+[node name="car_01" type="Node3D" parent="machine/gondolas"]
+position = Vector3(-111.6, 16.5245, -3.9216)
+
+[node name="cabin" parent="machine/gondolas/car_01" instance=ExtResource("4_yellow_cabin")]
+
+[node name="car_02" type="Node3D" parent="machine/gondolas"]
+position = Vector3(-111.6, 20.0649, -5.7255)
+
+[node name="cabin" parent="machine/gondolas/car_02" instance=ExtResource("3_red_cabin")]
+
+[node name="car_03" type="Node3D" parent="machine/gondolas"]
+position = Vector3(-111.6, 22.8745, -8.5351)
+
+[node name="cabin" parent="machine/gondolas/car_03" instance=ExtResource("4_yellow_cabin")]
+
+[node name="car_04" type="Node3D" parent="machine/gondolas"]
+position = Vector3(-111.6, 24.6784, -12.0755)
+
+[node name="cabin" parent="machine/gondolas/car_04" instance=ExtResource("3_red_cabin")]
+
+[node name="car_05" type="Node3D" parent="machine/gondolas"]
+position = Vector3(-111.6, 25.3, -16)
+
+[node name="cabin" parent="machine/gondolas/car_05" instance=ExtResource("4_yellow_cabin")]
+
+[node name="car_06" type="Node3D" parent="machine/gondolas"]
+position = Vector3(-111.6, 24.6784, -19.9245)
+
+[node name="cabin" parent="machine/gondolas/car_06" instance=ExtResource("3_red_cabin")]
+
+[node name="car_07" type="Node3D" parent="machine/gondolas"]
+position = Vector3(-111.6, 22.8745, -23.4649)
+
+[node name="cabin" parent="machine/gondolas/car_07" instance=ExtResource("4_yellow_cabin")]
+
+[node name="car_08" type="Node3D" parent="machine/gondolas"]
+position = Vector3(-111.6, 20.0649, -26.2745)
+
+[node name="cabin" parent="machine/gondolas/car_08" instance=ExtResource("3_red_cabin")]
+
+[node name="car_09" type="Node3D" parent="machine/gondolas"]
+position = Vector3(-111.6, 16.5245, -28.0784)
+
+[node name="cabin" parent="machine/gondolas/car_09" instance=ExtResource("4_yellow_cabin")]
+
+[node name="car_10" type="Node3D" parent="machine/gondolas"]
+position = Vector3(-111.6, 12.6, -28.7)
+
+[node name="cabin" parent="machine/gondolas/car_10" instance=ExtResource("3_red_cabin")]
+
+[node name="car_11" type="Node3D" parent="machine/gondolas"]
+position = Vector3(-111.6, 8.6755, -28.0784)
+
+[node name="cabin" parent="machine/gondolas/car_11" instance=ExtResource("4_yellow_cabin")]
+
+[node name="car_12" type="Node3D" parent="machine/gondolas"]
+position = Vector3(-111.6, 5.1351, -26.2745)
+
+[node name="cabin" parent="machine/gondolas/car_12" instance=ExtResource("3_red_cabin")]
+
+[node name="car_13" type="Node3D" parent="machine/gondolas"]
+position = Vector3(-111.6, 2.3255, -23.4649)
+
+[node name="cabin" parent="machine/gondolas/car_13" instance=ExtResource("4_yellow_cabin")]
+
+[node name="car_14" type="Node3D" parent="machine/gondolas"]
+position = Vector3(-111.6, 0.5216, -19.9245)
+
+[node name="cabin" parent="machine/gondolas/car_14" instance=ExtResource("3_red_cabin")]
+
+[node name="car_15" type="Node3D" parent="machine/gondolas"]
+position = Vector3(-111.6, -0.1, -16)
+
+[node name="cabin" parent="machine/gondolas/car_15" instance=ExtResource("4_yellow_cabin")]
+
+[node name="car_16" type="Node3D" parent="machine/gondolas"]
+position = Vector3(-111.6, 0.5216, -12.0755)
+
+[node name="cabin" parent="machine/gondolas/car_16" instance=ExtResource("3_red_cabin")]
+
+[node name="car_17" type="Node3D" parent="machine/gondolas"]
+position = Vector3(-111.6, 2.3255, -8.5351)
+
+[node name="cabin" parent="machine/gondolas/car_17" instance=ExtResource("4_yellow_cabin")]
+
+[node name="car_18" type="Node3D" parent="machine/gondolas"]
+position = Vector3(-111.6, 5.1351, -5.7255)
+
+[node name="cabin" parent="machine/gondolas/car_18" instance=ExtResource("3_red_cabin")]
+
+[node name="car_19" type="Node3D" parent="machine/gondolas"]
+position = Vector3(-111.6, 8.6755, -3.9216)
+
+[node name="cabin" parent="machine/gondolas/car_19" instance=ExtResource("4_yellow_cabin")]
+
+[node name="incandescent_outline" type="Node3D" parent="."]
+editor_description = "Warm point bulbs complement the authored grouped-color spoke tubes and yellow rim tube."
+
+[node name="bulb_00" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 12.6, -2.84)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_01" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 14.6587, -3.002)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_02" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 16.6667, -3.4841)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_03" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 18.5745, -4.2744)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_04" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 20.3353, -5.3533)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_05" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 21.9055, -6.6945)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_06" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 23.2467, -8.2647)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_07" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 24.3256, -10.0255)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_08" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 25.1159, -11.9333)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_09" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 25.598, -13.9413)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_10" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 25.76, -16)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_11" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 25.598, -18.0587)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_12" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 25.1159, -20.0667)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_13" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 24.3256, -21.9745)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_14" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 23.2467, -23.7353)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_15" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 21.9055, -25.3055)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_16" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 20.3353, -26.6467)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_17" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 18.5745, -27.7256)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_18" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 16.6667, -28.5159)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_19" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 14.6587, -28.998)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_20" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 12.6, -29.16)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_21" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 10.5413, -28.998)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_22" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 8.5333, -28.5159)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_23" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 6.6255, -27.7256)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_24" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 4.8647, -26.6467)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_25" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 3.2945, -25.3055)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_26" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 1.9533, -23.7353)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_27" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 0.8744, -21.9745)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_28" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 0.0841, -20.0667)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_29" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, -0.398, -18.0587)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_30" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, -0.56, -16)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_31" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, -0.398, -13.9413)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_32" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 0.0841, -11.9333)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_33" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 0.8744, -10.0255)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_34" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 1.9533, -8.2647)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_35" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 3.2945, -6.6945)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_36" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 4.8647, -5.3533)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_37" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 6.6255, -4.2744)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_38" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 8.5333, -3.4841)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_39" type="MeshInstance3D" parent="incandescent_outline"]
+position = Vector3(-110.58, 10.5413, -3.002)
+mesh = SubResource("Sphere_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="hub_incandescent_halo" type="Node3D" parent="."]
+editor_description = "A reduced-scale echo of the original hub sign's incandescent-bulb surround; each bulb remains directly selectable."
+
+[node name="bulb_00" type="MeshInstance3D" parent="hub_incandescent_halo"]
+position = Vector3(-109.74, 12.6, -14.48)
+mesh = SubResource("Sphere_hub_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_01" type="MeshInstance3D" parent="hub_incandescent_halo"]
+position = Vector3(-109.74, 13.0697, -14.5544)
+mesh = SubResource("Sphere_hub_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_02" type="MeshInstance3D" parent="hub_incandescent_halo"]
+position = Vector3(-109.74, 13.4933, -14.7704)
+mesh = SubResource("Sphere_hub_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_03" type="MeshInstance3D" parent="hub_incandescent_halo"]
+position = Vector3(-109.74, 13.8298, -15.1067)
+mesh = SubResource("Sphere_hub_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_04" type="MeshInstance3D" parent="hub_incandescent_halo"]
+position = Vector3(-109.74, 14.0456, -15.5303)
+mesh = SubResource("Sphere_hub_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_05" type="MeshInstance3D" parent="hub_incandescent_halo"]
+position = Vector3(-109.74, 14.12, -16)
+mesh = SubResource("Sphere_hub_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_06" type="MeshInstance3D" parent="hub_incandescent_halo"]
+position = Vector3(-109.74, 14.0456, -16.4697)
+mesh = SubResource("Sphere_hub_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_07" type="MeshInstance3D" parent="hub_incandescent_halo"]
+position = Vector3(-109.74, 13.8298, -16.8933)
+mesh = SubResource("Sphere_hub_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_08" type="MeshInstance3D" parent="hub_incandescent_halo"]
+position = Vector3(-109.74, 13.4933, -17.2296)
+mesh = SubResource("Sphere_hub_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_09" type="MeshInstance3D" parent="hub_incandescent_halo"]
+position = Vector3(-109.74, 13.0697, -17.4456)
+mesh = SubResource("Sphere_hub_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_10" type="MeshInstance3D" parent="hub_incandescent_halo"]
+position = Vector3(-109.74, 12.6, -17.52)
+mesh = SubResource("Sphere_hub_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_11" type="MeshInstance3D" parent="hub_incandescent_halo"]
+position = Vector3(-109.74, 12.1303, -17.4456)
+mesh = SubResource("Sphere_hub_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_12" type="MeshInstance3D" parent="hub_incandescent_halo"]
+position = Vector3(-109.74, 11.7067, -17.2296)
+mesh = SubResource("Sphere_hub_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_13" type="MeshInstance3D" parent="hub_incandescent_halo"]
+position = Vector3(-109.74, 11.3702, -16.8933)
+mesh = SubResource("Sphere_hub_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_14" type="MeshInstance3D" parent="hub_incandescent_halo"]
+position = Vector3(-109.74, 11.1544, -16.4697)
+mesh = SubResource("Sphere_hub_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_15" type="MeshInstance3D" parent="hub_incandescent_halo"]
+position = Vector3(-109.74, 11.08, -16)
+mesh = SubResource("Sphere_hub_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_16" type="MeshInstance3D" parent="hub_incandescent_halo"]
+position = Vector3(-109.74, 11.1544, -15.5303)
+mesh = SubResource("Sphere_hub_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_17" type="MeshInstance3D" parent="hub_incandescent_halo"]
+position = Vector3(-109.74, 11.3702, -15.1067)
+mesh = SubResource("Sphere_hub_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_18" type="MeshInstance3D" parent="hub_incandescent_halo"]
+position = Vector3(-109.74, 11.7067, -14.7704)
+mesh = SubResource("Sphere_hub_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="bulb_19" type="MeshInstance3D" parent="hub_incandescent_halo"]
+position = Vector3(-109.74, 12.1303, -14.5544)
+mesh = SubResource("Sphere_hub_bulb")
+material_override = ExtResource("1_bulb")

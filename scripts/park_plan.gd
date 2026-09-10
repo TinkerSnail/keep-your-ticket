@@ -5209,3 +5209,15 @@ const WINDOW_MATERIAL := "res://assets/materials/town_window.res"
 ## the ramps. The sixth lit material, and like the windows it follows the sun
 ## and never the park's closing: the road does not shut.
 const SODIUM_MATERIAL := "res://assets/materials/road_sodium.res"
+
+## R1's five grouped tube colors. The directly editor-owned wheel scene binds
+## these resources to individual spoke strips; the schedule driver and night
+## acceptance test share this list so the authored palette cannot light in one
+## place and silently go unmeasured in the other.
+const WHEEL_TUBE_MATERIALS := [
+	"res://assets/materials/wheel_tube_aqua.tres",
+	"res://assets/materials/wheel_tube_yellow.tres",
+	"res://assets/materials/wheel_tube_red.tres",
+	"res://assets/materials/wheel_tube_blue.tres",
+	"res://assets/materials/wheel_tube_pink.tres",
+]
