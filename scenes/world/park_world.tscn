@@ -27,7 +27,7 @@
 [ext_resource type="PackedScene" path="res://scenes/world/park_approach.tscn" id="19_approach"]
 [ext_resource type="PackedScene" path="res://scenes/world/park_towns.tscn" id="21_towns"]
 [ext_resource type="PackedScene" path="res://scenes/world/kiddieland_story.tscn" id="22_kiddieland_story"]
-[ext_resource type="Script" path="res://scenes/world/range_forest.gd" id="20_forest"]
+[ext_resource type="PackedScene" path="res://scenes/world/range_forest_background.tscn" id="20_forest_background"]
 
 [node name="park_world" type="Node3D" groups=["world"]]
 
@@ -69,8 +69,7 @@
 
 [node name="park_transit" parent="shared" instance=ExtResource("10_transit")]
 
-[node name="range_forest" type="Node3D" parent="shared"]
-script = ExtResource("20_forest")
+[node name="range_forest_background" parent="shared" instance=ExtResource("20_forest_background")]
 
 [node name="crowds" type="Node3D" parent="."]
 
