@@ -3,6 +3,6 @@
 [ext_resource type="PackedScene" path="res://assets/range_forest_distinct_background.glb" id="1_background"]
 
 [node name="range_forest_background" type="Node3D"]
-editor_description = "MOUNTED EDITOR-OWNED RANGE SOURCE. This stable slot instantiates assets/source/range_forest_distinct_background.blend through its exported GLB. The northern blue body carries the accepted smaller plan form; the separate full-range Option A recovery remains open. Edit the Blender source, not this wrapper or the GLB. The city, bridge, roads, cameras and protected anchors remain outside range edits."
+editor_description = "MOUNTED EDITOR-OWNED RANGE SOURCE. This stable slot instantiates assets/source/range_forest_distinct_background.blend through its exported GLB. The northern blue body carries the accepted smaller plan form and an irregular exposed rock-to-skirt contact; a separate twice-linear-sized closed companion stands west of it with its own integral rock, cliff and sand beach skirt, grown westward while retaining the buried eastern apron join. The same source carries the separate north-shore volcanic plug with its subtly off-centre crown, unequal upper shoulders and irregular rock-to-skirt contact plus its widened south-running sand shelf with a vertically lowered inland reveal; the full-range Option A recovery remains open. Edit the Blender source, not this wrapper or the GLB. The city, bridge, roads, cameras and protected anchors remain outside range edits."
 
 [node name="authored_range_layers" parent="." instance=ExtResource("1_background")]
