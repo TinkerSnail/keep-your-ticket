@@ -68,7 +68,7 @@ Greybox: no art, no audio. The first milestone, a plaza you can walk around and 
 | `scenes/world/` | The wrappers, `plaza.tscn`, `park_world.tscn`, `daylight.gd`, `tower_clock.gd`, `park_lights.gd`, `range_forest.gd`. |
 | `assets/shaders/` | `water_pool.gdshader` and `water_fall.gdshader`, the only shaders. |
 | `assets/textures/` | Written by `gen_props.gd` as `.res`, never `.png`, because a PNG is an import the next `--script` run cannot load. |
-| `tools/` | Generators, tests, captures and probes. `tools/README.md` is the index; add a line there when you add a tool. |
+| `tools/` | Generators, tests, captures and probes. `tools/README.md` is the index; add a line there when you add a tool. `export_world_source.sh` is how a Blender world source reaches the game. |
 
 ## Running things
 
@@ -118,6 +118,7 @@ Each of these cost real time at least once. The incident is in the archive under
 - Roads, paths, rivers, shorelines, rails, terrain silhouettes, building footprints and landmark forms default to editor-owned scenes, curves or resources. A generator may derive repetitive construction from those authored sources—surfaces, collision, kerbs, markings, cuts, supports, lights or scatter—but must not own or overwrite their artistic course or form.
 - Before moving an editor-owned shape, placement or composition into code or generated output, stop and obtain Christina's explicit approval of that ownership tradeoff. State what becomes harder to edit and why automation is worth it. This approval is required even when generation would be deterministic or easier to test.
 - A real handoff names the ordinary source scene or asset, lets Christina make the intended visible change through editor controls, and proves regeneration preserves it. An instruction to edit coordinates in GDScript is not a handoff.
+- Collision is derived from the visible object at export, never authored beside it. A `-colonly` twin of an authored object carries no information and turns every move, duplicate and recolour into two edits; on 2026-09-15 the range held 7,554 of them and eight boulders had already drifted from theirs. If an object must not collide, mark it `kyt_collision=none`; if a source needs a different collision shape, derive it in `tools/export_world_source.py`, not in Blender.
 - When Christina can establish a shape faster by hand than an agent can reproduce it procedurally, hand that portion over early and automate only its consequences. Treat a large estimate for generated greybox as a prompt to change method or divide the work, not as permission to consume the estimate.
 - Existing generator-owned artistic geometry is not precedent. When substantially revising it, offer to migrate its canonical shape to an editor-owned source before extending the generator.
 
