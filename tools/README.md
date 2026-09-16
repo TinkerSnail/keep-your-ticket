@@ -85,6 +85,8 @@ plus those crowd scenes; a familiar world wrapper changing is a regression.
 | tool | what it builds |
 |---|---|
 | `gen_props.gd` | The ground textures and eighteen generated world sources beneath the stable wrappers: established props/places plus groundworks, circulation, routes, program and landscape. It does not write `west_far` or `terraces_far`; the persistent world uses the real places. **The order it writes them in is load-bearing** — each scene gets a seam seed five on from the last, so the two retired seed slots remain until that system is replaced. Run `coplanar_test.py` after touching the order. |
+| `export_world_source.py` / `.sh` | A mounted world GLB from its Blender master, `assets/source/<name>.blend` to `assets/<name>.glb`; the range by default, the city when named. Meshes exported under its own name with the `-col` hint, boulders baked into one mesh per 250m cell with a surface per material, collision derived from the visible meshes. Runs through Blender, never saves the master, and refuses a master that still holds a `-colonly` object. |
+| `strip_collision_twins.py` | One-time removal of authored `_collision-colonly` twin objects from a Blender master, marking twinless objects `kyt_collision=none` and moving boulder materials onto the object. Dry run by default; `-- --save` applies. Run through Blender. |
 | `gen_crowd.gd` | The plaza, boardwalk and terraces crowds in one run. Each output carries an `area_id`, because all three coexist in `park_world.tscn`. Bodies and placement only; behaviour lives in `scenes/npc/guest.gd` and is hand-written. |
 
 ## Tests
@@ -175,6 +177,9 @@ wrapper and, where they save images, a real renderer.
 | `_pfoam_probe.gd` | The plaza fountain's froth, shot low at the waterline. |
 | `_drive_probe.gd` | The coast highway's three reveals from the car's own eye. |
 | `_forest_perf_probe.gd` | What the range forest costs to draw at several densities. |
+| `range_perf_probe.gd` | What the mounted range costs: wrapper and `main.tscn` load times, node counts and collision triangles under the mount, ray and sphere query grids over the rock field, a walked CharacterBody3D on the beach, and rendered frame times from three standpoints with the range hidden and visible. Writes `user://range_perf_<driver>.txt`; run with `--disable-vsync` for the render block. |
+| `_range_import_dump.gd` | What Godot made of the exported range GLB: every child with its class, what sits under it, and each concave shape's triangle count. |
+| `_range_handoff_probe.gd` | Did a boulder edited in Blender reach Godot as mesh, material and collision? Takes a JSON of the boulder's bounds before and after the edit. |
 | `_hole_probe.gd` | Rain rays over the whole east and dump what they hit. |
 | `_ledge_probe.gd` | The walkable profile where the climb meets the head landing. |
 | `_lot_probe.gd` | Does the coast highway show from the parking lots? |
