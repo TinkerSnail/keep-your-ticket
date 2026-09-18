@@ -1,0 +1,253 @@
+[gd_scene load_steps=5 format=3]
+
+; Persistent, editor-owned wildlife placements. Grounded birds sit on known
+; flat public surfaces; airborne gull roots are their editable flight centres.
+; The northern offshore rocks are the gull colony's roost, while separate
+; editor-owned markers keep its daily range spread across the park and beaches.
+
+[ext_resource type="PackedScene" path="res://scenes/wildlife/gull.tscn" id="1_gull"]
+[ext_resource type="PackedScene" path="res://scenes/wildlife/rock_dove.tscn" id="2_pigeon"]
+[ext_resource type="PackedScene" path="res://scenes/wildlife/juvenile_gull.tscn" id="3_juvenile_gull"]
+[ext_resource type="Script" path="res://scenes/wildlife/gull_colony.gd" id="4_colony"]
+
+[node name="wildlife" type="Node3D"]
+editor_description = "Persistent ambient bird layer. Move an instance or colony marker to move its home/flight centre; behavior ranges remain inspector controls. The northern offshore rocks are the gull nesting and roosting ground, while the park and other beaches remain active feeding territory. Birds are ordinary photographic subjects, not collectibles."
+
+[node name="boardwalk_gulls" type="Node3D" parent="."]
+
+[node name="pier_adult" parent="boardwalk_gulls" instance=ExtResource("1_gull")]
+position = Vector3(-122.5, -5.95, 4.35)
+rotation = Vector3(0, -0.62, 0)
+wander_radius = 1.8
+rng_seed = 4101
+
+[node name="pier_juvenile" parent="boardwalk_gulls" instance=ExtResource("3_juvenile_gull")]
+position = Vector3(-146.0, -5.95, 8.6)
+rotation = Vector3(0, 1.18, 0)
+wander_radius = 1.0
+rng_seed = 4102
+
+[node name="promenade_adult" parent="boardwalk_gulls" instance=ExtResource("1_gull")]
+position = Vector3(-101.2, -5.95, 31.0)
+rotation = Vector3(0, -2.1, 0)
+black_tail = true
+rng_seed = 4103
+
+[node name="waterfront_circle_a" parent="boardwalk_gulls" instance=ExtResource("1_gull")]
+position = Vector3(-132, 20, -28)
+starts_airborne = true
+flight_radius = 24.0
+flight_relief = 2.6
+rng_seed = 4201
+
+[node name="waterfront_circle_b" parent="boardwalk_gulls" instance=ExtResource("1_gull")]
+position = Vector3(-154, 24, 22)
+starts_airborne = true
+black_tail = true
+flight_radius = 19.0
+flight_relief = 2.0
+rng_seed = 4202
+
+[node name="gull_colony" type="Node3D" parent="."]
+script = ExtResource("4_colony")
+editor_description = "Northern offshore-rock gull colony. Roost and feeding markers own the locations; the scheduler only moves the explicitly placed birds between them."
+
+[node name="roosts" type="Node3D" parent="gull_colony"]
+
+[node name="north_massif_nest_a" type="Marker3D" parent="gull_colony/roosts"]
+position = Vector3(-621.9016, 273.18, -1051.217)
+
+[node name="north_massif_nest_b" type="Marker3D" parent="gull_colony/roosts"]
+position = Vector3(-581.2512, 268.42, -1084.293)
+
+[node name="north_massif_nest_c" type="Marker3D" parent="gull_colony/roosts"]
+position = Vector3(-530.3429, 254.44, -1119.492)
+
+[node name="companion_rock_nest_a" type="Marker3D" parent="gull_colony/roosts"]
+position = Vector3(-1139.922, 129.22, -926.0009)
+
+[node name="companion_rock_nest_b" type="Marker3D" parent="gull_colony/roosts"]
+position = Vector3(-1113.303, 104.17, -970.1553)
+
+[node name="companion_rock_nest_c" type="Marker3D" parent="gull_colony/roosts"]
+position = Vector3(-1141.244, 103.69, -879.3171)
+
+[node name="north_plug_nest_a" type="Marker3D" parent="gull_colony/roosts"]
+position = Vector3(-655.7412, 169.40, -2448.32)
+
+[node name="north_plug_nest_b" type="Marker3D" parent="gull_colony/roosts"]
+position = Vector3(-609.5322, 168.40, -2482.738)
+
+[node name="north_plug_nest_c" type="Marker3D" parent="gull_colony/roosts"]
+position = Vector3(-696.9913, 130.98, -2404.917)
+
+[node name="foraging_sites" type="Node3D" parent="gull_colony"]
+
+[node name="plaza_airspace" type="Marker3D" parent="gull_colony/foraging_sites"]
+position = Vector3(0, 34, 0)
+
+[node name="boardwalk_airspace" type="Marker3D" parent="gull_colony/foraging_sites"]
+position = Vector3(-145, 28, 0)
+
+[node name="arrival_airspace" type="Marker3D" parent="gull_colony/foraging_sites"]
+position = Vector3(0, 30, 110)
+
+[node name="headland_cove_airspace" type="Marker3D" parent="gull_colony/foraging_sites"]
+position = Vector3(-190, 46, -300)
+
+[node name="north_beach_airspace" type="Marker3D" parent="gull_colony/foraging_sites"]
+position = Vector3(-505, 28, -1830)
+
+[node name="beach_town_airspace" type="Marker3D" parent="gull_colony/foraging_sites"]
+position = Vector3(-105, 26, 430)
+
+[node name="birds" type="Node3D" parent="gull_colony"]
+
+[node name="north_massif_resident_a" parent="gull_colony/birds" instance=ExtResource("1_gull")]
+position = Vector3(-621.9016, 273.18, -1051.217)
+rotation = Vector3(0, -0.7, 0)
+wander_radius = 0.25
+rng_seed = 4301
+
+[node name="north_massif_resident_b" parent="gull_colony/birds" instance=ExtResource("1_gull")]
+position = Vector3(-581.2512, 268.42, -1084.293)
+rotation = Vector3(0, 1.9, 0)
+black_tail = true
+wander_radius = 0.25
+rng_seed = 4302
+
+[node name="north_massif_juvenile" parent="gull_colony/birds" instance=ExtResource("3_juvenile_gull")]
+position = Vector3(-530.3429, 254.44, -1119.492)
+rotation = Vector3(0, -2.4, 0)
+wander_radius = 0.25
+rng_seed = 4303
+
+[node name="companion_rock_resident_a" parent="gull_colony/birds" instance=ExtResource("1_gull")]
+position = Vector3(-1139.922, 129.22, -926.0009)
+rotation = Vector3(0, 0.8, 0)
+black_tail = true
+wander_radius = 0.25
+rng_seed = 4304
+
+[node name="companion_rock_resident_b" parent="gull_colony/birds" instance=ExtResource("1_gull")]
+position = Vector3(-1113.303, 104.17, -970.1553)
+rotation = Vector3(0, -1.7, 0)
+wander_radius = 0.25
+rng_seed = 4305
+
+[node name="companion_rock_juvenile" parent="gull_colony/birds" instance=ExtResource("3_juvenile_gull")]
+position = Vector3(-1141.244, 103.69, -879.3171)
+rotation = Vector3(0, 2.6, 0)
+wander_radius = 0.25
+rng_seed = 4306
+
+[node name="north_plug_resident_a" parent="gull_colony/birds" instance=ExtResource("1_gull")]
+position = Vector3(-655.7412, 169.40, -2448.32)
+rotation = Vector3(0, 1.2, 0)
+wander_radius = 0.25
+rng_seed = 4307
+
+[node name="north_plug_resident_b" parent="gull_colony/birds" instance=ExtResource("1_gull")]
+position = Vector3(-609.5322, 168.40, -2482.738)
+rotation = Vector3(0, -2.0, 0)
+black_tail = true
+wander_radius = 0.25
+rng_seed = 4308
+
+[node name="north_plug_juvenile" parent="gull_colony/birds" instance=ExtResource("3_juvenile_gull")]
+position = Vector3(-696.9913, 130.98, -2404.917)
+rotation = Vector3(0, 0.4, 0)
+wander_radius = 0.25
+rng_seed = 4309
+
+[node name="commuter_a" parent="gull_colony/birds" instance=ExtResource("1_gull")]
+position = Vector3(-621.9016, 273.18, -1051.217)
+flight_radius = 22.0
+flight_relief = 3.0
+rng_seed = 4401
+
+[node name="commuter_b" parent="gull_colony/birds" instance=ExtResource("1_gull")]
+position = Vector3(-581.2512, 268.42, -1084.293)
+black_tail = true
+flight_radius = 25.0
+flight_relief = 3.8
+rng_seed = 4402
+
+[node name="commuter_c" parent="gull_colony/birds" instance=ExtResource("1_gull")]
+position = Vector3(-530.3429, 254.44, -1119.492)
+flight_radius = 19.0
+flight_relief = 2.7
+rng_seed = 4403
+
+[node name="commuter_d" parent="gull_colony/birds" instance=ExtResource("1_gull")]
+position = Vector3(-1139.922, 129.22, -926.0009)
+black_tail = true
+flight_radius = 24.0
+flight_relief = 4.0
+rng_seed = 4404
+
+[node name="commuter_e" parent="gull_colony/birds" instance=ExtResource("1_gull")]
+position = Vector3(-1113.303, 104.17, -970.1553)
+flight_radius = 21.0
+flight_relief = 3.1
+rng_seed = 4405
+
+[node name="commuter_f" parent="gull_colony/birds" instance=ExtResource("1_gull")]
+position = Vector3(-1141.244, 103.69, -879.3171)
+black_tail = true
+flight_radius = 26.0
+flight_relief = 4.4
+rng_seed = 4406
+
+[node name="commuter_g" parent="gull_colony/birds" instance=ExtResource("1_gull")]
+position = Vector3(-655.7412, 169.40, -2448.32)
+flight_radius = 20.0
+flight_relief = 2.8
+rng_seed = 4407
+
+[node name="commuter_h" parent="gull_colony/birds" instance=ExtResource("1_gull")]
+position = Vector3(-609.5322, 168.40, -2482.738)
+black_tail = true
+flight_radius = 23.0
+flight_relief = 3.6
+rng_seed = 4408
+
+[node name="commuter_i" parent="gull_colony/birds" instance=ExtResource("1_gull")]
+position = Vector3(-696.9913, 130.98, -2404.917)
+flight_radius = 27.0
+flight_relief = 4.6
+rng_seed = 4409
+
+[node name="plaza_pigeons" type="Node3D" parent="."]
+
+[node name="fountain_edge_a" parent="plaza_pigeons" instance=ExtResource("2_pigeon")]
+position = Vector3(-15.5, 0.02, 18.0)
+rotation = Vector3(0, 0.3, 0)
+rng_seed = 5101
+
+[node name="fountain_edge_b" parent="plaza_pigeons" instance=ExtResource("2_pigeon")]
+position = Vector3(-12.8, 0.02, 20.1)
+rotation = Vector3(0, -1.1, 0)
+rng_seed = 5102
+
+[node name="fountain_edge_c" parent="plaza_pigeons" instance=ExtResource("2_pigeon")]
+position = Vector3(-18.0, 0.02, 21.3)
+rotation = Vector3(0, 2.3, 0)
+rng_seed = 5103
+
+[node name="entrance_pigeons" type="Node3D" parent="."]
+
+[node name="arrival_a" parent="entrance_pigeons" instance=ExtResource("2_pigeon")]
+position = Vector3(5.2, 0.02, 76.0)
+rotation = Vector3(0, -2.7, 0)
+rng_seed = 5201
+
+[node name="arrival_b" parent="entrance_pigeons" instance=ExtResource("2_pigeon")]
+position = Vector3(2.5, 0.02, 78.2)
+rotation = Vector3(0, 1.6, 0)
+rng_seed = 5202
+
+[node name="arrival_c" parent="entrance_pigeons" instance=ExtResource("2_pigeon")]
+position = Vector3(7.8, 0.02, 79.0)
+rotation = Vector3(0, -0.5, 0)
+rng_seed = 5203

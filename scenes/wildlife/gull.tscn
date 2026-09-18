@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3]
+
+; Behavior wrapper for the directly editable adult gull model. The canonical
+; visible source is assets/source/wildlife/gull_adult.blend; the GLB is its
+; runtime export. Placement and motion remain ordinary Inspector controls.
+
+[ext_resource type="Script" path="res://scenes/wildlife/bird.gd" id="1_bird"]
+[ext_resource type="PackedScene" path="res://assets/wildlife/gull_adult.glb" id="2_model"]
+
+[node name="gull" type="Node3D"]
+script = ExtResource("1_bird")
+species = "gull"
+pose_root_path = NodePath("visual/adult_gull_model/adult_gull_model")
+model_has_authored_plumage = true
+wander_radius = 3.2
+scare_radius = 4.8
+walk_speed = 0.48
+editor_description = "Adult coastal gull behavior wrapper. Edit the silhouette, UV layout, white/dark tail meshes and articulated parts in assets/source/wildlife/gull_adult.blend; paint its broad feather regions in assets/source/wildlife/gull_adult_atlas.png; then export assets/wildlife/gull_adult.glb. Upper coverts, black-tipped upper primaries, pale inner underside and darker underside primaries have separate regions. The black-tail Inspector variant also reveals the authored red lower-bill dot. The atlas is packed into the Blender source and embedded in the runtime model."
+
+[node name="visual" type="Node3D" parent="."]
+
+[node name="adult_gull_model" parent="visual" instance=ExtResource("2_model")]

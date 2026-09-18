@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3]
+
+; Behavior wrapper for the directly editable rock-dove model. The canonical
+; visible source is assets/source/wildlife/rock_dove.blend; the GLB is its
+; runtime export. Placement and motion remain ordinary Inspector controls.
+
+[ext_resource type="Script" path="res://scenes/wildlife/bird.gd" id="1_bird"]
+[ext_resource type="PackedScene" path="res://assets/wildlife/rock_dove.glb" id="2_model"]
+
+[node name="rock_dove" type="Node3D"]
+script = ExtResource("1_bird")
+species = "pigeon"
+pose_root_path = NodePath("visual/rock_dove_model/rock_dove_model")
+model_has_authored_plumage = true
+wander_radius = 2.8
+scare_radius = 3.6
+walk_speed = 0.68
+editor_description = "Rock-dove behavior wrapper. Edit its faceted body, tapered neck, articulated wings, compact charcoal bill with pale cere, banded tail and four-toed feet in assets/source/wildlife/rock_dove.blend; paint its broad plumage regions in assets/source/wildlife/rock_dove_atlas.png; then export assets/wildlife/rock_dove.glb. The supplied standing references govern the pale barred closed-wing exterior and tailward folded primaries. The open-wing reference governs the separate ventral texture shown only in flight; closed-state overlays hide at takeoff."
+
+[node name="visual" type="Node3D" parent="."]
+
+[node name="rock_dove_model" parent="visual" instance=ExtResource("2_model")]

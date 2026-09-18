@@ -1,0 +1,26 @@
+[gd_scene load_steps=4 format=3]
+
+; Ordinary rock-dove color morph built on the directly editable pigeon form.
+; Its plumage is independent from both the ambient blue-gray bird and the
+; mission-only shiny pigeon, so any of the three can change without recoloring
+; the others.
+
+[ext_resource type="Script" path="res://scenes/wildlife/ash_red_pigeon.gd" id="1_morph"]
+[ext_resource type="PackedScene" path="res://assets/wildlife/white_pigeon.glb" id="2_model"]
+[ext_resource type="StandardMaterial3D" path="res://assets/wildlife/ash_red_pigeon_plumage.tres" id="3_plumage"]
+
+[node name="ash_red_pigeon" type="Node3D"]
+script = ExtResource("1_morph")
+species = "pigeon"
+pose_root_path = NodePath("visual/ash_red_pigeon_model/white_pigeon_model")
+model_has_authored_plumage = true
+wander_radius = 2.8
+scare_radius = 3.6
+walk_speed = 0.68
+morph_material = ExtResource("3_plumage")
+editor_description = "Ash-red/cream rock-dove morph based on assets/source/wildlife/ash_red_pigeon_reference.png: cinnamon chest and neck, warm-gray head, pale lower body, buff covert shield, cream flight feathers, rose feet, red iris and pink bill. Edit the shared selectable form in assets/source/wildlife/white_pigeon.blend and this morph's independent color/feather handoff in assets/wildlife/ash_red_pigeon_atlas.png and ash_red_pigeon_plumage.tres. It retains ordinary pigeon behavior and is not the mission-only shiny pigeon."
+metadata/morph = &"ash_red_cream"
+
+[node name="visual" type="Node3D" parent="."]
+
+[node name="ash_red_pigeon_model" parent="visual" instance=ExtResource("2_model")]

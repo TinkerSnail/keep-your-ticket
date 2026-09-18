@@ -1,0 +1,24 @@
+[gd_scene load_steps=3 format=3]
+
+; Single warm-white rock-dove mission subject. Its visible form remains an independently
+; editable Blender asset, but this wrapper is deliberately absent from the
+; ambient wildlife scene so it can only appear through an authored mission.
+
+[ext_resource type="Script" path="res://scenes/wildlife/bird.gd" id="1_bird"]
+[ext_resource type="PackedScene" path="res://assets/wildlife/white_pigeon.glb" id="2_model"]
+
+[node name="shiny_pigeon" type="Node3D" groups=["mission_subject"]]
+script = ExtResource("1_bird")
+species = "pigeon"
+pose_root_path = NodePath("visual/white_pigeon_model/white_pigeon_model")
+model_has_authored_plumage = true
+wander_radius = 2.8
+scare_radius = 3.6
+walk_speed = 0.68
+editor_description = "Special shiny-pigeon mission subject: a warm-white rock dove. Its directly editable white form lives in assets/source/wildlife/white_pigeon.blend with plumage in white_pigeon_atlas.png and exports to assets/wildlife/white_pigeon.glb. This wrapper is intentionally not mounted in wildlife.tscn: an authored mission must instance it at a deliberate place and time. It retains ordinary pigeon motion, free-aim photography and flush behavior, with no collectible or scoring state."
+metadata/mission_only = true
+metadata/subject_id = &"shiny_pigeon"
+
+[node name="visual" type="Node3D" parent="."]
+
+[node name="white_pigeon_model" parent="visual" instance=ExtResource("2_model")]
