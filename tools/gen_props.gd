@@ -140,6 +140,13 @@ var _lighthouse_regrade
 ## D3-D6 are ordinary editor-owned Marker3D rings. This cached reader derives
 ## the mesh heights, but the generator never writes their artistic source.
 var _drainage_terrain
+## The north Boardwalk's editor-owned return establishes how far the working
+## shore shelf remains at deck grade. Cache the derived edge once because both
+## natural-height readers are called for every coastal terrain sample.
+var _north_boardwalk_transition_from_z := -1.0
+var _north_boardwalk_return_cache: Array[Vector3] = []
+var _north_boardwalk_dodgems_court_cache: Dictionary = {}
+var _north_boardwalk_public_apron_cache: Array[Dictionary] = []
 
 
 ## Set when a material came out wrong. `_save` refuses to write anything once it
@@ -157,6 +164,197 @@ func _drainage_terrain_source():
 	if _drainage_terrain == null:
 		_drainage_terrain = DrainageTerrainSource.new()
 	return _drainage_terrain
+
+
+func _north_boardwalk_return_points() -> Array[Vector3]:
+	if not _north_boardwalk_return_cache.is_empty():
+		return _north_boardwalk_return_cache
+	for run in Plan.rebuild_build_runs():
+		if StringName(run["id"]) != &"b_north_return":
+			continue
+		for point in run["points"]:
+			_north_boardwalk_return_cache.append(Vector3(point))
+		break
+	return _north_boardwalk_return_cache
+
+
+func _north_boardwalk_coast_transition_from_z() -> float:
+	if _north_boardwalk_transition_from_z >= 0.0:
+		return _north_boardwalk_transition_from_z
+	_north_boardwalk_transition_from_z = REBUILD_COAST_TRANSITION_FROM_Z
+	for p in _north_boardwalk_return_points():
+		_north_boardwalk_transition_from_z = maxf(
+			_north_boardwalk_transition_from_z, -p.z + 10.0)
+	return _north_boardwalk_transition_from_z
+
+
+func _coast_transition_range(p: Vector2) -> Vector2:
+	var from_z := REBUILD_COAST_TRANSITION_FROM_Z
+	if p.y < 0.0:
+		from_z = _north_boardwalk_coast_transition_from_z()
+	return Vector2(from_z,
+		from_z + (REBUILD_COAST_TRANSITION_TO_Z - REBUILD_COAST_TRANSITION_FROM_Z))
+
+
+## The expanded return reaches the north shoreline through the headland's first
+## shoulder. Ease that landform to one hidden bed below the eight-metre public
+## route instead of letting the headland rise through it. The generous outer
+## verge makes a coastal shelf, not a path-width trench; the editor-owned route
+## remains the only artistic course and moving it moves this consequence.
+func _north_boardwalk_return_terrain_y(p: Vector2, uncut_y: float) -> float:
+	var points := _north_boardwalk_return_points()
+	var y := uncut_y
+	for i in points.size() - 1:
+		var a3 := points[i]
+		var b3 := points[i + 1]
+		var a := Vector2(a3.x, a3.z)
+		var b := Vector2(b3.x, b3.z)
+		var ab := b - a
+		var t := clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.001), 0.0, 1.0)
+		var centre := a + ab * t
+		var distance := maxf(p.distance_to(centre) - 4.0, 0.0)
+		if distance >= 10.0:
+			continue
+		var weight := 1.0 - distance / 10.0
+		weight = weight * weight * (3.0 - 2.0 * weight)
+		var target := lerpf(a3.y, b3.y, t) - 0.70
+		y = minf(y, lerpf(uncut_y, target, weight))
+	return y
+
+
+## R16's ordinary scene owns its placement, footprint and earthwork profile.
+## The coast generator reads those controls and only derives the broad hidden
+## bed beneath them; moving or resizing the editor-owned hall therefore moves
+## the ground consequence without copying its artistic coordinates into code.
+func _north_boardwalk_dodgems_court() -> Dictionary:
+	if not _north_boardwalk_dodgems_court_cache.is_empty():
+		return _north_boardwalk_dodgems_court_cache
+	var packed := load("res://scenes/world/boardwalk_dodgems.tscn") as PackedScene
+	assert(packed != null, "R16 terrain cannot read its editor-owned source")
+	var source := packed.instantiate() as Node3D
+	assert(source != null, "R16 terrain source is not a Node3D")
+	_north_boardwalk_dodgems_court_cache = {
+		"centre": Vector2(source.position.x, source.position.z),
+		"floor_y": source.position.y,
+		"half": Vector2(source.get_meta("footprint_metres")) * 0.5,
+		"depth": float(source.get_meta("terrain_bed_depth", 0.18)),
+		"margin": float(source.get_meta("terrain_court_margin", 1.5)),
+		"ease": float(source.get_meta("terrain_ease", 10.0)),
+		"public_direction": Vector2(source.get_meta(
+			"terrain_public_direction", Vector2.ZERO)),
+		"public_apron": float(source.get_meta("terrain_public_apron", 0.0)),
+	}
+	source.free()
+	return _north_boardwalk_dodgems_court_cache
+
+
+## Lower only: the ride court may cut a headland shoulder but never lift a low
+## coastal cell into a platform. A full-footprint flat followed by a ten-metre
+## ease keeps the hall visible without leaving a path-width trench or a cliff at
+## its public face.
+func _north_boardwalk_dodgems_terrain_y(p: Vector2, uncut_y: float) -> float:
+	var court := _north_boardwalk_dodgems_court()
+	var direction: Vector2 = Vector2(court["public_direction"]).normalized()
+	var apron := float(court["public_apron"])
+	var centre: Vector2 = court["centre"] + direction * apron * 0.5
+	var half: Vector2 = court["half"] + Vector2.ONE * float(court["margin"])
+	half += Vector2(absf(direction.x), absf(direction.y)) * apron * 0.5
+	var delta := Vector2(absf(p.x - centre.x), absf(p.y - centre.y)) - half
+	var outside := Vector2(maxf(delta.x, 0.0), maxf(delta.y, 0.0)).length()
+	var ease := float(court["ease"])
+	if outside >= ease:
+		return uncut_y
+	var weight := 1.0 - outside / ease
+	weight = weight * weight * (3.0 - 2.0 * weight)
+	var target := float(court["floor_y"]) - float(court["depth"])
+	return minf(uncut_y, lerpf(uncut_y, target, weight))
+
+
+## The two ride forecourts are ordinary editor-owned Path3Ds in the north
+## ride-park scene. The coast generator reads those ribbons and derives only a
+## hidden shallow bed beneath their planks, so moving or resizing an apron in
+## the editor also moves the terrain consequence that keeps it visible.
+func _north_boardwalk_public_aprons() -> Array[Dictionary]:
+	if not _north_boardwalk_public_apron_cache.is_empty():
+		return _north_boardwalk_public_apron_cache
+	var packed := load("res://scenes/world/boardwalk_north_ride_park.tscn") as PackedScene
+	assert(packed != null, "Boardwalk apron terrain cannot read its editor-owned source")
+	var source := packed.instantiate() as Node3D
+	assert(source != null, "Boardwalk apron terrain source is not a Node3D")
+	var deck_top := float(source.get_meta("deck_top_y", Plan.SHORE_TOP + 0.04))
+	var aprons := source.get_node_or_null("public_aprons")
+	if aprons != null:
+		for child in aprons.get_children():
+			var apron := child as Path3D
+			if apron == null or apron.curve == null or apron.curve.point_count < 2:
+				continue
+			var a3 := apron.curve.get_point_position(0)
+			var b3 := apron.curve.get_point_position(apron.curve.point_count - 1)
+			_north_boardwalk_public_apron_cache.append({
+				"a": Vector2(a3.x, a3.z),
+				"b": Vector2(b3.x, b3.z),
+				"half_width": float(apron.get_meta("width", 0.0)) * 0.5,
+				"target_y": deck_top - float(apron.get_meta("terrain_bed_depth", 0.18)),
+				"ease": float(apron.get_meta("terrain_ease", 4.0)),
+			})
+	source.free()
+	return _north_boardwalk_public_apron_cache
+
+
+func _north_boardwalk_public_apron_terrain_y(p: Vector2, uncut_y: float) -> float:
+	var y := uncut_y
+	for apron in _north_boardwalk_public_aprons():
+		var a: Vector2 = apron["a"]
+		var b: Vector2 = apron["b"]
+		var nearest := Geometry2D.get_closest_point_to_segment(p, a, b)
+		var outside := maxf(p.distance_to(nearest) - float(apron["half_width"]), 0.0)
+		var ease := float(apron["ease"])
+		if outside >= ease:
+			continue
+		var weight := 1.0 - outside / ease
+		weight = weight * weight * (3.0 - 2.0 * weight)
+		y = minf(y, lerpf(uncut_y, float(apron["target_y"]), weight))
+	return y
+
+
+func _north_boardwalk_apron_axis_stations() -> Dictionary:
+	var xs: Array[float] = []
+	var zs: Array[float] = []
+	for apron in _north_boardwalk_public_aprons():
+		var a: Vector2 = apron["a"]
+		var b: Vector2 = apron["b"]
+		var half_width := float(apron["half_width"])
+		var ease := float(apron["ease"])
+		var x_min := minf(a.x, b.x)
+		var x_max := maxf(a.x, b.x)
+		var z_mid := (a.y + b.y) * 0.5
+		xs.append_array([x_min - ease, x_min, (x_min + x_max) * 0.5,
+			x_max, x_max + ease])
+		zs.append_array([z_mid - half_width - ease, z_mid - half_width,
+			z_mid, z_mid + half_width, z_mid + half_width + ease])
+	return {"x": xs, "z": zs}
+
+
+func _axis_with_local_stations(axis: PackedFloat32Array, stations: Array,
+		lower: float, upper: float) -> PackedFloat32Array:
+	var values: Array[float] = []
+	for value in axis:
+		values.append(value)
+	for station_variant in stations:
+		var station := float(station_variant)
+		if station <= lower + 0.01 or station >= upper - 0.01:
+			continue
+		var duplicate := false
+		for existing in values:
+			if absf(existing - station) < 0.01:
+				duplicate = true
+				break
+		if not duplicate:
+			values.append(station)
+	values.sort()
+	return PackedFloat32Array(values)
+
+
 
 
 func _rebuild_district_build_runs() -> Array:
@@ -4157,10 +4355,14 @@ func _west_shell() -> void:
 	# the emitted mitered route edges and split the mass around them. NT-1's middle
 	# cascade opening is not part of this operation and remains untouched.
 	var cuts := _bluff_return_cuts()
+	# A larger north Boardwalk may cross the bluff beyond the old 341m furnished
+	# strip. Keep an ordinary 24m scarp panel between the planted reserve and the
+	# route opening instead of forcing the public path back through S1 or R2.
+	var north_reserve_end := minf(-170.5, cuts[0].x - 24.0)
 	var ranges := [
 		{"nm": "bluff_outer_north", "span": Vector2(
-			-260.5, -170.5), "mat": "planting"},
-		{"nm": "bluff_north", "span": Vector2(-170.5, cuts[0].x),
+			-260.5, north_reserve_end), "mat": "planting"},
+		{"nm": "bluff_north", "span": Vector2(north_reserve_end, cuts[0].x),
 			"mat": "far_warm"},
 		{"nm": "bluff", "span": Vector2(cuts[0].y, cuts[1].x),
 			"mat": "far_warm"},
@@ -12375,6 +12577,12 @@ func _grand_tram_crossing(crossing: Dictionary) -> void:
 	var tangent: Vector3 = nearest["tangent"]
 	var theta := atan2(tangent.x, tangent.z)
 	var tag := String(crossing["id"])
+	var grade_separated := bool(crossing.get("grade_separated", false))
+	var pedestrian := _grand_tram_pedestrian_run(crossing["pedestrian"], at,
+		grade_separated)
+	if grade_separated:
+		_grand_tram_overpass(crossing, at, theta, pedestrian)
+		return
 	for i in 7:
 		var along := -1.65 + float(i) * 0.55
 		_box("grand_tram_crossing_%s_stripe_%02d" % [tag, i], at,
@@ -12385,7 +12593,6 @@ func _grand_tram_crossing(crossing: Dictionary) -> void:
 	# centreline. Find the named public run and put one post beyond each side of
 	# its complete envelope at both vehicle-lane edges. At compound crossings,
 	# keep walking outward until every captured public route is clear.
-	var pedestrian := _grand_tram_pedestrian_run(crossing["pedestrian"], at)
 	var pedestrian_normal: Vector2 = pedestrian["normal"]
 	var captured: Array = crossing.get("captures", [crossing["pedestrian"]])
 	var tram_normal := Vector2(cos(theta), -sin(theta))
@@ -12408,7 +12615,50 @@ func _grand_tram_crossing(crossing: Dictionary) -> void:
 				0.09, 0.84, "yellow", theta, 8)
 
 
-func _grand_tram_pedestrian_run(id: StringName, at: Vector3) -> Dictionary:
+## B's north return meets the Grand Circuit below the road rather than at grade.
+## The road course remains its existing source; this derives only the visible
+## slab, edge guards and four columns from the named crossing relationship.
+func _grand_tram_overpass(crossing: Dictionary, at: Vector3, theta: float,
+		pedestrian: Dictionary) -> void:
+	var tag := String(crossing["id"])
+	var depth := float(crossing["fixed_structure_depth"])
+	# The columns stand beyond the authored route's complete envelope, measured
+	# on its own normal. The Grand Circuit is nearly perpendicular here but not
+	# exactly; placing them only on the road tangent clipped the player's right
+	# edge even though the centreline section appeared clear.
+	var column_setback := float(pedestrian["width"]) * 0.5 + 1.5
+	var span := float(pedestrian["width"]) + 4.6
+	var pedestrian_y := float(pedestrian["height"])
+	var underside_y := at.y - depth
+	var support_height := underside_y - pedestrian_y
+	assert(support_height >= float(crossing["minimum_fixed_clearance_metres"]),
+		"Grand Circuit overpass %s has insufficient fixed clearance" % tag)
+	_box("grand_tram_overpass_%s_deck" % tag, at,
+		Vector3(0.0, -depth * 0.5, 0.0),
+		Vector3(Plan.GRAND_TRAM_LANE_W + 0.4, depth, span),
+		"building", theta)
+	for side in [-1.0, 1.0]:
+		_box("grand_tram_overpass_%s_guard_%s" % [tag,
+				"l" if side < 0.0 else "r"], at,
+			Vector3(side * (Plan.GRAND_TRAM_LANE_W * 0.5 + 0.08), 0.56, 0.0),
+			Vector3(0.12, 1.12, span), "sky_green", theta)
+	var pedestrian_normal: Vector2 = pedestrian["normal"]
+	var tram_normal := Vector2(cos(theta), -sin(theta))
+	for along in [-1.0, 1.0]:
+		for side in [-1.0, 1.0]:
+			var column2: Vector2 = Vector2(at.x, at.z) \
+				+ pedestrian_normal * along * column_setback \
+				+ tram_normal * side * (Plan.GRAND_TRAM_LANE_W * 0.5 - 0.34)
+			var column_at: Vector3 = Vector3(column2.x, at.y, column2.y)
+			_box("grand_tram_overpass_%s_column_%s_%s" % [tag,
+					"a" if along < 0.0 else "b",
+					"l" if side < 0.0 else "r"], column_at,
+				Vector3(0.0, (pedestrian_y + underside_y) * 0.5 - at.y, 0.0),
+				Vector3(0.34, support_height, 0.34), "building", theta)
+
+
+func _grand_tram_pedestrian_run(id: StringName, at: Vector3,
+		require_height: bool) -> Dictionary:
 	for run in Plan.rebuild_route_runs():
 		if StringName(run["id"]) != id:
 			continue
@@ -12416,10 +12666,37 @@ func _grand_tram_pedestrian_run(id: StringName, at: Vector3) -> Dictionary:
 		var nearest := _rebuild_nearest_plan_segment(points,
 			Vector2(at.x, at.z))
 		var tangent: Vector2 = nearest["tangent"]
+		var height := at.y
+		if require_height:
+			height = _rebuild_build_route_height_at(id, Vector2(at.x, at.z))
 		return {"normal": Vector2(-tangent.y, tangent.x),
-			"width": float(run["width"])}
+			"width": float(run["width"]), "height": height}
 	assert(false, "crossing pedestrian run %s is missing" % id)
-	return {"normal": Vector2.RIGHT, "width": 0.0}
+	return {"normal": Vector2.RIGHT, "width": 0.0, "height": 0.0}
+
+
+func _rebuild_build_route_height_at(id: StringName, point: Vector2) -> float:
+	var points: Array = []
+	for run in Plan.rebuild_build_runs():
+		if StringName(run["id"]) == id:
+			points = run["points"]
+			break
+	assert(not points.is_empty(), "crossing build route %s is missing" % id)
+	var best_distance := INF
+	var best_height := 0.0
+	for i in points.size() - 1:
+		var a: Vector3 = points[i]
+		var b: Vector3 = points[i + 1]
+		var a2 := Vector2(a.x, a.z)
+		var b2 := Vector2(b.x, b.z)
+		var ab := b2 - a2
+		var t := clampf((point - a2).dot(ab) /
+			maxf(ab.length_squared(), 0.001), 0.0, 1.0)
+		var q := a2.lerp(b2, t)
+		if point.distance_to(q) < best_distance:
+			best_distance = point.distance_to(q)
+			best_height = lerpf(a.y, b.y, t)
+	return best_height
 
 
 func _grand_tram_post_clear(point: Vector2, route_ids: Array,
@@ -17583,15 +17860,21 @@ func _rebuild_road_cut(p: Vector2, y: float, with_streets := true) -> float:
 ## formula east of the coast meshes' seam and the coast meshes' west of it,
 ## both on the uncut range rise.
 func _rebuild_natural_y(p: Vector2) -> float:
+	var standing := 0.0
 	if p.x >= Plan.REBUILD_WORLD_LAND_FROM_X:
-		return _beach_shore(p, REBUILD_WORLD_RESERVE_Y + _rebuild_reserve_swell(p)
+		standing = _beach_shore(p, REBUILD_WORLD_RESERVE_Y
+			+ _rebuild_reserve_swell(p) + _rebuild_range_rise_raw(p)
+			+ _rebuild_coast_feature(p))
+	else:
+		var distance := absf(p.y)
+		var transition := _coast_transition_range(p)
+		var t := clampf((distance - transition.x) /
+			(transition.y - transition.x), 0.0, 1.0)
+		t = t * t * (3.0 - 2.0 * t)
+		standing = _beach_shore(p,
+			lerpf(REBUILD_COAST_LOW_Y, REBUILD_COAST_HIGH_Y, t)
 			+ _rebuild_range_rise_raw(p) + _rebuild_coast_feature(p))
-	var distance := absf(p.y)
-	var t := clampf((distance - REBUILD_COAST_TRANSITION_FROM_Z) /
-		(REBUILD_COAST_TRANSITION_TO_Z - REBUILD_COAST_TRANSITION_FROM_Z), 0.0, 1.0)
-	t = t * t * (3.0 - 2.0 * t)
-	return _beach_shore(p, lerpf(REBUILD_COAST_LOW_Y, REBUILD_COAST_HIGH_Y, t)
-		+ _rebuild_range_rise_raw(p) + _rebuild_coast_feature(p))
+	return standing
 
 
 var _highway_cache: Array = []
@@ -17656,16 +17939,43 @@ func _rebuild_ground_colour(p: Vector2, y: float) -> Color:
 	var forest := Color(0.19, 0.33, 0.18)
 	var rock := Color(0.52, 0.50, 0.45)
 	var rise := _rebuild_range_rise(p)
-	# A wide transition, or the band's edge stair-steps along the grid cells.
-	var f := clampf((rise - 5.0) / (Plan.RIM_RANGE_FOREST_RISE * 2.0), 0.0, 1.0)
-	f = f * f * (3.0 - 2.0 * f)
+	# The range's foot wears the same banding as the blue massifs in the range
+	# source (2026-09-17, Christina): the darkest talus tone at the toe, the
+	# massifs' rock grey above it, then three quarter-steps into the forest,
+	# with the band edges at the same heights the massifs are cut at. Here the
+	# height is the rise above the range's base rather than sea level, so the
+	# meadow stays meadow and the bands wrap the range wherever it stands up.
+	# The two rock tones are the massif swatches (linear 0.082/0.061/0.045 and
+	# 0.115/0.105/0.100) written as seen, since these colours are read as sRGB.
+	# Vertex colours on a 24m grid cannot hold a level edge, so each step is
+	# softened over a few metres and reads as a stepped gradient, not a cut.
+	var toe_dark := Color(0.317, 0.274, 0.235)
+	var toe_rock := Color(0.373, 0.357, 0.349)
+	var c := meadow.lerp(toe_dark, _rebuild_band_step(rise, 4.0, 2.0))
+	c = c.lerp(toe_rock, _rebuild_band_step(rise, 16.0, 3.0))
+	c = c.lerp(toe_rock.lerp(forest, 0.25), _rebuild_band_step(rise, 32.0, 3.0))
+	c = c.lerp(toe_rock.lerp(forest, 0.5), _rebuild_band_step(rise, 43.0, 3.0))
+	c = c.lerp(toe_rock.lerp(forest, 0.75), _rebuild_band_step(rise, 54.0, 3.0))
+	c = c.lerp(forest, _rebuild_band_step(rise, 65.0, 3.0))
+	# The north valley's basin stays meadow: the town sits on it, and the
+	# valley still counts as rise, which had painted the basin as bedrock
+	# (Christina, 2026-09-17). The bands keep climbing the valley's walls.
+	var valley_floor := 1.0 - _rebuild_band_step(Plan.north_valley_factor(p), 0.22, 0.12)
+	c = c.lerp(meadow, valley_floor)
 	var r := clampf((y - Plan.RIM_RANGE_TREELINE_Y) / 60.0, 0.0, 1.0)
 	r = r * r * (3.0 - 2.0 * r)
-	var c := meadow.lerp(forest, f).lerp(rock, r)
+	c = c.lerp(rock, r)
 	# Sand where a beach (02B) has brought the ground down to the water.
 	c = c.lerp(Color(0.78, 0.72, 0.58), Plan.beach_weight(p))
 	var grain := 1.0 + sin(p.x * 0.37) * sin(p.y * 0.41) * 0.05
 	return Color(c.r * grain, c.g * grain, c.b * grain)
+
+
+
+## 0 below a band edge, 1 above it, eased over `half` metres either side.
+func _rebuild_band_step(rise: float, edge: float, half: float) -> float:
+	var t := clampf((rise - (edge - half)) / (half * 2.0), 0.0, 1.0)
+	return t * t * (3.0 - 2.0 * t)
 
 
 ## One triangle with vertex colours, oriented like `_earth_oriented_tri`.
@@ -17843,6 +18153,13 @@ func _rebuild_coastal_polygon_mesh(record: Dictionary) -> ArrayMesh:
 	for zc in all_z:
 		if zc >= lo.y - REBUILD_WORLD_TERRAIN_STEP and zc <= hi.y + REBUILD_WORLD_TERRAIN_STEP:
 			zs.append(zc)
+	# The ride forecourts are much smaller than the coast's ordinary eight-metre
+	# lattice. Seed their editor-derived flat and eased boundaries onto both
+	# axes so triangulation cannot chord over a shallow bed and leave the timber
+	# visually buried even though the continuous height reader is correct.
+	var apron_stations := _north_boardwalk_apron_axis_stations()
+	xs = _axis_with_local_stations(xs, apron_stations["x"], lo.x, hi.x)
+	zs = _axis_with_local_stations(zs, apron_stations["z"], lo.y, hi.y)
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_smooth_group(0)
@@ -17933,21 +18250,25 @@ func _rebuild_coastal_polygon_mesh(record: Dictionary) -> ArrayMesh:
 
 func _rebuild_coastal_reserve_y(p: Vector2) -> float:
 	var distance := absf(p.y)
-	var t := clampf((distance - REBUILD_COAST_TRANSITION_FROM_Z) /
-		(REBUILD_COAST_TRANSITION_TO_Z - REBUILD_COAST_TRANSITION_FROM_Z),
+	var transition := _coast_transition_range(p)
+	var t := clampf((distance - transition.x) /
+		(transition.y - transition.x),
 		0.0, 1.0)
 	t = t * t * (3.0 - 2.0 * t)
 	# Eight centimetres under the working strip's `shore` box while it is
 	# under it, and level with the box's top by the box's end at z ±170, so the
 	# ground the player walks off the strip onto has no kerb where the
 	# transition ramps used to start (2026-09-04).
-	var lip := clampf((distance - (REBUILD_COAST_TRANSITION_FROM_Z - 10.0)) / 10.0,
+	var lip := clampf((distance - (transition.x - 10.0)) / 10.0,
 		0.0, 1.0)
 	# The cut last, on the whole ground, as `_rebuild_world_reserve_y` says.
 	var standing := _rebuild_road_cut(p, _beach_shore(p,
 		lerpf(REBUILD_COAST_LOW_Y + (Plan.SHORE_TOP - REBUILD_COAST_LOW_Y) * lip,
 		REBUILD_COAST_HIGH_Y, t)
 		+ _rebuild_range_rise_raw(p) + _rebuild_coast_feature(p)))
+	standing = _north_boardwalk_return_terrain_y(p, standing)
+	standing = _north_boardwalk_dodgems_terrain_y(p, standing)
+	standing = _north_boardwalk_public_apron_terrain_y(p, standing)
 	return _lighthouse_regrade_source().terrain_y(p, standing)
 
 
