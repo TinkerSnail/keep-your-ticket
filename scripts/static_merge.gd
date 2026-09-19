@@ -18,7 +18,8 @@ const MERGED := "merged_static"
 
 
 static func merge_children_later(host: Node, parents: Array) -> void:
-	if Engine.is_editor_hint() or not host.is_inside_tree():
+	if Engine.is_editor_hint() or not host.is_inside_tree() \
+			or OS.get_environment("KYT_NO_STATIC_MERGE") != "":
 		return
 	await host.get_tree().process_frame
 	await host.get_tree().process_frame

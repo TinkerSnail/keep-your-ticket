@@ -1,0 +1,104 @@
+[gd_scene load_steps=5 format=3]
+
+; A directly editable blue-green border rosette: bromeliad-like rather than a
+; literal species model. Flattened lance meshes keep every leaf selectable
+; while avoiding the old rectangular-block silhouette. Leaf meshes are four-sided
+; since 2026-09-18: flattened to 0.26 they read as a ridged lance, and the eight
+; rosettes a palm footing carries drop from 668 triangles each to about 290.
+
+[sub_resource type="SphereMesh" id="Mesh_outer_leaf"]
+radius = 0.072
+height = 0.44
+radial_segments = 4
+rings = 4
+
+[sub_resource type="SphereMesh" id="Mesh_inner_leaf"]
+radius = 0.054
+height = 0.3
+radial_segments = 4
+rings = 3
+
+[sub_resource type="SphereMesh" id="Mesh_heart"]
+radius = 0.07
+height = 0.1
+radial_segments = 6
+rings = 2
+
+[sub_resource type="StandardMaterial3D" id="Mat_rosette"]
+albedo_color = Color(0.19, 0.39, 0.245, 1)
+roughness = 0.97
+
+[sub_resource type="StandardMaterial3D" id="Mat_heart"]
+albedo_color = Color(0.47, 0.16, 0.11, 1)
+roughness = 0.93
+
+[node name="coastal_palm_border_rosette" type="Node3D"]
+editor_description = "Directly editable bromeliad-like flower rosette. Six low lance leaves and three cupped inner leaves form the ordered palm-bed border."
+
+[node name="leaf_0" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.13, 0.12)
+rotation = Vector3(0.96, 0, 0.08)
+scale = Vector3(1, 1, 0.26)
+mesh = SubResource("Mesh_outer_leaf")
+material_override = SubResource("Mat_rosette")
+
+[node name="leaf_1" type="MeshInstance3D" parent="."]
+position = Vector3(0.104, 0.13, 0.06)
+rotation = Vector3(0.9, 1.0472, -0.1)
+scale = Vector3(1, 1, 0.26)
+mesh = SubResource("Mesh_outer_leaf")
+material_override = SubResource("Mat_rosette")
+
+[node name="leaf_2" type="MeshInstance3D" parent="."]
+position = Vector3(0.104, 0.13, -0.06)
+rotation = Vector3(1.01, 2.0944, 0.06)
+scale = Vector3(1, 1, 0.26)
+mesh = SubResource("Mesh_outer_leaf")
+material_override = SubResource("Mat_rosette")
+
+[node name="leaf_3" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.13, -0.12)
+rotation = Vector3(0.93, 3.14159, -0.08)
+scale = Vector3(1, 1, 0.26)
+mesh = SubResource("Mesh_outer_leaf")
+material_override = SubResource("Mat_rosette")
+
+[node name="leaf_4" type="MeshInstance3D" parent="."]
+position = Vector3(-0.104, 0.13, -0.06)
+rotation = Vector3(1, 4.18879, 0.1)
+scale = Vector3(1, 1, 0.26)
+mesh = SubResource("Mesh_outer_leaf")
+material_override = SubResource("Mat_rosette")
+
+[node name="leaf_5" type="MeshInstance3D" parent="."]
+position = Vector3(-0.104, 0.13, 0.06)
+rotation = Vector3(0.88, 5.23599, -0.06)
+scale = Vector3(1, 1, 0.26)
+mesh = SubResource("Mesh_outer_leaf")
+material_override = SubResource("Mat_rosette")
+
+[node name="inner_leaf_0" type="MeshInstance3D" parent="."]
+position = Vector3(0.025, 0.16, 0.043)
+rotation = Vector3(0.52, 0.5236, 0.06)
+scale = Vector3(1, 1, 0.24)
+mesh = SubResource("Mesh_inner_leaf")
+material_override = SubResource("Mat_rosette")
+
+[node name="inner_leaf_1" type="MeshInstance3D" parent="."]
+position = Vector3(0.025, 0.16, -0.043)
+rotation = Vector3(0.57, 2.618, -0.06)
+scale = Vector3(1, 1, 0.24)
+mesh = SubResource("Mesh_inner_leaf")
+material_override = SubResource("Mat_rosette")
+
+[node name="inner_leaf_2" type="MeshInstance3D" parent="."]
+position = Vector3(-0.05, 0.16, 0)
+rotation = Vector3(0.48, 4.71239, 0.04)
+scale = Vector3(1, 1, 0.24)
+mesh = SubResource("Mesh_inner_leaf")
+material_override = SubResource("Mat_rosette")
+
+[node name="heart" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.225, 0)
+mesh = SubResource("Mesh_heart")
+material_override = SubResource("Mat_heart")
