@@ -768,6 +768,8 @@ func _save(node: Node3D, path: String) -> bool:
 	# scene anyway, which is the same silence this check exists to break.
 	if _fatal:
 		return false
+	if not _externalise(node, path):
+		return false
 
 	var packed := PackedScene.new()
 	var err := packed.pack(node)
@@ -781,6 +783,93 @@ func _save(node: Node3D, path: String) -> bool:
 		quit(1)
 		return false
 	print("wrote %d nodes to %s" % [node.get_child_count(), path])
+	return true
+
+
+## A mesh or collision shape heavier than this is saved beside its scene as a
+## binary `.res` instead of inside it as text.
+const EXTERNAL_BYTES := 65536
+## The protected anchors stay one self-contained text file each, so their
+## normalized hash still answers whether anything in them moved. They load in a
+## quarter of a second as they are.
+const EXTERNAL_EXEMPT: Array[String] = ["west_stair", "east_cascade"]
+
+
+## Heavy meshes and trimesh collision leave the `.tscn` for
+## `<scene>_data/*.res`, the way the textures already leave it for
+## `assets/textures/`. Measured on 2026-09-19: `park_groundworks.tscn` was 78MB
+## of text, its terrain collision written as decimal numbers on single lines of
+## up to 17 million characters, and took 12.1s to load at every launch against
+## 0.23s for the same scene in binary; with `park_approach.tscn` that was 15 of
+## the 26 seconds `main.tscn` took to load. The scene keeps its path, its nodes
+## and every small resource, so wrappers and runtime code see nothing change,
+## and a diff of the scene stays readable.
+##
+## `take_over_path` after the save is what makes `pack` write a reference. In
+## 4.7.1 `FLAG_CHANGE_PATH` alone left the mesh in hand pathless: the save
+## returned OK, the file was good, and the scene embedded all 78MB anyway. Names
+## come from the owning node's path, so a rerun rewrites the same
+## files; the directory is emptied first so a node that goes away takes its
+## file with it. Each file is read back and counted, because a save that
+## succeeds and writes nothing is how this tooling fails.
+func _externalise(node: Node3D, scene_path: String) -> bool:
+	if String(node.name) in EXTERNAL_EXEMPT:
+		return true
+	var dir := scene_path.get_basename() + "_data"
+	var absolute := ProjectSettings.globalize_path(dir)
+	if DirAccess.dir_exists_absolute(absolute):
+		for file in DirAccess.get_files_at(absolute):
+			if file.ends_with(".res"):
+				DirAccess.remove_absolute(absolute.path_join(file))
+	var saved := {}
+	for child in [node] + node.find_children("*", "", true, false):
+		var resource: Resource = null
+		var weight := 0
+		var kind := ""
+		if child is MeshInstance3D and (child as MeshInstance3D).mesh is ArrayMesh:
+			var mesh := (child as MeshInstance3D).mesh as ArrayMesh
+			for surface in mesh.get_surface_count():
+				weight += mesh.surface_get_array_len(surface) * 32 \
+					+ mesh.surface_get_array_index_len(surface) * 4
+			resource = mesh
+			kind = "mesh"
+		elif child is CollisionShape3D \
+				and (child as CollisionShape3D).shape is ConcavePolygonShape3D:
+			var shape := (child as CollisionShape3D).shape as ConcavePolygonShape3D
+			weight = shape.get_faces().size() * 12
+			resource = shape
+			kind = "shape"
+		if resource == null or weight < EXTERNAL_BYTES or saved.has(resource) \
+				or resource.resource_path != "":
+			continue
+		DirAccess.make_dir_recursive_absolute(absolute)
+		var stem := "root" if child == node \
+			else String(node.get_path_to(child)).replace("/", "__")
+		var file := "%s/%s_%s.res" % [dir, stem, kind]
+		var err := ResourceSaver.save(resource, file, ResourceSaver.FLAG_COMPRESS)
+		if err != OK:
+			push_error("external resource save failed: %s (%d)" % [file, err])
+			quit(1)
+			return false
+		var back := ResourceLoader.load(file, "", ResourceLoader.CACHE_MODE_IGNORE)
+		var intact := false
+		if kind == "mesh":
+			var mesh_back := back as ArrayMesh
+			intact = mesh_back != null and mesh_back.get_surface_count() \
+				== (resource as ArrayMesh).get_surface_count() \
+				and mesh_back.get_faces().size() == (resource as ArrayMesh).get_faces().size()
+		else:
+			var shape_back := back as ConcavePolygonShape3D
+			intact = shape_back != null and shape_back.get_faces().size() \
+				== (resource as ConcavePolygonShape3D).get_faces().size()
+		if not intact:
+			push_error("external resource read back wrong: %s" % file)
+			quit(1)
+			return false
+		resource.take_over_path(file)
+		saved[resource] = file
+	if not saved.is_empty():
+		print("  %d heavy resources to %s" % [saved.size(), dir])
 	return true
 
 
