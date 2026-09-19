@@ -14,6 +14,7 @@ extends Node3D
 		_queue_rebuild()
 
 const RACHIS_HALF_WIDTH := 0.007
+const MeshCache := preload("res://scripts/derived_mesh_cache.gd")
 
 var _queued := false
 
@@ -50,14 +51,21 @@ func _build_frond(path: Path3D, parent: Node3D) -> void:
 	var length := curve.get_baked_length()
 	if length < 0.25:
 		return
-	var mesh := ArrayMesh.new()
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,
-		_pinnae_arrays(curve, length, float(path.get_meta("half_span", 0.15))))
-	mesh.surface_set_material(0,
-		young_material if bool(path.get_meta("young", false)) else mature_material)
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,
-		_rachis_arrays(curve, length))
-	mesh.surface_set_material(1, rachis_material)
+	var half_span := float(path.get_meta("half_span", 0.15))
+	var leaf := young_material if bool(path.get_meta("young", false)) \
+		else mature_material
+	# Built once for the first placement of this course and shared after.
+	var mesh := MeshCache.fetch(["fern_frond", MeshCache.id_of(curve), half_span,
+			pinnae_pairs, MeshCache.id_of(leaf), MeshCache.id_of(rachis_material)],
+			[curve, leaf, rachis_material], func() -> Mesh:
+		var built := ArrayMesh.new()
+		built.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,
+			_pinnae_arrays(curve, length, half_span))
+		built.surface_set_material(0, leaf)
+		built.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,
+			_rachis_arrays(curve, length))
+		built.surface_set_material(1, rachis_material)
+		return built)
 
 	var instance := MeshInstance3D.new()
 	instance.name = path.name

@@ -16,6 +16,11 @@ extends RefCounted
 
 const MERGED := "merged_static"
 
+## key -> [meshes by shadow setting, the source meshes held alive]. Identical
+## subtrees get the same merged mesh, so 26 palm footings are one mesh drawn 26
+## times rather than 26 meshes.
+static var _merged := {}
+
 
 static func merge_children_later(host: Node, parents: Array) -> void:
 	if Engine.is_editor_hint() or not host.is_inside_tree() \
@@ -35,32 +40,78 @@ static func merge_children_later(host: Node, parents: Array) -> void:
 static func merge(root: Node3D) -> int:
 	if Engine.is_editor_hint() or not root.is_inside_tree():
 		return 0
-	var inverse := root.global_transform.affine_inverse()
-	# shadow setting -> material -> [tool for indexed sources, tool for plain].
-	# SurfaceTool.append_from offsets a source's indices but invents none, so a
-	# plain source appended after an indexed one would never be drawn.
-	var groups := {}
 	var sources: Array[MeshInstance3D] = []
+	var xforms: Array[Transform3D] = []
+	# What the merged mesh depends on: which meshes and materials, in which
+	# order, where, and casting what. Two footings placed from one scene give
+	# the same answer, now that `derived_mesh_cache` shares their sources.
+	var identity := PackedInt64Array()
+	var places := PackedFloat32Array()
 	for node in root.find_children("*", "MeshInstance3D", true, false):
 		var source := node as MeshInstance3D
 		if not _mergeable(source):
 			continue
-		var xform := inverse * source.global_transform
+		var xform := _relative(root, source)
 		if xform.basis.determinant() <= 0.0:
 			continue
+		sources.append(source)
+		xforms.append(xform)
+		identity.append(source.mesh.get_instance_id())
+		identity.append(source.cast_shadow)
+		for s in source.mesh.get_surface_count():
+			var material := source.get_active_material(s)
+			identity.append(0 if material == null else material.get_instance_id())
+		for axis in [xform.basis.x, xform.basis.y, xform.basis.z, xform.origin]:
+			# A tenth of a millimetre: two placements differ by float noise.
+			places.append(snappedf(axis.x, 0.0001))
+			places.append(snappedf(axis.y, 0.0001))
+			places.append(snappedf(axis.z, 0.0001))
+	if sources.size() < 2:
+		return 0
+	# The arrays themselves are the key: compared by value, so no two different
+	# subtrees can be mistaken for each other.
+	var key := [identity, places]
+	var meshes: Dictionary
+	if _merged.has(key):
+		meshes = _merged[key][0]
+	else:
+		meshes = _build(sources, xforms)
+		# The sources' meshes are kept so their ids cannot be reused.
+		var keep: Array = []
+		for source in sources:
+			keep.append(source.mesh)
+		_merged[key] = [meshes, keep]
+	for shadow in meshes:
+		var merged := MeshInstance3D.new()
+		merged.name = "%s_%d" % [MERGED, shadow]
+		merged.mesh = meshes[shadow]
+		merged.cast_shadow = shadow
+		root.add_child(merged)
+	for source in sources:
+		source.visible = false
+	root.set_meta("merged_sources", sources.size())
+	return sources.size()
+
+
+## shadow setting -> one ArrayMesh, a surface per material.
+static func _build(sources: Array[MeshInstance3D],
+		xforms: Array[Transform3D]) -> Dictionary:
+	# shadow setting -> material -> [tool for indexed sources, tool for plain].
+	# SurfaceTool.append_from offsets a source's indices but invents none, so a
+	# plain source appended after an indexed one would never be drawn.
+	var groups := {}
+	for index in sources.size():
+		var source := sources[index]
 		var by_material: Dictionary = groups.get_or_add(source.cast_shadow, {})
 		for s in source.mesh.get_surface_count():
 			var pair: Array = by_material.get_or_add(
 				source.get_active_material(s), [null, null])
-			var indexed := _indexed(source.mesh, s)
-			var slot := 0 if indexed else 1
+			var slot := 0 if _indexed(source.mesh, s) else 1
 			if pair[slot] == null:
 				pair[slot] = SurfaceTool.new()
 				(pair[slot] as SurfaceTool).begin(Mesh.PRIMITIVE_TRIANGLES)
-			(pair[slot] as SurfaceTool).append_from(source.mesh, s, xform)
-		sources.append(source)
-	if sources.size() < 2:
-		return 0
+			(pair[slot] as SurfaceTool).append_from(source.mesh, s, xforms[index])
+	var meshes := {}
 	for shadow in groups:
 		var mesh := ArrayMesh.new()
 		var by_material: Dictionary = groups[shadow]
@@ -70,15 +121,22 @@ static func merge(root: Node3D) -> int:
 					continue
 				(tool as SurfaceTool).commit(mesh)
 				mesh.surface_set_material(mesh.get_surface_count() - 1, material)
-		var merged := MeshInstance3D.new()
-		merged.name = "%s_%d" % [MERGED, shadow]
-		merged.mesh = mesh
-		merged.cast_shadow = shadow
-		root.add_child(merged)
-	for source in sources:
-		source.visible = false
-	root.set_meta("merged_sources", sources.size())
-	return sources.size()
+		meshes[shadow] = mesh
+	return meshes
+
+
+## `node`'s transform in `root`'s space, chained from local transforms. Going
+## through world space instead costs float noise of the order of the snap 250m
+## from the origin, and identical footings then stop comparing equal.
+static func _relative(root: Node3D, node: Node3D) -> Transform3D:
+	var xform := Transform3D.IDENTITY
+	var at: Node = node
+	while at != null and at != root:
+		var spatial := at as Node3D
+		if spatial != null:
+			xform = spatial.transform * xform
+		at = at.get_parent()
+	return xform
 
 
 static func _indexed(mesh: Mesh, surface: int) -> bool:

@@ -22,6 +22,7 @@ extends Node3D
 ## depend on this. Normals follow the blade instead of each facet, so the arch
 ## shades as one curve. `coastal_plant_catalog_test` holds the matching floor.
 const LENGTH_SAMPLES := 9
+const MeshCache := preload("res://scripts/derived_mesh_cache.gd")
 const STRIPE_EDGE := 0.68
 
 var _queued := false
@@ -78,17 +79,24 @@ func _build_course(path: Path3D, parent: Node3D) -> void:
 		var length_scale := 1.0 - 0.04 * float(copy_index)
 		var sway := (0.012 if copy_index % 2 == 0 else -0.014) \
 			* float(1 + int(path.get_meta("rhythm", 0)) % 3)
-		var mesh := ArrayMesh.new()
-		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,
-			_edge_arrays(curve, length, half_width, fold_depth,
-				offset, length_scale, sway))
-		mesh.surface_set_material(0,
-			young_edge_material if young else edge_material)
-		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,
-			_band_arrays(curve, length, half_width, fold_depth,
-				-STRIPE_EDGE, STRIPE_EDGE, offset, length_scale, sway))
-		mesh.surface_set_material(1,
-			young_lemon_material if young else lemon_material)
+		var edge := young_edge_material if young else edge_material
+		var lemon := young_lemon_material if young else lemon_material
+		# Every clump placed from this scene shares its courses, so the blade
+		# is built once for the first and handed to the rest.
+		var mesh := MeshCache.fetch(["hakone_blade", LENGTH_SAMPLES,
+				MeshCache.id_of(curve), half_width, fold_depth, offset,
+				length_scale, sway, MeshCache.id_of(edge), MeshCache.id_of(lemon)],
+				[curve, edge, lemon], func() -> Mesh:
+			var built := ArrayMesh.new()
+			built.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,
+				_edge_arrays(curve, length, half_width, fold_depth,
+					offset, length_scale, sway))
+			built.surface_set_material(0, edge)
+			built.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,
+				_band_arrays(curve, length, half_width, fold_depth,
+					-STRIPE_EDGE, STRIPE_EDGE, offset, length_scale, sway))
+			built.surface_set_material(1, lemon)
+			return built)
 		var instance := MeshInstance3D.new()
 		instance.name = "%s_blade_%d" % [path.name, copy_index]
 		instance.mesh = mesh

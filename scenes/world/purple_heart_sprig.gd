@@ -26,6 +26,7 @@ extends Node3D
 const STEM_SAMPLES := 9
 const LEAF_LENGTH_SAMPLES := 5
 const LEAF_WIDTH_SAMPLES := 3
+const MeshCache := preload("res://scripts/derived_mesh_cache.gd")
 
 var _queued := false
 
@@ -76,18 +77,26 @@ func _build_stem(curve: Curve3D, length: float, parent: Node3D) -> void:
 		var delta := b - a
 		if delta.length_squared() < 0.0001:
 			continue
-		var mesh := CylinderMesh.new()
-		mesh.top_radius = lerpf(0.011, 0.006, t1)
-		mesh.bottom_radius = lerpf(0.013, 0.007, t0)
-		mesh.height = delta.length()
-		# A stem is 12 to 26mm across. Seven sides, a ring and two caps buried
-		# inside the neighbouring segments made 42 triangles a segment, 336 a
-		# sprig, and the stems alone came to 324,000 at the arrival palms. Four
-		# smooth-shaded sides and no caps is 8 a segment. 2026-09-18.
-		mesh.radial_segments = 4
-		mesh.rings = 0
-		mesh.cap_top = false
-		mesh.cap_bottom = false
+		var top_radius := lerpf(0.011, 0.006, t1)
+		var bottom_radius := lerpf(0.013, 0.007, t0)
+		var height := delta.length()
+		# Sprigs placed from one scene share their course, so a segment is
+		# built once and handed to the rest.
+		var mesh := MeshCache.fetch(["purple_heart_stem", top_radius,
+				bottom_radius, height], [], func() -> Mesh:
+			var built := CylinderMesh.new()
+			built.top_radius = top_radius
+			built.bottom_radius = bottom_radius
+			built.height = height
+			# A stem is 12 to 26mm across. Seven sides, a ring and two caps buried
+			# inside the neighbouring segments made 42 triangles a segment, 336 a
+			# sprig, and the stems alone came to 324,000 at the arrival palms. Four
+			# smooth-shaded sides and no caps is 8 a segment. 2026-09-18.
+			built.radial_segments = 4
+			built.rings = 0
+			built.cap_top = false
+			built.cap_bottom = false
+			return built)
 		var instance := MeshInstance3D.new()
 		instance.name = "segment_%02d" % index
 		instance.mesh = mesh
@@ -121,10 +130,14 @@ func _build_leaf_pairs(curve: Curve3D, length: float, parent: Node3D) -> void:
 func _add_leaf(parent: Node3D, node_name: String, origin: Vector3,
 		direction: Vector3, length: float, half_width: float,
 		young: bool) -> void:
-	var mesh := ArrayMesh.new()
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,
-		_leaf_arrays(origin, direction, length, half_width))
-	mesh.surface_set_material(0, young_leaf_material if young else leaf_material)
+	var material := young_leaf_material if young else leaf_material
+	var mesh := MeshCache.fetch(["purple_heart_leaf", origin, direction, length,
+			half_width, MeshCache.id_of(material)], [material], func() -> Mesh:
+		var built := ArrayMesh.new()
+		built.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,
+			_leaf_arrays(origin, direction, length, half_width))
+		built.surface_set_material(0, material)
+		return built)
 	var instance := MeshInstance3D.new()
 	instance.name = node_name
 	instance.mesh = mesh
@@ -180,15 +193,23 @@ func _leaf_point(origin: Vector3, direction: Vector3, side: Vector3,
 		+ arch + central_fold
 
 
+## One unit sphere for every petal and flower centre in the park; each is
+## scaled to its shape by its own node.
+func _flower_sphere() -> Mesh:
+	return MeshCache.fetch(["purple_heart_flower_sphere"], [], func() -> Mesh:
+		var built := SphereMesh.new()
+		built.radius = 0.5
+		built.height = 1.0
+		built.radial_segments = 6
+		built.rings = 2
+		return built)
+
+
 func _build_flower(at: Vector3, parent: Node3D) -> void:
 	for index in 3:
 		var angle := float(index) * TAU / 3.0
-		var mesh := SphereMesh.new()
-		mesh.radius = 0.5
-		mesh.height = 1.0
 		# A petal is a 5cm flattened sphere: 6 by 2 is 36 triangles against 80.
-		mesh.radial_segments = 6
-		mesh.rings = 2
+		var mesh := _flower_sphere()
 		var petal := MeshInstance3D.new()
 		petal.name = "petal_%d" % index
 		petal.mesh = mesh
@@ -197,11 +218,7 @@ func _build_flower(at: Vector3, parent: Node3D) -> void:
 		petal.rotation = Vector3(0.35, -angle, 0.0)
 		petal.scale = Vector3(0.052, 0.016, 0.027)
 		parent.add_child(petal)
-	var center_mesh := SphereMesh.new()
-	center_mesh.radius = 0.5
-	center_mesh.height = 1.0
-	center_mesh.radial_segments = 6
-	center_mesh.rings = 2
+	var center_mesh := _flower_sphere()
 	var center := MeshInstance3D.new()
 	center.name = "flower_center"
 	center.mesh = center_mesh
