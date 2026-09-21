@@ -41,6 +41,16 @@ glow_levels/5 = 0.6
 ssao_enabled = true
 ssao_intensity = 1.4
 ssao_radius = 2.0
+fog_enabled = true
+fog_mode = 1
+fog_light_color = Color(0.45, 0.6, 0.8, 1)
+fog_sun_scatter = 0.0
+fog_density = 0.85
+fog_aerial_perspective = 0.5
+fog_sky_affect = 0.0
+fog_depth_curve = 1.0
+fog_depth_begin = 120.0
+fog_depth_end = 3000.0
 
 [node name="main" type="Node3D"]
 script = ExtResource("6_main")

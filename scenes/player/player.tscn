@@ -31,7 +31,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 current = true
 fov = 70.0
 near = 0.05
-far = 400.0
+far = 4200.0
 
 [node name="spring" type="SpringArm3D" parent="head"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12, 0)
@@ -43,7 +43,7 @@ margin = 0.25
 [node name="camera_third" type="Camera3D" parent="head/spring"]
 fov = 70.0
 near = 0.05
-far = 400.0
+far = 4200.0
 
 [node name="camera_tool" type="Node" parent="."]
 script = ExtResource("2_camera_tool")

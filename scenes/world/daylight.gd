@@ -103,8 +103,21 @@ const SKY_ENERGY := [
 	[10.0, 1.0],
 ]
 
+## How much of the distance haze stands, against altitude. The haze itself, its
+## colour, begin, end and curve, is set on the Environment in `main.tscn` so it
+## is tuned in the inspector; this only scales its `fog_density` cap. It eases
+## off after dark because fog blends over emission, and the night reads by
+## bulbs, wheel tubes and town windows carrying at 100m and more.
+const HAZE_STRENGTH := [
+	[-18.0, 0.15],
+	[NIGHT_ALTITUDE, 0.3],
+	[0.0, 0.8],
+	[10.0, 1.0],
+]
+
 var _sky_material: ProceduralSkyMaterial
 var _environment: Environment
+var _haze_density := 0.0
 
 
 func _ready() -> void:
@@ -116,6 +129,12 @@ func _ready() -> void:
 		return
 	_environment = world_environment.environment
 	_sky_material = _environment.sky.sky_material as ProceduralSkyMaterial
+	# The Environment is shared by every instance of the scene in this process,
+	# and `_apply` writes the scaled value back into it, so the inspector's
+	# figure is remembered on the resource the first time and read from there.
+	if not _environment.has_meta(&"haze_density"):
+		_environment.set_meta(&"haze_density", _environment.fog_density)
+	_haze_density = _environment.get_meta(&"haze_density")
 	_apply(ParkClock.hours())
 
 
@@ -140,6 +159,8 @@ func _apply(clock_hours: float) -> void:
 
 	_environment.ambient_light_color = _color_at(AMBIENT_COLOR, altitude)
 	_environment.ambient_light_energy = _value_at(AMBIENT_ENERGY, altitude)
+
+	_environment.fog_density = _haze_density * _value_at(HAZE_STRENGTH, altitude)
 
 	if _sky_material != null:
 		var horizon := _color_at(SKY_HORIZON, altitude)
