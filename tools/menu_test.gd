@@ -21,7 +21,8 @@ extends Node
 ## exactly like a crash in the middle of a test run.
 
 const SETTLE := 1.5
-const TABS := [&"map", &"album", &"options", &"quit"]
+## The dev page is a fifth tab in a debug build, which is what a test run is.
+var TABS: Array[StringName] = [&"map", &"album", &"options", &"quit"]
 
 var _failures := 0
 var _checks := 0
@@ -29,6 +30,8 @@ var _checks := 0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	if OS.is_debug_build():
+		TABS.append(&"dev")
 
 	var main: Node = load("res://scenes/main/main.tscn").instantiate()
 	add_child(main)
@@ -47,6 +50,7 @@ func _ready() -> void:
 	await _album_moves(menu)
 	await _options_moves(menu)
 	await _quit_backs_out(menu)
+	await _dev_page(menu)
 	await _closes_and_resumes(menu)
 
 	print("")
@@ -162,6 +166,39 @@ func _quit_backs_out(menu: Node) -> void:
 	if not bool(menu.call("is_open")):
 		await _press("menu")
 		await _goto(menu, &"album")
+
+
+## Debug builds only, like the page. Accept on the first row steps the weather,
+## accept on the second moves the clock, and the fourth row is the haze toggle.
+func _dev_page(menu: Node) -> void:
+	if not OS.is_debug_build():
+		return
+	if not bool(menu.call("is_open")):
+		await _press("menu")
+	await _goto(menu, &"dev")
+	_check("on the dev page", TABS[_tab_of(menu)], &"dev")
+	var weather: Node = null
+	for node in get_tree().root.find_children("*", "Node3D", true, false):
+		if "dev_override" in node and "enabled" in node:
+			weather = node
+	var environment := (get_tree().root.find_children("*", "WorldEnvironment", true, false)[0] \
+		as WorldEnvironment).environment
+	# The weather layer may not be in the tree; the row is then disabled.
+	if weather != null:
+		var was_enabled: bool = weather.enabled
+		await _press("ui_accept")
+		_check("weather row steps", weather.enabled != was_enabled or weather.dev_override.x >= 0.0, true)
+	await _press("ui_down")
+	var before := ParkClock.hours()
+	await _press("ui_accept")
+	_check("time row moves the clock", is_equal_approx(ParkClock.hours(), before), false)
+	await _press("ui_down")
+	await _press("ui_down")
+	var hazed := environment.fog_enabled
+	await _press("ui_right")
+	_check("haze row toggles", environment.fog_enabled, not hazed)
+	await _press("ui_right")
+	_check("haze row toggles back", environment.fog_enabled, hazed)
 
 
 func _closes_and_resumes(menu: Node) -> void:

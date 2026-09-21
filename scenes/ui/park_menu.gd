@@ -36,6 +36,10 @@ const TABS := [
 	{"id": &"quit", "label": "Quit"},
 ]
 
+## `TABS`, plus the dev page in a debug build. After quit, so every player-facing
+## tab keeps its place and an exported game is exactly `TABS`.
+var _tabs: Array = TABS.duplicate()
+
 ## What the footer says on every screen. The tab keys are worth repeating
 ## because they are the one control a player has no reason to guess.
 const HINTS := [
@@ -93,6 +97,8 @@ func _ready() -> void:
 	# is stopped, or opening the pause screen would be the last input the game
 	# ever accepted.
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	if OS.is_debug_build():
+		_tabs.append({"id": &"dev", "label": "Dev"})
 	_build()
 	_root.visible = false
 
@@ -161,21 +167,21 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		close()
 	elif event.is_action_pressed("menu_next_tab"):
-		_select(wrapi(_tab + 1, 0, TABS.size()))
+		_select(wrapi(_tab + 1, 0, _tabs.size()))
 	elif event.is_action_pressed("menu_prev_tab"):
-		_select(wrapi(_tab - 1, 0, TABS.size()))
+		_select(wrapi(_tab - 1, 0, _tabs.size()))
 	else:
 		return
 	get_viewport().set_input_as_handled()
 
 
 func _current_id() -> StringName:
-	return TABS[_tab]["id"]
+	return _tabs[_tab]["id"]
 
 
 func _index_of(id: StringName) -> int:
-	for index in TABS.size():
-		if TABS[index]["id"] == id:
+	for index in _tabs.size():
+		if _tabs[index]["id"] == id:
 			return index
 	return 0
 
@@ -282,7 +288,7 @@ func _build() -> void:
 		+ TAB_PAD_Y * 2 + ParkUI.BORDER * 2 + ParkUI.TAB_RISE
 	tab_row.add_child(tabs)
 
-	for entry in TABS:
+	for entry in _tabs:
 		var panel := PanelContainer.new()
 		# Sized to its word, not to a quarter of the screen. Four tabs stretched
 		# edge to edge with equal widths is a browser's shape and nothing else's
@@ -420,7 +426,7 @@ func _build() -> void:
 	ParkUI.prompts(hints, HINTS, false)
 	footer_row.add_child(hints)
 
-	for entry in TABS:
+	for entry in _tabs:
 		var screen := _make_screen(entry["id"])
 		screen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		screen.visible = false
@@ -454,6 +460,9 @@ func _make_screen(id: StringName) -> Control:
 		&"quit":
 			screen = Control.new()
 			screen.set_script(load("res://scenes/ui/quit_view.gd"))
+		&"dev":
+			screen = Control.new()
+			screen.set_script(load("res://scenes/ui/dev_view.gd"))
 		_:
 			screen = Control.new()
 	screen.name = str(id)
@@ -480,7 +489,7 @@ func _restyle(animate: bool = false) -> void:
 
 	for index in _tab_panels.size():
 		var chosen := index == _tab
-		var colour: Color = ParkUI.tab_colour(TABS[index]["id"])
+		var colour: Color = ParkUI.tab_colour(_tabs[index]["id"])
 		var box := ParkUI.plate(
 			colour if chosen else ParkUI.TAB_IDLE,
 			colour if chosen else colour.darkened(ParkUI.TAB_IDLE_FADE),

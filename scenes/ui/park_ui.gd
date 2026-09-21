@@ -171,6 +171,8 @@ const TAB_COLOURS := {
 	&"album": Color("2b8ee8"),
 	&"options": Color("9b4fd6"),
 	&"quit": Color("e33d28"),
+	# Debug builds only. Hazard amber, so it never reads as part of the game.
+	&"dev": Color("f2a81d"),
 }
 
 ## The unchosen tab. It lived in `park_menu.gd` as a private constant, which made

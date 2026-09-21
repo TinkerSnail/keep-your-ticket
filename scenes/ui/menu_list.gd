@@ -132,6 +132,7 @@ static func carded(parent: Control) -> MenuList:
 ##   label     String, shown left, capitalised here
 ##   kind      Kind
 ##   value     bool for TOGGLE, float 0..1 for SLIDER, unused otherwise
+##   text      String, optional, shown right on an ACTION row
 ##   note      String, shown under the list while this row is selected
 func set_rows(rows: Array[Dictionary]) -> void:
 	for child in get_children():
@@ -319,7 +320,8 @@ func _value_text(row: Dictionary) -> String:
 		Kind.DISABLED:
 			return "—"
 		_:
-			return ""
+			# An action that steps through named states says which one it is on.
+			return ParkUI.caps(String(row.get("text", "")))
 
 
 func _make_meter() -> Control:
