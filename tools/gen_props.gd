@@ -2436,8 +2436,39 @@ func _add(node: Node3D, nm: String) -> void:
 	t.origin += Vector3.ONE * float(_seam_ordinal % SEAM_STEPS) * SEAM_STEP
 	node.transform = t
 	_seam_ordinal += 1
+	if _casts_nothing_worth_drawing(node):
+		(node as GeometryInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_root.add_child(node)
 	node.owner = _root
+
+
+## A shape whose longest side is under this does not cast a shadow. The sun
+## draws every caster again for each shadow split it falls in, and on
+## 2026-09-18 that was a third of the park's draw calls and half its triangles,
+## with 2,610 of 9,237 shapes this small: rungs, bulbs, brackets, finials.
+## Their shadows are a few pixels nobody reads. A long thin thing, a rail or a
+## mast, keeps its shadow because its longest side is what is measured. It is an
+## ordinary per-object property, so a wrapper can switch any one back on.
+const SMALL_CASTER := 0.5
+
+## The protected anchors keep every shadow until Christina says otherwise.
+const SMALL_CASTER_EXEMPT: Array[String] = ["west_stair", "east_cascade"]
+
+
+func _casts_nothing_worth_drawing(node: Node3D) -> bool:
+	if String(_root.name) in SMALL_CASTER_EXEMPT:
+		return false
+	var scale := node.transform.basis.get_scale()
+	var longest := INF
+	if node is CSGBox3D:
+		var size: Vector3 = (node as CSGBox3D).size * scale
+		longest = maxf(size.x, maxf(size.y, size.z))
+	elif node is CSGCylinder3D:
+		var c := node as CSGCylinder3D
+		longest = maxf(c.radius * 2.0 * maxf(scale.x, scale.z), c.height * scale.y)
+	elif node is CSGSphere3D:
+		longest = (node as CSGSphere3D).radius * 2.0 * maxf(scale.x, maxf(scale.y, scale.z))
+	return longest < SMALL_CASTER
 
 
 ## Loaded on first use rather than preloaded, and that is not a style choice.
