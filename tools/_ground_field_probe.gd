@@ -64,6 +64,22 @@ const ENTRIES := [
 ]
 const ENTRY := "_road_ground_y"
 
+## A3's dispatch. The reproduction test asks a narrower question than A2: not
+## "does one entry point answer the park's ground" (it does not), but "does the
+## function that nominally owns each surface actually reproduce that surface".
+## If every owner reproduces its own mesh, a field evaluated in a declared order
+## reproduces today's ground and composition is only a question of which owner
+## wins where. If an owner does not reproduce its own mesh, the ground there is
+## not a function of plan position at all and no field can hold it.
+const OWNERS := {
+	"terrain_T2_lowland": {"method": "_rebuild_lowland_surface_y", "xz": false},
+	"terrain_T6_outer_highland": {"method": "_rebuild_outer_highland_y", "xz": true},
+	"terrain_world_mainland_reserve": {"method": "_rebuild_world_reserve_y", "xz": false},
+	"terrain_world_coast_north": {"method": "_rebuild_coastal_reserve_y", "xz": false},
+	"terrain_world_coast_south": {"method": "_rebuild_coastal_reserve_y", "xz": false},
+	"terrain_road_corridor": {"method": "_road_ground_y", "xz": false},
+}
+
 var _step := DEFAULT_STEP
 
 
@@ -125,6 +141,7 @@ func _ready() -> void:
 			intent = fields[0]
 
 	await _report_against_world(points, intent)
+	_report_reproduction(points)
 	get_tree().quit()
 
 
@@ -353,3 +370,93 @@ func _stats(label: String, values: PackedFloat32Array, signed := false) -> void:
 	print("%s: median %.3fm, 95th %.3fm, max %.3fm" % [
 		label, sorted[sorted.size() / 2], sorted[int(sorted.size() * 0.95)],
 		sorted[sorted.size() - 1]])
+
+
+## A3, the reproduction test. Raycasts each plan point, notes which body the ray
+## actually landed on, and compares that body's own height function against it.
+## The world is already mounted by A2.
+func _report_reproduction(points: PackedVector2Array) -> void:
+	print("")
+	print("A3  reproduction: does each surface's own function reproduce it?")
+	var world := get_tree().get_root().find_child("park_world", true, false)
+	if world == null:
+		print("    no park_world; skipped")
+		return
+	var skip: Array[RID] = []
+	for body in _bodies(world):
+		if body.get_meta("points", PackedVector3Array()).size() >= 2:
+			skip.append(body.get_rid())
+
+	var space := get_viewport().get_world_3d().direct_space_state
+	var by_owner := {}
+	for p in points:
+		var q := PhysicsRayQueryParameters3D.create(
+			Vector3(p.x, RAY_ABOVE * 6.0, p.y),
+			Vector3(p.x, -RAY_BELOW, p.y), WORLD_LAYER)
+		q.exclude = skip
+		var hit := space.intersect_ray(q)
+		if hit.is_empty():
+			continue
+		var owner: String = String(hit["collider"].name)
+		var rec: Array = by_owner.get(owner, [])
+		rec.append([p, float(hit["position"].y)])
+		by_owner[owner] = rec
+
+	var gen: Object = load(GEN_PATH).new()
+	_prime(gen)
+	var names := by_owner.keys()
+	names.sort_custom(func(a, b): return by_owner[a].size() > by_owner[b].size())
+	var reproduced := 0
+	var total := 0
+	var owned := 0
+	var unowned := 0
+	var unowned_kinds := 0
+	for owner in names:
+		var hits: Array = by_owner[owner]
+		total += hits.size()
+		if not OWNERS.has(owner):
+			unowned += hits.size()
+			unowned_kinds += 1
+			if hits.size() >= 5:
+				print("  %-32s %6d hits  no height function owns this surface" % [
+					owner, hits.size()])
+			continue
+		owned += hits.size()
+		var spec: Dictionary = OWNERS[owner]
+		var xz: bool = spec["xz"]
+		var method: String = spec["method"]
+		var diffs := PackedFloat32Array()
+		var worst := 0.0
+		var worst_at := Vector2.ZERO
+		for h in hits:
+			var p: Vector2 = h[0]
+			var y: float = float(gen.call(method, p.x, p.y)) if xz else float(gen.call(method, p))
+			var d: float = y - float(h[1])
+			diffs.append(d)
+			if absf(d) > absf(worst):
+				worst = d
+				worst_at = p
+		var close := 0
+		for d in diffs:
+			if absf(d) < 0.05:
+				close += 1
+		reproduced += close
+		var sorted := diffs.duplicate()
+		var mags := PackedFloat32Array()
+		for d in sorted:
+			mags.append(absf(d))
+		mags.sort()
+		print("  %-32s %6d hits  %5.1f%% within 5cm  median |d| %6.3fm  95th %7.3fm  worst %+8.2fm at (%.0f, %.0f)" % [
+			owner, hits.size(), 100.0 * float(close) / float(hits.size()),
+			mags[mags.size() / 2], mags[int(mags.size() * 0.95)], worst, worst_at.x, worst_at.y])
+	gen.free()
+	print("")
+	print("    Of %d standing samples, %d (%.1f%%) are on a surface with a height" % [
+		total, owned, 100.0 * float(owned) / maxf(1.0, float(total))])
+	print("    function, and %d of those (%.1f%%) are reproduced within 5cm." % [
+		reproduced, 100.0 * float(reproduced) / maxf(1.0, float(owned))])
+	print("    The other %d (%.1f%%), across %d kinds of body, are ground the player" % [
+		unowned, 100.0 * float(unowned) / maxf(1.0, float(total)), unowned_kinds])
+	print("    stands on that no function answers: embankments read back from emitted")
+	print("    geometry, the east shoulders, decks, entrance ground and the headland.")
+	print("    That split, not the agreement, is what sizes a field.")
