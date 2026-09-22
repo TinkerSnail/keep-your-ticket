@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=11 format=3]
 
 ; Stable editor-owned wrapper. The generator writes only generated/boardwalk.tscn.
 [ext_resource type="PackedScene" path="res://scenes/world/generated/boardwalk.tscn" id="1_generated"]
@@ -9,6 +9,8 @@
 [ext_resource type="PackedScene" path="res://scenes/world/boardwalk_pavilion.tscn" id="6_pavilion"]
 [ext_resource type="PackedScene" path="res://scenes/world/boardwalk_pacific_wheel.tscn" id="7_pacific_wheel"]
 [ext_resource type="PackedScene" path="res://scenes/world/boardwalk_wooden_coaster.tscn" id="8_wooden_coaster"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_replacements.tscn" id="9_palms"]
+[ext_resource type="PackedScene" path="res://scenes/world/boardwalk_north_ride_park.tscn" id="10_north_ride_park"]
 
 [node name="boardwalk" instance=ExtResource("1_generated")]
 
@@ -221,6 +223,23 @@ visible = false
 [node name="station_sign" parent="." index="160"]
 visible = false
 
+; The old chain made the public deck stop beside R2. The editor-owned north
+; ride loop below supersedes only that terminal condition.
+[node name="north_chain_post_w" parent="." index="288"]
+visible = false
+use_collision = false
+
+[node name="north_chain_post_e" parent="." index="289"]
+visible = false
+use_collision = false
+
+[node name="north_chain" parent="." index="290"]
+visible = false
+use_collision = false
+
+[node name="north_sign" parent="." index="291"]
+visible = false
+
 ; The generated apron was the source-handoff greybox. Christina approved the
 ; circulation-driven footprint revision on 2026-09-09, so the stable wrapper
 ; retires only that shape and mounts the directly editable replacement below.
@@ -276,9 +295,13 @@ use_collision = false
 
 [node name="authored_additions" type="Node3D" parent="."]
 
+[node name="coastal_palm_replacements" parent="authored_additions" instance=ExtResource("9_palms")]
+
 [node name="boardwalk_pacific_wheel" parent="authored_additions" instance=ExtResource("7_pacific_wheel")]
 
 [node name="boardwalk_wooden_coaster" parent="authored_additions" instance=ExtResource("8_wooden_coaster")]
+
+[node name="boardwalk_north_ride_park" parent="authored_additions" instance=ExtResource("10_north_ride_park")]
 
 [node name="boardwalk_pier_head" parent="authored_additions" instance=ExtResource("5_pier_head")]
 

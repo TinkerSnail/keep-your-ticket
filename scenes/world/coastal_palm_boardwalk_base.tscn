@@ -1,0 +1,345 @@
+[gd_scene load_steps=17 format=3]
+
+; Directly editable Boardwalk palm footing: a compact weathered timber tree box
+; compressing the fern, flower-drift and rosette hierarchy. Visual only.
+
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_fern_fill.tscn" id="1_fern"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_border_rosette.tscn" id="2_rosette"]
+[ext_resource type="PackedScene" path="res://scenes/world/purple_heart_cluster.tscn" id="3_purple"]
+[ext_resource type="PackedScene" path="res://scenes/world/hakone_grass_tuft_va.tscn" id="4_hakone"]
+
+[sub_resource type="BoxMesh" id="Mesh_unit"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="SphereMesh" id="Mesh_foliage"]
+radius = 0.105
+height = 0.1
+radial_segments = 7
+rings = 3
+
+[sub_resource type="TorusMesh" id="Mesh_collar"]
+inner_radius = 0.2
+outer_radius = 0.44
+rings = 10
+ring_segments = 16
+
+[sub_resource type="SphereMesh" id="Mesh_bloom"]
+radius = 0.036
+height = 0.04
+radial_segments = 6
+rings = 3
+
+[sub_resource type="StandardMaterial3D" id="Mat_soil"]
+albedo_color = Color(0.18, 0.105, 0.055, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Mat_timber"]
+albedo_color = Color(0.31, 0.19, 0.105, 1)
+roughness = 0.98
+
+[sub_resource type="StandardMaterial3D" id="Mat_timber_cap"]
+albedo_color = Color(0.43, 0.285, 0.155, 1)
+roughness = 0.96
+
+[sub_resource type="StandardMaterial3D" id="Mat_metal"]
+albedo_color = Color(0.095, 0.105, 0.1, 1)
+metallic = 0.62
+roughness = 0.72
+
+[sub_resource type="StandardMaterial3D" id="Mat_green"]
+albedo_color = Color(0.12, 0.28, 0.065, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="Mat_yellow"]
+albedo_color = Color(0.92, 0.64, 0.1, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Mat_white"]
+albedo_color = Color(0.88, 0.84, 0.7, 1)
+roughness = 0.92
+
+[sub_resource type="StandardMaterial3D" id="Mat_coral"]
+albedo_color = Color(0.7, 0.22, 0.14, 1)
+roughness = 0.9
+
+[node name="coastal_palm_boardwalk_base" type="Node3D"]
+editor_description = "Directly editable Boardwalk palm tree box. A crafted weathered frame contains a tall, rail-overlapping canopy of fern, flowers, rosettes, Purple Heart and bright Hakone grass around the unchanged palm opening."
+
+[node name="soil_fill" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.12, 0)
+scale = Vector3(1.06, 0.12, 1.06)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_soil")
+cast_shadow = 0
+
+[node name="timber_frame" type="Node3D" parent="."]
+
+[node name="north_board" type="MeshInstance3D" parent="timber_frame"]
+position = Vector3(0, 0.18, -0.62)
+scale = Vector3(1.44, 0.32, 0.18)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_timber")
+
+[node name="south_board" type="MeshInstance3D" parent="timber_frame"]
+position = Vector3(0, 0.18, 0.62)
+scale = Vector3(1.44, 0.32, 0.18)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_timber")
+
+[node name="west_board" type="MeshInstance3D" parent="timber_frame"]
+position = Vector3(-0.62, 0.18, 0)
+scale = Vector3(0.18, 0.32, 1.04)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_timber")
+
+[node name="east_board" type="MeshInstance3D" parent="timber_frame"]
+position = Vector3(0.62, 0.18, 0)
+scale = Vector3(0.18, 0.32, 1.04)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_timber")
+
+[node name="timber_details" type="Node3D" parent="."]
+editor_description = "Selectable cap rails, corner posts and dark carriage-bolt heads enrich the box without changing its established footprint."
+
+[node name="north_cap" type="MeshInstance3D" parent="timber_details"]
+position = Vector3(0, 0.374, -0.62)
+scale = Vector3(1.5, 0.066, 0.2)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_timber_cap")
+
+[node name="south_cap" type="MeshInstance3D" parent="timber_details"]
+position = Vector3(0, 0.374, 0.62)
+scale = Vector3(1.5, 0.066, 0.2)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_timber_cap")
+
+[node name="west_cap" type="MeshInstance3D" parent="timber_details"]
+position = Vector3(-0.62, 0.374, 0)
+scale = Vector3(0.18, 0.066, 1.02)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_timber_cap")
+
+[node name="east_cap" type="MeshInstance3D" parent="timber_details"]
+position = Vector3(0.62, 0.374, 0)
+scale = Vector3(0.18, 0.066, 1.02)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_timber_cap")
+
+[node name="post_nw" type="MeshInstance3D" parent="timber_details"]
+position = Vector3(-0.62, 0.2, -0.62)
+scale = Vector3(0.2, 0.36, 0.2)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_timber_cap")
+
+[node name="post_ne" type="MeshInstance3D" parent="timber_details"]
+position = Vector3(0.62, 0.2, -0.62)
+scale = Vector3(0.2, 0.36, 0.2)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_timber_cap")
+
+[node name="post_se" type="MeshInstance3D" parent="timber_details"]
+position = Vector3(0.62, 0.2, 0.62)
+scale = Vector3(0.2, 0.36, 0.2)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_timber_cap")
+
+[node name="post_sw" type="MeshInstance3D" parent="timber_details"]
+position = Vector3(-0.62, 0.2, 0.62)
+scale = Vector3(0.2, 0.36, 0.2)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_timber_cap")
+
+[node name="bolt_nw" type="MeshInstance3D" parent="timber_details"]
+position = Vector3(-0.62, 0.414, -0.62)
+scale = Vector3(0.5, 0.2, 0.5)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_metal")
+
+[node name="bolt_ne" type="MeshInstance3D" parent="timber_details"]
+position = Vector3(0.62, 0.414, -0.62)
+scale = Vector3(0.5, 0.2, 0.5)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_metal")
+
+[node name="bolt_se" type="MeshInstance3D" parent="timber_details"]
+position = Vector3(0.62, 0.414, 0.62)
+scale = Vector3(0.5, 0.2, 0.5)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_metal")
+
+[node name="bolt_sw" type="MeshInstance3D" parent="timber_details"]
+position = Vector3(-0.62, 0.414, 0.62)
+scale = Vector3(0.5, 0.2, 0.5)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_metal")
+
+[node name="flowers" type="Node3D" parent="."]
+
+[node name="fern_ring" type="Node3D" parent="."]
+
+[node name="fern_0" parent="fern_ring" instance=ExtResource("1_fern")]
+position = Vector3(0, 0.4, -0.18)
+rotation = Vector3(0, 3.14159, 0)
+scale = Vector3(1.1, 1.1, 1.1)
+
+[node name="fern_1" parent="fern_ring" instance=ExtResource("1_fern")]
+position = Vector3(0.18, 0.39, 0)
+rotation = Vector3(0, 1.5708, 0)
+scale = Vector3(1.04, 1.04, 1.04)
+
+[node name="fern_2" parent="fern_ring" instance=ExtResource("1_fern")]
+position = Vector3(0, 0.41, 0.18)
+scale = Vector3(1.14, 1.14, 1.14)
+
+[node name="fern_3" parent="fern_ring" instance=ExtResource("1_fern")]
+position = Vector3(-0.18, 0.39, 0)
+rotation = Vector3(0, -1.5708, 0)
+scale = Vector3(1.04, 1.04, 1.04)
+
+[node name="border_rosettes" type="Node3D" parent="."]
+
+[node name="rosette_0" parent="border_rosettes" instance=ExtResource("2_rosette")]
+position = Vector3(0, 0.37, -0.46)
+scale = Vector3(0.8, 0.8, 0.8)
+
+[node name="rosette_1" parent="border_rosettes" instance=ExtResource("2_rosette")]
+position = Vector3(0.46, 0.37, 0)
+rotation = Vector3(0, 1.5708, 0)
+scale = Vector3(0.84, 0.84, 0.84)
+
+[node name="rosette_2" parent="border_rosettes" instance=ExtResource("2_rosette")]
+position = Vector3(0, 0.37, 0.46)
+rotation = Vector3(0, 3.14159, 0)
+scale = Vector3(0.8, 0.8, 0.8)
+
+[node name="rosette_3" parent="border_rosettes" instance=ExtResource("2_rosette")]
+position = Vector3(-0.46, 0.37, 0)
+rotation = Vector3(0, -1.5708, 0)
+scale = Vector3(0.84, 0.84, 0.84)
+
+[node name="color_accents" type="Node3D" parent="."]
+editor_description = "Alternating reusable Hakone and Purple Heart pockets add luminous and dark contrast while keeping the palm opening clear."
+
+[node name="hakone_nw" parent="color_accents" instance=ExtResource("4_hakone")]
+position = Vector3(-0.29, 0.39, -0.29)
+rotation = Vector3(0, 0.62, 0)
+scale = Vector3(0.56, 0.56, 0.56)
+
+[node name="hakone_se" parent="color_accents" instance=ExtResource("4_hakone")]
+position = Vector3(0.29, 0.38, 0.29)
+rotation = Vector3(0, -2.36, 0)
+scale = Vector3(0.52, 0.52, 0.52)
+
+[node name="purple_ne" parent="color_accents" instance=ExtResource("3_purple")]
+position = Vector3(0.29, 0.39, -0.29)
+rotation = Vector3(0, 1.18, 0)
+scale = Vector3(0.56, 0.56, 0.56)
+
+[node name="purple_sw" parent="color_accents" instance=ExtResource("3_purple")]
+position = Vector3(-0.29, 0.38, 0.29)
+rotation = Vector3(0, -1.94, 0)
+scale = Vector3(0.52, 0.52, 0.52)
+
+[node name="planted_collar" type="MeshInstance3D" parent="flowers"]
+position = Vector3(0, 0.245, 0)
+scale = Vector3(0.78, 0.2, 0.78)
+mesh = SubResource("Mesh_collar")
+material_override = SubResource("Mat_green")
+
+[node name="yellow_cluster" type="Node3D" parent="flowers"]
+position = Vector3(0.26, 0.35, -0.18)
+rotation = Vector3(0, 0.95, 0)
+
+[node name="foliage" type="MeshInstance3D" parent="flowers/yellow_cluster"]
+position = Vector3(0, 0.285, 0)
+scale = Vector3(1.4, 1, 0.9)
+mesh = SubResource("Mesh_foliage")
+material_override = SubResource("Mat_green")
+
+[node name="bloom_0" type="MeshInstance3D" parent="flowers/yellow_cluster"]
+position = Vector3(-0.06, 0.35, -0.025)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_yellow")
+
+[node name="bloom_1" type="MeshInstance3D" parent="flowers/yellow_cluster"]
+position = Vector3(0.012, 0.365, -0.055)
+scale = Vector3(0.9, 0.9, 0.9)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_yellow")
+
+[node name="bloom_2" type="MeshInstance3D" parent="flowers/yellow_cluster"]
+position = Vector3(0.065, 0.352, 0.01)
+scale = Vector3(1.06, 1.06, 1.06)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_yellow")
+
+[node name="bloom_3" type="MeshInstance3D" parent="flowers/yellow_cluster"]
+position = Vector3(-0.025, 0.35, 0.055)
+scale = Vector3(0.82, 0.82, 0.82)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_yellow")
+
+[node name="white_cluster" type="Node3D" parent="flowers"]
+position = Vector3(-0.26, 0.35, -0.18)
+rotation = Vector3(0, -0.95, 0)
+
+[node name="foliage" type="MeshInstance3D" parent="flowers/white_cluster"]
+position = Vector3(0, 0.285, 0)
+scale = Vector3(1.4, 1, 0.9)
+mesh = SubResource("Mesh_foliage")
+material_override = SubResource("Mat_green")
+
+[node name="bloom_0" type="MeshInstance3D" parent="flowers/white_cluster"]
+position = Vector3(-0.06, 0.35, -0.025)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_white")
+
+[node name="bloom_1" type="MeshInstance3D" parent="flowers/white_cluster"]
+position = Vector3(0.015, 0.365, -0.055)
+scale = Vector3(0.88, 0.88, 0.88)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_white")
+
+[node name="bloom_2" type="MeshInstance3D" parent="flowers/white_cluster"]
+position = Vector3(0.07, 0.352, 0.01)
+scale = Vector3(1.04, 1.04, 1.04)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_white")
+
+[node name="bloom_3" type="MeshInstance3D" parent="flowers/white_cluster"]
+position = Vector3(-0.03, 0.35, 0.055)
+scale = Vector3(0.8, 0.8, 0.8)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_white")
+
+[node name="coral_cluster" type="Node3D" parent="flowers"]
+position = Vector3(0, 0.35, 0.27)
+
+[node name="foliage" type="MeshInstance3D" parent="flowers/coral_cluster"]
+position = Vector3(0, 0.285, 0)
+scale = Vector3(1.5, 1, 0.9)
+mesh = SubResource("Mesh_foliage")
+material_override = SubResource("Mat_green")
+
+[node name="bloom_0" type="MeshInstance3D" parent="flowers/coral_cluster"]
+position = Vector3(-0.065, 0.35, -0.025)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_coral")
+
+[node name="bloom_1" type="MeshInstance3D" parent="flowers/coral_cluster"]
+position = Vector3(0.01, 0.365, -0.055)
+scale = Vector3(0.9, 0.9, 0.9)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_coral")
+
+[node name="bloom_2" type="MeshInstance3D" parent="flowers/coral_cluster"]
+position = Vector3(0.07, 0.352, 0.01)
+scale = Vector3(1.06, 1.06, 1.06)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_coral")
+
+[node name="bloom_3" type="MeshInstance3D" parent="flowers/coral_cluster"]
+position = Vector3(-0.03, 0.35, 0.06)
+scale = Vector3(0.8, 0.8, 0.8)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_coral")

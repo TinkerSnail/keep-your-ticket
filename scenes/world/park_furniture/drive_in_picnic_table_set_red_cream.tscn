@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/world/park_furniture/drive_in_picnic_table_set.tscn" id="1_base"]
+[ext_resource type="Shader" path="res://assets/shaders/umbrella_panels.gdshader" id="2_panels"]
+
+[sub_resource type="ShaderMaterial" id="Mat_red_cream"]
+shader = ExtResource("2_panels")
+shader_parameter/color_a = Color(0.83, 0.035, 0.055, 1)
+shader_parameter/color_b = Color(0.94, 0.86, 0.68, 1)
+shader_parameter/panel_count = 12.0
+
+[node name="drive_in_picnic_table_set_red_cream" instance=ExtResource("1_base")]
+editor_description = "PRP-PARK-020 umbrella variant: alternating unbranded red and warm-cream panels over the unchanged rectangular table assembly."
+
+[node name="canopy" parent="umbrella" index="1"]
+material_override = SubResource("Mat_red_cream")
+
+[node name="valance" parent="umbrella" index="2"]
+material_override = SubResource("Mat_red_cream")

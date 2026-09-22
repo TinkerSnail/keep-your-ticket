@@ -1,0 +1,150 @@
+[gd_scene load_steps=4 format=3]
+
+; Dark evergreen lilyturf/monkey-grass clump for shaded path edges. Every blade
+; instances the same editor-owned pointed course as Lily of the Nile at a finer
+; width, while remaining independently selectable.
+
+[ext_resource type="PackedScene" path="res://scenes/world/arching_strap_leaf.tscn" id="1_leaf"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_leaf"]
+cull_mode = 2
+albedo_color = Color(0.055, 0.245, 0.105, 1)
+roughness = 0.96
+
+[sub_resource type="StandardMaterial3D" id="Mat_leaf_light"]
+cull_mode = 2
+albedo_color = Color(0.10, 0.34, 0.13, 1)
+roughness = 0.94
+
+[node name="lilyturf_clump" type="Node3D"]
+editor_description = "PRP-PLANT-036. Compact deep-green lilyturf with fine pointed arching strap leaves. Every blade is selectable; duplicate or use PRP-PLANT-037 for a continuous row."
+
+[node name="blades" type="Node3D" parent="."]
+
+[node name="blade_00" parent="blades" instance=ExtResource("1_leaf")]
+position = Vector3(-0.13, 0.01, 0.02)
+rotation = Vector3(0, 0.1, 0.045)
+scale = Vector3(0.72, 0.72, 0.72)
+leaf_material = SubResource("Mat_leaf")
+half_width = 0.042
+fold_depth = 0.008
+
+[node name="blade_01" parent="blades" instance=ExtResource("1_leaf")]
+position = Vector3(0.13, 0.012, -0.01)
+rotation = Vector3(0, 0.52, -0.05)
+scale = Vector3(0.74, 0.74, 0.74)
+leaf_material = SubResource("Mat_leaf")
+half_width = 0.04
+fold_depth = 0.007
+
+[node name="blade_02" parent="blades" instance=ExtResource("1_leaf")]
+position = Vector3(-0.08, 0.014, -0.11)
+rotation = Vector3(0, 0.94, 0.035)
+scale = Vector3(0.77, 0.77, 0.77)
+leaf_material = SubResource("Mat_leaf")
+half_width = 0.044
+fold_depth = 0.008
+
+[node name="blade_03" parent="blades" instance=ExtResource("1_leaf")]
+position = Vector3(0.07, 0.012, 0.12)
+rotation = Vector3(0, 1.36, -0.03)
+scale = Vector3(0.75, 0.75, 0.75)
+leaf_material = SubResource("Mat_leaf")
+half_width = 0.04
+fold_depth = 0.007
+
+[node name="blade_04" parent="blades" instance=ExtResource("1_leaf")]
+position = Vector3(-0.13, 0.016, 0.1)
+rotation = Vector3(0, 1.78, 0.055)
+scale = Vector3(0.67, 0.67, 0.67)
+leaf_material = SubResource("Mat_leaf")
+half_width = 0.045
+fold_depth = 0.008
+
+[node name="blade_05" parent="blades" instance=ExtResource("1_leaf")]
+position = Vector3(0.13, 0.014, 0.08)
+rotation = Vector3(0, 2.2, -0.05)
+scale = Vector3(0.7, 0.7, 0.7)
+leaf_material = SubResource("Mat_leaf")
+half_width = 0.042
+fold_depth = 0.007
+
+[node name="blade_06" parent="blades" instance=ExtResource("1_leaf")]
+position = Vector3(0.12, 0.012, -0.1)
+rotation = Vector3(0, 2.62, 0.045)
+scale = Vector3(0.72, 0.72, 0.72)
+leaf_material = SubResource("Mat_leaf")
+half_width = 0.043
+fold_depth = 0.008
+
+[node name="blade_07" parent="blades" instance=ExtResource("1_leaf")]
+position = Vector3(-0.12, 0.014, -0.08)
+rotation = Vector3(0, 3.04, -0.04)
+scale = Vector3(0.74, 0.74, 0.74)
+leaf_material = SubResource("Mat_leaf")
+half_width = 0.04
+fold_depth = 0.007
+
+[node name="blade_08" parent="blades" instance=ExtResource("1_leaf")]
+position = Vector3(-0.02, 0.016, 0.14)
+rotation = Vector3(0, 3.46, 0.03)
+scale = Vector3(0.79, 0.79, 0.79)
+leaf_material = SubResource("Mat_leaf_light")
+half_width = 0.042
+fold_depth = 0.008
+
+[node name="blade_09" parent="blades" instance=ExtResource("1_leaf")]
+position = Vector3(0.02, 0.014, -0.14)
+rotation = Vector3(0, 3.88, -0.035)
+scale = Vector3(0.77, 0.77, 0.77)
+leaf_material = SubResource("Mat_leaf_light")
+half_width = 0.041
+fold_depth = 0.007
+
+[node name="blade_10" parent="blades" instance=ExtResource("1_leaf")]
+position = Vector3(-0.08, 0.018, 0.04)
+rotation = Vector3(0, 4.3, 0.025)
+scale = Vector3(0.68, 0.68, 0.68)
+leaf_material = SubResource("Mat_leaf")
+half_width = 0.04
+fold_depth = 0.007
+
+[node name="blade_11" parent="blades" instance=ExtResource("1_leaf")]
+position = Vector3(0.08, 0.018, -0.04)
+rotation = Vector3(0, 4.72, -0.03)
+scale = Vector3(0.7, 0.7, 0.7)
+leaf_material = SubResource("Mat_leaf")
+half_width = 0.043
+fold_depth = 0.008
+
+[node name="blade_12" parent="blades" instance=ExtResource("1_leaf")]
+position = Vector3(-0.04, 0.02, -0.06)
+rotation = Vector3(0, 5.14, 0.02)
+scale = Vector3(0.66, 0.66, 0.66)
+leaf_material = SubResource("Mat_leaf_light")
+half_width = 0.038
+fold_depth = 0.007
+
+[node name="blade_13" parent="blades" instance=ExtResource("1_leaf")]
+position = Vector3(0.04, 0.02, 0.06)
+rotation = Vector3(0, 5.56, -0.025)
+scale = Vector3(0.69, 0.69, 0.69)
+leaf_material = SubResource("Mat_leaf")
+half_width = 0.041
+fold_depth = 0.007
+
+[node name="blade_14" parent="blades" instance=ExtResource("1_leaf")]
+position = Vector3(0, 0.022, 0)
+rotation = Vector3(0, 5.98, 0.015)
+scale = Vector3(0.64, 0.64, 0.64)
+leaf_material = SubResource("Mat_leaf_light")
+half_width = 0.038
+fold_depth = 0.006
+
+[node name="blade_15" parent="blades" instance=ExtResource("1_leaf")]
+position = Vector3(0.02, 0.022, 0.01)
+rotation = Vector3(0, 0.31, -0.015)
+scale = Vector3(0.62, 0.62, 0.62)
+leaf_material = SubResource("Mat_leaf")
+half_width = 0.04
+fold_depth = 0.007

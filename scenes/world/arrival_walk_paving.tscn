@@ -1,0 +1,71 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Shader" path="res://assets/shaders/wavy_brick.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://assets/textures/brick_albedo.res" id="2_brick_albedo"]
+[ext_resource type="Texture2D" path="res://assets/textures/brick_normal.res" id="3_brick_normal"]
+
+[sub_resource type="ShaderMaterial" id="Mat_wavy_brick"]
+render_priority = 0
+shader = ExtResource("1_shader")
+shader_parameter/brick_albedo = ExtResource("2_brick_albedo")
+shader_parameter/brick_normal = ExtResource("3_brick_normal")
+shader_parameter/brick_tint = Color(0.69, 0.53, 0.43, 1)
+shader_parameter/band_tint_a = Color(0.74, 0.54, 0.42, 1)
+shader_parameter/band_tint_b = Color(0.58, 0.36, 0.29, 1)
+shader_parameter/band_tint_c = Color(0.78, 0.59, 0.35, 1)
+shader_parameter/band_tint_d = Color(0.65, 0.42, 0.47, 1)
+shader_parameter/tiles_per_metre = 0.3125
+shader_parameter/wave_amplitude_m = 0.78
+shader_parameter/wave_length_m = 5.6
+shader_parameter/phase_drift = 0.06
+shader_parameter/courses_per_tint = 4.0
+shader_parameter/tint_strength = 0.65
+shader_parameter/normal_depth = 0.6
+shader_parameter/pattern_origin = Vector2(0, 194.025)
+
+[sub_resource type="BoxMesh" id="Mesh_brick_field"]
+material = SubResource("Mat_wavy_brick")
+size = Vector3(13.4, 0.018, 67.95)
+
+[sub_resource type="BoxMesh" id="Mesh_crossing_table"]
+material = SubResource("Mat_wavy_brick")
+size = Vector3(13.4, 0.012, 5.72)
+
+[sub_resource type="StandardMaterial3D" id="Mat_tram_edge_inlay"]
+albedo_color = Color(0.28, 0.145, 0.115, 1)
+roughness = 0.88
+
+[sub_resource type="BoxMesh" id="Mesh_tram_edge_inlay"]
+material = SubResource("Mat_tram_edge_inlay")
+size = Vector3(13.9, 0.006, 0.18)
+
+[node name="arrival_walk_paving" type="Node3D"]
+
+; One directly editor-owned, completely flat field. The material bends the
+; brick bond into tight cartoon-ocean waves without adding a collision lip.
+[node name="brick_field" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.019, 194.025)
+cast_shadow = 0
+mesh = SubResource("Mesh_brick_field")
+
+; Route A remains a continuous raised brick table over the Grand Circuit.
+; These two quiet, flush inlays show the road-train lane edges without laying
+; a generic zebra crossing over the wavy bond. Their slight skew follows the
+; circuit's local tangent through the arrival axis.
+[node name="crossing_table" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.04, 174)
+rotation = Vector3(0, 0.065, 0)
+cast_shadow = 0
+mesh = SubResource("Mesh_crossing_table")
+
+[node name="tram_edge_south" type="MeshInstance3D" parent="."]
+position = Vector3(-0.175, 0.049, 171.3057)
+rotation = Vector3(0, 0.065, 0)
+cast_shadow = 0
+mesh = SubResource("Mesh_tram_edge_inlay")
+
+[node name="tram_edge_north" type="MeshInstance3D" parent="."]
+position = Vector3(0.175, 0.049, 176.6943)
+rotation = Vector3(0, 0.065, 0)
+cast_shadow = 0
+mesh = SubResource("Mesh_tram_edge_inlay")

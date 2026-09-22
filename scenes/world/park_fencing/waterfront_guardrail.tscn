@@ -1,0 +1,85 @@
+[gd_scene load_steps=7 format=3]
+
+; Plain civic waterfront guardrail module. It stays separate from the timber
+; Boardwalk rail and from decorative garden fencing.
+
+[sub_resource type="StandardMaterial3D" id="Mat_metal"]
+albedo_color = Color(0.46, 0.50, 0.50, 1)
+metallic = 0.62
+roughness = 0.43
+
+[sub_resource type="CylinderMesh" id="Mesh_post"]
+top_radius = 0.5
+bottom_radius = 0.5
+height = 1
+radial_segments = 12
+
+[sub_resource type="CylinderMesh" id="Mesh_rail"]
+top_radius = 0.5
+bottom_radius = 0.5
+height = 1
+radial_segments = 12
+
+[sub_resource type="BoxMesh" id="Mesh_foot"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="BoxShape3D" id="Collision_rail"]
+size = Vector3(2.48, 1.10, 0.12)
+
+[node name="waterfront_guardrail" type="Node3D"]
+editor_description = "PRP-FENCE-002. Directly editor-owned 2.4m galvanized waterfront guardrail module with three horizontal rails and bolt-down feet. Distinct from the timber Boardwalk edge and ornamental garden fence."
+
+[node name="posts" type="Node3D" parent="."]
+
+[node name="left_post" type="MeshInstance3D" parent="posts"]
+position = Vector3(-1.2, 0.55, 0)
+scale = Vector3(0.10, 1.10, 0.10)
+mesh = SubResource("Mesh_post")
+material_override = SubResource("Mat_metal")
+
+[node name="right_post" type="MeshInstance3D" parent="posts"]
+position = Vector3(1.2, 0.55, 0)
+scale = Vector3(0.10, 1.10, 0.10)
+mesh = SubResource("Mesh_post")
+material_override = SubResource("Mat_metal")
+
+[node name="left_foot" type="MeshInstance3D" parent="posts"]
+position = Vector3(-1.2, 0.025, 0)
+scale = Vector3(0.26, 0.05, 0.24)
+mesh = SubResource("Mesh_foot")
+material_override = SubResource("Mat_metal")
+
+[node name="right_foot" type="MeshInstance3D" parent="posts"]
+position = Vector3(1.2, 0.025, 0)
+scale = Vector3(0.26, 0.05, 0.24)
+mesh = SubResource("Mesh_foot")
+material_override = SubResource("Mat_metal")
+
+[node name="rails" type="Node3D" parent="."]
+
+[node name="top_rail" type="MeshInstance3D" parent="rails"]
+position = Vector3(0, 1.05, 0)
+rotation = Vector3(0, 0, 1.570796)
+scale = Vector3(0.10, 2.48, 0.10)
+mesh = SubResource("Mesh_rail")
+material_override = SubResource("Mat_metal")
+
+[node name="middle_rail" type="MeshInstance3D" parent="rails"]
+position = Vector3(0, 0.69, 0)
+rotation = Vector3(0, 0, 1.570796)
+scale = Vector3(0.075, 2.40, 0.075)
+mesh = SubResource("Mesh_rail")
+material_override = SubResource("Mat_metal")
+
+[node name="lower_rail" type="MeshInstance3D" parent="rails"]
+position = Vector3(0, 0.34, 0)
+rotation = Vector3(0, 0, 1.570796)
+scale = Vector3(0.075, 2.40, 0.075)
+mesh = SubResource("Mesh_rail")
+material_override = SubResource("Mat_metal")
+
+[node name="collision" type="StaticBody3D" parent="."]
+
+[node name="guard" type="CollisionShape3D" parent="collision"]
+position = Vector3(0, 0.55, 0)
+shape = SubResource("Collision_rail")

@@ -1,0 +1,102 @@
+[gd_scene load_steps=8 format=3]
+
+; Composition component for the dense pathside show bed. The irregular foliage
+; lobes and individual flower heads remain directly selectable.
+
+[sub_resource type="StandardMaterial3D" id="Mat_leaf_dark"]
+albedo_color = Color(0.07, 0.28, 0.1, 1)
+roughness = 0.97
+
+[sub_resource type="StandardMaterial3D" id="Mat_leaf_light"]
+albedo_color = Color(0.13, 0.39, 0.16, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="Mat_pink"]
+albedo_color = Color(0.89, 0.25, 0.53, 1)
+roughness = 0.88
+
+[sub_resource type="StandardMaterial3D" id="Mat_blush"]
+albedo_color = Color(0.96, 0.52, 0.65, 1)
+roughness = 0.87
+
+[sub_resource type="StandardMaterial3D" id="Mat_white"]
+albedo_color = Color(0.93, 0.9, 0.8, 1)
+roughness = 0.9
+
+[sub_resource type="SphereMesh" id="Mesh_foliage"]
+radius = 0.58
+height = 1.05
+radial_segments = 10
+rings = 5
+
+[sub_resource type="SphereMesh" id="Mesh_bloom"]
+radius = 0.19
+height = 0.34
+radial_segments = 10
+rings = 5
+
+[node name="parkway_hydrangea_shrub" type="Node3D"]
+editor_description = "Dense show-bed hydrangea component with selectable foliage lobes and pink, blush and white mophead clusters."
+
+[node name="foliage" type="Node3D" parent="."]
+
+[node name="centre" type="MeshInstance3D" parent="foliage"]
+position = Vector3(0, 0.58, 0)
+scale = Vector3(1.12, 1.08, 1.02)
+mesh = SubResource("Mesh_foliage")
+material_override = SubResource("Mat_leaf_dark")
+
+[node name="left" type="MeshInstance3D" parent="foliage"]
+position = Vector3(-0.43, 0.5, 0.08)
+scale = Vector3(0.84, 0.86, 0.92)
+mesh = SubResource("Mesh_foliage")
+material_override = SubResource("Mat_leaf_light")
+
+[node name="right" type="MeshInstance3D" parent="foliage"]
+position = Vector3(0.42, 0.48, -0.08)
+scale = Vector3(0.9, 0.82, 0.88)
+mesh = SubResource("Mesh_foliage")
+material_override = SubResource("Mat_leaf_dark")
+
+[node name="front" type="MeshInstance3D" parent="foliage"]
+position = Vector3(-0.08, 0.43, 0.37)
+scale = Vector3(0.92, 0.75, 0.8)
+mesh = SubResource("Mesh_foliage")
+material_override = SubResource("Mat_leaf_light")
+
+[node name="flower_heads" type="Node3D" parent="."]
+
+[node name="pink_left" type="MeshInstance3D" parent="flower_heads"]
+position = Vector3(-0.43, 1.02, -0.08)
+scale = Vector3(1.08, 1.08, 1.08)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_pink")
+
+[node name="blush_centre" type="MeshInstance3D" parent="flower_heads"]
+position = Vector3(-0.05, 1.16, -0.17)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_blush")
+
+[node name="pink_right" type="MeshInstance3D" parent="flower_heads"]
+position = Vector3(0.38, 1.01, -0.03)
+scale = Vector3(0.96, 0.96, 0.96)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_pink")
+
+[node name="blush_front" type="MeshInstance3D" parent="flower_heads"]
+position = Vector3(0.18, 0.93, 0.36)
+scale = Vector3(1.05, 1.05, 1.05)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_blush")
+
+[node name="white_break" type="MeshInstance3D" parent="flower_heads"]
+position = Vector3(-0.3, 0.89, 0.33)
+scale = Vector3(0.83, 0.83, 0.83)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_white")
+
+[node name="pink_high" type="MeshInstance3D" parent="flower_heads"]
+position = Vector3(0.24, 1.18, 0.08)
+scale = Vector3(0.88, 0.88, 0.88)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_pink")

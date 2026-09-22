@@ -1,0 +1,84 @@
+[gd_scene load_steps=4 format=3]
+
+; Yellow-green sibling of PRP-PLANT-036, retaining the same fine pointed leaf
+; course and clump arrangement while changing only its two leaf materials.
+
+[ext_resource type="PackedScene" path="res://scenes/world/lilyturf_clump.tscn" id="1_base"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_leaf_yellow"]
+cull_mode = 2
+albedo_color = Color(0.28, 0.47, 0.085, 1)
+roughness = 0.96
+
+[sub_resource type="StandardMaterial3D" id="Mat_leaf_yellow_light"]
+cull_mode = 2
+albedo_color = Color(0.42, 0.59, 0.13, 1)
+roughness = 0.94
+
+[node name="lilyturf_clump_light" instance=ExtResource("1_base")]
+editor_description = "PRP-PLANT-043. Fine light yellow-green lilyturf sibling of PRP-PLANT-036, using the same selectable pointed arching blades."
+
+[node name="blade_00" parent="blades" index="0"]
+leaf_material = SubResource("Mat_leaf_yellow")
+
+[node name="blade_01" parent="blades" index="1"]
+leaf_material = SubResource("Mat_leaf_yellow")
+
+[node name="blade_02" parent="blades" index="2"]
+leaf_material = SubResource("Mat_leaf_yellow")
+
+[node name="blade_03" parent="blades" index="3"]
+leaf_material = SubResource("Mat_leaf_yellow")
+
+[node name="blade_04" parent="blades" index="4"]
+leaf_material = SubResource("Mat_leaf_yellow")
+
+[node name="blade_05" parent="blades" index="5"]
+leaf_material = SubResource("Mat_leaf_yellow")
+
+[node name="blade_06" parent="blades" index="6"]
+leaf_material = SubResource("Mat_leaf_yellow")
+
+[node name="blade_07" parent="blades" index="7"]
+leaf_material = SubResource("Mat_leaf_yellow")
+
+[node name="blade_08" parent="blades" index="8"]
+leaf_material = SubResource("Mat_leaf_yellow_light")
+
+[node name="blade_09" parent="blades" index="9"]
+leaf_material = SubResource("Mat_leaf_yellow_light")
+
+[node name="blade_10" parent="blades" index="10"]
+leaf_material = SubResource("Mat_leaf_yellow")
+
+[node name="blade_11" parent="blades" index="11"]
+leaf_material = SubResource("Mat_leaf_yellow")
+
+[node name="blade_12" parent="blades" index="12"]
+leaf_material = SubResource("Mat_leaf_yellow_light")
+
+[node name="blade_13" parent="blades" index="13"]
+leaf_material = SubResource("Mat_leaf_yellow")
+
+[node name="blade_14" parent="blades" index="14"]
+leaf_material = SubResource("Mat_leaf_yellow_light")
+
+[node name="blade_15" parent="blades" index="15"]
+leaf_material = SubResource("Mat_leaf_yellow")
+
+[editable path="blades/blade_00"]
+[editable path="blades/blade_01"]
+[editable path="blades/blade_02"]
+[editable path="blades/blade_03"]
+[editable path="blades/blade_04"]
+[editable path="blades/blade_05"]
+[editable path="blades/blade_06"]
+[editable path="blades/blade_07"]
+[editable path="blades/blade_08"]
+[editable path="blades/blade_09"]
+[editable path="blades/blade_10"]
+[editable path="blades/blade_11"]
+[editable path="blades/blade_12"]
+[editable path="blades/blade_13"]
+[editable path="blades/blade_14"]
+[editable path="blades/blade_15"]

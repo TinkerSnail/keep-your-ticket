@@ -1,0 +1,298 @@
+[gd_scene load_steps=10 format=3]
+
+; Editor-owned Red Sensation cabbage tree. The selectable Path3D courses own
+; the ground-level rosette silhouette; the tool derives folded sword blades.
+
+[ext_resource type="Script" path="res://scenes/world/red_sensation_cabbage_tree.gd" id="1_script"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_base"]
+albedo_color = Color(0.16, 0.025, 0.065, 1)
+roughness = 0.98
+
+[sub_resource type="StandardMaterial3D" id="Mat_outer"]
+cull_mode = 2
+albedo_color = Color(0.19, 0.035, 0.085, 1)
+roughness = 0.94
+
+[sub_resource type="StandardMaterial3D" id="Mat_mature"]
+cull_mode = 2
+albedo_color = Color(0.34, 0.065, 0.145, 1)
+roughness = 0.93
+
+[sub_resource type="StandardMaterial3D" id="Mat_young"]
+cull_mode = 2
+albedo_color = Color(0.49, 0.13, 0.24, 1)
+roughness = 0.91
+
+[sub_resource type="StandardMaterial3D" id="Mat_midrib"]
+cull_mode = 2
+albedo_color = Color(0.58, 0.23, 0.31, 1)
+roughness = 0.92
+
+[sub_resource type="CylinderMesh" id="Mesh_base"]
+top_radius = 0.08
+bottom_radius = 0.13
+height = 0.12
+radial_segments = 10
+rings = 1
+
+[sub_resource type="Curve3D" id="Curve_outer"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0.09, 0, 0, 0, 0, 0, 0, 0, 0, 0.42, 0.22, 0, 0, 0, 0, 0, 0, 0, 0.53, 0.61, 0, 0, 0, 0, 0, 0, 0, 0.38, 0.98, 0, 0, 0, 0, 0, 0, 0, 0.12, 1.28),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
+bake_interval = 0.04
+
+[sub_resource type="Curve3D" id="Curve_mature"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 0, 0, 0, 0, 0.58, 0.18, 0, 0, 0, 0, 0, 0, 0, 0.82, 0.5, 0, 0, 0, 0, 0, 0, 0, 0.76, 0.82, 0, 0, 0, 0, 0, 0, 0, 0.57, 1.08),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
+bake_interval = 0.04
+
+[sub_resource type="Curve3D" id="Curve_upright"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 0, 0, 0, 0, 0.64, 0.09, 0, 0, 0, 0, 0, 0, 0, 1.08, 0.24, 0, 0, 0, 0, 0, 0, 0, 1.35, 0.45, 0, 0, 0, 0, 0, 0, 0, 1.43, 0.64),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
+bake_interval = 0.035
+
+[node name="red_sensation_cabbage_tree" type="Node3D"]
+script = ExtResource("1_script")
+outer_material = SubResource("Mat_outer")
+mature_material = SubResource("Mat_mature")
+young_material = SubResource("Mat_young")
+midrib_material = SubResource("Mat_midrib")
+editor_description = "Reusable Cordyline australis 'Red Sensation' source. Choose catalog_variant vA-vC; edit the Path3D courses to reshape the burgundy sword-leaf rosette."
+
+[node name="crown_base" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.06, 0)
+mesh = SubResource("Mesh_base")
+material_override = SubResource("Mat_base")
+
+[node name="leaf_courses" type="Node3D" parent="."]
+editor_description = "Canonical sword-leaf courses. vA uses sixteen leaves, vB adds six upright/mid leaves, and vC adds four long arching leaves."
+
+[node name="outer_00" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 0.12, 0)
+scale = Vector3(1.02, 1.02, 1.02)
+curve = SubResource("Curve_outer")
+metadata/half_width = 0.085
+metadata/fold_depth = 0.03
+metadata/tone = 0
+
+[node name="outer_01" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 0.72, 0)
+scale = Vector3(0.92, 0.92, 0.92)
+curve = SubResource("Curve_outer")
+metadata/half_width = 0.079
+metadata/fold_depth = 0.027
+metadata/tone = 0
+
+[node name="outer_02" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 1.56, 0)
+scale = Vector3(1.08, 1.08, 1.08)
+curve = SubResource("Curve_outer")
+metadata/half_width = 0.087
+metadata/fold_depth = 0.032
+metadata/tone = 0
+
+[node name="outer_03" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 2.31, 0)
+scale = Vector3(0.96, 0.96, 0.96)
+curve = SubResource("Curve_outer")
+metadata/half_width = 0.081
+metadata/fold_depth = 0.028
+metadata/tone = 0
+
+[node name="outer_04" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 3.15, 0)
+scale = Vector3(1.04, 1.04, 1.04)
+curve = SubResource("Curve_outer")
+metadata/half_width = 0.084
+metadata/fold_depth = 0.031
+metadata/tone = 0
+
+[node name="outer_05" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 3.86, 0)
+scale = Vector3(0.94, 0.94, 0.94)
+curve = SubResource("Curve_outer")
+metadata/half_width = 0.078
+metadata/fold_depth = 0.027
+metadata/tone = 0
+
+[node name="outer_06" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 4.73, 0)
+scale = Vector3(1.06, 1.06, 1.06)
+curve = SubResource("Curve_outer")
+metadata/half_width = 0.086
+metadata/fold_depth = 0.032
+metadata/tone = 0
+
+[node name="outer_07" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 5.61, 0)
+scale = Vector3(0.98, 0.98, 0.98)
+curve = SubResource("Curve_outer")
+metadata/half_width = 0.082
+metadata/fold_depth = 0.029
+metadata/tone = 0
+
+[node name="mature_00" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 0.42, 0)
+scale = Vector3(0.97, 0.97, 0.97)
+curve = SubResource("Curve_mature")
+metadata/half_width = 0.078
+metadata/fold_depth = 0.029
+metadata/tone = 1
+
+[node name="mature_01" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 1.13, 0)
+scale = Vector3(1.03, 1.03, 1.03)
+curve = SubResource("Curve_mature")
+metadata/half_width = 0.081
+metadata/fold_depth = 0.031
+metadata/tone = 1
+
+[node name="mature_02" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 1.98, 0)
+scale = Vector3(0.94, 0.94, 0.94)
+curve = SubResource("Curve_mature")
+metadata/half_width = 0.075
+metadata/fold_depth = 0.027
+metadata/tone = 1
+
+[node name="mature_03" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 2.72, 0)
+scale = Vector3(1.05, 1.05, 1.05)
+curve = SubResource("Curve_mature")
+metadata/half_width = 0.083
+metadata/fold_depth = 0.032
+metadata/tone = 1
+
+[node name="mature_04" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 3.54, 0)
+scale = Vector3(0.96, 0.96, 0.96)
+curve = SubResource("Curve_mature")
+metadata/half_width = 0.077
+metadata/fold_depth = 0.028
+metadata/tone = 1
+
+[node name="mature_05" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 4.27, 0)
+scale = Vector3(1.02, 1.02, 1.02)
+curve = SubResource("Curve_mature")
+metadata/half_width = 0.08
+metadata/fold_depth = 0.03
+metadata/tone = 1
+
+[node name="mature_06" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 5.15, 0)
+scale = Vector3(0.93, 0.93, 0.93)
+curve = SubResource("Curve_mature")
+metadata/half_width = 0.074
+metadata/fold_depth = 0.027
+metadata/tone = 1
+
+[node name="mature_07" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 5.91, 0)
+scale = Vector3(1.04, 1.04, 1.04)
+curve = SubResource("Curve_mature")
+metadata/half_width = 0.082
+metadata/fold_depth = 0.031
+metadata/tone = 1
+
+[node name="upright_00" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 0.18, 0)
+scale = Vector3(0.94, 0.94, 0.94)
+curve = SubResource("Curve_upright")
+metadata/half_width = 0.066
+metadata/fold_depth = 0.032
+metadata/tone = 2
+metadata/variant_min = 1
+
+[node name="upright_01" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 1.05, 0)
+scale = Vector3(1.02, 1.02, 1.02)
+curve = SubResource("Curve_upright")
+metadata/half_width = 0.069
+metadata/fold_depth = 0.034
+metadata/tone = 2
+metadata/variant_min = 1
+
+[node name="upright_02" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 2.26, 0)
+scale = Vector3(0.9, 0.9, 0.9)
+curve = SubResource("Curve_upright")
+metadata/half_width = 0.064
+metadata/fold_depth = 0.031
+metadata/tone = 2
+metadata/variant_min = 1
+
+[node name="upright_03" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 3.21, 0)
+scale = Vector3(0.98, 0.98, 0.98)
+curve = SubResource("Curve_upright")
+metadata/half_width = 0.067
+metadata/fold_depth = 0.033
+metadata/tone = 2
+metadata/variant_min = 1
+
+[node name="upright_04" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 4.48, 0)
+scale = Vector3(0.92, 0.92, 0.92)
+curve = SubResource("Curve_upright")
+metadata/half_width = 0.065
+metadata/fold_depth = 0.031
+metadata/tone = 2
+metadata/variant_min = 1
+
+[node name="upright_05" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 5.67, 0)
+scale = Vector3(1, 1, 1)
+curve = SubResource("Curve_upright")
+metadata/half_width = 0.068
+metadata/fold_depth = 0.034
+metadata/tone = 2
+metadata/variant_min = 1
+
+[node name="arching_00" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 0.62, 0)
+scale = Vector3(1.2, 1.08, 1.2)
+curve = SubResource("Curve_outer")
+metadata/half_width = 0.09
+metadata/fold_depth = 0.033
+metadata/tone = 1
+metadata/variant_min = 2
+
+[node name="arching_01" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 2.02, 0)
+scale = Vector3(1.14, 1.03, 1.14)
+curve = SubResource("Curve_outer")
+metadata/half_width = 0.088
+metadata/fold_depth = 0.032
+metadata/tone = 0
+metadata/variant_min = 2
+
+[node name="arching_02" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 3.56, 0)
+scale = Vector3(1.22, 1.1, 1.22)
+curve = SubResource("Curve_outer")
+metadata/half_width = 0.091
+metadata/fold_depth = 0.034
+metadata/tone = 1
+metadata/variant_min = 2
+
+[node name="arching_03" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 5.18, 0)
+scale = Vector3(1.16, 1.05, 1.16)
+curve = SubResource("Curve_outer")
+metadata/half_width = 0.089
+metadata/fold_depth = 0.032
+metadata/tone = 0
+metadata/variant_min = 2
+
+[node name="derived_leaves" type="Node3D" parent="."]
+editor_description = "Derived preview/output. Edit leaf_courses rather than these mesh instances."

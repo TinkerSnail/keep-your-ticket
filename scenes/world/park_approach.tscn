@@ -1,10 +1,24 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=5 format=3]
 
 ; Stable editor-owned wrapper for the package-02A parking clause: the approach
 ; road, front road, entries, drop-off, hedges and berms. Manual refinements
 ; belong under authored_additions so they survive regeneration.
 [ext_resource type="PackedScene" path="res://scenes/world/generated/park_approach.tscn" id="1_generated"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_replacements.tscn" id="2_palms"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_arrival_curb_landscaping.tscn" id="3_landscaping"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_roadside_landscaping.tscn" id="4_roadside"]
 
 [node name="park_approach" instance=ExtResource("1_generated")]
 
+; Collision and route metadata remain generated; only the old asphalt surface
+; is hidden so the entrance-owned brick promenade can cross this seam whole.
+[node name="arrival_walk_extension" parent="." index="8"]
+visible = false
+
 [node name="authored_additions" type="Node3D" parent="."]
+
+[node name="coastal_palm_replacements" parent="authored_additions" instance=ExtResource("2_palms")]
+
+[node name="coastal_arrival_curb_landscaping" parent="authored_additions" instance=ExtResource("3_landscaping")]
+
+[node name="coastal_roadside_landscaping" parent="authored_additions" instance=ExtResource("4_roadside")]

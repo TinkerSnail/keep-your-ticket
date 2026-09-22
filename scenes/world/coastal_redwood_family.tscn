@@ -1,0 +1,993 @@
+[gd_scene load_steps=17 format=3]
+
+; Directly editor-owned coastal-redwood family. The three sibling
+; variants share primitive resources but every trunk section, root flare,
+; branch course and foliage mass remains selectable and movable in the editor.
+; Reference cues: broad russet buttress, long clear shaft, sparse dead lower
+; wood and an elevated, irregular crown rather than a generic Christmas tree.
+
+[ext_resource type="Script" path="res://scenes/world/conifer_needle_spray_mesh.gd" id="1_needles"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_bark_dark"]
+albedo_color = Color(0.25, 0.115, 0.055, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Mat_bark_russet"]
+albedo_color = Color(0.48, 0.205, 0.085, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Mat_deadwood"]
+albedo_color = Color(0.22, 0.16, 0.1, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Mat_needles_dark"]
+cull_mode = 2
+albedo_color = Color(0.085, 0.235, 0.13, 1)
+roughness = 0.98
+
+[sub_resource type="StandardMaterial3D" id="Mat_needles_mid"]
+cull_mode = 2
+albedo_color = Color(0.14, 0.34, 0.17, 1)
+roughness = 0.98
+
+[sub_resource type="StandardMaterial3D" id="Mat_needles_tip"]
+cull_mode = 2
+albedo_color = Color(0.25, 0.46, 0.2, 1)
+roughness = 0.97
+
+[sub_resource type="CylinderMesh" id="Mesh_buttress"]
+material = SubResource("Mat_bark_russet")
+top_radius = 0.56
+bottom_radius = 1.18
+height = 2.8
+radial_segments = 9
+rings = 2
+
+[sub_resource type="CylinderMesh" id="Mesh_trunk_low"]
+material = SubResource("Mat_bark_russet")
+top_radius = 0.4
+bottom_radius = 0.58
+height = 14.7
+radial_segments = 9
+rings = 3
+
+[sub_resource type="CylinderMesh" id="Mesh_trunk_high"]
+material = SubResource("Mat_bark_dark")
+top_radius = 0.14
+bottom_radius = 0.42
+height = 11.2
+radial_segments = 8
+rings = 3
+
+[sub_resource type="CylinderMesh" id="Mesh_root_flare"]
+material = SubResource("Mat_bark_russet")
+top_radius = 0.07
+bottom_radius = 0.34
+height = 3.2
+radial_segments = 7
+rings = 1
+
+[sub_resource type="CylinderMesh" id="Mesh_branch_short"]
+material = SubResource("Mat_bark_dark")
+top_radius = 0.055
+bottom_radius = 0.13
+height = 3.4
+radial_segments = 6
+rings = 1
+
+[sub_resource type="CylinderMesh" id="Mesh_branch_medium"]
+material = SubResource("Mat_bark_dark")
+top_radius = 0.055
+bottom_radius = 0.145
+height = 5.2
+radial_segments = 6
+rings = 1
+
+[sub_resource type="CylinderMesh" id="Mesh_branch_long"]
+material = SubResource("Mat_bark_dark")
+top_radius = 0.045
+bottom_radius = 0.16
+height = 6.8
+radial_segments = 6
+rings = 1
+
+[sub_resource type="ArrayMesh" id="Mesh_foliage_dark"]
+script = ExtResource("1_needles")
+needle_material = SubResource("Mat_needles_dark")
+extent = 2.36
+needle_pairs = 20
+needle_length = 0.46
+needle_width = 0.03
+spray_layers = 5
+droop = 0.09
+
+[sub_resource type="ArrayMesh" id="Mesh_foliage_mid"]
+script = ExtResource("1_needles")
+needle_material = SubResource("Mat_needles_mid")
+extent = 2.36
+needle_pairs = 22
+needle_length = 0.48
+needle_width = 0.028
+spray_layers = 5
+droop = 0.085
+
+[node name="coastal_redwood_family" type="Node3D"]
+editor_description = "Three directly editable coastal-redwood silhouettes for the prop catalog. Their selectable foliage sprays use layered tapered needle ribbons rather than solid wedges or cones. These are unplaced source candidates for the approved future redwood biome family."
+
+[node name="variant_a" type="Node3D" parent="."]
+position = Vector3(-12, 0, 0)
+editor_description = "Old-growth high-crown redwood: strongest buttress, longest clear shaft, broken lower crown and an irregular elevated top."
+
+[node name="buttress" type="MeshInstance3D" parent="variant_a"]
+position = Vector3(0, 1.4, 0)
+mesh = SubResource("Mesh_buttress")
+
+[node name="lower_trunk" type="MeshInstance3D" parent="variant_a"]
+position = Vector3(0, 8.75, 0)
+mesh = SubResource("Mesh_trunk_low")
+
+[node name="upper_trunk" type="MeshInstance3D" parent="variant_a"]
+position = Vector3(0.04, 21.7, -0.02)
+mesh = SubResource("Mesh_trunk_high")
+
+[node name="crown_core_lower" type="MeshInstance3D" parent="variant_a"]
+position = Vector3(-0.2, 18.0, 0.15)
+scale = Vector3(1.35, 1.2, 1.1)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="crown_core_middle" type="MeshInstance3D" parent="variant_a"]
+position = Vector3(0.25, 21.0, -0.18)
+scale = Vector3(1.25, 1.28, 1.18)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="crown_core_upper" type="MeshInstance3D" parent="variant_a"]
+position = Vector3(-0.12, 23.35, 0.12)
+scale = Vector3(1.02, 1.12, 0.98)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="root_north" type="Node3D" parent="variant_a"]
+rotation = Vector3(0, 0.25, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_a/root_north"]
+position = Vector3(1.28, 0.22, 0)
+rotation = Vector3(0, 0, -1.38)
+scale = Vector3(1, 0.9, 0.72)
+mesh = SubResource("Mesh_root_flare")
+
+[node name="root_southwest" type="Node3D" parent="variant_a"]
+rotation = Vector3(0, 2.35, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_a/root_southwest"]
+position = Vector3(1.18, 0.2, 0)
+rotation = Vector3(0, 0, -1.4)
+scale = Vector3(0.92, 0.82, 0.7)
+mesh = SubResource("Mesh_root_flare")
+
+[node name="root_southeast" type="Node3D" parent="variant_a"]
+rotation = Vector3(0, 4.45, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_a/root_southeast"]
+position = Vector3(1.34, 0.18, 0)
+rotation = Vector3(0, 0, -1.39)
+scale = Vector3(1.05, 0.92, 0.76)
+mesh = SubResource("Mesh_root_flare")
+
+[node name="dead_lower_branch" type="Node3D" parent="variant_a"]
+position = Vector3(0, 13.1, 0)
+rotation = Vector3(0, 4.9, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_a/dead_lower_branch"]
+position = Vector3(1.25, -0.12, 0)
+rotation = Vector3(0, 0, -1.63)
+scale = Vector3(0.7, 0.78, 0.7)
+mesh = SubResource("Mesh_branch_short")
+material_override = SubResource("Mat_deadwood")
+
+[node name="branch_a_0" type="Node3D" parent="variant_a"]
+position = Vector3(0, 15.0, 0)
+rotation = Vector3(0, 0.15, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_a/branch_a_0"]
+position = Vector3(3.35, -0.15, 0)
+rotation = Vector3(0, 0, -1.62)
+mesh = SubResource("Mesh_branch_long")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_a/branch_a_0"]
+position = Vector3(4.25, -0.55, 0)
+scale = Vector3(2.45, 0.48, 0.72)
+mesh = SubResource("Mesh_foliage_dark")
+[node name="foliage_drop" type="MeshInstance3D" parent="variant_a/branch_a_0"]
+position = Vector3(3.45, -1.0, 0.12)
+scale = Vector3(0.72, 1.18, 0.68)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="branch_a_1" type="Node3D" parent="variant_a"]
+position = Vector3(0, 16.6, 0)
+rotation = Vector3(0, 2.32, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_a/branch_a_1"]
+position = Vector3(2.55, 0.05, 0)
+rotation = Vector3(0, 0, -1.54)
+mesh = SubResource("Mesh_branch_medium")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_a/branch_a_1"]
+position = Vector3(3.15, -0.18, 0)
+scale = Vector3(2.0, 0.58, 0.72)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="branch_a_2" type="Node3D" parent="variant_a"]
+position = Vector3(0, 18.35, 0)
+rotation = Vector3(0, 4.4, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_a/branch_a_2"]
+position = Vector3(3.05, -0.08, 0)
+rotation = Vector3(0, 0, -1.6)
+scale = Vector3(1, 0.9, 1)
+mesh = SubResource("Mesh_branch_long")
+[node name="foliage_inner" type="MeshInstance3D" parent="variant_a/branch_a_2"]
+position = Vector3(1.9, -0.05, 0)
+scale = Vector3(1.35, 0.62, 0.82)
+mesh = SubResource("Mesh_foliage_dark")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_a/branch_a_2"]
+position = Vector3(3.9, -0.35, 0)
+scale = Vector3(2.25, 0.56, 0.75)
+mesh = SubResource("Mesh_foliage_mid")
+[node name="foliage_drop" type="MeshInstance3D" parent="variant_a/branch_a_2"]
+position = Vector3(3.1, -0.82, -0.1)
+scale = Vector3(0.7, 1.08, 0.68)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="branch_a_3" type="Node3D" parent="variant_a"]
+position = Vector3(0, 20.2, 0)
+rotation = Vector3(0, 1.08, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_a/branch_a_3"]
+position = Vector3(2.55, 0.08, 0)
+rotation = Vector3(0, 0, -1.52)
+mesh = SubResource("Mesh_branch_medium")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_a/branch_a_3"]
+position = Vector3(3.0, -0.12, 0)
+scale = Vector3(1.95, 0.7, 0.8)
+mesh = SubResource("Mesh_foliage_dark")
+[node name="foliage_drop" type="MeshInstance3D" parent="variant_a/branch_a_3"]
+position = Vector3(2.5, -0.72, 0.12)
+scale = Vector3(0.68, 1.0, 0.66)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="branch_a_4" type="Node3D" parent="variant_a"]
+position = Vector3(0, 21.9, 0)
+rotation = Vector3(0, 3.55, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_a/branch_a_4"]
+position = Vector3(2.45, 0.08, 0)
+rotation = Vector3(0, 0, -1.51)
+mesh = SubResource("Mesh_branch_medium")
+[node name="foliage_inner" type="MeshInstance3D" parent="variant_a/branch_a_4"]
+position = Vector3(1.25, 0.1, 0)
+scale = Vector3(1.2, 0.78, 0.9)
+mesh = SubResource("Mesh_foliage_mid")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_a/branch_a_4"]
+position = Vector3(2.9, -0.08, 0)
+scale = Vector3(1.75, 0.72, 0.82)
+mesh = SubResource("Mesh_foliage_dark")
+[node name="foliage_drop" type="MeshInstance3D" parent="variant_a/branch_a_4"]
+position = Vector3(2.35, -0.62, -0.1)
+scale = Vector3(0.66, 0.94, 0.64)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="branch_a_5" type="Node3D" parent="variant_a"]
+position = Vector3(0, 23.55, 0)
+rotation = Vector3(0, 5.72, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_a/branch_a_5"]
+position = Vector3(1.65, 0.12, 0)
+rotation = Vector3(0, 0, -1.48)
+mesh = SubResource("Mesh_branch_short")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_a/branch_a_5"]
+position = Vector3(2.0, 0.0, 0)
+scale = Vector3(1.45, 0.78, 0.86)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="branch_a_6" type="Node3D" parent="variant_a"]
+position = Vector3(0, 15.8, 0)
+rotation = Vector3(0, 1.18, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_a/branch_a_6"]
+position = Vector3(2.7, -0.08, 0)
+rotation = Vector3(0, 0, -1.6)
+mesh = SubResource("Mesh_branch_medium")
+[node name="foliage_inner" type="MeshInstance3D" parent="variant_a/branch_a_6"]
+position = Vector3(1.45, -0.05, 0.08)
+scale = Vector3(1.18, 0.5, 0.72)
+mesh = SubResource("Mesh_foliage_mid")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_a/branch_a_6"]
+position = Vector3(3.25, -0.35, -0.08)
+scale = Vector3(1.9, 0.48, 0.68)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="branch_a_7" type="Node3D" parent="variant_a"]
+position = Vector3(0, 17.45, 0)
+rotation = Vector3(0, 3.5, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_a/branch_a_7"]
+position = Vector3(2.45, -0.02, 0)
+rotation = Vector3(0, 0, -1.57)
+mesh = SubResource("Mesh_branch_medium")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_a/branch_a_7"]
+position = Vector3(2.9, -0.25, 0.06)
+scale = Vector3(1.75, 0.52, 0.7)
+mesh = SubResource("Mesh_foliage_mid")
+[node name="foliage_drop" type="MeshInstance3D" parent="variant_a/branch_a_7"]
+position = Vector3(2.2, -0.7, -0.08)
+scale = Vector3(0.58, 0.84, 0.58)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="branch_a_8" type="Node3D" parent="variant_a"]
+position = Vector3(0, 19.25, 0)
+rotation = Vector3(0, 5.55, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_a/branch_a_8"]
+position = Vector3(2.35, 0.04, 0)
+rotation = Vector3(0, 0, -1.55)
+scale = Vector3(1, 0.9, 1)
+mesh = SubResource("Mesh_branch_medium")
+[node name="foliage_inner" type="MeshInstance3D" parent="variant_a/branch_a_8"]
+position = Vector3(1.25, 0, -0.06)
+scale = Vector3(1.0, 0.58, 0.72)
+mesh = SubResource("Mesh_foliage_dark")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_a/branch_a_8"]
+position = Vector3(2.75, -0.16, 0.08)
+scale = Vector3(1.58, 0.58, 0.72)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="branch_a_9" type="Node3D" parent="variant_a"]
+position = Vector3(0, 21.05, 0)
+rotation = Vector3(0, 2.15, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_a/branch_a_9"]
+position = Vector3(1.72, 0.08, 0)
+rotation = Vector3(0, 0, -1.51)
+mesh = SubResource("Mesh_branch_short")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_a/branch_a_9"]
+position = Vector3(2.02, -0.05, 0)
+scale = Vector3(1.36, 0.62, 0.75)
+mesh = SubResource("Mesh_foliage_dark")
+[node name="foliage_drop" type="MeshInstance3D" parent="variant_a/branch_a_9"]
+position = Vector3(1.62, -0.48, 0.1)
+scale = Vector3(0.52, 0.7, 0.52)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="branch_a_10" type="Node3D" parent="variant_a"]
+position = Vector3(0, 22.72, 0)
+rotation = Vector3(0, 4.62, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_a/branch_a_10"]
+position = Vector3(1.55, 0.1, 0)
+rotation = Vector3(0, 0, -1.49)
+scale = Vector3(1, 0.9, 1)
+mesh = SubResource("Mesh_branch_short")
+[node name="foliage_inner" type="MeshInstance3D" parent="variant_a/branch_a_10"]
+position = Vector3(0.9, 0.08, 0.05)
+scale = Vector3(0.76, 0.62, 0.7)
+mesh = SubResource("Mesh_foliage_mid")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_a/branch_a_10"]
+position = Vector3(1.8, 0, -0.06)
+scale = Vector3(1.16, 0.68, 0.76)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="branch_a_11" type="Node3D" parent="variant_a"]
+position = Vector3(0, 24.25, 0)
+rotation = Vector3(0, 0.75, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_a/branch_a_11"]
+position = Vector3(1.35, 0.13, 0)
+rotation = Vector3(0, 0, -1.46)
+scale = Vector3(1, 0.78, 1)
+mesh = SubResource("Mesh_branch_short")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_a/branch_a_11"]
+position = Vector3(1.55, 0.08, 0)
+scale = Vector3(1.0, 0.72, 0.78)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="leader" type="Node3D" parent="variant_a"]
+position = Vector3(0.04, 25.5, -0.02)
+editor_description = "Five independently selectable needle sprays overlap into a narrow, broken living spire; there is no solid cone core."
+
+[node name="foliage_lower" type="MeshInstance3D" parent="variant_a/leader"]
+position = Vector3(-0.08, -1.62, 0.04)
+scale = Vector3(0.78, 0.44, 0.62)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="foliage_lower_mid" type="MeshInstance3D" parent="variant_a/leader"]
+position = Vector3(0.12, -0.72, -0.08)
+rotation = Vector3(0, 0.68, 0)
+scale = Vector3(0.64, 0.4, 0.54)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="foliage_middle" type="MeshInstance3D" parent="variant_a/leader"]
+position = Vector3(-0.1, 0.18, 0.06)
+rotation = Vector3(0, -0.46, 0)
+scale = Vector3(0.52, 0.36, 0.46)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="foliage_upper" type="MeshInstance3D" parent="variant_a/leader"]
+position = Vector3(0.08, 1.06, -0.05)
+rotation = Vector3(0, 0.9, 0)
+scale = Vector3(0.38, 0.3, 0.36)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="foliage_tip" type="MeshInstance3D" parent="variant_a/leader"]
+position = Vector3(-0.03, 1.86, 0.02)
+rotation = Vector3(0, -0.22, 0)
+scale = Vector3(0.22, 0.22, 0.24)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="variant_b" type="Node3D" parent="."]
+editor_description = "Younger redwood: slimmer buttress and a fuller, lower-starting crown while retaining a visible clear trunk."
+
+[node name="buttress" type="MeshInstance3D" parent="variant_b"]
+position = Vector3(0, 1.12, 0)
+scale = Vector3(0.76, 0.8, 0.76)
+mesh = SubResource("Mesh_buttress")
+
+[node name="lower_trunk" type="MeshInstance3D" parent="variant_b"]
+position = Vector3(0, 7.1, 0)
+scale = Vector3(0.76, 0.8, 0.76)
+mesh = SubResource("Mesh_trunk_low")
+
+[node name="upper_trunk" type="MeshInstance3D" parent="variant_b"]
+position = Vector3(0, 17.45, 0)
+scale = Vector3(0.8, 0.86, 0.8)
+mesh = SubResource("Mesh_trunk_high")
+
+[node name="crown_core_lower" type="MeshInstance3D" parent="variant_b"]
+position = Vector3(0.18, 13.2, -0.12)
+scale = Vector3(1.22, 1.16, 1.12)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="crown_core_middle" type="MeshInstance3D" parent="variant_b"]
+position = Vector3(-0.16, 16.0, 0.14)
+scale = Vector3(1.18, 1.24, 1.14)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="crown_core_upper" type="MeshInstance3D" parent="variant_b"]
+position = Vector3(0.12, 18.4, -0.1)
+scale = Vector3(1.0, 1.12, 0.96)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="root_east" type="Node3D" parent="variant_b"]
+rotation = Vector3(0, 0.4, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_b/root_east"]
+position = Vector3(0.92, 0.18, 0)
+rotation = Vector3(0, 0, -1.39)
+scale = Vector3(0.72, 0.62, 0.58)
+mesh = SubResource("Mesh_root_flare")
+
+[node name="root_west" type="Node3D" parent="variant_b"]
+rotation = Vector3(0, 3.55, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_b/root_west"]
+position = Vector3(0.88, 0.17, 0)
+rotation = Vector3(0, 0, -1.4)
+scale = Vector3(0.68, 0.6, 0.56)
+mesh = SubResource("Mesh_root_flare")
+
+[node name="branch_b_0" type="Node3D" parent="variant_b"]
+position = Vector3(0, 9.7, 0)
+rotation = Vector3(0, 0.15, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_b/branch_b_0"]
+position = Vector3(2.5, -0.18, 0)
+rotation = Vector3(0, 0, -1.64)
+mesh = SubResource("Mesh_branch_medium")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_b/branch_b_0"]
+position = Vector3(3.0, -0.45, 0)
+scale = Vector3(2.0, 0.55, 0.72)
+mesh = SubResource("Mesh_foliage_dark")
+[node name="foliage_drop" type="MeshInstance3D" parent="variant_b/branch_b_0"]
+position = Vector3(2.55, -0.92, 0.1)
+scale = Vector3(0.68, 1.06, 0.66)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="branch_b_1" type="Node3D" parent="variant_b"]
+position = Vector3(0, 11.5, 0)
+rotation = Vector3(0, 2.22, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_b/branch_b_1"]
+position = Vector3(2.55, -0.05, 0)
+rotation = Vector3(0, 0, -1.59)
+mesh = SubResource("Mesh_branch_medium")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_b/branch_b_1"]
+position = Vector3(3.0, -0.25, 0)
+scale = Vector3(2.05, 0.62, 0.75)
+mesh = SubResource("Mesh_foliage_mid")
+[node name="foliage_drop" type="MeshInstance3D" parent="variant_b/branch_b_1"]
+position = Vector3(2.5, -0.76, -0.1)
+scale = Vector3(0.7, 1.02, 0.67)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="branch_b_2" type="Node3D" parent="variant_b"]
+position = Vector3(0, 13.25, 0)
+rotation = Vector3(0, 4.25, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_b/branch_b_2"]
+position = Vector3(2.45, 0.0, 0)
+rotation = Vector3(0, 0, -1.57)
+mesh = SubResource("Mesh_branch_medium")
+[node name="foliage_inner" type="MeshInstance3D" parent="variant_b/branch_b_2"]
+position = Vector3(1.35, 0.04, 0)
+scale = Vector3(1.25, 0.68, 0.78)
+mesh = SubResource("Mesh_foliage_dark")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_b/branch_b_2"]
+position = Vector3(2.95, -0.16, 0)
+scale = Vector3(1.9, 0.67, 0.78)
+mesh = SubResource("Mesh_foliage_mid")
+[node name="foliage_drop" type="MeshInstance3D" parent="variant_b/branch_b_2"]
+position = Vector3(2.45, -0.68, 0.12)
+scale = Vector3(0.66, 0.98, 0.64)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="branch_b_3" type="Node3D" parent="variant_b"]
+position = Vector3(0, 15.0, 0)
+rotation = Vector3(0, 1.1, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_b/branch_b_3"]
+position = Vector3(2.25, 0.06, 0)
+rotation = Vector3(0, 0, -1.54)
+scale = Vector3(1, 0.88, 1)
+mesh = SubResource("Mesh_branch_medium")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_b/branch_b_3"]
+position = Vector3(2.7, -0.04, 0)
+scale = Vector3(1.75, 0.72, 0.8)
+mesh = SubResource("Mesh_foliage_dark")
+[node name="foliage_drop" type="MeshInstance3D" parent="variant_b/branch_b_3"]
+position = Vector3(2.25, -0.58, -0.08)
+scale = Vector3(0.64, 0.92, 0.62)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="branch_b_4" type="Node3D" parent="variant_b"]
+position = Vector3(0, 16.7, 0)
+rotation = Vector3(0, 3.3, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_b/branch_b_4"]
+position = Vector3(1.7, 0.1, 0)
+rotation = Vector3(0, 0, -1.5)
+mesh = SubResource("Mesh_branch_short")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_b/branch_b_4"]
+position = Vector3(2.0, 0.02, 0)
+scale = Vector3(1.55, 0.78, 0.84)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="branch_b_5" type="Node3D" parent="variant_b"]
+position = Vector3(0, 18.3, 0)
+rotation = Vector3(0, 5.45, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_b/branch_b_5"]
+position = Vector3(1.58, 0.12, 0)
+rotation = Vector3(0, 0, -1.48)
+scale = Vector3(1, 0.92, 1)
+mesh = SubResource("Mesh_branch_short")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_b/branch_b_5"]
+position = Vector3(1.9, 0.08, 0)
+scale = Vector3(1.42, 0.82, 0.86)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="branch_b_6" type="Node3D" parent="variant_b"]
+position = Vector3(0, 19.8, 0)
+rotation = Vector3(0, 1.95, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_b/branch_b_6"]
+position = Vector3(1.38, 0.16, 0)
+rotation = Vector3(0, 0, -1.45)
+scale = Vector3(1, 0.82, 1)
+mesh = SubResource("Mesh_branch_short")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_b/branch_b_6"]
+position = Vector3(1.6, 0.12, 0)
+scale = Vector3(1.25, 0.84, 0.88)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="branch_b_7" type="Node3D" parent="variant_b"]
+position = Vector3(0, 10.6, 0)
+rotation = Vector3(0, 1.25, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_b/branch_b_7"]
+position = Vector3(2.55, -0.1, 0)
+rotation = Vector3(0, 0, -1.61)
+mesh = SubResource("Mesh_branch_medium")
+[node name="foliage_inner" type="MeshInstance3D" parent="variant_b/branch_b_7"]
+position = Vector3(1.3, -0.04, 0)
+scale = Vector3(1.05, 0.52, 0.7)
+mesh = SubResource("Mesh_foliage_mid")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_b/branch_b_7"]
+position = Vector3(3.0, -0.3, 0.06)
+scale = Vector3(1.82, 0.5, 0.7)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="branch_b_8" type="Node3D" parent="variant_b"]
+position = Vector3(0, 12.35, 0)
+rotation = Vector3(0, 3.35, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_b/branch_b_8"]
+position = Vector3(2.4, -0.03, 0)
+rotation = Vector3(0, 0, -1.58)
+scale = Vector3(1, 0.94, 1)
+mesh = SubResource("Mesh_branch_medium")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_b/branch_b_8"]
+position = Vector3(2.85, -0.18, -0.05)
+scale = Vector3(1.72, 0.56, 0.72)
+mesh = SubResource("Mesh_foliage_mid")
+[node name="foliage_drop" type="MeshInstance3D" parent="variant_b/branch_b_8"]
+position = Vector3(2.2, -0.64, 0.08)
+scale = Vector3(0.56, 0.78, 0.55)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="branch_b_9" type="Node3D" parent="variant_b"]
+position = Vector3(0, 14.08, 0)
+rotation = Vector3(0, 5.42, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_b/branch_b_9"]
+position = Vector3(2.3, 0.02, 0)
+rotation = Vector3(0, 0, -1.56)
+scale = Vector3(1, 0.9, 1)
+mesh = SubResource("Mesh_branch_medium")
+[node name="foliage_inner" type="MeshInstance3D" parent="variant_b/branch_b_9"]
+position = Vector3(1.18, 0.02, -0.05)
+scale = Vector3(0.98, 0.58, 0.72)
+mesh = SubResource("Mesh_foliage_dark")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_b/branch_b_9"]
+position = Vector3(2.65, -0.12, 0.06)
+scale = Vector3(1.55, 0.6, 0.74)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="branch_b_10" type="Node3D" parent="variant_b"]
+position = Vector3(0, 15.82, 0)
+rotation = Vector3(0, 2.05, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_b/branch_b_10"]
+position = Vector3(1.72, 0.07, 0)
+rotation = Vector3(0, 0, -1.52)
+mesh = SubResource("Mesh_branch_short")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_b/branch_b_10"]
+position = Vector3(2.0, -0.03, 0)
+scale = Vector3(1.32, 0.64, 0.76)
+mesh = SubResource("Mesh_foliage_dark")
+[node name="foliage_drop" type="MeshInstance3D" parent="variant_b/branch_b_10"]
+position = Vector3(1.58, -0.45, -0.08)
+scale = Vector3(0.5, 0.68, 0.5)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="branch_b_11" type="Node3D" parent="variant_b"]
+position = Vector3(0, 17.48, 0)
+rotation = Vector3(0, 4.35, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_b/branch_b_11"]
+position = Vector3(1.58, 0.1, 0)
+rotation = Vector3(0, 0, -1.49)
+scale = Vector3(1, 0.92, 1)
+mesh = SubResource("Mesh_branch_short")
+[node name="foliage_inner" type="MeshInstance3D" parent="variant_b/branch_b_11"]
+position = Vector3(0.88, 0.08, 0.05)
+scale = Vector3(0.72, 0.62, 0.68)
+mesh = SubResource("Mesh_foliage_mid")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_b/branch_b_11"]
+position = Vector3(1.82, 0.02, -0.04)
+scale = Vector3(1.15, 0.68, 0.76)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="branch_b_12" type="Node3D" parent="variant_b"]
+position = Vector3(0, 19.08, 0)
+rotation = Vector3(0, 0.75, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_b/branch_b_12"]
+position = Vector3(1.42, 0.13, 0)
+rotation = Vector3(0, 0, -1.47)
+scale = Vector3(1, 0.82, 1)
+mesh = SubResource("Mesh_branch_short")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_b/branch_b_12"]
+position = Vector3(1.65, 0.08, 0)
+scale = Vector3(1.0, 0.72, 0.78)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="branch_b_13" type="Node3D" parent="variant_b"]
+position = Vector3(0, 20.48, 0)
+rotation = Vector3(0, 3.02, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_b/branch_b_13"]
+position = Vector3(1.25, 0.15, 0)
+rotation = Vector3(0, 0, -1.44)
+scale = Vector3(1, 0.72, 1)
+mesh = SubResource("Mesh_branch_short")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_b/branch_b_13"]
+position = Vector3(1.46, 0.12, 0)
+scale = Vector3(0.86, 0.74, 0.76)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="leader" type="Node3D" parent="variant_b"]
+position = Vector3(0, 21.1, 0)
+editor_description = "Five independently selectable needle sprays overlap into the younger tree's compact living spire; there is no solid cone core."
+
+[node name="foliage_lower" type="MeshInstance3D" parent="variant_b/leader"]
+position = Vector3(0.06, -1.48, -0.04)
+scale = Vector3(0.66, 0.4, 0.56)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="foliage_lower_mid" type="MeshInstance3D" parent="variant_b/leader"]
+position = Vector3(-0.08, -0.64, 0.06)
+rotation = Vector3(0, -0.58, 0)
+scale = Vector3(0.56, 0.36, 0.48)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="foliage_middle" type="MeshInstance3D" parent="variant_b/leader"]
+position = Vector3(0.08, 0.16, -0.04)
+rotation = Vector3(0, 0.72, 0)
+scale = Vector3(0.45, 0.32, 0.4)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="foliage_upper" type="MeshInstance3D" parent="variant_b/leader"]
+position = Vector3(-0.04, 0.92, 0.05)
+rotation = Vector3(0, -0.3, 0)
+scale = Vector3(0.32, 0.27, 0.31)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="foliage_tip" type="MeshInstance3D" parent="variant_b/leader"]
+position = Vector3(0.02, 1.58, -0.02)
+rotation = Vector3(0, 0.42, 0)
+scale = Vector3(0.2, 0.2, 0.22)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="variant_c" type="Node3D" parent="."]
+position = Vector3(12, 0, 0)
+editor_description = "Wind-shaped redwood: high, uneven crown with longer sheltered-side limbs and a deliberately broken outline."
+
+[node name="buttress" type="MeshInstance3D" parent="variant_c"]
+position = Vector3(0, 1.25, 0)
+scale = Vector3(0.9, 0.9, 0.9)
+mesh = SubResource("Mesh_buttress")
+
+[node name="lower_trunk" type="MeshInstance3D" parent="variant_c"]
+position = Vector3(0, 8.0, 0)
+scale = Vector3(0.88, 0.9, 0.88)
+mesh = SubResource("Mesh_trunk_low")
+
+[node name="upper_trunk" type="MeshInstance3D" parent="variant_c"]
+position = Vector3(0.05, 20.0, -0.03)
+scale = Vector3(0.9, 1.0, 0.9)
+mesh = SubResource("Mesh_trunk_high")
+
+[node name="crown_core_lower" type="MeshInstance3D" parent="variant_c"]
+position = Vector3(0.45, 16.7, -0.12)
+scale = Vector3(1.18, 1.08, 1.0)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="crown_core_middle" type="MeshInstance3D" parent="variant_c"]
+position = Vector3(0.72, 19.6, 0.16)
+scale = Vector3(1.28, 1.2, 1.08)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="crown_core_upper" type="MeshInstance3D" parent="variant_c"]
+position = Vector3(0.38, 22.0, -0.12)
+scale = Vector3(1.02, 1.1, 0.92)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="root_northwest" type="Node3D" parent="variant_c"]
+rotation = Vector3(0, 2.55, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_c/root_northwest"]
+position = Vector3(1.1, 0.2, 0)
+rotation = Vector3(0, 0, -1.4)
+scale = Vector3(0.86, 0.75, 0.65)
+mesh = SubResource("Mesh_root_flare")
+
+[node name="root_south" type="Node3D" parent="variant_c"]
+rotation = Vector3(0, 4.7, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_c/root_south"]
+position = Vector3(1.18, 0.18, 0)
+rotation = Vector3(0, 0, -1.39)
+scale = Vector3(0.9, 0.82, 0.7)
+mesh = SubResource("Mesh_root_flare")
+
+[node name="dead_lower_branch" type="Node3D" parent="variant_c"]
+position = Vector3(0, 12.6, 0)
+rotation = Vector3(0, 3.7, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_c/dead_lower_branch"]
+position = Vector3(1.2, -0.1, 0)
+rotation = Vector3(0, 0, -1.62)
+scale = Vector3(0.68, 0.75, 0.68)
+mesh = SubResource("Mesh_branch_short")
+material_override = SubResource("Mat_deadwood")
+
+[node name="branch_c_0" type="Node3D" parent="variant_c"]
+position = Vector3(0, 14.1, 0)
+rotation = Vector3(0, 0.15, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_c/branch_c_0"]
+position = Vector3(3.35, -0.18, 0)
+rotation = Vector3(0, 0, -1.63)
+mesh = SubResource("Mesh_branch_long")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_c/branch_c_0"]
+position = Vector3(4.3, -0.52, 0)
+scale = Vector3(2.55, 0.48, 0.68)
+mesh = SubResource("Mesh_foliage_dark")
+[node name="foliage_drop" type="MeshInstance3D" parent="variant_c/branch_c_0"]
+position = Vector3(3.5, -1.02, 0.12)
+scale = Vector3(0.72, 1.18, 0.66)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="branch_c_1" type="Node3D" parent="variant_c"]
+position = Vector3(0, 15.8, 0)
+rotation = Vector3(0, 5.75, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_c/branch_c_1"]
+position = Vector3(3.2, -0.04, 0)
+rotation = Vector3(0, 0, -1.59)
+scale = Vector3(1, 0.95, 1)
+mesh = SubResource("Mesh_branch_long")
+[node name="foliage_inner" type="MeshInstance3D" parent="variant_c/branch_c_1"]
+position = Vector3(1.75, -0.04, 0)
+scale = Vector3(1.35, 0.55, 0.72)
+mesh = SubResource("Mesh_foliage_dark")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_c/branch_c_1"]
+position = Vector3(4.0, -0.28, 0)
+scale = Vector3(2.35, 0.52, 0.7)
+mesh = SubResource("Mesh_foliage_mid")
+[node name="foliage_drop" type="MeshInstance3D" parent="variant_c/branch_c_1"]
+position = Vector3(3.25, -0.78, -0.1)
+scale = Vector3(0.7, 1.08, 0.66)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="branch_c_2" type="Node3D" parent="variant_c"]
+position = Vector3(0, 17.55, 0)
+rotation = Vector3(0, 2.9, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_c/branch_c_2"]
+position = Vector3(1.65, 0.04, 0)
+rotation = Vector3(0, 0, -1.55)
+mesh = SubResource("Mesh_branch_short")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_c/branch_c_2"]
+position = Vector3(1.95, -0.08, 0)
+scale = Vector3(1.35, 0.64, 0.75)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="branch_c_3" type="Node3D" parent="variant_c"]
+position = Vector3(0, 19.2, 0)
+rotation = Vector3(0, 0.55, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_c/branch_c_3"]
+position = Vector3(2.55, 0.08, 0)
+rotation = Vector3(0, 0, -1.54)
+mesh = SubResource("Mesh_branch_medium")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_c/branch_c_3"]
+position = Vector3(3.05, -0.04, 0)
+scale = Vector3(1.95, 0.68, 0.78)
+mesh = SubResource("Mesh_foliage_mid")
+[node name="foliage_drop" type="MeshInstance3D" parent="variant_c/branch_c_3"]
+position = Vector3(2.5, -0.6, 0.1)
+scale = Vector3(0.66, 0.95, 0.64)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="branch_c_4" type="Node3D" parent="variant_c"]
+position = Vector3(0, 20.85, 0)
+rotation = Vector3(0, 5.95, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_c/branch_c_4"]
+position = Vector3(2.4, 0.1, 0)
+rotation = Vector3(0, 0, -1.52)
+scale = Vector3(1, 0.92, 1)
+mesh = SubResource("Mesh_branch_medium")
+[node name="foliage_inner" type="MeshInstance3D" parent="variant_c/branch_c_4"]
+position = Vector3(1.2, 0.08, 0)
+scale = Vector3(1.15, 0.74, 0.82)
+mesh = SubResource("Mesh_foliage_dark")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_c/branch_c_4"]
+position = Vector3(2.8, 0.0, 0)
+scale = Vector3(1.75, 0.72, 0.8)
+mesh = SubResource("Mesh_foliage_mid")
+[node name="foliage_drop" type="MeshInstance3D" parent="variant_c/branch_c_4"]
+position = Vector3(2.3, -0.54, -0.08)
+scale = Vector3(0.64, 0.9, 0.62)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="branch_c_5" type="Node3D" parent="variant_c"]
+position = Vector3(0, 22.45, 0)
+rotation = Vector3(0, 1.2, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_c/branch_c_5"]
+position = Vector3(1.55, 0.14, 0)
+rotation = Vector3(0, 0, -1.47)
+scale = Vector3(1, 0.9, 1)
+mesh = SubResource("Mesh_branch_short")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_c/branch_c_5"]
+position = Vector3(1.85, 0.08, 0)
+scale = Vector3(1.35, 0.82, 0.86)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="branch_c_6" type="Node3D" parent="variant_c"]
+position = Vector3(0, 14.92, 0)
+rotation = Vector3(0, 1.42, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_c/branch_c_6"]
+position = Vector3(3.0, -0.1, 0)
+rotation = Vector3(0, 0, -1.61)
+scale = Vector3(1, 0.92, 1)
+mesh = SubResource("Mesh_branch_long")
+[node name="foliage_inner" type="MeshInstance3D" parent="variant_c/branch_c_6"]
+position = Vector3(1.55, -0.04, -0.06)
+scale = Vector3(1.18, 0.5, 0.7)
+mesh = SubResource("Mesh_foliage_mid")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_c/branch_c_6"]
+position = Vector3(3.65, -0.34, 0.08)
+scale = Vector3(2.12, 0.48, 0.66)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="branch_c_7" type="Node3D" parent="variant_c"]
+position = Vector3(0, 16.62, 0)
+rotation = Vector3(0, 2.42, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_c/branch_c_7"]
+position = Vector3(2.05, -0.02, 0)
+rotation = Vector3(0, 0, -1.58)
+scale = Vector3(1, 0.82, 1)
+mesh = SubResource("Mesh_branch_medium")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_c/branch_c_7"]
+position = Vector3(2.4, -0.18, 0)
+scale = Vector3(1.45, 0.54, 0.68)
+mesh = SubResource("Mesh_foliage_mid")
+[node name="foliage_drop" type="MeshInstance3D" parent="variant_c/branch_c_7"]
+position = Vector3(1.85, -0.58, 0.08)
+scale = Vector3(0.52, 0.74, 0.52)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="branch_c_8" type="Node3D" parent="variant_c"]
+position = Vector3(0, 18.38, 0)
+rotation = Vector3(0, 3.92, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_c/branch_c_8"]
+position = Vector3(2.15, 0.03, 0)
+rotation = Vector3(0, 0, -1.56)
+scale = Vector3(1, 0.86, 1)
+mesh = SubResource("Mesh_branch_medium")
+[node name="foliage_inner" type="MeshInstance3D" parent="variant_c/branch_c_8"]
+position = Vector3(1.08, 0.02, 0.05)
+scale = Vector3(0.9, 0.56, 0.7)
+mesh = SubResource("Mesh_foliage_dark")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_c/branch_c_8"]
+position = Vector3(2.5, -0.12, -0.06)
+scale = Vector3(1.52, 0.58, 0.72)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="branch_c_9" type="Node3D" parent="variant_c"]
+position = Vector3(0, 20.08, 0)
+rotation = Vector3(0, 0.48, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_c/branch_c_9"]
+position = Vector3(2.45, 0.06, 0)
+rotation = Vector3(0, 0, -1.54)
+mesh = SubResource("Mesh_branch_medium")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_c/branch_c_9"]
+position = Vector3(2.88, -0.04, 0)
+scale = Vector3(1.72, 0.62, 0.74)
+mesh = SubResource("Mesh_foliage_dark")
+[node name="foliage_drop" type="MeshInstance3D" parent="variant_c/branch_c_9"]
+position = Vector3(2.25, -0.48, -0.08)
+scale = Vector3(0.56, 0.7, 0.54)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="branch_c_10" type="Node3D" parent="variant_c"]
+position = Vector3(0, 21.7, 0)
+rotation = Vector3(0, 3.52, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_c/branch_c_10"]
+position = Vector3(1.55, 0.1, 0)
+rotation = Vector3(0, 0, -1.49)
+scale = Vector3(1, 0.9, 1)
+mesh = SubResource("Mesh_branch_short")
+[node name="foliage_inner" type="MeshInstance3D" parent="variant_c/branch_c_10"]
+position = Vector3(0.88, 0.08, 0)
+scale = Vector3(0.72, 0.62, 0.68)
+mesh = SubResource("Mesh_foliage_mid")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_c/branch_c_10"]
+position = Vector3(1.82, 0.02, 0.05)
+scale = Vector3(1.12, 0.68, 0.74)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="branch_c_11" type="Node3D" parent="variant_c"]
+position = Vector3(0, 23.18, 0)
+rotation = Vector3(0, 5.15, 0)
+[node name="wood" type="MeshInstance3D" parent="variant_c/branch_c_11"]
+position = Vector3(1.35, 0.14, 0)
+rotation = Vector3(0, 0, -1.46)
+scale = Vector3(1, 0.78, 1)
+mesh = SubResource("Mesh_branch_short")
+[node name="foliage_outer" type="MeshInstance3D" parent="variant_c/branch_c_11"]
+position = Vector3(1.56, 0.1, 0)
+scale = Vector3(0.98, 0.72, 0.76)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="leader" type="Node3D" parent="variant_c"]
+position = Vector3(0.22, 24.25, -0.05)
+rotation = Vector3(0, 0, -0.07)
+editor_description = "Five independently selectable sprays form a slightly displaced, wind-broken living spire; there is no solid cone core."
+
+[node name="foliage_lower" type="MeshInstance3D" parent="variant_c/leader"]
+position = Vector3(-0.06, -1.58, 0.04)
+scale = Vector3(0.72, 0.42, 0.58)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="foliage_lower_mid" type="MeshInstance3D" parent="variant_c/leader"]
+position = Vector3(0.1, -0.7, -0.06)
+rotation = Vector3(0, 0.76, 0)
+scale = Vector3(0.6, 0.38, 0.5)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="foliage_middle" type="MeshInstance3D" parent="variant_c/leader"]
+position = Vector3(-0.1, 0.14, 0.05)
+rotation = Vector3(0, -0.6, 0)
+scale = Vector3(0.48, 0.34, 0.42)
+mesh = SubResource("Mesh_foliage_dark")
+
+[node name="foliage_upper" type="MeshInstance3D" parent="variant_c/leader"]
+position = Vector3(0.08, 0.96, -0.04)
+rotation = Vector3(0, 0.34, 0)
+scale = Vector3(0.35, 0.28, 0.33)
+mesh = SubResource("Mesh_foliage_mid")
+
+[node name="foliage_tip" type="MeshInstance3D" parent="variant_c/leader"]
+position = Vector3(-0.03, 1.7, 0.02)
+rotation = Vector3(0, -0.18, 0)
+scale = Vector3(0.21, 0.21, 0.23)
+mesh = SubResource("Mesh_foliage_mid")

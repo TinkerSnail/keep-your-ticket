@@ -1,0 +1,127 @@
+[gd_scene load_steps=11 format=3]
+
+; A directly editor-owned low open pavilion for the safely high R2 support bays.
+; The roof is the occupied-area falling-object control; placement remains in the
+; north ride-park source and is checked against the live coaster curve.
+
+[sub_resource type="StandardMaterial3D" id="Mat_posts"]
+albedo_color = Color(0.82, 0.74, 0.59, 1)
+roughness = 0.88
+
+[sub_resource type="StandardMaterial3D" id="Mat_roof_a"]
+albedo_color = Color(0.82, 0.22, 0.14, 1)
+roughness = 0.82
+
+[sub_resource type="StandardMaterial3D" id="Mat_roof_b"]
+albedo_color = Color(0.93, 0.65, 0.12, 1)
+roughness = 0.82
+
+[sub_resource type="StandardMaterial3D" id="Mat_counter"]
+albedo_color = Color(0.04, 0.34, 0.35, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="Mesh_unit"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="BoxShape3D" id="Shape_post"]
+size = Vector3(0.18, 3.9, 0.18)
+
+[sub_resource type="BoxShape3D" id="Shape_counter"]
+size = Vector3(1.1, 1.0, 4.3)
+
+[sub_resource type="BoxShape3D" id="Shape_roof"]
+size = Vector3(2.65, 0.16, 5.8)
+
+[node name="boardwalk_under_coaster_pavilion" type="Node3D"]
+editor_description = "Directly editor-owned open midway pavilion for an R2 high bay. Posts, two thin roof caps and counter remain individually selectable; the roof is the falling-object barrier."
+metadata/section = &"boardwalk"
+metadata/purpose = &"under_coaster_midway_pavilion"
+metadata/footprint_metres = Vector2(5.2, 5.8)
+metadata/roof_top_local_y = 4.45
+metadata/falling_object_control = &"solid_roof"
+metadata/minimum_fixed_clearance_metres = 4.0
+
+[node name="post_nw" type="MeshInstance3D" parent="."]
+position = Vector3(-2.25, 1.95, -2.55)
+scale = Vector3(0.18, 3.9, 0.18)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_posts")
+
+[node name="post_sw" type="MeshInstance3D" parent="."]
+position = Vector3(-2.25, 1.95, 2.55)
+scale = Vector3(0.18, 3.9, 0.18)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_posts")
+
+[node name="post_ne" type="MeshInstance3D" parent="."]
+position = Vector3(2.25, 1.95, -2.55)
+scale = Vector3(0.18, 3.9, 0.18)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_posts")
+
+[node name="post_se" type="MeshInstance3D" parent="."]
+position = Vector3(2.25, 1.95, 2.55)
+scale = Vector3(0.18, 3.9, 0.18)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_posts")
+
+[node name="roof_west" type="MeshInstance3D" parent="."]
+position = Vector3(-1.22, 4.15, 0)
+rotation = Vector3(0, 0, -0.16)
+scale = Vector3(2.65, 0.16, 5.8)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_roof_a")
+
+[node name="roof_east" type="MeshInstance3D" parent="."]
+position = Vector3(1.22, 4.15, 0)
+rotation = Vector3(0, 0, 0.16)
+scale = Vector3(2.65, 0.16, 5.8)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_roof_b")
+
+[node name="counter" type="MeshInstance3D" parent="."]
+position = Vector3(1.45, 0.512, 0)
+scale = Vector3(1.1, 1.0, 4.3)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_counter")
+
+[node name="sign" type="Label3D" parent="."]
+position = Vector3(-2.43, 2.65, 0)
+rotation = Vector3(0, -1.570796, 0)
+text = "MIDWAY"
+font_size = 62
+pixel_size = 0.007
+outline_size = 8
+modulate = Color(1, 0.91, 0.7, 1)
+
+[node name="collision" type="StaticBody3D" parent="."]
+
+[node name="post_nw" type="CollisionShape3D" parent="collision"]
+position = Vector3(-2.25, 1.95, -2.55)
+shape = SubResource("Shape_post")
+
+[node name="post_sw" type="CollisionShape3D" parent="collision"]
+position = Vector3(-2.25, 1.95, 2.55)
+shape = SubResource("Shape_post")
+
+[node name="post_ne" type="CollisionShape3D" parent="collision"]
+position = Vector3(2.25, 1.95, -2.55)
+shape = SubResource("Shape_post")
+
+[node name="post_se" type="CollisionShape3D" parent="collision"]
+position = Vector3(2.25, 1.95, 2.55)
+shape = SubResource("Shape_post")
+
+[node name="counter" type="CollisionShape3D" parent="collision"]
+position = Vector3(1.45, 0.512, 0)
+shape = SubResource("Shape_counter")
+
+[node name="roof_west" type="CollisionShape3D" parent="collision"]
+position = Vector3(-1.22, 4.15, 0)
+rotation = Vector3(0, 0, -0.16)
+shape = SubResource("Shape_roof")
+
+[node name="roof_east" type="CollisionShape3D" parent="collision"]
+position = Vector3(1.22, 4.15, 0)
+rotation = Vector3(0, 0, 0.16)
+shape = SubResource("Shape_roof")

@@ -1,0 +1,250 @@
+[gd_scene load_steps=14 format=3]
+
+; Broad palmetto crown. Every live fan and dry skirt course is a selectable
+; Path3D; the attached tool derives only the repeated surfaces.
+
+[ext_resource type="Script" path="res://scenes/world/coastal_fan_palm_crown.gd" id="1_script"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_heart"]
+albedo_color = Color(0.31, 0.36, 0.14, 1)
+roughness = 0.97
+
+[sub_resource type="StandardMaterial3D" id="Mat_new"]
+cull_mode = 2
+albedo_color = Color(0.30, 0.47, 0.17, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="Mat_mature"]
+cull_mode = 2
+albedo_color = Color(0.12, 0.30, 0.11, 1)
+roughness = 0.98
+
+[sub_resource type="StandardMaterial3D" id="Mat_old"]
+cull_mode = 2
+albedo_color = Color(0.24, 0.29, 0.09, 1)
+roughness = 0.99
+
+[sub_resource type="StandardMaterial3D" id="Mat_midrib"]
+cull_mode = 2
+albedo_color = Color(0.15, 0.28, 0.09, 1)
+roughness = 0.98
+
+[sub_resource type="StandardMaterial3D" id="Mat_skirt"]
+cull_mode = 2
+albedo_color = Color(0.31, 0.225, 0.115, 1)
+roughness = 1.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_heart"]
+material = SubResource("Mat_heart")
+radius = 0.25
+height = 0.42
+radial_segments = 8
+rings = 4
+
+[sub_resource type="Curve3D" id="Curve_new"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1, 0.38, 0, 0, 0, 0, 0, 0, 0, 0.25, 0.74, 0, 0, 0, 0, 0, 0, 0, 0.42, 1.02, 0),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
+bake_interval = 0.1
+
+[sub_resource type="Curve3D" id="Curve_high"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.38, 0.46, 0, 0, 0, 0, 0, 0, 0, 1.02, 0.6, 0, 0, 0, 0, 0, 0, 0, 1.55, 0.42, 0),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
+bake_interval = 0.12
+
+[sub_resource type="Curve3D" id="Curve_level"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.4, 0.28, 0, 0, 0, 0, 0, 0, 0, 1.08, 0.24, 0, 0, 0, 0, 0, 0, 0, 1.65, 0.02, 0),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
+bake_interval = 0.12
+
+[sub_resource type="Curve3D" id="Curve_low"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.34, 0.12, 0, 0, 0, 0, 0, 0, 0, 0.96, -0.12, 0, 0, 0, 0, 0, 0, 0, 1.45, -0.55, 0),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
+bake_interval = 0.12
+
+[sub_resource type="Curve3D" id="Curve_skirt"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.34, -0.35, 0, 0, 0, 0, 0, 0, 0, 0.5, -1.02, 0, 0, 0, 0, 0, 0, 0, 0.28, -1.78, 0),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
+bake_interval = 0.1
+
+[node name="coastal_fan_palm_crown" type="Node3D"]
+script = ExtResource("1_script")
+new_growth_material = SubResource("Mat_new")
+mature_material = SubResource("Mat_mature")
+old_growth_material = SubResource("Mat_old")
+midrib_material = SubResource("Mat_midrib")
+skirt_material = SubResource("Mat_skirt")
+editor_description = "Directly editable broad palmetto crown. Move or rotate the Path3D courses for the lively paddle fans and retained dry-frond skirt."
+
+[node name="crown_heart" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_heart")
+
+[node name="frond_courses" type="Node3D" parent="."]
+editor_description = "Twelve core and two optional palmetto petiole courses. Their transforms and curves own the lively fan silhouette."
+
+[node name="new_0" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 0.15, 0)
+curve = SubResource("Curve_new")
+metadata/age = "new"
+[node name="new_1" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 2.25, 0)
+scale = Vector3(0.92, 0.92, 0.92)
+curve = SubResource("Curve_new")
+metadata/age = "new"
+[node name="new_2" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 4.35, 0)
+scale = Vector3(1.04, 1.04, 1.04)
+curve = SubResource("Curve_new")
+metadata/age = "new"
+
+[node name="mature_0" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 0.62, 0)
+curve = SubResource("Curve_high")
+metadata/age = "mature"
+[node name="mature_1" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 1.62, 0)
+scale = Vector3(1.04, 1.04, 1.04)
+curve = SubResource("Curve_level")
+metadata/age = "mature"
+[node name="mature_2" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 2.65, 0)
+scale = Vector3(0.96, 0.96, 0.96)
+curve = SubResource("Curve_high")
+metadata/age = "mature"
+[node name="mature_3" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 3.65, 0)
+curve = SubResource("Curve_level")
+metadata/age = "mature"
+[node name="mature_4" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 4.68, 0)
+scale = Vector3(1.06, 1.06, 1.06)
+curve = SubResource("Curve_high")
+metadata/age = "mature"
+[node name="mature_5" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 5.7, 0)
+scale = Vector3(0.95, 0.95, 0.95)
+curve = SubResource("Curve_level")
+metadata/age = "mature"
+
+[node name="old_0" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 1.08, 0)
+curve = SubResource("Curve_low")
+metadata/age = "old"
+[node name="old_1" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 3.15, 0)
+scale = Vector3(1.06, 1.06, 1.06)
+curve = SubResource("Curve_low")
+metadata/age = "old"
+[node name="old_2" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 5.22, 0)
+scale = Vector3(0.94, 0.94, 0.94)
+curve = SubResource("Curve_low")
+metadata/age = "old"
+
+[node name="extra_0" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 2.12, 0)
+scale = Vector3(0.98, 0.98, 0.98)
+curve = SubResource("Curve_level")
+metadata/age = "mature"
+metadata/extra_index = 0
+[node name="extra_1" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 5.25, 0)
+scale = Vector3(1.02, 1.02, 1.02)
+curve = SubResource("Curve_level")
+metadata/age = "mature"
+metadata/extra_index = 1
+
+[node name="skirt_courses" type="Node3D" parent="."]
+editor_description = "Dense retained dry-frond skirt. Rotate, scale or reshape these selectable courses to tune the palmetto silhouette."
+
+[node name="skirt_00" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 0, 0)
+curve = SubResource("Curve_skirt")
+[node name="skirt_01" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 0.3491, 0)
+scale = Vector3(0.94, 1.03, 0.94)
+curve = SubResource("Curve_skirt")
+[node name="skirt_02" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 0.6981, 0)
+scale = Vector3(1.05, 0.94, 1.05)
+curve = SubResource("Curve_skirt")
+[node name="skirt_03" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 1.0472, 0)
+scale = Vector3(0.97, 1.08, 0.97)
+curve = SubResource("Curve_skirt")
+[node name="skirt_04" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 1.3963, 0)
+scale = Vector3(1.03, 0.9, 1.03)
+curve = SubResource("Curve_skirt")
+[node name="skirt_05" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 1.7453, 0)
+scale = Vector3(0.91, 1.02, 0.91)
+curve = SubResource("Curve_skirt")
+[node name="skirt_06" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 2.0944, 0)
+scale = Vector3(1.06, 0.96, 1.06)
+curve = SubResource("Curve_skirt")
+[node name="skirt_07" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 2.4435, 0)
+scale = Vector3(0.95, 1.09, 0.95)
+curve = SubResource("Curve_skirt")
+[node name="skirt_08" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 2.7925, 0)
+scale = Vector3(1.02, 0.92, 1.02)
+curve = SubResource("Curve_skirt")
+[node name="skirt_09" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 3.1416, 0)
+scale = Vector3(0.92, 1.04, 0.92)
+curve = SubResource("Curve_skirt")
+[node name="skirt_10" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 3.4907, 0)
+scale = Vector3(1.04, 0.95, 1.04)
+curve = SubResource("Curve_skirt")
+[node name="skirt_11" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 3.8397, 0)
+scale = Vector3(0.96, 1.07, 0.96)
+curve = SubResource("Curve_skirt")
+[node name="skirt_12" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 4.1888, 0)
+scale = Vector3(1.05, 0.91, 1.05)
+curve = SubResource("Curve_skirt")
+[node name="skirt_13" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 4.5379, 0)
+scale = Vector3(0.93, 1.01, 0.93)
+curve = SubResource("Curve_skirt")
+[node name="skirt_14" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 4.8869, 0)
+scale = Vector3(1.03, 0.97, 1.03)
+curve = SubResource("Curve_skirt")
+[node name="skirt_15" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 5.236, 0)
+scale = Vector3(0.97, 1.1, 0.97)
+curve = SubResource("Curve_skirt")
+[node name="skirt_16" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 5.5851, 0)
+scale = Vector3(1.06, 0.93, 1.06)
+curve = SubResource("Curve_skirt")
+[node name="skirt_17" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 5.9341, 0)
+scale = Vector3(0.94, 1.05, 0.94)
+curve = SubResource("Curve_skirt")
+
+[node name="derived_fronds" type="Node3D" parent="."]
+editor_description = "Transient live fan surfaces derived from frond_courses."
+
+[node name="derived_skirt" type="Node3D" parent="."]
+editor_description = "Transient dry-frond surfaces derived from skirt_courses."

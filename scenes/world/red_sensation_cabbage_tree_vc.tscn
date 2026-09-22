@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/world/red_sensation_cabbage_tree.tscn" id="1_tree"]
+
+[node name="red_sensation_cabbage_tree_vC" instance=ExtResource("1_tree")]
+scale = Vector3(1.14, 0.94, 1.14)
+catalog_variant = 2
+editor_description = "Catalog vC: broad twenty-six-leaf Red Sensation clump with long arching outer blades."

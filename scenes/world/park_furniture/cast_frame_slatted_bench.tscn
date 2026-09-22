@@ -1,0 +1,275 @@
+[gd_scene load_steps=10 format=3]
+
+[sub_resource type="BoxMesh" id="BoxMesh_unit"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_unit"]
+top_radius = 0.5
+bottom_radius = 0.5
+height = 1.0
+radial_segments = 12
+
+[sub_resource type="TorusMesh" id="TorusMesh_arm"]
+inner_radius = 0.43
+outer_radius = 0.5
+rings = 18
+ring_segments = 8
+
+[sub_resource type="TorusMesh" id="TorusMesh_scroll"]
+inner_radius = 0.42
+outer_radius = 0.5
+rings = 16
+ring_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="Mat_wood"]
+albedo_color = Color(0.48, 0.255, 0.095, 1)
+roughness = 0.72
+
+[sub_resource type="StandardMaterial3D" id="Mat_iron"]
+albedo_color = Color(0.028, 0.20, 0.125, 1)
+metallic = 0.48
+roughness = 0.55
+
+[sub_resource type="StandardMaterial3D" id="Mat_bolt"]
+albedo_color = Color(0.42, 0.36, 0.22, 1)
+metallic = 0.72
+roughness = 0.38
+
+[sub_resource type="BoxShape3D" id="Collision_seat"]
+size = Vector3(1.92, 0.14, 0.58)
+
+[sub_resource type="BoxShape3D" id="Collision_back"]
+size = Vector3(1.92, 0.48, 0.12)
+
+[node name="cast_frame_slatted_bench" type="Node3D"]
+editor_description = "PRP-PARK-001. Cast-frame public bench with warm timber slats, green iron end frames and visible fixings. Faces local +Z; seat top is 0.51m for the existing crowd contract."
+
+[node name="timber_slats" type="Node3D" parent="."]
+
+[node name="seat_0" type="MeshInstance3D" parent="timber_slats"]
+position = Vector3(0, 0.4825, -0.225)
+scale = Vector3(1.84, 0.055, 0.082)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_wood")
+
+[node name="seat_1" type="MeshInstance3D" parent="timber_slats"]
+position = Vector3(0, 0.4825, -0.135)
+scale = Vector3(1.84, 0.055, 0.082)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_wood")
+
+[node name="seat_2" type="MeshInstance3D" parent="timber_slats"]
+position = Vector3(0, 0.4825, -0.045)
+scale = Vector3(1.84, 0.055, 0.082)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_wood")
+
+[node name="seat_3" type="MeshInstance3D" parent="timber_slats"]
+position = Vector3(0, 0.4825, 0.045)
+scale = Vector3(1.84, 0.055, 0.082)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_wood")
+
+[node name="seat_4" type="MeshInstance3D" parent="timber_slats"]
+position = Vector3(0, 0.4825, 0.135)
+scale = Vector3(1.84, 0.055, 0.082)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_wood")
+
+[node name="seat_5" type="MeshInstance3D" parent="timber_slats"]
+position = Vector3(0, 0.4825, 0.225)
+scale = Vector3(1.84, 0.055, 0.082)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_wood")
+
+[node name="back_slats" type="Node3D" parent="."]
+rotation = Vector3(-0.07, 0, 0)
+
+[node name="back_0" type="MeshInstance3D" parent="back_slats"]
+position = Vector3(0, 0.62, -0.255)
+scale = Vector3(1.84, 0.09, 0.05)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_wood")
+
+[node name="back_1" type="MeshInstance3D" parent="back_slats"]
+position = Vector3(0, 0.74, -0.255)
+scale = Vector3(1.84, 0.09, 0.05)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_wood")
+
+[node name="back_2" type="MeshInstance3D" parent="back_slats"]
+position = Vector3(0, 0.86, -0.255)
+scale = Vector3(1.84, 0.09, 0.05)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_wood")
+
+[node name="back_3" type="MeshInstance3D" parent="back_slats"]
+position = Vector3(0, 0.98, -0.255)
+scale = Vector3(1.84, 0.09, 0.05)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_wood")
+
+[node name="iron_frame" type="Node3D" parent="."]
+
+[node name="back_upright_l" type="MeshInstance3D" parent="iron_frame"]
+position = Vector3(-0.88, 0.76, -0.285)
+scale = Vector3(0.10, 0.58, 0.10)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_iron")
+
+[node name="back_upright_r" type="MeshInstance3D" parent="iron_frame"]
+position = Vector3(0.88, 0.76, -0.285)
+scale = Vector3(0.10, 0.58, 0.10)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_iron")
+
+[node name="front_leg_l" type="MeshInstance3D" parent="iron_frame"]
+position = Vector3(-0.88, 0.235, 0.18)
+rotation = Vector3(-0.10, 0, 0)
+scale = Vector3(0.15, 0.47, 0.15)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_iron")
+
+[node name="front_leg_r" type="MeshInstance3D" parent="iron_frame"]
+position = Vector3(0.88, 0.235, 0.18)
+rotation = Vector3(-0.10, 0, 0)
+scale = Vector3(0.15, 0.47, 0.15)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_iron")
+
+[node name="rear_leg_l" type="MeshInstance3D" parent="iron_frame"]
+position = Vector3(-0.88, 0.235, -0.18)
+rotation = Vector3(0.10, 0, 0)
+scale = Vector3(0.15, 0.47, 0.15)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_iron")
+
+[node name="rear_leg_r" type="MeshInstance3D" parent="iron_frame"]
+position = Vector3(0.88, 0.235, -0.18)
+rotation = Vector3(0.10, 0, 0)
+scale = Vector3(0.15, 0.47, 0.15)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_iron")
+
+[node name="foot_front_l" type="MeshInstance3D" parent="iron_frame"]
+position = Vector3(-0.88, 0.025, 0.20)
+scale = Vector3(0.24, 0.05, 0.30)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_iron")
+
+[node name="foot_front_r" type="MeshInstance3D" parent="iron_frame"]
+position = Vector3(0.88, 0.025, 0.20)
+scale = Vector3(0.24, 0.05, 0.30)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_iron")
+
+[node name="foot_rear_l" type="MeshInstance3D" parent="iron_frame"]
+position = Vector3(-0.88, 0.025, -0.20)
+scale = Vector3(0.24, 0.05, 0.30)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_iron")
+
+[node name="foot_rear_r" type="MeshInstance3D" parent="iron_frame"]
+position = Vector3(0.88, 0.025, -0.20)
+scale = Vector3(0.24, 0.05, 0.30)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_iron")
+
+[node name="arm_loop_l" type="MeshInstance3D" parent="iron_frame"]
+position = Vector3(-0.91, 0.68, 0.015)
+rotation = Vector3(0, 0, 1.570796)
+scale = Vector3(0.52, 1.0, 0.64)
+mesh = SubResource("TorusMesh_arm")
+material_override = SubResource("Mat_iron")
+
+[node name="arm_loop_r" type="MeshInstance3D" parent="iron_frame"]
+position = Vector3(0.91, 0.68, 0.015)
+rotation = Vector3(0, 0, 1.570796)
+scale = Vector3(0.52, 1.0, 0.64)
+mesh = SubResource("TorusMesh_arm")
+material_override = SubResource("Mat_iron")
+
+[node name="armrest_l" type="MeshInstance3D" parent="iron_frame"]
+position = Vector3(-0.91, 0.775, 0.035)
+scale = Vector3(0.085, 0.055, 0.47)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_iron")
+
+[node name="armrest_r" type="MeshInstance3D" parent="iron_frame"]
+position = Vector3(0.91, 0.775, 0.035)
+scale = Vector3(0.085, 0.055, 0.47)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_iron")
+
+[node name="scroll_l" type="MeshInstance3D" parent="iron_frame"]
+position = Vector3(-0.91, 0.655, 0.055)
+rotation = Vector3(0, 0, 1.570796)
+scale = Vector3(0.20, 0.72, 0.20)
+mesh = SubResource("TorusMesh_scroll")
+material_override = SubResource("Mat_iron")
+
+[node name="scroll_r" type="MeshInstance3D" parent="iron_frame"]
+position = Vector3(0.91, 0.655, 0.055)
+rotation = Vector3(0, 0, 1.570796)
+scale = Vector3(0.20, 0.72, 0.20)
+mesh = SubResource("TorusMesh_scroll")
+material_override = SubResource("Mat_iron")
+
+[node name="seat_rail" type="MeshInstance3D" parent="iron_frame"]
+position = Vector3(0, 0.425, -0.24)
+scale = Vector3(1.92, 0.075, 0.075)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_iron")
+
+[node name="hardware" type="Node3D" parent="."]
+
+[node name="back_bolt_l_0" type="MeshInstance3D" parent="hardware"]
+position = Vector3(-0.82, 0.62, -0.222)
+rotation = Vector3(1.570796, 0, 0)
+scale = Vector3(0.035, 0.022, 0.035)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_bolt")
+
+[node name="back_bolt_r_0" type="MeshInstance3D" parent="hardware"]
+position = Vector3(0.82, 0.62, -0.222)
+rotation = Vector3(1.570796, 0, 0)
+scale = Vector3(0.035, 0.022, 0.035)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_bolt")
+
+[node name="back_bolt_l_1" type="MeshInstance3D" parent="hardware"]
+position = Vector3(-0.82, 0.86, -0.205)
+rotation = Vector3(1.570796, 0, 0)
+scale = Vector3(0.035, 0.022, 0.035)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_bolt")
+
+[node name="back_bolt_r_1" type="MeshInstance3D" parent="hardware"]
+position = Vector3(0.82, 0.86, -0.205)
+rotation = Vector3(1.570796, 0, 0)
+scale = Vector3(0.035, 0.022, 0.035)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_bolt")
+
+[node name="seat_bolt_l" type="MeshInstance3D" parent="hardware"]
+position = Vector3(-0.82, 0.516, 0.225)
+scale = Vector3(0.035, 0.018, 0.035)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_bolt")
+
+[node name="seat_bolt_r" type="MeshInstance3D" parent="hardware"]
+position = Vector3(0.82, 0.516, 0.225)
+scale = Vector3(0.035, 0.018, 0.035)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_bolt")
+
+[node name="collision" type="StaticBody3D" parent="."]
+
+[node name="seat" type="CollisionShape3D" parent="collision"]
+position = Vector3(0, 0.46, 0)
+shape = SubResource("Collision_seat")
+
+[node name="back" type="CollisionShape3D" parent="collision"]
+position = Vector3(0, 0.78, -0.255)
+rotation = Vector3(-0.07, 0, 0)
+shape = SubResource("Collision_back")

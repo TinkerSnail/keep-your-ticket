@@ -1,0 +1,203 @@
+[gd_scene load_steps=5 format=3]
+
+; Catalog-only ground planting ribbon related to the lamp-and-basket promenade
+; treatment. It contains no lamp, bracket, hanging hardware or container.
+
+[ext_resource type="PackedScene" path="res://scenes/world/petunia_bloom.tscn" id="1_bloom"]
+[ext_resource type="PackedScene" path="res://scenes/world/petunia_foliage_pocket.tscn" id="2_foliage"]
+
+[sub_resource type="BoxMesh" id="Mesh_box"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_soil"]
+albedo_color = Color(0.095, 0.06, 0.032, 1)
+roughness = 1.0
+
+[node name="petunia_ground_row" type="Node3D"]
+editor_description = "Catalog-only 5.8m ground row: eight selectable, overlapping 60–70cm chartreuse foliage heaps with eighteen editable pink, purple, white and yellow bloom heads. No lamps, baskets or hanging hardware."
+
+[node name="soil" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.025, 0)
+scale = Vector3(5.8, 0.05, 1.1)
+mesh = SubResource("Mesh_box")
+material_override = SubResource("Mat_soil")
+
+[node name="foliage" type="Node3D" parent="."]
+editor_description = "Eight independently selectable, full-height chartreuse heaps overlap into a bright undulating row."
+
+[node name="mound_00" parent="foliage" instance=ExtResource("2_foliage")]
+position = Vector3(-2.45, 0.02, 0.06)
+scale = Vector3(0.98, 1, 0.98)
+leaf_color = Color(0.7, 0.9, 0.13, 1)
+spread = 0.54
+mound_height = 0.62
+leaf_count = 32
+leaf_size = 0.205
+seed_value = 101
+
+[node name="mound_01" parent="foliage" instance=ExtResource("2_foliage")]
+position = Vector3(-1.76, 0.02, -0.08)
+scale = Vector3(1.02, 1.02, 1)
+leaf_color = Color(0.55, 0.78, 0.09, 1)
+spread = 0.56
+mound_height = 0.68
+leaf_count = 34
+leaf_size = 0.215
+seed_value = 113
+
+[node name="mound_02" parent="foliage" instance=ExtResource("2_foliage")]
+position = Vector3(-1.06, 0.02, 0.07)
+scale = Vector3(1, 0.98, 1.02)
+leaf_color = Color(0.72, 0.92, 0.14, 1)
+spread = 0.55
+mound_height = 0.64
+leaf_count = 33
+leaf_size = 0.21
+seed_value = 127
+
+[node name="mound_03" parent="foliage" instance=ExtResource("2_foliage")]
+position = Vector3(-0.34, 0.02, -0.05)
+scale = Vector3(1.03, 1.03, 0.99)
+leaf_color = Color(0.6, 0.82, 0.1, 1)
+spread = 0.56
+mound_height = 0.7
+leaf_count = 35
+leaf_size = 0.22
+seed_value = 139
+
+[node name="mound_04" parent="foliage" instance=ExtResource("2_foliage")]
+position = Vector3(0.39, 0.02, 0.07)
+scale = Vector3(1, 1, 1.03)
+leaf_color = Color(0.73, 0.93, 0.14, 1)
+spread = 0.56
+mound_height = 0.66
+leaf_count = 34
+leaf_size = 0.215
+seed_value = 151
+
+[node name="mound_05" parent="foliage" instance=ExtResource("2_foliage")]
+position = Vector3(1.13, 0.02, -0.08)
+scale = Vector3(1.04, 1.02, 1)
+leaf_color = Color(0.57, 0.8, 0.09, 1)
+spread = 0.55
+mound_height = 0.69
+leaf_count = 34
+leaf_size = 0.215
+seed_value = 163
+
+[node name="mound_06" parent="foliage" instance=ExtResource("2_foliage")]
+position = Vector3(1.86, 0.02, 0.06)
+scale = Vector3(1, 0.99, 1.02)
+leaf_color = Color(0.71, 0.91, 0.13, 1)
+spread = 0.55
+mound_height = 0.65
+leaf_count = 33
+leaf_size = 0.21
+seed_value = 179
+
+[node name="mound_07" parent="foliage" instance=ExtResource("2_foliage")]
+position = Vector3(2.5, 0.02, -0.05)
+scale = Vector3(0.97, 1, 0.98)
+leaf_color = Color(0.64, 0.85, 0.1, 1)
+spread = 0.52
+mound_height = 0.61
+leaf_count = 31
+leaf_size = 0.205
+seed_value = 191
+
+[node name="blooms" type="Node3D" parent="."]
+editor_description = "Eighteen individually colored five-petal blooms sit sparsely across the heap tops and outer edges."
+
+[node name="bloom_00" parent="blooms" instance=ExtResource("1_bloom")]
+position = Vector3(-2.62, 0.53, 0.39)
+petal_color = Color(0.94, 0.23, 0.65, 1)
+diameter = 0.18
+
+[node name="bloom_01" parent="blooms" instance=ExtResource("1_bloom")]
+position = Vector3(-2.31, 0.62, 0.29)
+petal_color = Color(0.72, 0.08, 0.68, 1)
+diameter = 0.16
+
+[node name="bloom_02" parent="blooms" instance=ExtResource("1_bloom")]
+position = Vector3(-2.02, 0.55, -0.31)
+petal_color = Color(0.94, 0.9, 0.75, 1)
+throat_color = Color(0.66, 0.28, 0.18, 1)
+diameter = 0.16
+
+[node name="bloom_03" parent="blooms" instance=ExtResource("1_bloom")]
+position = Vector3(-1.72, 0.66, 0.35)
+petal_color = Color(0.96, 0.28, 0.67, 1)
+diameter = 0.17
+
+[node name="bloom_04" parent="blooms" instance=ExtResource("1_bloom")]
+position = Vector3(-1.4, 0.56, -0.34)
+petal_color = Color(0.66, 0.16, 0.82, 1)
+diameter = 0.15
+
+[node name="bloom_05" parent="blooms" instance=ExtResource("1_bloom")]
+position = Vector3(-1.08, 0.64, 0.3)
+petal_color = Color(0.97, 0.33, 0.7, 1)
+diameter = 0.18
+
+[node name="bloom_06" parent="blooms" instance=ExtResource("1_bloom")]
+position = Vector3(-0.75, 0.58, -0.36)
+petal_color = Color(0.95, 0.88, 0.7, 1)
+throat_color = Color(0.58, 0.23, 0.12, 1)
+diameter = 0.16
+
+[node name="bloom_07" parent="blooms" instance=ExtResource("1_bloom")]
+position = Vector3(-0.42, 0.68, 0.37)
+petal_color = Color(0.72, 0.07, 0.66, 1)
+diameter = 0.17
+
+[node name="bloom_08" parent="blooms" instance=ExtResource("1_bloom")]
+position = Vector3(-0.11, 0.57, -0.31)
+petal_color = Color(0.96, 0.25, 0.63, 1)
+diameter = 0.16
+
+[node name="bloom_09" parent="blooms" instance=ExtResource("1_bloom")]
+position = Vector3(0.22, 0.66, 0.33)
+petal_color = Color(0.97, 0.39, 0.73, 1)
+diameter = 0.18
+
+[node name="bloom_10" parent="blooms" instance=ExtResource("1_bloom")]
+position = Vector3(0.54, 0.58, -0.35)
+petal_color = Color(0.66, 0.15, 0.84, 1)
+diameter = 0.16
+
+[node name="bloom_11" parent="blooms" instance=ExtResource("1_bloom")]
+position = Vector3(0.88, 0.65, 0.36)
+petal_color = Color(0.96, 0.27, 0.66, 1)
+diameter = 0.17
+
+[node name="bloom_12" parent="blooms" instance=ExtResource("1_bloom")]
+position = Vector3(1.2, 0.57, -0.32)
+petal_color = Color(0.96, 0.86, 0.67, 1)
+throat_color = Color(0.61, 0.24, 0.1, 1)
+diameter = 0.15
+
+[node name="bloom_13" parent="blooms" instance=ExtResource("1_bloom")]
+position = Vector3(1.52, 0.67, 0.34)
+petal_color = Color(0.71, 0.07, 0.68, 1)
+diameter = 0.18
+
+[node name="bloom_14" parent="blooms" instance=ExtResource("1_bloom")]
+position = Vector3(1.83, 0.56, -0.36)
+petal_color = Color(0.97, 0.28, 0.66, 1)
+diameter = 0.16
+
+[node name="bloom_15" parent="blooms" instance=ExtResource("1_bloom")]
+position = Vector3(2.14, 0.64, 0.32)
+petal_color = Color(0.65, 0.14, 0.82, 1)
+diameter = 0.18
+
+[node name="bloom_16" parent="blooms" instance=ExtResource("1_bloom")]
+position = Vector3(2.43, 0.54, -0.29)
+petal_color = Color(0.94, 0.88, 0.72, 1)
+throat_color = Color(0.62, 0.25, 0.12, 1)
+diameter = 0.15
+
+[node name="bloom_17" parent="blooms" instance=ExtResource("1_bloom")]
+position = Vector3(2.66, 0.59, 0.32)
+petal_color = Color(0.95, 0.22, 0.62, 1)
+diameter = 0.17

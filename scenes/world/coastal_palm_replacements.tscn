@@ -1,0 +1,29 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scenes/world/coastal_palm_replacements.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_crown.tscn" id="2_crown"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_trunk.tscn" id="3_trunk"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_arrival_trunk.tscn" id="4_arrival_trunk"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_ground_base.tscn" id="5_ground_base"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_boardwalk_base.tscn" id="6_boardwalk_base"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_arrival_rings.tscn" id="7_arrival_rings"]
+
+[node name="coastal_palm_replacements" type="Node3D"]
+script = ExtResource("1_script")
+crown_scene = ExtResource("2_crown")
+arrival_crown_scene = ExtResource("2_crown")
+trunk_scene = ExtResource("3_trunk")
+arrival_trunk_scene = ExtResource("4_arrival_trunk")
+ground_base_scene = ExtResource("5_ground_base")
+boardwalk_base_scene = ExtResource("6_boardwalk_base")
+arrival_rings_scene = ExtResource("7_arrival_rings")
+editor_description = "Keeps established palm feet while replacing generated rods and sphere tops with directly editable sources. Arrival palms select the very dense 30–32-frond classic-California pinnate crown; road and Boardwalk palms keep the lighter 12–14-frond form. Arrival and front-road beds retain the shared Hakone and Purple Heart ring layer."
+
+[node name="generated_trunks" type="Node3D" parent="."]
+editor_description = "Transient preview/runtime instances. Edit coastal_palm_trunk.tscn, not these children."
+
+[node name="generated_crowns" type="Node3D" parent="."]
+editor_description = "Transient preview/runtime instances. Edit coastal_palm_crown.tscn, not these children."
+
+[node name="generated_bases" type="Node3D" parent="."]
+editor_description = "Transient preview/runtime instances. Edit the coastal palm ground or Boardwalk base source, not these children."

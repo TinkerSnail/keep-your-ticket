@@ -1,8 +1,166 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3]
 
 ; Stable editor-owned wrapper. The generator writes only generated/entrance.tscn.
 [ext_resource type="PackedScene" path="res://scenes/world/generated/entrance.tscn" id="1_generated"]
+[ext_resource type="PackedScene" path="res://scenes/world/parking_lot_layout.tscn" id="2_parking"]
+[ext_resource type="PackedScene" path="res://scenes/world/arrival_walk_paving.tscn" id="3_arrival_paving"]
 
 [node name="entrance" instance=ExtResource("1_generated")]
 
+; The generated asphalt remains as the accepted support/collision datum. Its
+; visible skin yields to the selectable brick field and Path3D motif below.
+[node name="parking_arrival_path" parent="." index="65"]
+visible = false
+
+; The original parking fields were generator-owned placeholder slabs, box cars
+; and six cylinder trees. The selectable parking_lot_layout source below now
+; owns their visible composition; retain the generated nodes only as a stable
+; compatibility layer for the existing footprint acceptance checks.
+[node name="lot_ground_west" parent="." index="68"]
+visible = false
+[node name="lot_ground_east" parent="." index="69"]
+visible = false
+[node name="car_0" parent="." index="70"]
+visible = false
+[node name="car_1" parent="." index="71"]
+visible = false
+[node name="car_2" parent="." index="72"]
+visible = false
+[node name="car_3" parent="." index="73"]
+visible = false
+[node name="car_4" parent="." index="74"]
+visible = false
+[node name="car_5" parent="." index="75"]
+visible = false
+[node name="car_6" parent="." index="76"]
+visible = false
+[node name="car_7" parent="." index="77"]
+visible = false
+[node name="car_8" parent="." index="78"]
+visible = false
+[node name="car_9" parent="." index="79"]
+visible = false
+[node name="car_10" parent="." index="80"]
+visible = false
+[node name="car_11" parent="." index="81"]
+visible = false
+[node name="car_12" parent="." index="82"]
+visible = false
+[node name="car_13" parent="." index="83"]
+visible = false
+[node name="car_14" parent="." index="84"]
+visible = false
+[node name="car_15" parent="." index="85"]
+visible = false
+[node name="car_16" parent="." index="86"]
+visible = false
+[node name="car_17" parent="." index="87"]
+visible = false
+[node name="car_18" parent="." index="88"]
+visible = false
+[node name="car_19" parent="." index="89"]
+visible = false
+[node name="car_20" parent="." index="90"]
+visible = false
+[node name="car_21" parent="." index="91"]
+visible = false
+[node name="car_22" parent="." index="92"]
+visible = false
+[node name="car_23" parent="." index="93"]
+visible = false
+[node name="car_24" parent="." index="94"]
+visible = false
+[node name="car_25" parent="." index="95"]
+visible = false
+[node name="car_26" parent="." index="96"]
+visible = false
+[node name="car_27" parent="." index="97"]
+visible = false
+[node name="car_28" parent="." index="98"]
+visible = false
+[node name="car_29" parent="." index="99"]
+visible = false
+[node name="car_30" parent="." index="100"]
+visible = false
+[node name="car_31" parent="." index="101"]
+visible = false
+[node name="car_32" parent="." index="102"]
+visible = false
+[node name="car_33" parent="." index="103"]
+visible = false
+[node name="car_34" parent="." index="104"]
+visible = false
+[node name="car_35" parent="." index="105"]
+visible = false
+[node name="car_36" parent="." index="106"]
+visible = false
+[node name="car_37" parent="." index="107"]
+visible = false
+[node name="car_38" parent="." index="108"]
+visible = false
+[node name="car_39" parent="." index="109"]
+visible = false
+[node name="car_40" parent="." index="110"]
+visible = false
+[node name="car_41" parent="." index="111"]
+visible = false
+[node name="lot_tree_west_0" parent="." index="112"]
+visible = false
+[node name="lot_tree_west_1" parent="." index="113"]
+visible = false
+[node name="lot_tree_west_2" parent="." index="114"]
+visible = false
+[node name="lot_tree_east_0" parent="." index="115"]
+visible = false
+[node name="lot_tree_east_1" parent="." index="116"]
+visible = false
+[node name="lot_tree_east_2" parent="." index="117"]
+visible = false
+
+; The controlled Grand Circuit crossing remains, but the generated white zebra
+; bars fought the editor-owned brick field. The continuous raised brick table
+; and its inset lane-edge bands now carry the crossing visually.
+[node name="parking_crosswalk_00" parent="." index="118"]
+visible = false
+[node name="parking_crosswalk_01" parent="." index="119"]
+visible = false
+[node name="parking_crosswalk_02" parent="." index="120"]
+visible = false
+[node name="parking_crosswalk_03" parent="." index="121"]
+visible = false
+[node name="parking_crosswalk_04" parent="." index="122"]
+visible = false
+[node name="parking_crosswalk_05" parent="." index="123"]
+visible = false
+[node name="parking_crosswalk_06" parent="." index="124"]
+visible = false
+[node name="parking_outer_rail_0" parent="." index="125"]
+visible = false
+use_collision = false
+[node name="parking_outer_rail_1" parent="." index="126"]
+visible = false
+use_collision = false
+[node name="parking_outer_rail_2" parent="." index="127"]
+visible = false
+use_collision = false
+[node name="parking_outer_rail_3" parent="." index="128"]
+visible = false
+use_collision = false
+[node name="parking_outer_rail_4" parent="." index="129"]
+visible = false
+use_collision = false
+[node name="parking_outer_rail_5" parent="." index="130"]
+visible = false
+use_collision = false
+[node name="parking_outer_wall_west" parent="." index="131"]
+visible = false
+use_collision = false
+[node name="parking_outer_wall_east" parent="." index="132"]
+visible = false
+use_collision = false
+
 [node name="authored_additions" type="Node3D" parent="."]
+
+[node name="parking_lot_layout" parent="authored_additions" instance=ExtResource("2_parking")]
+
+[node name="arrival_walk_paving" parent="authored_additions" instance=ExtResource("3_arrival_paving")]

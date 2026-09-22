@@ -1,0 +1,27 @@
+[gd_scene load_steps=2 format=3]
+
+; Catalog-only three-tree presentation of the reusable classic bay laurel.
+; Each tree remains a selectable instance of the same editor-owned source.
+
+[ext_resource type="PackedScene" path="res://scenes/world/bay_laurel_tree.tscn" id="1_laurel"]
+
+[node name="bay_laurel_stand" type="Node3D"]
+editor_description = "Catalog-only stand of three PRP-PLANT-046 bay laurels. The varied scale, crown height and yaw demonstrate repetition without claiming a park placement."
+
+[node name="laurel_left" parent="." instance=ExtResource("1_laurel")]
+position = Vector3(-3.25, 0, 0.3)
+rotation = Vector3(0, -0.38, 0)
+scale = Vector3(0.78, 0.82, 0.78)
+leaf_spacing = 0.12
+leaf_length = 0.36
+
+[node name="laurel_centre" parent="." instance=ExtResource("1_laurel")]
+position = Vector3(0, 0, -0.35)
+rotation = Vector3(0, 0.16, 0)
+
+[node name="laurel_right" parent="." instance=ExtResource("1_laurel")]
+position = Vector3(3.45, 0, 0.45)
+rotation = Vector3(0, 0.52, 0)
+scale = Vector3(0.88, 0.94, 0.88)
+leaf_spacing = 0.1
+leaf_length = 0.4

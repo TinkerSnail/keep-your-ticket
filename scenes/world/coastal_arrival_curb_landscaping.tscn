@@ -1,0 +1,83 @@
+[gd_scene load_steps=9 format=3]
+
+; Directly editor-owned curb courses for the arrival allée. The two breaks
+; preserve the Grand Circuit crossing and the drop-off/front-road threshold.
+
+[ext_resource type="Script" path="res://scenes/world/coastal_arrival_curb_landscaping.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_arrival_curb_module.tscn" id="2_module"]
+[ext_resource type="PackedScene" path="res://scenes/world/purple_heart_row_va.tscn" id="3_purple_heart"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_soil"]
+albedo_color = Color(0.19, 0.115, 0.06, 1)
+roughness = 1.0
+
+[sub_resource type="Curve3D" id="Curve_west_south"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -8.35, 0, 170, 0, 0, 0, 0, 0, 0, -8.35, 0, 136),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+bake_interval = 0.5
+
+[sub_resource type="Curve3D" id="Curve_west_north"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -8.35, 0, 224, 0, 0, 0, 0, 0, 0, -8.35, 0, 178),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+bake_interval = 0.5
+
+[sub_resource type="Curve3D" id="Curve_east_south"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 8.35, 0, 136, 0, 0, 0, 0, 0, 0, 8.35, 0, 170),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+bake_interval = 0.5
+
+[sub_resource type="Curve3D" id="Curve_east_north"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 8.35, 0, 178, 0, 0, 0, 0, 0, 0, 8.35, 0, 224),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+bake_interval = 0.5
+
+[node name="coastal_arrival_curb_landscaping" type="Node3D"]
+script = ExtResource("1_script")
+module_scene = ExtResource("2_module")
+soil_material = SubResource("Mat_soil")
+editor_description = "Four editable curb-bed courses. Reshape these paths; the soil ribbon and lush repeated planting derive from them. Two selectable Purple Heart vA ribbons provide restrained color accents."
+
+[node name="bed_courses" type="Node3D" parent="."]
+
+[node name="west_south" type="Path3D" parent="bed_courses"]
+curve = SubResource("Curve_west_south")
+
+[node name="west_north" type="Path3D" parent="bed_courses"]
+curve = SubResource("Curve_west_north")
+
+[node name="east_south" type="Path3D" parent="bed_courses"]
+curve = SubResource("Curve_east_south")
+
+[node name="east_north" type="Path3D" parent="bed_courses"]
+curve = SubResource("Curve_east_north")
+
+[node name="derived_beds" type="Node3D" parent="."]
+editor_description = "Derived visual-only soil ribbons. Edit bed_courses, not these children."
+
+[node name="derived_modules" type="Node3D" parent="."]
+editor_description = "Derived repeated planting. Edit the curb module or bed courses, not these children."
+
+[node name="purple_heart_accents" type="Node3D" parent="."]
+editor_description = "Two directly placed PRP-PLANT-015 accents, one per arrival half. Move or replace these instances independently of the derived planting modules."
+
+[node name="west_south_vA" parent="purple_heart_accents" instance=ExtResource("3_purple_heart")]
+position = Vector3(-7.88, 0.035, 145.5)
+rotation = Vector3(0, 1.52, 0)
+scale = Vector3(0.58, 0.58, 0.58)
+
+[node name="east_north_vA" parent="purple_heart_accents" instance=ExtResource("3_purple_heart")]
+position = Vector3(7.88, 0.035, 211)
+rotation = Vector3(0, 1.49, 0)
+scale = Vector3(0.62, 0.62, 0.62)

@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+; Selectable foliage pocket whose script derives many small ovate leaves from
+; visible color, spread, leaf-count and seed controls.
+
+[ext_resource type="Script" path="res://scenes/world/petunia_foliage_pocket.gd" id="1_script"]
+
+[node name="petunia_foliage_pocket" type="Node3D"]
+script = ExtResource("1_script")
+editor_description = "Reusable dense petunia foliage pocket. Color, spread, leaf size, count and deterministic seed remain editable."

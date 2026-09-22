@@ -1,0 +1,292 @@
+[gd_scene load_steps=8 format=3]
+
+; Editor-owned lemon-zest Hakone grass. Selectable Path3D courses own the
+; cascading fountain silhouette; the tool derives close pairs of striped blades.
+
+[ext_resource type="Script" path="res://scenes/world/hakone_grass.gd" id="1_script"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_edge"]
+cull_mode = 2
+albedo_color = Color(0.18, 0.4, 0.03, 1)
+roughness = 0.96
+
+[sub_resource type="StandardMaterial3D" id="Mat_lemon"]
+cull_mode = 2
+albedo_color = Color(0.6, 0.79, 0.075, 1)
+roughness = 0.93
+
+[sub_resource type="StandardMaterial3D" id="Mat_young_edge"]
+cull_mode = 2
+albedo_color = Color(0.34, 0.57, 0.045, 1)
+roughness = 0.94
+
+[sub_resource type="StandardMaterial3D" id="Mat_young_lemon"]
+cull_mode = 2
+albedo_color = Color(0.76, 0.9, 0.16, 1)
+roughness = 0.91
+
+[sub_resource type="Curve3D" id="Curve_outer"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0.68, 0.16, 0, 0.025, 0.015, -0.01, 0.4, -0.22, 0, 0, 0, 0.045, 0.075, 0.94),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+bake_interval = 0.025
+
+[sub_resource type="Curve3D" id="Curve_mature"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0.76, 0.12, 0, 0.028, 0.012, -0.01, 0.36, -0.2, 0, 0, 0, 0.028, 0.19, 0.79),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+bake_interval = 0.025
+
+[sub_resource type="Curve3D" id="Curve_young"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0.72, 0.06, 0, 0.03, 0.008, -0.01, 0.22, -0.12, 0, 0, 0, 0.02, 0.47, 0.56),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+bake_interval = 0.025
+
+[node name="hakone_grass" type="Node3D"]
+script = ExtResource("1_script")
+edge_material = SubResource("Mat_edge")
+lemon_material = SubResource("Mat_lemon")
+young_edge_material = SubResource("Mat_young_edge")
+young_lemon_material = SubResource("Mat_young_lemon")
+editor_description = "Reusable lemon-zest Japanese forest grass source. Choose vA or vB and reshape the Path3D courses; paired striped blades rebuild from those editor-owned strokes."
+
+[node name="blade_courses" type="Node3D" parent="."]
+editor_description = "Canonical fountain gestures. vA uses eighteen courses (fifty-four blades); vB adds six bright inner courses (seventy-two blades total)."
+
+[node name="outer_00" type="Path3D" parent="blade_courses"]
+rotation = Vector3(0, 0.04, 0)
+scale = Vector3(1.04, 1.04, 1.04)
+curve = SubResource("Curve_outer")
+metadata/half_width = 0.029
+metadata/fold_depth = 0.013
+metadata/copy_spread = 0.025
+metadata/rhythm = 0
+
+[node name="outer_01" type="Path3D" parent="blade_courses"]
+rotation = Vector3(0, 0.78, 0)
+scale = Vector3(0.94, 0.94, 0.94)
+curve = SubResource("Curve_outer")
+metadata/half_width = 0.027
+metadata/fold_depth = 0.012
+metadata/copy_spread = 0.023
+metadata/rhythm = 1
+
+[node name="outer_02" type="Path3D" parent="blade_courses"]
+rotation = Vector3(0, 1.49, 0)
+scale = Vector3(1.08, 1.08, 1.08)
+curve = SubResource("Curve_outer")
+metadata/half_width = 0.03
+metadata/fold_depth = 0.014
+metadata/copy_spread = 0.026
+metadata/rhythm = 2
+
+[node name="outer_03" type="Path3D" parent="blade_courses"]
+rotation = Vector3(0, 2.25, 0)
+scale = Vector3(0.97, 0.97, 0.97)
+curve = SubResource("Curve_outer")
+metadata/half_width = 0.028
+metadata/fold_depth = 0.012
+metadata/copy_spread = 0.024
+metadata/rhythm = 3
+
+[node name="outer_04" type="Path3D" parent="blade_courses"]
+rotation = Vector3(0, 3.08, 0)
+scale = Vector3(1.02, 1.02, 1.02)
+curve = SubResource("Curve_outer")
+metadata/half_width = 0.029
+metadata/fold_depth = 0.013
+metadata/copy_spread = 0.025
+metadata/rhythm = 4
+
+[node name="outer_05" type="Path3D" parent="blade_courses"]
+rotation = Vector3(0, 3.86, 0)
+scale = Vector3(0.92, 0.92, 0.92)
+curve = SubResource("Curve_outer")
+metadata/half_width = 0.027
+metadata/fold_depth = 0.012
+metadata/copy_spread = 0.023
+metadata/rhythm = 5
+
+[node name="outer_06" type="Path3D" parent="blade_courses"]
+rotation = Vector3(0, 4.68, 0)
+scale = Vector3(1.07, 1.07, 1.07)
+curve = SubResource("Curve_outer")
+metadata/half_width = 0.03
+metadata/fold_depth = 0.014
+metadata/copy_spread = 0.026
+metadata/rhythm = 6
+
+[node name="outer_07" type="Path3D" parent="blade_courses"]
+rotation = Vector3(0, 5.48, 0)
+scale = Vector3(0.96, 0.96, 0.96)
+curve = SubResource("Curve_outer")
+metadata/half_width = 0.028
+metadata/fold_depth = 0.012
+metadata/copy_spread = 0.024
+metadata/rhythm = 7
+
+[node name="mature_00" type="Path3D" parent="blade_courses"]
+rotation = Vector3(0, 0.34, 0)
+scale = Vector3(0.96, 0.96, 0.96)
+curve = SubResource("Curve_mature")
+metadata/half_width = 0.027
+metadata/fold_depth = 0.013
+metadata/copy_spread = 0.022
+metadata/rhythm = 8
+
+[node name="mature_01" type="Path3D" parent="blade_courses"]
+rotation = Vector3(0, 0.98, 0)
+scale = Vector3(1.04, 1.04, 1.04)
+curve = SubResource("Curve_mature")
+metadata/half_width = 0.028
+metadata/fold_depth = 0.014
+metadata/copy_spread = 0.024
+metadata/rhythm = 9
+
+[node name="mature_02" type="Path3D" parent="blade_courses"]
+rotation = Vector3(0, 1.68, 0)
+scale = Vector3(0.92, 0.92, 0.92)
+curve = SubResource("Curve_mature")
+metadata/half_width = 0.026
+metadata/fold_depth = 0.012
+metadata/copy_spread = 0.022
+metadata/rhythm = 10
+
+[node name="mature_03" type="Path3D" parent="blade_courses"]
+rotation = Vector3(0, 2.36, 0)
+scale = Vector3(1.06, 1.06, 1.06)
+curve = SubResource("Curve_mature")
+metadata/half_width = 0.029
+metadata/fold_depth = 0.014
+metadata/copy_spread = 0.025
+metadata/rhythm = 11
+
+[node name="mature_04" type="Path3D" parent="blade_courses"]
+rotation = Vector3(0, 3.02, 0)
+scale = Vector3(0.95, 0.95, 0.95)
+curve = SubResource("Curve_mature")
+metadata/half_width = 0.027
+metadata/fold_depth = 0.013
+metadata/copy_spread = 0.023
+metadata/rhythm = 12
+
+[node name="mature_05" type="Path3D" parent="blade_courses"]
+rotation = Vector3(0, 3.72, 0)
+scale = Vector3(1.02, 1.02, 1.02)
+curve = SubResource("Curve_mature")
+metadata/half_width = 0.028
+metadata/fold_depth = 0.014
+metadata/copy_spread = 0.024
+metadata/rhythm = 13
+
+[node name="mature_06" type="Path3D" parent="blade_courses"]
+rotation = Vector3(0, 4.42, 0)
+scale = Vector3(0.93, 0.93, 0.93)
+curve = SubResource("Curve_mature")
+metadata/half_width = 0.026
+metadata/fold_depth = 0.012
+metadata/copy_spread = 0.022
+metadata/rhythm = 14
+
+[node name="mature_07" type="Path3D" parent="blade_courses"]
+rotation = Vector3(0, 5.1, 0)
+scale = Vector3(1.05, 1.05, 1.05)
+curve = SubResource("Curve_mature")
+metadata/half_width = 0.029
+metadata/fold_depth = 0.014
+metadata/copy_spread = 0.025
+metadata/rhythm = 15
+
+[node name="mature_08" type="Path3D" parent="blade_courses"]
+rotation = Vector3(0, 5.73, 0)
+scale = Vector3(0.97, 0.97, 0.97)
+curve = SubResource("Curve_mature")
+metadata/half_width = 0.027
+metadata/fold_depth = 0.013
+metadata/copy_spread = 0.023
+metadata/rhythm = 16
+
+[node name="mature_09" type="Path3D" parent="blade_courses"]
+rotation = Vector3(0, 6.12, 0)
+scale = Vector3(0.9, 0.9, 0.9)
+curve = SubResource("Curve_mature")
+metadata/half_width = 0.026
+metadata/fold_depth = 0.012
+metadata/copy_spread = 0.022
+metadata/rhythm = 17
+
+[node name="young_00" type="Path3D" parent="blade_courses"]
+rotation = Vector3(0, 0.16, 0)
+scale = Vector3(0.92, 0.92, 0.92)
+curve = SubResource("Curve_young")
+metadata/half_width = 0.025
+metadata/fold_depth = 0.014
+metadata/copy_spread = 0.021
+metadata/young = true
+metadata/variant_min = 1
+metadata/rhythm = 18
+
+[node name="young_01" type="Path3D" parent="blade_courses"]
+rotation = Vector3(0, 1.18, 0)
+scale = Vector3(1.02, 1.02, 1.02)
+curve = SubResource("Curve_young")
+metadata/half_width = 0.026
+metadata/fold_depth = 0.015
+metadata/copy_spread = 0.022
+metadata/young = true
+metadata/variant_min = 1
+metadata/rhythm = 19
+
+[node name="young_02" type="Path3D" parent="blade_courses"]
+rotation = Vector3(0, 2.25, 0)
+scale = Vector3(0.88, 0.88, 0.88)
+curve = SubResource("Curve_young")
+metadata/half_width = 0.024
+metadata/fold_depth = 0.013
+metadata/copy_spread = 0.02
+metadata/young = true
+metadata/variant_min = 1
+metadata/rhythm = 20
+
+[node name="young_03" type="Path3D" parent="blade_courses"]
+rotation = Vector3(0, 3.28, 0)
+scale = Vector3(0.98, 0.98, 0.98)
+curve = SubResource("Curve_young")
+metadata/half_width = 0.026
+metadata/fold_depth = 0.015
+metadata/copy_spread = 0.022
+metadata/young = true
+metadata/variant_min = 1
+metadata/rhythm = 21
+
+[node name="young_04" type="Path3D" parent="blade_courses"]
+rotation = Vector3(0, 4.34, 0)
+scale = Vector3(0.9, 0.9, 0.9)
+curve = SubResource("Curve_young")
+metadata/half_width = 0.025
+metadata/fold_depth = 0.014
+metadata/copy_spread = 0.021
+metadata/young = true
+metadata/variant_min = 1
+metadata/rhythm = 22
+
+[node name="young_05" type="Path3D" parent="blade_courses"]
+rotation = Vector3(0, 5.38, 0)
+scale = Vector3(1, 1, 1)
+curve = SubResource("Curve_young")
+metadata/half_width = 0.026
+metadata/fold_depth = 0.015
+metadata/copy_spread = 0.022
+metadata/young = true
+metadata/variant_min = 1
+metadata/rhythm = 23
+
+[node name="derived_blades" type="Node3D" parent="."]
+editor_description = "Derived preview/output. Edit blade_courses rather than these mesh instances."

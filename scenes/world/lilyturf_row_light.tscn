@@ -1,0 +1,41 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/world/lilyturf_clump_light.tscn" id="1_clump"]
+
+[node name="lilyturf_row_light" type="Node3D"]
+editor_description = "PRP-PLANT-044. Seven overlapping, independently selectable PRP-PLANT-043 clumps make a 3.7m light yellow-green path-edge ribbon."
+
+[node name="clump_00" parent="." instance=ExtResource("1_clump")]
+position = Vector3(-1.56, 0, 0.03)
+rotation = Vector3(0, -0.18, 0)
+scale = Vector3(0.92, 0.92, 0.92)
+
+[node name="clump_01" parent="." instance=ExtResource("1_clump")]
+position = Vector3(-1.04, 0, -0.03)
+rotation = Vector3(0, 0.21, 0)
+scale = Vector3(1.04, 1.04, 1.04)
+
+[node name="clump_02" parent="." instance=ExtResource("1_clump")]
+position = Vector3(-0.52, 0, 0.02)
+rotation = Vector3(0, -0.31, 0)
+scale = Vector3(0.96, 0.96, 0.96)
+
+[node name="clump_03" parent="." instance=ExtResource("1_clump")]
+position = Vector3(0, 0, -0.02)
+rotation = Vector3(0, 0.12, 0)
+scale = Vector3(1.08, 1.08, 1.08)
+
+[node name="clump_04" parent="." instance=ExtResource("1_clump")]
+position = Vector3(0.52, 0, 0.03)
+rotation = Vector3(0, -0.09, 0)
+scale = Vector3(0.98, 0.98, 0.98)
+
+[node name="clump_05" parent="." instance=ExtResource("1_clump")]
+position = Vector3(1.04, 0, -0.03)
+rotation = Vector3(0, 0.28, 0)
+scale = Vector3(1.03, 1.03, 1.03)
+
+[node name="clump_06" parent="." instance=ExtResource("1_clump")]
+position = Vector3(1.56, 0, 0.02)
+rotation = Vector3(0, -0.24, 0)
+scale = Vector3(0.94, 0.94, 0.94)

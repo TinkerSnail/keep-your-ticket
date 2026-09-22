@@ -1,0 +1,191 @@
+[gd_scene load_steps=7 format=3]
+
+; Reusable Lily of the Nile (Agapanthus) clump for California park borders.
+; Every strap leaf, flower stem and globe is an ordinary selectable scene node.
+
+[ext_resource type="PackedScene" path="res://scenes/world/lily_of_the_nile_flower_head.tscn" id="1_head"]
+[ext_resource type="PackedScene" path="res://scenes/world/arching_strap_leaf.tscn" id="2_leaf"]
+[ext_resource type="PackedScene" path="res://scenes/world/arching_flower_stem.tscn" id="3_stem"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_leaf"]
+cull_mode = 2
+albedo_color = Color(0.13, 0.34, 0.12, 1)
+roughness = 0.96
+
+[sub_resource type="StandardMaterial3D" id="Mat_leaf_young"]
+cull_mode = 2
+albedo_color = Color(0.25, 0.49, 0.18, 1)
+roughness = 0.94
+
+[sub_resource type="StandardMaterial3D" id="Mat_stem"]
+albedo_color = Color(0.22, 0.43, 0.17, 1)
+roughness = 0.94
+
+[node name="lily_of_the_nile_clump" type="Node3D"]
+editor_description = "PRP-PLANT-029. Deep-green California border clump: broad pointed arching leaves, gently bending leafless stems and purple flower globes. Every leaf and stem course remains independently selectable."
+
+[node name="strap_leaves" type="Node3D" parent="."]
+
+[node name="leaf_00" parent="strap_leaves" instance=ExtResource("2_leaf")]
+position = Vector3(-0.12, 0.012, 0.04)
+rotation = Vector3(0, 0.2, 0.04)
+scale = Vector3(1.04, 1.04, 1.04)
+leaf_material = SubResource("Mat_leaf")
+half_width = 0.1
+fold_depth = 0.015
+
+[node name="leaf_01" parent="strap_leaves" instance=ExtResource("2_leaf")]
+position = Vector3(0.12, 0.014, -0.03)
+rotation = Vector3(0, 0.65, -0.035)
+scale = Vector3(0.94, 0.94, 0.94)
+leaf_material = SubResource("Mat_leaf")
+half_width = 0.095
+fold_depth = 0.013
+
+[node name="leaf_02" parent="strap_leaves" instance=ExtResource("2_leaf")]
+position = Vector3(-0.07, 0.016, -0.12)
+rotation = Vector3(0, 1.18, 0.03)
+scale = Vector3(0.88, 0.88, 0.88)
+leaf_material = SubResource("Mat_leaf")
+half_width = 0.09
+fold_depth = 0.012
+
+[node name="leaf_03" parent="strap_leaves" instance=ExtResource("2_leaf")]
+position = Vector3(0.06, 0.012, 0.13)
+rotation = Vector3(0, 1.72, -0.03)
+scale = Vector3(1.04, 1.04, 1.04)
+leaf_material = SubResource("Mat_leaf")
+half_width = 0.1
+fold_depth = 0.016
+
+[node name="leaf_04" parent="strap_leaves" instance=ExtResource("2_leaf")]
+position = Vector3(-0.13, 0.018, 0.11)
+rotation = Vector3(0, 2.25, 0.045)
+scale = Vector3(0.86, 0.86, 0.86)
+leaf_material = SubResource("Mat_leaf")
+half_width = 0.085
+fold_depth = 0.012
+
+[node name="leaf_05" parent="strap_leaves" instance=ExtResource("2_leaf")]
+position = Vector3(0.13, 0.014, 0.09)
+rotation = Vector3(0, 2.78, -0.04)
+scale = Vector3(0.95, 0.95, 0.95)
+leaf_material = SubResource("Mat_leaf")
+half_width = 0.095
+fold_depth = 0.014
+
+[node name="leaf_06" parent="strap_leaves" instance=ExtResource("2_leaf")]
+position = Vector3(0.13, 0.016, -0.1)
+rotation = Vector3(0, 3.32, 0.04)
+scale = Vector3(0.9, 0.9, 0.9)
+leaf_material = SubResource("Mat_leaf")
+half_width = 0.09
+fold_depth = 0.013
+
+[node name="leaf_07" parent="strap_leaves" instance=ExtResource("2_leaf")]
+position = Vector3(-0.12, 0.012, -0.08)
+rotation = Vector3(0, 3.9, -0.035)
+scale = Vector3(1.02, 1.02, 1.02)
+leaf_material = SubResource("Mat_leaf")
+half_width = 0.1
+fold_depth = 0.015
+
+[node name="leaf_08" parent="strap_leaves" instance=ExtResource("2_leaf")]
+position = Vector3(-0.02, 0.018, 0.15)
+rotation = Vector3(0, 4.46, 0.05)
+scale = Vector3(0.84, 0.84, 0.84)
+leaf_material = SubResource("Mat_leaf")
+half_width = 0.085
+fold_depth = 0.012
+
+[node name="leaf_09" parent="strap_leaves" instance=ExtResource("2_leaf")]
+position = Vector3(0.03, 0.016, -0.15)
+rotation = Vector3(0, 5.02, -0.045)
+scale = Vector3(0.92, 0.92, 0.92)
+leaf_material = SubResource("Mat_leaf")
+half_width = 0.09
+fold_depth = 0.014
+
+[node name="leaf_10" parent="strap_leaves" instance=ExtResource("2_leaf")]
+position = Vector3(-0.09, 0.02, 0)
+rotation = Vector3(0, 5.55, 0.055)
+scale = Vector3(0.76, 0.76, 0.76)
+leaf_material = SubResource("Mat_leaf_young")
+half_width = 0.08
+fold_depth = 0.011
+
+[node name="leaf_11" parent="strap_leaves" instance=ExtResource("2_leaf")]
+position = Vector3(0.09, 0.02, 0.02)
+rotation = Vector3(0, 6.04, -0.05)
+scale = Vector3(0.8, 0.8, 0.8)
+leaf_material = SubResource("Mat_leaf_young")
+half_width = 0.082
+fold_depth = 0.011
+
+[node name="flower_stems" type="Node3D" parent="."]
+
+[node name="stem_00" parent="flower_stems" instance=ExtResource("3_stem")]
+position = Vector3(-0.34, 0.02, -0.13)
+rotation = Vector3(0, 0.25, 0)
+scale = Vector3(0.95, 0.93, 0.95)
+stem_material = SubResource("Mat_stem")
+
+[node name="globe_00" parent="flower_stems" instance=ExtResource("1_head")]
+position = Vector3(-0.138, 1.369, -0.182)
+
+[node name="stem_01" parent="flower_stems" instance=ExtResource("3_stem")]
+position = Vector3(-0.02, 0.02, -0.22)
+rotation = Vector3(0, -0.55, 0)
+scale = Vector3(1, 1.025, 1)
+stem_material = SubResource("Mat_stem")
+
+[node name="globe_01" parent="flower_stems" instance=ExtResource("1_head")]
+position = Vector3(0.168, 1.506, -0.105)
+scale = Vector3(1.06, 1.06, 1.06)
+
+[node name="stem_02" parent="flower_stems" instance=ExtResource("3_stem")]
+position = Vector3(0.3, 0.02, -0.05)
+rotation = Vector3(0, 1.25, 0)
+scale = Vector3(0.92, 0.88, 0.92)
+stem_material = SubResource("Mat_stem")
+
+[node name="globe_02" parent="flower_stems" instance=ExtResource("1_head")]
+position = Vector3(0.364, 1.296, -0.242)
+scale = Vector3(0.92, 0.92, 0.92)
+
+[node name="stem_03" parent="flower_stems" instance=ExtResource("3_stem")]
+position = Vector3(-0.2, 0.02, 0.18)
+rotation = Vector3(0, 2.35, 0)
+scale = Vector3(0.98, 0.965, 0.98)
+stem_material = SubResource("Mat_stem")
+
+[node name="globe_03" parent="flower_stems" instance=ExtResource("1_head")]
+position = Vector3(-0.352, 1.419, 0.027)
+scale = Vector3(1.02, 1.02, 1.02)
+
+[node name="stem_04" parent="flower_stems" instance=ExtResource("3_stem")]
+position = Vector3(0.18, 0.02, 0.22)
+rotation = Vector3(0, -2.0, 0)
+scale = Vector3(0.9, 0.85, 0.9)
+stem_material = SubResource("Mat_stem")
+
+[node name="globe_04" parent="flower_stems" instance=ExtResource("1_head")]
+position = Vector3(0.098, 1.252, 0.4)
+scale = Vector3(0.88, 0.88, 0.88)
+
+[node name="stem_05" parent="flower_stems" instance=ExtResource("3_stem")]
+position = Vector3(-0.06, 0.02, 0.04)
+rotation = Vector3(0, 0.9, 0)
+scale = Vector3(0.94, 0.905, 0.94)
+stem_material = SubResource("Mat_stem")
+
+[node name="globe_05" parent="flower_stems" instance=ExtResource("1_head")]
+position = Vector3(0.069, 1.332, -0.122)
+scale = Vector3(0.96, 0.96, 0.96)
+
+[editable path="flower_stems/stem_00"]
+[editable path="flower_stems/stem_01"]
+[editable path="flower_stems/stem_02"]
+[editable path="flower_stems/stem_03"]
+[editable path="flower_stems/stem_04"]
+[editable path="flower_stems/stem_05"]

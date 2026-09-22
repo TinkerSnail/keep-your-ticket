@@ -1,0 +1,136 @@
+[gd_scene load_steps=9 format=3]
+
+; Catalog-only heritage lamp and paired-basket composition. Each basket remains
+; an instance of the reusable overflowing mixed-flower family.
+
+[ext_resource type="PackedScene" path="res://scenes/world/hanging_planter_petunia_cloud.tscn" id="1_basket"]
+
+[sub_resource type="CylinderMesh" id="Mesh_cylinder"]
+top_radius = 0.5
+bottom_radius = 0.5
+height = 1.0
+radial_segments = 14
+rings = 1
+
+[sub_resource type="CylinderMesh" id="Mesh_taper"]
+top_radius = 0.16
+bottom_radius = 0.5
+height = 1.0
+radial_segments = 14
+rings = 1
+
+[sub_resource type="BoxMesh" id="Mesh_box"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="SphereMesh" id="Mesh_globe"]
+radius = 0.5
+height = 1.0
+radial_segments = 18
+rings = 8
+
+[sub_resource type="StandardMaterial3D" id="Mat_pole"]
+albedo_color = Color(0.035, 0.13, 0.15, 1)
+metallic = 0.68
+roughness = 0.5
+
+[sub_resource type="StandardMaterial3D" id="Mat_glass"]
+albedo_color = Color(0.83, 0.88, 0.78, 1)
+emission_enabled = true
+emission = Color(0.72, 0.67, 0.46, 1)
+emission_energy_multiplier = 0.35
+roughness = 0.28
+
+[sub_resource type="StandardMaterial3D" id="Mat_cap"]
+albedo_color = Color(0.13, 0.1, 0.045, 1)
+metallic = 0.72
+roughness = 0.46
+
+[node name="hanging_planter_twin_lamp" type="Node3D"]
+editor_description = "Catalog-only composition: a teal-black heritage globe lamp with a balanced crossarm and two reusable overflowing mixed-flower baskets. Root origin is ground level."
+
+[node name="lamp" type="Node3D" parent="."]
+editor_description = "Selectable base, shaft, collars, globe, cap and finial."
+
+[node name="foot" type="MeshInstance3D" parent="lamp"]
+position = Vector3(0, 0.08, 0)
+scale = Vector3(0.46, 0.16, 0.46)
+mesh = SubResource("Mesh_cylinder")
+material_override = SubResource("Mat_pole")
+
+[node name="base" type="MeshInstance3D" parent="lamp"]
+position = Vector3(0, 0.27, 0)
+scale = Vector3(0.34, 0.3, 0.34)
+mesh = SubResource("Mesh_taper")
+material_override = SubResource("Mat_pole")
+
+[node name="shaft" type="MeshInstance3D" parent="lamp"]
+position = Vector3(0, 1.87, 0)
+scale = Vector3(0.13, 2.9, 0.13)
+mesh = SubResource("Mesh_cylinder")
+material_override = SubResource("Mat_pole")
+
+[node name="lower_collar" type="MeshInstance3D" parent="lamp"]
+position = Vector3(0, 3.27, 0)
+scale = Vector3(0.25, 0.18, 0.25)
+mesh = SubResource("Mesh_cylinder")
+material_override = SubResource("Mat_cap")
+
+[node name="lamp_neck" type="MeshInstance3D" parent="lamp"]
+position = Vector3(0, 3.58, 0)
+scale = Vector3(0.19, 0.48, 0.19)
+mesh = SubResource("Mesh_cylinder")
+material_override = SubResource("Mat_pole")
+
+[node name="globe_base" type="MeshInstance3D" parent="lamp"]
+position = Vector3(0, 3.87, 0)
+scale = Vector3(0.32, 0.18, 0.32)
+mesh = SubResource("Mesh_taper")
+material_override = SubResource("Mat_cap")
+
+[node name="globe" type="MeshInstance3D" parent="lamp"]
+position = Vector3(0, 4.22, 0)
+scale = Vector3(0.52, 0.65, 0.52)
+mesh = SubResource("Mesh_globe")
+material_override = SubResource("Mat_glass")
+
+[node name="globe_cap" type="MeshInstance3D" parent="lamp"]
+position = Vector3(0, 4.58, 0)
+scale = Vector3(0.24, 0.16, 0.24)
+mesh = SubResource("Mesh_taper")
+material_override = SubResource("Mat_cap")
+
+[node name="finial" type="MeshInstance3D" parent="lamp"]
+position = Vector3(0, 4.76, 0)
+scale = Vector3(0.07, 0.2, 0.07)
+mesh = SubResource("Mesh_taper")
+material_override = SubResource("Mat_cap")
+
+[node name="crossarm" type="Node3D" parent="."]
+editor_description = "Selectable straight crossarm, two end hooks and paired basket sockets."
+
+[node name="bar" type="MeshInstance3D" parent="crossarm"]
+position = Vector3(0, 3.28, 0)
+scale = Vector3(2.6, 0.065, 0.07)
+mesh = SubResource("Mesh_box")
+material_override = SubResource("Mat_pole")
+
+[node name="left_hook" type="MeshInstance3D" parent="crossarm"]
+position = Vector3(-1.08, 3.22, 0)
+scale = Vector3(0.08, 0.14, 0.08)
+mesh = SubResource("Mesh_cylinder")
+material_override = SubResource("Mat_pole")
+
+[node name="right_hook" type="MeshInstance3D" parent="crossarm"]
+position = Vector3(1.08, 3.22, 0)
+scale = Vector3(0.08, 0.14, 0.08)
+mesh = SubResource("Mesh_cylinder")
+material_override = SubResource("Mat_pole")
+
+[node name="left_basket" parent="." instance=ExtResource("1_basket")]
+position = Vector3(-1.08, 3.18, 0)
+scale = Vector3(0.84, 0.84, 0.84)
+
+[node name="right_basket" parent="." instance=ExtResource("1_basket")]
+position = Vector3(1.08, 3.18, 0)
+rotation = Vector3(0, 3.141593, 0)
+scale = Vector3(0.84, 0.84, 0.84)

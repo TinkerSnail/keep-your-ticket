@@ -8,4 +8,14 @@
 
 [node name="park_towns" instance=ExtResource("1_generated")]
 
+; The former city footprint remains as far-shore approach land, but its skyline
+; is retired in favour of the editable city beyond the range's south shoulder.
+[node name="far_city_buildings" parent="." index="60"]
+visible = false
+collision_layer = 0
+
+[node name="far_city_windows" parent="." index="61"]
+visible = false
+collision_layer = 0
+
 [node name="authored_additions" type="Node3D" parent="."]

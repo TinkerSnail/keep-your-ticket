@@ -1,0 +1,445 @@
+[gd_scene load_steps=23 format=3]
+
+; Editor-owned coastal palm crown. Each Path3D below is an artistic source;
+; the tool script derives only the repeated leaflets and midrib surface.
+
+[ext_resource type="Script" path="res://scenes/world/coastal_palm_crown.gd" id="1_script"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_heart"]
+albedo_color = Color(0.32, 0.43, 0.16, 1)
+roughness = 0.96
+
+[sub_resource type="StandardMaterial3D" id="Mat_new"]
+cull_mode = 2
+albedo_color = Color(0.43, 0.64, 0.25, 1)
+roughness = 0.94
+
+[sub_resource type="StandardMaterial3D" id="Mat_mature"]
+cull_mode = 2
+albedo_color = Color(0.16, 0.39, 0.18, 1)
+roughness = 0.97
+
+[sub_resource type="StandardMaterial3D" id="Mat_old"]
+cull_mode = 2
+albedo_color = Color(0.27, 0.33, 0.12, 1)
+roughness = 0.98
+
+[sub_resource type="StandardMaterial3D" id="Mat_midrib"]
+cull_mode = 2
+albedo_color = Color(0.12, 0.3, 0.11, 1)
+roughness = 0.98
+
+[sub_resource type="StandardMaterial3D" id="Mat_remnant"]
+cull_mode = 2
+albedo_color = Color(0.31, 0.22, 0.11, 1)
+roughness = 0.99
+
+[sub_resource type="SphereMesh" id="SphereMesh_heart"]
+material = SubResource("Mat_heart")
+radius = 0.44
+height = 0.72
+radial_segments = 8
+rings = 4
+
+[sub_resource type="Curve3D" id="Curve3D_new_0"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.12, 0.55, 0.06, 0, 0, 0, 0, 0, 0, 0.34, 1.22, 0.15, 0, 0, 0, 0, 0, 0, 0.62, 1.82, 0.29),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
+bake_interval = 0.12
+
+[sub_resource type="Curve3D" id="Curve3D_new_1"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.1, 0.55, 0.07, 0, 0, 0, 0, 0, 0, -0.36, 1.2, 0.26, 0, 0, 0, 0, 0, 0, -0.7, 1.72, 0.49),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
+bake_interval = 0.12
+
+[sub_resource type="Curve3D" id="Curve3D_new_2"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.04, 0.55, -0.15, 0, 0, 0, 0, 0, 0, -0.12, 1.18, -0.46, 0, 0, 0, 0, 0, 0, -0.2, 1.66, -0.8),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
+bake_interval = 0.12
+
+[sub_resource type="Curve3D" id="Curve3D_mature_0"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0.04, 0, 0, 0, 0, 0, 0, 0, 0.7, 0.34, 0.02, 0, 0, 0, 0, 0, 0, 2, 0.2, 0.2, 0, 0, 0, 0, 0, 0, 3.2, -0.45, 0.25, 0, 0, 0, 0, 0, 0, 3.8, -1.15, 0.1),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
+bake_interval = 0.16
+
+[sub_resource type="Curve3D" id="Curve3D_mature_1"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0.04, 0, 0, 0, 0, 0, 0, 0, 0.45, 0.35, 0.54, 0, 0, 0, 0, 0, 0, 1.2, 0.2, 1.65, 0, 0, 0, 0, 0, 0, 1.8, -0.4, 2.7, 0, 0, 0, 0, 0, 0, 2.1, -1.25, 3.25),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
+bake_interval = 0.16
+
+[sub_resource type="Curve3D" id="Curve3D_mature_2"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0.04, 0, 0, 0, 0, 0, 0, 0, -0.18, 0.4, 0.68, 0, 0, 0, 0, 0, 0, -0.65, 0.25, 1.9, 0, 0, 0, 0, 0, 0, -1, -0.45, 3, 0, 0, 0, 0, 0, 0, -1.15, -1.2, 3.65),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
+bake_interval = 0.16
+
+[sub_resource type="Curve3D" id="Curve3D_mature_3"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0.04, 0, 0, 0, 0, 0, 0, 0, -0.66, 0.3, 0.24, 0, 0, 0, 0, 0, 0, -1.9, 0.15, 0.55, 0, 0, 0, 0, 0, 0, -3.1, -0.5, 0.8, 0, 0, 0, 0, 0, 0, -3.75, -1.3, 0.8),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
+bake_interval = 0.16
+
+[sub_resource type="Curve3D" id="Curve3D_mature_4"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0.04, 0, 0, 0, 0, 0, 0, 0, -0.57, 0.35, -0.4, 0, 0, 0, 0, 0, 0, -1.5, 0.2, -1.35, 0, 0, 0, 0, 0, 0, -2.55, -0.35, -2, 0, 0, 0, 0, 0, 0, -3.15, -1.1, -2.3),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
+bake_interval = 0.16
+
+[sub_resource type="Curve3D" id="Curve3D_mature_5"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0.04, 0, 0, 0, 0, 0, 0, 0, 0, 0.3, -0.7, 0, 0, 0, 0, 0, 0, 0.2, 0.15, -2, 0, 0, 0, 0, 0, 0, 0.25, -0.5, -3.15, 0, 0, 0, 0, 0, 0, 0.1, -1.3, -3.8),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
+bake_interval = 0.16
+
+[sub_resource type="Curve3D" id="Curve3D_mature_6"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0.04, 0, 0, 0, 0, 0, 0, 0, 0.54, 0.4, -0.45, 0, 0, 0, 0, 0, 0, 1.65, 0.25, -1.15, 0, 0, 0, 0, 0, 0, 2.65, -0.35, -1.75, 0, 0, 0, 0, 0, 0, 3.25, -1.1, -2.15),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
+bake_interval = 0.16
+
+[sub_resource type="Curve3D" id="Curve3D_old_0"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0.02, 0, 0, 0, 0, 0, 0, 0, 0.1, 0.05, 0.6, 0, 0, 0, 0, 0, 0, 0.3, -0.5, 1.7, 0, 0, 0, 0, 0, 0, 0.45, -1.25, 2.65, 0, 0, 0, 0, 0, 0, 0.4, -2, 3.2),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
+bake_interval = 0.16
+
+[sub_resource type="Curve3D" id="Curve3D_old_1"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0.02, 0, 0, 0, 0, 0, 0, 0, -0.38, 0, -0.45, 0, 0, 0, 0, 0, 0, -1.1, -0.45, -1.25, 0, 0, 0, 0, 0, 0, -1.85, -1.2, -2, 0, 0, 0, 0, 0, 0, -2.25, -2.05, -2.5),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
+bake_interval = 0.16
+
+[sub_resource type="Curve3D" id="Curve3D_extra_0"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0.04, 0, 0, 0, 0, 0, 0, 0, -0.3, 0.32, -0.65, 0, 0, 0, 0, 0, 0, -0.9, 0.18, -1.75, 0, 0, 0, 0, 0, 0, -1.55, -0.45, -2.9, 0, 0, 0, 0, 0, 0, -1.85, -1.2, -3.5),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
+bake_interval = 0.16
+
+[sub_resource type="Curve3D" id="Curve3D_extra_1"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0.04, 0, 0, 0, 0, 0, 0, 0, 0.62, 0.32, 0.29, 0, 0, 0, 0, 0, 0, 1.7, 0.18, 0.8, 0, 0, 0, 0, 0, 0, 2.9, -0.4, 1.35, 0, 0, 0, 0, 0, 0, 3.5, -1.15, 1.63),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
+bake_interval = 0.16
+
+[sub_resource type="Curve3D" id="Curve3D_inner"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0.04, 0, 0, 0, 0, 0, 0, 0, 0.42, 0.68, 0.04, 0, 0, 0, 0, 0, 0, 1.15, 1.02, 0.12, 0, 0, 0, 0, 0, 0, 2.02, 0.83, 0.18, 0, 0, 0, 0, 0, 0, 2.72, 0.24, 0.16),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
+bake_interval = 0.14
+
+[sub_resource type="Curve3D" id="Curve3D_remnant"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, -0.08, 0, 0, 0, 0, 0, 0, 0, 0.12, -0.28, 0, 0, 0, 0, 0, 0, 0, 0.19, -0.58, 0, 0, 0, 0, 0, 0, 0, 0.12, -0.82, 0),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
+bake_interval = 0.08
+
+[node name="coastal_palm_crown" type="Node3D"]
+script = ExtResource("1_script")
+new_growth_material = SubResource("Mat_new")
+mature_material = SubResource("Mat_mature")
+old_growth_material = SubResource("Mat_old")
+midrib_material = SubResource("Mat_midrib")
+remnant_material = SubResource("Mat_remnant")
+editor_description = "Directly editable pinnate palm silhouette. Twenty optional feather-frond courses let the entrance allée use a very dense, layered classic-California crown while road and Boardwalk palms retain the lighter core. Move Path3D points to reshape the head."
+metadata/species_language = "classic_california_date_palm"
+
+[node name="crown_heart" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_heart")
+
+[node name="frond_courses" type="Node3D" parent="."]
+editor_description = "Canonical frond shapes. These curves, not generated geometry, own the artistic crown silhouette."
+
+[node name="new_0" type="Path3D" parent="frond_courses"]
+curve = SubResource("Curve3D_new_0")
+metadata/age = "new"
+
+[node name="new_1" type="Path3D" parent="frond_courses"]
+curve = SubResource("Curve3D_new_1")
+metadata/age = "new"
+
+[node name="new_2" type="Path3D" parent="frond_courses"]
+curve = SubResource("Curve3D_new_2")
+metadata/age = "new"
+
+[node name="mature_0" type="Path3D" parent="frond_courses"]
+curve = SubResource("Curve3D_mature_0")
+metadata/age = "mature"
+
+[node name="mature_1" type="Path3D" parent="frond_courses"]
+curve = SubResource("Curve3D_mature_1")
+metadata/age = "mature"
+
+[node name="mature_2" type="Path3D" parent="frond_courses"]
+curve = SubResource("Curve3D_mature_2")
+metadata/age = "mature"
+
+[node name="mature_3" type="Path3D" parent="frond_courses"]
+curve = SubResource("Curve3D_mature_3")
+metadata/age = "mature"
+
+[node name="mature_4" type="Path3D" parent="frond_courses"]
+curve = SubResource("Curve3D_mature_4")
+metadata/age = "mature"
+
+[node name="mature_5" type="Path3D" parent="frond_courses"]
+curve = SubResource("Curve3D_mature_5")
+metadata/age = "mature"
+
+[node name="mature_6" type="Path3D" parent="frond_courses"]
+curve = SubResource("Curve3D_mature_6")
+metadata/age = "mature"
+
+[node name="extra_0" type="Path3D" parent="frond_courses"]
+curve = SubResource("Curve3D_extra_0")
+metadata/age = "mature"
+metadata/extra_index = 0
+
+[node name="extra_1" type="Path3D" parent="frond_courses"]
+curve = SubResource("Curve3D_extra_1")
+metadata/age = "mature"
+metadata/extra_index = 1
+
+[node name="extra_2" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 0.62, 0)
+scale = Vector3(1.05, 1.02, 1.05)
+curve = SubResource("Curve3D_mature_0")
+metadata/age = "old"
+metadata/extra_index = 2
+
+[node name="extra_3" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 1.23, 0)
+scale = Vector3(0.96, 1.06, 0.96)
+curve = SubResource("Curve3D_mature_4")
+metadata/age = "mature"
+metadata/extra_index = 3
+
+[node name="extra_4" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 1.86, 0)
+scale = Vector3(1.08, 0.97, 1.08)
+curve = SubResource("Curve3D_mature_1")
+metadata/age = "mature"
+metadata/extra_index = 4
+
+[node name="extra_5" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 2.49, 0)
+scale = Vector3(1.0, 1.08, 1.0)
+curve = SubResource("Curve3D_old_0")
+metadata/age = "old"
+metadata/extra_index = 5
+
+[node name="extra_6" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 3.12, 0)
+scale = Vector3(1.06, 1.0, 1.06)
+curve = SubResource("Curve3D_mature_5")
+metadata/age = "mature"
+metadata/extra_index = 6
+
+[node name="extra_7" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 3.74, 0)
+scale = Vector3(0.94, 1.05, 0.94)
+curve = SubResource("Curve3D_mature_2")
+metadata/age = "mature"
+metadata/extra_index = 7
+
+[node name="extra_8" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 4.36, 0)
+scale = Vector3(1.09, 0.96, 1.09)
+curve = SubResource("Curve3D_old_1")
+metadata/age = "old"
+metadata/extra_index = 8
+
+[node name="extra_9" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 4.98, 0)
+scale = Vector3(0.98, 1.07, 0.98)
+curve = SubResource("Curve3D_mature_6")
+metadata/age = "mature"
+metadata/extra_index = 9
+
+[node name="extra_10" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 5.58, 0)
+scale = Vector3(1.07, 0.99, 1.07)
+curve = SubResource("Curve3D_extra_0")
+metadata/age = "mature"
+metadata/extra_index = 10
+
+[node name="extra_11" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 6.05, 0)
+scale = Vector3(0.95, 1.04, 0.95)
+curve = SubResource("Curve3D_mature_3")
+metadata/age = "old"
+metadata/extra_index = 11
+
+[node name="extra_12" type="Path3D" parent="frond_courses"]
+position = Vector3(0, 0.14, 0)
+rotation = Vector3(0, 0.31, 0)
+scale = Vector3(1.0, 1.0, 1.0)
+curve = SubResource("Curve3D_inner")
+metadata/age = "mature"
+metadata/extra_index = 12
+
+[node name="extra_13" type="Path3D" parent="frond_courses"]
+position = Vector3(0, 0.12, 0)
+rotation = Vector3(0, 1.36, 0)
+scale = Vector3(1.06, 1.02, 1.06)
+curve = SubResource("Curve3D_inner")
+metadata/age = "mature"
+metadata/extra_index = 13
+
+[node name="extra_14" type="Path3D" parent="frond_courses"]
+position = Vector3(0, 0.16, 0)
+rotation = Vector3(0, 2.41, 0)
+scale = Vector3(0.96, 1.04, 0.96)
+curve = SubResource("Curve3D_inner")
+metadata/age = "mature"
+metadata/extra_index = 14
+
+[node name="extra_15" type="Path3D" parent="frond_courses"]
+position = Vector3(0, 0.1, 0)
+rotation = Vector3(0, 3.46, 0)
+scale = Vector3(1.04, 0.98, 1.04)
+curve = SubResource("Curve3D_inner")
+metadata/age = "mature"
+metadata/extra_index = 15
+
+[node name="extra_16" type="Path3D" parent="frond_courses"]
+position = Vector3(0, 0.15, 0)
+rotation = Vector3(0, 4.51, 0)
+scale = Vector3(0.98, 1.05, 0.98)
+curve = SubResource("Curve3D_inner")
+metadata/age = "mature"
+metadata/extra_index = 16
+
+[node name="extra_17" type="Path3D" parent="frond_courses"]
+position = Vector3(0, 0.11, 0)
+rotation = Vector3(0, 5.56, 0)
+scale = Vector3(1.08, 1.0, 1.08)
+curve = SubResource("Curve3D_inner")
+metadata/age = "mature"
+metadata/extra_index = 17
+
+[node name="extra_18" type="Path3D" parent="frond_courses"]
+position = Vector3(0, -0.06, 0)
+rotation = Vector3(0, 5.03, 0)
+scale = Vector3(1.02, 1.05, 1.02)
+curve = SubResource("Curve3D_old_0")
+metadata/age = "old"
+metadata/extra_index = 18
+
+[node name="extra_19" type="Path3D" parent="frond_courses"]
+position = Vector3(0, -0.08, 0)
+rotation = Vector3(0, 5.81, 0)
+scale = Vector3(1.04, 1.07, 1.04)
+curve = SubResource("Curve3D_old_1")
+metadata/age = "old"
+metadata/extra_index = 19
+
+[node name="old_0" type="Path3D" parent="frond_courses"]
+curve = SubResource("Curve3D_old_0")
+metadata/age = "old"
+
+[node name="old_1" type="Path3D" parent="frond_courses"]
+curve = SubResource("Curve3D_old_1")
+metadata/age = "old"
+
+[node name="remnant_courses" type="Node3D" parent="."]
+editor_description = "Short retained frond bases below the live crown. Their course and transforms are directly editable."
+
+[node name="remnant_0" type="Path3D" parent="remnant_courses"]
+curve = SubResource("Curve3D_remnant")
+
+[node name="remnant_1" type="Path3D" parent="remnant_courses"]
+rotation = Vector3(0, 3.14159, 0)
+scale = Vector3(0.92, 0.92, 0.92)
+curve = SubResource("Curve3D_remnant")
+
+[node name="remnant_2" type="Path3D" parent="remnant_courses"]
+rotation = Vector3(0, 1.5708, 0)
+scale = Vector3(1.06, 1.06, 1.06)
+curve = SubResource("Curve3D_remnant")
+
+[node name="remnant_3" type="Path3D" parent="remnant_courses"]
+rotation = Vector3(0, 4.71239, 0)
+scale = Vector3(0.88, 0.88, 0.88)
+curve = SubResource("Curve3D_remnant")
+
+[node name="remnant_4" type="Path3D" parent="remnant_courses"]
+rotation = Vector3(0, 0.7854, 0)
+scale = Vector3(1.1, 1.1, 1.1)
+curve = SubResource("Curve3D_remnant")
+
+[node name="remnant_5" type="Path3D" parent="remnant_courses"]
+rotation = Vector3(0, 3.92699, 0)
+scale = Vector3(0.96, 0.96, 0.96)
+curve = SubResource("Curve3D_remnant")
+
+[node name="remnant_6" type="Path3D" parent="remnant_courses"]
+rotation = Vector3(0, 2.35619, 0)
+scale = Vector3(1.04, 1.04, 1.04)
+curve = SubResource("Curve3D_remnant")
+
+[node name="remnant_7" type="Path3D" parent="remnant_courses"]
+rotation = Vector3(0, 5.49779, 0)
+scale = Vector3(0.9, 0.9, 0.9)
+curve = SubResource("Curve3D_remnant")
+
+[node name="remnant_8" type="Path3D" parent="remnant_courses"]
+rotation = Vector3(0, 0.5236, 0)
+scale = Vector3(0.98, 0.98, 0.98)
+curve = SubResource("Curve3D_remnant")
+
+[node name="remnant_9" type="Path3D" parent="remnant_courses"]
+rotation = Vector3(0, 3.66519, 0)
+scale = Vector3(1.08, 1.08, 1.08)
+curve = SubResource("Curve3D_remnant")
+
+[node name="remnant_10" type="Path3D" parent="remnant_courses"]
+rotation = Vector3(0, 2.0944, 0)
+scale = Vector3(0.94, 0.94, 0.94)
+curve = SubResource("Curve3D_remnant")
+
+[node name="remnant_11" type="Path3D" parent="remnant_courses"]
+rotation = Vector3(0, 5.23599, 0)
+scale = Vector3(1.02, 1.02, 1.02)
+curve = SubResource("Curve3D_remnant")
+
+[node name="derived_fronds" type="Node3D" parent="."]
+editor_description = "Transient preview/runtime meshes derived from the editable curves above."
+
+[node name="derived_remnants" type="Node3D" parent="."]
+editor_description = "Transient preview/runtime remnants derived from the editable courses above."

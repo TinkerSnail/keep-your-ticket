@@ -1,10 +1,53 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3]
 
 ; Stable editor-owned wrapper. The generator writes only
 ; generated/park_groundworks.tscn; manual terrain refinements belong under
 ; authored_additions so rebuilding the measured bands cannot erase them.
+; far_gain is held equal to the shader's near_gain since 2026-09-18: distance is
+; the Environment's camera haze now, so the land keeps one local colour wherever
+; it lies. Delete the two far_gain lines to get the old park-distance cooling back.
 [ext_resource type="PackedScene" path="res://scenes/world/generated/park_groundworks.tscn" id="1_generated"]
+[ext_resource type="Shader" path="res://assets/shaders/landscape_depth_palette.gdshader" id="2_depth_palette"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_depth_vertex"]
+shader = ExtResource("2_depth_palette")
+shader_parameter/far_gain = Vector3(1.08, 1.06, 0.92)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_depth_plain"]
+shader = ExtResource("2_depth_palette")
+shader_parameter/use_vertex_color = false
+shader_parameter/far_gain = Vector3(1.08, 1.06, 0.92)
+shader_parameter/base_color = Color(0.36, 0.47, 0.31, 1)
 
 [node name="park_groundworks" instance=ExtResource("1_generated")]
 
+[node name="surface" parent="terrain_world_mainland_reserve" index="0"]
+material_override = SubResource("ShaderMaterial_depth_vertex")
+
+[node name="surface" parent="terrain_world_coast_north" index="0"]
+material_override = SubResource("ShaderMaterial_depth_vertex")
+
+[node name="surface" parent="terrain_world_coast_south" index="0"]
+material_override = SubResource("ShaderMaterial_depth_vertex")
+
+[node name="surface" parent="terrain_road_corridor" index="0"]
+material_override = SubResource("ShaderMaterial_depth_vertex")
+
+[node name="surface" parent="terrain_T2_lowland" index="0"]
+material_override = SubResource("ShaderMaterial_depth_plain")
+
+[node name="surface" parent="terrain_T3_headland" index="0"]
+material_override = SubResource("ShaderMaterial_depth_plain")
+
+[node name="surface" parent="terrain_T6_outer_highland" index="0"]
+material_override = SubResource("ShaderMaterial_depth_plain")
+
 [node name="authored_additions" type="Node3D" parent="."]
+
+[editable path="terrain_world_mainland_reserve/surface"]
+[editable path="terrain_world_coast_north/surface"]
+[editable path="terrain_world_coast_south/surface"]
+[editable path="terrain_road_corridor/surface"]
+[editable path="terrain_T2_lowland/surface"]
+[editable path="terrain_T3_headland/surface"]
+[editable path="terrain_T6_outer_highland/surface"]

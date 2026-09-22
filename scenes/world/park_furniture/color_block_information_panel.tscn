@@ -1,0 +1,131 @@
+[gd_scene load_steps=11 format=3]
+
+; Freestanding late-1990s information panel. The color field is a swappable
+; material layer rather than a branded graphic, so one family can carry the
+; bright alternating rhythm from the supplied waterfront reference.
+
+[sub_resource type="StandardMaterial3D" id="Mat_frame"]
+albedo_color = Color(0.035, 0.095, 0.13, 1)
+metallic = 0.25
+roughness = 0.58
+
+[sub_resource type="StandardMaterial3D" id="Mat_accent"]
+albedo_color = Color(0.02, 0.66, 0.72, 1)
+roughness = 0.72
+
+[sub_resource type="StandardMaterial3D" id="Mat_body"]
+albedo_color = Color(0.76, 0.83, 0.81, 1)
+roughness = 0.86
+
+[sub_resource type="StandardMaterial3D" id="Mat_type"]
+albedo_color = Color(0.94, 0.96, 0.90, 1)
+roughness = 0.82
+
+[sub_resource type="BoxMesh" id="Mesh_unit"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="CylinderMesh" id="Mesh_post"]
+top_radius = 0.5
+bottom_radius = 0.5
+height = 1
+radial_segments = 10
+
+[sub_resource type="BoxShape3D" id="Collision_panel"]
+size = Vector3(1.04, 1.58, 0.13)
+
+[sub_resource type="CylinderShape3D" id="Collision_post"]
+radius = 0.055
+height = 0.44
+
+[node name="color_block_information_panel" type="Node3D"]
+editor_description = "PRP-PARK-023. Freestanding framed information panel with a replaceable color field and abstract type bars. Default cyan; duplicate and override accent_field for a coordinated multi-color row. Faces local +Z."
+
+[node name="panel" type="Node3D" parent="."]
+
+[node name="backing" type="MeshInstance3D" parent="panel"]
+position = Vector3(0, 1.18, 0)
+scale = Vector3(1.04, 1.58, 0.13)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_frame")
+
+[node name="accent_field" type="MeshInstance3D" parent="panel"]
+position = Vector3(0, 1.48, 0.075)
+scale = Vector3(0.90, 0.74, 0.025)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_accent")
+
+[node name="information_field" type="MeshInstance3D" parent="panel"]
+position = Vector3(0, 0.89, 0.076)
+scale = Vector3(0.90, 0.38, 0.025)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_body")
+
+[node name="heading" type="MeshInstance3D" parent="panel"]
+position = Vector3(-0.13, 1.62, 0.093)
+scale = Vector3(0.50, 0.045, 0.012)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_type")
+
+[node name="line_01" type="MeshInstance3D" parent="panel"]
+position = Vector3(-0.17, 1.50, 0.093)
+scale = Vector3(0.58, 0.022, 0.012)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_type")
+
+[node name="line_02" type="MeshInstance3D" parent="panel"]
+position = Vector3(-0.22, 1.43, 0.093)
+scale = Vector3(0.48, 0.022, 0.012)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_type")
+
+[node name="line_03" type="MeshInstance3D" parent="panel"]
+position = Vector3(-0.18, 1.36, 0.093)
+scale = Vector3(0.56, 0.022, 0.012)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_type")
+
+[node name="line_04" type="MeshInstance3D" parent="panel"]
+position = Vector3(-0.18, 0.99, 0.093)
+scale = Vector3(0.56, 0.018, 0.012)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_frame")
+
+[node name="line_05" type="MeshInstance3D" parent="panel"]
+position = Vector3(-0.23, 0.92, 0.093)
+scale = Vector3(0.46, 0.018, 0.012)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_frame")
+
+[node name="line_06" type="MeshInstance3D" parent="panel"]
+position = Vector3(-0.15, 0.85, 0.093)
+scale = Vector3(0.62, 0.018, 0.012)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_frame")
+
+[node name="supports" type="Node3D" parent="."]
+
+[node name="left_post" type="MeshInstance3D" parent="supports"]
+position = Vector3(-0.36, 0.23, 0)
+scale = Vector3(0.11, 0.46, 0.11)
+mesh = SubResource("Mesh_post")
+material_override = SubResource("Mat_frame")
+
+[node name="right_post" type="MeshInstance3D" parent="supports"]
+position = Vector3(0.36, 0.23, 0)
+scale = Vector3(0.11, 0.46, 0.11)
+mesh = SubResource("Mesh_post")
+material_override = SubResource("Mat_frame")
+
+[node name="collision" type="StaticBody3D" parent="."]
+
+[node name="panel" type="CollisionShape3D" parent="collision"]
+position = Vector3(0, 1.18, 0)
+shape = SubResource("Collision_panel")
+
+[node name="left_post" type="CollisionShape3D" parent="collision"]
+position = Vector3(-0.36, 0.23, 0)
+shape = SubResource("Collision_post")
+
+[node name="right_post" type="CollisionShape3D" parent="collision"]
+position = Vector3(0.36, 0.23, 0)
+shape = SubResource("Collision_post")

@@ -1,18 +1,22 @@
 extends Node3D
 
-## The forest on the crescent range, planted at runtime from the same seed and
-## the same rules the terrain uses, so it needs no scene of its own and can be
-## re-tuned without regenerating the park.
+## RETIRED / UNMOUNTED RECOVERY SOURCE. This was the former runtime forest on
+## the crescent range. The persistent world now mounts only the separately
+## authored distant blue-green background mass; keep this script only as a
+## reversible record of the rejected placeholder implementation. Its detailed
+## trees, midground and foreground remain unmounted.
 ##
-## Trees stand where the ground has risen into the forest band and below the
+## In this former implementation, trees stand where the ground has risen into the forest band and below the
 ## treeline; the meadow shoulder gets sparse clumps; nothing is planted inside
 ## the developed envelope, which has its own props, or on anything that is not
-## terrain. Two instanced meshes, conifer and broadleaf, with per-instance
-## colour. Placement is a seeded jittered grid resolved onto the ground by
-## raycast, which is the one runtime step: the height functions live in the
-## generator and are not available here.
+## terrain. Two editor-owned tree families are instanced part by part, with
+## per-instance colour. Placement is a seeded jittered grid resolved onto the
+## ground by raycast, which is the one runtime step: the height functions live
+## in the generator and are not available here.
 
 const Plan := preload("res://scripts/park_plan.gd")
+const CONIFER_SOURCE := preload("res://scenes/world/forest_conifer_tree.tscn")
+const BROADLEAF_SOURCE := preload("res://scenes/world/forest_broadleaf_tree.tscn")
 
 ## The near band, full meshes within `cards_from`: 110 measured as free at
 ## every standpoint; 160 begins to show from the head of the climb.
@@ -46,8 +50,10 @@ const Plan := preload("res://scripts/park_plan.gd")
 @export var cast_shadows := false
 @export var plant_on_ready := true
 
-var conifers: MultiMeshInstance3D
-var broadleaves: MultiMeshInstance3D
+var conifers: Array[MultiMeshInstance3D] = []
+var conifer_offsets: Array[Transform3D] = []
+var broadleaves: Array[MultiMeshInstance3D] = []
+var broadleaf_offsets: Array[Transform3D] = []
 var conifer_cards: MultiMeshInstance3D
 var broadleaf_cards: MultiMeshInstance3D
 var planted := 0
@@ -55,12 +61,29 @@ var plant_ms := 0.0
 
 
 func _ready() -> void:
-	conifers = _instance("conifers", _conifer_mesh())
-	broadleaves = _instance("broadleaves", _broadleaf_mesh())
+	_load_source_parts(CONIFER_SOURCE, "conifers", conifers, conifer_offsets)
+	_load_source_parts(BROADLEAF_SOURCE, "broadleaves", broadleaves, broadleaf_offsets)
 	conifer_cards = _instance("conifer_cards", _card_mesh(true))
 	broadleaf_cards = _instance("broadleaf_cards", _card_mesh(false))
 	if plant_on_ready:
 		call_deferred("replant")
+
+
+func _load_source_parts(source: PackedScene, prefix: String,
+		instances: Array[MultiMeshInstance3D], offsets: Array[Transform3D]) -> void:
+	var tree := source.instantiate() as Node3D
+	if tree == null:
+		push_error("range_forest: could not instantiate %s source" % prefix)
+		return
+	for child in tree.get_children():
+		var part := child as MeshInstance3D
+		if part == null or part.mesh == null:
+			continue
+		instances.append(_instance("%s_%s" % [prefix, part.name], part.mesh))
+		offsets.append(part.transform)
+	tree.free()
+	if instances.is_empty():
+		push_error("range_forest: %s source has no direct MeshInstance3D parts" % prefix)
 
 
 func _instance(nm: String, mesh: Mesh) -> MultiMeshInstance3D:
@@ -112,72 +135,6 @@ func _card_mesh(conifer: bool) -> ArrayMesh:
 	return mesh
 
 
-## A trunk and two stacked cones: about 50 triangles.
-func _conifer_mesh() -> ArrayMesh:
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	_cylinder(st, 0.0, 3.0, 0.28, 0.22, 6, Color(0.36, 0.26, 0.18))
-	_cone(st, 2.2, 8.0, 3.4, 7, Color(1, 1, 1))
-	_cone(st, 6.5, 12.5, 2.4, 7, Color(1, 1, 1))
-	st.generate_normals()
-	var mesh := st.commit()
-	mesh.surface_set_material(0, _material())
-	return mesh
-
-
-## A trunk and a lumpy canopy: about 60 triangles.
-func _broadleaf_mesh() -> ArrayMesh:
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	_cylinder(st, 0.0, 3.4, 0.34, 0.28, 6, Color(0.36, 0.26, 0.18))
-	_blob(st, Vector3(0, 6.6, 0), 3.6, Color(1, 1, 1))
-	st.generate_normals()
-	var mesh := st.commit()
-	mesh.surface_set_material(0, _material())
-	return mesh
-
-
-func _cylinder(st: SurfaceTool, y0: float, y1: float, r0: float, r1: float,
-		segs: int, col: Color) -> void:
-	for i in segs:
-		var a0 := TAU * float(i) / float(segs)
-		var a1 := TAU * float(i + 1) / float(segs)
-		var p00 := Vector3(cos(a0) * r0, y0, sin(a0) * r0)
-		var p10 := Vector3(cos(a1) * r0, y0, sin(a1) * r0)
-		var p01 := Vector3(cos(a0) * r1, y1, sin(a0) * r1)
-		var p11 := Vector3(cos(a1) * r1, y1, sin(a1) * r1)
-		_tri(st, p00, p11, p10, col)
-		_tri(st, p00, p01, p11, col)
-
-
-func _cone(st: SurfaceTool, y0: float, y1: float, r: float, segs: int, col: Color) -> void:
-	var apex := Vector3(0, y1, 0)
-	for i in segs:
-		var a0 := TAU * float(i) / float(segs)
-		var a1 := TAU * float(i + 1) / float(segs)
-		var p0 := Vector3(cos(a0) * r, y0, sin(a0) * r)
-		var p1 := Vector3(cos(a1) * r, y0, sin(a1) * r)
-		_tri(st, p0, apex, p1, col)
-		_tri(st, p0, p1, Vector3(0, y0, 0), col)
-
-
-func _blob(st: SurfaceTool, c: Vector3, r: float, col: Color) -> void:
-	var rings := 4
-	var segs := 7
-	for j in rings:
-		var t0 := PI * float(j) / float(rings)
-		var t1 := PI * float(j + 1) / float(rings)
-		for i in segs:
-			var a0 := TAU * float(i) / float(segs)
-			var a1 := TAU * float(i + 1) / float(segs)
-			var q00 := c + Vector3(sin(t0) * cos(a0), cos(t0), sin(t0) * sin(a0)) * r
-			var q10 := c + Vector3(sin(t0) * cos(a1), cos(t0), sin(t0) * sin(a1)) * r
-			var q01 := c + Vector3(sin(t1) * cos(a0), cos(t1), sin(t1) * sin(a0)) * r
-			var q11 := c + Vector3(sin(t1) * cos(a1), cos(t1), sin(t1) * sin(a1)) * r
-			_tri(st, q00, q10, q11, col)
-			_tri(st, q00, q11, q01, col)
-
-
 func _tri(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, col: Color) -> void:
 	for v in [a, b, c]:
 		st.set_color(col)
@@ -186,7 +143,12 @@ func _tri(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, col: Color) -> vo
 
 func set_shadows(on: bool) -> void:
 	cast_shadows = on
-	for mmi in [conifers, broadleaves, conifer_cards, broadleaf_cards]:
+	var forest_instances: Array[MultiMeshInstance3D] = []
+	forest_instances.append_array(conifers)
+	forest_instances.append_array(broadleaves)
+	forest_instances.append(conifer_cards)
+	forest_instances.append(broadleaf_cards)
+	for mmi in forest_instances:
 		if mmi:
 			mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if on \
 				else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -331,7 +293,7 @@ func replant() -> void:
 				Vector3(px, y - 0.3, pz))
 			var base := forest_col if in_forest else meadow_col
 			var tint := rng.randf_range(0.82, 1.12)
-			var col := Color(base.r * tint, base.g * tint, base.b * tint)
+			var col := _depth_tinted_color(base, tint, p)
 			var card := v.length() > cards_from
 			if card and conifer:
 				card_con_t.append(xf)
@@ -346,12 +308,41 @@ func replant() -> void:
 				leaf_t.append(xf)
 				leaf_c.append(col)
 		z += step
-	_fill(conifers.multimesh, forest_t, forest_c)
-	_fill(broadleaves.multimesh, leaf_t, leaf_c)
+	_fill_parts(conifers, conifer_offsets, forest_t, forest_c)
+	_fill_parts(broadleaves, broadleaf_offsets, leaf_t, leaf_c)
 	_fill(conifer_cards.multimesh, card_con_t, card_con_c)
 	_fill(broadleaf_cards.multimesh, card_leaf_t, card_leaf_c)
 	planted = forest_t.size() + leaf_t.size() + card_con_t.size() + card_leaf_t.size()
 	plant_ms = float(Time.get_ticks_usec() - t0) / 1000.0
+
+
+func _depth_tinted_color(base: Color, tint: float, point: Vector2) -> Color:
+	# Match the ground's approved depth palette without changing which tree
+	# families stand in the range. Distance is measured from the nearest edge
+	# of the developed park so the surrounding crescent recedes consistently.
+	var outside := Vector2(
+		maxf(maxf(Plan.REBUILD_FOOTPRINT_MIN_X - point.x,
+			point.x - Plan.REBUILD_FOOTPRINT_MAX_X), 0.0),
+		maxf(maxf(Plan.REBUILD_FOOTPRINT_MIN_Z - point.y,
+			point.y - Plan.REBUILD_FOOTPRINT_MAX_Z), 0.0))
+	var depth := clampf((outside.length() - 20.0) / 340.0, 0.0, 1.0)
+	depth = depth * depth * (3.0 - 2.0 * depth)
+	var depth_gain := Vector3(1.08, 1.06, 0.92).lerp(
+		Vector3(0.72, 0.82, 1.06), depth)
+	return Color(base.r * tint * depth_gain.x,
+		base.g * tint * depth_gain.y,
+		base.b * tint * depth_gain.z, 1.0)
+
+
+func _fill_parts(instances: Array[MultiMeshInstance3D], offsets: Array[Transform3D],
+		xfs: Array[Transform3D], cols: Array[Color]) -> void:
+	for part_index in instances.size():
+		var mm := instances[part_index].multimesh
+		mm.instance_count = 0
+		mm.instance_count = xfs.size()
+		for i in xfs.size():
+			mm.set_instance_transform(i, xfs[i] * offsets[part_index])
+			mm.set_instance_color(i, cols[i])
 
 
 func _fill(mm: MultiMesh, xfs: Array[Transform3D], cols: Array[Color]) -> void:

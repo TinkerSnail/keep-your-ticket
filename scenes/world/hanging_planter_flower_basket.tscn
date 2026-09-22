@@ -1,0 +1,141 @@
+[gd_scene load_steps=13 format=3]
+
+; Catalog-only hanging planter. The root origin is the ceiling attachment;
+; hardware, basket and each planting pocket remain ordinary selectable nodes.
+
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_arrival_flower_drift.tscn" id="1_flowers"]
+[ext_resource type="PackedScene" path="res://scenes/world/purple_heart_cluster.tscn" id="2_purple"]
+[ext_resource type="PackedScene" path="res://scenes/world/hakone_grass_tuft_va.tscn" id="3_hakone"]
+
+[sub_resource type="TorusMesh" id="Mesh_eye"]
+inner_radius = 0.08
+outer_radius = 0.125
+rings = 12
+ring_segments = 7
+
+[sub_resource type="CylinderMesh" id="Mesh_chain"]
+top_radius = 0.014
+bottom_radius = 0.014
+height = 1.115078
+radial_segments = 6
+rings = 1
+
+[sub_resource type="TorusMesh" id="Mesh_rim"]
+inner_radius = 0.515
+outer_radius = 0.57
+rings = 18
+ring_segments = 8
+
+[sub_resource type="CylinderMesh" id="Mesh_basket"]
+top_radius = 0.53
+bottom_radius = 0.27
+height = 0.46
+radial_segments = 18
+rings = 2
+
+[sub_resource type="CylinderMesh" id="Mesh_soil"]
+top_radius = 0.49
+bottom_radius = 0.49
+height = 0.045
+radial_segments = 18
+rings = 1
+
+[sub_resource type="SphereMesh" id="Mesh_join"]
+radius = 0.055
+height = 0.09
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="Mat_chain"]
+albedo_color = Color(0.105, 0.12, 0.105, 1)
+metallic = 0.55
+roughness = 0.66
+
+[sub_resource type="StandardMaterial3D" id="Mat_coir"]
+albedo_color = Color(0.22, 0.115, 0.04, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Mat_soil"]
+albedo_color = Color(0.09, 0.06, 0.035, 1)
+roughness = 1.0
+
+[node name="hanging_planter_flower_basket" type="Node3D"]
+editor_description = "Catalog hanging planter with a ceiling-origin attachment, dark three-chain frame, deep cocoa-brown coir basket and selectable mixed-flower, Purple Heart and lemon-zest Hakone pockets. No world placement is implied."
+
+[node name="hardware" type="Node3D" parent="."]
+editor_description = "Selectable attachment eye, join, three chains and basket rim. Root origin is the mounting point."
+
+[node name="attachment_eye" type="MeshInstance3D" parent="hardware"]
+position = Vector3(0, -0.105, 0)
+rotation = Vector3(1.570796, 0, 0)
+mesh = SubResource("Mesh_eye")
+material_override = SubResource("Mat_chain")
+
+[node name="eye_shank" type="MeshInstance3D" parent="hardware"]
+position = Vector3(0, -0.242, 0)
+scale = Vector3(1.35, 0.086, 1.35)
+mesh = SubResource("Mesh_chain")
+material_override = SubResource("Mat_chain")
+
+[node name="chain_join" type="MeshInstance3D" parent="hardware"]
+position = Vector3(0, -0.28, 0)
+mesh = SubResource("Mesh_join")
+material_override = SubResource("Mat_chain")
+
+[node name="chain_front" type="MeshInstance3D" parent="hardware"]
+transform = Transform3D(1, 0, 0, 0, -0.869894, -0.493239, 0, 0.493239, -0.869894, 0, -0.765, 0.275)
+mesh = SubResource("Mesh_chain")
+material_override = SubResource("Mat_chain")
+
+[node name="chain_back_left" type="MeshInstance3D" parent="hardware"]
+transform = Transform3D(-0.5, -0.427157, 0.75335, 0, -0.869894, -0.493239, 0.866025, -0.246619, 0.434947, -0.238157, -0.765, -0.1375)
+mesh = SubResource("Mesh_chain")
+material_override = SubResource("Mat_chain")
+
+[node name="chain_back_right" type="MeshInstance3D" parent="hardware"]
+transform = Transform3D(-0.5, 0.427157, -0.75335, 0, -0.869894, -0.493239, -0.866025, -0.246619, 0.434947, 0.238157, -0.765, -0.1375)
+mesh = SubResource("Mesh_chain")
+material_override = SubResource("Mat_chain")
+
+[node name="basket_rim" type="MeshInstance3D" parent="hardware"]
+position = Vector3(0, -1.25, 0)
+mesh = SubResource("Mesh_rim")
+material_override = SubResource("Mat_chain")
+
+[node name="basket" type="MeshInstance3D" parent="."]
+position = Vector3(0, -1.47, 0)
+mesh = SubResource("Mesh_basket")
+material_override = SubResource("Mat_coir")
+
+[node name="soil" type="MeshInstance3D" parent="."]
+position = Vector3(0, -1.245, 0)
+mesh = SubResource("Mesh_soil")
+material_override = SubResource("Mat_soil")
+
+[node name="planting" type="Node3D" parent="."]
+editor_description = "Selectable bright mixed-flower crown with one Purple Heart bridge and two luminous Hakone tufts."
+
+[node name="flowers_front" parent="planting" instance=ExtResource("1_flowers")]
+position = Vector3(0, -1.19, 0.19)
+rotation = Vector3(0, 0.18, 0)
+scale = Vector3(1.12, 1.18, 1.12)
+
+[node name="flowers_back" parent="planting" instance=ExtResource("1_flowers")]
+position = Vector3(0, -1.18, -0.17)
+rotation = Vector3(0, 3.28, 0)
+scale = Vector3(1.02, 1.08, 1.02)
+
+[node name="purple_bridge" parent="planting" instance=ExtResource("2_purple")]
+position = Vector3(0.03, -1.19, 0)
+rotation = Vector3(0, 1.1, 0)
+scale = Vector3(0.82, 0.74, 0.82)
+
+[node name="hakone_left" parent="planting" instance=ExtResource("3_hakone")]
+position = Vector3(-0.23, -1.2, 0.02)
+rotation = Vector3(0, -0.4, 0)
+scale = Vector3(0.34, 0.34, 0.34)
+
+[node name="hakone_right" parent="planting" instance=ExtResource("3_hakone")]
+position = Vector3(0.24, -1.2, -0.02)
+rotation = Vector3(0, 2.72, 0)
+scale = Vector3(0.34, 0.34, 0.34)

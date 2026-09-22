@@ -35,8 +35,11 @@ __pycache__/
 # range_forest_distinct_background and far_shore_city_relocation — and their
 # exports remain tracked.
 /assets/range_forest_*.glb
+/assets/range_forest_*.glb.import
 !/assets/range_forest_distinct_background.glb
+!/assets/range_forest_distinct_background.glb.import
 /assets/range_interchange_*.glb
+/assets/range_interchange_*.glb.import
 /assets/source/range_forest_*.blend
 !/assets/source/range_forest_distinct_background.blend
 /assets/source/range_interchange_*.blend

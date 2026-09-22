@@ -1,0 +1,267 @@
+[gd_scene load_steps=37 format=3]
+
+; Directly editor-owned parking-field composition. Reshape the eight bay
+; courses or move the island and banner sockets in the ordinary Godot editor;
+; repetitive markings, vehicles and planting derive from those controls.
+
+[ext_resource type="Script" path="res://scenes/world/parking_lot_layout.gd" id="1_script"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_asphalt"]
+albedo_color = Color(0.115, 0.125, 0.135, 1)
+roughness = 0.96
+
+[sub_resource type="StandardMaterial3D" id="Mat_line"]
+albedo_color = Color(0.92, 0.90, 0.80, 1)
+roughness = 0.88
+
+[sub_resource type="StandardMaterial3D" id="Mat_accessible"]
+albedo_color = Color(0.075, 0.28, 0.48, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Mat_curb"]
+albedo_color = Color(0.62, 0.59, 0.51, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="Mat_soil"]
+albedo_color = Color(0.16, 0.09, 0.045, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Mat_trunk"]
+albedo_color = Color(0.28, 0.17, 0.09, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Mat_foliage"]
+albedo_color = Color(0.12, 0.32, 0.15, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Mat_foliage_light"]
+albedo_color = Color(0.24, 0.47, 0.22, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Mat_glass"]
+albedo_color = Color(0.055, 0.12, 0.15, 1)
+metallic = 0.1
+roughness = 0.32
+
+[sub_resource type="StandardMaterial3D" id="Mat_tyre"]
+albedo_color = Color(0.025, 0.025, 0.028, 1)
+roughness = 0.98
+
+[sub_resource type="StandardMaterial3D" id="Mat_metal"]
+albedo_color = Color(0.48, 0.50, 0.49, 1)
+metallic = 0.42
+roughness = 0.5
+
+[sub_resource type="StandardMaterial3D" id="Mat_banner_west"]
+albedo_color = Color(0.78, 0.22, 0.34, 1)
+roughness = 0.86
+
+[sub_resource type="StandardMaterial3D" id="Mat_banner_east"]
+albedo_color = Color(0.94, 0.62, 0.16, 1)
+roughness = 0.86
+
+[sub_resource type="StandardMaterial3D" id="Mat_car_blue"]
+albedo_color = Color(0.10, 0.26, 0.39, 1)
+metallic = 0.25
+roughness = 0.54
+
+[sub_resource type="StandardMaterial3D" id="Mat_car_red"]
+albedo_color = Color(0.52, 0.09, 0.08, 1)
+metallic = 0.18
+roughness = 0.58
+
+[sub_resource type="StandardMaterial3D" id="Mat_car_teal"]
+albedo_color = Color(0.08, 0.34, 0.31, 1)
+metallic = 0.2
+roughness = 0.56
+
+[sub_resource type="StandardMaterial3D" id="Mat_car_gold"]
+albedo_color = Color(0.56, 0.40, 0.13, 1)
+metallic = 0.2
+roughness = 0.6
+
+[sub_resource type="StandardMaterial3D" id="Mat_car_white"]
+albedo_color = Color(0.73, 0.71, 0.66, 1)
+metallic = 0.1
+roughness = 0.62
+
+[sub_resource type="StandardMaterial3D" id="Mat_car_green"]
+albedo_color = Color(0.20, 0.32, 0.18, 1)
+metallic = 0.12
+roughness = 0.66
+
+[sub_resource type="StandardMaterial3D" id="Mat_car_plum"]
+albedo_color = Color(0.31, 0.17, 0.29, 1)
+metallic = 0.16
+roughness = 0.6
+
+[sub_resource type="StandardMaterial3D" id="Mat_car_silver"]
+albedo_color = Color(0.43, 0.46, 0.47, 1)
+metallic = 0.38
+roughness = 0.48
+
+[sub_resource type="Curve3D" id="Curve_w0"]
+_data = {"points": PackedVector3Array(0,0,0,0,0,0,-66.5,0,184,0,0,0,0,0,0,-14.5,0,184),"tilts": PackedFloat32Array(0,0)}
+point_count = 2
+[sub_resource type="Curve3D" id="Curve_w1"]
+_data = {"points": PackedVector3Array(0,0,0,0,0,0,-66.5,0,194,0,0,0,0,0,0,-14.5,0,194),"tilts": PackedFloat32Array(0,0)}
+point_count = 2
+[sub_resource type="Curve3D" id="Curve_w2"]
+_data = {"points": PackedVector3Array(0,0,0,0,0,0,-66.5,0,202,0,0,0,0,0,0,-14.5,0,202),"tilts": PackedFloat32Array(0,0)}
+point_count = 2
+[sub_resource type="Curve3D" id="Curve_w3"]
+_data = {"points": PackedVector3Array(0,0,0,0,0,0,-66.5,0,212,0,0,0,0,0,0,-14.5,0,212),"tilts": PackedFloat32Array(0,0)}
+point_count = 2
+[sub_resource type="Curve3D" id="Curve_e0"]
+_data = {"points": PackedVector3Array(0,0,0,0,0,0,14.5,0,184,0,0,0,0,0,0,66.5,0,184),"tilts": PackedFloat32Array(0,0)}
+point_count = 2
+[sub_resource type="Curve3D" id="Curve_e1"]
+_data = {"points": PackedVector3Array(0,0,0,0,0,0,14.5,0,194,0,0,0,0,0,0,66.5,0,194),"tilts": PackedFloat32Array(0,0)}
+point_count = 2
+[sub_resource type="Curve3D" id="Curve_e2"]
+_data = {"points": PackedVector3Array(0,0,0,0,0,0,14.5,0,202,0,0,0,0,0,0,66.5,0,202),"tilts": PackedFloat32Array(0,0)}
+point_count = 2
+[sub_resource type="Curve3D" id="Curve_e3"]
+_data = {"points": PackedVector3Array(0,0,0,0,0,0,14.5,0,212,0,0,0,0,0,0,66.5,0,212),"tilts": PackedFloat32Array(0,0)}
+point_count = 2
+
+[sub_resource type="Curve3D" id="Curve_hedge_w_outer"]
+_data = {"points": PackedVector3Array(0,0,0,0,0,0,-71.5,0,219.6,0,0,0,0,0,0,-64.5,0,219.6),"tilts": PackedFloat32Array(0,0)}
+point_count = 2
+[sub_resource type="Curve3D" id="Curve_hedge_w_middle"]
+_data = {"points": PackedVector3Array(0,0,0,0,0,0,-55.5,0,219.6,0,0,0,0,0,0,-24.5,0,219.6),"tilts": PackedFloat32Array(0,0)}
+point_count = 2
+[sub_resource type="Curve3D" id="Curve_hedge_w_inner"]
+_data = {"points": PackedVector3Array(0,0,0,0,0,0,-15.5,0,219.6,0,0,0,0,0,0,-9,0,219.6),"tilts": PackedFloat32Array(0,0)}
+point_count = 2
+[sub_resource type="Curve3D" id="Curve_hedge_e_inner"]
+_data = {"points": PackedVector3Array(0,0,0,0,0,0,9,0,219.6,0,0,0,0,0,0,15.5,0,219.6),"tilts": PackedFloat32Array(0,0)}
+point_count = 2
+[sub_resource type="Curve3D" id="Curve_hedge_e_middle"]
+_data = {"points": PackedVector3Array(0,0,0,0,0,0,24.5,0,219.6,0,0,0,0,0,0,55.5,0,219.6),"tilts": PackedFloat32Array(0,0)}
+point_count = 2
+[sub_resource type="Curve3D" id="Curve_hedge_e_outer"]
+_data = {"points": PackedVector3Array(0,0,0,0,0,0,64.5,0,219.6,0,0,0,0,0,0,71.5,0,219.6),"tilts": PackedFloat32Array(0,0)}
+point_count = 2
+
+[node name="parking_lot_layout" type="Node3D"]
+script = ExtResource("1_script")
+asphalt_material = SubResource("Mat_asphalt")
+line_material = SubResource("Mat_line")
+accessible_material = SubResource("Mat_accessible")
+curb_material = SubResource("Mat_curb")
+soil_material = SubResource("Mat_soil")
+trunk_material = SubResource("Mat_trunk")
+foliage_material = SubResource("Mat_foliage")
+foliage_light_material = SubResource("Mat_foliage_light")
+glass_material = SubResource("Mat_glass")
+tyre_material = SubResource("Mat_tyre")
+metal_material = SubResource("Mat_metal")
+west_banner_material = SubResource("Mat_banner_west")
+east_banner_material = SubResource("Mat_banner_east")
+paint_materials = Array[Material]([SubResource("Mat_car_blue"), SubResource("Mat_car_red"), SubResource("Mat_car_teal"), SubResource("Mat_car_gold"), SubResource("Mat_car_white"), SubResource("Mat_car_green"), SubResource("Mat_car_plum"), SubResource("Mat_car_silver")])
+editor_description = "Move the Path3D rows and the island/banner sockets to reshape the directly owned lot. Derived children rebuild from those controls."
+
+[node name="layout_controls" type="Node3D" parent="."]
+
+[node name="bay_courses" type="Node3D" parent="layout_controls"]
+
+[node name="west_row_0" type="Path3D" parent="layout_controls/bay_courses"]
+curve = SubResource("Curve_w0")
+metadata/row_index = 0
+metadata/lot_side = -1
+metadata/facing = 0.0
+metadata/bay_angle = 0.28
+metadata/bay_count = 19
+[node name="west_row_1" type="Path3D" parent="layout_controls/bay_courses"]
+curve = SubResource("Curve_w1")
+metadata/row_index = 1
+metadata/lot_side = -1
+metadata/facing = 3.1415927
+metadata/bay_angle = -0.28
+metadata/bay_count = 19
+[node name="west_row_2" type="Path3D" parent="layout_controls/bay_courses"]
+curve = SubResource("Curve_w2")
+metadata/row_index = 2
+metadata/lot_side = -1
+metadata/facing = 0.0
+metadata/bay_angle = 0.28
+metadata/bay_count = 19
+[node name="west_row_3" type="Path3D" parent="layout_controls/bay_courses"]
+curve = SubResource("Curve_w3")
+metadata/row_index = 3
+metadata/lot_side = -1
+metadata/facing = 3.1415927
+metadata/bay_angle = -0.28
+metadata/bay_count = 19
+
+[node name="east_row_0" type="Path3D" parent="layout_controls/bay_courses"]
+curve = SubResource("Curve_e0")
+metadata/row_index = 0
+metadata/lot_side = 1
+metadata/facing = 0.0
+metadata/bay_angle = 0.28
+metadata/bay_count = 19
+[node name="east_row_1" type="Path3D" parent="layout_controls/bay_courses"]
+curve = SubResource("Curve_e1")
+metadata/row_index = 1
+metadata/lot_side = 1
+metadata/facing = 3.1415927
+metadata/bay_angle = -0.28
+metadata/bay_count = 19
+[node name="east_row_2" type="Path3D" parent="layout_controls/bay_courses"]
+curve = SubResource("Curve_e2")
+metadata/row_index = 2
+metadata/lot_side = 1
+metadata/facing = 0.0
+metadata/bay_angle = 0.28
+metadata/bay_count = 19
+[node name="east_row_3" type="Path3D" parent="layout_controls/bay_courses"]
+curve = SubResource("Curve_e3")
+metadata/row_index = 3
+metadata/lot_side = 1
+metadata/facing = 3.1415927
+metadata/bay_angle = -0.28
+metadata/bay_count = 19
+
+[node name="edge_hedge_courses" type="Node3D" parent="layout_controls"]
+
+[node name="west_outer" type="Path3D" parent="layout_controls/edge_hedge_courses"]
+curve = SubResource("Curve_hedge_w_outer")
+[node name="west_middle" type="Path3D" parent="layout_controls/edge_hedge_courses"]
+curve = SubResource("Curve_hedge_w_middle")
+[node name="west_inner" type="Path3D" parent="layout_controls/edge_hedge_courses"]
+curve = SubResource("Curve_hedge_w_inner")
+[node name="east_inner" type="Path3D" parent="layout_controls/edge_hedge_courses"]
+curve = SubResource("Curve_hedge_e_inner")
+[node name="east_middle" type="Path3D" parent="layout_controls/edge_hedge_courses"]
+curve = SubResource("Curve_hedge_e_middle")
+[node name="east_outer" type="Path3D" parent="layout_controls/edge_hedge_courses"]
+curve = SubResource("Curve_hedge_e_outer")
+
+[node name="island_sockets" type="Node3D" parent="layout_controls"]
+[node name="west_inner" type="Marker3D" parent="layout_controls/island_sockets"]
+position = Vector3(-20, 0, 198)
+[node name="west_middle" type="Marker3D" parent="layout_controls/island_sockets"]
+position = Vector3(-44, 0, 198)
+[node name="west_outer" type="Marker3D" parent="layout_controls/island_sockets"]
+position = Vector3(-64, 0, 198)
+[node name="east_inner" type="Marker3D" parent="layout_controls/island_sockets"]
+position = Vector3(20, 0, 198)
+[node name="east_middle" type="Marker3D" parent="layout_controls/island_sockets"]
+position = Vector3(44, 0, 198)
+[node name="east_outer" type="Marker3D" parent="layout_controls/island_sockets"]
+position = Vector3(64, 0, 198)
+
+[node name="banner_sockets" type="Node3D" parent="layout_controls"]
+[node name="west_north" type="Marker3D" parent="layout_controls/banner_sockets"]
+position = Vector3(-44, 0, 189)
+[node name="west_south" type="Marker3D" parent="layout_controls/banner_sockets"]
+position = Vector3(-44, 0, 207)
+[node name="east_north" type="Marker3D" parent="layout_controls/banner_sockets"]
+position = Vector3(44, 0, 189)
+[node name="east_south" type="Marker3D" parent="layout_controls/banner_sockets"]
+position = Vector3(44, 0, 207)
+
+[node name="derived" type="Node3D" parent="."]
+editor_description = "Runtime/editor preview output. Edit layout_controls, not these derived children."

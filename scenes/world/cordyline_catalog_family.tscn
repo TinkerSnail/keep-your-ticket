@@ -1,0 +1,489 @@
+[gd_scene load_steps=13 format=3]
+
+; Two catalog-only cordyline cultivars built from selectable Path3D leaf
+; courses. Torbay Dazzler is one tall cream-striped fountain; Electric Pink is
+; a shorter three-shoot clump with maroon blades and vivid pink margins.
+
+[ext_resource type="Script" path="res://scenes/world/cordyline_rosette.gd" id="1_rosette"]
+[ext_resource type="Shader" path="res://assets/shaders/cordyline_stripes.gdshader" id="2_stripes"]
+
+[sub_resource type="ShaderMaterial" id="Mat_dazzler"]
+shader = ExtResource("2_stripes")
+shader_parameter/base_color = Color(0.26, 0.39, 0.075, 1)
+shader_parameter/edge_color = Color(0.94, 0.79, 0.31, 1)
+shader_parameter/centre_color = Color(0.7, 0.72, 0.18, 1)
+shader_parameter/edge_width = 0.18
+shader_parameter/centre_width = 0.075
+shader_parameter/softness = 0.035
+
+[sub_resource type="ShaderMaterial" id="Mat_electric"]
+shader = ExtResource("2_stripes")
+shader_parameter/base_color = Color(0.24, 0.025, 0.105, 1)
+shader_parameter/edge_color = Color(0.96, 0.075, 0.42, 1)
+shader_parameter/centre_color = Color(0.55, 0.075, 0.265, 1)
+shader_parameter/edge_width = 0.145
+shader_parameter/centre_width = 0.055
+shader_parameter/softness = 0.028
+
+[sub_resource type="StandardMaterial3D" id="Mat_dazzler_base"]
+albedo_color = Color(0.22, 0.27, 0.06, 1)
+roughness = 0.98
+
+[sub_resource type="StandardMaterial3D" id="Mat_electric_base"]
+albedo_color = Color(0.18, 0.025, 0.075, 1)
+roughness = 0.98
+
+[sub_resource type="CylinderMesh" id="Mesh_base"]
+top_radius = 0.075
+bottom_radius = 0.13
+height = 0.16
+radial_segments = 10
+rings = 1
+
+[sub_resource type="Curve3D" id="Curve_dazzler_outer"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 0, 0, 0, 0.42, 0.4, 0, 0, 0, 0, 0, 0, 0, 0.93, 0.58, 0, 0, 0, 0, 0, 0, 0, 1.36, 0.4, 0, 0, 0, 0, 0, 0, 0, 1.62, 0.2, 0),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
+bake_interval = 0.035
+
+[sub_resource type="Curve3D" id="Curve_dazzler_mid"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0.11, 0, 0, 0, 0, 0, 0, 0, 0.18, 0.56, 0, 0, 0, 0, 0, 0, 0, 0.48, 1.0, 0, 0, 0, 0, 0, 0, 0, 0.82, 1.25, 0, 0, 0, 0, 0, 0, 0, 1.18, 1.16, 0),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
+bake_interval = 0.035
+
+[sub_resource type="Curve3D" id="Curve_dazzler_upright"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0.11, 0, 0, 0, 0, 0, 0, 0, 0.07, 0.58, 0, 0, 0, 0, 0, 0, 0, 0.15, 1.05, 0, 0, 0, 0, 0, 0, 0, 0.25, 1.5, 0, 0, 0, 0, 0, 0, 0, 0.38, 1.74, 0),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
+bake_interval = 0.03
+
+[sub_resource type="Curve3D" id="Curve_electric_outer"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0.08, 0, 0, 0, 0, 0, 0, 0, 0.35, 0.34, 0, 0, 0, 0, 0, 0, 0, 0.8, 0.56, 0, 0, 0, 0, 0, 0, 0, 1.15, 0.52, 0, 0, 0, 0, 0, 0, 0, 1.43, 0.34, 0),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
+bake_interval = 0.035
+
+[sub_resource type="Curve3D" id="Curve_electric_mid"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0.08, 0, 0, 0, 0, 0, 0, 0, 0.14, 0.44, 0, 0, 0, 0, 0, 0, 0, 0.38, 0.82, 0, 0, 0, 0, 0, 0, 0, 0.68, 1.08, 0, 0, 0, 0, 0, 0, 0, 1.02, 1.02, 0),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
+bake_interval = 0.035
+
+[sub_resource type="Curve3D" id="Curve_electric_upright"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0.08, 0, 0, 0, 0, 0, 0, 0, 0.1, 0.45, 0, 0, 0, 0, 0, 0, 0, 0.2, 0.84, 0, 0, 0, 0, 0, 0, 0, 0.29, 1.17, 0, 0, 0, 0, 0, 0, 0, 0.42, 1.41, 0),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
+bake_interval = 0.03
+
+[node name="cordyline_catalog_family" type="Node3D"]
+editor_description = "Catalog-only directly editable sources for PRP-PLANT-047 Torbay Dazzler and PRP-PLANT-048 Electric Pink. Their supplied photographs are visual reference only and imply no park placement."
+
+[node name="torbay_dazzler" type="Node3D" parent="."]
+position = Vector3(-2.4, 0, 0)
+editor_description = "PRP-PLANT-047. One tall Cordyline australis 'Torbay Dazzler' fountain with cream-yellow margins, green striping and a narrow upright centre."
+
+[node name="crown_base" type="MeshInstance3D" parent="torbay_dazzler"]
+position = Vector3(0, 0.08, 0)
+mesh = SubResource("Mesh_base")
+material_override = SubResource("Mat_dazzler_base")
+
+[node name="crown" type="Node3D" parent="torbay_dazzler"]
+script = ExtResource("1_rosette")
+leaf_material = SubResource("Mat_dazzler")
+midrib_material = SubResource("Mat_dazzler_base")
+editor_description = "Selectable Torbay Dazzler crown. Move a Path3D course to reshape its corresponding blade."
+
+[node name="leaf_courses" type="Node3D" parent="torbay_dazzler/crown"]
+
+[node name="outer_00" type="Path3D" parent="torbay_dazzler/crown/leaf_courses"]
+rotation = Vector3(0, 0.05, 0)
+curve = SubResource("Curve_dazzler_outer")
+metadata/half_width = 0.063
+metadata/fold_depth = 0.021
+[node name="outer_01" type="Path3D" parent="torbay_dazzler/crown/leaf_courses"]
+rotation = Vector3(0, 0.79, 0)
+scale = Vector3(0.94, 0.94, 0.94)
+curve = SubResource("Curve_dazzler_outer")
+metadata/half_width = 0.058
+metadata/fold_depth = 0.019
+[node name="outer_02" type="Path3D" parent="torbay_dazzler/crown/leaf_courses"]
+rotation = Vector3(0, 1.52, 0)
+scale = Vector3(1.05, 1.05, 1.05)
+curve = SubResource("Curve_dazzler_outer")
+metadata/half_width = 0.066
+metadata/fold_depth = 0.022
+[node name="outer_03" type="Path3D" parent="torbay_dazzler/crown/leaf_courses"]
+rotation = Vector3(0, 2.34, 0)
+scale = Vector3(0.9, 0.9, 0.9)
+curve = SubResource("Curve_dazzler_outer")
+metadata/half_width = 0.058
+[node name="outer_04" type="Path3D" parent="torbay_dazzler/crown/leaf_courses"]
+rotation = Vector3(0, 3.08, 0)
+scale = Vector3(1.03, 1.03, 1.03)
+curve = SubResource("Curve_dazzler_outer")
+metadata/half_width = 0.064
+metadata/fold_depth = 0.021
+[node name="outer_05" type="Path3D" parent="torbay_dazzler/crown/leaf_courses"]
+rotation = Vector3(0, 3.89, 0)
+scale = Vector3(0.92, 0.92, 0.92)
+curve = SubResource("Curve_dazzler_outer")
+metadata/half_width = 0.06
+[node name="outer_06" type="Path3D" parent="torbay_dazzler/crown/leaf_courses"]
+rotation = Vector3(0, 4.67, 0)
+scale = Vector3(1.07, 1.07, 1.07)
+curve = SubResource("Curve_dazzler_outer")
+metadata/half_width = 0.065
+metadata/fold_depth = 0.022
+[node name="outer_07" type="Path3D" parent="torbay_dazzler/crown/leaf_courses"]
+rotation = Vector3(0, 5.51, 0)
+scale = Vector3(0.96, 0.96, 0.96)
+curve = SubResource("Curve_dazzler_outer")
+metadata/half_width = 0.059
+
+[node name="mid_00" type="Path3D" parent="torbay_dazzler/crown/leaf_courses"]
+rotation = Vector3(0, 0.38, 0)
+curve = SubResource("Curve_dazzler_mid")
+metadata/half_width = 0.059
+metadata/fold_depth = 0.019
+[node name="mid_01" type="Path3D" parent="torbay_dazzler/crown/leaf_courses"]
+rotation = Vector3(0, 1.17, 0)
+scale = Vector3(0.94, 0.94, 0.94)
+curve = SubResource("Curve_dazzler_mid")
+metadata/half_width = 0.055
+[node name="mid_02" type="Path3D" parent="torbay_dazzler/crown/leaf_courses"]
+rotation = Vector3(0, 1.93, 0)
+scale = Vector3(1.04, 1.04, 1.04)
+curve = SubResource("Curve_dazzler_mid")
+metadata/half_width = 0.06
+[node name="mid_03" type="Path3D" parent="torbay_dazzler/crown/leaf_courses"]
+rotation = Vector3(0, 2.72, 0)
+scale = Vector3(0.91, 0.91, 0.91)
+curve = SubResource("Curve_dazzler_mid")
+metadata/half_width = 0.055
+[node name="mid_04" type="Path3D" parent="torbay_dazzler/crown/leaf_courses"]
+rotation = Vector3(0, 3.51, 0)
+scale = Vector3(1.02, 1.02, 1.02)
+curve = SubResource("Curve_dazzler_mid")
+metadata/half_width = 0.059
+[node name="mid_05" type="Path3D" parent="torbay_dazzler/crown/leaf_courses"]
+rotation = Vector3(0, 4.29, 0)
+scale = Vector3(0.95, 0.95, 0.95)
+curve = SubResource("Curve_dazzler_mid")
+metadata/half_width = 0.056
+[node name="mid_06" type="Path3D" parent="torbay_dazzler/crown/leaf_courses"]
+rotation = Vector3(0, 5.06, 0)
+scale = Vector3(1.06, 1.06, 1.06)
+curve = SubResource("Curve_dazzler_mid")
+metadata/half_width = 0.06
+[node name="mid_07" type="Path3D" parent="torbay_dazzler/crown/leaf_courses"]
+rotation = Vector3(0, 5.85, 0)
+scale = Vector3(0.92, 0.92, 0.92)
+curve = SubResource("Curve_dazzler_mid")
+metadata/half_width = 0.055
+
+[node name="upright_00" type="Path3D" parent="torbay_dazzler/crown/leaf_courses"]
+rotation = Vector3(0, 0.18, 0)
+curve = SubResource("Curve_dazzler_upright")
+metadata/half_width = 0.052
+metadata/fold_depth = 0.017
+[node name="upright_01" type="Path3D" parent="torbay_dazzler/crown/leaf_courses"]
+rotation = Vector3(0, 0.97, 0)
+scale = Vector3(0.88, 0.88, 0.88)
+curve = SubResource("Curve_dazzler_upright")
+metadata/half_width = 0.048
+[node name="upright_02" type="Path3D" parent="torbay_dazzler/crown/leaf_courses"]
+rotation = Vector3(0, 1.76, 0)
+scale = Vector3(1.03, 1.03, 1.03)
+curve = SubResource("Curve_dazzler_upright")
+metadata/half_width = 0.051
+[node name="upright_03" type="Path3D" parent="torbay_dazzler/crown/leaf_courses"]
+rotation = Vector3(0, 2.55, 0)
+scale = Vector3(0.91, 0.91, 0.91)
+curve = SubResource("Curve_dazzler_upright")
+metadata/half_width = 0.047
+[node name="upright_04" type="Path3D" parent="torbay_dazzler/crown/leaf_courses"]
+rotation = Vector3(0, 3.33, 0)
+scale = Vector3(0.97, 0.97, 0.97)
+curve = SubResource("Curve_dazzler_upright")
+metadata/half_width = 0.05
+[node name="upright_05" type="Path3D" parent="torbay_dazzler/crown/leaf_courses"]
+rotation = Vector3(0, 4.12, 0)
+scale = Vector3(0.86, 0.86, 0.86)
+curve = SubResource("Curve_dazzler_upright")
+metadata/half_width = 0.047
+[node name="upright_06" type="Path3D" parent="torbay_dazzler/crown/leaf_courses"]
+rotation = Vector3(0, 4.91, 0)
+scale = Vector3(1.04, 1.04, 1.04)
+curve = SubResource("Curve_dazzler_upright")
+metadata/half_width = 0.052
+[node name="upright_07" type="Path3D" parent="torbay_dazzler/crown/leaf_courses"]
+rotation = Vector3(0, 5.7, 0)
+scale = Vector3(0.9, 0.9, 0.9)
+curve = SubResource("Curve_dazzler_upright")
+metadata/half_width = 0.048
+
+[node name="derived_leaves" type="Node3D" parent="torbay_dazzler/crown"]
+
+[node name="electric_pink" type="Node3D" parent="."]
+position = Vector3(2.4, 0, 0)
+editor_description = "PRP-PLANT-048. Cordyline banksii 'Electric Pink' ('Sprilecpink'): a low three-shoot clump of maroon blades with vivid hot-pink margins."
+
+[node name="base_main" type="MeshInstance3D" parent="electric_pink"]
+position = Vector3(0, 0.08, 0)
+mesh = SubResource("Mesh_base")
+material_override = SubResource("Mat_electric_base")
+[node name="base_left" type="MeshInstance3D" parent="electric_pink"]
+position = Vector3(-0.38, 0.065, 0.18)
+scale = Vector3(0.75, 0.78, 0.75)
+mesh = SubResource("Mesh_base")
+material_override = SubResource("Mat_electric_base")
+[node name="base_right" type="MeshInstance3D" parent="electric_pink"]
+position = Vector3(0.4, 0.06, 0.28)
+scale = Vector3(0.66, 0.7, 0.66)
+mesh = SubResource("Mesh_base")
+material_override = SubResource("Mat_electric_base")
+
+[node name="crown_main" type="Node3D" parent="electric_pink"]
+script = ExtResource("1_rosette")
+leaf_material = SubResource("Mat_electric")
+midrib_material = SubResource("Mat_electric_base")
+editor_description = "Main Electric Pink crown; its twenty Path3D courses remain independently reshapeable."
+[node name="leaf_courses" type="Node3D" parent="electric_pink/crown_main"]
+[node name="outer_00" type="Path3D" parent="electric_pink/crown_main/leaf_courses"]
+rotation = Vector3(0, 0.05, 0)
+curve = SubResource("Curve_electric_outer")
+metadata/half_width = 0.071
+metadata/fold_depth = 0.021
+[node name="outer_01" type="Path3D" parent="electric_pink/crown_main/leaf_courses"]
+rotation = Vector3(0, 0.82, 0)
+scale = Vector3(0.91, 0.91, 0.91)
+curve = SubResource("Curve_electric_outer")
+metadata/half_width = 0.066
+[node name="outer_02" type="Path3D" parent="electric_pink/crown_main/leaf_courses"]
+rotation = Vector3(0, 1.58, 0)
+scale = Vector3(1.04, 1.04, 1.04)
+curve = SubResource("Curve_electric_outer")
+metadata/half_width = 0.073
+[node name="outer_03" type="Path3D" parent="electric_pink/crown_main/leaf_courses"]
+rotation = Vector3(0, 2.36, 0)
+scale = Vector3(0.88, 0.88, 0.88)
+curve = SubResource("Curve_electric_outer")
+metadata/half_width = 0.064
+[node name="outer_04" type="Path3D" parent="electric_pink/crown_main/leaf_courses"]
+rotation = Vector3(0, 3.14, 0)
+scale = Vector3(1.02, 1.02, 1.02)
+curve = SubResource("Curve_electric_outer")
+metadata/half_width = 0.071
+[node name="outer_05" type="Path3D" parent="electric_pink/crown_main/leaf_courses"]
+rotation = Vector3(0, 3.92, 0)
+scale = Vector3(0.93, 0.93, 0.93)
+curve = SubResource("Curve_electric_outer")
+metadata/half_width = 0.067
+[node name="outer_06" type="Path3D" parent="electric_pink/crown_main/leaf_courses"]
+rotation = Vector3(0, 4.69, 0)
+scale = Vector3(1.05, 1.05, 1.05)
+curve = SubResource("Curve_electric_outer")
+metadata/half_width = 0.074
+[node name="outer_07" type="Path3D" parent="electric_pink/crown_main/leaf_courses"]
+rotation = Vector3(0, 5.48, 0)
+scale = Vector3(0.9, 0.9, 0.9)
+curve = SubResource("Curve_electric_outer")
+metadata/half_width = 0.065
+[node name="mid_00" type="Path3D" parent="electric_pink/crown_main/leaf_courses"]
+rotation = Vector3(0, 0.39, 0)
+curve = SubResource("Curve_electric_mid")
+metadata/half_width = 0.066
+[node name="mid_01" type="Path3D" parent="electric_pink/crown_main/leaf_courses"]
+rotation = Vector3(0, 1.43, 0)
+scale = Vector3(0.94, 0.94, 0.94)
+curve = SubResource("Curve_electric_mid")
+metadata/half_width = 0.062
+[node name="mid_02" type="Path3D" parent="electric_pink/crown_main/leaf_courses"]
+rotation = Vector3(0, 2.48, 0)
+scale = Vector3(1.03, 1.03, 1.03)
+curve = SubResource("Curve_electric_mid")
+metadata/half_width = 0.067
+[node name="mid_03" type="Path3D" parent="electric_pink/crown_main/leaf_courses"]
+rotation = Vector3(0, 3.54, 0)
+scale = Vector3(0.91, 0.91, 0.91)
+curve = SubResource("Curve_electric_mid")
+metadata/half_width = 0.061
+[node name="mid_04" type="Path3D" parent="electric_pink/crown_main/leaf_courses"]
+rotation = Vector3(0, 4.58, 0)
+scale = Vector3(1.02, 1.02, 1.02)
+curve = SubResource("Curve_electric_mid")
+metadata/half_width = 0.067
+[node name="mid_05" type="Path3D" parent="electric_pink/crown_main/leaf_courses"]
+rotation = Vector3(0, 5.62, 0)
+scale = Vector3(0.93, 0.93, 0.93)
+curve = SubResource("Curve_electric_mid")
+metadata/half_width = 0.062
+[node name="upright_00" type="Path3D" parent="electric_pink/crown_main/leaf_courses"]
+rotation = Vector3(0, 0.25, 0)
+curve = SubResource("Curve_electric_upright")
+metadata/half_width = 0.057
+[node name="upright_01" type="Path3D" parent="electric_pink/crown_main/leaf_courses"]
+rotation = Vector3(0, 1.29, 0)
+scale = Vector3(0.9, 0.9, 0.9)
+curve = SubResource("Curve_electric_upright")
+metadata/half_width = 0.053
+[node name="upright_02" type="Path3D" parent="electric_pink/crown_main/leaf_courses"]
+rotation = Vector3(0, 2.34, 0)
+scale = Vector3(1.04, 1.04, 1.04)
+curve = SubResource("Curve_electric_upright")
+metadata/half_width = 0.058
+[node name="upright_03" type="Path3D" parent="electric_pink/crown_main/leaf_courses"]
+rotation = Vector3(0, 3.39, 0)
+scale = Vector3(0.92, 0.92, 0.92)
+curve = SubResource("Curve_electric_upright")
+metadata/half_width = 0.053
+[node name="upright_04" type="Path3D" parent="electric_pink/crown_main/leaf_courses"]
+rotation = Vector3(0, 4.44, 0)
+scale = Vector3(1.01, 1.01, 1.01)
+curve = SubResource("Curve_electric_upright")
+metadata/half_width = 0.057
+[node name="upright_05" type="Path3D" parent="electric_pink/crown_main/leaf_courses"]
+rotation = Vector3(0, 5.49, 0)
+scale = Vector3(0.91, 0.91, 0.91)
+curve = SubResource("Curve_electric_upright")
+metadata/half_width = 0.053
+[node name="derived_leaves" type="Node3D" parent="electric_pink/crown_main"]
+
+[node name="crown_left" type="Node3D" parent="electric_pink"]
+position = Vector3(-0.38, 0, 0.18)
+rotation = Vector3(0, -0.36, 0)
+scale = Vector3(0.72, 0.72, 0.72)
+script = ExtResource("1_rosette")
+leaf_material = SubResource("Mat_electric")
+midrib_material = SubResource("Mat_electric_base")
+editor_description = "First offset Electric Pink shoot; twelve leaf courses create the cultivar's clumping habit."
+[node name="leaf_courses" type="Node3D" parent="electric_pink/crown_left"]
+[node name="outer_00" type="Path3D" parent="electric_pink/crown_left/leaf_courses"]
+rotation = Vector3(0, 0.1, 0)
+curve = SubResource("Curve_electric_outer")
+metadata/half_width = 0.072
+[node name="outer_01" type="Path3D" parent="electric_pink/crown_left/leaf_courses"]
+rotation = Vector3(0, 1.67, 0)
+scale = Vector3(0.93, 0.93, 0.93)
+curve = SubResource("Curve_electric_outer")
+metadata/half_width = 0.066
+[node name="outer_02" type="Path3D" parent="electric_pink/crown_left/leaf_courses"]
+rotation = Vector3(0, 3.24, 0)
+scale = Vector3(1.04, 1.04, 1.04)
+curve = SubResource("Curve_electric_outer")
+metadata/half_width = 0.073
+[node name="outer_03" type="Path3D" parent="electric_pink/crown_left/leaf_courses"]
+rotation = Vector3(0, 4.81, 0)
+scale = Vector3(0.9, 0.9, 0.9)
+curve = SubResource("Curve_electric_outer")
+metadata/half_width = 0.065
+[node name="mid_00" type="Path3D" parent="electric_pink/crown_left/leaf_courses"]
+rotation = Vector3(0, 0.7, 0)
+curve = SubResource("Curve_electric_mid")
+metadata/half_width = 0.065
+[node name="mid_01" type="Path3D" parent="electric_pink/crown_left/leaf_courses"]
+rotation = Vector3(0, 2.27, 0)
+scale = Vector3(0.94, 0.94, 0.94)
+curve = SubResource("Curve_electric_mid")
+metadata/half_width = 0.061
+[node name="mid_02" type="Path3D" parent="electric_pink/crown_left/leaf_courses"]
+rotation = Vector3(0, 3.84, 0)
+scale = Vector3(1.03, 1.03, 1.03)
+curve = SubResource("Curve_electric_mid")
+metadata/half_width = 0.066
+[node name="mid_03" type="Path3D" parent="electric_pink/crown_left/leaf_courses"]
+rotation = Vector3(0, 5.41, 0)
+scale = Vector3(0.92, 0.92, 0.92)
+curve = SubResource("Curve_electric_mid")
+metadata/half_width = 0.061
+[node name="upright_00" type="Path3D" parent="electric_pink/crown_left/leaf_courses"]
+rotation = Vector3(0, 0.36, 0)
+curve = SubResource("Curve_electric_upright")
+metadata/half_width = 0.055
+[node name="upright_01" type="Path3D" parent="electric_pink/crown_left/leaf_courses"]
+rotation = Vector3(0, 1.93, 0)
+scale = Vector3(0.91, 0.91, 0.91)
+curve = SubResource("Curve_electric_upright")
+metadata/half_width = 0.052
+[node name="upright_02" type="Path3D" parent="electric_pink/crown_left/leaf_courses"]
+rotation = Vector3(0, 3.5, 0)
+scale = Vector3(1.02, 1.02, 1.02)
+curve = SubResource("Curve_electric_upright")
+metadata/half_width = 0.056
+[node name="upright_03" type="Path3D" parent="electric_pink/crown_left/leaf_courses"]
+rotation = Vector3(0, 5.07, 0)
+scale = Vector3(0.9, 0.9, 0.9)
+curve = SubResource("Curve_electric_upright")
+metadata/half_width = 0.052
+[node name="derived_leaves" type="Node3D" parent="electric_pink/crown_left"]
+
+[node name="crown_right" type="Node3D" parent="electric_pink"]
+position = Vector3(0.4, 0, 0.28)
+rotation = Vector3(0, 0.48, 0)
+scale = Vector3(0.62, 0.62, 0.62)
+script = ExtResource("1_rosette")
+leaf_material = SubResource("Mat_electric")
+midrib_material = SubResource("Mat_electric_base")
+editor_description = "Second offset Electric Pink shoot; ten leaf courses break the source into an uneven natural clump."
+[node name="leaf_courses" type="Node3D" parent="electric_pink/crown_right"]
+[node name="outer_00" type="Path3D" parent="electric_pink/crown_right/leaf_courses"]
+rotation = Vector3(0, 0.22, 0)
+curve = SubResource("Curve_electric_outer")
+metadata/half_width = 0.071
+[node name="outer_01" type="Path3D" parent="electric_pink/crown_right/leaf_courses"]
+rotation = Vector3(0, 1.79, 0)
+scale = Vector3(0.92, 0.92, 0.92)
+curve = SubResource("Curve_electric_outer")
+metadata/half_width = 0.065
+[node name="outer_02" type="Path3D" parent="electric_pink/crown_right/leaf_courses"]
+rotation = Vector3(0, 3.36, 0)
+scale = Vector3(1.03, 1.03, 1.03)
+curve = SubResource("Curve_electric_outer")
+metadata/half_width = 0.072
+[node name="outer_03" type="Path3D" parent="electric_pink/crown_right/leaf_courses"]
+rotation = Vector3(0, 4.93, 0)
+scale = Vector3(0.89, 0.89, 0.89)
+curve = SubResource("Curve_electric_outer")
+metadata/half_width = 0.064
+[node name="mid_00" type="Path3D" parent="electric_pink/crown_right/leaf_courses"]
+rotation = Vector3(0, 0.88, 0)
+curve = SubResource("Curve_electric_mid")
+metadata/half_width = 0.065
+[node name="mid_01" type="Path3D" parent="electric_pink/crown_right/leaf_courses"]
+rotation = Vector3(0, 2.97, 0)
+scale = Vector3(0.93, 0.93, 0.93)
+curve = SubResource("Curve_electric_mid")
+metadata/half_width = 0.06
+[node name="mid_02" type="Path3D" parent="electric_pink/crown_right/leaf_courses"]
+rotation = Vector3(0, 5.06, 0)
+scale = Vector3(1.02, 1.02, 1.02)
+curve = SubResource("Curve_electric_mid")
+metadata/half_width = 0.066
+[node name="upright_00" type="Path3D" parent="electric_pink/crown_right/leaf_courses"]
+rotation = Vector3(0, 0.5, 0)
+curve = SubResource("Curve_electric_upright")
+metadata/half_width = 0.055
+[node name="upright_01" type="Path3D" parent="electric_pink/crown_right/leaf_courses"]
+rotation = Vector3(0, 2.59, 0)
+scale = Vector3(0.91, 0.91, 0.91)
+curve = SubResource("Curve_electric_upright")
+metadata/half_width = 0.051
+[node name="upright_02" type="Path3D" parent="electric_pink/crown_right/leaf_courses"]
+rotation = Vector3(0, 4.68, 0)
+scale = Vector3(1.01, 1.01, 1.01)
+curve = SubResource("Curve_electric_upright")
+metadata/half_width = 0.056
+[node name="derived_leaves" type="Node3D" parent="electric_pink/crown_right"]

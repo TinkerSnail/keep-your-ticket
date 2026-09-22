@@ -1,11 +1,10 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=6 format=3]
 
 ; Editor-owned Boardwalk middle-scale density. Each placement is an ordinary
 ; scene instance; edit its transform here or open the family source beside it.
 ; Public pieces hug established furniture/frontage edges. Nothing enters Q3,
 ; the pier approach or turnaround, the wheel frontage, or the sunset sector.
 
-[ext_resource type="PackedScene" path="res://scenes/world/boardwalk_props/salt_planter.tscn" id="1_planter"]
 [ext_resource type="PackedScene" path="res://scenes/world/boardwalk_props/waste_bin.tscn" id="2_bin"]
 [ext_resource type="PackedScene" path="res://scenes/world/boardwalk_props/newspaper_box.tscn" id="3_news"]
 [ext_resource type="PackedScene" path="res://scenes/world/boardwalk_props/payphone.tscn" id="4_phone"]
@@ -13,27 +12,11 @@
 [ext_resource type="PackedScene" path="res://scenes/world/boardwalk_props/life_ring.tscn" id="6_ring"]
 
 [node name="boardwalk_density" type="Node3D"]
-editor_description = "Boardwalk planting and period-prop density, arranged by public edge rather than scattered through the promenade."
+editor_description = "Boardwalk period-prop density, arranged by public edge rather than scattered through the promenade. The former six-planter rhythm is retired; its finished family remains available through the prop catalog."
 metadata/section = &"boardwalk"
 metadata/layout_source = "res://scenes/world/boardwalk_layout.tscn"
 metadata/fidelity_pass = 4
 metadata/protected_clearances = "NT-1,Q3,pier_approach,pavilion_turnaround,west_arch_reveal,sunset_sector"
-
-[node name="salt_planters" type="Node3D" parent="."]
-editor_description = "Low planting terminates blank stretches without replacing the established palms or becoming a second allée."
-
-[node name="north_terminal" parent="salt_planters" instance=ExtResource("1_planter")]
-position = Vector3(-92.0, -5.94, -73.0)
-[node name="cafe_buffer" parent="salt_planters" instance=ExtResource("1_planter")]
-position = Vector3(-92.0, -5.94, -49.0)
-[node name="south_restroom" parent="salt_planters" instance=ExtResource("1_planter")]
-position = Vector3(-92.0, -5.94, 52.0)
-[node name="south_terminal" parent="salt_planters" instance=ExtResource("1_planter")]
-position = Vector3(-92.8, -5.94, 70.0)
-[node name="rail_north" parent="salt_planters" instance=ExtResource("1_planter")]
-position = Vector3(-106.25, -5.94, -54.0)
-[node name="rail_south" parent="salt_planters" instance=ExtResource("1_planter")]
-position = Vector3(-106.25, -5.94, 54.0)
 
 [node name="promenade_bins" type="Node3D" parent="."]
 editor_description = "Bins occupy the rail furniture strip halfway between benches, never the centre walking line."

@@ -1,0 +1,101 @@
+[gd_scene load_steps=7 format=3]
+
+; One directly editable bedding drift for the arrival curb modules. Three
+; related colour pockets cross two low offset foliage lobes so the row reads
+; as a loose planted border rather than one centred mound per module.
+
+[sub_resource type="SphereMesh" id="Mesh_foliage"]
+radius = 0.26
+height = 0.24
+radial_segments = 8
+rings = 3
+
+[sub_resource type="SphereMesh" id="Mesh_bloom"]
+radius = 0.058
+height = 0.064
+radial_segments = 6
+rings = 3
+
+[sub_resource type="StandardMaterial3D" id="Mat_green"]
+albedo_color = Color(0.18, 0.37, 0.13, 1)
+roughness = 0.97
+
+[sub_resource type="StandardMaterial3D" id="Mat_yellow"]
+albedo_color = Color(0.93, 0.67, 0.11, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Mat_white"]
+albedo_color = Color(0.9, 0.87, 0.74, 1)
+roughness = 0.92
+
+[sub_resource type="StandardMaterial3D" id="Mat_coral"]
+albedo_color = Color(0.73, 0.24, 0.16, 1)
+roughness = 0.9
+
+[node name="coastal_arrival_flower_drift" type="Node3D"]
+editor_description = "Directly editable mixed flower drift for the arrival curb bed's middle layer."
+
+[node name="foliage" type="MeshInstance3D" parent="."]
+position = Vector3(-0.06, 0.056, -0.17)
+rotation = Vector3(0, 0.16, 0)
+scale = Vector3(1.42, 0.32, 1.18)
+mesh = SubResource("Mesh_foliage")
+material_override = SubResource("Mat_green")
+
+[node name="foliage_secondary" type="MeshInstance3D" parent="."]
+position = Vector3(0.08, 0.052, 0.24)
+rotation = Vector3(0, -0.2, 0)
+scale = Vector3(1.18, 0.28, 1.02)
+mesh = SubResource("Mesh_foliage")
+material_override = SubResource("Mat_green")
+
+[node name="yellow_0" type="MeshInstance3D" parent="."]
+position = Vector3(-0.15, 0.135, -0.27)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_yellow")
+
+[node name="yellow_1" type="MeshInstance3D" parent="."]
+position = Vector3(-0.01, 0.15, -0.18)
+scale = Vector3(0.86, 0.86, 0.86)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_yellow")
+
+[node name="yellow_2" type="MeshInstance3D" parent="."]
+position = Vector3(0.14, 0.13, -0.31)
+scale = Vector3(1.08, 1.08, 1.08)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_yellow")
+
+[node name="white_0" type="MeshInstance3D" parent="."]
+position = Vector3(-0.11, 0.13, -0.01)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_white")
+
+[node name="white_1" type="MeshInstance3D" parent="."]
+position = Vector3(0.035, 0.145, 0.055)
+scale = Vector3(0.9, 0.9, 0.9)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_white")
+
+[node name="white_2" type="MeshInstance3D" parent="."]
+position = Vector3(0.17, 0.128, -0.06)
+scale = Vector3(1.05, 1.05, 1.05)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_white")
+
+[node name="coral_0" type="MeshInstance3D" parent="."]
+position = Vector3(-0.14, 0.13, 0.27)
+scale = Vector3(1.06, 1.06, 1.06)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_coral")
+
+[node name="coral_1" type="MeshInstance3D" parent="."]
+position = Vector3(0.015, 0.148, 0.18)
+scale = Vector3(0.88, 0.88, 0.88)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_coral")
+
+[node name="coral_2" type="MeshInstance3D" parent="."]
+position = Vector3(0.15, 0.127, 0.32)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_coral")

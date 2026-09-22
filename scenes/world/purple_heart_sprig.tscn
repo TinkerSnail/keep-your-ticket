@@ -1,0 +1,58 @@
+[gd_scene load_steps=8 format=3]
+
+; Editor-owned Purple Heart sprig. The Path3D is the canonical stem habit;
+; paired leaves, stem construction and an optional flower derive from it.
+
+[ext_resource type="Script" path="res://scenes/world/purple_heart_sprig.gd" id="1_script"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_stem"]
+albedo_color = Color(0.28, 0.1, 0.37, 1)
+roughness = 0.93
+
+[sub_resource type="StandardMaterial3D" id="Mat_leaf"]
+cull_mode = 2
+albedo_color = Color(0.22, 0.105, 0.34, 1)
+roughness = 0.91
+
+[sub_resource type="StandardMaterial3D" id="Mat_young"]
+cull_mode = 2
+albedo_color = Color(0.39, 0.17, 0.49, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Mat_flower"]
+albedo_color = Color(0.9, 0.35, 0.72, 1)
+roughness = 0.88
+
+[sub_resource type="StandardMaterial3D" id="Mat_flower_center"]
+albedo_color = Color(1, 0.72, 0.9, 1)
+roughness = 0.86
+
+[sub_resource type="Curve3D" id="Curve_stem"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0.02, 0, 0, 0, 0, 0, 0, 0, 0, 0.13, 0.12, 0, 0, 0, 0, 0, 0, 0, 0.23, 0.27, 0, 0, 0, 0, 0, 0, 0, 0.31, 0.45, 0, 0, 0, 0, 0, 0, 0, 0.34, 0.65),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
+bake_interval = 0.025
+
+[node name="purple_heart_sprig" type="Node3D"]
+script = ExtResource("1_script")
+stem_material = SubResource("Mat_stem")
+leaf_material = SubResource("Mat_leaf")
+young_leaf_material = SubResource("Mat_young")
+flower_material = SubResource("Mat_flower")
+flower_center_material = SubResource("Mat_flower_center")
+editor_description = "Reusable Purple Heart sprig. Edit stem_course to reshape the habit; leaf pairs, segmented stem and optional pink flower derive from it."
+
+[node name="stem_course" type="Path3D" parent="."]
+curve = SubResource("Curve_stem")
+editor_description = "Canonical editable Purple Heart stem course."
+
+[node name="derived_stem" type="Node3D" parent="."]
+editor_description = "Derived preview/output. Edit stem_course instead."
+
+[node name="derived_leaves" type="Node3D" parent="."]
+editor_description = "Derived preview/output. Change the sprig exports or stem_course instead."
+
+[node name="derived_flowers" type="Node3D" parent="."]
+editor_description = "Derived optional three-petal flower."

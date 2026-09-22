@@ -1,0 +1,198 @@
+[gd_scene load_steps=17 format=3]
+
+; Catalog-only composition distilled from the supplied waterfront photograph.
+; It demonstrates the reusable tree, hedge, lilyturf, information-panel,
+; furniture and guardrail families without claiming a park placement or route.
+
+[ext_resource type="PackedScene" path="res://scenes/world/white_bark_tree_cluster.tscn" id="1_tree"]
+[ext_resource type="PackedScene" path="res://scenes/world/clipped_hedge_module.tscn" id="2_hedge"]
+[ext_resource type="PackedScene" path="res://scenes/world/lilyturf_row.tscn" id="3_grass"]
+[ext_resource type="PackedScene" path="res://scenes/world/park_furniture/color_block_information_panel.tscn" id="4_panel"]
+[ext_resource type="PackedScene" path="res://scenes/world/park_furniture/granite_circle_picnic_table.tscn" id="5_table"]
+[ext_resource type="PackedScene" path="res://scenes/world/park_furniture/reclined_waterfront_viewing_bench.tscn" id="6_bench"]
+[ext_resource type="PackedScene" path="res://scenes/world/park_fencing/waterfront_guardrail.tscn" id="7_guardrail"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_asphalt"]
+albedo_color = Color(0.105, 0.12, 0.115, 1)
+roughness = 0.98
+
+[sub_resource type="StandardMaterial3D" id="Mat_soil"]
+albedo_color = Color(0.105, 0.065, 0.035, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Mat_water"]
+albedo_color = Color(0.06, 0.42, 0.56, 1)
+metallic = 0.08
+roughness = 0.24
+
+[sub_resource type="StandardMaterial3D" id="Mat_magenta"]
+albedo_color = Color(0.77, 0.03, 0.43, 1)
+roughness = 0.72
+
+[sub_resource type="StandardMaterial3D" id="Mat_green"]
+albedo_color = Color(0.05, 0.68, 0.37, 1)
+roughness = 0.72
+
+[sub_resource type="StandardMaterial3D" id="Mat_orange"]
+albedo_color = Color(0.92, 0.35, 0.035, 1)
+roughness = 0.72
+
+[sub_resource type="StandardMaterial3D" id="Mat_blue"]
+albedo_color = Color(0.02, 0.54, 0.84, 1)
+roughness = 0.72
+
+[sub_resource type="BoxMesh" id="Mesh_ground"]
+size = Vector3(15.5, 0.08, 10.0)
+
+[sub_resource type="BoxMesh" id="Mesh_soil"]
+size = Vector3(15.5, 0.09, 1.8)
+
+[sub_resource type="BoxMesh" id="Mesh_water"]
+size = Vector3(15.5, 0.06, 4.0)
+
+[sub_resource type="BoxMesh" id="Mesh_accent"]
+size = Vector3(0.90, 0.74, 0.018)
+
+[node name="shaded_waterfront_promenade_catalog" type="Node3D"]
+editor_description = "GRP-PARK-017. Catalog-only shaded waterfront promenade vignette: white-bark canopy, dark lilyturf seam, clipped hedge, alternating information panels, rough-stone picnic table, reclined viewing benches and plain guardrail. It makes no route or placement claim."
+
+[node name="ground_context" type="Node3D" parent="."]
+editor_description = "Asphalt, soil and water establish scale only; they are not catalog prop families."
+
+[node name="asphalt_walk" type="MeshInstance3D" parent="ground_context"]
+position = Vector3(0, -0.02, 1.1)
+mesh = SubResource("Mesh_ground")
+material_override = SubResource("Mat_asphalt")
+
+[node name="soil_band" type="MeshInstance3D" parent="ground_context"]
+position = Vector3(0, 0.015, -3.05)
+mesh = SubResource("Mesh_soil")
+material_override = SubResource("Mat_soil")
+
+[node name="water" type="MeshInstance3D" parent="ground_context"]
+position = Vector3(0, -0.035, -6.00)
+mesh = SubResource("Mesh_water")
+material_override = SubResource("Mat_water")
+
+[node name="white_bark_canopy" type="Node3D" parent="."]
+
+[node name="west_cluster" parent="white_bark_canopy" instance=ExtResource("1_tree")]
+position = Vector3(-5.65, 0.04, 1.85)
+rotation = Vector3(0, -0.22, 0)
+scale = Vector3(0.88, 0.92, 0.88)
+
+[node name="east_cluster" parent="white_bark_canopy" instance=ExtResource("1_tree")]
+position = Vector3(5.45, 0.04, 2.1)
+rotation = Vector3(0, 0.42, 0)
+scale = Vector3(0.78, 0.86, 0.78)
+
+[node name="clipped_hedge_edge" type="Node3D" parent="."]
+
+[node name="hedge_00" parent="clipped_hedge_edge" instance=ExtResource("2_hedge")]
+position = Vector3(-5.8, 0.03, -2.9)
+
+[node name="hedge_01" parent="clipped_hedge_edge" instance=ExtResource("2_hedge")]
+position = Vector3(-3.38, 0.03, -2.9)
+
+[node name="hedge_02" parent="clipped_hedge_edge" instance=ExtResource("2_hedge")]
+position = Vector3(-0.96, 0.03, -2.9)
+
+[node name="hedge_03" parent="clipped_hedge_edge" instance=ExtResource("2_hedge")]
+position = Vector3(1.46, 0.03, -2.9)
+
+[node name="hedge_04" parent="clipped_hedge_edge" instance=ExtResource("2_hedge")]
+position = Vector3(3.88, 0.03, -2.9)
+
+[node name="hedge_05" parent="clipped_hedge_edge" instance=ExtResource("2_hedge")]
+position = Vector3(6.3, 0.03, -2.9)
+
+[node name="dark_lilyturf_seams" type="Node3D" parent="."]
+
+[node name="row_00" parent="dark_lilyturf_seams" instance=ExtResource("3_grass")]
+position = Vector3(-5.55, 0.04, -1.98)
+
+[node name="row_01" parent="dark_lilyturf_seams" instance=ExtResource("3_grass")]
+position = Vector3(-1.85, 0.04, -1.98)
+
+[node name="row_02" parent="dark_lilyturf_seams" instance=ExtResource("3_grass")]
+position = Vector3(1.85, 0.04, -1.98)
+
+[node name="row_03" parent="dark_lilyturf_seams" instance=ExtResource("3_grass")]
+position = Vector3(5.55, 0.04, -1.98)
+
+[node name="information_panel_rhythm" type="Node3D" parent="."]
+editor_description = "One reusable PRP-PARK-023 panel is repeated; thin swappable overlays demonstrate the coordinated magenta, green, orange and blue finish rhythm."
+
+[node name="panel_00" parent="information_panel_rhythm" instance=ExtResource("4_panel")]
+position = Vector3(-4.8, 0.04, -4.08)
+
+[node name="panel_01" parent="information_panel_rhythm" instance=ExtResource("4_panel")]
+position = Vector3(-2.4, 0.04, -4.08)
+
+[node name="panel_02" parent="information_panel_rhythm" instance=ExtResource("4_panel")]
+position = Vector3(0, 0.04, -4.08)
+
+[node name="panel_03" parent="information_panel_rhythm" instance=ExtResource("4_panel")]
+position = Vector3(2.4, 0.04, -4.08)
+
+[node name="panel_04" parent="information_panel_rhythm" instance=ExtResource("4_panel")]
+position = Vector3(4.8, 0.04, -4.08)
+
+[node name="magenta_finish" type="MeshInstance3D" parent="information_panel_rhythm"]
+position = Vector3(-4.8, 1.52, -3.988)
+mesh = SubResource("Mesh_accent")
+material_override = SubResource("Mat_magenta")
+
+[node name="green_finish" type="MeshInstance3D" parent="information_panel_rhythm"]
+position = Vector3(-2.4, 1.52, -3.988)
+mesh = SubResource("Mesh_accent")
+material_override = SubResource("Mat_green")
+
+[node name="orange_finish" type="MeshInstance3D" parent="information_panel_rhythm"]
+position = Vector3(0, 1.52, -3.988)
+mesh = SubResource("Mesh_accent")
+material_override = SubResource("Mat_orange")
+
+[node name="blue_finish" type="MeshInstance3D" parent="information_panel_rhythm"]
+position = Vector3(2.4, 1.52, -3.988)
+mesh = SubResource("Mesh_accent")
+material_override = SubResource("Mat_blue")
+
+[node name="green_finish_02" type="MeshInstance3D" parent="information_panel_rhythm"]
+position = Vector3(4.8, 1.52, -3.988)
+mesh = SubResource("Mesh_accent")
+material_override = SubResource("Mat_green")
+
+[node name="waterfront_guard" type="Node3D" parent="."]
+
+[node name="guard_00" parent="waterfront_guard" instance=ExtResource("7_guardrail")]
+position = Vector3(-6.0, 0.03, -4.95)
+
+[node name="guard_01" parent="waterfront_guard" instance=ExtResource("7_guardrail")]
+position = Vector3(-3.6, 0.03, -4.95)
+
+[node name="guard_02" parent="waterfront_guard" instance=ExtResource("7_guardrail")]
+position = Vector3(-1.2, 0.03, -4.95)
+
+[node name="guard_03" parent="waterfront_guard" instance=ExtResource("7_guardrail")]
+position = Vector3(1.2, 0.03, -4.95)
+
+[node name="guard_04" parent="waterfront_guard" instance=ExtResource("7_guardrail")]
+position = Vector3(3.6, 0.03, -4.95)
+
+[node name="guard_05" parent="waterfront_guard" instance=ExtResource("7_guardrail")]
+position = Vector3(6.0, 0.03, -4.95)
+
+[node name="furniture_pockets" type="Node3D" parent="."]
+
+[node name="granite_table" parent="furniture_pockets" instance=ExtResource("5_table")]
+position = Vector3(3.85, 0.04, 1.15)
+rotation = Vector3(0, -0.28, 0)
+
+[node name="view_bench_00" parent="furniture_pockets" instance=ExtResource("6_bench")]
+position = Vector3(-1.35, 0.04, -1.0)
+rotation = Vector3(0, 3.141593, 0)
+
+[node name="view_bench_01" parent="furniture_pockets" instance=ExtResource("6_bench")]
+position = Vector3(0.75, 0.04, -1.0)
+rotation = Vector3(0, 3.141593, 0)

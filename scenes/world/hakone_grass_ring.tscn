@@ -1,0 +1,59 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/world/hakone_grass_tuft_va.tscn" id="1_compact"]
+[ext_resource type="PackedScene" path="res://scenes/world/hakone_grass_tuft_vb.tscn" id="2_broad"]
+
+[node name="hakone_grass_ring" type="Node3D"]
+editor_description = "Catalog ring: ten selectable lemon-zest Hakone grass clumps leave an open center for a tree, urn, sculpture or contrasting plant. The center object is intentionally not included."
+
+[node name="clumps" type="Node3D" parent="."]
+
+[node name="clump_00" parent="clumps" instance=ExtResource("1_compact")]
+position = Vector3(0, 0, -1.08)
+rotation = Vector3(0, 3.14, 0)
+scale = Vector3(0.68, 0.72, 0.68)
+
+[node name="clump_01" parent="clumps" instance=ExtResource("2_broad")]
+position = Vector3(0.64, 0, -0.87)
+rotation = Vector3(0, 3.77, 0)
+scale = Vector3(0.58, 0.66, 0.58)
+
+[node name="clump_02" parent="clumps" instance=ExtResource("1_compact")]
+position = Vector3(1.03, 0, -0.33)
+rotation = Vector3(0, 4.4, 0)
+scale = Vector3(0.7, 0.7, 0.7)
+
+[node name="clump_03" parent="clumps" instance=ExtResource("2_broad")]
+position = Vector3(1.03, 0, 0.34)
+rotation = Vector3(0, 5.03, 0)
+scale = Vector3(0.57, 0.65, 0.57)
+
+[node name="clump_04" parent="clumps" instance=ExtResource("1_compact")]
+position = Vector3(0.64, 0, 0.88)
+rotation = Vector3(0, 5.66, 0)
+scale = Vector3(0.69, 0.73, 0.69)
+
+[node name="clump_05" parent="clumps" instance=ExtResource("2_broad")]
+position = Vector3(0, 0, 1.09)
+rotation = Vector3(0, 0, 0)
+scale = Vector3(0.58, 0.66, 0.58)
+
+[node name="clump_06" parent="clumps" instance=ExtResource("1_compact")]
+position = Vector3(-0.64, 0, 0.88)
+rotation = Vector3(0, 0.63, 0)
+scale = Vector3(0.68, 0.71, 0.68)
+
+[node name="clump_07" parent="clumps" instance=ExtResource("2_broad")]
+position = Vector3(-1.03, 0, 0.34)
+rotation = Vector3(0, 1.26, 0)
+scale = Vector3(0.57, 0.64, 0.57)
+
+[node name="clump_08" parent="clumps" instance=ExtResource("1_compact")]
+position = Vector3(-1.03, 0, -0.33)
+rotation = Vector3(0, 1.89, 0)
+scale = Vector3(0.7, 0.72, 0.7)
+
+[node name="clump_09" parent="clumps" instance=ExtResource("2_broad")]
+position = Vector3(-0.64, 0, -0.87)
+rotation = Vector3(0, 2.52, 0)
+scale = Vector3(0.58, 0.65, 0.58)

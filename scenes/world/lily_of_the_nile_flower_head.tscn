@@ -1,0 +1,87 @@
+[gd_scene load_steps=5 format=3]
+
+; Textured globe head shared by the Lily of the Nile clump. Small overlapping
+; florets keep the silhouette airy instead of reading as one smooth ball.
+
+[sub_resource type="StandardMaterial3D" id="Mat_purple"]
+albedo_color = Color(0.38, 0.25, 0.7, 1)
+roughness = 0.88
+
+[sub_resource type="StandardMaterial3D" id="Mat_lilac"]
+albedo_color = Color(0.61, 0.47, 0.84, 1)
+roughness = 0.86
+
+[sub_resource type="SphereMesh" id="Mesh_floret"]
+radius = 0.055
+height = 0.1
+radial_segments = 7
+rings = 4
+
+[sub_resource type="SphereMesh" id="Mesh_core"]
+radius = 0.085
+height = 0.15
+radial_segments = 8
+rings = 4
+
+[node name="lily_of_the_nile_flower_head" type="Node3D"]
+editor_description = "Selectable clustered globe head; overlapping florets make the Lily of the Nile silhouette legible at catalog distance."
+
+[node name="core" type="MeshInstance3D" parent="."]
+mesh = SubResource("Mesh_core")
+material_override = SubResource("Mat_purple")
+
+[node name="floret_top" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.12, 0)
+mesh = SubResource("Mesh_floret")
+material_override = SubResource("Mat_lilac")
+
+[node name="floret_bottom" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.105, 0)
+scale = Vector3(0.9, 0.9, 0.9)
+mesh = SubResource("Mesh_floret")
+material_override = SubResource("Mat_purple")
+
+[node name="floret_e" type="MeshInstance3D" parent="."]
+position = Vector3(0.12, 0.015, 0)
+mesh = SubResource("Mesh_floret")
+material_override = SubResource("Mat_lilac")
+
+[node name="floret_w" type="MeshInstance3D" parent="."]
+position = Vector3(-0.12, -0.01, 0)
+scale = Vector3(0.94, 0.94, 0.94)
+mesh = SubResource("Mesh_floret")
+material_override = SubResource("Mat_purple")
+
+[node name="floret_n" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.02, -0.12)
+scale = Vector3(0.96, 0.96, 0.96)
+mesh = SubResource("Mesh_floret")
+material_override = SubResource("Mat_lilac")
+
+[node name="floret_s" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.015, 0.12)
+mesh = SubResource("Mesh_floret")
+material_override = SubResource("Mat_purple")
+
+[node name="floret_ne" type="MeshInstance3D" parent="."]
+position = Vector3(0.075, 0.075, -0.075)
+scale = Vector3(0.92, 0.92, 0.92)
+mesh = SubResource("Mesh_floret")
+material_override = SubResource("Mat_purple")
+
+[node name="floret_nw" type="MeshInstance3D" parent="."]
+position = Vector3(-0.075, 0.065, -0.075)
+mesh = SubResource("Mesh_floret")
+material_override = SubResource("Mat_lilac")
+
+[node name="floret_se" type="MeshInstance3D" parent="."]
+position = Vector3(0.075, -0.055, 0.075)
+scale = Vector3(0.9, 0.9, 0.9)
+mesh = SubResource("Mesh_floret")
+material_override = SubResource("Mat_lilac")
+
+[node name="floret_sw" type="MeshInstance3D" parent="."]
+position = Vector3(-0.075, -0.065, 0.075)
+scale = Vector3(0.95, 0.95, 0.95)
+mesh = SubResource("Mesh_floret")
+material_override = SubResource("Mat_purple")

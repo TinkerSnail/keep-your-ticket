@@ -1,0 +1,299 @@
+[gd_scene load_steps=16 format=3]
+
+; Catalog-only planting composition inspired by dense California path and road
+; edges. The path, bed, fence, hedge bands and every plant instance are directly
+; selectable; this scene makes no park placement or route claim.
+
+[ext_resource type="PackedScene" path="res://scenes/world/lily_of_the_nile_clump.tscn" id="1_agapanthus"]
+[ext_resource type="PackedScene" path="res://scenes/world/parkway_hydrangea_shrub.tscn" id="2_hydrangea"]
+[ext_resource type="PackedScene" path="res://scenes/world/park_fencing/ornamental_garden_fence.tscn" id="3_fence"]
+[ext_resource type="PackedScene" path="res://scenes/world/hakone_grass_row.tscn" id="4_hakone_row"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_fern_fill.tscn" id="5_fern"]
+[ext_resource type="PackedScene" path="res://scenes/world/red_sensation_cabbage_tree_va.tscn" id="6_red_sensation"]
+[ext_resource type="PackedScene" path="res://scenes/world/bay_laurel_tree.tscn" id="7_bay_laurel"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_soil"]
+albedo_color = Color(0.145, 0.085, 0.045, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Mat_path"]
+albedo_color = Color(0.52, 0.49, 0.42, 1)
+roughness = 0.96
+
+[sub_resource type="StandardMaterial3D" id="Mat_curb"]
+albedo_color = Color(0.68, 0.65, 0.56, 1)
+roughness = 0.94
+
+[sub_resource type="StandardMaterial3D" id="Mat_hedge_light"]
+albedo_color = Color(0.22, 0.42, 0.09, 1)
+roughness = 0.98
+
+[sub_resource type="StandardMaterial3D" id="Mat_hedge_dark"]
+albedo_color = Color(0.12, 0.34, 0.1, 1)
+roughness = 0.98
+
+[sub_resource type="BoxMesh" id="Mesh_soil"]
+size = Vector3(13.2, 0.08, 4.7)
+
+[sub_resource type="BoxMesh" id="Mesh_path"]
+size = Vector3(13.8, 0.09, 2.2)
+
+[sub_resource type="BoxMesh" id="Mesh_curb"]
+size = Vector3(13.6, 0.2, 0.2)
+
+[sub_resource type="CapsuleMesh" id="Mesh_hedge_long"]
+radius = 0.33
+height = 2.85
+radial_segments = 10
+rings = 4
+
+[sub_resource type="CapsuleMesh" id="Mesh_hedge_short"]
+radius = 0.36
+height = 2.35
+radial_segments = 10
+rings = 4
+
+[node name="parkway_pathside_bed" type="Node3D"]
+editor_description = "Catalog-only dense parkway/pathside/roadside bed. A continuous curbside Hakone ribbon, clipped green blocks directly behind it, packed hydrangea middle, airy Lily of the Nile globes, fern pockets, one classic bay laurel and an ornamental fence are independently editable."
+
+[node name="ground_context" type="Node3D" parent="."]
+editor_description = "Scale context only; the path and curb are not part of the planting inventory."
+
+[node name="soil_bed" type="MeshInstance3D" parent="ground_context"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("Mesh_soil")
+material_override = SubResource("Mat_soil")
+
+[node name="path" type="MeshInstance3D" parent="ground_context"]
+position = Vector3(0, -0.015, 3.47)
+mesh = SubResource("Mesh_path")
+material_override = SubResource("Mat_path")
+
+[node name="path_curb" type="MeshInstance3D" parent="ground_context"]
+position = Vector3(0, 0.08, 2.38)
+mesh = SubResource("Mesh_curb")
+material_override = SubResource("Mat_curb")
+
+[node name="ornamental_fence" type="Node3D" parent="."]
+editor_description = "Five reusable PRP-FENCE-001 modules form a 12m back edge. Remove them when the bed belongs against an open lawn or road verge."
+
+[node name="module_00" parent="ornamental_fence" instance=ExtResource("3_fence")]
+position = Vector3(-4.96, 0.04, -2.28)
+
+[node name="module_01" parent="ornamental_fence" instance=ExtResource("3_fence")]
+position = Vector3(-2.48, 0.04, -2.28)
+
+[node name="module_02" parent="ornamental_fence" instance=ExtResource("3_fence")]
+position = Vector3(0, 0.04, -2.28)
+
+[node name="module_03" parent="ornamental_fence" instance=ExtResource("3_fence")]
+position = Vector3(2.48, 0.04, -2.28)
+
+[node name="module_04" parent="ornamental_fence" instance=ExtResource("3_fence")]
+position = Vector3(4.96, 0.04, -2.28)
+
+[node name="clipped_edge_bands" type="Node3D" parent="."]
+editor_description = "The original light-green blocks sit directly behind the curbside grass; darker rear pieces close gaps beneath the fence."
+
+[node name="near_00" type="MeshInstance3D" parent="clipped_edge_bands"]
+position = Vector3(-5.25, 0.35, 1.18)
+rotation = Vector3(0, 0, 1.5708)
+scale = Vector3(1, 1, 1.12)
+mesh = SubResource("Mesh_hedge_short")
+material_override = SubResource("Mat_hedge_light")
+
+[node name="near_01" type="MeshInstance3D" parent="clipped_edge_bands"]
+position = Vector3(-2.7, 0.33, 1.12)
+rotation = Vector3(0, 0, 1.5708)
+scale = Vector3(0.96, 0.96, 1.08)
+mesh = SubResource("Mesh_hedge_long")
+material_override = SubResource("Mat_hedge_light")
+
+[node name="near_02" type="MeshInstance3D" parent="clipped_edge_bands"]
+position = Vector3(0.05, 0.34, 1.2)
+rotation = Vector3(0, 0, 1.5708)
+scale = Vector3(1, 1, 1.12)
+mesh = SubResource("Mesh_hedge_long")
+material_override = SubResource("Mat_hedge_light")
+
+[node name="near_03" type="MeshInstance3D" parent="clipped_edge_bands"]
+position = Vector3(2.95, 0.32, 1.13)
+rotation = Vector3(0, 0, 1.5708)
+scale = Vector3(0.94, 0.94, 1.08)
+mesh = SubResource("Mesh_hedge_long")
+material_override = SubResource("Mat_hedge_light")
+
+[node name="near_04" type="MeshInstance3D" parent="clipped_edge_bands"]
+position = Vector3(5.45, 0.35, 1.19)
+rotation = Vector3(0, 0, 1.5708)
+scale = Vector3(1.02, 1.02, 1.12)
+mesh = SubResource("Mesh_hedge_short")
+material_override = SubResource("Mat_hedge_light")
+
+[node name="rear_00" type="MeshInstance3D" parent="clipped_edge_bands"]
+position = Vector3(-4.75, 0.42, -1.72)
+rotation = Vector3(0, 0, 1.5708)
+scale = Vector3(1.12, 1.12, 1.15)
+mesh = SubResource("Mesh_hedge_long")
+material_override = SubResource("Mat_hedge_dark")
+
+[node name="rear_01" type="MeshInstance3D" parent="clipped_edge_bands"]
+position = Vector3(-1.72, 0.4, -1.76)
+rotation = Vector3(0, 0, 1.5708)
+scale = Vector3(1.06, 1.06, 1.12)
+mesh = SubResource("Mesh_hedge_long")
+material_override = SubResource("Mat_hedge_dark")
+
+[node name="rear_02" type="MeshInstance3D" parent="clipped_edge_bands"]
+position = Vector3(1.5, 0.41, -1.7)
+rotation = Vector3(0, 0, 1.5708)
+scale = Vector3(1.1, 1.1, 1.14)
+mesh = SubResource("Mesh_hedge_long")
+material_override = SubResource("Mat_hedge_dark")
+
+[node name="rear_03" type="MeshInstance3D" parent="clipped_edge_bands"]
+position = Vector3(4.72, 0.4, -1.76)
+rotation = Vector3(0, 0, 1.5708)
+scale = Vector3(1.08, 1.08, 1.12)
+mesh = SubResource("Mesh_hedge_long")
+material_override = SubResource("Mat_hedge_dark")
+
+[node name="hydrangea_middle" type="Node3D" parent="."]
+editor_description = "Nine overlapping shrubs create the packed middle tier; their uneven two-row rhythm avoids a repeated bead line."
+
+[node name="hydrangea_00" parent="hydrangea_middle" instance=ExtResource("2_hydrangea")]
+position = Vector3(-5.35, 0.07, 0.5)
+rotation = Vector3(0, -0.18, 0)
+scale = Vector3(0.95, 0.95, 0.95)
+
+[node name="hydrangea_01" parent="hydrangea_middle" instance=ExtResource("2_hydrangea")]
+position = Vector3(-4.08, 0.06, -0.55)
+rotation = Vector3(0, 0.32, 0)
+scale = Vector3(1.08, 1.08, 1.08)
+
+[node name="hydrangea_02" parent="hydrangea_middle" instance=ExtResource("2_hydrangea")]
+position = Vector3(-2.75, 0.06, 0.42)
+rotation = Vector3(0, -0.42, 0)
+scale = Vector3(1.02, 1.02, 1.02)
+
+[node name="hydrangea_03" parent="hydrangea_middle" instance=ExtResource("2_hydrangea")]
+position = Vector3(-1.35, 0.07, -0.48)
+rotation = Vector3(0, 0.16, 0)
+scale = Vector3(0.92, 0.92, 0.92)
+
+[node name="hydrangea_04" parent="hydrangea_middle" instance=ExtResource("2_hydrangea")]
+position = Vector3(0.18, 0.06, 0.42)
+rotation = Vector3(0, -0.28, 0)
+scale = Vector3(1.1, 1.1, 1.1)
+
+[node name="hydrangea_05" parent="hydrangea_middle" instance=ExtResource("2_hydrangea")]
+position = Vector3(1.58, 0.07, -0.5)
+rotation = Vector3(0, 0.39, 0)
+scale = Vector3(0.96, 0.96, 0.96)
+
+[node name="hydrangea_06" parent="hydrangea_middle" instance=ExtResource("2_hydrangea")]
+position = Vector3(2.88, 0.06, 0.46)
+rotation = Vector3(0, -0.12, 0)
+scale = Vector3(1.04, 1.04, 1.04)
+
+[node name="hydrangea_07" parent="hydrangea_middle" instance=ExtResource("2_hydrangea")]
+position = Vector3(4.25, 0.07, -0.45)
+rotation = Vector3(0, 0.46, 0)
+scale = Vector3(1.08, 1.08, 1.08)
+
+[node name="hydrangea_08" parent="hydrangea_middle" instance=ExtResource("2_hydrangea")]
+position = Vector3(5.45, 0.06, 0.5)
+rotation = Vector3(0, -0.34, 0)
+scale = Vector3(0.94, 0.94, 0.94)
+
+[node name="lily_of_the_nile_spires" type="Node3D" parent="."]
+editor_description = "Seven PRP-PLANT-029 clumps rise through the middle and rear tiers without forming a uniform picket row."
+
+[node name="agapanthus_00" parent="lily_of_the_nile_spires" instance=ExtResource("1_agapanthus")]
+position = Vector3(-5.7, 0.08, -0.72)
+rotation = Vector3(0, 0.22, 0)
+scale = Vector3(0.9, 0.9, 0.9)
+
+[node name="agapanthus_01" parent="lily_of_the_nile_spires" instance=ExtResource("1_agapanthus")]
+position = Vector3(-3.15, 0.08, -0.98)
+rotation = Vector3(0, -0.35, 0)
+scale = Vector3(1.04, 1.04, 1.04)
+
+[node name="agapanthus_02" parent="lily_of_the_nile_spires" instance=ExtResource("1_agapanthus")]
+position = Vector3(-1.95, 0.08, 0.86)
+rotation = Vector3(0, 0.44, 0)
+scale = Vector3(0.9, 0.9, 0.9)
+
+[node name="agapanthus_03" parent="lily_of_the_nile_spires" instance=ExtResource("1_agapanthus")]
+position = Vector3(0.75, 0.08, -0.92)
+rotation = Vector3(0, -0.18, 0)
+scale = Vector3(1.08, 1.08, 1.08)
+
+[node name="agapanthus_04" parent="lily_of_the_nile_spires" instance=ExtResource("1_agapanthus")]
+position = Vector3(2.15, 0.08, 0.9)
+rotation = Vector3(0, 0.28, 0)
+scale = Vector3(0.94, 0.94, 0.94)
+
+[node name="agapanthus_05" parent="lily_of_the_nile_spires" instance=ExtResource("1_agapanthus")]
+position = Vector3(3.62, 0.08, -0.96)
+rotation = Vector3(0, -0.42, 0)
+scale = Vector3(1.02, 1.02, 1.02)
+
+[node name="agapanthus_06" parent="lily_of_the_nile_spires" instance=ExtResource("1_agapanthus")]
+position = Vector3(5.55, 0.08, -0.65)
+rotation = Vector3(0, 0.36, 0)
+scale = Vector3(0.88, 0.88, 0.88)
+
+[node name="japanese_forest_grass_ribbon" type="Node3D" parent="."]
+editor_description = "Twenty tightly overlapped Lemon Zest Hakone clumps form one continuous bright ribbon directly along the curb, in front of the clipped green blocks."
+
+[node name="hakone_row_00" parent="japanese_forest_grass_ribbon" instance=ExtResource("4_hakone_row")]
+position = Vector3(-4.75, 0.08, 1.82)
+rotation = Vector3(0, -0.03, 0)
+scale = Vector3(0.94, 0.84, 0.9)
+
+[node name="hakone_row_01" parent="japanese_forest_grass_ribbon" instance=ExtResource("4_hakone_row")]
+position = Vector3(-1.58, 0.08, 1.8)
+rotation = Vector3(0, 0.025, 0)
+scale = Vector3(0.96, 0.86, 0.92)
+
+[node name="hakone_row_02" parent="japanese_forest_grass_ribbon" instance=ExtResource("4_hakone_row")]
+position = Vector3(1.6, 0.08, 1.84)
+rotation = Vector3(0, -0.02, 0)
+scale = Vector3(0.95, 0.85, 0.91)
+
+[node name="hakone_row_03" parent="japanese_forest_grass_ribbon" instance=ExtResource("4_hakone_row")]
+position = Vector3(4.78, 0.08, 1.81)
+rotation = Vector3(0, 0.035, 0)
+scale = Vector3(0.94, 0.84, 0.9)
+
+[node name="low_contrast_pockets" type="Node3D" parent="."]
+editor_description = "Fern and burgundy rosette pockets interrupt the grass ribbon without opening bare-soil holes."
+
+[node name="fern_00" parent="low_contrast_pockets" instance=ExtResource("5_fern")]
+position = Vector3(-3.65, 0.08, 1.03)
+rotation = Vector3(0, 0.15, 0)
+scale = Vector3(0.72, 0.72, 0.72)
+
+[node name="fern_01" parent="low_contrast_pockets" instance=ExtResource("5_fern")]
+position = Vector3(0.65, 0.08, 1.05)
+rotation = Vector3(0, -0.28, 0)
+scale = Vector3(0.68, 0.68, 0.68)
+
+[node name="fern_02" parent="low_contrast_pockets" instance=ExtResource("5_fern")]
+position = Vector3(3.75, 0.08, 1.06)
+rotation = Vector3(0, 0.38, 0)
+scale = Vector3(0.7, 0.7, 0.7)
+
+[node name="red_sensation_left" parent="low_contrast_pockets" instance=ExtResource("6_red_sensation")]
+position = Vector3(-5.9, 0.08, 1.06)
+scale = Vector3(0.52, 0.52, 0.52)
+
+[node name="red_sensation_right" parent="low_contrast_pockets" instance=ExtResource("6_red_sensation")]
+position = Vector3(4.15, 0.08, 1.02)
+rotation = Vector3(0, 0.5, 0)
+scale = Vector3(0.48, 0.48, 0.48)
+
+[node name="bay_laurel" parent="." instance=ExtResource("7_bay_laurel")]
+position = Vector3(-0.25, 0.08, -0.55)
+rotation = Vector3(0, 0.18, 0)

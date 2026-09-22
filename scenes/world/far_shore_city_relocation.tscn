@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3]
+
+; Editor-owned far-shore composition. Open the Blender source named below to
+; reshape the peninsula, highway extension, suspension bridge, city or ferry
+; landings without regenerating the park.
+[ext_resource type="PackedScene" path="res://assets/far_shore_city_relocation.glb" id="1_source"]
+
+[node name="far_shore_city_relocation" instance=ExtResource("1_source")]
+editor_description = "Editable source: res://assets/source/far_shore_city_relocation.blend. Replaces the old distant-city buildings and carries the hooked city peninsula, bridge, intersection and off-ramp. Broad closed foothills continue south into the new massif, with imported collision, a beach skirt, a city bypass and a terrain-cut coastal highway branch capped at 1.9% grade. Both roads sit on closed collision earthworks; mounted centreline-to-ground gaps remain at or below 0.25m. The source holds no collision objects: the peninsula, foothills, approach ground and both earthworks carry collision derived from their own meshes by tools/export_world_source.sh, and everything else is marked kyt_collision=none. Edit the Blender source, then run that script. Cameras are not part of this source or its acceptance."
+
+[node name="authored_additions" type="Node3D" parent="."]

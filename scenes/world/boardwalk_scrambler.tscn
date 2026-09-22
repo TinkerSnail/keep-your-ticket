@@ -1,0 +1,122 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://scenes/world/boardwalk_scrambler.gd" id="1_script"]
+[ext_resource type="Material" path="res://assets/materials/bulb.res" id="2_bulb"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_pad"]
+albedo_color = Color(0.22, 0.38, 0.40, 1)
+roughness = 0.88
+
+[sub_resource type="StandardMaterial3D" id="Mat_arm"]
+albedo_color = Color(0.88, 0.79, 0.58, 1)
+metallic = 0.18
+roughness = 0.58
+
+[sub_resource type="StandardMaterial3D" id="Mat_coral"]
+albedo_color = Color(0.74, 0.20, 0.15, 1)
+roughness = 0.72
+
+[sub_resource type="StandardMaterial3D" id="Mat_mustard"]
+albedo_color = Color(0.93, 0.63, 0.08, 1)
+roughness = 0.72
+
+[sub_resource type="StandardMaterial3D" id="Mat_hub"]
+albedo_color = Color(0.06, 0.34, 0.36, 1)
+metallic = 0.24
+roughness = 0.52
+
+[sub_resource type="CylinderMesh" id="Mesh_pad"]
+top_radius = 7.2
+bottom_radius = 7.2
+height = 0.28
+radial_segments = 32
+
+[sub_resource type="CylinderShape3D" id="Shape_pad"]
+radius = 7.3
+height = 0.32
+
+[sub_resource type="CylinderMesh" id="Mesh_mast"]
+top_radius = 0.38
+bottom_radius = 0.58
+height = 2.5
+radial_segments = 16
+
+[sub_resource type="BoxMesh" id="Mesh_sign"]
+size = Vector3(0.18, 1.3, 4.8)
+
+[sub_resource type="BoxShape3D" id="Shape_sign"]
+size = Vector3(0.18, 1.3, 4.8)
+
+[sub_resource type="SphereMesh" id="Mesh_bulb"]
+radius = 0.16
+height = 0.32
+
+[node name="boardwalk_scrambler" type="Node3D"]
+position = Vector3(-86, -5.95, -164)
+script = ExtResource("1_script")
+arm_material = SubResource("Mat_arm")
+car_material_a = SubResource("Mat_coral")
+car_material_b = SubResource("Mat_mustard")
+hub_material = SubResource("Mat_hub")
+editor_description = "Directly editor-owned R15 Scrambler. Its center, 7.2m operating pad and machine proportions are selectable here; repeated arms and cars derive without rewriting the scene."
+metadata/section = &"boardwalk"
+metadata/map_id = &"R15"
+metadata/ride_type = &"scrambler"
+metadata/operating_radius = 7.2
+metadata/ride_court = &"north_midway"
+
+[node name="operating_pad" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.128, 0)
+mesh = SubResource("Mesh_pad")
+material_override = SubResource("Mat_pad")
+
+[node name="operating_envelope" type="StaticBody3D" parent="."]
+
+[node name="collision" type="CollisionShape3D" parent="operating_envelope"]
+position = Vector3(0, 0.14, 0)
+shape = SubResource("Shape_pad")
+
+[node name="mast" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.244, 0)
+mesh = SubResource("Mesh_mast")
+material_override = SubResource("Mat_hub")
+
+[node name="derived_machine" type="Node3D" parent="."]
+editor_description = "Transient preview/runtime repetition. Edit the root controls rather than these children."
+
+[node name="marquee" type="MeshInstance3D" parent="."]
+position = Vector3(-8.1, 1.65, 0)
+rotation = Vector3(0, 0, 0)
+mesh = SubResource("Mesh_sign")
+material_override = SubResource("Mat_coral")
+
+[node name="marquee_collision" type="StaticBody3D" parent="."]
+position = Vector3(-8.1, 1.65, 0)
+
+[node name="shape" type="CollisionShape3D" parent="marquee_collision"]
+shape = SubResource("Shape_sign")
+
+[node name="name" type="Label3D" parent="."]
+position = Vector3(-8.2, 1.65, 0)
+rotation = Vector3(0, -1.570796, 0)
+text = "SCRAMBLER"
+font_size = 72
+pixel_size = 0.006
+outline_size = 8
+modulate = Color(1, 0.91, 0.70, 1)
+
+[node name="entry_fixture" type="MeshInstance3D" parent="."]
+position = Vector3(-8.25, 2.82, 0)
+mesh = SubResource("Mesh_bulb")
+material_override = ExtResource("2_bulb")
+
+[node name="entry_light" type="OmniLight3D" parent="." groups=["park_light"]]
+position = Vector3(-8.0, 2.55, 0)
+visible = false
+light_color = Color(1, 0.65, 0.34, 1)
+light_energy = 0.0
+light_specular = 0.2
+omni_range = 9.0
+omni_attenuation = 1.7
+metadata/base_energy = 1.25
+metadata/light_kind = 0

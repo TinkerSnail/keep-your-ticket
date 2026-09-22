@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/world/red_sensation_cabbage_tree.tscn" id="1_tree"]
+
+[node name="red_sensation_cabbage_tree_vB" instance=ExtResource("1_tree")]
+scale = Vector3(0.94, 1.08, 0.94)
+catalog_variant = 1
+editor_description = "Catalog vB: taller twenty-two-leaf Red Sensation with a strong upright center."

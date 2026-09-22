@@ -508,7 +508,9 @@ const GRAND_TRAM_CONTROLS: Array[Vector3] = [
 	Vector3(120.0, 6.0, -185.0),
 	Vector3(62.0, 0.0, -214.0), # Grove station
 	Vector3(-12.0, 0.0, -220.0),
-	Vector3(-62.0, -2.0, -204.0),
+	# A modest crest here gives the road-train deck a full 4m fixed clearance
+	# above B's shore-grade north return at their one controlled overpass.
+	Vector3(-62.0, -1.1, -204.0),
 	Vector3(-88.0, -4.5, -170.0),
 	Vector3(-78.0, -6.0, -82.0),
 	Vector3(-78.0, -6.0, -20.0),
@@ -536,18 +538,21 @@ const GRAND_TRAM_STATIONS := [
 ## authored decisions, not incidental overlaps: the transit generator marks
 ## them, and `footprint_test.gd` proves each marker remains on both routes. The
 ## arrival crossing is dressed by `entrance.tscn`; the three boardwalk-side
-## crossings belong to persistent transit infrastructure.
+## southern boardwalk crossings belong to persistent transit infrastructure.
 const GRAND_TRAM_CROSSINGS := [
 	{"id": &"entry", "at": Vector3(0.0, 0.0, 174.0),
 		"pedestrian": &"a_parking_arrival", "owner": &"entrance"},
-	{"id": &"boardwalk_north", "at": Vector3(-77.3, -4.2, -64.3),
-		"pedestrian": &"b_north_return", "owner": &"park_transit"},
 	{"id": &"boardwalk_monument", "at": Vector3(-78.0, -6.0, -2.0),
 		"pedestrian": &"b_monument_return", "owner": &"park_transit"},
 	{"id": &"boardwalk_south", "at": Vector3(-96.0, -6.0, 60.0),
 		"pedestrian": &"b_waterfront",
 		"captures": [&"b_waterfront", &"b_south_return"],
 		"owner": &"park_transit"},
+	{"id": &"boardwalk_north_overpass",
+		"at": Vector3(-70.14, -1.74, -198.65),
+		"pedestrian": &"b_north_return", "owner": &"park_transit",
+		"grade_separated": true, "fixed_structure_depth": 0.24,
+		"minimum_fixed_clearance_metres": 4.0},
 ]
 
 
@@ -1757,20 +1762,16 @@ const COAST_SOUTH_OUTLINE := [
 	Vector2(-72.0, 490.0), Vector2(-36.0, 580.0), Vector2(10.0, 680.0),
 	Vector2(70.0, 800.0), Vector2(140.0, 950.0), Vector2(230.0, 1150.0),
 	Vector2(340.0, 1400.0), Vector2(500.0, 1750.0), Vector2(700.0, 2200.0),
-	# The far shore curves over (2026-09-05, Christina): past the beach town
-	# and close to the city, the shore turns west round a low neck and out
-	# round the city's peninsula, a flat plain the city stands on
-	# (`FAR_CITY.plain`, inside this by forty metres), then back east along a
-	# south coast of headlands and coves to the world's east edge. The shore
-	# used to stop at (700, 2200) with the sea polygon closed on a straight
-	# line at x 700, which left the range's south arm dead-ending into the
-	# bay with its whole west face open; the city was a plate over the water.
+	# The retired far-city hook was removed on 2026-09-12 when the city and
+	# southern range moved to their editor-owned peninsula and broad foothills. Keep
+	# only a compact landing beneath the unchanged through-road and bridge;
+	# the authored source now owns the southward land continuity. This avoids
+	# leaving the former L-shaped peninsula visible behind the bridge.
 	Vector2(750.0, 2300.0), Vector2(700.0, 2380.0), Vector2(600.0, 2420.0),
 	Vector2(480.0, 2400.0), Vector2(340.0, 2380.0), Vector2(200.0, 2400.0),
-	Vector2(100.0, 2470.0), Vector2(50.0, 2600.0), Vector2(60.0, 2760.0),
-	Vector2(130.0, 2900.0), Vector2(280.0, 2990.0), Vector2(430.0, 3000.0),
-	Vector2(580.0, 2960.0), Vector2(680.0, 2860.0), Vector2(720.0, 2720.0),
-	Vector2(740.0, 2600.0), Vector2(800.0, 2560.0), Vector2(950.0, 2590.0),
+	Vector2(100.0, 2470.0), Vector2(110.0, 2525.0), Vector2(180.0, 2570.0),
+	Vector2(300.0, 2590.0), Vector2(450.0, 2580.0), Vector2(600.0, 2560.0),
+	Vector2(740.0, 2555.0), Vector2(800.0, 2560.0), Vector2(950.0, 2590.0),
 	Vector2(1080.0, 2660.0), Vector2(1300.0, 2600.0), Vector2(1520.0, 2680.0),
 	Vector2(1750.0, 2610.0), Vector2(1980.0, 2690.0), Vector2(2200.0, 2620.0),
 	Vector2(2400.0, 2660.0),
@@ -1783,15 +1784,10 @@ const COAST_SOUTH_OUTLINE := [
 ]
 ## Where the two outlines meet on the east coast: the land is an island.
 const WORLD_JUNCTION := Vector2(3500.0, 200.0)
-## Round hills standing on their own (2026-09-05), added to whatever the
-## ground is: a dome of `height` over `radius`, steep-sided when the height
-## is a good share of the radius. Two on the city's peninsula, for Christina's
-## Rio: a sugarloaf rising out of the water at the peninsula's south-west and
-## a broader hill behind the downtown, so the city climbs.
-const WORLD_HILLS := [
-	{"at": Vector2(150.0, 2830.0), "radius": 170.0, "height": 130.0},
-	{"at": Vector2(520.0, 2850.0), "radius": 230.0, "height": 70.0},
-]
+## The generated hills belonged to the retired far-city hook and were removed
+## with it on 2026-09-12. New city/range relief is editor-owned in
+## `far_shore_city_relocation.blend`.
+const WORLD_HILLS := []
 ## Cliffed headlands on the world's far coasts (2026-09-05): the ground
 ## rises to `height` over the first 25m inland within `radius` of the point,
 ## the way the park's own headland carries its cliff bands, so a few of the
@@ -2128,16 +2124,10 @@ const BEACH_TOWN_OUTLINE := [
 	Vector2(-118.0, 318.0), Vector2(-10.0, 318.0), Vector2(-4.0, 505.0),
 	Vector2(-50.0, 505.0), Vector2(-118.0, 470.0),
 ]
-## The city (2026-09-05, Christina: Singapore or Rio from across a bay, at
-## something like San Francisco's scale, hills and all). It stands on the
-## peninsula the far shore curves out into (`COAST_SOUTH_OUTLINE` from
-## `COAST_SOUTH_FAR_FROM`), not on a plate over the water. `plain` is the
-## downtown, a flat waterfront where the range is held to nothing and the
-## towers cluster about `centre` within `radius`; beyond it the ground rises
-## back into the range over `ease` metres on a curve that keeps the near
-## slopes gentle, `WORLD_HILLS` puts two steep hills on the peninsula, and
-## the low blocks climb whatever slope is under 1:2.5 all over it. The
-## generator reads the ground under every building; nothing here is a height.
+## Retired generated-city coordinates, kept while older tools still read them.
+## The mounted city and its southern land are now editor-owned by
+## `assets/source/far_shore_city_relocation.blend`; this table is not spatial
+## authority for that package. The former procedural city hills are disabled.
 const FAR_CITY := {
 	"plain": [Vector2(180.0, 2480.0), Vector2(300.0, 2420.0), Vector2(480.0, 2430.0),
 		Vector2(600.0, 2460.0), Vector2(610.0, 2570.0), Vector2(520.0, 2630.0),
@@ -2157,10 +2147,8 @@ const FAR_CITY := {
 }
 
 
-## The range's share on and about the city (2026-09-05): nothing on the
-## downtown plain, rising back to the whole of it `ease` metres out on a
-## curve that stays low near the city. `WORLD_HILLS` are added afterwards
-## and do not read this.
+## Compatibility relief for the retired generated-city coordinates. The
+## editor-owned city package does not read this.
 static func city_relief_factor(p: Vector2) -> float:
 	var plain := PackedVector2Array(FAR_CITY["plain"])
 	if Geometry2D.is_point_in_polygon(p, plain):
@@ -2175,8 +2163,8 @@ static func city_relief_factor(p: Vector2) -> float:
 	return pow(t, float(FAR_CITY["ease_power"]))
 
 
-## The hills that stand on their own (`WORLD_HILLS`): a dome each, added to
-## the ground.
+## Optional procedural world hills. Empty while the former peninsula hills are
+## retired; independent mountains belong to the editor-owned range source.
 static func world_hills_y(p: Vector2) -> float:
 	var y := 0.0
 	for hill in WORLD_HILLS:
@@ -2376,8 +2364,7 @@ const RIM_RANGE_FOREST_RISE := 15.0
 const RIM_RANGE_TREELINE_Y := 260.0
 
 
-## How much of the range stands on a bearing: all of it from north round to
-## the south-east, lowering to nothing where each arm reaches the sea.
+## Legacy recovery accessor; not authority for the mounted range.
 static func range_weight(theta_deg: float) -> float:
 	if theta_deg >= RIM_RANGE_FULL_FROM_DEG and theta_deg <= RIM_RANGE_FULL_TO_DEG:
 		return 1.0
@@ -2392,12 +2379,12 @@ static func range_weight(theta_deg: float) -> float:
 	return t * t * (3.0 - 2.0 * t)
 
 
-## The crescent's inner edge on a bearing: the profile's zero.
+## Legacy highway/recovery accessor; not the mounted range boundary.
 static func range_inner(theta_deg: float) -> float:
 	return RIM_RANGE_INNER_R + RIM_RANGE_INNER_SWELL * absf(sin(deg_to_rad(theta_deg)))
 
 
-## The profile's height at a distance from the inner edge, before weighting.
+## Retired procedural height profile retained for reversible recovery only.
 static func range_profile_y(d: float) -> float:
 	var knots: Array = RIM_RANGE_PROFILE
 	if d <= float(knots[0][0]):
@@ -2526,8 +2513,7 @@ static func shore_x(z: float) -> float:
 	return best
 
 
-## The summit line's height on a bearing, cosine-eased between the brief's
-## knots; the profile's far knots are scaled by this over RIM_RANGE_SUMMIT_REF.
+## Retired procedural summit record retained for reversible recovery only.
 static func range_summit_line(theta_deg: float) -> float:
 	var knots: Array = RIM_RANGE_SUMMIT_LINE
 	if theta_deg <= float(knots[0][0]):
@@ -2589,10 +2575,8 @@ static func approach_crossing() -> Vector3:
 	return pts[pts.size() - 2]
 
 
-## The toe line in plan: where the range begins to rise, on every bearing that
-## carries at least `min_weight` of it and on land — a toe out past the shore
-## is water, and the range fades to nothing there anyway. This is the line the
-## clearance rule is measured from.
+## The range's toe line, where it first rises above the ground. Clearance tests
+## and the footprint map read this same line the generator raises from.
 static func range_toe_line(step_deg := 2.0, min_weight := 0.1) -> Array[Vector2]:
 	var out: Array[Vector2] = []
 	var theta := RIM_RANGE_END_NORTH_DEG
@@ -3606,9 +3590,8 @@ const REBUILD_TERRAIN_BANDS := {
 		Vector2(138, 40), Vector2(141, -10), Vector2(139, -54),
 		Vector2(132, -88), Vector2(119, -112), Vector2(101, -126),
 	]]},
-	# T7, the perimeter rim, left this table on 2026-09-03: the landform outside
-	# the park is the crescent range, described once by RIM_RANGE_PROFILE and its
-	# accessors and planned as package 02A in world coordinates.
+	# T7, the perimeter rim, left this table on 2026-09-03. Since option A on
+	# 2026-09-12 its ordinary Blender source owns the complete outside landform.
 }
 
 ## The two immutable construction envelopes. New ground and paving are rejected
@@ -3700,15 +3683,17 @@ const REBUILD_PRIMARY_ROUTE_RUNS := [
 		]},
 	{"id": &"b_north_return", "route": &"B", "width": 8.0,
 		"build": true, "retained": true, "points": [
-			# The full approach now carries the six-metre descent. Keeping the
-			# first fifty metres level compressed the same fall into one short
-			# chord at the bluff and produced a 21.7% break in an otherwise broad
-			# return. These are grade changes only; the approved atlas centreline
-			# and its eight-metre operating width remain untouched.
+			# The land-side return spends the larger northern footprint on its full
+			# six-metre descent, stays east of R2 and S1, then walks around S1's north
+			# end to meet the open-air timber Boardwalk. It never enters a coaster
+			# support bay or asks guests to pass beneath service infrastructure.
 			Vector3(-6, 0, -68), Vector3(-22, 0, -66),
-			Vector3(-40, -0.4, -62), Vector3(-58, -1.85, -58),
-			Vector3(-75, -4.1, -59), Vector3(-90, SHORE_TOP, -62),
-			Vector3(-96, SHORE_TOP, -62),
+			Vector3(-40, -0.4, -62), Vector3(-44, -1.4, -74),
+			Vector3(-44, -2.6, -88), Vector3(-44, -3.8, -102),
+			Vector3(-42, -5.0, -118), Vector3(-42, SHORE_TOP, -130),
+			# This relationship, not a rounded atlas number, makes the expanded
+			# endpoint land exactly on the editor-owned deck at world z=-205m.
+			Vector3(-80, SHORE_TOP, -144.831460674),
 		]},
 	{"id": &"b_monument_return", "route": &"B", "width": 9.0,
 		"build": false, "owner": &"west_stair", "points": [

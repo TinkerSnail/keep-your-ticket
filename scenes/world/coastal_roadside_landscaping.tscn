@@ -1,0 +1,111 @@
+[gd_scene load_steps=13 format=3]
+
+; Directly editor-owned road-edge courses. Each starts at the curb line and
+; declares which side faces away from asphalt; low curb, soil and repeating
+; planting are derived without owning the road or moving any palm foot.
+
+[ext_resource type="Script" path="res://scenes/world/coastal_roadside_landscaping.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_arrival_curb_module.tscn" id="2_module"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_soil"]
+albedo_color = Color(0.18, 0.105, 0.052, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Mat_curb"]
+albedo_color = Color(0.63, 0.59, 0.5, 1)
+roughness = 0.92
+cull_mode = 2
+
+[sub_resource type="Curve3D" id="Curve_front_south"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -76, 0.02, 239.65, 0, 0, 0, 0, 0, 0, 75.5, 0.02, 239.65),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+bake_interval = 0.5
+
+[sub_resource type="Curve3D" id="Curve_approach_outer"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 78.316, 0.02, 239.238, 0, 0, 0, 0, 0, 0, 126.804, 4.574, 264.452, 0, 0, 0, 0, 0, 0, 128.162, 4.716, 265.195, 0, 0, 0, 0, 0, 0, 129.487, 4.858, 265.995),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
+bake_interval = 0.5
+
+[sub_resource type="Curve3D" id="Curve_approach_inner"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 81.684, 0.02, 232.762, 0, 0, 0, 0, 0, 0, 130.176, 4.574, 257.977, 0, 0, 0, 0, 0, 0, 131.802, 4.716, 258.868, 0, 0, 0, 0, 0, 0, 133.389, 4.858, 259.826),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
+bake_interval = 0.5
+
+[sub_resource type="Curve3D" id="Curve_inner_0"]
+_data = {"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -76, 0.02, 232.35, 0, 0, 0, 0, 0, 0, -64, 0.02, 232.35), "tilts": PackedFloat32Array(0, 0)}
+point_count = 2
+
+[sub_resource type="Curve3D" id="Curve_inner_1"]
+_data = {"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -56, 0.02, 232.35, 0, 0, 0, 0, 0, 0, -24, 0.02, 232.35), "tilts": PackedFloat32Array(0, 0)}
+point_count = 2
+
+[sub_resource type="Curve3D" id="Curve_inner_2"]
+_data = {"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -16, 0.02, 232.35, 0, 0, 0, 0, 0, 0, 1, 0.02, 232.35), "tilts": PackedFloat32Array(0, 0)}
+point_count = 2
+
+[sub_resource type="Curve3D" id="Curve_inner_3"]
+_data = {"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 27, 0.02, 232.35, 0, 0, 0, 0, 0, 0, 56, 0.02, 232.35), "tilts": PackedFloat32Array(0, 0)}
+point_count = 2
+
+[sub_resource type="Curve3D" id="Curve_inner_4"]
+_data = {"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 64, 0.02, 232.35, 0, 0, 0, 0, 0, 0, 76, 0.02, 232.35), "tilts": PackedFloat32Array(0, 0)}
+point_count = 2
+
+[node name="coastal_roadside_landscaping" type="Node3D"]
+script = ExtResource("1_script")
+module_scene = ExtResource("2_module")
+soil_material = SubResource("Mat_soil")
+curb_material = SubResource("Mat_curb")
+editor_description = "Eight editable road-edge courses: a palm-side front-road border, both approach-road borders, and five field-side runs split around entries and the drop-off. Curbs, soil and planting derive from these paths."
+
+[node name="edge_courses" type="Node3D" parent="."]
+
+[node name="front_road_palm_side" type="Path3D" parent="edge_courses"]
+curve = SubResource("Curve_front_south")
+metadata/outward_side = -1
+
+[node name="approach_outer" type="Path3D" parent="edge_courses"]
+curve = SubResource("Curve_approach_outer")
+metadata/outward_side = -1
+
+[node name="approach_inner" type="Path3D" parent="edge_courses"]
+curve = SubResource("Curve_approach_inner")
+metadata/outward_side = 1
+
+[node name="front_inner_west_end" type="Path3D" parent="edge_courses"]
+curve = SubResource("Curve_inner_0")
+metadata/outward_side = 1
+
+[node name="front_inner_west_field" type="Path3D" parent="edge_courses"]
+curve = SubResource("Curve_inner_1")
+metadata/outward_side = 1
+
+[node name="front_inner_centre" type="Path3D" parent="edge_courses"]
+curve = SubResource("Curve_inner_2")
+metadata/outward_side = 1
+
+[node name="front_inner_east_field" type="Path3D" parent="edge_courses"]
+curve = SubResource("Curve_inner_3")
+metadata/outward_side = 1
+
+[node name="front_inner_east_end" type="Path3D" parent="edge_courses"]
+curve = SubResource("Curve_inner_4")
+metadata/outward_side = 1
+
+[node name="derived_curbs" type="Node3D" parent="."]
+editor_description = "Visual-only low curb ribbons derived from edge_courses."
+
+[node name="derived_beds" type="Node3D" parent="."]
+editor_description = "Visual-only linear soil beds derived from edge_courses."
+
+[node name="derived_modules" type="Node3D" parent="."]
+editor_description = "Repeated lush modules derived from the editable courses. Edit the shared module or courses, not these children."

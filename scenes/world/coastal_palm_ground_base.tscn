@@ -1,0 +1,300 @@
+[gd_scene load_steps=13 format=3]
+
+; Directly editable lawn palm footing: overlapping low soil and foliage lobes
+; with fine-pinnaed ferns, grouped flowers and pointed border rosettes.
+; Visual only.
+
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_fern_fill.tscn" id="1_fern"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_border_rosette.tscn" id="2_rosette"]
+
+[sub_resource type="CylinderMesh" id="Mesh_soil"]
+top_radius = 0.5
+bottom_radius = 0.54
+height = 0.04
+radial_segments = 9
+rings = 1
+
+[sub_resource type="SphereMesh" id="Mesh_foliage"]
+radius = 0.12
+height = 0.09
+radial_segments = 7
+rings = 3
+
+[sub_resource type="SphereMesh" id="Mesh_bed_mass"]
+radius = 0.34
+height = 0.14
+radial_segments = 8
+rings = 3
+
+[sub_resource type="SphereMesh" id="Mesh_bloom"]
+radius = 0.038
+height = 0.042
+radial_segments = 6
+rings = 3
+
+[sub_resource type="StandardMaterial3D" id="Mat_soil"]
+albedo_color = Color(0.21, 0.135, 0.07, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Mat_grass_dark"]
+albedo_color = Color(0.19, 0.34, 0.11, 1)
+roughness = 0.96
+
+[sub_resource type="StandardMaterial3D" id="Mat_grass_light"]
+albedo_color = Color(0.34, 0.48, 0.16, 1)
+roughness = 0.96
+
+[sub_resource type="StandardMaterial3D" id="Mat_yellow"]
+albedo_color = Color(0.92, 0.67, 0.12, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Mat_white"]
+albedo_color = Color(0.88, 0.85, 0.72, 1)
+roughness = 0.92
+
+[sub_resource type="StandardMaterial3D" id="Mat_coral"]
+albedo_color = Color(0.72, 0.25, 0.16, 1)
+roughness = 0.9
+
+[node name="coastal_palm_ground_base" type="Node3D"]
+editor_description = "Directly editable lawn palm footing. Offset soil and foliage lobes keep the three coordinated flower drifts loose around the fixed trunk foot."
+
+[node name="soil_patch" type="MeshInstance3D" parent="."]
+position = Vector3(-0.12, 0.02, -0.08)
+rotation = Vector3(0, 0.16, 0)
+scale = Vector3(1.1, 1, 0.85)
+mesh = SubResource("Mesh_soil")
+material_override = SubResource("Mat_soil")
+cast_shadow = 0
+
+[node name="soil_patch_east" type="MeshInstance3D" parent="."]
+position = Vector3(0.28, 0.018, 0.05)
+rotation = Vector3(0, -0.21, 0)
+scale = Vector3(0.75, 0.9, 0.85)
+mesh = SubResource("Mesh_soil")
+material_override = SubResource("Mat_soil")
+cast_shadow = 0
+
+[node name="soil_patch_south" type="MeshInstance3D" parent="."]
+position = Vector3(-0.05, 0.016, 0.32)
+rotation = Vector3(0, 0.3, 0)
+scale = Vector3(0.85, 0.8, 0.65)
+mesh = SubResource("Mesh_soil")
+material_override = SubResource("Mat_soil")
+cast_shadow = 0
+
+[node name="fern_pockets" type="Node3D" parent="."]
+editor_description = "Two loose fern pockets cross the bed without completing a ring around the trunk."
+
+[node name="fern_0" parent="fern_pockets" instance=ExtResource("1_fern")]
+position = Vector3(-0.3, 0, -0.16)
+rotation = Vector3(0, 2.72, 0)
+scale = Vector3(0.78, 0.78, 0.78)
+
+[node name="fern_1" parent="fern_pockets" instance=ExtResource("1_fern")]
+position = Vector3(-0.08, 0, -0.31)
+rotation = Vector3(0, 2.28, 0)
+scale = Vector3(0.7, 0.7, 0.7)
+
+[node name="fern_2" parent="fern_pockets" instance=ExtResource("1_fern")]
+position = Vector3(-0.36, 0, 0.08)
+rotation = Vector3(0, -2.46, 0)
+scale = Vector3(0.74, 0.74, 0.74)
+
+[node name="fern_3" parent="fern_pockets" instance=ExtResource("1_fern")]
+position = Vector3(0.2, 0, 0.16)
+rotation = Vector3(0, 0.3, 0)
+scale = Vector3(0.8, 0.8, 0.8)
+
+[node name="fern_4" parent="fern_pockets" instance=ExtResource("1_fern")]
+position = Vector3(0.35, 0, -0.02)
+rotation = Vector3(0, 1.05, 0)
+scale = Vector3(0.73, 0.73, 0.73)
+
+[node name="fern_5" parent="fern_pockets" instance=ExtResource("1_fern")]
+position = Vector3(0.09, 0, 0.34)
+rotation = Vector3(0, -0.38, 0)
+scale = Vector3(0.71, 0.71, 0.71)
+
+[node name="border_rosettes" type="Node3D" parent="."]
+editor_description = "A staggered broken sweep at the bed edge, deliberately open on one side."
+
+[node name="rosette_0" parent="border_rosettes" instance=ExtResource("2_rosette")]
+position = Vector3(-0.42, 0, -0.39)
+rotation = Vector3(0, -0.28, 0)
+scale = Vector3(0.75, 0.75, 0.75)
+
+[node name="rosette_1" parent="border_rosettes" instance=ExtResource("2_rosette")]
+position = Vector3(-0.13, 0, -0.51)
+rotation = Vector3(0, 0.42, 0)
+scale = Vector3(0.7, 0.7, 0.7)
+
+[node name="rosette_2" parent="border_rosettes" instance=ExtResource("2_rosette")]
+position = Vector3(0.19, 0, -0.42)
+rotation = Vector3(0, 1.18, 0)
+scale = Vector3(0.78, 0.78, 0.78)
+
+[node name="rosette_3" parent="border_rosettes" instance=ExtResource("2_rosette")]
+position = Vector3(0.46, 0, -0.19)
+rotation = Vector3(0, 1.74, 0)
+scale = Vector3(0.72, 0.72, 0.72)
+
+[node name="rosette_4" parent="border_rosettes" instance=ExtResource("2_rosette")]
+position = Vector3(0.5, 0, 0.11)
+rotation = Vector3(0, 2.21, 0)
+scale = Vector3(0.76, 0.76, 0.76)
+
+[node name="rosette_5" parent="border_rosettes" instance=ExtResource("2_rosette")]
+position = Vector3(0.28, 0, 0.36)
+rotation = Vector3(0, 2.83, 0)
+scale = Vector3(0.69, 0.69, 0.69)
+
+[node name="rosette_6" parent="border_rosettes" instance=ExtResource("2_rosette")]
+position = Vector3(-0.02, 0, 0.48)
+rotation = Vector3(0, -2.78, 0)
+scale = Vector3(0.74, 0.74, 0.74)
+
+[node name="rosette_7" parent="border_rosettes" instance=ExtResource("2_rosette")]
+position = Vector3(-0.28, 0, 0.37)
+rotation = Vector3(0, -2.16, 0)
+scale = Vector3(0.68, 0.68, 0.68)
+
+[node name="flowers" type="Node3D" parent="."]
+
+[node name="planted_collar" type="MeshInstance3D" parent="flowers"]
+position = Vector3(-0.19, 0.055, -0.13)
+rotation = Vector3(0, 0.18, 0)
+scale = Vector3(1.48, 0.32, 1.02)
+mesh = SubResource("Mesh_bed_mass")
+material_override = SubResource("Mat_grass_dark")
+
+[node name="planted_lobe_east" type="MeshInstance3D" parent="flowers"]
+position = Vector3(0.27, 0.052, -0.01)
+rotation = Vector3(0, -0.24, 0)
+scale = Vector3(1.12, 0.28, 0.92)
+mesh = SubResource("Mesh_bed_mass")
+material_override = SubResource("Mat_grass_light")
+
+[node name="planted_lobe_south" type="MeshInstance3D" parent="flowers"]
+position = Vector3(-0.01, 0.05, 0.31)
+rotation = Vector3(0, 0.31, 0)
+scale = Vector3(1.18, 0.25, 0.78)
+mesh = SubResource("Mesh_bed_mass")
+material_override = SubResource("Mat_grass_dark")
+
+[node name="yellow_cluster" type="Node3D" parent="flowers"]
+position = Vector3(-0.29, 0, -0.22)
+rotation = Vector3(0, 0.72, 0)
+
+[node name="foliage" type="MeshInstance3D" parent="flowers/yellow_cluster"]
+position = Vector3(0, 0.09, 0)
+scale = Vector3(1.55, 1, 0.95)
+mesh = SubResource("Mesh_foliage")
+material_override = SubResource("Mat_grass_dark")
+
+[node name="bloom_0" type="MeshInstance3D" parent="flowers/yellow_cluster"]
+position = Vector3(-0.07, 0.145, -0.025)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_yellow")
+
+[node name="bloom_1" type="MeshInstance3D" parent="flowers/yellow_cluster"]
+position = Vector3(0.005, 0.16, -0.065)
+scale = Vector3(0.92, 0.92, 0.92)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_yellow")
+
+[node name="bloom_2" type="MeshInstance3D" parent="flowers/yellow_cluster"]
+position = Vector3(0.075, 0.148, -0.01)
+scale = Vector3(1.05, 1.05, 1.05)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_yellow")
+
+[node name="bloom_3" type="MeshInstance3D" parent="flowers/yellow_cluster"]
+position = Vector3(-0.035, 0.152, 0.06)
+scale = Vector3(0.86, 0.86, 0.86)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_yellow")
+
+[node name="bloom_4" type="MeshInstance3D" parent="flowers/yellow_cluster"]
+position = Vector3(0.065, 0.14, 0.065)
+scale = Vector3(0.78, 0.78, 0.78)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_yellow")
+
+[node name="white_cluster" type="Node3D" parent="flowers"]
+position = Vector3(0.02, 0, 0.01)
+rotation = Vector3(0, -0.64, 0)
+
+[node name="foliage" type="MeshInstance3D" parent="flowers/white_cluster"]
+position = Vector3(0, 0.09, 0)
+scale = Vector3(1.55, 1, 0.95)
+mesh = SubResource("Mesh_foliage")
+material_override = SubResource("Mat_grass_light")
+
+[node name="bloom_0" type="MeshInstance3D" parent="flowers/white_cluster"]
+position = Vector3(-0.065, 0.145, -0.03)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_white")
+
+[node name="bloom_1" type="MeshInstance3D" parent="flowers/white_cluster"]
+position = Vector3(0.015, 0.16, -0.06)
+scale = Vector3(0.88, 0.88, 0.88)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_white")
+
+[node name="bloom_2" type="MeshInstance3D" parent="flowers/white_cluster"]
+position = Vector3(0.075, 0.15, 0.0)
+scale = Vector3(1.05, 1.05, 1.05)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_white")
+
+[node name="bloom_3" type="MeshInstance3D" parent="flowers/white_cluster"]
+position = Vector3(-0.045, 0.15, 0.06)
+scale = Vector3(0.82, 0.82, 0.82)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_white")
+
+[node name="bloom_4" type="MeshInstance3D" parent="flowers/white_cluster"]
+position = Vector3(0.055, 0.138, 0.065)
+scale = Vector3(0.76, 0.76, 0.76)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_white")
+
+[node name="coral_cluster" type="Node3D" parent="flowers"]
+position = Vector3(0.31, 0, 0.27)
+rotation = Vector3(0, 0.34, 0)
+
+[node name="foliage" type="MeshInstance3D" parent="flowers/coral_cluster"]
+position = Vector3(0, 0.09, 0)
+scale = Vector3(1.7, 1, 0.95)
+mesh = SubResource("Mesh_foliage")
+material_override = SubResource("Mat_grass_dark")
+
+[node name="bloom_0" type="MeshInstance3D" parent="flowers/coral_cluster"]
+position = Vector3(-0.075, 0.145, -0.025)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_coral")
+
+[node name="bloom_1" type="MeshInstance3D" parent="flowers/coral_cluster"]
+position = Vector3(0.0, 0.16, -0.065)
+scale = Vector3(0.9, 0.9, 0.9)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_coral")
+
+[node name="bloom_2" type="MeshInstance3D" parent="flowers/coral_cluster"]
+position = Vector3(0.08, 0.15, -0.005)
+scale = Vector3(1.08, 1.08, 1.08)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_coral")
+
+[node name="bloom_3" type="MeshInstance3D" parent="flowers/coral_cluster"]
+position = Vector3(-0.04, 0.15, 0.06)
+scale = Vector3(0.84, 0.84, 0.84)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_coral")
+
+[node name="bloom_4" type="MeshInstance3D" parent="flowers/coral_cluster"]
+position = Vector3(0.06, 0.14, 0.07)
+scale = Vector3(0.74, 0.74, 0.74)
+mesh = SubResource("Mesh_bloom")
+material_override = SubResource("Mat_coral")

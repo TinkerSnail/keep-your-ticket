@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene load_steps=24 format=3]
 
 ; The complete playable park, composed from one canonical scene per place.
 ;
@@ -28,6 +28,8 @@
 [ext_resource type="PackedScene" path="res://scenes/world/park_towns.tscn" id="21_towns"]
 [ext_resource type="PackedScene" path="res://scenes/world/kiddieland_story.tscn" id="22_kiddieland_story"]
 [ext_resource type="PackedScene" path="res://scenes/world/range_forest_background.tscn" id="20_forest_background"]
+[ext_resource type="PackedScene" path="res://scenes/world/far_shore_city_relocation.tscn" id="23_far_shore_city"]
+[ext_resource type="PackedScene" path="res://scenes/wildlife/wildlife.tscn" id="24_wildlife"]
 
 [node name="park_world" type="Node3D" groups=["world"]]
 
@@ -61,6 +63,8 @@
 
 [node name="park_towns" parent="places" instance=ExtResource("21_towns")]
 
+[node name="far_shore_city_relocation" parent="places" instance=ExtResource("23_far_shore_city")]
+
 [node name="kiddieland_story" parent="places" instance=ExtResource("22_kiddieland_story")]
 
 [node name="shared" type="Node3D" parent="."]
@@ -78,6 +82,8 @@
 [node name="boardwalk_crowd" parent="crowds" instance=ExtResource("12_boardwalk_crowd")]
 
 [node name="terraces_crowd" parent="crowds" instance=ExtResource("13_terraces_crowd")]
+
+[node name="wildlife" parent="." instance=ExtResource("24_wildlife")]
 
 ; Hand additions that span districts can be placed here. District-specific
 ; work should normally be made in that district's canonical scene instead.

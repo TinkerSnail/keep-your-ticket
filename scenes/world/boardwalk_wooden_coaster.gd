@@ -9,8 +9,9 @@ extends Node3D
 @export var dark_timber_material: Material
 @export var rail_material: Material
 @export var catwalk_material: Material
-@export_range(1.0, 3.0, 0.1) var track_interval := 1.6
-@export_range(3.0, 8.0, 0.25) var bent_interval := 5.25
+@export var catch_material: Material
+@export_range(1.0, 3.0, 0.1) var track_interval := 2.2
+@export_range(3.0, 8.0, 0.25) var bent_interval := 7.0
 @export_range(0.8, 1.5, 0.05) var rail_gauge := 1.05
 
 const GROUND_Y := -6.0
@@ -18,6 +19,8 @@ const STATION_NORTH_Z := -67.0
 const TRACK_BEAM := 0.16
 const LEDGER_BEAM := 0.22
 const TIE_SIZE := Vector3(2.25, 0.16, 0.24)
+const PUBLIC_SCREEN_DROP := 0.58
+const PUBLIC_SCREEN_WIDTH := 2.80
 
 var _rebuild_queued := false
 
@@ -98,9 +101,23 @@ func _build_track(samples: Array[Dictionary], parent: Node3D) -> void:
 			Basis(a["side"], a["up"], -a["direction"]).orthonormalized(),
 			TIE_SIZE, timber_material)
 
+		# R2 crosses the public Boardwalk once, at one authored high-clearance
+		# flyover. A narrow translucent catch net follows the live track there
+		# if Christina reshapes the course in the editor.
+		var midpoint: Vector3 = (a["point"] + b["point"]) * 0.5
+		var crossing_id := _public_crossing_id(midpoint)
+		if not crossing_id.is_empty():
+			var screen_a: Vector3 = a["point"] - a["up"] * PUBLIC_SCREEN_DROP
+			var screen_b: Vector3 = b["point"] - b["up"] * PUBLIC_SCREEN_DROP
+			var screen_delta := screen_b - screen_a
+			_box(parent, "public_catch_%s_%03d" % [crossing_id, i],
+				(screen_a + screen_b) * 0.5,
+				Basis(a["side"], a["up"], -a["direction"]).orthonormalized(),
+				Vector3(PUBLIC_SCREEN_WIDTH, 0.025, screen_delta.length()),
+				catch_material if catch_material != null else rail_material)
+
 		# The northbound lift is the only place with a catwalk and chain. Its
 		# public-side rail gives the tall first hill scale from route B.
-		var midpoint: Vector3 = (a["point"] + b["point"]) * 0.5
 		if midpoint.x < -74.0 and midpoint.z < -64.0 and midpoint.z > -94.0 \
 				and Vector3(a["direction"]).y > 0.05:
 			var walk_a: Vector3 = a["point"] + a["side"] * 1.28 - a["up"] * 0.18
@@ -121,6 +138,36 @@ func _build_track(samples: Array[Dictionary], parent: Node3D) -> void:
 					0.09, rail_material)
 
 
+func _public_crossing_id(point: Vector3) -> String:
+	var controls := get_node_or_null("public_overhead_crossings")
+	if controls == null:
+		return ""
+	var p := Vector2(point.x, point.z)
+	for child in controls.get_children():
+		if child is not Marker3D:
+			continue
+		var marker := child as Marker3D
+		var radius := float(marker.get_meta("screen_radius", 0.0))
+		if p.distance_to(Vector2(marker.position.x, marker.position.z)) <= radius:
+			return String(marker.name)
+	return ""
+
+
+func _occupied_high_bay_id(point: Vector3) -> String:
+	var controls := get_node_or_null("occupied_high_bays")
+	if controls == null:
+		return ""
+	var p := Vector2(point.x, point.z)
+	for child in controls.get_children():
+		if child is not Marker3D:
+			continue
+		var marker := child as Marker3D
+		var radius := float(marker.get_meta("clear_span_radius", 0.0))
+		if p.distance_to(Vector2(marker.position.x, marker.position.z)) <= radius:
+			return String(marker.name)
+	return ""
+
+
 func _build_bents(curve: Curve3D, length: float, parent: Node3D) -> void:
 	var count := maxi(2, floori(length / bent_interval))
 	for i in count:
@@ -128,6 +175,16 @@ func _build_bents(curve: Curve3D, length: float, parent: Node3D) -> void:
 		var sample := _sample(curve, distance, length)
 		var top: Vector3 = sample["point"] - sample["up"] * 0.48
 		if top.z > STATION_NORTH_Z or top.y < GROUND_Y + 2.0:
+			continue
+		# The waterfront flyover is a deliberate clear span. Standard timber
+		# bents resume outside its authored radius instead of filling the public
+		# route with posts and diagonal bracing.
+		if not _public_crossing_id(top).is_empty():
+			continue
+		# Roofed midway uses may occupy only explicitly authored high bays. Skip
+		# the standard close bent there so the roof and its public interior do
+		# not share space with a post or brace; adjacent bents carry the span.
+		if not _occupied_high_bay_id(top).is_empty():
 			continue
 		var side: Vector3 = sample["side"]
 		var half_top := 1.72
@@ -147,7 +204,9 @@ func _build_bents(curve: Curve3D, length: float, parent: Node3D) -> void:
 		var brace_low_y := minf(GROUND_Y + 1.0, beam_y - 1.2)
 		var left_low := Vector3(left_foot.x, brace_low_y, left_foot.z)
 		var right_low := Vector3(right_foot.x, brace_low_y, right_foot.z)
-		if beam_y - brace_low_y > 2.0:
+		# Alternating braced and open bays keep the structure legible from the
+		# Boardwalk instead of turning the whole parcel into one dark lattice.
+		if beam_y - brace_low_y > 2.0 and i % 2 == 0:
 			_beam(parent, "bent_%03d_brace_a" % i, left_low,
 				right_top - Vector3.UP * 0.35, 0.18, dark_timber_material)
 			_beam(parent, "bent_%03d_brace_b" % i, right_low,

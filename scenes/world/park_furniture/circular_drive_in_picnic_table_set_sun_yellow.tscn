@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/world/park_furniture/circular_drive_in_picnic_table_set.tscn" id="1_base"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_sun_yellow"]
+albedo_color = Color(0.89, 0.62, 0.12, 1)
+roughness = 0.72
+
+[node name="circular_drive_in_picnic_table_set_sun_yellow" instance=ExtResource("1_base")]
+editor_description = "PRP-PARK-021 umbrella variant: sun-faded warm-yellow canopy over the unchanged circular table assembly."
+
+[node name="canopy" parent="umbrella" index="1"]
+material_override = SubResource("Mat_sun_yellow")
+
+[node name="valance" parent="umbrella" index="2"]
+material_override = SubResource("Mat_sun_yellow")

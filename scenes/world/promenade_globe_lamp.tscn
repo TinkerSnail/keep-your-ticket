@@ -1,0 +1,87 @@
+[gd_scene load_steps=7 format=3]
+
+; Directly editable globe-lamp building block for catalog compositions. It is a
+; local silhouette of the existing park-lamp family, not a new lighting identity.
+
+[sub_resource type="CylinderMesh" id="Mesh_cylinder"]
+top_radius = 0.5
+bottom_radius = 0.5
+height = 1.0
+radial_segments = 14
+rings = 1
+
+[sub_resource type="CylinderMesh" id="Mesh_taper"]
+top_radius = 0.18
+bottom_radius = 0.5
+height = 1.0
+radial_segments = 14
+rings = 1
+
+[sub_resource type="SphereMesh" id="Mesh_globe"]
+radius = 0.5
+height = 1.0
+radial_segments = 18
+rings = 8
+
+[sub_resource type="StandardMaterial3D" id="Mat_pole"]
+albedo_color = Color(0.055, 0.065, 0.06, 1)
+metallic = 0.64
+roughness = 0.54
+
+[sub_resource type="StandardMaterial3D" id="Mat_globe"]
+albedo_color = Color(0.88, 0.89, 0.76, 1)
+emission_enabled = true
+emission = Color(0.74, 0.69, 0.48, 1)
+emission_energy_multiplier = 0.28
+roughness = 0.3
+
+[node name="promenade_globe_lamp" type="Node3D"]
+editor_description = "Directly editable catalog-composition lamp silhouette. Root is ground level; the local basket mounting height is 2.72m."
+
+[node name="foot" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.07, 0)
+scale = Vector3(0.38, 0.14, 0.38)
+mesh = SubResource("Mesh_cylinder")
+material_override = SubResource("Mat_pole")
+
+[node name="base" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.25, 0)
+scale = Vector3(0.28, 0.28, 0.28)
+mesh = SubResource("Mesh_taper")
+material_override = SubResource("Mat_pole")
+
+[node name="shaft" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.69, 0)
+scale = Vector3(0.105, 2.65, 0.105)
+mesh = SubResource("Mesh_cylinder")
+material_override = SubResource("Mat_pole")
+
+[node name="basket_collar" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.72, 0)
+scale = Vector3(0.19, 0.16, 0.19)
+mesh = SubResource("Mesh_cylinder")
+material_override = SubResource("Mat_pole")
+
+[node name="globe_base" type="MeshInstance3D" parent="."]
+position = Vector3(0, 3.08, 0)
+scale = Vector3(0.25, 0.2, 0.25)
+mesh = SubResource("Mesh_taper")
+material_override = SubResource("Mat_pole")
+
+[node name="globe" type="MeshInstance3D" parent="."]
+position = Vector3(0, 3.42, 0)
+scale = Vector3(0.5, 0.6, 0.5)
+mesh = SubResource("Mesh_globe")
+material_override = SubResource("Mat_globe")
+
+[node name="cap" type="MeshInstance3D" parent="."]
+position = Vector3(0, 3.75, 0)
+scale = Vector3(0.2, 0.14, 0.2)
+mesh = SubResource("Mesh_taper")
+material_override = SubResource("Mat_pole")
+
+[node name="finial" type="MeshInstance3D" parent="."]
+position = Vector3(0, 3.9, 0)
+scale = Vector3(0.055, 0.17, 0.055)
+mesh = SubResource("Mesh_taper")
+material_override = SubResource("Mat_pole")

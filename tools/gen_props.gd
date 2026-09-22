@@ -704,39 +704,37 @@ func _initialize() -> void:
 	# ordinals. The staged nodes retain the exact transforms they had when they
 	# lived in east_cascade; only their output owner changes.
 	_publish_staged_east_shoulders()
+	_rebuild_embankment_ground_index(_root)
 	if not _save(_root, GROUNDWORKS_PATH):
 		return
 
-	_root = Node3D.new()
-	_root.name = "park_circulation"
-	_begin_scene()
-	_rebuild_circulation()
-	if not _save(_root, CIRCULATION_PATH):
-		return
-
-	# Packages 04-05 stay in separately editable wrappers. They are appended
-	# after every established output, so their continuing development cannot
-	# move a seam ordinal in either protected cascade.
-	_root = Node3D.new()
-	_root.name = "park_routes"
-	_begin_scene()
-	_rebuild_district_routes()
-	if not _save(_root, ROUTES_PATH):
-		return
-
-	_root = Node3D.new()
-	_root.name = "park_program"
-	_begin_scene()
-	_rebuild_program()
-	if not _save(_root, PROGRAM_PATH):
-		return
-
-	_root = Node3D.new()
-	_root.name = "park_landscape"
-	_begin_scene()
-	_rebuild_landscape()
-	if not _save(_root, LANDSCAPE_PATH):
-		return
+	# The four scenes that lay ribbons are all built before any of them is
+	# saved. A route's embankment has to know every floor beside it, and a ride
+	# queue in the program scene runs under the flank of F in the routes scene;
+	# banked one scene at a time, F's fill buried R8's queue. Each scene's banks
+	# are then appended to it at the seam ordinal that scene had reached.
+	var ribbon_scenes: Array = []
+	for scene in [
+			["park_circulation", CIRCULATION_PATH, _rebuild_circulation],
+			# Packages 04-05 stay in separately editable wrappers. They are
+			# appended after every established output, so their continuing
+			# development cannot move a seam ordinal in either protected cascade.
+			["park_routes", ROUTES_PATH, _rebuild_district_routes],
+			["park_program", PROGRAM_PATH, _rebuild_program],
+			["park_landscape", LANDSCAPE_PATH, _rebuild_landscape]]:
+		_root = Node3D.new()
+		_root.name = scene[0]
+		_begin_scene()
+		(scene[2] as Callable).call()
+		ribbon_scenes.append([_root, scene[1], _seam_ordinal])
+	for scene in ribbon_scenes:
+		_root = scene[0]
+		_seam_ordinal = scene[2]
+		_rebuild_flush_embankments(_root)
+		if not _save(_root, scene[1]):
+			return
+	# The approach and the towns lay their roads on the corridor's own ground.
+	_embank_live = false
 
 	# The parking clause: roads, entries, drop-off, hedges and berms. Appended
 	# after every established output for the seam-ordinal reason.
@@ -17461,6 +17459,10 @@ const REBUILD_PATH_LIFT := 0.022
 const REBUILD_BED_MARGIN := 1.4
 const REBUILD_SOUTH_CUT_WIDTH := 10.2
 const REBUILD_SOUTH_CUT_SEED_MARGIN := 0.4
+## How far in from a cut bed's edge its collidable shoulder strip reaches: past
+## the paving's edge by a few centimetres for B (1.3m shoulder) and the others
+## (0.7m).
+const REBUILD_CUT_BED_SHOULDER := 1.36
 const REBUILD_OUTER_HIGHLAND_FROM_X := 127.0
 const REBUILD_OUTER_HIGHLAND_COLS := 30
 const REBUILD_PLATEAU_OVERLAP := 8.0
@@ -17503,6 +17505,19 @@ const REBUILD_J9_FLOOR_DEPTH := 1.40
 ## Boardwalk's fixed central waterline. T0/T1, T4–T7, W1, W3 and W7 retain their
 ## canonical owners, while this scene supplies T2 and T3 on top of the reserve.
 func _rebuild_groundworks() -> void:
+	# The road corridors (2026-09-05): the ground under and beside every road
+	# cut into the landform, filling the holes the lattice meshes leave. Built
+	# first, because the lattices are stitched to its edge (2026-09-21): the
+	# lattice cells are clipped in plan to the corridor's outline and used to
+	# take the landform's height at every vertex of that outline, while the
+	# corridor took the road's, so on any slope the two sides of one cut met at
+	# the outline's vertices and parted between them, 273 open faces' worth.
+	# Now a lattice vertex on the corridor's boundary takes its height off the
+	# corridor's own boundary edge; see `_corridor_seam_y`. The bodies are
+	# still added in their established order, so no seam ordinal moves.
+	var corridor_mesh := _rebuild_road_corridor_mesh()
+	_index_corridor_seam(corridor_mesh)
+
 	var world_reserve := _rebuild_world_reserve_mesh()
 	_rebuild_mesh_body("terrain_world_mainland_reserve", world_reserve,
 		"ground_banded", true)
@@ -17512,10 +17527,11 @@ func _rebuild_groundworks() -> void:
 		_rebuild_mesh_body("terrain_world_coast_%s" % coast["id"], coast_mesh,
 			"ground_banded", true)
 
-	# The road corridors (2026-09-05): the ground under and beside every road
-	# cut into the landform, filling the holes the two meshes above leave.
-	_rebuild_mesh_body("terrain_road_corridor", _rebuild_road_corridor_mesh(),
+	_rebuild_mesh_body("terrain_road_corridor", corridor_mesh,
 		"ground_banded", true)
+	print("corridor seam: %d boundary edges, %d lattice vertices stitched, %d refused (portal lintels and anything off by over %.1fm)" % [
+		_corridor_seam_edges.size() / 2, _corridor_seam_hits,
+		_corridor_seam_refused, CORRIDOR_SEAM_MAX_CORRECTION])
 
 	var lowland: Array = Plan.rebuild_terrain_shape(&"T2")
 	var lowland_mesh := _rebuild_lowland_mesh(lowland)
@@ -17533,6 +17549,117 @@ func _rebuild_groundworks() -> void:
 	var outer_highland := _rebuild_outer_highland_mesh()
 	_rebuild_mesh_body("terrain_T6_outer_highland", outer_highland,
 		"planting", true)
+
+
+const CORRIDOR_SEAM_CELL := 8.0
+const CORRIDOR_SEAM_ON_EDGE := 0.02
+## A lattice vertex further off the corridor's edge height than this keeps its
+## own: it is on the wrong edge, a closure wall's road-level foot under the
+## chord it should meet, not on a seam.
+const CORRIDOR_SEAM_MAX_CORRECTION := 4.0
+const CORRIDOR_SEAM_WALL_CORRECTION := 0.6
+
+var _corridor_seam_edges := PackedVector3Array()
+## Per edge: does only a vertical face own it? A closure wall's chord, which
+## the lattice meets closely, or a tunnel portal's lintel, which it must not:
+## the lattice beyond a portal is the tunnel's floor at road level, and lifted
+## to the lintel it was a 1.5m lip across tunnel 3's mouth. A wall's edge may
+## move a vertex by `CORRIDOR_SEAM_WALL_CORRECTION` at most.
+var _corridor_seam_wall_edge: Array[bool] = []
+var _corridor_seam_cells: Dictionary = {}
+var _corridor_seam_hits := 0
+var _corridor_seam_refused := 0
+
+
+## The corridor mesh's boundary, every edge one triangle uses, by plan cell.
+## Read off the emitted triangles rather than the polygons the lattices are
+## clipped by, because in an interchange group the corridor is a Delaunay
+## triangulation whose edge need not follow the union outline.
+func _index_corridor_seam(mesh: ArrayMesh) -> void:
+	_corridor_seam_edges = PackedVector3Array()
+	_corridor_seam_wall_edge = []
+	_corridor_seam_cells = {}
+	var faces := mesh.get_faces()
+	var count := {}
+	var ends := {}
+	for f in range(0, faces.size(), 3):
+		var n := (faces[f + 2] - faces[f]).cross(faces[f + 1] - faces[f])
+		var vertical := absf(n.y) < n.length() * 0.05
+		for k in 3:
+			var a := faces[f + k]
+			var b := faces[f + (k + 1) % 3]
+			var ka := Vector3i(roundi(a.x * 200.0), roundi(a.y * 200.0), roundi(a.z * 200.0))
+			var kb := Vector3i(roundi(b.x * 200.0), roundi(b.y * 200.0), roundi(b.z * 200.0))
+			var key := [ka, kb] if ka < kb else [kb, ka]
+			count[key] = int(count.get(key, 0)) + 1
+			if not ends.has(key):
+				ends[key] = [a, b, vertical]
+	# Where two boundary edges share a plan line, a closure wall's foot at road
+	# level under the chord the lattice meets, the higher one is the seam.
+	var by_line := {}
+	for key in count:
+		if int(count[key]) != 1:
+			continue
+		var a: Vector3 = ends[key][0]
+		var b: Vector3 = ends[key][1]
+		if Vector2(a.x - b.x, a.z - b.z).length() < 0.05:
+			continue
+		var pa := Vector2i(roundi(a.x * 50.0), roundi(a.z * 50.0))
+		var pb := Vector2i(roundi(b.x * 50.0), roundi(b.z * 50.0))
+		var line := [pa, pb] if pa < pb else [pb, pa]
+		if by_line.has(line) and float(by_line[line][2]) >= a.y + b.y:
+			continue
+		by_line[line] = [a, b, a.y + b.y, ends[key][2]]
+	for line in by_line:
+		var a: Vector3 = by_line[line][0]
+		var b: Vector3 = by_line[line][1]
+		var at := _corridor_seam_edges.size()
+		_corridor_seam_edges.append(a)
+		_corridor_seam_edges.append(b)
+		_corridor_seam_wall_edge.append(bool(by_line[line][3]))
+		for cx in range(floori(minf(a.x, b.x) / CORRIDOR_SEAM_CELL),
+				floori(maxf(a.x, b.x) / CORRIDOR_SEAM_CELL) + 1):
+			for cz in range(floori(minf(a.z, b.z) / CORRIDOR_SEAM_CELL),
+					floori(maxf(a.z, b.z) / CORRIDOR_SEAM_CELL) + 1):
+				var cell := Vector2i(cx, cz)
+				var bucket: PackedInt32Array = _corridor_seam_cells.get(cell, PackedInt32Array())
+				bucket.append(at)
+				_corridor_seam_cells[cell] = bucket
+
+
+## A lattice vertex's height: the corridor's, interpolated along whichever of
+## its boundary edges the vertex lies on, or `own` when it lies on none. Where
+## two edges share the plan line, a closure wall's foot under its chord, the
+## one nearest `own` is the seam.
+func _corridor_seam_y(p: Vector2, own: float) -> float:
+	if _corridor_seam_cells.is_empty():
+		return own
+	var cell := Vector2i(floori(p.x / CORRIDOR_SEAM_CELL), floori(p.y / CORRIDOR_SEAM_CELL))
+	if not _corridor_seam_cells.has(cell):
+		return own
+	var best := NAN
+	for at in _corridor_seam_cells[cell] as PackedInt32Array:
+		var a := _corridor_seam_edges[at]
+		var b := _corridor_seam_edges[at + 1]
+		var a2 := Vector2(a.x, a.z)
+		var b2 := Vector2(b.x, b.z)
+		var q := Geometry2D.get_closest_point_to_segment(p, a2, b2)
+		if q.distance_to(p) > CORRIDOR_SEAM_ON_EDGE:
+			continue
+		var t := clampf((q - a2).dot(b2 - a2) / maxf((b2 - a2).length_squared(), 0.0001), 0.0, 1.0)
+		var y := lerpf(a.y, b.y, t)
+		if _corridor_seam_wall_edge[at / 2] and absf(y - own) > CORRIDOR_SEAM_WALL_CORRECTION:
+			_corridor_seam_refused += 1
+			continue
+		if is_nan(best) or absf(y - own) < absf(best - own):
+			best = y
+	if is_nan(best):
+		return own
+	if absf(best - own) > CORRIDOR_SEAM_MAX_CORRECTION:
+		_corridor_seam_refused += 1
+		return own
+	_corridor_seam_hits += 1
+	return best
 
 
 ## A single continuous mainland underlay. Its quiet inner field sits ten
@@ -17614,10 +17741,12 @@ func _rebuild_world_reserve_mesh() -> ArrayMesh:
 						_reserve_edge_walls(st, piece, closures)
 					emitted += 1
 					continue
-			var a := Vector3(p00.x, _rebuild_world_reserve_y(p00), p00.y)
-			var b := Vector3(p10.x, _rebuild_world_reserve_y(p10), p10.y)
-			var c := Vector3(p11.x, _rebuild_world_reserve_y(p11), p11.y)
-			var d := Vector3(p01.x, _rebuild_world_reserve_y(p01), p01.y)
+			# A whole cell's corner can sit on the corridor's outline too, and
+			# the clipped cell next door shares that corner: both take the seam.
+			var a := Vector3(p00.x, _corridor_seam_y(p00, _rebuild_world_reserve_y(p00)), p00.y)
+			var b := Vector3(p10.x, _corridor_seam_y(p10, _rebuild_world_reserve_y(p10)), p10.y)
+			var c := Vector3(p11.x, _corridor_seam_y(p11, _rebuild_world_reserve_y(p11)), p11.y)
+			var d := Vector3(p01.x, _corridor_seam_y(p01, _rebuild_world_reserve_y(p01)), p01.y)
 			var ca := _rebuild_ground_colour(p00, a.y)
 			var cb := _rebuild_ground_colour(p10, b.y)
 			var cc := _rebuild_ground_colour(p11, c.y)
@@ -17736,9 +17865,9 @@ func _reserve_piece(st: SurfaceTool, piece: PackedVector2Array) -> void:
 		var a2: Vector2 = piece[tris[i]]
 		var b2: Vector2 = piece[tris[i + 1]]
 		var c2: Vector2 = piece[tris[i + 2]]
-		var a3 := Vector3(a2.x, _rebuild_world_reserve_y(a2), a2.y)
-		var b3 := Vector3(b2.x, _rebuild_world_reserve_y(b2), b2.y)
-		var c3 := Vector3(c2.x, _rebuild_world_reserve_y(c2), c2.y)
+		var a3 := Vector3(a2.x, _corridor_seam_y(a2, _rebuild_world_reserve_y(a2)), a2.y)
+		var b3 := Vector3(b2.x, _corridor_seam_y(b2, _rebuild_world_reserve_y(b2)), b2.y)
+		var c3 := Vector3(c2.x, _corridor_seam_y(c2, _rebuild_world_reserve_y(c2)), c2.y)
 		_earth_coloured_tri(st,
 			a3, a2 * 0.28, _rebuild_ground_colour(a2, a3.y),
 			b3, b2 * 0.28, _rebuild_ground_colour(b2, b3.y),
@@ -18300,9 +18429,9 @@ func _rebuild_coastal_polygon_mesh(record: Dictionary) -> ArrayMesh:
 					var a2: Vector2 = piece[tris[i]]
 					var b2: Vector2 = piece[tris[i + 1]]
 					var c2: Vector2 = piece[tris[i + 2]]
-					var a3 := Vector3(a2.x, _rebuild_coastal_reserve_y(a2), a2.y)
-					var b3 := Vector3(b2.x, _rebuild_coastal_reserve_y(b2), b2.y)
-					var c3 := Vector3(c2.x, _rebuild_coastal_reserve_y(c2), c2.y)
+					var a3 := Vector3(a2.x, _corridor_seam_y(a2, _rebuild_coastal_reserve_y(a2)), a2.y)
+					var b3 := Vector3(b2.x, _corridor_seam_y(b2, _rebuild_coastal_reserve_y(b2)), b2.y)
+					var c3 := Vector3(c2.x, _corridor_seam_y(c2, _rebuild_coastal_reserve_y(c2)), c2.y)
 					_earth_coloured_tri(st,
 						a3, a2 * 0.28, _rebuild_ground_colour(a2, a3.y),
 						b3, b2 * 0.28, _rebuild_ground_colour(b2, b3.y),
@@ -18861,6 +18990,11 @@ func _rebuild_headland_mesh(shape: Array) -> ArrayMesh:
 
 func _rebuild_mesh_body(nm: String, mesh: ArrayMesh, mat: String,
 		collide: bool) -> void:
+	_rebuild_mesh_body_of(mat, nm, mesh, collide)
+
+
+func _rebuild_mesh_body_of(mat: String, nm: String, mesh: ArrayMesh,
+		collide: bool) -> StaticBody3D:
 	var body := StaticBody3D.new()
 	_add(body, nm)
 	var mi := MeshInstance3D.new()
@@ -18870,11 +19004,13 @@ func _rebuild_mesh_body(nm: String, mesh: ArrayMesh, mat: String,
 	body.add_child(mi)
 	mi.owner = _root
 	if collide:
+		_rebuild_embankment_index_faces(mesh.get_faces(), body.transform, 0)
 		var shape := CollisionShape3D.new()
 		shape.name = "shape"
 		shape.shape = mesh.create_trimesh_shape()
 		body.add_child(shape)
 		shape.owner = _root
+	return body
 
 
 ## Build every new surface from the same route records the minimap projects.
@@ -18887,8 +19023,12 @@ func _rebuild_circulation() -> void:
 		var closed := bool(run.get("closed", false))
 		_rebuild_assert_route_clear(String(run["id"]), points, width, closed)
 		if bool(run.get("retained", false)):
+			# As wide as the opening T2 leaves for it, not the route plus a
+			# margin: at 9.4m in a 10.6m cut the Player stepped off B's paving
+			# into a 60cm slot and out of the world (2026-09-21).
 			_rebuild_retained_bed("bed_%s" % run["id"], points,
-				width + REBUILD_BED_MARGIN, closed)
+				REBUILD_SOUTH_CUT_WIDTH + REBUILD_SOUTH_CUT_SEED_MARGIN, closed,
+				true, INF, true)
 		_rebuild_path("route_%s" % run["id"], points, width, closed,
 			StringName(run.get("route", &"")))
 		if bool(run.get("retained", false)):
@@ -18938,6 +19078,18 @@ func _rebuild_path(nm: String, points: Array, width: float, closed: bool,
 	body.set_meta("width", width)
 	body.set_meta("closed", closed)
 	_add(body, nm)
+	if _embank_live:
+		var ribbon_owner := _embank_next_owner
+		_embank_next_owner += 1
+		var ribbon := _rebuild_path_edges(points, width, closed)
+		var ribbon_faces := PackedVector3Array()
+		for i in (ribbon["left"] as PackedVector3Array).size() - 1:
+			ribbon_faces.append_array([ribbon["left"][i], ribbon["left"][i + 1],
+				ribbon["right"][i], ribbon["right"][i], ribbon["left"][i + 1],
+				ribbon["right"][i + 1]])
+		_rebuild_embankment_index_faces(ribbon_faces, Transform3D.IDENTITY, ribbon_owner)
+		_embank_queue.append({"nm": nm, "points": points, "width": width,
+			"closed": closed, "owner": ribbon_owner, "scene": _root})
 	var visual := MeshInstance3D.new()
 	visual.name = "surface"
 	visual.mesh = _rebuild_path_mesh(points, width, closed, visual_lift)
@@ -19205,19 +19357,97 @@ func _rebuild_path_edges(points: Array, width: float, closed: bool) -> Dictionar
 ## The two B returns cross the six-metre bluff as broad retained ramps. Their
 ## asphalt remains the route; this slightly wider stone bed explains the grade
 ## and closes both visible sides down to whichever terrain band is below it.
+## `flush_collision` is for a bed that fills a route's cut in T2 (2026-09-21):
+## the bed's top is what the Player stands on beside the asphalt, so its
+## collider is built at the route's own grade rather than the visible top's
+## 3.5cm below it. The ribbon's collision prism ends at the paving's edge, and
+## a 3.5cm step back up onto it is a wall to a CharacterBody3D; the visible
+## stone keeps its shadow line.
 func _rebuild_retained_bed(nm: String, points: Array, width: float,
-		closed: bool, collide := false, floor_drop := INF) -> void:
+		closed: bool, collide := false, floor_drop := INF,
+		flush_collision := false) -> void:
 	var edges := _rebuild_path_edges(points, width, closed)
 	var left: PackedVector3Array = edges["left"]
 	var right: PackedVector3Array = edges["right"]
+	var mesh := _rebuild_retained_bed_mesh(left, right, 0.035, floor_drop)
+	var body := _rebuild_mesh_body_of("brick", nm, mesh, collide and not flush_collision)
+	if collide and flush_collision:
+		var shape := CollisionShape3D.new()
+		shape.name = "shape"
+		var collision := _rebuild_cut_bed_collision(points, left, right, floor_drop)
+		# A section wholly on the shore side emits nothing and has no shape.
+		if collision.get_surface_count() > 0:
+			shape.shape = collision.create_trimesh_shape()
+			body.add_child(shape)
+			shape.owner = _root
+			_rebuild_embankment_index_faces(shape.shape.get_faces(), body.transform, 0)
+
+
+## The collider of a bed in a T2 cut: the shoulder strips between the paving
+## and the bed's edge, flush with the route, and the retaining walls, only
+## where the route is below the field east of the bluff, which is where T2
+## is opened. Nothing under the paving itself: the route's convex prisms are
+## the floor there, and a sloped trimesh coplanar with them caught the Player
+## on B's south ramp the first time (2026-09-21). On the shore side the deck
+## is the floor and the visible stone stays visual.
+func _rebuild_cut_bed_collision(points: Array, left: PackedVector3Array,
+		right: PackedVector3Array, floor_drop: float) -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var enter_y := REBUILD_LOWLAND_Y + 0.04
+	for i in left.size() - 1:
+		var l0 := left[i]
+		var l1 := left[i + 1]
+		var r0 := right[i]
+		var r1 := right[i + 1]
+		var in_cut := l0.y < enter_y and l1.y < enter_y \
+			and minf(l0.x, minf(l1.x, minf(r0.x, r1.x))) > Plan.BLUFF_FACE_X
+		if not in_cut:
+			continue
+		# The strips: from a line `REBUILD_CUT_BED_SHOULDER` inside each bed edge
+		# out to the edge. The paving's edge is inside that line, so the strip
+		# and the prism top overlap by a few centimetres on one plane, which
+		# physics does not mind and the Player never sees.
+		var across0 := (l0 - r0)
+		var across1 := (l1 - r1)
+		var w0 := across0.length()
+		var w1 := across1.length()
+		if w0 < 0.01 or w1 < 0.01:
+			continue
+		var li0 := l0 - across0 * (REBUILD_CUT_BED_SHOULDER / w0)
+		var li1 := l1 - across1 * (REBUILD_CUT_BED_SHOULDER / w1)
+		var ri0 := r0 + across0 * (REBUILD_CUT_BED_SHOULDER / w0)
+		var ri1 := r1 + across1 * (REBUILD_CUT_BED_SHOULDER / w1)
+		_earth_oriented_tri(st, li0, Vector2.ZERO, li1, Vector2.ZERO, l0, Vector2.ZERO, Vector3.UP)
+		_earth_oriented_tri(st, l0, Vector2.ZERO, li1, Vector2.ZERO, l1, Vector2.ZERO, Vector3.UP)
+		_earth_oriented_tri(st, r0, Vector2.ZERO, r1, Vector2.ZERO, ri0, Vector2.ZERO, Vector3.UP)
+		_earth_oriented_tri(st, ri0, Vector2.ZERO, r1, Vector2.ZERO, ri1, Vector2.ZERO, Vector3.UP)
+		var lb0 := Vector3(l0.x, _rebuild_bed_floor(l0), l0.z)
+		var lb1 := Vector3(l1.x, _rebuild_bed_floor(l1), l1.z)
+		var rb0 := Vector3(r0.x, _rebuild_bed_floor(r0), r0.z)
+		var rb1 := Vector3(r1.x, _rebuild_bed_floor(r1), r1.z)
+		if floor_drop < INF:
+			lb0.y = maxf(lb0.y, l0.y - floor_drop)
+			lb1.y = maxf(lb1.y, l1.y - floor_drop)
+			rb0.y = maxf(rb0.y, r0.y - floor_drop)
+			rb1.y = maxf(rb1.y, r1.y - floor_drop)
+		_earth_wall_quad(st, lb0, lb1, l0, l1,
+			Vector3(l0.x - r0.x, 0, l0.z - r0.z).normalized())
+		_earth_wall_quad(st, rb1, rb0, r1, r0,
+			Vector3(r0.x - l0.x, 0, r0.z - l0.z).normalized())
+	return st.commit()
+
+
+func _rebuild_retained_bed_mesh(left: PackedVector3Array,
+		right: PackedVector3Array, drop: float, floor_drop: float) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_smooth_group(0)
 	for i in left.size() - 1:
-		var l0 := left[i] - Vector3.UP * 0.035
-		var r0 := right[i] - Vector3.UP * 0.035
-		var l1 := left[i + 1] - Vector3.UP * 0.035
-		var r1 := right[i + 1] - Vector3.UP * 0.035
+		var l0 := left[i] - Vector3.UP * drop
+		var r0 := right[i] - Vector3.UP * drop
+		var l1 := left[i + 1] - Vector3.UP * drop
+		var r1 := right[i + 1] - Vector3.UP * drop
 		_earth_oriented_tri(st, l0, Vector2(l0.x, l0.z) * 0.3,
 			l1, Vector2(l1.x, l1.z) * 0.3,
 			r0, Vector2(r0.x, r0.z) * 0.3, Vector3.UP)
@@ -19242,11 +19472,373 @@ func _rebuild_retained_bed(nm: String, points: Array, width: float,
 			Vector3(r0.x - l0.x, 0, r0.z - l0.z).normalized())
 	st.generate_normals()
 	st.generate_tangents()
-	_rebuild_mesh_body(nm, st.commit(), "brick", collide)
+	return st.commit()
 
 
+# ---------------------------------------------------------------------------
+# Route embankments (2026-09-21)
+# ---------------------------------------------------------------------------
+
+## The terrain bands cut a hidden bed 0.7 to 1.1m under every graded route so
+## their coarse triangles cannot poke through the paving, and nothing closed
+## the sides; and where a route left the band that was written to carry it (F's
+## north arc after the footprint expansion, D and F between the T2 support line
+## and the shoulders, A's climb to the headland) it stood up to 13m in the air.
+## An embankment is the consequence of a route and the ground it crosses: a
+## crown under the ribbon, a short flush shoulder either side, and an earth
+## bank falling to whatever ground the groundworks actually emitted there. It
+## reads the emitted triangles rather than the height functions because five
+## owners meet along D and F and only the meshes say who is on top. It owns no
+## course and no grade; move a route and its banks follow.
+const REBUILD_EMBANK_SHOULDER := 0.9
+const REBUILD_EMBANK_MIN_GAP := 0.30
+const REBUILD_EMBANK_TOE_BURY := 0.45
+const REBUILD_EMBANK_MAX_RUN := 60.0
+const REBUILD_EMBANK_STEP := 0.5
+const REBUILD_EMBANK_CELL := 4.0
+const REBUILD_EMBANK_REGION_PAD := 60.0
+## Owner zero is earth; every other owner is a floor somebody walks on.
+const REBUILD_EMBANK_SHARED_FLOOR := 1000000
+
+var _embank_queue: Array = []
+var _embank_tris := PackedVector3Array()
+var _embank_owner := PackedInt32Array()
+var _embank_cells: Dictionary = {}
+var _embank_live := false
+var _embank_next_owner := 1
+
+
+## Bucket every upward triangle of the finished groundworks scene, within the
+## developed footprint, by plan cell. Ribbons, shared junction floors and the
+## banks themselves join the index as they are built, each under an owner
+## number, so a bank stops under a neighbouring floor instead of burying it and
+## a later bank lands on an earlier one.
+func _rebuild_embankment_ground_index(scene_root: Node3D) -> void:
+	_embank_tris = PackedVector3Array()
+	_embank_owner = PackedInt32Array()
+	_embank_cells = {}
+	_embank_live = true
+	for body_node in scene_root.get_children():
+		var body := body_node as Node3D
+		if body == null:
+			continue
+		for child in body.get_children():
+			var mi := child as MeshInstance3D
+			if mi != null and mi.mesh != null:
+				_rebuild_embankment_index_faces(mi.mesh.get_faces(),
+					body.transform * mi.transform, 0)
+	print("embankment ground index: %d triangles in %d cells" % [
+		_embank_tris.size() / 3, _embank_cells.size()])
+
+
+func _rebuild_embankment_index_faces(faces: PackedVector3Array, xf: Transform3D,
+		owner_id: int) -> void:
+	if not _embank_live:
+		return
+	var lo := Vector2(Plan.REBUILD_FOOTPRINT_MIN_X, Plan.REBUILD_FOOTPRINT_MIN_Z) \
+		- Vector2.ONE * REBUILD_EMBANK_REGION_PAD
+	var hi := Vector2(Plan.REBUILD_FOOTPRINT_MAX_X, Plan.REBUILD_FOOTPRINT_MAX_Z) \
+		+ Vector2.ONE * REBUILD_EMBANK_REGION_PAD
+	for f in range(0, faces.size(), 3):
+		var a := xf * faces[f]
+		var b := xf * faces[f + 1]
+		var c := xf * faces[f + 2]
+		var tlo := Vector2(minf(a.x, minf(b.x, c.x)), minf(a.z, minf(b.z, c.z)))
+		var thi := Vector2(maxf(a.x, maxf(b.x, c.x)), maxf(a.z, maxf(b.z, c.z)))
+		if thi.x < lo.x or tlo.x > hi.x or thi.y < lo.y or tlo.y > hi.y:
+			continue
+		var n := (c - a).cross(b - a)
+		if absf(n.y) < n.length() * 0.2:
+			continue
+		var at := _embank_tris.size()
+		_embank_tris.append(a)
+		_embank_tris.append(b)
+		_embank_tris.append(c)
+		_embank_owner.append(owner_id)
+		tlo = Vector2(maxf(tlo.x, lo.x), maxf(tlo.y, lo.y))
+		thi = Vector2(minf(thi.x, hi.x), minf(thi.y, hi.y))
+		for cx in range(floori(tlo.x / REBUILD_EMBANK_CELL),
+				floori(thi.x / REBUILD_EMBANK_CELL) + 1):
+			for cz in range(floori(tlo.y / REBUILD_EMBANK_CELL),
+					floori(thi.y / REBUILD_EMBANK_CELL) + 1):
+				var key := Vector2i(cx, cz)
+				# Read, append, write back: a packed array taken out of a
+				# Dictionary is a copy, and appending to it changes nothing.
+				var bucket: PackedInt32Array = _embank_cells.get(key, PackedInt32Array())
+				bucket.append(at)
+				_embank_cells[key] = bucket
+
+
+## The highest emitted ground at a plan point, or NAN where there is none.
+func _rebuild_embankment_ground_y(p: Vector2, skip_owner := -1,
+		floors_only := false) -> float:
+	var key := Vector2i(floori(p.x / REBUILD_EMBANK_CELL),
+		floori(p.y / REBUILD_EMBANK_CELL))
+	if not _embank_cells.has(key):
+		return NAN
+	var best := NAN
+	for at in _embank_cells[key] as PackedInt32Array:
+		if _embank_owner[at / 3] == skip_owner \
+				or (floors_only and _embank_owner[at / 3] == 0):
+			continue
+		var a := _embank_tris[at]
+		var b := _embank_tris[at + 1]
+		var c := _embank_tris[at + 2]
+		var v0 := Vector2(b.x - a.x, b.z - a.z)
+		var v1 := Vector2(c.x - a.x, c.z - a.z)
+		var v2 := Vector2(p.x - a.x, p.y - a.z)
+		var den := v0.x * v1.y - v1.x * v0.y
+		if absf(den) < 0.0000001:
+			continue
+		var u := (v2.x * v1.y - v1.x * v2.y) / den
+		var v := (v0.x * v2.y - v2.x * v0.y) / den
+		if u < -0.0001 or v < -0.0001 or u + v > 1.0001:
+			continue
+		var y := a.y + (b.y - a.y) * u + (c.y - a.y) * v
+		if is_nan(best) or y > best:
+			best = y
+	return best
+
+
+## Appended last to each scene that lays ribbons, after all four are built, so
+## no established shape moves a seam ordinal and every floor is known.
+func _rebuild_flush_embankments(scene_root: Node3D) -> void:
+	for record in _embank_queue:
+		if record["scene"] != scene_root:
+			continue
+		_rebuild_route_embankment(String(record["nm"]), record["points"],
+			float(record["width"]), bool(record["closed"]), int(record["owner"]))
+
+
+## How far out, in plan, a bank leaving `crown` along `out` runs before it is
+## `REBUILD_EMBANK_TOE_BURY` inside the ground, and the foot of the retaining
+## face it ends on, NAN when it ends in earth. Zero where the route already
+## stands on its ground, on the Boardwalk's side of the bluff where a route is
+## a deck, and wherever the bank would enter a protected envelope. A bank never
+## crosses a floor lower than itself: a fill beside a court ends at the court's
+## edge on a wall, as F's does above J9.
+func _rebuild_embankment_run(crown: Vector3, out: Vector2, ratio: float,
+		owner_id: int) -> Array:
+	var at := Vector2(crown.x, crown.z)
+	if crown.x <= Plan.BLUFF_FACE_X + 1.0 or _rebuild_in_protected(at, 0.75):
+		return [0.0, NAN]
+	var ground := _rebuild_embankment_ground_y(at, owner_id)
+	if is_nan(ground) or crown.y - ground <= REBUILD_EMBANK_MIN_GAP:
+		return [0.0, NAN]
+	var run := 0.0
+	while run <= REBUILD_EMBANK_MAX_RUN:
+		var p := at + out * run
+		if p.x <= Plan.BLUFF_FACE_X + 1.0 or _rebuild_in_protected(p, 0.75):
+			return [maxf(run - REBUILD_EMBANK_STEP, 0.0), NAN]
+		var under := _rebuild_embankment_ground_y(p, owner_id)
+		if is_nan(under):
+			return [maxf(run - REBUILD_EMBANK_STEP, 0.0), NAN]
+		var bank_y := crown.y - run / ratio
+		if run > 0.0 and bank_y <= under - REBUILD_EMBANK_TOE_BURY:
+			return [run, NAN]
+		# Look a station's width either side as well: a narrow queue running
+		# out from the route lies between two stations' lines and neither
+		# would meet it, while the bank spanning them would cover it.
+		var floor_y := NAN
+		var along := Vector2(-out.y, out.x)
+		for lateral in [0.0, -1.0, 1.0, -2.0, 2.0]:
+			var q := p + along * float(lateral)
+			var here := _rebuild_embankment_ground_y(q, owner_id, true)
+			if is_nan(here):
+				continue
+			var earth := _rebuild_embankment_ground_y(q, owner_id)
+			# A queue's own retained bed stands a few centimetres over its floor.
+			if here >= earth - 0.5 and (is_nan(floor_y) or here < floor_y):
+				floor_y = here
+		if not is_nan(floor_y) and bank_y > floor_y + REBUILD_EMBANK_MIN_GAP:
+			var back := maxf(run - REBUILD_EMBANK_STEP, 0.0)
+			var foot := _rebuild_embankment_ground_y(at + out * back, owner_id)
+			if is_nan(foot):
+				foot = floor_y
+			return [back, minf(foot, floor_y) - REBUILD_EMBANK_TOE_BURY]
+		run += REBUILD_EMBANK_STEP
+	return [REBUILD_EMBANK_MAX_RUN, NAN]
+
+
+func _rebuild_route_embankment(nm: String, points: Array, width: float,
+		closed: bool, owner_id: int) -> void:
+	var edges := _rebuild_path_edges(points, width, closed)
+	# A route's own stations stand up to fourteen metres apart on a long span.
+	# The ribbon is straight between them, so stations every two metres along
+	# the same edges describe the same ribbon and let the bank answer to what
+	# lies between: a queue, a court, a fold in the ground.
+	var left := PackedVector3Array()
+	var right := PackedVector3Array()
+	var coarse_left: PackedVector3Array = edges["left"]
+	var coarse_right: PackedVector3Array = edges["right"]
+	for i in coarse_left.size() - 1:
+		var span := maxf(coarse_left[i].distance_to(coarse_left[i + 1]),
+			coarse_right[i].distance_to(coarse_right[i + 1]))
+		var pieces := maxi(1, ceili(span / 2.0))
+		for k in pieces:
+			var t := float(k) / float(pieces)
+			left.append(coarse_left[i].lerp(coarse_left[i + 1], t))
+			right.append(coarse_right[i].lerp(coarse_right[i + 1], t))
+	left.append(coarse_left[coarse_left.size() - 1])
+	right.append(coarse_right[coarse_right.size() - 1])
+	var count := left.size()
+	# Per station and side: the ribbon's edge, the shoulder's outer edge and
+	# the toe. A bank's pitch wanders between about 1:1.6 and 1:2.6 along the
+	# route so a long fill reads as earth and not as an extrusion.
+	var rims: Array = [[], []]
+	var crowns: Array = [[], []]
+	var toes: Array = [[], []]
+	# Where the ground rises to the route again within the shoulder's width,
+	# neither side has a bank but the ribbon still stands over its bed cut.
+	var trenched: Array[bool] = []
+	var arc := 0.0
+	var any := false
+	for i in count:
+		if i > 0:
+			arc += ((left[i] + right[i]) * 0.5).distance_to((left[i - 1] + right[i - 1]) * 0.5)
+		var ratio := 2.1 + 0.4 * sin(arc * 0.045) + 0.15 * sin(arc * 0.13 + 1.7)
+		var over := false
+		for under_at in [left[i], right[i], (left[i] + right[i]) * 0.5]:
+			var q: Vector3 = under_at
+			var q2 := Vector2(q.x, q.z)
+			if q.x <= Plan.BLUFF_FACE_X + 1.0 or _rebuild_in_protected(q2, 0.75):
+				continue
+			var under_y := _rebuild_embankment_ground_y(q2, owner_id)
+			if not is_nan(under_y) and q.y - under_y > REBUILD_EMBANK_MIN_GAP:
+				over = true
+		trenched.append(over)
+		if over:
+			any = true
+		for side in 2:
+			var edge: Vector3 = left[i] if side == 0 else right[i]
+			var other: Vector3 = right[i] if side == 0 else left[i]
+			var out := Vector2(edge.x - other.x, edge.z - other.z).normalized()
+			var rim := edge - Vector3.UP * 0.002
+			var crown := edge + Vector3(out.x, 0.0, out.y) * REBUILD_EMBANK_SHOULDER \
+				- Vector3.UP * 0.05
+			var reach := _rebuild_embankment_run(crown, out, ratio, owner_id)
+			var run: float = reach[0]
+			var toe := crown + Vector3(out.x * run, -run / ratio, out.y * run)
+			if run > 0.0 or not is_nan(reach[1]):
+				any = true
+			(rims[side] as Array).append(rim)
+			(crowns[side] as Array).append(crown)
+			(toes[side] as Array).append([toe, run, reach[1], out, ratio])
+	if not any:
+		return
+	# A bank that ends early on a wall beside one that runs thirty metres makes
+	# one panel sweeping across whatever stopped the first: it is how F's fill
+	# still covered R8's queue. No station's bank may outrun its neighbour's by
+	# much more than their spacing; one cut short ends on a face of its own.
+	for side in 2:
+		for pass_index in 3:
+			for i in count:
+				var limit := INF
+				for j in [i - 1, i + 1]:
+					if j < 0 or j >= count:
+						continue
+					var gap: float = (crowns[side][i] as Vector3).distance_to(crowns[side][j])
+					limit = minf(limit, float(toes[side][j][1]) + gap * 1.5)
+				if float(toes[side][i][1]) <= limit:
+					continue
+				var crown: Vector3 = crowns[side][i]
+				var out: Vector2 = toes[side][i][3]
+				var toe := crown + Vector3(out.x * limit,
+					-limit / float(toes[side][i][4]), out.y * limit)
+				var under := _rebuild_embankment_ground_y(Vector2(toe.x, toe.z), owner_id)
+				toes[side][i][0] = toe
+				toes[side][i][1] = limit
+				toes[side][i][2] = NAN if is_nan(under) else under - REBUILD_EMBANK_TOE_BURY
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(0)
+	var quad := func(a: Vector3, b: Vector3, c: Vector3, d: Vector3) -> void:
+		_earth_oriented_tri(st, a, Vector2(a.x, a.z) * 0.28, b, Vector2(b.x, b.z) * 0.28,
+			c, Vector2(c.x, c.z) * 0.28, Vector3.UP)
+		_earth_oriented_tri(st, a, Vector2(a.x, a.z) * 0.28, c, Vector2(c.x, c.z) * 0.28,
+			d, Vector2(d.x, d.z) * 0.28, Vector3.UP)
+	for i in count - 1:
+		var banked := trenched[i] or trenched[i + 1]
+		for side in 2:
+			var run_a: float = toes[side][i][1]
+			var run_b: float = toes[side][i + 1][1]
+			if run_a <= 0.0 and run_b <= 0.0 and not banked \
+					and is_nan(toes[side][i][2]) and is_nan(toes[side][i + 1][2]):
+				continue
+			banked = true
+			quad.call(rims[side][i], rims[side][i + 1],
+				crowns[side][i + 1], crowns[side][i])
+			quad.call(crowns[side][i], crowns[side][i + 1],
+				toes[side][i + 1][0], toes[side][i][0])
+			var foot_a: float = toes[side][i][2]
+			var foot_b: float = toes[side][i + 1][2]
+			if not is_nan(foot_a) or not is_nan(foot_b):
+				var toe_a: Vector3 = toes[side][i][0]
+				var toe_b: Vector3 = toes[side][i + 1][0]
+				var face: Vector2 = toes[side][i][3]
+				_earth_wall_quad(st,
+					Vector3(toe_a.x, minf(toe_a.y, foot_b if is_nan(foot_a) else foot_a), toe_a.z),
+					Vector3(toe_b.x, minf(toe_b.y, foot_a if is_nan(foot_b) else foot_b), toe_b.z),
+					toe_a, toe_b, Vector3(face.x, 0.0, face.y))
+		if banked:
+			# The fill under the ribbon itself: what a ray dropped through the
+			# paving meets, five centimetres down and never on its plane.
+			quad.call(left[i] - Vector3.UP * 0.05, left[i + 1] - Vector3.UP * 0.05,
+				right[i + 1] - Vector3.UP * 0.05, right[i] - Vector3.UP * 0.05)
+	# An open route that ends in the air, as S3's spur does over the lowland
+	# at seven metres, gets a nose: the same bank, run out along the route
+	# from its end edge instead of across it, and the two side banks' ends.
+	if not closed:
+		for end_index in [0, count - 1]:
+			var e_left: Vector3 = left[end_index]
+			var e_right: Vector3 = right[end_index]
+			var neighbour: Vector3 = (left[1] + right[1]) * 0.5 if end_index == 0 \
+				else (left[count - 2] + right[count - 2]) * 0.5
+			var centre := (e_left + e_right) * 0.5
+			var ahead := Vector2(centre.x - neighbour.x, centre.z - neighbour.z).normalized()
+			var nose_ratio := 2.0
+			var nose_runs: Array = []
+			var nose_crowns: Array = [e_left, e_right]
+			for corner in [e_left, e_right]:
+				var crown: Vector3 = corner + Vector3(ahead.x, 0.0, ahead.y) * REBUILD_EMBANK_SHOULDER \
+					- Vector3.UP * 0.05
+				nose_runs.append(_rebuild_embankment_run(crown, ahead, nose_ratio, owner_id))
+			if float(nose_runs[0][0]) <= 0.0 and float(nose_runs[1][0]) <= 0.0:
+				continue
+			var run := maxf(float(nose_runs[0][0]), float(nose_runs[1][0]))
+			var crown_l: Vector3 = e_left + Vector3(ahead.x, 0.0, ahead.y) * REBUILD_EMBANK_SHOULDER - Vector3.UP * 0.05
+			var crown_r: Vector3 = e_right + Vector3(ahead.x, 0.0, ahead.y) * REBUILD_EMBANK_SHOULDER - Vector3.UP * 0.05
+			var toe_l := crown_l + Vector3(ahead.x * run, -run / nose_ratio, ahead.y * run)
+			var toe_r := crown_r + Vector3(ahead.x * run, -run / nose_ratio, ahead.y * run)
+			quad.call(e_left - Vector3.UP * 0.002, crown_l, crown_r, e_right - Vector3.UP * 0.002)
+			quad.call(crown_l, toe_l, toe_r, crown_r)
+			# The side banks' own ends, swept round to the nose's toe.
+			for side in 2:
+				var side_toe: Vector3 = toes[side][end_index][0]
+				var side_crown: Vector3 = crowns[side][end_index]
+				var nose_toe := toe_l if side == 0 else toe_r
+				var nose_crown := crown_l if side == 0 else crown_r
+				quad.call(side_crown, side_toe, nose_toe, nose_crown)
+	st.generate_normals()
+	st.generate_tangents()
+	var longest := 0.0
+	for side in 2:
+		for toe in toes[side]:
+			longest = maxf(longest, float(toe[1]))
+	print("embankment %s: longest bank %.1fm in plan" % [nm, longest])
+	_rebuild_mesh_body("embankment_%s" % nm, st.commit(), "planting", true)
+
+
+## Where the bed's top stands above the field, its wall runs down to a toe
+## just under the reserve; where the top is below the field, in a cut, the
+## wall is a retaining face and runs up to the field's own surface. It used to
+## stop 16cm short of it, a slit of sky under T2's edge from inside the cut.
 func _rebuild_bed_floor(p: Vector3) -> float:
-	return Plan.SHORE_TOP - 0.16 if p.x <= Plan.BLUFF_FACE_X else REBUILD_LOWLAND_Y - 0.16
+	if p.x <= Plan.BLUFF_FACE_X:
+		return Plan.SHORE_TOP - 0.16
+	if p.y < REBUILD_LOWLAND_Y - 0.16:
+		return REBUILD_LOWLAND_Y
+	return REBUILD_LOWLAND_Y - 0.16
 
 
 ## A short editor-owned access line can cross multiple independently meshed
@@ -19332,7 +19924,8 @@ func _rebuild_district_routes() -> void:
 			var section_index := 0
 			for section in _rebuild_below_lowland_sections(points):
 				_rebuild_retained_bed("bed_%s_%d" % [run["id"], section_index],
-					section, float(run["width"]) + REBUILD_BED_MARGIN, false)
+					section, float(run["width"]) + REBUILD_BED_MARGIN, false,
+					true, INF, true)
 				section_index += 1
 		# E's J9 approach and F's terrace link are visibly two map lines but
 		# spatially one broad fork: their full walking envelopes overlap from
@@ -19347,7 +19940,7 @@ func _rebuild_district_routes() -> void:
 	# ribbons remain visible as wayfinding but yield physical ownership here.
 	var bc_floor := _rebuild_bc_junction_floor()
 	_rebuild_retained_bed("bed_junction_bc_shared", bc_floor["points"],
-		float(bc_floor["width"]) + REBUILD_BED_MARGIN, false)
+		float(bc_floor["width"]) + REBUILD_BED_MARGIN, false, true, INF, true)
 	_rebuild_path("junction_bc_shared_floor", bc_floor["points"],
 		float(bc_floor["width"]), false, &"")
 
@@ -19910,6 +20503,9 @@ func _rebuild_j9_floor() -> void:
 		var a2 := polygon[triangles[i]]
 		var b2 := polygon[triangles[i + 1]]
 		var c2 := polygon[triangles[i + 2]]
+		_rebuild_embankment_index_faces(PackedVector3Array([
+			Vector3(a2.x, y, a2.y), Vector3(b2.x, y, b2.y), Vector3(c2.x, y, c2.y)]),
+			Transform3D.IDENTITY, REBUILD_EMBANK_SHARED_FLOOR)
 		_earth_oriented_tri(top_st,
 			Vector3(a2.x, y + REBUILD_PATH_LIFT + 0.010, a2.y), a2 * 0.35,
 			Vector3(b2.x, y + REBUILD_PATH_LIFT + 0.010, b2.y), b2 * 0.35,
@@ -21634,7 +22230,7 @@ func _rebuild_service_network() -> void:
 			var section_index := 0
 			for section in _rebuild_below_lowland_sections(points):
 				_rebuild_retained_bed("bed_service_S2_%d" % section_index,
-					section, 4.0 + REBUILD_BED_MARGIN, false)
+					section, 4.0 + REBUILD_BED_MARGIN, false, true, INF, true)
 				section_index += 1
 		_rebuild_path("service_%s" % spine["id"], points, 4.0, false, &"")
 		# A repeated low screen communicates back-of-house ownership without

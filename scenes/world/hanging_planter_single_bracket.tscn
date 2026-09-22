@@ -1,0 +1,70 @@
+[gd_scene load_steps=6 format=3]
+
+; Catalog-only single-side bracket composition. Its root is the wall or pole
+; attachment point, and the reusable flower basket remains a separate instance.
+
+[ext_resource type="PackedScene" path="res://scenes/world/hanging_planter_petunia_cloud.tscn" id="1_basket"]
+
+[sub_resource type="BoxMesh" id="Mesh_box"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="CylinderMesh" id="Mesh_rod"]
+top_radius = 0.022
+bottom_radius = 0.022
+height = 1.1
+radial_segments = 8
+rings = 1
+
+[sub_resource type="SphereMesh" id="Mesh_bolt"]
+radius = 0.045
+height = 0.075
+radial_segments = 8
+rings = 3
+
+[sub_resource type="StandardMaterial3D" id="Mat_iron"]
+albedo_color = Color(0.045, 0.055, 0.052, 1)
+metallic = 0.62
+roughness = 0.58
+
+[node name="hanging_planter_single_bracket" type="Node3D"]
+editor_description = "Catalog-only composition: a compact black side bracket and one reusable overflowing mixed-flower basket. Root origin is the bracket mounting plate."
+
+[node name="bracket" type="Node3D" parent="."]
+editor_description = "Selectable mounting plate, arm, diagonal brace, hook and bolts."
+
+[node name="mounting_plate" type="MeshInstance3D" parent="bracket"]
+position = Vector3(0, -0.15, 0)
+scale = Vector3(0.12, 0.62, 0.14)
+mesh = SubResource("Mesh_box")
+material_override = SubResource("Mat_iron")
+
+[node name="arm" type="MeshInstance3D" parent="bracket"]
+position = Vector3(-0.55, 0, 0)
+rotation = Vector3(0, 0, 1.570796)
+mesh = SubResource("Mesh_rod")
+material_override = SubResource("Mat_iron")
+
+[node name="brace" type="MeshInstance3D" parent="bracket"]
+transform = Transform3D(0.323316, -0.946291, 0, 0.946291, 0.323316, 0, 0, 0, 1, -0.41, -0.14, 0)
+scale = Vector3(1, 0.7877, 1)
+mesh = SubResource("Mesh_rod")
+material_override = SubResource("Mat_iron")
+
+[node name="hook" type="MeshInstance3D" parent="bracket"]
+position = Vector3(-1.1, -0.045, 0)
+scale = Vector3(0.8, 0.1, 0.8)
+mesh = SubResource("Mesh_rod")
+material_override = SubResource("Mat_iron")
+
+[node name="bolt_upper" type="MeshInstance3D" parent="bracket"]
+position = Vector3(0, 0.02, 0.085)
+mesh = SubResource("Mesh_bolt")
+material_override = SubResource("Mat_iron")
+
+[node name="bolt_lower" type="MeshInstance3D" parent="bracket"]
+position = Vector3(0, -0.33, 0.085)
+mesh = SubResource("Mesh_bolt")
+material_override = SubResource("Mat_iron")
+
+[node name="basket" parent="." instance=ExtResource("1_basket")]
+position = Vector3(-1.1, -0.1, 0)

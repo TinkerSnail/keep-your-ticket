@@ -776,17 +776,17 @@ modulate = Color(0.75, 0.92, 0.82, 1)
 editor_description = "R2 separate load/exit gates, brake console and before-opening SH1 work edge."
 
 [node name="queue_header" type="MeshInstance3D" parent="R2_coaster_station_operations"]
-position = Vector3(-91.05, -2.45, -55.2)
-scale = Vector3(0.16, 1.0, 3.1)
+position = Vector3(-91.05, -2.65, -64.15)
+scale = Vector3(0.16, 0.72, 2.4)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_coral")
 
 [node name="queue_label" type="Label3D" parent="R2_coaster_station_operations"]
-position = Vector3(-91.18, -2.35, -55.2)
+position = Vector3(-91.18, -2.58, -64.15)
 rotation = Vector3(0, -1.570796, 0)
-text = "COASTER  ·  LOAD"
-font_size = 70
-pixel_size = 0.007
+text = "LOAD"
+font_size = 58
+pixel_size = 0.006
 outline_size = 8
 modulate = Color(0.97, 0.86, 0.58, 1)
 

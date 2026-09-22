@@ -1,0 +1,32 @@
+[gd_scene load_steps=4 format=3]
+
+; Shared directly reshapeable leaf course for Lily of the Nile and lilyturf.
+; The six course points create an upright base, broad arch and lowered point.
+
+[ext_resource type="Script" path="res://scenes/world/arching_strap_leaf.gd" id="1_script"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_default"]
+cull_mode = 2
+albedo_color = Color(0.13, 0.34, 0.12, 1)
+roughness = 0.96
+
+[sub_resource type="Curve3D" id="Curve3D_leaf"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0.006, 0.08, 0, 0, 0, 0, -0.01, -0.075, 0, 0.015, 0.085, 0, 0.025, 0.22, 0, -0.026, -0.085, 0, 0.03, 0.09, 0, 0.1, 0.46, 0, -0.05, -0.085, 0, 0.055, 0.08, 0, 0.24, 0.7, 0, -0.075, 0.015, 0, 0.075, -0.015, 0, 0.46, 0.88, 0, -0.09, 0.08, 0, 0, 0, 0, 0.72, 0.64, 0),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0)
+}
+point_count = 6
+bake_interval = 0.035
+
+[node name="arching_strap_leaf" type="Node3D"]
+script = ExtResource("1_script")
+leaf_material = SubResource("Mat_default")
+editor_description = "Shared pointed strap leaf. Move the six course points to reshape the arch used by both Lily of the Nile and lilyturf; width and fold stay inspector controls."
+
+[node name="course" type="Path3D" parent="."]
+curve = SubResource("Curve3D_leaf")
+editor_description = "Canonical upright base, outward arch and slightly lowered pointed tip."
+
+[node name="derived_leaf" type="MeshInstance3D" parent="."]
+cast_shadow = 1
+editor_description = "Derived folded ribbon. Edit course, half_width or fold_depth rather than this preview mesh."

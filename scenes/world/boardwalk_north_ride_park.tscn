@@ -1,0 +1,177 @@
+[gd_scene load_steps=12 format=3]
+
+; This is the directly editor-owned north Boardwalk extension. The canonical
+; public extension and both ride placements remain ordinary selectable scene data.
+
+[ext_resource type="Script" path="res://scenes/world/boardwalk_north_ride_park.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/world/boardwalk_scrambler.tscn" id="2_scrambler"]
+[ext_resource type="PackedScene" path="res://scenes/world/boardwalk_dodgems.tscn" id="3_dodgems"]
+[ext_resource type="Texture2D" path="res://assets/textures/plank_cross_albedo.res" id="4_plank"]
+[ext_resource type="Texture2D" path="res://assets/textures/plank_cross_normal.res" id="5_plank_normal"]
+[ext_resource type="PackedScene" path="res://scenes/world/boardwalk_under_coaster_pavilion.tscn" id="6_pavilion"]
+
+[sub_resource type="Curve3D" id="Curve3D_loop"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -99, -6, -78, 0, 0, 0, 0, 0, 0, -107, -6, -92, 0, 0, 0, 0, 0, 0, -108, -6, -112, 0, 0, 0, 0, 0, 0, -108, -6, -136, 0, 0, 0, 0, 0, 0, -106, -6, -158, 0, 0, 0, 0, 0, 0, -102, -6, -176, 0, 0, 0, 0, 0, 0, -98, -6, -188, 0, 0, 0, 0, 0, 0, -96, -6, -198, 0, 0, 0, 0, 0, 0, -92, -6, -205, 0, 0, 0, 0, 0, 0, -80, -6, -205),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+point_count = 10
+bake_interval = 0.5
+
+[sub_resource type="Curve3D" id="Curve3D_r15_apron"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -104, -6, -164, 0, 0, 0, 0, 0, 0, -94, -6, -164),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+bake_interval = 0.5
+
+[sub_resource type="Curve3D" id="Curve3D_r16_apron"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -101, -6, -184, 0, 0, 0, 0, 0, 0, -91, -6, -184),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+bake_interval = 0.5
+
+[sub_resource type="StandardMaterial3D" id="Mat_deck"]
+albedo_color = Color(0.68, 0.62, 0.54, 1)
+albedo_texture = ExtResource("4_plank")
+roughness = 0.95
+normal_enabled = true
+normal_scale = 0.8
+normal_texture = ExtResource("5_plank_normal")
+texture_filter = 5
+
+[sub_resource type="StandardMaterial3D" id="Mat_fascia"]
+albedo_color = Color(0.34, 0.23, 0.14, 1)
+roughness = 0.94
+
+[sub_resource type="StandardMaterial3D" id="Mat_rail"]
+albedo_color = Color(0.22, 0.24, 0.25, 1)
+metallic = 0.26
+roughness = 0.58
+
+[sub_resource type="StandardMaterial3D" id="Mat_queue"]
+albedo_color = Color(0.05, 0.36, 0.38, 1)
+roughness = 0.75
+
+[sub_resource type="BoxMesh" id="Mesh_marker"]
+size = Vector3(0.18, 1.05, 0.18)
+
+[sub_resource type="BoxMesh" id="Mesh_photo"]
+size = Vector3(1.2, 0.08, 1.2)
+
+[node name="boardwalk_north_ride_park" type="Node3D"]
+script = ExtResource("1_script")
+deck_material = SubResource("Mat_deck")
+fascia_material = SubResource("Mat_fascia")
+rail_material = SubResource("Mat_rail")
+editor_description = "Directly editor-owned north Boardwalk ride park. Edit the open waterfront extension and the R15/R16 instance positions here; derived deck construction follows without rewriting the source."
+metadata/section = &"boardwalk"
+metadata/layout_version = 1
+metadata/coordinate_space = &"godot_world_metres"
+metadata/approved_plan = "res://documentation/maps/park-sections.html"
+metadata/retains_cove_and_quay = true
+metadata/route_width = 8.0
+metadata/deck_top_y = -5.958
+
+[node name="public_ride_loop" type="Path3D" parent="."]
+curve = SubResource("Curve3D_loop")
+editor_description = "Canonical editor-owned 8m Boardwalk extension. It continues beyond the old chain along R2's seaward edge, follows the north shoreline in open sky and meets B's land-side return beyond S1."
+metadata/route = &"B"
+metadata/width = 8.0
+metadata/closed = false
+metadata/ownership = &"editor"
+
+[node name="derived_deck" type="Node3D" parent="."]
+editor_description = "Transient wearing surface, support and outer rail derived from public_ride_loop. Edit the curve, not these children."
+
+[node name="public_aprons" type="Node3D" parent="."]
+editor_description = "Editor-owned timber forecourts joining the waterfront route to each separate ride entrance."
+
+[node name="R15_public_apron" type="Path3D" parent="public_aprons"]
+curve = SubResource("Curve3D_r15_apron")
+metadata/width = 16.0
+metadata/ownership = &"editor"
+metadata/terrain_bed_depth = 0.18
+metadata/terrain_ease = 4.0
+
+[node name="R16_public_apron" type="Path3D" parent="public_aprons"]
+curve = SubResource("Curve3D_r16_apron")
+metadata/width = 24.0
+metadata/ownership = &"editor"
+metadata/terrain_bed_depth = 0.18
+metadata/terrain_ease = 4.0
+
+[node name="derived_aprons" type="Node3D" parent="."]
+editor_description = "Transient planks and collision derived from public_aprons. Edit the two Path3Ds, not these children."
+
+[node name="rides" type="Node3D" parent="."]
+
+[node name="R15_scrambler" parent="rides" instance=ExtResource("2_scrambler")]
+
+[node name="R16_dodgems" parent="rides" instance=ExtResource("3_dodgems")]
+
+[node name="under_coaster_pavilions" type="Node3D" parent="."]
+editor_description = "Low roofed midway uses in R2's genuinely high support bays. Their placements are editor-owned and remain outside the public route envelope."
+
+[node name="high_bay_midway_0" parent="under_coaster_pavilions" instance=ExtResource("6_pavilion")]
+position = Vector3(-99, -5.95, -95)
+metadata/map_id = &"R2-MW-A"
+
+[node name="high_bay_midway_1" parent="under_coaster_pavilions" instance=ExtResource("6_pavilion")]
+position = Vector3(-53, -0.05, -120)
+metadata/map_id = &"R2-MW-B"
+
+[node name="operations" type="Node3D" parent="."]
+editor_description = "Queue, exit, service and camera controls remain separate from the 8m through-loop."
+
+[node name="R15_queue_00" type="Marker3D" parent="operations"]
+position = Vector3(-100, -5.95, -158)
+[node name="R15_queue_01" type="Marker3D" parent="operations"]
+position = Vector3(-98, -5.95, -162)
+[node name="R15_queue_02" type="Marker3D" parent="operations"]
+position = Vector3(-96, -5.95, -166)
+[node name="R15_exit_00" type="Marker3D" parent="operations"]
+position = Vector3(-96, -5.95, -170)
+[node name="R15_exit_01" type="Marker3D" parent="operations"]
+position = Vector3(-92, -5.95, -173)
+[node name="R15_exit_02" type="Marker3D" parent="operations"]
+position = Vector3(-88, -5.95, -176)
+[node name="R15_service_00" type="Marker3D" parent="operations"]
+position = Vector3(-76, -5.95, -164)
+[node name="R15_service_01" type="Marker3D" parent="operations"]
+position = Vector3(-72, -5.95, -160)
+
+[node name="R16_queue_00" type="Marker3D" parent="operations"]
+position = Vector3(-94, -5.95, -178)
+[node name="R16_queue_01" type="Marker3D" parent="operations"]
+position = Vector3(-94, -5.95, -181)
+[node name="R16_queue_02" type="Marker3D" parent="operations"]
+position = Vector3(-94, -5.95, -184)
+[node name="R16_exit_00" type="Marker3D" parent="operations"]
+position = Vector3(-94, -5.95, -187)
+[node name="R16_exit_01" type="Marker3D" parent="operations"]
+position = Vector3(-94, -5.95, -190)
+[node name="R16_exit_02" type="Marker3D" parent="operations"]
+position = Vector3(-91, -5.95, -192)
+[node name="R16_service_00" type="Marker3D" parent="operations"]
+position = Vector3(-75, -5.95, -184)
+[node name="R16_service_01" type="Marker3D" parent="operations"]
+position = Vector3(-72, -5.95, -186)
+
+[node name="R15_photo_turnout" type="MeshInstance3D" parent="operations"]
+position = Vector3(-99, -5.91, -166)
+mesh = SubResource("Mesh_photo")
+material_override = SubResource("Mat_queue")
+
+[node name="R16_photo_turnout" type="MeshInstance3D" parent="operations"]
+position = Vector3(-95, -5.91, -184)
+mesh = SubResource("Mesh_photo")
+material_override = SubResource("Mat_queue")
+
+[node name="cove_overlook" type="Marker3D" parent="operations"]
+position = Vector3(-102, -5.95, -176)
+metadata/purpose = &"cove_overlook"
+metadata/keep_view_west_open = true

@@ -1,35 +1,45 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=12 format=3]
 
 ; Editor-owned Boardwalk planter family. Open this scene to reshape the family;
 ; every placement remains an ordinary editable instance in boardwalk_density.
 
+[ext_resource type="PackedScene" path="res://scenes/world/hakone_grass_tuft_va.tscn" id="1_hakone"]
+[ext_resource type="PackedScene" path="res://scenes/world/purple_heart_cluster.tscn" id="2_purple"]
+[ext_resource type="PackedScene" path="res://scenes/world/red_sensation_cabbage_tree_va.tscn" id="3_red"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_arrival_flower_drift.tscn" id="4_flowers"]
+
 [sub_resource type="BoxMesh" id="BoxMesh_unit"]
 size = Vector3(1, 1, 1)
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_stem"]
-top_radius = 0.025
-bottom_radius = 0.04
-height = 1.0
-radial_segments = 6
+[sub_resource type="SphereMesh" id="SphereMesh_bolt"]
+radius = 0.038
+height = 0.03
+radial_segments = 8
+rings = 3
 
 [sub_resource type="StandardMaterial3D" id="Mat_weathered_wood"]
 albedo_color = Color(0.31, 0.21, 0.12, 1)
 roughness = 0.96
 
+[sub_resource type="StandardMaterial3D" id="Mat_deep_wood"]
+albedo_color = Color(0.205, 0.125, 0.07, 1)
+roughness = 0.98
+
+[sub_resource type="StandardMaterial3D" id="Mat_warm_cap"]
+albedo_color = Color(0.46, 0.305, 0.17, 1)
+roughness = 0.94
+
 [sub_resource type="StandardMaterial3D" id="Mat_soil"]
 albedo_color = Color(0.105, 0.075, 0.045, 1)
 roughness = 1.0
 
-[sub_resource type="StandardMaterial3D" id="Mat_grass_a"]
-albedo_color = Color(0.24, 0.34, 0.13, 1)
-roughness = 0.9
-
-[sub_resource type="StandardMaterial3D" id="Mat_grass_b"]
-albedo_color = Color(0.43, 0.42, 0.18, 1)
-roughness = 0.88
+[sub_resource type="StandardMaterial3D" id="Mat_metal"]
+albedo_color = Color(0.08, 0.09, 0.085, 1)
+metallic = 0.65
+roughness = 0.7
 
 [node name="salt_planter" type="Node3D"]
-editor_description = "Low salt-tolerant Boardwalk planter. The long dimension belongs parallel to the circulation edge."
+editor_description = "Reusable Boardwalk coastal-color trough. The unchanged long footprint belongs parallel to the circulation edge; selectable framed timber and a layered Hakone, Red Sensation, Purple Heart and flower ribbon replace the former seven-stick planting."
 
 [node name="box" type="MeshInstance3D" parent="."]
 position = Vector3(0, 0.34, 0)
@@ -67,45 +77,115 @@ scale = Vector3(0.90, 0.12, 0.12)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_weathered_wood")
 
-[node name="grass_01" type="MeshInstance3D" parent="."]
-position = Vector3(-0.23, 1.08, -0.92)
-rotation = Vector3(0.08, 0, -0.15)
-scale = Vector3(1, 0.72, 1)
-mesh = SubResource("CylinderMesh_stem")
-material_override = SubResource("Mat_grass_a")
-[node name="grass_02" type="MeshInstance3D" parent="."]
-position = Vector3(0.18, 1.19, -0.67)
-rotation = Vector3(-0.12, 0, 0.10)
-scale = Vector3(1, 0.94, 1)
-mesh = SubResource("CylinderMesh_stem")
-material_override = SubResource("Mat_grass_b")
-[node name="grass_03" type="MeshInstance3D" parent="."]
-position = Vector3(-0.12, 1.26, -0.28)
-rotation = Vector3(0.10, 0, -0.08)
-scale = Vector3(1, 1.08, 1)
-mesh = SubResource("CylinderMesh_stem")
-material_override = SubResource("Mat_grass_a")
-[node name="grass_04" type="MeshInstance3D" parent="."]
-position = Vector3(0.25, 1.10, 0.02)
-rotation = Vector3(-0.06, 0, 0.14)
-scale = Vector3(1, 0.76, 1)
-mesh = SubResource("CylinderMesh_stem")
-material_override = SubResource("Mat_grass_b")
-[node name="grass_05" type="MeshInstance3D" parent="."]
-position = Vector3(-0.28, 1.18, 0.35)
-rotation = Vector3(0.12, 0, -0.12)
-scale = Vector3(1, 0.92, 1)
-mesh = SubResource("CylinderMesh_stem")
-material_override = SubResource("Mat_grass_a")
-[node name="grass_06" type="MeshInstance3D" parent="."]
-position = Vector3(0.10, 1.28, 0.68)
-rotation = Vector3(-0.12, 0, 0.08)
-scale = Vector3(1, 1.12, 1)
-mesh = SubResource("CylinderMesh_stem")
-material_override = SubResource("Mat_grass_b")
-[node name="grass_07" type="MeshInstance3D" parent="."]
-position = Vector3(-0.16, 1.11, 1.00)
-rotation = Vector3(0.08, 0, -0.1)
-scale = Vector3(1, 0.78, 1)
-mesh = SubResource("CylinderMesh_stem")
-material_override = SubResource("Mat_grass_a")
+[node name="frame_details" type="Node3D" parent="."]
+editor_description = "Selectable inset panels, corner posts and dark bolt heads turn the trough into built Boardwalk furniture without enlarging its established footprint."
+
+[node name="panel_w" type="MeshInstance3D" parent="frame_details"]
+position = Vector3(-0.531, 0.35, 0)
+scale = Vector3(0.022, 0.42, 2.24)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_deep_wood")
+
+[node name="panel_e" type="MeshInstance3D" parent="frame_details"]
+position = Vector3(0.531, 0.35, 0)
+scale = Vector3(0.022, 0.42, 2.24)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_deep_wood")
+
+[node name="panel_n" type="MeshInstance3D" parent="frame_details"]
+position = Vector3(0, 0.35, -1.351)
+scale = Vector3(0.76, 0.42, 0.022)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_deep_wood")
+
+[node name="panel_s" type="MeshInstance3D" parent="frame_details"]
+position = Vector3(0, 0.35, 1.351)
+scale = Vector3(0.76, 0.42, 0.022)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_deep_wood")
+
+[node name="post_nw" type="MeshInstance3D" parent="frame_details"]
+position = Vector3(-0.49, 0.38, -1.31)
+scale = Vector3(0.16, 0.72, 0.16)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_warm_cap")
+
+[node name="post_ne" type="MeshInstance3D" parent="frame_details"]
+position = Vector3(0.49, 0.38, -1.31)
+scale = Vector3(0.16, 0.72, 0.16)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_warm_cap")
+
+[node name="post_se" type="MeshInstance3D" parent="frame_details"]
+position = Vector3(0.49, 0.38, 1.31)
+scale = Vector3(0.16, 0.72, 0.16)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_warm_cap")
+
+[node name="post_sw" type="MeshInstance3D" parent="frame_details"]
+position = Vector3(-0.49, 0.38, 1.31)
+scale = Vector3(0.16, 0.72, 0.16)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_warm_cap")
+
+[node name="bolt_nw" type="MeshInstance3D" parent="frame_details"]
+position = Vector3(-0.49, 0.755, -1.31)
+scale = Vector3(0.7, 0.3, 0.7)
+mesh = SubResource("SphereMesh_bolt")
+material_override = SubResource("Mat_metal")
+
+[node name="bolt_ne" type="MeshInstance3D" parent="frame_details"]
+position = Vector3(0.49, 0.755, -1.31)
+scale = Vector3(0.7, 0.3, 0.7)
+mesh = SubResource("SphereMesh_bolt")
+material_override = SubResource("Mat_metal")
+
+[node name="bolt_se" type="MeshInstance3D" parent="frame_details"]
+position = Vector3(0.49, 0.755, 1.31)
+scale = Vector3(0.7, 0.3, 0.7)
+mesh = SubResource("SphereMesh_bolt")
+material_override = SubResource("Mat_metal")
+
+[node name="bolt_sw" type="MeshInstance3D" parent="frame_details"]
+position = Vector3(-0.49, 0.755, 1.31)
+scale = Vector3(0.7, 0.3, 0.7)
+mesh = SubResource("SphereMesh_bolt")
+material_override = SubResource("Mat_metal")
+
+[node name="planting" type="Node3D" parent="."]
+editor_description = "A long, independently selectable color ribbon: luminous Hakone ends, one compact burgundy center, two trailing Purple Heart pockets and low mixed flowers."
+
+[node name="hakone_north" parent="planting" instance=ExtResource("1_hakone")]
+position = Vector3(-0.06, 0.71, -0.84)
+rotation = Vector3(0, 0.22, 0)
+scale = Vector3(0.46, 0.52, 0.46)
+
+[node name="hakone_south" parent="planting" instance=ExtResource("1_hakone")]
+position = Vector3(0.06, 0.71, 0.84)
+rotation = Vector3(0, 3.34, 0)
+scale = Vector3(0.46, 0.52, 0.46)
+
+[node name="red_sensation_center" parent="planting" instance=ExtResource("3_red")]
+position = Vector3(0, 0.71, 0)
+rotation = Vector3(0, 0.48, 0)
+scale = Vector3(0.44, 0.5, 0.44)
+
+[node name="purple_north" parent="planting" instance=ExtResource("2_purple")]
+position = Vector3(0.16, 0.72, -0.42)
+rotation = Vector3(0, 1.24, 0)
+scale = Vector3(0.42, 0.44, 0.42)
+
+[node name="purple_south" parent="planting" instance=ExtResource("2_purple")]
+position = Vector3(-0.16, 0.72, 0.42)
+rotation = Vector3(0, -1.82, 0)
+scale = Vector3(0.42, 0.44, 0.42)
+
+[node name="flowers_north" parent="planting" instance=ExtResource("4_flowers")]
+position = Vector3(-0.12, 0.73, -1.12)
+rotation = Vector3(0, 0.36, 0)
+scale = Vector3(0.58, 0.72, 0.58)
+
+[node name="flowers_south" parent="planting" instance=ExtResource("4_flowers")]
+position = Vector3(0.12, 0.73, 1.12)
+rotation = Vector3(0, -2.78, 0)
+scale = Vector3(0.58, 0.72, 0.58)

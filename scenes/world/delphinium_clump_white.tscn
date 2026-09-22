@@ -1,0 +1,95 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/world/delphinium_spire.tscn" id="1_spire"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_white"]
+cull_mode = 2
+albedo_color = Color(0.91, 0.92, 0.84, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Mat_white_young"]
+cull_mode = 2
+albedo_color = Color(0.98, 0.97, 0.9, 1)
+roughness = 0.88
+
+[node name="delphinium_clump_white" type="Node3D"]
+editor_description = "Catalog white form: an eight-spike delphinium clump whose pale racemes stand against the shared deep blue-green foliage. Every spire remains selectable."
+
+[node name="spires" type="Node3D" parent="."]
+
+[node name="spire_00" parent="spires" instance=ExtResource("1_spire")]
+position = Vector3(-0.24, 0, 0.06)
+rotation = Vector3(0, -0.44, 0)
+scale = Vector3(0.94, 1.05, 0.94)
+bloom_count = 19
+leaf_count = 7
+petal_material = SubResource("Mat_white")
+young_petal_material = SubResource("Mat_white_young")
+
+[node name="spire_01" parent="spires" instance=ExtResource("1_spire")]
+position = Vector3(0.1, 0, -0.17)
+rotation = Vector3(0, 1.38, 0)
+scale = Vector3(1.02, 1.13, 1.02)
+bloom_count = 21
+bud_count = 8
+leaf_count = 7
+petal_material = SubResource("Mat_white")
+young_petal_material = SubResource("Mat_white_young")
+
+[node name="spire_02" parent="spires" instance=ExtResource("1_spire")]
+position = Vector3(0.37, 0, 0.03)
+rotation = Vector3(0, 2.46, 0)
+scale = Vector3(0.86, 0.93, 0.86)
+bloom_count = 16
+leaf_count = 6
+petal_material = SubResource("Mat_white")
+young_petal_material = SubResource("Mat_white_young")
+
+[node name="spire_03" parent="spires" instance=ExtResource("1_spire")]
+position = Vector3(-0.03, 0, 0.24)
+rotation = Vector3(0, -1.86, 0)
+scale = Vector3(0.92, 1, 0.92)
+bloom_count = 18
+leaf_count = 6
+bloom_scale = 1.04
+petal_material = SubResource("Mat_white")
+young_petal_material = SubResource("Mat_white_young")
+
+[node name="spire_04" parent="spires" instance=ExtResource("1_spire")]
+position = Vector3(-0.5, 0, -0.14)
+rotation = Vector3(0, 2.84, 0)
+scale = Vector3(0.8, 0.84, 0.8)
+bloom_count = 14
+bud_count = 5
+leaf_count = 5
+petal_material = SubResource("Mat_white")
+young_petal_material = SubResource("Mat_white_young")
+
+[node name="spire_05" parent="spires" instance=ExtResource("1_spire")]
+position = Vector3(0.49, 0, 0.27)
+rotation = Vector3(0, -2.3, 0)
+scale = Vector3(0.81, 0.87, 0.81)
+bloom_count = 15
+bud_count = 5
+leaf_count = 5
+petal_material = SubResource("Mat_white")
+young_petal_material = SubResource("Mat_white_young")
+
+[node name="spire_06" parent="spires" instance=ExtResource("1_spire")]
+position = Vector3(-0.33, 0, 0.36)
+rotation = Vector3(0, 0.62, 0)
+scale = Vector3(0.84, 0.9, 0.84)
+bloom_count = 16
+leaf_count = 6
+petal_material = SubResource("Mat_white")
+young_petal_material = SubResource("Mat_white_young")
+
+[node name="spire_07" parent="spires" instance=ExtResource("1_spire")]
+position = Vector3(0.31, 0, -0.37)
+rotation = Vector3(0, 2.98, 0)
+scale = Vector3(0.79, 0.86, 0.79)
+bloom_count = 15
+bud_count = 5
+leaf_count = 5
+petal_material = SubResource("Mat_white")
+young_petal_material = SubResource("Mat_white_young")

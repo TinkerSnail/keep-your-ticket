@@ -1,0 +1,50 @@
+[gd_scene load_steps=5 format=3]
+
+; Reusable editor-owned starting source for the taller three-crown trees used
+; around the Grove, Kiddieland, sky ride and Frontier. Existing generated
+; placements remain until a separate migration preserves every established foot.
+
+[sub_resource type="StandardMaterial3D" id="Mat_wood"]
+albedo_color = Color(0.38, 0.26, 0.16, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="Mat_foliage"]
+albedo_color = Color(0.27, 0.48, 0.23, 1)
+roughness = 0.96
+
+[sub_resource type="CylinderMesh" id="Mesh_trunk"]
+material = SubResource("Mat_wood")
+top_radius = 0.22
+bottom_radius = 0.22
+height = 6.56
+radial_segments = 8
+rings = 1
+
+[sub_resource type="SphereMesh" id="Mesh_crown"]
+material = SubResource("Mat_foliage")
+radius = 1.95
+height = 3.9
+radial_segments = 10
+rings = 6
+
+[node name="mature_grove_tree" type="Node3D"]
+editor_description = "Reusable source matching the present taller three-crown Grove/Frontier tree language. Edit or replace these selectable parts here before a separately proved placement migration."
+
+[node name="trunk" type="MeshInstance3D" parent="."]
+position = Vector3(0, 3.28, 0)
+mesh = SubResource("Mesh_trunk")
+
+[node name="crown_a" type="MeshInstance3D" parent="."]
+position = Vector3(-0.1225, 6.15, 0.063)
+scale = Vector3(1, 0.78, 1)
+mesh = SubResource("Mesh_crown")
+
+[node name="crown_b" type="MeshInstance3D" parent="."]
+position = Vector3(0.1925, 7.544, 0.507)
+scale = Vector3(0.76, 0.6384, 0.76)
+mesh = SubResource("Mesh_crown")
+
+[node name="crown_c" type="MeshInstance3D" parent="."]
+position = Vector3(0.858, 6.56, -0.624)
+scale = Vector3(0.62, 0.496, 0.62)
+mesh = SubResource("Mesh_crown")

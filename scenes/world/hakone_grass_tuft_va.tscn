@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/world/hakone_grass.tscn" id="1_grass"]
+
+[node name="hakone_grass_tuft_vA" instance=ExtResource("1_grass")]
+scale = Vector3(0.82, 0.78, 0.82)
+catalog_variant = 0
+editor_description = "Catalog vA: compact fifty-four-blade lemon-zest Hakone grass clump for a singular accent or small container."

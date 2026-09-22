@@ -54,16 +54,23 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 0, -66)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, -0.4, -62)
 
 [node name="p03" type="Marker3D" parent="primary_routes/b_north_return/points" unique_id=1529917135]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58, -1.85, -58)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44, -1.4, -74)
 
 [node name="p04" type="Marker3D" parent="primary_routes/b_north_return/points" unique_id=472700357]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -75, -4.1, -59)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44, -2.6, -88)
 
 [node name="p05" type="Marker3D" parent="primary_routes/b_north_return/points" unique_id=1633974882]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -90, -6, -62)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44, -3.8, -102)
 
 [node name="p06" type="Marker3D" parent="primary_routes/b_north_return/points" unique_id=179756113]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -96, -6, -62)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -42, -5, -118)
+
+[node name="p07" type="Marker3D" parent="primary_routes/b_north_return/points"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -42, -6, -130)
+
+[node name="p08" type="Marker3D" parent="primary_routes/b_north_return/points"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -80, -6, -144.831461)
+
 
 [node name="b_monument_return" type="Node3D" parent="primary_routes" unique_id=1567614646]
 metadata/point_type = &"vector3"

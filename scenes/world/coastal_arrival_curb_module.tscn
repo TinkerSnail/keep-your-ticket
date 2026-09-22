@@ -1,0 +1,61 @@
+[gd_scene load_steps=6 format=3]
+
+; A three-layer 2.6m arrival-curb planting module. Its local -X edge faces the
+; curb: pointed border rosettes, a clustered flower drift, then fine-pinnaed
+; fern outer fill. The low groundcover is split and offset so repetition joins
+; into a loose bed instead of making one round green collar per module.
+
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_fern_fill.tscn" id="1_fern"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_arrival_flower_drift.tscn" id="2_flowers"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_border_rosette.tscn" id="3_rosette"]
+
+[sub_resource type="SphereMesh" id="Mesh_groundcover"]
+radius = 0.42
+height = 0.2
+radial_segments = 8
+rings = 3
+
+[sub_resource type="StandardMaterial3D" id="Mat_groundcover"]
+albedo_color = Color(0.22, 0.405, 0.13, 1)
+roughness = 0.98
+
+[node name="coastal_arrival_curb_module" type="Node3D"]
+editor_description = "Directly editable loose curb module: offset low groundcover, pointed rosette edge, flower drift and fine-pinnaed fern outer fill."
+
+[node name="groundcover" type="MeshInstance3D" parent="."]
+position = Vector3(-0.11, 0.043, -0.2)
+rotation = Vector3(0, 0.14, 0)
+scale = Vector3(1.58, 0.18, 2.45)
+mesh = SubResource("Mesh_groundcover")
+material_override = SubResource("Mat_groundcover")
+
+[node name="groundcover_lobe" type="MeshInstance3D" parent="."]
+position = Vector3(0.19, 0.041, 0.62)
+rotation = Vector3(0, -0.22, 0)
+scale = Vector3(1.18, 0.14, 1.42)
+mesh = SubResource("Mesh_groundcover")
+material_override = SubResource("Mat_groundcover")
+
+[node name="rosette_near" parent="." instance=ExtResource("3_rosette")]
+position = Vector3(-0.58, 0, -0.72)
+scale = Vector3(0.72, 0.72, 0.72)
+
+[node name="rosette_far" parent="." instance=ExtResource("3_rosette")]
+position = Vector3(-0.58, 0, 0.72)
+rotation = Vector3(0, 3.14159, 0)
+scale = Vector3(0.76, 0.76, 0.76)
+
+[node name="flower_drift" parent="." instance=ExtResource("2_flowers")]
+position = Vector3(-0.08, 0.012, 0.08)
+rotation = Vector3(0, -0.12, 0)
+scale = Vector3(0.96, 0.96, 1.02)
+
+[node name="fern_near" parent="." instance=ExtResource("1_fern")]
+position = Vector3(0.5, 0, -0.72)
+rotation = Vector3(0, -1.5708, 0)
+scale = Vector3(1.05, 1.05, 1.05)
+
+[node name="fern_far" parent="." instance=ExtResource("1_fern")]
+position = Vector3(0.57, 0, 0.61)
+rotation = Vector3(0, -1.5708, 0)
+scale = Vector3(0.92, 0.92, 0.92)

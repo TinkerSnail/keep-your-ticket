@@ -1,0 +1,173 @@
+[gd_scene load_steps=12 format=3]
+
+; Editor-owned broadleaf accent plant. The selectable Path3D courses own the
+; open leaf and rolled-spear silhouette; the tool derives cupped blades/ribs.
+
+[ext_resource type="Script" path="res://scenes/world/coastal_banana_tree.gd" id="1_script"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_stem"]
+albedo_color = Color(0.43, 0.57, 0.19, 1)
+roughness = 0.96
+
+[sub_resource type="StandardMaterial3D" id="Mat_mature"]
+cull_mode = 2
+albedo_color = Color(0.12, 0.38, 0.15, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="Mat_young"]
+cull_mode = 2
+albedo_color = Color(0.42, 0.62, 0.19, 1)
+roughness = 0.93
+
+[sub_resource type="StandardMaterial3D" id="Mat_midrib"]
+cull_mode = 2
+albedo_color = Color(0.49, 0.62, 0.2, 1)
+roughness = 0.94
+
+[sub_resource type="CylinderMesh" id="Mesh_stem_low"]
+top_radius = 0.22
+bottom_radius = 0.3
+height = 0.62
+radial_segments = 12
+rings = 2
+
+[sub_resource type="CylinderMesh" id="Mesh_stem_mid"]
+top_radius = 0.17
+bottom_radius = 0.235
+height = 0.58
+radial_segments = 12
+rings = 2
+
+[sub_resource type="CylinderMesh" id="Mesh_stem_top"]
+top_radius = 0.115
+bottom_radius = 0.185
+height = 0.38
+radial_segments = 12
+rings = 2
+
+[sub_resource type="Curve3D" id="Curve3D_broad_high"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 1.28, 0, 0, 0, 0, 0, 0, 0, 0, 1.62, 0.32, 0, 0, 0, 0, 0, 0, 0, 1.82, 0.72, 0, 0, 0, 0, 0, 0, 0, 1.7, 1.12, 0, 0, 0, 0, 0, 0, 0, 1.34, 1.55),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
+bake_interval = 0.055
+
+[sub_resource type="Curve3D" id="Curve3D_broad_low"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 1.25, 0, 0, 0, 0, 0, 0, 0, 0, 1.48, 0.32, 0, 0, 0, 0, 0, 0, 0, 1.48, 0.76, 0, 0, 0, 0, 0, 0, 0, 1.28, 1.18, 0, 0, 0, 0, 0, 0, 0, 0.96, 1.5),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
+bake_interval = 0.055
+
+[sub_resource type="Curve3D" id="Curve3D_spear"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 1.28, 0, 0, 0, 0, 0, 0, 0, 0, 1.72, 0.05, 0, 0, 0, 0, 0, 0, 0, 2.15, 0.1, 0, 0, 0, 0, 0, 0, 0, 2.52, 0.14, 0, 0, 0, 0, 0, 0, 0, 2.78, 0.18),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0)
+}
+point_count = 5
+bake_interval = 0.045
+
+[node name="coastal_banana_tree" type="Node3D"]
+script = ExtResource("1_script")
+mature_material = SubResource("Mat_mature")
+young_material = SubResource("Mat_young")
+midrib_material = SubResource("Mat_midrib")
+editor_description = "Reusable banana/broadleaf accent source. Choose catalog_variant vA-vC; edit the Path3D courses to reshape its cupped leaves and rolled spears."
+
+[node name="pseudostem" type="Node3D" parent="."]
+editor_description = "Directly authored overlapping leaf sheaths, not a woody palm trunk."
+
+[node name="lower_sheath" type="MeshInstance3D" parent="pseudostem"]
+position = Vector3(0, 0.31, 0)
+mesh = SubResource("Mesh_stem_low")
+material_override = SubResource("Mat_stem")
+
+[node name="middle_sheath" type="MeshInstance3D" parent="pseudostem"]
+position = Vector3(0.018, 0.83, -0.012)
+mesh = SubResource("Mesh_stem_mid")
+material_override = SubResource("Mat_stem")
+
+[node name="upper_sheath" type="MeshInstance3D" parent="pseudostem"]
+position = Vector3(-0.012, 1.21, 0.01)
+mesh = SubResource("Mesh_stem_top")
+material_override = SubResource("Mat_stem")
+
+[node name="leaf_courses" type="Node3D" parent="."]
+editor_description = "Canonical banana-leaf courses. vA uses the core seven, vB adds two broad leaves, and vC adds a second rolled spear."
+
+[node name="broad_0" type="Path3D" parent="leaf_courses"]
+curve = SubResource("Curve3D_broad_high")
+metadata/half_width = 0.36
+metadata/cup_depth = 0.075
+
+[node name="broad_1" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 1.0472, 0)
+scale = Vector3(0.96, 0.96, 0.96)
+curve = SubResource("Curve3D_broad_low")
+metadata/half_width = 0.34
+metadata/cup_depth = 0.07
+
+[node name="broad_2" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 2.0944, 0)
+scale = Vector3(0.92, 0.92, 0.92)
+curve = SubResource("Curve3D_broad_high")
+metadata/half_width = 0.35
+metadata/cup_depth = 0.08
+
+[node name="broad_3" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 3.14159, 0)
+scale = Vector3(1.04, 1.04, 1.04)
+curve = SubResource("Curve3D_broad_low")
+metadata/half_width = 0.37
+metadata/cup_depth = 0.065
+
+[node name="broad_4" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 4.18879, 0)
+scale = Vector3(0.94, 0.94, 0.94)
+curve = SubResource("Curve3D_broad_high")
+metadata/half_width = 0.345
+metadata/cup_depth = 0.078
+
+[node name="broad_5" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 5.23599, 0)
+scale = Vector3(0.98, 0.98, 0.98)
+curve = SubResource("Curve3D_broad_low")
+metadata/half_width = 0.355
+metadata/cup_depth = 0.07
+
+[node name="spear_0" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 0.48, 0)
+curve = SubResource("Curve3D_spear")
+metadata/half_width = 0.26
+metadata/cup_depth = 0.09
+metadata/young = true
+
+[node name="broad_6" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 0.54, 0)
+scale = Vector3(0.9, 0.9, 0.9)
+curve = SubResource("Curve3D_broad_high")
+metadata/half_width = 0.325
+metadata/cup_depth = 0.082
+metadata/variant_min = 1
+
+[node name="broad_7" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 3.68, 0)
+scale = Vector3(0.88, 0.88, 0.88)
+curve = SubResource("Curve3D_broad_low")
+metadata/half_width = 0.32
+metadata/cup_depth = 0.074
+metadata/variant_min = 1
+
+[node name="spear_1" type="Path3D" parent="leaf_courses"]
+rotation = Vector3(0, 3.48, 0)
+scale = Vector3(0.84, 0.84, 0.84)
+curve = SubResource("Curve3D_spear")
+metadata/half_width = 0.23
+metadata/cup_depth = 0.095
+metadata/young = true
+metadata/variant_min = 2
+
+[node name="derived_leaves" type="Node3D" parent="."]
+editor_description = "Derived preview/output. Edit leaf_courses rather than these mesh instances."

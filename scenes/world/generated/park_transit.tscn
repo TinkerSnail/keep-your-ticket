@@ -58,171 +58,171 @@ roughness = 0.7
 albedo_color = Color(0.72, 0.71, 0.69, 1)
 roughness = 0.9
 
-[node name="park_transit" type="Node3D" unique_id=351944667]
+[node name="park_transit" type="Node3D" unique_id=268210758]
 
-[node name="grand_tram_lane" type="MeshInstance3D" parent="." unique_id=1736320299]
+[node name="grand_tram_lane" type="MeshInstance3D" parent="." unique_id=1117851093]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00175, 0.00175, 0.00175)
 material_override = SubResource("StandardMaterial3D_asvco")
 mesh = SubResource("ArrayMesh_3a20j")
 
-[node name="grand_tram_entry_platform" type="CSGBox3D" parent="." unique_id=171742895]
+[node name="grand_tram_entry_platform" type="CSGBox3D" parent="." unique_id=401085637]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.002, 0.052, 167.152)
 use_collision = true
 size = Vector3(20, 0.18, 4.1)
 material = SubResource("StandardMaterial3D_lmqqj")
 
-[node name="grand_tram_entry_post_-8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=886494592]
+[node name="grand_tram_entry_post_-8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=1656495345]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35.402252, 1.70225, 166.25224)
 use_collision = true
 radius = 0.085
 height = 3.4
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_entry_post_-8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=1230051929]
+[node name="grand_tram_entry_post_-8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=108428034]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35.4025, 1.7025001, 168.0525)
 use_collision = true
 radius = 0.085
 height = 3.4
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_entry_post_8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=2130198060]
+[node name="grand_tram_entry_post_8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=1494583416]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.60275, 1.7027501, 166.25275)
 use_collision = true
 radius = 0.085
 height = 3.4
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_entry_post_8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=1062064624]
+[node name="grand_tram_entry_post_8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=980328060]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.602997, 1.7030001, 168.05301)
 use_collision = true
 radius = 0.085
 height = 3.4
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_entry_canopy" type="CSGBox3D" parent="." unique_id=779273979]
+[node name="grand_tram_entry_canopy" type="CSGBox3D" parent="." unique_id=273072823]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.00325, 3.47325, 167.15324)
 size = Vector3(18.2, 0.22, 3.5)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_entry_valance" type="CSGBox3D" parent="." unique_id=2049466095]
+[node name="grand_tram_entry_valance" type="CSGBox3D" parent="." unique_id=751645174]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.0035, 3.1535, 168.8235)
 size = Vector3(17.6, 0.48, 0.12)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_entry_sign" type="CSGBox3D" parent="." unique_id=636795156]
+[node name="grand_tram_entry_sign" type="CSGBox3D" parent="." unique_id=1680657106]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.00375, 3.6537502, 168.90375)
 size = Vector3(6.4, 0.78, 0.14)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_entry_sign_rule" type="CSGBox3D" parent="." unique_id=1345500625]
+[node name="grand_tram_entry_sign_rule" type="CSGBox3D" parent="." unique_id=1348685973]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.004, 3.654, 168.814)
 size = Vector3(5, 0.13, 0.06)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_entry_lane_post_-9_5" type="CSGBox3D" parent="." unique_id=710558896]
+[node name="grand_tram_entry_lane_post_-9_5" type="CSGBox3D" parent="." unique_id=887481736]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 34.50425, 0.57425, 169.05426)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_entry_lane_post_-4_8" type="CSGBox3D" parent="." unique_id=1627689981]
+[node name="grand_tram_entry_lane_post_-4_8" type="CSGBox3D" parent="." unique_id=1906433487]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 39.204502, 0.57449996, 169.0545)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_entry_lane_post_-1_3" type="CSGBox3D" parent="." unique_id=2140679328]
+[node name="grand_tram_entry_lane_post_-1_3" type="CSGBox3D" parent="." unique_id=532666165]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42.70475, 0.57475, 169.05475)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_entry_lane_post_1_3" type="CSGBox3D" parent="." unique_id=1657595849]
+[node name="grand_tram_entry_lane_post_1_3" type="CSGBox3D" parent="." unique_id=1860148655]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.305, 0.575, 169.05501)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_entry_lane_post_4_8" type="CSGBox3D" parent="." unique_id=941257197]
+[node name="grand_tram_entry_lane_post_4_8" type="CSGBox3D" parent="." unique_id=70893424]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 48.8, 0.57, 169.05)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_entry_lane_post_9_5" type="CSGBox3D" parent="." unique_id=1146397886]
+[node name="grand_tram_entry_lane_post_9_5" type="CSGBox3D" parent="." unique_id=806667101]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 53.50025, 0.57025, 169.05025)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_entry_lane_rail_-7_15_0_43" type="CSGBox3D" parent="." unique_id=2051654841]
+[node name="grand_tram_entry_lane_rail_-7_15_0_43" type="CSGBox3D" parent="." unique_id=2134865818]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.8505, 0.4305, 169.0505)
 use_collision = true
 size = Vector3(4.45, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_entry_lane_rail_-7_15_0_94" type="CSGBox3D" parent="." unique_id=446782773]
+[node name="grand_tram_entry_lane_rail_-7_15_0_94" type="CSGBox3D" parent="." unique_id=1660557822]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.85075, 0.94075, 169.05075)
 use_collision = true
 size = Vector3(4.45, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_entry_lane_rail_0_0_0_43" type="CSGBox3D" parent="." unique_id=914970749]
+[node name="grand_tram_entry_lane_rail_0_0_0_43" type="CSGBox3D" parent="." unique_id=1715525057]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.001, 0.431, 169.05101)
 use_collision = true
 size = Vector3(2.35, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_entry_lane_rail_0_0_0_94" type="CSGBox3D" parent="." unique_id=536769224]
+[node name="grand_tram_entry_lane_rail_0_0_0_94" type="CSGBox3D" parent="." unique_id=538332529]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.00125, 0.94125, 169.05125)
 use_collision = true
 size = Vector3(2.35, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_entry_lane_rail_7_15_0_43" type="CSGBox3D" parent="." unique_id=399020284]
+[node name="grand_tram_entry_lane_rail_7_15_0_43" type="CSGBox3D" parent="." unique_id=77915930]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.1515, 0.43150002, 169.0515)
 use_collision = true
 size = Vector3(4.45, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_entry_lane_rail_7_15_0_94" type="CSGBox3D" parent="." unique_id=862103845]
+[node name="grand_tram_entry_lane_rail_7_15_0_94" type="CSGBox3D" parent="." unique_id=1166932611]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.151752, 0.94175, 169.05176)
 use_collision = true
 size = Vector3(4.45, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_entry_boarding_gate_-3_05_0_43" type="CSGBox3D" parent="." unique_id=1546017634]
+[node name="grand_tram_entry_boarding_gate_-3_05_0_43" type="CSGBox3D" parent="." unique_id=52375690]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40.952, 0.432, 169.062)
 use_collision = true
 size = Vector3(3.34, 0.12, 0.14)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_entry_boarding_gate_-3_05_0_94" type="CSGBox3D" parent="." unique_id=1770516851]
+[node name="grand_tram_entry_boarding_gate_-3_05_0_94" type="CSGBox3D" parent="." unique_id=1084327017]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40.95225, 0.94225, 169.06224)
 use_collision = true
 size = Vector3(3.34, 0.12, 0.14)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_entry_boarding_gate_3_05_0_43" type="CSGBox3D" parent="." unique_id=579092293]
+[node name="grand_tram_entry_boarding_gate_3_05_0_43" type="CSGBox3D" parent="." unique_id=2112855921]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 47.052498, 0.4325, 169.0625)
 use_collision = true
 size = Vector3(3.34, 0.12, 0.14)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_entry_boarding_gate_3_05_0_94" type="CSGBox3D" parent="." unique_id=18125044]
+[node name="grand_tram_entry_boarding_gate_3_05_0_94" type="CSGBox3D" parent="." unique_id=545446094]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 47.05275, 0.94275, 169.06274)
 use_collision = true
 size = Vector3(3.34, 0.12, 0.14)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_entry_bulb_a" type="CSGSphere3D" parent="." unique_id=361511215]
+[node name="grand_tram_entry_bulb_a" type="CSGSphere3D" parent="." unique_id=1428358816]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35.653, 3.183, 167.153)
 cast_shadow = 0
 radius = 0.15
 radial_segments = 10
 material = ExtResource("5_arp8v")
 
-[node name="grand_tram_entry_glow_a" type="OmniLight3D" parent="." unique_id=889247410 groups=["park_light"]]
+[node name="grand_tram_entry_glow_a" type="OmniLight3D" parent="." unique_id=2016527684 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35.65, 3.18, 167.15)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -235,14 +235,14 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.3
 metadata/light_kind = 0
 
-[node name="grand_tram_entry_bulb_b" type="CSGSphere3D" parent="." unique_id=232073455]
+[node name="grand_tram_entry_bulb_b" type="CSGSphere3D" parent="." unique_id=1290785884]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.35325, 3.18325, 167.15324)
 cast_shadow = 0
 radius = 0.15
 radial_segments = 10
 material = ExtResource("5_arp8v")
 
-[node name="grand_tram_entry_glow_b" type="OmniLight3D" parent="." unique_id=1536605101 groups=["park_light"]]
+[node name="grand_tram_entry_glow_b" type="OmniLight3D" parent="." unique_id=738494331 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.35, 3.18, 167.15)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -253,164 +253,164 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.3
 metadata/light_kind = 0
 
-[node name="grand_tram_east_platform" type="CSGBox3D" parent="." unique_id=177579519]
+[node name="grand_tram_east_platform" type="CSGBox3D" parent="." unique_id=1207509442]
 transform = Transform3D(-0.48748204, 0, 0.873133, 0, 1, 0, -0.873133, 0, -0.48748204, 161.7688, 7.2535, -142.63222)
 use_collision = true
 size = Vector3(20, 0.18, 4.1)
 material = SubResource("StandardMaterial3D_lmqqj")
 
-[node name="grand_tram_east_post_-8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=636309425]
+[node name="grand_tram_east_post_-8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=51991461]
 transform = Transform3D(-0.48748204, 0, 0.873133, 0, 1, 0, -0.873133, 0, -0.48748204, 165.17558, 8.903749, -134.68428)
 use_collision = true
 radius = 0.085
 height = 3.4
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_east_post_-8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=1118261340]
+[node name="grand_tram_east_post_-8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=1011502503]
 transform = Transform3D(-0.48748204, 0, 0.873133, 0, 1, 0, -0.873133, 0, -0.48748204, 166.74747, 8.903999, -135.56151)
 use_collision = true
 radius = 0.085
 height = 3.4
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_east_post_8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=800958647]
+[node name="grand_tram_east_post_8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=704070013]
 transform = Transform3D(-0.48748204, 0, 0.873133, 0, 1, 0, -0.873133, 0, -0.48748204, 156.7914, 8.904249, -149.70166)
 use_collision = true
 radius = 0.085
 height = 3.4
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_east_post_8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=34481943]
+[node name="grand_tram_east_post_8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=290701687]
 transform = Transform3D(-0.48748204, 0, 0.873133, 0, 1, 0, -0.873133, 0, -0.48748204, 158.36328, 8.9045, -150.57889)
 use_collision = true
 radius = 0.085
 height = 3.4
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_east_canopy" type="CSGBox3D" parent="." unique_id=1339320864]
+[node name="grand_tram_east_canopy" type="CSGBox3D" parent="." unique_id=1668068711]
 transform = Transform3D(-0.48748204, 0, 0.873133, 0, 1, 0, -0.873133, 0, -0.48748204, 161.77005, 10.67475, -142.63097)
 size = Vector3(18.2, 0.22, 3.5)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_east_valance" type="CSGBox3D" parent="." unique_id=601320084]
+[node name="grand_tram_east_valance" type="CSGBox3D" parent="." unique_id=1258554195]
 transform = Transform3D(-0.48748204, 0, 0.873133, 0, 1, 0, -0.873133, 0, -0.48748204, 163.22844, 10.3550005, -143.44481)
 size = Vector3(17.6, 0.48, 0.12)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_east_sign" type="CSGBox3D" parent="." unique_id=1664116099]
+[node name="grand_tram_east_sign" type="CSGBox3D" parent="." unique_id=2078120823]
 transform = Transform3D(-0.48748204, 0, 0.873133, 0, 1, 0, -0.873133, 0, -0.48748204, 163.29329, 10.85, -143.4888)
 size = Vector3(6.4, 0.78, 0.14)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_east_sign_rule" type="CSGBox3D" parent="." unique_id=1237555767]
+[node name="grand_tram_east_sign_rule" type="CSGBox3D" parent="." unique_id=1974141549]
 transform = Transform3D(-0.48748204, 0, 0.873133, 0, 1, 0, -0.873133, 0, -0.48748204, 163.21495, 10.85025, -143.44469)
 size = Vector3(5, 0.13, 0.06)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_east_lane_post_-9_5" type="CSGBox3D" parent="." unique_id=1818785263]
+[node name="grand_tram_east_lane_post_-9_5" type="CSGBox3D" parent="." unique_id=416824611]
 transform = Transform3D(-0.48748204, 0, 0.873133, 0, 1, 0, -0.873133, 0, -0.48748204, 168.05585, 7.7705, -135.26666)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_east_lane_post_-4_8" type="CSGBox3D" parent="." unique_id=369196557]
+[node name="grand_tram_east_lane_post_-4_8" type="CSGBox3D" parent="." unique_id=1958741727]
 transform = Transform3D(-0.48748204, 0, 0.873133, 0, 1, 0, -0.873133, 0, -0.48748204, 165.76492, 7.77075, -139.37015)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_east_lane_post_-1_3" type="CSGBox3D" parent="." unique_id=145045390]
+[node name="grand_tram_east_lane_post_-1_3" type="CSGBox3D" parent="." unique_id=1319318082]
 transform = Transform3D(-0.48748204, 0, 0.873133, 0, 1, 0, -0.873133, 0, -0.48748204, 164.05899, 7.771, -142.42584)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_east_lane_post_1_3" type="CSGBox3D" parent="." unique_id=221704532]
+[node name="grand_tram_east_lane_post_1_3" type="CSGBox3D" parent="." unique_id=1901044278]
 transform = Transform3D(-0.48748204, 0, 0.873133, 0, 1, 0, -0.873133, 0, -0.48748204, 162.79178, 7.77125, -144.69576)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_east_lane_post_4_8" type="CSGBox3D" parent="." unique_id=1899102270]
+[node name="grand_tram_east_lane_post_4_8" type="CSGBox3D" parent="." unique_id=1099260194]
 transform = Transform3D(-0.48748204, 0, 0.873133, 0, 1, 0, -0.873133, 0, -0.48748204, 161.08585, 7.7715, -147.75146)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_east_lane_post_9_5" type="CSGBox3D" parent="." unique_id=1510393140]
+[node name="grand_tram_east_lane_post_9_5" type="CSGBox3D" parent="." unique_id=1272983236]
 transform = Transform3D(-0.48748204, 0, 0.873133, 0, 1, 0, -0.873133, 0, -0.48748204, 158.79494, 7.77175, -151.85493)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_east_lane_rail_-7_15_0_43" type="CSGBox3D" parent="." unique_id=936672901]
+[node name="grand_tram_east_lane_rail_-7_15_0_43" type="CSGBox3D" parent="." unique_id=1913269696]
 transform = Transform3D(-0.48748204, 0, 0.873133, 0, 1, 0, -0.873133, 0, -0.48748204, 166.91176, 7.6319995, -137.31703)
 use_collision = true
 size = Vector3(4.45, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_east_lane_rail_-7_15_0_94" type="CSGBox3D" parent="." unique_id=922766909]
+[node name="grand_tram_east_lane_rail_-7_15_0_94" type="CSGBox3D" parent="." unique_id=1335767893]
 transform = Transform3D(-0.48748204, 0, 0.873133, 0, 1, 0, -0.873133, 0, -0.48748204, 166.912, 8.142249, -137.31679)
 use_collision = true
 size = Vector3(4.45, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_east_lane_rail_0_0_0_43" type="CSGBox3D" parent="." unique_id=665824598]
+[node name="grand_tram_east_lane_rail_0_0_0_43" type="CSGBox3D" parent="." unique_id=806283748]
 transform = Transform3D(-0.48748204, 0, 0.873133, 0, 1, 0, -0.873133, 0, -0.48748204, 163.42676, 7.6324997, -143.55943)
 use_collision = true
 size = Vector3(2.35, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_east_lane_rail_0_0_0_94" type="CSGBox3D" parent="." unique_id=1882024910]
+[node name="grand_tram_east_lane_rail_0_0_0_94" type="CSGBox3D" parent="." unique_id=1299368866]
 transform = Transform3D(-0.48748204, 0, 0.873133, 0, 1, 0, -0.873133, 0, -0.48748204, 163.427, 8.14275, -143.55919)
 use_collision = true
 size = Vector3(2.35, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_east_lane_rail_7_15_0_43" type="CSGBox3D" parent="." unique_id=1679664680]
+[node name="grand_tram_east_lane_rail_7_15_0_43" type="CSGBox3D" parent="." unique_id=1486111210]
 transform = Transform3D(-0.48748204, 0, 0.873133, 0, 1, 0, -0.873133, 0, -0.48748204, 159.94177, 7.6329994, -149.80182)
 use_collision = true
 size = Vector3(4.45, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_east_lane_rail_7_15_0_94" type="CSGBox3D" parent="." unique_id=1009996080]
+[node name="grand_tram_east_lane_rail_7_15_0_94" type="CSGBox3D" parent="." unique_id=7342379]
 transform = Transform3D(-0.48748204, 0, 0.873133, 0, 1, 0, -0.873133, 0, -0.48748204, 159.94202, 8.1432495, -149.80157)
 use_collision = true
 size = Vector3(4.45, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_east_boarding_gate_-3_05_0_43" type="CSGBox3D" parent="." unique_id=123251998]
+[node name="grand_tram_east_boarding_gate_-3_05_0_43" type="CSGBox3D" parent="." unique_id=1283040878]
 transform = Transform3D(-0.48748204, 0, 0.873133, 0, 1, 0, -0.873133, 0, -0.48748204, 164.92331, 7.6334996, -140.90025)
 use_collision = true
 size = Vector3(3.34, 0.12, 0.14)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_east_boarding_gate_-3_05_0_94" type="CSGBox3D" parent="." unique_id=354085874]
+[node name="grand_tram_east_boarding_gate_-3_05_0_94" type="CSGBox3D" parent="." unique_id=375086808]
 transform = Transform3D(-0.48748204, 0, 0.873133, 0, 1, 0, -0.873133, 0, -0.48748204, 164.92357, 8.143749, -140.9)
 use_collision = true
 size = Vector3(3.34, 0.12, 0.14)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_east_boarding_gate_3_05_0_43" type="CSGBox3D" parent="." unique_id=443533271]
+[node name="grand_tram_east_boarding_gate_3_05_0_43" type="CSGBox3D" parent="." unique_id=904617247]
 transform = Transform3D(-0.48748204, 0, 0.873133, 0, 1, 0, -0.873133, 0, -0.48748204, 161.95016, 7.634, -146.22586)
 use_collision = true
 size = Vector3(3.34, 0.12, 0.14)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_east_boarding_gate_3_05_0_94" type="CSGBox3D" parent="." unique_id=699810528]
+[node name="grand_tram_east_boarding_gate_3_05_0_94" type="CSGBox3D" parent="." unique_id=1770627894]
 transform = Transform3D(-0.48748204, 0, 0.873133, 0, 1, 0, -0.873133, 0, -0.48748204, 161.95042, 8.144249, -146.2256)
 use_collision = true
 size = Vector3(3.34, 0.12, 0.14)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_east_bulb_a" type="CSGSphere3D" parent="." unique_id=506401954]
+[node name="grand_tram_east_bulb_a" type="CSGSphere3D" parent="." unique_id=183428280]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 165.84029, 10.3845005, -135.34055)
 cast_shadow = 0
 radius = 0.15
 radial_segments = 10
 material = ExtResource("5_arp8v")
 
-[node name="grand_tram_east_glow_a" type="OmniLight3D" parent="." unique_id=408943314 groups=["park_light"]]
+[node name="grand_tram_east_glow_a" type="OmniLight3D" parent="." unique_id=1666179721 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 165.83578, 10.38, -135.34505)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -423,14 +423,14 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.3
 metadata/light_kind = 0
 
-[node name="grand_tram_east_bulb_b" type="CSGSphere3D" parent="." unique_id=720980660]
+[node name="grand_tram_east_bulb_b" type="CSGSphere3D" parent="." unique_id=1521229735]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 157.69957, 10.38475, -149.92163)
 cast_shadow = 0
 radius = 0.15
 radial_segments = 10
 material = ExtResource("5_arp8v")
 
-[node name="grand_tram_east_glow_b" type="OmniLight3D" parent="." unique_id=373337234 groups=["park_light"]]
+[node name="grand_tram_east_glow_b" type="OmniLight3D" parent="." unique_id=514773993 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 157.69482, 10.38, -149.92638)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -441,164 +441,164 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.3
 metadata/light_kind = 0
 
-[node name="grand_tram_grove_platform" type="CSGBox3D" parent="." unique_id=241317070]
+[node name="grand_tram_grove_platform" type="CSGBox3D" parent="." unique_id=121348370]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 62.005, 0.055, -209.14499)
 use_collision = true
 size = Vector3(20, 0.18, 4.1)
 material = SubResource("StandardMaterial3D_lmqqj")
 
-[node name="grand_tram_grove_post_-8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=728831186]
+[node name="grand_tram_grove_post_-8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=1711925534]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 70.6, 1.7, -208.25)
 use_collision = true
 radius = 0.085
 height = 3.4
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_grove_post_-8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=971560734]
+[node name="grand_tram_grove_post_-8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=300943603]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 70.60025, 1.70025, -210.04976)
 use_collision = true
 radius = 0.085
 height = 3.4
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_grove_post_8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=84156755]
+[node name="grand_tram_grove_post_8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=1223193363]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 53.4005, 1.7005, -208.2495)
 use_collision = true
 radius = 0.085
 height = 3.4
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_grove_post_8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=1247425097]
+[node name="grand_tram_grove_post_8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=317776252]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 53.400753, 1.70075, -210.04926)
 use_collision = true
 radius = 0.085
 height = 3.4
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_grove_canopy" type="CSGBox3D" parent="." unique_id=507301062]
+[node name="grand_tram_grove_canopy" type="CSGBox3D" parent="." unique_id=1279821221]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 62.001, 3.471, -209.14899)
 size = Vector3(18.2, 0.22, 3.5)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_grove_valance" type="CSGBox3D" parent="." unique_id=532155563]
+[node name="grand_tram_grove_valance" type="CSGBox3D" parent="." unique_id=231089601]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 62.00125, 3.1512501, -210.81876)
 size = Vector3(17.6, 0.48, 0.12)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_grove_sign" type="CSGBox3D" parent="." unique_id=1743914688]
+[node name="grand_tram_grove_sign" type="CSGBox3D" parent="." unique_id=1339941112]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 62.0015, 3.6515, -210.8985)
 size = Vector3(6.4, 0.78, 0.14)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_grove_sign_rule" type="CSGBox3D" parent="." unique_id=157672826]
+[node name="grand_tram_grove_sign_rule" type="CSGBox3D" parent="." unique_id=70875231]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 62.00175, 3.65175, -210.80824)
 size = Vector3(5, 0.13, 0.06)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_grove_lane_post_-9_5" type="CSGBox3D" parent="." unique_id=1500157481]
+[node name="grand_tram_grove_lane_post_-9_5" type="CSGBox3D" parent="." unique_id=1511650748]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 71.502, 0.57199997, -211.048)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_grove_lane_post_-4_8" type="CSGBox3D" parent="." unique_id=966706292]
+[node name="grand_tram_grove_lane_post_-4_8" type="CSGBox3D" parent="." unique_id=2100797262]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 66.80225, 0.57225, -211.04776)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_grove_lane_post_-1_3" type="CSGBox3D" parent="." unique_id=1100412360]
+[node name="grand_tram_grove_lane_post_-1_3" type="CSGBox3D" parent="." unique_id=1800977245]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 63.302498, 0.5725, -211.0475)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_grove_lane_post_1_3" type="CSGBox3D" parent="." unique_id=1649234965]
+[node name="grand_tram_grove_lane_post_1_3" type="CSGBox3D" parent="." unique_id=1388681059]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 60.70275, 0.57275, -211.04726)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_grove_lane_post_4_8" type="CSGBox3D" parent="." unique_id=421610313]
+[node name="grand_tram_grove_lane_post_4_8" type="CSGBox3D" parent="." unique_id=2065026207]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 57.203, 0.573, -211.047)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_grove_lane_post_9_5" type="CSGBox3D" parent="." unique_id=1552927613]
+[node name="grand_tram_grove_lane_post_9_5" type="CSGBox3D" parent="." unique_id=638321515]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 52.50325, 0.57325, -211.04675)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_grove_lane_rail_-7_15_0_43" type="CSGBox3D" parent="." unique_id=1029360709]
+[node name="grand_tram_grove_lane_rail_-7_15_0_43" type="CSGBox3D" parent="." unique_id=412204829]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 69.1535, 0.43350002, -211.04651)
 use_collision = true
 size = Vector3(4.45, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_grove_lane_rail_-7_15_0_94" type="CSGBox3D" parent="." unique_id=1852170249]
+[node name="grand_tram_grove_lane_rail_-7_15_0_94" type="CSGBox3D" parent="." unique_id=1781845551]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 69.153755, 0.94375, -211.04625)
 use_collision = true
 size = Vector3(4.45, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_grove_lane_rail_0_0_0_43" type="CSGBox3D" parent="." unique_id=1560714216]
+[node name="grand_tram_grove_lane_rail_0_0_0_43" type="CSGBox3D" parent="." unique_id=2028144663]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 62.004, 0.43400002, -211.046)
 use_collision = true
 size = Vector3(2.35, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_grove_lane_rail_0_0_0_94" type="CSGBox3D" parent="." unique_id=179398929]
+[node name="grand_tram_grove_lane_rail_0_0_0_94" type="CSGBox3D" parent="." unique_id=478293785]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 62.00425, 0.94425, -211.04575)
 use_collision = true
 size = Vector3(2.35, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_grove_lane_rail_7_15_0_43" type="CSGBox3D" parent="." unique_id=814027809]
+[node name="grand_tram_grove_lane_rail_7_15_0_43" type="CSGBox3D" parent="." unique_id=1265506771]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 54.8545, 0.4345, -211.0455)
 use_collision = true
 size = Vector3(4.45, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_grove_lane_rail_7_15_0_94" type="CSGBox3D" parent="." unique_id=694812446]
+[node name="grand_tram_grove_lane_rail_7_15_0_94" type="CSGBox3D" parent="." unique_id=72459559]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 54.854748, 0.94475, -211.04526)
 use_collision = true
 size = Vector3(4.45, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_grove_boarding_gate_-3_05_0_43" type="CSGBox3D" parent="." unique_id=1111637341]
+[node name="grand_tram_grove_boarding_gate_-3_05_0_43" type="CSGBox3D" parent="." unique_id=228049904]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 65.055, 0.435, -211.055)
 use_collision = true
 size = Vector3(3.34, 0.12, 0.14)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_grove_boarding_gate_-3_05_0_94" type="CSGBox3D" parent="." unique_id=1138936860]
+[node name="grand_tram_grove_boarding_gate_-3_05_0_94" type="CSGBox3D" parent="." unique_id=1851386197]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 65.05, 0.94, -211.06)
 use_collision = true
 size = Vector3(3.34, 0.12, 0.14)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_grove_boarding_gate_3_05_0_43" type="CSGBox3D" parent="." unique_id=852273586]
+[node name="grand_tram_grove_boarding_gate_3_05_0_43" type="CSGBox3D" parent="." unique_id=716702378]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 58.950253, 0.43025002, -211.05975)
 use_collision = true
 size = Vector3(3.34, 0.12, 0.14)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_grove_boarding_gate_3_05_0_94" type="CSGBox3D" parent="." unique_id=1951859453]
+[node name="grand_tram_grove_boarding_gate_3_05_0_94" type="CSGBox3D" parent="." unique_id=361914047]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 58.9505, 0.9405, -211.0595)
 use_collision = true
 size = Vector3(3.34, 0.12, 0.14)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_grove_bulb_a" type="CSGSphere3D" parent="." unique_id=698997824]
+[node name="grand_tram_grove_bulb_a" type="CSGSphere3D" parent="." unique_id=451373187]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70.350746, 3.1807501, -209.14925)
 cast_shadow = 0
 radius = 0.15
 radial_segments = 10
 material = ExtResource("5_arp8v")
 
-[node name="grand_tram_grove_glow_a" type="OmniLight3D" parent="." unique_id=166687751 groups=["park_light"]]
+[node name="grand_tram_grove_glow_a" type="OmniLight3D" parent="." unique_id=1309631832 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70.35, 3.18, -209.15)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -611,14 +611,14 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.3
 metadata/light_kind = 0
 
-[node name="grand_tram_grove_bulb_b" type="CSGSphere3D" parent="." unique_id=172738322]
+[node name="grand_tram_grove_bulb_b" type="CSGSphere3D" parent="." unique_id=225077594]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 53.651, 3.181, -209.14899)
 cast_shadow = 0
 radius = 0.15
 radial_segments = 10
 material = ExtResource("5_arp8v")
 
-[node name="grand_tram_grove_glow_b" type="OmniLight3D" parent="." unique_id=1540945235 groups=["park_light"]]
+[node name="grand_tram_grove_glow_b" type="OmniLight3D" parent="." unique_id=27204437 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 53.65, 3.18, -209.15)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -629,164 +629,164 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.3
 metadata/light_kind = 0
 
-[node name="grand_tram_boardwalk_platform" type="CSGBox3D" parent="." unique_id=993095958]
+[node name="grand_tram_boardwalk_platform" type="CSGBox3D" parent="." unique_id=1326639125]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -73.14875, -5.94875, 24.00125)
 use_collision = true
 size = Vector3(20, 0.18, 4.1)
 material = SubResource("StandardMaterial3D_lmqqj")
 
-[node name="grand_tram_boardwalk_post_-8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=708796598]
+[node name="grand_tram_boardwalk_post_-8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=202719514]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -72.2485, -4.2985, 15.4015)
 use_collision = true
 radius = 0.085
 height = 3.4
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_boardwalk_post_-8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=1278493154]
+[node name="grand_tram_boardwalk_post_-8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=1762782413]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -74.048256, -4.29825, 15.40175)
 use_collision = true
 radius = 0.085
 height = 3.4
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_boardwalk_post_8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=1309588346]
+[node name="grand_tram_boardwalk_post_8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=1233599080]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -72.248, -4.2980003, 32.601997)
 use_collision = true
 radius = 0.085
 height = 3.4
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_boardwalk_post_8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=428746829]
+[node name="grand_tram_boardwalk_post_8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=439840864]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -74.04775, -4.29775, 32.60225)
 use_collision = true
 radius = 0.085
 height = 3.4
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_boardwalk_canopy" type="CSGBox3D" parent="." unique_id=873088578]
+[node name="grand_tram_boardwalk_canopy" type="CSGBox3D" parent="." unique_id=1966391357]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -73.1475, -2.5275, 24.0025)
 size = Vector3(18.2, 0.22, 3.5)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_boardwalk_valance" type="CSGBox3D" parent="." unique_id=1902736122]
+[node name="grand_tram_boardwalk_valance" type="CSGBox3D" parent="." unique_id=724614012]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -74.81725, -2.84725, 24.00275)
 size = Vector3(17.6, 0.48, 0.12)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_boardwalk_sign" type="CSGBox3D" parent="." unique_id=1225670751]
+[node name="grand_tram_boardwalk_sign" type="CSGBox3D" parent="." unique_id=729237422]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -74.897, -2.347, 24.003)
 size = Vector3(6.4, 0.78, 0.14)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_boardwalk_sign_rule" type="CSGBox3D" parent="." unique_id=941676484]
+[node name="grand_tram_boardwalk_sign_rule" type="CSGBox3D" parent="." unique_id=1506404083]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -74.80675, -2.34675, 24.00325)
 size = Vector3(5, 0.13, 0.06)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_boardwalk_lane_post_-9_5" type="CSGBox3D" parent="." unique_id=647548506]
+[node name="grand_tram_boardwalk_lane_post_-9_5" type="CSGBox3D" parent="." unique_id=1925295090]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -75.0465, -5.4265, 14.5035)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_boardwalk_lane_post_-4_8" type="CSGBox3D" parent="." unique_id=1036824069]
+[node name="grand_tram_boardwalk_lane_post_-4_8" type="CSGBox3D" parent="." unique_id=830636675]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -75.04625, -5.42625, 19.20375)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_boardwalk_lane_post_-1_3" type="CSGBox3D" parent="." unique_id=300035180]
+[node name="grand_tram_boardwalk_lane_post_-1_3" type="CSGBox3D" parent="." unique_id=1983284639]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -75.046005, -5.4259996, 22.704)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_boardwalk_lane_post_1_3" type="CSGBox3D" parent="." unique_id=71617608]
+[node name="grand_tram_boardwalk_lane_post_1_3" type="CSGBox3D" parent="." unique_id=425422530]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -75.04575, -5.42575, 25.304249)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_boardwalk_lane_post_4_8" type="CSGBox3D" parent="." unique_id=1933832808]
+[node name="grand_tram_boardwalk_lane_post_4_8" type="CSGBox3D" parent="." unique_id=1326985969]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -75.0455, -5.4255, 28.804499)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_boardwalk_lane_post_9_5" type="CSGBox3D" parent="." unique_id=1768630285]
+[node name="grand_tram_boardwalk_lane_post_9_5" type="CSGBox3D" parent="." unique_id=1888206348]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -75.04525, -5.42525, 33.50475)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_boardwalk_lane_rail_-7_15_0_43" type="CSGBox3D" parent="." unique_id=7600131]
+[node name="grand_tram_boardwalk_lane_rail_-7_15_0_43" type="CSGBox3D" parent="." unique_id=2096590191]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -75.045006, -5.565, 16.855)
 use_collision = true
 size = Vector3(4.45, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_boardwalk_lane_rail_-7_15_0_94" type="CSGBox3D" parent="." unique_id=236285460]
+[node name="grand_tram_boardwalk_lane_rail_-7_15_0_94" type="CSGBox3D" parent="." unique_id=588547884]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -75.05, -5.06, 16.85)
 use_collision = true
 size = Vector3(4.45, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_boardwalk_lane_rail_0_0_0_43" type="CSGBox3D" parent="." unique_id=2015381324]
+[node name="grand_tram_boardwalk_lane_rail_0_0_0_43" type="CSGBox3D" parent="." unique_id=453677925]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -75.04975, -5.5697503, 24.00025)
 use_collision = true
 size = Vector3(2.35, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_boardwalk_lane_rail_0_0_0_94" type="CSGBox3D" parent="." unique_id=20417263]
+[node name="grand_tram_boardwalk_lane_rail_0_0_0_94" type="CSGBox3D" parent="." unique_id=2057376842]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -75.0495, -5.0594997, 24.0005)
 use_collision = true
 size = Vector3(2.35, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_boardwalk_lane_rail_7_15_0_43" type="CSGBox3D" parent="." unique_id=1806054541]
+[node name="grand_tram_boardwalk_lane_rail_7_15_0_43" type="CSGBox3D" parent="." unique_id=796916943]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -75.049255, -5.56925, 31.15075)
 use_collision = true
 size = Vector3(4.45, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_boardwalk_lane_rail_7_15_0_94" type="CSGBox3D" parent="." unique_id=400823866]
+[node name="grand_tram_boardwalk_lane_rail_7_15_0_94" type="CSGBox3D" parent="." unique_id=690978117]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -75.049, -5.059, 31.151)
 use_collision = true
 size = Vector3(4.45, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_boardwalk_boarding_gate_-3_05_0_43" type="CSGBox3D" parent="." unique_id=806826430]
+[node name="grand_tram_boardwalk_boarding_gate_-3_05_0_43" type="CSGBox3D" parent="." unique_id=1232360349]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -75.05875, -5.5687504, 20.95125)
 use_collision = true
 size = Vector3(3.34, 0.12, 0.14)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_boardwalk_boarding_gate_-3_05_0_94" type="CSGBox3D" parent="." unique_id=1981611952]
+[node name="grand_tram_boardwalk_boarding_gate_-3_05_0_94" type="CSGBox3D" parent="." unique_id=125267915]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -75.058495, -5.0585, 20.9515)
 use_collision = true
 size = Vector3(3.34, 0.12, 0.14)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_boardwalk_boarding_gate_3_05_0_43" type="CSGBox3D" parent="." unique_id=1123804074]
+[node name="grand_tram_boardwalk_boarding_gate_3_05_0_43" type="CSGBox3D" parent="." unique_id=574229362]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -75.05825, -5.56825, 27.05175)
 use_collision = true
 size = Vector3(3.34, 0.12, 0.14)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_boardwalk_boarding_gate_3_05_0_94" type="CSGBox3D" parent="." unique_id=2021431049]
+[node name="grand_tram_boardwalk_boarding_gate_3_05_0_94" type="CSGBox3D" parent="." unique_id=873447561]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -75.058, -5.058, 27.052)
 use_collision = true
 size = Vector3(3.34, 0.12, 0.14)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_boardwalk_bulb_a" type="CSGSphere3D" parent="." unique_id=1686162332]
+[node name="grand_tram_boardwalk_bulb_a" type="CSGSphere3D" parent="." unique_id=1063760252]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -73.14775, -2.81775, 15.652249)
 cast_shadow = 0
 radius = 0.15
 radial_segments = 10
 material = ExtResource("5_arp8v")
 
-[node name="grand_tram_boardwalk_glow_a" type="OmniLight3D" parent="." unique_id=818154737 groups=["park_light"]]
+[node name="grand_tram_boardwalk_glow_a" type="OmniLight3D" parent="." unique_id=2062881658 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -73.15, -2.82, 15.65)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -799,14 +799,14 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.3
 metadata/light_kind = 0
 
-[node name="grand_tram_boardwalk_bulb_b" type="CSGSphere3D" parent="." unique_id=1707037053]
+[node name="grand_tram_boardwalk_bulb_b" type="CSGSphere3D" parent="." unique_id=1696730681]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -73.1475, -2.8174999, 32.352497)
 cast_shadow = 0
 radius = 0.15
 radial_segments = 10
 material = ExtResource("5_arp8v")
 
-[node name="grand_tram_boardwalk_glow_b" type="OmniLight3D" parent="." unique_id=1484152747 groups=["park_light"]]
+[node name="grand_tram_boardwalk_glow_b" type="OmniLight3D" parent="." unique_id=821003490 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -73.15, -2.82, 32.35)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -817,164 +817,164 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.3
 metadata/light_kind = 0
 
-[node name="grand_tram_fairground_platform" type="CSGBox3D" parent="." unique_id=1786076802]
+[node name="grand_tram_fairground_platform" type="CSGBox3D" parent="." unique_id=1594566637]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -47.033703, 0.052750003, 161.24942)
 use_collision = true
 size = Vector3(20, 0.18, 4.1)
 material = SubResource("StandardMaterial3D_lmqqj")
 
-[node name="grand_tram_fairground_post_-8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=1579877641]
+[node name="grand_tram_fairground_post_-8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=1218869299]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -55.283226, 1.7030001, 158.65907)
 use_collision = true
 radius = 0.085
 height = 3.4
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_fairground_post_-8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=1914744877]
+[node name="grand_tram_fairground_post_-8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=1618344142]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -55.64058, 1.70325, 160.42343)
 use_collision = true
 radius = 0.085
 height = 3.4
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_fairground_post_8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=656342526]
+[node name="grand_tram_fairground_post_8_6_-5_75" type="CSGCylinder3D" parent="." unique_id=87573151]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -38.425575, 1.7035, 162.07666)
 use_collision = true
 radius = 0.085
 height = 3.4
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_fairground_post_8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=595760552]
+[node name="grand_tram_fairground_post_8_6_-3_95" type="CSGCylinder3D" parent="." unique_id=728703245]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -38.782932, 1.70375, 163.84105)
 use_collision = true
 radius = 0.085
 height = 3.4
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_fairground_canopy" type="CSGBox3D" parent="." unique_id=1998273399]
+[node name="grand_tram_fairground_canopy" type="CSGBox3D" parent="." unique_id=1046537750]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -47.03245, 3.474, 161.25067)
 size = Vector3(18.2, 0.22, 3.5)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_fairground_valance" type="CSGBox3D" parent="." unique_id=399075250]
+[node name="grand_tram_fairground_valance" type="CSGBox3D" parent="." unique_id=1166559424]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -47.363983, 3.1542501, 162.88765)
 size = Vector3(17.6, 0.48, 0.12)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_fairground_sign" type="CSGBox3D" parent="." unique_id=1522750988]
+[node name="grand_tram_fairground_sign" type="CSGBox3D" parent="." unique_id=1838055562]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -47.379623, 3.6545, 162.9663)
 size = Vector3(6.4, 0.78, 0.14)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_fairground_sign_rule" type="CSGBox3D" parent="." unique_id=748618425]
+[node name="grand_tram_fairground_sign_rule" type="CSGBox3D" parent="." unique_id=851415018]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -47.361496, 3.65475, 162.87833)
 size = Vector3(5, 0.13, 0.06)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_fairground_lane_post_-9_5" type="CSGBox3D" parent="." unique_id=855613055]
+[node name="grand_tram_fairground_lane_post_-9_5" type="CSGBox3D" parent="." unique_id=1264237470]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -56.719555, 0.575, 161.22646)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_fairground_lane_post_-4_8" type="CSGBox3D" parent="." unique_id=143449810]
+[node name="grand_tram_fairground_lane_post_-4_8" type="CSGBox3D" parent="." unique_id=150926608]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -52.118244, 0.57, 162.1552)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_fairground_lane_post_-1_3" type="CSGBox3D" parent="." unique_id=1007462206]
+[node name="grand_tram_fairground_lane_post_-1_3" type="CSGBox3D" parent="." unique_id=2031929072]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -48.68776, 0.57025, 162.85078)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_fairground_lane_post_1_3" type="CSGBox3D" parent="." unique_id=1774974294]
+[node name="grand_tram_fairground_lane_post_1_3" type="CSGBox3D" parent="." unique_id=161516386]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -46.13934, 0.5705, 163.36758)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_fairground_lane_post_4_8" type="CSGBox3D" parent="." unique_id=288372405]
+[node name="grand_tram_fairground_lane_post_4_8" type="CSGBox3D" parent="." unique_id=1154663996]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -42.708855, 0.57075, 164.06317)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_fairground_lane_post_9_5" type="CSGBox3D" parent="." unique_id=2074824665]
+[node name="grand_tram_fairground_lane_post_9_5" type="CSGBox3D" parent="." unique_id=240844543]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -38.102295, 0.571, 164.99716)
 use_collision = true
 size = Vector3(0.13, 1.14, 0.13)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_fairground_lane_rail_-7_15_0_43" type="CSGBox3D" parent="." unique_id=1291671997]
+[node name="grand_tram_fairground_lane_rail_-7_15_0_43" type="CSGBox3D" parent="." unique_id=879741797]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -54.42015, 0.43125, 161.68958)
 use_collision = true
 size = Vector3(4.45, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_fairground_lane_rail_-7_15_0_94" type="CSGBox3D" parent="." unique_id=490291378]
+[node name="grand_tram_fairground_lane_rail_-7_15_0_94" type="CSGBox3D" parent="." unique_id=1787405215]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -54.419903, 0.9415, 161.68982)
 use_collision = true
 size = Vector3(4.45, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_fairground_lane_rail_0_0_0_43" type="CSGBox3D" parent="." unique_id=661146163]
+[node name="grand_tram_fairground_lane_rail_0_0_0_43" type="CSGBox3D" parent="." unique_id=429378052]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -47.412174, 0.43175, 163.11057)
 use_collision = true
 size = Vector3(2.35, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_fairground_lane_rail_0_0_0_94" type="CSGBox3D" parent="." unique_id=1013047411]
+[node name="grand_tram_fairground_lane_rail_0_0_0_94" type="CSGBox3D" parent="." unique_id=751669169]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -47.411926, 0.942, 163.11081)
 use_collision = true
 size = Vector3(2.35, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_fairground_lane_rail_7_15_0_43" type="CSGBox3D" parent="." unique_id=2134964276]
+[node name="grand_tram_fairground_lane_rail_7_15_0_43" type="CSGBox3D" parent="." unique_id=1685096980]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -40.404198, 0.43225, 164.53154)
 use_collision = true
 size = Vector3(4.45, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_fairground_lane_rail_7_15_0_94" type="CSGBox3D" parent="." unique_id=1550627383]
+[node name="grand_tram_fairground_lane_rail_7_15_0_94" type="CSGBox3D" parent="." unique_id=1620039709]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -40.40395, 0.9425, 164.5318)
 use_collision = true
 size = Vector3(4.45, 0.12, 0.12)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_fairground_boarding_gate_-3_05_0_43" type="CSGBox3D" parent="." unique_id=516933099]
+[node name="grand_tram_fairground_boarding_gate_-3_05_0_43" type="CSGBox3D" parent="." unique_id=181753104]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -50.402363, 0.43275002, 162.51541)
 use_collision = true
 size = Vector3(3.34, 0.12, 0.14)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_fairground_boarding_gate_-3_05_0_94" type="CSGBox3D" parent="." unique_id=1509285684]
+[node name="grand_tram_fairground_boarding_gate_-3_05_0_94" type="CSGBox3D" parent="." unique_id=885616646]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -50.402115, 0.943, 162.51567)
 use_collision = true
 size = Vector3(3.34, 0.12, 0.14)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_fairground_boarding_gate_3_05_0_43" type="CSGBox3D" parent="." unique_id=1130588286]
+[node name="grand_tram_fairground_boarding_gate_3_05_0_43" type="CSGBox3D" parent="." unique_id=1007953190]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -44.42346, 0.43325, 163.7278)
 use_collision = true
 size = Vector3(3.34, 0.12, 0.14)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_fairground_boarding_gate_3_05_0_94" type="CSGBox3D" parent="." unique_id=937355489]
+[node name="grand_tram_fairground_boarding_gate_3_05_0_94" type="CSGBox3D" parent="." unique_id=1898971107]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -44.423206, 0.9435, 163.72804)
 use_collision = true
 size = Vector3(3.34, 0.12, 0.14)
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_fairground_bulb_a" type="CSGSphere3D" parent="." unique_id=1905892711]
+[node name="grand_tram_fairground_bulb_a" type="CSGSphere3D" parent="." unique_id=1015876116]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -55.21626, 3.1837502, 159.59154)
 cast_shadow = 0
 radius = 0.15
 radial_segments = 10
 material = ExtResource("5_arp8v")
 
-[node name="grand_tram_fairground_glow_a" type="OmniLight3D" parent="." unique_id=1443056861 groups=["park_light"]]
+[node name="grand_tram_fairground_glow_a" type="OmniLight3D" parent="." unique_id=170697293 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -55.22001, 3.18, 159.58778)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -987,14 +987,14 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.3
 metadata/light_kind = 0
 
-[node name="grand_tram_fairground_bulb_b" type="CSGSphere3D" parent="." unique_id=181032274]
+[node name="grand_tram_fairground_bulb_b" type="CSGSphere3D" parent="." unique_id=423830924]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38.848896, 3.184, 162.90956)
 cast_shadow = 0
 radius = 0.15
 radial_segments = 10
 material = ExtResource("5_arp8v")
 
-[node name="grand_tram_fairground_glow_b" type="OmniLight3D" parent="." unique_id=1765236418 groups=["park_light"]]
+[node name="grand_tram_fairground_glow_b" type="OmniLight3D" parent="." unique_id=1175717570 groups=["park_light"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38.852898, 3.18, 162.90556)
 visible = false
 light_color = Color(1, 0.78, 0.48, 1)
@@ -1005,174 +1005,174 @@ omni_attenuation = 1.6
 metadata/base_energy = 2.3
 metadata/light_kind = 0
 
-[node name="grand_tram" type="Node3D" parent="." unique_id=2037354085]
+[node name="grand_tram" type="Node3D" parent="." unique_id=1032215777]
 script = ExtResource("6_p218l")
 service = 1
 route_override = PackedVector3Array()
 
-[node name="grand_tram_crossing_boardwalk_monument_stripe_00" type="CSGBox3D" parent="." unique_id=698827782]
+[node name="grand_tram_crossing_boardwalk_monument_stripe_00" type="CSGBox3D" parent="." unique_id=1271884204]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -77.99575, -5.94875, -3.64575)
 size = Vector3(4.92, 0.024, 0.28)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_crossing_boardwalk_monument_stripe_01" type="CSGBox3D" parent="." unique_id=671440272]
+[node name="grand_tram_crossing_boardwalk_monument_stripe_01" type="CSGBox3D" parent="." unique_id=1338377321]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -77.9955, -5.9485, -3.0955)
 size = Vector3(4.92, 0.024, 0.28)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_crossing_boardwalk_monument_stripe_02" type="CSGBox3D" parent="." unique_id=1349542346]
+[node name="grand_tram_crossing_boardwalk_monument_stripe_02" type="CSGBox3D" parent="." unique_id=402909457]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -77.99525, -5.9482503, -2.54525)
 size = Vector3(4.92, 0.024, 0.28)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_crossing_boardwalk_monument_stripe_03" type="CSGBox3D" parent="." unique_id=1387017799]
+[node name="grand_tram_crossing_boardwalk_monument_stripe_03" type="CSGBox3D" parent="." unique_id=1480226598]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -77.995, -5.948, -1.995)
 size = Vector3(4.92, 0.024, 0.28)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_crossing_boardwalk_monument_stripe_04" type="CSGBox3D" parent="." unique_id=2057363946]
+[node name="grand_tram_crossing_boardwalk_monument_stripe_04" type="CSGBox3D" parent="." unique_id=834718102]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -78, -5.953, -1.45)
 size = Vector3(4.92, 0.024, 0.28)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_crossing_boardwalk_monument_stripe_05" type="CSGBox3D" parent="." unique_id=71526699]
+[node name="grand_tram_crossing_boardwalk_monument_stripe_05" type="CSGBox3D" parent="." unique_id=884678824]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -77.99975, -5.95275, -0.89975)
 size = Vector3(4.92, 0.024, 0.28)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_crossing_boardwalk_monument_stripe_06" type="CSGBox3D" parent="." unique_id=1077799552]
+[node name="grand_tram_crossing_boardwalk_monument_stripe_06" type="CSGBox3D" parent="." unique_id=853729169]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -77.9995, -5.9525, -0.34950003)
 size = Vector3(4.92, 0.024, 0.28)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_crossing_boardwalk_monument_wait_a_l" type="CSGCylinder3D" parent="." unique_id=1117992923]
+[node name="grand_tram_crossing_boardwalk_monument_wait_a_l" type="CSGCylinder3D" parent="." unique_id=1171261688]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -81.24925, -5.57925, 3.0507503)
 use_collision = true
 radius = 0.09
 height = 0.84
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_crossing_boardwalk_monument_wait_a_r" type="CSGCylinder3D" parent="." unique_id=368896034]
+[node name="grand_tram_crossing_boardwalk_monument_wait_a_r" type="CSGCylinder3D" parent="." unique_id=1895745309]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -81.249, -5.579, -7.0490003)
 use_collision = true
 radius = 0.09
 height = 0.84
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_crossing_boardwalk_monument_wait_b_l" type="CSGCylinder3D" parent="." unique_id=99542177]
+[node name="grand_tram_crossing_boardwalk_monument_wait_b_l" type="CSGCylinder3D" parent="." unique_id=130385437]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -74.74875, -5.57875, 3.0512502)
 use_collision = true
 radius = 0.09
 height = 0.84
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_crossing_boardwalk_monument_wait_b_r" type="CSGCylinder3D" parent="." unique_id=2099367844]
+[node name="grand_tram_crossing_boardwalk_monument_wait_b_r" type="CSGCylinder3D" parent="." unique_id=1724979814]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -74.7485, -5.5785, -7.0485)
 use_collision = true
 radius = 0.09
 height = 0.84
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_crossing_boardwalk_south_stripe_00" type="CSGBox3D" parent="." unique_id=1649545477]
+[node name="grand_tram_crossing_boardwalk_south_stripe_00" type="CSGBox3D" parent="." unique_id=1634690944]
 transform = Transform3D(0.7113524, 0, -0.7028355, 0, 1, 0, 0.7028355, 0, 0.7113524, -94.86286, -5.475334, 58.804024)
 size = Vector3(4.92, 0.024, 0.28)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_crossing_boardwalk_south_stripe_01" type="CSGBox3D" parent="." unique_id=1229749103]
+[node name="grand_tram_crossing_boardwalk_south_stripe_01" type="CSGBox3D" parent="." unique_id=186733993]
 transform = Transform3D(0.7113524, 0, -0.7028355, 0, 1, 0, 0.7028355, 0, 0.7113524, -95.24917, -5.4750843, 59.19552)
 size = Vector3(4.92, 0.024, 0.28)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_crossing_boardwalk_south_stripe_02" type="CSGBox3D" parent="." unique_id=1324175634]
+[node name="grand_tram_crossing_boardwalk_south_stripe_02" type="CSGBox3D" parent="." unique_id=212963588]
 transform = Transform3D(0.7113524, 0, -0.7028355, 0, 1, 0, 0.7028355, 0, 0.7113524, -95.635475, -5.474834, 59.587013)
 size = Vector3(4.92, 0.024, 0.28)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_crossing_boardwalk_south_stripe_03" type="CSGBox3D" parent="." unique_id=294072926]
+[node name="grand_tram_crossing_boardwalk_south_stripe_03" type="CSGBox3D" parent="." unique_id=530024680]
 transform = Transform3D(0.7113524, 0, -0.7028355, 0, 1, 0, 0.7028355, 0, 0.7113524, -96.02178, -5.474584, 59.978504)
 size = Vector3(4.92, 0.024, 0.28)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_crossing_boardwalk_south_stripe_04" type="CSGBox3D" parent="." unique_id=1880077487]
+[node name="grand_tram_crossing_boardwalk_south_stripe_04" type="CSGBox3D" parent="." unique_id=1961480315]
 transform = Transform3D(0.7113524, 0, -0.7028355, 0, 1, 0, 0.7028355, 0, 0.7113524, -96.4081, -5.4743342, 60.37)
 size = Vector3(4.92, 0.024, 0.28)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_crossing_boardwalk_south_stripe_05" type="CSGBox3D" parent="." unique_id=1121720745]
+[node name="grand_tram_crossing_boardwalk_south_stripe_05" type="CSGBox3D" parent="." unique_id=98537068]
 transform = Transform3D(0.7113524, 0, -0.7028355, 0, 1, 0, 0.7028355, 0, 0.7113524, -96.7944, -5.4740844, 60.76149)
 size = Vector3(4.92, 0.024, 0.28)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_crossing_boardwalk_south_stripe_06" type="CSGBox3D" parent="." unique_id=1756605668]
+[node name="grand_tram_crossing_boardwalk_south_stripe_06" type="CSGBox3D" parent="." unique_id=1058987686]
 transform = Transform3D(0.7113524, 0, -0.7028355, 0, 1, 0, 0.7028355, 0, 0.7113524, -97.18071, -5.473834, 61.15299)
 size = Vector3(4.92, 0.024, 0.28)
 material = SubResource("StandardMaterial3D_a0367")
 
-[node name="grand_tram_crossing_boardwalk_south_wait_a_l" type="CSGCylinder3D" parent="." unique_id=1648851389]
+[node name="grand_tram_crossing_boardwalk_south_wait_a_l" type="CSGCylinder3D" parent="." unique_id=2017217278]
 transform = Transform3D(0.7113524, 0, -0.7028355, 0, 1, 0, 0.7028355, 0, 0.7113524, -90.38268, -5.100584, 57.695293)
 use_collision = true
 radius = 0.09
 height = 0.84
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_crossing_boardwalk_south_wait_a_r" type="CSGCylinder3D" parent="." unique_id=1091047805]
+[node name="grand_tram_crossing_boardwalk_south_wait_a_r" type="CSGCylinder3D" parent="." unique_id=582425071]
 transform = Transform3D(0.7113524, 0, -0.7028355, 0, 1, 0, 0.7028355, 0, 0.7113524, -103.88243, -5.100334, 57.69554)
 use_collision = true
 radius = 0.09
 height = 0.84
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_crossing_boardwalk_south_wait_b_l" type="CSGCylinder3D" parent="." unique_id=503311345]
+[node name="grand_tram_crossing_boardwalk_south_wait_b_l" type="CSGCylinder3D" parent="." unique_id=1954103283]
 transform = Transform3D(0.7113524, 0, -0.7028355, 0, 1, 0, 0.7028355, 0, 0.7113524, -88.15839, -5.100084, 62.26422)
 use_collision = true
 radius = 0.09
 height = 0.84
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_crossing_boardwalk_south_wait_b_r" type="CSGCylinder3D" parent="." unique_id=1548034202]
+[node name="grand_tram_crossing_boardwalk_south_wait_b_r" type="CSGCylinder3D" parent="." unique_id=934039667]
 transform = Transform3D(0.7113524, 0, -0.7028355, 0, 1, 0, 0.7028355, 0, 0.7113524, -101.658134, -5.099834, 62.26447)
 use_collision = true
 radius = 0.09
 height = 0.84
 material = SubResource("StandardMaterial3D_74m04")
 
-[node name="grand_tram_overpass_boardwalk_north_overpass_deck" type="CSGBox3D" parent="." unique_id=1278154690]
+[node name="grand_tram_overpass_boardwalk_north_overpass_deck" type="CSGBox3D" parent="." unique_id=1463088881]
 transform = Transform3D(0.5579362, 0, -0.8298839, 0, 1, 0, 0.8298839, 0, 0.5579362, -70.12644, -1.8652169, -198.63203)
 use_collision = true
 size = Vector3(5.8, 0.24, 12.6)
 material = SubResource("StandardMaterial3D_4k5a5")
 
-[node name="grand_tram_overpass_boardwalk_north_overpass_guard_l" type="CSGBox3D" parent="." unique_id=1972160170]
+[node name="grand_tram_overpass_boardwalk_north_overpass_guard_l" type="CSGBox3D" parent="." unique_id=210838044]
 transform = Transform3D(0.5579362, 0, -0.8298839, 0, 1, 0, 0.8298839, 0, 0.5579362, -71.67725, -1.1849668, -200.93887)
 use_collision = true
 size = Vector3(0.12, 1.12, 12.6)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_overpass_boardwalk_north_overpass_guard_r" type="CSGBox3D" parent="." unique_id=248360159]
+[node name="grand_tram_overpass_boardwalk_north_overpass_guard_r" type="CSGBox3D" parent="." unique_id=1684132731]
 transform = Transform3D(0.5579362, 0, -0.8298839, 0, 1, 0, 0.8298839, 0, 0.5579362, -68.57488, -1.1847168, -196.32445)
 use_collision = true
 size = Vector3(0.12, 1.12, 12.6)
 material = SubResource("StandardMaterial3D_iq405")
 
-[node name="grand_tram_overpass_boardwalk_north_overpass_column_a_l" type="CSGBox3D" parent="." unique_id=85159366]
+[node name="grand_tram_overpass_boardwalk_north_overpass_column_a_l" type="CSGBox3D" parent="." unique_id=1236713088]
 transform = Transform3D(0.5579362, 0, -0.8298839, 0, 1, 0, 0.8298839, 0, 0.5579362, -74.4232, -3.9948583, -195.96947)
 use_collision = true
 size = Vector3(0.34, 4.010283, 0.34)
 material = SubResource("StandardMaterial3D_4k5a5")
 
-[node name="grand_tram_overpass_boardwalk_north_overpass_column_a_r" type="CSGBox3D" parent="." unique_id=33646478]
+[node name="grand_tram_overpass_boardwalk_north_overpass_column_a_r" type="CSGBox3D" parent="." unique_id=1643851154]
 transform = Transform3D(0.5579362, 0, -0.8298839, 0, 1, 0, 0.8298839, 0, 0.5579362, -71.7895, -3.9946082, -192.05217)
 use_collision = true
 size = Vector3(0.34, 4.010283, 0.34)
 material = SubResource("StandardMaterial3D_4k5a5")
 
-[node name="grand_tram_overpass_boardwalk_north_overpass_column_b_l" type="CSGBox3D" parent="." unique_id=1399841715]
+[node name="grand_tram_overpass_boardwalk_north_overpass_column_b_l" type="CSGBox3D" parent="." unique_id=1241167776]
 transform = Transform3D(0.5579362, 0, -0.8298839, 0, 1, 0, 0.8298839, 0, 0.5579362, -68.471634, -3.9943583, -205.22015)
 use_collision = true
 size = Vector3(0.34, 4.010283, 0.34)
 material = SubResource("StandardMaterial3D_4k5a5")
 
-[node name="grand_tram_overpass_boardwalk_north_overpass_column_b_r" type="CSGBox3D" parent="." unique_id=1057157220]
+[node name="grand_tram_overpass_boardwalk_north_overpass_column_b_r" type="CSGBox3D" parent="." unique_id=1876823196]
 transform = Transform3D(0.5579362, 0, -0.8298839, 0, 1, 0, 0.8298839, 0, 0.5579362, -65.83794, -3.9941082, -201.30286)
 use_collision = true
 size = Vector3(0.34, 4.010283, 0.34)

@@ -1,0 +1,148 @@
+[gd_scene load_steps=14 format=3]
+
+; Catalog-only public table derived from the supplied waterfront reference.
+; The perforated tabletop, painted rim, pedestal and each rough stone seat are
+; ordinary selectable nodes. No placement is implied.
+
+[ext_resource type="Shader" path="res://assets/shaders/perforated_metal.gdshader" id="1_mesh"]
+
+[sub_resource type="ShaderMaterial" id="Mat_mesh"]
+shader = ExtResource("1_mesh")
+shader_parameter/paint = Color(0.025, 0.075, 0.08, 1)
+shader_parameter/cells = Vector2(24, 24)
+shader_parameter/strand_width = 0.058
+
+[sub_resource type="StandardMaterial3D" id="Mat_rim"]
+albedo_color = Color(0.035, 0.33, 0.38, 1)
+metallic = 0.35
+roughness = 0.64
+
+[sub_resource type="StandardMaterial3D" id="Mat_frame"]
+albedo_color = Color(0.025, 0.045, 0.048, 1)
+metallic = 0.46
+roughness = 0.56
+
+[sub_resource type="StandardMaterial3D" id="Mat_granite"]
+albedo_color = Color(0.31, 0.32, 0.34, 1)
+roughness = 0.98
+
+[sub_resource type="StandardMaterial3D" id="Mat_granite_top"]
+albedo_color = Color(0.39, 0.40, 0.42, 1)
+roughness = 0.96
+
+[sub_resource type="CylinderMesh" id="Mesh_table"]
+top_radius = 0.92
+bottom_radius = 0.92
+height = 0.045
+radial_segments = 36
+rings = 2
+
+[sub_resource type="TorusMesh" id="Mesh_rim"]
+inner_radius = 0.87
+outer_radius = 0.98
+rings = 36
+ring_segments = 8
+
+[sub_resource type="CylinderMesh" id="Mesh_pedestal"]
+top_radius = 0.12
+bottom_radius = 0.17
+height = 0.72
+radial_segments = 14
+
+[sub_resource type="BoxMesh" id="Mesh_block"]
+size = Vector3(0.72, 0.50, 0.60)
+
+[sub_resource type="BoxMesh" id="Mesh_block_top"]
+size = Vector3(0.67, 0.025, 0.55)
+
+[sub_resource type="CylinderShape3D" id="Collision_table"]
+radius = 0.98
+height = 0.06
+
+[sub_resource type="BoxShape3D" id="Collision_seat"]
+size = Vector3(0.72, 0.50, 0.60)
+
+[node name="granite_circle_picnic_table" type="Node3D"]
+editor_description = "PRP-PARK-022. Circular black perforated-metal table with a weathered blue-green rim and three rough granite block seats. Every material part and seat remains directly editable; seat tops are 0.51m."
+
+[node name="round_tabletop" type="Node3D" parent="."]
+
+[node name="perforated_disc" type="MeshInstance3D" parent="round_tabletop"]
+position = Vector3(0, 0.775, 0)
+mesh = SubResource("Mesh_table")
+material_override = SubResource("Mat_mesh")
+
+[node name="painted_edge_ring" type="MeshInstance3D" parent="round_tabletop"]
+position = Vector3(0, 0.77, 0)
+mesh = SubResource("Mesh_rim")
+material_override = SubResource("Mat_rim")
+
+[node name="centre_pedestal" type="MeshInstance3D" parent="round_tabletop"]
+position = Vector3(0, 0.38, 0)
+mesh = SubResource("Mesh_pedestal")
+material_override = SubResource("Mat_frame")
+
+[node name="stone_seats" type="Node3D" parent="."]
+
+[node name="northwest_block" type="MeshInstance3D" parent="stone_seats"]
+position = Vector3(-1.05, 0.26, -0.72)
+rotation = Vector3(0, -0.13, -0.025)
+scale = Vector3(1.04, 1.02, 0.96)
+mesh = SubResource("Mesh_block")
+material_override = SubResource("Mat_granite")
+
+[node name="northwest_top" type="MeshInstance3D" parent="stone_seats"]
+position = Vector3(-1.05, 0.512, -0.72)
+rotation = Vector3(0, -0.13, -0.025)
+scale = Vector3(1.04, 1, 0.96)
+mesh = SubResource("Mesh_block_top")
+material_override = SubResource("Mat_granite_top")
+
+[node name="northeast_block" type="MeshInstance3D" parent="stone_seats"]
+position = Vector3(1.07, 0.255, -0.68)
+rotation = Vector3(0, 0.18, 0.018)
+scale = Vector3(0.98, 1, 1.03)
+mesh = SubResource("Mesh_block")
+material_override = SubResource("Mat_granite")
+
+[node name="northeast_top" type="MeshInstance3D" parent="stone_seats"]
+position = Vector3(1.07, 0.507, -0.68)
+rotation = Vector3(0, 0.18, 0.018)
+scale = Vector3(0.98, 1, 1.03)
+mesh = SubResource("Mesh_block_top")
+material_override = SubResource("Mat_granite_top")
+
+[node name="south_block" type="MeshInstance3D" parent="stone_seats"]
+position = Vector3(0.03, 0.26, 1.28)
+rotation = Vector3(0, -0.08, -0.015)
+scale = Vector3(1.07, 1.02, 0.98)
+mesh = SubResource("Mesh_block")
+material_override = SubResource("Mat_granite")
+
+[node name="south_top" type="MeshInstance3D" parent="stone_seats"]
+position = Vector3(0.03, 0.512, 1.28)
+rotation = Vector3(0, -0.08, -0.015)
+scale = Vector3(1.07, 1, 0.98)
+mesh = SubResource("Mesh_block_top")
+material_override = SubResource("Mat_granite_top")
+
+[node name="collision" type="StaticBody3D" parent="."]
+
+[node name="table" type="CollisionShape3D" parent="collision"]
+position = Vector3(0, 0.77, 0)
+shape = SubResource("Collision_table")
+
+[node name="northwest_seat" type="CollisionShape3D" parent="collision"]
+position = Vector3(-1.05, 0.26, -0.72)
+rotation = Vector3(0, -0.13, 0)
+shape = SubResource("Collision_seat")
+
+[node name="northeast_seat" type="CollisionShape3D" parent="collision"]
+position = Vector3(1.07, 0.26, -0.68)
+rotation = Vector3(0, 0.18, 0)
+shape = SubResource("Collision_seat")
+
+[node name="south_seat" type="CollisionShape3D" parent="collision"]
+position = Vector3(0.03, 0.26, 1.28)
+rotation = Vector3(0, -0.08, 0)
+shape = SubResource("Collision_seat")

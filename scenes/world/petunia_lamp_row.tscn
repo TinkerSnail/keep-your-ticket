@@ -1,0 +1,37 @@
+[gd_scene load_steps=4 format=3]
+
+; Catalog-only three-lamp promenade rhythm. The ground ribbon is the exact
+; standalone no-furniture recipe; lamps and bracketed baskets are separate nodes.
+
+[ext_resource type="PackedScene" path="res://scenes/world/petunia_ground_row.tscn" id="1_ground"]
+[ext_resource type="PackedScene" path="res://scenes/world/promenade_globe_lamp.tscn" id="2_lamp"]
+[ext_resource type="PackedScene" path="res://scenes/world/hanging_planter_single_bracket.tscn" id="3_bracket"]
+
+[node name="petunia_lamp_row" type="Node3D"]
+editor_description = "Catalog-only mini row: three globe lamps, three front-hung overflowing flower baskets and the standalone chartreuse/pink ground ribbon. All furniture layers remain separately removable."
+
+[node name="ground_row" parent="." instance=ExtResource("1_ground")]
+
+[node name="lamps" type="Node3D" parent="."]
+
+[node name="lamp_left" parent="lamps" instance=ExtResource("2_lamp")]
+position = Vector3(-2.35, 0, 0)
+
+[node name="lamp_center" parent="lamps" instance=ExtResource("2_lamp")]
+
+[node name="lamp_right" parent="lamps" instance=ExtResource("2_lamp")]
+position = Vector3(2.35, 0, 0)
+
+[node name="hanging_baskets" type="Node3D" parent="."]
+
+[node name="basket_left" parent="hanging_baskets" instance=ExtResource("3_bracket")]
+position = Vector3(-2.35, 2.72, 0)
+rotation = Vector3(0, 1.570796, 0)
+
+[node name="basket_center" parent="hanging_baskets" instance=ExtResource("3_bracket")]
+position = Vector3(0, 2.72, 0)
+rotation = Vector3(0, 1.570796, 0)
+
+[node name="basket_right" parent="hanging_baskets" instance=ExtResource("3_bracket")]
+position = Vector3(2.35, 2.72, 0)
+rotation = Vector3(0, 1.570796, 0)

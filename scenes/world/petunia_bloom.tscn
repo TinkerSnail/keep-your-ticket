@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+; Small five-petal flower head used as the editable color unit in overflowing
+; hanging baskets. The script derives only the five petals and throat.
+
+[ext_resource type="Script" path="res://scenes/world/petunia_bloom.gd" id="1_script"]
+
+[node name="petunia_bloom" type="Node3D"]
+script = ExtResource("1_script")
+editor_description = "Reusable five-petal hanging-basket bloom. Color and diameter are editable on each instance."

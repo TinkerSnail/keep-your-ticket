@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_arrival_trunk.tscn" id="1_trunk"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_fan_palm_crown.tscn" id="2_crown"]
+
+[node name="coastal_palmetto" type="Node3D"]
+editor_description = "PRP-PLANT-045. Compact fan palmetto preserving the broad, lively paddle crown on a short 4.6m stout grey-brown trunk. Catalog-only; no park placement is implied."
+metadata/catalog_id = "PRP-PLANT-045"
+
+[node name="short_trunk" parent="." instance=ExtResource("1_trunk")]
+scale = Vector3(12.5, 4.6, 12.5)
+bend_strength = 0.72
+
+[node name="broad_fan_crown" parent="." instance=ExtResource("2_crown")]
+position = Vector3(0.05, 4.6, 0)
+scale = Vector3(0.86, 0.86, 0.86)
+extra_frond_count = 1
+remnant_count = 14

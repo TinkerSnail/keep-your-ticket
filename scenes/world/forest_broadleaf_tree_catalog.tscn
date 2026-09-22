@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3]
+
+; Catalog-only colour preview of the retained former placeholder source.
+
+[ext_resource type="PackedScene" path="res://scenes/world/forest_broadleaf_tree.tscn" id="1_tree"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_preview_leaves"]
+albedo_color = Color(0.24, 0.4, 0.21, 1)
+roughness = 0.95
+
+[node name="forest_broadleaf_tree_catalog" type="Node3D"]
+editor_description = "Catalog-only coloured view of the retained former range-broadleaf placeholder. Edit forest_broadleaf_tree.tscn; only a distant background mass is mounted and this detailed source has no placement approval."
+
+[node name="tree" parent="." instance=ExtResource("1_tree")]
+
+[node name="crown" parent="tree"]
+material_override = SubResource("Mat_preview_leaves")

@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/world/red_sensation_cabbage_tree.tscn" id="1_tree"]
+
+[node name="red_sensation_cabbage_tree_vA" instance=ExtResource("1_tree")]
+scale = Vector3(0.82, 0.76, 0.82)
+catalog_variant = 0
+editor_description = "Catalog vA: compact sixteen-leaf Red Sensation rosette for low purple contrast."

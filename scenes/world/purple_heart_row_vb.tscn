@@ -1,0 +1,150 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/world/purple_heart_sprig.tscn" id="1_sprig"]
+
+[node name="purple_heart_row_vB" type="Node3D"]
+editor_description = "Catalog row vB: a dense 3.6m two-deep Purple Heart ribbon with occasional pink flowers. Move the sprig instances to reshape the row."
+
+[node name="sprigs" type="Node3D" parent="."]
+
+[node name="sprig_00" parent="sprigs" instance=ExtResource("1_sprig")]
+position = Vector3(-1.62, 0, -0.14)
+rotation = Vector3(0, 1.35, 0)
+scale = Vector3(0.88, 0.94, 0.88)
+
+[node name="sprig_01" parent="sprigs" instance=ExtResource("1_sprig")]
+position = Vector3(-1.4, 0, 0.16)
+rotation = Vector3(0, -1.02, 0)
+scale = Vector3(1.02, 1.06, 1.02)
+leaf_pair_count = 6
+flowered = true
+
+[node name="sprig_02" parent="sprigs" instance=ExtResource("1_sprig")]
+position = Vector3(-1.18, 0, -0.12)
+rotation = Vector3(0, 2.28, 0)
+scale = Vector3(0.91, 0.86, 0.91)
+
+[node name="sprig_03" parent="sprigs" instance=ExtResource("1_sprig")]
+position = Vector3(-0.96, 0, 0.13)
+rotation = Vector3(0, -0.55, 0)
+scale = Vector3(1.08, 1, 1.08)
+leaf_scale = 1.08
+
+[node name="sprig_04" parent="sprigs" instance=ExtResource("1_sprig")]
+position = Vector3(-0.73, 0, -0.16)
+rotation = Vector3(0, 1.83, 0)
+scale = Vector3(0.86, 0.92, 0.86)
+flowered = true
+
+[node name="sprig_05" parent="sprigs" instance=ExtResource("1_sprig")]
+position = Vector3(-0.51, 0, 0.15)
+rotation = Vector3(0, -1.46, 0)
+scale = Vector3(1.04, 1.08, 1.04)
+leaf_pair_count = 6
+
+[node name="sprig_06" parent="sprigs" instance=ExtResource("1_sprig")]
+position = Vector3(-0.28, 0, -0.11)
+rotation = Vector3(0, 2.75, 0)
+scale = Vector3(0.94, 0.88, 0.94)
+
+[node name="sprig_07" parent="sprigs" instance=ExtResource("1_sprig")]
+position = Vector3(-0.05, 0, 0.12)
+rotation = Vector3(0, -0.18, 0)
+scale = Vector3(1.1, 1.04, 1.1)
+flowered = true
+
+[node name="sprig_08" parent="sprigs" instance=ExtResource("1_sprig")]
+position = Vector3(0.17, 0, -0.15)
+rotation = Vector3(0, 1.12, 0)
+scale = Vector3(0.9, 0.95, 0.9)
+leaf_pair_count = 6
+
+[node name="sprig_09" parent="sprigs" instance=ExtResource("1_sprig")]
+position = Vector3(0.39, 0, 0.16)
+rotation = Vector3(0, -2.12, 0)
+scale = Vector3(1.02, 1.08, 1.02)
+
+[node name="sprig_10" parent="sprigs" instance=ExtResource("1_sprig")]
+position = Vector3(0.62, 0, -0.1)
+rotation = Vector3(0, 2.36, 0)
+scale = Vector3(0.88, 0.9, 0.88)
+flowered = true
+
+[node name="sprig_11" parent="sprigs" instance=ExtResource("1_sprig")]
+position = Vector3(0.84, 0, 0.14)
+rotation = Vector3(0, -0.81, 0)
+scale = Vector3(1.08, 1.02, 1.08)
+leaf_pair_count = 6
+
+[node name="sprig_12" parent="sprigs" instance=ExtResource("1_sprig")]
+position = Vector3(1.07, 0, -0.16)
+rotation = Vector3(0, 1.68, 0)
+scale = Vector3(0.92, 0.98, 0.92)
+
+[node name="sprig_13" parent="sprigs" instance=ExtResource("1_sprig")]
+position = Vector3(1.29, 0, 0.12)
+rotation = Vector3(0, -1.72, 0)
+scale = Vector3(1.04, 1.06, 1.04)
+flowered = true
+
+[node name="sprig_14" parent="sprigs" instance=ExtResource("1_sprig")]
+position = Vector3(1.53, 0, -0.11)
+rotation = Vector3(0, 2.94, 0)
+scale = Vector3(0.87, 0.91, 0.87)
+
+[node name="sprig_15" parent="sprigs" instance=ExtResource("1_sprig")]
+position = Vector3(-1.48, 0, 0.38)
+rotation = Vector3(0, -2.65, 0)
+scale = Vector3(0.88, 0.78, 0.88)
+leaf_pair_count = 5
+
+[node name="sprig_16" parent="sprigs" instance=ExtResource("1_sprig")]
+position = Vector3(-1.11, 0, 0.34)
+rotation = Vector3(0, 0.48, 0)
+scale = Vector3(0.94, 0.84, 0.94)
+leaf_pair_count = 6
+
+[node name="sprig_17" parent="sprigs" instance=ExtResource("1_sprig")]
+position = Vector3(-0.73, 0, 0.39)
+rotation = Vector3(0, -2.18, 0)
+scale = Vector3(0.86, 0.76, 0.86)
+leaf_pair_count = 5
+flowered = true
+
+[node name="sprig_18" parent="sprigs" instance=ExtResource("1_sprig")]
+position = Vector3(-0.35, 0, 0.35)
+rotation = Vector3(0, 0.92, 0)
+scale = Vector3(0.96, 0.86, 0.96)
+leaf_pair_count = 6
+
+[node name="sprig_19" parent="sprigs" instance=ExtResource("1_sprig")]
+position = Vector3(0.03, 0, 0.4)
+rotation = Vector3(0, -2.92, 0)
+scale = Vector3(0.9, 0.8, 0.9)
+leaf_pair_count = 5
+
+[node name="sprig_20" parent="sprigs" instance=ExtResource("1_sprig")]
+position = Vector3(0.41, 0, 0.34)
+rotation = Vector3(0, 0.22, 0)
+scale = Vector3(0.95, 0.86, 0.95)
+leaf_pair_count = 6
+flowered = true
+
+[node name="sprig_21" parent="sprigs" instance=ExtResource("1_sprig")]
+position = Vector3(0.79, 0, 0.39)
+rotation = Vector3(0, -2.42, 0)
+scale = Vector3(0.87, 0.78, 0.87)
+leaf_pair_count = 5
+
+[node name="sprig_22" parent="sprigs" instance=ExtResource("1_sprig")]
+position = Vector3(1.16, 0, 0.35)
+rotation = Vector3(0, 0.73, 0)
+scale = Vector3(0.94, 0.84, 0.94)
+leaf_pair_count = 6
+
+[node name="sprig_23" parent="sprigs" instance=ExtResource("1_sprig")]
+position = Vector3(1.5, 0, 0.39)
+rotation = Vector3(0, -2.04, 0)
+scale = Vector3(0.86, 0.77, 0.86)
+leaf_pair_count = 5
+flowered = true

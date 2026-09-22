@@ -1,0 +1,30 @@
+[gd_scene load_steps=4 format=3]
+
+; Shared directly reshapeable Agapanthus flower stem. The four-point Path3D
+; is canonical; the script derives only its smooth tapered preview segments.
+
+[ext_resource type="Script" path="res://scenes/world/arching_flower_stem.gd" id="1_script"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_default"]
+albedo_color = Color(0.22, 0.43, 0.17, 1)
+roughness = 0.94
+
+[sub_resource type="Curve3D" id="Curve3D_stem"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0.008, 0.25, 0, 0, 0, 0, -0.012, -0.2, 0, 0.018, 0.2, -0.005, 0.025, 0.48, 0.01, -0.02, -0.22, 0.005, 0.026, 0.22, 0.004, 0.1, 0.98, -0.005, -0.018, -0.22, -0.004, 0, 0, 0, 0.22, 1.45, 0),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
+bake_interval = 0.025
+
+[node name="arching_flower_stem" type="Node3D"]
+script = ExtResource("1_script")
+stem_material = SubResource("Mat_default")
+editor_description = "Shared Agapanthus stalk. Move the four course points to reshape its gentle bend; radius and segmentation remain inspector controls."
+
+[node name="course" type="Path3D" parent="."]
+curve = SubResource("Curve3D_stem")
+editor_description = "Canonical four-point stem gesture with a modest lateral bow and nearly upright flower socket."
+
+[node name="derived_stem" type="Node3D" parent="."]
+editor_description = "Derived tapered preview. Edit course or the root inspector controls rather than these segments."

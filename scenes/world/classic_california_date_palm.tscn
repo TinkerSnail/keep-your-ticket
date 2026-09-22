@@ -1,0 +1,43 @@
+[gd_scene load_steps=5 format=3]
+
+; Catalog-only whole-tree specimen assembled from the same editable trunk and
+; crown sources as the approved entrance palms. It duplicates no geometry.
+
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_arrival_trunk.tscn" id="1_trunk"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_crown.tscn" id="2_crown"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_root_flare"]
+albedo_color = Color(0.29, 0.265, 0.21, 1)
+roughness = 0.98
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_root_flare"]
+material = SubResource("Mat_root_flare")
+top_radius = 0.23
+bottom_radius = 0.3
+height = 0.48
+radial_segments = 8
+rings = 1
+
+[node name="classic_california_date_palm" type="Node3D"]
+editor_description = "Catalog-only classic California date palm. The nearly straight shaft instances the approved entrance source, while the crown's double-density setting interleaves a second derived frond from every editable course for a 64-frond head."
+metadata/catalog_id = "PRP-PLANT-051"
+metadata/source_relationship = "approved_entrance_palm_components"
+
+[node name="trunk" parent="." instance=ExtResource("1_trunk")]
+rotation = Vector3(0, 0.38, 0)
+scale = Vector3(10.4, 10.4, 10.4)
+bend_strength = 0.82
+
+[node name="root_flare" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.24, 0)
+mesh = SubResource("CylinderMesh_root_flare")
+cast_shadow = 1
+editor_description = "Directly editable 60cm-wide root flare. It overlaps the derived shaft before tapering into it, so the palm meets grade with weight rather than a needle point."
+
+[node name="crown" parent="." instance=ExtResource("2_crown")]
+position = Vector3(0.1, 10.4, -0.04)
+rotation = Vector3(0, 0.38, 0)
+scale = Vector3(1.28, 1.12, 1.28)
+extra_frond_count = 20
+remnant_count = 12
+density_multiplier = 2

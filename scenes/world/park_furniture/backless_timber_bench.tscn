@@ -1,0 +1,148 @@
+[gd_scene load_steps=7 format=3]
+
+[sub_resource type="BoxMesh" id="BoxMesh_unit"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_unit"]
+top_radius = 0.5
+bottom_radius = 0.5
+height = 1.0
+radial_segments = 12
+
+[sub_resource type="StandardMaterial3D" id="Mat_wood"]
+albedo_color = Color(0.54, 0.305, 0.105, 1)
+roughness = 0.70
+
+[sub_resource type="StandardMaterial3D" id="Mat_steel"]
+albedo_color = Color(0.19, 0.22, 0.23, 1)
+metallic = 0.56
+roughness = 0.48
+
+[sub_resource type="StandardMaterial3D" id="Mat_bolt"]
+albedo_color = Color(0.34, 0.37, 0.37, 1)
+metallic = 0.72
+roughness = 0.34
+
+[sub_resource type="BoxShape3D" id="Collision_seat"]
+size = Vector3(1.92, 0.13, 0.56)
+
+[node name="backless_timber_bench" type="Node3D"]
+editor_description = "PRP-PARK-019. Backless timber-slat bench on two steel pedestal frames. Usable from either side; seat top is 0.51m."
+
+[node name="timber_slats" type="Node3D" parent="."]
+
+[node name="slat_0" type="MeshInstance3D" parent="timber_slats"]
+position = Vector3(0, 0.4825, -0.225)
+scale = Vector3(1.90, 0.055, 0.080)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_wood")
+
+[node name="slat_1" type="MeshInstance3D" parent="timber_slats"]
+position = Vector3(0, 0.4825, -0.135)
+scale = Vector3(1.90, 0.055, 0.080)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_wood")
+
+[node name="slat_2" type="MeshInstance3D" parent="timber_slats"]
+position = Vector3(0, 0.4825, -0.045)
+scale = Vector3(1.90, 0.055, 0.080)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_wood")
+
+[node name="slat_3" type="MeshInstance3D" parent="timber_slats"]
+position = Vector3(0, 0.4825, 0.045)
+scale = Vector3(1.90, 0.055, 0.080)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_wood")
+
+[node name="slat_4" type="MeshInstance3D" parent="timber_slats"]
+position = Vector3(0, 0.4825, 0.135)
+scale = Vector3(1.90, 0.055, 0.080)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_wood")
+
+[node name="slat_5" type="MeshInstance3D" parent="timber_slats"]
+position = Vector3(0, 0.4825, 0.225)
+scale = Vector3(1.90, 0.055, 0.080)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_wood")
+
+[node name="steel_frame" type="Node3D" parent="."]
+
+[node name="under_rail_front" type="MeshInstance3D" parent="steel_frame"]
+position = Vector3(0, 0.425, 0.19)
+scale = Vector3(1.78, 0.08, 0.08)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_steel")
+
+[node name="under_rail_rear" type="MeshInstance3D" parent="steel_frame"]
+position = Vector3(0, 0.425, -0.19)
+scale = Vector3(1.78, 0.08, 0.08)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_steel")
+
+[node name="pedestal_l" type="MeshInstance3D" parent="steel_frame"]
+position = Vector3(-0.66, 0.235, 0)
+scale = Vector3(0.16, 0.39, 0.18)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_steel")
+
+[node name="pedestal_r" type="MeshInstance3D" parent="steel_frame"]
+position = Vector3(0.66, 0.235, 0)
+scale = Vector3(0.16, 0.39, 0.18)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_steel")
+
+[node name="top_bracket_l" type="MeshInstance3D" parent="steel_frame"]
+position = Vector3(-0.66, 0.425, 0)
+scale = Vector3(0.32, 0.08, 0.50)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_steel")
+
+[node name="top_bracket_r" type="MeshInstance3D" parent="steel_frame"]
+position = Vector3(0.66, 0.425, 0)
+scale = Vector3(0.32, 0.08, 0.50)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_steel")
+
+[node name="foot_l" type="MeshInstance3D" parent="steel_frame"]
+position = Vector3(-0.66, 0.03, 0)
+scale = Vector3(0.38, 0.06, 0.30)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_steel")
+
+[node name="foot_r" type="MeshInstance3D" parent="steel_frame"]
+position = Vector3(0.66, 0.03, 0)
+scale = Vector3(0.38, 0.06, 0.30)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_steel")
+
+[node name="bolt_l_front" type="MeshInstance3D" parent="steel_frame"]
+position = Vector3(-0.66, 0.515, 0.19)
+scale = Vector3(0.035, 0.018, 0.035)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_bolt")
+
+[node name="bolt_l_rear" type="MeshInstance3D" parent="steel_frame"]
+position = Vector3(-0.66, 0.515, -0.19)
+scale = Vector3(0.035, 0.018, 0.035)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_bolt")
+
+[node name="bolt_r_front" type="MeshInstance3D" parent="steel_frame"]
+position = Vector3(0.66, 0.515, 0.19)
+scale = Vector3(0.035, 0.018, 0.035)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_bolt")
+
+[node name="bolt_r_rear" type="MeshInstance3D" parent="steel_frame"]
+position = Vector3(0.66, 0.515, -0.19)
+scale = Vector3(0.035, 0.018, 0.035)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_bolt")
+
+[node name="collision" type="StaticBody3D" parent="."]
+
+[node name="seat" type="CollisionShape3D" parent="collision"]
+position = Vector3(0, 0.455, 0)
+shape = SubResource("Collision_seat")

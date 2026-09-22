@@ -1,0 +1,136 @@
+[gd_scene load_steps=8 format=3]
+
+; One 2.4m directly editor-owned ornamental fence module. It is centered on
+; the local X axis so copies can meet post-to-post without transform arithmetic.
+
+[sub_resource type="StandardMaterial3D" id="Mat_metal"]
+albedo_color = Color(0.035, 0.045, 0.043, 1)
+metallic = 0.72
+roughness = 0.34
+
+[sub_resource type="BoxMesh" id="Mesh_rail"]
+material = SubResource("Mat_metal")
+size = Vector3(2.4, 0.07, 0.07)
+
+[sub_resource type="CylinderMesh" id="Mesh_post"]
+material = SubResource("Mat_metal")
+top_radius = 0.055
+bottom_radius = 0.055
+height = 1.52
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="Mesh_picket"]
+material = SubResource("Mat_metal")
+top_radius = 0.022
+bottom_radius = 0.022
+height = 1.23
+radial_segments = 6
+
+[sub_resource type="SphereMesh" id="Mesh_finial"]
+material = SubResource("Mat_metal")
+radius = 0.085
+height = 0.17
+radial_segments = 10
+rings = 5
+
+[sub_resource type="TorusMesh" id="Mesh_ring"]
+material = SubResource("Mat_metal")
+inner_radius = 0.085
+outer_radius = 0.125
+rings = 8
+ring_segments = 14
+
+[sub_resource type="BoxShape3D" id="Shape_fence"]
+size = Vector3(2.4, 1.62, 0.1)
+
+[node name="ornamental_garden_fence" type="Node3D"]
+editor_description = "Reusable 2.4m black ornamental garden-fence module. End posts, rails, pickets, rings and collision are directly selectable."
+
+[node name="rails" type="Node3D" parent="."]
+
+[node name="lower" type="MeshInstance3D" parent="rails"]
+position = Vector3(0, 0.35, 0)
+mesh = SubResource("Mesh_rail")
+
+[node name="upper" type="MeshInstance3D" parent="rails"]
+position = Vector3(0, 1.16, 0)
+mesh = SubResource("Mesh_rail")
+
+[node name="posts" type="Node3D" parent="."]
+
+[node name="left" type="MeshInstance3D" parent="posts"]
+position = Vector3(-1.2, 0.76, 0)
+mesh = SubResource("Mesh_post")
+
+[node name="right" type="MeshInstance3D" parent="posts"]
+position = Vector3(1.2, 0.76, 0)
+mesh = SubResource("Mesh_post")
+
+[node name="left_finial" type="MeshInstance3D" parent="posts"]
+position = Vector3(-1.2, 1.57, 0)
+mesh = SubResource("Mesh_finial")
+
+[node name="right_finial" type="MeshInstance3D" parent="posts"]
+position = Vector3(1.2, 1.57, 0)
+mesh = SubResource("Mesh_finial")
+
+[node name="pickets" type="Node3D" parent="."]
+
+[node name="picket_00" type="MeshInstance3D" parent="pickets"]
+position = Vector3(-0.96, 0.74, 0)
+mesh = SubResource("Mesh_picket")
+
+[node name="picket_01" type="MeshInstance3D" parent="pickets"]
+position = Vector3(-0.72, 0.74, 0)
+mesh = SubResource("Mesh_picket")
+
+[node name="picket_02" type="MeshInstance3D" parent="pickets"]
+position = Vector3(-0.48, 0.74, 0)
+mesh = SubResource("Mesh_picket")
+
+[node name="picket_03" type="MeshInstance3D" parent="pickets"]
+position = Vector3(-0.24, 0.74, 0)
+mesh = SubResource("Mesh_picket")
+
+[node name="picket_04" type="MeshInstance3D" parent="pickets"]
+position = Vector3(0, 0.74, 0)
+mesh = SubResource("Mesh_picket")
+
+[node name="picket_05" type="MeshInstance3D" parent="pickets"]
+position = Vector3(0.24, 0.74, 0)
+mesh = SubResource("Mesh_picket")
+
+[node name="picket_06" type="MeshInstance3D" parent="pickets"]
+position = Vector3(0.48, 0.74, 0)
+mesh = SubResource("Mesh_picket")
+
+[node name="picket_07" type="MeshInstance3D" parent="pickets"]
+position = Vector3(0.72, 0.74, 0)
+mesh = SubResource("Mesh_picket")
+
+[node name="picket_08" type="MeshInstance3D" parent="pickets"]
+position = Vector3(0.96, 0.74, 0)
+mesh = SubResource("Mesh_picket")
+
+[node name="ornament" type="Node3D" parent="."]
+
+[node name="ring_left" type="MeshInstance3D" parent="ornament"]
+position = Vector3(-0.72, 1.16, 0)
+rotation = Vector3(1.5708, 0, 0)
+mesh = SubResource("Mesh_ring")
+
+[node name="ring_centre" type="MeshInstance3D" parent="ornament"]
+position = Vector3(0, 1.16, 0)
+rotation = Vector3(1.5708, 0, 0)
+mesh = SubResource("Mesh_ring")
+
+[node name="ring_right" type="MeshInstance3D" parent="ornament"]
+position = Vector3(0.72, 1.16, 0)
+rotation = Vector3(1.5708, 0, 0)
+mesh = SubResource("Mesh_ring")
+
+[node name="collision" type="StaticBody3D" parent="."]
+
+[node name="shape" type="CollisionShape3D" parent="collision"]
+position = Vector3(0, 0.81, 0)
+shape = SubResource("Shape_fence")

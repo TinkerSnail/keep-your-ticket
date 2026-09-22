@@ -1,0 +1,360 @@
+[gd_scene load_steps=18 format=3]
+
+[ext_resource type="Shader" path="res://assets/shaders/perforated_metal.gdshader" id="1_mesh"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_unit"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_unit"]
+top_radius = 0.5
+bottom_radius = 0.5
+height = 1.0
+radial_segments = 16
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_table"]
+top_radius = 0.70
+bottom_radius = 0.70
+height = 0.035
+radial_segments = 32
+rings = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_canopy"]
+top_radius = 0.055
+bottom_radius = 1.34
+height = 0.34
+radial_segments = 24
+rings = 4
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_valance"]
+top_radius = 1.34
+bottom_radius = 1.34
+height = 0.13
+radial_segments = 24
+
+[sub_resource type="SphereMesh" id="SphereMesh_finial"]
+radius = 0.075
+height = 0.15
+radial_segments = 16
+rings = 8
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_unit"]
+size = Vector2(1, 1)
+subdivide_width = 1
+subdivide_depth = 1
+
+[sub_resource type="TorusMesh" id="TorusMesh_table_edge"]
+inner_radius = 0.66
+outer_radius = 0.75
+rings = 32
+ring_segments = 8
+
+[sub_resource type="ShaderMaterial" id="Mat_teal_mesh"]
+shader = ExtResource("1_mesh")
+shader_parameter/paint = Color(0.015, 0.49, 0.49, 1)
+shader_parameter/cells = Vector2(18, 18)
+shader_parameter/strand_width = 0.065
+
+[sub_resource type="StandardMaterial3D" id="Mat_teal_frame"]
+albedo_color = Color(0.015, 0.43, 0.43, 1)
+metallic = 0.34
+roughness = 0.55
+
+[sub_resource type="StandardMaterial3D" id="Mat_black_frame"]
+albedo_color = Color(0.018, 0.025, 0.027, 1)
+metallic = 0.58
+roughness = 0.46
+
+[sub_resource type="StandardMaterial3D" id="Mat_umbrella"]
+albedo_color = Color(0.83, 0.035, 0.055, 1)
+roughness = 0.64
+
+[sub_resource type="BoxShape3D" id="Collision_bench"]
+size = Vector3(0.92, 0.10, 0.38)
+
+[sub_resource type="CylinderShape3D" id="Collision_table"]
+radius = 0.74
+height = 0.08
+
+[sub_resource type="CylinderShape3D" id="Collision_pole"]
+radius = 0.045
+height = 1.64
+
+[node name="circular_drive_in_picnic_table_set" type="Node3D"]
+editor_description = "PRP-PARK-021. Circular companion to PRP-PARK-020: round turquoise perforated-metal tabletop, four short attached benches, black radial tubular frame, and an unbranded red centre-pole umbrella. The source is directly editor-owned; all bench seat tops are 0.51m."
+
+[node name="round_tabletop" type="Node3D" parent="."]
+
+[node name="perforated_disc" type="MeshInstance3D" parent="round_tabletop"]
+position = Vector3(0, 0.753, 0)
+mesh = SubResource("CylinderMesh_table")
+material_override = SubResource("Mat_teal_mesh")
+
+[node name="edge_ring" type="MeshInstance3D" parent="round_tabletop"]
+position = Vector3(0, 0.75, 0)
+mesh = SubResource("TorusMesh_table_edge")
+material_override = SubResource("Mat_teal_frame")
+
+[node name="north_bench" type="Node3D" parent="."]
+
+[node name="perforated_panel" type="MeshInstance3D" parent="north_bench"]
+position = Vector3(0, 0.512, -1.0)
+scale = Vector3(0.84, 1, 0.30)
+mesh = SubResource("PlaneMesh_unit")
+material_override = SubResource("Mat_teal_mesh")
+
+[node name="outer_rail" type="MeshInstance3D" parent="north_bench"]
+position = Vector3(0, 0.475, -1.175)
+scale = Vector3(0.92, 0.075, 0.07)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_teal_frame")
+
+[node name="inner_rail" type="MeshInstance3D" parent="north_bench"]
+position = Vector3(0, 0.475, -0.825)
+scale = Vector3(0.92, 0.075, 0.07)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_teal_frame")
+
+[node name="left_rail" type="MeshInstance3D" parent="north_bench"]
+position = Vector3(-0.455, 0.475, -1.0)
+scale = Vector3(0.07, 0.075, 0.30)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_teal_frame")
+
+[node name="right_rail" type="MeshInstance3D" parent="north_bench"]
+position = Vector3(0.455, 0.475, -1.0)
+scale = Vector3(0.07, 0.075, 0.30)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_teal_frame")
+
+[node name="south_bench" type="Node3D" parent="."]
+
+[node name="perforated_panel" type="MeshInstance3D" parent="south_bench"]
+position = Vector3(0, 0.512, 1.0)
+scale = Vector3(0.84, 1, 0.30)
+mesh = SubResource("PlaneMesh_unit")
+material_override = SubResource("Mat_teal_mesh")
+
+[node name="outer_rail" type="MeshInstance3D" parent="south_bench"]
+position = Vector3(0, 0.475, 1.175)
+scale = Vector3(0.92, 0.075, 0.07)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_teal_frame")
+
+[node name="inner_rail" type="MeshInstance3D" parent="south_bench"]
+position = Vector3(0, 0.475, 0.825)
+scale = Vector3(0.92, 0.075, 0.07)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_teal_frame")
+
+[node name="left_rail" type="MeshInstance3D" parent="south_bench"]
+position = Vector3(-0.455, 0.475, 1.0)
+scale = Vector3(0.07, 0.075, 0.30)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_teal_frame")
+
+[node name="right_rail" type="MeshInstance3D" parent="south_bench"]
+position = Vector3(0.455, 0.475, 1.0)
+scale = Vector3(0.07, 0.075, 0.30)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_teal_frame")
+
+[node name="east_bench" type="Node3D" parent="."]
+
+[node name="perforated_panel" type="MeshInstance3D" parent="east_bench"]
+position = Vector3(1.0, 0.512, 0)
+rotation = Vector3(0, 1.570796, 0)
+scale = Vector3(0.84, 1, 0.30)
+mesh = SubResource("PlaneMesh_unit")
+material_override = SubResource("Mat_teal_mesh")
+
+[node name="outer_rail" type="MeshInstance3D" parent="east_bench"]
+position = Vector3(1.175, 0.475, 0)
+scale = Vector3(0.07, 0.075, 0.92)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_teal_frame")
+
+[node name="inner_rail" type="MeshInstance3D" parent="east_bench"]
+position = Vector3(0.825, 0.475, 0)
+scale = Vector3(0.07, 0.075, 0.92)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_teal_frame")
+
+[node name="left_rail" type="MeshInstance3D" parent="east_bench"]
+position = Vector3(1.0, 0.475, -0.455)
+scale = Vector3(0.30, 0.075, 0.07)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_teal_frame")
+
+[node name="right_rail" type="MeshInstance3D" parent="east_bench"]
+position = Vector3(1.0, 0.475, 0.455)
+scale = Vector3(0.30, 0.075, 0.07)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_teal_frame")
+
+[node name="west_bench" type="Node3D" parent="."]
+
+[node name="perforated_panel" type="MeshInstance3D" parent="west_bench"]
+position = Vector3(-1.0, 0.512, 0)
+rotation = Vector3(0, 1.570796, 0)
+scale = Vector3(0.84, 1, 0.30)
+mesh = SubResource("PlaneMesh_unit")
+material_override = SubResource("Mat_teal_mesh")
+
+[node name="outer_rail" type="MeshInstance3D" parent="west_bench"]
+position = Vector3(-1.175, 0.475, 0)
+scale = Vector3(0.07, 0.075, 0.92)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_teal_frame")
+
+[node name="inner_rail" type="MeshInstance3D" parent="west_bench"]
+position = Vector3(-0.825, 0.475, 0)
+scale = Vector3(0.07, 0.075, 0.92)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_teal_frame")
+
+[node name="left_rail" type="MeshInstance3D" parent="west_bench"]
+position = Vector3(-1.0, 0.475, -0.455)
+scale = Vector3(0.30, 0.075, 0.07)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_teal_frame")
+
+[node name="right_rail" type="MeshInstance3D" parent="west_bench"]
+position = Vector3(-1.0, 0.475, 0.455)
+scale = Vector3(0.30, 0.075, 0.07)
+mesh = SubResource("BoxMesh_unit")
+material_override = SubResource("Mat_teal_frame")
+
+[node name="radial_frame" type="Node3D" parent="."]
+
+[node name="centre_pedestal" type="MeshInstance3D" parent="radial_frame"]
+position = Vector3(0, 0.37, 0)
+scale = Vector3(0.20, 0.74, 0.20)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_black_frame")
+
+[node name="north_arm" type="MeshInstance3D" parent="radial_frame"]
+position = Vector3(0, 0.42, -0.52)
+rotation = Vector3(1.570796, 0, 0)
+scale = Vector3(0.10, 1.04, 0.10)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_black_frame")
+
+[node name="south_arm" type="MeshInstance3D" parent="radial_frame"]
+position = Vector3(0, 0.42, 0.52)
+rotation = Vector3(1.570796, 0, 0)
+scale = Vector3(0.10, 1.04, 0.10)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_black_frame")
+
+[node name="east_arm" type="MeshInstance3D" parent="radial_frame"]
+position = Vector3(0.52, 0.42, 0)
+rotation = Vector3(0, 0, 1.570796)
+scale = Vector3(0.10, 1.04, 0.10)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_black_frame")
+
+[node name="west_arm" type="MeshInstance3D" parent="radial_frame"]
+position = Vector3(-0.52, 0.42, 0)
+rotation = Vector3(0, 0, 1.570796)
+scale = Vector3(0.10, 1.04, 0.10)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_black_frame")
+
+[node name="north_leg" type="MeshInstance3D" parent="radial_frame"]
+position = Vector3(0, 0.23, -1.0)
+scale = Vector3(0.13, 0.46, 0.13)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_black_frame")
+
+[node name="south_leg" type="MeshInstance3D" parent="radial_frame"]
+position = Vector3(0, 0.23, 1.0)
+scale = Vector3(0.13, 0.46, 0.13)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_black_frame")
+
+[node name="east_leg" type="MeshInstance3D" parent="radial_frame"]
+position = Vector3(1.0, 0.23, 0)
+scale = Vector3(0.13, 0.46, 0.13)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_black_frame")
+
+[node name="west_leg" type="MeshInstance3D" parent="radial_frame"]
+position = Vector3(-1.0, 0.23, 0)
+scale = Vector3(0.13, 0.46, 0.13)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_black_frame")
+
+[node name="north_foot" type="MeshInstance3D" parent="radial_frame"]
+position = Vector3(0, 0.03, -1.0)
+scale = Vector3(0.26, 0.06, 0.26)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_black_frame")
+
+[node name="south_foot" type="MeshInstance3D" parent="radial_frame"]
+position = Vector3(0, 0.03, 1.0)
+scale = Vector3(0.26, 0.06, 0.26)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_black_frame")
+
+[node name="east_foot" type="MeshInstance3D" parent="radial_frame"]
+position = Vector3(1.0, 0.03, 0)
+scale = Vector3(0.26, 0.06, 0.26)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_black_frame")
+
+[node name="west_foot" type="MeshInstance3D" parent="radial_frame"]
+position = Vector3(-1.0, 0.03, 0)
+scale = Vector3(0.26, 0.06, 0.26)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_black_frame")
+
+[node name="umbrella" type="Node3D" parent="."]
+
+[node name="pole" type="MeshInstance3D" parent="umbrella"]
+position = Vector3(0, 1.35, 0)
+scale = Vector3(0.065, 2.70, 0.065)
+mesh = SubResource("CylinderMesh_unit")
+material_override = SubResource("Mat_black_frame")
+
+[node name="canopy" type="MeshInstance3D" parent="umbrella"]
+position = Vector3(0, 2.38, 0)
+mesh = SubResource("CylinderMesh_canopy")
+material_override = SubResource("Mat_umbrella")
+
+[node name="valance" type="MeshInstance3D" parent="umbrella"]
+position = Vector3(0, 2.145, 0)
+mesh = SubResource("CylinderMesh_valance")
+material_override = SubResource("Mat_umbrella")
+
+[node name="finial" type="MeshInstance3D" parent="umbrella"]
+position = Vector3(0, 2.61, 0)
+mesh = SubResource("SphereMesh_finial")
+material_override = SubResource("Mat_umbrella")
+
+[node name="collision" type="StaticBody3D" parent="."]
+
+[node name="table" type="CollisionShape3D" parent="collision"]
+position = Vector3(0, 0.713, 0)
+shape = SubResource("Collision_table")
+
+[node name="north_seat" type="CollisionShape3D" parent="collision"]
+position = Vector3(0, 0.46, -1.0)
+shape = SubResource("Collision_bench")
+
+[node name="south_seat" type="CollisionShape3D" parent="collision"]
+position = Vector3(0, 0.46, 1.0)
+shape = SubResource("Collision_bench")
+
+[node name="east_seat" type="CollisionShape3D" parent="collision"]
+position = Vector3(1.0, 0.46, 0)
+rotation = Vector3(0, 1.570796, 0)
+shape = SubResource("Collision_bench")
+
+[node name="west_seat" type="CollisionShape3D" parent="collision"]
+position = Vector3(-1.0, 0.46, 0)
+rotation = Vector3(0, 1.570796, 0)
+shape = SubResource("Collision_bench")
+
+[node name="umbrella_pole" type="CollisionShape3D" parent="collision"]
+position = Vector3(0, 1.35, 0)
+shape = SubResource("Collision_pole")

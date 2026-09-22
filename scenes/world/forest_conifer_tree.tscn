@@ -1,0 +1,56 @@
+[gd_scene load_steps=6 format=3]
+
+; Directly editor-owned source for the current range conifer.
+; The runtime instances these selectable parts until an approved replacement
+; is adopted.
+
+[sub_resource type="StandardMaterial3D" id="Mat_bark"]
+vertex_color_use_as_albedo = true
+vertex_color_is_srgb = true
+albedo_color = Color(0.36, 0.26, 0.18, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="Mat_needles"]
+vertex_color_use_as_albedo = true
+vertex_color_is_srgb = true
+albedo_color = Color(1, 1, 1, 1)
+roughness = 0.95
+
+[sub_resource type="CylinderMesh" id="Mesh_trunk"]
+material = SubResource("Mat_bark")
+top_radius = 0.22
+bottom_radius = 0.28
+height = 3.0
+radial_segments = 6
+rings = 1
+
+[sub_resource type="CylinderMesh" id="Mesh_lower_crown"]
+material = SubResource("Mat_needles")
+top_radius = 0.0
+bottom_radius = 3.4
+height = 5.8
+radial_segments = 7
+rings = 1
+
+[sub_resource type="CylinderMesh" id="Mesh_upper_crown"]
+material = SubResource("Mat_needles")
+top_radius = 0.0
+bottom_radius = 2.4
+height = 6.0
+radial_segments = 7
+rings = 1
+
+[node name="forest_conifer_tree" type="Node3D"]
+editor_description = "Retained catalog source from the former range placeholder. Its selectable trunk and two crown meshes remain available for review, but only a distant background mass is mounted and this tree has no placement approval."
+
+[node name="trunk" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.5, 0)
+mesh = SubResource("Mesh_trunk")
+
+[node name="lower_crown" type="MeshInstance3D" parent="."]
+position = Vector3(0, 5.1, 0)
+mesh = SubResource("Mesh_lower_crown")
+
+[node name="upper_crown" type="MeshInstance3D" parent="."]
+position = Vector3(0, 9.5, 0)
+mesh = SubResource("Mesh_upper_crown")

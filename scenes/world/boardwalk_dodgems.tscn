@@ -1,0 +1,249 @@
+[gd_scene load_steps=15 format=3]
+
+[ext_resource type="Material" path="res://assets/materials/bulb.res" id="1_bulb"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_floor"]
+albedo_color = Color(0.10, 0.12, 0.14, 1)
+metallic = 0.24
+roughness = 0.62
+
+[sub_resource type="StandardMaterial3D" id="Mat_cream"]
+albedo_color = Color(0.80, 0.72, 0.57, 1)
+roughness = 0.87
+
+[sub_resource type="StandardMaterial3D" id="Mat_turquoise"]
+albedo_color = Color(0.04, 0.38, 0.40, 1)
+roughness = 0.72
+
+[sub_resource type="StandardMaterial3D" id="Mat_coral"]
+albedo_color = Color(0.76, 0.18, 0.13, 1)
+roughness = 0.76
+
+[sub_resource type="StandardMaterial3D" id="Mat_mustard"]
+albedo_color = Color(0.92, 0.62, 0.08, 1)
+roughness = 0.76
+
+[sub_resource type="StandardMaterial3D" id="Mat_roof"]
+albedo_color = Color(0.08, 0.10, 0.12, 1)
+metallic = 0.10
+roughness = 0.72
+
+[sub_resource type="BoxMesh" id="Mesh_unit"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="BoxShape3D" id="Shape_floor"]
+size = Vector3(13.9, 0.32, 9.9)
+
+[sub_resource type="BoxShape3D" id="Shape_back"]
+size = Vector3(0.3, 3.2, 9.7)
+
+[sub_resource type="BoxShape3D" id="Shape_side"]
+size = Vector3(13.86, 3.2, 0.3)
+
+[sub_resource type="BoxShape3D" id="Shape_front"]
+size = Vector3(0.3, 1.1, 3.2)
+
+[sub_resource type="BoxShape3D" id="Shape_post"]
+size = Vector3(0.32, 4.6, 0.32)
+
+[sub_resource type="SphereMesh" id="Mesh_bulb"]
+radius = 0.15
+height = 0.3
+
+[node name="boardwalk_dodgems" type="Node3D"]
+position = Vector3(-84, -5.95, -184)
+editor_description = "Directly editor-owned compact R16 dodgems hall. The 14 × 10m shell, open public face, separate north exit and east service face remain individually selectable."
+metadata/section = &"boardwalk"
+metadata/map_id = &"R16"
+metadata/ride_type = &"dodgems"
+metadata/footprint_metres = Vector2(14, 10)
+metadata/ride_court = &"north_midway"
+metadata/encounter_contract = &"observable"
+metadata/terrain_bed_depth = 0.18
+metadata/terrain_court_margin = 1.5
+metadata/terrain_ease = 10.0
+metadata/terrain_public_direction = Vector2(-1, 0)
+metadata/terrain_public_apron = 6.0
+
+[node name="floor" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.146, 0)
+scale = Vector3(13.9, 0.32, 9.9)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_floor")
+
+[node name="roof" type="MeshInstance3D" parent="."]
+position = Vector3(0, 4.72, 0)
+scale = Vector3(15, 0.34, 11)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_roof")
+
+[node name="rear_wall" type="MeshInstance3D" parent="."]
+position = Vector3(6.85, 1.59, 0)
+scale = Vector3(0.3, 3.2, 9.7)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_cream")
+
+[node name="north_wall" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.585, -4.85)
+scale = Vector3(13.86, 3.2, 0.3)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="south_wall" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.582, 4.85)
+scale = Vector3(13.86, 3.2, 0.3)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="front_barrier_n" type="MeshInstance3D" parent="."]
+position = Vector3(-6.85, 0.544, -3.25)
+scale = Vector3(0.3, 1.1, 3.2)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="front_barrier_s" type="MeshInstance3D" parent="."]
+position = Vector3(-6.85, 0.538, 3.25)
+scale = Vector3(0.3, 1.1, 3.2)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="post_nw" type="MeshInstance3D" parent="."]
+position = Vector3(-6.85, 2.278, -4.85)
+scale = Vector3(0.32, 4.6, 0.32)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_cream")
+
+[node name="post_sw" type="MeshInstance3D" parent="."]
+position = Vector3(-6.85, 2.274, 4.85)
+scale = Vector3(0.32, 4.6, 0.32)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_cream")
+
+[node name="post_ne" type="MeshInstance3D" parent="."]
+position = Vector3(6.85, 2.27, -4.85)
+scale = Vector3(0.32, 4.6, 0.32)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_cream")
+
+[node name="post_se" type="MeshInstance3D" parent="."]
+position = Vector3(6.85, 2.266, 4.85)
+scale = Vector3(0.32, 4.6, 0.32)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_cream")
+
+[node name="sign_board" type="MeshInstance3D" parent="."]
+position = Vector3(-7.15, 3.55, 0)
+scale = Vector3(0.20, 1.25, 5.8)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="sign" type="Label3D" parent="."]
+position = Vector3(-7.28, 3.55, 0)
+rotation = Vector3(0, -1.570796, 0)
+text = "DODGEMS"
+font_size = 76
+pixel_size = 0.007
+outline_size = 9
+modulate = Color(1, 0.91, 0.70, 1)
+
+[node name="entry_fixture_n" type="MeshInstance3D" parent="."]
+position = Vector3(-7.22, 2.85, -2.6)
+mesh = SubResource("Mesh_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="entry_fixture_s" type="MeshInstance3D" parent="."]
+position = Vector3(-7.22, 2.85, 2.6)
+mesh = SubResource("Mesh_bulb")
+material_override = ExtResource("1_bulb")
+
+[node name="entry_light_n" type="OmniLight3D" parent="." groups=["park_light"]]
+position = Vector3(-6.7, 2.55, -2.6)
+visible = false
+light_color = Color(1, 0.72, 0.42, 1)
+light_energy = 0.0
+light_specular = 0.22
+omni_range = 8.0
+omni_attenuation = 1.7
+metadata/base_energy = 1.2
+metadata/light_kind = 0
+
+[node name="entry_light_s" type="OmniLight3D" parent="." groups=["park_light"]]
+position = Vector3(-6.7, 2.55, 2.6)
+visible = false
+light_color = Color(1, 0.72, 0.42, 1)
+light_energy = 0.0
+light_specular = 0.22
+omni_range = 8.0
+omni_attenuation = 1.7
+metadata/base_energy = 1.2
+metadata/light_kind = 0
+
+[node name="car_0" type="MeshInstance3D" parent="."]
+position = Vector3(-2.8, 0.62, -2.2)
+rotation = Vector3(0, 0.45, 0)
+scale = Vector3(1.4, 0.72, 2.0)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="car_1" type="MeshInstance3D" parent="."]
+position = Vector3(1.5, 0.62, -2.4)
+rotation = Vector3(0, -0.72, 0)
+scale = Vector3(1.4, 0.72, 2.0)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_mustard")
+
+[node name="car_2" type="MeshInstance3D" parent="."]
+position = Vector3(3.6, 0.62, 1.0)
+rotation = Vector3(0, 1.05, 0)
+scale = Vector3(1.4, 0.72, 2.0)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_turquoise")
+
+[node name="car_3" type="MeshInstance3D" parent="."]
+position = Vector3(-1.4, 0.62, 2.1)
+rotation = Vector3(0, -0.18, 0)
+scale = Vector3(1.4, 0.72, 2.0)
+mesh = SubResource("Mesh_unit")
+material_override = SubResource("Mat_coral")
+
+[node name="collision" type="StaticBody3D" parent="."]
+
+[node name="floor" type="CollisionShape3D" parent="collision"]
+position = Vector3(0, 0.146, 0)
+shape = SubResource("Shape_floor")
+
+[node name="rear" type="CollisionShape3D" parent="collision"]
+position = Vector3(6.85, 1.59, 0)
+shape = SubResource("Shape_back")
+
+[node name="north" type="CollisionShape3D" parent="collision"]
+position = Vector3(0, 1.585, -4.85)
+shape = SubResource("Shape_side")
+
+[node name="south" type="CollisionShape3D" parent="collision"]
+position = Vector3(0, 1.582, 4.85)
+shape = SubResource("Shape_side")
+
+[node name="front_n" type="CollisionShape3D" parent="collision"]
+position = Vector3(-6.85, 0.544, -3.25)
+shape = SubResource("Shape_front")
+
+[node name="front_s" type="CollisionShape3D" parent="collision"]
+position = Vector3(-6.85, 0.538, 3.25)
+shape = SubResource("Shape_front")
+
+[node name="post_nw" type="CollisionShape3D" parent="collision"]
+position = Vector3(-6.85, 2.278, -4.85)
+shape = SubResource("Shape_post")
+
+[node name="post_sw" type="CollisionShape3D" parent="collision"]
+position = Vector3(-6.85, 2.274, 4.85)
+shape = SubResource("Shape_post")
+
+[node name="post_ne" type="CollisionShape3D" parent="collision"]
+position = Vector3(6.85, 2.27, -4.85)
+shape = SubResource("Shape_post")
+
+[node name="post_se" type="CollisionShape3D" parent="collision"]
+position = Vector3(6.85, 2.266, 4.85)
+shape = SubResource("Shape_post")

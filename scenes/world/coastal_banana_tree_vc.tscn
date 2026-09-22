@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_banana_tree.tscn" id="1_tree"]
+
+[node name="coastal_banana_tree_vC" instance=ExtResource("1_tree")]
+scale = Vector3(1.1, 0.94, 1.1)
+catalog_variant = 2
+editor_description = "Catalog vC: broader banana accent with eight open leaves and two rolled spears."

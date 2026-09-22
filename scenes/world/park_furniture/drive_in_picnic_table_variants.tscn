@@ -1,0 +1,17 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/world/park_furniture/drive_in_picnic_table_set.tscn" id="1_red"]
+[ext_resource type="PackedScene" path="res://scenes/world/park_furniture/drive_in_picnic_table_set_red_cream.tscn" id="2_striped"]
+[ext_resource type="PackedScene" path="res://scenes/world/park_furniture/drive_in_picnic_table_set_sun_yellow.tscn" id="3_yellow"]
+
+[node name="drive_in_picnic_table_variants" type="Node3D"]
+editor_description = "Catalog presentation for the three PRP-PARK-020 umbrella finishes. Each child is a selectable editor-owned scene; these are variants of one prop family, not three simultaneous placements."
+
+[node name="solid_red" parent="." instance=ExtResource("1_red")]
+position = Vector3(-1.7, 0, 0.9)
+
+[node name="red_cream_panels" parent="." instance=ExtResource("2_striped")]
+position = Vector3(1.7, 0, 0.9)
+
+[node name="sun_faded_yellow" parent="." instance=ExtResource("3_yellow")]
+position = Vector3(0, 0, -1.8)

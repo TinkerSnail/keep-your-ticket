@@ -1,0 +1,70 @@
+[gd_scene load_steps=9 format=3]
+
+; Editor-owned delphinium source. The Path3D is the canonical flower-spike
+; gesture; the tool derives dense blossoms and palmate lower foliage from it.
+
+[ext_resource type="Script" path="res://scenes/world/delphinium_spire.gd" id="1_script"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_stem"]
+cull_mode = 2
+albedo_color = Color(0.18, 0.36, 0.17, 1)
+roughness = 0.94
+
+[sub_resource type="StandardMaterial3D" id="Mat_leaf"]
+cull_mode = 2
+albedo_color = Color(0.055, 0.24, 0.12, 1)
+roughness = 0.96
+
+[sub_resource type="StandardMaterial3D" id="Mat_young_leaf"]
+cull_mode = 2
+albedo_color = Color(0.12, 0.36, 0.18, 1)
+roughness = 0.94
+
+[sub_resource type="StandardMaterial3D" id="Mat_petal"]
+cull_mode = 2
+albedo_color = Color(0.14, 0.22, 0.82, 1)
+roughness = 0.88
+
+[sub_resource type="StandardMaterial3D" id="Mat_young_petal"]
+cull_mode = 2
+albedo_color = Color(0.34, 0.43, 0.94, 1)
+roughness = 0.86
+
+[sub_resource type="StandardMaterial3D" id="Mat_center"]
+cull_mode = 2
+albedo_color = Color(0.035, 0.025, 0.085, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Mat_bud"]
+cull_mode = 2
+albedo_color = Color(0.16, 0.32, 0.27, 1)
+roughness = 0.92
+
+[sub_resource type="Curve3D" id="Curve_spire"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0.5, 0.02, 0, 0.03, 0, -0.02, 0.58, 0.03, 0, 0, 0, 0.025, 0.92, -0.015, -0.015, 0.45, 0, 0, 0, 0, 0.04, 1.38, 0.025),
+"tilts": PackedFloat32Array(0, 0, 0)
+}
+point_count = 3
+bake_interval = 0.025
+
+[node name="delphinium_spire" type="Node3D"]
+script = ExtResource("1_script")
+stem_material = SubResource("Mat_stem")
+leaf_material = SubResource("Mat_leaf")
+young_leaf_material = SubResource("Mat_young_leaf")
+petal_material = SubResource("Mat_petal")
+young_petal_material = SubResource("Mat_young_petal")
+flower_center_material = SubResource("Mat_center")
+bud_material = SubResource("Mat_bud")
+editor_description = "Reusable blue delphinium spike. Reshape the Path3D to set its height and gesture; segmented stems, lobed foliage, cobalt flower racemes and terminal buds rebuild from that editor-owned stroke."
+
+[node name="stem_course" type="Path3D" parent="."]
+curve = SubResource("Curve_spire")
+editor_description = "Canonical stem and raceme gesture. Edit this curve directly; the derived plant follows it."
+
+[node name="derived_stem" type="Node3D" parent="."]
+
+[node name="derived_leaves" type="Node3D" parent="."]
+
+[node name="derived_flowers" type="Node3D" parent="."]

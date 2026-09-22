@@ -1,0 +1,292 @@
+[gd_scene load_steps=14 format=3]
+
+; Arrival Washingtonia crown. Petiole and skirt courses are directly editable;
+; the attached tool derives the repeated fingered leaf surfaces.
+
+[ext_resource type="Script" path="res://scenes/world/coastal_washingtonia_crown.gd" id="1_script"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_heart"]
+albedo_color = Color(0.20, 0.255, 0.10, 1)
+roughness = 0.98
+
+[sub_resource type="StandardMaterial3D" id="Mat_new"]
+cull_mode = 2
+albedo_color = Color(0.24, 0.43, 0.12, 1)
+roughness = 0.96
+
+[sub_resource type="StandardMaterial3D" id="Mat_mature"]
+cull_mode = 2
+albedo_color = Color(0.09, 0.255, 0.075, 1)
+roughness = 0.98
+
+[sub_resource type="StandardMaterial3D" id="Mat_old"]
+cull_mode = 2
+albedo_color = Color(0.18, 0.255, 0.075, 1)
+roughness = 0.99
+
+[sub_resource type="StandardMaterial3D" id="Mat_midrib"]
+cull_mode = 2
+albedo_color = Color(0.13, 0.25, 0.075, 1)
+roughness = 0.98
+
+[sub_resource type="StandardMaterial3D" id="Mat_skirt"]
+cull_mode = 2
+albedo_color = Color(0.265, 0.19, 0.095, 1)
+roughness = 1.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_heart"]
+material = SubResource("Mat_heart")
+radius = 0.22
+height = 0.36
+radial_segments = 8
+rings = 4
+
+[sub_resource type="Curve3D" id="Curve_spear"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.08, 0.38, 0, 0, 0, 0, 0, 0, 0, 0.18, 0.72, 0, 0, 0, 0, 0, 0, 0, 0.28, 0.93, 0),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
+bake_interval = 0.08
+
+[sub_resource type="Curve3D" id="Curve_upper"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.32, 0.34, 0, 0, 0, 0, 0, 0, 0, 0.72, 0.58, 0, 0, 0, 0, 0, 0, 0, 1.02, 0.56, 0),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
+bake_interval = 0.1
+
+[sub_resource type="Curve3D" id="Curve_middle"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.34, 0.20, 0, 0, 0, 0, 0, 0, 0, 0.80, 0.30, 0, 0, 0, 0, 0, 0, 0, 1.12, 0.18, 0),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
+bake_interval = 0.1
+
+[sub_resource type="Curve3D" id="Curve_low"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.30, 0.05, 0, 0, 0, 0, 0, 0, 0, 0.72, -0.10, 0, 0, 0, 0, 0, 0, 0, 1.02, -0.42, 0),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
+bake_interval = 0.1
+
+[sub_resource type="Curve3D" id="Curve_skirt"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.16, -0.42, 0, 0, 0, 0, 0, 0, 0, 0.24, -1.18, 0, 0, 0, 0, 0, 0, 0, 0.14, -2.12, 0),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
+bake_interval = 0.1
+
+[node name="coastal_washingtonia_crown" type="Node3D"]
+script = ExtResource("1_script")
+new_growth_material = SubResource("Mat_new")
+mature_material = SubResource("Mat_mature")
+old_growth_material = SubResource("Mat_old")
+midrib_material = SubResource("Mat_midrib")
+skirt_material = SubResource("Mat_skirt")
+editor_description = "Directly editable tall Washingtonia crown for the arrival allée. Move or reshape the petiole courses to tune one compact overlapping burst; skirt courses stay close to the shaft."
+metadata/species = "washingtonia"
+
+[node name="crown_heart" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_heart")
+
+[node name="frond_courses" type="Node3D" parent="."]
+editor_description = "Twenty core and two optional petiole courses. Their transforms and curves own the live crown silhouette."
+
+[node name="new_0" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 0.15, 0)
+curve = SubResource("Curve_spear")
+metadata/age = "new"
+[node name="new_1" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 1.72, 0)
+scale = Vector3(0.94, 1.03, 0.94)
+curve = SubResource("Curve_spear")
+metadata/age = "new"
+[node name="new_2" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 3.29, 0)
+scale = Vector3(1.04, 0.96, 1.04)
+curve = SubResource("Curve_spear")
+metadata/age = "new"
+[node name="new_3" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 4.86, 0)
+scale = Vector3(0.97, 1.01, 0.97)
+curve = SubResource("Curve_spear")
+metadata/age = "new"
+
+[node name="upper_0" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 0.42, 0)
+curve = SubResource("Curve_upper")
+metadata/age = "mature"
+[node name="upper_1" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 1.205, 0)
+scale = Vector3(1.03, 0.96, 1.03)
+curve = SubResource("Curve_upper")
+metadata/age = "mature"
+[node name="upper_2" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 1.99, 0)
+scale = Vector3(0.96, 1.04, 0.96)
+curve = SubResource("Curve_upper")
+metadata/age = "mature"
+[node name="upper_3" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 2.775, 0)
+scale = Vector3(1.05, 0.98, 1.05)
+curve = SubResource("Curve_upper")
+metadata/age = "mature"
+[node name="upper_4" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 3.56, 0)
+scale = Vector3(0.95, 1.02, 0.95)
+curve = SubResource("Curve_upper")
+metadata/age = "mature"
+[node name="upper_5" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 4.345, 0)
+scale = Vector3(1.02, 0.95, 1.02)
+curve = SubResource("Curve_upper")
+metadata/age = "mature"
+[node name="upper_6" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 5.13, 0)
+scale = Vector3(0.98, 1.03, 0.98)
+curve = SubResource("Curve_upper")
+metadata/age = "mature"
+[node name="upper_7" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 5.915, 0)
+scale = Vector3(1.04, 0.97, 1.04)
+curve = SubResource("Curve_upper")
+metadata/age = "mature"
+
+[node name="middle_0" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 0.85, 0)
+curve = SubResource("Curve_middle")
+metadata/age = "mature"
+[node name="middle_1" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 1.897, 0)
+scale = Vector3(1.04, 1.01, 1.04)
+curve = SubResource("Curve_middle")
+metadata/age = "mature"
+[node name="middle_2" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 2.944, 0)
+scale = Vector3(0.96, 0.98, 0.96)
+curve = SubResource("Curve_middle")
+metadata/age = "mature"
+[node name="middle_3" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 3.991, 0)
+scale = Vector3(1.03, 0.96, 1.03)
+curve = SubResource("Curve_middle")
+metadata/age = "mature"
+[node name="middle_4" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 5.038, 0)
+scale = Vector3(0.97, 1.04, 0.97)
+curve = SubResource("Curve_middle")
+metadata/age = "mature"
+[node name="middle_5" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 6.085, 0)
+scale = Vector3(1.01, 1.02, 1.01)
+curve = SubResource("Curve_middle")
+metadata/age = "mature"
+
+[node name="old_0" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 1.55, 0)
+curve = SubResource("Curve_low")
+metadata/age = "old"
+[node name="old_1" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 4.69, 0)
+scale = Vector3(1.05, 1.04, 1.05)
+curve = SubResource("Curve_low")
+metadata/age = "old"
+
+[node name="extra_0" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 2.05, 0)
+scale = Vector3(0.98, 0.98, 0.98)
+curve = SubResource("Curve_middle")
+metadata/age = "mature"
+metadata/extra_index = 0
+[node name="extra_1" type="Path3D" parent="frond_courses"]
+rotation = Vector3(0, 5.19, 0)
+scale = Vector3(1.02, 1.02, 1.02)
+curve = SubResource("Curve_middle")
+metadata/age = "mature"
+metadata/extra_index = 1
+
+[node name="skirt_courses" type="Node3D" parent="."]
+editor_description = "Dense, narrow retained dry-frond skirt. Rotate, scale or reshape these courses without changing the live crown."
+
+[node name="skirt_00" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 0, 0)
+curve = SubResource("Curve_skirt")
+[node name="skirt_01" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 0.3491, 0)
+scale = Vector3(0.94, 1.03, 0.94)
+curve = SubResource("Curve_skirt")
+[node name="skirt_02" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 0.6981, 0)
+scale = Vector3(1.05, 0.94, 1.05)
+curve = SubResource("Curve_skirt")
+[node name="skirt_03" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 1.0472, 0)
+scale = Vector3(0.97, 1.08, 0.97)
+curve = SubResource("Curve_skirt")
+[node name="skirt_04" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 1.3963, 0)
+scale = Vector3(1.03, 0.90, 1.03)
+curve = SubResource("Curve_skirt")
+[node name="skirt_05" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 1.7453, 0)
+scale = Vector3(0.91, 1.02, 0.91)
+curve = SubResource("Curve_skirt")
+[node name="skirt_06" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 2.0944, 0)
+scale = Vector3(1.06, 0.96, 1.06)
+curve = SubResource("Curve_skirt")
+[node name="skirt_07" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 2.4435, 0)
+scale = Vector3(0.95, 1.09, 0.95)
+curve = SubResource("Curve_skirt")
+[node name="skirt_08" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 2.7925, 0)
+scale = Vector3(1.02, 0.92, 1.02)
+curve = SubResource("Curve_skirt")
+[node name="skirt_09" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 3.1416, 0)
+scale = Vector3(0.92, 1.04, 0.92)
+curve = SubResource("Curve_skirt")
+[node name="skirt_10" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 3.4907, 0)
+scale = Vector3(1.04, 0.95, 1.04)
+curve = SubResource("Curve_skirt")
+[node name="skirt_11" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 3.8397, 0)
+scale = Vector3(0.96, 1.07, 0.96)
+curve = SubResource("Curve_skirt")
+[node name="skirt_12" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 4.1888, 0)
+scale = Vector3(1.05, 0.91, 1.05)
+curve = SubResource("Curve_skirt")
+[node name="skirt_13" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 4.5379, 0)
+scale = Vector3(0.93, 1.01, 0.93)
+curve = SubResource("Curve_skirt")
+[node name="skirt_14" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 4.8869, 0)
+scale = Vector3(1.03, 0.97, 1.03)
+curve = SubResource("Curve_skirt")
+[node name="skirt_15" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 5.236, 0)
+scale = Vector3(0.97, 1.10, 0.97)
+curve = SubResource("Curve_skirt")
+[node name="skirt_16" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 5.5851, 0)
+scale = Vector3(1.06, 0.93, 1.06)
+curve = SubResource("Curve_skirt")
+[node name="skirt_17" type="Path3D" parent="skirt_courses"]
+rotation = Vector3(0, 5.9341, 0)
+scale = Vector3(0.94, 1.05, 0.94)
+curve = SubResource("Curve_skirt")
+
+[node name="derived_fronds" type="Node3D" parent="."]
+editor_description = "Transient fingered leaf surfaces derived from frond_courses."
+
+[node name="derived_skirt" type="Node3D" parent="."]
+editor_description = "Transient dry-frond surfaces derived from skirt_courses."

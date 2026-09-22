@@ -1,0 +1,189 @@
+[gd_scene load_steps=11 format=3]
+
+; Catalog-only square cedar hanging planter. The root origin is the ceiling
+; attachment and all four cords, box boards and Purple Heart pockets select.
+
+[ext_resource type="PackedScene" path="res://scenes/world/purple_heart_cluster.tscn" id="1_cluster"]
+[ext_resource type="PackedScene" path="res://scenes/world/purple_heart_sprig.tscn" id="2_sprig"]
+
+[sub_resource type="BoxMesh" id="Mesh_box"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="TorusMesh" id="Mesh_eye"]
+inner_radius = 0.08
+outer_radius = 0.125
+rings = 12
+ring_segments = 7
+
+[sub_resource type="CylinderMesh" id="Mesh_cord"]
+top_radius = 0.012
+bottom_radius = 0.012
+height = 1.153343
+radial_segments = 6
+rings = 1
+
+[sub_resource type="SphereMesh" id="Mesh_join"]
+radius = 0.055
+height = 0.09
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="Mat_rope"]
+albedo_color = Color(0.49, 0.34, 0.17, 1)
+roughness = 0.98
+
+[sub_resource type="StandardMaterial3D" id="Mat_cedar"]
+albedo_color = Color(0.48, 0.255, 0.105, 1)
+roughness = 0.94
+
+[sub_resource type="StandardMaterial3D" id="Mat_inset"]
+albedo_color = Color(0.245, 0.12, 0.055, 1)
+roughness = 0.98
+
+[sub_resource type="StandardMaterial3D" id="Mat_soil"]
+albedo_color = Color(0.085, 0.052, 0.035, 1)
+roughness = 1.0
+
+[node name="hanging_planter_purple_heart_box" type="Node3D"]
+editor_description = "Catalog hanging planter with a ceiling-origin eye, four warm cords, compact slatted cedar box and a deep-purple trailing crown. No world placement is implied."
+
+[node name="hardware" type="Node3D" parent="."]
+
+[node name="attachment_eye" type="MeshInstance3D" parent="hardware"]
+position = Vector3(0, -0.1, 0)
+rotation = Vector3(1.570796, 0, 0)
+mesh = SubResource("Mesh_eye")
+material_override = SubResource("Mat_rope")
+
+[node name="eye_shank" type="MeshInstance3D" parent="hardware"]
+position = Vector3(0, -0.185, 0)
+scale = Vector3(1.35, 0.065, 1.35)
+mesh = SubResource("Mesh_cord")
+material_override = SubResource("Mat_rope")
+
+[node name="cord_join" type="MeshInstance3D" parent="hardware"]
+position = Vector3(0, -0.22, 0)
+mesh = SubResource("Mesh_join")
+material_override = SubResource("Mat_rope")
+
+[node name="cord_nw" type="MeshInstance3D" parent="hardware"]
+transform = Transform3D(-0.707107, -0.372829, 0.600831, 0, -0.849704, -0.52726, 0.707107, -0.372829, 0.600831, -0.215, -0.71, -0.215)
+mesh = SubResource("Mesh_cord")
+material_override = SubResource("Mat_rope")
+
+[node name="cord_ne" type="MeshInstance3D" parent="hardware"]
+transform = Transform3D(-0.707107, 0.372829, -0.600831, 0, -0.849704, -0.52726, -0.707107, -0.372829, 0.600831, 0.215, -0.71, -0.215)
+mesh = SubResource("Mesh_cord")
+material_override = SubResource("Mat_rope")
+
+[node name="cord_se" type="MeshInstance3D" parent="hardware"]
+transform = Transform3D(0.707107, 0.372829, -0.600831, 0, -0.849704, -0.52726, -0.707107, 0.372829, -0.600831, 0.215, -0.71, 0.215)
+mesh = SubResource("Mesh_cord")
+material_override = SubResource("Mat_rope")
+
+[node name="cord_sw" type="MeshInstance3D" parent="hardware"]
+transform = Transform3D(0.707107, -0.372829, 0.600831, 0, -0.849704, -0.52726, 0.707107, 0.372829, -0.600831, -0.215, -0.71, 0.215)
+mesh = SubResource("Mesh_cord")
+material_override = SubResource("Mat_rope")
+
+[node name="box" type="Node3D" parent="."]
+editor_description = "Selectable cedar boards and inset panels around an open soil surface."
+
+[node name="front" type="MeshInstance3D" parent="box"]
+position = Vector3(0, -1.385, 0.43)
+scale = Vector3(0.94, 0.36, 0.08)
+mesh = SubResource("Mesh_box")
+material_override = SubResource("Mat_cedar")
+
+[node name="back" type="MeshInstance3D" parent="box"]
+position = Vector3(0, -1.385, -0.43)
+scale = Vector3(0.94, 0.36, 0.08)
+mesh = SubResource("Mesh_box")
+material_override = SubResource("Mat_cedar")
+
+[node name="left" type="MeshInstance3D" parent="box"]
+position = Vector3(-0.43, -1.385, 0)
+scale = Vector3(0.08, 0.36, 0.78)
+mesh = SubResource("Mesh_box")
+material_override = SubResource("Mat_cedar")
+
+[node name="right" type="MeshInstance3D" parent="box"]
+position = Vector3(0.43, -1.385, 0)
+scale = Vector3(0.08, 0.36, 0.78)
+mesh = SubResource("Mesh_box")
+material_override = SubResource("Mat_cedar")
+
+[node name="front_inset" type="MeshInstance3D" parent="box"]
+position = Vector3(0, -1.385, 0.472)
+scale = Vector3(0.68, 0.19, 0.018)
+mesh = SubResource("Mesh_box")
+material_override = SubResource("Mat_inset")
+
+[node name="back_inset" type="MeshInstance3D" parent="box"]
+position = Vector3(0, -1.385, -0.472)
+scale = Vector3(0.68, 0.19, 0.018)
+mesh = SubResource("Mesh_box")
+material_override = SubResource("Mat_inset")
+
+[node name="bottom" type="MeshInstance3D" parent="box"]
+position = Vector3(0, -1.58, 0)
+scale = Vector3(0.84, 0.08, 0.84)
+mesh = SubResource("Mesh_box")
+material_override = SubResource("Mat_cedar")
+
+[node name="soil" type="MeshInstance3D" parent="box"]
+position = Vector3(0, -1.195, 0)
+scale = Vector3(0.79, 0.045, 0.79)
+mesh = SubResource("Mesh_box")
+material_override = SubResource("Mat_soil")
+
+[node name="planting" type="Node3D" parent="."]
+editor_description = "Dense selectable Purple Heart crown plus eight individually aimable flowering trails."
+
+[node name="crown" parent="planting" instance=ExtResource("1_cluster")]
+position = Vector3(0, -1.17, 0)
+scale = Vector3(1.28, 1.12, 1.28)
+
+[node name="trail_00" parent="planting" instance=ExtResource("2_sprig")]
+position = Vector3(0, -1.15, 0.5)
+rotation = Vector3(2.18, 0.05, 0)
+scale = Vector3(0.92, 1.24, 0.92)
+flowered = true
+
+[node name="trail_01" parent="planting" instance=ExtResource("2_sprig")]
+position = Vector3(0.5, -1.15, 0.5)
+rotation = Vector3(2.28, 0.78, 0)
+scale = Vector3(0.88, 1.12, 0.88)
+
+[node name="trail_02" parent="planting" instance=ExtResource("2_sprig")]
+position = Vector3(0.5, -1.15, 0)
+rotation = Vector3(2.2, 1.56, 0)
+scale = Vector3(0.94, 1.28, 0.94)
+flowered = true
+
+[node name="trail_03" parent="planting" instance=ExtResource("2_sprig")]
+position = Vector3(0.5, -1.15, -0.5)
+rotation = Vector3(2.32, 2.34, 0)
+scale = Vector3(0.86, 1.06, 0.86)
+
+[node name="trail_04" parent="planting" instance=ExtResource("2_sprig")]
+position = Vector3(0, -1.15, -0.5)
+rotation = Vector3(2.16, 3.12, 0)
+scale = Vector3(0.96, 1.3, 0.96)
+flowered = true
+
+[node name="trail_05" parent="planting" instance=ExtResource("2_sprig")]
+position = Vector3(-0.5, -1.15, -0.5)
+rotation = Vector3(2.26, 3.92, 0)
+scale = Vector3(0.87, 1.12, 0.87)
+
+[node name="trail_06" parent="planting" instance=ExtResource("2_sprig")]
+position = Vector3(-0.5, -1.15, 0)
+rotation = Vector3(2.22, 4.72, 0)
+scale = Vector3(0.93, 1.25, 0.93)
+flowered = true
+
+[node name="trail_07" parent="planting" instance=ExtResource("2_sprig")]
+position = Vector3(-0.5, -1.15, 0.5)
+rotation = Vector3(2.3, 5.5, 0)
+scale = Vector3(0.85, 1.08, 0.85)

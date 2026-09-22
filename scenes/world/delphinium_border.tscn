@@ -1,0 +1,189 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/world/delphinium_spire.tscn" id="1_spire"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_purple"]
+cull_mode = 2
+albedo_color = Color(0.31, 0.12, 0.58, 1)
+roughness = 0.88
+
+[sub_resource type="StandardMaterial3D" id="Mat_purple_young"]
+cull_mode = 2
+albedo_color = Color(0.55, 0.28, 0.78, 1)
+roughness = 0.86
+
+[sub_resource type="StandardMaterial3D" id="Mat_white"]
+cull_mode = 2
+albedo_color = Color(0.91, 0.92, 0.84, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Mat_white_young"]
+cull_mode = 2
+albedo_color = Color(0.98, 0.97, 0.9, 1)
+roughness = 0.88
+
+[sub_resource type="StandardMaterial3D" id="Mat_lilac"]
+cull_mode = 2
+albedo_color = Color(0.5, 0.35, 0.82, 1)
+roughness = 0.88
+
+[sub_resource type="StandardMaterial3D" id="Mat_lilac_young"]
+cull_mode = 2
+albedo_color = Color(0.7, 0.55, 0.94, 1)
+roughness = 0.86
+
+[node name="delphinium_border" type="Node3D"]
+editor_description = "Catalog border: a loose 3.4m two-deep drift of sixteen blue, purple, white and lilac delphinium spikes. Move the selectable spires to follow a bed edge or break the rhythm."
+
+[node name="spires" type="Node3D" parent="."]
+
+[node name="spire_00" parent="spires" instance=ExtResource("1_spire")]
+position = Vector3(-1.58, 0, 0.1)
+rotation = Vector3(0, -0.48, 0)
+scale = Vector3(0.78, 0.82, 0.78)
+bloom_count = 14
+bud_count = 5
+leaf_count = 5
+
+[node name="spire_01" parent="spires" instance=ExtResource("1_spire")]
+position = Vector3(-1.33, 0, -0.12)
+rotation = Vector3(0, 1.36, 0)
+scale = Vector3(0.88, 0.96, 0.88)
+bloom_count = 17
+leaf_count = 6
+petal_material = SubResource("Mat_lilac")
+young_petal_material = SubResource("Mat_lilac_young")
+
+[node name="spire_02" parent="spires" instance=ExtResource("1_spire")]
+position = Vector3(-1.08, 0, 0.13)
+rotation = Vector3(0, 2.54, 0)
+scale = Vector3(0.84, 0.89, 0.84)
+bloom_count = 16
+leaf_count = 6
+petal_material = SubResource("Mat_purple")
+young_petal_material = SubResource("Mat_purple_young")
+
+[node name="spire_03" parent="spires" instance=ExtResource("1_spire")]
+position = Vector3(-0.82, 0, -0.09)
+rotation = Vector3(0, -1.72, 0)
+scale = Vector3(0.96, 1.08, 0.96)
+bloom_count = 20
+bud_count = 7
+leaf_count = 7
+petal_material = SubResource("Mat_white")
+young_petal_material = SubResource("Mat_white_young")
+
+[node name="spire_04" parent="spires" instance=ExtResource("1_spire")]
+position = Vector3(-0.56, 0, 0.14)
+rotation = Vector3(0, 0.66, 0)
+scale = Vector3(0.8, 0.86, 0.8)
+bloom_count = 15
+leaf_count = 5
+petal_material = SubResource("Mat_lilac")
+young_petal_material = SubResource("Mat_lilac_young")
+
+[node name="spire_05" parent="spires" instance=ExtResource("1_spire")]
+position = Vector3(-0.3, 0, -0.13)
+rotation = Vector3(0, 2.14, 0)
+scale = Vector3(0.9, 1.01, 0.9)
+bloom_count = 18
+leaf_count = 6
+petal_material = SubResource("Mat_white")
+young_petal_material = SubResource("Mat_white_young")
+
+[node name="spire_06" parent="spires" instance=ExtResource("1_spire")]
+position = Vector3(-0.04, 0, 0.11)
+rotation = Vector3(0, -2.78, 0)
+scale = Vector3(0.84, 0.92, 0.84)
+bloom_count = 16
+leaf_count = 6
+petal_material = SubResource("Mat_purple")
+young_petal_material = SubResource("Mat_purple_young")
+
+[node name="spire_07" parent="spires" instance=ExtResource("1_spire")]
+position = Vector3(0.22, 0, -0.1)
+rotation = Vector3(0, -0.94, 0)
+scale = Vector3(1, 1.12, 1)
+bloom_count = 21
+bud_count = 8
+leaf_count = 7
+bloom_scale = 1.04
+petal_material = SubResource("Mat_lilac")
+young_petal_material = SubResource("Mat_lilac_young")
+
+[node name="spire_08" parent="spires" instance=ExtResource("1_spire")]
+position = Vector3(0.48, 0, 0.14)
+rotation = Vector3(0, 1.62, 0)
+scale = Vector3(0.82, 0.88, 0.82)
+bloom_count = 15
+leaf_count = 5
+petal_material = SubResource("Mat_white")
+young_petal_material = SubResource("Mat_white_young")
+
+[node name="spire_09" parent="spires" instance=ExtResource("1_spire")]
+position = Vector3(0.74, 0, -0.12)
+rotation = Vector3(0, 2.86, 0)
+scale = Vector3(0.92, 1.03, 0.92)
+bloom_count = 19
+leaf_count = 6
+petal_material = SubResource("Mat_purple")
+young_petal_material = SubResource("Mat_purple_young")
+
+[node name="spire_10" parent="spires" instance=ExtResource("1_spire")]
+position = Vector3(1, 0, 0.1)
+rotation = Vector3(0, -2.12, 0)
+scale = Vector3(0.82, 0.91, 0.82)
+bloom_count = 16
+leaf_count = 6
+petal_material = SubResource("Mat_lilac")
+young_petal_material = SubResource("Mat_lilac_young")
+
+[node name="spire_11" parent="spires" instance=ExtResource("1_spire")]
+position = Vector3(1.27, 0, -0.08)
+rotation = Vector3(0, 0.82, 0)
+scale = Vector3(0.9, 0.98, 0.9)
+bloom_count = 18
+bud_count = 6
+leaf_count = 6
+petal_material = SubResource("Mat_white")
+young_petal_material = SubResource("Mat_white_young")
+
+[node name="spire_12" parent="spires" instance=ExtResource("1_spire")]
+position = Vector3(1.54, 0, 0.12)
+rotation = Vector3(0, 2.26, 0)
+scale = Vector3(0.77, 0.83, 0.77)
+bloom_count = 14
+bud_count = 5
+leaf_count = 5
+petal_material = SubResource("Mat_purple")
+young_petal_material = SubResource("Mat_purple_young")
+
+[node name="spire_13" parent="spires" instance=ExtResource("1_spire")]
+position = Vector3(-1.08, 0, 0.37)
+rotation = Vector3(0, -2.42, 0)
+scale = Vector3(0.74, 0.78, 0.74)
+bloom_count = 13
+bud_count = 4
+leaf_count = 5
+petal_material = SubResource("Mat_lilac")
+young_petal_material = SubResource("Mat_lilac_young")
+
+[node name="spire_14" parent="spires" instance=ExtResource("1_spire")]
+position = Vector3(-0.1, 0, 0.39)
+rotation = Vector3(0, 1.06, 0)
+scale = Vector3(0.78, 0.84, 0.78)
+bloom_count = 14
+bud_count = 5
+leaf_count = 5
+petal_material = SubResource("Mat_white")
+young_petal_material = SubResource("Mat_white_young")
+
+[node name="spire_15" parent="spires" instance=ExtResource("1_spire")]
+position = Vector3(0.92, 0, 0.38)
+rotation = Vector3(0, -1.34, 0)
+scale = Vector3(0.76, 0.81, 0.76)
+bloom_count = 14
+bud_count = 5
+leaf_count = 5
+petal_material = SubResource("Mat_purple")
+young_petal_material = SubResource("Mat_purple_young")

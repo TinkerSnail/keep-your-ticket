@@ -1,0 +1,69 @@
+[gd_scene load_steps=4 format=3]
+
+; Yellow-green sibling of PRP-PLANT-029. It inherits the full clump recipe and
+; changes only the selectable leaf palettes, so both versions keep one shared
+; editor-owned arch and pointed tip.
+
+[ext_resource type="PackedScene" path="res://scenes/world/lily_of_the_nile_clump.tscn" id="1_base"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_leaf_yellow"]
+cull_mode = 2
+albedo_color = Color(0.38, 0.57, 0.14, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="Mat_leaf_yellow_light"]
+cull_mode = 2
+albedo_color = Color(0.52, 0.69, 0.2, 1)
+roughness = 0.94
+
+[node name="lily_of_the_nile_clump_light" instance=ExtResource("1_base")]
+editor_description = "PRP-PLANT-042. Light yellow-green Lily of the Nile sibling of PRP-PLANT-029, with the same broad pointed arching leaf course and six independently selectable bending stem courses."
+
+[node name="leaf_00" parent="strap_leaves" index="0"]
+leaf_material = SubResource("Mat_leaf_yellow")
+
+[node name="leaf_01" parent="strap_leaves" index="1"]
+leaf_material = SubResource("Mat_leaf_yellow")
+
+[node name="leaf_02" parent="strap_leaves" index="2"]
+leaf_material = SubResource("Mat_leaf_yellow")
+
+[node name="leaf_03" parent="strap_leaves" index="3"]
+leaf_material = SubResource("Mat_leaf_yellow")
+
+[node name="leaf_04" parent="strap_leaves" index="4"]
+leaf_material = SubResource("Mat_leaf_yellow")
+
+[node name="leaf_05" parent="strap_leaves" index="5"]
+leaf_material = SubResource("Mat_leaf_yellow")
+
+[node name="leaf_06" parent="strap_leaves" index="6"]
+leaf_material = SubResource("Mat_leaf_yellow")
+
+[node name="leaf_07" parent="strap_leaves" index="7"]
+leaf_material = SubResource("Mat_leaf_yellow")
+
+[node name="leaf_08" parent="strap_leaves" index="8"]
+leaf_material = SubResource("Mat_leaf_yellow")
+
+[node name="leaf_09" parent="strap_leaves" index="9"]
+leaf_material = SubResource("Mat_leaf_yellow")
+
+[node name="leaf_10" parent="strap_leaves" index="10"]
+leaf_material = SubResource("Mat_leaf_yellow_light")
+
+[node name="leaf_11" parent="strap_leaves" index="11"]
+leaf_material = SubResource("Mat_leaf_yellow_light")
+
+[editable path="strap_leaves/leaf_00"]
+[editable path="strap_leaves/leaf_01"]
+[editable path="strap_leaves/leaf_02"]
+[editable path="strap_leaves/leaf_03"]
+[editable path="strap_leaves/leaf_04"]
+[editable path="strap_leaves/leaf_05"]
+[editable path="strap_leaves/leaf_06"]
+[editable path="strap_leaves/leaf_07"]
+[editable path="strap_leaves/leaf_08"]
+[editable path="strap_leaves/leaf_09"]
+[editable path="strap_leaves/leaf_10"]
+[editable path="strap_leaves/leaf_11"]
