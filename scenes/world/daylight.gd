@@ -37,6 +37,13 @@ const NIGHT_ALTITUDE := -6.0
 var sun: DirectionalLight3D
 var world_environment: WorldEnvironment
 
+## Weather is a layer over the real solar day, not a replacement for it. The
+## weather controller supplies these two values while this file remains the one
+## owner of sun, sky and ambient light. Keeping the composition here prevents a
+## second process from overwriting the first one a frame later.
+var weather_cloudiness := 0.0
+var weather_rain := 0.0
+
 ## Sun colour and energy against altitude in degrees. The 40-degree row is the
 ## pair that made the greybox concrete stop reading as water, kept as the
 ## anchor the rest of the day was built around.
@@ -142,6 +149,17 @@ func _process(_delta: float) -> void:
 	_apply(ParkClock.hours())
 
 
+## Called by `weather.gd`. Both inputs are deliberately continuous so a shower
+## can arrive and leave without a lighting cut. Weather changes only the sky and
+## the light that reaches the park; the distance haze is the inspector's and
+## `HAZE_STRENGTH`'s, and weather does not touch it.
+func set_weather(cloudiness: float, rain: float) -> void:
+	weather_cloudiness = clampf(cloudiness, 0.0, 1.0)
+	weather_rain = clampf(rain, 0.0, 1.0)
+	if _environment != null:
+		_apply(ParkClock.hours())
+
+
 func _apply(clock_hours: float) -> void:
 	var solar := solar_position(clock_hours)
 	var altitude: float = solar.x
@@ -154,20 +172,40 @@ func _apply(clock_hours: float) -> void:
 		# declination be the thing that finds that out.
 		var to_sun := direction_to_sun(minf(altitude, 88.0), azimuth)
 		sun.look_at(sun.global_position - to_sun, Vector3.UP)
-		sun.light_color = _color_at(SUN_COLOR, altitude)
-		sun.light_energy = _value_at(SUN_ENERGY, altitude)
+		var sun_color := _color_at(SUN_COLOR, altitude)
+		var cool_sun := Color(0.78, 0.84, 0.90)
+		sun.light_color = sun_color.lerp(cool_sun,
+			weather_cloudiness * 0.32 + weather_rain * 0.12)
+		sun.light_energy = _value_at(SUN_ENERGY, altitude) \
+			* lerpf(1.0, 0.46, weather_cloudiness) \
+			* lerpf(1.0, 0.82, weather_rain)
 
-	_environment.ambient_light_color = _color_at(AMBIENT_COLOR, altitude)
-	_environment.ambient_light_energy = _value_at(AMBIENT_ENERGY, altitude)
+	var weather_level := maxf(weather_cloudiness, weather_rain * 0.9)
+	var ambient := _color_at(AMBIENT_COLOR, altitude)
+	var weather_ambient := Color(0.50, 0.56, 0.63)
+	_environment.ambient_light_color = ambient.lerp(weather_ambient,
+		weather_level * 0.52)
+	_environment.ambient_light_energy = _value_at(AMBIENT_ENERGY, altitude) \
+		* lerpf(1.0, 0.78, weather_level)
 
 	_environment.fog_density = _haze_density * _value_at(HAZE_STRENGTH, altitude)
 
 	if _sky_material != null:
 		var horizon := _color_at(SKY_HORIZON, altitude)
-		_sky_material.sky_top_color = _color_at(SKY_TOP, altitude)
+		var top := _color_at(SKY_TOP, altitude)
+		var overcast_top := Color(0.24, 0.30, 0.37)
+		var overcast_horizon := Color(0.45, 0.49, 0.53)
+		var rain_top := Color(0.16, 0.21, 0.27)
+		var rain_horizon := Color(0.34, 0.38, 0.43)
+		top = top.lerp(overcast_top, weather_cloudiness)
+		horizon = horizon.lerp(overcast_horizon, weather_cloudiness)
+		top = top.lerp(rain_top, weather_rain * 0.55)
+		horizon = horizon.lerp(rain_horizon, weather_rain * 0.45)
+		_sky_material.sky_top_color = top
 		_sky_material.sky_horizon_color = horizon
-		_sky_material.ground_horizon_color = horizon.darkened(0.15)
-		_sky_material.sky_energy_multiplier = _value_at(SKY_ENERGY, altitude)
+		_sky_material.ground_horizon_color = horizon.darkened(0.12)
+		_sky_material.sky_energy_multiplier = _value_at(SKY_ENERGY, altitude) \
+			* lerpf(1.0, 0.76, weather_level)
 
 
 ## Solar altitude and azimuth in degrees for a clock time, as a Vector2 of

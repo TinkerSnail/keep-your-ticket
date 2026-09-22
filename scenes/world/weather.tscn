@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/world/weather.gd" id="1_weather"]
+
+[node name="weather" type="Node3D"]
+script = ExtResource("1_weather")
+editor_description = "Persistent authored coastal-weather layer. Inspector values tune the rain field and sound; weather.gd owns the deterministic schedule and Boardwalk wet-surface response."
