@@ -26,3 +26,24 @@ __pycache__/
 # Where the harness puts a session's isolated git worktree. A worktree living
 # inside the repository it points at must not be committed into it.
 /.claude/worktrees/
+
+# Recovery and proof world sources. AGENTS keeps the rejected ridge crowns, the
+# older fitted ridge, the full-depth sheets and the runtime forest sources beside
+# the master "for reversible comparison and recovery". They stay on disk (and in
+# Dropbox) rather than in git: ~280MB of .blend and .glb that nothing mounted
+# references, reachable only from their own proof scenes. The two live masters —
+# range_forest_distinct_background and far_shore_city_relocation — and their
+# exports remain tracked.
+/assets/range_forest_*.glb
+!/assets/range_forest_distinct_background.glb
+/assets/range_interchange_*.glb
+/assets/source/range_forest_*.blend
+!/assets/source/range_forest_distinct_background.blend
+/assets/source/range_interchange_*.blend
+/scenes/world/range_forest_canopy.tscn*
+/scenes/world/range_forest_*_proof.tscn*
+/scenes/world/range_interchange_*_proof.tscn*
+
+# Blender checkpoints. Archived beside the asset per the checkpoint rule; git
+# holds the master, so the intermediate states do not need to be carried too.
+/assets/source/archive/
