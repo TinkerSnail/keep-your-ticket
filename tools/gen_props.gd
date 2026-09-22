@@ -24144,27 +24144,96 @@ var _field_t2 := PackedVector2Array()
 var _field_t3 := PackedVector2Array()
 
 
+## Which branch of `_ground_field_y` answered the last point: 0 the outer
+## highland's band, 1 T3's cap, 2 T2's polygon, 3 the road/coast/reserve
+## fallback. Read from what the function itself recorded rather than repeating
+## its tests, which drifted apart the first time and reported branches the
+## function had not taken.
+func _ground_field_branch(p: Vector2) -> int:
+	_ground_field_y(p)
+	return _field_branch
+
+
+var _field_branch := 3
+
+
 func _ground_field_y(p: Vector2) -> float:
 	if _field_t2.is_empty():
-		for q in Plan.rebuild_terrain_shape(&"T2"):
-			_field_t2.append(Vector2(q))
-		for q in Plan.rebuild_terrain_shape(&"T3"):
-			_field_t3.append(Vector2(q))
+		# Shrunk a centimetre: `is_point_in_polygon` counts the boundary as
+		# inside, and every sample the T2 and T3 branches wrongly claimed stood
+		# exactly on their west edge at x -48, where the mesh has already
+		# stopped and the mainland reserve shows through.
+		_field_t2 = _field_shrink(Plan.rebuild_terrain_shape(&"T2"))
+		_field_t3 = _field_shrink(Plan.rebuild_terrain_shape(&"T3"))
 	# The outer highland's band is a rectangle but its mesh is not: it runs from
 	# x=127 out to the range toe over thirty warped columns, so a rectangle hands
 	# it ground the mainland reserve actually owns. Inside the band it wins only
 	# where it is the higher surface, which is what a raised shelf joining the
 	# east earth to the rim means. Measured: a bare rectangle put the reserve's
 	# reproduction at 67.3%, against 90.1% for the reserve's own function.
+	# Half-open at the near edge only: the band's `FROM_Z` row stands on the
+	# mainland reserve, while its `TO_Z` row is a real row of the shelf — the
+	# mesh loop runs `while z < TO_Z` and then appends `TO_Z`. Measured both ways.
+	# (was: half-open in z) the band's own `FROM_Z` row stands on the mainland reserve,
+	# not on the shelf. Inside it the shelf wins where it is higher, which is
+	# what a shelf joining the east earth to the rim means. A margin was tried
+	# here to keep the range toe's diagonal on the shelf and made both the
+	# shelf and the reserve worse; plain `maxf` is the measured best.
 	if p.x >= REBUILD_OUTER_HIGHLAND_FROM_X \
-			and p.y >= REBUILD_OUTER_HIGHLAND_FROM_Z \
+			and p.y > REBUILD_OUTER_HIGHLAND_FROM_Z \
 			and p.y <= REBUILD_OUTER_HIGHLAND_TO_Z:
+		_field_branch = 0
 		return maxf(_rebuild_outer_highland_y(p.x, p.y), _road_ground_y(p))
 	if Geometry2D.is_point_in_polygon(p, _field_t3):
+		_field_branch = 1
 		return REBUILD_HEADLAND_Y
-	if Geometry2D.is_point_in_polygon(p, _field_t2):
+	# T2's mesh drops any seed point inside a protected envelope and any triangle
+	# across a route cut, and the mainland reserve fills the holes, so the
+	# polygon alone over-claims. This carries the seed-point half of that rule.
+	# It does not close the known gap: 44 of the reserve's samples, a line at
+	# x -48 running z -210 to 86, are still answered by T2's surface, and they
+	# are cut at triangle level by `_rebuild_triangle_allowed` rather than
+	# excluded as seeds. Replicating that in a point query is the next step.
+	if Geometry2D.is_point_in_polygon(p, _field_t2) \
+			and not _rebuild_in_protected(p, 0.35):
+		_field_branch = 2
 		return _rebuild_lowland_surface_y(p)
+	# `_town_ground_y` sends x < LAND_FROM_X to the coast and the rest to the
+	# reserve, so the seam row at x -56 itself falls to the reserve while the
+	# coast mesh is what actually stands there. Take the seam with the coast.
+	_field_branch = 3
+	if absf(p.x - Plan.REBUILD_WORLD_LAND_FROM_X) < 0.001:
+		return _rebuild_coastal_reserve_y(p)
 	return _road_ground_y(p)
+
+
+## A centimetre in from an outline, so a point exactly on a mesh's edge is not
+## claimed by the surface that has already stopped there.
+func _field_shrink(outline: Array) -> PackedVector2Array:
+	var poly := PackedVector2Array()
+	for q in outline:
+		poly.append(Vector2(q))
+	# `offset_polygon`'s sign follows the winding, so a negative delta grows a
+	# clockwise outline instead of shrinking it. Take whichever result is the
+	# smaller of the two.
+	var best := poly
+	var best_area := absf(_field_area(poly))
+	for delta in [-0.01, 0.01]:
+		for candidate in Geometry2D.offset_polygon(poly, delta):
+			var area := absf(_field_area(candidate))
+			if area < best_area:
+				best_area = area
+				best = candidate
+	return best
+
+
+static func _field_area(poly: PackedVector2Array) -> float:
+	var a := 0.0
+	for i in poly.size():
+		var q := poly[i]
+		var r := poly[(i + 1) % poly.size()]
+		a += q.x * r.y - r.x * q.y
+	return a * 0.5
 
 
 func _road_ground_y(p: Vector2) -> float:

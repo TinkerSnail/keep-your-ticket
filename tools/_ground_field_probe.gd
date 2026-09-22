@@ -63,6 +63,7 @@ const ENTRIES := [
 	{"name": "natural", "method": "_rebuild_natural_y", "xz": false},
 ]
 const ENTRY := "_road_ground_y"
+const BRANCH_NAMES := ["outer-highland band", "T3 cap", "T2 polygon", "road/coast/reserve"]
 
 ## A3's dispatch. The reproduction test asks a narrower question than A2: not
 ## "does one entry point answer the park's ground" (it does not), but "does the
@@ -452,15 +453,37 @@ func _report_reproduction(points: PackedVector2Array) -> void:
 			mags.append(absf(d))
 		mags.sort()
 		var fclose := 0
-		for d in field_diffs:
-			if absf(d) < 0.05:
+		var branch_miss := {}
+		var branch_where := {}
+		for i in field_diffs.size():
+			if absf(field_diffs[i]) < 0.05:
 				fclose += 1
+			elif absf(diffs[i]) < 0.05 and gen.has_method("_ground_field_branch"):
+				# the surface's own function got it right and the field did not:
+				# which branch took the point?
+				var b: int = int(gen.call("_ground_field_branch", hits[i][0]))
+				branch_miss[b] = int(branch_miss.get(b, 0)) + 1
+				var wh: Array = branch_where.get(b, [])
+				if wh.size() < 6:
+					wh.append(hits[i][0])
+					branch_where[b] = wh
 		field_ok += fclose
 		field_n += field_diffs.size()
 		print("  %-32s %6d hits  own fn %5.1f%% <5cm (median |d| %6.3fm)   declared-order field %5.1f%% <5cm" % [
 			owner, hits.size(), 100.0 * float(close) / float(hits.size()),
 			mags[mags.size() / 2],
 			100.0 * float(fclose) / maxf(1.0, float(field_diffs.size()))])
+		if not branch_miss.is_empty():
+			var bits: Array[String] = []
+			for b in [0, 1, 2, 3]:
+				if branch_miss.has(b):
+					bits.append("%s %d" % [BRANCH_NAMES[b], int(branch_miss[b])])
+			print("      field lost points the own function got, by branch taken: %s" % ", ".join(bits))
+			for b in branch_where:
+				var pts: Array[String] = []
+				for q in branch_where[b]:
+					pts.append("(%.0f,%.0f)" % [q.x, q.y])
+				print("        via %-20s %s" % [BRANCH_NAMES[b], " ".join(pts)])
 	gen.free()
 	print("")
 	print("    Of %d standing samples, %d (%.1f%%) are on a surface with a height" % [
