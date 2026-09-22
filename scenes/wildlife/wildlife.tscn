@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=12 format=3]
 
 ; Persistent, editor-owned wildlife placements. Grounded birds sit on known
 ; flat public surfaces; airborne gull roots are their editable flight centres.
@@ -9,6 +9,13 @@
 [ext_resource type="PackedScene" path="res://scenes/wildlife/rock_dove.tscn" id="2_pigeon"]
 [ext_resource type="PackedScene" path="res://scenes/wildlife/juvenile_gull.tscn" id="3_juvenile_gull"]
 [ext_resource type="Script" path="res://scenes/wildlife/gull_colony.gd" id="4_colony"]
+[ext_resource type="PackedScene" path="res://scenes/wildlife/spilled_fries.tscn" id="6_fries"]
+[ext_resource type="Script" path="res://scenes/wildlife/ice_cream_thief.gd" id="7_thief"]
+[ext_resource type="PackedScene" path="res://scenes/wildlife/ice_cream_cone.tscn" id="8_cone"]
+[ext_resource type="Texture2D" path="res://assets/wildlife/rock_dove_slate_atlas.png" id="9_slate"]
+[ext_resource type="Texture2D" path="res://assets/wildlife/rock_dove_sepia_atlas.png" id="10_sepia"]
+[ext_resource type="Texture2D" path="res://assets/wildlife/rock_dove_mono_atlas.png" id="11_mono"]
+[ext_resource type="Texture2D" path="res://assets/wildlife/rock_dove_mono_inverse_atlas.png" id="12_mono_inverse"]
 
 [node name="wildlife" type="Node3D"]
 editor_description = "Persistent ambient bird layer. Move an instance or colony marker to move its home/flight centre; behavior ranges remain inspector controls. The northern offshore rocks are the gull nesting and roosting ground, while the park and other beaches remain active feeding territory. Birds are ordinary photographic subjects, not collectibles."
@@ -227,11 +234,13 @@ rng_seed = 5101
 
 [node name="fountain_edge_b" parent="plaza_pigeons" instance=ExtResource("2_pigeon")]
 position = Vector3(-12.8, 0.02, 20.1)
+plumage_atlas = ExtResource("9_slate")
 rotation = Vector3(0, -1.1, 0)
 rng_seed = 5102
 
 [node name="fountain_edge_c" parent="plaza_pigeons" instance=ExtResource("2_pigeon")]
 position = Vector3(-18.0, 0.02, 21.3)
+plumage_atlas = ExtResource("10_sepia")
 rotation = Vector3(0, 2.3, 0)
 rng_seed = 5103
 
@@ -239,6 +248,7 @@ rng_seed = 5103
 
 [node name="arrival_a" parent="entrance_pigeons" instance=ExtResource("2_pigeon")]
 position = Vector3(5.2, 0.02, 76.0)
+plumage_atlas = ExtResource("11_mono")
 rotation = Vector3(0, -2.7, 0)
 rng_seed = 5201
 
@@ -249,5 +259,21 @@ rng_seed = 5202
 
 [node name="arrival_c" parent="entrance_pigeons" instance=ExtResource("2_pigeon")]
 position = Vector3(7.8, 0.02, 79.0)
+plumage_atlas = ExtResource("12_mono_inverse")
 rotation = Vector3(0, -0.5, 0)
 rng_seed = 5203
+
+[node name="gull_food" type="Node3D" parent="."]
+editor_description = "Hand-placed food. Anything in the gull_food group attracts gulls; move, duplicate or delete these freely. The park's generated litter attracts them too and needs nothing here."
+
+[node name="mid_pier_fries" parent="gull_food" instance=ExtResource("6_fries")]
+position = Vector3(-134, -5.95, 6.5)
+
+[node name="promenade_fries" parent="gull_food" instance=ExtResource("6_fries")]
+position = Vector3(-99.2, -5.95, 33)
+rotation = Vector3(0, 2.1, 0)
+
+[node name="boardwalk_ice_cream" type="Node3D" parent="."]
+script = ExtResource("7_thief")
+cone_scene = ExtResource("8_cone")
+editor_description = "Hands an ice cream to a few boardwalk guests who carry a cup, and sends a circling waterfront gull down to take a scoop every so often. How many cones, how often and how far a gull will dive are inspector controls; the cone itself is ice_cream_cone.tscn."

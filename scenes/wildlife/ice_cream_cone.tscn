@@ -1,0 +1,38 @@
+[gd_scene load_steps=5 format=3]
+
+; An ice cream cone for a guest's hand. The boardwalk thief script swaps it in
+; for the cup some guests already carry, and an airborne gull dives on the node
+; named "scoop". Reshape or recolour it here; keep the scoop's name.
+
+[sub_resource type="StandardMaterial3D" id="mat_cone"]
+albedo_color = Color(0.82, 0.62, 0.36, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_scoop"]
+albedo_color = Color(0.96, 0.62, 0.72, 1)
+roughness = 0.7
+
+[sub_resource type="CylinderMesh" id="mesh_cone"]
+material = SubResource("mat_cone")
+top_radius = 0.05
+bottom_radius = 0.006
+height = 0.18
+radial_segments = 10
+rings = 1
+
+[sub_resource type="SphereMesh" id="mesh_scoop"]
+material = SubResource("mat_scoop")
+radius = 0.065
+height = 0.12
+radial_segments = 10
+rings = 6
+
+[node name="ice_cream_cone" type="Node3D"]
+editor_description = "Held ice cream. The gull takes the child named scoop and leaves the cone in the hand."
+
+[node name="cone" type="MeshInstance3D" parent="."]
+mesh = SubResource("mesh_cone")
+
+[node name="scoop" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.13, 0)
+mesh = SubResource("mesh_scoop")

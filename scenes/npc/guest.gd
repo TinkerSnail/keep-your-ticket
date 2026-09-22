@@ -286,6 +286,13 @@ var _was_camera_raised := false
 ## Committed to a reaction, oblivious or otherwise, and done deciding. Until
 ## this is true the guest is still catchable off a neighbour.
 var _noticed := false
+## Something out in the world, not the camera, has this guest's eyes for a
+## moment: a gull making off with their ice cream, say.
+var _startle_at: Node3D = null
+var _startle_timer := 0.0
+## Radians the right arm is held forward instead of swinging, for a guest given
+## something to hold out in front of them. Zero leaves the arm to the walk.
+var _hold_up := 0.0
 var _notice_timer := 0.0
 var _direct_pending := false
 var _catch_from: Guest = null
@@ -685,6 +692,8 @@ func _physics_process(delta: float) -> void:
 	# where their leader got to this frame rather than last.
 	_note_trail()
 
+	if _startle_timer > 0.0:
+		_startle_timer -= delta
 	_update_attention()
 	_update_head(delta)
 	_animate(delta, moved)
@@ -695,6 +704,8 @@ func _physics_process(delta: float) -> void:
 	# held out at twenty degrees for as long as somebody stays on the bench.
 	# Out here it runs for every guest, every frame, with the arm already posed.
 	_float_balloon(delta)
+	if _hold_up != 0.0:
+		_arm_r.rotation.x = _hold_up
 
 
 # --- movement ---------------------------------------------------------------
@@ -1351,6 +1362,12 @@ func _update_attention() -> void:
 
 	var eye: Vector3 = _crowd.player_eye
 
+	# A startle outranks everything but a pose the player asked for: nobody
+	# keeps watching the photographer while a gull leaves with their dessert.
+	if _startle_timer > 0.0 and not _posing and is_instance_valid(_startle_at):
+		_set_attention(Attention.GAZE, _startle_at.global_position, 1.0)
+		return
+
 	if _posing:
 		if _pose_complies:
 			_set_attention(Attention.POSE, eye, 1.0)
@@ -1396,6 +1413,19 @@ func _update_attention() -> void:
 
 	_attention = Attention.FORWARD
 	_look_weight = lerpf(_look_weight, 0.0, 0.05)
+
+
+## Holds the right arm forward by `radians` until called again with zero. The
+## world uses it to have a guest carry something where it can be seen.
+func hold_up(radians: float) -> void:
+	_hold_up = radians
+
+
+## Turns this guest's head to follow `at` for `seconds`. Public so the world
+## can surprise a guest; it changes where they look and nothing else.
+func startle(at: Node3D, seconds: float) -> void:
+	_startle_at = at
+	_startle_timer = seconds
 
 
 func _set_attention(kind: int, point: Vector3, weight: float) -> void:

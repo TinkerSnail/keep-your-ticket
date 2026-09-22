@@ -14,9 +14,11 @@ pose_root_path = NodePath("visual/adult_gull_model/adult_gull_model")
 model_has_authored_plumage = true
 wander_radius = 3.2
 scare_radius = 4.8
-walk_speed = 0.48
+food_stand_distance = 0.30
+walk_speed = 0.32
 editor_description = "Adult coastal gull behavior wrapper. Edit the silhouette, UV layout, white/dark tail meshes and articulated parts in assets/source/wildlife/gull_adult.blend; paint its broad feather regions in assets/source/wildlife/gull_adult_atlas.png; then export assets/wildlife/gull_adult.glb. Upper coverts, black-tipped upper primaries, pale inner underside and darker underside primaries have separate regions. The black-tail Inspector variant also reveals the authored red lower-bill dot. The atlas is packed into the Blender source and embedded in the runtime model."
 
 [node name="visual" type="Node3D" parent="."]
+transform = Transform3D(0.47, 0, 0, 0, 0.47, 0, 0, 0, 0.47, 0, 0, 0)
 
 [node name="adult_gull_model" parent="visual" instance=ExtResource("2_model")]

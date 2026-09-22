@@ -14,11 +14,12 @@ pose_root_path = NodePath("visual/white_pigeon_model/white_pigeon_model")
 model_has_authored_plumage = true
 wander_radius = 2.8
 scare_radius = 3.6
-walk_speed = 0.68
+walk_speed = 0.38
 editor_description = "Special shiny-pigeon mission subject: a warm-white rock dove. Its directly editable white form lives in assets/source/wildlife/white_pigeon.blend with plumage in white_pigeon_atlas.png and exports to assets/wildlife/white_pigeon.glb. This wrapper is intentionally not mounted in wildlife.tscn: an authored mission must instance it at a deliberate place and time. It retains ordinary pigeon motion, free-aim photography and flush behavior, with no collectible or scoring state."
 metadata/mission_only = true
 metadata/subject_id = &"shiny_pigeon"
 
 [node name="visual" type="Node3D" parent="."]
+transform = Transform3D(0.36, 0, 0, 0, 0.36, 0, 0, 0, 0.36, 0, 0, 0)
 
 [node name="white_pigeon_model" parent="visual" instance=ExtResource("2_model")]

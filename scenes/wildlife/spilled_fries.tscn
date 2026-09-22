@@ -1,0 +1,73 @@
+[gd_scene load_steps=5 format=3]
+
+; A spilled carton of fries: hand-placeable gull food, at life size. Anything in
+; the "gull_food" group attracts gulls, which walk or land beside it, gobble,
+; play keepaway with a fry and run off with the child named "carton". Move,
+; duplicate or delete instances freely. No collision, so nothing trips on it.
+
+[sub_resource type="StandardMaterial3D" id="mat_carton"]
+albedo_color = Color(0.78, 0.13, 0.11, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_fry"]
+albedo_color = Color(0.94, 0.76, 0.3, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="mesh_carton"]
+material = SubResource("mat_carton")
+size = Vector3(0.09, 0.045, 0.12)
+
+[sub_resource type="BoxMesh" id="mesh_fry"]
+material = SubResource("mat_fry")
+size = Vector3(0.011, 0.011, 0.075)
+
+[node name="spilled_fries" type="Node3D" groups=["gull_food"]]
+editor_description = "Spilled fries, PRP-WILD-004. In the gull_food group: gulls within reach walk or land beside it, eat, play keepaway and steal the carton. Place it on any walkable surface at that surface's height."
+
+[node name="carton" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.90045, 0, 0.43497, 0, 1, 0, -0.43497, 0, 0.90045, 0.075, 0.0225, 0.06)
+mesh = SubResource("mesh_carton")
+
+[node name="fry_0" type="MeshInstance3D" parent="."]
+transform = Transform3D(-0.69108, 0, 0.72277, 0, 1, 0, -0.72277, 0, -0.69108, -0.011315, 0.006, -0.041716)
+mesh = SubResource("mesh_fry")
+
+[node name="fry_1" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.58791, 0, 0.80892, 0, 1, 0, -0.80892, 0, 0.58791, -0.12766, 0.006, -0.057278)
+mesh = SubResource("mesh_fry")
+
+[node name="fry_2" type="MeshInstance3D" parent="."]
+transform = Transform3D(-0.70321, 0, 0.71098, 0, 1, 0, -0.71098, 0, -0.70321, -0.064555, 0.006, -0.048313)
+mesh = SubResource("mesh_fry")
+
+[node name="fry_3" type="MeshInstance3D" parent="."]
+transform = Transform3D(-0.12936, 0, 0.9916, 0, 1, 0, -0.9916, 0, -0.12936, 0.032992, 0.006, -0.15555)
+mesh = SubResource("mesh_fry")
+
+[node name="fry_4" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.99637, 0, 0.085131, 0, 1, 0, -0.085131, 0, 0.99637, -0.05214, 0.006, -0.035685)
+mesh = SubResource("mesh_fry")
+
+[node name="fry_5" type="MeshInstance3D" parent="."]
+transform = Transform3D(-0.99958, 0, 0.028828, 0, 1, 0, -0.028828, 0, -0.99958, -0.025535, 0.006, -0.073791)
+mesh = SubResource("mesh_fry")
+
+[node name="fry_6" type="MeshInstance3D" parent="."]
+transform = Transform3D(-0.21383, 0, 0.97687, 0, 1, 0, -0.97687, 0, -0.21383, -0.025908, 0.006, -0.12399)
+mesh = SubResource("mesh_fry")
+
+[node name="fry_7" type="MeshInstance3D" parent="."]
+transform = Transform3D(-0.98063, 0, 0.19587, 0, 1, 0, -0.19587, 0, -0.98063, -0.019959, 0.006, -0.027856)
+mesh = SubResource("mesh_fry")
+
+[node name="fry_8" type="MeshInstance3D" parent="."]
+transform = Transform3D(-0.69997, 0, 0.71417, 0, 1, 0, -0.71417, 0, -0.69997, -0.059821, 0.006, -0.072144)
+mesh = SubResource("mesh_fry")
+
+[node name="fry_9" type="MeshInstance3D" parent="."]
+transform = Transform3D(-0.83333, 0, 0.55278, 0, 1, 0, -0.55278, 0, -0.83333, -0.02355, 0.006, -0.034391)
+mesh = SubResource("mesh_fry")
+
+[node name="fry_10" type="MeshInstance3D" parent="."]
+transform = Transform3D(-0.18312, 0, 0.98309, 0, 1, 0, -0.98309, 0, -0.18312, -0.026915, 0.006, -0.14345)
+mesh = SubResource("mesh_fry")

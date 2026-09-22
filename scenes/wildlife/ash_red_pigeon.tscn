@@ -16,11 +16,12 @@ pose_root_path = NodePath("visual/ash_red_pigeon_model/white_pigeon_model")
 model_has_authored_plumage = true
 wander_radius = 2.8
 scare_radius = 3.6
-walk_speed = 0.68
+walk_speed = 0.38
 morph_material = ExtResource("3_plumage")
 editor_description = "Ash-red/cream rock-dove morph based on assets/source/wildlife/ash_red_pigeon_reference.png: cinnamon chest and neck, warm-gray head, pale lower body, buff covert shield, cream flight feathers, rose feet, red iris and pink bill. Edit the shared selectable form in assets/source/wildlife/white_pigeon.blend and this morph's independent color/feather handoff in assets/wildlife/ash_red_pigeon_atlas.png and ash_red_pigeon_plumage.tres. It retains ordinary pigeon behavior and is not the mission-only shiny pigeon."
 metadata/morph = &"ash_red_cream"
 
 [node name="visual" type="Node3D" parent="."]
+transform = Transform3D(0.36, 0, 0, 0, 0.36, 0, 0, 0, 0.36, 0, 0, 0)
 
 [node name="ash_red_pigeon_model" parent="visual" instance=ExtResource("2_model")]

@@ -14,9 +14,11 @@ pose_root_path = NodePath("visual/juvenile_gull_model/juvenile_gull_model")
 model_has_authored_plumage = true
 wander_radius = 3.2
 scare_radius = 4.8
-walk_speed = 0.48
+food_stand_distance = 0.25
+walk_speed = 0.32
 editor_description = "Young coastal gull behavior wrapper. Its compact proportions and UV layout are authored directly in assets/source/wildlife/gull_juvenile.blend. The cleaned photo-derived feather source is assets/source/wildlife/gull_juvenile_feather_reference_atlas.png and the packed runtime map is gull_juvenile_atlas.png. Separate regions cover body sides, dorsal back, inner upper-wing coverts, inner barred underside, dark upper primary tips, separately tipped outer underside and the dark juvenile tail; head and belly reuse the body family at quieter gamma values. Outer panels end in three softly separated primaries and the tail is a broad seven-lobed fan."
 
 [node name="visual" type="Node3D" parent="."]
+transform = Transform3D(0.47, 0, 0, 0, 0.47, 0, 0, 0, 0.47, 0, 0, 0)
 
 [node name="juvenile_gull_model" parent="visual" instance=ExtResource("2_model")]

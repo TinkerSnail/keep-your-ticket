@@ -14,9 +14,10 @@ pose_root_path = NodePath("visual/rock_dove_model/rock_dove_model")
 model_has_authored_plumage = true
 wander_radius = 2.8
 scare_radius = 3.6
-walk_speed = 0.68
+walk_speed = 0.34
 editor_description = "Rock-dove behavior wrapper. Edit its faceted body, tapered neck, articulated wings, compact charcoal bill with pale cere, banded tail and four-toed feet in assets/source/wildlife/rock_dove.blend; paint its broad plumage regions in assets/source/wildlife/rock_dove_atlas.png; then export assets/wildlife/rock_dove.glb. The supplied standing references govern the pale barred closed-wing exterior and tailward folded primaries. The open-wing reference governs the separate ventral texture shown only in flight; closed-state overlays hide at takeoff."
 
 [node name="visual" type="Node3D" parent="."]
+transform = Transform3D(0.36, 0, 0, 0, 0.36, 0, 0, 0, 0.36, 0, 0, 0)
 
 [node name="rock_dove_model" parent="visual" instance=ExtResource("2_model")]
