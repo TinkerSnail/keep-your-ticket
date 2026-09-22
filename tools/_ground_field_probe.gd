@@ -409,6 +409,8 @@ func _report_reproduction(points: PackedVector2Array) -> void:
 	var reproduced := 0
 	var total := 0
 	var owned := 0
+	var field_ok := 0
+	var field_n := 0
 	var unowned := 0
 	var unowned_kinds := 0
 	for owner in names:
@@ -426,6 +428,7 @@ func _report_reproduction(points: PackedVector2Array) -> void:
 		var xz: bool = spec["xz"]
 		var method: String = spec["method"]
 		var diffs := PackedFloat32Array()
+		var field_diffs := PackedFloat32Array()
 		var worst := 0.0
 		var worst_at := Vector2.ZERO
 		for h in hits:
@@ -433,6 +436,8 @@ func _report_reproduction(points: PackedVector2Array) -> void:
 			var y: float = float(gen.call(method, p.x, p.y)) if xz else float(gen.call(method, p))
 			var d: float = y - float(h[1])
 			diffs.append(d)
+			if gen.has_method("_ground_field_y"):
+				field_diffs.append(float(gen.call("_ground_field_y", p)) - float(h[1]))
 			if absf(d) > absf(worst):
 				worst = d
 				worst_at = p
@@ -446,9 +451,16 @@ func _report_reproduction(points: PackedVector2Array) -> void:
 		for d in sorted:
 			mags.append(absf(d))
 		mags.sort()
-		print("  %-32s %6d hits  %5.1f%% within 5cm  median |d| %6.3fm  95th %7.3fm  worst %+8.2fm at (%.0f, %.0f)" % [
+		var fclose := 0
+		for d in field_diffs:
+			if absf(d) < 0.05:
+				fclose += 1
+		field_ok += fclose
+		field_n += field_diffs.size()
+		print("  %-32s %6d hits  own fn %5.1f%% <5cm (median |d| %6.3fm)   declared-order field %5.1f%% <5cm" % [
 			owner, hits.size(), 100.0 * float(close) / float(hits.size()),
-			mags[mags.size() / 2], mags[int(mags.size() * 0.95)], worst, worst_at.x, worst_at.y])
+			mags[mags.size() / 2],
+			100.0 * float(fclose) / maxf(1.0, float(field_diffs.size()))])
 	gen.free()
 	print("")
 	print("    Of %d standing samples, %d (%.1f%%) are on a surface with a height" % [
@@ -460,3 +472,9 @@ func _report_reproduction(points: PackedVector2Array) -> void:
 	print("    stands on that no function answers: embankments read back from emitted")
 	print("    geometry, the east shoulders, decks, entrance ground and the headland.")
 	print("    That split, not the agreement, is what sizes a field.")
+	if field_n > 0:
+		print("")
+		print("    Declared-order field over the same %d owned samples: %d within 5cm (%.1f%%)." % [
+			field_n, field_ok, 100.0 * float(field_ok) / float(field_n)])
+		print("    This is the step-2 question: does one stated priority pick the same")
+		print("    owner each surface picks for itself?")

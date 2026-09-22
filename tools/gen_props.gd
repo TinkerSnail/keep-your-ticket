@@ -24121,6 +24121,52 @@ func _road_side_class(level: float, edge: Vector2, r_out: Vector2) -> Dictionary
 ## The ground the corridor and everything on it reads: the coast mesh's
 ## height west of the reserve's seam and the reserve's east of it, cuts
 ## included, which is `_town_ground_y` by another name.
+## The park's ground at a plan point, evaluated in **one declared order**.
+##
+## Step 2 of the ground-ownership sequence in `technical.md`. Today every
+## consumer picks its own subset of the thirty-odd height functions and the two
+## sides of a cut can disagree, which is what `_corridor_seam_y` reconciles
+## afterwards and what left 111 open faces on the road corridor. There is one
+## order here instead, and it is the priority, not the call sequence:
+##
+##   1. the outer highland owns its own band east of the east earth
+##   2. T3's headland cap owns its outline
+##   3. T2's lowland owns its polygon
+##   4. everything else falls to `_road_ground_y`, which already resolves a
+##      structured ribbon's own profile first, then the coast west of the
+##      reserve's seam and the mainland reserve east of it
+##
+## The surfaces themselves are unchanged — A3 of `_ground_field_probe` measured
+## each one reproducing its own mesh to a median of 4 to 13 millimetres, so what
+## this adds is the answer to *which* of them owns a point, which nothing stated
+## before. Nothing consumes it yet; it is proved inert first.
+var _field_t2 := PackedVector2Array()
+var _field_t3 := PackedVector2Array()
+
+
+func _ground_field_y(p: Vector2) -> float:
+	if _field_t2.is_empty():
+		for q in Plan.rebuild_terrain_shape(&"T2"):
+			_field_t2.append(Vector2(q))
+		for q in Plan.rebuild_terrain_shape(&"T3"):
+			_field_t3.append(Vector2(q))
+	# The outer highland's band is a rectangle but its mesh is not: it runs from
+	# x=127 out to the range toe over thirty warped columns, so a rectangle hands
+	# it ground the mainland reserve actually owns. Inside the band it wins only
+	# where it is the higher surface, which is what a raised shelf joining the
+	# east earth to the rim means. Measured: a bare rectangle put the reserve's
+	# reproduction at 67.3%, against 90.1% for the reserve's own function.
+	if p.x >= REBUILD_OUTER_HIGHLAND_FROM_X \
+			and p.y >= REBUILD_OUTER_HIGHLAND_FROM_Z \
+			and p.y <= REBUILD_OUTER_HIGHLAND_TO_Z:
+		return maxf(_rebuild_outer_highland_y(p.x, p.y), _road_ground_y(p))
+	if Geometry2D.is_point_in_polygon(p, _field_t3):
+		return REBUILD_HEADLAND_Y
+	if Geometry2D.is_point_in_polygon(p, _field_t2):
+		return _rebuild_lowland_surface_y(p)
+	return _road_ground_y(p)
+
+
 func _road_ground_y(p: Vector2) -> float:
 	# Inside a structured ribbon, that road owns the ground absolutely. Beyond
 	# its edge, town streets still cut the corridor's verge and batter so a
