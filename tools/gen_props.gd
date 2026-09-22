@@ -24140,6 +24140,11 @@ func _road_side_class(level: float, edge: Vector2, r_out: Vector2) -> Dictionary
 ## each one reproducing its own mesh to a median of 4 to 13 millimetres, so what
 ## this adds is the answer to *which* of them owns a point, which nothing stated
 ## before. Nothing consumes it yet; it is proved inert first.
+## The margins `_rebuild_triangle_allowed` applies to each of its probes.
+const FIELD_T2_PROTECTED := 0.55
+const FIELD_T2_CUT := 0.15
+
+var _field_cuts_cache := []
 var _field_t2 := PackedVector2Array()
 var _field_t3 := PackedVector2Array()
 
@@ -24187,17 +24192,22 @@ func _ground_field_y(p: Vector2) -> float:
 	if Geometry2D.is_point_in_polygon(p, _field_t3):
 		_field_branch = 1
 		return REBUILD_HEADLAND_Y
-	# T2's mesh drops any seed point inside a protected envelope and any triangle
-	# across a route cut, and the mainland reserve fills the holes, so the
-	# polygon alone over-claims. This carries the seed-point half of that rule.
-	# It does not close the known gap: 44 of the reserve's samples, a line at
-	# x -48 running z -210 to 86, are still answered by T2's surface, and they
-	# are cut at triangle level by `_rebuild_triangle_allowed` rather than
-	# excluded as seeds. Replicating that in a point query is the next step.
+	# T2's mesh keeps a triangle only if all seven of its probes — three corners,
+	# three edge midpoints and the centroid — are inside the outline, clear of a
+	# protected envelope by 0.55 and clear of a route cut by 0.15, and it drops
+	# the triangle outright if it bridges a cut. The mainland reserve fills every
+	# hole that leaves, which is why the polygon alone over-claimed a line of 44
+	# reserve samples at x -48. These are the same tests at a point.
 	if Geometry2D.is_point_in_polygon(p, _field_t2) \
-			and not _rebuild_in_protected(p, 0.35):
+			and not _rebuild_in_protected(p, FIELD_T2_PROTECTED) \
+			and not _rebuild_in_lowland_cut(p, _field_cuts(), FIELD_T2_CUT):
+		# Measured at (-48, -210): T2's surface reads -0.060 while the mainland
+		# reserve stands at 3.978, four metres above it. T2's polygon reaches
+		# past its mesh there and the reserve is what a downward ray finds, so
+		# inside the polygon the lowland wins only where it is the higher of
+		# the two — the same rule the outer highland's band uses.
 		_field_branch = 2
-		return _rebuild_lowland_surface_y(p)
+		return maxf(_rebuild_lowland_surface_y(p), _town_ground_y(p))
 	# `_town_ground_y` sends x < LAND_FROM_X to the coast and the rest to the
 	# reserve, so the seam row at x -56 itself falls to the reserve while the
 	# coast mesh is what actually stands there. Take the seam with the coast.
@@ -24205,6 +24215,14 @@ func _ground_field_y(p: Vector2) -> float:
 	if absf(p.x - Plan.REBUILD_WORLD_LAND_FROM_X) < 0.001:
 		return _rebuild_coastal_reserve_y(p)
 	return _road_ground_y(p)
+
+
+## T2's route cuts, built once. `_rebuild_lowland_cuts` walks the route sources,
+## so it is not something to call per sample.
+func _field_cuts() -> Array:
+	if _field_cuts_cache.is_empty():
+		_field_cuts_cache = _rebuild_lowland_cuts()
+	return _field_cuts_cache
 
 
 ## A centimetre in from an outline, so a point exactly on a mesh's edge is not
