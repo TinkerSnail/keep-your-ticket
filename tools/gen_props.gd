@@ -24140,6 +24140,11 @@ func _road_side_class(level: float, edge: Vector2, r_out: Vector2) -> Dictionary
 ## each one reproducing its own mesh to a median of 4 to 13 millimetres, so what
 ## this adds is the answer to *which* of them owns a point, which nothing stated
 ## before. Nothing consumes it yet; it is proved inert first.
+## How far the reserve must climb past the shelf inside the toe-bounded band
+## before it is taken as the owner. Just above the 0.214m measured where the
+## shelf is what stands.
+const FIELD_SHELF_MARGIN := 0.25
+
 ## The margins `_rebuild_triangle_allowed` applies to each of its probes.
 const FIELD_T2_PROTECTED := 0.55
 const FIELD_T2_CUT := 0.15
@@ -24176,9 +24181,13 @@ func _ground_field_y(p: Vector2) -> float:
 	# where it is the higher surface, which is what a raised shelf joining the
 	# east earth to the rim means. Measured: a bare rectangle put the reserve's
 	# reproduction at 67.3%, against 90.1% for the reserve's own function.
-	# Half-open at the near edge only: the band's `FROM_Z` row stands on the
-	# mainland reserve, while its `TO_Z` row is a real row of the shelf — the
-	# mesh loop runs `while z < TO_Z` and then appends `TO_Z`. Measured both ways.
+	# The band is a rectangle in z but its east edge is the range's toe line:
+	# `_rebuild_outer_highland_mesh` runs every row from x=127 out to
+	# `_rebuild_plateau_end_x(z)`, so that is the shelf's real extent and a bare
+	# rectangle handed its toe diagonal to the wrong surface. Half-open at the
+	# near edge only: the band's `FROM_Z` row stands on the mainland reserve,
+	# while its `TO_Z` row is a real row of the shelf — the mesh loop runs
+	# `while z < TO_Z` and then appends `TO_Z`. Measured both ways.
 	# (was: half-open in z) the band's own `FROM_Z` row stands on the mainland reserve,
 	# not on the shelf. Inside it the shelf wins where it is higher, which is
 	# what a shelf joining the east earth to the rim means. A margin was tried
@@ -24186,9 +24195,18 @@ func _ground_field_y(p: Vector2) -> float:
 	# shelf and the reserve worse; plain `maxf` is the measured best.
 	if p.x >= REBUILD_OUTER_HIGHLAND_FROM_X \
 			and p.y > REBUILD_OUTER_HIGHLAND_FROM_Z \
-			and p.y <= REBUILD_OUTER_HIGHLAND_TO_Z:
+			and p.y <= REBUILD_OUTER_HIGHLAND_TO_Z \
+			and p.x <= _rebuild_plateau_end_x(p.y):
+		# Inside its real extent the shelf keeps the ground unless the reserve
+		# climbs clearly past it. Measured on the toe diagonal, where the shelf
+		# is what stands: the reserve reads 0.088 to 0.214m above it, so a bare
+		# `maxf` handed those five samples to the wrong surface. A 0.5m margin
+		# tried before the toe bound existed was far too coarse and cost more
+		# than it saved.
 		_field_branch = 0
-		return maxf(_rebuild_outer_highland_y(p.x, p.y), _road_ground_y(p))
+		var shelf := _rebuild_outer_highland_y(p.x, p.y)
+		var under := _town_ground_y(p)
+		return under if under > shelf + FIELD_SHELF_MARGIN else shelf
 	if Geometry2D.is_point_in_polygon(p, _field_t3):
 		_field_branch = 1
 		return REBUILD_HEADLAND_Y
