@@ -78,7 +78,7 @@
 
   <svg id="rebuild-map" role="img" aria-labelledby="rebuild-map-title rebuild-map-description">
     <title id="rebuild-map-title">Demolition and construction overlay for the park rebuild</title>
-    <desc id="rebuild-map-description">A measured world-coordinate plan of the developed park, whose surrounding mainland and ocean continue for kilometres beyond the close map view, showing inherited paths to remove, protected monuments, final circulation, terrain edges, fourteen ride courts including the High Terrace and Kiddieland coasters, programmed guest attractions, twelve distributed playable interiors, twelve outdoor midway units arranged in three corridor bands, a completed three-room Kiddieland with a zero-depth jumping-water garden, service access, the daylighted Coastal Creek, six locked navigation and sightline checks, the day, closing-sweep, and after-hours photography mission spine, seven district mini-campaigns braided through the Photo Hut, four seasonal mission and decor overlays, and twelve original Feature Assignments synthesized from thirty-six mapped reference lenses.</desc>
+    <desc id="rebuild-map-description">A measured world-coordinate plan of the developed park, whose surrounding mainland and ocean continue for kilometres beyond the close map view, showing inherited paths to remove, protected monuments, final circulation, terrain edges, sixteen ride courts including the High Terrace and Kiddieland coasters, programmed guest attractions, twelve distributed playable interiors, twelve outdoor midway units arranged in three corridor bands, a completed three-room Kiddieland with a zero-depth jumping-water garden, service access, the daylighted Coastal Creek, six locked navigation and sightline checks, the day, closing-sweep, and after-hours photography mission spine, seven district mini-campaigns braided through the Photo Hut, four seasonal mission and decor overlays, and twelve original Feature Assignments synthesized from thirty-six mapped reference lenses.</desc>
   </svg>
 
   <div class="card package-summary" aria-live="polite">
@@ -2022,8 +2022,9 @@
       {w:18,p:[[0,18],[9,15],[16,8],[18,0],[16,-8],[9,-15],[0,-18],[-9,-15],[-16,-8],[-18,0],[-16,8],[-9,15],[0,18]]}
     ]},
     B:{name:'B · Waterfront spine + returns',label:[-108,22],paths:[
-      {w:10,p:[[-96,-62],[-96,-40],[-96,-15],[-96,10],[-96,35],[-96,60]]},
-      {w:8,p:[[-6,-68],[-22,-66],[-40,-62],[-58,-58],[-75,-59],[-90,-62],[-96,-62]]},
+      {w:10,p:[[-99,-78],[-96,-62],[-96,-40],[-96,-15],[-96,10],[-96,35],[-96,60]]},
+      {w:8,p:[[-99,-67.8],[-107,-76.3],[-108,-88.4],[-108,-103],[-106,-116.3],[-102,-127.2],[-98,-134.5],[-96,-140.6],[-92,-144.8],[-80,-144.8]]},
+      {w:8,p:[[-6,-68],[-22,-66],[-40,-62],[-44,-74],[-44,-88],[-44,-102],[-42,-118],[-42,-130],[-80,-145]]},
       {w:9,p:[[-18,0],[-32,-1],[-45,-2],[-52,-2],[-58,-2],[-72,-2],[-84,-2],[-96,-2]]},
       {w:8,p:[[-96,60],[-88,64],[-82,72],[-80,84],[-75,95],[-64,101],[-53,98],[-47,90],[-48,78]]}
     ]},
@@ -2149,7 +2150,9 @@
 
   const rides = [
     {id:'R1',type:'rect',at:[-113,-20],size:[10,30],queue:[[-102,-15],[-107,-15],[-108,-9]],service:[[-118,-20],[-126,-20]]},
-    {id:'R2',type:'polygon',points:[[-92,-68],[-88,-121],[-58,-128],[-53,-87],[-68,-67]],label:[-73,-98],queue:[[-94,-55],[-88,-58],[-84,-66]],service:[[-60,-106],[-50,-119]]},
+    {id:'R2',type:'polygon',points:[[-85.5,-52.9],[-85.5,-56.2],[-88,-61.1],[-93,-67.2],[-99,-73.2],[-106,-79.3],[-110,-85.4],[-101,-93.3],[-90,-101.8],[-75,-106.6],[-60,-103],[-52,-94.5],[-52,-84.8],[-56,-75.7],[-62,-68.4],[-70,-62.3],[-79,-58.1]],label:[-78,-83],queue:[[-94,-55],[-88,-58],[-84,-66]],service:[[-60,-106],[-50,-119]]},
+    {id:'R15',name:'Boardwalk Scrambler',type:'circle',at:[-86,-120],r:7.2,label:[-86,-120],queue:[[-100,-116.3],[-98,-118.7],[-96,-121.1]],exit:[[-96,-123.6],[-92,-125.4],[-88,-127.2]],service:[[-76,-120],[-72,-117.5]],photo:[-99,-121.1]},
+    {id:'R16',name:'Boardwalk dodgems',type:'rect',at:[-84,-132.1],size:[14,10],label:[-84,-132.1],queue:[[-94,-128.5],[-94,-130.3],[-94,-132.1]],exit:[[-94,-133.9],[-94,-135.7],[-91,-136.9]],service:[[-75,-132.1],[-72,-133.3]],photo:[-95,-132.1]},
     {id:'R3',type:'rect',at:[36,-28],size:[20,26],queue:[[24,-20],[29,-22],[32,-25]],service:[[46,-28],[52,-29]]},
     {id:'R4',name:'Fairground swinging ship',type:'polygon',
       points:[[-67,83],[-62,78],[-45,96],[-50,102]],label:[-56,90],
@@ -3165,7 +3168,7 @@
     strip:{title:'01 · Strip inherited circulation',detail:'Remove X1 plaza doglegs, X2 Kiddieland S-path and stubs, X3 Fairground spine and stubs, X4 Grove double-back and dead ends, X5 narrow Frontier approach, and all X6 guards / closures. Keep only the amber cores and purple monuments.'},
     terrain:{title:'02 · Protect, grade, and retain',detail:'Fence NT-1 and NT-2 before excavation. Form T0–T6 and reserve the outer T6 shoulder for R13, then build W1 / W3 major scarps; W4–W6 stay short and planted, and W7 remains landform rather than a path wall. The perimeter rim (former T7) is package 02A on the footprint map, in world coordinates: crest x 270 / z −275, 16 to 28m high, its derived toe clearing every route, transit reserve, parking field and parcel by 12m.'},
     trunks:{title:'03 · Lay primary trunks',detail:'Build A from gate through hub to the lighthouse loop, then B as one continuous waterfront spine with north, monument, and south returns. Do not begin district paving until both trunks close.'},
-    loops:{title:'04 · Close loops, ride courts, and attractions',detail:'Build C–F, set J1–J9, then place R1–R14 and P1–P5. R4 is the Fairground swinging ship; R14 is the Kiddieland junior coaster. P1 is the lighthouse experience, P2 the Boardwalk funhouse, P3 the Big Top show, P4 the family play garden, and P5 the programmed bandstand. R13 and R14 remain entirely beyond NT-2; every queue and yellow attraction branch leaves a loop before stopping guests.'},
+    loops:{title:'04 · Close loops, ride courts, and attractions',detail:'Build C–F, set J1–J9, then place R1–R16 and P1–P5. R4 is the Fairground swinging ship; R14 is the Kiddieland junior coaster; R15 and R16 are separate Boardwalk courts beside the smooth expanded R2 and share one continuous timber pier field. B’s land return passes beneath the Grand Circuit once at the named boardwalk_north_overpass, with 4.01m fixed clearance and all columns beyond its full eight-metre envelope. P1 is the lighthouse experience, P2 the Boardwalk funhouse, P3 the Big Top show, P4 the family play garden, and P5 the programmed bandstand. R13 and R14 remain entirely beyond NT-2; every queue and yellow attraction branch leaves a loop before stopping guests.'},
     parcels:{title:'04A · Resolve the first attraction parcels',detail:'R4 receives a 26 × 10m operating envelope, in-court queue, separate exit to C, operator booth, photo turnout, and gated back-lane service. P2 receives a 12 × 14m show building, separate Boardwalk entry and exit, continuous interior route, level tunnel bypass, façade photo point, and rear staff gate. Neither changes a public through-route.'},
     lighthouse:{title:'04B · Resolve the Headland lighthouse experience',detail:'P1 keeps a 10m-diameter lighthouse on the boulevard axis, with a 14 × 8m low forecourt and an 8 × 6m keeper’s house to the west. Visitors enter through the exhibit, climb on the west stair, descend on the east stair, and rejoin the loop separately. A side-bay photo position keeps the boulevard clear; accessible camera-obscura content stays at ground level; servicing uses A only before opening.'},
     bigtop:{title:'04C · Resolve the Fairground Big Top',detail:'P3 moves inward to an 18 × 12m tent with a 2.2m central ring and 120 timed seats. The north ticket queue and east audience exit connect to different points on C; an exterior photo bay leaves the loop open. A 14 × 6m backstage yard meets the Fairground service spine, while a gated performer crossing stays shut through audience load and release. The cue desk owns the after-close beacon, music, ring lights, and one rigging sequence.'},

@@ -1,14 +1,11 @@
 extends Node
 
-## Dev probe: what the range forest costs to draw, at several densities, from
-## two standpoints that face it — the promenade's north end and the foot of
-## the arrival walk. Whole-frame wall clock, the same unit `perf_test` uses,
-## because the budget is shared. Writes `user://forest_perf.txt`, since a run
-## launched by `open` has no stdout anyone can read.
+## Dev probe: what the approved 240m-setback background-only range mass costs to draw,
+## hidden and visible, from three standpoints that face it. Writes
+## `user://range_canopy_perf.txt`, since a run launched by `open` has no stdout anyone
+## can read.
 
-## Each entry is [near density per hectare, far density per hectare]; far
-## trees are impostor cards, shadows off throughout.
-const DENSITIES := [[45.0, 200.0], [110.0, 200.0], [160.0, 200.0]]
+const VISIBLE_STATES := [false, true]
 const SETTLE := 40
 const MEASURE := 150
 const STANDPOINTS := [
@@ -21,7 +18,7 @@ var _main: Node
 var _camera: Camera3D
 var _forest: Node
 var _lines: PackedStringArray = []
-var _d := 0
+var _state := 0
 var _s := 0
 var _frame := 0
 var _acc := 0.0
@@ -37,20 +34,16 @@ func _ready() -> void:
 	_camera.far = 8000.0
 	add_child(_camera)
 	_camera.make_current()
-	_forest = _main.find_child("range_forest", true, false)
+	_forest = _main.find_child("range_forest_background", true, false)
 	if _forest == null:
-		_lines.append("no range_forest node")
+		_lines.append("no range_forest_background node")
 		_finish()
 		return
 	_apply()
 
 
 func _apply() -> void:
-	_forest.forest_per_hectare = float(DENSITIES[_d][0])
-	_forest.far_per_hectare = float(DENSITIES[_d][1])
-	_forest.meadow_per_hectare = 3.0
-	_forest.set_shadows(false)
-	_forest.replant()
+	_forest.visible = VISIBLE_STATES[_state]
 	_s = 0
 	_pose()
 
@@ -76,22 +69,22 @@ func _process(delta: float) -> void:
 	if _frame < SETTLE + MEASURE:
 		return
 	var avg := _acc / float(MEASURE) * 1000.0
-	_lines.append("near %4.0f far %4.0f /ha  trees %7d  plant %7.0f ms  %-16s avg %6.2f ms  worst %6.2f ms" % [
-		float(DENSITIES[_d][0]), float(DENSITIES[_d][1]), _forest.planted, _forest.plant_ms,
+	_lines.append("background %-7s  %-16s avg %6.2f ms  worst %6.2f ms" % [
+		"visible" if VISIBLE_STATES[_state] else "hidden",
 		STANDPOINTS[_s]["name"], avg, _worst * 1000.0])
 	_s += 1
 	if _s < STANDPOINTS.size():
 		_pose()
 		return
-	_d += 1
-	if _d < DENSITIES.size():
+	_state += 1
+	if _state < VISIBLE_STATES.size():
 		_apply()
 		return
 	_finish()
 
 
 func _finish() -> void:
-	var f := FileAccess.open("user://forest_perf.txt", FileAccess.WRITE)
+	var f := FileAccess.open("user://range_canopy_perf.txt", FileAccess.WRITE)
 	for line in _lines:
 		f.store_line(line)
 	f.close()

@@ -4,7 +4,7 @@ extends Node
 ## The frames cover the public station face, lift/catwalk, timber depth,
 ## Boardwalk broadside, operating lights and the protected west compositions.
 
-const OUTPUT_DIR := "res://documentation/screenshots/boardwalk-coaster-2026-09-10"
+const OUTPUT_DIR := "res://documentation/screenshots/boardwalk-coaster-breathing-2026-09-11"
 const SHORE_Y := ParkPlan.SHORE_TOP + 0.2
 const SHOTS := [
 	{"name": "01_station_front", "time": [18, 45], "pos": Vector3(-100.0, SHORE_Y, -60.0), "yaw": -90.0, "pitch": 5.0},

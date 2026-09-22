@@ -46,6 +46,7 @@ read cap:
 - `documentation/design.md`
 - `documentation/night.md`
 - `documentation/technical.md`
+- `documentation/park-planning-process.md`
 - `documentation/park-rebuild-masterplan.md`
 - `documentation/district-story-arcs.md`
 - `documentation/seasonal-missions-and-decor.md`

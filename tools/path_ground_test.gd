@@ -51,6 +51,12 @@ func _ready() -> void:
 	var approach: Node = world.get_node_or_null("places/park_approach")
 	if approach != null:
 		bodies.append_array(approach.find_children("*", "StaticBody3D", true, false))
+	# The relocated city owns the compact land support at the retired southern
+	# shelf's highway handoff. Its imported collision is real open-world ground,
+	# so include it without treating the city road meshes themselves as paths.
+	var far_shore: Node = world.get_node_or_null("places/far_shore_city_relocation")
+	if far_shore != null:
+		bodies.append_array(far_shore.find_children("*", "StaticBody3D", true, false))
 	var filters := OS.get_cmdline_user_args().slice(1)
 	var space := get_viewport().get_world_3d().direct_space_state
 	# Every access ribbon is transparent to this ray. At a junction, hitting

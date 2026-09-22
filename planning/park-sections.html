@@ -116,8 +116,9 @@
       {w:18,p:[[0,18],[9,15],[16,8],[18,0],[16,-8],[9,-15],[0,-18],[-9,-15],[-16,-8],[-18,0],[-16,8],[-9,15],[0,18]]}
     ]},
     B:{name:'B · Waterfront spine + returns',paths:[
-      {w:10,p:[[-96,-62],[-96,-40],[-96,-15],[-96,10],[-96,35],[-96,60]]},
-      {w:8,p:[[-6,-68],[-22,-66],[-40,-62],[-58,-58],[-75,-59],[-90,-62],[-96,-62]]},
+      {w:10,p:[[-99,-78],[-96,-62],[-96,-40],[-96,-15],[-96,10],[-96,35],[-96,60]]},
+      {w:8,p:[[-99,-67.8],[-107,-76.3],[-108,-88.4],[-108,-103],[-106,-116.3],[-102,-127.2],[-98,-134.5],[-96,-140.6],[-92,-144.8],[-80,-144.8]]},
+      {w:8,p:[[-6,-68],[-22,-66],[-40,-62],[-44,-74],[-44,-88],[-44,-102],[-42,-118],[-42,-130],[-80,-145]]},
       {w:9,p:[[-18,0],[-32,-1],[-45,-2],[-52,-2],[-58,-2],[-72,-2],[-84,-2],[-96,-2]]},
       {w:8,p:[[-96,60],[-88,64],[-82,72],[-80,84],[-75,95],[-64,101],[-53,98],[-47,90],[-48,78]]}
     ]},
@@ -149,7 +150,9 @@
 
   const rides=[
     {id:'R1',name:'Boardwalk wheel',type:'rect',at:[-113,-20],size:[10,30],queue:[[-102,-15],[-107,-15],[-108,-9]],service:[[-118,-20],[-126,-20]]},
-    {id:'R2',name:'Wooden coaster',type:'polygon',points:[[-92,-68],[-88,-121],[-58,-128],[-53,-87],[-68,-67]],queue:[[-94,-55],[-88,-58],[-84,-66]],service:[[-60,-106],[-50,-119]]},
+    {id:'R2',name:'Wooden coaster',type:'polygon',points:[[-85.5,-52.9],[-85.5,-56.2],[-88,-61.1],[-93,-67.2],[-99,-73.2],[-106,-79.3],[-110,-85.4],[-101,-93.3],[-90,-101.8],[-75,-106.6],[-60,-103],[-52,-94.5],[-52,-84.8],[-56,-75.7],[-62,-68.4],[-70,-62.3],[-79,-58.1]],queue:[[-94,-55],[-88,-58],[-84,-66]],service:[[-60,-106],[-50,-119]]},
+    {id:'R15',name:'Boardwalk Scrambler',type:'circle',at:[-86,-120],r:7.2,queue:[[-100,-116.3],[-98,-118.7],[-96,-121.1]],exit:[[-96,-123.6],[-92,-125.4],[-88,-127.2]],service:[[-76,-120],[-72,-117.5]],photo:[-99,-121.1]},
+    {id:'R16',name:'Boardwalk dodgems',type:'rect',at:[-84,-132.1],size:[14,10],queue:[[-94,-128.5],[-94,-130.3],[-94,-132.1]],exit:[[-94,-133.9],[-94,-135.7],[-91,-136.9]],service:[[-75,-132.1],[-72,-133.3]],photo:[-95,-132.1]},
     {id:'R3',name:'Plaza dark ride',type:'rect',at:[36,-28],size:[20,26],queue:[[24,-20],[29,-22],[32,-25]],service:[[46,-28],[52,-29]]},
     {id:'R4',name:'Swinging ship',type:'polygon',points:[[-67,83],[-62,78],[-45,96],[-50,102]],queue:[[-70,78],[-66,80],[-69,83],[-66,85],[-68,87],[-64,89],[-61,87]],exit:[[-45,96],[-42,100],[-40,106],[-32,112]],service:[[-50,102],[-57,109],[-65,115],[-70,120]],photo:[-69,96]},
     {id:'R5',name:'Miniature railway',type:'ellipse',at:[68,88],rx:17,rz:12,queue:[[46,88],[49,88],[52,88]],service:[[68,100],[68,111]],photo:[68,71]},
@@ -215,6 +218,7 @@
     {id:'BW-C',name:'Clear primary approach and pavilion turnaround',sections:['boardwalk'],type:'rect',at:[-133,6],size:[38,5.5],className:'clear-zone',layer:'operations',labelAt:[-132,11]},
     {id:'BW-F',name:'Fishing retrofit · outer and south rail bays',sections:['boardwalk'],type:'paths',paths:[[[-164,0],[-164,4]],[[-164,6],[-164,10]],[[-164,12],[-159,12]],[[-157,12],[-152,12]]],className:'shore-change-line',layer:'destinations',labelAt:[-168,15]},
     {id:'BW-S',name:'Benches · tackle cart · cleaning sink on pavilion service edge',sections:['boardwalk'],type:'fixtures',at:[-158,10.2],className:'shore-change',layer:'operations',showLabel:false},
+    {id:'BW-N',name:'Editor-owned open north waterfront extension and cove overlook',sections:['boardwalk'],type:'line',p:[[-99,-67.8],[-107,-76.3],[-108,-88.4],[-108,-103],[-106,-116.3],[-102,-127.2],[-98,-134.5],[-96,-140.6],[-92,-144.8],[-80,-144.8]],className:'shore-host-line',layer:'public',labelAt:[-101,-137]},
     {id:'HL-CV',short:'COVE',name:'Existing sheltered cove',sections:['headland'],type:'polygon',points:[[-190,-130],[-90,-130],[-90,-143],[-96,-149],[-104,-163],[-112,-178],[-190,-180]],className:'shore-water',layer:'protection',background:true,labelAt:[-145,-137]},
     {id:'HL-B',name:'Existing breakwater',sections:['headland'],type:'line',p:[[-104,-163.7],[-101,-156.4],[-97,-149.7],[-93,-143.6]],className:'shore-host-line',layer:'protection',showLabel:false},
     {id:'HL-Q',name:'Existing quay',sections:['headland'],type:'rect',at:[-83,-146.7],size:[6,10],className:'shore-host',layer:'destinations',labelAt:[-83,-139]},
@@ -503,11 +507,11 @@
       destinationNote:'Photo Hut is home base. P5 has separate audience entry and release; R3 is a Plaza destination with its queue off the through path. The fountain and clock remain the primary landmarks.',
       operationsNote:'Bandstand backstage connects west to S1. Ride and performance operations stay behind their destinations rather than crossing the ring or a spoke mouth.',
       protectionNote:'NT-1 and NT-2 are no-touch compositions. Q2 keeps the west cascade visible; Q5 keeps the east fountain axis and the High Terrace coaster crest layered beyond it.'},
-    {id:'boardwalk',title:'Boardwalk',bounds:{x0:-171,x1:-48,z0:-135,z1:75},routes:['B'],context:['A','C'],places:['P2','I2','I3'],rides:['R1','R2'],midway:['B1','B2','B3','B4'],service:['S1','S2'],shared:['SH1'],water:['D2','POND','CB1','CB2','CX1'],protected:['NT-1'],views:['Q3'],
-      summary:'The waterfront spine stays continuous from the wooden coaster to the southern return, and the existing pier now ends in one integrated fishing destination on an editor-owned T-head rather than an attached side deck. Every attraction and counter fronts B from a side parcel.',
-      publicNote:'B is the Boardwalk itself. The existing 8m pier branches west from the promenade and ends at the editor-owned 20 × 20m pavilion T-head; its primary approach and complete loop remain visibly clear.',
-      destinationNote:'Wheel, wooden coaster, funhouse, Arcade + Ride Photo and Boardwalk Café form one connected frontage. Fishing retrofits the landing’s outer and south rail bays; it does not create a separate platform.',
-      operationsNote:'Benches, tackle cart and cleaning sink stay on the pavilion service edge outside the clear zone. Northern work reaches S1; southern work reaches S2. CX1 remains a locked service culvert.',
+    {id:'boardwalk',title:'Boardwalk',bounds:{x0:-171,x1:-44,z0:-151,z1:75},routes:['B'],context:['A','C'],places:['P2','I2','I3'],rides:['R1','R2','R15','R16'],midway:['B1','B2','B3','B4'],service:['S1','S2'],shared:['SH1'],water:['D2','POND','CB1','CB2','CX1'],protected:['NT-1'],views:['Q3'],
+      summary:'The waterfront spine continues beyond the old chain as an editor-owned open two-lane extension along a smooth, larger R2. It turns at the cove edge and meets a separate land-side return; two continuous timber ride forecourts and two roofed midway pavilions use the expanded field without consuming the harbour or cutting the bluff.',
+      publicNote:'B is the Boardwalk itself. Its northern highland return preserves the A/F junction, takes a broad arc north of the plaza wall, descends at no steeper than 1:12, stays outside S1 and R2, and meets the open timber waterfront at the shoreline. The deck continues beside the expanded coaster, passes beneath one intentional high flyover with 4.0m fixed-structure clearance and catch protection, reaches the cove overlook, and turns inland without a dead end. The pier remains a separate westward branch with a clear approach and complete loop.',
+      destinationNote:'Wheel, smooth expanded wooden coaster, Scrambler, waterfront-facing dodgems, funhouse, Arcade + Ride Photo and Boardwalk Café form a Santa Monica-inspired open seaside ride park. R15 and R16 occupy separate courts but their timber forecourts meet as one continuous pier field; two roofed midway uses remain visible in R2’s high support bays.',
+      operationsNote:'R15 and R16 have separate queue, exit, photo and service controls. R16 presents west toward the timber waterfront while its service face stays east; R15’s service edge returns inland. The land return stays outside S1 and R2 and passes beneath the Grand Circuit once at the named boardwalk_north_overpass, with 4.01m fixed clearance and all columns outside its full eight-metre envelope. R2 crosses public circulation once at a 4.0m-clear waterfront flyover with catch protection; the occupied high bay also keeps 4.0m above its solid pavilion roof. CX1 remains a locked service culvert.',
       protectionNote:'NT-1 is unchanged. Q3 keeps its fifteen-metre opening, the west-arch/pier reveal remains legible, and the sunset sector beyond the pier stays open water.'},
     {id:'fairground',title:'Fairground',bounds:{x0:-88,x1:8,z0:18,z1:138},routes:['C'],context:['A','B'],places:['P3','I1'],rides:['R4'],midway:['F1','F2','F3','F4','F5','F6'],service:['S2'],shared:[],water:[],protected:[],views:[],
       summary:'The Fairground is a closed coastal circuit, not a straight dead-end midway. Its six game fronts, Food Hall, Big Top and swinging ship all face C while their stock, backstage and ride work remain behind the public edge.',

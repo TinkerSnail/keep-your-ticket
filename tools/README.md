@@ -84,13 +84,18 @@ plus those crowd scenes; a familiar world wrapper changing is a regression.
 
 | tool | what it builds |
 |---|---|
-| `gen_props.gd` | The ground textures and eighteen generated world sources beneath the stable wrappers: established props/places plus groundworks, circulation, routes, program and landscape. It does not write `west_far` or `terraces_far`; the persistent world uses the real places. **The order it writes them in is load-bearing** — each scene gets a seam seed five on from the last, so the two retired seed slots remain until that system is replaced. Run `coplanar_test.py` after touching the order. |
+| `gen_props.gd` | The ground textures and eighteen generated world sources beneath the stable wrappers: established props/places plus groundworks, circulation, routes, program and landscape. Pass `--groundworks-only` after Godot's bare `--` to rebuild only `park_groundworks.tscn` when a terrain consequence changes; this skips texture and unrelated scene writes. It does not write `west_far` or `terraces_far`; the persistent world uses the real places. **The full-run order is load-bearing** — each scene gets a seam seed five on from the last, so the two retired seed slots remain until that system is replaced. Run `coplanar_test.py` after touching the order. |
 | `export_world_source.py` / `.sh` | A mounted world GLB from its Blender master, `assets/source/<name>.blend` to `assets/<name>.glb`; the range by default, the city when named. Meshes exported under its own name with the `-col` hint, boulders baked into one mesh per 250m cell with a surface per material, collision derived from the visible meshes. Runs through Blender, never saves the master, and refuses a master that still holds a `-colonly` object. |
 | `strip_collision_twins.py` | One-time removal of authored `_collision-colonly` twin objects from a Blender master, marking twinless objects `kyt_collision=none` and moving boulder materials onto the object. Dry run by default; `-- --save` applies. Run through Blender. |
 | `gen_crowd.gd` | The plaza, boardwalk and terraces crowds in one run. Each output carries an `area_id`, because all three coexist in `park_world.tscn`. Bodies and placement only; behaviour lives in `scenes/npc/guest.gd` and is hand-written. |
 
 ## Tests
 
+- `range_geography_audit` — read-only mounted-coordinate inventory of every
+  generated, range-source and city-source terrain owner implicated in the
+  2026-09-12 recovery gate; prints machine-readable JSON and moves no geometry.
+- `render_range_geography_audit.py` — turns that JSON into the synchronized,
+  self-contained owner-plan, cross-section and inventory review map.
 These assert. They print a verdict.
 
 **The acceptance set**, run before any commit that touches geometry, routes or
@@ -105,7 +110,7 @@ anchor and edge tests and deleted on 2026-09-05.
 | tool | asks | notes |
 |---|---|---|
 | `anchor_walk_test.gd` | Do both protected anchors walk? NT-1's wings, court and approach; NT-2's gate, forecourt, wings, belvedere, basin staircase, bays and notch edges. | Split from the retired `walk_test.gd` on 2026-09-05. Legs come off `ParkPlan.wing_path` and `climb_reaches`, never a copy. A failure is reported to Christina, not fixed in passing. Takes leg-label filters after the tool name. |
-| `boardwalk_edge_test.gd` | Does the pier walk both ways, and do the water, jetty, bluff, shop backs, yard and coaster fence all stop the player? | Split from `walk_test.gd` the same day, minus its pre-expansion strip-end probes. |
+| `boardwalk_edge_test.gd` | Do the pier and north ride loop walk both ways—including centre and both edges—and do the water, jetty, bluff, shop backs, yard, coaster fence and outer rails stop the player? | Split from `walk_test.gd` the same day, minus its pre-expansion strip-end probes. |
 | `wheel_test.gd` | Does R1 retain its fixed rim crown, true hub-to-rim structural spokes and light tubes, twenty roofed gondolas, open-hour indexed motion, upright cabins and after-close stop? | Focused acceptance for the editor-owned wheel form and its visual-only motion script. |
 | `path_ground_test.gd` | Does every programmed access path, road and street stand on the ground it was laid over, neither floating nor buried? | Prints per-path float and bury counts. |
 | `climb_test.gd` | Is every guest standing on the floor of the area they are in? | Reads the floor off the crowd's own graph. |
@@ -118,14 +123,27 @@ anchor and edge tests and deleted on 2026-09-05.
 | `boardwalk_scenery_capture.gd` | Are I2, I3 and B1-B4 distinct player-readable places while Q3 remains open? | Eight Metal/Forward+ frames under `documentation/screenshots/boardwalk-fidelity-2026-09-09/`. |
 | `boardwalk_operations_capture.gd` | Do R1, R2, P2 and the pier landing read as operated places by day and recently vacated places after close? | Eight Metal/Forward+ frames under `documentation/screenshots/boardwalk-operations-2026-09-09/`. |
 | `boardwalk_water_edges_capture.gd` | Do D2, its culvert, rain pond, crossings and controlled outfall read as one planted drainage landscape while protected water remains open? | Eight Metal/Forward+ frames under `documentation/screenshots/boardwalk-water-edges-2026-09-09/`. |
-| `boardwalk_density_capture.gd` | Do Boardwalk planting, period fixtures and pier safety hardware add middle-scale density without narrowing Q3 or public circulation? | Eight Metal/Forward+ frames under `documentation/screenshots/boardwalk-density-2026-09-09/`. |
+| `boardwalk_density_capture.gd` | Do Boardwalk period fixtures and pier safety hardware add middle-scale density without narrowing Q3 or public circulation, after retiring the crowded planter rhythm? | Eight Metal/Forward+ frames under `documentation/screenshots/boardwalk-density-2026-09-09/`. |
 | `boardwalk_finish_capture.gd` | Do restrained materials, merchandise, caused wear and one public practical finish the Boardwalk without cluttering routes or protected views? | Eight Metal/Forward+ frames under `documentation/screenshots/boardwalk-finish-2026-09-09/`. |
 | `pier_head_capture.gd` | Does the editor-owned pavilion T-head separate the fishing work from a complete public loop while preserving its support, west-arch reveal and sunset composition? | Nine Metal/Forward+ frames under `documentation/screenshots/pier-head-2026-09-10/`. |
 | `pier_pavilion_capture.gd` | Does the editor-owned Pier House read as finished coastal architecture on every public face while preserving circulation, the west-arch reveal, sunset silhouette and after-close light handoff? | Nine Metal/Forward+ frames under `documentation/screenshots/pier-pavilion-2026-09-10/`. |
 | `boardwalk_architecture_capture.gd` | Do I2, I3 and B1-B4 read as one varied, editor-owned streetwall rather than six generic shells while Q3 and the lighting schedule remain intact? | Ten Metal/Forward+ frames under `documentation/screenshots/boardwalk-architecture-2026-09-10/`. |
 | `boardwalk_wheel_capture.gd` | Does R1 read from the supplied Santa Monica day and night references while its platform, west-arch reveal, fixed rim crown and light schedule remain intact? | Twelve Metal/Forward+ frames under `documentation/screenshots/boardwalk-wheel-2026-09-10/`. |
-| `boardwalk_coaster_capture.gd` | Does R2 read as a complete wooden coaster from its public station, route B, pier and night standpoints while Q3 and the west-arch reveal remain intact? | Twelve Metal/Forward+ frames under `documentation/screenshots/boardwalk-coaster-2026-09-10/`. |
+| `boardwalk_coaster_capture.gd` | Does R2 read as a complete, uncramped wooden coaster from its public station, route B, pier and night standpoints while Q3 and the west-arch reveal remain intact? | Twelve Metal/Forward+ frames under `documentation/screenshots/boardwalk-coaster-breathing-2026-09-11/`. |
 | `boardwalk_coaster_test.gd` | Does R2 preserve its map parcel and operating address while the editor-owned circuit derives full track, timber bents and lift catwalk and fully retires the single-line greybox? | Focused scene-tree acceptance; runs through `tools/run.tscn`. |
+| `boardwalk_north_ride_park_test.gd` | Does the 8m Boardwalk continue past the old chain into an open waterfront extension, join a separate land return, give R15 and R16 one continuous timber forecourt, keep R2's single public flyover at 4.0m fixed clearance with catch protection, and occupy one safely roofed high bay? | Focused editor-source, deck-face, terrain-bed, grade, clearance and scene-tree acceptance; runs through `tools/run.tscn`. |
+| `boardwalk_north_ride_park_capture.gd` | Does the expanded north Boardwalk read as a continuous Santa Monica-inspired pier field around a smooth larger R2, four rides and visible under-coaster midway uses, with the cove, Q3 and west-arch views intact? | Fifteen Metal/Forward+ player-eye frames under `documentation/screenshots/boardwalk-open-air-redesign-2026-09-11/`, including the named Grand Circuit overpass. |
+| `coastal_palm_test.gd` | Do all 34 coastal palms keep fixed feet while editor-owned trunks, crowns and layered footings stay inside the approved limits; do the sixteen arrival trees preserve their approved density while catalog copy `PRP-PLANT-051` uses sixty-four interleaved classic-California pinnate fronds; do both former fan forms remain outside the standing world; and do all planting rings and crossings remain intact? | Focused scene-tree acceptance for the Boardwalk, arrival approach and both catalog palm forms; runs through `tools/run.tscn`. |
+| `coastal_palm_capture.gd` | Do the sixteen entrance palms read as dense, layered classic-California feather palms from both directions and below while the lighter road/Boardwalk crowns, allée arch and planting compositions remain legible? | Sixteen Metal/Forward+ frames under `documentation/screenshots/arrival-dense-california-palms-2026-09-11/`. |
+| `parking_lot_test.gd` | Do eight editor-owned bay courses preserve the approved density while deriving marked bays, dressed vehicles, planted islands, pedestrian collectors and sightline-safe banners? | Focused scene-tree acceptance for the rebuilt parking fields; runs through `tools/run.tscn`. |
+| `parking_lot_capture.gd` | Do the rebuilt fields and landscaped road approach read as one legible late-1990s arrival while Q0 and every vehicle opening stay open? | Eleven Metal/Forward+ player-eye frames under `documentation/screenshots/parking-lot-2026-09-11/`. |
+| `coastal_plant_catalog_test.gd` | Do banana-tree, Red Sensation, Purple Heart, lemon-zest Hakone grass, delphinium, hanging-planter and petunia promenade catalog variants preserve their editor-owned surfaced courses, distinct silhouettes, selectable recipes and reusable footing relationships—including the dark coir basket finish, fern bowl's 175-frond mature cascade and mixed-petunia basket's domed flower scoop? | Focused scene-tree source acceptance; runs through `tools/run.tscn`. |
+| `tree_catalog_test.gd` | Do the current Plaza and mature park trees and every detailed range-tree candidate retain editable sources while the mounted southern massif and eastern connection remain broad closed terrain bodies with collision, and the generated primary range retains its integrated summit? | Focused source, topology and mounted-coordinate range acceptance; runs through `tools/run.tscn`. |
+| `coastal_live_oak_catalog_test.gd` | Does the California coast live oak retain five selectable low-forking trunks, twenty-three broad crown courses, dense individual foliage and no sphere/capsule canopy masses? | Focused catalog-only source acceptance; runs through `tools/run.tscn` and makes no placement claim. |
+| `shaded_promenade_catalog_test.gd` | Do the white-bark tree, clipped hedge, dark lilyturf, color-block information panel, rough-granite table, reclined water-view bench and plain guardrail remain reusable editor-owned catalog families, and does their catalog-only waterfront vignette retain the complete recipe? | Focused source acceptance; runs through `tools/run.tscn` and makes no park-placement claim. |
+| `strap_leaf_catalog_test.gd` | Do Lily of the Nile and lilyturf share the editable six-point pointed arch while preserving broad/fine proportions and distinct deep-green and yellow-green catalog siblings; and do all six Lily of the Nile stalks retain editable bends that meet their globes? | Focused source acceptance; runs through `tools/run.tscn` and makes no park-placement claim. |
+| `cordyline_catalog_test.gd` | Do Torbay Dazzler and Electric Pink retain selectable five-point sword-leaf courses, surfaced folded ribbons, cultivar-specific striping and Electric Pink's three-shoot clump? | Focused source acceptance; runs through `tools/run.tscn` and makes no park-placement claim. |
+| `arrival_walk_paving_test.gd` | Does one continuous editor-owned brick skin cover the arrival walk while its material bends the actual brick bond into repeated inspector-adjustable surf fronts and the original support remains present? | Focused source and live-scene acceptance; runs through `tools/run.tscn`. |
 | `lighthouse_regrade_test.gd` | Does the approved editor-owned P1 curve drive a localized cut-or-fill terrain ribbon and densely sampled paving while preserving its endpoints, 1:8 cap and shoreline gap? | `extends SceneTree`; run with `--script`. It rewrites nothing and proves cross-section edits are read live. |
 | `photo_exposure_test.gd` | Does a shutter press preserve an immutable, JSON-safe record of park time, camera pose, flash and objective scene facts without a score or composition judgment? | `extends SceneTree`; run with `--script`. It writes no photographs. |
 | `kiddieland_story_test.gd` | Does Three Jumps and a Birthday keep its five approved beats, three returning cast, factual developed evidence, after-close residue and pavilion keepsake without scoring a photograph? | `extends SceneTree`; run with `--script`. It writes no photographs and changes no story state. |
@@ -133,8 +151,15 @@ anchor and edge tests and deleted on 2026-09-05.
 | `footprint_walk_test.gd` | Can the real Player traverse every rebuilt public path in both directions? | Current A–F release gate: center and both operating edges of all generated segments, including shared junction floors and expanded-datum handoffs. |
 | `section_test.gd` | Is the park one continuous standing world, with both plaza gates walkable in both directions and no load, teleport, far stand-in or transition gate? | Also verifies all canonical scenes and all three tagged crowds are present. |
 | `day_test.gd` | Does each section's crowd have a day — the curves, the admitting and the sending home? | `--headless --fixed-fps 60`, about ninety seconds. |
+| `weather_test.gd` | Does the authored coastal shower arrive after opening, leave a wet reflective Boardwalk behind and clear before the protected western sunset while daylight clamps its input? | `extends SceneTree`; run with `--script`. It uses no renderer and rewrites nothing. |
+| `wildlife_test.gd` | Do the persistent editor-owned gull and pigeon scenes keep both species, the juvenile gull and waterfront flight pair outside protected-anchor placement; does every northern-rock roost retain a resident gull while commuters range across the park and both north and south beaches; do their separate upper/lower bill pivots open correctly; and does every ordinary grounded bird retain its non-collectible flush response? | Focused scene-tree acceptance; runs through `tools/run.tscn`. |
+| `rock_dove_test.gd` | Does the rock-dove handoff remain one editable Blender model with no primitive-sphere construction, a packed UV atlas on every surface, distinct neck/wing-top/wing-underside/tail regions, articulated bill and unchanged flush response? | Isolated source and behavior acceptance; runs through `tools/run.tscn` without touching the concurrent gull refinement. |
+| `shiny_pigeon_test.gd` | Does the special white shiny pigeon remain an independent mission-only subject, absent from ordinary wildlife placement, with its articulated form, warm-white packed textures and closed/open wing-state handoff intact? | Isolated source, behavior and mission-boundary acceptance for `shiny_pigeon.tscn`. |
+| `ash_red_pigeon_test.gd` | Does the ash-red/cream rock-dove morph retain the supplied reference's cinnamon-to-pale body, warm-gray head, buff wing shield, rose feet, red iris and pink bill while preserving the shared authored pigeon form and ordinary flush behavior? | Isolated source, palette and behavior acceptance for `ash_red_pigeon.tscn`; it does not place the bird in the ambient flock. |
+| `wildlife_capture.gd` | Do the adult gull, mottled juvenile, ground pigeons, articulated open bills, flush response and circling waterfront pair read in the mounted runtime world? | Eleven Metal/Forward+ frames under `documentation/screenshots/wildlife-proof-2026-09-13/`; the close bill poses and consecutive flush/circle frames carry the evidence. |
 | `night_test.gd` | Do the lights come on and go off again? | `park_lights.gd` fails by succeeding: miss the emissive materials and the lights still light. |
 | `menu_test.gd` | Does the pause menu respond to real input — tabs, cursor wrap, backing out of quit, and is the park actually stopped? | A still shows a screen draws, not that it works. |
+| `fly_test.gd` | Does the dev flight leave the ground on `dev_fly`, travel along the look and through a floor, and land on ground when switched off underneath it? | Driven by actions: the toggle is an `_unhandled_input` handler on an action the player registers only in a debug build, and calling `set_flying` would pass without either. |
 | `inpool_test.gd` | Is anybody standing in the fountain? | Samples over twelve seconds, not one instant — the single-instant version reported three offenders one run and none the next. Guards a 40cm margin: rim sitters at 8.66 against water ending at 8.26. |
 | `clearance_test.gd` | Is anything standing in a walkway, or in another prop? | `extends SceneTree`. Hand-placed props have no equivalent of `open_spots`' rejection sampling. |
 | `budget_test.gd` | Does what the park draws stay inside a budget, and what does each placed scene cost? Headless counts from five standpoints and eight headings through the player's frustum: surfaces and triangles a view, triangles in the world, and surfaces and triangles a placement for any scene placed three times or more. Prints the heaviest views, owners and placed scenes every run. | Acceptance set since 2026-09-18. Raising a ceiling is Christina's decision, against a frame time from `player_motion_perf_probe`. `KYT_NO_STATIC_MERGE=1` shows the failure it was written for. |
@@ -146,7 +171,9 @@ anchor and edge tests and deleted on 2026-09-05.
 
 ## Capture tools
 
-These pose a camera and save PNGs. All need a real renderer.
+These belong to Christina's visual-review workflow. Run, add, move or edit them
+only when she explicitly asks. Agent geometry acceptance does not use them.
+All need a real renderer.
 
 | tool | shoots |
 |---|---|
@@ -155,6 +182,15 @@ These pose a camera and save PNGs. All need a real renderer.
 | `menu_capture.gd` | The HUD and all four pause-menu tabs, stacking consecutive frames of a tab change and a cursor move into strips — a still cannot show that either animates. |
 | `night_capture.gd` | The park through the evening, measuring what the lights cost while it does it. |
 | `footprint_capture.gd` | Ten real-world aerials covering the complete A–F hierarchy, arrival, Headland, west/east anchors, Plaza branches and the coastal, family and northern ride circuits. |
+| `visual_catalog_capture.gd` | Live 16:9 reference cards for every mounted building, facility, ride and attraction in the two roster documents. Run the complete refresh with `tools/update_visual_catalog.sh`; `python3 tools/visual_catalog.py check` reports stale catalogs. |
+| `prop_catalog_capture.gd` | Neutral isolated renders of the prop families that have a source recipe in `documentation/prop-catalog.json`; invoked by `python3 tools/build_prop_catalog.py --capture`. |
+| `arrival_walk_paving_capture.gd` | The arrival promenade in both directions, a long reading of its wavy brick courses, a close material view and the full field between the palm beds. |
+
+`build_prop_catalog.py` is the prop browser's complete refresh and drift check.
+It reads labels, names and statuses from `documentation/prop-library.md`, builds
+the cards and category sheets in that same document, and generates the matching
+`PropCatalogIds` constants for Godot. Use `--capture` to refresh source renders
+first or `--check` in validation and CI.
 
 ## Probes
 
@@ -177,7 +213,7 @@ wrapper and, where they save images, a real renderer.
 | `_niche_probe.gd` | The wall fountain in the west cascade's niche, from the court. |
 | `_pfoam_probe.gd` | The plaza fountain's froth, shot low at the waterline. |
 | `_drive_probe.gd` | The coast highway's three reveals from the car's own eye. |
-| `_forest_perf_probe.gd` | What the range forest costs to draw at several densities. |
+| `_forest_perf_probe.gd` | What the approved background-only range mass costs to draw, hidden versus visible, from its three established performance standpoints. |
 | `range_perf_probe.gd` | What the mounted range costs: wrapper and `main.tscn` load times, node counts and collision triangles under the mount, ray and sphere query grids over the rock field, a walked CharacterBody3D on the beach, and rendered frame times from three standpoints with the range hidden and visible. Writes `user://range_perf_<driver>.txt`; run with `--disable-vsync` for the render block. |
 | `far_plane_perf_probe.gd` | What the player's far plane costs: a player-lens camera at five reachable standpoints, eight headings each, at 400m and 4200m; frame, GPU time, objects, primitives, draw calls. Windowed with `--disable-vsync`, frontmost, and with no other Godot instance rendering, or the numbers are contention. Writes `user://far_plane_perf.txt`. |
 | `frame_cost_probe.gd` | Where a frame goes: the same player-lens views with one thing switched off at a time (sun shadows, shadow distance, splits, small CSG casting, small CSG, all CSG, positional lights, crowd, MSAA, SSAO and glow, haze, range/city/towns), baseline first and last. `FRAME_COST_ONLY="baseline,sun shadows off"` runs a short list. Same launch rules as `far_plane_perf_probe`; the counts are trustworthy under GPU contention, the times are not. Writes `user://frame_cost.txt`. |
@@ -191,12 +227,21 @@ wrapper and, where they save images, a real renderer.
 | `_triangle_census_probe.gd` | Where the world's triangles are, without drawing: faces of every visible mesh and CSG root by `park_world` child, and the coastal planting by material. Headless, so it runs while a game window holds the GPU. |
 | `_range_import_dump.gd` | What Godot made of the exported range GLB: every child with its class, what sits under it, and each concave shape's triangle count. |
 | `_range_handoff_probe.gd` | Did a boulder edited in Blender reach Godot as mesh, material and collision? Takes a JSON of the boulder's bounds before and after the edit. |
+| `_notch_ground_probe.gd` | What ground stands in the north massif's highway notch: the first collision under a 20m grid across it and along tunnel 1, and which node owns it. |
 | `_hole_probe.gd` | Rain rays over the whole east and dump what they hit. |
+| `_seam_gap_probe.gd` | What is just outside every open edge of the generated ground, the developed envelope and T2/T3/T6/shoulders included: rays 5 to 60cm outside each edge, `VOID` where nothing is below (a seam the Player falls through), `drop` where ground is over 0.6m down. Clustered to 40m cells. |
+| `_world_hole_probe.gd` | Rain rays two metres apart over the whole land against the ground owners: no ground with dry land on three sides, or a slot over 1.5m deep. Finds missing ground, not seams narrower than the grid. |
+| `_flipped_face_probe.gd` | Generated terrain triangles wound to face down, by mesh and 50m cell with their area. `--script`. |
+| `_float_path_probe.gd` | `path_ground_test`'s ray under every ribbon in the world, not only the three layers that test reads, summarised per ribbon: floating and buried samples, the worst of each and over what. |
+| `_float_profile_probe.gd` | The centreline gap under the ribbons named after the tool, every ten metres: where along a route it leaves the land. |
+| `_open_faces_all_probe.gd` | Every open face `footprint_test` counts, in full, grouped by mesh and 40m cell, so what remains after a stitch can be read by place. A copy of that test's check with its printing changed. |
+| `_vertical_section_probe.gd` | Every drawn surface and every collider on a vertical line through each `x,z` given after the tool name. |
 | `_ledge_probe.gd` | The walkable profile where the climb meets the head landing. |
 | `_lot_probe.gd` | Does the coast highway show from the parking lots? |
 | `_prom_probe.gd` | Rain rays over the promontory walk and dump what they hit. |
 | `_lighthouse_walk_probe.gd` | The emitted P1 contour climb from the real Player at five stations, its shore side and one oblique overview; pairs with filtered `footprint_walk_test` traversal and `path_ground_test` contact. |
 | `_range_probe.gd` | The crescent range from far enough away to see its shape. |
+| `_ground_range_background_ends.py` | Rebuild the reviewed distinct massif from its pre-north-correction Blender backup, preserving the already-grounded south end while tapering the exposed north coastal end into sea-level ground and exporting the mounted GLB. Run through Blender, not Godot. |
 | `_seam_probe.gd` | The heights the coast meshes and the mainland reserve each give along their seam. |
 | `_sight_probe.gd` | What a standpoint is actually looking at. |
 | `_terrace_probe.gd` | The east climb's walled courts, banks and basin chain. |
@@ -207,6 +252,9 @@ wrapper and, where they save images, a real renderer.
 | `_road_profile_probe.gd` | The highway's and the approach road's section along their whole length, off the generator's height functions: cut depth, drop, dips, the plan lines after their fillets, the carriageways' split, the ramps, the corridor mesh's cost. `--script`; regenerates nothing. |
 | `_open_face_probe.gd` | The terrain's open edges by mesh, each with its nearest edge on another mesh: what a crack between the road corridor and the lattice is. `--script`; loads the groundworks scene. |
 | `_road_probe.gd` | The roads of 2026-09-05/06 from their standpoints: the interchange by day and night, the split-level coast, a walled cut, a portal, the towns' main streets, the beach road's bend. |
+| `range_interchange_proof_capture.gd` | Compare the background-only baseline with two unmounted forest constructions in the road-sensitive interchange/south-highway segment, from identical plan, road and park cameras. |
+| `range_interchange_proof_test.gd` | Do the two unmounted interchange forest experiments remain collision-free, outside every live highway/ramp/approach centreline by 30m, and absent from the persistent world? |
+| `far_shore_city_test.gd` | Guard the mounted editable city package, retired flat fan, bridge junction, city bypass, broad closed foothills, closed road earthworks, ≤2% grades, ≤0.35m centreline-to-ground gaps and continuous plan overlap without consulting a camera. |
 | `_coastal_fast_probe.gd` | The one-hour coastal breadth pass from eight inspection cameras: beach town, north town, watersheds, harbour, park fishing deck, scenic railway and city. |
 
 Godot writes a `.uid` beside every script it imports. Those are tracked — but

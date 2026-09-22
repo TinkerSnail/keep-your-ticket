@@ -5,7 +5,11 @@ extends Node
 ## single-line greybox without moving the established station foundation.
 
 const Plan := preload("res://scripts/park_plan.gd")
-const PARCEL := Rect2(-92.0, -129.0, 39.0, 76.0)
+const PARCEL := Rect2(-112.0, -144.0, 62.0, 91.0)
+const MIN_CONTROL_COUNT := 17
+const MIN_COURSE_WIDTH := 55.0
+const MIN_COURSE_LENGTH := 85.0
+const MAX_HANDLE_ALIGNMENT_ERROR := 0.02
 
 
 func _ready() -> void:
@@ -28,19 +32,38 @@ func _run() -> void:
 	if course.get_meta("ownership", "") != "editor":
 		_fail("course ownership is no longer editor")
 		return
-	if course.curve == null or not course.curve.closed or course.curve.point_count < 20:
+	if course.curve == null or not course.curve.closed \
+			or course.curve.point_count < MIN_CONTROL_COUNT:
 		_fail("course is not a closed, resolved circuit")
 		return
 
 	var crown := -INF
+	var course_bounds := Rect2()
 	for index in course.curve.point_count:
 		var point := course.curve.get_point_position(index)
+		var handle_in := course.curve.get_point_in(index)
+		var handle_out := course.curve.get_point_out(index)
+		if handle_in.length() < 0.5 or handle_out.length() < 0.5:
+			_fail("course control %d still has a hard zero-handle corner" % index)
+			return
+		var alignment_error := 1.0 + handle_in.normalized().dot(handle_out.normalized())
+		if alignment_error > MAX_HANDLE_ALIGNMENT_ERROR:
+			_fail("course control %d breaks its smooth tangent (error %.3f)" % [
+				index, alignment_error])
+			return
 		crown = maxf(crown, point.y)
+		if index == 0:
+			course_bounds = Rect2(point.x, point.z, 0.0, 0.0)
+		else:
+			course_bounds = course_bounds.expand(Vector2(point.x, point.z))
 		if not PARCEL.has_point(Vector2(point.x, point.z)):
 			_fail("course point %d left the approved R2 parcel: %s" % [index, point])
 			return
 	if crown < 20.0 or crown > 22.0:
 		_fail("lift crown %.2fm is outside the accepted 20–22m silhouette" % crown)
+		return
+	if course_bounds.size.x < MIN_COURSE_WIDTH or course_bounds.size.y < MIN_COURSE_LENGTH:
+		_fail("course has collapsed inside its parcel instead of using the available ground: %s" % course_bounds)
 		return
 
 	var foundation := coaster.get_node("station_collision/foundation") as CollisionShape3D
@@ -61,8 +84,9 @@ func _run() -> void:
 	if names.filter(func(name: String) -> bool: return name.begins_with("running_rail_")).size() < 100:
 		_fail("derived circuit has too few running-rail members")
 		return
-	if names.filter(func(name: String) -> bool: return name.begins_with("bent_") and name.ends_with("_cap")).size() < 20:
-		_fail("derived circuit has too few timber bents")
+	var bent_count := names.filter(func(name: String) -> bool: return name.begins_with("bent_") and name.ends_with("_cap")).size()
+	if bent_count < 20 or bent_count > 32:
+		_fail("derived circuit needs a readable timber rhythm, found %d bents" % bent_count)
 		return
 	if names.filter(func(name: String) -> bool: return name.begins_with("lift_catwalk_")).size() < 5:
 		_fail("lift hill has no resolved catwalk")
@@ -77,7 +101,7 @@ func _run() -> void:
 		_fail("ParkPlan R2 operating address moved")
 		return
 
-	print("PASS: R2 keeps its map parcel and station while deriving a closed track, timber bents, lift catwalk and four-car train")
+	print("PASS: R2 keeps its expanded map parcel and station while deriving a smooth closed track, timber bents, lift catwalk and four-car train")
 	get_tree().quit()
 
 

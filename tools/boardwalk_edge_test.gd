@@ -9,7 +9,9 @@ extends Node
 ## fence; none of those may arrive. The pier is walked out to the pavilion and
 ## back, the editor-owned T-head loop is walked in both directions, every new
 ## water edge is pushed, and the Grand Circuit platform in the back lane is
-## walked with its lane-side guard probed.
+## walked with its lane-side guard probed. The editor-owned north Boardwalk
+## extension is walked centre and both edges, both ways, with its outer
+## guardrail pushed.
 ##
 ## Split out of the retired `walk_test.gd` on 2026-09-05, minus its strip-end
 ## probes, which named the pre-expansion boundary: the coast now tapers into
@@ -80,7 +82,7 @@ func _legs_list() -> Array:
 	var head_n_w := Vector3(-166.0, y, -2.0)
 	var head_s_w := Vector3(-166.0, y, 14.5)
 	var head_s_e := Vector3(-150.5, y, 14.5)
-	return [
+	var legs := [
 		["bw lane -> tram", alley_in, tram_lane, true],
 		["bw tram apron", tram_lane, tram_apron, true],
 		["bw tram platform in", tram_apron, tram_north, true],
@@ -134,6 +136,33 @@ func _legs_list() -> Array:
 		["bw bluff holds", Vector3(-70.0, y, 20.0), Vector3(-50.0, y, 20.0), false],
 		["bw bluff holds n", Vector3(-70.0, y, -50.0), Vector3(-50.0, y, -50.0), false],
 	]
+	var north_extension := [
+		Vector3(-99, y, -78), Vector3(-107, y, -92),
+		Vector3(-108, y, -112), Vector3(-108, y, -136),
+		Vector3(-106, y, -158), Vector3(-102, y, -176),
+		Vector3(-98, y, -188), Vector3(-96, y, -198),
+		Vector3(-92, y, -205), Vector3(-80, y, -205),
+	]
+	for i in north_extension.size() - 1:
+		var a: Vector3 = north_extension[i]
+		var b: Vector3 = north_extension[i + 1]
+		var direction := Vector3(b.x - a.x, 0.0, b.z - a.z).normalized()
+		var side := Vector3(-direction.z, 0.0, direction.x) * 3.1
+		for lane in [["c", Vector3.ZERO], ["l", side], ["r", -side]]:
+			var suffix: String = lane[0]
+			var offset: Vector3 = lane[1]
+			# Segment-edge probes stop one metre short of the mitered corner. The
+			# corner itself belongs to both legs and carries the outer rail post;
+			# aiming a straight offset at that post tests the waypoint, not the lane.
+			var edge_a := a + direction * 1.0 + offset
+			var edge_b := b - direction * 1.0 + offset
+			legs.append(["bw north %02d%s out" % [i, suffix], edge_a, edge_b, true])
+			legs.append(["bw north %02d%s back" % [i, suffix], edge_b, edge_a, true])
+	legs.append_array([
+		["bw north west rail", Vector3(-104, y, -118), Vector3(-116, y, -118), false],
+		["bw north arc rail", Vector3(-97, y, -193), Vector3(-109, y, -195.4), false],
+	])
+	return legs
 
 
 func _start_leg() -> void:

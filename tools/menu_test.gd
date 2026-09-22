@@ -199,6 +199,17 @@ func _dev_page(menu: Node) -> void:
 	_check("haze row toggles", environment.fog_enabled, not hazed)
 	await _press("ui_right")
 	_check("haze row toggles back", environment.fog_enabled, hazed)
+	var player := get_tree().get_first_node_in_group("player") as Player
+	await _press("ui_down")
+	await _press("ui_right")
+	_check("fly row toggles", player.flying, true)
+	await _press("ui_down")
+	var speed := player.fly_speed
+	await _press("ui_accept")
+	_check("fly speed row steps", is_equal_approx(player.fly_speed, speed), false)
+	await _press("ui_up")
+	await _press("ui_right")
+	_check("fly row toggles back", player.flying, false)
 
 
 func _closes_and_resumes(menu: Node) -> void:

@@ -270,11 +270,30 @@ func _check_world_reserve() -> void:
 			_fail("the surrounding mainland reserve has no surface mesh")
 		else:
 			var bounds := surface.mesh.get_aabb()
+			var city_source: Node = load("res://scenes/world/far_shore_city_relocation.tscn").instantiate()
+			add_child(city_source)
+			var city_peninsula := city_source.find_child(
+				"relocated_city_peninsula", true, false) as MeshInstance3D
+			var southern_land := city_source.find_child(
+				"southern_city_range_foothills", true, false) as MeshInstance3D
+			var south_continues := false
+			if city_peninsula != null and city_peninsula.mesh != null \
+					and southern_land != null and southern_land.mesh != null:
+				var city_bounds := city_peninsula.global_transform * city_peninsula.get_aabb()
+				var land_bounds := southern_land.global_transform * southern_land.get_aabb()
+				print("  mainland south %.1f, city peninsula %.1f..%.1f, southern foothills %.1f..%.1f" % [
+					bounds.end.z, city_bounds.position.z, city_bounds.end.z,
+					land_bounds.position.z, land_bounds.end.z])
+				south_continues = city_bounds.position.z <= bounds.end.z + EPS \
+					and land_bounds.position.z <= city_bounds.end.z + EPS \
+					and land_bounds.end.z >= Plan.REBUILD_WORLD_LAND_TO_Z - EPS
 			if bounds.position.x > Plan.REBUILD_WORLD_LAND_FROM_X + EPS \
 					or bounds.end.x < Plan.REBUILD_WORLD_LAND_TO_X - EPS \
 					or bounds.position.z > Plan.REBUILD_WORLD_LAND_FROM_Z + EPS \
-					or bounds.end.z < Plan.REBUILD_WORLD_LAND_TO_Z - EPS:
-				_fail("the mainland mesh does not reach all four published world bounds")
+					or not south_continues:
+				_fail("the combined mainland and editor-owned city peninsula do not reach all published world bounds")
+			remove_child(city_source)
+			city_source.free()
 	# The coast meshes are the ground beyond the working strip (2026-09-04):
 	# the north one has to reach the world's north coast bound, the south one
 	# the point where the bay's far shore crosses onto the mainland reserve.
@@ -681,8 +700,29 @@ func _check_route_handoffs() -> void:
 	var waterfront := _run(&"b_waterfront")
 	var south := _run(&"b_south_return")
 	if not north.is_empty() and not waterfront.is_empty() and not south.is_empty():
-		_expect_near("B north return to waterfront", north[-1], waterfront[0])
+		var ride_loop := _boardwalk_ride_loop()
+		if ride_loop.is_empty():
+			_fail("the north Boardwalk ride loop is missing")
+		elif _nearest_on_run(north[-1], ride_loop)["distance"] > EPS:
+			_fail("B north return misses the editor-owned ride loop")
 		_expect_near("B waterfront to south return", waterfront[-1], south[0])
+
+
+func _boardwalk_ride_loop() -> Array[Vector2]:
+	var out: Array[Vector2] = []
+	var packed: PackedScene = load("res://scenes/world/boardwalk_north_ride_park.tscn")
+	if packed == null:
+		return out
+	var root := packed.instantiate()
+	var path := root.get_node_or_null("public_ride_loop") as Path3D
+	if path != null and path.curve != null:
+		for i in path.curve.point_count:
+			var p := path.curve.get_point_position(i)
+			out.append(Vector2(p.x, p.z))
+		if path.curve.closed and not out.is_empty():
+			out.append(out[0])
+	root.free()
+	return out
 
 
 func _check_grand_circuit() -> void:
@@ -727,6 +767,13 @@ func _check_grand_circuit() -> void:
 		var angle := _crossing_angle(road_hit["tangent"], walk_hit["tangent"])
 		if angle < 30.0:
 			_fail("crossing %s meets at only %.1f degrees" % [id, angle])
+		if bool(crossing.get("grade_separated", false)):
+			var road_y := _height_on_run3(at, grand3)
+			var walk_y := _height_on_run3(at, _build_run3(crossing["pedestrian"]))
+			var fixed_clearance := road_y \
+				- float(crossing["fixed_structure_depth"]) - walk_y
+			if fixed_clearance + EPS < float(crossing["minimum_fixed_clearance_metres"]):
+				_fail("crossing %s has only %.2fm fixed clearance" % [id, fixed_clearance])
 		var captures: Array = crossing.get("captures", [crossing["pedestrian"]])
 		for captured in captures:
 			crossings[captured] = at
@@ -805,6 +852,14 @@ func _run(id: StringName) -> Array:
 	return []
 
 
+func _build_run3(id: StringName) -> Array:
+	for run in Plan.rebuild_build_runs():
+		if run["id"] == id:
+			return run["points"]
+	_fail("missing three-dimensional build route %s" % id)
+	return []
+
+
 func _xz(points: Array[Vector3]) -> Array:
 	var out := []
 	for point in points:
@@ -829,6 +884,24 @@ func _nearest_on_run(point: Vector2, points: Array) -> Dictionary:
 		if d < best["distance"]:
 			best = {"distance": d, "at": q, "tangent": (b - a).normalized()}
 	return best
+
+
+func _height_on_run3(point: Vector2, points: Array) -> float:
+	var best_distance := INF
+	var best_height := 0.0
+	for i in points.size() - 1:
+		var a: Vector3 = points[i]
+		var b: Vector3 = points[i + 1]
+		var a2 := Vector2(a.x, a.z)
+		var b2 := Vector2(b.x, b.z)
+		var ab := b2 - a2
+		var t := clampf((point - a2).dot(ab) /
+			maxf(ab.length_squared(), 0.001), 0.0, 1.0)
+		var q := a2.lerp(b2, t)
+		if point.distance_to(q) < best_distance:
+			best_distance = point.distance_to(q)
+			best_height = lerpf(a.y, b.y, t)
+	return best_height
 
 
 func _nearest_between_runs(a: Array, b: Array) -> Dictionary:
@@ -879,8 +952,9 @@ func _point_ellipse_distance(point: Vector2, centre: Vector2, radii: Vector2) ->
 ## The towns (02B, 2026-09-05) are scenery outside the developed envelope,
 ## so no building of theirs may reach into it, into either parking field or
 ## the front road's clearance, or stand inside the sunset sector from the
-## pier head; the city's plain lies over the bay's water sheet; the north
-## town's house is published; and the scene is mounted in the world.
+## pier head; the north town's house is published; and the scene is mounted in
+## the world. The former FAR_CITY plain is retired: the editor-owned relocation
+## package and the world-reach chain above now guard the city's land instead.
 func _check_towns() -> void:
 	var towns: Node = load("res://scenes/world/park_towns.tscn").instantiate()
 	var clearings: PackedVector3Array = towns.get_meta("clearings", PackedVector3Array())
@@ -918,17 +992,6 @@ func _check_towns() -> void:
 		_fail("a town building comes within %.1fm of a parking field" % nearest_lot)
 	if nearest_front < 8.0 - EPS:
 		_fail("a town building comes within %.1fm of the front road" % nearest_front)
-	# The city stands on its peninsula since 2026-09-05: its downtown plain
-	# and the built-up ground are land, inside the coast by a margin, and the
-	# whole of it lies over the bay's water sheet for the skirt to stand in.
-	for key in ["plain", "built"]:
-		for q in Plan.FAR_CITY[key]:
-			var corner: Vector2 = q
-			if Plan.coast_inland(corner) < 20.0 - EPS:
-				_fail("the city's %s corner %s is within 20m of the shore" % [key, corner])
-			if corner.x < Plan.REBUILD_WORLD_WATER_TO_X - EPS or corner.x > Plan.BAY_WATER_TO_X + EPS \
-					or corner.y < Plan.BAY_WATER_FROM_Z - EPS or corner.y > Plan.REBUILD_WORLD_WATER_TO_Z + EPS:
-				_fail("the city's %s corner %s is off the bay's water sheet" % [key, corner])
 	towns.free()
 	var world: Node = load("res://scenes/world/park_world.tscn").instantiate()
 	if world.find_child("park_towns", true, false) == null:
