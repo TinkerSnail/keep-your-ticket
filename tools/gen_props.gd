@@ -17547,6 +17547,9 @@ func _rebuild_groundworks() -> void:
 
 	_rebuild_mesh_body("terrain_road_corridor", corridor_mesh,
 		"ground_banded", true)
+	var tunnel_lids := _rebuild_tunnel_lid_mesh()
+	if tunnel_lids.get_surface_count() > 0:
+		_rebuild_mesh_body("terrain_tunnel_lids", tunnel_lids, "planting", true)
 	print("corridor seam: %d boundary edges, %d lattice vertices stitched, %d refused (portal lintels and anything off by over %.1fm)" % [
 		_corridor_seam_edges.size() / 2, _corridor_seam_hits,
 		_corridor_seam_refused, CORRIDOR_SEAM_MAX_CORRECTION])
@@ -23594,8 +23597,14 @@ func _highway_build() -> void:
 		for k in range(i, j + 1):
 			length += xz[k].distance_to(xz[k + 1])
 		if length >= Plan.HIGHWAY_TUNNEL_MIN_LEN:
+			# EXPERIMENT 2026-09-22: leave a bore's spans *open*, so the
+			# corridor's own machinery covers them — polygons clip the lattice,
+			# the cut earthworks build — and nothing terrain-side can stand in
+			# the carriageway. A lid over the cut at natural height is what
+			# would make it read as a hill again; this measures the first half
+			# alone against `tunnel_drive_test`'s baseline of 18.
 			for k in range(i, j + 1):
-				_highway_open[k] = 0
+				_highway_open[k] = 1
 			_highway_tunnels.append({"from": i, "to": j + 1, "length": length})
 		i = j + 1
 	_highway_cache = stations
@@ -24288,6 +24297,28 @@ func _road_ground_y(p: Vector2) -> float:
 ## The corridor's rows for one road record's runs: every `ROAD_ROW` along
 ## the road, the row's centre, its normal, and the offsets and slots of its
 ## section, from which both the polygon and the mesh are built.
+## Is this highway station inside a bore?
+##
+## Kept, and deliberately not used to narrow a row's offsets. Inside a bore
+## there is no open cut and so no verge, ditch, wall run or batter, and carrying
+## the cut's full 18m footprint through a tunnel is what makes the lid over it a
+## slab cantilevered out where there is no hill. But the `offsets`/`slots`
+## arrays are positional: the profile maths downstream indexes them by place,
+## not by value, so handing a bore's rows a shorter profile took
+## `footprint_test` from 98 open faces to 4,379 and put every road in the
+## network off its ground (2026-09-22). Narrowing the bore's footprint has to
+## keep the array shape — a profile whose entries collapse toward the bore
+## rather than a profile with fewer entries.
+const BORE_SHOULDER := 2.0
+
+
+func _segment_in_bore(seg: int) -> bool:
+	for run in _highway_tunnels:
+		if seg >= int(run["from"]) and seg < int(run["to"]):
+			return true
+	return false
+
+
 func _road_rows(rec: Dictionary) -> Array:
 	var id: String = rec["id"]
 	if _road_rows_cache.has(id):
@@ -24568,6 +24599,138 @@ func _road_colour(slot: String, p: Vector2, y: float, wall_here: bool) -> Color:
 ## The corridor mesh: rows of quads for a chunk standing alone, Delaunay
 ## over every chunk's samples for a group that overlaps. Heights and
 ## colours come from the shared height function at every sample.
+## The hill a bored tunnel runs through.
+##
+## A tunnel's spans are left open since 2026-09-22, so the corridor's own
+## polygons clip the lattice and its earthworks build: that is what finally took
+## `tunnel_drive_test` from 18 blocked segments to none, after three patches that
+## each moved the obstruction rather than removing it. What it leaves is a cut,
+## and Christina wants what the Pacific Coast Highway has — a bore through the
+## headland with nothing but two mouths showing.
+##
+## So this lays the ground back over the cut at its natural height. The lid is a
+## strip between the *same* left and right row offsets the corridor polygon is
+## built from, so the lattice's hole and the lid share their boundary by
+## construction rather than by a tolerance — which is the thing every seam fix
+## before this one got wrong. Each end drops a headwall to road level, which is
+## the portal's face and keeps the lid from being an open edge in the census.
+## Ground the lid keeps over the bore's roof.
+const BORE_LID_COVER := 1.2
+
+
+func _rebuild_tunnel_lid_mesh() -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(0)
+	var stations: Array = _highway_stations()
+	var emitted := 0
+	for rec in _road_cut_records():
+		if String(rec["id"]) != "highway":
+			continue
+		for run_rows in _road_rows(rec):
+			for run in _highway_tunnels:
+				var i0: int = int(run["from"])
+				var i1: int = int(run["to"])
+				var from_p := Vector2((stations[i0] as Vector3).x, (stations[i0] as Vector3).z)
+				var to_p := Vector2((stations[i1] as Vector3).x, (stations[i1] as Vector3).z)
+				var span: Array = []
+				for row in (run_rows as Array):
+					var c: Vector2 = row["c"]
+					# Inside the bore's span along the road, by projection onto
+					# the portal-to-portal chord.
+					var axis := to_p - from_p
+					var t := (c - from_p).dot(axis) / maxf(axis.length_squared(), 0.001)
+					if t < 0.0 or t > 1.0:
+						continue
+					span.append(row)
+				if span.size() < 2:
+					continue
+				for k in span.size() - 1:
+					var here: Dictionary = span[k]
+					var next: Dictionary = span[k + 1]
+					var quad: Array = []
+					for pair in [[here, 0], [here, -1], [next, -1], [next, 0]]:
+						var row: Dictionary = pair[0]
+						var offs: Array = row["offsets"]
+						var idx: int = pair[1] if pair[1] >= 0 else offs.size() - 1
+						var q: Vector2 = Vector2(row["c"]) \
+							+ Vector2(row["r"]) * float(offs[idx])
+						quad.append(q)
+					var l0: Vector2 = quad[0]
+					var r0: Vector2 = quad[1]
+					var r1: Vector2 = quad[2]
+					var l1: Vector2 = quad[3]
+					# Never below the bore it covers. The corridor's outer
+					# offsets carry the batter, and on the seaward side natural
+					# ground there falls well under the carriageway — an
+					# unclamped lid dived through the road and put 16 segments
+					# back on `tunnel_drive_test`.
+					var floor0: float = _road_ground_y(Vector2(here["c"])) \
+						+ HIGHWAY_TUNNEL_CLEAR_H + BORE_LID_COVER
+					var floor1: float = _road_ground_y(Vector2(next["c"])) \
+						+ HIGHWAY_TUNNEL_CLEAR_H + BORE_LID_COVER
+					var a := Vector3(l0.x, maxf(_rebuild_natural_y(l0), floor0), l0.y)
+					var b := Vector3(r0.x, maxf(_rebuild_natural_y(r0), floor0), r0.y)
+					var c3 := Vector3(r1.x, maxf(_rebuild_natural_y(r1), floor1), r1.y)
+					var d := Vector3(l1.x, maxf(_rebuild_natural_y(l1), floor1), l1.y)
+					_earth_oriented_tri(st, a, l0 * 0.28, b, r0 * 0.28,
+						c3, r1 * 0.28, Vector3.UP)
+					_earth_oriented_tri(st, a, l0 * 0.28, c3, r1 * 0.28,
+						d, l1 * 0.28, Vector3.UP)
+					emitted += 1
+				# The two portal faces: the lid's end edge down to the road.
+				for end in [[span[0], -1.0], [span[span.size() - 1], 1.0]]:
+					var row: Dictionary = end[0]
+					var offs: Array = row["offsets"]
+					var lp: Vector2 = Vector2(row["c"]) + Vector2(row["r"]) * float(offs[0])
+					var rp: Vector2 = Vector2(row["c"]) \
+						+ Vector2(row["r"]) * float(offs[offs.size() - 1])
+					var floor_y: float = _road_ground_y(Vector2(row["c"]))
+					# A portal face, not a wall and not two posts. Solid
+					# right across from the lid down to the lintel, then solid
+					# either side of the opening down to the road: only the
+					# opening itself is void. Closing it right across walled the
+					# carriageway off and put 15 segments back on
+					# `tunnel_drive_test`; leaving only the side panels left the
+					# band above each entrance with no face at all, which is
+					# what Christina saw on the north and south ends.
+					var head: float = floor_y + HIGHWAY_TUNNEL_CLEAR_H + BORE_LID_COVER
+					var lintel: float = floor_y + HIGHWAY_TUNNEL_CLEAR_H
+					var centre: Vector2 = Vector2(row["c"])
+					var across: Vector2 = Vector2(row["r"]).normalized()
+					# `half` spans both carriageways and the median between
+					# them; the bore's walls stand just outside it.
+					var opening: float = float(row.get("half", Plan.HIGHWAY_W * 0.5)) + 2.0
+					var n := Vector3(0.0, 0.0, float(end[1]))
+					var lt := Vector3(lp.x, maxf(_rebuild_natural_y(lp), head), lp.y)
+					var rt := Vector3(rp.x, maxf(_rebuild_natural_y(rp), head), rp.y)
+					var ll := Vector3(lp.x, lintel, lp.y)
+					var rl := Vector3(rp.x, lintel, rp.y)
+					_earth_oriented_tri(st, lt, lp * 0.28, rt, rp * 0.28,
+						rl, rp * 0.28, n)
+					_earth_oriented_tri(st, lt, lp * 0.28, rl, rp * 0.28,
+						ll, lp * 0.28, n)
+					for panel in [[lp, centre - across * opening],
+							[centre + across * opening, rp]]:
+						var pa: Vector2 = panel[0]
+						var pb: Vector2 = panel[1]
+						if (pb - pa).dot(rp - lp) <= 0.0:
+							continue
+						var at := Vector3(pa.x, lintel, pa.y)
+						var bt := Vector3(pb.x, lintel, pb.y)
+						var ab := Vector3(pa.x, floor_y, pa.y)
+						var bb := Vector3(pb.x, floor_y, pb.y)
+						_earth_oriented_tri(st, at, pa * 0.28, bt, pb * 0.28,
+							bb, pb * 0.28, n)
+						_earth_oriented_tri(st, at, pa * 0.28, bb, pb * 0.28,
+							ab, pa * 0.28, n)
+	if emitted == 0:
+		return ArrayMesh.new()
+	st.generate_normals()
+	st.generate_tangents()
+	return st.commit()
+
+
 func _rebuild_road_corridor_mesh() -> ArrayMesh:
 	var packed: Array = _road_chunks()
 	var chunks: Array = packed[0]
