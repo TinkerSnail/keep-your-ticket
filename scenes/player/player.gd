@@ -91,6 +91,20 @@ const STEP_HEIGHT := 0.35
 ## stays a property of the scene and this is only how far it collapses.
 @export var third_arm_close := 1.1
 
+## The dev flight, debug builds only. Registered at runtime rather than in
+## `project.godot` so an exported game has no such actions to bind or to find:
+## input still arrives through actions, and a player never sees these.
+const FLY_ACTIONS := {
+	&"dev_fly": KEY_G,
+	&"dev_fly_down": KEY_C,
+	&"dev_fly_fast": KEY_SHIFT,
+}
+## Walking pace times four, a road train, and the bay in half a minute.
+const FLY_SPEEDS: Array[float] = [12.0, 40.0, 120.0]
+const FLY_FAST_SCALE := 5.0
+## How far below a landing the ground may be before it counts as not there.
+const FLY_GROUND_REACH := 4000.0
+
 const LOOK_SETTLE_FRAMES := 2
 const LOOK_JUMP_LIMIT := 400.0
 
@@ -128,6 +142,11 @@ var _was_captured := false
 var _crossing := false
 var _crossing_wish := Vector3.ZERO
 
+## Flying passes through everything: the body is moved, not slid, so a roof or
+## a hillside is not an obstacle to looking at what is behind it.
+var flying := false
+var fly_speed := FLY_SPEEDS[1]
+
 ## From `ParkSettings`. A multiplier over the exported sensitivities rather than
 ## a replacement for them, so the tuning in the inspector stays meaningful and
 ## the options row is a scale on top of it.
@@ -143,6 +162,8 @@ func _ready() -> void:
 	spring.add_excluded_object(get_rid())
 	_arm_length = spring.spring_length
 	apply_look_settings()
+	if OS.is_debug_build():
+		_register_fly_actions()
 	# The view the park starts in is a setting rather than a default. Set
 	# directly rather than through `set_third_person`, which tweens — there is
 	# nothing to tween from on the first frame.
@@ -319,7 +340,70 @@ func _tween_fov() -> void:
 	_fov_tween.tween_property(camera, "fov", finder_fov if _shooting else walk_fov, raise_seconds)
 
 
+func _register_fly_actions() -> void:
+	for action: StringName in FLY_ACTIONS:
+		if InputMap.has_action(action):
+			continue
+		InputMap.add_action(action)
+		var key := InputEventKey.new()
+		key.physical_keycode = FLY_ACTIONS[action]
+		InputMap.action_add_event(action, key)
+
+
+## Debug builds only; the dev page and the `dev_fly` action are the two callers
+## and neither exists in an exported game.
+func set_flying(on: bool) -> void:
+	if flying == on or not OS.is_debug_build():
+		return
+	flying = on
+	velocity = Vector3.ZERO
+	if not on:
+		_land()
+
+
+## Flight ends wherever it ends, which may be inside a hill or under the sea
+## bed, and terrain collision is one-sided: from below there is nothing to stand
+## on and the fall never stops. So if there is no ground under the player, they
+## are put on the highest ground over them instead.
+func _land() -> void:
+	var space := get_world_3d().direct_space_state
+	var at := global_position
+	var below := PhysicsRayQueryParameters3D.create(
+		at + Vector3.UP * 0.5, at + Vector3.DOWN * FLY_GROUND_REACH, collision_mask, [get_rid()])
+	if not space.intersect_ray(below).is_empty():
+		return
+	var above := PhysicsRayQueryParameters3D.create(
+		at + Vector3.UP * FLY_GROUND_REACH, at, collision_mask, [get_rid()])
+	var hit := space.intersect_ray(above)
+	if not hit.is_empty():
+		global_position = (hit["position"] as Vector3) + Vector3.UP * 0.1
+
+
+## Along the look, pitch included, so forward while looking up climbs. Jump and
+## `dev_fly_down` are the lift for holding a heading while changing height.
+func _fly(delta: float) -> void:
+	var input_dir := Vector2.ZERO
+	var lift := 0.0
+	if _look_enabled:
+		input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+		# Space is the shutter while the camera is up, as it is on the ground.
+		if not _shooting and Input.is_action_pressed("jump"):
+			lift += 1.0
+		if Input.is_action_pressed("dev_fly_down"):
+			lift -= 1.0
+	var wish := head.global_transform.basis * Vector3(input_dir.x, 0.0, input_dir.y)
+	wish += Vector3.UP * lift
+	if wish.length_squared() > 1.0:
+		wish = wish.normalized()
+	var speed := fly_speed * (FLY_FAST_SCALE if Input.is_action_pressed("dev_fly_fast") else 1.0)
+	velocity = velocity.lerp(wish * speed, clampf(delta * 10.0, 0.0, 1.0))
+	global_position += velocity * delta
+
+
 func _unhandled_input(event: InputEvent) -> void:
+	if OS.is_debug_build() and event.is_action_pressed("dev_fly"):
+		set_flying(not flying)
+		return
 	if event.is_action_pressed("view_toggle"):
 		set_third_person(not third_person)
 		return
@@ -355,6 +439,11 @@ func _physics_process(delta: float) -> void:
 				-look.x * stick_sensitivity * _look_scale * delta,
 				-look.y * stick_sensitivity * _look_scale * delta
 			)
+
+	if flying:
+		_fly(delta)
+		_update_arm()
+		return
 
 	var input_dir := Vector2.ZERO
 	if _look_enabled and not _crossing:
@@ -410,8 +499,12 @@ func _physics_process(delta: float) -> void:
 		if intended > 0.001 and got < intended * 0.7:
 			_try_step(wanted, delta)
 
-	# The arm length is decided by whatever is behind the player, which changes
-	# every step, so this cannot live in `_apply_view` with the rest of it.
+	_update_arm()
+
+
+## The arm length is decided by whatever is behind the player, which changes
+## every step, so this cannot live in `_apply_view` with the rest of it.
+func _update_arm() -> void:
 	if camera_third.current:
 		var up := clampf(_pitch / maxf(_pitch_ceiling(), 0.001), 0.0, 1.0)
 		spring.spring_length = lerpf(_arm_length, third_arm_close, up)

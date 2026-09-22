@@ -50,6 +50,7 @@ func _on_shown() -> void:
 
 func _rebuild() -> void:
 	var environment := _environment()
+	var player := _player()
 	_list.set_rows([
 		{
 			"id": &"weather",
@@ -79,6 +80,20 @@ func _rebuild() -> void:
 			"value": environment != null and environment.fog_enabled,
 			"note": "The camera-distance blue. Off shows every surface's own colour.",
 		},
+		{
+			"id": &"fly",
+			"label": "Fly",
+			"kind": MenuList.Kind.TOGGLE if player != null else MenuList.Kind.DISABLED,
+			"value": player != null and player.flying,
+			"note": "G in the park. Moves along the look and through everything; space up, C down, shift fast.",
+		},
+		{
+			"id": &"fly_speed",
+			"label": "Fly speed",
+			"kind": MenuList.Kind.ACTION if player != null else MenuList.Kind.DISABLED,
+			"text": "%d m/s" % int(player.fly_speed) if player != null else "",
+			"note": "Shift multiplies it by five.",
+		},
 	])
 
 
@@ -90,6 +105,11 @@ func _on_activated(id: StringName) -> void:
 			if weather != null:
 				weather.enabled = _sky != Skies.CLEAR
 				weather.dev_override = RAIN_STATE if _sky == Skies.RAIN else NO_OVERRIDE
+		&"fly_speed":
+			var player := _player()
+			if player != null:
+				var speeds := Player.FLY_SPEEDS
+				player.fly_speed = speeds[wrapi(speeds.find(player.fly_speed) + 1, 0, speeds.size())]
 		&"time":
 			var next: Array = TIMES[0]
 			var now := ParkClock.hours()
@@ -107,6 +127,10 @@ func _on_activated(id: StringName) -> void:
 
 func _on_changed(id: StringName, value: Variant) -> void:
 	match id:
+		&"fly":
+			var player := _player()
+			if player != null:
+				player.set_flying(bool(value))
 		&"clock_running":
 			ParkClock.running = bool(value)
 		&"haze":
@@ -122,6 +146,10 @@ func _weather() -> Node:
 		if "dev_override" in node and "enabled" in node:
 			return node
 	return null
+
+
+func _player() -> Player:
+	return get_tree().get_first_node_in_group("player") as Player
 
 
 func _environment() -> Environment:
