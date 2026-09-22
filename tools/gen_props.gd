@@ -459,7 +459,22 @@ func _family_terrain_paths_from_source() -> Array:
 	return out
 
 
+## Rebuild only `park_groundworks.tscn`, for when a terrain consequence changes.
+## Everything is still *built* in the usual order: the seam ordinal each scene
+## gets is `_scene_seed` advancing five per `_begin_scene`, and groundworks also
+## needs work staged much earlier, such as `_stage_east_shoulders`. So this skips
+## the other scenes' *writes* and nothing else, which is what makes the
+## groundworks it produces identical to a full run's. Textures and materials are
+## still written: `_save_texture` saves with `FLAG_CHANGE_PATH`, so the texture in
+## hand is the one on disk, and skipping that would leave a pathless texture for
+## the packer to embed in the scene instead of reference.
+var _groundworks_only := false
+
 func _initialize() -> void:
+	for arg in OS.get_cmdline_user_args():
+		if arg == "--groundworks-only":
+			_groundworks_only = true
+			print("groundworks-only: building everything, writing only %s" % GROUNDWORKS_PATH)
 	_lighthouse_regrade_source()
 	_drainage_terrain_source()
 	_build_textures()
@@ -760,6 +775,9 @@ func _initialize() -> void:
 
 
 func _save(node: Node3D, path: String) -> bool:
+	if _groundworks_only and path != GROUNDWORKS_PATH:
+		print("skipped %s (groundworks-only)" % path)
+		return true
 	# Nothing is written after a material lost a uniform. `quit()` only asks the
 	# main loop to stop, and the whole park is built inside one call before the
 	# loop gets a turn — so on its own it reports the fault and then writes every
