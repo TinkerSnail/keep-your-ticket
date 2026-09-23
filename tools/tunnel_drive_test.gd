@@ -27,6 +27,13 @@ const PAD := 3
 ## lorry's worth.
 const LOW_ROOF := 4.6
 const SETTLE_FRAMES := 30
+## Headroom is sampled this often along a segment, and drives and headroom at
+## these offsets across the carriageway: its centre and a metre inside each edge line (the
+## carriageway is 10.8m).
+const HEADROOM_STEP := 1.0
+const HEADROOM_ACROSS := [-4.4, 0.0, 4.4]
+## Drives run at a driver's eye and at a box lorry's roof.
+const DRIVE_HEIGHTS := [EYE, 4.2]
 
 var _fails: Array[String] = []
 var _low: Array[String] = []
@@ -70,26 +77,44 @@ func _ready() -> void:
 			var headroom := INF
 			var headroom_at := -1
 			for i in range(i0, i1 + 1):
-				var here: Vector3 = Vector3(bore[i]) + Vector3.UP * EYE
-				var next: Vector3 = Vector3(bore[i + 1]) + Vector3.UP * EYE
+				var a: Vector3 = bore[i]
+				var b: Vector3 = bore[i + 1]
+				var flat := Vector2(b.x - a.x, b.z - a.z)
+				var across := Vector3(flat.y, 0.0, -flat.x).normalized()
 				# Both ways down the same segment: a ray stops on ground rising
-				# ahead of it, so one direction alone sees one mouth.
-				for leg in [[here, next, "south"], [next, here, "north"]]:
-					segments += 1
-					var query := PhysicsRayQueryParameters3D.create(leg[0], leg[1], 1)
-					var hit := space.intersect_ray(query)
-					if hit.is_empty():
-						continue
-					_fails.append("tunnel %d bore %s station %d-%d driving %s: %s %.1fm in, at (%.1f, %.1f)" % [
-						n, tag, i, i + 1, leg[2],
-						String(world.get_path_to(hit["collider"])).get_slice("/", 1)
-							+ "/" + String(hit["collider"].name),
-						Vector3(hit["position"]).distance_to(leg[0]),
-						hit["position"].x, hit["position"].z])
-				var over := _headroom(space, Vector3(bore[i]))
-				if over < headroom:
-					headroom = over
-					headroom_at = i
+				# ahead of it, so one direction alone sees one mouth. At a
+				# driver's eye and at a lorry's roof, down each lane edge as
+				# well as the centre: a face hanging 2.5m over the upper bore's
+				# road passed an eye-height drive on the centre line alone.
+				for height in DRIVE_HEIGHTS:
+					for lane in HEADROOM_ACROSS:
+						var lift := Vector3.UP * float(height) + across * float(lane)
+						var here: Vector3 = a + lift
+						var next: Vector3 = b + lift
+						for leg in [[here, next, "south"], [next, here, "north"]]:
+							segments += 1
+							var query := PhysicsRayQueryParameters3D.create(leg[0], leg[1], 1)
+							var hit := space.intersect_ray(query)
+							if hit.is_empty():
+								continue
+							_fails.append("tunnel %d bore %s station %d-%d driving %s at %.1fm, %+.1fm across: %s %.1fm in, at (%.1f, %.1f)" % [
+								n, tag, i, i + 1, leg[2], float(height), float(lane),
+								String(world.get_path_to(hit["collider"])).get_slice("/", 1)
+									+ "/" + String(hit["collider"].name),
+								Vector3(hit["position"]).distance_to(leg[0]),
+								hit["position"].x, hit["position"].z])
+				# Headroom over the whole carriageway, not only up from each
+				# station on its centre line: the lid's portal face once hung
+				# 2.5m over the upper bore's road between two stations and
+				# passed both this check and the eye-height drive.
+				var steps := maxi(1, ceili(flat.length() / HEADROOM_STEP))
+				for s in steps:
+					var on: Vector3 = Vector3(bore[i]).lerp(bore[i + 1], float(s) / steps)
+					for lane in HEADROOM_ACROSS:
+						var over := _headroom(space, on + across * float(lane))
+						if over < headroom:
+							headroom = over
+							headroom_at = i
 			if headroom < LOW_ROOF and headroom_at >= 0:
 				_low.append("tunnel %d bore %s: %.2fm of headroom at station %d" % [
 					n, tag, headroom, headroom_at])
@@ -117,7 +142,7 @@ func _finish(problem: String) -> void:
 		printerr("FAIL: ", problem)
 		get_tree().quit(1)
 		return
-	if _fails.is_empty():
+	if _fails.is_empty() and _low.is_empty():
 		print("PASS every tunnel drives clear in both directions")
 		get_tree().quit()
 		return
@@ -126,5 +151,6 @@ func _finish(problem: String) -> void:
 		print("  ", line)
 	if _fails.size() > 40:
 		print("  ... and %d more" % (_fails.size() - 40))
-	printerr("FAIL: %d tunnel segments are blocked" % _fails.size())
+	printerr("FAIL: %d tunnel segments are blocked, %d bores have a low roof" % [
+		_fails.size(), _low.size()])
 	get_tree().quit(1)
