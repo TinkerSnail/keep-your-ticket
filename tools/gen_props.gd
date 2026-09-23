@@ -17549,7 +17549,7 @@ func _rebuild_groundworks() -> void:
 		"ground_banded", true)
 	var tunnel_lids := _rebuild_tunnel_lid_mesh()
 	if tunnel_lids.get_surface_count() > 0:
-		_rebuild_mesh_body("terrain_tunnel_lids", tunnel_lids, "planting", true)
+		_rebuild_mesh_body("terrain_tunnel_lids", tunnel_lids, "ground_banded", true)
 	print("corridor seam: %d boundary edges, %d lattice vertices stitched, %d refused (portal lintels and anything off by over %.1fm)" % [
 		_corridor_seam_edges.size() / 2, _corridor_seam_hits,
 		_corridor_seam_refused, CORRIDOR_SEAM_MAX_CORRECTION])
@@ -18204,11 +18204,12 @@ func _rebuild_coast_feature(p: Vector2) -> float:
 	return y
 
 
-func _rebuild_ground_colour(p: Vector2, y: float) -> Color:
+func _rebuild_ground_colour(p: Vector2, y: float, rise := NAN) -> Color:
 	var meadow := Color(0.36, 0.47, 0.31)
 	var forest := Color(0.19, 0.33, 0.18)
 	var rock := Color(0.52, 0.50, 0.45)
-	var rise := _rebuild_range_rise(p)
+	if is_nan(rise):
+		rise = _rebuild_range_rise(p)
 	# The range's foot wears the same banding as the blue massifs in the range
 	# source (2026-09-17, Christina): the darkest talus tone at the toe, the
 	# massifs' rock grey above it, then three quarter-steps into the forest,
@@ -24621,8 +24622,8 @@ func _road_colour(slot: String, p: Vector2, y: float, wall_here: bool) -> Color:
 ## the portal's face and keeps the lid from being an open edge in the census.
 ## Ground the lid keeps over the bore's roof.
 const BORE_LID_COVER := 1.2
-## How steeply the hill rises back from a portal's headwall: the embankments'
-## steepest bank, 1:1.6.
+## How steeply the hill rises away from a portal's headwall, back and to either
+## side: the embankments' steepest bank, 1:1.6.
 const BORE_MOUTH_SLOPE := 1.0 / 1.6
 ## How far the lid's shoulder keeps clear of the corridor ground it passes over.
 const BORE_LID_CLEAR := 0.15
@@ -24698,7 +24699,7 @@ func _rebuild_tunnel_lid_mesh() -> ArrayMesh:
 ## metres out from the carriageway, with a void beneath it.
 ##
 ## `mouth` is the row's distance in from the nearer portal; within a bank's
-## run of it the hill over a headwall comes down to the concrete's top.
+## run of it the hill comes down around the headwall to the concrete's top.
 ##
 ## Every row carries one point per offset, in the offsets' own order, so
 ## consecutive rows join point for point. The wall faces are not points: one
@@ -24758,24 +24759,34 @@ func _bore_lid_profile(row: Dictionary, mouth := 0.0) -> Array:
 				shape = lerpf(floor_lo, floor_hi,
 					(x - float(walls[1])) / maxf(float(walls[2]) - float(walls[1]), 0.01))
 		var y := maxf(_rebuild_natural_y(q), shape)
-		# Over a headwall the hill starts at the concrete's top at the mouth and
-		# rises back from it at a bank's slope. Cut off square at the end row
-		# instead, the natural hill stood 3m over the lower portal's lintel as a
-		# flat-topped green block. (Pulling the hill down to the cutting beside
-		# the headwall as well was tried and cut a notch into the inland side.)
-		if x >= a_lo - pier_out and x <= a_hi + pier_out:
-			# A hand under the concrete's top, which stands proud as a coping:
-			# level with it the two shared a plane and flickered along every
-			# lintel.
-			var head_lo := float(crowns[0]["y"]) + HIGHWAY_PORTAL_TOP - BORE_LID_CLEAR
-			var head_hi := float(crowns[1]["y"]) + HIGHWAY_PORTAL_TOP - BORE_LID_CLEAR
-			var head := head_lo
-			if x >= float(walls[2]) - 0.001:
-				head = head_hi
-			elif x > float(walls[1]):
-				head = lerpf(head_lo, head_hi,
-					(x - float(walls[1])) / maxf(float(walls[2]) - float(walls[1]), 0.01))
-			y = minf(y, maxf(head + BORE_MOUTH_SLOPE * mouth, shape))
+		# The hill comes down to the portal from every side, as it does at
+		# Devil's Slide: a cone on the headwall, starting a hand under the
+		# concrete's top (level with it, the two flickered along every lintel)
+		# and rising at a bank's slope back into the hill and out to either side.
+		# Where the cone is lower than the cutting, the lid lies on the cutting,
+		# so nothing is left standing at the end row but the headwall. Cut off
+		# square instead, the hill stood 3m over the lower lintel as a green
+		# block and dropped sheer beside each headwall; pulled down to the
+		# cutting by distance along the road alone, it cut a notch inland.
+		var head_lo := float(crowns[0]["y"]) + HIGHWAY_PORTAL_TOP - BORE_LID_CLEAR
+		var head_hi := float(crowns[1]["y"]) + HIGHWAY_PORTAL_TOP - BORE_LID_CLEAR
+		var head := head_lo
+		if x >= float(walls[2]) - 0.001:
+			head = head_hi
+		elif x > float(walls[1]):
+			head = lerpf(head_lo, head_hi,
+				(x - float(walls[1])) / maxf(float(walls[2]) - float(walls[1]), 0.01))
+		var beside := maxf(0.0, maxf((a_lo - pier_out) - x, x - (a_hi + pier_out)))
+		var cone := head + BORE_MOUTH_SLOPE * Vector2(mouth, beside).length()
+		var outermost := x <= x_lo + 0.01 or x >= x_hi - 0.01
+		if outermost:
+			# The hole's edge, where the lid meets the hill beyond the cut. Coned
+			# down with the rest, it hung over the cutting as a hood.
+			pass
+		elif beside > 0.0:
+			y = minf(y, cone)
+		else:
+			y = minf(y, maxf(cone, shape))
 		# Never under the corridor's own ground, or the fill shows through the
 		# shoulder; a hand clear of it so the two never share a plane. The
 		# outermost points land exactly on it, which is the hole's edge.
@@ -24796,16 +24807,24 @@ func _bore_pier_out() -> float:
 	return Plan.HIGHWAY_CARRIAGEWAY_W * 0.5 + HIGHWAY_PORTAL_PIER_OFFSET + HIGHWAY_PORTAL_PIER_W * 0.5
 
 
-## One lid triangle, faced by `hint`. Uncoloured on purpose: under
-## `ground_banded` with `_rebuild_ground_colour` the lid took the range's rock
-## band, grey over green hill (tried and reverted 2026-09-22).
+## One lid triangle, faced by `hint` and coloured as the hillside it rebuilds.
+## The ground's colour bands by the range's rise *after* the road has cut it,
+## which over a bore is the road's own level: read that way the whole lid took
+## the rock at the range's toe, grey over green hill (2026-09-22). The lid puts
+## the hill back, so it is banded by its own height over the range's base: rock
+## where it lies low beside the road and around the portals, the reserve's own
+## bands where it meets the uncut slope, and the same colour as the reserve at
+## the hole's edge.
 func _bore_lid_tri(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, hint: Vector3) -> void:
 	var visible_normal := (c - a).cross(b - a)
 	if visible_normal.length_squared() < 0.00000001:
 		return
 	var tri: Array = [a, b, c] if visible_normal.dot(hint) >= 0.0 else [a, c, b]
 	for v in tri:
-		st.set_uv(Vector2((v as Vector3).x, (v as Vector3).z) * 0.28)
+		var p := Vector2((v as Vector3).x, (v as Vector3).z)
+		var rise := maxf(0.0, _rebuild_range_rise_raw(p) - (_rebuild_natural_y(p) - (v as Vector3).y))
+		st.set_color(_rebuild_ground_colour(p, (v as Vector3).y, rise))
+		st.set_uv(p * 0.28)
 		st.add_vertex(v)
 
 
