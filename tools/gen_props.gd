@@ -24625,6 +24625,9 @@ const BORE_LID_COVER := 1.2
 ## How steeply the hill rises away from a portal's headwall, back and to either
 ## side: the embankments' steepest bank, 1:1.6.
 const BORE_MOUTH_SLOPE := 1.0 / 1.6
+## How steeply the hill leaves a headwall before it rolls over into the hill:
+## twice the cone's slope, so the rounded nose and the cone share a footprint.
+const BORE_NOSE_SLOPE := BORE_MOUTH_SLOPE * 2.0
 ## How far the lid's shoulder keeps clear of the corridor ground it passes over.
 const BORE_LID_CLEAR := 0.15
 
@@ -24778,6 +24781,18 @@ func _bore_lid_profile(row: Dictionary, mouth := 0.0) -> Array:
 				(x - float(walls[1])) / maxf(float(walls[2]) - float(walls[1]), 0.01))
 		var beside := maxf(0.0, maxf((a_lo - pier_out) - x, x - (a_hi + pier_out)))
 		var cone := head + BORE_MOUTH_SLOPE * Vector2(mouth, beside).length()
+		# Inflated, as the headland is over the Tom Lantos portals at Pacifica:
+		# the hill leaves the headwall at `BORE_NOSE_SLOPE` and rolls over into
+		# the uncut hill, a parabola reaching it level where the straight cone
+		# would have reached it, so the footprint is the same and the nose is
+		# fuller everywhere between. Sideways a metre counts for half, so the
+		# hill still leaves the ground beside a headwall at the cone's slope and
+		# no sheer face comes back there.
+		var rise := y - head
+		if rise > 0.0:
+			var reach := 2.0 * rise / BORE_NOSE_SLOPE
+			var t := clampf(Vector2(mouth, beside * 0.5).length() / reach, 0.0, 1.0)
+			cone = maxf(cone, head + rise * (1.0 - (1.0 - t) * (1.0 - t)))
 		var outermost := x <= x_lo + 0.01 or x >= x_hi - 0.01
 		if outermost:
 			# The hole's edge, where the lid meets the hill beyond the cut. Coned
