@@ -92,1230 +92,1230 @@ roughness = 0.9
 albedo_color = Color(0.84, 0.46, 0.55, 1)
 roughness = 0.9
 
-[node name="park_groundworks" type="Node3D" unique_id=430032144]
+[node name="park_groundworks" type="Node3D" unique_id=1317434255]
 
-[node name="terrain_world_mainland_reserve" type="StaticBody3D" parent="." unique_id=1784435308]
+[node name="terrain_world_mainland_reserve" type="StaticBody3D" parent="." unique_id=1412031482]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.003, 0.003, 0.003)
 
-[node name="surface" type="MeshInstance3D" parent="terrain_world_mainland_reserve" unique_id=1904537563]
+[node name="surface" type="MeshInstance3D" parent="terrain_world_mainland_reserve" unique_id=1110307076]
 material_override = SubResource("StandardMaterial3D_r5yxw")
 mesh = ExtResource("1_ncptq")
 
-[node name="shape" type="CollisionShape3D" parent="terrain_world_mainland_reserve" unique_id=1012870711]
+[node name="shape" type="CollisionShape3D" parent="terrain_world_mainland_reserve" unique_id=856453180]
 shape = ExtResource("2_50i24")
 
-[node name="terrain_world_coast_north" type="StaticBody3D" parent="." unique_id=1344078272]
+[node name="terrain_world_coast_north" type="StaticBody3D" parent="." unique_id=1474029586]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00325, 0.00325, 0.00325)
 
-[node name="surface" type="MeshInstance3D" parent="terrain_world_coast_north" unique_id=349856786]
+[node name="surface" type="MeshInstance3D" parent="terrain_world_coast_north" unique_id=2136926744]
 material_override = SubResource("StandardMaterial3D_r5yxw")
 mesh = ExtResource("3_x0jes")
 
-[node name="shape" type="CollisionShape3D" parent="terrain_world_coast_north" unique_id=1347425988]
+[node name="shape" type="CollisionShape3D" parent="terrain_world_coast_north" unique_id=1789140654]
 shape = ExtResource("4_38a0a")
 
-[node name="terrain_world_coast_south" type="StaticBody3D" parent="." unique_id=921359735]
+[node name="terrain_world_coast_south" type="StaticBody3D" parent="." unique_id=1182711669]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0035, 0.0035, 0.0035)
 
-[node name="surface" type="MeshInstance3D" parent="terrain_world_coast_south" unique_id=313658963]
+[node name="surface" type="MeshInstance3D" parent="terrain_world_coast_south" unique_id=1075638523]
 material_override = SubResource("StandardMaterial3D_r5yxw")
 mesh = ExtResource("5_rx8u5")
 
-[node name="shape" type="CollisionShape3D" parent="terrain_world_coast_south" unique_id=2095605853]
+[node name="shape" type="CollisionShape3D" parent="terrain_world_coast_south" unique_id=1803094060]
 shape = ExtResource("6_mcmj8")
 
-[node name="terrain_road_corridor" type="StaticBody3D" parent="." unique_id=1313521294]
+[node name="terrain_road_corridor" type="StaticBody3D" parent="." unique_id=858962854]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0037500001, 0.0037500001, 0.0037500001)
 
-[node name="surface" type="MeshInstance3D" parent="terrain_road_corridor" unique_id=2012932778]
+[node name="surface" type="MeshInstance3D" parent="terrain_road_corridor" unique_id=1162762246]
 material_override = SubResource("StandardMaterial3D_r5yxw")
 mesh = ExtResource("7_2uwjc")
 
-[node name="shape" type="CollisionShape3D" parent="terrain_road_corridor" unique_id=1072369000]
+[node name="shape" type="CollisionShape3D" parent="terrain_road_corridor" unique_id=1866347854]
 shape = ExtResource("8_rvh2n")
 
-[node name="terrain_tunnel_lids" type="StaticBody3D" parent="." unique_id=798837451]
+[node name="terrain_tunnel_lids" type="StaticBody3D" parent="." unique_id=180463739]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.004, 0.004, 0.004)
 
-[node name="surface" type="MeshInstance3D" parent="terrain_tunnel_lids" unique_id=1104280877]
+[node name="surface" type="MeshInstance3D" parent="terrain_tunnel_lids" unique_id=1550140462]
 material_override = SubResource("StandardMaterial3D_kqxy6")
 mesh = ExtResource("9_p3hwe")
 
-[node name="shape" type="CollisionShape3D" parent="terrain_tunnel_lids" unique_id=1079459306]
+[node name="shape" type="CollisionShape3D" parent="terrain_tunnel_lids" unique_id=283243268]
 shape = ExtResource("10_hyiln")
 
-[node name="terrain_T2_lowland" type="StaticBody3D" parent="." unique_id=631073459]
+[node name="terrain_T2_lowland" type="StaticBody3D" parent="." unique_id=530637020]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00425, 0.00425, 0.00425)
 
-[node name="surface" type="MeshInstance3D" parent="terrain_T2_lowland" unique_id=1825710555]
+[node name="surface" type="MeshInstance3D" parent="terrain_T2_lowland" unique_id=264636203]
 material_override = SubResource("StandardMaterial3D_kqxy6")
 mesh = ExtResource("11_yf6b2")
 
-[node name="shape" type="CollisionShape3D" parent="terrain_T2_lowland" unique_id=953918669]
+[node name="shape" type="CollisionShape3D" parent="terrain_T2_lowland" unique_id=645442746]
 shape = ExtResource("12_ren2p")
 
-[node name="terrain_T3_headland" type="StaticBody3D" parent="." unique_id=1880404999]
+[node name="terrain_T3_headland" type="StaticBody3D" parent="." unique_id=1092811767]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0045000003, 0.0045000003, 0.0045000003)
 
-[node name="surface" type="MeshInstance3D" parent="terrain_T3_headland" unique_id=372910739]
+[node name="surface" type="MeshInstance3D" parent="terrain_T3_headland" unique_id=2027759310]
 material_override = SubResource("StandardMaterial3D_kqxy6")
 mesh = SubResource("ArrayMesh_1r6ie")
 
-[node name="shape" type="CollisionShape3D" parent="terrain_T3_headland" unique_id=594795365]
+[node name="shape" type="CollisionShape3D" parent="terrain_T3_headland" unique_id=463870587]
 shape = SubResource("ConcavePolygonShape3D_2oae4")
 
-[node name="terrain_T6_outer_highland" type="StaticBody3D" parent="." unique_id=476886737]
+[node name="terrain_T6_outer_highland" type="StaticBody3D" parent="." unique_id=294302764]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0047500003, 0.0047500003, 0.0047500003)
 
-[node name="surface" type="MeshInstance3D" parent="terrain_T6_outer_highland" unique_id=82937418]
+[node name="surface" type="MeshInstance3D" parent="terrain_T6_outer_highland" unique_id=1979990744]
 material_override = SubResource("StandardMaterial3D_kqxy6")
 mesh = ExtResource("13_rf58n")
 
-[node name="shape" type="CollisionShape3D" parent="terrain_T6_outer_highland" unique_id=697288804]
+[node name="shape" type="CollisionShape3D" parent="terrain_T6_outer_highland" unique_id=974559834]
 shape = ExtResource("14_mfngs")
 
-[node name="east_shoulder_n" type="StaticBody3D" parent="." unique_id=1571148830]
+[node name="east_shoulder_n" type="StaticBody3D" parent="." unique_id=833184956]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.004, 0.004, 0.004)
 
-[node name="skin" type="MeshInstance3D" parent="east_shoulder_n" unique_id=1135166337]
+[node name="skin" type="MeshInstance3D" parent="east_shoulder_n" unique_id=2017692290]
 material_override = SubResource("StandardMaterial3D_kqxy6")
 mesh = ExtResource("15_iboc8")
 
-[node name="shape" type="CollisionShape3D" parent="east_shoulder_n" unique_id=1742980026]
+[node name="shape" type="CollisionShape3D" parent="east_shoulder_n" unique_id=1954525854]
 shape = ExtResource("16_vkxfi")
 
-[node name="shoulder_wall_n" type="CSGBox3D" parent="." unique_id=1874025839]
+[node name="shoulder_wall_n" type="CSGBox3D" parent="." unique_id=1782063940]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 61.229248, 2.656393, -31.195751)
 use_collision = true
 size = Vector3(1.05, 6.9542856, 25.6)
 material = SubResource("StandardMaterial3D_26ejk")
 
-[node name="shoulder_wall_brick_n" type="CSGBox3D" parent="." unique_id=117036340]
+[node name="shoulder_wall_brick_n" type="CSGBox3D" parent="." unique_id=414305483]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60.6845, 1.1045, -31.195501)
 size = Vector3(0.24, 3, 25)
 material = SubResource("StandardMaterial3D_supf2")
 
-[node name="shoulder_ret_n_0" type="CSGBox3D" parent="." unique_id=1614465473]
+[node name="shoulder_ret_n_0" type="CSGBox3D" parent="." unique_id=1480046727]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 62.354748, 3.5206692, -18.79525)
 use_collision = true
 size = Vector3(3.2999992, 8.891838, 1)
 material = SubResource("StandardMaterial3D_26ejk")
 
-[node name="shoulder_ret_n_1" type="CSGBox3D" parent="." unique_id=32771414]
+[node name="shoulder_ret_n_1" type="CSGBox3D" parent="." unique_id=917118377]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65.604996, 4.6710415, -18.795)
 use_collision = true
 size = Vector3(3.199997, 11.192082, 1)
 material = SubResource("StandardMaterial3D_26ejk")
 
-[node name="shoulder_ret_n_2" type="CSGBox3D" parent="." unique_id=1931649331]
+[node name="shoulder_ret_n_2" type="CSGBox3D" parent="." unique_id=1998395630]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 68.8, 5.58, -18.8)
 use_collision = true
 size = Vector3(3.2000046, 13.02, 1)
 material = SubResource("StandardMaterial3D_26ejk")
 
-[node name="shoulder_ret_brick_n" type="CSGBox3D" parent="." unique_id=934367109]
+[node name="shoulder_ret_brick_n" type="CSGBox3D" parent="." unique_id=1531831947]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65.550255, 1.10025, -18.35975)
 size = Vector3(9.3, 3, 0.24)
 material = SubResource("StandardMaterial3D_supf2")
 
-[node name="east_promenade_bank_0_0" type="CSGBox3D" parent="." unique_id=976726604]
+[node name="east_promenade_bank_0_0" type="CSGBox3D" parent="." unique_id=35492936]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 57.963, 0.18549998, -88.10443)
 use_collision = true
 size = Vector3(1.655, 0.53, 7.9501305)
 material = SubResource("StandardMaterial3D_supf2")
 
-[node name="east_promenade_bank_0_0_soil" type="CSGBox3D" parent="." unique_id=1277993468]
+[node name="east_promenade_bank_0_0_soil" type="CSGBox3D" parent="." unique_id=1674538734]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 57.963253, 0.48575, -88.10419)
 size = Vector3(1.505, 0.1, 7.6701307)
 material = SubResource("StandardMaterial3D_kqxy6")
 
-[node name="east_promenade_bank_0_0_coping" type="CSGBox3D" parent="." unique_id=235430689]
+[node name="east_promenade_bank_0_0_coping" type="CSGBox3D" parent="." unique_id=204183433]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 57.116, 0.52099997, -88.103935)
 size = Vector3(0.16, 0.16, 7.8701305)
 material = SubResource("StandardMaterial3D_b6sds")
 
-[node name="east_promenade_bank_0_1" type="CSGBox3D" parent="." unique_id=2056228664]
+[node name="east_promenade_bank_0_1" type="CSGBox3D" parent="." unique_id=841218658]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 57.963753, 0.18624999, -54.853683)
 use_collision = true
 size = Vector3(1.655, 0.53, 33.86987)
 material = SubResource("StandardMaterial3D_supf2")
 
-[node name="east_promenade_bank_0_1_soil" type="CSGBox3D" parent="." unique_id=1425681232]
+[node name="east_promenade_bank_0_1_soil" type="CSGBox3D" parent="." unique_id=386815844]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 57.964, 0.4865, -54.853436)
 size = Vector3(1.505, 0.1, 33.58987)
 material = SubResource("StandardMaterial3D_kqxy6")
 
-[node name="east_promenade_bank_0_1_coping" type="CSGBox3D" parent="." unique_id=91197054]
+[node name="east_promenade_bank_0_1_coping" type="CSGBox3D" parent="." unique_id=122220514]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 57.116753, 0.52175, -54.853184)
 size = Vector3(0.16, 0.16, 33.78987)
 material = SubResource("StandardMaterial3D_b6sds")
 
-[node name="east_promenade_bank_1_0" type="CSGBox3D" parent="." unique_id=1007174783]
+[node name="east_promenade_bank_1_0" type="CSGBox3D" parent="." unique_id=42852492]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 59.5895, 0.487, -88.45625)
 use_collision = true
 size = Vector3(1.655, 1.13, 7.243496)
 material = SubResource("StandardMaterial3D_supf2")
 
-[node name="east_promenade_bank_1_0_soil" type="CSGBox3D" parent="." unique_id=957155026]
+[node name="east_promenade_bank_1_0_soil" type="CSGBox3D" parent="." unique_id=458820226]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 59.589752, 1.0872499, -88.456)
 size = Vector3(1.505, 0.1, 6.963496)
 material = SubResource("StandardMaterial3D_kqxy6")
 
-[node name="east_promenade_bank_1_0_coping" type="CSGBox3D" parent="." unique_id=1427161308]
+[node name="east_promenade_bank_1_0_coping" type="CSGBox3D" parent="." unique_id=1269621162]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 58.7425, 1.1225001, -88.45575)
 size = Vector3(0.16, 0.16, 7.163496)
 material = SubResource("StandardMaterial3D_b6sds")
 
-[node name="east_promenade_bank_1_1" type="CSGBox3D" parent="." unique_id=1075375332]
+[node name="east_promenade_bank_1_1" type="CSGBox3D" parent="." unique_id=1578813100]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 59.590252, 0.48775, -55.2055)
 use_collision = true
 size = Vector3(1.655, 1.13, 34.576504)
 material = SubResource("StandardMaterial3D_supf2")
 
-[node name="east_promenade_bank_1_1_soil" type="CSGBox3D" parent="." unique_id=153910318]
+[node name="east_promenade_bank_1_1_soil" type="CSGBox3D" parent="." unique_id=819746569]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 59.5905, 1.0879999, -55.205254)
 size = Vector3(1.505, 0.1, 34.296505)
 material = SubResource("StandardMaterial3D_kqxy6")
 
-[node name="east_promenade_bank_1_1_coping" type="CSGBox3D" parent="." unique_id=1655376675]
+[node name="east_promenade_bank_1_1_coping" type="CSGBox3D" parent="." unique_id=1147617064]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 58.74325, 1.12325, -55.205)
 size = Vector3(0.16, 0.16, 34.496506)
 material = SubResource("StandardMaterial3D_b6sds")
 
-[node name="east_promenade_bank_2_0" type="CSGBox3D" parent="." unique_id=856753524]
+[node name="east_promenade_bank_2_0" type="CSGBox3D" parent="." unique_id=1822549469]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 61.216003, 0.96349996, -88.79565)
 use_collision = true
 size = Vector3(1.655, 2.08, 6.5617104)
 material = SubResource("StandardMaterial3D_supf2")
 
-[node name="east_promenade_bank_2_0_soil" type="CSGBox3D" parent="." unique_id=1576832482]
+[node name="east_promenade_bank_2_0_soil" type="CSGBox3D" parent="." unique_id=1392994968]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 61.21625, 2.0387502, -88.795395)
 size = Vector3(1.505, 0.1, 6.2817106)
 material = SubResource("StandardMaterial3D_kqxy6")
 
-[node name="east_promenade_bank_2_0_coping" type="CSGBox3D" parent="." unique_id=702149450]
+[node name="east_promenade_bank_2_0_coping" type="CSGBox3D" parent="." unique_id=509946369]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60.369003, 2.074, -88.79515)
 size = Vector3(0.16, 0.16, 6.4817104)
 material = SubResource("StandardMaterial3D_b6sds")
 
-[node name="east_promenade_bank_2_1" type="CSGBox3D" parent="." unique_id=1778968193]
+[node name="east_promenade_bank_2_1" type="CSGBox3D" parent="." unique_id=563484353]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 61.21675, 0.96424997, -55.544895)
 use_collision = true
 size = Vector3(1.655, 2.08, 35.25829)
 material = SubResource("StandardMaterial3D_supf2")
 
-[node name="east_promenade_bank_2_1_soil" type="CSGBox3D" parent="." unique_id=1232489896]
+[node name="east_promenade_bank_2_1_soil" type="CSGBox3D" parent="." unique_id=951832388]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 61.217003, 2.0395, -55.544643)
 size = Vector3(1.505, 0.1, 34.97829)
 material = SubResource("StandardMaterial3D_kqxy6")
 
-[node name="east_promenade_bank_2_1_coping" type="CSGBox3D" parent="." unique_id=1754732880]
+[node name="east_promenade_bank_2_1_coping" type="CSGBox3D" parent="." unique_id=514080666]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60.36975, 2.07475, -55.544395)
 size = Vector3(0.16, 0.16, 35.17829)
 material = SubResource("StandardMaterial3D_b6sds")
 
-[node name="east_promenade_bank_3_0" type="CSGBox3D" parent="." unique_id=2072934506]
+[node name="east_promenade_bank_3_0" type="CSGBox3D" parent="." unique_id=1919579552]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 62.842503, 1.64, -89.08318)
 use_collision = true
 size = Vector3(1.655, 3.4299998, 5.9836464)
 material = SubResource("StandardMaterial3D_supf2")
 
-[node name="east_promenade_bank_3_0_soil" type="CSGBox3D" parent="." unique_id=448637920]
+[node name="east_promenade_bank_3_0_soil" type="CSGBox3D" parent="." unique_id=601023137]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 62.8375, 3.385, -89.08818)
 size = Vector3(1.505, 0.1, 5.7036467)
 material = SubResource("StandardMaterial3D_kqxy6")
 
-[node name="east_promenade_bank_3_0_coping" type="CSGBox3D" parent="." unique_id=666164072]
+[node name="east_promenade_bank_3_0_coping" type="CSGBox3D" parent="." unique_id=1663866121]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 61.990253, 3.42025, -89.08793)
 size = Vector3(0.16, 0.16, 5.9036465)
 material = SubResource("StandardMaterial3D_b6sds")
 
-[node name="east_promenade_bank_3_1" type="CSGBox3D" parent="." unique_id=206121941]
+[node name="east_promenade_bank_3_1" type="CSGBox3D" parent="." unique_id=873181701]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 62.838, 1.6355, -55.837677)
 use_collision = true
 size = Vector3(1.655, 3.4299998, 35.836353)
 material = SubResource("StandardMaterial3D_supf2")
 
-[node name="east_promenade_bank_3_1_soil" type="CSGBox3D" parent="." unique_id=565987514]
+[node name="east_promenade_bank_3_1_soil" type="CSGBox3D" parent="." unique_id=1363416486]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 62.838253, 3.38575, -55.837425)
 size = Vector3(1.505, 0.1, 35.556355)
 material = SubResource("StandardMaterial3D_kqxy6")
 
-[node name="east_promenade_bank_3_1_coping" type="CSGBox3D" parent="." unique_id=1048288899]
+[node name="east_promenade_bank_3_1_coping" type="CSGBox3D" parent="." unique_id=736395933]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 61.991, 3.4209998, -55.837177)
 size = Vector3(0.16, 0.16, 35.756355)
 material = SubResource("StandardMaterial3D_b6sds")
 
-[node name="east_promenade_bank_4_0" type="CSGBox3D" parent="." unique_id=540936888]
+[node name="east_promenade_bank_4_0" type="CSGBox3D" parent="." unique_id=250884487]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64.46375, 2.53625, -89.36068)
 use_collision = true
 size = Vector3(1.655, 5.23, 5.436138)
 material = SubResource("StandardMaterial3D_supf2")
 
-[node name="east_promenade_bank_4_0_soil" type="CSGBox3D" parent="." unique_id=132743957]
+[node name="east_promenade_bank_4_0_soil" type="CSGBox3D" parent="." unique_id=501806823]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64.464005, 5.1865, -89.36043)
 size = Vector3(1.505, 0.1, 5.1561384)
 material = SubResource("StandardMaterial3D_kqxy6")
 
-[node name="east_promenade_bank_4_0_coping" type="CSGBox3D" parent="." unique_id=1982949199]
+[node name="east_promenade_bank_4_0_coping" type="CSGBox3D" parent="." unique_id=1298991154]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 63.616753, 5.2217503, -89.36018)
 size = Vector3(0.16, 0.16, 5.356138)
 material = SubResource("StandardMaterial3D_b6sds")
 
-[node name="east_promenade_bank_4_1" type="CSGBox3D" parent="." unique_id=1061661284]
+[node name="east_promenade_bank_4_1" type="CSGBox3D" parent="." unique_id=1436660788]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64.4645, 2.5370002, -56.109932)
 use_collision = true
 size = Vector3(1.655, 5.23, 36.38386)
 material = SubResource("StandardMaterial3D_supf2")
 
-[node name="east_promenade_bank_4_1_soil" type="CSGBox3D" parent="." unique_id=1439000561]
+[node name="east_promenade_bank_4_1_soil" type="CSGBox3D" parent="." unique_id=364970495]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64.46475, 5.18725, -56.10968)
 size = Vector3(1.505, 0.1, 36.103863)
 material = SubResource("StandardMaterial3D_kqxy6")
 
-[node name="east_promenade_bank_4_1_coping" type="CSGBox3D" parent="." unique_id=1713312340]
+[node name="east_promenade_bank_4_1_coping" type="CSGBox3D" parent="." unique_id=2050507470]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 63.6175, 5.2225003, -56.109432)
 size = Vector3(0.16, 0.16, 36.303864)
 material = SubResource("StandardMaterial3D_b6sds")
 
-[node name="east_promenade_bank_5_0" type="CSGBox3D" parent="." unique_id=475136142]
+[node name="east_promenade_bank_5_0" type="CSGBox3D" parent="." unique_id=1864627027]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 66.09025, 3.63775, -89.564186)
 use_collision = true
 size = Vector3(1.655, 7.43, 5.0261345)
 material = SubResource("StandardMaterial3D_supf2")
 
-[node name="east_promenade_bank_5_0_soil" type="CSGBox3D" parent="." unique_id=1676562462]
+[node name="east_promenade_bank_5_0_soil" type="CSGBox3D" parent="." unique_id=347143984]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 66.0905, 7.3879995, -89.563934)
 size = Vector3(1.505, 0.1, 4.7461348)
 material = SubResource("StandardMaterial3D_kqxy6")
 
-[node name="east_promenade_bank_5_0_coping" type="CSGBox3D" parent="." unique_id=1065554190]
+[node name="east_promenade_bank_5_0_coping" type="CSGBox3D" parent="." unique_id=318519267]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65.24325, 7.42325, -89.56368)
 size = Vector3(0.16, 0.16, 4.9461346)
 material = SubResource("StandardMaterial3D_b6sds")
 
-[node name="east_promenade_bank_5_1" type="CSGBox3D" parent="." unique_id=2117234439]
+[node name="east_promenade_bank_5_1" type="CSGBox3D" parent="." unique_id=1371376632]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 66.091, 3.6385, -56.31343)
 use_collision = true
 size = Vector3(1.655, 7.43, 36.793865)
 material = SubResource("StandardMaterial3D_supf2")
 
-[node name="east_promenade_bank_5_1_soil" type="CSGBox3D" parent="." unique_id=1164152760]
+[node name="east_promenade_bank_5_1_soil" type="CSGBox3D" parent="." unique_id=720630789]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 66.091255, 7.3887496, -56.313183)
 size = Vector3(1.505, 0.1, 36.513866)
 material = SubResource("StandardMaterial3D_kqxy6")
 
-[node name="east_promenade_bank_5_1_coping" type="CSGBox3D" parent="." unique_id=1338482133]
+[node name="east_promenade_bank_5_1_coping" type="CSGBox3D" parent="." unique_id=1273559534]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65.243996, 7.4240003, -56.31293)
 size = Vector3(0.16, 0.16, 36.713867)
 material = SubResource("StandardMaterial3D_b6sds")
 
-[node name="east_promenade_bank_6_0" type="CSGBox3D" parent="." unique_id=1442492860]
+[node name="east_promenade_bank_6_0" type="CSGBox3D" parent="." unique_id=339710442]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.71675, 4.86425, -89.75016)
 use_collision = true
 size = Vector3(1.655, 9.88, 4.6511803)
 material = SubResource("StandardMaterial3D_supf2")
 
-[node name="east_promenade_bank_6_0_soil" type="CSGBox3D" parent="." unique_id=1162880370]
+[node name="east_promenade_bank_6_0_soil" type="CSGBox3D" parent="." unique_id=1632379665]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.717, 9.8395, -89.74991)
 size = Vector3(1.505, 0.1, 4.3711805)
 material = SubResource("StandardMaterial3D_kqxy6")
 
-[node name="east_promenade_bank_6_0_coping" type="CSGBox3D" parent="." unique_id=263566395]
+[node name="east_promenade_bank_6_0_coping" type="CSGBox3D" parent="." unique_id=248979640]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 66.86975, 9.87475, -89.74966)
 size = Vector3(0.16, 0.16, 4.5711803)
 material = SubResource("StandardMaterial3D_b6sds")
 
-[node name="east_promenade_bank_6_1" type="CSGBox3D" parent="." unique_id=1825238977]
+[node name="east_promenade_bank_6_1" type="CSGBox3D" parent="." unique_id=1157373021]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.7175, 4.8650002, -56.49941)
 use_collision = true
 size = Vector3(1.655, 9.88, 37.16882)
 material = SubResource("StandardMaterial3D_supf2")
 
-[node name="east_promenade_bank_6_1_soil" type="CSGBox3D" parent="." unique_id=388828407]
+[node name="east_promenade_bank_6_1_soil" type="CSGBox3D" parent="." unique_id=944927406]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.7125, 9.835, -56.50441)
 size = Vector3(1.505, 0.1, 36.88882)
 material = SubResource("StandardMaterial3D_kqxy6")
 
-[node name="east_promenade_bank_6_1_coping" type="CSGBox3D" parent="." unique_id=1882779334]
+[node name="east_promenade_bank_6_1_coping" type="CSGBox3D" parent="." unique_id=267726263]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 66.86525, 9.87025, -56.504158)
 size = Vector3(0.16, 0.16, 37.08882)
 material = SubResource("StandardMaterial3D_b6sds")
 
-[node name="east_promenade_bank_7_0" type="CSGBox3D" parent="." unique_id=995153347]
+[node name="east_promenade_bank_7_0" type="CSGBox3D" parent="." unique_id=1140198780]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 69.338005, 5.9705005, -89.85739)
 use_collision = true
 size = Vector3(1.655, 12.1, 4.4442024)
 material = SubResource("StandardMaterial3D_supf2")
 
-[node name="east_promenade_bank_7_0_soil" type="CSGBox3D" parent="." unique_id=331770491]
+[node name="east_promenade_bank_7_0_soil" type="CSGBox3D" parent="." unique_id=1317628937]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 69.33825, 12.05575, -89.85715)
 size = Vector3(1.505, 0.1, 4.1642027)
 material = SubResource("StandardMaterial3D_kqxy6")
 
-[node name="east_promenade_bank_7_0_coping" type="CSGBox3D" parent="." unique_id=2115746248]
+[node name="east_promenade_bank_7_0_coping" type="CSGBox3D" parent="." unique_id=1015448261]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 68.491, 12.091001, -89.856895)
 size = Vector3(0.16, 0.16, 4.3642025)
 material = SubResource("StandardMaterial3D_b6sds")
 
-[node name="east_promenade_bank_7_1" type="CSGBox3D" parent="." unique_id=1522639161]
+[node name="east_promenade_bank_7_1" type="CSGBox3D" parent="." unique_id=1885878116]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 69.33875, 5.97125, -56.606647)
 use_collision = true
 size = Vector3(1.655, 12.1, 37.375797)
 material = SubResource("StandardMaterial3D_supf2")
 
-[node name="east_promenade_bank_7_1_soil" type="CSGBox3D" parent="." unique_id=1813608010]
+[node name="east_promenade_bank_7_1_soil" type="CSGBox3D" parent="." unique_id=1502864625]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 69.339005, 12.0565, -56.6064)
 size = Vector3(1.505, 0.1, 37.0958)
 material = SubResource("StandardMaterial3D_kqxy6")
 
-[node name="east_promenade_bank_7_1_coping" type="CSGBox3D" parent="." unique_id=1233498409]
+[node name="east_promenade_bank_7_1_coping" type="CSGBox3D" parent="." unique_id=1641938384]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 68.491745, 12.09175, -56.606148)
 size = Vector3(0.16, 0.16, 37.2958)
 material = SubResource("StandardMaterial3D_b6sds")
 
-[node name="east_promenade_bank_hedge_0_0" type="CSGBox3D" parent="." unique_id=17743647]
+[node name="east_promenade_bank_hedge_0_0" type="CSGBox3D" parent="." unique_id=369548901]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 59.5895, 1.3319999, -42.998)
 size = Vector3(1.285, 0.46, 6.2)
 material = SubResource("StandardMaterial3D_jfoe6")
 
-[node name="east_promenade_bank_hedge_0_1" type="CSGBox3D" parent="." unique_id=1245772713]
+[node name="east_promenade_bank_hedge_0_1" type="CSGBox3D" parent="." unique_id=812597025]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 59.589752, 1.3322499, -56.99775)
 size = Vector3(1.285, 0.46, 6.2)
 material = SubResource("StandardMaterial3D_kqxy6")
 
-[node name="east_promenade_bank_hedge_1_0" type="CSGBox3D" parent="." unique_id=1722752014]
+[node name="east_promenade_bank_hedge_1_0" type="CSGBox3D" parent="." unique_id=1147349810]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 62.84, 3.6325, -49.9975)
 size = Vector3(1.285, 0.46, 6.2)
 material = SubResource("StandardMaterial3D_kqxy6")
 
-[node name="east_promenade_bank_hedge_1_1" type="CSGBox3D" parent="." unique_id=1243739043]
+[node name="east_promenade_bank_hedge_1_1" type="CSGBox3D" parent="." unique_id=1139076700]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 62.840252, 3.6327498, -63.99725)
 size = Vector3(1.285, 0.46, 6.2)
 material = SubResource("StandardMaterial3D_jfoe6")
 
-[node name="east_promenade_bank_hedge_1_3" type="CSGBox3D" parent="." unique_id=767779347]
+[node name="east_promenade_bank_hedge_1_3" type="CSGBox3D" parent="." unique_id=1569397976]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 62.8405, 3.633, -91.997)
 size = Vector3(1.285, 0.46, 6.2)
 material = SubResource("StandardMaterial3D_jfoe6")
 
-[node name="east_promenade_bank_hedge_2_0" type="CSGBox3D" parent="." unique_id=1121351539]
+[node name="east_promenade_bank_hedge_2_0" type="CSGBox3D" parent="." unique_id=288702702]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 66.09075, 7.63325, -42.99675)
 size = Vector3(1.285, 0.46, 6.2)
 material = SubResource("StandardMaterial3D_jfoe6")
 
-[node name="east_promenade_bank_hedge_2_1" type="CSGBox3D" parent="." unique_id=15821278]
+[node name="east_promenade_bank_hedge_2_1" type="CSGBox3D" parent="." unique_id=1408546511]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 66.091, 7.6335, -56.9965)
 size = Vector3(1.285, 0.46, 6.2)
 material = SubResource("StandardMaterial3D_kqxy6")
 
-[node name="east_promenade_bank_hedge_2_2" type="CSGBox3D" parent="." unique_id=1670628360]
+[node name="east_promenade_bank_hedge_2_2" type="CSGBox3D" parent="." unique_id=1972276833]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 66.091255, 7.63375, -70.99625)
 size = Vector3(1.285, 0.46, 6.2)
 material = SubResource("StandardMaterial3D_jfoe6")
 
-[node name="east_promenade_bank_hedge_3_0" type="CSGBox3D" parent="." unique_id=715315047]
+[node name="east_promenade_bank_hedge_3_0" type="CSGBox3D" parent="." unique_id=738649127]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 69.3415, 12.304, -49.996)
 size = Vector3(1.285, 0.46, 6.2)
 material = SubResource("StandardMaterial3D_kqxy6")
 
-[node name="east_promenade_bank_hedge_3_1" type="CSGBox3D" parent="." unique_id=1129691902]
+[node name="east_promenade_bank_hedge_3_1" type="CSGBox3D" parent="." unique_id=1439236102]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 69.34175, 12.30425, -63.99575)
 size = Vector3(1.285, 0.46, 6.2)
 material = SubResource("StandardMaterial3D_jfoe6")
 
-[node name="east_promenade_bank_hedge_3_3" type="CSGBox3D" parent="." unique_id=76989842]
+[node name="east_promenade_bank_hedge_3_3" type="CSGBox3D" parent="." unique_id=136899695]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 69.342, 12.304501, -91.9955)
 size = Vector3(1.285, 0.46, 6.2)
 material = SubResource("StandardMaterial3D_jfoe6")
 
-[node name="east_promenade_bank_shrub_0_trunk" type="CSGCylinder3D" parent="." unique_id=479195331]
+[node name="east_promenade_bank_shrub_0_trunk" type="CSGCylinder3D" parent="." unique_id=1271175133]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 61.21725, 2.52475, -41.99525)
 radius = 0.09
 height = 0.84
 material = SubResource("StandardMaterial3D_gy578")
 
-[node name="east_promenade_bank_shrub_0_a" type="CSGSphere3D" parent="." unique_id=1247886672]
+[node name="east_promenade_bank_shrub_0_a" type="CSGSphere3D" parent="." unique_id=1545721342]
 transform = Transform3D(1, 0, 0, 0, 0.84, 0, 0, 0, 1, 61.217503, 3.105, -41.995)
 radius = 0.52
 radial_segments = 10
 material = SubResource("StandardMaterial3D_jfoe6")
 
-[node name="east_promenade_bank_shrub_0_b" type="CSGSphere3D" parent="." unique_id=1439930426]
+[node name="east_promenade_bank_shrub_0_b" type="CSGSphere3D" parent="." unique_id=565645391]
 transform = Transform3D(1, 0, 0, 0, 0.82, 0, 0, 0, 1, 61.4325, 3.38, -42.18)
 radius = 0.34
 radial_segments = 10
 material = SubResource("StandardMaterial3D_kqxy6")
 
-[node name="east_promenade_bank_flower_0_0" type="CSGSphere3D" parent="." unique_id=1768524192]
+[node name="east_promenade_bank_flower_0_0" type="CSGSphere3D" parent="." unique_id=579648535]
 transform = Transform3D(1, 0, 0, 0, 0.78, 0, 0, 0, 1, 60.77275, 2.35025, -41.659748)
 cast_shadow = 0
 radius = 0.14
 radial_segments = 10
 material = SubResource("StandardMaterial3D_u5w3n")
 
-[node name="east_promenade_bank_flower_0_1" type="CSGSphere3D" parent="." unique_id=187474659]
+[node name="east_promenade_bank_flower_0_1" type="CSGSphere3D" parent="." unique_id=1871320269]
 transform = Transform3D(1, 0, 0, 0, 0.78, 0, 0, 0, 1, 61.173, 2.3504999, -41.9595)
 cast_shadow = 0
 radius = 0.14
 radial_segments = 10
 material = SubResource("StandardMaterial3D_d37qv")
 
-[node name="east_promenade_bank_flower_0_2" type="CSGSphere3D" parent="." unique_id=1235528172]
+[node name="east_promenade_bank_flower_0_2" type="CSGSphere3D" parent="." unique_id=1478860094]
 transform = Transform3D(1, 0, 0, 0, 0.78, 0, 0, 0, 1, 61.57325, 2.35075, -42.259247)
 cast_shadow = 0
 radius = 0.14
 radial_segments = 10
 material = SubResource("StandardMaterial3D_b6sds")
 
-[node name="east_promenade_bank_shrub_1_trunk" type="CSGCylinder3D" parent="." unique_id=2013460167]
+[node name="east_promenade_bank_shrub_1_trunk" type="CSGCylinder3D" parent="." unique_id=1367525678]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 66.0885, 7.871, -50.999)
 radius = 0.09
 height = 0.84
 material = SubResource("StandardMaterial3D_gy578")
 
-[node name="east_promenade_bank_shrub_1_a" type="CSGSphere3D" parent="." unique_id=1429092647]
+[node name="east_promenade_bank_shrub_1_a" type="CSGSphere3D" parent="." unique_id=1991893810]
 transform = Transform3D(1, 0, 0, 0, 0.84, 0, 0, 0, 1, 66.08875, 8.45125, -50.99875)
 radius = 0.52
 radial_segments = 10
 material = SubResource("StandardMaterial3D_kqxy6")
 
-[node name="east_promenade_bank_shrub_1_b" type="CSGSphere3D" parent="." unique_id=719899896]
+[node name="east_promenade_bank_shrub_1_b" type="CSGSphere3D" parent="." unique_id=225104656]
 transform = Transform3D(1, 0, 0, 0, 0.82, 0, 0, 0, 1, 66.309006, 8.7315, -51.1785)
 radius = 0.34
 radial_segments = 10
 material = SubResource("StandardMaterial3D_jfoe6")
 
-[node name="east_promenade_bank_flower_1_0" type="CSGSphere3D" parent="." unique_id=385714235]
+[node name="east_promenade_bank_flower_1_0" type="CSGSphere3D" parent="." unique_id=984441211]
 transform = Transform3D(1, 0, 0, 0, 0.78, 0, 0, 0, 1, 65.64925, 7.70175, -50.65825)
 cast_shadow = 0
 radius = 0.14
 radial_segments = 10
 material = SubResource("StandardMaterial3D_d37qv")
 
-[node name="east_promenade_bank_flower_1_1" type="CSGSphere3D" parent="." unique_id=243419792]
+[node name="east_promenade_bank_flower_1_1" type="CSGSphere3D" parent="." unique_id=1688259589]
 transform = Transform3D(1, 0, 0, 0, 0.78, 0, 0, 0, 1, 66.0495, 7.7019997, -50.958)
 cast_shadow = 0
 radius = 0.14
 radial_segments = 10
 material = SubResource("StandardMaterial3D_b6sds")
 
-[node name="east_promenade_bank_flower_1_2" type="CSGSphere3D" parent="." unique_id=970251155]
+[node name="east_promenade_bank_flower_1_2" type="CSGSphere3D" parent="." unique_id=1237238804]
 transform = Transform3D(1, 0, 0, 0, 0.78, 0, 0, 0, 1, 66.44975, 7.70225, -51.257748)
 cast_shadow = 0
 radius = 0.14
 radial_segments = 10
 material = SubResource("StandardMaterial3D_u5w3n")
 
-[node name="east_promenade_bank_shrub_2_trunk" type="CSGCylinder3D" parent="." unique_id=880774323]
+[node name="east_promenade_bank_shrub_2_trunk" type="CSGCylinder3D" parent="." unique_id=2031058969]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 62.84, 3.8725, -59.9975)
 radius = 0.09
 height = 0.84
 material = SubResource("StandardMaterial3D_gy578")
 
-[node name="east_promenade_bank_shrub_2_a" type="CSGSphere3D" parent="." unique_id=1732614439]
+[node name="east_promenade_bank_shrub_2_a" type="CSGSphere3D" parent="." unique_id=949750588]
 transform = Transform3D(1, 0, 0, 0, 0.84, 0, 0, 0, 1, 62.840252, 4.4527497, -59.99725)
 radius = 0.52
 radial_segments = 10
 material = SubResource("StandardMaterial3D_jfoe6")
 
-[node name="east_promenade_bank_shrub_2_b" type="CSGSphere3D" parent="." unique_id=311287339]
+[node name="east_promenade_bank_shrub_2_b" type="CSGSphere3D" parent="." unique_id=1473178854]
 transform = Transform3D(1, 0, 0, 0, 0.82, 0, 0, 0, 1, 63.060497, 4.733, -60.177002)
 radius = 0.34
 radial_segments = 10
 material = SubResource("StandardMaterial3D_kqxy6")
 
-[node name="east_promenade_bank_flower_2_0" type="CSGSphere3D" parent="." unique_id=1976391471]
+[node name="east_promenade_bank_flower_2_0" type="CSGSphere3D" parent="." unique_id=874467226]
 transform = Transform3D(1, 0, 0, 0, 0.78, 0, 0, 0, 1, 62.40075, 3.7032497, -59.65675)
 cast_shadow = 0
 radius = 0.14
 radial_segments = 10
 material = SubResource("StandardMaterial3D_b6sds")
 
-[node name="east_promenade_bank_flower_2_1" type="CSGSphere3D" parent="." unique_id=1737374573]
+[node name="east_promenade_bank_flower_2_1" type="CSGSphere3D" parent="." unique_id=2112705452]
 transform = Transform3D(1, 0, 0, 0, 0.78, 0, 0, 0, 1, 62.801003, 3.7034998, -59.956497)
 cast_shadow = 0
 radius = 0.14
 radial_segments = 10
 material = SubResource("StandardMaterial3D_u5w3n")
 
-[node name="east_promenade_bank_flower_2_2" type="CSGSphere3D" parent="." unique_id=1722843960]
+[node name="east_promenade_bank_flower_2_2" type="CSGSphere3D" parent="." unique_id=1681338128]
 transform = Transform3D(1, 0, 0, 0, 0.78, 0, 0, 0, 1, 63.20125, 3.70375, -60.25625)
 cast_shadow = 0
 radius = 0.14
 radial_segments = 10
 material = SubResource("StandardMaterial3D_d37qv")
 
-[node name="east_promenade_bank_shrub_3_trunk" type="CSGCylinder3D" parent="." unique_id=248712803]
+[node name="east_promenade_bank_shrub_3_trunk" type="CSGCylinder3D" parent="." unique_id=1977451624]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.7165, 10.324, -68.996)
 radius = 0.09
 height = 0.84
 material = SubResource("StandardMaterial3D_gy578")
 
-[node name="east_promenade_bank_shrub_3_a" type="CSGSphere3D" parent="." unique_id=96644757]
+[node name="east_promenade_bank_shrub_3_a" type="CSGSphere3D" parent="." unique_id=842669836]
 transform = Transform3D(1, 0, 0, 0, 0.84, 0, 0, 0, 1, 67.71675, 10.90425, -68.99575)
 radius = 0.52
 radial_segments = 10
 material = SubResource("StandardMaterial3D_kqxy6")
 
-[node name="east_promenade_bank_shrub_3_b" type="CSGSphere3D" parent="." unique_id=554463944]
+[node name="east_promenade_bank_shrub_3_b" type="CSGSphere3D" parent="." unique_id=1457087003]
 transform = Transform3D(1, 0, 0, 0, 0.82, 0, 0, 0, 1, 67.937004, 11.184501, -69.1755)
 radius = 0.34
 radial_segments = 10
 material = SubResource("StandardMaterial3D_jfoe6")
 
-[node name="east_promenade_bank_flower_3_0" type="CSGSphere3D" parent="." unique_id=800470963]
+[node name="east_promenade_bank_flower_3_0" type="CSGSphere3D" parent="." unique_id=1900561459]
 transform = Transform3D(1, 0, 0, 0, 0.78, 0, 0, 0, 1, 67.27725, 10.154751, -68.65525)
 cast_shadow = 0
 radius = 0.14
 radial_segments = 10
 material = SubResource("StandardMaterial3D_u5w3n")
 
-[node name="east_promenade_bank_flower_3_1" type="CSGSphere3D" parent="." unique_id=1584715003]
+[node name="east_promenade_bank_flower_3_1" type="CSGSphere3D" parent="." unique_id=1646765745]
 transform = Transform3D(1, 0, 0, 0, 0.78, 0, 0, 0, 1, 67.6775, 10.155001, -68.955)
 cast_shadow = 0
 radius = 0.14
 radial_segments = 10
 material = SubResource("StandardMaterial3D_d37qv")
 
-[node name="east_promenade_bank_flower_3_2" type="CSGSphere3D" parent="." unique_id=1698435415]
+[node name="east_promenade_bank_flower_3_2" type="CSGSphere3D" parent="." unique_id=1774586118]
 transform = Transform3D(1, 0, 0, 0, 0.78, 0, 0, 0, 1, 68.0725, 10.150001, -69.26)
 cast_shadow = 0
 radius = 0.14
 radial_segments = 10
 material = SubResource("StandardMaterial3D_b6sds")
 
-[node name="east_promenade_bank_shrub_5_trunk" type="CSGCylinder3D" parent="." unique_id=610026047]
+[node name="east_promenade_bank_shrub_5_trunk" type="CSGCylinder3D" parent="." unique_id=384837053]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 61.212753, 2.52025, -86.99975)
 radius = 0.09
 height = 0.84
 material = SubResource("StandardMaterial3D_gy578")
 
-[node name="east_promenade_bank_shrub_5_a" type="CSGSphere3D" parent="." unique_id=698864345]
+[node name="east_promenade_bank_shrub_5_a" type="CSGSphere3D" parent="." unique_id=497613152]
 transform = Transform3D(1, 0, 0, 0, 0.84, 0, 0, 0, 1, 61.213, 3.1004999, -86.9995)
 radius = 0.52
 radial_segments = 10
 material = SubResource("StandardMaterial3D_kqxy6")
 
-[node name="east_promenade_bank_shrub_5_b" type="CSGSphere3D" parent="." unique_id=1116501452]
+[node name="east_promenade_bank_shrub_5_b" type="CSGSphere3D" parent="." unique_id=139206581]
 transform = Transform3D(1, 0, 0, 0, 0.82, 0, 0, 0, 1, 61.43325, 3.3807502, -87.17925)
 radius = 0.34
 radial_segments = 10
 material = SubResource("StandardMaterial3D_jfoe6")
 
-[node name="east_promenade_bank_flower_5_0" type="CSGSphere3D" parent="." unique_id=376037641]
+[node name="east_promenade_bank_flower_5_0" type="CSGSphere3D" parent="." unique_id=1561180006]
 transform = Transform3D(1, 0, 0, 0, 0.78, 0, 0, 0, 1, 60.7735, 2.3509998, -86.659004)
 cast_shadow = 0
 radius = 0.14
 radial_segments = 10
 material = SubResource("StandardMaterial3D_b6sds")
 
-[node name="east_promenade_bank_flower_5_1" type="CSGSphere3D" parent="." unique_id=825685995]
+[node name="east_promenade_bank_flower_5_1" type="CSGSphere3D" parent="." unique_id=1101973922]
 transform = Transform3D(1, 0, 0, 0, 0.78, 0, 0, 0, 1, 61.17375, 2.35125, -86.95875)
 cast_shadow = 0
 radius = 0.14
 radial_segments = 10
 material = SubResource("StandardMaterial3D_u5w3n")
 
-[node name="east_promenade_bank_flower_5_2" type="CSGSphere3D" parent="." unique_id=270208371]
+[node name="east_promenade_bank_flower_5_2" type="CSGSphere3D" parent="." unique_id=1085505551]
 transform = Transform3D(1, 0, 0, 0, 0.78, 0, 0, 0, 1, 61.573997, 2.3514998, -87.2585)
 cast_shadow = 0
 radius = 0.14
 radial_segments = 10
 material = SubResource("StandardMaterial3D_d37qv")
 
-[node name="shoulder_bloom_n_0_0" type="CSGSphere3D" parent="." unique_id=1802022350]
+[node name="shoulder_bloom_n_0_0" type="CSGSphere3D" parent="." unique_id=1708731872]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 58.662594, 4.4243503, -111.62448)
 cast_shadow = 0
 radius = 0.07488426
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_n_0_1" type="CSGSphere3D" parent="." unique_id=1698198630]
+[node name="shoulder_bloom_n_0_1" type="CSGSphere3D" parent="." unique_id=891280408]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 58.78553, 4.5250654, -111.70852)
 cast_shadow = 0
 radius = 0.10513321
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_n_0_2" type="CSGSphere3D" parent="." unique_id=761226451]
+[node name="shoulder_bloom_n_0_2" type="CSGSphere3D" parent="." unique_id=1158385719]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 58.96843, 4.640764, -111.400116)
 cast_shadow = 0
 radius = 0.06594965
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_n_1_0" type="CSGSphere3D" parent="." unique_id=2077712998]
+[node name="shoulder_bloom_n_1_0" type="CSGSphere3D" parent="." unique_id=1768712532]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 61.900955, 6.579726, -109.11941)
 cast_shadow = 0
 radius = 0.07739864
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_n_1_1" type="CSGSphere3D" parent="." unique_id=1497513683]
+[node name="shoulder_bloom_n_1_1" type="CSGSphere3D" parent="." unique_id=1177838211]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 61.9406, 6.6241684, -109.30082)
 cast_shadow = 0
 radius = 0.09565141
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_n_1_2" type="CSGSphere3D" parent="." unique_id=1537701377]
+[node name="shoulder_bloom_n_1_2" type="CSGSphere3D" parent="." unique_id=1971328632]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 62.106213, 6.7148094, -108.99472)
 cast_shadow = 0
 radius = 0.07019539
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_n_2_0" type="CSGSphere3D" parent="." unique_id=333376515]
+[node name="shoulder_bloom_n_2_0" type="CSGSphere3D" parent="." unique_id=365746973]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.40778, 10.6773405, -32.37152)
 cast_shadow = 0
 radius = 0.06179957
 radial_segments = 10
 material = SubResource("StandardMaterial3D_w4b0w")
 
-[node name="shoulder_bloom_n_2_1" type="CSGSphere3D" parent="." unique_id=392669098]
+[node name="shoulder_bloom_n_2_1" type="CSGSphere3D" parent="." unique_id=802153258]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.33341, 10.623368, -32.513485)
 cast_shadow = 0
 radius = 0.10451133
 radial_segments = 10
 material = SubResource("StandardMaterial3D_w4b0w")
 
-[node name="shoulder_bloom_n_2_2" type="CSGSphere3D" parent="." unique_id=2017102854]
+[node name="shoulder_bloom_n_2_2" type="CSGSphere3D" parent="." unique_id=89014506]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.416145, 10.674866, -32.482906)
 cast_shadow = 0
 radius = 0.075699165
 radial_segments = 10
 material = SubResource("StandardMaterial3D_w4b0w")
 
-[node name="shoulder_bloom_n_3_0" type="CSGSphere3D" parent="." unique_id=1004528336]
+[node name="shoulder_bloom_n_3_0" type="CSGSphere3D" parent="." unique_id=1579567126]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 58.261116, 4.223582, -98.53555)
 cast_shadow = 0
 radius = 0.07286251
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_n_3_1" type="CSGSphere3D" parent="." unique_id=1543406017]
+[node name="shoulder_bloom_n_3_1" type="CSGSphere3D" parent="." unique_id=563970892]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 58.243847, 4.20971, -98.54682)
 cast_shadow = 0
 radius = 0.08686366
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_n_3_2" type="CSGSphere3D" parent="." unique_id=1180724342]
+[node name="shoulder_bloom_n_3_2" type="CSGSphere3D" parent="." unique_id=76608012]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 58.438232, 4.3534226, -98.8466)
 cast_shadow = 0
 radius = 0.05617662
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_n_4_0" type="CSGSphere3D" parent="." unique_id=1360409837]
+[node name="shoulder_bloom_n_4_0" type="CSGSphere3D" parent="." unique_id=965793853]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 61.129246, 6.0771866, -109.64983)
 cast_shadow = 0
 radius = 0.059510108
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_n_4_1" type="CSGSphere3D" parent="." unique_id=634655510]
+[node name="shoulder_bloom_n_4_1" type="CSGSphere3D" parent="." unique_id=117836295]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 61.293537, 6.209145, -109.79371)
 cast_shadow = 0
 radius = 0.07043122
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_n_4_2" type="CSGSphere3D" parent="." unique_id=1479437169]
+[node name="shoulder_bloom_n_4_2" type="CSGSphere3D" parent="." unique_id=1638888589]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 61.13324, 6.071635, -109.57919)
 cast_shadow = 0
 radius = 0.09136622
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_n_5_0" type="CSGSphere3D" parent="." unique_id=1627418249]
+[node name="shoulder_bloom_n_5_0" type="CSGSphere3D" parent="." unique_id=957386369]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 63.169926, 7.517186, -58.688374)
 cast_shadow = 0
 radius = 0.10513321
 radial_segments = 10
 material = SubResource("StandardMaterial3D_w4b0w")
 
-[node name="shoulder_bloom_n_5_1" type="CSGSphere3D" parent="." unique_id=1162695166]
+[node name="shoulder_bloom_n_5_1" type="CSGSphere3D" parent="." unique_id=754249024]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 63.403748, 7.6613507, -58.484108)
 cast_shadow = 0
 radius = 0.06594965
 radial_segments = 10
 material = SubResource("StandardMaterial3D_w4b0w")
 
-[node name="shoulder_bloom_n_5_2" type="CSGSphere3D" parent="." unique_id=966467657]
+[node name="shoulder_bloom_n_5_2" type="CSGSphere3D" parent="." unique_id=159942425]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 63.156803, 7.5058756, -58.661953)
 cast_shadow = 0
 radius = 0.05792813
 radial_segments = 10
 material = SubResource("StandardMaterial3D_w4b0w")
 
-[node name="shoulder_bloom_n_6_0" type="CSGSphere3D" parent="." unique_id=390525018]
+[node name="shoulder_bloom_n_6_0" type="CSGSphere3D" parent="." unique_id=760950974]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 63.14009, 7.2170706, -71.04665)
 cast_shadow = 0
 radius = 0.09565141
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_n_6_1" type="CSGSphere3D" parent="." unique_id=1839739278]
+[node name="shoulder_bloom_n_6_1" type="CSGSphere3D" parent="." unique_id=1510894027]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 63.062042, 7.154414, -71.151665)
 cast_shadow = 0
 radius = 0.07019539
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_n_6_2" type="CSGSphere3D" parent="." unique_id=1363034184]
+[node name="shoulder_bloom_n_6_2" type="CSGSphere3D" parent="." unique_id=1509666281]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 63.259903, 7.304669, -70.84942)
 cast_shadow = 0
 radius = 0.08596567
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_n_7_0" type="CSGSphere3D" parent="." unique_id=1983227773]
+[node name="shoulder_bloom_n_7_0" type="CSGSphere3D" parent="." unique_id=1381765671]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64.649216, 8.462627, -108.68921)
 cast_shadow = 0
 radius = 0.10451133
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_n_7_1" type="CSGSphere3D" parent="." unique_id=1196647376]
+[node name="shoulder_bloom_n_7_1" type="CSGSphere3D" parent="." unique_id=712374812]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64.67333, 8.483085, -108.74581)
 cast_shadow = 0
 radius = 0.075699165
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_n_7_2" type="CSGSphere3D" parent="." unique_id=2106975982]
+[node name="shoulder_bloom_n_7_2" type="CSGSphere3D" parent="." unique_id=2143169317]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64.65233, 8.453055, -108.507454)
 cast_shadow = 0
 radius = 0.10165286
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_n_8_0" type="CSGSphere3D" parent="." unique_id=1762721264]
+[node name="shoulder_bloom_n_8_0" type="CSGSphere3D" parent="." unique_id=544161207]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 59.071102, 4.663214, -93.76094)
 cast_shadow = 0
 radius = 0.08686366
 radial_segments = 10
 material = SubResource("StandardMaterial3D_w4b0w")
 
-[node name="shoulder_bloom_n_8_1" type="CSGSphere3D" parent="." unique_id=1562287988]
+[node name="shoulder_bloom_n_8_1" type="CSGSphere3D" parent="." unique_id=1563616061]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 59.140312, 4.711577, -93.716774)
 cast_shadow = 0
 radius = 0.05617662
 radial_segments = 10
 material = SubResource("StandardMaterial3D_w4b0w")
 
-[node name="shoulder_bloom_n_8_2" type="CSGSphere3D" parent="." unique_id=712890310]
+[node name="shoulder_bloom_n_8_2" type="CSGSphere3D" parent="." unique_id=197009583]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 59.24702, 4.8167396, -93.99972)
 cast_shadow = 0
 radius = 0.09069566
 radial_segments = 10
 material = SubResource("StandardMaterial3D_w4b0w")
 
-[node name="shoulder_bloom_n_9_0" type="CSGSphere3D" parent="." unique_id=262882862]
+[node name="shoulder_bloom_n_9_0" type="CSGSphere3D" parent="." unique_id=2025219093]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65.30546, 8.936345, -23.295479)
 cast_shadow = 0
 radius = 0.07043122
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_n_9_1" type="CSGSphere3D" parent="." unique_id=126484779]
+[node name="shoulder_bloom_n_9_1" type="CSGSphere3D" parent="." unique_id=1682118099]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65.05064, 8.7491, -23.291931)
 cast_shadow = 0
 radius = 0.09136622
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_n_9_2" type="CSGSphere3D" parent="." unique_id=1482194119]
+[node name="shoulder_bloom_n_9_2" type="CSGSphere3D" parent="." unique_id=1193406820]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65.15637, 8.820155, -23.185553)
 cast_shadow = 0
 radius = 0.07408781
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_n_10_0" type="CSGSphere3D" parent="." unique_id=896004979]
+[node name="shoulder_bloom_n_10_0" type="CSGSphere3D" parent="." unique_id=806576403]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 68.95096, 7.9373074, -78.02951)
 cast_shadow = 0
 radius = 0.06594965
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_n_10_1" type="CSGSphere3D" parent="." unique_id=1756366764]
+[node name="shoulder_bloom_n_10_1" type="CSGSphere3D" parent="." unique_id=1929614115]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 68.90479, 7.926036, -78.209755)
 cast_shadow = 0
 radius = 0.05792813
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_n_10_2" type="CSGSphere3D" parent="." unique_id=1437636147]
+[node name="shoulder_bloom_n_10_2" type="CSGSphere3D" parent="." unique_id=1964851534]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 69.12432, 7.9505796, -78.180595)
 cast_shadow = 0
 radius = 0.08792027
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_n_11_0" type="CSGSphere3D" parent="." unique_id=1378537203]
+[node name="shoulder_bloom_n_11_0" type="CSGSphere3D" parent="." unique_id=247152017]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64.97167, 8.263285, -88.58933)
 cast_shadow = 0
 radius = 0.07019539
 radial_segments = 10
 material = SubResource("StandardMaterial3D_w4b0w")
 
-[node name="shoulder_bloom_n_11_1" type="CSGSphere3D" parent="." unique_id=956422661]
+[node name="shoulder_bloom_n_11_1" type="CSGSphere3D" parent="." unique_id=70668908]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65.054726, 8.262947, -88.38785)
 cast_shadow = 0
 radius = 0.08596567
 radial_segments = 10
 material = SubResource("StandardMaterial3D_w4b0w")
 
-[node name="shoulder_bloom_n_11_2" type="CSGSphere3D" parent="." unique_id=812509748]
+[node name="shoulder_bloom_n_11_2" type="CSGSphere3D" parent="." unique_id=1736893745]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65.21065, 8.352333, -88.635254)
 cast_shadow = 0
 radius = 0.105774395
 radial_segments = 10
 material = SubResource("StandardMaterial3D_w4b0w")
 
-[node name="shoulder_bloom_n_12_0" type="CSGSphere3D" parent="." unique_id=730314745]
+[node name="shoulder_bloom_n_12_0" type="CSGSphere3D" parent="." unique_id=1263703684]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 58.75587, 4.1704063, -88.495285)
 cast_shadow = 0
 radius = 0.075699165
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_n_12_1" type="CSGSphere3D" parent="." unique_id=613779369]
+[node name="shoulder_bloom_n_12_1" type="CSGSphere3D" parent="." unique_id=2082739067]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 58.684414, 4.116391, -88.59315)
 cast_shadow = 0
 radius = 0.10165286
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_n_12_2" type="CSGSphere3D" parent="." unique_id=73348317]
+[node name="shoulder_bloom_n_12_2" type="CSGSphere3D" parent="." unique_id=197673244]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 58.596653, 4.052373, -88.58763)
 cast_shadow = 0
 radius = 0.092801325
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_n_13_0" type="CSGSphere3D" parent="." unique_id=874881255]
+[node name="shoulder_bloom_n_13_0" type="CSGSphere3D" parent="." unique_id=2126963745]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.30248, 10.451858, -25.016216)
 cast_shadow = 0
 radius = 0.05617662
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_n_13_1" type="CSGSphere3D" parent="." unique_id=1873725159]
+[node name="shoulder_bloom_n_13_1" type="CSGSphere3D" parent="." unique_id=1911321536]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.21347, 10.386949, -24.917881)
 cast_shadow = 0
 radius = 0.09069566
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_n_13_2" type="CSGSphere3D" parent="." unique_id=1701301267]
+[node name="shoulder_bloom_n_13_2" type="CSGSphere3D" parent="." unique_id=1750261837]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.302956, 10.457892, -25.083466)
 cast_shadow = 0
 radius = 0.091268025
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="east_shoulder_s" type="StaticBody3D" parent="." unique_id=1498219481]
+[node name="east_shoulder_s" type="StaticBody3D" parent="." unique_id=1919507437]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00175, 0.00175, 0.00175)
 
-[node name="skin" type="MeshInstance3D" parent="east_shoulder_s" unique_id=1942553337]
+[node name="skin" type="MeshInstance3D" parent="east_shoulder_s" unique_id=1805107418]
 material_override = SubResource("StandardMaterial3D_kqxy6")
 mesh = ExtResource("19_xbslt")
 
-[node name="shape" type="CollisionShape3D" parent="east_shoulder_s" unique_id=347069494]
+[node name="shape" type="CollisionShape3D" parent="east_shoulder_s" unique_id=182593367]
 shape = ExtResource("20_rowfx")
 
-[node name="shoulder_bloom_s_0_0" type="CSGSphere3D" parent="." unique_id=247056158]
+[node name="shoulder_bloom_s_0_0" type="CSGSphere3D" parent="." unique_id=1054808799]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 58.66284, 4.2176023, 100.58197)
 cast_shadow = 0
 radius = 0.07488426
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_s_0_1" type="CSGSphere3D" parent="." unique_id=1871032627]
+[node name="shoulder_bloom_s_0_1" type="CSGSphere3D" parent="." unique_id=1480521274]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 58.78578, 4.3028007, 100.49793)
 cast_shadow = 0
 radius = 0.10513321
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_s_0_2" type="CSGSphere3D" parent="." unique_id=100898672]
+[node name="shoulder_bloom_s_0_2" type="CSGSphere3D" parent="." unique_id=1608492868]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 58.968678, 4.462508, 100.806335)
 cast_shadow = 0
 radius = 0.06594965
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_s_1_0" type="CSGSphere3D" parent="." unique_id=1916387878]
+[node name="shoulder_bloom_s_1_0" type="CSGSphere3D" parent="." unique_id=831779385]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 61.901207, 6.4517884, 98.65163)
 cast_shadow = 0
 radius = 0.07739864
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_s_1_1" type="CSGSphere3D" parent="." unique_id=2034564877]
+[node name="shoulder_bloom_s_1_1" type="CSGSphere3D" parent="." unique_id=1242838004]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 61.94085, 6.4741735, 98.47022)
 cast_shadow = 0
 radius = 0.09565141
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_s_1_2" type="CSGSphere3D" parent="." unique_id=1022514125]
+[node name="shoulder_bloom_s_1_2" type="CSGSphere3D" parent="." unique_id=2014578498]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 62.106464, 6.602672, 98.77632)
 cast_shadow = 0
 radius = 0.07019539
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_s_2_0" type="CSGSphere3D" parent="." unique_id=1054947616]
+[node name="shoulder_bloom_s_2_0" type="CSGSphere3D" parent="." unique_id=1275603584]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.408035, 10.713262, 36.129738)
 cast_shadow = 0
 radius = 0.06179957
 radial_segments = 10
 material = SubResource("StandardMaterial3D_w4b0w")
 
-[node name="shoulder_bloom_s_2_1" type="CSGSphere3D" parent="." unique_id=1523675077]
+[node name="shoulder_bloom_s_2_1" type="CSGSphere3D" parent="." unique_id=1214353385]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.333664, 10.661501, 35.987774)
 cast_shadow = 0
 radius = 0.10451133
 radial_segments = 10
 material = SubResource("StandardMaterial3D_w4b0w")
 
-[node name="shoulder_bloom_s_2_2" type="CSGSphere3D" parent="." unique_id=2052186245]
+[node name="shoulder_bloom_s_2_2" type="CSGSphere3D" parent="." unique_id=1366569534]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.41639, 10.71191, 36.018353)
 cast_shadow = 0
 radius = 0.075699165
 radial_segments = 10
 material = SubResource("StandardMaterial3D_w4b0w")
 
-[node name="shoulder_bloom_s_3_0" type="CSGSphere3D" parent="." unique_id=685430210]
+[node name="shoulder_bloom_s_3_0" type="CSGSphere3D" parent="." unique_id=346151216]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 58.261364, 4.2174563, 90.27232)
 cast_shadow = 0
 radius = 0.07286251
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_s_3_1" type="CSGSphere3D" parent="." unique_id=2049956635]
+[node name="shoulder_bloom_s_3_1" type="CSGSphere3D" parent="." unique_id=975879852]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 58.2441, 4.2042675, 90.261055)
 cast_shadow = 0
 radius = 0.08686366
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_s_3_2" type="CSGSphere3D" parent="." unique_id=371307624]
+[node name="shoulder_bloom_s_3_2" type="CSGSphere3D" parent="." unique_id=1461600314]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 58.43848, 4.365673, 89.96127)
 cast_shadow = 0
 radius = 0.05617662
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_s_4_0" type="CSGSphere3D" parent="." unique_id=261945871]
+[node name="shoulder_bloom_s_4_0" type="CSGSphere3D" parent="." unique_id=2010142847]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 61.129498, 5.925689, 99.20957)
 cast_shadow = 0
 radius = 0.059510108
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_s_4_1" type="CSGSphere3D" parent="." unique_id=58832865]
+[node name="shoulder_bloom_s_4_1" type="CSGSphere3D" parent="." unique_id=1215079501]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 61.288536, 6.0309086, 99.060455)
 cast_shadow = 0
 radius = 0.07043122
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_s_4_2" type="CSGSphere3D" parent="." unique_id=1870556365]
+[node name="shoulder_bloom_s_4_2" type="CSGSphere3D" parent="." unique_id=10680507]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 61.13349, 5.9313374, 99.28021)
 cast_shadow = 0
 radius = 0.09136622
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_s_5_0" type="CSGSphere3D" parent="." unique_id=173353633]
+[node name="shoulder_bloom_s_5_0" type="CSGSphere3D" parent="." unique_id=1983404188]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 63.170174, -0.6695, 57.319386)
 cast_shadow = 0
 radius = 0.10513321
 radial_segments = 10
 material = SubResource("StandardMaterial3D_w4b0w")
 
-[node name="shoulder_bloom_s_5_1" type="CSGSphere3D" parent="." unique_id=2107001327]
+[node name="shoulder_bloom_s_5_1" type="CSGSphere3D" parent="." unique_id=885147511]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 63.404, -0.66925, 57.523655)
 cast_shadow = 0
 radius = 0.06594965
 radial_segments = 10
 material = SubResource("StandardMaterial3D_w4b0w")
 
-[node name="shoulder_bloom_s_5_2" type="CSGSphere3D" parent="." unique_id=1819962635]
+[node name="shoulder_bloom_s_5_2" type="CSGSphere3D" parent="." unique_id=945532362]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 63.15705, -0.669, 57.345806)
 cast_shadow = 0
 radius = 0.05792813
 radial_segments = 10
 material = SubResource("StandardMaterial3D_w4b0w")
 
-[node name="shoulder_bloom_s_6_0" type="CSGSphere3D" parent="." unique_id=967035517]
+[node name="shoulder_bloom_s_6_0" type="CSGSphere3D" parent="." unique_id=1575854834]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 63.140343, 3.6854093, 67.50179)
 cast_shadow = 0
 radius = 0.09565141
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_s_6_1" type="CSGSphere3D" parent="." unique_id=155822488]
+[node name="shoulder_bloom_s_6_1" type="CSGSphere3D" parent="." unique_id=1102970769]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 63.06229, 3.4368665, 67.39678)
 cast_shadow = 0
 radius = 0.07019539
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_s_6_2" type="CSGSphere3D" parent="." unique_id=89363289]
+[node name="shoulder_bloom_s_6_2" type="CSGSphere3D" parent="." unique_id=1879999635]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 63.260155, 4.107136, 67.69902)
 cast_shadow = 0
 radius = 0.08596567
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_s_7_0" type="CSGSphere3D" parent="." unique_id=438611609]
+[node name="shoulder_bloom_s_7_0" type="CSGSphere3D" parent="." unique_id=484596009]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64.64947, 8.374674, 98.19577)
 cast_shadow = 0
 radius = 0.10451133
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_s_7_1" type="CSGSphere3D" parent="." unique_id=1610110332]
+[node name="shoulder_bloom_s_7_1" type="CSGSphere3D" parent="." unique_id=1554845856]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64.673584, 8.390651, 98.139175)
 cast_shadow = 0
 radius = 0.075699165
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_s_7_2" type="CSGSphere3D" parent="." unique_id=2069880757]
+[node name="shoulder_bloom_s_7_2" type="CSGSphere3D" parent="." unique_id=388191138]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64.65258, 8.380509, 98.37753)
 cast_shadow = 0
 radius = 0.10165286
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_s_8_0" type="CSGSphere3D" parent="." unique_id=588089198]
+[node name="shoulder_bloom_s_8_0" type="CSGSphere3D" parent="." unique_id=1801987321]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 59.071354, 4.743172, 86.235016)
 cast_shadow = 0
 radius = 0.08686366
 radial_segments = 10
 material = SubResource("StandardMaterial3D_w4b0w")
 
-[node name="shoulder_bloom_s_8_1" type="CSGSphere3D" parent="." unique_id=1014584055]
+[node name="shoulder_bloom_s_8_1" type="CSGSphere3D" parent="." unique_id=1318136562]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 59.14056, 4.7993035, 86.27918)
 cast_shadow = 0
 radius = 0.05617662
 radial_segments = 10
 material = SubResource("StandardMaterial3D_w4b0w")
 
-[node name="shoulder_bloom_s_8_2" type="CSGSphere3D" parent="." unique_id=1844944107]
+[node name="shoulder_bloom_s_8_2" type="CSGSphere3D" parent="." unique_id=270251690]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 59.247272, 4.857751, 85.99624)
 cast_shadow = 0
 radius = 0.09069566
 radial_segments = 10
 material = SubResource("StandardMaterial3D_w4b0w")
 
-[node name="shoulder_bloom_s_9_0" type="CSGSphere3D" parent="." unique_id=695451185]
+[node name="shoulder_bloom_s_9_0" type="CSGSphere3D" parent="." unique_id=329560982]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65.30571, -0.65590096, 28.524342)
 cast_shadow = 0
 radius = 0.07043122
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_s_9_1" type="CSGSphere3D" parent="." unique_id=1331431641]
+[node name="shoulder_bloom_s_9_1" type="CSGSphere3D" parent="." unique_id=1568965701]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65.05089, -0.6614638, 28.527887)
 cast_shadow = 0
 radius = 0.09136622
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_s_9_2" type="CSGSphere3D" parent="." unique_id=1247203285]
+[node name="shoulder_bloom_s_9_2" type="CSGSphere3D" parent="." unique_id=1791601538]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65.15662, -0.6600376, 28.634266)
 cast_shadow = 0
 radius = 0.07408781
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_s_10_0" type="CSGSphere3D" parent="." unique_id=601598921]
+[node name="shoulder_bloom_s_10_0" type="CSGSphere3D" parent="." unique_id=1253831090]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 68.95121, 11.432789, 73.48969)
 cast_shadow = 0
 radius = 0.06594965
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_s_10_1" type="CSGSphere3D" parent="." unique_id=1038010659]
+[node name="shoulder_bloom_s_10_1" type="CSGSphere3D" parent="." unique_id=1254643992]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 68.905045, 11.40715, 73.30945)
 cast_shadow = 0
 radius = 0.05792813
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_s_10_2" type="CSGSphere3D" parent="." unique_id=1212624949]
+[node name="shoulder_bloom_s_10_2" type="CSGSphere3D" parent="." unique_id=1894789125]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 69.12457, 11.536596, 73.33861)
 cast_shadow = 0
 radius = 0.08792027
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_s_11_0" type="CSGSphere3D" parent="." unique_id=950821241]
+[node name="shoulder_bloom_s_11_0" type="CSGSphere3D" parent="." unique_id=1993297394]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64.97192, 8.613683, 81.78547)
 cast_shadow = 0
 radius = 0.07019539
 radial_segments = 10
 material = SubResource("StandardMaterial3D_w4b0w")
 
-[node name="shoulder_bloom_s_11_1" type="CSGSphere3D" parent="." unique_id=359161030]
+[node name="shoulder_bloom_s_11_1" type="CSGSphere3D" parent="." unique_id=189053217]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65.04973, 8.672966, 81.98171)
 cast_shadow = 0
 radius = 0.08596567
 radial_segments = 10
 material = SubResource("StandardMaterial3D_w4b0w")
 
-[node name="shoulder_bloom_s_11_2" type="CSGSphere3D" parent="." unique_id=280116921]
+[node name="shoulder_bloom_s_11_2" type="CSGSphere3D" parent="." unique_id=109234927]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65.2109, 8.776506, 81.739555)
 cast_shadow = 0
 radius = 0.105774395
 radial_segments = 10
 material = SubResource("StandardMaterial3D_w4b0w")
 
-[node name="shoulder_bloom_s_12_0" type="CSGSphere3D" parent="." unique_id=102080100]
+[node name="shoulder_bloom_s_12_0" type="CSGSphere3D" parent="." unique_id=1133896048]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 58.75612, 3.9184165, 81.88464)
 cast_shadow = 0
 radius = 0.075699165
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_s_12_1" type="CSGSphere3D" parent="." unique_id=1183854058]
+[node name="shoulder_bloom_s_12_1" type="CSGSphere3D" parent="." unique_id=692345812]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 58.684666, 3.8085175, 81.78678)
 cast_shadow = 0
 radius = 0.10165286
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_s_12_2" type="CSGSphere3D" parent="." unique_id=104346188]
+[node name="shoulder_bloom_s_12_2" type="CSGSphere3D" parent="." unique_id=539325793]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 58.5969, 3.7066762, 81.7923)
 cast_shadow = 0
 radius = 0.092801325
 radial_segments = 10
 material = SubResource("StandardMaterial3D_3nlut")
 
-[node name="shoulder_bloom_s_13_0" type="CSGSphere3D" parent="." unique_id=659767905]
+[node name="shoulder_bloom_s_13_0" type="CSGSphere3D" parent="." unique_id=285935203]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.302734, -0.42759782, 29.8331)
 cast_shadow = 0
 radius = 0.05617662
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_s_13_1" type="CSGSphere3D" parent="." unique_id=904703405]
+[node name="shoulder_bloom_s_13_1" type="CSGSphere3D" parent="." unique_id=1099729279]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.21372, -0.45798224, 29.931435)
 cast_shadow = 0
 radius = 0.09069566
 radial_segments = 10
 material = SubResource("StandardMaterial3D_6vvfj")
 
-[node name="shoulder_bloom_s_13_2" type="CSGSphere3D" parent="." unique_id=742150777]
+[node name="shoulder_bloom_s_13_2" type="CSGSphere3D" parent="." unique_id=219031864]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.3032, -0.42386946, 29.765852)
 cast_shadow = 0
 radius = 0.091268025
