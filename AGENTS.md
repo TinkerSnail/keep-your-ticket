@@ -114,6 +114,12 @@ Empty means the run was inert. Run it through `rtk proxy` or redirect to a file 
 
 Each of these cost real time at least once. The incident is in the archive under the same words.
 
+**The maquette and ownership (2026-09-24)**
+
+- The generator-built park is a maquette for the real game. Blender owns shapes (props, landmarks, landform, earthworks); the Godot editor owns placement and routes; code owns behaviour and the parts derived from those sources. No new form is written into a generator. Existing generated form moves to an owned source when it is next revised, lossless first and changed after.
+- The approved plan for this chapter is `documentation/studio-chapter-plan-2026-09-24.md` until `documentation/studio-handbook.md` replaces it: the team roles, the working agreement, the tools, and the Plaza as the first real milestone.
+- Only official links: any link to a tool, add-on, asset or download is the vendor's or author's own page, checked before it is given. Anything else is labelled unofficial or left out.
+
 **Human authorship and generators**
 
 - Christina is an active builder, not only a reviewer. Preserve her ability to select, reshape and replace the canonical geometry in Godot or Blender without editing generator code.
