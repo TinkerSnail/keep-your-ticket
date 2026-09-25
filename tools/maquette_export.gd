@@ -3,7 +3,11 @@ extends Node
 ## Hands one greybox prop from the maquette to Blender as reference.
 ##
 ##     godot --headless --path . tools/run.tscn -- maquette_export \
-##         <scene> <prefix> <out_name> [--markers <scene>] [--also <scene>] [--floor W D]
+##         <scene> <prefix> <out_name> [--whole] [--markers <scene>] [--also <scene>] [--floor W D]
+##
+## `--whole` takes every mesh of `<scene>` as the prop instead of prefixed
+## top-level parts, for a prop already built by hand in its own frame; the
+## prefix is then ignored (pass `-`).
 ##
 ## Takes every top-level node of `<scene>` whose name starts with `<prefix>_`
 ## (the generator emits a prop as flat sibling parts, `bench_0_seat`,
@@ -39,6 +43,36 @@ func _ready() -> void:
 	get_tree().quit(0 if ok else 1)
 
 
+## The part's mesh with the materials the *instance* gives it baked onto the
+## mesh itself. Hand-built props colour a shared unit box through
+## `material_override` or a surface override, and glTF only carries a mesh's
+## own materials, so without this every part arrives in Blender with none.
+func _with_instance_materials(mi: MeshInstance3D) -> Mesh:
+	var mesh := mi.mesh
+	if mesh == null:
+		return null
+	var overrides: Array[Material] = []
+	var any := false
+	for s in mesh.get_surface_count():
+		var m: Material = mi.material_override
+		if mi.get_surface_override_material(s) != null:
+			m = mi.get_surface_override_material(s)
+		overrides.append(m)
+		any = any or m != null
+	if not any:
+		return mesh
+	var copy := mesh.duplicate() as Mesh
+	for s in overrides.size():
+		var m := overrides[s]
+		if m == null:
+			continue
+		if copy is PrimitiveMesh:
+			(copy as PrimitiveMesh).material = m
+		elif copy is ArrayMesh:
+			(copy as ArrayMesh).surface_set_material(s, m)
+	return copy
+
+
 func _flag(args: PackedStringArray, flag: String, count := 1) -> PackedStringArray:
 	var i := args.find(flag)
 	if i < 0 or i + count >= args.size():
@@ -61,16 +95,27 @@ func _export(args: PackedStringArray) -> bool:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
+	# `--whole`: the scene *is* one prop, built by hand in its own frame (on the
+	# ground, at the origin, facing +Z), with its parts nested in groups. Every
+	# mesh in it is a part and the frame is the scene's own.
+	var whole := args.has("--whole")
 	var parts: Array[Node3D] = []
-	for child in source.get_children():
-		if child is Node3D and String(child.name).begins_with(prefix):
-			parts.append(child)
+	if whole:
+		for n in source.find_children("*", "", true, false):
+			if n is MeshInstance3D or n is CSGShape3D:
+				parts.append(n)
+	else:
+		for child in source.get_children():
+			if child is Node3D and String(child.name).begins_with(prefix):
+				parts.append(child)
 	if parts.is_empty():
-		push_error("maquette_export: no top-level node in %s starts with %s" % [scene_path, prefix])
+		push_error("maquette_export: no parts in %s (prefix %s)" % [scene_path, prefix])
 		return false
 
-	var yaw := Basis(Vector3.UP, parts[0].global_transform.basis.get_euler().y)
-	var frame := Transform3D(yaw, parts[0].global_position)
+	var frame := Transform3D.IDENTITY
+	if not whole:
+		var yaw := Basis(Vector3.UP, parts[0].global_transform.basis.get_euler().y)
+		frame = Transform3D(yaw, parts[0].global_position)
 
 	var root := Node3D.new()
 	root.name = out_name
@@ -87,7 +132,7 @@ func _export(args: PackedStringArray) -> bool:
 		if part is CSGShape3D:
 			mesh = (part as CSGShape3D).bake_static_mesh()
 		elif part is MeshInstance3D:
-			mesh = (part as MeshInstance3D).mesh
+			mesh = _with_instance_materials(part as MeshInstance3D)
 		if mesh == null:
 			continue
 		var mi := MeshInstance3D.new()
@@ -102,9 +147,11 @@ func _export(args: PackedStringArray) -> bool:
 		min_xz = min_xz.min(Vector2(box.position.x, box.position.z))
 		max_xz = max_xz.max(Vector2(box.end.x, box.end.z))
 
-	# Re-centre on the footprint and drop to the ground.
+	# Re-centre on the footprint and drop to the ground. A whole scene is already
+	# in its own frame, and its seat contract is written against that frame, so
+	# it is left exactly where it was built.
 	var centre := (min_xz + max_xz) * 0.5
-	var shift := Vector3(-centre.x, -low, -centre.y)
+	var shift := Vector3.ZERO if whole else Vector3(-centre.x, -low, -centre.y)
 	for mi in greybox.get_children():
 		(mi as Node3D).position += shift
 	print("maquette_export: %d parts of %s; frame moved by %s from the first part's origin" % [
