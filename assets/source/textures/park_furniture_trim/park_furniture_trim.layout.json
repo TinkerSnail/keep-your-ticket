@@ -2,7 +2,7 @@
   "name": "park_furniture_trim",
   "about": "The shared trim sheet for park furniture: benches, picnic tables, railings, planters, signposts. Strips tile left to right (U); the detail row does not tile. One source for the painting template (tools/trim_sheet_template.py) and for mapping props onto the sheet.",
   "size_px": [2048, 2048],
-  "px_per_metre": 300,
+  "px_per_metre": 256,
   "bleed_px": 4,
   "rows": [
     {"id": "timber_fresh",       "y": [0, 256],     "tiles": true, "base": "#8a5a34", "note": "Varnished timber, grain runs left-right"},
