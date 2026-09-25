@@ -8,8 +8,20 @@
 *.godot text
 
 # Binary assets
-*.blend binary
 *.png binary
 *.jpg binary
 *.ogg binary
 *.wav binary
+
+# Git LFS (2026-09-24): hand-made sources, their exports and paint files.
+# Every save of one of these would otherwise add a full copy to git history.
+*.blend filter=lfs diff=lfs merge=lfs -text
+*.glb filter=lfs diff=lfs merge=lfs -text
+*.psd filter=lfs diff=lfs merge=lfs -text
+*.procreate filter=lfs diff=lfs merge=lfs -text
+*.kra filter=lfs diff=lfs merge=lfs -text
+*.exr filter=lfs diff=lfs merge=lfs -text
+*.tif filter=lfs diff=lfs merge=lfs -text
+*.tiff filter=lfs diff=lfs merge=lfs -text
+assets/source/**/*.png filter=lfs diff=lfs merge=lfs -text
+assets/source/**/*.jpg filter=lfs diff=lfs merge=lfs -text
