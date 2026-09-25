@@ -48,9 +48,11 @@ paint → integrated. **Holder** is who has the next move.
 
 | | |
 |---|---|
-| Stage | **model**: handed to Christina 2026-09-25 (card `howto/model-the-benches.md`); the hand-built bench is in `export`, reference locked, seat markers in place, Check clear; not sent |
-| Holder | Christina: her model pass |
-| Model | `assets/source/props/backless_timber_bench.blend` |
-| Game | Not placed anywhere. `scenes/world/park_furniture/backless_timber_bench.tscn` is still hand-built meshes, no seat markers |
-| Starting frames | `documentation/screenshots/handbacks/backless_timber_bench-start-2026-09-25_0142/` |
-| Next | On "handed back": model hand-back (skill): tests, then switch its Godot scene to wrap `assets/props/backless_timber_bench.glb` with `seat_l`/`seat_r` markers from the blend, then texture set-up (timber grain along x, as the plaza bench). Sat on from either side. |
+| Stage | **paint**: painted passes integrated and committed 2026-09-25. Model handed back the same day (20 bolts, 16 hers); game mesh 1,394 triangles; 2048 canvas |
+| Holder | Christina: may keep painting in the PSD |
+| Model | `assets/source/props/backless_timber_bench.blend` (working, one fused mesh); parts in `backless_timber_bench_source.blend`. Its 18 `greybox_` reference parts are hidden, not deleted |
+| Paint | `assets/source/textures/backless_timber_bench/backless_timber_bench_colour.psd` (`paint` layer, locked `UV guide`); colour 2048 (about 814 px/m, her choice to match the plaza bench's size), ORM 1024 |
+| Game | `assets/props/backless_timber_bench.glb` (her first pass, 1,317 KB; textures VRAM-compressed with mipmaps), wrapped by `scenes/world/park_furniture/backless_timber_bench.tscn` with `seat_l`/`seat_r`; not placed anywhere. The back-side seats are not in the contract |
+| Canvas options | `--grain --wear slat --chips pedestal:0.4,foot,top_bracket,under_rail:0.4 --ground foot,pedestal`. No knots and no back-edge wear: hers to paint |
+| Last hand-back | `documentation/screenshots/handbacks/backless_timber_bench-2026-09-25_1415/` (her 14:06 pass: wear along the front and back slats' outer edges; all passed). The Photoshop save hook is on, so each save already sends the bench |
+| Next | Another saved pass: `python3 tools/prop_handback.py backless_timber_bench`, no question; commit on her word. Before placing it in the park: the back-side seats, if guests are to sit facing the other way. |

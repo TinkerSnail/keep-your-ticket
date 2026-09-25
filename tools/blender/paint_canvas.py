@@ -34,7 +34,8 @@ the front board's rounded front edge where legs rub, fading away from the seat
 contract's two seats.
 
 `--weather arm_loop,scroll,armrest,front_leg:0.4` weathers the painted iron (a
-material whose name contains "iron") of the parts whose names start with those
+material whose name contains "iron" or "steel": the backless bench's frame is
+`painted_steel`) of the parts whose names start with those
 words, `:0.4` scaling that part's rust streaks, read
 from the `kyt_part` record Make game mesh leaves on each face: paint faded on
 top and worn through to dark, hand-polished iron where hands rest, chips on
@@ -603,8 +604,9 @@ def main():
         return tuple(b.inputs["Base Color"].default_value)
 
     def iron(g, mat, b):
-        """Painted iron as the flags ask: weathered, chipped, or plain (None)."""
-        if "iron" not in mat.name or not (weather or chip_parts or ding_parts or ground_parts):
+        """Painted iron or steel as the flags ask: weathered, chipped, or plain (None)."""
+        if not any(k in mat.name for k in ("iron", "steel")) \
+                or not (weather or chip_parts or ding_parts or ground_parts):
             return None
         surface = (base(b), b.inputs["Roughness"].default_value, b.inputs["Metallic"].default_value)
         if weather:
