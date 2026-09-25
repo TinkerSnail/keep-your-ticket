@@ -139,15 +139,6 @@ const FOUNTAIN_JET_R := 6.5
 const FOUNTAIN_JET_TOP := 2.2
 const FOUNTAIN_POOL_TOP := 0.30
 
-## The bench by the photo hut, local to the hut so it follows if the hut moves.
-##
-## Here because **three** places want it: `gen_props` builds the bench and ties
-## two balloons to its rail, `gen_crowd` seats a guest on it, and the POI list
-## points at the balloons. It was typed into the first two separately, which is
-## one copy short of the cafe terrace's three and the same failure waiting.
-const PHOTO_HUT_BENCH := Vector3(-6.0, 0.0, -4.0)
-const PHOTO_HUT_BENCH_YAW := 8.0
-
 ## The hub, as one number each. The ring walkway is set outside the fountain's
 ## skirt and these are what put it there — `WALKWAYS` has the twelve vertices
 ## written out because a `const` cannot call `sin`, but they are this radius.

@@ -3567,63 +3567,42 @@ func _facing(from: Vector3, target: Vector3) -> float:
 	return atan2(d.x, d.z)
 
 
-## A bench is 1.8m long and 0.55 deep and faces something, so it wants about a
-## metre of verge behind it and the walk in *front* of it rather than under it.
-const BENCH_CLEAR := 1.2
-
-## The hut's bench, hoisted out of `_benches` because `_balloons` ties two
-## balloons to it and a second copy of these numbers is how the balloons came to
-## be eight metres from the bench in the first place. Local to the hut, so it
-## follows if the hut moves; the top of the back rail is what a string ties to.
-const HUT_BENCH_AT := Plan.PHOTO_HUT_BENCH
-const HUT_BENCH_YAW := Plan.PHOTO_HUT_BENCH_YAW
+## The top of the plaza bench's back rail, which is what a balloon string ties
+## to. Measured on the greybox the bench was modelled over (back 0.52 tall centred
+## at 0.72); if the modelled bench's rail moves, move this with it.
 const HUT_BENCH_RAIL := 0.98
 
+## The plaza's six benches are placed by hand since 2026-09-24, in this
+## editor-owned scene, as instances of `park_furniture/plaza_bench.tscn`.
+const PLAZA_FURNITURE := "res://scenes/world/plaza_furniture.tscn"
+var _plaza_furniture_cache := {}
 
+
+## Where a hand-placed plaza bench stands, by its node name in `PLAZA_FURNITURE`.
+func _plaza_bench_transform(nm: String) -> Transform3D:
+	if _plaza_furniture_cache.is_empty():
+		var packed := load(PLAZA_FURNITURE) as PackedScene
+		assert(packed != null, "the plaza furniture scene cannot be read")
+		var source := packed.instantiate()
+		for child in source.get_children():
+			if child is Node3D:
+				_plaza_furniture_cache[String(child.name)] = (child as Node3D).transform
+		source.free()
+	assert(_plaza_furniture_cache.has(nm), "no bench named %s in %s" % [nm, PLAZA_FURNITURE])
+	return _plaza_furniture_cache[nm]
+
+
+## The plaza benches left this generator for `PLAZA_FURNITURE` on 2026-09-24:
+## Blender owns the bench and the editor owns where each one stands. The history
+## of their bearings (why the fountain ring is 25/145/285/340 and not even) is in
+## this function's git history, before commit "Place the plaza benches by hand".
+##
+## Six benches of four boxes each used to be built here. Their 24 seam ordinals
+## are still handed out, so every shape built after this point keeps exactly
+## the displacement it had and no plane anywhere moves. Drop the reservation the
+## next time the plaza's seams are rebuilt on purpose, and run `coplanar_test.py`.
 func _benches() -> void:
-	# The ring of four round the fountain. They were on its skirt in the 80m
-	# plaza and the dilation put them in the road: the hub grew by 1.8 and the
-	# ring walkway moved out further than that, so radius 7.5 came out at 13.5
-	# and the ring is paved from 12 to 20. `_stand_clear` walks them back onto
-	# the skirt, which is where they were meant to be all along — a bench beside
-	# a fountain, with the walk behind it.
-	_stand_clear = BENCH_CLEAR
-	var r := 7.5
-	# The fourth bearing is 340 and not 235, and it took two goes to find out why.
-	#
-	# 235 put the bench on top of the snack cart, which is pushed onto the skirt
-	# from the mouth of `spoke_nnw` and lands at 243. Moving it to 210 was worse
-	# and instructively so: **the ring is a twelve-gon, and 210 is one of its
-	# vertices.** A prop pushed inward off a corner is 5.2m clear of the segment
-	# it was pushed from and only 0.8 clear of the next one round, so the rule
-	# scored the inward candidate below the outward one and put the bench at
-	# radius 21 — out in the open room, against the bandstand's own south bench.
-	# The skirt is pinched every 30 degrees and the gaps between are what it has.
-	#
-	# So the ring gives up being even. It was never going to stay even anyway:
-	# the cart, the stroller, the newspaper boxes, an a-frame and two bins are all
-	# pushed onto the same three metres of skirt, and tightly packed benches
-	# is a drawing rather than a plaza.
-	# Bearings interleave with the four picture-spot boards and the inner lamp
-	# standards. The old 95/165/305 trio snapped onto the same three pieces of
-	# verge and physically overlapped them after the hub ring widened.
-	var degs := [25.0, 145.0, 285.0, 340.0]
-	for i in degs.size():
-		var a := deg_to_rad(degs[i])
-		var p := Vector3(r * cos(a), 0.0, r * sin(a))
-		_bench("bench_%d" % i, p, _facing(p, Vector3.ZERO))
-	_bench("bench_south", Vector3(-5, 0, 19), deg_to_rad(186))
-
-	# The hut's own bench belongs to the hand-positioned hut, so it is placed in
-	# final coordinates with Plaza dilation off. P5 now owns every seat in the
-	# north-west performance pocket; the obsolete (-20,-20) bench ring must not
-	# survive as loose furniture inside Route A.
-	_dilate_plaza = false
-	var hut := Vector3(Plan.PHOTO_HUT_AT.x, 0.0, Plan.PHOTO_HUT_AT.y)
-	_bench("bench_hut", hut + HUT_BENCH_AT, deg_to_rad(HUT_BENCH_YAW))
-	_dilate_plaza = true
-	# The former south-west/south-east pair stood exactly where C and D now enter
-	# the hub. The atlas makes those broad public openings, not furniture slaloms.
+	_seam_ordinal += 6 * 4
 	_stand_clear = 0.0
 
 
@@ -4188,12 +4167,13 @@ func _ladder() -> void:
 ## would have been scaled by the map along with everything else if it had been
 ## baked into the base.
 func _balloons() -> void:
-	# The pair, tied to the back rail of the bench by the photo hut. In final
-	# coordinates with the dilation off, because that is where the bench is —
-	# see `_benches`, which switches it off for the same three props.
+	# The pair, tied to the back rail of the bench by the photo hut, wherever
+	# that bench is placed in the plaza furniture scene. In final coordinates
+	# with the dilation off, because the placement already is.
 	_dilate_plaza = false
-	var bench := Vector3(Plan.PHOTO_HUT_AT.x, 0.0, Plan.PHOTO_HUT_AT.y) + HUT_BENCH_AT
-	var th := deg_to_rad(HUT_BENCH_YAW)
+	var placed := _plaza_bench_transform("bench_hut")
+	var bench := placed.origin
+	var th := placed.basis.get_euler().y
 	# `_bench` builds 1.8m long with its back at z −0.22 and its top at 0.98, so
 	# these tie on just inside the left end of the rail and float above it.
 	# Far enough apart to be two balloons. At 20cm they intersected — which the

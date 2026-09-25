@@ -1,0 +1,33 @@
+[gd_scene load_steps=2 format=3]
+
+; The plaza's benches, placed by hand. Editor-owned: move, turn, add or remove
+; benches here in the Godot editor. Each is an instance of
+; `park_furniture/plaza_bench.tscn`, whose seat markers tell the crowd where to
+; sit, so `tools/gen_crowd.gd` reads this scene and seated guests follow any
+; change after the crowd is regenerated. `tools/gen_props.gd` reads the
+; `bench_hut` placement for the balloons tied to its back rail.
+;
+; Moved out of the generator on 2026-09-24 at the positions it last emitted.
+
+[ext_resource type="PackedScene" path="res://scenes/world/park_furniture/plaza_bench.tscn" id="1_bench"]
+
+[node name="plaza_furniture" type="Node3D"]
+editor_description = "The plaza's hand-placed furniture. Benches are instances of park_furniture/plaza_bench.tscn; the crowd sits on their seat markers."
+
+[node name="bench_0" parent="." instance=ExtResource("1_bench")]
+transform = Transform3D(-0.422618, 0, -0.906308, 0, 1, 0, 0.906308, 0, -0.422618, 26.2421, 0, 9.08728)
+
+[node name="bench_1" parent="." instance=ExtResource("1_bench")]
+transform = Transform3D(-0.573576, 0, 0.819152, 0, 1, 0, -0.819152, 0, -0.573576, -20.7941, 0, 17.6309)
+
+[node name="bench_2" parent="." instance=ExtResource("1_bench")]
+transform = Transform3D(0.965926, 0, -0.258819, 0, 1, 0, 0.258819, 0, 0.965926, 7.89491, 0, -26.1188)
+
+[node name="bench_3" parent="." instance=ExtResource("1_bench")]
+transform = Transform3D(0.34202, 0, -0.939693, 0, 1, 0, 0.939693, 0, 0.34202, 26.5148, 0, -8.00532)
+
+[node name="bench_south" parent="." instance=ExtResource("1_bench")]
+transform = Transform3D(-0.994522, 0, -0.104528, 0, 1, 0, 0.104528, 0, -0.994522, -16.3361, 0, 30.888)
+
+[node name="bench_hut" parent="." instance=ExtResource("1_bench")]
+transform = Transform3D(0.990268, 0, 0.139173, 0, 1, 0, -0.139173, 0, 0.990268, -30.995, 0, 21.005)

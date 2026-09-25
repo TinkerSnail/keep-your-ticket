@@ -30,10 +30,16 @@ CROWD = "scenes/world/plaza_crowd.tscn"
 # the generated sources beneath the stable editor-owned wrappers.
 PROPS = "scenes/world/generated/plaza_props.tscn"
 FOUNTAIN = "scenes/world/generated/plaza_fountain.tscn"
+# The plaza benches are hand-placed since 2026-09-24, and each carries its seat
+# contract as markers, so their seats are exact points rather than slabs.
+FURNITURE = "scenes/world/plaza_furniture.tscn"
+BENCH = "scenes/world/park_furniture/plaza_bench.tscn"
 
 # A seat is 0.42–0.55m across, so a guest more than this from the middle of one
 # is not on it. Loose enough for the two-to-a-bench offset, which is 0.45.
 REACH = 0.75
+# A seat marker *is* the seat: the crowd reads it, so a guest is on it or wrong.
+MARKER_REACH = 0.02
 
 NODE = re.compile(
     r'\[node name="([^"]+)"[^\]]*\]\n((?:[a-z_0-9]+ = [^\n]*\n)*)')
@@ -49,6 +55,29 @@ def origins(path, want):
             continue
         v = [float(x) for x in t.group(1).split(",")]
         out.append((m.group(1), v[9], v[11]))
+    return out
+
+
+def marker_seats():
+    """World seats of every hand-placed bench: its transform times its markers.
+
+    Godot writes Transform3D row by row, so the basis columns are
+    (v0, v3, v6), (v1, v4, v7) and (v2, v5, v8)."""
+    markers = []
+    for m in NODE.finditer(open(BENCH).read()):
+        p = re.search(r"position = Vector3\(([^)]*)\)", m.group(2))
+        if m.group(1).startswith("seat_") and p:
+            markers.append((m.group(1), [float(x) for x in p.group(1).split(",")]))
+    out = []
+    for m in NODE.finditer(open(FURNITURE).read()):
+        t = re.search(r"transform = Transform3D\(([^)]*)\)", m.group(2))
+        if not t:
+            continue
+        v = [float(x) for x in t.group(1).split(",")]
+        for name, (mx, my, mz) in markers:
+            x = v[9] + v[0] * mx + v[1] * my + v[2] * mz
+            z = v[11] + v[6] * mx + v[7] * my + v[8] * mz
+            out.append(("%s/%s" % (m.group(1), name), x, z))
     return out
 
 
@@ -75,8 +104,9 @@ def main():
     # Bench slats and chair seats are furniture; the fountain's coping is a
     # seat too, and counting it here rather than special-casing the rim is what
     # keeps this from needing to know that the rim exists.
-    surfaces = origins(PROPS, lambda n: n.endswith("_seat"))
-    surfaces += origins(FOUNTAIN, lambda n: n.startswith("coping_"))
+    surfaces = [(n, x, z, REACH) for n, x, z in origins(PROPS, lambda n: n.endswith("_seat"))]
+    surfaces += [(n, x, z, REACH) for n, x, z in origins(FOUNTAIN, lambda n: n.startswith("coping_"))]
+    surfaces += [(n, x, z, MARKER_REACH) for n, x, z in marker_seats()]
     guests = seated_guests(CROWD)
     print("%d seated guests on furniture, %d seat surfaces "
           "(wheelchair users excluded — they bring their own)"
@@ -84,9 +114,12 @@ def main():
 
     bad = []
     for name, kind, gx, gz in guests:
-        d, on = min((math.hypot(gx - x, gz - z), n) for n, x, z in surfaces)
-        if d > REACH:
-            bad.append((name, kind, gx, gz, d, on))
+        # On a seat when inside that seat's own reach; the report names the
+        # nearest one either way.
+        if any(math.hypot(gx - x, gz - z) <= r for _, x, z, r in surfaces):
+            continue
+        d, on = min((math.hypot(gx - x, gz - z), n) for n, x, z, _ in surfaces)
+        bad.append((name, kind, gx, gz, d, on))
     for name, kind, gx, gz, d, on in bad:
         print("  FAIL %-10s %-7s at (%7.2f,%7.2f) — nearest seat %s is %.2fm away"
               % (name, kind, gx, gz, on, d))

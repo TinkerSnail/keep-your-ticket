@@ -1,6 +1,7 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/world/plaza_props.tscn" id="1_props"]
+[ext_resource type="PackedScene" path="res://scenes/world/plaza_furniture.tscn" id="15_furniture"]
 [ext_resource type="PackedScene" path="res://scenes/world/plaza_fountain.tscn" id="14_fountain"]
 [ext_resource type="PackedScene" path="res://scenes/world/plaza_frontage.tscn" id="13_frontage"]
 [ext_resource type="PackedScene" path="res://scenes/world/plaza_paving.tscn" id="10_paving"]
@@ -465,3 +466,5 @@ material = SubResource("mat_building")
 [node name="frontage" parent="." instance=ExtResource("13_frontage")]
 
 [node name="props" parent="." instance=ExtResource("1_props")]
+
+[node name="furniture" parent="." instance=ExtResource("15_furniture")]

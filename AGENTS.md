@@ -31,7 +31,7 @@ Do not rely on remembered chat context in place of the documents. When two curre
 
 ## Stack
 
-Godot 4.7.x standard build, not .NET. GDScript. Forward+. Blender for art, imported as `.blend`. macOS is the primary machine, Windows secondary. Search results for Godot mostly target 3.x; verify against Godot 4 documentation before applying anything found online.
+Godot 4.7.x standard build, not .NET. GDScript. Forward+. Blender for art, exported to the game as GLB (never native `.blend` import; see `tools/README.md`). macOS is the primary machine, Windows secondary. Search results for Godot mostly target 3.x; verify against Godot 4 documentation before applying anything found online.
 
 ## Current state, 2026-09-05
 

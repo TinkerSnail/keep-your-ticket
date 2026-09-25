@@ -23,6 +23,7 @@ const Plan := preload("res://scripts/park_plan.gd")
 ## Which scenes hold things that could be standing in the way.
 const SCENES := [
 	"res://scenes/world/plaza_props.tscn",
+	"res://scenes/world/plaza_furniture.tscn",
 	"res://scenes/world/thresholds.tscn",
 	"res://scenes/world/entrance.tscn",
 ]
@@ -247,25 +248,43 @@ func _nested(a: String, b: String) -> bool:
 	return false
 
 
-func _walk(n: Node, parent: Transform3D) -> void:
+## `placed` is the name of the scene's top-level node a piece belongs to. The
+## generator's props are flat CSG siblings, so for them it is the piece itself;
+## a hand-placed prop is an instance (`bench_0`) of a model with its own part
+## names (`seat`), and its pieces are measured as `bench_0_seat` so they group
+## by the placement the same way.
+func _walk(n: Node, parent: Transform3D, placed := "") -> void:
 	var here := parent
 	if n is Node3D:
 		here = parent * (n as Node3D).transform
-		_measure(n as Node3D, here)
+		_measure(n as Node3D, here, placed)
 	for c in n.get_children():
-		_walk(c, here)
+		var top := placed if not placed.is_empty() else (String(c.name) if n.get_parent() == null else "")
+		_walk(c, here, top)
 
 
-func _measure(n: Node3D, world: Transform3D) -> void:
+func _measure(n: Node3D, world: Transform3D, placed := "") -> void:
+	var nm := String(n.name)
 	var half := Vector3.ZERO
 	if n is CSGBox3D:
 		half = (n as CSGBox3D).size * 0.5
+		if not n.get("use_collision"):
+			return
 	elif n is CSGCylinder3D:
 		var c := n as CSGCylinder3D
 		half = Vector3(c.radius, c.height * 0.5, c.radius)
+		if not n.get("use_collision"):
+			return
+	elif n is MeshInstance3D and (n as MeshInstance3D).mesh != null \
+			and not n.find_children("*", "StaticBody3D", false, false).is_empty():
+		# A model sent from Blender, whose collision was derived from this very
+		# mesh on import. Measured as its bounding box, centred where it is.
+		var box := (n as MeshInstance3D).mesh.get_aabb()
+		half = box.size * 0.5
+		world = world * Transform3D(Basis(), box.get_center())
+		if placed != nm:
+			nm = "%s_%s" % [placed, nm]
 	else:
-		return
-	if not n.get("use_collision"):
 		return
 
 	# The piece's own bottom and top, once turned. A lintel is high, a threshold
@@ -280,13 +299,13 @@ func _measure(n: Node3D, world: Transform3D) -> void:
 	if low > HEAD or high < TOE:
 		return
 
-	var group := _group(n.name)
+	var group := _group(nm)
 
 	# The pieces of each loose assembly, for the second check to draw a circle
 	# round once they are all in. Collected rather than accumulated because a
 	# circle grown from whichever part happened to come first is centred on that
 	# part, not on the prop.
-	var m := _loose.search(n.name)
+	var m := _loose.search(nm)
 	if m != null:
 		var g: String = m.get_string(1)
 		if not solids.has(g):
@@ -317,7 +336,7 @@ func _measure(n: Node3D, world: Transform3D) -> void:
 
 	if not worst.has(group) or worst[group]["depth"] < deepest:
 		worst[group] = {"group": group, "depth": deepest, "at": at,
-			"run": run, "part": n.name}
+			"run": run, "part": nm}
 
 
 ## How far into a corridor a point stands, and which one. `walkway_clearance`

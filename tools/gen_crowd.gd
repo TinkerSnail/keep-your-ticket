@@ -958,9 +958,8 @@ func _plaza_pois() -> PackedVector3Array:
 
 	# The two balloons on the rail of the hut's bench — which is where they have
 	# been since this morning and nowhere near where this list had them.
-	var bench := Vector3(Plan.PHOTO_HUT_AT.x, 0.0, Plan.PHOTO_HUT_AT.y) \
-		+ Plan.PHOTO_HUT_BENCH
-	out.append(bench + Basis(Vector3.UP, deg_to_rad(Plan.PHOTO_HUT_BENCH_YAW))
+	var hut_bench := _plaza_bench("bench_hut")
+	out.append(hut_bench["at"] + Basis(Vector3.UP, hut_bench["theta"])
 		* Vector3(0.63, 2.2, -0.22))
 
 	# The banners, which hang off two poles 5m apart on one stand point.
@@ -1145,46 +1144,55 @@ func _bin_spots() -> Array:
 	]
 
 
-## Mirrors `gen_props.gd::_benches()`. Duplicated deliberately rather than
-## shared: the props tool owns where benches are, and if it moves one this list
-## going stale is a visible bug — guests sitting in mid-air — rather than a
-## silent one.
-## Mirrors `gen_props.gd::_benches()`, dilation and exceptions included — a
-## guest has to sit on a bench that exists, and after the plaza grew the two
-## agree only if they scale the same way. The ring benches, the south bench and
-## the two by the south wall go through `ParkPlan.plaza_out`; the hut's bench and
-## the bandstand's three do not, for the same reason they do not over there.
-## **And they are stood clear of the paving the same way too**, which is the half
-## of this that was missing. `plaza_out` alone put the ring of five in the middle
-## of the ring walkway; `plaza_stand` walks them back onto the fountain's skirt.
-## A guest sitting on `gen_props`' idea of where a bench is and a bench built on
-## this one's is the same drift the cafe terrace caused, so the two call the same
-## function with the same margin — `gen_props.BENCH_CLEAR`, spelled out here
-## because that file is a `SceneTree` this one cannot preload.
-const BENCH_CLEAR := 1.2
+## The plaza's benches, read from where they are actually placed. Since
+## 2026-09-24 they are hand-placed instances in the editor-owned
+## `plaza_furniture.tscn`, and each carries its seat contract as two markers,
+## `seat_l` and `seat_r`, in `park_furniture/plaza_bench.tscn`. Reading both
+## is what keeps a seated guest on the seat: this list used to be a typed copy
+## of the props generator's arithmetic, and the copy had drifted up to five
+## centimetres off the benches it described.
+const PLAZA_FURNITURE := "res://scenes/world/plaza_furniture.tscn"
+var _plaza_bench_cache: Array = []
 
 
-func _bench_spot(at: Vector3, theta: float, dilate := true) -> Dictionary:
-	var p: Vector3 = Plan.plaza_out(at) if dilate else at
-	var c := Plan.clear_of_walkways(Vector2(p.x, p.z), BENCH_CLEAR)
-	return {"at": Vector3(c.x, p.y, c.y), "theta": theta}
-
-
+## One entry per bench, in scene order: `at` (its base), `theta` (the yaw its
+## +Z faces), `name`, and `seats`, the world positions of its seat markers at
+## ground height, left first, with `seat_height` the markers' height above it.
 func _plaza_bench_spots() -> Array:
-	var out: Array = []
-	var r := 7.5
-	for deg in [25.0, 145.0, 285.0, 340.0]:
-		var a := deg_to_rad(deg)
-		var spot := _bench_spot(Vector3(r * cos(a), 0.0, r * sin(a)), 0.0)
-		var p: Vector3 = spot["at"]
-		spot["theta"] = atan2(-p.x, -p.z)
-		out.append(spot)
-	out.append(_bench_spot(Vector3(-5, 0, 19), deg_to_rad(186.0)))
+	if not _plaza_bench_cache.is_empty():
+		return _plaza_bench_cache
+	var packed := load(PLAZA_FURNITURE) as PackedScene
+	assert(packed != null, "the plaza furniture scene cannot be read")
+	var source := packed.instantiate()
+	for bench in source.get_children():
+		if not bench is Node3D:
+			continue
+		var t := (bench as Node3D).transform
+		var seats: Array = []
+		var height := 0.0
+		for marker_name in ["seat_l", "seat_r"]:
+			var marker := bench.get_node_or_null(marker_name) as Node3D
+			assert(marker != null, "bench %s has no %s marker" % [bench.name, marker_name])
+			var p := t * marker.position
+			seats.append(Vector3(p.x, t.origin.y, p.z))
+			height = marker.position.y
+		_plaza_bench_cache.append({
+			"name": String(bench.name),
+			"at": t.origin,
+			"theta": t.basis.get_euler().y,
+			"seats": seats,
+			"seat_height": height,
+		})
+	source.free()
+	return _plaza_bench_cache
 
-	var hut := Vector3(Plan.PHOTO_HUT_AT.x, 0.0, Plan.PHOTO_HUT_AT.y)
-	out.append(_bench_spot(hut + Vector3(-6.0, 0, -4.0), deg_to_rad(8.0), false))
 
-	return out
+func _plaza_bench(name: String) -> Dictionary:
+	for bench in _plaza_bench_spots():
+		if bench["name"] == name:
+			return bench
+	assert(false, "no plaza bench named %s" % name)
+	return {}
 
 
 ## The fountain's coping, which is fifty-four metres of seat and was empty until
@@ -1407,14 +1415,12 @@ func _plaza_seated_groups() -> void:
 		var members: Array = []
 		var seats := int(entry[1])
 		for s in seats:
-			var side := -0.45 if s == 0 else 0.45
-			var offset: Vector3 = Basis(Vector3.UP, bench["theta"]) * Vector3(side, 0.0, 0.06)
-			var seat: Vector3 = bench["at"] + offset
+			var seat: Vector3 = bench["seats"][s]
 			var guest := _guest(_seat_kind(seats, 0.25), seat, bench["theta"] + PI, group)
 			guest.set("group_kind", "bench")
 			guest.set("seat_at", seat)
 			guest.set("seat_yaw", bench["theta"] + PI)
-			guest.set("seat_height", 0.51)
+			guest.set("seat_height", bench["seat_height"])
 			members.append(guest)
 		_pace_seated_group(members)
 

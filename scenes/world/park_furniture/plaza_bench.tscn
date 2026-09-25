@@ -1,4 +1,4 @@
-[gd_scene format=3]
+[gd_scene load_steps=2 format=3]
 
 ; The plaza bench, as the game places it. Editor-owned.
 ;
@@ -9,11 +9,16 @@
 ; reference layer). The values are the ones the crowd used before 2026-09-24:
 ; 0.45 m either side of centre, 0.06 m forward, seat top 0.51 m.
 ;
-; The bench model itself is `assets/props/plaza_bench.glb`, sent from
-; `assets/source/props/plaza_bench.blend`; it is instanced here once it exists.
+; The model is `assets/props/plaza_bench.glb`, sent from
+; `assets/source/props/plaza_bench.blend` with the Keep Your Ticket panel. Its
+; collision is derived on export, on layer 1, so seated guests stand on it.
+
+[ext_resource type="PackedScene" path="res://assets/props/plaza_bench.glb" id="1_model"]
 
 [node name="plaza_bench" type="Node3D"]
 editor_description = "Plaza bench. Faces local +Z. seat_l and seat_r are the seat contract every seated guest and the Blender check rely on; move them only together with the model."
+
+[node name="model" parent="." instance=ExtResource("1_model")]
 
 [node name="seat_l" type="Marker3D" parent="."]
 position = Vector3(-0.45, 0.51, 0.06)
