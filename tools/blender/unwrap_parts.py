@@ -1,7 +1,7 @@
 """Unwrap a prop's source parts for its own painted texture: each part laid out whole.
 
     /Applications/Blender.app/Contents/MacOS/Blender --background <prop>_source.blend \
-        --python tools/blender/unwrap_parts.py -- [--ring-seam=inside|inboard] [--save]
+        --python tools/blender/unwrap_parts.py -- [--ring-seam=inside|inboard] [--no-mirror] [--save]
 
 Runs on the source file (every part separate), before Make game mesh. Each part
 in `export` is cut open along seams placed on its hidden side and laid flat by
@@ -24,6 +24,11 @@ Seams, by the shape of the part (found from its topology, not its name):
   another part, usually inside it. `--ring-seam=inboard` cuts along the side
   facing the prop's middle instead: better hidden, laid out as an arc.
 
+**Mirrored by default** (the texture standard): a right-hand part whose shape
+mirrors a left-hand one's (wherever each is placed) takes its twin's layout, so the two ends
+share texture space and wear the same paint. Parts across the middle, like the
+boards, keep their own. `--no-mirror` gives every part its own space.
+
 Anything else is unwrapped with seams at its sharp edges and reported, to seam
 by hand. The parts keep their own vertices and custom normals: the unwrap is
 worked out on a welded copy and written back face by face. A part marked
@@ -38,9 +43,11 @@ import bmesh
 import bpy
 from mathutils import Matrix, Vector
 from mathutils.bvhtree import BVHTree
+from mathutils.kdtree import KDTree
 
 SHARP_DEG = 50.0
 GAP_M = 0.02  # between pieces in the loose layout, in metres
+MIRROR_M = 0.001  # how close a right part's shape must be to its left twin's, mirrored
 
 
 def hidden_dir(p):
@@ -322,16 +329,111 @@ def fit_island(bm, mw, uvs, faces):
     return Vector((max(p.x for p in pts), max(p.y for p in pts)))
 
 
+def _world_verts(o):
+    return [o.matrix_world @ v.co for v in o.data.vertices]
+
+
+def _centre(o):
+    pts = _world_verts(o)
+    return sum(pts, Vector()) / max(len(pts), 1)
+
+
+def _to_twin(p, own_centre, twin_centre):
+    """Where a point on one part lies on its mirror twin: reflected in x about
+    the part's own centre. Twins are matched by shape, not position; a
+    hand-placed right arm sits a few millimetres further out than the left."""
+    d = p - own_centre
+    return twin_centre + Vector((-d.x, d.y, d.z))
+
+
+def _mismatch(points, targets):
+    kd = KDTree(len(targets))
+    for i, t in enumerate(targets):
+        kd.insert(t, i)
+    kd.balance()
+    return max(kd.find(p)[2] for p in points)
+
+
+def mirror_pairs(parts):
+    """{right part: left part} for every right-hand part whose shape is a left-hand
+    part's mirrored, within MIRROR_M, found by shape rather than name. Parts
+    across the middle (the boards) have no twin and keep their own space."""
+    left = [o for o in parts if _centre(o).x < -0.01]
+    pairs, used = {}, set()
+    for r in (o for o in parts if _centre(o).x > 0.01):
+        cr = _centre(r)
+        rv = [p - cr for p in _world_verts(r)]
+        best = None
+        for l in left:
+            if l in used or len(l.data.polygons) != len(r.data.polygons):
+                continue
+            cl = _centre(l)
+            lv = [_to_twin(p, cl, Vector()) for p in _world_verts(l)]
+            miss = max(_mismatch(rv, lv), _mismatch(lv, rv))
+            if miss < MIRROR_M and (best is None or miss < best[0]):
+                best = (miss, l)
+        if best:
+            pairs[r] = best[1]
+            used.add(best[1])
+    return pairs
+
+
+def copy_mirrored(left, right):
+    """Give `right` the UVs of its mirror twin `left`, corner by corner: the two
+    ends share texture space and wear the same paint, mirrored.
+
+    The twins match in shape but not always in triangles (a flat face can be
+    split along either diagonal), and a part arrives with every face's corners
+    separate. So each right face finds the left triangle its mirrored centre
+    lies on, and each corner takes, from the left corners at its mirrored
+    position, the UV nearest what that triangle gives there: the right side of
+    any seam."""
+    lme, rme = left.data, right.data
+    luv, ruv = lme.uv_layers[0].data, rme.uv_layers[0].data
+    lw, rw = left.matrix_world, right.matrix_world
+    cl, cr = _centre(left), _centre(right)
+    tris = []
+    for p in lme.polygons:
+        pts = [(lw @ lme.vertices[lme.loops[k].vertex_index].co, luv[k].uv.copy())
+               for k in p.loop_indices]
+        for i in range(1, len(pts) - 1):
+            tris.append((pts[0], pts[i], pts[i + 1]))
+    tree = BVHTree.FromPolygons([t[j][0] for t in tris for j in range(3)],
+                                [(3 * i, 3 * i + 1, 3 * i + 2) for i in range(len(tris))])
+    corners = KDTree(len(lme.loops))
+    for k, loop in enumerate(lme.loops):
+        corners.insert(lw @ lme.vertices[loop.vertex_index].co, k)
+    corners.balance()
+    for p in rme.polygons:
+        _, _, ti, dist = tree.find_nearest(_to_twin(rw @ p.center, cr, cl))
+        if ti is None or dist > MIRROR_M:
+            raise RuntimeError(f"{right.name}: face {p.index} has no mirror on {left.name}")
+        (a, ua), (b, ub), (c, uc) = tris[ti]
+        e1, e2 = b - a, c - a
+        d11, d12, d22 = e1.dot(e1), e1.dot(e2), e2.dot(e2)
+        det = d11 * d22 - d12 * d12
+        for k in p.loop_indices:
+            q = _to_twin(rw @ rme.vertices[rme.loops[k].vertex_index].co, cr, cl)
+            r = q - a
+            s1 = (d22 * r.dot(e1) - d12 * r.dot(e2)) / det
+            t1 = (d11 * r.dot(e2) - d12 * r.dot(e1)) / det
+            guess = ua + (ub - ua) * s1 + (uc - ua) * t1
+            near = corners.find_range(q, MIRROR_M) or [corners.find(q)]
+            ruv[k].uv = min((luv[n[1]].uv for n in near), key=lambda u: (u - guess).length)
+
 def main():
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     ring_seam = next((a.split("=", 1)[1] for a in argv if a.startswith("--ring-seam=")), "inside")
     parts = [o for o in bpy.data.collections["export"].all_objects if o.type == "MESH"]
     if bpy.context.object and bpy.context.object.mode != "OBJECT":
         bpy.ops.object.mode_set(mode="OBJECT")
+    twins = {} if "--no-mirror" in argv else mirror_pairs(parts)
 
     pieces = []  # (size, part, faces, uvs)
     report = {"box": [], "cylinder": [], "ring": [], "other": []}
     for part in parts:
+        if part in twins:
+            continue  # takes its left twin's layout below
         others = [o for o in parts if o is not part]
         tree = None
         if others:
@@ -403,11 +505,17 @@ def main():
         for i in faces:
             for li, p in zip(me.polygons[i].loop_indices, uvs[i]):
                 data[li].uv = (p + off) / side
+    for right, left in twins.items():
+        copy_mirrored(left, right)
     for part in parts:
         part["kyt_unwrapped"] = True
 
     print(f"unwrap_parts: {len(parts)} parts, {len(pieces)} pieces, layout {side:.2f} m square "
           f"({1024 / side:.0f} px/m at 1024, {2048 / side:.0f} at 2048 before the fuse trims it)")
+    sided = [o for o in parts if o not in twins and o not in twins.values()
+             and abs(_centre(o).x) > 0.01]
+    print(f"  mirrored: {len(twins)} right-hand parts share their left twin's space"
+          + (f"; no twin found for {', '.join(sorted(o.name for o in sided))}" if sided else ""))
     for kind, names in report.items():
         if names:
             print(f"  {kind}: {len(names)}" + (f"  {', '.join(names)}" if kind == "other" else ""))

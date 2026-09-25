@@ -221,9 +221,11 @@ def run(context):
     if keep_uvs:
         # The pieces keep their shape, scale and turn (grain along U); packing
         # only moves them, and scales all of them together to fill the square.
+        # Mirrored twins lie on top of each other by design and move as one.
         bpy.ops.uv.select_all(action="SELECT")
-        bpy.ops.uv.pack_islands(rotate=False, scale=True, margin_method="FRACTION",
-                                margin=UV_MARGIN, shape_method="CONCAVE")
+        bpy.ops.uv.pack_islands(rotate=False, scale=True, merge_overlap=True,
+                                margin_method="FRACTION", margin=UV_MARGIN,
+                                shape_method="CONCAVE")
     else:
         bpy.ops.uv.smart_project(angle_limit=math.radians(66), island_margin=0.004,
                                  correct_aspect=True, scale_to_bounds=False)
