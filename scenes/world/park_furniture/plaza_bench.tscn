@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 ; The plaza bench, as the game places it. Editor-owned.
 ;
@@ -12,8 +12,12 @@
 ; The model is `assets/props/plaza_bench.glb`, sent from
 ; `assets/source/props/plaza_bench.blend` with the Keep Your Ticket panel. Its
 ; collision is derived on export, on layer 1, so seated guests stand on it.
+;
+; `gum` is story dressing: each bench decides its own chewing gum when the game
+; starts (count, spot, colour), seeded by where it stands. See bench_gum.gd.
 
 [ext_resource type="PackedScene" path="res://assets/props/plaza_bench.glb" id="1_model"]
+[ext_resource type="Script" path="res://scenes/world/park_furniture/bench_gum.gd" id="2_gum"]
 
 [node name="plaza_bench" type="Node3D"]
 editor_description = "Plaza bench. Faces local +Z. seat_l and seat_r are the seat contract every seated guest and the Blender check rely on; move them only together with the model."
@@ -25,3 +29,6 @@ position = Vector3(-0.45, 0.51, 0.06)
 
 [node name="seat_r" type="Marker3D" parent="."]
 position = Vector3(0.45, 0.51, 0.06)
+
+[node name="gum" type="Node3D" parent="."]
+script = ExtResource("2_gum")
