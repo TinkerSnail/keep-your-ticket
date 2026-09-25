@@ -35,6 +35,7 @@ but say so, and the button refuses to run inside a `_source` file, so the
 original can't be fused by accident.
 """
 
+import json
 import math
 import os
 
@@ -73,11 +74,15 @@ class _PartUVs:
     bench's 1,489 seams into 2,917, every leg facet its own piece. But every face
     it outputs lies inside one face of one part, so each fused face looks up the
     part face it came from and takes its UVs from there, exactly (a triangle's
-    UVs are affine across it)."""
+    UVs are affine across it). It records that part too, as the face attribute
+    `kyt_part` indexing the mesh's `kyt_parts` list of names: the colour-ID a
+    paint mask needs (the arms, the boards) once the parts are one mesh."""
 
-    def __init__(self, objects):
+    def __init__(self, objects, names):
+        self.names = list(names)
+        owner = []
         bm = bmesh.new()
-        for o in objects:
+        for index, o in enumerate(objects):
             part = bmesh.new()
             part.from_mesh(o.data)
             part.transform(o.matrix_world)
@@ -86,11 +91,12 @@ class _PartUVs:
             part.to_mesh(tmp)
             part.free()
             bm.from_mesh(tmp)
+            owner.extend([index] * len(tmp.polygons))
             bpy.data.meshes.remove(tmp)
         bm.faces.ensure_lookup_table()
         uv = bm.loops.layers.uv.active
         self.tris = [([l.vert.co.copy() for l in f.loops], [l[uv].uv.copy() for l in f.loops],
-                      f.normal.copy()) for f in bm.faces]
+                      f.normal.copy(), owner[f.index]) for f in bm.faces]
         self.tree = BVHTree.FromBMesh(bm)
         bm.free()
 
@@ -105,10 +111,12 @@ class _PartUVs:
                    key=lambda h: self.tris[h[2]][2].dot(face.normal))
         return self.tris[best[2]]
 
-    def apply(self, bm):
+    def apply(self, bm, mesh):
         uv = bm.loops.layers.uv.active
+        part = bm.faces.layers.int.get("kyt_part") or bm.faces.layers.int.new("kyt_part")
+        mesh["kyt_parts"] = json.dumps(self.names)
         for f in bm.faces:
-            (a, b, c), (ua, ub, uc), _ = self.source_of(f)
+            (a, b, c), (ua, ub, uc), _, f[part] = self.source_of(f)
             e1, e2 = b - a, c - a
             d11, d12, d22 = e1.dot(e1), e1.dot(e2), e2.dot(e2)
             det = d11 * d22 - d12 * d12
@@ -179,7 +187,7 @@ def run(context):
         copies.append(c)
     context.view_layer.objects.active = copies[0]
     bpy.ops.object.convert(target="MESH")
-    part_uvs = _PartUVs(copies) if keep_uvs else None
+    part_uvs = _PartUVs(copies, [o.name for o in parts]) if keep_uvs else None
     if len(copies) > 1:
         bpy.ops.object.join()
     fused = context.view_layer.objects.active
@@ -199,7 +207,7 @@ def run(context):
     bmesh.ops.delete(bm, geom=floor, context="FACES")
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=WELD_M)
     if part_uvs:
-        part_uvs.apply(bm)
+        part_uvs.apply(bm, fused.data)
     bm.to_mesh(fused.data)
     bm.free()
 
