@@ -20,6 +20,7 @@ Do not rely on remembered chat context in place of the documents. When two curre
 
 - `documentation/design.md`, `night.md` and `technical.md` govern the game, the night and the platform.
 - `documentation/park-planning-process.md` governs the upstream decision sequence and gate model for planning or evaluating park work; it does not replace the spatial authority below.
+- `documentation/prop-pipeline.md` governs how a prop goes from greybox to painted and placed: its stages, who does each, the tools, when a stage is done, and what is still rough or missing. Follow it for any prop work.
 - `documentation/park-rebuild-masterplan.md` and the interactive maps govern the approved rebuild and its order. Maps live in `documentation/maps/` with synchronized copies in `planning/`; byte-compare a pair before reading it, and update both when a plan changes.
 - `district-story-arcs.md`, `seasonal-missions-and-decor.md` and `feature-assignments-and-park-legends.md` govern their layers. The newest `current-build-<date>.md` is the visual baseline.
 - `design-archive.md` is tone and history, not a spec. Honour its supersession markers.
