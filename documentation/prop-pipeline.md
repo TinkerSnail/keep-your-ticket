@@ -146,11 +146,22 @@ locked `UV guide` layer. An existing PSD is never replaced. She paints on it or 
 paint on the model works too. Mirrored parts share paint: a chip on one arm
 appears on the other. Card: `howto/paint-the-plaza-bench.md`.
 
+**Saving updates the prop** (2026-09-25). With the save hook on
+(`tools/photoshop/live_update.sh on`, which Photoshop keeps across restarts
+as a "Save Document" script event), each save of a canvas PSD runs
+`tools/photoshop/on_save.jsx`. It writes `<prop>_colour.png` (the hand-back's
+own export, about 3 s in which Photoshop waits) and starts a headless Send to
+game from the saved `.blend`, logged to
+`~/Library/Logs/Keep Your Ticket/live_send.log`. The Blender panel's **Reload
+textures on save** reloads the texture a second later without marking the
+file modified, and Godot re-imports the prop the next time its window is
+focused. The tests and renders still wait for stage 8.
+
 Her words:
 - **"Preview":** `prop_handback.py <prop> --preview` renders her work in
   progress (saved or not) on the prop from a flattened duplicate. Her
   document, the PNG and the game are untouched.
-- **"Process it"** or **"handed back":** stage 8 runs.
+- **"Process it"**, **"handed back"** or that she saved: stage 8 runs.
 
 ### 7. Dressing (agent, Christina decides) — rough
 
@@ -292,3 +303,8 @@ Each cost time once. The fix is in the tool unless noted.
   the spot.** Outline against both sides.
 - **Changes made in her open app exist only until she saves.** Put the save
   line last in the report (agent practice).
+- **After the canvas, Solid view looks untextured.** Solid shading with colour
+  set to Material shows each material's flat viewport colour, and the one
+  canvas material's is default grey (the three part materials had theirs
+  matching). Set Solid's colour to Texture, or use Material Preview
+  (backless bench, 2026-09-25).

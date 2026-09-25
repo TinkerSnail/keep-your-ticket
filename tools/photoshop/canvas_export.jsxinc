@@ -1,0 +1,15 @@
+// A prop canvas's export, shared by export_canvas.jsx (the hand-back) and
+// on_save.jsx (the save hook): a flattened copy of `doc` with every
+// "UV guide" layer hidden, 8 bits, saved as PNG over `pngPath`. The work is
+// done on a duplicate, closed after, so `doc` is not touched.
+function kytExportCanvas(doc, pngPath) {
+    var dup = doc.duplicate("canvas_export", false);
+    for (var k = 0; k < dup.layers.length; k++) {
+        if (dup.layers[k].name.indexOf("UV guide") == 0) { dup.layers[k].allLocked = false; dup.layers[k].visible = false; }
+    }
+    dup.flatten();
+    if (dup.bitsPerChannel != BitsPerChannelType.EIGHT) dup.bitsPerChannel = BitsPerChannelType.EIGHT;
+    var png = new PNGSaveOptions(); png.compression = 9; png.interlaced = false;
+    dup.saveAs(new File(pngPath), png, true, Extension.LOWERCASE);
+    dup.close(SaveOptions.DONOTSAVECHANGES);
+}

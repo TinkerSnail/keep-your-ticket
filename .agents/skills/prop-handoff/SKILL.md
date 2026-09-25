@@ -28,13 +28,21 @@ memory of an earlier session, say what happens next.
 
 ## 1. What each phrase means
 
+**Never ask her what to do next.** The row's stage and the files decide it;
+the table below says what each stage's next step is. Any hand-over in her own
+words ("saved", "done", "finished the pass", "I saved the psd") is the
+hand-back for the row's stage: run it. Ask only when two props could be
+meant, or when a step would change something of hers the table doesn't
+cover (2026-09-25: she saved her first paint pass and was asked "preview or
+handed back?"; the pipeline exists so that question never comes up).
+
 | She says | Do |
 |---|---|
 | "new prop …", "start the …" | Stage 1 set-up (below), then the hand-off package. |
-| "handed back" after modelling (row: model) | Model hand-back (below). |
+| "handed back", or that she saved, after modelling (row: model) | Model hand-back (below). |
 | "open it in Photoshop", "let's paint" | `python3 tools/prop_handback.py <prop> --open` |
 | "preview" | `python3 tools/prop_handback.py <prop> --preview`; show her the renders. Her document and the game are untouched. |
-| "handed back" or "process it" after painting (row: paint) | `python3 tools/prop_handback.py <prop>`. If it refuses because the PSD has unsaved changes, ask her to save; never use `--allow-unsaved` unasked. |
+| "handed back", "process it", or that she saved the PSD (row: paint) | `python3 tools/prop_handback.py <prop>`. With the save hook on (`tools/photoshop/live_update.sh status`) her save already sent the prop; the hand-back adds the tests and renders. If it refuses because the PSD has unsaved changes, ask her to save; never use `--allow-unsaved` unasked. |
 | "rebuild", or `<prop>_source.blend` is newer than the working file | Rebuild game mesh (below), then the painted hand-back if there is a painting. |
 | "commit" / "push" | Only then. Check `git status` for other sessions' work first; commit only this prop's files. |
 

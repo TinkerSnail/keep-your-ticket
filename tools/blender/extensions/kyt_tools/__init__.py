@@ -7,8 +7,9 @@ Add-ons list. Because Blender loads it straight from the project, a tools update
 pulled through git reaches Blender without reinstalling.
 
 The panel lives in the 3D viewport's sidebar (N) under the "Keep Your Ticket"
-tab: Check, Make game mesh, Rebuild game mesh, Send to game, Open in Godot, and
-the findings of the last run.
+tab: Check, Make game mesh, Rebuild game mesh, Send to game, the "Reload
+textures on save" switch (see live.py), Open in Godot, and the findings of the
+last run.
 """
 
 import os
@@ -17,7 +18,7 @@ import sys
 
 import bpy
 
-from . import checks, game_mesh, send
+from . import checks, game_mesh, live, send
 
 STAGES = [
     ("blockout", "Block-out", "Rough shape and proportions"),
@@ -121,6 +122,7 @@ class KYT_PT_panel(bpy.types.Panel):
         col.operator("kyt.make_game_mesh", icon="MOD_BOOLEAN")
         col.operator("kyt.rebuild_game_mesh", icon="FILE_REFRESH")
         col.operator("kyt.send_to_game", icon="EXPORT")
+        layout.prop(context.scene, "kyt_reload_textures")
         layout.operator("kyt.open_godot", icon="WINDOW")
         report = context.window_manager.get("kyt_last_report")
         if report:
@@ -151,9 +153,11 @@ def register():
     bpy.types.Scene.kyt_stage = bpy.props.EnumProperty(name="Stage", items=STAGES, default="blockout")
     for cls in CLASSES:
         bpy.utils.register_class(cls)
+    live.register()
 
 
 def unregister():
+    live.unregister()
     for cls in reversed(CLASSES):
         bpy.utils.unregister_class(cls)
     del bpy.types.Scene.kyt_stage
