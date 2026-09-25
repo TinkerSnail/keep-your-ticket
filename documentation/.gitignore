@@ -6,3 +6,8 @@
 
 *
 !.gitignore
+
+# Tracked on purpose (2026-09-25): the prop pipeline and the asset tracker,
+# so every machine and session has them. No story material; keep it so.
+!prop-pipeline.md
+!asset-tracker.md

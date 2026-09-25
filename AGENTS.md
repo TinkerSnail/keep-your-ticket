@@ -16,7 +16,7 @@ Do not rely on remembered chat context in place of the documents. When two curre
 
 ## Documents
 
-`documentation/` is not tracked by git. It is working material and stays local, synced by Dropbox.
+`documentation/` is not tracked by git. It is working material and stays local, synced by Dropbox. Two files are the exception and are tracked, so every machine and session has them: `prop-pipeline.md` and `asset-tracker.md`. The repository is public, so nothing with story material goes in either.
 
 - `documentation/design.md`, `night.md` and `technical.md` govern the game, the night and the platform.
 - `documentation/park-planning-process.md` governs the upstream decision sequence and gate model for planning or evaluating park work; it does not replace the spatial authority below.
