@@ -16,7 +16,7 @@ import sys
 
 import bpy
 
-from . import checks, send
+from . import checks, game_mesh, send
 
 STAGES = [
     ("blockout", "Block-out", "Rough shape and proportions"),
@@ -59,6 +59,19 @@ class KYT_OT_send(bpy.types.Operator):
         return {"FINISHED"} if ok else {"CANCELLED"}
 
 
+class KYT_OT_game_mesh(bpy.types.Operator):
+    """Save the original as <name>_source.blend, then fuse this file's parts into one clean, unwrapped mesh"""
+    bl_idname = "kyt.make_game_mesh"
+    bl_label = "Make game mesh"
+    bl_options = {"REGISTER", "UNDO"}
+
+    def execute(self, context):
+        ok, lines = game_mesh.run(context)
+        _store(context, lines)
+        self.report({"INFO"} if ok else {"ERROR"}, lines[0])
+        return {"FINISHED"} if ok else {"CANCELLED"}
+
+
 class KYT_OT_open_godot(bpy.types.Operator):
     """Open this project in the Godot editor"""
     bl_idname = "kyt.open_godot"
@@ -91,6 +104,7 @@ class KYT_PT_panel(bpy.types.Panel):
         col = layout.column(align=True)
         col.scale_y = 1.3
         col.operator("kyt.check", icon="CHECKMARK")
+        col.operator("kyt.make_game_mesh", icon="MOD_BOOLEAN")
         col.operator("kyt.send_to_game", icon="EXPORT")
         layout.operator("kyt.open_godot", icon="WINDOW")
         report = context.window_manager.get("kyt_last_report")
@@ -114,7 +128,7 @@ def _wrap(text, width):
     return out or [""]
 
 
-CLASSES = (KYT_OT_check, KYT_OT_send, KYT_OT_open_godot, KYT_PT_panel)
+CLASSES = (KYT_OT_check, KYT_OT_game_mesh, KYT_OT_send, KYT_OT_open_godot, KYT_PT_panel)
 
 
 def register():
