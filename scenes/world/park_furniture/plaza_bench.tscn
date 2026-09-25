@@ -1,0 +1,22 @@
+[gd_scene format=3]
+
+; The plaza bench, as the game places it. Editor-owned.
+;
+; The two Marker3Ds are the seat contract, written down once: a seated guest
+; sits at a marker's position, facing the bench's +Z. `tools/gen_crowd.gd` and
+; `tools/seat_test.py` read them, and the Blender Check button measures the
+; modelled seat against the same two points (they travel into the prop's
+; reference layer). The values are the ones the crowd used before 2026-09-24:
+; 0.45 m either side of centre, 0.06 m forward, seat top 0.51 m.
+;
+; The bench model itself is `assets/props/plaza_bench.glb`, sent from
+; `assets/source/props/plaza_bench.blend`; it is instanced here once it exists.
+
+[node name="plaza_bench" type="Node3D"]
+editor_description = "Plaza bench. Faces local +Z. seat_l and seat_r are the seat contract every seated guest and the Blender check rely on; move them only together with the model."
+
+[node name="seat_l" type="Marker3D" parent="."]
+position = Vector3(-0.45, 0.51, 0.06)
+
+[node name="seat_r" type="Marker3D" parent="."]
+position = Vector3(0.45, 0.51, 0.06)
