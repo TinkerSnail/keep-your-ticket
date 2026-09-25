@@ -1,0 +1,30 @@
+{
+  "name": "park_furniture_trim",
+  "about": "The shared trim sheet for park furniture: benches, picnic tables, railings, planters, signposts. Strips tile left to right (U); the detail row does not tile. One source for the painting template (tools/trim_sheet_template.py) and for mapping props onto the sheet.",
+  "size_px": [2048, 2048],
+  "px_per_metre": 300,
+  "bleed_px": 4,
+  "rows": [
+    {"id": "timber_fresh",       "y": [0, 256],     "tiles": true, "base": "#8a5a34", "note": "Varnished timber, grain runs left-right"},
+    {"id": "timber_weathered",   "y": [256, 512],   "tiles": true, "base": "#7c6b58", "note": "Greyed, open grain, a few seasons unvarnished"},
+    {"id": "timber_bleached",    "y": [512, 768],   "tiles": true, "base": "#b29d80", "note": "Sun-bleached, silvery, split ends"},
+    {"id": "iron_smooth",        "y": [768, 1024],  "tiles": true, "base": "#224a35", "note": "Green-painted cast iron, recently repainted"},
+    {"id": "iron_chipped",       "y": [1024, 1280], "tiles": true, "base": "#264b37", "note": "Paint chipped at knocks, dark iron showing"},
+    {"id": "iron_rust",          "y": [1280, 1536], "tiles": true, "base": "#3d4531", "note": "Rust bleeding from joints and the ground line"},
+    {"id": "timber_end_grain",   "y": [1536, 1600], "tiles": true, "base": "#6e4526", "note": "Board ends"},
+    {"id": "timber_edge_worn",   "y": [1600, 1664], "tiles": true, "base": "#9c7650", "note": "Rounded front edge of a seat slat, worn pale by use"},
+    {"id": "iron_edge_highlight","y": [1664, 1728], "tiles": true, "base": "#3a6a4e", "note": "Paint worn thin on iron edges"},
+    {"id": "iron_edge_rust",     "y": [1728, 1792], "tiles": true, "base": "#5a3a24", "note": "Rust along edges and feet"},
+    {"id": "details",            "y": [1792, 2048], "tiles": false, "base": "#6f6a60", "note": "Separate cells, see cells",
+     "cells": [
+       {"id": "bolt_round",  "x": [0, 128],    "y": [1792, 1920]},
+       {"id": "bolt_hex",    "x": [128, 256],  "y": [1792, 1920]},
+       {"id": "washer",      "x": [256, 384],  "y": [1792, 1920]},
+       {"id": "rivet",       "x": [384, 512],  "y": [1792, 1920]},
+       {"id": "screw_slot",  "x": [512, 640],  "y": [1792, 1920]},
+       {"id": "maker_plate", "x": [0, 512],    "y": [1920, 2048]},
+       {"id": "free_1",      "x": [640, 1024], "y": [1792, 2048]},
+       {"id": "free_2",      "x": [1024, 2048],"y": [1792, 2048]}
+     ]}
+  ]
+}
