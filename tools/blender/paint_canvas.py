@@ -2,7 +2,8 @@
 
     /Applications/Blender.app/Contents/MacOS/Blender --background <prop>.blend \
         --python tools/blender/paint_canvas.py -- [--size 2048] [--orm-size 1024] [--grain]
-        [--weather part,part] [--overwrite] [--guide-only] [--save]
+        [--knots part,part] [--wear part,part] [--chips part,part] [--dings part,part]
+        [--ground part,part] [--weather part,part] [--overwrite] [--guide-only] [--save]
 
 Runs on the game-ready working file (after Make game mesh), whose game mesh is
 unwrapped for its own texture. Writes three images to
@@ -26,14 +27,35 @@ as a solid 3D pattern, so the grain runs unbroken round a board's edges and
 shows as rings on its cut ends, with wavy figure and fine streaks along the
 grain.
 
-`--weather arm_loop,scroll,armrest` weathers the painted iron (a material whose
-name contains "iron") of the parts whose names start with those words, read
+`--knots back_` lets those parts' wood carry the knots listed in KNOTS: a dark
+core stretched along the grain, with the growth rings bulging round it. `--wear seat_` wears
+the top edges of those parts' wood pale and smooth where people sit, most on
+the front board's rounded front edge where legs rub, fading away from the seat
+contract's two seats.
+
+`--weather arm_loop,scroll,armrest,front_leg:0.4` weathers the painted iron (a
+material whose name contains "iron") of the parts whose names start with those
+words, `:0.4` scaling that part's rust streaks, read
 from the `kyt_part` record Make game mesh leaves on each face: paint faded on
 top and worn through to dark, hand-polished iron where hands rest, chips on
-edges with rust round them and streaking down, grime in the crevices. Rust is
-rough and bare iron metallic in the ORM too.
+edges with rust round them and streaking down, rust and dirt climbing from the
+paving, grime in the crevices. Rust is rough and bare iron metallic in the ORM
+too.
 
-Both are starting points to paint over, not a finish.
+`--chips arm_loop,scroll,armrest` is the light touch: only a few small chips
+along the edges of those parts' painted iron, grey iron showing through, and
+nothing else. An edge is wherever the surface turns within a few millimetres:
+a bar's corner, or the ridge between two facets of a tube. `front_leg:0.5`
+thins a part's chips: a straight leg's long ridges catch far more than a ring's
+curved ones. `--dings arm_loop` adds small chips across the tops of those
+parts, not just their edges, where hands and bags knock them. `--ground
+front_leg,foot_front` adds only the rust and dirt climbing from the paving.
+The ground band also carries a few dark spots of dirt near the paving. The
+plaza bench wears chips on its whole frame, dings on top of its outer arm rings
+and its feet, and a little ground dirt with dark spots at its feet
+(Christina, 2026-09-24).
+
+All of these are starting points to paint over, not a finish.
 
 Then the game mesh's materials (timber, cast iron, fixings) are replaced by one
 material named after the prop that reads both images, so each placement is one
@@ -60,6 +82,28 @@ BAKE_SAMPLES = 32  # smooths grain finer than a pixel, and the crevice sampling
 PITH_YZ = (0.12, -0.05)
 RING_M = 0.009  # one growth ring; 5 px at the bench's 576 px per metre
 EARLY, LATE = 1.10, 0.72  # earlywood and latewood, times the timber colour; they average about 1
+# Knots, placed by hand in object space (x along the bench, y front to back, z
+# up), just behind a back board's front face (y 0.307), so the face cuts them
+# through the middle. Christina asked for one or two on the whole back rest
+# (2026-09-24).
+KNOTS = [(-0.32, 0.309, 0.72),  # back_1, left of centre
+         (0.58, 0.309, 0.84)]  # back_2, right of centre
+KNOT_ALONG_M, KNOT_ACROSS_M = 0.125, 0.05  # a knot's reach, along and across the grain
+KNOT_CORE = 0.2  # the knot's dark core, as a fraction of its reach: about 5 cm by 2 cm
+KNOT_BULGE_M = 0.025  # how far the rings bend round a knot
+KNOT_DARK = 0.45  # the core, times the wood's colour; its rim darker still
+KNOT_RING = 0.035  # the knot's own growth rings, as a fraction of a cell
+
+# Wear on seat boards, in metres along the bench (x) and back from its front (y).
+SEATS_X = 0.45  # the seat contract: a guest 0.45 m either side of centre
+SEAT_SPREAD_M = 0.3  # wear fades out this far from a seat
+FRONT_Y = -0.266  # the front edge of the front board, where legs rub
+WORN = (0.30, 0.17, 0.08, 1.0)  # timber rubbed pale, the finish gone
+WORN_ROUGH = 0.5  # smoothed by use
+WEAR_EDGE_M = 0.015  # how far round an edge the wear reaches
+SEAT_TOP_Z = 0.51  # the seat contract's seat top; only the boards' top edges wear
+ARRIS_M = 0.028  # the front edge wears this far round, over the top and down the front
+WEAR = 0.8  # how far worn wood goes to WORN; the grain still shows
 
 # Weathering on painted iron, linear colours and 0-1 amounts.
 FADED = (0.014, 0.075, 0.036, 1.0)  # the green bleached on surfaces facing the sky
@@ -69,6 +113,21 @@ FADE = 0.5  # how far the tops fade
 HAND_WEAR = 0.85  # how much of the paint hands have worn off the tops
 CHIP_EDGE_M = 0.006  # how far round an edge the chipping reaches
 GRIME = 0.55  # how dark the crevices get
+STREAKS = 0.6  # rust running down upright faces; `part:0.4` scales it for a part
+GROUND_M = 0.05  # rust and dirt climb this far up from the paving; the feet are 5 cm tall
+GROUND_RUST = 0.3  # how much of the ground band rusts, at the paving itself
+GROUND_DIRT = 0.15  # how dark the dirt is there; much more and the feet read as muddy
+DIRT = (0.004, 0.0035, 0.003, 1.0)  # a dirt spot: near-black, about a sixth as bright as the green paint
+DIRT_SPOT_M = 0.025  # the patchiness dirt spots are cut from
+DIRT_LEVEL = 0.58  # how high it must reach for a spot: higher, fewer spots
+DIRT_REACH_M = 0.12  # spots only this near the ground
+CHIP_IRON = (0.11, 0.105, 0.1, 1.0)  # a chip's grey iron: light enough to read against dark green paint
+CHIP_ROUGH, CHIP_METAL = 0.55, 0.6  # dull: a shiny chip mirrors its surroundings and reads as a dark speck
+CHIP_SIZE_M = 0.07  # the patchiness chips are cut from; a chip is a fraction of it
+CHIP_LEVEL = 0.64  # how high that patchiness must reach for a chip: higher, fewer chips
+CHIP_THIN = 0.06  # how much higher it must reach on a part chipped at `part:0`
+DING_SIZE_M = 0.03  # dings on a part's top are smaller and closer than edge chips
+DING_LEVEL = 0.64  # how high their patchiness must reach: higher, fewer dings
 BARE_ROUGH, BARE_METAL = 0.32, 0.95
 RUST_ROUGH, RUST_METAL = 0.92, 0.05
 
@@ -173,6 +232,39 @@ def wood_grain(g, base):
     r = g.math("SQRT", g.math("ADD", g.math("MULTIPLY", dy, dy), g.math("MULTIPLY", dz, dz)))
     r = g.math("ADD", r, g.wobble((0.6, 4.0, 4.0), 3.0, 0.05))
     r = g.math("ADD", r, g.wobble((2.5, 40.0, 40.0), 2.0, 0.006))
+    # Knots at KNOTS, on the parts `kyt_knots` names: distance to the nearest,
+    # stretched along the grain. Rings bulge round each.
+    knots = g.node("ShaderNodeAttribute")
+    knots.attribute_type = "GEOMETRY"
+    knots.attribute_name = "kyt_knots"
+    has = knots.outputs["Fac"]
+    d = None
+    for k in KNOTS:
+        off = g.node("ShaderNodeVectorMath")
+        off.operation = "SUBTRACT"
+        g.link(g.coord, off.inputs[0])
+        off.inputs[1].default_value = k
+        stretch = g.node("ShaderNodeVectorMath")
+        stretch.operation = "MULTIPLY"
+        g.link(off.outputs["Vector"], stretch.inputs[0])
+        stretch.inputs[1].default_value = (1 / KNOT_ALONG_M, 1 / KNOT_ACROSS_M, 1 / KNOT_ACROSS_M)
+        length = g.node("ShaderNodeVectorMath")
+        length.operation = "LENGTH"
+        g.link(stretch.outputs["Vector"], length.inputs[0])
+        d = length.outputs["Value"] if d is None else g.math("MINIMUM", d, length.outputs["Value"])
+    if d is None:
+        d = 9.0  # no knots listed
+    near = g.math("SUBTRACT", 1.0, g.ramp(d, 0.0, 0.9))
+    r = g.math("ADD", r, g.math("MULTIPLY", g.math("MULTIPLY", near, near),
+                                g.math("MULTIPLY", has, KNOT_BULGE_M)))
+    core = g.math("MULTIPLY", g.math("SUBTRACT", 1.0, g.ramp(d, KNOT_CORE * 0.85, KNOT_CORE)), has)
+    # Inside the knot, its own rings and a darker rim; round it, the grain darkens.
+    rim = g.math("MULTIPLY", g.ramp(d, KNOT_CORE * 0.6, KNOT_CORE * 0.9), core)
+    own = g.math("MULTIPLY", g.ramp(g.math("FRACT", g.math("DIVIDE", d, KNOT_RING)), 0.55, 0.8), core)
+    knot_shade = g.math("SUBTRACT", g.lerp(1.0, KNOT_DARK, core),
+                        g.math("ADD", g.math("MULTIPLY", rim, 0.15), g.math("MULTIPLY", own, 0.08)))
+    knot_shade = g.math("MULTIPLY", knot_shade, g.math("SUBTRACT", 1.0, g.math(
+        "MULTIPLY", g.math("MULTIPLY", near, has), 0.15)))
     ring = g.math("FRACT", g.math("DIVIDE", r, RING_M))
     # Earlywood most of the ring, a darker latewood band with soft edges.
     ramp = g.node("ShaderNodeValToRGB")
@@ -188,8 +280,42 @@ def wood_grain(g, base):
     shade = g.math("ADD", 1.0, g.wobble((3.0, 350.0, 350.0), 1.0, 0.16))
     shade = g.math("MULTIPLY", shade, g.math("ADD", 1.0, g.wobble((1.2, 8.0, 8.0), 2.0, 0.18)))
     wood = g.mix(base, ramp.outputs["Color"], 1.0, "MULTIPLY")
-    return g.mix(wood, g.grey(shade), 1.0, "MULTIPLY")
+    wood = g.mix(wood, g.grey(shade), 1.0, "MULTIPLY")
+    return g.mix(wood, g.grey(knot_shade), 1.0, "MULTIPLY")
 
+
+def seat_wear(g):
+    """0-1: how worn the wood is, on the parts `kyt_wear` names. The boards' top
+    edges wear where people sit, the front board's rounded front edge most,
+    where legs rub; smooth, in streaks along the board."""
+    mask = g.node("ShaderNodeAttribute")
+    mask.attribute_type = "GEOMETRY"
+    mask.attribute_name = "kyt_wear"
+    at = g.node("ShaderNodeSeparateXYZ")
+    g.link(g.coord, at.inputs["Vector"])
+    geo = g.node("ShaderNodeNewGeometry")
+    bevel = g.node("ShaderNodeBevel")
+    bevel.inputs["Radius"].default_value = WEAR_EDGE_M
+    turn = g.node("ShaderNodeVectorMath")
+    turn.operation = "DOT_PRODUCT"
+    g.link(geo.outputs["True Normal"], turn.inputs[0])
+    g.link(bevel.outputs["Normal"], turn.inputs[1])
+    edge = g.ramp(g.math("SUBTRACT", 1.0, turn.outputs["Value"]), 0.01, 0.15)
+    top = g.ramp(at.outputs["Z"], SEAT_TOP_Z - 0.03, SEAT_TOP_Z - 0.005)
+    # The front board's front edge, where legs rub: a band measured round the
+    # edge itself, so it covers the top and the front alike.
+    dy = g.math("SUBTRACT", at.outputs["Y"], FRONT_Y)
+    dz = g.math("SUBTRACT", at.outputs["Z"], SEAT_TOP_Z)
+    arris = g.ramp(g.math("SQRT", g.math("ADD", g.math("MULTIPLY", dy, dy), g.math("MULTIPLY", dz, dz))),
+                   ARRIS_M, 0.005)
+    where = g.math("MAXIMUM", g.math("MULTIPLY", g.math("MULTIPLY", edge, top), 0.3), arris)
+    # Where people sit: the two seats, and a little in the middle.
+    off = g.math("ABSOLUTE", g.math("SUBTRACT", g.math("ABSOLUTE", at.outputs["X"]), SEATS_X))
+    seated = g.math("MAXIMUM", g.ramp(off, SEAT_SPREAD_M, 0.05),
+                    g.math("MULTIPLY", g.ramp(g.math("ABSOLUTE", at.outputs["X"]), 0.25, 0.0), 0.5))
+    streaks = g.ramp(g.noise((3.0, 50.0, 50.0), 3.0), 0.25, 0.65)
+    return g.math("MULTIPLY", g.math("MULTIPLY", g.math("MULTIPLY", where, seated), streaks),
+                  mask.outputs["Fac"])
 
 def weathering(g, base, rough, metal):
     """(colour, roughness, metalness) sockets for painted iron, weathered where the
@@ -217,16 +343,27 @@ def weathering(g, base, rough, metal):
     knock = g.math("ADD", g.math("MULTIPLY", edge, 0.8), patch)
     chip = g.ramp(knock, 1.0, 1.1)
     halo = g.math("MAXIMUM", g.math("SUBTRACT", g.ramp(knock, 0.8, 0.98), chip), 0.0)
+    streaks = g.node("ShaderNodeAttribute")
+    streaks.attribute_type = "GEOMETRY"
+    streaks.attribute_name = "kyt_streaks"
     streak = g.math("MULTIPLY", g.ramp(g.noise((30.0, 30.0, 2.5), 2.0), 0.58, 0.78),
-                    g.math("MULTIPLY", g.math("SUBTRACT", 1.0, up), 0.6))
+                    g.math("MULTIPLY", g.math("SUBTRACT", 1.0, up),
+                           g.math("MULTIPLY", streaks.outputs["Fac"], STREAKS)))
     hand = g.math("MULTIPLY", up, g.ramp(g.noise((6.0, 6.0, 6.0), 3.0), 0.42, 0.6))
     bare = g.math("MULTIPLY", g.math("MAXIMUM", chip, g.math("MULTIPLY", hand, HAND_WEAR)), w)
-    rust = g.math("MULTIPLY", g.math("MAXIMUM", halo, streak), w)
-    # Grime where the surface is hemmed in by other parts.
+    # Rust and dirt climbing from the paving: full at the ground, gone GROUND_M up.
+    at = g.node("ShaderNodeSeparateXYZ")
+    g.link(g.coord, at.inputs["Vector"])
+    ground = g.ramp(at.outputs["Z"], GROUND_M, 0.0)
+    ground_rust = g.math("MULTIPLY", g.math("MULTIPLY", ground, GROUND_RUST),
+                         g.ramp(g.noise((20.0, 20.0, 6.0), 3.0), 0.35, 0.65))
+    rust = g.math("MULTIPLY", g.math("MAXIMUM", g.math("MAXIMUM", halo, streak), ground_rust), w)
+    # Grime where the surface is hemmed in by other parts, and splashed up from the ground.
     ao = g.node("ShaderNodeAmbientOcclusion")
     ao.inputs["Distance"].default_value = 0.03
     ao.samples = 16
-    grime = g.math("MULTIPLY", g.math("SUBTRACT", 1.0, ao.outputs["AO"]), g.math("MULTIPLY", w, GRIME))
+    hemmed = g.math("MAXIMUM", g.math("SUBTRACT", 1.0, ao.outputs["AO"]), g.math("MULTIPLY", ground, 0.5))
+    grime = g.math("MULTIPLY", hemmed, g.math("MULTIPLY", w, GRIME))
 
     colour = g.mix(base, FADED, g.math("MULTIPLY", up, g.math("MULTIPLY", w, FADE)))
     colour = g.mix(colour, RUST, rust)
@@ -237,19 +374,121 @@ def weathering(g, base, rough, metal):
     return colour, r, m
 
 
-def mark_weather(obj, prefixes):
-    """Set the face attribute `kyt_weather` to 1 on faces of the named parts."""
+def chipping(g, colour, rough, metal):
+    """(colour, roughness, metalness) with a few chips of bare iron along the
+    edges, where the face attribute `kyt_chips` is 1; unchanged elsewhere."""
+    chips = g.node("ShaderNodeAttribute")
+    chips.attribute_type = "GEOMETRY"
+    chips.attribute_name = "kyt_chips"
+    # An edge: the flat face's own normal against the normal rounded over a few
+    # millimetres, which turns wherever the surface does, even between the
+    # facets of a smooth-shaded tube.
+    geo = g.node("ShaderNodeNewGeometry")
+    bevel = g.node("ShaderNodeBevel")
+    bevel.inputs["Radius"].default_value = CHIP_EDGE_M
+    turn = g.node("ShaderNodeVectorMath")
+    turn.operation = "DOT_PRODUCT"
+    g.link(geo.outputs["True Normal"], turn.inputs[0])
+    g.link(bevel.outputs["Normal"], turn.inputs[1])
+    edge = g.ramp(g.math("SUBTRACT", 1.0, turn.outputs["Value"]), 0.01, 0.05)
+    # `kyt_chips` is each part's density: 1 chips at CHIP_LEVEL, less asks the
+    # patchiness to reach higher, so fewer chips; 0 is no chips at all.
+    density = chips.outputs["Fac"]
+    level = g.math("ADD", CHIP_LEVEL, g.math("MULTIPLY", g.math("SUBTRACT", 1.0, density), CHIP_THIN))
+    size = 1.0 / CHIP_SIZE_M
+    patch = g.math("MINIMUM", g.math("MAXIMUM", g.math("DIVIDE", g.math(
+        "SUBTRACT", g.noise((size, size, size), 6.0), level), 0.02), 0.0), 1.0)
+    chipped = g.math("GREATER_THAN", density, 0.0)
+    chip = g.math("MULTIPLY", g.math("MULTIPLY", edge, patch), chipped)
+    # Dings: the same bare iron, anywhere on a surface facing the sky, on the
+    # parts `kyt_dings` names (its value their density, as for chips).
+    dings = g.node("ShaderNodeAttribute")
+    dings.attribute_type = "GEOMETRY"
+    dings.attribute_name = "kyt_dings"
+    ding_density = dings.outputs["Fac"]
+    up_xyz = g.node("ShaderNodeSeparateXYZ")
+    g.link(geo.outputs["Normal"], up_xyz.inputs["Vector"])
+    up = g.ramp(up_xyz.outputs["Z"], 0.4, 0.8)
+    ding_level = g.math("ADD", DING_LEVEL, g.math("MULTIPLY", g.math("SUBTRACT", 1.0, ding_density), CHIP_THIN))
+    ding_size = 1.0 / DING_SIZE_M
+    ding_patch = g.math("MINIMUM", g.math("MAXIMUM", g.math("DIVIDE", g.math(
+        "SUBTRACT", g.noise((ding_size, ding_size, ding_size), 6.0), ding_level), 0.02), 0.0), 1.0)
+    ding = g.math("MULTIPLY", g.math("MULTIPLY", up, ding_patch), g.math("GREATER_THAN", ding_density, 0.0))
+    chip = g.math("MAXIMUM", chip, ding)
+    return (g.mix(colour, CHIP_IRON, chip), g.lerp(rough, CHIP_ROUGH, chip),
+            g.lerp(metal, CHIP_METAL, chip))
+
+
+def grounding(g, colour, rough, metal):
+    """(colour, roughness, metalness) with rust and dirt climbing from the paving,
+    full at the ground and gone GROUND_M up, where the face attribute
+    `kyt_ground` is 1; unchanged elsewhere."""
+    mask = g.node("ShaderNodeAttribute")
+    mask.attribute_type = "GEOMETRY"
+    mask.attribute_name = "kyt_ground"
+    at = g.node("ShaderNodeSeparateXYZ")
+    g.link(g.coord, at.inputs["Vector"])
+    ground = g.math("MULTIPLY", g.ramp(at.outputs["Z"], GROUND_M, 0.0), mask.outputs["Fac"])
+    rust = g.math("MULTIPLY", g.math("MULTIPLY", ground, GROUND_RUST),
+                  g.ramp(g.noise((20.0, 20.0, 6.0), 3.0), 0.35, 0.65))
+    dirt = g.math("MULTIPLY", ground, GROUND_DIRT)
+    # A few darker spots of dirt splashed up, only near the ground.
+    low = g.math("MULTIPLY", g.ramp(at.outputs["Z"], DIRT_REACH_M, DIRT_REACH_M / 2), mask.outputs["Fac"])
+    spot_size = 1.0 / DIRT_SPOT_M
+    spot = g.math("MULTIPLY", g.ramp(g.noise((spot_size, spot_size, spot_size), 5.0),
+                                     DIRT_LEVEL, DIRT_LEVEL + 0.03), low)
+    colour = g.mix(colour, RUST, rust)
+    colour = g.mix(colour, g.grey(g.math("SUBTRACT", 1.0, dirt)), 1.0, "MULTIPLY")
+    colour = g.mix(colour, DIRT, spot)
+    rough = g.lerp(g.lerp(rough, RUST_ROUGH, rust), 0.9, spot)
+    metal = g.lerp(g.lerp(metal, RUST_METAL, rust), 0.0, spot)
+    return colour, rough, metal
+
+
+def mark_parts(obj, attr_name, prefixes):
+    """Face attribute `attr_name`: 1 on faces of the parts named by prefix, or the
+    value given as `prefix:0.5`; 0 elsewhere."""
     me = obj.data
     if "kyt_part" not in me.attributes or "kyt_parts" not in me:
         raise SystemExit("paint_canvas: the game mesh doesn't record its parts; "
                          "make it again with the current Make game mesh")
     names = json.loads(me["kyt_parts"])
-    wanted = [any(n.startswith(p) for p in prefixes) for n in names]
     part = me.attributes["kyt_part"].data
-    values = [1.0 if wanted[part[i].value] else 0.0 for i in range(len(me.polygons))]
-    attr = me.attributes.get("kyt_weather") or me.attributes.new("kyt_weather", "FLOAT", "FACE")
-    attr.data.foreach_set("value", values)
-    return sum(values), sorted({n for n, w in zip(names, wanted) if w})
+    owners = [names[part[i].value] for i in range(len(me.polygons))]
+    value = {}
+    for group in prefixes:
+        prefix, _, v = group.partition(":")
+        for n in names:
+            if n.startswith(prefix):
+                value[n] = float(v) if v else 1.0
+    attr = me.attributes.get(attr_name) or me.attributes.new(attr_name, "FLOAT", "FACE")
+    attr.data.foreach_set("value", [value.get(n, 0.0) for n in owners])
+    return sum(1 for n in owners if n in value), sorted(value)
+
+
+def mark_weather(obj, groups):
+    """Face attributes `kyt_weather` (1 on faces of the named parts) and
+    `kyt_streaks` (how strongly rust streaks there). `groups` are part-name
+    prefixes, each optionally `prefix:strength` for its streaks: strong streaks
+    break up on a curved arm but stripe a straight vertical leg."""
+    me = obj.data
+    if "kyt_part" not in me.attributes or "kyt_parts" not in me:
+        raise SystemExit("paint_canvas: the game mesh doesn't record its parts; "
+                         "make it again with the current Make game mesh")
+    names = json.loads(me["kyt_parts"])
+    strength = {}
+    for group in groups:
+        prefix, _, s = group.partition(":")
+        for n in names:
+            if n.startswith(prefix):
+                strength[n] = float(s) if s else 1.0
+    part = me.attributes["kyt_part"].data
+    owners = [names[part[i].value] for i in range(len(me.polygons))]
+    for attr_name, value_of in (("kyt_weather", lambda n: 1.0 if n in strength else 0.0),
+                                ("kyt_streaks", lambda n: strength.get(n, 0.0))):
+        attr = me.attributes.get(attr_name) or me.attributes.new(attr_name, "FLOAT", "FACE")
+        attr.data.foreach_set("value", [value_of(n) for n in owners])
+    return sum(1 for n in owners if n in strength), sorted(strength)
 
 
 def bake(obj, image, surface):
@@ -321,6 +560,11 @@ def main():
     orm_size = arg(argv, "--orm-size", 1024)
     grain = "--grain" in argv
     weather = argv[argv.index("--weather") + 1].split(",") if "--weather" in argv else []
+    chip_parts = argv[argv.index("--chips") + 1].split(",") if "--chips" in argv else []
+    ground_parts = argv[argv.index("--ground") + 1].split(",") if "--ground" in argv else []
+    ding_parts = argv[argv.index("--dings") + 1].split(",") if "--dings" in argv else []
+    knot_parts = argv[argv.index("--knots") + 1].split(",") if "--knots" in argv else []
+    wear_parts = argv[argv.index("--wear") + 1].split(",") if "--wear" in argv else []
     blend = bpy.data.filepath
     name = os.path.splitext(os.path.basename(blend))[0]
     root = blend[:blend.index(os.sep + "assets" + os.sep)]
@@ -339,6 +583,11 @@ def main():
     if not obj.data.uv_layers:
         raise SystemExit("paint_canvas: the game mesh has no UVs; make the game mesh first")
     weathered = mark_weather(obj, weather) if weather else (0, [])
+    chipped = mark_parts(obj, "kyt_chips", chip_parts) if chip_parts else (0, [])
+    grounded = mark_parts(obj, "kyt_ground", ground_parts) if ground_parts else (0, [])
+    dinged = mark_parts(obj, "kyt_dings", ding_parts) if ding_parts else (0, [])
+    knotted = mark_parts(obj, "kyt_knots", knot_parts) if knot_parts else (0, [])
+    worn = mark_parts(obj, "kyt_wear", wear_parts) if wear_parts else (0, [])
     os.makedirs(folder, exist_ok=True)
 
     scene = bpy.context.scene
@@ -353,23 +602,36 @@ def main():
     def base(b):
         return tuple(b.inputs["Base Color"].default_value)
 
-    def weathers(mat):
-        return weather and "iron" in mat.name
+    def iron(g, mat, b):
+        """Painted iron as the flags ask: weathered, chipped, or plain (None)."""
+        if "iron" not in mat.name or not (weather or chip_parts or ding_parts or ground_parts):
+            return None
+        surface = (base(b), b.inputs["Roughness"].default_value, b.inputs["Metallic"].default_value)
+        if weather:
+            surface = weathering(g, *surface)
+        if ground_parts:
+            surface = grounding(g, *surface)
+        if chip_parts or ding_parts:
+            surface = chipping(g, *surface)
+        return surface
 
     def colour_of(g, mat, b):
-        if grain and "timber" in mat.name:
-            return wood_grain(g, base(b))
-        if weathers(mat):
-            return weathering(g, base(b), b.inputs["Roughness"].default_value,
-                              b.inputs["Metallic"].default_value)[0]
-        return base(b)
+        if "timber" in mat.name and (grain or wear_parts):
+            wood = wood_grain(g, base(b)) if grain else base(b)
+            if wear_parts:
+                wood = g.mix(wood, WORN, g.math("MULTIPLY", seat_wear(g), WEAR))
+            return wood
+        surface = iron(g, mat, b)
+        return surface[0] if surface else base(b)
 
     def orm_of(g, mat, b):
-        rough, metal = b.inputs["Roughness"].default_value, b.inputs["Metallic"].default_value
-        if weathers(mat):
-            _, r, m = weathering(g, base(b), rough, metal)
-            return g.rgb(1.0, r, m)
-        return (1.0, rough, metal, 1.0)
+        if "timber" in mat.name and wear_parts:
+            return g.rgb(1.0, g.lerp(b.inputs["Roughness"].default_value, WORN_ROUGH, seat_wear(g)),
+                         b.inputs["Metallic"].default_value)
+        surface = iron(g, mat, b)
+        if surface:
+            return g.rgb(1.0, surface[1], surface[2])
+        return (1.0, b.inputs["Roughness"].default_value, b.inputs["Metallic"].default_value, 1.0)
 
     # A rebake replaces the images rather than adding `.001` copies, whose names
     # would reach the GLB and give Godot new files to extract.
@@ -430,7 +692,12 @@ def main():
     print(f"paint_canvas: {os.path.relpath(colour_path, root)} ({size} px), "
           f"{os.path.relpath(orm_path, root)} ({orm_size} px), and its UV guide; "
           f"'{obj.name}' now wears one material, '{name}'"
-          + (f"; weathered {int(weathered[0])} faces of {', '.join(weathered[1])}" if weather else ""))
+          + (f"; weathered {int(weathered[0])} faces of {', '.join(weathered[1])}" if weather else "")
+          + (f"; chipped {int(chipped[0])} faces of {', '.join(chipped[1])}" if chip_parts else "")
+          + (f"; dings on {int(dinged[0])} faces of {', '.join(dinged[1])}" if ding_parts else "")
+          + (f"; knots in {', '.join(knotted[1])}" if knot_parts else "")
+          + (f"; wear on {', '.join(worn[1])}" if wear_parts else "")
+          + (f"; ground dirt on {int(grounded[0])} faces of {', '.join(grounded[1])}" if ground_parts else ""))
     if "--save" in argv:
         bpy.ops.wm.save_mainfile()
 
