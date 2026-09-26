@@ -144,6 +144,17 @@ func _check_place(place: Node3D, expected_count: int) -> bool:
 	if palms.get_child_count() != expected_count:
 		_fail("%s expected %d palms, found %d" % [place.name, expected_count, palms.get_child_count()])
 		return false
+	var feet: Dictionary = ESTABLISHED_FEET[set_name]
+	if feet.size() != expected_count:
+		_fail("%s has %d established feet on record, not %d" % [set_name, feet.size(), expected_count])
+		return false
+	# The generator emits no stick palm: the placements own every foot. Its
+	# output is flat under the wrapper, so a retired name would be a child here.
+	var stick_name := RegEx.create_from_string("^(walk|front|deck)_palm_.+_(trunk|crown|frond_\\d+)$")
+	for child in place.get_children():
+		if stick_name.search(String(child.name)) != null:
+			_fail("%s still carries the generator's stick palm part %s" % [place.name, child.name])
+			return false
 
 	var saw_added_fronds := false
 	var shared_ring_count := 0
@@ -155,29 +166,22 @@ func _check_place(place: Node3D, expected_count: int) -> bool:
 		if palm.scene_file_path != "res://scenes/world/coastal_palm.tscn":
 			_fail("%s is not a placed coastal_palm.tscn" % prefix)
 			return false
-		# The established foot and top are still readable off the retired stick palm.
-		var old_crown := place.get_node_or_null(prefix + "_crown") as GeometryInstance3D
-		var old_trunk := place.get_node_or_null(prefix + "_trunk") as CSGBox3D
+		if not feet.has(prefix):
+			_fail("%s is not one of the established palm feet" % prefix)
+			return false
+		var source_base: Vector3 = feet[prefix][0]
+		var source_height: float = feet[prefix][1]
 		var new_trunk := palm.get_node_or_null("trunk") as Node3D
 		var new_base := palm.get_node_or_null("footing") as Node3D
 		var crown := palm.get_node_or_null("crown") as Node3D
-		if old_crown == null or old_trunk == null or new_trunk == null \
-				or new_base == null or crown == null:
-			_fail("%s cannot be matched to its established source palm" % prefix)
+		if new_trunk == null or new_base == null or crown == null:
+			_fail("%s is missing its trunk, bed or crown" % prefix)
 			return false
-		if old_crown.visible or old_trunk.visible:
-			_fail("%s old stick crown or rod trunk remains visible" % prefix)
-			return false
-		for index in 7:
-			var old_frond := place.get_node_or_null("%s_frond_%d" % [prefix, index]) as GeometryInstance3D
-			if old_frond == null or old_frond.visible:
-				_fail("%s old strut frond %d was not retired" % [prefix, index])
-				return false
-		var endpoints := _trunk_endpoints(old_trunk, old_crown.position)
-		var source_base: Vector3 = endpoints[0]
-		var source_top: Vector3 = endpoints[1]
-		if not palm.position.is_equal_approx(source_base):
-			_fail("%s moved its established foot" % prefix)
+		# Measured in the wrapper's frame, so moving the set moves every foot.
+		var foot := place.to_local(palm.global_position)
+		if foot.distance_to(source_base) > FOOT_TOLERANCE:
+			_fail("%s moved its established foot %.4fm, to %s" % [
+				prefix, foot.distance_to(source_base), foot])
 			return false
 		if not new_trunk.global_position.is_equal_approx(palm.global_position) \
 				or not new_base.global_position.is_equal_approx(palm.global_position):
@@ -191,8 +195,7 @@ func _check_place(place: Node3D, expected_count: int) -> bool:
 			shared_ring_count += 1
 
 		var seat := palm.call("seat") as Vector3
-		var new_top := source_base + seat
-		var height_gain := new_top.y - source_top.y
+		var height_gain := seat.y - source_height
 		# The seat's offset across from the point straight above the foot.
 		var lateral_offset := Vector3(seat.x, 0.0, seat.z)
 		if prefix.begins_with("walk_palm_"):
@@ -285,7 +288,7 @@ func _check_place(place: Node3D, expected_count: int) -> bool:
 	if not saw_added_fronds:
 		_fail("%s has no denser crown variants" % place.name)
 		return false
-	print("%s: %d palms, %d different choices of fronds, stubs and dead fronds" % [
+	print("%s: %d palms on their established feet, no generator stick palm, %d different choices of fronds, stubs and dead fronds" % [
 		place.name, palms.get_child_count(), frond_sets.size()])
 	var expected_ring_count := 26 if place.name == &"park_approach" else 0
 	if shared_ring_count != expected_ring_count:
@@ -295,14 +298,56 @@ func _check_place(place: Node3D, expected_count: int) -> bool:
 	return true
 
 
-## The retired stick trunk's two ends, foot first: the end farther from its crown.
-func _trunk_endpoints(trunk: CSGBox3D, crown_position: Vector3) -> Array[Vector3]:
-	var axis := trunk.basis.z.normalized()
-	var end_a := trunk.position + axis * trunk.size.z * 0.5
-	var end_b := trunk.position - axis * trunk.size.z * 0.5
-	if end_a.distance_to(crown_position) < end_b.distance_to(crown_position):
-		return [end_b, end_a]
-	return [end_a, end_b]
+## How far a foot may sit from its record: far below any move made in the
+## editor, far above float noise through the wrapper's transform.
+const FOOT_TOLERANCE := 0.0005
+
+## The 34 established feet, in the wrapper's frame, and the height of the stick
+## trunk each used to carry, which the approved height bands are measured from.
+## Taken on 2026-09-25 from the placements in `approach_palms.tscn` and
+## `boardwalk_palms.tscn`, each within 0.02mm of the foot of the stick palm
+## `gen_props.gd` emitted there, before the generator stopped emitting them.
+## The sub-millimetre offsets are those sticks' seam displacement, kept as found.
+const ESTABLISHED_FEET := {
+	"approach_palms": {
+		"walk_palm_0_w": [Vector3(-11.497, 0.0029997826, 224.00302), 8.5],
+		"walk_palm_0_e": [Vector3(11.5, 0.0, 224.0), 9.9],
+		"walk_palm_1_w": [Vector3(-11.497751, 0.0022501945, 212.00224), 10.6],
+		"walk_palm_1_e": [Vector3(11.5045, 0.0044999123, 212.00449), 9.2],
+		"walk_palm_2_w": [Vector3(-11.498499, 0.0015001297, 200.0015), 9.9],
+		"walk_palm_2_e": [Vector3(11.50375, 0.0037498474, 200.00375), 8.5],
+		"walk_palm_3_w": [Vector3(-11.49925, 0.000749588, 188.00075), 9.2],
+		"walk_palm_3_e": [Vector3(11.503, 0.0029993057, 188.00302), 10.6],
+		"walk_palm_4_w": [Vector3(-11.5, 0.0, 176.0), 8.5],
+		"walk_palm_4_e": [Vector3(11.50225, 0.0022501945, 176.00224), 9.9],
+		"walk_palm_5_w": [Vector3(-11.495501, 0.0044999123, 164.00449), 10.6],
+		"walk_palm_5_e": [Vector3(11.501501, 0.0014996529, 164.0015), 9.2],
+		"walk_palm_6_w": [Vector3(-11.496249, 0.0037493706, 152.00374), 9.9],
+		"walk_palm_6_e": [Vector3(11.50075, 0.00075006485, 152.00073), 8.5],
+		"walk_palm_7_w": [Vector3(-11.497, 0.0029997826, 140.00299), 9.2],
+		"walk_palm_7_e": [Vector3(11.5, 4.7683716e-07, 140.0), 10.6],
+		"front_palm_0": [Vector3(-73.99774, 0.0022501945, 242.00224), 8.0],
+		"front_palm_1": [Vector3(-60.9955, 0.0044999123, 242.0045), 8.8],
+		"front_palm_2": [Vector3(-47.998505, 0.0015001297, 242.0015), 9.6],
+		"front_palm_3": [Vector3(-34.99625, 0.0037498474, 242.00374), 8.0],
+		"front_palm_4": [Vector3(-21.99925, 0.00075006485, 242.00075), 8.8],
+		"front_palm_7": [Vector3(17.003002, 0.0029997826, 242.00299), 8.8],
+		"front_palm_8": [Vector3(30.0, -4.7683716e-07, 242.0), 9.6],
+		"front_palm_9": [Vector3(43.002247, 0.0022501945, 242.00224), 8.0],
+		"front_palm_10": [Vector3(56.0045, 0.0044999123, 242.0045), 8.8],
+		"front_palm_11": [Vector3(69.0015, 0.0015001297, 242.0015), 9.6],
+	},
+	"boardwalk_palms": {
+		"deck_palm_0": [Vector3(-104.99625, -5.99625, -65.99625), 8.0],
+		"deck_palm_1": [Vector3(-104.99925, -5.99925, -51.99925), 8.9],
+		"deck_palm_2": [Vector3(-104.996994, -5.9969997, -37.997), 9.8],
+		"deck_palm_3": [Vector3(-105.0, -6.0, -24.0), 8.0],
+		"deck_palm_4": [Vector3(-104.99776, -5.9977503, 20.00225), 8.9],
+		"deck_palm_5": [Vector3(-104.9955, -5.9955, 34.0045), 9.8],
+		"deck_palm_6": [Vector3(-104.9985, -5.9985, 48.0015), 8.0],
+		"deck_palm_7": [Vector3(-104.99624, -5.99625, 62.003746), 8.9],
+	},
+}
 
 
 func _check_footing(prefix: String, new_base: Node3D) -> bool:

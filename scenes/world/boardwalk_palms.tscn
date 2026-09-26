@@ -1,12 +1,10 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://scenes/world/coastal_palm_set.gd" id="1_2k406"]
 [ext_resource type="PackedScene" path="res://scenes/world/coastal_palm.tscn" id="2_6fpf3"]
 [ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_boardwalk_base.tscn" id="3_0pkhm"]
 
 [node name="boardwalk_palms" type="Node3D" unique_id=1641717552]
 editor_description = "Coastal palms, one per established foot. Select a palm to move its foot or change its height, lean, trunk bow, crown turn, frond counts or bed; its seed varies the crown."
-script = ExtResource("1_2k406")
 metadata/catalog_id = "GRP-PARK-007"
 
 [node name="deck_palm_0" parent="." unique_id=335167082 instance=ExtResource("2_6fpf3")]

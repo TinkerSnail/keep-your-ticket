@@ -470,11 +470,24 @@ func _family_terrain_paths_from_source() -> Array:
 ## the packer to embed in the scene instead of reference.
 var _groundworks_only := false
 
+## Write only the named generated scenes, for a change whose outputs are known:
+## `--only=boardwalk,park_approach` names them by file, without `.tscn`. The same
+## bargain as `--groundworks-only`: everything is built, in the usual order, and
+## only the other scenes' writes are skipped, so what it writes is what a full
+## run would. Textures and materials are still written. A name that no scene
+## answers to fails the run rather than writing nothing quietly.
+var _write_only: Array[String] = []
+var _written_only: Array[String] = []
+
 func _initialize() -> void:
 	for arg in OS.get_cmdline_user_args():
 		if arg == "--groundworks-only":
 			_groundworks_only = true
 			print("groundworks-only: building everything, writing only %s" % GROUNDWORKS_PATH)
+		elif arg.begins_with("--only="):
+			for scene_name in arg.trim_prefix("--only=").split(",", false):
+				_write_only.append(GENERATED_DIR + "/" + scene_name + ".tscn")
+			print("only: building everything, writing only %s" % ", ".join(_write_only))
 	_lighthouse_regrade_source()
 	_drainage_terrain_source()
 	_build_textures()
@@ -771,6 +784,11 @@ func _initialize() -> void:
 	if not _save(_root, TOWNS_PATH):
 		return
 
+	for path in _write_only:
+		if not path in _written_only:
+			push_error("--only named %s, which this generator does not write" % path)
+			quit(1)
+			return
 	quit()
 
 
@@ -778,6 +796,11 @@ func _save(node: Node3D, path: String) -> bool:
 	if _groundworks_only and path != GROUNDWORKS_PATH:
 		print("skipped %s (groundworks-only)" % path)
 		return true
+	if not _write_only.is_empty():
+		if not path in _write_only:
+			print("skipped %s (--only)" % path)
+			return true
+		_written_only.append(path)
 	# Nothing is written after a material lost a uniform. `quit()` only asks the
 	# main loop to stop, and the whole park is built inside one call before the
 	# loop gets a turn — so on its own it reports the fault and then writes every
@@ -1647,8 +1670,6 @@ func _build_materials() -> void:
 		# terraces are the reason it reads as a garden rather than as civil
 		# engineering, so these are saturated where `foliage` is dusty.
 		"planting": [Color(0.36, 0.47, 0.31), 0.95, 0.0],
-		"palm_trunk": [Color(0.60, 0.49, 0.36), 0.92, 0.0],
-		"palm_frond": [Color(0.31, 0.50, 0.26), 0.9, 0.0],
 		"bloom_warm": [Color(0.88, 0.62, 0.28), 0.9, 0.0],
 		"bloom_pink": [Color(0.84, 0.46, 0.55), 0.9, 0.0],
 		"bloom_pale": [Color(0.93, 0.9, 0.76), 0.9, 0.0],
@@ -13650,7 +13671,9 @@ func _boardwalk_section() -> void:
 	_boardwalk_edges()
 	_boardwalk_props()
 	_boardwalk_lights()
-	_boardwalk_palms()
+	# The deck's palms are editor-owned placements in `boardwalk_palms.tscn`,
+	# mounted by the wrapper. They were the last shapes built here, so their
+	# leaving moves no seam ordinal.
 	# Plaza paving and geometry stand beside this scene in `park_world.tscn`.
 	# No massing copy and no transition trigger are emitted here.
 
@@ -21885,58 +21908,8 @@ func _rebuild_water_arc(nm: String, a: Vector3, b: Vector3,
 ## The parking clause, built: the approach road on its own grade, the front
 ## road behind both fields, four gated entries, the drop-off and the walk's
 ## extension to it, the turning circle, hedges, and two planted berms on the
-## park side. Palms and canopy trees wait on tree instancing being measured.
-## A palm: a tall thin trunk with a slight lean and a crown of seven fronds,
-## each a thin slab pitched down from the crown. About the cheapest thing that
-## still reads as a palm at fifty metres, which is where these are seen from.
-func _palm(nm: String, at: Vector3, height: float, yaw: float) -> void:
-	var lean := 0.06
-	var top := at + Vector3(cos(yaw) * lean * height, height, sin(yaw) * lean * height)
-	_strut(nm + "_trunk", at, top, 0.24, "palm_trunk")
-	_sphere(nm + "_crown", top, Vector3.ZERO, 0.55, "palm_frond")
-	for i in 7:
-		var a := yaw + TAU * float(i) / 7.0
-		var dir := Vector3(cos(a), 0.0, sin(a))
-		var tip := top + dir * 3.0 - Vector3.UP * 1.1
-		_strut(nm + "_frond_%d" % i, top + dir * 0.3, tip, 0.34, "palm_frond")
-
-
-## Palm rows on both edges of the arrival walk from the drop-off to the gate,
-## outside the 14m walk and inside the 26m clear axis, and along the front
-## road's south verge. The setting's palms live where the park meets the
-## water and where it meets the road, and nowhere else.
-func _approach_palms() -> void:
-	var i := 0
-	var z: float = Plan.ARRIVAL_WALK_EXTEND_TO_Z - 4.0
-	while z > 130.0:
-		for side_v in [-1.0, 1.0]:
-			var side: float = side_v
-			_palm("walk_palm_%d_%s" % [i, "w" if side < 0.0 else "e"],
-				Vector3(side * 11.5, 0.0, z), 8.5 + float((i * 7 + int(side + 1.0)) % 4) * 0.7,
-				float(i) * 1.7 + side)
-		i += 1
-		z -= 12.0
-	var x: float = -Plan.FRONT_ROAD_HALF_X + 6.0
-	var j := 0
-	while x < Plan.FRONT_ROAD_HALF_X - 5.0:
-		if absf(x) > 12.0:
-			_palm("front_palm_%d" % j, Vector3(x, 0.0, Plan.FRONT_ROAD_Z + 6.0),
-				8.0 + float(j % 3) * 0.8, float(j) * 2.1)
-		j += 1
-		x += 13.0
-
-
-## Palms along the Boardwalk deck's seaward edge, clear of the pier root and
-## the alley mouth so neither reveal gains a trunk on its axis.
-func _boardwalk_palms() -> void:
-	var i := 0
-	for z_v in [-66.0, -52.0, -38.0, -24.0, 20.0, 34.0, 48.0, 62.0]:
-		var z: float = z_v
-		_palm("deck_palm_%d" % i, Vector3(Plan.SHORE_EDGE + 3.0, Plan.SHORE_TOP, z),
-			8.0 + float(i % 3) * 0.9, float(i) * 1.3)
-		i += 1
-
-
+## park side. Its palms are editor-owned placements in `approach_palms.tscn`,
+## mounted by the wrapper.
 func _rebuild_approach() -> void:
 	var road: Array[Vector3] = Plan.approach_road_points()
 	_rebuild_path("approach_road", road, Plan.APPROACH_ROAD_W, false, &"", true)
@@ -21979,7 +21952,13 @@ func _rebuild_approach() -> void:
 				Vector3((a + b) * 0.5, 0.0, Plan.HEDGE_Z), Vector3(0.0, 0.6, 0.0),
 				Vector3(b - a, 1.2, 1.5), "planting", 0.0, false)
 		_rebuild_berm("berm_%s" % ["w" if side < 0.0 else "e"], lo, hi)
-	_approach_palms()
+	# The 26 arrival and front-road palms left this generator for
+	# `approach_palms.tscn` on 2026-09-25: the editor owns each foot. Each was
+	# nine shapes (trunk, crown, seven fronds), and their seam ordinals are still
+	# handed out so the highway built after them keeps exactly the displacement
+	# it had and no plane moves. Drop the reservation the next time this scene's
+	# seams are rebuilt on purpose, and run `coplanar_test.py`.
+	_seam_ordinal += 26 * 9
 	_rebuild_highway()
 
 
