@@ -56,8 +56,9 @@ GROUP = "kyt_course_blade"
 # land on the reference: (x, y, z) in Godot is (x, -z, y) here.
 C = Matrix(((1, 0, 0, 0), (0, 0, -1, 0), (0, 1, 0, 0), (0, 0, 0, 1)))
 
-# Per kind: the Godot script's half span and droop (coastal_palm_crown.gd),
-# the stations along the blade, and the material it wore.
+# Per kind: the Godot script's half span and droop (coastal_palm_crown.gd,
+# retired 2026-09-25; in git at 58c9ca8), the stations along the blade, and
+# the material it wore.
 KINDS = {
     "spear": {"half": 0.14, "droop": 0.0, "stations": 18, "material": "frond_new"},
     "young": {"half": 0.28, "droop": 0.45, "stations": 18, "material": "frond_new"},
@@ -67,7 +68,8 @@ KINDS = {
     "dead": {"half": 0.70, "droop": 1.0, "stations": 18, "material": "frond_dead"},
 }
 DEAD_DROP = math.radians(45)
-# Godot albedo (sRGB) of each material in coastal_palm_crown.tscn.
+# Godot albedo (sRGB) of each material in coastal_palm_crown.tscn (retired;
+# in git at 58c9ca8).
 MATERIALS = {
     "frond_new": (0.43, 0.64, 0.25),
     "frond_mature": (0.16, 0.39, 0.18),
