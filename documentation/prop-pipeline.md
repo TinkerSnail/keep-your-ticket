@@ -299,7 +299,8 @@ and never commits:
    copy (`assets/props/<prop>_<prop>_colour.png`) matches the export pixel for
    pixel and is still VRAM-compressed with mipmaps.
 5. Tests: `seat_test.py`, `clearance_test`, `budget_test`,
-   `ground_contact_test` (known failures only on the east-wing ramps).
+   `ground_contact_test` (known standing failures, listed in the tool's
+   `KNOWN_GROUND`, pass; any other surface fails the hand-back).
 
 Step 1 refuses a PSD with unsaved changes (`--allow-unsaved` overrides), and
 `--no-export` uses a PNG exported by hand. If Blender is open, the send uses

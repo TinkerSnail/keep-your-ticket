@@ -454,9 +454,17 @@ func _east_graph() -> void:
 	# and a −1 index rather than a forward reference.
 	_node("e_gate", Vector3(43.0, 0.0, axis))
 	_node("e_court", Vector3(52.0, 0.0, axis))
-	_node("e_belv", Vector3(74.0, Plan.HILL_TOP, axis))
-	_node("e_belv_n", Vector3(78.0, Plan.HILL_TOP, axis - 7.0))
-	_node("e_belv_s", Vector3(78.0, Plan.HILL_TOP, axis + 7.0))
+	# The belvedere's spine stands west of the collecting pool, and each side
+	# node on its flight's own line, so the walk to a flight runs beside the pool
+	# and enters the flight between its rails. They stood at x 74, half a metre
+	# off the pool's west edge, and at the mouth seven metres out: both diagonals
+	# crossed the pool and each step onto a flight crossed its outer rail
+	# (`ground_contact_test`, 2026-09-25). Two metres keeps a guest's wander,
+	# about half a metre, off the coping.
+	var belv_x: float = Plan.POOL_FROM_X - 2.0
+	_node("e_belv", Vector3(belv_x, Plan.HILL_TOP, axis))
+	_node("e_belv_n", Vector3(belv_x, Plan.HILL_TOP, axis - fz))
+	_node("e_belv_s", Vector3(belv_x, Plan.HILL_TOP, axis + fz))
 	_node("e_top", Vector3(Plan.CLIMB_TO_X + 4.0, Plan.CLIMB_HEAD_Y, axis))
 	# The first orbital street is real circulation, not scenery. Its final broad
 	# point stops outside the still-unbuilt Grove handoff; the narrower threshold
@@ -542,17 +550,33 @@ func _east_graph() -> void:
 
 	# The monument's own wings. North is the ramp and south the garden stair, and
 	# that difference is the whole reason this graph knows about steps.
+	#
+	# **Each leg is two edges: its slope, then the level landing to the turn.**
+	# The legs are built off `wing_leg_end`, where the slope stops a full landing
+	# short of the turn, and a guest's height is the straight line between the
+	# two nodes of the edge they walk. One edge from the head to the turn put
+	# that line 0.87m inside the return legs and above the outbound ones at the
+	# break — `ground_contact_test`, 2026-09-25.
+	#
+	# **The turn crosses the middle of the landing, not its far edge.** The path
+	# vertices are the landing's outer corners, and a guest's wander (about half
+	# a metre) put half of everybody turning there onto the landing's end cap.
 	for w in [[-1.0, "n", false], [1.0, "s", true]]:
 		var side: float = w[0]
 		var tag: String = w[1]
 		var stepped: bool = w[2]
 		var path: Array = Plan.wing_path(Plan.CASCADE_EAST, side)
-		for i in path.size():
-			var v: Vector3 = path[i]
-			_node("e_wing_%s_%d" % [tag, i], v)
+		var slope_0: Vector3 = Plan.wing_leg_end(Plan.CASCADE_EAST, side, 0, 1)
+		var slope_1: Vector3 = Plan.wing_leg_end(Plan.CASCADE_EAST, side, 1, 0)
+		_node("e_wing_%s_0" % tag, path[0])
+		_node("e_wing_%s_1" % tag, slope_0.lerp(path[1], 0.5))
+		_node("e_wing_%s_2" % tag, slope_1.lerp(path[2], 0.5))
+		_node("e_wing_%s_3" % tag, path[3])
+		_node("e_wing_%s_slope_0" % tag, slope_0)
+		_node("e_wing_%s_slope_1" % tag, slope_1)
 		_edge("e_court", "e_wing_%s_3" % tag, false)
-		for i in range(3, 0, -1):
-			_edge("e_wing_%s_%d" % [tag, i], "e_wing_%s_%d" % [tag, i - 1], stepped)
+		for pair in [["3", "slope_1"], ["slope_1", "2"], ["2", "1"], ["1", "slope_0"], ["slope_0", "0"]]:
+			_edge("e_wing_%s_%s" % [tag, pair[0]], "e_wing_%s_%s" % [tag, pair[1]], stepped)
 		_edge("e_wing_%s_0" % tag, "e_belv", false)
 
 	# The belvedere, either side of the collecting pool.

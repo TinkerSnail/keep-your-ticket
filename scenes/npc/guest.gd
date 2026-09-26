@@ -470,6 +470,12 @@ func has_seat() -> bool:
 	return seat_at != Vector3.INF
 
 
+## Sitting now: on the floor under the seat, with the body raised to
+## `seat_height` — unless in a wheelchair, whose seat is already theirs.
+func is_seated() -> bool:
+	return _seated
+
+
 func is_live() -> bool:
 	return _live
 
@@ -990,34 +996,37 @@ func trail_height(at: Vector3) -> float:
 	for p in points:
 		low = minf(low, p.y)
 		high = maxf(high, p.y)
-	for i in range(points.size() - 1):
-		var a: Vector3 = points[i]
-		var b: Vector3 = points[i + 1]
-		var pa := Vector2(a.x, a.z)
-		var span := Vector2(b.x, b.z) - pa
-		var length := span.length()
-		var t := 0.0
-		if length > 0.001:
-			# **The oldest segment runs backwards past its own start.** A trail
-			# holds nine metres and begins empty, so a follower a metre back
-			# spends the first strides of every visit behind the oldest
-			# breadcrumb there is — and clamped there, the answer is the height
-			# of ground *ahead* of them, which on a flight is most of a riser
-			# out. The leader arrived along that segment, so continuing its
-			# gradient back is the honest reading of where they came from.
-			var floor_t: float = -BEHIND_TRAIL / length if i == 0 else 0.0
-			t = clampf((here - pa).dot(span) / (length * length), floor_t, 1.0)
-		var d := here.distance_squared_to(pa + span * t)
-		if d >= best:
-			continue
-		best = d
-		# **Clamped, because `floor_t` bounds the extrapolation in *distance*
-		# and not in gradient.** `t` may run back to `-BEHIND_TRAIL / length`,
-		# so the height it reaches is `BEHIND_TRAIL` times the oldest segment's
-		# gradient — and that gradient is a height difference over `length`,
-		# which is normally `TRAIL_SPACING` and can be very much less whenever
-		# the leader slowed, stopped or turned. A 5cm segment turns a 3m
-		# reach-back into a factor of sixty.
+	# **The trail runs on backwards past its oldest breadcrumb.** A trail holds
+	# nine metres and begins empty, so a follower a metre back spends the first
+	# strides of every visit behind the oldest breadcrumb there is — and clamped
+	# there, the answer is the height of ground *ahead* of them, which on a
+	# flight is most of a riser out. Continuing the way the leader arrived is
+	# the honest reading of where they came from.
+	#
+	# **The way they arrived is the chord of the trail's first metre, not its
+	# first segment.** One breadcrumb apart is a single 0.3m step, and a step
+	# taken sideways — a shuffle on a landing, a shove — pointed the
+	# continuation across the flight instead of down it. On 2026-09-25 two
+	# followers on the east cascade read a landing's height 1.4m and 1.7m off
+	# their own flight, because the continuation of a sideways step passed within
+	# 8cm and 27cm of them while the trail itself was nearly a metre away.
+	var first: Vector3 = points[0]
+	var reach := points.size() - 1
+	var run := 0.0
+	for i in range(1, points.size()):
+		run += Vector2(points[i].x - points[i - 1].x, points[i].z - points[i - 1].z).length()
+		if run >= ARRIVAL_CHORD:
+			reach = i
+			break
+	var chord := Vector2(points[reach].x - first.x, points[reach].z - first.z)
+	if chord.length() > 0.001:
+		var back := clampf((here - Vector2(first.x, first.z)).dot(chord.normalized()),
+			-BEHIND_TRAIL, 0.0)
+		best = here.distance_squared_to(Vector2(first.x, first.z) + chord.normalized() * back)
+		# **Clamped, because `BEHIND_TRAIL` bounds the extrapolation in
+		# *distance* and not in gradient.** The height it reaches is the reach
+		# back times the chord's gradient, and a leader who slowed, stopped or
+		# turned leaves a short chord with a steep one.
 		#
 		# It cost nothing while every floor was one plane, since a flat trail
 		# extrapolates flat at any gradient. `day_test` learned about the
@@ -1026,7 +1035,21 @@ func trail_height(at: Vector3) -> float:
 		# perfectly correctly at 3.39 on the cascade's north wing. The leader
 		# was fine, the trail was fine, and the reading off it was seven metres
 		# out.
-		height = clampf(lerpf(a.y, b.y, t), low, high)
+		height = clampf(first.y + (points[reach].y - first.y) / chord.length() * back, low, high)
+	for i in range(points.size() - 1):
+		var a: Vector3 = points[i]
+		var b: Vector3 = points[i + 1]
+		var pa := Vector2(a.x, a.z)
+		var span := Vector2(b.x, b.z) - pa
+		var length := span.length()
+		var t := 0.0
+		if length > 0.001:
+			t = clampf((here - pa).dot(span) / (length * length), 0.0, 1.0)
+		var d := here.distance_squared_to(pa + span * t)
+		if d >= best:
+			continue
+		best = d
+		height = lerpf(a.y, b.y, t)
 	return height
 
 
@@ -1042,6 +1065,9 @@ const TRAIL_POINTS := 30
 ## How far back past the oldest breadcrumb the trail still answers for. A little
 ## more than the deepest station a follower is ever given.
 const BEHIND_TRAIL := 3.0
+## How much of the trail's oldest end says which way the leader arrived: a few
+## strides, so that one step sideways cannot turn it.
+const ARRIVAL_CHORD := 1.0
 
 var _trail: PackedVector3Array = PackedVector3Array()
 
