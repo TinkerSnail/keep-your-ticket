@@ -10,7 +10,8 @@ extends Node3D
 ## game alike, and are not saved: the values are.
 ##
 ## The values of the 34 coastal palms were taken on 2026-09-25 from what
-## `coastal_palm_replacements.gd` built at each generated foot, by
+## `coastal_palm_replacements.gd` (since retired; in git at `58c9ca8`) built
+## at each generated foot, by
 ## `tools/_palm_placement_migration.gd`, which checked that every trunk, crown
 ## seat and bed landed where it had been.
 

@@ -4,11 +4,11 @@
 ; sources; this assembly gives their combined silhouette a single browser card.
 
 [ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_trunk.tscn" id="1_trunk"]
-[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_crown.tscn" id="2_crown"]
+[ext_resource type="PackedScene" path="res://scenes/world/palm_crown.tscn" id="2_crown"]
 [ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_ground_base.tscn" id="3_base"]
 
 [node name="coastal_palm_tree_specimen" type="Node3D"]
-editor_description = "Catalog-only whole coastal palm assembled from the directly editable trunk, crown and lawn-footing sources. Edit those component scenes; placed park palms remain in coastal_palm_replacements.tscn."
+editor_description = "Catalog-only whole coastal palm assembled from the directly editable trunk, crown and lawn-footing sources. Edit those component scenes; the placed park palms are coastal_palm.tscn instances in approach_palms.tscn and boardwalk_palms.tscn."
 
 [node name="lawn_footing" parent="." instance=ExtResource("3_base")]
 
@@ -20,5 +20,6 @@ bend_strength = 0.9
 [node name="crown" parent="." instance=ExtResource("2_crown")]
 position = Vector3(0.08, 8.2, -0.04)
 rotation = Vector3(0, 0.38, 0)
-extra_frond_count = 1
+frond_count = 13
+size_variation = 0.0
 

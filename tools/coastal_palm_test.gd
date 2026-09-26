@@ -549,34 +549,47 @@ func _check_date_palm_catalog() -> bool:
 	var root_flare := palm.get_node_or_null("root_flare") as MeshInstance3D
 	var flare_mesh := root_flare.mesh as CylinderMesh if root_flare != null else null
 	var crown := palm.get_node_or_null("crown") as Node3D
-	var derived := crown.get_node_or_null("derived_fronds") if crown != null else null
-	var remnants := crown.get_node_or_null("derived_remnants") if crown != null else null
+	var model := crown.get_node_or_null("model") as Node3D if crown != null else null
+	var shown := crown.call("shown_counts") as Dictionary \
+		if crown != null and crown.has_method("shown_counts") else {}
+	# The second shell: each copy is its live frond carried by one transform,
+	# which must lift it at least 0.38 m and draw it in to 0.86 or less.
+	var density := model.get_node_or_null("density") if model != null else null
 	var raised_density_fronds := 0
-	if derived != null:
-		for frond in derived.get_children():
-			if int(frond.get_meta("density_copy", 0)) == 1 \
-					and float(frond.get_meta("density_lift", 0.0)) >= 0.379 \
-					and float(frond.get_meta("density_scale", 1.0)) <= 0.861:
+	if density != null:
+		for copy in density.get_children():
+			var source := model.get_node_or_null(
+				String(copy.name).get_slice("_density_", 0)) as Node3D
+			if source == null or int(copy.get_meta("density_copy", 0)) != 1:
+				continue
+			var shell := (copy as Node3D).transform * source.transform.affine_inverse()
+			if shell.origin.y >= 0.379 and shell.basis.get_scale().x <= 0.861 \
+					and shell.basis.get_scale().z <= 0.861:
 				raised_density_fronds += 1
 	if String(palm.get_meta("catalog_id", "")) != "PRP-PLANT-051" \
 			or trunk == null or root_flare == null or flare_mesh == null \
-			or crown == null \
+			or crown == null or model == null \
+			or crown.scene_file_path != "res://scenes/world/palm_crown.tscn" \
 			or not is_equal_approx(trunk.scale.y, 10.4) \
 			or flare_mesh.bottom_radius < 0.299 \
 			or flare_mesh.top_radius < 0.229 \
 			or not is_equal_approx(flare_mesh.height, 0.48) \
 			or not is_equal_approx(root_flare.position.y, 0.24) \
 			or not is_equal_approx(crown.position.y, 10.4) \
-			or crown.scale.x < 1.279 or crown.scale.z < 1.279 \
-			or int(crown.get("extra_frond_count")) != 20 \
-			or int(crown.get("remnant_count")) != 12 \
+			or crown.scale.x * model.scale.x < 1.279 \
+			or crown.scale.z * model.scale.z < 1.279 \
+			or int(crown.get("frond_count")) != 32 \
+			or int(crown.get("stub_count")) != 12 \
+			or int(crown.get("dead_count")) != 0 \
 			or int(crown.get("density_multiplier")) != 2 \
-			or derived == null or derived.get_child_count() != 64 \
+			or int(shown.get("live", 0)) != 32 or int(shown.get("extra", 0)) != 20 \
+			or int(shown.get("live", 0)) + int(shown.get("density", 0)) != 64 \
 			or raised_density_fronds != 32 \
-			or remnants == null or remnants.get_child_count() != 12 \
+			or int(shown.get("remnant", 0)) != 12 or int(shown.get("dead", -1)) != 0 \
 			or String(crown.get_meta("species_language", "")) \
 				!= "classic_california_date_palm":
-		_fail("PRP-PLANT-051 does not preserve the approved dense whole-tree form")
+		_fail("PRP-PLANT-051 does not preserve the approved dense whole-tree form: " \
+			+ "crown shows %s, %d raised density fronds" % [shown, raised_density_fronds])
 		return false
 	remove_child(palm)
 	palm.free()

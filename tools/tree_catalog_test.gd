@@ -54,7 +54,7 @@ var _fails: Array[String] = []
 func _ready() -> void:
 	for label in SOURCES:
 		_check_source(String(label), SOURCES[label])
-	_check_palm_specimen()
+	await _check_palm_specimen()
 	_check_redwood_family()
 	_check_coastal_douglas_fir()
 	_check_range_forest_handoff()
@@ -99,6 +99,20 @@ func _check_palm_specimen() -> void:
 	for part_name in [&"lawn_footing", &"trunk", &"crown"]:
 		if palm.get_node_or_null(NodePath(String(part_name))) == null:
 			_fails.append("GRP-PARK-012 is missing %s" % part_name)
+	# The Blender crown, showing the thirteen fronds and nine stubs the
+	# specimen was approved with. It chooses its fronds once it is in the tree.
+	var crown := palm.get_node_or_null("crown")
+	if crown != null:
+		add_child(palm)
+		for _i in 3:
+			await get_tree().process_frame
+		var shown := crown.call("shown_counts") as Dictionary \
+			if crown.has_method("shown_counts") else {}
+		if crown.scene_file_path != "res://scenes/world/palm_crown.tscn" \
+				or int(shown.get("live", 0)) != 13 or int(shown.get("remnant", 0)) != 9 \
+				or int(shown.get("dead", -1)) != 0 or int(shown.get("density", -1)) != 0:
+			_fails.append("GRP-PARK-012 crown is not the Blender palm crown with 13 fronds and 9 stubs; it shows %s" % shown)
+		remove_child(palm)
 	palm.free()
 
 

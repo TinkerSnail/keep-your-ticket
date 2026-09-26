@@ -4,7 +4,7 @@
 ; crown sources as the approved entrance palms. It duplicates no geometry.
 
 [ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_arrival_trunk.tscn" id="1_trunk"]
-[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_crown.tscn" id="2_crown"]
+[ext_resource type="PackedScene" path="res://scenes/world/palm_crown.tscn" id="2_crown"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_root_flare"]
 albedo_color = Color(0.29, 0.265, 0.21, 1)
@@ -38,6 +38,7 @@ editor_description = "Directly editable 60cm-wide root flare. It overlaps the de
 position = Vector3(0.1, 10.4, -0.04)
 rotation = Vector3(0, 0.38, 0)
 scale = Vector3(1.28, 1.12, 1.28)
-extra_frond_count = 20
-remnant_count = 12
+frond_count = 32
+stub_count = 12
+size_variation = 0.0
 density_multiplier = 2
