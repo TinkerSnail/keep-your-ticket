@@ -9,7 +9,7 @@
 [ext_resource type="PackedScene" path="res://scenes/world/boardwalk_pavilion.tscn" id="6_pavilion"]
 [ext_resource type="PackedScene" path="res://scenes/world/boardwalk_pacific_wheel.tscn" id="7_pacific_wheel"]
 [ext_resource type="PackedScene" path="res://scenes/world/boardwalk_wooden_coaster.tscn" id="8_wooden_coaster"]
-[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_replacements.tscn" id="9_palms"]
+[ext_resource type="PackedScene" path="res://scenes/world/boardwalk_palms.tscn" id="9_palms"]
 [ext_resource type="PackedScene" path="res://scenes/world/boardwalk_north_ride_park.tscn" id="10_north_ride_park"]
 
 [node name="boardwalk" instance=ExtResource("1_generated")]
@@ -295,7 +295,7 @@ use_collision = false
 
 [node name="authored_additions" type="Node3D" parent="."]
 
-[node name="coastal_palm_replacements" parent="authored_additions" instance=ExtResource("9_palms")]
+[node name="boardwalk_palms" parent="authored_additions" instance=ExtResource("9_palms")]
 
 [node name="boardwalk_pacific_wheel" parent="authored_additions" instance=ExtResource("7_pacific_wheel")]
 

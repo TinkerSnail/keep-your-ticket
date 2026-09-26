@@ -96,6 +96,22 @@ The greybox the game uses today becomes the prop's starting point.
   which says what it holds; its description is kept.
 - A hand-off card goes to Christina (`documentation/howto/`).
 
+**A hanging prop** (the palm crown, 2026-09-25) is placed by the point it hangs
+from, not the ground: `maquette_export --mount trunk_top` puts that point at
+the origin, and Check reports how far the prop reaches above and below it
+instead of asking for it to stand on z = 0. **A prop drawn along Godot
+courses** keeps them: `maquette_export --courses` and
+`tools/blender/add_courses.py` bring the Path3Ds across as Blender curves,
+exactly. For the crown, `--blades` makes one blank blade per frond kind, which
+she shapes, and a frond per course in `export` that bends its blade along its
+course (geometry nodes), so the Godot script's job moves into the file she
+edits; `--dead N` adds hanging dead fronds. **A prop whose game picks parts**
+(the crown: each tree shows its own fronds) has `kyt_keep_parts` set: Send
+writes each `export` part as its own GLB node, named as in Blender, with its
+custom properties as glTF extras (Godot's `extras` metadata), instead of
+merging them; `kyt_godot_scene` names its own Godot scene, so Send doesn't
+offer the bench pattern. Card: `howto/model-the-palm-crown.md`.
+
 **Done when:** the file opens set up, with the reference locked and the card
 written.
 

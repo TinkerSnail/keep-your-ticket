@@ -1,0 +1,360 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/world/coastal_palm_set.gd" id="1_rjfwv"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm.tscn" id="2_kldp8"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_arrival_trunk.tscn" id="3_dfl8s"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_arrival_rings.tscn" id="4_tjdwh"]
+
+[node name="approach_palms" type="Node3D" unique_id=938636542]
+editor_description = "Coastal palms, one per established foot. Select a palm to move its foot or change its height, lean, trunk bow, crown turn, frond counts or bed; its seed varies the crown."
+script = ExtResource("1_rjfwv")
+metadata/catalog_id = "GRP-PARK-007"
+
+[node name="walk_palm_0_w" parent="." unique_id=1552117522 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.497, 0.0029997826, 224.00302)
+variation_seed = 1979841361
+trunk_scene = ExtResource("3_dfl8s")
+height = 9.392
+lean = Vector2(0.5500002, -0.100982666)
+trunk_turn = -0.018020903841283208
+bend_strength = 0.8855
+crown_turn = 57.28391547449401
+frond_count = 31
+stub_count = 11
+footing_turn = 17.202097802054745
+accent_rings_scene = ExtResource("4_tjdwh")
+
+[node name="walk_palm_0_e" parent="." unique_id=1212253857 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.5, 0, 224)
+variation_seed = 1979841343
+trunk_scene = ExtResource("3_dfl8s")
+height = 10.875999
+lean = Vector2(-0.5500002, 0.100982666)
+trunk_turn = 179.98656319666975
+bend_strength = 1.1615
+crown_turn = -57.29336504121072
+frond_count = 31
+stub_count = 11
+footing_turn = 314.35923798378343
+accent_rings_scene = ExtResource("4_tjdwh")
+
+[node name="walk_palm_1_w" parent="." unique_id=605200911 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.497751, 0.0022501945, 212.00224)
+variation_seed = 1979842322
+trunk_scene = ExtResource("3_dfl8s")
+height = 11.534
+lean = Vector2(0.5500002, 0.077301025)
+trunk_turn = 0.009149968039341035
+bend_strength = 1.0234999999999999
+crown_turn = -40.10788167431203
+frond_count = 32
+stub_count = 12
+footing_turn = 272.31218364183474
+accent_rings_scene = ExtResource("4_tjdwh")
+
+[node name="walk_palm_1_e" parent="." unique_id=1207546254 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.5045, 0.0044999123, 212.00449)
+variation_seed = 1979842304
+trunk_scene = ExtResource("3_dfl8s")
+height = 10.218
+lean = Vector2(-0.5500002, 0.05128479)
+trunk_turn = 179.99225957443753
+bend_strength = 1.2994999999999999
+crown_turn = -154.68650432218868
+frond_count = 32
+stub_count = 12
+footing_turn = 209.46933429621825
+accent_rings_scene = ExtResource("4_tjdwh")
+
+[node name="walk_palm_2_w" parent="." unique_id=44700977 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.498499, 0.0015001297, 200.0015)
+variation_seed = 1979843283
+trunk_scene = ExtResource("3_dfl8s")
+height = 10.875999
+lean = Vector2(0.5500002, 0.08105469)
+trunk_turn = 0.01078946356914202
+bend_strength = 1.1615
+crown_turn = -137.49767757769126
+frond_count = 30
+stub_count = 10
+footing_turn = 167.42226629389123
+accent_rings_scene = ExtResource("4_tjdwh")
+
+[node name="walk_palm_2_e" parent="." unique_id=1078772735 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.50375, 0.0037498474, 200.00375)
+variation_seed = 1979843265
+trunk_scene = ExtResource("3_dfl8s")
+height = 9.35
+lean = Vector2(-0.5500002, -0.11419678)
+trunk_turn = -179.97943247917627
+bend_strength = 0.7474999999999999
+crown_turn = 107.89306273353891
+frond_count = 30
+stub_count = 10
+footing_turn = 104.57941694827474
+accent_rings_scene = ExtResource("4_tjdwh")
+
+[node name="walk_palm_3_w" parent="." unique_id=1274014308 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.49925, 0.000749588, 188.00075)
+variation_seed = 1979844244
+trunk_scene = ExtResource("3_dfl8s")
+height = 10.218
+lean = Vector2(0.5500002, -0.09819031)
+trunk_turn = -0.014806356016706703
+bend_strength = 1.2994999999999999
+crown_turn = 125.08505185562204
+frond_count = 31
+stub_count = 11
+footing_turn = 62.53235577613687
+accent_rings_scene = ExtResource("4_tjdwh")
+
+[node name="walk_palm_3_e" parent="." unique_id=482761032 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.503, 0.0029993057, 188.00302)
+variation_seed = 1979844226
+trunk_scene = ExtResource("3_dfl8s")
+height = 11.492002
+lean = Vector2(-0.5500002, -0.021865845)
+trunk_turn = -179.9973958766934
+bend_strength = 0.8855
+crown_turn = 10.485813989283002
+frond_count = 31
+stub_count = 11
+footing_turn = 359.6895096182439
+accent_rings_scene = ExtResource("4_tjdwh")
+
+[node name="walk_palm_4_w" parent="." unique_id=86081305 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.5, 0, 176)
+variation_seed = 1979845205
+trunk_scene = ExtResource("3_dfl8s")
+height = 9.35
+lean = Vector2(0.5500002, -0.055755615)
+trunk_turn = -0.010040007055238487
+bend_strength = 0.7474999999999999
+crown_turn = 27.672262120401957
+frond_count = 32
+stub_count = 12
+footing_turn = 317.6424279555385
+accent_rings_scene = ExtResource("4_tjdwh")
+
+[node name="walk_palm_4_e" parent="." unique_id=1492762425 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.50225, 0.0022501945, 176.00224)
+variation_seed = 1979845187
+trunk_scene = ExtResource("3_dfl8s")
+height = 10.834
+lean = Vector2(-0.5500002, 0.11982727)
+trunk_turn = 179.98394040402846
+bend_strength = 1.0234999999999999
+crown_turn = -86.89884390429309
+frond_count = 32
+stub_count = 12
+footing_turn = 254.79957860992204
+accent_rings_scene = ExtResource("4_tjdwh")
+
+[node name="walk_palm_5_w" parent="." unique_id=21008409 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.495501, 0.0044999123, 164.00449)
+variation_seed = 1979846166
+trunk_scene = ExtResource("3_dfl8s")
+height = 11.492001
+lean = Vector2(0.5500002, 0.11256409)
+trunk_turn = 0.013420982377401204
+bend_strength = 0.8855
+crown_turn = -69.71332980154314
+frond_count = 30
+stub_count = 10
+footing_turn = 212.75252426797334
+accent_rings_scene = ExtResource("4_tjdwh")
+
+[node name="walk_palm_5_e" parent="." unique_id=275203250 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.501501, 0.0014996529, 164.0015)
+variation_seed = 1979846148
+trunk_scene = ExtResource("3_dfl8s")
+height = 10.176001
+lean = Vector2(-0.5500002, -0.009017944)
+trunk_turn = -179.998625310744
+bend_strength = 1.1615
+crown_turn = 175.69758688849527
+frond_count = 30
+stub_count = 10
+footing_turn = 149.90967492235686
+accent_rings_scene = ExtResource("4_tjdwh")
+
+[node name="walk_palm_6_w" parent="." unique_id=1724370373 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.496249, 0.0037493706, 152.00374)
+variation_seed = 1979847127
+trunk_scene = ExtResource("3_dfl8s")
+height = 10.834
+lean = Vector2(0.5500002, 0.026748657)
+trunk_turn = 0.0035883777015440557
+bend_strength = 1.0234999999999999
+crown_turn = -167.1104954790368
+frond_count = 31
+stub_count = 11
+footing_turn = 107.86260692002982
+accent_rings_scene = ExtResource("4_tjdwh")
+
+[node name="walk_palm_6_e" parent="." unique_id=838954855 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.50075, 0.00075006485, 152.00073)
+variation_seed = 1979847109
+trunk_scene = ExtResource("3_dfl8s")
+height = 9.518
+lean = Vector2(-0.5500002, -0.117507935)
+trunk_turn = -179.97959640371633
+bend_strength = 1.2994999999999999
+crown_turn = 78.27706879422931
+frond_count = 31
+stub_count = 11
+footing_turn = 45.01975757441335
+accent_rings_scene = ExtResource("4_tjdwh")
+
+[node name="walk_palm_7_w" parent="." unique_id=1124956016 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.497, 0.0029997826, 140.00299)
+variation_seed = 1979848088
+trunk_scene = ExtResource("3_dfl8s")
+height = 10.175999
+lean = Vector2(0.5500002, -0.1194458)
+trunk_turn = -0.01815978046351128
+bend_strength = 1.1615
+crown_turn = 95.46816316153117
+frond_count = 32
+stub_count = 12
+footing_turn = 2.9726951216150104
+accent_rings_scene = ExtResource("4_tjdwh")
+
+[node name="walk_palm_7_e" parent="." unique_id=614319513 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.5, 4.7683716e-07, 140)
+variation_seed = 1979848070
+trunk_scene = ExtResource("3_dfl8s")
+height = 11.450001
+lean = Vector2(-0.5500002, 0.03929138)
+trunk_turn = 179.9952785180507
+bend_strength = 0.7474999999999999
+crown_turn = -19.121097505977772
+frond_count = 32
+stub_count = 12
+footing_turn = 300.1298502443825
+accent_rings_scene = ExtResource("4_tjdwh")
+
+[node name="front_palm_0" parent="." unique_id=150396970 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -73.99774, 0.0022501945, 242.00224)
+variation_seed = 2013264185
+height = 8.1
+lean = Vector2(0.09200287, 0)
+trunk_turn = 57.10211974445037
+bend_strength = 0.65
+crown_turn = -0.008476451522970942
+stub_count = 8
+footing_turn = 66.59159867157798
+accent_rings_scene = ExtResource("4_tjdwh")
+
+[node name="front_palm_1" parent="." unique_id=175719341 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60.9955, 0.0044999123, 242.0045)
+variation_seed = 2013264186
+height = 8.942001
+lean = Vector2(-0.05250168, 0.089767456)
+trunk_turn = 98.92804329692531
+bend_strength = 0.77
+crown_turn = -120.30921966340904
+footing_turn = 90.08287318967793
+accent_rings_scene = ExtResource("4_tjdwh")
+
+[node name="front_palm_2" parent="." unique_id=323935774 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47.998505, 0.0015001297, 242.0015)
+variation_seed = 2013264187
+height = 9.784
+lean = Vector2(-0.056869507, -0.10110474)
+trunk_turn = 140.75397026449485
+bend_strength = 0.89
+crown_turn = 119.35455046273802
+stub_count = 10
+footing_turn = 113.57414087758872
+accent_rings_scene = ExtResource("4_tjdwh")
+
+[node name="front_palm_3" parent="." unique_id=960691583 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -34.99625, 0.0037498474, 242.00374)
+variation_seed = 2013264188
+height = 8.226
+lean = Vector2(0.07999039, 0.0013427734)
+trunk_turn = -177.42010595565912
+bend_strength = 1.01
+crown_turn = -0.9727142402930786
+frond_count = 13
+stub_count = 11
+dead_count = 1
+footing_turn = 137.0654085654995
+accent_rings_scene = ExtResource("4_tjdwh")
+
+[node name="front_palm_4" parent="." unique_id=1793184228 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.99925, 0.00075006485, 242.00075)
+variation_seed = 2013264189
+height = 9.068001
+lean = Vector2(-0.04777336, 0.07862854)
+trunk_turn = -135.5941994786571
+bend_strength = 1.13
+crown_turn = -121.27261784583933
+frond_count = 13
+stub_count = 12
+footing_turn = 160.55668308359947
+accent_rings_scene = ExtResource("4_tjdwh")
+
+[node name="front_palm_7" parent="." unique_id=1592656664 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.003002, 0.0029997826, 242.00299)
+variation_seed = 2013264192
+height = 8.983999
+lean = Vector2(-0.042686462, 0.06765747)
+trunk_turn = -10.116456995762578
+bend_strength = 0.89
+crown_turn = -122.2359340659996
+stub_count = 10
+dead_count = 1
+footing_turn = 231.030492977521
+accent_rings_scene = ExtResource("4_tjdwh")
+
+[node name="front_palm_8" parent="." unique_id=2133890602 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, -4.7683716e-07, 242)
+variation_seed = 2013264193
+height = 9.826
+lean = Vector2(-0.042383194, -0.08164978)
+trunk_turn = 31.709470825580603
+bend_strength = 1.01
+crown_turn = 117.42726232425719
+stub_count = 11
+footing_turn = 254.5217538352426
+accent_rings_scene = ExtResource("4_tjdwh")
+
+[node name="front_palm_9" parent="." unique_id=884979626 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.002247, 0.0022501945, 242.00224)
+variation_seed = 2013264194
+height = 8.268
+lean = Vector2(0.10386658, 0.0052490234)
+trunk_turn = 73.53540120824472
+bend_strength = 1.13
+crown_turn = -2.8980343237976007
+stub_count = 12
+footing_turn = 278.0130420137209
+accent_rings_scene = ExtResource("4_tjdwh")
+
+[node name="front_palm_10" parent="." unique_id=1333425054 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 56.0045, 0.0044999123, 242.0045)
+variation_seed = 134164022
+height = 8.984001
+lean = Vector2(-0.05696106, 0.087020874)
+trunk_turn = 42.86324145719771
+bend_strength = 0.89
+crown_turn = -123.19925028615985
+frond_count = 13
+stub_count = 10
+footing_turn = 211.47113979854393
+accent_rings_scene = ExtResource("4_tjdwh")
+
+[node name="front_palm_11" parent="." unique_id=1457825074 instance=ExtResource("2_kldp8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 69.0015, 0.0015001297, 242.0015)
+variation_seed = 134164023
+height = 9.826
+lean = Vector2(-0.051696777, -0.10383606)
+trunk_turn = 84.68916159457807
+bend_strength = 1.01
+crown_turn = 116.46337236820663
+frond_count = 14
+stub_count = 11
+footing_turn = 234.96241431664387
+accent_rings_scene = ExtResource("4_tjdwh")

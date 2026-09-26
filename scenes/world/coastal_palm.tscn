@@ -1,0 +1,16 @@
+[gd_scene load_steps=5 format=3]
+
+; One coastal palm placed by its foot. Its trunk, crown and planting bed are
+; built from the scenes and values below; place it and tune it in the inspector.
+
+[ext_resource type="Script" path="res://scenes/world/coastal_palm.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_trunk.tscn" id="2_trunk"]
+[ext_resource type="PackedScene" path="res://scenes/world/palm_crown.tscn" id="3_crown"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_ground_base.tscn" id="4_footing"]
+
+[node name="coastal_palm" type="Node3D"]
+script = ExtResource("1_script")
+trunk_scene = ExtResource("2_trunk")
+crown_scene = ExtResource("3_crown")
+footing_scene = ExtResource("4_footing")
+editor_description = "One coastal palm, placed by its foot. Height, lean and the trunk's bow, the crown's turn and frond counts, and the planting bed are values in the inspector; the seed varies the crown."

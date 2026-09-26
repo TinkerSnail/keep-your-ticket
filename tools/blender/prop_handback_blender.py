@@ -62,7 +62,10 @@ def render(folder, colour=None):
     lo, hi = export_bounds()
     centre, size = (lo + hi) / 2, max((hi - lo).length, 0.3)
     plane = bpy.data.meshes.new("handback_ground")
-    plane.from_pydata([(-20, -20, -0.0005), (20, -20, -0.0005), (20, 20, -0.0005), (-20, 20, -0.0005)],
+    # A hanging prop (a palm crown) reaches below its origin: the ground goes
+    # under its lowest point instead of through it.
+    gz = min(lo.z, 0.0) - 0.0005
+    plane.from_pydata([(-20, -20, gz), (20, -20, gz), (20, 20, gz), (-20, 20, gz)],
                       [], [(0, 1, 2, 3)])
     ground = bpy.data.objects.new("handback_ground", plane)
     sc.collection.objects.link(ground)

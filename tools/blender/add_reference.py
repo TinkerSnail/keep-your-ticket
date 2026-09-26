@@ -25,7 +25,7 @@ import sys
 import bpy
 
 TAG = "kyt_reference_import"
-MARKER_NAMES = ("seat_l", "seat_r")
+MARKER_NAMES = ("seat_l", "seat_r", "trunk_top")
 
 
 def main():
@@ -56,11 +56,13 @@ def main():
             obj.empty_display_type = "SINGLE_ARROW"
             obj.empty_display_size = 0.25
 
-    missing = [n for n in MARKER_NAMES if n not in bpy.data.objects]
+    missing = [n for n in MARKER_NAMES[:2] if n not in bpy.data.objects]
     bpy.ops.wm.save_mainfile()
     print(f"add_reference: {len(imported)} objects from {os.path.basename(glb)} into 'reference'")
     if missing:
         print(f"add_reference: no {', '.join(missing)} in this reference (fine for props without seats)")
+    if "trunk_top" in bpy.data.objects:
+        print("add_reference: trunk_top at the origin: this prop hangs from it")
 
 
 main()

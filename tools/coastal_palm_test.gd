@@ -1,10 +1,12 @@
 extends Node
 
-## Focused palm acceptance: every established foot remains fixed while the
-## shared editor-owned trunk, crown and footing sources provide tightly bounded
-## height, bend, crown-density and retained-frond variation. Arrival pairs use
-## tall near-straight shafts and dense, layered classic-California pinnate
-## crowns; both former fan-palm readings remain outside the standing world.
+## Focused palm acceptance: every established foot remains fixed while each
+## editor-owned `coastal_palm.tscn` placement provides tightly bounded height,
+## bend and lean, and its Blender crown (`palm_crown.tscn`) shows the fronds,
+## stubs and dead fronds its counts ask for, no two crowns alike. Arrival pairs
+## use tall near-straight shafts and dense, groomed classic-California pinnate
+## crowns; Boardwalk palms carry one to three dead fronds; both former fan-palm
+## readings remain outside the standing world.
 
 
 func _ready() -> void:
@@ -32,7 +34,7 @@ func _run() -> void:
 		return
 	if not await _check_palmetto_catalog():
 		return
-	print("PASS: 34 fixed-foot coastal palms retain their layered bases; the sixteen arrival palms keep their approved 30–32-frond classic-California crowns; PRP-PLANT-051 doubles that live head to 64 interleaved pinnate fronds; the former fan forms have no standing placement; all 26 arrival and front-road feet keep their planting rings and every opening remains clear")
+	print("PASS: 34 fixed-foot coastal palms, each an editor-owned placement, keep their layered bases, bounded heights, leans and the arrival row's inward bow; the sixteen arrival palms carry 30–32-frond groomed crowns, the Boardwalk palms one to three dead fronds, and no two of the 34 Blender crowns are alike; PRP-PLANT-051 still doubles its head to 64 fronds; the former fan forms have no standing placement; all 26 arrival and front-road feet keep their planting rings and every opening remains clear")
 	get_tree().quit()
 
 
@@ -134,233 +136,90 @@ func _check_roadside_landscaping(approach: Node3D) -> bool:
 
 
 func _check_place(place: Node3D, expected_count: int) -> bool:
-	var controller := place.get_node_or_null("authored_additions/coastal_palm_replacements")
-	if controller == null:
-		_fail("%s has no palm replacement controller" % place.name)
+	var set_name := "approach_palms" if place.name == &"park_approach" else "boardwalk_palms"
+	var palms := place.get_node_or_null("authored_additions/" + set_name)
+	if palms == null:
+		_fail("%s has no editor-owned palm set %s" % [place.name, set_name])
 		return false
-	var crown_output := controller.get_node("generated_crowns")
-	var trunk_output := controller.get_node("generated_trunks")
-	var base_output := controller.get_node("generated_bases")
-	if crown_output.get_child_count() != expected_count:
-		_fail("%s expected %d new crowns, found %d" % [
-			place.name, expected_count, crown_output.get_child_count()])
-		return false
-	if trunk_output.get_child_count() != expected_count:
-		_fail("%s expected %d new trunks, found %d" % [
-			place.name, expected_count, trunk_output.get_child_count()])
-		return false
-	if base_output.get_child_count() != expected_count:
-		_fail("%s expected %d new bases, found %d" % [
-			place.name, expected_count, base_output.get_child_count()])
+	if palms.get_child_count() != expected_count:
+		_fail("%s expected %d palms, found %d" % [place.name, expected_count, palms.get_child_count()])
 		return false
 
 	var saw_added_fronds := false
 	var shared_ring_count := 0
-	for replacement in crown_output.get_children():
-		var prefix := String(replacement.name).trim_suffix("_editor_crown")
+	var crowns_seen := {}
+	var frond_sets := {}
+	for palm_node in palms.get_children():
+		var palm := palm_node as Node3D
+		var prefix := String(palm.name)
+		if palm.scene_file_path != "res://scenes/world/coastal_palm.tscn":
+			_fail("%s is not a placed coastal_palm.tscn" % prefix)
+			return false
+		# The established foot and top are still readable off the retired stick palm.
 		var old_crown := place.get_node_or_null(prefix + "_crown") as GeometryInstance3D
-		var old_trunk := place.get_node_or_null(prefix + "_trunk") as GeometryInstance3D
-		var new_trunk := trunk_output.get_node_or_null(prefix + "_editor_trunk") as Node3D
-		var new_base := base_output.get_node_or_null(prefix + "_editor_base") as Node3D
+		var old_trunk := place.get_node_or_null(prefix + "_trunk") as CSGBox3D
+		var new_trunk := palm.get_node_or_null("trunk") as Node3D
+		var new_base := palm.get_node_or_null("footing") as Node3D
+		var crown := palm.get_node_or_null("crown") as Node3D
 		if old_crown == null or old_trunk == null or new_trunk == null \
-				or new_base == null:
-			_fail("%s cannot be matched to its established source palm" % replacement.name)
+				or new_base == null or crown == null:
+			_fail("%s cannot be matched to its established source palm" % prefix)
 			return false
-		if old_crown.visible:
-			_fail("%s old crown remains visible" % old_crown.name)
+		if old_crown.visible or old_trunk.visible:
+			_fail("%s old stick crown or rod trunk remains visible" % prefix)
 			return false
-		if old_trunk.visible:
-			_fail("%s old rod trunk remains visible" % old_trunk.name)
+		for index in 7:
+			var old_frond := place.get_node_or_null("%s_frond_%d" % [prefix, index]) as GeometryInstance3D
+			if old_frond == null or old_frond.visible:
+				_fail("%s old strut frond %d was not retired" % [prefix, index])
+				return false
+		var endpoints := _trunk_endpoints(old_trunk, old_crown.position)
+		var source_base: Vector3 = endpoints[0]
+		var source_top: Vector3 = endpoints[1]
+		if not palm.position.is_equal_approx(source_base):
+			_fail("%s moved its established foot" % prefix)
 			return false
-		var source_base := new_trunk.get_meta("source_base") as Vector3
-		var source_top := new_trunk.get_meta("source_top") as Vector3
-		var new_top := new_trunk.get_meta("new_top") as Vector3
-		var height_gain := float(new_trunk.get_meta("height_gain"))
-		var lateral_offset := new_trunk.get_meta("lateral_offset") as Vector3
-		if not new_trunk.position.is_equal_approx(source_base):
-			_fail("%s moved its established foot" % new_trunk.name)
+		if not new_trunk.global_position.is_equal_approx(palm.global_position) \
+				or not new_base.global_position.is_equal_approx(palm.global_position):
+			_fail("%s trunk or bed is detached from its established foot" % prefix)
 			return false
-		if not new_base.position.is_equal_approx(source_base):
-			_fail("%s is detached from its established foot" % new_base.name)
+		if not _check_footing(prefix, new_base):
 			return false
-		var flowers := new_base.get_node_or_null("flowers")
-		var flower_clusters: Array[Node] = []
-		if flowers != null:
-			for flower_child in flowers.get_children():
-				if String(flower_child.name).ends_with("_cluster"):
-					flower_clusters.append(flower_child)
-		if flowers == null or flower_clusters.size() != 3 \
-				or flowers.get_node_or_null("planted_collar") == null:
-			_fail("%s is missing its three landscaped flower clusters" % new_base.name)
-			return false
-		if not prefix.begins_with("deck_palm_"):
-			var planted_collar := flowers.get_node("planted_collar") as MeshInstance3D
-			if planted_collar.mesh is TorusMesh \
-					or flowers.get_node_or_null("planted_lobe_east") == null \
-					or flowers.get_node_or_null("planted_lobe_south") == null:
-				_fail("%s has returned to a circular donut planting collar" % new_base.name)
-				return false
-			if new_base.get_node_or_null("soil_patch_east") == null \
-					or new_base.get_node_or_null("soil_patch_south") == null:
-				_fail("%s has returned to one circular soil disc" % new_base.name)
-				return false
-			var fern_pockets := new_base.get_node_or_null("fern_pockets")
-			var rosettes := new_base.get_node_or_null("border_rosettes")
-			if fern_pockets == null or fern_pockets.get_child_count() != 6 \
-					or rosettes == null or rosettes.get_child_count() != 8:
-				_fail("%s is missing its loose fern or rosette sweep" % new_base.name)
-				return false
-			var rosette_radii: Array[float] = []
-			for rosette in rosettes.get_children():
-				var rosette_position := (rosette as Node3D).position
-				rosette_radii.append(Vector2(rosette_position.x,
-					rosette_position.z).length())
-			rosette_radii.sort()
-			if rosette_radii[-1] - rosette_radii[0] < 0.08:
-				_fail("%s rosettes have returned to an even circular ring" % new_base.name)
-				return false
-		for cluster in flower_clusters:
-			var bloom_count := 0
-			for part in cluster.get_children():
-				if String(part.name).begins_with("bloom_"):
-					bloom_count += 1
-			if cluster.get_node_or_null("foliage") == null or bloom_count < 4:
-				_fail("%s/%s is not a dense bedding cluster" % [
-					new_base.name, cluster.name])
-				return false
-		if prefix.begins_with("deck_palm_"):
-			var timber_frame := new_base.get_node_or_null("timber_frame")
-			var timber_details := new_base.get_node_or_null("timber_details")
-			var fern_ring := new_base.get_node_or_null("fern_ring")
-			var border_rosettes := new_base.get_node_or_null("border_rosettes")
-			var color_accents := new_base.get_node_or_null("color_accents")
-			if new_base.get_node_or_null("soil_fill") == null \
-					or timber_frame == null or timber_frame.get_child_count() != 4 \
-					or timber_details == null or timber_details.get_child_count() != 12 \
-					or fern_ring == null or fern_ring.get_child_count() != 4 \
-					or border_rosettes == null or border_rosettes.get_child_count() != 4 \
-					or color_accents == null or color_accents.get_child_count() != 4:
-				_fail("%s is missing its Boardwalk timber tree box" % new_base.name)
-				return false
-			for accent_name in [&"hakone_nw", &"hakone_se", &"purple_ne", &"purple_sw"]:
-				var accent := color_accents.get_node_or_null(NodePath(accent_name)) as Node3D
-				if accent == null or accent.position.y < 0.37 or accent.scale.y < 0.5 \
-						or Vector2(accent.position.x, accent.position.z).length() < 0.38:
-					_fail("%s/%s does not preserve the open-center contrast pocket" % [
-						new_base.name, accent_name])
-					return false
-			for fern in fern_ring.get_children():
-				if (fern as Node3D).position.y < 0.38 or (fern as Node3D).scale.y < 1.0:
-					_fail("%s/%s disappears below the Boardwalk cap rail" % [
-						new_base.name, fern.name])
-					return false
-				if not _check_fern(fern as Node3D,
-						"%s/%s" % [new_base.name, fern.name]):
-					return false
-			for rosette in border_rosettes.get_children():
-				if (rosette as Node3D).position.y < 0.36 or (rosette as Node3D).scale.y < 0.78:
-					_fail("%s/%s disappears below the Boardwalk cap rail" % [
-						new_base.name, rosette.name])
-					return false
-			for cluster in flower_clusters:
-				if (cluster as Node3D).position.y < 0.34:
-					_fail("%s/%s disappears below the Boardwalk cap rail" % [
-						new_base.name, cluster.name])
-					return false
-		else:
-			var fern_pockets := new_base.get_node_or_null("fern_pockets")
-			var border_rosettes := new_base.get_node_or_null("border_rosettes")
-			if new_base.get_node_or_null("soil_patch") == null \
-					or fern_pockets == null or fern_pockets.get_child_count() != 6 \
-					or border_rosettes == null or border_rosettes.get_child_count() != 8:
-				_fail("%s is missing its layered lawn planting" % new_base.name)
-				return false
-			for fern in fern_pockets.get_children():
-				if not _check_fern(fern as Node3D,
-						"%s/%s" % [new_base.name, fern.name]):
-					return false
 		var uses_shared_rings := prefix.begins_with("walk_palm_") \
 			or prefix.begins_with("front_palm_")
 		if uses_shared_rings:
 			shared_ring_count += 1
-			var arrival_rings := new_base.get_node_or_null("arrival_accent_rings")
-			var arrival_fern_pockets := new_base.get_node_or_null("fern_pockets")
-			var hakone_clumps := new_base.get_node_or_null(
-				"arrival_accent_rings/japanese_forest_grass_inner_ring/clumps")
-			var purple_sprigs := new_base.get_node_or_null(
-				"arrival_accent_rings/purple_heart_outer_ring")
-			if arrival_rings == null or hakone_clumps == null \
-					or hakone_clumps.get_child_count() != 10 \
-					or purple_sprigs == null or purple_sprigs.get_child_count() != 36:
-				_fail("%s is missing its two arrival planting rings" % new_base.name)
-				return false
-			if (purple_sprigs as Node3D).scale.x > 0.71:
-				_fail("%s Purple Heart ring is no longer tucked under the Hakone skirt" %
-					new_base.name)
-				return false
-			var purple_radii: Array[float] = []
-			for sprig in purple_sprigs.get_children():
-				var sprig_position := (sprig as Node3D).position
-				purple_radii.append(Vector2(sprig_position.x,
-					sprig_position.z).length())
-			purple_radii.sort()
-			if purple_radii[0] < 1.4 or purple_radii[-1] > 1.6 \
-					or purple_radii[-1] - purple_radii[0] < 0.05:
-				_fail("%s Purple Heart band lost its loose outer-ring spacing" %
-					new_base.name)
-				return false
-			if flowers.scale.y < 3.1 \
-					or float(flowers.get_meta("arrival_height_scale", 0.0)) < 3.1:
-				_fail("%s mixed center no longer rises above the forest grass" %
-					new_base.name)
-				return false
-			if arrival_fern_pockets == null \
-					or float(arrival_fern_pockets.get_meta(
-						"arrival_fern_scale", 0.0)) < 1.99:
-				_fail("%s arrival ferns are no longer doubled in size" %
-					new_base.name)
-				return false
-			for fern in arrival_fern_pockets.get_children():
-				if (fern as Node3D).scale.x < 1.35:
-					_fail("%s/%s did not receive the doubled arrival scale" % [
-						new_base.name, fern.name])
-					return false
+
+		var seat := palm.call("seat") as Vector3
+		var new_top := source_base + seat
+		var height_gain := new_top.y - source_top.y
+		# The seat's offset across from the point straight above the foot.
+		var lateral_offset := Vector3(seat.x, 0.0, seat.z)
 		if prefix.begins_with("walk_palm_"):
 			if height_gain < 0.849 or height_gain > 1.019:
-				_fail("%s height gain %.3fm exceeds the taller arrival band" % [
-					new_trunk.name, height_gain])
+				_fail("%s height gain %.3fm exceeds the taller arrival band" % [prefix, height_gain])
 				return false
 		elif not prefix.begins_with("front_palm_") \
 				and new_base.get_node_or_null("arrival_accent_rings") != null:
-			_fail("%s incorrectly carries the arrival/front-road planting rings" %
-				new_base.name)
+			_fail("%s incorrectly carries the arrival/front-road planting rings" % prefix)
 			return false
 		elif height_gain < 0.099 or height_gain > 0.269:
-			_fail("%s height gain %.3fm exceeds the non-arrival band" % [
-				new_trunk.name, height_gain])
+			_fail("%s height gain %.3fm exceeds the non-arrival band" % [prefix, height_gain])
 			return false
-		if not replacement.position.is_equal_approx(new_top):
-			_fail("%s is detached from its new trunk top" % replacement.name)
-			return false
-		var expected_top := Vector3(source_base.x, source_top.y + height_gain,
-			source_base.z) + lateral_offset
 		var trunk_mesh := new_trunk.get_node("derived_trunk") as MeshInstance3D
 		if trunk_mesh.mesh == null or trunk_mesh.mesh.get_surface_count() != 1:
-			_fail("%s is missing its tapered trunk surface" % new_trunk.name)
+			_fail("%s is missing its tapered trunk surface" % prefix)
 			return false
 		if prefix.begins_with("walk_palm_"):
-			if not is_equal_approx(lateral_offset.x,
-					-signf(source_base.x) * 0.55) or absf(lateral_offset.z) > 0.121:
-				_fail("%s exceeds the restrained arrival-row lean" % new_trunk.name)
+			# The paired rows arch inward: the seat sits 55cm toward the opposite
+			# row and hardly moves along the walk.
+			if not is_equal_approx(lateral_offset.x, -signf(source_base.x) * 0.55) \
+					or absf(lateral_offset.z) > 0.121:
+				_fail("%s exceeds the restrained arrival-row lean" % prefix)
 				return false
-			var bend_direction := new_trunk.get_meta("bend_direction") as Vector3
 			var inward := Vector3(-signf(source_base.x), 0.0, 0.0)
-			if bend_direction.dot(inward) < 0.99:
-				_fail("%s does not curve toward the opposite row" % new_trunk.name)
-				return false
-			# Check the emitted shaft rather than trusting the controller's intended
-			# direction metadata. Ring six is near mid-height, where the source bow
-			# reaches its clearest offset from the straight base-to-top chord.
+			# Check the emitted shaft: ring six is near mid-height, where the bow
+			# reaches its clearest offset from the straight foot-to-seat chord.
 			var trunk_vertices := trunk_mesh.mesh.surface_get_arrays(0)[
 				Mesh.ARRAY_VERTEX] as PackedVector3Array
 			var middle_ring := 6
@@ -369,78 +228,225 @@ func _check_place(place: Node3D, expected_count: int) -> bool:
 				middle_center += trunk_mesh.to_global(
 					trunk_vertices[middle_ring * 8 + side_index])
 			middle_center /= 8.0
-			var chord_point := source_base.lerp(new_top,
-				float(middle_ring) / 13.0)
+			var chord_point := palm.global_position.lerp(
+				palm.to_global(seat), float(middle_ring) / 13.0)
 			if (middle_center - chord_point).dot(inward) < 0.04:
-				_fail("%s emitted shaft bends away from the opposite row" %
-					new_trunk.name)
+				_fail("%s emitted shaft bends away from the opposite row" % prefix)
 				return false
 		elif lateral_offset.length() < 0.079 or lateral_offset.length() > 0.117:
-			_fail("%s exceeds its restrained non-arrival lean" % new_trunk.name)
-			return false
-		if not new_top.is_equal_approx(expected_top):
-			_fail("%s exceeds its authorized top variation" % new_trunk.name)
+			_fail("%s exceeds its restrained non-arrival lean" % prefix)
 			return false
 
-		var courses := replacement.get_node("frond_courses")
-		var derived := replacement.get_node("derived_fronds")
-		var extra_fronds := int(replacement.get("extra_frond_count"))
-		var density_multiplier := int(replacement.get("density_multiplier"))
-		var expected_core_courses := 12
-		var expected_source_courses := 32
-		if courses.get_child_count() != expected_source_courses \
-				or density_multiplier != 1 \
-				or derived.get_child_count() \
-					!= (expected_core_courses + extra_fronds) * density_multiplier:
-			_fail("%s does not preserve its core plus twenty optional pinnate courses" % replacement.name)
+		# The Blender crown sits on the seat, and shows what its counts say.
+		if not crown.position.is_equal_approx(seat) \
+				or crown.scene_file_path != "res://scenes/world/palm_crown.tscn" \
+				or crown.get_node_or_null("model") == null:
+			_fail("%s crown is not the Blender palm crown on its trunk's seat" % prefix)
 			return false
-		saw_added_fronds = saw_added_fronds or extra_fronds > 0
-		var full_feather_fronds := 0
-		for frond in derived.get_children():
-			var mesh := (frond as MeshInstance3D).mesh as ArrayMesh
-			if mesh == null or mesh.get_surface_count() != 2:
-				_fail("%s/%s is missing its live-leaf or midrib surface" % [replacement.name, frond.name])
-				return false
-			if String(frond.get_meta("silhouette", "")) != "pinnate" \
-					or frond.has_meta("fan_finger_count"):
-				_fail("%s/%s is not a feather-palm frond" % [replacement.name, frond.name])
-				return false
-			if int(frond.get_meta("leaflet_pair_count", 0)) == 16:
-				full_feather_fronds += 1
-		var remnant_count := int(replacement.get("remnant_count"))
+		if String(crown.get_meta("species_language", "")) != "classic_california_date_palm":
+			_fail("%s crown lost its classic-California species language" % prefix)
+			return false
+		var fronds := int(crown.get("frond_count"))
+		var stubs := int(crown.get("stub_count"))
+		var dead := int(crown.get("dead_count"))
+		var shown := crown.call("shown_counts") as Dictionary
+		if int(shown["live"]) != fronds or int(shown["remnant"]) != stubs \
+				or int(shown["dead"]) != dead or int(shown["density"]) != 0:
+			_fail("%s crown shows %s, not its %d fronds, %d stubs and %d dead" % [
+				prefix, shown, fronds, stubs, dead])
+			return false
+		saw_added_fronds = saw_added_fronds or fronds > 12
 		if prefix.begins_with("walk_palm_"):
-			var remnant_courses := replacement.get_node_or_null("remnant_courses")
-			var remnants := replacement.get_node_or_null("derived_remnants")
-			if String(replacement.get_meta("species_language", "")) \
-					!= "classic_california_date_palm" \
-					or extra_fronds < 18 or extra_fronds > 20 \
-					or full_feather_fronds < 26 \
-					or remnant_courses == null or remnant_courses.get_child_count() != 12 \
-					or remnant_count < 10 or remnant_count > 12 \
-					or remnants == null or remnants.get_child_count() != remnant_count:
-				_fail("%s has no dense classic-California pinnate crown" % replacement.name)
+			if fronds < 30 or fronds > 32 or stubs < 10 or stubs > 12 or dead != 0:
+				_fail("%s has no dense, groomed classic-California crown" % prefix)
 				return false
-		else:
-			var remnant_courses := replacement.get_node("remnant_courses")
-			var remnants := replacement.get_node("derived_remnants")
-			if remnant_courses.get_child_count() != 12 \
-					or remnant_count < 8 or remnant_count > 12 \
-					or remnants.get_child_count() != remnant_count:
-				_fail("%s has an invalid retained-frond collar" % replacement.name)
-				return false
-		for index in 7:
-			var old_frond := place.get_node_or_null("%s_frond_%d" % [prefix, index]) as GeometryInstance3D
-			if old_frond == null or old_frond.visible:
-				_fail("%s old strut frond %d was not retired" % [prefix, index])
-				return false
+		elif fronds < 12 or fronds > 14 or stubs < 8 or stubs > 12:
+			_fail("%s has an invalid light crown or retained-frond collar" % prefix)
+			return false
+		elif prefix.begins_with("front_palm_") and dead > 1:
+			_fail("%s carries more than one dead frond on the front road" % prefix)
+			return false
+		elif prefix.begins_with("deck_palm_") and (dead < 1 or dead > 3):
+			_fail("%s Boardwalk palm lacks its one to three dead fronds" % prefix)
+			return false
+		# No two crowns alike: which fronds show and how the first is tipped.
+		var key := []
+		var chosen := []
+		for part in crown.get_node("model").get_children():
+			if part is MeshInstance3D and bool(part.get_meta("shown", false)):
+				key.append(String(part.name))
+				key.append((part as Node3D).transform.basis.x.snappedf(0.0001))
+				chosen.append(String(part.name))
+		frond_sets[chosen] = true
+		if crowns_seen.has(key):
+			_fail("%s carries the same crown as %s" % [prefix, crowns_seen[key]])
+			return false
+		crowns_seen[key] = prefix
 	if not saw_added_fronds:
 		_fail("%s has no denser crown variants" % place.name)
 		return false
+	print("%s: %d palms, %d different choices of fronds, stubs and dead fronds" % [
+		place.name, palms.get_child_count(), frond_sets.size()])
 	var expected_ring_count := 26 if place.name == &"park_approach" else 0
 	if shared_ring_count != expected_ring_count:
 		_fail("%s expected %d shared-ring palm feet, found %d" % [
 			place.name, expected_ring_count, shared_ring_count])
 		return false
+	return true
+
+
+## The retired stick trunk's two ends, foot first: the end farther from its crown.
+func _trunk_endpoints(trunk: CSGBox3D, crown_position: Vector3) -> Array[Vector3]:
+	var axis := trunk.basis.z.normalized()
+	var end_a := trunk.position + axis * trunk.size.z * 0.5
+	var end_b := trunk.position - axis * trunk.size.z * 0.5
+	if end_a.distance_to(crown_position) < end_b.distance_to(crown_position):
+		return [end_b, end_a]
+	return [end_a, end_b]
+
+
+func _check_footing(prefix: String, new_base: Node3D) -> bool:
+	var flowers := new_base.get_node_or_null("flowers")
+	var flower_clusters: Array[Node] = []
+	if flowers != null:
+		for flower_child in flowers.get_children():
+			if String(flower_child.name).ends_with("_cluster"):
+				flower_clusters.append(flower_child)
+	if flowers == null or flower_clusters.size() != 3 \
+			or flowers.get_node_or_null("planted_collar") == null:
+		_fail("%s is missing its three landscaped flower clusters" % prefix)
+		return false
+	if not prefix.begins_with("deck_palm_"):
+		var planted_collar := flowers.get_node("planted_collar") as MeshInstance3D
+		if planted_collar.mesh is TorusMesh \
+				or flowers.get_node_or_null("planted_lobe_east") == null \
+				or flowers.get_node_or_null("planted_lobe_south") == null:
+			_fail("%s has returned to a circular donut planting collar" % prefix)
+			return false
+		if new_base.get_node_or_null("soil_patch_east") == null \
+				or new_base.get_node_or_null("soil_patch_south") == null:
+			_fail("%s has returned to one circular soil disc" % prefix)
+			return false
+		var fern_pockets := new_base.get_node_or_null("fern_pockets")
+		var rosettes := new_base.get_node_or_null("border_rosettes")
+		if fern_pockets == null or fern_pockets.get_child_count() != 6 \
+				or rosettes == null or rosettes.get_child_count() != 8:
+			_fail("%s is missing its loose fern or rosette sweep" % prefix)
+			return false
+		var rosette_radii: Array[float] = []
+		for rosette in rosettes.get_children():
+			var rosette_position := (rosette as Node3D).position
+			rosette_radii.append(Vector2(rosette_position.x,
+				rosette_position.z).length())
+		rosette_radii.sort()
+		if rosette_radii[-1] - rosette_radii[0] < 0.08:
+			_fail("%s rosettes have returned to an even circular ring" % prefix)
+			return false
+	for cluster in flower_clusters:
+		var bloom_count := 0
+		for part in cluster.get_children():
+			if String(part.name).begins_with("bloom_"):
+				bloom_count += 1
+		if cluster.get_node_or_null("foliage") == null or bloom_count < 4:
+			_fail("%s/%s is not a dense bedding cluster" % [
+				prefix, cluster.name])
+			return false
+	if prefix.begins_with("deck_palm_"):
+		var timber_frame := new_base.get_node_or_null("timber_frame")
+		var timber_details := new_base.get_node_or_null("timber_details")
+		var fern_ring := new_base.get_node_or_null("fern_ring")
+		var border_rosettes := new_base.get_node_or_null("border_rosettes")
+		var color_accents := new_base.get_node_or_null("color_accents")
+		if new_base.get_node_or_null("soil_fill") == null \
+				or timber_frame == null or timber_frame.get_child_count() != 4 \
+				or timber_details == null or timber_details.get_child_count() != 12 \
+				or fern_ring == null or fern_ring.get_child_count() != 4 \
+				or border_rosettes == null or border_rosettes.get_child_count() != 4 \
+				or color_accents == null or color_accents.get_child_count() != 4:
+			_fail("%s is missing its Boardwalk timber tree box" % prefix)
+			return false
+		for accent_name in [&"hakone_nw", &"hakone_se", &"purple_ne", &"purple_sw"]:
+			var accent := color_accents.get_node_or_null(NodePath(accent_name)) as Node3D
+			if accent == null or accent.position.y < 0.37 or accent.scale.y < 0.5 \
+					or Vector2(accent.position.x, accent.position.z).length() < 0.38:
+				_fail("%s/%s does not preserve the open-center contrast pocket" % [
+					prefix, accent_name])
+				return false
+		for fern in fern_ring.get_children():
+			if (fern as Node3D).position.y < 0.38 or (fern as Node3D).scale.y < 1.0:
+				_fail("%s/%s disappears below the Boardwalk cap rail" % [
+					prefix, fern.name])
+				return false
+			if not _check_fern(fern as Node3D,
+					"%s/%s" % [prefix, fern.name]):
+				return false
+		for rosette in border_rosettes.get_children():
+			if (rosette as Node3D).position.y < 0.36 or (rosette as Node3D).scale.y < 0.78:
+				_fail("%s/%s disappears below the Boardwalk cap rail" % [
+					prefix, rosette.name])
+				return false
+		for cluster in flower_clusters:
+			if (cluster as Node3D).position.y < 0.34:
+				_fail("%s/%s disappears below the Boardwalk cap rail" % [
+					prefix, cluster.name])
+				return false
+	else:
+		var fern_pockets := new_base.get_node_or_null("fern_pockets")
+		var border_rosettes := new_base.get_node_or_null("border_rosettes")
+		if new_base.get_node_or_null("soil_patch") == null \
+				or fern_pockets == null or fern_pockets.get_child_count() != 6 \
+				or border_rosettes == null or border_rosettes.get_child_count() != 8:
+			_fail("%s is missing its layered lawn planting" % prefix)
+			return false
+		for fern in fern_pockets.get_children():
+			if not _check_fern(fern as Node3D,
+					"%s/%s" % [prefix, fern.name]):
+				return false
+	var uses_shared_rings := prefix.begins_with("walk_palm_") \
+		or prefix.begins_with("front_palm_")
+	if uses_shared_rings:
+		var arrival_rings := new_base.get_node_or_null("arrival_accent_rings")
+		var arrival_fern_pockets := new_base.get_node_or_null("fern_pockets")
+		var hakone_clumps := new_base.get_node_or_null(
+			"arrival_accent_rings/japanese_forest_grass_inner_ring/clumps")
+		var purple_sprigs := new_base.get_node_or_null(
+			"arrival_accent_rings/purple_heart_outer_ring")
+		if arrival_rings == null or hakone_clumps == null \
+				or hakone_clumps.get_child_count() != 10 \
+				or purple_sprigs == null or purple_sprigs.get_child_count() != 36:
+			_fail("%s is missing its two arrival planting rings" % prefix)
+			return false
+		if (purple_sprigs as Node3D).scale.x > 0.71:
+			_fail("%s Purple Heart ring is no longer tucked under the Hakone skirt" %
+				prefix)
+			return false
+		var purple_radii: Array[float] = []
+		for sprig in purple_sprigs.get_children():
+			var sprig_position := (sprig as Node3D).position
+			purple_radii.append(Vector2(sprig_position.x,
+				sprig_position.z).length())
+		purple_radii.sort()
+		if purple_radii[0] < 1.4 or purple_radii[-1] > 1.6 \
+				or purple_radii[-1] - purple_radii[0] < 0.05:
+			_fail("%s Purple Heart band lost its loose outer-ring spacing" %
+				prefix)
+			return false
+		if flowers.scale.y < 3.1 \
+				or float(flowers.get_meta("arrival_height_scale", 0.0)) < 3.1:
+			_fail("%s mixed center no longer rises above the forest grass" %
+				prefix)
+			return false
+		if arrival_fern_pockets == null \
+				or float(arrival_fern_pockets.get_meta(
+					"arrival_fern_scale", 0.0)) < 1.99:
+			_fail("%s arrival ferns are no longer doubled in size" %
+				prefix)
+			return false
+		for fern in arrival_fern_pockets.get_children():
+			if (fern as Node3D).scale.x < 1.35:
+				_fail("%s/%s did not receive the doubled arrival scale" % [
+					prefix, fern.name])
+				return false
 	return true
 
 

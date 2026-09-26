@@ -156,6 +156,12 @@ def _quote(s):
 
 def after_send(root, prop):
     """Remember whether to offer the scene, after a Send of `prop`."""
+    # A prop whose file names its own Godot scene (the palm crown's
+    # `scenes/world/palm_crown.tscn`, which picks fronds per tree) is not
+    # offered the bench pattern.
+    if bpy.context.scene.get("kyt_godot_scene"):
+        _offer.pop(prop, None)
+        return
     s = state(root, prop)
     if s == "wraps":
         _offer.pop(prop, None)

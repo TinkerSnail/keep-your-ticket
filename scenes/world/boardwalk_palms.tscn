@@ -1,0 +1,108 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/world/coastal_palm_set.gd" id="1_2k406"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm.tscn" id="2_6fpf3"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_boardwalk_base.tscn" id="3_0pkhm"]
+
+[node name="boardwalk_palms" type="Node3D" unique_id=1641717552]
+editor_description = "Coastal palms, one per established foot. Select a palm to move its foot or change its height, lean, trunk bow, crown turn, frond counts or bed; its seed varies the crown."
+script = ExtResource("1_2k406")
+metadata/catalog_id = "GRP-PARK-007"
+
+[node name="deck_palm_0" parent="." unique_id=335167082 instance=ExtResource("2_6fpf3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -104.99625, -5.99625, -65.99625)
+variation_seed = 838634169
+height = 8.268
+lean = Vector2(0.09200287, 0)
+trunk_turn = -139.412466469991
+bend_strength = 1.13
+crown_turn = -0.00874129977866079
+stub_count = 12
+dead_count = 1
+footing_scene = ExtResource("3_0pkhm")
+
+[node name="deck_palm_1" parent="." unique_id=1386821452 instance=ExtResource("2_6fpf3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -104.99925, -5.99925, -51.99925)
+variation_seed = 838634170
+height = 9.0
+lean = Vector2(0.027824402, 0.10020828)
+trunk_turn = -97.58653267223228
+bend_strength = 0.65
+crown_turn = -74.47858886092095
+stub_count = 8
+dead_count = 2
+footing_scene = ExtResource("3_0pkhm")
+
+[node name="deck_palm_2" parent="." unique_id=1368896006 instance=ExtResource("2_6fpf3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -104.996994, -5.9969997, -37.997)
+variation_seed = 838634171
+height = 9.942
+lean = Vector2(-0.09939575, 0.059799194)
+trunk_turn = -55.760615949946505
+bend_strength = 0.77
+crown_turn = -148.95695915578847
+dead_count = 3
+footing_scene = ExtResource("3_0pkhm")
+
+[node name="deck_palm_3" parent="." unique_id=609463686 instance=ExtResource("2_6fpf3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -105, -6, -24)
+variation_seed = 838634172
+height = 8.184
+lean = Vector2(-0.05807495, -0.055021286)
+trunk_turn = -13.934696666339786
+bend_strength = 0.89
+crown_turn = 136.54662837728034
+frond_count = 13
+stub_count = 10
+dead_count = 1
+footing_scene = ExtResource("3_0pkhm")
+
+[node name="deck_palm_4" parent="." unique_id=1286223043 instance=ExtResource("2_6fpf3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -104.99776, -5.9977503, 20.00225)
+variation_seed = 838634173
+height = 9.125999
+lean = Vector2(0.04310608, -0.08127785)
+trunk_turn = 27.89122090971964
+bend_strength = 1.01
+crown_turn = 62.05052691132749
+frond_count = 13
+stub_count = 11
+dead_count = 2
+footing_scene = ExtResource("3_0pkhm")
+
+[node name="deck_palm_5" parent="." unique_id=63152034 instance=ExtResource("2_6fpf3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -104.9955, -5.9955, 34.0045)
+variation_seed = 838634174
+height = 10.068
+lean = Vector2(0.1015625, 0.0223732)
+trunk_turn = 69.7171410471
+bend_strength = 1.13
+crown_turn = -12.429184661938283
+frond_count = 13
+stub_count = 12
+dead_count = 3
+footing_scene = ExtResource("3_0pkhm")
+
+[node name="deck_palm_6" parent="." unique_id=1015177862 instance=ExtResource("2_6fpf3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -104.9985, -5.9985, 48.0015)
+variation_seed = 838634175
+height = 8.1
+lean = Vector2(0.006263733, 0.11582947)
+trunk_turn = 111.54306118448037
+bend_strength = 0.65
+crown_turn = -86.89878926277973
+frond_count = 14
+stub_count = 8
+dead_count = 1
+footing_scene = ExtResource("3_0pkhm")
+
+[node name="deck_palm_7" parent="." unique_id=1282180592 instance=ExtResource("2_6fpf3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -104.99624, -5.99625, 62.003746)
+variation_seed = 838634176
+height = 9.042
+lean = Vector2(-0.07582092, 0.025527954)
+trunk_turn = 153.36897449167157
+bend_strength = 0.77
+crown_turn = -161.3806771050698
+dead_count = 2
+footing_scene = ExtResource("3_0pkhm")

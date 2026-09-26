@@ -4,6 +4,7 @@ extends Node
 ##
 ##     godot --headless --path . tools/run.tscn -- maquette_export \
 ##         <scene> <prefix> <out_name> [--whole] [--markers <scene>] [--also <scene>] [--floor W D]
+##         [--set <property>=<value> ...] [--courses] [--mount <name>]
 ##
 ## `--whole` takes every mesh of `<scene>` as the prop instead of prefixed
 ## top-level parts, for a prop already built by hand in its own frame; the
@@ -28,6 +29,16 @@ extends Node
 ##   modelled seat against the same two points the crowd uses.
 ## - `--also <scene>` adds another existing version beside it, 2.5 m along +X.
 ## - `--floor W D` adds a W × D metre floor plane at the ground, for scale.
+## - `--set <property>=<value>` sets an exported property on the scene's root
+##   before it builds, repeatable: the palm crown's `extra_frond_count=20`
+##   exports every frond course, not only the core the scene saves with.
+## - `--courses` writes every Path3D in the scene, with its transform in the
+##   prop's frame, its control points and its baked points, to
+##   `<out_name>_courses.json` beside the GLB, still in Godot's axes.
+##   `tools/blender/add_courses.py` turns them into Blender curves.
+## - `--mount <name>` adds an empty named `<name>` at the origin: the point a
+##   hanging prop is placed by (a palm crown's `trunk_top`). Check reads it as
+##   "this prop hangs here" instead of "this prop stands on the ground".
 
 const OUT_DIR := "res://assets/source/props/reference"
 const ALSO_OFFSET := Vector3(2.5, 0, 0)
@@ -90,6 +101,11 @@ func _export(args: PackedStringArray) -> bool:
 		push_error("maquette_export: cannot load %s" % scene_path)
 		return false
 	var source := packed.instantiate()
+	for i in args.size() - 1:
+		if args[i] == "--set":
+			var pair := args[i + 1].split("=", true, 1)
+			source.set(pair[0], str_to_var(pair[1]))
+			print("maquette_export: %s = %s" % [pair[0], source.get(pair[0])])
 	add_child(source)
 	# CSG shapes build their mesh on the next frame; bake after it.
 	await get_tree().process_frame
@@ -168,6 +184,16 @@ func _export(args: PackedStringArray) -> bool:
 			print("maquette_export: marker %s at %s" % [e.name, e.position])
 		marker_scene.free()
 
+	var mount := _flag(args, "--mount")
+	if not mount.is_empty():
+		var e := Node3D.new()
+		e.name = mount[0]
+		root.add_child(e)
+		print("maquette_export: mount %s at the origin" % e.name)
+
+	if args.has("--courses") and not _write_courses(source, frame, shift, out_name):
+		return false
+
 	var also_path := _flag(args, "--also")
 	if not also_path.is_empty():
 		var also := (load(also_path[0]) as PackedScene).instantiate() as Node3D
@@ -198,3 +224,59 @@ func _export(args: PackedStringArray) -> bool:
 		return false
 	print("maquette_export: wrote %s" % out)
 	return true
+
+
+## Every Path3D of the scene as data Blender can rebuild exactly: the course's
+## transform in the prop's frame, its control points (position, in and out
+## handles relative to the point, as Godot keeps them, and tilt) and its baked
+## points already in the prop's frame, which `add_courses.py` measures its
+## curves against. Courses that share one Curve3D resource share its id, so
+## Blender can share the curve data the way the scene does.
+func _write_courses(source: Node, frame: Transform3D, shift: Vector3, out_name: String) -> bool:
+	var courses := []
+	for n in source.find_children("*", "Path3D", true, false):
+		var path := n as Path3D
+		if path.curve == null:
+			continue
+		var t := frame.affine_inverse() * path.global_transform
+		t.origin += shift
+		var curve := path.curve
+		var id := curve.resource_path.get_slice("::", 1) if curve.resource_path.contains("::") \
+			else "curve_%d" % curve.get_instance_id()
+		var points := []
+		for i in curve.point_count:
+			points.append({
+				"position": _v(curve.get_point_position(i)),
+				"in": _v(curve.get_point_in(i)),
+				"out": _v(curve.get_point_out(i)),
+				"tilt": curve.get_point_tilt(i),
+			})
+		var baked := []
+		for p in curve.get_baked_points():
+			baked.append(_v(t * p))
+		var meta := {}
+		for key in path.get_meta_list():
+			meta[String(key)] = path.get_meta(key)
+		courses.append({
+			"name": String(path.name),
+			"group": String(path.get_parent().name),
+			"meta": meta,
+			"curve": id,
+			"transform": [_v(t.basis.x), _v(t.basis.y), _v(t.basis.z), _v(t.origin)],
+			"points": points,
+			"baked": baked,
+			"length": curve.get_baked_length(),
+		})
+	var out := ProjectSettings.globalize_path("%s/%s_courses.json" % [OUT_DIR, out_name])
+	var f := FileAccess.open(out, FileAccess.WRITE)
+	if f == null:
+		push_error("maquette_export: cannot write %s" % out)
+		return false
+	f.store_string(JSON.stringify({"axes": "godot", "courses": courses}, "\t"))
+	f.close()
+	print("maquette_export: %d courses to %s" % [courses.size(), out])
+	return true
+
+
+func _v(v: Vector3) -> Array:
+	return [v.x, v.y, v.z]

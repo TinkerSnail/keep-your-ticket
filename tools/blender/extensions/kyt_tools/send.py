@@ -16,6 +16,11 @@ physics layer 1, the layer seated guests and the player stand on. Parts with the
 custom property `kyt_collision = "none"` are merged into a second object,
 `<name>_visual`, that carries no hint and so never collides.
 
+**Unless the game chooses parts.** A file whose scene has `kyt_keep_parts`
+(the palm crown, where each tree shows its own choice of fronds) sends every
+part as its own node, named as in `export`, its modifiers applied; the game
+merges what it shows. A part that collides goes as a `<part>-col` copy.
+
 The .blend is never saved here and the copies are removed afterwards, so the
 file, its selection and its undo history are as they were.
 """
@@ -98,10 +103,15 @@ def run(context):
     meshes_before = set(bpy.data.meshes)
 
     stem =os.path.splitext(os.path.basename(bpy.data.filepath))[0]
-    solid = _merged(context, [o for o in objects if wants_collision(o)], f"{stem}-col")
-    visual = _merged(context, [o for o in objects if not wants_collision(o)], f"{stem}_visual")
-    temp = [o for o in (solid, visual) if o is not None]
-    export_set = list(temp)
+    keep_parts = bool(scene.get("kyt_keep_parts"))
+    if keep_parts:
+        temp = [_merged(context, [o], f"{o.name}-col") for o in objects if wants_collision(o)]
+        export_set = temp + [o for o in objects if not wants_collision(o)]
+    else:
+        solid = _merged(context, [o for o in objects if wants_collision(o)], f"{stem}-col")
+        visual = _merged(context, [o for o in objects if not wants_collision(o)], f"{stem}_visual")
+        temp = [o for o in (solid, visual) if o is not None]
+        export_set = list(temp)
 
     try:
         for o in scene.objects:
@@ -125,7 +135,7 @@ def run(context):
             export_tangents=False,
             export_skins=False,
             export_morph=False,
-            export_extras=False,
+            export_extras=keep_parts,  # the game reads each part's kyt_course_blade
         )
     finally:
         for o in temp:
@@ -140,8 +150,9 @@ def run(context):
             bpy.ops.object.mode_set(mode=previous_mode)
 
     size_kb = os.path.getsize(out) / 1024
+    kept = "each its own node" if keep_parts else "merged into one"
     lines = [f"Sent to {os.path.relpath(out, root)} ({size_kb:.0f} KB), "
-             f"{len(objects)} part{'s' if len(objects) != 1 else ''} merged into one."]
+             f"{len(objects)} part{'s' if len(objects) != 1 else ''} {kept}."]
     lines += [text for level, text in findings if level == "WARNING"]
     lines.append("Godot picks it up the next time its window is focused or it starts.")
     return True, lines

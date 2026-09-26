@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+; Editor-owned wrapper for the coastal palm crown. The fronds' shapes live in
+; assets/source/props/palm_crown.blend; Send to game writes the GLB below.
+
+[ext_resource type="Script" path="res://scenes/world/palm_crown.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://dgmisk5t714sr" path="res://assets/props/palm_crown.glb" id="2_model"]
+
+[node name="palm_crown" type="Node3D"]
+script = ExtResource("1_script")
+editor_description = "Coastal palm crown (PRP-COAST-006). Shape the fronds in assets/source/props/palm_crown.blend. Here, the seed picks which mature and old fronds, stubs and dead fronds this tree shows, spread evenly round the trunk, and turns each frond a few degrees, so no two palms carry the same crown."
+metadata/catalog_id = "PRP-COAST-006"
+metadata/species_language = "classic_california_date_palm"
+
+[node name="model" parent="." instance=ExtResource("2_model")]

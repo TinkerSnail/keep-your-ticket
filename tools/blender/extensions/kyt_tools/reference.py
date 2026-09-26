@@ -1,9 +1,9 @@
 """Show reference: the greybox copies in the locked `reference` collection, on
 or off, so the maquette can be compared with the model and then put away.
 
-Only the greybox goes: the floor and the seat markers (`seat_l`, `seat_r`)
-stay visible whichever way it is set, because Check measures against them and
-the model stands on the floor. It is the eye in the outliner (hide in
+Only the greybox goes: the floor, the seat markers (`seat_l`, `seat_r`) and a
+hanging prop's mount (`trunk_top`) stay visible whichever way it is set,
+because Check measures against them and the model stands on the floor. It is the eye in the outliner (hide in
 viewport), set on each object, so the switch and the outliner always agree and
 the file remembers it like any other visibility.
 """
@@ -14,7 +14,7 @@ from . import checks
 
 
 def _kept(obj):
-    return obj.name.split(".")[0] == "floor" or obj.name in checks.SEAT_MARKERS
+    return obj.name.split(".")[0] == "floor" or obj.name in checks.SEAT_MARKERS + checks.MOUNT_MARKERS
 
 
 def greybox():
