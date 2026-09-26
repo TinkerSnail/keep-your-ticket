@@ -10,7 +10,9 @@ first thing that fails:
 
 1. **Export.** `assets/source/textures/<prop>/<prop>_colour.psd` through
    Photoshop (`tools/photoshop/export_canvas.jsx`): a flattened copy, every
-   "UV guide" layer hidden, over `<prop>_colour.png`. Refused if the PSD has
+   "UV guide" layer hidden, over `<prop>_colour.png`. A perforated prop's
+   holes go back into its alpha from `<prop>_holes.png`
+   (`tools/blender/apply_holes.py`). Refused if the PSD has
    unsaved changes, so the PNG always matches a saved PSD (`--allow-unsaved`
    overrides; `--no-export` skips the step for a PNG exported by hand).
 2. **Shrink** the colour and ORM PNGs (`tools/optimize_png.py`: pixel-identical
@@ -30,6 +32,10 @@ first thing that fails:
 
 It never commits: that is Christina's word. Mac only (Photoshop through
 AppleScript). Set BLENDER or GODOT to use other binaries.
+
+`--hole-layers` refreshes a perforated prop's two hole layers in its PSD (the
+canvas under the paint, the holes as a guide on top) after the holes are cut
+again with `paint_canvas.py --holes-only`; `--open` adds them to a new PSD.
 
 `--open` is stage 6's set-up: the prop's PSD opened in Photoshop, made first
 if there isn't one (colour PNG as the `paint` layer, the UV guide locked on
@@ -96,6 +102,17 @@ def export(r, psd, png, allow_unsaved):
         r.say(False, "export", said or "Photoshop gave no answer")
     with Image.open(png) as im:
         r.say(True, "export", f"{said[len('EXPORTED '):]} -> {os.path.relpath(png, ROOT)} ({im.size[0]}x{im.size[1]})")
+
+
+def holes(r, png, holes_png):
+    """A perforated prop's holes back into its exported colour PNG (the PSD's
+    flattened export has no alpha); nothing for a prop without holes."""
+    if not os.path.exists(holes_png):
+        return
+    out = run([BLENDER, "--background", "--factory-startup", "--python",
+               os.path.join(ROOT, "tools", "blender", "apply_holes.py"), "--", png, holes_png])
+    said = next((l[len("apply_holes: "):] for l in out.stdout.splitlines() if l.startswith("apply_holes: ")), None)
+    r.say(bool(said) and not said.startswith("FAIL"), "holes", said or out.stderr[-300:])
 
 
 def send(r, blend):
@@ -176,6 +193,35 @@ def open_canvas(r, colour, guide, psd):
     if said.startswith("CREATED") and f"at {box[0]},{box[1]}" not in said:
         r.say(False, "open", f"{said}; the guide should be at {box[0]},{box[1]}")
     r.say(said.startswith(("CREATED", "OPEN")), "open", said or "Photoshop gave no answer")
+    if said.startswith("CREATED"):
+        hole_layers(r, colour, psd, save=True)
+
+
+def hole_layers(r, colour, psd, save=False):
+    """A perforated prop's PSD gets (or has refreshed) its two hole layers
+    (`tools/photoshop/hole_layers.jsx`): the canvas colour, opaque, under the
+    paint, so a see-through spot exports as metal and the holes can be cut
+    again without the painting going white; and the holes, translucent, on
+    top as a locked "UV guide: holes (Claude)". Nothing for a prop without
+    holes. A new PSD is saved with them; an existing one is left for her."""
+    holes_png = colour.replace("_colour.png", "_holes.png")
+    if not os.path.exists(holes_png):
+        return
+    work = tempfile.mkdtemp(prefix="kyt_holes_")
+    under, guide = os.path.join(work, "underlay.png"), os.path.join(work, "holes_guide.png")
+    with Image.open(colour) as im:
+        im.convert("RGB").save(under)
+    with Image.open(holes_png) as h:
+        metal = h.convert("L")
+    alpha = metal.point(lambda v: (255 - v) * 110 // 255)
+    Image.merge("RGBA", (Image.new("L", metal.size, 255), Image.new("L", metal.size, 0),
+                         Image.new("L", metal.size, 255), alpha)).save(guide)
+    jsx = os.path.join(ROOT, "tools", "photoshop", "hole_layers.jsx")
+    script = (f'tell application id "com.adobe.Photoshop" to do javascript file (POSIX file "{jsx}") '
+              f'with arguments {{"{psd}", "{under}", "{guide}", "{"save" if save else "nosave"}"}}')
+    out = run(["osascript", "-e", script], timeout=300)
+    said = (out.stdout + out.stderr).strip()
+    r.say(said.startswith("LAYERS"), "hole layers", said or "Photoshop gave no answer")
 
 
 def renders(r, blend, folder, colour=None):
@@ -195,6 +241,8 @@ def main():
     ap.add_argument("--no-renders", action="store_true")
     ap.add_argument("--open", action="store_true", help="open (or make) the canvas PSD in Photoshop")
     ap.add_argument("--preview", action="store_true", help="render the work in progress; nothing sent")
+    ap.add_argument("--hole-layers", action="store_true",
+                    help="refresh a perforated prop's hole layers in its PSD after the holes are cut again")
     args = ap.parse_args()
     prop = args.prop
     textures = os.path.join(ROOT, "assets", "source", "textures", prop)
@@ -206,6 +254,13 @@ def main():
     folder = os.path.join(ROOT, "documentation", "screenshots", "handbacks", f"{prop}-{stamp}")
     r = Report(prop)
     ok = True
+    if args.hole_layers:
+        try:
+            hole_layers(r, colour, psd)
+            print("Hole layers refreshed in the PSD; she saves it.")
+        except Stop:
+            sys.exit(1)
+        sys.exit(0)
     if args.open or args.preview:
         try:
             if args.open:
@@ -215,6 +270,7 @@ def main():
                 folder = folder.replace(f"{prop}-{stamp}", f"{prop}-preview-{stamp}")
                 scratch = os.path.join(tempfile.mkdtemp(prefix="kyt_preview_"), f"{prop}_colour.png")
                 export(r, psd, scratch, allow_unsaved=True)
+                holes(r, scratch, os.path.join(textures, f"{prop}_holes.png"))
                 renders(r, blend, folder, colour=scratch)
                 with open(os.path.join(folder, "README.md"), "w") as f:
                     f.write(f"# Preview: {prop}, {stamp}\n\nWork in progress from the open PSD; nothing sent.\n\n"
@@ -230,6 +286,7 @@ def main():
             r.say(None, "export", "skipped" if args.no_export else "no PSD; using the PNG as it is")
         else:
             export(r, psd, colour, args.allow_unsaved)
+        holes(r, colour, os.path.join(textures, f"{prop}_holes.png"))
         for png in (colour, orm):
             if os.path.exists(png):
                 r.say(True, "shrink", optimize(png).split(": ", 1)[-1] + f" ({os.path.basename(png)})")

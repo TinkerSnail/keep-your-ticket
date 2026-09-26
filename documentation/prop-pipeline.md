@@ -138,6 +138,18 @@ All go in `assets/source/textures/<prop>/`. The options set the starting look:
 - `--dings <parts>`: chips on sky-facing tops.
 - `--ground <parts>`: a dirt band and dark spots at the paving.
 - `--weather <parts>`: the full treatment, not used on the bench.
+- `--perforate <parts>`: expanded-metal diamond holes through those parts'
+  broad faces, into the colour PNG's alpha (glTF alpha mask, Godot alpha
+  scissor; collision stays solid) and `<prop>_holes.png`. A flattened PSD has
+  no alpha, so `tools/blender/apply_holes.py` puts the holes back after every
+  export: in the hand-back and in the Photoshop save hook. The perforated
+  bench, 2026-09-25. A perforated prop's PSD carries two locked layers
+  (`tools/photoshop/hole_layers.jsx`, added by `--open`): the canvas colour
+  under `paint`, so a see-through spot exports as metal, and the holes as a
+  translucent "UV guide: holes (Claude)" on top. To change the pattern, edit
+  the `HOLE_*` numbers, run `paint_canvas.py --holes-only --perforate <parts>`
+  (colour kept, holes cut again), then `prop_handback.py <prop> --hole-layers`
+  and she saves the PSD.
 
 Each effect's strength is a number at the top of the script. The bench's full
 command is in `howto/paint-the-plaza-bench.md`. A canvas someone has painted

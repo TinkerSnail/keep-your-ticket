@@ -3,7 +3,8 @@
     /Applications/Blender.app/Contents/MacOS/Blender --background <prop>.blend \
         --python tools/blender/paint_canvas.py -- [--size 2048] [--orm-size 1024] [--grain]
         [--knots part,part] [--wear part,part] [--chips part,part] [--dings part,part]
-        [--ground part,part] [--weather part,part] [--overwrite] [--guide-only] [--save]
+        [--ground part,part] [--weather part,part] [--perforate part,part] [--overwrite]
+        [--holes-only] [--guide-only] [--save]
 
 Runs on the game-ready working file (after Make game mesh), whose game mesh is
 unwrapped for its own texture. Writes three images to
@@ -33,9 +34,8 @@ the top edges of those parts' wood pale and smooth where people sit, most on
 the front board's rounded front edge where legs rub, fading away from the seat
 contract's two seats.
 
-`--weather arm_loop,scroll,armrest,front_leg:0.4` weathers the painted iron (a
-material whose name contains "iron" or "steel": the backless bench's frame is
-`painted_steel`) of the parts whose names start with those
+`--weather arm_loop,scroll,armrest,front_leg:0.4` weathers the painted metal
+(any material but timber) of the parts whose names start with those
 words, `:0.4` scaling that part's rust streaks, read
 from the `kyt_part` record Make game mesh leaves on each face: paint faded on
 top and worn through to dark, hand-polished iron where hands rest, chips on
@@ -55,6 +55,16 @@ The ground band also carries a few dark spots of dirt near the paving. The
 plaza bench wears chips on its whole frame, dings on top of its outer arm rings
 and its feet, and a little ground dirt with dark spots at its feet
 (Christina, 2026-09-24).
+
+`--perforate seat_sheet,back_sheet` cuts expanded-metal diamond holes through
+those parts' broad faces (both faces of a sheet at the same places, so it can
+be seen through): into the colour PNG's alpha, which the material clips (glTF
+alphaMode MASK, Godot alpha scissor), and into `<prop>_holes.png`, which
+`tools/blender/apply_holes.py` puts back into the colour PNG after every export
+of the painting, because a flattened PSD has no alpha. Collision stays solid.
+`--holes-only --perforate <parts>` cuts them again on an existing canvas after
+a change to the `HOLE_*` numbers: the colour keeps its pixels, only its alpha
+and `<prop>_holes.png` change.
 
 All of these are starting points to paint over, not a finish.
 
@@ -131,6 +141,16 @@ DING_SIZE_M = 0.03  # dings on a part's top are smaller and closer than edge chi
 DING_LEVEL = 0.64  # how high their patchiness must reach: higher, fewer dings
 BARE_ROUGH, BARE_METAL = 0.32, 0.95
 RUST_ROUGH, RUST_METAL = 0.92, 0.05
+
+# Perforations: expanded-metal diamonds, their long way along the bench (x),
+# after Christina's photo of the perforated bench (2026-09-11), scaled up for
+# the game at her request. A strand's width is
+# 2 * HOLE_STRAND / sqrt(1/along^2 + 1/across^2): about 11 mm here, with the
+# panel about 46% open and a diamond about 83 by 35 px at 925 px per metre.
+# (30 by 13 mm with strand 0.12 made 2.9 mm wires, "too thin"; strand 0.24 on
+# that cell closed the mesh to 27%; 45 by 19 mm at 0.16 was "too delicate".)
+HOLE_ALONG_M, HOLE_ACROSS_M = 0.090, 0.038
+HOLE_STRAND = 0.16  # the metal between two diamonds, as a fraction of a cell
 
 
 def arg(argv, name, default):
@@ -467,6 +487,63 @@ def mark_parts(obj, attr_name, prefixes):
     return sum(1 for n in owners if n in value), sorted(value)
 
 
+def mark_perforated(obj, prefixes):
+    """Face attribute `kyt_perforate`: 1 on the broad faces of the parts named by
+    prefix (those facing along the part's thinnest axis, so a sheet's two faces
+    and not its edges), 0 elsewhere."""
+    me = obj.data
+    if "kyt_part" not in me.attributes or "kyt_parts" not in me:
+        raise SystemExit("paint_canvas: the game mesh doesn't record its parts; "
+                         "make it again with the current Make game mesh")
+    names = json.loads(me["kyt_parts"])
+    part = me.attributes["kyt_part"].data
+    chosen = {n for n in names for p in prefixes if n.startswith(p)}
+    faces = {}
+    for poly in me.polygons:
+        n = names[part[poly.index].value]
+        if n in chosen:
+            faces.setdefault(n, []).append(poly)
+    flags = [0.0] * len(me.polygons)
+    for polys in faces.values():
+        pts = [me.vertices[v].co for p in polys for v in p.vertices]
+        extent = [max(c[i] for c in pts) - min(c[i] for c in pts) for i in range(3)]
+        thin = extent.index(min(extent))
+        for p in polys:
+            if abs(p.normal[thin]) > 0.9:
+                flags[p.index] = 1.0
+    attr = me.attributes.get("kyt_perforate") or me.attributes.new("kyt_perforate", "FLOAT", "FACE")
+    attr.data.foreach_set("value", flags)
+    return int(sum(flags)), sorted(chosen)
+
+
+def perforation(g):
+    """A float socket: 0 in a diamond hole, 1 on metal, holes only where the face
+    attribute `kyt_perforate` is 1. The diamonds sit on a rhombic lattice in the
+    face's own plane (x along the bench, then y on a level face or z on an
+    upright one), so a sheet's two faces are cut at the same places and it can
+    be seen through."""
+    mark = g.node("ShaderNodeAttribute")
+    mark.attribute_type = "GEOMETRY"
+    mark.attribute_name = "kyt_perforate"
+    at = g.node("ShaderNodeSeparateXYZ")
+    g.link(g.coord, at.inputs["Vector"])
+    facing = g.node("ShaderNodeSeparateXYZ")
+    g.link(g.node("ShaderNodeNewGeometry").outputs["True Normal"], facing.inputs["Vector"])
+    u = g.math("DIVIDE", at.outputs["X"], HOLE_ALONG_M)
+    across = g.math("ADD", g.math("MULTIPLY", at.outputs["Y"], g.math("ABSOLUTE", facing.outputs["Z"])),
+                    g.math("MULTIPLY", at.outputs["Z"], g.math("ABSOLUTE", facing.outputs["Y"])))
+    v = g.math("DIVIDE", across, HOLE_ACROSS_M)
+
+    def from_centre(shift):
+        """|du| + |dv| from the nearest diamond centre of one of the two sublattices."""
+        du = g.math("ADD", u, shift)
+        dv = g.math("ADD", v, shift)
+        return g.math("ADD", g.math("ABSOLUTE", g.math("SUBTRACT", du, g.math("ROUND", du))),
+                      g.math("ABSOLUTE", g.math("SUBTRACT", dv, g.math("ROUND", dv))))
+    hole = g.math("LESS_THAN", g.math("MINIMUM", from_centre(0.0), from_centre(0.5)), 0.5 - HOLE_STRAND)
+    return g.math("SUBTRACT", 1.0, g.math("MULTIPLY", hole, mark.outputs["Fac"]))
+
+
 def mark_weather(obj, groups):
     """Face attributes `kyt_weather` (1 on faces of the named parts) and
     `kyt_streaks` (how strongly rust streaks there). `groups` are part-name
@@ -522,6 +599,35 @@ def bake(obj, image, surface):
             nt.nodes.remove(node)
 
 
+def bake_holes(obj, name, size):
+    """The perforation mask on the canvas, 1 metal and 0 hole, as a (size, size)
+    array. The bake is 0.5 + half the mask, so the canvas it leaves empty
+    (cleared to 0) can be told from a hole and made metal: mipmaps then never
+    thin an island's edge."""
+    if bpy.data.images.get(f"{name}_holes"):
+        bpy.data.images.remove(bpy.data.images[f"{name}_holes"])
+    holes = bpy.data.images.new(f"{name}_holes", size, size, alpha=False)
+    holes.colorspace_settings.name = "Non-Color"
+    bake(obj, holes, lambda g, mat, b: g.grey(g.math("ADD", 0.5, g.math("MULTIPLY", perforation(g), 0.5))))
+    hp = np.empty(size * size * 4, dtype=np.float32)
+    holes.pixels.foreach_get(hp)
+    bpy.data.images.remove(holes)
+    baked = hp.reshape(size, size, 4)[..., 0]
+    return np.where(baked >= 0.25, np.clip((baked - 0.5) * 2.0, 0.0, 1.0), 1.0)
+
+
+def save_holes(metal, path):
+    size = metal.shape[0]
+    img = bpy.data.images.new("_kyt_holes", size, size, alpha=False)
+    hp = np.repeat(metal[..., None], 4, axis=2)
+    hp[..., 3] = 1.0
+    img.pixels.foreach_set(hp.ravel())
+    img.filepath_raw = path
+    img.file_format = "PNG"
+    img.save()
+    bpy.data.images.remove(img)
+
+
 def write_uv_guide(obj, path, size):
     """The outline of every UV piece, white on transparent: edges where the two
     faces disagree in UV, or that have one face. Mirrored twins share outlines."""
@@ -555,6 +661,48 @@ def write_uv_guide(obj, path, size):
     bpy.data.images.remove(img)
 
 
+def holes_only(obj, parts, name, colour_path, holes_path, root):
+    """`--holes-only`: cut a canvas's holes again (after a change to HOLE_*),
+    nothing else. The colour PNG keeps every pixel's colour and takes the new
+    mask as its alpha; `<prop>_holes.png` is rewritten; the material is left as
+    it is. A PSD made from the old canvas still carries the old holes as
+    transparency, so an unpainted one is made again with `--open`."""
+    if not parts or not os.path.exists(colour_path):
+        raise SystemExit("paint_canvas: --holes-only needs --perforate parts and an existing canvas")
+    marked = mark_perforated(obj, parts)
+    scene = bpy.context.scene
+    engine = scene.render.engine
+    scene.render.engine = "CYCLES"
+    scene.cycles.samples = BAKE_SAMPLES
+    scene.cycles.device = "CPU"
+    for o in bpy.context.view_layer.objects:
+        o.select_set(False)
+    obj.select_set(True)
+    bpy.context.view_layer.objects.active = obj
+    colour = bpy.data.images.load(colour_path, check_existing=False)
+    size = colour.size[0]
+    metal = bake_holes(obj, name, size)
+    scene.render.engine = engine
+    px = np.empty(size * size * 4, dtype=np.float32)
+    colour.pixels.foreach_get(px)
+    px = px.reshape(size, size, 4)
+    px[..., 3] = metal
+    out = bpy.data.images.new("_kyt_colour", size, size, alpha=True)
+    out.pixels.foreach_set(px.ravel())
+    out.filepath_raw = colour_path
+    out.file_format = "PNG"
+    out.save()
+    for img in (out, colour):
+        bpy.data.images.remove(img)
+    save_holes(metal, holes_path)
+    for img in bpy.data.images:
+        if img.source == "FILE" and os.path.normpath(bpy.path.abspath(img.filepath)) == os.path.normpath(colour_path):
+            img.reload()
+    print(f"paint_canvas: holes cut again in {marked[0]} faces of {', '.join(marked[1])}: "
+          f"{os.path.relpath(colour_path, root)} alpha and {os.path.relpath(holes_path, root)} "
+          f"({(metal < 0.5).mean():.1%} of the canvas open)")
+
+
 def main():
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     size = arg(argv, "--size", 2048)
@@ -566,6 +714,7 @@ def main():
     ding_parts = argv[argv.index("--dings") + 1].split(",") if "--dings" in argv else []
     knot_parts = argv[argv.index("--knots") + 1].split(",") if "--knots" in argv else []
     wear_parts = argv[argv.index("--wear") + 1].split(",") if "--wear" in argv else []
+    perforate_parts = argv[argv.index("--perforate") + 1].split(",") if "--perforate" in argv else []
     blend = bpy.data.filepath
     name = os.path.splitext(os.path.basename(blend))[0]
     root = blend[:blend.index(os.sep + "assets" + os.sep)]
@@ -573,22 +722,27 @@ def main():
     colour_path = os.path.join(folder, f"{name}_colour.png")
     orm_path = os.path.join(folder, f"{name}_orm.png")
     guide_path = os.path.join(folder, f"{name}_uv_guide.png")
+    holes_path = os.path.join(folder, f"{name}_holes.png")
     obj = next(o for o in bpy.data.collections["export"].objects if o.get("kyt_game_mesh"))
     if "--guide-only" in argv:
         write_uv_guide(obj, guide_path, size)
         print(f"paint_canvas: redrew {os.path.relpath(guide_path, root)}")
         return
     for path in (colour_path, orm_path):
-        if os.path.exists(path) and "--overwrite" not in argv:
+        if os.path.exists(path) and "--overwrite" not in argv and "--holes-only" not in argv:
             raise SystemExit(f"paint_canvas: {path} exists (it may be painted); leaving everything alone")
     if not obj.data.uv_layers:
         raise SystemExit("paint_canvas: the game mesh has no UVs; make the game mesh first")
+    if "--holes-only" in argv:
+        holes_only(obj, perforate_parts, name, colour_path, holes_path, root)
+        return
     weathered = mark_weather(obj, weather) if weather else (0, [])
     chipped = mark_parts(obj, "kyt_chips", chip_parts) if chip_parts else (0, [])
     grounded = mark_parts(obj, "kyt_ground", ground_parts) if ground_parts else (0, [])
     dinged = mark_parts(obj, "kyt_dings", ding_parts) if ding_parts else (0, [])
     knotted = mark_parts(obj, "kyt_knots", knot_parts) if knot_parts else (0, [])
     worn = mark_parts(obj, "kyt_wear", wear_parts) if wear_parts else (0, [])
+    perforated = mark_perforated(obj, perforate_parts) if perforate_parts else (0, [])
     os.makedirs(folder, exist_ok=True)
 
     scene = bpy.context.scene
@@ -604,9 +758,9 @@ def main():
         return tuple(b.inputs["Base Color"].default_value)
 
     def iron(g, mat, b):
-        """Painted iron or steel as the flags ask: weathered, chipped, or plain (None)."""
-        if not any(k in mat.name for k in ("iron", "steel")) \
-                or not (weather or chip_parts or ding_parts or ground_parts):
+        """Painted metal (any material but timber) as the flags ask: weathered,
+        chipped, or plain (None). The flags' part lists say where."""
+        if "timber" in mat.name or not (weather or chip_parts or ding_parts or ground_parts):
             return None
         surface = (base(b), b.inputs["Roughness"].default_value, b.inputs["Metallic"].default_value)
         if weather:
@@ -640,8 +794,19 @@ def main():
     for stale in (f"{name}_colour", f"{name}_orm"):
         if bpy.data.images.get(stale):
             bpy.data.images.remove(bpy.data.images[stale])
-    colour = bpy.data.images.new(f"{name}_colour", size, size, alpha=False)
+    colour = bpy.data.images.new(f"{name}_colour", size, size, alpha=bool(perforate_parts))
     bake(obj, colour, colour_of)
+    if perforate_parts:
+        # The holes go in the colour's alpha, which glTF cuts as a mask, and in
+        # <prop>_holes.png, which every export of the painting puts back
+        # (tools/blender/apply_holes.py): a flattened PSD has no alpha.
+        metal = bake_holes(obj, name, size)
+        px = np.empty(size * size * 4, dtype=np.float32)
+        colour.pixels.foreach_get(px)
+        px = px.reshape(size, size, 4)
+        px[..., 3] = metal
+        colour.pixels.foreach_set(px.ravel())
+        save_holes(metal, holes_path)
     colour.filepath_raw = colour_path
     colour.file_format = "PNG"
     colour.save()
@@ -682,6 +847,15 @@ def main():
     nt.links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
     for n, x in ((uv, -900), (col, -600), (orm_node, -600), (split, -300), (bsdf, 0), (out, 300)):
         n.location = (x, -320 if n is orm_node or n is split else 0)
+    if perforate_parts:
+        # Alpha through Round is the alpha clip the glTF exporter writes as
+        # alphaMode MASK, cutoff 0.5; Godot imports it as alpha scissor.
+        clip = nt.nodes.new("ShaderNodeMath")
+        clip.operation = "ROUND"
+        clip.location = (-300, 200)
+        nt.links.new(col.outputs["Alpha"], clip.inputs[0])
+        nt.links.new(clip.outputs[0], bsdf.inputs["Alpha"])
+        mat.surface_render_method = "DITHERED"
     nt.nodes.active = col  # texture paint paints the colour image
     mat.diffuse_color = (0.8, 0.8, 0.8, 1.0)
 
@@ -699,7 +873,9 @@ def main():
           + (f"; dings on {int(dinged[0])} faces of {', '.join(dinged[1])}" if ding_parts else "")
           + (f"; knots in {', '.join(knotted[1])}" if knot_parts else "")
           + (f"; wear on {', '.join(worn[1])}" if wear_parts else "")
-          + (f"; ground dirt on {int(grounded[0])} faces of {', '.join(grounded[1])}" if ground_parts else ""))
+          + (f"; ground dirt on {int(grounded[0])} faces of {', '.join(grounded[1])}" if ground_parts else "")
+          + (f"; perforated {perforated[0]} faces of {', '.join(perforated[1])} "
+             f"({os.path.relpath(holes_path, root)})" if perforate_parts else ""))
     if "--save" in argv:
         bpy.ops.wm.save_mainfile()
 

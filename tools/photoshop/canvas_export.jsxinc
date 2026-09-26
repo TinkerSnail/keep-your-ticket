@@ -2,14 +2,25 @@
 // on_save.jsx (the save hook): a flattened copy of `doc` with every
 // "UV guide" layer hidden, 8 bits, saved as PNG over `pngPath`. The work is
 // done on a duplicate, closed after, so `doc` is not touched.
+//
+// A lock or visibility is set only when it has to change: Photoshop 27 refuses
+// to unlock a layer that is already unlocked ("The command Set is not
+// currently available"), which stopped the save hook on 2026-09-25 and left
+// its duplicate open. The duplicate is closed whatever happens.
 function kytExportCanvas(doc, pngPath) {
     var dup = doc.duplicate("canvas_export", false);
-    for (var k = 0; k < dup.layers.length; k++) {
-        if (dup.layers[k].name.indexOf("UV guide") == 0) { dup.layers[k].allLocked = false; dup.layers[k].visible = false; }
+    try {
+        for (var k = 0; k < dup.layers.length; k++) {
+            var layer = dup.layers[k];
+            if (layer.name.indexOf("UV guide") != 0) continue;
+            if (layer.allLocked) layer.allLocked = false;
+            if (layer.visible) layer.visible = false;
+        }
+        dup.flatten();
+        if (dup.bitsPerChannel != BitsPerChannelType.EIGHT) dup.bitsPerChannel = BitsPerChannelType.EIGHT;
+        var png = new PNGSaveOptions(); png.compression = 9; png.interlaced = false;
+        dup.saveAs(new File(pngPath), png, true, Extension.LOWERCASE);
+    } finally {
+        dup.close(SaveOptions.DONOTSAVECHANGES);
     }
-    dup.flatten();
-    if (dup.bitsPerChannel != BitsPerChannelType.EIGHT) dup.bitsPerChannel = BitsPerChannelType.EIGHT;
-    var png = new PNGSaveOptions(); png.compression = 9; png.interlaced = false;
-    dup.saveAs(new File(pngPath), png, true, Extension.LOWERCASE);
-    dup.close(SaveOptions.DONOTSAVECHANGES);
 }
