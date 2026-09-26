@@ -25,6 +25,10 @@ memory of an earlier session, say what happens next.
    believe the files and say what differs.
 5. Is her Blender or Photoshop open (`pgrep -x Blender`, `pgrep -f "Adobe Photoshop"`)?
    Commands read files **as saved**; unsaved work in an open app is not seen.
+6. What have her buttons already done? Most steps are one duty with two ways
+   to do it, her Blender panel button or your command. `prop-pipeline.md`,
+   "Who does what", lists each with the evidence that it has run. Never
+   repeat a step whose evidence is there; carry on from the next one.
 
 ## 1. What each phrase means
 

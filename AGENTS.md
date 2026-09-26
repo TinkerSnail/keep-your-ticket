@@ -73,6 +73,7 @@ The bypass and coastal branch stand on closed collision earthworks; mounted cent
 | `assets/shaders/` | `water_pool.gdshader` and `water_fall.gdshader`, the only shaders. |
 | `assets/textures/` | Written by `gen_props.gd` as `.res`, never `.png`, because a PNG is an import the next `--script` run cannot load. |
 | `tools/` | Generators, tests, captures and probes. `tools/README.md` is the index; add a line there when you add a tool. `export_world_source.sh` is how a Blender world source reaches the game. |
+| `tools/blender/extensions/kyt_tools/` | The Keep Your Ticket Blender panel: Check, Send to game, Make and Rebuild game mesh, Hand back, the Photoshop box and the save hook (`tools/photoshop/`). Most prop steps are one duty with two ways to do it, her button or an agent's command; `documentation/prop-pipeline.md`, "Who does what", says which has run. Never repeat what her button did. |
 
 ## Running things
 

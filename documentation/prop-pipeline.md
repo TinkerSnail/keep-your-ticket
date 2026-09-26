@@ -37,6 +37,45 @@ Each stage is marked:
 The plan's asset stages map onto these: maquette (1), block-out and model
 (2), UV (3–4), texture (5–7), integrate (8), review (9).
 
+## Who does what: the Blender panel and the agent
+
+The Keep Your Ticket Blender extension (`tools/blender/extensions/kyt_tools/`,
+card `howto/install-blender-panel.md`) puts the mechanical steps on buttons,
+and the Photoshop save hook runs on every save of a canvas PSD. Most duties
+can be done two ways, by Christina's button or by the agent's command.
+Whichever ran first did it: before running a command the agent looks for the
+evidence, and never repeats a step a button already did (2026-09-25: Make
+game mesh, Send to game and the Godot scene were each nearly done twice).
+
+| Duty | Christina's button | The agent's command | Evidence it has run |
+|---|---|---|---|
+| Check the prop | **Check** | Send runs it first | none needed: cheap, run it freely |
+| Send to game | **Send to game** | `prop_handback_blender.py -- send` | `assets/props/<prop>.glb` newer than the saved `.blend` |
+| Godot scene wrapping the model | **Write / Replace Godot scene** (offered after a Send) | edit `scenes/world/park_furniture/<prop>.tscn` | the scene instances `res://assets/props/<prop>.glb` and holds its contract markers |
+| Unwrap the parts | none yet | `unwrap_parts.py -- --save` on `<prop>_source.blend` | every source part marked `kyt_unwrapped` |
+| Make game mesh | **Make game mesh** | `prop_handback_blender.py -- make --save` | `<prop>_source.blend` exists; `export` holds one `kyt_game_mesh` object |
+| Rebuild game mesh | **Rebuild game mesh** | `prop_handback_blender.py -- rebuild --save`, only when her Blender doesn't hold the file | the game mesh records `kyt_parts` (it took the parts' own unwrap) |
+| Canvas | none | `paint_canvas.py` | `assets/source/textures/<prop>/<prop>_colour.png` exists |
+| Open or make the PSD | **Open texture in Photoshop** | `prop_handback.py <prop> --open` | `<prop>_colour.psd` exists |
+| A perforated PSD's hole layers | made with the PSD by **Open texture** | `prop_handback.py <prop> --hole-layers` after re-cutting holes | the PSD has "UV guide: holes (Claude)" |
+| Texture to the game on each save | the save hook (Photoshop box: **On**) | `prop_handback.py <prop>` covers it | an entry after her save in `~/Library/Logs/Keep Your Ticket/live_send.log`; PNG and GLB newer than the PSD |
+| Texture on the model in Blender | **Reload textures on save** | none | the panel's "reloaded … from disk" line |
+| Tests and renders (the hand-back) | **Hand back** | `prop_handback.py <prop>` | a `documentation/screenshots/handbacks/<prop>-<time>/` newer than her last save |
+| UV guide show/hide, patch layer | the panel's Photoshop box | none | none needed |
+| Report, tracker row, journal, commit | none | the agent; commit only on her word | none needed |
+
+- **A pressed button is done.** Read its evidence and carry on from the next
+  step. If its lines ended in FAIL, fix the cause and run the command once.
+- **Order the buttons don't enforce yet:** unwrap before Make game mesh. If
+  she pressed Make game mesh first, don't make it again: unwrap
+  `<prop>_source.blend`, then Rebuild game mesh.
+- **Her open app holds the file:** when her Blender or Photoshop has the file
+  a command would write, work inside her open app and leave the save to her,
+  or ask her to save and close it. Never write a file behind her open app;
+  she then has to revert, and her next save undoes the work.
+- **A new button or command** gets its row here, a line on the card and a row
+  in the `prop-handoff` skill's table.
+
 ## The stages
 
 ### 1. Maquette reference (agent) — working
