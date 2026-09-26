@@ -1,9 +1,9 @@
 schema_version = "1.0.0"
 
 id = "kyt_tools"
-version = "0.1.0"
+version = "0.2.0"
 name = "Keep Your Ticket"
-tagline = "Check a prop and send it to the game"
+tagline = "Check a prop, send it to the game and hand it back"
 maintainer = "Keep Your Ticket"
 type = "add-on"
 
@@ -12,4 +12,4 @@ blender_version_min = "4.2.0"
 license = ["SPDX:GPL-3.0-or-later"]
 
 [permissions]
-files = "Writes the prop's GLB into the project's assets/props folder"
+files = "Writes the prop's GLB, and its Godot scene when asked, into the project, and runs the project's hand-back tool"

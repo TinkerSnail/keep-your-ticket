@@ -1,11 +1,14 @@
 """Blender's half of a prop hand-back (`tools/prop_handback.py` runs it).
 
+    Blender --background <prop>.blend --python tools/blender/prop_handback_blender.py -- check
     Blender --background <prop>.blend --python tools/blender/prop_handback_blender.py -- send
     Blender --background <prop>.blend --python tools/blender/prop_handback_blender.py -- render <folder> [--colour <png>]
     Blender --background <prop>.blend --python tools/blender/prop_handback_blender.py -- make [--save]
     Blender --background <prop>.blend --python tools/blender/prop_handback_blender.py -- rebuild [--save]
 
-`send` runs the panel's Send to game (Check first) on the file as saved.
+`check` prints the panel's Check findings, one per line, UVs included once
+there is a game mesh. `send` runs the panel's Send to game (Check first) on the
+file as saved.
 `render` renders the prop from four views worked out from its own size (three
 quarters from the front left, straight on, from behind and low, and close over
 the top) into <folder>, with the images the file points at, as they are on
@@ -25,7 +28,7 @@ import bpy
 from mathutils import Vector
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "extensions"))
-from kyt_tools import game_mesh, send  # noqa: E402
+from kyt_tools import checks, game_mesh, send  # noqa: E402
 
 
 def export_bounds():
@@ -93,7 +96,13 @@ def render(folder, colour=None):
 
 def main():
     argv = sys.argv[sys.argv.index("--") + 1:]
-    if argv[0] == "send":
+    if argv[0] == "check":
+        findings = checks.run(bpy.context)
+        for level, text in findings:
+            print(f"HANDBACK check {level.lower()}: {text}")
+        errors = any(level == "ERROR" for level, _ in findings)
+        print("HANDBACK check failed" if errors else "HANDBACK check ok")
+    elif argv[0] == "send":
         ok, lines = send.run(bpy.context)
         for line in lines:
             print("HANDBACK send", line)

@@ -1,7 +1,8 @@
 """The Check button: what a prop must satisfy before it goes to the game.
 
 Every finding is a sentence Christina can act on without reading code. An
-"error" stops Send to game; a "warning" does not. The ceilings come from
+"error" stops Send to game; a "warning" does not; a "note" is a measurement
+(the UVs' texel density, from `uv_check.py`). The ceilings come from
 `tools/budget_test.gd`, which holds any scene placed three or more times to
 `PLACEMENT_TRIANGLES` and `PLACEMENT_SURFACES`; raising them is her decision,
 so they are copied here rather than loosened here.
@@ -17,6 +18,9 @@ import bpy
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 
+from . import uv_check
+
+LEVELS = ("ERROR", "WARNING", "NOTE")
 PLACEMENT_TRIANGLES = 50_000
 PLACEMENT_SURFACES = 60
 GROUND_TOLERANCE_M = 0.005
@@ -180,5 +184,10 @@ def run(context):
             if mean_y < markers[0].matrix_world.translation.y:
                 error("The backrest is on the wrong side: the prop should face -Y here (it faces +Z in the game).")
 
-    found.sort(key=lambda f: f[0] != "ERROR")
+    # Once there is a game mesh, its unwrap: overlaps and texel density.
+    game = next((o for o in objects if o.get("kyt_game_mesh")), None)
+    if game is not None:
+        found.extend(uv_check.run(game))
+
+    found.sort(key=lambda f: LEVELS.index(f[0]))
     return found

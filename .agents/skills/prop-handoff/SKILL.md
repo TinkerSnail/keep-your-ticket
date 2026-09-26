@@ -40,9 +40,10 @@ handed back?"; the pipeline exists so that question never comes up).
 |---|---|
 | "new prop …", "start the …" | Stage 1 set-up (below), then the hand-off package. |
 | "handed back", or that she saved, after modelling (row: model) | Model hand-back (below). |
-| "open it in Photoshop", "let's paint" | `python3 tools/prop_handback.py <prop> --open` |
+| "open it in Photoshop", "let's paint" | `python3 tools/prop_handback.py <prop> --open` (the Blender panel's **Open texture in Photoshop** runs the same). |
 | "preview" | `python3 tools/prop_handback.py <prop> --preview`; show her the renders. Her document and the game are untouched. |
 | "handed back", "process it", or that she saved the PSD (row: paint) | `python3 tools/prop_handback.py <prop>`. With the save hook on (`tools/photoshop/live_update.sh status`) her save already sent the prop; the hand-back adds the tests and renders. If it refuses because the PSD has unsaved changes, ask her to save; never use `--allow-unsaved` unasked. |
+| "I pressed Hand back", "handed back from the panel", or a hand-back folder newer than her last save | She ran it herself with the Blender panel's **Hand back**: **don't run it again.** Read the newest `documentation/screenshots/handbacks/<prop>-*/README.md` and report from it. If it stopped at a FAIL, fix that and run `prop_handback.py <prop>` once. |
 | "rebuild", or `<prop>_source.blend` is newer than the working file | Rebuild game mesh (below), then the painted hand-back if there is a painting. |
 | "commit" / "push" | Only then. Check `git status` for other sessions' work first; commit only this prop's files. |
 
@@ -61,13 +62,21 @@ the tracker row: stage **model**, with **Christina**.
    tools/blender/prop_handback_blender.py -- send`.
 2. Tests: `python3 tools/prop_handback.py <prop> --no-export` runs send,
    import, the tests and renders, without needing a PSD.
+   The Godot scene: her first **Send to game** offers **Write Godot scene**
+   when `scenes/world/park_furniture/<prop>.tscn` doesn't wrap the GLB. If it
+   still doesn't, write it the same way (the `backless_timber_bench.tscn`
+   pattern, markers from the blend), and ask before replacing a scene that
+   exists: it is editor-owned.
 3. Then the texture set-up, each step shown to her before the next:
    - **Make game mesh**, if there is no `<prop>_source.blend` yet: her button,
      or headless when her Blender doesn't hold the file: `Blender --background
      <prop>.blend --python tools/blender/prop_handback_blender.py -- make --save`.
    - **Unwrap** the source: `Blender --background <prop>_source.blend --python
      tools/blender/unwrap_parts.py -- --save`. Report any parts it couldn't
-     classify: they need seams by hand.
+     classify: they need seams by hand. After the Rebuild, Check reports the
+     UVs (overlaps other than mirror twins, folds, texel density, px/m):
+     `Blender --background <prop>.blend --python
+     tools/blender/prop_handback_blender.py -- check`; quote its UV line.
    - **Rebuild game mesh** (below), so the working file takes the unwrap.
    - **Canvas:** `tools/blender/paint_canvas.py` with the options for this prop
      (the bench's are its model; `--grain` assumes timber runs along x).

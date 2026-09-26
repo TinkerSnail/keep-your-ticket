@@ -25,13 +25,13 @@ Each stage is marked:
 | # | Stage | Who | How | Status |
 |---|---|---|---|---|
 | 1 | Maquette reference | Agent | `maquette_export.gd`, `new_prop.py`, `add_reference.py` | Working |
-| 2 | Block-out and model | Christina | Blender, **Check**, **Send to game** | Working |
+| 2 | Block-out and model | Christina | Blender, **Show reference**, **Check**, **Send to game** | Working |
 | 3 | Unwrap | Agent | `unwrap_parts.py` on `<prop>_source.blend` | Working |
 | 4 | Game mesh | Christina or agent | **Make game mesh**, **Rebuild game mesh** | Working |
 | 5 | Canvas | Agent | `paint_canvas.py` | Working; re-baking is rough |
-| 6 | Paint | Christina | Photoshop PSD (or Blender texture paint); `prop_handback.py --open`, `--preview` | Working |
+| 6 | Paint | Christina | Photoshop PSD (or Blender texture paint); the Blender panel's Photoshop box, `--preview` | Working |
 | 7 | Dressing | Agent, Christina's call | decal cut-out, per-prop dressing script | Rough |
-| 8 | Integrate | Agent | `tools/prop_handback.py` | Working |
+| 8 | Integrate | Christina's button or agent | **Hand back** (Blender panel), `tools/prop_handback.py` | Working |
 | 9 | Review and commit | Christina decides | renders, the game, commit | Rough |
 
 The plan's asset stages map onto these: maquette (1), block-out and model
@@ -50,7 +50,11 @@ The greybox the game uses today becomes the prop's starting point.
 - `tools/blender/add_reference.py -- <glb>` puts the reference in, with any
   contract markers (for a bench, `seat_l`/`seat_r`).
 - The prop's Godot scene (`scenes/world/park_furniture/<prop>.tscn`, editor-owned)
-  wraps the GLB and holds the contract markers the crowd and tests read.
+  wraps the GLB and holds the contract markers the crowd and tests read. The
+  first **Send to game** offers **Write Godot scene** when it doesn't wrap the
+  GLB yet (the `backless_timber_bench.tscn` pattern, `seat_l`/`seat_r` from the
+  blend). An existing scene is replaced only after the panel's confirmation,
+  which says what it holds; its description is kept.
 - A hand-off card goes to Christina (`documentation/howto/`).
 
 **Done when:** the file opens set up, with the reference locked and the card
@@ -62,7 +66,8 @@ Christina shapes the prop from parts in `export`: boxes, cylinders and bent
 tubes, each its own object. **Check** (sidebar, N) flags unapplied scale,
 floating props, the triangle budget and a drifting seat contract. **Send to
 game** writes `assets/props/<prop>.glb`; every copy in the game updates.
-Cards: `model-the-plaza-bench.md`, `change-a-prop.md`.
+**Show reference** hides or shows the greybox copies in `reference`; the floor
+and the seat markers stay. Cards: `model-the-plaza-bench.md`, `change-a-prop.md`.
 
 **Done when:** Check is all clear, the prop is sent and saved, and she says
 "handed back". The agent runs `seat_test` (for seats), `clearance_test`,
@@ -96,7 +101,13 @@ the unwrap and packs it, and records each face's part (`kyt_part`). Card:
 `make-the-game-mesh.md`.
 
 **Done when:** the pieces don't overlap (except mirror twins), the stretch
-matches the unwrap, and the shape is within 0.5 mm of the parts.
+matches the unwrap, and the shape is within 0.5 mm of the parts. Once there is
+a game mesh, **Check** measures the first two (R8, `uv_check.py`): pieces
+overlapping other than mirror twins, pieces folding over themselves, parts off
+the prop's texel density, and the px per metre at the canvas size. A face the
+fuse left buried against another, facing the other way, maps to the same
+place and is not an overlap. The backless bench: 13 mirror pairs, nothing else
+overlapping, 814 px/m at 2048; the plaza bench: 23 pairs, 576 px/m.
 
 **Rebuild game mesh** (2026-09-25) is for after the source parts change. It
 fuses them again in the working file and swaps the result into the existing
@@ -140,8 +151,9 @@ the options live in a card rather than on the prop (R2).
 
 ### 6. Paint (Christina) — working
 
-`python3 tools/prop_handback.py <prop> --open` opens `<prop>_colour.psd` in
-Photoshop, making it first if there isn't one, with her `paint` layer under a
+**Open texture in Photoshop** (Blender panel), or `python3
+tools/prop_handback.py <prop> --open`, opens `<prop>_colour.psd` in Photoshop, making it first if
+there isn't one, with her `paint` layer under a
 locked `UV guide` layer. An existing PSD is never replaced. She paints on it or on new layers. Blender texture
 paint on the model works too. Mirrored parts share paint: a chip on one arm
 appears on the other. Card: `howto/paint-the-plaza-bench.md`.
@@ -156,6 +168,19 @@ game from the saved `.blend`, logged to
 textures on save** reloads the texture a second later without marking the
 file modified, and Godot re-imports the prop the next time its window is
 focused. The tests and renders still wait for stage 8.
+
+**The Photoshop box** in the Blender panel (2026-09-25, once the prop has a
+canvas): **Open texture in Photoshop**; **UV guide Show/Hide** and **Add
+patch layer** (a named empty layer, `<name> patch`, under the guide, for
+dressing, stage 7 step 3), which act on the open canvas through
+`tools/photoshop/canvas_tools.jsx` and never start Photoshop or save the PSD;
+and **Save hook: On/Off** with its switch. The state is read from
+Photoshop's own settings file (`tw0001.dat`, rewritten as soon as a script
+event changes), so showing it never starts Photoshop; switching it runs
+`live_update.sh`. A UXP panel inside Photoshop was built first and dropped the
+same day at her choice: UXP can't start a process (Adobe's shell API opens
+only a file or a URL, with no arguments), and reaching ExtendScript from it
+takes batchPlay's undocumented "AdobeScriptAutomation Scripts" event.
 
 Her words:
 - **"Preview":** `prop_handback.py <prop> --preview` renders her work in
@@ -173,7 +198,8 @@ dressing layer.
 2. **Cut it out:** as a decal in `assets/source/textures/dressing/`
    (`README.md` lists size and origin). Its transparency is how far each pixel
    differs from the clean wood along the grain on both sides.
-3. **Patch it:** on its own layer in her PSD ("gum patch (Claude)"), from wood
+3. **Patch it:** on its own layer in her PSD ("gum patch (Claude)"; the
+   Blender panel's **Add patch layer** makes one under the guide), from wood
    along the grain on a side free of the spot. She approves before anything is
    saved.
 4. **Place it in the game:** by a dressing script on the prop scene. The
@@ -186,7 +212,9 @@ benches only (R9).
 
 ### 8. Integrate (agent) — working
 
-After "process it" or "handed back":
+After "process it" or "handed back", or from the Blender panel's **Hand
+back** (refused while the `.blend` has unsaved changes), which runs the same
+command in the background and shows its lines:
 
 ```
 python3 tools/prop_handback.py <prop>
@@ -249,7 +277,8 @@ suit long straight things later.
   three-material mesh put back.
 - **R4. Photoshop scripts.** Done for open, export and preview
   (`tools/photoshop/open_canvas.jsx`, `export_canvas.jsx`, run by
-  `prop_handback.py`). Still scratch: adding a patch layer for dressing.
+  `prop_handback.py`), and a patch layer for dressing (`canvas_tools.jsx`,
+  the Blender panel's **Add patch layer**, 2026-09-25).
   Photoshop's Place lands off-target, so every placed layer is moved to its
   known bounds.
 - **R5. One hand-back command.** Done 2026-09-25: `tools/prop_handback.py`
@@ -259,12 +288,17 @@ suit long straight things later.
   with tool 4's post-import script.
 - **R7. Review frames.** Render from her `review_*` cameras (tool 10) instead
   of ad-hoc Blender views.
-- **R8. UV checks as a tool.** Stretch, overlaps other than mirror twins, and
-  twin pairing, pass or fail. They were scratch scripts.
+- **R8. UV checks as a tool.** Done 2026-09-25: **Check** (`uv_check.py`)
+  reports overlaps other than mirror twins, folds, parts off the texel density
+  and the px per metre. Twin pairing is not checked on its own: a right-hand
+  part the unwrap didn't pair keeps its own space and passes.
 - **R9. A dressing layer.** A general decal library and per-prop dressing
   spots instead of a gum-only bench script. Also a cut-out tool for step 7.
 - **R10. Blender extension reload.** Her running Blender keeps the old
-  extension code until restarted. Say so whenever the extension changes.
+  extension code until it reloads. Since 2026-09-25 switching the add-on off
+  and on (Preferences › Add-ons) is enough: `__init__.py` reloads its own
+  modules, where Blender reloads only `__init__.py`. Say which whenever the
+  extension changes.
 
 **Missing (in the plan, not built):**
 - **M1. Normal map** baked from `<prop>_source.blend`.
@@ -308,3 +342,16 @@ Each cost time once. The fix is in the tool unless noted.
   canvas material's is default grey (the three part materials had theirs
   matching). Set Solid's colour to Texture, or use Material Preview
   (backless bench, 2026-09-25).
+- **Blender from the Dock has only the system's python3,** which has no
+  Pillow here. The panel's buttons take the first python3 that imports it.
+- **A save made by a script fires no script event,** UXP's `save()` included,
+  so the save hook only follows her own Save.
+- **Asking Photoshop anything over AppleScript starts it,** `live_update.sh
+  status` included. The panel reads the hook's state from Photoshop's
+  settings file instead.
+- **Photoshop's helper LogTransport2 lives inside the app and outlives it,**
+  so "is Photoshop running" matches the app's own program, not the bundle.
+- **UXP's layer `visible` setter hid the active layer, not the locked guide
+  asked for** (Photoshop 27.4). Show and hide by layer id.
+- **ExtendScript evaluates an unbracketed nested `?:` wrongly,** calling both
+  branches. Use if/else.

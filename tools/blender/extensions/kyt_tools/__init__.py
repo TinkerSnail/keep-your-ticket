@@ -7,18 +7,32 @@ Add-ons list. Because Blender loads it straight from the project, a tools update
 pulled through git reaches Blender without reinstalling.
 
 The panel lives in the 3D viewport's sidebar (N) under the "Keep Your Ticket"
-tab: Check, Make game mesh, Rebuild game mesh, Send to game, the "Reload
-textures on save" switch (see live.py), Open in Godot, and the findings of the
-last run.
+tab: the Show reference switch (reference.py); Check (checks.py, with the UV
+findings of uv_check.py once there is a game mesh), Make game mesh, Rebuild
+game mesh, Send to game (which offers the prop's Godot scene the first time,
+godot_scene.py); once the prop has a canvas, a Photoshop box with Open texture
+in Photoshop (handback.py), the UV guide, Add patch layer and the save hook's
+switch (photoshop.py); Hand back (handback.py); the "Reload textures on save"
+switch (live.py); Open in Godot; and the findings of the last run.
 """
 
+import importlib
 import os
 import subprocess
 import sys
 
 import bpy
 
-from . import checks, game_mesh, live, send
+# Switching the add-on off and on makes Blender reload this file only, and
+# only if it changed; the modules it imports would stay as first loaded. So a
+# reload of this file reloads them too, dependencies first (R10 in
+# prop-pipeline.md). On the first load none is in sys.modules yet.
+for _name in ("uv_check", "checks", "game_mesh", "send", "reference", "live", "godot_scene", "handback",
+              "photoshop"):
+    if f"{__name__}.{_name}" in sys.modules:
+        importlib.reload(sys.modules[f"{__name__}.{_name}"])
+
+from . import checks, game_mesh, godot_scene, handback, live, photoshop, reference, send  # noqa: E402
 
 STAGES = [
     ("blockout", "Block-out", "Rough shape and proportions"),
@@ -38,10 +52,10 @@ class KYT_OT_check(bpy.types.Operator):
 
     def execute(self, context):
         findings = checks.run(context)
-        if not findings:
+        lines = [f"{level.title()}: {text}" for level, text in findings if level != "NOTE"]
+        if not lines:
             lines = ["All clear: ready to send to the game."]
-        else:
-            lines = [f"{level.title()}: {text}" for level, text in findings]
+        lines += [text for level, text in findings if level == "NOTE"]
         _store(context, lines)
         errors = sum(1 for level, _ in findings if level == "ERROR")
         self.report({"ERROR"} if errors else {"INFO"},
@@ -57,6 +71,9 @@ class KYT_OT_send(bpy.types.Operator):
     def execute(self, context):
         ok, lines = send.run(context)
         _store(context, lines)
+        prop, _ = handback.prop_of(bpy.data.filepath)
+        if ok and prop:
+            godot_scene.after_send(checks.project_root(bpy.data.filepath), prop)
         self.report({"INFO"} if ok else {"ERROR"}, lines[0])
         return {"FINISHED"} if ok else {"CANCELLED"}
 
@@ -116,20 +133,50 @@ class KYT_PT_panel(bpy.types.Panel):
         name = os.path.splitext(os.path.basename(bpy.data.filepath))[0] if bpy.data.filepath else "(unsaved)"
         layout.label(text=f"Prop: {name}")
         layout.prop(context.scene, "kyt_stage", text="Stage")
+        row = layout.row()
+        if reference.has_greybox():
+            shown = context.scene.kyt_show_reference
+            row.prop(context.scene, "kyt_show_reference", toggle=True,
+                     icon="HIDE_OFF" if shown else "HIDE_ON")
+        else:
+            row.label(text="Reference: floor and seats only", icon="HIDE_OFF")
         col = layout.column(align=True)
         col.scale_y = 1.3
         col.operator("kyt.check", icon="CHECKMARK")
         col.operator("kyt.make_game_mesh", icon="MOD_BOOLEAN")
         col.operator("kyt.rebuild_game_mesh", icon="FILE_REFRESH")
         col.operator("kyt.send_to_game", icon="EXPORT")
+        godot_scene.draw(layout, name)
+        job = handback.current()
+        idle = job is None or not job.running
+        prop, _ = handback.prop_of(bpy.data.filepath)
+        if prop:
+            def open_texture(box):
+                row = box.row()
+                row.scale_y = 1.3
+                row.enabled = idle
+                row.operator("kyt.open_texture", icon="BRUSH_DATA")
+            photoshop.draw(layout, prop, checks.project_root(bpy.data.filepath), open_texture)
+        row = layout.row()
+        row.scale_y = 1.3
+        row.enabled = idle
+        row.operator("kyt.hand_back", icon="LOOP_FORWARDS")
+        width = _chars(context)
+        handback.draw(layout, lambda text: _wrap(text, width - 3))
         layout.prop(context.scene, "kyt_reload_textures")
         layout.operator("kyt.open_godot", icon="WINDOW")
         report = context.window_manager.get("kyt_last_report")
         if report:
             box = layout.box()
             for line in report.split("\n"):
-                for chunk in _wrap(line, 42):
+                for chunk in _wrap(line, width):
                     box.label(text=chunk)
+
+
+def _chars(context):
+    """About how many characters fit across the sidebar, for wrapping."""
+    # The system scale already includes a Retina screen's factor of two.
+    return max(24, int(context.region.width / (context.preferences.system.ui_scale * 7)) - 2)
 
 
 def _wrap(text, width):
@@ -153,11 +200,19 @@ def register():
     bpy.types.Scene.kyt_stage = bpy.props.EnumProperty(name="Stage", items=STAGES, default="blockout")
     for cls in CLASSES:
         bpy.utils.register_class(cls)
+    reference.register()
+    godot_scene.register()
+    handback.register()
+    photoshop.register()
     live.register()
 
 
 def unregister():
     live.unregister()
+    photoshop.unregister()
+    handback.unregister()
+    godot_scene.unregister()
+    reference.unregister()
     for cls in reversed(CLASSES):
         bpy.utils.unregister_class(cls)
     del bpy.types.Scene.kyt_stage
