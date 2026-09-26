@@ -37,12 +37,15 @@ paint → integrated. **Holder** is who has the next move.
 
 | | |
 |---|---|
-| Stage | **model**: handed to Christina 2026-09-25 (card `howto/model-the-benches.md`); the hand-built bench is in `export`, reference locked, seat markers in place, Check clear; not sent |
-| Holder | Christina: her model pass |
-| Model | `assets/source/props/perforated_metal_bench.blend` |
-| Game | Not placed anywhere. `scenes/world/park_furniture/perforated_metal_bench.tscn` is still hand-built meshes with the `perforated_metal.gdshader`, no seat markers |
-| Starting frames | `documentation/screenshots/handbacks/perforated_metal_bench-start-2026-09-25_0142/` |
-| Next | On "handed back": model hand-back (skill): tests, then switch its Godot scene to wrap `assets/props/perforated_metal_bench.glb` with `seat_l`/`seat_r` markers from the blend, then texture set-up. **Decide before its canvas:** how the diamond perforations survive (painted with alpha cut-out, real holes, or the shader); her panels are flat for now. |
+| Stage | **paint**: canvas with the 2× perforated mesh handed back 2026-09-25 18:30 (all passed), sent to the game; PSD ready with its hole layers. Model built by Claude at her request from her 2026-09-11 photo, chunkier, with the family's bolts; game mesh 1,964 triangles |
+| Holder | Christina: painting in the PSD (each save sends it through the Photoshop hook) |
+| Model | `assets/source/props/perforated_metal_bench.blend` (working, one fused mesh); parts in `perforated_metal_bench_source.blend`; `reference` holds only the floor and the seat markers |
+| Paint | `assets/source/textures/perforated_metal_bench/perforated_metal_bench_colour.psd` (made again after the holes were re-cut; the holes show as transparency in `paint`, locked `UV guide`); colour 2048 (about 925 px/m) with the holes in its alpha, `_holes.png` (90 × 38 mm diamonds, 11 mm wires, 46% open: her call, twice, for a chunkier, larger mesh), ORM 1024. The PSD also has the two locked hole layers (canvas under `paint`, `UV guide: holes (Claude)` on top), added with her yes and saved by her |
+| Game | `assets/props/perforated_metal_bench.glb` (519 KB, alpha-mask holes; textures VRAM-compressed with mipmaps), wrapped by `scenes/world/park_furniture/perforated_metal_bench.tscn` with `seat_l`/`seat_r`; not placed anywhere |
+| Canvas options | `--perforate seat_sheet,back_sheet --chips seat_frame,back_frame,pedestal:0.4,back_upright:0.4,seat_support:0.4,foot_l,foot_r --dings foot_l,foot_r --ground foot_l,foot_r,pedestal` (2048) |
+| Reference | Her photo (2026-09-11), pasted into a Codex session; not in the project yet |
+| Last hand-back | `documentation/screenshots/handbacks/perforated_metal_bench-2026-09-25_1830/` (canvas with the 2× mesh; all passed) |
+| Next | Another saved pass ("saved"): `python3 tools/prop_handback.py perforated_metal_bench`, no question; commit on her word. To change the hole pattern: `HOLE_*`, `paint_canvas.py --holes-only --perforate seat_sheet,back_sheet`, then `prop_handback.py perforated_metal_bench --hole-layers`. |
 
 ### backless_timber_bench — PRP-PARK-019
 
