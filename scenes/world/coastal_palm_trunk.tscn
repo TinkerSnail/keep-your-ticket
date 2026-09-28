@@ -1,13 +1,11 @@
 [gd_scene load_steps=4 format=3]
 
-; Editor-owned normalized palm trunk. Move the Path3D points to reshape the
-; shared bend; the tool script derives only the tapered, low-sided surface.
+; Editor-owned palm trunk (PRP-COAST-007). The trunk's shape is in
+; assets/source/props/palm_trunk.blend (Send to game writes the GLB below); move
+; the Path3D points to reshape the shared bend, which the script bends it along.
 
 [ext_resource type="Script" path="res://scenes/world/coastal_palm_trunk.gd" id="1_script"]
-
-[sub_resource type="StandardMaterial3D" id="Mat_trunk"]
-albedo_color = Color(0.43, 0.31, 0.19, 1)
-roughness = 0.98
+[ext_resource type="PackedScene" uid="uid://yjdw7111y31m" path="res://assets/props/palm_trunk.glb" id="2_model"]
 
 [sub_resource type="Curve3D" id="Curve3D_trunk"]
 _data = {
@@ -19,7 +17,7 @@ bake_interval = 0.025
 
 [node name="coastal_palm_trunk" type="Node3D"]
 script = ExtResource("1_script")
-trunk_material = SubResource("Mat_trunk")
+model = ExtResource("2_model")
 editor_description = "Directly editable normalized trunk form. The root and tip remain at y=0 and y=1; reshape only the interior Path3D points."
 
 [node name="trunk_course" type="Path3D" parent="."]
@@ -28,4 +26,4 @@ editor_description = "Canonical subtle trunk bend. Instance rotation and strengt
 
 [node name="derived_trunk" type="MeshInstance3D" parent="."]
 cast_shadow = 1
-editor_description = "Derived preview/runtime surface. Edit trunk_course, not this mesh."
+editor_description = "The Blender trunk (model) bent along trunk_course. Edit the course here, or the shape in assets/source/props/palm_trunk.blend; not this mesh."

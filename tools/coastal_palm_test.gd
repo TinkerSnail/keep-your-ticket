@@ -223,18 +223,22 @@ func _check_place(place: Node3D, expected_count: int) -> bool:
 				_fail("%s exceeds the restrained arrival-row lean" % prefix)
 				return false
 			var inward := Vector3(-signf(source_base.x), 0.0, 0.0)
-			# Check the emitted shaft: ring six is near mid-height, where the bow
-			# reaches its clearest offset from the straight foot-to-seat chord.
+			# Check the emitted shaft near mid-height, where the bow reaches its
+			# clearest offset from the straight foot-to-seat chord: the centre of
+			# the trunk's vertices within 3% of 6/13 of the way up (the old
+			# tube's ring six; since 2026-09-27 the trunk is Christina's
+			# segmented Blender model, so rings are found by height, not index).
 			var trunk_vertices := trunk_mesh.mesh.surface_get_arrays(0)[
 				Mesh.ARRAY_VERTEX] as PackedVector3Array
-			var middle_ring := 6
+			var middle := 6.0 / 13.0
 			var middle_center := Vector3.ZERO
-			for side_index in 8:
-				middle_center += trunk_mesh.to_global(
-					trunk_vertices[middle_ring * 8 + side_index])
-			middle_center /= 8.0
-			var chord_point := palm.global_position.lerp(
-				palm.to_global(seat), float(middle_ring) / 13.0)
+			var middle_count := 0
+			for vertex in trunk_vertices:
+				if absf(vertex.y - middle) < 0.03:
+					middle_center += trunk_mesh.to_global(vertex)
+					middle_count += 1
+			middle_center /= float(maxi(middle_count, 1))
+			var chord_point := palm.global_position.lerp(palm.to_global(seat), middle)
 			if (middle_center - chord_point).dot(inward) < 0.04:
 				_fail("%s emitted shaft bends away from the opposite row" % prefix)
 				return false

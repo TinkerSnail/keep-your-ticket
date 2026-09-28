@@ -7,6 +7,7 @@
         [--holes-only] [--guide-only] [--save]
     ... --python tools/blender/paint_canvas.py -- --leaflets [--overwrite | --cutout-only | --shading-only
         | --normal-only | --base-fade <kind>:<share>] [--save]
+    ... --python tools/blender/paint_canvas.py -- --bands [--size 1024] [--orm-size 256] [--overwrite] [--save]
 
 Runs on the game-ready working file (after Make game mesh), whose game mesh is
 unwrapped for its own texture. Writes three images to
@@ -79,6 +80,11 @@ keeps), and every export writes it back and puts it into the alpha. The spear,
 the stub and the heart stay whole. `--leaflets --cutout-only` cuts the leaflets
 again after a change to `LEAFLETS`, into `<prop>_cutout.png` only.
 
+`--bands` is the canvas for a banded trunk (the palm trunk), whose segments
+share a few bands laid round the canvas's full width, as its shaping left them
+(`kyt_band_islands` on the mesh); there is no game mesh. Each band gets the
+BAND_* look: dark base, scalloped tan, pale collar.
+
 All of these are starting points to paint over, not a finish.
 
 Then the game mesh's materials (timber, cast iron, fixings) are replaced by one
@@ -97,6 +103,9 @@ import zlib
 import bmesh
 import bpy
 import numpy as np
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from bump_to_normal import DEPTH_PX, WRAP_U, normal_from_height  # noqa: E402
 
 MARGIN_PX = 16
 BAKE_SAMPLES = 32  # smooths grain finer than a pixel, and the crevice sampling
@@ -258,6 +267,37 @@ RACHIS_STRAW = (0.34, 0.26, 0.05)  # linear; the rachis and spines are the leaf'
 RACHIS_TINT = 0.45
 TIP_INSET_PX = 2  # a leaflet's tip stops this far inside its blade's outline
 ALPHA_SPREAD_PX = 4  # opaque edges carried this far past an island, so filtering never frays them
+
+# `--bands`, the segmented palm trunk (PRP-COAST-007, 2026-09-27), after
+# Christina's two references (`documentation/reference/palm_trunk/`): each
+# segment dark reddish brown at its base, tucked under the collar below, warm
+# tan above a scalloped line whose points hang down into the dark, pale straw
+# at its own collar. The collar's teeth, over the next segment's dark base,
+# make the other edge of the zigzag. sRGB, as painted. `s` is the share of the
+# way up a segment's band (`kyt_band_zones` on the mesh say where its rings
+# fall); `u` the share of the way round.
+BAND_DARK = (0.60, 0.35, 0.20)
+BAND_TAN = (0.80, 0.58, 0.32)
+BAND_RIM = (0.90, 0.75, 0.49)  # the collar's outer rim, catching the light
+BAND_COLLAR_TOP = (0.78, 0.62, 0.40)  # where the collar turns in to the next segment
+BAND_EDGE = 0.6  # the dark-to-tan line, at the teeth's roots
+BAND_TEETH = 7  # scallops round the trunk
+BAND_TOOTH = 0.14  # how far a scallop's point hangs below the line
+BAND_RIM_FROM = 0.72  # the tan lightens toward the rim from here
+BAND_SHADE = 0.18  # how much darker the very base is, tucked under the collar
+BAND_FIBRES, BAND_FIBRE_DARK = 90, 0.05  # faint streaks up the segment: how many round, how much darker
+BAND_MOTTLE = 0.05
+BAND_ROUGH = 0.92
+# The bump (`<prop>_bump.png`, greyscale height, hers to paint; the normal map
+# the game reads is made from it, `tools/bump_to_normal.py`): the tan sheath
+# stands a step proud of the dark husk, so the scallop edge catches the light;
+# rounded fibres run up the segment, coarser in the dark; the collar's rim is a
+# raised lip. Heights 0..1, 0.5 level.
+BUMP_DARK, BUMP_TAN = 0.36, 0.6
+BUMP_FIBRE_DARK, BUMP_FIBRE_TAN = 0.16, 0.07  # a fibre's rounded rise
+BUMP_FIBRES = 60  # fibres round the trunk in the bump; the colour's streaks are finer
+BUMP_RIM = 0.16  # the collar's lip, rising over the last stretch before the rim
+BUMP_MOTTLE = 0.05
 
 
 def arg(argv, name, default):
@@ -1369,6 +1409,114 @@ def leaflet_canvas(argv, name, root, folder, size, orm_size):
         bpy.ops.wm.save_mainfile()
 
 
+def band_canvas(argv, name, root, folder, size, orm_size):
+    """`--bands`: the canvas for a banded trunk, whose segments each wear one of
+    a few bands stacked up the canvas, laid round its full width so a band
+    wraps the trunk without a seam (`kyt_band_islands`, `kyt_band_gap` and
+    `kyt_band_zones` on the mesh, set when it was shaped). Each band is painted
+    after BAND_*: dark base, scalloped tan, pale collar. The trunk is given one
+    material reading the colour and the ORM."""
+    obj = next(o for o in bpy.data.collections["export"].objects
+               if o.type == "MESH" and o.get("kyt_band_islands"))
+    colour_path = os.path.join(folder, f"{name}_colour.png")
+    orm_path = os.path.join(folder, f"{name}_orm.png")
+    guide_path = os.path.join(folder, f"{name}_uv_guide.png")
+    for path in (colour_path, orm_path):
+        if os.path.exists(path) and "--overwrite" not in argv:
+            raise SystemExit(f"paint_canvas: {path} exists (it may be painted); leaving everything alone")
+    os.makedirs(folder, exist_ok=True)
+    islands = int(obj["kyt_band_islands"])
+    gap = float(obj["kyt_band_gap"])
+    rim_s = float(obj["kyt_band_zones"][2])
+    rng = np.random.default_rng(27)
+
+    u = (np.arange(size, dtype=np.float32) + 0.5) / size
+    v = (np.arange(size, dtype=np.float32) + 0.5) / size
+    island = np.clip((v * islands).astype(int), 0, islands - 1)
+    s = np.clip((v - island / islands - gap / 2) / (1.0 / islands - gap), 0.0, 1.0)
+    uu, ss = np.meshgrid(u, s)
+    band = island[:, None].repeat(size, axis=1)
+    phase = rng.random(islands)[band]
+    px = 1.0 / (size / islands)  # one pixel, as a share of a band
+
+    def periodic(freqs, amp):
+        """Smooth noise round the trunk, seamless where u wraps."""
+        out = np.zeros_like(uu)
+        for f in freqs:
+            out += np.sin(np.pi * 2 * (f * uu + rng.random())) * amp / len(freqs)
+        return out
+
+    # Scallops: a pointed wave round the trunk, its points hanging below the
+    # line, a little irregular in width and depth.
+    warp = uu + periodic((2, 3), 0.1 / BAND_TEETH)
+    wave = 1.0 - np.abs(2.0 * np.mod(BAND_TEETH * warp + phase, 1.0) - 1.0)
+    edge = BAND_EDGE - BAND_TOOTH * wave * (1.0 + periodic((1, 4), 0.4))
+    tan = np.clip((ss - edge) / (1.5 * px) + 0.5, 0.0, 1.0)[..., None]
+    dark = np.array(BAND_DARK, dtype=np.float32) * (
+        1.0 - BAND_SHADE * np.clip(1.0 - ss / 0.18, 0.0, 1.0))[..., None]
+    light = np.array(BAND_TAN, dtype=np.float32) + (
+        np.array(BAND_RIM, dtype=np.float32) - np.array(BAND_TAN, dtype=np.float32)) * (
+        np.clip((ss - BAND_RIM_FROM) / (rim_s - BAND_RIM_FROM), 0.0, 1.0) ** 2)[..., None]
+    rgb = dark * (1.0 - tan) + light * tan
+    top = np.clip((ss - rim_s) / (1.5 * px) + 0.5, 0.0, 1.0)[..., None]
+    rgb = rgb * (1.0 - top) + np.array(BAND_COLLAR_TOP, dtype=np.float32) * top
+    fibres = rng.random((BAND_FIBRES,))[np.mod((uu * BAND_FIBRES).astype(int), BAND_FIBRES)]
+    rgb *= (1.0 - BAND_FIBRE_DARK * fibres + periodic((5, 9, 13), BAND_MOTTLE))[..., None]
+    rgb = np.clip(rgb, 0.0, 1.0)
+
+    bump = BUMP_DARK + (BUMP_TAN - BUMP_DARK) * tan[..., 0]
+    ridge = 0.5 - 0.5 * np.cos(np.pi * 2 * np.mod(uu * BUMP_FIBRES, 1.0))
+    lift = rng.random((BUMP_FIBRES,))[np.mod((uu * BUMP_FIBRES).astype(int), BUMP_FIBRES)]
+    bump += ridge * (0.6 + 0.4 * lift) * (BUMP_FIBRE_DARK * (1.0 - tan[..., 0]) + BUMP_FIBRE_TAN * tan[..., 0])
+    bump += BUMP_RIM * np.clip((ss - BAND_RIM_FROM) / (rim_s - BAND_RIM_FROM), 0.0, 1.0) ** 3 * (1.0 - top[..., 0])
+    bump += periodic((3, 7, 11), BUMP_MOTTLE)
+    bump = np.clip(bump, 0.0, 1.0)
+    # bump_to_normal works top row first; Blender's pixels start at the bottom.
+    normal = np.flipud(normal_from_height(np.flipud(bump), DEPTH_PX[name], name in WRAP_U))
+
+    def write(path, pixels, colour_space="sRGB"):
+        h, w = pixels.shape[:2]
+        img = bpy.data.images.new(os.path.basename(path), w, h, alpha=False)
+        img.colorspace_settings.name = colour_space
+        out = np.ones((h, w, 4), dtype=np.float32)
+        out[..., :3] = pixels
+        img.pixels.foreach_set(out.ravel())
+        img.filepath_raw = path
+        img.file_format = "PNG"
+        img.save()
+        return img
+
+    for stale_img in (f"{name}_colour", f"{name}_orm", f"{name}_normal"):
+        if bpy.data.images.get(stale_img):
+            bpy.data.images.remove(bpy.data.images[stale_img])
+    # Painted in sRGB already: Blender's byte image stores what it is given.
+    colour = write(colour_path, rgb)
+    colour.name = f"{name}_colour"
+    orm = np.empty((orm_size, orm_size, 3), dtype=np.float32)
+    orm[...] = (1.0, BAND_ROUGH, 0.0)
+    orm_img = write(orm_path, orm, "Non-Color")
+    orm_img.name = f"{name}_orm"
+    bump_path = os.path.join(folder, f"{name}_bump.png")
+    normal_path = os.path.join(folder, f"{name}_normal.png")
+    write(bump_path, np.repeat(bump[..., None], 3, axis=2), "Non-Color")
+    normal_img = write(normal_path, normal, "Non-Color")
+    normal_img.name = f"{name}_normal"
+    write_uv_guide(obj, guide_path, size)
+    for img, path in ((colour, colour_path), (orm_img, orm_path), (normal_img, normal_path)):
+        img.filepath = bpy.path.relpath(path)
+        img.source = "FILE"
+        img.reload()
+    mat = one_material(name, colour, orm_img, obj.data.uv_layers.active.name, False, normal=normal_img)
+    obj.data.materials.clear()
+    obj.data.materials.append(mat)
+    print(f"paint_canvas: {os.path.relpath(colour_path, root)} ({size} px), {islands} bands, "
+          f"{uv_px_per_metre(obj, size):.0f} px per metre on average; "
+          f"{os.path.relpath(orm_path, root)} ({orm_size} px), {os.path.basename(bump_path)} and "
+          f"{os.path.basename(normal_path)} from it, and its UV guide; '{obj.name}' wears '{name}'")
+    if "--save" in argv:
+        bpy.ops.wm.save_mainfile()
+
+
 def uv_px_per_metre(obj, size):
     """Canvas pixels per metre of the object, from its area in UV and in 3D."""
     me = obj.data
@@ -1381,10 +1529,12 @@ def uv_px_per_metre(obj, size):
     return size * (uv_area / area) ** 0.5
 
 
-def one_material(name, colour, orm, uv_name, clip, double_sided=False):
+def one_material(name, colour, orm, uv_name, clip, double_sided=False, normal=None):
     """The prop's one material, reading both images: colour to base colour; the
     ORM's green and blue to roughness and metalness, the wiring the glTF
-    exporter recognises. `clip` cuts by the colour's alpha."""
+    exporter recognises. `clip` cuts by the colour's alpha. `normal`, a
+    tangent-space normal map, goes through a Normal Map node, which the
+    exporter writes as the glTF normal texture."""
     mat = bpy.data.materials.get(name) or bpy.data.materials.new(name)
     mat.use_nodes = True
     nt = mat.node_tree
@@ -1407,6 +1557,17 @@ def one_material(name, colour, orm, uv_name, clip, double_sided=False):
     nt.links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
     for n, x in ((uv, -900), (col, -600), (orm_node, -600), (split, -300), (bsdf, 0), (out, 300)):
         n.location = (x, -320 if n is orm_node or n is split else 0)
+    if normal is not None:
+        nrm = nt.nodes.new("ShaderNodeTexImage")
+        nrm.image = normal
+        nrm.location = (-600, -640)
+        nmap = nt.nodes.new("ShaderNodeNormalMap")
+        nmap.space = "TANGENT"
+        nmap.uv_map = uv_name
+        nmap.location = (-300, -640)
+        nt.links.new(uv.outputs["UV"], nrm.inputs["Vector"])
+        nt.links.new(nrm.outputs["Color"], nmap.inputs["Color"])
+        nt.links.new(nmap.outputs["Normal"], bsdf.inputs["Normal"])
     if clip:
         # Alpha through Round is the alpha clip the glTF exporter writes as
         # alphaMode MASK, cutoff 0.5; Godot imports it as alpha scissor.
@@ -1447,6 +1608,9 @@ def main():
     holes_path = os.path.join(folder, f"{name}_holes.png")
     if "--leaflets" in argv:
         leaflet_canvas(argv, name, root, folder, size, orm_size)
+        return
+    if "--bands" in argv:
+        band_canvas(argv, name, root, folder, size, orm_size)
         return
     obj = next(o for o in bpy.data.collections["export"].objects if o.get("kyt_game_mesh"))
     if "--guide-only" in argv:

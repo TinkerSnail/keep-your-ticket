@@ -16,19 +16,22 @@ first thing that fails:
    (`tools/blender/apply_holes.py`). Refused if the PSD has
    unsaved changes, so the PNG always matches a saved PSD (`--allow-unsaved`
    overrides; `--no-export` skips the step for a PNG exported by hand).
-2. **Shrink** the colour and ORM PNGs (`tools/optimize_png.py`: pixel-identical
+2. **Normal map**, when the prop has a bump (`<prop>_bump.png`, greyscale,
+   hers to paint): `tools/bump_to_normal.py` makes `<prop>_normal.png` from
+   it, since glTF and Godot read normal maps, not bumps.
+3. **Shrink** the colour, ORM and normal PNGs (`tools/optimize_png.py`: pixel-identical
    or left alone). Blender embeds the PNG's own bytes, so the GLB shrinks too.
-3. **Send to game** from the saved `assets/source/props/<prop>.blend`, headless
+4. **Send to game** from the saved `assets/source/props/<prop>.blend`, headless
    (Check first). If Blender is open, unsaved changes there are not included.
-4. **Import** in Godot, headless.
-5. **Verify** that Godot's extracted copies in `assets/props/` match the PNGs
+5. **Import** in Godot, headless.
+6. **Verify** that Godot's extracted copies in `assets/props/` match the PNGs
    pixel for pixel and are VRAM-compressed with mipmaps; the import setting is
    put right (and imported again) if not.
-6. **Test:** `seat_test.py` (or the prop's own, `PROP_TESTS`: the palm
+7. **Test:** `seat_test.py` (or the prop's own, `PROP_TESTS`: the palm
    crown's are the palm and catalog tests), `clearance_test`, `budget_test`,
    `ground_contact_test` (failing only on its known standing surfaces,
    `KNOWN_GROUND`, counts as passing).
-7. **Render** the prop from four views into
+8. **Render** the prop from four views into
    `documentation/screenshots/handbacks/<prop>-<time>/`, with this report as
    its README.
 
@@ -85,9 +88,10 @@ KNOWN_GROUND = (
 
 
 # A prop's own tests, run in place of seat_test.py, which is for seats. The
-# palm crown is on all 34 coastal palms and the two catalog palms.
+# palm crown and trunk are on all 34 coastal palms and the two catalog palms.
 PROP_TESTS = {
     "palm_crown": ("coastal_palm_test", "tree_catalog_test", "coastal_plant_catalog_test"),
+    "palm_trunk": ("coastal_palm_test", "tree_catalog_test", "coastal_plant_catalog_test"),
 }
 
 
@@ -167,7 +171,7 @@ def godot_import(r):
 def verify(r, prop, sources):
     fixed = False
     for src in sources:
-        kind = src.rsplit("_", 1)[-1]  # colour.png, orm.png
+        kind = src.rsplit("_", 1)[-1]  # colour.png, orm.png, normal.png
         copy = os.path.join(ROOT, "assets", "props", f"{prop}_{prop}_{kind}")
         if not os.path.exists(copy):
             r.say(False, "verify", f"Godot did not extract {os.path.relpath(copy, ROOT)}")
@@ -420,12 +424,18 @@ def main():
         else:
             export(r, psd, colour, args.allow_unsaved)
         holes(r, colour, textures)
-        for png in (colour, orm):
+        normal = os.path.join(textures, f"{prop}_normal.png")
+        if os.path.exists(os.path.join(textures, f"{prop}_bump.png")):
+            out = run([sys.executable, os.path.join(ROOT, "tools", "bump_to_normal.py"), prop])
+            said = next((l[len("bump_to_normal: "):] for l in out.stdout.splitlines()
+                         if l.startswith("bump_to_normal: ")), None)
+            r.say(bool(said), "normal", said or out.stderr[-300:])
+        for png in (colour, orm, normal):
             if os.path.exists(png):
                 r.say(True, "shrink", optimize(png).split(": ", 1)[-1] + f" ({os.path.basename(png)})")
         send(r, blend)
         godot_import(r)
-        verify(r, prop, [p for p in (colour, orm) if os.path.exists(p)])
+        verify(r, prop, [p for p in (colour, orm, normal) if os.path.exists(p)])
         if not args.no_tests:
             tests(r, prop)
         if not args.no_renders:

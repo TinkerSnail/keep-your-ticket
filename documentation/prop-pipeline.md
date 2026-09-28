@@ -114,6 +114,19 @@ custom properties as glTF extras (Godot's `extras` metadata), instead of
 merging them; `kyt_godot_scene` names its own Godot scene, so Send doesn't
 offer the bench pattern. Card: `howto/model-the-palm-crown.md`.
 
+**A prop bent along a Godot course** (the palm trunk, PRP-COAST-007,
+2026-09-27) is modelled straight and upright at a typical size, foot at the
+origin, its highest point the crown seat; its Godot scene keeps the
+editor-owned Path3D course and a script bends the model along it (a vertex's
+height is how far along, across keeps its place in the course's frame, the
+model brought to one metre so instances still scale it to their seat). The
+trunk moved losslessly first: the code-built tube as a Blender mesh, every
+vertex of all 36 trunks within 0.20 mm (`tools/_palm_trunk_migration_probe.gd`),
+then reshaped. `kyt_collision = none`: trunks never collided. Its UVs are laid
+out when it is shaped, not by `unwrap_parts.py`: each segment wears one of a
+few bands stacked up the canvas, round its full width, recorded on the mesh as
+`kyt_band_islands`, `kyt_band_gap` and `kyt_band_zones`.
+
 **Done when:** the file opens set up, with the reference locked and the card
 written.
 
@@ -246,6 +259,16 @@ All go in `assets/source/textures/<prop>/`. The options set the starting look:
   in her PSD as "shading (Claude)" above her paint, unsaved. `--base-fade
   dead:0.55` and `prop_handback.py <prop> --base-layer dead` gave the dead
   fronds a green base fading to brown, a Color-blend layer over her paint.
+- `--bands`: a banded trunk's canvas (the palm trunk, 2026-09-27), after her
+  two references in `documentation/reference/palm_trunk/`: each band dark
+  reddish brown at its base, warm tan above a scalloped line whose points hang
+  into the dark, pale straw at the collar (`BAND_*`), 1024 px, two bands,
+  about 890 px per metre. It also writes a starting **bump**,
+  `<prop>_bump.png` (greyscale, white raised: the tan sheath a step proud of
+  the dark husk, rounded fibres, a lip at the collar; `BUMP_*`), which is hers
+  to paint like the colour, and the normal map made from it,
+  `<prop>_normal.png` (`tools/bump_to_normal.py`), wired into the material
+  through a Normal Map node so the glTF export carries it.
 
 Each effect's strength is a number at the top of the script. The bench's full
 command is in `howto/paint-the-plaza-bench.md`. A canvas someone has painted
@@ -348,6 +371,10 @@ and never commits:
 4. `Godot --headless --path . --import`, then check that Godot's extracted
    copy (`assets/props/<prop>_<prop>_colour.png`) matches the export pixel for
    pixel and is still VRAM-compressed with mipmaps.
+   A prop with a bump (`<prop>_bump.png`) has its normal map made again from
+   it before the send (`tools/bump_to_normal.py`: glTF and Godot read normal
+   maps, not bumps), so a painted bump always reaches the game, and Godot's
+   extracted normal map is verified with the colour and ORM.
 5. Tests: `seat_test.py` (or the prop's own, `PROP_TESTS` in the tool: the
    palm crown runs `coastal_palm_test`, `tree_catalog_test` and
    `coastal_plant_catalog_test`), `clearance_test`, `budget_test`,
@@ -390,7 +417,7 @@ From the plan's texture standards (2026-09-24):
 - **One material per prop:** each placement is one draw.
 - **Mirroring on:** left and right parts share texture.
 - **Map set:** colour (painted) and a packed ORM; the normal map is not
-  baked yet (M1).
+  baked yet (M1), except from a painted bump (the palm trunk, 2026-09-27).
 - **Texel density:** 256 px per metre by default. The bench is a recorded
   exception at about 576 px per metre on a 2048 colour map (hero props, her
   call per prop).
@@ -437,7 +464,10 @@ suit long straight things later.
   extension changes.
 
 **Missing (in the plan, not built):**
-- **M1. Normal map** baked from `<prop>_source.blend`.
+- **M1. Normal map** baked from `<prop>_source.blend`. A painted bump made
+  into a normal map (`tools/bump_to_normal.py`, run by the hand-back) works
+  since 2026-09-27, for the palm trunk; the bake from the source parts does
+  not exist.
 - **M2. Ambient occlusion** into the ORM's red channel (white today).
 - **M3. Material library** (tool 4): `assets/materials/`, and a post-import
   script mapping slot names to library materials.

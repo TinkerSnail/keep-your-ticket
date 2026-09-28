@@ -12,12 +12,15 @@ extends Node
 ##
 ## Writes `user://palm_mirror/<merged|unmerged>_<view>.png`, or `<tag>_<view>.png`
 ## with KYT_TAG=<tag> set, for any before-and-after of the crown's look (the
-## leaf shader's undersides, 2026-09-27).
+## leaf shader's undersides, 2026-09-27) or the trunk's (`trunk`, `trunk_up`).
 
 const VIEWS := [
 	{"name": "up_into_crown", "feet": Vector3(0.0, 0.2, 199.0), "yaw": 90.0, "pitch": 60.0},
 	{"name": "boardwalk_crown", "feet": Vector3(-99.0, ParkPlan.SHORE_TOP + 0.2, -52.0), "yaw": 90.0, "pitch": 27.0},
 	{"name": "allee", "feet": Vector3(0.0, 0.2, 220.0), "yaw": 0.0, "pitch": 10.0},
+	# walk_palm_3_w's trunk (PRP-COAST-007, 2026-09-27): from 6.5 m, and up it from its foot.
+	{"name": "trunk", "feet": Vector3(-6.0, 0.2, 191.5), "yaw": 57.5, "pitch": 18.0},
+	{"name": "trunk_up", "feet": Vector3(-9.3, 0.2, 189.4), "yaw": 57.5, "pitch": 55.0},
 ]
 const EYE := 1.65
 

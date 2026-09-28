@@ -2,10 +2,7 @@
 
 
 [ext_resource type="Script" path="res://scenes/world/coastal_palm_trunk.gd" id="1_script"]
-
-[sub_resource type="StandardMaterial3D" id="Mat_trunk"]
-albedo_color = Color(0.29, 0.265, 0.21, 1)
-roughness = 0.98
+[ext_resource type="PackedScene" uid="uid://yjdw7111y31m" path="res://assets/props/palm_trunk.glb" id="2_model"]
 
 [sub_resource type="Curve3D" id="Curve3D_trunk"]
 _data = {
@@ -17,7 +14,7 @@ bake_interval = 0.025
 
 [node name="coastal_palm_arrival_trunk" type="Node3D"]
 script = ExtResource("1_script")
-trunk_material = SubResource("Mat_trunk")
+model = ExtResource("2_model")
 editor_description = "Directly editable tall avenue-palm shaft. The root and tip remain fixed; the slight positive-X deviation is aimed toward the opposite row by the replacement controller."
 
 [node name="trunk_course" type="Path3D" parent="."]
@@ -26,4 +23,4 @@ editor_description = "Canonical nearly straight arrival shaft. Instance strength
 
 [node name="derived_trunk" type="MeshInstance3D" parent="."]
 cast_shadow = 1
-editor_description = "Derived preview/runtime surface. Edit trunk_course, not this mesh."
+editor_description = "The Blender trunk (model) bent along trunk_course. Edit the course here, or the shape in assets/source/props/palm_trunk.blend; not this mesh."
