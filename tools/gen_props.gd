@@ -31,20 +31,9 @@ const OUT_PATH := GENERATED_DIR + "/plaza_props.tscn"
 const PAVING_PATH := GENERATED_DIR + "/plaza_paving.tscn"
 const SKYLINE_PATH := GENERATED_DIR + "/plaza_skyline.tscn"
 
-## The fountain, which used to be five stacked cylinders typed into
-## `plaza.tscn` by hand and is now 190-odd parts and two shaders.
-##
-## Its own scene for the ordinary reason — that is too many parts to hand-author
-## and keep straight — but moving it *out* of `plaza.tscn` is worth a line,
-## because `plaza.tscn` is the one hand-authored world scene and the temptation
-## is to say the plaza's centrepiece belongs in it. The perimeter is hand-laid
-## because it is a *room shape* being designed: its runs are the thing the
-## enclosure argument is about, and the frontage generator reads them back out.
-## The fountain is not a room shape, it is an assembly, and every other assembly
-## in the park is generated. What stays in `plaza.tscn` is the ground, the walls
-## and the tower — the things the plaza *is*, rather than the things standing in
-## it.
-const FOUNTAIN_PATH := GENERATED_DIR + "/plaza_fountain.tscn"
+## The plaza fountain is not built here since 2026-09-27: its shape is
+## `assets/source/props/plaza_fountain.blend`, mounted by
+## `scenes/world/plaza_fountain.tscn`. Its seed slot stays below.
 const STAIR_PATH := GENERATED_DIR + "/west_stair.tscn"
 const EAST_CASCADE_PATH := GENERATED_DIR + "/east_cascade.tscn"
 const SKY_RIDE_PATH := GENERATED_DIR + "/north_sky_ride.tscn"
@@ -615,21 +604,11 @@ func _initialize() -> void:
 	if not _save(_root, FRONTAGE_PATH):
 		return
 
-	# The fountain, and **last for the same reason paving and frontage are**: the
-	# seam seed is handed out five per scene, so a scene inserted anywhere but
-	# the end shifts the displacement of every scene after it and puts two
-	# untouched shapes on the same plane, in a file nobody edited.
-	#
-	# It is the scene most exposed to that, too. 270 shapes stacked on one axis
-	# is 270 top faces and 270 bottom faces, all concentric, and it is the only
-	# object in the park where the coplanar rule is doing continuous work rather
-	# than catching the odd corner.
-	_root = Node3D.new()
-	_root.name = "fountain"
+	# The plaza fountain occupied this seed until 2026-09-27, when its shape
+	# moved to `assets/source/props/plaza_fountain.blend`. Keep advancing the
+	# seed so the protected east cascade and every scene after it keep their
+	# seam displacement.
 	_begin_scene()
-	_fountain()
-	if not _save(_root, FOUNTAIN_PATH):
-		return
 
 	# The east cascade: the same monument as `west_stair`, at the other site.
 	#
@@ -1643,7 +1622,7 @@ func _build_materials() -> void:
 		# could not do against a pale back.
 		#
 		# The fountain in front separates on **hue** rather than value either way
-		# — `fount_stone` is a warm pale limestone against a cool wall, which is
+		# — its terracotta is warm against a cool wall, which is
 		# the argument the whole monument's lighting makes. Dark simply gives it
 		# more of both.
 		"niche_face": [Color(0.21, 0.32, 0.46), 0.88, 0.0],
@@ -1761,17 +1740,16 @@ func _build_materials() -> void:
 	_fountain_materials()
 
 
-## The fountain's palette, and the only shaders in the park.
+## The fountains' palette, and the water shaders.
 ##
-## Two stones and one metal first. The plaza's masonry is `building` at 0.72 grey
-## and the fountain used to be that plus `accent`, alternating drum by drum,
-## which is what made it read as a cake: the bands were the loudest thing about
-## it and they went with the layers rather than across them. So the fountain gets
-## its own two, close enough together that the *profile* is what separates the
-## parts and not the colour — a dry stone and the same stone permanently wet,
-## which is the honest difference between a basin's outside and its inside.
+## The plaza fountain's own materials left with its shape on 2026-09-27 and are
+## `assets/materials/plaza_fountain/*.tres` (the reasoning is in
+## `documentation/howto/shape-the-plaza-fountain.md`). What is made here is what
+## other scenes still take from the palette: the bronze and the pool bed in the
+## cascades' niches, `water_pool` and `water_jet` in the program and landscape
+## scenes, and the niche's, reservoir's and basin chain's own.
 ##
-## Then the water. `mats["water"]` already exists and is the sea: flat, 0.08
+## The water. `mats["water"]` already exists and is the sea: flat, 0.08
 ## rough, and completely correct for 340m of shore seen from a bluff. It is
 ## useless for a fountain, because at three metres what says *water* is that it
 ## is moving, and a `StandardMaterial3D` cannot move.
@@ -1790,27 +1768,12 @@ const FALL_SHADER_PATH := "res://assets/shaders/water_fall.gdshader"
 
 
 func _fountain_materials() -> void:
-	# Warm limestone, and the warmth is the point rather than a preference. The
-	# first build made this 0.74/0.72/0.68, which is `building` to within two
-	# percent — so the fountain was a pale grey object standing against a
-	# hundred and twenty metres of pale grey perimeter and did not separate from
-	# it at any distance. The old fountain got away with the same value only
-	# because half of it was `accent` salmon, which is the banding this rebuild
-	# exists to remove; the fix is to move the *whole* object off the wall's
-	# hue instead of striping it.
-	mats["fount_stone"] = _plain(Color(0.72, 0.66, 0.57), 0.88, 0.0)
-	# The wetted stone. Darker and much less rough, because that is what water
-	# actually does to masonry, and it is the cheapest possible way to say which
-	# surfaces the water has been over without drawing a stain on anything.
-	mats["fount_wet"] = _plain(Color(0.48, 0.45, 0.40), 0.35, 0.0)
 	mats["fount_bronze"] = _plain(Color(0.42, 0.40, 0.30), 0.45, 0.55)
 
-	# **The cascade's fountain is terracotta and the plaza's is not**, which is
-	# why these are two more materials rather than a change to the two above.
-	# `fount_stone` is shared, and it was chosen against a specific problem: the
+	# **The cascade's fountain is terracotta and the plaza's is not.** The
 	# plaza's fountain stands in the middle of a hundred and twenty metres of
-	# `building` grey, so it is warm limestone to get off that grey by a measured
-	# margin. Recolour it here and the park's centrepiece moves with it.
+	# `building` grey, so its stone is warm limestone, to get off that grey by a
+	# measured margin (`assets/materials/plaza_fountain/fount_stone.tres`).
 	#
 	# The niche's fountain has the opposite problem. It stands in a recess painted
 	# `niche_face`, against a facade painted `cascade_face`, on an `accent` apron
@@ -1825,8 +1788,8 @@ func _fountain_materials() -> void:
 	# bottom edge.
 	mats["niche_stone"] = _plain(Color(0.68, 0.38, 0.28), 0.88, 0.0)
 	# The wetted courses, standing in the same relation to `niche_stone` that
-	# `fount_wet` stands to `fount_stone` — darker and much less rough, because
-	# that is what water does to masonry. A terracotta fountain with grey wet
+	# the plaza fountain's wet stone stands to its dry — darker and much less
+	# rough, because that is what water does to masonry. A terracotta fountain with grey wet
 	# stone on it is two materials pretending to be one object.
 	mats["niche_wet"] = _plain(Color(0.44, 0.26, 0.21), 0.35, 0.0)
 	# The pool floor. Never really seen — the water above it is opaque — but a
@@ -1862,8 +1825,8 @@ func _fountain_materials() -> void:
 		"rough": 0.06,
 		"lamp_ring": Vector4(Plan.FOUNTAIN_JET_R, 12.0, 0.55, 1.0),
 		# A froth patch where each of the lower basin's falls lands, and the count
-		# is **negative** because `_veil` spaces them at `i` steps while the jets
-		# are at `i + 0.5`. See the shader.
+		# is **negative** because the falls stand at `i` steps round the ring
+		# while the jets are at `i + 0.5`. See the shader.
 		"foam_ring": Vector4(LB_VEIL_R, -float(LB_VEIL_N), 0.52, 1.0),
 		# **The glow, and this is the restrained end of it.** The plaza's fountain
 		# is a civic one in a room with 1,066 nodes of lit frontage round it, so
@@ -1872,37 +1835,6 @@ func _fountain_materials() -> void:
 		# The grotto in the cascade's niche takes nearly twice this, because it
 		# is a dark alcove with one lamp in it and nothing to compete with.
 		"night_glow": 1.6,
-	})
-	# The basins are 8m and 4m across against the pool's 17, so they take the
-	# rings four and eight times as tight. At the pool's wavelength a basin has
-	# one and a half waves on it, which does not read as water at all — it reads
-	# as a dent.
-	#
-	# **And neither basin gets a landing ring, which was tried and measured.** The
-	# upper lip sheds ten falls onto the lower basin at radius 2.03, so a froth
-	# ring there is the obvious companion to the pool's — it was built, and then
-	# it was looked at. The lower basin's water is at 3.30 and its rim stands 5cm
-	# proud of it; the eye is at 1.60. Every sightline that reaches the height of
-	# that surface is already travelling upward and keeps going, so the surface is
-	# not merely hard to see from the plaza floor, it cannot be seen from anywhere
-	# below it — and there is nowhere in the park above it to stand. Rendered from
-	# a camera at 6.6m, where it *is* visible, 0.70 froth against `ring_scale` 4.5
-	# was still barely a haze.
-	#
-	# So the falls between the basins are drawn and their landing is not, which is
-	# the honest split: the veils hang in plain sight from the floor and the water
-	# they hit is over the horizon of the rim they are behind.
-	mats["water_basin"] = _shader_material(pool, {
-		"tint": Color(0.13, 0.28, 0.31),
-		"centre": Vector3(Plan.FOUNTAIN_AT.x, 0.0, Plan.FOUNTAIN_AT.y),
-		"ring_scale": 4.5,
-		"chop": 3.0,
-		"rough": 0.05,
-		# Brighter than the pool, because the basins are what the falls come off
-		# and a lit sheet leaving an unlit lip is a rope with nothing at the top
-		# of it — the same argument the pool's own lamps were put in for, at the
-		# other end of the water.
-		"night_glow": 2.1,
 	})
 	# The service reservoir is standing water, but it is not another fountain.
 	# Broad rings come off the pump intake and the crossing ripples are slow; no
@@ -1917,57 +1849,20 @@ func _fountain_materials() -> void:
 		"rough": 0.09,
 		"spec": 0.86,
 	})
-	# `streaks` is radians per world metre, so it has to be read against how wide
-	# the thing wearing it is. The falls take 64 and 80 where the jets take 34,
-	# and that is not a taste difference: at 26 a rope is 24cm and a fall is
-	# 36cm wide, so each fall came out as one translucent rod hanging off a
-	# basin. At 64 the same fall has five ropes in it and reads as a curtain. A
-	# jet is 15cm through and genuinely *is* one rope, so it keeps the low number.
-	#
-	# The two sheets. Heavy, slow, falling, and each faded over its own drop —
-	# which is why they are two materials and not one. `fade_from` is the lip and
-	# `fade_to` is a little above whatever the sheet lands in, so the last of the
-	# fall is gone before it arrives and the froth ring takes the landing. That
-	# is the trick that lets a veil run the full height of its drop: a sheet that
-	# stopped in mid-air would read as a modelling mistake, and one drawn at full
-	# strength all the way down reads as a glass tube.
-	mats["water_veil_lo"] = _shader_material(fall, {
-		"flow": 2.4, "streaks": 64.0, "grain": 2.2,
-		"base_alpha": 0.30, "glow": 0.30,
-		"fade_from": 3.16, "fade_to": 0.55,
-	})
-	mats["water_veil_hi"] = _shader_material(fall, {
-		"flow": 2.6, "streaks": 80.0, "grain": 2.6,
-		"base_alpha": 0.32, "glow": 0.32,
-		"fade_from": 5.33, "fade_to": 3.45,
-	})
-	# Jets and the plume: the same substance with the flow reversed, thinner, and
-	# breaking up faster the higher it gets.
+	# A jet: the falls' substance with the flow reversed, thinner, and breaking
+	# up faster the higher it gets. `streaks` is radians per world metre, and a
+	# jet is 15cm through and genuinely *is* one rope, so it keeps a low number.
+	# The plaza fountain's falls, plume and spray are `.tres` files beside its
+	# own jets' (`assets/materials/plaza_fountain/`).
 	mats["water_jet"] = _shader_material(fall, {
 		"flow": -4.2, "streaks": 34.0, "grain": 3.4,
 		"base_alpha": 0.36, "glow": 0.45,
-	})
-	# The plume fades the other way — out at the *top*. It is the only part of
-	# the fountain visible from the gate, and without this it ends in a flat disc
-	# against the sky fifty-seven metres up the street.
-	mats["water_plume"] = _shader_material(fall, {
-		"flow": -4.8, "streaks": 30.0, "grain": 3.0,
-		"base_alpha": 0.44, "glow": 0.55,
-		"fade_from": 6.30, "fade_to": 7.95,
-	})
-	# What comes back down around the plume. Very faint, because two concentric
-	# translucent drums at any real opacity are the wedding cake this rebuild
-	# exists to stop being.
-	mats["water_spray"] = _shader_material(fall, {
-		"flow": 2.0, "streaks": 16.0, "grain": 1.8,
-		"base_alpha": 0.13, "glow": 0.40,
-		"fade_from": 6.60, "fade_to": 5.40,
 	})
 	# --- the wall fountain in the cascade's niche ---
 	#
 	# **Its own materials, and the reason is one uniform.** `centre` is a world
 	# position: the pool shader radiates its rings from it, so a surface wearing
-	# `water_basin` sixty metres west of the plaza gets rings that have long
+	# the plaza's basin water sixty metres west of the plaza gets rings that have long
 	# since flattened into parallel stripes travelling in one direction. It would
 	# have read as brushed metal, and it would have read that way in a screenshot
 	# without looking wrong — which is the same blind spot the flow direction sat
@@ -3056,351 +2951,25 @@ func _pave_quad(nm: String, centre: Vector3, size: Vector2, theta: float,
 
 
 # ---------------------------------------------------------------------------
-# The fountain
+# Water primitives
 # ---------------------------------------------------------------------------
 
-## The plaza's centrepiece, and until now the plaza's worst object.
-##
-## It was five concentric drums of decreasing radius, alternating grey and
-## salmon, eighteen metres across and 7.9 tall. Everything about that is
-## defensible one line at a time — it held the middle of the room, it cleared the
-## clock tower, it was the right size — and the whole of it read as a cake. Two
-## reasons, and they are separable:
-##
-##   1. **There was no water in it.** Not a plane, not a jet, nothing. The only
-##      thing that makes a fountain a fountain was the one thing missing, and
-##      calling it `fountain_base` in the scene tree did not put it there.
-##   2. **The profile was monotone.** Five stacked cylinders each smaller than
-##      the last is a shape with no incident in it: every silhouette from every
-##      angle is the same staircase, and the alternating colour banded it *with*
-##      the layers, which made the staircase louder rather than breaking it up.
-##
-## So: a real tiered fountain. A pool you could sit on the edge of, a pedestal, a
-## basin, a column, a smaller basin, and water — falling from each lip to the one
-## below it, jetting in a ring inside the pool, and a plume up the middle.
-##
-## **The height envelope is inherited and not renegotiated.** 2026-08-13b tuned
-## this against the clock tower and wrote the numbers down: at 10.9m the fountain
-## hid the bottom 24m of a 29m tower from the ring's edge, and coming down to
-## 7.9m with the 18m basin untouched was what fixed it. So 7.9 and 18 stand.
-##
-## What *did* change is which 7.9. The tallest solid is now the nozzle at 6.3m
-## and the top 1.6m is the plume — so the stone silhouette is 1.6m lower than
-## before and gives the tower back more than it takes, while the object is the
-## same height it was measured at. Being able to spend the top of the envelope on
-## something thin and bright is most of the argument for the plume: from the gate
-## the old fountain was a pale drum subtending 3.3 degrees against a pale
-## building, and the new one has a white vertical against the sky.
-##
-## The other inherited number is `Plan.FOUNTAIN_RADIUS`, which is 9 and is the
-## footprint the crowd's walkable graph cuts around. The coping's *outer* face is
-## that radius exactly, so nothing about where guests may walk changes.
+## The plaza fountain was built here until 2026-09-27 (`_fountain` and its
+## pool, pedestal, basins, plume, jets, rims and falls). Its shape is
+## `assets/source/props/plaza_fountain.blend` now, and the reasoning behind it,
+## once in the comments here, is in `documentation/howto/shape-the-plaza-fountain.md`;
+## the code is in git before that date. What stays is what other scenes use:
+## the water primitives below, and two numbers the fountain's neighbours read.
 
-## Where the sections of the fountain sit, bottom to top. Written out rather than
-## derived, because a fountain is a drawn profile and the numbers are the
-## drawing: every one of these was pushed around against a screenshot, and a
-## formula generating them would be a formula nobody could tune.
-##
-## The rule they all obey is that consecutive parts *overlap* by 1-3cm. That is
-## the project's standing rule about coplanar faces — parts run into each other
-## rather than meeting edge to edge — and it matters more here than anywhere,
-## because this is 270 shapes stacked on one axis and every one of them has a top
-## face and a bottom face that could line up with a neighbour's.
-const FOUNT_R := Plan.FOUNTAIN_RADIUS
-
-## The kerb, as a ring of blocks rather than as a cylinder. The whole reason is
-## that a pool needs an *inside*: a solid drum at radius 9 is a disc with water
-## painted on top of it, and the thing that reads as a basin is seeing the water
-## sit down below a rim you could put a drink on.
-##
-## 36 blocks makes the outer face an inscribed 36-gon, so it bulges 3.4cm past
-## radius 9 at each block's corner and sits exactly on it at each block's middle.
-## Under 4cm over a metre and a half is a faceted stone kerb, which is what this
-## is meant to be, and it is far too shallow for the capsule to catch on.
-const KERB_SEGS := 36
-const COPING_DEPTH := 0.80
-## Derived rather than typed, so the coping's *outer* face is on the plan's
-## radius by construction. That face is the one number the rest of the park
-## agrees with — it is what the crowd's graph cuts around and what the ring
-## walkway is set outside of — and a kerb radius typed independently is a kerb
-## radius that drifts off it the first time the coping gets wider.
-const KERB_R := FOUNT_R - COPING_DEPTH * 0.5
-const KERB_TOP := 0.36
-
-## The seat, and it is plan data rather than a number in this file because
-## `gen_crowd.gd` seats nine guests on it and cannot read anything over here.
-## See `ParkPlan.FOUNTAIN_RIM_TOP` for why it is half a metre.
-const COPING_TOP := Plan.FOUNTAIN_RIM_TOP
-const POOL_TOP := Plan.FOUNTAIN_POOL_TOP
-
-
-func _fountain() -> void:
-	# In final coordinates. The fountain is at the origin, so the dilation map
-	# would return it unchanged anyway — but stating it is cheaper than the
-	# reader having to prove that, and `_dilate_plaza` is a mode that persists
-	# across scenes.
-	_dilate_plaza = false
-	var o := Vector3(Plan.FOUNTAIN_AT.x, 0.0, Plan.FOUNTAIN_AT.y)
-
-	_fountain_pool(o)
-	_fountain_pedestal(o)
-	_fountain_basins(o)
-	_fountain_plume(o)
-	_fountain_jets(o)
-	# No lights here, and that is deliberate rather than an omission. The
-	# fountain's six uplights are `_fountain_lights` over in `_plaza_lights`,
-	# where the tower's and the bandstand's are, because what a fitting is aimed
-	# at is a decision about the *plaza after dark* and belongs with the rest of
-	# that argument. It also keeps this scene to geometry, which is the only
-	# reason it can be regenerated without touching what the night looks like.
-
-
-## The pool: kerb, coping, bed and surface.
-func _fountain_pool(o: Vector3) -> void:
-	# Chord of one segment, plus 4% so neighbours overlap instead of butting.
-	var chord := 2.0 * KERB_R * sin(PI / float(KERB_SEGS)) * 1.04
-	for i in KERB_SEGS:
-		var a := TAU * float(i) / float(KERB_SEGS)
-		# The kerb collides and the coping collides, and nothing else in the
-		# fountain does. That is the whole barrier: the player cannot get over a
-		# 52cm wall without a step-up, so 260 shapes inside the pool need no
-		# collision at all and 72 ring blocks are the cheapest possible fence.
-		_box("kerb_%02d" % i, o, Vector3(0.0, KERB_TOP * 0.5, KERB_R),
-			Vector3(chord, KERB_TOP, 0.62), "fount_stone", a)
-		# Overhanging the kerb by 9cm each side, which is the entire reason the
-		# coping is a separate course: the shadow line under a lip is what makes
-		# masonry read as cut stone rather than as an extruded shape.
-		_box("coping_%02d" % i, o, Vector3(0.0, (KERB_TOP + COPING_TOP) * 0.5, KERB_R),
-			Vector3(chord * 1.04, COPING_TOP - KERB_TOP, COPING_DEPTH), "fount_wet", a)
-
-	# Under the water and effectively never seen. It is here so that the one
-	# grazing angle where the surface disappears shows a floor rather than the
-	# plaza on the far side.
-	_cyl("pool_bed", o, Vector3(0.0, 0.06, 0.0), 8.42, 0.12, "fount_bed",
-		0.0, 40, false)
-	# 0.30, so the water sits 22cm below the coping. Freeboard is what says the
-	# pool has depth; brimmed to the rim it reads as a painted disc.
-	_water_cyl("pool_water", o, Vector3(0.0, POOL_TOP - 0.10, 0.0), 8.26, 0.20,
-		"water_pool", 48)
-
-
-## The steps out of the water, and the pedestal on them.
-##
-## Three steps rather than one plinth, and the bottom two are `fount_wet`: the
-## waterline is at 0.30 and the first step's top is at 0.46, so one of the three
-## is genuinely half-submerged. Wetting two of them puts the tide mark a step
-## above the water, which is what a fountain that has been running all summer
-## actually looks like.
-func _fountain_pedestal(o: Vector3) -> void:
-	_cyl("step_1", o, Vector3(0.0, 0.23, 0.0), 3.60, 0.46, "fount_wet", 0.0, 32, false)
-	_cyl("step_2", o, Vector3(0.0, 0.62, 0.0), 3.05, 0.36, "fount_wet", 0.0, 28, false)
-	_cyl("step_3", o, Vector3(0.0, 0.94, 0.0), 2.55, 0.32, "fount_stone", 0.0, 24, false)
-
-	# Foot, shaft, cap. Three shapes and the only three that matter: a bare drum
-	# between the steps and the basin is the old fountain again in miniature,
-	# and a moulding top and bottom is what turns it into a pedestal.
-	_cyl("ped_foot", o, Vector3(0.0, 1.21, 0.0), 1.95, 0.26, "fount_stone", 0.0, 20, false)
-	_cyl("ped_shaft", o, Vector3(0.0, 1.79, 0.0), 1.52, 0.92, "fount_stone", 0.0, 20, false)
-	_cyl("ped_cap", o, Vector3(0.0, 2.35, 0.0), 1.92, 0.24, "fount_stone", 0.0, 20, false)
-
-
-## Where each ring of falls hangs from, and how many falls are in it.
-##
-## Here rather than at the two `_veil` calls because the lower ring's froth needs
-## the same two numbers: a landing ring is drawn at the radius the falls come off
-## with one patch per fall. Typed twice they drift, and the failure is quiet —
-## a ring of froth 20cm inside a ring of falls still looks like a ring of froth.
-##
-## The upper pair is here for symmetry rather than for a second reader. It is
-## worth the two lines anyway: the next person to reach for a landing ring under
-## the upper falls should find its radius already named, and the note in
-## `_fountain_materials` saying why there isn't one.
+## The lower basin's ring of falls, which the shared `water_pool` material's
+## `foam_ring` still names (see `_fountain_materials`). The plaza's own pool
+## takes its froth from `assets/materials/plaza_fountain/water_pool.tres`.
 const LB_VEIL_R := 4.03
 const LB_VEIL_N := 16
-const UB_VEIL_R := 2.03
-const UB_VEIL_N := 10
 
-
-## The two basins, each built the same way: an underside that steps *outward*
-## going up, a rim ring, and water inside the ring.
-##
-## The stepped underside is the load-bearing idea. A basin is a dish, and a dish
-## seen from below — which is how you see both of these, standing on the plaza
-## floor — is a curve. Three discs of increasing radius approximate that curve in
-## silhouette, and unlike a single drum they catch light differently on each
-## step, so the underside has shading in it at every hour rather than only when
-## the sun happens to rake it.
-##
-## The rim is a ring of blocks for the same reason the coping is: a solid
-## cylinder would be a lid over the water.
-func _fountain_basins(o: Vector3) -> void:
-	# Lower basin. 8.1m across at 3.35 — wider than the pedestal by a long way,
-	# which is what makes the profile read as a fountain rather than as a column.
-	_cyl("lb_under_1", o, Vector3(0.0, 2.59, 0.0), 2.48, 0.28, "fount_stone", 0.0, 24, false)
-	_cyl("lb_under_2", o, Vector3(0.0, 2.83, 0.0), 3.26, 0.24, "fount_stone", 0.0, 28, false)
-	_cyl("lb_under_3", o, Vector3(0.0, 3.04, 0.0), 3.82, 0.22, "fount_stone", 0.0, 28, false)
-	_rim_ring("lb_rim", o, 28, 3.92, 3.24, 0.22, 0.30)
-	_water_cyl("lb_water", o, Vector3(0.0, 3.19, 0.0), 3.80, 0.22, "water_basin", 32)
-
-	_cyl("col_foot", o, Vector3(0.0, 3.40, 0.0), 1.02, 0.22, "fount_stone", 0.0, 16, false)
-	_cyl("col_shaft", o, Vector3(0.0, 4.08, 0.0), 0.74, 1.15, "fount_stone", 0.0, 16, false)
-	_cyl("col_cap", o, Vector3(0.0, 4.74, 0.0), 1.00, 0.22, "fount_stone", 0.0, 16, false)
-
-	# Upper basin, 4.1m across at 5.46.
-	_cyl("ub_under_1", o, Vector3(0.0, 4.95, 0.0), 1.30, 0.24, "fount_stone", 0.0, 20, false)
-	_cyl("ub_under_2", o, Vector3(0.0, 5.16, 0.0), 1.78, 0.22, "fount_stone", 0.0, 20, false)
-	_rim_ring("ub_rim", o, 20, 1.94, 5.36, 0.20, 0.26)
-	_water_cyl("ub_water", o, Vector3(0.0, 5.30, 0.0), 1.84, 0.22, "water_basin", 24)
-
-	# The falls. Each hangs from its own lip and runs the whole way down to what
-	# it lands in, rather than stopping short — a fall that ends in mid-air is
-	# the one artefact that would read as a modelling mistake instead of as
-	# water. What makes the full drop affordable is the fade: the shader thins it
-	# out over its length, so it is bright at the lip and a ghost by the time it
-	# reaches the surface, where the froth ring takes over.
-	_veil("lb_veil", o, LB_VEIL_N, LB_VEIL_R, 3.16, 0.40, 0.07, "water_veil_lo")
-	_veil("ub_veil", o, UB_VEIL_N, UB_VEIL_R, 5.33, 3.30, 0.06, "water_veil_hi")
-
-	# Where the lower sixteen land is `foam_ring` on the pool's material, off
-	# `LB_VEIL_R`/`LB_VEIL_N` so the froth cannot drift from the falls that make
-	# it — not sixteen discs laid on the water. See the shader: froth is a patch
-	# of water that is white and broken, not an object floating on one. The upper
-	# ten land in the lower basin, which no eye in the park is high enough to see
-	# into; `_fountain_materials` has the measurement.
-
-
-## The nozzle and what comes out of it.
-##
-## The plume is four tapering cylinders and it is the tallest thing on the
-## fountain — 7.9m, which is the number the whole envelope was tuned to in
-## 2026-08-13b. Spending it on water rather than on stone is the point: it is
-## thin, so it hides almost none of the clock tower behind it, and it is the only
-## bright vertical in a plaza built out of pale horizontal masonry.
-##
-## The spray skirt is two very faint drums flaring downward around it, standing
-## in for the water coming back down into the upper basin. Faint on purpose —
-## at any real opacity a pair of concentric translucent drums is a wedding cake
-## made of ghosts, which is the shape this rebuild exists to get rid of.
-func _fountain_plume(o: Vector3) -> void:
-	_cyl("fin_foot", o, Vector3(0.0, 5.50, 0.0), 0.54, 0.20, "fount_stone", 0.0, 12, false)
-	_cyl("fin_shaft", o, Vector3(0.0, 5.86, 0.0), 0.32, 0.55, "fount_stone", 0.0, 12, false)
-	_cyl("nozzle", o, Vector3(0.0, 6.22, 0.0), 0.20, 0.22, "fount_bronze", 0.0, 10, false)
-
-	_water_cyl("plume_1", o, Vector3(0.0, 6.55, 0.0), 0.28, 0.50, "water_plume", 10)
-	_water_cyl("plume_2", o, Vector3(0.0, 7.01, 0.0), 0.21, 0.46, "water_plume", 10)
-	_water_cyl("plume_3", o, Vector3(0.0, 7.42, 0.0), 0.14, 0.40, "water_plume", 8)
-	_water_cyl("plume_4", o, Vector3(0.0, 7.74, 0.0), 0.075, 0.32, "water_plume", 8)
-
-	# One skirt, not two. The second was a 2.9m drum sitting on top of the upper
-	# basin and it was doing exactly what the veils were doing — reading as a
-	# container rather than as its contents.
-	_water_cyl("spray_1", o, Vector3(0.0, 5.95, 0.0), 0.86, 0.90, "water_spray", 16)
-
-
-## The ring of jets in the pool.
-##
-## Twelve, at radius 6.5, leaning six degrees inward. Near-vertical rather than
-## arcing, and that is a decision about what greybox can carry: an arc is four
-## segments per jet and lands wherever the last one stops, and a jet that ends
-## in mid-air over the water is worse than a straight one. Leaning them all
-## slightly inward makes the ring converge on the plume, so the twelve of them
-## and the one up the middle read as one arrangement instead of two.
-##
-## They stand well outside the lower basin's 4.05m rim, so from anywhere on the
-## plaza floor there is water at three heights at once: the ring, the sheets off
-## each lip, and the plume.
+## The pool's twelve jets, which `_fountain_lights` puts a bead of light under.
+## The jets themselves are the Blender file's `jet_a` and `jet_b`.
 const JET_COUNT := 12
-const JET_R := Plan.FOUNTAIN_JET_R
-const JET_LEAN := -0.10
-
-
-func _fountain_jets(o: Vector3) -> void:
-	for i in JET_COUNT:
-		var a := TAU * (float(i) + 0.5) / float(JET_COUNT)
-		# Breaking the surface rather than sitting on the floor of the pool: the
-		# nozzle's top is 9cm above the waterline, which is what stops the jet
-		# looking as though it starts at nothing.
-		_cyl("jet_%02d_nozzle" % i, o, Vector3(0.0, 0.26, JET_R), 0.14, 0.26,
-			"fount_bronze", a, 8, false)
-		var foot := Vector3(0.0, 0.34, JET_R)
-		foot = _leaning("jet_%02d_a" % i, o, foot, 0.075, 1.25, "water_jet", a, JET_LEAN, 8)
-		_leaning("jet_%02d_b" % i, o, foot, 0.050, 0.85, "water_jet", a, JET_LEAN, 6)
-
-
-
-## A ring of stone blocks standing on edge — a basin's lip.
-func _rim_ring(nm: String, o: Vector3, segs: int, r: float, mid_y: float,
-		height: float, depth: float) -> void:
-	var chord := 2.0 * r * sin(PI / float(segs)) * 1.06
-	for i in segs:
-		var a := TAU * float(i) / float(segs)
-		_box("%s_%02d" % [nm, i], o, Vector3(0.0, mid_y, r),
-			Vector3(chord, height, depth), "fount_wet", a, false)
-
-
-## A ring of falls hanging off a lip.
-##
-## **The slabs do not touch, and that is the whole design of this thing.** The
-## first build ran them shoulder to shoulder all the way round, which is what a
-## sheet coming off a rim actually does — and it came out as a translucent tube
-## with the basins invisible inside it. Two separate faults produced that: the
-## material was being drawn four times over (see `water_fall.gdshader`), and a
-## closed ring of translucent slabs is *geometrically* a tube no matter how
-## faint you make it. Fixing only the first gives a fainter tube.
-##
-## So each fall is 40% of its slot and 60% is air. You see the stone through the
-## gaps, the ring reads as a set of falls rather than as a curtain, and the
-## shader's streaking — which does nothing on a wide sheet — has something the
-## width of a stream to run down. It is also closer to how a park fountain that
-## has been running for twenty summers behaves: the sheet breaks up at the lip
-## into the places where the lip has worn.
-const VEIL_FILL := 0.34
-
-
-func _veil(nm: String, o: Vector3, segs: int, r: float, top: float, bottom: float,
-		thick: float, mat: String) -> void:
-	# `2 r sin(pi/n)` is the whole chord — the width of one slot. The fill is a
-	# fraction *of* that, not of half of it.
-	var chord := 2.0 * r * sin(PI / float(segs)) * VEIL_FILL
-	var h := top - bottom
-	for i in segs:
-		var a := TAU * float(i) / float(segs)
-		_water_box("%s_%02d" % [nm, i], o, Vector3(0.0, bottom + h * 0.5, r),
-			Vector3(chord, h, thick), mat, a)
-
-
-## How far a film lying on water stands proud of it, and how thick it is.
-##
-## **Ten millimetres and thirteen, where the first build of the niche's lamps was
-## thirty and forty.** A disc 4cm thick centred 2cm above an 18cm-deep trough
-## stands 4.6cm out of it — its rim shows, it takes its own shading, and it reads
-## as a puck lying on the water, which is what "they look like two light saucers"
-## and then "why are they floating on top" were both about. Measured off the
-## numbers rather than argued: the water's top face is at 0.83 and the lens
-## spanned 0.826 to 0.876.
-##
-## It cannot be flush, because two faces at one depth z-fight and that is the one
-## rule this generator enforces. It only has to clear `SEAM_STEP * SEAM_STEPS`,
-## which is 5.25mm — every shape's displacement is inside that — so ten
-## millimetres is comfortable at any distance and invisible at all of them.
-const FILM_PROUD := 0.010
-const FILM_THICK := 0.013
-
-
-## A cylinder standing on `foot` and leaning by `lean` about its own bearing.
-## Returns the far end, so segments chain into each other.
-##
-## The arithmetic is here rather than at each call site because `_xform` rotates
-## a shape about its *centre*: leaning a 1.25m jet by six degrees swings its
-## bottom 6cm off the nozzle it is supposed to be coming out of, and the fix is
-## to solve for the centre from the foot rather than to nudge the number until
-## the screenshot looks right.
-func _leaning(nm: String, o: Vector3, foot: Vector3, radius: float, height: float,
-		mat: String, theta: float, lean: float, sides: int) -> Vector3:
-	var up := Vector3(0.0, cos(lean), sin(lean))
-	_water_cyl(nm, o, foot + up * (height * 0.5), radius, height, mat, sides,
-		theta, lean)
-	return foot + up * height
 
 
 ## `_foam_ring`, `_foam_patch` and `_water_film` were here and are gone, with the
@@ -9892,16 +9461,14 @@ func _cascade_landing(site: Dictionary) -> void:
 ## builds it is radial — rings of blocks, rings of falls, everything hung off one
 ## axis. Nothing here is radial, because a wall fountain has a back, and the back
 ## is the point: every part of it is cantilevered off one plane and the water
-## falls down that plane in three stages. Reusing `_rim_ring` and `_veil` would
-## have produced a small round fountain standing in a recess, which is a
-## different object.
+## falls down that plane in three stages. Reusing the plaza's rings of blocks
+## and falls would have produced a small round fountain standing in a recess,
+## which is a different object.
 ##
-## What it does share is the **materials**, and that is deliberate rather than
-## lazy. `fount_stone` is off the perimeter's hue by a measured margin and
-## `fount_wet` is what says a surface has had water over it — the two of them are
-## the park's existing answer to "this is masonry with water on it", and a second
-## answer would just be a second warm grey. The water materials are its own; see
-## `_fountain_materials` for why `centre` makes that mandatory.
+## What it shares with the plaza's is the bronze and the pool bed
+## (`fount_bronze`, `fount_bed`). Its stone is its own terracotta and its water
+## its own; see `_fountain_materials` for both, and for why `centre` makes the
+## second mandatory.
 ##
 ## **Depth is what makes it a fountain rather than a relief.** At the old 0.6m
 ## recess every one of these parts would have stood proud of the facade: the
@@ -10028,8 +9595,8 @@ func _cascade_niche(site: Dictionary) -> void:
 	#
 	# Three streams, all vertical. An arc is what the photograph shows and what
 	# this cannot have: an arc is four segments per stream and it lands wherever
-	# the last one stops, which is the argument `_fountain_jets` already settled
-	# for the plaza's ring. Vertical, each one starts inside the thing above it
+	# the last one stops, which is the argument the plaza fountain's jets already
+	# settled for its ring. Vertical, each one starts inside the thing above it
 	# and fades out just above the thing below it, so neither end is an edge.
 	_water_cyl("spout_stream", o, Vector3(1.10, 2.40, 0.0), 0.055, 0.58,
 		"%s_spout" % wet, 8)

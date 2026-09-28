@@ -1,0 +1,26 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://assets/shaders/water_pool.gdshader" id="1_0uqku"]
+
+[resource]
+resource_name = "water_basin"
+render_priority = 0
+shader = ExtResource("1_0uqku")
+shader_parameter/tint = Color(0.13, 0.28, 0.31, 1)
+shader_parameter/centre = Vector3(0, 0, 0)
+shader_parameter/ring_scale = 4.5
+shader_parameter/chop = 3.0
+shader_parameter/rough = 0.05
+shader_parameter/spec = null
+shader_parameter/night_glow = 2.1
+shader_parameter/glow_body = null
+shader_parameter/glow_lamp = null
+shader_parameter/glow_froth = null
+shader_parameter/lamp_a = null
+shader_parameter/lamp_b = null
+shader_parameter/lamp_ring = null
+shader_parameter/foam_a = null
+shader_parameter/foam_b = null
+shader_parameter/foam_ring = null
+shader_parameter/foam_tint = null
+shader_parameter/lamp_tint = null

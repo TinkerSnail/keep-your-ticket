@@ -412,7 +412,19 @@ for f in sorted(sources):
 n_csg = sum(1 for s in shapes if s['kind'] == 'csg')
 n_mesh = len(shapes) - n_csg
 print(f"{len(shapes)} shapes across {len(set(s['scene'] for s in shapes))} scenes "
-      f"({n_csg} CSG, {n_mesh} mesh)\n")
+      f"({n_csg} CSG, {n_mesh} mesh)")
+
+# Models sent from Blender are GLB files, and this reads scene text: whatever a
+# scene instances from a GLB is not in the census above. Named rather than
+# skipped silently, since 2026-09-27, when the plaza fountain's 208 shapes left
+# the census by moving to `assets/props/plaza_fountain.glb` (it had no pairs
+# here then, and its move was proved lossless). A GLB's own coplanar faces are
+# its source's to check.
+models = set()
+for f in sources:
+    models.update(re.findall(r'\[ext_resource [^\]]*path="res://([^"]+\.glb)"', open(f).read()))
+print(f"{len(models)} Blender models (GLB) placed by these scenes, not read: "
+      f"{', '.join(sorted(os.path.basename(m) for m in models)) or 'none'}\n")
 
 shapes = [s for s in shapes if s['aligned']]
 

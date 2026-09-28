@@ -127,6 +127,26 @@ out when it is shaped, not by `unwrap_parts.py`: each segment wears one of a
 few bands stacked up the canvas, round its full width, recorded on the mesh as
 `kyt_band_islands`, `kyt_band_gap` and `kyt_band_zones`.
 
+**An assembly the generator built** (the plaza fountain, 2026-09-27: 208 CSG
+shapes, 11 materials, water) moves whole, losslessly, before anyone reshapes
+it. `maquette_export --whole` writes the generated scene as the reference, in
+the world's frame; the prop's migration probe (`tools/_fountain_migration_probe.gd
+materials`) writes each material, named as the generator named it, to
+`assets/materials/<prop>/<name>.tres` and every part's material, collision and
+shadow to `reference/<prop>_parts.json`; `tools/blender/parts_from_maquette.py
+-- <prop>` fills `export` from the two: one object per ring of parts differing
+only in a two-digit index, one per other part, welded, planar faces joined,
+sharp exactly where the maquette's normals split, `kyt_collision = none` and
+`kyt_shadow = off` where the part had none, and `kyt_keep_parts` (water must
+be its own node to cast no shadow). Its GLB's import settings map the material
+names to the `.tres` files, name `tools/kyt_part_import.gd` (applies
+`kyt_shadow`), and turn off LODs and vertex compression: compression moved the
+fountain's vertices 0.35 mm, and LODs would thin its drums at a distance. The
+probe's `compare` then proves the mount against the maquette (surfaces both
+ways, normals, area, materials, shadows, collision), and the generator keeps
+a bare `_begin_scene()` in the assembly's slot so later scenes keep their seams.
+Card: `howto/shape-the-plaza-fountain.md`.
+
 **Done when:** the file opens set up, with the reference locked and the card
 written.
 

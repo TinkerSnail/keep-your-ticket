@@ -1,0 +1,26 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://assets/shaders/water_pool.gdshader" id="1_qlyhv"]
+
+[resource]
+resource_name = "water_pool"
+render_priority = 0
+shader = ExtResource("1_qlyhv")
+shader_parameter/tint = Color(0.1, 0.24, 0.28, 1)
+shader_parameter/centre = Vector3(0, 0, 0)
+shader_parameter/ring_scale = 1.0
+shader_parameter/chop = 1.0
+shader_parameter/rough = 0.06
+shader_parameter/spec = null
+shader_parameter/night_glow = 1.6
+shader_parameter/glow_body = null
+shader_parameter/glow_lamp = null
+shader_parameter/glow_froth = null
+shader_parameter/lamp_a = null
+shader_parameter/lamp_b = null
+shader_parameter/lamp_ring = Vector4(6.5, 12, 0.55, 1)
+shader_parameter/foam_a = null
+shader_parameter/foam_b = null
+shader_parameter/foam_ring = Vector4(4.03, -16, 0.52, 1)
+shader_parameter/foam_tint = null
+shader_parameter/lamp_tint = null

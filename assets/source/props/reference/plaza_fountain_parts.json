@@ -1,0 +1,1364 @@
+{
+	"materials": {
+		"fount_bed": {
+			"alpha": 1.0,
+			"metallic": 0.0,
+			"roughness": 0.800000011920929,
+			"srgb": [
+				0.159999996423721,
+				0.259999990463257,
+				0.270000010728836
+			]
+		},
+		"fount_bronze": {
+			"alpha": 1.0,
+			"metallic": 0.550000011920929,
+			"roughness": 0.449999988079071,
+			"srgb": [
+				0.419999986886978,
+				0.400000005960464,
+				0.300000011920929
+			]
+		},
+		"fount_stone": {
+			"alpha": 1.0,
+			"metallic": 0.0,
+			"roughness": 0.879999995231628,
+			"srgb": [
+				0.720000028610229,
+				0.660000026226044,
+				0.569999992847443
+			]
+		},
+		"fount_wet": {
+			"alpha": 1.0,
+			"metallic": 0.0,
+			"roughness": 0.349999994039536,
+			"srgb": [
+				0.479999989271164,
+				0.449999988079071,
+				0.400000005960464
+			]
+		},
+		"water_basin": {
+			"alpha": 0.45,
+			"metallic": 0.0,
+			"roughness": 0.05,
+			"srgb": [
+				0.129999995231628,
+				0.280000001192093,
+				0.310000002384186
+			]
+		},
+		"water_jet": {
+			"alpha": 0.45,
+			"metallic": 0.0,
+			"roughness": 0.05,
+			"srgb": [
+				0.779999971389771,
+				0.879999995231628,
+				0.920000016689301
+			]
+		},
+		"water_plume": {
+			"alpha": 0.45,
+			"metallic": 0.0,
+			"roughness": 0.05,
+			"srgb": [
+				0.779999971389771,
+				0.879999995231628,
+				0.920000016689301
+			]
+		},
+		"water_pool": {
+			"alpha": 0.45,
+			"metallic": 0.0,
+			"roughness": 0.05,
+			"srgb": [
+				0.100000001490116,
+				0.239999994635582,
+				0.280000001192093
+			]
+		},
+		"water_spray": {
+			"alpha": 0.45,
+			"metallic": 0.0,
+			"roughness": 0.05,
+			"srgb": [
+				0.779999971389771,
+				0.879999995231628,
+				0.920000016689301
+			]
+		},
+		"water_veil_hi": {
+			"alpha": 0.45,
+			"metallic": 0.0,
+			"roughness": 0.05,
+			"srgb": [
+				0.779999971389771,
+				0.879999995231628,
+				0.920000016689301
+			]
+		},
+		"water_veil_lo": {
+			"alpha": 0.45,
+			"metallic": 0.0,
+			"roughness": 0.05,
+			"srgb": [
+				0.779999971389771,
+				0.879999995231628,
+				0.920000016689301
+			]
+		}
+	},
+	"parts": [
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_00"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_00"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_01"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_01"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_02"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_02"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_03"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_03"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_04"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_04"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_05"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_05"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_06"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_06"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_07"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_07"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_08"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_08"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_09"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_09"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_10"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_10"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_11"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_11"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_12"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_12"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_13"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_13"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_14"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_14"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_15"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_15"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_16"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_16"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_17"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_17"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_18"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_18"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_19"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_19"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_20"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_20"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_21"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_21"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_22"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_22"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_23"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_23"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_24"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_24"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_25"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_25"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_26"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_26"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_27"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_27"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_28"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_28"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_29"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_29"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_30"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_30"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_31"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_31"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_32"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_32"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_33"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_33"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_34"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_34"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_stone",
+			"name": "kerb_35"
+		},
+		{
+			"cast_shadow": true,
+			"collide": true,
+			"material": "fount_wet",
+			"name": "coping_35"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_bed",
+			"name": "pool_bed"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_pool",
+			"name": "pool_water"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "step_1"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "step_2"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_stone",
+			"name": "step_3"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_stone",
+			"name": "ped_foot"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_stone",
+			"name": "ped_shaft"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_stone",
+			"name": "ped_cap"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_stone",
+			"name": "lb_under_1"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_stone",
+			"name": "lb_under_2"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_stone",
+			"name": "lb_under_3"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_00"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_01"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_02"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_03"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_04"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_05"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_06"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_07"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_08"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_09"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_10"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_11"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_12"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_13"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_14"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_15"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_16"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_17"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_18"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_19"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_20"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_21"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_22"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_23"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_24"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_25"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_26"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "lb_rim_27"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_basin",
+			"name": "lb_water"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_stone",
+			"name": "col_foot"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_stone",
+			"name": "col_shaft"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_stone",
+			"name": "col_cap"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_stone",
+			"name": "ub_under_1"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_stone",
+			"name": "ub_under_2"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "ub_rim_00"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "ub_rim_01"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "ub_rim_02"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "ub_rim_03"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "ub_rim_04"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "ub_rim_05"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "ub_rim_06"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "ub_rim_07"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "ub_rim_08"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "ub_rim_09"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "ub_rim_10"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "ub_rim_11"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "ub_rim_12"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "ub_rim_13"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "ub_rim_14"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "ub_rim_15"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "ub_rim_16"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "ub_rim_17"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "ub_rim_18"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_wet",
+			"name": "ub_rim_19"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_basin",
+			"name": "ub_water"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_lo",
+			"name": "lb_veil_00"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_lo",
+			"name": "lb_veil_01"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_lo",
+			"name": "lb_veil_02"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_lo",
+			"name": "lb_veil_03"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_lo",
+			"name": "lb_veil_04"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_lo",
+			"name": "lb_veil_05"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_lo",
+			"name": "lb_veil_06"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_lo",
+			"name": "lb_veil_07"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_lo",
+			"name": "lb_veil_08"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_lo",
+			"name": "lb_veil_09"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_lo",
+			"name": "lb_veil_10"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_lo",
+			"name": "lb_veil_11"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_lo",
+			"name": "lb_veil_12"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_lo",
+			"name": "lb_veil_13"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_lo",
+			"name": "lb_veil_14"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_lo",
+			"name": "lb_veil_15"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_hi",
+			"name": "ub_veil_00"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_hi",
+			"name": "ub_veil_01"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_hi",
+			"name": "ub_veil_02"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_hi",
+			"name": "ub_veil_03"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_hi",
+			"name": "ub_veil_04"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_hi",
+			"name": "ub_veil_05"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_hi",
+			"name": "ub_veil_06"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_hi",
+			"name": "ub_veil_07"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_hi",
+			"name": "ub_veil_08"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_veil_hi",
+			"name": "ub_veil_09"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_stone",
+			"name": "fin_foot"
+		},
+		{
+			"cast_shadow": true,
+			"collide": false,
+			"material": "fount_stone",
+			"name": "fin_shaft"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "fount_bronze",
+			"name": "nozzle"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_plume",
+			"name": "plume_1"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_plume",
+			"name": "plume_2"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_plume",
+			"name": "plume_3"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_plume",
+			"name": "plume_4"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_spray",
+			"name": "spray_1"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "fount_bronze",
+			"name": "jet_00_nozzle"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_jet",
+			"name": "jet_00_a"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_jet",
+			"name": "jet_00_b"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "fount_bronze",
+			"name": "jet_01_nozzle"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_jet",
+			"name": "jet_01_a"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_jet",
+			"name": "jet_01_b"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "fount_bronze",
+			"name": "jet_02_nozzle"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_jet",
+			"name": "jet_02_a"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_jet",
+			"name": "jet_02_b"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "fount_bronze",
+			"name": "jet_03_nozzle"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_jet",
+			"name": "jet_03_a"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_jet",
+			"name": "jet_03_b"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "fount_bronze",
+			"name": "jet_04_nozzle"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_jet",
+			"name": "jet_04_a"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_jet",
+			"name": "jet_04_b"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "fount_bronze",
+			"name": "jet_05_nozzle"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_jet",
+			"name": "jet_05_a"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_jet",
+			"name": "jet_05_b"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "fount_bronze",
+			"name": "jet_06_nozzle"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_jet",
+			"name": "jet_06_a"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_jet",
+			"name": "jet_06_b"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "fount_bronze",
+			"name": "jet_07_nozzle"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_jet",
+			"name": "jet_07_a"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_jet",
+			"name": "jet_07_b"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "fount_bronze",
+			"name": "jet_08_nozzle"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_jet",
+			"name": "jet_08_a"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_jet",
+			"name": "jet_08_b"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "fount_bronze",
+			"name": "jet_09_nozzle"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_jet",
+			"name": "jet_09_a"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_jet",
+			"name": "jet_09_b"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "fount_bronze",
+			"name": "jet_10_nozzle"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_jet",
+			"name": "jet_10_a"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_jet",
+			"name": "jet_10_b"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "fount_bronze",
+			"name": "jet_11_nozzle"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_jet",
+			"name": "jet_11_a"
+		},
+		{
+			"cast_shadow": false,
+			"collide": false,
+			"material": "water_jet",
+			"name": "jet_11_b"
+		}
+	]
+}

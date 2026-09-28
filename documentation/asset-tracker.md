@@ -84,3 +84,18 @@ paint → integrated. **Holder** is who has the next move.
 | Reference | `documentation/reference/palm_trunk/banded_chevron_trunk.png` (her first picture, 2026-09-27: dark and tan bands, scalloped edges); her second picture (segments with torn, lighter collars) was pasted in chat and is not saved in the project |
 | Last hand-back | `documentation/screenshots/handbacks/palm_trunk-2026-09-27_2022/` (her hand-back with no changes: the PSD's export equals the canvas pixel for pixel; normal made from the bump; GLB 272 KB; textures match, VRAM-compressed with mipmaps; `coastal_palm_test`, `tree_catalog_test`, `coastal_plant_catalog_test`, `budget_test` PASS; clearance 0 of 87; ground contact known failures only). In-game frames of the look: `palm_trunk-2026-09-27_2007/game_*.png` |
 | Next | Her passes: each PSD save sends the colour; "handed back" runs `python3 tools/prop_handback.py palm_trunk`, which also makes the normal map from `palm_trunk_bump.png` (painted in Photoshop as its own file; its saves don't trigger the hook). Commit on her word |
+
+## Landmarks
+
+### plaza_fountain — the plaza's centrepiece (ID when catalogued)
+
+| | |
+|---|---|
+| Stage | **model** (2026-09-27): moved from `gen_props.gd` to Blender losslessly; no reshape yet |
+| Holder | Christina: shaping, when she chooses |
+| Model | `assets/source/props/plaza_fountain.blend`, made by `tools/blender/parts_from_maquette.py` from the maquette (`reference/plaza_fountain.glb` and `_parts.json`, written by `maquette_export --whole` and `tools/_fountain_migration_probe.gd materials`). `export`: 35 objects from the generator's 208 shapes, one per ring of repeated blocks (`kerb`, `coping`, `lb_rim`, `ub_rim`, `lb_veil`, `ub_veil`, `jet_nozzle`, `jet_a`, `jet_b`) and one per drum; welded, planar faces joined, sharp where the maquette's normals split; 4,728 triangles; 11 materials by the generator's names; `kerb` and `coping` collide, the rest `kyt_collision = none`; water and nozzles `kyt_shadow = off`; scene `kyt_keep_parts`. `reference`: the 208 shapes, hidden |
+| Game | `assets/props/plaza_fountain.glb` (272 KB), mounted by `scenes/world/plaza_fountain.tscn` (inherits the GLB, keeps `authored_additions`) at the park's origin. Import settings: materials mapped by name to `assets/materials/plaza_fountain/*.tres` (the generator's own, written out), `tools/kyt_part_import.gd` for `kyt_shadow`, no LODs, no vertex compression (compression moved vertices 0.35 mm) |
+| Proof | `_fountain_migration_probe compare`: surfaces within 0.0019 mm both ways, collision likewise, area within 0.00002%, flat normals within 0.006°, materials, shadows and instance settings identical. Drum sides are now radial; the CSG ones leaned up to 10.9°. Cap UVs differ; nothing reads them |
+| Card | `documentation/howto/shape-the-plaza-fountain.md`: what binds (radius 9, coping top 0.52, jets, lights, the water materials' heights, the envelope) and the reasoning from the generator's notes |
+| Last hand-back | none; starting frames `documentation/screenshots/handbacks/plaza_fountain-start-2026-09-27_2333/` |
+| Next | Her shaping: Check, Send to game, Save, "handed back"; then `seat_test`, `ground_contact_test`, `_fountain_probe`, `clearance_test`, `budget_test`, the probe's report of how far it moved. A reshaped lip, ring or basin moves the water `.tres` heights, `_fountain_lights` and the `ParkPlan` fountain numbers with it. Commit on her word |

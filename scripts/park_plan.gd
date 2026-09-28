@@ -97,13 +97,17 @@ const PLAZA_HALF := 52.0
 ## the new room and invisible from the gate; this reads from the far end of the
 ## street, which is the whole job of a thing on an axis.
 ##
-## Since 2026-08-14c this is the outer face of the pool's **coping**, and the
-## fountain is generated into `scenes/world/plaza_fountain.tscn` rather than
-## typed into `plaza.tscn`. The number did not move and nothing that routes
-## around it had to change — which was the point of not moving it. What did
-## change is that the ring is now a 52cm kerb you could sit on rather than a
-## 90cm drum, so the footprint the crowd avoids and the thing a person meets are
-## no longer the same height.
+## Since 2026-08-14c this is the outer face of the pool's **coping**. The
+## number did not move and nothing that routes around it had to change — which
+## was the point of not moving it. What did change is that the ring is now a
+## 52cm kerb you could sit on rather than a 90cm drum, so the footprint the
+## crowd avoids and the thing a person meets are no longer the same height.
+##
+## Since 2026-09-27 the fountain's shape is `assets/source/props/plaza_fountain.blend`,
+## mounted by `scenes/world/plaza_fountain.tscn`, and the numbers here are its
+## contract with the crowd and the lights rather than its source: a change to
+## the coping, the water or the jets in Blender comes with a change here
+## (`documentation/howto/shape-the-plaza-fountain.md`).
 const FOUNTAIN_AT := Vector2(0.0, 0.0)
 const FOUNTAIN_RADIUS := 9.0
 
@@ -111,10 +115,12 @@ const FOUNTAIN_RADIUS := 9.0
 ## needs. `FOUNTAIN_RADIUS` above is the footprint the crowd walks around; these
 ## are where somebody sits on it and how high that is.
 ##
-## Here rather than in `gen_props.gd` because both generators need them and
-## neither can read the other: `gen_props` builds the coping to this height and
-## `gen_crowd` puts nine guests on it, and the two agreeing by having 0.52 typed
-## into each is the drift that put the cafe terrace in three places at once.
+## Here because the coping and the crowd must agree and neither can read the
+## other: the Blender file's coping stands at this height and `gen_crowd` puts
+## nine guests on it, and the two agreeing by having 0.52 typed into each is
+## the drift that put the cafe terrace in three places at once. `seat_test`
+## checks there is coping under each of them and `ground_contact_test` that it
+## is at this height.
 ##
 ## 0.52 is a decision and not a measurement. What stood here until 2026-08-14c
 ## was a 0.9m drum, which is a plinth you lean against; a kerb people sit on is
@@ -127,12 +133,13 @@ const FOUNTAIN_RADIUS := 9.0
 const FOUNTAIN_RIM_TOP := 0.52
 const FOUNTAIN_RIM_SEAT_R := 8.66
 
-## The water, as the three numbers something outside `gen_props.gd` has to know
+## The water, as the three numbers something outside the fountain has to know
 ## in order to *point at* it.
 ##
 ## `gen_crowd.gd` aims the crowd's attention at the jets and the pool surface —
 ## those are the two parts of the fountain a person standing beside it actually
-## watches — and it cannot read the generator that builds them. The alternative
+## watches — and `gen_props.gd` lights them, and neither can read the Blender
+## file that shapes them. The alternative
 ## is the radius typed in both files, which is how the fountain's own POI came to
 ## be aimed at a column that no longer exists.
 const FOUNTAIN_JET_R := 6.5

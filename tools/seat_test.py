@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Is every seated guest sitting on something?
 
-Reads the generated scenes as text and checks that each guest carrying a
-`seat_at` has a seat surface under it — a bench slat, a cafe chair, or the
-fountain's coping.
+Reads the generated scenes as text, and the fountain's GLB, and checks that
+each guest carrying a `seat_at` has a seat surface under it — a bench slat, a
+cafe chair, or the fountain's coping.
 
 This exists because seven of them were not. `ParkPlan.PLAZA_CAFE` holds the
 terrace in *final* coordinates and `gen_props._cafe()` put it through the
@@ -23,13 +23,20 @@ no scene to stand up.
 Usage:  python3 tools/seat_test.py
 """
 
-import re, sys, math
+import os, re, sys, math
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from glb_mesh import triangles, normal, covers_xz
 
 CROWD = "scenes/world/plaza_crowd.tscn"
 # These tests parse node text rather than instantiating a scene, so they read
 # the generated sources beneath the stable editor-owned wrappers.
 PROPS = "scenes/world/generated/plaza_props.tscn"
-FOUNTAIN = "scenes/world/generated/plaza_fountain.tscn"
+# The fountain is a GLB sent from Blender since 2026-09-27, and its seat is
+# the top of the part named `coping`: a guest sits on it when they stand over
+# one of its upward faces.
+FOUNTAIN = "assets/props/plaza_fountain.glb"
+FOUNTAIN_SEAT = "coping"
 # The plaza benches are hand-placed since 2026-09-24, and each carries its seat
 # contract as markers, so their seats are exact points rather than slabs.
 FURNITURE = "scenes/world/plaza_furniture.tscn"
@@ -105,20 +112,26 @@ def main():
     # seat too, and counting it here rather than special-casing the rim is what
     # keeps this from needing to know that the rim exists.
     surfaces = [(n, x, z, REACH) for n, x, z in origins(PROPS, lambda n: n.endswith("_seat"))]
-    surfaces += [(n, x, z, REACH) for n, x, z in origins(FOUNTAIN, lambda n: n.startswith("coping_"))]
     surfaces += [(n, x, z, MARKER_REACH) for n, x, z in marker_seats()]
+    rim = [t for t in triangles(FOUNTAIN).get(FOUNTAIN_SEAT, []) if normal(t)[1] > 0.9]
+    if not rim:
+        print("FAIL the fountain has no '%s' with an upward face in %s" % (FOUNTAIN_SEAT, FOUNTAIN))
+        return 1
     guests = seated_guests(CROWD)
-    print("%d seated guests on furniture, %d seat surfaces "
+    print("%d seated guests on furniture, %d seat surfaces and the fountain's %s "
           "(wheelchair users excluded — they bring their own)"
-          % (len(guests), len(surfaces)))
+          % (len(guests), len(surfaces), FOUNTAIN_SEAT))
 
     bad = []
     for name, kind, gx, gz in guests:
-        # On a seat when inside that seat's own reach; the report names the
-        # nearest one either way.
+        # On a seat when inside that seat's own reach, or over the coping's
+        # top; the report names the nearest seat either way.
         if any(math.hypot(gx - x, gz - z) <= r for _, x, z, r in surfaces):
             continue
-        d, on = min((math.hypot(gx - x, gz - z), n) for n, x, z, _ in surfaces)
+        if any(covers_xz(t, gx, gz) for t in rim):
+            continue
+        d, on = min([(math.hypot(gx - x, gz - z), n) for n, x, z, _ in surfaces]
+                    + [(math.hypot(gx - p[0], gz - p[2]), FOUNTAIN_SEAT) for t in rim for p in t])
         bad.append((name, kind, gx, gz, d, on))
     for name, kind, gx, gz, d, on in bad:
         print("  FAIL %-10s %-7s at (%7.2f,%7.2f) — nearest seat %s is %.2fm away"

@@ -1,0 +1,16 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://assets/shaders/water_fall.gdshader" id="1_gtjr0"]
+
+[resource]
+resource_name = "water_veil_lo"
+render_priority = 0
+shader = ExtResource("1_gtjr0")
+shader_parameter/tint = null
+shader_parameter/flow = 2.4
+shader_parameter/streaks = 64.0
+shader_parameter/grain = 2.2
+shader_parameter/base_alpha = 0.3
+shader_parameter/glow = 0.3
+shader_parameter/fade_from = 3.16
+shader_parameter/fade_to = 0.55

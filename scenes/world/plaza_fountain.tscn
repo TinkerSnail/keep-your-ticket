@@ -1,8 +1,14 @@
 [gd_scene load_steps=2 format=3]
 
-; Stable editor-owned wrapper. The generator writes only generated/plaza_fountain.tscn.
-[ext_resource type="PackedScene" path="res://scenes/world/generated/plaza_fountain.tscn" id="1_generated"]
+; The plaza fountain, as the plaza mounts it. Editor-owned. Its shape is
+; `assets/source/props/plaza_fountain.blend` since 2026-09-27, sent with the
+; Keep Your Ticket panel's Send to game to `assets/props/plaza_fountain.glb`;
+; before that `tools/gen_props.gd` built it. Its materials are
+; `assets/materials/plaza_fountain/*.tres`, by the Blender material's name, in
+; the GLB's import settings.
+[ext_resource type="PackedScene" path="res://assets/props/plaza_fountain.glb" id="1_model"]
 
-[node name="fountain" instance=ExtResource("1_generated")]
+[node name="fountain" instance=ExtResource("1_model")]
+editor_description = "The plaza fountain. Shape: res://assets/source/props/plaza_fountain.blend (Send to game). Materials: res://assets/materials/plaza_fountain/, mapped by name in the GLB's import settings. The kerb and coping collide (layer 1, derived on export); parts with kyt_collision = none do not; parts with kyt_shadow = off cast no shadow (tools/kyt_part_import.gd). Stands at the park's origin: both water shaders work in world space."
 
 [node name="authored_additions" type="Node3D" parent="."]
