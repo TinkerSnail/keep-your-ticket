@@ -243,7 +243,9 @@ All go in `assets/source/textures/<prop>/`. The options set the starting look:
   of wide bites she called "abysmal"). With it,
   `--leaflets --shading-only` paints a starting look into
   `<prop>_shading.png`, which `prop_handback.py <prop> --shading-layer` puts
-  in her PSD as "shading (Claude)" above her paint, unsaved.
+  in her PSD as "shading (Claude)" above her paint, unsaved. `--base-fade
+  dead:0.55` and `prop_handback.py <prop> --base-layer dead` gave the dead
+  fronds a green base fading to brown, a Color-blend layer over her paint.
 
 Each effect's strength is a number at the top of the script. The bench's full
 command is in `howto/paint-the-plaza-bench.md`. A canvas someone has painted

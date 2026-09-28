@@ -5,7 +5,8 @@
         [--knots part,part] [--wear part,part] [--chips part,part] [--dings part,part]
         [--ground part,part] [--weather part,part] [--perforate part,part] [--overwrite]
         [--holes-only] [--guide-only] [--save]
-    ... --python tools/blender/paint_canvas.py -- --leaflets [--overwrite | --cutout-only] [--save]
+    ... --python tools/blender/paint_canvas.py -- --leaflets [--overwrite | --cutout-only | --shading-only
+        | --base-fade <kind>:<share>] [--save]
 
 Runs on the game-ready working file (after Make game mesh), whose game mesh is
 unwrapped for its own texture. Writes three images to
@@ -233,6 +234,7 @@ SHADE_RIM = 0.35  # the rim begins this share of the way out
 MIDRIB_M = 0.02  # the midrib's half-width
 VEIN_EVERY_M, VEIN_DARK = 0.22, 0.05  # faint vein lines along the fan, this far apart, this much darker
 MOTTLE, MOTTLE_M = 0.07, 0.25  # soft light-and-dark patches this strong, about this big
+BASE_FADE_ALPHA = 0.85  # `--base-fade`: how strongly the colour holds at the stalk
 
 LEAFLET_WIDEST = 0.3  # where along a leaflet it is widest; it narrows to a point at the tip
 LEAFLET_SLENDER = 0.3  # no leaflet is wider than this share of its length: short ones stay points
@@ -1140,6 +1142,45 @@ def leaflet_canvas(argv, name, root, folder, size, orm_size):
     orm_path = os.path.join(folder, f"{name}_orm.png")
     guide_path = os.path.join(folder, f"{name}_uv_guide.png")
     cutout_path = os.path.join(folder, f"{name}_cutout.png")
+    if "--base-fade" in argv:
+        # A colour at one kind's base fading up its leaf, as a layer:
+        # `<prop>_<kind>_base.png`, the green of her painted mature fronds (from
+        # `<prop>_colour.png`), opaque at the stalk and gone `share` of the way
+        # to the tip. `prop_handback.py <prop> --base-layer <kind>` puts it in
+        # her PSD at Color blend, so her painting's light and dark show through.
+        # The dead fronds' green base, her ask on 2026-09-27.
+        kind, share = argv[argv.index("--base-fade") + 1].split(":")
+        share = float(share)
+        label = raster_islands(objs, size)
+        index = {o.name: i + 1 for i, o in enumerate(objs)}
+        target, source = index[f"blade_{kind}"], index["blade_mature"]
+        painted = bpy.data.images.load(colour_path, check_existing=False)
+        px = np.empty(size * size * 4, dtype=np.float32)
+        painted.pixels.foreach_get(px)
+        bpy.data.images.remove(painted)
+        px = px.reshape(size, size, 4)
+        leaf = (label == source) & (px[..., 3] > 0.5)
+        green = np.median(px[leaf][:, :3], axis=0)
+        mine = label == target
+        rows = np.nonzero(mine.any(axis=1))[0]
+        base_row, tip_row = rows.min(), rows.max()
+        along = (np.arange(size, dtype=np.float32) - base_row) / max(tip_row - base_row, 1)
+        fade = (BASE_FADE_ALPHA * (1.0 - np.clip(along / share, 0.0, 1.0)) ** 1.5)[:, None]
+        alpha = np.where(mine, fade, 0.0)
+        alpha = np.where(label == 0, max_filter(alpha, ALPHA_SPREAD_PX), alpha)
+        out = np.zeros((size, size, 4), dtype=np.float32)
+        out[..., :3] = green
+        out[..., 3] = alpha
+        base_path = os.path.join(folder, f"{name}_{kind}_base.png")
+        img = bpy.data.images.new("_kyt_base", size, size, alpha=True)
+        img.pixels.foreach_set(out.ravel())
+        img.filepath_raw = base_path
+        img.file_format = "PNG"
+        img.save()
+        bpy.data.images.remove(img)
+        print(f"paint_canvas: {kind} base in {os.path.relpath(base_path, root)}: green "
+              f"{tuple(round(float(c), 3) for c in green)} from blade_mature, gone {share:.0%} of the way up")
+        return
     if "--shading-only" in argv:
         # A painted starting look for the leaves, as a layer: `<prop>_shading.png`,
         # the leaf kinds in SHADING shaded, transparent elsewhere, spread a few

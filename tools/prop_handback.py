@@ -288,6 +288,21 @@ def shading_layer(r, psd, shading_png):
     r.say(said.startswith(("ADDED", "REPLACED")), "shading layer", said or "Photoshop gave no answer")
 
 
+def base_layer(r, psd, png, kind):
+    """Puts `<prop>_<kind>_base.png` (`paint_canvas.py --leaflets --base-fade`)
+    into the PSD as "<kind> base (Claude)" at Color blend, above "shading
+    (Claude)" if there is one and otherwise above `paint`, and doesn't save."""
+    with Image.open(psd) as doc:
+        names = [layer[0] for layer in getattr(doc, "layers", [])]
+    above = "shading (Claude)" if "shading (Claude)" in names else "paint"
+    jsx = os.path.join(ROOT, "tools", "photoshop", "layer_from_png.jsx")
+    script = (f'tell application id "com.adobe.Photoshop" to do javascript file (POSIX file "{jsx}") '
+              f'with arguments {{"{psd}", "{png}", "{kind} base (Claude)", "{above}", "COLORBLEND"}}')
+    out = run(["osascript", "-e", script], timeout=300)
+    said = (out.stdout + out.stderr).strip()
+    r.say(said.startswith(("ADDED", "REPLACED")), "base layer", said or "Photoshop gave no answer")
+
+
 def hole_layers(r, colour, psd, save=False):
     """A perforated prop's PSD gets (or has refreshed) its two hole layers
     (`tools/photoshop/hole_layers.jsx`): the canvas colour, opaque, under the
@@ -336,6 +351,8 @@ def main():
                     help="refresh a perforated prop's hole layers in its PSD after the holes are cut again")
     ap.add_argument("--cutout-layer", action="store_true",
                     help="put a crown's re-cut <prop>_cutout.png into its PSD's cut-out layer, unsaved")
+    ap.add_argument("--base-layer", metavar="KIND",
+                    help="put a crown's <prop>_<kind>_base.png into its PSD at Color blend, unsaved")
     ap.add_argument("--shading-layer", action="store_true",
                     help="put a crown's <prop>_shading.png into its PSD as 'shading (Claude)', unsaved")
     args = ap.parse_args()
@@ -349,6 +366,13 @@ def main():
     folder = os.path.join(ROOT, "documentation", "screenshots", "handbacks", f"{prop}-{stamp}")
     r = Report(prop)
     ok = True
+    if args.base_layer:
+        try:
+            base_layer(r, psd, os.path.join(textures, f"{prop}_{args.base_layer}_base.png"), args.base_layer)
+            print("Base layer in the PSD, not saved: look, and save it if it's right.")
+        except Stop:
+            sys.exit(1)
+        sys.exit(0)
     if args.shading_layer:
         try:
             shading_layer(r, psd, os.path.join(textures, f"{prop}_shading.png"))

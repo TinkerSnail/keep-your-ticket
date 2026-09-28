@@ -5,7 +5,9 @@
 // "shading (Claude)" (paint_canvas.py --leaflets --shading-only). The layer is
 // copied between documents, which keeps its position (Place does not).
 // Run by tools/prop_handback.py (--shading-layer) through AppleScript:
-//   do javascript file "layer_from_png.jsx" with arguments {psd, png, name, above}
+//   do javascript file "layer_from_png.jsx" with arguments {psd, png, name, above[, blend]}
+// `blend` is a Photoshop blend mode by its name in BlendMode ("COLORBLEND" for
+// Color), Normal when left out.
 // Returns a one-line report.
 app.displayDialogs = DialogModes.NO;
 // Not `name`: at the top level of a Photoshop script that is the app's own name.
@@ -29,6 +31,7 @@ if (above == null) {
     src.close(SaveOptions.DONOTSAVECHANGES);
     app.activeDocument = doc;
     layer.name = layerName;
+    if (arguments.length > 4 && arguments[4] != "") layer.blendMode = BlendMode[arguments[4]];
     // Whether there was one, kept before it is removed: a removed layer is an
     // invalid object and even comparing it throws.
     var replaced = old != null;
