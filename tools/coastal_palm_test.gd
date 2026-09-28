@@ -160,6 +160,8 @@ func _check_place(place: Node3D, expected_count: int) -> bool:
 	var shared_ring_count := 0
 	var crowns_seen := {}
 	var frond_sets := {}
+	var mirrored_total := 0
+	var shown_total := 0
 	for palm_node in palms.get_children():
 		var palm := palm_node as Node3D
 		var prefix := String(palm.name)
@@ -281,6 +283,18 @@ func _check_place(place: Node3D, expected_count: int) -> bool:
 				key.append((part as Node3D).transform.basis.x.snappedf(0.0001))
 				chosen.append(String(part.name))
 		frond_sets[chosen] = true
+		# Some fronds mirrored across their midrib and some not, so the leaves'
+		# tears don't repeat frond to frond (palm_crown.gd, 2026-09-27).
+		var mirrored := 0
+		for part in crown.get_node("model").get_children():
+			if part is MeshInstance3D and bool(part.get_meta("shown", false)) \
+					and bool(part.get_meta("mirrored", false)):
+				mirrored += 1
+		if mirrored == 0 or mirrored == chosen.size():
+			_fail("%s mirrors %d of its %d shown parts: none or all" % [prefix, mirrored, chosen.size()])
+			return false
+		mirrored_total += mirrored
+		shown_total += chosen.size()
 		if crowns_seen.has(key):
 			_fail("%s carries the same crown as %s" % [prefix, crowns_seen[key]])
 			return false
@@ -288,8 +302,8 @@ func _check_place(place: Node3D, expected_count: int) -> bool:
 	if not saw_added_fronds:
 		_fail("%s has no denser crown variants" % place.name)
 		return false
-	print("%s: %d palms on their established feet, no generator stick palm, %d different choices of fronds, stubs and dead fronds" % [
-		place.name, palms.get_child_count(), frond_sets.size()])
+	print("%s: %d palms on their established feet, no generator stick palm, %d different choices of fronds, stubs and dead fronds, %d of %d shown parts mirrored" % [
+		place.name, palms.get_child_count(), frond_sets.size(), mirrored_total, shown_total])
 	var expected_ring_count := 26 if place.name == &"park_approach" else 0
 	if shared_ring_count != expected_ring_count:
 		_fail("%s expected %d shared-ring palm feet, found %d" % [

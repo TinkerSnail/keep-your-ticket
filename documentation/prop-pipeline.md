@@ -357,6 +357,18 @@ Step 1 refuses a PSD with unsaved changes (`--allow-unsaved` overrides), and
 the file as saved. Step 4 puts Godot's import settings right if they aren't,
 but only after the first extraction (R6).
 
+**A crown's material in the game** (2026-09-27) is not the one its GLB
+brings: the GLB's import settings map the `palm_crown` material to
+`assets/materials/palm_crown_leaf.tres`, a `ShaderMaterial` on
+`assets/shaders/palm_leaf.gdshader` that reads the same extracted colour and
+ORM textures, so every hand-back still reaches it, and takes each leaf's
+underside darker, cooler and flatter than its top, both faces sharing one
+painting. Each frond's green also leans a little yellow or teal and lighter
+or darker, by a tone `palm_crown.gd` puts in its vertex colour, offset by
+where the crown stands. Its underside tint, mix, darkening and roughness, and
+the frond lean (`frond_hue`, `frond_brightness`), are parameters on the
+`.tres`, set in the inspector. Blender's viewport shows the plain material.
+
 ### 9. Review and commit (Christina decides) — rough
 
 The agent renders the prop from a few angles (walking distance, close, the
