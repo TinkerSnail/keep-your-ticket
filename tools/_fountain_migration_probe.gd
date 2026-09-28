@@ -35,6 +35,23 @@ extends Node
 ##   FOUNTAIN_MAQUETTE=/tmp/f.tscn godot … -- _fountain_migration_probe compare
 ## `FOUNTAIN_PROBE_WHERE=1` also prints, per ring, the mounted vertex farthest
 ## from the maquette.
+##
+## **Rings made radial arrays** (2026-09-28, `tools/blender/radial_array.py`) are
+## exact turned copies of one block, where the generator had nudged each block
+## up to 5 mm along (1, 1, 1) by build order (`_add`: the shape's index in the
+## scene plus the scene's seed, 8 for the fountain, modulo 21, times 0.25 mm),
+## and every other copy now stands `Lift` higher where neighbours overlap. Name
+## them with their lifts, and the probe takes each maquette block's nudge out by
+## the generator's rule and adds the lift before comparing:
+##   FOUNTAIN_ARRAYS=kerb:0.0005,coping:0.0005,lb_rim:0.0005,ub_rim:0.0005,lb_veil:0,ub_veil:0,jet_nozzle:0,jet_a:0,jet_b:0
+##
+## **Stacks of drums made lathes** (2026-09-28, `tools/blender/lathe_from_drums.py`)
+## are one outline spun round the axis: the drums' union, at their plan sizes,
+## with one number of sides. Name each lathe and its drums, and the probe takes
+## the drums' nudges out, compares only the maquette surface a lathe can have
+## (not the faces buried inside a neighbouring drum), and allows each drum its
+## own facets' depth, radius (1 - cos(pi / sides)), where the lathe has more:
+##   FOUNTAIN_LATHES="pedestal_steps=step_1+step_2;pedestal=step_3+ped_foot+ped_shaft+ped_cap;lb_under=lb_under_1+lb_under_2+lb_under_3;ub_under=ub_under_1+ub_under_2"
 
 const MAQUETTE := "res://scenes/world/generated/plaza_fountain.tscn"
 const MOUNTED := "res://scenes/world/plaza_fountain.tscn"
@@ -63,6 +80,12 @@ const POSITION_TOLERANCE := 0.0001
 const NORMAL_TOLERANCE_DEG := 0.5
 
 var _ring := RegEx.create_from_string("_\\d\\d(?=_|$)")
+var _index := RegEx.create_from_string("_(\\d\\d)(?=_|$)")
+
+## The fountain's scene seed in `gen_props.gd`, and its seam step and wrap.
+const SCENE_SEED := 8
+const SEAM_STEP := 0.00025
+const SEAM_STEPS := 21
 var _fails: Array[String] = []
 
 
@@ -193,6 +216,8 @@ class Surface:
 	## For a vertex of a drum, the drum's axis and a point on it; zero otherwise.
 	var axes := PackedVector3Array()
 	var centres := PackedVector3Array()
+	## Which part of its group each vertex came from.
+	var owners := PackedInt32Array()
 	var lows := PackedVector3Array()
 	var highs := PackedVector3Array()
 	var area := 0.0
@@ -214,12 +239,28 @@ func _compare(maquette: Node, mounted: Node) -> void:
 	var objects := {}
 	for n in mounted.find_children("*", "MeshInstance3D", true, false):
 		objects[String(n.name)] = n
+	var lathe_of := {}
+	for spec in OS.get_environment("FOUNTAIN_LATHES").split(";", false):
+		for drum in spec.get_slice("=", 1).split("+", false):
+			lathe_of[drum] = spec.get_slice("=", 0)
 	var rings := {}
-	for part in parts:
+	var order := {}
+	for j in parts.size():
+		var part := parts[j]
+		order[part] = j
 		var ring := _ring.sub(String(part.name), "", true)
+		ring = lathe_of.get(String(part.name), ring)
 		if not rings.has(ring):
 			rings[ring] = []
 		rings[ring].append(part)
+	var arrays := {}
+	for pair in OS.get_environment("FOUNTAIN_ARRAYS").split(",", false):
+		arrays[pair.get_slice(":", 0)] = float(pair.get_slice(":", 1))
+	if not arrays.is_empty():
+		print("radial arrays, compared without the generator's nudges: %s" % ", ".join(arrays.keys()))
+	var lathes := {}
+	for drum in lathe_of:
+		lathes[lathe_of[drum]] = true
 	print("maquette: %d parts in %d rings; mounted: %d objects" % [
 		parts.size(), rings.size(), objects.size()])
 	for extra in objects:
@@ -235,14 +276,26 @@ func _compare(maquette: Node, mounted: Node) -> void:
 			continue
 		var mi := objects[ring] as MeshInstance3D
 		var old := Surface.new()
+		var drums := []
 		for part in rings[ring]:
 			var xf := (part as Node3D).global_transform
+			if arrays.has(ring) or lathes.has(ring):
+				xf.origin -= Vector3.ONE * float((SCENE_SEED + order[part]) % SEAM_STEPS) * SEAM_STEP
+			if arrays.has(ring) and int(_index.search(String(part.name)).get_string(1)) % 2 == 1:
+				xf.origin.y += arrays[ring]
 			_add_mesh(old, (part as CSGShape3D).bake_static_mesh(), xf,
-				xf.basis.y.normalized() if part is CSGCylinder3D else Vector3.ZERO)
+				xf.basis.y.normalized() if part is CSGCylinder3D else Vector3.ZERO, drums.size())
+			drums.append([xf, part])
 		var now := Surface.new()
 		_add_mesh(now, mi.mesh, mi.global_transform)
 		totals.maquette += old.tris.size() / 3
 		totals.mounted += now.tris.size() / 3
+		if lathes.has(ring):
+			_compare_lathe(ring, old, now, drums)
+			_compare_material(ring, rings[ring], mi, named.names)
+			_compare_instance(ring, rings[ring], mi)
+			_compare_collision(ring, rings[ring], mi, old)
+			continue
 		var m := _measure(old, now)
 		for k in m:
 			worst[k] = maxf(worst[k], m[k])
@@ -269,7 +322,43 @@ func _compare(maquette: Node, mounted: Node) -> void:
 	print("largest UV move (nothing reads them): %.4f" % worst.uv)
 
 
-func _add_mesh(into: Surface, mesh: Mesh, xf: Transform3D, axis := Vector3.ZERO) -> void:
+## A lathe against the drums it replaced. Only the maquette surface a lathe can
+## have is asked about: a vertex buried inside another drum of the stack (by
+## more than a millimetre) was on a face nobody could see, and a lathe, one
+## outline, has no such faces. Where the lathe has more sides than a drum, the
+## drum's flat faces lay inside the lathe's by up to their sagitta, so that is
+## the drum's allowance; a drum that kept its count is held to the tolerance.
+## Normals are judged only where the two surfaces meet within the tolerance.
+func _compare_lathe(ring: String, old: Surface, now: Surface, drums: Array) -> void:
+	var hidden := PackedByteArray()
+	hidden.resize(old.positions.size())
+	var buried := 0
+	for i in old.positions.size():
+		for k in drums.size():
+			if k == old.owners[i]:
+				continue
+			var cyl := drums[k][1] as CSGCylinder3D
+			var local: Vector3 = (drums[k][0] as Transform3D).affine_inverse() * old.positions[i]
+			if Vector2(local.x, local.z).length() < cyl.radius * cos(PI / cyl.sides) - 0.001 \
+					and absf(local.y) < cyl.height * 0.5 - 0.001:
+				hidden[i] = 1
+				buried += 1
+				break
+	var allowed := POSITION_TOLERANCE
+	for d in drums:
+		var cyl := d[1] as CSGCylinder3D
+		allowed = maxf(allowed, cyl.radius * (1.0 - cos(PI / cyl.sides)) + POSITION_TOLERANCE)
+	var m := _measure(old, now, hidden, true)
+	print("%s (lathe of %d drums): surface %.4f/%.4f mm (allowed %.1f), normals %.4f deg where they meet, sides off radial %.4f deg; %d buried maquette vertices skipped; area %.3f m² (drums %.3f)" % [
+		ring, drums.size(), m.to * 1000.0, m.from * 1000.0, allowed * 1000.0, m.normal, m.skew_now,
+		buried, now.area, old.area])
+	if m.to > allowed or m.from > allowed or m.normal > NORMAL_TOLERANCE_DEG \
+			or m.skew_now > NORMAL_TOLERANCE_DEG:
+		_fails.append("%s: lathe strays %.4f/%.4f mm (allowed %.1f), normal %.3f, radial %.3f deg" % [
+			ring, m.to * 1000.0, m.from * 1000.0, allowed * 1000.0, m.normal, m.skew_now])
+
+
+func _add_mesh(into: Surface, mesh: Mesh, xf: Transform3D, axis := Vector3.ZERO, owner := 0) -> void:
 	if mesh == null:
 		return
 	var nb := xf.basis.inverse().transposed()
@@ -286,6 +375,7 @@ func _add_mesh(into: Surface, mesh: Mesh, xf: Transform3D, axis := Vector3.ZERO)
 			into.uvs.append(uv[i] if uv != null else Vector2.ZERO)
 			into.axes.append(axis)
 			into.centres.append(xf.origin)
+			into.owners.append(owner)
 		var count: int = idx.size() if idx != null else v.size()
 		for t in range(0, count, 3):
 			into.add_triangle(base + (idx[t] if idx != null else t),
@@ -308,16 +398,20 @@ func _add_mesh(into: Surface, mesh: Mesh, xf: Transform3D, axis := Vector3.ZERO)
 ## 7.9 degrees on an eight-sided plume. Blender's normals are radial. So on a
 ## drum's side the maquette's lean is measured and reported, and what must hold
 ## is that the mounted normal is radial.
-func _measure(old: Surface, now: Surface) -> Dictionary:
+func _measure(old: Surface, now: Surface, hidden := PackedByteArray(), near_only := false) -> Dictionary:
 	var to := 0.0
 	var normal := 0.0
 	var uv := 0.0
 	var skew_old := 0.0
 	var skew_now := 0.0
 	for i in old.positions.size():
+		if not hidden.is_empty() and hidden[i] == 1:
+			continue
 		var hit := _closest(now, old.positions[i], old.normals[i])
 		to = maxf(to, hit.distance)
 		uv = maxf(uv, old.uvs[i].distance_to(hit.uv))
+		if near_only and hit.distance > POSITION_TOLERANCE:
+			continue
 		var axis := old.axes[i]
 		if axis != Vector3.ZERO and absf(old.normals[i].dot(axis)) < 0.99:
 			var r := old.positions[i] - old.centres[i]

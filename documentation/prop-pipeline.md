@@ -145,6 +145,20 @@ fountain's vertices 0.35 mm, and LODs would thin its drums at a distance. The
 probe's `compare` then proves the mount against the maquette (surfaces both
 ways, normals, area, materials, shadows, collision), and the generator keeps
 a bare `_begin_scene()` in the assembly's slot so later scenes keep their seams.
+Then a ring becomes one editable block: `tools/blender/radial_array.py -- <ring>
+...` keeps its first block, takes it back to its plan position (the generator
+nudged every shape up to 5 mm along its (1, 1, 1); the tool fits each block's
+nudge and stops unless the rest are exact copies), and gives it the **KYT
+radial array** Geometry Nodes modifier (Count, and Lift, 0.5 mm on every other
+copy where neighbours overlap, so no two tops share a plane). The probe
+compares an arrayed ring with the generator's nudges taken out by the
+generator's own rule (`FOUNTAIN_ARRAYS`). A stack of drums becomes a lathe:
+`tools/blender/lathe_from_drums.py -- <lathe>=<drum>+<drum>...` draws the
+drums' union in section at their plan sizes as a line of points and spins it
+with a Screw modifier (then Blender's Smooth by Angle, 30°), one number of
+sides per lathe, the most any of its drums had; drums must share a material.
+The probe compares a lathe with its drums' visible surface (`FOUNTAIN_LATHES`),
+allowing each drum its facets' depth where it gained sides.
 Card: `howto/shape-the-plaza-fountain.md`.
 
 **Done when:** the file opens set up, with the reference locked and the card
