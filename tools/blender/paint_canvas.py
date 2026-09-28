@@ -6,7 +6,7 @@
         [--ground part,part] [--weather part,part] [--perforate part,part] [--overwrite]
         [--holes-only] [--guide-only] [--save]
     ... --python tools/blender/paint_canvas.py -- --leaflets [--overwrite | --cutout-only | --shading-only
-        | --base-fade <kind>:<share>] [--save]
+        | --normal-only | --base-fade <kind>:<share>] [--save]
 
 Runs on the game-ready working file (after Make game mesh), whose game mesh is
 unwrapped for its own texture. Writes three images to
@@ -235,6 +235,17 @@ MIDRIB_M = 0.02  # the midrib's half-width
 VEIN_EVERY_M, VEIN_DARK = 0.22, 0.05  # faint vein lines along the fan, this far apart, this much darker
 MOTTLE, MOTTLE_M = 0.07, 0.25  # soft light-and-dark patches this strong, about this big
 BASE_FADE_ALPHA = 0.85  # `--base-fade`: how strongly the colour holds at the stalk
+# The leaves' relief (`--normal-only`), in metres, after Christina's "mostly for
+# the crenelated nature of the surface" (2026-09-27): a palm leaf is pleated
+# like an accordion, ridge and valley between its side veins, sharp at both
+# creases, the pleats deepening from nothing near the midrib to `PLEAT_M` from
+# `PLEAT_OUT` of the way out; a rib along the midrib; a slight curl at the rim.
+# Raised toward the mesh normal, which faces the underside (the blades'
+# normals point down): the midrib and veins stand proud underneath and sit as
+# grooves on top, as they do on a real leaf.
+PLEAT_M, PLEAT_OUT = 0.035, 0.45
+RIB_M, RIB_WIDTH_M = 0.015, 0.02
+CURL_M = 0.03
 
 LEAFLET_WIDEST = 0.3  # where along a leaflet it is widest; it narrows to a point at the tip
 LEAFLET_SLENDER = 0.3  # no leaflet is wider than this share of its length: short ones stay points
@@ -1036,11 +1047,20 @@ def cut_leaflets(obj, kind, label, index, size, px_m, rng):
     return leaf, straw
 
 
-def shade_leaf(obj, kind, label, index, size, px_m, rng):
-    """(rgb, coverage) of the painted starting look for one blade's island, in
-    sRGB: its place along the leaf and out from the midrib read off the island
-    itself (base at the bottom, the midrib the UVs of its x = 0 vertices)."""
-    spec = SHADING[kind]
+def smooth(e0, e1, x):
+    t = np.clip((x - e0) / (e1 - e0), 0.0, 1.0)
+    return t * t * (3 - 2 * t)
+
+
+def leaf_frame(obj, kind, label, index, size, px_m):
+    """Where each pixel of one blade's island lies on its leaf, read off the
+    island itself (base at the bottom, the midrib the UVs of its x = 0
+    vertices): its box, `along` (0 at the base, 1 at the tip), `off` (pixels
+    from the midrib), `out` (0 on the midrib, 1 at the edge) and `phase`, which
+    side vein it lies on: each point run back along a line at the tears'
+    angle to where it leaves the midrib, spaced irregularly so the veins don't
+    read as ruled but each stays straight. Shared by the shading and the
+    normal map, so the pleats fall where the veins are painted."""
     mine = label == index
     ys, xs = np.nonzero(mine)
     y0, y1, x0, x1 = ys.min(), ys.max(), xs.min(), xs.max()
@@ -1048,32 +1068,31 @@ def shade_leaf(obj, kind, label, index, size, px_m, rng):
     line = rachis_line(obj, size)
     mid = float(np.median(line[:, 0])) - x0
     yy, xx = np.mgrid[y0:y1 + 1, x0:x1 + 1]
-    along = (yy - y0) / max(y1 - y0, 1)  # 0 at the base, 1 at the tip
+    along = (yy - y0) / max(y1 - y0, 1)
     # The half-width of each row, from the island's own extent.
     left = np.where(box.any(axis=1), box.argmax(axis=1), 0)
     right = np.where(box.any(axis=1), box.shape[1] - 1 - box[:, ::-1].argmax(axis=1), 0)
     half = np.maximum(np.maximum(mid - left, right - mid), 1.0)[:, None]
     off = np.abs(xx - x0 - mid)
-    out = np.clip(off / half, 0.0, 1.0)  # 0 on the midrib, 1 at the edge
+    out = np.clip(off / half, 0.0, 1.0)
+    fan = TEARS.get(kind, TEARS["mature"])
+    angle = np.radians(fan["open"] + (fan["tip"] - fan["open"]) * along)
+    origin_m = ((yy - y0) - off / np.tan(angle)) / px_m
+    phase = origin_m / VEIN_EVERY_M + 0.35 * np.sin(origin_m * 1.7 + 0.4) + 0.2 * np.sin(origin_m * 4.1 + 1.3)
+    return mine, (y0, y1, x0, x1), box, along, off, out, phase
 
-    def smooth(e0, e1, x):
-        t = np.clip((x - e0) / (e1 - e0), 0.0, 1.0)
-        return t * t * (3 - 2 * t)
 
+def shade_leaf(obj, kind, label, index, size, px_m, rng):
+    """(rgb, coverage) of the painted starting look for one blade's island, in
+    sRGB, laid on `leaf_frame`."""
+    spec = SHADING[kind]
+    mine, (y0, y1, x0, x1), box, along, off, out, phase = leaf_frame(obj, kind, label, index, size, px_m)
     dark, light, rim, midrib = (np.array(spec[k], dtype=np.float32) for k in ("dark", "light", "rim", "midrib"))
     lengthwise = smooth(0.0, 0.85, along)[..., None]
     rgb = dark + (light - dark) * (0.3 + 0.7 * lengthwise)
     rgb = rgb + (rim - rgb) * (smooth(SHADE_RIM, 1.0, out) * (0.45 + 0.55 * lengthwise[..., 0]))[..., None]
     crease = 1.0 - SHADE_CREASE[0] * (1.0 - smooth(0.0, SHADE_CREASE[1], out))
     base = 0.55 + 0.45 * smooth(0.0, SHADE_BASE, along)
-    # Veins: lines along the fan, found by running each point back along a
-    # line at the tears' angle to where it leaves the rachis.
-    fan = TEARS.get(kind, TEARS["mature"])
-    angle = np.radians(fan["open"] + (fan["tip"] - fan["open"]) * along)
-    origin_m = ((yy - y0) - off / np.tan(angle)) / px_m
-    # Irregular spacing, set by where a vein leaves the midrib alone, so each
-    # vein stays a straight line and they don't read as ruled.
-    phase = origin_m / VEIN_EVERY_M + 0.35 * np.sin(origin_m * 1.7 + 0.4) + 0.2 * np.sin(origin_m * 4.1 + 1.3)
     vein = smooth(0.7, 1.0, 0.5 + 0.5 * np.cos(2 * np.pi * phase)) * smooth(0.12, 0.3, out)
     noise = rng.standard_normal((box.shape[0] // 8 + 2, box.shape[1] // 8 + 2)).astype(np.float32)
     noise = np.kron(noise, np.ones((8, 8), dtype=np.float32))[:box.shape[0], :box.shape[1]]
@@ -1180,6 +1199,54 @@ def leaflet_canvas(argv, name, root, folder, size, orm_size):
         bpy.data.images.remove(img)
         print(f"paint_canvas: {kind} base in {os.path.relpath(base_path, root)}: green "
               f"{tuple(round(float(c), 3) for c in green)} from blade_mature, gone {share:.0%} of the way up")
+        return
+    if "--normal-only" in argv:
+        # The leaves' relief as a tangent-space normal map (OpenGL: green up,
+        # Godot's convention), flat everywhere else. It goes straight to
+        # `assets/props/<prop>_normal.png`: `assets/source` is hidden from
+        # Godot, and the leaf shader that reads it is Godot's own
+        # (assets/shaders/palm_leaf.gdshader); the GLB doesn't carry it.
+        label = raster_islands(objs, size)
+        normal = np.zeros((size, size, 3), dtype=np.float32)
+        normal[..., 2] = 1.0
+        cover = np.zeros((size, size), dtype=np.float32)
+        relieved = []
+        for i, obj in enumerate(objs):
+            kind = obj.name.removeprefix("blade_") if obj in blades else None
+            if kind not in SHADING:
+                continue
+            px_m = uv_px_per_metre(obj, size)
+            mine, (y0, y1, x0, x1), box, along, off, out, phase = leaf_frame(obj, kind, label, i + 1, size, px_m)
+            pleat = np.abs(phase - np.floor(phase) - 0.5) * 2.0  # 1 on a vein's crease, 0 midway
+            # `out` steps row to row with the island's pixel edge; smoothed,
+            # the curl and pleat depth don't band.
+            out = box_blur2(out.astype(np.float32), 6)
+            height = PLEAT_M * pleat * smooth(0.05, PLEAT_OUT, out) \
+                + RIB_M * np.exp(-(off / (RIB_WIDTH_M * px_m)) ** 2) + CURL_M * smooth(0.75, 1.0, out) ** 2
+            # Rows run up the image here (Blender's order), so the slopes are
+            # per metre east and north, and the normal is (-dh/dx, -dh/dy, 1).
+            dy, dx = np.gradient(height.astype(np.float32))
+            n = np.stack([-dx * px_m, -dy * px_m, np.ones_like(height)], axis=-1)
+            n /= np.linalg.norm(n, axis=-1, keepdims=True)
+            region = normal[y0:y1 + 1, x0:x1 + 1]
+            region[box] = n[box]
+            cover[y0:y1 + 1, x0:x1 + 1][box] = 1.0
+            relieved.append(obj.name)
+        # Past each island, its edge normals carried a few pixels, so filtering
+        # never pulls in the flat background.
+        normal = grow(normal, cover > 0, MARGIN_PX)
+        normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+        normal_path = os.path.join(root, "assets", "props", f"{name}_normal.png")
+        img = bpy.data.images.new("_kyt_normal", size, size, alpha=False)
+        img.colorspace_settings.name = "Non-Color"
+        px = np.ones((size, size, 4), dtype=np.float32)
+        px[..., :3] = normal * 0.5 + 0.5
+        img.pixels.foreach_set(px.ravel())
+        img.filepath_raw = normal_path
+        img.file_format = "PNG"
+        img.save()
+        bpy.data.images.remove(img)
+        print(f"paint_canvas: relief for {', '.join(relieved)} in {os.path.relpath(normal_path, root)}")
         return
     if "--shading-only" in argv:
         # A painted starting look for the leaves, as a layer: `<prop>_shading.png`,

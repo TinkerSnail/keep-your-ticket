@@ -18,6 +18,12 @@ render_mode cull_disabled;
 
 uniform sampler2D colour_texture : source_color, filter_linear_mipmap, repeat_disable;
 uniform sampler2D orm_texture : hint_default_white, filter_linear_mipmap, repeat_disable;
+// The leaves' relief: pleats between the side veins, the midrib, a curl at the
+// rim (assets/props/palm_crown_normal.png, paint_canvas.py --normal-only), so
+// the crenellated surface catches and loses the light as a palm turns against
+// the sun (Christina, 2026-09-27). 0 is flat.
+uniform sampler2D normal_texture : hint_normal, filter_linear_mipmap, repeat_disable;
+uniform float relief_strength : hint_range(0.0, 2.0) = 1.0;
 uniform float alpha_cut : hint_range(0.0, 1.0) = 0.5;
 uniform bool underside_is_front = true;
 // The underside's colour: the painted colour taken toward this tint...
@@ -69,6 +75,8 @@ void fragment() {
 		albedo = mix(albedo, cool, underside_mix * green) * (1.0 - underside_darken);
 		roughness = underside_roughness;
 	}
+	NORMAL_MAP = texture(normal_texture, UV).rgb;
+	NORMAL_MAP_DEPTH = relief_strength;
 	ALBEDO = albedo;
 	ROUGHNESS = roughness;
 	METALLIC = orm.b;

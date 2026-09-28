@@ -369,7 +369,11 @@ painting. Each frond's green also leans a little yellow or teal and lighter
 or darker, by a tone `palm_crown.gd` puts in its vertex colour, offset by
 where the crown stands. Its underside tint, mix, darkening and roughness, and
 the frond lean (`frond_hue`, `frond_brightness`), are parameters on the
-`.tres`, set in the inspector. Blender's viewport shows the plain material.
+`.tres`, set in the inspector. The leaves' relief is a normal map,
+`assets/props/palm_crown_normal.png` (`paint_canvas.py --leaflets
+--normal-only`: pleats between the side veins, a midrib rib, a rim curl), at
+`relief_strength` 1; imported VRAM-compressed as a normal map with mipmaps.
+Blender's viewport shows the plain material.
 
 ### 9. Review and commit (Christina decides) — rough
 
