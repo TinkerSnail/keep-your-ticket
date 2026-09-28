@@ -143,8 +143,11 @@ class KYT_PT_panel(bpy.types.Panel):
         col = layout.column(align=True)
         col.scale_y = 1.3
         col.operator("kyt.check", icon="CHECKMARK")
-        col.operator("kyt.make_game_mesh", icon="MOD_BOOLEAN")
-        col.operator("kyt.rebuild_game_mesh", icon="FILE_REFRESH")
+        # A prop whose game chooses its parts (the palm crown) never fuses
+        # them: its fronds stay separate, so it has no game mesh to make.
+        if not context.scene.get("kyt_keep_parts"):
+            col.operator("kyt.make_game_mesh", icon="MOD_BOOLEAN")
+            col.operator("kyt.rebuild_game_mesh", icon="FILE_REFRESH")
         col.operator("kyt.send_to_game", icon="EXPORT")
         godot_scene.draw(layout, name)
         job = handback.current()

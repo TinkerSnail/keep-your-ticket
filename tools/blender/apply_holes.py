@@ -1,7 +1,7 @@
-"""Put a perforated prop's holes back into its colour PNG after an export.
+"""Put a perforated prop's holes, or a crown's cut-out, back into its colour PNG after an export.
 
     /Applications/Blender.app/Contents/MacOS/Blender --background --factory-startup \
-        --python tools/blender/apply_holes.py -- <prop>_colour.png [<prop>_holes.png]
+        --python tools/blender/apply_holes.py -- <prop>_colour.png [<prop>_holes.png | <prop>_cutout.png]
 
 `paint_canvas.py --perforate` bakes the holes into the colour PNG's alpha and
 into `<prop>_holes.png` beside it (white metal, black hole). Christina paints
@@ -11,6 +11,10 @@ becomes the holes image, and each hole's colour becomes the metal round it, so
 filtering and mipmaps never pull the flattened background into a hole's edge.
 Metal pixels keep their colour exactly, and running it twice changes nothing.
 With no holes image it leaves the PNG alone, so it is safe for any prop.
+
+A crown's leaflets work the same way from `<prop>_cutout.png` (white leaf,
+black gap; `paint_canvas.py --leaflets`), except that Christina paints that
+one: the export writes it from the PSD's "cut-out" layer just before this runs.
 """
 
 import os

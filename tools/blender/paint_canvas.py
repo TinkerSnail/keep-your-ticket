@@ -5,6 +5,7 @@
         [--knots part,part] [--wear part,part] [--chips part,part] [--dings part,part]
         [--ground part,part] [--weather part,part] [--perforate part,part] [--overwrite]
         [--holes-only] [--guide-only] [--save]
+    ... --python tools/blender/paint_canvas.py -- --leaflets [--overwrite | --cutout-only] [--save]
 
 Runs on the game-ready working file (after Make game mesh), whose game mesh is
 unwrapped for its own texture. Writes three images to
@@ -66,6 +67,17 @@ of the painting, because a flattened PSD has no alpha. Collision stays solid.
 a change to the `HOLE_*` numbers: the colour keeps its pixels, only its alpha
 and `<prop>_holes.png` change.
 
+`--leaflets` is the canvas for a crown whose game chooses its fronds
+(`kyt_keep_parts`, the palm crown), after `unwrap_blades.py` has laid its
+blades out; there is no game mesh. Each blade's island gets its colour and,
+for the kinds in `LEAFLETS`, leaflets and basal spines from the rachis to the
+blade's outline, cut into the colour's alpha and into `<prop>_cutout.png`.
+That is the starting cut-out: `prop_handback.py --open` gives the PSD a
+"cut-out" layer made from it, which Christina paints (black cuts, white
+keeps), and every export writes it back and puts it into the alpha. The spear,
+the stub and the heart stay whole. `--leaflets --cutout-only` cuts the leaflets
+again after a change to `LEAFLETS`, into `<prop>_cutout.png` only.
+
 All of these are starting points to paint over, not a finish.
 
 Then the game mesh's materials (timber, cast iron, fixings) are replaced by one
@@ -79,6 +91,7 @@ is not written.
 import json
 import os
 import sys
+import zlib
 
 import bmesh
 import bpy
@@ -151,6 +164,87 @@ RUST_ROUGH, RUST_METAL = 0.92, 0.05
 # that cell closed the mesh to 27%; 45 by 19 mm at 0.16 was "too delicate".)
 HOLE_ALONG_M, HOLE_ACROSS_M = 0.090, 0.038
 HOLE_STRAND = 0.16  # the metal between two diamonds, as a fraction of a cell
+
+# Leaflets (--leaflets), cut into a crown's blades. The crown is Phoenix
+# canariensis, the classic California date palm, drawn in the park's cartoony
+# style: a few broad, pointed leaflets in a row down each side of the rachis,
+# pointing toward the tip, turning to spines near the base. Per blade kind, in
+# metres and degrees: a leaflet every `spacing` along each side (the two sides
+# offset by half), `width` at its widest, leaving the rachis at `open` degrees
+# where the spines end and closing steadily to `tip` at the tip. Each leaflet
+# opens no wider than the one below it, so neighbours fan apart and never
+# cross, and each reaches the blade's outline. The first `spines` of the
+# frond's length carries spines instead. `missing` and `broken` are the
+# fractions of leaflets gone or snapped short. The spear, the stub and the
+# heart stay whole.
+#
+# Christina asked for "wider and fewer, to match our cartoony style" on
+# 2026-09-26: about 20 leaflets a side on the mature frond, 3.5 times as wide
+# as the first cut's 70 (0.05 m apart, 0.042 wide; "B" of three she was
+# shown). The blade stays about 46% leaf, which each kind keeps through the
+# 0.5 alpha cut at every mip level: much less and a frond would vanish at a
+# distance.
+LEAFLETS = {
+    "young": dict(spacing=0.14, width=0.08, open=36, tip=20, spines=0.14, missing=0.0, broken=0.0),
+    "mature": dict(spacing=0.18, width=0.15, open=62, tip=34, spines=0.16, missing=0.0, broken=0.03),
+    "old": dict(spacing=0.18, width=0.135, open=66, tip=38, spines=0.16, missing=0.05, broken=0.15),
+    "dead": dict(spacing=0.18, width=0.105, open=46, tip=28, spines=0.16, missing=0.15, broken=0.3),
+}
+# The torn style (CUT_STYLE "tears"), after the Mario Kart 7 palm Christina
+# pointed to (2026-09-26, `documentation/reference/palm_crown/`): each frond one
+# broad folded leaf, torn like a banana leaf along its side veins. Per blade
+# kind: `tears` (fewest, most) per side, from `start` of the way up to near the
+# tip, each a narrow slit `width` metres wide at the edge (least, most),
+# pointed at its inner end, reaching `depth` of the way in from the edge (least,
+# most; deeper toward the tip); `nicks` small notches per side, `nick_depth`
+# deep. Tears and veins leave the midrib at `open` degrees, closing to `tip`.
+# (The first fringed cut, wide bites like a saw, she called "abysmal".)
+TEARS = {
+    "young": dict(tears=(1, 3), start=0.35, width=(0.04, 0.07), depth=(0.2, 0.45), nicks=2,
+                  nick_depth=(0.04, 0.08), open=62, tip=48),
+    "mature": dict(tears=(3, 6), start=0.25, width=(0.05, 0.1), depth=(0.25, 0.65), nicks=4,
+                   nick_depth=(0.04, 0.1), open=62, tip=48),
+    "old": dict(tears=(4, 7), start=0.2, width=(0.05, 0.11), depth=(0.3, 0.75), nicks=5,
+                nick_depth=(0.05, 0.12), open=62, tip=48),
+    "dead": dict(tears=(6, 9), start=0.15, width=(0.06, 0.12), depth=(0.4, 0.85), nicks=6,
+                 nick_depth=(0.06, 0.14), open=60, tip=45),
+}
+TEAR_PAST_PX = 4  # a tear runs this far past the outline, so it opens at the edge
+# Her call, 2026-09-26: "this is a better direction for the crown"; the torn
+# leaf's texture went into her PSD on today's blades ("just texture").
+CUT_STYLE = "tears"  # "tears" (torn broad leaves) or "leaflets" (separate leaflets)
+
+# A painted starting look for the torn leaves (`--shading-only`), after the
+# same references: dark at the base and in the crease beside the midrib,
+# lightening along the leaf to a pale rim and tip, a bright midrib, faint
+# darker veins along the fan, soft mottling. sRGB, as painted. Per kind:
+# `dark` (base and crease), `light` (the leaf's body toward the tip), `rim`
+# (its outer edge), `midrib`. The stub and the heart are left to her paint.
+SHADING = {
+    "spear": dict(dark=(0.16, 0.42, 0.10), light=(0.50, 0.80, 0.26), rim=(0.74, 0.94, 0.42), midrib=(0.88, 0.97, 0.66)),
+    "young": dict(dark=(0.12, 0.36, 0.08), light=(0.44, 0.76, 0.22), rim=(0.72, 0.93, 0.40), midrib=(0.88, 0.97, 0.64)),
+    "mature": dict(dark=(0.04, 0.20, 0.06), light=(0.28, 0.60, 0.15), rim=(0.64, 0.89, 0.34), midrib=(0.84, 0.95, 0.60)),
+    "old": dict(dark=(0.14, 0.22, 0.05), light=(0.44, 0.58, 0.16), rim=(0.72, 0.80, 0.34), midrib=(0.86, 0.88, 0.56)),
+    "dead": dict(dark=(0.25, 0.15, 0.06), light=(0.56, 0.42, 0.22), rim=(0.76, 0.62, 0.36), midrib=(0.86, 0.75, 0.52)),
+}
+SHADE_BASE = 0.3  # the first this share of the leaf darkens toward the crown's heart
+SHADE_CREASE = (0.35, 0.45)  # how much darker the crease is, and how far out it reaches (share of the half-width)
+SHADE_RIM = 0.35  # the rim begins this share of the way out
+MIDRIB_M = 0.02  # the midrib's half-width
+VEIN_EVERY_M, VEIN_DARK = 0.22, 0.05  # faint vein lines along the fan, this far apart, this much darker
+MOTTLE, MOTTLE_M = 0.07, 0.25  # soft light-and-dark patches this strong, about this big
+
+LEAFLET_WIDEST = 0.3  # where along a leaflet it is widest; it narrows to a point at the tip
+LEAFLET_SLENDER = 0.3  # no leaflet is wider than this share of its length: short ones stay points
+LEAFLET_JITTER = 0.25  # how far a leaflet's place and width wander, as a fraction of each
+ANGLE_JITTER = 0.03  # and its angle: more and long leaflets cross their neighbours
+SPINE_ANGLE = 30  # degrees off the rachis
+SPINE_WIDTH, SPINE_REACH_M, SPINE_EVERY = 0.3, 0.2, 1.5  # spines: a share of the leaflet width, shorter, sparser
+RACHIS_M = (0.03, 0.006)  # the rachis's half-width at the base and at the tip
+RACHIS_STRAW = (0.34, 0.26, 0.05)  # linear; the rachis and spines are the leaf's colour taken this way
+RACHIS_TINT = 0.45
+TIP_INSET_PX = 2  # a leaflet's tip stops this far inside its blade's outline
+ALPHA_SPREAD_PX = 4  # opaque edges carried this far past an island, so filtering never frays them
 
 
 def arg(argv, name, default):
@@ -628,22 +722,24 @@ def save_holes(metal, path):
     bpy.data.images.remove(img)
 
 
-def write_uv_guide(obj, path, size):
-    """The outline of every UV piece, white on transparent: edges where the two
-    faces disagree in UV, or that have one face. Mirrored twins share outlines."""
-    bm = bmesh.new()
-    bm.from_mesh(obj.data)
-    uv = bm.loops.layers.uv.active
+def write_uv_guide(objs, path, size):
+    """The outline of every UV piece of `objs` (one object or several), white on
+    transparent: edges where the two faces disagree in UV, or that have one face.
+    Mirrored twins share outlines."""
     segs = []
-    for e in bm.edges:
-        ends = []
-        for f in e.link_faces:
-            at = {l.vert: l[uv].uv.copy() for l in f.loops}
-            ends.append((at[e.verts[0]], at[e.verts[1]]))
-        if len(ends) == 2 and all((ends[0][i] - ends[1][i]).length < 1e-6 for i in (0, 1)):
-            continue
-        segs.extend(ends)
-    bm.free()
+    for obj in (objs if isinstance(objs, (list, tuple)) else [objs]):
+        bm = bmesh.new()
+        bm.from_mesh(obj.data)
+        uv = bm.loops.layers.uv.active
+        for e in bm.edges:
+            ends = []
+            for f in e.link_faces:
+                at = {l.vert: l[uv].uv.copy() for l in f.loops}
+                ends.append((at[e.verts[0]], at[e.verts[1]]))
+            if len(ends) == 2 and all((ends[0][i] - ends[1][i]).length < 1e-6 for i in (0, 1)):
+                continue
+            segs.extend(ends)
+        bm.free()
     px = np.zeros((size, size, 4), dtype=np.float32)
     for a, b in segs:
         n = int(max(abs(b.x - a.x), abs(b.y - a.y)) * size * 2) + 2
@@ -703,6 +799,524 @@ def holes_only(obj, parts, name, colour_path, holes_path, root):
           f"({(metal < 0.5).mean():.1%} of the canvas open)")
 
 
+def srgb(linear):
+    """Linear to sRGB, per channel: the value a byte image stores."""
+    linear = np.clip(linear, 0.0, 1.0)
+    return np.where(linear <= 0.0031308, linear * 12.92, 1.055 * np.power(linear, 1 / 2.4) - 0.055)
+
+
+def box(a, r):
+    """Box blur of an (h, w, c) array, radius r, edges clamped."""
+    for axis in (0, 1):
+        a = np.moveaxis(a, axis, 0)
+        pad = [(r + 1, r)] + [(0, 0)] * (a.ndim - 1)
+        c = np.cumsum(np.pad(a, pad, mode="edge"), axis=0)
+        n = a.shape[0]
+        a = np.moveaxis((c[2 * r + 1:2 * r + 1 + n] - c[:n]) / (2 * r + 1), 0, axis)
+    return a
+
+
+def grow(rgb, known, reach, passes=4):
+    """Carry the colours where `known` outward, `reach` px a pass, into the rest:
+    the gutter round islands, so mipmaps never pull in the background."""
+    known = known.astype(np.float32)[..., None]
+    for _ in range(passes):
+        num, den = box(rgb * known, reach), box(known, reach)
+        fill = (known[..., 0] == 0) & (den[..., 0] > 1e-4)
+        rgb[fill] = num[fill] / den[fill]
+        known[fill] = 1.0
+    return rgb
+
+
+def max_filter(a, r):
+    """Greyscale dilation, a (2r+1) square, separable."""
+    for axis in (0, 1):
+        pad = [(0, 0), (0, 0)]
+        pad[axis] = (r, r)
+        p = np.pad(a, pad, mode="edge")
+        n = a.shape[axis]
+        a = np.max([np.take(p, range(k, k + n), axis=axis) for k in range(2 * r + 1)], axis=0)
+    return a
+
+
+def raster_islands(objs, size):
+    """Which object's island covers each pixel centre (index + 1, 0 for none),
+    rows from the bottom as Blender stores images."""
+    label = np.zeros((size, size), dtype=np.int16)
+    for i, obj in enumerate(objs):
+        me = obj.data
+        me.calc_loop_triangles()
+        uv = me.uv_layers.active.data
+        for tri in me.loop_triangles:
+            p = np.array([uv[k].uv for k in tri.loops], dtype=np.float64) * size
+            x0, y0 = np.floor(p.min(axis=0)).astype(int)
+            x1, y1 = np.ceil(p.max(axis=0)).astype(int)
+            x0, y0, x1, y1 = max(x0, 0), max(y0, 0), min(x1, size), min(y1, size)
+            if x1 <= x0 or y1 <= y0:
+                continue
+            xs, ys = np.meshgrid(np.arange(x0, x1) + 0.5, np.arange(y0, y1) + 0.5)
+            (ax, ay), (bx, by), (cx, cy) = p
+            den = (by - cy) * (ax - cx) + (cx - bx) * (ay - cy)
+            if abs(den) < 1e-12:
+                continue
+            l1 = ((by - cy) * (xs - cx) + (cx - bx) * (ys - cy)) / den
+            l2 = ((cy - ay) * (xs - cx) + (ax - cx) * (ys - cy)) / den
+            inside = (l1 >= 0) & (l2 >= 0) & (l1 + l2 <= 1)
+            label[y0:y1, x0:x1][inside] = i + 1
+    return label
+
+
+def rachis_line(obj, size):
+    """The blade's midrib on the canvas, base first, in pixels: the UVs of its
+    vertices on x = 0, or the island's middle if it has none there."""
+    me = obj.data
+    uv = me.uv_layers.active.data
+    at = {}
+    for l in me.loops:
+        co = me.vertices[l.vertex_index].co
+        if abs(co.x) < 1e-4:
+            at[round(co.y, 5)] = np.array(uv[l.index].uv) * size
+    if len(at) < 2:
+        pts = np.array([uv[l.index].uv for l in me.loops]) * size
+        mid = (pts[:, 0].min() + pts[:, 0].max()) / 2
+        return np.array([[mid, pts[:, 1].min()], [mid, pts[:, 1].max()]])
+    return np.array([at[y] for y in sorted(at)])
+
+
+def stroke(mask, a, b, half, profile):
+    """Draw a tapering stroke from `a` to `b` into `mask` (max), antialiased:
+    `half` px half-width at its widest, `profile(t)` its fraction along 0..1."""
+    d = b - a
+    length = float(np.hypot(*d))
+    if length < 1.0:
+        return
+    d = d / length
+    r = half + 2
+    x0, y0 = np.floor(np.minimum(a, b) - r).astype(int)
+    x1, y1 = np.ceil(np.maximum(a, b) + r).astype(int)
+    h, w = mask.shape
+    x0, y0, x1, y1 = max(x0, 0), max(y0, 0), min(x1, w), min(y1, h)
+    if x1 <= x0 or y1 <= y0:
+        return
+    xs, ys = np.meshgrid(np.arange(x0, x1) + 0.5 - a[0], np.arange(y0, y1) + 0.5 - a[1])
+    t = (xs * d[0] + ys * d[1]) / length
+    off = np.abs(xs * d[1] - ys * d[0])
+    cover = np.clip(half * profile(np.clip(t, 0.0, 1.0)) - off + 0.5, 0.0, 1.0)
+    cover[(t < 0) | (t > 1)] = 0.0
+    np.maximum(mask[y0:y1, x0:x1], cover, out=mask[y0:y1, x0:x1])
+
+
+def leaflet_profile(t):
+    """Narrow where it leaves the rachis, widest at LEAFLET_WIDEST, a point at the tip."""
+    rise = 0.55 + 0.45 * t / LEAFLET_WIDEST
+    fall = ((1.0 - t) / (1.0 - LEAFLET_WIDEST)) ** 0.8
+    return np.where(t < LEAFLET_WIDEST, rise, fall)
+
+
+def spine_profile(t):
+    return 1.0 - t
+
+
+def frond(obj, label, index, size, px_m):
+    """What both cutters need of one blade's island: the rachis drawn as straw
+    coverage, its length in pixels, `at(s)` (the point and direction that far
+    along it), `half_rachis(f)` (its half-width at fraction f of the way to the
+    tip) and `reach(start, direction, limit)` (how far a line runs before it
+    leaves the island, less TIP_INSET_PX)."""
+    straw = np.zeros((size, size), dtype=np.float32)
+    line = rachis_line(obj, size)
+    seg = np.diff(line, axis=0)
+    seg_len = np.hypot(seg[:, 0], seg[:, 1])
+    run = np.concatenate([[0.0], np.cumsum(seg_len)])
+    total = run[-1]
+
+    def at(s):
+        i = int(np.clip(np.searchsorted(run, s) - 1, 0, len(seg) - 1))
+        f = (s - run[i]) / max(seg_len[i], 1e-9)
+        return line[i] + seg[i] * f, seg[i] / max(seg_len[i], 1e-9)
+
+    def half_rachis(f):
+        return (RACHIS_M[0] + (RACHIS_M[1] - RACHIS_M[0]) * f) * px_m
+
+    for i in range(len(seg)):
+        f0, f1 = run[i] / total, run[i + 1] / total
+        h0, h1 = half_rachis(f0), half_rachis(f1)
+        stroke(straw, line[i], line[i + 1], max(h0, h1), lambda t, h0=h0, h1=h1: (h0 + (h1 - h0) * t) / max(h0, h1))
+
+    def reach(start, direction, limit):
+        steps = np.arange(0.0, limit, 1.0)
+        pts = start[None, :] + direction[None, :] * steps[:, None]
+        ix = np.clip(pts[:, 0].astype(int), 0, size - 1)
+        iy = np.clip(pts[:, 1].astype(int), 0, size - 1)
+        out = np.nonzero(label[iy, ix] != index)[0]
+        return (out[0] if len(out) else len(steps)) - TIP_INSET_PX
+
+    return straw, total, at, half_rachis, reach
+
+
+def cut_tears(obj, kind, label, index, size, px_m, rng):
+    """(leaf, straw) coverage for one blade's island in the torn style: the
+    whole leaf, less narrow tears running in from its edge along the side veins
+    (the fan the leaflets use), pointed at their inner ends and deeper toward
+    the tip, and a few small nicks; and the rachis."""
+    spec = TEARS[kind]
+    straw, total, at, half_rachis, reach = frond(obj, label, index, size, px_m)
+    gap = np.zeros((size, size), dtype=np.float32)
+
+    def angle_at(g):
+        return spec["open"] + (spec["tip"] - spec["open"]) * g
+
+    def cut(here, side, depth, width_m, profile):
+        f = here / total
+        p, tangent = at(here)
+        normal = np.array([tangent[1], -tangent[0]]) * side
+        angle = np.radians(angle_at(f) + rng.uniform(-4, 4))
+        direction = tangent * np.cos(angle) + normal * np.sin(angle)
+        start = p + normal * half_rachis(f)
+        length = reach(start, direction, size) + TIP_INSET_PX + TEAR_PAST_PX
+        inner = start + direction * length * (1.0 - min(depth, 0.95))
+        stroke(gap, inner, start + direction * length, width_m * px_m / 2, profile)
+
+    for side in (-1.0, 1.0):
+        lo, hi = spec["start"] * total, 0.93 * total
+        count = int(rng.integers(spec["tears"][0], spec["tears"][1] + 1))
+        for k in range(count):
+            here = lo + (hi - lo) * (k + rng.uniform(0.1, 0.9)) / count
+            g = (here - lo) / max(hi - lo, 1e-9)
+            depth = rng.uniform(*spec["depth"]) * (0.75 + 0.5 * g)
+            cut(here, side, depth, rng.uniform(*spec["width"]), lambda t: 0.12 + 0.88 * t ** 1.5)
+        for _ in range(spec["nicks"]):
+            here = total * rng.uniform(spec["start"], 0.97)
+            cut(here, side, rng.uniform(*spec["nick_depth"]), rng.uniform(0.03, 0.06), lambda t: t)
+    mine = (label == index).astype(np.float32)
+    return np.maximum(mine * (1.0 - gap), straw * mine), straw
+
+
+def cut_leaflets(obj, kind, label, index, size, px_m, rng):
+    """(leaf, straw) coverage for one blade's island: the leaflets reaching from
+    the rachis to the blade's outline; the rachis and the spines."""
+    spec = LEAFLETS[kind]
+    leaf = np.zeros((size, size), dtype=np.float32)
+    straw, total, at, half_rachis, reach = frond(obj, label, index, size, px_m)
+
+    spine_end = spec["spines"] * total
+    for side in (-1.0, 1.0):
+        s = (0.25 if side > 0 else 0.75) * spec["spacing"] * px_m * SPINE_EVERY
+        while s < total:
+            spine = s < spine_end
+            step = spec["spacing"] * px_m * (SPINE_EVERY if spine else 1.0)
+            jitter = rng.uniform(-1.0, 1.0, 4) * LEAFLET_JITTER
+            here = min(max(s + jitter[0] * step, 0.0), total)
+            s += step
+            if rng.random() < spec["missing"] and not spine:
+                continue
+            f = here / total
+            p, tangent = at(here)
+            normal = np.array([tangent[1], -tangent[0]]) * side
+            if spine:
+                angle = SPINE_ANGLE
+            else:
+                g = max(0.0, (here - spine_end) / max(total - spine_end, 1e-9))
+                angle = spec["open"] + (spec["tip"] - spec["open"]) * g ** 1.5
+            angle = np.radians(angle * (1.0 + jitter[1] * ANGLE_JITTER / LEAFLET_JITTER))
+            direction = tangent * np.cos(angle) + normal * np.sin(angle)
+            start = p + normal * half_rachis(f) * 0.6
+            limit = (SPINE_REACH_M * px_m) if spine else size
+            length = reach(start, direction, limit)
+            if rng.random() < spec["broken"] and not spine:
+                length *= rng.uniform(0.45, 0.8)
+            if length < 3:
+                continue
+            width = spec["width"] * (SPINE_WIDTH if spine else 1.0 - 0.35 * f) * px_m * (1.0 + jitter[2])
+            width = min(width, length * LEAFLET_SLENDER)
+            stroke(straw if spine else leaf, start, start + direction * length, width / 2,
+                   spine_profile if spine else leaflet_profile)
+    return leaf, straw
+
+
+def shade_leaf(obj, kind, label, index, size, px_m, rng):
+    """(rgb, coverage) of the painted starting look for one blade's island, in
+    sRGB: its place along the leaf and out from the midrib read off the island
+    itself (base at the bottom, the midrib the UVs of its x = 0 vertices)."""
+    spec = SHADING[kind]
+    mine = label == index
+    ys, xs = np.nonzero(mine)
+    y0, y1, x0, x1 = ys.min(), ys.max(), xs.min(), xs.max()
+    box = mine[y0:y1 + 1, x0:x1 + 1]
+    line = rachis_line(obj, size)
+    mid = float(np.median(line[:, 0])) - x0
+    yy, xx = np.mgrid[y0:y1 + 1, x0:x1 + 1]
+    along = (yy - y0) / max(y1 - y0, 1)  # 0 at the base, 1 at the tip
+    # The half-width of each row, from the island's own extent.
+    left = np.where(box.any(axis=1), box.argmax(axis=1), 0)
+    right = np.where(box.any(axis=1), box.shape[1] - 1 - box[:, ::-1].argmax(axis=1), 0)
+    half = np.maximum(np.maximum(mid - left, right - mid), 1.0)[:, None]
+    off = np.abs(xx - x0 - mid)
+    out = np.clip(off / half, 0.0, 1.0)  # 0 on the midrib, 1 at the edge
+
+    def smooth(e0, e1, x):
+        t = np.clip((x - e0) / (e1 - e0), 0.0, 1.0)
+        return t * t * (3 - 2 * t)
+
+    dark, light, rim, midrib = (np.array(spec[k], dtype=np.float32) for k in ("dark", "light", "rim", "midrib"))
+    lengthwise = smooth(0.0, 0.85, along)[..., None]
+    rgb = dark + (light - dark) * (0.3 + 0.7 * lengthwise)
+    rgb = rgb + (rim - rgb) * (smooth(SHADE_RIM, 1.0, out) * (0.45 + 0.55 * lengthwise[..., 0]))[..., None]
+    crease = 1.0 - SHADE_CREASE[0] * (1.0 - smooth(0.0, SHADE_CREASE[1], out))
+    base = 0.55 + 0.45 * smooth(0.0, SHADE_BASE, along)
+    # Veins: lines along the fan, found by running each point back along a
+    # line at the tears' angle to where it leaves the rachis.
+    fan = TEARS.get(kind, TEARS["mature"])
+    angle = np.radians(fan["open"] + (fan["tip"] - fan["open"]) * along)
+    origin_m = ((yy - y0) - off / np.tan(angle)) / px_m
+    # Irregular spacing, set by where a vein leaves the midrib alone, so each
+    # vein stays a straight line and they don't read as ruled.
+    phase = origin_m / VEIN_EVERY_M + 0.35 * np.sin(origin_m * 1.7 + 0.4) + 0.2 * np.sin(origin_m * 4.1 + 1.3)
+    vein = smooth(0.7, 1.0, 0.5 + 0.5 * np.cos(2 * np.pi * phase)) * smooth(0.12, 0.3, out)
+    noise = rng.standard_normal((box.shape[0] // 8 + 2, box.shape[1] // 8 + 2)).astype(np.float32)
+    noise = np.kron(noise, np.ones((8, 8), dtype=np.float32))[:box.shape[0], :box.shape[1]]
+    noise = box_blur2(noise, max(2, int(MOTTLE_M * px_m / 2)))
+    noise = noise / max(float(np.abs(noise).max()), 1e-6)
+    rgb = rgb * (crease * base * (1.0 - VEIN_DARK * vein) * (1.0 + MOTTLE * noise))[..., None]
+    rib = np.exp(-(off / (MIDRIB_M * px_m)) ** 2) * (1.0 - 0.6 * along)
+    rgb = rgb + (midrib - rgb) * rib[..., None]
+    full = np.zeros((size, size, 3), dtype=np.float32)
+    full[y0:y1 + 1, x0:x1 + 1] = np.clip(rgb, 0.0, 1.0)
+    return full, mine
+
+
+def box_blur2(a, r):
+    """Box blur of a 2D array, radius r, edges clamped."""
+    return box(a[..., None], r)[..., 0]
+
+
+def cut_islands(objs, blades, size):
+    """The canvas's islands (`raster_islands`), its alpha, and where the rachis
+    and spines are (for their straw tint), with a report line per island. A
+    blade whose kind is in LEAFLETS gets its leaflets; every other island stays
+    whole. Past the islands, alpha is carried a few pixels where an island's
+    edge is opaque (a stub, the rachis at a frond's base), so neither filtering
+    nor mipmaps fray an edge the game shows."""
+    label = raster_islands(objs, size)
+    alpha = np.zeros((size, size), dtype=np.float32)
+    straw_all = np.zeros((size, size), dtype=np.float32)
+    report = []
+    for i, obj in enumerate(objs):
+        mine = label == i + 1
+        kind = obj.name.removeprefix("blade_") if obj in blades else None
+        table, cutter = (TEARS, cut_tears) if CUT_STYLE == "tears" else (LEAFLETS, cut_leaflets)
+        if kind in table:
+            rng = np.random.default_rng(zlib.crc32(kind.encode()))
+            px_m = uv_px_per_metre(obj, size)
+            leaf, straw = cutter(obj, kind, label, i + 1, size, px_m, rng)
+            opaque = np.maximum(leaf, straw)
+            alpha[mine] = opaque[mine]
+            straw_all[mine] = straw[mine]
+            report.append(f"{obj.name} {opaque[mine].mean():.0%} leaf at {px_m:.0f} px/m")
+        else:
+            alpha[mine] = 1.0
+            report.append(f"{obj.name} whole")
+    alpha = np.where(label == 0, max_filter(alpha, ALPHA_SPREAD_PX), alpha)
+    return label, alpha, straw_all, report
+
+
+def leaflet_canvas(argv, name, root, folder, size, orm_size):
+    """`--leaflets`: the canvas for a crown whose game chooses its fronds
+    (`kyt_keep_parts`), laid out by unwrap_blades.py. Each island is filled with
+    its material's colour (rachis and spines tinted toward straw), the leaflets
+    are cut into the colour's alpha and into `<prop>_cutout.png`, the starting
+    cut-out: the PSD carries it as a layer Christina paints, every export
+    writes it back from that layer, and apply_holes.py puts it into the alpha.
+    The blades and the heart are given one double-sided material that clips by
+    it. Every frond of a kind shows its blade's island."""
+    blades = [o for o in bpy.data.collections["blades"].objects if o.type == "MESH"]
+    others = [o for o in bpy.data.collections["export"].objects
+              if o.type == "MESH" and not any(m.type == "NODES" for m in o.modifiers)]
+    objs = blades + others
+    stale = [o.name for o in objs if not o.get("kyt_unwrapped")]
+    if stale:
+        raise SystemExit(f"paint_canvas: {', '.join(stale)} not laid out yet; run unwrap_blades.py first")
+    colour_path = os.path.join(folder, f"{name}_colour.png")
+    orm_path = os.path.join(folder, f"{name}_orm.png")
+    guide_path = os.path.join(folder, f"{name}_uv_guide.png")
+    cutout_path = os.path.join(folder, f"{name}_cutout.png")
+    if "--shading-only" in argv:
+        # A painted starting look for the leaves, as a layer: `<prop>_shading.png`,
+        # the leaf kinds in SHADING shaded, transparent elsewhere, spread a few
+        # pixels past each island so filtering never pulls in the background.
+        # `prop_handback.py <prop> --shading-layer` puts it in her PSD as
+        # "shading (Claude)", above her paint, unsaved.
+        label = raster_islands(objs, size)
+        rgb = np.zeros((size, size, 3), dtype=np.float32)
+        cover = np.zeros((size, size), dtype=np.float32)
+        shaded = []
+        for i, obj in enumerate(objs):
+            kind = obj.name.removeprefix("blade_") if obj in blades else None
+            if kind not in SHADING:
+                continue
+            rng = np.random.default_rng(zlib.crc32(("shade" + kind).encode()))
+            part, mine = shade_leaf(obj, kind, label, i + 1, size, uv_px_per_metre(obj, size), rng)
+            rgb[mine] = part[mine]
+            cover[mine] = 1.0
+            shaded.append(obj.name)
+        near = (max_filter(cover, MARGIN_PX) > 0) & (cover == 0)
+        rgb = grow(rgb, cover > 0, MARGIN_PX)
+        cover = np.where(near, 1.0, cover)
+        img = bpy.data.images.new("_kyt_shading", size, size, alpha=True)
+        px = np.concatenate([rgb, cover[..., None]], axis=2)
+        img.pixels.foreach_set(px.astype(np.float32).ravel())
+        shading_path = os.path.join(folder, f"{name}_shading.png")
+        img.filepath_raw = shading_path
+        img.file_format = "PNG"
+        img.save()
+        bpy.data.images.remove(img)
+        print(f"paint_canvas: shading for {', '.join(shaded)} in {os.path.relpath(shading_path, root)}")
+        return
+    if "--cutout-only" in argv:
+        # The leaflets cut again (after a change to LEAFLETS), nothing else:
+        # the colour, the ORM, the guide, the materials and her PSD stay as
+        # they are. `prop_handback.py <prop> --cutout-layer` then puts the new
+        # cut-out into the PSD for her to look at before she saves.
+        _, alpha, _, report = cut_islands(objs, blades, size)
+        save_holes(alpha, cutout_path)
+        print(f"paint_canvas: leaflets cut again into {os.path.relpath(cutout_path, root)}: " + "; ".join(report))
+        return
+    for path in (colour_path, orm_path, cutout_path):
+        if os.path.exists(path) and "--overwrite" not in argv:
+            raise SystemExit(f"paint_canvas: {path} exists (it may be painted); leaving everything alone")
+    os.makedirs(folder, exist_ok=True)
+
+    label, alpha, straw, report = cut_islands(objs, blades, size)
+    rgb = np.zeros((size, size, 3), dtype=np.float32)
+    orm = np.zeros((size, size, 3), dtype=np.float32)
+    for i, obj in enumerate(objs):
+        # The colour each island starts from is the material it wore before
+        # the canvas, remembered on it and kept in the file (a fake user; the
+        # heart's has no other), so the canvas can be made again.
+        mat = obj.material_slots[0].material if obj.material_slots else None
+        if mat is not None and mat.name != name:
+            obj["kyt_canvas_from"] = mat.name
+        mat = bpy.data.materials.get(obj.get("kyt_canvas_from", ""), mat)
+        if mat is not None and mat.name == name:
+            raise SystemExit(f"paint_canvas: '{obj.name}' wears the canvas material and its own "
+                             f"('{obj.get('kyt_canvas_from')}') is gone, so its colour is unknown")
+        if mat is not None:
+            mat.use_fake_user = True
+        bsdf = next((n for n in mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED"), None) if mat else None
+        base = np.array(bsdf.inputs["Base Color"].default_value[:3] if bsdf else (0.5, 0.5, 0.5))
+        rough = bsdf.inputs["Roughness"].default_value if bsdf else 0.8
+        metal = bsdf.inputs["Metallic"].default_value if bsdf else 0.0
+        mine = label == i + 1
+        rgb[mine] = base
+        orm[mine] = (1.0, rough, metal)
+    tint = straw[..., None] * RACHIS_TINT
+    rgb = rgb * (1.0 - tint) + np.array(RACHIS_STRAW, dtype=np.float32) * tint
+    # Past an island: colour carried outward (alpha was carried by cut_islands),
+    # so mipmaps never pull in the background.
+    outside = label == 0
+    rgb = grow(rgb, ~outside, MARGIN_PX)
+    orm = grow(orm, ~outside, MARGIN_PX)
+
+    def write(path, pixels, alpha_channel, colour_space="sRGB"):
+        h, w = pixels.shape[:2]
+        img = bpy.data.images.new(os.path.basename(path), w, h, alpha=alpha_channel is not None)
+        img.colorspace_settings.name = colour_space
+        px = np.ones((h, w, 4), dtype=np.float32)
+        px[..., :3] = pixels
+        if alpha_channel is not None:
+            px[..., 3] = alpha_channel
+        img.pixels.foreach_set(px.ravel())
+        img.filepath_raw = path
+        img.file_format = "PNG"
+        img.save()
+        return img
+
+    for stale_img in (f"{name}_colour", f"{name}_orm"):
+        if bpy.data.images.get(stale_img):
+            bpy.data.images.remove(bpy.data.images[stale_img])
+    colour = write(colour_path, srgb(rgb), alpha)
+    colour.name = f"{name}_colour"
+    small = orm.reshape(orm_size, size // orm_size, orm_size, size // orm_size, 3).mean(axis=(1, 3))
+    orm_img = write(orm_path, small, None, "Non-Color")
+    orm_img.name = f"{name}_orm"
+    save_holes(alpha, cutout_path)
+    write_uv_guide(objs, guide_path, size)
+    for img, path in ((colour, colour_path), (orm_img, orm_path)):
+        img.filepath = bpy.path.relpath(path)
+        img.source = "FILE"
+        img.reload()
+
+    mat = one_material(name, colour, orm_img, objs[0].data.uv_layers.active.name, True, double_sided=True)
+    for obj in objs:
+        me = obj.data
+        for p in me.polygons:
+            p.material_index = 0
+        me.materials.clear()
+        me.materials.append(mat)
+    print(f"paint_canvas: {os.path.relpath(colour_path, root)} ({size} px) with the leaflets in its alpha "
+          f"and {os.path.relpath(cutout_path, root)}, {os.path.relpath(orm_path, root)} ({orm_size} px), "
+          f"and its UV guide; {len(objs)} islands wear one double-sided material, '{name}': "
+          + "; ".join(report))
+    if "--save" in argv:
+        bpy.ops.wm.save_mainfile()
+
+
+def uv_px_per_metre(obj, size):
+    """Canvas pixels per metre of the object, from its area in UV and in 3D."""
+    me = obj.data
+    uv = me.uv_layers.active.data
+    uv_area = 0.0
+    for p in me.polygons:
+        pts = [uv[k].uv for k in p.loop_indices]
+        uv_area += abs(sum(pts[j][0] * pts[j - 1][1] - pts[j - 1][0] * pts[j][1] for j in range(len(pts)))) / 2
+    area = sum(p.area for p in me.polygons)
+    return size * (uv_area / area) ** 0.5
+
+
+def one_material(name, colour, orm, uv_name, clip, double_sided=False):
+    """The prop's one material, reading both images: colour to base colour; the
+    ORM's green and blue to roughness and metalness, the wiring the glTF
+    exporter recognises. `clip` cuts by the colour's alpha."""
+    mat = bpy.data.materials.get(name) or bpy.data.materials.new(name)
+    mat.use_nodes = True
+    nt = mat.node_tree
+    nt.nodes.clear()
+    out = nt.nodes.new("ShaderNodeOutputMaterial")
+    bsdf = nt.nodes.new("ShaderNodeBsdfPrincipled")
+    uv = nt.nodes.new("ShaderNodeUVMap")
+    uv.uv_map = uv_name
+    col = nt.nodes.new("ShaderNodeTexImage")
+    col.image = colour
+    orm_node = nt.nodes.new("ShaderNodeTexImage")
+    orm_node.image = orm
+    split = nt.nodes.new("ShaderNodeSeparateColor")
+    nt.links.new(uv.outputs["UV"], col.inputs["Vector"])
+    nt.links.new(uv.outputs["UV"], orm_node.inputs["Vector"])
+    nt.links.new(col.outputs["Color"], bsdf.inputs["Base Color"])
+    nt.links.new(orm_node.outputs["Color"], split.inputs["Color"])
+    nt.links.new(split.outputs["Green"], bsdf.inputs["Roughness"])
+    nt.links.new(split.outputs["Blue"], bsdf.inputs["Metallic"])
+    nt.links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
+    for n, x in ((uv, -900), (col, -600), (orm_node, -600), (split, -300), (bsdf, 0), (out, 300)):
+        n.location = (x, -320 if n is orm_node or n is split else 0)
+    if clip:
+        # Alpha through Round is the alpha clip the glTF exporter writes as
+        # alphaMode MASK, cutoff 0.5; Godot imports it as alpha scissor.
+        cut = nt.nodes.new("ShaderNodeMath")
+        cut.operation = "ROUND"
+        cut.location = (-300, 200)
+        nt.links.new(col.outputs["Alpha"], cut.inputs[0])
+        nt.links.new(cut.outputs[0], bsdf.inputs["Alpha"])
+        mat.surface_render_method = "DITHERED"
+    if double_sided:
+        # glTF doubleSided, which Godot imports as culling off: a leaf is seen
+        # from both faces.
+        mat.use_backface_culling = False
+    nt.nodes.active = col  # texture paint paints the colour image
+    mat.diffuse_color = (0.8, 0.8, 0.8, 1.0)
+    return mat
+
+
 def main():
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     size = arg(argv, "--size", 2048)
@@ -723,6 +1337,9 @@ def main():
     orm_path = os.path.join(folder, f"{name}_orm.png")
     guide_path = os.path.join(folder, f"{name}_uv_guide.png")
     holes_path = os.path.join(folder, f"{name}_holes.png")
+    if "--leaflets" in argv:
+        leaflet_canvas(argv, name, root, folder, size, orm_size)
+        return
     obj = next(o for o in bpy.data.collections["export"].objects if o.get("kyt_game_mesh"))
     if "--guide-only" in argv:
         write_uv_guide(obj, guide_path, size)
@@ -823,41 +1440,7 @@ def main():
         img.source = "FILE"
         img.reload()
 
-    # One material reading both: colour to base colour; the ORM's green and blue
-    # to roughness and metalness, the wiring the glTF exporter recognises.
-    mat = bpy.data.materials.get(name) or bpy.data.materials.new(name)
-    mat.use_nodes = True
-    nt = mat.node_tree
-    nt.nodes.clear()
-    out = nt.nodes.new("ShaderNodeOutputMaterial")
-    bsdf = nt.nodes.new("ShaderNodeBsdfPrincipled")
-    uv = nt.nodes.new("ShaderNodeUVMap")
-    uv.uv_map = obj.data.uv_layers[0].name
-    col = nt.nodes.new("ShaderNodeTexImage")
-    col.image = colour
-    orm_node = nt.nodes.new("ShaderNodeTexImage")
-    orm_node.image = orm
-    split = nt.nodes.new("ShaderNodeSeparateColor")
-    nt.links.new(uv.outputs["UV"], col.inputs["Vector"])
-    nt.links.new(uv.outputs["UV"], orm_node.inputs["Vector"])
-    nt.links.new(col.outputs["Color"], bsdf.inputs["Base Color"])
-    nt.links.new(orm_node.outputs["Color"], split.inputs["Color"])
-    nt.links.new(split.outputs["Green"], bsdf.inputs["Roughness"])
-    nt.links.new(split.outputs["Blue"], bsdf.inputs["Metallic"])
-    nt.links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
-    for n, x in ((uv, -900), (col, -600), (orm_node, -600), (split, -300), (bsdf, 0), (out, 300)):
-        n.location = (x, -320 if n is orm_node or n is split else 0)
-    if perforate_parts:
-        # Alpha through Round is the alpha clip the glTF exporter writes as
-        # alphaMode MASK, cutoff 0.5; Godot imports it as alpha scissor.
-        clip = nt.nodes.new("ShaderNodeMath")
-        clip.operation = "ROUND"
-        clip.location = (-300, 200)
-        nt.links.new(col.outputs["Alpha"], clip.inputs[0])
-        nt.links.new(clip.outputs[0], bsdf.inputs["Alpha"])
-        mat.surface_render_method = "DITHERED"
-    nt.nodes.active = col  # texture paint paints the colour image
-    mat.diffuse_color = (0.8, 0.8, 0.8, 1.0)
+    mat = one_material(name, colour, orm, obj.data.uv_layers[0].name, bool(perforate_parts))
 
     me = obj.data
     for p in me.polygons:

@@ -239,6 +239,10 @@ def run(context):
     if stem.endswith(SOURCE_SUFFIX):
         return False, ["This is the original (source) file; it stays as separate parts. "
                        "Make the game mesh from the working file."]
+    if scene.get("kyt_keep_parts"):
+        return False, ["The game chooses this prop's parts tree by tree, so they stay separate: "
+                       "there is no game mesh to make. Its blades carry the unwrap "
+                       "(tools/blender/unwrap_blades.py)."]
     export = bpy.data.collections.get(checks.EXPORT_COLLECTION)
     if export is None:
         return False, ["There is no 'export' collection."]
@@ -494,6 +498,9 @@ def rebuild(context):
     stem = os.path.splitext(os.path.basename(path))[0]
     if stem.endswith(SOURCE_SUFFIX):
         return False, ["This is the original (source) file. Rebuild from the working file."]
+    if bpy.context.scene.get("kyt_keep_parts"):
+        return False, ["The game chooses this prop's parts tree by tree, so they stay separate: "
+                       "there is no game mesh to rebuild."]
     export = bpy.data.collections.get(checks.EXPORT_COLLECTION)
     game = next((o for o in export.objects if o.get("kyt_game_mesh")), None) if export else None
     if game is None:

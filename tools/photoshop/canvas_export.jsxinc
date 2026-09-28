@@ -3,24 +3,53 @@
 // "UV guide" layer hidden, 8 bits, saved as PNG over `pngPath`. The work is
 // done on a duplicate, closed after, so `doc` is not touched.
 //
+// A canvas with a "cut-out" layer (a crown's leaflets, paint_canvas.py
+// --leaflets) has it hidden from the colour too, and then exported alone at
+// Normal and full opacity, whatever her view of it, over `<prop>_cutout.png`
+// beside the PNG: white keeps, black cuts. apply_holes.py puts that into the
+// colour's alpha. Returns whether there was one.
+//
 // A lock or visibility is set only when it has to change: Photoshop 27 refuses
 // to unlock a layer that is already unlocked ("The command Set is not
 // currently available"), which stopped the save hook on 2026-09-25 and left
 // its duplicate open. The duplicate is closed whatever happens.
-function kytExportCanvas(doc, pngPath) {
+function kytIsGuide(layer) { return layer.name.indexOf("UV guide") == 0; }
+function kytIsCutout(layer) { return layer.name.indexOf("cut-out") == 0; }
+
+// `visibility(layer)` is true to show, false to hide, null to leave as it is.
+function kytSaveFlat(doc, path, visibility) {
     var dup = doc.duplicate("canvas_export", false);
     try {
         for (var k = 0; k < dup.layers.length; k++) {
-            var layer = dup.layers[k];
-            if (layer.name.indexOf("UV guide") != 0) continue;
+            var layer = dup.layers[k], show = visibility(layer);
+            var normal = show === true && kytIsCutout(layer);
+            if (show === null || (layer.visible == show && !normal)) continue;
             if (layer.allLocked) layer.allLocked = false;
-            if (layer.visible) layer.visible = false;
+            if (layer.visible != show) layer.visible = show;
+            if (normal) {
+                if (layer.blendMode != BlendMode.NORMAL) layer.blendMode = BlendMode.NORMAL;
+                if (layer.opacity != 100) layer.opacity = 100;
+            }
         }
         dup.flatten();
         if (dup.bitsPerChannel != BitsPerChannelType.EIGHT) dup.bitsPerChannel = BitsPerChannelType.EIGHT;
         var png = new PNGSaveOptions(); png.compression = 9; png.interlaced = false;
-        dup.saveAs(new File(pngPath), png, true, Extension.LOWERCASE);
+        dup.saveAs(new File(path), png, true, Extension.LOWERCASE);
     } finally {
         dup.close(SaveOptions.DONOTSAVECHANGES);
     }
+}
+
+function kytExportCanvas(doc, pngPath) {
+    var cutout = false;
+    for (var i = 0; i < doc.layers.length; i++) if (kytIsCutout(doc.layers[i])) cutout = true;
+    kytSaveFlat(doc, pngPath, function (layer) {
+        return kytIsGuide(layer) || kytIsCutout(layer) ? false : null;
+    });
+    if (cutout) {
+        kytSaveFlat(doc, pngPath.replace(/_colour\.png$/, "_cutout.png"), function (layer) {
+            return kytIsCutout(layer);
+        });
+    }
+    return cutout;
 }

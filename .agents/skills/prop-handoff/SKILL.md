@@ -86,6 +86,13 @@ the tracker row: stage **model**, with **Christina**.
      (the bench's are its model; `--grain` assumes timber runs along x).
      Render it and let her approve the starting look before she paints.
    - Row: stage **paint**, with **Christina**. Then `--open`.
+   - **A crown** (`kyt_keep_parts`, the palm crown) has no source file or
+     game mesh: `unwrap_blades.py -- --save` on the working file, then
+     `paint_canvas.py -- --leaflets --save`; render and her approval as
+     above; `--open` gives its PSD the paintable cut-out layer. To change the
+     leaflets later ("wider", "fewer"): edit `LEAFLETS`, show her renders from
+     a scratch copy, then `paint_canvas.py -- --leaflets --cutout-only` and
+     `prop_handback.py <prop> --cutout-layer` (unsaved; she saves).
 
 **Rebuild game mesh:** her panel button, or headless when her Blender doesn't
 hold the working file: `Blender --background <prop>.blend --python

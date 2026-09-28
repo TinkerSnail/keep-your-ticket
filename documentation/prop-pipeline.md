@@ -53,11 +53,13 @@ game mesh, Send to game and the Godot scene were each nearly done twice).
 | Send to game | **Send to game** | `prop_handback_blender.py -- send` | `assets/props/<prop>.glb` newer than the saved `.blend` |
 | Godot scene wrapping the model | **Write / Replace Godot scene** (offered after a Send) | edit `scenes/world/park_furniture/<prop>.tscn` | the scene instances `res://assets/props/<prop>.glb` and holds its contract markers |
 | Unwrap the parts | none yet | `unwrap_parts.py -- --save` on `<prop>_source.blend` | every source part marked `kyt_unwrapped` |
+| Unwrap a crown's blades (keep-parts props) | none | `unwrap_blades.py -- --save` on `<prop>.blend` | every blade and the heart marked `kyt_unwrapped` |
 | Make game mesh | **Make game mesh** | `prop_handback_blender.py -- make --save` | `<prop>_source.blend` exists; `export` holds one `kyt_game_mesh` object |
 | Rebuild game mesh | **Rebuild game mesh** | `prop_handback_blender.py -- rebuild --save`, only when her Blender doesn't hold the file | the game mesh records `kyt_parts` (it took the parts' own unwrap) |
 | Canvas | none | `paint_canvas.py` | `assets/source/textures/<prop>/<prop>_colour.png` exists |
 | Open or make the PSD | **Open texture in Photoshop** | `prop_handback.py <prop> --open` | `<prop>_colour.psd` exists |
 | A perforated PSD's hole layers | made with the PSD by **Open texture** | `prop_handback.py <prop> --hole-layers` after re-cutting holes | the PSD has "UV guide: holes (Claude)" |
+| A crown PSD's cut-out layer | made with the PSD by **Open texture** | `prop_handback.py <prop> --open` | the PSD has "cut-out (black cuts, white keeps)" |
 | Texture to the game on each save | the save hook (Photoshop box: **On**) | `prop_handback.py <prop>` covers it | an entry after her save in `~/Library/Logs/Keep Your Ticket/live_send.log`; PNG and GLB newer than the PSD |
 | Texture on the model in Blender | **Reload textures on save** | none | the panel's "reloaded … from disk" line |
 | Tests and renders (the hand-back) | **Hand back** | `prop_handback.py <prop>` | a `documentation/screenshots/handbacks/<prop>-<time>/` newer than her last save |
@@ -148,7 +150,23 @@ sharp edges and listed for seaming by hand.
 **Done when:** every part is classified, twins paired, and stretch measured
 exact on flat parts (rings within about ±10%).
 
+**A crown** (a prop whose game chooses its parts, `kyt_keep_parts`: the palm
+crown) is unwrapped on the working file instead, and has no source file or
+game mesh:
+```
+Blender --background assets/source/props/<prop>.blend --python tools/blender/unwrap_blades.py -- --save
+```
+Each blade in `authored/blades` is laid flat as seen from above, true scale,
+base at the bottom, and every frond bent from it wears its island (the fronds
+take their UVs from the blade through `kyt_course_blade`). The heart keeps its
+own unwrap at the same scale. The palm crown: seven islands at 373 px per
+metre on 2048. It refuses once a canvas exists: reshaping a blade after that
+carries its UVs with its vertices, so painting stays on the leaf.
+
 ### 4. Game mesh (Christina's button, or agent) — working
+
+A crown has none: **Make game mesh** refuses a `kyt_keep_parts` file, whose
+fronds must stay separate for the game to choose them tree by tree.
 
 **Make game mesh** saves `<prop>_source.blend` (every part, editable), then
 fuses the parts into one mesh in the working file, deletes hidden faces, keeps
@@ -206,6 +224,27 @@ All go in `assets/source/textures/<prop>/`. The options set the starting look:
   (colour kept, holes cut again), then `prop_handback.py <prop> --hole-layers`
   and she saves the PSD.
 
+- `--leaflets`: a crown's canvas, after `unwrap_blades.py`, in place of the
+  bake. Each island in its blade's colour; for the kinds in `LEAFLETS`,
+  leaflets and basal spines from the rachis to the blade's outline, each
+  opening no wider than the one below so none cross, cut into the colour's
+  alpha and into `<prop>_cutout.png`. The blades and heart get one
+  double-sided, alpha-clipped material. The mature blade is 44% leaf, and each
+  kind keeps its share through the 0.5 cut at every mip level out to 120 m
+  (2026-09-26), so fronds don't vanish at a distance. The palm crown,
+  2026-09-26. To change the leaflets on a painted canvas, edit `LEAFLETS`, run
+  `--leaflets --cutout-only` (the cut-out only), then `prop_handback.py
+  <prop> --cutout-layer`, which swaps it into the PSD's cut-out layer unsaved
+  for her to look at. Her cartoony call the same day: about 20 broad leaflets
+  a side on the mature frond instead of 70; then, after her Mario Kart 7
+  references (`documentation/reference/palm_crown/`), the torn leaf
+  (`CUT_STYLE = "tears"`): each frond one solid broad leaf, torn like a banana
+  leaf along its side veins, about 97% leaf on the mature (a first fringed cut
+  of wide bites she called "abysmal"). With it,
+  `--leaflets --shading-only` paints a starting look into
+  `<prop>_shading.png`, which `prop_handback.py <prop> --shading-layer` puts
+  in her PSD as "shading (Claude)" above her paint, unsaved.
+
 Each effect's strength is a number at the top of the script. The bench's full
 command is in `howto/paint-the-plaza-bench.md`. A canvas someone has painted
 is never rebaked; `--overwrite` is for an unpainted one only.
@@ -248,6 +287,15 @@ event changes), so showing it never starts Photoshop; switching it runs
 same day at her choice: UXP can't start a process (Adobe's shell API opens
 only a file or a URL, with no arguments), and reaching ExtendScript from it
 takes batchPlay's undocumented "AdobeScriptAutomation Scripts" event.
+
+**A crown's cut-out** is a layer she paints. The PSD made by **Open texture**
+carries "cut-out (black cuts, white keeps)" at Multiply above `paint`, so the
+gaps show black over the painting, and "leaf under the paint (Claude)",
+locked, at the bottom, so a see-through spot in the paint exports as leaf
+(`tools/photoshop/cutout_layers.jsx`). Every export, the hand-back's and the
+save hook's, writes the colour with the cut-out hidden, then the cut-out alone
+at Normal over `<prop>_cutout.png`, and `apply_holes.py` makes it the alpha.
+Hiding it while painting changes nothing that is exported.
 
 Her words:
 - **"Preview":** `prop_handback.py <prop> --preview` renders her work in
@@ -298,7 +346,9 @@ and never commits:
 4. `Godot --headless --path . --import`, then check that Godot's extracted
    copy (`assets/props/<prop>_<prop>_colour.png`) matches the export pixel for
    pixel and is still VRAM-compressed with mipmaps.
-5. Tests: `seat_test.py`, `clearance_test`, `budget_test`,
+5. Tests: `seat_test.py` (or the prop's own, `PROP_TESTS` in the tool: the
+   palm crown runs `coastal_palm_test`, `tree_catalog_test` and
+   `coastal_plant_catalog_test`), `clearance_test`, `budget_test`,
    `ground_contact_test` (known standing failures, listed in the tool's
    `KNOWN_GROUND`, pass; any other surface fails the hand-back).
 
@@ -423,3 +473,10 @@ Each cost time once. The fix is in the tool unless noted.
   asked for** (Photoshop 27.4). Show and hide by layer id.
 - **ExtendScript evaluates an unbracketed nested `?:` wrongly,** calling both
   branches. Use if/else.
+- **Make game mesh fused the palm crown** (2026-09-26): her Blender still ran
+  the add-on from before the crown's refusal, so all 47 fronds and the heart
+  became one object with its UVs re-packed, and the canvas landed anywhere.
+  Its `palm_crown_source.blend` held the crown whole. The panel now hides
+  Make and Rebuild game mesh for a `kyt_keep_parts` file and both refuse it;
+  after any extension change, the add-on is switched off and on before she
+  uses the panel (R10), not left for later.

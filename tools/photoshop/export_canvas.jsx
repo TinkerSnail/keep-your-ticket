@@ -1,5 +1,7 @@
 // Export a prop's painted canvas from its PSD: a flattened copy with every
-// "UV guide" layer hidden, 8 bits, saved as PNG. The PSD itself is not touched.
+// "UV guide" layer hidden, 8 bits, saved as PNG, and a crown's "cut-out" layer
+// beside it as <prop>_cutout.png (canvas_export.jsxinc). The PSD itself is not
+// touched.
 //
 // Run from tools/prop_handback.py through AppleScript:
 //   do javascript file "export_canvas.jsx" with arguments {psd, png, allow_unsaved}
@@ -18,8 +20,9 @@ var result;
 if (!doc.saved && !allowUnsaved) {
     result = "REFUSED: " + doc.name + " has unsaved changes; save it in Photoshop first";
 } else {
-    kytExportCanvas(doc, pngPath);
-    result = "EXPORTED " + doc.name + " " + doc.width.as("px") + "x" + doc.height.as("px") + (doc.saved ? "" : " (with unsaved changes)");
+    var cutout = kytExportCanvas(doc, pngPath);
+    result = "EXPORTED " + doc.name + " " + doc.width.as("px") + "x" + doc.height.as("px") + (doc.saved ? "" : " (with unsaved changes)")
+        + (cutout ? ", and its cut-out layer" : "");
 }
 if (opened) doc.close(SaveOptions.DONOTSAVECHANGES);
 result;

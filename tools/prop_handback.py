@@ -10,8 +10,9 @@ first thing that fails:
 
 1. **Export.** `assets/source/textures/<prop>/<prop>_colour.psd` through
    Photoshop (`tools/photoshop/export_canvas.jsx`): a flattened copy, every
-   "UV guide" layer hidden, over `<prop>_colour.png`. A perforated prop's
-   holes go back into its alpha from `<prop>_holes.png`
+   "UV guide" layer hidden, over `<prop>_colour.png`. A crown's "cut-out"
+   layer is exported beside it as `<prop>_cutout.png` and goes into its
+   alpha; a perforated prop's holes do from `<prop>_holes.png`
    (`tools/blender/apply_holes.py`). Refused if the PSD has
    unsaved changes, so the PNG always matches a saved PSD (`--allow-unsaved`
    overrides; `--no-export` skips the step for a PNG exported by hand).
@@ -23,7 +24,8 @@ first thing that fails:
 5. **Verify** that Godot's extracted copies in `assets/props/` match the PNGs
    pixel for pixel and are VRAM-compressed with mipmaps; the import setting is
    put right (and imported again) if not.
-6. **Test:** `seat_test.py`, `clearance_test`, `budget_test`,
+6. **Test:** `seat_test.py` (or the prop's own, `PROP_TESTS`: the palm
+   crown's are the palm and catalog tests), `clearance_test`, `budget_test`,
    `ground_contact_test` (failing only on its known standing surfaces,
    `KNOWN_GROUND`, counts as passing).
 7. **Render** the prop from four views into
@@ -33,13 +35,20 @@ first thing that fails:
 It never commits: that is Christina's word. Mac only (Photoshop through
 AppleScript). Set BLENDER or GODOT to use other binaries.
 
+`--cutout-layer` puts a crown's re-cut leaflets (`paint_canvas.py --leaflets
+--cutout-only`) into its PSD's cut-out layer, unsaved, for her to look at.
+
+`--shading-layer` puts a crown's painted starting look (`paint_canvas.py
+--leaflets --shading-only`) into its PSD as "shading (Claude)" above `paint`,
+unsaved.
+
 `--hole-layers` refreshes a perforated prop's two hole layers in its PSD (the
 canvas under the paint, the holes as a guide on top) after the holes are cut
 again with `paint_canvas.py --holes-only`; `--open` adds them to a new PSD.
 
 `--open` is stage 6's set-up: the prop's PSD opened in Photoshop, made first
 if there isn't one (colour PNG as the `paint` layer, the UV guide locked on
-top; an existing PSD is never replaced). `--preview` is "preview": the open
+top, and a crown's cut-out layer; an existing PSD is never replaced). `--preview` is "preview": the open
 document (saved or not) exported to a scratch file and rendered on the prop
 from the same four views into `documentation/screenshots/handbacks/
 <prop>-preview-<time>/`; the PNG, the game and her document are untouched.
@@ -73,6 +82,13 @@ KNOWN_GROUND = (
     # The boardwalk crowd through the Grand Circuit lane, and one plaza bin.
     "grand_tram_boardwalk_", "lane_cart", "bin_1_lid",
 )
+
+
+# A prop's own tests, run in place of seat_test.py, which is for seats. The
+# palm crown is on all 34 coastal palms and the two catalog palms.
+PROP_TESTS = {
+    "palm_crown": ("coastal_palm_test", "tree_catalog_test", "coastal_plant_catalog_test"),
+}
 
 
 class Stop(Exception):
@@ -114,11 +130,19 @@ def export(r, psd, png, allow_unsaved):
         r.say(True, "export", f"{said[len('EXPORTED '):]} -> {os.path.relpath(png, ROOT)} ({im.size[0]}x{im.size[1]})")
 
 
-def holes(r, png, holes_png):
-    """A perforated prop's holes back into its exported colour PNG (the PSD's
-    flattened export has no alpha); nothing for a prop without holes."""
-    if not os.path.exists(holes_png):
+def holes(r, png, textures):
+    """The cut-out back into an exported colour PNG's alpha (the PSD's flattened
+    export has none): a crown's painted cut-out, which the export has just
+    written from the PSD's "cut-out" layer beside the PNG (or the canvas's own,
+    before there is a PSD), or a perforated prop's holes; nothing for a prop
+    with neither."""
+    stem = os.path.basename(png)[:-len("_colour.png")]
+    found = [m for m in (png.replace("_colour.png", "_cutout.png"),
+                         os.path.join(textures, f"{stem}_cutout.png"),
+                         os.path.join(textures, f"{stem}_holes.png")) if os.path.exists(m)]
+    if not found:
         return
+    holes_png = found[0]
     out = run([BLENDER, "--background", "--factory-startup", "--python",
                os.path.join(ROOT, "tools", "blender", "apply_holes.py"), "--", png, holes_png])
     said = next((l[len("apply_holes: "):] for l in out.stdout.splitlines() if l.startswith("apply_holes: ")), None)
@@ -164,10 +188,17 @@ def verify(r, prop, sources):
         godot_import(r)
 
 
-def tests(r):
-    out = run([sys.executable, os.path.join(ROOT, "tools", "seat_test.py")])
-    last = out.stdout.strip().splitlines()[-1] if out.stdout.strip() else out.stderr[-200:]
-    r.say(last.startswith("PASS"), "seat_test", last)
+def tests(r, prop):
+    own = PROP_TESTS.get(prop)
+    if own is None:
+        out = run([sys.executable, os.path.join(ROOT, "tools", "seat_test.py")])
+        last = out.stdout.strip().splitlines()[-1] if out.stdout.strip() else out.stderr[-200:]
+        r.say(last.startswith("PASS"), "seat_test", last)
+    for name in own or ():
+        out = run([GODOT, "--headless", "--fixed-fps", "60", "--path", ROOT, "tools/run.tscn", "--", name])
+        verdict = next((l for l in out.stdout.splitlines() if l.startswith(("PASS", "FAIL"))),
+                       (out.stdout + out.stderr)[-300:])
+        r.say(out.returncode == 0 and verdict.startswith("PASS"), name, verdict[:160])
 
     out = run([GODOT, "--headless", "--path", ROOT, "--script", "res://tools/clearance_test.gd"])
     pairs = re.search(r"--- (\d+) pairs of (\d+) assemblies ---", out.stdout)
@@ -209,6 +240,52 @@ def open_canvas(r, colour, guide, psd):
     r.say(said.startswith(("CREATED", "OPEN")), "open", said or "Photoshop gave no answer")
     if said.startswith("CREATED"):
         hole_layers(r, colour, psd, save=True)
+        cutout_layers(r, colour, psd)
+
+
+def cutout_layers(r, colour, psd):
+    """A crown's new PSD gets its cut-out (`tools/photoshop/cutout_layers.jsx`):
+    the canvas colour, opaque, under the paint, and the canvas's own
+    `<prop>_cutout.png` as a "cut-out" layer at Multiply above it, which she
+    paints and every export writes back. Nothing for a prop without one."""
+    cutout_png = colour.replace("_colour.png", "_cutout.png")
+    if not os.path.exists(cutout_png):
+        return
+    under = os.path.join(tempfile.mkdtemp(prefix="kyt_cutout_"), "underlay.png")
+    with Image.open(colour) as im:
+        im.convert("RGB").save(under)
+    jsx = os.path.join(ROOT, "tools", "photoshop", "cutout_layers.jsx")
+    script = (f'tell application id "com.adobe.Photoshop" to do javascript file (POSIX file "{jsx}") '
+              f'with arguments {{"{psd}", "{under}", "{cutout_png}"}}')
+    out = run(["osascript", "-e", script], timeout=300)
+    said = (out.stdout + out.stderr).strip()
+    r.say(said.startswith(("LAYERS", "KEPT")), "cut-out layers", said or "Photoshop gave no answer")
+
+
+def cutout_layer(r, psd, cutout_png):
+    """Replaces the pixels of the PSD's cut-out layer with `<prop>_cutout.png`
+    (made again by `paint_canvas.py --leaflets --cutout-only`), keeping the
+    layer's name, place and blend mode, and doesn't save: she looks at the
+    leaflets in Photoshop and saves them, or takes them back with its history."""
+    jsx = os.path.join(ROOT, "tools", "photoshop", "cutout_layers.jsx")
+    script = (f'tell application id "com.adobe.Photoshop" to do javascript file (POSIX file "{jsx}") '
+              f'with arguments {{"{psd}", "", "{cutout_png}", "replace"}}')
+    out = run(["osascript", "-e", script], timeout=300)
+    said = (out.stdout + out.stderr).strip()
+    r.say(said.startswith("REPLACED"), "cut-out layer", said or "Photoshop gave no answer")
+
+
+def shading_layer(r, psd, shading_png):
+    """Puts a crown's painted starting look (`paint_canvas.py --leaflets
+    --shading-only`) into its PSD as "shading (Claude)", directly above her
+    `paint` layer, replacing an earlier one, and doesn't save: she can hide it,
+    paint over it or delete it."""
+    jsx = os.path.join(ROOT, "tools", "photoshop", "layer_from_png.jsx")
+    script = (f'tell application id "com.adobe.Photoshop" to do javascript file (POSIX file "{jsx}") '
+              f'with arguments {{"{psd}", "{shading_png}", "shading (Claude)", "paint"}}')
+    out = run(["osascript", "-e", script], timeout=300)
+    said = (out.stdout + out.stderr).strip()
+    r.say(said.startswith(("ADDED", "REPLACED")), "shading layer", said or "Photoshop gave no answer")
 
 
 def hole_layers(r, colour, psd, save=False):
@@ -257,6 +334,10 @@ def main():
     ap.add_argument("--preview", action="store_true", help="render the work in progress; nothing sent")
     ap.add_argument("--hole-layers", action="store_true",
                     help="refresh a perforated prop's hole layers in its PSD after the holes are cut again")
+    ap.add_argument("--cutout-layer", action="store_true",
+                    help="put a crown's re-cut <prop>_cutout.png into its PSD's cut-out layer, unsaved")
+    ap.add_argument("--shading-layer", action="store_true",
+                    help="put a crown's <prop>_shading.png into its PSD as 'shading (Claude)', unsaved")
     args = ap.parse_args()
     prop = args.prop
     textures = os.path.join(ROOT, "assets", "source", "textures", prop)
@@ -268,6 +349,20 @@ def main():
     folder = os.path.join(ROOT, "documentation", "screenshots", "handbacks", f"{prop}-{stamp}")
     r = Report(prop)
     ok = True
+    if args.shading_layer:
+        try:
+            shading_layer(r, psd, os.path.join(textures, f"{prop}_shading.png"))
+            print("Shading layer in the PSD above her paint, not saved: look, and save it if it's right.")
+        except Stop:
+            sys.exit(1)
+        sys.exit(0)
+    if args.cutout_layer:
+        try:
+            cutout_layer(r, psd, os.path.join(textures, f"{prop}_cutout.png"))
+            print("Cut-out layer replaced in the PSD, not saved: look, and save it if it's right.")
+        except Stop:
+            sys.exit(1)
+        sys.exit(0)
     if args.hole_layers:
         try:
             hole_layers(r, colour, psd)
@@ -284,7 +379,7 @@ def main():
                 folder = folder.replace(f"{prop}-{stamp}", f"{prop}-preview-{stamp}")
                 scratch = os.path.join(tempfile.mkdtemp(prefix="kyt_preview_"), f"{prop}_colour.png")
                 export(r, psd, scratch, allow_unsaved=True)
-                holes(r, scratch, os.path.join(textures, f"{prop}_holes.png"))
+                holes(r, scratch, textures)
                 renders(r, blend, folder, colour=scratch)
                 with open(os.path.join(folder, "README.md"), "w") as f:
                     f.write(f"# Preview: {prop}, {stamp}\n\nWork in progress from the open PSD; nothing sent.\n\n"
@@ -300,7 +395,7 @@ def main():
             r.say(None, "export", "skipped" if args.no_export else "no PSD; using the PNG as it is")
         else:
             export(r, psd, colour, args.allow_unsaved)
-        holes(r, colour, os.path.join(textures, f"{prop}_holes.png"))
+        holes(r, colour, textures)
         for png in (colour, orm):
             if os.path.exists(png):
                 r.say(True, "shrink", optimize(png).split(": ", 1)[-1] + f" ({os.path.basename(png)})")
@@ -308,7 +403,7 @@ def main():
         godot_import(r)
         verify(r, prop, [p for p in (colour, orm) if os.path.exists(p)])
         if not args.no_tests:
-            tests(r)
+            tests(r, prop)
         if not args.no_renders:
             renders(r, blend, folder)
     except Stop:

@@ -1,8 +1,9 @@
 // Photoshop's "Save Document" script event for Keep Your Ticket, turned on and
 // off by tools/photoshop/live_update.sh. When the document just saved is a
 // prop's canvas, assets/source/textures/<prop>/<prop>_colour.psd, this writes
-// its PNG beside it (the hand-back's own export; a perforated prop's holes are
-// put back into its alpha) and sends the prop to the game in the background: a headless Blender runs Send to game on
+// its PNG beside it (the hand-back's own export; a crown's painted cut-out or a
+// perforated prop's holes are put back into its alpha) and sends the prop to
+// the game in the background: a headless Blender runs Send to game on
 // assets/source/props/<prop>.blend as saved, so Godot shows the painting the
 // next time its window is focused. Christina's open Blender is not touched;
 // its Keep Your Ticket panel reloads the texture by itself. Any other save,
@@ -27,9 +28,11 @@
     if (!logs.exists) logs.create();
     var q = function (s) { return "'" + s.replace(/'/g, "'\\''") + "'"; };
     var blender = q("/Applications/Blender.app/Contents/MacOS/Blender");
-    // A perforated prop's holes go back into the PNG's alpha first: the
-    // flattened export has none (tools/blender/apply_holes.py).
-    var png = path.replace(/\.psd$/, ".png"), holes = path.replace(/_colour\.psd$/, "_holes.png");
+    // The cut-out goes back into the PNG's alpha first, the flattened export
+    // having none (tools/blender/apply_holes.py): a crown's, just written from
+    // its PSD layer, or a perforated prop's holes.
+    var png = path.replace(/\.psd$/, ".png"), holes = path.replace(/_colour\.psd$/, "_cutout.png");
+    if (!new File(holes).exists) holes = path.replace(/_colour\.psd$/, "_holes.png");
     var putHoles = new File(holes).exists
         ? blender + " --background --factory-startup --python " + q(tools + "/blender/apply_holes.py")
           + " -- " + q(png) + " " + q(holes) + "; "
