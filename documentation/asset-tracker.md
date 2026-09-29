@@ -118,7 +118,7 @@ paint → integrated. **Holder** is who has the next move.
 
 | | |
 |---|---|
-| Stage | **paint**: canvas with the 2× perforated mesh handed back 2026-09-25 18:30 (all passed), sent to the game; PSD ready with its hole layers. Model built by Claude at her request from her 2026-09-11 photo, chunkier, with the family's bolts; game mesh 1,964 triangles |
+| Stage | **paint**: canvas with the 2× perforated mesh handed back 2026-09-25 18:30 (all passed), sent to the game; PSD ready with its hole layers. Model built by Claude at her request from her 2026-09-11 photo, chunkier, with the family's bolts; game mesh 1,964 triangles. Her repainted colour (committed `39d0eae`) shrunk losslessly on 2026-09-29, the source and Godot's extracted copy 1,803 → 1,160 KB each, and sent again: GLB 1.9 → 1.3 MB, geometry and pixels unchanged |
 | Holder | Christina: painting in the PSD (each save sends it through the Photoshop hook) |
 | Model | `assets/source/props/perforated_metal_bench.blend` (working, one fused mesh); parts in `perforated_metal_bench_source.blend`; `reference` holds only the floor and the seat markers |
 | Paint | `assets/source/textures/perforated_metal_bench/perforated_metal_bench_colour.psd` (made again after the holes were re-cut; the holes show as transparency in `paint`, locked `UV guide`); colour 2048 (about 925 px/m) with the holes in its alpha, `_holes.png` (90 × 38 mm diamonds, 11 mm wires, 46% open: her call, twice, for a chunkier, larger mesh), ORM 1024. The PSD also has the two locked hole layers (canvas under `paint`, `UV guide: holes (Claude)` on top), added with her yes and saved by her |
