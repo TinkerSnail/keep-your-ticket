@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3]
+
+; Editor-owned wrapper for the purple Hakone grass clump: the lemon-zest Hakone
+; clump (hakone_grass.tscn) in the Purple Heart's colours, in place of the
+; Purple Heart (Christina, 2026-09-29: "maybe instead of purple heart we do a
+; purple version of our hakone grass", "yes do the purple hakone"). Its blades'
+; shapes live in assets/source/props/purple_hakone_grass.blend; Send to game
+; writes the GLB below.
+
+[ext_resource type="Script" path="res://scenes/world/hakone_grass.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://assets/props/purple_hakone_grass.glb" id="2_model"]
+
+[node name="purple_hakone_grass" type="Node3D"]
+script = ExtResource("1_script")
+editor_description = "Purple Hakone grass: the Hakone clump in the Purple Heart's purples, in place of the Purple Heart. Choose vA or vB here; shape it in assets/source/props/purple_hakone_grass.blend. vA shows the nine outer and mature blades; vB adds three bright young ones (twelve blades)."
+
+[node name="model" parent="." instance=ExtResource("2_model")]

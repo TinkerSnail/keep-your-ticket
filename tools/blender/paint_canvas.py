@@ -332,13 +332,16 @@ PROP_LEAFLETS = {
     # painted, and a placement's Godot script picks one by sliding the bloom
     # material's UVs. `art`: "truss", seven azalea blooms in a bunch (her
     # "azalea blooms need to be clustered together ... more intensely and more
-    # densely"); "hibiscus", one big round flower. Each slot is (petal,
-    # throat); the hibiscus's stamens are `pollen`.
+    # densely"), since one "azalea", one trumpet flower (her "each individual
+    # azalea flower needs to be given a cone/trumpet shape"), its top petal
+    # speckled, long stamens; "hibiscus", one big round flower. Each slot is
+    # (petal, throat); the hibiscus's stamens are `pollen`, the azalea's its
+    # throat's colour.
     "azalea_bush": dict(style="dome", rachis=(0.004, 0.0015), rachis_colour=(0.36, 0.62, 0.16),
                         rachis_tint=0.5, profile="ovate", kinds={
                             "leaf": dict(leaf_m=0.22, width=0.3, splay=25.0, shade=(0.64, 1.15), shadow=0.4, rim_dark=0.3,
                                          gap=0.45, top=0.08),
-                            "bloom": dict(art="truss", slots=[((0.97, 0.52, 0.76), (0.80, 0.14, 0.46)),
+                            "bloom": dict(art="azalea", slots=[((0.97, 0.52, 0.76), (0.80, 0.14, 0.46)),
                                                               ((0.88, 0.2, 0.55), (0.55, 0.04, 0.3)),
                                                               ((0.98, 0.95, 0.96), (0.92, 0.52, 0.68))]),
                         }),
@@ -383,6 +386,18 @@ for _shrub in ("azalea_bush", "hibiscus_shrub"):
     PROP_LEAFLETS[_shrub]["kinds"]["body"] = PROP_LEAFLETS[_shrub]["kinds"]["leaf"]
     PROP_LEAFLETS[_shrub]["kinds"]["tier"] = PROP_LEAFLETS[_shrub]["kinds"]["leaf"]  # a band round the body
     PROP_LEAFLETS[_shrub]["kinds"]["topper"] = PROP_LEAFLETS[_shrub]["kinds"]["leaf"]  # the leaves on its very top
+    PROP_LEAFLETS[_shrub]["kinds"]["sprig"] = PROP_LEAFLETS[_shrub]["kinds"]["leaf"]  # its stray leaf groupings
+# A shrub's buds (`leaf_skin.py`, her "flower buds need to be added"): the
+# flowers' colourways, over a calyx of pointed sepals in `sepal`, sRGB.
+PROP_LEAFLETS["azalea_bush"]["kinds"]["bud"] = dict(PROP_LEAFLETS["azalea_bush"]["kinds"]["bloom"], sepal=(0.40, 0.62, 0.22))
+# Unopened azalea buds, light green, no colour showing yet (her "include some
+# light green buds that dont show their color yet"): the same green in every
+# colourway, so the slide leaves them green.
+PROP_LEAFLETS["azalea_bush"]["kinds"]["bud_green"] = dict(
+    PROP_LEAFLETS["azalea_bush"]["kinds"]["bud"],
+    slots=[((0.72, 0.88, 0.44), (0.56, 0.76, 0.32))] * len(PROP_LEAFLETS["azalea_bush"]["kinds"]["bloom"]["slots"]))
+PROP_LEAFLETS["hibiscus_shrub"]["kinds"]["bud"] = dict(PROP_LEAFLETS["hibiscus_shrub"]["kinds"]["bloom"],
+                                                       sepal=(0.22, 0.46, 0.28))
 # The shrubs' sphere versions (`leaf_skin.py`) wear their egg versions' leaves and flowers.
 for _shrub in ("azalea_bush", "hibiscus_shrub", "azalea_tree"):
     PROP_LEAFLETS[f"{_shrub}_sphere"] = PROP_LEAFLETS[_shrub]
@@ -496,11 +511,12 @@ def cut_cluster(obj, kind, label, index, size, px_m, rng):
     return leaves * mine, ribs * mine, np.where(mine, tone, 1.0).astype(np.float32)
 
 
-def paint_leaf(state, start, direction, here, spec, profile, mine, xx, yy, rng, wide=1.0):
+def paint_leaf(state, start, direction, here, spec, profile, mine, xx, yy, rng, wide=1.0, warp=None):
     """One leaf of a bush's greenery drawn over `state` (leaves, midribs,
     tone): from `start` along `direction`, `here` px long, `wide` times its
     width, as one stroke or as `lobes` (turn in degrees, share of the length,
-    width share), each with its midrib; nothing past the island (`mine`). It is shaded stalk to tip
+    width share), each with its midrib; nothing past the island (`mine`);
+    with `warp`, drawn in a dome's own proportions (`stroke`). It is shaded stalk to tip
     (`shade`), a touch lighter or darker than the last, and throws a thin
     shadow `shadow` deep on the leaves already drawn under it."""
     leaves, ribs, tone = state
@@ -512,8 +528,8 @@ def paint_leaf(state, start, direction, here, spec, profile, mine, xx, yy, rng, 
         d = np.array([direction[0] * np.cos(t) - direction[1] * np.sin(t),
                       direction[0] * np.sin(t) + direction[1] * np.cos(t)])
         end = start + d * here * reach_share
-        stroke(leaf, start, end, here * reach_share * width_share * wide, profile)
-        stroke(rib, start + d * here * 0.08, end, spec.get("rib_px", 1.5), lambda t: 1.0 - 0.8 * t)
+        stroke(leaf, start, end, here * reach_share * width_share * wide, profile, warp)
+        stroke(rib, start + d * here * 0.08, end, spec.get("rib_px", 1.5), lambda t: 1.0 - 0.8 * t, warp)
     leaf *= mine
     along = np.clip(((xx - start[0]) * direction[0] + (yy - start[1]) * direction[1]) / here, 0.0, 1.0)
     own = (spec["shade"][0] + (spec["shade"][1] - spec["shade"][0]) * along ** 0.8) * (1.0 + rng.uniform(-0.06, 0.06))
@@ -534,8 +550,11 @@ def cut_dome(obj, kind, label, index, size, px_m, rng):
     filled with the leaves' shaded colour (`gap`), so it is seen through only
     between the rim's tips. The dome is lighter at its apex (`top`) and
     darker toward its rim (`rim_dark`), where it droops. A leaf is painted
-    wider where the dome's girth is less than the canvas's (`kyt_rings`), so
-    it is its own shape on the dome."""
+    wider round the dome where the dome's girth is less than the canvas's
+    (`kyt_rings`), so it is its own shape on the dome, and its splay holds
+    (her "you need to address the way the leaf textures have been enlongated
+    on the egg shapes": widened across its own length instead, a leaf low on
+    an egg came out long and thin, hanging straight)."""
     spec = LEAFLETS[kind]
     mine = label == index
     ys, xs = np.nonzero(mine)
@@ -580,8 +599,8 @@ def cut_dome(obj, kind, label, index, size, px_m, rng):
             p = start - centre
             reach = -p @ direction + np.sqrt(max((p @ direction) ** 2 - (p @ p - rim * rim), 0.0))
             here = min(length * rng.uniform(0.9, 1.05), reach)
-            wide = np.interp(np.hypot(*(start + direction * here / 2 - centre)) / flat_px, along, widen) if girth else 1.0
-            state = paint_leaf(state, start, direction, here, spec, profile, mine, xx, yy, rng, wide)
+            warp = (centre, lambda rho: np.interp(rho / flat_px, along, widen)) if girth else None
+            state = paint_leaf(state, start, direction, here, spec, profile, mine, xx, yy, rng, 1.0, warp)
     leaves, ribs, tone = state
     f = dist / rim
     tone = tone * (1.0 + spec.get("top", 0.0) * (1.0 - smooth(0.0, 0.55, f))) * (1.0 - spec.get("rim_dark", 0.0) * smooth(0.5, 1.0, f))
@@ -660,6 +679,29 @@ def cut_bloom(obj, kind, label, index, size, px_m, rng):
             shape = np.maximum(shape, bloom)
         # Darker toward the bunch's lower rim, lighter on top.
         edge = edge * (1.0 - 0.18 * smooth(0.3, 1.0, np.clip((centre[1] - yy) / R, 0.0, 1.0)))
+    elif spec["art"] == "azalea":
+        # Five broad pointed petals round a deep throat, the top one
+        # speckled, and long stamens curving up over it, tipped dark.
+        turn = rng.uniform(0, 2 * np.pi)
+        for k in range(5):
+            a = turn + k / 5 * 2 * np.pi
+            petal = np.zeros((size, size), dtype=np.float32)
+            stroke(petal, centre, centre + np.array([np.cos(a), np.sin(a)]) * R * 0.97, R * 0.5, ovate_leaf_profile)
+            near = box_blur2((petal > 0.5).astype(np.float32), max(2, int(R * 0.06)))
+            edge = edge * (1.0 - 0.3 * np.clip(near * 2.0, 0.0, 1.0) * (1.0 - petal) * shape)
+            edge = edge * (1.0 - petal) + petal
+            shape = np.maximum(shape, petal)
+        throat = np.clip(1.0 - np.hypot(xx - centre[0], yy - centre[1]) / (R * 0.4), 0.0, 1.0) ** 0.8
+        top = np.array([np.cos(turn), np.sin(turn)])
+        for _ in range(9):
+            at = centre + (top * rng.uniform(0.18, 0.55) + np.array([-top[1], top[0]]) * rng.uniform(-0.18, 0.18)) * R
+            spot = np.clip(1.0 - np.hypot(xx - at[0], yy - at[1]) / max(1.2, R * 0.06), 0.0, 1.0)
+            throat = np.maximum(throat, spot)
+        for k in range(5):
+            a = turn + rng.uniform(-0.5, 0.5)
+            tip = centre + np.array([np.cos(a), np.sin(a)]) * R * rng.uniform(0.6, 0.8)
+            stroke(extra, centre, tip, max(1.0, R * 0.025), lambda t: np.ones_like(t))
+            stroke(extra, tip, tip + np.array([np.cos(a), np.sin(a)]) * R * 0.06, max(1.5, R * 0.05), lambda t: 1.0 - t)
     else:  # one hibiscus
         turn = rng.uniform(0, 2 * np.pi)
         for k in range(5):
@@ -683,10 +725,45 @@ def cut_bloom(obj, kind, label, index, size, px_m, rng):
         colour = colour * edge[..., None]
         if spec["art"] == "hibiscus":
             colour = colour * (1.0 - extra[..., None]) + lin(spec["pollen"])[None, None, :] * extra[..., None]
+        elif spec["art"] == "azalea":
+            colour = colour * (1.0 - extra[..., None]) + lin(heart)[None, None, :] * 0.8 * extra[..., None]
         shifted = np.roll(colour, k * step, axis=1)
         region = np.roll(shape * mine0, k * step, axis=1) > 0
         paint[region] = shifted[region]
         alpha = np.maximum(alpha, np.roll(shape * mine0, k * step, axis=1))
+    return alpha, np.zeros((size, size), dtype=np.float32), np.ones((size, size), dtype=np.float32), paint
+
+
+def cut_bud(obj, kind, label, index, size, px_m, rng):
+    """(alpha, nothing, no tone, paint) for a shrub's bud (`leaf_skin.py`,
+    `bud_card`, laid out flat as seen from the side, its foot at the bottom):
+    a calyx of pointed sepals from its foot, then the flower's colour up to
+    its point, deeper low down; once per colourway in `slots`, as the
+    flowers' card is. The whole island is opaque."""
+    spec = LEAFLETS[kind]
+    step = slot_step(obj, size)
+    mine0 = (label == index) & (np.arange(size)[None, :] < step)
+    ys, xs = np.nonzero(mine0)
+    y0, y1, x0, x1 = ys.min(), ys.max(), xs.min(), xs.max()
+    yy, xx = np.mgrid[0:size, 0:size]
+    t = np.clip((yy - y0) / max(1, y1 - y0), 0.0, 1.0)  # 0 at its foot, 1 at its point
+    across = np.clip((xx - x0) / max(1, x1 - x0), 0.0, 1.0)
+    tooth = 1.0 - np.abs(2.0 * ((across * 2.0) % 1.0) - 1.0)  # two sepal points across a face
+    top = 0.36 + 0.24 * tooth
+    sepal = smooth(top + 0.02, top - 0.02, t)
+    rim = np.clip(1.0 - np.abs(t - top) / 0.03, 0.0, 1.0) * (t < top + 0.03)  # a dark line at the sepals' edge
+    lin = lambda c: np.array([srgb_to_linear(v) for v in c], dtype=np.float32)  # noqa: E731
+    deep = smooth(0.3, 0.95, t)[..., None]
+    paint = np.zeros((size, size, 3), dtype=np.float32)
+    for k, (petal, heart) in enumerate(spec["slots"]):
+        colour = lin(heart)[None, None, :] * (1.0 - deep) + lin(petal)[None, None, :] * deep
+        colour = colour * (1.0 - sepal[..., None]) + lin(spec["sepal"])[None, None, :] * sepal[..., None]
+        colour = colour * (1.0 - 0.35 * rim[..., None])
+        region = np.roll(mine0, k * step, axis=1)
+        paint[region] = np.roll(colour, k * step, axis=1)[region]
+    alpha = np.zeros((size, size), dtype=np.float32)
+    for k in range(len(spec["slots"])):
+        alpha = np.maximum(alpha, np.roll(mine0, k * step, axis=1).astype(np.float32))
     return alpha, np.zeros((size, size), dtype=np.float32), np.ones((size, size), dtype=np.float32), paint
 
 
@@ -1387,18 +1464,58 @@ def rachis_line(obj, size):
     return np.array([at[y] for y in sorted(at)])
 
 
-def stroke(mask, a, b, half, profile):
+def stroke(mask, a, b, half, profile, warp=None):
     """Draw a tapering stroke from `a` to `b` into `mask` (max), antialiased:
-    `half` px half-width at its widest, `profile(t)` its fraction along 0..1."""
+    `half` px half-width at its widest, `profile(t)` its fraction along 0..1.
+    With `warp` (centre, widen), the stroke is drawn as it will lie on a dome
+    unwrapped round `centre` (`cut_dome`): its direction taken against the
+    line out from the centre at `a`, and its shape laid out in the dome's own
+    proportions, then spread round the centre `widen(radius px)` times wider
+    than it is long, as the canvas is round the dome against the dome
+    itself, so the dome squeezes it back to its shape."""
     d = b - a
     length = float(np.hypot(*d))
     if length < 1.0:
         return
     d = d / length
+    h, w = mask.shape
+    if warp is not None:
+        centre, widen = warp
+        out = a - centre
+        rho_a = float(np.hypot(*out))
+        if rho_a > 1.0:
+            er = out / rho_a
+            et = np.array([-er[1], er[0]])
+            dr, dt = float(d @ er), float(d @ et)  # along, round: its direction against the line out
+            theta_a = float(np.arctan2(out[1], out[0]))
+            # Where it reaches on the canvas, for the window to draw in.
+            pts = []
+            for k in range(9):
+                v, u = length * k / 8 * dr, length * k / 8 * dt
+                rho = rho_a + v
+                th = theta_a + u * widen(rho) / max(rho, 1.0)
+                pts.append(centre + rho * np.array([np.cos(th), np.sin(th)]))
+            pts = np.array(pts)
+            spread = (half + 2) * max(widen(rho_a), widen(rho_a + length * max(dr, 0.0)))
+            x0, y0 = np.floor(pts.min(axis=0) - spread).astype(int)
+            x1, y1 = np.ceil(pts.max(axis=0) + spread).astype(int)
+            x0, y0, x1, y1 = max(x0, 0), max(y0, 0), min(x1, w), min(y1, h)
+            if x1 <= x0 or y1 <= y0:
+                return
+            px, py = np.meshgrid(np.arange(x0, x1) + 0.5 - centre[0], np.arange(y0, y1) + 0.5 - centre[1])
+            rho = np.hypot(px, py)
+            dth = (np.arctan2(py, px) - theta_a + np.pi) % (2 * np.pi) - np.pi
+            ys = rho - rho_a  # along the line out, true px
+            xs = dth * rho / widen(rho)  # round the dome, true px
+            t = (ys * dr + xs * dt) / length
+            off = np.abs(ys * dt - xs * dr)
+            cover = np.clip(half * profile(np.clip(t, 0.0, 1.0)) - off + 0.5, 0.0, 1.0)
+            cover[(t < 0) | (t > 1)] = 0.0
+            np.maximum(mask[y0:y1, x0:x1], cover, out=mask[y0:y1, x0:x1])
+            return
     r = half + 2
     x0, y0 = np.floor(np.minimum(a, b) - r).astype(int)
     x1, y1 = np.ceil(np.maximum(a, b) + r).astype(int)
-    h, w = mask.shape
     x0, y0, x1, y1 = max(x0, 0), max(y0, 0), min(x1, w), min(y1, h)
     if x1 <= x0 or y1 <= y0:
         return
@@ -1629,7 +1746,9 @@ def cut_islands(objs, blades, size):
                          "dome": (LEAFLETS, cut_dome)}.get(CUT_STYLE, (LEAFLETS, cut_leaflets))
         if kind == "bloom":
             cutter = cut_bloom
-        elif kind == "topper":
+        elif kind in ("bud", "bud_green"):
+            cutter = cut_bud
+        elif kind in ("topper", "sprig"):
             cutter = cut_topper
         if kind in table:
             rng = np.random.default_rng(zlib.crc32(kind.encode()))

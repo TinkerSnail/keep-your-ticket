@@ -21,8 +21,13 @@ func _ready() -> void:
 
 
 ## The young blades are hidden, not freed, for vA; StaticMerge leaves hidden
-## meshes out of the running game's merged mesh.
+## meshes out of the running game's merged mesh. Found by the end of their
+## name, so the purple Hakone (purple_hakone_grass.tscn, the same clump in the
+## Purple Heart's colours) wears this script too.
 func _show_variant() -> void:
-	var young := get_node_or_null("model/hakone_grass_young") as Node3D
-	if young != null:
-		young.visible = catalog_variant >= 1
+	var model := get_node_or_null("model")
+	if model == null:
+		return
+	for part in model.get_children():
+		if part is Node3D and String(part.name).ends_with("_young"):
+			(part as Node3D).visible = catalog_variant >= 1
