@@ -377,10 +377,11 @@ SPECIES = {
         # pink, yellow-red, pink-white), each in `shades` a little darker (her
         # "some blooms just being a slightly darker shade of red, by maybe 2%").
         bloom=dict(radius=0.16, dome=-0.07, sides=6, count=8, group=(0, 2), sizes=(0.85, 1.15), band=(15, 115), lie=0.0,
-                   nestle=0.5, hug=None, behind=0.15, sink=0.006, seed=8, slots=4, shades=3,
+                   nestle=0.5, hug=None, behind=0.15, sink=0.006, seed=8, slots=4, shades=3, spread_seasons=True, spread_round=0.35, clear_leaves=True,
                    colour=((0.93, 0.20, 0.15), 0.55),
                    bud=dict(length=0.257, width=0.171, count=(0, 1), cluster=(2, 3), stand=0.5, uphill=True)),
-        strays=dict(count=5, leaves=3, length=0.22, width=1.2, spread=35.0, lift=-3.0, band=(55, 125), hug=0.08, seed=14),
+        strays=dict(count=5, leaves=3, length=0.22, width=1.2, spread=35.0, lift=-3.0, band=(55, 125), hug=0.08, seed=14,
+                    spread_out=True),
     ),
 }
 # The second version of each (her "dont forget our second version that is a
@@ -407,6 +408,7 @@ SPECIES["azalea_bush_sphere"]["bloom"] = dict(SPECIES["azalea_bush"]["bloom"], s
 BLOOM_CLEAR = 0.01  # a bloom rests this far off the leaves it touches
 BLOOM_FLOAT = 0.03  # a bloom whose middle ends further than this off the leaves is left out (her "i see some floating flowers")
 LEAF_TIP = 0.08  # how far in from a dome's rim its leaves are whole, not cut between their tips
+LEAF_CLEAR = 0.02  # with `clear_leaves`, a flower's or bud's rim this far off a leaf cluster's leaves
 
 
 # --- Shapes ------------------------------------------------------------------
@@ -949,7 +951,7 @@ def add_trunk(t, scale, lift, stem, home, suffix, tag):
 
 
 def place_blooms(bush, blooms, base_spec, bloom_spec, flower, bloom_mat, tag, suffix, keep_off=0.0, bud=None, avoid=(),
-                 bud_green=None):
+                 bud_green=None, leaves=()):
     """The flowers for one size of bush: points in `blooms`, the baseline and
     the peak's, each set just above the leaves under it, none within
     `keep_off` of the middle of the top (the topper), and their `bud`s;
@@ -1151,6 +1153,9 @@ def place_blooms(bush, blooms, base_spec, bloom_spec, flower, bloom_mat, tag, su
             r = bloom_spec["radius"] * size
             low = min((rot @ Vector((x * r, y * r, 0.0))).z for x in (-1, 1) for y in (-1, 1))
             at.z = max(at.z, 0.01 - low)
+            # Off the leaf clusters' own leaves (`leaves`, with `clear_leaves`).
+            if any((at - q).length < r * 1.1 + LEAF_CLEAR for q in leaves):
+                continue
             made.append((at, rot.to_euler(), size, (at + facing * bloom_spec["dome"] * size, bloom_spec["radius"] * size)))
             placed.append((offset, size))
         # A group left with too few of its flowers is left out whole, not
@@ -1319,24 +1324,46 @@ def place_blooms(bush, blooms, base_spec, bloom_spec, flower, bloom_mat, tag, su
         # Each next clump where the season's flowers are furthest off, the
         # baseline's first, then the peak's among all of them, so no side is
         # left bare (her "looks good but theres a bald patch on the back"):
-        # handed out in turn, a whole side could miss the baseline.
+        # handed out in turn, a whole side could miss the baseline. Without
+        # `clump`, each next group of twos and threes the same way, from the
+        # places `bloom_spots` finds (the hibiscus, her "theres a patch on the
+        # hibiscus thats missing flowers": the first groups that took left a
+        # quarter of it bare outside its peak).
         import numpy as np
-        cands = envelope_spots(10 ** 9, farthest=False)
-        where = np.array([tuple(c[0]) for c in cands]) if cands else np.zeros((0, 3))
+        if bloom_spec.get("clump"):
+            cands, place = envelope_spots(10 ** 9, farthest=False), clump_at
+        else:
+            cands = bloom_spots(skin, surface, base_spec, dict(bloom_spec, count=bloom_spec["count"] * 30), keep_off, span,
+                                avoid)
+
+            def place(pos, n, season):
+                return around(pos, n, super_at, mega, bloom_spec.get("mega_gap", 6.5), season)
+        # Far off mostly round the bush, less up and down (`spread_round`,
+        # the hibiscus's): measured on the body, a group low on a side that
+        # already had flowers counted as filling a gap, and the side opposite
+        # went bare instead.
+        squash = bloom_spec.get("spread_round")
+
+        def key(p_):
+            if not squash:
+                return tuple(p_)
+            a_ = math.atan2(p_.y, p_.x)
+            return (math.cos(a_) * base_spec["width"] / 2, math.sin(a_) * base_spec["width"] / 2, p_.z * squash)
+        where = np.array([key(c[0]) for c in cands]) if cands else np.zeros((0, 3))
         for season, want in (("blooms", bloom_spec["count"]), ("blooms_peak", bloom_spec["count"] * 2)):
             open_ = np.ones(len(cands), dtype=bool)
             pts = sets["blooms"][0] + (sets["blooms_peak"][0] if season == "blooms_peak" else [])
             near = np.full(len(cands), np.inf)
             for p_ in pts:
-                near = np.minimum(near, np.linalg.norm(where - np.array(tuple(p_)), axis=1))
+                near = np.minimum(near, np.linalg.norm(where - np.array(key(p_)), axis=1))
             while made_by[season] < want and open_.any():
                 i = int(np.argmax(np.where(open_, near, -1.0)))
                 open_ &= np.linalg.norm(where - where[i], axis=1) > bloom_spec["radius"]  # not this place again
                 before = len(sets[season][0])
-                got = clump_at(cands[i][0], cands[i][1], season)
+                got = place(cands[i][0], cands[i][1], season)
                 made_by[season] += got
                 for p_ in sets[season][0][before:]:
-                    near = np.minimum(near, np.linalg.norm(where - np.array(tuple(p_)), axis=1))
+                    near = np.minimum(near, np.linalg.norm(where - np.array(key(p_)), axis=1))
         spots = []
     for pos, n in spots:
         if done >= bloom_spec["count"] * 3:
@@ -1422,6 +1449,8 @@ def place_blooms(bush, blooms, base_spec, bloom_spec, flower, bloom_mat, tag, su
                 at.z = max(at.z, 0.01 - min((rot @ v.co).z for v in bud.data.vertices) * size)  # above the soil
                 along = [at + axis * bud_spec["length"] * size * k / 4 for k in range(5)]
                 ok = not any((q - c).length < r * 0.6 for c, r in discs for q in along)  # not through a flower's middle
+                ok = ok and not any((q - lf).length < bud_spec["width"] * size * 0.6 + LEAF_CLEAR
+                                    for lf in leaves for q in along)  # nor on a leaf cluster
                 # Its tip close over the leaves, not out in the air where the
                 # bush curves away under it (her "now there are floating buds
                 # on the hibiscus").
@@ -1491,12 +1520,11 @@ def place_sprigs(bush, home, base_spec, strays, sprig, leaf_mat, tag, suffix, ke
     skin = bush.evaluated_get(bpy.context.evaluated_depsgraph_get()).data
     surface = BVHTree.FromPolygons([v.co.copy() for v in skin.vertices], [tuple(p.vertices) for p in skin.polygons])
     rng = random.Random(strays["seed"] + 7)
-    points, turns, sizes = [], [], []
-    # Three times as many places as it needs, in turn, so one left out (below)
-    # is made up by the next.
-    for pos, n in bloom_spots(skin, surface, base_spec, dict(strays, count=strays["count"] * 3), keep_off):
-        if len(points) == strays["count"]:
-            break
+    points, turns, sizes, leaves = [], [], [], []
+
+    def sprig_at(pos, n):
+        """The sprig at `pos`, facing `n`: (place, turn, size), or None if a
+        leaf would hang off into the air."""
         # Down the bush as its leaves hang, lifted `lift` degrees out of it,
         # swung a little either way; only where the bush is steep (`band`
         # from 55 degrees), for lifted out of a gentler slope a sprig stands
@@ -1539,10 +1567,39 @@ def place_sprigs(bush, home, base_spec, strays, sprig, leaf_mat, tag, suffix, ke
         # None hanging off an edge into the air (her "i see floating leaves
         # on the hibiscus"): every leaf's tip ends on the leaves.
         if any(stand(at + (verts[k + 2] + verts[k + 3]) / 2) > 0.05 for k in range(0, len(verts), 4)):
-            continue
-        points.append(at)
-        turns.append(rot.to_euler("XYZ"))
-        sizes.append(grow)
+            return None
+        # Points along each leaf, foot to tip and its tip's corners, for
+        # flowers to keep off (`clear_leaves`).
+        along = [at + verts[k].lerp((verts[k + 2] + verts[k + 3]) / 2, t / 5) for k in range(0, len(verts), 4)
+                 for t in range(6)]
+        along += [at + verts[k + c] for k in range(0, len(verts), 4) for c in (2, 3)]
+        return at, rot.to_euler("XYZ"), grow, along
+
+    if strays.get("spread_out"):
+        # Each next where the sprigs are furthest off (the hibiscus's: taken
+        # in turn, those left out let three bunch on one side, and the
+        # flowers, kept clear of them, left that side bare: her "theres a
+        # patch on the hibiscus thats missing flowers").
+        cands = bloom_spots(skin, surface, base_spec, dict(strays, count=strays["count"] * 15), keep_off)
+        open_ = [True] * len(cands)
+        while len(points) < strays["count"] and any(open_):
+            i = max((k for k in range(len(cands)) if open_[k]),
+                    key=lambda k: min(((cands[k][0] - q).length for q in points), default=-k))
+            open_[i] = False
+            got = sprig_at(*cands[i])
+            if got:
+                for into, value in zip((points, turns, sizes, leaves), got):
+                    into.append(value)
+    else:
+        # Three times as many places as it needs, in turn, so one left out
+        # is made up by the next.
+        for pos, n in bloom_spots(skin, surface, base_spec, dict(strays, count=strays["count"] * 3), keep_off):
+            if len(points) == strays["count"]:
+                break
+            got = sprig_at(pos, n)
+            if got:
+                for into, value in zip((points, turns, sizes, leaves), got):
+                    into.append(value)
     pm = bpy.data.meshes.new(f"sprigs{suffix}")
     pm.from_pydata([tuple(p) for p in points], [], [])
     pm.attributes.new("kyt_turn", "FLOAT_VECTOR", "POINT").data.foreach_set("vector", [c for e in turns for c in e])
@@ -1558,7 +1615,7 @@ def place_sprigs(bush, home, base_spec, strays, sprig, leaf_mat, tag, suffix, ke
     mod = obj.modifiers.new(ng.name, "NODES")
     mod.node_group = ng
     plant_blades._set(mod, ng, {"Bloom": sprig})
-    return [(p, strays["length"]) for p in points]
+    return [(p, strays["length"], along) for p, along in zip(points, leaves)]
 
 
 # --- The file ------------------------------------------------------------------
@@ -1705,9 +1762,18 @@ def main():
             home.children.link(blooms)
             # Off the topper: its leaves' reach, and half a flower's.
             keep_off = topper_reach + bloom_spec["radius"] * 0.5 if topper_reach else 0.0
+            # Off the leaf clusters: each group's middle a sprig's length and a
+            # flower's radius from one's foot, or, with `clear_leaves` (the
+            # hibiscus's: five clusters round its middle closed that whole band
+            # to its flowers, her "theres a patch on the hibiscus thats missing
+            # flowers"), each flower and bud off the clusters' own leaves.
+            if bloom_spec.get("clear_leaves"):
+                leaves = [q for _, _, along in sprigs for q in along]
+                avoid = [(q, bloom_spec["radius"] * 0.8) for q in leaves]
+            else:
+                leaves, avoid = [], [(at, reach + bloom_spec["radius"]) for at, reach, _ in sprigs]
             counts[tag] = place_blooms(bush, blooms, base, dict(bloom_spec, count=round(bloom_spec["count"] * scale * tall)),
-                                       flower, bloom_mat, tag, suffix, keep_off, bud,
-                                       [(at, reach + bloom_spec["radius"]) for at, reach in sprigs], bud_green)
+                                       flower, bloom_mat, tag, suffix, keep_off, bud, avoid, bud_green, leaves)
     for tag in counts:
         if tag != "medium":
             bpy.context.view_layer.layer_collection.children["export"].children[f"size_{tag}"].hide_viewport = True

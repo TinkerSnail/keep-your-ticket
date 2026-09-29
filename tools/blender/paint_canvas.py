@@ -378,7 +378,15 @@ PROP_LEAFLETS = {
                                "leaf": dict(leaf_m=0.22, width=0.3, splay=25.0, shade=(0.6, 1.18), shadow=0.4, rim_dark=0.3,
                                             gap=0.45, top=0.08, vary_dark=0.03,
                                             teeth=(7, 0.1, "saw"), col_width=1.05, row_step=0.5,
-                                            lobes=[(0.0, 1.0, 0.3), (-48.0, 0.72, 0.3), (48.0, 0.72, 0.3)]),
+                                            lobes=[(0.0, 1.0, 0.3), (-48.0, 0.72, 0.3), (48.0, 0.72, 0.3)],
+                                            # Her "make the three veins on each hibiscus leaf a little
+                                            # shorter so they dont visually go all the way to the tips",
+                                            # "the edge of each hibiscus leaf slightly lighter than the
+                                            # rest of the leaf", "a subtle drop shadow under each leaf",
+                                            # then "make the drop shadows more pronounced and the lighter
+                                            # color more pronounced too".
+                                            rib_reach=0.72, edge_m=0.01, edge_light=0.45,
+                                            drop=0.55, drop_m=0.014, drop_blur_m=0.011),
                                # Her "the tolerance will be smaller with some blooms
                                # just being a slightly darker shade of red, by maybe 2%".
                                "bloom": dict(art="hibiscus", pollen=(1.0, 0.86, 0.3),
@@ -386,7 +394,8 @@ PROP_LEAFLETS = {
                                                     ((0.95, 0.40, 0.62), (0.62, 0.05, 0.2)),
                                                     ((1.0, 0.80, 0.18), (0.88, 0.18, 0.08)),
                                                     ((0.99, 0.93, 0.94), (0.9, 0.34, 0.52))],
-                                             darken=0.02),
+                                             darken=0.02, petal_rim=0.18, petal_rim_w=0.07,
+                                             petal_drop=0.5, petal_drop_off=0.08, petal_drop_blur=0.06),
                            }),
 }
 
@@ -545,15 +554,27 @@ def leaf_darkness(spec, vary):
     return (1.0 - vary.uniform(0.0, spec.get("vary_dark", 0.0))) ** 2.2
 
 
-def paint_leaf(state, start, direction, here, spec, profile, mine, xx, yy, rng, wide=1.0, warp=None, dark=1.0):
+def shift2(a, dx, dy):
+    """`a` moved `dx`, `dy` px (to the nearest), nothing where it came from."""
+    dx, dy = int(round(dx)), int(round(dy))
+    h, w = a.shape
+    out = np.zeros_like(a)
+    out[max(dy, 0):h + min(dy, 0), max(dx, 0):w + min(dx, 0)] = a[max(-dy, 0):h + min(-dy, 0), max(-dx, 0):w + min(-dx, 0)]
+    return out
+
+
+def paint_leaf(state, start, direction, here, spec, profile, mine, xx, yy, rng, wide=1.0, warp=None, dark=1.0, down=None):
     """One leaf of a bush's greenery drawn over `state` (leaves, midribs,
     tone): from `start` along `direction`, `here` px long, `wide` times its
     width, as one stroke or as `lobes` (turn in degrees, share of the length,
-    width share), each with its midrib; nothing past the island (`mine`);
-    with `warp`, drawn in a dome's own proportions (`stroke`). It is shaded stalk to tip
-    (`shade`), a touch lighter or darker than the last, times `dark`
-    (`leaf_darkness`), and throws a thin shadow `shadow` deep on the leaves
-    already drawn under it."""
+    width share), each with its midrib (`rib_reach` of the way to its tip);
+    nothing past the island (`mine`); with `warp`, drawn in a dome's own
+    proportions (`stroke`). It is shaded stalk to tip (`shade`), a touch
+    lighter or darker than the last, times `dark` (`leaf_darkness`), its rim
+    `edge_light` lighter `edge_px` in from its outline, and throws a thin
+    shadow `shadow` deep on the leaves already drawn under it, and with
+    `drop` a soft shadow that deep `drop_px` on `down` the dome from it
+    (`direction` if not given)."""
     leaves, ribs, tone = state
     size = leaves.shape[0]
     leaf = np.zeros((size, size), dtype=np.float32)
@@ -564,12 +585,21 @@ def paint_leaf(state, start, direction, here, spec, profile, mine, xx, yy, rng, 
                       direction[0] * np.sin(t) + direction[1] * np.cos(t)])
         end = start + d * here * reach_share
         stroke(leaf, start, end, here * reach_share * width_share * wide, profile, warp)
-        stroke(rib, start + d * here * 0.08, end, spec.get("rib_px", 1.5), lambda t: 1.0 - 0.8 * t, warp)
+        rib_end = start + d * here * reach_share * spec.get("rib_reach", 1.0)
+        stroke(rib, start + d * here * 0.08, rib_end, spec.get("rib_px", 1.5), lambda t: 1.0 - 0.8 * t, warp)
     leaf *= mine
+    solid = (leaf > 0.5).astype(np.float32)
     along = np.clip(((xx - start[0]) * direction[0] + (yy - start[1]) * direction[1]) / here, 0.0, 1.0)
     own = (spec["shade"][0] + (spec["shade"][1] - spec["shade"][0]) * along ** 0.8) * (1.0 + rng.uniform(-0.06, 0.06)) * dark
-    near = box_blur2((leaf > 0.5).astype(np.float32), max(2, int(spec.get("shadow_px", 8))))
+    if spec.get("edge_light"):
+        inside = box_blur2(solid, max(1, int(round(spec["edge_px"]))))  # 1 well inside, a half at the outline
+        own = own * (1.0 + spec["edge_light"] * np.clip((1.0 - inside) * 2.0, 0.0, 1.0))
+    near = box_blur2(solid, max(2, int(spec.get("shadow_px", 8))))
     tone = tone * (1.0 - spec["shadow"] * np.clip(near * 2.0, 0.0, 1.0) * (1.0 - leaf) * leaves)
+    if spec.get("drop"):
+        off = (direction if down is None else down) * spec["drop_px"]
+        cast = box_blur2(shift2(solid, off[0], off[1]), max(1, int(round(spec["drop_blur_px"]))))
+        tone = tone * (1.0 - spec["drop"] * cast * (1.0 - leaf) * leaves)
     tone = tone * (1.0 - leaf) + own * leaf
     ribs = ribs * (1.0 - leaf) + rib * leaf
     return np.maximum(leaves, leaf), ribs, tone
@@ -603,7 +633,8 @@ def cut_dome(obj, kind, label, index, size, px_m, rng):
     state = (fill.astype(np.float32), np.zeros((size, size), dtype=np.float32),
              np.where(fill > 0, spec.get("gap", 0.5), 1.0).astype(np.float32))
     profile = toothed(leaflet_profile, *spec["teeth"]) if spec.get("teeth") else leaflet_profile
-    spec = dict(spec, shadow_px=spec.get("shadow_m", 0.008) * px_m)
+    spec = dict(spec, shadow_px=spec.get("shadow_m", 0.008) * px_m, edge_px=spec.get("edge_m", 0.0) * px_m,
+                drop_px=spec.get("drop_m", 0.0) * px_m, drop_blur_px=spec.get("drop_blur_m", 0.0) * px_m)
     col_step = length * spec.get("col_width", spec["width"] * 2.0) * spec.get("col_step", 0.8)
     # Each ring's (distance along the dome, radius), metres: painted width to
     # true width is the one over the other, 1 at the apex.
@@ -636,8 +667,9 @@ def cut_dome(obj, kind, label, index, size, px_m, rng):
             reach = -p @ direction + np.sqrt(max((p @ direction) ** 2 - (p @ p - rim * rim), 0.0))
             here = min(length * rng.uniform(0.9, 1.05), reach)
             warp = (centre, lambda rho: np.interp(rho / flat_px, along, widen)) if girth else None
+            out = start - centre
             state = paint_leaf(state, start, direction, here, spec, profile, mine, xx, yy, rng, 1.0, warp,
-                               leaf_darkness(spec, vary))
+                               leaf_darkness(spec, vary), out / max(float(np.hypot(*out)), 1e-6))
     leaves, ribs, tone = state
     f = dist / rim
     tone = tone * (1.0 + spec.get("top", 0.0) * (1.0 - smooth(0.0, 0.55, f))) * (1.0 - spec.get("rim_dark", 0.0) * smooth(0.5, 1.0, f))
@@ -657,7 +689,7 @@ def cut_topper(obj, kind, label, index, size, px_m, rng):
     profile = toothed(leaflet_profile, *spec["teeth"]) if spec.get("teeth") else leaflet_profile
     state = (np.zeros((size, size), dtype=np.float32), np.zeros((size, size), dtype=np.float32),
              np.ones((size, size), dtype=np.float32))
-    spec = dict(spec, shadow_px=2, shadow=0.0)
+    spec = dict(spec, shadow_px=2, shadow=0.0, drop=0.0, edge_px=spec.get("edge_m", 0.0) * px_m)
     leaves, ribs, tone = paint_leaf(state, start, np.array([0.0, 1.0]), (y1 - y0) * 0.96, spec, profile, mine, xx, yy, rng,
                                     spec.get("topper_wide", 1.0))
     return leaves * mine, ribs * mine, np.where(mine, tone, 1.0).astype(np.float32)
@@ -712,6 +744,7 @@ def cut_bloom(obj, kind, label, index, size, px_m, rng):
     throat = np.zeros((size, size), dtype=np.float32)  # 1 at a bloom's heart, 0 at its petal tips
     edge = np.ones((size, size), dtype=np.float32)
     extra = np.zeros((size, size), dtype=np.float32)  # the hibiscus's stamens
+    rim = np.zeros((size, size), dtype=np.float32)  # 1 at a petal's own outline
     if spec["art"] == "truss":
         # A rounded bunch: blooms of mixed sizes round one in the middle, off
         # a regular ring, each round the edge squashed along the line from
@@ -766,13 +799,26 @@ def cut_bloom(obj, kind, label, index, size, px_m, rng):
             stroke(extra, centre, tip, max(1.0, R * 0.025), lambda t: np.ones_like(t))
             stroke(extra, tip, tip + np.array([np.cos(a), np.sin(a)]) * R * 0.06, max(1.5, R * 0.05), lambda t: 1.0 - t)
     else:  # one hibiscus
+        # With `petal_rim` (the leaves' treatment, her "do a similar
+        # treatment for the petals of the flowers"): each petal's rim that
+        # much of the way to white `petal_rim_w` of the flower's radius in
+        # from its outline, and a soft shadow `petal_drop` deep cast back on
+        # the petal it overlaps, `petal_drop_off` of the radius round.
         turn = rng.uniform(0, 2 * np.pi)
         for k in range(5):
             a = turn + k / 5 * 2 * np.pi
             petal = np.zeros((size, size), dtype=np.float32)
             stroke(petal, centre, centre + np.array([np.cos(a), np.sin(a)]) * R * 0.98, R * 0.52, round_leaflet_profile)
-            near = box_blur2((petal > 0.5).astype(np.float32), max(2, int(R * 0.05)))
+            solid = (petal > 0.5).astype(np.float32)
+            near = box_blur2(solid, max(2, int(R * 0.05)))
             edge = edge * (1.0 - 0.3 * np.clip(near * 2.0, 0.0, 1.0) * (1.0 - petal) * shape)
+            if spec.get("petal_drop"):
+                back = np.array([np.sin(a), -np.cos(a)]) * R * spec["petal_drop_off"]  # round toward the petal before
+                cast = box_blur2(shift2(solid, back[0], back[1]), max(1, int(round(R * spec["petal_drop_blur"]))))
+                edge = edge * (1.0 - spec["petal_drop"] * cast * (1.0 - petal) * shape)
+            if spec.get("petal_rim"):
+                inside = box_blur2(solid, max(1, int(round(R * spec["petal_rim_w"]))))
+                rim = rim * (1.0 - petal) + petal * np.clip((1.0 - inside) * 2.0, 0.0, 1.0)
             edge = edge * (1.0 - petal) + petal
             shape = np.maximum(shape, petal)
         throat = np.clip(1.0 - np.hypot(xx - centre[0], yy - centre[1]) / (R * 0.42), 0.0, 1.0) ** 0.8
@@ -788,6 +834,8 @@ def cut_bloom(obj, kind, label, index, size, px_m, rng):
         petal, heart = bloom_shade(spec, k, j, shades)
         colour = lin(petal)[None, None, :] * (1.0 - throat[..., None]) + lin(heart)[None, None, :] * throat[..., None]
         colour = colour * edge[..., None]
+        light = (spec.get("petal_rim", 0.0) * rim * (1.0 - throat))[..., None]
+        colour = colour + (1.0 - colour) * light
         if spec["art"] == "hibiscus":
             colour = colour * (1.0 - extra[..., None]) + lin(spec["pollen"])[None, None, :] * extra[..., None]
         elif spec["art"] == "azalea":

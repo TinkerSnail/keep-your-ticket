@@ -41,7 +41,7 @@ function bring(path, name) {
 }
 
 var result;
-if (arguments[3] == "replace") {
+if (arguments.length > 3 && arguments[3] == "replace") {  // Photoshop 2026 throws reading a missing argument
     if (kept == null) {
         result = "FAIL " + doc.name + " has no cut-out layer to replace";
     } else {
