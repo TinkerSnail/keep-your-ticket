@@ -92,6 +92,9 @@ KNOWN_GROUND = (
 PROP_TESTS = {
     "palm_crown": ("coastal_palm_test", "tree_catalog_test", "coastal_plant_catalog_test"),
     "palm_trunk": ("coastal_palm_test", "tree_catalog_test", "coastal_plant_catalog_test"),
+    "fern_fan": ("coastal_palm_test", "coastal_plant_catalog_test"),
+    "hakone_grass": ("coastal_palm_test", "coastal_plant_catalog_test"),
+    "purple_heart_sprig": ("coastal_palm_test", "coastal_plant_catalog_test"),
 }
 
 

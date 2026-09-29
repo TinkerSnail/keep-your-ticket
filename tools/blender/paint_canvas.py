@@ -268,6 +268,457 @@ RACHIS_TINT = 0.45
 TIP_INSET_PX = 2  # a leaflet's tip stops this far inside its blade's outline
 ALPHA_SPREAD_PX = 4  # opaque edges carried this far past an island, so filtering never frays them
 
+# A plant other than the palm crown whose leaves bend blades along courses
+# (`plant_blades.py`) gets its own leaflet table: which cut, the LEAFLETS for
+# its blade kinds, and its rachis's half-width (base, tip), colour (linear) and
+# how fully the rachis takes that colour. `use_prop_leaflets` puts it in place
+# of the crown's for the run. The fern fan (PRP-PLANT-011, 2026-09-27,
+# Christina: "on things with leaflets like the fern, use our same approach we
+# used with the palm fronds texture to avoid too many triangles"): its pinnae
+# leave the geometry for the cut-out, on a blade whose outline their tips
+# traced; out from the rachis at a wide angle, no spines, a green rachis.
+#
+# Her direction the same evening, for all the palm-bed plants: "more cartoony",
+# "think animal crossing sizing", "very nintendo". So the fern's pinnae are few
+# and broad, six or so a side, with round ends (`profile="round"`) and allowed
+# half as wide as they are long (`slender`), placed a little more evenly
+# (`jitter`), on a thick rachis.
+PROP_LEAFLETS = {
+    "fern_fan": dict(style="leaflets", rachis=(0.016, 0.006), rachis_colour=(0.016, 0.053, 0.007),
+                     rachis_tint=1.0, profile="round", slender=0.55, jitter=0.12, kinds={
+                         "mature": dict(spacing=0.135, width=0.095, open=74, tip=58, spines=0.0,
+                                        missing=0.0, broken=0.0),
+                         "young": dict(spacing=0.125, width=0.082, open=68, tip=52, spines=0.0,
+                                       missing=0.0, broken=0.0),
+                     }),
+    # The Purple Heart (PRP-PLANT-015 to 017, 2026-09-28, her "we need to figure
+    # out how to do the same thing with the purple heart"): each leaf a card
+    # whose one broad, softly pointed purple leaf and pale midrib are cut from
+    # the texture (`style="leaf"`); `fill` is how much of the card's half-width
+    # the leaf takes at its widest.
+    "purple_heart_sprig": dict(style="leaf", rachis=(0.007, 0.002), rachis_colour=(0.21, 0.09, 0.28),
+                               rachis_tint=0.7, profile="lance", kinds={
+                                   "leaf": dict(fill=0.94), "young": dict(fill=0.94),
+                               }),
+    # The bushes' greenery (`leaf_skin.py`, 2026-09-28), after the Animal
+    # Crossing bushes she pointed to: one leaf per card, many cards shingled
+    # over the bush. `shade` darkens the leaf's base and lightens its tip
+    # (times the colour, base to tip), the soft gradient each AC leaf wears;
+    # `teeth` (count a side, depth as a share of the width) saws the margin.
+    # Azalea: a fresh green, pointed oval. Hibiscus (her "a darker leaf with a
+    # different shape"): dark blue-green, broader, toothed.
+    # Then her "the leafs need to be grouped and merged" and "texture creates
+    # the definition within the clusters": each card is a clump of `leaves`
+    # (`style="cluster"`, `cut_cluster`), fanned `spread` degrees, the outer
+    # ones `lengths[0]` of the way to the card's edge and the middle one
+    # `lengths[1]`, each `width` of its length across either side of its
+    # midrib, casting a `shadow` on those beneath.
+    # Then, after the Mario Kart trees she pointed to ("lots of painted on
+    # leaves layered in shaped sections"), a card was a whole section of the
+    # bush; and after her Mario Kart tree of semi-domes ("our shrubs will be
+    # assembled from a series of these types of shapes"), the greenery is a
+    # few big domes (`style="dome"`, `cut_dome`): rings of leaves `leaf_m`
+    # long round the apex, pointing out, the rings nearer the apex laid over
+    # those beyond like shingles, each leaf `width` of its length across either
+    # side of its midrib, shaded stalk to tip (`shade`), throwing a `shadow` on
+    # those under it; the dome filled under its leaves with their shade
+    # (`gap`, times the colour), lighter at its apex (`top`) and darker toward
+    # its drooping rim (`rim_dark`).
+    #
+    # `bloom`: the flowers' card (her "needs to be optimized for using
+    # textures"), drawn once per colourway side by side along the canvas
+    # (`slots`, sRGB; the card's island is the first, each next one a
+    # `1 / len(slots)` of the canvas to the right), so each colourway is
+    # painted, and a placement's Godot script picks one by sliding the bloom
+    # material's UVs. `art`: "truss", seven azalea blooms in a bunch (her
+    # "azalea blooms need to be clustered together ... more intensely and more
+    # densely"); "hibiscus", one big round flower. Each slot is (petal,
+    # throat); the hibiscus's stamens are `pollen`.
+    "azalea_bush": dict(style="dome", rachis=(0.004, 0.0015), rachis_colour=(0.36, 0.62, 0.16),
+                        rachis_tint=0.5, profile="ovate", kinds={
+                            "leaf": dict(leaf_m=0.22, width=0.3, splay=25.0, shade=(0.64, 1.15), shadow=0.4, rim_dark=0.3,
+                                         gap=0.45, top=0.08),
+                            "bloom": dict(art="truss", slots=[((0.97, 0.52, 0.76), (0.80, 0.14, 0.46)),
+                                                              ((0.88, 0.2, 0.55), (0.55, 0.04, 0.3)),
+                                                              ((0.98, 0.95, 0.96), (0.92, 0.52, 0.68))]),
+                        }),
+    "azalea_tree": None,  # the azalea's own leaf: set just below
+    "hibiscus_shrub": dict(style="dome", rachis=(0.005, 0.0015), rachis_colour=(0.16, 0.38, 0.30),
+                           rachis_tint=0.45, profile="ovate", kinds={
+                               # Her hibiscus photos: a hardy hibiscus's leaf, palmate,
+                               # three pointed lobes, sharply serrated (her "the shape of
+                               # the hibiscus leaves isnt right" of the toothed oval).
+                               "leaf": dict(leaf_m=0.22, width=0.3, splay=25.0, shade=(0.6, 1.18), shadow=0.4, rim_dark=0.3,
+                                            gap=0.45, top=0.08,
+                                            teeth=(7, 0.1, "saw"), col_width=1.05, row_step=0.5,
+                                            lobes=[(0.0, 1.0, 0.3), (-48.0, 0.72, 0.3), (48.0, 0.72, 0.3)]),
+                               "bloom": dict(art="hibiscus", pollen=(1.0, 0.86, 0.3),
+                                             slots=[((0.93, 0.20, 0.15), (0.55, 0.03, 0.06)),
+                                                    ((0.95, 0.40, 0.62), (0.62, 0.05, 0.2)),
+                                                    ((1.0, 0.80, 0.18), (0.88, 0.18, 0.08)),
+                                                    ((0.99, 0.93, 0.94), (0.9, 0.34, 0.52))]),
+                           }),
+}
+
+
+# The box shrub (her "a small box shrub that is just a singular one of these
+# domes", 2026-09-28): one ice-cap dome in a boxwood's leaves, small (0.13 m,
+# still chunky beside the azalea's 0.22), pointed ovals, dense, their tips a
+# jagged rim; a faint midrib. Rounder leaves read as fish scales and bigger
+# ones as an azalea (`documentation/screenshots/plant-lineup-2026-09-28/
+# box_shrub_leaves.png`). No flowers.
+PROP_LEAFLETS["box_shrub"] = dict(style="dome", rachis=(0.003, 0.001), rachis_colour=(0.40, 0.62, 0.18),
+                                  rachis_tint=0.25, profile="ovate", kinds={
+                                      "leaf": dict(leaf_m=0.13, width=0.32, shade=(0.62, 1.18), shadow=0.4,
+                                                   rim_dark=0.3, gap=0.45, top=0.1, row_step=0.5),
+                                  })
+
+
+# The giant tree form wears the bush's leaf and blooms, the leaves scaled up
+# with the shrubs' (her "scale up the leaves on the azalea tree too").
+PROP_LEAFLETS["azalea_tree"] = PROP_LEAFLETS["azalea_bush"]
+# A shrub's body (its one sphere or egg under the domes, `leaf_skin.py`) wears
+# the same leaves as its domes.
+for _shrub in ("azalea_bush", "hibiscus_shrub"):
+    PROP_LEAFLETS[_shrub]["kinds"]["body"] = PROP_LEAFLETS[_shrub]["kinds"]["leaf"]
+    PROP_LEAFLETS[_shrub]["kinds"]["tier"] = PROP_LEAFLETS[_shrub]["kinds"]["leaf"]  # a band round the body
+    PROP_LEAFLETS[_shrub]["kinds"]["topper"] = PROP_LEAFLETS[_shrub]["kinds"]["leaf"]  # the leaves on its very top
+# The shrubs' sphere versions (`leaf_skin.py`) wear their egg versions' leaves and flowers.
+for _shrub in ("azalea_bush", "hibiscus_shrub", "azalea_tree"):
+    PROP_LEAFLETS[f"{_shrub}_sphere"] = PROP_LEAFLETS[_shrub]
+
+
+def ovate_leaf_profile(t):
+    """A pointed oval from its stalk: rounding out to its widest two fifths of
+    the way, full shoulders, then narrowing to a point."""
+    rise = 0.25 + 0.75 * np.sqrt(np.clip(1.0 - (1.0 - np.clip(t / 0.4, 0.0, 1.0)) ** 2, 0.0, 1.0))
+    fall = np.clip(1.0 - np.clip((t - 0.4) / 0.6, 0.0, 1.0) ** 1.6, 0.0, 1.0) ** 0.75
+    return np.where(t < 0.4, rise, fall)
+
+
+def toothed(profile, count, depth, style="scallop"):
+    """`profile` with a toothed margin, `count` teeth a side, `depth` of the
+    width deep, fading out at the stalk and the tip: "scallop", rounded teeth
+    with a sharp notch between; "saw", sharp teeth leaning to the tip (a
+    serrated hibiscus leaf)."""
+    def cut(t):
+        ramp = np.mod(t * count, 1.0)
+        lobe = ramp ** 0.7 if style == "saw" else np.sqrt(np.sin(np.pi * ramp))
+        fade = np.clip(t / 0.2, 0.0, 1.0) * np.clip((1.0 - t) / 0.08, 0.0, 1.0)
+        return profile(t) * (1.0 - depth * fade * (1.0 - lobe))
+    return cut
+
+
+def lance_leaf_profile(t):
+    """A leaf from its stalk: broad from the base, widest a third of the way,
+    a soft point at the tip."""
+    rise = np.sqrt(np.clip(t / 0.33, 0.0, 1.0))
+    fall = np.clip(1.0 - np.clip((t - 0.33) / 0.67, 0.0, 1.0) ** 1.5, 0.0, 1.0) ** 0.85  # full shoulders
+    return np.where(t < 0.33, 0.35 + 0.65 * rise, fall)
+
+
+def cut_leaf(obj, kind, label, index, size, px_m, rng):
+    """(leaf, midrib) for a blade that is one whole leaf on a card (the Purple
+    Heart's): the leaf drawn up the card's middle, `fill` of its half-width at
+    its widest, and the midrib."""
+    straw, total, at, half_rachis, reach = frond(obj, label, index, size, px_m)
+    leaf = np.zeros((size, size), dtype=np.float32)
+    base, _ = at(0.0)
+    tip, _ = at(total)
+    half = obj.dimensions.x / 2 * px_m * LEAFLETS[kind]["fill"]
+    teeth = LEAFLETS[kind].get("teeth")
+    stroke(leaf, base, tip, half, toothed(leaflet_profile, *teeth) if teeth else leaflet_profile)
+    tone = np.ones((size, size), dtype=np.float32)
+    shade = LEAFLETS[kind].get("shade")
+    if shade:
+        # Darker at the stalk, lighter toward the tip, along the leaf.
+        yy, xx = np.mgrid[0:size, 0:size]
+        axis = (tip - base) / max(float(np.hypot(*(tip - base))), 1.0)
+        along = np.clip(((xx - base[0]) * axis[0] + (yy - base[1]) * axis[1])
+                        / max(float(np.hypot(*(tip - base))), 1.0), 0.0, 1.0)
+        tone = np.where(label == index, shade[0] + (shade[1] - shade[0]) * along ** 0.8, 1.0).astype(np.float32)
+    return leaf, straw * leaf, tone
+
+
+def cut_cluster(obj, kind, label, index, size, px_m, rng):
+    """(leaves, midribs, tone) for a card that is a clump of leaves merged into
+    one piece (the bushes, 2026-09-28, her "the leafs need to be grouped and
+    merged" and "texture creates the definition within the clusters"): `leaves`
+    broad leaves fanning `spread` degrees from the stalk at the card's foot,
+    the outer ones shorter and drawn first, the middle one last and on top.
+    The clump is shaded as one lump, dark at its stalk to light at its far end
+    (`shade`); inside it each leaf is a touch lighter or darker than the next
+    and throws a thin shadow `shadow` deep on the leaves under it, and its
+    midrib is pale: the definition is in the texture, the clump one shape."""
+    spec = LEAFLETS[kind]
+    mine = label == index
+    ys, xs = np.nonzero(mine)
+    y0, y1, x0, x1 = ys.min(), ys.max(), xs.min(), xs.max()
+    base = np.array([(x0 + x1) / 2.0, y0 + 2.0])
+    count = spec["leaves"]
+    angles = np.linspace(-spec["spread"] / 2, spec["spread"] / 2, count) + rng.uniform(-4, 4, count)
+    order = np.argsort(-np.abs(angles))  # outer first: each lies over those beside it
+    yy, xx = np.mgrid[0:size, 0:size]
+    leaves = np.zeros((size, size), dtype=np.float32)
+    ribs = np.zeros((size, size), dtype=np.float32)
+    lift = np.ones((size, size), dtype=np.float32)
+    shadow = np.ones((size, size), dtype=np.float32)
+    shadow_r = max(2, int(spec.get("shadow_m", 0.01) * px_m))
+    profile = toothed(leaflet_profile, *spec["teeth"]) if spec.get("teeth") else leaflet_profile
+    far = 1.0
+    for i in order:
+        a = np.radians(angles[i])
+        direction = np.array([np.sin(a), np.cos(a)])
+        reach = 0.0
+        while True:  # out along the leaf until it leaves the card's island
+            p = base + direction * (reach + 1.0)
+            if not (0 <= int(p[0]) < size and 0 <= int(p[1]) < size) or label[int(p[1]), int(p[0])] != index:
+                break
+            reach += 1.0
+        middle = 1.0 - abs(angles[i]) / (spec["spread"] / 2)
+        length = reach * (spec["lengths"][0] + (spec["lengths"][1] - spec["lengths"][0]) * middle)
+        far = max(far, length)
+        tip = base + direction * length
+        leaf = np.zeros((size, size), dtype=np.float32)
+        stroke(leaf, base, tip, length * spec["width"], profile)
+        rib = np.zeros((size, size), dtype=np.float32)
+        stroke(rib, base + direction * length * 0.12, tip, spec.get("rib_px", 2.0), lambda t: 1.0 - 0.8 * t)
+        near = box_blur2((leaf > 0.5).astype(np.float32), shadow_r)
+        shadow = shadow * (1.0 - spec.get("shadow", 0.3) * np.clip(near * 2.0, 0.0, 1.0) * (1.0 - leaf) * leaves)
+        own = 1.0 + rng.uniform(-0.07, 0.07)
+        lift = lift * (1.0 - leaf) + own * leaf
+        shadow = shadow * (1.0 - leaf) + leaf
+        ribs = ribs * (1.0 - leaf) + rib * leaf
+        leaves = np.maximum(leaves, leaf)
+    along = np.clip(np.hypot(xx - base[0], yy - base[1]) / far, 0.0, 1.0)
+    clump = spec["shade"][0] + (spec["shade"][1] - spec["shade"][0]) * along ** 0.8
+    tone = clump * lift * shadow
+    return leaves * mine, ribs * mine, np.where(mine, tone, 1.0).astype(np.float32)
+
+
+def paint_leaf(state, start, direction, here, spec, profile, mine, xx, yy, rng, wide=1.0):
+    """One leaf of a bush's greenery drawn over `state` (leaves, midribs,
+    tone): from `start` along `direction`, `here` px long, `wide` times its
+    width, as one stroke or as `lobes` (turn in degrees, share of the length,
+    width share), each with its midrib; nothing past the island (`mine`). It is shaded stalk to tip
+    (`shade`), a touch lighter or darker than the last, and throws a thin
+    shadow `shadow` deep on the leaves already drawn under it."""
+    leaves, ribs, tone = state
+    size = leaves.shape[0]
+    leaf = np.zeros((size, size), dtype=np.float32)
+    rib = np.zeros((size, size), dtype=np.float32)
+    for turn, reach_share, width_share in spec.get("lobes", [(0.0, 1.0, spec["width"])]):
+        t = np.radians(turn)
+        d = np.array([direction[0] * np.cos(t) - direction[1] * np.sin(t),
+                      direction[0] * np.sin(t) + direction[1] * np.cos(t)])
+        end = start + d * here * reach_share
+        stroke(leaf, start, end, here * reach_share * width_share * wide, profile)
+        stroke(rib, start + d * here * 0.08, end, spec.get("rib_px", 1.5), lambda t: 1.0 - 0.8 * t)
+    leaf *= mine
+    along = np.clip(((xx - start[0]) * direction[0] + (yy - start[1]) * direction[1]) / here, 0.0, 1.0)
+    own = (spec["shade"][0] + (spec["shade"][1] - spec["shade"][0]) * along ** 0.8) * (1.0 + rng.uniform(-0.06, 0.06))
+    near = box_blur2((leaf > 0.5).astype(np.float32), max(2, int(spec.get("shadow_px", 8))))
+    tone = tone * (1.0 - spec["shadow"] * np.clip(near * 2.0, 0.0, 1.0) * (1.0 - leaf) * leaves)
+    tone = tone * (1.0 - leaf) + own * leaf
+    ribs = ribs * (1.0 - leaf) + rib * leaf
+    return np.maximum(leaves, leaf), ribs, tone
+
+
+def cut_dome(obj, kind, label, index, size, px_m, rng):
+    """(leaves, midribs, tone) for a bush's semi-dome (`leaf_skin.py`, after
+    the Mario Kart tree she pointed to: "our shrubs will be assembled from a
+    series of these types of shapes and texture approaches"): its many leaves
+    in rings round the apex, pointing out and down the dome, each ring nearer
+    the apex laid over the one beyond like shingles and a few from the apex
+    itself on top; the outer ring's tips are the rim. Under them the dome is
+    filled with the leaves' shaded colour (`gap`), so it is seen through only
+    between the rim's tips. The dome is lighter at its apex (`top`) and
+    darker toward its rim (`rim_dark`), where it droops. A leaf is painted
+    wider where the dome's girth is less than the canvas's (`kyt_rings`), so
+    it is its own shape on the dome."""
+    spec = LEAFLETS[kind]
+    mine = label == index
+    ys, xs = np.nonzero(mine)
+    centre = np.array([(xs.min() + xs.max()) / 2.0, (ys.min() + ys.max()) / 2.0])
+    # The rim is a polygon of `kyt_around` corners: tips stop inside its sides.
+    rim = min(xs.max() - xs.min(), ys.max() - ys.min()) / 2.0 * np.cos(np.pi / int(obj.get("kyt_around", 8))) - TIP_INSET_PX
+    length = spec["leaf_m"] * px_m
+    yy, xx = np.mgrid[0:size, 0:size]
+    dist = np.hypot(xx - centre[0], yy - centre[1])
+    fill = np.clip(rim - length * spec.get("gap_short", 0.6) - dist + 0.5, 0.0, 1.0) * mine
+    state = (fill.astype(np.float32), np.zeros((size, size), dtype=np.float32),
+             np.where(fill > 0, spec.get("gap", 0.5), 1.0).astype(np.float32))
+    profile = toothed(leaflet_profile, *spec["teeth"]) if spec.get("teeth") else leaflet_profile
+    spec = dict(spec, shadow_px=spec.get("shadow_m", 0.008) * px_m)
+    col_step = length * spec.get("col_width", spec["width"] * 2.0) * spec.get("col_step", 0.8)
+    # Each ring's (distance along the dome, radius), metres: painted width to
+    # true width is the one over the other, 1 at the apex.
+    girth = list(obj.data.get("kyt_rings", []))
+    along = [0.0] + girth[0::2]
+    widen = [1.0] + [s_ / max(r_, 1e-6) for s_, r_ in zip(girth[0::2], girth[1::2])]
+    flat_px = (xs.max() - xs.min()) / 2.0 / max(along[-1], 1e-6)  # canvas px per metre along the dome
+    rings = []
+    ring = rim - length
+    while ring > length * 0.35:
+        rings.append(ring)
+        ring -= length * spec.get("row_step", 0.55)
+    rings.append(0.0)  # the apex's own leaves, on top
+    for ring in rings:
+        # As many as fit round the dome's own girth there.
+        true = ring / (np.interp(ring / flat_px, along, widen) if girth else 1.0)
+        count = spec.get("apex", 5) if ring == 0.0 else max(5, int(round(2 * np.pi * true / col_step)))
+        turn = rng.uniform(0, 2 * np.pi)
+        for j in range(count):
+            a = turn + (j + rng.uniform(-0.15, 0.15)) / count * 2 * np.pi
+            start = centre + np.array([np.cos(a), np.sin(a)]) * max(ring, length * 0.06)
+            # Every other leaf splays `splay` degrees to one side and the next
+            # to the other, a herringbone, so they don't all hang straight down
+            # (her "in general the leaves look a bit too droopy").
+            a += np.radians((1 if j % 2 else -1) * spec.get("splay", 0.0) + rng.uniform(-12, 12))
+            direction = np.array([np.cos(a), np.sin(a)])
+            # No longer than reaches the rim from here.
+            p = start - centre
+            reach = -p @ direction + np.sqrt(max((p @ direction) ** 2 - (p @ p - rim * rim), 0.0))
+            here = min(length * rng.uniform(0.9, 1.05), reach)
+            wide = np.interp(np.hypot(*(start + direction * here / 2 - centre)) / flat_px, along, widen) if girth else 1.0
+            state = paint_leaf(state, start, direction, here, spec, profile, mine, xx, yy, rng, wide)
+    leaves, ribs, tone = state
+    f = dist / rim
+    tone = tone * (1.0 + spec.get("top", 0.0) * (1.0 - smooth(0.0, 0.55, f))) * (1.0 - spec.get("rim_dark", 0.0) * smooth(0.5, 1.0, f))
+    return leaves * mine, ribs * mine, np.where(mine, tone, 1.0).astype(np.float32)
+
+
+def cut_topper(obj, kind, label, index, size, px_m, rng):
+    """(leaf, midrib, tone) for a shrub's topper card (`leaf_skin.py`, her
+    "a little like two or three leaf topper"): one of the species' leaves, up
+    the card's middle from its foot nearly to its top."""
+    spec = LEAFLETS[kind]
+    mine = label == index
+    ys, xs = np.nonzero(mine)
+    y0, y1 = ys.min(), ys.max()
+    start = np.array([(xs.min() + xs.max()) / 2.0, y0 + 2.0])
+    yy, xx = np.mgrid[0:size, 0:size]
+    profile = toothed(leaflet_profile, *spec["teeth"]) if spec.get("teeth") else leaflet_profile
+    state = (np.zeros((size, size), dtype=np.float32), np.zeros((size, size), dtype=np.float32),
+             np.ones((size, size), dtype=np.float32))
+    spec = dict(spec, shadow_px=2, shadow=0.0)
+    leaves, ribs, tone = paint_leaf(state, start, np.array([0.0, 1.0]), (y1 - y0) * 0.96, spec, profile, mine, xx, yy, rng,
+                                    spec.get("topper_wide", 1.0))
+    return leaves * mine, ribs * mine, np.where(mine, tone, 1.0).astype(np.float32)
+
+
+def slot_step(obj, size):
+    """How far along the canvas, in pixels, each next colourway of a slotted
+    blade (the bloom card) is painted: the canvas's width over its slots."""
+    return size // int(obj.get("kyt_slots", 1))
+
+
+def cut_bloom(obj, kind, label, index, size, px_m, rng):
+    """(alpha, nothing, no tone, paint) for the flowers' card, drawn once per
+    colourway in `slots`: the card's own island first, each next one
+    `slot_step` to the right. `paint` is the colour, linear."""
+    spec = LEAFLETS[kind]
+    step = slot_step(obj, size)
+    mine0 = (label == index) & (np.arange(size)[None, :] < step)
+    ys, xs = np.nonzero(mine0)
+    y0, y1, x0, x1 = ys.min(), ys.max(), xs.min(), xs.max()
+    centre = np.array([(x0 + x1) / 2.0, (y0 + y1) / 2.0])
+    R = min(x1 - x0, y1 - y0) / 2.0
+    yy, xx = np.mgrid[0:size, 0:size]
+    lin = lambda c: np.array([srgb_to_linear(v) for v in c], dtype=np.float32)  # noqa: E731
+    shape = np.zeros((size, size), dtype=np.float32)
+    throat = np.zeros((size, size), dtype=np.float32)  # 1 at a bloom's heart, 0 at its petal tips
+    edge = np.ones((size, size), dtype=np.float32)
+    extra = np.zeros((size, size), dtype=np.float32)  # the hibiscus's stamens
+    if spec["art"] == "truss":
+        # A rounded bunch: blooms of mixed sizes round one in the middle, off
+        # a regular ring, each round the edge squashed along the line from
+        # the middle (turned away from the eye) so the bunch reads as a ball,
+        # not a flat rosette (her "the clusters are a little funny").
+        count = int(rng.integers(6, 9))
+        spots = []
+        for a in np.linspace(0, 2 * np.pi, count, endpoint=False) + rng.uniform(0, 2 * np.pi):
+            out = np.array([np.cos(a), np.sin(a)])
+            reach = R * rng.uniform(0.45, 0.62)
+            spots.append((centre + out * reach, R * 0.4 * rng.uniform(0.75, 1.05), out, 0.62))
+        spots.sort(key=lambda sp: -sp[1])  # the big ones first: the smaller lie over them at the rim
+        spots.append((centre + rng.uniform(-0.06, 0.06, 2) * R, R * 0.46, np.zeros(2), 1.0))
+        for c, r, out, squash in spots:
+            bloom = np.zeros((size, size), dtype=np.float32)
+            turn = rng.uniform(0, 2 * np.pi)
+            for k in range(5):
+                a = turn + k / 5 * 2 * np.pi
+                d = np.array([np.cos(a), np.sin(a)])
+                along_out = abs(float(d @ out))
+                reach = r * (1.0 - (1.0 - squash) * along_out)
+                stroke(bloom, c, c + d * reach, r * 0.46 * (1.0 - 0.25 * (1.0 - squash) * along_out), leaflet_profile)
+            near = box_blur2((bloom > 0.5).astype(np.float32), max(2, int(r * 0.12)))
+            edge = edge * (1.0 - 0.35 * np.clip(near * 2.0, 0.0, 1.0) * (1.0 - bloom) * shape)
+            heart = np.clip(1.0 - np.hypot(xx - c[0], yy - c[1]) / (r * 0.45), 0.0, 1.0)
+            throat = throat * (1.0 - bloom) + heart * bloom
+            edge = edge * (1.0 - bloom) + bloom
+            shape = np.maximum(shape, bloom)
+        # Darker toward the bunch's lower rim, lighter on top.
+        edge = edge * (1.0 - 0.18 * smooth(0.3, 1.0, np.clip((centre[1] - yy) / R, 0.0, 1.0)))
+    else:  # one hibiscus
+        turn = rng.uniform(0, 2 * np.pi)
+        for k in range(5):
+            a = turn + k / 5 * 2 * np.pi
+            petal = np.zeros((size, size), dtype=np.float32)
+            stroke(petal, centre, centre + np.array([np.cos(a), np.sin(a)]) * R * 0.98, R * 0.52, round_leaflet_profile)
+            near = box_blur2((petal > 0.5).astype(np.float32), max(2, int(R * 0.05)))
+            edge = edge * (1.0 - 0.3 * np.clip(near * 2.0, 0.0, 1.0) * (1.0 - petal) * shape)
+            edge = edge * (1.0 - petal) + petal
+            shape = np.maximum(shape, petal)
+        throat = np.clip(1.0 - np.hypot(xx - centre[0], yy - centre[1]) / (R * 0.42), 0.0, 1.0) ** 0.8
+        tip = centre + np.array([0.12, 0.4]) * R
+        stroke(extra, centre, tip, max(1.5, R * 0.035), lambda t: np.ones_like(t))
+        for k in range(6):
+            a = k / 6 * 2 * np.pi
+            stroke(extra, tip, tip + np.array([np.cos(a), np.sin(a)]) * R * 0.07, R * 0.05, lambda t: 1.0 - t)
+    paint = np.zeros((size, size, 3), dtype=np.float32)
+    alpha = np.zeros((size, size), dtype=np.float32)
+    for k, (petal, heart) in enumerate(spec["slots"]):
+        colour = lin(petal)[None, None, :] * (1.0 - throat[..., None]) + lin(heart)[None, None, :] * throat[..., None]
+        colour = colour * edge[..., None]
+        if spec["art"] == "hibiscus":
+            colour = colour * (1.0 - extra[..., None]) + lin(spec["pollen"])[None, None, :] * extra[..., None]
+        shifted = np.roll(colour, k * step, axis=1)
+        region = np.roll(shape * mine0, k * step, axis=1) > 0
+        paint[region] = shifted[region]
+        alpha = np.maximum(alpha, np.roll(shape * mine0, k * step, axis=1))
+    return alpha, np.zeros((size, size), dtype=np.float32), np.ones((size, size), dtype=np.float32), paint
+
+
+def srgb_to_linear(c):
+    return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+
+
+def round_leaflet_profile(t):
+    """A lobe: out from the rachis, widest a little before halfway, a round end."""
+    widest = 0.4
+    rise = 0.6 + 0.4 * np.sqrt(np.clip(t / widest, 0.0, 1.0))
+    fall = np.sqrt(np.clip(1.0 - ((t - widest) / (1.0 - widest)) ** 2, 0.0, 1.0))
+    return np.where(t < widest, rise, fall)
+
+
+def use_prop_leaflets(name):
+    """The prop's own leaflet table in place of the palm crown's, if it has one."""
+    global CUT_STYLE, LEAFLETS, RACHIS_M, RACHIS_STRAW, RACHIS_TINT, LEAFLET_SLENDER, LEAFLET_JITTER
+    global leaflet_profile
+    spec = PROP_LEAFLETS.get(name)
+    if spec is not None:
+        CUT_STYLE, LEAFLETS = spec["style"], spec["kinds"]
+        RACHIS_M, RACHIS_STRAW, RACHIS_TINT = spec["rachis"], spec["rachis_colour"], spec["rachis_tint"]
+        LEAFLET_SLENDER = spec.get("slender", LEAFLET_SLENDER)
+        LEAFLET_JITTER = spec.get("jitter", LEAFLET_JITTER)
+        if spec.get("profile") == "round":
+            leaflet_profile = round_leaflet_profile
+        elif spec.get("profile") == "lance":
+            leaflet_profile = lance_leaf_profile
+        elif spec.get("profile") == "ovate":
+            leaflet_profile = ovate_leaf_profile
+
 # `--bands`, the segmented palm trunk (PRP-COAST-007, 2026-09-27), after
 # Christina's two references (`documentation/reference/palm_trunk/`): each
 # segment dark reddish brown at its base, tucked under the collar below, warm
@@ -1159,26 +1610,45 @@ def cut_islands(objs, blades, size):
     edge is opaque (a stub, the rachis at a frond's base), so neither filtering
     nor mipmaps fray an edge the game shows."""
     label = raster_islands(objs, size)
+    for i, obj in enumerate(objs):
+        # A slotted blade (the bloom card) owns its island's copies along the
+        # canvas too, one per colourway.
+        for k in range(1, int(obj.get("kyt_slots", 1))):
+            label[np.roll(label == i + 1, k * slot_step(obj, size), axis=1)] = i + 1
     alpha = np.zeros((size, size), dtype=np.float32)
     straw_all = np.zeros((size, size), dtype=np.float32)
+    tone_all = np.ones((size, size), dtype=np.float32)  # the colour times this: a leaf's own light and shade
+    paint_all = np.zeros((size, size, 3), dtype=np.float32)  # colour painted outright (the blooms), linear
+    painted = np.zeros((size, size), dtype=bool)
     report = []
     for i, obj in enumerate(objs):
         mine = label == i + 1
         kind = obj.name.removeprefix("blade_") if obj in blades else None
-        table, cutter = (TEARS, cut_tears) if CUT_STYLE == "tears" else (LEAFLETS, cut_leaflets)
+        table, cutter = {"tears": (TEARS, cut_tears), "leaf": (LEAFLETS, cut_leaf),
+                         "cluster": (LEAFLETS, cut_cluster),
+                         "dome": (LEAFLETS, cut_dome)}.get(CUT_STYLE, (LEAFLETS, cut_leaflets))
+        if kind == "bloom":
+            cutter = cut_bloom
+        elif kind == "topper":
+            cutter = cut_topper
         if kind in table:
             rng = np.random.default_rng(zlib.crc32(kind.encode()))
             px_m = uv_px_per_metre(obj, size)
-            leaf, straw = cutter(obj, kind, label, i + 1, size, px_m, rng)
+            leaf, straw, *more = cutter(obj, kind, label, i + 1, size, px_m, rng)
             opaque = np.maximum(leaf, straw)
             alpha[mine] = opaque[mine]
             straw_all[mine] = straw[mine]
+            if more:
+                tone_all[mine] = more[0][mine]
+            if len(more) > 1:
+                paint_all[mine] = more[1][mine]
+                painted |= mine
             report.append(f"{obj.name} {opaque[mine].mean():.0%} leaf at {px_m:.0f} px/m")
         else:
             alpha[mine] = 1.0
             report.append(f"{obj.name} whole")
     alpha = np.where(label == 0, max_filter(alpha, ALPHA_SPREAD_PX), alpha)
-    return label, alpha, straw_all, report
+    return label, alpha, straw_all, tone_all, (paint_all, painted), report
 
 
 def leaflet_canvas(argv, name, root, folder, size, orm_size):
@@ -1190,6 +1660,7 @@ def leaflet_canvas(argv, name, root, folder, size, orm_size):
     writes it back from that layer, and apply_holes.py puts it into the alpha.
     The blades and the heart are given one double-sided material that clips by
     it. Every frond of a kind shows its blade's island."""
+    use_prop_leaflets(name)
     blades = [o for o in bpy.data.collections["blades"].objects if o.type == "MESH"]
     others = [o for o in bpy.data.collections["export"].objects
               if o.type == "MESH" and not any(m.type == "NODES" for m in o.modifiers)]
@@ -1325,7 +1796,7 @@ def leaflet_canvas(argv, name, root, folder, size, orm_size):
         # the colour, the ORM, the guide, the materials and her PSD stay as
         # they are. `prop_handback.py <prop> --cutout-layer` then puts the new
         # cut-out into the PSD for her to look at before she saves.
-        _, alpha, _, report = cut_islands(objs, blades, size)
+        _, alpha, _, _, _, report = cut_islands(objs, blades, size)
         save_holes(alpha, cutout_path)
         print(f"paint_canvas: leaflets cut again into {os.path.relpath(cutout_path, root)}: " + "; ".join(report))
         return
@@ -1334,7 +1805,7 @@ def leaflet_canvas(argv, name, root, folder, size, orm_size):
             raise SystemExit(f"paint_canvas: {path} exists (it may be painted); leaving everything alone")
     os.makedirs(folder, exist_ok=True)
 
-    label, alpha, straw, report = cut_islands(objs, blades, size)
+    label, alpha, straw, tone, (paint, painted), report = cut_islands(objs, blades, size)
     rgb = np.zeros((size, size, 3), dtype=np.float32)
     orm = np.zeros((size, size, 3), dtype=np.float32)
     for i, obj in enumerate(objs):
@@ -1357,8 +1828,10 @@ def leaflet_canvas(argv, name, root, folder, size, orm_size):
         mine = label == i + 1
         rgb[mine] = base
         orm[mine] = (1.0, rough, metal)
+    rgb = rgb * tone[..., None]
     tint = straw[..., None] * RACHIS_TINT
     rgb = rgb * (1.0 - tint) + np.array(RACHIS_STRAW, dtype=np.float32) * tint
+    rgb = np.where(painted[..., None], paint, rgb)
     # Past an island: colour carried outward (alpha was carried by cut_islands),
     # so mipmaps never pull in the background.
     outside = label == 0
@@ -1400,7 +1873,11 @@ def leaflet_canvas(argv, name, root, folder, size, orm_size):
         for p in me.polygons:
             p.material_index = 0
         me.materials.clear()
-        me.materials.append(mat)
+        # A slotted blade (the bloom card) wears its own material on the same
+        # canvas, `<prop>_bloom`, so a placement can slide that material's UVs
+        # to another colourway without moving the leaves'.
+        me.materials.append(one_material(f"{name}_bloom", colour, orm_img, me.uv_layers.active.name, True,
+                                         double_sided=True) if obj.get("kyt_slots") else mat)
     print(f"paint_canvas: {os.path.relpath(colour_path, root)} ({size} px) with the leaflets in its alpha "
           f"and {os.path.relpath(cutout_path, root)}, {os.path.relpath(orm_path, root)} ({orm_size} px), "
           f"and its UV guide; {len(objs)} islands wear one double-sided material, '{name}': "

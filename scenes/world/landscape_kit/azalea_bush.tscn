@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+; An azalea bush from the approach landscaping kit (2026-09-28): a few lumpy
+; mounds studded with five-lobed blooms, about waist high and 1.3 m across. The
+; shape is `assets/source/props/azalea_bush.blend`; Send to game writes the GLB.
+; Visual only.
+
+[ext_resource type="Script" path="res://scenes/world/landscape_kit/azalea_bush.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://bkiyw4h5h26a4" path="res://assets/props/azalea_bush.glb" id="2_model"]
+
+[node name="azalea_bush" type="Node3D"]
+script = ExtResource("1_script")
+editor_description = "Azalea bush (landscape kit). Choose its bloom colour here; shape it in assets/source/props/azalea_bush.blend."
+
+[node name="model" parent="." instance=ExtResource("2_model")]

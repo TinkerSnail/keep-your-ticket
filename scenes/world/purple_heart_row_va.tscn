@@ -29,7 +29,6 @@ leaf_pair_count = 4
 position = Vector3(-0.31, 0, -0.05)
 rotation = Vector3(0, 2.31, 0)
 scale = Vector3(1.02, 1, 1.02)
-leaf_scale = 0.92
 
 [node name="sprig_04" parent="sprigs" instance=ExtResource("1_sprig")]
 position = Vector3(-0.06, 0, 0.09)

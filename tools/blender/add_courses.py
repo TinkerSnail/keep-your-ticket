@@ -127,6 +127,9 @@ def add_curves(data, courses_coll):
         if cu is None:
             cu = bpy.data.curves.new(cid, "CURVE")
             cu.dimensions = "3D"
+            # 48 steps a segment, not Blender's 12: a two-point grass course a
+            # metre long drew 3.75 mm off Godot's at 12, which bakes every 25 mm.
+            cu.resolution_u = 48
             spline = cu.splines.new("BEZIER")
             pts = course["points"]
             spline.bezier_points.add(len(pts) - 1)
@@ -220,7 +223,15 @@ def course_blade_group():
     """Bend the Blade object's own mesh along the Course: its Y runs base to tip
     (stretched to the course's length), its X across the frond, its Z off the
     frond's face. Across is horizontal and square to the line from the crown's
-    centre to the course's tip, as `_frond_side` has it in Godot."""
+    centre to the course's tip, as `_frond_side` has it in Godot.
+
+    Four inputs vary one leaf from its blade, each as the Godot plant scripts
+    did (a file made before an input existed has none, and so its default):
+    Width scales it across (1); Offset shifts it sideways, a quarter at the
+    base growing to all of it at the tip (0 m); Sway bows it sideways, most
+    just past the middle (0 m); Reach stops it short of the course's end, a
+    share of the course's length (1). The frame's face, the leaf's own up, is
+    kept on every vertex as `kyt_frame_up` for a normals modifier to use."""
     ng = bpy.data.node_groups.get(GROUP)
     if ng is not None:
         return ng
@@ -228,6 +239,15 @@ def course_blade_group():
     ng.interface.new_socket("Geometry", in_out="INPUT", socket_type="NodeSocketGeometry")
     ng.interface.new_socket("Course", in_out="INPUT", socket_type="NodeSocketObject")
     ng.interface.new_socket("Blade", in_out="INPUT", socket_type="NodeSocketObject")
+    # How much wider than its blade this one leaf is (a fern frond's own span);
+    # 1 for the palm crown, whose file made its group before this input existed.
+    width = ng.interface.new_socket("Width", in_out="INPUT", socket_type="NodeSocketFloat")
+    width.default_value = 1.0
+    # Offset, Sway and Reach: the Hakone grass's three blades to a course.
+    ng.interface.new_socket("Offset", in_out="INPUT", socket_type="NodeSocketFloat")
+    ng.interface.new_socket("Sway", in_out="INPUT", socket_type="NodeSocketFloat")
+    reach = ng.interface.new_socket("Reach", in_out="INPUT", socket_type="NodeSocketFloat")
+    reach.default_value = 1.0
     ng.interface.new_socket("Geometry", in_out="OUTPUT", socket_type="NodeSocketGeometry")
     N = ng.nodes.new
     gin, gout = N("NodeGroupInput"), N("NodeGroupOutput")
@@ -247,10 +267,21 @@ def course_blade_group():
     link(ng, xyz, "Y", factor, 0)
     link(ng, length, "Max", factor, 1)
 
+    def scalar(op, a, a_out, b=None, b_out=None, value=None):
+        node = N("ShaderNodeMath")
+        node.operation = op
+        link(ng, a, a_out, node, 0)
+        if b is not None:
+            link(ng, b, b_out, node, 1)
+        elif value is not None:
+            node.inputs[1].default_value = value
+        return node
+
+    reached = scalar("MULTIPLY", factor, "Value", gin, "Reach")
     along = N("GeometryNodeSampleCurve")
     along.mode = "FACTOR"
     link(ng, course, "Geometry", along, "Curves")
-    link(ng, factor, "Value", along, "Factor")
+    link(ng, reached, "Value", along, "Factor")
     tip = N("GeometryNodeSampleCurve")
     tip.mode = "FACTOR"
     tip.inputs["Factor"].default_value = 1.0
@@ -277,18 +308,36 @@ def course_blade_group():
 
     face = vmath("NORMALIZE", vmath("CROSS_PRODUCT", side0, "Vector", along, "Tangent"), "Vector")
     side = vmath("NORMALIZE", vmath("CROSS_PRODUCT", along, "Tangent", face, "Vector"), "Vector")
+    wide = scalar("MULTIPLY", xyz, "X", gin, "Width")
+    # Offset * (0.25 + 0.75 f) + Sway * sin(pi f) * f, f the share along.
+    grow = N("ShaderNodeMath")
+    grow.operation = "MULTIPLY_ADD"
+    link(ng, factor, "Value", grow, 0)
+    grow.inputs[1].default_value = 0.75
+    grow.inputs[2].default_value = 0.25
+    shifted = scalar("MULTIPLY", grow, "Value", gin, "Offset")
+    bow = scalar("MULTIPLY", scalar("SINE", scalar("MULTIPLY", factor, "Value", value=math.pi),
+                                 "Value"), "Value", factor, "Value")
+    swayed = scalar("MULTIPLY", bow, "Value", gin, "Sway")
+    lateral = scalar("ADD", scalar("ADD", wide, "Value", shifted, "Value"), "Value", swayed, "Value")
     across = N("ShaderNodeVectorMath")
     across.operation = "SCALE"
     link(ng, side, "Vector", across, 0)
-    link(ng, xyz, "X", across, "Scale")
+    link(ng, lateral, "Value", across, "Scale")
     lift = N("ShaderNodeVectorMath")
     lift.operation = "SCALE"
     link(ng, face, "Vector", lift, 0)
     link(ng, xyz, "Z", lift, "Scale")
     moved = vmath("ADD", vmath("ADD", along, "Position", across, "Vector"), "Vector", lift, "Vector")
 
+    # Kept before the move: the fields read the blade's own flat positions.
+    up = N("GeometryNodeStoreNamedAttribute")
+    up.data_type, up.domain = "FLOAT_VECTOR", "POINT"
+    up.inputs["Name"].default_value = "kyt_frame_up"
+    link(ng, blade, "Geometry", up, "Geometry")
+    link(ng, face, "Vector", up, "Value")
     setpos = N("GeometryNodeSetPosition")
-    link(ng, blade, "Geometry", setpos, "Geometry")
+    link(ng, up, "Geometry", setpos, "Geometry")
     link(ng, moved, "Vector", setpos, "Position")
     link(ng, setpos, "Geometry", gout, "Geometry")
     for i, node in enumerate(ng.nodes):
@@ -453,4 +502,6 @@ def main():
     print("add_courses: saved")
 
 
-main()
+# `plant_blades.py` imports the course and blade helpers without running this.
+if __name__ == "__main__":
+    main()

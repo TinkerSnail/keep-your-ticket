@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3]
+
+; The box shrub (landscape kit, 2026-09-28, her "a small box shrub that is just
+; a singular one of these domes"): one ice-cap dome of painted boxwood leaves,
+; 0.75 m across and 0.32 m high, 24 triangles, evergreen. The shape is
+; `assets/source/props/box_shrub.blend`; Send to game writes the GLB. Visual only.
+
+[ext_resource type="PackedScene" path="res://assets/props/box_shrub.glb" id="1_model"]
+
+[node name="box_shrub" type="Node3D"]
+editor_description = "Box shrub (landscape kit). Shape it in assets/source/props/box_shrub.blend."
+
+[node name="model" parent="." instance=ExtResource("1_model")]

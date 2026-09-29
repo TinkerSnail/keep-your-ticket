@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3]
+
+; A hibiscus shrub from the approach landscaping kit (2026-09-28): leaf clumps
+; shingled over a boxy, rounded base 1.4 m tall, a dozen big flowers on top of
+; the leaves; `bloom` picks red, pink, yellow-red or pink-white. The shape is
+; `assets/source/props/hibiscus_shrub.blend`; Send to game writes the GLB.
+; Visual only.
+
+[ext_resource type="Script" path="res://scenes/world/landscape_kit/hibiscus_shrub.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://cyk12whftop5d" path="res://assets/props/hibiscus_shrub.glb" id="2_model"]
+
+[node name="hibiscus_shrub" type="Node3D"]
+script = ExtResource("1_script")
+editor_description = "Hibiscus shrub (landscape kit). Shape it in assets/source/props/hibiscus_shrub.blend; bloom picks its colourway."
+
+[node name="model" parent="." instance=ExtResource("2_model")]

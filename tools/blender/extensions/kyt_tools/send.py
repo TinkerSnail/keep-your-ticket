@@ -16,6 +16,11 @@ physics layer 1, the layer seated guests and the player stand on. Parts with the
 custom property `kyt_collision = "none"` are merged into a second object,
 `<name>_visual`, that carries no hint and so never collides.
 
+**A merge group** is a set of parts the game shows or hides together: parts
+with the custom property `kyt_merge_group = "<group>"` merge into their own
+object, `<name>_<group>`, beside the rest (the Hakone grass's six young courses,
+which only its vB clump shows). They never collide.
+
 **Unless the game chooses parts.** A file whose scene has `kyt_keep_parts`
 (the palm crown, where each tree shows its own choice of fronds) sends every
 part as its own node, named as in `export`, its modifiers applied; the game
@@ -108,9 +113,15 @@ def run(context):
         temp = [_merged(context, [o], f"{o.name}-col") for o in objects if wants_collision(o)]
         export_set = temp + [o for o in objects if not wants_collision(o)]
     else:
-        solid = _merged(context, [o for o in objects if wants_collision(o)], f"{stem}-col")
-        visual = _merged(context, [o for o in objects if not wants_collision(o)], f"{stem}_visual")
-        temp = [o for o in (solid, visual) if o is not None]
+        solid = _merged(context, [o for o in objects
+                                  if wants_collision(o) and not o.get("kyt_merge_group")], f"{stem}-col")
+        groups = {}
+        for o in objects:
+            if o.get("kyt_merge_group") or not wants_collision(o):
+                groups.setdefault(str(o.get("kyt_merge_group", "")), []).append(o)
+        visual = [_merged(context, parts, f"{stem}_{group or 'visual'}")
+                  for group, parts in sorted(groups.items())]
+        temp = [o for o in [solid] + visual if o is not None]
         export_set = list(temp)
 
     try:

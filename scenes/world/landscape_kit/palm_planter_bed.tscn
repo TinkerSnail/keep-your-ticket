@@ -1,0 +1,65 @@
+[gd_scene load_steps=7 format=3]
+
+; A palm's planted bed from the approach landscaping kit (2026-09-28): the
+; raised planter, and on its mulch a hibiscus behind the trunk, an azalea in
+; front, a fern and a Hakone clump at the sides and seven Purple Heart sprigs
+; spilling over the rim. Christina's "keep all five, fewer of each" and
+; "bigger". Editor-owned: move, add or remove plants here. Every approach
+; palm's footing (approach_palms.tscn).
+
+[ext_resource type="PackedScene" path="res://scenes/world/landscape_kit/palm_planter.tscn" id="2_planter"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_fern_fill.tscn" id="3_fern"]
+[ext_resource type="PackedScene" path="res://scenes/world/hakone_grass_tuft_va.tscn" id="4_hak"]
+[ext_resource type="PackedScene" path="res://scenes/world/purple_heart_sprig.tscn" id="5_sprig"]
+[ext_resource type="PackedScene" path="res://scenes/world/landscape_kit/azalea_bush.tscn" id="6_az"]
+[ext_resource type="PackedScene" path="res://scenes/world/landscape_kit/hibiscus_shrub.tscn" id="7_hib"]
+
+[node name="palm_planter_bed" type="Node3D"]
+editor_description = "Planted palm planter (approach landscaping kit). The planter and every plant are ordinary instances: move, turn, add or remove them here."
+
+[node name="planter" parent="." instance=ExtResource("2_planter")]
+
+[node name="planting" type="Node3D" parent="."]
+
+[node name="hibiscus" parent="planting" instance=ExtResource("7_hib")]
+transform = Transform3D(-0.4708, 0, -0.6468, 0, 0.8, 0, 0.6468, 0, -0.4708, -0.34, 0.31708, -0.3)
+
+[node name="azalea" parent="planting" instance=ExtResource("6_az")]
+transform = Transform3D(0.57363, 0, -0.48316, 0, 0.75, 0, 0.48316, 0, 0.57363, 0.36, 0.31781, 0.26)
+
+[node name="fern" parent="planting" instance=ExtResource("3_fern")]
+transform = Transform3D(0.65229, 0, 0.69066, 0, 0.95, 0, -0.69066, 0, 0.65229, -0.36, 0.31381, 0.34)
+
+[node name="hakone" parent="planting" instance=ExtResource("4_hak")]
+transform = Transform3D(0.1926, 0, -0.69376, 0, 0.72, 0, 0.69376, 0, 0.1926, 0.46, 0.30781, -0.34)
+
+[node name="sprig_00" parent="planting" instance=ExtResource("5_sprig")]
+transform = Transform3D(0.61012, 0, -0.30093, 0, 0.68029, 0, 0.30093, 0, 0.61012, 0.26525, 0.29122, 0.73814)
+leaf_pair_count = 4
+flowered = true
+
+[node name="sprig_01" parent="planting" instance=ExtResource("5_sprig")]
+transform = Transform3D(0.21505, 0, -0.66267, 0, 0.6967, 0, 0.66267, 0, 0.21505, 0.69622, 0.291, 0.36737)
+leaf_pair_count = 6
+
+[node name="sprig_02" parent="planting" instance=ExtResource("5_sprig")]
+transform = Transform3D(-0.44984, 0, -0.4842, 0, 0.66092, 0, 0.4842, 0, -0.44984, 0.60186, 0.29457, -0.43312)
+leaf_pair_count = 5
+
+[node name="sprig_03" parent="planting" instance=ExtResource("5_sprig")]
+transform = Transform3D(-0.64401, 0, -0.10345, 0, 0.65226, 0, 0.10345, 0, -0.64401, 0.18883, 0.29536, -0.70657)
+leaf_pair_count = 4
+flowered = true
+
+[node name="sprig_04" parent="planting" instance=ExtResource("5_sprig")]
+transform = Transform3D(-0.39656, 0, 0.56917, 0, 0.69369, 0, -0.56917, 0, -0.39656, -0.54019, 0.29169, -0.56039)
+leaf_pair_count = 6
+
+[node name="sprig_05" parent="planting" instance=ExtResource("5_sprig")]
+transform = Transform3D(-0.10427, 0, 0.61358, 0, 0.62238, 0, -0.61358, 0, -0.10427, -0.7407, 0.29461, -0.022631)
+leaf_pair_count = 5
+
+[node name="sprig_06" parent="planting" instance=ExtResource("5_sprig")]
+transform = Transform3D(0.48249, 0, 0.43103, 0, 0.64698, 0, -0.43103, 0, 0.48249, -0.43352, 0.29271, 0.63075)
+leaf_pair_count = 4
+flowered = true

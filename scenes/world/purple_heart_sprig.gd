@@ -1,251 +1,38 @@
 @tool
 extends Node3D
 
-## The Path3D owns one Purple Heart stem's habit. This tool derives the
-## repetitive paired lance leaves, segmented stem and optional three-petal
-## flower while the source course stays directly reshapeable in the editor.
+## Purple Heart sprig (PRP-PLANT-015 to 017). Its stem, leaves and flower are
+## shaped in assets/source/props/purple_heart_sprig.blend: one leaf and one
+## young leaf placed up the stem course, and the flower at its tip. The GLB
+## carries the stem, one mesh of leaves for each pair count, 4 to 7, and the
+## flower; each placement shows its own. Until 2026-09-28 this script built the
+## sprig from a Path3D course here, with a leaf_scale two catalog sprigs set;
+## git holds that version.
 
-@export_range(3, 8, 1) var leaf_pair_count := 6:
+@export_range(4, 7, 1) var leaf_pair_count := 6:
 	set(value):
-		leaf_pair_count = clampi(value, 3, 8)
-		_queue_rebuild()
+		leaf_pair_count = clampi(value, 4, 7)
+		_show()
 @export var flowered := false:
 	set(value):
 		flowered = value
-		_queue_rebuild()
-@export_range(0.7, 1.3, 0.01) var leaf_scale := 1.0:
-	set(value):
-		leaf_scale = clampf(value, 0.7, 1.3)
-		_queue_rebuild()
-@export var stem_material: Material
-@export var leaf_material: Material
-@export var young_leaf_material: Material
-@export var flower_material: Material
-@export var flower_center_material: Material
-
-const STEM_SAMPLES := 9
-const LEAF_LENGTH_SAMPLES := 5
-const LEAF_WIDTH_SAMPLES := 3
-const MeshCache := preload("res://scripts/derived_mesh_cache.gd")
-
-var _queued := false
+		_show()
 
 
 func _ready() -> void:
-	var course := get_node_or_null("stem_course") as Path3D
-	if course != null and course.curve != null \
-			and not course.curve.changed.is_connected(_queue_rebuild):
-		course.curve.changed.connect(_queue_rebuild)
-	_queue_rebuild()
+	_show()
 
 
-func _queue_rebuild() -> void:
-	if _queued or not is_inside_tree():
+## The meshes not shown are hidden, not freed; StaticMerge leaves hidden meshes
+## out of the running game's merged mesh.
+func _show() -> void:
+	var model := get_node_or_null("model")
+	if model == null:
 		return
-	_queued = true
-	call_deferred("_rebuild")
-
-
-func _rebuild() -> void:
-	_queued = false
-	var course := get_node_or_null("stem_course") as Path3D
-	var stems := get_node_or_null("derived_stem") as Node3D
-	var leaves := get_node_or_null("derived_leaves") as Node3D
-	var flowers := get_node_or_null("derived_flowers") as Node3D
-	if course == null or course.curve == null or stems == null \
-			or leaves == null or flowers == null:
-		return
-	for parent in [stems, leaves, flowers]:
-		for child in parent.get_children():
-			child.free()
-	var curve := course.curve
-	var length := curve.get_baked_length()
-	if length < 0.2:
-		return
-	_build_stem(curve, length, stems)
-	_build_leaf_pairs(curve, length, leaves)
-	if flowered:
-		_build_flower(curve.sample_baked(length, true), flowers)
-
-
-func _build_stem(curve: Curve3D, length: float, parent: Node3D) -> void:
-	for index in STEM_SAMPLES - 1:
-		var t0 := float(index) / float(STEM_SAMPLES - 1)
-		var t1 := float(index + 1) / float(STEM_SAMPLES - 1)
-		var a: Vector3 = curve.sample_baked(length * t0, true)
-		var b: Vector3 = curve.sample_baked(length * t1, true)
-		var delta := b - a
-		if delta.length_squared() < 0.0001:
-			continue
-		var top_radius := lerpf(0.011, 0.006, t1)
-		var bottom_radius := lerpf(0.013, 0.007, t0)
-		var height := delta.length()
-		# Sprigs placed from one scene share their course, so a segment is
-		# built once and handed to the rest.
-		var mesh := MeshCache.fetch(["purple_heart_stem", top_radius,
-				bottom_radius, height], [], func() -> Mesh:
-			var built := CylinderMesh.new()
-			built.top_radius = top_radius
-			built.bottom_radius = bottom_radius
-			built.height = height
-			# A stem is 12 to 26mm across. Seven sides, a ring and two caps buried
-			# inside the neighbouring segments made 42 triangles a segment, 336 a
-			# sprig, and the stems alone came to 324,000 at the arrival palms. Four
-			# smooth-shaded sides and no caps is 8 a segment. 2026-09-18.
-			built.radial_segments = 4
-			built.rings = 0
-			built.cap_top = false
-			built.cap_bottom = false
-			return built)
-		var instance := MeshInstance3D.new()
-		instance.name = "segment_%02d" % index
-		instance.mesh = mesh
-		instance.material_override = stem_material
-		instance.transform = Transform3D(
-			Basis(Quaternion(Vector3.UP, delta.normalized())), (a + b) * 0.5)
-		parent.add_child(instance)
-
-
-func _build_leaf_pairs(curve: Curve3D, length: float, parent: Node3D) -> void:
-	for pair_index in leaf_pair_count:
-		var share := float(pair_index) / float(maxi(leaf_pair_count - 1, 1))
-		var t := lerpf(0.17, 0.82, share)
-		var origin: Vector3 = curve.sample_baked(length * t, true)
-		var angle := 0.42 + float(pair_index) * 1.37
-		var young := pair_index >= leaf_pair_count - 1
-		for side_index in 2:
-			var side_angle := angle + (PI if side_index == 1 else 0.0)
-			var direction := Vector3(cos(side_angle),
-				lerpf(0.07, 0.22, share), sin(side_angle)).normalized()
-			var length_scale := (0.24 + 0.04 * sin(float(pair_index) * 2.1 \
-				+ float(side_index))) * leaf_scale
-			if young:
-				length_scale *= 0.78
-			var width := length_scale * (0.25 if young else 0.27)
-			_add_leaf(parent, "leaf_%02d_%s" % [pair_index,
-				"a" if side_index == 0 else "b"], origin, direction,
-				length_scale, width, young)
-
-
-func _add_leaf(parent: Node3D, node_name: String, origin: Vector3,
-		direction: Vector3, length: float, half_width: float,
-		young: bool) -> void:
-	var material := young_leaf_material if young else leaf_material
-	var mesh := MeshCache.fetch(["purple_heart_leaf", origin, direction, length,
-			half_width, MeshCache.id_of(material)], [material], func() -> Mesh:
-		var built := ArrayMesh.new()
-		built.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,
-			_leaf_arrays(origin, direction, length, half_width))
-		built.surface_set_material(0, material)
-		return built)
-	var instance := MeshInstance3D.new()
-	instance.name = node_name
-	instance.mesh = mesh
-	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-	parent.add_child(instance)
-
-
-func _leaf_arrays(origin: Vector3, direction: Vector3, length: float,
-		half_width: float) -> Array:
-	var vertices := PackedVector3Array()
-	var normals := PackedVector3Array()
-	var uvs := PackedVector2Array()
-	var side := Vector3.UP.cross(direction).normalized()
-	if side.length_squared() < 0.5:
-		side = Vector3.RIGHT
-	var normal := direction.cross(side).normalized()
-	if normal.dot(Vector3.UP) < 0.0:
-		normal = -normal
-	for length_index in LEAF_LENGTH_SAMPLES - 1:
-		var t0 := float(length_index) / float(LEAF_LENGTH_SAMPLES - 1)
-		var t1 := float(length_index + 1) / float(LEAF_LENGTH_SAMPLES - 1)
-		for width_index in LEAF_WIDTH_SAMPLES - 1:
-			var u0 := lerpf(-1.0, 1.0,
-				float(width_index) / float(LEAF_WIDTH_SAMPLES - 1))
-			var u1 := lerpf(-1.0, 1.0,
-				float(width_index + 1) / float(LEAF_WIDTH_SAMPLES - 1))
-			var a := _leaf_point(origin, direction, side, normal, length,
-				half_width, t0, u0)
-			var b := _leaf_point(origin, direction, side, normal, length,
-				half_width, t1, u0)
-			var c := _leaf_point(origin, direction, side, normal, length,
-				half_width, t1, u1)
-			var d := _leaf_point(origin, direction, side, normal, length,
-				half_width, t0, u1)
-			_append_triangle(vertices, normals, uvs, a, b, c,
-				Vector2((u0 + 1.0) * 0.5, t0),
-				Vector2((u0 + 1.0) * 0.5, t1),
-				Vector2((u1 + 1.0) * 0.5, t1))
-			_append_triangle(vertices, normals, uvs, a, c, d,
-				Vector2((u0 + 1.0) * 0.5, t0),
-				Vector2((u1 + 1.0) * 0.5, t1),
-				Vector2((u1 + 1.0) * 0.5, t0))
-	return _arrays(vertices, normals, uvs)
-
-
-func _leaf_point(origin: Vector3, direction: Vector3, side: Vector3,
-		normal: Vector3, length: float, half_width: float,
-		t: float, u: float) -> Vector3:
-	var envelope := pow(sin(PI * t), 0.62) * (1.0 - 0.12 * t)
-	var arch := normal * (0.032 * sin(PI * t) - 0.025 * t * t)
-	var central_fold := normal * (0.012 * (1.0 - absf(u)) * sin(PI * t))
-	return origin + direction * length * t + side * half_width * u * envelope \
-		+ arch + central_fold
-
-
-## One unit sphere for every petal and flower centre in the park; each is
-## scaled to its shape by its own node.
-func _flower_sphere() -> Mesh:
-	return MeshCache.fetch(["purple_heart_flower_sphere"], [], func() -> Mesh:
-		var built := SphereMesh.new()
-		built.radius = 0.5
-		built.height = 1.0
-		built.radial_segments = 6
-		built.rings = 2
-		return built)
-
-
-func _build_flower(at: Vector3, parent: Node3D) -> void:
-	for index in 3:
-		var angle := float(index) * TAU / 3.0
-		# A petal is a 5cm flattened sphere: 6 by 2 is 36 triangles against 80.
-		var mesh := _flower_sphere()
-		var petal := MeshInstance3D.new()
-		petal.name = "petal_%d" % index
-		petal.mesh = mesh
-		petal.material_override = flower_material
-		petal.position = at + Vector3(cos(angle), 0.0, sin(angle)) * 0.026
-		petal.rotation = Vector3(0.35, -angle, 0.0)
-		petal.scale = Vector3(0.052, 0.016, 0.027)
-		parent.add_child(petal)
-	var center_mesh := _flower_sphere()
-	var center := MeshInstance3D.new()
-	center.name = "flower_center"
-	center.mesh = center_mesh
-	center.material_override = flower_center_material
-	center.position = at + Vector3.UP * 0.006
-	center.scale = Vector3(0.021, 0.015, 0.021)
-	parent.add_child(center)
-
-
-func _append_triangle(vertices: PackedVector3Array, normals: PackedVector3Array,
-		uvs: PackedVector2Array, a: Vector3, b: Vector3, c: Vector3,
-		uv_a: Vector2, uv_b: Vector2, uv_c: Vector2) -> void:
-	var normal := (b - a).cross(c - a).normalized()
-	if normal.length_squared() < 0.5:
-		normal = Vector3.UP
-	elif normal.dot(Vector3.UP) < 0.0:
-		normal = -normal
-	vertices.append_array(PackedVector3Array([a, b, c]))
-	normals.append_array(PackedVector3Array([normal, normal, normal]))
-	uvs.append_array(PackedVector2Array([uv_a, uv_b, uv_c]))
-
-
-func _arrays(vertices: PackedVector3Array, normals: PackedVector3Array,
-		uvs: PackedVector2Array) -> Array:
-	var arrays := []
-	arrays.resize(Mesh.ARRAY_MAX)
-	arrays[Mesh.ARRAY_VERTEX] = vertices
-	arrays[Mesh.ARRAY_NORMAL] = normals
-	arrays[Mesh.ARRAY_TEX_UV] = uvs
-	return arrays
+	for pairs in range(4, 8):
+		var leaves := model.get_node_or_null("purple_heart_sprig_pairs_%d" % pairs) as Node3D
+		if leaves != null:
+			leaves.visible = pairs == leaf_pair_count
+	var flower := model.get_node_or_null("purple_heart_sprig_flower") as Node3D
+	if flower != null:
+		flower.visible = flowered

@@ -4,7 +4,8 @@
         --python tools/blender/unwrap_blades.py -- [--size 2048] [--overwrite] [--save]
 
 For a prop whose parts the game chooses (`kyt_keep_parts`, the palm crown),
-the unwrap stage of `prop-pipeline.md` for its blades. The fronds in `export`
+or a plant whose leaves bend blades along courses (`plant_blades.py`, the fern
+fan), the unwrap stage of `prop-pipeline.md` for its blades. The fronds in `export`
 are not unwrapped: each takes its geometry, UVs included, from its blade in
 `authored/blades` through `kyt_course_blade`, so all 21 mature fronds wear the
 mature blade's island. There is no game mesh to fuse and Make game mesh does
@@ -78,6 +79,12 @@ def metres(obj, planar):
         su, sv = edge_scales(me)
         uv = me.uv_layers.active.data
         pts = [(uv[k].uv[0] * su, uv[k].uv[1] * sv) for k in range(len(me.loops))]
+    elif "kyt_flat_xy" in me.attributes:
+        # A blade that is not nearly flat (a bush's semi-dome, `leaf_skin.py`)
+        # carries its own flattening, in metres along its surface.
+        flat = me.attributes["kyt_flat_xy"].data
+        pts = [(flat[l.vertex_index].vector[0] * scale.x, flat[l.vertex_index].vector[1] * scale.y)
+               for l in me.loops]
     else:
         pts = [(me.vertices[l.vertex_index].co.x * scale.x, me.vertices[l.vertex_index].co.y * scale.y)
                for l in me.loops]
@@ -87,10 +94,11 @@ def metres(obj, planar):
     return pts, (max(p[0] for p in pts), max(p[1] for p in pts))
 
 
-def skyline(sizes, side):
+def skyline(sizes, side, height=None):
     """Bottom-left skyline packing of pixel rectangles, in the order given, into
-    a `side`-wide canvas with `GAP_PX` round each. Positions, or None if they
-    don't fit."""
+    a `side`-wide canvas (`height` tall, square if not given) with `GAP_PX`
+    round each. Positions, or None if they don't fit."""
+    height = side if height is None else height
     line = [(GAP_PX, side - GAP_PX, GAP_PX)]  # (x, width, y) segments
     at = []
     for w, h in sizes:
@@ -105,7 +113,7 @@ def skyline(sizes, side):
                 top = max(top, sy)
             if best is None or top < best[1]:
                 best = (x, top)
-        if best is None or best[1] + h + GAP_PX > side:
+        if best is None or best[1] + h + GAP_PX > height:
             return None
         x, y = best
         at.append((x, y))
@@ -136,8 +144,14 @@ def main():
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     size = arg(argv, "--size", 2048)
     scene = bpy.context.scene
-    if not scene.get("kyt_keep_parts") or "blades" not in bpy.data.collections:
-        raise SystemExit("unwrap_blades: this file has no blades whose fronds the game chooses; "
+    # The palm crown (kyt_keep_parts), or a plant whose leaves bend blades along
+    # courses, or placed along one, and go to the game merged (plant_blades.py:
+    # the fern fan; the Purple Heart's leaves, `kyt_leaf_blades`).
+    bent = any(o.get("kyt_course_blade") or o.get("kyt_leaf_blades")
+               for o in bpy.data.collections["export"].all_objects) \
+        if "export" in bpy.data.collections else False
+    if not (scene.get("kyt_keep_parts") or bent) or "blades" not in bpy.data.collections:
+        raise SystemExit("unwrap_blades: this file has no blades bent along courses; "
                          "use unwrap_parts.py")
     blend = bpy.data.filepath
     name = os.path.splitext(os.path.basename(blend))[0]
@@ -156,12 +170,31 @@ def main():
     # Tallest first, then the order the file lists them, so the long blades
     # stand side by side along the bottom and the short ones fill in above.
     islands.sort(key=lambda t: -t[2][1])
+    # A slotted blade (a bush's bloom card, `kyt_slots`: one copy of its island
+    # per colourway, painted a `1 / slots` of the canvas apart) goes top left,
+    # no wider than its slot; the rest pack into the canvas below it.
+    slotted = [t for t in islands if t[0].get("kyt_slots")]
+    islands = [t for t in islands if not t[0].get("kyt_slots")]
 
-    lo, hi = 1.0, float(size)
+    # Up to 16 px per millimetre: a small plant's leaves (the Purple Heart's,
+    # 0.36 m) would otherwise stop at one pixel a millimetre, most of the canvas empty.
+    lo, hi = 1.0, float(size) * 16
     fit = None
     for _ in range(40):
         d = (lo + hi) / 2
-        at = skyline([(int(w * d) + 1, int(h * d) + 1) for _, _, (w, h) in islands], size)
+        band = 0
+        for _, _, (w, h) in slotted:
+            if int(w * d) + 1 + 2 * GAP_PX > size // int(slotted[0][0]["kyt_slots"]):
+                band = size  # too wide for its slot
+            band += int(h * d) + 1 + GAP_PX
+        at = skyline([(int(w * d) + 1, int(h * d) + 1) for _, _, (w, h) in islands], size, size - band) \
+            if band < size else None
+        if at is not None:
+            top = size - GAP_PX
+            for _, _, (w, h) in slotted:
+                top -= int(h * d) + 1
+                at.append((GAP_PX, top))
+                top -= GAP_PX
         if at is None:
             hi = d
         else:
@@ -169,6 +202,7 @@ def main():
     if fit is None:
         raise SystemExit("unwrap_blades: the islands don't fit any canvas")
     d, at = fit
+    islands += slotted
 
     for (obj, pts, _), (x, y) in zip(islands, at):
         me = obj.data

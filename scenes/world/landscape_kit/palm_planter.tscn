@@ -1,0 +1,12 @@
+[gd_scene load_steps=2 format=3]
+
+; A raised round planter for a palm's foot: chunky rounded concrete rim, mulch inside.
+; The shape is `assets/source/props/palm_planter.blend`; Send to game writes the GLB.
+; Part of the approach landscaping kit (2026-09-28).
+
+[ext_resource type="PackedScene" uid="uid://cjo6ybf7hyigv" path="res://assets/props/palm_planter.glb" id="1_model"]
+
+[node name="palm_planter" type="Node3D"]
+editor_description = "Raised round palm planter, 2.07 m across and 0.4 m to the rim, mulch 0.3 m up; its rim collides. Stand it on the palm's foot."
+
+[node name="model" parent="." instance=ExtResource("1_model")]

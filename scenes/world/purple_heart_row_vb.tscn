@@ -28,7 +28,6 @@ scale = Vector3(0.91, 0.86, 0.91)
 position = Vector3(-0.96, 0, 0.13)
 rotation = Vector3(0, -0.55, 0)
 scale = Vector3(1.08, 1, 1.08)
-leaf_scale = 1.08
 
 [node name="sprig_04" parent="sprigs" instance=ExtResource("1_sprig")]
 position = Vector3(-0.73, 0, -0.16)

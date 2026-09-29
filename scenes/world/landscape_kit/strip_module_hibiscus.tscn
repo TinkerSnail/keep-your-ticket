@@ -1,0 +1,29 @@
+[gd_scene load_steps=4 format=3]
+
+; Strip module: a hibiscus at the back, a Hakone clump and two Purple Heart sprigs spilling toward the curb.
+; A module of the approach landscaping kit (2026-09-28), repeated along the
+; planted strips by coastal_arrival_curb_landscaping.gd and
+; coastal_roadside_landscaping.gd. Local -X faces the curb (the walk or the
+; road), +Z runs along the strip. Editor-owned: move, add or remove plants.
+
+[ext_resource type="PackedScene" path="res://scenes/world/landscape_kit/hibiscus_shrub.tscn" id="3_hib"]
+[ext_resource type="PackedScene" path="res://scenes/world/hakone_grass_tuft_va.tscn" id="5_hak"]
+[ext_resource type="PackedScene" path="res://scenes/world/purple_heart_sprig.tscn" id="6_sprig"]
+
+[node name="strip_module_hibiscus" type="Node3D"]
+editor_description = "Strip module: a hibiscus at the back, a Hakone clump and two Purple Heart sprigs spilling toward the curb."
+
+[node name="hibiscus" parent="." instance=ExtResource("3_hib")]
+transform = Transform3D(-0.62678, 0, -0.57414, 0, 0.85, 0, 0.57414, 0, -0.62678, 0.25, 0, 0)
+
+[node name="hakone" parent="." instance=ExtResource("5_hak")]
+transform = Transform3D(0.50163, 0, -0.5165, 0, 0.72, 0, 0.5165, 0, 0.50163, -0.3, 0, 0.85)
+
+[node name="sprig_0" parent="." instance=ExtResource("6_sprig")]
+transform = Transform3D(0.092652, 0, 0.61304, 0, 0.62, 0, -0.61304, 0, 0.092652, -0.72, 0, -0.6)
+leaf_pair_count = 6
+
+[node name="sprig_1" parent="." instance=ExtResource("6_sprig")]
+transform = Transform3D(-0.17731, 0, 0.5732, 0, 0.6, 0, -0.5732, 0, -0.17731, -0.7, 0, 0.2)
+leaf_pair_count = 5
+flowered = true

@@ -28,8 +28,10 @@ CENTRE_TOLERANCE_M = 0.5
 SEAT_TOLERANCE_M = 0.015
 SEAT_MARKERS = ("seat_l", "seat_r")
 # A prop placed by the point it hangs from, not the ground it stands on: a palm
-# crown sits on its trunk's top, and its fronds droop below it.
-MOUNT_MARKERS = ("trunk_top",)
+# crown sits on its trunk's top, and its fronds droop below it. A small plant
+# is placed by `plant_base`, the soil line its leaves spring from, which they
+# may start a little above (the fern fan's fronds begin 2.5 cm up).
+MOUNT_MARKERS = ("trunk_top", "plant_base")
 EXPORT_COLLECTION = "export"
 REFERENCE_COLLECTION = "reference"
 
@@ -159,7 +161,10 @@ def run(context):
         error(f"The prop uses {len(materials)} materials; a repeated prop may have at most {PLACEMENT_SURFACES}.")
 
     mount = next((bpy.data.objects[n] for n in MOUNT_MARKERS if n in bpy.data.objects), None)
-    if mount is not None:
+    if mount is not None and mount.name == "plant_base":
+        found.append(("NOTE", f"The plant stands on '{mount.name}' at the origin: its leaves "
+                              f"start {low.z * 100:.1f} cm above it and reach {high.z:.2f} m."))
+    elif mount is not None:
         found.append(("NOTE", f"The prop hangs from '{mount.name}' at the origin: it reaches "
                               f"{high.z:.2f} m above it and {-low.z:.2f} m below."))
     elif abs(low.z) > GROUND_TOLERANCE_M:

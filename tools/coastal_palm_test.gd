@@ -614,28 +614,27 @@ func _check_date_palm_catalog() -> bool:
 	return true
 
 
+## The fern fan is a Blender prop since 2026-09-27 (`fern_fan.blend`, PRP-PLANT-011):
+## its seven fronds are shaped there, each bending the fern blade along its own
+## course, and arrive as one mesh. Its pinnae are cut into its texture, as the
+## palm fronds' leaves are, rather than built as triangles (Christina, the same
+## day): one alpha-clipped surface, about 32 triangles a frond.
 func _check_fern(fern: Node3D, label: String) -> bool:
-	if fern == null:
+	if fern == null or fern.scene_file_path != "res://scenes/world/coastal_palm_fern_fill.tscn":
 		_fail("%s is not a fern instance" % label)
 		return false
-	var courses := fern.get_node_or_null("frond_courses")
-	var derived := fern.get_node_or_null("derived_fronds")
-	if courses == null or derived == null or courses.get_child_count() != 7 \
-			or derived.get_child_count() != 7:
-		_fail("%s does not preserve seven editable fern courses" % label)
+	var fronds := fern.find_children("*", "MeshInstance3D", true, false)
+	var mesh := (fronds[0] as MeshInstance3D).mesh if fronds.size() == 1 else null
+	var leaf := mesh.surface_get_material(0) as StandardMaterial3D \
+		if mesh != null and mesh.get_surface_count() == 1 else null
+	if leaf == null or leaf.albedo_texture == null \
+			or leaf.transparency != BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR:
+		_fail("%s does not carry the Blender fern with its pinnae cut from its texture" % label)
 		return false
-	if int(fern.get("pinnae_pairs")) < 10:
-		_fail("%s is too sparse to read as a fine-pinnaed fern" % label)
+	var triangles := (mesh.surface_get_arrays(0)[Mesh.ARRAY_INDEX] as PackedInt32Array).size() / 3
+	if triangles < 7 * 24:
+		_fail("%s has lost fronds (%d triangles)" % [label, triangles])
 		return false
-	for frond in derived.get_children():
-		var mesh := (frond as MeshInstance3D).mesh as ArrayMesh
-		if mesh == null or mesh.get_surface_count() != 2:
-			_fail("%s/%s is missing its pinnae or rachis surface" % [label, frond.name])
-			return false
-		var pinnae_vertices := mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX] as PackedVector3Array
-		if pinnae_vertices.size() < 120:
-			_fail("%s/%s does not carry dense paired pinnae" % [label, frond.name])
-			return false
 	return true
 
 

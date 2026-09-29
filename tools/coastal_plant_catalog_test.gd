@@ -33,9 +33,9 @@ const PURPLE_HEART_VARIANTS := [
 
 const HAKONE_VARIANTS := [
 	{"path": "res://scenes/world/hakone_grass_tuft_va.tscn", "index": 0,
-		"blades": 54, "name": "clump vA"},
+		"blades": 12, "name": "clump vA"},
 	{"path": "res://scenes/world/hakone_grass_tuft_vb.tscn", "index": 1,
-		"blades": 72, "name": "clump vB"},
+		"blades": 16, "name": "clump vB"},
 ]
 
 const HAKONE_COMPOSITIONS := [
@@ -206,35 +206,12 @@ func _run() -> void:
 			return
 		var flowered_count := 0
 		for sprig in sprigs.get_children():
-			var course := sprig.get_node_or_null("stem_course") as Path3D
-			var stems := sprig.get_node_or_null("derived_stem")
-			var leaves := sprig.get_node_or_null("derived_leaves")
-			var flowers := sprig.get_node_or_null("derived_flowers")
-			if course == null or course.curve == null:
-				_fail("Purple Heart %s/%s lost its editable stem course" % [
-					specification["name"], sprig.name])
+			var problem := _purple_heart_sprig_problem(sprig)
+			if problem != "":
+				_fail("Purple Heart %s/%s %s" % [specification["name"], sprig.name, problem])
 				return
-			if stems == null or stems.get_child_count() != 8:
-				_fail("Purple Heart %s/%s is missing its segmented stem" % [
-					specification["name"], sprig.name])
-				return
-			var expected_leaves := int(sprig.get("leaf_pair_count")) * 2
-			if leaves == null or leaves.get_child_count() != expected_leaves:
-				_fail("Purple Heart %s/%s expected %d paired leaves" % [
-					specification["name"], sprig.name, expected_leaves])
-				return
-			for leaf in leaves.get_children():
-				var mesh := (leaf as MeshInstance3D).mesh as ArrayMesh
-				if mesh == null or mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size() < 40:
-					_fail("Purple Heart %s/%s has an incomplete lance leaf" % [
-						specification["name"], sprig.name])
-					return
 			if bool(sprig.get("flowered")):
 				flowered_count += 1
-				if flowers == null or flowers.get_child_count() != 4:
-					_fail("Purple Heart %s/%s lost its three-petal flower" % [
-						specification["name"], sprig.name])
-					return
 		if flowered_count < specification["min_flowers"]:
 			_fail("Purple Heart %s has too few flowering sprigs" % specification["name"])
 			return
@@ -253,38 +230,32 @@ func _run() -> void:
 		if int(grass.get("catalog_variant")) != specification["index"]:
 			_fail("Hakone grass %s lost its catalog variant" % specification["name"])
 			return
-		var courses := grass.get_node_or_null("blade_courses")
-		var blades := grass.get_node_or_null("derived_blades")
-		if courses == null or courses.get_child_count() != 24:
-			_fail("Hakone grass %s does not preserve 24 editable fountain courses" %
-				specification["name"])
+		# The blades are shaped in hakone_grass.blend since 2026-09-27 and arrive
+		# as two meshes: 12 mature leaves, and 4 young upright ones only vB
+		# shows; since 2026-09-28 broad strap leaves arching from the centre,
+		# each on its own course, after the stylized clump she pointed to ("this
+		# is how we should do our hakone grass"), where the Godot script drew
+		# three narrow blades to each of 24. A blade is 48 triangles: two green
+		# edge strips and the lemon stripe, nine stations long (Christina's
+		# approval, 2026-09-18).
+		var mature := grass.get_node_or_null("model/hakone_grass_visual") as MeshInstance3D
+		var young := grass.get_node_or_null("model/hakone_grass_young") as MeshInstance3D
+		if mature == null or young == null or mature.mesh.get_surface_count() != 2 \
+				or young.mesh.get_surface_count() != 2:
+			_fail("Hakone grass %s lost its green edges or lemon stripe" % specification["name"])
 			return
-		for course in courses.get_children():
-			if not course is Path3D or (course as Path3D).curve == null:
-				_fail("Hakone grass %s has a non-editable blade course" %
-					specification["name"])
-				return
-		if blades == null or blades.get_child_count() != specification["blades"]:
-			_fail("Hakone grass %s expected %d striped blades, found %d" % [
-				specification["name"], specification["blades"],
-				blades.get_child_count() if blades != null else 0])
+		var shown := 0
+		for part in [mature, young]:
+			if (part as MeshInstance3D).is_visible_in_tree():
+				for surface in 2:
+					shown += ((part as MeshInstance3D).mesh.surface_get_arrays(surface)[
+						Mesh.ARRAY_INDEX] as PackedInt32Array).size() / 3
+		if shown != specification["blades"] * 48:
+			_fail("Hakone grass %s expected %d striped blades, found %.1f" % [
+				specification["name"], specification["blades"], shown / 48.0])
 			return
-		for blade in blades.get_children():
-			var mesh := (blade as MeshInstance3D).mesh as ArrayMesh
-			if mesh == null or mesh.get_surface_count() != 2:
-				_fail("Hakone grass %s/%s lost its green edges or lemon stripe" % [
-					specification["name"], blade.name])
-				return
-			# Nine stations a blade since 2026-09-18, Christina's approval: two
-			# edge strips are 96 vertices and the lemon strip 48. The floor was
-			# 140 and 70, which held the blade at thirteen.
-			if mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size() < 96 \
-					or mesh.surface_get_arrays(1)[Mesh.ARRAY_VERTEX].size() < 48:
-				_fail("Hakone grass %s/%s is not a fully surfaced fine blade" % [
-					specification["name"], blade.name])
-				return
-		var lemon := grass.get("lemon_material") as StandardMaterial3D
-		var young_lemon := grass.get("young_lemon_material") as StandardMaterial3D
+		var lemon := mature.mesh.surface_get_material(1) as StandardMaterial3D
+		var young_lemon := young.mesh.surface_get_material(1) as StandardMaterial3D
 		if lemon == null or young_lemon == null or lemon.albedo_color.g < 0.78 \
 				or lemon.albedo_color.r < 0.58 or young_lemon.albedo_color.g < 0.88:
 			_fail("Hakone grass %s lost its bright yellow-green identity" %
@@ -470,14 +441,16 @@ func _run() -> void:
 			var crown_fans := 0
 			var shoulder_fans := 0
 			var trailing_fans := 0
-			var editable_frond_courses := 0
+			var blender_ferns := 0
 			for child in planting.get_children():
 				var fern := child as Node3D
-				var courses := fern.get_node_or_null("frond_courses") if fern != null else null
-				if courses == null or courses.get_child_count() != 7:
-					_fail("mature fern basket/%s lost its seven editable frond courses" % child.name)
+				# The fern fan's fronds are shaped in fern_fan.blend since 2026-09-27.
+				if fern == null or fern.scene_file_path \
+						!= "res://scenes/world/coastal_palm_fern_fill.tscn" \
+						or fern.find_children("*", "MeshInstance3D", true, false).size() != 1:
+					_fail("mature fern basket/%s is no longer the Blender fern fan" % child.name)
 					return
-				editable_frond_courses += courses.get_child_count()
+				blender_ferns += 1
 				var child_name := String(child.name)
 				var frond_reach := fern.transform.basis.z.normalized()
 				if child_name.begins_with("crown_") and frond_reach.y >= 0.4:
@@ -487,7 +460,7 @@ func _run() -> void:
 				elif child_name.begins_with("trail_") and frond_reach.y <= -0.5:
 					trailing_fans += 1
 			if crown_fans != 5 or shoulder_fans != 8 or trailing_fans != 12 \
-					or editable_frond_courses != 175:
+					or blender_ferns != 25:
 				_fail("mature fern basket lost its upright, arching and trailing density tiers")
 				return
 		if String(specification["path"]).ends_with("hanging_planter_petunia_cloud.tscn"):
@@ -650,9 +623,9 @@ func _run() -> void:
 	for sprig in arrival_purple.get_children():
 		if bool(sprig.get("flowered")):
 			flowered_purple += 1
-		if sprig.get_node_or_null("stem_course") == null \
-				or sprig.get_node_or_null("derived_leaves") == null:
-			_fail("arrival Purple Heart ring lost an editable sprig")
+		var problem := _purple_heart_sprig_problem(sprig)
+		if problem != "":
+			_fail("arrival Purple Heart ring/%s %s" % [sprig.name, problem])
 			return
 	if flowered_purple < 5:
 		_fail("arrival Purple Heart ring has lost its sparse pink flowers")
@@ -690,8 +663,39 @@ func _run() -> void:
 	rosette.queue_free()
 	await get_tree().process_frame
 
-	print("PASS: banana, Red Sensation, Purple Heart, lemon-zest Hakone grass and blue/purple/white/mixed delphinium catalog families preserve editor-owned courses and surfaced foliage; all four hanging planters keep ceiling-origin attachment hardware, distinct vessels and selectable recipes, including the flower basket's deep cocoa coir and the fern bowl's 175-course upright, arching and trailing mature cluster; single-bracket, twin-lamp and three-lamp compositions preserve their basket layers; the furniture-free petunia row contains only its soil and planting recipe; Hakone rows and rings keep selectable clumps, the arrival-palm layer combines ten Hakone clumps with 36 tucked Purple Heart sprigs and an authored raised-center relationship, both palm footing types remain reusable, and the shared flower rosette uses layered lance leaves rather than blocks")
+	print("PASS: banana, Red Sensation and blue/purple/white/mixed delphinium catalog families preserve editor-owned courses and surfaced foliage, and the Blender Purple Heart sprigs and lemon-zest Hakone clumps show the leaves, flowers and blades each placement asks for; all four hanging planters keep ceiling-origin attachment hardware, distinct vessels and selectable recipes, including the flower basket's deep cocoa coir and the fern bowl's 25 Blender fern fans in upright, arching and trailing tiers; single-bracket, twin-lamp and three-lamp compositions preserve their basket layers; the furniture-free petunia row contains only its soil and planting recipe; Hakone rows and rings keep selectable clumps, the arrival-palm layer combines ten Hakone clumps with 36 tucked Purple Heart sprigs and an authored raised-center relationship, both palm footing types remain reusable, and the shared flower rosette uses layered lance leaves rather than blocks")
 	get_tree().quit()
+
+
+## What is wrong with one Purple Heart sprig, or "". The sprig is shaped in
+## purple_heart_sprig.blend since 2026-09-28 and arrives as a stem, one mesh of
+## leaves for each pair count and the flower. Since her "more cartoony" the same
+## day each leaf is a card (8 triangles) whose leaf is cut from the texture. The sprig
+## shows the leaves for its own `leaf_pair_count` and the flower if `flowered`.
+func _purple_heart_sprig_problem(sprig: Node) -> String:
+	var model := sprig.get_node_or_null("model")
+	var stem := model.get_node_or_null("purple_heart_sprig_visual") as MeshInstance3D \
+		if model != null else null
+	if stem == null or not stem.is_visible_in_tree():
+		return "lost its stem"
+	var pairs := int(sprig.get("leaf_pair_count"))
+	for count in range(4, 8):
+		var leaves := model.get_node_or_null("purple_heart_sprig_pairs_%d" % count) as MeshInstance3D
+		if leaves == null:
+			return "lost its %d-pair leaves" % count
+		if leaves.is_visible_in_tree() != (count == pairs):
+			return "shows the wrong leaves for %d pairs" % pairs
+		if count == pairs:
+			var triangles := 0
+			for surface in leaves.mesh.get_surface_count():
+				triangles += (leaves.mesh.surface_get_arrays(surface)[Mesh.ARRAY_INDEX]
+					as PackedInt32Array).size() / 3
+			if triangles != pairs * 2 * 8:
+				return "expected %d paired leaves" % (pairs * 2)
+	var flower := model.get_node_or_null("purple_heart_sprig_flower") as MeshInstance3D
+	if flower == null or flower.is_visible_in_tree() != bool(sprig.get("flowered")):
+		return "lost its three-petal flower, or shows it unasked"
+	return ""
 
 
 func _fail(message: String) -> void:

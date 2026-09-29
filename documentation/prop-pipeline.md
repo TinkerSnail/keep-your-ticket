@@ -127,6 +127,31 @@ out when it is shaped, not by `unwrap_parts.py`: each segment wears one of a
 few bands stacked up the canvas, round its full width, recorded on the mesh as
 `kyt_band_islands`, `kyt_band_gap` and `kyt_band_zones`.
 
+**A plant whose Godot script drew its leaves along courses** (the fern fan and
+the Hakone grass, 2026-09-27) moves the way the crown did, and is then merged:
+`maquette_export --whole --courses` (with `--set` for the fullest variant),
+`new_prop.py`, `add_reference.py`, `add_courses.py` (courses only), then
+`tools/blender/plant_blades.py -- <plant>`. That builds one blade per leaf kind
+from the script's own formulas, one leaf per course in `export` bending it
+(`kyt_course_blade`, whose Width, Offset, Sway and Reach carry what the script
+varied leaf by leaf), the normals as Godot shaded them (`kyt_normals_up`:
+each face turned to the sky, which with Godot's lighting of a double-sided
+back face gave the fern its two-tone fishbone; `kyt_frame_normals`: the leaf's
+own up along its course), `plant_base` (the soil line, which Check places it
+by, the leaves starting a little above) and the materials; and it measures
+each leaf against Godot's. Godot's front face is clockwise and Blender's
+counter-clockwise, so every script triangle goes in reversed. Send merges the
+leaves; a set only some placements show (the Hakone vB's young blades) carries
+`kyt_merge_group` and goes as its own object, which the plant's Godot scene
+shows or hides. The existing Godot scene is kept and wraps the GLB, so every
+placement stays where it was. `tools/_plant_migration_probe.gd` takes the
+before and after frames. **The Purple Heart** (2026-09-28), whose leaves
+spiral up a stem rather than bend along courses, keeps the same pieces
+differently: the stem drawn along its course (`kyt_course_stem`), its leaves
+placed up it from points holding each leaf's share of the way, turn, rise and
+length (`kyt_leaves_on_course`), the flower riding the course's tip
+(`kyt_at_course_tip`), and one leaf mesh per pair count as merge groups.
+
 **An assembly the generator built** (the plaza fountain, 2026-09-27: 208 CSG
 shapes, 11 materials, water) moves whole, losslessly, before anyone reshapes
 it. `maquette_export --whole` writes the generated scene as the reference, in
@@ -303,6 +328,14 @@ All go in `assets/source/textures/<prop>/`. The options set the starting look:
   to paint like the colour, and the normal map made from it,
   `<prop>_normal.png` (`tools/bump_to_normal.py`), wired into the material
   through a Normal Map node so the glTF export carries it.
+- `--leaflets` on a plant (after `unwrap_blades.py`, which takes a
+  `plant_blades.py` file too): the plant's own table in `PROP_LEAFLETS` replaces
+  the crown's. The fern fan, 2026-09-27: its pinnae left the geometry for the
+  cut-out ("use our same approach we used with the palm fronds texture to
+  avoid too many triangles"), round lobes about six a side on a thick green
+  rachis, 1,000 px per metre on 1024; 224 triangles where it had 406. The
+  Purple Heart, 2026-09-28: style "leaf", each blade a card whose one whole
+  leaf (full shoulders, a soft point) and pale midrib are cut from the texture.
 
 Each effect's strength is a number at the top of the script. The bench's full
 command is in `howto/paint-the-plaza-bench.md`. A canvas someone has painted
@@ -456,6 +489,77 @@ From the plan's texture standards (2026-09-24):
   exception at about 576 px per metre on a 2048 colour map (hero props, her
   call per prop).
 - **Dressing, not texture,** for anything one copy has and the others don't.
+- **Planting is cartoony** (Christina, 2026-09-27: "more cartoony", "think
+  animal crossing sizing", "very nintendo"): plants about 1.3× their Godot
+  size, few broad leaves with round ends, chubby blades, thick stems, bold
+  colour bands; leaflets and fine leaf outlines go in the texture's cut-out,
+  not triangles. The fern fan, the Hakone grass and the Purple Heart are the
+  first. Busy reads wrong: few, big pieces in one chunky style (her "the scale
+  is kind of off and it makes it look busy instead of cartoony and cohesive",
+  2026-09-28), so a bed uses a few bushes, not many small plants.
+- **Landscaping is modular** (2026-09-28, her "we might need to make
+  everything modular"): each kit piece (planter, edging run, azalea, hibiscus)
+  is its own Blender prop, arranged in editor-owned Godot scenes
+  (`scenes/world/landscape_kit/`). A first try along the approach was taken out
+  the same day ("the layout of the beds and roads dont make any sense"): the
+  plan of beds and roads comes first, then the planting.
+- **Bushes and hedges share one greenery** (2026-09-28, after the Animal
+  Crossing bushes she pointed to: "the hedges behind share the same greenery
+  just on a different base"; the hibiscus "a darker leaf with a different
+  shape", the holly "same thing"). Big leaves overlapping like shingles and
+  pointing down, grouped into clumps merged into one piece each ("the leafs
+  need to be grouped and merged"; "texture creates the definition within the
+  clusters"), then into whole shaped sections after Mario Kart's trees ("lots
+  of painted on leaves layered in shaped sections"): one domed card of eight
+  triangles per species with some thirty leaves painted on it, their
+  outlines, overlap shadows and midribs cut and painted in the texture,
+  shingled over a base by `kyt_leaf_skin` (`tools/blender/leaf_skin.py`).
+  Flowers are painted too ("needs to be optimized for using textures"): one
+  card per azalea truss or hibiscus flower, sitting on the leaves, every
+  colourway painted side by side on the canvas and picked per placement in
+  Godot by sliding the flower material's UVs. A medium bush is about 300
+  triangles (her "way too many triangles" at 2,400, then again at 1,000):
+  big 4-triangle sections, a light core, 4-triangle flower cards.
+  Flowers follow the season: a baseline, three times the clusters in the
+  flower's peak chapter, none in winter ("evergreen shrubs"), the peak's
+  extra flowers a mesh of their own the wrapper shows. Our
+  base is "slightly taller and more conical" than AC's scoop: a gumdrop about
+  1.1 m across and 1.2 to 1.3 m tall. A hedge is the same skin on a longer
+  base. Shapes are judged in Blender first (her "we're doing our models in
+  blender not godot"). Then her Mario Kart tree ("our shrubs will be
+  assembled from a series of these types of shapes and texture approaches",
+  "optimize these for the fewest amount of triangles"): the unit of greenery
+  is a **semi-dome**, one cap of painted leaves radiating from its apex, their
+  tips its rim (`DOME_SHAPES` in `leaf_skin.py`). The **ice cap**, shallow and
+  drooping at the rim, 24 triangles, is a plant on its own ("perfect little
+  individual unit of greenery we can use as a box shrub etc"): the box shrub
+  is one. The flowering shrubs are built from **half spheres** ("think of the
+  shape of an ice cap vs a half sphere", "the dome segments are too small"):
+  few and big, 24 triangles each, a crown dome sunk among one course of four
+  or five round a gumdrop or boxy base well inside them (the tree two or three
+  courses round its egg), each dome as low-poly as the Mario Kart lobes, their
+  peaks showing. A medium azalea or hibiscus is 162 triangles without its
+  flowers, the tree 348 (the section build, archived in
+  `assets/source/archive/landscape_kit_checkpoints/sections_2026-09-28/`,
+  was 268, 312 and 460). The flowers are the section build's as they were;
+  seating them on the domes is for later (her "dont worry about the flowers
+  yet"). Then simpler still (her "the goal is to simplify"; "youre still just
+  kind of gluing a bunch of semi globes to the top of the egg, start with just
+  one on the crown"): a flowering shrub is **one peeled egg and one crown
+  dome**. The egg ("its like an unshelled boiled egg shape"), 56 triangles,
+  stands on its broad end, its painted leaves hanging from the top and their
+  tips its hem on the soil; over its crown lies a saucer, not a deep bowl
+  (her "again think polar ice cap, or saucer"): the egg's own outline from its
+  top 64 degrees round, a hair larger than the egg, turned a little round its
+  upright axis. Then fluffier (her "we like a fluffier shrub"): a second tier
+  of leaves round the egg's middle, a three-leaf topper lying over the hat,
+  the hat and tier flared well past the egg, the layers turned irregularly,
+  the painted leaves splayed in a herringbone so they don't hang straight
+  down. About 100 triangles a shrub without flowers, at any size. Each has a
+  **sphere** version, its own prop (`<shrub>_sphere`; her "dont forget our
+  second version that is a sphere instead of a egg, and smaller"): a smaller
+  ball whose hat comes down to its top third, the brim flared a little past
+  the ball, 80 triangles.
 
 The park furniture trim sheet (`trim_map.py`, `trim_sheet_template.py`) is set
 aside, not retired: tiling made no sense for the curved bench, and it may

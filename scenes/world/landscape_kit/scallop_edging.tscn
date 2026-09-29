@@ -1,0 +1,12 @@
+[gd_scene load_steps=2 format=3]
+
+; One run of scalloped concrete edging, six half-discs standing on edge.
+; The shape is `assets/source/props/scallop_edging.blend`; Send to game writes the GLB.
+; Part of the approach landscaping kit (2026-09-28).
+
+[ext_resource type="PackedScene" uid="uid://dk2ivnd2rafm1" path="res://assets/props/scallop_edging.glb" id="1_model"]
+
+[node name="scallop_edging" type="Node3D"]
+editor_description = "One 1.32 m run of scalloped concrete edging along local +X, six half-discs 0.16 m high; visual only. Runs repeat end to end."
+
+[node name="model" parent="." instance=ExtResource("1_model")]

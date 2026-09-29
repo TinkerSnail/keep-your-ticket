@@ -1,0 +1,29 @@
+[gd_scene load_steps=4 format=3]
+
+; Strip module: an azalea at the back, a fern and two Purple Heart sprigs spilling toward the curb.
+; A module of the approach landscaping kit (2026-09-28), repeated along the
+; planted strips by coastal_arrival_curb_landscaping.gd and
+; coastal_roadside_landscaping.gd. Local -X faces the curb (the walk or the
+; road), +Z runs along the strip. Editor-owned: move, add or remove plants.
+
+[ext_resource type="PackedScene" path="res://scenes/world/landscape_kit/azalea_bush.tscn" id="2_az"]
+[ext_resource type="PackedScene" path="res://scenes/world/coastal_palm_fern_fill.tscn" id="4_fern"]
+[ext_resource type="PackedScene" path="res://scenes/world/purple_heart_sprig.tscn" id="6_sprig"]
+
+[node name="strip_module_azalea" type="Node3D"]
+editor_description = "Strip module: an azalea at the back, a fern and two Purple Heart sprigs spilling toward the curb."
+
+[node name="azalea" parent="." instance=ExtResource("2_az")]
+transform = Transform3D(0.49729, 0, -0.62666, 0, 0.8, 0, 0.62666, 0, 0.49729, 0.15, 0, 0.1)
+
+[node name="fern" parent="." instance=ExtResource("4_fern")]
+transform = Transform3D(0.23642, 0, 0.76427, 0, 0.8, 0, -0.76427, 0, 0.23642, -0.35, 0, -0.95)
+
+[node name="sprig_0" parent="." instance=ExtResource("6_sprig")]
+transform = Transform3D(-0.12317, 0, 0.60764, 0, 0.62, 0, -0.60764, 0, -0.12317, -0.72, 0, 0.55)
+leaf_pair_count = 5
+flowered = true
+
+[node name="sprig_1" parent="." instance=ExtResource("6_sprig")]
+transform = Transform3D(0.14844, 0, 0.58135, 0, 0.6, 0, -0.58135, 0, 0.14844, -0.7, 0, -0.25)
+leaf_pair_count = 4

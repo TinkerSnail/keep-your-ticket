@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+; The azalea's giant tree form (2026-09-28, her "giant tree type variation"): a
+; tall egg of leaf clumps and pink blooms on a bare trunk, about 2.8 m tall.
+; The shape is `assets/source/props/azalea_tree.blend`; Send to game writes the
+; GLB. `bloom` repaints its flowers as the bush's does. Visual only.
+
+[ext_resource type="Script" path="res://scenes/world/landscape_kit/azalea_bush.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://assets/props/azalea_tree.glb" id="2_model"]
+
+[node name="azalea_tree" type="Node3D"]
+script = ExtResource("1_script")
+editor_description = "Azalea tree form (landscape kit). Shape it in assets/source/props/azalea_tree.blend; bloom picks its colour."
+
+[node name="model" parent="." instance=ExtResource("2_model")]

@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3]
+
+; The azalea bush's sphere version (2026-09-28, her "our second version that is
+; a sphere instead of a egg, and smaller"): one leafy ball with a saucer of
+; leaves over its top third, its brim flared out, about 0.9 m tall. The shape is
+; `assets/source/props/azalea_bush_sphere.blend`; Send to game writes the GLB.
+; `bloom`, `size` and `season` work as on the azalea bush. Visual only.
+
+[ext_resource type="Script" path="res://scenes/world/landscape_kit/azalea_bush.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://assets/props/azalea_bush_sphere.glb" id="2_model"]
+
+[node name="azalea_bush_sphere" type="Node3D"]
+script = ExtResource("1_script")
+editor_description = "Azalea bush, sphere version (landscape kit). Shape it in assets/source/props/azalea_bush_sphere.blend; bloom picks its colour."
+
+[node name="model" parent="." instance=ExtResource("2_model")]
