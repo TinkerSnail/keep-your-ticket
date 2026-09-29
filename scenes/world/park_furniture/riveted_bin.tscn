@@ -1,0 +1,33 @@
+[gd_scene load_steps=4 format=3]
+
+; The riveted bin, as the game places it. Editor-owned: written by the
+; Keep Your Ticket panel at its first Send to game (2026-09-27);
+; edit it in Godot from here on.
+;
+; The model is `assets/props/riveted_bin.glb`, sent from
+; `assets/source/props/riveted_bin.blend` with the Keep Your Ticket
+; panel. Its collision is derived on export, on layer 1. Not placed
+; anywhere yet.
+;
+; `flaps` works the two push flaps (`bin_flaps.gd`): the model sends each as
+; its own node, `flap_front` and `flap_back`, hinged on its top edge. The
+; player pushes one by walking into it or with interact, guests passing close
+; now and then swing it, and `wedged_open_deg` holds them open (overflowing).
+;
+; `inner_can` is the bin's inner can, `park_furniture/inner_can.tscn`, standing
+; on the shell's floor (0.025 m up): a pushed flap opens onto it and its liner.
+
+[ext_resource type="PackedScene" path="res://assets/props/riveted_bin.glb" id="1_model"]
+[ext_resource type="Script" path="res://scenes/world/park_furniture/bin_flaps.gd" id="2_flaps"]
+[ext_resource type="PackedScene" path="res://scenes/world/park_furniture/inner_can.tscn" id="3_can"]
+
+[node name="riveted_bin" type="Node3D"]
+editor_description = "Riveted bin. Faces local +Z."
+
+[node name="model" parent="." instance=ExtResource("1_model")]
+
+[node name="flaps" type="Node3D" parent="."]
+script = ExtResource("2_flaps")
+
+[node name="inner_can" parent="." instance=ExtResource("3_can")]
+position = Vector3(0, 0.025, 0)

@@ -1,18 +1,29 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
-; The plaza's benches, placed by hand. Editor-owned: move, turn, add or remove
-; benches here in the Godot editor. Each is an instance of
-; `park_furniture/plaza_bench.tscn`, whose seat markers tell the crowd where to
-; sit, so `tools/gen_crowd.gd` reads this scene and seated guests follow any
-; change after the crowd is regenerated. `tools/gen_props.gd` reads the
-; `bench_hut` placement for the balloons tied to its back rail.
+; The plaza's benches and bins, placed by hand. Editor-owned: move, turn, add or
+; remove them here in the Godot editor. Keep each one a direct child of this
+; node: `tools/clearance_test.gd` measures a placement by its top-level name.
 ;
-; Moved out of the generator on 2026-09-24 at the positions it last emitted.
+; Benches are instances of `park_furniture/plaza_bench.tscn`, whose seat markers
+; tell the crowd where to sit, so `tools/gen_crowd.gd` reads this scene and
+; seated guests follow any change after the crowd is regenerated.
+; `tools/gen_props.gd` reads the `bench_hut` placement for the balloons tied to
+; its back rail. Moved out of the generator on 2026-09-24 at the positions it
+; last emitted.
+;
+; Bins are instances of `park_furniture/waste_bin.tscn`. `bin_0` to `bin_9` are
+; the ring and room bins, which `tools/gen_props.gd` reads so the trees and the
+; outer lamps it scatters keep clear of them (bins added under other names are
+; not avoided); `bin_o0` to `bin_o7` were scattered in the outer room. The crowd
+; walks past bins rather than round them, so moving one needs no crowd
+; regeneration. Moved out of the generator on 2026-09-27 at the positions it
+; last emitted, 5 mm higher: its cylinder was sunk 5 mm into the floor.
 
 [ext_resource type="PackedScene" path="res://scenes/world/park_furniture/plaza_bench.tscn" id="1_bench"]
+[ext_resource type="PackedScene" path="res://scenes/world/park_furniture/waste_bin.tscn" id="2_bin"]
 
 [node name="plaza_furniture" type="Node3D"]
-editor_description = "The plaza's hand-placed furniture. Benches are instances of park_furniture/plaza_bench.tscn; the crowd sits on their seat markers."
+editor_description = "The plaza's hand-placed furniture. Benches are instances of park_furniture/plaza_bench.tscn; the crowd sits on their seat markers. Bins are instances of park_furniture/waste_bin.tscn."
 
 [node name="bench_0" parent="." instance=ExtResource("1_bench")]
 transform = Transform3D(-0.422618, 0, -0.906308, 0, 1, 0, 0.906308, 0, -0.422618, 26.2421, 0, 9.08728)
@@ -31,3 +42,57 @@ transform = Transform3D(-0.994522, 0, -0.104528, 0, 1, 0, 0.104528, 0, -0.994522
 
 [node name="bench_hut" parent="." instance=ExtResource("1_bench")]
 transform = Transform3D(0.990268, 0, 0.139173, 0, 1, 0, -0.139173, 0, 0.990268, -30.995, 0, 21.005)
+
+[node name="bin_0" parent="." instance=ExtResource("2_bin")]
+position = Vector3(11.0647, 0, 24.4311)
+
+[node name="bin_1" parent="." instance=ExtResource("2_bin")]
+position = Vector3(-17.9364, 0, 19.6401)
+
+[node name="bin_2" parent="." instance=ExtResource("2_bin")]
+position = Vector3(-30.1, 0, -7.95688)
+
+[node name="bin_3" parent="." instance=ExtResource("2_bin")]
+position = Vector3(-7.49754, 0, -25.6201)
+
+[node name="bin_4" parent="." instance=ExtResource("2_bin")]
+position = Vector3(-23.8573, 0, 23.8573)
+
+[node name="bin_5" parent="." instance=ExtResource("2_bin")]
+position = Vector3(5.98202, 0, -26.1253)
+
+[node name="bin_6" parent="." instance=ExtResource("2_bin")]
+position = Vector3(-32.4529, 0, 11.9563)
+
+[node name="bin_7" parent="." instance=ExtResource("2_bin")]
+position = Vector3(-30.8966, 0, 29.4253)
+
+[node name="bin_8" parent="." instance=ExtResource("2_bin")]
+position = Vector3(-16.5157, 0, 35.0763)
+
+[node name="bin_9" parent="." instance=ExtResource("2_bin")]
+position = Vector3(13.5374, 0, 33.8435)
+
+[node name="bin_o0" parent="." instance=ExtResource("2_bin")]
+position = Vector3(29.1178, 0, 10.248)
+
+[node name="bin_o1" parent="." instance=ExtResource("2_bin")]
+position = Vector3(-30.3362, 0, 14.139)
+
+[node name="bin_o2" parent="." instance=ExtResource("2_bin")]
+position = Vector3(15.5147, 0, 29.77)
+
+[node name="bin_o3" parent="." instance=ExtResource("2_bin")]
+position = Vector3(-8.68081, 0, -30.4396)
+
+[node name="bin_o4" parent="." instance=ExtResource("2_bin")]
+position = Vector3(9.46672, 0, -31.3571)
+
+[node name="bin_o5" parent="." instance=ExtResource("2_bin")]
+position = Vector3(25.4794, 0, -15.6075)
+
+[node name="bin_o6" parent="." instance=ExtResource("2_bin")]
+position = Vector3(32.7109, 0, -7.6255)
+
+[node name="bin_o7" parent="." instance=ExtResource("2_bin")]
+position = Vector3(19.112, 0, -22.9543)

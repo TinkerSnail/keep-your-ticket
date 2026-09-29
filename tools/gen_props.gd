@@ -3072,11 +3072,10 @@ func _outer_furniture() -> void:
 		_box("lamp_o%d_head" % i, b, Vector3(0, 4.13, 0), Vector3(0.5, 0.24, 0.5), "lamp_glass")
 		_lamp_light("lamp_o%d_pool" % i, _place(b, Vector3(0, 3.98, 0), 0.0), false)
 
-	var bins := Plan.open_spots(8, 31, 21.0, 34.0, 2.2, 8.0, _stood)
-	for i in bins.size():
-		var b := Vector3(bins[i].x, 0, bins[i].y)
-		_cyl("bin_o%d_body" % i, b, Vector3(0, 0.42, 0), 0.32, 0.85, "metal")
-		_cyl("bin_o%d_lid" % i, b, Vector3(0, 0.865, 0), 0.36, 0.1, "blue")
+	# The outer room's eight bins, `bin_o<n>`, are hand-placed in
+	# `PLAZA_FURNITURE` since 2026-09-27 (see `_bins`). They were never noted in
+	# `_stood`; their 16 seam ordinals stay handed out.
+	_seam_ordinal += 8 * 2
 
 	# Round the ring's outer verge, facing the fountain, because that is where a
 	# plaza puts benches and because the open ground belongs to the crowd's
@@ -3162,14 +3161,16 @@ func _facing(from: Vector3, target: Vector3) -> float:
 ## at 0.72); if the modelled bench's rail moves, move this with it.
 const HUT_BENCH_RAIL := 0.98
 
-## The plaza's six benches are placed by hand since 2026-09-24, in this
-## editor-owned scene, as instances of `park_furniture/plaza_bench.tscn`.
+## The plaza's six benches are placed by hand since 2026-09-24, and its bins
+## since 2026-09-27, in this editor-owned scene, as instances of
+## `park_furniture/plaza_bench.tscn` and `park_furniture/waste_bin.tscn`.
 const PLAZA_FURNITURE := "res://scenes/world/plaza_furniture.tscn"
 var _plaza_furniture_cache := {}
 
 
-## Where a hand-placed plaza bench stands, by its node name in `PLAZA_FURNITURE`.
-func _plaza_bench_transform(nm: String) -> Transform3D:
+## Every hand-placed plaza prop's transform, by its node name in
+## `PLAZA_FURNITURE`, in scene order.
+func _plaza_furniture() -> Dictionary:
 	if _plaza_furniture_cache.is_empty():
 		var packed := load(PLAZA_FURNITURE) as PackedScene
 		assert(packed != null, "the plaza furniture scene cannot be read")
@@ -3178,8 +3179,14 @@ func _plaza_bench_transform(nm: String) -> Transform3D:
 			if child is Node3D:
 				_plaza_furniture_cache[String(child.name)] = (child as Node3D).transform
 		source.free()
-	assert(_plaza_furniture_cache.has(nm), "no bench named %s in %s" % [nm, PLAZA_FURNITURE])
-	return _plaza_furniture_cache[nm]
+	return _plaza_furniture_cache
+
+
+## Where a hand-placed plaza bench stands, by its node name in `PLAZA_FURNITURE`.
+func _plaza_bench_transform(nm: String) -> Transform3D:
+	var placed := _plaza_furniture()
+	assert(placed.has(nm), "no bench named %s in %s" % [nm, PLAZA_FURNITURE])
+	return placed[nm]
 
 
 ## The plaza benches left this generator for `PLAZA_FURNITURE` on 2026-09-24:
@@ -3521,30 +3528,30 @@ func _fountain_lights() -> void:
 		LIGHT_FIXTURE)
 
 
-## The four inner bins sit on the fountain's skirt with the benches, and are
-## written as bearings rather than as corners for that reason: on a circle they
-## can be *interleaved* with the bench ring, and a bin pushed onto the skirt from
-## a typed corner has no way of knowing a bench is already there. 60° off each
-## bench at radius ten is six metres of daylight, which is a bin beside a bench
-## rather than a bin in one.
+## The plaza's bins left this generator for `PLAZA_FURNITURE` on 2026-09-27:
+## Blender owns the bin (`assets/source/props/waste_bin.blend`) and the editor
+## owns where each one stands. How they were placed (bearings interleaved with
+## the bench ring, pushed 0.6 m clear of the paving) is in this function's git
+## history, before commit "Place the plaza bins by hand".
+##
+## What stays here is their footprint. They were pushed off the walkways, so
+## each was noted in `_stood`, and the trees and the outer lamps sampled after
+## them keep clear of `_stood`. The ring and room bins, `bin_<n>`, are noted
+## where they stand now, at the same 0.6 m, so the scatter keeps clear of them
+## wherever they are moved.
+##
+## Ten bins of two cylinders used to be built here. Their 20 seam ordinals are
+## still handed out, so every shape built after this point keeps exactly the
+## displacement it had. Drop the reservation with the benches' the next time
+## the plaza's seams are rebuilt on purpose, and run `coplanar_test.py`.
 func _bins() -> void:
-	_stand_clear = 0.6
-	var inner := [60.0, 130.0, 200.0, 270.0]
-	var spots := []
-	for a in inner:
-		spots.append(Vector2(8.1 * cos(deg_to_rad(a)), 8.1 * sin(deg_to_rad(a))))
-	# The last two moved off the picnic tables and the south planters. Both pairs
-	# were 2–3m apart as written and both halves of each pair are pushed outward,
-	# so they were converging rather than merely close.
-	spots.append_array([
-		Vector2(-14, 14), Vector2(3, -14),
-		Vector2(-19, 7), Vector2(-21, 20), Vector2(-10, 22), Vector2(8, 20),
-	])
-	for i in spots.size():
-		var b := Vector3(spots[i].x, 0, spots[i].y)
-		_cyl("bin_%d_body" % i, b, Vector3(0, 0.42, 0), 0.32, 0.85, "metal")
-		_cyl("bin_%d_lid" % i, b, Vector3(0, 0.865, 0), 0.36, 0.1, "blue")
-	_stand_clear = 0.0
+	var placed := _plaza_furniture()
+	for nm in placed:
+		if not (nm.begins_with("bin_") and nm.trim_prefix("bin_").is_valid_int()):
+			continue
+		var at: Vector3 = placed[nm].origin
+		_note_stood(Vector2(at.x, at.z), 0.6)
+	_seam_ordinal += 10 * 2
 
 
 ## Read out of `ParkPlan.PLAZA_CAFE` rather than declared here, because

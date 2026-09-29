@@ -1160,14 +1160,6 @@ func _lamp_spots() -> Array:
 	]
 
 
-func _bin_spots() -> Array:
-	return [
-		Vector2(5.5, 6), Vector2(-6, 5.5), Vector2(-6.5, -6), Vector2(6, -6.5),
-		Vector2(-14, 14), Vector2(3, -14),
-		Vector2(-19, 7), Vector2(-21, 20), Vector2(-10, 22), Vector2(8, 20),
-	]
-
-
 ## The plaza's benches, read from where they are actually placed. Since
 ## 2026-09-24 they are hand-placed instances in the editor-owned
 ## `plaza_furniture.tscn`, and each carries its seat contract as two markers,
@@ -1190,6 +1182,10 @@ func _plaza_bench_spots() -> Array:
 	var source := packed.instantiate()
 	for bench in source.get_children():
 		if not bench is Node3D:
+			continue
+		# The scene holds the plaza's bins too (2026-09-27); a bench is what
+		# carries a seat contract, and one marker without the other still fails.
+		if bench.get_node_or_null("seat_l") == null and bench.get_node_or_null("seat_r") == null:
 			continue
 		var t := (bench as Node3D).transform
 		var seats: Array = []

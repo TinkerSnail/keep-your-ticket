@@ -82,8 +82,9 @@ KNOWN_GROUND = (
     # The east end: the terraces crowd still walks the pre-rebuild layout.
     "east_", "hill_", "crest_court", "junction_j9", "route_f", "embankment_route_f",
     "R10_", "terrain_T2",
-    # The boardwalk crowd through the Grand Circuit lane, and one plaza bin.
-    "grand_tram_boardwalk_", "lane_cart", "bin_1_lid",
+    # The boardwalk crowd through the Grand Circuit lane, and one plaza bin
+    # (a generated cylinder until 2026-09-27, `bin_1_lid`; now the placed prop).
+    "grand_tram_boardwalk_", "lane_cart", "bin_1/",
 )
 
 
@@ -310,11 +311,66 @@ def base_layer(r, psd, png, kind):
     r.say(said.startswith(("ADDED", "REPLACED")), "base layer", said or "Photoshop gave no answer")
 
 
+def spread_into_gaps(rgba, fallback, reach=24):
+    """`rgba` (h, w, 4) with its see-through pixels given the colours of the
+    opaque ones beside them, spread up to `reach` pixels in; anything still
+    unreached takes `fallback` (h, w, 3). Returns opaque RGB, uint8."""
+    import numpy as np
+    have = rgba[..., 3] >= 255
+    col = np.where(have[..., None], rgba[..., :3].astype(np.float32), 0.0)
+    for _ in range(reach):
+        if have.all():
+            break
+        acc = np.zeros_like(col)
+        cnt = np.zeros(have.shape, np.float32)
+        for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)):
+            sh = np.roll(np.roll(have, dy, 0), dx, 1)
+            acc += np.roll(np.roll(col, dy, 0), dx, 1) * sh[..., None]
+            cnt += sh
+        new = ~have & (cnt > 0)
+        col[new] = acc[new] / cnt[new][:, None]
+        have |= new
+    col[~have] = fallback[~have]
+    return np.clip(col + 0.5, 0, 255).astype(np.uint8)
+
+
+def paint_underlay(r, colour, psd, out):
+    """The "metal under the holes (Claude)" layer's pixels, into `out`: her
+    `paint` layer's own colours spread into its see-through spots, the canvas
+    colour where there is no paint to spread. A PSD made before the holes were
+    cut again keeps the old holes as see-through spots in her paint; under the
+    plain canvas colour they showed as marks of the old holes (the street
+    bin's old quatrefoils, grey plus signs through her green, 2026-09-27).
+    Returns whether it came from her paint."""
+    import numpy as np
+    with Image.open(colour) as im:
+        canvas = np.asarray(im.convert("RGB"))
+    work = tempfile.mkdtemp(prefix="kyt_paint_")
+    paint_png = os.path.join(work, "paint.png")
+    said = ""
+    if os.path.exists(psd):
+        jsx = os.path.join(ROOT, "tools", "photoshop", "layer_export.jsx")
+        script = (f'tell application id "com.adobe.Photoshop" to do javascript file (POSIX file "{jsx}") '
+                  f'with arguments {{"{psd}", "{paint_png}", "paint"}}')
+        out_ = run(["osascript", "-e", script], timeout=300)
+        said = (out_.stdout + out_.stderr).strip()
+    if said.startswith("LAYER") and os.path.exists(paint_png):
+        with Image.open(paint_png) as p:
+            paint = np.asarray(p.convert("RGBA"))
+        if paint.shape[:2] == canvas.shape[:2]:
+            Image.fromarray(spread_into_gaps(paint, canvas)).save(out)
+            return True
+    Image.fromarray(canvas).save(out)
+    return False
+
+
 def hole_layers(r, colour, psd, save=False):
     """A perforated prop's PSD gets (or has refreshed) its two hole layers
-    (`tools/photoshop/hole_layers.jsx`): the canvas colour, opaque, under the
-    paint, so a see-through spot exports as metal and the holes can be cut
-    again without the painting going white; and the holes, translucent, on
+    (`tools/photoshop/hole_layers.jsx`): opaque, under the paint, the paint's
+    own colours spread into its see-through spots (`paint_underlay`; the
+    canvas colour where there is none), so a see-through spot exports as the
+    metal round it and the holes can be cut again without the painting going
+    white or keeping marks of the old holes; and the holes, translucent, on
     top as a locked "UV guide: holes (Claude)". Nothing for a prop without
     holes. A new PSD is saved with them; an existing one is left for her."""
     holes_png = colour.replace("_colour.png", "_holes.png")
@@ -322,8 +378,7 @@ def hole_layers(r, colour, psd, save=False):
         return
     work = tempfile.mkdtemp(prefix="kyt_holes_")
     under, guide = os.path.join(work, "underlay.png"), os.path.join(work, "holes_guide.png")
-    with Image.open(colour) as im:
-        im.convert("RGB").save(under)
+    from_paint = paint_underlay(r, colour, psd, under)
     with Image.open(holes_png) as h:
         metal = h.convert("L")
     alpha = metal.point(lambda v: (255 - v) * 110 // 255)
@@ -334,7 +389,9 @@ def hole_layers(r, colour, psd, save=False):
               f'with arguments {{"{psd}", "{under}", "{guide}", "{"save" if save else "nosave"}"}}')
     out = run(["osascript", "-e", script], timeout=300)
     said = (out.stdout + out.stderr).strip()
-    r.say(said.startswith("LAYERS"), "hole layers", said or "Photoshop gave no answer")
+    r.say(said.startswith("LAYERS"), "hole layers", (said or "Photoshop gave no answer")
+          + ("; under the paint: her paint spread into its see-through spots" if from_paint
+             else "; under the paint: the canvas colour"))
 
 
 def renders(r, blend, folder, colour=None):

@@ -222,6 +222,22 @@ sharp edges and listed for seaming by hand.
 **Done when:** every part is classified, twins paired, and stretch measured
 exact on flat parts (rings within about ±10%).
 
+**A part can ask for its layout** (2026-09-27, the bins, whose turned and
+bevelled parts the shape rules folded over themselves): the custom property
+`kyt_unwrap` on the part. `lathe` (a turned part: can, bottle, cap, liner, a
+band) is cut at its sharp turns, where wall turns to floor or top, where it
+turns from facing out to facing in, and down the meridian at its back, and
+laid out from its geometry: each wall unrolled by bearing round the part's
+upright axis (through its origin) and height, each floor or top seen from
+above, so nothing folds (a piece that doesn't face out from the axis, such as
+a bore, takes Blender's conformal unwrap). `facets` (a bevelled or cut box: a
+shell, a hood, a trim) groups faces by the way they face, each connected group
+laid flat by projection at true scale. `planar` lays a flat piece flat. The
+bins set them with a small script before unwrapping
+(`handbacks/inner_can-canvas-2026-09-27_2308/set_unwrap_hints.py`). Unwrap
+the working file's parts before Make game mesh: the fuse keeps their unwrap
+and packs it.
+
 **A crown** (a prop whose game chooses its parts, `kyt_keep_parts`: the palm
 crown) is unwrapped on the working file instead, and has no source file or
 game mesh:
@@ -241,7 +257,9 @@ A crown has none: **Make game mesh** refuses a `kyt_keep_parts` file, whose
 fronds must stay separate for the game to choose them tree by tree.
 
 **Make game mesh** saves `<prop>_source.blend` (every part, editable), then
-fuses the parts into one mesh in the working file, deletes hidden faces, keeps
+fuses the parts into one mesh in the working file (parts marked
+`kyt_collision = none`, thin films such as a bin's liner, are joined after the
+union rather than cut into it, and collide with the rest in the game), deletes hidden faces, keeps
 the unwrap and packs it, and records each face's part (`kyt_part`). Card:
 `make-the-game-mesh.md`.
 
@@ -289,12 +307,26 @@ All go in `assets/source/textures/<prop>/`. The options set the starting look:
   no alpha, so `tools/blender/apply_holes.py` puts the holes back after every
   export: in the hand-back and in the Photoshop save hook. The perforated
   bench, 2026-09-25. A perforated prop's PSD carries two locked layers
-  (`tools/photoshop/hole_layers.jsx`, added by `--open`): the canvas colour
-  under `paint`, so a see-through spot exports as metal, and the holes as a
+  (`tools/photoshop/hole_layers.jsx`, added by `--open`): under `paint`, her
+  paint's own colours spread into its see-through spots (the canvas colour
+  where there is no paint; `tools/photoshop/layer_export.jsx` reads the layer
+  from a duplicate), so a see-through spot exports as the metal round it and
+  holes cut again leave no mark of the old ones (the street bin's old
+  quatrefoils showed as grey plus signs, 2026-09-27), and the holes as a
   translucent "UV guide: holes (Claude)" on top. To change the pattern, edit
   the `HOLE_*` numbers, run `paint_canvas.py --holes-only --perforate <parts>`
   (colour kept, holes cut again), then `prop_handback.py <prop> --hole-layers`
   and she saves the PSD.
+
+- `--quatrefoil <parts>` and `--lid-holes <parts>`: holes for a turned shell
+  (the street bin, 2026-09-27), laid out by bearing round the prop's upright
+  axis and height on the faces that face out or in, so a shell is cut through:
+  the staggered four-lobed lattice of her photo (`QUATREFOIL_*`, a whole
+  number of cells round; made larger and cartoonier at her word, cells about
+  9.5 cm), and the canopy band's round holes and diamonds (`LID_HOLES`). A
+  part name ending in `$` is matched whole (`door$`: the panel, not its
+  frame). Into the alpha and `<prop>_holes.png` with any `--perforate`
+  holes, exactly as those.
 
 - `--leaflets`: a crown's canvas, after `unwrap_blades.py`, in place of the
   bake. Each island in its blade's colour; for the kinds in `LEAFLETS`,
@@ -560,6 +592,23 @@ From the plan's texture standards (2026-09-24):
   second version that is a sphere instead of a egg, and smaller"): a smaller
   ball whose hat comes down to its top third, the brim flared a little past
   the ball, 80 triangles.
+- **Fixings: the family bolt** (Christina, 2026-09-27: "standardize the size
+  and scale of these bolts since they are driving the scale of other
+  elements"). One bolt for every prop: a 12-sided head 35 mm across and 18 mm
+  deep, kept in `assets/source/kit/family_bolt.blend` (object `family_bolt`;
+  in Blender, File › Append). Bare `fixings` metal, as on the benches; on a
+  painted part it takes that part's paint, 15% darker as the colour picker
+  shows it (the bins, her words the same day; `paint_of()`). It stands **11 mm proud
+  where it fixes something to the ground, 7 mm everywhere else**, set by its
+  centre. It sets the size of what it fastens: a post or strap carrying bolts
+  at least one head wide, a bolted band or trim 1.6 heads wide, a bolted bar
+  1.2 heads tall, bolts along a run about 4.5 heads apart.
+  `tools/blender/family_bolt.py` holds those numbers (`HEAD`, `BAND`, `BAR`,
+  `SPACING`, `PROUD`, `PROUD_GROUND`) and `place()`, which puts a bolt on the
+  real surface of the part it holds, one mesh copy per bolt, tagged
+  `kyt_family_bolt`. The benches built before it keep their bolts as she
+  placed them (her word): the plaza bench's stand 11 to 15 mm proud and eight
+  on its back are 22 mm deep; the backless bench's 7 to 12 mm.
 
 The park furniture trim sheet (`trim_map.py`, `trim_sheet_template.py`) is set
 aside, not retired: tiling made no sense for the curved bench, and it may
@@ -648,6 +697,36 @@ Each cost time once. The fix is in the tool unless noted.
   (backless bench, 2026-09-25).
 - **Blender from the Dock has only the system's python3,** which has no
   Pillow here. The panel's buttons take the first python3 that imports it.
+- **A concave fused face's middle can fall outside it.** Make game mesh gives
+  each fused face the UVs of the part triangle it lies in, looked up from its
+  median; the riveted bin's face wrapped round its push opening had its median
+  in the opening, found the flap there, and wore the flap's UVs. It looks up
+  from inside the face (its largest triangle's middle) since 2026-09-27, and
+  takes each corner from the triangle of its own part polygon that corner is
+  in (a tall quad on a turned wall unrolls as a trapezoid, not one affine map).
+- **A part that moves in the game** (2026-09-28, the riveted bin's push
+  flaps): mark it `kyt_hinge = "top"`. Make game mesh fuses it with the rest
+  (one texture) and records it (`kyt_hinged`); Send splits its faces off as
+  its own node, named as the part, its origin on its top edge, with no
+  collision; the prop's Godot scene swings it (`bin_flaps.gd`). Leave it room
+  to swing: the riveted bin is a hollow shell and its flaps open onto the
+  inner can standing inside.
+- **Joined and cut, the parts' normals smear.** The family bolt carries custom
+  normals; fused into the riveted bin's trim they spread across the new faces
+  round every bolt, and the trim streaked from bolt to bolt. Make game mesh
+  gives each fused corner its part's normal at that point, as it gives the UV
+  (2026-09-27). Rebuilt with it, the backless and perforated benches render as
+  before; the plaza bench's back uprights shade a little closer to their
+  parts (under 1% of its pixels), whenever it is next rebuilt.
+- **Once she saves, `<prop>_colour.png` is her painting, not the canvas.**
+  The save hook rewrites it on every save, so measuring her work against it
+  measures her painting against itself: an agent told her four times that
+  the riveted bin had no paint while she had made fifty strokes (2026-09-28).
+  Measure against the last commit, or a canvas baked again into a scratch
+  copy; Photoshop's History (read only) says what she has done.
+- **Blender's unwrap folds long thin bands.** Angle-based and conformal both
+  folded the inner can's inside wall and the bottle's grooved cap back on
+  themselves; `kyt_unwrap = lathe` lays a turned part out from its geometry.
 - **A save made by a script fires no script event,** UXP's `save()` included,
   so the save hook only follows her own Save.
 - **Asking Photoshop anything over AppleScript starts it,** `live_update.sh

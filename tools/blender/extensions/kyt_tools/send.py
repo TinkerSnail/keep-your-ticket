@@ -26,13 +26,23 @@ which only its vB clump shows). They never collide.
 part as its own node, named as in `export`, its modifiers applied; the game
 merges what it shows. A part that collides goes as a `<part>-col` copy.
 
+**Hinged parts** (a part marked `kyt_hinge = "top"`: the riveted bin's push
+flaps, 2026-09-27) leave the merged object as their own nodes, named as the
+part, each with its origin on its top edge so the game can swing it there, and
+no collision. They keep their UVs and shading, so they still wear the prop's
+one texture. Make game mesh records them on the game mesh (`kyt_hinged`) and
+their faces are found by the `kyt_part` record.
+
 The .blend is never saved here and the copies are removed afterwards, so the
 file, its selection and its undo history are as they were.
 """
 
+import json
 import os
 
+import bmesh
 import bpy
+from mathutils import Vector
 
 from . import checks
 
@@ -85,6 +95,50 @@ def _merged(context, parts, name):
     return merged
 
 
+def _split_hinged(solid):
+    """The hinged parts' faces out of `solid` (a merged copy) into objects of
+    their own, each with its origin on its part's top edge; returns them."""
+    me = solid.data
+    hinged = json.loads(me.get("kyt_hinged", "[]"))
+    names = json.loads(me.get("kyt_parts", "[]"))
+    if not hinged or "kyt_part" not in me.attributes:
+        return []
+    out = []
+    for name in hinged:
+        if name not in names:
+            continue
+        index = names.index(name)
+        bm = bmesh.new()
+        bm.from_mesh(me)
+        layer = bm.faces.layers.int.get("kyt_part")
+        bmesh.ops.delete(bm, geom=[f for f in bm.faces if f[layer] != index], context="FACES")
+        if not bm.faces:
+            bm.free()
+            continue
+        top = max(v.co.z for v in bm.verts)
+        edge = [v.co for v in bm.verts if v.co.z > top - 0.01]
+        pivot = Vector((sum(c.x for c in edge) / len(edge), sum(c.y for c in edge) / len(edge), top))
+        bmesh.ops.translate(bm, verts=bm.verts, vec=-pivot)
+        mesh = bpy.data.meshes.new(name)
+        bm.to_mesh(mesh)
+        bm.free()
+        for mat in me.materials:
+            mesh.materials.append(mat)
+        ob = bpy.data.objects.new(name, mesh)
+        ob.location = pivot
+        ob[EXPORT_TAG] = True
+        bpy.context.scene.collection.objects.link(ob)
+        out.append(ob)
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    layer = bm.faces.layers.int.get("kyt_part")
+    gone = {names.index(n) for n in hinged if n in names}
+    bmesh.ops.delete(bm, geom=[f for f in bm.faces if f[layer] in gone], context="FACES")
+    bm.to_mesh(me)
+    bm.free()
+    return out
+
+
 def run(context):
     """Check, then export. Returns (ok, lines) for the panel and the report."""
     findings = checks.run(context)
@@ -109,6 +163,7 @@ def run(context):
 
     stem =os.path.splitext(os.path.basename(bpy.data.filepath))[0]
     keep_parts = bool(scene.get("kyt_keep_parts"))
+    hinge_names = []
     if keep_parts:
         temp = [_merged(context, [o], f"{o.name}-col") for o in objects if wants_collision(o)]
         export_set = temp + [o for o in objects if not wants_collision(o)]
@@ -121,7 +176,9 @@ def run(context):
                 groups.setdefault(str(o.get("kyt_merge_group", "")), []).append(o)
         visual = [_merged(context, parts, f"{stem}_{group or 'visual'}")
                   for group, parts in sorted(groups.items())]
-        temp = [o for o in [solid] + visual if o is not None]
+        hinges = _split_hinged(solid) if solid is not None else []
+        hinge_names = [o.name for o in hinges]
+        temp = [o for o in [solid] + visual + hinges if o is not None]
         export_set = list(temp)
 
     try:
@@ -163,7 +220,9 @@ def run(context):
     size_kb = os.path.getsize(out) / 1024
     kept = "each its own node" if keep_parts else "merged into one"
     lines = [f"Sent to {os.path.relpath(out, root)} ({size_kb:.0f} KB), "
-             f"{len(objects)} part{'s' if len(objects) != 1 else ''} {kept}."]
+             f"{len(objects)} part{'s' if len(objects) != 1 else ''} {kept}"
+             + (f", hinged on their own: {', '.join(hinge_names)}" if not keep_parts and hinge_names else "")
+             + "."]
     lines += [text for level, text in findings if level == "WARNING"]
     lines.append("Godot picks it up the next time its window is focused or it starts.")
     return True, lines

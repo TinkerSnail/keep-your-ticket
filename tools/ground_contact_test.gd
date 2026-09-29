@@ -72,7 +72,7 @@ func _ready() -> void:
 				if absf(gap) <= MAX_GAP:
 					continue
 				failed += 1
-				_record(String((hit["collider"] as Node).name), gap, at, guest)
+				_record(_surface_name(hit["collider"] as Node), gap, at, guest)
 
 	print("%d guest-ground samples; worst physical gap %.3fm" % [samples, worst_gap])
 	if _fails.is_empty():
@@ -92,6 +92,19 @@ func _ready() -> void:
 			", ".join(crowds), f["example"]])
 	print("FAIL: %d of %d samples on %d surfaces" % [failed, samples, names.size()])
 	get_tree().quit(1)
+
+
+## A prop's collision is made on import and named after its class,
+## `StaticBody3D`, whichever prop it is, so it is reported under the node that
+## placed the prop (`bin_1/StaticBody3D`): the body's owner is the model, and
+## the model's owner is the placed prop scene. Every other surface keeps its
+## own name.
+func _surface_name(collider: Node) -> String:
+	var nm := String(collider.name)
+	if nm != collider.get_class() or collider.owner == null:
+		return nm
+	var placed := collider.owner.owner if collider.owner.owner != null else collider.owner
+	return "%s/%s" % [placed.name, nm]
 
 
 func _record(surface: String, gap: float, at: Vector3, guest: Node) -> void:

@@ -75,8 +75,14 @@ def marker_seats():
         p = re.search(r"position = Vector3\(([^)]*)\)", m.group(2))
         if m.group(1).startswith("seat_") and p:
             markers.append((m.group(1), [float(x) for x in p.group(1).split(",")]))
+    text = open(FURNITURE).read()
+    # The scene holds the plaza's bins too (2026-09-27): only instances of the
+    # bench carry its seats.
+    bench_id = re.search(r'\[ext_resource [^\]]*path="res://%s" id="([^"]+)"\]' % re.escape(BENCH), text).group(1)
     out = []
-    for m in NODE.finditer(open(FURNITURE).read()):
+    for m in NODE.finditer(text):
+        if 'instance=ExtResource("%s")' % bench_id not in m.group(0).split("\n", 1)[0]:
+            continue
         t = re.search(r"transform = Transform3D\(([^)]*)\)", m.group(2))
         if not t:
             continue

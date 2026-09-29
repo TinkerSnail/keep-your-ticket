@@ -1,0 +1,17 @@
+[gd_scene load_steps=2 format=3]
+
+; The recycling bottle, as the game places it. Editor-owned: written by the
+; Keep Your Ticket panel at its first Send to game (2026-09-27);
+; edit it in Godot from here on.
+;
+; The model is `assets/props/recycling_bottle.glb`, sent from
+; `assets/source/props/recycling_bottle.blend` with the Keep Your Ticket
+; panel. Its collision is derived on export, on layer 1. Not placed
+; anywhere yet.
+
+[ext_resource type="PackedScene" path="res://assets/props/recycling_bottle.glb" id="1_model"]
+
+[node name="recycling_bottle" type="Node3D"]
+editor_description = "Recycling bottle. Faces local +Z."
+
+[node name="model" parent="." instance=ExtResource("1_model")]

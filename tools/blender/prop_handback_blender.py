@@ -11,8 +11,8 @@ there is a game mesh. `send` runs the panel's Send to game (Check first) on the
 file as saved.
 `render` renders the prop from four views worked out from its own size (three
 quarters from the front left, straight on, from behind and low, and close over
-the top) into <folder>, with the images the file points at, as they are on
-disk, or with `--colour <png>` in place of the colour image (a preview of work
+the top; the first three back off until the whole prop fits) into <folder>,
+with the images the file points at, as they are on disk, or with `--colour <png>` in place of the colour image (a preview of work
 in progress). Nothing is saved.
 
 `make` and `rebuild` are the panel's Make game mesh and Rebuild game mesh, on
@@ -25,6 +25,7 @@ import os
 import sys
 
 import bpy
+from bpy_extras.object_utils import world_to_camera_view
 from mathutils import Vector
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "extensions"))
@@ -37,6 +38,20 @@ def export_bounds():
     lo = Vector((min(p.x for p in pts), min(p.y for p in pts), min(p.z for p in pts)))
     hi = Vector((max(p.x for p in pts), max(p.y for p in pts), max(p.z for p in pts)))
     return lo, hi
+
+
+def export_points():
+    """Every vertex of the export collection, evaluated, in world space."""
+    dg = bpy.context.evaluated_depsgraph_get()
+    pts = []
+    for o in bpy.data.collections["export"].all_objects:
+        if o.type != "MESH":
+            continue
+        ev = o.evaluated_get(dg)
+        mesh = ev.to_mesh()
+        pts.extend(o.matrix_world @ v.co for v in mesh.vertices)
+        ev.to_mesh_clear()
+    return pts
 
 
 def render(folder, colour=None):
@@ -86,12 +101,27 @@ def render(folder, colour=None):
         "back_low": (centre + Vector((0.5, 1.2, 0.0)) * size, centre, 45),
         "close_top": (centre + Vector((-0.15, -0.45, 0.5)) * size, centre + Vector((-0.15, 0.0, 0.1)) * size, 45),
     }
+    points = export_points()
     for name, (loc, target, lens) in views.items():
         loc.z = max(loc.z, lo.z + 0.15 * size)  # never under the ground
         cam.location = loc
         cam.data.lens = lens
         d = target - loc
         cam.rotation_euler = (math.atan2(math.hypot(d.x, d.y), -d.z), 0, math.atan2(d.y, d.x) - math.pi / 2)
+        # The offsets alone cropped the benches' ends and cut a bin or a palm
+        # trunk off top and bottom (2026-09-27). The whole views back off along
+        # their own line until every vertex is in frame; close_top is a detail
+        # on purpose. A view that already fits is left exactly as it was.
+        backed = 1.0
+        while name != "close_top" and backed < 4.0:
+            bpy.context.view_layer.update()
+            if all(0.02 <= c.x <= 0.98 and 0.02 <= c.y <= 0.98
+                   for c in (world_to_camera_view(sc, cam, p) for p in points)):
+                break
+            backed *= 1.1
+            cam.location = target - d * backed
+        if backed > 1.0:
+            print(f"HANDBACK framing {name}: backed off {backed:.2f}x to fit the prop")
         sc.render.filepath = os.path.join(folder, f"{name}.png")
         bpy.ops.render.render(write_still=True)
         print("HANDBACK render", sc.render.filepath)

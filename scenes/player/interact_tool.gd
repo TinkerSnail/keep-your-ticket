@@ -1,6 +1,6 @@
 extends Node
 
-## Asking guests for a picture.
+## Asking guests for a picture, and pushing a bin's flap.
 ##
 ## There is no cursor and no highlight, because look is already the pointer:
 ## whoever is nearest the centre of the view within arm's-length-and-a-bit is
@@ -26,8 +26,7 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not event.is_action_pressed("interact"):
 		return
-	var crowd := ParkSections.current_crowd()
-	if crowd == null or _camera == null:
+	if _camera == null:
 		return
 
 	# Aim from the eye along the eye's own heading, so who you are asking is
@@ -37,6 +36,15 @@ func _unhandled_input(event: InputEvent) -> void:
 	if forward.length_squared() < 0.0001:
 		return
 
+	# A bin's push flap within reach and in view takes the press first: the
+	# riveted bin's flaps swing (park_furniture/bin_flaps.gd).
+	for flaps in get_tree().get_nodes_in_group("bin_flaps"):
+		if flaps.try_push(_player.global_position, forward):
+			return
+
+	var crowd := ParkSections.current_crowd()
+	if crowd == null:
+		return
 	var guest: Node = crowd.interaction_candidate(_player.global_position, forward)
 	if guest == null:
 		return

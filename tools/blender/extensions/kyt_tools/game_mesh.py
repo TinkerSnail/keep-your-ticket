@@ -10,7 +10,12 @@ room on the UV map. So:
    joined into one object.
 2. That object is unioned with itself (Blender's exact boolean), which fuses
    intersecting pieces into one surface and deletes every face inside another
-   piece: the leg inside the foot, the slat ends inside the rail.
+   piece: the leg inside the foot, the slat ends inside the rail. Parts marked
+   `kyt_collision = none` are left out of the union and joined after it,
+   whole: they are thin films (a bin's liner, its black-hole disc) that an
+   exact union cannot read as solids, and cut into the rest they tangled it
+   (the street bin went from 9,748 triangles to 17,738, 2026-09-27). In the
+   game mesh they are part of the one object, so they collide with it.
 3. Faces lying on the ground (z = 0) and facing down are deleted, since the
    floor hides them.
 4. Vertices closer than half a millimetre are merged.
@@ -52,6 +57,7 @@ import bmesh
 import bpy
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
+from mathutils.geometry import tessellate_polygon
 
 from . import checks
 
@@ -86,56 +92,102 @@ class _PartUVs:
     part face it came from and takes its UVs from there, exactly (a triangle's
     UVs are affine across it). It records that part too, as the face attribute
     `kyt_part` indexing the mesh's `kyt_parts` list of names: the colour-ID a
-    paint mask needs (the arms, the boards) once the parts are one mesh."""
+    paint mask needs (the arms, the boards) once the parts are one mesh.
+
+    **And its shading.** Each fused corner takes the normal its part had at
+    that point, as it takes the UV, so the game mesh shades as the parts did.
+    Joined and cut, the parts' own normals (the family bolt carries custom
+    ones) smeared across the new faces round every bolt: the riveted bin's
+    trim streaked from bolt to bolt (2026-09-27)."""
 
     def __init__(self, objects, names):
         self.names = list(names)
-        owner = []
-        bm = bmesh.new()
+        verts, faces = [], []
+        # (corners, their UVs, normal, part, the part polygon it was cut from,
+        # the corners' shading normals), all in world space.
+        self.tris = []
         for index, o in enumerate(objects):
-            part = bmesh.new()
-            part.from_mesh(o.data)
-            part.transform(o.matrix_world)
-            bmesh.ops.triangulate(part, faces=part.faces)
-            tmp = bpy.data.meshes.new("_kyt_uv_ref")
-            part.to_mesh(tmp)
-            part.free()
-            bm.from_mesh(tmp)
-            owner.extend([index] * len(tmp.polygons))
-            bpy.data.meshes.remove(tmp)
-        bm.faces.ensure_lookup_table()
-        uv = bm.loops.layers.uv.active
-        self.tris = [([l.vert.co.copy() for l in f.loops], [l[uv].uv.copy() for l in f.loops],
-                      f.normal.copy(), owner[f.index]) for f in bm.faces]
-        self.tree = BVHTree.FromBMesh(bm)
-        bm.free()
+            me = o.data
+            mw = o.matrix_world
+            turn = mw.to_3x3().inverted_safe().transposed()
+            me.calc_loop_triangles()
+            uv = me.uv_layers.active.data if me.uv_layers.active else None
+            corner = me.corner_normals
+            for lt in me.loop_triangles:
+                co = [mw @ me.vertices[v].co for v in lt.vertices]
+                self.tris.append((
+                    co,
+                    [uv[i].uv.copy() if uv else Vector((0.0, 0.0)) for i in lt.loops],
+                    (turn @ lt.normal).normalized(),
+                    index,
+                    lt.polygon_index,
+                    [(turn @ corner[i].vector).normalized() for i in lt.loops]))
+                faces.append((len(verts), len(verts) + 1, len(verts) + 2))
+                verts.extend(co)
+        self.tree = BVHTree.FromPolygons(verts, faces)
 
     def source_of(self, face):
         """The part triangle `face` was cut from: the one it lies in. Only where two
         lie equally close (the two sides of a thin part) does facing decide; on a
-        curve, a neighbouring triangle can face nearer the same way and is wrong."""
-        c = face.calc_center_median()
+        curve, a neighbouring triangle can face nearer the same way and is wrong.
+
+        Looked up from a point inside the face, the middle of its largest
+        triangle: a concave face's median can fall outside it. The riveted bin's
+        face wrapped round its push opening had its median in the opening, took
+        the flap's UVs there, and painted over the flap's (2026-09-27)."""
+        co = [v.co for v in face.verts]
+        if len(co) == 3:
+            c = (co[0] + co[1] + co[2]) / 3
+        else:
+            a, b, d = max(tessellate_polygon([co]),
+                          key=lambda t: (co[t[1]] - co[t[0]]).cross(co[t[2]] - co[t[0]]).length)
+            c = (co[a] + co[b] + co[d]) / 3
         hits = self.tree.find_nearest_range(c, 0.002) or [self.tree.find_nearest(c)]
         near = min(h[3] for h in hits)
         best = max((h for h in hits if h[3] <= near + 1e-5),
                    key=lambda h: self.tris[h[2]][2].dot(face.normal))
-        return self.tris[best[2]]
+        return self.tris[best[2]], best[2]
+
+    def corner_source(self, co, src, src_index):
+        """For one corner of a fused face, the triangle of the same part polygon
+        as the face's own that the corner is nearest (its own, when the corner
+        is in it). A face the union left whole can span several triangles of
+        its polygon (a tall quad on a turned wall), whose UVs are not one affine
+        map: a turned wall unrolls as trapezoids. Never another polygon's: a
+        neighbour across a seam carries another piece's UVs."""
+        best, best_d = src, None
+        for hit in self.tree.find_nearest_range(co, 1e-4) or []:
+            cand = self.tris[hit[2]]
+            if cand[3] != src[3] or cand[4] != src[4]:
+                continue
+            if best_d is None or hit[3] < best_d - 1e-9 or (abs(hit[3] - best_d) <= 1e-9 and hit[2] == src_index):
+                best, best_d = cand, hit[3]
+        return best
 
     def apply(self, bm, mesh):
+        """UVs and the part record onto `bm`'s faces; returns every corner's
+        shading normal, face by face, loop by loop (the order `bm.to_mesh`
+        writes them), for `normals_split_custom_set`."""
         uv = bm.loops.layers.uv.active
         part = bm.faces.layers.int.get("kyt_part") or bm.faces.layers.int.new("kyt_part")
         mesh["kyt_parts"] = json.dumps(self.names)
+        normals = []
         for f in bm.faces:
-            (a, b, c), (ua, ub, uc), _, f[part] = self.source_of(f)
-            e1, e2 = b - a, c - a
-            d11, d12, d22 = e1.dot(e1), e1.dot(e2), e2.dot(e2)
-            det = d11 * d22 - d12 * d12
+            src, src_index = self.source_of(f)
+            f[part] = src[3]
             for loop in f.loops:
+                tri = self.corner_source(loop.vert.co, src, src_index)
+                (a, b, c), (ua, ub, uc), (na, nb, nc) = tri[0], tri[1], tri[5]
+                e1, e2 = b - a, c - a
+                d11, d12, d22 = e1.dot(e1), e1.dot(e2), e2.dot(e2)
+                det = d11 * d22 - d12 * d12
                 p = loop.vert.co - a
                 p1, p2 = p.dot(e1), p.dot(e2)
                 s = (d22 * p1 - d12 * p2) / det
                 t = (d11 * p2 - d12 * p1) / det
                 loop[uv].uv = ua + (ub - ua) * s + (uc - ua) * t
+                n = na * (1.0 - s - t) + nb * s + nc * t
+                normals.append(n.normalized() if n.length > 1e-9 else f.normal.copy())
         # Two faces meeting at a corner work its UV out from different part
         # triangles, and agree only to rounding. The packer joins pieces only
         # where UVs are exactly equal, so make agreeing corners identical.
@@ -148,6 +200,7 @@ class _PartUVs:
                     kept.append(p.copy())
                 else:
                     loop[uv].uv = same
+        return normals
 
 
 def _fuse(context, parts, pack=True):
@@ -174,9 +227,21 @@ def _fuse(context, parts, pack=True):
     context.view_layer.objects.active = copies[0]
     bpy.ops.object.convert(target="MESH")
     part_uvs = _PartUVs(copies, [o.name for o in parts]) if keep_uvs else None
-    if len(copies) > 1:
-        bpy.ops.object.join()
-    fused = context.view_layer.objects.active
+    films = [c for c, o in zip(copies, parts) if str(o.get("kyt_collision", "")).lower() == "none"]
+    solids = [c for c in copies if c not in films] or films
+    films = [c for c in films if c not in solids]
+
+    def join(objects):
+        for o in context.view_layer.objects:
+            o.select_set(False)
+        for o in objects:
+            o.select_set(True)
+        context.view_layer.objects.active = objects[0]
+        if len(objects) > 1:
+            bpy.ops.object.join()
+        return context.view_layer.objects.active
+
+    fused = join(solids)
     fused.data.transform(fused.matrix_world)
     fused.matrix_world.identity()
 
@@ -185,6 +250,11 @@ def _fuse(context, parts, pack=True):
     bpy.ops.mesh.select_all(action="SELECT")
     bpy.ops.mesh.intersect_boolean(operation="UNION", use_self=True, solver="EXACT")
     bpy.ops.object.mode_set(mode="OBJECT")
+    if films:
+        for c in films:
+            c.data.transform(c.matrix_world)
+            c.matrix_world.identity()
+        fused = join([fused] + films)
 
     bm = bmesh.new()
     bm.from_mesh(fused.data)
@@ -192,10 +262,17 @@ def _fuse(context, parts, pack=True):
              if f.normal.z < -0.99 and all(v.co.z <= GROUND_EPS for v in f.verts)]
     bmesh.ops.delete(bm, geom=floor, context="FACES")
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=WELD_M)
-    if part_uvs:
-        part_uvs.apply(bm, fused.data)
+    normals = part_uvs.apply(bm, fused.data) if part_uvs else None
     bm.to_mesh(fused.data)
     bm.free()
+    # The parts Send splits off to swing (`kyt_hinge`), found by `kyt_part`.
+    fused.data["kyt_hinged"] = json.dumps([o.name for o in parts if o.get("kyt_hinge")])
+    if normals:
+        # Every face smooth, so its corners wear the parts' normals (a flat
+        # part face's corners carry its face normal already).
+        for poly in fused.data.polygons:
+            poly.use_smooth = True
+        fused.data.normals_split_custom_set(normals)
 
     # The union cuts a new edge wherever two pieces meet (round every bolt where
     # it enters the wood), which alone added more triangles than the hidden

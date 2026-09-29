@@ -3,7 +3,8 @@
     /Applications/Blender.app/Contents/MacOS/Blender --background <prop>.blend \
         --python tools/blender/paint_canvas.py -- [--size 2048] [--orm-size 1024] [--grain]
         [--knots part,part] [--wear part,part] [--chips part,part] [--dings part,part]
-        [--ground part,part] [--weather part,part] [--perforate part,part] [--overwrite]
+        [--ground part,part] [--weather part,part] [--perforate part,part]
+        [--quatrefoil part,part] [--lid-holes part,part] [--overwrite]
         [--holes-only] [--guide-only] [--save]
     ... --python tools/blender/paint_canvas.py -- --leaflets [--overwrite | --cutout-only | --shading-only
         | --normal-only | --base-fade <kind>:<share>] [--save]
@@ -68,6 +69,18 @@ of the painting, because a flattened PSD has no alpha. Collision stays solid.
 `--holes-only --perforate <parts>` cuts them again on an existing canvas after
 a change to the `HOLE_*` numbers: the colour keeps its pixels, only its alpha
 and `<prop>_holes.png` change.
+
+`--quatrefoil lattice,door$` and `--lid-holes lid_band` are the same for a
+turned shell (the street bin, 2026-09-27: "we will use the textures to create
+the perforations"): holes laid out round the prop's upright axis, by bearing
+and height, on those parts' faces that face out or in from it, so a shell's
+outside and inside are cut at the same places and it can be seen through.
+`--quatrefoil` is the staggered four-lobed lattice of her photo (`QUATREFOIL_*`,
+a whole number of cells round, so the pattern meets itself at the back);
+`--lid-holes` the round holes and diamonds round the canopy lid's band
+(`LID_HOLES`, grouped between the three posts that hold it). Both go into the
+alpha and `<prop>_holes.png` with any `--perforate` holes, and
+`--holes-only` cuts them again.
 
 `--leaflets` is the canvas for a crown whose game chooses its fronds
 (`kyt_keep_parts`, the palm crown), after `unwrap_blades.py` has laid its
@@ -174,6 +187,29 @@ RUST_ROUGH, RUST_METAL = 0.92, 0.05
 # that cell closed the mesh to 27%; 45 by 19 mm at 0.16 was "too delicate".)
 HOLE_ALONG_M, HOLE_ACROSS_M = 0.090, 0.038
 HOLE_STRAND = 0.16  # the metal between two diamonds, as a fraction of a cell
+
+# Turned perforations (--quatrefoil, --lid-holes), after Christina's photo of
+# the lattice street bin (2026-09-27), on the prop's upright axis through its
+# origin. The quatrefoils sit on two square lattices offset half a cell, a
+# cross of four round lobes each, lobes along bearing and height. Laid out at
+# the shell's outer radius; the inner face takes the same bearings, so the
+# holes go through. Cells about 9.4 cm, 20 round the bin, with plump lobes, a
+# hole about 5.6 cm across: her word, "larger and cartoonier" (first cut:
+# 6.5 cm cells, lobes 0.16/0.12, core 0.13, a hole about 3.6 cm).
+QUATREFOIL_CELL_M = 0.095
+QUATREFOIL_R_M = 0.300
+QUATREFOIL_LOBE_OFF, QUATREFOIL_LOBE_R, QUATREFOIL_CORE_R = 0.15, 0.15, 0.17  # of a cell
+# The canopy band's holes, at the band's radius: (kind, bearing in degrees from
+# the front towards +x, height of the centre, size): "round" by radius,
+# "diamond" by half-width and half-height. Three groups, each between two of
+# the posts that hold the lid (79, 199 and 319 degrees): a diamond either side
+# of the group's middle, where the photo's recycling mark is (hers to paint),
+# and a round hole beyond each diamond.
+LID_R_M = 0.314
+LID_HOLES = [(kind, (c + d) % 360, 1.045, size)
+             for c in (19.0, 139.0, 259.0)
+             for kind, d, size in (("diamond", -17.0, (0.018, 0.028)), ("diamond", 17.0, (0.018, 0.028)),
+                                   ("round", -38.0, 0.042), ("round", 38.0, 0.042))]
 
 # Leaflets (--leaflets), cut into a crown's blades. The crown is Phoenix
 # canariensis, the classic California date palm, drawn in the park's cartoony
@@ -1332,6 +1368,86 @@ def perforation(g):
     return g.math("SUBTRACT", 1.0, g.math("MULTIPLY", hole, mark.outputs["Fac"]))
 
 
+def mark_turned(obj, attr_name, prefixes):
+    """Face attribute `attr_name`: 1 on the faces of the parts named by prefix
+    that face out from, or in towards, the prop's upright axis (a shell's
+    outside and inside, not its rims or ends), 0 elsewhere. A name ending in
+    `$` is matched whole: `door$` is the street bin's door panel, not its
+    frame (`door_rail_top`, `door_stile`), which "door" also caught."""
+    me = obj.data
+    if "kyt_part" not in me.attributes or "kyt_parts" not in me:
+        raise SystemExit("paint_canvas: the game mesh doesn't record its parts; "
+                         "make it again with the current Make game mesh")
+    names = json.loads(me["kyt_parts"])
+    part = me.attributes["kyt_part"].data
+    chosen = {n for n in names for p in prefixes
+              if (n == p[:-1] if p.endswith("$") else n.startswith(p))}
+    flags = [0.0] * len(me.polygons)
+    for poly in me.polygons:
+        if names[part[poly.index].value] not in chosen:
+            continue
+        c = poly.center
+        out = (c.x ** 2 + c.y ** 2) ** 0.5
+        if out > 1e-6 and abs((poly.normal.x * c.x + poly.normal.y * c.y) / out) > 0.9:
+            flags[poly.index] = 1.0
+    attr = me.attributes.get(attr_name) or me.attributes.new(attr_name, "FLOAT", "FACE")
+    attr.data.foreach_set("value", flags)
+    return int(sum(flags)), sorted(chosen)
+
+
+def turned_holes(g):
+    """A float socket: 0 in a quatrefoil (faces marked `kyt_quatrefoil`) or a
+    lid hole (faces marked `kyt_lid_holes`), 1 elsewhere. Laid out by bearing
+    round the upright axis and height, so a shell's two faces agree."""
+    at = g.node("ShaderNodeSeparateXYZ")
+    g.link(g.coord, at.inputs["Vector"])
+    bearing = g.math("ARCTAN2", at.outputs["X"], g.math("MULTIPLY", at.outputs["Y"], -1.0))
+
+    def marked(name):
+        m = g.node("ShaderNodeAttribute")
+        m.attribute_type = "GEOMETRY"
+        m.attribute_name = name
+        return m.outputs["Fac"]
+
+    def length(a, b):
+        return g.math("SQRT", g.math("ADD", g.math("MULTIPLY", a, a), g.math("MULTIPLY", b, b)))
+
+    # Quatrefoils: a whole number of cells round the circumference.
+    cells = max(1, round(2 * np.pi * QUATREFOIL_R_M / QUATREFOIL_CELL_M))
+    u = g.math("MULTIPLY", bearing, cells / (2 * np.pi))
+    v = g.math("DIVIDE", at.outputs["Z"], 2 * np.pi * QUATREFOIL_R_M / cells)
+    lobes = []
+    for shift in (0.0, 0.5):
+        du = g.math("ADD", u, shift)
+        dv = g.math("ADD", v, shift)
+        a = g.math("ABSOLUTE", g.math("SUBTRACT", du, g.math("ROUND", du)))
+        b = g.math("ABSOLUTE", g.math("SUBTRACT", dv, g.math("ROUND", dv)))
+        for d in (length(g.math("SUBTRACT", a, QUATREFOIL_LOBE_OFF), b),
+                  length(a, g.math("SUBTRACT", b, QUATREFOIL_LOBE_OFF))):
+            lobes.append(g.math("LESS_THAN", d, QUATREFOIL_LOBE_R))
+        lobes.append(g.math("LESS_THAN", length(a, b), QUATREFOIL_CORE_R))
+    quatrefoil = lobes[0]
+    for x in lobes[1:]:
+        quatrefoil = g.math("MAXIMUM", quatrefoil, x)
+    quatrefoil = g.math("MULTIPLY", quatrefoil, marked("kyt_quatrefoil"))
+
+    # The lid band's holes: distance round the band from each hole's bearing.
+    lid = 0.0
+    for kind, deg, z, size in LID_HOLES:
+        turn = g.math("SUBTRACT", g.math("MODULO", g.math("ADD", bearing, 3 * np.pi - np.radians(deg)),
+                                         2 * np.pi), np.pi)
+        s = g.math("MULTIPLY", turn, LID_R_M)
+        t = g.math("SUBTRACT", at.outputs["Z"], z)
+        if kind == "round":
+            hole = g.math("LESS_THAN", length(s, t), size)
+        else:
+            hole = g.math("LESS_THAN", g.math("ADD", g.math("DIVIDE", g.math("ABSOLUTE", s), size[0]),
+                                              g.math("DIVIDE", g.math("ABSOLUTE", t), size[1])), 1.0)
+        lid = hole if isinstance(lid, float) else g.math("MAXIMUM", lid, hole)
+    lid = g.math("MULTIPLY", lid, marked("kyt_lid_holes"))
+    return g.math("SUBTRACT", 1.0, g.math("MAXIMUM", quatrefoil, lid))
+
+
 def mark_weather(obj, groups):
     """Face attributes `kyt_weather` (1 on faces of the named parts) and
     `kyt_streaks` (how strongly rust streaks there). `groups` are part-name
@@ -1396,7 +1512,8 @@ def bake_holes(obj, name, size):
         bpy.data.images.remove(bpy.data.images[f"{name}_holes"])
     holes = bpy.data.images.new(f"{name}_holes", size, size, alpha=False)
     holes.colorspace_settings.name = "Non-Color"
-    bake(obj, holes, lambda g, mat, b: g.grey(g.math("ADD", 0.5, g.math("MULTIPLY", perforation(g), 0.5))))
+    bake(obj, holes, lambda g, mat, b: g.grey(g.math("ADD", 0.5, g.math(
+        "MULTIPLY", g.math("MULTIPLY", perforation(g), turned_holes(g)), 0.5))))
     hp = np.empty(size * size * 4, dtype=np.float32)
     holes.pixels.foreach_get(hp)
     bpy.data.images.remove(holes)
@@ -1451,15 +1568,20 @@ def write_uv_guide(objs, path, size):
     bpy.data.images.remove(img)
 
 
-def holes_only(obj, parts, name, colour_path, holes_path, root):
+def holes_only(obj, parts, name, colour_path, holes_path, root, quatrefoil=(), lid_holes=()):
     """`--holes-only`: cut a canvas's holes again (after a change to HOLE_*),
     nothing else. The colour PNG keeps every pixel's colour and takes the new
     mask as its alpha; `<prop>_holes.png` is rewritten; the material is left as
     it is. A PSD made from the old canvas still carries the old holes as
     transparency, so an unpainted one is made again with `--open`."""
-    if not parts or not os.path.exists(colour_path):
-        raise SystemExit("paint_canvas: --holes-only needs --perforate parts and an existing canvas")
-    marked = mark_perforated(obj, parts)
+    if not (parts or quatrefoil or lid_holes) or not os.path.exists(colour_path):
+        raise SystemExit("paint_canvas: --holes-only needs --perforate, --quatrefoil or --lid-holes "
+                         "parts and an existing canvas")
+    marked = mark_perforated(obj, parts) if parts else (0, [])
+    for attr, prefixes in (("kyt_quatrefoil", quatrefoil), ("kyt_lid_holes", lid_holes)):
+        if prefixes:
+            n, names = mark_turned(obj, attr, prefixes)
+            marked = (marked[0] + n, marked[1] + names)
     scene = bpy.context.scene
     engine = scene.render.engine
     scene.render.engine = "CYCLES"
@@ -2308,6 +2430,9 @@ def main():
     knot_parts = argv[argv.index("--knots") + 1].split(",") if "--knots" in argv else []
     wear_parts = argv[argv.index("--wear") + 1].split(",") if "--wear" in argv else []
     perforate_parts = argv[argv.index("--perforate") + 1].split(",") if "--perforate" in argv else []
+    quatrefoil_parts = argv[argv.index("--quatrefoil") + 1].split(",") if "--quatrefoil" in argv else []
+    lid_hole_parts = argv[argv.index("--lid-holes") + 1].split(",") if "--lid-holes" in argv else []
+    holed = bool(perforate_parts or quatrefoil_parts or lid_hole_parts)
     blend = bpy.data.filepath
     name = os.path.splitext(os.path.basename(blend))[0]
     root = blend[:blend.index(os.sep + "assets" + os.sep)]
@@ -2333,7 +2458,8 @@ def main():
     if not obj.data.uv_layers:
         raise SystemExit("paint_canvas: the game mesh has no UVs; make the game mesh first")
     if "--holes-only" in argv:
-        holes_only(obj, perforate_parts, name, colour_path, holes_path, root)
+        holes_only(obj, perforate_parts, name, colour_path, holes_path, root,
+                   quatrefoil_parts, lid_hole_parts)
         return
     weathered = mark_weather(obj, weather) if weather else (0, [])
     chipped = mark_parts(obj, "kyt_chips", chip_parts) if chip_parts else (0, [])
@@ -2342,6 +2468,10 @@ def main():
     knotted = mark_parts(obj, "kyt_knots", knot_parts) if knot_parts else (0, [])
     worn = mark_parts(obj, "kyt_wear", wear_parts) if wear_parts else (0, [])
     perforated = mark_perforated(obj, perforate_parts) if perforate_parts else (0, [])
+    for attr, prefixes in (("kyt_quatrefoil", quatrefoil_parts), ("kyt_lid_holes", lid_hole_parts)):
+        if prefixes:
+            n, names = mark_turned(obj, attr, prefixes)
+            perforated = (perforated[0] + n, perforated[1] + names)
     os.makedirs(folder, exist_ok=True)
 
     scene = bpy.context.scene
@@ -2393,9 +2523,9 @@ def main():
     for stale in (f"{name}_colour", f"{name}_orm"):
         if bpy.data.images.get(stale):
             bpy.data.images.remove(bpy.data.images[stale])
-    colour = bpy.data.images.new(f"{name}_colour", size, size, alpha=bool(perforate_parts))
+    colour = bpy.data.images.new(f"{name}_colour", size, size, alpha=holed)
     bake(obj, colour, colour_of)
-    if perforate_parts:
+    if holed:
         # The holes go in the colour's alpha, which glTF cuts as a mask, and in
         # <prop>_holes.png, which every export of the painting puts back
         # (tools/blender/apply_holes.py): a flattened PSD has no alpha.
@@ -2422,7 +2552,7 @@ def main():
         img.source = "FILE"
         img.reload()
 
-    mat = one_material(name, colour, orm, obj.data.uv_layers[0].name, bool(perforate_parts))
+    mat = one_material(name, colour, orm, obj.data.uv_layers[0].name, holed)
 
     me = obj.data
     for p in me.polygons:
@@ -2440,7 +2570,7 @@ def main():
           + (f"; wear on {', '.join(worn[1])}" if wear_parts else "")
           + (f"; ground dirt on {int(grounded[0])} faces of {', '.join(grounded[1])}" if ground_parts else "")
           + (f"; perforated {perforated[0]} faces of {', '.join(perforated[1])} "
-             f"({os.path.relpath(holes_path, root)})" if perforate_parts else ""))
+             f"({os.path.relpath(holes_path, root)})" if holed else ""))
     if "--save" in argv:
         bpy.ops.wm.save_mainfile()
 

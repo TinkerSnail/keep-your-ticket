@@ -1,0 +1,24 @@
+[gd_scene load_steps=3 format=3]
+
+; The hooded bin, as the game places it. Editor-owned: written by the
+; Keep Your Ticket panel at its first Send to game (2026-09-27);
+; edit it in Godot from here on.
+;
+; The model is `assets/props/hooded_bin.glb`, sent from
+; `assets/source/props/hooded_bin.blend` with the Keep Your Ticket
+; panel. Its collision is derived on export, on layer 1. Not placed
+; anywhere yet.
+;
+; `inner_can` is the bin's inner can, `park_furniture/inner_can.tscn`: the hood's
+; windows show it, and it is the part that comes out on its own at trash
+; pick-up time. The shell is modelled round it (0.01 m clear).
+
+[ext_resource type="PackedScene" path="res://assets/props/hooded_bin.glb" id="1_model"]
+[ext_resource type="PackedScene" path="res://scenes/world/park_furniture/inner_can.tscn" id="2_can"]
+
+[node name="hooded_bin" type="Node3D"]
+editor_description = "Hooded bin. Faces local +Z."
+
+[node name="model" parent="." instance=ExtResource("1_model")]
+
+[node name="inner_can" parent="." instance=ExtResource("2_can")]

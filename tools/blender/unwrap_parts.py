@@ -29,6 +29,19 @@ mirrors a left-hand one's (wherever each is placed) takes its twin's layout, so 
 share texture space and wear the same paint. Parts across the middle, like the
 boards, keep their own. `--no-mirror` gives every part its own space.
 
+**Asked for by the part** (its `kyt_unwrap` custom property, set where the
+part is made; 2026-09-27, the bins, whose turned and bevelled parts the shape
+rules above folded over themselves):
+
+- **`lathe`** (a turned part: a can, a bottle, a cap, a liner, a band): cut
+  at its sharp turns, where wall turns to floor or top, and down the meridian
+  at its back; each wall unrolled by bearing and height, each floor or top
+  seen from above, worked out from the geometry, so nothing folds.
+- **`facets`** (a bevelled or cut box: a shell, a hood, a trim): faces grouped
+  by the way they face (the six directions), each connected group laid flat
+  by projection at true scale.
+- **`planar`** (a flat piece: a disc): laid flat as it is.
+
 Anything else is unwrapped with seams at its sharp edges and reported, to seam
 by hand. The parts keep their own vertices and custom normals: the unwrap is
 worked out on a welded copy and written back face by face. A part marked
@@ -179,6 +192,154 @@ def seams_sharp(bm):
             or e.calc_face_angle(0.0) > math.radians(SHARP_DEG)]
 
 
+HINTS = ("lathe", "facets", "planar")
+
+
+def back_bearing(world, cx, cy):
+    """The bearing (from the front, towards +x) of the column of vertices
+    nearest behind a turned part, where its meridian seam runs."""
+    best = None
+    for w in world.values():
+        if math.hypot(w.x - cx, w.y - cy) > 1e-4:
+            b = math.atan2(w.x - cx, -(w.y - cy))
+            if best is None or abs(b) > abs(best) + 1e-9:
+                best = b
+    return math.pi if best is None else best
+
+
+def seams_lathe(bm, mw):
+    """Sharp turns; where the surface turns from wall to floor or top (a face
+    more than 45 degrees from upright beside one less), so a base that curves
+    round into its wall is not unrolled as one cup; and the meridian at the
+    back: the column of vertices whose bearing round the part's upright axis is
+    nearest behind it (+y). The axis is the upright through the part's origin:
+    a turned part's own axis (an arc's bounds are not centred on it)."""
+    cut = set(seams_sharp(bm))
+    cx, cy = mw.translation.x, mw.translation.y
+    rot = mw.to_3x3()
+    flat = {f: abs((rot @ f.normal).normalized().z) > math.sqrt(0.5) for f in bm.faces}
+    cut |= {e for e in bm.edges if len({flat[f] for f in e.link_faces}) > 1}
+    # And where it turns from facing out to facing in: a liner folds smoothly
+    # over its rim, and its collar and lining would otherwise share a piece.
+    def out_facing(f):
+        n, c = (rot @ f.normal), mw @ f.calc_center_median()
+        return n.x * (c.x - cx) + n.y * (c.y - cy) >= 0
+    facing = {f: out_facing(f) for f in bm.faces}
+    cut |= {e for e in bm.edges if len({facing[f] for f in e.link_faces}) > 1
+            and not all(flat[f] for f in e.link_faces)}
+    world = {v: mw @ v.co for v in bm.verts}
+    bearing = {}
+    for v, w in world.items():
+        if math.hypot(w.x - cx, w.y - cy) > 1e-4:
+            bearing[v] = abs(math.atan2(w.x - cx, -(w.y - cy)))
+    if bearing:
+        back = max(bearing.values())
+        column = {v for v, b in bearing.items() if abs(b - back) < 1e-4}
+        cut |= {e for e in bm.edges if all(v in column for v in e.verts)}
+    return list(cut)
+
+
+def lathe_uvs(bm, mw):
+    """A turned part laid out by its own geometry, not by an unwrap solver
+    (Blender's folded the inner can's inside wall back on itself and the
+    bottle's grooved cap): each piece between the seams is a wall, unrolled by
+    its bearing round the axis times its radius across and its height (over
+    its slope) up, or a floor or top, seen from above. A wall is a graph over
+    bearing and height, so it cannot fold; an inside wall is turned round so
+    it reads the right way from where it is seen."""
+    rot = mw.to_3x3()
+    world = {v: mw @ v.co for v in bm.verts}
+    cx, cy = mw.translation.x, mw.translation.y
+    # Bearings are measured from opposite the seam, so the seam falls at
+    # +-pi and nothing else wraps (a door or a lattice arc is cut elsewhere).
+    ref = back_bearing(world, cx, cy) + math.pi
+    out = [None] * len(bm.faces)
+    solved = None
+    for group in islands(bm):
+        faces = [bm.faces[i] for i in group]
+        normals = [(rot @ f.normal).normalized() for f in faces]
+        if sum(abs(n.z) for n in normals) / len(normals) > math.sqrt(0.5):
+            for f, n in zip(faces, normals):
+                sign = 1.0 if n.z >= 0 else -1.0
+                out[f.index] = [Vector((world[l.vert].x, sign * world[l.vert].y)) for l in f.loops]
+            continue
+        # A piece that doesn't face out from the axis (the tube round the
+        # bottle's mouth, bored in sideways) is not a wall of the turned shape:
+        # Blender's conformal unwrap lays that one out.
+        radial = []
+        for f, n in zip(faces, normals):
+            c = mw @ f.calc_center_median()
+            d = Vector((c.x - cx, c.y - cy, 0.0))
+            radial.append(abs(n.dot(d.normalized())) if d.length > 1e-6 else 0.0)
+        if sum(radial) / len(radial) < 0.5:
+            if solved is None:
+                solved = unwrap_welded(bm, "CONFORMAL")
+            for f in faces:
+                out[f.index] = solved[f.index]
+            continue
+        slope = sum(math.sqrt(max(0.0, 1.0 - n.z * n.z)) for n in normals) / len(normals)
+        stretch = 1.0 / max(slope, 0.5)
+        # Across, by a smooth radius for the piece (a straight line in height,
+        # fitted to its vertices): a vertex's own radius zigzags on a grooved
+        # cap or a gathered liner, and bearing times that runs backwards.
+        vs = {l.vert for f in faces for l in f.loops}
+        zs = [world[v].z for v in vs]
+        rs = [math.hypot(world[v].x - cx, world[v].y - cy) for v in vs]
+        mz, mr = sum(zs) / len(zs), sum(rs) / len(rs)
+        szz = sum((z - mz) ** 2 for z in zs)
+        grad = sum((z - mz) * (r - mr) for z, r in zip(zs, rs)) / szz if szz > 1e-12 else 0.0
+
+        def radius(z):
+            return max(mr + grad * (z - mz), 1e-4)
+        outward = sum(n.x * (f.calc_center_median().x - cx) + n.y * (f.calc_center_median().y - cy)
+                      for f, n in zip(faces, normals))
+        turn = 1.0 if outward >= 0 else -1.0
+        for f in faces:
+            w = [world[l.vert] for l in f.loops]
+            ph = [(math.atan2(p.x - cx, -(p.y - cy)) - ref + math.pi) % (2 * math.pi) - math.pi for p in w]
+            if max(ph) - min(ph) > math.pi:
+                # A corner on the back seam reads as +pi or -pi at a whim: it
+                # takes the side the rest of its face is on.
+                rest = [a for a in ph if abs(abs(a) - math.pi) > 1e-3]
+                side = 1.0 if (sum(rest) if rest else 1.0) >= 0 else -1.0
+                ph = [side * math.pi if abs(abs(a) - math.pi) <= 1e-3 else a for a in ph]
+            out[f.index] = [Vector((turn * a * radius(p.z), p.z * stretch)) for a, p in zip(ph, w)]
+    return out
+
+
+def _facing(n):
+    """The one of the six directions a normal is nearest: (axis, sign)."""
+    axis = max(range(3), key=lambda i: abs(n[i]))
+    return axis, 1 if n[axis] >= 0 else -1
+
+
+def seams_facets(bm, mw):
+    rot = mw.to_3x3()
+    key = {f: _facing((rot @ f.normal).normalized()) for f in bm.faces}
+    return [e for e in bm.edges if not e.is_manifold or len({key[f] for f in e.link_faces}) > 1]
+
+
+def project_uvs(bm, mw, planar=False):
+    """Each face's loops projected flat, right way round: onto the plane of
+    the direction it faces (`facets`), or of the part's mean normal."""
+    rot = mw.to_3x3()
+    if planar:
+        n = sum(((rot @ f.normal) * f.calc_area() for f in bm.faces), Vector()).normalized()
+        u = n.orthogonal().normalized()
+        v = n.cross(u)
+        return [[Vector(((mw @ l.vert.co).dot(u), (mw @ l.vert.co).dot(v))) for l in f.loops]
+                for f in bm.faces]
+    # u x v = the facing direction, so no piece comes out mirrored.
+    basis = {(0, 1): ((0, 1, 0), (0, 0, 1)), (0, -1): ((0, -1, 0), (0, 0, 1)),
+             (1, 1): ((-1, 0, 0), (0, 0, 1)), (1, -1): ((1, 0, 0), (0, 0, 1)),
+             (2, 1): ((1, 0, 0), (0, 1, 0)), (2, -1): ((1, 0, 0), (0, -1, 0))}
+    out = []
+    for f in bm.faces:
+        bu, bv = (Vector(b) for b in basis[_facing((rot @ f.normal).normalized())])
+        out.append([Vector(((mw @ l.vert.co).dot(bu), (mw @ l.vert.co).dot(bv))) for l in f.loops])
+    return out
+
+
 def unwrap_welded(bm, method):
     """Unwrap a seamed bmesh with Blender's own unwrap; returns uv per face loop."""
     me = bpy.data.meshes.new("_unwrap_tmp")
@@ -267,8 +428,10 @@ def fit_island(bm, mw, uvs, faces):
         w = [mw @ v.co for v in f.verts]
         for k, v in enumerate(f.verts):
             pts3[(i, k)] = w[k]
-        area3d += sum(((w[k] - w[0]).cross(w[k + 1] - w[0])).length / 2
-                      for k in range(1, len(w) - 1))
+        # The face's own area (scale is applied, which Check insists on): a fan
+        # from one corner overcounts a concave face, which put the hooded bin's
+        # hood, cut round its windows, at 749 px/m beside its body's 585.
+        area3d += f.calc_area()
     area_uv = 0.0
     for i in faces:
         poly = uvs[i]
@@ -430,7 +593,7 @@ def main():
     twins = {} if "--no-mirror" in argv else mirror_pairs(parts)
 
     pieces = []  # (size, part, faces, uvs)
-    report = {"box": [], "cylinder": [], "ring": [], "other": []}
+    report = {"box": [], "cylinder": [], "ring": [], "lathe": [], "facets": [], "planar": [], "other": []}
     for part in parts:
         if part in twins:
             continue  # takes its left twin's layout below
@@ -458,8 +621,17 @@ def main():
                                  angle_shape_threshold=math.radians(40), cmp_seam=False,
                                  cmp_sharp=False, cmp_uvs=False, cmp_vcols=False,
                                  cmp_materials=True)
-        kind = classify(qb)
-        if kind == "box":
+        hint = str(part.get("kyt_unwrap", ""))
+        kind = hint if hint in HINTS else classify(qb)
+        if kind == "lathe":
+            cut = seams_lathe(qb, mw)
+        elif kind == "facets":
+            # On the triangles themselves: the projection groups triangles, so
+            # the seams must too (a quad's halves can face different ways).
+            cut = seams_facets(bm, mw)
+        elif kind == "planar":
+            cut = [e for e in qb.edges if not e.is_manifold]
+        elif kind == "box":
             cut = seams_box(qb, mw)
         elif kind == "cylinder":
             cut = seams_cylinder(qb, mw)
@@ -474,7 +646,12 @@ def main():
         report[kind].append(part.name)
         # Boards and cylinders unroll flat exactly, which the angle-based unwrap
         # finds; a ring cannot, and minimum stretch spreads its error most evenly.
-        uvs = unwrap_welded(bm, "MINIMUM_STRETCH" if kind in ("ring", "other") else "ANGLE_BASED")
+        if kind in ("facets", "planar"):
+            uvs = project_uvs(bm, mw, planar=kind == "planar")
+        elif kind == "lathe":
+            uvs = lathe_uvs(bm, mw)
+        else:
+            uvs = unwrap_welded(bm, "MINIMUM_STRETCH" if kind in ("ring", "other") else "ANGLE_BASED")
         for faces in islands(bm):
             size = fit_island(bm, mw, uvs, faces)
             pieces.append((size, part, faces, uvs))
