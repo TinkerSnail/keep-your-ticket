@@ -337,13 +337,37 @@ PROP_LEAFLETS = {
     # speckled, long stamens; "hibiscus", one big round flower. Each slot is
     # (petal, throat); the hibiscus's stamens are `pollen`, the azalea's its
     # throat's colour.
+    #
+    # Each colourway is painted again in each of the card's shades
+    # (`kyt_shades`, `leaf_skin.py`: every flower wears one), side by side in
+    # its slot, lightest first (`bloom_shade`). With `light` and `dark` (per
+    # slot, (petal, throat), sRGB) the shades run from `light` through the
+    # colourway itself in the middle to `dark`, reaching `spread` of the way
+    # out to either (1 when not given); with `darken`, from the
+    # colourway to that share darker. `vary_dark`: each leaf painted up to
+    # that share darker than its neighbours, as the colour picker reads (her
+    # "vary the leaves in darkness on each bush by about 3%"), besides the
+    # touch lighter or darker each already was.
     "azalea_bush": dict(style="dome", rachis=(0.004, 0.0015), rachis_colour=(0.36, 0.62, 0.16),
                         rachis_tint=0.5, profile="ovate", kinds={
                             "leaf": dict(leaf_m=0.22, width=0.3, splay=25.0, shade=(0.64, 1.15), shadow=0.4, rim_dark=0.3,
-                                         gap=0.45, top=0.08),
+                                         gap=0.45, top=0.08, vary_dark=0.03),
+                            # Her "on the azaleas the lightest will be a light pink
+                            # almost white, the dark will be almost fushia, and every
+                            # shade in between": the pink's; the magenta and white
+                            # the same way round their own colour. Then "lets make
+                            # the contrast a little less severe between the lightest
+                            # and darkest flowers": three quarters of the way out.
                             "bloom": dict(art="azalea", slots=[((0.97, 0.52, 0.76), (0.80, 0.14, 0.46)),
                                                               ((0.88, 0.2, 0.55), (0.55, 0.04, 0.3)),
-                                                              ((0.98, 0.95, 0.96), (0.92, 0.52, 0.68))]),
+                                                              ((0.98, 0.95, 0.96), (0.92, 0.52, 0.68))],
+                                          light=[((0.99, 0.90, 0.94), (0.93, 0.55, 0.72)),
+                                                 ((0.93, 0.38, 0.67), (0.68, 0.08, 0.40)),
+                                                 ((1.0, 0.99, 0.99), (0.95, 0.68, 0.79))],
+                                          dark=[((0.85, 0.13, 0.60), (0.58, 0.03, 0.37)),
+                                                ((0.74, 0.08, 0.47), (0.42, 0.02, 0.25)),
+                                                ((0.97, 0.87, 0.91), (0.88, 0.40, 0.58))],
+                                          spread=0.75),
                         }),
     "azalea_tree": None,  # the azalea's own leaf: set just below
     "hibiscus_shrub": dict(style="dome", rachis=(0.005, 0.0015), rachis_colour=(0.16, 0.38, 0.30),
@@ -352,14 +376,17 @@ PROP_LEAFLETS = {
                                # three pointed lobes, sharply serrated (her "the shape of
                                # the hibiscus leaves isnt right" of the toothed oval).
                                "leaf": dict(leaf_m=0.22, width=0.3, splay=25.0, shade=(0.6, 1.18), shadow=0.4, rim_dark=0.3,
-                                            gap=0.45, top=0.08,
+                                            gap=0.45, top=0.08, vary_dark=0.03,
                                             teeth=(7, 0.1, "saw"), col_width=1.05, row_step=0.5,
                                             lobes=[(0.0, 1.0, 0.3), (-48.0, 0.72, 0.3), (48.0, 0.72, 0.3)]),
+                               # Her "the tolerance will be smaller with some blooms
+                               # just being a slightly darker shade of red, by maybe 2%".
                                "bloom": dict(art="hibiscus", pollen=(1.0, 0.86, 0.3),
                                              slots=[((0.93, 0.20, 0.15), (0.55, 0.03, 0.06)),
                                                     ((0.95, 0.40, 0.62), (0.62, 0.05, 0.2)),
                                                     ((1.0, 0.80, 0.18), (0.88, 0.18, 0.08)),
-                                                    ((0.99, 0.93, 0.94), (0.9, 0.34, 0.52))]),
+                                                    ((0.99, 0.93, 0.94), (0.9, 0.34, 0.52))],
+                                             darken=0.02),
                            }),
 }
 
@@ -511,14 +538,22 @@ def cut_cluster(obj, kind, label, index, size, px_m, rng):
     return leaves * mine, ribs * mine, np.where(mine, tone, 1.0).astype(np.float32)
 
 
-def paint_leaf(state, start, direction, here, spec, profile, mine, xx, yy, rng, wide=1.0, warp=None):
+def leaf_darkness(spec, vary):
+    """A leaf's own darkness, times its colour (linear): up to `vary_dark`
+    darker as the colour picker reads it, drawn from `vary` (its own random,
+    so the leaves are laid out as before)."""
+    return (1.0 - vary.uniform(0.0, spec.get("vary_dark", 0.0))) ** 2.2
+
+
+def paint_leaf(state, start, direction, here, spec, profile, mine, xx, yy, rng, wide=1.0, warp=None, dark=1.0):
     """One leaf of a bush's greenery drawn over `state` (leaves, midribs,
     tone): from `start` along `direction`, `here` px long, `wide` times its
     width, as one stroke or as `lobes` (turn in degrees, share of the length,
     width share), each with its midrib; nothing past the island (`mine`);
     with `warp`, drawn in a dome's own proportions (`stroke`). It is shaded stalk to tip
-    (`shade`), a touch lighter or darker than the last, and throws a thin
-    shadow `shadow` deep on the leaves already drawn under it."""
+    (`shade`), a touch lighter or darker than the last, times `dark`
+    (`leaf_darkness`), and throws a thin shadow `shadow` deep on the leaves
+    already drawn under it."""
     leaves, ribs, tone = state
     size = leaves.shape[0]
     leaf = np.zeros((size, size), dtype=np.float32)
@@ -532,7 +567,7 @@ def paint_leaf(state, start, direction, here, spec, profile, mine, xx, yy, rng, 
         stroke(rib, start + d * here * 0.08, end, spec.get("rib_px", 1.5), lambda t: 1.0 - 0.8 * t, warp)
     leaf *= mine
     along = np.clip(((xx - start[0]) * direction[0] + (yy - start[1]) * direction[1]) / here, 0.0, 1.0)
-    own = (spec["shade"][0] + (spec["shade"][1] - spec["shade"][0]) * along ** 0.8) * (1.0 + rng.uniform(-0.06, 0.06))
+    own = (spec["shade"][0] + (spec["shade"][1] - spec["shade"][0]) * along ** 0.8) * (1.0 + rng.uniform(-0.06, 0.06)) * dark
     near = box_blur2((leaf > 0.5).astype(np.float32), max(2, int(spec.get("shadow_px", 8))))
     tone = tone * (1.0 - spec["shadow"] * np.clip(near * 2.0, 0.0, 1.0) * (1.0 - leaf) * leaves)
     tone = tone * (1.0 - leaf) + own * leaf
@@ -582,6 +617,7 @@ def cut_dome(obj, kind, label, index, size, px_m, rng):
         rings.append(ring)
         ring -= length * spec.get("row_step", 0.55)
     rings.append(0.0)  # the apex's own leaves, on top
+    vary = np.random.default_rng(zlib.crc32(("dark " + kind).encode()))
     for ring in rings:
         # As many as fit round the dome's own girth there.
         true = ring / (np.interp(ring / flat_px, along, widen) if girth else 1.0)
@@ -600,7 +636,8 @@ def cut_dome(obj, kind, label, index, size, px_m, rng):
             reach = -p @ direction + np.sqrt(max((p @ direction) ** 2 - (p @ p - rim * rim), 0.0))
             here = min(length * rng.uniform(0.9, 1.05), reach)
             warp = (centre, lambda rho: np.interp(rho / flat_px, along, widen)) if girth else None
-            state = paint_leaf(state, start, direction, here, spec, profile, mine, xx, yy, rng, 1.0, warp)
+            state = paint_leaf(state, start, direction, here, spec, profile, mine, xx, yy, rng, 1.0, warp,
+                               leaf_darkness(spec, vary))
     leaves, ribs, tone = state
     f = dist / rim
     tone = tone * (1.0 + spec.get("top", 0.0) * (1.0 - smooth(0.0, 0.55, f))) * (1.0 - spec.get("rim_dark", 0.0) * smooth(0.5, 1.0, f))
@@ -632,12 +669,38 @@ def slot_step(obj, size):
     return size // int(obj.get("kyt_slots", 1))
 
 
+def copy_steps(obj, size):
+    """Every copy of a slotted blade's island, (colourway, shade, pixels
+    along the canvas): each colourway `slot_step` from the last, and inside
+    its slot each of the card's shades (`kyt_shades`) a `1 / (slots x
+    shades)` of the canvas from the last, as `leaf_skin.py` slides each
+    flower's UVs (to the nearest pixel)."""
+    slots, shades = int(obj.get("kyt_slots", 1)), int(obj.get("kyt_shades", 1))
+    return [(k, j, k * slot_step(obj, size) + int(round(j * size / (slots * shades))))
+            for k in range(slots) for j in range(shades)]
+
+
+def bloom_shade(spec, k, j, shades):
+    """Colourway `k`'s (petal, throat), sRGB, in shade `j` of `shades`,
+    0 the lightest: from `light` through the colourway to `dark`, `spread`
+    of the way out to each, or from the colourway to `darken` darker."""
+    petal, heart = spec["slots"][k]
+    t = j / (shades - 1) if shades > 1 else 0.0
+    if "light" in spec and shades > 1:
+        t = 0.5 + (t - 0.5) * spec.get("spread", 1.0)
+        a, b = (spec["light"][k], (petal, heart)) if t < 0.5 else ((petal, heart), spec["dark"][k])
+        f = t * 2.0 if t < 0.5 else t * 2.0 - 1.0
+        return tuple(tuple(x + (y - x) * f for x, y in zip(a[m], b[m])) for m in (0, 1))
+    dim = 1.0 - spec.get("darken", 0.0) * t
+    return tuple(c * dim for c in petal), tuple(c * dim for c in heart)
+
+
 def cut_bloom(obj, kind, label, index, size, px_m, rng):
     """(alpha, nothing, no tone, paint) for the flowers' card, drawn once per
-    colourway in `slots`: the card's own island first, each next one
-    `slot_step` to the right. `paint` is the colour, linear."""
+    colourway in `slots` and shade (`copy_steps`, `bloom_shade`): the card's
+    own island first, the rest to its right. `paint` is the colour, linear."""
     spec = LEAFLETS[kind]
-    step = slot_step(obj, size)
+    step = slot_step(obj, size) // int(obj.get("kyt_shades", 1))  # the card's own island is inside the first
     mine0 = (label == index) & (np.arange(size)[None, :] < step)
     ys, xs = np.nonzero(mine0)
     y0, y1, x0, x1 = ys.min(), ys.max(), xs.min(), xs.max()
@@ -720,17 +783,19 @@ def cut_bloom(obj, kind, label, index, size, px_m, rng):
             stroke(extra, tip, tip + np.array([np.cos(a), np.sin(a)]) * R * 0.07, R * 0.05, lambda t: 1.0 - t)
     paint = np.zeros((size, size, 3), dtype=np.float32)
     alpha = np.zeros((size, size), dtype=np.float32)
-    for k, (petal, heart) in enumerate(spec["slots"]):
+    shades = int(obj.get("kyt_shades", 1))
+    for k, j, along in copy_steps(obj, size):
+        petal, heart = bloom_shade(spec, k, j, shades)
         colour = lin(petal)[None, None, :] * (1.0 - throat[..., None]) + lin(heart)[None, None, :] * throat[..., None]
         colour = colour * edge[..., None]
         if spec["art"] == "hibiscus":
             colour = colour * (1.0 - extra[..., None]) + lin(spec["pollen"])[None, None, :] * extra[..., None]
         elif spec["art"] == "azalea":
             colour = colour * (1.0 - extra[..., None]) + lin(heart)[None, None, :] * 0.8 * extra[..., None]
-        shifted = np.roll(colour, k * step, axis=1)
-        region = np.roll(shape * mine0, k * step, axis=1) > 0
+        shifted = np.roll(colour, along, axis=1)
+        region = np.roll(shape * mine0, along, axis=1) > 0
         paint[region] = shifted[region]
-        alpha = np.maximum(alpha, np.roll(shape * mine0, k * step, axis=1))
+        alpha = np.maximum(alpha, np.roll(shape * mine0, along, axis=1))
     return alpha, np.zeros((size, size), dtype=np.float32), np.ones((size, size), dtype=np.float32), paint
 
 
@@ -1729,9 +1794,10 @@ def cut_islands(objs, blades, size):
     label = raster_islands(objs, size)
     for i, obj in enumerate(objs):
         # A slotted blade (the bloom card) owns its island's copies along the
-        # canvas too, one per colourway.
-        for k in range(1, int(obj.get("kyt_slots", 1))):
-            label[np.roll(label == i + 1, k * slot_step(obj, size), axis=1)] = i + 1
+        # canvas too, one per colourway and shade.
+        mine = label == i + 1
+        for _, _, along in copy_steps(obj, size)[1:]:
+            label[np.roll(mine, along, axis=1)] = i + 1
     alpha = np.zeros((size, size), dtype=np.float32)
     straw_all = np.zeros((size, size), dtype=np.float32)
     tone_all = np.ones((size, size), dtype=np.float32)  # the colour times this: a leaf's own light and shade

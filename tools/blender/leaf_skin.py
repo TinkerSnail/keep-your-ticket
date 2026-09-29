@@ -20,7 +20,9 @@ What it makes, for a bush in `SPECIES`:
   its underside is the leaves' shaded side. Reshape it and every dome follows.
 - `authored/blades/blade_bloom`: the flowers' card, a square; its texture
   paints one azalea or hibiscus flower, each colourway side by side
-  along the canvas (`kyt_slots`), which a placement's Godot script picks.
+  along the canvas (`kyt_slots`), which a placement's Godot script picks,
+  and inside each colourway's slot the flower again in each of `shades`
+  (`kyt_shades`), lightest first; each flower's `kyt_shade` picks one.
 - `authored/domes/domes` (and `_small`, `_large`): where the domes go, one
   point each (`dome_spots`), turned (`kyt_turn`) and sized (`kyt_size`) on
   it. Move a point in edit mode to move its dome.
@@ -324,11 +326,14 @@ SPECIES = {
         # one ("their clusters need the same treatment as the hibiscus", "at
         # least twice the amount of blooms, small blooms, and buds"),
         # `count` trusses; three colourways painted side by side (`slots`:
-        # pink, magenta, white).
+        # pink, magenta, white), each in `shades` from light to dark (her
+        # "the lightest will be a light pink almost white, the dark will be
+        # almost fushia, and every shade in between"; `paint_canvas.py`).
         bloom=dict(radius=0.105, dome=-0.063, sides=6, count=10, group=(6, 10), small=(0.5, 0.65), sizes=(0.85, 1.15),
                    keep=0.6, clump=(3, 5), super_gap=2.8,
                    band=(15, 115), lie=0.0,
-                   nestle=0.5, hug=None, behind=0.15, sink=0.006, seed=5, slots=3, colour=((0.97, 0.52, 0.76), 0.6),
+                   nestle=0.5, hug=None, behind=0.15, sink=0.006, seed=5, slots=3, shades=5,
+                   colour=((0.97, 0.52, 0.76), 0.6),
                    bud=dict(length=0.171, width=0.117, count=(0, 1), cluster=(2, 3), green=0.5, near=(0.8, 1.0))),
         strays=dict(count=5, leaves=3, length=0.2, width=0.7, spread=30.0, lift=-3.0, band=(55, 125), hug=0.08, seed=12),
     ),
@@ -351,7 +356,8 @@ SPECIES = {
         bloom=dict(radius=0.105, dome=-0.063, sides=6, count=24, group=(6, 10), small=(0.5, 0.65), sizes=(0.85, 1.15),
                    keep=0.6, clump=(3, 5), super_gap=2.8,
                    band=(15, 150), lie=0.0,
-                   nestle=0.5, hug=None, behind=0.3, sink=0.006, seed=11, slots=3, colour=((0.97, 0.52, 0.76), 0.6),
+                   nestle=0.5, hug=None, behind=0.3, sink=0.006, seed=11, slots=3, shades=5,
+                   colour=((0.97, 0.52, 0.76), 0.6),
                    bud=dict(length=0.171, width=0.117, count=(0, 1), cluster=(2, 3), green=0.5, near=(0.8, 1.0))),
         strays=dict(count=8, leaves=3, length=0.26, width=0.7, spread=30.0, lift=-3.0, band=(55, 125), hug=0.08, seed=13),
     ),
@@ -368,9 +374,11 @@ SPECIES = {
         dome=dict(courses=0, cap_down=64.0, cap_flare=0.2, crown_turn=22.5, roundness=0.3, core=False, seed=6),
         # One flower per card, in loose twos and threes (her "hibiscus could
         # also benefit from some clustering"); four colourways (`slots`: red,
-        # pink, yellow-red, pink-white).
+        # pink, yellow-red, pink-white), each in `shades` a little darker (her
+        # "some blooms just being a slightly darker shade of red, by maybe 2%").
         bloom=dict(radius=0.16, dome=-0.07, sides=6, count=8, group=(0, 2), sizes=(0.85, 1.15), band=(15, 115), lie=0.0,
-                   nestle=0.5, hug=None, behind=0.15, sink=0.006, seed=8, slots=4, colour=((0.93, 0.20, 0.15), 0.55),
+                   nestle=0.5, hug=None, behind=0.15, sink=0.006, seed=8, slots=4, shades=3,
+                   colour=((0.93, 0.20, 0.15), 0.55),
                    bud=dict(length=0.257, width=0.171, count=(0, 1), cluster=(2, 3), stand=0.5, uphill=True)),
         strays=dict(count=5, leaves=3, length=0.22, width=1.2, spread=35.0, lift=-3.0, band=(55, 125), hug=0.08, seed=14),
     ),
@@ -858,8 +866,12 @@ def dome_points(name, base, dome, seed):
 
 def blooms_on_points_group():
     """The Bloom card on every point, turned by `kyt_turn` (Euler) and sized
-    by `kyt_size`, realized so Send merges it with its UVs and material."""
-    ng, io = plant_blades._node_group("kyt_blooms_on_points", (("Bloom", "NodeSocketObject", None),))
+    by `kyt_size`, realized so Send merges it with its UVs and material; its
+    UVs slid `kyt_shade` Shade steps along the canvas, onto the copy of the
+    flower painted in that shade (her "vary the lightness and darkness of
+    the flower blooms")."""
+    ng, io = plant_blades._node_group("kyt_blooms_on_points", (("Bloom", "NodeSocketObject", None),
+                                                              ("Shade step", "NodeSocketFloat", 0.0)))
     if io is None:
         return ng
     gin, gout = io
@@ -883,7 +895,29 @@ def blooms_on_points_group():
     ng.links.new(size.outputs["Attribute"], inst.inputs["Scale"])
     real = N("GeometryNodeRealizeInstances")
     link(ng, inst, "Instances", real, "Geometry")
-    link(ng, real, "Geometry", gout, "Geometry")
+    shade = N("GeometryNodeInputNamedAttribute")
+    shade.data_type = "FLOAT"
+    shade.inputs["Name"].default_value = "kyt_shade"
+    uv = N("GeometryNodeInputNamedAttribute")
+    uv.data_type = "FLOAT_VECTOR"
+    uv.inputs["Name"].default_value = "UVMap"
+    along = N("ShaderNodeMath")
+    along.operation = "MULTIPLY"
+    ng.links.new(shade.outputs["Attribute"], along.inputs[0])
+    ng.links.new(gin.outputs["Shade step"], along.inputs[1])
+    slide = N("ShaderNodeCombineXYZ")
+    ng.links.new(along.outputs[0], slide.inputs["X"])
+    moved = N("ShaderNodeVectorMath")
+    moved.operation = "ADD"
+    ng.links.new(uv.outputs["Attribute"], moved.inputs[0])
+    ng.links.new(slide.outputs[0], moved.inputs[1])
+    store = N("GeometryNodeStoreNamedAttribute")
+    store.data_type = "FLOAT2"
+    store.domain = "CORNER"
+    store.inputs["Name"].default_value = "UVMap"
+    link(ng, real, "Geometry", store, "Geometry")
+    ng.links.new(moved.outputs[0], store.inputs["Value"])
+    link(ng, store, "Geometry", gout, "Geometry")
     plant_blades._tidy(ng)
     return ng
 
@@ -991,6 +1025,15 @@ def place_blooms(bush, blooms, base_spec, bloom_spec, flower, bloom_mat, tag, su
 
     rng = random.Random(bloom_spec["seed"])
     bud_rng = random.Random(bloom_spec["seed"] + 101)  # its own, so buds leave the flowers where they were
+    # Each flower's shade, 0 (lightest) to `shades` - 1 (darkest), on the
+    # canvas beside its colourway (her "vary the lightness and darkness of
+    # the flower blooms ... to create some visual variety"): a group's own
+    # shade, each of its flowers that or the next either way, so a truss
+    # reads lighter or darker and still varies inside. Its own random, so the
+    # flowers stay where they were.
+    shade_rng = random.Random(bloom_spec["seed"] + 202)
+    shades = bloom_spec.get("shades", 1)
+    shade_sets = {"blooms": [], "blooms_peak": []}
     bud_spec = bloom_spec.get("bud") if bud else None
     sets = {"blooms": ([], [], []), "blooms_peak": ([], [], [])}
     bud_sets = {"blooms": ([], [], []), "blooms_peak": ([], [], [])}
@@ -1115,11 +1158,13 @@ def place_blooms(bush, blooms, base_spec, bloom_spec, flower, bloom_mat, tag, su
         # the tree version of the azalea"); another place makes it up.
         if len(placed) < max(1, math.ceil(bloom_spec.get("keep", 0.0) * len(members))):
             return False
+        own = shade_rng.randrange(shades)
         for at, turn, size, disc in made:
             points.append(at)
             turns.append(turn)
             sizes.append(size)
             discs.append(disc)
+            shade_sets[season].append(min(shades - 1, max(0, own + shade_rng.randint(-1, 1))))
         # Buds (her "flower buds need to be added"): `count` closed buds just
         # past this group's rim, each standing out of the leaves as built,
         # leaning away from the flowers, its foot tucked in among them; the
@@ -1417,6 +1462,8 @@ def place_blooms(bush, blooms, base_spec, bloom_spec, flower, bloom_mat, tag, su
         pm.from_pydata([tuple(p) for p in points], [], [])
         pm.attributes.new("kyt_turn", "FLOAT_VECTOR", "POINT").data.foreach_set("vector", [c for e in turns for c in e])
         pm.attributes.new("kyt_size", "FLOAT", "POINT").data.foreach_set("value", sizes)
+        if card is flower:
+            pm.attributes.new("kyt_shade", "FLOAT", "POINT").data.foreach_set("value", shade_sets[group])
         pm.materials.append(bloom_mat)  # a slot, as the Purple Heart's leaf points carry; the card's own material shows
         placed_obj = bpy.data.objects.new(name + suffix, pm)
         placed_obj["kyt_collision"] = "none"
@@ -1425,6 +1472,10 @@ def place_blooms(bush, blooms, base_spec, bloom_spec, flower, bloom_mat, tag, su
         bmod = placed_obj.modifiers.new(bng.name, "NODES")
         bmod.node_group = bng
         plant_blades._set(bmod, bng, {"Bloom": card})
+        if card is flower:
+            # A shade's copy is a `1 / (slots x shades)` of the canvas along
+            # from the last (`unwrap_blades.py` keeps the card that narrow).
+            plant_blades._set(bmod, bng, {"Shade step": 1.0 / (bloom_spec["slots"] * shades)})
         counts[name] = len(points)
     return counts
 
@@ -1578,6 +1629,7 @@ def main():
         flower = bpy.data.objects.new("blade_bloom", bloom_card("blade_bloom", bloom_spec["radius"], bloom_spec["dome"],
                                                                 bloom_mat, bloom_spec.get("sides", 4)))
         flower["kyt_slots"] = bloom_spec["slots"]  # its colourways, painted side by side on the canvas
+        flower["kyt_shades"] = bloom_spec.get("shades", 1)  # and each colourway's shades, side by side inside its slot
         blades.objects.link(flower)
     bud = None
     if bloom_spec and bloom_spec.get("bud"):

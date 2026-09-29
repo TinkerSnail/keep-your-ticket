@@ -172,7 +172,9 @@ def main():
     islands.sort(key=lambda t: -t[2][1])
     # A slotted blade (a bush's bloom card, `kyt_slots`: one copy of its island
     # per colourway, painted a `1 / slots` of the canvas apart) goes top left,
-    # no wider than its slot; the rest pack into the canvas below it.
+    # no wider than its slot; the rest pack into the canvas below it. With
+    # `kyt_shades`, each colourway's copies in every shade lie side by side in
+    # its slot, a `1 / shades` of it apart, so it is no wider than that.
     slotted = [t for t in islands if t[0].get("kyt_slots")]
     islands = [t for t in islands if not t[0].get("kyt_slots")]
 
@@ -183,9 +185,13 @@ def main():
     for _ in range(40):
         d = (lo + hi) / 2
         band = 0
-        for _, _, (w, h) in slotted:
-            if int(w * d) + 1 + 2 * GAP_PX > size // int(slotted[0][0]["kyt_slots"]):
+        for obj, _, (w, h) in slotted:
+            slot = size // int(slotted[0][0]["kyt_slots"])
+            if int(w * d) + 1 + 2 * GAP_PX > slot:
                 band = size  # too wide for its slot
+            shades = int(obj.get("kyt_shades", 1))
+            if shades > 1 and int(w * d) + 1 + GAP_PX > slot // shades:
+                band = size  # too wide for its shades
             band += int(h * d) + 1 + GAP_PX
         at = skyline([(int(w * d) + 1, int(h * d) + 1) for _, _, (w, h) in islands], size, size - band) \
             if band < size else None
