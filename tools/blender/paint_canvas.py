@@ -2497,13 +2497,16 @@ def leaflet_canvas(argv, name, root, folder, size, orm_size):
 # `px_m` pixels a metre.
 BARK = {
     # Full strength (her "the texture on the trunk can be full opacity", after
-    # a subtle 0.3 and 0.1). `knot`: the stubs' end grain (her "the holes
+    # a subtle 0.3 and 0.1); the grooves shaded 0.1 (her "the dark grooves of
+    # the trunk grain is too dark and looks a little unsettling", at 0.33;
+    # trials at 0.33, 0.2, 0.1 and 0 in the oak's screenshots,
+    # `oak_v28_groove_trials.png`). `knot`: the stubs' end grain (her "the holes
     # should have a knot inside kind of like this"), `<prop>_knot.png`, a disc
     # `size` pixels: wavy growth rings `rings` from the pith out, `wood` and
     # `ring` (sRGB) alternating, a dark pith, `cracks` radial cracks
     # (`crack`), weathered blotches up to `mottle` darker, and from `rim` of the
     # way out a crack (`rim_colour`) all round to the edge.
-    "coastal_live_oak": dict(colour=(0.34, 0.28, 0.22), highlight=(0.50, 0.30, 0.22), lift=1.0, groove=0.33,
+    "coastal_live_oak": dict(colour=(0.34, 0.28, 0.22), highlight=(0.50, 0.30, 0.22), lift=1.0, groove=0.1,
                              ridges=8, tile=(1.0, 2.0), px_m=512, seed=31,
                              # Aged (her "the new knot themselves can be darker and
                              # aged"), the rim dark, not black (her "i see some black
@@ -2516,6 +2519,12 @@ BARK = {
                              knot=dict(size=256, rings=7, from_bark=True, rim_dark=0.25, crack_dark=0.55, mottle=0.1,
                                        cracks=5, rim=0.86, seed=32)),
 }
+# The azalea trees' trunks the same (her "give the same treatment to the
+# texture of the shrub trees"): the oak's grain, highlight and grooves over
+# their own bark colour (`leaf_skin.py`'s `trunk` `colour`); no knots.
+for _tree in ("azalea_tree", "azalea_tree_sphere"):
+    BARK[_tree] = {k: v for k, v in BARK["coastal_live_oak"].items() if k != "knot"}
+    BARK[_tree]["colour"] = (0.36, 0.26, 0.18)
 
 
 def save_image(name, colour, path):

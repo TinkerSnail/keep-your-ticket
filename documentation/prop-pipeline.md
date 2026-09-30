@@ -143,7 +143,12 @@ each leaf against Godot's. Godot's front face is clockwise and Blender's
 counter-clockwise, so every script triangle goes in reversed. Send merges the
 leaves; a set only some placements show (the Hakone vB's young blades) carries
 `kyt_merge_group` and goes as its own object, which the plant's Godot scene
-shows or hides. The existing Godot scene is kept and wraps the GLB, so every
+shows or hides. A plant built in variants (the coast live oak's a, b and c,
+2026-09-29) marks each part `kyt_variant`; Send writes each variant as its own
+set, `<prop>_<variant>-col`, `_visual` and `_<group>`, so the wrapper shows one
+and collides with that one only. Season canvases beside the colour
+(`<prop>_colour_spring.png`, `_fall`, `_winter`) are copied beside the GLB by
+Send, for the wrapper to put on by chapter. The existing Godot scene is kept and wraps the GLB, so every
 placement stays where it was. `tools/_plant_migration_probe.gd` takes the
 before and after frames. **The Purple Heart** (2026-09-28), whose leaves
 spiral up a stem rather than bend along courses, keeps the same pieces

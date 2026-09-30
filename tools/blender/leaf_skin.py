@@ -51,7 +51,7 @@ import sys
 
 import bmesh
 import bpy
-from mathutils import Matrix, Vector
+from mathutils import Euler, Matrix, Vector
 from mathutils.bvhtree import BVHTree
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -359,7 +359,10 @@ SPECIES = {
         # large was the medium blown up 1.3 times, a tall egg on a stub).
         sizes={"small": dict(scale=0.75, tall=0.75, lift=0.85), "medium": 1.0,
                "large": dict(scale=1.3, tall=1.12, lift=1.6)},
-        trunk=dict(height=1.2, radius=(0.075, 0.05), colour=((0.36, 0.26, 0.18), 0.9)),
+        # The bark's grain as on the oak (her "give the same treatment to the
+        # texture of the shrub trees"): unwrapped round and along for
+        # `paint_canvas.py --bark`'s tile, `tile` metres round and along.
+        trunk=dict(height=1.2, radius=(0.075, 0.05), colour=((0.36, 0.26, 0.18), 0.9), tile=(1.0, 2.0)),
         leaf=dict(colour=(0.40, 0.68, 0.26), rough=0.7),
         core=((0.16, 0.36, 0.13), 0.9),
         dome=dict(courses=0, cap_down=64.0, cap_flare=0.15, crown_turn=22.5, roundness=0.3, core=False, seed=4),
@@ -538,6 +541,20 @@ SPECIES["coastal_live_oak"] = dict(
                # larger branches and even more on the central trunk"): `tile_grow`.
                tile=(1.0, 2.0), tile_grow=(0.2, 0.7), knot_colour=((0.62, 0.46, 0.28), 1.0),
                knots=dict(count=5, radius=(0.28, 0.4), on=6, along=(0.3, 0.7), seed=29)),
+    # Variants (her "we need to randomize the branches and stuff", a few oaks
+    # the game picks between, so two side by side don't match): `a` is the oak
+    # above as she approved it; each other is built from its own `seed` (the
+    # hats' places and spins, each tier's first bearing, the leaf clusters,
+    # acorns, buds, litter and knots), its lower tiers drooping toward
+    # `droop_to` degrees (a's 180, the photo's left), the whole tree leaning
+    # `lean` (bearing, metres at the top hat) from its foot, on `majors` major
+    # limbs (`variant_spec`). The same cards, canvases and materials. Each
+    # variant's parts carry `kyt_variant`, so Send writes them as
+    # `<prop>_<variant>...` and the Godot wrapper's `variant` shows one; b and
+    # c stand at the origin with a, in `export/variant_b` and `variant_c`,
+    # hidden in the viewport: click their eyes to see them.
+    variants=dict(b=dict(seed=41, droop_to=60.0, lean=(60.0, 0.7), majors=3),
+                  c=dict(seed=61, droop_to=250.0, lean=(300.0, 0.5), majors=5)),
 )
 BLOOM_CLEAR = 0.01  # a bloom rests this far off the leaves it touches
 BLOOM_FLOAT = 0.03  # a bloom whose middle ends further than this off the leaves is left out (her "i see some floating flowers")
@@ -1062,17 +1079,29 @@ def blooms_on_points_group():
 
 def add_trunk(t, scale, lift, stem, home, suffix, tag):
     """The tree form's bare trunk, six-sided and tapering from its foot, its height and girth scaled with the crown. In a collection of its
-    own, as the blooms are: merged on Send (with its size's body), plain bark,
-    not a leaf-canvas island."""
+    own, as the blooms are: merged on Send (with its size's body), bark, not
+    a leaf-canvas island. With `tile`, unwrapped as the oak's limbs are
+    (`limb_mesh`): a whole number of tiles round by its mean girth, metres
+    along, for `paint_canvas.py --bark`."""
     bark = plant_blades.material(f"{stem}_trunk", *t["colour"], double_sided=False)
     tm = bpy.data.meshes.new(f"trunk{suffix}")
     bm = bmesh.new()
     rings = [[bm.verts.new((r * scale * math.cos(k / 6 * math.tau), r * scale * math.sin(k / 6 * math.tau), z * lift))
               for k in range(6)]
              for r, z in ((t["radius"][0] * 1.3, 0.0), (t["radius"][1], t["height"]))]
+    tile = t.get("tile")
+    uv = bm.loops.layers.uv.new("UVMap") if tile else None
+    if tile:
+        mean_r = (t["radius"][0] * 1.3 + t["radius"][1]) / 2 * scale
+        around = max(1, round(math.tau * mean_r / tile[0]))
+        top = t["height"] * lift / tile[1]
     for lo, hi in zip(rings, rings[1:]):
         for k in range(6):
-            bm.faces.new((lo[k], lo[(k + 1) % 6], hi[(k + 1) % 6], hi[k]))
+            f = bm.faces.new((lo[k], lo[(k + 1) % 6], hi[(k + 1) % 6], hi[k]))
+            if uv:
+                u0, u1 = k / 6 * around, (k + 1) / 6 * around
+                for loop, co in zip(f.loops, ((u0, 0.0), (u1, 0.0), (u1, top), (u0, top))):
+                    loop[uv].uv = co
     for f in bm.faces:
         f.smooth = True
     bm.to_mesh(tm)
@@ -1922,6 +1951,41 @@ def clump_skin_group():
     return ng
 
 
+def leaned(p, crown):
+    """Point `p` with the tree's `lean` (bearing in degrees, metres at the top
+    hat's height) sheared in from its foot: the higher, the further over."""
+    if not crown.get("lean"):
+        return Vector(p)
+    bearing, metres = crown["lean"]
+    k = metres * p[2] / max(up for _, _, up, _, _ in crown["tiers"])
+    return Vector((p[0] + k * math.cos(math.radians(bearing)), p[1] + k * math.sin(math.radians(bearing)), p[2]))
+
+
+def variant_spec(spec, change):
+    """The oak `spec` as one of its `variants` builds it (`change`: `seed`,
+    `droop_to`, `lean`, `majors`); `spec` itself for `a`, which has none. Each
+    tier's first hat at a bearing drawn from the seed; the other randoms
+    seeded from it in turn."""
+    if not change:
+        return spec
+    seed = change["seed"]
+    rng = random.Random(seed)
+    crown = dict(spec["crown"], seed=seed, droop_to=change["droop_to"], lean=change["lean"],
+                 tiers=[(n, out, up, r, rng.uniform(0.0, 360.0 / n)) for n, out, up, r, _ in spec["crown"]["tiers"]])
+    a = spec["acorns"]
+    acorns = dict(a, seed=seed + 2, ground=dict(a["ground"], seed=seed + 3), buds=dict(a["buds"], seed=seed + 5))
+    # The trunk leans from the top of its flare, so its foot stands level (from
+    # the ground, its ring tipped 6 to 8 cm into it).
+    flare = spec["limbs"]["trunk"][1][0][2]
+
+    def lean_trunk(p):
+        d = leaned((0.0, 0.0, max(p[2] - flare, 0.0)), crown)
+        return (p[0] + d.x, p[1] + d.y, p[2])
+    limbs = dict(spec["limbs"], majors=change["majors"], knots=dict(spec["limbs"]["knots"], seed=seed + 8),
+                 trunk=[(lean_trunk(p), r) for p, r in spec["limbs"]["trunk"]])
+    return dict(spec, crown=crown, strays=dict(spec["strays"], seed=seed + 1), acorns=acorns, limbs=limbs)
+
+
 def clump_points(name, crown, apex_up, rim_up):
     """The clumps' places as a points object: `crown["tiers"]`, rings of
     hats, each by its top and its ball's radius, put off true by `jitter` and
@@ -1936,7 +2000,7 @@ def clump_points(name, crown, apex_up, rim_up):
     (its `kyt_pivot` then comes from the next build). Also each hat: its top,
     axis, size and tier."""
     rng = random.Random(crown["seed"])
-    centre = Vector(crown["centre"])
+    centre = leaned(crown["centre"], crown)
     jo, ju, ja, jr = crown["jitter"]
     tops = []
     for k, (count, out, up, radius, first) in enumerate(crown["tiers"]):
@@ -1944,9 +2008,13 @@ def clump_points(name, crown, apex_up, rim_up):
             a = math.radians(first + j * 360.0 / count + rng.uniform(-ja, ja))
             far, z = out + rng.uniform(-jo, jo), up + rng.uniform(-ju, ju)
             if k >= len(crown["tiers"]) - 2 and count > 1:
-                toward = max(0.0, -math.cos(a))  # the photo's left
+                if "droop_to" in crown:  # a variant's side
+                    toward = max(0.0, math.cos(a - math.radians(crown["droop_to"])))
+                else:
+                    toward = max(0.0, -math.cos(a))  # the photo's left
                 far, z = far + crown["droop"][0] * toward, z - crown["droop"][1] * toward
-            tops.append((Vector((far * math.cos(a), far * math.sin(a), z)), radius + rng.uniform(-jr, jr) * (count > 1), k))
+            top = leaned((far * math.cos(a), far * math.sin(a), z), crown)
+            tops.append((top, radius + rng.uniform(-jr, jr) * (count > 1), k))
     points, turns, sizes, hats = [], [], [], []
     for top, r, tier in tops:
         out = (top - centre).normalized() if (top - centre).length > 1e-6 else Vector((0.0, 0.0, 1.0))
@@ -2200,7 +2268,7 @@ def hat_branches(hats, limbs, hold):
     return paths
 
 
-def place_acorns(crown_obj, home, acorns, brown, green, sprouts, bud=None):
+def place_acorns(crown_obj, home, acorns, brown, green, sprouts, bud=None, suffix=""):
     """The acorns (`acorns`): hanging from the hats' brims as built, the open
     edges of the crown's cards, each brim point kept where nothing of the
     crown lies outside it and not by a sprout (`sprouts`, (place, reach));
@@ -2212,7 +2280,7 @@ def place_acorns(crown_obj, home, acorns, brown, green, sprouts, bud=None):
     (`fall_acorns`), each point its card by `kyt_blooms_on_points` (move a
     point to move an acorn); `winter` of them brown in `winter_acorns`; with
     `bud`, spring's `buds` at those places and more, up and out
-    (`spring_buds`). Their counts."""
+    (`spring_buds`). A variant's names end in its `suffix`. Their counts."""
     bpy.context.view_layer.update()
     ev = crown_obj.evaluated_get(bpy.context.evaluated_depsgraph_get()).data
     surface = BVHTree.FromPolygons([v.co.copy() for v in ev.vertices], [tuple(p.vertices) for p in ev.polygons])
@@ -2258,15 +2326,15 @@ def place_acorns(crown_obj, home, acorns, brown, green, sprouts, bud=None):
             rot = axis.to_track_quat("Z", "Y") @ Matrix.Rotation(rng.uniform(0, math.tau), 3, "Z").to_quaternion()
             turns.append(rot.to_euler())
             sizes.append(rng.uniform(0.9, 1.1))
-    coll = bpy.data.collections.new("acorns")
+    coll = bpy.data.collections.new(f"acorns{suffix}")
     home.children.link(coll)
     for name, card, group in (("acorns_summer", green, "summer_acorns"), ("acorns_fall", brown, "fall_acorns")):
-        on_points(name, card, group, coll, points, turns, sizes)
+        on_points(name + suffix, card, group, coll, points, turns, sizes)
     counts = dict(hanging=len(points))
     if acorns.get("winter"):
         # Winter's few: brown, where some of the acorns hang, their own random.
         keep = random.Random(acorns["seed"] + 1).sample(range(len(points)), min(acorns["winter"], len(points)))
-        on_points("acorns_winter", brown, "winter_acorns", coll, [points[i] for i in keep], [turns[i] for i in keep],
+        on_points(f"acorns_winter{suffix}", brown, "winter_acorns", coll, [points[i] for i in keep], [turns[i] for i in keep],
                   [sizes[i] for i in keep])
         counts["winter"] = len(keep)
     if buds:
@@ -2295,7 +2363,7 @@ def place_acorns(crown_obj, home, acorns, brown, green, sprouts, bud=None):
                 pts.append(hit - axis * buds["bud"][0] * 0.15)
                 trs.append(rot.to_euler())
                 szs.append(brng.uniform(0.9, 1.1))
-        on_points("buds_spring", bud, "spring_buds", coll, pts, trs, szs)
+        on_points(f"buds_spring{suffix}", bud, "spring_buds", coll, pts, trs, szs)
         counts["buds"] = len(pts)
     return counts
 
@@ -2330,12 +2398,15 @@ def fallen_leaf_card(name, length, material):
     return card_mesh(name, verts, [(0, 1, 2), (0, 2, 3)], material, [(x, y + length / 2) for x, y, _ in verts])
 
 
-def place_ground(home, ground, radius, acorn, leaves, acorn_spec):
+def place_ground(home, ground, radius, acorn, leaves, acorn_spec, suffix=""):
     """Fall's litter under the tree (`ground`): `acorns` acorns lying on their
     sides and `leaves` leaves flat on the soil, each on one of the `leaves`
     cards, scattered evenly by area between `from_trunk` metres off the trunk
-    and `reach` of the crown's `radius`, turned any way. In merge group
-    `fall_ground`. Their counts."""
+    and `reach` of the crown's `radius`, turned any way, each resting on the
+    soil: its lowest point at z = 0, so that Send's ground check (5 mm) passes;
+    sunk into it, the acorns' ends and the tipped leaves' edges went 1 to 4 cm
+    under. In merge group `fall_ground`; a variant's names end in its `suffix`.
+    Their counts."""
     rng = random.Random(ground["seed"])
     inner, outer = ground["from_trunk"], ground["reach"] * radius
 
@@ -2344,31 +2415,39 @@ def place_ground(home, ground, radius, acorn, leaves, acorn_spec):
         a = rng.uniform(0, math.tau)
         return Vector((r * math.cos(a), r * math.sin(a), 0.0))
 
-    coll = bpy.data.collections.new("fall_ground")
+    def rest(card, at, turn, size):
+        # How the card sits turned and sized (`kyt_blooms_on_points`), lifted
+        # until its lowest point touches the soil.
+        turned = Euler(turn).to_matrix()
+        low = min((turned @ (v.co * size)).z for v in card.data.vertices)
+        return Vector((at.x, at.y, -low))
+
+    coll = bpy.data.collections.new(f"fall_ground{suffix}")
     home.children.link(coll)
-    # Acorns on their sides: the spindle's axis level, its middle just above
-    # the soil (sunk a little into it).
+    # Acorns on their sides: the spindle's axis nearly level.
     pts, turns, sizes = [], [], []
     for _ in range(ground["acorns"]):
         at = spot()
         size = rng.uniform(0.9, 1.1)
         rot = (Matrix.Rotation(rng.uniform(0, math.tau), 3, "Z") @ Matrix.Rotation(math.radians(90 + rng.uniform(-8, 8)), 3, "X"))
-        pts.append(at + Vector((0.0, 0.0, acorn_spec["width"] * 0.4 * size)))
+        pts.append(rest(acorn, at, rot.to_euler(), size))
         turns.append(rot.to_euler())
         sizes.append(size)
-    on_points("fallen_acorns", acorn, "fall_ground", coll, pts, turns, sizes)
-    # Leaves flat, a centimetre up, tipped a few degrees.
+    on_points(f"fallen_acorns{suffix}", acorn, "fall_ground", coll, pts, turns, sizes)
+    # Leaves flat, tipped a few degrees.
     for k, card in enumerate(leaves):
         pts, turns, sizes = [], [], []
         for _ in range(ground["leaves"] // len(leaves) + (k < ground["leaves"] % len(leaves))):
-            pts.append(spot() + Vector((0.0, 0.0, 0.01)))
+            at = spot()
             turns.append((math.radians(rng.uniform(-4, 4)), math.radians(rng.uniform(-4, 4)), rng.uniform(0, math.tau)))
             sizes.append(rng.uniform(0.85, 1.1))
-        on_points(f"fallen_leaves_{'abc'[k]}", card, "fall_ground", coll, pts, turns, sizes)
+            pts.append(rest(card, at, turns[-1], sizes[-1]))
+        on_points(f"fallen_leaves_{'abc'[k]}{suffix}", card, "fall_ground", coll, pts, turns, sizes)
     return ground["acorns"], ground["leaves"]
 
 
-def build_crown(name, spec, export, layout, card, body, topper, dome, core_mat, stem, sprig=None, leaf_mat=None):
+def build_crown(name, spec, export, layout, card, body, topper, dome, core_mat, stem, sprig=None, leaf_mat=None,
+                tag="a", home=None, cards=None):
     """A tree whose crown is clumps of a sphere shrub's unit (`crown`), its hat
     and topper and, unless `hats_only`, its ball, over a trunk and limbs
     (`limbs`): `export/crown`, the core, wearing the clumps through its
@@ -2378,15 +2457,21 @@ def build_crown(name, spec, export, layout, card, body, topper, dome, core_mat, 
     with `acorns`, the season's acorns and fall's litter (`place_acorns`,
     `place_ground`), each season's its own merge group: spring's buds,
     summer's and fall's acorns, fall's ground, winter's acorns; the foliage
-    the same all year, each season's colours its canvas. One size."""
+    the same all year, each season's colours its canvas. One size.
+    One variant (`tag`, `variant_spec`), its parts in `home` (`export` for
+    a), their names ending `_<tag>` but a's; the cards it makes go in `cards`
+    and the next variant wears them."""
     crown = spec["crown"]
-    obj = bpy.data.objects.new("crown", lathe("crown", crown["core"], core_mat))
-    export.objects.link(obj)
+    home = home or export
+    cards = {} if cards is None else cards
+    sfx = "" if tag == "a" else f"_{tag}"
+    obj = bpy.data.objects.new(f"crown{sfx}", lathe(f"crown{sfx}", crown["core"], core_mat))
+    home.objects.link(obj)
     obj["kyt_collision"] = "none"
     obj["kyt_leaf_blades"] = True  # unwrap_blades.py lays out the unit it places
     hat_lift = dome_rings(spec["body"])[-1][1] - dome["crown_sink"]  # up the unit's axis from its pivot
     hat_depth = dome_rings(dome)[-1][1]
-    spots, hats = clump_points("clumps", crown, hat_lift + hat_depth, hat_lift)
+    spots, hats = clump_points(f"clumps{sfx}", crown, hat_lift + hat_depth, hat_lift)
     # The upper tier: its top `rise` over the hat's, so that its brim stands
     # `proud` over the hat's leaves at the brim's reach.
     rise, hold = 0.0, hat_depth * 0.5  # hold: how far under the top hat's top its branch ends
@@ -2405,13 +2490,18 @@ def build_crown(name, spec, export, layout, card, body, topper, dome, core_mat, 
     mod.node_group = ng
     plant_blades._set(mod, ng, {"Hat": card, "Topper": topper, "Clumps": spots, "Hat lift": hat_lift,
                                 "Hat turn": math.radians(dome["crown_turn"]), "Roundness": dome["roundness"],
-                                "Centre": crown["centre"], "Show core": dome["core"], "Topper lift": rise})
-    upper_card = None
+                                "Centre": leaned(crown["centre"], crown), "Show core": dome["core"],
+                                "Topper lift": rise})
+    upper_card = cards.get("upper")
+    made = [] if cards else [card, body, topper, sprig]  # the cards this variant makes
     if upper:
         upper_dome = dict(dome, reach=dome["reach"] * upper["scale"])
-        upper_card = bpy.data.objects.new("blade_upper", dome_card("blade_upper", upper_dome, leaf_mat))
-        upper_card["kyt_around"] = card["kyt_around"]
-        card.users_collection[0].objects.link(upper_card)
+        if upper_card is None:
+            upper_card = bpy.data.objects.new("blade_upper", dome_card("blade_upper", upper_dome, leaf_mat))
+            upper_card["kyt_around"] = card["kyt_around"]
+            card.users_collection[0].objects.link(upper_card)
+            cards["upper"] = upper_card
+            made.append(upper_card)
         plant_blades._set(mod, ng, {"Upper hat": upper_card, "Upper scale": 1.0,
                                     "Upper lift": hat_lift + hat_depth + rise - dome_rings(upper_dome)[-1][1],
                                     "Upper turn": math.radians(dome["crown_turn"] + upper["turn"])})
@@ -2424,10 +2514,10 @@ def build_crown(name, spec, export, layout, card, body, topper, dome, core_mat, 
     paths = [(limbs["sides"], limbs["trunk"])] + hat_branches(hats, limbs, hold)
     knots = knot_spots(paths, limbs["knots"]) if limbs.get("knots") else ()
     hole = plant_blades.material(f"{stem}_knot", *limbs["knot_colour"], double_sided=False) if knots else None
-    trunk = bpy.data.objects.new("trunk", limb_mesh("trunk", paths, bark, limbs.get("tile"), knots, hole,
-                                                    limbs.get("tile_grow")))
-    coll = bpy.data.collections.new("trunk")
-    export.children.link(coll)
+    trunk = bpy.data.objects.new(f"trunk{sfx}", limb_mesh(f"trunk{sfx}", paths, bark, limbs.get("tile"), knots, hole,
+                                                          limbs.get("tile_grow")))
+    coll = bpy.data.collections.new(f"trunk{sfx}")
+    home.children.link(coll)
     coll.objects.link(trunk)
     sprig_tris = 0
     if sprig is not None:
@@ -2440,42 +2530,49 @@ def build_crown(name, spec, export, layout, card, body, topper, dome, core_mat, 
         base = dict(width=wide, height=hi - lo, lift=lo, square=2.0)
         clear = [(h["top"] + h["axis"] * rise * h["size"], spec["body"]["topper"]["length"] * h["size"] * 1.2)
                  for h in hats]
-        place_sprigs(obj, export, base, spec["strays"], sprig, leaf_mat, "", "", avoid=clear)
-        sprigs = bpy.data.objects["sprigs"]
+        place_sprigs(obj, home, base, spec["strays"], sprig, leaf_mat, "", sfx, avoid=clear)
+        sprigs = bpy.data.objects[f"sprigs{sfx}"]
         del sprigs["kyt_merge_group"]  # one size: they go with the crown
         sprig_tris = sum(len(p.vertices) - 2 for p in sprigs.evaluated_get(bpy.context.evaluated_depsgraph_get()).data.polygons)
     acorn_cards, acorn_counts = (), {}
     if spec.get("acorns"):
         a = spec["acorns"]
-        acorn_cards = tuple(bpy.data.objects.new(n, bud_card(n, a["length"], a["width"], leaf_mat))
-                            for n in ("blade_acorn", "blade_acorn_green"))
-        bud = bpy.data.objects.new("blade_leaf_bud", bud_card("blade_leaf_bud", *a["buds"]["bud"], leaf_mat)) \
-            if a.get("buds") else None
-        fallen = tuple(bpy.data.objects.new(f"blade_fallen_{c}", fallen_leaf_card(f"blade_fallen_{c}",
-                                                                                 a["ground"]["leaf_length"], leaf_mat))
-                       for c in "abc") if a.get("ground") else ()
-        acorn_cards += fallen + ((bud,) if bud else ())
-        for c in acorn_cards:
-            card.users_collection[0].objects.link(c)
+        if "acorns" not in cards:
+            acorn_cards = tuple(bpy.data.objects.new(n, bud_card(n, a["length"], a["width"], leaf_mat))
+                                for n in ("blade_acorn", "blade_acorn_green"))
+            bud = bpy.data.objects.new("blade_leaf_bud", bud_card("blade_leaf_bud", *a["buds"]["bud"], leaf_mat)) \
+                if a.get("buds") else None
+            fallen = tuple(bpy.data.objects.new(f"blade_fallen_{c}", fallen_leaf_card(f"blade_fallen_{c}",
+                                                                                     a["ground"]["leaf_length"], leaf_mat))
+                           for c in "abc") if a.get("ground") else ()
+            acorn_cards += fallen + ((bud,) if bud else ())
+            for c in acorn_cards:
+                card.users_collection[0].objects.link(c)
+            cards["acorns"] = (acorn_cards, bud, fallen)
+            made += acorn_cards
+        acorn_cards, bud, fallen = cards["acorns"]
         sprouts = [(h["top"] + h["axis"] * rise * h["size"], spec["body"]["topper"]["length"] * h["size"] * 1.2)
                    for h in hats]
-        acorn_counts = place_acorns(obj, export, a, acorn_cards[0], acorn_cards[1], sprouts, bud)
+        acorn_counts = place_acorns(obj, home, a, acorn_cards[0], acorn_cards[1], sprouts, bud, sfx)
         if fallen:
             bpy.context.view_layer.update()
             ev = obj.evaluated_get(bpy.context.evaluated_depsgraph_get()).data
             radius = max(v.co.xy.length for v in ev.vertices)
-            acorn_counts["ground"] = place_ground(export, a["ground"], radius, acorn_cards[0], fallen, a)
+            acorn_counts["ground"] = place_ground(home, a["ground"], radius, acorn_cards[0], fallen, a, sfx)
     # The blades beside the tree, not in it.
-    for blade in (b for b in (card, upper_card, body, topper, sprig) + acorn_cards if b):
+    for blade in (b for b in made if b):
         blade.location.x += max(out + 3.0 * r for _, out, _, r, _ in crown["tiers"]) + 1.0
+    for part in home.all_objects:  # a is built first, alone in `export`
+        if part.type == "MESH":
+            part["kyt_variant"] = tag  # Send writes each variant's parts as `<prop>_<tag>...`
     bpy.context.view_layer.update()
     dg = bpy.context.evaluated_depsgraph_get()
     ev = obj.evaluated_get(dg).data
     tris = sum(len(p.vertices) - 2 for p in ev.polygons)
     bark_tris = sum(len(p.vertices) - 2 for p in trunk.data.polygons)
     xs, ys, zs = ([v.co[i] for v in ev.vertices] for i in range(3))
-    print(f"leaf_skin: {name}: {len(spots.data.vertices)} clumps, {tris} triangles in the crown (core and clumps), "
-          f"{sprig_tris} in {len(bpy.data.objects['sprigs'].data.vertices) if sprig else 0} stray leaf clusters, "
+    print(f"leaf_skin: {name} {tag}: {len(spots.data.vertices)} clumps, {tris} triangles in the crown (core and clumps), "
+          f"{sprig_tris} in {len(bpy.data.objects[f'sprigs{sfx}'].data.vertices) if sprig else 0} stray leaf clusters, "
           f"{acorn_counts.get('hanging', 0)} acorns ({8 * acorn_counts.get('hanging', 0)} triangles, green in summer, "
           f"brown in fall, {acorn_counts.get('winter', 0)} in winter), {acorn_counts.get('buds', 0)} buds in spring "
           f"({8 * acorn_counts.get('buds', 0)} triangles), on the ground in fall {acorn_counts.get('ground', (0, 0))[0]} "
@@ -2573,7 +2670,15 @@ def main():
         blades.objects.link(sprig)
     plant_blades.lay_out_blades([b for b in (card, body, tier, topper, flower, bud, bud_green, sprig) if b])
     if spec.get("crown"):
-        build_crown(name, spec, export, layout, card, body, topper, dome, core_mat, stem, sprig, leaf_mat)
+        cards = {}
+        build_crown(name, spec, export, layout, card, body, topper, dome, core_mat, stem, sprig, leaf_mat, cards=cards)
+        for tag, change in spec.get("variants", {}).items():
+            home = bpy.data.collections.new(f"variant_{tag}")
+            export.children.link(home)
+            build_crown(name, variant_spec(spec, change), export, layout, card, body, topper, dome, core_mat, stem,
+                        sprig, leaf_mat, tag, home, cards)
+            # Hidden once built (its acorns and clusters are placed on it as evaluated).
+            bpy.context.view_layer.layer_collection.children["export"].children[f"variant_{tag}"].hide_viewport = True
         bpy.context.scene["kyt_godot_scene"] = spec["godot"]
         bpy.ops.wm.save_mainfile()
         print("leaf_skin: saved")

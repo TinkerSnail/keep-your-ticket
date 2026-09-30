@@ -21,6 +21,16 @@ with the custom property `kyt_merge_group = "<group>"` merge into their own
 object, `<name>_<group>`, beside the rest (the Hakone grass's six young courses,
 which only its vB clump shows). They never collide.
 
+**Variants** (parts marked `kyt_variant = "<variant>"`: the coast live oak's
+a, b and c, 2026-09-29) go each as a prop of its own, `<name>_<variant>-col`,
+`<name>_<variant>_visual` and `<name>_<variant>_<group>`, so the game shows one
+and collides with that one only.
+
+**Season canvases** (`paint_canvas.py`'s `seasons`: the oak's
+`<name>_colour_spring.png`, `_fall`, `_winter`, beside its colour) are copied
+to `assets/props/` beside the GLB, where the prop's wrapper puts each on in its
+season; the GLB carries the colour itself.
+
 **Unless the game chooses parts.** A file whose scene has `kyt_keep_parts`
 (the palm crown, where each tree shows its own choice of fronds) sends every
 part as its own node, named as in `export`, its modifiers applied; the game
@@ -39,6 +49,7 @@ file, its selection and its undo history are as they were.
 
 import json
 import os
+import shutil
 
 import bmesh
 import bpy
@@ -168,17 +179,22 @@ def run(context):
         temp = [_merged(context, [o], f"{o.name}-col") for o in objects if wants_collision(o)]
         export_set = temp + [o for o in objects if not wants_collision(o)]
     else:
-        solid = _merged(context, [o for o in objects
-                                  if wants_collision(o) and not o.get("kyt_merge_group")], f"{stem}-col")
-        groups = {}
-        for o in objects:
-            if o.get("kyt_merge_group") or not wants_collision(o):
-                groups.setdefault(str(o.get("kyt_merge_group", "")), []).append(o)
-        visual = [_merged(context, parts, f"{stem}_{group or 'visual'}")
-                  for group, parts in sorted(groups.items())]
-        hinges = _split_hinged(solid) if solid is not None else []
-        hinge_names = [o.name for o in hinges]
-        temp = [o for o in [solid] + visual + hinges if o is not None]
+        temp = []
+        variants = sorted({str(o.get("kyt_variant", "")) for o in objects})
+        for variant in variants:
+            parts = [o for o in objects if str(o.get("kyt_variant", "")) == variant]
+            prefix = f"{stem}_{variant}" if variant else stem
+            solid = _merged(context, [o for o in parts
+                                      if wants_collision(o) and not o.get("kyt_merge_group")], f"{prefix}-col")
+            groups = {}
+            for o in parts:
+                if o.get("kyt_merge_group") or not wants_collision(o):
+                    groups.setdefault(str(o.get("kyt_merge_group", "")), []).append(o)
+            visual = [_merged(context, group_parts, f"{prefix}_{group or 'visual'}")
+                      for group, group_parts in sorted(groups.items())]
+            hinges = _split_hinged(solid) if solid is not None else []
+            hinge_names += [o.name for o in hinges]
+            temp += [o for o in [solid] + visual + hinges if o is not None]
         export_set = list(temp)
 
     try:
@@ -217,12 +233,27 @@ def run(context):
         if previous_mode != "OBJECT" and previous_active is not None:
             bpy.ops.object.mode_set(mode=previous_mode)
 
+    copied = []
+    for season in ("spring", "summer", "fall", "winter"):
+        src = os.path.join(root, "assets", "source", "textures", stem, f"{stem}_colour_{season}.png")
+        dst = os.path.join(os.path.dirname(out), os.path.basename(src))
+        if not os.path.exists(src):
+            continue
+        if not os.path.exists(dst) or open(src, "rb").read() != open(dst, "rb").read():
+            shutil.copyfile(src, dst)  # only when changed: Godot imports it again
+        copied.append(season)
+
     size_kb = os.path.getsize(out) / 1024
     kept = "each its own node" if keep_parts else "merged into one"
+    named = [str(v) for v in sorted({str(o.get("kyt_variant", "")) for o in objects}) if v]
+    if named and not keep_parts:
+        kept = f"merged into one per variant ({', '.join(named)})"
     lines = [f"Sent to {os.path.relpath(out, root)} ({size_kb:.0f} KB), "
              f"{len(objects)} part{'s' if len(objects) != 1 else ''} {kept}"
              + (f", hinged on their own: {', '.join(hinge_names)}" if not keep_parts and hinge_names else "")
              + "."]
+    if copied:
+        lines.append(f"Season canvases beside it: {', '.join(copied)}.")
     lines += [text for level, text in findings if level == "WARNING"]
     lines.append("Godot picks it up the next time its window is focused or it starts.")
     return True, lines
