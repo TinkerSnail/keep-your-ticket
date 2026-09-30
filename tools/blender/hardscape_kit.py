@@ -57,7 +57,12 @@ together and a wall, its railing and a hedge beside it share one plan.
   two posts stand just off a pier's faces) and `post` (a metre with a plain
   post in its middle: her photograph's posts are "right next to the brick
   towers and then one in the middle"; the fence post's ball on it was tried
-  and taken out), for the fence `post`. An `end`
+  and taken out), for the fence `post`. The fence stands its own posts one
+  every two metres however a run is pieced (her "give the freestanding fence
+  a post every 2 metres or whatever segment length makes the most sense"),
+  and at every corner, tee and cross (`fence_posts`): its straights and
+  curves are built twice, `_even` and `_odd`, and the wrapper takes the one
+  for the grid square the piece's first cell is on. An `end`
   stops at a post: the wall railing's just off the face of a pier on its end
   cell, the fence's on the middle. Rails and posts collide; pickets don't.
   (The wall railing was tried in segments, the fence's posts and balls at
@@ -205,6 +210,12 @@ END_POST = 0.056  # the posts against a pier and at an end, heavier than a picke
 PIER_POST_AT = PIER_W / 2 + 0.008 + END_POST / 2  # a pier's posts just off its faces
 FENCE_POST = 0.07
 FENCE_POST_SINK = 0.3
+# The fence's panels: two metres, near the six-foot panel iron fence comes in
+# and every other square of the grid.
+FENCE_PANEL = 2.0
+# The fence pieces whose posts depend on the square they start on.
+BY_SQUARE = ("straight", "straight_2", "straight_4", "bend", "curve", "curve_large")
+SQUARES = ("even", "odd")
 FINIAL_R = 0.045
 RAILING_PIECES = ("straight", "straight_2", "straight_4", "corner", "tee", "cross", "end", "bend",
                   "curve", "curve_large")
@@ -550,11 +561,13 @@ class Builder:
         if top:
             self.face([(v, (0.2 + (v.co.x - x), v_of(band_row + 0.15 + (v.co.y - y)))) for v in rings[-1]])
 
-    def box(self, centre, size, band_row, bottom=False):
-        """A box, every face but its bottom unless asked."""
+    def box(self, centre, size, band_row, bottom=False, turn=0.0):
+        """A box turned `turn` round its middle, every face but its bottom
+        unless asked."""
         cx, cy, cz = centre
         sx, sy, sz = (s / 2 for s in size)
-        c = [self.bm.verts.new((cx + a * sx, cy + b * sy, cz + d * sz))
+        ct, st = math.cos(turn), math.sin(turn)
+        c = [self.bm.verts.new((cx + a * sx * ct - b * sy * st, cy + a * sx * st + b * sy * ct, cz + d * sz))
              for d in (-1, 1) for b in (-1, 1) for a in (-1, 1)]
         faces = [(4, 5, 7, 6), (0, 1, 5, 4), (1, 3, 7, 5), (3, 2, 6, 7), (2, 0, 4, 6)]
         if bottom:
@@ -694,15 +707,63 @@ def wall_piece(size, piece, bands, body):
     return b
 
 
-def fence_post(b, x, y, bottom, top, size, iron):
+def fence_post(b, x, y, bottom, top, size, iron, turn=0.0):
     """A fence post `size` square from `bottom` to `top`, under a cap plate, a
     neck and a ball finial, all in proportion to it (the fence's own is
-    `FENCE_POST`)."""
+    `FENCE_POST`), turned `turn` to its run."""
     k = size / FENCE_POST
-    b.bar(x, y, bottom, top, size, iron + 0.02)
-    b.box((x, y, top + 0.012 * k), (size + 0.025 * k, size + 0.025 * k, 0.024 * k), iron)
-    b.bar(x, y, top + 0.02 * k, top + 0.045 * k, 0.03 * k, iron + 0.02)
+    b.bar(x, y, bottom, top, size, iron + 0.02, turn=turn)
+    b.box((x, y, top + 0.012 * k), (size + 0.025 * k, size + 0.025 * k, 0.024 * k), iron, turn=turn)
+    b.bar(x, y, top + 0.02 * k, top + 0.045 * k, 0.03 * k, iron + 0.02, turn=turn)
     b.ball((x, y, top + 0.045 * k + FINIAL_R * k * 0.85), FINIAL_R * k, iron)
+
+
+def by_square(piece):
+    """A fence piece's name and the square its first cell is on: (piece, 0)
+    for `_even`, (piece, 1) for `_odd`, (piece, None) for the rest."""
+    for k, square in enumerate(SQUARES):
+        if piece.endswith("_" + square):
+            return piece.removesuffix("_" + square), k
+    return piece, None
+
+
+def along(frames, s):
+    """The point `s` along a polyline's frames and its direction there."""
+    for (p0, _, s0), (p1, _, s1) in zip(frames, frames[1:]):
+        if s0 <= s <= s1:
+            return p0 + (p1 - p0) * ((s - s0) / (s1 - s0)), (p1 - p0).normalized()
+    raise ValueError(s)
+
+
+def fence_posts(piece, square):
+    """Where a fence piece's own posts stand, (x, y, turn): one every
+    `FENCE_PANEL` along a run however it is pieced, at the middle of every cell
+    on an even grid square (x + y even: the chequerboard's, so a corner on an
+    even square has two-metre panels both ways, one on an odd square a metre
+    either side of it); `square` is the first cell's, 0 even, 1 odd. At every
+    corner, tee and cross. On a curve, evenly between the posts its
+    neighbouring cells have (both on the other colour: a metre and a half out
+    beyond its ends, or half a metre), each between two pickets. The wrapper
+    takes the piece for its square (`hardscape_kit.gd`); so does the sample
+    (`place_copies`)."""
+    if piece in ("corner", "tee", "cross"):
+        return [(0.0, 0.0, 0.0)]
+    if piece.startswith("straight"):
+        cells = {"straight": 1, "straight_2": 2, "straight_4": 4}[piece]
+        return [(float(k), 0.0, 0.0) for k in range(cells) if (square + k) % 2 == 0]
+    frames = path_frames(arc(ARCS[piece]))
+    length = frames[-1][2]
+    out_ = 1.5 if square == 0 else 0.5
+    span = length + 2 * out_
+    panels = max(1, round(span / FENCE_PANEL))
+    step = length / max(1, round(length / PICKET_STEP))  # picket_spots' on a curve
+    out = []
+    for k in range(1, panels):
+        at = round((k * span / panels - out_) / step) * step
+        if 0.0 < at < length:
+            p, t = along(frames, at)
+            out.append((p.x, p.y, math.atan2(t.y, t.x)))
+    return out
 
 
 def picket_spots(path, skip=()):
@@ -732,27 +793,32 @@ def picket_spots(path, skip=()):
 
 def railing_piece(size, piece, bands):
     """(rails and posts, pickets): the first collides."""
+    piece, square = by_square(piece)
     spec = RAILINGS[size]
     iron = bands["iron"][0]
     solid, light = Builder(), Builder()
     rails = spec["rails"]
     picket_from, picket_to = rails[0][0], rails[-1][0]
     skip = []
-    posts = []  # (x, y, size, kind)
+    posts = []  # (x, y, size, kind, turn)
     if piece == "end":
         at = -PIER_POST_AT if size == "wall" else 0.0
-        posts.append((at, 0.0, END_POST if size == "wall" else FENCE_POST, "end" if size == "wall" else "fence"))
+        posts.append((at, 0.0, END_POST if size == "wall" else FENCE_POST, "end" if size == "wall" else "fence", 0.0))
         skip.append(((at, 0.0), (END_POST if size == "wall" else FENCE_POST) / 2 + PICKET / 2 + 0.005))
     if piece == "pier":
         for at in (-PIER_POST_AT, PIER_POST_AT):
-            posts.append((at, 0.0, END_POST, "end"))
+            posts.append((at, 0.0, END_POST, "end", 0.0))
         skip.append(((0.0, 0.0), PIER_POST_AT + END_POST / 2 + 0.01))
     if piece == "post":
         # The fence's with its ball; the wall railing's plain and flat-topped
         # as a pier's, the one in the middle between two piers. Either way the
         # pickets either side are left out, so it stands in their rhythm.
-        posts.append((0.0, 0.0, END_POST, "end") if size == "wall" else (0.0, 0.0, FENCE_POST, "fence"))
+        posts.append((0.0, 0.0, END_POST, "end", 0.0) if size == "wall" else (0.0, 0.0, FENCE_POST, "fence", 0.0))
         skip.append(((0.0, 0.0), FENCE_POST / 2 + PICKET + 0.01))
+    if size == "fence" and (square is not None or piece in ("corner", "tee", "cross")):
+        for x, y, turn in fence_posts(piece, square):
+            posts.append((x, y, FENCE_POST, "fence", turn))
+            skip.append(((x, y), FENCE_POST / 2 + PICKET + 0.01))
     lines = paths(piece)
     if piece == "end":
         stop = posts[0][0]
@@ -766,11 +832,11 @@ def railing_piece(size, piece, bands):
     for line in (paths(piece) if piece != "end" else lines):
         for p, t, _ in picket_spots(line, skip):
             light.bar(p.x, p.y, picket_from, picket_to, PICKET, iron + 0.12, turn=math.atan2(t.y, t.x))
-    for x, y, s, kind in posts:
+    for x, y, s, kind, turn in posts:
         if kind == "end":
             solid.bar(x, y, -0.02, spec["post_top"], s, iron + 0.02, top=True)
         else:
-            fence_post(solid, x, y, -FENCE_POST_SINK, spec["post_top"], s, iron)
+            fence_post(solid, x, y, -FENCE_POST_SINK, spec["post_top"], s, iron, turn)
     return solid, light
 
 
@@ -1264,8 +1330,10 @@ def kinds():
     """(kind, size, pieces): every kind the kit builds."""
     out = [(kind, size, WALL_PIECES) for kind in BODIES for size in WALLS]
     after = RAILING_PIECES.index("end") + 1
-    out += [("railing", size, RAILING_PIECES[:after] + (("pier", "post") if size == "wall" else ("post",))
-             + RAILING_PIECES[after:]) for size in RAILINGS]
+    out.append(("railing", "wall", RAILING_PIECES[:after] + ("pier", "post") + RAILING_PIECES[after:]))
+    fence = RAILING_PIECES[:after] + ("post",) + RAILING_PIECES[after:]
+    out.append(("railing", "fence", tuple(f"{p}_{sq}" if p in BY_SQUARE else p for p in fence
+                                          for sq in (SQUARES if p in BY_SQUARE else ("",)))))
     out += [("curb", k, CURB_PIECES["road" if k.startswith("road") else k]) for k in ("road", "road_red", "edging")]
     return out
 
@@ -1316,7 +1384,10 @@ def place_copies(coll, placements, parts, offset=(0.0, 0.0, 0.0)):
     """Linked duplicates of each placement's parts into `coll`."""
     made = []
     for kind, piece, x, y, turn, z in placements:
-        for src in parts[f"{kind}_{piece}"]:
+        key = f"{kind}_{piece}"
+        if key not in parts:  # the fence's, by the square its first cell is on (`fence_posts`)
+            key += "_" + SQUARES[(round(x) + round(y)) % 2]
+        for src in parts[key]:
             group = str(src.get("kyt_merge_group", ""))
             if group.startswith("droppings_") and group != f"droppings_{drop_set(x, y)}":
                 continue
@@ -1401,7 +1472,7 @@ def build(replace):
                 solid, light = railing_piece(size, piece, bands)
                 bvh = BVHTree.FromBMesh(solid.bm)
                 z, _, depth = RAILINGS[size]["rails"][-1]
-                lines = paths(piece)
+                lines = paths(by_square(piece)[0])
                 if piece == "end":
                     lines = [[Vector((-E, 0.0)), Vector((-PIER_POST_AT if size == "wall" else 0.0, 0.0))]]
                 for tag in DROP_SETS:
@@ -1573,24 +1644,40 @@ def render(folder):
               ("railing_wall", "end", 6, 0, 2, top), ("railing_wall", "straight", 7, 0, 0, top),
               ("railing_wall", "post", 8, 0, 0, top), ("railing_wall", "straight", 9, 0, 0, top),
               ("railing_wall", "end", 10, 0, 0, top),
-              ("railing_fence", "end", 12, 0, 2, 0.0), ("railing_fence", "straight", 13, 0, 0, 0.0),
-              ("railing_fence", "straight", 14, 0, 0, 0.0), ("railing_fence", "post", 15, 0, 0, 0.0),
-              ("railing_fence", "straight", 16, 0, 0, 0.0), ("railing_fence", "end", 17, 0, 0, 0.0),
+              ("railing_fence", "end", 12, 0, 2, 0.0), ("railing_fence", "straight_4", 13, 0, 0, 0.0),
+              ("railing_fence", "straight", 17, 0, 0, 0.0), ("railing_fence", "end", 18, 0, 0, 0.0),
               ("curb_road", "straight_4", 50, 20, 0, 0.0), ("curb_road", "cut", 54, 20, 0, 0.0),
               ("curb_road_red", "straight_2", 56, 20, 0, 0.0), ("curb_road", "end", 58, 20, 0, 0.0),
               ("curb_edging", "end", 51, 22, 2, 0.0), ("curb_edging", "straight_4", 52, 22, 0, 0.0),
               ("curb_edging", "straight", 56, 22, 0, 0.0), ("curb_edging", "end", 57, 22, 0, 0.0)]
     place_copies(stage, beside, parts, (ox, 0.0, 0.0))
-    for x, text in ((1.5, "wall_seat (park)"), (8.0, "wall_garden (park) + railing_wall"), (14.5, "railing_fence")):
+    for x, text in ((1.5, "wall_seat (park)"), (8.0, "wall_garden (park) + railing_wall"), (15.0, "railing_fence")):
         label(text, ox + x, -1.6, 0.34)
     for x, y, text in ((53.5, 18.7, "curb_road, cut, red, end"), (54.5, 23.2, "curb_edging")):
         label(text, ox + x, y, 0.3)
     for x in (4.5, 11.0):
         person(ox + x, -0.3)
     person(ox + 60.0, 21.0)
-    shoot("kinds_walls", (ox + 8.5, -12.5, 2.2), (ox + 8.5, 0.0, 0.6), lens=24)
+    shoot("kinds_walls", (ox + 9.0, -13.0, 2.2), (ox + 9.0, 0.0, 0.6), lens=24)
     shoot("park_pier_close", (ox + 11.6, -1.8, 1.45), (ox + 10.0, 0.0, 0.95), lens=34)
     shoot("kinds_curbs", (ox + 54.5, 14.2, 2.4), (ox + 54.5, 21.0, 0.0), lens=26)
+
+    # Fence runs, pieced every which way, their posts by the grid square
+    # (`fence_posts`): a corner on an even square, then a curve and a large
+    # curve on an even and an odd one.
+    fence = "railing_fence"
+    runs = [(fence, "end", 30, 0, 2, 0.0), (fence, "straight_4", 31, 0, 0, 0.0), (fence, "straight", 35, 0, 0, 0.0),
+            (fence, "corner", 36, 0, 0, 0.0), (fence, "straight_2", 36, 1, 1, 0.0), (fence, "straight", 36, 3, 1, 0.0),
+            (fence, "end", 36, 4, 1, 0.0),
+            (fence, "end", 40, 0, 2, 0.0), (fence, "straight", 41, 0, 0, 0.0), (fence, "curve", 42, 0, 0, 0.0),
+            (fence, "straight", 43, 2, 1, 0.0), (fence, "end", 43, 3, 1, 0.0),
+            (fence, "end", 46, 0, 2, 0.0), (fence, "straight_2", 47, 0, 0, 0.0),
+            (fence, "curve_large", 49, 0, 0, 0.0), (fence, "straight_2", 51, 3, 1, 0.0), (fence, "end", 51, 5, 1, 0.0)]
+    place_copies(stage, runs, parts, (ox, 0.0, 0.0))
+    label("railing_fence runs", ox + 40.0, -1.6, 0.34)
+    person(ox + 38.5, -0.8)
+    shoot("fence_runs", (ox + 40.5, -13.0, 7.0), (ox + 41.0, 1.8, 0.5), lens=22)
+    shoot("fence_curve_close", (ox + 39.6, -2.6, 1.7), (ox + 42.6, 1.0, 0.7), lens=24)
     concrete = [("concrete_wall_seat", "end", -30, 0, 2, 0.0), ("concrete_wall_seat", "straight_2", -29, 0, 0, 0.0),
                 ("concrete_wall_seat", "end", -27, 0, 0, 0.0), ("concrete_wall_seat", "pier", -27, 0, 0, 0.0),
                 ("concrete_wall_garden", "end", -25, 0, 2, 0.0), ("concrete_wall_garden", "straight_2", -24, 0, 0, 0.0),
@@ -1617,7 +1704,7 @@ def render(folder):
         for r, row in enumerate(rows):
             x = base_x
             for piece in row:
-                wide = span.get(piece, 1)
+                wide = span.get(by_square(piece)[0], 1)
                 y = oy - r * 6.5
                 place_copies(stage, [(group, piece, x + 0.5, y, 0, z)], parts)
                 if group == "railing_wall":
@@ -1627,8 +1714,10 @@ def render(folder):
                 label(piece, x + wide / 2, y - 1.0, 0.34)
                 x += wide + 1.8
         label(group, base_x + 6.5, oy + 3.6, 0.6)
-        shoot(f"pieces_{group}", (base_x + 6.8, oy - 19.0, 10.0), (base_x + 6.8, oy - 6.3, 0.0), lens=30,
-              size=(1800, 1300))
+        far = max(1.0, len(rows) / 3)  # the fence's two builds of a piece make more rows
+        middle = oy - (6.3 if len(rows) <= 3 else (len(rows) - 1) * 6.5 / 2)
+        shoot(f"pieces_{group}", (base_x + 6.8, middle - 12.7 * far, 10.0 * far), (base_x + 6.8, middle, 0.0),
+              lens=30, size=(1800, 1300))
 
 
 def main():

@@ -31,7 +31,9 @@ var kind := 1:
 ## corner, west to north; a tee; a cross; an end, from the west; a bend, a
 ## curve and a large curve (radius 0.5, 1.5 and 2.5 m, as the hedges'). A wall
 ## also has a pier on its own; the wall railing a metre with posts either side
-## of a pier, and a metre with a post in its middle; the fence a post. The road curb turns either way (`_in`: the road
+## of a pier, and a metre with a post in its middle; the fence a post (it also
+## stands its own every two metres, on every even grid square, and at every
+## corner, tee and cross: `_key_for`). The road curb turns either way (`_in`: the road
 ## inside the turn) and has a driveway `cut`. A kind without the piece warns.
 @export_enum("straight", "straight_2", "straight_4", "corner", "tee", "cross", "end", "bend", "curve",
 		"curve_large", "pier", "post", "bend_in", "curve_in", "curve_large_in", "cut")
@@ -97,7 +99,7 @@ func _ready() -> void:
 
 
 func _notification(what: int) -> void:
-	# Moved in the editor: its droppings go by grid square.
+	# Moved in the editor: its droppings, and a fence's posts, go by grid square.
 	if what == NOTIFICATION_TRANSFORM_CHANGED and _key(_layers()) != _shown_key:
 		_build()
 
@@ -120,7 +122,7 @@ func _drop_set() -> String:
 func _layers() -> Array:
 	var kind_name: String = KINDS[kind]
 	var piece_name: String = PIECES[piece]
-	var key := "%s_%s" % [kind_name, piece_name]
+	var key := _key_for(kind_name, piece_name)
 	if _part(key).is_empty():
 		return []
 	var out := [[key, Transform3D.IDENTITY]]
@@ -135,6 +137,19 @@ func _layers() -> Array:
 			if not _part(rail).is_empty():
 				out.append([rail, Transform3D(Basis.IDENTITY, Vector3(0.0, COPING_TOPS[size], 0.0))])
 	return out
+
+
+## The model's piece for a kind and piece. The fence's straights and curves
+## are built twice (hardscape_kit.py, `fence_posts`), for a first cell on an
+## even grid square (x + z even) and on an odd one, so its posts stand on
+## every even square however a run is pieced; this takes the one for where
+## the placement stands, and moving it in the editor takes the other.
+func _key_for(kind_name: String, piece_name: String) -> String:
+	var key := "%s_%s" % [kind_name, piece_name]
+	if _part(key).is_empty() and not _part(key + "_even").is_empty():
+		var square := posmod(roundi(global_position.x) + roundi(global_position.z), 2)
+		key += "_even" if square == 0 else "_odd"
+	return key
 
 
 func _build() -> void:

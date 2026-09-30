@@ -4,12 +4,14 @@ extends Node
 ## has a body that collides; every railing piece a body (rails and posts) that
 ## collides and pickets that don't; every curb piece only what doesn't
 ## collide; droppings never collide, and most wall and railing pieces have
-## some. Every open end of a piece has exactly its straight's cross-section,
+## some. The fence's straights and curves are there twice, for a first cell on
+## an even and an odd grid square, with posts every other square. Every open end of a piece has exactly its straight's cross-section,
 ## so pieces laid on the 1 m grid meet without a step or a gap (curves
 ## included: their ends square to the curve). In the wrapper
 ## (scenes/world/landscape_kit/hardscape_kit.tscn): every kind and piece, and
 ## every wall with its pier, railing and railing post, builds as one mesh of one surface and
-## the collision its layers carry, standing where its heights say. Measured on
+## the collision its layers carry, standing where its heights say; a fence
+## has posts wherever its square says it should. Measured on
 ## the imported meshes, not the builder's numbers.
 
 const SOURCE := "res://scenes/world/landscape_kit/hardscape_kit.tscn"
@@ -22,9 +24,15 @@ const WALL_PIECES := ["straight", "straight_2", "straight_4", "corner", "tee", "
 const RAILING_PIECES := {
 	"wall": ["straight", "straight_2", "straight_4", "corner", "tee", "cross", "end", "pier", "post", "bend",
 		"curve", "curve_large"],
-	"fence": ["straight", "straight_2", "straight_4", "corner", "tee", "cross", "end", "post", "bend", "curve",
-		"curve_large"],
+	"fence": ["straight_even", "straight_odd", "straight_2_even", "straight_2_odd", "straight_4_even",
+		"straight_4_odd", "corner", "tee", "cross", "end", "post", "bend_even", "bend_odd", "curve_even",
+		"curve_odd", "curve_large_even", "curve_large_odd"],
 }
+## The fence pieces with no post of their own on a square: [piece, square].
+const FENCE_BARE := [["straight", "odd"], ["bend", "odd"]]
+## The fence's top rail, and how far its posts go into the ground.
+const FENCE_RAIL_TOP := 1.10
+const FENCE_POST_SINK := 0.3
 const CURB_PIECES := {
 	"road": ["straight", "straight_2", "straight_4", "bend", "curve", "curve_large", "bend_in", "curve_in",
 		"curve_large_in", "end", "cut"],
@@ -127,7 +135,10 @@ func _check_model() -> void:
 ## Every piece of a family present, colliding or not, and its open ends
 ## matching its straight's.
 func _check_family(group: String, pieces: Array, suffix: String, collides: bool) -> void:
-	var reference := _end_section(_vertices(_meshes.get(group + "_straight" + suffix)), ENDS["straight"][1])
+	var straight := group + "_straight" + suffix
+	if not _meshes.has(straight):
+		straight = group + "_straight_odd" + suffix
+	var reference := _end_section(_vertices(_meshes.get(straight)), ENDS["straight"][1])
 	if reference.size() < 4:
 		_fails.append("%s straight: its end has only %d points" % [group, reference.size()])
 		return
@@ -142,12 +153,17 @@ func _check_family(group: String, pieces: Array, suffix: String, collides: bool)
 			_fails.append("%s_%s: a colliding body it shouldn't have" % [group, piece])
 		var points := _vertices(_meshes[key])
 		# A wall's pier stands on its own, closed all round.
-		var ends: Array = [] if piece == "pier" and not group.begins_with("railing") else ENDS[piece]
+		var ends: Array = [] if piece == "pier" and not group.begins_with("railing") else ENDS[_base(piece)]
 		for end: Array in ends:
 			var off := _mismatch(_end_section(points, end), reference)
 			if off > MATCH:
 				_fails.append("%s: its end at %s = %.1f is %.1f mm off the straight's section" % [key,
 					"xyz"[end[0]], end[1], off * 1000.0])
+
+
+## A fence piece's name without its square.
+func _base(piece: String) -> String:
+	return piece.trim_suffix("_even").trim_suffix("_odd")
 
 
 func _check_droppings(group: String, pieces: Array) -> void:
@@ -167,32 +183,43 @@ func _check_wrapper(kit: Node3D) -> void:
 	var built := 0
 	for k in kinds.size():
 		var kind_name: String = kinds[k]
-		kit.set("kind", k)
-		for p in pieces.size():
-			var piece_name: String = pieces[p]
-			if not _meshes.has("%s_%s" % [kind_name, piece_name]) and not _meshes.has("%s_%s_visual" % [kind_name, piece_name]):
-				continue
-			kit.set("piece", p)
-			var size := kind_name.get_slice("_", kind_name.get_slice_count("_") - 1)
-			var wall := COPING_TOP.has(size)
-			var combos := [[false, false, false]]
-			if wall and piece_name != "pier":
-				combos = []
-				for bits in 8:
-					combos.append([bits & 1 != 0, bits & 2 != 0, bits & 4 != 0])
-			for combo: Array in combos:
-				kit.set("pier", combo[0])
-				kit.set("railing", combo[1])
-				kit.set("post", combo[2])
-				for choice in SETS.size() + 2:
-					kit.set("droppings", choice)
-					_check_built(kit, kind_name, piece_name, combo, choice)
-					built += 1
+		# A fence on an even square and on an odd one.
+		for at: Vector3 in ([Vector3.ZERO, Vector3(1.0, 0.0, 0.0)] if kind_name == "railing_fence" else [Vector3.ZERO]):
+			kit.position = at
+			built += _check_kind(kit, k, kind_name, pieces)
+	kit.position = Vector3.ZERO
 	kit.set("pier", false)
 	kit.set("railing", false)
 	kit.set("post", false)
 	if built < 400:
 		_fails.append("only %d placements were built" % built)
+
+
+func _check_kind(kit: Node3D, k: int, kind_name: String, pieces: Array) -> int:
+	var built := 0
+	kit.set("kind", k)
+	for p in pieces.size():
+		var piece_name: String = pieces[p]
+		var named := "%s_%s" % [kind_name, piece_name]
+		if not (_meshes.has(named) or _meshes.has(named + "_visual") or _meshes.has(named + "_even")):
+			continue
+		kit.set("piece", p)
+		var size := kind_name.get_slice("_", kind_name.get_slice_count("_") - 1)
+		var wall := COPING_TOP.has(size)
+		var combos := [[false, false, false]]
+		if wall and piece_name != "pier":
+			combos = []
+			for bits in 8:
+				combos.append([bits & 1 != 0, bits & 2 != 0, bits & 4 != 0])
+		for combo: Array in combos:
+			kit.set("pier", combo[0])
+			kit.set("railing", combo[1])
+			kit.set("post", combo[2])
+			for choice in SETS.size() + 2:
+				kit.set("droppings", choice)
+				_check_built(kit, kind_name, piece_name, combo, choice)
+				built += 1
+	return built
 
 
 func _check_built(kit: Node3D, kind_name: String, piece_name: String, combo: Array, choice: int) -> void:
@@ -220,9 +247,17 @@ func _check_built(kit: Node3D, kind_name: String, piece_name: String, combo: Arr
 		want_shapes = 1 + int(with_pier and piece_name != "pier") + int(with_railing and piece_name != "pier")
 	if shapes.size() != want_shapes:
 		_fails.append("%s: %d collision shapes, not %d" % [label, shapes.size(), want_shapes])
+	var box := mesh.get_aabb()
+	if kind_name == "railing_fence":
+		var square := "even" if posmod(roundi(kit.position.x) + roundi(kit.position.z), 2) == 0 else "odd"
+		var posted := not FENCE_BARE.has([piece_name, square])
+		var ball := box.end.y > FENCE_RAIL_TOP + 0.05
+		var sunk := box.position.y < -FENCE_POST_SINK + 0.01
+		if ball != posted or sunk != posted:
+			_fails.append("%s on an %s square: %s, but stands from %.3f to %.3f m" % [label, square,
+				"should have a post" if posted else "should have none", box.position.y, box.end.y])
 	if not COPING_TOP.has(size):
 		return
-	var box := mesh.get_aabb()
 	var top: float = CAP_TOP[size] if piece_name == "pier" or with_pier else COPING_TOP[size]
 	if with_railing and piece_name != "pier" and not with_pier:
 		top = maxf(top, COPING_FACE[size] + RAIL_TOP)
