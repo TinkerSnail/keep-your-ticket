@@ -24,8 +24,9 @@ const SLOTS := 4
 ## flowers and the peak's extra ones as their own meshes (`*_blooms`,
 ## `*_blooms_peak`); this shows the baseline outside Winter Lights and both in
 ## the peak chapter, High Summer. A season system can call `set_season`
-## on the `seasonal_planting` group.
-@export_enum("spring", "summer", "harvest", "winter") var season := 0:
+## on the `seasonal_planting` group. It starts in High Summer, where the
+## campaign opens (her "lets do summer and have the campaign start there").
+@export_enum("spring", "summer", "harvest", "winter") var season := 1:
 	set(value):
 		season = clampi(value, 0, 3)
 		_show_season()
