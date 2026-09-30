@@ -192,7 +192,7 @@ paint → integrated. **Holder** is who has the next move.
 | Last hand-back | `documentation/screenshots/handbacks/hakone_grass-2026-09-28_0313/` (the accepted arching shape restored: palm and catalog tests with 12 and 16, clearance 0 of 87, budget, ground contact pass; GLB 36 KB); the rejected flowing shape `hakone_grass-2026-09-28_0305/`; the first arching hand-back `hakone_grass-2026-09-28_0226/` (arching strap leaves, `hakone_arch.py`: palm and catalog tests with the new counts, clearance 0 of 87, budget, ground contact pass; GLB 36 KB); before it `hakone_grass-2026-09-28_0040/` (pulled in and up, `hakone_compact.py`, context frames at eye height; all pass); before it `hakone_grass-2026-09-27_2359/` (tests, clearance, budget, ground contact pass; `game/` frames of all three stages; `hakone_cartoon.py`, `hakone_chubby.py`) |
 | Next | Her look. Commit on her word |
 
-### purple_hakone_grass — the Hakone clump in the Purple Heart's purples (vA, vB; not placed)
+### purple_hakone_grass — PRP-PLANT-059 and 060, the Hakone clump in the Purple Heart's purples (vA, vB; not placed)
 
 | | |
 |---|---|
@@ -215,7 +215,7 @@ paint → integrated. **Holder** is who has the next move.
 | Last hand-back | `documentation/screenshots/handbacks/purple_heart_sprig-2026-09-28_0031/` (1.15×, `plant_resize.py`; all pass); before it `purple_heart_sprig-2026-09-28_0012/` (tests, clearance 0 of 87, budget, ground contact pass; `game/`, `prototype/`, `ph_cartoon.py`) |
 | Next | Her look (it reads lighter purple than the old, whose leaves half caught the light from below). To paint: `python3 tools/prop_handback.py purple_heart_sprig --open`. Commit on her word |
 
-### The approach landscaping kit (2026-09-28): palm_planter, scallop_edging, azalea_bush, azalea_tree, hibiscus_shrub, their sphere versions azalea_bush_sphere, azalea_tree_sphere, hibiscus_shrub_sphere, box_shrub (IDs when catalogued)
+### The approach landscaping kit (2026-09-28): palm_planter, scallop_edging, azalea_bush PRP-PLANT-053, azalea_tree PRP-PLANT-055, hibiscus_shrub PRP-PLANT-057, their sphere versions azalea_bush_sphere PRP-PLANT-054, azalea_tree_sphere PRP-PLANT-056, hibiscus_shrub_sphere PRP-PLANT-058, box_shrub (the planter, edging and box shrub: IDs when catalogued)
 
 | | |
 |---|---|

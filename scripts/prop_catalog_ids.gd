@@ -43,9 +43,40 @@ const PRP_COAST_008: StringName = &"PRP-COAST-008"
 const PRP_COAST_009: StringName = &"PRP-COAST-009"
 const PRP_COAST_010: StringName = &"PRP-COAST-010"
 const PRP_COAST_011: StringName = &"PRP-COAST-011"
+const PRP_COAST_012: StringName = &"PRP-COAST-012"
 const PRP_WILD_001: StringName = &"PRP-WILD-001"
 const PRP_WILD_002: StringName = &"PRP-WILD-002"
 const PRP_WILD_003: StringName = &"PRP-WILD-003"
+const PRP_WILD_004: StringName = &"PRP-WILD-004"
+const PRP_WILD_005: StringName = &"PRP-WILD-005"
+const PRP_WILD_006: StringName = &"PRP-WILD-006"
+const PRP_WILD_007: StringName = &"PRP-WILD-007"
+const PRP_WILD_008: StringName = &"PRP-WILD-008"
+const PRP_WILD_009: StringName = &"PRP-WILD-009"
+const PRP_WILD_010: StringName = &"PRP-WILD-010"
+const PRP_WILD_011: StringName = &"PRP-WILD-011"
+const PRP_WILD_012: StringName = &"PRP-WILD-012"
+const PRP_WILD_013: StringName = &"PRP-WILD-013"
+const PRP_WILD_014: StringName = &"PRP-WILD-014"
+const PRP_WILD_015: StringName = &"PRP-WILD-015"
+const PRP_WILD_016: StringName = &"PRP-WILD-016"
+const PRP_WILD_017: StringName = &"PRP-WILD-017"
+const PRP_WILD_018: StringName = &"PRP-WILD-018"
+const PRP_WILD_019: StringName = &"PRP-WILD-019"
+const PRP_WILD_020: StringName = &"PRP-WILD-020"
+const PRP_WILD_021: StringName = &"PRP-WILD-021"
+const PRP_WILD_022: StringName = &"PRP-WILD-022"
+const PRP_WILD_023: StringName = &"PRP-WILD-023"
+const PRP_WILD_024: StringName = &"PRP-WILD-024"
+const PRP_WILD_025: StringName = &"PRP-WILD-025"
+const PRP_WILD_026: StringName = &"PRP-WILD-026"
+const PRP_WILD_027: StringName = &"PRP-WILD-027"
+const PRP_WILD_028: StringName = &"PRP-WILD-028"
+const PRP_WILD_029: StringName = &"PRP-WILD-029"
+const PRP_WILD_030: StringName = &"PRP-WILD-030"
+const PRP_WILD_031: StringName = &"PRP-WILD-031"
+const PRP_WILD_032: StringName = &"PRP-WILD-032"
+const PRP_WILD_033: StringName = &"PRP-WILD-033"
 const PRP_GAME_001: StringName = &"PRP-GAME-001"
 const PRP_GAME_002: StringName = &"PRP-GAME-002"
 const PRP_GAME_003: StringName = &"PRP-GAME-003"
@@ -133,6 +164,15 @@ const PRP_PLANT_048: StringName = &"PRP-PLANT-048"
 const PRP_PLANT_049: StringName = &"PRP-PLANT-049"
 const PRP_PLANT_050: StringName = &"PRP-PLANT-050"
 const PRP_PLANT_051: StringName = &"PRP-PLANT-051"
+const PRP_PLANT_052: StringName = &"PRP-PLANT-052"
+const PRP_PLANT_053: StringName = &"PRP-PLANT-053"
+const PRP_PLANT_054: StringName = &"PRP-PLANT-054"
+const PRP_PLANT_055: StringName = &"PRP-PLANT-055"
+const PRP_PLANT_056: StringName = &"PRP-PLANT-056"
+const PRP_PLANT_057: StringName = &"PRP-PLANT-057"
+const PRP_PLANT_058: StringName = &"PRP-PLANT-058"
+const PRP_PLANT_059: StringName = &"PRP-PLANT-059"
+const PRP_PLANT_060: StringName = &"PRP-PLANT-060"
 const PRP_FENCE_001: StringName = &"PRP-FENCE-001"
 const PRP_FENCE_002: StringName = &"PRP-FENCE-002"
 const PRP_TRANSIT_001: StringName = &"PRP-TRANSIT-001"
@@ -295,9 +335,40 @@ const DISPLAY_NAMES: Dictionary = {
 	PRP_COAST_009: "Back-lane stock cart",
 	PRP_COAST_010: "Creek-bank stone",
 	PRP_COAST_011: "Reclined waterfront viewing bench",
+	PRP_COAST_012: "Sea glass",
 	PRP_WILD_001: "Adult coastal gull",
 	PRP_WILD_002: "Mottled juvenile gull",
 	PRP_WILD_003: "Rock dove",
+	PRP_WILD_004: "Spilled fries",
+	PRP_WILD_005: "Held ice cream cone",
+	PRP_WILD_006: "Bees",
+	PRP_WILD_007: "Flies",
+	PRP_WILD_008: "Hummingbirds",
+	PRP_WILD_009: "Butterflies",
+	PRP_WILD_010: "Pelicans",
+	PRP_WILD_011: "Sea lions",
+	PRP_WILD_012: "Sea otters",
+	PRP_WILD_013: "Crabs",
+	PRP_WILD_014: "Starfish",
+	PRP_WILD_015: "Sea urchin",
+	PRP_WILD_016: "Scallop",
+	PRP_WILD_017: "Salmon",
+	PRP_WILD_018: "Trout",
+	PRP_WILD_019: "Striped bass",
+	PRP_WILD_020: "Halibut",
+	PRP_WILD_021: "Surf perch",
+	PRP_WILD_022: "Jellyfish",
+	PRP_WILD_023: "Whales",
+	PRP_WILD_024: "Dolphins",
+	PRP_WILD_025: "Octopus",
+	PRP_WILD_026: "Tuna",
+	PRP_WILD_027: "Rockfish",
+	PRP_WILD_028: "Eel",
+	PRP_WILD_029: "Raccoon",
+	PRP_WILD_030: "Cat",
+	PRP_WILD_031: "Mouse",
+	PRP_WILD_032: "Rat",
+	PRP_WILD_033: "Dog",
 	PRP_GAME_001: "Arcade cabinet",
 	PRP_GAME_002: "Derby-race lane and horse target",
 	PRP_GAME_003: "Derby prize display",
@@ -385,6 +456,15 @@ const DISPLAY_NAMES: Dictionary = {
 	PRP_PLANT_049: "California coast live oak",
 	PRP_PLANT_050: "Mature classic bay laurel",
 	PRP_PLANT_051: "Classic California date palm",
+	PRP_PLANT_052: "Kelp",
+	PRP_PLANT_053: "Azalea bush",
+	PRP_PLANT_054: "Azalea bush, sphere version",
+	PRP_PLANT_055: "Azalea tree",
+	PRP_PLANT_056: "Azalea tree, sphere version",
+	PRP_PLANT_057: "Hibiscus shrub",
+	PRP_PLANT_058: "Hibiscus shrub, sphere version",
+	PRP_PLANT_059: "Purple Hakone grass clump vA",
+	PRP_PLANT_060: "Purple Hakone grass clump vB",
 	PRP_FENCE_001: "Black ornamental garden fence",
 	PRP_FENCE_002: "Plain waterfront guardrail",
 	PRP_TRANSIT_001: "Station barrier and platform guard",
@@ -548,9 +628,40 @@ const STATUSES: Dictionary = {
 	PRP_COAST_009: &"built",
 	PRP_COAST_010: &"built",
 	PRP_COAST_011: &"in_review",
+	PRP_COAST_012: &"planned",
 	PRP_WILD_001: &"built",
 	PRP_WILD_002: &"built",
 	PRP_WILD_003: &"built",
+	PRP_WILD_004: &"built",
+	PRP_WILD_005: &"built",
+	PRP_WILD_006: &"planned",
+	PRP_WILD_007: &"planned",
+	PRP_WILD_008: &"planned",
+	PRP_WILD_009: &"planned",
+	PRP_WILD_010: &"planned",
+	PRP_WILD_011: &"planned",
+	PRP_WILD_012: &"planned",
+	PRP_WILD_013: &"planned",
+	PRP_WILD_014: &"planned",
+	PRP_WILD_015: &"planned",
+	PRP_WILD_016: &"planned",
+	PRP_WILD_017: &"planned",
+	PRP_WILD_018: &"planned",
+	PRP_WILD_019: &"planned",
+	PRP_WILD_020: &"planned",
+	PRP_WILD_021: &"planned",
+	PRP_WILD_022: &"planned",
+	PRP_WILD_023: &"planned",
+	PRP_WILD_024: &"planned",
+	PRP_WILD_025: &"planned",
+	PRP_WILD_026: &"planned",
+	PRP_WILD_027: &"planned",
+	PRP_WILD_028: &"planned",
+	PRP_WILD_029: &"planned",
+	PRP_WILD_030: &"planned",
+	PRP_WILD_031: &"planned",
+	PRP_WILD_032: &"planned",
+	PRP_WILD_033: &"planned",
 	PRP_GAME_001: &"built",
 	PRP_GAME_002: &"built",
 	PRP_GAME_003: &"built",
@@ -638,6 +749,15 @@ const STATUSES: Dictionary = {
 	PRP_PLANT_049: &"in_review",
 	PRP_PLANT_050: &"in_review",
 	PRP_PLANT_051: &"in_review",
+	PRP_PLANT_052: &"planned",
+	PRP_PLANT_053: &"in_review",
+	PRP_PLANT_054: &"in_review",
+	PRP_PLANT_055: &"in_review",
+	PRP_PLANT_056: &"in_review",
+	PRP_PLANT_057: &"in_review",
+	PRP_PLANT_058: &"in_review",
+	PRP_PLANT_059: &"in_review",
+	PRP_PLANT_060: &"in_review",
 	PRP_FENCE_001: &"in_review",
 	PRP_FENCE_002: &"in_review",
 	PRP_TRANSIT_001: &"built",
