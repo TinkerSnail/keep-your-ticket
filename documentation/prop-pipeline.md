@@ -598,6 +598,30 @@ From the plan's texture standards (2026-09-24):
   second version that is a sphere instead of a egg, and smaller"): a smaller
   ball whose hat comes down to its top third, the brim flared a little past
   the ball, 80 triangles.
+- **Hedges are a kit on the grid** (2026-09-29, her knot-garden photo, "lets
+  make some boxy hedges so we can make shapes like this"): three heights
+  (standard 0.5 m, waist 1 m, privacy 2.2 m) of eleven pieces whose origins sit
+  mid-cell and whose open ends share one cross-section, laid out in Godot with
+  the 1 m snap and quarter turns (`tools/blender/hedge_kit.py`,
+  `scenes/world/landscape_kit/boxwood_hedge.tscn`). The shrubs' hat is the
+  hedge's lid, almost flat (her "it needs to be almost flat on top": a flat top
+  rolling over its edge to a hem just below it), and only the lid has a
+  leaf-tip hem (her "the tiers ... create
+  their own horizontal line. can we put it only on the very top of the hedges
+  like a lid?"), its rim just past the side; small three-leaf fans lying almost flat
+  break up the sides and the lid's top instead (her "then add random clusters
+  of leaves"; clumps of long pale sprigs were "kind of weird"), three
+  scatterings a piece so neighbours differ. The canvas repeats every metre along the hedge, so any piece meets
+  the next's leaves.
+- **Hardscape is a kit on the same grid** (2026-09-30, her photo of a brick
+  front-garden wall, "time for fences and little retaining walls and
+  curbs"): walls, railings, fences and curbs are one prop, `hardscape_kit`
+  (`tools/blender/hardscape_kit.py`), in kinds whose pieces meet open end to
+  open end on the hedges' 1 m grid, so a wall, its railing and a hedge beside
+  it share one plan. A pier stands over whichever wall piece is in its cell;
+  the canvas repeats every metre, a wall's bricks placed by their height so
+  pieces and piers line up course for course. Curbs don't collide (no
+  step-up; a centimetre of lip is a wall).
 - **Fixings: the family bolt** (Christina, 2026-09-27: "standardize the size
   and scale of these bolts since they are driving the scale of other
   elements"). One bolt for every prop: a 12-sided head 35 mm across and 18 mm

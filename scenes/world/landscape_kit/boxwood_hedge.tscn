@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3]
+
+; The boxwood hedge kit (landscape kit, 2026-09-29): clipped hedges in three
+; heights, standard (knee), waist and privacy, each in eleven pieces that snap
+; together on the 1 m grid. Pick the height and piece in the inspector. The
+; shapes are `assets/source/props/boxwood_hedge.blend` (tools/blender/hedge_kit.py);
+; Send to game writes the GLB. Collides.
+
+[ext_resource type="Script" path="res://scenes/world/landscape_kit/boxwood_hedge.gd" id="1_script"]
+
+[node name="boxwood_hedge" type="Node3D"]
+script = ExtResource("1_script")
+editor_description = "Boxwood hedge kit (landscape kit). Pick its height and piece here, snap to the 1 m grid and turn in quarter turns; finish a run with an end. Shapes in assets/source/props/boxwood_hedge.blend."

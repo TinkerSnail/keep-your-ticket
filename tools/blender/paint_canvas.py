@@ -2986,4 +2986,5 @@ def main():
         bpy.ops.wm.save_mainfile()
 
 
-main()
+if __name__ == "__main__":  # hedge_kit.py imports its painters
+    main()
