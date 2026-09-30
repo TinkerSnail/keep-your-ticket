@@ -30,8 +30,11 @@ SEAT_MARKERS = ("seat_l", "seat_r")
 # A prop placed by the point it hangs from, not the ground it stands on: a palm
 # crown sits on its trunk's top, and its fronds droop below it. A small plant
 # is placed by `plant_base`, the soil line its leaves spring from, which they
-# may start a little above (the fern fan's fronds begin 2.5 cm up).
-MOUNT_MARKERS = ("trunk_top", "plant_base")
+# may start a little above (the fern fan's fronds begin 2.5 cm up). A prop set
+# into the ground is placed by `ground_line`, the ground it stands in, which it
+# goes below on purpose (the hardscape kit's walls, curbs and fence posts, so
+# uneven ground never shows a gap under them).
+MOUNT_MARKERS = ("trunk_top", "plant_base", "ground_line")
 EXPORT_COLLECTION = "export"
 REFERENCE_COLLECTION = "reference"
 
@@ -164,6 +167,9 @@ def run(context):
     if mount is not None and mount.name == "plant_base":
         found.append(("NOTE", f"The plant stands on '{mount.name}' at the origin: its leaves "
                               f"start {low.z * 100:.1f} cm above it and reach {high.z:.2f} m."))
+    elif mount is not None and mount.name == "ground_line":
+        found.append(("NOTE", f"The prop is set into the ground at '{mount.name}': it goes "
+                              f"{-low.z * 100:.1f} cm below it and reaches {high.z:.2f} m above."))
     elif mount is not None:
         found.append(("NOTE", f"The prop hangs from '{mount.name}' at the origin: it reaches "
                               f"{high.z:.2f} m above it and {-low.z:.2f} m below."))

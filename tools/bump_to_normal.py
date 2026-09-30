@@ -11,9 +11,10 @@ ever sees the normal map; `tools/prop_handback.py` runs this before every send
 when a bump exists, so a painted bump always reaches the game.
 
 `DEPTH_PX` is how far white stands above black, in canvas pixels: the
-trunk's 4 mm at about 890 pixels a metre. `WRAP_U` props have textures that
-wrap round their width (the trunk's bands go all the way round), so the left
-and right edges are neighbours.
+trunk's 4 mm at about 890 pixels a metre; the hardscape kit's 8 mm of mortar
+at 512. `WRAP_U` props have textures that wrap round their width (the trunk's
+bands go all the way round; the hardscape kit's canvas repeats every metre
+along a run), so the left and right edges are neighbours.
 
 `normal_from_height` is also used by `tools/blender/paint_canvas.py`, inside
 Blender, which has numpy but no Pillow.
@@ -24,8 +25,8 @@ import sys
 
 import numpy as np
 
-DEPTH_PX = {"palm_trunk": 3.5}
-WRAP_U = {"palm_trunk"}
+DEPTH_PX = {"palm_trunk": 3.5, "hardscape_kit": 4.0}
+WRAP_U = {"palm_trunk", "hardscape_kit"}
 
 
 def normal_from_height(height, depth_px, wrap_u=False):

@@ -101,7 +101,11 @@ The greybox the game uses today becomes the prop's starting point.
 **A hanging prop** (the palm crown, 2026-09-25) is placed by the point it hangs
 from, not the ground: `maquette_export --mount trunk_top` puts that point at
 the origin, and Check reports how far the prop reaches above and below it
-instead of asking for it to stand on z = 0. **A prop drawn along Godot
+instead of asking for it to stand on z = 0. **A prop set into the ground**
+(the hardscape kit, 2026-09-30: walls, curbs and fence posts reach below it on
+purpose, so uneven ground never shows a gap under them) has an empty named
+`ground_line` at the origin in `reference`; Check reports how far below and
+above it the prop reaches instead. **A prop drawn along Godot
 courses** keeps them: `maquette_export --courses` and
 `tools/blender/add_courses.py` bring the Path3Ds across as Blender curves,
 exactly. For the crown, `--blades` makes one blank blade per frond kind, which
@@ -616,7 +620,8 @@ From the plan's texture standards (2026-09-24):
 - **Hardscape is a kit on the same grid** (2026-09-30, her photo of a brick
   front-garden wall, "time for fences and little retaining walls and
   curbs"): walls, railings, fences and curbs are one prop, `hardscape_kit`
-  (`tools/blender/hardscape_kit.py`), in kinds whose pieces meet open end to
+  (`tools/blender/hardscape_kit.py`), in kinds (the walls in brick or concrete,
+  one shape) whose pieces meet open end to
   open end on the hedges' 1 m grid, so a wall, its railing and a hedge beside
   it share one plan. A pier stands over whichever wall piece is in its cell;
   the canvas repeats every metre, a wall's bricks placed by their height so

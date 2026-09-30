@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3]
+
+; The hardscape kit (landscape kit, 2026-09-30): little brick and concrete
+; walls with piers, the iron railing on them and as a fence, and curbs, in
+; pieces that snap together on the 1 m grid. Pick the kind and piece in the
+; inspector. The shapes are `assets/source/props/hardscape_kit.blend`
+; (tools/blender/hardscape_kit.py); Send to game writes the GLB. Walls, rails
+; and posts collide; pickets, droppings and curbs don't.
+
+[ext_resource type="Script" path="res://scenes/world/landscape_kit/hardscape_kit.gd" id="1_script"]
+
+[node name="hardscape_kit" type="Node3D"]
+script = ExtResource("1_script")
+editor_description = "Hardscape kit (landscape kit). Pick its kind and piece here (a wall can carry its pier and railing), snap to the 1 m grid and turn in quarter turns; finish a run with an end. Shapes in assets/source/props/hardscape_kit.blend."

@@ -96,6 +96,7 @@ PROP_TESTS = {
     "fern_fan": ("coastal_palm_test", "coastal_plant_catalog_test"),
     "hakone_grass": ("coastal_palm_test", "coastal_plant_catalog_test"),
     "purple_heart_sprig": ("coastal_palm_test", "coastal_plant_catalog_test"),
+    "hardscape_kit": ("hardscape_kit_test",),
 }
 
 
