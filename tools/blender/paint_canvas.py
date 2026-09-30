@@ -473,6 +473,74 @@ PROP_LEAFLETS["hibiscus_shrub"]["kinds"]["bud"] = dict(PROP_LEAFLETS["hibiscus_s
 # The shrubs' sphere versions (`leaf_skin.py`) wear their egg versions' leaves and flowers.
 for _shrub in ("azalea_bush", "hibiscus_shrub", "azalea_tree"):
     PROP_LEAFLETS[f"{_shrub}_sphere"] = PROP_LEAFLETS[_shrub]
+# The coast live oak (`leaf_skin.py`, clumps of the sphere shrub's unit, 2026-09-29):
+# the shrubs' dome leaf as the azalea wears it, in an olive green, a live
+# oak's oval with a few small spiny teeth, 0.65 m, near the shrubs' leaf to
+# ball proportion so the crown reads chunky, not busy; a sparser, darker
+# course of leaves under them (`under`, times their darkness, `under_apart`)
+# in place of a flat fill, and every gap left between them open (`keyholes`
+# "all", `cut_dome`), the leaves scattered off their rings so the gaps don't
+# line up (`scatter`). Its ball, hat and topper wear the one leaf.
+PROP_LEAFLETS["coastal_live_oak"] = dict(style="dome", rachis=(0.006, 0.002), rachis_colour=(0.34, 0.46, 0.16),
+                                         rachis_tint=0.4, profile="ovate", kinds={
+                                             "leaf": dict(leaf_m=0.65, width=0.3, splay=25.0, shade=(0.62, 1.18),
+                                                          shadow=0.4, rim_dark=0.3, gap=0.45, top=0.08, vary_dark=0.03,
+                                                          teeth=(4, 0.12, "saw"), shadow_m=0.02, keyholes="all", under=0.68, under_apart=1.8, scatter=(0.45, 0.4)),
+                                         })
+for _kind in ("body", "topper", "sprig", "upper"):  # its stray leaf clusters; each segment's upper tier
+    PROP_LEAFLETS["coastal_live_oak"]["kinds"][_kind] = PROP_LEAFLETS["coastal_live_oak"]["kinds"]["leaf"]
+# Its acorns (`leaf_skin.py`, the buds' spindle; her "some green some brown"),
+# painted by `cut_acorn`: a scaly cap from the foot `cap` of the way up, a
+# dark line at its rim, the nut below it deeper by the cap and paler to a
+# darker point, faint lines along it. sRGB.
+PROP_LEAFLETS["coastal_live_oak"]["kinds"]["acorn"] = dict(
+    cap=0.36, cap_colour=(0.62, 0.50, 0.30), cap_line=(0.36, 0.26, 0.15),
+    nut=(0.56, 0.34, 0.16), nut_light=(0.72, 0.50, 0.27), tip=(0.36, 0.22, 0.12))
+# Fall's leaves on the ground (`leaf_skin.py`, `blade_fallen_a` to `_c`).
+for _kind in ("fallen_a", "fallen_b", "fallen_c"):
+    PROP_LEAFLETS["coastal_live_oak"]["kinds"][_kind] = PROP_LEAFLETS["coastal_live_oak"]["kinds"]["leaf"]
+# The seasons' canvases, `<prop>_colour_<season>.png`: each leaf painted as
+# on the first but in its season's colour. In fall the foliage turns (her "in
+# fall the foliage needs to change color"), each segment a radial gradient
+# (her "since wer egoing for a cartoony style lets make the colors more of a
+# radial gradient", "more yellow in the center/top and getting more orange and
+# red as it gets wider"; a first try drew each leaf's colour at random). Each
+# leaf's place on it (`gradient`): each segment a small tree, its upper tier
+# over the first part (`ranges`, share of the way along from its apex to its
+# brim), its wide hat the rest, each leaf where it starts, `jitter` either
+# way, the sprouts and leaf clusters where `cards` puts them. Each season:
+# `stops` ((place, sRGB) each) along it, `rib` the midribs, `ground` the
+# fallen leaves' colours ((sRGB, share) each) in turn, `drop` the share of the
+# hats' leaves cut through (each leaf's own draw, the same every season).
+# Fall yellow to red; winter (her "in winter it just gets more sparse ... just
+# more see through parts in the leaves and the leaves maybe turn red-brown
+# instead of yellow-red") rust to deep red-brown, a sixth of the leaves
+# see-through (tried on fall and at a third in winter; her choice, "holes move
+# from fall to late winter"); spring (her "spring uses the same setup
+# but makes the foliage bright green", then "lets use this same one for
+# spring but change the leaf color") fresh lime to spring green, as sparse as
+# winter (the same leaves see-through). Summer is the first canvas.
+PROP_LEAFLETS["coastal_live_oak"]["seasons"] = dict(
+    gradient=dict(ranges={"upper": (0.0, 0.45), "leaf": (0.3, 1.0)}, jitter=0.08,
+                  cards={"topper": 0.05, "sprig": 0.7}),
+    fall=dict(stops=[(0.0, (0.99, 0.86, 0.22)), (0.4, (0.97, 0.68, 0.16)), (0.7, (0.92, 0.44, 0.12)),
+                     (1.0, (0.78, 0.20, 0.10))],
+              rib=(1.0, 0.9, 0.55),
+              ground=[((0.66, 0.50, 0.30), 1.0), ((0.52, 0.33, 0.17), 1.0), ((0.80, 0.58, 0.22), 1.0)]),
+    winter=dict(stops=[(0.0, (0.76, 0.38, 0.16)), (0.45, (0.64, 0.24, 0.11)), (0.75, (0.52, 0.18, 0.10)),
+                       (1.0, (0.40, 0.14, 0.09))],
+                rib=(0.85, 0.62, 0.45), drop=0.15),
+    spring=dict(stops=[(0.0, (0.78, 0.93, 0.40)), (0.45, (0.62, 0.86, 0.30)), (1.0, (0.44, 0.72, 0.22))],
+                rib=(0.88, 0.97, 0.62), drop=0.15))
+# Spring's leaf buds (`blade_leaf_bud`), painted as an acorn is: brown bud
+# scales at the foot, green on to a pale green point.
+PROP_LEAFLETS["coastal_live_oak"]["kinds"]["leaf_bud"] = dict(
+    cap=0.45, cap_colour=(0.55, 0.42, 0.24), cap_line=(0.32, 0.22, 0.12),
+    nut=(0.46, 0.68, 0.22), nut_light=(0.62, 0.84, 0.32), tip=(0.74, 0.90, 0.46))
+PROP_LEAFLETS["coastal_live_oak"]["kinds"]["acorn_green"] = dict(
+    PROP_LEAFLETS["coastal_live_oak"]["kinds"]["acorn"], cap_colour=(0.58, 0.57, 0.31), cap_line=(0.34, 0.33, 0.16),
+    nut=(0.50, 0.63, 0.25), nut_light=(0.68, 0.78, 0.40), tip=(0.40, 0.42, 0.18))
+
 
 
 def ovate_leaf_profile(t):
@@ -599,7 +667,8 @@ def shift2(a, dx, dy):
     return out
 
 
-def paint_leaf(state, start, direction, here, spec, profile, mine, xx, yy, rng, wide=1.0, warp=None, dark=1.0, down=None):
+def paint_leaf(state, start, direction, here, spec, profile, mine, xx, yy, rng, wide=1.0, warp=None, dark=1.0, down=None,
+               cover=None, pick=None):
     """One leaf of a bush's greenery drawn over `state` (leaves, midribs,
     tone): from `start` along `direction`, `here` px long, `wide` times its
     width, as one stroke or as `lobes` (turn in degrees, share of the length,
@@ -610,7 +679,9 @@ def paint_leaf(state, start, direction, here, spec, profile, mine, xx, yy, rng, 
     `edge_light` lighter `edge_px` in from its outline, and throws a thin
     shadow `shadow` deep on the leaves already drawn under it, and with
     `drop` a soft shadow that deep `drop_px` on `down` the dome from it
-    (`direction` if not given)."""
+    (`direction` if not given). With `cover`, marks where the leaf lies in it;
+    with `pick` ((array, value), or a list of them), writes each value where
+    the leaf lies."""
     leaves, ribs, tone = state
     size = leaves.shape[0]
     leaf = np.zeros((size, size), dtype=np.float32)
@@ -625,6 +696,10 @@ def paint_leaf(state, start, direction, here, spec, profile, mine, xx, yy, rng, 
         stroke(rib, start + d * here * 0.08, rib_end, spec.get("rib_px", 1.5), lambda t: 1.0 - 0.8 * t, warp)
     leaf *= mine
     solid = (leaf > 0.5).astype(np.float32)
+    if cover is not None:
+        cover |= leaf > 0.5
+    for arr, value in ([pick] if isinstance(pick, tuple) else pick or []):
+        arr[leaf > 0.5] = value
     along = np.clip(((xx - start[0]) * direction[0] + (yy - start[1]) * direction[1]) / here, 0.0, 1.0)
     own = (spec["shade"][0] + (spec["shade"][1] - spec["shade"][0]) * along ** 0.8) * (1.0 + rng.uniform(-0.06, 0.06)) * dark
     if spec.get("edge_light"):
@@ -684,29 +759,116 @@ def cut_dome(obj, kind, label, index, size, px_m, rng):
         rings.append(ring)
         ring -= length * spec.get("row_step", 0.55)
     rings.append(0.0)  # the apex's own leaves, on top
-    vary = np.random.default_rng(zlib.crc32(("dark " + kind).encode()))
-    for ring in rings:
-        # As many as fit round the dome's own girth there.
-        true = ring / (np.interp(ring / flat_px, along, widen) if girth else 1.0)
-        count = spec.get("apex", 5) if ring == 0.0 else max(5, int(round(2 * np.pi * true / col_step)))
-        turn = rng.uniform(0, 2 * np.pi)
-        for j in range(count):
-            a = turn + (j + rng.uniform(-0.15, 0.15)) / count * 2 * np.pi
-            start = centre + np.array([np.cos(a), np.sin(a)]) * max(ring, length * 0.06)
-            # Every other leaf splays `splay` degrees to one side and the next
-            # to the other, a herringbone, so they don't all hang straight down
-            # (her "in general the leaves look a bit too droopy").
-            a += np.radians((1 if j % 2 else -1) * spec.get("splay", 0.0) + rng.uniform(-12, 12))
-            direction = np.array([np.cos(a), np.sin(a)])
-            # No longer than reaches the rim from here.
-            p = start - centre
-            reach = -p @ direction + np.sqrt(max((p @ direction) ** 2 - (p @ p - rim * rim), 0.0))
-            here = min(length * rng.uniform(0.9, 1.05), reach)
-            warp = (centre, lambda rho: np.interp(rho / flat_px, along, widen)) if girth else None
-            out = start - centre
-            state = paint_leaf(state, start, direction, here, spec, profile, mine, xx, yy, rng, 1.0, warp,
-                               leaf_darkness(spec, vary), out / max(float(np.hypot(*out)), 1e-6))
+    covered = np.zeros((size, size), dtype=bool) if spec.get("keyholes") else None
+    # For a plant with seasons' canvases: each leaf's place on the seasons'
+    # gradient (its own random for the jitter, so the leaves are as before)
+    # and its own draw for a season that drops some (`drop`).
+    picks = np.full((size, size), -1.0, dtype=np.float32) if SEASONS else None
+    drops = np.full((size, size), -1.0, dtype=np.float32) if SEASONS else None
+    pick_rng = np.random.default_rng(zlib.crc32(("fall " + kind).encode()))
+    drop_rng = np.random.default_rng(zlib.crc32(("drop " + kind).encode()))
+
+    # `scatter`: each leaf off its ring by up to that share of a row, and round
+    # it by up to that share of its spacing (0.15 without it, as the shrubs).
+    scatter = spec.get("scatter", (0.0, 0.15))
+    step = length * spec.get("row_step", 0.55)
+
+    def lay(state, rings, rng, vary, dark=1.0, apart=1.0):
+        """Leaves in `rings` round the apex, `dark` times their darkness,
+        `apart` times as far apart round each ring."""
+        for ring in rings:
+            # As many as fit round the dome's own girth there.
+            true = ring / (np.interp(ring / flat_px, along, widen) if girth else 1.0)
+            count = spec.get("apex", 5) if ring == 0.0 else max(5, int(round(2 * np.pi * true / (col_step * apart))))
+            turn = rng.uniform(0, 2 * np.pi)
+            for j in range(count):
+                a = turn + (j + rng.uniform(-scatter[1], scatter[1])) / count * 2 * np.pi
+                here_ring = ring
+                if "scatter" in spec and ring > 0.0:
+                    # Off its ring (her "the visual gaps are too linear"), so
+                    # the gaps between leaves don't run round in rings.
+                    here_ring = min(ring + rng.uniform(-1.0, 1.0) * scatter[0] * step, rim - length * 0.5)
+                start = centre + np.array([np.cos(a), np.sin(a)]) * max(here_ring, length * 0.06)
+                # Every other leaf splays `splay` degrees to one side and the next
+                # to the other, a herringbone, so they don't all hang straight down
+                # (her "in general the leaves look a bit too droopy").
+                a += np.radians((1 if j % 2 else -1) * spec.get("splay", 0.0) + rng.uniform(-12, 12))
+                direction = np.array([np.cos(a), np.sin(a)])
+                # No longer than reaches the rim from here.
+                p = start - centre
+                reach = -p @ direction + np.sqrt(max((p @ direction) ** 2 - (p @ p - rim * rim), 0.0))
+                here = min(length * rng.uniform(0.9, 1.05), reach)
+                warp = (centre, lambda rho: np.interp(rho / flat_px, along, widen)) if girth else None
+                out = start - centre
+                # Its fall colour's place on the gradient: how far out from the
+                # apex it starts, a little either way (`jitter`).
+                value = 0.0
+                if picks is not None:
+                    lo, hi = SEASONS["gradient"]["ranges"].get(kind, (0.0, 1.0))
+                    value = np.clip(lo + (hi - lo) * max(here_ring, 0.0) / rim
+                                    + pick_rng.uniform(-1.0, 1.0) * SEASONS["gradient"]["jitter"], 0.0, 1.0)
+                state = paint_leaf(state, start, direction, here, spec, profile, mine, xx, yy, rng, 1.0, warp,
+                                   leaf_darkness(spec, vary) * dark, out / max(float(np.hypot(*out)), 1e-6), covered,
+                                   [(picks, value), (drops, drop_rng.random())] if picks is not None else None)
+        return state
+
+    if spec.get("under"):
+        # A darker course of leaves under them, between their rows (her "the
+        # dark green patches under the leaves should be defined as leves"),
+        # so what shows between the leaves is leaves in their shade, not a
+        # flat fill; `under_apart` times as far apart as the leaves over them,
+        # so gaps stay open between (her "lets put more visual negative
+        # spaces between the leaves"); its own random, so the leaves over it
+        # are as before.
+        under = [r - step / 2 for r in rings if r - step / 2 > length * 0.2] + [rings[0] + step / 2]
+        state = lay(state, [min(r, rim - length * 0.5) for r in under],
+                    np.random.default_rng(zlib.crc32(("under " + kind).encode())),
+                    np.random.default_rng(zlib.crc32(("under dark " + kind).encode())), spec["under"],
+                    spec.get("under_apart", 1.0))
+    state = lay(state, rings, rng, np.random.default_rng(zlib.crc32(("dark " + kind).encode())))
+    def keyholes(gaps):
+        """About `keyholes[0]` a square metre, each the narrow gap round a spot."""
+        per_m2, reach_m = spec["keyholes"]
+        r = int(np.ceil(reach_m * px_m))
+        narrow = gaps & (box_blur2(gaps.astype(np.float32), r) < spec.get("keyhole_gap", 0.5))
+        ys_, xs_ = np.nonzero(narrow)
+        holes_rng = np.random.default_rng(zlib.crc32(("keyholes " + kind).encode()))
+        want = min(len(xs_), int(round(per_m2 * mine.sum() / px_m ** 2)))
+        wy, wx = np.mgrid[-r:r + 1, -r:r + 1]
+        disc = np.hypot(wx, wy) < reach_m * px_m
+        cut = np.zeros((size, size), dtype=bool)
+        made = 0
+        for k in holes_rng.permutation(len(xs_)):
+            y, x = ys_[k], xs_[k]
+            if made >= want:
+                break
+            if not (r <= y < size - r and r <= x < size - r) or cut[max(y - r, 0):y + r + 1, max(x - r, 0):x + r + 1].any():
+                continue
+            cut[y - r:y + r + 1, x - r:x + r + 1] |= narrow[y - r:y + r + 1, x - r:x + r + 1] & disc
+            made += 1
+        return cut
+
     leaves, ribs, tone = state
+    if covered is not None:
+        # Keyholes (her "the keyholes in the textures from that example are
+        # ideal though, where you can see through the leafs", of the Mario
+        # Kart trees): about `keyholes[0]` a square metre of the dome, each
+        # the gap between the leaves within `keyholes[1]` metres of a spot in
+        # it, cut through where the gap is narrow (leaves take more than
+        # `1 - keyhole_gap` of the round there), so the leaves bound it and
+        # it takes their outline, not a punched circle. Its own random, so
+        # the leaves are as before.
+        gaps = (fill > 0.5) & ~covered & (dist > length * 0.5)
+        if spec["keyholes"] == "all":
+            # Every gap between the leaves open (her "lets put more visual
+            # negative spaces between the leaves"), the apex's round left whole.
+            cut = gaps
+        else:
+            cut = keyholes(gaps)
+        leaves = np.where(cut, 0.0, leaves)
+    if picks is not None:
+        on = mine & (leaves > 0.5)
+        SEASON_PICKS[index] = (np.where(on, picks, -1.0), "crown", np.where(on, drops, -1.0))
     f = dist / rim
     tone = tone * (1.0 + spec.get("top", 0.0) * (1.0 - smooth(0.0, 0.55, f))) * (1.0 - spec.get("rim_dark", 0.0) * smooth(0.5, 1.0, f))
     return leaves * mine, ribs * mine, np.where(mine, tone, 1.0).astype(np.float32)
@@ -728,6 +890,12 @@ def cut_topper(obj, kind, label, index, size, px_m, rng):
     spec = dict(spec, shadow_px=2, shadow=0.0, drop=0.0, edge_px=spec.get("edge_m", 0.0) * px_m)
     leaves, ribs, tone = paint_leaf(state, start, np.array([0.0, 1.0]), (y1 - y0) * 0.96, spec, profile, mine, xx, yy, rng,
                                     spec.get("topper_wide", 1.0))
+    if SEASONS:
+        # A fallen leaf (`fallen_a` to `_c`) takes the ground's colours in turn,
+        # a sprout or a leaf cluster the crown's gradient where `cards` puts it.
+        fallen = kind.startswith("fallen_")
+        value = ("abc".index(kind[-1]) + 0.5) / 3 if fallen else SEASONS["gradient"]["cards"].get(kind, 0.0)
+        SEASON_PICKS[index] = (np.where(mine & (leaves > 0.5), value, -1.0), "ground" if fallen else "crown", None)
     return leaves * mine, ribs * mine, np.where(mine, tone, 1.0).astype(np.float32)
 
 
@@ -916,6 +1084,42 @@ def cut_bud(obj, kind, label, index, size, px_m, rng):
     return alpha, np.zeros((size, size), dtype=np.float32), np.ones((size, size), dtype=np.float32), paint
 
 
+def cut_acorn(obj, kind, label, index, size, px_m, rng):
+    """(alpha, nothing, no tone, paint) for an acorn (`leaf_skin.py`, the
+    buds' spindle laid out flat as seen from the side, its foot at the
+    bottom): a cap of overlapping scales, a diamond lattice, from the foot to
+    `cap` of the way up, a dark line at its rim; the nut from there to the
+    point, deepest in the cap's shadow, paler through its middle, darker at
+    its point, with faint lines along it. The whole island is opaque."""
+    spec = LEAFLETS[kind]
+    mine = label == index
+    ys, xs = np.nonzero(mine)
+    y0, y1, x0, x1 = ys.min(), ys.max(), xs.min(), xs.max()
+    yy, xx = np.mgrid[0:size, 0:size]
+    t = np.clip((yy - y0) / max(1, y1 - y0), 0.0, 1.0)  # 0 at its foot, 1 at its point
+    across = np.clip((xx - x0) / max(1, x1 - x0), 0.0, 1.0)
+    lin = lambda c: np.array([srgb_to_linear(v) for v in c], dtype=np.float32)  # noqa: E731
+    cap = spec["cap"]
+    on_cap = smooth(cap + 0.015, cap - 0.015, t)[..., None]
+    u, v = across * 6.0, t / cap * 4.0
+    lattice = np.minimum(np.abs(((u + v) % 1.0) - 0.5), np.abs(((u - v) % 1.0) - 0.5))  # 0 on a scale's edge
+    scales = np.clip(lattice / 0.12, 0.0, 1.0)[..., None]
+    cap_col = lin(spec["cap_line"]) * (1.0 - scales) + lin(spec["cap_colour"]) * scales
+    n = np.clip((t - cap) / (1.0 - cap), 0.0, 1.0)
+    light = (np.sin(np.pi * np.clip(n * 1.2, 0.0, 1.0)) * (1.0 - smooth(0.0, 0.12, n) * 0.0))[..., None]
+    nut = lin(spec["nut"]) * (1.0 - light) + lin(spec["nut_light"]) * light
+    nut = nut * (1.0 - 0.3 * (1.0 - smooth(0.0, 0.12, n)))[..., None]  # the cap's shadow
+    nut = nut * (1.0 - 0.07 * (np.abs(((across * 5.0) % 1.0) - 0.5) < 0.06))[..., None]  # faint lines
+    point = smooth(0.85, 0.97, n)[..., None]
+    nut = nut * (1.0 - point) + lin(spec["tip"]) * point
+    colour = nut * (1.0 - on_cap) + cap_col * on_cap
+    rim = np.clip(1.0 - np.abs(t - cap) / 0.02, 0.0, 1.0)[..., None]
+    colour = colour * (1.0 - 0.45 * rim)
+    paint = np.zeros((size, size, 3), dtype=np.float32)
+    paint[mine] = colour[mine]
+    return mine.astype(np.float32), np.zeros((size, size), dtype=np.float32), np.ones((size, size), dtype=np.float32), paint
+
+
 def srgb_to_linear(c):
     return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
 
@@ -928,11 +1132,18 @@ def round_leaflet_profile(t):
     return np.where(t < widest, rise, fall)
 
 
+# A plant's seasons' canvases (`seasons` in its table, the coast live oak):
+# by island, each leaf's place on the gradient where it lies, the palette it
+# picks from, and each leaf's drop draw where it lies (or None).
+SEASONS, SEASON_PICKS = None, {}
+
+
 def use_prop_leaflets(name):
     """The prop's own leaflet table in place of the palm crown's, if it has one."""
     global CUT_STYLE, LEAFLETS, RACHIS_M, RACHIS_STRAW, RACHIS_TINT, LEAFLET_SLENDER, LEAFLET_JITTER
-    global leaflet_profile
+    global leaflet_profile, SEASONS
     spec = PROP_LEAFLETS.get(name)
+    SEASONS = spec.get("seasons") if spec else None
     if spec is not None:
         CUT_STYLE, LEAFLETS = spec["style"], spec["kinds"]
         RACHIS_M, RACHIS_STRAW, RACHIS_TINT = spec["rachis"], spec["rachis_colour"], spec["rachis_tint"]
@@ -1984,7 +2195,9 @@ def cut_islands(objs, blades, size):
             cutter = cut_bloom
         elif kind in ("bud", "bud_green"):
             cutter = cut_bud
-        elif kind in ("topper", "sprig"):
+        elif kind in ("acorn", "acorn_green", "leaf_bud"):
+            cutter = cut_acorn
+        elif kind in ("topper", "sprig") or kind and kind.startswith("fallen_"):
             cutter = cut_topper
         if kind in table:
             rng = np.random.default_rng(zlib.crc32(kind.encode()))
@@ -2183,14 +2396,40 @@ def leaflet_canvas(argv, name, root, folder, size, orm_size):
         mine = label == i + 1
         rgb[mine] = base
         orm[mine] = (1.0, rough, metal)
-    rgb = rgb * tone[..., None]
-    tint = straw[..., None] * RACHIS_TINT
-    rgb = rgb * (1.0 - tint) + np.array(RACHIS_STRAW, dtype=np.float32) * tint
-    rgb = np.where(painted[..., None], paint, rgb)
-    # Past an island: colour carried outward (alpha was carried by cut_islands),
-    # so mipmaps never pull in the background.
+    seasons = {}
+    for season, spec_s in (SEASONS or {}).items():
+        if season == "gradient":
+            continue
+        # Each leaf's colour at its place along the season's `stops` ((place,
+        # sRGB) each, between them in linear light), or, where its island
+        # picks from `ground`, that palette's colour its place falls in; and a
+        # season that drops some cuts each leaf whose draw is under `drop`.
+        col_s, cut = rgb.copy(), np.zeros(rgb.shape[:2], dtype=bool)
+        at = [p for p, _ in spec_s["stops"]]
+        stops = [[srgb_to_linear(c) for c in col] for _, col in spec_s["stops"]]
+        for picks, which, drops in SEASON_PICKS.values():
+            has = picks >= 0
+            if which == "ground" and spec_s.get("ground"):
+                pal = spec_s["ground"]
+                cols = np.array([[srgb_to_linear(c) for c in col] for col, _ in pal], dtype=np.float32)
+                weights = np.cumsum([w for _, w in pal])
+                col_s[has] = cols[np.minimum(np.searchsorted(weights / weights[-1], picks[has]), len(cols) - 1)]
+            else:
+                col_s[has] = np.stack([np.interp(picks[has], at, [c[ch] for c in stops]) for ch in range(3)], axis=-1)
+            if drops is not None and spec_s.get("drop"):
+                cut |= (drops >= 0) & (drops < spec_s["drop"])
+        seasons[season] = (col_s, cut)
+
+    def finish(rgb, rib=RACHIS_STRAW):
+        rgb = rgb * tone[..., None]
+        tint = straw[..., None] * RACHIS_TINT
+        rgb = rgb * (1.0 - tint) + np.array(rib, dtype=np.float32) * tint
+        rgb = np.where(painted[..., None], paint, rgb)
+        # Past an island: colour carried outward (alpha was carried by
+        # cut_islands), so mipmaps never pull in the background.
+        return grow(rgb, ~outside, MARGIN_PX)
     outside = label == 0
-    rgb = grow(rgb, ~outside, MARGIN_PX)
+    rgb = finish(rgb)
     orm = grow(orm, ~outside, MARGIN_PX)
 
     def write(path, pixels, alpha_channel, colour_space="sRGB"):
@@ -2212,6 +2451,12 @@ def leaflet_canvas(argv, name, root, folder, size, orm_size):
             bpy.data.images.remove(bpy.data.images[stale_img])
     colour = write(colour_path, srgb(rgb), alpha)
     colour.name = f"{name}_colour"
+    for season, (col_s, cut) in seasons.items():
+        season_path = os.path.join(folder, f"{name}_colour_{season}.png")
+        rib = [srgb_to_linear(c) for c in SEASONS[season].get("rib", ())] or RACHIS_STRAW
+        bpy.data.images.remove(write(season_path, srgb(finish(col_s, rib)), np.where(cut, 0.0, alpha)))
+        print(f"paint_canvas: {season}'s colours in {os.path.relpath(season_path, root)}"
+              + (f", {cut.sum() / max((alpha > 0.5).sum(), 1):.0%} of the leaf cut through" if cut.any() else ""))
     small = orm.reshape(orm_size, size // orm_size, orm_size, size // orm_size, 3).mean(axis=(1, 3))
     orm_img = write(orm_path, small, None, "Non-Color")
     orm_img.name = f"{name}_orm"
@@ -2237,6 +2482,158 @@ def leaflet_canvas(argv, name, root, folder, size, orm_size):
           f"and {os.path.relpath(cutout_path, root)}, {os.path.relpath(orm_path, root)} ({orm_size} px), "
           f"and its UV guide; {len(objs)} islands wear one double-sided material, '{name}': "
           + "; ".join(report))
+    if "--save" in argv:
+        bpy.ops.wm.save_mainfile()
+
+
+# A tree's bark (`--bark`, the coast live oak, after her reference of soft
+# vertical waves: "a little subtle texture to the trunk and branches, a
+# vertical grain similar to this", "the highlights should be a subtle red
+# brown"): a tile `tile` metres round and along (as `leaf_skin.py` wraps the
+# limbs) of `ridges` wavy ridges a tile across, each wandering side to side
+# twice along it and again smaller, periodic both ways; lit from one side,
+# each ridge's lit flank leans softly toward `highlight` (sRGB), by up to
+# `lift` at its steepest, and its groove darkens by `groove`, over `colour`.
+# `px_m` pixels a metre.
+BARK = {
+    # Full strength (her "the texture on the trunk can be full opacity", after
+    # a subtle 0.3 and 0.1). `knot`: the stubs' end grain (her "the holes
+    # should have a knot inside kind of like this"), `<prop>_knot.png`, a disc
+    # `size` pixels: wavy growth rings `rings` from the pith out, `wood` and
+    # `ring` (sRGB) alternating, a dark pith, `cracks` radial cracks
+    # (`crack`), weathered blotches up to `mottle` darker, and from `rim` of the
+    # way out a crack (`rim_colour`) all round to the edge.
+    "coastal_live_oak": dict(colour=(0.34, 0.28, 0.22), highlight=(0.50, 0.30, 0.22), lift=1.0, groove=0.33,
+                             ridges=8, tile=(1.0, 2.0), px_m=512, seed=31,
+                             # Aged (her "the new knot themselves can be darker and
+                             # aged"), the rim dark, not black (her "i see some black
+                             # around the inside of the rim of the knot's
+                             # bowl/receptacle that can be just a dark grey brown"),
+                             # all in the bark's own colours (her "use the existing
+                             # bark colors"): `from_bark`, the wood the bark's
+                             # highlight, the rings its colour, the rim and cracks
+                             # its colour darkened by `rim_dark` and `crack_dark`.
+                             knot=dict(size=256, rings=7, from_bark=True, rim_dark=0.25, crack_dark=0.55, mottle=0.1,
+                                       cracks=5, rim=0.86, seed=32)),
+}
+
+
+def save_image(name, colour, path):
+    """`colour` (linear, rows up as Blender's) saved as an sRGB PNG at `path`
+    and loaded from it as the image `name`."""
+    h, w = colour.shape[:2]
+    img = bpy.data.images.get(name) or bpy.data.images.new(name, w, h, alpha=False)
+    img.scale(w, h)
+    px = np.ones((h, w, 4), dtype=np.float32)
+    px[..., :3] = srgb(colour)
+    img.pixels.foreach_set(px.ravel())
+    img.filepath_raw = path
+    img.file_format = "PNG"
+    img.save()
+    img.filepath = bpy.path.relpath(path)
+    img.source = "FILE"
+    img.reload()
+    return img
+
+
+def knot_disc(k, bark=None):
+    """The knots' end grain (`BARK` `knot`), linear colour: wavy growth rings
+    round a dark pith, each ring shading from `wood` to `ring` and back,
+    radial cracks that taper out from near the pith, weathered blotches and
+    fibres (`mottle`), and past `rim` a crack (`rim_colour`) round the edge,
+    where the stub meets the bark's lip. With `from_bark`, its colours are
+    the bark's (`bark`): the wood its highlight, the rings its colour, the rim
+    and cracks that darkened."""
+    if k.get("from_bark"):
+        base = bark["colour"]
+        k = dict(k, wood=bark["highlight"], ring=base, rim_colour=tuple(c * (1.0 - k["rim_dark"]) for c in base),
+                 crack=tuple(c * (1.0 - k["crack_dark"]) for c in base))
+    n = k["size"]
+    rng = np.random.default_rng(k["seed"])
+    y, x = (np.mgrid[0:n, 0:n] + 0.5) / n * 2.0 - 1.0
+    r, a = np.hypot(x, y), np.arctan2(y, x)
+    wob = 1.0 + 0.05 * np.sin(3 * a + rng.random() * 6.3) + 0.03 * np.sin(7 * a + rng.random() * 6.3)
+    rr = r * wob / k["rim"]  # 1 at the crack
+    phase = (rr * k["rings"]) % 1.0
+    band = 0.5 - 0.5 * np.cos(phase * 2 * np.pi)  # 0 mid-ring, 1 at a ring line
+    lin = lambda c: np.array([srgb_to_linear(v) for v in c], dtype=np.float32)  # noqa: E731
+    colour = lin(k["wood"]) * (1.0 - band[..., None] ** 3) + lin(k["ring"]) * (band[..., None] ** 3)
+    colour = colour * (0.85 + 0.15 * np.clip(1.0 - rr, 0.0, 1.0))[..., None]  # a touch lighter to the middle
+    pith = np.clip(1.0 - rr / 0.08, 0.0, 1.0)[..., None]
+    colour = colour * (1.0 - pith) + lin(k["ring"]) * 0.5 * pith
+    for _ in range(k["cracks"]):
+        at = rng.uniform(-np.pi, np.pi)
+        reach = rng.uniform(0.45, 0.95)
+        bend = at + 0.15 * np.sin(rr * 5.0 + rng.random() * 6.3)
+        off = np.abs(((a - bend + np.pi) % (2 * np.pi)) - np.pi) * rr  # distance off the crack, in radii
+        width = 0.025 * (1.0 - np.clip(rr / reach, 0.0, 1.0))
+        on = (off < width) & (rr > 0.12) & (rr < reach)
+        colour[on] = lin(k["crack"])
+    if k.get("mottle"):
+        # Weathered: soft blotches up to `mottle` darker, and faint fibres.
+        blot = np.zeros((n, n), dtype=np.float32)
+        for _ in range(6):
+            cx, cy, rad = rng.uniform(-0.7, 0.7), rng.uniform(-0.7, 0.7), rng.uniform(0.15, 0.4)
+            blot = np.maximum(blot, np.clip(1.0 - np.hypot(x - cx, y - cy) / rad, 0.0, 1.0) ** 2)
+        fibre = 0.5 + 0.5 * np.sin(a * 60.0 + rr * 3.0)
+        colour = colour * (1.0 - k["mottle"] * blot - 0.04 * fibre)[..., None]
+    edge = np.clip((rr - 1.0) / 0.12 + 1.0, 0.0, 1.0)[..., None]  # into the crack round the rim
+    return colour * (1.0 - edge) + lin(k.get("rim_colour", k["crack"])) * edge
+
+
+def bark_canvas(argv, name, root, folder):
+    """`--bark`: the bark's texture `<prop>_bark.png` (`BARK`), put into the
+    trunk's material as its colour (Base Color from the image), and the
+    knots' end grain `<prop>_knot.png` into its second material, so Send
+    carries both. Nothing painted by hand is touched; they are made again
+    each run, and after a `leaf_skin.py` rebuild, which makes the materials
+    afresh."""
+    spec = BARK[name]
+    w, h = int(spec["tile"][0] * spec["px_m"]), int(spec["tile"][1] * spec["px_m"])
+    rng = np.random.default_rng(spec["seed"])
+    u = (np.arange(w) + 0.5) / w
+    v = (np.arange(h) + 0.5) / h
+    uu, vv = np.meshgrid(u, v)
+    n = spec["ridges"]
+    height = np.zeros((h, w), dtype=np.float32)
+    for k in range(n):
+        f1, f2 = int(rng.integers(1, 3)), int(rng.integers(3, 5))
+        wander = (0.28 * np.sin(2 * np.pi * (vv * f1 + rng.random())) + 0.1 * np.sin(2 * np.pi * (vv * f2 + rng.random()))) / n
+        d = (uu - (k + 0.5) / n - wander + 0.5) % 1.0 - 0.5  # wrapped round the tile
+        width = rng.uniform(0.42, 0.55) / n
+        height = np.maximum(height, np.cos(np.clip(d / width, -1.0, 1.0) * np.pi / 2) ** 2)
+    # The flank toward the light, rising softly to its steepest (a first cut
+    # clipped it to full over the whole flank: hard red stripes).
+    slope = np.gradient(height, axis=1)
+    lit = np.clip(-slope / max(float(np.abs(slope).max()), 1e-6), 0.0, 1.0) ** 1.5
+    lin = lambda c: np.array([srgb_to_linear(x) for x in c], dtype=np.float32)  # noqa: E731
+    colour = lin(spec["colour"]) * (1.0 - spec["groove"] * (1.0 - height))[..., None]
+    colour = colour + (lin(spec["highlight"]) - lin(spec["colour"])) * (spec["lift"] * lit)[..., None]
+    os.makedirs(folder, exist_ok=True)
+    path = os.path.join(folder, f"{name}_bark.png")
+    img = save_image(f"{name}_bark", colour, path)
+    trunk = bpy.data.objects["trunk"]
+
+    def put_on(mat, image):
+        """`image` as `mat`'s colour (Base Color from it), so Send carries it."""
+        mat.use_nodes = True
+        nodes = mat.node_tree.nodes
+        bsdf = next(nd for nd in nodes if nd.type == "BSDF_PRINCIPLED")
+        tex = next((nd for nd in nodes if nd.type == "TEX_IMAGE"), None) or nodes.new("ShaderNodeTexImage")
+        tex.image = image
+        tex.location = (bsdf.location.x - 320, bsdf.location.y)
+        mat.node_tree.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
+    mat = trunk.material_slots[0].material
+    put_on(mat, img)
+    print(f"paint_canvas: bark in {os.path.relpath(path, root)} ({w} x {h}, {spec['px_m']} px/m), "
+          f"on '{mat.name}'")
+    if spec.get("knot") and len(trunk.material_slots) > 1:
+        k = spec["knot"]
+        knot_path = os.path.join(folder, f"{name}_knot.png")
+        knot_img = save_image(f"{name}_knot", knot_disc(k, spec), knot_path)
+        put_on(trunk.material_slots[1].material, knot_img)
+        print(f"paint_canvas: knots' end grain in {os.path.relpath(knot_path, root)} ({k['size']} px), "
+              f"on '{trunk.material_slots[1].material.name}'")
     if "--save" in argv:
         bpy.ops.wm.save_mainfile()
 
@@ -2446,6 +2843,9 @@ def main():
         return
     if "--bands" in argv:
         band_canvas(argv, name, root, folder, size, orm_size)
+        return
+    if "--bark" in argv:
+        bark_canvas(argv, name, root, folder)
         return
     obj = next(o for o in bpy.data.collections["export"].objects if o.get("kyt_game_mesh"))
     if "--guide-only" in argv:
