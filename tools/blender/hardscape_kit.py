@@ -54,7 +54,10 @@ together and a wall, its railing and a hedge beside it share one plan.
   as a fence, taller, with posts with ball finials. Both have a little section
   across the top, a second rail just under the top one. Pieces
   as the wall's, less `pier`, plus, for the wall railing, `pier` (a metre whose
-  two posts stand just off a pier's faces), for the fence `post`. An `end`
+  two posts stand just off a pier's faces) and `post` (a metre with a plain
+  post in its middle: her photograph's posts are "right next to the brick
+  towers and then one in the middle"; the fence post's ball on it was tried
+  and taken out), for the fence `post`. An `end`
   stops at a post: the wall railing's just off the face of a pier on its end
   cell, the fence's on the middle. Rails and posts collide; pickets don't.
   (The wall railing was tried in segments, the fence's posts and balls at
@@ -745,7 +748,10 @@ def railing_piece(size, piece, bands):
             posts.append((at, 0.0, END_POST, "end"))
         skip.append(((0.0, 0.0), PIER_POST_AT + END_POST / 2 + 0.01))
     if piece == "post":
-        posts.append((0.0, 0.0, FENCE_POST, "fence"))
+        # The fence's with its ball; the wall railing's plain and flat-topped
+        # as a pier's, the one in the middle between two piers. Either way the
+        # pickets either side are left out, so it stands in their rhythm.
+        posts.append((0.0, 0.0, END_POST, "end") if size == "wall" else (0.0, 0.0, FENCE_POST, "fence"))
         skip.append(((0.0, 0.0), FENCE_POST / 2 + PICKET + 0.01))
     lines = paths(piece)
     if piece == "end":
@@ -1258,7 +1264,7 @@ def kinds():
     """(kind, size, pieces): every kind the kit builds."""
     out = [(kind, size, WALL_PIECES) for kind in BODIES for size in WALLS]
     after = RAILING_PIECES.index("end") + 1
-    out += [("railing", size, RAILING_PIECES[:after] + (("pier",) if size == "wall" else ("post",))
+    out += [("railing", size, RAILING_PIECES[:after] + (("pier", "post") if size == "wall" else ("post",))
              + RAILING_PIECES[after:]) for size in RAILINGS]
     out += [("curb", k, CURB_PIECES["road" if k.startswith("road") else k]) for k in ("road", "road_red", "edging")]
     return out
@@ -1266,7 +1272,7 @@ def kinds():
 
 # The sample street (`authored/sample_street`), a street in the beach town
 # after her photograph: a garden wall (the town's brick) along the back of a sidewalk with piers every four metres, the railing
-# on it, a corner turning in beside a front walk; past the walk to the west,
+# on it with a post in the middle of each bay, a corner turning in beside a front walk; past the walk to the west,
 # the same wall in concrete; the parkway and the curb and gutter at the street,
 # a driveway cut, and a red stretch. (kind, piece, x, y, turn in quarter turns
 # anticlockwise, z).
@@ -1280,7 +1286,7 @@ def sample_street():
     out += [(rail, "end", -6, 0, 2, top), (rail, "corner", 10, 0, 0, top), (rail, "straight_2", 10, 1, 1, top),
             (rail, "end", 10, 3, 1, top)]
     for x in range(-5, 10):
-        piece = "pier" if x in (-2, 2, 6) else "straight"
+        piece = "pier" if x in (-2, 2, 6) else "post" if x in (-4, 0, 4, 8) else "straight"
         out.append((rail, piece, x, 0, 0, top))
     concrete = "concrete_wall_garden"
     out += [(concrete, "end", -17, 0, 2, 0.0), (concrete, "straight_4", -16, 0, 0, 0.0),
@@ -1288,7 +1294,8 @@ def sample_street():
             (concrete, "end", -9, 0, 0, 0.0)]
     out += [(concrete, "pier", x, 0, 0, 0.0) for x in (-17, -13, -9)]
     out += [(rail, "end", -17, 0, 2, top), (rail, "end", -9, 0, 0, top)]
-    out += [(rail, "pier" if x == -13 else "straight", x, 0, 0, top) for x in range(-16, -9)]
+    out += [(rail, "pier" if x == -13 else "post" if x in (-15, -11) else "straight", x, 0, 0, top)
+            for x in range(-16, -9)]
     curb = "curb_road"
     y = -4
     xs = list(range(-14, 15))
@@ -1561,10 +1568,11 @@ def render(folder):
     beside = [("wall_seat", "end", 0, 0, 2, 0.0), ("wall_seat", "straight_2", 1, 0, 0, 0.0),
               ("wall_seat", "end", 3, 0, 0, 0.0), ("wall_seat", "pier", 3, 0, 0, 0.0),
               ("wall_garden", "end", 6, 0, 2, 0.0), ("wall_garden", "straight_2", 7, 0, 0, 0.0),
-              ("wall_garden", "end", 9, 0, 0, 0.0), ("wall_garden", "pier", 6, 0, 0, 0.0),
-              ("wall_garden", "pier", 9, 0, 0, 0.0),
+              ("wall_garden", "straight", 9, 0, 0, 0.0), ("wall_garden", "end", 10, 0, 0, 0.0),
+              ("wall_garden", "pier", 6, 0, 0, 0.0), ("wall_garden", "pier", 10, 0, 0, 0.0),
               ("railing_wall", "end", 6, 0, 2, top), ("railing_wall", "straight", 7, 0, 0, top),
-              ("railing_wall", "straight", 8, 0, 0, top), ("railing_wall", "end", 9, 0, 0, top),
+              ("railing_wall", "post", 8, 0, 0, top), ("railing_wall", "straight", 9, 0, 0, top),
+              ("railing_wall", "end", 10, 0, 0, top),
               ("railing_fence", "end", 12, 0, 2, 0.0), ("railing_fence", "straight", 13, 0, 0, 0.0),
               ("railing_fence", "straight", 14, 0, 0, 0.0), ("railing_fence", "post", 15, 0, 0, 0.0),
               ("railing_fence", "straight", 16, 0, 0, 0.0), ("railing_fence", "end", 17, 0, 0, 0.0),
@@ -1573,27 +1581,29 @@ def render(folder):
               ("curb_edging", "end", 51, 22, 2, 0.0), ("curb_edging", "straight_4", 52, 22, 0, 0.0),
               ("curb_edging", "straight", 56, 22, 0, 0.0), ("curb_edging", "end", 57, 22, 0, 0.0)]
     place_copies(stage, beside, parts, (ox, 0.0, 0.0))
-    for x, text in ((1.5, "wall_seat (park)"), (7.5, "wall_garden (park) + railing_wall"), (14.5, "railing_fence")):
+    for x, text in ((1.5, "wall_seat (park)"), (8.0, "wall_garden (park) + railing_wall"), (14.5, "railing_fence")):
         label(text, ox + x, -1.6, 0.34)
     for x, y, text in ((53.5, 18.7, "curb_road, cut, red, end"), (54.5, 23.2, "curb_edging")):
         label(text, ox + x, y, 0.3)
-    for x in (4.5, 10.5):
+    for x in (4.5, 11.0):
         person(ox + x, -0.3)
     person(ox + 60.0, 21.0)
     shoot("kinds_walls", (ox + 8.5, -12.5, 2.2), (ox + 8.5, 0.0, 0.6), lens=24)
-    shoot("park_pier_close", (ox + 10.6, -1.8, 1.45), (ox + 9.0, 0.0, 0.95), lens=34)
+    shoot("park_pier_close", (ox + 11.6, -1.8, 1.45), (ox + 10.0, 0.0, 0.95), lens=34)
     shoot("kinds_curbs", (ox + 54.5, 14.2, 2.4), (ox + 54.5, 21.0, 0.0), lens=26)
     concrete = [("concrete_wall_seat", "end", -30, 0, 2, 0.0), ("concrete_wall_seat", "straight_2", -29, 0, 0, 0.0),
                 ("concrete_wall_seat", "end", -27, 0, 0, 0.0), ("concrete_wall_seat", "pier", -27, 0, 0, 0.0),
-                ("concrete_wall_garden", "end", -24, 0, 2, 0.0), ("concrete_wall_garden", "straight_2", -23, 0, 0, 0.0),
-                ("concrete_wall_garden", "end", -21, 0, 0, 0.0), ("concrete_wall_garden", "pier", -24, 0, 0, 0.0),
+                ("concrete_wall_garden", "end", -25, 0, 2, 0.0), ("concrete_wall_garden", "straight_2", -24, 0, 0, 0.0),
+                ("concrete_wall_garden", "straight", -22, 0, 0, 0.0),
+                ("concrete_wall_garden", "end", -21, 0, 0, 0.0), ("concrete_wall_garden", "pier", -25, 0, 0, 0.0),
                 ("concrete_wall_garden", "pier", -21, 0, 0, 0.0),
-                ("railing_wall", "end", -24, 0, 2, top), ("railing_wall", "straight", -23, 0, 0, top),
-                ("railing_wall", "straight", -22, 0, 0, top), ("railing_wall", "end", -21, 0, 0, top)]
+                ("railing_wall", "end", -25, 0, 2, top), ("railing_wall", "straight", -24, 0, 0, top),
+                ("railing_wall", "post", -23, 0, 0, top), ("railing_wall", "straight", -22, 0, 0, top),
+                ("railing_wall", "end", -21, 0, 0, top)]
     place_copies(stage, concrete, parts, (ox, 0.0, 0.0))
-    for x, text in ((-28.5, "concrete_wall_seat"), (-22.5, "concrete_wall_garden + railing_wall")):
+    for x, text in ((-28.5, "concrete_wall_seat"), (-23.0, "concrete_wall_garden + railing_wall")):
         label(text, ox + x, -1.6, 0.34)
-    person(ox - 25.5, -0.3)
+    person(ox - 26.0, -0.3)
     shoot("kinds_concrete", (ox - 25.5, -9.0, 2.0), (ox - 25.5, 0.0, 0.6), lens=24)
 
     # Each kind's pieces, labelled, four to a row.
@@ -1611,7 +1621,7 @@ def render(folder):
                 y = oy - r * 6.5
                 place_copies(stage, [(group, piece, x + 0.5, y, 0, z)], parts)
                 if group == "railing_wall":
-                    under = "straight" if piece == "pier" else piece
+                    under = "straight" if piece in ("pier", "post") else piece
                     place_copies(stage, [("wall_garden", under, x + 0.5, y, 0, 0.0)]
                                  + ([("wall_garden", "pier", x + 0.5, y, 0, 0.0)] if piece == "pier" else []), parts)
                 label(piece, x + wide / 2, y - 1.0, 0.34)

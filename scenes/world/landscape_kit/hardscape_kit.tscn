@@ -11,4 +11,4 @@
 
 [node name="hardscape_kit" type="Node3D"]
 script = ExtResource("1_script")
-editor_description = "Hardscape kit (landscape kit). Pick its kind and piece here (a wall can carry its pier and railing), snap to the 1 m grid and turn in quarter turns; finish a run with an end. Shapes in assets/source/props/hardscape_kit.blend."
+editor_description = "Hardscape kit (landscape kit). Pick its kind and piece here (a wall can carry its pier, its railing and the railing's middle post), snap to the 1 m grid and turn in quarter turns; finish a run with an end. Shapes in assets/source/props/hardscape_kit.blend."

@@ -12,7 +12,8 @@ extends Node3D
 ## Each piece's origin is the middle of its first grid cell and the run goes
 ## along the cells' middles, so pieces meet open end to open end. Finish a run
 ## with an `end`, or its open end shows. A wall, its pier and its railing can
-## be one placement (`pier`, `railing`).
+## be one placement (`pier`, `railing`), and so can the railing's post in the
+## middle between two piers (`post`).
 
 ## Brick walls in the park (a little darker toward the ground) or in the
 ## beach town (sun, salt and history), or concrete; each at sitting height
@@ -30,7 +31,7 @@ var kind := 1:
 ## corner, west to north; a tee; a cross; an end, from the west; a bend, a
 ## curve and a large curve (radius 0.5, 1.5 and 2.5 m, as the hedges'). A wall
 ## also has a pier on its own; the wall railing a metre with posts either side
-## of a pier; the fence a post. The road curb turns either way (`_in`: the road
+## of a pier, and a metre with a post in its middle; the fence a post. The road curb turns either way (`_in`: the road
 ## inside the turn) and has a driveway `cut`. A kind without the piece warns.
 @export_enum("straight", "straight_2", "straight_4", "corner", "tee", "cross", "end", "bend", "curve",
 		"curve_large", "pier", "post", "bend_in", "curve_in", "curve_large_in", "cut")
@@ -50,6 +51,14 @@ var piece := 0:
 @export var railing := false:
 	set(value):
 		railing = value
+		_build()
+
+## A wall's railing only, on a straight without a pier: a post over this
+## piece's first cell, as her photograph's in the middle between two piers.
+## Lay the bay's middle cell as a one-metre straight to carry it.
+@export var post := false:
+	set(value):
+		post = value
 		_build()
 
 ## Which of the piece's three scatterings of bird droppings it wears (her
@@ -120,7 +129,9 @@ func _layers() -> Array:
 		if pier:
 			out.append([kind_name + "_pier", Transform3D.IDENTITY])
 		if railing:
-			var rail := "railing_wall_" + ("pier" if pier and piece_name == "straight" else piece_name)
+			var rail := "railing_wall_" + piece_name
+			if piece_name == "straight" and (pier or post):
+				rail = "railing_wall_" + ("pier" if pier else "post")
 			if not _part(rail).is_empty():
 				out.append([rail, Transform3D(Basis.IDENTITY, Vector3(0.0, COPING_TOPS[size], 0.0))])
 	return out

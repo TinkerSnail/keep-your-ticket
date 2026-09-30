@@ -8,7 +8,7 @@ extends Node
 ## so pieces laid on the 1 m grid meet without a step or a gap (curves
 ## included: their ends square to the curve). In the wrapper
 ## (scenes/world/landscape_kit/hardscape_kit.tscn): every kind and piece, and
-## every wall with its pier and railing, builds as one mesh of one surface and
+## every wall with its pier, railing and railing post, builds as one mesh of one surface and
 ## the collision its layers carry, standing where its heights say. Measured on
 ## the imported meshes, not the builder's numbers.
 
@@ -20,8 +20,8 @@ const SIZES := ["seat", "garden"]
 const WALL_PIECES := ["straight", "straight_2", "straight_4", "corner", "tee", "cross", "end", "bend", "curve",
 	"curve_large", "pier"]
 const RAILING_PIECES := {
-	"wall": ["straight", "straight_2", "straight_4", "corner", "tee", "cross", "end", "pier", "bend", "curve",
-		"curve_large"],
+	"wall": ["straight", "straight_2", "straight_4", "corner", "tee", "cross", "end", "pier", "post", "bend",
+		"curve", "curve_large"],
 	"fence": ["straight", "straight_2", "straight_4", "corner", "tee", "cross", "end", "post", "bend", "curve",
 		"curve_large"],
 }
@@ -57,12 +57,14 @@ const PLANE := 0.0005
 const MATCH := 0.001
 ## Heights (hardscape_kit.py): each wall's coping top at its middle (the face's
 ## top plus its wash), its pier's cap top likewise, how far below the ground a
-## wall reaches, and the wall railing's top rail over the coping.
+## wall reaches, and the wall railing's top rail and its posts' tops over the
+## coping.
 const COPING_TOP := {"seat": 0.487, "garden": 0.712}
 const CAP_TOP := {"seat": 1.162, "garden": 1.387}
 const COPING_FACE := {"seat": 0.475, "garden": 0.70}
 const FOOT := 0.2
 const RAIL_TOP := 0.55
+const POST_TOP := 0.56
 ## Droppings lie this far over what they're on, at most.
 const LIFT := 0.003
 const SETS := ["a", "b", "c"]
@@ -173,26 +175,32 @@ func _check_wrapper(kit: Node3D) -> void:
 			kit.set("piece", p)
 			var size := kind_name.get_slice("_", kind_name.get_slice_count("_") - 1)
 			var wall := COPING_TOP.has(size)
-			var combos := [[false, false]]
+			var combos := [[false, false, false]]
 			if wall and piece_name != "pier":
-				combos = [[false, false], [true, false], [false, true], [true, true]]
+				combos = []
+				for bits in 8:
+					combos.append([bits & 1 != 0, bits & 2 != 0, bits & 4 != 0])
 			for combo: Array in combos:
 				kit.set("pier", combo[0])
 				kit.set("railing", combo[1])
+				kit.set("post", combo[2])
 				for choice in SETS.size() + 2:
 					kit.set("droppings", choice)
-					_check_built(kit, kind_name, piece_name, combo[0], combo[1], choice)
+					_check_built(kit, kind_name, piece_name, combo, choice)
 					built += 1
 	kit.set("pier", false)
 	kit.set("railing", false)
+	kit.set("post", false)
 	if built < 400:
 		_fails.append("only %d placements were built" % built)
 
 
-func _check_built(kit: Node3D, kind_name: String, piece_name: String, with_pier: bool, with_railing: bool,
-		choice: int) -> void:
-	var label := "%s %s%s%s, droppings %d" % [kind_name, piece_name, " + pier" if with_pier else "",
-		" + railing" if with_railing else "", choice]
+func _check_built(kit: Node3D, kind_name: String, piece_name: String, combo: Array, choice: int) -> void:
+	var with_pier: bool = combo[0]
+	var with_railing: bool = combo[1]
+	var with_post: bool = combo[2]
+	var label := "%s %s%s%s%s, droppings %d" % [kind_name, piece_name, " + pier" if with_pier else "",
+		" + railing" if with_railing else "", " + post" if with_post else "", choice]
 	var shown := kit.get_children(true)
 	var meshes := shown.filter(func(n: Node) -> bool: return n is MeshInstance3D and n.mesh != null)
 	var shapes: Array[Node] = []
@@ -221,6 +229,14 @@ func _check_built(kit: Node3D, kind_name: String, piece_name: String, with_pier:
 	if absf(box.position.y + FOOT) > 0.002 or box.end.y < top - 0.002 or box.end.y > top + 0.012 + LIFT:
 		_fails.append("%s: stands from %.3f to %.3f m, not %.3f to %.3f" % [label, box.position.y, box.end.y,
 			-FOOT, top])
+	# The middle post rises a centimetre over the top rail; without it nothing
+	# but droppings does (an end has its own post).
+	var post_shown := with_railing and with_post and not with_pier and piece_name == "straight"
+	var post_top: float = COPING_FACE[size] + POST_TOP
+	if with_railing and not with_pier and piece_name not in ["pier", "end"] \
+			and (box.end.y > post_top - 0.002) != post_shown:
+		_fails.append("%s: its railing %s a post (top %.3f m)" % [label, "lacks" if post_shown else "has",
+			box.end.y])
 
 
 func _vertices(mesh: Mesh) -> PackedVector3Array:
@@ -265,7 +281,7 @@ func _mismatch(a: Array[Vector2], b: Array[Vector2]) -> float:
 
 func _finish() -> void:
 	if _fails.is_empty():
-		print("PASS: every piece of the hardscape kit is in the model, walls and rails colliding, pickets, curbs and droppings not; every open end has its straight's exact cross-section; and the wrapper builds every kind, piece, pier, railing and droppings choice as one mesh of one surface with its layers' collision, the walls standing from 0.2 m below the ground to their coping, cap or top rail")
+		print("PASS: every piece of the hardscape kit is in the model, walls and rails colliding, pickets, curbs and droppings not; every open end has its straight's exact cross-section; and the wrapper builds every kind, piece, pier, railing, railing post and droppings choice as one mesh of one surface with its layers' collision, the walls standing from 0.2 m below the ground to their coping, cap or top rail")
 	else:
 		for failure in _fails.slice(0, 40):
 			push_error("hardscape_kit_test: " + failure)
