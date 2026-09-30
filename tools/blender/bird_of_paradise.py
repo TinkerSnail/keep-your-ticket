@@ -74,11 +74,26 @@ MATERIALS = {
     "bop_young_midrib": ((0.63, 0.72, 0.46), 0.9, True),  # 0.88 of (0.72, 0.82, 0.52)
     "bop_stalk": ((0.34, 0.50, 0.30), 0.9, False),
     "bop_sheath": ((0.42, 0.38, 0.22), 0.95, False),
-    "bop_spathe": ((0.36, 0.47, 0.35), 0.85, True),
-    "bop_spathe_rim": ((0.66, 0.29, 0.40), 0.85, True),
-    "bop_sepal": ((1.0, 0.57, 0.08), 0.85, True),
-    "bop_petal": ((0.16, 0.30, 0.86), 0.85, True),
+    # The flower head wears one textured, fully matte material (her "make the
+    # flowers matte and give them textures too"); the four colours below are
+    # painted into its texture (`flower_texture`).
+    "bop_flower": ((1.0, 1.0, 1.0), 1.0, True),
+    "bop_spathe": ((0.36, 0.47, 0.35), 1.0, True),
+    "bop_spathe_rim": ((0.66, 0.29, 0.40), 1.0, True),
+    "bop_sepal": ((1.0, 0.57, 0.08), 1.0, True),
+    "bop_petal": ((0.16, 0.30, 0.86), 1.0, True),
 }
+# The flower head's texture: square, the spathe, the sepals and the arrow's
+# petals side by side in U (each piece's across), V along each piece from its
+# base, a little apart so mipmaps don't bleed. After her close photo: the
+# spathe's green hull blending softly into its red-mauve band, pinker at the
+# heel and darker toward the beak's tip, faint lines along it and a thin golden
+# line along the opening; the sepals pale yellow at the base to orange, a
+# darker midline and lighter edges; the petals whitish at the base to deep
+# blue, a darker midline.
+FLOWER_TEX = 512
+FLOWER_REGIONS = {"spathe": (0.01, 0.49), "sepal": (0.51, 0.74), "petal": (0.76, 0.99)}
+FLOWER_V = (0.01, 0.99)
 
 # Per blade kind: the stalk's share of the leaf's length, the paddle's
 # half-width (m), how far its halves fold up (edge rise per metre out from the
@@ -290,6 +305,57 @@ def leaf_textures(kind, spec):
             save_image(f"bird_of_paradise_{kind}_normal", n * 0.5 + 0.5, False))
 
 
+def flower_texture():
+    """The flower head's colour (see FLOWER_TEX), painted piece by piece."""
+    import numpy as np
+    n = FLOWER_TEX
+    uu, vv = np.meshgrid((np.arange(n) + 0.5) / n, (np.arange(n) + 0.5) / n)  # rows bottom first
+    vl = np.clip((vv - FLOWER_V[0]) / (FLOWER_V[1] - FLOWER_V[0]), 0.0, 1.0)
+    rgb = np.zeros((n, n, 3), dtype=np.float32)
+
+    def c(name):
+        return np.array(MATERIALS[name][0] if name in MATERIALS else name, dtype=np.float32)
+
+    def smooth(a, b, x):
+        t = np.clip((x - a) / (b - a), 0.0, 1.0)
+        return t * t * (3.0 - 2.0 * t)
+
+    def mix(base, toward, w):
+        return base + (np.asarray(toward, dtype=np.float32) - base) * np.asarray(w)[..., None]
+
+    def local(region):
+        u0, u1 = FLOWER_REGIONS[region]
+        pad = (u0 - (0.0 if region == "spathe" else 0.01), u1 + 0.01)
+        return np.clip((uu - u0) / (u1 - u0), 0.0, 1.0), (uu >= pad[0]) & (uu < pad[1])
+
+    # The spathe: hull green below, the red-mauve band softly above it.
+    ul, where = local("spathe")
+    d = np.minimum(ul, 1.0 - ul)  # 0 at a rim, 0.5 at the keel
+    col = np.broadcast_to(c("bop_spathe"), (n, n, 3)) * (1.0 - 0.15 * smooth(0.3, 0.5, d))[..., None]
+    col = mix(col, c("bop_spathe_rim"), 1.0 - smooth(0.17, 0.33, d))
+    col = mix(col, (0.80, 0.36, 0.45), 0.5 * (1.0 - smooth(0.08, 0.35, vl)))  # pinker at the heel
+    col = col * (1.0 - 0.25 * smooth(0.6, 1.0, vl))[..., None]  # darker to the beak's tip
+    col = col * (1.0 - 0.04 * (0.5 + 0.5 * np.cos(2.0 * np.pi * ul * 8.0)))[..., None]  # lines along it
+    col = mix(col, (1.0, 0.72, 0.25), 0.8 * (1.0 - smooth(0.0, 0.05, d)) * smooth(0.15, 0.3, vl)
+              * (1.0 - smooth(0.75, 0.95, vl)))  # the golden line along the opening
+    rgb[where] = col[where]
+
+    # The sepals and the arrow's petals: base, body and tip along, a midline.
+    for region, base, tip, midline, edge in (
+            ("sepal", (1.0, 0.9, 0.62), (1.0, 0.70, 0.22), (0.93, 0.45, 0.04), (1.0, 0.78, 0.35)),
+            ("petal", (0.80, 0.84, 0.98), (0.28, 0.46, 0.96), (0.10, 0.16, 0.55), None)):
+        ul, where = local(region)
+        body = c(f"bop_{region}")
+        col = mix(np.broadcast_to(np.asarray(base, dtype=np.float32), (n, n, 3)), body, smooth(0.04, 0.35, vl))
+        col = mix(col, tip, smooth(0.7, 1.0, vl))
+        col = mix(col, midline, (0.5 if region == "sepal" else 0.6) * np.exp(-((ul - 0.5) / 0.06) ** 2)
+                  * smooth(0.05, 0.2, vl))
+        if edge is not None:
+            col = mix(col, edge, 0.25 * (1.0 - smooth(0.0, 0.15, np.minimum(ul, 1.0 - ul))))
+        rgb[where] = col[where]
+    return save_image("bird_of_paradise_flower_colour", rgb, True)
+
+
 def save_image(name, rgb, colour_data):
     """`rgb` (rows bottom first; sRGB for a colour) as a PNG in TEXTURES, loaded
     back from the file so the GLB carries the file's own bytes."""
@@ -315,8 +381,9 @@ def save_image(name, rgb, colour_data):
     return img
 
 
-def wear(mat, colour_img, normal_img):
-    """The material's colour from `colour_img` and its relief from `normal_img`."""
+def wear(mat, colour_img, normal_img=None):
+    """The material's colour from `colour_img` and, given one, its relief from
+    `normal_img`."""
     nt = mat.node_tree
     for node in [n for n in nt.nodes if n.name.startswith("kyt_")]:
         nt.nodes.remove(node)
@@ -324,6 +391,8 @@ def wear(mat, colour_img, normal_img):
     tex = nt.nodes.new("ShaderNodeTexImage")
     tex.name, tex.image, tex.location = "kyt_colour", colour_img, (-600, 300)
     nt.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
+    if normal_img is None:
+        return
     ntex = nt.nodes.new("ShaderNodeTexImage")
     ntex.name, ntex.image, ntex.location = "kyt_normal_image", normal_img, (-600, -200)
     relief = nt.nodes.new("ShaderNodeNormalMap")
@@ -332,9 +401,17 @@ def wear(mat, colour_img, normal_img):
     nt.links.new(relief.outputs["Normal"], bsdf.inputs["Normal"])
 
 
-def folded_card(verts, faces, fmat, base, along, up, length, half, fold, m, stations):
+def atlas(region, ul, vl):
+    """A point `ul` across and `vl` along a flower piece, in its region of the
+    flower texture."""
+    u0, u1 = FLOWER_REGIONS[region]
+    return (u0 + (u1 - u0) * ul, FLOWER_V[0] + (FLOWER_V[1] - FLOWER_V[0]) * vl)
+
+
+def folded_card(verts, vuv, faces, fmat, base, along, up, length, half, fold, m, stations, region):
     """A pointed petal from `base` along `along`, its face toward `up`, folded
-    along its middle so it keeps some body seen edge-on."""
+    along its middle so it keeps some body seen edge-on; its UVs across and
+    along it in `region` of the flower texture."""
     side = along.cross(up).normalized()
     face = side.cross(along).normalized()
     rows = []
@@ -343,11 +420,13 @@ def folded_card(verts, faces, fmat, base, along, up, length, half, fold, m, stat
         if w <= 0.0:
             rows.append([len(verts)])
             verts.append(c)
+            vuv.append(atlas(region, 0.5, s))
             continue
         row = []
         for u in (-1.0, 0.0, 1.0):
             row.append(len(verts))
             verts.append(c + side * (u * w * half) - face * (fold * w * half * (1.0 - abs(u))))
+            vuv.append(atlas(region, (u + 1.0) * 0.5, s))
         rows.append(row)
     for r0, r1 in zip(rows, rows[1:]):
         if len(r1) == 1:
@@ -364,8 +443,8 @@ def flower_blade(name, mats):
     """One flower head, the stalk's tip at the origin: the spathe, a canoe with
     its beak along +Y and a red-mauve band under its rim, and out of its
     opening a fan of three orange sepals and a blue arrow pointing forward."""
-    verts, faces, fmat = [], [], []
-    green, rim, sepal, petal = 0, 1, 2, 3
+    verts, vuv, faces, fmat = [], [], [], []
+    green = rim = sepal = petal = 0  # one material; the texture paints each
     # (y, half-width, keel z, rim z) from the heel to the beak's tip.
     # Narrow and deep, as a beak is: the stalk meets it near the heel.
     stations = [(-0.045, 0.012, 0.0, 0.045), (-0.015, 0.022, -0.040, 0.052), (0.04, 0.025, -0.050, 0.046),
@@ -373,17 +452,26 @@ def flower_blade(name, mats):
                 (0.31, 0.0, -0.002, 0.0)]
     heel = len(verts)
     verts.append(Vector((0.0, -0.06, 0.025)))
+    vuv.append(atlas("spathe", 0.5, 0.0))
+
+    def along_beak(y):
+        return (y + 0.06) / (stations[-1][0] + 0.06)
     rows = []
     for y, w, keel, top in stations:
         if w <= 0.0:
             rows.append([len(verts)])
             verts.append(Vector((0.0, y, 0.0)))
+            vuv.append(atlas("spathe", 0.5, 1.0))
             continue
         low = keel + 0.55 * (top - keel)
         row = []
-        for x, z in ((-0.8 * w, top), (-w, low), (0.0, keel), (w, low), (0.8 * w, top)):
+        # Round the section from one rim to the other: U 0 and 1 at the rims,
+        # the keel at a half, the band's lower edge at a quarter either side.
+        for (x, z), ul in zip(((-0.8 * w, top), (-w, low), (0.0, keel), (w, low), (0.8 * w, top)),
+                              (0.0, 0.25, 0.5, 0.75, 1.0)):
             row.append(len(verts))
             verts.append(Vector((x, y, z)))
+            vuv.append(atlas("spathe", ul, along_beak(y)))
         rows.append(row)
     for j in range(4):
         faces.append((heel, rows[0][j], rows[0][j + 1]))
@@ -403,17 +491,16 @@ def flower_blade(name, mats):
         p, a = math.radians(pitch), math.radians(yaw)
         along = Vector((math.sin(a) * math.cos(p), math.cos(a) * math.cos(p), math.sin(p)))
         normal = Vector((math.cos(a), -math.sin(a), 0.0))
-        folded_card(verts, faces, fmat, Vector((0.0, y, 0.045)), along, normal,
-                    length, 0.030, 0.5, sepal, card)
+        folded_card(verts, vuv, faces, fmat, Vector((0.0, y, 0.045)), along, normal,
+                    length, 0.030, 0.5, sepal, card, "sepal")
     for pitch, yaw, length, y, half in ((30.0, -4.0, 0.17, 0.09, 0.022), (60.0, 8.0, 0.12, 0.07, 0.016)):
         p, a = math.radians(pitch), math.radians(yaw)
         along = Vector((math.sin(a) * math.cos(p), math.cos(a) * math.cos(p), math.sin(p)))
         normal = Vector((math.cos(a), -math.sin(a), 0.0))
-        folded_card(verts, faces, fmat, Vector((0.0, y, 0.04)), along, normal,
-                    length, half, 0.6, petal, card)
-    uvs = [tuple((0.5 + verts[i].x, 0.5 + verts[i].y) for i in f) for f in faces]
-    me = mesh_from(name, verts, faces, fmat, uvs,
-                   [mats["bop_spathe"], mats["bop_spathe_rim"], mats["bop_sepal"], mats["bop_petal"]])
+        folded_card(verts, vuv, faces, fmat, Vector((0.0, y, 0.04)), along, normal,
+                    length, half, 0.6, petal, card, "petal")
+    uvs = [tuple(vuv[i] for i in f) for f in faces]
+    me = mesh_from(name, verts, faces, fmat, uvs, [mats["bop_flower"]])
     for poly in me.polygons:
         poly.use_smooth = True
     return me
@@ -649,6 +736,7 @@ def main():
         blades_coll.objects.link(blades[kind])
     for kind, spec in KINDS.items():
         wear(mats[spec["leaf"]], *leaf_textures(kind, spec))
+    wear(mats["bop_flower"], flower_texture())
     head = bpy.data.objects.new("blade_flower", flower_blade("blade_flower", mats))
     blades_coll.objects.link(head)
     plant_blades.lay_out_blades([blades["mature"], blades["young"], head])
