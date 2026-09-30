@@ -11,7 +11,9 @@ there is a game mesh. `send` runs the panel's Send to game (Check first) on the
 file as saved.
 `render` renders the prop from four views worked out from its own size (three
 quarters from the front left, straight on, from behind and low, and close over
-the top; the first three back off until the whole prop fits) into <folder>,
+the top; the first three back off until the whole prop fits) into <folder>; a
+prop built in variants (`kyt_variant`: the oak, the bird of paradise) is shown
+as its first variant only, since the others stand in the same place,
 with the images the file points at, as they are on disk, or with `--colour <png>` in place of the colour image (a preview of work
 in progress). Nothing is saved.
 
@@ -32,9 +34,16 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "ext
 from kyt_tools import checks, game_mesh, send  # noqa: E402
 
 
+def shown_parts():
+    """The export collection's meshes, of its first variant only if it has
+    variants (they stand at the origin together)."""
+    parts = [o for o in bpy.data.collections["export"].all_objects if o.type == "MESH"]
+    tags = sorted({str(o["kyt_variant"]) for o in parts if o.get("kyt_variant")})
+    return [o for o in parts if not tags or str(o.get("kyt_variant", tags[0])) == tags[0]]
+
+
 def export_bounds():
-    pts = [o.matrix_world @ Vector(c) for o in bpy.data.collections["export"].all_objects
-           if o.type == "MESH" for c in o.bound_box]
+    pts = [o.matrix_world @ Vector(c) for o in shown_parts() for c in o.bound_box]
     lo = Vector((min(p.x for p in pts), min(p.y for p in pts), min(p.z for p in pts)))
     hi = Vector((max(p.x for p in pts), max(p.y for p in pts), max(p.z for p in pts)))
     return lo, hi
@@ -44,9 +53,7 @@ def export_points():
     """Every vertex of the export collection, evaluated, in world space."""
     dg = bpy.context.evaluated_depsgraph_get()
     pts = []
-    for o in bpy.data.collections["export"].all_objects:
-        if o.type != "MESH":
-            continue
+    for o in shown_parts():
         ev = o.evaluated_get(dg)
         mesh = ev.to_mesh()
         pts.extend(o.matrix_world @ v.co for v in mesh.vertices)
@@ -65,6 +72,12 @@ def render(folder, colour=None):
         c = bpy.data.collections.get(name)
         if c:
             c.hide_render = True
+    shown = set(shown_parts())
+    hidden = [o for o in bpy.data.collections["export"].all_objects if o.type == "MESH" and o not in shown]
+    for o in hidden:
+        o.hide_render = True
+    if hidden:
+        print(f"HANDBACK framing: the first variant only, {len(shown)} parts ({len(hidden)} of the others hidden)")
     sc = bpy.context.scene
     sc.render.engine = "BLENDER_EEVEE"
     sc.render.resolution_x, sc.render.resolution_y = 1200, 800

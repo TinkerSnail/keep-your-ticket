@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3]
+
+; A bird of paradise from the landscape kit (2026-09-29): broad paddle leaves
+; on stiff stalks fanning up from a sheathed base, low outer leaves drooping
+; over the soil, orange-and-blue flowers held out on their own stalks; about
+; 1.7 m tall and 2 m across. The shape is
+; `assets/source/props/bird_of_paradise.blend`; Send to game writes the GLB.
+; `variant` picks the clump. Visual only.
+
+[ext_resource type="Script" path="res://scenes/world/landscape_kit/bird_of_paradise.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://assets/props/bird_of_paradise.glb" id="2_model"]
+
+[node name="bird_of_paradise" type="Node3D"]
+script = ExtResource("1_script")
+editor_description = "Bird of paradise (landscape kit). variant picks the clump: a, few big leaves and four flowers; b, fuller, seven flowers. Shape it in assets/source/props/bird_of_paradise.blend."
+
+[node name="model" parent="." instance=ExtResource("2_model")]

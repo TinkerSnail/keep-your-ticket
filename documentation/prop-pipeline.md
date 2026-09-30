@@ -464,8 +464,9 @@ command in the background and shows its lines:
 python3 tools/prop_handback.py <prop>
 ```
 It runs these steps in order, stops at the first failure, writes a report
-with four renders into `documentation/screenshots/handbacks/<prop>-<time>/`,
-and never commits:
+with four renders into `documentation/screenshots/handbacks/<prop>-<time>/`
+(a prop built in variants shows its first variant only, since the others stand
+in the same place), and never commits:
 1. Export the PSD flattened, guide hidden, over `<prop>_colour.png`, and check
    it matches what she approved.
 2. `python3 tools/optimize_png.py <png>`: lossless, pixel-identical or it

@@ -28,7 +28,8 @@ Makes, in the file `new_prop.py` started:
 - `authored/blades`: `blade_mature` and `blade_young` (along +Y from y = 0 to
   1, across along X, the face +Z, as the Hakone's): a three-sided stalk, flat
   on top and keeled below, then the paddle, a round base and a soft point, its
-  halves folded up off a pale midrib, the young one narrower and folded
+  halves folded up off a pale midrib that tapers out short of the tip, ribbed
+  between fine side veins and lighter at the edge (`leaf_textures`), the young one narrower and folded
   tighter. `blade_flower`: one flower head, the stalk's tip at the origin, its
   beak along +Y, crest up +Z.
 - `export`: a leaf per course (`kyt_course_blade`); per flower a `stalk_<i>`
@@ -64,18 +65,19 @@ SEED = 63
 
 # sRGB, roughness, double-sided. Leaves after her photos: a blue-leaning green
 # with a pale midrib, the young a step lighter; the flower's beak green with a
-# red-mauve rim, the crest orange, the arrow blue.
+# red-mauve rim, the crest orange, the arrow blue. Near matte (her "way too
+# plasticy": at 0.5 to 0.7 the ribs and petals caught hard highlights).
 MATERIALS = {
-    "bop_leaf": ((0.19, 0.42, 0.30), 0.6, True),
-    "bop_midrib": ((0.62, 0.74, 0.48), 0.6, True),
-    "bop_young": ((0.33, 0.57, 0.33), 0.6, True),
-    "bop_young_midrib": ((0.72, 0.82, 0.52), 0.6, True),
-    "bop_stalk": ((0.34, 0.50, 0.30), 0.7, False),
-    "bop_sheath": ((0.42, 0.38, 0.22), 0.9, False),
-    "bop_spathe": ((0.36, 0.47, 0.35), 0.6, True),
-    "bop_spathe_rim": ((0.66, 0.29, 0.40), 0.6, True),
-    "bop_sepal": ((1.0, 0.57, 0.08), 0.5, True),
-    "bop_petal": ((0.16, 0.30, 0.86), 0.5, True),
+    "bop_leaf": ((0.19, 0.42, 0.30), 0.9, True),
+    "bop_midrib": ((0.55, 0.65, 0.42), 0.9, True),  # her "the central vein slightly darker": 0.88 of (0.62, 0.74, 0.48)
+    "bop_young": ((0.33, 0.57, 0.33), 0.9, True),
+    "bop_young_midrib": ((0.63, 0.72, 0.46), 0.9, True),  # 0.88 of (0.72, 0.82, 0.52)
+    "bop_stalk": ((0.34, 0.50, 0.30), 0.9, False),
+    "bop_sheath": ((0.42, 0.38, 0.22), 0.95, False),
+    "bop_spathe": ((0.36, 0.47, 0.35), 0.85, True),
+    "bop_spathe_rim": ((0.66, 0.29, 0.40), 0.85, True),
+    "bop_sepal": ((1.0, 0.57, 0.08), 0.85, True),
+    "bop_petal": ((0.16, 0.30, 0.86), 0.85, True),
 }
 
 # Per blade kind: the stalk's share of the leaf's length, the paddle's
@@ -88,6 +90,51 @@ KINDS = {
                   leaf="bop_young", rib="bop_young_midrib"),
 }
 MIDRIB = 0.012  # the pale midrib's half-width, m
+# The midrib stops short of the tip (her "the vein shouldnt go all the way to
+# the tip of the leaf"): full width to `RIB_TAPER` of the way along the paddle,
+# narrowing to `RIB_THIN` of it at `RIB_END`, plain leaf beyond.
+RIB_TAPER, RIB_END, RIB_THIN = 0.5, 0.84, 0.15
+# Since her "ever so slightly blur the central vein" the midrib is painted in
+# the leaf's texture (its strip in the geometry wears the leaf's material): the
+# same width and taper, its colour `bop_midrib` (`bop_young_midrib`), its edge
+# blurred by a Gaussian `RIB_BLUR` (m) wide, and ("have it kind of fade at the
+# tip of the vein") its colour fading into the leaf between `RIB_FADE` shares of
+# the paddle. Her "not blurry enough" of the first 1.5 mm: 5 mm.
+RIB_BLUR, RIB_FADE = 0.005, (0.6, 0.86)
+# The paddles' textures (`leaf_textures`), after her third photo (2026-09-29,
+# "give the leaves this subtle rippling/ribbing", "make the edges a little
+# brighter"): fine side veins leaving the midrib at about 60 degrees and
+# curving toward the tip (`along = a * VEIN_SLANT[0] + a^2 * VEIN_SLANT[1]`, a
+# the distance out from the midrib), `VEIN_M` apart, the leaf corrugated
+# between them `RIPPLE_M` deep in a normal map (softly, `RIDGE` the profile's
+# power: 1 a plain wave, below 1 a sharp crease at each vein), a little lighter on the ridges
+# and along each vein; the margin lightened `EDGE_LIGHT` of the way toward
+# `EDGE_TOWARD` at the edge, fading over `EDGE_M`. Metres, on a paddle
+# `PADDLE_M` long; a paddle's widest half spans `UV_ACROSS` of U either side of
+# its middle, V runs its length. Written to
+# `assets/source/textures/bird_of_paradise/` (across by along pixels).
+LEAF_TEX = (256, 512)
+UV_ACROSS = 0.46
+PADDLE_M = 0.75
+# Her "these need to be larger and fewer": veins 55 mm apart (22 at first), a
+# plain wave (a 0.7 crease at first); then "still too much": 1.2 mm deep (3),
+# the shading on the ridges and the veins' lightening halved; then "closer but
+# continue to make them fewer": 90 mm apart (55); then "the ridges slightly
+# lighter": the rib lines lightened 6% (2.5).
+VEIN_M, VEIN_SLANT = 0.09, (0.58, 1.5)
+RIPPLE_M, RIDGE, RIPPLE_SHADE, VEIN_LIGHT = 0.0012, 1.0, 0.015, 0.06
+# Her "blur those lines 12%": each rib line, `VEIN_LINE` of the spacing either
+# side of its vein, blurred by a Gaussian `VEIN_BLUR` of the spacing (sharp at
+# first), softer and wider; its middle kept as light as before the blur.
+VEIN_LINE, VEIN_BLUR = 0.0804, 0.12
+# And "they shouldnt reach the edge of the leaves": the ripples and veins fade
+# out between these distances in from the margin (m), clear of the light rim.
+RIPPLE_STOP = (0.015, 0.04)
+# Her "blur and extend the bright edge of the leaf further into the body":
+# the rim fades over 30 mm (12) on a soft S-curve (a steeper power curve first).
+EDGE_M, EDGE_LIGHT, EDGE_TOWARD = 0.03, 0.4, (0.72, 0.84, 0.52)
+TEXTURES = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, os.pardir,
+                        "assets", "source", "textures", "bird_of_paradise")
 PADDLE = [0.0, 0.05, 0.15, 0.3, 0.5, 0.68, 0.84, 0.95, 1.0]  # stations along the paddle
 
 # A clump's leaves: (heading deg, lean, length m, width share). Lean runs from
@@ -139,10 +186,16 @@ def outline(s):
     return base * tip
 
 
+def rib_half(s, w):
+    """The midrib's half-width at `s` along the paddle, where it is `w` wide."""
+    narrow = 1.0 - (1.0 - RIB_THIN) * min(max((s - RIB_TAPER) / (RIB_END - RIB_TAPER), 0.0), 1.0)
+    return min(MIDRIB * narrow, 0.4 * w)
+
+
 def leaf_blade(name, spec, mats):
     """The stalk, a three-sided prism flat on top, then the folded paddle."""
     verts, faces, fmat, uvs = [], [], [], []
-    leaf, rib, stalk_m = 0, 1, 2
+    leaf, stalk_m = 0, 1
     p = spec["stalk"]
     r0, r1 = spec["stalk_r"]
     ring = [(-1.0, 0.35), (1.0, 0.35), (0.0, -1.0)]
@@ -167,7 +220,7 @@ def leaf_blade(name, spec, mats):
             rows.append([len(verts)])
             verts.append(Vector((0.0, y, 0.0)))
             continue
-        m = min(MIDRIB, 0.4 * w)
+        m = rib_half(s, w)
         row = []
         for x in (-w, -m, m, w):
             row.append(len(verts))
@@ -176,28 +229,107 @@ def leaf_blade(name, spec, mats):
 
     def uv(i):
         v = verts[i]
-        return (0.45 + 0.4 * v.x / hw, v.y)
+        if v.y < p - 1e-6 or i < 3 * len(ys):
+            return (0.9 + 0.1 * (v.x / r0 + 1.0) * 0.5, v.y)
+        return (0.5 + UV_ACROSS * v.x / hw, (v.y - p) / (1.0 - p))
 
     for r0_, r1_ in zip(rows, rows[1:]):
         if len(r0_) == 1:
             for j in range(3):
                 faces.append((r0_[0], r1_[j + 1], r1_[j]))
-                fmat.append(rib if j == 1 else leaf)
         elif len(r1_) == 1:
             for j in range(3):
                 faces.append((r0_[j], r0_[j + 1], r1_[0]))
-                fmat.append(rib if j == 1 else leaf)
         else:
             for j in range(3):
                 faces.append((r0_[j], r0_[j + 1], r1_[j + 1], r1_[j]))
-                fmat.append(rib if j == 1 else leaf)
+        fmat += [leaf] * 3
         for f in faces[len(uvs):]:
             uvs.append(tuple(uv(i) for i in f))
-    me = mesh_from(name, verts, faces, fmat, uvs,
-                   [mats[spec["leaf"]], mats[spec["rib"]], mats["bop_stalk"]])
+    me = mesh_from(name, verts, faces, fmat, uvs, [mats[spec["leaf"]], mats["bop_stalk"]])
     for poly in me.polygons:
         poly.use_smooth = True
     return me
+
+
+def leaf_textures(kind, spec):
+    """The paddle's colour and normal map (see LEAF_TEX), in its blade's UVs."""
+    import numpy as np
+    W, H = LEAF_TEX
+    hw = spec["half"]
+    uu, s = np.meshgrid((np.arange(W) + 0.5) / W, (np.arange(H) + 0.5) / H)  # rows bottom first, as Blender's
+    a = np.abs(uu - 0.5) / UV_ACROSS * hw
+    edge_w = hw * np.interp(s, PADDLE, [outline(x) for x in PADDLE])
+    in_from_edge = edge_w - a
+    phase = (s * PADDLE_M - (a * VEIN_SLANT[0] + a * a * VEIN_SLANT[1])) / VEIN_M
+    ridge = np.abs(np.sin(np.pi * phase)) ** RIDGE  # 0 in a vein, 1 between
+    stop = np.clip((in_from_edge - RIPPLE_STOP[0]) / (RIPPLE_STOP[1] - RIPPLE_STOP[0]), 0.0, 1.0)
+    inner = np.clip((a - MIDRIB) / 0.01, 0.0, 1.0) * stop * stop * (3.0 - 2.0 * stop)
+    height = RIPPLE_M * ridge * inner
+    dx, dy = hw / UV_ACROSS / W, PADDLE_M / H
+    n = np.dstack((-np.gradient(height, axis=1) / dx, -np.gradient(height, axis=0) / dy, np.ones_like(height)))
+    n /= np.linalg.norm(n, axis=2, keepdims=True)
+
+    base = np.array(MATERIALS[spec["leaf"]][0], dtype=np.float32)
+    rgb = base * (1.0 + RIPPLE_SHADE * (2.0 * ridge - 1.0) * inner)[..., None]
+    off = np.abs(phase - np.round(phase))  # share of the spacing from the nearest vein
+    erf = np.vectorize(math.erf)
+    reach = VEIN_BLUR * math.sqrt(2.0)
+    vein = 0.5 * (erf((off + VEIN_LINE) / reach) - erf((off - VEIN_LINE) / reach)) * inner
+    vein /= math.erf(VEIN_LINE / reach)  # the blurred line's middle back to full
+    rgb = rgb + (1.0 - rgb) * (VEIN_LIGHT * vein)[..., None]
+    t = np.clip(in_from_edge / EDGE_M, 0.0, 1.0)
+    rim = 1.0 - t * t * (3.0 - 2.0 * t)
+    rgb = rgb + (np.array(EDGE_TOWARD, dtype=np.float32) - rgb) * (EDGE_LIGHT * rim)[..., None]
+    halves = [rib_half(x, hw * outline(x)) if hw * outline(x) >= 1e-4 else 0.0 for x in PADDLE]
+    m = np.interp(s, PADDLE, halves)  # as the geometry's strip, straight between stations
+    f = np.clip((s - RIB_FADE[0]) / (RIB_FADE[1] - RIB_FADE[0]), 0.0, 1.0)
+    rib = 0.5 * (1.0 - erf((a - m) / (RIB_BLUR * math.sqrt(2.0)))) * (1.0 - f * f * (3.0 - 2.0 * f))
+    rgb = rgb + (np.array(MATERIALS[spec["rib"]][0], dtype=np.float32) - rgb) * rib[..., None]
+    return (save_image(f"bird_of_paradise_{kind}_colour", rgb, True),
+            save_image(f"bird_of_paradise_{kind}_normal", n * 0.5 + 0.5, False))
+
+
+def save_image(name, rgb, colour_data):
+    """`rgb` (rows bottom first; sRGB for a colour) as a PNG in TEXTURES, loaded
+    back from the file so the GLB carries the file's own bytes."""
+    import numpy as np
+    os.makedirs(TEXTURES, exist_ok=True)
+    path = os.path.abspath(os.path.join(TEXTURES, f"{name}.png"))
+    for old in [i for i in bpy.data.images if i.name == name or bpy.path.abspath(i.filepath) == path]:
+        bpy.data.images.remove(old)
+    h, w = rgb.shape[:2]
+    img = bpy.data.images.new(name, w, h, alpha=False)
+    if not colour_data:
+        img.colorspace_settings.name = "Non-Color"
+    rgba = np.concatenate((np.clip(rgb, 0.0, 1.0), np.ones((h, w, 1))), axis=2).astype(np.float32)
+    img.pixels.foreach_set(rgba.ravel())
+    img.filepath_raw, img.file_format = path, "PNG"
+    img.save()
+    bpy.data.images.remove(img)
+    img = bpy.data.images.load(path)
+    img.name = name
+    img.filepath = bpy.path.relpath(path)
+    if not colour_data:
+        img.colorspace_settings.name = "Non-Color"
+    return img
+
+
+def wear(mat, colour_img, normal_img):
+    """The material's colour from `colour_img` and its relief from `normal_img`."""
+    nt = mat.node_tree
+    for node in [n for n in nt.nodes if n.name.startswith("kyt_")]:
+        nt.nodes.remove(node)
+    bsdf = nt.nodes["Principled BSDF"]
+    tex = nt.nodes.new("ShaderNodeTexImage")
+    tex.name, tex.image, tex.location = "kyt_colour", colour_img, (-600, 300)
+    nt.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
+    ntex = nt.nodes.new("ShaderNodeTexImage")
+    ntex.name, ntex.image, ntex.location = "kyt_normal_image", normal_img, (-600, -200)
+    relief = nt.nodes.new("ShaderNodeNormalMap")
+    relief.name, relief.location = "kyt_normal", (-300, -200)
+    nt.links.new(ntex.outputs["Color"], relief.inputs["Color"])
+    nt.links.new(relief.outputs["Normal"], bsdf.inputs["Normal"])
 
 
 def folded_card(verts, faces, fmat, base, along, up, length, half, fold, m, stations):
@@ -515,6 +647,8 @@ def main():
     for kind, spec in KINDS.items():
         blades[kind] = bpy.data.objects.new(f"blade_{kind}", leaf_blade(f"blade_{kind}", spec, mats))
         blades_coll.objects.link(blades[kind])
+    for kind, spec in KINDS.items():
+        wear(mats[spec["leaf"]], *leaf_textures(kind, spec))
     head = bpy.data.objects.new("blade_flower", flower_blade("blade_flower", mats))
     blades_coll.objects.link(head)
     plant_blades.lay_out_blades([blades["mature"], blades["young"], head])
