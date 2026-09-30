@@ -53,7 +53,7 @@ paint → integrated. **Holder** is who has the next move.
 | Last hand-back | Starting state: `documentation/screenshots/handbacks/waste_bin-start-2026-09-27_2031/` |
 | Next | Her word on the plaza's kind: `park_furniture/waste_bin.tscn` then wraps that shell's GLB (or the plaza scene instances several), and this blend retires. Fix on the way for the family: canvas options per prop and grain along vertical slats (R2/R3), normal and occlusion bakes (M1/M2) |
 
-### inner_can — the bins' inner can (ID when catalogued)
+### inner_can — PRP-PARK-024, the bins' inner can
 
 | | |
 |---|---|
@@ -65,7 +65,7 @@ paint → integrated. **Holder** is who has the next move.
 | Last hand-back | Canvas: `documentation/screenshots/handbacks/inner_can-canvas-2026-09-27_2308/`; before it `documentation/screenshots/handbacks/inner_can-2026-09-27_2233/` (the scrunchie lip; `liner_close.png`, `looking_in.png`); before it `inner_can-2026-09-27_2228/` (black liner, black hole), `inner_can-2026-09-27_2220/` (first liner); starting state `inner_can-start-2026-09-27_2138/` |
 | Next | Her saved passes: with the save hook on, each save sends the bin to the game; "handed back" runs `python3 tools/prop_handback.py inner_can`. A shape change now goes in `assets/source/props/inner_can_source.blend` (the parts), then Rebuild game mesh. Earlier: Her notes on the shape (any part in `export` is hers to reshape; a shell refitted round a changed can: `park_bins_shape.py`'s `can_reference` brings the new can in). Then unwrap, game mesh and canvas. Where it stands: hers, undecided. It comes out of its shell at trash pick-up time: behaviour not built. States (her word, 2026-09-27): empty (the liner), full, overflowing, each fill its own part the scene switches on the park's schedule, added over the liner, which stays: a bit of it shows even full or overflowing (her word); not built. At the texture stage the liner wants a bump for the fine stretch lines (her word), by the painted-bump route (`paint_canvas.py` bump, `bump_to_normal.py`) |
 
-### riveted_bin — riveted metal bin (ID when catalogued)
+### riveted_bin — PRP-PARK-025, riveted metal bin
 
 | | |
 |---|---|
@@ -77,7 +77,7 @@ paint → integrated. **Holder** is who has the next move.
 | Last hand-back | `documentation/screenshots/handbacks/riveted_bin-2026-09-28_0201/` (her painted pass: export, send, import and verify, seat, clearance 0 of 87, budget, ground contact known failures only; all passed). Before it: `riveted_bin-2026-09-28_0051/` (hollow shell, inner can inside; `flap_swung_in.png`; all passed). Before it: `riveted_bin-2026-09-28_0046/` (working flaps, black chamber); Canvas: `documentation/screenshots/handbacks/riveted_bin-canvas-2026-09-27_2308/`; before it `documentation/screenshots/handbacks/riveted_bin-2026-09-27_2214/` (bolts 15% darker than the bin); before it `riveted_bin-2026-09-27_2211/` (bolts in the bin's paint), `riveted_bin-2026-09-27_2200/` (chunky trim, bolts to the standard), `riveted_bin-2026-09-27_2157/` (bolts, shorter opening) and the starting state `riveted_bin-start-2026-09-27_2138/` |
 | Next | Her saved passes: with the save hook on, each save sends the bin to the game; "handed back" runs `python3 tools/prop_handback.py riveted_bin`. A shape change now goes in `assets/source/props/riveted_bin_source.blend` (the parts), then Rebuild game mesh. Earlier: Her notes on the shape (any part in `export` is hers to reshape; a shell refitted round a changed can: `park_bins_shape.py`'s `can_reference` brings the new can in). Then unwrap, game mesh and canvas. Where it stands: hers, undecided. The sticker is texture; the painted (blue) variant is a second material or canvas. States: empty and overflowing, no full state (it is closed; her word, 2026-09-27), each fill its own part the scene switches on the park's schedule, added over the liner, which stays: a bit of it shows even full or overflowing (her word); not built |
 
-### hooded_bin — square hooded bin (ID when catalogued)
+### hooded_bin — PRP-PARK-026, square hooded bin
 
 | | |
 |---|---|
@@ -89,7 +89,7 @@ paint → integrated. **Holder** is who has the next move.
 | Last hand-back | Canvas: `documentation/screenshots/handbacks/hooded_bin-canvas-2026-09-27_2308/`; before it `documentation/screenshots/handbacks/hooded_bin-2026-09-27_2157/` (taller windows); starting state `hooded_bin-start-2026-09-27_2138/`, with `family_lineup.png` |
 | Next | Her saved passes: with the save hook on, each save sends the bin to the game; "handed back" runs `python3 tools/prop_handback.py hooded_bin`. A shape change now goes in `assets/source/props/hooded_bin_source.blend` (the parts), then Rebuild game mesh. Earlier: Her notes on the shape (any part in `export` is hers to reshape; a shell refitted round a changed can: `park_bins_shape.py`'s `can_reference` brings the new can in). Then unwrap, game mesh and canvas. Where it stands: hers, undecided. The art panel's picture is texture. States: empty (the inner can's liner, through the windows), full, overflowing (her word, 2026-09-27), each fill its own part the scene switches on the park's schedule, added over the liner, which stays: a bit of it shows even full or overflowing (her word); not built |
 
-### recycling_bottle — bottle-shaped recycling bin (ID when catalogued)
+### recycling_bottle — PRP-PARK-027, bottle-shaped recycling bin
 
 | | |
 |---|---|
@@ -101,7 +101,7 @@ paint → integrated. **Holder** is who has the next move.
 | Last hand-back | Canvas: `documentation/screenshots/handbacks/recycling_bottle-canvas-2026-09-27_2308/`; before it Starting state: `documentation/screenshots/handbacks/recycling_bottle-start-2026-09-27_2138/` |
 | Next | Her saved passes: with the save hook on, each save sends the bin to the game; "handed back" runs `python3 tools/prop_handback.py recycling_bottle`. A shape change now goes in `assets/source/props/recycling_bottle_source.blend` (the parts), then Rebuild game mesh. Earlier: Her notes on the shape (any part in `export` is hers to reshape; a shell refitted round a changed can: `park_bins_shape.py`'s `can_reference` brings the new can in). Then unwrap, game mesh and canvas. Where it stands: hers, undecided. Height is from her picture (about 1.6 times the riveted bin); hers to change. States: empty, full, overflowing (her word, 2026-09-27), each fill its own part the scene switches on the park's schedule, added over the liner, which stays: a bit of it shows even full or overflowing (her word); not built. Recycling liners are clear in this park (her word, 2026-09-27): its fill states show a clear bag, not black |
 
-### street_bin — street bin outside the park (ID when catalogued)
+### street_bin — PRP-TOWN-004, street bin outside the park
 
 | | |
 |---|---|
@@ -215,7 +215,7 @@ paint → integrated. **Holder** is who has the next move.
 | Last hand-back | `documentation/screenshots/handbacks/purple_heart_sprig-2026-09-28_0031/` (1.15×, `plant_resize.py`; all pass); before it `purple_heart_sprig-2026-09-28_0012/` (tests, clearance 0 of 87, budget, ground contact pass; `game/`, `prototype/`, `ph_cartoon.py`) |
 | Next | Her look (it reads lighter purple than the old, whose leaves half caught the light from below). To paint: `python3 tools/prop_handback.py purple_heart_sprig --open`. Commit on her word |
 
-### The approach landscaping kit (2026-09-28): palm_planter, scallop_edging, azalea_bush PRP-PLANT-053, azalea_tree PRP-PLANT-055, hibiscus_shrub PRP-PLANT-057, their sphere versions azalea_bush_sphere PRP-PLANT-054, azalea_tree_sphere PRP-PLANT-056, hibiscus_shrub_sphere PRP-PLANT-058, the hibiscus trees hibiscus_tree PRP-PLANT-061 and hibiscus_tree_sphere PRP-PLANT-062, box_shrub (the planter, edging and box shrub: IDs when catalogued)
+### The approach landscaping kit (2026-09-28): palm_planter PRP-PLANT-066, scallop_edging PRP-FENCE-006, azalea_bush PRP-PLANT-053, azalea_tree PRP-PLANT-055, hibiscus_shrub PRP-PLANT-057, their sphere versions azalea_bush_sphere PRP-PLANT-054, azalea_tree_sphere PRP-PLANT-056, hibiscus_shrub_sphere PRP-PLANT-058, the hibiscus trees hibiscus_tree PRP-PLANT-061 and hibiscus_tree_sphere PRP-PLANT-062, box_shrub (ID when catalogued)
 
 | | |
 |---|---|
@@ -241,7 +241,7 @@ paint → integrated. **Holder** is who has the next move.
 | Last hand-back | 2026-09-29, Send headless (`prop_handback_blender.py -- send`: ok, 33 parts, one set per variant), `--import`, `coastal_live_oak_catalog_test` PASS, `budget_test` PASS (the oak unplaced, so uncounted) |
 | Next | Her look at the variants and the oak in Godot. Placing oaks is hers (editor); `budget_test` counts it once placed (variant a 2,890 triangles in summer to 3,310 in spring; four or five surfaces: bark, knots, leaves and the chapter's groups) |
 
-### elephant_ear — upright elephant ear (Alocasia) clump, green and red, the clump and the mature clump (ID when catalogued; not placed)
+### elephant_ear — PRP-PLANT-063, upright elephant ear (Alocasia) clump, green and red, the clump and the mature clump (not placed)
 
 | | |
 |---|---|
@@ -254,7 +254,7 @@ paint → integrated. **Holder** is who has the next move.
 | Last hand-back | `documentation/screenshots/handbacks/elephant_ear-2026-09-30_0126/` (`prop_handback.py elephant_ear --no-export`: send ok, 38 parts merged into one per variant; import ok; seat_test PASS; clearance 0 of 87; budget_test PASS; ground contact known failures only (75); renders of the green clump); then re-sent with the optimized textures (837 KB to 575 KB), imported, probed again, Godot's extracted textures pixel-identical to the source |
 | Next | Placing it is hers (editor): `scenes/world/landscape_kit/elephant_ear.tscn`, `variant` and `height`; `budget_test` counts it once placed. Rerun `elephant_ear_leaves.py` and Send after any blade reshaping. Commit on her word |
 
-### bird_of_paradise — bird of paradise (Strelitzia reginae) clump, variants a and b (ID when catalogued; not placed)
+### bird_of_paradise — PRP-PLANT-064, bird of paradise (Strelitzia reginae) clump, variants a and b (not placed)
 
 | | |
 |---|---|
@@ -267,7 +267,7 @@ paint → integrated. **Holder** is who has the next move.
 | Last hand-back | `documentation/screenshots/handbacks/bird_of_paradise-2026-09-30_0159/` (the textured, matte flowers: all pass as below; GLB 401 KB; Godot: 5 surfaces a variant, `bop_flower` at roughness 1.0 with its texture); before it `documentation/screenshots/handbacks/bird_of_paradise-2026-09-30_0055/` (central vein blurred 5 mm: all pass as below; GLB 336 KB); before it `_0019/` (the wider soft edge and the painted, fading central vein; 8 surfaces a variant, was 10), `_2352/` (rib lines blurred), `_2349/` (darker central vein, lighter rib lines), `_2345/` (ripples 90 mm apart), `_2343/` (fainter ripples stopping short of the edge), `_2337/` (larger, fewer ripples and matte; Godot's leaf materials at roughness 0.90 with their textures), `_2334/` (`prop_handback.py --no-export`: send ok, import ok, seat, clearance 0 of 87, budget PASS, ground contact known failures only; renders of variant a, since the render step now shows a variant prop's first variant only); before it `_2327` (the shorter midrib) and `_2324` (first send). Blender renders `documentation/screenshots/bird-of-paradise-2026-09-29/`: `v3_variants_drooping.png`, `v4_midrib_short.png`, `v5_leaf_ribbing.png` |
 | Next | Her look. Placing it is hers (editor); `budget_test` counts it once placed. Later: the flowers' and stalks' textures and a canvas she can paint. Commit on her word |
 
-### boxwood_hedge — boxwood hedge kit, three heights, eleven pieces (ID when catalogued; not placed)
+### boxwood_hedge — PRP-PLANT-065, boxwood hedge kit, three heights, eleven pieces (not placed)
 
 | | |
 |---|---|

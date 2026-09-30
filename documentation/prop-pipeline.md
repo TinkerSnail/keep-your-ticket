@@ -517,6 +517,11 @@ The agent renders the prop from a few angles (walking distance, close, the
 painted details) and she looks in the running game. Commit only on her word;
 push when she asks. Her PSD and the decals go into Git LFS.
 
+The prop catalog follows her: a family in this pipeline is `Work in progress`
+in `prop-library.md` until she approves it, then `Approved (Christina,
+<date>)`; `python3 tools/build_prop_catalog.py` puts each on its sheet. A
+committed pass is not an approval unless she says so.
+
 **Rough:** renders are ad-hoc Blender scripts, not her `review_*` cameras
 (R7).
 

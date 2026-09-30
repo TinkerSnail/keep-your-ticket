@@ -51,6 +51,16 @@ DOMAIN_ORDER = {
 }
 
 CARD_SIZE = (560, 420)
+# The two stages Christina follows, each gathered on a sheet of its own ahead of
+# the domain sheets (where the cards also stay) and tagged on its cards:
+# status, sheet file, heading, tag colour, what the section holds.
+STAGES = (
+    ("APPROVED", "approved", "Approved", (46, 125, 72),
+     "Families Christina has accepted as current, ready to place."),
+    ("WORK IN PROGRESS", "work_in_progress", "Work in progress", (184, 110, 24),
+     "Families taken from Godot into Blender, or started there, that are not "
+     "finished: still being shaped or painted."),
+)
 PREVIEW_HEIGHT = 316
 SHEET_COLUMNS = 4
 
@@ -76,7 +86,11 @@ def parse_entries(markdown: str) -> list[Entry]:
             raise ValueError(f"duplicate catalog label: {label}")
         seen.add(label)
         tail = match.group("tail").lower()
-        if tail.startswith("built"):
+        if tail.startswith("approved"):
+            status = "APPROVED"
+        elif tail.startswith("work in progress"):
+            status = "WORK IN PROGRESS"
+        elif tail.startswith("built"):
             status = "BUILT"
         elif tail.startswith("in review"):
             status = "IN REVIEW"
@@ -85,7 +99,7 @@ def parse_entries(markdown: str) -> list[Entry]:
         elif tail.startswith("planned"):
             status = "PLANNED"
         else:
-            raise ValueError(f"{label}: status must begin Built, In review, Retired or Planned")
+            raise ValueError(f"{label}: status must begin Approved, Work in progress, Built, In review, Retired or Planned")
         entries.append(Entry(
             label=label,
             kind=match.group("kind"),
@@ -203,6 +217,8 @@ def fit_preview(source: Image.Image) -> Image.Image:
 
 def placeholder(entry: Entry, message: str) -> Image.Image:
     colors = {
+        "APPROVED": (170, 196, 150),
+        "WORK IN PROGRESS": (214, 184, 140),
         "PLANNED": (211, 202, 184),
         "RETIRED": (172, 170, 166),
         "IN REVIEW": (207, 186, 125),
@@ -241,6 +257,8 @@ def preview_for(entry: Entry, recipe: dict) -> tuple[Image.Image, str]:
         return placeholder(entry, "RETIRED\nREFERENCE ONLY"), "RETIRED"
     if entry.status == "IN REVIEW":
         return placeholder(entry, "IN REVIEW\nCAPTURE PENDING"), "IN REVIEW"
+    if entry.status in ("APPROVED", "WORK IN PROGRESS"):
+        return placeholder(entry, entry.status + "\nCAPTURE PENDING"), entry.status
     return placeholder(entry, "BUILT\nRECIPE NEEDED"), "RECIPE NEEDED"
 
 
@@ -261,6 +279,12 @@ def make_card(entry: Entry, recipe: dict) -> tuple[Image.Image, str]:
     name_lines = textwrap.wrap(entry.name, width=37)[:2]
     for index, line in enumerate(name_lines):
         draw.text((20, PREVIEW_HEIGHT + 50 + index * 28), line, fill=(244, 239, 226), font=FONT_NAME)
+    for status, _, _, colour, _ in STAGES:
+        if entry.status == status:
+            box = draw.textbbox((0, 0), status, font=FONT_STATUS)
+            draw.rounded_rectangle((14, 14, 14 + box[2] - box[0] + 24, 14 + box[3] - box[1] + 18),
+                                   radius=6, fill=colour)
+            draw.text((26, 14 + 9 - box[1]), status, fill=(255, 255, 255), font=FONT_STATUS)
     return card, visual_status
 
 
@@ -268,6 +292,42 @@ def ordered_domains(entries: list[Entry], kind: str) -> list[str]:
     present = {entry.domain for entry in entries if entry.kind == kind}
     preferred = [domain for domain in DOMAIN_ORDER.get(kind, ()) if domain in present]
     return preferred + sorted(present - set(preferred))
+
+
+def stage_members(entries: list[Entry], status: str) -> list[Entry]:
+    return [entry for kind in KIND_ORDER for domain in ordered_domains(entries, kind)
+            for entry in entries
+            if entry.kind == kind and entry.domain == domain and entry.status == status]
+
+
+def sheet_members(entries: list[Entry]) -> list[tuple[str, str, list[Entry]]]:
+    """Every sheet as (file stem, title, cards): each stage's sheet, when
+    anything is in it, then one per kind and domain."""
+    sheets: list[tuple[str, str, list[Entry]]] = []
+    for status, stem, _, _, _ in STAGES:
+        members = stage_members(entries, status)
+        if members:
+            sheets.append((stem, status, members))
+    for kind in KIND_ORDER:
+        for domain in ordered_domains(entries, kind):
+            members = [entry for entry in entries if entry.kind == kind and entry.domain == domain]
+            sheets.append((f"{kind.lower()}_{domain.lower()}", f"{kind} · {domain}", members))
+    return sheets
+
+
+def compose_sheet(title: str, members: list[Entry]) -> Image.Image:
+    rows = math.ceil(len(members) / SHEET_COLUMNS)
+    sheet = Image.new("RGB", (CARD_SIZE[0] * SHEET_COLUMNS, 82 + CARD_SIZE[1] * rows), (22, 27, 27))
+    draw = ImageDraw.Draw(sheet)
+    color = next((colour for status, _, _, colour, _ in STAGES if status == title), (247, 194, 67))
+    draw.text((24, 17), title, fill=color, font=FONT_SHEET)
+    for index, entry in enumerate(members):
+        card = Image.open(CARD_DIR / f"{entry.label.lower()}.png").convert("RGB")
+        sheet.paste(card, (
+            (index % SHEET_COLUMNS) * CARD_SIZE[0],
+            82 + (index // SHEET_COLUMNS) * CARD_SIZE[1],
+        ))
+    return sheet
 
 
 def build_images(entries: list[Entry], manifest: dict) -> dict[str, dict[str, int]]:
@@ -281,21 +341,11 @@ def build_images(entries: list[Entry], manifest: dict) -> dict[str, dict[str, in
         stats.setdefault(entry.kind, {}).setdefault(visual_status, 0)
         stats[entry.kind][visual_status] += 1
 
-    for kind in KIND_ORDER:
-        for domain in ordered_domains(entries, kind):
-            members = [entry for entry in entries if entry.kind == kind and entry.domain == domain]
-            rows = math.ceil(len(members) / SHEET_COLUMNS)
-            width = CARD_SIZE[0] * SHEET_COLUMNS
-            height = 82 + CARD_SIZE[1] * rows
-            sheet = Image.new("RGB", (width, height), (22, 27, 27))
-            draw = ImageDraw.Draw(sheet)
-            draw.text((24, 17), f"{kind} · {domain}", fill=(247, 194, 67), font=FONT_SHEET)
-            for index, entry in enumerate(members):
-                card = Image.open(CARD_DIR / f"{entry.label.lower()}.png")
-                x = (index % SHEET_COLUMNS) * CARD_SIZE[0]
-                y = 82 + (index // SHEET_COLUMNS) * CARD_SIZE[1]
-                sheet.paste(card, (x, y))
-            sheet.save(SHEET_DIR / f"{kind.lower()}_{domain.lower()}.png", optimize=True)
+    for stem, title, members in sheet_members(entries):
+        compose_sheet(title, members).save(SHEET_DIR / f"{stem}.png", optimize=True)
+    for status, stem, _, _, _ in STAGES:
+        if not stage_members(entries, status):
+            (SHEET_DIR / f"{stem}.png").unlink(missing_ok=True)
     return stats
 
 
@@ -349,6 +399,20 @@ def visual_markdown(entries: list[Entry], stats: dict[str, dict[str, int]]) -> s
         "deliberately unmistakable placeholders rather than invented concept art.",
         "",
     ]
+    for status, stem, heading, _, blurb in STAGES:
+        members = stage_members(entries, status)
+        lines.extend([f"### {heading}", ""])
+        lines.extend(textwrap.wrap(blurb + " They also stay on their domain sheets below.", width=78))
+        lines.append("")
+        if members:
+            lines.extend([
+                f"![{heading}, {len(members)} entries](images/prop-library/sheets/{stem}.png)",
+                "",
+            ])
+            lines.extend(f"- `{entry.label}` {entry.name}" for entry in members)
+        else:
+            lines.append("None yet.")
+        lines.append("")
     for kind, heading in (("PRP", "Prop families"), ("GRP", "Prop groupings")):
         lines.extend([f"### {heading}", ""])
         for domain in ordered_domains(entries, kind):
@@ -397,30 +461,18 @@ def check_outputs(entries: list[Entry], markdown: str, manifest: dict) -> None:
     if stale_cards:
         raise ValueError("stale catalog cards: " + ", ".join(stale_cards))
     stale_sheets: list[str] = []
-    for kind in KIND_ORDER:
-        for domain in ordered_domains(entries, kind):
-            members = [entry for entry in entries
-                       if entry.kind == kind and entry.domain == domain]
-            rows = math.ceil(len(members) / SHEET_COLUMNS)
-            expected = Image.new(
-                "RGB", (CARD_SIZE[0] * SHEET_COLUMNS, 82 + CARD_SIZE[1] * rows),
-                (22, 27, 27),
-            )
-            draw = ImageDraw.Draw(expected)
-            draw.text((24, 17), f"{kind} · {domain}", fill=(247, 194, 67), font=FONT_SHEET)
-            for index, entry in enumerate(members):
-                card = Image.open(CARD_DIR / f"{entry.label.lower()}.png").convert("RGB")
-                expected.paste(card, (
-                    (index % SHEET_COLUMNS) * CARD_SIZE[0],
-                    82 + (index // SHEET_COLUMNS) * CARD_SIZE[1],
-                ))
-            path = SHEET_DIR / f"{kind.lower()}_{domain.lower()}.png"
-            if not path.exists():
-                stale_sheets.append(f"{kind}-{domain} (missing)")
-                continue
-            actual = Image.open(path).convert("RGB")
-            if actual.size != expected.size or actual.tobytes() != expected.tobytes():
-                stale_sheets.append(f"{kind}-{domain}")
+    for stem, title, members in sheet_members(entries):
+        expected = compose_sheet(title, members)
+        path = SHEET_DIR / f"{stem}.png"
+        if not path.exists():
+            stale_sheets.append(f"{stem} (missing)")
+            continue
+        actual = Image.open(path).convert("RGB")
+        if actual.size != expected.size or actual.tobytes() != expected.tobytes():
+            stale_sheets.append(stem)
+    for status, stem, _, _, _ in STAGES:
+        if (SHEET_DIR / f"{stem}.png").exists() and not stage_members(entries, status):
+            stale_sheets.append(f"{stem} (empty)")
     if stale_sheets:
         raise ValueError("stale catalog sheets: " + ", ".join(stale_sheets))
     stats: dict[str, dict[str, int]] = {}

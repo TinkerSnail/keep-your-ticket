@@ -27,6 +27,10 @@ const PRP_PARK_020: StringName = &"PRP-PARK-020"
 const PRP_PARK_021: StringName = &"PRP-PARK-021"
 const PRP_PARK_022: StringName = &"PRP-PARK-022"
 const PRP_PARK_023: StringName = &"PRP-PARK-023"
+const PRP_PARK_024: StringName = &"PRP-PARK-024"
+const PRP_PARK_025: StringName = &"PRP-PARK-025"
+const PRP_PARK_026: StringName = &"PRP-PARK-026"
+const PRP_PARK_027: StringName = &"PRP-PARK-027"
 const PRP_LITE_001: StringName = &"PRP-LITE-001"
 const PRP_LITE_002: StringName = &"PRP-LITE-002"
 const PRP_LITE_003: StringName = &"PRP-LITE-003"
@@ -175,17 +179,27 @@ const PRP_PLANT_059: StringName = &"PRP-PLANT-059"
 const PRP_PLANT_060: StringName = &"PRP-PLANT-060"
 const PRP_PLANT_061: StringName = &"PRP-PLANT-061"
 const PRP_PLANT_062: StringName = &"PRP-PLANT-062"
+const PRP_PLANT_063: StringName = &"PRP-PLANT-063"
+const PRP_PLANT_064: StringName = &"PRP-PLANT-064"
+const PRP_PLANT_065: StringName = &"PRP-PLANT-065"
+const PRP_PLANT_066: StringName = &"PRP-PLANT-066"
 const PRP_FENCE_001: StringName = &"PRP-FENCE-001"
 const PRP_FENCE_002: StringName = &"PRP-FENCE-002"
+const PRP_FENCE_003: StringName = &"PRP-FENCE-003"
+const PRP_FENCE_004: StringName = &"PRP-FENCE-004"
+const PRP_FENCE_005: StringName = &"PRP-FENCE-005"
+const PRP_FENCE_006: StringName = &"PRP-FENCE-006"
 const PRP_TRANSIT_001: StringName = &"PRP-TRANSIT-001"
 const PRP_TRANSIT_002: StringName = &"PRP-TRANSIT-002"
 const PRP_ROAD_001: StringName = &"PRP-ROAD-001"
 const PRP_ROAD_002: StringName = &"PRP-ROAD-002"
 const PRP_ROAD_003: StringName = &"PRP-ROAD-003"
 const PRP_ROAD_004: StringName = &"PRP-ROAD-004"
+const PRP_ROAD_005: StringName = &"PRP-ROAD-005"
 const PRP_TOWN_001: StringName = &"PRP-TOWN-001"
 const PRP_TOWN_002: StringName = &"PRP-TOWN-002"
 const PRP_TOWN_003: StringName = &"PRP-TOWN-003"
+const PRP_TOWN_004: StringName = &"PRP-TOWN-004"
 const PRP_STORY_001: StringName = &"PRP-STORY-001"
 const PRP_STORY_002: StringName = &"PRP-STORY-002"
 const PRP_STORY_003: StringName = &"PRP-STORY-003"
@@ -321,6 +335,10 @@ const DISPLAY_NAMES: Dictionary = {
 	PRP_PARK_021: "Circular drive-in picnic table set",
 	PRP_PARK_022: "Granite-block circular picnic table",
 	PRP_PARK_023: "Color-block information panel",
+	PRP_PARK_024: "Inner can",
+	PRP_PARK_025: "Riveted metal bin",
+	PRP_PARK_026: "Square hooded bin",
+	PRP_PARK_027: "Bottle-shaped recycling bin",
 	PRP_LITE_001: "Park lamp standard",
 	PRP_LITE_002: "Wall practical",
 	PRP_LITE_003: "Festoon kit",
@@ -469,17 +487,27 @@ const DISPLAY_NAMES: Dictionary = {
 	PRP_PLANT_060: "Purple Hakone grass clump vB",
 	PRP_PLANT_061: "Hibiscus tree",
 	PRP_PLANT_062: "Hibiscus tree, sphere version",
+	PRP_PLANT_063: "Elephant ear",
+	PRP_PLANT_064: "Bird of paradise",
+	PRP_PLANT_065: "Boxwood hedge kit",
+	PRP_PLANT_066: "Round concrete palm planter",
 	PRP_FENCE_001: "Black ornamental garden fence",
 	PRP_FENCE_002: "Plain waterfront guardrail",
+	PRP_FENCE_003: "Low garden wall, piers and railing",
+	PRP_FENCE_004: "Iron fence",
+	PRP_FENCE_005: "Concrete bed edging",
+	PRP_FENCE_006: "Scalloped concrete edging",
 	PRP_TRANSIT_001: "Station barrier and platform guard",
 	PRP_TRANSIT_002: "Road/rail crossing marker",
 	PRP_ROAD_001: "Cobra-head road lamp",
 	PRP_ROAD_002: "Traffic-signal mast and head",
 	PRP_ROAD_003: "Stop sign",
 	PRP_ROAD_004: "Road barrier and guardrail",
+	PRP_ROAD_005: "Curb and gutter",
 	PRP_TOWN_001: "Historic twin lantern and hanging basket",
 	PRP_TOWN_002: "Residential post lamp",
 	PRP_TOWN_003: "Beach-town mariner lamp",
+	PRP_TOWN_004: "Lattice street bin",
 	PRP_STORY_001: "Pulp-horror paperback",
 	PRP_STORY_002: "Story key on a shoelace",
 	PRP_STORY_003: "Lawn gnome",
@@ -593,8 +621,8 @@ const DISPLAY_NAMES: Dictionary = {
 }
 
 const STATUSES: Dictionary = {
-	PRP_PARK_001: &"in_review",
-	PRP_PARK_002: &"built",
+	PRP_PARK_001: &"approved",
+	PRP_PARK_002: &"work_in_progress",
 	PRP_PARK_003: &"built",
 	PRP_PARK_004: &"built",
 	PRP_PARK_005: &"built",
@@ -610,12 +638,16 @@ const STATUSES: Dictionary = {
 	PRP_PARK_015: &"built",
 	PRP_PARK_016: &"built",
 	PRP_PARK_017: &"built",
-	PRP_PARK_018: &"in_review",
-	PRP_PARK_019: &"in_review",
+	PRP_PARK_018: &"work_in_progress",
+	PRP_PARK_019: &"approved",
 	PRP_PARK_020: &"in_review",
 	PRP_PARK_021: &"in_review",
 	PRP_PARK_022: &"in_review",
 	PRP_PARK_023: &"in_review",
+	PRP_PARK_024: &"work_in_progress",
+	PRP_PARK_025: &"approved",
+	PRP_PARK_026: &"work_in_progress",
+	PRP_PARK_027: &"work_in_progress",
 	PRP_LITE_001: &"built",
 	PRP_LITE_002: &"built",
 	PRP_LITE_003: &"built",
@@ -626,8 +658,8 @@ const STATUSES: Dictionary = {
 	PRP_COAST_003: &"built",
 	PRP_COAST_004: &"built",
 	PRP_COAST_005: &"built",
-	PRP_COAST_006: &"in_review",
-	PRP_COAST_007: &"in_review",
+	PRP_COAST_006: &"work_in_progress",
+	PRP_COAST_007: &"work_in_progress",
 	PRP_COAST_008: &"built",
 	PRP_COAST_009: &"built",
 	PRP_COAST_010: &"built",
@@ -712,17 +744,17 @@ const STATUSES: Dictionary = {
 	PRP_PLANT_008: &"in_review",
 	PRP_PLANT_009: &"in_review",
 	PRP_PLANT_010: &"in_review",
-	PRP_PLANT_011: &"in_review",
+	PRP_PLANT_011: &"work_in_progress",
 	PRP_PLANT_012: &"in_review",
 	PRP_PLANT_013: &"in_review",
 	PRP_PLANT_014: &"in_review",
-	PRP_PLANT_015: &"in_review",
-	PRP_PLANT_016: &"in_review",
-	PRP_PLANT_017: &"in_review",
-	PRP_PLANT_018: &"in_review",
-	PRP_PLANT_019: &"in_review",
-	PRP_PLANT_020: &"in_review",
-	PRP_PLANT_021: &"in_review",
+	PRP_PLANT_015: &"work_in_progress",
+	PRP_PLANT_016: &"work_in_progress",
+	PRP_PLANT_017: &"work_in_progress",
+	PRP_PLANT_018: &"work_in_progress",
+	PRP_PLANT_019: &"work_in_progress",
+	PRP_PLANT_020: &"work_in_progress",
+	PRP_PLANT_021: &"work_in_progress",
 	PRP_PLANT_022: &"in_review",
 	PRP_PLANT_023: &"in_review",
 	PRP_PLANT_024: &"in_review",
@@ -750,31 +782,41 @@ const STATUSES: Dictionary = {
 	PRP_PLANT_046: &"in_review",
 	PRP_PLANT_047: &"in_review",
 	PRP_PLANT_048: &"in_review",
-	PRP_PLANT_049: &"in_review",
+	PRP_PLANT_049: &"approved",
 	PRP_PLANT_050: &"in_review",
 	PRP_PLANT_051: &"in_review",
 	PRP_PLANT_052: &"planned",
-	PRP_PLANT_053: &"in_review",
-	PRP_PLANT_054: &"in_review",
-	PRP_PLANT_055: &"in_review",
-	PRP_PLANT_056: &"in_review",
-	PRP_PLANT_057: &"in_review",
-	PRP_PLANT_058: &"in_review",
-	PRP_PLANT_059: &"in_review",
-	PRP_PLANT_060: &"in_review",
-	PRP_PLANT_061: &"in_review",
-	PRP_PLANT_062: &"in_review",
+	PRP_PLANT_053: &"work_in_progress",
+	PRP_PLANT_054: &"work_in_progress",
+	PRP_PLANT_055: &"work_in_progress",
+	PRP_PLANT_056: &"work_in_progress",
+	PRP_PLANT_057: &"work_in_progress",
+	PRP_PLANT_058: &"work_in_progress",
+	PRP_PLANT_059: &"work_in_progress",
+	PRP_PLANT_060: &"work_in_progress",
+	PRP_PLANT_061: &"work_in_progress",
+	PRP_PLANT_062: &"work_in_progress",
+	PRP_PLANT_063: &"approved",
+	PRP_PLANT_064: &"approved",
+	PRP_PLANT_065: &"approved",
+	PRP_PLANT_066: &"work_in_progress",
 	PRP_FENCE_001: &"in_review",
 	PRP_FENCE_002: &"in_review",
+	PRP_FENCE_003: &"approved",
+	PRP_FENCE_004: &"approved",
+	PRP_FENCE_005: &"approved",
+	PRP_FENCE_006: &"work_in_progress",
 	PRP_TRANSIT_001: &"built",
 	PRP_TRANSIT_002: &"built",
 	PRP_ROAD_001: &"built",
 	PRP_ROAD_002: &"built",
 	PRP_ROAD_003: &"built",
 	PRP_ROAD_004: &"built",
+	PRP_ROAD_005: &"approved",
 	PRP_TOWN_001: &"built",
 	PRP_TOWN_002: &"built",
 	PRP_TOWN_003: &"built",
+	PRP_TOWN_004: &"work_in_progress",
 	PRP_STORY_001: &"planned",
 	PRP_STORY_002: &"planned",
 	PRP_STORY_003: &"planned",

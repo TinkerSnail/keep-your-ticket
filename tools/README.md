@@ -228,14 +228,16 @@ All need a real renderer.
 | `night_capture.gd` | The park through the evening, measuring what the lights cost while it does it. |
 | `footprint_capture.gd` | Ten real-world aerials covering the complete A–F hierarchy, arrival, Headland, west/east anchors, Plaza branches and the coastal, family and northern ride circuits. |
 | `visual_catalog_capture.gd` | Live 16:9 reference cards for every mounted building, facility, ride and attraction in the two roster documents. Run the complete refresh with `tools/update_visual_catalog.sh`; `python3 tools/visual_catalog.py check` reports stale catalogs. |
-| `prop_catalog_capture.gd` | Neutral isolated renders of the prop families that have a source recipe in `documentation/prop-catalog.json`; invoked by `python3 tools/build_prop_catalog.py --capture`. |
+| `prop_catalog_capture.gd` | Neutral isolated renders of the prop families that have a source recipe in `documentation/prop-catalog.json`; invoked by `python3 tools/build_prop_catalog.py --capture`, or for chosen labels with `open -n -a /Applications/Godot.app --args --path "$PWD" tools/run.tscn -- prop_catalog_capture PRP-...`. A recipe's `set` gives a wrapper's exports by name (`{"kind": "railing_fence", "piece": "straight_4"}`), and `"ground": "origin"` keeps a prop set into the ground on its own origin. |
 | `arrival_walk_paving_capture.gd` | The arrival promenade in both directions, a long reading of its wavy brick courses, a close material view and the full field between the palm beds. |
 
 `build_prop_catalog.py` is the prop browser's complete refresh and drift check.
 It reads labels, names and statuses from `documentation/prop-library.md`, builds
 the cards and category sheets in that same document, and generates the matching
 `PropCatalogIds` constants for Godot. Use `--capture` to refresh source renders
-first or `--check` in validation and CI.
+first or `--check` in validation and CI. Entries whose status is `Approved` or
+`Work in progress` also get a sheet of their own ahead of the domain sheets and
+a tag on their cards.
 
 ## Probes
 

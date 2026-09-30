@@ -97,6 +97,14 @@ func _capture_one(label: String, recipe: Dictionary) -> void:
 		_errors.append("%s: could not instantiate %s" % [label, source_path])
 		await _clear_display()
 		return
+	# A wrapper's exported choices (a kit's kind and piece, a plant's variant),
+	# set before it enters the tree as a saved scene's overrides are.
+	var setting_error := _apply_settings(instance, recipe.get("set", {}))
+	if not setting_error.is_empty():
+		_errors.append("%s: %s" % [label, setting_error])
+		instance.free()
+		await _clear_display()
+		return
 	_display.add_child(instance)
 	for _frame in 3:
 		await get_tree().process_frame
@@ -120,7 +128,10 @@ func _capture_one(label: String, recipe: Dictionary) -> void:
 		return
 
 	var centre := bounds.get_center()
-	_display.position -= Vector3(centre.x, bounds.position.y, centre.z)
+	# A prop set into the ground (the hardscape kit's walls, 0.2 m below grade)
+	# keeps its own origin on the stage floor, so what is buried stays hidden.
+	var lift := 0.0 if String(recipe.get("ground", "")) == "origin" else bounds.position.y
+	_display.position -= Vector3(centre.x, lift, centre.z)
 	await get_tree().process_frame
 	bounds = _visible_bounds(instance)
 	_frame_camera(bounds, recipe)
@@ -135,6 +146,39 @@ func _capture_one(label: String, recipe: Dictionary) -> void:
 		_captured += 1
 		print("prop catalog saved ", output)
 	await _clear_display()
+
+
+## An enum export takes its choice by name ("railing_fence"), so a recipe
+## survives a reordered list; JSON numbers become ints for int properties.
+func _apply_settings(instance: Node, settings: Variant) -> String:
+	if not settings is Dictionary:
+		return "'set' must be an object"
+	for key_value in settings:
+		var key := String(key_value)
+		var property := {}
+		for candidate in instance.get_property_list():
+			if String(candidate["name"]) == key:
+				property = candidate
+				break
+		if property.is_empty():
+			return "no property '%s' on %s" % [key, instance.name]
+		var value: Variant = settings[key_value]
+		if int(property["type"]) == TYPE_INT:
+			if value is String:
+				var choices := {}
+				var next := 0
+				for choice in String(property["hint_string"]).split(","):
+					if choice.contains(":"):
+						next = int(choice.get_slice(":", 1))
+					choices[choice.get_slice(":", 0).strip_edges()] = next
+					next += 1
+				if not choices.has(value):
+					return "'%s' is not one of %s's choices %s" % [value, key, choices.keys()]
+				value = choices[value]
+			else:
+				value = int(value)
+		instance.set(key, value)
+	return ""
 
 
 func _string_array(value: Variant) -> Array[String]:
