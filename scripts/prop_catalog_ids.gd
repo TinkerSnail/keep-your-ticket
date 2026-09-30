@@ -173,6 +173,8 @@ const PRP_PLANT_057: StringName = &"PRP-PLANT-057"
 const PRP_PLANT_058: StringName = &"PRP-PLANT-058"
 const PRP_PLANT_059: StringName = &"PRP-PLANT-059"
 const PRP_PLANT_060: StringName = &"PRP-PLANT-060"
+const PRP_PLANT_061: StringName = &"PRP-PLANT-061"
+const PRP_PLANT_062: StringName = &"PRP-PLANT-062"
 const PRP_FENCE_001: StringName = &"PRP-FENCE-001"
 const PRP_FENCE_002: StringName = &"PRP-FENCE-002"
 const PRP_TRANSIT_001: StringName = &"PRP-TRANSIT-001"
@@ -465,6 +467,8 @@ const DISPLAY_NAMES: Dictionary = {
 	PRP_PLANT_058: "Hibiscus shrub, sphere version",
 	PRP_PLANT_059: "Purple Hakone grass clump vA",
 	PRP_PLANT_060: "Purple Hakone grass clump vB",
+	PRP_PLANT_061: "Hibiscus tree",
+	PRP_PLANT_062: "Hibiscus tree, sphere version",
 	PRP_FENCE_001: "Black ornamental garden fence",
 	PRP_FENCE_002: "Plain waterfront guardrail",
 	PRP_TRANSIT_001: "Station barrier and platform guard",
@@ -758,6 +762,8 @@ const STATUSES: Dictionary = {
 	PRP_PLANT_058: &"in_review",
 	PRP_PLANT_059: &"in_review",
 	PRP_PLANT_060: &"in_review",
+	PRP_PLANT_061: &"in_review",
+	PRP_PLANT_062: &"in_review",
 	PRP_FENCE_001: &"in_review",
 	PRP_FENCE_002: &"in_review",
 	PRP_TRANSIT_001: &"built",

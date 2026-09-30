@@ -397,6 +397,25 @@ SPECIES = {
                     spread_out=True),
     ),
 }
+# The hibiscus's tree form (2026-09-29, her "give the hibiscus tree the bark
+# too", then "build both versions" when there was none): made from the
+# hibiscus as the azalea tree is from its bush, the hibiscus's leaves, flowers,
+# colourways and seasons on the azalea tree's crown size, sizes and barked
+# trunk, so the two trees are a pair; its topper, flowers and leaf clusters
+# grown with the crown as the azalea tree's are (`_grow`, the crown's reach
+# over the bush's).
+_grow = SPECIES["azalea_tree"]["body"]["reach"] / SPECIES["hibiscus_shrub"]["body"]["reach"]
+SPECIES["hibiscus_tree"] = dict(
+    SPECIES["hibiscus_shrub"], godot="res://scenes/world/landscape_kit/hibiscus_tree.tscn",
+    base=SPECIES["azalea_tree"]["base"], sizes=SPECIES["azalea_tree"]["sizes"], trunk=SPECIES["azalea_tree"]["trunk"],
+    body=dict(SPECIES["hibiscus_shrub"]["body"], reach=SPECIES["azalea_tree"]["body"]["reach"],
+              topper=dict(SPECIES["hibiscus_shrub"]["body"]["topper"],
+                          length=round(SPECIES["hibiscus_shrub"]["body"]["topper"]["length"] * _grow, 3))),
+    dome=dict(SPECIES["hibiscus_shrub"]["dome"], seed=9),
+    bloom=dict(SPECIES["hibiscus_shrub"]["bloom"], count=round(SPECIES["hibiscus_shrub"]["bloom"]["count"] * _grow ** 2),
+               band=SPECIES["azalea_tree"]["bloom"]["band"], behind=SPECIES["azalea_tree"]["bloom"]["behind"], seed=15),
+    strays=dict(SPECIES["hibiscus_shrub"]["strays"], count=SPECIES["azalea_tree"]["strays"]["count"],
+                length=round(SPECIES["hibiscus_shrub"]["strays"]["length"] * 1.3, 3), seed=16))
 # The second version of each (her "dont forget our second version that is a
 # sphere instead of a egg, and smaller", "yes they can be their own files"): a
 # ball, its hat down 72 degrees so its hem lies round the ball's top third (her
@@ -405,7 +424,7 @@ SPECIES = {
 # base sphere", "it oculd be a bit more pronounced", then "flair the sphere
 # tiers even more": 15%), and the egg's leaf topper ("put their approved
 # sprout back").
-for _shrub, _reach in (("azalea_bush", 1.2), ("hibiscus_shrub", 1.35), ("azalea_tree", 1.9)):
+for _shrub, _reach in (("azalea_bush", 1.2), ("hibiscus_shrub", 1.35), ("azalea_tree", 1.9), ("hibiscus_tree", 1.9)):
     SPECIES[f"{_shrub}_sphere"] = dict(
         SPECIES[_shrub], godot=f"res://scenes/world/landscape_kit/{_shrub}_sphere.tscn",
         body=dict(shape="sphere", reach=_reach, topper=SPECIES[_shrub]["body"]["topper"]),

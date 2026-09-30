@@ -452,6 +452,7 @@ PROP_LEAFLETS["box_shrub"] = dict(style="dome", rachis=(0.003, 0.001), rachis_co
 # The giant tree form wears the bush's leaf and blooms, the leaves scaled up
 # with the shrubs' (her "scale up the leaves on the azalea tree too").
 PROP_LEAFLETS["azalea_tree"] = PROP_LEAFLETS["azalea_bush"]
+PROP_LEAFLETS["hibiscus_tree"] = PROP_LEAFLETS["hibiscus_shrub"]  # the same for the hibiscus's (2026-09-29)
 # A shrub's body (its one sphere or egg under the domes, `leaf_skin.py`) wears
 # the same leaves as its domes.
 for _shrub in ("azalea_bush", "hibiscus_shrub"):
@@ -471,7 +472,7 @@ PROP_LEAFLETS["azalea_bush"]["kinds"]["bud_green"] = dict(
 PROP_LEAFLETS["hibiscus_shrub"]["kinds"]["bud"] = dict(PROP_LEAFLETS["hibiscus_shrub"]["kinds"]["bloom"],
                                                        sepal=(0.22, 0.46, 0.28))
 # The shrubs' sphere versions (`leaf_skin.py`) wear their egg versions' leaves and flowers.
-for _shrub in ("azalea_bush", "hibiscus_shrub", "azalea_tree"):
+for _shrub in ("azalea_bush", "hibiscus_shrub", "azalea_tree", "hibiscus_tree"):
     PROP_LEAFLETS[f"{_shrub}_sphere"] = PROP_LEAFLETS[_shrub]
 # The coast live oak (`leaf_skin.py`, clumps of the sphere shrub's unit, 2026-09-29):
 # the shrubs' dome leaf as the azalea wears it, in an olive green, a live
@@ -2520,9 +2521,10 @@ BARK = {
                                        cracks=5, rim=0.86, seed=32)),
 }
 # The azalea trees' trunks the same (her "give the same treatment to the
-# texture of the shrub trees"): the oak's grain, highlight and grooves over
-# their own bark colour (`leaf_skin.py`'s `trunk` `colour`); no knots.
-for _tree in ("azalea_tree", "azalea_tree_sphere"):
+# texture of the shrub trees"), and the hibiscus trees' (her "give the
+# hibiscus tree the bark too"): the oak's grain, highlight and grooves over
+# the azalea tree's bark colour (`leaf_skin.py`'s `trunk` `colour`); no knots.
+for _tree in ("azalea_tree", "azalea_tree_sphere", "hibiscus_tree", "hibiscus_tree_sphere"):
     BARK[_tree] = {k: v for k, v in BARK["coastal_live_oak"].items() if k != "knot"}
     BARK[_tree]["colour"] = (0.36, 0.26, 0.18)
 
