@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3]
+
+; An upright elephant ear from the landscape kit (2026-09-30): broad
+; arrowhead leaves on long stalks, light down the middle and darker to their
+; scalloped edges. The shape is `assets/source/props/elephant_ear.blend`;
+; Send to game writes the GLB. `variant` picks the plant (green or red, the
+; clump or the mature clump), `height` sets it from thigh (0.70 m) to shoulder
+; (1.40 m). Visual only.
+
+[ext_resource type="Script" path="res://scenes/world/landscape_kit/elephant_ear.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://assets/props/elephant_ear.glb" id="2_model"]
+
+[node name="elephant_ear" type="Node3D"]
+script = ExtResource("1_script")
+editor_description = "Elephant ear (landscape kit). variant picks the plant: green, green_mature, red, red_mature. height sets it from thigh (0.70 m) to shoulder (1.40 m). Shape it in assets/source/props/elephant_ear.blend."
+
+[node name="model" parent="." instance=ExtResource("2_model")]
