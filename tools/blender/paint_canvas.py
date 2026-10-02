@@ -541,6 +541,25 @@ PROP_LEAFLETS["coastal_live_oak"]["kinds"]["leaf_bud"] = dict(
 PROP_LEAFLETS["coastal_live_oak"]["kinds"]["acorn_green"] = dict(
     PROP_LEAFLETS["coastal_live_oak"]["kinds"]["acorn"], cap_colour=(0.58, 0.57, 0.31), cap_line=(0.34, 0.33, 0.16),
     nut=(0.50, 0.63, 0.25), nut_light=(0.68, 0.78, 0.40), tip=(0.40, 0.42, 0.18))
+# The giant date palm (`date_palm.py`, 2026-09-29, her "lets make a giant
+# centerpiece date palm" with a photo of a Canary Island date palm): the
+# feather frond the palm crown's first cut drew, leaflets from a straw-yellow
+# rachis to the V-folded blade's outline, spines at the base; narrower and
+# closer than the coastal crown's so the frond reads as a date palm's, still
+# chunky. The spear and the stubs stay whole.
+# Then her "fewer fronds but larger" and "make the leaflets on the texture
+# fewer but bigger also" (2026-09-30): leaflets about 1.8 times as far apart
+# and 1.7 times as wide (they were 0.15 m apart, 0.13 wide on the mature), on
+# a thicker rachis.
+PROP_LEAFLETS["date_palm"] = dict(style="leaflets", rachis=(0.045, 0.01), rachis_colour=(0.42, 0.33, 0.08),
+                                  rachis_tint=0.7, jitter=0.18, kinds={
+                                      "young": dict(spacing=0.25, width=0.19, open=40, tip=22, spines=0.12,
+                                                    missing=0.0, broken=0.0),
+                                      "mature": dict(spacing=0.27, width=0.22, open=55, tip=30, spines=0.14,
+                                                     missing=0.02, broken=0.02),
+                                      "old": dict(spacing=0.27, width=0.2, open=60, tip=34, spines=0.14,
+                                                  missing=0.06, broken=0.12),
+                                  })
 
 
 

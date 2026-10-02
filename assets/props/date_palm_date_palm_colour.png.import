@@ -2,23 +2,24 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c8dmmpnn86sx3"
-path="res://.godot/imported/boxwood_hedge_boxwood_hedge_colour.png-17d6439dc2fd6333aff6c4aeb8d7592c.ctex"
+uid="uid://ch6md13n88w63"
+path.s3tc="res://.godot/imported/date_palm_date_palm_colour.png-7f43a47c51701af6fe3c921f22d21b01.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "e3ada5f26dab8158583e1a56994923bc"
+"md5": "21bc6aec6809870d6663d0b39e1f7554"
 }
 
 [deps]
 
-source_file="res://assets/props/boxwood_hedge_boxwood_hedge_colour.png"
-dest_files=["res://.godot/imported/boxwood_hedge_boxwood_hedge_colour.png-17d6439dc2fd6333aff6c4aeb8d7592c.ctex"]
+source_file="res://assets/props/date_palm_date_palm_colour.png"
+dest_files=["res://.godot/imported/date_palm_date_palm_colour.png-7f43a47c51701af6fe3c921f22d21b01.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +41,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

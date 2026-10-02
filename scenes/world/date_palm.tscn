@@ -1,0 +1,20 @@
+[gd_scene load_steps=2 format=3]
+
+; The giant Canary Island date palm (PRP-PLANT-067), as the game places it.
+; Editor-owned.
+;
+; The model is `assets/props/date_palm.glb`, sent from
+; `assets/source/props/date_palm.blend` (built by `tools/blender/date_palm.py`)
+; with the Keep Your Ticket panel. Forty fronds spray from low on a scarred
+; trunk, about 13 m tall and 14.5 m across. Its collision is derived on export,
+; on layer 1 and covers the trunk to about 6.5 m. The trunk stands on the origin
+; and the crown's spread is centred 0.56 m off it, as the fronds fall. Place the
+; scene by where the trunk should stand. Not placed anywhere yet; where it stands
+; is Christina's.
+
+[ext_resource type="PackedScene" path="res://assets/props/date_palm.glb" id="1_model"]
+
+[node name="date_palm" type="Node3D"]
+editor_description = "PRP-PLANT-067. Giant Canary Island date palm, the centrepiece: 40 fronds on a diamond-scarred trunk, about 13 m tall and 14.5 m across. The trunk stands on the origin and collides to about 6.5 m; the crown's spread is centred 0.56 m off it. Not placed."
+
+[node name="model" parent="." instance=ExtResource("1_model")]

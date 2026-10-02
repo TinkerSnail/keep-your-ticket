@@ -14,7 +14,7 @@ version one for privacy".
 A hedge is the shrubs' greenery on a long base (`prop-pipeline.md`, "Bushes and
 hedges share one greenery"): a body of dense leaves in shade and, over it, a
 lid of the box shrub's leaves, almost flat: a flat top that only rolls over its
-edge, its hem the leaves' own tips just below the top and a centimetre past the
+edge, its hem the leaves' own tips just below the top and 20 mm past the
 body's side (her "the top tier is still to long, it needs to be almost flat on
 top"; it had hung a skirt a third of the way down the knee-high side). Tiers of
 leaves down the taller two's sides were tried and taken off (her "the tiers are
@@ -97,20 +97,23 @@ E = 0.5  # half a grid cell
 # `batter` how much wider the body is at the soil than under the lid; `sprig`
 # the leaf clusters' size (the knee-high side is too short for a full one).
 # Standard is the parterre's knee-high box of her photo (the shrubs' 1.3 times
-# a real boxwood's 0.3 to 0.4 m); waist; privacy, taller than a person.
+# a real boxwood's 0.3 to 0.4 m); waist; privacy, taller than a person. Each a
+# step under its round height since the whole lid was lowered (her "now lower
+# the lid another mm", "like the whole thing", "not jus the hem right?").
 HEIGHTS = {
-    "standard": dict(width=0.45, height=0.5, shoulder=0.09, drop=0.095, lift=0.025, batter=0.02,
+    "standard": dict(width=0.45, height=0.495, shoulder=0.09, drop=0.095, lift=0.025, batter=0.02,
                      sprig=0.75),
-    "waist": dict(width=0.6, height=1.0, shoulder=0.12, drop=0.126, lift=0.03, batter=0.03, sprig=1.0),
-    "privacy": dict(width=0.8, height=2.2, shoulder=0.16, drop=0.158, lift=0.035, batter=0.05,
+    "waist": dict(width=0.6, height=0.993, shoulder=0.12, drop=0.126, lift=0.03, batter=0.03, sprig=1.0),
+    "privacy": dict(width=0.8, height=2.192, shoulder=0.16, drop=0.158, lift=0.035, batter=0.05,
                     sprig=1.0),
 }
-# How far the lid's hem stands out past the body's side: 1 cm (her "pull those
+# How far the lid's hem stands out past the body's side: 20 mm (her "pull those
 # edges in a little bit", then "bring it in even more", past 5 mm, to 3 mm, then
-# "make it a few mm larger"; it had overhung 46 mm on the knee-high hedge). A
-# lid 1 cm inside the side, the side rounding in under it, was tried and taken
-# back (her "restore the last lid shape but lower it down").
-OVERHANG = 0.01
+# "make it a few mm larger", 1 cm, "make the lid like another mm wide", 15 mm,
+# and "make it another mm wider"; it had overhung 46 mm on the knee-high hedge). A lid 1 cm inside the side, the
+# side rounding in under it, was tried and taken back (her "restore the last lid
+# shape but lower it down").
+OVERHANG = 0.02
 WALL_UP = 0.5  # the body's wall reaches this share of the way from the lid's hem up to the lid over it
 SHOULDER_STEPS = 2
 ROOF_V = 0.1  # canvas metres the body's hidden roof takes
@@ -142,9 +145,11 @@ TIP_INSET_PX = 2
 LEAF_COLOUR = (0.24, 0.50, 0.17)  # linear, the box shrub's
 RIB_COLOUR, RIB_TINT, RIB_PX = (0.40, 0.62, 0.18), 0.25, 1.5
 ROUGH = 0.7
-# Band shading, on the painted leaves: the hems' last few centimetres darker;
-# the bodies darker all over (in the lid's shade) and more so at the soil.
-HEM_DARK, BODY_DARK, GROUND_DARK = 0.2, 0.72, 0.25
+# Band shading, on the painted leaves: the lid's last `HEM_REACH` darker,
+# `HEM_DARK` at its hem, its whole roll over the edge (her "the edge of the lid
+# is a little too light"; it was 0.2 over 6 cm); the bodies darker all over
+# (in the lid's shade) and more so at the soil.
+HEM_DARK, HEM_REACH, BODY_DARK, GROUND_DARK = 0.32, 0.1, 0.72, 0.25
 
 # The leaf clusters: small fans of three leaves, one or two together
 # (`CLUMP_SPRIGS`), lying almost flat on the leaves in nearly the hedge's own
@@ -745,7 +750,7 @@ def paint(bands, folder):
         if name == "body":
             tone = tone * BODY_DARK * (1.0 - GROUND_DARK * (1.0 - smooth(0.0, 0.18, from_foot)))
         elif name == "hat":
-            tone = tone * (1.0 - HEM_DARK * (1.0 - smooth(0.0, 0.06, from_foot)))
+            tone = tone * (1.0 - HEM_DARK * (1.0 - smooth(0.0, HEM_REACH, from_foot)))
         colour = np.array(LEAF_COLOUR, dtype=np.float32) * tone[..., None]
         tint = (ribs * RIB_TINT)[..., None]
         colour = colour * (1.0 - tint) + np.array(RIB_COLOUR, dtype=np.float32) * tint

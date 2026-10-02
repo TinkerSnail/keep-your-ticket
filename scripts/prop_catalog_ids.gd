@@ -31,6 +31,8 @@ const PRP_PARK_024: StringName = &"PRP-PARK-024"
 const PRP_PARK_025: StringName = &"PRP-PARK-025"
 const PRP_PARK_026: StringName = &"PRP-PARK-026"
 const PRP_PARK_027: StringName = &"PRP-PARK-027"
+const PRP_PARK_028: StringName = &"PRP-PARK-028"
+const PRP_PARK_029: StringName = &"PRP-PARK-029"
 const PRP_LITE_001: StringName = &"PRP-LITE-001"
 const PRP_LITE_002: StringName = &"PRP-LITE-002"
 const PRP_LITE_003: StringName = &"PRP-LITE-003"
@@ -48,6 +50,9 @@ const PRP_COAST_009: StringName = &"PRP-COAST-009"
 const PRP_COAST_010: StringName = &"PRP-COAST-010"
 const PRP_COAST_011: StringName = &"PRP-COAST-011"
 const PRP_COAST_012: StringName = &"PRP-COAST-012"
+const PRP_COAST_013: StringName = &"PRP-COAST-013"
+const PRP_COAST_014: StringName = &"PRP-COAST-014"
+const PRP_COAST_015: StringName = &"PRP-COAST-015"
 const PRP_WILD_001: StringName = &"PRP-WILD-001"
 const PRP_WILD_002: StringName = &"PRP-WILD-002"
 const PRP_WILD_003: StringName = &"PRP-WILD-003"
@@ -183,6 +188,8 @@ const PRP_PLANT_063: StringName = &"PRP-PLANT-063"
 const PRP_PLANT_064: StringName = &"PRP-PLANT-064"
 const PRP_PLANT_065: StringName = &"PRP-PLANT-065"
 const PRP_PLANT_066: StringName = &"PRP-PLANT-066"
+const PRP_PLANT_067: StringName = &"PRP-PLANT-067"
+const PRP_PLANT_068: StringName = &"PRP-PLANT-068"
 const PRP_FENCE_001: StringName = &"PRP-FENCE-001"
 const PRP_FENCE_002: StringName = &"PRP-FENCE-002"
 const PRP_FENCE_003: StringName = &"PRP-FENCE-003"
@@ -339,6 +346,8 @@ const DISPLAY_NAMES: Dictionary = {
 	PRP_PARK_025: "Riveted metal bin",
 	PRP_PARK_026: "Square hooded bin",
 	PRP_PARK_027: "Bottle-shaped recycling bin",
+	PRP_PARK_028: "Concrete picnic table",
+	PRP_PARK_029: "Round concrete picnic table",
 	PRP_LITE_001: "Park lamp standard",
 	PRP_LITE_002: "Wall practical",
 	PRP_LITE_003: "Festoon kit",
@@ -356,6 +365,9 @@ const DISPLAY_NAMES: Dictionary = {
 	PRP_COAST_010: "Creek-bank stone",
 	PRP_COAST_011: "Reclined waterfront viewing bench",
 	PRP_COAST_012: "Sea glass",
+	PRP_COAST_013: "Rock revetment",
+	PRP_COAST_014: "Small fishing pier",
+	PRP_COAST_015: "Rock jetty",
 	PRP_WILD_001: "Adult coastal gull",
 	PRP_WILD_002: "Mottled juvenile gull",
 	PRP_WILD_003: "Rock dove",
@@ -491,6 +503,8 @@ const DISPLAY_NAMES: Dictionary = {
 	PRP_PLANT_064: "Bird of paradise",
 	PRP_PLANT_065: "Boxwood hedge kit",
 	PRP_PLANT_066: "Round concrete palm planter",
+	PRP_PLANT_067: "Mexican fan palm",
+	PRP_PLANT_068: "Giant Canary Island date palm",
 	PRP_FENCE_001: "Black ornamental garden fence",
 	PRP_FENCE_002: "Plain waterfront guardrail",
 	PRP_FENCE_003: "Low garden wall, piers and railing",
@@ -648,6 +662,8 @@ const STATUSES: Dictionary = {
 	PRP_PARK_025: &"approved",
 	PRP_PARK_026: &"work_in_progress",
 	PRP_PARK_027: &"work_in_progress",
+	PRP_PARK_028: &"work_in_progress",
+	PRP_PARK_029: &"work_in_progress",
 	PRP_LITE_001: &"built",
 	PRP_LITE_002: &"built",
 	PRP_LITE_003: &"built",
@@ -665,6 +681,9 @@ const STATUSES: Dictionary = {
 	PRP_COAST_010: &"built",
 	PRP_COAST_011: &"in_review",
 	PRP_COAST_012: &"planned",
+	PRP_COAST_013: &"planned",
+	PRP_COAST_014: &"planned",
+	PRP_COAST_015: &"planned",
 	PRP_WILD_001: &"built",
 	PRP_WILD_002: &"built",
 	PRP_WILD_003: &"built",
@@ -800,6 +819,8 @@ const STATUSES: Dictionary = {
 	PRP_PLANT_064: &"approved",
 	PRP_PLANT_065: &"approved",
 	PRP_PLANT_066: &"work_in_progress",
+	PRP_PLANT_067: &"planned",
+	PRP_PLANT_068: &"approved",
 	PRP_FENCE_001: &"in_review",
 	PRP_FENCE_002: &"in_review",
 	PRP_FENCE_003: &"approved",

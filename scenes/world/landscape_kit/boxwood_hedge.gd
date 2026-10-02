@@ -17,8 +17,8 @@ extends Node3D
 ## the cells' middles, so pieces meet open end to open end. Finish a run with an
 ## `end`, or its open end shows.
 
-## Standard is knee high (0.5 m, her photograph's parterre); waist 1 m;
-## privacy 2.2 m, taller than a person.
+## Standard is knee high (0.495 m, her photograph's parterre); waist 0.993 m;
+## privacy 2.192 m, taller than a person.
 @export_enum("standard", "waist", "privacy") var height := 0:
 	set(value):
 		height = clampi(value, 0, HEIGHTS.size() - 1)

@@ -14,7 +14,9 @@ extends Node
 const SOURCE := "res://scenes/world/landscape_kit/boxwood_hedge.tscn"
 const MODEL := "res://assets/props/boxwood_hedge.glb"
 const PREFIX := "boxwood_hedge_"
-const HEIGHTS := {"standard": 0.5, "waist": 1.0, "privacy": 2.2}
+## Each height's lid top (hedge_kit.py, HEIGHTS: a step under 0.5, 1 and 2.2 m
+## since the lid was lowered).
+const HEIGHTS := {"standard": 0.495, "waist": 0.993, "privacy": 2.192}
 const PIECES := ["straight", "straight_2", "straight_4", "corner", "tee", "cross", "end", "post", "bend", "curve",
 	"curve_large"]
 const SETS := ["a", "b", "c"]
@@ -104,7 +106,7 @@ func _check_model(model: Node) -> void:
 					_fails.append("%s collides; only a body should" % other)
 			var lid := (meshes[key + "_hat"] as Mesh).get_aabb()
 			if absf(lid.end.y - HEIGHTS[height_name]) > 0.002:
-				_fails.append("%s: its lid tops out at %.3f m, not %.2f" % [key, lid.end.y, HEIGHTS[height_name]])
+				_fails.append("%s: its lid tops out at %.3f m, not %.3f" % [key, lid.end.y, HEIGHTS[height_name]])
 			var points := _vertices([meshes[key], meshes[key + "_hat"]])
 			for end: Array in ENDS[piece]:
 				var off := _mismatch(_end_section(points, end), reference)
@@ -134,7 +136,7 @@ func _check_built(hedge: Node3D, label: String, top: float) -> void:
 		_fails.append("%s: %d surfaces, not one wearing the hedge's material" % [label, mesh.get_surface_count()])
 	var box := mesh.get_aabb()
 	if absf(box.position.y) > 0.002 or box.end.y < top - 0.002 or box.end.y > top + TOP_LIFT:
-		_fails.append("%s: stands from %.3f to %.3f m, not 0 to %.2f (and its clusters' %.0f mm)" % [label,
+		_fails.append("%s: stands from %.3f to %.3f m, not 0 to %.3f (and its clusters' %.0f mm)" % [label,
 			box.position.y, box.end.y, top, TOP_LIFT * 1000.0])
 
 
