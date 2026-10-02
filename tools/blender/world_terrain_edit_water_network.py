@@ -271,6 +271,47 @@ def main():
         print(f"{EDIT_NAME}: undone on {int(sel.sum())} vertices and saved")
         return
 
+    if "--fix-river" in argv:
+        # 2026-10-02: the river centreline's first points lay on the highway's own course at the corner (the road was built in
+        # the thalweg); they move to the valley side, 18 m north-west of the carriageway. Reference curves only, no vertex moves.
+        h0 = vertex_hash(co)
+        RIVER = [(318, -246), (285, -272), (245, -316), (200, -340), (160, -362), (128, -373), (80, -379), (0, -371), (-56, -389), (-80, -395), (-100, -400), (-120, -402), (-140, -402)]
+        from mathutils.bvhtree import BVHTree as _B
+        bvh_r = _B.FromObject(obj, bpy.context.evaluated_depsgraph_get())
+
+        def ground_y(x, z):
+            hit = bvh_r.ray_cast(Vector((x, -z, 1000.0)), Vector((0, 0, -1)), 5000.0)
+            return float(hit[0].z) if hit[0] is not None else 0.0
+
+        def offset_line(pts, off):
+            outp = []
+            for i, (x, z) in enumerate(pts):
+                a = np.array(pts[max(0, i - 1)]); b = np.array(pts[min(len(pts) - 1, i + 1)])
+                d = b - a; d = d / max(np.linalg.norm(d), 1e-9); nrm = np.array([-d[1], d[0]])
+                outp.append((float(x + nrm[0] * off), float(z + nrm[1] * off)))
+            return outp
+        rw = bpy.data.collections["Reference_water"]
+        for nm, off in (("water_K2_river_centreline", 0.0), ("water_K2_river_bank_N", -4.5), ("water_K2_river_bank_S", 4.5), ("water_K2_flood_extent_N", -25.0), ("water_K2_flood_extent_S", 25.0)):
+            o = bpy.data.objects.get(nm)
+            if o is None:
+                continue
+            pts = RIVER if off == 0.0 else offset_line(RIVER, off)
+            sp = o.data.splines[0]
+            o.data.splines.remove(sp)
+            sp = o.data.splines.new("POLY")
+            sp.points.add(len(pts) - 1)
+            for i, (x, z) in enumerate(pts):
+                sp.points[i].co = (x, -z, ground_y(x, z) + (0.4 if off == 0.0 else 0.3), 1.0)
+            o["kyt_note"] = str(o.get("kyt_note", "")) + " | first points moved off the highway's course onto the valley side (2026-10-02)"
+        co_chk = np.empty(n * 3)
+        me.vertices.foreach_get("co", co_chk)
+        assert vertex_hash(co_chk.reshape(-1, 3)) == h0, "a vertex moved"
+        notes = bpy.data.texts.get("README")
+        if notes:
+            notes.write("\nREFERENCE FIX (2026-10-02): water_K2_river_* curves: the river's first points lay on the coast highway's course at the park's corner; moved 18 m onto the valley side. No vertex moved.\n")
+        bpy.ops.wm.save_mainfile()
+        print(f"{EDIT_NAME}: fix-river done; vertex hash {h0} unchanged; saved")
+        return
     if any(e.get("id") == EDIT_ID for e in edits):
         raise SystemExit(f"{EDIT_NAME}: edit 3 is already applied (kyt_edits); run with --undo first")
 
