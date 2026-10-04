@@ -33,6 +33,7 @@ const PRP_PARK_026: StringName = &"PRP-PARK-026"
 const PRP_PARK_027: StringName = &"PRP-PARK-027"
 const PRP_PARK_028: StringName = &"PRP-PARK-028"
 const PRP_PARK_029: StringName = &"PRP-PARK-029"
+const PRP_PARK_030: StringName = &"PRP-PARK-030"
 const PRP_LITE_001: StringName = &"PRP-LITE-001"
 const PRP_LITE_002: StringName = &"PRP-LITE-002"
 const PRP_LITE_003: StringName = &"PRP-LITE-003"
@@ -86,6 +87,12 @@ const PRP_WILD_030: StringName = &"PRP-WILD-030"
 const PRP_WILD_031: StringName = &"PRP-WILD-031"
 const PRP_WILD_032: StringName = &"PRP-WILD-032"
 const PRP_WILD_033: StringName = &"PRP-WILD-033"
+const PRP_WILD_034: StringName = &"PRP-WILD-034"
+const PRP_WILD_035: StringName = &"PRP-WILD-035"
+const PRP_WILD_036: StringName = &"PRP-WILD-036"
+const PRP_WILD_037: StringName = &"PRP-WILD-037"
+const PRP_WILD_038: StringName = &"PRP-WILD-038"
+const PRP_WILD_039: StringName = &"PRP-WILD-039"
 const PRP_GAME_001: StringName = &"PRP-GAME-001"
 const PRP_GAME_002: StringName = &"PRP-GAME-002"
 const PRP_GAME_003: StringName = &"PRP-GAME-003"
@@ -207,6 +214,50 @@ const PRP_TOWN_001: StringName = &"PRP-TOWN-001"
 const PRP_TOWN_002: StringName = &"PRP-TOWN-002"
 const PRP_TOWN_003: StringName = &"PRP-TOWN-003"
 const PRP_TOWN_004: StringName = &"PRP-TOWN-004"
+const PRP_HOUSE_001: StringName = &"PRP-HOUSE-001"
+const PRP_HOUSE_002: StringName = &"PRP-HOUSE-002"
+const PRP_HOUSE_003: StringName = &"PRP-HOUSE-003"
+const PRP_HOUSE_004: StringName = &"PRP-HOUSE-004"
+const PRP_HOUSE_005: StringName = &"PRP-HOUSE-005"
+const PRP_HOUSE_006: StringName = &"PRP-HOUSE-006"
+const PRP_HOUSE_007: StringName = &"PRP-HOUSE-007"
+const PRP_HOUSE_008: StringName = &"PRP-HOUSE-008"
+const PRP_HOUSE_009: StringName = &"PRP-HOUSE-009"
+const PRP_HOUSE_010: StringName = &"PRP-HOUSE-010"
+const PRP_HOUSE_011: StringName = &"PRP-HOUSE-011"
+const PRP_HOUSE_012: StringName = &"PRP-HOUSE-012"
+const PRP_HOUSE_013: StringName = &"PRP-HOUSE-013"
+const PRP_HOUSE_014: StringName = &"PRP-HOUSE-014"
+const PRP_HOUSE_015: StringName = &"PRP-HOUSE-015"
+const PRP_HOUSE_016: StringName = &"PRP-HOUSE-016"
+const PRP_HOUSE_017: StringName = &"PRP-HOUSE-017"
+const PRP_HOUSE_018: StringName = &"PRP-HOUSE-018"
+const PRP_HOUSE_019: StringName = &"PRP-HOUSE-019"
+const PRP_HOUSE_020: StringName = &"PRP-HOUSE-020"
+const PRP_HOUSE_021: StringName = &"PRP-HOUSE-021"
+const PRP_HOUSE_022: StringName = &"PRP-HOUSE-022"
+const PRP_HOUSE_023: StringName = &"PRP-HOUSE-023"
+const PRP_HOUSE_024: StringName = &"PRP-HOUSE-024"
+const PRP_HOUSE_025: StringName = &"PRP-HOUSE-025"
+const PRP_HOUSE_026: StringName = &"PRP-HOUSE-026"
+const PRP_HOUSE_027: StringName = &"PRP-HOUSE-027"
+const PRP_HOUSE_028: StringName = &"PRP-HOUSE-028"
+const PRP_HOUSE_029: StringName = &"PRP-HOUSE-029"
+const PRP_HOUSE_030: StringName = &"PRP-HOUSE-030"
+const PRP_HOUSE_031: StringName = &"PRP-HOUSE-031"
+const PRP_HOUSE_032: StringName = &"PRP-HOUSE-032"
+const PRP_HOUSE_033: StringName = &"PRP-HOUSE-033"
+const PRP_HOUSE_034: StringName = &"PRP-HOUSE-034"
+const PRP_HOUSE_035: StringName = &"PRP-HOUSE-035"
+const PRP_HOUSE_036: StringName = &"PRP-HOUSE-036"
+const PRP_HOUSE_037: StringName = &"PRP-HOUSE-037"
+const PRP_HOUSE_038: StringName = &"PRP-HOUSE-038"
+const PRP_SHOP_001: StringName = &"PRP-SHOP-001"
+const PRP_SHOP_002: StringName = &"PRP-SHOP-002"
+const PRP_SHOP_003: StringName = &"PRP-SHOP-003"
+const PRP_SHOP_004: StringName = &"PRP-SHOP-004"
+const PRP_EATERY_001: StringName = &"PRP-EATERY-001"
+const PRP_EATERY_002: StringName = &"PRP-EATERY-002"
 const PRP_STORY_001: StringName = &"PRP-STORY-001"
 const PRP_STORY_002: StringName = &"PRP-STORY-002"
 const PRP_STORY_003: StringName = &"PRP-STORY-003"
@@ -348,6 +399,7 @@ const DISPLAY_NAMES: Dictionary = {
 	PRP_PARK_027: "Bottle-shaped recycling bin",
 	PRP_PARK_028: "Concrete picnic table",
 	PRP_PARK_029: "Round concrete picnic table",
+	PRP_PARK_030: "Sky ride gondola",
 	PRP_LITE_001: "Park lamp standard",
 	PRP_LITE_002: "Wall practical",
 	PRP_LITE_003: "Festoon kit",
@@ -401,6 +453,12 @@ const DISPLAY_NAMES: Dictionary = {
 	PRP_WILD_031: "Mouse",
 	PRP_WILD_032: "Rat",
 	PRP_WILD_033: "Dog",
+	PRP_WILD_034: "Harbor seals",
+	PRP_WILD_035: "Herons",
+	PRP_WILD_036: "Egrets",
+	PRP_WILD_037: "Shorebirds",
+	PRP_WILD_038: "Leopard sharks",
+	PRP_WILD_039: "Bat rays",
 	PRP_GAME_001: "Arcade cabinet",
 	PRP_GAME_002: "Derby-race lane and horse target",
 	PRP_GAME_003: "Derby prize display",
@@ -522,6 +580,50 @@ const DISPLAY_NAMES: Dictionary = {
 	PRP_TOWN_002: "Residential post lamp",
 	PRP_TOWN_003: "Beach-town mariner lamp",
 	PRP_TOWN_004: "Lattice street bin",
+	PRP_HOUSE_001: "Classic cottage",
+	PRP_HOUSE_002: "Classic cottage, door on the gable",
+	PRP_HOUSE_003: "Craftsman bungalow",
+	PRP_HOUSE_004: "Side-gabled cottage",
+	PRP_HOUSE_005: "Detached one-car garage",
+	PRP_HOUSE_006: "Glass-gable cottage",
+	PRP_HOUSE_007: "Porch cottage with hammock",
+	PRP_HOUSE_008: "Log cabin cottage",
+	PRP_HOUSE_009: "L-shaped ranch",
+	PRP_HOUSE_010: "Court cottage",
+	PRP_HOUSE_011: "Hillside cottage over a garage",
+	PRP_HOUSE_012: "Victorian cottage, blue",
+	PRP_HOUSE_013: "Victorian cottage, sage",
+	PRP_HOUSE_014: "Victorian cottage, purple",
+	PRP_HOUSE_015: "Victorian cottage, pink",
+	PRP_HOUSE_016: "Streetcar house",
+	PRP_HOUSE_017: "Streetcar house, rounded end showing",
+	PRP_HOUSE_018: "Big streetcar house",
+	PRP_HOUSE_019: "Big streetcar house, square ends",
+	PRP_HOUSE_020: "Stucco row house, one storey",
+	PRP_HOUSE_021: "Stucco row house, corner turret",
+	PRP_HOUSE_022: "Stucco row house, two storeys",
+	PRP_HOUSE_023: "Stucco row house, three storeys",
+	PRP_HOUSE_024: "Stucco row house, hipped tile roof",
+	PRP_HOUSE_025: "Stucco row house, iron balcony",
+	PRP_HOUSE_026: "Bluff condo block",
+	PRP_HOUSE_027: "Bluff condo block, three units",
+	PRP_HOUSE_028: "Street condo block",
+	PRP_HOUSE_029: "Carriage house",
+	PRP_HOUSE_030: "Carriage house, plain",
+	PRP_HOUSE_031: "Carriage house on a hillside",
+	PRP_HOUSE_032: "Flared tower cottage",
+	PRP_HOUSE_033: "Flared tower cottage, bell",
+	PRP_HOUSE_034: "Flared tower cottage, gentle",
+	PRP_HOUSE_035: "Storybook cottage",
+	PRP_HOUSE_036: "Storybook cottage, narrow",
+	PRP_HOUSE_037: "Storybook cottage, bungalow",
+	PRP_HOUSE_038: "Beach house on stilts",
+	PRP_SHOP_001: "Fishing shack",
+	PRP_SHOP_002: "Surf shop",
+	PRP_SHOP_003: "Surf shop with its wing",
+	PRP_SHOP_004: "Two-storey shop building",
+	PRP_EATERY_001: "Pier seafood restaurant",
+	PRP_EATERY_002: "Waterfront restaurant",
 	PRP_STORY_001: "Pulp-horror paperback",
 	PRP_STORY_002: "Story key on a shoelace",
 	PRP_STORY_003: "Lawn gnome",
@@ -637,34 +739,35 @@ const DISPLAY_NAMES: Dictionary = {
 const STATUSES: Dictionary = {
 	PRP_PARK_001: &"approved",
 	PRP_PARK_002: &"work_in_progress",
-	PRP_PARK_003: &"built",
-	PRP_PARK_004: &"built",
-	PRP_PARK_005: &"built",
-	PRP_PARK_006: &"built",
-	PRP_PARK_007: &"built",
+	PRP_PARK_003: &"work_in_progress",
+	PRP_PARK_004: &"work_in_progress",
+	PRP_PARK_005: &"work_in_progress",
+	PRP_PARK_006: &"work_in_progress",
+	PRP_PARK_007: &"work_in_progress",
 	PRP_PARK_008: &"retired",
 	PRP_PARK_009: &"retired",
-	PRP_PARK_010: &"built",
-	PRP_PARK_011: &"built",
+	PRP_PARK_010: &"work_in_progress",
+	PRP_PARK_011: &"work_in_progress",
 	PRP_PARK_012: &"built",
-	PRP_PARK_013: &"built",
-	PRP_PARK_014: &"built",
-	PRP_PARK_015: &"built",
-	PRP_PARK_016: &"built",
+	PRP_PARK_013: &"work_in_progress",
+	PRP_PARK_014: &"work_in_progress",
+	PRP_PARK_015: &"work_in_progress",
+	PRP_PARK_016: &"work_in_progress",
 	PRP_PARK_017: &"built",
 	PRP_PARK_018: &"work_in_progress",
 	PRP_PARK_019: &"approved",
-	PRP_PARK_020: &"in_review",
-	PRP_PARK_021: &"in_review",
-	PRP_PARK_022: &"in_review",
-	PRP_PARK_023: &"in_review",
+	PRP_PARK_020: &"work_in_progress",
+	PRP_PARK_021: &"work_in_progress",
+	PRP_PARK_022: &"work_in_progress",
+	PRP_PARK_023: &"work_in_progress",
 	PRP_PARK_024: &"work_in_progress",
 	PRP_PARK_025: &"approved",
 	PRP_PARK_026: &"work_in_progress",
 	PRP_PARK_027: &"work_in_progress",
 	PRP_PARK_028: &"work_in_progress",
 	PRP_PARK_029: &"work_in_progress",
-	PRP_LITE_001: &"built",
+	PRP_PARK_030: &"work_in_progress",
+	PRP_LITE_001: &"work_in_progress",
 	PRP_LITE_002: &"built",
 	PRP_LITE_003: &"built",
 	PRP_LITE_004: &"built",
@@ -689,70 +792,76 @@ const STATUSES: Dictionary = {
 	PRP_WILD_003: &"built",
 	PRP_WILD_004: &"built",
 	PRP_WILD_005: &"built",
-	PRP_WILD_006: &"planned",
-	PRP_WILD_007: &"planned",
-	PRP_WILD_008: &"planned",
-	PRP_WILD_009: &"planned",
-	PRP_WILD_010: &"planned",
-	PRP_WILD_011: &"planned",
-	PRP_WILD_012: &"planned",
-	PRP_WILD_013: &"planned",
-	PRP_WILD_014: &"planned",
-	PRP_WILD_015: &"planned",
-	PRP_WILD_016: &"planned",
-	PRP_WILD_017: &"planned",
-	PRP_WILD_018: &"planned",
-	PRP_WILD_019: &"planned",
-	PRP_WILD_020: &"planned",
-	PRP_WILD_021: &"planned",
-	PRP_WILD_022: &"planned",
-	PRP_WILD_023: &"planned",
-	PRP_WILD_024: &"planned",
-	PRP_WILD_025: &"planned",
-	PRP_WILD_026: &"planned",
-	PRP_WILD_027: &"planned",
-	PRP_WILD_028: &"planned",
-	PRP_WILD_029: &"planned",
-	PRP_WILD_030: &"planned",
-	PRP_WILD_031: &"planned",
-	PRP_WILD_032: &"planned",
-	PRP_WILD_033: &"planned",
-	PRP_GAME_001: &"built",
-	PRP_GAME_002: &"built",
-	PRP_GAME_003: &"built",
-	PRP_GAME_004: &"built",
-	PRP_GAME_005: &"built",
-	PRP_GAME_006: &"built",
-	PRP_FOOD_001: &"built",
-	PRP_FOOD_002: &"built",
-	PRP_FOOD_003: &"built",
-	PRP_FOOD_004: &"built",
-	PRP_FOOD_005: &"built",
-	PRP_FOOD_006: &"built",
-	PRP_FOOD_007: &"built",
-	PRP_FOOD_008: &"built",
+	PRP_WILD_006: &"work_in_progress",
+	PRP_WILD_007: &"work_in_progress",
+	PRP_WILD_008: &"work_in_progress",
+	PRP_WILD_009: &"work_in_progress",
+	PRP_WILD_010: &"work_in_progress",
+	PRP_WILD_011: &"work_in_progress",
+	PRP_WILD_012: &"work_in_progress",
+	PRP_WILD_013: &"work_in_progress",
+	PRP_WILD_014: &"work_in_progress",
+	PRP_WILD_015: &"work_in_progress",
+	PRP_WILD_016: &"work_in_progress",
+	PRP_WILD_017: &"work_in_progress",
+	PRP_WILD_018: &"work_in_progress",
+	PRP_WILD_019: &"work_in_progress",
+	PRP_WILD_020: &"work_in_progress",
+	PRP_WILD_021: &"work_in_progress",
+	PRP_WILD_022: &"work_in_progress",
+	PRP_WILD_023: &"work_in_progress",
+	PRP_WILD_024: &"work_in_progress",
+	PRP_WILD_025: &"work_in_progress",
+	PRP_WILD_026: &"work_in_progress",
+	PRP_WILD_027: &"work_in_progress",
+	PRP_WILD_028: &"work_in_progress",
+	PRP_WILD_029: &"work_in_progress",
+	PRP_WILD_030: &"work_in_progress",
+	PRP_WILD_031: &"work_in_progress",
+	PRP_WILD_032: &"work_in_progress",
+	PRP_WILD_033: &"work_in_progress",
+	PRP_WILD_034: &"work_in_progress",
+	PRP_WILD_035: &"work_in_progress",
+	PRP_WILD_036: &"work_in_progress",
+	PRP_WILD_037: &"work_in_progress",
+	PRP_WILD_038: &"work_in_progress",
+	PRP_WILD_039: &"work_in_progress",
+	PRP_GAME_001: &"work_in_progress",
+	PRP_GAME_002: &"work_in_progress",
+	PRP_GAME_003: &"work_in_progress",
+	PRP_GAME_004: &"work_in_progress",
+	PRP_GAME_005: &"work_in_progress",
+	PRP_GAME_006: &"work_in_progress",
+	PRP_FOOD_001: &"work_in_progress",
+	PRP_FOOD_002: &"work_in_progress",
+	PRP_FOOD_003: &"work_in_progress",
+	PRP_FOOD_004: &"work_in_progress",
+	PRP_FOOD_005: &"work_in_progress",
+	PRP_FOOD_006: &"work_in_progress",
+	PRP_FOOD_007: &"work_in_progress",
+	PRP_FOOD_008: &"work_in_progress",
 	PRP_PHOTO_001: &"built",
 	PRP_PHOTO_002: &"built",
 	PRP_PHOTO_003: &"built",
 	PRP_PHOTO_004: &"built",
 	PRP_PHOTO_005: &"built",
 	PRP_PHOTO_006: &"built",
-	PRP_OPS_001: &"built",
-	PRP_OPS_002: &"built",
-	PRP_OPS_003: &"built",
-	PRP_OPS_004: &"built",
-	PRP_OPS_005: &"built",
-	PRP_OPS_006: &"built",
-	PRP_OPS_007: &"built",
-	PRP_OPS_008: &"built",
-	PRP_OPS_009: &"built",
-	PRP_OPS_010: &"built",
-	PRP_OPS_011: &"built",
-	PRP_OPS_012: &"built",
-	PRP_OPS_013: &"built",
-	PRP_OPS_014: &"built",
-	PRP_OPS_015: &"built",
-	PRP_OPS_016: &"built",
+	PRP_OPS_001: &"work_in_progress",
+	PRP_OPS_002: &"work_in_progress",
+	PRP_OPS_003: &"work_in_progress",
+	PRP_OPS_004: &"work_in_progress",
+	PRP_OPS_005: &"work_in_progress",
+	PRP_OPS_006: &"work_in_progress",
+	PRP_OPS_007: &"work_in_progress",
+	PRP_OPS_008: &"work_in_progress",
+	PRP_OPS_009: &"work_in_progress",
+	PRP_OPS_010: &"work_in_progress",
+	PRP_OPS_011: &"work_in_progress",
+	PRP_OPS_012: &"work_in_progress",
+	PRP_OPS_013: &"work_in_progress",
+	PRP_OPS_014: &"work_in_progress",
+	PRP_OPS_015: &"work_in_progress",
+	PRP_OPS_016: &"work_in_progress",
 	PRP_PLANT_001: &"in_review",
 	PRP_PLANT_002: &"built",
 	PRP_PLANT_003: &"built",
@@ -838,6 +947,50 @@ const STATUSES: Dictionary = {
 	PRP_TOWN_002: &"built",
 	PRP_TOWN_003: &"built",
 	PRP_TOWN_004: &"work_in_progress",
+	PRP_HOUSE_001: &"work_in_progress",
+	PRP_HOUSE_002: &"work_in_progress",
+	PRP_HOUSE_003: &"work_in_progress",
+	PRP_HOUSE_004: &"work_in_progress",
+	PRP_HOUSE_005: &"work_in_progress",
+	PRP_HOUSE_006: &"work_in_progress",
+	PRP_HOUSE_007: &"work_in_progress",
+	PRP_HOUSE_008: &"work_in_progress",
+	PRP_HOUSE_009: &"work_in_progress",
+	PRP_HOUSE_010: &"work_in_progress",
+	PRP_HOUSE_011: &"work_in_progress",
+	PRP_HOUSE_012: &"work_in_progress",
+	PRP_HOUSE_013: &"work_in_progress",
+	PRP_HOUSE_014: &"work_in_progress",
+	PRP_HOUSE_015: &"work_in_progress",
+	PRP_HOUSE_016: &"work_in_progress",
+	PRP_HOUSE_017: &"work_in_progress",
+	PRP_HOUSE_018: &"work_in_progress",
+	PRP_HOUSE_019: &"work_in_progress",
+	PRP_HOUSE_020: &"work_in_progress",
+	PRP_HOUSE_021: &"work_in_progress",
+	PRP_HOUSE_022: &"work_in_progress",
+	PRP_HOUSE_023: &"work_in_progress",
+	PRP_HOUSE_024: &"work_in_progress",
+	PRP_HOUSE_025: &"work_in_progress",
+	PRP_HOUSE_026: &"work_in_progress",
+	PRP_HOUSE_027: &"work_in_progress",
+	PRP_HOUSE_028: &"work_in_progress",
+	PRP_HOUSE_029: &"work_in_progress",
+	PRP_HOUSE_030: &"work_in_progress",
+	PRP_HOUSE_031: &"work_in_progress",
+	PRP_HOUSE_032: &"work_in_progress",
+	PRP_HOUSE_033: &"work_in_progress",
+	PRP_HOUSE_034: &"work_in_progress",
+	PRP_HOUSE_035: &"work_in_progress",
+	PRP_HOUSE_036: &"work_in_progress",
+	PRP_HOUSE_037: &"work_in_progress",
+	PRP_HOUSE_038: &"work_in_progress",
+	PRP_SHOP_001: &"work_in_progress",
+	PRP_SHOP_002: &"work_in_progress",
+	PRP_SHOP_003: &"work_in_progress",
+	PRP_SHOP_004: &"work_in_progress",
+	PRP_EATERY_001: &"work_in_progress",
+	PRP_EATERY_002: &"work_in_progress",
 	PRP_STORY_001: &"planned",
 	PRP_STORY_002: &"planned",
 	PRP_STORY_003: &"planned",

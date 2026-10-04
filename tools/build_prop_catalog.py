@@ -45,7 +45,7 @@ KIND_ORDER = ("PRP", "GRP")
 DOMAIN_ORDER = {
     "PRP": (
         "PARK", "LITE", "COAST", "WILD", "GAME", "FOOD", "PHOTO", "OPS",
-        "PLANT", "FENCE", "TRANSIT", "ROAD", "TOWN", "STORY", "SEASON",
+        "PLANT", "FENCE", "TRANSIT", "ROAD", "TOWN", "HOUSE", "SHOP", "EATERY", "STORY", "SEASON",
     ),
     "GRP": ("PLAZA", "PARK", "BW", "PHOTO", "STORY", "SEASON"),
 }
@@ -133,6 +133,10 @@ def validate(entries: list[Entry], manifest: dict) -> None:
             context = ROOT / recipe["context"]
             if not context.exists():
                 raise ValueError(f"{label}: missing context image {recipe['context']}")
+        if "render" in recipe:
+            render = ROOT / recipe["render"]
+            if not render.exists():
+                raise ValueError(f"{label}: missing Blender render {recipe['render']}")
 
 
 def run_capture(timeout_seconds: float) -> None:
@@ -251,6 +255,15 @@ def preview_for(entry: Entry, recipe: dict) -> tuple[Image.Image, str]:
         if crop:
             image = image.crop(tuple(crop))
         return fit_preview(image), "IN-WORLD CONTEXT"
+    # A family that lives only in its Blender source, not yet in the game, is
+    # pictured by the builder's own render of it.
+    render = recipe.get("render")
+    if render:
+        image = Image.open(ROOT / render)
+        crop = recipe.get("crop")
+        if crop:
+            image = image.crop(tuple(crop))
+        return fit_preview(image), "BLENDER RENDER"
     if entry.status == "PLANNED":
         return placeholder(entry, "PLANNED\nNO ASSET YET"), "PLANNED"
     if entry.status == "RETIRED":
@@ -395,7 +408,9 @@ def visual_markdown(entries: list[Entry], stats: dict[str, dict[str, int]]) -> s
         "",
         "This block is rebuilt from the labeled entries below. **Source render** means",
         "the tool isolated current Godot geometry; **in-world context** means the prop or",
-        "composition is shown in a current proof frame. Planned and retired cards are",
+        "composition is shown in a current proof frame; **Blender render** means the",
+        "family lives only in its Blender source and is shown by its builder's render.",
+        "Planned and retired cards are",
         "deliberately unmistakable placeholders rather than invented concept art.",
         "",
     ]
@@ -426,9 +441,11 @@ def visual_markdown(entries: list[Entry], stats: dict[str, dict[str, int]]) -> s
             ])
     rendered = stats.get("PRP", {}).get("SOURCE RENDER", 0)
     context = stats.get("PRP", {}).get("IN-WORLD CONTEXT", 0)
+    blender = stats.get("PRP", {}).get("BLENDER RENDER", 0)
     lines.extend([
-        f"Current prop coverage: {rendered} isolated source renders and {context} in-world",
-        "context cards. A built card marked **recipe needed** is a pipeline backlog item,",
+        f"Current prop coverage: {rendered} isolated source renders, {context} in-world",
+        f"context cards and {blender} Blender renders. A built card marked **recipe needed**",
+        "is a pipeline backlog item,",
         "not evidence that the prop is absent from the game.",
         "",
         VIS_END,
