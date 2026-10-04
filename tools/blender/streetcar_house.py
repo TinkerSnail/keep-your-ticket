@@ -26,7 +26,12 @@ the same broad low roof, over the car alone; a lean-to room behind it with
 its own tin roof tucked under the car's eave, set 0.3 m in from the car's
 square west end and stopping 0.6 m short of its rounded east end, so the
 D-end shows past it with no post; the back and end windows on the car's
-1.2 m bay rhythm. It needs the long end of the plan's 15-20 m frontage. Everything the tool makes carries `kyt_streetcar_house`, so a rerun
+1.2 m bay rhythm. It needs the long end of the plan's 15-20 m frontage.
+A fourth, **big_square** ("add the square-ended big streetcar too"), in
+`export/variant_big_square`: the same 14 m car and lean-to with both ends
+square as her photo's, the roof running past each end on knee braces as
+`photo`'s does, the lean-to set 0.3 m in from both ends, no rounded end
+anywhere, in its own colours. Everything the tool makes carries `kyt_streetcar_house`, so a rerun
 removes and rebuilds its own work and keeps anything of hers; `export`
 holding anything untagged refuses without `--replace`.
 
@@ -144,7 +149,7 @@ ARC_WINDOWS = tuple((math.radians(a), math.radians(b)) for a, b in ((-70, -32), 
 LOT_W, LOT_D = 16.0, 9.0
 LOT_Y0 = -5.5                                      # the street line
 ROOF = (-XE, XE, -YE, YE)                          # the roof's plan, overhang included
-VARIANTS = ("photo", "tell", "big")
+VARIANTS = ("photo", "tell", "big", "big_square")
 # the big variant: a 14 m double-truck car, a lean-to behind, the car's
 # rhythm of 0.9 m windows at a 1.2 m pitch on every face
 B_L = 14.0
@@ -177,6 +182,10 @@ B_PR_X0, B_PR_X1 = B_DOOR_C - 2.15, B_DOOR_C + 2.15
 B_PR_Y1 = B_DECK_Y0 - 0.40
 B_PIPE_AT = (-2.0, -2.0)
 B_ROOF = (-B_HL - OVER, B_HL + OVER, B_FRONT_Y - OVER, B_CAR_BACK_Y + OVER)   # over the car alone
+# the square-ended big car: the lean-to 0.3 m in from both ends, a fifth
+# back window on the rhythm, the east end's two windows as the west's
+SQ_LEAN_X0, SQ_LEAN_X1 = -B_HL + 0.3, B_HL - 0.3
+SQ_BACK_WINDOWS = B_BACK_WINDOWS + ((4.30, 5.20),)
 
 
 def srgb(hex6):
@@ -212,6 +221,20 @@ COLOURS = {
     f"{PROP}_big_deck": srgb("5a2c6e"),
 }
 SURFACES = ("walls", "skirt", "trim", "glass", "door", "fascia", "tin", "rails", "deck")
+# the square-ended big car's own set (2026-10-03): coral-pink body, white
+# trim, teal posts and rails, a cobalt door, white fascia, dark plum skirt,
+# a weathered-wood deck
+COLOURS.update({
+    f"{PROP}_big_square_walls": srgb("f29a8e"),
+    f"{PROP}_big_square_skirt": srgb("3b1733"),
+    f"{PROP}_big_square_trim": srgb("f6f4ee"),
+    f"{PROP}_big_square_glass": srgb("c9d3d8"),
+    f"{PROP}_big_square_door": srgb("1e4fb5"),
+    f"{PROP}_big_square_fascia": srgb("fbfbf7"),
+    f"{PROP}_big_square_tin": srgb("aeb4b8"),
+    f"{PROP}_big_square_rails": srgb("178a85"),
+    f"{PROP}_big_square_deck": srgb("6e5a50"),
+})
 
 
 def material(name, colour=None):
@@ -754,16 +777,20 @@ def porch_roof_z(y, roof_y0=-YE):
 
 # --- the big car ------------------------------------------------------------------
 
-def build_big(coll, m, variant="big", prefix="big_"):
+def build_big(coll, m, variant="big", prefix="big_", rounded=True):
     """The 14 m car with its lean-to: the car's walls as one closed shell
-    (street, D-end, its exposed back, square west end), the band round the
-    end to the lean-to, the broad roof over the car alone, the porch, and
-    the lean-to as an open U of walls lapped into the car's back wall under
-    its own tin roof."""
-    segs = [Straight((-B_HL, B_FRONT_Y), (B_ROUND_C[0], B_FRONT_Y)),
-            Arc(B_ROUND_C, ROUND_R, -math.pi / 2, math.pi / 2),
-            Straight((B_ROUND_C[0], B_CAR_BACK_Y), (-B_HL, B_CAR_BACK_Y)),
-            Straight((-B_HL, B_CAR_BACK_Y), (-B_HL, B_FRONT_Y))]
+    (street, D-end or square east end, its exposed back, square west end),
+    the band along the street and, with the D-end, round it to the lean-to,
+    the broad roof over the car alone, the porch, and the lean-to as an open
+    U of walls lapped into the car's back wall under its own tin roof."""
+    if rounded:
+        segs = [Straight((-B_HL, B_FRONT_Y), (B_ROUND_C[0], B_FRONT_Y)),
+                Arc(B_ROUND_C, ROUND_R, -math.pi / 2, math.pi / 2),
+                Straight((B_ROUND_C[0], B_CAR_BACK_Y), (-B_HL, B_CAR_BACK_Y)),
+                Straight((-B_HL, B_CAR_BACK_Y), (-B_HL, B_FRONT_Y))]
+    else:
+        segs = [Straight((-B_HL, B_FRONT_Y), (B_HL, B_FRONT_Y)), Straight((B_HL, B_FRONT_Y), (B_HL, B_CAR_BACK_Y)),
+                Straight((B_HL, B_CAR_BACK_Y), (-B_HL, B_CAR_BACK_Y)), Straight((-B_HL, B_CAR_BACK_Y), (-B_HL, B_FRONT_Y))]
     offs, total = [], 0.0
     for s in segs:
         offs.append(total)
@@ -772,27 +799,42 @@ def build_big(coll, m, variant="big", prefix="big_"):
     def u(i, xy):
         return offs[i] + segs[i].u_at(xy)
 
-    arc = segs[1]
     openings = []
     for a0, a1 in B_FRONT_WINDOWS:
         openings.append((u(0, (a0, B_FRONT_Y)), u(0, (a1, B_FRONT_Y)), SILL, HEAD))
     openings.append((u(0, (B_DOOR_X[0], B_FRONT_Y)), u(0, (B_DOOR_X[1], B_FRONT_Y)), FLOOR + THRESHOLD, HEAD))
-    for th_a, th_b in ARC_WINDOWS:
-        openings.append((offs[1] + arc.u_of(th_a), offs[1] + arc.u_of(th_b), SILL, HEAD))
+    if rounded:
+        arc = segs[1]
+        for th_a, th_b in ARC_WINDOWS:
+            openings.append((offs[1] + arc.u_of(th_a), offs[1] + arc.u_of(th_b), SILL, HEAD))
+    else:
+        for a0, a1 in B_CAR_END_WINDOWS:
+            openings.append((u(1, (B_HL, a0)), u(1, (B_HL, a1)), SILL, HEAD))
     for a0, a1 in B_CAR_END_WINDOWS:
         openings.append((u(3, (-B_HL, a1)), u(3, (-B_HL, a0)), SILL, HEAD))
     shell(f"{prefix}walls", coll, segs, -BELOW, WALL_TOP, openings, [m["walls"], m["skirt"]],
           base_below=SKIRT_TOP, closed=True, variant=variant)
-    for k, (th_a, th_b) in enumerate(ARC_WINDOWS):
-        dress_arc_opening(f"{prefix}arc{k}", coll, m, arc, th_a, th_b, SILL, HEAD, variant)
-    band = offset([Straight((-B_HL + 0.02, B_FRONT_Y), (B_ROUND_C[0], B_FRONT_Y)), arc,
-                   Straight((B_ROUND_C[0], B_CAR_BACK_Y), (B_LEAN_X1 + 0.02, B_CAR_BACK_Y))], 0.045)
-    shell(f"{prefix}band", coll, band, BAND_Z0, BAND_Z0 + BAND_T, (), [m["trim"]], thick=0.055,
-          variant=variant, collide=False)
+    if rounded:
+        for k, (th_a, th_b) in enumerate(ARC_WINDOWS):
+            dress_arc_opening(f"{prefix}arc{k}", coll, m, arc, th_a, th_b, SILL, HEAD, variant)
+        band = offset([Straight((-B_HL + 0.02, B_FRONT_Y), (B_ROUND_C[0], B_FRONT_Y)), arc,
+                       Straight((B_ROUND_C[0], B_CAR_BACK_Y), (B_LEAN_X1 + 0.02, B_CAR_BACK_Y))], 0.045)
+        shell(f"{prefix}band", coll, band, BAND_Z0, BAND_Z0 + BAND_T, (), [m["trim"]], thick=0.055,
+              variant=variant, collide=False)
+    else:
+        for k, (a0, a1) in enumerate(B_CAR_END_WINDOWS):
+            dress_opening(f"{prefix}east{k}", coll, m, "y", B_HL, 1, a0, a1, SILL, HEAD, variant)
+        box(f"{prefix}band", coll, m["trim"], -B_HL + 0.02, B_HL - 0.02, B_FRONT_Y - 0.045, B_FRONT_Y + 0.01,
+            BAND_Z0, BAND_Z0 + BAND_T, variant=variant, collide=False)
+        for tag, y in (("f", B_FRONT_Y + 0.10), ("b", B_CAR_BACK_Y - 0.10)):
+            brace(f"{prefix}brace_e{tag}", coll, m, 1, y, variant, hl=B_HL, xe=B_ROOF[1])
     build_roof(coll, m, variant, prefix, B_ROOF, B_HL, B_FRONT_Y, B_CAR_BACK_Y, B_PIPE_AT)
     build_street(coll, m, variant, prefix, B_FRONT_Y, B_DOOR_X, B_FRONT_WINDOWS, None, (), B_CAR_END_WINDOWS, B_HL)
     build_porch(coll, m, variant, prefix, B_PORCH_X0, B_PORCH_X1, B_DECK_Y0, B_FRONT_Y, B_PR_X0, B_PR_X1, B_PR_Y1, B_ROOF[2])
-    build_lean_to(coll, m, variant, prefix)
+    if rounded:
+        build_lean_to(coll, m, variant, prefix)
+    else:
+        build_lean_to(coll, m, variant, prefix, SQ_LEAN_X0, SQ_LEAN_X1, SQ_BACK_WINDOWS)
 
 
 def lean_top_z(y):
@@ -800,7 +842,7 @@ def lean_top_z(y):
     return B_LEAN_TOP0 - (y - (B_CAR_BACK_Y - 0.02)) * math.tan(B_LEAN_PITCH)
 
 
-def build_lean_to(coll, m, variant, prefix):
+def build_lean_to(coll, m, variant, prefix, x0=B_LEAN_X0, x1=B_LEAN_X1, back_windows=B_BACK_WINDOWS):
     """The room behind the big car: a U of walls (east end, back, west
     end) whose two ends lap 2 cm into the car's back wall, a foot a
     centimetre shallower than the car's; a tin roof with a flat soffit that
@@ -808,7 +850,7 @@ def build_lean_to(coll, m, variant, prefix):
     the car's soffit and passes under the car's fascia; a level back fascia
     and sloped side boards. The lean-to's eave is lower than the car's, so
     its windows take a lower head."""
-    x0, x1, y1 = B_LEAN_X0, B_LEAN_X1, B_HD
+    y1 = B_HD
     y_join = B_CAR_BACK_Y - 0.02
     y_eave = y1 + B_LEAN_OVER
     z_under = lean_top_z(y_eave) - B_LEAN_T
@@ -823,13 +865,13 @@ def build_lean_to(coll, m, variant, prefix):
 
     a0, a1 = B_LEAN_END_WINDOW
     openings = [(u(0, (x1, a0)), u(0, (x1, a1)), SILL, B_LEAN_HEAD), (u(2, (x0, a1)), u(2, (x0, a0)), SILL, B_LEAN_HEAD)]
-    for b0, b1 in B_BACK_WINDOWS:
+    for b0, b1 in back_windows:
         openings.append((u(1, (b1, y1)), u(1, (b0, y1)), SILL, B_LEAN_HEAD))
     shell(f"{prefix}lean_walls", coll, segs, -BELOW + 0.01, z_under + 0.03, openings, [m["walls"], m["skirt"]],
           base_below=SKIRT_TOP, closed=False, variant=variant)
     dress_opening(f"{prefix}lean_east", coll, m, "y", x1, 1, a0, a1, SILL, B_LEAN_HEAD, variant)
     dress_opening(f"{prefix}lean_west", coll, m, "y", x0, -1, a0, a1, SILL, B_LEAN_HEAD, variant)
-    for k, (b0, b1) in enumerate(B_BACK_WINDOWS):
+    for k, (b0, b1) in enumerate(back_windows):
         dress_opening(f"{prefix}back{k}", coll, m, "x", y1, 1, b0, b1, SILL, B_LEAN_HEAD, variant)
     # the roof: its upper edge a centimetre short of the walls' ends inside
     # the car's wall, so the two share no plane there
@@ -1049,12 +1091,16 @@ def render(folder):
     shoot("big_street", (B_DOOR_C, -21.0, 1.55), (B_DOOR_C, 0.0, 1.7), lens=30)
     shoot("big_three_quarter", (16.0, -17.0, 1.7), (0.0, -1.0, 1.9), lens=32)
     shoot("big_back_three_quarter", (16.0, 11.0, 1.7), (2.0, 0.0, 1.8), lens=32)
+    show_variant("big_square")
+    shoot("big_square_street", (B_DOOR_C, -21.0, 1.55), (B_DOOR_C, 0.0, 1.7), lens=30)
+    shoot("big_square_three_quarter", (16.0, -17.0, 1.7), (0.0, -1.0, 1.9), lens=32)
+    shoot("big_square_back_three_quarter", (16.0, 11.0, 1.7), (2.0, 0.0, 1.8), lens=32)
     # plans with a metre grid and a 5 m bar, the roof off so the walls,
     # the porch and the tell's D-end and nook show
     for o in figures:
         bpy.data.objects.remove(o, do_unlink=True)
     def base_name(o):
-        for pre in ("tell_", "big_"):
+        for pre in ("tell_", "big_square_", "big_"):
             if o.name.startswith(pre):
                 return o.name[len(pre):]
         return o.name
@@ -1081,7 +1127,7 @@ def render(folder):
         for o in roof_parts:
             o.hide_render = True
         shoot(f"{v}_plan_roof_off", (0.0, -1.0, 60.0), (0.0, -1.0, 0.0), size=(1200, 1000),
-              ortho=19.0 if v == "big" else 17.0)
+              ortho=19.0 if v.startswith("big") else 17.0)
     show_variant("photo")
 
 
@@ -1131,6 +1177,9 @@ def main():
     big = bpy.data.collections.new("variant_big")
     export.children.link(big)
     build_big(big, mats("big_"))
+    square = bpy.data.collections.new("variant_big_square")
+    export.children.link(square)
+    build_big(square, mats("big_square_"), variant="big_square", prefix="big_square_", rounded=False)
     build_reference(reference)
     bpy.context.view_layer.update()
     for v in VARIANTS[1:]:
