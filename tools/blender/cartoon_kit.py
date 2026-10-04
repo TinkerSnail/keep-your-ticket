@@ -5,7 +5,14 @@ The standard is `documentation/prop-pipeline.md`, Standards applied,
 "Buildings are cartoony": few, big pieces, the folksy features enlarged,
 a top-heavy roof, a seeded hand of a few centimetres. These pieces came out
 of the Victorian study (`victorian_cottage.py`, approved 2026-10-04)
-unchanged, so the Victorian builds the same from here. The house itself
+unchanged, so the Victorian builds the same from here. A second set followed
+the same day, when the Victorian's purple and b variants took the standard
+and needed them too, generalized and still drawing in the blue's order (the
+blue stayed hash-identical): the bell-cast roof (`bell_roof`, its
+`BellRoof` with the profile the bargeboards read and the slopes the
+shingles lie on), the cluster and vent scatter (`roof_clusters`,
+`roof_vents`), the shaped brackets, the timber posts and the stoop parapets;
+`turned` was added for the purple's posts and spindles. The house itself
 (its sizes, its sunburst's composition, its order of work) stays in its
 own builder.
 
@@ -214,6 +221,41 @@ def lathe_bm(cx, cy, rings, lean=(0.0, 0.0), bm=None):
 
 def lathe(finish, part, mat, cx, cy, rings, lean=(0.0, 0.0), collide=True):
     return finish(part, lathe_bm(cx, cy, rings, lean=lean), [mat], collide=collide)
+
+
+def turned_bm(cx, cy, rings, sides=8, bm=None):
+    """A turned post or spindle as stacked level `sides`-gons (radius, z) from
+    the bottom up, flats facing the axes, each joined to the next by `sides`
+    faces: a lathe's beads, bellies and necks in a few rings, never a tilted
+    solid. A radius of 0 ends it in a point."""
+    if bm is None:
+        bm = bmesh.new()
+    loops = []
+    for r, z in rings:
+        if r <= 0.0:
+            loops.append([bm.verts.new((cx, cy, z))])
+            continue
+        loops.append([bm.verts.new((cx + r * math.cos(math.tau * (k + 0.5) / sides),
+                                    cy + r * math.sin(math.tau * (k + 0.5) / sides), z)) for k in range(sides)])
+    if len(loops[0]) > 1:
+        bm.faces.new(list(reversed(loops[0])))
+    for a, b in zip(loops, loops[1:]):
+        if len(b) == 1:
+            for k in range(sides):
+                bm.faces.new((a[k], a[(k + 1) % sides], b[0]))
+        elif len(a) == 1:
+            for k in range(sides):
+                bm.faces.new((a[0], b[(k + 1) % sides], b[k]))
+        else:
+            for k in range(sides):
+                bm.faces.new((a[k], a[(k + 1) % sides], b[(k + 1) % sides], b[k]))
+    if len(loops[-1]) > 1:
+        bm.faces.new(loops[-1])
+    return bm
+
+
+def turned(finish, part, mat, cx, cy, rings, sides=8, collide=True):
+    return finish(part, turned_bm(cx, cy, rings, sides=sides), [mat], collide=collide)
 
 
 def swept_bm(section, stations, bm=None):
@@ -501,6 +543,194 @@ def barge(finish, rng, part, mats, profile, knees, r_end, xc, y_rake, out, board
     return plate(finish, part, mats, polys, "y", lo, hi, collide=False)
 
 
+# --- the bell-cast roof ------------------------------------------------------------------
+
+def sag_stations(y0, y1, sag):
+    """A roof's ridge and eaves dipping between its rakes at y0 and y1: none
+    at the rakes, `sag` at the middle, three quarters of it halfway out, a
+    hand-built roof and not a ruled one. The whole section drops, so every
+    face of a swept slab stays planar."""
+    ym = (y0 + y1) / 2
+    return [(y0, 0.0), ((y0 + ym) / 2, 0.75 * sag), (ym, sag), ((ym + y1) / 2, 0.75 * sag), (y1, 0.0)]
+
+
+class BellRoof:
+    """A gable roof the standard's way, the heavy part of the house (World of
+    Warcraft's lesson): a thick main slab, a shallower bell-cast kick at each
+    eave lapped under it, a ridge roll, all sagging between the rakes. Built
+    by `bell_roof`; what it keeps is what the bargeboards, the shingle grid
+    and the vents read. Distances across are r, from the ridge line xc.
+
+        tan, vt     the main pitch's tangent, the slab's vertical thickness
+        rt          the ridge's top (before the sag)
+        r_k         where the kick leaves the main slab's top, past the wall
+        r_in, r_out the kick's inner end (under the main slab) and its eave
+        stations    the sag, as swept() takes it"""
+
+    def __init__(self, xc, half, eave, pitch, slab, y0, y1, sag, kick_at, kick_deg, kick_t, kick_in, eave_over):
+        self.xc, self.half, self.eave, self.pitch = xc, half, eave, pitch
+        self.y0, self.y1 = y0, y1
+        self.tan = math.tan(pitch)
+        self.vt = slab / math.cos(pitch)
+        self.rt = eave + half * self.tan + self.vt
+        self.r_k = half + kick_at
+        self.kick_pitch = math.radians(kick_deg)
+        self.t_k = math.tan(self.kick_pitch)
+        self.k_z = eave + self.vt - kick_at * self.tan    # the kick's top where it leaves the main slab's
+        self.kick_t = kick_t
+        self.r_in, self.r_out = half - kick_in, half + eave_over
+        self.stations = sag_stations(y0, y1, sag)
+
+    def under(self, x):
+        """The main slab's underside over x."""
+        return self.eave + (self.half - abs(x - self.xc)) * self.tan
+
+    def top(self, x):
+        """The main slab's top over x (before the sag)."""
+        return self.rt - abs(x - self.xc) * self.tan
+
+    def kick_top(self, r):
+        return self.k_z - (r - self.r_k) * self.t_k
+
+    def profile(self, r):
+        """The roof's top at r across from the ridge, the bend at r_k included:
+        what a bargeboard follows."""
+        return self.rt - r * self.tan if r <= self.r_k else self.kick_top(r)
+
+    def slope(self, s, avoid=()):
+        """The main slab's face on the side `s` as a shingle-grid slope (see
+        the module docstring), `avoid` the boxes a tab keeps off (a chimney)."""
+        rt, tan, stations = self.rt, self.tan, self.stations
+        return dict(s=s, xc=self.xc, theta=self.pitch, surf=lambda r, y: rt - r * tan - sag_at(stations, y),
+                    r=(0.32, self.r_k - 0.03), y=(self.y0 + 0.03, self.y1 - 0.03), avoid=list(avoid))
+
+    def kick_slope(self, s):
+        """The kick's face on the side `s`, as a shingle-grid slope."""
+        stations = self.stations
+        return dict(s=s, xc=self.xc, theta=self.kick_pitch, surf=lambda r, y: self.kick_top(r) - sag_at(stations, y),
+                    r=(self.r_k + 0.03, self.r_out + 0.04), y=(self.y0 + 0.03, self.y1 - 0.03))
+
+
+def bell_roof(finish, mat, xc, half, eave, pitch, slab, y0, y1, sag=0.05, kick_at=0.10, kick_deg=27.0, kick_t=0.24,
+              kick_in=0.35, eave_over=0.75, ridge=0.24, part="roof", ridge_part="ridge_cap"):
+    """The bell-cast gable roof over walls `half` either side of the ridge
+    line xc with their eave at `eave`, from rake to rake (y0..y1): the main
+    slab `slab` thick at `pitch` (radians), ending 2 cm past where the kick
+    leaves its top, `kick_at` past the wall, out of sight under the kick; the
+    kick, a second slab at `kick_deg` and `kick_t` deep (vertical), from
+    `kick_in` inside the wall line, lapped under the main one, to a
+    `eave_over` eave, 3 cm past each rake; and a ridge roll `ridge` either
+    side, sitting on the slopes, not a plank floating over them. All of it
+    sags `sag` at mid-length. Parts `part`, `part`_kick_e and _w, and
+    `ridge_part`; returns the BellRoof."""
+    roof = BellRoof(xc, half, eave, pitch, slab, y0, y1, sag, kick_at, kick_deg, kick_t, kick_in, eave_over)
+    stations, vt, under = roof.stations, roof.vt, roof.under
+    x_end = roof.r_k + 0.02          # the main slab ends 2 cm under the kick's top, out of sight
+    section = [(xc - x_end, under(xc - x_end)), (xc, under(xc)), (xc + x_end, under(xc + x_end)),
+               (xc + x_end, under(xc + x_end) + vt), (xc, under(xc) + vt), (xc - x_end, under(xc - x_end) + vt)]
+    swept(finish, part, mat, section, stations)
+    # the kick: a second, shallower slab from inside the wall line, lapped
+    # under the main one, whose top it leaves kick_at past the wall
+    r_in, r_out, kick_top = roof.r_in, roof.r_out, roof.kick_top
+    k_stations = [(y0 - 0.03, 0.0)] + stations[1:-1] + [(y1 + 0.03, 0.0)]
+    for tag, s in (("e", 1), ("w", -1)):
+        swept(finish, f"{part}_kick_{tag}", mat, [(xc + s * r_in, kick_top(r_in)), (xc + s * r_out, kick_top(r_out)),
+                                                 (xc + s * r_out, kick_top(r_out) - kick_t),
+                                                 (xc + s * r_in, kick_top(r_in) - kick_t)], k_stations)
+    rt, top, h = roof.rt, roof.top, ridge
+    swept(finish, ridge_part, mat, [(xc - h, top(xc - h) - 0.03), (xc, rt - 0.03), (xc + h, top(xc + h) - 0.03),
+                                    (xc + h, top(xc + h) + 0.07), (xc, rt + 0.08), (xc - h, top(xc - h) + 0.07)],
+          [(y0 - 0.02, 0.0)] + stations[1:-1] + [(y1 + 0.02, 0.0)], collide=False)
+    return roof
+
+
+# --- shaped brackets, timber posts, stoop parapets ---------------------------------------
+
+def shaped_bracket(finish, rng, part, mat, axis, at, face, out, z_top, reach, drop, width=0.18, foot=0.12, band=0.14):
+    """A knee bracket with a cove sawn out of its face and a short drop at its
+    foot, each one a little different (the Victorian's balcony brackets): its
+    back 4 cm into the wall whose face is at `face`, reaching `reach` out
+    along `axis` ('y' or 'x') in the direction `out` (+1 or -1), its top at
+    z_top lapped into what it carries, `drop` deep, `width` thick, centred on
+    `at` across. Its top band is `band` deep and its foot `foot` wide; the cove
+    is a quarter ellipse between them."""
+    def j(amount):
+        return jit(rng, amount)
+    reach = reach + j(0.03)
+    drop = drop + j(0.05)
+    ft = foot + j(0.015)
+    rx, rz = reach - ft, drop - foot - band + j(0.03)
+    cz = -band - rz
+    pts = [(-0.04, 0.0), (reach, 0.0), (reach, -band)]
+    pts += [(reach + rx * math.cos(math.radians(a)), cz + rz * math.sin(math.radians(a))) for a in (112.5, 135.0, 157.5)]
+    pts += [(ft, cz), (ft, -drop + 0.05), (ft - 0.06, -drop), (-0.04, -drop)]
+    half = width / 2 + j(0.01)
+    at += j(0.012)
+    return prism(finish, part, mat, [(face + out * s, z_top + dz) for s, dz in pts], "x" if axis == "y" else "y",
+                 at - half, at + half, collide=False)
+
+
+def timber_post(finish, rng, part, mat, cx, cy, z_foot, base, z_eave, z_top, size=0.26, block=0.17, collar=0.165):
+    """A chunky timber post, `size` square, centred on (cx, cy): a base block
+    (`block` its half-size) from z_foot to base[0], stepping in to the shaft
+    by base[1], a collar (`collar` its half-size) from 0.28 to 0.13 under
+    z_eave, the shaft on up to z_top, into what it carries. The block, collar
+    and steps differ by a centimetre or two."""
+    def j(amount):
+        return jit(rng, amount)
+    sh, blk, col = size / 2, block + j(0.01), collar + j(0.008)
+    return lathe(finish, part, mat, cx, cy,
+                 [(blk, blk, z_foot), (blk, blk, base[0] + j(0.03)), (sh, sh, base[1] + j(0.02)), (sh, sh, z_eave - 0.32),
+                  (col, col, z_eave - 0.28), (col, col, z_eave - 0.13), (sh, sh, z_eave - 0.10), (sh, sh, z_top)])
+
+
+def stoop_parapets(finish, rng, prefix, mat, x_ats, y_edge, out, z_floor, n, riser, going, s_wall, rail_h=RAIL_H,
+                   width=0.14, cap_w=0.20):
+    """Solid parapets beside a flight `flight` built (its n, riser and going),
+    down from a deck's edge at y_edge outward in `out`, one per (tag, x) in
+    `x_ats`: each one plain piece from `s_wall` (behind the edge, inside the
+    wall) along the deck and down the flight, its underside on the
+    stringer's line to the ground, `width` thick, under a fat cap `cap_w`
+    wide that sags a centimetre or so down the flight, and a fat pier (a
+    newel) at its foot. Rail heights over the deck and the nosing line are
+    `rail_h`. An `s_wall` short of where the stringer's underside rises to
+    the deck (a parapet beginning just behind the edge, beside a door)
+    starts on the stringer's line, inside the deck."""
+    slope = riser / going
+    drop = STRINGER[0]
+    s2 = -(drop - 0.02) / slope              # the underside rises to the deck's top here
+    s3 = (z_floor - drop + 0.06) / slope     # and meets the ground line here
+    s_end = n * going + 0.03 + NEWEL / 2     # the pier's centre
+
+    def Y(s):
+        return y_edge + out * s
+
+    def rail(s):
+        return z_floor + rail_h if s <= 0 else z_floor - s * slope + rail_h
+    for tag, x_at in x_ats:
+        pt = rail(0.0) - CAP_H + 0.04          # the parapet's top, 2 cm into its cap
+        if s_wall < s2:
+            polys = [([(Y(s_wall), z_floor - 0.02), (Y(s2), z_floor - 0.02), (Y(s2), pt), (Y(s_wall), pt)], 0),
+                     ([(Y(s2), z_floor - 0.02), (Y(s3), -0.06), (Y(s_end), -0.06), (Y(s_end), rail(s_end) - CAP_H + 0.04),
+                       (Y(0.0), pt), (Y(s2), pt)], 0)]
+        else:
+            zu = z_floor - s_wall * slope - drop    # the stringer's line carried back, inside the deck
+            polys = [([(Y(s_wall), zu), (Y(s3), -0.06), (Y(s_end), -0.06), (Y(s_end), rail(s_end) - CAP_H + 0.04),
+                       (Y(0.0), pt), (Y(s_wall), pt)], 0)]
+        plate(finish, f"{prefix}_parapet_{tag}", [mat], polys, "x", x_at - width / 2, x_at + width / 2)
+        sag = rng.uniform(0.01, 0.015)
+        sm = s_end / 2
+
+        def cu(s, sag=sag):
+            return rail(s) + 0.02 - CAP_H - (sag * (1 - abs(s - sm) / sm) if s > 0 else 0.0)
+        sa, se = s_wall + 0.01, s_end - 0.013     # the cap's ends off the parapet's, inside the wall and the pier
+        cap = [([(Y(sa), cu(sa)), (Y(0.0), cu(0.0)), (Y(0.0), cu(0.0) + CAP_H), (Y(sa), cu(sa) + CAP_H)], 0),
+               ([(Y(0.0), cu(0.0)), (Y(sm), cu(sm)), (Y(sm), cu(sm) + CAP_H), (Y(0.0), cu(0.0) + CAP_H)], 0),
+               ([(Y(sm), cu(sm)), (Y(se), cu(se)), (Y(se), cu(se) + CAP_H), (Y(sm), cu(sm) + CAP_H)], 0)]
+        plate(finish, f"{prefix}_parapet_{tag}_cap", [mat], cap, "x", x_at - cap_w / 2, x_at + cap_w / 2)
+        newel_post(finish, rng, f"{prefix}_pier_{tag}", mat, x_at, Y(s_end), 0.0, rail_h=rail_h)
+
+
 # --- shingles ------------------------------------------------------------------------
 
 def shingle_stagger(k):
@@ -636,3 +866,76 @@ def vent_pipe(finish, part, mats, slope, r, y, height, lean):
         bm.faces.new((outer1[k], outer1[n], inner1[n], inner1[k]))
         bm.faces.new((inner0[k], inner0[n], outer0[n], outer0[k]))
     return finish(part, bm, mats, collide=False)
+
+
+# --- scattering clusters and vents over a bell-cast roof ---------------------------------
+
+def roof_clusters(rng, bm, roof, avoid=None, scattered=3, gap=2.6):
+    """Shingle clusters over a BellRoof's two main slopes and their kicks, as
+    the hedges' leaf clusters lie: a few small patches, scattered, never
+    banded, different on each slope, the slab between them the painted
+    surface. On each slope, east then west: one at a rake (the front on the
+    east slope, the back on the west), where its tabs stand up on the roof's
+    edge; one on the kick, its lowest butts just over the eave's edge; then
+    `scattered` more, `gap` apart and clear of `avoid` (per side s, boxes in
+    r and y: a chimney). Built into `bm` from `rng` (a seed of their own, so
+    the trim's hand never reshuffles the roof); returns (tabs, mains), the
+    main slopes by side with the tabs they hold, for vents to keep clear of."""
+    avoid = avoid or {}
+    y0, y1, r_k = roof.y0, roof.y1, roof.r_k
+    tabs = 0
+    mains = {}
+    for s in (1, -1):
+        main = mains[s] = roof.slope(s, avoid.get(s, ()))
+        kick = roof.kick_slope(s)
+        ct = math.cos(roof.pitch)
+        centres = []
+
+        def free(r, y):
+            return all(math.hypot((r - r2) / ct, y - y2) >= gap for r2, y2 in centres)
+        r_c = rng.uniform(1.2, r_k - 0.7)
+        y_c = (y0 + 0.62) if s > 0 else (y1 - 0.62)
+        tabs += shingle_cluster(rng, bm, main, r_c, y_c)
+        centres.append((r_c, y_c))
+        y_c = rng.uniform(y0 + 1.2, y1 - 1.2)
+        tabs += shingle_cluster(rng, bm, kick, r_k + 0.40, y_c, max_courses=2)
+        centres.append((r_k + 0.40, y_c))
+        placed, tries = 0, 0
+        while placed < scattered and tries < 200:
+            tries += 1
+            r_c, y_c = rng.uniform(0.9, r_k - 0.5), rng.uniform(y0 + 0.8, y1 - 0.8)
+            if not free(r_c, y_c) or any(r0 - 0.3 <= r_c <= r1 + 0.3 and q0 - 0.3 <= y_c <= q1 + 0.3 for r0, r1, q0, q1 in main["avoid"]):
+                continue
+            tabs += shingle_cluster(rng, bm, main, r_c, y_c)
+            centres.append((r_c, y_c))
+            placed += 1
+    return tabs, mains
+
+
+def roof_vents(finish, rng, mats, roof, mains, counts=((-1, 2), (1, 1)), part="roof_vent"):
+    """A few little vent pipes on the back half of a BellRoof (`counts`: how
+    many on each side s), each clear of the slope's `avoid` boxes and of every
+    lifted shingle, 1.6 m apart; drawn after the clusters, so they never move
+    them. `mats`: the pipe's and its hole's. Returns how many."""
+    vents = 0
+    ym = (roof.y0 + roof.y1) / 2
+    for s, count in counts:
+        main = mains[s]
+        tries = 0
+        spots = []
+        while len(spots) < count and tries < 400:
+            tries += 1
+            r_v, y_v = rng.uniform(1.0, roof.r_k - 0.9), rng.uniform(ym + 0.6, roof.y1 - 1.0)
+            if any(r0 - 0.35 <= r_v <= r1 + 0.35 and q0 - 0.35 <= y_v <= q1 + 0.35 for r0, r1, q0, q1 in main["avoid"]):
+                continue
+            if any(abs(r_v - r) <= L * math.cos(roof.pitch) / 2 + 0.30 and abs(y_v - y) <= w / 2 + 0.30
+                   for r, y, w, L in main.get("placed", ())):
+                continue
+            if any(math.hypot(r_v - r2, y_v - y2) < 1.6 for r2, y2 in spots):
+                continue
+            spots.append((r_v, y_v))
+        for r_v, y_v in spots:
+            vent_pipe(finish, f"{part}_{vents}", mats, main, r_v, y_v, rng.uniform(0.40, 0.58),
+                      (rng.uniform(-0.01, 0.01), rng.uniform(-0.01, 0.01)))
+            vents += 1
+    return vents

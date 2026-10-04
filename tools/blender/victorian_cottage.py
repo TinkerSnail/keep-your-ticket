@@ -10,19 +10,20 @@ Builds, from scratch every run, one shell in four `kyt_variant`s that stand
 at the origin together, as the park lamp's three do (`plaza_street.py`):
 `blue` in `export` itself and `purple`, `blue_b` and `purple_b` each in
 `export/variant_<name>` with its eye shut (Send writes one prop per variant;
-Check and the handback render show the first). `blue` is the cartoony build
+Check and the handback render show the first). All four are cartoony builds
 (below): the study approved on 2026-10-04 as the standard for every house
-replaced the realistic blue, which git history keeps. The `_b` pair
-(2026-10-03) are Christina's "this AND that": the alternatives the first pass
-asked about, built as variants beside the first blue and the purple.
-`blue_b` is that first, realistic blue with the glazed porch wrapping the
-corner under an L-shaped lean-to tucked under the main eave, a side door and
-landing on the driveway side instead of the back stoop, and a brick chimney;
-the realistic blue's code (`build_blue_b`, `glazed_porch`) is kept only as
-far as it needs. `purple_b` is the purple at a lower pitch over a knee wall,
-so the upstairs windows straddle the eave as its photo's do and the peak
-ornament has room, its porch railed, and a brick chimney. Into the locked
-`reference` go the lot and footprint outlines, a
+replaced the realistic blue, and the other three were converted to it in
+place the same day (her "do the purple and the b variants next"; "these
+would be replacements and not variants"), the realistic builds left to git
+history. The `_b` pair (2026-10-03) are Christina's "this AND that": the
+alternatives the first pass asked about, built as variants beside the blue
+and the purple. `blue_b` is the blue with the glazed porch wrapping the
+corner under an L-shaped lean-to tucked under the main eave, a side door,
+landing and flight on the driveway side instead of the back stoop, and the
+blue's brick chimney. `purple_b` is the purple at a lower pitch over a knee
+wall, so the upstairs windows straddle the eave as its photo's do and the
+peak ornament has room, its porch railed, and a brick chimney. Into the
+locked `reference` go the lot and footprint outlines, a
 1.7 m figure and the `ground_line` marker Check reads (the walls reach below
 z = 0 on purpose). Everything the tool makes carries `kyt_victorian_cottage`,
 so a rerun removes and rebuilds its own work and keeps anything of hers;
@@ -60,12 +61,13 @@ lap siding, divided lights and the sawn ornament are left to painting.
 
 **Choices to state.** The body is W = 6.0 m across by D = 10.5 m deep: the
 blue photo's front is about seven doors wide and the lot leaves 2.4 m for
-the driveway beside a 6.0 m body plus eaves. One pitch serves both, 48
-degrees; the blue reads a little steeper, the purple a little flatter.
-Floor to eave is 3.0 m, the upstairs floor is the eave. The blue's main
-floor is 1.55 m up (ten risers), the purple's 0.60 m (four). Colours are
-flat stand-ins named `victorian_cottage_<variant>_<surface>` for the
-painting to replace.
+the driveway beside a 6.0 m body plus eaves. The upstairs floor is the eave
+(purple_b's is a knee wall under it). The blue's main floor is 1.55 m up,
+ten risers at the first builds' going, the purple's 0.60 m, four: those set
+each house's grade, which its few chunky risers keep. Each variant keeps
+its own palette (`PALETTES`), with a shaded accent for its trim under the
+eaves. Colours are flat stand-ins named
+`victorian_cottage_<variant>_<surface>` for the painting to replace.
 
 **blue, the cartoony build** (2026-10-03; approved 2026-10-04 as the
 study variant `blue_cartoon`, then made the blue). The houses had drifted
@@ -100,6 +102,59 @@ realistic blue's, 11 courses floor to eave) and grain stay in the paint. Its
 chunky parts and the shingle grid are `cartoon_kit`'s, shared with every
 house that takes the standard; the composition, the house's numbers and the
 order of work (which the seeded hand's draws depend on) are here.
+
+**purple and purple_b, the cartoony build** (2026-10-04; `build_purple_cartoon`).
+The purple's photo, palette, lot and layout, converted as the blue was (the
+standard's casings, newels, balusters, rails, bargeboards and bell-cast roof
+from `cartoon_kit`), its own seeds (PC_SEED, PBC_SEED and their shingle
+seeds), and its four ideas pushed. The turned porch posts: the photo's slim
+teal posts made fat, a square gold pedestal capped with a flare, an
+octagonal shaft turned with a ring, a fat belly and necks, a gold capital,
+shaped brackets (the blue's balcony brackets, in the shaded magenta) from
+each capital along the beam. The pointed hoods: a gold tympanum on each
+paired window's casing, a fat teal cornice along its rakes, a knob on the
+point, tight under the bargeboards. The spindle-work fan: on the wall, a fat
+teal bar across the peak, the shaded magenta panel over it, gold rays shaped
+as turned spindles in silhouette reaching up under the rakes, so the fan
+fills the peak as the photo's slats do, and fat gold spindles hanging under
+the bar, the middle one a pendant. The shed porch roof: a 0.26 slab at 9
+degrees with its own bell-cast kick to a deep eave, a gold fascia over a
+shaded magenta frieze, as the photo's edge, two shingle clusters of its own
+(it falls toward the street, so `street_clusters` builds them turned). The
+roof is the standard's: a 0.30 slab at 50 degrees (the purple's 48, a touch
+steeper, for the hoods and fan under the deeper rakes), a 25 degree kick to
+0.75 m eaves and rakes, the bargeboards plain over the shaded band, as the
+photo's. The storey is 3.24 m (the purple's 3.0): the shed porch roof must
+pass under the bargeboards' ends where they bend down with the kick. Three
+chunky risers at the purple's grade, front and back; the back stoop is the
+blue's, with parapets. The walls stay plumb: the blue's lean costs every
+opening and barely shows, and the purple's porch and hoods would pay it.
+purple_b: 38 degrees over a 1.2 m knee wall (a 19 degree kick), the
+upstairs windows straddling the eave, 0.90 under it and 0.35 over, across a
+teal belt at the eave line broken by their casings, which makes the
+straddle read; a sunburst of seven rays on the palette's deep pink (its
+accent is the rays' gold) with the room its flatter peak gives; the posts on
+rail-high pedestals between square-baluster rails; a fat brick chimney.
+
+**blue_b, the cartoony build** (2026-10-04; `build_blue_cartoon` with `b`).
+The cartoony blue itself, leaning walls, roof, sunburst, balcony, entry
+stair and chimney, from its own seeds (BBC_SEED and its shingle seed) and
+palette, with blue_b's differences branching off it, so the blue's draws are
+untouched. The wrapping glazed porch: from the body's front wall round its
+right-front corner and 2.6 m back along the side, under one L-shaped lean-to
+of two planar slabs welded on a hip that runs into the body's corner (the
+side's slope set so both meet it at one height), its eave as high as the
+front bargeboard's bent end and the main eaves let it stand (`wrap_eave`,
+3.44 m: a squat lean-to tucked under the corner), a fat cream fascia
+wrapping both eaves in one piece; plumb walls (the shared warp is a
+rectangle's) on fat timber posts at the three outer corners, a glass band of
+few big lights wrapping the corner. The side door's flight: a landing along
+the wall at the door, the flight running down along the wall toward the back
+in the blue's chunky risers at its grade, one bold mass of solid parapets
+with fat caps and piers (as the blue's back stoop it replaces), standing off
+the leaning wall. The blue's side window inside the porch is gone (its head
+would stand over the lean-to); the side door moved 10 cm back so the
+landing's parapet passes between its casing and the window's.
 """
 
 import math
@@ -117,104 +172,45 @@ import cartoon_kit as ck  # noqa: E402
 TAG = "kyt_victorian_cottage"
 NAME = "victorian_cottage"
 
-# --- the shell, both variants ----------------------------------------------
+# --- the shell and the layout all four share ------------------------------------
+# (the first, realistic builds' numbers that the cartoony ones kept: the frame,
+# the lot's layout, the floors and the stairs' grades)
 W, D = 6.0, 10.5           # the body: across the front, and deep
 T = 0.20                   # wall thickness
-STOREY = 3.0               # the floor to the eave; the upstairs floor is the eave
-PITCH_DEG = 48.0           # the gable, between the two photographs
-PITCH = math.radians(PITCH_DEG)
-TAN = math.tan(PITCH)
-RISE = (W / 2) * TAN       # the ridge over the eave
-ROOF_T = 0.20              # the roof slab, perpendicular to its slope
-ROOF_VT = ROOF_T / math.cos(PITCH)
-EAVE_OVER, RAKE_OVER = 0.40, 0.50
-WALL_TOP_IN = 0.28         # the side walls end this far over the eave, inside the slab
+PITCH_DEG = 48.0           # the first builds' gable, between the two photographs (a Kit's default)
+ROOF_T = 0.20              # their slab (a Kit's default; the cartoony slab is BC_ROOF_T)
+WALL_TOP_IN = 0.28         # their side walls' tops over the eave (a Kit's default)
 LIFT = 0.03                # a gable wall's top, this far inside the slab
-CORNER, PROUD = 0.26, 0.04  # the corner boards, 4 cm proud of the walls
-E_IN = CORNER / 2 - PROUD  # the walls stop this short of the corners, under the boards
+PROUD = 0.04               # corner boards and posts, this far proud of the walls
 BELOW = 0.05               # the end walls' feet under the ground (sides 1 cm lower, boards 3)
-DOOR_H = 2.30
-SILL, HEAD = 0.80, 2.30    # the main storey's windows over the floor
-UP_SILL, UP_HEAD = 0.70, 2.00   # the gable windows over the upstairs floor
 THRESHOLD = 0.01           # a door's sill over the deck outside it (the door is shut)
-RISER_ABOUT, GOING = 0.155, 0.28
+RISER_ABOUT, GOING = 0.155, 0.28   # the first builds' risers and going, which set each house's grade
 RAIL_H = 0.90
-POST = 0.14                # newels
-BARGE_H, BARGE_T, BARGE_BAND = 0.28, 0.06, 0.10
-BAND_H = 0.15              # the water-table band at the floor line
-SIDE_WINDOWS = (-3.5, 0.0, 3.5)   # centres along each side, SIDE_WIN_W wide
-SIDE_WIN_W = 1.0
-BACK_WINDOW_X = (-2.2, -1.0)
+SIDE_WINDOWS = (-3.5, 0.0, 3.5)   # centres along each side, BC_SIDE_WIN_W wide
 BACK_DOOR_X = (0.45, 1.40)
-BACK_UP_WINDOW_X = (-0.5, 0.5)
-STOOP_D, STOOP_X = 1.20, (0.15, 1.70)   # the back landing: deep, and its x range
+STOOP_D = 1.20             # the back landing, deep
 STAIR_W = 1.10
 
-# --- the realistic blue's, which blue_b and the cartoony blue still share ----------
-B_FLOOR = 1.55             # ten risers over the driveway
-B_DOOR_X = (-0.60, 0.35)
-B_WINDOW_X = (-2.40, -1.00)
-B_UP_WINDOW_X = (-0.80, 0.80)   # the triple window over the balcony
+# the blue's (and blue_b's): its floor, entry landing and corner porch
+B_FLOOR = 1.55             # ten risers over the driveway at the first build's going: the blue's grade
 B_LANDING_D = 1.30         # the entry landing, open under the balcony
-B_BALCONY_HW, B_BALCONY_D = 1.9, 0.75
-B_BRACKETS_X = (-1.6, 0.0, 1.6)
 B_PORCH_X0 = 0.90          # the glazed corner porch's left face
 B_PORCH_PROUD = 0.07       # the first blue's porch past the body's corner board, which set the driveway's edge
 B_PORCH_D = 1.25           # how far it stands in front of the body
 B_PORCH_T = 0.15
 B_PORCH_PITCH = math.radians(38)
-B_PORCH_POST = 0.20
-B_FAN_R = 0.42             # the sunburst at the peak
-B_FAN_Z = 2.30             # its centre over the eave
-B_HOOD_H = 0.10            # the red hoods over the main-floor openings
 
-# --- purple ------------------------------------------------------------------
-P_FLOOR = 0.60             # four risers
+# the purple's (and purple_b's): its floor, door, window and porch
+P_FLOOR = 0.60             # four risers at the first build's going: the purple's grade
 P_DOOR_X = (-2.35, -1.40)
 P_WINDOW_X = (0.30, 1.80)
-P_UP_WINDOWS_X = ((-0.90, -0.25), (0.25, 0.90))
-P_UP_HEAD = 1.95           # a little under UP_HEAD, for the hoods under the rakes
 P_PORCH_D = 2.30           # the full-width porch
-P_DECK_OVER = 0.15         # the deck past the body each side
-P_ROOF_OVER = 0.02         # the porch roof past the body each side, under the eave
-P_POSTS_X = (-2.85, -0.95, 0.95, 2.85)
-P_POST_R = 0.08            # the turned shaft
-P_POST_BLOCK = 0.22        # its base and capital
-P_BEAM_Z = (2.22, 2.40)    # the porch beam over the floor
-P_ROOF_UNDER = (2.75, 2.40)    # the shed roof's underside over the floor: at the wall, at the front
-P_ROOF_T = 0.16
-P_STEP_X = (-2.50, -1.25)
-P_BAR_Z = (2.47, 2.55)     # the spindle bar over the eave
-P_FAN_R = 0.28
-P_SPINDLES_X = (-0.40, -0.20, 0.0, 0.20, 0.40)
-P_SPINDLE_L = 0.20
-P_HOOD_H = 0.30            # the pointed hoods over the upstairs windows
 
-# --- blue_b: the blue with the porch round the corner, a side door, a chimney --
+# blue_b's porch round the corner; purple_b's pitch and knee wall
 BB_WRAP = 1.0              # the porch past the body's right wall
 BB_SIDE_D = 2.6            # how far it runs back along the side from the front wall
-BB_PORCH_EAVE = 2.20       # over the floor: the lean-to's eave, under the main eave
-BB_PORCH_SLOPE = 0.15      # the lean-to's rise per metre toward the body
-BB_PORCH_ROOF_T = 0.16     # vertical
-BB_PORCH_ROOF_OVER = 0.25
-BB_ROOF_LAP = 0.05         # the lean-to's inner edges this far inside the body's walls
-BB_PORCH_GLASS = (0.85, 2.00)
-BB_SIDE_DOOR_Y = (1.00, 1.95)   # on the driveway side, between the side windows
-BB_SIDE_DECK_Y = (0.60, 2.30)   # the side landing's y range
-BB_SIDE_DECK_W = 1.35      # how far it stands out from the wall
-
-# --- purple_b: the purple at a lower pitch over a knee wall, railed, a chimney --
 PB_PITCH_DEG = 38.0
 PB_KNEE = 1.20             # the side walls rise this far over the upstairs floor
-PB_WALL_TOP_IN = 0.20      # the side walls end this far over the eave, inside the flatter slab
-PB_BAR_Z = (1.45, 1.53)    # the spindle bar over the eave
-PB_FAN_R = 0.50
-PB_SPINDLES_X = (-0.60, -0.40, -0.20, 0.0, 0.20, 0.40, 0.60)
-PB_SPINDLE_L = 0.25
-
-# --- the chimney (blue_b, purple_b) ------------------------------------------------
-CHIMNEY = (0.60, 1.20, 0.60, 0.90)   # x0, y0, across, deep: through the east slope near the ridge
-CHIMNEY_OVER = 0.70        # its top over the ridge cap
 
 # --- blue, the cartoony build (BC_, for the study's name, blue_cartoon) ----------
 # (2026-10-03) The blue's house, photo, palette and lot, drawn the way the
@@ -279,6 +275,83 @@ BC_KING = 0.065            # the king post's half-width
 BC_CHIMNEY = (0.65, 1.50, 0.42, 0.52)       # centre x, y and half-sizes: through the east slope
 BC_SIDING = 0.24           # the painted lap siding's exposure: twice the blue's 0.12
 
+# --- purple and purple_b, the cartoony build (PC_, PBC_) -------------------------
+# (2026-10-04) The purple's house, photo, palette and lot, converted to the
+# standard as the blue was, its own ideas pushed: the turned porch posts, the
+# pointed hoods, the spindle-work fan and the shed porch roof. purple_b is the
+# same build at the lower pitch over the knee wall, railed, with a chimney.
+# The standard's sizes, the bell roof and the parapets are cartoon_kit's; each
+# number's reason is beside the code that uses it.
+PC_SEED, PC_SHINGLE_SEED = 20261005, 20261006
+PBC_SEED, PBC_SHINGLE_SEED = 20261007, 20261008
+PC_PITCH_DEG = 50.0        # the purple's 48, a touch steeper: the hoods and the fan need room under the deeper rakes
+PC_STOREY = 3.24           # the purple's 3.0, taller: the shed porch roof passes under the bargeboards' bent ends
+PC_WALL_TOP_IN = 0.36      # the side walls' tops inside the slab; the corner boards' tops then 4 cm under its top
+PC_RISERS = 3              # three chunky risers, as the photo's, for the purple's four
+PC_GRADE = (P_FLOOR / round(P_FLOOR / RISER_ABOUT)) / GOING   # at the purple's grade
+PC_DOOR_H = 2.30           # 2.29 m clear over the threshold
+PC_SILL, PC_HEAD = 0.68, 2.30
+PC_WINDOW_LIGHTS = 2       # the photo's front window, two panes
+PC_UP_WINDOWS_X = ((-1.00, -0.30), (0.30, 1.00))   # the paired windows, wider than the purple's 0.65
+PC_UP_SILL, PC_UP_HEAD = 0.40, 1.55   # over the upstairs floor: the hoods' corners a third of a metre under the rakes
+PC_HOOD_DEG, PC_HOOD_OVER = 35.0, 0.06   # the hoods' rake, and how far past the casing each side
+PC_HOOD_CORNICE = (0.03, 0.09, 0.04)     # the cornice under and over the hood's rake, and past its ends
+PC_PLINTH = ((-0.08, -0.075), (0.10, -0.075), (0.045, 0.30), (-0.08, 0.30))   # lower than the blue's, under the band
+PC_DECK_OVER = 0.20        # the porch deck past the body each side
+PC_POSTS_X = (-2.80, -0.95, 0.95, 2.80)
+PC_POST_IN = 0.30          # the posts' centres in from the deck's front edge
+PC_PEDESTAL = (0.18, 0.50)  # the turned posts' square gold base: half-size, top over the floor
+PC_CAPITAL = (0.19, 0.18)   # the gold capital: half-size, how far under the beam
+# the turned shaft, (radius, z): a ring, a neck, the fat belly, a neck over
+# the pedestal's top (pz); a ring and a neck under the capital (cz)
+PC_SHAFT_LOW = ((0.12, -0.03), (0.15, 0.04), (0.11, 0.12), (0.17, 0.36), (0.17, 0.44), (0.11, 0.64))
+PC_SHAFT_HIGH = ((0.12, -0.22), (0.155, -0.16), (0.155, -0.08), (0.12, 0.03))
+PC_BEAM = (2.16, 0.26)     # the porch beam's underside over the floor, and its depth
+PC_BRACKET = (0.40, 0.50, 0.10)   # the posts' shaped brackets: reach, drop, thickness
+PC_SHED_SLOPE = 0.16       # the shed roof's rise per metre toward the wall (9 degrees)
+PC_SHED_T = 0.26           # its slab, vertical
+PC_SHED_OVER = 0.50        # its eave past the beam's line
+PC_SHED_END = 0.08         # its ends past the body's sides
+PC_SHED_KICK = (0.16, 0.08, 0.20)   # its own kick: leaving the top this far before the beam's line, rise per metre, depth
+PC_FASCIA = (0.28, 0.10)   # the shed's gold fascia along its eave, and the shaded magenta frieze under it, deep
+PC_STEP_X = (-2.55, -1.20)
+PC_FAN_BAR = (0.04, 0.16)  # the spindle bar: its underside over the hoods' knobs, and its depth
+PC_FAN_CLEAR = 0.15        # each ray's tip this far under the rake's underside, so the fan fills the peak
+PC_FAN_HUB = 0.16
+PC_FAN_RAYS = (18.0, 54.0, 90.0, 126.0, 162.0)
+PC_FAN_RAY = (0.055, 0.10, 0.09)    # a ray's half-widths: its shaft, its bead, its ball
+PC_SPINDLES_X = (-0.30, -0.15, 0.0, 0.15, 0.30)   # 15 cm apart, so the fat beads and balls stand clear of each other
+PC_SPINDLE_L = 0.34        # the middle one hangs PC_PENDANT longer, as the photo's pendant
+PC_PENDANT = 0.16
+
+PBC_KNEE = PB_KNEE         # the side walls 1.2 over the upstairs floor, so the upstairs windows straddle the eave
+PBC_WALL_TOP_IN = 0.26     # inside the flatter slab (0.38 deep at 38 degrees)
+PBC_UP_SILL, PBC_UP_HEAD = 0.30, 1.55   # 0.90 under the eave line and 0.35 over it, leaving the fan its room
+PBC_BELT = (0.14, 0.08)    # the belt at the eave line across both gables: under the eave, over it
+PBC_PEDESTAL = (0.18, 1.00)   # the railed porch's posts on rail-high pedestals, which the rails lap into
+PBC_FAN_HUB = 0.20         # the room in the flatter, wider peak: a bigger hub and seven rays
+PBC_FAN_RAYS = (15.0, 40.0, 65.0, 90.0, 115.0, 140.0, 165.0)
+PBC_SPINDLE_L = 0.26
+PBC_CHIMNEY = (0.80, 1.65, 0.42, 0.52)   # centre x, y and half-sizes: through the east slope near the ridge
+
+# --- blue_b, the cartoony build (BBC_) -----------------------------------------------
+# (2026-10-04) The cartoony blue's build with blue_b's three differences: the
+# glazed porch wrapping the corner under an L-shaped lean-to, the side door's
+# landing and flight on the driveway side in place of the back stoop, and the
+# chimney the cartoony blue already has. Its own seeds and palette.
+BBC_SEED, BBC_SHINGLE_SEED = 20261009, 20261010
+BBC_SIDE_DOOR_Y = (1.10, 2.05)   # blue_b's side door, 10 cm further back, so the landing's rail clears its casing and the window's
+BBC_LANDING_Y = (0.72, 2.45)     # the side landing along the wall: its front parapet's cap between the window's casing and the door's
+BBC_FLIGHT_IN = 0.38             # the side flight's inner edge off the wall's line: its cap clears the window's casing, its pier the plinth
+BBC_WRAP_OVER = 0.30             # the lean-to's eaves past the porch's walls, front and side
+BBC_WRAP_OVER_W = 0.08           # its west end past the porch's west wall, clear of the balcony's bracket
+BBC_WRAP_T = 0.22                # its slab, vertical
+BBC_WRAP_SLOPE = 0.15            # the front slope's rise per metre (8.5 degrees); the side's is set so both meet at the body's corner
+BBC_WRAP_CLEAR = 0.04            # the lean-to's top under the front bargeboard's bent end and the main roof's eaves, at least
+BBC_WRAP_GLASS = 0.62            # the glass band's sill over the floor; its head is set under the lean-to
+BBC_WRAP_INSET = 0.48            # the glass in from the porch's corners, so the casings clear the posts' collars
+BBC_FASCIA = (0.10, 0.24)        # the fat fascia wrapping the lean-to's eaves: its top under the slab's, its depth
+
 LOT_W, LOT_X0, LOT_Y = 9.0, -3.6, (-16.0, 14.0)   # the lot: 9 m wide, the kerb to the back fence
 
 PALETTES = {
@@ -300,6 +373,11 @@ PALETTES["purple_b"] = dict(walls="e8559a", base="c43f80", trim="1e8a7c", accent
 # rakes' sawn band and the collar's frieze; the door and the fan's hub, in the
 # light, keep the blue's red
 PALETTES["blue"].update(brick=PALETTES["blue_b"]["brick"], accent_shade="86161f")
+# the converted three take the same: each one's accent a shade darker (about
+# 0.72 of it, as the blue's), for its trim under the eaves
+PALETTES["purple"].update(accent_shade="8e1d65")
+PALETTES["purple_b"].update(accent_shade="a0781d")
+PALETTES["blue_b"].update(accent_shade="691519")
 VARIANTS = ("blue", "purple", "blue_b", "purple_b")
 
 
@@ -325,10 +403,6 @@ def material(name, colour):
 
 
 # --- building blocks ---------------------------------------------------------
-
-def octagon(cx, cy, r):
-    return [(cx + r * math.cos(math.tau * (k + 0.5) / 8), cy + r * math.sin(math.tau * (k + 0.5) / 8)) for k in range(8)]
-
 
 class Top:
     """A wall's top edge: flat, or a gable following the roof's underside
@@ -365,6 +439,22 @@ class LiftedTop(Top):
     def apex(self):
         ridge_u, half, eave, tan = self.gable
         return eave + half * tan + self.lift
+
+
+class SlopeTop(Top):
+    """A wall's top running straight from z0 at u = 0 to z1 at u = length,
+    inside a lean-to's slab over it (blue_b's wrapping porch); it has no
+    ridge inside the wall."""
+
+    def __init__(self, z0, z1, length):
+        super().__init__(gable=(-1.0, 0.0, 0.0, 0.0))
+        self.z0, self.z1, self.length = z0, z1, length
+
+    def z(self, u):
+        return self.z0 + (self.z1 - self.z0) * u / self.length
+
+    def apex(self):
+        return max(self.z0, self.z1)
 
 
 class Kit:
@@ -527,15 +617,6 @@ class Kit:
             self.wall(f"{prefix}wall_{key}", origin, u_dir, v_dir, length, thick, feet[key], tops[key], ops,
                       base_below, mats)
 
-    def corner_boards(self, prefix, mat, x0, x1, y0, y1, size, proud, z0, z1, which=("sw", "se", "nw", "ne")):
-        """Corner boards `proud` of both faces, their feet and tops past the walls'."""
-        for sx, sy, tag in ((-1, -1, "sw"), (1, -1, "se"), (-1, 1, "nw"), (1, 1, "ne")):
-            if tag not in which:
-                continue
-            cx = (x0 - proud + size / 2) if sx < 0 else (x1 + proud - size / 2)
-            cy = (y0 - proud + size / 2) if sy < 0 else (y1 + proud - size / 2)
-            self.box(f"{prefix}corner_{tag}", mat, cx - size / 2, cx + size / 2, cy - size / 2, cy + size / 2, z0, z1)
-
     def gable_roof(self, part, mat, xc, half, eave, tan, over, thick, y0, y1):
         """A gable roof as one piece: an inverted V of `thick` perpendicular
         thickness whose underside passes through z = eave at x = xc +- half
@@ -549,69 +630,7 @@ class Kit:
                    (xc + xe, under(xc + xe) + vt), (xc, under(xc) + vt), (xc - xe, under(xc - xe) + vt)]
         return self.prism(part, mat, section, "y", y0, y1)
 
-    def l_roof(self, part, mat, x_in, x_out, y_in, y_out, y_back, z_e, slope, thick):
-        """A lean-to round a corner as one mesh: a front slope rising from the
-        eave at `y_out` toward the body and a side slope rising from `x_out`
-        toward the body's side, meeting on a 45-degree hip that is a crease
-        of the mesh; the inner edges at `x_in` and `y_in` are inside the
-        body's walls. `thick` is vertical."""
-        def z_front(y):
-            return z_e + (y - y_out) * slope
-
-        def z_side(x):
-            return z_e + (x_out - x) * slope
-        # the hip from the outer corner reaches the body's front wall plane here
-        x_c = x_out - (y_in - y_out)
-        A, B, C, D = (x_in - 0.0, y_out), (x_out, y_out), (x_c, y_in), (x_in, y_in)
-        E, F, G = (x_out, y_back), (x_in, y_back), (x_in, y_in)
-        bm = bmesh.new()
-
-        def pair(x, y, z):
-            return bm.verts.new((x, y, z)), bm.verts.new((x, y, z - thick))
-        a, b, c, d = pair(*A, z_front(A[1])), pair(*B, z_e), pair(*C, z_front(C[1])), pair(*D, z_front(D[1]))
-        e, f, g = pair(*E, z_e), pair(*F, z_side(F[0])), pair(*G, z_side(G[0]))
-        bm.faces.new((a[0], b[0], c[0], d[0]))
-        bm.faces.new((b[0], e[0], f[0], g[0], c[0]))
-        bm.faces.new((d[1], c[1], b[1], a[1]))
-        bm.faces.new((c[1], g[1], f[1], e[1], b[1]))
-        for p, q in ((a, b), (b, e), (e, f), (f, g), (g, c), (c, d), (d, a)):
-            bm.faces.new((p[0], q[0], q[1], p[1]))
-        return self.finish(part, bm, [mat])
-
-    def bargeboard(self, part, mat, xc, half, eave, tan, over, thick_vt, y_rake, out, height, proud, lap, under_off=0.0, end_in=0.0):
-        """A chevron board on a gable's rake face: its back `lap` inside the
-        roof slab's end, its top 2 cm under the slab's top, `height` tall
-        under that. `out` is -1 at the front, +1 at the back. `under_off`
-        drops it (the inner band hangs under the main board)."""
-        def under(x):
-            return eave + (half - abs(x - xc)) * tan
-        xe = half + over + 0.05 - end_in
-        zt = thick_vt - 0.02 - under_off
-        section = [(xc - xe, under(xc - xe) + zt - height), (xc, under(xc) + zt - height), (xc + xe, under(xc + xe) + zt - height),
-                   (xc + xe, under(xc + xe) + zt), (xc, under(xc) + zt), (xc - xe, under(xc - xe) + zt)]
-        lo, hi = sorted((y_rake - out * lap, y_rake + out * proud))
-        return self.prism(part, mat, section, "y", lo, hi, collide=False)
-
     # -- openings --
-
-    def opening_trim(self, prefix, mat, axis, face_at, outward, a0, a1, z0, z1, sill=True):
-        """Chunky casing round an opening: a head board over two jambs (and a
-        sill board), 3.5 cm proud, the back sunk 1 cm into the wall, the
-        jambs lapping 2 cm over the opening's edge and 2 cm into the head and
-        sill. `axis` is 'x' when the opening's width runs along X."""
-        w = 0.12
-
-        def part(name, a_lo, a_hi, b_lo, b_hi, sunk, proud):
-            lo, hi = sorted((face_at - sunk * outward, face_at + proud * outward))
-            if axis == "x":
-                return self.box(name, mat, a_lo, a_hi, lo, hi, b_lo, b_hi, collide=False)
-            return self.box(name, mat, lo, hi, a_lo, a_hi, b_lo, b_hi, collide=False)
-
-        part(f"{prefix}_head", a0 - w - 0.04, a1 + w + 0.04, z1 - 0.02, z1 + w, 0.010, 0.045)
-        part(f"{prefix}_jamb_a", a0 - w, a0 + 0.02, z0 - 0.02, z1 + 0.02, 0.015, 0.035)
-        part(f"{prefix}_jamb_b", a1 - 0.02, a1 + w, z0 - 0.02, z1 + 0.02, 0.015, 0.035)
-        if sill:
-            part(f"{prefix}_sill", a0 - w - 0.04, a1 + w + 0.04, z0 - w, z0 + 0.02, 0.010, 0.045)
 
     def pane(self, part, mat, axis, face_at, outward, a0, a1, z0, z1, recess=0.08, thick=0.05, collide=True):
         """A slab set in an opening, recessed into the wall, 2 cm into the reveals all round."""
@@ -620,130 +639,7 @@ class Kit:
             return self.box(part, mat, a0 - 0.02, a1 + 0.02, lo, hi, z0 - 0.02, z1 + 0.02, collide=collide)
         return self.box(part, mat, lo, hi, a0 - 0.02, a1 + 0.02, z0 - 0.02, z1 + 0.02, collide=collide)
 
-    def mullions(self, prefix, mat, axis, face_at, outward, a0, a1, z0, z1, lights):
-        """Chunky mullions dividing an opening into `lights`, 3.5 cm proud
-        and lapped 2 cm into the pane behind."""
-        lo, hi = sorted((face_at - 0.10 * outward, face_at + 0.035 * outward))
-        for m in range(1, lights):
-            a = a0 + (a1 - a0) * m / lights
-            if axis == "x":
-                self.box(f"{prefix}_mullion{m}", mat, a - 0.05, a + 0.05, lo, hi, z0 - 0.01, z1 + 0.01, collide=False)
-            else:
-                self.box(f"{prefix}_mullion{m}", mat, lo, hi, a - 0.05, a + 0.05, z0 - 0.01, z1 + 0.01, collide=False)
-
-    def hood(self, prefix, mat, axis, face_at, outward, a0, a1, z_head, tall, proud=0.06):
-        """A flat hood board over a head casing, lapped 2 cm into its top."""
-        lo, hi = sorted((face_at + 0.02 * outward, face_at - proud * outward))
-        z0, z1 = z_head + 0.12 - 0.02, z_head + 0.12 - 0.02 + tall
-        if axis == "x":
-            self.box(f"{prefix}_hood", mat, a0 - 0.15, a1 + 0.15, lo, hi, z0, z1, collide=False)
-        else:
-            self.box(f"{prefix}_hood", mat, lo, hi, a0 - 0.15, a1 + 0.15, z0, z1, collide=False)
-
-    def pointed_hood(self, prefix, mat, face_y, a0, a1, z_head, tall):
-        """A pointed pediment over a front-wall window: a triangle on the
-        head casing's width, lapped 2 cm into the casing's top, 5 cm proud."""
-        base = z_head + 0.12 - 0.02
-        poly = [(a0 - 0.12, base), (a1 + 0.12, base), ((a0 + a1) / 2, base + tall)]
-        self.prism(f"{prefix}_pediment", mat, poly, "y", face_y - 0.05, face_y + 0.02, collide=False)
-
     # -- decks, rails, stairs --
-
-    def newel(self, part, mat, x0, y0, z_floor):
-        """A newel: the post 2 cm into the deck, a square cap and a turned ball."""
-        z1 = z_floor + RAIL_H + 0.12
-        self.box(f"{part}_post", mat, x0, x0 + POST, y0, y0 + POST, z_floor - 0.02, z1)
-        self.box(f"{part}_cap", mat, x0 - 0.02, x0 + POST + 0.02, y0 - 0.02, y0 + POST + 0.02, z1 - 0.02, z1 + 0.04, collide=False)
-        self.prism(f"{part}_ball", mat, octagon(x0 + POST / 2, y0 + POST / 2, 0.065), "z", z1 + 0.03, z1 + 0.16, collide=False)
-
-    def lattice_rail(self, prefix, mat, axis, at, a0, a1, z_floor):
-        """The photo's geometric railing: top and bottom rails between the
-        newels (a0..a1 already lap 2 cm into them), a mid bar, a full
-        upright at each panel division and two short ones over the mid bar
-        in each panel. Thicknesses all differ, so the crossing bars share no
-        plane."""
-        def b(name, p0, p1, q0, q1, z0, z1, collide=True):
-            if axis == "x":
-                self.box(name, mat, p0, p1, q0, q1, z0, z1, collide=collide)
-            else:
-                self.box(name, mat, q0, q1, p0, p1, z0, z1, collide=collide)
-        top0, top1 = z_floor + RAIL_H - 0.08, z_floor + RAIL_H
-        bot0, bot1 = z_floor + 0.08, z_floor + 0.14
-        b(f"{prefix}_top", a0, a1, at - 0.04, at + 0.04, top0, top1)
-        b(f"{prefix}_bottom", a0, a1, at - 0.035, at + 0.035, bot0, bot1)
-        mid = z_floor + 0.50
-        b(f"{prefix}_mid", a0 + 0.01, a1 - 0.01, at - 0.02, at + 0.02, mid - 0.025, mid + 0.025, collide=False)
-        panels = max(1, round((a1 - a0) / 0.9))
-        pitch = (a1 - a0) / panels
-        for k in range(1, panels):
-            a = a0 + k * pitch
-            b(f"{prefix}_up{k}", a - 0.03, a + 0.03, at - 0.03, at + 0.03, bot1 - 0.02, top0 + 0.02)
-        for k in range(panels):
-            for m, frac in enumerate((1 / 3, 2 / 3)):
-                a = a0 + (k + frac) * pitch
-                b(f"{prefix}_bar{k}{m}", a - 0.025, a + 0.025, at - 0.015, at + 0.015, mid + 0.005, top0 + 0.02, collide=False)
-
-    def panel_rail(self, prefix, mat, axis, at, a0, a1, z_floor, panel=0.06, cap=0.12):
-        """A plain deck rail as a solid panel with a cap (the back stoop's):
-        the panel's foot 1.5 cm into the deck, its ends lapping the posts."""
-        z0, z1 = z_floor - 0.015, z_floor + RAIL_H
-        if axis == "x":
-            self.box(f"{prefix}_panel", mat, a0, a1, at - panel / 2, at + panel / 2, z0, z1)
-            self.box(f"{prefix}_cap", mat, a0 + 0.015, a1 - 0.015, at - cap / 2, at + cap / 2, z1 - 0.03, z1 + 0.05, collide=False)
-        else:
-            self.box(f"{prefix}_panel", mat, at - panel / 2, at + panel / 2, a0, a1, z0, z1)
-            self.box(f"{prefix}_cap", mat, at - cap / 2, at + cap / 2, a0 + 0.015, a1 - 0.015, z1 - 0.03, z1 + 0.05, collide=False)
-
-    def stair(self, prefix, mat, x0, x1, y_edge, out, z_top):
-        """A straight flight down from a deck's edge at `y_edge`, outward in
-        `out` (-1 toward the street): the treads one stepped block, scenery
-        (no collision), lapping 2 cm into the deck; the narrow ramp on the
-        nosing line is the floor, flush with the deck's edge and ending
-        inside the deck, its foot 2 cm below the treads' so the two share no
-        plane; nosing strips 3 cm proud of the ramp. Returns (n, riser)."""
-        n = max(1, round(z_top / RISER_ABOUT))
-        riser = z_top / n
-
-        def y(s):
-            return y_edge + out * s
-        profile = [(y(n * GOING), -BELOW)]
-        for k in range(1, n):
-            profile += [(y(n * GOING - (k - 1) * GOING), k * riser), (y(n * GOING - k * GOING), k * riser)]
-        profile += [(y(-0.02), (n - 1) * riser), (y(-0.02), -BELOW)]
-        self.prism(f"{prefix}_treads", mat, profile, "x", x0, x1, collide=False)
-        ramp = [(y(n * GOING + 0.05), -BELOW - 0.02), (y(n * GOING), 0.0), (y(0.0), z_top), (y(-0.06), -BELOW - 0.02)]
-        self.prism(f"{prefix}_ramp", mat, ramp, "x", x0 + 0.10, x1 - 0.10)
-        for k in range(1, n):
-            nose = n * GOING - (k - 1) * GOING
-            ya, yb = sorted((y(nose + 0.01), y(nose - 0.05)))
-            self.box(f"{prefix}_nosing_{k}", mat, x0 + 0.005, x1 - 0.005, ya, yb, k * riser - 0.01, k * riser + 0.03, collide=False)
-        return n, riser
-
-    def stair_rail(self, prefix, mat, x_at, y_edge, out, z_top, n, riser, newels=True):
-        """A sloped rail beside a flight: a top newel on the deck, a bottom
-        newel on the ground, a top rail and a bottom rail as parallelograms
-        on the nosing line's slope, uprights on alternate treads."""
-        slope = riser / GOING
-
-        def y(s):
-            return y_edge + out * s
-
-        def zline(s):
-            return z_top - s * slope
-        if newels:
-            ya, yb = sorted((y(-0.03), y(-0.03 - POST)))
-            self.newel(f"{prefix}_newel_top", mat, x_at - POST / 2, ya, z_top)
-            ya, yb = sorted((y(n * GOING + 0.03), y(n * GOING + 0.03 + POST)))
-            self.newel(f"{prefix}_newel_foot", mat, x_at - POST / 2, ya, 0.02)
-        sa, sb = -POST - 0.01, n * GOING + 0.05
-        for name, lo, hi, half in (("top", RAIL_H - 0.08, RAIL_H, 0.04), ("bottom", 0.12, 0.18, 0.035)):
-            poly = [(y(sa), zline(sa) + lo), (y(sb), zline(sb) + lo), (y(sb), zline(sb) + hi), (y(sa), zline(sa) + hi)]
-            self.prism(f"{prefix}_{name}", mat, poly, "x", x_at - half, x_at + half)
-        for m in range(1, n + 1, 2 if n > 4 else 1):
-            s = (m - 0.5) * GOING
-            tread_z = (n - m) * riser
-            ya, yb = sorted((y(s - 0.03), y(s + 0.03)))
-            self.box(f"{prefix}_up{m}", mat, x_at - 0.03, x_at + 0.03, ya, yb, tread_z - 0.02, zline(s) + RAIL_H - 0.06)
 
     def skirt(self, part, mat, x0, x1, y0, y1, z_deck):
         """The solid base under a deck, 10 cm under the ground, its top inside the deck."""
@@ -754,41 +650,25 @@ class Kit:
     def half_disc(self, part, mat, xc, zc, r, y_lo, y_hi, segments=12, collide=False):
         return ck.half_disc(self.finish, part, mat, xc, zc, r, y_lo, y_hi, segments=segments, collide=collide)
 
-    def rays(self, prefix, mat, xc, zc, r0, r1, width, angles, y_lo, y_hi, stagger=0.004):
-        """Radiating boards from (xc, zc) between radii r0 and r1, as prisms
-        in the gable's plane, so nothing is rotated."""
-        for k, deg in enumerate(angles):
-            a = math.radians(deg)
-            dx, dz = math.cos(a), math.sin(a)
-            px, pz = -dz * width / 2, dx * width / 2
-            poly = [(xc + dx * r0 + px, zc + dz * r0 + pz), (xc + dx * r0 - px, zc + dz * r0 - pz),
-                    (xc + dx * r1 - px, zc + dz * r1 - pz), (xc + dx * r1 + px, zc + dz * r1 + pz)]
-            dy = -stagger if k % 2 else 0.0
-            self.prism(f"{prefix}_ray{k}", mat, poly, "y", y_lo + dy, y_hi + dy, collide=False)
-
-    def bracket(self, part, mat, x0, x1, y_wall, out, z_top, depth, drop, lap=0.03):
-        """A knee bracket under something that projects from a wall: a right
-        triangle, its back `lap` into the wall, its top lapped 2 cm into the
-        thing it carries."""
-        yb = y_wall - out * lap          # inside the wall
-        yf = y_wall + out * depth
-        poly = [(yb, z_top), (yf, z_top), (yb, z_top - drop)]
-        self.prism(part, mat, poly, "x", x0, x1, collide=False)
-
-
 class Chunky(Kit):
-    """The cartoony blue's maker: the Kit's parts, plus the shared cartoon
+    """A cartoony variant's maker: the Kit's parts, plus the shared cartoon
     kit's chunky ones (`cartoon_kit`) bound to this kit's finish, hand and
     the house's own heights, a warp that leans whatever is built while it is
-    set (the walls and everything on them), and a seeded hand for the
+    set (the blue's walls and everything on them), and a seeded hand for the
     irregularities. Every maker here goes through `finish`, so the warp
-    leans the kit's pieces too."""
+    leans the kit's pieces too. Its defaults are the blue's; each converted
+    variant passes its own pitch, slab, seeds and stair (risers at its old
+    grade), so no two houses share their irregularities."""
 
-    def __init__(self, variant, coll):
-        super().__init__(variant, coll, pitch_deg=BC_PITCH_DEG, wall_top_in=BC_WALL_TOP_IN)
-        self.roof_vt = BC_ROOF_T / math.cos(self.pitch)
+    def __init__(self, variant, coll, pitch_deg=BC_PITCH_DEG, slab=BC_ROOF_T, seed=BC_SEED, shingle_seed=BC_SHINGLE_SEED,
+                 risers=None, grade=None, knee=0.0, wall_top_in=BC_WALL_TOP_IN):
+        super().__init__(variant, coll, pitch_deg=pitch_deg, knee=knee, wall_top_in=wall_top_in)
+        self.roof_vt = slab / math.cos(self.pitch)
         self.warp = None
-        self.rng = random.Random(BC_SEED)
+        self.rng = random.Random(seed)
+        self.shingle_seed = shingle_seed
+        self.risers = BC_RISERS if risers is None else risers
+        self.grade = BC_GRADE if grade is None else grade
 
     def jit(self, amount):
         """A seeded nudge in -amount..amount."""
@@ -825,8 +705,22 @@ class Chunky(Kit):
         ck.stair_rails(self.finish, self.rng, prefix, self.m["trim"], x_ats, y_edge, out, z_top, n, riser, going, rail_h=RAIL_H)
 
     def flight(self, prefix, mat, x0, x1, y_edge, out, z_top):
-        """The blue's flight in BC_RISERS chunky risers at the blue's grade."""
-        return ck.flight(self.finish, prefix, mat, x0, x1, y_edge, out, z_top, BC_RISERS, BC_GRADE, BELOW)
+        """The variant's flight in its few chunky risers at its old grade (the
+        blue's BC_RISERS at the blue's)."""
+        return ck.flight(self.finish, prefix, mat, x0, x1, y_edge, out, z_top, self.risers, self.grade, BELOW)
+
+    def bell_roof(self, xc, half, eave, slab, y0, y1, **kw):
+        return ck.bell_roof(self.finish, self.m["roof"], xc, half, eave, self.pitch, slab, y0, y1, **kw)
+
+    def shaped_bracket(self, part, mat, axis, at, face, out, z_top, reach, drop, **kw):
+        return ck.shaped_bracket(self.finish, self.rng, part, mat, axis, at, face, out, z_top, reach, drop, **kw)
+
+    def timber_post(self, part, mat, cx, cy, z_foot, base, z_eave, z_top, **kw):
+        return ck.timber_post(self.finish, self.rng, part, mat, cx, cy, z_foot, base, z_eave, z_top, **kw)
+
+    def stoop_parapets(self, prefix, x_ats, y_edge, out, z_floor, n, riser, going, s_wall):
+        ck.stoop_parapets(self.finish, self.rng, prefix, self.m["trim"], x_ats, y_edge, out, z_floor, n, riser, going, s_wall,
+                          rail_h=RAIL_H, width=BC_PARAPET, cap_w=BC_PARAPET_CAP)
 
     def barge(self, part, profile, knees, r_end, xc, y_rake, out, board, band, pendants, band_mat=None):
         """White over the photo's sawn red band, in the shaded red unless
@@ -839,319 +733,6 @@ class Chunky(Kit):
 
 # --- the house -----------------------------------------------------------------
 
-def body_openings(kit, floor, front, side_door=None, back_door=True):
-    """The shared side and back openings plus the variant's front ones; a
-    side door on the driveway side (its y range) in place of the back one."""
-    sill, head = floor + SILL, floor + HEAD
-    up = floor + STOREY                   # the upstairs floor
-    sides = [(c - SIDE_WIN_W / 2, c + SIDE_WIN_W / 2, sill, head) for c in SIDE_WINDOWS]
-    back = [(*BACK_WINDOW_X, sill, head)]
-    if back_door:
-        back.append((*BACK_DOOR_X, floor + THRESHOLD, floor + DOOR_H))
-    back.append((*BACK_UP_WINDOW_X, up + UP_SILL, up + UP_HEAD - 0.2))
-    east = list(sides)
-    if side_door:
-        east.append((*side_door, floor + THRESHOLD, floor + DOOR_H))
-    return {"front": front, "back": back, "west": sides, "east": east}
-
-
-def build_body(kit, floor, openings, kinds):
-    """The body: four walls with gables front and back, corner boards, the
-    gable roof and its ridge cap, casings and panes. `kinds` names the
-    openings that are doors, as (face, index)."""
-    hw, hd, e = W / 2, D / 2, E_IN
-    eave = floor + STOREY + kit.knee
-    wall_top = eave + kit.wall_top_in
-    gable = Top(gable=(hw - e, hw, eave, kit.tan))
-    flat = Top(flat=wall_top)
-    feet = {"front": -BELOW, "back": -BELOW, "west": -BELOW - 0.01, "east": -BELOW - 0.01}
-    kit.shell("", -hw, hw, -hd, hd, T, e, feet, {"front": gable, "back": gable, "west": flat, "east": flat},
-              openings, [kit.m["walls"], kit.m["base"]], floor)
-    kit.corner_boards("", kit.m["trim"], -hw, hw, -hd, hd, CORNER, PROUD, -BELOW - 0.03, wall_top + 0.02)
-    y0, y1 = -hd - RAKE_OVER, hd + RAKE_OVER
-    kit.gable_roof("roof", kit.m["roof"], 0.0, hw, eave, kit.tan, EAVE_OVER, ROOF_T, y0, y1)
-    rt = eave + kit.rise + kit.roof_vt
-    kit.box("ridge_cap", kit.m["roof"], -0.20, 0.20, y0 - 0.02, y1 + 0.02, rt - 0.10, rt + 0.05, collide=False)
-    # bargeboards on both rakes, a main board and an accent band under it
-    for face, y_rake, out in (("front", y0, -1), ("back", y1, 1)):
-        kit.bargeboard(f"barge_{face}", kit.m["trim"], 0.0, hw, eave, kit.tan, EAVE_OVER, kit.roof_vt, y_rake, out, BARGE_H, 0.06, 0.02)
-        kit.bargeboard(f"barge_{face}_band", kit.m["accent"], 0.0, hw, eave, kit.tan, EAVE_OVER, kit.roof_vt, y_rake, out,
-                       BARGE_BAND, 0.07, 0.01, under_off=BARGE_H - 0.02, end_in=0.03)
-    # casings, panes, doors
-    for face, axis, at, out in (("front", "x", -hd, -1), ("back", "x", hd, 1), ("west", "y", -hw, -1), ("east", "y", hw, 1)):
-        for k, (a0, a1, z0, z1) in enumerate(openings[face]):
-            is_door = (face, k) in kinds
-            kit.opening_trim(f"{face}{k}_trim", kit.m["frames"], axis, at, out, a0, a1, z0, z1, sill=not is_door)
-            kit.pane(f"{face}{k}_{'door' if is_door else 'pane'}", kit.m["door"] if is_door else kit.m["glass"],
-                     axis, at, out, a0, a1, z0, z1)
-
-
-def build_back_stoop(kit, floor):
-    """The back door's landing and straight flight, with plain panel rails."""
-    hd = D / 2
-    deck, trim = kit.m["deck"], kit.m["trim"]
-    x0, x1 = STOOP_X
-    y_edge = hd + STOOP_D
-    kit.box("stoop_deck", deck, x0, x1, hd - 0.03, y_edge, floor - 0.20, floor)
-    kit.skirt("stoop_skirt", kit.m["base"], x0 + 0.08, x1 - 0.08, hd - 0.04, y_edge - 0.08, floor)
-    sx0, sx1 = (x0 + x1) / 2 - STAIR_W / 2, (x0 + x1) / 2 + STAIR_W / 2
-    n, riser = kit.stair("stoop_stair", deck, sx0, sx1, y_edge, 1, floor)
-    for tag, x_at in (("w", sx0 - 0.05), ("e", sx1 + 0.05)):
-        kit.stair_rail(f"stoop_rail_{tag}", trim, x_at, y_edge, 1, floor, n, riser)
-        kit.panel_rail(f"stoop_side_{tag}", trim, "y", x_at, hd + 0.05, y_edge - 0.03 - POST + 0.03, floor)
-
-
-def band(kit, mat, z, segments):
-    """The water-table band at the floor line, 3 cm proud, 1 cm into the
-    wall, its ends inside the corner boards. `segments`: (face, a0, a1)."""
-    hw, hd = W / 2, D / 2
-    for k, (face, a0, a1) in enumerate(segments):
-        if face in ("front", "back"):
-            y = -hd if face == "front" else hd
-            lo, hi = (y - 0.03, y + 0.01) if face == "front" else (y - 0.01, y + 0.03)
-            kit.box(f"band_{face}{k}", mat, a0, a1, lo, hi, z - BAND_H / 2, z + BAND_H / 2, collide=False)
-        else:
-            x = -hw if face == "west" else hw
-            lo, hi = (x - 0.03, x + 0.01) if face == "west" else (x - 0.01, x + 0.03)
-            kit.box(f"band_{face}{k}", mat, lo, hi, a0, a1, z - BAND_H / 2, z + BAND_H / 2, collide=False)
-
-
-BAND_END_X = W / 2 - CORNER + PROUD + 0.02   # a band's end, 2 cm inside the corner board
-BAND_END_Y = D / 2 - CORNER + PROUD + 0.02
-
-
-def gable_brackets(kit, mat, eave, y_face):
-    """Knee brackets at the front gable's lower corners, under the rakes."""
-    hw = W / 2
-    for tag, sx in (("w", -1), ("e", 1)):
-        xi, xo = sx * (hw - 0.45), sx * (hw - 0.07)
-        poly = [(xi, eave + 0.05), (xo, eave + 0.05), (xi, eave + 0.05 + 0.38 * kit.tan)]
-        kit.prism(f"gable_bracket_{tag}", mat, poly, "y", y_face - 0.05, y_face + 0.02, collide=False)
-
-
-def chimney(kit, eave):
-    """A brick chimney through the east slope near the ridge: the stack
-    starts inside the attic and rises CHIMNEY_OVER past the ridge cap, with a
-    cap a hand wider on top."""
-    x0, y0, across, deep = CHIMNEY
-    top = eave + kit.rise + kit.roof_vt + CHIMNEY_OVER
-    kit.box("chimney", kit.m["brick"], x0, x0 + across, y0, y0 + deep, eave + 0.5, top)
-    kit.box("chimney_cap", kit.m["brick"], x0 - 0.05, x0 + across + 0.05, y0 - 0.05, y0 + deep + 0.05,
-            top - 0.02, top + 0.12, collide=False)
-
-
-def glazed_porch(kit, floor):
-    """blue_b's glazed porch: walls on their own corner posts, a glass band
-    in each over a solid wainscot, from the body's front wall round its
-    right-front corner. It runs BB_WRAP past the body's right wall and
-    BB_SIDE_D back along the side, under an L-shaped lean-to (`l_roof`) low
-    enough to pass under the main eave at the corner, with a fourth post at
-    its back corner and a back wall segment into the body's side wall."""
-    hw, hd = W / 2, D / 2
-    trim, glass, base = kit.m["trim"], kit.m["glass"], kit.m["base"]
-    px0, px1 = B_PORCH_X0, hw + BB_WRAP
-    py0, py1 = -hd - B_PORCH_D, -hd + BB_SIDE_D
-    pe = B_PORCH_POST / 2 - PROUD
-    z_e = floor + BB_PORCH_EAVE
-    s = BB_PORCH_SLOPE
-    over = BB_PORCH_ROOF_OVER
-    g0, g1 = floor + BB_PORCH_GLASS[0], floor + BB_PORCH_GLASS[1]
-    low = Top(flat=z_e + 0.12)                      # inside the slab near its eaves
-    low_e = Top(flat=z_e + 0.11)                    # the east wall's, a centimetre off the front's
-    # the west wall's top follows the front slope up to the body (u runs
-    # from the body toward the front); the back segment's follows the side
-    # slope up to the body's side wall
-    west_top = Top(gable=(0.0, (-hd + 0.02) - (py0 - over), z_e, s))
-    p_open = {
-        "front": [(px0 + 0.30, px1 - 0.30, g0, g1)],
-        "west": [(py0 + 0.30, py0 + 0.95, g0, g1)],
-        "east": [(py0 + 0.30, py1 - 0.30, g0, g1)],
-    }
-    kit.shell("porch_", px0, px1, py0, -hd + 0.02 + pe, B_PORCH_T, pe,
-              {"front": -BELOW + 0.005, "west": -BELOW - 0.015}, {"front": low, "west": west_top},
-              p_open, [kit.m["walls"], base], floor, which=("front", "west"))
-    kit.shell("porch_", px0, px1, py0, py1, B_PORCH_T, pe,
-              {"east": -BELOW - 0.015}, {"east": low_e}, p_open, [kit.m["walls"], base], floor, which=("east",))
-    x_start = px1 - pe
-    back_len = x_start - (hw - 0.02)
-    back_top = Top(gable=(back_len, back_len + (px1 + over) - x_start, z_e, s))
-    back_open = [(0.15, 0.55, g0, g1)]
-    kit.wall("porch_wall_back", (x_start, py1, 0.0), (-1, 0, 0), (0, -1, 0), back_len, B_PORCH_T, -BELOW - 0.005,
-             back_top, back_open, floor, [kit.m["walls"], base])
-    kit.corner_boards("porch_", trim, px0, px1, py0, py1, B_PORCH_POST, PROUD, -BELOW - 0.035, z_e + 0.10,
-                      which=("sw", "se", "ne"))
-    kit.l_roof("porch_roof", kit.m["roof"], hw - BB_ROOF_LAP, px1 + over, -hd + BB_ROOF_LAP, py0 - over, py1 + over,
-               z_e, s, BB_PORCH_ROOF_T)
-    faces = (("front", "x", py0, -1, p_open["front"], 4), ("west", "y", px0, -1, p_open["west"], 1),
-             ("east", "y", px1, 1, p_open["east"], 4), ("back", "x", py1, 1, [(x_start - 0.55, x_start - 0.15, g0, g1)], 1))
-    for face, axis, at, out, opens, lights in faces:
-        for k, (a0, a1, z0, z1) in enumerate(opens):
-            kit.opening_trim(f"porch_{face}{k}_trim", kit.m["frames"], axis, at, out, a0, a1, z0, z1)
-            kit.pane(f"porch_{face}{k}_pane", glass, axis, at, out, a0, a1, z0, z1)
-            kit.mullions(f"porch_{face}{k}", kit.m["frames"], axis, at, out, a0, a1, z0, z1, lights)
-
-
-def build_side_stoop(kit, floor):
-    """The side door's landing on the driveway side and its flight down
-    along the wall toward the back, railed on the open sides."""
-    hw = W / 2
-    deck, trim, base = kit.m["deck"], kit.m["trim"], kit.m["base"]
-    y0, y1 = BB_SIDE_DECK_Y
-    x_out = hw + BB_SIDE_DECK_W
-    kit.box("side_deck", deck, hw - 0.03, x_out, y0, y1, floor - 0.20, floor)
-    kit.skirt("side_skirt", base, hw - 0.04, x_out - 0.08, y0 + 0.08, y1 - 0.08, floor)
-    sx0, sx1 = hw + 0.10, x_out - 0.15
-    n, riser = kit.stair("side_stair", deck, sx0, sx1, y1, 1, floor)
-    x_at = sx1 + 0.05
-    kit.stair_rail("side_rail", trim, x_at, y1, 1, floor, n, riser)
-    kit.newel("side_newel_f", trim, x_at - POST / 2, y0 + 0.03, floor)
-    kit.panel_rail("side_rail_out", trim, "y", x_at, y0 + 0.03 + POST - 0.02, y1 - 0.03 - POST + 0.03, floor)
-    kit.panel_rail("side_rail_front", trim, "x", y0 + 0.03 + POST / 2, hw - 0.06, x_at - POST / 2 + 0.02, floor)
-
-
-def build_blue_b(kit):
-    """blue_b: the first, realistic blue with its porch wrapping the corner,
-    a side door and landing on the driveway side in place of the back stoop,
-    and a brick chimney."""
-    floor = B_FLOOR
-    hw, hd = W / 2, D / 2
-    eave = floor + STOREY
-    trim, accent, glass, deck, base = (kit.m[k] for k in ("trim", "accent", "glass", "deck", "base"))
-    front = [(*B_DOOR_X, floor + THRESHOLD, floor + DOOR_H), (*B_WINDOW_X, floor + SILL, floor + HEAD),
-             (*B_UP_WINDOW_X, eave + UP_SILL, eave + UP_HEAD)]
-    openings = body_openings(kit, floor, front, side_door=BB_SIDE_DOOR_Y, back_door=False)
-    kinds = {("front", 0), ("east", len(openings["east"]) - 1)}
-    build_body(kit, floor, openings, kinds=kinds)
-    build_side_stoop(kit, floor)
-    a0, a1, z0, z1 = openings["east"][-1]
-    kit.hood("side_door", accent, "y", hw, 1, a0, a1, z1, B_HOOD_H)
-    chimney(kit, eave)
-    # the triple window over the balcony and the paired one by the door
-    kit.mullions("front2", kit.m["frames"], "x", -hd, -1, *front[2], 3)
-    kit.mullions("front1", kit.m["frames"], "x", -hd, -1, *front[1], 2)
-    # red hoods over the door and the main-floor window
-    for k in (0, 1):
-        a0, a1, z0, z1 = front[k]
-        kit.hood(f"front{k}", accent, "x", -hd, -1, a0, a1, z1, B_HOOD_H)
-    # the water table, clear of the landing, the porch and the side stoop
-    sy0, sy1 = BB_SIDE_DECK_Y
-    band(kit, trim, floor, [("back", -BAND_END_X, BAND_END_X), ("west", -BAND_END_Y, BAND_END_Y),
-                            ("east", -hd + BB_SIDE_D + 0.06, sy0 - 0.06), ("east", sy1 + 0.06, BAND_END_Y)])
-    # the sunburst at the peak: a white ring, a red disc, white rays
-    zc = eave + B_FAN_Z
-    ring_out = kit.half_disc("fan_ring", trim, 0.0, zc, B_FAN_R, -hd - 0.06, -hd + 0.02, segments=12)
-    kit.half_disc("fan_disc", accent, 0.0, zc + 0.01, B_FAN_R - 0.10, -hd - 0.04, -hd + 0.03, segments=12)
-    kit.rays("fan", trim, 0.0, zc, 0.12, B_FAN_R - 0.04, 0.05, (12, 38, 64, 90, 116, 142, 168), -hd - 0.075, -hd - 0.03)
-    kit.box("fan_base", trim, -B_FAN_R - 0.02, B_FAN_R + 0.02, -hd - 0.065, -hd + 0.025, zc - 0.07, zc + 0.02, collide=False)
-    gable_brackets(kit, accent, eave, -hd)
-    # the balcony on the eave line: a plate 3 cm into the wall, three knee
-    # brackets under it, lattice rails on newels
-    bx0, bx1 = -B_BALCONY_HW, B_BALCONY_HW
-    by0 = -hd - B_BALCONY_D
-    kit.box("balcony", deck, bx0, bx1, by0, -hd + 0.03, eave - 0.15, eave)
-    for k, x in enumerate(B_BRACKETS_X):
-        kit.bracket(f"balcony_bracket_{k}", trim, x - 0.06, x + 0.06, -hd, -1, eave - 0.13, B_BALCONY_D - 0.12, 0.62, lap=0.04)
-    # the newels 4.5 cm in from the plate's edge: their posts and caps then
-    # miss the bargeboards' planes half a metre in front of the wall
-    for tag, x0 in (("w", bx0 + 0.03), ("e", bx1 - 0.03 - POST)):
-        kit.newel(f"balcony_newel_{tag}", trim, x0, by0 + 0.045, eave)
-    post_y = by0 + 0.045 + POST / 2
-    kit.lattice_rail("balcony_rail_front", trim, "x", post_y, bx0 + 0.03 + POST - 0.02, bx1 - 0.03 - POST + 0.02, eave)
-    kit.lattice_rail("balcony_rail_w", trim, "y", bx0 + 0.03 + POST / 2, post_y + POST / 2 - 0.02, -hd + 0.05, eave)
-    kit.lattice_rail("balcony_rail_e", trim, "y", bx1 - 0.03 - POST / 2, post_y + POST / 2 - 0.02, -hd + 0.05, eave)
-    glazed_porch(kit, floor)
-    px0 = B_PORCH_X0
-    # the entry landing from the left corner to the porch, its skirt, lattice
-    # rails on newels, the straight flight down from the door
-    lx0, lx1 = -hw - 0.06, px0 + 0.02
-    ly0 = -hd - B_LANDING_D
-    kit.box("landing", deck, lx0, lx1, ly0, -hd + 0.03, floor - 0.20, floor)
-    kit.skirt("landing_skirt", base, -hw + 0.04, px0 - 0.08, ly0 + 0.10, -hd + 0.04, floor)
-    sx0, sx1 = (B_DOOR_X[0] + B_DOOR_X[1]) / 2 - STAIR_W / 2, (B_DOOR_X[0] + B_DOOR_X[1]) / 2 + STAIR_W / 2
-    n, riser = kit.stair("stair", deck, sx0, sx1, ly0, -1, floor)
-    rail_w, rail_e = sx0 - 0.05, sx1 + 0.05
-    for tag, x_at in (("w", rail_w), ("e", rail_e)):
-        kit.stair_rail(f"stair_rail_{tag}", trim, x_at, ly0, -1, floor, n, riser)
-    kit.newel("landing_newel_w", trim, lx0 + 0.03, ly0 + 0.03, floor)
-    post_y = ly0 + 0.03 + POST / 2
-    kit.lattice_rail("landing_rail_w", trim, "y", lx0 + 0.03 + POST / 2, post_y + POST / 2 - 0.02, -hd + 0.05, floor)
-    kit.lattice_rail("landing_rail_fw", trim, "x", post_y, lx0 + 0.03 + POST - 0.02, rail_w - POST / 2 + 0.02, floor)
-    kit.lattice_rail("landing_rail_fe", trim, "x", post_y, rail_e + POST / 2 - 0.02, px0 + 0.02, floor)
-    # the door's fan light: a half-disc of glass on the leaf
-    dx = (B_DOOR_X[0] + B_DOOR_X[1]) / 2
-    kit.half_disc("door_fanlight", glass, dx, floor + DOOR_H - 0.45, 0.30, -hd + 0.07, -hd + 0.10, segments=8)
-
-
-def build_purple(kit, bar_z, fan_r, spindles_x, spindle_l, railed=False, with_chimney=False):
-    floor = P_FLOOR
-    hw, hd = W / 2, D / 2
-    up = floor + STOREY                   # the upstairs floor
-    eave = up + kit.knee                  # the roof's eave
-    trim, accent, frames, deck, base = (kit.m[k] for k in ("trim", "accent", "frames", "deck", "base"))
-    front = [(*P_DOOR_X, floor + THRESHOLD, floor + DOOR_H), (*P_WINDOW_X, floor + SILL, floor + HEAD)]
-    front += [(a0, a1, up + UP_SILL, up + P_UP_HEAD) for a0, a1 in P_UP_WINDOWS_X]
-    openings = body_openings(kit, floor, front)
-    build_body(kit, floor, openings, kinds={("front", 0), ("back", 1)})
-    build_back_stoop(kit, floor)
-    if with_chimney:
-        chimney(kit, eave)
-    for k in (2, 3):
-        a0, a1, z0, z1 = front[k]
-        kit.pointed_hood(f"front{k}", frames, -hd, a0, a1, z1, P_HOOD_H)
-    band(kit, trim, floor, [("back", -BAND_END_X, STOOP_X[0] - 0.06), ("back", STOOP_X[1] + 0.06, BAND_END_X),
-                            ("west", -BAND_END_Y, BAND_END_Y), ("east", -BAND_END_Y, BAND_END_Y)])
-    # the spindle-work fan: a bar across the gable, a gold sunburst on it,
-    # spindles hanging under it, a magenta panel filling the peak behind
-    zb0, zb1 = eave + bar_z[0], eave + bar_z[1]
-    half_at_bar = (kit.rise + LIFT - (zb1 - eave)) / kit.tan - 0.05
-    kit.box("fan_bar", trim, -half_at_bar, half_at_bar, -hd - 0.06, -hd + 0.02, zb0, zb1, collide=False)
-    apex = eave + kit.rise + LIFT
-    panel = [(-half_at_bar + 0.02, zb1 - 0.02), (half_at_bar - 0.02, zb1 - 0.02), (0.0, apex - 0.40)]
-    kit.prism("fan_panel", accent, panel, "y", -hd - 0.015, -hd + 0.03, collide=False)
-    kit.half_disc("fan_disc", frames, 0.0, zb1 - 0.01, fan_r, -hd - 0.05, -hd - 0.005, segments=10)
-    kit.rays("fan", trim, 0.0, zb1 - 0.01, 0.08, fan_r - 0.03, 0.04, (20, 50, 90, 130, 160), -hd - 0.07, -hd - 0.04)
-    for k, x in enumerate(spindles_x):
-        kit.prism(f"fan_spindle{k}", frames, octagon(x, -hd - 0.025, 0.025), "z", zb0 - spindle_l, zb0 + 0.02, collide=False)
-    gable_brackets(kit, accent, eave, -hd)
-    # the full-width porch: deck and skirt, four turned posts with blocks and
-    # brackets, the beam, the shed roof under the eave, the steps at the door
-    dx0, dx1 = -hw - P_DECK_OVER, hw + P_DECK_OVER
-    dy0 = -hd - P_PORCH_D
-    kit.box("porch_deck", deck, dx0, dx1, dy0, -hd + 0.03, floor - 0.20, floor)
-    kit.skirt("porch_skirt", base, dx0 + 0.10, dx1 - 0.10, dy0 + 0.10, -hd + 0.04, floor)
-    post_y = dy0 + 0.15 + P_POST_BLOCK / 2
-    beam0, beam1 = floor + P_BEAM_Z[0], floor + P_BEAM_Z[1]
-    for k, x in enumerate(P_POSTS_X):
-        b = P_POST_BLOCK / 2
-        kit.box(f"post{k}_base", trim, x - b, x + b, post_y - b, post_y + b, floor - 0.02, floor + 0.50)
-        kit.prism(f"post{k}_shaft", trim, octagon(x, post_y, P_POST_R), "z", floor + 0.48, beam0 + 0.04)
-        kit.box(f"post{k}_capital", frames, x - b, x + b, post_y - b, post_y + b, beam0 - 0.14, beam0 + 0.01, collide=False)
-        for tag, sx in (("w", -1), ("e", 1)):
-            if (k == 0 and sx < 0) or (k == len(P_POSTS_X) - 1 and sx > 0):
-                continue
-            xi, xo = x + sx * (b - 0.02), x + sx * (b + 0.30)
-            poly = [(xi, beam0 + 0.05), (xo, beam0 + 0.05), (xi, beam0 - 0.30)]
-            kit.prism(f"post{k}_bracket_{tag}", accent, poly, "y", post_y - 0.04, post_y + 0.04, collide=False)
-    kit.box("porch_beam", trim, dx0 + 0.05, dx1 - 0.05, post_y - 0.10, post_y + 0.10, beam0, beam1, collide=False)
-    kit.box("porch_frieze", frames, dx0 + 0.09, dx1 - 0.09, post_y - 0.06, post_y + 0.06, beam0 - 0.10, beam0 + 0.02, collide=False)
-    r_wall, r_front = floor + P_ROOF_UNDER[0], floor + P_ROOF_UNDER[1]
-    ry0, ry1 = dy0 - 0.30, -hd + 0.02
-    poly = [(ry0, r_front), (ry1, r_wall), (ry1, r_wall + P_ROOF_T), (ry0, r_front + P_ROOF_T)]
-    kit.prism("porch_roof", kit.m["roof"], poly, "x", -hw - P_ROOF_OVER, hw + P_ROOF_OVER)
-    kit.box("porch_fascia", trim, -hw - P_ROOF_OVER - 0.02, hw + P_ROOF_OVER + 0.02, ry0 - 0.05, ry0 + 0.02,
-            r_front - 0.10, r_front + P_ROOF_T - 0.03, collide=False)
-    sx0, sx1 = P_STEP_X
-    kit.stair("stair", deck, sx0, sx1, dy0, -1, floor)   # no rails, as the photograph
-    if railed:
-        # panel rails between the posts (the painting cuts the balusters),
-        # their ends 2 cm inside the shafts' flat faces, the steps' bay open
-        inset = P_POST_R * math.cos(math.pi / 8) - 0.02
-        for k in range(1, len(P_POSTS_X) - 1):
-            kit.panel_rail(f"porch_rail_{k}", trim, "x", post_y, P_POSTS_X[k] + inset, P_POSTS_X[k + 1] - inset, floor)
-        # the side rails 1.5 cm inside the posts' centres: their caps then
-        # miss the body's wall ends and corner boards where they enter
-        for tag, x in (("w", P_POSTS_X[0] + 0.015), ("e", P_POSTS_X[-1] - 0.015)):
-            kit.panel_rail(f"porch_rail_{tag}", trim, "y", x, post_y + inset, -hd + 0.05, floor)
 
 
 # --- blue, the cartoony build --------------------------------------------------------
@@ -1186,11 +767,46 @@ def porch_warp(x0, x1, y_front, y_back, eave):
     return warp
 
 
-def sag_stations(y0, y1):
-    """The ridge and eaves dip along the roof, none at the rakes and BC_SAG at
-    the middle: a hand-built roof, not a ruled one. The whole section drops,
-    so every face of the slab stays planar."""
-    return [(y0, 0.0), (y0 / 2, 0.75 * BC_SAG), (0.0, BC_SAG), (y1 / 2, 0.75 * BC_SAG), (y1, 0.0)]
+def cartoon_body(kit, floor, eave, openings, doors, lights, gable_lift=BC_GABLE_LIFT, wall_top_in=BC_WALL_TOP_IN):
+    """A cartoony body on the shared 6 x 10.5 footprint: the four walls as
+    shells with gables front and back (their tops `gable_lift` inside the
+    slab, the sides' `wall_top_in` over the eave), the fat corner boards each
+    sheared up to a centimetre off plumb, a single-piece casing round every
+    opening (`lights` across, by (face, index)) and its pane or door leaf.
+    `doors` names the doors, as (face, index); `openings` per face, as the
+    shell takes them. Whatever warp the kit holds leans all of it."""
+    hw, hd = W / 2, D / 2
+    m, j = kit.m, kit.jit
+    e = BC_CORNER / 2 - PROUD
+    gable = LiftedTop(gable=(hw - e, hw, eave, kit.tan), lift=gable_lift)
+    flat = Top(flat=eave + wall_top_in)
+    kit.shell("", -hw, hw, -hd, hd, T, e, {"front": -BELOW, "back": -BELOW, "west": -BELOW - 0.01, "east": -BELOW - 0.01},
+              {"front": gable, "back": gable, "west": flat, "east": flat}, openings, [m["walls"], m["base"]], floor)
+    # the corner boards, 0.30 square, each sheared up to a centimetre off plumb
+    zb, zt = -BELOW - 0.03, eave + wall_top_in + 0.02
+    for sx, sy, tag in ((-1, -1, "sw"), (1, -1, "se"), (-1, 1, "nw"), (1, 1, "ne")):
+        h = BC_CORNER / 2
+        kit.lathe(f"corner_{tag}", m["trim"], sx * (hw + PROUD - h), sy * (hd + PROUD - h), [(h, h, zb), (h, h, zt)],
+                  lean=(j(0.01) / (zt - zb), j(0.01) / (zt - zb)))
+    for face, axis, at, out in (("front", "x", -hd, -1), ("back", "x", hd, 1), ("west", "y", -hw, -1), ("east", "y", hw, 1)):
+        for k, (a0, a1, z0, z1) in enumerate(openings[face]):
+            door = (face, k) in doors
+            kit.casing(f"{face}{k}_casing", m["frames"], axis, at, out, a0, a1, z0, z1, lights=lights.get((face, k), 1), sill=not door)
+            kit.pane(f"{face}{k}_{'door' if door else 'pane'}", m["door"] if door else m["glass"], axis, at, out, a0, a1, z0, z1,
+                     recess=BC_PANE_RECESS)
+
+
+def fat_chimney(kit, cx, cy, hx, hy, rt, z_base):
+    """A fat brick chimney (hx, hy its half-sizes) through a slope, from
+    z_base inside the attic: stepping in once over the ridge's height (rt)
+    and capped, its steps a little uneven and the stack a touch off plumb."""
+    j = kit.jit
+    zs, zt = rt - 0.10 + j(0.04), rt + 0.55 + j(0.04)
+    inset = 0.06 + j(0.012)
+    kit.lathe("chimney", kit.m["brick"], cx, cy,
+              [(hx, hy, z_base), (hx, hy, zs), (hx - inset, hy - inset, zs + 0.08 + j(0.02)), (hx - inset, hy - inset, zt),
+               (hx + 0.05, hy + 0.05, zt), (hx + 0.05, hy + 0.05, zt + 0.14 + j(0.02)), (hx - 0.02, hy - 0.02, zt + 0.19)],
+              lean=(j(0.012), j(0.012)))
 
 
 def sunburst(kit, eave, y_rake, rt):
@@ -1254,143 +870,30 @@ def sunburst(kit, eave, y_rake, rt):
     kit.plate("collar_frieze", [m["accent_shade"]], polys, "y", y_rake + 0.04, y_rake + 0.09, collide=False)
 
 
-def build_blue_cartoon(kit):
-    """`blue`, the cartoony build: see the module docstring."""
-    floor = B_FLOOR
+def gable_porch_top(floor):
+    """The blue's porch gable roof's top: (p_xc, p_half, p_top(r)), r from its
+    ridge line, for the porch itself and for the balcony bracket that rests
+    on it."""
+    hw = W / 2
+    px0, px1 = B_PORCH_X0, hw + BC_PORCH_PROUD
+    p_eave = floor + BC_PORCH_EAVE
+    p_tan = math.tan(B_PORCH_PITCH)
+    p_half, p_xc = (px1 - px0) / 2, (px0 + px1) / 2
+    p_vt = BC_PORCH_ROOF_T / math.cos(B_PORCH_PITCH)
+    prt = p_eave + p_half * p_tan + p_vt
+
+    def p_top(r):
+        return prt - r * p_tan
+    return p_xc, p_half, p_top
+
+
+def gable_porch(kit, floor):
+    """The blue's glazed porch at the right-front corner and its little gable,
+    leaning on its own (`porch_warp`); returns what the landing and its
+    clusters need."""
     hw, hd = W / 2, D / 2
-    eave = floor + BC_STOREY
     m = kit.m
-    trim, accent, frames, glass, deck, base, roof = (m[k] for k in ("trim", "accent", "frames", "glass", "deck", "base", "roof"))
-    j, rng = kit.jit, kit.rng
-
-    # -- the body, leaning in: walls, corner boards, casings, panes, band, plinth
-    kit.warp = body_warp(eave)
-    sill, head = floor + BC_SILL, floor + BC_HEAD_Z
-    front = [(*BC_DOOR_X, floor + THRESHOLD, floor + BC_DOOR_H), (*BC_WINDOW_X, sill, head),
-             (*BC_UP_WINDOW_X, eave + BC_UP_SILL, eave + BC_UP_HEAD)]
-    sides = [(c - BC_SIDE_WIN_W / 2, c + BC_SIDE_WIN_W / 2, sill, head) for c in SIDE_WINDOWS]
-    back = [(*BC_BACK_WINDOW_X, sill, head), (*BACK_DOOR_X, floor + THRESHOLD, floor + BC_DOOR_H),
-            (*BC_BACK_UP_WINDOW_X, eave + BC_UP_SILL, eave + BC_BACK_UP_HEAD)]
-    openings = {"front": front, "back": back, "west": sides, "east": list(sides)}
-    doors = {("front", 0), ("back", 1)}
-    lights = {("front", 1): 2, ("front", 2): 3}
-    e = BC_CORNER / 2 - PROUD
-    gable = LiftedTop(gable=(hw - e, hw, eave, kit.tan), lift=BC_GABLE_LIFT)
-    flat = Top(flat=eave + BC_WALL_TOP_IN)
-    kit.shell("", -hw, hw, -hd, hd, T, e, {"front": -BELOW, "back": -BELOW, "west": -BELOW - 0.01, "east": -BELOW - 0.01},
-              {"front": gable, "back": gable, "west": flat, "east": flat}, openings, [m["walls"], base], floor)
-    # the corner boards, 0.30 square, each sheared up to a centimetre off plumb
-    zb, zt = -BELOW - 0.03, eave + BC_WALL_TOP_IN + 0.02
-    for sx, sy, tag in ((-1, -1, "sw"), (1, -1, "se"), (-1, 1, "nw"), (1, 1, "ne")):
-        h = BC_CORNER / 2
-        kit.lathe(f"corner_{tag}", trim, sx * (hw + PROUD - h), sy * (hd + PROUD - h), [(h, h, zb), (h, h, zt)],
-                  lean=(j(0.01) / (zt - zb), j(0.01) / (zt - zb)))
-    for face, axis, at, out in (("front", "x", -hd, -1), ("back", "x", hd, 1), ("west", "y", -hw, -1), ("east", "y", hw, 1)):
-        for k, (a0, a1, z0, z1) in enumerate(openings[face]):
-            door = (face, k) in doors
-            kit.casing(f"{face}{k}_casing", frames, axis, at, out, a0, a1, z0, z1, lights=lights.get((face, k), 1), sill=not door)
-            kit.pane(f"{face}{k}_{'door' if door else 'pane'}", m["door"] if door else glass, axis, at, out, a0, a1, z0, z1,
-                     recess=BC_PANE_RECESS)
-    # the door's fan light, a centimetre proud of the leaf
-    kit.half_disc("door_fanlight", glass, sum(BC_DOOR_X) / 2, floor + BC_DOOR_H - 0.42, 0.28, -hd + 0.05, -hd + 0.08, segments=6)
-    # the water table at the floor line, chunkier, clear of the stoop
-    bx, by = hw - BC_CORNER + PROUD + 0.02, hd - BC_CORNER + PROUD + 0.02
-    bz0, bz1 = floor - BC_BAND_H / 2, floor + BC_BAND_H / 2
-    kit.box("band_back0", trim, -bx, BC_STOOP_X[0] - 0.06, hd - 0.01, hd + 0.03, bz0, bz1, collide=False)
-    kit.box("band_back1", trim, BC_STOOP_X[1] + 0.06, bx, hd - 0.01, hd + 0.03, bz0, bz1, collide=False)
-    kit.box("band_west", trim, -hw - 0.03, -hw + 0.01, -by, by, bz0, bz1, collide=False)
-    kit.box("band_east", trim, hw - 0.01, hw + 0.03, -by, by, bz0, bz1, collide=False)
-    # a chunky plinth round the foot, flaring 7 cm outward to the ground: the
-    # wide base the lean starts from
-    kit.sweep("plinth", base, [(-hw, -hd), (hw, -hd), (hw, hd), (-hw, hd)], BC_PLINTH)
-    # the knee brackets at the front gable's lower corners, under the rakes,
-    # white as the photo's trim is (they were the blue's red)
-    for tag, sx in (("w", -1), ("e", 1)):
-        run = 0.62 + j(0.03)
-        xo, xi = sx * (hw - 0.10), sx * (hw - 0.10 - run)
-        poly = [(xi, eave + 0.06), (xo, eave + 0.06), (xi, eave + 0.06 + run * kit.tan)]
-        kit.prism(f"gable_bracket_{tag}", trim, poly, "y", -hd - 0.07, -hd + 0.02, collide=False)
-    kit.warp = None
-
-    # -- the roof, the heavy part: a 0.30 slab, a bell-cast kick, a sag
-    tan, vt = kit.tan, kit.roof_vt
-    y0, y1 = -hd - BC_RAKE_OVER, hd + BC_RAKE_OVER
-    stations = sag_stations(y0, y1)
-    x_k = hw + BC_KICK_AT
-    x_end = x_k + 0.02          # the main slab ends 2 cm under the kick's top, out of sight
-
-    def under(x):
-        return eave + (hw - abs(x)) * tan
-    section = [(-x_end, under(-x_end)), (0.0, under(0.0)), (x_end, under(x_end)),
-               (x_end, under(x_end) + vt), (0.0, under(0.0) + vt), (-x_end, under(-x_end) + vt)]
-    kit.swept("roof", roof, section, stations)
-    # the kick: a second, shallower slab from inside the wall line, lapped
-    # under the main one, whose top it leaves BC_KICK_AT past the wall
-    K_z = eave + vt - BC_KICK_AT * tan
-    t_k = math.tan(math.radians(BC_KICK_DEG))
-    x_in, x_out = hw - BC_KICK_IN, hw + BC_EAVE_OVER
-
-    def kick_top(r):
-        return K_z - (r - x_k) * t_k
-    k_stations = [(y0 - 0.03, 0.0)] + stations[1:-1] + [(y1 + 0.03, 0.0)]
-    for tag, s in (("e", 1), ("w", -1)):
-        kit.swept(f"roof_kick_{tag}", roof, [(s * x_in, kick_top(x_in)), (s * x_out, kick_top(x_out)),
-                                             (s * x_out, kick_top(x_out) - BC_KICK_T), (s * x_in, kick_top(x_in) - BC_KICK_T)], k_stations)
-    rt = eave + kit.rise + vt
-
-    def top(x):
-        return rt - abs(x) * tan
-    # a ridge roll sitting on the slopes, not a plank floating over them
-    h = 0.24
-    kit.swept("ridge_cap", roof, [(-h, top(-h) - 0.03), (0.0, rt - 0.03), (h, top(h) - 0.03),
-                                  (h, top(h) + 0.07), (0.0, rt + 0.08), (-h, top(-h) + 0.07)],
-              [(y0 - 0.02, 0.0)] + stations[1:-1] + [(y1 + 0.02, 0.0)], collide=False)
-
-    def profile(r):
-        return rt - r * tan if r <= x_k else kick_top(r)
-    # two big drops down each rake, as the photo's, front and back
-    for face, y_rake, out in (("front", y0, -1), ("back", y1, 1)):
-        kit.barge(f"barge_{face}", profile, [x_k], x_out + 0.05, 0.0, y_rake, out, BC_BARGE_H, BC_BARGE_BAND, (0.42, 0.76))
-    sunburst(kit, eave, y0, rt)
-    # a fat brick chimney through the east slope, stepping in once over the
-    # ridge's height and capped, its steps a little uneven and the stack a
-    # touch off plumb
-    cx, cy, hx, hy = BC_CHIMNEY
-    zs, zt = rt - 0.10 + j(0.04), rt + 0.55 + j(0.04)
-    inset = 0.06 + j(0.012)
-    kit.lathe("chimney", m["brick"], cx, cy,
-              [(hx, hy, eave + 2.0), (hx, hy, zs), (hx - inset, hy - inset, zs + 0.08 + j(0.02)), (hx - inset, hy - inset, zt),
-               (hx + 0.05, hy + 0.05, zt), (hx + 0.05, hy + 0.05, zt + 0.14 + j(0.02)), (hx - 0.02, hy - 0.02, zt + 0.19)],
-              lean=(j(0.012), j(0.012)))
-
-    # -- the balcony on the eave line: the plate, two big shaped brackets,
-    # fat newels, square balusters under a fat sagging rail
-    by0 = -hd - BC_BALCONY_D
-    kit.box("balcony", deck, -BC_BALCONY_HW, BC_BALCONY_HW, by0, -hd + 0.06, eave - BC_BALCONY_T, eave)
-    for k, x in enumerate(BC_BRACKETS_X):
-        # a knee bracket with a cove sawn out of its face and a short drop at
-        # its foot, each one a little different
-        reach = BC_BALCONY_D - 0.16 + j(0.03)
-        drop = 0.88 + j(0.05)
-        foot = 0.12 + j(0.015)
-        rx, rz = reach - foot, drop - 0.12 - 0.14 + j(0.03)
-        cz = -0.14 - rz
-        pts = [(-0.04, 0.0), (reach, 0.0), (reach, -0.14)]
-        pts += [(reach + rx * math.cos(math.radians(a)), cz + rz * math.sin(math.radians(a))) for a in (112.5, 135.0, 157.5)]
-        pts += [(foot, cz), (foot, -drop + 0.05), (foot - 0.06, -drop), (-0.04, -drop)]
-        z_top = eave - BC_BALCONY_T + 0.02
-        half = BC_BRACKET_W / 2 + j(0.01)
-        x += j(0.012)
-        kit.prism(f"balcony_bracket_{k}", trim, [(-hd - s, z_top + dz) for s, dz in pts], "x", x - half, x + half, collide=False)
-    nx = BC_BALCONY_HW - 0.03 - ck.NEWEL / 2
-    ny = by0 + 0.045 + ck.NEWEL / 2
-    for tag, x in (("w", -nx), ("e", nx)):
-        kit.newel_post(f"balcony_newel_{tag}", trim, x, ny, eave)
-    kit.straight_rail("balcony_rail_front", "x", ny, -nx + 0.055, nx - 0.055, -nx + ck.NEWEL / 2, nx - ck.NEWEL / 2, eave)
-    for tag, x in (("w", -nx), ("e", nx)):
-        kit.straight_rail(f"balcony_rail_{tag}", "y", x, ny + 0.055, -hd + 0.08, ny + ck.NEWEL / 2, -hd, eave)
-
-    # -- the glazed porch and its little gable, leaning on its own
+    trim, frames, glass, base, roof = (m[k] for k in ("trim", "frames", "glass", "base", "roof"))
     px0, px1 = B_PORCH_X0, hw + BC_PORCH_PROUD
     py0 = -hd - B_PORCH_D
     pe = BC_PORCH_POST / 2 - PROUD
@@ -1413,10 +916,8 @@ def build_blue_cartoon(kit):
     for tag, sx in (("sw", -1), ("se", 1)):
         pcx = (px0 - PROUD + BC_PORCH_POST / 2) if sx < 0 else (px1 + PROUD - BC_PORCH_POST / 2)
         pcy = py0 - PROUD + BC_PORCH_POST / 2
-        sh, blk, col = BC_PORCH_POST / 2, 0.17 + j(0.01), 0.165 + j(0.008)
-        kit.lathe(f"porch_post_{tag}", trim, pcx, pcy,
-                  [(blk, blk, -BELOW - 0.045), (blk, blk, 0.55 + j(0.03)), (sh, sh, 0.62 + j(0.02)), (sh, sh, p_eave - 0.32),
-                   (col, col, p_eave - 0.28), (col, col, p_eave - 0.13), (sh, sh, p_eave - 0.10), (sh, sh, p_eave + 0.185)])
+        kit.timber_post(f"porch_post_{tag}", trim, pcx, pcy, -BELOW - 0.045, (0.55, 0.62), p_eave, p_eave + 0.185,
+                        size=BC_PORCH_POST)
     for face, axis, at, out in (("front", "x", py0, -1), ("west", "y", px0, -1), ("east", "y", px1, 1)):
         for k, (a0, a1, z0, z1) in enumerate(p_open[face]):
             kit.casing(f"porch_{face}{k}_casing", frames, axis, at, out, a0, a1, z0, z1, lights=3 if face == "front" else 1)
@@ -1425,15 +926,162 @@ def build_blue_cartoon(kit):
               ((-0.06, -0.09), (0.10, -0.09), (0.04, 0.40), (-0.06, 0.40)), closed=False)
     kit.warp = None
     kit.gable_roof("porch_roof", roof, p_xc, p_half, p_eave, p_tan, 0.25, BC_PORCH_ROOF_T, py0 - BC_PORCH_RAKE, -hd + 0.045)
-    prt = p_eave + p_half * p_tan + p_vt
-
-    def p_top(r):
-        return prt - r * p_tan
+    _, _, p_top = gable_porch_top(floor)
+    prt = p_top(0.0)
     ph = 0.15
     kit.swept("porch_ridge_cap", roof, [(p_xc - ph, p_top(ph) - 0.03), (p_xc, prt - 0.03), (p_xc + ph, p_top(ph) - 0.03),
                                         (p_xc + ph, p_top(ph) + 0.06), (p_xc, prt + 0.07), (p_xc - ph, p_top(ph) + 0.06)],
               [(py0 - BC_PORCH_RAKE - 0.02, 0.0), (-hd + 0.04, 0.0)], collide=False)
     kit.barge("porch_barge", p_top, [], p_half + 0.30, p_xc, py0 - BC_PORCH_RAKE, -1, 0.26, 0.10, (), band_mat=trim)
+    return px0, py0, p_xc, p_half, p_top
+
+
+def back_stoop(kit, floor):
+    """The blue's back stoop: a deck, a wider flight, solid parapets with fat
+    caps (the back is not in the photograph: one plain piece a side), piers
+    at the foot. Returns the flight's (n, riser, going)."""
+    hd = D / 2
+    m = kit.m
+    deck, base = m["deck"], m["base"]
+    x0, x1 = BC_STOOP_X
+    y_edge = hd + STOOP_D
+    kit.box("stoop_deck", deck, x0, x1, hd - 0.06, y_edge, floor - BC_DECK_T, floor)
+    kit.skirt("stoop_skirt", base, x0 + 0.08, x1 - 0.08, hd - 0.04, y_edge - 0.08, floor)
+    scx = (x0 + x1) / 2
+    ssx0, ssx1 = scx - BC_STOOP_STAIR_W / 2, scx + BC_STOOP_STAIR_W / 2
+    n, riser, going = kit.flight("stoop_stair", deck, ssx0, ssx1, y_edge, 1, floor)
+    kit.stoop_parapets("stoop", (("w", ssx0 - 0.05), ("e", ssx1 + 0.05)), y_edge, 1, floor, n, riser, going, -(STOOP_D + 0.05))
+    return n, riser, going
+
+
+def build_blue_cartoon(kit, b=False):
+    """`blue`, the cartoony build, and with `b` `blue_b`, the same build with
+    its porch round the corner, a side door and flight in place of the back
+    stoop: see the module docstring. The blue's statements and the order of
+    its draws are untouched; blue_b's differences branch off them."""
+    floor = B_FLOOR
+    hw, hd = W / 2, D / 2
+    eave = floor + BC_STOREY
+    m = kit.m
+    trim, accent, frames, glass, deck, base, roof = (m[k] for k in ("trim", "accent", "frames", "glass", "deck", "base", "roof"))
+    j, rng = kit.jit, kit.rng
+
+    # -- the body, leaning in: walls, corner boards, casings, panes, band, plinth
+    kit.warp = body_warp(eave)
+    sill, head = floor + BC_SILL, floor + BC_HEAD_Z
+    front = [(*BC_DOOR_X, floor + THRESHOLD, floor + BC_DOOR_H), (*BC_WINDOW_X, sill, head),
+             (*BC_UP_WINDOW_X, eave + BC_UP_SILL, eave + BC_UP_HEAD)]
+    sides = [(c - BC_SIDE_WIN_W / 2, c + BC_SIDE_WIN_W / 2, sill, head) for c in SIDE_WINDOWS]
+    back = [(*BC_BACK_WINDOW_X, sill, head), (*BACK_DOOR_X, floor + THRESHOLD, floor + BC_DOOR_H),
+            (*BC_BACK_UP_WINDOW_X, eave + BC_UP_SILL, eave + BC_BACK_UP_HEAD)]
+    openings = {"front": front, "back": back, "west": sides, "east": list(sides)}
+    doors = {("front", 0), ("back", 1)}
+    if b:
+        # blue_b: no back door; the side door on the driveway side, between the
+        # side windows; the front side window is inside the wrapping porch (its
+        # head would stand over the lean-to), so it goes
+        del back[1]
+        openings["east"] = sides[1:] + [(*BBC_SIDE_DOOR_Y, floor + THRESHOLD, floor + BC_DOOR_H)]
+        doors = {("front", 0), ("east", len(sides) - 1)}
+    lights = {("front", 1): 2, ("front", 2): 3}
+    cartoon_body(kit, floor, eave, openings, doors, lights)
+    # the door's fan light, a centimetre proud of the leaf
+    kit.half_disc("door_fanlight", glass, sum(BC_DOOR_X) / 2, floor + BC_DOOR_H - 0.42, 0.28, -hd + 0.05, -hd + 0.08, segments=6)
+    # the water table at the floor line, chunkier, clear of the stoop
+    bx, by = hw - BC_CORNER + PROUD + 0.02, hd - BC_CORNER + PROUD + 0.02
+    bz0, bz1 = floor - BC_BAND_H / 2, floor + BC_BAND_H / 2
+    if not b:
+        kit.box("band_back0", trim, -bx, BC_STOOP_X[0] - 0.06, hd - 0.01, hd + 0.03, bz0, bz1, collide=False)
+        kit.box("band_back1", trim, BC_STOOP_X[1] + 0.06, bx, hd - 0.01, hd + 0.03, bz0, bz1, collide=False)
+        kit.box("band_west", trim, -hw - 0.03, -hw + 0.01, -by, by, bz0, bz1, collide=False)
+        kit.box("band_east", trim, hw - 0.01, hw + 0.03, -by, by, bz0, bz1, collide=False)
+    else:
+        # blue_b's: whole across the back, the east clear of the porch's back wall and the side landing
+        ly0, ly1 = BBC_LANDING_Y
+        kit.box("band_back", trim, -bx, bx, hd - 0.01, hd + 0.03, bz0, bz1, collide=False)
+        kit.box("band_west", trim, -hw - 0.03, -hw + 0.01, -by, by, bz0, bz1, collide=False)
+        kit.box("band_east0", trim, hw - 0.01, hw + 0.03, -hd + BB_SIDE_D + 0.06, ly0 - 0.06, bz0, bz1, collide=False)
+        kit.box("band_east1", trim, hw - 0.01, hw + 0.03, ly1 + 0.06, by, bz0, bz1, collide=False)
+        # (blue_b's hood board over the side door went to the triangle budget:
+        # under the 0.75 m eave the casing's fat head does its work)
+    # a chunky plinth round the foot, flaring 7 cm outward to the ground: the
+    # wide base the lean starts from
+    kit.sweep("plinth", base, [(-hw, -hd), (hw, -hd), (hw, hd), (-hw, hd)], BC_PLINTH)
+    # the knee brackets at the front gable's lower corners, under the rakes,
+    # white as the photo's trim is (they were the blue's red)
+    for tag, sx in (("w", -1), ("e", 1)):
+        run = 0.62 + j(0.03)
+        if tag == "e" and not b:
+            # the glazed porch's little gable fills this corner and its roof
+            # ran through the bracket (her "fix the bracket on the blue",
+            # 2026-10-04); the draw stays, so nothing after it moves
+            continue
+        xo, xi = sx * (hw - 0.10), sx * (hw - 0.10 - run)
+        poly = [(xi, eave + 0.06), (xo, eave + 0.06), (xi, eave + 0.06 + run * kit.tan)]
+        kit.prism(f"gable_bracket_{tag}", trim, poly, "y", -hd - 0.07, -hd + 0.02, collide=False)
+    kit.warp = None
+
+    # -- the roof, the heavy part (cartoon_kit's bell roof): a 0.30 slab at
+    # 55 degrees, a bell-cast kick of 27 lapped under it to a 0.75 eave, a
+    # 0.75 rake, a 5 cm sag at mid-length, a ridge roll on the slopes
+    y0, y1 = -hd - BC_RAKE_OVER, hd + BC_RAKE_OVER
+    br = kit.bell_roof(0.0, hw, eave, BC_ROOF_T, y0, y1, sag=BC_SAG, kick_at=BC_KICK_AT, kick_deg=BC_KICK_DEG,
+                       kick_t=BC_KICK_T, kick_in=BC_KICK_IN, eave_over=BC_EAVE_OVER)
+    x_k, x_out, rt = br.r_k, br.r_out, br.rt
+    # two big drops down each rake, as the photo's, front and back
+    for face, y_rake, out in (("front", y0, -1), ("back", y1, 1)):
+        kit.barge(f"barge_{face}", br.profile, [x_k], x_out + 0.05, 0.0, y_rake, out, BC_BARGE_H, BC_BARGE_BAND, (0.42, 0.76))
+    sunburst(kit, eave, y0, rt)
+    # a fat brick chimney through the east slope, stepping in once over the
+    # ridge's height and capped, its steps a little uneven and the stack a
+    # touch off plumb
+    cx, cy, hx, hy = BC_CHIMNEY
+    fat_chimney(kit, cx, cy, hx, hy, rt, eave + 2.0)
+
+    # -- the balcony on the eave line: the plate, two big shaped brackets,
+    # fat newels, square balusters under a fat sagging rail
+    by0 = -hd - BC_BALCONY_D
+    bx1 = BC_BALCONY_HW
+    if not b:
+        # on the blue it stops where the porch gable's roof rises under it,
+        # the roof 5 cm under its plate there, as the photo's balcony stops
+        # where its porch begins (her "end the balcony at the porch",
+        # 2026-10-04; the roof came up 0.35 m through its east end)
+        p_xc, _, p_top = gable_porch_top(floor)
+        bx1 = p_xc - (p_top(0.0) - (eave - BC_BALCONY_T - 0.05)) / math.tan(B_PORCH_PITCH)
+    kit.box("balcony", deck, -BC_BALCONY_HW, bx1, by0, -hd + 0.06, eave - BC_BALCONY_T, eave)
+    for k, x in enumerate(BC_BRACKETS_X):
+        # a knee bracket with a cove sawn out of its face and a short drop at
+        # its foot, each one a little different (cartoon_kit's shaped bracket)
+        z_top = eave - BC_BALCONY_T + 0.02
+        if not b and x + BC_BRACKET_W / 2 > B_PORCH_X0 - 0.25:
+            # on the blue the right one stands over the porch gable's roof,
+            # which it ran through: it rests on the roof instead, short and
+            # chunky, its foot 6 cm into the slab at its high (ridge) side
+            # so the hand's drop of up to 5 cm never lifts it off
+            p_xc, _, p_top = gable_porch_top(floor)
+            drop = z_top - p_top(p_xc - (x + BC_BRACKET_W / 2 + 0.02)) + 0.06
+            kit.shaped_bracket(f"balcony_bracket_{k}", trim, "y", x, -hd, -1, z_top, BC_BALCONY_D - 0.16, drop,
+                               width=BC_BRACKET_W, foot=0.09, band=0.09)
+            continue
+        kit.shaped_bracket(f"balcony_bracket_{k}", trim, "y", x, -hd, -1, z_top, BC_BALCONY_D - 0.16, 0.88,
+                           width=BC_BRACKET_W)
+    xw = -(BC_BALCONY_HW - 0.03 - ck.NEWEL / 2)
+    xe = bx1 - 0.03 - ck.NEWEL / 2
+    ny = by0 + 0.045 + ck.NEWEL / 2
+    for tag, x in (("w", xw), ("e", xe)):
+        kit.newel_post(f"balcony_newel_{tag}", trim, x, ny, eave)
+    kit.straight_rail("balcony_rail_front", "x", ny, xw + 0.055, xe - 0.055, xw + ck.NEWEL / 2, xe - ck.NEWEL / 2, eave)
+    for tag, x in (("w", xw), ("e", xe)):
+        kit.straight_rail(f"balcony_rail_{tag}", "y", x, ny + 0.055, -hd + 0.08, ny + ck.NEWEL / 2, -hd, eave)
+
+    # -- the porch: the blue's glazed porch and its little gable; blue_b's
+    # wrapping the corner under an L-shaped lean-to
+    if b:
+        wrap = wrap_porch(kit, floor, br)
+        px0 = B_PORCH_X0
+    else:
+        px0, py0, p_xc, p_half, p_top = gable_porch(kit, floor)
 
     # -- the entry landing, its flight and railings
     lx0, lx1 = -hw - 0.14, px0 + 0.08
@@ -1451,44 +1099,8 @@ def build_blue_cartoon(kit):
     kit.straight_rail("landing_rail_fw", "x", lny, lnx + 0.055, xw - 0.055, lnx + ck.NEWEL / 2, xw - ck.NEWEL / 2, floor)
     kit.straight_rail("landing_rail_fe", "x", lny, xe + 0.055, px0 + 0.03, xe + ck.NEWEL / 2, px0 - PROUD, floor)
 
-    # -- the back stoop: a deck, a wider flight, solid parapets with fat caps
-    # (the back is not in the photograph: one plain piece a side), piers at the foot
-    x0, x1 = BC_STOOP_X
-    y_edge = hd + STOOP_D
-    kit.box("stoop_deck", deck, x0, x1, hd - 0.06, y_edge, floor - BC_DECK_T, floor)
-    kit.skirt("stoop_skirt", base, x0 + 0.08, x1 - 0.08, hd - 0.04, y_edge - 0.08, floor)
-    scx = (x0 + x1) / 2
-    ssx0, ssx1 = scx - BC_STOOP_STAIR_W / 2, scx + BC_STOOP_STAIR_W / 2
-    n, riser, going = kit.flight("stoop_stair", deck, ssx0, ssx1, y_edge, 1, floor)
-    slope = riser / going
-    drop = ck.STRINGER[0]
-    s_wall = -(STOOP_D + 0.05)
-    s2 = -(drop - 0.02) / slope              # the underside rises to the deck's top here
-    s3 = (floor - drop + 0.06) / slope       # and meets the ground line here
-    s_end = n * going + 0.03 + ck.NEWEL / 2  # the pier's centre
-
-    def Y(s):
-        return y_edge + s
-
-    def rail(s):
-        return floor + RAIL_H if s <= 0 else floor - s * slope + RAIL_H
-    for tag, x_at in (("w", ssx0 - 0.05), ("e", ssx1 + 0.05)):
-        pt = rail(0.0) - ck.CAP_H + 0.04          # the parapet's top, 2 cm into its cap
-        polys = [([(Y(s_wall), floor - 0.02), (Y(s2), floor - 0.02), (Y(s2), pt), (Y(s_wall), pt)], 0),
-                 ([(Y(s2), floor - 0.02), (Y(s3), -0.06), (Y(s_end), -0.06), (Y(s_end), rail(s_end) - ck.CAP_H + 0.04),
-                   (Y(0.0), pt), (Y(s2), pt)], 0)]
-        kit.plate(f"stoop_parapet_{tag}", [trim], polys, "x", x_at - BC_PARAPET / 2, x_at + BC_PARAPET / 2)
-        sag = rng.uniform(0.01, 0.015)
-        sm = s_end / 2
-
-        def cu(s, sag=sag):
-            return rail(s) + 0.02 - ck.CAP_H - (sag * (1 - abs(s - sm) / sm) if s > 0 else 0.0)
-        sa, se = s_wall + 0.01, s_end - 0.013     # the cap's ends off the parapet's, inside the wall and the pier
-        cap = [([(Y(sa), cu(sa)), (Y(0.0), cu(0.0)), (Y(0.0), cu(0.0) + ck.CAP_H), (Y(sa), cu(sa) + ck.CAP_H)], 0),
-               ([(Y(0.0), cu(0.0)), (Y(sm), cu(sm)), (Y(sm), cu(sm) + ck.CAP_H), (Y(0.0), cu(0.0) + ck.CAP_H)], 0),
-               ([(Y(sm), cu(sm)), (Y(se), cu(se)), (Y(se), cu(se) + ck.CAP_H), (Y(sm), cu(sm) + ck.CAP_H)], 0)]
-        kit.plate(f"stoop_parapet_{tag}_cap", [trim], cap, "x", x_at - BC_PARAPET_CAP / 2, x_at + BC_PARAPET_CAP / 2)
-        kit.newel_post(f"stoop_pier_{tag}", trim, x_at, Y(s_end), 0.0)
+    # -- the blue's back stoop; blue_b's side door's landing and flight in its place
+    n, riser, going = side_stoop(kit, floor) if b else back_stoop(kit, floor)
 
     # -- shingle clusters on the roof, as the hedges' leaf clusters: a few
     # small patches lying almost flat, scattered, never banded, different on
@@ -1497,84 +1109,521 @@ def build_blue_cartoon(kit):
     # They draw from a seed of their own (her "yes give the clusters their own
     # seed", 2026-10-04), so changing the trim's hand no longer reshuffles the roof
     trim_rng = kit.rng
-    rng = kit.rng = random.Random(BC_SHINGLE_SEED)
+    rng = kit.rng = random.Random(kit.shingle_seed)
     bm = bmesh.new()
-    tabs = 0
-    mains = {}
-    for s in (1, -1):
-        main = mains[s] = dict(s=s, xc=0.0, theta=kit.pitch, surf=lambda r, y: rt - r * tan - ck.sag_at(stations, y),
-                    r=(0.32, x_k - 0.03), y=(y0 + 0.03, y1 - 0.03),
-                    avoid=[(cx - hx - 0.25, cx + hx + 0.25, cy - hy - 0.25, cy + hy + 0.25)] if s > 0 else [])
-        kick = dict(s=s, xc=0.0, theta=math.radians(BC_KICK_DEG), surf=lambda r, y: kick_top(r) - ck.sag_at(stations, y),
-                    r=(x_k + 0.03, x_out + 0.04), y=(y0 + 0.03, y1 - 0.03))
-        ct = math.cos(kit.pitch)
-        centres = []
-
-        def free(r, y, gap=2.6):
-            return all(math.hypot((r - r2) / ct, y - y2) >= gap for r2, y2 in centres)
-        # one at a rake (the front on the east slope, the back on the west),
-        # where its tabs stand up on the roof's edge
-        r_c = rng.uniform(1.2, x_k - 0.7)
-        y_c = (y0 + 0.62) if s > 0 else (y1 - 0.62)
-        tabs += ck.shingle_cluster(rng, bm, main, r_c, y_c)
-        centres.append((r_c, y_c))
-        # one on the kick, its lowest butts just over the eave's edge
-        y_c = rng.uniform(y0 + 1.2, y1 - 1.2)
-        tabs += ck.shingle_cluster(rng, bm, kick, x_k + 0.40, y_c, max_courses=2)
-        centres.append((x_k + 0.40, y_c))
-        placed, tries = 0, 0
-        while placed < 3 and tries < 200:
-            tries += 1
-            r_c, y_c = rng.uniform(0.9, x_k - 0.5), rng.uniform(y0 + 0.8, y1 - 0.8)
-            if not free(r_c, y_c) or any(r0 - 0.3 <= r_c <= r1 + 0.3 and q0 - 0.3 <= y_c <= q1 + 0.3 for r0, r1, q0, q1 in main["avoid"]):
-                continue
-            tabs += ck.shingle_cluster(rng, bm, main, r_c, y_c)
-            centres.append((r_c, y_c))
-            placed += 1
-    # one small cluster on each slope of the porch's gable, at its front, clear of the balcony
-    for s in (1, -1):
-        porch = dict(s=s, xc=p_xc, theta=B_PORCH_PITCH, surf=lambda r, y: p_top(r),
-                     r=(0.20, p_half + 0.25), y=(py0 - BC_PORCH_RAKE + 0.03, -hd - 0.85))
-        tabs += ck.shingle_cluster(rng, bm, porch, rng.uniform(0.45, p_half - 0.15), rng.uniform(py0 - 0.10, py0 + 0.25), max_courses=2)
+    # on each main slope a cluster at a rake, one on the kick and three
+    # scattered, clear of the chimney (cartoon_kit's roof_clusters)
+    tabs, mains = ck.roof_clusters(rng, bm, br, avoid={1: [(cx - hx - 0.25, cx + hx + 0.25, cy - hy - 0.25, cy + hy + 0.25)]})
+    if not b:
+        # one small cluster on each slope of the porch's gable, at its front, clear of the balcony
+        for s in (1, -1):
+            porch = dict(s=s, xc=p_xc, theta=B_PORCH_PITCH, surf=lambda r, y: p_top(r),
+                         r=(0.20, p_half + 0.25), y=(py0 - BC_PORCH_RAKE + 0.03, -hd - 0.85))
+            tabs += ck.shingle_cluster(rng, bm, porch, rng.uniform(0.45, p_half - 0.15), rng.uniform(py0 - 0.10, py0 + 0.25), max_courses=2)
+    # (blue_b's lean-to, at 8 and 10 degrees under the main eave, shows its
+    # top to no one standing; its clusters went to the triangle budget)
     kit.finish("roof_shingles", bm, [roof], collide=False)
 
     # a few little vent pipes on the back half of the roof (her "you can add
     # a few more little vent tubes to the roof", 2026-10-04): two on the west
     # slope, one on the east clear of the chimney, each clear of every lifted
     # shingle; drawn after the clusters, so they never move them
-    vents = 0
-    for s, count in ((-1, 2), (1, 1)):
-        main = mains[s]
-        tries = 0
-        spots = []
-        while len(spots) < count and tries < 400:
-            tries += 1
-            r_v, y_v = rng.uniform(1.0, x_k - 0.9), rng.uniform(0.6, y1 - 1.0)
-            if any(r0 - 0.35 <= r_v <= r1 + 0.35 and q0 - 0.35 <= y_v <= q1 + 0.35 for r0, r1, q0, q1 in main["avoid"]):
-                continue
-            if any(abs(r_v - r) <= L * math.cos(kit.pitch) / 2 + 0.30 and abs(y_v - y) <= w / 2 + 0.30
-                   for r, y, w, L in main.get("placed", ())):
-                continue
-            if any(math.hypot(r_v - r2, y_v - y2) < 1.6 for r2, y2 in spots):
-                continue
-            spots.append((r_v, y_v))
-        for r_v, y_v in spots:
-            ck.vent_pipe(kit.finish, f"roof_vent_{vents}", [m["deck"], m["glass"]], main, r_v, y_v, rng.uniform(0.40, 0.58), (rng.uniform(-0.01, 0.01), rng.uniform(-0.01, 0.01)))
-            vents += 1
+    vents = ck.roof_vents(kit.finish, rng, [m["deck"], m["glass"]], br, mains)
     kit.rng = trim_rng
-    return dict(eave=eave, rt=rt, tabs=tabs, vents=vents, risers=n, riser=riser, going=going)
+    extra = (f"; lean-to eave {wrap['z_e']:.2f} ({wrap['z_e'] - floor:.2f} over the floor), slopes "
+             f"{math.degrees(math.atan(wrap['s_f'])):.1f} and {math.degrees(math.atan(wrap['s_s'])):.1f} deg; side door at y "
+             f"{BBC_SIDE_DOOR_Y[0]:.2f}..{BBC_SIDE_DOOR_Y[1]:.2f}" if b else "")
+    return dict(pitch=BC_PITCH_DEG, floor=floor, storey=BC_STOREY, eave=eave, rt=rt, kick=BC_KICK_DEG, lean=True,
+                door_clear=BC_DOOR_H - THRESHOLD, tabs=tabs, vents=vents, risers=n, riser=riser, going=going, extra=extra)
+
+
+# --- purple and purple_b, the cartoony build ---------------------------------------------
+
+def pointed_hood(kit, prefix, a0, a1, z_head):
+    """A pointed hood over a front-wall window, pushed: a gold tympanum on the
+    casing's head (2 cm down into it), PC_HOOD_OVER wider than the casing each
+    side, rising at PC_HOOD_DEG to its point, 8 cm proud; a fat teal cornice
+    along both rakes, lapped 3 cm over the tympanum's edge, standing 9 cm
+    over it and 6 cm prouder, its ends 4 cm past; a square knob on the point.
+    The point sits a hair off centre and each is a centimetre different."""
+    hd = D / 2
+    m, j = kit.m, kit.jit
+    t = math.tan(math.radians(PC_HOOD_DEG))
+    xl, xr = a0 - 0.02 - ck.CASING - PC_HOOD_OVER, a1 + 0.02 + ck.CASING + PC_HOOD_OVER
+    xc = (a0 + a1) / 2 + j(0.012)
+    zb = z_head - 0.02 + ck.CASING_HEAD - 0.02
+    tip = zb + (xr - xl) / 2 * t + j(0.015)
+    kit.prism(f"{prefix}_hood", m["frames"], [(xl, zb), (xr, zb), (xc, tip)], "y", -hd - 0.08, -hd + 0.02, collide=False)
+    under, over, past = PC_HOOD_CORNICE
+
+    def edge(x):                      # the tympanum's raking edge
+        return zb + (x - xl) * (tip - zb) / (xc - xl) if x <= xc else zb + (xr - x) * (tip - zb) / (xr - xc)
+    xa, xb = xl - past, xr + past
+    kit.plate(f"{prefix}_hood_cornice", [m["trim"]],
+              [([(xa, edge(xa) - under), (xc, tip - under), (xc, tip + over), (xa, edge(xa) + over)], 0),
+               ([(xc, tip - under), (xb, edge(xb) - under), (xb, edge(xb) + over), (xc, tip + over)], 0)],
+              "y", -hd - 0.14, -hd - 0.05, collide=False)
+    kit.lathe(f"{prefix}_hood_knob", m["frames"], xc, -hd - 0.095,
+              [(0.035, 0.035, tip + over - 0.04), (0.065, 0.065, tip + over + 0.03), (0.065, 0.065, tip + over + 0.07 + j(0.01)),
+               (0.02, 0.02, tip + over + 0.15 + j(0.015))], collide=False)
+    return tip + over + 0.17          # over the knob's point
+
+
+def spindle_fan(kit, eave, z_bar, hub_r, rays, spindles_x, spindle_l, panel):
+    """The purple's spindle-work fan in the peak, pushed: on the gable wall,
+    where the deeper rake still shows it, a fat teal bar across the gable
+    (its ends 3 cm up in the slab's underside), a dark panel (`panel`: the
+    purple's shaded magenta; purple_b's accent is its rays' gold, so its deep
+    pink) filling the peak over it, a fan of fat gold rays round a gold hub,
+    each shaped as a turned spindle in silhouette (a bead and a ball) and
+    reaching to PC_FAN_CLEAR under the rake above it, so the fan fills the
+    peak as the photo's slats do, the middle ray the longest and the panel
+    showing between them; and fat turned gold spindles hanging under the bar,
+    the middle one a long pendant. Rays, beads and lengths differ a little,
+    as turned and sawn by hand."""
+    hw, hd = W / 2, D / 2
+    m, j = kit.m, kit.jit
+    zb0, zb1 = z_bar, z_bar + PC_FAN_BAR[1]
+
+    def x_under(z):         # where the slab's underside is at z, over the wall's face
+        return hw - (z - eave) / kit.tan
+    xb = x_under(zb1 - 0.03)
+    kit.box("fan_bar", m["trim"], -xb, xb, -hd - 0.10, -hd + 0.02, zb0, zb1, collide=False)
+    zp = zb1 - 0.02
+    xp = x_under(zp - 0.03)
+    apex = eave + hw * kit.tan
+    kit.prism("fan_panel", panel, [(-xp, zp), (xp, zp), (0.0, apex + 0.03)], "y", -hd - 0.03, -hd + 0.015, collide=False)
+    # the rays: along each, (r, half-width) as a spindle's silhouette from
+    # inside the hub out, a bead two fifths of the way and a ball near the tip
+    zc = zb1 - 0.01
+    sw, bw, kw = PC_FAN_RAY
+    polys = []
+    for deg in rays:
+        a = math.radians(deg + j(1.5))
+        dx, dz = math.cos(a), math.sin(a)
+        R = (apex - PC_FAN_CLEAR - zc) / (dz + abs(dx) * kit.tan) + j(0.02)
+        prof = [(hub_r - 0.03, sw), (0.33 * R, sw), (0.42 * R, bw + j(0.008)), (0.51 * R, sw),
+                (0.76 * R, sw), (0.86 * R, kw + j(0.008)), (R, 0.0)]
+        pts = [((r * dx - w * dz, zc + r * dz + w * dx), (r * dx + w * dz, zc + r * dz - w * dx)) for r, w in prof]
+        for (l0, r0), (l1, r1) in zip(pts, pts[1:]):
+            polys.append(([l0, r0, r1] if r1 == l1 else [l0, r0, r1, l1], 0))
+    kit.plate("fan_rays", [m["frames"]], polys, "y", -hd - 0.07, -hd - 0.02, collide=False)
+    hub = [(-hub_r, zc), (hub_r, zc)] + [(hub_r * math.cos(math.pi * k / 6), zc + hub_r * math.sin(math.pi * k / 6)) for k in range(1, 6)]
+    kit.prism("fan_hub", m["frames"], hub, "y", -hd - 0.115, -hd - 0.05, collide=False)
+    # the spindles under the bar: hexagonal, a bead under the bar, a long
+    # shaft, a ball at the foot; the middle one the pendant
+    for k, x in enumerate(spindles_x):
+        L = spindle_l + (PC_PENDANT if abs(x) < 1e-6 else 0.0) + j(0.02)
+        top = zb0 + 0.03
+        ck.turned(kit.finish, f"fan_spindle{k}", m["frames"], x, -hd - 0.045,
+                  [(0.045, top), (0.072, top - 0.07), (0.045, top - 0.13), (0.045, top - L + 0.14),
+                   (0.08, top - L + 0.07), (0.055, top - L + 0.015), (0.0, top - L)], sides=6, collide=False)
+
+
+def turned_post(kit, k, x, y, floor, pedestal, beam0):
+    """A fat turned porch post, pushed from the photo's slim teal ones: a
+    square gold pedestal capped with a flare, a teal octagonal shaft turned
+    with a ring, a fat belly and necks (PC_SHAFT_LOW over the pedestal,
+    PC_SHAFT_HIGH under the capital), a square gold capital flaring into the
+    beam. The pedestal's cap and the belly differ by a centimetre."""
+    m, j = kit.m, kit.jit
+    ph, pz = pedestal[0], floor + pedestal[1]
+    cz = beam0 - PC_CAPITAL[1]
+    kit.lathe(f"post{k}_pedestal", m["frames"], x, y,
+              [(ph, ph, floor - 0.02), (ph, ph, pz - 0.07), (ph + 0.025, ph + 0.025, pz - 0.04 + j(0.008)), (ph + 0.025, ph + 0.025, pz)])
+    belly = j(0.01)
+    rings = [(r + (belly if 0.3 < dz < 0.5 else 0.0), pz + dz) for r, dz in PC_SHAFT_LOW]
+    rings += [(r, cz + dz) for r, dz in PC_SHAFT_HIGH]
+    ck.turned(kit.finish, f"post{k}_shaft", m["trim"], x, y, rings)
+    ch = PC_CAPITAL[0]
+    kit.lathe(f"post{k}_capital", m["frames"], x, y,
+              [(ch - 0.03, ch - 0.03, cz), (ch - 0.03, ch - 0.03, cz + 0.06), (ch, ch, cz + 0.10 + j(0.008)), (ch, ch, beam0 + 0.04)],
+              collide=False)
+
+
+def shed_porch(kit, floor, b):
+    """The full-width porch on fat turned posts under a heavy shed roof,
+    returning the shed's top as surf(distance out from the wall) and its
+    ends, for its shingles. purple_b's posts stand on rail-high pedestals
+    between square-baluster rails."""
+    hw, hd = W / 2, D / 2
+    m, j = kit.m, kit.jit
+    trim, frames, deck, base, roof = (m[k] for k in ("trim", "frames", "deck", "base", "roof"))
+    dx0, dx1 = -hw - PC_DECK_OVER, hw + PC_DECK_OVER
+    dy0 = -hd - P_PORCH_D
+    # the deck 5 cm into the wall, a centimetre short of the door leaf's face (the walls are plumb)
+    kit.box("porch_deck", deck, dx0, dx1, dy0, -hd + 0.05, floor - BC_DECK_T, floor)
+    kit.skirt("porch_skirt", base, dx0 + 0.10, dx1 - 0.10, dy0 + 0.10, -hd + 0.04, floor)
+    post_y = dy0 + PC_POST_IN
+    beam0, beam1 = floor + PC_BEAM[0], floor + PC_BEAM[0] + PC_BEAM[1]
+    pedestal = PBC_PEDESTAL if b else PC_PEDESTAL
+    for k, x in enumerate(PC_POSTS_X):
+        turned_post(kit, k, x, post_y, floor, pedestal, beam0)
+        # shaped brackets from the capital along the beam, in the shaded
+        # accent under the shed (the end posts' outer sides bare)
+        for tag, sx in (("w", -1), ("e", 1)):
+            if (k == 0 and sx < 0) or (k == len(PC_POSTS_X) - 1 and sx > 0):
+                continue
+            reach, drop, thick = PC_BRACKET
+            kit.shaped_bracket(f"post{k}_bracket_{tag}", m["accent_shade"], "x", post_y, x + sx * 0.15, sx, beam0 + 0.02,
+                               reach, drop, width=thick)
+    xe = PC_POSTS_X[-1] + PC_CAPITAL[0] + 0.03
+    kit.box("porch_beam", trim, -xe, xe, post_y - 0.12, post_y + 0.12, beam0, beam1, collide=False)
+    # the shed: a main slab from inside the wall to just before the beam's
+    # line, the beam lapped 4 cm up into it, and its own bell-cast kick
+    # lapped under it out to a deep eave, half its pitch, as the main roof's;
+    # the slab's ends past the body's sides show the bend
+    s, vt = PC_SHED_SLOPE, PC_SHED_T
+    u_b = beam1 - 0.04
+
+    def under(y):
+        return u_b + (y - post_y) * s
+    ry1, y_k = -hd + 0.02, post_y - PC_SHED_KICK[0]
+    ex = hw + PC_SHED_END
+    kit.prism("porch_roof", roof, [(y_k - 0.02, under(y_k - 0.02)), (ry1, under(ry1)), (ry1, under(ry1) + vt),
+                                   (y_k - 0.02, under(y_k - 0.02) + vt)], "x", -ex, ex)
+    k_top, s_k, k_t = under(y_k) + vt, PC_SHED_KICK[1], PC_SHED_KICK[2]
+
+    def kick(y):
+        return k_top - (y_k - y) * s_k
+    ry0, y_in = post_y - PC_SHED_OVER, y_k + 0.30
+    kit.prism("porch_roof_kick", roof, [(ry0, kick(ry0) - k_t), (y_in, kick(y_in) - k_t), (y_in, kick(y_in)), (ry0, kick(ry0))],
+              "x", -ex - 0.01, ex + 0.01)
+    # the gold fascia along the eave over a shaded magenta frieze, one piece
+    # as the photo's porch edge, its top 2 cm under the kick's, past the ends
+    zf, (fd, fr) = kick(ry0) - 0.02, PC_FASCIA
+    xf = ex + 0.03
+    kit.plate("porch_fascia", [frames, m["accent_shade"]],
+              [([(-xf, zf - fd), (xf, zf - fd), (xf, zf), (-xf, zf)], 0),
+               ([(-xf, zf - fd - fr), (xf, zf - fd - fr), (xf, zf - fd), (-xf, zf - fd)], 1)],
+              "y", ry0 - 0.06, ry0 + 0.02, collide=False)
+    # the steps at the door, no rails, as the photograph
+    kit.flight("stair", deck, *PC_STEP_X, dy0, -1, floor)
+    if b:
+        # square balusters between the pedestals (the steps' bay open), their
+        # ends 2 cm into the pedestals; the side rails back to the corner boards
+        ph = pedestal[0]
+        for k in range(1, len(PC_POSTS_X) - 1):
+            a, c = PC_POSTS_X[k], PC_POSTS_X[k + 1]
+            kit.straight_rail(f"porch_rail_{k}", "x", post_y, a + ph - 0.02, c - ph + 0.02, a + ph, c - ph, floor)
+        for tag, x in (("w", PC_POSTS_X[0]), ("e", PC_POSTS_X[-1])):
+            kit.straight_rail(f"porch_rail_{tag}", "y", x, post_y + ph - 0.02, -hd - PROUD + 0.03, post_y + ph, -hd - PROUD, floor)
+
+    def surf(r):            # the shed's top at r out from the wall's face
+        y = -hd - r
+        return under(y) + vt if y >= y_k else kick(y)
+    return surf, -hd - y_k, ex
+
+
+def build_purple_cartoon(kit, b=False):
+    """`purple`, and with `b` `purple_b`: see the module docstring."""
+    floor = P_FLOOR
+    hw, hd = W / 2, D / 2
+    up = floor + PC_STOREY                         # the upstairs floor
+    eave = up + (PBC_KNEE if b else 0.0)           # purple_b's side walls rise a knee wall over it
+    m = kit.m
+    trim, shade, deck, base = (m[k] for k in ("trim", "accent_shade", "deck", "base"))
+    j = kit.jit
+
+    # -- the body, plumb (the lean is left out): walls, corner boards, casings, panes
+    sill, head = floor + PC_SILL, floor + PC_HEAD
+    up_sill, up_head = (up + PBC_UP_SILL, up + PBC_UP_HEAD) if b else (up + PC_UP_SILL, up + PC_UP_HEAD)
+    front = [(*P_DOOR_X, floor + THRESHOLD, floor + PC_DOOR_H), (*P_WINDOW_X, sill, head)]
+    front += [(a0, a1, up_sill, up_head) for a0, a1 in PC_UP_WINDOWS_X]
+    sides = [(c - BC_SIDE_WIN_W / 2, c + BC_SIDE_WIN_W / 2, sill, head) for c in SIDE_WINDOWS]
+    back = [(*BC_BACK_WINDOW_X, sill, head), (*BACK_DOOR_X, floor + THRESHOLD, floor + PC_DOOR_H),
+            (*BC_BACK_UP_WINDOW_X, up_sill, up_head)]
+    openings = {"front": front, "back": back, "west": sides, "east": list(sides)}
+    cartoon_body(kit, floor, eave, openings, {("front", 0), ("back", 1)}, {("front", 1): PC_WINDOW_LIGHTS},
+                 wall_top_in=PBC_WALL_TOP_IN if b else PC_WALL_TOP_IN)
+    # the water table at the floor line, clear of the stoop; the porch deck covers the front's
+    bx, by = hw - BC_CORNER + PROUD + 0.02, hd - BC_CORNER + PROUD + 0.02
+    bz0, bz1 = floor - BC_BAND_H / 2, floor + BC_BAND_H / 2
+    kit.box("band_back0", trim, -bx, BC_STOOP_X[0] - 0.06, hd - 0.01, hd + 0.03, bz0, bz1, collide=False)
+    kit.box("band_back1", trim, BC_STOOP_X[1] + 0.06, bx, hd - 0.01, hd + 0.03, bz0, bz1, collide=False)
+    kit.box("band_west", trim, -hw - 0.03, -hw + 0.01, -by, by, bz0, bz1, collide=False)
+    kit.box("band_east", trim, hw - 0.01, hw + 0.03, -by, by, bz0, bz1, collide=False)
+    kit.sweep("plinth", base, [(-hw, -hd), (hw, -hd), (hw, hd), (-hw, hd)], PC_PLINTH)
+    if b:
+        # purple_b's belt at the eave line across both gables, broken by the
+        # upstairs windows' casings (lapped 3 cm behind them), so the windows
+        # read straddling the eave; the gable brackets stand 2 cm into it
+        ce = ck.CASING - 0.02 - 0.03          # 3 cm in from the casing's outer edge
+        for face, y, sy, wins in (("front", -hd, -1, PC_UP_WINDOWS_X), ("back", hd, 1, (BC_BACK_UP_WINDOW_X,))):
+            cuts = [-bx] + [v for a0, a1 in wins for v in (a0 - ce, a1 + ce)] + [bx]
+            for k in range(0, len(cuts), 2):
+                kit.box(f"belt_{face}{k // 2}", trim, cuts[k], cuts[k + 1], *sorted((y + sy * 0.035, y - sy * 0.01)),
+                        eave - PBC_BELT[0], eave + PBC_BELT[1], collide=False)
+    # the knee brackets at the front gable's lower corners, under the rakes,
+    # in the shaded accent (the purple's were its magenta)
+    # (on purple_b's belt, 2 cm down into its top)
+    for tag, sx in (("w", -1), ("e", 1)):
+        run = 0.62 + j(0.03)
+        xo, xi = sx * (hw - 0.10), sx * (hw - 0.10 - run)
+        poly = [(xi, eave + 0.06), (xo, eave + 0.06), (xi, eave + 0.06 + run * kit.tan)]
+        kit.prism(f"gable_bracket_{tag}", shade, poly, "y", -hd - 0.07, -hd + 0.02, collide=False)
+    # the pointed hoods over the paired windows, tight under the rakes
+    knob = max(pointed_hood(kit, f"front{k}", a0, a1, up_head) for k, (a0, a1) in enumerate(PC_UP_WINDOWS_X, start=2))
+
+    # -- the roof, the heavy part (cartoon_kit's bell roof): the standard's
+    # slab, kick at half the pitch, overhangs and sag; bargeboards plain over
+    # the shaded magenta band, as the photo's (no drops)
+    y0, y1 = -hd - BC_RAKE_OVER, hd + BC_RAKE_OVER
+    pitch_deg = PB_PITCH_DEG if b else PC_PITCH_DEG
+    br = kit.bell_roof(0.0, hw, eave, BC_ROOF_T, y0, y1, sag=BC_SAG, kick_deg=pitch_deg / 2, eave_over=BC_EAVE_OVER)
+    for face, y_rake, out in (("front", y0, -1), ("back", y1, 1)):
+        kit.barge(f"barge_{face}", br.profile, [br.r_k], br.r_out + 0.05, 0.0, y_rake, out, BC_BARGE_H, BC_BARGE_BAND, ())
+    # the spindle fan over the hoods' knobs, with room in purple_b's flatter peak
+    spindle_fan(kit, eave, knob + PC_FAN_BAR[0], PBC_FAN_HUB if b else PC_FAN_HUB, PBC_FAN_RAYS if b else PC_FAN_RAYS,
+                PC_SPINDLES_X, PBC_SPINDLE_L if b else PC_SPINDLE_L, m["base"] if b else shade)
+    avoid = {}
+    if b:
+        cx, cy, hx, hy = PBC_CHIMNEY
+        fat_chimney(kit, cx, cy, hx, hy, br.rt, eave + 1.0)
+        avoid = {1: [(cx - hx - 0.25, cx + hx + 0.25, cy - hy - 0.25, cy + hy + 0.25)]}
+
+    # -- the porch, and the back stoop as the blue's: a deck, a wider flight,
+    # solid parapets with fat caps, piers at the foot
+    surf, r_kick, ex = shed_porch(kit, floor, b)
+    x0, x1 = BC_STOOP_X
+    y_edge = hd + STOOP_D
+    # the deck 4.5 cm into the wall: off the door leaf's face, the skirt's and the parapets' ends
+    kit.box("stoop_deck", deck, x0, x1, hd - 0.045, y_edge, floor - BC_DECK_T, floor)
+    kit.skirt("stoop_skirt", base, x0 + 0.08, x1 - 0.08, hd - 0.04, y_edge - 0.08, floor)
+    scx = (x0 + x1) / 2
+    ssx0, ssx1 = scx - BC_STOOP_STAIR_W / 2, scx + BC_STOOP_STAIR_W / 2
+    n, riser, going = kit.flight("stoop_stair", deck, ssx0, ssx1, y_edge, 1, floor)
+    kit.stoop_parapets("stoop", (("w", ssx0 - 0.05), ("e", ssx1 + 0.05)), y_edge, 1, floor, n, riser, going, -(STOOP_D + 0.05))
+
+    # -- shingle clusters from their own seed: the main roof's (cartoon_kit's
+    # roof_clusters), then two on the shed, then the vents on the back half
+    trim_rng = kit.rng
+    rng = kit.rng = random.Random(kit.shingle_seed)
+    bm = bmesh.new()
+    tabs, mains = ck.roof_clusters(rng, bm, br, avoid=avoid)
+    kit.finish("roof_shingles", bm, [m["roof"]], collide=False)
+    tabs += shed_clusters(kit, rng, surf, r_kick, ex)
+    vents = ck.roof_vents(kit.finish, rng, [m["deck"], m["glass"]], br, mains)
+    kit.rng = trim_rng
+    pitch_deg = PB_PITCH_DEG if b else PC_PITCH_DEG
+    extra = (f"; porch beam {PC_BEAM[0]:.2f} clear, shed {math.degrees(math.atan(PC_SHED_SLOPE)):.1f} deg with a "
+             f"{math.degrees(math.atan(PC_SHED_KICK[1])):.1f} deg kick, upstairs windows {up_sill - eave:+.2f}..{up_head - eave:+.2f} "
+             f"about the eave")
+    return dict(pitch=pitch_deg, floor=floor, storey=PC_STOREY, knee=PBC_KNEE if b else 0.0, eave=eave, rt=br.rt,
+                kick=pitch_deg / 2, lean=False, door_clear=PC_DOOR_H - THRESHOLD, tabs=tabs, vents=vents, risers=n,
+                riser=riser, going=going, extra=extra)
+
+
+def street_clusters(rng, bm, theta, surf, y_wall, r_lim, x_lim, draws):
+    """Shingle clusters on a slope that falls toward the street (-Y) from a
+    wall's line at y_wall, where the kit's slopes fall along X: built in a
+    frame turned a quarter about the origin (local x = -y, local y = x), so
+    the slope falls toward local +X from local x = -y_wall, then turned back.
+    The turn keeps every dot product, so the tabs stay on the painted grid.
+    `surf(r)` is the slope's top r out from the wall, `r_lim` and `x_lim` the
+    region the tabs keep inside; each of `draws` gives a cluster's (r, x,
+    max_courses), drawn just before it is built. Into `bm`; returns the tabs."""
+    old = set(bm.verts)
+    slope = dict(s=1, xc=-y_wall, theta=theta, surf=lambda r, y: surf(r), r=r_lim, y=x_lim)
+    tabs = 0
+    for draw in draws:
+        r, x, courses = draw()
+        tabs += ck.shingle_cluster(rng, bm, slope, r, x, max_courses=courses)
+    for v in bm.verts:
+        if v not in old:
+            v.co = Vector((v.co.y, -v.co.x, v.co.z))
+    return tabs
+
+
+def shed_clusters(kit, rng, surf, r_kick, ex):
+    """Two clusters on the purple's shed porch roof, one each side of the
+    middle, on the main slab, clear of the kick."""
+    hd = D / 2
+    bm = bmesh.new()
+    tabs = street_clusters(rng, bm, math.atan(PC_SHED_SLOPE), surf, -hd, (0.25, r_kick - 0.05), (-ex + 0.05, ex - 0.05),
+                           [lambda side=side: (rng.uniform(0.6, r_kick - 0.6), side * rng.uniform(0.6, ex - 0.9), 2)
+                            for side in (-1, 1)])
+    kit.finish("porch_roof_shingles", bm, [kit.m["roof"]], collide=False)
+    return tabs
+
+
+# --- blue_b, the cartoony build -----------------------------------------------------------
+
+def wrap_eave(br, rise, inside, x0, x1, y0, y1):
+    """The highest eave (the lean-to's top at its eaves' edge, to the
+    centimetre) for blue_b's lean-to whose top, eave + rise(x, y), stays
+    BBC_WRAP_CLEAR under everything of the main roof over it, sampled over
+    its plan (`inside`): the front bargeboard's lower edge across its depth
+    (board and sawn band, which bend down with the kick at the corner) and
+    the main slab's and the kick's undersides, with their sag. The pendant
+    drops hang far higher, over the porch's middle. The relationship, not a
+    number: a change to the roof moves the lean-to with it."""
+    yr, r_end = br.y0, br.r_out + 0.05
+    best = None
+    for i in range(121):
+        x = x0 + (x1 - x0) * i / 120
+        r = abs(x - br.xc)
+        for k in range(121):
+            y = y0 + (y1 - y0) * k / 120
+            if not inside(x, y):
+                continue
+            sag = ck.sag_at(br.stations, y)
+            ceiling = []
+            if yr - ck.BARGE_PROUD <= y <= yr + 0.02 and r <= r_end:
+                ceiling.append(br.profile(r) - 0.02 - BC_BARGE_H - BC_BARGE_BAND)
+            if br.y0 <= y <= br.y1 and r <= br.r_k + 0.02:
+                ceiling.append(br.under(x) - sag)
+            if br.y0 - 0.03 <= y <= br.y1 + 0.03 and br.r_in <= r <= br.r_out:
+                ceiling.append(br.kick_top(r) - br.kick_t - sag)
+            if ceiling:
+                z = min(ceiling) - BBC_WRAP_CLEAR - rise(x, y)
+                best = z if best is None else min(best, z)
+    return math.floor(best * 100) / 100
+
+
+def wrap_porch(kit, floor, br):
+    """blue_b's glazed porch, pushed as the wrap it is: from the body's front
+    wall round its right-front corner, BB_WRAP past the right wall and
+    BB_SIDE_D back along it, under one L-shaped lean-to tucked under the main
+    roof's corner. The lean-to is two planar slabs welded on a hip from the
+    outer corner into the body's corner (the side's slope set so both reach
+    the body at one height), its eave as high as the front bargeboard's bent
+    end and the main eaves let it stand (`wrap_eave`), a fat cream fascia
+    wrapping both eaves in one piece. Under it, plumb walls on fat timber
+    posts at the three outer corners (the lean is left out here: the shared
+    warp is a rectangle's), a glass band wrapping the corner over a solid
+    wainscot, single-piece casings with fat mullions, a plinth round the foot.
+    Returns what its clusters need."""
+    hw, hd = W / 2, D / 2
+    m = kit.m
+    trim, frames, glass, base = (m[k] for k in ("trim", "frames", "glass", "base"))
+    px0, px1 = B_PORCH_X0, hw + BB_WRAP
+    py0, py1 = -hd - B_PORCH_D, -hd + BB_SIDE_D
+    pe = BC_PORCH_POST / 2 - PROUD
+    over, t, pt = BBC_WRAP_OVER, BBC_WRAP_T, B_PORCH_T
+    x_w, x_out, y_out, y_back = px0 - BBC_WRAP_OVER_W, px1 + over, py0 - over, py1 + over
+    x_in = hw - 0.05                         # the side slab's inner edge, inside the body's east wall
+    d_f, d_s = -hd - y_out, x_out - hw
+    s_f = BBC_WRAP_SLOPE
+    s_s = s_f * d_f / d_s                    # both slopes reach the body's corner at one height
+    y_c = -hd + (hw - x_in) * d_f / d_s      # the hip carried on to x_in, inside the front wall
+
+    def rise(x, y):                          # the top over the eave: the lower of the two slopes
+        return min((y - y_out) * s_f, (x_out - x) * s_s)
+
+    def inside(x, y):
+        return (x >= x_w and y_out <= y <= y_c) or (x_in <= x <= x_out and y_out <= y <= y_back)
+    z_e = wrap_eave(br, rise, inside, x_w, x_out, y_out, y_back)
+
+    def top(x, y):
+        return z_e + rise(x, y)
+    # the lean-to: the front slab A B C D and the side slab B E F C, welded on the hip B C
+    pts = {"A": (x_w, y_out), "B": (x_out, y_out), "C": (x_in, y_c), "D": (x_w, y_c), "E": (x_out, y_back), "F": (x_in, y_back)}
+    bm = bmesh.new()
+    vt = {k: bm.verts.new((x, y, top(x, y))) for k, (x, y) in pts.items()}
+    vb = {k: bm.verts.new((x, y, top(x, y) - t)) for k, (x, y) in pts.items()}
+    for loop in (("A", "B", "C", "D"), ("B", "E", "F", "C")):
+        bm.faces.new([vt[k] for k in loop])
+        bm.faces.new([vb[k] for k in reversed(loop)])
+    for p, q in (("A", "B"), ("C", "D"), ("D", "A"), ("B", "E"), ("E", "F"), ("F", "C")):
+        bm.faces.new((vt[p], vt[q], vb[q], vb[p]))
+    kit.finish("porch_roof", bm, [m["roof"]])
+    # the fascia wrapping both eaves, mitred at the corner, 2 cm into the
+    # slab's edge and 6 cm proud, a band of the slab's edge showing over it so
+    # the lean-to reads as a roof, its ends 2 cm past the slab's
+    fz1 = z_e - BBC_FASCIA[0]
+    kit.sweep("porch_fascia", trim, [(x_w - 0.02, y_out), (x_out, y_out), (x_out, y_back + 0.02)],
+              ((-0.02, fz1 - BBC_FASCIA[1]), (0.06, fz1 - BBC_FASCIA[1]), (0.06, fz1), (-0.02, fz1)),
+              closed=False, collide=False)
+
+    def under(x, y):
+        return top(x, y) - t
+    # the walls: tops 4 cm into the slab over their inner faces; the glass's
+    # head under the slab over the front wall's outer face, the lowest
+    g0 = floor + BBC_WRAP_GLASS
+    g1 = under(px0, py0) - 0.03 - (ck.CASING_HEAD - 0.02)
+    ins = BBC_WRAP_INSET
+    x_start = px1 - pe
+    back_len = x_start - (hw - 0.02)
+    p_open = {"front": [(px0 + ins, px1 - ins, g0, g1)], "east": [(py0 + ins, py1 - ins, g0, g1)],
+              "west": [(py0 + ins, py0 + ins + 0.50, g0, g1)]}
+    yw1 = -hd + 0.02 + pe
+    west_len = (yw1 - pe) - (py0 + pe)
+    kit.shell("porch_", px0, px1, py0, yw1, pt, pe, {"front": -BELOW + 0.005, "west": -BELOW - 0.015},
+              {"front": Top(flat=under(px0, py0 + pt) + 0.04),
+               "west": SlopeTop(under(px0, yw1 - pe) + 0.04, under(px0, py0 + pe) + 0.04, west_len)},
+              p_open, [m["walls"], base], floor, which=("front", "west"))
+    kit.shell("porch_", px0, px1, py0, py1, pt, pe, {"east": -BELOW - 0.015}, {"east": Top(flat=under(px1 - pt, py1) + 0.04)},
+              p_open, [m["walls"], base], floor, which=("east",))
+    kit.wall("porch_wall_back", (x_start, py1, 0.0), (-1, 0, 0), (0, -1, 0), back_len, pt, -BELOW - 0.005,
+             SlopeTop(under(x_start, py1) + 0.04, under(hw - 0.02, py1) + 0.04, back_len), [], floor, [m["walls"], base])
+    # fat timber posts at the three outer corners, their collars just under
+    # the slab over them and their shafts on up into it
+    for tag, cx, cy in (("sw", px0 - PROUD + BC_PORCH_POST / 2, py0 - PROUD + BC_PORCH_POST / 2),
+                        ("se", px1 + PROUD - BC_PORCH_POST / 2, py0 - PROUD + BC_PORCH_POST / 2),
+                        ("ne", px1 + PROUD - BC_PORCH_POST / 2, py1 + PROUD - BC_PORCH_POST / 2)):
+        z_u = under(cx, cy)
+        kit.timber_post(f"porch_post_{tag}", trim, cx, cy, -BELOW - 0.045, (0.55, 0.62), z_u, z_u + 0.12, size=BC_PORCH_POST)
+    lights = {"front": 3, "east": 3}       # few, big lights wrapping the corner
+    for face, axis, at, out, opens in (("front", "x", py0, -1, p_open["front"]), ("west", "y", px0, -1, p_open["west"]),
+                                       ("east", "y", px1, 1, p_open["east"])):
+        for k, (a0, a1, z0, z1) in enumerate(opens):
+            kit.casing(f"porch_{face}{k}_casing", frames, axis, at, out, a0, a1, z0, z1, lights=lights.get(face, 1))
+            kit.pane(f"porch_{face}{k}_pane", glass, axis, at, out, a0, a1, z0, z1, recess=BC_PANE_RECESS)
+    # (its inner faces 4.5 cm in, off the entry landing skirt's end and front)
+    kit.sweep("porch_plinth", base, [(px0, -hd + 0.06), (px0, py0), (px1, py0), (px1, py1), (hw - 0.06, py1)],
+              ((-0.045, -0.09), (0.10, -0.09), (0.04, 0.40), (-0.045, 0.40)), closed=False)
+    return dict(z_e=z_e, s_f=s_f, s_s=s_s, d_f=d_f, d_s=d_s, x_w=x_w, x_in=x_in, y_back=y_back)
+
+
+def side_stoop(kit, floor):
+    """blue_b's side door's landing and flight on the driveway side, in place
+    of the back stoop, pushed as one bold mass: a deck along the wall at the
+    door, the flight running down along the wall toward the back in the
+    blue's chunky risers at its grade, and solid parapets with fat caps and
+    fat piers at the foot, as the blue's back stoop has (cartoon_kit's): the
+    outer one a single piece from the landing's front corner down to its
+    pier, the inner one from just behind the flight's top (clear of the
+    door) down, and a third across the landing's front, run between the
+    window's casing and the door's into the leaning wall. The flight stands
+    BBC_FLIGHT_IN off the wall, its inner cap clear of the window casing
+    beside it and its pier of the plinth's flare. Returns its (n, riser, going)."""
+    hw = W / 2
+    m = kit.m
+    deck, base, trim = m["deck"], m["base"], m["trim"]
+    ly0, ly1 = BBC_LANDING_Y
+    sx0 = hw + BBC_FLIGHT_IN
+    sx1 = sx0 + STAIR_W
+    x_in, x_out = sx0 - 0.05, sx1 + 0.05        # the parapets lap 2 cm over the treads' ends
+    xd = x_out + BC_PARAPET / 2 + 0.03          # the deck's outer edge, 3 cm past the parapet
+    kit.box("side_deck", deck, hw - 0.06, xd, ly0, ly1, floor - BC_DECK_T, floor)
+    kit.skirt("side_skirt", base, hw - 0.04, xd - 0.08, ly0 + 0.08, ly1 - 0.08, floor)
+    n, riser, going = kit.flight("side_stair", deck, sx0, sx1, ly1, 1, floor)
+    # the outer parapet from 2 cm inside the front one; the inner from 0.20 behind the edge
+    kit.stoop_parapets("side", (("out", x_out),), ly1, 1, floor, n, riser, going, ly0 + 0.05 - ly1)
+    kit.stoop_parapets("side", (("in", x_in),), ly1, 1, floor, n, riser, going, -0.20)
+    # the front parapet and its cap, a centimetre off the side ones' heights,
+    # from inside the leaning wall to 2 cm past the outer parapet and its cap
+    yf = ly0 + 0.03 + BC_PARAPET / 2
+    pt = floor + RAIL_H - ck.CAP_H + 0.05
+    kit.box("side_parapet_front", trim, hw + 0.02, x_out + BC_PARAPET / 2 + 0.02, yf - BC_PARAPET / 2, yf + BC_PARAPET / 2,
+            floor - 0.03, pt)
+    kit.box("side_parapet_front_cap", trim, hw + 0.01, x_out + BC_PARAPET_CAP / 2 + 0.02, yf - BC_PARAPET_CAP / 2,
+            yf + BC_PARAPET_CAP / 2, floor + RAIL_H + 0.03 - ck.CAP_H, floor + RAIL_H + 0.03, collide=False)
+    return n, riser, going
 
 
 def build_variant(v, coll):
     if v == "blue":
         return build_blue_cartoon(Chunky("blue", coll))
     elif v == "purple":
-        build_purple(Kit("purple", coll), P_BAR_Z, P_FAN_R, P_SPINDLES_X, P_SPINDLE_L)
+        return build_purple_cartoon(Chunky("purple", coll, pitch_deg=PC_PITCH_DEG, seed=PC_SEED, shingle_seed=PC_SHINGLE_SEED,
+                                           risers=PC_RISERS, grade=PC_GRADE, wall_top_in=PC_WALL_TOP_IN))
     elif v == "blue_b":
-        build_blue_b(Kit("blue_b", coll))
+        return build_blue_cartoon(Chunky("blue_b", coll, seed=BBC_SEED, shingle_seed=BBC_SHINGLE_SEED), b=True)
     elif v == "purple_b":
-        build_purple(Kit("purple_b", coll, pitch_deg=PB_PITCH_DEG, knee=PB_KNEE, wall_top_in=PB_WALL_TOP_IN),
-                     PB_BAR_Z, PB_FAN_R, PB_SPINDLES_X, PB_SPINDLE_L, railed=True, with_chimney=True)
+        return build_purple_cartoon(Chunky("purple_b", coll, pitch_deg=PB_PITCH_DEG, seed=PBC_SEED, shingle_seed=PBC_SHINGLE_SEED,
+                                           risers=PC_RISERS, grade=PC_GRADE, knee=PBC_KNEE, wall_top_in=PBC_WALL_TOP_IN), b=True)
 
 
 # --- reference -----------------------------------------------------------------
@@ -1878,21 +1927,16 @@ def main():
     tris = {}
     for v in VARIANTS:
         tris[v] = report(variant_parts(v), f"{v} ({'export' if v == 'blue' else 'export/variant_' + v})")
-    eave_b, eave_p = B_FLOOR + STOREY, P_FLOOR + STOREY
-    print(f"{NAME}: body {W:.1f} x {D:.1f} m, walls {T:.2f} m, pitch {PITCH_DEG:.0f} deg, storey {STOREY:.1f} m; "
-          f"blue_b floor {B_FLOOR:.2f}, eave {eave_b:.2f}, ridge top {eave_b + RISE + ROOF_VT:.2f}, "
-          f"landing {B_LANDING_D:.2f} m deep, balcony {2 * B_BALCONY_HW:.1f} x {B_BALCONY_D:.2f} m at {eave_b:.2f}; "
-          f"purple floor {P_FLOOR:.2f}, eave {eave_p:.2f}, ridge top {eave_p + RISE + ROOF_VT:.2f}, "
-          f"porch {W + 2 * P_DECK_OVER:.1f} x {P_PORCH_D:.2f} m; blue_b porch {BB_WRAP:.1f} m past the wall, "
-          f"{BB_SIDE_D:.1f} m back, lean-to eave {B_FLOOR + BB_PORCH_EAVE:.2f}, side door at y {BB_SIDE_DOOR_Y[0]:.2f}..{BB_SIDE_DOOR_Y[1]:.2f}; "
-          f"purple_b pitch {PB_PITCH_DEG:.0f} deg, knee {PB_KNEE:.2f}, eave {P_FLOOR + STOREY + PB_KNEE:.2f}, "
-          f"ridge top {P_FLOOR + STOREY + PB_KNEE + (W / 2) * math.tan(math.radians(PB_PITCH_DEG)) + ROOF_T / math.cos(math.radians(PB_PITCH_DEG)):.2f}")
-    bc = built["blue"]
-    print(f"{NAME}: blue (cartoony) pitch {BC_PITCH_DEG:.0f} deg, storey {BC_STOREY:.2f} m, eave {bc['eave']:.2f}, "
-          f"ridge top {bc['rt']:.2f} (sagging {BC_SAG:.2f} at mid-length), slab {BC_ROOF_T:.2f}, eave over {BC_EAVE_OVER:.2f} "
-          f"with a {BC_KICK_DEG:.0f} deg kick, rake over {BC_RAKE_OVER:.2f}, walls leaning {BC_LEAN_DEG} deg; "
-          f"{bc['risers']} risers of {bc['riser']:.3f} on {bc['going']:.3f} (grade {bc['riser'] / bc['going']:.4f}, the blue's {BC_GRADE:.4f}); "
-          f"{bc['tabs']} shingle tabs; painted siding exposure {BC_SIDING:.2f} m, {BC_STOREY / BC_SIDING:.2f} courses floor to eave")
+    for v in VARIANTS:
+        b = built[v]
+        print(f"{NAME}: {v} (cartoony): pitch {b['pitch']:.0f} deg, floor {b['floor']:.2f}, storey {b['storey']:.2f} m"
+              + (f" and a {b['knee']:.2f} m knee wall" if b.get("knee") else "")
+              + f", eave {b['eave']:.2f}, ridge top {b['rt']:.2f} (sagging {BC_SAG:.2f} at mid-length), slab {BC_ROOF_T:.2f}, "
+              f"eave and rake over {BC_EAVE_OVER:.2f} with a {b['kick']:.1f} deg kick; walls "
+              + (f"leaning {BC_LEAN_DEG} deg" if b["lean"] else "plumb")
+              + f"; doors {b['door_clear']:.2f} m clear; {b['risers']} risers of {b['riser']:.3f} on {b['going']:.3f} "
+              f"(grade {b['riser'] / b['going']:.4f}); {b['tabs']} shingle tabs, {b['vents']} vents; painted siding "
+              f"{BC_SIDING:.2f} m, {b['storey'] / BC_SIDING:.2f} courses floor to eave" + b.get("extra", ""))
     for v in VARIANTS:
         pairs = coplanar_pairs(variant_parts(v))
         print(f"{NAME}: {v}: {len(pairs)} coplanar overlapping face pairs" +

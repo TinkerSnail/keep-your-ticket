@@ -3,12 +3,17 @@ painting for its roof and siding, so a build can be judged as it will read
 once painted, before anyone paints it. Nothing is ever saved into the blend.
 
     /Applications/Blender.app/Contents/MacOS/Blender --background <house>.blend \\
-        --python tools/blender/cartoon_preview.py -- <variant> <folder> [<shot> ...] \\
-        [--scale <s>] [--siding-origin <z>]
+        --python tools/blender/cartoon_preview.py -- <variant>[,<variant>...] <folder> [<shot> ...] \\
+        [--scale <s>] [--siding-origin <z> | <variant>=<z>,...] [--figure]
 
 Renders the variant (its `kyt_variant` parts in `export`; every other part,
 `reference` and `authored` hidden) into <folder> as `painted_<shot>.png`,
-every shot in SHOTS or only those named. It changes, in memory only:
+every shot in SHOTS or only those named. Several variants, comma-separated,
+stand side by side for the shot only, each moved over one lot (the width of
+the blend's `lot...` outline, 9 m without one) in the order given, each with
+its own painted stand-in and siding origin; the `lineup_...` shots frame four
+of them. `--figure` stands a 1.7 m figure on the lawn for scale. It changes,
+in memory only:
 
 - **The roof** (the variant's material ending `_roof`): painted shingles on
   `cartoon_kit`'s grid, read from the kit so the painting and the raised
@@ -25,7 +30,12 @@ every shot in SHOTS or only those named. It changes, in memory only:
   off the slab, which would swing a world-position projection by decimetres.
 - **The walls** (the material ending `_walls`): lap siding at the standard's
   0.24 m exposure, its courses counted from `--siding-origin` (the main
-  floor, 1.55 on the Victorian; 0 by default), its grain magnified with it.
+  floor, 1.55 on the Victorian blue, 0.60 on its purple; 0 by default; one
+  per variant as `blue=1.55,purple=0.6`), its grain magnified with it.
+
+The painting reads each part's own (object) coordinates, which are the
+house's frame, so a house moved over for a lineup keeps its painted courses
+on its raised tabs.
 
 The stage is a ground, a walk and a street at the front of the blend's
 `lot...` reference outline and a drive on its `driveway` outline, as the
@@ -56,7 +66,12 @@ SHOTS = {
     "gable_close": ((0.3, -13.5, 4.6), (0.0, -5.0, 6.6), 30),         # the front gable's trim
     "rear_west": ((-12.0, 15.0, 3.0), (-0.8, 2.0, 6.2), 28),
     "vents_close": ((-6.5, 7.5, 7.8), (-1.6, 2.2, 6.6), 30),          # the back half of the west slope
+    # four houses on neighbouring lots (x 0, 9, 18, 27), with a fourth
+    # element, an orthographic width in metres
+    "lineup_three_quarter": ((27.5, -36.0, 1.75), (13.0, -1.0, 4.4), 30),   # from the street, right of the row, eye height
+    "lineup_elevation": ((13.5, -60.0, 4.9), (13.5, 0.0, 4.9), 50, 37.0),  # straight on, every house at one scale
 }
+LINEUP_SIZE = (2400, 1000)
 SIZE = (1800, 1100)
 SIDING = 0.24              # the standard's painted lap siding exposure: twice a real one
 SIDING_GRAIN = 2.0         # its grain magnified with it
@@ -64,13 +79,17 @@ SIDING_GRAIN = 2.0         # its grain magnified with it
 
 def args():
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
-    opts = {"--scale": 1.0, "--siding-origin": 0.0}
+    opts = {"--scale": "1.0", "--siding-origin": "0.0"}
+    figure = False
     rest = []
     i = 0
     while i < len(argv):
         if argv[i] in opts:
-            opts[argv[i]] = float(argv[i + 1])
+            opts[argv[i]] = argv[i + 1]
             i += 2
+        elif argv[i] == "--figure":
+            figure = True
+            i += 1
         else:
             rest.append(argv[i])
             i += 1
@@ -80,7 +99,13 @@ def args():
     unknown = [s for s in shots if s not in SHOTS]
     if unknown:
         raise SystemExit(f"cartoon_preview: no shot {unknown}; there are {list(SHOTS)}")
-    return rest[0], rest[1], shots, opts["--scale"], opts["--siding-origin"]
+    variants = rest[0].split(",")
+    so = opts["--siding-origin"]
+    if "=" in so:
+        origins = {k: float(z) for k, z in (item.split("=") for item in so.split(","))}
+    else:
+        origins = {v: float(so) for v in variants}
+    return variants, rest[1], shots, float(opts["--scale"]), origins, figure
 
 
 # --- the stand-in painting ------------------------------------------------------------
@@ -152,14 +177,17 @@ def shingles(name, rgb, use_uv=False):
         return n.outputs["Result"]
 
     # s: courses down the slope, t: tabs across, as cartoon_kit's slope_s and
-    # its clusters' t_mid measure them (the world position dotted with the
-    # face's downhill and across directions)
+    # its clusters' t_mid measure them (the position in the house's frame, the
+    # part's object coordinates, dotted with the face's downhill and across
+    # directions; the parts are built unmoved, so it is their world position
+    # until a lineup moves them over)
     nsep = nt.nodes.new("ShaderNodeSeparateXYZ")
     L.new(geo.outputs["Normal"], nsep.inputs[0])
     down = V("NORMALIZE", V("ADD", V("SCALE", geo.outputs["Normal"], scale=nsep.outputs["Z"]), (0.0, 0.0, -1.0)))
     across = V("NORMALIZE", V("CROSS_PRODUCT", geo.outputs["Normal"], (0.0, 0.0, 1.0)))
-    s = M("DIVIDE", V("DOT_PRODUCT", geo.outputs["Position"], down), ck.SHINGLE_E)
-    t = M("DIVIDE", V("DOT_PRODUCT", geo.outputs["Position"], across), ck.SHINGLE_W)
+    pos = nt.nodes.new("ShaderNodeTexCoord").outputs["Object"]
+    s = M("DIVIDE", V("DOT_PRODUCT", pos, down), ck.SHINGLE_E)
+    t = M("DIVIDE", V("DOT_PRODUCT", pos, across), ck.SHINGLE_W)
     if use_uv:
         # the raised tabs: their own faces lean a degree or two off the slab,
         # which swings a world-position projection by decimetres, so their
@@ -296,9 +324,10 @@ def bake_slab_frame(tabs, painted, parts):
 
 # --- the stage -------------------------------------------------------------------------
 
-def stage(scene, parts):
-    """A ground, a walk, a street and a drive, a sky and a sun, as the house
-    builders' renders have them; returns the camera."""
+def stage(scene, parts, offsets=(0.0,), figure_at=None):
+    """A ground, a walk, a street and a drive (one per lot, at each of
+    `offsets` along X), a sky and a sun, as the house builders' renders have
+    them, and a 1.7 m figure at `figure_at` if given; returns the camera."""
     def mat(name, rgb):
         m = bpy.data.materials.new(name)
         m.use_nodes = True
@@ -328,7 +357,29 @@ def stage(scene, parts):
     box("_street", mat("_street", (0.28, 0.28, 0.30)), -80, 80, -80, kerb - 1.6, -0.30, -0.005)
     if drive:
         x0, x1, _, y1 = bounds(drive)
-        box("_drive", walk, x0 + 0.1, x1 - 0.2, kerb - 1.6, y1, -0.30, 0.004)
+        for k, dx in enumerate(offsets):
+            box(f"_drive{k}", walk, dx + x0 + 0.1, dx + x1 - 0.2, kerb - 1.6, y1, -0.30, 0.004)
+    if figure_at is not None:
+        # a 1.7 m standing figure, as the builders' reference one: a
+        # 12-sided body and a ball head
+        import bmesh
+        bm = bmesh.new()
+        ring = [bm.verts.new((0.18 * math.cos(math.tau * i / 12), 0.18 * math.sin(math.tau * i / 12), 0.0)) for i in range(12)]
+        top = [bm.verts.new((v.co.x, v.co.y, 1.30)) for v in ring]
+        bm.faces.new(list(reversed(ring)))
+        bm.faces.new(top)
+        for i in range(12):
+            bm.faces.new((ring[i], ring[(i + 1) % 12], top[(i + 1) % 12], top[i]))
+        head = bmesh.ops.create_uvsphere(bm, u_segments=12, v_segments=8, radius=0.17)
+        for v in head["verts"]:
+            v.co.z += 1.70 - 0.17
+        me = bpy.data.meshes.new("_figure")
+        bm.to_mesh(me)
+        bm.free()
+        me.materials.append(mat("_figure", (0.30, 0.22, 0.40)))
+        fig = bpy.data.objects.new("_figure", me)
+        fig.location = figure_at
+        scene.collection.objects.link(fig)
     world = bpy.data.worlds.new("_sky")
     world.use_nodes = True
     world.node_tree.nodes["Background"].inputs["Color"].default_value = (0.42, 0.62, 0.86, 1.0)
@@ -355,49 +406,67 @@ def stage(scene, parts):
 
 
 def main():
-    variant, folder, shots, scale, siding_origin = args()
+    variants, folder, shots, scale, origins, figure = args()
     os.makedirs(folder, exist_ok=True)
     scene = bpy.context.scene
     export = bpy.data.collections["export"]
-    parts = [o for o in export.all_objects if o.type == "MESH" and o.get("kyt_variant") == variant]
-    if not parts:
-        raise SystemExit(f"cartoon_preview: export has no parts of variant {variant!r}")
+    by = {v: [o for o in export.all_objects if o.type == "MESH" and o.get("kyt_variant") == v] for v in variants}
+    missing = [v for v in variants if not by[v]]
+    if missing:
+        raise SystemExit(f"cartoon_preview: export has no parts of variant {missing}")
     # a list first: setting hide_render while walking all_objects itself sets nothing
     for o in list(export.all_objects):
-        o.hide_render = o.get("kyt_variant") != variant
+        o.hide_render = o.get("kyt_variant") not in variants
     for name in ("reference", "authored"):
         c = bpy.data.collections.get(name)
         if c:
             c.hide_render = True
-    used = {s.material for o in parts for s in o.material_slots if s.material}
-    roof = next(m for m in used if m.name.endswith("_roof"))
-    walls = next(m for m in used if m.name.endswith("_walls"))
-    painted = shingles("_shingles", base_rgb(roof))
-    raised = shingles("_tabs", base_rgb(roof), use_uv=True)
-    side = siding("_siding", base_rgb(walls), siding_origin)
-    tabs = [o for o in parts if o.name.endswith("shingles")]
-    for o in parts:
-        for slot in o.material_slots:
-            if slot.material == roof:
-                slot.material = raised if o in tabs else painted
-            elif slot.material == walls:
-                slot.material = side
-    slabs = bake_slab_frame(tabs, painted, parts)
-    print(f"cartoon_preview: {variant}: {len(parts)} parts, {len(tabs)} raised-tab parts on {slabs} slab planes; "
-          f"shingles {ck.SHINGLE_E} x {ck.SHINGLE_W} m, siding {SIDING} m from z {siding_origin}")
-    cam = stage(scene, parts)
+    for v in variants:
+        parts = by[v]
+        used = {s.material for o in parts for s in o.material_slots if s.material}
+        roof = next(m for m in used if m.name.endswith("_roof"))
+        walls = next(m for m in used if m.name.endswith("_walls"))
+        painted = shingles(f"_shingles_{v}", base_rgb(roof))
+        raised = shingles(f"_tabs_{v}", base_rgb(roof), use_uv=True)
+        side = siding(f"_siding_{v}", base_rgb(walls), origins.get(v, 0.0))
+        tabs = [o for o in parts if o.name.endswith("shingles")]
+        for o in parts:
+            for slot in o.material_slots:
+                if slot.material == roof:
+                    slot.material = raised if o in tabs else painted
+                elif slot.material == walls:
+                    slot.material = side
+        slabs = bake_slab_frame(tabs, painted, parts)      # in the house's frame, before any move
+        print(f"cartoon_preview: {v}: {len(parts)} parts, {len(tabs)} raised-tab parts on {slabs} slab planes; "
+              f"shingles {ck.SHINGLE_E} x {ck.SHINGLE_W} m, siding {SIDING} m from z {origins.get(v, 0.0)}")
+    # several variants stand on neighbouring lots, for the shot only
+    ref = bpy.data.collections.get("reference")
+    lots = [o for o in (ref.all_objects if ref else []) if o.name.startswith("lot") and o.type == "MESH"]
+    lot_w = 9.0
+    if lots:
+        xs = [(lots[0].matrix_world @ Vector(c)).x for c in lots[0].bound_box]
+        lot_w = max(xs) - min(xs)
+    offsets = [k * lot_w for k in range(len(variants))]
+    for v, dx in zip(variants, offsets):
+        for o in by[v]:
+            o.location.x += dx
+    cam = stage(scene, [o for v in variants for o in by[v]], offsets,
+                figure_at=(lot_w / 2, -8.0, 0.0) if figure else None)
     for name in shots:
-        eye, target, lens = SHOTS[name]
+        eye, target, lens = SHOTS[name][:3]
+        ortho = SHOTS[name][3] if len(SHOTS[name]) > 3 else None
         eye, target = Vector(eye) * scale, Vector(target) * scale
         cam.location = eye
         cam.rotation_euler = (target - eye).to_track_quat("-Z", "Y").to_euler()
+        cam.data.type = "ORTHO" if ortho else "PERSP"
+        if ortho:
+            cam.data.ortho_scale = ortho * scale
         cam.data.lens = lens
         cam.data.clip_start = 0.05
         cam.data.clip_end = 600
-        scene.render.resolution_x, scene.render.resolution_y = SIZE
+        scene.render.resolution_x, scene.render.resolution_y = LINEUP_SIZE if name.startswith("lineup") else SIZE
         scene.render.filepath = os.path.join(folder, f"painted_{name}.png")
         bpy.ops.render.render(write_still=True)
         print(f"cartoon_preview: rendered {scene.render.filepath}")
-
 
 main()
