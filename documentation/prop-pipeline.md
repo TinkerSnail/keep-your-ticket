@@ -536,6 +536,30 @@ From the plan's texture standards (2026-09-24):
   exception at about 576 px per metre on a 2048 colour map (hero props, her
   call per prop).
 - **Dressing, not texture,** for anything one copy has and the others don't.
+- **Buildings are cartoony** (Christina, 2026-10-03: "world of warcraft did
+  a good job with cartoonizing its buildings", "enhance the essence of the
+  structure's most recognizable elements"; the Victorian study,
+  `victorian_cottage` variant `blue_cartoon`, approved 2026-10-04). Few, big
+  pieces, with the folksy features enlarged rather than dropped: sunbursts,
+  bargeboards with hand-cut drops, shaped brackets, fat newels with caps and
+  knobs, square balusters about 0.10 m at 0.30 m. Posts at least 0.22 m,
+  casings about 0.16 m. A top-heavy roof: a 0.30 m slab, 0.75 m overhangs, a
+  bell-cast kick at the eaves. Seeded irregularities of a few centimetres or
+  a degree or two; decks, sills and ramps stay exact. Siding is painted at
+  double size (0.24 m exposure), its grain magnified with it. Shingles are
+  painted at about 0.5 by 0.6 m, and each row must read as overlapping the
+  one below (a hard shadow under each butt, each shingle lighter toward its
+  butt; no light line along the butt, her "kind of weird"), or they read as
+  bricks.
+  A few clusters of those same shingles lift off the roof, like the hedges'
+  leaf clusters. They are snapped to the painted grid, so the roof's UVs and
+  painting must follow it. Each is wedged thin at the head "like an ax head",
+  and they draw from a seed of their own. Red trim under the eaves is a shade
+  darker, as if in their shadow. The study's walls also lean in 1.75°, which
+  costs every opening and barely shows. A converted house replaces its old
+  version in place (her "these would be replacements and not variants",
+  2026-10-04). The shared pieces are in `tools/blender/cartoon_kit.py`, and
+  the painted-stand-in review renders come from `tools/blender/cartoon_preview.py`.
 - **Planting is cartoony** (Christina, 2026-09-27: "more cartoony", "think
   animal crossing sizing", "very nintendo"): plants about 1.3× their Godot
   size, few broad leaves with round ends, chubby blades, thick stems, bold
