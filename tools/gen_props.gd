@@ -22930,6 +22930,9 @@ const ROAD_PROFILE := [0.0, 1.5, 2.3, 3.1, 3.6, 6.0, 9.0, 12.5, 16.5, 21.6]
 const ROAD_REF := 9.5
 const ROAD_FILL_FACE := 2.0
 const ROAD_TAPER := 24.0
+## How far past a run's bridge end a point must be before the run stops
+## claiming it (`_road_records_cut`).
+const ROAD_STOP_SLACK := 0.05
 const ROAD_CUT_BATTER := 1.5
 const ROAD_FILL_BATTER := 2.0
 const ROAD_VIADUCT_DROP := 6.0
@@ -23330,12 +23333,20 @@ func _road_cut_records() -> Array:
 	var cross: Vector3 = Plan.approach_crossing()
 	var cx: int = _highway_crossing["a"]
 	var bridge_half: float = _highway_m[cx] * 0.5 + Plan.HIGHWAY_CARRIAGEWAY_W + ROAD_VERGE + 0.7
+	# And it closes out to each abutment's back face, `_road_overpass`'s wall
+	# 0.7m beyond that half-width and 1.2m thick, with a station put exactly
+	# there, so the embankment ends behind the wall that retains it. A run
+	# used to end wherever its 4m rows fell: 17.1m out on one side, inside the
+	# deck's end with a bare earth face under it, and 18.8m on the other
+	# (2026-10-03). The split is far past `from_i`, so that index stands.
+	var abut_back := bridge_half + 0.6
+	ap_pts = _road_split_at_radius(ap_pts, Vector2(cross.x, cross.z), abut_back)
 	var closed_ap := PackedByteArray()
 	closed_ap.resize(ap_pts.size() - 1)
 	closed_ap.fill(0)
 	for k in ap_pts.size() - 1:
 		var mid: Vector3 = (ap_pts[k] as Vector3).lerp(ap_pts[k + 1], 0.5)
-		if Vector2(mid.x - cross.x, mid.z - cross.z).length() <= bridge_half:
+		if Vector2(mid.x - cross.x, mid.z - cross.z).length() <= abut_back:
 			closed_ap[k] = 1
 	# Split the approach corridor around the bridge. `closed_ap` already kept
 	# the height function from cutting the highway beneath it, but feeding one
@@ -23354,9 +23365,28 @@ func _road_cut_records() -> Array:
 		ap_runs.append({"from": ai, "to": aj + 1,
 			"taper_start": ai == from_i, "taper_end": aj + 1 == ap_pts.size() - 1})
 		ai = aj + 1
+	# Where a run ends at the bridge, the plane through that end, facing the
+	# bridge: no segment of the run claims ground past it
+	# (`_road_records_cut`), whatever its rounded end would reach.
+	var stops: Array = []
+	stops.resize(closed_ap.size())
+	for run in ap_runs:
+		var f: int = run["from"]
+		var t: int = run["to"]
+		var planes: Array = []
+		if f > 0 and closed_ap[f - 1]:
+			var e: Vector3 = ap_pts[f]
+			var inward: Vector3 = ap_pts[f + 1]
+			planes.append([Vector2(e.x, e.z), Vector2(e.x - inward.x, e.z - inward.z).normalized()])
+		if t < closed_ap.size() and closed_ap[t]:
+			var e: Vector3 = ap_pts[t]
+			var inward: Vector3 = ap_pts[t - 1]
+			planes.append([Vector2(e.x, e.z), Vector2(e.x - inward.x, e.z - inward.z).normalized()])
+		for k in range(f, t):
+			stops[k] = planes
 	out.append({"id": "approach", "kind": "road", "points": ap_pts, "half": Plan.APPROACH_ROAD_W * 0.5,
 		"corridor": true, "runs": ap_runs,
-		"batter": 18.0, "closed": closed_ap})
+		"batter": 18.0, "closed": closed_ap, "stops": stops})
 	# The turnaround: a pad as wide as the circle along the stub's last
 	# stretch, on the stub's own grade, since a level pad at the top height
 	# stood 0.8m over the road climbing into it (path_ground_test, 2026-09-06).
@@ -23391,6 +23421,31 @@ func _road_cut_records() -> Array:
 	return out
 
 
+## `pts` with a point added wherever a segment crosses the circle of `radius`
+## round `centre` in plan, its height along the segment. A crossing within 5cm
+## of a point already there is left to that point.
+func _road_split_at_radius(pts: Array, centre: Vector2, radius: float) -> Array:
+	var out: Array = [pts[0]]
+	for k in pts.size() - 1:
+		var a: Vector3 = pts[k]
+		var b: Vector3 = pts[k + 1]
+		var a2 := Vector2(a.x, a.z) - centre
+		var d2 := Vector2(b.x - a.x, b.z - a.z)
+		var qa := d2.dot(d2)
+		var qb := 2.0 * a2.dot(d2)
+		var qc := a2.dot(a2) - radius * radius
+		var disc := qb * qb - 4.0 * qa * qc
+		if qa > 0.0 and disc > 0.0:
+			var ts: Array = [(-qb - sqrt(disc)) / (2.0 * qa), (-qb + sqrt(disc)) / (2.0 * qa)]
+			var seg_len := sqrt(qa)
+			for t_v in ts:
+				var t: float = t_v
+				if t * seg_len > 0.05 and (1.0 - t) * seg_len > 0.05:
+					out.append(a.lerp(b, t))
+		out.append(b)
+	return out
+
+
 ## The nearest road's cut at a point, over every road record: the old rule,
 ## level within a metre of the ribbon's edge and blended back to the
 ## landform over the batter, and inside a corridor the section itself,
@@ -23408,6 +23463,7 @@ func _road_records_cut(p: Vector2, y: float) -> Array:
 		var reach: float = half + ROAD_EXT + 2.0
 		var is_hw: bool = rec["kind"] == "highway"
 		var closed_segments: PackedByteArray = rec.get("closed", PackedByteArray())
+		var stops: Array = rec.get("stops", [])
 		for i in pts.size() - 1:
 			if is_hw and not _highway_open[i]:
 				continue
@@ -23424,6 +23480,23 @@ func _road_records_cut(p: Vector2, y: float) -> Array:
 			# level stood over the stub climbing into it (2026-09-06).
 			if bool(rec.get("no_back", false)) and i == 0 and (p - a).dot(b - a) < 0.0:
 				continue
+			# Nor does a run past an end it shares with a bridge: the abutment is
+			# where its ground stops. Its rounded end reached 1.8m onto both
+			# carriageways under the overpass and won them, being further inside
+			# its own ribbon than they were inside the highway's, so the
+			# corridor stood the approach's embankment up to 7.6m over the road
+			# (2026-10-03).
+			# The run's own end row lies in that plane, so a point counts as past
+			# it only beyond `ROAD_STOP_SLACK`: at zero, rounding put alternate
+			# samples of the row on the far side and dropped them to the
+			# highway's level.
+			if i < stops.size() and stops[i] != null:
+				var past := false
+				for plane in stops[i]:
+					if (p - (plane[0] as Vector2)).dot(plane[1] as Vector2) > ROAD_STOP_SLACK:
+						past = true
+				if past:
+					continue
 			var q := Geometry2D.get_closest_point_to_segment(p, a, b)
 			var t := a.distance_to(q) / maxf(a.distance_to(b), 0.001)
 			var edge_half := half
