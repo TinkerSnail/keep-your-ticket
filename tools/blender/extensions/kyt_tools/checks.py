@@ -33,8 +33,10 @@ SEAT_MARKERS = ("seat_l", "seat_r")
 # may start a little above (the fern fan's fronds begin 2.5 cm up). A prop set
 # into the ground is placed by `ground_line`, the ground it stands in, which it
 # goes below on purpose (the hardscape kit's walls, curbs and fence posts, so
-# uneven ground never shows a gap under them).
-MOUNT_MARKERS = ("trunk_top", "plant_base", "ground_line")
+# uneven ground never shows a gap under them). A boat (or a swimming animal) is
+# placed by `waterline`, the water's surface it floats at, and goes below it by
+# its draft.
+MOUNT_MARKERS = ("trunk_top", "plant_base", "ground_line", "waterline")
 EXPORT_COLLECTION = "export"
 REFERENCE_COLLECTION = "reference"
 
@@ -119,10 +121,12 @@ def run(context):
     context.view_layer.update()
     depsgraph = context.evaluated_depsgraph_get()
     library = library_names(root)
-    triangles = 0
+    # A file of variants (`kyt_variant`) sends each as a prop of its own
+    # (send.py), and the game shows one at a time, so each is measured on its
+    # own: the placement budget, the ground or mount and the centre belong to
+    # one placed prop, not to the file. Parts with no variant are one prop.
+    stats = {}
     materials = set()
-    low = Vector((1e9, 1e9, 1e9))
-    high = Vector((-1e9, -1e9, -1e9))
 
     for obj in objects:
         s = obj.matrix_world.to_scale()
@@ -134,21 +138,27 @@ def run(context):
             error(f"'{obj.name}' is named like a collision twin. Collision is made for you on export; rename it.")
         if not obj.material_slots or any(slot.material is None for slot in obj.material_slots):
             error(f"'{obj.name}' has a face with no material. Give every slot a material.")
+        st = stats.setdefault(str(obj.get("kyt_variant", "")), {
+            "triangles": 0, "materials": set(),
+            "low": Vector((1e9, 1e9, 1e9)), "high": Vector((-1e9, -1e9, -1e9))})
         for slot in obj.material_slots:
             if slot.material is None:
                 continue
             materials.add(slot.material.name)
+            st["materials"].add(slot.material.name)
 
         ev = obj.evaluated_get(depsgraph)
         mesh = ev.to_mesh()
         try:
             mesh.calc_loop_triangles()
-            triangles += len(mesh.loop_triangles)
+            st["triangles"] += len(mesh.loop_triangles)
             m = obj.matrix_world
+            low, high = st["low"], st["high"]
             for v in mesh.vertices:
                 w = m @ v.co
                 low = Vector((min(low.x, w.x), min(low.y, w.y), min(low.z, w.z)))
                 high = Vector((max(high.x, w.x), max(high.y, w.y), max(high.z, w.z)))
+            st["low"], st["high"] = low, high
             if getattr(context.scene, "kyt_stage", "") == "texture" and not mesh.uv_layers:
                 error(f"'{obj.name}' has no UVs yet; it needs them at the texture stage.")
         finally:
@@ -157,29 +167,65 @@ def run(context):
     if library is not None:
         for name in sorted(materials - library):
             warn(f"Material '{name}' is not in the game's material library yet.")
-    if triangles > PLACEMENT_TRIANGLES:
-        error(f"The prop has {triangles:,} triangles; a repeated prop may have at most {PLACEMENT_TRIANGLES:,}.")
-    found.append(("NOTE", f"{triangles:,} triangles, {len(materials)} material{'s' if len(materials) != 1 else ''}."))
-    if len(materials) > PLACEMENT_SURFACES:
-        error(f"The prop uses {len(materials)} materials; a repeated prop may have at most {PLACEMENT_SURFACES}.")
 
     mount = next((bpy.data.objects[n] for n in MOUNT_MARKERS if n in bpy.data.objects), None)
-    if mount is not None and mount.name == "plant_base":
-        found.append(("NOTE", f"The plant stands on '{mount.name}' at the origin: its leaves "
-                              f"start {low.z * 100:.1f} cm above it and reach {high.z:.2f} m."))
-    elif mount is not None and mount.name == "ground_line":
-        found.append(("NOTE", f"The prop is set into the ground at '{mount.name}': it goes "
-                              f"{-low.z * 100:.1f} cm below it and reaches {high.z:.2f} m above."))
-    elif mount is not None:
-        found.append(("NOTE", f"The prop hangs from '{mount.name}' at the origin: it reaches "
-                              f"{high.z:.2f} m above it and {-low.z:.2f} m below."))
-    elif abs(low.z) > GROUND_TOLERANCE_M:
-        where = "above" if low.z > 0 else "below"
-        error(f"The prop's lowest point is {abs(low.z) * 100:.1f} cm {where} the ground (z = 0). It should sit on it.")
-    centre = (low + high) / 2
-    if Vector((centre.x, centre.y)).length > CENTRE_TOLERANCE_M:
-        warn(f"The prop is {Vector((centre.x, centre.y)).length:.2f} m off the origin. "
+    named = len(stats) > 1
+    if named:
+        total = sum(st["triangles"] for st in stats.values())
+        found.append(("NOTE", f"{len(stats)} variants, {total:,} triangles and {len(materials)} materials "
+                              "in the file; each is checked as the prop it is sent as."))
+    # Ground contact stays a property of the set: a variant may rest on another
+    # one (the queue rope hangs between its posts, the derby horse rides its
+    # lane), so only the file's lowest point must meet the ground.
+    floor = min(st["low"].z for st in stats.values())
+    off_centre = []
+    for variant, st in sorted(stats.items()):
+        triangles, used, low, high = st["triangles"], st["materials"], st["low"], st["high"]
+        prop = f"Variant '{variant}'" if named else "The prop"
+        if triangles > PLACEMENT_TRIANGLES:
+            error(f"{prop} has {triangles:,} triangles; a repeated prop may have at most {PLACEMENT_TRIANGLES:,}.")
+        if len(used) > PLACEMENT_SURFACES:
+            error(f"{prop} uses {len(used)} materials; a repeated prop may have at most {PLACEMENT_SURFACES}.")
+        counts = f"{triangles:,} triangles, {len(used)} material{'s' if len(used) != 1 else ''}"
+        placed = None
+        if mount is not None and mount.name == "plant_base":
+            placed = (f"The plant stands on '{mount.name}' at the origin: its leaves "
+                      f"start {low.z * 100:.1f} cm above it and reach {high.z:.2f} m.")
+        elif mount is not None and mount.name == "ground_line":
+            placed = (f"The prop is set into the ground at '{mount.name}': it goes "
+                      f"{-low.z * 100:.1f} cm below it and reaches {high.z:.2f} m above.")
+        elif mount is not None and mount.name == "waterline":
+            placed = (f"It floats at '{mount.name}': its draft is {-low.z + 0.0:.2f} m "
+                      f"and it reaches {high.z:.2f} m above the water.")
+        elif mount is not None:
+            placed = (f"The prop hangs from '{mount.name}' at the origin: it reaches "
+                      f"{high.z:.2f} m above it and {-low.z:.2f} m below.")
+        elif named and low.z - floor > GROUND_TOLERANCE_M:
+            placed = f"It starts {low.z * 100:.1f} cm above the ground, resting on another part of the set."
+        if named:
+            tail = f" {placed}" if placed else ""
+            found.append(("NOTE", f"{prop}: {counts}.{tail}"))
+        else:
+            found.append(("NOTE", f"{counts}."))
+            if placed:
+                found.append(("NOTE", placed))
+        centre = (low + high) / 2
+        if Vector((centre.x, centre.y)).length > CENTRE_TOLERANCE_M:
+            off_centre.append((Vector((centre.x, centre.y)).length, variant))
+    if mount is None and abs(floor) > GROUND_TOLERANCE_M:
+        where = "above" if floor > 0 else "below"
+        lowest = "The prop's lowest point" if not named else "The file's lowest point"
+        error(f"{lowest} is {abs(floor) * 100:.1f} cm {where} the ground (z = 0). It should sit on it.")
+    if off_centre and not named:
+        warn(f"The prop is {off_centre[0][0]:.2f} m off the origin. "
              "The game places it by the origin, so keep it centred there.")
+    elif off_centre:
+        far, worst = max(off_centre)
+        names = [v for _, v in sorted(off_centre, key=lambda c: c[1])]
+        listed = ", ".join(names[:8]) + (f" and {len(names) - 8} more" if len(names) > 8 else "")
+        warn(f"{len(names)} variant{'s are' if len(names) != 1 else ' is'} more than {CENTRE_TOLERANCE_M} m "
+             f"off the origin, '{worst}' farthest at {far:.2f} m: {listed}. The game places each by the "
+             "origin, so keep it centred there unless it is placed by a point of its own.")
 
     markers = [bpy.data.objects.get(name) for name in SEAT_MARKERS]
     if all(markers):

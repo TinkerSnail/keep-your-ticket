@@ -1162,3 +1162,70 @@ Buildings modelled ahead of a site, through the same steps as a prop.
 | Game | Not sent; no scene, no site |
 | Last hand-back | None |
 | Next | Her review: a railing round the deck (its edge is open, 2 m over the water; only the stub has a rail start); how the roof stair's foot is reached (it starts on the roof); the gangway (a stub, so the origin stays at the deck's middle; the pier it joins comes with a site). Card: `documentation/howto/model-the-waterfront-restaurant.md` |
+
+## Boats and port
+
+First block-outs, 2026-10-03 (her "we need to add boats to our props, we have a few different scenarios" and "lets add a modern port near the city"; she chose all four scenarios: port ships, lagoon rentals, headland marina, bay ferry). Seven families, one agent each, each a file in `assets/source/props/` from `new_prop.py` and its builder in `tools/blender/`. Boats: z = 0 is the waterline, a `waterline` marker in `reference`, bow on Blender +Y (Godot −Z, forward for `Basis.looking_at`), origin midships on the centreline. Shore equipment: z = 0 is the quay top, water side +Y. Every part `kyt_collision = none` until boats are placed and scheduled. No real liveries, names or logos. Renders in `documentation/screenshots/boats-2026-10-03/<family>/`; cards `documentation/howto/model-the-<family>.md`. Check knows `waterline` since the same day (`kyt_tools/checks.py`). All seven: Check ok, 0 coplanar pairs.
+
+### container_ship — the port's container ships
+
+| | |
+|---|---|
+| Stage | **model**, block-out (2026-10-03, an agent) |
+| Holder | Christina: her review |
+| Model | `assets/source/props/container_ship.blend`, `tools/blender/container_ship.py`. `panamax` in `export` (294 × 32.25 m, draft 12.0, air draft 46.8, 13 across, house aft, 5,492 triangles); `post_panamax` (a 1996 K-class, 318.2 × 42.8 m, draft 12.2, air draft 49.75, 17 across, house about 63% aft, lashing bridges, 7,216); `panamax_light` (raised 2.4 m, trimmed by the stern, part load, 3,674). Deck cargo one block per bay in the container kit's nine colours (`container_ship_box_<colour>`); every house passes the 500 m bridge-view rule |
+| Next | Her review. Her "build all the offered variants" (2026-10-03): `post_panamax_split` (funnel apart over an aft engine room, which covers the unconfirmed K-class arrangement), `panamax_three_quarter_house`, `post_panamax_light`, `panamax_lashing`, `panamax_wing_cabs`; eight variants, the first three hash-identical, Check sums 45,210 of its 50,000 for the file. Unify `container_ship_box_*` with `container_kit_box_*` at paint |
+
+### harbour_craft — the port's tugs and pilot boat
+
+| | |
+|---|---|
+| Stage | **model**, block-out (2026-10-03, an agent) |
+| Holder | Christina: her review |
+| Model | `assets/source/props/harbour_craft.blend`, `tools/blender/harbour_craft.py`. `tug` in `export` (ASD, 29.7 × 10.9 m, draft 4.97, air draft 14.4, 2,980 triangles); `pilot_boat` (16.4 × 5.2 m, air draft 7.6, 1,912); `tug_conventional` (single-screw, 26.3 × 8.0 m, air draft 11.4, 2,232) |
+| Next | Her review. Her "build all the offered variants" (2026-10-03): `tug_tractor`, `tug_escort` (17 m air draft), `pilot_boat_b`, `tug_conventional_b` (house aft, hinged foremast, tyres); seven variants. The tug's radar, found floating 0.65 m behind its roof, moved onto it (the only change to any original) |
+
+### gantry_crane — the port's ship-to-shore cranes
+
+| | |
+|---|---|
+| Stage | **model**, block-out (2026-10-03, an agent) |
+| Holder | Christina: her review |
+| Model | `assets/source/props/gantry_crane.blend`, `tools/blender/gantry_crane.py`. Z = 0 the rail head, origin between the rails and legs. `working` in `export` (post-Panamax A-frame, gauge 30.48 m, apex 72.0 m, boom nose 56.5 m past the waterside rail, 15.24 m clear under the sill beams, 27 m over the bogies); `stowed` (boom at 80°, nose 100.2 m, linked meshes); `panamax_older` (gauge 15.24 m, apex 55 m, grey-blue). 1,276 triangles each; solid box girders; Check warns 11.07 m off the origin (the boom; expected) |
+| Next | Her review. Her "yes we like cartoony proportions so this works" and "build all the offered variants" (2026-10-03): `working_far` and `stowed_far` (legs 5.3 m, stays 2.7-2.8 m: at least 2 px and 1 px at 2 km; swap at about 500 m, or use everywhere), two liveries, `panamax_older_stowed`, three trolley poses, `working_lattice`, `working_single_girder`, `working_house_under`, `working_details`; sixteen variants, the first five hash-identical. Her "yes fold in the o-frame" (2026-10-03): every variant now stands on the O-frame (legs past the trolley, girder support beams on top, hangers outside the trolley), `working_o_frame` removed as a duplicate, fifteen variants; beams renamed to the glossary (`portal_beam_*` the 15.24 m beams, `girder_support_beam_*`). The trolley-path probe is clear on all fifteen. To clear the raised boom, the hinge is now derived from the support beam: 2.90 m past the waterside rail (was 1.80), the stowed nose 99.1 m (was 100.2); far 4.59 m and 97.5 m; older 2.43 m and 76.4 m. The far crane's bogie equalisers reach 3.05 m either side of the rail, so the port plan's 3 m rail setback must grow |
+
+### container_kit — the port's containers, yard blocks and yard vehicles
+
+| | |
+|---|---|
+| Stage | **model**, block-out (2026-10-03, an agent) |
+| Holder | Christina: her review |
+| Model | `assets/source/props/container_kit.blend`, `tools/blender/container_kit.py`. Z = 0 the quay; length along Y, doors −Y. `box_40` in `export`, `box_20`, `box_40_hc`, `box_40_reefer` (ISO sizes, 280–292 triangles, corrugation left to paint); `stack_block_40` and `stack_block_20` (one mesh each, 4 high, 1,400 triangles, 10 colour slots; the 20 ft row fills three 40 ft slots); `straddle_carrier` (14.40 m, 0.60 m under the crane portal, 0.44 m over a 4-high row); `yard_tractor_chassis` and `yard_tractor_loaded` |
+| Next | Her review. Her "build all the offered variants" (2026-10-03): `box_40_ribbed`, `box_45`, high-cube, 3-high and double rows (the double 2,032 triangles, kept at the singles' detail), two colour mixes, `gooseneck_chassis` with and without a box, `straddle_carrier_1over2` (12.7 m, 2.3 m under the portal, 3 high only), `straddle_carrier_low_cab`; twenty-one variants, the first nine hash-identical. Offered since: the gooseneck on the tractor, 20 ft rows doubled or high-cube |
+
+### bay_ferry — the ferry between the beach town's pier and the city
+
+| | |
+|---|---|
+| Stage | **model**, block-out (2026-10-03, an agent) |
+| Holder | Christina: her review |
+| Model | `assets/source/props/bay_ferry.blend`, `tools/blender/bay_ferry.py`. `catamaran` in `export` (38.0 × 10.6 m, draft 1.40, air draft 11.76, 2,184 triangles); `monohull` (36.0 × 9.0 m, draft 2.10, air draft 11.74, 1,916). Both board at 1.80 m, the beach pier's height; windows dark slabs; no interiors. The city source's placeholder is 17 × 46 m |
+| Next | Her review. The city landing was lowered to 1.8 m to match at her "lower the city landing to 1.8" (2026-10-03), so both landings board level. Her "build all the offered variants": `double_ended` (its two ends linked), `catamaran_b` (navy and coral), `catamaran_waterjets` (jets lengthened at her "yes lengthen the waterjets" to reach 1.45 m past the transoms, 39.4 m overall, once Check measured variants on their own; only the two jet meshes changed), `catamaran_small` (25 m, about 150 seats); six variants, the first two hash-identical. Offered since: a double-ended car ferry, a second small-catamaran livery, the monohull with open rails |
+
+### lagoon_boats — the boating centre's rentals on the tidal lagoon
+
+| | |
+|---|---|
+| Stage | **model**, block-out (2026-10-03, an agent; sizes and colours read from the Beach Town Plan's symbols) |
+| Holder | Christina: her review |
+| Model | `assets/source/props/lagoon_boats.blend`, `tools/blender/lagoon_boats.py`. `paddle_boat` in `export` (2.77 × 1.71 m over the stern wheel, hull the map's 2.2 × 1.6, 1,034 triangles); `paddle_boat_canopy` (1,222); `kayak_single` (3.35 m, 972) and `kayak_tandem` (4.10 m, 1,272), sit-on-tops with paddles; `glass_bottom_boat` (10 × 3.2 m hull, covered, about 20 seats on two benches facing a 0.9 × 5 m glass well through the hull, helm and outboard at the stern, draft 0.80, 1,672) |
+| Next | Her review. Her "build all the offered variants" (2026-10-03): `paddle_boat_four`, `paddle_boat_tunnel`, `glass_bottom_boat_electric`, `_bow_helm`, `_side_gate`, six kayak colours (object materials; Send's merge keeps them, tested on a scratch copy); sixteen variants, the first five hash-identical |
+
+### marina_boats — the Headland harbour's fishing boats, skiffs and sailboats
+
+| | |
+|---|---|
+| Stage | **model**, block-out (2026-10-03, an agent) |
+| Holder | Christina: her review |
+| Model | `assets/source/props/marina_boats.blend`, `tools/blender/marina_boats.py`. `troller` in `export` (West Coast salmon troller, 12.68 × 4.0 m, poles stowed, air draft 13.73, 1,638 triangles); `troller_poles_down` (22.83 m across the poles, 1,774); `skiff` (5.54 m with an outboard, four `angler_seat_*` markers, 882); `sloop_moored` and `sloop_sailing` (Catalina 30 class, 9.23 m, mast 12.8 m over the deck, 2,504 and 2,692) |
+| Next | Her review. The troller is twice the cove's 6 m stand-in boats, so the slips need sizing for it. Her "build all the offered variants" (2026-10-03): `troller_canoe_stern`, `troller_mizzen`, `troller_red`, `skiff_console`, `sloop_wheel`, `sloop_dodger`, `sloop_reverse_transom`, `sloop_double_lifelines`, `sloop_sailing_port_tack` (built, not mirrored); fourteen variants, the first five hash-identical. Cosmetic: both skiffs' bottom paint follows the chine, not the waterline |
