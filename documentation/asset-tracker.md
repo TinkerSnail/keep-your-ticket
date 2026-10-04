@@ -310,14 +310,14 @@ paint → integrated. **Holder** is who has the next move.
 
 | | |
 |---|---|
-| Stage | **model** (2026-10-01): her photograph of a concrete trestle picnic table, "here is a reference for one type of picnic table", then "both have wheelchair access" and "the rectangular table has access by default because of the way its built": the benches are short, one each side of each trestle, so the middle of both long sides is open. Stage 1 set-up done: the greybox (the generated `picnic_0`, 1.7 m, flat boxes) exported and put in `reference`; nothing modelled yet. |
-| Holder | Christina: first model pass built by Claude 2026-10-01 at her "continue converting our props" (`tools/blender/picnic_tables.py`, 17 parts (top, two trestles with scooped arches, twelve timber slats, two brass discs), 3,206 faces); hers to reshape, then "handed back". Renders `documentation/screenshots/handbacks/concrete_picnic_table-model-2026-10-01/`; starting frames in `...concrete_picnic_table-start-2026-10-01/` |
-| Model | `assets/source/props/concrete_picnic_table.blend` (`new_prop.py`, then `add_reference.py` with `assets/source/props/reference/concrete_picnic_table_greybox.glb`, made by `maquette_export.gd res://scenes/world/generated/plaza_props.tscn picnic_0 concrete_picnic_table_greybox --floor 4 3`). `export` is empty. |
+| Stage | **canvas** (2026-10-02): her "i like it" on the model (trestles 3 in in, top 3 in longer each end, the trestles leaning feet-in); model hand-back run, game mesh made, unwrapped, starting canvas baked; **waiting on her OK of the starting look**, then paint. |
+| Holder | Christina: the starting look (renders `documentation/screenshots/handbacks/concrete_picnic_table-canvas-2026-10-02/`) |
+| Model | `assets/source/props/concrete_picnic_table.blend` (`new_prop.py`, then `add_reference.py` with `assets/source/props/reference/concrete_picnic_table_greybox.glb`, made by `maquette_export.gd res://scenes/world/generated/plaza_props.tscn picnic_0 concrete_picnic_table_greybox --floor 4 3`). `export` holds the model pass of 1-2 Oct 2026, measured off her photo by solving its camera and the table together from 27 points: top 2.10 by 0.74 m (upper face 0.79 m; the photo's 1.94 m, 3 in longer at each end at her word on 2 Oct), two trestles 0.24 m thick, their tops at x = ±0.56 (the photo's ±0.64, brought 3 in toward the middle at her word on 2 Oct; set in 0.37 m from the top's ends) and leaning, feet set in a further 0.11 m (8.9°) so the top overhangs them 0.48 m at the floor (her "feet move in, tops stay where they are", 2 Oct; a shear, so tops stay flat to the top and feet flat on the ground; the bench bolts and discs follow), each a footing with horns, a 0.12 m waist between two round cut-outs 0.42 m across, and a brass disc; on each long side one bench of three timber slats as long as the photo's top (1.94 m, so their ends sit 3 in inside the top's now, running 0.29 m past each trestle, 0.31 m wide, upper face 0.45 m) lying on the horns, a family bolt through each slat into each horn; 23 parts, 4,570 faces. The photo beside the model: `documentation/screenshots/handbacks/concrete_picnic_table-model-2026-10-01/concrete_picnic_table_vs_photo.png`; `..._over_photo.png` is the overlay of the measured version, before the trestles moved in. |
 | Reference | `documentation/reference/concrete_picnic_table/concrete_trestle_picnic_table.webp` (her photo) |
-| Paint | Not started. The photograph's surfaces: pale exposed aggregate, faint slat lines on the top, dark stained timber slats |
-| Game | Not sent. No scene yet: the first Send offers "Write Godot scene" |
-| Last hand-back | None |
-| Next | Her model (the open middle of both sides stays open for wheelchairs), then "handed back". No seat contract exists for picnic tables (guests do not sit at any); decide at the first Send whether this one gets one. Card: `documentation/howto/model-the-concrete-picnic-table.md` |
+| Paint | `assets/source/textures/concrete_picnic_table/`: colour 1024 (256 px/m, the standard), ORM 512, UV guide; `paint_canvas.py --size 1024 --orm-size 512 --grain`: pale concrete flat, the slats timber with grain along their length, brass discs, dark bolts. No PSD yet. The photograph's surfaces to paint: pale exposed aggregate, faint slat lines on the top, dark stained timber |
+| Game | `assets/props/concrete_picnic_table.glb` (sent at the model hand-back, the parts version; the game mesh and canvas go at the painted hand-back); `scenes/world/park_furniture/concrete_picnic_table.tscn` wraps it, no seat markers. Not placed |
+| Last hand-back | `concrete_picnic_table-2026-10-02_0156` (`prop_handback.py --no-export`, model): send 189 KB, import, `seat_test` PASS, clearance 0 of 87, `budget_test` PASS, ground contact known failures only. Then Make game mesh (`concrete_picnic_table_source.blend` holds the parts; 6,248 triangles), `unwrap_parts.py` (all parts `facets`), Check: 8 mirror pairs, nothing else overlapping, no folds, 512 px/m at 2048 |
+| Next | Her OK of the starting look, then `prop_handback.py concrete_picnic_table --open` and she paints. Reshaping now means running `picnic_tables.py` on `concrete_picnic_table_source.blend`, then Rebuild game mesh. Access at the ends: 0.48 m under the top at the floor, 0.37 m at knee height |
 
 ### round_picnic_table — PRP-PARK-029, round concrete picnic and café table (not placed)
 
@@ -331,3 +331,716 @@ paint → integrated. **Holder** is who has the next move.
 | Game | Not sent. No scene yet: the first Send offers "Write Godot scene" |
 | Last hand-back | None |
 | Next | Her model (the two open sides stay open for wheelchairs), then "handed back". No seat contract exists for round tables; decide at the first Send. Card: `documentation/howto/model-the-round-picnic-table.md` |
+
+### drive_in_picnic_table_set — PRP-PARK-020, drive-in picnic table set with umbrella (not placed)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): first pass from the catalog note (no photograph of hers), built by an agent with `tools/blender/drive_in_tables.py`; hers to reshape |
+| Holder | Christina: review the renders, reshape, then "handed back" |
+| Model | `assets/source/props/drive_in_picnic_table_set.blend`; greybox from `scenes/world/park_furniture/drive_in_picnic_table_set.tscn` in `reference`. `export`: 38 parts, 6,396 triangles: solid perforated plates in rounded band frames (top 1.78 by 0.96 m at 0.77 m; benches 1.78 by 0.42 m, tops 0.51 m), two H trestles with a spine and pole sleeve, bolted round feet, pole, collar, one 8-panel canopy 2.68 m across (rim 2.15 m, apex 2.55 m), finial; 14 family bolts. No seat markers in the scene; seats measured 0.510 m. Renders `documentation/screenshots/handbacks/drive_in_picnic_table_set-model-2026-10-02/` (with `greybox_*.png` from the same cameras) |
+| Reference | None of hers; the catalog note and the greybox |
+| Paint | Not started. Surfaces: turquoise painted metal with the perforations as a cut-out, black frame, canopy in three colourways (solid red, red/cream panels, sun-faded yellow) on one form |
+| Game | Not sent; `scenes/world/park_furniture/drive_in_picnic_table_set.tscn` and its `_red_cream`, `_sun_yellow` siblings stand as the greybox |
+| Last hand-back | None |
+| Next | Her model, then "handed back". Open: the pole on a spine vs a low socket; bolts on the top; ribs under the canopy. Card: `documentation/howto/model-the-drive-in-picnic-table-set.md` |
+
+### circular_drive_in_picnic_table_set — PRP-PARK-021, circular drive-in picnic table set (not placed)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): first pass from the catalog note, by an agent with `tools/blender/drive_in_tables.py`; hers to reshape |
+| Holder | Christina: review, reshape, "handed back" |
+| Model | `assets/source/props/circular_drive_in_picnic_table_set.blend`; greybox from `circular_drive_in_picnic_table_set.tscn` in `reference`. `export`: 39 parts, 7,272 triangles: round plate in a rolled rim (1.49 m across, plate 0.763 m), pedestal, four benches 0.92 by 0.42 m at 1.0 m out (tops 0.51 m) on arms, legs and bolted feet, the same umbrella as PRP-PARK-020; 12 family bolts. No seat markers; seats measured 0.510 m. Renders `documentation/screenshots/handbacks/circular_drive_in_picnic_table_set-model-2026-10-02/` |
+| Reference | None of hers; the catalog note and the greybox |
+| Paint | Not started. Surfaces as PRP-PARK-020 |
+| Game | Not sent; `circular_drive_in_picnic_table_set.tscn` and siblings stand as the greybox |
+| Last hand-back | None |
+| Next | Her model, then "handed back". Open: the bench bolt at each bench's centre. Card: `documentation/howto/model-the-circular-drive-in-picnic-table-set.md` |
+
+### granite_circle_picnic_table — PRP-PARK-022, granite-block circular picnic table (not placed)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): first pass from the catalog note, by an agent with `tools/blender/drive_in_tables.py`; hers to reshape |
+| Holder | Christina: review, reshape, "handed back" |
+| Model | `assets/source/props/granite_circle_picnic_table.blend`; greybox from `granite_circle_picnic_table.tscn` in `reference`. `export`: 10 parts, 2,384 triangles: dark solid plate (1.97 m across at 0.794 m) in a blue-green rolled rim to 0.83 m, one steel pedestal with a bolted flange and spreader, three rough granite blocks with flat sawn tops at 0.51 m at the greybox's places (NW, NE, S); 4 family bolt anchors. No seat markers; seats measured 0.510 m. Renders `documentation/screenshots/handbacks/granite_circle_picnic_table-model-2026-10-02/` |
+| Reference | None of hers; the catalog note and the greybox |
+| Paint | Not started. Surfaces: dark perforated metal (cut-out), weathered blue-green rim, dark steel, granite |
+| Game | Not sent; `granite_circle_picnic_table.tscn` stands as the greybox |
+| Last hand-back | None |
+| Next | Her model (boulder vs quarry-block seats; their distance from the top), then "handed back". Card: `documentation/howto/model-the-granite-circle-picnic-table.md` |
+
+### color_block_information_panel — PRP-PARK-023, color-block information panel (not placed)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): first pass from the catalog note, by an agent with `tools/blender/drive_in_tables.py`; hers to reshape |
+| Holder | Christina: review, reshape, "handed back" |
+| Model | `assets/source/props/color_block_information_panel.blend`; greybox from `color_block_information_panel.tscn` in `reference`. `export`: 5 parts, 1,292 triangles: one dark slab frame 1.04 by 1.58 by 0.11 m from 0.39 to 1.97 m, header field 0.90 by 0.74 m and information field 0.90 by 0.38 m 3 cm proud, two round posts; the type bars are paint; no bolts. No markers. Renders `documentation/screenshots/handbacks/color_block_information_panel-model-2026-10-02/` |
+| Reference | None of hers; the catalog note and the greybox |
+| Paint | Not started. Surfaces: dark frame, pale field, header in cyan with magenta, green, orange and blue overrides, abstract type bars |
+| Game | Not sent; `color_block_information_panel.tscn` stands as the greybox |
+| Last hand-back | None |
+| Next | Her model (posts into the bottom edge vs behind the panel with face bolts), then "handed back". Card: `documentation/howto/model-the-color-block-information-panel.md` |
+
+### flagpole_banner — PRP-PARK-006, flagpole and vertical banner (placed as the generated pair in the plaza)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes" on catalog props without a photograph. Stage 1 set-up by Claude: the generated `flagpole_0` (pole and banner) exported as the greybox and put in `reference` |
+| Holder | Christina: review the first pass (built by an agent with `tools/blender/plaza_dressing.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/flagpole_banner-model-2026-10-02/` |
+| Model | `assets/source/props/flagpole_banner.blend`. `export`: 18 parts, 2,436 triangles: footing 0.44 m across with four anchor bolts, tapered pole 6.0 m (0.14 m to 0.10 m), brass ball finial, two clamp bands 56 mm (1.6 heads) with a bolt each, two arms 42 mm (1.2 heads) with ball caps, fabric sleeves, a blank banner 0.68 by 2.2 m from 3.5 m, bellying 5 cm, hung toward −Y with its faces to ±X as the greybox's. The pole stands at the origin; the greybox pole stands 0.32 m toward +Y (the export centred the footprint) |
+| Reference | None of hers; the catalog note and the greybox |
+| Paint | Not started. Stand-ins: painted metal, fabric, brass. The banner graphic is painting; the plaza pair differ by colour in the greybox |
+| Game | Not sent. No scene yet: the first Send offers "Write Godot scene". In the greybox the pole collides, the banner does not |
+| Last hand-back | None |
+| Next | Her review: the pole at the origin, the banner's side and facing, one banner or two for the pair. Card: `documentation/howto/model-the-flagpole-banner.md` |
+
+### balloon_cluster — PRP-PARK-010, tied balloon pair (placed as the generated pair at the photo hut bench)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes". Stage 1 set-up by Claude: the generated balloons and strings exported as the greybox and put in `reference` |
+| Holder | Christina: review the first pass (`tools/blender/plaza_dressing.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/balloon_cluster-model-2026-10-02/` |
+| Model | `assets/source/props/balloon_cluster.blend`. `export` holds the pass of 2 Oct 2026, rebuilt the same day on the rail tie at her word ("tie the balloons to the bench rail"): 6 parts, 1,496 triangles, nothing collides: balloons 0.42 m across and 0.59 m tall, centres at the greybox's (±0.215, ∓0.025) and 1.07 / 1.36 m above the origin, each leaning along its 16 mm string; both strings leave one knot on a loop of string wrapped (3 mm slack) round the plaza bench's top back slat `back_3` (5 cm thick, 9 cm tall, along the bench's X); the loop's lowest point is the origin. The centres sit 0.96 and 1.25 m above the slat's top, 11 cm less than the generator's above `HUT_BENCH_RAIL` |
+| Reference | None of hers; the catalog note and the greybox |
+| Paint | Not started. One latex stand-in; the pair's two colours (red and yellow in the greybox) are painting |
+| Game | Not sent. No scene yet. The tie is the photo hut bench's back rail: `_balloons` in `gen_props.gd` hangs the pair off `bench_hut` (`scenes/world/plaza_furniture.tscn`) with strings from `HUT_BENCH_RAIL` 0.98 m at 0.84 and 0.42 m along the bench; on the modelled bench the rail is the top slat `back_3`, 0.33 m behind the centre line, its top at 1.005 m. The placement puts the prop's origin at the slat's underside (0.915 m up, 0.33 m back, about 0.84 m along the bench, turned with it); the balloons then float 1.985 and 2.275 m above the bench's base, 6.5 cm below the generator's 2.05 and 2.34 |
+| Last hand-back | None |
+| Next | Her review of the rail tie: one knot for both strings (the generator ties each string 0.42 m apart), and whether to raise the balloons 0.11 m (`B_CENTRES`) to float as high above the rail as the generator's. Then "handed back". Card: `documentation/howto/model-the-balloon-cluster.md` |
+
+### park_litter — PRP-PARK-011, park litter kit (placed as 30 generated pieces in the plaza)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes". No greybox: the plaza's litter is thirty CSG nodes; `reference` is empty |
+| Holder | Christina: review the first pass (`tools/blender/plaza_dressing.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/park_litter-model-2026-10-02/` (the kit in a row) |
+| Model | `assets/source/props/park_litter.blend`. `export`: five variants (`kyt_variant`), every one at the origin, none colliding, 1,020 triangles in all: `cup_lidded` (crushed, lid and straw, lying), `cup_upright`, `napkin`, `ticket_stub`, `wrapper`; cups 9.6 cm across, the wrapper 22 by 16 cm. No piece lies flat on the ground |
+| Reference | None |
+| Paint | Not started. Stand-ins: paper, plastic. Print, stains and folds are painting; nothing branded |
+| Game | Not sent. No scene yet. Which piece goes to which of the 30 spots is a placement decision at the first Send |
+| Last hand-back | None |
+| Next | Her review: the five pieces, whether the upright cup stays, whether the napkin reads folded. Card: `documentation/howto/model-the-park-litter.md` |
+
+### service_cart — PRP-PARK-007, general service cart (placed as the generated cart in the plaza)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes". Stage 1 set-up by Claude: the generated cart exported as the greybox and put in `reference` |
+| Holder | Christina: review the first pass (`tools/blender/plaza_dressing.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/service_cart-model-2026-10-02/` |
+| Model | `assets/source/props/service_cart.blend`. `export`: 32 parts, 5,172 triangles: body 1.80 by 0.96 m with a lipped lid at 1.04 m, two 0.60 m wheels on an axle (axle-nut bolts), a swivel castor, a U push handle at 0.92 m on bolted flanges, four posts under a barrel-vaulted canopy (eaves 1.90 m, crown 2.07 m, raised from the greybox's 1.6 m so a pusher sees under it), a lamp hanging under it with its bulb at 1.80 m where the scene's `cart_lamp` light is. 2.33 by 1.44 by 2.07 m |
+| Reference | None of hers; the catalog note and the greybox |
+| Paint | Not started. Stand-ins: painted metal, rubber, bare metal, bulb. Nothing on it says its job |
+| Game | Not sent. No scene yet. `cart_lamp` stays a light node in the scene |
+| Last hand-back | None |
+| Next | Her review: the raised canopy, the castor, the body a little smaller than the greybox. Card: `documentation/howto/model-the-service-cart.md` |
+
+### picture_spot_sign — PRP-PARK-003, picture-spot sign (placed as three generated signs in the plaza)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph. Stage 1 set-up by Claude: the generated `photospot_0` exported as the greybox and put in `reference` |
+| Holder | Christina: review the first pass (built by an agent with `tools/blender/plaza_signs.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/picture_spot_sign-model-2026-10-02/` |
+| Model | `assets/source/props/picture_spot_sign.blend`. `export`: 12 parts, 2,132 triangles: a 130 mm round post on a 0.32 m base plate with four ground bolts, behind a 0.84 by 0.56 by 0.05 m rounded board (1.07 to 1.63 m) bolted through its face with two family bolts; a raised camera pictogram 0.34 by 0.24 m (one silhouette, a 150 mm lens ring, a glass lens), no text, no frame. 0.84 by 0.32 by 1.63 m |
+| Reference | None of hers; the catalog note and the greybox |
+| Paint | Not started. Board paint, pictogram colour, any wording |
+| Game | Not sent. No scene yet: the first Send offers "Write Godot scene" |
+| Last hand-back | None |
+| Next | Her review: is 1.63 m "low" enough; the post behind the board or the greybox's lollipop; the lens as glass or paint. Card: `documentation/howto/model-the-picture-spot-sign.md` |
+
+### a_frame_sign — PRP-PARK-004, A-frame notice sign (placed as three generated signs in the plaza)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph. Greybox `aframe_0` in `reference` |
+| Holder | Christina: review the first pass (`tools/blender/plaza_signs.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/a_frame_sign-model-2026-10-02/` |
+| Model | `assets/source/props/a_frame_sign.blend`. `export`: 11 parts, 2,652 triangles: two 0.90 by 1.10 m panels leaning 11° (the greybox's size), each a 56 mm painted frame round a blank board recessed 12 mm, feet cut flat, a 48 mm hinge rod along the ridge, a flat stay each side at 0.40 m with a family bolt through each end. 0.94 by 0.51 by 1.10 m |
+| Reference | None of hers; the catalog note and the greybox |
+| Paint | Not started. Frame paint and the two notices |
+| Game | Not sent. No scene yet |
+| Last hand-back | None |
+| Next | Her review: the greybox's size or the common 0.6 by 0.9 m board; stays or chains. Card: `documentation/howto/model-the-a-frame-sign.md` |
+
+### newspaper_box — PRP-PARK-005, newspaper box (placed as the generated pair in the plaza; the Boardwalk's is a separate scene)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph. Greybox `newsbox_0` in `reference` |
+| Holder | Christina: review the first pass (`tools/blender/plaza_signs.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/newspaper_box-model-2026-10-02/` |
+| Model | `assets/source/props/newspaper_box.blend`. `export`: 15 parts, 2,480 triangles: a 1990s honour box sized between the greybox and the Boardwalk box: cabinet 0.50 by 0.46 by 0.62 m (0.56 to 1.18 m) under a lid to 1.22 m, on a 0.14 m square pedestal and a 0.36 m plate with four ground bolts; a glazed pull-down door 0.42 by 0.40 m (56 mm frame, 0.31 by 0.29 m window over a 50 mm pocket, hinge rod, D-pull) and a 0.12 m coin box below it at the right. 0.54 by 0.55 by 1.22 m. `scenes/world/boardwalk_props/newspaper_box.tscn` untouched |
+| Reference | None of hers; the catalog note, the greybox and the Boardwalk scene's sizes |
+| Paint | Not started. Cabinet paint, the front page behind the glass, price, coin slot |
+| Game | Not sent. No scene yet |
+| Last hand-back | None |
+| Next | Her review: the pedestal kind or the greybox's floor-standing box; the window's size; where the coin box goes. Card: `documentation/howto/model-the-newspaper-box.md` |
+
+### poster_case — PRP-PARK-016, framed poster case (generated, on promenade and frontage walls)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", from the catalog note and a context frame; no photograph, no greybox of its own |
+| Holder | Christina: review the first pass (`tools/blender/plaza_signs.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/poster_case-model-2026-10-02/` |
+| Model | `assets/source/props/poster_case.blend`. `export`: 3 parts, 792 triangles: a 56 mm frame 0.09 m deep round a US one-sheet (27 by 40 in), a back panel for the poster, glass 14 mm behind the front; 0.82 by 1.15 m outside; no hood or lamp (the context frame shows none). Bottom edge on z = 0, back on y = 0, face −Y: the placement scene lifts it onto its wall |
+| Reference | `documentation/screenshots/boardwalk-density-2026-09-09/02_cafe_arcade_amenities.png` (context frame only) |
+| Paint | Not started. Frame paint; the poster is the swappable layer |
+| Game | Not sent. No scene yet; needs a wall-mount placement |
+| Last hand-back | None |
+| Next | Her review: one-sheet size or the 2 m-plus wall panels; mounting height; a lamp for the night later. Card: `documentation/howto/model-the-poster-case.md` |
+
+### queue_stanchion — PRP-PARK-014, rope queue stanchion (placed as the generated queue at the photo hut)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph; two variants, `post` and `rope` (`kyt_variant`) |
+| Holder | Christina: review the first pass (built by an agent with `tools/blender/plaza_street.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/queue_stanchion-model-2026-10-02/` (`span` shows two posts with the rope) |
+| Model | `assets/source/props/queue_stanchion.blend`. `export`: `post` (weighted domed base 0.34 m, 60 mm post, collar, four rope rings, ball cap; 1.00 m; 1,804 triangles) and `rope` (velvet rope, two ferrules, two snap hooks; the plaza's 1.4 m pitch, clips at 0.86 m sagging to 0.80 m; 1,112 triangles; does not collide). No greybox in `reference` |
+| Reference | None (the catalog note; the generated `stanchion_0..4`, `rope_0..3` in `plaza_props.tscn`) |
+| Paint | Not started. Stand-ins: paint, brass, rope |
+| Game | Not sent. No scene yet; a Send writes the `post` and `rope` sets |
+| Last hand-back | None |
+| Next | Her review: four-way rings or two, ball or flat cap, base size and rope thickness. Card: `documentation/howto/model-the-queue-stanchion.md` |
+
+### bollard — PRP-PARK-015, protective bollard (placed as the generated north plaza row)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph |
+| Holder | Christina: review the first pass (`tools/blender/plaza_street.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/bollard-model-2026-10-02/` |
+| Model | `assets/source/props/bollard.blend`. `export`: round plate 0.36 m with four ground bolts, a cast post 0.22 m across with a flared foot, a 56 mm band (1.6 heads) under a domed cap; 0.90 m; 1,814 triangles. No greybox in `reference` (the generated `bollard_n_0..4` are 0.26 by 0.9 m) |
+| Reference | None (the catalog note and the generated row's size) |
+| Paint | Not started. Stand-ins: paint, brass |
+| Game | Not sent. No scene yet |
+| Last hand-back | None |
+| Next | Her review: on a plate or set into the paving, one band or two. Card: `documentation/howto/model-the-bollard.md` |
+
+### park_lamp — PRP-LITE-001, park lamp standard (placed as the generated plaza lamps)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", then her "we want more than one" and two photographs: a family of three variants, `globe` (the plaza's), `acorn` (her second photo, which did not reach disk; built from the lead's description) and `pier` (her photo of a gooseneck pier lamp) |
+| Holder | Christina: review the first pass (`tools/blender/plaza_street.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/park_lamp-model-2026-10-02/` |
+| Model | `assets/source/props/park_lamp.blend`, built by `tools/blender/plaza_street.py`. Three `kyt_variant`s sharing one bolted plate (plate and four bolts built for `globe`, linked copies for the others): **globe** (cast bell base, tapered pole to 3.50 m, cup fitter, a 0.50 m globe centred on the light at 3.98 m; 4.23 m; 9 parts, 2,688 triangles); **acorn** (`export/variant_acorn`: slim 90 mm pole on a provisional plain ring foot, a collar, a post-top head 0.75 m tall and 0.35 m across (neck, teardrop glass, crown, pointed finial), tip 4.47 m, light 4.05 m; 13 parts, 2,656 triangles); **pier** (`export/variant_pier`: 140 mm pole to 5.5 m, a shepherd's crook with a curl, a bell shade 0.60 m across hanging 0.84 m out, bulb at 4.66 m, two banded banner arms and a blank 0.60 by 1.38 m banner at 2.61 to 3.99 m; 5.96 m to the crook; 19 parts, 3,584 triangles; sized to a standard 24 by 54 in pole banner; the photo's small box and knob left out). Check: 8,928 triangles, 4 materials, ok. Greybox pole and head in `reference`. Renders `documentation/screenshots/handbacks/park_lamp-model-2026-10-02/` (each variant, the three in a row, the pier beside her photo) |
+| Reference | `documentation/reference/park_lamp/pier_gooseneck_lamp.png` (her photo, the pier lamp); her acorn photo is not on disk; `assets/source/props/reference/park_lamp_greybox.glb` |
+| Paint | Not started. Stand-ins: paint, glass |
+| Game | Not sent. No scene yet; it should carry a light per variant at 3.98, 4.05 and 4.66 m. Send writes `park_lamp_globe`, `park_lamp_acorn`, `park_lamp_pier` |
+| Last hand-back | None |
+| Next | Her review of the three: the acorn's base (how it differs from the globe's; the foot and ring are provisional), its crown a smooth dome or cut ornament; the pier's box and knob in or out, its pole height if she knows it, and whether its banner shares the flagpole banner's painting. Then its scene with the lights, and `night_test`. Card: `documentation/howto/model-the-park-lamp.md` |
+
+### cafe_table_set — PRP-PARK-013, café table set (placed as the generated plaza terrace sets)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph. Greybox table in `reference`, and the chair's at the generator's two places and yaws |
+| Holder | Christina: review the first pass (`tools/blender/plaza_street.py`), reshape, then "handed back" |
+| Model | `assets/source/props/cafe_table_set.blend`. `export`: 24 parts, 6,126 triangles: a 1.2 m round top at 0.76 m on a weighted pedestal, an open 8-panel umbrella 3.0 m across (rim 2.15 m, hub 2.55 m, finial 2.67 m; canopy, ribs and hub don't collide), two bent-tube chairs at `ParkPlan.CAFE_CHAIRS` facing the table (the generator's yaws leave one with its back to the table), seat tops 0.51 m, 12 family bolts. The generator adds the chair offsets in world axes, so the set is placed unturned to match |
+| Reference | `reference/cafe_table_set_greybox.glb`, `reference/cafe_chair_greybox.glb` |
+| Paint | Not started. Stand-ins: paint, top, fabric, seat |
+| Game | Not sent. No scene yet; `gen_crowd.gd` seats guests from `CAFE_CHAIRS` at 0.51 m, not from the prop |
+| Last hand-back | None |
+| Next | Her review of the pass. It stays one prop: her "disregard that original note about the chairs" (2026-10-02) retires the catalog's "arrangement and hour-state carry the story"; the chairs face the table. Card: `documentation/howto/model-the-cafe-table-set.md` |
+
+### sky_ride_gondola — PRP-PARK-030, the sky ride's car (placed as ten generated `sky_cabin_*` in `north_sky_ride.tscn`)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her Santa Cruz Sky Glider photo and "this midway gondola is vital"; first pass by an agent from the lead's reading of the photo, which is not on disk. Greybox `sky_cabin_0` in `reference` (re-exported with `--frame sky_cabin_0_bucket`: the first export took the hanger strut's yaw and turned it 93°) |
+| Holder | Christina: review the first pass (`tools/blender/sky_ride_gondola.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/sky_ride_gondola-model-2026-10-02/` (`below` is the player's view) |
+| Model | `assets/source/props/sky_ride_gondola.blend`. `export`: 20 parts, 4,504 triangles: a rounded tub 1.45 by 1.18 by 0.72 m with a floor at 0.07 m and a bench for two (seat 0.55 m, backrest to 1.05 m), two flat strap uprights bolted outside the walls, a domed hood 1.65 by 1.38 m from 1.76 to 2.11 m with a pale underside, a bolted plate, a 70 by 120 mm hanger and a grip housing centred on the cable at 2.71 m, a 50 mm bar across the front at 0.30 m. 1.65 by 1.38 by 2.79 m |
+| Reference | None of hers on disk; `documentation/reference/sky_ride_gondola/` waits for the photo |
+| Paint | Not started. Four colourways (blue, teal-green, red, orange), pale underside, yellow inside, the white car number on the front's flat |
+| Game | Not sent. No scene yet; the generated cars hang 2.35 m under the cable by their middle. The striped towers are a later prop |
+| Last hand-back | None |
+| Next | Her review: legs inside the tub or hanging out as on a chairlift; the bar's place (low footrest or lap bar); uprights outside the walls or on the rim; the hood's crown; a light on the car or none. Card: `documentation/howto/model-the-sky-ride-gondola.md` |
+
+### arcade_cabinet — PRP-GAME-001, arcade cabinet (placed as the six authored boxes in I2)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph |
+| Holder | Christina: review the first pass (`tools/blender/midway_games.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/arcade_cabinet-model-2026-10-02/` (`set` is a bank of three at the game's 2.15 m pitch) |
+| Model | `assets/source/props/arcade_cabinet.blend`. `export`: 14 parts, 2,560 triangles, 7 stand-ins: a classic upright body (coin door 0.26 by 0.30 m, control-panel lip at 0.80–0.88 m, bezel leaning 9°, marquee 0.70 by 0.16 m at the top), a 0.58 by 0.48 m screen glass centred at 1.20 m, a one-player panel with a ball-top stick and six buttons; 0.82 by 0.80 by 1.72 m; faces −Y |
+| Reference | `reference/arcade_cabinet_greybox.glb`: both I2 banks, a quarter turn from the prop (the booth's public side is −X there) |
+| Paint | Not started. Stand-ins: cabinet, screen, marquee, black, panel, steel, button; screen and marquee to be lit; side art is paint |
+| Game | Not sent. No scene yet |
+| Last hand-back | None |
+| Next | Her review: a one- or two-player panel; the six game faces as painted variants of one cabinet, or shape variants (trackball, cocktail, driving). Card: `documentation/howto/model-the-arcade-cabinet.md` |
+
+### derby_race_lane — PRP-GAME-002, derby-race lane and horse target (placed as B1's five authored lanes and horses)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph; two variants, `alley` and `horse` |
+| Holder | Christina: review the first pass (`tools/blender/midway_games.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/derby_race_lane-model-2026-10-02/` (`set` is five alleys mid-race, `horse_side` the horse broadside) |
+| Model | `assets/source/props/derby_race_lane.blend`. `export`: 6 parts, 2,746 triangles, 3 stand-ins. `alley`, 3.70 by 0.42 by 0.155 m: a bed, two sunk side rails, a backstop, four blind 100 mm ball holes near the far end (1,790 triangles). `horse`: a flat tin horse-and-jockey cut-out 60 mm thick on a sled riding the bed, 0.56 m long, 0.50 m tall (956; does not collide). The race runs toward +Y, the player at −Y |
+| Reference | `reference/derby_race_lane_greybox.glb`: B1's five lanes and horse blocks, a quarter turn from the prop (the booth's public side is −X there) |
+| Paint | Not started. Stand-ins: cream laminate, dark trim, painted tin; lane numbers, lines and hole scores are paint |
+| Game | Not sent. No scene yet; the alley sits on the booth counter at 1.19 m, and each horse's progress is its placement |
+| Last hand-back | None |
+| Next | Her review: a roll-ball lane with holes (as built) or a squirt target; the horses on the alleys (the greybox) or on a track above them, as on real derby games; the flat tin cut-out or a fuller horse. Card: `documentation/howto/model-the-derby-race-lane.md` |
+
+### derby_prize_display — PRP-GAME-003, derby prize display (placed as B1's authored rail and four prizes)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph |
+| Holder | Christina: review the first pass (`tools/blender/midway_games.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/derby_prize_display-model-2026-10-02/` (`set` on a wall at the game height, `plush` close) |
+| Model | `assets/source/props/derby_prize_display.blend`. `export`: 50 parts, 7,236 triangles, 6 stand-ins: a 70 mm pipe rail 3.55 m long on three bolted wall brackets 0.33 m off the wall (the same code as `prize_rail_shelf`'s rail), and four generic plush (bear, bunny, pup, bear) at the greybox's widths and heights, hanging plumb by ring clips at 0.9 m pitch; plush and clips do not collide. Wall-hung: back on y = 0, the tallest plush's foot on z = 0; 3.55 by 0.585 by 0.945 m |
+| Reference | `reference/derby_prize_display_greybox.glb`, a quarter turn from the prop (the booth's public side is −X there) |
+| Paint | Not started. Stand-ins: dark metal, plush blue, mustard, coral, green |
+| Game | Not sent. No scene yet; origin 2.56 m over the deck, the rail's middle at 3.45 m |
+| Last hand-back | None |
+| Next | Her review: the plush alone, hung on `prize_rail_shelf`'s rail, or the rail kept here too; generic animals or abstract shapes; more kinds. Card: `documentation/howto/model-the-derby-prize-display.md` |
+
+### coin_pitch_table — PRP-GAME-004, coin-pitch table and plates (placed as B2's authored slab and nine plates)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph |
+| Holder | Christina: review the first pass (`tools/blender/midway_games.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/coin_pitch_table-model-2026-10-02/` |
+| Model | `assets/source/props/coin_pitch_table.blend`. `export`: 11 parts, 3,328 triangles, 5 stand-ins: a slab 3.75 by 3.45 by 0.18 m with a rolled edge and a 70 by 50 mm coin lip; nine glass dishes, five wide plates 0.42–0.46 m and four deep dishes 0.32–0.34 m, sitting on the slab at the greybox's 3 by 3 grid (the greybox floated them 2 cm); the dishes do not collide. 0.258 m tall, its bottom on z = 0 |
+| Reference | `reference/coin_pitch_table_greybox.glb`, a quarter turn from the prop (the booth's public side is −X there) |
+| Paint | Not started. Stand-ins: slab, lip, glass cream, mustard, coral |
+| Game | Not sent. No scene yet; it sits on the booth counter, its top at 1.37 m |
+| Last hand-back | None |
+| Next | Her review: a counter-top slab (as built) or a table with its own legs or skirt to the deck; the plates' heights. Card: `documentation/howto/model-the-coin-pitch-table.md` |
+
+### basket_toss — PRP-GAME-005, basket-toss basket, ball and rack (placed as B3's authored hoops and balls, and the finish layer's rack)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph; three variants, `basket`, `ball`, `rack` |
+| Holder | Christina: review the first pass (`tools/blender/midway_games.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/basket_toss-model-2026-10-02/` (`set` is three baskets, the rack and balls on a wall) |
+| Model | `assets/source/props/basket_toss.blend`. `export`: 16 parts, 3,988 triangles, 6 stand-ins. `basket`: a horizontal rim 0.62 m outside and 0.52 m inside, a net, a 42 mm arm, a 0.36 by 0.30 m backplate with four bolts; back on y = 0, the net's bottom on z = 0 (1,496 triangles; the net does not collide). `ball`: 0.46 m, the authored size (440). `rack`: a galvanized column stand 0.55 by 0.56 by 1.65 m holding three balls (2,052) |
+| Reference | `reference/basket_toss_greybox.glb`, a quarter turn from the prop (the booth's public side is −X there). In the authored scene `B3_ball_rack` overlaps `hoop_s`; the `set` render stands it clear |
+| Paint | Not started. Stand-ins: rim, backplate, net, ball, galvanized |
+| Game | Not sent. No scene yet; the rims at 1.30, 1.65 and 1.30 m over the counter |
+| Last hand-back | None |
+| Next | Her review: a horizontal rim with a net (a hoop shot, as built) or the greybox's upright ring (a toss-through); the ball's size (0.46 m is nearly twice a basketball); the rack standing or wall-hung. Card: `documentation/howto/model-the-basket-toss.md` |
+
+### prize_rail_shelf — PRP-GAME-006, midway prize rail and shelf (placed as B1's authored rail and B2's authored shelf)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph; two variants, `rail` and `shelf` |
+| Holder | Christina: review the first pass (`tools/blender/midway_games.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/prize_rail_shelf-model-2026-10-02/` (`set` shows both on one wall) |
+| Model | `assets/source/props/prize_rail_shelf.blend`. `export`: 14 parts, 2,068 triangles, 3 stand-ins. `rail`: a 70 mm pipe 3.55 m long on three wall plates with two bolts each and 42 mm arms, 0.33 m off the wall (1,364 triangles); `shelf`: a 3.20 by 0.55 by 0.10 m plank with a rolled edge on three knee gussets (704). Wall-hung: backs on y = 0, feet on z = 0. B2's three hanging prize tubes are prizes, not the fixture, and are left out |
+| Reference | `reference/prize_rail_shelf_greybox.glb`, a quarter turn from the prop (the booth's public side is −X there) |
+| Paint | Not started. Stand-ins: dark metal, bleached timber |
+| Game | Not sent. No scene yet; the rail's middle at 3.45 m, the shelf's top at 2.85 m |
+| Last hand-back | None |
+| Next | Her review: round pipe (as built) or the greybox's square bar; wall brackets or hangers from the booth's ceiling; a front lip on the shelf. Card: `documentation/howto/model-the-prize-rail-shelf.md` |
+
+### menu_board — PRP-FOOD-001, service-window menu board (placed as I3's two authored boards)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph; two variants, `wide` and `narrow` |
+| Holder | Christina: review the first pass (`tools/blender/food_service.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/menu_board-model-2026-10-02/` |
+| Model | `assets/source/props/menu_board.blend`. `export`: 16 parts, 2,768 triangles (1,440 of them the ten family bolts), 3 stand-ins. `wide` 3.90 by 1.35 m in three bays on two mullions, six bolts; `narrow` 1.60 by 1.35 m, four bolts; both 0.107 m deep: an 8 cm frame round a dark panel 2.5 cm behind its face, bolted through the frame's face. Standing on its bottom edge at the origin, facing −Y; nothing collides |
+| Reference | `reference/menu_board_greybox.glb` (I3's `menu_board_w` and `_e`) |
+| Paint | Not started. Stand-ins: frame, panel, bolts; the menu is paint, a swappable state |
+| Game | Not sent. No scene yet; I3 hangs them at 2.025 m facing the windows, turned half round from the prop |
+| Last hand-back | None |
+| Next | Her review: one pane or three on the wide board; a third size for B4's two 0.9 by 1.2 m menus (`menu_n`, `menu_s`). Card: `documentation/howto/model-the-menu-board.md` |
+
+### pie_display_case — PRP-FOOD-002, pie display case (placed as I3's authored case)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph |
+| Holder | Christina: review the first pass (`tools/blender/food_service.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/pie_display_case-model-2026-10-02/` |
+| Model | `assets/source/props/pie_display_case.blend`. `export`: 17 parts, 2,676 triangles (1,960 the pies), 4 stand-ins: a 7 cm steel base, solid ends, one glass shell over the front and top rolling over in a 16 cm quarter round, two sliding back doors, a glass shelf at 0.30 m, five pies 0.26 m across and 11 cm tall (three on the deck, two on the shelf); 1.80 by 0.75 by 0.55 m, z = 0 the counter top; the pies do not collide |
+| Reference | `reference/pie_display_case_greybox.glb` |
+| Paint | Not started. Stand-ins: steel, glass (see-through in Blender), foil, pastry |
+| Game | Not sent. No scene yet; it stands on the café counter at (−4.1, 2.55) in I3's frame, the customer side toward the windows |
+| Last hand-back | None |
+| Next | Her review: a straight front with solid ends (as built) or curved glass; how many pies, and a cut one. Card: `documentation/howto/model-the-pie-display-case.md` |
+
+### concession_equipment — PRP-FOOD-003, concession counter equipment (placed as B4's authored service window and three taffy jars)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph; two variants, `counter` and `taffy_jar` |
+| Holder | Christina: review the first pass (`tools/blender/food_service.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/concession_equipment-model-2026-10-02/` |
+| Model | `assets/source/props/concession_equipment.blend`. `export`: 7 parts, 2,092 triangles, 5 stand-ins. `counter`: a 3.90 by 0.45 m laminate slab 6 cm thick with a rounded nose on three steel gussets, standing on the gussets' feet with its top 0.40 m up (788 triangles; collides). `taffy_jar`: a glass jar 0.42 m across and 0.72 m tall with a chrome domed lid and a lumpy taffy fill, the authored size, about twice a real one (1,304; does not collide) |
+| Reference | `reference/concession_equipment_greybox.glb` (B4's `service_window` and `taffy_jar_*`) |
+| Paint | Not started. Stand-ins: laminate, steel, glass, chrome, taffy |
+| Game | Not sent. No scene yet; the counter hangs with its top at about 1.1 m and its back edge +Y; the jars are placed three times |
+| Last hand-back | None |
+| Next | Her review: which other counter tools join the family (a fryer, sugar shaker, register, taffy puller); the jars at real size; the counter's length (B4's window is 3.9 m, I3's 3.65 m). Card: `documentation/howto/model-the-concession-equipment.md` |
+
+### service_freezer — PRP-FOOD-004, service freezer box (placed as I3's authored freezer)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph |
+| Holder | Christina: review the first pass (`tools/blender/food_service.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/service_freezer-model-2026-10-02/` |
+| Model | `assets/source/props/service_freezer.blend`. `export`: 14 parts, 2,140 triangles, 5 stand-ins: a hollow chest 0.95 m tall on a recessed kick, a dark lid frame 2.10 by 0.80 m with two sliding glass lids and flat pulls, and a header panel from 1.00 to 1.45 m at the back on two short posts, bolted through its face (the greybox is 1.45 m tall, and a chest that tall could not be reached into); it all collides |
+| Reference | `reference/service_freezer_greybox.glb` |
+| Paint | Not started. Stand-ins: shell, trim, glass, plastic; the header's graphic is paint |
+| Game | Not sent. No scene yet; it stands at (7.45, 1.5) in I3's frame, under `I3_freezer_work_light` |
+| Last hand-back | None |
+| Next | Her review: the header or a plain chest (one panel, two posts and four bolts to delete); stock inside or empty. Card: `documentation/howto/model-the-service-freezer.md` |
+
+### delivery_crate — PRP-FOOD-005, delivery crate (placed as I3's two stacked boxes)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph; two variants, `large` and `small` |
+| Holder | Christina: review the first pass (`tools/blender/food_service.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/delivery_crate-model-2026-10-02/` |
+| Model | `assets/source/props/delivery_crate.blend`. `export`: 38 parts, 1,672 triangles, one stand-in (timber). `large` 0.75 by 0.90 by 0.65 m and `small` 0.70 by 0.75 by 0.50 m, 19 parts each: four 5 cm corner posts, three 2 cm slats a side with 4 cm gaps, three floor boards, an open top; both collide. The authored sizes, about twice a real produce crate |
+| Reference | `reference/delivery_crate_greybox.glb` |
+| Paint | Not started; stencils are paint |
+| Game | Not sent. No scene yet; a stack is two placements |
+| Last hand-back | None |
+| Next | Her review: plastic milk crates or bread trays as well; real size or the authored size. Card: `documentation/howto/model-the-delivery-crate.md` |
+
+### condiment_set — PRP-FOOD-006, condiment and napkin set (placed in the café finish layer)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph; four variants, `bottle_red`, `bottle_yellow`, `napkin_dispenser`, `straw_holder` |
+| Holder | Christina: review the first pass (`tools/blender/food_service.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/condiment_set-model-2026-10-02/` |
+| Model | `assets/source/props/condiment_set.blend`. `export`: 11 parts, 1,332 triangles, 4 stand-ins, nothing colliding: two squeeze bottles of one shape, 9 by 25.5 cm (320 triangles each); an upright chrome two-faced napkin dispenser 16 by 11 by 20 cm with a napkin's tongue showing (392); a chrome cup 9 by 11 cm with seven straws to 22 cm (300). Real size: the greybox's bottles are 22 by 62 cm and its napkin stack 42 by 50 cm, two to three times real |
+| Reference | `reference/condiment_set_greybox.glb` |
+| Paint | Not started. Stand-ins: plastic, chrome, paper, straw; the labels and the bottles' colours are paint |
+| Game | Not sent. No scene yet |
+| Last hand-back | None |
+| Next | Her review: real size (as built) or the greybox's; a push-button straw dispenser. At the unwrap the two bottles need `--no-mirror`, or they share one texture space. Card: `documentation/howto/model-the-condiment-set.md` |
+
+### used_tray — PRP-FOOD-007, used tray and funnel-cake remnant (placed on a café terrace table)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph |
+| Holder | Christina: review the first pass (`tools/blender/food_service.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/used_tray-model-2026-10-02/` |
+| Model | `assets/source/props/used_tray.blend`. `export`: 3 parts, 2,344 triangles (1,556 the cake), 3 stand-ins, nothing colliding: a flared tray 0.46 by 0.36 m and 3 cm deep with a recessed underside, a 24 cm paper plate off-centre, and the funnel cake, two spirals of batter with its front third eaten. Real size: the greybox's tray is 0.72 by 0.90 m |
+| Reference | `reference/used_tray_greybox.glb` |
+| Paint | Not started. Stand-ins: plastic, paper, batter; the sugar is paint |
+| Game | Not sent. No scene yet; it lies on a terrace table at (−86.1, −55.1), turned 10° |
+| Last hand-back | None |
+| Next | Her review: real size or the greybox's; more clues (a fork, a napkin, a cup). Card: `documentation/howto/model-the-used-tray.md` |
+
+### refill_cup — PRP-FOOD-008, park refill cup (placed as the café residue's two cups)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph |
+| Holder | Christina: review the first pass (`tools/blender/food_service.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/refill_cup-model-2026-10-02/` |
+| Model | `assets/source/props/refill_cup.blend`. `export`: 3 parts, 540 triangles, 3 stand-ins, nothing colliding: a 44 oz tapered cup 10 cm at the rim and 21.5 cm tall, hollow, a domed lid to 25.4 cm with a straw collar, a straw to 34 cm leaning 6°. Real size: the greybox's cups are 18 by 42 cm |
+| Reference | `reference/refill_cup_greybox.glb` |
+| Paint | Not started. Stand-ins: cup, lid, straw; the logo is paint. `PRP-STORY-006` is the same cup with the old logo |
+| Game | Not sent. No scene yet |
+| Last hand-back | None |
+| Next | Her review: size; a stacked-cups variant (the scene calls its two "stacked cups"). Card: `documentation/howto/model-the-refill-cup.md` |
+
+### boarding_gate — PRP-OPS-001, boarding/load/exit gate (placed as the authored gates at the wheel, coaster and funhouse)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph |
+| Holder | Christina: review the first pass (`tools/blender/ride_operations.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/boarding_gate-model-2026-10-02/` |
+| Model | `assets/source/props/boarding_gate.blend`. `export`: 21 parts, 2,908 triangles, 4 stand-ins: two 0.16 m posts 1.25 m tall and 2.0 m apart on base plates with two anchor bolts each, capped; one leaf hinged on the +Y post, a welded 42 mm tube loop round a 3 cm panel, its top rail at the greybox's 0.675 m and its bottom at 0.14 m; two strap hinges, a slide-bolt latch into a bolted keeper. 0.28 by 2.26 by 1.29 m |
+| Reference | `reference/boarding_gate_greybox.glb` |
+| Paint | Not started; LOAD and EXIT are paint on the panel |
+| Game | Not sent. No scene yet; the composition's boxes in `boardwalk_operations.tscn` stay placed until the first Send |
+| Last hand-back | None |
+| Next | Her review: the leaf's height (0.675 m is hip height; 1.0 m is usual, `G_RAIL_Z`); whether the coaster's 3.6 m rail and the funhouse's gates become variants. Card: `documentation/howto/model-the-boarding-gate.md` |
+
+### wheel_operator_control — PRP-OPS-002, wheel operator control (placed as R1's authored control)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph |
+| Holder | Christina: review the first pass (`tools/blender/ride_operations.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/wheel_operator_control-model-2026-10-02/` (they look at the panel's side) |
+| Model | `assets/source/props/wheel_operator_control.blend`. `export`: 15 parts, 2,314 triangles, 7 stand-ins: a plinth and a rounded cabinet 1.15 by 0.72 m, 1.18 m tall, with a lipped top; a cream panel 45 mm proud on its +X face with four corner bolts, a 0.10 m green dome lamp in a bezel, a 0.13 m red mushroom stop on a yellow legend plate and three push buttons, at the greybox's places. The panel faces +X, as the composition places it. 1.29 by 0.76 by 1.18 m |
+| Reference | `reference/wheel_operator_control_greybox.glb` |
+| Paint | Not started; the legends are paint |
+| Game | Not sent. No scene yet; the composition's boxes in `boardwalk_operations.tscn` stay placed until the first Send |
+| Last hand-back | None |
+| Next | Her review of the pass. The composition's stool stands at the end away from the panel: move it when the control is placed. Card: `documentation/howto/model-the-wheel-operator-control.md` |
+
+### wheel_boarding_lift — PRP-OPS-003, wheel step-free boarding lift (placed as R1's authored lift)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph |
+| Holder | Christina: review the first pass (`tools/blender/ride_operations.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/wheel_boarding_lift-model-2026-10-02/` |
+| Model | `assets/source/props/wheel_boarding_lift.blend`. `export`: 23 parts, 4,988 triangles, 6 stand-ins, the greybox's 1.28 m platform and every height kept: a 1.5 m shaft plinth 0.18 m tall on four ground bolts, four 0.12 m posts to 4.30 m, a header at 4.33–4.49 m; the car (floor at 0.27 m, three walls to 0.90 m, a capping rail at 0.93 m, a hinged gate on +X); the bridge, 1.1 m wide, out to x 1.815 at 4.05–4.29 m, with a solid-panel rail and capping tube on each edge to 5.48 m; a blank sign board bolted between the south posts at 2.29 m. The bridge is centred on the car's opening (the greybox's met only 0.69 m of it); the south rail is added. 3.63 by 1.58 by 5.48 m |
+| Reference | `reference/wheel_boarding_lift_greybox.glb` |
+| Paint | Not started |
+| Game | Not sent. No scene yet; the composition's boxes in `boardwalk_operations.tscn` stay placed until the first Send. Kept clear as operating equipment |
+| Last hand-back | None |
+| Next | Her review: keep the added south rail; at the top the car's walls would reach 4.95 m, past the header at 4.33 m: raise the mast about 0.6 m or lower the walls. Card: `documentation/howto/model-the-wheel-boarding-lift.md` |
+
+### maintenance_locker — PRP-OPS-004, maintenance locker and storage (placed as R1's authored chest; R2's upright locker not built)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph |
+| Holder | Christina: review the first pass (`tools/blender/ride_operations.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/maintenance_locker-model-2026-10-02/` |
+| Model | `assets/source/props/maintenance_locker.blend`. `export`: 14 parts, 2,352 triangles, 3 stand-ins: a rounded body 1.6 by 0.78 by 0.80 m under a crowned lid 1.68 by 0.86 m to 0.92 m, a piano hinge along +Y, a hasp (a staple on a plate and a slotted strap) at the front, chunky D pulls on bolted plates at each end; closed, no padlock. 1.79 by 0.89 by 0.92 m |
+| Reference | `reference/maintenance_locker_greybox.glb` |
+| Paint | Not started |
+| Game | Not sent. No scene yet; the composition's boxes in `boardwalk_operations.tscn` stay placed until the first Send |
+| Last hand-back | None |
+| Next | Her review; R2's upright locker (0.8 by 1.4 by 2.05 m) as a variant here or a prop of its own. Card: `documentation/howto/model-the-maintenance-locker.md` |
+
+### coaster_brake_console — PRP-OPS-005, coaster brake console (placed as R2's authored console)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph |
+| Holder | Christina: review the first pass (`tools/blender/ride_operations.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/coaster_brake_console-model-2026-10-02/` (they look at the panel's side) |
+| Model | `assets/source/props/coaster_brake_console.blend`. `export`: 21 parts, 2,854 triangles, 6 stand-ins: a plinth and a cabinet 0.82 by 1.25 by 1.32 m with a lipped top; a cream panel 60 mm proud on its −X face with four bolts, two gauges with cream dials and three buttons; on the top's front edge the brake lever, a tube with a red ball grip at 1.71 m, between two quadrant plates, pivoting on a bolt through each. 1.02 by 1.29 by 1.76 m |
+| Reference | `reference/coaster_brake_console_greybox.glb` |
+| Paint | Not started; "BRAKE" is paint |
+| Game | Not sent. No scene yet; the composition's boxes in `boardwalk_operations.tscn` stay placed until the first Send |
+| Last hand-back | None |
+| Next | Her review: an e-stop on the console as well (the composition's lamp and stop on this panel are `block_lamp_estop` now, on a post). Card: `documentation/howto/model-the-coaster-brake-console.md` |
+
+### block_lamp_estop — PRP-OPS-006, block lamp and emergency stop (placed as the two spheres on R2's brake panel)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph |
+| Holder | Christina: review the first pass (`tools/blender/ride_operations.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/block_lamp_estop-model-2026-10-02/` |
+| Model | `assets/source/props/block_lamp_estop.blend`. `export`: 15 parts, 2,320 triangles, 5 stand-ins: a round plate on four ground bolts, a 90 mm post, a signal head at 1.92 m (drum, hood, bezel, a 0.10 m green dome toward −Y) and an e-stop station on a bolted band at 1.05 m (box, yellow legend plate, a 0.12 m red mushroom toward −Y). One aspect. 0.26 by 0.33 by 2.03 m |
+| Reference | `reference/block_lamp_estop_greybox.glb`, a size reference only: the export dropped the composition's two spheres to the floor |
+| Paint | Not started |
+| Game | Not sent. No scene yet; the composition's boxes in `boardwalk_operations.tscn` stay placed until the first Send |
+| Last hand-back | None |
+| Next | Her review of the pass: one aspect, and the heights. Card: `documentation/howto/model-the-block-lamp-estop.md` |
+
+### hose_reel — PRP-OPS-007, maintenance hose and reel (placed as R2's `brake_hose` and the pier service face's ring)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph |
+| Holder | Christina: review the first pass (`tools/blender/ride_operations.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/hose_reel-model-2026-10-02/` |
+| Model | `assets/source/props/hose_reel.blend`. `export`: 18 parts, 3,124 triangles, 6 stand-ins: a floor-standing standpipe reel against a wall at y = +0.05: a bolted plate, a 1.35 m post with a cap, a hub between two open five-spoked flanges 0.62 m across at 0.95 m, the hose as one scalloped coil of three 47 mm turns, a crank with a bolted axle nut and a knob, the hose's tail looping to a brass nozzle in a clip on the post. 0.62 by 0.54 by 1.38 m |
+| Reference | `reference/hose_reel_greybox.glb` |
+| Paint | Not started |
+| Game | Not sent. No scene yet; the composition's boxes in `boardwalk_operations.tscn` stay placed until the first Send |
+| Last hand-back | None |
+| Next | Her review: floor-standing (the composition hangs its ring at 2.75 m, out of reach); this reel in place of R2's `brake_hose` ring. Card: `documentation/howto/model-the-hose-reel.md` |
+
+### specialist_work_cart — PRP-OPS-008, specialist work cart (placed as SH1's work cart)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph |
+| Holder | Christina: review the first pass (`tools/blender/ride_operations.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/specialist_work_cart-model-2026-10-02/` |
+| Model | `assets/source/props/specialist_work_cart.blend`. `export`: 36 parts, 4,824 triangles, 8 stand-ins: a two-deck tray cart (a lipped tray at 0.62 m, a shelf at 0.30 m, four tube posts), two 0.25 m fixed wheels on an axle at −X, two swivel castors at +X, a 42 mm tongue pinned with a bolt and rising 15° to a T grip; on the tray a red toolbox, a brass oil can, a grease gun and a coiled cable, so the load names the job. 2.03 by 0.82 by 0.93 m |
+| Reference | `reference/specialist_work_cart_greybox.glb` |
+| Paint | Not started |
+| Game | Not sent. No scene yet; the composition's boxes in `boardwalk_operations.tscn` stay placed until the first Send |
+| Last hand-back | None |
+| Next | Her review: the load. Card: `documentation/howto/model-the-specialist-work-cart.md` |
+
+### funhouse_turnstile — PRP-OPS-009, funhouse entry turnstile (placed as P2's authored turnstile)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph |
+| Holder | Christina: review the first pass (`tools/blender/service_operations.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/funhouse_turnstile-model-2026-10-02/` |
+| Model | `assets/source/props/funhouse_turnstile.blend`. `export`: 13 parts, 1,748 triangles, 3 stand-ins: a 0.54 m pedestal with four anchor bolts and a collar, a 0.22 m post to 1.55 m with a domed cap, a hub drum at 0.98 m, three 70 mm arms with 110 mm ball ends 1.0 m from the axis at 120°, one toward −Y. Faces −Y, a quarter turn from the greybox; the post on the origin. 1.84 by 1.61 by 1.55 m |
+| Reference | `reference/funhouse_turnstile_greybox.glb` |
+| Paint | Not started |
+| Game | Not sent. No scene yet; it stands in P2's entry at (−82.85, 27.0), approached from −X |
+| Last hand-back | None |
+| Next | Her review: the arms' reach (the greybox's 1.0 m; a real one is 0.6 to 0.75 m); the exit's push gate as a variant of this or of `boarding_gate`. Card: `documentation/howto/model-the-funhouse-turnstile.md` |
+
+### funhouse_operator_box — PRP-OPS-010, funhouse operator box and show stop (placed as P2's authored box)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph |
+| Holder | Christina: review the first pass (`tools/blender/service_operations.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/funhouse_operator_box-model-2026-10-02/` |
+| Model | `assets/source/props/funhouse_operator_box.blend`. `export`: 10 parts, 1,600 triangles, 5 stand-ins: a kick plinth, a rounded cabinet 1.25 m across the front and 1.0 m deep with a lipped cap at 1.48 m, a blank 1.0 by 0.72 m panel 6 cm proud with four bolts, and the show stop, a yellow collar and a red 0.13 m mushroom head, at x −0.2 and 1.09 m up. Faces −Y. 1.29 by 1.17 by 1.48 m |
+| Reference | `reference/funhouse_operator_box_greybox.glb` |
+| Paint | Not started; the controls are paint |
+| Game | Not sent. No scene yet; it stands at (−81.55, 28.55), the panel toward −X |
+| Last hand-back | None |
+| Next | Her review: a vertical panel (as built) or a sloped desk. Card: `documentation/howto/model-the-funhouse-operator-box.md` |
+
+### service_door — PRP-OPS-011, service door and operating notice (placed at P2 and the service connections)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph |
+| Holder | Christina: review the first pass (`tools/blender/service_operations.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/service_door-model-2026-10-02/` |
+| Model | `assets/source/props/service_door.blend`. `export`: 12 parts, 1,536 triangles, 5 stand-ins: a frame 2.20 by 4.35 m, 7 cm proud of the wall plane y = 0, its feet on z = 0, nothing in the wall; two 0.97 by 4.17 m leaves with kick plates and 42 mm pull bars at 0.95–1.55 m; a blank 0.42 by 0.30 m notice at 1.65 m with four bolts. 2.20 by 0.16 by 4.35 m |
+| Reference | `reference/service_door_greybox.glb` |
+| Paint | Not started; the notice's words and the hinges are paint |
+| Game | Not sent. No scene yet; it stands at (−70.82, 32.0) facing +X, under P2's service light |
+| Last hand-back | None |
+| Next | Her decision: the greybox's 4.35 m as a tall hinged pair (as built), a roller shutter, or a 2.4 m pair under a fixed panel; S1 and S2's stock doors, as tall and 1.55 m wide, as a width variant. Card: `documentation/howto/model-the-service-door.md` |
+
+### fish_cleaning_sink — PRP-OPS-012, fish-cleaning sink and cutting board (placed at the pier's fishing service face)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph |
+| Holder | Christina: review the first pass (`tools/blender/service_operations.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/fish_cleaning_sink-model-2026-10-02/` |
+| Model | `assets/source/props/fish_cleaning_sink.blend`. `export`: 20 parts, 2,628 triangles, 5 stand-ins: a counter 2.45 by 1.05 m at 0.98 m on four 9 cm legs, the back two rising to 2.0 m as posts; a 2.12 by 0.78 m trough let in (floor 0.76 m) with a drain and a pipe to the deck; side stretchers; a back board 2.65 m wide from 0.90 to 2.085 m bolted to the posts; a gooseneck faucet with a lever; a 0.52 by 0.72 m board across the trough. 2.65 by 1.08 by 2.085 m. The greybox's counter is 1.35 m, chest high |
+| Reference | `reference/fish_cleaning_sink_greybox.glb` |
+| Paint | Not started; the sign is paint |
+| Game | Not sent. No scene yet; it stands at (−161.0, 13.1), its back to the pavilion wall |
+| Last hand-back | None |
+| Next | Her review: the work height (0.98 m against the greybox's 1.35 m); one faucet or two along the trough. Card: `documentation/howto/model-the-fish-cleaning-sink.md` |
+
+### tackle_cart — PRP-OPS-013, tackle cart (placed at the pier)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph |
+| Holder | Christina: review the first pass (`tools/blender/service_operations.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/tackle_cart-model-2026-10-02/` |
+| Model | `assets/source/props/tackle_cart.blend`. `export`: 21 parts, 2,772 triangles, 7 stand-ins: a rounded chest 2.10 by 1.00 m from 0.18 m up with a lipped lid at 1.08 m, two 0.42 m wheels with tyres on an axle at x −0.98, two stub legs with pads, a 42 mm U handle at 0.69 m welded on two bosses; on the lid a tackle box and a bait cooler; nothing branded. The greybox's frame (wheels −X, handle +X). 2.94 by 1.45 by 1.47 m |
+| Reference | `reference/tackle_cart_greybox.glb` |
+| Paint | Not started |
+| Game | Not sent. No scene yet; it stands at (−155.5, 13.25), the handle toward +X |
+| Last hand-back | None |
+| Next | Her decision: the composition's 2.2 m, or about half, a cart one person pulls along the pier (the catalog note calls it small). Card: `documentation/howto/model-the-tackle-cart.md` |
+
+### rod_rack — PRP-OPS-014, rod rack and fishing rods (placed at the pier)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph |
+| Holder | Christina: review the first pass (`tools/blender/service_operations.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/rod_rack-model-2026-10-02/` |
+| Model | `assets/source/props/rod_rack.blend`. `export`: 33 parts, 2,748 triangles, 5 stand-ins: a foot board, two 10 cm posts to 3.0 m, two rails at 1.45 and 2.80 m with holes, bolted at their ends, three rods 3.70, 4.00 and 3.85 m long (a cork grip and reel seat, the blank tapering from 4.4 to 2.2 cm, two guides, a spinning reel each) standing 0.21 m apart. 0.72 by 0.30 by 4.12 m |
+| Reference | `reference/rod_rack_greybox.glb` |
+| Paint | Not started; the line and wraps are paint |
+| Game | Not sent. No scene yet; it stands at (−164.15, 2.1), where the greybox's base is about 0.6 m above the pier deck: check the deck when it is placed |
+| Last hand-back | None |
+| Next | Her review: the rods' thickness, the reels' size, three rods. Card: `documentation/howto/model-the-rod-rack.md` |
+
+### cleanup_bin — PRP-OPS-015, cleanup bin and drain bucket (placed at the pier)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph |
+| Holder | Christina: review the first pass (`tools/blender/service_operations.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/cleanup_bin-model-2026-10-02/` |
+| Model | `assets/source/props/cleanup_bin.blend`. `export`: 5 parts, 1,240 triangles, 3 stand-ins: an open galvanised bin 0.82 m across and 1.40 m tall at x +0.25 (a rolled rim, two swage bands, a recessed floor) and an open tapered bucket 0.52 m across and 0.72 m tall at (−0.40, −0.05) with two ears and a dropped wire bail. 1.37 by 0.86 by 1.40 m |
+| Reference | `reference/cleanup_bin_greybox.glb` |
+| Paint | Not started |
+| Game | Not sent. No scene yet; they stand at (−158.6, 13.2) and (−159.25, 13.25) |
+| Last hand-back | None |
+| Next | Her review: a lid on the bin; the bucket's 0.72 m. Card: `documentation/howto/model-the-cleanup-bin.md` |
+
+### folded_stock_cart — PRP-OPS-016, folded stock cart and empty crate (placed at the S1 and S2 service connections)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her "first pass from notes", no photograph; no greybox, sizes from the scene's `S1_folded_cart` and `S2_empty_crate`; two variants, `cart` and `crate` |
+| Holder | Christina: review the first pass (`tools/blender/service_operations.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/folded_stock_cart-model-2026-10-02/` (both variants in a row) |
+| Model | `assets/source/props/folded_stock_cart.blend`. `export`: 27 parts, 2,116 triangles, 5 stand-ins. `cart` (1,632 triangles): a 1.25 by 0.90 m platform truck stood on its long edge against a wall, leaning 4°, its underside out with two chassis rails and four 13 cm castors, its handle folded over the deck on two bolted pivots; 1.25 by 0.32 by 0.91 m. `crate` (484): an open timber box 0.92 m square and 0.72 m tall on two skids with four corner battens |
+| Reference | None: the scene's two boxes could not be isolated |
+| Paint | Not started; the slats are paint |
+| Game | Not sent. No scene yet; the cart by S1 at (−82.95, −13.55) and the crate by S2 at (−82.92, 13.65), both against the back-of-house wall |
+| Last hand-back | None |
+| Next | Her review: the cart leaning (as built) or standing square (`F_LEAN_DEG`). Card: `documentation/howto/model-the-folded-stock-cart.md` |
+
+## Beach town buildings
+
+First block-outs, 2026-10-02 (her "lets go ahead and build some of them", sites not final). Each in `assets/source/props/` from `new_prop.py`, built by its own script in `tools/blender/`; front on Blender −Y; floor (threshold) at z = 0; `ground_line` in `reference`; renders in `documentation/screenshots/beach-town-buildings-2026-10-02/<name>/`. Town look: `documentation/reference/beach_town/` (her two Avila Beach photos). None sent, placed or committed.
+
+### fishing_shack — the plaza's three older fishing shacks (beach town plan, zone C)
+
+| | |
+|---|---|
+| Stage | **model**, block-out (massing only; no shack photo yet) |
+| Holder | Christina: her review and a shack photo |
+| Model | `assets/source/props/fishing_shack.blend`, `tools/blender/fishing_shack.py` (`--tenant bait|market|smokehouse`). 5.5 × 7 m, eave 2.70, roof top 4.00, gable and sign to the plaza; customer door, counter hatch and awning in front, service door behind, each a real opening with its own leaf; 1,240 triangles; 0 coplanar pairs |
+| Next | Her photo (`documentation/reference/fishing_shack/`). Open: there is no back street (bins behind face the strand's steps); the mounted greybox shacks in `coastal_fast_pass.tscn` stand at the old bank |
+
+### pier_seafood_restaurant — seafood restaurant 2 on the ferry plaza (zone C)
+
+| | |
+|---|---|
+| Stage | **model**, block-out |
+| Holder | Christina: her review |
+| Model | `assets/source/props/pier_seafood_restaurant.blend`, `tools/blender/pier_seafood_restaurant.py`. The plan's 18 × 10 m is building (12.5 × 10, kitchen east) plus a 5.5 m sunset deck; pale blue, white trim, grey gable, porthole in each gable (the Avila pier-root building); plaza doors, deck doors, service and kitchen doors as real openings with leaves (`kyt_hinge_edge = side`, which Send does not yet read); 3,052 triangles; 0 coplanar pairs |
+| Next | Her call on the beach ramp behind the back wall (only a 2 m service strip) and deliveries crossing the plaza; pitch, door glazing, deck railing |
+
+### surf_shop — D2, the surf shop on the main drag
+
+| | |
+|---|---|
+| Stage | **model**, block-out pass 2 (2026-10-02): built from her photo (`documentation/reference/surf_shop/good_surf_shop.webp`, "this is a good surf shop"); the greybox's height, roof and floor do not bind (her "why do we care if the current grey box is one story") |
+| Holder | Christina: her review |
+| Model | `assets/source/props/surf_shop.blend`, `tools/blender/surf_shop.py` (`--form photo|parapet|gable`; photo saved). D2's lot, 8.95 × 8.10 m, turned 15° to Beach Road; two storeys (3.3 + 2.7 m), front gable to the ridge at 8.32 m with three round louvred vents, sash windows upstairs, maroon siding with yellow trim; a rust-red tin porch 2.5 m over the sidewalk on five posts, leaving a 2.0 m walk and 2.4 m parking to the kerb; display window, door (a real opening, flush at the sidewalk), boards, rack, A-frame as non-colliding dressing; 2,654 triangles. Renders `documentation/screenshots/beach-town-buildings-2026-10-02/surf_shop/pass2/` |
+| Next | Her review. The yard behind is dug down 1.1–1.3 m at the back wall (the ground rises inland), not yet modelled. The photo's one-storey yellow wing is noted for D1 or D3. Its place: the beach town plan's pass 12 moves the lot 4.07 m inland to (−51.49, 422.51), same yaw, so the sidewalk and parking fit (the standing building is only 2.83 m from today's kerb); the model's street reference (centreline 9.9 m out) already matches that position |
+
+### beach_cottage — the court's seven and the hillside's ~50 cottages (zone H)
+
+| | |
+|---|---|
+| Stage | **model**, block-out (no cottage photo yet) |
+| Holder | Christina: her review and a cottage photo |
+| Model | `assets/source/props/beach_cottage.blend`, `tools/blender/beach_cottage.py`. Court cottage in `export`: 6 m to the lane × 8 m deep, gable to the lane, half-width shed porch, eave 3.15, ridge 4.92, 1,536 triangles. Hillside cottage in `authored/hillside_variant`: the same over a garage storey at the street, deck to the view, 2,480 triangles. Steps per the stair rule; 0 coplanar pairs; Check warns the origin is 1.14 m off the bounding box (the porch) |
+| Next | Her photo (`documentation/reference/beach_cottage/`). Open: hillside lots are 8 × 7 m, not 8 × 6; court cottages 1 m apart (eaves 0.1 m apart); porch past the 2.5 m setback by 0.3 m; garage side on the hillside |
+
+### cottage_kit — the town's everyday one-storey houses (South Shore family B, the court and the streets)
+
+| | |
+|---|---|
+| Stage | **model**, block-out (2026-10-02, an agent, from eight of her photos in `documentation/reference/houses/`; built beside `beach_cottage`, which is untouched and still awaits her review) |
+| Holder | Christina: her review |
+| Model | `assets/source/props/cottage_kit.blend`, `tools/blender/cottage_kit.py`. One 6 × 8 m body, eight variants at the origin: `classic` in `export` (`classic_little_cottage.png`: 42° shingle roof, eave 2.55 m, sunburst, brick chimney, side door under a shed hood), 1,628 triangles; in `export/variant_<name>`: `bungalow` (`teal_trim_bungalow.png`), 1,904; `hip` (`blue_hip_roof_cottage.png`, ridge front to back), 1,512, and `hip_garage`, 536; `glass_gable` (`glass_gable_shingle_cottage.webp`), 1,344; `porch` (`pink_hammock_cottage.webp`, the hammock a non-colliding ribbon), 1,652; `log` (`log_cabin_cottage.webp`, compressed from about 10 m to the 6 m body), 2,560; `l_ranch` (`blue_l_shaped_ranch.png`, 8 m, the wing inset 0.5 m), 1,700. Round windows and plaques are applied discs, not holes. Check ok, one warning: 1.25 m off the origin (all the porches together). 0 coplanar pairs. Renders `documentation/screenshots/houses-2026-10-02/cottage_kit/`. Card `documentation/howto/model-the-cottage-kit.md` |
+| Next | Her review. Answered 2026-10-02: "log cabin - go wide", "ranch wing flush", the hip roof side-gabled with its ridge along the front (done). Her rule for houses (2026-10-03): the either/or questions are variations, not decisions. Her "we want this AND that" (2026-10-03); built: `classic_gable`, the classic with its front door on the street gable between two tall windows under a hood, the side door moved back, 1,956 triangles (Check ok, 15,308 in all, the lead's run too; 0 coplanar). `classic` already had its gable to the street with the door on its long side (the lead's earlier note, "long side to the street", was wrong). Left for placement: mirrored versions for the driveway side, any of the plan's colours on any house. Placement: `log` needs a 13 m lot, `l_ranch` 11 m `classic_gable` recoloured on its own materials (her "on the variations lets change the colors", "can the doors be different colors too"): butter yellow, white trim, coral doors. Check ok after the recolour (the lead's run on all five, 2026-10-03). |
+
+### victorian_cottage — the town's Victorian worker's cottages (showpieces on ordinary 9 m lots)
+
+| | |
+|---|---|
+| Stage | **model**, block-out (2026-10-02, an agent, from her photos `documentation/reference/houses/victorian_blue_cottage.webp` and `purple_painted_lady.png`) |
+| Holder | Christina: her review |
+| Model | `assets/source/props/victorian_cottage.blend`, `tools/blender/victorian_cottage.py`. One 6 × 10.5 m two-storey shell, gable to the street at 48°, floor to eave 3.0 m; two variants at the origin: `blue` in `export`, floor 1.55 m up ten risers, balcony on brackets, sunburst, red bargeboards, a 2.17 × 1.25 m glazed corner porch, 4,420 triangles; `purple` in `export/variant_purple`, floor 0.60 m, full-width porch on turned posts, pediment hoods, spindle fan, 3,000 triangles. A plain back door and stoop on both (not in the photos). Check ok (the lead's run too); 0 coplanar pairs. Renders `documentation/screenshots/houses-2026-10-02/victorian_cottage/`. Card `documentation/howto/model-the-victorian-cottage.md` |
+| Next | Her review. Her "we want this AND that" (2026-10-03); built in `export/variant_<name>`: `blue_b` (the corner porch wrapping under one L lean-to, which loses the little porch gable; a side door with a landing and flight; a brick chimney), 4,440 triangles; `purple_b` (38° over a 1.2 m knee wall, a 0.5 m sunburst, a railed porch, a brick chimney), 3,188; `blue` and `purple` fingerprints unchanged (Check ok, 15,048 triangles, the lead's run too; 0 coplanar) Recoloured on their own materials (her "on the variations lets change the colors", "can the doors be different colors too"): `blue_b` sage green, cream trim, deep red bargeboards, navy door; `purple_b` bright pink, teal trim, gold accents, gold door. Check ok after the recolour (the lead's run on all five, 2026-10-03). |
+
+### streetcar_house — the beach house that was a streetcar
+
+| | |
+|---|---|
+| Stage | **model**, block-out (2026-10-02, an agent, from her photo `documentation/reference/houses/streetcar_beach_house.webp`: "this was a streetcar turned into a beach house") |
+| Holder | Christina: her review |
+| Model | `assets/source/props/streetcar_house.blend`, `tools/blender/streetcar_house.py`. A 9.6 m single-truck car body 2.7 m wide (the door as scale) with a 2.9 m room added behind under one 5° hip roof, so 9.6 × 5.6 m; the car's window row and door on the long side, a tin-roofed porch on magenta posts, yellow and teal steps; suits a 9 m lot turned lengthwise along the street. Two variants at the origin: `photo` in `export`, 1,572 triangles; `tell` in `export/variant_tell`, the car's rounded end with three curved windows showing at the side, the addition stopping short under a roofed nook on one post, 2,256 triangles. Check ok, one warning: 0.88 m off the origin (the porch; the origin stays at the footprint's centre). 0 coplanar pairs. Renders `documentation/screenshots/houses-2026-10-02/streetcar_house/`. Card `documentation/howto/model-the-streetcar-house.md` |
+| Next | Her review. Her "we want this AND that" (2026-10-03); built: `big`, a 14 m car with windows on its 1.2 m rhythm, one rounded end showing, a lean-to behind under its own tin roof (no post), 3,008 triangles; suits a lot turned lengthwise, the roof 15.3 m long; `photo` and `tell` hash-identical before and after (Check ok, 6,836 triangles, the lead's run too; 0 coplanar). The salmon strip and the rain chain are paint by default `big` recoloured on its own materials (her "on the variations lets change the colors", "can the doors be different colors too"): turquoise, cream trim, coral posts and rails, white fascia, navy skirt, yellow door. Check ok after the recolour (the lead's run on all five, 2026-10-03). |
+
+### stucco_row — the Capitola row, built as houses
+
+| | |
+|---|---|
+| Stage | **model**, block-out (2026-10-02, an agent, from her photos `documentation/reference/houses/stucco_row_houses.webp` and `capitola_inner_lane.png`, and the README's notes on her two Capitola photos that did not reach disk; her "actually those are houses"). Her word on the first renders: "SO CUTE" |
+| Holder | Christina: her review |
+| Model | `assets/source/props/stucco_row.blend`, `tools/blender/stucco_row.py`. Four terrace units, each a variant at the origin, a 6 × 9 m shell (the front from the 1.4 × 2.1 m French doors; the depth unseen), storeys 2.9 m, party walls lapping 2 cm: `one_storey` (stepped parapet, tile run, corner chimney to 5.1 m, ornament and medallion over French doors, bay), 1,380 triangles; `one_storey_corner` (a square corner turret with a pyramid tile roof, a blue door up two red steps, a planter), 1,096; `two_storey` (timber balcony on brackets), 2,232; `three_storey` (arched recess, striped awning), 2,416. Wall tops cant 2 cm inward so lapped neighbours never share a plane; neighbours must still be staggered. A row of eight in nine colours in `authored/demo_row`. Check ok (the lead's run too); 0 coplanar pairs; each shell watertight. Renders `documentation/screenshots/houses-2026-10-02/stucco_row/`. Card `documentation/howto/model-the-stucco-row.md` |
+| Next | Her review. Answered: "end units can get side windows" (2026-10-02): every unit has `<type>_end_west` and `<type>_end_east` with one 0.7 × 1.35 m sash per storey in two bays in its exposed side wall, nothing else mirrored, so twelve variants (23,884 triangles in all; Check ok, the lead's run too); the demo row ends in `one_storey_corner_end_west` and `three_storey_end_east`, whose windows the builder asserts are exposed. The arched recess is round (the lane render's close wide angle makes it look pointed). Her "we want this AND that" (2026-10-03); built: `one_storey_hipped` (a hipped red tile roof over the whole unit), 648 triangles, ends 832; `two_storey_iron` (the blue iron balcony), 2,424, ends 2,776; eighteen variants, both in the demo row (Check ok, 34,172 triangles, the lead's run too; 0 coplanar, shells watertight). Left for placement: mirrored units; other depths by the builder's `D` constant New types recoloured on their own materials (her "on the variations lets change the colors", "can the doors be different colors too"): `one_storey_hipped` turquoise with coral doors, `two_storey_iron` sunflower with cobalt doors, the balcony still blue. Check ok after the recolour (the lead's run on all five, 2026-10-03). |
+
+### lowrise_condos — the colony's and the hillside's old condo blocks (South Shore plan, the colony; beach town plan, zone H)
+
+| | |
+|---|---|
+| Stage | **model**, block-out (2026-10-02, an agent, from her aerial `documentation/reference/houses/beach_lot_aerial.webp`: "one of the rows should be like that chunky repeating lowrises in the top left of this pic, others should be like the ones in the forground") |
+| Holder | Christina: her review |
+| Model | `assets/source/props/lowrise_condos.blend`, `tools/blender/lowrise_condos.py`. Two variants at the origin: `bluff_block` (the colony's sea-side row, three of them), 23 × 11 m, three storeys at 2.75 m, a 0.65 m white roof slab, 1.8 m recessed balconies behind 1.1 m solid fronts to the sea, two 11.5 m units joined by a fin, a garage and entry per unit to the street; 1,972 triangles. `street_block` (the colony's land-side block and the hillside's two), 23 × 11 m (`--street 26x11`, `26x9` for the hillside), two storeys, four 5.75 m units with a teal door and paired windows each, tuck-under carports at the back; 1,480 triangles. Check ok (the lead's run too); 0 coplanar pairs. Demo of the row in `authored/demo`. Renders `documentation/screenshots/houses-2026-10-02/lowrise_condos/`. Card `documentation/howto/model-the-lowrise-condos.md` |
+| Next | Her review. Her rule (2026-10-03): "we want this AND that"; built: `bluff_block_b` in `export/variant_bluff_block_b`, three 7.67 m units, white balcony fronts, garage doors in the wall colour, no roof boxes, 2,656 triangles; the demo's middle block (Check ok, 6,108 triangles, the lead's run too; 0 coplanar). Placement: the street block's parking (a back drive or garages to the street) and the South Shore plan's colony unit count (20 in 4 blocks; two units per bluff block as built) are settled when the blocks are sited `bluff_block_b` recoloured on its own materials (her "on the variations lets change the colors", "can the doors be different colors too"): sand stucco and garage doors, white slab and fronts, terracotta entry doors. Check ok after the recolour (the lead's run on all five, 2026-10-03). |
+
+## Other buildings
+
+Buildings modelled ahead of a site, through the same steps as a prop.
+
+### waterfront_restaurant — a restaurant over the water, for any use (ID when catalogued)
+
+| | |
+|---|---|
+| Stage | **model** (2026-10-02): her photo of a restaurant on the water, "it can be for anything", "we can always build another pier in town"; first pass by an agent from the lead's reading of the photo, which is not on disk. Her word on the renders: "the restaurant is very cute" |
+| Holder | Christina: review the first pass (`tools/blender/waterfront_restaurant.py`), reshape, then "handed back". Renders `documentation/screenshots/handbacks/waterfront_restaurant-model-2026-10-02/` (`figure` beside a 1.7 m figure, `dusk` lit) |
+| Model | `assets/source/props/waterfront_restaurant.blend`. `export`: 65 parts, 7,747 triangles, 8 stand-in materials `waterfront_<surface>`. A 26 by 14 m deck 2 m over the water (z = 0, origin mid-deck) on 28 X-braced piles going 2.5 m into it; a two-storey dark timber block 18 by 8.5 m, eave 6.4 m, ridge 11.4 m (48°); on the front a cross-gable with an arched window; a lantern with a weathervane on the ridge (14.6 m); a pyramid-roofed tower at the front right (13.8 m); a catwalk stair up the roof to the lantern; a glass dining room on a 0.9 m wall round the front and both ends; double doors and a 1 m gangway stub on +X, flush with the deck; a blank banner by the door. Front −Y. Piles are cylinders, the rest `kyt_unwrap = facets`. `reference`: `ground_line`, outlines, the 1.7 m figure. Check ok (the lead's run too); 0 coplanar pairs (the agent's scan) |
+| Reference | None of hers on disk; `documentation/reference/waterfront_restaurant/` waits for the photo |
+| Paint | Not started. Dark stain, shingles, cream trim, warm glass |
+| Game | Not sent; no scene, no site |
+| Last hand-back | None |
+| Next | Her review: a railing round the deck (its edge is open, 2 m over the water; only the stub has a rail start); how the roof stair's foot is reached (it starts on the roof); the gangway (a stub, so the origin stays at the deck's middle; the pier it joins comes with a site). Card: `documentation/howto/model-the-waterfront-restaurant.md` |
