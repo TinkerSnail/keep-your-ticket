@@ -943,6 +943,97 @@ paint → integrated. **Holder** is who has the next move.
 | Last hand-back | None |
 | Next | Her review: the cart leaning (as built) or standing square (`F_LEAN_DEG`). Card: `documentation/howto/model-the-folded-stock-cart.md` |
 
+## Wildlife
+
+Ambient and unscored, models only: how each moves is a separate decision. First
+passes built 2026-10-03 by agents from the catalog notes, no photographs, each
+species an assumption for her to confirm. Every animal faces −Y with its own
+left at +X (the gull faces +Y, its left at −X: the rule is the animal's own
+side), its lowest point on z = 0, every part `kyt_collision = none`, moving
+parts on pivot empties named as the gull's (`head_pivot`, `upper_pivot`,
+`lower_pivot`, `wing_left`, `leg_left` on the birds, which `bird.gd` looks up).
+Send to game today merges the parts into one still mesh and drops the pivots,
+so the joints reach the game only when Send changes, once motion is decided.
+Renders `documentation/screenshots/handbacks/<animal>-model-2026-10-03/`,
+group lineups `documentation/screenshots/wildlife-lineup-2026-10-03/`.
+
+### Fliers — PRP-WILD-006 to 009: bee, fly, hummingbird, butterfly
+
+| | |
+|---|---|
+| Stage | **model**, first pass (2026-10-03, an agent, `tools/blender/wildlife_fliers.py`) |
+| Holder | Christina: her review |
+| Model | `assets/source/props/{bee,fly,hummingbird,butterfly}.blend`, real size. `bee` honey bee worker, wings spread, 384 triangles; `fly` house fly, under 8 mm, wings folded, 392; `hummingbird` male Anna's, hovering (root pitched 40°, head 25°), 756; `butterfly` monarch, wings open flat, body chunkier than life, 372 |
+| Paint | Not started. Stand-ins; wings double-sided |
+| Game | Not sent. A readable game scale for the insects is her call |
+| Next | Her review. Card: `documentation/howto/model-the-fliers.md` |
+
+### Coast animals — PRP-WILD-010, 011, 012, 023, 024: pelican, sea lion, sea otter, whale, dolphin
+
+| | |
+|---|---|
+| Stage | **model**, first pass (2026-10-03, an agent, `tools/blender/wildlife_coast.py`) |
+| Holder | Christina: her review |
+| Model | `assets/source/props/{pelican,sea_lion,sea_otter,whale,dolphin}.blend`. `pelican` brown, standing hunched as on a piling, 2,178 triangles; `sea_lion` California, adult female, propped on its fore flippers, hind flippers turned forward, 2,150; `sea_otter` southern, floating on its back, 1,762; `whale` gray, about 13 m, 2,578; `dolphin` bottlenose, 2.7 m, 2,022. A `waterline` empty in `reference`: otter z = 0.12, whale 2.2, dolphin 0.45 |
+| Paint | Not started. Stand-ins |
+| Game | Not sent |
+| Next | Her review. Card: `documentation/howto/model-the-coast-animals.md` |
+
+### Tide pool and sea — PRP-WILD-013 to 016, 022, 025: crab, starfish, sea urchin, scallop, jellyfish, octopus
+
+| | |
+|---|---|
+| Stage | **model**, first pass (2026-10-03, an agent, `tools/blender/wildlife_invertebrates.py`) |
+| Holder | Christina: her review |
+| Model | `assets/source/props/{crab,starfish,sea_urchin,scallop,jellyfish,octopus}.blend`. `crab` red rock crab, 1,224 triangles; `starfish` ochre star, 600; `sea_urchin` purple, 37 fat spines, 594; `scallop` rock scallop, 0.14 m, top valve open 12°, 708; `octopus` two-spot, 0.65 m across, 2,080; `jellyfish` four `kyt_variant`s: `moon` 832, `sea_nettle` (tentacles 0.85 m) 1,032, `velella` by-the-wind sailor floating 236 (`waterline_velella` in `reference`), `velella_stranded` 284. No Physalia bluebottle (her "lets not use bluebottle") |
+| Paint | Not started. Stand-ins |
+| Game | Not sent |
+| Next | Her review. Card: `documentation/howto/model-the-tidepool-animals.md` |
+
+### Fish — PRP-WILD-017 to 021, 026 to 028: salmon, trout, striped bass, halibut, surf perch, tuna, rockfish, eel
+
+| | |
+|---|---|
+| Stage | **model**, first pass (2026-10-03, an agent, `tools/blender/wildlife_fish.py`, one lofted body from per-species sections) |
+| Holder | Christina: her review |
+| Model | `assets/source/props/{salmon,trout,striped_bass,halibut,surf_perch,tuna,rockfish,eel}.blend`, swimming level. Chinook salmon 0.90 m, 1,080 triangles; rainbow trout 0.45 m, 1,080; striped bass 0.75 m, 1,092; California halibut (left-eyed, lying flat) 0.70 m, 1,016; barred surfperch 0.30 m, 1,084; yellowfin tuna 1.40 m, 1,412; vermilion rockfish 0.50 m, 1,164; California moray as the eel, 1.00 m, mouth closed, four body segments, 1,366 |
+| Paint | Not started. Stand-ins |
+| Game | Not sent |
+| Next | Her review. Card: `documentation/howto/model-the-fish.md` |
+
+### Town animals — PRP-WILD-029 to 033: raccoon, cat, mouse, rat, dog
+
+| | |
+|---|---|
+| Stage | **model**, first pass (2026-10-03, an agent, `tools/blender/wildlife_town.py`, one quadruped kit) |
+| Holder | Christina: her review |
+| Model | `assets/source/props/{raccoon,cat,mouse,rat,dog}.blend`, standing on all fours. `raccoon` back arched, head low, 2,364 triangles; `cat` domestic shorthair, tail up, 2,424; `mouse` house mouse, 1,112; `rat` Norway rat, 1,176; `dog` medium mixed breed, tan, drop ears, 2,732. Centred on the bounding box, tail included |
+| Paint | Not started. Stand-ins; the raccoon's mask and rings and the cat's coat (per placement) are paint |
+| Game | Not sent |
+| Next | Her review. Card: `documentation/howto/model-the-town-animals.md` |
+
+### Lagoon swimmers — PRP-WILD-034, 038, 039: harbor seal, leopard shark, bat ray
+
+| | |
+|---|---|
+| Stage | **model**, first pass (2026-10-03, an agent, `tools/blender/wildlife_lagoon_swimmers.py`), for the tidal lagoon in `documentation/maps/entrance-landscaping.html` |
+| Holder | Christina: her review |
+| Model | `assets/source/props/{harbor_seal,leopard_shark,bat_ray}.blend`. `harbor_seal` Pacific, hauled out on its belly, hind flippers nearly flat, 1.73 m, 1,800 triangles (`harbor_seal_beside_sea_lion.png` in its renders); `leopard_shark` 1.40 m, 1,456; `bat_ray` 1.20 m across, no sting, 976 |
+| Paint | Not started. Stand-ins |
+| Game | Not sent |
+| Next | Her review. Card: `documentation/howto/model-the-lagoon-swimmers.md` |
+
+### Lagoon birds — PRP-WILD-035 to 037: heron, egret, shorebird
+
+| | |
+|---|---|
+| Stage | **model**, first pass (2026-10-03, an agent, `tools/blender/wildlife_lagoon_birds.py`), for the tidal lagoon |
+| Holder | Christina: her review |
+| Model | `assets/source/props/{heron,egret,shorebird}.blend`, standing, legs two to three times real thickness. `heron` great blue, 1.04 m, S-neck, 1,852 triangles; `egret` two `kyt_variant`s, `great` 0.95 m 1,412 and `snowy` 0.60 m with three chunky plumes 1,472; `shorebird` two, `sandpiper` (western) 0.11 m 1,300 and `godwit` (marbled) 0.33 m 1,348 |
+| Paint | Not started. Stand-ins; the godwit's black bill tip is paint |
+| Game | Not sent |
+| Next | Her review. Card: `documentation/howto/model-the-lagoon-birds.md` |
+
 ## Beach town buildings
 
 First block-outs, 2026-10-02 (her "lets go ahead and build some of them", sites not final). Each in `assets/source/props/` from `new_prop.py`, built by its own script in `tools/blender/`; front on Blender −Y; floor (threshold) at z = 0; `ground_line` in `reference`; renders in `documentation/screenshots/beach-town-buildings-2026-10-02/<name>/`. Town look: `documentation/reference/beach_town/` (her two Avila Beach photos). None sent, placed or committed.
