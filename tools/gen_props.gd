@@ -24658,7 +24658,7 @@ func _rebuild_road_corridor_mesh() -> ArrayMesh:
 			var rows: Array = chunk["rows"]
 			closure.call(rows[0])
 			closure.call(rows[rows.size() - 1])
-		var index := Geometry2D.triangulate_delaunay(points)
+		var index := _corridor_delaunay(points, outers_all)
 		for i in range(0, index.size(), 3):
 			var ia := index[i]
 			var ib := index[i + 1]
@@ -24685,6 +24685,240 @@ func _rebuild_road_corridor_mesh() -> ArrayMesh:
 	st.generate_normals()
 	st.generate_tangents()
 	return st.commit()
+
+
+## How far outside a group's samples `_corridor_delaunay` rings them with guard
+## points, and how far apart the guards stand.
+const DELAUNAY_GUARD_MARGIN := 30.0
+const DELAUNAY_GUARD_STEP := 10.0
+
+
+## A group's Delaunay triangulation, over `points` only, checked before it is
+## used. Godot's `triangulate_delaunay` failed here twice over (2026-10-03). It
+## works in single precision and finds each triangle's circumcircle from its
+## corners, so three points nearly in a line, which every corridor row is, give
+## it a circle it cannot test against: the flat triangle is never replaced and
+## the triangles after it are laid over it. And the outermost row of a set is
+## where a Bowyer-Watson's enclosing triangle bends the circle test, and a run's
+## end row can be the outermost: the interchange group's south edge is
+## `highway_b`'s. Together they put 19 edges under three or more triangles and
+## a sheet of ground ten metres over `highway_b` at (352, 133),
+## `path_ground_test`'s one bury. Centring and nudging the points only shrank it
+## to fins nine metres tall. So this triangulates in doubles, with a ring of
+## guard points round the samples so that none is on the edge of the set, and
+## drops every triangle that touches a guard. A guard's triangle reaching into
+## the corridor would be a hole, so that is checked, with `_triangulation_fault`.
+func _corridor_delaunay(points: PackedVector2Array, outers: Array) -> PackedInt32Array:
+	var n := points.size()
+	var lo := points[0]
+	var hi := points[0]
+	for p in points:
+		lo = lo.min(p)
+		hi = hi.max(p)
+	lo -= Vector2.ONE * DELAUNAY_GUARD_MARGIN
+	hi += Vector2.ONE * DELAUNAY_GUARD_MARGIN
+	var all := points.duplicate()
+	var nx := ceili((hi.x - lo.x) / DELAUNAY_GUARD_STEP)
+	var nz := ceili((hi.y - lo.y) / DELAUNAY_GUARD_STEP)
+	for i in nx:
+		var t := float(i) / nx
+		all.append(Vector2(lerpf(lo.x, hi.x, t), lo.y))
+		all.append(Vector2(lerpf(hi.x, lo.x, t), hi.y))
+	for j in nz:
+		var t := float(j) / nz
+		all.append(Vector2(hi.x, lerpf(lo.y, hi.y, t)))
+		all.append(Vector2(lo.x, lerpf(hi.y, lo.y, t)))
+	var index := _delaunay64(all)
+	var out := PackedInt32Array()
+	var fault := "no triangles" if index.is_empty() else ""
+	for t in range(0, index.size(), 3):
+		var a := index[t]
+		var b := index[t + 1]
+		var c := index[t + 2]
+		if a < n and b < n and c < n:
+			out.append(a)
+			out.append(b)
+			out.append(c)
+			continue
+		var centroid := (all[a] + all[b] + all[c]) / 3.0
+		for piece in outers:
+			if Geometry2D.is_point_in_polygon(centroid, piece):
+				fault = "a guard's triangle reaches into the corridor at %s" % centroid
+	if fault.is_empty():
+		fault = _triangulation_fault(points, out)
+	if not fault.is_empty():
+		push_error("road corridor: %s" % fault)
+		_fatal = true
+	return out
+
+
+## Why a triangulation is not one layer over the plane, or "" when it is: a
+## triangle flat in plan, which stands up as a fin wherever its corners'
+## heights differ, or two triangles on the same side of an edge, which is how
+## an overlap and an edge under three triangles both show. Wound one way, every
+## inner edge is crossed once in each direction.
+func _triangulation_fault(points: PackedVector2Array, index: PackedInt32Array) -> String:
+	var directed := {}
+	for t in range(0, index.size(), 3):
+		var ia := index[t]
+		var ib := index[t + 1]
+		var ic := index[t + 2]
+		var a := points[ia]
+		var b := points[ib]
+		var c := points[ic]
+		var twice := (b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y)
+		if absf(twice) < 2e-4:
+			return "a triangle flat in plan at %s" % ((a + b + c) / 3.0)
+		if twice < 0.0:
+			var swap := ib
+			ib = ic
+			ic = swap
+		for e in [Vector2i(ia, ib), Vector2i(ib, ic), Vector2i(ic, ia)]:
+			if directed.has(e):
+				return "two triangles on one side of the edge at %s" % ((points[e.x] + points[e.y]) * 0.5)
+			directed[e] = true
+	return ""
+
+
+## Bowyer-Watson in GDScript's doubles, centred on the points, inserted in a
+## snaking order over 16m cells so each walk to the next point starts near it.
+## Triangles are kept anticlockwise, with the triangle across the edge opposite
+## each corner. Returns indices into `points`; empty, with an error, if a walk
+## or a cavity goes wrong, which in doubles it should not.
+func _delaunay64(points: PackedVector2Array) -> PackedInt32Array:
+	var n := points.size()
+	assert(n < 100000, "_delaunay64 orders its points by a key with room for 100,000")
+	var lo := points[0]
+	var hi := points[0]
+	for p in points:
+		lo = lo.min(p)
+		hi = hi.max(p)
+	var cx: float = (lo.x + hi.x) * 0.5
+	var cy: float = (lo.y + hi.y) * 0.5
+	var xs := PackedFloat64Array()
+	var ys := PackedFloat64Array()
+	xs.resize(n + 3)
+	ys.resize(n + 3)
+	for i in n:
+		xs[i] = points[i].x - cx
+		ys[i] = points[i].y - cy
+	# The enclosing triangle, three hundred spans out, so its own corners bend
+	# the circle test by under a tenth of a millimetre at the guards.
+	var far: float = maxf(hi.x - lo.x, hi.y - lo.y) * 300.0
+	xs[n] = -far
+	ys[n] = -far
+	xs[n + 1] = far
+	ys[n + 1] = -far
+	xs[n + 2] = 0.0
+	ys[n + 2] = far
+	var tv := PackedInt32Array([n, n + 1, n + 2])
+	var tn := PackedInt32Array([-1, -1, -1])
+	var alive := PackedByteArray([1])
+	var mark := PackedInt32Array([0])
+	var order := PackedInt64Array()
+	for i in n:
+		var row := floori((points[i].y - lo.y) / 16.0) + 1
+		var col := floori((points[i].x - lo.x) / 16.0) + 1
+		if row % 2 == 1:
+			col = 100000 - col
+		order.append((row * 200000 + col) * 100000 + i)
+	order.sort()
+	var last := 0
+	var stamp := 0
+	for key in order:
+		var p := key % 100000
+		var px := xs[p]
+		var py := ys[p]
+		# Walk to the triangle holding p.
+		var t := last
+		var steps := 0
+		while true:
+			steps += 1
+			if steps > tv.size():
+				push_error("_delaunay64: the walk to point %d got lost" % p)
+				return PackedInt32Array()
+			var moved := false
+			for k in 3:
+				var a := tv[t * 3 + (k + 1) % 3]
+				var b := tv[t * 3 + (k + 2) % 3]
+				if (xs[b] - xs[a]) * (py - ys[a]) - (ys[b] - ys[a]) * (px - xs[a]) < 0.0:
+					t = tn[t * 3 + k]
+					moved = true
+					break
+			if not moved:
+				break
+		# The cavity: every triangle joined to that one whose circle holds p.
+		stamp += 1
+		var bad: Array[int] = [t]
+		mark[t] = stamp
+		var rim: Array = []
+		var i := 0
+		while i < bad.size():
+			var bt := bad[i]
+			i += 1
+			for k in 3:
+				var nb := tn[bt * 3 + k]
+				if nb >= 0 and mark[nb] == stamp:
+					continue
+				if nb >= 0 and _in_circle64(xs, ys, tv[nb * 3], tv[nb * 3 + 1], tv[nb * 3 + 2], px, py):
+					mark[nb] = stamp
+					bad.append(nb)
+				else:
+					rim.append([tv[bt * 3 + (k + 1) % 3], tv[bt * 3 + (k + 2) % 3], nb, bt])
+		for bt in bad:
+			alive[bt] = 0
+		# A fan from p over the cavity's rim.
+		var by_a := {}
+		var by_b := {}
+		var made: Array[int] = []
+		for e in rim:
+			var nt := tv.size() / 3
+			tv.append(e[0])
+			tv.append(e[1])
+			tv.append(p)
+			tn.append(-1)
+			tn.append(-1)
+			tn.append(e[2])
+			alive.append(1)
+			mark.append(0)
+			var nb: int = e[2]
+			if nb >= 0:
+				for k in 3:
+					if tn[nb * 3 + k] == e[3]:
+						tn[nb * 3 + k] = nt
+			by_a[e[0]] = nt
+			by_b[e[1]] = nt
+			made.append(nt)
+		if by_a.size() != rim.size() or by_b.size() != rim.size():
+			push_error("_delaunay64: the cavity round point %d is not a star" % p)
+			return PackedInt32Array()
+		for nt in made:
+			# Across (b, p), opposite a: the new triangle that starts at b.
+			tn[nt * 3] = by_a[tv[nt * 3 + 1]]
+			# Across (p, a), opposite b: the new triangle that ends at a.
+			tn[nt * 3 + 1] = by_b[tv[nt * 3]]
+		last = made[0]
+	var out := PackedInt32Array()
+	for t in alive.size():
+		if alive[t] == 1 and tv[t * 3] < n and tv[t * 3 + 1] < n and tv[t * 3 + 2] < n:
+			out.append(tv[t * 3])
+			out.append(tv[t * 3 + 1])
+			out.append(tv[t * 3 + 2])
+	return out
+
+
+## Whether (px, py) is inside the circle through the anticlockwise a, b, c.
+func _in_circle64(xs: PackedFloat64Array, ys: PackedFloat64Array, a: int, b: int, c: int,
+		px: float, py: float) -> bool:
+	var adx := xs[a] - px
+	var ady := ys[a] - py
+	var bdx := xs[b] - px
+	var bdy := ys[b] - py
+	var cdx := xs[c] - px
+	var cdy := ys[c] - py
+	return (adx * adx + ady * ady) * (bdx * cdy - cdx * bdy) \
+		+ (bdx * bdx + bdy * bdy) * (cdx * ady - adx * cdy) \
+		+ (cdx * cdx + cdy * cdy) * (adx * bdy - bdx * ady) > 0.0
 
 
 ## A cell's land pieces less every corridor polygon whose bounds touch the
