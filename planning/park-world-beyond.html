@@ -3,7 +3,7 @@
   <div class="viz-controls" aria-label="World beyond the park controls">
     <button type="button" class="btn btn-primary" data-layer="proposal" aria-pressed="true">Approved expansion</button>
     <button type="button" class="btn" data-layer="built" aria-pressed="false">Built only</button>
-    <span class="text-muted tabular-nums" data-readout aria-live="polite">world coordinates · 2.2 × 5.3 km · north up</span>
+    <span class="text-muted tabular-nums" data-readout aria-live="polite">world coordinates · 2.8 × 5.8 km · north up</span>
   </div>
   <div class="map-key" aria-label="Map legend">
     <span><i class="key-built"></i>built host</span>
@@ -19,9 +19,9 @@
     <a href="beach-town.html">Beach Town</a>
     <a href="city-peninsula.html">City Peninsula</a>
   </nav>
-  <svg viewBox="0 0 760 1825" role="img" aria-labelledby="kyt-world-title kyt-world-desc">
+  <svg viewBox="0 0 951 1825" role="img" aria-labelledby="kyt-world-title kyt-world-desc">
     <title id="kyt-world-title">The world beyond the park: the bay, routes, watersheds, destinations and towns</title>
-    <desc id="kyt-world-desc">Package 02B, drafted 2026-09-04 and expanded 2026-09-06. Built context includes the coast highway, headland, three towns, the northern blue massif's editor-owned inland saddle and its coastal boulder contacts, and the separate north-shore volcanic plug with its widened south beach shelf and vertically lowered inland sand reveal. The approved expansion layer adds the two source-to-sea watersheds, regional railway, beach-town public realm and skate district, north-town destinations and drive-in, working harbour and cannery, southern offshore volcanic plug, a pier-head fishing retrofit and aquarium wing, habitat regions, and a composed city waterfront. Approval applies to this feature scope, not to earlier time estimates. Dashed routes and outlined sites are planning claims, not finished construction.</desc>
+    <desc id="kyt-world-desc">Package 02B, drafted 2026-09-04 and expanded 2026-09-06. Built context includes the coast highway, headland, three towns, the northern blue massif's editor-owned inland saddle and its coastal boulder contacts, and the separate north-shore volcanic plug with its widened south beach shelf and vertically lowered inland sand reveal. The approved expansion layer adds the two source-to-sea watersheds, regional railway, beach-town public realm and skate district, north-town destinations and drive-in, working harbour and cannery, southern offshore volcanic plug, a pier-head fishing retrofit and aquarium wing, habitat regions, and a composed city waterfront. Since 2026-10-03 it also draws the land kept in the bay north-west of the Headland, Beach Road's fork at J1, and South Shore on the coast extension in the world terrain master. Approval applies to this feature scope, not to earlier time estimates. Dashed routes and outlined sites are planning claims, not finished construction.</desc>
     <g data-water></g><g data-land></g><g data-range></g><g data-grid></g><g data-park></g><g data-proposal></g><g data-frames></g><g data-labels></g>
   </svg>
   <section class="integration-insets" aria-labelledby="integration-insets-title">
@@ -93,6 +93,7 @@
     </div>
   </section>
   <div class="kyt-world-notes">
+    <p><b>Land in the bay, Beach Road and South Shore, 2026-10-03.</b> North-west of the Headland the built ground carries land this map drew as sea, and Christina keeps it (2026-10-03: “we dont want to remove that”, “all of those features are part of the landscape”). It is traced from the detailed world map's height probe of the mounted world (30 September, 10 m cells): the lobe, reaching about 600m west of the coast line, with its big rounded hill (279m above the sea at (−600, −1070)); the round hill at its west tip (135m at (−1140, −920)); the coast's small bulge by the view bend; and the rocks offshore near (−450, −740). In the game the two hills are the range source's <code>background_<wbr>distant_<wbr>range_<wbr>north</code> and <code>background_<wbr>distant_<wbr>range_<wbr>north_<wbr>west_<wbr>companion</code>; the rocks are the north massif's skirt, above the water in the game but under it (−11 and −9m) in the world terrain master. The frame grew 620m west to hold them, at the same scale. At the beach town's south end Beach Road forks at J1 (−18, 556): up round J3's bend (44.2m radius) and under the highway into the hillside's street down (beach town plan, passes 15–16), or down at 7.3% to South Shore; pass 9's climb into the highway's southbound lanes is dropped. South Shore (its plan's pass 3) stands on the coast extension, edit 2 option B, the shore from z 504 to 2240 moved up to 116m west, which is in the world terrain master and not yet in the game: one street the length of the bench, out by a south link to the highway at J2 (737, 2191), the colony at its north end in place of pass 10's push-out, and the rail on the bench's seaward side, climbing the bluff from (295, 1468) and rounding the spur on its viaduct. The hillside's outline takes in her three streets on the regraded hill. Tide pools: by the Headland (decided 2 October; bench site to be chosen). The sea ring now leaves the peninsula open; before, land and sea were filled in one colour.</p>
     <p><b>Range recovery, 2026-09-12.</b> The mounted audit is complete and Christina selected an editor-owned full range. The first implementation attempt was rolled back after it altered road-support inputs and failed the road-ground test. The ownership decision stands; the map does not claim implementation. The next attempt is a lossless source transfer with roads, city, bridge and protected anchors held fixed.</p>
     <p><b>Northern blue geology, through 2026-09-15.</b> A closed editor-owned saddle joins the northern massif to the inland blue range, with its outer ring buried into both host bodies rather than laid over the road corridor. The mounted footprint intersects only those two blue bodies and the existing mainland; its western bound remains at least 374m east of every north-coast tunnel portal. The source holds 7,536 separate low-poly coastal rocks—5,932 at the northern massif, 704 at the western companion, 600 at the north-shore plug and 300 along its south-running connector shelf—each with an exact collision twin. The newest 3,200 fill the main massif's front beach band with overlapping 2.6–11.2m talus, densest at the massif toe and thinning into scattered waterward stones; the prior 2,480 complete the other visible beach runs. Their authored exclusions keep their centres at least 48.028m from the north-coast highway and 24.090m from the built north-town edge. This is a localized connection and finish pass, not completion of the open full-range recovery.</p>
     <p><b>What this map is.</b> The footprint map's frame stops 240m south of the plaza and cannot hold a pass a kilometre out or a shore two kilometres long, so the world outside the developed envelope is planned here, in the same world metres, at a scale where the park is a small rectangle. <b>Built</b> layers are drawn from <code>ParkPlan</code>'s own numbers: both coast outlines and the promontory spine, the crescent range's toe and its named summits and spurs, the highway and its tunnels, the north valley's rim, the three towns' extents, streets and the house, the two beaches, the city's peninsula, downtown plain and hills, the north shore and the south coast, the approach road, the front road, the parking and the developed envelope. <b>Approved expansion</b> is the design layer for the 2026-09-06 coastal scope. Its dashed alignments and outlined sites are edited and reviewed here before downstream Godot construction.</p>
@@ -148,16 +149,18 @@
   #kyt-world-beyond .zoom-map-links span { color:var(--map-muted-fg); font-weight:700; }
   #kyt-world-beyond .zoom-map-links a { color:var(--map-fg); text-decoration:none; border:1px solid var(--map-border); border-radius:999px; padding:5px 9px; }
   #kyt-world-beyond .zoom-map-links a:hover { border-color:var(--map-orange); color:var(--map-orange); }
-  #kyt-world-beyond > svg { display:block; width:min(100%,760px); height:auto; margin-inline:auto; background:var(--map-bg); border:1px solid var(--map-border); border-radius:12px; }
+  #kyt-world-beyond > svg { display:block; width:min(100%,951px); height:auto; margin-inline:auto; background:var(--map-bg); border:1px solid var(--map-border); border-radius:12px; }
   #kyt-world-beyond text { font-size:9px; fill:var(--map-fg); font-family:inherit; paint-order:stroke; stroke:var(--map-bg); stroke-width:1.5px; stroke-linejoin:round; }
   #kyt-world-beyond .minor-label { fill:var(--map-muted-fg); font-weight:400; font-size:8px; }
   #kyt-world-beyond .proposal-label { fill:var(--map-orange); font-weight:600; font-size:8px; }
   #kyt-world-beyond .ground-water { fill:color-mix(in srgb,var(--map-blue) 12%,var(--map-bg)); stroke:none; }
-  #kyt-world-beyond .sea-top { fill:color-mix(in srgb,var(--map-blue) 14%,var(--map-bg)); stroke:var(--map-muted-fg); stroke-width:1; }
+  #kyt-world-beyond .sea-top { fill-rule:evenodd; fill:color-mix(in srgb,var(--map-blue) 14%,var(--map-bg)); stroke:var(--map-muted-fg); stroke-width:1; }
   #kyt-world-beyond .ground-land { fill:color-mix(in srgb,var(--map-green) 10%,var(--map-bg)); stroke:var(--map-muted-fg); stroke-width:1; }
   #kyt-world-beyond .ground-range { fill:color-mix(in srgb,var(--map-green) 24%,var(--map-bg)); stroke:none; }
   #kyt-world-beyond .volcanic-plug-built { fill:color-mix(in srgb,var(--map-blue) 48%,var(--map-bg)); stroke:var(--map-fg); stroke-width:1; }
   #kyt-world-beyond .volcanic-plug-beach-built { fill:color-mix(in srgb,var(--map-orange) 22%,var(--map-bg)); stroke:var(--map-muted-fg); stroke-width:.8; }
+  #kyt-world-beyond .bay-coast { fill:none; stroke:var(--map-muted-fg); stroke-width:1; stroke-linejoin:round; }
+  #kyt-world-beyond .bay-rock { fill:color-mix(in srgb,var(--map-green) 24%,var(--map-bg)); stroke:var(--map-muted-fg); stroke-width:.8; }
   #kyt-world-beyond .range-toe { fill:none; stroke:var(--map-muted-fg); stroke-dasharray:3 3; }
   #kyt-world-beyond .range-spur { fill:none; stroke:var(--map-muted-fg); stroke-width:1; opacity:.6; }
   #kyt-world-beyond .summit { fill:var(--map-muted-fg); }
@@ -171,6 +174,8 @@
   #kyt-world-beyond .road-local { fill:none; stroke:var(--map-orange); stroke-width:1; stroke-dasharray:2 3; opacity:.8; }
   #kyt-world-beyond .tunnel { fill:none; stroke:var(--map-purple); stroke-width:3; stroke-linecap:butt; }
   #kyt-world-beyond .proposal-land { fill:color-mix(in srgb,var(--map-orange) 14%,transparent); stroke:var(--map-orange); stroke-width:1.2; stroke-dasharray:4 3; }
+  #kyt-world-beyond .shore-to-come { fill:color-mix(in srgb,var(--map-orange) 14%,transparent); stroke:none; }
+  #kyt-world-beyond .shore-to-come-line { fill:none; stroke:var(--map-orange); stroke-width:1.2; stroke-dasharray:4 3; }
   #kyt-world-beyond .proposal-rock { fill:color-mix(in srgb,var(--map-muted-fg) 40%,transparent); stroke:var(--map-orange); stroke-width:1; stroke-dasharray:2 2; }
   #kyt-world-beyond .proposal-town { fill:color-mix(in srgb,var(--map-red) 12%,transparent); stroke:var(--map-red); stroke-width:1; stroke-dasharray:3 2; }
   #kyt-world-beyond .proposal-city { fill:color-mix(in srgb,var(--map-purple) 14%,transparent); stroke:var(--map-purple); stroke-width:1; stroke-dasharray:3 2; }
@@ -228,8 +233,10 @@
   const ns = 'http://www.w3.org/2000/svg';
   const groups = Object.fromEntries(['water','land','range','grid','park','proposal','frames','labels']
     .map(n => [n, svg.querySelector(`[data-${n}]`)]));
-  const domain = {x0:-720, x1:1480, z0:-2800, z1:3000};
-  const plot = {x:42, y:32, w:676, h:1782};
+  // x0 was -720 until 2026-10-03, when the frame grew west to hold the land in the bay north-west of the Headland
+  const domain = {x0:-1340, x1:1480, z0:-2800, z1:3000};
+  const plot = {x:42, y:32, w:866.5, h:1782};
+  const LX = domain.x0 + 20;   // the left-hand label column starts 20 m inside the frame
   const sx = x => plot.x + (x-domain.x0)/(domain.x1-domain.x0)*plot.w;
   const sy = z => plot.y + (z-domain.z0)/(domain.z1-domain.z0)*plot.h;
   const scale = plot.w/(domain.x1-domain.x0);
@@ -252,6 +259,14 @@
   // Recorded from the mounted editor-owned source after the 2026-09-14
   // connection pass; this downstream outline is not the shape authority.
   const NORTH_BLUE_INLAND_SADDLE=[[1095.9,-790],[1099.5,-890.4],[1018.9,-971.5],[924,-1052.9],[788.5,-1114.5],[660,-1115],[528.6,-1083.6],[402.5,-1052.9],[298.2,-990.6],[213.9,-890.4],[235.9,-790],[281.6,-689.6],[323.2,-589.4],[418.5,-527.1],[522.7,-496.4],[660,-465],[794.4,-465.5],[908,-527.1],[993.9,-608.5],[1031.9,-689.6]];
+  // The land in the bay north-west of the Headland, kept (Christina, 2026-10-03: "we dont want to remove that").
+  // Traced from the detailed world map's height probe of the mounted world (30 September, 10 m cells): the lobe
+  // reaching about 600m west of COAST_NORTH with its big hill, the round hill at its west tip, the coast's small
+  // bulge by the view bend, and the rocks offshore. Each outline runs about 10m east under COAST_NORTH's stroke.
+  const LOBE=[[-510,-1745],[-470,-1745],[-465,-1740],[-465,-1710],[-455,-1700],[-455,-1670],[-445,-1660],[-445,-1630],[-435,-1620],[-435,-1590],[-425,-1580],[-425,-1550],[-415,-1540],[-415,-1510],[-405,-1500],[-405,-1480],[-395,-1470],[-395,-1440],[-385,-1430],[-385,-1410],[-375,-1400],[-375,-1380],[-365,-1370],[-365,-1340],[-355,-1330],[-355,-1310],[-345,-1300],[-345,-1280],[-335,-1270],[-335,-1240],[-325,-1230],[-325,-1210],[-315,-1200],[-315,-1180],[-305,-1170],[-305,-1140],[-295,-1130],[-295,-1110],[-285,-1100],[-285,-1080],[-275,-1070],[-275,-1040],[-265,-1030],[-265,-1010],[-255,-1000],[-255,-980],[-245,-970],[-245,-950],[-250,-945],[-260,-955],[-270,-945],[-290,-945],[-300,-935],[-310,-935],[-320,-925],[-330,-925],[-340,-915],[-350,-915],[-360,-905],[-370,-905],[-380,-895],[-390,-895],[-410,-875],[-420,-875],[-440,-855],[-450,-855],[-480,-825],[-490,-825],[-525,-790],[-520,-785],[-510,-795],[-500,-795],[-480,-815],[-460,-815],[-455,-810],[-455,-760],[-460,-755],[-480,-755],[-490,-765],[-500,-765],[-505,-760],[-505,-750],[-515,-740],[-505,-730],[-510,-725],[-530,-725],[-540,-735],[-550,-725],[-560,-725],[-575,-710],[-575,-700],[-600,-675],[-610,-675],[-640,-655],[-660,-655],[-675,-640],[-675,-620],[-665,-610],[-690,-585],[-720,-585],[-725,-590],[-715,-600],[-720,-605],[-730,-605],[-740,-595],[-755,-610],[-745,-620],[-755,-630],[-755,-640],[-775,-650],[-775,-660],[-765,-670],[-770,-675],[-780,-665],[-790,-685],[-800,-685],[-805,-680],[-795,-670],[-795,-660],[-800,-655],[-810,-655],[-820,-665],[-825,-660],[-825,-650],[-815,-640],[-815,-630],[-820,-625],[-830,-625],[-840,-635],[-850,-635],[-860,-625],[-870,-625],[-885,-640],[-885,-660],[-905,-680],[-905,-690],[-915,-700],[-915,-710],[-935,-730],[-935,-740],[-940,-745],[-950,-745],[-965,-760],[-955,-770],[-965,-780],[-965,-790],[-975,-800],[-975,-810],[-985,-820],[-985,-830],[-995,-840],[-995,-850],[-1000,-855],[-1010,-855],[-1015,-850],[-1015,-840],[-1035,-820],[-1035,-810],[-1040,-805],[-1050,-805],[-1055,-800],[-1055,-790],[-1090,-755],[-1110,-755],[-1120,-745],[-1130,-745],[-1140,-755],[-1150,-755],[-1160,-765],[-1170,-765],[-1200,-795],[-1210,-795],[-1225,-810],[-1225,-830],[-1235,-840],[-1235,-870],[-1245,-880],[-1245,-900],[-1255,-910],[-1255,-930],[-1265,-940],[-1265,-970],[-1255,-980],[-1255,-990],[-1245,-1000],[-1245,-1020],[-1225,-1040],[-1225,-1050],[-1200,-1075],[-1110,-1075],[-1100,-1085],[-1090,-1085],[-1080,-1075],[-1070,-1075],[-1060,-1065],[-1050,-1065],[-1040,-1055],[-1030,-1055],[-1025,-1060],[-1025,-1070],[-1015,-1080],[-1015,-1090],[-1005,-1100],[-1005,-1110],[-995,-1120],[-995,-1130],[-985,-1140],[-985,-1170],[-975,-1180],[-975,-1230],[-955,-1260],[-955,-1280],[-935,-1300],[-935,-1310],[-925,-1320],[-925,-1330],[-905,-1350],[-905,-1360],[-800,-1465],[-790,-1465],[-770,-1485],[-760,-1485],[-695,-1550],[-695,-1560],[-675,-1590],[-675,-1610],[-635,-1650],[-635,-1660],[-580,-1715],[-560,-1715],[-540,-1735],[-520,-1735]];
+  const COAST_BULGE=[[-230,-845],[-220,-845],[-205,-830],[-205,-810],[-195,-800],[-195,-780],[-185,-770],[-185,-740],[-175,-730],[-175,-710],[-165,-700],[-165,-670],[-155,-660],[-155,-650],[-160,-645],[-170,-655],[-180,-645],[-210,-645],[-220,-635],[-250,-635],[-260,-625],[-280,-625],[-290,-615],[-320,-615],[-325,-620],[-315,-630],[-315,-640],[-295,-670],[-295,-690],[-275,-720],[-275,-740],[-255,-770],[-255,-780],[-265,-790],[-235,-820],[-235,-840]];
+  const BAY_ROCKS=[[[-880,-625],[-870,-625],[-865,-620],[-870,-615],[-880,-615],[-885,-620]],[[-840,-615],[-830,-615],[-825,-610],[-830,-605],[-840,-605],[-845,-610]],[[-830,-585],[-825,-580],[-830,-575],[-835,-580]],[[-810,-635],[-800,-635],[-795,-630],[-795,-620],[-805,-610],[-805,-600],[-820,-585],[-825,-590],[-825,-600],[-815,-610],[-815,-630]],[[-810,-655],[-800,-655],[-795,-650],[-800,-645],[-810,-645],[-815,-650]],[[-790,-665],[-785,-660],[-790,-655],[-795,-660]],[[-790,-645],[-770,-645],[-765,-640],[-765,-630],[-755,-620],[-755,-600],[-750,-595],[-730,-595],[-725,-590],[-730,-585],[-750,-585],[-760,-575],[-770,-575],[-780,-565],[-810,-565],[-815,-570],[-815,-580],[-795,-600],[-795,-610],[-790,-615],[-780,-605],[-775,-610],[-785,-620],[-785,-630],[-795,-640]],[[-500,-735],[-495,-730],[-495,-720],[-500,-715],[-520,-715],[-525,-720],[-520,-725],[-510,-725]],[[-460,-825],[-450,-825],[-445,-820],[-445,-810],[-450,-805],[-465,-820]],[[-450,-785],[-445,-780],[-450,-775],[-455,-780]],[[-430,-805],[-410,-805],[-395,-790],[-395,-780],[-400,-775],[-420,-795],[-430,-785],[-440,-785],[-445,-790]],[[-380,-825],[-360,-825],[-350,-815],[-310,-815],[-300,-805],[-290,-805],[-280,-795],[-270,-795],[-265,-790],[-265,-780],[-270,-775],[-290,-775],[-295,-770],[-295,-760],[-285,-750],[-290,-745],[-300,-745],[-310,-755],[-340,-755],[-360,-775],[-370,-765],[-385,-780],[-380,-785],[-350,-785],[-335,-800],[-340,-805],[-350,-805],[-360,-795],[-390,-795],[-395,-800],[-395,-810]]];
+  const LOBE_HILL=[-600,-1070,279], ROUND_HILL=[-1140,-920,135];   // tops, metres above the sea
   const PROMONTORY_SPINE=[[-37,-172],[-50,-234],[-53,-244],[-57,-252],[-64,-257],[-74,-258.5],[-100,-263],[-112,-266],[-123,-272],[-132,-281],[-139,-291],[-146,-300],[-156,-306],[-168,-309],[-182,-307],[-196,-303],[-219,-298],[-242,-295]];
   const P1=[-205,-300];           // rebuild_expand_point(-174.0,-202.5), on the widened headland's level top
   const PIER_HEAD=[-150,-2];
@@ -264,6 +279,8 @@
   const rangeWeight=t=>{ if(t>=RANGE.fullFrom&&t<=RANGE.fullTo) return 1; let u=t<RANGE.fullFrom?(t-RANGE.endNorth)/(RANGE.fullFrom-RANGE.endNorth):(RANGE.endSouth-t)/(RANGE.endSouth-RANGE.fullTo); u=Math.max(0,Math.min(1,u)); return u*u*(3-2*u); };
   const rangeInner=t=>RANGE.inner+RANGE.swell*Math.abs(Math.sin(t*Math.PI/180));
   const shoreX=z=>{ const o=z<0?COAST_NORTH:COAST_SOUTH; let best=Infinity; for(let i=0;i<o.length-1;i++){const a=o[i],b=o[i+1]; if((z-a[1])*(z-b[1])>0) continue; const t=Math.abs(b[1]-a[1])>1e-3?(z-a[1])/(b[1]-a[1]):0; best=Math.min(best,a[0]+(b[0]-a[0])*t);} return best===Infinity?(z<0?o[o.length-1][0]:o[o.length-1][0]):best; };
+  // The stretches of a ring that are true shore: west of COAST_NORTH; its root under the coast line is not shore.
+  const coastRuns=ring=>{ const sea=p=>p[0]<shoreX(p[1])-1; const k=ring.findIndex(p=>!sea(p)); const r=k<0?[...ring,ring[0]]:[...ring.slice(k),...ring.slice(0,k+1)]; const runs=[[]]; r.forEach((p,i)=>{ const cur=runs[runs.length-1]; if(sea(p)){ if(!cur.length&&i) cur.push(r[i-1]); cur.push(p); } else if(cur.length){ cur.push(p); runs.push([]); } }); return runs.filter(q=>q.length>1); };
   const at=(deg,r)=>[RANGE.centre[0]+Math.cos(deg*Math.PI/180)*r, RANGE.centre[1]+Math.sin(deg*Math.PI/180)*r];
 
   // ---- Proposal (this map only) ----
@@ -298,12 +315,14 @@
   const NORTH_LAKE=[[-235,-1990],[-190,-2010],[-130,-1994],[-105,-1950],[-130,-1910],[-190,-1892],[-240,-1920],[-255,-1960]];
   const NORTH_RIVER=[[-180,-1945],[-250,-1925],[-325,-1900],[-395,-1870],[-455,-1845],[-505,-1830]];
   const COASTAL_CREEK=[[360,-430],[300,-340],[235,-250],[165,-155],[90,-70],[-10,10],CREEK_OUTFALL];
+  // South of the town since 2026-10-03: on edit 2 B's bench 10m inside the beach crest, up the bluff on its own shelf
+  // from (295, 1468), round the spur on its viaduct (the terrain master's references), then to the lengthened bridge.
   // Rerouted 2026-09-30 (Christina: "yes the trestle is fine, go seaward"): from the park halt over a second lagoon
   // trestle into the beach town, down Shore Street's median, along its seaward side and the shore, then over the
   // lengthened suspension bridge into the city's regional terminal on its central waterfront block (Christina, 2026-09-30).
   // The deck is about 36m above the sea and lands about 240m of track from the terminal, too short to come down,
   // so the last leg is a level viaduct into a raised terminal (Christina, 2026-09-30: "go with the elevated terminal").
-  const REGIONAL_RAIL=[[-520,-2420],[-470,-2150],[-390,-1885],[-310,-1500],[-190,-1000],[-40,-520],[180,-260],[245,40],[145,135],[106,193],[108,225],[91.7,242.2],[74,262],[70,290],[8,376],[0,388],[-6,396],[-14,400],[-40,400],[-58,400],[-66,401.5],[-74,406.5],[-81.4,413.2],[-80.3,417.2],[-79.2,421.2],[-78.1,425.2],[-77.1,429.2],[-76.0,433.2],[-74.9,437.2],[-73.8,441.2],[-72.8,445.2],[-71.7,449.2],[-70.6,453.2],[-70,470],[-71,482],[-68,494],[-58,515],[-46,540],[-38,560],[-22,600],[12,660],[40,720],[92,800],[170,950],[260,1150],[370,1400],[530,1750],[600,1950],[610,2150],[560,2330],[461,2448],[150,2450],[39,2450],[-149,2450],[-261,2450],[-300,2400],[-400,2385],[-440,2370],[-470,2350]];
+  const REGIONAL_RAIL=[[-520,-2420],[-470,-2150],[-390,-1885],[-310,-1500],[-190,-1000],[-40,-520],[180,-260],[245,40],[145,135],[106,193],[108,225],[91.7,242.2],[74,262],[70,290],[8,376],[0,388],[-6,396],[-14,400],[-40,400],[-58,400],[-66,401.5],[-74,406.5],[-81.4,413.2],[-80.3,417.2],[-79.2,421.2],[-78.1,425.2],[-77.1,429.2],[-76,433.2],[-74.9,437.2],[-73.8,441.2],[-72.8,445.2],[-71.7,449.2],[-70.6,453.2],[-70,470],[-51,575.6],[-34.3,693.4],[-23.3,734.5],[-6.8,770.7],[44.5,856.3],[72.1,909.6],[93.2,966],[119.5,1063.9],[138,1121.3],[162.7,1175.8],[211.8,1262.7],[230.2,1298.2],[246.4,1334.8],[273.4,1410.7],[290.4,1447.5],[301.9,1464.6],[331.1,1495.6],[397.6,1553.3],[412,1568.7],[435.6,1601.9],[510.2,1743.6],[686.8,2102.9],[702.9,2141.5],[708.6,2165.7],[710.9,2196.9],[708.5,2236.9],[700,2284.9],[684.5,2337.4],[660.9,2389],[627.6,2433.8],[461,2448],[150,2450],[39,2450],[-149,2450],[-261,2450],[-300,2400],[-400,2385],[-440,2370],[-470,2350]];
   const PARK_HALT_SITE=[[90,191],[102,191],[102,217],[90,217]];
   const HARBOUR_RAIL_SPUR=[[-25,-430],[-95,-330],[-128,-276]];
   // The promenade on Beach Road's seaward curb, a hike-and-bike path from the lagoon's footbridge to the Second Street
@@ -317,14 +336,25 @@
   // intentionally absent from the plan.
   const PIER_HEAD_RETROFIT=[[-156,-8.5],[-144,-8.5],[-144,4.5],[-156,4.5]];
   const SKATE_PARK=[[-43,466],[-13,466],[-13,484.5],[-31.1,484.5],[-43,470.7]];   // Christina, 2026-10-01: the two house lots between Second Street and the lot (beach-town-plan.html pass 9)
-  // Beach Road on south past a new lot to the highway's southbound lanes, and the hike-and-bike trail on to a lookout
-  // (Christina, 2026-10-01: "it shouldnt dead end", "A with new lot", "extend the hike and bike trail south")
-  const BEACH_ROAD_SOUTH=[[-30,492],[-25,503],[-22.5,520],[-21.5,540],[-16,560],[-9,580],[0,600],[22,632],[48,672],[74,712],[96,748],[108,768]];
-  const BEACH_TRAIL_SOUTH=[[-37.1,493.2],[-43.5,501.5],[-50,506.5],[-52.1,512.2],[-44.9,527.3],[-38,542.4],[-32,557.6],[-24,577.6],[-16.1,597.2],[-5,616.8],[6.3,636.8],[17.8,657],[27.2,677.3],[35.2,694.3]];
-  // Where the beach town's homes go (Christina, 2026-10-01; beach-town-plan.html pass 10): a terraced hillside across the
-  // highway, reached by Second Street under it, and a colony of condos and a motel on the shore pushed out south of town
-  const BEACH_HILLSIDE=[[26,397],[241,397],[241,470],[180,482],[110,496],[70,506],[50,512],[36,500],[24,470]];
-  const BEACH_COLONY=[[-28,585],[-63.3,599.1],[-56.1,616.9],[-43.7,638.7],[-32.4,658.7],[-21.8,677.4],[-13.1,696.1],[-3.8,716.1],[4.6,734.1],[39.1,718]];
+  // Beach Road on south (beach-town-plan.html pass 15-16, Christina 2026-10-03: "why cant we put the crossing of beach
+  // road under the highway", then "a"): past the new lot to J1, up round J3's bend (R 44.2m) and under the highway,
+  // then her street down to the meeting. Pass 9's climb to the highway's southbound lanes is dropped.
+  const BEACH_ROAD_SOUTH=[[-30,492],[-25,503],[-22.5,520],[-21.5,540],[-17.5,555.8],[1.6,609.6],[6.8,618.3],[14.6,626.1],[21.3,630.5],[27.8,633.2],[35.6,635.1],[42.7,635.5],[50.7,634.6],[57.5,632.6],[64.7,629.1],[71.2,624.3],[77,616],[89,594],[98,591]];
+  // The hike-and-bike trail from the south green to J1, then the bluff walk to the lookout (south-shore-plan.html pass 3)
+  const BEACH_TRAIL_SOUTH=[[-37.1,493.2],[-43.5,501.5],[-50,506.5],[-52.1,512.2],[-44.9,527.3],[-38,542.4],[-32,557.6],[-17.5,603],[-7.1,602],[-3.9,610.9],[-0.8,616.9],[1.7,620.7],[3.8,623.4],[9.7,629.6],[15,643.2],[22.3,661.9],[29.8,680.4],[35.4,694.3]];
+  // The beach town's hillside across the highway (beach-town-plan.html passes 10 and 14-16): pass 10's terraces and
+  // her three streets on the regraded hill (D1), 96 cottages in all, reached by Second Street's underpass and Beach Road.
+  const BEACH_HILLSIDE=[[26,395],[240,395],[243,398],[243,470],[240,473],[110,497],[88,503],[83,508],[81,512],[113,558],[121,584],[95,606],[93,616],[86,623],[80,621],[74,627],[67,622],[75,612],[69,604],[71,596],[41,540],[29,500],[29,486],[21,470],[23,398]];
+  // The colony at South Shore's north end (south-shore-plan.html pass 3): its beach motel, condos and two shops on the
+  // bench; pass 10's push-out of the shore is superseded by edit 2 B's land.
+  const BEACH_COLONY=[[-33.6,664],[-23.7,659.5],[23.6,717.3],[34.6,734.4],[43.9,756.5],[52.5,777.4],[25.7,793],[15,797.6],[2.1,774.3],[-9.3,751.6],[-19.4,725.1]];
+  // The south beach front: edit 2, option B, in the terrain master since 2026-10-01 and not yet in the game, from the
+  // coast as this map draws it out to the new waterline; South Shore's one street from J1 down the bluff, the length
+  // of the bench and up the south link to the highway at J2 (south-shore-plan.html pass 3)
+  const SOUTH_SHORE_LAND=[[-69.5,509.5],[-59.5,571.7],[-77.7,697.3],[-77.9,716.6],[-73,735.1],[-45.3,788.4],[9.4,871.9],[38.2,924.7],[58.7,981.3],[81.6,1081],[99,1138.9],[124.5,1193.3],[176.5,1278.1],[204.3,1331.5],[224.9,1387.9],[253.6,1487.1],[268.2,1524.5],[297,1577.3],[368.3,1676.6],[398.2,1728.9],[419.9,1785],[446.1,1880.5],[467.4,1936.7],[485.7,1972.3],[548.9,2079.1],[582,2151.9],[593.4,2168.7],[607.9,2183.8],[642.1,2200.2],[686.8,2225.7],[706.9,2240],[723.4,2255.6],[727.8,2255.6],[700,2200],[500,1750],[340,1400],[230,1150],[140,950],[70,800],[10,680],[-36,580],[-64.2,509.5]];
+  const SOUTH_SHORE_WATERLINE=[[-69.5,509.5],[-59.5,571.7],[-77.7,697.3],[-77.9,716.6],[-73,735.1],[-45.3,788.4],[9.4,871.9],[38.2,924.7],[58.7,981.3],[81.6,1081],[99,1138.9],[124.5,1193.3],[176.5,1278.1],[204.3,1331.5],[224.9,1387.9],[253.6,1487.1],[268.2,1524.5],[297,1577.3],[368.3,1676.6],[398.2,1728.9],[419.9,1785],[446.1,1880.5],[467.4,1936.7],[485.7,1972.3],[548.9,2079.1],[582,2151.9],[593.4,2168.7],[607.9,2183.8],[642.1,2200.2],[686.8,2225.7],[706.9,2240],[723.4,2255.6]];
+  const SOUTH_SHORE_ROAD=[[-17.6,556],[-9.7,632.4],[-10.6,654.7],[0.1,709.1],[7.1,730],[25.4,770.1],[58.1,816.8],[69.5,835.8],[105,911.9],[119.7,949.2],[151.3,1051.2],[172.3,1105.3],[200.1,1167.5],[247.4,1264.5],[276.1,1328.4],[351,1509.7],[371.6,1563.9],[389.6,1604],[443.1,1698.4],[454.1,1722],[467.4,1753.3],[515,1881],[539.3,1935.8],[593.7,2040.8],[640.9,2142.3],[648.8,2156.4],[657.8,2165.4],[671.9,2172.3],[705.4,2183.6],[736.8,2191.3]];
+  const J1=[-17.7,555.9], J2=[736.8,2191.4], SOUTH_LOOKOUT=[640.5,2173.3];
   const DRIVE_IN=[[-218,-1855],[-112,-1882],[-105,-1780],[-205,-1765]];
   const MARINA=[[-213,-274],[-126,-282],[-116,-235],[-196,-230]];
   const CANNERY=[[-142,-298],[-92,-298],[-92,-265],[-142,-265]];
@@ -373,6 +403,11 @@
     poly(groups.range,NORTH_SHORE_VOLCANIC_PLUG_BEACH,'volcanic-plug-beach-built');
     poly(groups.range,NORTH_SHORE_VOLCANIC_PLUG,'volcanic-plug-built');
     poly(groups.range,NORTH_BLUE_INLAND_SADDLE,'volcanic-plug-built');
+    // The land in the bay, over the sea ring in the forest band's colour so it runs on from the peninsula without a seam.
+    [LOBE,COAST_BULGE].forEach(r=>{ poly(groups.range,r,'ground-range'); coastRuns(r).forEach(q=>line(groups.range,q,'bay-coast')); });
+    BAY_ROCKS.forEach(r=>poly(groups.range,r,'bay-rock'));
+    [[LOBE_HILL,'the lobe\'s hill'],[ROUND_HILL,'round hill']].forEach(([q,n])=>{ dot(groups.range,q,3,'summit'); label(groups.labels,`${n} ${q[2]}m`,[q[0],q[1]+18],'minor-label'); });
+    label(groups.labels,'rocks',[-413,-740],'minor-label');
     SPURS.forEach(([deg,name])=>{ const a=at(deg,rangeInner(deg)+RANGE.toeD); const b=at(deg,rangeInner(deg)+950); line(groups.range,[a,b],'range-spur'); label(groups.labels,`${deg>0?'+':''}${deg}° · ${name}`,[b[0],b[1]-14],'minor-label'); });
     SUMMITS.forEach(([name,deg,dist,h])=>{ const p=at(deg,dist); dot(groups.range,p,4,'summit'); label(groups.labels,`${name} ${h}m`,[p[0],p[1]+18],'minor-label'); });
     rectWorld(groups.park,-212,-230,222,220,'envelope'); rectWorld(groups.park,-52,-52,52,52,'plaza');
@@ -388,29 +423,31 @@
     label(groups.labels,'P1 LIGHTHOUSE',[P1[0]-6,P1[1]-8],'minor-label');
     label(groups.labels,'PIER HEAD',[PIER_HEAD[0]-40,PIER_HEAD[1]+4],'minor-label');
     label(groups.labels,'CREEK OUTFALL',[CREEK_OUTFALL[0]-50,CREEK_OUTFALL[1]+4],'minor-label');
-    label(groups.labels,'SUNSET SECTOR 280°–310° · NOTHING OVER 10 m',[-700,-560],'minor-label','start');
+    label(groups.labels,'SUNSET SECTOR 280°–310° · NOTHING OVER 10 m',[LX,-560],'minor-label','start');
     label(groups.labels,'APPROACH ROAD · BUILT TO (250, 520) · ~28 m UP AT 1:12',[330,540],'minor-label','start');
-    label(groups.labels,'BAY AFTER HALF MOON BAY · BUILT 2026-09-04',[-700,1200],'minor-label','start');
+    label(groups.labels,'BAY AFTER HALF MOON BAY · BUILT 2026-09-04',[LX,1200],'minor-label','start');
     label(groups.labels,'CRESCENT RANGE · TOE LINE DASHED · FOREST BAND',[700,-380],'minor-label');
     label(groups.labels,'NORTH-SHORE VOLCANIC PLUG + SOUTH BEACH SHELF · BUILT 2026-09-13',[-900,-2740],'minor-label','start');
+    label(groups.labels,'LAND IN THE BAY · BUILT GROUND · KEPT 2026-10-03',[LX,-1600],'minor-label','start');
     label(groups.labels,'NORTHERN BLUE INLAND SADDLE · BUILT 2026-09-14 · TUNNEL PORTALS CLEAR',[250,-1160],'minor-label','start');
   }
   function drawProposal(on){
     clear(groups.proposal); clear(groups.frames);
     if(!on) return;
-    label(groups.labels,'HEADLAND AS ONE LANDFORM · BUILT 2026-09-04 · 30 m TOP · CLIFFS AND TWO COVES ON THE OUTER FACE',[-700,-440],'minor-label','start');
+    label(groups.labels,'HEADLAND AS ONE LANDFORM · BUILT 2026-09-04 · 30 m TOP · CLIFFS AND TWO COVES ON THE OUTER FACE',[LX,-440],'minor-label','start');
     line(groups.proposal,BREAKWATER,'tunnel'); line(groups.proposal,QUAY,'tunnel'); label(groups.labels,'HARBOUR COVE · BREAKWATER, QUAY, TWO BOATS · BUILT',[-30,-232],'minor-label','start');
-    line(groups.proposal,COVE_PATH,'road-local'); label(groups.labels,'path down to one cove',[-700,-380],'proposal-label','start');
-    SEA_STACKS.forEach(p=>dot(groups.proposal,p,4,'proposal-rock')); label(groups.labels,'sea stacks (outside the sunset sector)',[-700,700],'proposal-label','start');
+    line(groups.proposal,COVE_PATH,'road-local'); label(groups.labels,'path down to one cove',[LX,-380],'proposal-label','start');
+    SEA_STACKS.forEach(p=>dot(groups.proposal,p,4,'proposal-rock')); label(groups.labels,'sea stacks (outside the sunset sector)',[LX,700],'proposal-label','start');
     HABITATS.forEach(([pts,name],i)=>{ poly(groups.proposal,pts,'approved-habitat'); const p=pts[0]; label(groups.labels,name,[p[0]+10,p[1]-14],'minor-label','start'); });
     // The towns, built: the valley's rim, the town's extent, its streets and the house; the beach town and its streets; the city's plain.
-    line(groups.proposal,VALLEY_RIM,'range-toe'); label(groups.labels,'CREEK VALLEY · FLOOR 3–12 m · RIM DASHED',[-700,-2260],'minor-label','start');
+    line(groups.proposal,VALLEY_RIM,'range-toe'); label(groups.labels,'CREEK VALLEY · FLOOR 3–12 m · RIM DASHED',[LX,-2260],'minor-label','start');
     poly(groups.proposal,NORTH_TOWN,'town-built'); NORTH_STREETS.forEach(s=>line(groups.proposal,s,'road-local-built')); dot(groups.proposal,HOUSE,4,'house');
-    label(groups.labels,'NORTH TOWN · IN THE VALLEY · BUILT 2026-09-05 · THE HOUSE 30 m UP THE NORTH SIDE',[-700,-2200],'minor-label','start');
+    label(groups.labels,'NORTH TOWN · IN THE VALLEY · BUILT 2026-09-05 · THE HOUSE 30 m UP THE NORTH SIDE',[LX,-2200],'minor-label','start');
     BEACHES.forEach(b=>{ const z0=b[0][0], z1=b[0][1]; const pts=[]; for(let z=z0;z<=z1;z+=10) pts.push([shoreX(z),z]); for(let z=z1;z>=z0;z-=10) pts.push([shoreX(z)+b[1],z]); poly(groups.proposal,pts,'beach'); });
     poly(groups.proposal,BEACH_TOWN,'town-built'); BEACH_STREETS.forEach(s=>line(groups.proposal,s,'road-local-built'));
-    label(groups.labels,'BEACH TOWN · ON THE SHELF · BUILT 2026-09-05 · ITS BEACH IN FRONT',[-700,600],'minor-label','start');
-    poly(groups.proposal,CITY,'city-built'); poly(groups.proposal,CITY_PLAIN,'city-built'); dot(groups.proposal,CITY_CENTRE,3,'summit'); WORLD_HILLS.forEach(h=>dot(groups.proposal,[h[0],h[1]],h[2]*scale,'summit')); label(groups.labels,'THE CITY · ON ITS PENINSULA · HILLS · BUILT 2026-09-05 · 56 TOWERS, 184 BLOCKS',[-700,2330],'minor-label','start');
+    label(groups.labels,'BEACH TOWN · ON THE SHELF · BUILT 2026-09-05 · ITS BEACH IN FRONT',[LX,600],'minor-label','start');
+    poly(groups.proposal,CITY,'city-built'); poly(groups.proposal,CITY_PLAIN,'city-built'); dot(groups.proposal,CITY_CENTRE,3,'summit'); WORLD_HILLS.forEach(h=>dot(groups.proposal,[h[0],h[1]],h[2]*scale,'summit')); label(groups.labels,'THE CITY · ON ITS PENINSULA · HILLS · BUILT 2026-09-05 · 56 TOWERS, 184 BLOCKS',[LX,2330],'minor-label','start');
+    poly(groups.proposal,SOUTH_SHORE_LAND,'shore-to-come'); line(groups.proposal,SOUTH_SHORE_WATERLINE,'shore-to-come-line');
     // Approved public realm and destinations. Orange outlines are sites, not
     // finished footprints; blue lines reserve water before parcels harden.
     NORTH_STREETS.forEach(s=>line(groups.proposal,s,'approved-civil'));
@@ -419,19 +456,21 @@
     line(groups.proposal,PUBLIC_PIER,'approved-civil');
     poly(groups.proposal,SKATE_PARK,'approved-site');
     poly(groups.proposal,BEACH_HILLSIDE,'approved-site'); poly(groups.proposal,BEACH_COLONY,'approved-site');
-    line(groups.proposal,BEACH_ROAD_SOUTH,'approved-civil'); line(groups.proposal,BEACH_TRAIL_SOUTH,'approved-civil'); dot(groups.proposal,BEACH_TRAIL_SOUTH[BEACH_TRAIL_SOUTH.length-1],3.5,'approved-destination');
+    line(groups.proposal,BEACH_ROAD_SOUTH,'approved-civil'); line(groups.proposal,SOUTH_SHORE_ROAD,'approved-civil'); [J1,J2].forEach(q=>dot(groups.proposal,q,2.5,'approved-destination')); dot(groups.proposal,SOUTH_LOOKOUT,3.5,'approved-destination'); label(groups.labels,'J1',[J1[0]-16,J1[1]+3],'minor-label'); label(groups.labels,'J2',[J2[0]+16,J2[1]+3],'minor-label'); line(groups.proposal,BEACH_TRAIL_SOUTH,'approved-civil'); dot(groups.proposal,BEACH_TRAIL_SOUTH[BEACH_TRAIL_SOUTH.length-1],3.5,'approved-destination');
     dot(groups.proposal,[-58,440],3.5,'approved-destination');
-    label(groups.labels,'BEACH PUBLIC REALM · PROMENADE, PIER, SURF + SKATE ROW, SKATE PARK, SEAFOOD',[-700,540],'proposal-label','start');
+    label(groups.labels,'BEACH ROAD FORKS AT J1 · UNDER THE HIGHWAY OR DOWN TO SOUTH SHORE',[LX,760],'proposal-label','start');
+    label(groups.labels,'SOUTH SHORE · EDIT 2 B LAND IN THE TERRAIN MASTER, NOT IN THE GAME YET',[LX,1300],'proposal-label','start');
+    label(groups.labels,'BEACH PUBLIC REALM · PROMENADE, PIER, SURF + SKATE ROW, SKATE PARK, SEAFOOD',[LX,540],'proposal-label','start');
     dot(groups.proposal,[-469,-1877],3.5,'approved-destination');
     dot(groups.proposal,[-447,-1812],3.5,'approved-destination');
     dot(groups.proposal,[-431,-1760],3.5,'approved-destination');
     poly(groups.proposal,DRIVE_IN,'approved-site');
-    label(groups.labels,'NORTH MAIN STREET · CIVIL KIT, COFFEE, CINEMA, SKATE COUNTER IN SHOP BAY · DRIVE-IN ON UPPER BENCH',[-700,-1720],'proposal-label','start');
+    label(groups.labels,'NORTH MAIN STREET · CIVIL KIT, COFFEE, CINEMA, SKATE COUNTER IN SHOP BAY · DRIVE-IN ON UPPER BENCH',[LX,-1720],'proposal-label','start');
     poly(groups.proposal,NORTH_LAKE,'approved-waterbody');
     line(groups.proposal,NORTH_RIVER,'approved-water');
     dot(groups.proposal,[-455,-1845],3.5,'approved-crossing');
     dot(groups.proposal,[-390,-1885],3.5,'approved-crossing');
-    label(groups.labels,'NORTH WATERSHED · MOUNTAIN LAKE → TOWN RIVER → BEACH MOUTH · HIGHWAY + RAIL BRIDGES',[-700,-2040],'proposal-label','start');
+    label(groups.labels,'NORTH WATERSHED · MOUNTAIN LAKE → TOWN RIVER → BEACH MOUTH · HIGHWAY + RAIL BRIDGES',[LX,-2040],'proposal-label','start');
     line(groups.proposal,COASTAL_CREEK,'approved-water');
     dot(groups.proposal,[235,-250],3.5,'approved-crossing');
     label(groups.labels,'COASTAL CREEK WATERSHED · FOOTHILL SOURCE → PARK CHANNEL → CONTROLLED OUTFALL',[420,-180],'proposal-label','start');
@@ -439,9 +478,9 @@
     poly(groups.proposal,CANNERY,'approved-site');
     line(groups.proposal,HARBOUR_RAIL_SPUR,'approved-rail');
     dot(groups.proposal,[-176,-316],3.5,'approved-destination');
-    label(groups.labels,'HEADLAND LEE · MARINA, WORKING BOATS, CANNERY + TWO STACKS · AQUARIUM ABOVE',[-700,-330],'proposal-label','start');
+    label(groups.labels,'HEADLAND LEE · MARINA, WORKING BOATS, CANNERY + TWO STACKS · AQUARIUM ABOVE',[LX,-330],'proposal-label','start');
     poly(groups.proposal,PIER_HEAD_RETROFIT,'approved-site');
-    label(groups.labels,'PIER-HEAD FISHING RETROFIT · EXISTING PAVILION LANDING · NO SIDE DECK',[-700,-70],'proposal-label','start');
+    label(groups.labels,'PIER-HEAD FISHING RETROFIT · EXISTING PAVILION LANDING · NO SIDE DECK',[LX,-70],'proposal-label','start');
     dot(groups.proposal,[-500,650],8,'proposal-rock');
     label(groups.labels,'OFFSHORE VOLCANIC PLUG · OUTSIDE SUNSET SECTOR',[-620,640],'proposal-label','start');
     line(groups.proposal,REGIONAL_RAIL,'approved-rail');
@@ -456,21 +495,21 @@
     dot(groups.proposal,[-610,2115],4,'approved-destination');
     dot(groups.proposal,[-190,440],4,'approved-destination');
     label(groups.labels,'RELOCATED CITY · BEYOND RANGE SHOULDER · 410m BRIDGE + BEACH-TOWN FERRY',[-930,2740],'proposal-label','start');
-    label(groups.labels,'NORTH SHORE · HEADLANDS, COVES, THREE CLIFFED · BUILT 2026-09-05',[-700,-2740],'minor-label','start');
+    label(groups.labels,'NORTH SHORE · HEADLANDS, COVES, THREE CLIFFED · BUILT 2026-09-05',[LX,-2772],'minor-label','start');
     label(groups.labels,'SOUTH COAST · HEADLANDS AND COVES · BUILT 2026-09-05',[820,2740],'minor-label','start');
     label(groups.labels,'THE LAND IS A PENINSULA · ITS FAR EAST COAST AT x 3400–3600, OFF THIS MAP · 2026-09-30',[820,-2740],'minor-label','start');
     [HWY_NORTH,HWY_TROUGH,HWY_SOUTH].forEach(seg=>line(groups.proposal,seg,'road-built'));
     TUNNELS.forEach(t=>line(groups.proposal,t,'tunnel'));
-    label(groups.labels,'COAST HIGHWAY · BUILT 2026-09-04 · NORTH COAST 60 m INLAND, 30–60 m UP',[-700,-1120],'minor-label','start');
+    label(groups.labels,'COAST HIGHWAY · BUILT 2026-09-04 · NORTH COAST 60 m INLAND, 30–60 m UP',[LX,-1120],'minor-label','start');
     label(groups.labels,'NORTH TUNNELS 443 m (THE VALLEY TO Q−3) AND 122 m',[-140,-1000],'minor-label','start');
     label(groups.labels,'COAST HIGHWAY · THE TROUGH BEHIND THE FIRST RIDGE · ~10 m · THE PARK HIDDEN',[420,-380],'minor-label','start');
     label(groups.labels,'COAST HIGHWAY · THE FAR SHORE 60 m INLAND',[420,1500],'minor-label','start');
     dot(groups.proposal,JUNCTION,4,'house'); label(groups.labels,'JUNCTION · THE PARK ROAD LEAVES THE HIGHWAY',[230,318],'minor-label','start');
-    dot(groups.proposal,VIEW,4,'lighthouse'); label(groups.labels,'VIEW BEND · THE BAY OPENS · Q−2',[-700,-660],'minor-label','start');
+    dot(groups.proposal,VIEW,4,'lighthouse'); label(groups.labels,'VIEW BEND · THE BAY OPENS · Q−2',[LX,-660],'minor-label','start');
     GLIMPSES.forEach((p,i)=>{ dot(groups.proposal,p,3.5,'glimpse'); label(groups.labels,`glimpse ${i+1}`,[p[0]+12,p[1]+3],'minor-label','start'); });
     // Frames from the car's eye: the crest view and the portal view.
     const cone=(from,to,half,len)=>{ const dx=to[0]-from[0], dz=to[1]-from[1]; const a=Math.atan2(dz,dx); const r=len||Math.hypot(dx,dz); to=[from[0]+Math.cos(a)*r, from[1]+Math.sin(a)*r]; const l=[from[0]+Math.cos(a-half)*r, from[1]+Math.sin(a-half)*r]; const rr=[from[0]+Math.cos(a+half)*r, from[1]+Math.sin(a+half)*r]; return [from,l,to,rr]; };
-    poly(groups.frames,cone([-270,-1200],P1,0.36,420),'frame-cone'); label(groups.labels,'Q−3 · FIRST SIGHT · 58 m UP',[-700,-1240],'minor-label','start');
+    poly(groups.frames,cone([-270,-1200],P1,0.36,420),'frame-cone'); label(groups.labels,'Q−3 · FIRST SIGHT · 58 m UP',[LX,-1240],'minor-label','start');
     poly(groups.frames,cone(VIEW,CLOCK_TOWER,0.36,360),'frame-cone');
     poly(groups.frames,cone([190,300],CLOCK_TOWER,0.30,220),'frame-cone'); label(groups.labels,'Q−1 · THE FOOTHILL · 12 m UP',[230,300],'minor-label','start');
   }
