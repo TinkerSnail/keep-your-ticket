@@ -4,7 +4,8 @@ once painted, before anyone paints it. Nothing is ever saved into the blend.
 
     /Applications/Blender.app/Contents/MacOS/Blender --background <house>.blend \\
         --python tools/blender/cartoon_preview.py -- <variant>[,<variant>...] <folder> [<shot> ...] \\
-        [--scale <s>] [--siding-origin <z> | <variant>=<z>,...] [--figure]
+        [--scale <s>] [--keep-eye] [--siding-origin <z> | <variant>=<z>,...] [--figure] \\
+        [--gap <m> [--rows <n>]]
 
 Renders the variant (its `kyt_variant` parts in `export`; every other part,
 `reference` and `authored` hidden) into <folder> as `painted_<shot>.png`,
@@ -12,11 +13,22 @@ every shot in SHOTS or only those named. Several variants, comma-separated,
 stand side by side for the shot only, each moved over one lot (the width of
 the blend's `lot...` outline, 9 m without one) in the order given, each with
 its own painted stand-in and siding origin; the `lineup_...` shots frame four
-of them. `--figure` stands a 1.7 m figure on the lawn for scale. It changes,
-in memory only:
+of them. `--figure` stands a 1.7 m figure on the lawn for scale.
 
-- **The roof** (the variant's material ending `_roof`): painted shingles on
-  `cartoon_kit`'s grid, read from the kit so the painting and the raised
+A kit of houses of different widths (the cottage kit, 2026-10-04) lines up
+with `--gap`: each house stands `gap` metres clear of the one before it, by
+their own widths, and the `lineup_...` shots are framed on the row instead of
+on four lots. `--rows` splits the houses into that many rows, in the order
+given, each rendered with the same camera (so every house is at one scale)
+and the rows stacked into one image, the first on top; a figure (with
+`--figure`) stands at the left of each row. `--keep-eye` keeps the
+eye-height shots' eye (any eye 2 m or lower) at its height in metres when
+`--scale` shrinks the rest, so a small house is still seen from where a
+person stands. It changes, in memory only:
+
+- **The roof** (each of the variant's materials named `..._roof` or
+  `..._roof_<kind>`; a metal one is left plain, as metal is): painted
+  shingles on `cartoon_kit`'s grid, read from the kit so the painting and the raised
   clusters cannot drift apart: courses SHINGLE_E apart down each slope,
   tabs SHINGLE_W across, each course slid by STAGGER of a tab, keyways
   SHINGLE_KEY wide on the grid's lines. Each row reads as overlapping the
@@ -28,7 +40,14 @@ in memory only:
   clusters): the same painting through a UV map baked in the frame of the
   slab each face lies nearest, since a tab's own faces lean a degree or two
   off the slab, which would swing a world-position projection by decimetres.
-- **The walls** (the material ending `_walls`): lap siding at the standard's
+- **Log walls** (a material named `..._walls_log`): logs in `cartoon_kit`'s
+  log rhythm, a tone per course, grain magnified along them, darker where
+  each rounds into the chinking.
+- **Board-and-batten** (a material named `..._walls_batten`): vertical boards
+  and battens at double a real one's width.
+- **Stone** (each material named `..._stone`): fieldstone on `cartoon_kit`'s
+  stone grid, the raised stones of a stone stack sitting on painted ones.
+- **The walls** (each material named `..._walls` or `..._walls_<kind>`): lap siding at the standard's
   0.24 m exposure, its courses counted from `--siding-origin` (the main
   floor, 1.55 on the Victorian blue, 0.60 on its purple; 0 by default; one
   per variant as `blue=1.55,purple=0.6`), its grain magnified with it.
@@ -66,6 +85,10 @@ SHOTS = {
     "gable_close": ((0.3, -13.5, 4.6), (0.0, -5.0, 6.6), 30),         # the front gable's trim
     "rear_west": ((-12.0, 15.0, 3.0), (-0.8, 2.0, 6.2), 28),
     "vents_close": ((-6.5, 7.5, 7.8), (-1.6, 2.2, 6.6), 30),          # the back half of the west slope
+    # the three-quarter and the side from the left, for a house whose photo
+    # (or whose door) is on the west (the cottage kit's classic, its ranch)
+    "three_quarter_west": ((-6.5, -18.5, 1.75), (-0.2, -2.0, 4.6), 26),
+    "west_side": ((-13.0, -9.0, 1.75), (-0.5, -0.5, 4.2), 24),
     # four houses on neighbouring lots (x 0, 9, 18, 27), with a fourth
     # element, an orthographic width in metres
     "lineup_three_quarter": ((27.5, -36.0, 1.75), (13.0, -1.0, 4.4), 30),   # from the street, right of the row, eye height
@@ -75,20 +98,21 @@ LINEUP_SIZE = (2400, 1000)
 SIZE = (1800, 1100)
 SIDING = 0.24              # the standard's painted lap siding exposure: twice a real one
 SIDING_GRAIN = 2.0         # its grain magnified with it
+BATTEN_BOARD, BATTEN_W = 0.40, 0.08   # board-and-batten: boards and battens double a real one's
 
 
 def args():
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
-    opts = {"--scale": "1.0", "--siding-origin": "0.0"}
-    figure = False
+    opts = {"--scale": "1.0", "--siding-origin": "0.0", "--gap": "", "--rows": "1"}
+    flags = {"--figure": False, "--keep-eye": False}
     rest = []
     i = 0
     while i < len(argv):
         if argv[i] in opts:
             opts[argv[i]] = argv[i + 1]
             i += 2
-        elif argv[i] == "--figure":
-            figure = True
+        elif argv[i] in flags:
+            flags[argv[i]] = True
             i += 1
         else:
             rest.append(argv[i])
@@ -105,7 +129,9 @@ def args():
         origins = {k: float(z) for k, z in (item.split("=") for item in so.split(","))}
     else:
         origins = {v: float(so) for v in variants}
-    return variants, rest[1], shots, float(opts["--scale"]), origins, figure
+    gap = float(opts["--gap"]) if opts["--gap"] else None
+    return (variants, rest[1], shots, float(opts["--scale"]), origins, flags["--figure"], gap, int(opts["--rows"]),
+            flags["--keep-eye"])
 
 
 # --- the stand-in painting ------------------------------------------------------------
@@ -290,6 +316,212 @@ def siding(name, rgb, origin):
     return m
 
 
+def stones(name, rgb):
+    """Fieldstone on `cartoon_kit`'s stone grid (STONE_E courses from z = 0,
+    STONE_W stones across each face, slid by STAGGER a course, some split by
+    `stone_split`'s hash, STONE_KEY joints on the lines), so the raised
+    stones sit on painted ones: dark joints round each stone's rounded corners, a tone and tint per stone,
+    each stone a pillow darker toward its edges and lighter toward its top."""
+    m = bpy.data.materials.new(name)
+    m.use_nodes = True
+    nt = m.node_tree
+    L = nt.links
+    bsdf = nt.nodes["Principled BSDF"]
+    bsdf.inputs["Roughness"].default_value = 0.9
+    geo = nt.nodes.new("ShaderNodeNewGeometry")
+
+    def M(op, a, b=None, c=None):
+        n = nt.nodes.new("ShaderNodeMath")
+        n.operation = op
+        for i, x in enumerate((a, b, c)):
+            if x is None:
+                continue
+            if isinstance(x, (int, float)):
+                n.inputs[i].default_value = x
+            else:
+                L.new(x, n.inputs[i])
+        return n.outputs[0]
+
+    def ramp(x, a, b, lo, hi):
+        n = nt.nodes.new("ShaderNodeMapRange")
+        n.clamp = True
+        L.new(x, n.inputs["Value"])
+        n.inputs["From Min"].default_value, n.inputs["From Max"].default_value = a, b
+        n.inputs["To Min"].default_value, n.inputs["To Max"].default_value = lo, hi
+        return n.outputs["Result"]
+    pos = nt.nodes.new("ShaderNodeSeparateXYZ")
+    L.new(geo.outputs["Position"], pos.inputs[0])
+    nrm = nt.nodes.new("ShaderNodeSeparateXYZ")
+    L.new(geo.outputs["Normal"], nrm.inputs[0])
+    # across a face: x on a face looking along y, y on one looking along x
+    on_y = M("GREATER_THAN", M("ABSOLUTE", nrm.outputs["Y"]), M("ABSOLUTE", nrm.outputs["X"]))
+    a = M("ADD", M("MULTIPLY", pos.outputs["X"], on_y), M("MULTIPLY", pos.outputs["Y"], M("SUBTRACT", 1.0, on_y)))
+    s = M("DIVIDE", pos.outputs["Z"], ck.STONE_E)
+    course, fs = M("FLOOR", s), M("FRACT", s)
+    t = M("ADD", M("DIVIDE", a, ck.STONE_W), M("FRACT", M("MULTIPLY", course, ck.STAGGER)))
+    stone, ft = M("FLOOR", t), M("FRACT", t)
+    # cartoon_kit's stone_split, node for node: some stones split in two
+    h = M("FRACT", M("ADD", M("MULTIPLY", course, 0.7548777), M("MULTIPLY", stone, 0.5698403)))
+    split = M("GREATER_THAN", h, 0.6)
+    at = M("ADD", 0.35, M("MULTIPLY", M("FRACT", M("MULTIPLY", h, 7.3)), 0.30))
+    right = M("MULTIPLY", split, M("GREATER_THAN", ft, at))
+    # across the stone (or the half it is in), 0 to 1
+    left_u = M("DIVIDE", ft, M("ADD", M("MULTIPLY", split, M("SUBTRACT", at, 1.0)), 1.0))
+    right_u = M("DIVIDE", M("SUBTRACT", ft, at), M("SUBTRACT", 1.0, at))
+    u = M("ADD", M("MULTIPLY", right, right_u), M("MULTIPLY", M("SUBTRACT", 1.0, right), left_u))
+    # the joint: outside each stone's rounded rectangle (its own width, the
+    # half's when split, less the joint, corners rounded STONE_ROUND)
+    ws = M("MULTIPLY", ck.STONE_W, M("ADD", M("MULTIPLY", right, M("SUBTRACT", 1.0, at)),
+                                         M("MULTIPLY", M("SUBTRACT", 1.0, right),
+                                           M("ADD", M("MULTIPLY", split, M("SUBTRACT", at, 1.0)), 1.0))))
+    r, k2 = ck.STONE_ROUND, ck.STONE_KEY / 2
+    qx = M("SUBTRACT", M("ABSOLUTE", M("MULTIPLY", M("SUBTRACT", u, 0.5), ws)), M("SUBTRACT", M("MULTIPLY", ws, 0.5), k2 + r))
+    qz = M("SUBTRACT", M("ABSOLUTE", M("MULTIPLY", M("SUBTRACT", fs, 0.5), ck.STONE_E)), ck.STONE_E / 2 - k2 - r)
+    outer = M("SQRT", M("ADD", M("POWER", M("MAXIMUM", qx, 0.0), 2.0), M("POWER", M("MAXIMUM", qz, 0.0), 2.0)))
+    d = M("SUBTRACT", M("ADD", outer, M("MINIMUM", M("MAXIMUM", qx, qz), 0.0)), r)
+    joint = M("GREATER_THAN", d, 0.0)
+    cell = nt.nodes.new("ShaderNodeCombineXYZ")
+    L.new(course, cell.inputs[0])
+    L.new(M("ADD", M("MULTIPLY", stone, 2.0), right), cell.inputs[1])
+    wn = nt.nodes.new("ShaderNodeTexWhiteNoise")
+    wn.noise_dimensions = "3D"
+    L.new(cell.outputs[0], wn.inputs["Vector"])
+    tone = ramp(wn.outputs["Value"], 0.0, 1.0, 0.76, 1.12)
+    grad = ramp(fs, 0.0, 1.0, 0.86, 1.06)
+    # each stone a pillow: darker toward its own edges, so it reads round
+    dx = M("MULTIPLY", M("ABSOLUTE", M("SUBTRACT", u, 0.5)), 2.0)
+    dz = M("MULTIPLY", M("ABSOLUTE", M("SUBTRACT", fs, 0.5)), 2.0)
+    pillow = M("SUBTRACT", 1.0, M("MULTIPLY", M("POWER", M("MAXIMUM", dx, dz), 2.0), 0.45))
+    f = M("MULTIPLY", M("MULTIPLY", M("MULTIPLY", tone, grad), pillow), M("SUBTRACT", 1.0, M("MULTIPLY", joint, 0.55)))
+    tint = nt.nodes.new("ShaderNodeVectorMath")
+    tint.operation = "MULTIPLY_ADD"
+    L.new(wn.outputs["Color"], tint.inputs[0])
+    tint.inputs[1].default_value = (0.22, 0.22, 0.22)        # warm and cool stones side by side
+    tint.inputs[2].default_value = (0.89, 0.89, 0.89)
+    col = nt.nodes.new("ShaderNodeVectorMath")
+    col.operation = "MULTIPLY"
+    L.new(tint.outputs[0], col.inputs[0])
+    col.inputs[1].default_value = rgb
+    out = nt.nodes.new("ShaderNodeVectorMath")
+    out.operation = "SCALE"
+    L.new(col.outputs[0], out.inputs[0])
+    L.new(f, out.inputs["Scale"])
+    L.new(out.outputs[0], bsdf.inputs["Base Color"])
+    return m
+
+
+def logs(name, rgb):
+    """Log walls in `cartoon_kit`'s log rhythm (a log every LOG_COURSE up from
+    LOG_R): each course a log of its own tone, its grain magnified and run
+    along it, darker toward its top and bottom where it rounds into the
+    chinking crease, so the modelled logs and their painting agree."""
+    m = bpy.data.materials.new(name)
+    m.use_nodes = True
+    nt = m.node_tree
+    L = nt.links
+    bsdf = nt.nodes["Principled BSDF"]
+    bsdf.inputs["Roughness"].default_value = 0.9
+    geo = nt.nodes.new("ShaderNodeNewGeometry")
+
+    def M(op, a, b=None):
+        n = nt.nodes.new("ShaderNodeMath")
+        n.operation = op
+        for i, x in enumerate((a, b)):
+            if x is None:
+                continue
+            if isinstance(x, (int, float)):
+                n.inputs[i].default_value = x
+            else:
+                L.new(x, n.inputs[i])
+        return n.outputs[0]
+
+    def ramp(x, a, b, lo, hi):
+        n = nt.nodes.new("ShaderNodeMapRange")
+        n.clamp = True
+        L.new(x, n.inputs["Value"])
+        n.inputs["From Min"].default_value, n.inputs["From Max"].default_value = a, b
+        n.inputs["To Min"].default_value, n.inputs["To Max"].default_value = lo, hi
+        return n.outputs["Result"]
+    pos = nt.nodes.new("ShaderNodeSeparateXYZ")
+    L.new(geo.outputs["Position"], pos.inputs[0])
+    s = M("DIVIDE", M("SUBTRACT", pos.outputs["Z"], ck.LOG_R - ck.LOG_COURSE / 2), ck.LOG_COURSE)
+    course, fs = M("FLOOR", s), M("FRACT", s)
+    wn = nt.nodes.new("ShaderNodeTexWhiteNoise")
+    wn.noise_dimensions = "1D"
+    L.new(course, wn.inputs["W"])
+    tone = ramp(wn.outputs["Value"], 0.0, 1.0, 0.82, 1.10)
+    edge = M("MULTIPLY", M("ABSOLUTE", M("SUBTRACT", fs, 0.5)), 2.0)
+    roundness = M("SUBTRACT", 1.0, M("MULTIPLY", M("POWER", edge, 2.0), 0.40))
+    mp = nt.nodes.new("ShaderNodeMapping")       # grain, magnified, long along the log
+    L.new(geo.outputs["Position"], mp.inputs["Vector"])
+    mp.inputs["Scale"].default_value = (0.8, 0.8, 22.0)
+    nz = nt.nodes.new("ShaderNodeTexNoise")
+    L.new(mp.outputs[0], nz.inputs["Vector"])
+    nz.inputs["Detail"].default_value = 2.0
+    grain = ramp(nz.outputs["Fac"], 0.3, 0.7, 0.88, 1.06)
+    f = M("MULTIPLY", M("MULTIPLY", tone, roundness), grain)
+    out = nt.nodes.new("ShaderNodeVectorMath")
+    out.operation = "SCALE"
+    out.inputs[0].default_value = rgb
+    L.new(f, out.inputs["Scale"])
+    L.new(out.outputs[0], bsdf.inputs["Base Color"])
+    return m
+
+
+def battens(name, rgb):
+    """Board-and-batten: vertical boards BATTEN_BOARD across (double a real
+    board's width, as the siding is), a lighter batten over each joint with a
+    shadow beside it, grain magnified and run up the boards."""
+    m = bpy.data.materials.new(name)
+    m.use_nodes = True
+    nt = m.node_tree
+    L = nt.links
+    bsdf = nt.nodes["Principled BSDF"]
+    bsdf.inputs["Roughness"].default_value = 0.9
+    geo = nt.nodes.new("ShaderNodeNewGeometry")
+
+    def M(op, a, b=None):
+        n = nt.nodes.new("ShaderNodeMath")
+        n.operation = op
+        for i, x in enumerate((a, b)):
+            if x is None:
+                continue
+            if isinstance(x, (int, float)):
+                n.inputs[i].default_value = x
+            else:
+                L.new(x, n.inputs[i])
+        return n.outputs[0]
+    pos = nt.nodes.new("ShaderNodeSeparateXYZ")
+    L.new(geo.outputs["Position"], pos.inputs[0])
+    nrm = nt.nodes.new("ShaderNodeSeparateXYZ")
+    L.new(geo.outputs["Normal"], nrm.inputs[0])
+    on_y = M("GREATER_THAN", M("ABSOLUTE", nrm.outputs["Y"]), M("ABSOLUTE", nrm.outputs["X"]))
+    a = M("ADD", M("MULTIPLY", pos.outputs["X"], on_y), M("MULTIPLY", pos.outputs["Y"], M("SUBTRACT", 1.0, on_y)))
+    ft = M("FRACT", M("DIVIDE", a, BATTEN_BOARD))
+    w = BATTEN_W / BATTEN_BOARD
+    batten = M("LESS_THAN", ft, w)
+    shadow = M("MULTIPLY", M("GREATER_THAN", ft, w), M("LESS_THAN", ft, w + 0.06))
+    mp = nt.nodes.new("ShaderNodeMapping")
+    L.new(geo.outputs["Position"], mp.inputs["Vector"])
+    mp.inputs["Scale"].default_value = (14.0, 14.0, 0.8)
+    nz = nt.nodes.new("ShaderNodeTexNoise")
+    L.new(mp.outputs[0], nz.inputs["Vector"])
+    nz.inputs["Detail"].default_value = 2.0
+    rr = nt.nodes.new("ShaderNodeMapRange")
+    rr.clamp = True
+    L.new(nz.outputs["Fac"], rr.inputs["Value"])
+    rr.inputs["From Min"].default_value, rr.inputs["From Max"].default_value = 0.3, 0.7
+    rr.inputs["To Min"].default_value, rr.inputs["To Max"].default_value = 0.88, 1.06
+    f = M("MULTIPLY", M("MULTIPLY", M("ADD", 1.0, M("MULTIPLY", batten, 0.12)), M("SUBTRACT", 1.0, M("MULTIPLY", shadow, 0.30))),
+          rr.outputs["Result"])
+    out = nt.nodes.new("ShaderNodeVectorMath")
+    out.operation = "SCALE"
+    out.inputs[0].default_value = rgb
+    L.new(f, out.inputs["Scale"])
+    L.new(out.outputs[0], bsdf.inputs["Base Color"])
+    return m
+
+
 def base_rgb(mat):
     return tuple(mat.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value)[:3]
 
@@ -324,10 +556,11 @@ def bake_slab_frame(tabs, painted, parts):
 
 # --- the stage -------------------------------------------------------------------------
 
-def stage(scene, parts, offsets=(0.0,), figure_at=None):
+def stage(scene, parts, offsets=(0.0,), figures_at=()):
     """A ground, a walk, a street and a drive (one per lot, at each of
     `offsets` along X), a sky and a sun, as the house builders' renders have
-    them, and a 1.7 m figure at `figure_at` if given; returns the camera."""
+    them, and a 1.7 m figure at each of `figures_at`; returns the camera and
+    the figures."""
     def mat(name, rgb):
         m = bpy.data.materials.new(name)
         m.use_nodes = True
@@ -359,7 +592,8 @@ def stage(scene, parts, offsets=(0.0,), figure_at=None):
         x0, x1, _, y1 = bounds(drive)
         for k, dx in enumerate(offsets):
             box(f"_drive{k}", walk, dx + x0 + 0.1, dx + x1 - 0.2, kerb - 1.6, y1, -0.30, 0.004)
-    if figure_at is not None:
+    figs = []
+    for k, figure_at in enumerate(figures_at):
         # a 1.7 m standing figure, as the builders' reference one: a
         # 12-sided body and a ball head
         import bmesh
@@ -373,13 +607,14 @@ def stage(scene, parts, offsets=(0.0,), figure_at=None):
         head = bmesh.ops.create_uvsphere(bm, u_segments=12, v_segments=8, radius=0.17)
         for v in head["verts"]:
             v.co.z += 1.70 - 0.17
-        me = bpy.data.meshes.new("_figure")
+        me = bpy.data.meshes.new(f"_figure{k}")
         bm.to_mesh(me)
         bm.free()
         me.materials.append(mat("_figure", (0.30, 0.22, 0.40)))
-        fig = bpy.data.objects.new("_figure", me)
+        fig = bpy.data.objects.new(f"_figure{k}", me)
         fig.location = figure_at
         scene.collection.objects.link(fig)
+        figs.append(fig)
     world = bpy.data.worlds.new("_sky")
     world.use_nodes = True
     world.node_tree.nodes["Background"].inputs["Color"].default_value = (0.42, 0.62, 0.86, 1.0)
@@ -402,11 +637,52 @@ def stage(scene, parts, offsets=(0.0,), figure_at=None):
     scene.eevee.taa_render_samples = 48
     scene.view_settings.view_transform = "Standard"
     scene.render.film_transparent = False
-    return cam
+    return cam, figs
+
+
+def row_shot(name, x0, x1, top):
+    """A `lineup_...` shot framed on a row of houses from x0 to x1 whose
+    tallest reaches `top`, rather than on four lots, and its size: the
+    elevation straight on with a metre and a half of margin each side, from a
+    metre under the ground to a metre and a half over the top; the
+    three-quarter from the street right of the row at eye height, near enough
+    that the row fills the frame. Returns (eye, target, lens, ortho, size)."""
+    cx, span = (x0 + x1) / 2, x1 - x0
+    w = LINEUP_SIZE[0]
+    if name == "lineup_elevation":
+        zc, tall = (top + 0.5) / 2, top + 2.5
+        return (cx, -80.0, zc), (cx, 0.0, zc), 50, span + 3.0, (w, int(w * tall / (span + 3.0)) // 2 * 2)
+    return (cx + 0.30 * span, -1.0 - 1.02 * span, 1.75), (cx + 0.05 * span, -1.0, top * 0.42), 30, None, (w, 760)
+
+
+def bounds_x(objs):
+    xs = [(o.matrix_world @ Vector(c)).x for o in objs for c in o.bound_box]
+    return min(xs), max(xs)
+
+
+def stack_rows(paths, out):
+    """The rows' renders, one under another, the first on top, into `out`."""
+    import numpy as np
+    imgs = [bpy.data.images.load(p) for p in paths]
+    w, h = imgs[0].size
+    arrays = []
+    for img in imgs:
+        a = np.empty(w * h * 4, dtype=np.float32)
+        img.pixels.foreach_get(a)
+        arrays.append(a.reshape(h, w, 4))
+    # Blender's pixels run from the bottom row up, so the first row goes last
+    stacked = np.concatenate(list(reversed(arrays)), axis=0)
+    res = bpy.data.images.new("_rows", w, h * len(imgs), alpha=False)
+    res.pixels.foreach_set(stacked.ravel())
+    res.filepath_raw = out
+    res.file_format = "PNG"
+    res.save()
+    for p in paths:
+        os.remove(p)
 
 
 def main():
-    variants, folder, shots, scale, origins, figure = args()
+    variants, folder, shots, scale, origins, figure, gap, rows, keep_eye = args()
     os.makedirs(folder, exist_ok=True)
     scene = bpy.context.scene
     export = bpy.data.collections["export"]
@@ -421,52 +697,113 @@ def main():
         c = bpy.data.collections.get(name)
         if c:
             c.hide_render = True
+    def named(m, surface):
+        """A material of `surface` by name: `..._roof`, `..._roof_shake`."""
+        tail = m.name.rsplit(surface, 1)
+        return len(tail) == 2 and (tail[0].endswith("_") or not tail[0]) and (not tail[1] or tail[1].startswith("_"))
     for v in variants:
         parts = by[v]
         used = {s.material for o in parts for s in o.material_slots if s.material}
-        roof = next(m for m in used if m.name.endswith("_roof"))
-        walls = next(m for m in used if m.name.endswith("_walls"))
-        painted = shingles(f"_shingles_{v}", base_rgb(roof))
-        raised = shingles(f"_tabs_{v}", base_rgb(roof), use_uv=True)
-        side = siding(f"_siding_{v}", base_rgb(walls), origins.get(v, 0.0))
+        # every roof material but a metal one takes the shingles, every wall
+        # material the siding (the log's logs and its batten gable alike)
+        roofs = [m for m in used if named(m, "roof") and not m.name.endswith("_metal")]
+        swap, slabs = {}, 0
+        walls = [m for m in used if named(m, "walls") and not m.name.endswith(("_walls_log", "_walls_batten"))]
+        for bw in [m for m in used if m.name.endswith("_walls_batten")]:
+            painted_b = battens(f"_battens_{v}_{bw.name}", base_rgb(bw))
+            swap[bw] = (painted_b, painted_b)
+        for lw in [m for m in used if m.name.endswith("_walls_log")]:
+            painted_logs = logs(f"_logs_{v}_{lw.name}", base_rgb(lw))
+            swap[lw] = (painted_logs, painted_logs)
         tabs = [o for o in parts if o.name.endswith("shingles")]
+        for roof in roofs:
+            painted = shingles(f"_shingles_{v}_{roof.name}", base_rgb(roof))
+            raised = shingles(f"_tabs_{v}_{roof.name}", base_rgb(roof), use_uv=True)
+            swap[roof] = (painted, raised)
+        for wall in walls:
+            side = siding(f"_siding_{v}_{wall.name}", base_rgb(wall), origins.get(v, 0.0))
+            swap[wall] = (side, side)
+        for st in [m for m in used if named(m, "stone")]:
+            # a fieldstone stack and its raised stones on the one stone grid
+            painted_st = stones(f"_stones_{v}_{st.name}", base_rgb(st))
+            swap[st] = (painted_st, painted_st)
         for o in parts:
             for slot in o.material_slots:
-                if slot.material == roof:
-                    slot.material = raised if o in tabs else painted
-                elif slot.material == walls:
-                    slot.material = side
-        slabs = bake_slab_frame(tabs, painted, parts)      # in the house's frame, before any move
+                if slot.material in swap:
+                    slot.material = swap[slot.material][1 if o in tabs else 0]
+        for roof in roofs:
+            mine = [o for o in tabs if any(s.material is swap[roof][1] for s in o.material_slots)]
+            slabs += bake_slab_frame(mine, swap[roof][0], parts)      # in the house's frame, before any move
         print(f"cartoon_preview: {v}: {len(parts)} parts, {len(tabs)} raised-tab parts on {slabs} slab planes; "
               f"shingles {ck.SHINGLE_E} x {ck.SHINGLE_W} m, siding {SIDING} m from z {origins.get(v, 0.0)}")
-    # several variants stand on neighbouring lots, for the shot only
-    ref = bpy.data.collections.get("reference")
-    lots = [o for o in (ref.all_objects if ref else []) if o.name.startswith("lot") and o.type == "MESH"]
-    lot_w = 9.0
-    if lots:
-        xs = [(lots[0].matrix_world @ Vector(c)).x for c in lots[0].bound_box]
-        lot_w = max(xs) - min(xs)
-    offsets = [k * lot_w for k in range(len(variants))]
-    for v, dx in zip(variants, offsets):
-        for o in by[v]:
-            o.location.x += dx
-    cam = stage(scene, [o for v in variants for o in by[v]], offsets,
-                figure_at=(lot_w / 2, -8.0, 0.0) if figure else None)
+    groups = [variants]
+    if gap is None:
+        # several variants stand on neighbouring lots, for the shot only
+        ref = bpy.data.collections.get("reference")
+        lots = [o for o in (ref.all_objects if ref else []) if o.name.startswith("lot") and o.type == "MESH"]
+        lot_w = 9.0
+        if lots:
+            xs = [(lots[0].matrix_world @ Vector(c)).x for c in lots[0].bound_box]
+            lot_w = max(xs) - min(xs)
+        offsets = [k * lot_w for k in range(len(variants))]
+        placed = {0: dict(zip(variants, offsets))}
+        figures_at = [(lot_w / 2, -8.0, 0.0)] if figure else []
+        frame = None
+    else:
+        # a kit of different widths: in rows, each house `gap` clear of the
+        # one before it by their own widths, every row starting at x = 0
+        per = math.ceil(len(variants) / rows)
+        groups = [variants[k:k + per] for k in range(0, len(variants), per)]
+        placed, spans = {}, []
+        for r, group in enumerate(groups):
+            x, placed[r] = 0.0, {}
+            for v in group:
+                lo, hi = bounds_x(by[v])
+                placed[r][v] = x - lo
+                x += (hi - lo) + gap
+            spans.append(x - gap)
+        everything = [o for v in variants for o in by[v]]
+        top = max((o.matrix_world @ Vector(c)).z for o in everything for c in o.bound_box)
+        front = min((o.matrix_world @ Vector(c)).y for o in everything for c in o.bound_box)
+        frame = (0.0, max(spans), top)
+        offsets = [dx for r in placed for dx in placed[r].values()]
+        figures_at = [(-1.2, front - 1.0, 0.0)] if figure else []
+    cam, _ = stage(scene, [o for v in variants for o in by[v]], offsets, figures_at=figures_at)
     for name in shots:
         eye, target, lens = SHOTS[name][:3]
         ortho = SHOTS[name][3] if len(SHOTS[name]) > 3 else None
         eye, target = Vector(eye) * scale, Vector(target) * scale
+        if keep_eye and SHOTS[name][0][2] <= 2.0:
+            eye.z = SHOTS[name][0][2]
+        size = LINEUP_SIZE if name.startswith("lineup") else SIZE
+        if frame is not None and name.startswith("lineup"):
+            eye, target, lens, ortho, size = row_shot(name, *frame)
+            eye, target = Vector(eye), Vector(target)
+            scale_o = 1.0
+        else:
+            scale_o = scale
         cam.location = eye
         cam.rotation_euler = (target - eye).to_track_quat("-Z", "Y").to_euler()
         cam.data.type = "ORTHO" if ortho else "PERSP"
         if ortho:
-            cam.data.ortho_scale = ortho * scale
+            cam.data.ortho_scale = ortho * scale_o
         cam.data.lens = lens
         cam.data.clip_start = 0.05
         cam.data.clip_end = 600
-        scene.render.resolution_x, scene.render.resolution_y = LINEUP_SIZE if name.startswith("lineup") else SIZE
-        scene.render.filepath = os.path.join(folder, f"painted_{name}.png")
-        bpy.ops.render.render(write_still=True)
-        print(f"cartoon_preview: rendered {scene.render.filepath}")
+        scene.render.resolution_x, scene.render.resolution_y = size
+        out = os.path.join(folder, f"painted_{name}.png")
+        paths = []
+        for r, group in enumerate(groups):
+            # each row in turn at its place, the others out of the shot
+            for v in variants:
+                for o in by[v]:
+                    o.location.x = placed[r][v] if v in placed[r] else 0.0
+                    o.hide_render = v not in placed[r]
+            scene.render.filepath = out if len(groups) == 1 else os.path.join(folder, f"_row{r}_{name}.png")
+            bpy.ops.render.render(write_still=True)
+            paths.append(scene.render.filepath)
+        if len(groups) > 1:
+            stack_rows(paths, out)
+        print(f"cartoon_preview: rendered {out}")
 
 main()

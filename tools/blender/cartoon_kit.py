@@ -12,9 +12,18 @@ blue stayed hash-identical): the bell-cast roof (`bell_roof`, its
 `BellRoof` with the profile the bargeboards read and the slopes the
 shingles lie on), the cluster and vent scatter (`roof_clusters`,
 `roof_vents`), the shaped brackets, the timber posts and the stoop parapets;
-`turned` was added for the purple's posts and spindles. The house itself
-(its sizes, its sunburst's composition, its order of work) stays in its
-own builder.
+`turned` was added for the purple's posts and spindles. A third set came
+with the cottage kit's conversion (`cottage_kit.py`, the same day), each
+piece one that more than one cottage, or one cottage more than once, needs:
+the plain gable roof for a house the kick would fight (`PlainRoof`,
+`plain_roof`, read by everything that reads a BellRoof), the quarter turn
+for a roof or flight that runs along X (`quarter_turn`), rafter tails, knee
+braces, round windows and plaques, shutters, the hammock, log ends, the
+fieldstone stack and the brick chimney; and three optional arguments the
+Victorians never pass, so they draw and build as before (a shaped bracket's
+`slope`, `roof_clusters`' `kick_avoid`, a bargeboard's `r_ends`). The house
+itself (its sizes, its sunburst's composition, its order of work) stays in
+its own builder.
 
 Used from a house builder run in Blender, as `family_bolt` is:
 
@@ -71,6 +80,7 @@ walked on built `collide=False`.
 """
 
 import math
+import random
 
 import bmesh
 from mathutils import Vector
@@ -493,7 +503,8 @@ def stair_rails(finish, rng, prefix, mat, x_ats, y_edge, out, z_top, n, riser, g
 
 # --- bargeboards -----------------------------------------------------------------------
 
-def barge(finish, rng, part, mats, profile, knees, r_end, xc, y_rake, out, board, band, pendants, proud=BARGE_PROUD):
+def barge(finish, rng, part, mats, profile, knees, r_end, xc, y_rake, out, board, band, pendants, proud=BARGE_PROUD,
+          r_ends=None):
     """A bargeboard as one piece, a board over a sawn band (`mats`: the
     board's and the band's), on a rake whose top is profile(r) at r from
     the ridge line xc, both sides of it: its top 2 cm under the roof's top,
@@ -503,7 +514,9 @@ def barge(finish, rng, part, mats, profile, knees, r_end, xc, y_rake, out, board
     the top. A few big pointed drops hang from the band at `pendants`
     (fractions of the first knee, or of r_end without one), as the
     Victorian photo's do, each a little different in width and depth, as
-    sawn by hand."""
+    sawn by hand. `r_ends` (per side s, an r) stops a side short of r_end,
+    where it runs into another roof (the cottage kit's log, its two gables'
+    valley, 2026-10-04); without it nothing is drawn differently."""
     def j(amount):
         return jit(rng, amount)
     reach = knees[0] if knees else r_end
@@ -517,8 +530,12 @@ def barge(finish, rng, part, mats, profile, knees, r_end, xc, y_rake, out, board
 
     def B(r):
         return M(r) - band
-    stops = [0.0] + list(knees) + [r_end]
     for s in (1, -1):
+        if r_ends and s in r_ends:
+            stops = [0.0] + [k for k in knees if k < r_ends[s]] + [r_ends[s]]
+        else:
+            stops = [0.0] + list(knees) + [r_end]
+
         def X(p):
             return (xc + s * p[0], p[1])
         for ra, rb in zip(stops, stops[1:]):
@@ -646,14 +663,17 @@ def bell_roof(finish, mat, xc, half, eave, pitch, slab, y0, y1, sag=0.05, kick_a
 
 # --- shaped brackets, timber posts, stoop parapets ---------------------------------------
 
-def shaped_bracket(finish, rng, part, mat, axis, at, face, out, z_top, reach, drop, width=0.18, foot=0.12, band=0.14):
+def shaped_bracket(finish, rng, part, mat, axis, at, face, out, z_top, reach, drop, width=0.18, foot=0.12, band=0.14,
+                   slope=0.0):
     """A knee bracket with a cove sawn out of its face and a short drop at its
     foot, each one a little different (the Victorian's balcony brackets): its
     back 4 cm into the wall whose face is at `face`, reaching `reach` out
     along `axis` ('y' or 'x') in the direction `out` (+1 or -1), its top at
     z_top lapped into what it carries, `drop` deep, `width` thick, centred on
     `at` across. Its top band is `band` deep and its foot `foot` wide; the cove
-    is a quarter ellipse between them."""
+    is a quarter ellipse between them. With `slope` its top falls that much per
+    metre out, as under a shed hood, the whole bracket sheared so it stays
+    one plane (the cottage kit's door hoods, 2026-10-04)."""
     def j(amount):
         return jit(rng, amount)
     reach = reach + j(0.03)
@@ -666,7 +686,7 @@ def shaped_bracket(finish, rng, part, mat, axis, at, face, out, z_top, reach, dr
     pts += [(ft, cz), (ft, -drop + 0.05), (ft - 0.06, -drop), (-0.04, -drop)]
     half = width / 2 + j(0.01)
     at += j(0.012)
-    return prism(finish, part, mat, [(face + out * s, z_top + dz) for s, dz in pts], "x" if axis == "y" else "y",
+    return prism(finish, part, mat, [(face + out * s, z_top + dz - s * slope) for s, dz in pts], "x" if axis == "y" else "y",
                  at - half, at + half, collide=False)
 
 
@@ -870,7 +890,7 @@ def vent_pipe(finish, part, mats, slope, r, y, height, lean):
 
 # --- scattering clusters and vents over a bell-cast roof ---------------------------------
 
-def roof_clusters(rng, bm, roof, avoid=None, scattered=3, gap=2.6):
+def roof_clusters(rng, bm, roof, avoid=None, scattered=3, gap=2.6, kick_avoid=None):
     """Shingle clusters over a BellRoof's two main slopes and their kicks, as
     the hedges' leaf clusters lie: a few small patches, scattered, never
     banded, different on each slope, the slab between them the painted
@@ -880,7 +900,10 @@ def roof_clusters(rng, bm, roof, avoid=None, scattered=3, gap=2.6):
     `scattered` more, `gap` apart and clear of `avoid` (per side s, boxes in
     r and y: a chimney). Built into `bm` from `rng` (a seed of their own, so
     the trim's hand never reshuffles the roof); returns (tabs, mains), the
-    main slopes by side with the tabs they hold, for vents to keep clear of."""
+    main slopes by side with the tabs they hold, for vents to keep clear of.
+    `kick_avoid` (per side, the same boxes) keeps the eave's tabs off
+    something standing on the eave (the cottage kit's hip, its little front
+    gable, 2026-10-04); without it nothing is drawn differently."""
     avoid = avoid or {}
     y0, y1, r_k = roof.y0, roof.y1, roof.r_k
     tabs = 0
@@ -888,6 +911,8 @@ def roof_clusters(rng, bm, roof, avoid=None, scattered=3, gap=2.6):
     for s in (1, -1):
         main = mains[s] = roof.slope(s, avoid.get(s, ()))
         kick = roof.kick_slope(s)
+        if kick_avoid:
+            kick["avoid"] = list(kick_avoid.get(s, ()))
         ct = math.cos(roof.pitch)
         centres = []
 
@@ -939,3 +964,472 @@ def roof_vents(finish, rng, mats, roof, mains, counts=((-1, 2), (1, 1)), part="r
                       (rng.uniform(-0.01, 0.01), rng.uniform(-0.01, 0.01)))
             vents += 1
     return vents
+
+
+# --- the cottage kit's pieces (2026-10-04) ----------------------------------------------
+# A third set, from the cottage kit's conversion (`cottage_kit.py`): the plain
+# gable roof for a house the bell-cast kick would fight, the quarter turn for
+# a roof whose ridge runs along X, and the folksy pieces more than one cottage
+# (or one cottage more than once) needs. Nothing above was changed for them.
+
+class PlainRoof(BellRoof):
+    """A gable roof the standard's way without the bell-cast kick, for a house
+    whose eaves the kick would fight (rafter tails, a low ranch, a metal roof):
+    one thick slab straight out to a deep eave, a ridge roll, sagging between
+    the rakes. Built by `plain_roof`. It keeps BellRoof's readings, its 'kick'
+    being the slab's own run past the wall line (r_k is the wall, r_in too),
+    so bargeboards, the shingle grid, `roof_clusters` and `roof_vents` read it
+    as they read a bell-cast one."""
+
+    def __init__(self, xc, half, eave, pitch, slab, y0, y1, sag, eave_over):
+        super().__init__(xc, half, eave, pitch, slab, y0, y1, sag, 0.0, math.degrees(pitch), slab / math.cos(pitch),
+                         0.0, eave_over)
+
+
+def plain_roof(finish, mat, xc, half, eave, pitch, slab, y0, y1, sag=0.05, eave_over=0.75, ridge=0.24, part="roof",
+               ridge_part="ridge_cap"):
+    """The plain gable roof over walls `half` either side of the ridge line xc
+    with their eave at `eave`, from rake to rake (y0..y1): one slab `slab`
+    thick at `pitch` (radians) out to an `eave_over` eave, its edge a plumb
+    fascia of the slab's own depth, and the bell roof's ridge roll, all
+    sagging `sag` at mid-length. Parts `part` and `ridge_part`; returns the
+    PlainRoof."""
+    roof = PlainRoof(xc, half, eave, pitch, slab, y0, y1, sag, eave_over)
+    stations, vt, under = roof.stations, roof.vt, roof.under
+    x_end = roof.r_out
+    section = [(xc - x_end, under(xc - x_end)), (xc, under(xc)), (xc + x_end, under(xc + x_end)),
+               (xc + x_end, under(xc + x_end) + vt), (xc, under(xc) + vt), (xc - x_end, under(xc - x_end) + vt)]
+    swept(finish, part, mat, section, stations)
+    rt, top, h = roof.rt, roof.top, ridge
+    swept(finish, ridge_part, mat, [(xc - h, top(xc - h) - 0.03), (xc, rt - 0.03), (xc + h, top(xc + h) - 0.03),
+                                    (xc + h, top(xc + h) + 0.07), (xc, rt + 0.08), (xc - h, top(xc - h) + 0.07)],
+          [(y0 - 0.02, 0.0)] + stations[1:-1] + [(y1 + 0.02, 0.0)], collide=False)
+    return roof
+
+
+def quarter_turn(finish):
+    """A finish that turns what is built a quarter about the vertical through
+    the origin, for a roof (or a flight) that runs along X: build it in a
+    frame where local x = -y and local y = x, where the kit's slopes fall
+    along local X and its flights run along local Y, and this turns it back.
+    A turn about the origin keeps every dot product, so raised tabs stay on
+    the painted shingle grid (as `street_clusters` in the Victorian does)."""
+    def turned(part, bm, mats, collide=True):
+        for v in bm.verts:
+            v.co = Vector((v.co.y, -v.co.x, v.co.z))
+        return finish(part, bm, mats, collide=collide)
+    return turned
+
+
+def rod_bm(axis, ca, cb, rings, sides=8, bm=None):
+    """A round rod along `axis` ('x' or 'y') as stacked `sides`-gons (radius,
+    t) from one end to the other, flats facing the axes, centred at (ca, cb)
+    in the section plane ('x': (y, z), 'y': (x, z)): a log end, a dowel."""
+    if bm is None:
+        bm = bmesh.new()
+
+    def at(a, b, t):
+        return (t, a, b) if axis == "x" else (a, t, b)
+    loops = [[bm.verts.new(at(ca + r * math.cos(math.tau * (k + 0.5) / sides), cb + r * math.sin(math.tau * (k + 0.5) / sides), t))
+              for k in range(sides)] for r, t in rings]
+    bm.faces.new(list(reversed(loops[0])))
+    for a, b in zip(loops, loops[1:]):
+        for k in range(sides):
+            bm.faces.new((a[k], a[(k + 1) % sides], b[(k + 1) % sides], b[k]))
+    bm.faces.new(loops[-1])
+    return bm
+
+
+def rafter_tails(finish, rng, part, mat, roof, s, ys, depth=0.20, width=0.14, short=0.12, inside=0.06):
+    """Fat rafter tails under one eave of a PlainRoof (`s` +1 the eave toward
+    +X, -1 toward -X), one piece: a tail at each y of `ys`, `width` across,
+    its top 2 cm up in the slab's underside (the sag included) from `inside`
+    behind the wall's face out to `short` short of the eave's edge (a
+    negative `short` runs it on past the edge, an exposed beam end), `depth`
+    deep under it, its foot a plumb cut over a bevel, as a craftsman tail's.
+    Each one's reach, depth and width differ by a centimetre or two."""
+    bm = bmesh.new()
+    xc, half, tan = roof.xc, roof.half, roof.tan
+    for y in ys:
+        sag = sag_at(roof.stations, y)
+
+        def U(r, sag=sag):
+            return roof.eave + (half - r) * tan - sag + 0.02
+        ra, rb = half - inside, roof.r_out - short + jit(rng, 0.02)
+        d, w = depth + jit(rng, 0.015), width / 2 + jit(rng, 0.006)
+        rc = rb - 0.5 * d
+        sec = [(ra, U(ra)), (rb, U(rb)), (rb, U(rb) - 0.45 * d), (rc, U(rc) - d), (ra, U(ra) - d)]
+        prism_bm([(xc + s * r, z) for r, z in sec], "y", y - w, y + w, bm=bm)
+    return finish(part, bm, [mat], collide=False)
+
+
+def knee_brace(finish, rng, part, mat, x_wall, outward, y_face, y_out, under, reach, drop, width=0.16, bar=0.16):
+    """A fat craftsman knee brace in a gable's face, under the eave's corner,
+    one piece: a post on the corner board's face (the board 0.30 square and 4
+    cm proud of the side wall at x_wall, `outward` +1 or -1) from `drop` under
+    the eave down to a pointed foot, and a fat strut from its lower half out
+    to `reach` past the wall, their tops 2 cm up in the roof's underside,
+    `under(x)`; `width` thick, standing out of the gable's face at y_face
+    (`y_out` -1 at the front), lapped 2 cm into the board. Its reach and drop
+    differ by a few centimetres."""
+    def U(u):
+        return under(x_wall + outward * u) + 0.02
+    reach, drop = reach + jit(rng, 0.03), drop + jit(rng, 0.04)
+    u0, u1 = 0.055 - bar, 0.055                 # the post across the board's outer edge, 1.5 cm past it (never on its face)
+    zf = U(0.0) - drop
+    zs = zf + 0.35 * drop                       # where the strut leaves the post
+    tip = (reach, U(reach))
+    d = Vector((tip[0] - u1, tip[1] - zs)).normalized()
+    n = Vector((-d.y, d.x)) * (bar / 2)
+
+    def on_post(sign):                          # an edge line meeting the post's face
+        p = Vector((u1, zs)) + n * sign
+        return (u1, p.y + (u1 - p.x) * d.y / d.x)
+
+    def on_roof(sign):                          # an edge line meeting the underside, by halving
+        p = Vector((u1, zs)) + n * sign
+        lo, hi = 0.0, 4.0
+        for _ in range(60):
+            t = (lo + hi) / 2
+            q = p + d * t
+            lo, hi = (t, hi) if q.y < U(q.x) else (lo, t)
+        q = p + d * lo
+        return (q.x, q.y)
+    a_lo, a_hi = on_post(-1), on_post(1)
+    c_lo, c_hi = on_roof(-1), on_roof(1)
+    if a_lo[1] > a_hi[1]:
+        a_lo, a_hi, c_lo, c_hi = a_hi, a_lo, c_hi, c_lo
+    um = (u0 + u1) / 2
+    post = [(u0, zf + 0.07), (um, zf), (u1, zf + 0.07), a_lo, a_hi, (u1, U(u1)), (u0, U(u0))]
+    strut = [a_lo, c_lo, c_hi, a_hi]
+
+    def X(p):
+        return (x_wall + outward * p[0], p[1])
+    lo, hi = sorted((y_face - y_out * 0.02, y_face + y_out * (width - 0.02)))
+    return plate(finish, part, [mat], [([X(p) for p in post], 0), ([X(p) for p in strut], 0)], "y", lo, hi, collide=False)
+
+
+def round_window(finish, rng, prefix, mats, axis, ca, cz, r, face, out, frame=CASING, proud=CASING_PROUD, sunk=CASING_SUNK,
+                 sides=12, cross=0.0):
+    """A round window on a wall, or without glass a round plaque: a fat ring
+    frame `frame` wide round a disc of radius r (`mats`: the frame's and the
+    disc's, glass or the plaque's face), the ring `proud` out of the wall
+    (`face`, facing `out`) and its back `sunk` into it, the disc lapped 2 cm
+    under the ring, 1.5 cm proud; with `cross`, a fat muntin cross that wide
+    on the disc, in the frame's colour. Centred at (ca, cz) on the wall,
+    `axis` 'x' for a wall facing +-Y. Its centre and girth a centimetre off."""
+    ca, cz, r = ca + jit(rng, 0.01), cz + jit(rng, 0.01), r + jit(rng, 0.008)
+    ring = []
+    for k in range(sides):
+        a, b = math.tau * k / sides, math.tau * (k + 1) / sides
+        ring.append(([(ca + r * math.cos(a), cz + r * math.sin(a)), (ca + (r + frame) * math.cos(a), cz + (r + frame) * math.sin(a)),
+                      (ca + (r + frame) * math.cos(b), cz + (r + frame) * math.sin(b)), (ca + r * math.cos(b), cz + r * math.sin(b))], 0))
+    plane = "y" if axis == "x" else "x"
+    lo, hi = sorted((face - sunk * out, face + proud * out))
+    frame_obj = plate(finish, f"{prefix}_frame", [mats[0]], ring, plane, lo, hi, collide=False)
+    disc = [(ca + (r + 0.02) * math.cos(math.tau * k / sides), cz + (r + 0.02) * math.sin(math.tau * k / sides)) for k in range(sides)]
+    lo, hi = sorted((face - 0.02 * out, face + 0.015 * out))
+    prism(finish, f"{prefix}_disc", mats[1], disc, plane, lo, hi, collide=False)
+    if cross:
+        c = cross / 2
+        polys = [([(ca - r - 0.02, cz - c), (ca - c, cz - c), (ca - c, cz + c), (ca - r - 0.02, cz + c)], 0),
+                 ([(ca - c, cz - c), (ca + c, cz - c), (ca + c, cz + c), (ca - c, cz + c)], 0),
+                 ([(ca + c, cz - c), (ca + r + 0.02, cz - c), (ca + r + 0.02, cz + c), (ca + c, cz + c)], 0),
+                 ([(ca - c, cz - r - 0.02), (ca + c, cz - r - 0.02), (ca + c, cz - c), (ca - c, cz - c)], 0),
+                 ([(ca - c, cz + c), (ca + c, cz + c), (ca + c, cz + r + 0.02), (ca - c, cz + r + 0.02)], 0)]
+        lo, hi = sorted((face + 0.005 * out, face + 0.04 * out))
+        plate(finish, f"{prefix}_cross", [mats[0]], polys, plane, lo, hi, collide=False)
+    return frame_obj
+
+
+def shutter(finish, rng, prefix, mats, axis, face, out, a0, a1, z0, z1, stile=0.08, rails=(0.10, 0.08, 0.10), proud=0.05):
+    """A fat shutter beside a window, two pieces: a frame of two stiles and
+    three rails (bottom, middle, top; `rails` their depths) standing `proud`
+    of the wall (`face`, facing `out`), lapped 2 cm into it, and its louvred
+    panel behind the frame, 2 cm back from the frame's face, its edges lapped
+    under it (the louvres are paint); `mats` the frame's and the panel's.
+    (a0, a1) across, (z0, z1) up, `axis` 'x' for a wall facing +-Y. Each one
+    a centimetre different at its top."""
+    z1 = z1 + jit(rng, 0.012)
+    rb, rm, rt = rails
+    zm0 = (z0 + z1) / 2 - rm / 2
+    zm1 = zm0 + rm
+    i0, i1 = a0 + stile, a1 - stile
+    polys = [([(a0, z0), (i0, z0), (i0, z0 + rb), (i0, zm0), (i0, zm1), (i0, z1 - rt), (i0, z1), (a0, z1)], 0),
+             ([(i1, z0), (a1, z0), (a1, z1), (i1, z1), (i1, z1 - rt), (i1, zm1), (i1, zm0), (i1, z0 + rb)], 0),
+             ([(i0, z0), (i1, z0), (i1, z0 + rb), (i0, z0 + rb)], 0),
+             ([(i0, zm0), (i1, zm0), (i1, zm1), (i0, zm1)], 0),
+             ([(i0, z1 - rt), (i1, z1 - rt), (i1, z1), (i0, z1)], 0)]
+    plane = "y" if axis == "x" else "x"
+    lo, hi = sorted((face - 0.02 * out, face + proud * out))
+    plate(finish, f"{prefix}", [mats[0]], polys, plane, lo, hi, collide=False)
+    lo, hi = sorted((face - 0.015 * out, face + (proud - 0.02) * out))
+    pts = [(i0 - 0.02, z0 + rb - 0.02), (i1 + 0.02, z0 + rb - 0.02), (i1 + 0.02, z1 - rt + 0.02), (i0 - 0.02, z1 - rt + 0.02)]
+    return prism(finish, f"{prefix}_panel", mats[1], pts, plane, lo, hi, collide=False)
+
+
+def hammock(finish, rng, prefix, mats, x0, x1, y, z_hook, sag, width=1.0, thick=0.08, gather=0.55, stations=10):
+    """A hammock slung between hooks at (x0, y, z_hook) and (x1, y, z_hook),
+    chunky and sagging (`mats`: the cloth's, the bars' and cords'): a fat cloth
+    bed from `gather` in from each hook, dished across (its edges higher than
+    its middle) and `thick` deep, sagging `sag` at its middle under its ends,
+    which hang 0.6 of `gather` under the hooks; the section scaled whole with
+    the bed's width (0.7 of `width` at the ends), so every face stays planar;
+    a fat spreader bar across each end, and two fat cords from each bar's
+    ends up to its hook. Its sag and width differ by a few centimetres."""
+    sag, width = sag + jit(rng, 0.03), width + jit(rng, 0.03)
+    xa, xb = x0 + gather, x1 - gather
+    z_end = z_hook - 0.6 * gather
+    lip = 0.16 * width
+    sec = [(-width / 2, lip), (-width / 4, 0.0), (width / 4, 0.0), (width / 2, lip),
+           (width / 2, lip - thick), (width / 4, -thick), (-width / 4, -thick), (-width / 2, lip - thick)]
+    bm = bmesh.new()
+    loops = []
+    for i in range(stations + 1):
+        t = i / stations
+        x = xa + (xb - xa) * t
+        zc = z_end - sag * (1.0 - (2 * t - 1) ** 2)
+        k = 0.7 + 0.3 * math.sin(math.pi * t)
+        loops.append([bm.verts.new((x, y + k * a, zc + k * b)) for a, b in sec])
+    bm.faces.new(loops[0])
+    bm.faces.new(list(reversed(loops[-1])))
+    for a, b in zip(loops, loops[1:]):
+        for j in range(len(sec)):
+            bm.faces.new((a[j], a[(j + 1) % len(sec)], b[(j + 1) % len(sec)], b[j]))
+    finish(f"{prefix}", bm, [mats[0]], collide=False)
+    bm = bmesh.new()
+    half = 0.7 * width / 2
+    for x, sx in ((xa, -1), (xb, 1)):
+        # the spreader bar, lapped round the bed's gathered end, and its two cords
+        prism_bm([(y - half - 0.05, z_end - 0.02), (y + half + 0.05, z_end - 0.02), (y + half + 0.05, z_end + 0.06),
+                  (y - half - 0.05, z_end + 0.06)], "x", x + sx * 0.01 - 0.04, x + sx * 0.01 + 0.04, bm=bm)
+        hook = Vector((x + sx * gather, y, z_hook))       # out past the bed's end, at its post
+        for side in (-1, 1):
+            foot = Vector((x + sx * 0.01, y + side * (half + 0.02), z_end + 0.04))
+            d = (hook - foot).normalized()
+            e1 = d.cross(Vector((0.0, 0.0, 1.0))).normalized() * 0.022
+            e2 = d.cross(e1).normalized() * 0.022
+            ends = (foot - d * 0.03, hook + d * 0.03)
+            a = [bm.verts.new(ends[0] + e1 * p + e2 * q) for p, q in ((-1, -1), (1, -1), (1, 1), (-1, 1))]
+            b = [bm.verts.new(ends[1] + e1 * p + e2 * q) for p, q in ((-1, -1), (1, -1), (1, 1), (-1, 1))]
+            bm.faces.new(list(reversed(a)))
+            bm.faces.new(b)
+            for j in range(4):
+                bm.faces.new((a[j], a[(j + 1) % 4], b[(j + 1) % 4], b[j]))
+    return finish(f"{prefix}_cords", bm, [mats[1]], collide=False)
+
+
+# A log house's courses: a log every LOG_COURSE up from LOG_R (the first
+# log's centre), its round ends fat at the corners (`log_ends`) and its
+# length on the wall faces (`log_courses`), so the painting's grain and the
+# logs run in one rhythm.
+LOG_R, LOG_COURSE = 0.17, 0.34
+
+
+def log_courses(finish, rng, part, mat, axis, face_at, outward, a0, a1, z_lo, z_hi, gaps=(), r=LOG_R, course=LOG_COURSE,
+                proud=0.05, end_in=0.03):
+    """The round logs along a log house's wall face, between its corners' fat
+    ends (her "the log cabin walls need some work", 2026-10-05: painted on a
+    flat wall they read as siding): one every `course` up from `r`, each a
+    half-hexagon a centimetre under half a course in radius, its flat front
+    `proud` out of the face at `face_at` (outward `outward`) and its back sunk
+    into the wall, so a crease of wall shows between logs as chinking; along
+    `axis` from a0 to a1, each end `end_in` short and cut square; broken round
+    `gaps` [(a0, a1, z0, z1)] (the openings' casings, whatever stands in
+    front) where a gap reaches the log's middle; whole logs only, between
+    z_lo and z_hi. Each log's girth differs
+    by a few millimetres, as hewn. 10 triangles a length (its back is open,
+    inside the wall)."""
+    bm = bmesh.new()
+    z = r
+    c30 = math.cos(math.radians(30))
+    while z + r <= z_hi + 1e-6:
+        rr = course / 2 - 0.01 + jit(rng, 0.004)
+        if z - rr >= z_lo - 1e-6:
+            n_c = face_at + outward * (proud - rr * c30)
+            prof = [(n_c + outward * rr * math.cos(math.radians(t)), z + rr * math.sin(math.radians(t))) for t in (-90, -30, 30, 90)]
+            runs = [(a0 + end_in, a1 - end_in)]
+            for g0, g1, gz0, gz1 in gaps:
+                # a gap breaks a log only where it reaches the log's middle:
+                # the top log runs on over the casings' heads as a plate and
+                # a log under a sill runs on beneath it (her "the mesh on the
+                # front of the house still doesnt make sense", 2026-10-05:
+                # broken there they left short stubs)
+                if not gz0 < z < gz1:
+                    continue
+                runs = [piece for b0, b1 in runs for piece in ((b0, min(b1, g0)), (max(b0, g1), b1)) if piece[1] - piece[0] > 0.0]
+            for b0, b1 in runs:
+                if b1 - b0 < 0.15:
+                    continue
+                ends = []
+                for a in (b0, b1):
+                    ends.append([bm.verts.new((a, n, zz) if axis == "x" else (n, a, zz)) for n, zz in prof])
+                p, q = ends
+                for i in range(3):
+                    bm.faces.new((p[i], p[i + 1], q[i + 1], q[i]))
+                bm.faces.new(p)
+                bm.faces.new(list(reversed(q)))
+        z += course
+    return finish(part, bm, [mat], collide=False)
+
+
+def log_ends(finish, rng, part, mat, cx, cy, sx, sy, z_top, r=LOG_R, course=LOG_COURSE, past=0.38, into=0.30, wall=0.20,
+             sides=8, z0=None):
+    """Fat round log ends at one outside corner of a log house (the corner's
+    outer point at (cx, cy), `sx`, `sy` its outward signs), one piece: a
+    course of round logs every `course` up from z0 (the first log's centre,
+    `r` by default) to z_top, along X and along Y by turns, each `past` beyond
+    the corner and `into` the walls, centred in the wall's thickness so it
+    stands proud of both faces, its outer end chamfered to a smaller ring.
+    Each end differs by a few centimetres in reach and a centimetre in girth,
+    as cut by hand. The logs between the corners are paint."""
+    bm = bmesh.new()
+    z = r if z0 is None else z0
+    k = 0
+    while z + r * 0.8 < z_top:
+        rr, reach = r + jit(rng, 0.01), past + jit(rng, 0.04)
+        if k % 2 == 0:
+            a_out, a_in = cx + sx * reach, cx - sx * into
+            rings = [(rr, a_in), (rr, a_out - sx * 0.06), (rr * 0.82, a_out)]
+            rod_bm("x", cy - sy * wall / 2, z, rings, sides=sides, bm=bm)
+        else:
+            a_out, a_in = cy + sy * reach, cy - sy * into
+            rings = [(rr, a_in), (rr, a_out - sy * 0.06), (rr * 0.82, a_out)]
+            rod_bm("y", cx - sx * wall / 2, z, rings, sides=sides, bm=bm)
+        z += course
+        k += 1
+    return finish(part, bm, [mat], collide=False)
+
+
+# The fieldstone grid a stone stack's painting follows and its raised stones
+# snap to, as the shingles' (her "fix the log chimney stones", 2026-10-04:
+# a few lone flattened octagons read as odd crescents): courses STONE_E tall
+# counted from z = 0, stones STONE_W long along each face measured as the
+# world position across it, each course slid by the shingles' STAGGER of a
+# stone so no two courses' joints line up, joints STONE_KEY wide on the
+# grid's lines. Twice a real fieldstone, as the siding and shingles are.
+# Some stones are split in two (`stone_split`), so the widths vary and the
+# stack reads as fieldstone, not bricks; the split is a low-discrepancy hash
+# of the cell (the R2 sequence) that a shader can reproduce exactly.
+STONE_E, STONE_W, STONE_KEY = 0.32, 0.56, 0.05
+
+
+def stone_split(k, j):
+    """Where course k's stone j is split, as a fraction across it, or None."""
+    h = (k * 0.7548777 + j * 0.5698403) % 1.0
+    return 0.35 + 0.30 * ((h * 7.3) % 1.0) if h > 0.6 else None
+
+
+def stone_cell(k, j):
+    """Course k's stone j: (a0, a1, z0, z1), `a` across the face."""
+    f = shingle_stagger(k)
+    return (j - f) * STONE_W, (j + 1 - f) * STONE_W, k * STONE_E, (k + 1) * STONE_E
+
+
+STONE_ROUND = 0.08         # a stone's corners rounded this much, painted and raised alike
+
+
+def raised_stone_bm(bm, axis, face, sgn, a0, a1, z0, z1, proud, bevel=0.05, sunk=0.04):
+    """One raised fieldstone in its grid cell less the joint: a chunky block
+    from `sunk` inside the face out to `proud`, its corners cut STONE_ROUND
+    as the painted stones' are rounded, its front edges bevelled `bevel` all
+    round so it reads as a rounded stone, not a tile. 38 triangles (its back,
+    inside the stack, is left open)."""
+    k = STONE_KEY / 2
+    a0, a1, z0, z1 = a0 + k, a1 - k, z0 + k, z1 - k
+
+    def outline(i, c):
+        b0, b1, y0, y1 = a0 + i, a1 - i, z0 + i, z1 - i
+        return [(b0 + c, y0), (b1 - c, y0), (b1, y0 + c), (b1, y1 - c), (b1 - c, y1), (b0 + c, y1), (b0, y1 - c), (b0, y0 + c)]
+    rings = [(outline(0.0, STONE_ROUND), -sunk), (outline(0.0, STONE_ROUND), proud - bevel),
+             (outline(bevel, STONE_ROUND * 0.6), proud)]
+    loops = []
+    for pts, d in rings:
+        n = face + sgn * d
+        loops.append([bm.verts.new((a, n, z) if axis == "y" else (n, a, z)) for a, z in pts])
+    for p, q in zip(loops, loops[1:]):
+        for i in range(8):
+            bm.faces.new((p[i], p[(i + 1) % 8], q[(i + 1) % 8], q[i]))
+    bm.faces.new(loops[-1])
+    return bm
+
+
+def stone_stack(finish, rng, prefix, mat, cx, cy, hx, hy, z_foot, z_shoulder, z_top, foot=0.20, shoulder=0.45, cap=0.07,
+                clusters=3, faces=(("y", -1), ("x", -1), ("x", 1)), z_stones=None):
+    """A tall fieldstone chimney (`hx`, `hy` the shaft's half-sizes, centred on
+    (cx, cy)), one piece: a broad foot `foot` wider each side from z_foot to
+    z_shoulder, a sloped shoulder `shoulder` tall stepping in to the shaft,
+    the shaft on up to z_top under a fat cap flaring `cap` round it, a touch
+    off plumb. Then a few patches of its painted stones standing out of the
+    shaft's `faces` (axis of the face's normal, its sign), as the roofs'
+    shingle clusters lift: `clusters` patches, each one to three whole grid
+    stones in its lowest course and fewer in each of the one or two above, so
+    it mounds; a stone the face's edge would cut is trimmed to the face, and
+    dropped if less than 0.25 m is left; a split stone lifts its wider half;
+    every stone 6 to 10 cm proud, its front bevelled 5 cm all round. Each
+    patch lies within one of the bands `z_stones` [(z0, z1), ...], clear of
+    what the stack passes through. The stones draw from a generator of their
+    own, seeded by one draw, so changing them never moves what comes after.
+    Returns the stack."""
+    lean = (jit(rng, 0.012) / (z_top - z_foot), jit(rng, 0.012) / (z_top - z_foot))
+    srng = random.Random(rng.random())
+    zs1 = z_shoulder + shoulder
+    stack = lathe(finish, f"{prefix}chimney", mat, cx, cy,
+                  [(hx + foot, hy + foot, z_foot), (hx + foot, hy + foot, z_shoulder), (hx, hy, zs1), (hx, hy, z_top - 0.22),
+                   (hx + cap, hy + cap, z_top - 0.19), (hx + cap, hy + cap, z_top), (hx - 0.04, hy - 0.04, z_top + 0.05)],
+                  lean=lean)
+    bands = z_stones or [(zs1 + 0.4, z_top - 0.7)]
+    bm = bmesh.new()
+    used = set()
+    for _ in range(clusters):
+        axis, sgn = faces[srng.randrange(len(faces))]
+        c_a, span = (cx, hx) if axis == "y" else (cy, hy)    # the face's middle and half-width across
+        b0, b1 = bands[srng.randrange(len(bands))]
+        k_lo, k_hi = math.ceil(b0 / STONE_E), math.floor(b1 / STONE_E) - 1
+        if k_hi < k_lo:
+            continue
+        k0 = srng.randint(k_lo, max(k_lo, k_hi - 1))
+        mid, half = c_a + srng.uniform(-0.25, 0.25) * span, srng.uniform(0.40, 0.70)
+        for i in range(srng.randint(2, 3)):
+            k = k0 + i                                   # up the stack, course by course
+            if k > k_hi:
+                break
+            h = half * (1.0 - 0.35 * i)
+            f = shingle_stagger(k)
+            for j in range(math.floor((mid - h) / STONE_W + f) - 1, math.floor((mid + h) / STONE_W + f) + 2):
+                a0, a1, z0, z1 = stone_cell(k, j)
+                if abs((a0 + a1) / 2 - mid) > h + STONE_W / 2 or (axis, sgn, k, j) in used:
+                    continue
+                cut = stone_split(k, j)
+                if cut is not None:                      # a split stone lifts its wider half
+                    a0, a1 = (a0, a0 + cut * STONE_W) if cut >= 0.5 else (a0 + cut * STONE_W, a1)
+                z = (z0 + z1) / 2
+                ox, oy = lean[0] * (z - z_foot), lean[1] * (z - z_foot)
+                lo_edge = c_a + (ox if axis == "y" else oy) - span + 0.03
+                hi_edge = c_a + (ox if axis == "y" else oy) + span - 0.03
+                a0, a1 = max(a0, lo_edge), min(a1, hi_edge)
+                if a1 - a0 < 0.25:
+                    continue
+                used.add((axis, sgn, k, j))
+                face = (cy + oy + sgn * hy) if axis == "y" else (cx + ox + sgn * hx)
+                raised_stone_bm(bm, axis, face, sgn, a0, a1, z0, z1, srng.uniform(0.06, 0.10))
+    finish(f"{prefix}chimney_stones", bm, [mat], collide=False)
+    return stack
+
+
+def brick_chimney(finish, rng, prefix, mats, cx, cy, hx, hy, z_base, z_band, z_top, band=0.06, cap=0.08):
+    """A fat brick chimney (`hx`, `hy` its half-sizes, centred on (cx, cy))
+    from z_base inside the roof, two pieces (`mats`: the stack's and the
+    cap's): the stack with a corbelled band `band` proud at z_band, and a fat
+    cap `cap` proud round its top, 2 cm down over the stack; a touch off
+    plumb, its band and cap a centimetre uneven."""
+    lx, ly = jit(rng, 0.012) / (z_top - z_base), jit(rng, 0.012) / (z_top - z_base)
+    zb = z_band + jit(rng, 0.02)
+    lathe(finish, f"{prefix}chimney", mats[0], cx, cy,
+          [(hx, hy, z_base), (hx, hy, zb), (hx + band, hy + band, zb + 0.04), (hx + band, hy + band, zb + 0.16),
+           (hx, hy, zb + 0.20), (hx, hy, z_top)], lean=(lx, ly))
+    ox, oy = lx * (z_top - z_base), ly * (z_top - z_base)
+    c = cap + jit(rng, 0.01)
+    return lathe(finish, f"{prefix}chimney_cap", mats[-1], cx + ox, cy + oy,
+                 [(hx + c - 0.03, hy + c - 0.03, z_top - 0.02), (hx + c, hy + c, z_top + 0.02), (hx + c, hy + c, z_top + 0.12),
+                  (hx - 0.05, hy - 0.05, z_top + 0.16)], collide=False)

@@ -554,7 +554,14 @@ From the plan's texture standards (2026-09-24):
   A few clusters of those same shingles lift off the roof, like the hedges'
   leaf clusters. They are snapped to the painted grid, so the roof's UVs and
   painting must follow it. Each is wedged thin at the head "like an ax head",
-  and they draw from a seed of their own. Red trim under the eaves is a shade
+  and they draw from a seed of their own. Stone (a chimney's fieldstone) works
+  the same way: stones painted at about 0.32 by 0.56 m on a shared grid,
+  some split narrower, corners rounded and each stone pillowed, or they read
+  as bricks, and a few patches of those same stones lift off the stack (her
+  "fix the log chimney stones", 2026-10-04). Where the material itself is the
+  building's idea, it is modelled, not painted: a log cabin's walls are round
+  logs in the corner ends' rhythm, painted logs on a flat wall having read as
+  siding (her "the log cabin walls need some work", 2026-10-05). Red trim under the eaves is a shade
   darker, as if in their shadow. The study's walls also lean in 1.75°, which
   costs every opening and barely shows. A converted house replaces its old
   version in place (her "these would be replacements and not variants",
