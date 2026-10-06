@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 ; Editor-owned world ground (2026-10-05, Stage 1 of
 ; documentation/terrain-master-into-game-plan-2026-10-05.md: Christina approved
@@ -8,10 +8,13 @@
 ; import. The materials are the ones these grounds wore in
 ; scenes/world/park_groundworks.tscn, shared from assets/materials/ so one
 ; change in the inspector reaches every piece of land that uses them.
+; The hill lakes K1 and L0 (Stage 3, edit 4) come from the master's Lakes collection and
+; wear the bay's water, assets/materials/lake_water.tres; they have no collision.
 [ext_resource type="PackedScene" path="res://assets/world_terrain_master.glb" id="1_source"]
 [ext_resource type="Material" path="res://assets/materials/landscape_depth_vertex.tres" id="2_depth_vertex"]
 [ext_resource type="Material" path="res://assets/materials/landscape_depth_plain.tres" id="3_depth_plain"]
 [ext_resource type="Material" path="res://assets/materials/ground_shoulder.tres" id="4_shoulder"]
+[ext_resource type="Material" path="res://assets/materials/lake_water.tres" id="5_lake"]
 
 [node name="world_terrain" instance=ExtResource("1_source")]
 editor_description = "Editable source: res://assets/source/world_terrain_master.blend, its Ground collection. Since 2026-10-05 this is the ground the generator used to emit (the mainland reserve, both coasts, the park's T2, T3 and T6, both east shoulders), copied vertex for vertex. Since Stage 2 the generator no longer writes its own copies, and what it places on the ground follows this one: edit the Blender source, run tools/export_world_source.sh assets/source/world_terrain_master.blend, then Godot --headless --path . --import, then tools/world_terrain_delta.gd to see what changed, then the generator. Roads keep their own graded profiles. The road corridor, the tunnel lids, the west shell and both protected cascades are not here and stay as they were."
@@ -39,5 +42,11 @@ material_override = ExtResource("4_shoulder")
 
 [node name="east_shoulder_s" parent="." index="7"]
 material_override = ExtResource("4_shoulder")
+
+[node name="lake_K1" parent="." index="8"]
+material_override = ExtResource("5_lake")
+
+[node name="lake_L0" parent="." index="9"]
+material_override = ExtResource("5_lake")
 
 [node name="authored_additions" type="Node3D" parent="."]

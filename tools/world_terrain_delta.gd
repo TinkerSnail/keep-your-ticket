@@ -14,9 +14,9 @@ extends SceneTree
 ## edit to the master, before regenerating, to see what the generated park will
 ## follow.
 ##
-## `--self-check` raises a smooth bump in a copy of the master's faces in memory
-## (nothing is written) and checks the reading finds it: the bump's height at
-## its corners inside, exactly zero outside. Quits 1 on any miss.
+## `--self-check` raises a smooth bump in a copy of the baseline's faces in
+## memory (nothing is written) and checks the reading finds it: the bump's height
+## at its corners inside, exactly zero outside. Quits 1 on any miss.
 ##
 ## `--write-baseline` froze the master as `assets/source/world_terrain_baseline.res`
 ## on 2026-10-05, while it was still the generator's ground exactly; it refuses
@@ -53,12 +53,14 @@ func _bump(p: Vector2) -> float:
 
 
 func _self_check() -> int:
-	var master := WorldTerrainSource.load_master()
+	# The bump goes on a copy of the baseline, not the master, so the check holds however
+	# far the master has been edited since.
 	var baseline := WorldTerrainSource.load_baseline()
+	var master := baseline.duplicate(true)
 	var same := WorldTerrainSource.new(master, baseline)
 	var failures := 0
 	if same.changed():
-		print("self-check: the master already differs from the baseline; %s" % same.summary())
+		print("self-check: the baseline reads as changed against itself; %s" % same.summary())
 		failures += 1
 	var bumped := {}
 	var raised := 0

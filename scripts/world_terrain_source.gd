@@ -112,12 +112,15 @@ func summary() -> String:
 		added, removed, _dirty.size(), CELL, lo.x, hi.x, lo.y, hi.y, fall, rise]
 
 
+## The master's ground: every mesh in it that carries collision, which is every mesh one
+## can stand on. The lakes' water (2026-10-05) is exported `kyt_collision=none` and so is
+## not ground.
 static func load_master() -> Dictionary:
 	var scene := (load(MASTER_GLB) as PackedScene).instantiate()
 	var out := {}
 	for node in scene.find_children("*", "MeshInstance3D", true, false):
 		var mi := node as MeshInstance3D
-		if mi.mesh != null:
+		if mi.mesh != null and not mi.find_children("*", "CollisionShape3D", true, false).is_empty():
 			out[String(mi.name)] = faces_of(mi.mesh, _world_xf(mi))
 	scene.free()
 	return out

@@ -1,0 +1,10 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+; The hill lakes' water (2026-10-05, terrain Stage 3, edit 4), in the bay's own values
+; (tools/gen_props.gd, mats["water"]) so lake and sea read as one water. Flat and opaque,
+; like the bay: what lies under it is not drawn through it.
+
+[resource]
+albedo_color = Color(0.34, 0.44, 0.52, 1)
+metallic = 0.1
+roughness = 0.08
