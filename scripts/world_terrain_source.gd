@@ -34,6 +34,34 @@ const BODIES: Array[String] = [
 	"east_shoulder_n",
 	"east_shoulder_s",
 ]
+## The range's and city's landforms, which joined the master on 2026-10-06 exactly as their
+## own sources drew them (`tools/blender/world_terrain_join_landforms.py`, its `LANDFORMS`).
+## They were the game's ground before the master took them, so the baseline holds them as
+## they joined, and only an edit to them since reads as change.
+const JOINED: Array[String] = [
+	"background_distant_range_middle",
+	"background_distant_range_north",
+	"background_distant_range_north_inland_saddle",
+	"background_distant_range_north_west_companion",
+	"background_distant_range_south",
+	"background_distant_range_southeast_connector",
+	"north_plug_s_curve_sand_infill",
+	"north_shore_volcanic_plug",
+	"southeast_range_ridge_1",
+	"southeast_range_ridge_2",
+	"southeast_range_ridge_3",
+	"southeast_range_ridge_4",
+	"southern_range_connection_lowland",
+	"southern_range_connection_ridge_0",
+	"southern_range_connection_ridge_1",
+	"southern_range_connection_ridge_2",
+	"southern_range_connection_ridge_3",
+	"southern_range_connection_ridge_4",
+	"relocated_city_peninsula",
+	"relocated_city_peninsula_beaches",
+	"southern_city_range_foothills",
+	"southern_city_range_beaches",
+]
 ## The plan cell the changed faces are indexed in.
 const CELL := 8.0
 ## A face whose normal is flatter than this has no top to stand on (the seam
@@ -131,10 +159,12 @@ static func load_baseline() -> Dictionary:
 	var out := {}
 	if mesh == null:
 		return out
+	# A body with several materials is several surfaces under one name (the joined landforms).
 	for s in mesh.get_surface_count():
-		var faces := PackedVector3Array()
+		var name := mesh.surface_get_name(s)
+		var faces: PackedVector3Array = out.get(name, PackedVector3Array())
 		_append_faces(mesh.surface_get_arrays(s), Transform3D.IDENTITY, faces)
-		out[mesh.surface_get_name(s)] = faces
+		out[name] = faces
 	return out
 
 
@@ -165,6 +195,51 @@ static func write_baseline() -> Error:
 			out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, kept)
 			out.surface_set_name(out.get_surface_count() - 1, String(mi.name))
 	scene.free()
+	return ResourceSaver.save(out, BASELINE, ResourceSaver.FLAG_COMPRESS)
+
+
+## The joined landforms added to the baseline as the master holds them now: once, on
+## 2026-10-06, straight after the join, while they were still exactly their sources' meshes.
+## Only those that are ground (carry collision) go in, as `load_master` reads them. Refuses if
+## any is already there.
+static func extend_baseline() -> Error:
+	var mesh := load(BASELINE) as ArrayMesh
+	if mesh == null:
+		push_error("%s is missing" % BASELINE)
+		return ERR_FILE_NOT_FOUND
+	for s in mesh.get_surface_count():
+		if mesh.surface_get_name(s) in JOINED:
+			push_error("%s already holds %s" % [BASELINE, mesh.surface_get_name(s)])
+			return ERR_ALREADY_EXISTS
+	var out := ArrayMesh.new()
+	for s in mesh.get_surface_count():
+		out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, mesh.surface_get_arrays(s))
+		out.surface_set_name(s, mesh.surface_get_name(s))
+	var scene := (load(MASTER_GLB) as PackedScene).instantiate()
+	var added := 0
+	for name in JOINED:
+		var mi := scene.find_child(name, true, false) as MeshInstance3D
+		if mi == null:
+			push_error("the master has no %s" % name)
+			scene.free()
+			return ERR_DOES_NOT_EXIST
+		if mi.find_children("*", "CollisionShape3D", true, false).is_empty():
+			continue
+		var xf := _world_xf(mi)
+		for si in mi.mesh.get_surface_count():
+			var arr := mi.mesh.surface_get_arrays(si)
+			var world := PackedVector3Array()
+			for v in (arr[Mesh.ARRAY_VERTEX] as PackedVector3Array):
+				world.append(xf * v)
+			var kept := []
+			kept.resize(Mesh.ARRAY_MAX)
+			kept[Mesh.ARRAY_VERTEX] = world
+			kept[Mesh.ARRAY_INDEX] = arr[Mesh.ARRAY_INDEX]
+			out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, kept)
+			out.surface_set_name(out.get_surface_count() - 1, name)
+		added += 1
+	scene.free()
+	print("baseline: %d joined landforms added" % added)
 	return ResourceSaver.save(out, BASELINE, ResourceSaver.FLAG_COMPRESS)
 
 

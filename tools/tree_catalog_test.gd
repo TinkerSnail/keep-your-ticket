@@ -318,23 +318,28 @@ func _check_range_forest_handoff() -> void:
 	add_child(background)
 	if background.get_script() != null:
 		_fails.append("persistent distinct-background range scene must remain directly editor-owned")
-	var north_range := background.find_child(
+	# The range's landforms are the world terrain master's since 2026-10-06
+	# (tools/blender/world_terrain_join_landforms.py); the range source keeps its forest,
+	# canopy and rocks.
+	var landforms := (load("res://scenes/world/world_terrain.tscn") as PackedScene).instantiate() as Node3D
+	add_child(landforms)
+	var north_range := landforms.find_child(
 		"background_distant_range_north", true, false) as MeshInstance3D
-	var middle_range := background.find_child(
+	var middle_range := landforms.find_child(
 		"background_distant_range_middle", true, false) as MeshInstance3D
-	var southeast_range := background.find_child(
+	var southeast_range := landforms.find_child(
 		"background_distant_range_southeast_connector", true, false) as MeshInstance3D
-	var south_range := background.find_child(
+	var south_range := landforms.find_child(
 		"background_distant_range_south", true, false) as MeshInstance3D
-	var connection_lowland := background.find_child(
+	var connection_lowland := landforms.find_child(
 		"southern_range_connection_lowland", true, false) as MeshInstance3D
 	var southeast_ridges: Array[MeshInstance3D] = []
 	for index in range(1, 5):
-		southeast_ridges.append(background.find_child(
+		southeast_ridges.append(landforms.find_child(
 			"southeast_range_ridge_%d" % index, true, false) as MeshInstance3D)
 	var connection_ridges: Array[MeshInstance3D] = []
 	for index in 5:
-		connection_ridges.append(background.find_child(
+		connection_ridges.append(landforms.find_child(
 			"southern_range_connection_ridge_%d" % index, true, false) as MeshInstance3D)
 	for pair in [
 		["north range", north_range, 850.0, 250.0],
@@ -397,7 +402,14 @@ func _check_range_forest_handoff() -> void:
 		if current != null and next != null \
 				and not _overlaps_plan(_world_xz_bounds(current), _world_xz_bounds(next)):
 			_fails.append("southern range chain disconnects between %s and %s" % [current.name, next.name])
-	if background.find_children("*", "StaticBody3D", true, false).size() < 14:
+	var range_bodies_colliding := 0
+	var range_bodies: Array = [north_range, middle_range, southeast_range, south_range, connection_lowland]
+	range_bodies.append_array(southeast_ridges)
+	range_bodies.append_array(connection_ridges)
+	for body in range_bodies:
+		if body != null and not body.find_children("*", "StaticBody3D", true, false).is_empty():
+			range_bodies_colliding += 1
+	if range_bodies_colliding < 14:
 		_fails.append("the fourteen closed range bodies are missing imported collision")
 	for rejected_name in [
 		"background_canopy_mass", "background_middle_ridge", "background_far_ridge",
@@ -429,6 +441,7 @@ func _check_range_forest_handoff() -> void:
 			_fails.append("persistent range lost the 16m midground-to-transition gap")
 	remove_child(background)
 	background.free()
+	landforms.free()
 
 	var world_source := FileAccess.get_file_as_string(PARK_WORLD)
 	if not world_source.contains(BACKGROUND_SCENE):

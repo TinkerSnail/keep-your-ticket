@@ -199,34 +199,42 @@ func _ready() -> void:
 			continue
 		inventory.append(_record_with_footprint(visual, spec))
 
+	# The range's and city's landforms are the world terrain master's since 2026-10-06
+	# (tools/blender/world_terrain_join_landforms.py); they are listed from where they stand.
 	if range_root == null:
 		push_error("range_geography_audit: mounted range root is missing")
 	else:
-		for visual in range_root.find_children("*", "MeshInstance3D", true, false):
-			if not _is_range_terrain(String(visual.name)):
-				continue
-			inventory.append(_record_with_footprint(visual, {
-				"id": "range__%s" % visual.name,
-				"scene": "res://scenes/world/range_forest_background.tscn",
-				"source": RANGE_SOURCE,
-				"authority": "editor-owned",
-				"role": _range_role(String(visual.name)),
-			}))
+		for pair in [[range_root, RANGE_MOUNT, RANGE_SOURCE], [world_terrain, WORLD_TERRAIN, MASTER_SOURCE]]:
+			for visual in (pair[0] as Node).find_children("*", "MeshInstance3D", true, false):
+				if not _is_range_terrain(String(visual.name)):
+					continue
+				inventory.append(_record_with_footprint(visual, {
+					"id": "range__%s" % visual.name,
+					"scene": pair[1],
+					"source": pair[2],
+					"authority": "editor-owned",
+					"role": _range_role(String(visual.name)),
+				}))
 
 	if city_root == null:
 		push_error("range_geography_audit: mounted city root is missing")
 	else:
-		for visual in city_root.find_children("*", "MeshInstance3D", true, false):
+		var city_visuals := city_root.find_children("*", "MeshInstance3D", true, false)
+		for visual in world_terrain.find_children("*", "MeshInstance3D", true, false):
+			if CITY_ROLES.has(String(visual.name)):
+				city_visuals.append(visual)
+		for visual in city_visuals:
 			if not CITY_ROLES.has(String(visual.name)) \
 					and not CITY_INFRASTRUCTURE_ROLES.has(String(visual.name)):
 				continue
+			var joined := world_terrain.is_ancestor_of(visual)
 			var role: String = CITY_ROLES[String(visual.name)] \
 				if CITY_ROLES.has(String(visual.name)) \
 				else CITY_INFRASTRUCTURE_ROLES[String(visual.name)]
 			inventory.append(_record_with_footprint(visual, {
 				"id": "city__%s" % visual.name,
-				"scene": "res://scenes/world/far_shore_city_relocation.tscn",
-				"source": CITY_SOURCE,
+				"scene": WORLD_TERRAIN if joined else CITY_MOUNT,
+				"source": MASTER_SOURCE if joined else CITY_SOURCE,
 				"authority": "editor-owned",
 				"category": "terrain" if CITY_ROLES.has(String(visual.name)) \
 					else "protected infrastructure",

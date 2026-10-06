@@ -181,8 +181,10 @@ func _check_colony(failures: Array[String]) -> void:
 
 
 func _check_roost_grounding(roosts: Array[Node], failures: Array[String]) -> void:
-	var source := load("res://assets/range_forest_distinct_background.glb") as PackedScene
-	_expect(source != null, "mounted editor-owned range source did not load", failures)
+	# The range's landforms are the world terrain master's since 2026-10-06
+	# (tools/blender/world_terrain_join_landforms.py), under the same names.
+	var source := load("res://assets/world_terrain_master.glb") as PackedScene
+	_expect(source != null, "the world terrain master holding the range's landforms did not load", failures)
 	if source == null:
 		return
 	var range_root := source.instantiate()

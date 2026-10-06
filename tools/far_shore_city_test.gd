@@ -11,18 +11,29 @@ func _ready() -> void:
 	for frame in 3:
 		await get_tree().physics_frame
 	var package := world.get_node_or_null("places/far_shore_city_relocation")
+	# The city's and the range's landforms are the world terrain master's since 2026-10-06
+	# (tools/blender/world_terrain_join_landforms.py); the city source keeps the rest.
+	var world_terrain := world.get_node_or_null("places/world_terrain")
+	if world_terrain == null:
+		failures.append("the world terrain is not mounted in places")
 	if package == null:
 		failures.append("far-shore relocation is not mounted exactly in places")
 	else:
 		for required in [
 			"relocated_city_peninsula",
+			"southern_city_range_foothills",
+			"southern_city_range_beaches",
+		]:
+			if world_terrain == null or world_terrain.find_child(required, true, false) == null:
+				failures.append("missing landform %s in the world terrain" % required)
+			if package.find_child(required, true, false) != null:
+				failures.append("the landform %s is still drawn by the city source too" % required)
+		for required in [
 			"city_highway_extension",
 			"city_highway_approach_ground",
 			"bridge_main_deck",
 			"bridge_city_intersection",
 			"bridge_city_southern_offramp",
-			"southern_city_range_foothills",
-			"southern_city_range_beaches",
 			"southern_city_bypass_highway",
 			"southern_city_bypass_earthwork",
 			"southern_coastal_highway_extension",
@@ -43,12 +54,13 @@ func _ready() -> void:
 		]:
 			if package.find_child(retired, true, false) != null:
 				failures.append("retired flat or shell geometry remains: %s" % retired)
-		if package.find_children("*", "StaticBody3D", true, false).size() < 2:
+		var city := world_terrain.find_child(
+			"relocated_city_peninsula", true, false) as MeshInstance3D if world_terrain != null else null
+		var foothills := world_terrain.find_child(
+			"southern_city_range_foothills", true, false) as MeshInstance3D if world_terrain != null else null
+		if package.find_children("*", "StaticBody3D", true, false).is_empty() \
+				or foothills == null or foothills.find_children("*", "StaticBody3D", true, false).is_empty():
 			failures.append("city approach and foothills do not both have imported collision")
-		var city := package.find_child(
-			"relocated_city_peninsula", true, false) as MeshInstance3D
-		var foothills := package.find_child(
-			"southern_city_range_foothills", true, false) as MeshInstance3D
 		var bypass := package.find_child(
 			"southern_city_bypass_highway", true, false) as MeshInstance3D
 		var bypass_centreline := package.find_child(
@@ -57,7 +69,7 @@ func _ready() -> void:
 			"southern_coastal_highway_extension", true, false) as MeshInstance3D
 		var extension_centreline := package.find_child(
 			"southern_coastal_highway_extension_centreline", true, false) as MeshInstance3D
-		var range_package := world.get_node_or_null("shared/range_forest_background")
+		var range_package := world_terrain
 		var southern_massif := range_package.find_child(
 			"background_distant_range_south", true, false) as MeshInstance3D \
 			if range_package != null else null

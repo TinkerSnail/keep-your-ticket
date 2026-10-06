@@ -277,7 +277,9 @@ func _check_world_reserve() -> void:
 			_fail("the surrounding mainland reserve has no surface mesh")
 		else:
 			var bounds := surface.mesh.get_aabb()
-			var city_source: Node = load("res://scenes/world/far_shore_city_relocation.tscn").instantiate()
+			# The city's peninsula and foothills are the world terrain master's since
+			# 2026-10-06 (tools/blender/world_terrain_join_landforms.py).
+			var city_source: Node = load(WORLD_TERRAIN).instantiate()
 			add_child(city_source)
 			var city_peninsula := city_source.find_child(
 				"relocated_city_peninsula", true, false) as MeshInstance3D

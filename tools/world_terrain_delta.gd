@@ -8,6 +8,7 @@ extends SceneTree
 ##   Godot --headless --path . --script res://tools/world_terrain_delta.gd
 ##   Godot --headless --path . --script res://tools/world_terrain_delta.gd -- --self-check
 ##   Godot --headless --path . --script res://tools/world_terrain_delta.gd -- --write-baseline
+##   Godot --headless --path . --script res://tools/world_terrain_delta.gd -- --extend-baseline
 ##
 ## With no argument, prints the summary: unchanged, or how many faces changed,
 ## where, and the largest rise and fall. Run it after exporting and importing an
@@ -20,12 +21,16 @@ extends SceneTree
 ##
 ## `--write-baseline` froze the master as `assets/source/world_terrain_baseline.res`
 ## on 2026-10-05, while it was still the generator's ground exactly; it refuses
-## to overwrite.
+## to overwrite. `--extend-baseline` added the range's and city's landforms to it
+## on 2026-10-06, as they joined the master (`WorldTerrainSource.JOINED`); it
+## refuses to add them twice.
 
 const WorldTerrainSource := preload("res://scripts/world_terrain_source.gd")
 ## The self-check's bump: centre (x, z), radius and height, on the mainland
-## reserve east of the park, where it is the only ground.
-const BUMP := [Vector2(700.0, -200.0), 30.0, 2.0]
+## reserve where it is the only ground. It was at (700, -200) until the range's
+## landforms joined the master (2026-10-06): the middle range stands over the
+## reserve there, and the reading at a reserve corner is then the range face's.
+const BUMP := [Vector2(2000.0, 500.0), 30.0, 2.0]
 
 
 func _init() -> void:
@@ -35,6 +40,12 @@ func _init() -> void:
 		print("world_terrain_delta: baseline %s (%s)" % [
 			WorldTerrainSource.BASELINE, "written" if err == OK else "not written: %d" % err])
 		quit(0 if err == OK else 1)
+		return
+	if "--extend-baseline" in args:
+		var ext := WorldTerrainSource.extend_baseline()
+		print("world_terrain_delta: baseline %s (%s)" % [
+			WorldTerrainSource.BASELINE, "extended with the joined landforms" if ext == OK else "not extended: %d" % ext])
+		quit(0 if ext == OK else 1)
 		return
 	if "--self-check" in args:
 		quit(_self_check())

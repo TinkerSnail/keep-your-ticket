@@ -12,7 +12,9 @@
 ; the master's Lakes collection and wear the bay's water, assets/materials/lake_water.tres;
 ; they have no collision. The south beach front (edit 2, 2026-10-06) is new land in Ground
 ; beyond the old shore, and the coast shelf (2026-10-06) runs every coast on below the
-; waterline from its shore wall; both wear the coasts' material.
+; waterline from its shore wall; both wear the coasts' material. The range's and city's
+; landforms joined Ground on 2026-10-06 (tools/blender/world_terrain_join_landforms.py), the
+; meshes their own sources drew before, wearing their own materials from the master.
 [ext_resource type="PackedScene" path="res://assets/world_terrain_master.glb" id="1_source"]
 [ext_resource type="Material" path="res://assets/materials/landscape_depth_vertex.tres" id="2_depth_vertex"]
 [ext_resource type="Material" path="res://assets/materials/landscape_depth_plain.tres" id="3_depth_plain"]
@@ -52,13 +54,13 @@ material_override = ExtResource("2_depth_vertex")
 [node name="terrain_coast_shelf" parent="." index="9"]
 material_override = ExtResource("2_depth_vertex")
 
-[node name="lake_K1" parent="." index="10"]
+[node name="lake_K1" parent="." index="32"]
 material_override = ExtResource("5_lake")
 
-[node name="lake_L0" parent="." index="11"]
+[node name="lake_L0" parent="." index="33"]
 material_override = ExtResource("5_lake")
 
-[node name="plunge_pool" parent="." index="12"]
+[node name="plunge_pool" parent="." index="34"]
 material_override = ExtResource("5_lake")
 
 [node name="authored_additions" type="Node3D" parent="."]
