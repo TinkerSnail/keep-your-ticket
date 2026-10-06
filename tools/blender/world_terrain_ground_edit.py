@@ -62,6 +62,12 @@ CROWD = 0.35 * LATTICE
 # The bay's water (tools/gen_props.gd, mats["water"]), so lake and sea read as one water.
 LAKE_COLOUR = (0.34, 0.44, 0.52, 1.0)
 DESIGN_PLANES = {"K1": "water_K1_enlarged", "L0": "water_L0_enlarged"}
+# Small still water an edit designed as a plane on the grid, built on Ground inside that
+# plane's outline grown by `POOL_GROW`: {edit: {game name: design plane}}.
+POOLS = {5: {"plunge_pool": "water_plunge_pool"}}
+POOL_GROW = 2.0
+# Render views per edit beyond the lakes: {name: ((x, z) centre, width across, eye level)}.
+VIEWS = {5: {"falls": ((355.0, -290.0), 320.0, 41.9)}}
 # Where a lake runs out over its spill: triangles past the spill (further from the lake's
 # centre than the spill, within this of it) and within this of the creek below are dry.
 SPILL_WALL = 60.0
@@ -73,6 +79,8 @@ CREEK_WALL = 35.0
 # where the 25 m grid is unsure of its edge. Water still crosses only Ground below the brim.
 TOP_RIM = 5.0
 MIN_CHANGE = 0.01
+# The edits this script knows how to carry, each in its own Stage 3 batch.
+CARRIED = (4, 5)
 # Over the first this-many metres of an edit's change, Ground fades from its own surface to
 # the edit's, so the edge of a cut meets the untouched ground without a step.
 BLEND = 2.0
@@ -220,15 +228,25 @@ def carry(ob, edit, now_t, pre_t, box, grid_points, dry):
         raise SystemExit("%s: a face in the region is not a triangle" % ob.name)
     rverts = sorted({v.index for f in faces for v in f.verts})
     edge_verts = set()
+    seam = set()
     for vi in rverts:
         v = bm.verts[vi]
-        if not all(f.index in region for f in v.link_faces) or any(e.is_boundary for e in v.link_edges):
+        if any(e.is_boundary for e in v.link_edges):
+            seam.add(vi)
+        elif not all(f.index in region for f in v.link_faces):
             edge_verts.add(vi)
     moving_edge = [vi for vi in edge_verts if reached(bm.verts[vi].co)]
     if moving_edge:
-        raise SystemExit("%s: the edit reaches %d vertices on the region's edge or an open edge (e.g. %s); refusing" % (
+        raise SystemExit("%s: the edit reaches %d vertices on the region's edge (e.g. %s); refusing" % (
             ob.name, len(moving_edge), tuple(round(c, 1) for c in bm.verts[moving_edge[0]].co)))
-    report = {"faces_before": len(faces), "region_vertices": len(rverts)}
+    # Ground's open edges are stitched to what the generator still builds (the road
+    # corridor, the tunnel lids, the anchors): a vertex on one never moves, and what the
+    # edit asked of it is reported.
+    held = [designed(now_t, pre_t, bm.verts[vi].co.x, bm.verts[vi].co.y, bm.verts[vi].co.z) - bm.verts[vi].co.z
+            for vi in seam if reached(bm.verts[vi].co)]
+    pinned = {bm.verts[vi] for vi in seam}
+    report = {"faces_before": len(faces), "region_vertices": len(rverts), "seam_held": len(held),
+              "seam_held_most": max((abs(h) for h in held), default=0.0)}
     if dry:
         bm.free()
         return report
@@ -365,10 +383,12 @@ def carry(ob, edit, now_t, pre_t, box, grid_points, dry):
         nf.material_index, nf.smooth = materials[fi]
         nf[fa] = edit
         new_faces.append(nf)
-    # Cut (or raise) every vertex of the new faces to the edit's surface.
+    # Cut (or raise) every vertex of the new faces to the edit's surface, except on the seams.
     depth = [0.0, 0.0]
     moved = 0
     for v in {v for f in new_faces for v in f.verts}:
+        if v in pinned or any(e.is_boundary for e in v.link_edges):
+            continue
         z = designed(now_t, pre_t, v.co.x, v.co.y, v.co.z)
         if abs(z - v.co.z) > MIN_CHANGE:
             depth[0] = min(depth[0], z - v.co.z)
@@ -476,6 +496,29 @@ def lake_water(key, lk, tris, top):
     return polys, area, (min(xs), max(xs), min(zs), max(zs))
 
 
+def pool_water(design, tris):
+    """Ground triangles below a design plane's level, inside its outline grown by
+    `POOL_GROW`, clipped at the level."""
+    me = design.data
+    M = design.matrix_world
+    verts = [M @ v.co for v in me.vertices]
+    level = sum(v.z for v in verts) / len(verts)
+    flat = BVHTree.FromPolygons([Vector((v.x, v.y, 0.0)) for v in verts], [tuple(p.vertices) for p in me.polygons])
+    polys = []
+    for t in tris:
+        if min(v.z for v in t) >= level:
+            continue
+        c = Vector(((t[0].x + t[1].x + t[2].x) / 3.0, (t[0].y + t[1].y + t[2].y) / 3.0, 0.0))
+        hit = flat.find_nearest(c, POOL_GROW)
+        if hit[0] is None:
+            continue
+        p = clip_below(t, level)
+        if len(p) >= 3:
+            polys.append(p)
+    area = sum(0.5 * abs(sum(p[i].x * p[(i + 1) % len(p)].y - p[(i + 1) % len(p)].x * p[i].y for i in range(len(p)))) for p in polys)
+    return polys, area, level
+
+
 def build_plane(name, polys, note):
     verts = []
     faces = []
@@ -557,6 +600,8 @@ def undo(edit):
     entry = next((e for e in edits if e.get("id") == edit), None)
     if entry is None:
         raise SystemExit("Ground carries no edit %d" % edit)
+    if edits[-1].get("id") != edit:
+        raise SystemExit("edit %d was carried after edit %d; undo it first" % (edits[-1]["id"], edit))
     for name in entry["objects"]:
         ob = bpy.data.objects[name]
         hob = bpy.data.objects["%s__before_edit%d" % (name, edit)]
@@ -637,7 +682,7 @@ def undo(edit):
     print("world_terrain_ground_edit: edit %d undone" % edit)
 
 
-def render(folder, lakes):
+def render(folder, edit, views):
     os.makedirs(folder, exist_ok=True)
     scene = bpy.context.scene
     scene.render.engine = 'BLENDER_WORKBENCH'
@@ -653,24 +698,25 @@ def render(folder, lakes):
         if c.name not in (GROUND, LAKES_COLLECTION):
             for ob in c.objects:
                 ob.hide_render = True
-    for key, lk in lakes.items():
-        cx, cz = lk["centre"]
+    for key, (centre, across, level) in views.items():
+        cx, cz = centre
+        half = 0.5 * (across - 300.0) if across > 600.0 else 0.5 * across
         cam = bpy.data.cameras.new("tmp_cam")
         cam.type = 'ORTHO'
-        cam.ortho_scale = 2.0 * float(lk["R"]) + 300.0
+        cam.ortho_scale = across
         cam.clip_start = 1.0
         cam.clip_end = 20000.0
         ob = bpy.data.objects.new("tmp_cam", cam)
         scene.collection.objects.link(ob)
         ob.location = (cx, -cz, 3000.0)
         scene.camera = ob
-        scene.render.filepath = os.path.join(folder, "ground_edit4_%s_top.png" % key)
+        scene.render.filepath = os.path.join(folder, "ground_edit%d_%s_top.png" % (edit, key))
         bpy.ops.render.render(write_still=True)
-        ob.location = (cx - 0.9 * float(lk["R"]), -cz - 0.9 * float(lk["R"]), float(lk["brim"]) + 260.0)
+        ob.location = (cx - 0.9 * half, -cz - 0.9 * half, level + 260.0 * half / 300.0)
         cam.type = 'PERSP'
         cam.lens = 30.0
         ob.rotation_euler = (math.radians(62.0), 0.0, math.radians(-45.0))
-        scene.render.filepath = os.path.join(folder, "ground_edit4_%s_oblique.png" % key)
+        scene.render.filepath = os.path.join(folder, "ground_edit%d_%s_oblique.png" % (edit, key))
         bpy.ops.render.render(write_still=True)
         bpy.data.objects.remove(ob)
         bpy.data.cameras.remove(cam)
@@ -678,8 +724,8 @@ def render(folder, lakes):
 
 def main():
     a = argv()
-    if a["edit"] != 4:
-        raise SystemExit("only edit 4 is carried so far; edits 5-7 come in their own batches")
+    if a["edit"] not in CARRIED:
+        raise SystemExit("edits %s are carried so far; the rest come in their own batches" % sorted(CARRIED))
     edit = a["edit"]
     if a["undo"]:
         undo(edit)
@@ -712,13 +758,13 @@ def main():
         strays = sum(1 for i in range(len(now)) if i not in used and tuple(now[i]) not in old)
         if strays:
             raise SystemExit("%s: %d vertices outside the edit's faces moved" % (ob.name, strays))
-    lakes = edit_constant("world_terrain_edit_hill_lakes.py", "LAKES")
     design = next(e for e in json.loads(bpy.data.objects[GRID].get("kyt_edits", "[]")) if e.get("id") == edit)
     tris = ground_triangles()
     coll = lakes_collection()
     added = []
     hid = []
     areas = {}
+    lakes = edit_constant("world_terrain_edit_hill_lakes.py", "LAKES") if edit == 4 else {}
     for key, lk in lakes.items():
         polys, area, lbox = lake_water(key, lk, tris, now_t)
         areas[key] = round(area / 10000.0, 2)
@@ -735,6 +781,21 @@ def main():
             plane.hide_set(True)
             plane.hide_render = True
             hid.append(plane.name)
+    for name, plane_name in POOLS.get(edit, {}).items():
+        plane = bpy.data.objects[plane_name]
+        polys, area, level = pool_water(plane, tris)
+        if not polys:
+            raise SystemExit("%s: no Ground below +%.2f inside %s" % (name, level, plane_name))
+        areas[name] = round(area, 1)
+        ob = build_plane(name, polys, "%s at +%.1f, built on Ground's own triangles below that level inside %s's outline "
+                                     "grown by %.0f m (Stage 3, edit %d carried)" % (name, level, plane_name, POOL_GROW, edit))
+        coll.objects.link(ob)
+        added.append(name)
+        print("  %s: %.0f m2 of water at +%.2f (design plane %s)" % (name, area, level, plane_name))
+        if not plane.hide_get():
+            plane.hide_set(True)
+            plane.hide_render = True
+            hid.append(plane.name)
     scene = bpy.context.scene
     export_before = list(scene.get("kyt_export_collections", []))
     scene["kyt_export_collections"] = [GROUND, LAKES_COLLECTION]
@@ -742,18 +803,23 @@ def main():
              "date": "2026-10-05", "objects": sorted(reports), "report": reports, "lakes_ha": areas,
              "added": added, "hid": hid, "export_before": export_before}
     log(entry)
+    held = sum(r.get("seam_held", 0) for r in reports.values())
     readme("Ground edit %d (%s), Stage 3, 2026-10-05: grid edit %d carried onto Ground (%s): its region refined to "
-           "a %.0f m lattice and cut to the grid's designed bowl; lakes %s built on Ground below their brims in the "
-           "Lakes collection, exported with Ground; design planes %s hidden; the replaced faces kept in %s. Undo: "
+           "a %.0f m lattice and given the grid's designed surface; %d vertices on the seams with the generator's "
+           "ground held where they were; water %s built on Ground in the Lakes collection, exported with Ground; "
+           "design planes %s hidden; the replaced faces kept in %s. Undo: "
            "tools/blender/world_terrain_ground_edit.py -- --edit %d --undo." % (
-               edit, design["name"], edit, ", ".join(reports), LATTICE,
-               ", ".join("%s %.2f ha" % (k, v) for k, v in areas.items()), ", ".join(hid), HISTORY, edit))
+               edit, design["name"], edit, ", ".join(reports), LATTICE, held,
+               ", ".join("%s %s" % (k, ("%.2f ha" % v) if k in lakes else ("%.0f m2" % v)) for k, v in areas.items()) or "none",
+               ", ".join(hid) or "none", HISTORY, edit))
     print("world_terrain_ground_edit: edit %d carried; every vertex outside its faces unchanged" % edit)
     bpy.context.preferences.filepaths.save_version = 0
     bpy.ops.wm.save_mainfile()
     # After the save, so the render's hidden layers and cameras never reach the master.
     if a["render"]:
-        render(a["render"], lakes)
+        views = {key: (lk["centre"], 2.0 * float(lk["R"]) + 300.0, float(lk["brim"])) for key, lk in lakes.items()}
+        views.update(VIEWS.get(edit, {}))
+        render(a["render"], edit, views)
 
 
 main()

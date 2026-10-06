@@ -8,8 +8,9 @@
 ; import. The materials are the ones these grounds wore in
 ; scenes/world/park_groundworks.tscn, shared from assets/materials/ so one
 ; change in the inspector reaches every piece of land that uses them.
-; The hill lakes K1 and L0 (Stage 3, edit 4) come from the master's Lakes collection and
-; wear the bay's water, assets/materials/lake_water.tres; they have no collision.
+; The hill lakes K1 and L0 (Stage 3, edit 4) and the falls' plunge pool (edit 5) come from
+; the master's Lakes collection and wear the bay's water, assets/materials/lake_water.tres;
+; they have no collision.
 [ext_resource type="PackedScene" path="res://assets/world_terrain_master.glb" id="1_source"]
 [ext_resource type="Material" path="res://assets/materials/landscape_depth_vertex.tres" id="2_depth_vertex"]
 [ext_resource type="Material" path="res://assets/materials/landscape_depth_plain.tres" id="3_depth_plain"]
@@ -47,6 +48,9 @@ material_override = ExtResource("4_shoulder")
 material_override = ExtResource("5_lake")
 
 [node name="lake_L0" parent="." index="9"]
+material_override = ExtResource("5_lake")
+
+[node name="plunge_pool" parent="." index="10"]
 material_override = ExtResource("5_lake")
 
 [node name="authored_additions" type="Node3D" parent="."]
