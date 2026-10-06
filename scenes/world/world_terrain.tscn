@@ -1,0 +1,43 @@
+[gd_scene load_steps=5 format=3]
+
+; Editor-owned world ground (2026-10-05, Stage 1 of
+; documentation/terrain-master-into-game-plan-2026-10-05.md: Christina approved
+; the world terrain master as the game's one ground). Open the Blender source
+; named below to reshape it; its `Ground` collection is what reaches the game,
+; through tools/export_world_source.sh. Collision is derived from each mesh at
+; import. The materials are the ones these grounds wore in
+; scenes/world/park_groundworks.tscn, shared from assets/materials/ so one
+; change in the inspector reaches every piece of land that uses them.
+[ext_resource type="PackedScene" path="res://assets/world_terrain_master.glb" id="1_source"]
+[ext_resource type="Material" path="res://assets/materials/landscape_depth_vertex.tres" id="2_depth_vertex"]
+[ext_resource type="Material" path="res://assets/materials/landscape_depth_plain.tres" id="3_depth_plain"]
+[ext_resource type="Material" path="res://assets/materials/ground_shoulder.tres" id="4_shoulder"]
+
+[node name="world_terrain" instance=ExtResource("1_source")]
+editor_description = "Editable source: res://assets/source/world_terrain_master.blend, its Ground collection. Since 2026-10-05 this is the ground the generator used to emit (the mainland reserve, both coasts, the park's T2, T3 and T6, both east shoulders), copied vertex for vertex; the generator's own copies are hidden and switched off in scenes/world/park_groundworks.tscn. The road corridor, the tunnel lids, the west shell and both protected cascades are not here and stay as they were. Edit the Blender source, then run tools/export_world_source.sh assets/source/world_terrain_master.blend."
+
+[node name="terrain_world_mainland_reserve" parent="." index="0"]
+material_override = ExtResource("2_depth_vertex")
+
+[node name="terrain_world_coast_north" parent="." index="1"]
+material_override = ExtResource("2_depth_vertex")
+
+[node name="terrain_world_coast_south" parent="." index="2"]
+material_override = ExtResource("2_depth_vertex")
+
+[node name="terrain_T2_lowland" parent="." index="3"]
+material_override = ExtResource("3_depth_plain")
+
+[node name="terrain_T3_headland" parent="." index="4"]
+material_override = ExtResource("3_depth_plain")
+
+[node name="terrain_T6_outer_highland" parent="." index="5"]
+material_override = ExtResource("3_depth_plain")
+
+[node name="east_shoulder_n" parent="." index="6"]
+material_override = ExtResource("4_shoulder")
+
+[node name="east_shoulder_s" parent="." index="7"]
+material_override = ExtResource("4_shoulder")
+
+[node name="authored_additions" type="Node3D" parent="."]

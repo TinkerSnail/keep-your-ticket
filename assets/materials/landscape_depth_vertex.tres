@@ -1,0 +1,13 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+; The land's colour from its vertex colours, through the depth palette. Shared
+; since 2026-10-05 by scenes/world/park_groundworks.tscn (the road corridor) and
+; scenes/world/world_terrain.tscn (the reserve and both coasts), so one change
+; in the inspector reaches all of them. far_gain is held equal to the shader's
+; near_gain since 2026-09-18 (distance is the Environment's camera haze); delete
+; the far_gain line to get the old park-distance cooling back.
+[ext_resource type="Shader" path="res://assets/shaders/landscape_depth_palette.gdshader" id="1_depth_palette"]
+
+[resource]
+shader = ExtResource("1_depth_palette")
+shader_parameter/far_gain = Vector3(1.08, 1.06, 0.92)

@@ -1,0 +1,12 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+; The land's plain green through the depth palette, for ground with no vertex
+; colours (T2, T3 and T6). Shared since 2026-10-05 by
+; scenes/world/world_terrain.tscn; far_gain as in landscape_depth_vertex.tres.
+[ext_resource type="Shader" path="res://assets/shaders/landscape_depth_palette.gdshader" id="1_depth_palette"]
+
+[resource]
+shader = ExtResource("1_depth_palette")
+shader_parameter/use_vertex_color = false
+shader_parameter/far_gain = Vector3(1.08, 1.06, 0.92)
+shader_parameter/base_color = Color(0.36, 0.47, 0.31, 1)

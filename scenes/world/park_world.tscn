@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3]
+[gd_scene load_steps=25 format=3]
 
 ; The complete playable park, composed from one canonical scene per place.
 ;
@@ -20,6 +20,7 @@
 [ext_resource type="PackedScene" path="res://scenes/world/boardwalk_crowd.tscn" id="12_boardwalk_crowd"]
 [ext_resource type="PackedScene" path="res://scenes/world/terraces_crowd.tscn" id="13_terraces_crowd"]
 [ext_resource type="PackedScene" path="res://scenes/world/park_groundworks.tscn" id="14_groundworks"]
+[ext_resource type="PackedScene" path="res://scenes/world/world_terrain.tscn" id="25_world_terrain"]
 [ext_resource type="PackedScene" path="res://scenes/world/park_circulation.tscn" id="15_circulation"]
 [ext_resource type="PackedScene" path="res://scenes/world/park_routes.tscn" id="16_routes"]
 [ext_resource type="PackedScene" path="res://scenes/world/park_program.tscn" id="17_program"]
@@ -50,6 +51,8 @@
 [node name="east_cascade" parent="places" instance=ExtResource("9_east_cascade")]
 
 [node name="park_groundworks" parent="places" instance=ExtResource("14_groundworks")]
+
+[node name="world_terrain" parent="places" instance=ExtResource("25_world_terrain")]
 
 [node name="park_circulation" parent="places" instance=ExtResource("15_circulation")]
 

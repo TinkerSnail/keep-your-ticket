@@ -99,10 +99,16 @@ func _ready() -> void:
 ## placed the prop (`bin_1/StaticBody3D`): the body's owner is the model, and
 ## the model's owner is the placed prop scene. Every other surface keeps its
 ## own name.
+## The world terrain master's ground (2026-10-05) is imported the same way, so
+## each of its bodies is reported under the mesh above it, which is named after
+## the ground it is (`east_shoulder_n`, `terrain_T2_lowland`), as the
+## generator's bodies were.
 func _surface_name(collider: Node) -> String:
 	var nm := String(collider.name)
 	if nm != collider.get_class() or collider.owner == null:
 		return nm
+	if String(collider.owner.name) == "world_terrain" and collider.get_parent() is MeshInstance3D:
+		return String(collider.get_parent().name)
 	var placed := collider.owner.owner if collider.owner.owner != null else collider.owner
 	return "%s/%s" % [placed.name, nm]
 

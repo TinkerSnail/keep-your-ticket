@@ -15,6 +15,10 @@ const LighthouseRegrade := preload("res://scripts/lighthouse_regrade_source.gd")
 const EPS := 0.12
 const CROSSING_CAPTURE := 12.0
 const PROTECTED_MARGIN := 1.0
+## The world terrain master's wrapper: since 2026-10-05 it holds the mainland
+## reserve, both coasts, T2, T3, T6 and both east shoulders the generator used
+## to emit (Stage 1 of documentation/terrain-master-into-game-plan-2026-10-05.md).
+const WORLD_TERRAIN := "res://scenes/world/world_terrain.tscn"
 
 var _fails: Array[String] = []
 
@@ -260,12 +264,15 @@ func _check_world_reserve() -> void:
 			_fail("%s leaves only %.1fm beyond the developed park, expected %.1fm" % [
 				pair[0], pair[1], margin])
 
-	var ground: Node = load("res://scenes/world/park_groundworks.tscn").instantiate()
+	# Since 2026-10-05 the reserve and both coasts are the world terrain
+	# master's (scenes/world/world_terrain.tscn), copied from the generator
+	# vertex for vertex; the generator's copies are hidden in park_groundworks.
+	var ground: Node = load(WORLD_TERRAIN).instantiate()
 	var reserve := ground.find_child("terrain_world_mainland_reserve", true, false)
 	if reserve == null:
 		_fail("the surrounding mainland reserve is not mounted")
 	else:
-		var surface := reserve.find_child("surface", false, false) as MeshInstance3D
+		var surface := _ground_mesh(reserve)
 		if surface == null or surface.mesh == null:
 			_fail("the surrounding mainland reserve has no surface mesh")
 		else:
@@ -304,7 +311,7 @@ func _check_world_reserve() -> void:
 		if coast == null:
 			_fail("the %s coastal reserve is not mounted" % pair[0])
 			continue
-		var coast_surface := coast.find_child("surface", false, false) as MeshInstance3D
+		var coast_surface := _ground_mesh(coast)
 		if coast_surface == null or coast_surface.mesh == null:
 			_fail("the %s coastal reserve has no surface mesh" % pair[0])
 			continue
@@ -394,17 +401,30 @@ func _check_world_reserve() -> void:
 ## a quarter-metre grid. What remains with an end above `WATER_TOP + 1`,
 ## outside the developed envelope where the park's own ground fills the
 ## reserve's openings, is an open face.
+## A ground body's drawn mesh: the master's bodies are the MeshInstance3D
+## itself, the generator's carry it as a `surface` child.
+func _ground_mesh(node: Node) -> MeshInstance3D:
+	if node is MeshInstance3D:
+		return node as MeshInstance3D
+	return node.find_child("surface", false, false) as MeshInstance3D
+
+
 func _check_open_faces() -> void:
-	var ground: Node = load("res://scenes/world/park_groundworks.tscn").instantiate()
+	# The reserve and both coasts from the world terrain master, the road
+	# corridor from the groundworks (2026-10-05); world positions either way.
+	var master: Node = load(WORLD_TERRAIN).instantiate()
+	var groundworks: Node = load("res://scenes/world/park_groundworks.tscn").instantiate()
 	var edges := {}
 	var triangles := 0
-	for name in ["terrain_world_mainland_reserve", "terrain_world_coast_north",
-			"terrain_world_coast_south", "terrain_road_corridor"]:
+	for pair in [[master, "terrain_world_mainland_reserve"], [master, "terrain_world_coast_north"],
+			[master, "terrain_world_coast_south"], [groundworks, "terrain_road_corridor"]]:
+		var ground: Node = pair[0]
+		var name: String = pair[1]
 		var node: Node = ground.find_child(name, true, false)
 		if node == null:
-			_fail("%s is not in the groundworks scene" % name)
+			_fail("%s is not in %s" % [name, ground.name])
 			continue
-		var surface := node.find_child("surface", false, false) as MeshInstance3D
+		var surface := _ground_mesh(node)
 		if surface == null or surface.mesh == null:
 			_fail("%s has no surface mesh" % name)
 			continue
@@ -497,7 +517,8 @@ func _check_open_faces() -> void:
 			continue
 		open.append(rec)
 		length += a.distance_to(b)
-	ground.free()
+	master.free()
+	groundworks.free()
 	if open.is_empty():
 		print("  terrain: no open face above the water (%d triangles, %d boundary edges)" % [
 			triangles, stray.size()])
@@ -838,7 +859,7 @@ func _check_retired_geometry() -> void:
 		if program.find_child(required, true, false) == null:
 			_fail("the atlas program is missing %s" % required)
 	program.free()
-	var ground: Node = load("res://scenes/world/park_groundworks.tscn").instantiate()
+	var ground: Node = load(WORLD_TERRAIN).instantiate()
 	if ground.find_child("terrain_T6_outer_highland", true, false) == null:
 		_fail("the expanded eastern highland reserve is not mounted")
 	ground.free()
