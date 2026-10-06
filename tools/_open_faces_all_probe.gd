@@ -25,7 +25,7 @@ func _check_open_faces() -> void:
 	var triangles := 0
 	for pair in [[master, "terrain_world_mainland_reserve"], [master, "terrain_world_coast_north"],
 			[master, "terrain_world_coast_south"], [master, "terrain_south_beach_front"],
-			[groundworks, "terrain_road_corridor"]]:
+			[master, "terrain_coast_shelf"], [groundworks, "terrain_road_corridor"]]:
 		var ground: Node = pair[0]
 		var name: String = pair[1]
 		var node: Node = ground.find_child(name, true, false)

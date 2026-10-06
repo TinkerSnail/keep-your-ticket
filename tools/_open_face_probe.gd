@@ -7,7 +7,8 @@ extends SceneTree
 
 const Plan := preload("res://scripts/park_plan.gd")
 const NAMES := ["terrain_world_mainland_reserve", "terrain_world_coast_north",
-	"terrain_world_coast_south", "terrain_south_beach_front", "terrain_road_corridor"]
+	"terrain_world_coast_south", "terrain_south_beach_front", "terrain_coast_shelf",
+	"terrain_road_corridor"]
 
 
 func _initialize() -> void:
