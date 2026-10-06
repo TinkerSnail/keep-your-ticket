@@ -10,7 +10,8 @@
 ; change in the inspector reaches every piece of land that uses them.
 ; The hill lakes K1 and L0 (Stage 3, edit 4) and the falls' plunge pool (edit 5) come from
 ; the master's Lakes collection and wear the bay's water, assets/materials/lake_water.tres;
-; they have no collision.
+; they have no collision. The south beach front (edit 2, 2026-10-06) is new land in Ground
+; beyond the old shore and wears the coasts' material.
 [ext_resource type="PackedScene" path="res://assets/world_terrain_master.glb" id="1_source"]
 [ext_resource type="Material" path="res://assets/materials/landscape_depth_vertex.tres" id="2_depth_vertex"]
 [ext_resource type="Material" path="res://assets/materials/landscape_depth_plain.tres" id="3_depth_plain"]
@@ -44,13 +45,16 @@ material_override = ExtResource("4_shoulder")
 [node name="east_shoulder_s" parent="." index="7"]
 material_override = ExtResource("4_shoulder")
 
-[node name="lake_K1" parent="." index="8"]
+[node name="terrain_south_beach_front" parent="." index="8"]
+material_override = ExtResource("2_depth_vertex")
+
+[node name="lake_K1" parent="." index="9"]
 material_override = ExtResource("5_lake")
 
-[node name="lake_L0" parent="." index="9"]
+[node name="lake_L0" parent="." index="10"]
 material_override = ExtResource("5_lake")
 
-[node name="plunge_pool" parent="." index="10"]
+[node name="plunge_pool" parent="." index="11"]
 material_override = ExtResource("5_lake")
 
 [node name="authored_additions" type="Node3D" parent="."]

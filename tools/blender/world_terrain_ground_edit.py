@@ -27,6 +27,11 @@ creek below it, from edit 4's own `LAKES`) and where another source's ground sta
 Ground. The planes go in the `Lakes` collection, which the export now carries with
 `Ground`; edit 4's design planes are hidden, since the game planes stand in their place.
 
+Edit 2, the south beach front (2026-10-06), designed land where the game has open sea, beyond
+Ground's edge, so it is built rather than cut: a new Ground object, `NEW_LAND`, the edited grid
+from the coasts' shore wall out to the grid's seabed, running on below the waterline. See
+`new_land`.
+
 Logged and reversible: the faces each edit replaced are kept, hidden and unexported, as
 `<object>__before_edit<N>` in the `Ground_history` collection; the new faces carry the
 face attribute `authored_edit`; `--undo` puts the old faces back exactly, removes what the
@@ -35,6 +40,7 @@ README text. Prints the proof: every vertex outside the edit's faces unchanged, 
 depth, each lake's area against the grid design. `--dry` reports without saving.
 """
 import ast
+import datetime
 import hashlib
 import json
 import math
@@ -50,6 +56,7 @@ from mathutils.bvhtree import BVHTree
 from mathutils.geometry import delaunay_2d_cdt
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+TODAY = datetime.date.today().isoformat()
 GRID = "terrain_world"
 GROUND = "Ground"
 HISTORY = "Ground_history"
@@ -67,7 +74,8 @@ DESIGN_PLANES = {"K1": "water_K1_enlarged", "L0": "water_L0_enlarged"}
 POOLS = {5: {"plunge_pool": "water_plunge_pool"}}
 POOL_GROW = 2.0
 # Render views per edit beyond the lakes: {name: ((x, z) centre, width across, eye level)}.
-VIEWS = {5: {"falls": ((355.0, -290.0), 320.0, 41.9)}}
+VIEWS = {2: {"beach_north": ((130.0, 900.0), 900.0, -4.0), "beach_south": ((500.0, 1850.0), 900.0, -4.0)},
+         5: {"falls": ((355.0, -290.0), 320.0, 41.9)}}
 # Where a lake runs out over its spill: triangles past the spill (further from the lake's
 # centre than the spill, within this of it) and within this of the creek below are dry.
 SPILL_WALL = 60.0
@@ -80,12 +88,41 @@ CREEK_WALL = 35.0
 TOP_RIM = 5.0
 MIN_CHANGE = 0.01
 # The edits this script knows how to carry, each in its own Stage 3 batch.
-CARRIED = (4, 5)
+CARRIED = (2, 4, 5)
 # Over the first this-many metres of an edit's change, Ground fades from its own surface to
 # the edit's, so the edge of a cut meets the untouched ground without a step.
 BLEND = 2.0
 # How far an edit may move Ground against its own direction to meet the design.
 AGAINST = 1.0
+# Edits that build land where the game has open sea, beyond Ground's own edge: {edit: the new
+# Ground object}. Edit 2, the south beach front (option B), lies wholly beyond the shore.
+NEW_LAND = {2: "terrain_south_beach_front"}
+# The generator's coasts end at the shore in a vertical wall down to this depth, its skirt.
+SKIRT_Z = -13.5
+# The sea and the beach front's bench are the edit's own (`world_terrain_coast_extension.py`'s
+# `SEA_LEVEL` and `BENCH_H`), read where they are used.
+# The bench meets the shore's top edge over a bank this wide (a smoothstep, so it leaves the
+# shore level and lands on the bench without a crease).
+RAMP = 10.0
+# New land's colours: the shore's own planting on the bench and its bank, the generator's beach
+# sand (`gen_props.gd`, the 02B beaches) from the bench's crest down past the waterline, and its
+# sea-cliff colour (`REBUILD_SEA_CLIFF_COLOUR`) once the shelf is well under water.
+SAND = (0.78, 0.72, 0.58)
+SEABED = (0.47, 0.44, 0.39)
+# The beach's crest: the bench is -4 at the bluff falling 1 % seaward, up to 86 m, to a crest
+# 3 m over the sea; this takes the lowest. Sand begins here, and wherever the design stands
+# above it against the shore wall, the bank climbs to the wall's top.
+CREST = -4.6
+SAND_FROM = (CREST + 0.4, CREST)
+# An edge this close under the wall's top is the top: no sliver of wall is left above it.
+SNAP = 0.05
+SEABED_FROM = (-8.5, -10.5)
+# A face flatter than this is a wall, not ground one could stand on (`world_terrain_source.gd`'s
+# `MIN_UP`).
+MIN_UP_FACE = 0.05
+# Each end of new land meets the shore wall at least this far under the sea.
+END_UNDER = 0.5
+JOIN = 0.01
 
 
 def argv():
@@ -173,7 +210,9 @@ def designed(now_t, pre_t, x, y, z):
 
 
 def corner_key(co, centre):
-    return (round(co.x, 3), round(co.y, 3), round(centre.x, 3), round(centre.y, 3))
+    # Height too: a shore wall's top and foot share their plan position, and without it their
+    # normals were swapped between them (fixed 2026-10-06; edits 4 and 5 had done it).
+    return (round(co.x, 3), round(co.y, 3), round(co.z, 3), round(centre.x, 3), round(centre.y, 3), round(centre.z, 3))
 
 
 def history_collection():
@@ -412,6 +451,517 @@ def carry(ob, edit, now_t, pre_t, box, grid_points, dry):
     return report
 
 
+def smoothstep(a, b, x):
+    t = min(1.0, max(0.0, (x - a) / (b - a)))
+    return t * t * (3.0 - 2.0 * t)
+
+
+def region_faces(edit):
+    """The grid's faces edit `edit` moved any corner of, flattened to a plan BVH, and their
+    corners' plan positions."""
+    ob = bpy.data.objects[GRID]
+    me = ob.data
+    M = ob.matrix_world
+    ed = np.zeros(len(me.vertices), dtype=np.int32)
+    me.attributes["authored_edit"].data.foreach_get("value", ed)
+    world = [M @ Vector(v) for v in coords(ob)]
+    polys = [tuple(p.vertices) for p in me.polygons if any(ed[i] == edit for i in p.vertices)]
+    corners = sorted({i for p in polys for i in p})
+    flat = BVHTree.FromPolygons([Vector((v.x, v.y, 0.0)) for v in world], polys)
+    return flat, [Vector((world[i].x, world[i].y)) for i in corners]
+
+
+def column_top(b):
+    """The vertex straight above `b` on its wall: the generator's skirt drops each shore vertex
+    to `SKIRT_Z` in one vertical edge."""
+    for e in b.link_edges:
+        o = e.other_vert(b)
+        if (o.co.xy - b.co.xy).length < 1e-3 and o.co.z > b.co.z + 0.01:
+            return o
+    return None
+
+
+def new_land(edit, now_t, pre_t, box, dry):
+    """Build the land an edit designed beyond Ground's edge, where the game has open sea.
+
+    The coasts end at the shore in a vertical wall, the generator's skirt, from the shore's top
+    edge down to `SKIRT_Z`. The new land is one new Ground object, the grid's edited surface
+    from that wall out to where the edit meets the grid's seabed again, so it runs on below the
+    waterline the way a real shore does (Christina, 2026-10-06: "new land can go down into the
+    ocean a little like in real life"). It meets the shore along the wall: on its top edge where
+    the design stands out of the water, the bench rising to it over a `RAMP` bank, and lower
+    down the wall towards the ends, where the edit's taper leaves only water against the wall.
+    Each wall panel the new land reaches is cut at that line and the part below it, buried,
+    goes, so the new land's edge is the wall's own edge and nothing is left inside the land.
+    The bluff above the wall and everything else of Ground stays exactly where it was."""
+    sea = float(edit_constant("world_terrain_coast_extension.py", "SEA_LEVEL"))
+    bench = float(edit_constant("world_terrain_coast_extension.py", "BENCH_H"))
+    if not sea < CREST < bench:
+        raise SystemExit("CREST %.1f is not between the sea %.1f and the bench %.1f" % (CREST, sea, bench))
+    region, corners = region_faces(edit)
+
+    def in_region(x, y):
+        return region.ray_cast(Vector((x, y, 1.0)), Vector((0.0, 0.0, -1.0)))[0] is not None
+
+    # What already stands as ground, from above: every upward face of Ground near the edit.
+    up_v = []
+    up_f = []
+    for ob in ground_objects():
+        me = ob.data
+        for poly in me.polygons:
+            if poly.normal.z < MIN_UP_FACE:
+                continue
+            c = poly.center
+            if not (box[0] - 100.0 <= c.x <= box[1] + 100.0 and box[2] - 100.0 <= c.y <= box[3] + 100.0):
+                continue
+            base = len(up_v)
+            up_v.extend(Vector(me.vertices[i].co) for i in poly.vertices)
+            up_f.append(tuple(range(base, base + len(poly.vertices))))
+    land = BVHTree.FromPolygons(up_v, up_f)
+
+    def over_ground(x, y):
+        return land.ray_cast(Vector((x, y, 5000.0)), Vector((0.0, 0.0, -1.0)))[0] is not None
+
+    def edge_height(x, y, top_z):
+        """Where the new land meets the wall at (x, y): the wall's top edge wherever the design
+        stands on the bench, down the wall to the design itself where it is under water."""
+        t = height(design_t, x, y)
+        if t is None:
+            return SKIRT_Z
+        f = min(1.0, max(0.0, (t - sea) / (CREST - sea)))
+        e = t + f * (top_z - t)
+        return top_z if e > top_z - SNAP else max(SKIRT_Z, e)
+
+    # The shore wall's panels near the edit: a sea edge at the skirt's depth, the two vertices
+    # straight above it, and the panel's faces between them.
+    bms = {}
+    panels = []
+    for ob in ground_objects():
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        # The edit's face mark goes on before any face is held: adding a layer later leaves
+        # every face reference stale.
+        bm.faces.layers.int.get("authored_edit") or bm.faces.layers.int.new("authored_edit")
+        bm.verts.ensure_lookup_table()
+        bm.faces.ensure_lookup_table()
+        bms[ob.name] = bm
+        for e in bm.edges:
+            if not e.is_boundary:
+                continue
+            b0, b1 = e.verts
+            if b0.co.z > SKIRT_Z + 0.01 or b1.co.z > SKIRT_Z + 0.01:
+                continue
+            mid = (b0.co + b1.co) * 0.5
+            if not (box[0] - 200.0 <= mid.x <= box[1] + 200.0 and box[2] - 200.0 <= mid.y <= box[3] + 200.0):
+                continue
+            t0, t1 = column_top(b0), column_top(b1)
+            if t0 is None or t1 is None:
+                continue
+            quad = {b0, b1, t0, t1}
+            fs = sorted({f for v in (b0, b1) for f in v.link_faces if set(f.verts) <= quad}, key=lambda f: f.index)
+            if not fs or len(fs) > 2:
+                raise SystemExit("%s: the shore wall at (%.1f, %.1f) is not one panel" % (ob.name, mid.x, mid.y))
+            panels.append({"ob": ob.name, "b": (b0, b1), "t": (t0, t1), "faces": fs})
+
+    # A shore vertex by its plan position. The two coasts' walls meet a few millimetres apart
+    # (each body carries its seam displacement), so a vertex within `JOIN` of one already seen
+    # is the same shore vertex.
+    canon = {}
+
+    def key(v):
+        cx, cy = int(math.floor(v.co.x / 0.05)), int(math.floor(v.co.y / 0.05))
+        for i in (-1, 0, 1):
+            for j in (-1, 0, 1):
+                for k in canon.get((cx + i, cy + j), ()):
+                    if abs(k[0] - v.co.x) < JOIN and abs(k[1] - v.co.y) < JOIN:
+                        return k
+        k = (round(v.co.x, 3), round(v.co.y, 3))
+        canon.setdefault((cx, cy), []).append(k)
+        return k
+
+    at_key = {}
+    for n, p in enumerate(panels):
+        for b in p["b"]:
+            at_key.setdefault(key(b), []).append(n)
+    top_z = {}
+    top_xy = {}
+    for p in panels:
+        for b, t in zip(p["b"], p["t"]):
+            top_z.setdefault(key(b), t.co.z)
+            top_xy.setdefault(key(b), Vector((t.co.x, t.co.y)))
+    # Which side of the shore is the sea: each panel's outward normal, away from the coast's
+    # own ground. The land side may also be ground the generator still builds (the road
+    # corridor's hole at the spur), which Ground does not hold, so sea is told by the wall,
+    # not by the absence of Ground.
+    outward = []
+    for p in panels:
+        a, b = (Vector(v.co.xy) for v in p["b"])
+        d = (b - a).normalized()
+        out = Vector((d.y, -d.x))
+        if over_ground(*((a + b) * 0.5 + out * 1.5)):
+            out = -out
+        outward.append(out)
+    SA = np.array([tuple(p["b"][0].co.xy) for p in panels])
+    SAB = np.array([tuple(p["b"][1].co.xy) for p in panels]) - SA
+    SO = np.array([tuple(o) for o in outward])
+    SL2 = np.maximum((SAB ** 2).sum(axis=1), 1e-9)
+
+    def seaward(x, y):
+        P = np.array((x, y))
+        u = np.clip(((P - SA) * SAB).sum(axis=1) / SL2, 0.0, 1.0)
+        Q = SA + SAB * u[:, None]
+        i = int(np.argmin(((Q - P) ** 2).sum(axis=1)))
+        return float(((P - Q[i]) * SO[i]).sum()) > 0.0
+
+    # The design: the edited grid, except that a grid vertex the edit did not move, standing
+    # off Ground above the sea near the edit, lies under water. Off Ground the grid is either
+    # its 10 m smear of the shore wall or ground the generator builds (the road corridor), and
+    # neither is new land: at the spur the design rose round the bend against the wall on
+    # them. This shapes only the new land; nothing else reads it.
+    grid = bpy.data.objects[GRID]
+    gme = grid.data
+    ged = np.zeros(len(gme.vertices), dtype=np.int32)
+    gme.attributes["authored_edit"].data.foreach_get("value", ged)
+    gco = [grid.matrix_world @ Vector(v) for v in coords(grid)]
+    smeared = 0
+    for i, v in enumerate(gco):
+        if ged[i] == edit or v.z <= sea - END_UNDER:
+            continue
+        if not (box[0] <= v.x <= box[1] and box[2] <= v.y <= box[3]) or over_ground(v.x, v.y):
+            continue
+        v.z = sea - END_UNDER
+        smeared += 1
+    design_t = BVHTree.FromPolygons(gco, [tuple(p.vertices) for p in gme.polygons])
+    run = {n for n, p in enumerate(panels) if in_region(*((p["b"][0].co.xy + p["b"][1].co.xy) * 0.5))}
+    if not run:
+        raise SystemExit("edit %d reaches no shore wall" % edit)
+
+    def e_at(k):
+        return edge_height(k[0], k[1], top_z[k])
+
+    # Carry the run on along the wall until each end meets the wall under water, so no edge
+    # of the new land is left standing open above the sea.
+    for _ in range(2):
+        for k in sorted({k for n in run for k in map(key, panels[n]["b"])}):
+            steps = 0
+            while sum(1 for n in at_key[k] if n in run) == 1 and e_at(k) > sea - END_UNDER:
+                nxt = [n for n in at_key[k] if n not in run]
+                if not nxt or steps > 60:
+                    raise SystemExit("the new land's end at (%.1f, %.1f) stands %.1f m over the sea against the wall (%s)" % (
+                        k[0], k[1], e_at(k) - sea, [(panels[n]["ob"], n in run, [key(b) for b in panels[n]["b"]]) for n in at_key[k]]))
+                run.add(nxt[0])
+                k = [kk for kk in map(key, panels[nxt[0]]["b"]) if kk != k][0]
+                steps += 1
+    keys = sorted({k for n in run for k in map(key, panels[n]["b"])})
+    edge_z = {k: e_at(k) for k in keys}
+    design_at = {k: (height(design_t, k[0], k[1]) if height(design_t, k[0], k[1]) is not None else edge_z[k]) for k in keys}
+    ends = [k for k in keys if sum(1 for n in at_key[k] if n in run) == 1]
+
+    # Each run vertex's seaward direction: the mean of its panels' outward normals.
+    normal = {k: Vector((0.0, 0.0)) for k in keys}
+    for n in run:
+        for k in map(key, panels[n]["b"]):
+            normal[k] += outward[n]
+    for k in keys:
+        normal[k] = normal[k].normalized()
+
+    # Points: the shore line, rows across the bank, and the edit's grid corners off the land.
+    # The shore points stand exactly on the wall's top vertices, so the new land's edge is the
+    # wall's own edge, not one a rounding away.
+    pts = [top_xy[k].copy() for k in keys]
+    index = {k: i for i, k in enumerate(keys)}
+    segs = [(index[key(panels[n]["b"][0])], index[key(panels[n]["b"][1])]) for n in sorted(run)]
+    taken = {}
+
+    def take(q):
+        taken.setdefault((int(q.x // CROWD), int(q.y // CROWD)), []).append(q)
+
+    def crowded(q):
+        cx, cy = int(q.x // CROWD), int(q.y // CROWD)
+        return any((q - o).length < CROWD for i in (-1, 0, 1) for j in (-1, 0, 1) for o in taken.get((cx + i, cy + j), ()))
+
+    for q in pts:
+        take(q)
+    for k in keys:
+        if edge_z[k] - design_at[k] < 0.1:
+            continue
+        for s in (2.5, 5.0, 7.5, RAMP):
+            q = top_xy[k] + normal[k] * s
+            if not over_ground(q.x, q.y) and seaward(q.x, q.y) and not crowded(q):
+                pts.append(q)
+                take(q)
+    for q in corners:
+        if not over_ground(q.x, q.y) and seaward(q.x, q.y) and not crowded(q):
+            pts.append(q)
+            take(q)
+
+    # Heights: the edited grid, lifted near the shore by the bank.
+    A = np.array([pts[i].to_tuple() for i, _ in segs])
+    B = np.array([pts[j].to_tuple() for _, j in segs])
+    lift_a = np.array([max(0.0, edge_z[keys[i]] - design_at[keys[i]]) for i, _ in segs])
+    lift_b = np.array([max(0.0, edge_z[keys[j]] - design_at[keys[j]]) for _, j in segs])
+    AB = B - A
+    L2 = np.maximum((AB ** 2).sum(axis=1), 1e-9)
+
+    def to_shore(p):
+        P = np.array(p.to_tuple())
+        u = np.clip(((P - A) * AB).sum(axis=1) / L2, 0.0, 1.0)
+        d = np.sqrt((((A + AB * u[:, None]) - P) ** 2).sum(axis=1))
+        i = int(np.argmin(d))
+        return float(d[i]), float(lift_a[i] + (lift_b[i] - lift_a[i]) * u[i])
+
+    zs = []
+    for i, p in enumerate(pts):
+        if i < len(keys):
+            zs.append(edge_z[keys[i]])
+            continue
+        t = height(design_t, p.x, p.y)
+        if t is None:
+            raise SystemExit("a new-land point at (%.1f, %.1f) lies off the grid" % (p.x, p.y))
+        d, lift = to_shore(p)
+        zs.append(t + lift * (1.0 - smoothstep(0.0, RAMP, d)))
+
+    out_v, _, out_f, orig_v, _, _ = delaunay_2d_cdt(pts, segs, [], 0, 1e-4, True)
+    zmap = []
+    for k, p in enumerate(out_v):
+        src = [i for i in orig_v[k] if i < len(pts)]
+        if not src:
+            raise SystemExit("the triangulator added a point at (%.1f, %.1f)" % (p.x, p.y))
+        zmap.append(zs[src[0]])
+    faces = []
+    for tri in out_f:
+        c = Vector((sum(out_v[i].x for i in tri) / 3.0, sum(out_v[i].y for i in tri) / 3.0))
+        longest = max((out_v[tri[k]] - out_v[tri[(k + 1) % 3]]).length for k in range(3))
+        if longest > 40.0 or over_ground(c.x, c.y) or not seaward(c.x, c.y):
+            continue
+        if not in_region(c.x, c.y) and to_shore(c)[0] > RAMP:
+            continue
+        faces.append(tuple(tri))
+
+    # The panels the new land meets, cut where it meets them.
+    cut = {}
+    for n in sorted(run):
+        cut.setdefault(panels[n]["ob"], []).append(panels[n])
+    for name, bm in bms.items():
+        if name not in cut:
+            bm.free()
+    report = {}
+    for name, ps in sorted(cut.items()):
+        report[name] = {"wall_panels": len(ps), "wall_faces_before": sum(len(p["faces"]) for p in ps)}
+    land_report = {"faces": len(faces), "shore_m": round(sum((pts[i] - pts[j]).length for i, j in segs), 1),
+                   "shore_vertices": len(keys), "top_of_wall": sum(1 for k in keys if edge_z[k] >= top_z[k] - SNAP),
+                   "highest": round(max(zmap), 2), "deepest": round(min(zmap), 2), "grid_held_under_sea": smeared,
+                   "ends_under_sea": [round(edge_z[k] - sea, 2) for k in ends]}
+    if dry:
+        for name in cut:
+            bms[name].free()
+        return report, land_report, None
+
+    for name, ps in sorted(cut.items()):
+        ob = bpy.data.objects[name]
+        me = ob.data
+        bm = bms[name]
+        col = bm.loops.layers.float_color.get("Col")
+        uv = bm.loops.layers.uv.get("UVMap")
+        fa = bm.faces.layers.int.get("authored_edit") or bm.faces.layers.int.new("authored_edit")
+        gone = {f for p in ps for f in p["faces"]}
+        corner_normals = me.corner_normals
+        # Every other face's corner normals, to set again; and the panels' own, for the undo.
+        kept_normals = {}
+        old_normals = {}
+        gone_index = {f.index for f in gone}
+        for poly in me.polygons:
+            if poly.index in gone_index:
+                old_normals[poly.index] = [Vector(corner_normals[li].vector) for li in poly.loop_indices]
+                continue
+            c = poly.center
+            for li in poly.loop_indices:
+                kept_normals[corner_key(me.vertices[me.loops[li].vertex_index].co, c)] = Vector(corner_normals[li].vector)
+        hist = bmesh.new()
+        hcol = hist.loops.layers.float_color.new("Col")
+        huv = hist.loops.layers.uv.new("UVMap")
+        hmap = {}
+        hnormals = []
+        for f in sorted(gone, key=lambda f: f.index):
+            vs = []
+            for v in f.verts:
+                if v not in hmap:
+                    hmap[v] = hist.verts.new(v.co)
+                vs.append(hmap[v])
+            nf = hist.faces.new(vs)
+            nf.material_index = f.material_index
+            nf.smooth = f.smooth
+            for la, lb, n in zip(f.loops, nf.loops, old_normals[f.index]):
+                lb[hcol] = la[col]
+                lb[huv].uv = la[uv].uv
+                hnormals.append(n)
+        hme = bpy.data.meshes.new("%s__before_edit%d" % (name, edit))
+        hist.to_mesh(hme)
+        hist.free()
+        hme.attributes.new("kyt_normal", 'FLOAT_VECTOR', 'CORNER').data.foreach_set(
+            "vector", [x for n in hnormals for x in n])
+        for m in me.materials:
+            hme.materials.append(m)
+        hob = bpy.data.objects.new(hme.name, hme)
+        hob["kyt_note"] = "the shore wall panels of %s that Ground edit %d cut, for its --undo; never exported" % (name, edit)
+        history_collection().objects.link(hob)
+
+        # Each panel's corners as they were: colour and texture at its top and its foot.
+        data = {}
+        for p in ps:
+            for f in p["faces"]:
+                for lp in f.loops:
+                    data[lp.vert] = (Vector(lp[col][:]), lp[uv].uv.copy())
+        made = {}
+        new_faces = []
+        for p in ps:
+            outward = p["faces"][0].normal.copy()
+            mids = []
+            for b, t in zip(p["b"], p["t"]):
+                k = key(b)
+                if edge_z[k] >= t.co.z - SNAP:
+                    mids.append(t)
+                    continue
+                if k not in made:
+                    w = (edge_z[k] - b.co.z) / (t.co.z - b.co.z)
+                    v = bm.verts.new((t.co.x, t.co.y, edge_z[k]))
+                    made[k] = (v, data[b][0].lerp(data[t][0], w), data[b][1].lerp(data[t][1], w))
+                mids.append(made[k][0])
+            t0, t1 = p["t"]
+            m0, m1 = mids
+            tris = []
+            if m0 is not t0 and m1 is not t1:
+                tris = [(t0, t1, m1), (t0, m1, m0)]
+            elif m0 is not t0:
+                tris = [(t0, t1, m0)]
+            elif m1 is not t1:
+                tris = [(t0, t1, m1)]
+            for tri in tris:
+                n = (tri[1].co - tri[0].co).cross(tri[2].co - tri[0].co)
+                if n.dot(outward) < 0.0:
+                    tri = (tri[0], tri[2], tri[1])
+                nf = bm.faces.new(tri)
+                nf.material_index = p["faces"][0].material_index
+                nf.smooth = p["faces"][0].smooth
+                nf[fa] = edit
+                for lp in nf.loops:
+                    if lp.vert in data:
+                        lp[col], lp[uv].uv = data[lp.vert][0], data[lp.vert][1]
+                    else:
+                        entry = next(m for m in made.values() if m[0] is lp.vert)
+                        lp[col], lp[uv].uv = entry[1], entry[2]
+                new_faces.append(nf)
+        bmesh.ops.delete(bm, geom=list(gone), context='FACES')
+        bm.to_mesh(me)
+        bm.free()
+        me.update()
+        normals = []
+        for poly in me.polygons:
+            c = poly.center
+            for li in poly.loop_indices:
+                vi = me.loops[li].vertex_index
+                normals.append(kept_normals.get(corner_key(me.vertices[vi].co, c), Vector(poly.normal)))
+        me.normals_split_custom_set(normals)
+        report[name]["wall_faces_after"] = len(new_faces)
+
+    # The new land's colours: the planting at the top of the wall it meets, sand from the
+    # bench's crest down, the sea cliff's colour deep under water; its texture coordinates
+    # continue the reserve's own.
+    reserve = bpy.data.objects["terrain_world_mainland_reserve"].data
+    rcol = reserve.color_attributes["Col"]
+    ruv = reserve.uv_layers["UVMap"]
+    def near_key(co):
+        cx, cy = int(math.floor(co.x / 0.05)), int(math.floor(co.y / 0.05))
+        for i in (-1, 0, 1):
+            for j in (-1, 0, 1):
+                for k in canon.get((cx + i, cy + j), ()):
+                    if abs(k[0] - co.x) < JOIN and abs(k[1] - co.y) < JOIN:
+                        return k
+        return None
+
+    shore_col = {}
+    fit = []
+    for poly in reserve.polygons:
+        if poly.normal.z < 0.3:
+            continue
+        c = poly.center
+        if not (box[0] <= c.x <= box[1] and box[2] <= c.y <= box[3]):
+            continue
+        for li in poly.loop_indices:
+            co = reserve.vertices[reserve.loops[li].vertex_index].co
+            k = near_key(co)
+            if k in index:
+                shore_col.setdefault(k, []).append(Vector(rcol.data[li].color))
+            if len(fit) < 20000:
+                fit.append((co.x, co.y, ruv.data[li].uv.x, ruv.data[li].uv.y))
+    for ob_name in cut:
+        if ob_name == "terrain_world_mainland_reserve":
+            continue
+        other = bpy.data.objects[ob_name].data
+        ocol = other.color_attributes["Col"]
+        for poly in other.polygons:
+            if poly.normal.z < 0.3:
+                continue
+            for li in poly.loop_indices:
+                co = other.vertices[other.loops[li].vertex_index].co
+                k = near_key(co)
+                if k in index:
+                    shore_col.setdefault(k, []).append(Vector(ocol.data[li].color))
+    F = np.array(fit)
+    coef, *_ = np.linalg.lstsq(np.c_[F[:, 0], F[:, 1], np.ones(len(F))], F[:, 2:], rcond=None)
+    uv_err = float(np.abs(np.c_[F[:, 0], F[:, 1], np.ones(len(F))] @ coef - F[:, 2:]).max())
+    if uv_err > 1e-3:
+        raise SystemExit("the reserve's texture coordinates are not a plan projection (off by %.4f)" % uv_err)
+    kk = sorted(shore_col)
+    if not kk:
+        raise SystemExit("no planting found at the top of the shore wall")
+    from mathutils.kdtree import KDTree
+    tree = KDTree(len(kk))
+    for i, k in enumerate(kk):
+        tree.insert((k[0], k[1], 0.0), i)
+    tree.balance()
+    bench_col = {k: sum(shore_col[k], Vector((0.0, 0.0, 0.0, 0.0))) / len(shore_col[k]) for k in kk}
+
+    def colour(x, y, z):
+        c = bench_col[kk[tree.find((x, y, 0.0))[1]]]
+        grain = 1.0 + math.sin(x * 0.37) * math.sin(-y * 0.41) * 0.05
+        sand = Vector((SAND[0] * grain, SAND[1] * grain, SAND[2] * grain, 1.0))
+        bed = Vector((SEABED[0] * grain, SEABED[1] * grain, SEABED[2] * grain, 1.0))
+        c = c.lerp(sand, 1.0 - smoothstep(SAND_FROM[1], SAND_FROM[0], z))
+        return c.lerp(bed, 1.0 - smoothstep(SEABED_FROM[1], SEABED_FROM[0], z))
+
+    name = NEW_LAND[edit]
+    me = bpy.data.meshes.new(name)
+    verts = [(p.x, p.y, zmap[k]) for k, p in enumerate(out_v)]
+    used = sorted({i for f in faces for i in f})
+    remap = {i: n for n, i in enumerate(used)}
+    me.from_pydata([verts[i] for i in used], [], [tuple(remap[i] for i in f) for f in faces])
+    me.validate()
+    for poly in me.polygons:
+        if poly.normal.z < 0.0:
+            poly.flip()
+        poly.use_smooth = True
+    ccol = me.color_attributes.new("Col", 'FLOAT_COLOR', 'CORNER')
+    cuv = me.uv_layers.new(name="UVMap")
+    for poly in me.polygons:
+        for li in poly.loop_indices:
+            co = me.vertices[me.loops[li].vertex_index].co
+            ccol.data[li].color = colour(co.x, co.y, co.z)
+            u, v = np.array([co.x, co.y, 1.0]) @ coef
+            cuv.data[li].uv = (float(u), float(v))
+    fa = me.attributes.new("authored_edit", 'INT', 'FACE')
+    fa.data.foreach_set("value", [edit] * len(me.polygons))
+    me.materials.append(reserve.materials[0])
+    ob = bpy.data.objects.new(name, me)
+    ob["kyt_note"] = ("Ground edit %d: land the grid edit designed beyond the shore, where the game had open sea; "
+                      "built by tools/blender/world_terrain_ground_edit.py, undone by its --undo" % edit)
+    bpy.data.collections[GROUND].objects.link(ob)
+    area = sum(p.area for p in me.polygons if min(me.vertices[i].co.z for i in p.vertices) >= sea)
+    land_report.update({"faces": len(me.polygons), "vertices": len(me.vertices), "dry_ha": round(area / 10000.0, 2),
+                        "uv_fit_error": round(uv_err, 6)})
+    return report, land_report, name
+
+
 def ground_triangles():
     tris = []
     for ob in ground_objects():
@@ -621,21 +1171,32 @@ def undo(edit):
         gone = [f for f in bm.faces if f[fl] == edit]
         bmesh.ops.delete(bm, geom=gone, context='FACES')
         bm.verts.ensure_lookup_table()
-        at = {(round(v.co.x, 4), round(v.co.y, 4)): v for v in bm.verts}
+        # A kept vertex is found where it stands; one the edit moved, by its plan position,
+        # unless another kept vertex stands in that column (a shore wall's top over its foot).
+        exact = {tuple(round(c, 4) for c in v.co): v for v in bm.verts}
+        column = {}
+        for v in bm.verts:
+            column.setdefault((round(v.co.x, 4), round(v.co.y, 4)), []).append(v)
         col = bm.loops.layers.float_color["Col"]
         uv = bm.loops.layers.uv["UVMap"]
         hme = hob.data
         hcol = hme.color_attributes["Col"]
         huv = hme.uv_layers["UVMap"]
+        claimed = {exact[k] for k in (tuple(round(c, 4) for c in v.co) for v in hme.vertices) if k in exact}
         made = []
         for v in hme.vertices:
-            k = (round(v.co.x, 4), round(v.co.y, 4))
-            if k in at:
-                at[k].co = v.co
-                made.append(at[k])
+            k3 = tuple(round(c, 4) for c in v.co)
+            k2 = k3[:2]
+            spare = [o for o in column.get(k2, []) if o not in claimed]
+            if k3 in exact:
+                made.append(exact[k3])
+            elif len(spare) == 1 and len(column[k2]) == 1:
+                spare[0].co = v.co
+                made.append(spare[0])
             else:
                 nv = bm.verts.new(v.co)
-                at[k] = nv
+                column.setdefault(k2, []).append(nv)
+                claimed.add(nv)
                 made.append(nv)
         for poly in hme.polygons:
             nf = bm.faces.new([made[i] for i in poly.vertices])
@@ -650,6 +1211,15 @@ def undo(edit):
         if "authored_edit" in me.attributes and not any(
                 v for v in (lambda a: (me.attributes["authored_edit"].data.foreach_get("value", a), a)[1])(np.zeros(len(me.polygons), dtype=np.int32))):
             me.attributes.remove(me.attributes["authored_edit"])
+        # The restored faces' corner normals, where the history kept them (edit 2 on); else smooth.
+        if "kyt_normal" in hme.attributes:
+            hn = np.zeros(len(hme.loops) * 3)
+            hme.attributes["kyt_normal"].data.foreach_get("vector", hn)
+            hn = hn.reshape(-1, 3)
+            for poly in hme.polygons:
+                c = poly.center
+                for li in poly.loop_indices:
+                    kept_normals[corner_key(hme.vertices[hme.loops[li].vertex_index].co, c)] = Vector(hn[li])
         vn = [Vector(v.vector) for v in me.vertex_normals]
         normals = []
         for poly in me.polygons:
@@ -698,6 +1268,14 @@ def render(folder, edit, views):
         if c.name not in (GROUND, LAKES_COLLECTION):
             for ob in c.objects:
                 ob.hide_render = True
+    if edit in NEW_LAND:
+        # The sea, so the waterline reads; only in the render, which runs after the save.
+        sea = float(edit_constant("world_terrain_coast_extension.py", "SEA_LEVEL"))
+        sme = bpy.data.meshes.new("tmp_sea")
+        sme.from_pydata([(-3000.0, 3000.0, sea), (4000.0, 3000.0, sea), (4000.0, -4000.0, sea), (-3000.0, -4000.0, sea)], [], [(0, 1, 2, 3)])
+        sob = bpy.data.objects.new("tmp_sea", sme)
+        sob.color = LAKE_COLOUR
+        scene.collection.objects.link(sob)
     for key, (centre, across, level) in views.items():
         cx, cz = centre
         half = 0.5 * (across - 300.0) if across > 600.0 else 0.5 * across
@@ -737,10 +1315,16 @@ def main():
     now_t, pre_t, box, grid_points = grid_surfaces(edit)
     before = {ob.name: coords(ob).copy() for ob in ground_objects()}
     reports = {}
-    for ob in ground_objects():
-        r = carry(ob, edit, now_t, pre_t, box, grid_points, a["dry"])
-        if r is not None:
-            reports[ob.name] = r
+    land = None
+    land_report = {}
+    if edit in NEW_LAND:
+        reports, land_report, land = new_land(edit, now_t, pre_t, box, a["dry"])
+        print("  %-34s %s" % (NEW_LAND[edit], ", ".join("%s %s" % kv for kv in land_report.items())))
+    else:
+        for ob in ground_objects():
+            r = carry(ob, edit, now_t, pre_t, box, grid_points, a["dry"])
+            if r is not None:
+                reports[ob.name] = r
     for name, r in reports.items():
         print("  %-34s %s" % (name, ", ".join("%s %s" % (k, ("%.2f" % v) if isinstance(v, float) else v) for k, v in r.items())))
     if a["dry"]:
@@ -748,6 +1332,8 @@ def main():
         return
     # Every vertex outside the edit's faces exactly where it was.
     for ob in ground_objects():
+        if ob.name == land:
+            continue
         if ob.name not in reports:
             if not np.array_equal(before[ob.name], coords(ob)):
                 raise SystemExit("%s moved, and the edit never reached it" % ob.name)
@@ -761,7 +1347,7 @@ def main():
     design = next(e for e in json.loads(bpy.data.objects[GRID].get("kyt_edits", "[]")) if e.get("id") == edit)
     tris = ground_triangles()
     coll = lakes_collection()
-    added = []
+    added = [land] if land else []
     hid = []
     areas = {}
     lakes = edit_constant("world_terrain_edit_hill_lakes.py", "LAKES") if edit == 4 else {}
@@ -800,16 +1386,25 @@ def main():
     export_before = list(scene.get("kyt_export_collections", []))
     scene["kyt_export_collections"] = [GROUND, LAKES_COLLECTION]
     entry = {"id": edit, "name": design["name"], "script": "tools/blender/world_terrain_ground_edit.py",
-             "date": "2026-10-05", "objects": sorted(reports), "report": reports, "lakes_ha": areas,
+             "date": TODAY, "objects": sorted(reports), "report": reports, "lakes_ha": areas,
              "added": added, "hid": hid, "export_before": export_before}
+    if land:
+        entry["new_land"] = land_report
     log(entry)
     held = sum(r.get("seam_held", 0) for r in reports.values())
-    readme("Ground edit %d (%s), Stage 3, 2026-10-05: grid edit %d carried onto Ground (%s): its region refined to "
+    if land:
+        readme("Ground edit %d (%s), Stage 3, %s: the land grid edit %d designed beyond the shore built as %s in "
+               "Ground (%s); the shore wall panels it meets cut at its edge in %s, their old faces kept in %s. Undo: "
+               "tools/blender/world_terrain_ground_edit.py -- --edit %d --undo." % (
+                   edit, design["name"], TODAY, edit, land, ", ".join("%s %s" % kv for kv in land_report.items()),
+                   ", ".join(reports), HISTORY, edit))
+    else:
+        readme("Ground edit %d (%s), Stage 3, %s: grid edit %d carried onto Ground (%s): its region refined to "
            "a %.0f m lattice and given the grid's designed surface; %d vertices on the seams with the generator's "
            "ground held where they were; water %s built on Ground in the Lakes collection, exported with Ground; "
            "design planes %s hidden; the replaced faces kept in %s. Undo: "
            "tools/blender/world_terrain_ground_edit.py -- --edit %d --undo." % (
-               edit, design["name"], edit, ", ".join(reports), LATTICE, held,
+               edit, design["name"], TODAY, edit, ", ".join(reports), LATTICE, held,
                ", ".join("%s %s" % (k, ("%.2f ha" % v) if k in lakes else ("%.0f m2" % v)) for k, v in areas.items()) or "none",
                ", ".join(hid) or "none", HISTORY, edit))
     print("world_terrain_ground_edit: edit %d carried; every vertex outside its faces unchanged" % edit)
