@@ -217,6 +217,16 @@ def main() -> None:
     depsgraph = bpy.context.evaluated_depsgraph_get()
 
     visible = [o for o in scene.objects if o.type in EXPORTABLE and not o.hide_render]
+    # A master may name the collections that are its game piece (the world
+    # terrain master: `Ground`, 2026-10-05); then nothing else is exported, so
+    # its design grid, reference curves and review water never reach the game.
+    # The range and city masters name none and export as before.
+    only = scene.get("kyt_export_collections")
+    if only:
+        names = set(only)
+        visible = [o for o in visible if any(c.name in names for c in o.users_collection)]
+        if not visible:
+            raise SystemExit(f"export_world_source: kyt_export_collections {sorted(names)} holds nothing to export")
     rocks = [o for o in visible if is_rock(o)]
     terrain = [o for o in visible if not is_rock(o)]
 
