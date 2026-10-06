@@ -25,6 +25,7 @@ const Plan := preload("res://scripts/park_plan.gd")
 const KiddielandSource := preload("res://scripts/kiddieland_layout_source.gd")
 const LighthouseRegradeSource := preload("res://scripts/lighthouse_regrade_source.gd")
 const DrainageTerrainSource := preload("res://scripts/park_drainage_terrain_source.gd")
+const WorldTerrainSource := preload("res://scripts/world_terrain_source.gd")
 
 const GENERATED_DIR := "res://scenes/world/generated"
 const OUT_PATH := GENERATED_DIR + "/plaza_props.tscn"
@@ -153,6 +154,37 @@ func _drainage_terrain_source():
 	if _drainage_terrain == null:
 		_drainage_terrain = DrainageTerrainSource.new()
 	return _drainage_terrain
+
+
+var _world_terrain
+
+
+func _world_terrain_source():
+	if _world_terrain == null:
+		_world_terrain = WorldTerrainSource.new()
+	return _world_terrain
+
+
+## Since Stage 2 of `documentation/terrain-master-into-game-plan-2026-10-05.md`
+## (2026-10-05) the ground is the world terrain master's, and the generator
+## builds on its own formulas plus whatever has changed in the master since it
+## was copied from them (`scripts/world_terrain_source.gd`), so what stands on
+## the ground follows an edit to it. Five functions are the ground everything
+## else reads: the mainland reserve, the coasts, T2, T6 and the east shoulders
+## (T3 and the towns read the reserve and the coasts). Each adds the change
+## once, at the outermost call, so a ground function that reads another does
+## not add it twice. Where nothing changed it adds nothing, so the park is
+## built exactly as before. Roads read the landform through
+## `_rebuild_natural_y` and `_rebuild_range_rise_raw`, which take no change: a
+## road keeps its own graded profile whatever the master does beside it.
+var _ground_depth := 0
+
+
+func _ground_follows(p: Vector2, y: float) -> float:
+	if _ground_depth > 0:
+		return y
+	var d: float = _world_terrain_source().delta_y(p)
+	return y if d == 0.0 else y + d
 
 
 func _north_boardwalk_return_points() -> Array[Vector3]:
@@ -479,6 +511,7 @@ func _initialize() -> void:
 			print("only: building everything, writing only %s" % ", ".join(_write_only))
 	_lighthouse_regrade_source()
 	_drainage_terrain_source()
+	print(_world_terrain_source().summary())
 	_build_textures()
 	_build_materials()
 	_kiddie_rail = _kiddie_rail_loop_from_source()
@@ -712,6 +745,7 @@ func _initialize() -> void:
 	# lived in east_cascade; only their output owner changes.
 	_publish_staged_east_shoulders()
 	_rebuild_embankment_ground_index(_root)
+	_drop_world_terrain_copies()
 	if not _save(_root, GROUNDWORKS_PATH):
 		return
 
@@ -5993,6 +6027,14 @@ func _east_kiddie_grade_y(x: float, z: float, uncut_y: float) -> float:
 ## end of the landform is not a ruled line, which is `_hill_roll`'s reason for
 ## being deterministic: the coplanar report must not change under its reader.
 func _shoulder_y(x: float, z: float, side: float, prm: Dictionary) -> float:
+	_ground_depth += 1
+	var y := _shoulder_formula_y(x, z, side, prm)
+	_ground_depth -= 1
+	return _ground_follows(Vector2(x, z), y)
+
+
+## The same before any change in the world terrain master; see `_ground_follows`.
+func _shoulder_formula_y(x: float, z: float, side: float, prm: Dictionary) -> float:
 	var axis: float = Plan.ARCH_AT.y
 	var dist := (z - axis) * side
 	var top: float = Plan.TERRACE_TWO_Y + GROUND_LIFT
@@ -17598,7 +17640,7 @@ func _rebuild_range_rise_raw(p: Vector2) -> float:
 	var base := 0.0
 	if p.y > REBUILD_OUTER_HIGHLAND_FROM_Z and p.y < REBUILD_OUTER_HIGHLAND_TO_Z \
 			and p.x >= _rebuild_range_toe_x(p.y) - 0.01:
-		base = _rebuild_outer_highland_y(_rebuild_plateau_end_x(p.y), p.y) \
+		base = _rebuild_outer_highland_formula_y(_rebuild_plateau_end_x(p.y), p.y) \
 			- REBUILD_WORLD_RESERVE_Y
 	if w <= 0.0:
 		return base
@@ -17843,6 +17885,14 @@ func _earth_coloured_tri(st: SurfaceTool, a: Vector3, uv_a: Vector2, col_a: Colo
 
 
 func _rebuild_world_reserve_y(p: Vector2) -> float:
+	_ground_depth += 1
+	var y := _rebuild_world_reserve_formula_y(p)
+	_ground_depth -= 1
+	return _ground_follows(p, y)
+
+
+## The same before any change in the world terrain master; see `_ground_follows`.
+func _rebuild_world_reserve_formula_y(p: Vector2) -> float:
 	# The cut comes last, on the whole ground (2026-09-05): cut into the range
 	# rise alone, the coast base and a beach's lowering were added back on
 	# top of the road's line, and the beach road floated 1.4m over the sand
@@ -18097,6 +18147,14 @@ func _rebuild_coastal_polygon_mesh(record: Dictionary) -> ArrayMesh:
 
 
 func _rebuild_coastal_reserve_y(p: Vector2) -> float:
+	_ground_depth += 1
+	var y := _rebuild_coastal_reserve_formula_y(p)
+	_ground_depth -= 1
+	return _ground_follows(p, y)
+
+
+## The same before any change in the world terrain master; see `_ground_follows`.
+func _rebuild_coastal_reserve_formula_y(p: Vector2) -> float:
 	var distance := absf(p.y)
 	var transition := _coast_transition_range(p)
 	var t := clampf((distance - transition.x) /
@@ -18393,6 +18451,14 @@ func _rebuild_below_lowland_sections(points: Array) -> Array:
 ## profile meets the ridge's published foot heights. Both are eased, so this is
 ## landscape with a readable slope rather than one enormous tilted slab.
 func _rebuild_outer_highland_y(x: float, z: float) -> float:
+	_ground_depth += 1
+	var y := _rebuild_outer_highland_formula_y(x, z)
+	_ground_depth -= 1
+	return _ground_follows(Vector2(x, z), y)
+
+
+## The same before any change in the world terrain master; see `_ground_follows`.
+func _rebuild_outer_highland_formula_y(x: float, z: float) -> float:
 	var axis: float = Plan.ARCH_AT.y
 	var d := absf(z - axis)
 	var inner := 18.0
@@ -19117,17 +19183,38 @@ func _rebuild_embankment_ground_index(scene_root: Node3D) -> void:
 	_embank_owner = PackedInt32Array()
 	_embank_cells = {}
 	_embank_live = true
+	# Since Stage 2 (2026-10-05) a route banks against the world terrain
+	# master's ground. Unchanged, that is the generator's own copies, indexed
+	# where they always were; changed, the master's faces stand in for them.
+	var master := _world_terrain_source() as WorldTerrainSource
 	for body_node in scene_root.get_children():
 		var body := body_node as Node3D
 		if body == null:
+			continue
+		if master.changed() and String(body.name) in WorldTerrainSource.BODIES:
 			continue
 		for child in body.get_children():
 			var mi := child as MeshInstance3D
 			if mi != null and mi.mesh != null:
 				_rebuild_embankment_index_faces(mi.mesh.get_faces(),
 					body.transform * mi.transform, 0)
+	if master.changed():
+		_rebuild_embankment_index_faces(master.master_faces(), Transform3D.IDENTITY, 0)
 	print("embankment ground index: %d triangles in %d cells" % [
 		_embank_tris.size() / 3, _embank_cells.size()])
+
+
+## The generator's own copies of the ground the world terrain master took over
+## are still built, in their places in the build order, because what follows
+## reads them: their seam ordinals, the corridor stitched to their edges and
+## the routes banked against them. Since Stage 2 (2026-10-05) they are not
+## written; `scenes/world/world_terrain.tscn` mounts the master in their place.
+func _drop_world_terrain_copies() -> void:
+	for body in WorldTerrainSource.BODIES:
+		var node := _root.get_node_or_null(NodePath(body))
+		assert(node != null, "park_groundworks has no %s to drop" % body)
+		_root.remove_child(node)
+		node.free()
 
 
 func _rebuild_embankment_index_faces(faces: PackedVector3Array, xf: Transform3D,
@@ -20425,6 +20512,14 @@ func _rebuild_highland_floor(p: Vector2) -> float:
 ## 1.10m hidden bed cut keeps interpolated terrain below a path falling at the
 ## 1:8 public maximum. Ten centimetres proved insufficient at F's inside edge.
 func _rebuild_lowland_surface_y(p: Vector2) -> float:
+	_ground_depth += 1
+	var y := _rebuild_lowland_surface_formula_y(p)
+	_ground_depth -= 1
+	return _ground_follows(p, y)
+
+
+## The same before any change in the world terrain master; see `_ground_follows`.
+func _rebuild_lowland_surface_formula_y(p: Vector2) -> float:
 	var y := REBUILD_LOWLAND_Y
 	if p.x <= REBUILD_LOWLAND_SUPPORT_TO_X:
 		for route_id in [&"D", &"F"]:

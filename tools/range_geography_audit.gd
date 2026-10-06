@@ -10,6 +10,10 @@ extends Node
 const WORLD := "res://scenes/world/park_world.tscn"
 const Plan = preload("res://scripts/park_plan.gd")
 const GROUNDWORKS := "res://scenes/world/park_groundworks.tscn"
+## Since 2026-10-05 the mainland reserve and both coasts are the world terrain
+## master's; the generator no longer writes its own (terrain master Stage 2).
+const WORLD_TERRAIN := "res://scenes/world/world_terrain.tscn"
+const MASTER_SOURCE := "res://assets/source/world_terrain_master.blend"
 const APPROACH := "res://scenes/world/park_approach.tscn"
 const RANGE_MOUNT := "res://scenes/world/range_forest_background.tscn"
 const CITY_MOUNT := "res://scenes/world/far_shore_city_relocation.tscn"
@@ -56,30 +60,30 @@ var _cells_by_id := {}
 
 const RECORDS := [
 	{
-		"id": "generated_mainland",
-		"root": "groundworks",
-		"node": "terrain_world_mainland_reserve/surface",
-		"scene": "res://scenes/world/generated/park_groundworks.tscn",
-		"source": GENERATED_SOURCE,
-		"authority": "generated",
-		"role": "primary mainland support and generator-owned crescent range",
+		"id": "master_mainland",
+		"root": "world_terrain",
+		"node": "terrain_world_mainland_reserve",
+		"scene": WORLD_TERRAIN,
+		"source": MASTER_SOURCE,
+		"authority": "editor-owned",
+		"role": "primary mainland support and the crescent range, copied from the generator",
 	},
 	{
-		"id": "generated_coast_north",
-		"root": "groundworks",
-		"node": "terrain_world_coast_north/surface",
-		"scene": "res://scenes/world/generated/park_groundworks.tscn",
-		"source": GENERATED_SOURCE,
-		"authority": "generated",
+		"id": "master_coast_north",
+		"root": "world_terrain",
+		"node": "terrain_world_coast_north",
+		"scene": WORLD_TERRAIN,
+		"source": MASTER_SOURCE,
+		"authority": "editor-owned",
 		"role": "northern coast support and north-town valley mouth",
 	},
 	{
-		"id": "generated_coast_south",
-		"root": "groundworks",
-		"node": "terrain_world_coast_south/surface",
-		"scene": "res://scenes/world/generated/park_groundworks.tscn",
-		"source": GENERATED_SOURCE,
-		"authority": "generated",
+		"id": "master_coast_south",
+		"root": "world_terrain",
+		"node": "terrain_world_coast_south",
+		"scene": WORLD_TERRAIN,
+		"source": MASTER_SOURCE,
+		"authority": "editor-owned",
 		"role": "southern coast support and beach-town shelf",
 	},
 	{
@@ -170,6 +174,9 @@ func _ready() -> void:
 	var groundworks := load(GROUNDWORKS).instantiate() as Node3D
 	groundworks.name = "groundworks"
 	add_child(groundworks)
+	var world_terrain := load(WORLD_TERRAIN).instantiate() as Node3D
+	world_terrain.name = "world_terrain"
+	add_child(world_terrain)
 	var approach := load(APPROACH).instantiate() as Node3D
 	approach.name = "approach"
 	add_child(approach)

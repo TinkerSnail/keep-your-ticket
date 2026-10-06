@@ -11,11 +11,17 @@ const NAMES := ["terrain_world_mainland_reserve", "terrain_world_coast_north",
 
 
 func _initialize() -> void:
+	# The reserve and coasts are the world terrain master's since 2026-10-05; the
+	# corridor stays in the groundworks.
+	var master: Node = load("res://scenes/world/world_terrain.tscn").instantiate()
 	var ground: Node = load("res://scenes/world/park_groundworks.tscn").instantiate()
 	var edges := {}
 	for name in NAMES:
-		var node: Node = ground.find_child(name, true, false)
-		var surface := node.find_child("surface", false, false) as MeshInstance3D
+		var node: Node = master.find_child(name, true, false)
+		if node == null:
+			node = ground.find_child(name, true, false)
+		var surface := node as MeshInstance3D if node is MeshInstance3D \
+			else node.find_child("surface", false, false) as MeshInstance3D
 		var arrays: Array = surface.mesh.surface_get_arrays(0)
 		var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 		var index := PackedInt32Array()
@@ -159,6 +165,7 @@ func _initialize() -> void:
 			if found:
 				shown3 += 1
 				break
+	master.free()
 	ground.free()
 	quit()
 

@@ -17,16 +17,22 @@ func _ready() -> void:
 	get_tree().quit()
 
 func _check_open_faces() -> void:
-	var ground: Node = load("res://scenes/world/park_groundworks.tscn").instantiate()
+	# The reserve and coasts from the world terrain master, the corridor from the
+	# groundworks (2026-10-05, as footprint_test).
+	var master: Node = load("res://scenes/world/world_terrain.tscn").instantiate()
+	var groundworks: Node = load("res://scenes/world/park_groundworks.tscn").instantiate()
 	var edges := {}
 	var triangles := 0
-	for name in ["terrain_world_mainland_reserve", "terrain_world_coast_north",
-			"terrain_world_coast_south", "terrain_road_corridor"]:
+	for pair in [[master, "terrain_world_mainland_reserve"], [master, "terrain_world_coast_north"],
+			[master, "terrain_world_coast_south"], [groundworks, "terrain_road_corridor"]]:
+		var ground: Node = pair[0]
+		var name: String = pair[1]
 		var node: Node = ground.find_child(name, true, false)
 		if node == null:
-			_fail("%s is not in the groundworks scene" % name)
+			_fail("%s is not in %s" % [name, ground.name])
 			continue
-		var surface := node.find_child("surface", false, false) as MeshInstance3D
+		var surface := node as MeshInstance3D if node is MeshInstance3D \
+			else node.find_child("surface", false, false) as MeshInstance3D
 		if surface == null or surface.mesh == null:
 			_fail("%s has no surface mesh" % name)
 			continue
@@ -119,7 +125,8 @@ func _check_open_faces() -> void:
 			continue
 		open.append(rec)
 		length += a.distance_to(b)
-	ground.free()
+	master.free()
+	groundworks.free()
 	if open.is_empty():
 		print("  terrain: no open face above the water (%d triangles, %d boundary edges)" % [
 			triangles, stray.size()])
@@ -469,7 +476,7 @@ func _check_retired_geometry() -> void:
 		if program.find_child(required, true, false) == null:
 			_fail("the atlas program is missing %s" % required)
 	program.free()
-	var ground: Node = load("res://scenes/world/park_groundworks.tscn").instantiate()
+	var ground: Node = load("res://scenes/world/world_terrain.tscn").instantiate()
 	if ground.find_child("terrain_T6_outer_highland", true, false) == null:
 		_fail("the expanded eastern highland reserve is not mounted")
 	ground.free()

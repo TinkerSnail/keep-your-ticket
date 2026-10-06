@@ -9,6 +9,9 @@ const Generator = preload("res://tools/gen_props.gd")
 const EPSILON := 0.011
 const EAST_CASCADE_PATH := "res://scenes/world/generated/east_cascade.tscn"
 const GROUNDWORKS_PATH := "res://scenes/world/generated/park_groundworks.tscn"
+## Since 2026-10-05 (terrain master Stage 2) the district shoulders' ground is
+## the world terrain master's, and the generator no longer writes its own.
+const WORLD_TERRAIN_PATH := "res://scenes/world/world_terrain.tscn"
 
 var _failures: PackedStringArray = PackedStringArray()
 
@@ -237,9 +240,12 @@ func _check_generated_scene_ownership() -> void:
 	if not misplaced.is_empty():
 		_failures.append("protected east_cascade still owns %d district shoulder nodes (first: %s)" % [
 			misplaced.size(), misplaced[0]])
-	for required in [&"east_shoulder_n", &"east_shoulder_s"]:
-		if groundworks.get_node_or_null(NodePath(String(required))) == null:
-			_failures.append("park_groundworks is missing staged district terrain %s" % required)
+	var world_terrain := _instantiate_scene(WORLD_TERRAIN_PATH)
+	if world_terrain != null:
+		for required in [&"east_shoulder_n", &"east_shoulder_s"]:
+			if world_terrain.find_child(String(required), true, false) == null:
+				_failures.append("world_terrain is missing district terrain %s" % required)
+		world_terrain.free()
 	var north_helpers := 0
 	for child in groundworks.get_children():
 		if String(child.name).begins_with("east_promenade_bank_"):
