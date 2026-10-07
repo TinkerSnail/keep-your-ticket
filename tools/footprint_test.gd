@@ -414,14 +414,19 @@ func _ground_mesh(node: Node) -> MeshInstance3D:
 func _check_open_faces() -> void:
 	# The reserve, both coasts, the south beach front (Ground edit 2) and the
 	# coast shelf (2026-10-06) from the world terrain master, the road corridor
-	# from the groundworks (2026-10-05); world positions either way.
+	# from the groundworks (2026-10-05); world positions either way. And the
+	# south range blend (Ground edit 1, 2026-10-06) with the landforms it was cut
+	# from: they are closed, and its rim is their cut, edge for edge.
 	var master: Node = load(WORLD_TERRAIN).instantiate()
 	var groundworks: Node = load("res://scenes/world/park_groundworks.tscn").instantiate()
 	var edges := {}
 	var triangles := 0
 	for pair in [[master, "terrain_world_mainland_reserve"], [master, "terrain_world_coast_north"],
 			[master, "terrain_world_coast_south"], [master, "terrain_south_beach_front"],
-			[master, "terrain_coast_shelf"], [groundworks, "terrain_road_corridor"]]:
+			[master, "terrain_coast_shelf"], [master, "terrain_south_range_blend"],
+			[master, "background_distant_range_south"], [master, "southern_range_connection_lowland"],
+			[master, "southern_range_connection_ridge_3"], [master, "southern_range_connection_ridge_4"],
+			[master, "southern_city_range_foothills"], [groundworks, "terrain_road_corridor"]]:
 		var ground: Node = pair[0]
 		var name: String = pair[1]
 		var node: Node = ground.find_child(name, true, false)

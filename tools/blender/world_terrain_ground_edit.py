@@ -32,6 +32,10 @@ Ground's edge, so it is built rather than cut: a new Ground object, `NEW_LAND`, 
 from the coasts' shore wall out to the grid's seabed, running on below the waterline. See
 `new_land`.
 
+Edit 1, the south range blend (2026-10-06), lands on the range's and city's closed landform
+shells, which overlap: in the zone it changed they are cut along its edge, emptied and capped,
+and one sheet, `RANGE_BLEND`, takes the designed surface there. See `range_blend`.
+
 The coast shelf (2026-10-06, `-- --edit shelf`, id `SHELF_ID`) is no grid edit: every coast's
 shore wall is cut just under the waterline and a shelf runs out from it under the water, so the
 coast goes on below the sea instead of ending in a wall. See `coast_shelf`.
@@ -80,7 +84,8 @@ DESIGN_PLANES = {"K1": "water_K1_enlarged", "L0": "water_L0_enlarged"}
 POOLS = {5: {"plunge_pool": "water_plunge_pool"}}
 POOL_GROW = 2.0
 # Render views per edit beyond the lakes: {name: ((x, z) centre, width across, eye level)}.
-VIEWS = {100: {"shelf_north": ((-300.0, -1300.0), 1400.0, -8.0), "shelf_east": ((3300.0, 600.0), 1400.0, -8.0),
+VIEWS = {1: {"range_west": ((-1150.0, 5550.0), 1100.0, 40.0), "range_east": ((-150.0, 5800.0), 1500.0, 60.0)},
+         100: {"shelf_north": ((-300.0, -1300.0), 1400.0, -8.0), "shelf_east": ((3300.0, 600.0), 1400.0, -8.0),
               "shelf_spur": ((500.0, 2450.0), 900.0, -8.0)},
          2: {"beach_north": ((130.0, 900.0), 900.0, -4.0), "beach_south": ((500.0, 1850.0), 900.0, -4.0)},
          5: {"falls": ((355.0, -290.0), 320.0, 41.9)}}
@@ -150,8 +155,35 @@ SHELF_LONGEST = 60.0
 SHELF_CLEAR = 45.0
 # A shore whose top colour is within this of the generator's beach sand has a sandy shelf.
 SANDY = 0.15
+# Edit 1, the south range blend (2026-10-06), lands on the range's and city's landforms, which
+# joined Ground that day as their sources drew them: closed shells (a top, sides straight down,
+# a floor at -11) lying over one another. Carried shell by shell, a cut would bare the shell
+# under it and a raise would leave a slot against the next one's side. So in the zone the edit
+# changed, Ground becomes one sheet, this object: every shell is cut along the zone's edge,
+# emptied inside it and capped where it was cut, so each is still closed, and the sheet takes the
+# designed surface inside and meets the topmost shell's cut edge, edge for edge. See `range_blend`.
+RANGE_BLEND = {1: "terrain_south_range_blend"}
+# The sheet's lattice inside the zone: the grid's own 25 m, halved.
+RANGE_LATTICE = 12.5
+# Where the zone's edge crosses a shell's straight side, the ground steps down it; the sheet, a
+# surface over the plan, takes the step over twice this of its edge.
+JUMP = 0.01
+OFF_LINE = 0.05
+# The sheet's lattice by the coastal branch's road box (see `range_blend`).
+HELD_LATTICE = 4.0
+# Over this far in from the zone's edge the edit fades in, and the sheet has rows along it,
+# points this far apart.
+EDGE_FADE = 12.5
+EDGE_ROW = 6.0
+# The range's level bands (background_distant_range_south's `toe_rock_bands`): a sheet face that
+# was in one takes its band again from its height after the edit.
+TOE_BANDS = ((16.0, "distant_massif_toe_dark"), (32.0, "distant_massif_toe_rock"),
+             (43.0, "distant_massif_toe_rock_forest_1"), (54.0, "distant_massif_toe_rock_forest_2"),
+             (65.0, "distant_massif_toe_rock_forest_3"), (math.inf, "distant_massif_forest"))
+# Land the edit made out of the sea is the range's cove sand below this, its bands above.
+SAND_BELOW = -4.0
 # The edits this script knows how to carry, each in its own Stage 3 batch.
-CARRIED = (2, 4, 5, SHELF_ID)
+CARRIED = (1, 2, 4, 5, SHELF_ID)
 
 
 def argv():
@@ -1186,6 +1218,918 @@ def coast_shelf(edit, dry):
     return report, shelf_report, SHELF
 
 
+def zone_cells(edit, step):
+    """The grid cells edit `edit` changed a corner of (by more than `MIN_CHANGE`), as (i, j) for
+    the cell [i, i + 1] x [j, j + 1] in `step`s, with every hole filled and every place two cells
+    meet only at a corner filled out, so the zone's edge is one simple loop."""
+    ob = bpy.data.objects[GRID]
+    me = ob.data
+    M = ob.matrix_world
+    co = coords(ob)
+    ed = np.zeros(len(me.vertices), dtype=np.int32)
+    me.attributes["authored_edit"].data.foreach_get("value", ed)
+    pre = np.zeros(len(me.vertices))
+    me.attributes["height_pre_edit"].data.foreach_get("value", pre)
+    cells = set()
+    for i in np.nonzero(ed == edit)[0]:
+        w = M @ Vector(co[i])
+        if abs(w.z - pre[i]) <= MIN_CHANGE:
+            continue
+        fx, fy = w.x / step, w.y / step
+        if abs(fx - round(fx)) > 1e-6 or abs(fy - round(fy)) > 1e-6:
+            raise SystemExit("the grid vertex at (%.3f, %.3f) is off its %.0f m lattice" % (w.x, w.y, step))
+        for a in (0, -1):
+            for b in (0, -1):
+                cells.add((round(fx) + a, round(fy) + b))
+    while True:
+        grew = False
+        for (i, j) in list(cells):
+            for di, dj in ((1, 1), (1, -1)):
+                if (i + di, j + dj) in cells and (i + di, j) not in cells and (i, j + dj) not in cells:
+                    cells.add((i + di, j))
+                    grew = True
+        i0 = min(c[0] for c in cells) - 1
+        i1 = max(c[0] for c in cells) + 1
+        j0 = min(c[1] for c in cells) - 1
+        j1 = max(c[1] for c in cells) + 1
+        outside = set()
+        todo = [(i0, j0)]
+        while todo:
+            c = todo.pop()
+            if c in outside or c in cells or not (i0 <= c[0] <= i1 and j0 <= c[1] <= j1):
+                continue
+            outside.add(c)
+            todo.extend(((c[0] + 1, c[1]), (c[0] - 1, c[1]), (c[0], c[1] + 1), (c[0], c[1] - 1)))
+        holes = {(i, j) for i in range(i0, i1 + 1) for j in range(j0, j1 + 1)} - cells - outside
+        if holes:
+            cells |= holes
+            grew = True
+        if not grew:
+            return cells
+
+
+def zone_loops(cells, step):
+    """The zone's edge as loops of corner points, counter-clockwise, the zone on the left."""
+    edges = {}
+    for (i, j) in cells:
+        for a, b in (((i, j), (i + 1, j)), ((i + 1, j), (i + 1, j + 1)), ((i + 1, j + 1), (i, j + 1)), ((i, j + 1), (i, j))):
+            if (b, a) in edges:
+                del edges[(b, a)]
+            else:
+                edges[(a, b)] = True
+    nxt = {}
+    for a, b in edges:
+        if a in nxt:
+            raise SystemExit("the zone's edge touches itself at (%d, %d)" % a)
+        nxt[a] = b
+    loops = []
+    while nxt:
+        start = next(iter(nxt))
+        loop = [start]
+        p = nxt.pop(start)
+        while p != start:
+            loop.append(p)
+            p = nxt.pop(p)
+        n = len(loop)
+
+        def turn(k):
+            d0 = (loop[k][0] - loop[k - 1][0], loop[k][1] - loop[k - 1][1])
+            d1 = (loop[(k + 1) % n][0] - loop[k][0], loop[(k + 1) % n][1] - loop[k][1])
+            return d0 != d1
+
+        loops.append([Vector((c[0] * step, c[1] * step)) for k, c in enumerate(loop) if turn(k)])
+    return loops
+
+
+class Zone:
+    """Edit 1's zone: its cells, its edge as straight runs, and where a point lies against them."""
+
+    def __init__(self, cells, step):
+        self.cells = cells
+        self.step = step
+        # One loop per separate piece of the zone; the holes are filled.
+        self.loops = zone_loops(cells, step)
+        self.runs = []
+        self.by_line = {}
+        self.perimeters = []
+        self.first_run = []
+        for li, corners in enumerate(self.loops):
+            s = 0.0
+            self.first_run.append(len(self.runs))
+            for k in range(len(corners)):
+                # In Python's doubles, not mathutils' single floats: along a run, distance is
+                # exact, so a corner is the same point seen from either side.
+                a, b = corners[k], corners[(k + 1) % len(corners)]
+                ax, ay, bx, by = float(a.x), float(a.y), float(b.x), float(b.y)
+                dx, dy = (bx > ax) - (bx < ax), (by > ay) - (by < ay)
+                length = abs(bx - ax) + abs(by - ay)
+                run = {"loop": li, "a": a, "b": b, "ax": ax, "ay": ay, "dx": dx, "dy": dy, "len": length, "s0": s,
+                       "horizontal": dy == 0, "inside": Vector((-dy, dx))}
+                self.runs.append(run)
+                key = ("y", round(ay / step)) if run["horizontal"] else ("x", round(ax / step))
+                self.by_line.setdefault(key, []).append(len(self.runs) - 1)
+                s += length
+            self.perimeters.append(s)
+        xs = [c.x for loop in self.loops for c in loop]
+        ys = [c.y for loop in self.loops for c in loop]
+        self.box = (min(xs), max(xs), min(ys), max(ys))
+
+    def next_run(self, ri):
+        """The run after `ri` round its loop."""
+        li = self.runs[ri]["loop"]
+        nxt = ri + 1
+        if nxt == len(self.runs) or self.runs[nxt]["loop"] != li:
+            nxt = self.first_run[li]
+        return nxt
+
+    def inside(self, x, y):
+        return (math.floor(x / self.step), math.floor(y / self.step)) in self.cells
+
+    def on_edge(self, x, y, tol=1e-4):
+        """The runs (index, distance along) that (x, y) lies on."""
+        out = []
+        for axis, c, along in (("y", y, x), ("x", x, y)):
+            k = round(c / self.step)
+            if abs(c - k * self.step) > tol:
+                continue
+            for ri in self.by_line.get((axis, k), ()):
+                r = self.runs[ri]
+                u = (x - r["ax"]) * r["dx"] + (y - r["ay"]) * r["dy"]
+                if -tol <= u <= r["len"] + tol:
+                    out.append((ri, min(max(u, 0.0), r["len"])))
+        return out
+
+    def edge_distance(self, x, y, within=math.inf):
+        """The distance from (x, y) to the zone's edge, looked for only `within` that of it."""
+        best = math.inf
+        span = self.step if within == math.inf else within
+        for axis, c in (("y", y), ("x", x)):
+            k0 = math.floor((c - span) / self.step)
+            k1 = math.ceil((c + span) / self.step)
+            rng = range(k0, k1 + 1) if within != math.inf else None
+            keys = [(axis, k) for k in rng] if rng is not None else [key for key in self.by_line if key[0] == axis]
+            for key in keys:
+                for ri in self.by_line.get(key, ()):
+                    best = min(best, self.run_distance(ri, x, y))
+        return best
+
+    def run_distance(self, ri, x, y):
+        r = self.runs[ri]
+        px, py = x - r["ax"], y - r["ay"]
+        u = min(max(px * r["dx"] + py * r["dy"], 0.0), r["len"])
+        return math.hypot(px - r["dx"] * u, py - r["dy"] * u)
+
+    def nearest_run(self, x, y):
+        return min(range(len(self.runs)), key=lambda ri: self.run_distance(ri, x, y))
+
+    def face_inside(self, f):
+        """Whether a face cut along the zone's edge lies in the zone: tested at its centre, or
+        halfway from it to a corner when the centre sits on the edge."""
+        c = f.calc_center_median()
+        for q in [c] + [c.lerp(v.co, 0.5) for v in f.verts]:
+            if not self.on_edge(q.x, q.y, 1e-5):
+                return self.inside(q.x, q.y)
+        raise SystemExit("a face at (%.2f, %.2f) lies along the zone's edge: %s, area %.6f" % (
+            c.x, c.y, [tuple(round(x, 4) for x in v.co) for v in f.verts], f.calc_area()))
+
+
+def as_exported(bm, me, indices):
+    """Rebuild the faces `indices` as the triangles the exporter draws (Blender's own loop
+    triangles), so a non-planar face can be cut without its surface moving."""
+    me.calc_loop_triangles()
+    tris = {}
+    for lt in me.loop_triangles:
+        if lt.polygon_index in indices:
+            tris.setdefault(lt.polygon_index, []).append(tuple(lt.vertices))
+    bm.verts.ensure_lookup_table()
+    bm.faces.ensure_lookup_table()
+    held = [(bm.faces[pi], [[bm.verts[i] for i in t] for t in ts]) for pi, ts in tris.items()]
+    gone = []
+    for f, ts in held:
+        if len(f.verts) == 3:
+            continue
+        for t in ts:
+            nf = bm.faces.new(t)
+            nf.material_index = f.material_index
+            nf.smooth = f.smooth
+        gone.append(f)
+    bmesh.ops.delete(bm, geom=gone, context='FACES_ONLY')
+
+
+def all_hits(tree, x, y):
+    out = []
+    z = 5000.0
+    while True:
+        hit = tree.ray_cast(Vector((x, y, z)), Vector((0.0, 0.0, -1.0)))
+        if hit[0] is None:
+            return out
+        out.append(hit[0].z)
+        z = hit[0].z - 1e-4
+
+
+def range_band(z):
+    for top, name in TOE_BANDS:
+        if z < top:
+            return name
+    return TOE_BANDS[-1][1]
+
+
+def range_blend(edit, now_t, pre_t, dry):
+    """Edit 1 on the landforms it lands on: one sheet in the zone it changed, the shells cut along
+    that zone's edge, emptied inside it and capped (see `RANGE_BLEND`)."""
+    name = RANGE_BLEND[edit]
+    if name in bpy.data.objects:
+        raise SystemExit("%s already exists" % name)
+    script = "world_terrain_edit_blend_south_range.py"
+    step = float(edit_constant(script, "STEP"))
+    sea = float(edit_constant(script, "SEA_LEVEL"))
+    zone = Zone(zone_cells(edit, step), step)
+    zb = zone.box
+    print("  zone: %d cells, %.1f ha, %d runs, x %.0f..%.0f, y %.0f..%.0f" % (
+        len(zone.cells), len(zone.cells) * step * step / 10000.0, len(zone.runs), *zb))
+
+    def near(ob, margin):
+        bb = [ob.matrix_world @ Vector(c) for c in ob.bound_box]
+        return not (max(b.x for b in bb) < zb[0] - margin or min(b.x for b in bb) > zb[1] + margin or
+                    max(b.y for b in bb) < zb[2] - margin or min(b.y for b in bb) > zb[3] + margin)
+
+    shells = []
+    decor = []
+    for ob in ground_objects():
+        if not near(ob, 1.0):
+            continue
+        if ob.matrix_world != ob.matrix_world.Identity(4):
+            raise SystemExit("%s is not at the origin; Ground objects hold world positions" % ob.name)
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        closed = not any(e.is_boundary for e in bm.edges)
+        bm.free()
+        if ob.get("kyt_collision") == "none":
+            decor.append(ob)
+        elif closed:
+            shells.append(ob)
+        else:
+            raise SystemExit("%s is open and collides; edit 1 knows only closed shells" % ob.name)
+    print("  shells: %s; decoration: %s" % (", ".join(o.name for o in shells), ", ".join(o.name for o in decor) or "none"))
+
+    # The ground as it stands, before anything is cut: its top, and whose face that is.
+    before = {}
+    for ob in shells:
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        mats = [ob.data.materials[f.material_index].name for f in bm.faces]
+        before[ob.name] = (BVHTree.FromBMesh(bm), mats)
+        bm.free()
+
+    def top_before(x, y):
+        best = None
+        for oname, (tree, mats) in before.items():
+            hit = tree.ray_cast(Vector((x, y, 5000.0)), Vector((0.0, 0.0, -1.0)))
+            if hit[0] is not None and (best is None or hit[0].z > best[0]):
+                best = (hit[0].z, mats[hit[2]])
+        return best
+
+    # How far the edit cut the grid and how far it raised it, each a surface of its own. The fade
+    # reads their sum, not the change itself, which where a cut row meets a raised row (the wall
+    # at z 5500, cut 80 m above and raised 75 m below) passes through nothing halfway and would
+    # fade the edit out along that line, wall and all. And the ground is cut only where the edit
+    # cut, raised only where it raised, beyond `AGAINST`: by the coastal branch's end the grid
+    # sampled the hill either side of the road's cutting, 35 m over its floor, and the design,
+    # 2 m under the grid there, would otherwise fill the cutting.
+    gob = bpy.data.objects[GRID]
+    gco = [gob.matrix_world @ Vector(v) for v in coords(gob)]
+    ged = np.zeros(len(gco), dtype=np.int32)
+    gob.data.attributes["authored_edit"].data.foreach_get("value", ged)
+    gpre = np.zeros(len(gco))
+    gob.data.attributes["height_pre_edit"].data.foreach_get("value", gpre)
+    gpolys = [tuple(p.vertices) for p in gob.data.polygons]
+    gcut = [max(0.0, gpre[i] - v.z) if ged[i] == edit else 0.0 for i, v in enumerate(gco)]
+    graised = [max(0.0, v.z - gpre[i]) if ged[i] == edit else 0.0 for i, v in enumerate(gco)]
+
+    def field(values):
+        return BVHTree.FromPolygons([Vector((v.x, v.y, values[i])) for i, v in enumerate(gco)], gpolys)
+
+    cut_t, raised_t = field(gcut), field(graised)
+
+    def moved(x, y):
+        return height(cut_t, x, y), height(raised_t, x, y)
+
+    # Edit 1 held the coastal branch's road box fixed (its `NO_RAISE`, Godot x0, x1, z0, z1) so
+    # the blend worked round the road. A cell beyond it the grid still moved a little, over ground
+    # the grid never saw (the road's cutting and the hill beside it, up to 35 m under the grid),
+    # so there the ground comes down with the design and does not rise at all.
+    nr = edit_constant(script, "NO_RAISE")
+    held = (nr[0] - step, nr[1] + step, -nr[3] - step, -nr[2] + step)
+
+    def target(x, y):
+        """Where edit 1 puts the ground at (x, y): the ground as it stands where the edit left the
+        grid alone, its designed surface where it moved the grid by `BLEND` or more, faded
+        between. The design wins outright, as in `designed`, except against the edit's own
+        direction, where `AGAINST` holds (see `cut_t`). Where the game had open sea, the ground
+        as it stands is the grid's sea floor, kept a metre under the water: in a cell between
+        sea and a cliff the grid rises straight across it, and that is no land anyone designed."""
+        t = height(now_t, x, y)
+        p = height(pre_t, x, y)
+        top = top_before(x, y)
+        base = top[0] if top is not None else min(p, sea - 1.0)
+        cut, raised = moved(x, y)
+        if cut + raised <= MIN_CHANGE:
+            return base
+        change = t - base
+        if change < 0.0 and cut <= MIN_CHANGE:
+            change = max(change, -AGAINST)
+        elif change > 0.0 and held[0] <= x <= held[1] and held[2] <= y <= held[3]:
+            change = 0.0
+        elif change > 0.0 and raised <= MIN_CHANGE:
+            change = min(change, AGAINST)
+        # Faded by distance from the zone's edge as well: there the grid, a straight line between
+        # two of its samples, stands off the shells' own surface, and faded over `BLEND` alone the
+        # sheet stepped from the one to the other within a metre, a saw along the edge's stair.
+        edge = smoothstep(0.0, EDGE_FADE, zone.edge_distance(x, y, EDGE_FADE))
+        return base + min(1.0, (cut + raised) / BLEND) * edge * change
+
+    # Each shell cut along the zone's edge: the faces near the zone first rebuilt as the
+    # triangles the game draws, then split along every run.
+    work = {}
+    for ob in shells + decor:
+        me = ob.data
+        bm = bmesh.new()
+        bm.from_mesh(me)
+        bm.verts.ensure_lookup_table()
+        bm.faces.ensure_lookup_table()
+        fa = bm.faces.layers.int.get("authored_edit") or bm.faces.layers.int.new("authored_edit")
+        bm.faces.ensure_lookup_table()
+
+        def overlaps(f, margin=1.0):
+            xs = [v.co.x for v in f.verts]
+            ys = [v.co.y for v in f.verts]
+            return not (max(xs) < zb[0] - margin or min(xs) > zb[1] + margin or max(ys) < zb[2] - margin or min(ys) > zb[3] + margin)
+
+        near_faces = {f.index for f in bm.faces if overlaps(f)}
+        ring = {g.index for i in near_faces for v in bm.faces[i].verts for g in v.link_faces}
+        as_exported(bm, me, near_faces | ring)
+        kept_ngons = {f: len(f.verts) for f in bm.faces if len(f.verts) > 3}
+        for r in zone.runs:
+            if r["horizontal"]:
+                c, lo, hi = r["a"].y, min(r["a"].x, r["b"].x), max(r["a"].x, r["b"].x)
+            else:
+                c, lo, hi = r["a"].x, min(r["a"].y, r["b"].y), max(r["a"].y, r["b"].y)
+            cand = []
+            for f in bm.faces:
+                if r["horizontal"]:
+                    across = [v.co.y for v in f.verts]
+                    along = [v.co.x for v in f.verts]
+                else:
+                    across = [v.co.x for v in f.verts]
+                    along = [v.co.y for v in f.verts]
+                if min(across) < c - 1e-6 and max(across) > c + 1e-6 and max(along) > lo - 1e-6 and min(along) < hi + 1e-6:
+                    cand.append(f)
+            if not cand:
+                continue
+            geom = set(cand)
+            for f in cand:
+                geom.update(f.edges)
+                geom.update(f.verts)
+            no = Vector((0.0, 1.0, 0.0)) if r["horizontal"] else Vector((1.0, 0.0, 0.0))
+            co = Vector((0.0, c, 0.0)) if r["horizontal"] else Vector((c, 0.0, 0.0))
+            # A vertex within 0.1 mm of the line counts as on it; each cut's vertices go onto the
+            # line exactly (the cut leaves them up to 3e-5 off; the lines are whole metres), so the
+            # next cut finds them there and both rims of a corner agree to the bit.
+            cut = bmesh.ops.bisect_plane(bm, geom=list(geom), dist=1e-4, plane_co=co, plane_no=no)
+            for v in cut["geom_cut"]:
+                if isinstance(v, bmesh.types.BMVert):
+                    if r["horizontal"]:
+                        v.co.y = c
+                    else:
+                        v.co.x = c
+        degenerate = [f for f in bm.faces if f.calc_area() < 1e-8]
+        if degenerate:
+            c = degenerate[0].calc_center_median()
+            raise SystemExit("%s: the cut left %d faces of no area, the first at (%.3f, %.3f)" % (ob.name, len(degenerate), c.x, c.y))
+        for f, n in kept_ngons.items():
+            if not f.is_valid or len(f.verts) != n:
+                raise SystemExit("%s: a face away from the zone was cut; widen the ring rebuilt first" % ob.name)
+        pieces = [f for f in bm.faces if len(f.verts) > 3 and f not in kept_ngons]
+        if pieces:
+            bmesh.ops.triangulate(bm, faces=pieces)
+        gone = [f for f in bm.faces if overlaps(f, 0.0) and zone.face_inside(f)]
+        bmesh.ops.delete(bm, geom=gone, context='FACES')
+        work[ob.name] = {"bm": bm, "fa": fa, "deleted": len(gone), "faces_before": len(me.polygons)}
+
+    # The rim each shell is left with lies on the zone's edge; along each run, the topmost rim
+    # is the ground the sheet meets.
+    rims = {}
+    for ob in shells:
+        bm = work[ob.name]["bm"]
+        rim = []
+        for e in bm.edges:
+            if not e.is_boundary:
+                continue
+            a, b = e.verts
+            ra = {ri for ri, _ in zone.on_edge(a.co.x, a.co.y)}
+            rb = {ri for ri, _ in zone.on_edge(b.co.x, b.co.y)}
+            if not (ra & rb):
+                raise SystemExit("%s: an open edge at (%.2f, %.2f) is off the zone's edge" % (ob.name, a.co.x, a.co.y))
+            rim.append(e)
+        rims[ob.name] = rim
+    splits = {ob.name: {} for ob in shells}
+    boundary = {}
+    corner_ends = []
+    jumps = 0
+    for ri, r in enumerate(zone.runs):
+        segs = []
+        for ob in shells:
+            for e in rims[ob.name]:
+                a, b = e.verts
+                on_a = {k: u for k, u in zone.on_edge(a.co.x, a.co.y)}
+                on_b = {k: u for k, u in zone.on_edge(b.co.x, b.co.y)}
+                if ri in on_a and ri in on_b:
+                    segs.append((on_a[ri], a.co.z, on_b[ri], b.co.z, ob.name, e, a, b))
+        flat = [s for s in segs if abs(s[2] - s[0]) > 1e-6]
+
+        def z_on(s, u):
+            return s[1] + (u - s[0]) / (s[2] - s[0]) * (s[3] - s[1])
+
+        def point(u):
+            return r["ax"] + r["dx"] * u, r["ay"] + r["dy"] * u
+
+        cuts = {0.0, r["len"]}
+        for s in segs:
+            cuts.update((min(max(s[0], 0.0), r["len"]), min(max(s[2], 0.0), r["len"])))
+        for i in range(len(flat)):
+            for j in range(i + 1, len(flat)):
+                s, t = flat[i], flat[j]
+                lo = max(min(s[0], s[2]), min(t[0], t[2]))
+                hi = min(max(s[0], s[2]), max(t[0], t[2]))
+                if hi - lo <= 1e-6:
+                    continue
+                f0 = z_on(s, lo) - z_on(t, lo)
+                f1 = z_on(s, hi) - z_on(t, hi)
+                if f0 * f1 < 0.0:
+                    cuts.add(lo + (hi - lo) * f0 / (f0 - f1))
+        cuts = sorted(cuts)
+        pieces = []
+        for u0, u1 in zip(cuts, cuts[1:]):
+            if u1 - u0 <= 1e-6:
+                continue
+            mid = 0.5 * (u0 + u1)
+            cover = [s for s in flat if min(s[0], s[2]) < mid < max(s[0], s[2])]
+            owner = max(cover, key=lambda s: z_on(s, mid)) if cover else None
+            if pieces and pieces[-1][2] is owner:
+                pieces[-1][1] = u1
+            else:
+                pieces.append([u0, u1, owner])
+
+        def piece_z(p, u):
+            if p[2] is None:
+                # Open sea along the edge: the edit left the grid alone here, so `target` there.
+                return target(*point(u))
+            return z_on(p[2], u)
+
+        def vertex_at(p, u):
+            s = p[2] if p is not None else None
+            if s is None:
+                return None
+            if abs(u - s[0]) <= 1e-6:
+                return s[6]
+            if abs(u - s[2]) <= 1e-6:
+                return s[7]
+            return None
+
+        def edge_point(p, q, u, z):
+            """The sheet's edge point at u, where piece p ends and piece q begins (either may be
+            None): an owner's own vertex there, or a new point split into the owners' edges. Its
+            position is the shell's own, to the last bit, so the two rims are one edge."""
+            own = next((v for v in (vertex_at(p, u), vertex_at(q, u)) if v is not None), None)
+            if own is not None:
+                at = own.co.copy()
+            else:
+                x, y = point(u)
+                at = Vector((x, y, z))
+            for piece in (p, q):
+                if piece is not None and piece[2] is not None and vertex_at(piece, u) is None:
+                    splits[piece[2][4]].setdefault(piece[2][5], []).append(at)
+            return at
+
+        # A piece of the edge shorter than this is bridged, not followed: the sheet's edge spans
+        # it, and what it leaves is a hairline, narrower than anything to see through.
+        pieces = [p for k, p in enumerate(pieces) if p[1] - p[0] >= 4.0 * JUMP or k in (0, len(pieces) - 1)]
+        run_pts = []
+        for k, p in enumerate(pieces):
+            u0, u1 = p[0], p[1]
+            if k == 0:
+                run_pts.append(edge_point(None, p, u0, piece_z(p, u0)))
+            if p[2] is None:
+                n = int(math.ceil((u1 - u0) / RANGE_LATTICE))
+                for m in range(1, n):
+                    u = u0 + (u1 - u0) * m / n
+                    run_pts.append(Vector((*point(u), piece_z(p, u))))
+            if k + 1 < len(pieces):
+                q = pieces[k + 1]
+                v0 = q[0]
+                zl, zr = piece_z(p, u1), piece_z(q, v0)
+                if v0 - u1 <= 1e-6 and abs(zl - zr) <= 1e-4:
+                    run_pts.append(edge_point(p, q, u1, zl))
+                else:
+                    # A step: the ground drops down a shell's side here. The sheet cannot stand
+                    # straight, so it takes the step over a hair of its edge, `JUMP` either side.
+                    dl = min(JUMP, 0.25 * (u1 - u0))
+                    dr = min(JUMP, 0.25 * (q[1] - v0))
+                    run_pts.append(edge_point(p, None, u1 - dl, piece_z(p, u1 - dl)))
+                    run_pts.append(edge_point(None, q, v0 + dr, piece_z(q, v0 + dr)))
+                    jumps += 1
+            else:
+                run_pts.append(edge_point(p, None, u1, piece_z(p, u1)))
+        # Each run ends at the corner the next begins at.
+        corner_ends.append((run_pts[0], run_pts[-1], pieces[0][2][4] if pieces[0][2] else None,
+                            pieces[-1][2][4] if pieces[-1][2] else None,
+                            [(round(s[0], 4), round(s[1], 4), round(s[2], 4), round(s[3], 4), s[4]) for s in segs
+                             if min(s[0], s[2]) < 0.05 or max(s[0], s[2]) > r["len"] - 0.05]))
+        boundary.setdefault(r["loop"], []).extend(run_pts[:-1])
+    for k in range(len(corner_ends)):
+        end = corner_ends[k][1]
+        start = corner_ends[zone.next_run(k)][0]
+        if (end - start).length > 1e-3:
+            raise SystemExit("the ground at the zone's corner (%.2f, %.2f) is %.3f m apart along its two sides: %s %s / %s %s\n%s\n%s" % (
+                end.x, end.y, (end - start).length, tuple(end), corner_ends[k][3], tuple(start), corner_ends[zone.next_run(k)][2],
+                corner_ends[k][4], corner_ends[zone.next_run(k)][4]))
+
+    # Split the topmost rims where the sheet's edge turns, so every edge of the sheet's rim is an
+    # edge of a shell.
+    split_count = 0
+    for oname, by_edge in splits.items():
+        for e, ps in by_edge.items():
+            v_from, v_to = e.verts
+            ps = sorted(ps, key=lambda p: (p - v_from.co).length)
+            ps = [p for k, p in enumerate(ps) if k == 0 or (p - ps[k - 1]).length > 1e-6]
+            cur = e
+            for p in ps:
+                span = (v_to.co - v_from.co).length
+                t = (p - v_from.co).length / span
+                _, nv = bmesh.utils.edge_split(cur, v_from, t)
+                nv.co = p
+                cur = next(g for g in nv.link_edges if v_to in g.verts)
+                v_from = nv
+                split_count += 1
+    for oname in splits:
+        bm = work[oname]["bm"]
+        quads = [f for f in bm.faces if len(f.verts) > 3 and any(zone.on_edge(v.co.x, v.co.y) for v in f.verts)]
+        if quads:
+            bmesh.ops.triangulate(bm, faces=quads)
+
+    # Caps: each shell closed again along its cut, flat on the zone's edge, facing into the zone.
+    caps = {}
+    for ob in shells:
+        bm = work[ob.name]["bm"]
+        fa = work[ob.name]["fa"]
+        me = ob.data
+        walls = [p.material_index for p in me.polygons if abs(p.normal.z) <= 0.05]
+        wall_mat = max(set(walls), key=walls.count) if walls else 0
+        rim = [e for e in bm.edges if e.is_boundary]
+        link = {}
+        for e in rim:
+            for v in e.verts:
+                link.setdefault(v, []).append(e)
+        if any(len(es) != 2 for es in link.values()):
+            raise SystemExit("%s: its cut rim branches" % ob.name)
+        seen = set()
+        made = 0
+        for e0 in rim:
+            if e0 in seen:
+                continue
+            loop = [e0.verts[0]]
+            e = e0
+            v = e0.verts[1]
+            seen.add(e0)
+            while v is not loop[0]:
+                loop.append(v)
+                e = next(g for g in link[v] if g is not e)
+                seen.add(e)
+                v = e.other_vert(v)
+
+            def s_of(v):
+                ri, u = zone.on_edge(v.co.x, v.co.y)[0]
+                return zone.runs[ri]["loop"], zone.runs[ri]["s0"] + u
+
+            li = s_of(loop[0])[0]
+            if any(s_of(v)[0] != li for v in loop):
+                raise SystemExit("%s: one rim of its cut lies on two pieces of the zone" % ob.name)
+            per = zone.perimeters[li]
+            s = [s_of(loop[0])[1]]
+            for v in loop[1:] + loop[:1]:
+                d = s_of(v)[1] - s[-1] % per
+                d = (d + 0.5 * per) % per - 0.5 * per
+                s.append(s[-1] + d)
+            if abs(s.pop() - s[0]) > 1e-3:
+                raise SystemExit("%s: its cut runs right round a piece of the zone" % ob.name)
+            pts = [Vector((s[k], loop[k].co.z)) for k in range(len(loop))]
+            area = sum(pts[k].x * pts[(k + 1) % len(pts)].y - pts[(k + 1) % len(pts)].x * pts[k].y for k in range(len(pts)))
+            order = list(range(len(loop))) if area > 0.0 else list(reversed(range(len(loop))))
+            # Across a corner of the zone the cap must fold, not cut the corner: a constraint up
+            # each corner the rim passes.
+            cons = []
+            lo, hi = min(s), max(s)
+            for r in zone.runs:
+                if r["loop"] != li:
+                    continue
+                for k in range(int(math.floor((lo - r["s0"]) / per)), int(math.ceil((hi - r["s0"]) / per)) + 1):
+                    sc = r["s0"] + k * per
+                    at = sorted((i for i in range(len(loop)) if abs(s[i] - sc) < 1e-4), key=lambda i: pts[i].y)
+                    for i, j in zip(at, at[1:]):
+                        m = Vector((sc, 0.5 * (pts[i].y + pts[j].y)))
+                        inside = False
+                        for k2 in range(len(pts)):
+                            p0, p1 = pts[k2], pts[(k2 + 1) % len(pts)]
+                            if (p0.y > m.y) != (p1.y > m.y) and m.x < p0.x + (m.y - p0.y) * (p1.x - p0.x) / (p1.y - p0.y):
+                                inside = not inside
+                        if inside:
+                            cons.append((i, j))
+            out_v, _, out_f, orig_v, _, _ = delaunay_2d_cdt(pts, cons, [order], 1, 1e-6, True)
+            idx = []
+            for k, ov in enumerate(orig_v):
+                src = [i for i in ov if i < len(loop)]
+                if not src:
+                    raise SystemExit("%s: its cap needed a point the rim does not have, at s %.2f z %.2f" % (ob.name, out_v[k].x, out_v[k].y))
+                idx.append(src[0])
+            for tri in out_f:
+                vs = [loop[idx[i]] for i in tri]
+                if len(set(vs)) < 3:
+                    continue
+                nf = bm.faces.new(vs)
+                nf.material_index = wall_mat
+                nf.smooth = False
+                nf[fa] = edit
+                nf.normal_update()
+                c = nf.calc_center_median()
+                inward = zone.runs[zone.nearest_run(c.x, c.y)]["inside"]
+                if nf.normal.x * inward.x + nf.normal.y * inward.y < 0.0:
+                    nf.normal_flip()
+                made += 1
+        caps[ob.name] = made
+        if any(e.is_boundary for e in bm.edges):
+            raise SystemExit("%s is still open after its caps" % ob.name)
+        if any(len(e.link_faces) > 2 for e in bm.edges):
+            raise SystemExit("%s: an edge with more than two faces after its caps" % ob.name)
+
+    # The sheet: its edge as found, the grid's own vertices and a lattice inside, and where the
+    # edit faded in or left the ground alone, the shells' own top vertices. By the road box the
+    # ground keeps the shape the grid never saw (the road's cutting), so there the sheet takes
+    # every top vertex of the shells and a `HELD_LATTICE` lattice, and its triangles do not
+    # bridge the cutting.
+    pts = []
+    zs = []
+    rings = []
+    for li in sorted(boundary):
+        rings.append(list(range(len(pts), len(pts) + len(boundary[li]))))
+        pts.extend(Vector((p.x, p.y)) for p in boundary[li])
+        zs.extend(p.z for p in boundary[li])
+    nb = len(pts)
+    crowd = 0.35 * RANGE_LATTICE
+    taken = {}
+
+    def in_held(q):
+        return held[0] <= q.x <= held[1] and held[2] <= q.y <= held[3]
+
+    def crowded(q):
+        near = 0.35 * HELD_LATTICE if in_held(q) else crowd
+        cx, cy = int(q.x // crowd), int(q.y // crowd)
+        return any((q - o).length < near for i in (-1, 0, 1) for j in (-1, 0, 1) for o in taken.get((cx + i, cy + j), ()))
+
+    def take(q):
+        taken.setdefault((int(q.x // crowd), int(q.y // crowd)), []).append(q)
+
+    for q in pts:
+        take(q)
+    # The grid's vertices and the lattice stand `OFF_LINE` off the grid's lines: the foothills
+    # were drawn on the same 25 m lattice, so their old wall stands on a grid row, and on it the
+    # ground as it stands is the plateau's edge and the base at once.
+    cand = []
+    for oname, (tree, mats) in before.items():
+        for v in bpy.data.objects[oname].data.vertices:
+            q = Vector((v.co.x, v.co.y))
+            top = top_before(q.x, q.y)
+            if top is not None and abs(top[0] - v.co.z) < 1e-3 and (in_held(q) or sum(moved(q.x, q.y)) < BLEND):
+                cand.append(q)
+    # Rows a little inside the edge, so the fade there is drawn, not spanned by long fans.
+    for r in zone.runs:
+        n = int(math.ceil(r["len"] / EDGE_ROW))
+        for inset in (EDGE_FADE / 3.0, 2.0 * EDGE_FADE / 3.0):
+            for k in range(n):
+                u = (k + 0.5) * r["len"] / n
+                cand.append(Vector((r["ax"] + r["dx"] * u - r["dy"] * inset, r["ay"] + r["dy"] * u + r["dx"] * inset)))
+    x = math.floor(held[0] / HELD_LATTICE) * HELD_LATTICE
+    while x <= held[1]:
+        y = math.floor(held[2] / HELD_LATTICE) * HELD_LATTICE
+        while y <= held[3]:
+            cand.append(Vector((x + OFF_LINE, y + OFF_LINE)))
+            y += HELD_LATTICE
+        x += HELD_LATTICE
+    cand.extend(Vector((v.x + OFF_LINE, v.y + OFF_LINE)) for v in gco)
+    x = math.floor(zb[0] / RANGE_LATTICE) * RANGE_LATTICE
+    while x <= zb[1]:
+        y = math.floor(zb[2] / RANGE_LATTICE) * RANGE_LATTICE
+        while y <= zb[3]:
+            cand.append(Vector((x + OFF_LINE, y + OFF_LINE)))
+            y += RANGE_LATTICE
+        x += RANGE_LATTICE
+    for q in cand:
+        if not (zb[0] < q.x < zb[1] and zb[2] < q.y < zb[3]) or not zone.inside(q.x, q.y):
+            continue
+        clear = 0.3 * (HELD_LATTICE if in_held(q) else RANGE_LATTICE)
+        if zone.edge_distance(q.x, q.y, clear) < clear or crowded(q):
+            continue
+        take(q)
+        pts.append(q)
+        zs.append(target(q.x, q.y))
+    out_v, _, out_f, orig_v, _, _ = delaunay_2d_cdt(pts, [], rings, 1, 1e-5, True)
+    zmap = []
+    for k, ov in enumerate(orig_v):
+        src = [i for i in ov if i < len(pts)]
+        if not src:
+            raise SystemExit("the sheet's triangulation added a point at (%.2f, %.2f)" % (out_v[k].x, out_v[k].y))
+        zmap.append(zs[src[0]])
+    merged = sum(1 for ov in orig_v if len([i for i in ov if i < len(pts)]) > 1)
+    if merged:
+        raise SystemExit("the sheet's triangulation merged %d of its points" % merged)
+
+    report = {}
+    for oname, w in work.items():
+        report[oname] = {"faces_before": w["faces_before"], "faces_in_zone_removed": w["deleted"],
+                         "cap_faces": caps.get(oname, 0)}
+    sheet = {"zone_ha": round(len(zone.cells) * step * step / 10000.0, 1), "edge_points": nb, "rim_splits": split_count,
+             "steps_along_edge": jumps, "faces": len(out_f)}
+    if dry:
+        for w in work.values():
+            w["bm"].free()
+        return report, sheet, None
+
+    # The shells as they were, whole, for the undo.
+    hist = history_collection()
+    for ob in shells + decor:
+        hme = ob.data.copy()
+        hme.name = "%s__before_edit%d" % (ob.name, edit)
+        hob = bpy.data.objects.new(hme.name, hme)
+        hob["kyt_whole"] = 1
+        hob["kyt_note"] = "%s whole as it stood before Ground edit %d, for its --undo; never exported" % (ob.name, edit)
+        hist.objects.link(hob)
+    old_tris = {}
+    for ob in shells + decor:
+        me = ob.data
+        me.calc_loop_triangles()
+        old_tris[ob.name] = [tuple(tuple(me.vertices[i].co) for i in lt.vertices) for lt in me.loop_triangles]
+        bm = work[ob.name]["bm"]
+        bm.to_mesh(me)
+        bm.free()
+        me.update()
+
+    # The sheet's faces take the colour of the ground the edit found under them: the range's
+    # level bands again at their new height; where the edit made land out of the sea, the
+    # range's cove sand under `SAND_BELOW`, its bands above.
+    mats = []
+    faces = []
+    findex = []
+    verts = [(p.x, p.y, zmap[k]) for k, p in enumerate(out_v)]
+    for tri in out_f:
+        a, b, c = (Vector(verts[i]) for i in tri)
+        if (b - a).cross(c - a).z < 0.0:
+            tri = [tri[0], tri[2], tri[1]]
+        m = (a + b + c) / 3.0
+        top = top_before(m.x, m.y)
+        if top is None:
+            mat = "distant_range_cove_sand" if m.z < SAND_BELOW else range_band(m.z)
+        elif top[1] in (band for _, band in TOE_BANDS):
+            mat = range_band(m.z)
+        else:
+            mat = top[1]
+        if mat not in mats:
+            mats.append(mat)
+        faces.append(tuple(tri))
+        findex.append(mats.index(mat))
+    sheet_me = bpy.data.meshes.new(name)
+    sheet_me.from_pydata(verts, [], faces)
+    sheet_me.validate()
+    for mat in mats:
+        sheet_me.materials.append(bpy.data.materials[mat])
+    sheet_me.polygons.foreach_set("material_index", findex)
+    sheet_me.polygons.foreach_set("use_smooth", [True] * len(sheet_me.polygons))
+    fa = sheet_me.attributes.new("authored_edit", 'INT', 'FACE')
+    fa.data.foreach_set("value", [edit] * len(sheet_me.polygons))
+    sob = bpy.data.objects.new(name, sheet_me)
+    sob["kyt_note"] = ("Ground edit %d, the south range blend: one sheet where the grid edit changed the range's and "
+                       "city's landforms, which are cut along its edge and capped; built by "
+                       "tools/blender/world_terrain_ground_edit.py -- --edit %d, undone by its --undo" % (edit, edit))
+    bpy.data.collections[GROUND].objects.link(sob)
+    sheet_me.update()
+
+    # Proof. Outside the zone every shell's surface is where it was: each triangle the cut did
+    # not touch is still there exactly, and on every one it touched (rebuilt or split), points
+    # sampled off the zone's edge lie on the other surface, the old on the new and the new on
+    # the old.
+    worst_outside = 0.0
+    worst_at = None
+    kept_exactly = 0
+    for ob in shells + decor:
+        me = ob.data
+        me.calc_loop_triangles()
+        new = [tuple(tuple(me.vertices[i].co) for i in lt.vertices) for lt in me.loop_triangles]
+        bm = bmesh.new()
+        bm.from_mesh(me)
+        new_tree = BVHTree.FromBMesh(bm)
+        bm.free()
+        old = old_tris[ob.name]
+        old_tree = BVHTree.FromPolygons([Vector(c) for t in old for c in t], [(3 * k, 3 * k + 1, 3 * k + 2) for k in range(len(old))])
+        old_keys = {tuple(sorted(t)) for t in old}
+        new_keys = {tuple(sorted(t)) for t in new}
+        kept_exactly += len(old_keys & new_keys)
+        for side, tris, other, theirs in (("old", old, new_tree, new_keys), ("new", new, old_tree, old_keys)):
+            for t in tris:
+                if tuple(sorted(t)) in theirs:
+                    continue
+                A, B, C = (Vector(c) for c in t)
+                if (B - A).cross(C - A).length < 1e-6:
+                    continue
+                for bary in ((1 / 3, 1 / 3, 1 / 3), (0.8, 0.1, 0.1), (0.1, 0.8, 0.1), (0.1, 0.1, 0.8), (0.45, 0.45, 0.1), (0.1, 0.45, 0.45), (0.45, 0.1, 0.45)):
+                    q = A * bary[0] + B * bary[1] + C * bary[2]
+                    if zone.inside(q.x, q.y) or zone.edge_distance(q.x, q.y, 0.01) < 0.01:
+                        continue
+                    # How far the point is from the other surface: straight down, or in 3D for a
+                    # shell's straight sides, which a ray from above never meets. Either near
+                    # enough will do: the nearest-point search is a few centimetres out on the
+                    # range's long sliver faces, and the ray slips through the crease of a side.
+                    down = min((abs(h - q.z) for h in all_hits(other, q.x, q.y)), default=math.inf)
+                    off = min(down, (other.find_nearest(q)[0] - q).length)
+                    if off > worst_outside:
+                        worst_outside = off
+                        worst_at = (ob.name, side, tuple(round(c, 3) for c in q), [tuple(round(x, 3) for x in c) for c in t])
+    if worst_outside > 0.01:
+        raise SystemExit("a shell's surface outside the zone moved by %.4f m: %s" % (worst_outside, worst_at))
+
+    # The sheet's rim is the shells' cut, edge for edge, wherever it stands clear of the water.
+    keys = set()
+    for ob in shells:
+        for e in ob.data.edges:
+            a, b = (tuple(round(c, 4) for c in ob.data.vertices[i].co) for i in e.vertices)
+            keys.add((min(a, b), max(a, b)))
+    bm = bmesh.new()
+    bm.from_mesh(sheet_me)
+    open_above = 0
+    open_at = []
+    vkeys = {k for pair in keys for k in pair}
+    for e in bm.edges:
+        if not e.is_boundary:
+            continue
+        a, b = e.verts
+        if max(a.co.z, b.co.z) < sea + 1.0 or (a.co.xy - b.co.xy).length < 0.3:
+            continue
+        ka, kb = tuple(round(c, 4) for c in a.co), tuple(round(c, 4) for c in b.co)
+        if (min(ka, kb), max(ka, kb)) not in keys:
+            open_above += 1
+            if len(open_at) < 6:
+                open_at.append((ka, ka in vkeys, kb, kb in vkeys))
+    sheet_tree = BVHTree.FromBMesh(bm)
+    bm.free()
+    if open_above:
+        raise SystemExit("%s: %d edges of its rim above the water meet no shell: %s" % (name, open_above, open_at))
+
+    # Inside the zone the sheet is the ground, at the edit's surface.
+    after = []
+    for ob in shells:
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        after.append(BVHTree.FromBMesh(bm))
+        bm.free()
+    errs = []
+    poke = 0
+    dry_new = 0.0
+    sample = 5.0
+    x = math.floor(zb[0] / sample) * sample + 0.5 * sample
+    while x < zb[1]:
+        y = math.floor(zb[2] / sample) * sample + 0.5 * sample
+        while y < zb[3]:
+            if zone.inside(x, y) and zone.edge_distance(x, y, 1.0) > 1.0:
+                h = height(sheet_tree, x, y)
+                if h is None:
+                    raise SystemExit("the sheet has a hole at (%.1f, %.1f)" % (x, y))
+                errs.append(abs(h - target(x, y)))
+                for tree in after:
+                    g = height(tree, x, y)
+                    if g is not None and g > h + 0.01:
+                        poke += 1
+                top = top_before(x, y)
+                if h > sea and (top is None or top[0] <= sea):
+                    dry_new += sample * sample
+            y += sample
+        x += sample
+    if poke:
+        raise SystemExit("a shell stands above the sheet at %d points in the zone" % poke)
+    errs.sort()
+    sheet.update({"faces": len(sheet_me.polygons), "vertices": len(sheet_me.vertices), "materials": len(mats),
+                  "off_design_p99": round(errs[int(0.99 * len(errs))], 2), "off_design_most": round(errs[-1], 2),
+                  "new_dry_land_ha": round(dry_new / 10000.0, 1), "shell_surface_outside_moved": round(worst_outside, 6),
+                  "shell_triangles_kept_exactly": kept_exactly})
+    return report, sheet, name
+
+
 def ground_triangles():
     tris = []
     for ob in ground_objects():
@@ -1379,6 +2323,15 @@ def undo(edit):
     for name in entry["objects"]:
         ob = bpy.data.objects[name]
         hob = bpy.data.objects["%s__before_edit%d" % (name, edit)]
+        if hob.get("kyt_whole"):
+            # Kept whole (edit 1): the object takes its old mesh back.
+            old = ob.data
+            keep = old.name
+            ob.data = hob.data
+            bpy.data.objects.remove(hob)
+            bpy.data.meshes.remove(old)
+            ob.data.name = keep
+            continue
         me = ob.data
         fa = np.zeros(len(me.polygons), dtype=np.int32)
         me.attributes["authored_edit"].data.foreach_get("value", fa)
@@ -1545,6 +2498,9 @@ def main():
     if edit == SHELF_ID:
         reports, land_report, land = coast_shelf(edit, a["dry"])
         print("  %-34s %s" % (SHELF, ", ".join("%s %s" % kv for kv in land_report.items())))
+    elif edit in RANGE_BLEND:
+        reports, land_report, land = range_blend(edit, now_t, pre_t, a["dry"])
+        print("  %-34s %s" % (RANGE_BLEND[edit], ", ".join("%s %s" % kv for kv in land_report.items())))
     elif edit in NEW_LAND:
         reports, land_report, land = new_land(edit, now_t, pre_t, box, a["dry"])
         print("  %-34s %s" % (NEW_LAND[edit], ", ".join("%s %s" % kv for kv in land_report.items())))
@@ -1565,6 +2521,9 @@ def main():
         if ob.name not in reports:
             if not np.array_equal(before[ob.name], coords(ob)):
                 raise SystemExit("%s moved, and the edit never reached it" % ob.name)
+            continue
+        if edit in RANGE_BLEND:
+            # Cut, emptied and capped whole; `range_blend` proved its surface outside the zone.
             continue
         now = coords(ob)
         used = edit_face_vertices(ob, edit)
@@ -1629,6 +2588,12 @@ def main():
                "kept in %s. Undo: tools/blender/world_terrain_ground_edit.py -- --edit shelf --undo." % (
                    edit, design["name"], TODAY, SHELF_UNDER, ", ".join(reports), land, SHELF_W, SHELF_DEPTH,
                    ", ".join("%s %s" % kv for kv in land_report.items()), HISTORY))
+    elif edit in RANGE_BLEND:
+        readme("Ground edit %d (%s), Stage 3, %s: in the zone grid edit %d changed, the landforms %s were cut along "
+               "its edge, emptied inside it and capped, and %s built there as one sheet on the edit's surface (%s); "
+               "the landforms kept whole in %s. Undo: tools/blender/world_terrain_ground_edit.py -- --edit %d --undo." % (
+                   edit, design["name"], TODAY, edit, ", ".join(reports), land,
+                   ", ".join("%s %s" % kv for kv in land_report.items()), HISTORY, edit))
     elif land:
         readme("Ground edit %d (%s), Stage 3, %s: the land grid edit %d designed beyond the shore built as %s in "
                "Ground (%s); the shore wall panels it meets cut at its edge in %s, their old faces kept in %s. Undo: "
@@ -1644,7 +2609,10 @@ def main():
                edit, design["name"], TODAY, edit, ", ".join(reports), LATTICE, held,
                ", ".join("%s %s" % (k, ("%.2f ha" % v) if k in lakes else ("%.0f m2" % v)) for k, v in areas.items()) or "none",
                ", ".join(hid) or "none", HISTORY, edit))
-    print("world_terrain_ground_edit: edit %d carried; every vertex outside its faces unchanged" % edit)
+    if edit in RANGE_BLEND:
+        print("world_terrain_ground_edit: edit %d carried; every shell's surface outside its zone unchanged" % edit)
+    else:
+        print("world_terrain_ground_edit: edit %d carried; every vertex outside its faces unchanged" % edit)
     bpy.context.preferences.filepaths.save_version = 0
     bpy.ops.wm.save_mainfile()
     # After the save, so the render's hidden layers and cameras never reach the master.
