@@ -3146,7 +3146,10 @@ const PICTURE_SPOTS := [
 	# where to stand, what to look at
 	[Vector2(-1.5, 20.0), Vector2(-1.5, -32.0)],   # up the axis at the clock
 	[Vector2(-19.0, 6.0), Vector2(-39.0, -2.0)],   # west through the arch
-	[Vector2(14.0, 16.0), Vector2(0.0, 0.0)],      # across the fountain
+	# Across the fountain, from the ring's outer half since the ring was given room from the
+	# fountain (2026-10-08): from (14, 16) the sign found no place clear of the ring and, before,
+	# stood inside the fountain's footprint.
+	[Vector2(14.0, 18.0), Vector2(0.0, 0.0)],
 	[Vector2(24.0, -22.0), Vector2(44.0, -44.0)],  # north-east at the coaster
 ]
 
@@ -3242,8 +3245,11 @@ func _benches() -> void:
 ## and a lamp two metres back in the grass is a lamp lighting nothing.
 func _lamps() -> void:
 	_stand_clear = 0.45
+	# Lamp 2 from (−1.3, −13.8) since the hub ring was given room from the fountain (2026-10-08):
+	# from (−2, −13) its push off the ring ends elsewhere along the ring's edge, on bin_5, placed by
+	# hand; from here it ends where it stood before, between bin_5 and bench_2.
 	var spots := [
-		Vector2(13, -2), Vector2(9, -11), Vector2(-2, -13), Vector2(-13, -3),
+		Vector2(13, -2), Vector2(9, -11), Vector2(-1.3, -13.8), Vector2(-13, -3),
 		Vector2(-11, 6), Vector2(-8, 13), Vector2(7, 14), Vector2(14, 9),
 		Vector2(-19, 2), Vector2(-19, 12), Vector2(-18, -14), Vector2(-16, 20),
 	]

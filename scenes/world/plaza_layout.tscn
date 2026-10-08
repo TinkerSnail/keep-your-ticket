@@ -11,50 +11,50 @@ metadata/section = &"plaza"
 [node name="a_hub_ring" type="Node3D" parent="primary_routes" unique_id=1478723897]
 metadata/point_type = &"vector3"
 metadata/route = &"A"
-metadata/width = 18.0
+metadata/width = 15.9706
 metadata/build = true
 metadata/closed = true
 
 [node name="points" type="Node3D" parent="primary_routes/a_hub_ring" unique_id=342282454]
 
 [node name="p00" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=753371599]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 18)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 19.0696)
 
 [node name="p01" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=855601975]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, 15)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.5481, 0, 15.8869)
 
 [node name="p02" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=995789269]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 0, 8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.9163, 0, 8.5188)
 
 [node name="p03" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=981227329]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19.0459, 0, 0)
 
 [node name="p04" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=1580216512]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 0, -8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.9163, 0, -8.5188)
 
 [node name="p05" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=1809292727]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, -15)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.5481, 0, -15.8869)
 
 [node name="p06" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=852199312]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -18)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -19.0696)
 
 [node name="p07" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=1803040367]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, -15)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.5481, 0, -15.8869)
 
 [node name="p08" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=190718578]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, -8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.9163, 0, -8.5188)
 
 [node name="p09" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=779864151]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19.0459, 0, 0)
 
 [node name="p10" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=2099875035]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.9163, 0, 8.5188)
 
 [node name="p11" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=1388803739]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 15)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.5481, 0, 15.8869)
 
 [node name="p12" type="Marker3D" parent="primary_routes/a_hub_ring/points" unique_id=1566863398]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 18)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 19.0696)
 
 [node name="attractions" type="Node3D" parent="." unique_id=1955177121]
 

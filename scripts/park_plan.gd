@@ -133,6 +133,23 @@ const FOUNTAIN_RADIUS := 9.0
 const FOUNTAIN_RIM_TOP := 0.52
 const FOUNTAIN_RIM_SEAT_R := 8.66
 
+## Route A's hub ring keeps a metre of brick between its asphalt and the fountain's footprint
+## (2026-10-08, Christina: "give the hub ring more room from the fountain"): the legs of whoever
+## sits on the coping hang over open paving, not into the ring, and nothing is stood inside it
+## (`hub_ring_inside`). As first drawn, 18 m wide on a centreline that comes nearest the fountain
+## on its chords from (±9, ±15) to (±16, ±8), 12√2 m out, it reached a metre inside the footprint,
+## under the coping, and the walk round its inner edge got past the kerb only by sliding along it.
+## Its outer edge stays exactly where that first drawing put it, so everything round the ring
+## stands as it did: every chord of the centreline moves out by half `HUB_RING_ROOM` (each corner
+## along its mitre) and the ring narrows by all of it. The ring's points below are that drawing so
+## moved, to a tenth of a millimetre; its source is `scenes/world/plaza_layout.tscn`, which holds
+## the same.
+const HUB_RING_CLEAR := 1.0
+const HUB_RING_DRAWN_WIDTH := 18.0
+const HUB_RING_DRAWN_NEAREST := 12.0 * sqrt(2.0)
+const HUB_RING_ROOM := FOUNTAIN_RADIUS + HUB_RING_CLEAR - (HUB_RING_DRAWN_NEAREST - HUB_RING_DRAWN_WIDTH * 0.5)
+const HUB_RING_WIDTH := HUB_RING_DRAWN_WIDTH - HUB_RING_ROOM
+
 ## The water, as the three numbers something outside the fountain has to know
 ## in order to *point at* it.
 ##
@@ -3665,13 +3682,13 @@ const REBUILD_PRIMARY_ROUTE_RUNS := [
 			Vector3(6, 4, -126), Vector3(1, 4, -115),
 			Vector3(-16, 4, -112),
 		]},
-	{"id": &"a_hub_ring", "route": &"A", "width": 18.0,
+	{"id": &"a_hub_ring", "route": &"A", "width": HUB_RING_WIDTH,
 		"build": true, "closed": true, "points": [
-			Vector3(0, 0, 18), Vector3(9, 0, 15), Vector3(16, 0, 8),
-			Vector3(18, 0, 0), Vector3(16, 0, -8), Vector3(9, 0, -15),
-			Vector3(0, 0, -18), Vector3(-9, 0, -15), Vector3(-16, 0, -8),
-			Vector3(-18, 0, 0), Vector3(-16, 0, 8), Vector3(-9, 0, 15),
-			Vector3(0, 0, 18),
+			Vector3(0, 0, 19.0696), Vector3(9.5481, 0, 15.8869), Vector3(16.9163, 0, 8.5188),
+			Vector3(19.0459, 0, 0), Vector3(16.9163, 0, -8.5188), Vector3(9.5481, 0, -15.8869),
+			Vector3(0, 0, -19.0696), Vector3(-9.5481, 0, -15.8869), Vector3(-16.9163, 0, -8.5188),
+			Vector3(-19.0459, 0, 0), Vector3(-16.9163, 0, 8.5188), Vector3(-9.5481, 0, 15.8869),
+			Vector3(0, 0, 19.0696),
 		]},
 	{"id": &"b_waterfront", "route": &"B", "width": 10.0,
 		"build": false, "owner": &"boardwalk", "points": [
@@ -4913,7 +4930,29 @@ static func stand_score(p: Vector2) -> float:
 	return minf(walkway_clearance(p),
 		minf(mass_clearance(p),
 			minf(program_furnishing_clearance(p),
-				p.length() - FOUNTAIN_RADIUS)))
+				minf(p.length() - FOUNTAIN_RADIUS, hub_ring_inside(p)))))
+
+
+## Everything inside the hub ring's inner edge is the fountain's to stand on: its footprint and
+## the legroom the ring keeps round it (`HUB_RING_CLEAR`). How far `p` is from that edge, less
+## than nothing inside it. Before the ring was given that room its inner edge lay under the
+## coping and nothing ever stood inside it; a prop pushed off the ring still goes outward.
+static var _hub_ring: Dictionary = {}
+
+
+static func hub_ring_inside(p: Vector2) -> float:
+	if _hub_ring.is_empty():
+		for run in rebuild_route_runs():
+			if StringName(run["id"]) == &"a_hub_ring":
+				_hub_ring = {"points": PackedVector2Array(run["points"]), "half": float(run["width"]) * 0.5}
+				break
+	var points: PackedVector2Array = _hub_ring["points"]
+	var d := INF
+	for i in points.size() - 1:
+		d = minf(d, p.distance_to(Geometry2D.get_closest_point_to_segment(p, points[i], points[i + 1])))
+	if Geometry2D.is_point_in_polygon(p, points):
+		return float(_hub_ring["half"]) - d
+	return d + float(_hub_ring["half"])
 
 
 ## The nearest place to `p` that is not standing in a walkway, by `clear` metres.
