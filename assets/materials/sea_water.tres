@@ -1,0 +1,21 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+; The sea (2026-10-07): the four water boxes the generator lays in scenes/world/generated/
+; west_shell.tscn wear this from their wrapper, scenes/world/west_shell.tscn. Clear where it is
+; shallow, the bay's own colour where it is deep; the reasoning is in the shader. The hill lakes
+; wear the same shader, assets/materials/lake_water.tres, so lake and sea read as one water.
+
+[ext_resource type="Shader" path="res://assets/shaders/sea_water.gdshader" id="1_shader"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_shader")
+shader_parameter/colour = Color(0.34, 0.44, 0.52, 1)
+shader_parameter/shallow = Color(0.3, 0.5, 0.52, 1)
+shader_parameter/clarity = 3.0
+shader_parameter/surface = 0.25
+shader_parameter/rough = 0.08
+shader_parameter/metal = 0.1
+shader_parameter/wavelength = 7.0
+shader_parameter/chop = 0.08
+shader_parameter/ripple_reach = 120.0

@@ -1,8 +1,24 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 ; Stable editor-owned wrapper. The generator writes only generated/west_shell.tscn.
+; The sea's four boxes wear assets/materials/sea_water.tres from here (2026-10-07): clear where
+; it is shallow, the bay's own colour where it is deep. Underneath, the generator still gives them
+; its flat, opaque water.
 [ext_resource type="PackedScene" path="res://scenes/world/generated/west_shell.tscn" id="1_generated"]
+[ext_resource type="Material" path="res://assets/materials/sea_water.tres" id="2_sea"]
 
 [node name="west_shell" instance=ExtResource("1_generated")]
+
+[node name="water" parent="." index="0"]
+material = ExtResource("2_sea")
+
+[node name="water_bay" parent="." index="90"]
+material = ExtResource("2_sea")
+
+[node name="water_north" parent="." index="91"]
+material = ExtResource("2_sea")
+
+[node name="water_east" parent="." index="92"]
+material = ExtResource("2_sea")
 
 [node name="authored_additions" type="Node3D" parent="."]
