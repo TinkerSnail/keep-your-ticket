@@ -16,7 +16,8 @@
 ; landforms joined Ground on 2026-10-06 (tools/blender/world_terrain_join_landforms.py), the
 ; meshes their own sources drew before, wearing their own materials from the master. Where
 ; edit 1 (2026-10-06) blended the south range they are cut, capped and replaced by one sheet,
-; terrain_south_range_blend, which wears their materials too.
+; terrain_south_range_blend, which wears their materials too. Their coasts run on below the
+; waterline in terrain_landform_shelf (2026-10-08), which wears the coasts' material like the shelf.
 [ext_resource type="PackedScene" path="res://assets/world_terrain_master.glb" id="1_source"]
 [ext_resource type="Material" path="res://assets/materials/landscape_depth_vertex.tres" id="2_depth_vertex"]
 [ext_resource type="Material" path="res://assets/materials/landscape_depth_plain.tres" id="3_depth_plain"]
@@ -56,13 +57,16 @@ material_override = ExtResource("2_depth_vertex")
 [node name="terrain_coast_shelf" parent="." index="9"]
 material_override = ExtResource("2_depth_vertex")
 
-[node name="lake_K1" parent="." index="33"]
+[node name="terrain_landform_shelf" parent="." index="31"]
+material_override = ExtResource("2_depth_vertex")
+
+[node name="lake_K1" parent="." index="34"]
 material_override = ExtResource("5_lake")
 
-[node name="lake_L0" parent="." index="34"]
+[node name="lake_L0" parent="." index="35"]
 material_override = ExtResource("5_lake")
 
-[node name="plunge_pool" parent="." index="35"]
+[node name="plunge_pool" parent="." index="36"]
 material_override = ExtResource("5_lake")
 
 [node name="authored_additions" type="Node3D" parent="."]

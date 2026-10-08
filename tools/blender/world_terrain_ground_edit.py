@@ -84,7 +84,9 @@ DESIGN_PLANES = {"K1": "water_K1_enlarged", "L0": "water_L0_enlarged"}
 POOLS = {5: {"plunge_pool": "water_plunge_pool"}}
 POOL_GROW = 2.0
 # Render views per edit beyond the lakes: {name: ((x, z) centre, width across, eye level)}.
-VIEWS = {1: {"range_west": ((-1150.0, 5550.0), 1100.0, 40.0), "range_east": ((-150.0, 5800.0), 1500.0, 60.0)},
+VIEWS = {101: {"landform_bay": ((200.0, 3500.0), 1800.0, -8.0), "landform_plug": ((-730.0, -2220.0), 900.0, -8.0),
+              "landform_south": ((-600.0, 6600.0), 1500.0, -8.0)},
+         1: {"range_west": ((-1150.0, 5550.0), 1100.0, 40.0), "range_east": ((-150.0, 5800.0), 1500.0, 60.0)},
          100: {"shelf_north": ((-300.0, -1300.0), 1400.0, -8.0), "shelf_east": ((3300.0, 600.0), 1400.0, -8.0),
               "shelf_spur": ((500.0, 2450.0), 900.0, -8.0)},
          2: {"beach_north": ((130.0, 900.0), 900.0, -4.0), "beach_south": ((500.0, 1850.0), 900.0, -4.0)},
@@ -182,8 +184,14 @@ TOE_BANDS = ((16.0, "distant_massif_toe_dark"), (32.0, "distant_massif_toe_rock"
              (65.0, "distant_massif_toe_rock_forest_3"), (math.inf, "distant_massif_forest"))
 # Land the edit made out of the sea is the range's cove sand below this, its bands above.
 SAND_BELOW = -4.0
+# The landforms' coasts (2026-10-08), the coast shelf's sibling: `-- --edit landform_shelf`, one
+# more object, the landform shells themselves untouched. See `landform_shelf`.
+LANDFORM_SHELF_ID = 101
+LANDFORM_SHELF = "terrain_landform_shelf"
+# Shore points along a landform's side, at most this far apart, as the generator's wall panels are.
+LANDFORM_SHORE_STEP = 8.0
 # The edits this script knows how to carry, each in its own Stage 3 batch.
-CARRIED = (1, 2, 4, 5, SHELF_ID)
+CARRIED = (1, 2, 4, 5, SHELF_ID, LANDFORM_SHELF_ID)
 
 
 def argv():
@@ -191,7 +199,7 @@ def argv():
     out = {"edit": None, "dry": "--dry" in a, "undo": "--undo" in a, "render": None}
     if "--edit" in a:
         v = a[a.index("--edit") + 1]
-        out["edit"] = SHELF_ID if v == "shelf" else int(v)
+        out["edit"] = SHELF_ID if v == "shelf" else LANDFORM_SHELF_ID if v == "landform_shelf" else int(v)
     if "--render" in a:
         out["render"] = a[a.index("--render") + 1]
     return out
@@ -1216,6 +1224,222 @@ def coast_shelf(edit, dry):
     shelf_report.update({"faces": len(me.polygons), "vertices": len(me.vertices), "area_ha": round(area / 10000.0, 1),
                          "uv_fit_error": round(uv_err, 6)})
     return report, shelf_report, SHELF
+
+
+def landform_shelf(edit, dry):
+    """Run the landforms' coasts on below the waterline (Christina, 2026-10-06: "in general the
+    coast should have enough mesh extending into the water and below the water line"), as the
+    coast shelf does the generator's.
+
+    The range's and city's landforms, which joined Ground on 2026-10-06, are closed shells, and
+    where one meets the open sea its side runs straight down to its floor at about -11 with nothing
+    beyond; since the sea cleared (2026-10-07) that side shows under the water. The shells are kept
+    whole. The shelf starts on each sea-facing side `SHELF_UNDER` below the waterline, or at the
+    side's top where that is lower, and slopes out `SHELF_W` to `SHELF_DEPTH`; the side below its
+    start stands behind it. It meets no other ground: where ground already lies under the water
+    (the coast shelf, edit 1's sheet, another shell), it stops short of it. Sandy where the shore is:
+    the landform's own sand or beach colour at the top of its side, or a beach sheet on it."""
+    if LANDFORM_SHELF in bpy.data.objects:
+        raise SystemExit("%s already exists" % LANDFORM_SHELF)
+    sea = float(edit_constant("world_terrain_coast_extension.py", "SEA_LEVEL"))
+    cut_z = sea - SHELF_UNDER
+    over_ground = ground_from_above()
+    beach_bm = bmesh.new()
+    for ob in ground_objects():
+        if ob.get("kyt_collision") == "none":
+            beach_bm.from_mesh(ob.data)
+    beach_tree = BVHTree.FromBMesh(beach_bm)
+    beach_bm.free()
+
+    def on_beach(x, y):
+        return beach_tree.ray_cast(Vector((x, y, 5000.0)), Vector((0.0, 0.0, -1.0)))[0] is not None
+
+    keys = []
+    index = {}
+    xy = []
+    edge_z = []
+    normal = []
+    sandy = set()
+    segs = []
+    seg_out = []
+    shells = []
+
+    def key(co):
+        k = (round(co.x, 2), round(co.y, 2))
+        if k not in index:
+            index[k] = len(keys)
+            keys.append(k)
+            xy.append(Vector((co.x, co.y)))
+            edge_z.append(None)
+            normal.append(Vector((0.0, 0.0)))
+        return index[k]
+
+    for ob in ground_objects():
+        if ob.get("kyt_collision") == "none":
+            continue
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        bm.normal_update()
+        if any(e.is_boundary for e in bm.edges) or not any(f.normal.z < -0.5 for f in bm.faces):
+            bm.free()
+            continue
+        if ob.matrix_world != ob.matrix_world.Identity(4):
+            raise SystemExit("%s is not at the origin; Ground objects hold world positions" % ob.name)
+        bm.faces.ensure_lookup_table()
+        own = BVHTree.FromBMesh(bm)
+        mats = [m.name if m else "" for m in ob.data.materials]
+
+        def own_top(p):
+            hit = own.ray_cast(Vector((p.x, p.y, 5000.0)), Vector((0.0, 0.0, -1.0)))
+            return None if hit[0] is None else (hit[0].z, hit[2])
+
+        found = 0
+        for e in bm.edges:
+            # The floor's rim: where a face looking down meets one that does not.
+            fs = e.link_faces
+            if len(fs) != 2 or (fs[0].normal.z < -0.5) == (fs[1].normal.z < -0.5):
+                continue
+            a, b = e.verts
+            # A floor standing above the cut is buried in other ground, not at the sea.
+            if max(a.co.z, b.co.z) > cut_z:
+                continue
+            d = b.co.xy - a.co.xy
+            if d.length < 0.05:
+                continue
+            m = (a.co.xy + b.co.xy) * 0.5
+            n = Vector((d.y, -d.x)).normalized()
+            if own_top(m + n * 0.5) is not None:
+                n = -n
+            if own_top(m - n * 0.5) is None or own_top(m + n * 0.5) is not None:
+                continue
+            if over_ground(*(m + n * 2.0)):
+                continue
+            # The side in pieces of at most `LANDFORM_SHORE_STEP` (the shells' sides run up to a
+            # hundred metres), each point's height its top just inside, under the cut; a side
+            # with a point that has no top (a sliver at a corner of edit 1's caps) is left.
+            pieces = max(1, int(math.ceil(d.length / LANDFORM_SHORE_STEP)))
+            along = [a.co.xy.lerp(b.co.xy, k / pieces) for k in range(pieces + 1)]
+            tops = [own_top(q - n * 0.05) for q in along]
+            if None in tops:
+                continue
+            ids = []
+            for q, top in zip(along, tops):
+                i = key(q)
+                normal[i] += n
+                if edge_z[i] is None:
+                    edge_z[i] = min(cut_z, top[0])
+                    name = mats[bm.faces[top[1]].material_index]
+                    if "sand" in name or "beach" in name or on_beach(*(q - n * 0.05)):
+                        sandy.add(i)
+                ids.append(i)
+            for ia, ib in zip(ids, ids[1:]):
+                segs.append((ia, ib))
+                seg_out.append(n)
+            found += 1
+        if found:
+            shells.append("%s %d" % (ob.name, found))
+        bm.free()
+    if not segs:
+        raise SystemExit("no landform meets the open sea")
+    normal = [v.normalized() for v in normal]
+
+    A = np.array([xy[i].to_tuple() for i, _ in segs])
+    AB = np.array([xy[j].to_tuple() for _, j in segs]) - A
+    EA = np.array([edge_z[i] for i, _ in segs])
+    EB = np.array([edge_z[j] for _, j in segs])
+    SO = np.array([n.to_tuple() for n in seg_out])
+    L2 = np.maximum((AB ** 2).sum(axis=1), 1e-9)
+
+    def to_run(x, y):
+        """The nearest sea-facing side: the distance to it, its height there, and whether (x, y) is
+        in front of it."""
+        P = np.array((x, y))
+        u = np.clip(((P - A) * AB).sum(axis=1) / L2, 0.0, 1.0)
+        Q = A + AB * u[:, None]
+        d2 = ((Q - P) ** 2).sum(axis=1)
+        i = int(np.argmin(d2))
+        return math.sqrt(float(d2[i])), float(EA[i] + (EB[i] - EA[i]) * u[i]), float(((P - Q[i]) * SO[i]).sum()) > 0.0
+
+    def depth(d, e):
+        t = min(1.0, d / SHELF_W)
+        return min(e, e + (SHELF_DEPTH - e) * (1.0 - (1.0 - t) ** 2))
+
+    def wanted(x, y):
+        if over_ground(x, y):
+            return False
+        d, _, front = to_run(x, y)
+        return front and d <= SHELF_W + 1.0
+
+    pts = list(xy)
+    taken = {}
+
+    def crowded(q, r):
+        cx, cy = int(q.x // 8.0), int(q.y // 8.0)
+        reach = int(math.ceil(r / 8.0))
+        return any((q - o).length < r for i in range(-reach, reach + 1) for j in range(-reach, reach + 1)
+                   for o in taken.get((cx + i, cy + j), ()))
+
+    rows = 0
+    last = 0.0
+    for s in SHELF_ROWS:
+        r = min(CROWD + SHELF_SPREAD * s, 0.45 * (s - last))
+        last = s
+        for i in range(len(keys)):
+            q = xy[i] + normal[i] * s
+            if not wanted(q.x, q.y) or crowded(q, r):
+                continue
+            pts.append(q)
+            taken.setdefault((int(q.x // 8.0), int(q.y // 8.0)), []).append(q)
+            rows += 1
+    zs = list(edge_z) + [depth(*to_run(p.x, p.y)[:2]) for p in pts[len(keys):]]
+
+    # Where two landforms touch, their sea-facing sides can cross; the triangulator puts a point
+    # there, and it takes the shelf's height at it like any other.
+    out_v, _, out_f, orig_v, _, _ = delaunay_2d_cdt(pts, segs, [], 0, 1e-4, True)
+    zmap = []
+    for k, p in enumerate(out_v):
+        src = [i for i in orig_v[k] if i < len(pts)]
+        zmap.append(zs[src[0]] if src else depth(*to_run(p.x, p.y)[:2]))
+    faces = []
+    for tri in out_f:
+        c = Vector((sum(out_v[i].x for i in tri) / 3.0, sum(out_v[i].y for i in tri) / 3.0))
+        longest = max((out_v[tri[k]] - out_v[tri[(k + 1) % 3]]).length for k in range(3))
+        if longest > SHELF_LONGEST or not wanted(c.x, c.y):
+            continue
+        # Off other ground over the whole face, not only at its centre: each edge's middle, drawn
+        # a quarter of the way in, so a side's own rim, which the face shares, is not asked.
+        if any(over_ground(*(((out_v[tri[k]] + out_v[tri[(k + 1) % 3]]) * 0.5).lerp(c, 0.25))) for k in range(3)):
+            continue
+        faces.append(tuple(tri))
+    shelf_report = {"faces": len(faces), "shore_m": round(sum((xy[i] - xy[j]).length for i, j in segs), 1),
+                    "sides": len(segs), "row_points": rows, "sandy_shore_points": len(sandy),
+                    "starting_under_the_cut": sum(1 for z in edge_z if z < cut_z - SNAP), "deepest": round(min(zmap), 2),
+                    "shells": "; ".join(shells)}
+    if dry or not faces:
+        return {}, shelf_report, None
+
+    coef, uv_err = uv_projection()
+    tree = KDTree(len(keys))
+    for i, k in enumerate(keys):
+        tree.insert((k[0], k[1], 0.0), i)
+    tree.balance()
+
+    def colour(x, y, z):
+        grain = 1.0 + math.sin(x * 0.37) * math.sin(-y * 0.41) * 0.05
+        bed = Vector((SEABED[0] * grain, SEABED[1] * grain, SEABED[2] * grain, 1.0))
+        if tree.find((x, y, 0.0))[1] not in sandy:
+            return bed
+        sand = Vector((SAND[0] * grain, SAND[1] * grain, SAND[2] * grain, 1.0))
+        return sand.lerp(bed, 1.0 - smoothstep(SEABED_FROM[1], SEABED_FROM[0], z))
+
+    me = build_ground(LANDFORM_SHELF, out_v, zmap, faces, colour, coef, edit,
+                      "The landforms' shelf (Ground edit %d): the range's and city's landforms run on below the "
+                      "waterline from each sea-facing side, %.1f m under the sea; the shells untouched; built by "
+                      "tools/blender/world_terrain_ground_edit.py -- --edit landform_shelf, undone by its --undo" % (
+                          edit, SHELF_UNDER))
+    area = sum(p.area for p in me.polygons)
+    shelf_report.update({"faces": len(me.polygons), "vertices": len(me.vertices), "area_ha": round(area / 10000.0, 1)})
+    return {}, shelf_report, LANDFORM_SHELF
 
 
 def zone_cells(edit, step):
@@ -2489,7 +2713,7 @@ def main():
         return
     if any(e.get("id") == edit for e in json.loads(bpy.context.scene.get("kyt_ground_edits", "[]"))):
         raise SystemExit("Ground already carries edit %d; --undo first" % edit)
-    if edit != SHELF_ID:
+    if edit not in (SHELF_ID, LANDFORM_SHELF_ID):
         now_t, pre_t, box, grid_points = grid_surfaces(edit)
     before = {ob.name: coords(ob).copy() for ob in ground_objects()}
     reports = {}
@@ -2498,6 +2722,11 @@ def main():
     if edit == SHELF_ID:
         reports, land_report, land = coast_shelf(edit, a["dry"])
         print("  %-34s %s" % (SHELF, ", ".join("%s %s" % kv for kv in land_report.items())))
+    elif edit == LANDFORM_SHELF_ID:
+        reports, land_report, land = landform_shelf(edit, a["dry"])
+        print("  %-34s %s" % (LANDFORM_SHELF, ", ".join("%s %s" % kv for kv in land_report.items())))
+        if not a["dry"] and land is None:
+            raise SystemExit("no shelf face to build")
     elif edit in RANGE_BLEND:
         reports, land_report, land = range_blend(edit, now_t, pre_t, a["dry"])
         print("  %-34s %s" % (RANGE_BLEND[edit], ", ".join("%s %s" % kv for kv in land_report.items())))
@@ -2533,6 +2762,8 @@ def main():
             raise SystemExit("%s: %d vertices outside the edit's faces moved" % (ob.name, strays))
     if edit == SHELF_ID:
         design = {"name": "coast_shelf"}
+    elif edit == LANDFORM_SHELF_ID:
+        design = {"name": "landform_shelf"}
     else:
         design = next(e for e in json.loads(bpy.data.objects[GRID].get("kyt_edits", "[]")) if e.get("id") == edit)
     tris = ground_triangles()
@@ -2588,6 +2819,12 @@ def main():
                "kept in %s. Undo: tools/blender/world_terrain_ground_edit.py -- --edit shelf --undo." % (
                    edit, design["name"], TODAY, SHELF_UNDER, ", ".join(reports), land, SHELF_W, SHELF_DEPTH,
                    ", ".join("%s %s" % kv for kv in land_report.items()), HISTORY))
+    elif edit == LANDFORM_SHELF_ID:
+        readme("Ground edit %d (%s), %s: %s runs the landforms' coasts on below the waterline from each side "
+               "facing the open sea, %.1f m under it, %.0f m out to %.1f (%s); the shells untouched. Undo: "
+               "tools/blender/world_terrain_ground_edit.py -- --edit landform_shelf --undo." % (
+                   edit, design["name"], TODAY, land, SHELF_UNDER, SHELF_W, SHELF_DEPTH,
+                   ", ".join("%s %s" % kv for kv in land_report.items())))
     elif edit in RANGE_BLEND:
         readme("Ground edit %d (%s), Stage 3, %s: in the zone grid edit %d changed, the landforms %s were cut along "
                "its edge, emptied inside it and capped, and %s built there as one sheet on the edit's surface (%s); "
