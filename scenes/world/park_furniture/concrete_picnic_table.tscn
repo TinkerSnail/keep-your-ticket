@@ -1,0 +1,20 @@
+[gd_scene load_steps=2 format=3]
+
+; The concrete picnic table, as the game places it. Editor-owned: written by the
+; Keep Your Ticket panel at its first Send to game (2026-10-02);
+; edit it in Godot from here on.
+;
+; The model is `assets/props/concrete_picnic_table.glb`, sent from
+; `assets/source/props/concrete_picnic_table.blend` with the Keep Your Ticket
+; panel. Its collision is derived on export, on layer 1. Not placed
+; anywhere yet.
+;
+; No seat markers: guests do not sit at picnic tables yet. The ends are the
+; wheelchair places, between the bench ends, under the top's overhang.
+
+[ext_resource type="PackedScene" path="res://assets/props/concrete_picnic_table.glb" id="1_model"]
+
+[node name="concrete_picnic_table" type="Node3D"]
+editor_description = "PRP-PARK-028. Concrete trestle picnic table, a timber-slat bench along each long side. Long axis local X, faces local +Z. The ends are the wheelchair places."
+
+[node name="model" parent="." instance=ExtResource("1_model")]

@@ -759,6 +759,18 @@ Each cost time once. The fix is in the tool unless noted.
   options. Use `${=FLAGS}` (agent practice).
 - **Outlining a spot against one shifted copy counts the copy's own image of
   the spot.** Outline against both sides.
+- **A part with faces that collapse when its doubles merge scrambles its
+  unwrap.** `unwrap_parts.py` works on a merged copy and writes the result back
+  by face index; a boolean's and a bevel's sliver faces vanish in the merge and
+  every face after them takes its neighbour's UVs (the concrete picnic table's
+  trestles folded over the whole canvas, 2026-10-02). It now refuses such a
+  part and names it; a builder cleans its parts (merge by distance, delete
+  degenerate faces) before saving.
+- **Clearing a mesh's materials zeroes its faces' slots.** In Blender 5,
+  `materials.clear()` then appending the slots back leaves every face on slot
+  0, so a two-material part comes out all one (the sky ride gondola's tub,
+  2026-10-02; the builders copied from `picnic_tables.py` all had it). Keep the
+  evaluated mesh's slots, and fill them only if it came back without any.
 - **Changes made in her open app exist only until she saves.** Put the save
   line last in the report (agent practice).
 - **After the canvas, Solid view looks untextured.** Solid shading with colour

@@ -614,6 +614,14 @@ def main():
             obm.free()
         mw = part.matrix_world
         bm = welded_copy(part.data)
+        if len(bm.faces) != len(part.data.polygons):
+            # The unwrap is written back face by face, by index: a face that
+            # collapses when the doubles merge shifts every face after it, and
+            # the part comes out folded (the concrete picnic table's trestles,
+            # 2026-10-02). Refuse rather than write a scrambled unwrap.
+            raise SystemExit(f"unwrap_parts: '{part.name}' has {len(part.data.polygons) - len(bm.faces)} "
+                             "faces that collapse when its coincident vertices merge; clean it "
+                             "(merge by distance, delete degenerate faces) and run again")
         # The shape is read off a quad copy (the parts arrive as triangles);
         # the seams it picks are edges the triangle mesh has too.
         qb = bm.copy()

@@ -5,6 +5,7 @@ extends Node
 ##     godot --headless --path . tools/run.tscn -- maquette_export \
 ##         <scene> <prefix> <out_name> [--whole] [--markers <scene>] [--also <scene>] [--floor W D]
 ##         [--set <property>=<value> ...] [--courses] [--mount <name>]
+##         [--anchor <node>] [--prefixes a,b] [--names c,d] [--frame <part name>]
 ##
 ## `--whole` takes every mesh of `<scene>` as the prop instead of prefixed
 ## top-level parts, for a prop already built by hand in its own frame; the
@@ -116,7 +117,26 @@ func _export(args: PackedStringArray) -> bool:
 	# mesh in it is a part and the frame is the scene's own.
 	var whole := args.has("--whole")
 	var parts: Array[Node3D] = []
-	if whole:
+	# `--anchor <node> --prefixes a,b --names c,d`: the prop catalog's selection
+	# (`documentation/prop-catalog.json`, as `prop_catalog_capture.gd` reads it),
+	# for a prop authored inside a bigger scene: under the anchor, every node
+	# whose own name, or a parent's below the anchor, begins with one of the
+	# prefixes or is one of the names. Pass `-` as the prefix.
+	var picked := _flag(args, "--prefixes")
+	var named := _flag(args, "--names")
+	if not picked.is_empty() or not named.is_empty():
+		var scope: Node = source
+		var anchor := _flag(args, "--anchor")
+		if not anchor.is_empty():
+			scope = source.find_child(anchor[0], true, false)
+			if scope == null:
+				push_error("maquette_export: no anchor '%s' in %s" % [anchor[0], scene_path])
+				return false
+		var prefixes := PackedStringArray() if picked.is_empty() else picked[0].split(",", false)
+		var names := PackedStringArray() if named.is_empty() else named[0].split(",", false)
+		_select(scope, prefixes, names, false, parts)
+		prefix = ""
+	elif whole:
 		for n in source.find_children("*", "", true, false):
 			if n is MeshInstance3D or n is CSGShape3D:
 				parts.append(n)
@@ -128,10 +148,21 @@ func _export(args: PackedStringArray) -> bool:
 		push_error("maquette_export: no parts in %s (prefix %s)" % [scene_path, prefix])
 		return false
 
+	# The frame is the first part's yaw and origin, or with `--frame <name>` the
+	# first part whose name begins with it: a strut's look-at basis has an
+	# arbitrary yaw (the sky ride cabin's hanger turned its greybox 93 degrees,
+	# 2026-10-02), so name the body.
+	var lead: Node3D = parts[0]
+	var frame_from := _flag(args, "--frame")
+	if not frame_from.is_empty():
+		for p in parts:
+			if String(p.name).begins_with(frame_from[0]):
+				lead = p
+				break
 	var frame := Transform3D.IDENTITY
 	if not whole:
-		var yaw := Basis(Vector3.UP, parts[0].global_transform.basis.get_euler().y)
-		frame = Transform3D(yaw, parts[0].global_position)
+		var yaw := Basis(Vector3.UP, lead.global_transform.basis.get_euler().y)
+		frame = Transform3D(yaw, lead.global_position)
 
 	var root := Node3D.new()
 	root.name = out_name
@@ -280,3 +311,20 @@ func _write_courses(source: Node, frame: Transform3D, shift: Vector3, out_name: 
 
 func _v(v: Vector3) -> Array:
 	return [v.x, v.y, v.z]
+
+
+## The parts of a catalog selection under `node`: a matching node and what it
+## holds, a CSG tree baked whole from its root.
+func _select(node: Node, prefixes: PackedStringArray, names: PackedStringArray,
+		inside: bool, out: Array[Node3D]) -> void:
+	for child in node.get_children():
+		var own := String(child.name)
+		var hit := inside or names.has(own)
+		for p in prefixes:
+			hit = hit or own.begins_with(p)
+		if hit and child is CSGShape3D:
+			out.append(child)
+			continue
+		if hit and child is MeshInstance3D:
+			out.append(child)
+		_select(child, prefixes, names, hit, out)
