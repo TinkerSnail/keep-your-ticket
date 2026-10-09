@@ -176,7 +176,11 @@ func _world_terrain_source():
 ## not add it twice. Where nothing changed it adds nothing, so the park is
 ## built exactly as before. Roads read the landform through
 ## `_rebuild_natural_y` and `_rebuild_range_rise_raw`, which take no change: a
-## road keeps its own graded profile whatever the master does beside it.
+## road keeps its own graded profile whatever the master does beside it. Its
+## corridor's sides are another matter (2026-10-08, the hillside, Ground edit 6,
+## Christina: "let the slope follow"): where an edit reshapes ground a corridor
+## covers, the master hands over the edit's natural ground there, and the sides
+## are cut down to it (`_road_natural_y`), so the cutting meets the new hill.
 var _ground_depth := 0
 
 
@@ -23553,6 +23557,8 @@ func _road_split_at_radius(pts: Array, centre: Vector2, radius: float) -> Array:
 ## tapered in over `ROAD_TAPER` from the corridor's ends. `y` is the ground
 ## before any road. Returns [height, found].
 func _road_records_cut(p: Vector2, y: float) -> Array:
+	# The ground the sides are cut to, where an edit to the master reshapes it.
+	y = _world_terrain_source().road_natural(p, y)
 	var best := INF
 	var best_rec: Dictionary = {}
 	var best_seg := -1
@@ -23759,10 +23765,17 @@ func _road_profile_y(rec: Dictionary, seg: int, t: float, o: float, y: float) ->
 	if e <= 0.0:
 		return level - 0.06
 	var edge := foot + r * side * half
-	var nat_ref := _rebuild_natural_y(edge + r * side * ROAD_REF)
-	var nat_wall := _rebuild_natural_y(edge + r * side * (ROAD_VERGE + ROAD_DITCH_W + ROAD_WALL_RUN))
-	var nat_fill := _rebuild_natural_y(edge + r * side * ROAD_FILL_FACE)
+	var nat_ref := _road_natural_y(edge + r * side * ROAD_REF)
+	var nat_wall := _road_natural_y(edge + r * side * (ROAD_VERGE + ROAD_DITCH_W + ROAD_WALL_RUN))
+	var nat_fill := _road_natural_y(edge + r * side * ROAD_FILL_FACE)
 	return _road_side_y(level, e, y, nat_ref, nat_wall, nat_fill)
+
+
+## The natural ground a road's side is cut to at `p`: the landform's, except where
+## an edit to the world terrain master reshapes ground the corridor covers, which
+## the master hands over (`WorldTerrainSource.road_natural`). Never a road's level.
+func _road_natural_y(p: Vector2) -> float:
+	return _world_terrain_source().road_natural(p, _rebuild_natural_y(p))
 
 
 ## The median's ground between the carriageways: level with each at its own
@@ -23826,9 +23839,9 @@ func _road_side_y(level: float, e: float, nat: float, nat_ref: float, nat_wall: 
 ## What a side of a road is at a station, for what stands beside it: the
 ## cut face's height, the drop beyond the verge, whether the deck spans it.
 func _road_side_class(level: float, edge: Vector2, r_out: Vector2) -> Dictionary:
-	var nat_ref := _rebuild_natural_y(edge + r_out * ROAD_REF)
-	var nat_wall := _rebuild_natural_y(edge + r_out * (ROAD_VERGE + ROAD_DITCH_W + ROAD_WALL_RUN))
-	var nat_fill := _rebuild_natural_y(edge + r_out * ROAD_FILL_FACE)
+	var nat_ref := _road_natural_y(edge + r_out * ROAD_REF)
+	var nat_wall := _road_natural_y(edge + r_out * (ROAD_VERGE + ROAD_DITCH_W + ROAD_WALL_RUN))
+	var nat_fill := _road_natural_y(edge + r_out * ROAD_FILL_FACE)
 	var rise := nat_ref - level
 	var cut := clampf(rise / 1.0, 0.0, 1.0)
 	var wall := clampf(nat_wall - level, 0.0, ROAD_WALL_MAX) * cut if rise >= 0.0 else 0.0

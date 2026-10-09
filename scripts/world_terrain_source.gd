@@ -62,6 +62,14 @@ const JOINED: Array[String] = [
 	"southern_city_range_foothills",
 	"southern_city_range_beaches",
 ]
+## Where an edit to the master reshapes ground a road's corridor covers (the hillside, Ground
+## edit 6, 2026-10-08: the hill ran down into the coast highway's cutting), the master hands
+## over the edit's natural ground there, which is no ground one stands on (`kyt_collision=none`,
+## hidden in `scenes/world/world_terrain.tscn`): a mesh named with this prefix, each point on the
+## designed ground and carrying, as its u texture coordinate, how far the design governs there,
+## 1 inside the edit and 0 where it leaves the ground as it was. `road_natural` reads it; see
+## `tools/blender/world_terrain_ground_edit.py`, `ROAD_NATURAL`.
+const ROAD_NATURAL_PREFIX := "corridor_natural_"
 ## The plan cell the changed faces are indexed in.
 const CELL := 8.0
 ## A face whose normal is flatter than this has no top to stand on (the seam
@@ -77,13 +85,19 @@ var _dirty := {}
 var _master_cells := {}
 var _base_cells := {}
 var _base_faces := PackedVector3Array()
+var _road_faces := PackedVector3Array()
+var _road_weights := PackedFloat32Array()
+var _road_cells := {}
 
 
 ## Reads the imported master and the baseline unless faces are handed in, as
 ## {mesh name: corners in world space, three per face}; a probe hands them in.
 func _init(master := {}, baseline := {}) -> void:
 	if master.is_empty():
-		master = load_master()
+		var scene := (load(MASTER_GLB) as PackedScene).instantiate()
+		master = _ground_of(scene)
+		_read_road_natural(scene)
+		scene.free()
 	if baseline.is_empty():
 		baseline = load_baseline()
 	assert(not baseline.is_empty(), "the world terrain baseline is missing: %s" % BASELINE)
@@ -117,6 +131,37 @@ func delta_y(p: Vector2) -> float:
 	return now - then
 
 
+## The natural ground a road's corridor cuts its sides to at `p` (world x, z), given the
+## landform's `y` there: `y`, blended towards the master's designed natural ground where an
+## edit reshapes what the corridor covers (`ROAD_NATURAL_PREFIX`). A road's own level never
+## reads it, so it keeps its graded profile; its sides follow the ground beside it.
+func road_natural(p: Vector2, y: float) -> float:
+	if _road_cells.is_empty():
+		return y
+	var key := Vector2i(floori(p.x / CELL), floori(p.y / CELL))
+	if not _road_cells.has(key):
+		return y
+	for t in (_road_cells[key] as Array):
+		var a := _road_faces[t]
+		var b := _road_faces[t + 1]
+		var c := _road_faces[t + 2]
+		var e0 := Vector2(b.x - a.x, b.z - a.z)
+		var e1 := Vector2(c.x - a.x, c.z - a.z)
+		var e2 := Vector2(p.x - a.x, p.y - a.z)
+		var den := e0.x * e1.y - e1.x * e0.y
+		if absf(den) < 1e-9:
+			continue
+		var u := (e2.x * e1.y - e1.x * e2.y) / den
+		var v := (e0.x * e2.y - e2.x * e0.y) / den
+		if u < -INSIDE_EPS or v < -INSIDE_EPS or u + v > 1.0 + INSIDE_EPS:
+			continue
+		var z := a.y + u * (b.y - a.y) + v * (c.y - a.y)
+		var w := _road_weights[t] + u * (_road_weights[t + 1] - _road_weights[t]) \
+			+ v * (_road_weights[t + 2] - _road_weights[t])
+		return lerpf(y, z, clampf(w, 0.0, 1.0))
+	return y
+
+
 ## One line for a log: what changed, where, and the largest rise and fall at
 ## the changed faces' corners.
 func summary() -> String:
@@ -145,13 +190,44 @@ func summary() -> String:
 ## not ground.
 static func load_master() -> Dictionary:
 	var scene := (load(MASTER_GLB) as PackedScene).instantiate()
+	var out := _ground_of(scene)
+	scene.free()
+	return out
+
+
+static func _ground_of(scene: Node) -> Dictionary:
 	var out := {}
 	for node in scene.find_children("*", "MeshInstance3D", true, false):
 		var mi := node as MeshInstance3D
 		if mi.mesh != null and not mi.find_children("*", "CollisionShape3D", true, false).is_empty():
 			out[String(mi.name)] = faces_of(mi.mesh, _world_xf(mi))
-	scene.free()
 	return out
+
+
+## The master's natural ground under road corridors, three corners a face with their weights,
+## indexed in every plan cell a face touches.
+func _read_road_natural(scene: Node) -> void:
+	for node in scene.find_children(ROAD_NATURAL_PREFIX + "*", "MeshInstance3D", true, false):
+		var mi := node as MeshInstance3D
+		var xf := _world_xf(mi)
+		for s in mi.mesh.get_surface_count():
+			var arr := mi.mesh.surface_get_arrays(s)
+			var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+			var uv: PackedVector2Array = arr[Mesh.ARRAY_TEX_UV]
+			var idx: PackedInt32Array = arr[Mesh.ARRAY_INDEX] if arr[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
+			var order: PackedInt32Array = idx
+			if order.is_empty():
+				order.resize(v.size())
+				for i in v.size():
+					order[i] = i
+			for i in order:
+				_road_faces.append(xf * v[i])
+				_road_weights.append(uv[i].x)
+	for t in range(0, _road_faces.size(), 3):
+		for key in _cells_of(_road_faces, t):
+			if not _road_cells.has(key):
+				_road_cells[key] = []
+			(_road_cells[key] as Array).append(t)
 
 
 static func load_baseline() -> Dictionary:

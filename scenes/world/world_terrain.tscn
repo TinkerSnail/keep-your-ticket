@@ -18,6 +18,9 @@
 ; edit 1 (2026-10-06) blended the south range they are cut, capped and replaced by one sheet,
 ; terrain_south_range_blend, which wears their materials too. Their coasts run on below the
 ; waterline in terrain_landform_shelf (2026-10-08), which wears the coasts' material like the shelf.
+; corridor_natural_edit6 (2026-10-08, the master's Earthworks collection) is no ground: it hands
+; the generator the hillside regrade's natural ground under the coast highway's cutting, so the
+; road's sides are cut down to the new hill. It has no collision and is hidden here.
 [ext_resource type="PackedScene" path="res://assets/world_terrain_master.glb" id="1_source"]
 [ext_resource type="Material" path="res://assets/materials/landscape_depth_vertex.tres" id="2_depth_vertex"]
 [ext_resource type="Material" path="res://assets/materials/landscape_depth_plain.tres" id="3_depth_plain"]
@@ -68,5 +71,8 @@ material_override = ExtResource("5_lake")
 
 [node name="plunge_pool" parent="." index="36"]
 material_override = ExtResource("5_lake")
+
+[node name="corridor_natural_edit6" parent="." index="37"]
+visible = false
 
 [node name="authored_additions" type="Node3D" parent="."]

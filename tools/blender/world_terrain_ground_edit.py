@@ -36,6 +36,12 @@ Edit 1, the south range blend (2026-10-06), lands on the range's and city's clos
 shells, which overlap: in the zone it changed they are cut along its edge, emptied and capped,
 and one sheet, `RANGE_BLEND`, takes the designed surface there. See `range_blend`.
 
+Edit 6, the hillside regrade (2026-10-08), goes in with edit 7, its refinement of the band
+beside the coast highway (`WITH`), measured from the grid before either. It reshapes ground the
+highway's corridor covers, so Ground's edge along the corridor moves with it and the edit's
+designed natural ground under the corridor is handed to the generator, which cuts the road's
+sides down to it (`ROAD_NATURAL`, `road_natural`).
+
 The coast shelf (2026-10-06, `-- --edit shelf`, id `SHELF_ID`) is no grid edit: every coast's
 shore wall is cut just under the waterline and a shelf runs out from it under the water, so the
 coast goes on below the sea instead of ending in a wall. See `coast_shelf`.
@@ -76,6 +82,11 @@ LATTICE = 8.0
 # A lattice point nearer than this to a kept vertex, an edge point or a grid vertex is
 # dropped, so the triangulation makes no slivers (they shade as spikes).
 CROWD = 0.35 * LATTICE
+# And an edit's own grid points and the lattice keep this far from every edge of the region's
+# faces, which stay as constraints: a point a hair beside one makes a sliver that shades as a
+# notch (2026-10-08: edits 6 and 7's 10 m and 3 m grids left 889 along the reserve's 24 m edges).
+# Edits 4 and 5, carried before, had sparse grids and were not refined with it.
+SEP = 1.0
 # The bay's water (tools/gen_props.gd, mats["water"]), so lake and sea read as one water.
 LAKE_COLOUR = (0.34, 0.44, 0.52, 1.0)
 DESIGN_PLANES = {"K1": "water_K1_enlarged", "L0": "water_L0_enlarged"}
@@ -84,7 +95,8 @@ DESIGN_PLANES = {"K1": "water_K1_enlarged", "L0": "water_L0_enlarged"}
 POOLS = {5: {"plunge_pool": "water_plunge_pool"}}
 POOL_GROW = 2.0
 # Render views per edit beyond the lakes: {name: ((x, z) centre, width across, eye level)}.
-VIEWS = {101: {"landform_bay": ((200.0, 3500.0), 1800.0, -8.0), "landform_plug": ((-730.0, -2220.0), 900.0, -8.0),
+VIEWS = {6: {"hillside": ((160.0, 570.0), 520.0, 30.0), "hillside_band": ((120.0, 600.0), 280.0, 25.0)},
+         101: {"landform_bay": ((200.0, 3500.0), 1800.0, -8.0), "landform_plug": ((-730.0, -2220.0), 900.0, -8.0),
               "landform_south": ((-600.0, 6600.0), 1500.0, -8.0)},
          1: {"range_west": ((-1150.0, 5550.0), 1100.0, 40.0), "range_east": ((-150.0, 5800.0), 1500.0, 60.0)},
          100: {"shelf_north": ((-300.0, -1300.0), 1400.0, -8.0), "shelf_east": ((3300.0, 600.0), 1400.0, -8.0),
@@ -191,7 +203,30 @@ LANDFORM_SHELF = "terrain_landform_shelf"
 # Shore points along a landform's side, at most this far apart, as the generator's wall panels are.
 LANDFORM_SHORE_STEP = 8.0
 # The edits this script knows how to carry, each in its own Stage 3 batch.
-CARRIED = (1, 2, 4, 5, SHELF_ID, LANDFORM_SHELF_ID)
+# Edit 7 (2026-10-03) refined edit 6, the hillside regrade: the band beside the coast highway
+# that edit 6 had to hold, re-cut at 3 m on faces of its own. It is the rest of edit 6's design,
+# not a design of its own, so the two go onto Ground together as edit 6, measured from the grid
+# as it stood before either. Edit 7's own heights before it are edit 6's surface, and its band's
+# old faces are kept on the grid as `kyt_<tag>_removed_faces`: {edit: (its refinement, face tag)}.
+WITH = {6: (7, "edit7_face")}
+# Edit 6 reshapes ground the coast highway's corridor covers: the hill's old surface runs down into
+# the cutting's batter, which the generator builds, 15 to 20 m wider than the strip edit 7 kept.
+# Christina, 2026-10-08, "let the slope follow": Ground's edge along the corridor moves with the
+# edit instead of being held (by `design_at`'s weight, uncapped, as the corridor's side will), and
+# the edit's designed natural ground under the corridor goes to the game beside Ground, so the
+# generator cuts the road's sides down to it; the road's own level never reads it. The object
+# stands on the designed ground and carries, as its u texture coordinate, how far the design
+# governs at each point, 1 inside the edit fading to 0 where it leaves the ground as it was; it is
+# no ground one stands on (`kyt_collision=none`, hidden in the game). {edit: that object}.
+ROAD_NATURAL = {6: "corridor_natural_edit6"}
+EARTHWORKS = "Earthworks"
+ROAD_NATURAL_STEP = 3.0
+# A lattice point this close to Ground's edge is dropped, so the triangulation makes no slivers.
+ROAD_NATURAL_CLEAR = 1.0
+# What the grid may name under a corridor point the design governs: the corridor, and the ground
+# its edge faces straddle. Anything else there (a tunnel lid, an anchor) is refused.
+ROAD_NATURAL_OWNERS = ("terrain_road_corridor", "terrain_world_mainland_reserve")
+CARRIED = (1, 2, 4, 5, 6, SHELF_ID, LANDFORM_SHELF_ID)
 
 
 def argv():
@@ -200,6 +235,9 @@ def argv():
     if "--edit" in a:
         v = a[a.index("--edit") + 1]
         out["edit"] = SHELF_ID if v == "shelf" else LANDFORM_SHELF_ID if v == "landform_shelf" else int(v)
+        for edit, (also, _tag) in WITH.items():
+            if out["edit"] == also:
+                raise SystemExit("edit %d refines edit %d and is carried with it: --edit %d" % (also, edit, edit))
     if "--render" in a:
         out["render"] = a[a.index("--render") + 1]
     return out
@@ -226,7 +264,8 @@ def coords(ob):
 
 def grid_surfaces(edit):
     """BVH trees of the grid as edit `edit` left it and as it stood before it, the plan
-    box the edit's vertices cover, and those vertices' plan positions."""
+    box the edit's vertices cover, and those vertices' plan positions. An edit carried `WITH`
+    its refinement is measured as both left the grid against the grid before either."""
     ob = bpy.data.objects[GRID]
     me = ob.data
     M = ob.matrix_world
@@ -241,17 +280,43 @@ def grid_surfaces(edit):
     now = [M @ Vector(v) for v in co]
     before = [Vector((v.x, v.y, pre[i] if sel[i] else v.z)) for i, v in enumerate(now)]
     polys = [tuple(p.vertices) for p in me.polygons]
-    idx = np.nonzero(sel)[0]
+    before_polys = polys
+    moved = sel
+    if edit in WITH:
+        also, tag = WITH[edit]
+        if not (ed == also).any():
+            raise SystemExit("the grid has no vertex of edit %d, which edit %d is carried with" % (also, edit))
+        refined = np.zeros(len(me.polygons), dtype=np.int32)
+        me.attributes[tag].data.foreach_get("value", refined)
+        # The refinement's faces are none of the grid before it; the faces it dropped are.
+        before_polys = [tuple(p.vertices) for p in me.polygons if not refined[p.index]] + [
+            tuple(s["v"]) for s in json.loads(ob["kyt_%s_removed_faces" % tag])]
+        moved = sel | (ed == also)
+    idx = np.nonzero(moved)[0]
     xs = np.array([now[i].x for i in idx])
     ys = np.array([now[i].y for i in idx])
     box = (xs.min() - 60.0, xs.max() + 60.0, ys.min() - 60.0, ys.max() + 60.0)
     points = [Vector((now[i].x, now[i].y)) for i in idx]
-    return BVHTree.FromPolygons(now, polys), BVHTree.FromPolygons(before, polys), box, points
+    return BVHTree.FromPolygons(now, polys), BVHTree.FromPolygons(before, before_polys), box, points
 
 
 def height(tree, x, y):
     hit = tree.ray_cast(Vector((x, y, 5000.0)), Vector((0.0, 0.0, -1.0)))
     return None if hit[0] is None else hit[0].z
+
+
+def design_at(now_t, pre_t, x, y):
+    """The edited grid surface at (x, y), how far it governs there (1 where the edit moved the
+    grid by `BLEND` or more, fading to 0 where it did not move it) and the grid's move; None
+    where the edit left the grid alone."""
+    t = height(now_t, x, y)
+    p = height(pre_t, x, y)
+    if t is None or p is None:
+        return None
+    d = t - p
+    if abs(d) <= MIN_CHANGE:
+        return None
+    return t, min(1.0, abs(d) / BLEND), d
 
 
 def designed(now_t, pre_t, x, y, z):
@@ -260,14 +325,10 @@ def designed(now_t, pre_t, x, y, z):
     faded between. The design wins outright inside the edit even where Ground stood a few
     tenths below it: taking the lower of the two at every point (the first try) flipped
     between them along every bank, by the grid's own 0.3 m, and serrated it."""
-    t = height(now_t, x, y)
-    p = height(pre_t, x, y)
-    if t is None or p is None:
+    tw = design_at(now_t, pre_t, x, y)
+    if tw is None:
         return z
-    d = t - p
-    if abs(d) <= MIN_CHANGE:
-        return z
-    w = min(1.0, abs(d) / BLEND)
+    t, w, d = tw
     # A cut never lifts Ground by more than the grid's own error, nor a raise lowers it:
     # where another source's ground was the grid's top (the range's hills over the reserve),
     # Ground lies far below the design and stays there.
@@ -353,9 +414,13 @@ def carry(ob, edit, now_t, pre_t, box, grid_points, dry):
     # edit asked of it is reported.
     held = [designed(now_t, pre_t, bm.verts[vi].co.x, bm.verts[vi].co.y, bm.verts[vi].co.z) - bm.verts[vi].co.z
             for vi in seam if reached(bm.verts[vi].co)]
-    pinned = {bm.verts[vi] for vi in seam}
-    report = {"faces_before": len(faces), "region_vertices": len(rverts), "seam_held": len(held),
-              "seam_held_most": max((abs(h) for h in held), default=0.0)}
+    # Unless the corridor follows the edit (`ROAD_NATURAL`): then its edge moves with it.
+    follow = edit in ROAD_NATURAL
+    pinned = set() if follow else {bm.verts[vi] for vi in seam}
+    report = {"faces_before": len(faces), "region_vertices": len(rverts), "seam_held": 0 if follow else len(held),
+              "seam_held_most": 0.0 if follow else max((abs(h) for h in held), default=0.0)}
+    if follow:
+        report.update({"seam_followed": len(held), "seam_followed_most": max((abs(h) for h in held), default=0.0)})
     if dry:
         bm.free()
         return report
@@ -405,7 +470,7 @@ def carry(ob, edit, now_t, pre_t, box, grid_points, dry):
 
     xs = [p.x for p in pts2]
     ys = [p.y for p in pts2]
-    extra = [p for p in grid_points if inside(p)]
+    extra = []
     # Points along every original edge inside the region too: an edge kept whole would span
     # the cut as a straight bridge between its ends. The region's outer edges stay whole,
     # since the faces outside still use them.
@@ -419,19 +484,45 @@ def carry(ob, edit, now_t, pre_t, box, grid_points, dry):
                 t = k / (n + 1)
                 extra.append(Vector((a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t)))
     taken = {}
-    for q in pts2 + extra:
+
+    def take(q):
         taken.setdefault((int(q.x // CROWD), int(q.y // CROWD)), []).append(q)
 
-    def crowded(q):
+    for q in pts2 + extra:
+        take(q)
+
+    def crowded(q, r=CROWD):
         cx, cy = int(q.x // CROWD), int(q.y // CROWD)
-        return any((q - o).length < CROWD for i in (-1, 0, 1) for j in (-1, 0, 1) for o in taken.get((cx + i, cy + j), ()))
+        return any((q - o).length < r for i in (-1, 0, 1) for j in (-1, 0, 1) for o in taken.get((cx + i, cy + j), ()))
+
+    edges_at = {}
+    for f in faces:
+        for e in f.edges:
+            a, b = e.verts[0].co.xy.copy(), e.verts[1].co.xy.copy()
+            for cx in range(int((min(a.x, b.x) - SEP) // LATTICE), int((max(a.x, b.x) + SEP) // LATTICE) + 1):
+                for cy in range(int((min(a.y, b.y) - SEP) // LATTICE), int((max(a.y, b.y) + SEP) // LATTICE) + 1):
+                    edges_at.setdefault((cx, cy), []).append((a, b))
+
+    def beside_edge(q):
+        for a, b in edges_at.get((int(q.x // LATTICE), int(q.y // LATTICE)), ()):
+            d = b - a
+            l2 = d.length_squared
+            s = 0.0 if l2 < 1e-12 else min(1.0, max(0.0, (q - a).dot(d) / l2))
+            if (q - (a + d * s)).length < SEP:
+                return True
+        return False
+
+    for p in grid_points:
+        if inside(p) and not beside_edge(p) and not crowded(p, SEP):
+            extra.append(p)
+            take(p)
 
     x = math.floor(min(xs) / LATTICE) * LATTICE
     while x <= max(xs):
         y = math.floor(min(ys) / LATTICE) * LATTICE
         while y <= max(ys):
             q = Vector((x, y))
-            if inside(q) and not crowded(q):
+            if inside(q) and not crowded(q) and not beside_edge(q):
                 extra.append(q)
             y += LATTICE
         x += LATTICE
@@ -466,6 +557,13 @@ def carry(ob, edit, now_t, pre_t, box, grid_points, dry):
             continue
         z = height(surf, p.x, p.y)
         if z is None:
+            # A point on the region's open edge (an edit's grid vertex on Ground's edge at the
+            # road corridor, edit 6) can graze past it; it is on the surface a hair inward.
+            for dx, dy in ((1e-3, 0.0), (-1e-3, 0.0), (0.0, 1e-3), (0.0, -1e-3)):
+                z = height(surf, p.x + dx, p.y + dy)
+                if z is not None:
+                    break
+        if z is None:
             raise SystemExit("%s: a refined point at (%.1f, %.1f) lies off the original surface" % (ob.name, p.x, p.y))
         made.append(bm.verts.new((p.x, p.y, z)))
     fa = bm.faces.layers.int.get("authored_edit") or bm.faces.layers.int.new("authored_edit")
@@ -496,9 +594,17 @@ def carry(ob, edit, now_t, pre_t, box, grid_points, dry):
     depth = [0.0, 0.0]
     moved = 0
     for v in {v for f in new_faces for v in f.verts}:
-        if v in pinned or any(e.is_boundary for e in v.link_edges):
+        if v in pinned:
             continue
-        z = designed(now_t, pre_t, v.co.x, v.co.y, v.co.z)
+        if any(e.is_boundary for e in v.link_edges):
+            if not follow:
+                continue
+            # On the road corridor's edge: moved as the corridor's side will be, by the design's
+            # weight and uncapped, so the two meet.
+            tw = design_at(now_t, pre_t, v.co.x, v.co.y)
+            z = v.co.z if tw is None else v.co.z + tw[1] * (tw[0] - v.co.z)
+        else:
+            z = designed(now_t, pre_t, v.co.x, v.co.y, v.co.z)
         if abs(z - v.co.z) > MIN_CHANGE:
             depth[0] = min(depth[0], z - v.co.z)
             depth[1] = max(depth[1], z - v.co.z)
@@ -2354,6 +2460,137 @@ def range_blend(edit, now_t, pre_t, dry):
     return report, sheet, name
 
 
+def road_natural(edit, now_t, pre_t, box, dry):
+    """The designed natural ground under the road corridor where edit `edit` reshapes what the
+    corridor covers (`ROAD_NATURAL`): every point of the edit's box with no Ground over it, on a
+    `ROAD_NATURAL_STEP` lattice, and Ground's open edges there as they now stand, triangulated
+    with those edges as constraints, the faces over Ground or wholly ungoverned dropped. Returns
+    the object (None when `dry`) and its report."""
+    over = ground_from_above(box)
+    grid = bpy.data.objects[GRID]
+    gme = grid.data
+    owner_names = json.loads(grid["kyt_owner_table"])
+    owner = np.zeros(len(gme.vertices), dtype=np.int32)
+    gme.attributes["owner"].data.foreach_get("value", owner)
+    gtree = BVHTree.FromPolygons([grid.matrix_world @ v.co for v in gme.vertices], [tuple(q.vertices) for q in gme.polygons])
+    # Ground's open edges in the box that bound ground one stands on: where Ground meets the
+    # corridor. (A shore wall's skirt is open too, under its top; its faces are walls.)
+    pts = []
+    zs = []
+    ws = []
+    index = {}
+    segs = []
+
+    def point(x, y, z, w):
+        key = (round(x, 4), round(y, 4))
+        if key not in index:
+            index[key] = len(pts)
+            pts.append(Vector((x, y)))
+            zs.append(z)
+            ws.append(w)
+        return index[key]
+
+    for ob in ground_objects():
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        for e in bm.edges:
+            if not e.is_boundary or e.link_faces[0].normal.z < MIN_UP_FACE:
+                continue
+            a, b = e.verts
+            if not all(box[0] <= v.co.x <= box[1] and box[2] <= v.co.y <= box[3] for v in (a, b)):
+                continue
+            ends = []
+            for v in (a, b):
+                tw = design_at(now_t, pre_t, v.co.x, v.co.y)
+                ends.append(point(v.co.x, v.co.y, v.co.z if tw is None else tw[0], 0.0 if tw is None else tw[1]))
+            segs.append(tuple(ends))
+        bm.free()
+    edge_pts = list(pts)
+    near = KDTree(len(edge_pts))
+    for k, q in enumerate(edge_pts):
+        near.insert((q.x, q.y, 0.0), k)
+    near.balance()
+    refused = {}
+    x = math.floor(box[0] / ROAD_NATURAL_STEP) * ROAD_NATURAL_STEP
+    while x <= box[1]:
+        y = math.floor(box[2] / ROAD_NATURAL_STEP) * ROAD_NATURAL_STEP
+        while y <= box[3]:
+            if not over(x, y) and (not edge_pts or near.find((x, y, 0.0))[2] >= ROAD_NATURAL_CLEAR):
+                tw = design_at(now_t, pre_t, x, y)
+                if tw is not None:
+                    hit = gtree.ray_cast(Vector((x, y, 5000.0)), Vector((0.0, 0.0, -1.0)))
+                    names = {owner_names[owner[i]] for i in gme.polygons[hit[2]].vertices} if hit[0] is not None else set()
+                    if not any(n.endswith(ROAD_NATURAL_OWNERS) for n in names):
+                        refused[(x, y)] = sorted(names)
+                    point(x, y, tw[0], tw[1])
+                else:
+                    z = height(now_t, x, y)
+                    if z is not None:
+                        point(x, y, z, 0.0)
+            y += ROAD_NATURAL_STEP
+        x += ROAD_NATURAL_STEP
+    if refused:
+        where, names = next(iter(refused.items()))
+        raise SystemExit("edit %d reshapes %d points under no road corridor (e.g. (%.0f, %.0f), under %s); refusing" % (
+            edit, len(refused), where[0], -where[1], names))
+    out_v, _, out_f, orig_v, _, _ = delaunay_2d_cdt(pts, segs, [], 0, 1e-4, True)
+    vz = []
+    vw = []
+    for k, q in enumerate(out_v):
+        src = [i for i in orig_v[k] if i < len(pts)]
+        if src:
+            vz.append(zs[src[0]])
+            vw.append(ws[src[0]])
+        else:
+            tw = design_at(now_t, pre_t, q.x, q.y)
+            vz.append(height(now_t, q.x, q.y) if tw is None else tw[0])
+            vw.append(0.0 if tw is None else tw[1])
+    faces = []
+    for f in out_f:
+        if max(vw[i] for i in f) <= 0.0:
+            continue
+        cx = sum(out_v[i].x for i in f) / 3.0
+        cy = sum(out_v[i].y for i in f) / 3.0
+        if over(cx, cy):
+            continue
+        faces.append(tuple(f))
+    used = sorted({i for f in faces for i in f})
+    area = 0.0
+    for f in faces:
+        a, b, c = (out_v[i] for i in f)
+        area += abs((b - a).cross(c - a)) * 0.5
+    report = {"faces": len(faces), "points": len(used), "edge_points": len(edge_pts), "ha": round(area / 10000.0, 2),
+              "governed": sum(1 for i in used if vw[i] >= 1.0)}
+    if dry or not faces:
+        return None, report
+    remap = {i: n for n, i in enumerate(used)}
+    name = ROAD_NATURAL[edit]
+    me = bpy.data.meshes.new(name)
+    me.from_pydata([(out_v[i].x, out_v[i].y, vz[i]) for i in used], [], [tuple(remap[i] for i in f) for f in faces])
+    me.validate()
+    for poly in me.polygons:
+        if poly.normal.z < 0.0:
+            poly.flip()
+    weight = me.uv_layers.new(name="UVMap")
+    for poly in me.polygons:
+        for li in poly.loop_indices:
+            weight.data[li].uv = (vw[used[me.loops[li].vertex_index]], 0.0)
+    ob = bpy.data.objects.new(name, me)
+    ob["kyt_collision"] = "none"
+    ob["kyt_note"] = ("not ground: the natural ground the road corridor's sides are cut to where Ground edit %d "
+                      "reshapes what the corridor covers, on the edit's design, its u texture coordinate how far "
+                      "the design governs (1 inside the edit, 0 where it leaves the ground as it was); "
+                      "tools/blender/world_terrain_ground_edit.py, ROAD_NATURAL" % edit)
+    c = bpy.data.collections.get(EARTHWORKS)
+    if c is None:
+        c = bpy.data.collections.new(EARTHWORKS)
+        bpy.context.scene.collection.children.link(c)
+    c.objects.link(ob)
+    # Drawn as wire, so it never reads as ground in the master; hidden, it would not export.
+    ob.display_type = 'WIRE'
+    return ob, report
+
+
 def ground_triangles():
     tris = []
     for ob in ground_objects():
@@ -2642,7 +2879,7 @@ def undo(edit):
         if ob is not None:
             ob.hide_set(False)
             ob.hide_render = False
-    for cname in (LAKES_COLLECTION, HISTORY):
+    for cname in (LAKES_COLLECTION, HISTORY, EARTHWORKS):
         c = bpy.data.collections.get(cname)
         if c is not None and not c.all_objects:
             bpy.data.collections.remove(c)
@@ -2740,6 +2977,11 @@ def main():
                 reports[ob.name] = r
     for name, r in reports.items():
         print("  %-34s %s" % (name, ", ".join("%s %s" % (k, ("%.2f" % v) if isinstance(v, float) else v) for k, v in r.items())))
+    road = None
+    road_report = {}
+    if edit in ROAD_NATURAL:
+        road, road_report = road_natural(edit, now_t, pre_t, box, a["dry"])
+        print("  %-34s %s" % (ROAD_NATURAL[edit], ", ".join("%s %s" % kv for kv in road_report.items())))
     if a["dry"]:
         print("world_terrain_ground_edit: --dry; nothing saved")
         return
@@ -2766,9 +3008,14 @@ def main():
         design = {"name": "landform_shelf"}
     else:
         design = next(e for e in json.loads(bpy.data.objects[GRID].get("kyt_edits", "[]")) if e.get("id") == edit)
+        if edit in WITH:
+            refine = next(e for e in json.loads(bpy.data.objects[GRID].get("kyt_edits", "[]")) if e.get("id") == WITH[edit][0])
+            design = dict(design, name="%s with %s" % (design["name"], refine["name"]))
     tris = ground_triangles()
     coll = lakes_collection()
     added = [land] if land else []
+    if road is not None:
+        added.append(road.name)
     hid = []
     areas = {}
     lakes = edit_constant("world_terrain_edit_hill_lakes.py", "LAKES") if edit == 4 else {}
@@ -2805,12 +3052,15 @@ def main():
             hid.append(plane.name)
     scene = bpy.context.scene
     export_before = list(scene.get("kyt_export_collections", []))
-    scene["kyt_export_collections"] = [GROUND, LAKES_COLLECTION]
+    earthworks = bpy.data.collections.get(EARTHWORKS)
+    scene["kyt_export_collections"] = [GROUND, LAKES_COLLECTION] + ([EARTHWORKS] if earthworks and earthworks.all_objects else [])
     entry = {"id": edit, "name": design["name"], "script": "tools/blender/world_terrain_ground_edit.py",
              "date": TODAY, "objects": sorted(reports), "report": reports, "lakes_ha": areas,
              "added": added, "hid": hid, "export_before": export_before}
     if land:
         entry["new_land"] = land_report
+    if road is not None:
+        entry["road_natural"] = road_report
     log(entry)
     held = sum(r.get("seam_held", 0) for r in reports.values())
     if edit == SHELF_ID:
@@ -2838,14 +3088,22 @@ def main():
                    edit, design["name"], TODAY, edit, land, ", ".join("%s %s" % kv for kv in land_report.items()),
                    ", ".join(reports), HISTORY, edit))
     else:
-        readme("Ground edit %d (%s), Stage 3, %s: grid edit %d carried onto Ground (%s): its region refined to "
+        readme("Ground edit %d (%s), Stage 3, %s: grid edit %s carried onto Ground (%s): its region refined to "
            "a %.0f m lattice and given the grid's designed surface; %d vertices on the seams with the generator's "
            "ground held where they were; water %s built on Ground in the Lakes collection, exported with Ground; "
            "design planes %s hidden; the replaced faces kept in %s. Undo: "
            "tools/blender/world_terrain_ground_edit.py -- --edit %d --undo." % (
-               edit, design["name"], TODAY, edit, ", ".join(reports), LATTICE, held,
+               edit, design["name"], TODAY, ("%d with %d, its refinement," % (edit, WITH[edit][0])) if edit in WITH else edit,
+               ", ".join(reports), LATTICE, held,
                ", ".join("%s %s" % (k, ("%.2f ha" % v) if k in lakes else ("%.0f m2" % v)) for k, v in areas.items()) or "none",
                ", ".join(hid) or "none", HISTORY, edit))
+        if road is not None:
+            readme("Ground edit %d: Ground's edge along the road corridor moved with it (%d vertices, up to %.1f m), "
+                   "and %s, in the %s collection, hands the generator the edit's natural ground under the "
+                   "corridor (%s); the road's own level does not read it." % (
+                       edit, sum(r.get("seam_followed", 0) for r in reports.values()),
+                       max((r.get("seam_followed_most", 0.0) for r in reports.values()), default=0.0),
+                       road.name, EARTHWORKS, ", ".join("%s %s" % kv for kv in road_report.items())))
     if edit in RANGE_BLEND:
         print("world_terrain_ground_edit: edit %d carried; every shell's surface outside its zone unchanged" % edit)
     else:
