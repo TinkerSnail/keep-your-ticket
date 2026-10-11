@@ -28,8 +28,16 @@ ridges, the southern connection lowland and ridges and the city's foothills, who
 moves and nothing looks different (their materials draw both sides); a shell already right
 side out, or one with open edges, is left alone.
 
+`--wind-consistently <name>` (2026-10-08) turns a landform right side out that `--right-side-out`
+left alone because it has open edges and whose faces wind both ways: the range's north layer, in
+five pieces, 172 of its edges between faces wound against each other and 37.9 ha of its top facing
+down by the headland, where a player would fall through it (trimesh collision has no back faces).
+Each piece's faces are wound one way, then a piece whose top mostly faces down is reversed.
+Nothing moves.
+
 Undo is git: the three .blend files as committed before the join.
 """
+import datetime
 import os
 import re
 import sys
@@ -235,17 +243,107 @@ def right_side_out():
     print("world_terrain_join_landforms: %d joined landforms turned right side out" % len(flipped))
 
 
+def pieces_of(bm):
+    seen = set()
+    out = []
+    for f in bm.faces:
+        if f in seen:
+            continue
+        seen.add(f)
+        stack = [f]
+        piece = []
+        while stack:
+            g = stack.pop()
+            piece.append(g)
+            for e in g.edges:
+                for h in e.link_faces:
+                    if h not in seen:
+                        seen.add(h)
+                        stack.append(h)
+        out.append(piece)
+    return out
+
+
+def against(bm):
+    return sum(1 for e in bm.edges if len(e.link_faces) == 2 and not e.is_contiguous)
+
+
+def top_area(bm):
+    """The area of a shell's top faces (nothing of the shell above their centre) facing up and
+    down, in m2, as `facing` counts them."""
+    tree = BVHTree.FromBMesh(bm)
+    up = down = 0.0
+    for f in bm.faces:
+        c = f.calc_center_median()
+        if tree.ray_cast(c + Vector((0.0, 0.0, 0.01)), Vector((0.0, 0.0, 1.0)))[0] is None:
+            if f.normal.z > 0.0:
+                up += f.calc_area()
+            else:
+                down += f.calc_area()
+    return up, down
+
+
+def wind_consistently(name):
+    ob = bpy.data.objects[name]
+    me = ob.data
+    if me.has_custom_normals:
+        raise SystemExit("%s has custom normals, which reversing would turn inside out" % name)
+    before = [v.co.copy() for v in me.vertices]
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    wrong = against(bm)
+    up0, down0 = top_area(bm)
+    pieces = pieces_of(bm)
+    for piece in pieces:
+        bmesh.ops.recalc_face_normals(bm, faces=piece)
+    bm.normal_update()
+    if against(bm):
+        raise SystemExit("%s: %d edges still wind against each other" % (name, against(bm)))
+    # The direction each piece took is a guess; its top decides.
+    tree = BVHTree.FromBMesh(bm)
+    reversed_pieces = 0
+    for piece in pieces:
+        up = down = 0.0
+        for f in piece:
+            c = f.calc_center_median()
+            if tree.ray_cast(c + Vector((0.0, 0.0, 0.01)), Vector((0.0, 0.0, 1.0)))[0] is None:
+                if f.normal.z > 0.0:
+                    up += f.calc_area()
+                else:
+                    down += f.calc_area()
+        if down > up:
+            bmesh.ops.reverse_faces(bm, faces=piece)
+            reversed_pieces += 1
+    bm.normal_update()
+    up1, down1 = top_area(bm)
+    bm.to_mesh(me)
+    bm.free()
+    me.update()
+    if [v.co for v in me.vertices] != before:
+        raise SystemExit("%s moved while its faces were wound" % name)
+    note = ("%s: %d pieces wound one way (%d edges had wound against each other; %d pieces reversed), its top "
+            "%.1f ha up and %.1f ha down before, %.1f ha up and %.1f ha down after" % (
+                name, len(pieces), wrong, reversed_pieces, up0 / 1e4, down0 / 1e4, up1 / 1e4, down1 / 1e4))
+    t = bpy.data.texts.get("README") or bpy.data.texts.new("README")
+    t.write("\n%s: (world_terrain_join_landforms.py --wind-consistently) %s.\n" % (datetime.date.today().isoformat(), note))
+    bpy.context.preferences.filepaths.save_version = 0
+    bpy.ops.wm.save_mainfile()
+    print("world_terrain_join_landforms: " + note)
+
+
 def main():
     a = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     if "--join" in a:
         join()
     elif "--right-side-out" in a:
         right_side_out()
+    elif "--wind-consistently" in a:
+        wind_consistently(a[a.index("--wind-consistently") + 1])
     elif "--strip" in a:
         # `--master <path>` checks against another copy of the master (a scratch run).
         strip(a[a.index("--master") + 1] if "--master" in a else MASTER)
     else:
-        raise SystemExit("--join (on the master) or --strip (on a source)")
+        raise SystemExit("--join or --right-side-out or --wind-consistently <name> (on the master), or --strip (on a source)")
 
 
 main()
