@@ -42,6 +42,10 @@ highway's corridor covers, so Ground's edge along the corridor moves with it and
 designed natural ground under the corridor is handed to the generator, which cuts the road's
 sides down to it (`ROAD_NATURAL`, `road_natural`).
 
+The hill lakes' banks (2026-10-11, `-- --edit lake_banks`, id `LAKE_BANKS_ID`) are no grid edit
+either: edit 4 left K1 and L0 under walls 20 to 45 m tall, and a 45-degree bank now rises from each
+waterline, the reserve above it cut down to it (`lake_banks_design`), carried as edits are.
+
 The coast shelf (2026-10-06, `-- --edit shelf`, id `SHELF_ID`) is no grid edit: every coast's
 shore wall is cut just under the waterline and a shelf runs out from it under the water, so the
 coast goes on below the sea instead of ending in a wall. See `coast_shelf`.
@@ -95,7 +99,8 @@ DESIGN_PLANES = {"K1": "water_K1_enlarged", "L0": "water_L0_enlarged"}
 POOLS = {5: {"plunge_pool": "water_plunge_pool"}}
 POOL_GROW = 2.0
 # Render views per edit beyond the lakes: {name: ((x, z) centre, width across, eye level)}.
-VIEWS = {6: {"hillside": ((160.0, 570.0), 520.0, 30.0), "hillside_band": ((120.0, 600.0), 280.0, 25.0)},
+VIEWS = {102: {"banks_K1": ((600.0, -471.0), 900.0, 79.7), "banks_L0": ((730.0, 206.0), 860.0, 92.0)},
+         6: {"hillside": ((160.0, 570.0), 520.0, 30.0), "hillside_band": ((120.0, 600.0), 280.0, 25.0)},
          101: {"landform_bay": ((200.0, 3500.0), 1800.0, -8.0), "landform_plug": ((-730.0, -2220.0), 900.0, -8.0),
               "landform_south": ((-600.0, 6600.0), 1500.0, -8.0)},
          1: {"range_west": ((-1150.0, 5550.0), 1100.0, 40.0), "range_east": ((-150.0, 5800.0), 1500.0, 60.0)},
@@ -119,6 +124,9 @@ MIN_CHANGE = 0.01
 BLEND = 2.0
 # How far an edit may move Ground against its own direction to meet the design.
 AGAINST = 1.0
+# The bound `designed` applies. An edit that only lays ground back sets it to nothing
+# (`lake_banks`), so ground under another body is never lifted to meet a cut.
+against = AGAINST
 # Edits that build land where the game has open sea, beyond Ground's own edge: {edit: the new
 # Ground object}. Edit 2, the south beach front (option B), lies wholly beyond the shore.
 NEW_LAND = {2: "terrain_south_beach_front"}
@@ -226,7 +234,28 @@ ROAD_NATURAL_CLEAR = 1.0
 # What the grid may name under a corridor point the design governs: the corridor, and the ground
 # its edge faces straddle. Anything else there (a tunnel lid, an anchor) is refused.
 ROAD_NATURAL_OWNERS = ("terrain_road_corridor", "terrain_world_mainland_reserve")
-CARRIED = (1, 2, 4, 5, 6, SHELF_ID, LANDFORM_SHELF_ID)
+# The hill lakes' banks laid back (2026-10-11, kind A of the sheer-face survey,
+# `documentation/screenshots/sheer-faces-survey-2026-10-11/`; Christina chose 45° banks once 1:2 was
+# measured at 83 ha of hill cut, up to 104 m). Edit 4 took the hill down to each lake's 1:3 bowl
+# inside one 25 m grid cell, so most of K1's and L0's shores rise straight out of the water 20 to
+# 45 m. A bank now rises from each lake's waterline, `BANK_LIP` over its brim, at `BANK_SLOPE`, and
+# the reserve wherever it stands above that bank within `BANK_REACH` of the water is cut down to it.
+# The water, its level and its outline stay: nothing is cut below the brim and the lip. Held: the
+# falls (edit 5's faces and `BANK_FALLS` round them, designed steep), `BANK_SEAM` round Ground's open
+# edges (the road corridor), and every other body. `-- --edit lake_banks`.
+LAKE_BANKS_ID = 102
+BANK_SLOPE = 1.0
+BANK_LIP = 0.3
+BANK_REACH = 220.0
+BANK_STEP = 4.0
+BANK_FALLS = 60.0
+BANK_SEAM = 30.0
+# The bank's contours follow the waterline, which edit 4 drew in 8 m steps, and the bare bank rose in
+# flutes from every step; smoothed over this it reads as one slope.
+BANK_SMOOTH = 12.0
+# Godot x0, x1, z0, z1: both lakes and `BANK_REACH` round them.
+BANK_BOX = (150.0, 1250.0, -950.0, 650.0)
+CARRIED = (1, 2, 4, 5, 6, SHELF_ID, LANDFORM_SHELF_ID, LAKE_BANKS_ID)
 
 
 def argv():
@@ -234,7 +263,7 @@ def argv():
     out = {"edit": None, "dry": "--dry" in a, "undo": "--undo" in a, "render": None}
     if "--edit" in a:
         v = a[a.index("--edit") + 1]
-        out["edit"] = SHELF_ID if v == "shelf" else LANDFORM_SHELF_ID if v == "landform_shelf" else int(v)
+        out["edit"] = {"shelf": SHELF_ID, "landform_shelf": LANDFORM_SHELF_ID, "lake_banks": LAKE_BANKS_ID}.get(v) or int(v)
         for edit, (also, _tag) in WITH.items():
             if out["edit"] == also:
                 raise SystemExit("edit %d refines edit %d and is carried with it: --edit %d" % (also, edit, edit))
@@ -334,9 +363,9 @@ def designed(now_t, pre_t, x, y, z):
     # Ground lies far below the design and stays there.
     change = t - z
     if d < 0.0:
-        change = min(change, AGAINST)
+        change = min(change, against)
     else:
-        change = max(change, -AGAINST)
+        change = max(change, -against)
     return z + w * change
 
 
@@ -568,6 +597,7 @@ def carry(ob, edit, now_t, pre_t, box, grid_points, dry):
         made.append(bm.verts.new((p.x, p.y, z)))
     fa = bm.faces.layers.int.get("authored_edit") or bm.faces.layers.int.new("authored_edit")
     new_faces = []
+    islands = 0
     for k, tri in enumerate(out_f):
         vs = [made[i] for i in tri]
         if len(set(vs)) < 3:
@@ -580,8 +610,15 @@ def carry(ob, edit, now_t, pre_t, box, grid_points, dry):
             cy = sum(out_v[i].y for i in tri) / 3.0
             hit = flat.ray_cast(Vector((cx, cy, 1.0)), Vector((0.0, 0.0, -1.0)))
             if hit[0] is None:
-                raise SystemExit("%s: a refined face at (%.1f, %.1f) lies outside the region" % (ob.name, cx, cy))
+                # The triangulator fills any island of faces the region surrounds but does not
+                # take in (the falls, held by `lake_banks`); those faces are still there, so its
+                # filling goes.
+                islands += 1
+                continue
             fi = hit[2]
+        if bm.faces.get(vs) is not None:
+            islands += 1
+            continue
         nf = bm.faces.new(vs)
         for lp in nf.loops:
             colour, tex = parent_sample(fi, lp.vert.co)
@@ -624,6 +661,8 @@ def carry(ob, edit, now_t, pre_t, box, grid_points, dry):
             normals.append(kept_normals.get(corner_key(me.vertices[vi].co, c), vn[vi]))
     me.normals_split_custom_set(normals)
     report.update({"faces_after": len(new_faces), "moved": moved, "deepest": depth[0], "highest": depth[1]})
+    if islands:
+        report["island_fill_dropped"] = islands
     return report
 
 
@@ -2591,6 +2630,144 @@ def road_natural(edit, now_t, pre_t, box, dry):
     return ob, report
 
 
+def lake_banks_design():
+    """The banks' design (`LAKE_BANKS_ID`) on a `BANK_STEP` raster over `BANK_BOX`: BVH trees of the
+    reserve as the banks leave it and as it stands, the box in Blender plan coordinates, the raster
+    points the banks cut (for the refinement), and a report."""
+    lakes = edit_constant("world_terrain_edit_hill_lakes.py", "LAKES")
+    res = bpy.data.objects["terrain_world_mainland_reserve"]
+    me = res.data
+    mw = res.matrix_world
+    rtree = BVHTree.FromPolygons([mw @ v.co for v in me.vertices], [tuple(p.vertices) for p in me.polygons])
+    fa = np.zeros(len(me.polygons), dtype=np.int32)
+    if "authored_edit" in me.attributes:
+        me.attributes["authored_edit"].data.foreach_get("value", fa)
+    lv, lp = [], []
+    for ob in bpy.data.collections[LAKES_COLLECTION].all_objects:
+        base = len(lv)
+        lv.extend(ob.matrix_world @ v.co for v in ob.data.vertices)
+        lp.extend([base + i for i in q.vertices] for q in ob.data.polygons)
+    ltree = BVHTree.FromPolygons(lv, lp)
+    x0, x1, z0, z1 = BANK_BOX
+    s = BANK_STEP
+    nx, nz = int((x1 - x0) / s) + 1, int((z1 - z0) / s) + 1
+    z = np.full((nz, nx), np.nan)
+    wet = np.zeros((nz, nx), bool)
+    falls = np.zeros((nz, nx), bool)
+    down = Vector((0.0, 0.0, -1.0))
+    for j in range(nz):
+        for i in range(nx):
+            o = Vector((x0 + i * s, -(z0 + j * s), 5000.0))
+            h = rtree.ray_cast(o, down, 10000.0)
+            if h[0] is None:
+                continue
+            z[j, i] = h[0].z
+            falls[j, i] = fa[h[2]] == 5
+            w = ltree.ray_cast(o, down, 10000.0)
+            wet[j, i] = w[0] is not None and w[0].z > h[0].z
+
+    def grow(mask, r):
+        n = int(math.ceil(r / s))
+        out = mask.copy()
+        jj, ii = np.nonzero(mask)
+        for dj in range(-n, n + 1):
+            for di in range(-n, n + 1):
+                if dj * dj + di * di <= n * n:
+                    out[np.clip(jj + dj, 0, nz - 1), np.clip(ii + di, 0, nx - 1)] = True
+        return out
+
+    seam = np.zeros((nz, nx), bool)
+    for ob in ground_objects():
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        om = ob.matrix_world
+        for e in bm.edges:
+            if not e.is_boundary or e.link_faces[0].normal.z < MIN_UP_FACE:
+                continue
+            a, b = om @ e.verts[0].co, om @ e.verts[1].co
+            for f in np.linspace(0.0, 1.0, max(2, int((a - b).xy.length / s) + 1)):
+                i = int(round((a.x + (b.x - a.x) * f - x0) / s))
+                j = int(round((-(a.y + (b.y - a.y) * f) - z0) / s))
+                if 0 <= i < nx and 0 <= j < nz:
+                    seam[j, i] = True
+        bm.free()
+    held = np.isnan(z) | wet | grow(falls, BANK_FALLS) | grow(seam, BANK_SEAM)
+    held[:2, :] = held[-2:, :] = True
+    held[:, :2] = held[:, -2:] = True
+    xs = x0 + np.arange(nx) * s
+    zs = z0 + np.arange(nz) * s
+    xx, zz = np.meshgrid(xs, zs)
+    brim = np.zeros((nz, nx))
+    best = np.full((nz, nx), np.inf)
+    for lk in lakes.values():
+        d2 = (xx - lk["centre"][0]) ** 2 + (zz - lk["centre"][1]) ** 2
+        brim = np.where(d2 < best, lk["brim"], brim)
+        best = np.minimum(best, d2)
+    shore = np.zeros_like(wet)
+    dirs = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1),
+            (1, 2), (2, 1), (-1, 2), (-2, 1), (1, -2), (2, -1), (-1, -2), (-2, -1)]
+    for dj, di in dirs[:8]:
+        shore |= np.roll(np.roll(wet, dj, 0), di, 1)
+    shore &= ~held
+    big = 1e9
+    cone = np.where(shore, brim + BANK_LIP, big)
+    dist = np.where(shore, 0.0, big)
+    for _ in range(int(BANK_REACH / s) * 3):
+        prev = cone.copy()
+        for dj, di in dirs:
+            step = s * math.hypot(dj, di)
+            cone = np.minimum(cone, np.where(held, big, np.roll(np.roll(cone, -dj, 0), -di, 1) + BANK_SLOPE * step))
+            dist = np.minimum(dist, np.where(held, big, np.roll(np.roll(dist, -dj, 0), -di, 1) + step))
+        if np.array_equal(cone, prev):
+            break
+    zz0 = np.nan_to_num(z, nan=-big)
+    target = np.where(held | (dist > BANK_REACH), zz0, np.minimum(zz0, cone))
+    # A wall whose foot stands part-way up the slope is under the bank from the water and stays:
+    # one at L0's south-west (0.09 ha); limiting every slope within the reach instead would have cut
+    # 9 ha more of natural hillside to clear it.
+    # Smoothed (a Gaussian over the ground that is neither held nor a hole), never above where the
+    # ground stood: the smoothing only ever rounds the bank and its crest.
+    active = ~held & ~np.isnan(z)
+    sig = BANK_SMOOTH / s
+    r = int(math.ceil(3.0 * sig))
+    kern = np.exp(-0.5 * (np.arange(-r, r + 1) / sig) ** 2)
+
+    def blur(a):
+        a = np.apply_along_axis(lambda v: np.convolve(v, kern, mode="same"), 0, a)
+        return np.apply_along_axis(lambda v: np.convolve(v, kern, mode="same"), 1, a)
+
+    wsum = blur(active.astype(float))
+    smooth = np.where(wsum > 1e-6, blur(np.where(active, target, 0.0)) / np.maximum(wsum, 1e-6), target)
+    reach = np.zeros_like(active)
+    reach[np.nonzero(zz0 - target > 0.01)] = True
+    for _ in range(r):
+        reach |= np.roll(reach, 1, 0) | np.roll(reach, -1, 0) | np.roll(reach, 1, 1) | np.roll(reach, -1, 1)
+    target = np.where(active & reach, np.minimum(zz0, smooth), target)
+    target = np.maximum(target, np.minimum(zz0, brim + BANK_LIP))
+    cut = np.where(np.isnan(z), 0.0, zz0 - target)
+
+    def sheet(h):
+        verts = [Vector((x0 + i * s, -(z0 + j * s), float(h[j, i]) if not np.isnan(z[j, i]) else -big))
+                 for j in range(nz) for i in range(nx)]
+        faces = []
+        for j in range(nz - 1):
+            for i in range(nx - 1):
+                if not (np.isnan(z[j, i]) or np.isnan(z[j, i + 1]) or np.isnan(z[j + 1, i]) or np.isnan(z[j + 1, i + 1])):
+                    a = j * nx + i
+                    faces.append((a, a + 1, a + nx + 1, a + nx))
+        return BVHTree.FromPolygons(verts, faces)
+
+    points = [Vector((x0 + i * s, -(z0 + j * s))) for j, i in zip(*np.nonzero(cut > 0.5))]
+    report = {"cut_ha": round(float((cut > 0.5).sum() * s * s / 1e4), 2), "deepest": round(float(cut.max()), 1),
+              "volume_m3": int(cut.sum() * s * s)}
+    for key, lk in lakes.items():
+        near = ((xx - lk["centre"][0]) ** 2 + (zz - lk["centre"][1]) ** 2) <= (lk["R"] + BANK_REACH) ** 2
+        c = np.where(near, cut, 0.0)
+        report[key] = {"cut_ha": round(float((c > 0.5).sum() * s * s / 1e4), 2), "deepest": round(float(c.max()), 1)}
+    box = (x0, x1, -z1, -z0)
+    return sheet(np.where(np.isnan(z), 0.0, target)), sheet(np.where(np.isnan(z), 0.0, zz0)), box, points, report
+
+
 def ground_triangles():
     tris = []
     for ob in ground_objects():
@@ -2950,7 +3127,13 @@ def main():
         return
     if any(e.get("id") == edit for e in json.loads(bpy.context.scene.get("kyt_ground_edits", "[]"))):
         raise SystemExit("Ground already carries edit %d; --undo first" % edit)
-    if edit not in (SHELF_ID, LANDFORM_SHELF_ID):
+    bank_report = {}
+    if edit == LAKE_BANKS_ID:
+        global against
+        against = 0.0
+        now_t, pre_t, box, grid_points, bank_report = lake_banks_design()
+        print("  lake banks design: %s" % json.dumps(bank_report))
+    elif edit not in (SHELF_ID, LANDFORM_SHELF_ID):
         now_t, pre_t, box, grid_points = grid_surfaces(edit)
     before = {ob.name: coords(ob).copy() for ob in ground_objects()}
     reports = {}
@@ -2972,6 +3155,8 @@ def main():
         print("  %-34s %s" % (NEW_LAND[edit], ", ".join("%s %s" % kv for kv in land_report.items())))
     else:
         for ob in ground_objects():
+            if edit == LAKE_BANKS_ID and ob.name != "terrain_world_mainland_reserve":
+                continue
             r = carry(ob, edit, now_t, pre_t, box, grid_points, a["dry"])
             if r is not None:
                 reports[ob.name] = r
@@ -3006,6 +3191,8 @@ def main():
         design = {"name": "coast_shelf"}
     elif edit == LANDFORM_SHELF_ID:
         design = {"name": "landform_shelf"}
+    elif edit == LAKE_BANKS_ID:
+        design = {"name": "lake_banks"}
     else:
         design = next(e for e in json.loads(bpy.data.objects[GRID].get("kyt_edits", "[]")) if e.get("id") == edit)
         if edit in WITH:
@@ -3061,6 +3248,8 @@ def main():
         entry["new_land"] = land_report
     if road is not None:
         entry["road_natural"] = road_report
+    if bank_report:
+        entry["banks"] = bank_report
     log(entry)
     held = sum(r.get("seam_held", 0) for r in reports.values())
     if edit == SHELF_ID:
@@ -3075,6 +3264,13 @@ def main():
                "tools/blender/world_terrain_ground_edit.py -- --edit landform_shelf --undo." % (
                    edit, design["name"], TODAY, land, SHELF_UNDER, SHELF_W, SHELF_DEPTH,
                    ", ".join("%s %s" % kv for kv in land_report.items())))
+    elif edit == LAKE_BANKS_ID:
+        readme("Ground edit %d (%s), %s: the hill lakes' banks laid back to %.0f degrees from each waterline "
+               "(%.1f m over its brim) wherever the reserve stood above that within %.0f m of the water (%s); "
+               "the water, its level and outline, the falls and the seams held; the replaced faces kept in %s. "
+               "Undo: tools/blender/world_terrain_ground_edit.py -- --edit lake_banks --undo." % (
+                   edit, design["name"], TODAY, math.degrees(math.atan(BANK_SLOPE)), BANK_LIP, BANK_REACH,
+                   json.dumps(bank_report), HISTORY))
     elif edit in RANGE_BLEND:
         readme("Ground edit %d (%s), Stage 3, %s: in the zone grid edit %d changed, the landforms %s were cut along "
                "its edge, emptied inside it and capped, and %s built there as one sheet on the edit's surface (%s); "
