@@ -52,6 +52,10 @@ back with an exact Boolean (the shell is closed, so `carry` cannot take it) to a
 San Francisco (`city_cut_design`); the city's blocks are then set on the ground by
 `tools/blender/city_blocks_on_ground.py`.
 
+The reserve's seams (2026-10-11, `-- --edit seams`, id `SEAMS_ID`) are no grid edit either: where the
+generator's ground bands met at different heights the reserve stood against itself in sheer walls, and
+their slope is limited round each (`seams_design`), carried as edits are.
+
 The coast shelf (2026-10-06, `-- --edit shelf`, id `SHELF_ID`) is no grid edit: every coast's
 shore wall is cut just under the waterline and a shelf runs out from it under the water, so the
 coast goes on below the sea instead of ending in a wall. See `coast_shelf`.
@@ -105,7 +109,8 @@ DESIGN_PLANES = {"K1": "water_K1_enlarged", "L0": "water_L0_enlarged"}
 POOLS = {5: {"plunge_pool": "water_plunge_pool"}}
 POOL_GROW = 2.0
 # Render views per edit beyond the lakes: {name: ((x, z) centre, width across, eye level)}.
-VIEWS = {103: {"city": ((-575.0, 2660.0), 1000.0, 0.0)},
+VIEWS = {104: {"seam_site4": ((1165.0, -270.0), 800.0, 300.0), "seam_site7": ((325.0, -1810.0), 700.0, 170.0)},
+         103: {"city": ((-575.0, 2660.0), 1000.0, 0.0)},
          102: {"banks_K1": ((600.0, -471.0), 900.0, 79.7), "banks_L0": ((730.0, 206.0), 860.0, 92.0)},
          6: {"hillside": ((160.0, 570.0), 520.0, 30.0), "hillside_band": ((120.0, 600.0), 280.0, 25.0)},
          101: {"landform_bay": ((200.0, 3500.0), 1800.0, -8.0), "landform_plug": ((-730.0, -2220.0), 900.0, -8.0),
@@ -308,7 +313,32 @@ CITY_ROAD_HELD = 1.0
 CITY_SMOOTH = 8.0
 # Beyond the city, until the slope stands over every foothill.
 CITY_PAD = 320.0
-CARRIED = (1, 2, 4, 5, 6, SHELF_ID, LANDFORM_SHELF_ID, LAKE_BANKS_ID, CITY_CUT_ID)
+# The reserve's seams blended (2026-10-11, kind B of the sheer-face survey; her "do the next
+# recommended part"): where the generator's ground bands meet at different heights the reserve stands
+# against itself in walls up to 36 m: a straight north-south wall for 480 m high in the hills east of
+# the lakes (site 4), a sawtooth scarp north of the park (site 7) and a short one north of that (site
+# 20). No edit made them; the copy carried them from the generator. Within `SEAM_REACH` of every sheer
+# cell the ground's slope is limited to `SEAM_SLOPE`, symmetrically (the top of a too-steep pair comes
+# down and its foot comes up by equal parts), alternated with `SEAM_PASSES` of smoothing of how far it
+# moved, for `SEAM_ROUNDS` rounds, the limit last; a single blur did not do it, since site 4's wall stands on a
+# 43-degree flank. Held: `SEAM_HOLD` round Ground's open edges, lake water, and anywhere another body
+# stands over the reserve: site 4's wall is the reserve's face rising 80 m out of
+# `background_distant_range_middle`, which covers its foot, so there it is laid back by cutting alone.
+# `-- --edit seams`.
+SEAMS_ID = 104
+# Godot x0, x1, z0, z1 round each site, `SEAM_REACH` and the smoothing beyond it.
+SEAM_SITES = {"site4": (1000.0, 1330.0, -620.0, 80.0), "site7": (20.0, 630.0, -2000.0, -1620.0),
+              "site20": (-60.0, 220.0, -2320.0, -2110.0)}
+SEAM_STEP = 4.0
+SEAM_SHEER = 1.5
+SEAM_SLOPE = 1.2
+SEAM_REACH = 100.0
+SEAM_ROUNDS = 4
+SEAM_PASSES = 20
+SEAM_FINISH = 6
+SEAM_FINISH_SLOPE = 1.42
+SEAM_HOLD = 30.0
+CARRIED = (1, 2, 4, 5, 6, SHELF_ID, LANDFORM_SHELF_ID, LAKE_BANKS_ID, CITY_CUT_ID, SEAMS_ID)
 
 
 def argv():
@@ -317,7 +347,7 @@ def argv():
     if "--edit" in a:
         v = a[a.index("--edit") + 1]
         out["edit"] = {"shelf": SHELF_ID, "landform_shelf": LANDFORM_SHELF_ID, "lake_banks": LAKE_BANKS_ID,
-                       "city_cut": CITY_CUT_ID}.get(v) or int(v)
+                       "city_cut": CITY_CUT_ID, "seams": SEAMS_ID}.get(v) or int(v)
         for edit, (also, _tag) in WITH.items():
             if out["edit"] == also:
                 raise SystemExit("edit %d refines edit %d and is carried with it: --edit %d" % (also, edit, edit))
@@ -3232,6 +3262,159 @@ def coords_of(me):
     return co.reshape(-1, 3)
 
 
+def seams_design():
+    """The seams' design (`SEAMS_ID`) on a `SEAM_STEP` raster round each of `SEAM_SITES`: BVH trees of the
+    reserve as the blend leaves it and as it stands, a box round them all in Blender plan coordinates,
+    the raster points the blend moves (for the refinement), and a report."""
+    res = bpy.data.objects["terrain_world_mainland_reserve"]
+    me = res.data
+    mw = res.matrix_world
+    rtree = BVHTree.FromPolygons([mw @ v.co for v in me.vertices], [tuple(p.vertices) for p in me.polygons])
+    others = [o for o in ground_objects() if o is not res and o.get("kyt_collision") != "none"]
+    ov, op = [], []
+    for o in others:
+        base = len(ov)
+        ov.extend(o.matrix_world @ v.co for v in o.data.vertices)
+        op.extend(tuple(base + i for i in q.vertices) for q in o.data.polygons)
+    otree = BVHTree.FromPolygons(ov, op)
+    lv, lp = [], []
+    for ob in bpy.data.collections[LAKES_COLLECTION].all_objects:
+        base = len(lv)
+        lv.extend(ob.matrix_world @ v.co for v in ob.data.vertices)
+        lp.extend([base + i for i in q.vertices] for q in ob.data.polygons)
+    ltree = BVHTree.FromPolygons(lv, lp)
+    open_edges = []
+    for ob in ground_objects():
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        om = ob.matrix_world
+        for e in bm.edges:
+            if e.is_boundary and e.link_faces[0].normal.z >= MIN_UP_FACE:
+                open_edges.append((om @ e.verts[0].co, om @ e.verts[1].co))
+        bm.free()
+    s = SEAM_STEP
+    down = Vector((0.0, 0.0, -1.0))
+    sheets_now, sheets_pre, points = ([], []), ([], []), []
+    report = {}
+    xs_all, zs_all = [], []
+    for key, (x0, x1, z0, z1) in SEAM_SITES.items():
+        nx, nz = int((x1 - x0) / s) + 1, int((z1 - z0) / s) + 1
+        z = np.full((nz, nx), np.nan)
+        held = np.zeros((nz, nx), bool)
+        for j in range(nz):
+            for i in range(nx):
+                o = Vector((x0 + i * s, -(z0 + j * s), 5000.0))
+                h = rtree.ray_cast(o, down, 10000.0)
+                if h[0] is None:
+                    continue
+                z[j, i] = h[0].z
+                g = otree.ray_cast(o, down, 10000.0)
+                w = ltree.ray_cast(o, down, 10000.0)
+                held[j, i] = (g[0] is not None and g[0].z > h[0].z - 0.01) or (w[0] is not None and w[0].z > h[0].z)
+        seam = np.zeros((nz, nx), bool)
+        for a, b in open_edges:
+            if max(a.x, b.x) < x0 - SEAM_HOLD or min(a.x, b.x) > x1 + SEAM_HOLD:
+                continue
+            for f in np.linspace(0.0, 1.0, max(2, int((a - b).xy.length / s) + 1)):
+                i = int(round((a.x + (b.x - a.x) * f - x0) / s))
+                j = int(round((-(a.y + (b.y - a.y) * f) - z0) / s))
+                if 0 <= i < nx and 0 <= j < nz:
+                    seam[j, i] = True
+        big = 1e9
+        hold = np.isnan(z) | held | (spread(np.where(seam, 0.0, big), 1.0, s, True) <= SEAM_HOLD)
+        zz = np.nan_to_num(z, nan=0.0)
+        # Sheer: a drop of more than `SEAM_SHEER` times the distance to a neighbour, both its top and its foot.
+        sheer = np.zeros((nz, nx), bool)
+        for dj, di in DIRS16[:8]:
+            nb = shifted(zz, dj, di, np.nan)
+            drop = (zz - nb) / (s * math.hypot(dj, di))
+            top = ~np.isnan(nb) & (drop > SEAM_SHEER)
+            sheer |= top | shifted(top, -dj, -di, False)
+        sheer &= ~hold
+        dist = spread(np.where(sheer, 0.0, big), 1.0, s, True)
+        ok = ~np.isnan(z)
+        free = (dist <= SEAM_REACH) & ~hold
+        a = zz.copy()
+
+        def limit(a, k):
+            # Jacobi steps: every too-steep pair corrected by a quarter of its excess at each end (all of
+            # it at a free end whose partner is held), until none is steeper by a centimetre.
+            for _ in range(4000):
+                corr = np.zeros((nz, nx))
+                worst = 0.0
+                for dj, di in ((0, 1), (1, 0), (1, 1), (1, -1)):
+                    nb = shifted(a, dj, di, np.nan)
+                    nfree = shifted(free, dj, di, False)
+                    diff = a - nb
+                    ex = np.abs(diff) - k * s * math.hypot(dj, di)
+                    v = ~np.isnan(nb) & (ex > 0.0) & (free | nfree)
+                    if not v.any():
+                        continue
+                    worst = max(worst, float(ex[v].max()))
+                    amt = np.where(v, np.sign(diff) * ex, 0.0)
+                    share_a = np.where(free & nfree, 0.25, np.where(free, 0.5, 0.0))
+                    share_b = np.where(free & nfree, 0.25, np.where(nfree, 0.5, 0.0))
+                    corr -= amt * share_a
+                    corr += shifted(amt * share_b, -dj, -di, 0.0)
+                a = a + np.where(free, corr, 0.0)
+                if worst < 0.01:
+                    break
+            return a
+
+        def smoothed(a, passes):
+            # What moved is smoothed, not the ground (smoothing the ground took site 4's summit ridge
+            # down 50 m).
+            zone = free & (spread(np.where(np.abs(a - zz) > 0.01, 0.0, big), 1.0, s, True) <= 3.0 * s)
+            m = a - zz
+            for _ in range(passes):
+                acc = np.zeros((nz, nx))
+                cnt = np.zeros((nz, nx))
+                for dj, di in DIRS16[:8]:
+                    nb = shifted(np.where(ok, m, np.nan), dj, di, np.nan)
+                    acc += np.nan_to_num(nb)
+                    cnt += ~np.isnan(nb)
+                m = np.where(zone & (cnt > 0), m + 0.5 * (acc / np.maximum(cnt, 1) - m), m)
+            return zz + m
+
+        for rnd in range(SEAM_ROUNDS):
+            a = limit(a, SEAM_SLOPE)
+            if rnd < SEAM_ROUNDS - 1:
+                a = smoothed(a, SEAM_PASSES)
+        # The hard limit leaves facets at exactly the slope, fluted along the raster's directions: a last
+        # few passes take them off, and a last limit just under `SEAM_SHEER` clips only what that steepened.
+        a = limit(smoothed(a, SEAM_FINISH), SEAM_FINISH_SLOPE)
+        target = np.where(ok, a, np.nan)
+        move = np.where(ok, target - zz, 0.0)
+        band = free
+
+        def steepest(a):
+            out = np.zeros((nz, nx))
+            for dj, di in DIRS16[:8]:
+                nb = shifted(a, dj, di, np.nan)
+                out = np.fmax(out, (a - nb) / (s * math.hypot(dj, di)))
+            return out
+
+        before, after = steepest(zz), steepest(np.nan_to_num(target))
+        report[key] = {"sheer_cells": int(sheer.sum()), "moved_ha": round(float((np.abs(move) > 0.5).sum() * s * s / 1e4), 2),
+                       "cut_m": round(float(-move.min()), 1), "fill_m": round(float(move.max()), 1),
+                       "cut_m3": int(-move[move < 0].sum() * s * s), "fill_m3": int(move[move > 0].sum() * s * s),
+                       "steepest_before": round(float(np.where(band, before, 0).max()), 2),
+                       "steepest_after": round(float(np.where(band, after, 0).max()), 2),
+                       "sheer_after": int((np.where(band & ~hold, after, 0) > SEAM_SHEER).sum())}
+        for which, h, sheets in (("now", target, sheets_now), ("pre", z, sheets_pre)):
+            base = len(sheets[0])
+            sheets[0].extend(Vector((x0 + i * s, -(z0 + j * s), float(h[j, i]) if ok[j, i] else -big))
+                             for j in range(nz) for i in range(nx))
+            sheets[1].extend((base + j * nx + i, base + j * nx + i + 1, base + (j + 1) * nx + i + 1, base + (j + 1) * nx + i)
+                             for j in range(nz - 1) for i in range(nx - 1)
+                             if ok[j, i] and ok[j, i + 1] and ok[j + 1, i] and ok[j + 1, i + 1])
+        points.extend(Vector((x0 + i * s, -(z0 + j * s))) for j, i in zip(*np.nonzero(np.abs(move) > 0.5)))
+        xs_all += [x0, x1]
+        zs_all += [z0, z1]
+    box = (min(xs_all), max(xs_all), -max(zs_all), -min(zs_all))
+    return (BVHTree.FromPolygons(*sheets_now), BVHTree.FromPolygons(*sheets_pre), box, points, report)
+
+
 def ground_triangles():
     tris = []
     for ob in ground_objects():
@@ -3593,11 +3776,15 @@ def main():
         raise SystemExit("Ground already carries edit %d; --undo first" % edit)
     bank_report = {}
     city_report = {}
+    global against
     if edit == LAKE_BANKS_ID:
-        global against
         against = 0.0
         now_t, pre_t, box, grid_points, bank_report = lake_banks_design()
         print("  lake banks design: %s" % json.dumps(bank_report))
+    elif edit == SEAMS_ID:
+        against = 0.0
+        now_t, pre_t, box, grid_points, bank_report = seams_design()
+        print("  seams design: %s" % json.dumps(bank_report))
     elif edit not in (SHELF_ID, LANDFORM_SHELF_ID, CITY_CUT_ID):
         now_t, pre_t, box, grid_points = grid_surfaces(edit)
     before = {ob.name: coords(ob).copy() for ob in ground_objects()}
@@ -3622,7 +3809,7 @@ def main():
         reports, city_report = city_cut(edit, a["dry"])
     else:
         for ob in ground_objects():
-            if edit == LAKE_BANKS_ID and ob.name != "terrain_world_mainland_reserve":
+            if edit in (LAKE_BANKS_ID, SEAMS_ID) and ob.name != "terrain_world_mainland_reserve":
                 continue
             r = carry(ob, edit, now_t, pre_t, box, grid_points, a["dry"])
             if r is not None:
@@ -3662,6 +3849,8 @@ def main():
         design = {"name": "lake_banks"}
     elif edit == CITY_CUT_ID:
         design = {"name": "city_cut"}
+    elif edit == SEAMS_ID:
+        design = {"name": "seams"}
     else:
         design = next(e for e in json.loads(bpy.data.objects[GRID].get("kyt_edits", "[]")) if e.get("id") == edit)
         if edit in WITH:
@@ -3718,7 +3907,7 @@ def main():
     if road is not None:
         entry["road_natural"] = road_report
     if bank_report:
-        entry["banks"] = bank_report
+        entry["seams" if edit == SEAMS_ID else "banks"] = bank_report
     if edit == CITY_CUT_ID:
         entry["city"] = city_report
     log(entry)
@@ -3744,6 +3933,14 @@ def main():
                    json.dumps(bank_report), HISTORY))
     elif edit == CITY_CUT_ID:
         readme(city_readme(edit, design["name"], city_report))
+    elif edit == SEAMS_ID:
+        readme("Ground edit %d (%s), %s: the reserve's seams blended where it stood against itself in sheer walls "
+               "(sites %s of the sheer-face survey): within %.0f m of every sheer cell the slope limited to %.1f, "
+               "symmetrically, alternated with smoothing over what moved, cut and fill (%s); %.0f m round Ground's open "
+               "edges, lake water and every other body held; the replaced faces kept in %s. Undo: "
+               "tools/blender/world_terrain_ground_edit.py -- --edit seams --undo." % (
+                   edit, design["name"], TODAY, ", ".join(SEAM_SITES), SEAM_REACH, SEAM_SLOPE, json.dumps(bank_report),
+                   SEAM_HOLD, HISTORY))
     elif edit in RANGE_BLEND:
         readme("Ground edit %d (%s), Stage 3, %s: in the zone grid edit %d changed, the landforms %s were cut along "
                "its edge, emptied inside it and capped, and %s built there as one sheet on the edit's surface (%s); "
