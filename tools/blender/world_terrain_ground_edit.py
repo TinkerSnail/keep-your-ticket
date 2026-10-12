@@ -46,6 +46,12 @@ The hill lakes' banks (2026-10-11, `-- --edit lake_banks`, id `LAKE_BANKS_ID`) a
 either: edit 4 left K1 and L0 under walls 20 to 45 m tall, and a 45-degree bank now rises from each
 waterline, the reserve above it cut down to it (`lake_banks_design`), carried as edits are.
 
+The city's foothills (2026-10-11, `-- --edit city_cut`, id `CITY_CUT_ID`) are no grid edit either:
+they buried the city's southern rows and stood over its streets in a straight edge, and they are cut
+back with an exact Boolean (the shell is closed, so `carry` cannot take it) to a city on hills, loosely
+San Francisco (`city_cut_design`); the city's blocks are then set on the ground by
+`tools/blender/city_blocks_on_ground.py`.
+
 The coast shelf (2026-10-06, `-- --edit shelf`, id `SHELF_ID`) is no grid edit: every coast's
 shore wall is cut just under the waterline and a shelf runs out from it under the water, so the
 coast goes on below the sea instead of ending in a wall. See `coast_shelf`.
@@ -99,7 +105,8 @@ DESIGN_PLANES = {"K1": "water_K1_enlarged", "L0": "water_L0_enlarged"}
 POOLS = {5: {"plunge_pool": "water_plunge_pool"}}
 POOL_GROW = 2.0
 # Render views per edit beyond the lakes: {name: ((x, z) centre, width across, eye level)}.
-VIEWS = {102: {"banks_K1": ((600.0, -471.0), 900.0, 79.7), "banks_L0": ((730.0, 206.0), 860.0, 92.0)},
+VIEWS = {103: {"city": ((-575.0, 2660.0), 1000.0, 0.0)},
+         102: {"banks_K1": ((600.0, -471.0), 900.0, 79.7), "banks_L0": ((730.0, 206.0), 860.0, 92.0)},
          6: {"hillside": ((160.0, 570.0), 520.0, 30.0), "hillside_band": ((120.0, 600.0), 280.0, 25.0)},
          101: {"landform_bay": ((200.0, 3500.0), 1800.0, -8.0), "landform_plug": ((-730.0, -2220.0), 900.0, -8.0),
               "landform_south": ((-600.0, 6600.0), 1500.0, -8.0)},
@@ -255,7 +262,53 @@ BANK_SEAM = 30.0
 BANK_SMOOTH = 12.0
 # Godot x0, x1, z0, z1: both lakes and `BANK_REACH` round them.
 BANK_BOX = (150.0, 1250.0, -950.0, 650.0)
-CARRIED = (1, 2, 4, 5, 6, SHELF_ID, LANDFORM_SHELF_ID, LAKE_BANKS_ID)
+# The city's foothills cut back (2026-10-11, kind D of the sheer-face survey; Christina: "Cut the
+# hill off the city"). The city stands on the peninsula at 0 m, every block's base at 0, and the
+# foothills, which reach north over the peninsula to a straight edge at z 2560, buried 28 of its
+# blocks and towers up to 43 m deep and stood over its streets in that edge, 16 to 20 m tall (the
+# clash logged 2026-09-30). The city's extent is its blocks and towers grown by `CITY_MARGIN`, the
+# streets between them filled in (`CITY_CLOSE`) and its holes filled; under the peninsula the ground
+# goes `CITY_UNDER` under its top. Only the foothills are cut, never raised; the city's source is
+# read here, and its blocks are set on the result by their own tool. `-- --edit city_cut`.
+CITY_CUT_ID = 103
+CITY_SOURCE = "far_shore_city_relocation.blend"
+CITY_SHELL = "southern_city_range_foothills"
+CITY_PENINSULA = "relocated_city_peninsula"
+# The bypass is not among them: it stands on its own closed earthwork, and the foothills were only
+# ever benched under it so as not to stand through it.
+CITY_ROADS = ("bridge_city_intersection", "bridge_city_southern_offramp", "city_highway_extension")
+# Not a pit with a wall round it (Christina, of the first cut, the city's whole extent flat with the
+# hill rising behind it at 1:1.5: "the abrupt cliff is odd", then "model it on san francisco
+# loosly"): the city's waterfront, where the foothills never reached, stays flat, and from it the
+# ground climbs through the city at street grades, level at first and steepening over `CITY_TOE` to
+# `CITY_GRADE`; past the city's edge the hills rise by `CITY_HILL` more. Where the cut meets the hill
+# as it stood the crease is rounded over `CITY_CREST` of height. The blocks are then set on it
+# (`tools/blender/city_blocks_on_ground.py`).
+CITY_GRADE = 1.0 / 4.0
+CITY_TOE = 60.0
+CITY_HILL = 1.0 / 4.0
+CITY_CREST = 8.0
+# The ground falls away from under a road the foothills hold up at this, and the foothills' straight
+# north edge, the survey's site 30 west of the city, comes down to the peninsula and the beach at it,
+# from a foot `CITY_EDGE_TOE` long. The off-ramp's trench (2026-10-04, 2:1 walls) is left as it is:
+# roads go on through these foothills in tunnels (Christina, 2026-10-11: "we can put a tunnel through
+# those foothills for more roads"), and the off-ramp ends at the hill where a portal would stand.
+CITY_SLOPE = 1.0 / 2.0
+CITY_EDGE_TOE = 20.0
+CITY_STEP = 4.0
+CITY_MARGIN = 6.0
+CITY_CLOSE = 40.0
+CITY_UNDER = 0.3
+# The 2026-10-04 bench rule for the city's roads in these foothills.
+CITY_ROAD_UNDER = 0.45
+CITY_ROAD_GROW = 2.0
+# A road the peninsula holds within this of its surface needs no foothills under it.
+CITY_ROAD_HELD = 1.0
+# The extent's edge, drawn on the raster, is rounded over this before the slope is laid from it.
+CITY_SMOOTH = 8.0
+# Beyond the city, until the slope stands over every foothill.
+CITY_PAD = 320.0
+CARRIED = (1, 2, 4, 5, 6, SHELF_ID, LANDFORM_SHELF_ID, LAKE_BANKS_ID, CITY_CUT_ID)
 
 
 def argv():
@@ -263,7 +316,8 @@ def argv():
     out = {"edit": None, "dry": "--dry" in a, "undo": "--undo" in a, "render": None}
     if "--edit" in a:
         v = a[a.index("--edit") + 1]
-        out["edit"] = {"shelf": SHELF_ID, "landform_shelf": LANDFORM_SHELF_ID, "lake_banks": LAKE_BANKS_ID}.get(v) or int(v)
+        out["edit"] = {"shelf": SHELF_ID, "landform_shelf": LANDFORM_SHELF_ID, "lake_banks": LAKE_BANKS_ID,
+                       "city_cut": CITY_CUT_ID}.get(v) or int(v)
         for edit, (also, _tag) in WITH.items():
             if out["edit"] == also:
                 raise SystemExit("edit %d refines edit %d and is carried with it: --edit %d" % (also, edit, edit))
@@ -2768,6 +2822,416 @@ def lake_banks_design():
     return sheet(np.where(np.isnan(z), 0.0, target)), sheet(np.where(np.isnan(z), 0.0, zz0)), box, points, report
 
 
+DIRS16 = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1),
+          (1, 2), (2, 1), (-1, 2), (-2, 1), (1, -2), (2, -1), (-1, -2), (-2, -1)]
+
+
+def shifted(a, dj, di, fill):
+    """`a` read at (j + dj, i + di), `fill` past its edge (np.roll would wrap the far side in)."""
+    out = np.full_like(a, fill)
+    nz, nx = a.shape
+    j0, j1 = max(0, -dj), nz - max(0, dj)
+    i0, i1 = max(0, -di), nx - max(0, di)
+    out[j0:j1, i0:i1] = a[j0 + dj:j1 + dj, i0 + di:i1 + di]
+    return out
+
+
+def spread(a, rate, step, rising):
+    """The lowest of a + rate * distance (`rising`), or the highest of a - rate * distance, over the
+    raster: a slope laid out from every cell, 16 directions."""
+    big = 1e9 if rising else -1e9
+    while True:
+        prev = a
+        for dj, di in DIRS16:
+            d = rate * step * math.hypot(dj, di)
+            a = np.minimum(a, shifted(a, dj, di, big) + d) if rising else np.maximum(a, shifted(a, dj, di, big) - d)
+        if np.array_equal(a, prev):
+            return a
+
+
+def city_cut_design():
+    """The city cut's design (`CITY_CUT_ID`) on a `CITY_STEP` raster in Godot x and z: the surface the
+    foothills go down to, their top as it stands, the ground of every other body, the raster's origin,
+    the city's objects as (name, world vertices) and a report. The city is read from its own source,
+    linked for the read and let go."""
+    path = os.path.normpath(os.path.join(HERE, "..", "..", "assets", "source", CITY_SOURCE))
+    libs = set(bpy.data.libraries)
+    with bpy.data.libraries.load(path, link=True) as (src, dst):
+        dst.objects = list(src.objects)
+    def world(ob):
+        # A linked object no scene evaluates keeps an identity matrix_world: composed here.
+        if ob.parent is None:
+            return ob.matrix_basis
+        if ob.parent_type != 'OBJECT':
+            raise SystemExit("%s hangs from its parent by %s" % (ob.name, ob.parent_type))
+        return world(ob.parent) @ ob.matrix_parent_inverse @ ob.matrix_basis
+
+    city = []
+    for ob in dst.objects:
+        if ob is not None and ob.type == 'MESH':
+            mw = world(ob)
+            city.append((ob.name, [mw @ v.co for v in ob.data.vertices], [tuple(p.vertices) for p in ob.data.polygons]))
+    for lib in set(bpy.data.libraries) - libs:
+        bpy.data.libraries.remove(lib)
+    if set(bpy.data.libraries) != libs:
+        raise SystemExit("the city source is still linked")
+    blocks = [c for c in city if c[0].startswith(("city_block_", "city_skyline_anchor_"))]
+    roads = [c for c in city if c[0] in CITY_ROADS]
+    if len(roads) != len(CITY_ROADS) or not blocks:
+        raise SystemExit("%s lacks its blocks or roads %s" % (CITY_SOURCE, sorted(set(CITY_ROADS) - {r[0] for r in roads})))
+
+    def tree(parts):
+        vs, ps = [], []
+        for _name, v, p in parts:
+            base = len(vs)
+            vs.extend(v)
+            ps.extend(tuple(base + i for i in q) for q in p)
+        return BVHTree.FromPolygons(vs, ps)
+
+    shell = bpy.data.objects[CITY_SHELL]
+    others = [o for o in ground_objects() if o.name != CITY_SHELL and o.get("kyt_collision") != "none"]
+    s = CITY_STEP
+    bx = [v.x for _n, vs, _p in blocks for v in vs]
+    bz = [-v.y for _n, vs, _p in blocks for v in vs]
+    x0 = math.floor((min(bx) - CITY_PAD) / s) * s
+    z0 = math.floor((min(bz) - CITY_PAD) / s) * s
+    nx = int(math.ceil((max(bx) + CITY_PAD - x0) / s)) + 1
+    nz = int(math.ceil((max(bz) + CITY_PAD - z0) / s)) + 1
+    st = tree([(shell.name, [v.co.copy() for v in shell.data.vertices], [tuple(p.vertices) for p in shell.data.polygons])])
+    pen = bpy.data.objects[CITY_PENINSULA]
+    pt = tree([(pen.name, [v.co.copy() for v in pen.data.vertices], [tuple(p.vertices) for p in pen.data.polygons])])
+    ot = tree([(o.name, [o.matrix_world @ v.co for v in o.data.vertices], [tuple(p.vertices) for p in o.data.polygons]) for o in others])
+    bt = tree(blocks)
+    rt = tree(roads)
+    top = np.full((nz, nx), np.nan)
+    pen_top = np.full((nz, nx), np.nan)
+    other = np.full((nz, nx), np.nan)
+    road_y = np.full((nz, nx), np.nan)
+    blk = np.zeros((nz, nx), bool)
+    down = Vector((0.0, 0.0, -1.0))
+    for j in range(nz):
+        for i in range(nx):
+            o = Vector((x0 + i * s, -(z0 + j * s), 5000.0))
+            for t, a in ((st, top), (pt, pen_top), (ot, other), (rt, road_y)):
+                h = t.ray_cast(o, down, 10000.0)
+                if h[0] is not None:
+                    a[j, i] = h[0].z
+            blk[j, i] = bt.ray_cast(o, down, 10000.0)[0] is not None
+
+    def grow(mask, r):
+        n = int(math.ceil(r / s))
+        out = mask.copy()
+        jj, ii = np.nonzero(mask)
+        for dj in range(-n, n + 1):
+            for di in range(-n, n + 1):
+                if dj * dj + di * di <= n * n:
+                    out[np.clip(jj + dj, 0, nz - 1), np.clip(ii + di, 0, nx - 1)] = True
+        return out
+
+    # The city's extent: its blocks and towers grown, the streets between them filled in, and every
+    # hole filled (the junction's pad and roads leave one wider than the streets).
+    city_e = ~grow(~grow(grow(blk, CITY_MARGIN), CITY_CLOSE), CITY_CLOSE)
+    outside = np.zeros((nz, nx), bool)
+    outside[0, :] = outside[-1, :] = outside[:, 0] = outside[:, -1] = True
+    outside &= ~city_e
+    while True:
+        more = outside.copy()
+        for dj, di in DIRS16[:4]:
+            more |= shifted(outside, dj, di, False)
+        more &= ~city_e
+        if np.array_equal(more, outside):
+            break
+        outside = more
+    city_e = ~outside
+    if not (~city_e[:2, :]).all() or not (~city_e[-2:, :]).all() or not (~city_e[:, :2]).all() or not (~city_e[:, -2:]).all():
+        raise SystemExit("the city's extent reaches the raster's edge")
+    has_pen = ~np.isnan(pen_top)
+    # The floor follows the peninsula, `CITY_UNDER` under its top: 0 m over its flat middle, sloping
+    # to -5.6 m at its shore, where the city's edge blocks already stand. Past the peninsula it carries
+    # the nearest of that on, so the slope below rises from a floor without steps.
+    base = np.where(has_pen, np.minimum(np.nan_to_num(pen_top), 0.0) - CITY_UNDER, np.nan)
+    under = np.where(city_e & ~np.isnan(top), base, np.nan)
+
+    def filled(a):
+        # Every empty cell takes the mean of its filled neighbours, ring by ring outward.
+        while np.isnan(a).any():
+            acc = np.zeros((nz, nx))
+            cnt = np.zeros((nz, nx))
+            for dj, di in DIRS16[:8]:
+                nb = shifted(a, dj, di, np.nan)
+                ok = ~np.isnan(nb)
+                acc += np.where(ok, nb, 0.0)
+                cnt += ok
+            a = np.where(np.isnan(a) & (cnt > 0), acc / np.maximum(cnt, 1), a)
+        return a
+
+    base = filled(base)
+    # The extent's edge rounded: its signed distance, blurred; the slope is laid from that.
+    big = 1e9
+    d_out = spread(np.where(city_e, 0.0, big), 1.0, s, True)
+    d_in = spread(np.where(city_e, big, 0.0), 1.0, s, True)
+    sd = d_out - d_in
+    sig = CITY_SMOOTH / s
+    r = int(math.ceil(3.0 * sig))
+    kern = np.exp(-0.5 * (np.arange(-r, r + 1) / sig) ** 2)
+    kern /= kern.sum()
+    sdp = np.pad(sd, r, mode="edge")
+    sdp = np.apply_along_axis(lambda v: np.convolve(v, kern, mode="valid"), 0, sdp)
+    sd_b = np.apply_along_axis(lambda v: np.convolve(v, kern, mode="valid"), 1, sdp)
+    # The waterfront: the city's extent where the foothills never stood. The climb is measured from
+    # it, rounded the same way.
+    flat = city_e & np.isnan(top)
+    f_out = spread(np.where(flat, 0.0, big), 1.0, s, True)
+    f_in = spread(np.where(flat, big, 0.0), 1.0, s, True)
+    fp = np.pad(f_out - f_in, r, mode="edge")
+    fp = np.apply_along_axis(lambda v: np.convolve(v, kern, mode="valid"), 0, fp)
+    fd = np.maximum(np.apply_along_axis(lambda v: np.convolve(v, kern, mode="valid"), 1, fp), 0.0)
+    climb = CITY_GRADE * np.where(fd < CITY_TOE, fd * fd / (2.0 * CITY_TOE), fd - 0.5 * CITY_TOE)
+    cone = base + climb + CITY_HILL * np.maximum(sd_b, 0.0)
+    # The straight edge: everything north of the foothills' north side, the climb from it at most
+    # `CITY_SLOPE` wherever the city's own is steeper (beyond the city, where the hills rise).
+    edge_z = min(-v.co.y for v in shell.data.vertices)
+    north = (z0 + np.arange(nz) * s)[:, None] < edge_z + 0.5 * s
+    north = np.broadcast_to(north, (nz, nx)) & np.isnan(top)
+    e_out = spread(np.where(north, 0.0, big), 1.0, s, True)
+    e_in = spread(np.where(north, big, 0.0), 1.0, s, True)
+    ep = np.pad(e_out - e_in, r, mode="edge")
+    ep = np.apply_along_axis(lambda v: np.convolve(v, kern, mode="valid"), 0, ep)
+    ed = np.maximum(np.apply_along_axis(lambda v: np.convolve(v, kern, mode="valid"), 1, ep), 0.0)
+    cone = np.minimum(cone, base + CITY_SLOPE * np.where(ed < CITY_EDGE_TOE, ed * ed / (2.0 * CITY_EDGE_TOE), ed - 0.5 * CITY_EDGE_TOE))
+    # Roads the foothills hold up keep ground just under them, falling away at the same slope.
+    needs = ~np.isnan(road_y) & ~(has_pen & (np.nan_to_num(pen_top, nan=-big) >= road_y - CITY_ROAD_HELD))
+    held = np.where(needs, road_y - CITY_ROAD_UNDER, -big)
+    src = held.copy()
+    n = int(math.ceil(CITY_ROAD_GROW / s))
+    for dj in range(-n, n + 1):
+        for di in range(-n, n + 1):
+            if dj * dj + di * di <= n * n:
+                src = np.maximum(src, shifted(held, dj, di, -big))
+    floor = spread(src, CITY_SLOPE, s, False)
+    design = np.maximum(cone, floor)
+    # The surface the foothills go down to: the lower of the hill and the design, the crease where
+    # they meet rounded by a polynomial smooth minimum over `CITY_CREST`, never above the hill. Past
+    # that band it carries on `CITY_CREST` under the design, over the hill, so the cutter is one
+    # continuous surface. Never under the ground a road keeps.
+    hill = filled(top.copy())
+    k = CITY_CREST
+    gap = design - hill
+    h = np.clip((k - np.abs(gap)) / k, 0.0, 1.0)
+    surface = np.where(gap < k, np.minimum(hill, design) - h * h * k / 4.0, design - k)
+    # A hair over the hill where a road keeps it: the cutter laid onto the shell exactly left it open.
+    surface = np.maximum(surface, np.minimum(floor, hill + 0.05))
+    has = ~np.isnan(top)
+    cut = np.where(has, np.maximum(np.nan_to_num(top) - surface, 0.0), 0.0)
+    after = np.where(has, np.minimum(np.nan_to_num(top), surface), np.nan)
+    ground_before = np.fmax(top, other)
+    ground_after = np.fmax(after, other)
+    # The blocks and towers the foothills stood over, before and after.
+    buried = {}
+    xs = x0 + np.arange(nx) * s
+    zs = z0 + np.arange(nz) * s
+    for name, vs, _ps in blocks:
+        lo_x, hi_x = min(v.x for v in vs), max(v.x for v in vs)
+        lo_z, hi_z = min(-v.y for v in vs), max(-v.y for v in vs)
+        base = min(v.z for v in vs)
+        m = blk & (xs[None, :] >= lo_x) & (xs[None, :] <= hi_x) & (zs[:, None] >= lo_z) & (zs[:, None] <= hi_z)
+        if not m.any():
+            continue
+        b0 = float(np.nanmax(np.where(m, ground_before, -big))) - base
+        b1 = float(np.nanmax(np.where(m, ground_after, -big))) - base
+        if b0 > 0.5:
+            buried[name] = (round(b0, 1), round(b1, 1))
+    # Anything of the city's that stood on the foothills and would be left standing over the cut.
+    hover = {}
+    for name, vs, _ps in city:
+        lo = min(v.z for v in vs)
+        for v in vs:
+            if v.z > lo + 0.5:
+                continue
+            i = int(round((v.x - x0) / s))
+            j = int(round((-v.y - z0) / s))
+            if not (0 <= i < nx and 0 <= j < nz) or np.isnan(ground_before[j, i]) or np.isnan(ground_after[j, i]):
+                continue
+            if abs(ground_before[j, i] - v.z) <= 0.6 and v.z - ground_after[j, i] > 0.6:
+                hover[name] = max(hover.get(name, 0.0), round(float(v.z - ground_after[j, i]), 1))
+    report = {"cut_ha": round(float((cut > 0.5).sum() * s * s / 1e4), 2), "deepest": round(float(cut.max()), 1),
+              "volume_m3": int(cut.sum() * s * s),
+              "floor": [round(float(np.nanmin(under)), 2), round(float(np.nanmax(under)), 2)],
+              "extent_off_peninsula_ha": round(float((city_e & ~has_pen & ~np.isnan(top)).sum() * s * s / 1e4), 2),
+              "blocks_buried_before": len(buried), "blocks_buried_after": sum(1 for v in buried.values() if v[1] > 0.5),
+              "left_standing_over_the_cut": hover}
+    return {"design": surface, "top": top, "cut": cut, "origin": (x0, z0), "shape": (nz, nx), "report": report,
+            "buried": buried}
+
+
+def city_cut(edit, dry):
+    """Cut the foothills down to the city cut's design (`city_cut_design`): an exact Boolean with a
+    cutter whose underside is the design, so every face the cut does not reach stays as it was and the
+    shell stays closed. The shell is kept whole in `HISTORY` for the undo."""
+    d = city_cut_design()
+    rep = d["report"]
+    print("  city cut design: %s" % json.dumps(rep))
+    design, top, cut = d["design"], d["top"], d["cut"]
+    x0, z0 = d["origin"]
+    nz, nx = d["shape"]
+    s = CITY_STEP
+    shell = bpy.data.objects[CITY_SHELL]
+    if shell.matrix_world != shell.matrix_world.Identity(4):
+        raise SystemExit("%s is not at the origin" % CITY_SHELL)
+    # The cutter covers the cut and enough round it that the design stands well over the foothills
+    # all along its edge, so its sides never reach them.
+    jj, ii = np.nonzero(cut > 0.01)
+    j0, j1, i0, i1 = jj.min() - 4, jj.max() + 4, ii.min() - 4, ii.max() + 4
+    while True:
+        j0, i0 = max(j0, 0), max(i0, 0)
+        j1, i1 = min(j1, nz - 1), min(i1, nx - 1)
+        ring = np.zeros((nz, nx), bool)
+        ring[j0, i0:i1 + 1] = ring[j1, i0:i1 + 1] = ring[j0:j1 + 1, i0] = ring[j0:j1 + 1, i1] = True
+        clear = np.isnan(top) | (design >= np.nan_to_num(top, nan=0.0) + 3.0)
+        if clear[ring].all():
+            break
+        if j0 == 0 or i0 == 0 or j1 == nz - 1 or i1 == nx - 1:
+            raise SystemExit("the design stands under the foothills at the raster's edge")
+        j0, j1, i0, i1 = j0 - 8, j1 + 8, i0 - 8, i1 + 8
+    cap = float(np.nanmax(top)) + 50.0
+    report = {"faces_before": len(shell.data.polygons), "cutter_cells": int((j1 - j0) * (i1 - i0))}
+    if dry:
+        return {CITY_SHELL: report}, rep
+    bm = bmesh.new()
+    grid = {}
+    for j in range(j0, j1 + 1):
+        for i in range(i0, i1 + 1):
+            grid[j, i] = bm.verts.new((x0 + i * s, -(z0 + j * s), min(float(design[j, i]), cap - 1.0)))
+    for j in range(j0, j1):
+        for i in range(i0, i1):
+            a, b, c, e = grid[j, i], grid[j, i + 1], grid[j + 1, i + 1], grid[j + 1, i]
+            bm.faces.new((a, b, c))
+            bm.faces.new((a, c, e))
+    # The outline round the box, its top at `cap`; the sides and one lid close the cutter.
+    outline = ([grid[j0, i] for i in range(i0, i1 + 1)] + [grid[j, i1] for j in range(j0 + 1, j1 + 1)] +
+               [grid[j1, i] for i in range(i1 - 1, i0 - 1, -1)] + [grid[j, i0] for j in range(j1 - 1, j0, -1)])
+    lid = [bm.verts.new((v.co.x, v.co.y, cap)) for v in outline]
+    for k in range(len(outline)):
+        bm.faces.new((outline[k], outline[(k + 1) % len(outline)], lid[(k + 1) % len(outline)], lid[k]))
+    bm.faces.new(lid)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
+    if not all(e.is_manifold for e in bm.edges):
+        raise SystemExit("the cutter is not closed")
+    ctree = BVHTree.FromBMesh(bm)
+    # Faces that lie in one plane (the city's floor, the slope off a straight run) become one.
+    under = [f for f in bm.faces if f.normal.z < -0.05]
+    bmesh.ops.dissolve_limit(bm, angle_limit=math.radians(0.05), verts=list({v for f in under for v in f.verts}),
+                             edges=list({e for f in under for e in f.edges}), delimit={'NORMAL'})
+    cme = bpy.data.meshes.new("tmp_city_cutter")
+    bm.to_mesh(cme)
+    bm.free()
+    fa = cme.attributes.new("authored_edit", 'INT', 'FACE')
+    fa.data.foreach_set("value", np.full(len(cme.polygons), edit, dtype=np.int32))
+    cme.polygons.foreach_set("material_index", np.zeros(len(cme.polygons), dtype=np.int32))
+    cme.polygons.foreach_set("use_smooth", np.ones(len(cme.polygons), dtype=bool))
+    cutter = bpy.data.objects.new("tmp_city_cutter", cme)
+    bpy.context.scene.collection.objects.link(cutter)
+    old = shell.data
+    before = coords(shell).copy()
+    mod = shell.modifiers.new("tmp_city_cut", 'BOOLEAN')
+    mod.operation = 'DIFFERENCE'
+    mod.solver = 'EXACT'
+    mod.object = cutter
+    mod.material_mode = 'INDEX'
+    dg = bpy.context.evaluated_depsgraph_get()
+    new = bpy.data.meshes.new_from_object(shell.evaluated_get(dg), preserve_all_data_layers=True, depsgraph=dg)
+    shell.modifiers.remove(mod)
+    bpy.data.objects.remove(cutter)
+    bpy.data.meshes.remove(cme)
+    # The proof, before anything is kept: the shell closed; every corner the design stands over
+    # where it was; every new corner on the design; no side of the cutter in it.
+    bm = bmesh.new()
+    bm.from_mesh(new)
+    bad = [e for e in bm.edges if not e.is_manifold]
+    if bad:
+        raise SystemExit("the cut left %s open: %d edges, e.g. %s" % (CITY_SHELL, len(bad), [
+            (tuple(round(c, 2) for c in e.verts[0].co), round(e.calc_length(), 4), len(e.link_faces)) for e in bad[:8]]))
+    ob_bm = bmesh.new()
+    ob_bm.from_mesh(old)
+    vol0 = ob_bm.calc_volume(signed=True)
+    ob_bm.free()
+    vol1 = bm.calc_volume(signed=True)
+    bm.free()
+    now = coords_of(new)
+    kept = {tuple(np.round(v, 4)) for v in now}
+
+    def design_at_xy(x, y):
+        # From below: the first face up is the cutter's underside, the design.
+        h = ctree.ray_cast(Vector((x, y, -1000.0)), Vector((0.0, 0.0, 1.0)))
+        return None if h[0] is None else h[0].z
+
+    lost = 0
+    for v in before:
+        if tuple(np.round(v, 4)) in kept:
+            continue
+        t = design_at_xy(v[0], v[1])
+        if t is None or v[2] < t - 0.01:
+            lost += 1
+    if lost:
+        raise SystemExit("the cut moved %d corners of %s that the design stands over" % (lost, CITY_SHELL))
+    old_set = {tuple(np.round(v, 4)) for v in before}
+    off = 0
+    for v in now:
+        if tuple(np.round(v, 4)) in old_set:
+            continue
+        t = design_at_xy(v[0], v[1])
+        if t is None:
+            continue
+        # A new corner is on the design, or where it meets one of the shell's own faces (its
+        # sides at the straight edge, which stand from the bottom up).
+        if v[2] > t + 0.01:
+            off += 1
+    if off:
+        raise SystemExit("%d new corners of %s stand over the design" % (off, CITY_SHELL))
+    nfa = np.zeros(len(new.polygons), dtype=np.int32)
+    new.attributes["authored_edit"].data.foreach_get("value", nfa)
+    # Needles the Boolean leaves along the cutter's grid lines (two corners a millimetre apart) have no
+    # direction to speak of; they are counted, not refused.
+    slivers = sum(1 for p in new.polygons if nfa[p.index] == edit and p.area < 0.01)
+    walls = [p for p in new.polygons if nfa[p.index] == edit and p.normal.z < 0.05 and p.area >= 0.01]
+    if walls:
+        raise SystemExit("%d of the cutter's side or lid faces are in %s: %s" % (len(walls), CITY_SHELL, [
+            (tuple(round(c, 2) for c in p.center), tuple(round(c, 3) for c in p.normal), round(p.area, 6), len(p.vertices),
+             [tuple(round(c, 3) for c in new.vertices[i].co) for i in p.vertices]) for p in walls[:5]]))
+    # Kept whole for the undo, as edit 1 keeps the shells it cuts.
+    hob = bpy.data.objects.new("%s__before_edit%d" % (CITY_SHELL, edit), old)
+    hob["kyt_whole"] = True
+    hob["kyt_note"] = "%s as it stood before Ground edit %d (the city cut), for its --undo; never exported" % (CITY_SHELL, edit)
+    history_collection().objects.link(hob)
+    name = old.name
+    old.name = hob.name
+    shell.data = new
+    new.name = name
+    report.update({"faces_after": len(new.polygons), "new_faces": int((nfa == edit).sum()), "slivers": slivers,
+                   "volume_cut_m3": int(vol0 - vol1)})
+    return {CITY_SHELL: report}, rep
+
+
+def city_readme(edit, name, report):
+    return ("Ground edit %d (%s), %s: %s cut back under the city, loosely as San Francisco's hills: flat on the "
+            "waterfront where the foothills never reached (%.1f m under the peninsula), climbing from it through the "
+            "city at up to 1:%.0f (level at first, steepening over %.0f m), the hills past the city's extent (its "
+            "blocks and towers from %s grown %.0f m, streets and holes filled) rising by 1:%.0f more, the foothills' "
+            "straight north edge brought down on a 1:%.0f bank, the crease with the hill as it stood rounded over "
+            "%.0f m; cut only, the ground under a road the foothills hold kept %.2f m under it, the off-ramp's trench "
+            "left for a tunnel (%s); the shell kept whole in %s. The city's blocks are set on it by "
+            "tools/blender/city_blocks_on_ground.py. Undo: tools/blender/world_terrain_ground_edit.py -- --edit "
+            "city_cut --undo." % (edit, name, TODAY, CITY_SHELL, CITY_UNDER, 1.0 / CITY_GRADE, CITY_TOE, CITY_SOURCE,
+                                  CITY_MARGIN, 1.0 / CITY_HILL, 1.0 / CITY_SLOPE, CITY_CREST, CITY_ROAD_UNDER,
+                                  json.dumps(report), HISTORY))
+
+
+def coords_of(me):
+    co = np.zeros(len(me.vertices) * 3)
+    me.vertices.foreach_get("co", co)
+    return co.reshape(-1, 3)
+
+
 def ground_triangles():
     tris = []
     for ob in ground_objects():
@@ -3128,12 +3592,13 @@ def main():
     if any(e.get("id") == edit for e in json.loads(bpy.context.scene.get("kyt_ground_edits", "[]"))):
         raise SystemExit("Ground already carries edit %d; --undo first" % edit)
     bank_report = {}
+    city_report = {}
     if edit == LAKE_BANKS_ID:
         global against
         against = 0.0
         now_t, pre_t, box, grid_points, bank_report = lake_banks_design()
         print("  lake banks design: %s" % json.dumps(bank_report))
-    elif edit not in (SHELF_ID, LANDFORM_SHELF_ID):
+    elif edit not in (SHELF_ID, LANDFORM_SHELF_ID, CITY_CUT_ID):
         now_t, pre_t, box, grid_points = grid_surfaces(edit)
     before = {ob.name: coords(ob).copy() for ob in ground_objects()}
     reports = {}
@@ -3153,6 +3618,8 @@ def main():
     elif edit in NEW_LAND:
         reports, land_report, land = new_land(edit, now_t, pre_t, box, a["dry"])
         print("  %-34s %s" % (NEW_LAND[edit], ", ".join("%s %s" % kv for kv in land_report.items())))
+    elif edit == CITY_CUT_ID:
+        reports, city_report = city_cut(edit, a["dry"])
     else:
         for ob in ground_objects():
             if edit == LAKE_BANKS_ID and ob.name != "terrain_world_mainland_reserve":
@@ -3178,8 +3645,8 @@ def main():
             if not np.array_equal(before[ob.name], coords(ob)):
                 raise SystemExit("%s moved, and the edit never reached it" % ob.name)
             continue
-        if edit in RANGE_BLEND:
-            # Cut, emptied and capped whole; `range_blend` proved its surface outside the zone.
+        if edit in RANGE_BLEND or edit == CITY_CUT_ID:
+            # Cut whole; `range_blend` and `city_cut` proved the surface they did not reach.
             continue
         now = coords(ob)
         used = edit_face_vertices(ob, edit)
@@ -3193,6 +3660,8 @@ def main():
         design = {"name": "landform_shelf"}
     elif edit == LAKE_BANKS_ID:
         design = {"name": "lake_banks"}
+    elif edit == CITY_CUT_ID:
+        design = {"name": "city_cut"}
     else:
         design = next(e for e in json.loads(bpy.data.objects[GRID].get("kyt_edits", "[]")) if e.get("id") == edit)
         if edit in WITH:
@@ -3250,6 +3719,8 @@ def main():
         entry["road_natural"] = road_report
     if bank_report:
         entry["banks"] = bank_report
+    if edit == CITY_CUT_ID:
+        entry["city"] = city_report
     log(entry)
     held = sum(r.get("seam_held", 0) for r in reports.values())
     if edit == SHELF_ID:
@@ -3271,6 +3742,8 @@ def main():
                "Undo: tools/blender/world_terrain_ground_edit.py -- --edit lake_banks --undo." % (
                    edit, design["name"], TODAY, math.degrees(math.atan(BANK_SLOPE)), BANK_LIP, BANK_REACH,
                    json.dumps(bank_report), HISTORY))
+    elif edit == CITY_CUT_ID:
+        readme(city_readme(edit, design["name"], city_report))
     elif edit in RANGE_BLEND:
         readme("Ground edit %d (%s), Stage 3, %s: in the zone grid edit %d changed, the landforms %s were cut along "
                "its edge, emptied inside it and capped, and %s built there as one sheet on the edit's surface (%s); "
@@ -3302,6 +3775,8 @@ def main():
                        road.name, EARTHWORKS, ", ".join("%s %s" % kv for kv in road_report.items())))
     if edit in RANGE_BLEND:
         print("world_terrain_ground_edit: edit %d carried; every shell's surface outside its zone unchanged" % edit)
+    elif edit == CITY_CUT_ID:
+        print("world_terrain_ground_edit: edit %d carried; every corner of %s the design stands over unchanged" % (edit, CITY_SHELL))
     else:
         print("world_terrain_ground_edit: edit %d carried; every vertex outside its faces unchanged" % edit)
     bpy.context.preferences.filepaths.save_version = 0
