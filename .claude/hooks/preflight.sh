@@ -136,7 +136,14 @@ echo
 # Other documents in the corpus, so nothing is silently omitted.
 echo "Rest of the textual corpus (inventory, not the packet):"
 for f in documentation/design-archive.md documentation/instructions-archive-*.md; do [ -f "$f" ] && echo "  $(finfo "$f")   <- history and reasoning, not spec; honour supersession markers"; done
-for f in documentation/screenshots/*/README.md; do [ -f "$f" ] && echo "  $(finfo "$f")"; done
+# Proof-pass READMEs: a count and the newest five, as for the journals. One line
+# per pass grew past a hundred lines in front of every session.
+PCOUNT=$(ls documentation/screenshots/*/README.md 2>/dev/null | wc -l | tr -d ' ')
+if [ "$PCOUNT" -gt 0 ]; then
+  echo "  documentation/screenshots/*/README.md: ${PCOUNT} proof passes; search them for the"
+  echo "    task's nouns. Newest five:"
+  ls -t documentation/screenshots/*/README.md 2>/dev/null | head -5 | while read -r f; do echo "    $(finfo "$f")"; done
+fi
 echo
 
 # Synchronized map copies: documentation/maps/*.html <-> planning/*.html.
