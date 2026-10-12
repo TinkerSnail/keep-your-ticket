@@ -56,6 +56,10 @@ The reserve's seams (2026-10-11, `-- --edit seams`, id `SEAMS_ID`) are no grid e
 generator's ground bands met at different heights the reserve stood against itself in sheer walls, and
 their slope is limited round each (`seams_design`), carried as edits are.
 
+The sea bluffs (2026-10-11, `-- --edit bluffs`, id `BLUFFS_ID`) move vertices only: the reserve's shore
+walls, cut by the coast shelf, lean back to `BLUFF_ANGLE`, their feet out to sea under the shelf
+(`bluffs`); the undo puts the feet and the walls' normals back.
+
 The coast shelf (2026-10-06, `-- --edit shelf`, id `SHELF_ID`) is no grid edit: every coast's
 shore wall is cut just under the waterline and a shelf runs out from it under the water, so the
 coast goes on below the sea instead of ending in a wall. See `coast_shelf`.
@@ -109,7 +113,8 @@ DESIGN_PLANES = {"K1": "water_K1_enlarged", "L0": "water_L0_enlarged"}
 POOLS = {5: {"plunge_pool": "water_plunge_pool"}}
 POOL_GROW = 2.0
 # Render views per edit beyond the lakes: {name: ((x, z) centre, width across, eye level)}.
-VIEWS = {104: {"seam_site4": ((1165.0, -270.0), 800.0, 300.0), "seam_site7": ((325.0, -1810.0), 700.0, 170.0)},
+VIEWS = {105: {"bluffs_east": ((3520.0, 20.0), 500.0, 10.0), "bluffs_north_east": ((3050.0, -2300.0), 900.0, 10.0)},
+         104: {"seam_site4": ((1165.0, -270.0), 800.0, 300.0), "seam_site7": ((325.0, -1810.0), 700.0, 170.0)},
          103: {"city": ((-575.0, 2660.0), 1000.0, 0.0)},
          102: {"banks_K1": ((600.0, -471.0), 900.0, 79.7), "banks_L0": ((730.0, 206.0), 860.0, 92.0)},
          6: {"hillside": ((160.0, 570.0), 520.0, 30.0), "hillside_band": ((120.0, 600.0), 280.0, 25.0)},
@@ -338,7 +343,22 @@ SEAM_PASSES = 20
 SEAM_FINISH = 6
 SEAM_FINISH_SLOPE = 1.42
 SEAM_HOLD = 30.0
-CARRIED = (1, 2, 4, 5, 6, SHELF_ID, LANDFORM_SHELF_ID, LAKE_BANKS_ID, CITY_CUT_ID, SEAMS_ID)
+# The sea bluffs laid back (2026-10-11, kind E of the sheer-face survey; her "do the next part"):
+# along the reserve's coasts the generator's shore wall stands vertical from the land's edge to
+# `SHELF_UNDER` under the water, where the coast shelf (`SHELF_ID`) cut it and runs on, 15 to 25 m tall
+# along the east and north-east coasts and lower all round. The land's edge stays where it is and each
+# wall's foot moves out to sea until the face leans back to `BLUFF_ANGLE`, its foot `BLUFF_UNDER` under
+# the shelf there, so the shelf itself is not touched (the headland fork swaps it whole). A foot that
+# would cross a neighbour's or come under land is brought back in until it does not. Only the reserve,
+# and not within `BLUFF_CLEAR` of coast north (the fork's): `-- --edit bluffs`.
+BLUFFS_ID = 105
+# Just under the sheer-face survey's line (a drop of 1.5 times the distance), as the seams finish; the
+# survey proposed about 60, which a bluff over 15 m tall still crosses.
+BLUFF_ANGLE = 55.0
+BLUFF_UNDER = 0.3
+BLUFF_OBJECT = "terrain_world_mainland_reserve"
+BLUFF_CLEAR = 200.0
+CARRIED = (1, 2, 4, 5, 6, SHELF_ID, LANDFORM_SHELF_ID, LAKE_BANKS_ID, CITY_CUT_ID, SEAMS_ID, BLUFFS_ID)
 
 
 def argv():
@@ -347,7 +367,7 @@ def argv():
     if "--edit" in a:
         v = a[a.index("--edit") + 1]
         out["edit"] = {"shelf": SHELF_ID, "landform_shelf": LANDFORM_SHELF_ID, "lake_banks": LAKE_BANKS_ID,
-                       "city_cut": CITY_CUT_ID, "seams": SEAMS_ID}.get(v) or int(v)
+                       "city_cut": CITY_CUT_ID, "seams": SEAMS_ID, "bluffs": BLUFFS_ID}.get(v) or int(v)
         for edit, (also, _tag) in WITH.items():
             if out["edit"] == also:
                 raise SystemExit("edit %d refines edit %d and is carried with it: --edit %d" % (also, edit, edit))
@@ -3256,6 +3276,212 @@ def city_readme(edit, name, report):
                                   json.dumps(report), HISTORY))
 
 
+def bluffs(edit, dry):
+    """Lay the reserve's shore walls back to `BLUFF_ANGLE` (`BLUFFS_ID`): the land's edge held, each
+    wall's foot moved out to sea and down under the coast shelf. Returns the report per object and the
+    edit's own report."""
+    sea = float(edit_constant("world_terrain_coast_extension.py", "SEA_LEVEL"))
+    cut_z = sea - SHELF_UNDER
+    ob = bpy.data.objects[BLUFF_OBJECT]
+    me = ob.data
+    if ob.matrix_world != ob.matrix_world.Identity(4):
+        raise SystemExit("%s is not at the origin" % BLUFF_OBJECT)
+    north = bpy.data.objects["terrain_world_coast_north"]
+    nb = [north.matrix_world @ Vector(c) for c in north.bound_box]
+    clear = (min(b.x for b in nb) - BLUFF_CLEAR, max(b.x for b in nb) + BLUFF_CLEAR,
+             min(b.y for b in nb) - BLUFF_CLEAR, max(b.y for b in nb) + BLUFF_CLEAR)
+    # What a foot may not come under: land, every upward face but the shelves'.
+    up_v, up_f = [], []
+    for o in ground_objects():
+        if o.name in (SHELF, LANDFORM_SHELF):
+            continue
+        om = o.matrix_world
+        for poly in o.data.polygons:
+            if poly.normal.z < MIN_UP_FACE:
+                continue
+            base = len(up_v)
+            up_v.extend(om @ o.data.vertices[i].co for i in poly.vertices)
+            up_f.append(tuple(range(base, base + len(poly.vertices))))
+    land = BVHTree.FromPolygons(up_v, up_f)
+    shelf_t = BVHTree.FromPolygons([v.co.copy() for v in bpy.data.objects[SHELF].data.vertices],
+                                   [tuple(q.vertices) for q in bpy.data.objects[SHELF].data.polygons])
+    down = Vector((0.0, 0.0, -1.0))
+
+    def under_land(q):
+        h = land.ray_cast(Vector((q.x, q.y, 5000.0)), down)
+        return h[0] is not None and h[0].z > cut_z + 0.01
+
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    bm.verts.ensure_lookup_table()
+    bm.faces.ensure_lookup_table()
+    # The panels: an open edge at the shelf's cut, the land's edge straight above each end.
+    panels = []
+    buried = 0
+    for e in bm.edges:
+        if not e.is_boundary:
+            continue
+        b0, b1 = e.verts
+        if abs(b0.co.z - cut_z) > 0.02 or abs(b1.co.z - cut_z) > 0.02:
+            continue
+        mid = (b0.co + b1.co) * 0.5
+        if clear[0] <= mid.x <= clear[1] and clear[2] <= mid.y <= clear[3]:
+            continue
+        tops = []
+        for b in (b0, b1):
+            above = [v for f in b.link_faces for v in f.verts if (v.co.xy - b.co.xy).length < 1e-3 and v.co.z > b.co.z + 0.01]
+            tops.append(max(above, key=lambda v: v.co.z) if above else None)
+        if None in tops:
+            continue
+        quad = {b0, b1, tops[0], tops[1]}
+        fs = sorted({f for b in (b0, b1) for f in b.link_faces if set(f.verts) <= quad}, key=lambda f: f.index)
+        if not fs:
+            continue
+        # The sea side is the side with no land: the walls are not all wound to face it (the north
+        # coast's face the land).
+        a2, b2 = tops[0].co.xy, tops[1].co.xy
+        if (b2 - a2).length < 1e-6:
+            continue
+        d2 = (b2 - a2).normalized()
+        out = Vector((d2.y, -d2.x))
+        if under_land((a2 + b2) * 0.5 + out * 1.5):
+            out = -out
+            if under_land((a2 + b2) * 0.5 + out * 1.5):
+                # Land on both sides: a wall another body buries (the south coast under the southern
+                # landforms), facing no sea.
+                buried += 1
+                continue
+        inward = fs[0].normal.xy.dot(out) < 0.0
+        panels.append({"b": (b0, b1), "t": tuple(tops), "faces": fs, "out": out, "inward": inward})
+    if not panels:
+        raise SystemExit("%s has no cut shore wall" % BLUFF_OBJECT)
+    feet = {}
+    for n, p in enumerate(panels):
+        for b, t in zip(p["b"], p["t"]):
+            f = feet.setdefault(b.index, {"v": b, "top": t, "n": Vector((0.0, 0.0)), "panels": []})
+            f["n"] += p["out"]
+            f["panels"].append(n)
+    run = math.tan(math.radians(BLUFF_ANGLE))
+    for f in feet.values():
+        f["n"] = f["n"].normalized() if f["n"].length > 1e-6 else Vector((0.0, 0.0))
+        f["d"] = (f["top"].co.z - f["v"].co.z) / run
+
+
+    def at(f):
+        return f["v"].co.xy + f["n"] * f["d"]
+
+    def crosses(a0, a1, b0, b1):
+        def side(p, q, r):
+            return (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x)
+        return (side(a0, a1, b0) * side(a0, a1, b1) < 0.0) and (side(b0, b1, a0) * side(b0, b1, a1) < 0.0)
+
+    # A foot at the end of a run where the wall meets buried ground is under land where it stands, and
+    # one whose wall's side edge is open (a run's end against a wall left alone) would turn that edge
+    # from a vertical hairline into an open face: both stay where they are.
+    def open_side(f):
+        e = next((e for e in f["v"].link_edges if e.other_vert(f["v"]) is f["top"]), None)
+        return e is not None and e.is_boundary
+
+    pinned = {k for k, f in feet.items() if under_land(f["v"].co.xy + f["n"] * 0.05) or open_side(f)}
+    for k in pinned:
+        feet[k]["d"] = 0.0
+    reduced = set()
+    for _ in range(30):
+        bad = set()
+        for k, f in feet.items():
+            if k not in pinned and under_land(at(f)):
+                bad.add(k)
+        segs = []
+        for p in panels:
+            k0, k1 = p["b"][0].index, p["b"][1].index
+            a0, a1 = at(feet[k0]), at(feet[k1])
+            old = p["b"][1].co.xy - p["b"][0].co.xy
+            if (a1 - a0).dot(old) < 0.25 * old.length_squared:
+                bad |= {k0, k1}
+            segs.append((k0, k1, a0, a1))
+        # The new feet against each other, and against the walls' own top edges, by a coarse grid.
+        cells = {}
+        lines = [(s[0], s[1], s[2], s[3]) for s in segs] + [(p["b"][0].index, p["b"][1].index, p["t"][0].co.xy, p["t"][1].co.xy) for p in panels]
+        for n, (k0, k1, a0, a1) in enumerate(lines):
+            for cx in range(int(min(a0.x, a1.x) // 20), int(max(a0.x, a1.x) // 20) + 1):
+                for cy in range(int(min(a0.y, a1.y) // 20), int(max(a0.y, a1.y) // 20) + 1):
+                    cells.setdefault((cx, cy), []).append(n)
+        for members in cells.values():
+            for i in range(len(members)):
+                for j in range(i + 1, len(members)):
+                    m, o2 = lines[members[i]], lines[members[j]]
+                    if {m[0], m[1]} & {o2[0], o2[1]}:
+                        continue
+                    if members[i] >= len(segs) and members[j] >= len(segs):
+                        continue
+                    if crosses(m[2], m[3], o2[2], o2[3]):
+                        bad |= {m[0], m[1]} if members[i] < len(segs) else set()
+                        bad |= {o2[0], o2[1]} if members[j] < len(segs) else set()
+        if not bad:
+            break
+        for k in bad - pinned:
+            feet[k]["d"] *= 0.7
+            reduced.add(k)
+    else:
+        raise SystemExit("%d wall feet still cross or come under land" % len(bad))
+
+    no_shelf = 0
+    new = {}
+    for k, f in feet.items():
+        q = at(f)
+        h = shelf_t.ray_cast(Vector((q.x, q.y, 5000.0)), down)
+        if h[0] is None:
+            no_shelf += 1
+            z = cut_z
+        else:
+            z = min(cut_z, h[0].z - BLUFF_UNDER)
+        new[k] = (q.x, q.y, z)
+    ds = np.array([f["d"] for f in feet.values()])
+    heights = np.array([f["top"].co.z - sea for f in feet.values()])
+    report = {"panels": len(panels), "feet": len(feet),
+              "shore_m": round(sum((p["t"][0].co.xy - p["t"][1].co.xy).length for p in panels), 1),
+              "wall_over_sea_m": [round(float(heights.min()), 1), round(float(np.median(heights)), 1), round(float(heights.max()), 1)],
+              "foot_out_m": [round(float(np.median(ds)), 1), round(float(ds.max()), 1)],
+              "feet_brought_in": len(reduced), "feet_kept_at_buried_ends": len(pinned), "feet_with_no_shelf": no_shelf,
+              "walls_wound_to_the_land": sum(1 for p in panels if p["inward"]), "walls_buried_left": buried}
+    faces = sorted({f.index for p in panels for f in p["faces"]})
+    to_land = {f.index for p in panels if p["inward"] for f in p["faces"]}
+    bm.free()
+    if dry:
+        return {BLUFF_OBJECT: {"wall_faces": len(faces)}}, report
+    before = coords(ob).copy()
+    corner = me.corner_normals
+    old_normals = {str(fi): [list(corner[li].vector) for li in me.polygons[fi].loop_indices] for fi in faces}
+    hme = bpy.data.meshes.new("%s__before_edit%d" % (BLUFF_OBJECT, edit))
+    hob = bpy.data.objects.new(hme.name, hme)
+    hob["kyt_vertices"] = json.dumps([[k] + [float(c) for c in me.vertices[k].co] for k in sorted(new)])
+    hob["kyt_normals"] = json.dumps(old_normals)
+    hob["kyt_note"] = ("the wall feet of %s that Ground edit %d (the bluffs) moved and the walls' corner normals, "
+                       "for its --undo; never exported" % (BLUFF_OBJECT, edit))
+    history_collection().objects.link(hob)
+    normals = [Vector(n.vector) for n in corner]
+    for k, co in new.items():
+        me.vertices[k].co = co
+    me.update()
+    face_set = set(faces)
+    # Each laid-back wall shaded flat along its own winding, as the shelf left the walls: the renderers
+    # light a face seen from behind with its normal turned, so a wall wound to the land still lights
+    # from the sea (turning its normal to the sea instead rendered it black).
+    for poly in me.polygons:
+        if poly.index in face_set:
+            for li in poly.loop_indices:
+                normals[li] = Vector(poly.normal)
+    me.normals_split_custom_set(normals)
+    now = coords(ob)
+    moved = np.nonzero(np.any(np.abs(now - before) > 1e-6, axis=1))[0]
+    if set(int(i) for i in moved) - set(new):
+        raise SystemExit("%s: vertices other than the wall feet moved" % BLUFF_OBJECT)
+    flipped = sum(1 for fi in faces if (-1.0 if fi in to_land else 1.0) * me.polygons[fi].normal.z < 0.0)
+    if flipped:
+        raise SystemExit("%d of the laid-back walls face down" % flipped)
+    return {BLUFF_OBJECT: {"wall_faces": len(faces), "feet_moved": len(moved)}}, report
+
+
 def coords_of(me):
     co = np.zeros(len(me.vertices) * 3)
     me.vertices.foreach_get("co", co)
@@ -3608,6 +3834,22 @@ def undo(edit):
     for name in entry["objects"]:
         ob = bpy.data.objects[name]
         hob = bpy.data.objects["%s__before_edit%d" % (name, edit)]
+        if hob.get("kyt_vertices"):
+            # Only vertices moved (the bluffs): each goes back, and the faces they held their normals.
+            me = ob.data
+            for i, x, y, z in json.loads(hob["kyt_vertices"]):
+                me.vertices[i].co = (x, y, z)
+            old = json.loads(hob["kyt_normals"])
+            normals = [Vector(n.vector) for n in me.corner_normals]
+            for fi, ns in old.items():
+                for li, n in zip(me.polygons[int(fi)].loop_indices, ns):
+                    normals[li] = Vector(n)
+            me.update()
+            me.normals_split_custom_set(normals)
+            hme = hob.data
+            bpy.data.objects.remove(hob)
+            bpy.data.meshes.remove(hme)
+            continue
         if hob.get("kyt_whole"):
             # Kept whole (edit 1): the object takes its old mesh back.
             old = ob.data
@@ -3785,7 +4027,7 @@ def main():
         against = 0.0
         now_t, pre_t, box, grid_points, bank_report = seams_design()
         print("  seams design: %s" % json.dumps(bank_report))
-    elif edit not in (SHELF_ID, LANDFORM_SHELF_ID, CITY_CUT_ID):
+    elif edit not in (SHELF_ID, LANDFORM_SHELF_ID, CITY_CUT_ID, BLUFFS_ID):
         now_t, pre_t, box, grid_points = grid_surfaces(edit)
     before = {ob.name: coords(ob).copy() for ob in ground_objects()}
     reports = {}
@@ -3807,6 +4049,9 @@ def main():
         print("  %-34s %s" % (NEW_LAND[edit], ", ".join("%s %s" % kv for kv in land_report.items())))
     elif edit == CITY_CUT_ID:
         reports, city_report = city_cut(edit, a["dry"])
+    elif edit == BLUFFS_ID:
+        reports, city_report = bluffs(edit, a["dry"])
+        print("  bluffs: %s" % json.dumps(city_report))
     else:
         for ob in ground_objects():
             if edit in (LAKE_BANKS_ID, SEAMS_ID) and ob.name != "terrain_world_mainland_reserve":
@@ -3832,8 +4077,8 @@ def main():
             if not np.array_equal(before[ob.name], coords(ob)):
                 raise SystemExit("%s moved, and the edit never reached it" % ob.name)
             continue
-        if edit in RANGE_BLEND or edit == CITY_CUT_ID:
-            # Cut whole; `range_blend` and `city_cut` proved the surface they did not reach.
+        if edit in RANGE_BLEND or edit in (CITY_CUT_ID, BLUFFS_ID):
+            # `range_blend`, `city_cut` and `bluffs` proved what they did not move themselves.
             continue
         now = coords(ob)
         used = edit_face_vertices(ob, edit)
@@ -3851,6 +4096,8 @@ def main():
         design = {"name": "city_cut"}
     elif edit == SEAMS_ID:
         design = {"name": "seams"}
+    elif edit == BLUFFS_ID:
+        design = {"name": "bluffs"}
     else:
         design = next(e for e in json.loads(bpy.data.objects[GRID].get("kyt_edits", "[]")) if e.get("id") == edit)
         if edit in WITH:
@@ -3910,6 +4157,8 @@ def main():
         entry["seams" if edit == SEAMS_ID else "banks"] = bank_report
     if edit == CITY_CUT_ID:
         entry["city"] = city_report
+    if edit == BLUFFS_ID:
+        entry["bluffs"] = city_report
     log(entry)
     held = sum(r.get("seam_held", 0) for r in reports.values())
     if edit == SHELF_ID:
@@ -3933,6 +4182,13 @@ def main():
                    json.dumps(bank_report), HISTORY))
     elif edit == CITY_CUT_ID:
         readme(city_readme(edit, design["name"], city_report))
+    elif edit == BLUFFS_ID:
+        readme("Ground edit %d (%s), %s: the reserve's shore walls laid back to %.0f degrees, the land's edge "
+               "held and each wall's foot moved out to sea, %.1f m under the coast shelf there, which is not touched "
+               "(%s); the old foot positions and the walls' normals kept on %s for the undo. Undo: "
+               "tools/blender/world_terrain_ground_edit.py -- --edit bluffs --undo." % (
+                   edit, design["name"], TODAY, BLUFF_ANGLE, BLUFF_UNDER, json.dumps(city_report),
+                   "%s__before_edit%d" % (BLUFF_OBJECT, edit)))
     elif edit == SEAMS_ID:
         readme("Ground edit %d (%s), %s: the reserve's seams blended where it stood against itself in sheer walls "
                "(sites %s of the sheer-face survey): within %.0f m of every sheer cell the slope limited to %.1f, "
