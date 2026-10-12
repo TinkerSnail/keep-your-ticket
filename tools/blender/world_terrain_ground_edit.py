@@ -67,6 +67,10 @@ their foot is raised and their crest's edges cut until no flank is steeper than 
 range north is a closed shell with internal sheets (`carry`'s `top_only`; an exact Boolean took those
 sheets out across the whole shell). Its rocks move with the ground by `tools/blender/range_rocks_on_ground.py`.
 
+Coast north's faces (2026-10-12, `-- --edit north_coast`, id `NORTH_COAST_ID`) are no grid edit either:
+over the tunnel north of the headland and by the plug, coast north is cut back to 45 and 55 degrees from
+what it keeps (`north_coast_design`), carried as range north's flanks are, on its top faces only.
+
 The coast shelf (2026-10-06, `-- --edit shelf`, id `SHELF_ID`) is no grid edit: every coast's
 shore wall is cut just under the waterline and a shelf runs out from it under the water, so the
 coast goes on below the sea instead of ending in a wall. See `coast_shelf`.
@@ -120,7 +124,8 @@ DESIGN_PLANES = {"K1": "water_K1_enlarged", "L0": "water_L0_enlarged"}
 POOLS = {5: {"plunge_pool": "water_plunge_pool"}}
 POOL_GROW = 2.0
 # Render views per edit beyond the lakes: {name: ((x, z) centre, width across, eye level)}.
-VIEWS = {106: {"flanks": ((-660.0, -1100.0), 900.0, 120.0)},
+VIEWS = {107: {"north_tunnel": ((-250.0, -1420.0), 800.0, 120.0), "north_plug": ((-560.0, -2260.0), 600.0, 60.0)},
+         106: {"flanks": ((-660.0, -1100.0), 900.0, 120.0)},
          105: {"bluffs_east": ((3520.0, 20.0), 500.0, 10.0), "bluffs_north_east": ((3050.0, -2300.0), 900.0, 10.0)},
          104: {"seam_site4": ((1165.0, -270.0), 800.0, 300.0), "seam_site7": ((325.0, -1810.0), 700.0, 170.0)},
          103: {"city": ((-575.0, 2660.0), 1000.0, 0.0)},
@@ -416,8 +421,38 @@ TOP_MIN_NZ = 0.15
 RF_JOIN_HOLD = 24.0
 # Cells this many in from range north's own edge (the sea, or other ground over it), so its sides never move.
 RF_INSET = 3
+# Coast north's faces (2026-10-12, kind G and the plug's sawtooth of the sheer-face survey, her choices):
+# over the twin-bore tunnel north of the headland, coast north's face stands 20 to 70 m over the
+# generator's own ground on the tunnel (its lids, which stay as they are) and on up to its 200 m
+# plateau; by the plug its sea face rises from the shore to 110-150 m at up to 71 degrees in a sawtooth.
+# Cut only, on coast north alone: in each zone the ground is brought down until nothing is steeper than
+# the zone's slope (`NC_ZONES`: 45 degrees over the tunnel, 55 by the plug, as the bluffs), laid out
+# from what it keeps: `NC_HOLD` round Ground's open edges (where coast north meets the corridor and the
+# lids, which never move) and, by the plug, the shore. Within `NC_REACH` of the zone's sheer cells,
+# faded out over `NC_TAPER` at the edge, its crest rounded over `NC_CREST`. `-- --edit north_coast`.
+NORTH_COAST_ID = 107
+NC_OBJECT = "terrain_world_coast_north"
+NC_STEP = 4.0
+# Godot x0, x1, z0, z1 and the slope (rise over run) of each zone.
+NC_ZONES = {"tunnel": ((-460.0, -50.0, -1800.0, -1050.0), 1.0),
+            "plug": ((-700.0, -420.0, -2440.0, -2080.0), math.tan(math.radians(53.0)))}
+# By the plug, 55 degrees as the bluffs (her choice) as built: laid out at 53 on the 4 m raster, since the faces
+# carried onto it stand a degree or two steeper than the raster's slope (at 55, patches over the survey's line).
+NC_REACH = 160.0
+NC_HOLD = 12.0
+# Ground this low by the plug is the shore its face is laid back from.
+NC_SHORE = 2.0
+NC_TAPER = 24.0
+NC_CREST = 8.0
+# Coast north's sawtooth is teeth of near-vertical faces: here only a face within a degree of vertical is a
+# wall (`carry`'s `top_min_nz`), and the design wins outright (`against`), so a notch between teeth fills to
+# the cut rather than staying under it.
+NC_TOP_MIN_NZ = 0.02
+NC_AGAINST = 1e9
+# Ground is held this far round every place coast north's top meets a wall or skirt of its own.
+NC_JOIN_HOLD = 8.0
 CARRIED = (1, 2, 4, 5, 6, SHELF_ID, LANDFORM_SHELF_ID, LAKE_BANKS_ID, CITY_CUT_ID, SEAMS_ID, BLUFFS_ID,
-           RANGE_FLANKS_ID)
+           RANGE_FLANKS_ID, NORTH_COAST_ID)
 
 
 def argv():
@@ -427,7 +462,7 @@ def argv():
         v = a[a.index("--edit") + 1]
         out["edit"] = {"shelf": SHELF_ID, "landform_shelf": LANDFORM_SHELF_ID, "lake_banks": LAKE_BANKS_ID,
                        "city_cut": CITY_CUT_ID, "seams": SEAMS_ID, "bluffs": BLUFFS_ID,
-                       "range_flanks": RANGE_FLANKS_ID}.get(v) or int(v)
+                       "range_flanks": RANGE_FLANKS_ID, "north_coast": NORTH_COAST_ID}.get(v) or int(v)
         for edit, (also, _tag) in WITH.items():
             if out["edit"] == also:
                 raise SystemExit("edit %d refines edit %d and is carried with it: --edit %d" % (also, edit, edit))
@@ -549,9 +584,12 @@ def history_collection():
     return c
 
 
-def carry(ob, edit, now_t, pre_t, box, grid_points, dry, top_only=False):
+def carry(ob, edit, now_t, pre_t, box, grid_points, dry, top_only=False, top_min_nz=None):
     """Refine and cut one Ground object. Returns its report, or None if untouched. `top_only` (a closed
-    shell, range north) takes only the faces one sees from above, never its sides or underside."""
+    shell, range north) takes only the faces one sees from above, never its sides or underside; a face
+    flatter than `top_min_nz` (`TOP_MIN_NZ` unless given) is a wall."""
+    if top_min_nz is None:
+        top_min_nz = TOP_MIN_NZ
     me = ob.data
     if ob.matrix_world != ob.matrix_world.Identity(4):
         raise SystemExit("%s is not at the origin; Ground objects hold world positions" % ob.name)
@@ -567,16 +605,18 @@ def carry(ob, edit, now_t, pre_t, box, grid_points, dry, top_only=False):
             c = f.calc_center_median()
             hit = ftree.ray_cast(Vector((c.x, c.y, 5000.0)), Vector((0.0, 0.0, -1.0)))
             # By height, not by which face the ray names: a sliver's centre ray lands on its neighbour.
-            if hit[0] is not None and abs(hit[0].z - c.z) < 0.01 and f.normal.z >= TOP_MIN_NZ:
+            if hit[0] is not None and abs(hit[0].z - c.z) < 0.01 and f.normal.z >= top_min_nz:
                 top.add(f.index)
         # A top face with a corner on a wall, the underside or a cap stays out of the region: the ground at
         # a wall's top and foot lie within a metre of each other in plan, and the plan's triangulation
         # joined them in teeth.
+        # Read off the top as it was, not as faces leave it (that cascaded across the whole shell).
+        joined = set()
         for v in bm.verts:
             ins = [f.index in top for f in v.link_faces]
             if any(ins) and not all(ins):
-                for f in v.link_faces:
-                    top.discard(f.index)
+                joined.update(f.index for f in v.link_faces)
+        top -= joined
 
     def in_box(co):
         return box[0] <= co.x <= box[1] and box[2] <= co.y <= box[3]
@@ -3811,6 +3851,159 @@ def range_flanks_design():
     return sheets["now"], sheets["pre"], box, points, report
 
 
+def north_coast_design():
+    """Coast north's design (`NORTH_COAST_ID`) on an `NC_STEP` raster round `NC_ZONES`, as the seams': BVH
+    sheets of its top as the design leaves it and as it stands, a box round them in Blender plan
+    coordinates, the raster points the design moves, and a report."""
+    ob = bpy.data.objects[NC_OBJECT]
+    if ob.matrix_world != ob.matrix_world.Identity(4):
+        raise SystemExit("%s is not at the origin" % NC_OBJECT)
+    me = ob.data
+    tree = BVHTree.FromPolygons([v.co for v in me.vertices], [p.vertices for p in me.polygons])
+    boxes = [b for b, _k in NC_ZONES.values()]
+    x0 = min(b[0] for b in boxes) - NC_REACH / 2
+    x1 = max(b[1] for b in boxes) + NC_REACH / 2
+    z0 = min(b[2] for b in boxes) - NC_REACH / 2
+    z1 = max(b[3] for b in boxes) + NC_REACH / 2
+    s = NC_STEP
+    ov, op = [], []
+    for o in ground_objects():
+        if o.name == NC_OBJECT:
+            continue
+        w = [o.matrix_world @ Vector(c) for c in o.bound_box]
+        if max(c.x for c in w) < x0 or min(c.x for c in w) > x1 or max(-c.y for c in w) < z0 or min(-c.y for c in w) > z1:
+            continue
+        base = len(ov)
+        ov.extend(o.matrix_world @ v.co for v in o.data.vertices)
+        op.extend([base + i for i in p.vertices] for p in o.data.polygons)
+    otree = BVHTree.FromPolygons(ov, op) if op else None
+    # Ground's open edges with ground on them: where it meets what the generator still builds (the road
+    # corridor, the tunnels' lids), which never moves.
+    seams = []
+    for o in ground_objects():
+        bm = bmesh.new()
+        bm.from_mesh(o.data)
+        om = o.matrix_world
+        for e in bm.edges:
+            if e.is_boundary and e.link_faces[0].normal.z >= MIN_UP_FACE:
+                a, b = om @ e.verts[0].co, om @ e.verts[1].co
+                if x0 - NC_HOLD <= min(a.x, b.x) and max(a.x, b.x) <= x1 + NC_HOLD and z0 - NC_HOLD <= min(-a.y, -b.y) and max(-a.y, -b.y) <= z1 + NC_HOLD:
+                    seams.append((a, b))
+        bm.free()
+    nx, nz = int(round((x1 - x0) / s)) + 1, int(round((z1 - z0) / s)) + 1
+    h = np.full((nz, nx), np.nan)
+    oth = np.full((nz, nx), np.nan)
+    layers = np.zeros((nz, nx), dtype=np.int32)
+    down = Vector((0.0, 0.0, -1.0))
+    for j in range(nz):
+        for i in range(nx):
+            x, y = x0 + i * s, -(z0 + j * s)
+            hit = tree.ray_cast(Vector((x, y, 5000.0)), down)
+            if hit[0] is not None:
+                h[j, i] = hit[0].z
+                under = []
+                for z in all_hits(tree, x, y):
+                    if not under or under[-1] - z > 0.01:
+                        under.append(z)
+                layers[j, i] = len(under)
+            if otree is not None:
+                hit = otree.ray_cast(Vector((x, y, 5000.0)), down)
+                if hit[0] is not None:
+                    oth[j, i] = hit[0].z
+    seam = np.zeros((nz, nx), bool)
+    for a, b in seams:
+        for f in np.linspace(0.0, 1.0, max(2, int((a - b).xy.length / s) + 1)):
+            i = int(round((a.x + (b.x - a.x) * f - x0) / s))
+            j = int(round((-(a.y + (b.y - a.y) * f) - z0) / s))
+            if 0 <= i < nx and 0 <= j < nz:
+                seam[j, i] = True
+    top = np.isfinite(h) & ~(np.nan_to_num(oth, nan=-1e9) > np.nan_to_num(h, nan=0.0) + 0.01)
+    # Where coast north's top meets a wall or skirt of its own (as `carry` reads them), those faces stay.
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    tops = set()
+    for f in bm.faces:
+        c = f.calc_center_median()
+        hit = tree.ray_cast(Vector((c.x, c.y, 5000.0)), down)
+        if hit[0] is not None and abs(hit[0].z - c.z) < 0.01 and f.normal.z >= NC_TOP_MIN_NZ:
+            tops.add(f.index)
+    # `carry` leaves out every top face with a corner there, so every corner of those is held.
+    joined = set()
+    for v in bm.verts:
+        ins = [f.index in tops for f in v.link_faces]
+        if any(ins) and not all(ins):
+            joined.update(f for f in v.link_faces)
+    joins = np.zeros((nz, nx), bool)
+    for f in joined:
+        for v in f.verts:
+            i, j = int(round((v.co.x - x0) / s)), int(round((-v.co.y - z0) / s))
+            if 0 <= i < nx and 0 <= j < nz:
+                joins[j, i] = True
+    bm.free()
+    held = (spread(np.where(seam, 0.0, 1e9), 1.0, s, True) <= NC_HOLD) | (spread(np.where(joins, 0.0, 1e9), 1.0, s, True) <= NC_JOIN_HOLD)
+    jj, ii = np.mgrid[0:nz, 0:nx]
+    X, Z = x0 + ii * s, z0 + jj * s
+    zz = np.where(top, h, np.nan)
+    sheer = np.zeros((nz, nx), bool)
+    for dj, di in DIRS16[:8]:
+        nb = shifted(zz, dj, di, np.nan)
+        t = np.isfinite(zz) & np.isfinite(nb) & ((zz - nb) / (s * math.hypot(dj, di)) > SEAM_SHEER)
+        sheer |= t | shifted(t, -dj, -di, False)
+    a = np.where(top, h, 1e9)
+    free_all = np.zeros((nz, nx), bool)
+    report = {}
+    for key, ((bx0, bx1, bz0, bz1), k) in NC_ZONES.items():
+        zone = (X >= bx0) & (X <= bx1) & (Z >= bz0) & (Z <= bz1)
+        seeds = sheer & zone & ~held
+        near = spread(np.where(seeds, 0.0, 1e9), 1.0, s, True) <= NC_REACH
+        free = top & zone & near & ~held
+        if key == "plug":
+            free &= np.nan_to_num(h, nan=-1e9) > NC_SHORE
+        # Cut only: each free cell no higher than any other ground of coast north's plus the slope.
+        while True:
+            prev = a
+            for dj, di in DIRS16:
+                a = np.where(free, np.minimum(a, shifted(a, dj, di, 1e9) + k * s * math.hypot(dj, di)), a)
+            if np.array_equal(a, prev):
+                break
+        free_all |= free
+        report[key] = {"seeds": int(seeds.sum()), "slope_deg": round(math.degrees(math.atan(k)), 1)}
+    za = np.where(top, h, 0.0)
+    a = np.where(free_all, a, za)
+    # The crease where the cut meets the ground it leaves, rounded (a smooth minimum, as the city cut's).
+    gap = za - a
+    hk = np.clip(NC_CREST - gap, 0.0, None) / NC_CREST
+    a = np.where(free_all & (gap > 0.0), np.minimum(za, a) - hk * hk * NC_CREST / 4.0, a)
+    a = np.minimum(a, za)
+    edge_d = spread(np.where(free_all, 1e9, 0.0), 1.0, s, True)
+    a = za + (a - za) * np.clip((edge_d - s) / NC_TAPER, 0.0, 1.0)
+    move = np.where(free_all, a - za, 0.0)
+    a = np.where(np.abs(move) > RF_EPS, a, za)
+    move = np.where(free_all, a - za, 0.0)
+    cut = move < -RF_EPS
+    if (cut & (layers > 1)).any():
+        jx, ix = np.nonzero(cut & (layers > 1))
+        raise SystemExit("coast north lies in more than one layer at %d cut cells, e.g. (%.0f, %.0f)" % (len(jx), X[jx[0], ix[0]], Z[jx[0], ix[0]]))
+    bared = cut & (np.nan_to_num(oth, nan=-1e9) > a - 1.0)
+    if bared.any():
+        jx, ix = np.nonzero(bared)
+        raise SystemExit("the cut comes within a metre of other ground at %d cells, e.g. (%.0f, %.0f)" % (len(jx), X[jx[0], ix[0]], Z[jx[0], ix[0]]))
+    for key, ((bx0, bx1, bz0, bz1), k) in NC_ZONES.items():
+        zone = (X >= bx0) & (X <= bx1) & (Z >= bz0) & (Z <= bz1)
+        m = zone & cut
+        report[key].update({"cut_ha": round(float(m.sum()) * s * s / 1e4, 2), "deepest_m": round(float(-move[zone].min()), 1),
+                            "cut_m3": int(-move[m].sum() * s * s)})
+    sheets = {}
+    ok = np.isfinite(zz)
+    for which, z in (("now", np.where(ok, a, np.nan)), ("pre", zz)):
+        sheets[which] = BVHTree.FromPolygons(
+            [Vector((x0 + i * s, -(z0 + j * s), float(z[j, i]) if ok[j, i] else -1e9)) for j in range(nz) for i in range(nx)],
+            [(j * nx + i, j * nx + i + 1, (j + 1) * nx + i + 1, (j + 1) * nx + i)
+             for j in range(nz - 1) for i in range(nx - 1) if ok[j, i] and ok[j, i + 1] and ok[j + 1, i] and ok[j + 1, i + 1]])
+    points = [Vector((x0 + i * s, -(z0 + j * s))) for j, i in zip(*np.nonzero(np.abs(move) > 0.5))]
+    return sheets["now"], sheets["pre"], (x0, x1, -z1, -z0), points, report
+
+
 def range_flanks_bands(edit):
     """The faces the edit made on range north take the range's level bands from their height, as edit 1's
     sheet's do, where they came from a band or the forest above them."""
@@ -4390,6 +4583,10 @@ def main():
         against = 0.0
         now_t, pre_t, box, grid_points, bank_report = range_flanks_design()
         print("  range flanks design: %s" % json.dumps(bank_report))
+    elif edit == NORTH_COAST_ID:
+        against = NC_AGAINST
+        now_t, pre_t, box, grid_points, bank_report = north_coast_design()
+        print("  north coast design: %s" % json.dumps(bank_report))
     elif edit not in (SHELF_ID, LANDFORM_SHELF_ID, CITY_CUT_ID, BLUFFS_ID):
         now_t, pre_t, box, grid_points = grid_surfaces(edit)
     before = {ob.name: coords(ob).copy() for ob in ground_objects()}
@@ -4421,7 +4618,10 @@ def main():
                 continue
             if edit == RANGE_FLANKS_ID and ob.name != RF_OBJECT:
                 continue
-            r = carry(ob, edit, now_t, pre_t, box, grid_points, a["dry"], top_only=edit == RANGE_FLANKS_ID)
+            if edit == NORTH_COAST_ID and ob.name != NC_OBJECT:
+                continue
+            r = carry(ob, edit, now_t, pre_t, box, grid_points, a["dry"], top_only=edit in (RANGE_FLANKS_ID, NORTH_COAST_ID),
+                      top_min_nz=NC_TOP_MIN_NZ if edit == NORTH_COAST_ID else None)
             if r is not None:
                 reports[ob.name] = r
         if edit == RANGE_FLANKS_ID and not a["dry"]:
@@ -4467,6 +4667,8 @@ def main():
         design = {"name": "bluffs"}
     elif edit == RANGE_FLANKS_ID:
         design = {"name": "range_flanks"}
+    elif edit == NORTH_COAST_ID:
+        design = {"name": "north_coast"}
     else:
         design = next(e for e in json.loads(bpy.data.objects[GRID].get("kyt_edits", "[]")) if e.get("id") == edit)
         if edit in WITH:
@@ -4523,7 +4725,8 @@ def main():
     if road is not None:
         entry["road_natural"] = road_report
     if bank_report:
-        entry["seams" if edit == SEAMS_ID else "flanks" if edit == RANGE_FLANKS_ID else "banks"] = bank_report
+        entry["seams" if edit == SEAMS_ID else "flanks" if edit == RANGE_FLANKS_ID else "coast_north" if edit == NORTH_COAST_ID
+              else "banks"] = bank_report
     if edit == CITY_CUT_ID:
         entry["city"] = city_report
     if edit == BLUFFS_ID:
@@ -4568,6 +4771,14 @@ def main():
                "tools/blender/range_rocks_on_ground.py. Undo: tools/blender/world_terrain_ground_edit.py -- --edit "
                "range_flanks --undo." % (edit, design["name"], TODAY, math.degrees(math.atan(RF_SLOPE)), RF_REACH,
                                          RF_ROAD_CLEAR, RF_ROAD, RF_ROAD_GUARD, RF_SOUTH, json.dumps(bank_report), HISTORY))
+    elif edit == NORTH_COAST_ID:
+        readme("Ground edit %d (%s), %s: coast north cut back, alone: over the twin-bore tunnel north of the headland "
+               "its face above the generator's own ground on the tunnel (which stays) laid back to 45 degrees, and by the "
+               "plug its sea face to 55 degrees from the shore; each from what it keeps, %.0f m round Ground's open edges "
+               "(the corridor and the lids) and the shore, within %.0f m of the zone's sheer cells, faded out over %.0f m, "
+               "its crest rounded over %.0f m (%s); only the faces one sees from above refined and carried; the replaced "
+               "faces kept in %s. Undo: tools/blender/world_terrain_ground_edit.py -- --edit north_coast --undo." % (
+                   edit, design["name"], TODAY, NC_HOLD, NC_REACH, NC_TAPER, NC_CREST, json.dumps(bank_report), HISTORY))
     elif edit == SEAMS_ID:
         readme("Ground edit %d (%s), %s: the reserve's seams blended where it stood against itself in sheer walls "
                "(sites %s of the sheer-face survey): within %.0f m of every sheer cell the slope limited to %.1f, "

@@ -8,8 +8,8 @@ so it sits on the new ground as it sat on the old. Nothing moves in plan.
 
 The ground before is `Ground` with the edit's faces swapped back for the faces it replaced, kept in
 `Ground_history` as `<object>__before_edit<id>`; both are linked from the master for the read and let go
-before the save. Each rock moved keeps how far and by which edit as `kyt_ground_moved_m` and
-`kyt_ground_moved_by`; `--undo` puts them back. Logged in the file's README text. Re-export with
+before the save. Each rock moved keeps how far, edit by edit, as `kyt_ground_moved_<id>` (edit 106's as
+`kyt_ground_moved_m` with `kyt_ground_moved_by`); `--undo` puts back what that edit moved, in any order. Logged in the file's README text. Re-export with
 `tools/export_world_source.sh` afterwards.
 """
 import datetime
@@ -87,19 +87,24 @@ def main():
     edit = int(a[a.index("--edit") + 1])
     master = os.path.abspath(a[a.index("--master") + 1]) if "--master" in a else MASTER
     rocks = [ob for name in ROCKS for ob in bpy.data.collections[name].all_objects if ob.type == 'MESH']
+    key = "kyt_ground_moved_%d" % edit
     if back:
-        moved = [ob for ob in rocks if ob.get("kyt_ground_moved_by") == edit]
+        moved = [ob for ob in rocks if key in ob or ob.get("kyt_ground_moved_by") == edit]
         if not moved:
             raise SystemExit("no rock was moved by edit %d" % edit)
         for ob in moved:
-            ob.location.z -= ob["kyt_ground_moved_m"]
-            del ob["kyt_ground_moved_m"]
-            del ob["kyt_ground_moved_by"]
+            if key in ob:
+                ob.location.z -= ob[key]
+                del ob[key]
+            else:
+                ob.location.z -= ob["kyt_ground_moved_m"]
+                del ob["kyt_ground_moved_m"]
+                del ob["kyt_ground_moved_by"]
         readme("%s: range_rocks_on_ground for edit %d undone; %d rocks put back." % (datetime.date.today().isoformat(), edit, len(moved)))
         print("range_rocks_on_ground: %d rocks put back" % len(moved))
     else:
-        if any("kyt_ground_moved_by" in ob for ob in rocks):
-            raise SystemExit("rocks already moved by edit %s; --undo it first" % sorted({ob["kyt_ground_moved_by"] for ob in rocks if "kyt_ground_moved_by" in ob}))
+        if any(key in ob or ob.get("kyt_ground_moved_by") == edit for ob in rocks):
+            raise SystemExit("rocks already moved by edit %d; --undo it first" % edit)
         trees = grounds(edit, master)
         moves = {}
         for ob in rocks:
@@ -123,8 +128,7 @@ def main():
             if ob.parent is not None:
                 raise SystemExit("%s has a parent; its move would not be straight up" % name)
             ob.location.z += d
-            ob["kyt_ground_moved_m"] = d
-            ob["kyt_ground_moved_by"] = edit
+            ob[key] = d
         readme("%s: range_rocks_on_ground (tools/blender/range_rocks_on_ground.py): %d rocks moved with the ground "
                "Ground edit %d moved under them (%d up, by up to %.1f m; %d down, by up to %.1f m), each by the ground's "
                "change under its centre; nothing moved in plan. Undo: -- --edit %d --undo." % (
