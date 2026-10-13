@@ -66,7 +66,9 @@ The hillside's colours (2026-10-12, `-- --edit hillside_colours`, id `HILLSIDE_C
 faces take their colours and texture coordinates again from the faces it replaced (`hillside_colours`),
 since `carry` extrapolated them when it went in; colours only. Edit 111 (2026-10-12, `-- --edit
 lowland_facing`, id `LOWLAND_FACING_ID`) turns the connection lowland's side skirt, wound inward, to face
-out (`lowland_facing`): windings only.
+out (`lowland_facing`): windings only. Edit 112 (2026-10-12, `-- --edit beaches_collide`, id
+`BEACHES_COLLIDE_ID`) takes the `kyt_collision = "none"` mark off the city's two beach sheets, which a
+cleanup left on them, so they collide (`beaches_collide`).
 
 Range north's flanks (2026-10-12, `-- --edit range_flanks`, id `RANGE_FLANKS_ID`) are no grid edit
 either: the block hill by the headland stood in big flat faces of 50 to 76 degrees, and the ground at
@@ -417,6 +419,13 @@ LOWLAND_FACING_ID = 111
 LOWLAND_OBJECT = "southern_range_connection_lowland"
 # A side wall: a face this near vertical.
 LOWLAND_WALL_NZ = 0.05
+# The beaches collide (2026-10-12): the city's two beach sheets were marked `kyt_collision = "none"` by
+# tools/strip_collision_twins.py on 2026-09-15 only because they had no collision twin, and joined Ground
+# so; most of their sand has no ground under it (11.6 of 13.3 ha and 3.1 of 5.6), so a body stepping onto
+# it fell through. The mark comes off and the export derives their collision as every Ground mesh's:
+# `-- --edit beaches_collide`.
+BEACHES_COLLIDE_ID = 112
+BEACH_OBJECTS = ("southern_city_range_beaches", "relocated_city_peninsula_beaches")
 # Range north's flanks (2026-10-12, kind C of the sheer-face survey; her "do the next part"): the block
 # hill by the headland, range north's peak of 262 m, stood on flanks of big flat triangles meeting in
 # straight creases, 58 degrees on average down its west face and 50 down its north, up to 76, until no
@@ -518,7 +527,7 @@ RE_TAPER = 24.0
 RE_CREST = 8.0
 CARRIED = (1, 2, 4, 5, 6, SHELF_ID, LANDFORM_SHELF_ID, LAKE_BANKS_ID, CITY_CUT_ID, SEAMS_ID, BLUFFS_ID,
            RANGE_FLANKS_ID, NORTH_COAST_ID, RANGE_EAST_ID, BLUFFS_FACING_ID, HILLSIDE_COLOURS_ID,
-           LOWLAND_FACING_ID)
+           LOWLAND_FACING_ID, BEACHES_COLLIDE_ID)
 
 
 def argv():
@@ -530,7 +539,8 @@ def argv():
                        "city_cut": CITY_CUT_ID, "seams": SEAMS_ID, "bluffs": BLUFFS_ID,
                        "range_flanks": RANGE_FLANKS_ID, "north_coast": NORTH_COAST_ID,
                        "range_east": RANGE_EAST_ID, "bluffs_facing": BLUFFS_FACING_ID,
-                       "hillside_colours": HILLSIDE_COLOURS_ID, "lowland_facing": LOWLAND_FACING_ID}.get(v) or int(v)
+                       "hillside_colours": HILLSIDE_COLOURS_ID, "lowland_facing": LOWLAND_FACING_ID,
+                       "beaches_collide": BEACHES_COLLIDE_ID}.get(v) or int(v)
         for edit, (also, _tag) in WITH.items():
             if out["edit"] == also:
                 raise SystemExit("edit %d refines edit %d and is carried with it: --edit %d" % (also, edit, edit))
@@ -3985,6 +3995,29 @@ def lowland_facing(edit, dry):
     return {LOWLAND_OBJECT: {"faces_turned": len(turn)}}, report
 
 
+def beaches_collide(edit, dry):
+    """Take the `kyt_collision = "none"` mark off `BEACH_OBJECTS` (`BEACHES_COLLIDE_ID`), so the export
+    derives their collision. Returns the report per object and the edit's own report."""
+    reports = {}
+    for name in BEACH_OBJECTS:
+        ob = bpy.data.objects[name]
+        if ob.get("kyt_collision") != "none":
+            raise SystemExit("%s is not marked kyt_collision=none" % name)
+        if name not in {o.name for o in ground_objects()}:
+            raise SystemExit("%s is not in %s" % (name, GROUND))
+        reports[name] = {"faces": len(ob.data.polygons), "area_ha": round(sum(p.area for p in ob.data.polygons) / 1e4, 2)}
+    report = {name: r["area_ha"] for name, r in reports.items()}
+    if dry:
+        return reports, report
+    for name in BEACH_OBJECTS:
+        ob = bpy.data.objects[name]
+        hob = bpy.data.objects.new("%s__before_edit%d" % (name, edit), bpy.data.meshes.new("%s__before_edit%d" % (name, edit)))
+        hob["kyt_collision_was"] = ob["kyt_collision"]
+        hob["kyt_note"] = "%s's collision mark before Ground edit %d (the beaches collide), for its --undo; never exported" % (name, edit)
+        history_collection().objects.link(hob)
+        del ob["kyt_collision"]
+    return reports, report
+
 
 def range_flanks_design():
     """The block hill's design (`RANGE_FLANKS_ID`) on an `RF_STEP` raster over `RF_BOX`, as the seams': BVH
@@ -4882,6 +4915,13 @@ def undo(edit):
     for name in entry["objects"]:
         ob = bpy.data.objects[name]
         hob = bpy.data.objects["%s__before_edit%d" % (name, edit)]
+        if hob.get("kyt_collision_was"):
+            # Only a collision mark taken off (the beaches): it goes back.
+            ob["kyt_collision"] = hob["kyt_collision_was"]
+            hme = hob.data
+            bpy.data.objects.remove(hob)
+            bpy.data.meshes.remove(hme)
+            continue
         if hob.get("kyt_colours"):
             # Only colours sampled again (the hillside's): each corner takes back what it had.
             me = ob.data
@@ -5144,7 +5184,7 @@ def main():
         now_t, pre_t, box, grid_points, bank_report = range_east_design()
         print("  range east design: %s" % json.dumps(bank_report))
     elif edit not in (SHELF_ID, LANDFORM_SHELF_ID, CITY_CUT_ID, BLUFFS_ID, BLUFFS_FACING_ID, HILLSIDE_COLOURS_ID,
-                      LOWLAND_FACING_ID):
+                      LOWLAND_FACING_ID, BEACHES_COLLIDE_ID):
         now_t, pre_t, box, grid_points = grid_surfaces(edit)
     before = {ob.name: coords(ob).copy() for ob in ground_objects()}
     reports = {}
@@ -5178,6 +5218,9 @@ def main():
     elif edit == LOWLAND_FACING_ID:
         reports, city_report = lowland_facing(edit, a["dry"])
         print("  lowland facing: %s" % json.dumps(city_report))
+    elif edit == BEACHES_COLLIDE_ID:
+        reports, city_report = beaches_collide(edit, a["dry"])
+        print("  beaches collide: %s" % json.dumps(city_report))
     else:
         for ob in ground_objects():
             if edit in (LAKE_BANKS_ID, SEAMS_ID) and ob.name != "terrain_world_mainland_reserve":
@@ -5240,6 +5283,8 @@ def main():
         design = {"name": "hillside_colours"}
     elif edit == LOWLAND_FACING_ID:
         design = {"name": "lowland_facing"}
+    elif edit == BEACHES_COLLIDE_ID:
+        design = {"name": "beaches_collide"}
     elif edit == RANGE_FLANKS_ID:
         design = {"name": "range_flanks"}
     elif edit == NORTH_COAST_ID:
@@ -5314,6 +5359,8 @@ def main():
         entry["hillside_colours"] = city_report
     if edit == LOWLAND_FACING_ID:
         entry["lowland_facing"] = city_report
+    if edit == BEACHES_COLLIDE_ID:
+        entry["beaches_collide"] = city_report
     log(entry)
     held = sum(r.get("seam_held", 0) for r in reports.values())
     if edit == SHELF_ID:
@@ -5360,6 +5407,12 @@ def main():
                "undo. Undo: tools/blender/world_terrain_ground_edit.py -- --edit hillside_colours --undo." % (
                    edit, design["name"], TODAY, HILLSIDE_EDIT, "%s__before_edit%d" % (HILLSIDE_OBJECT, HILLSIDE_EDIT),
                    json.dumps(city_report), "%s__before_edit%d" % (HILLSIDE_OBJECT, edit)))
+    elif edit == BEACHES_COLLIDE_ID:
+        readme("Ground edit %d (%s), %s: the kyt_collision=none mark, which tools/strip_collision_twins.py left on %s on "
+               "2026-09-15 only because they had no collision twin, taken off, so the export derives their collision "
+               "and a body no longer falls through the sand (ha: %s); the marks kept on their __before_edit%d objects "
+               "for the undo. Undo: tools/blender/world_terrain_ground_edit.py -- --edit beaches_collide --undo." % (
+                   edit, design["name"], TODAY, " and ".join(BEACH_OBJECTS), json.dumps(city_report), edit))
     elif edit == LOWLAND_FACING_ID:
         readme("Ground edit %d (%s), %s: %s's side skirt, wound inward (part of it a shore wall standing out of the "
                "water, which the game's one-sided collision let a body walk through), turned to agree with the outside "
