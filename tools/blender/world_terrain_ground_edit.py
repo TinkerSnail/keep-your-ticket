@@ -62,6 +62,10 @@ walls, cut by the coast shelf, lean back to `BLUFF_ANGLE`, their feet out to sea
 bluffs_facing`, id `BLUFFS_FACING_ID`) turns those walls that were wound to the land, and the shore walls
 still standing by coast north, to face the sea (`bluffs_facing`): windings and normals only.
 
+The hillside's colours (2026-10-12, `-- --edit hillside_colours`, id `HILLSIDE_COLOURS_ID`): edit 6's
+faces take their colours and texture coordinates again from the faces it replaced (`hillside_colours`),
+since `carry` extrapolated them when it went in; colours only.
+
 Range north's flanks (2026-10-12, `-- --edit range_flanks`, id `RANGE_FLANKS_ID`) are no grid edit
 either: the block hill by the headland stood in big flat faces of 50 to 76 degrees, and the ground at
 their foot is raised and their crest's edges cut until no flank is steeper than `RF_SLOPE`
@@ -90,6 +94,7 @@ README text. Prints the proof: every vertex outside the edit's faces unchanged, 
 depth, each lake's area against the grid design. `--dry` reports without saving.
 """
 import ast
+import base64
 import datetime
 import hashlib
 import json
@@ -391,6 +396,15 @@ BLUFFS_FACING_ID = 109
 # How far in front of and behind a face its sides are read: a wall faces the land when ground stands
 # over the point in front of it and none over the point behind.
 FACING_PROBE = 0.6
+# The hillside's colours sampled again (2026-10-12): edit 6, the hillside regrade (`a94abf2`), was carried
+# before `carry` held a new corner's weights to its parent face, and the triangulator named parents its
+# corners lay outside of: 11,672 of its 13,209 faces took colours of -10,000 to +10,000, which the game
+# (its land coloured by its vertex colours) drew black and white, and texture coordinates off the plan.
+# Every corner of edit 6's faces takes both again from the faces it replaced, kept in `Ground_history`,
+# as `carry` now samples them; nothing moves: `-- --edit hillside_colours`.
+HILLSIDE_COLOURS_ID = 110
+HILLSIDE_EDIT = 6
+HILLSIDE_OBJECT = "terrain_world_mainland_reserve"
 # Range north's flanks (2026-10-12, kind C of the sheer-face survey; her "do the next part"): the block
 # hill by the headland, range north's peak of 262 m, stood on flanks of big flat triangles meeting in
 # straight creases, 58 degrees on average down its west face and 50 down its north, up to 76, until no
@@ -491,7 +505,7 @@ RE_UNDER = 8.0
 RE_TAPER = 24.0
 RE_CREST = 8.0
 CARRIED = (1, 2, 4, 5, 6, SHELF_ID, LANDFORM_SHELF_ID, LAKE_BANKS_ID, CITY_CUT_ID, SEAMS_ID, BLUFFS_ID,
-           RANGE_FLANKS_ID, NORTH_COAST_ID, RANGE_EAST_ID, BLUFFS_FACING_ID)
+           RANGE_FLANKS_ID, NORTH_COAST_ID, RANGE_EAST_ID, BLUFFS_FACING_ID, HILLSIDE_COLOURS_ID)
 
 
 def argv():
@@ -502,7 +516,8 @@ def argv():
         out["edit"] = {"shelf": SHELF_ID, "landform_shelf": LANDFORM_SHELF_ID, "lake_banks": LAKE_BANKS_ID,
                        "city_cut": CITY_CUT_ID, "seams": SEAMS_ID, "bluffs": BLUFFS_ID,
                        "range_flanks": RANGE_FLANKS_ID, "north_coast": NORTH_COAST_ID,
-                       "range_east": RANGE_EAST_ID, "bluffs_facing": BLUFFS_FACING_ID}.get(v) or int(v)
+                       "range_east": RANGE_EAST_ID, "bluffs_facing": BLUFFS_FACING_ID,
+                       "hillside_colours": HILLSIDE_COLOURS_ID}.get(v) or int(v)
         for edit, (also, _tag) in WITH.items():
             if out["edit"] == also:
                 raise SystemExit("edit %d refines edit %d and is carried with it: --edit %d" % (also, edit, edit))
@@ -606,6 +621,37 @@ def designed(now_t, pre_t, x, y, z):
     else:
         change = max(change, -against)
     return z + w * change
+
+
+def edge_on(tri):
+    """A triangle seen edge-on from above (a wall): next to no area in plan for its edges' length."""
+    a, b, c = tri
+    v0x, v0y = b.x - a.x, b.y - a.y
+    v1x, v1y = c.x - a.x, c.y - a.y
+    return abs(v0x * v1y - v1x * v0y) <= 1e-6 * (v0x * v0x + v0y * v0y + v1x * v1x + v1y * v1y)
+
+
+def plan_weights(tri, p):
+    """The barycentric weights of `p` in triangle `tri` seen from above; a triangle seen edge-on (a
+    wall) gives all the weight to its corner nearest `p` in plan."""
+    if edge_on(tri):
+        d = [(q.x - p.x) ** 2 + (q.y - p.y) ** 2 for q in tri]
+        return tuple(1.0 if k == d.index(min(d)) else 0.0 for k in range(3))
+    a, b, c = tri
+    v0x, v0y = b.x - a.x, b.y - a.y
+    v1x, v1y = c.x - a.x, c.y - a.y
+    den = v0x * v1y - v1x * v0y
+    v2x, v2y = p.x - a.x, p.y - a.y
+    u = (v2x * v1y - v1x * v2y) / den
+    w = (v0x * v2y - v2x * v0y) / den
+    return (1.0 - u - w, u, w)
+
+
+def clamped(bary):
+    """Weights held to the triangle: none negative, summing to one."""
+    b = [max(0.0, x) for x in bary]
+    s = sum(b)
+    return tuple(x / s for x in b) if s > 0.0 else (1.0, 0.0, 0.0)
 
 
 def corner_key(co, centre):
@@ -862,14 +908,16 @@ def carry(ob, edit, now_t, pre_t, box, grid_points, dry, top_only=False, top_min
     materials = [(f.material_index, f.smooth) for f in faces]
 
     def parent_sample(fi, p):
-        a, b, c = corners[fi]
-        v0 = Vector((b.x - a.x, b.y - a.y))
-        v1 = Vector((c.x - a.x, c.y - a.y))
-        v2 = Vector((p.x - a.x, p.y - a.y))
-        den = v0.x * v1.y - v1.x * v0.y
-        u = (v2.x * v1.y - v1.x * v2.y) / den
-        w = (v0.x * v2.y - v2.x * v0.y) / den
-        bary = (1.0 - u - w, u, w)
+        # Its weights in the original face it lies in, clamped to that face: a point the triangulator
+        # names a parent it lies outside of, or a parent seen edge-on from above (a wall), takes the
+        # face's nearest values, never an extrapolation (edit 6's corners took colours of -10,000 so).
+        bary = plan_weights(corners[fi], p)
+        if min(bary) < -1e-6:
+            hit = flat.ray_cast(Vector((p.x, p.y, 1.0)), Vector((0.0, 0.0, -1.0)))
+            if hit[0] is not None and min(plan_weights(corners[hit[2]], p)) >= -1e-6:
+                fi = hit[2]
+                bary = plan_weights(corners[fi], p)
+        bary = clamped(bary)
         colour = None if col is None else [sum(bary[k] * loops[fi][k][0][j] for k in range(3)) for j in range(4)]
         tex = None if uv is None else loops[fi][0][1] * bary[0] + loops[fi][1][1] * bary[1] + loops[fi][2][1] * bary[2]
         return colour, tex
@@ -3789,6 +3837,89 @@ def bluffs_facing(edit, dry):
     return {BLUFF_OBJECT: {"wall_faces": len(walls), "faces_turned": len(turn)}}, report
 
 
+def hillside_colours(edit, dry):
+    """Edit 6's faces take their colours and texture coordinates again from the faces it replaced
+    (`HILLSIDE_COLOURS_ID`), sampled as `carry` now samples. Returns the report per object and the
+    edit's own report."""
+    ob = bpy.data.objects[HILLSIDE_OBJECT]
+    me = ob.data
+    old = bpy.data.objects.get("%s__before_edit%d" % (HILLSIDE_OBJECT, HILLSIDE_EDIT))
+    if old is None:
+        raise SystemExit("Ground carries no edit %d to sample again" % HILLSIDE_EDIT)
+    hme = old.data
+    col, hcol = me.color_attributes.get("Col"), hme.color_attributes.get("Col")
+    uv, huv = me.uv_layers.get("UVMap"), hme.uv_layers.get("UVMap")
+    if None in (col, hcol, uv, huv) or col.domain != 'CORNER' or hcol.domain != 'CORNER':
+        raise SystemExit("%s or its edit %d history has no corner colours and texture" % (HILLSIDE_OBJECT, HILLSIDE_EDIT))
+    hco = [v.co.copy() for v in hme.vertices]
+    if any(len(p.vertices) != 3 for p in hme.polygons):
+        raise SystemExit("edit %d's history has faces other than triangles" % HILLSIDE_EDIT)
+    # The replaced faces seen from above, those seen edge-on (walls) left to the faces beside them.
+    seen = [p.index for p in hme.polygons if not edge_on([hco[i] for i in p.vertices])]
+    flat = BVHTree.FromPolygons([Vector((v.x, v.y, 0.0)) for v in hco], [tuple(hme.polygons[i].vertices) for i in seen])
+    hc = np.zeros(len(hme.loops) * 4)
+    hcol.data.foreach_get("color", hc)
+    hc = hc.reshape(-1, 4)
+    hu = np.zeros(len(hme.loops) * 2)
+    huv.data.foreach_get("uv", hu)
+    hu = hu.reshape(-1, 2)
+    fa = np.zeros(len(me.polygons), dtype=np.int32)
+    me.attributes["authored_edit"].data.foreach_get("value", fa)
+    c = np.zeros(len(me.loops) * 4, dtype=np.float32)
+    col.data.foreach_get("color", c)
+    c = c.reshape(-1, 4)
+    u = np.zeros(len(me.loops) * 2, dtype=np.float32)
+    uv.data.foreach_get("uv", u)
+    u = u.reshape(-1, 2)
+    down = Vector((0.0, 0.0, -1.0))
+    loops, new_c, new_u = [], [], []
+    nearest = 0
+    for poly in me.polygons:
+        if fa[poly.index] != HILLSIDE_EDIT:
+            continue
+        for li in poly.loop_indices:
+            p = me.vertices[me.loops[li].vertex_index].co
+            hit = flat.ray_cast(Vector((p.x, p.y, 1.0)), down)
+            if hit[0] is None:
+                hit = flat.find_nearest(Vector((p.x, p.y, 0.0)))
+                nearest += 1
+            hp = hme.polygons[seen[hit[2]]]
+            bary = clamped(plan_weights([hco[i] for i in hp.vertices], p))
+            hl = list(hp.loop_indices)
+            loops.append(li)
+            new_c.append(sum(bary[k] * hc[hl[k]] for k in range(3)))
+            new_u.append(sum(bary[k] * hu[hl[k]] for k in range(3)))
+    if not loops:
+        raise SystemExit("%s has no faces of edit %d" % (HILLSIDE_OBJECT, HILLSIDE_EDIT))
+    loops = np.array(loops, dtype=np.int32)
+    new_c = np.array(new_c, dtype=np.float32)
+    new_u = np.array(new_u, dtype=np.float32)
+    was = c[loops]
+    report = {"corners": len(loops), "faces": int(np.count_nonzero(fa == HILLSIDE_EDIT)),
+              "corners_out_of_range_before": int(np.count_nonzero((was[:, :3] < -0.01).any(1) | (was[:, :3] > 1.01).any(1))),
+              "corners_out_of_range_after": int(np.count_nonzero((new_c[:, :3] < -0.01).any(1) | (new_c[:, :3] > 1.01).any(1))),
+              "corners_recoloured": int(np.count_nonzero(np.abs(new_c - was).max(1) > 0.01)),
+              "texture_moved_most": round(float(np.abs(new_u - u[loops]).max()), 2),
+              "corners_by_nearest_face": nearest}
+    if dry:
+        return {HILLSIDE_OBJECT: {"corners": len(loops)}}, report
+    hob = bpy.data.objects.new("%s__before_edit%d" % (HILLSIDE_OBJECT, edit), bpy.data.meshes.new("%s__before_edit%d" % (HILLSIDE_OBJECT, edit)))
+    hob["kyt_loops"] = base64.b64encode(loops.tobytes()).decode()
+    hob["kyt_colours"] = base64.b64encode(np.ascontiguousarray(was).tobytes()).decode()
+    hob["kyt_uvs"] = base64.b64encode(np.ascontiguousarray(u[loops]).tobytes()).decode()
+    hob["kyt_note"] = ("the corner colours and texture coordinates of %s's edit %d faces that Ground edit %d sampled "
+                       "again, for its --undo; never exported" % (HILLSIDE_OBJECT, HILLSIDE_EDIT, edit))
+    history_collection().objects.link(hob)
+    c[loops] = new_c
+    u[loops] = new_u
+    col.data.foreach_set("color", c.ravel())
+    uv.data.foreach_set("uv", u.ravel())
+    me.update()
+    if report["corners_out_of_range_after"]:
+        raise SystemExit("%d corners of edit %d still out of range" % (report["corners_out_of_range_after"], HILLSIDE_EDIT))
+    return {HILLSIDE_OBJECT: {"corners": len(loops)}}, report
+
+
 def range_flanks_design():
     """The block hill's design (`RANGE_FLANKS_ID`) on an `RF_STEP` raster over `RF_BOX`, as the seams': BVH
     sheets of range north's top as the design leaves it and as it stands, a box round them in Blender plan
@@ -4685,6 +4816,25 @@ def undo(edit):
     for name in entry["objects"]:
         ob = bpy.data.objects[name]
         hob = bpy.data.objects["%s__before_edit%d" % (name, edit)]
+        if hob.get("kyt_colours"):
+            # Only colours sampled again (the hillside's): each corner takes back what it had.
+            me = ob.data
+            li = np.frombuffer(base64.b64decode(hob["kyt_loops"]), dtype=np.int32)
+            c = np.zeros(len(me.loops) * 4, dtype=np.float32)
+            me.color_attributes["Col"].data.foreach_get("color", c)
+            c = c.reshape(-1, 4)
+            c[li] = np.frombuffer(base64.b64decode(hob["kyt_colours"]), dtype=np.float32).reshape(-1, 4)
+            me.color_attributes["Col"].data.foreach_set("color", c.ravel())
+            u = np.zeros(len(me.loops) * 2, dtype=np.float32)
+            me.uv_layers["UVMap"].data.foreach_get("uv", u)
+            u = u.reshape(-1, 2)
+            u[li] = np.frombuffer(base64.b64decode(hob["kyt_uvs"]), dtype=np.float32).reshape(-1, 2)
+            me.uv_layers["UVMap"].data.foreach_set("uv", u.ravel())
+            me.update()
+            hme = hob.data
+            bpy.data.objects.remove(hob)
+            bpy.data.meshes.remove(hme)
+            continue
         if hob.get("kyt_reversed"):
             # Only windings turned (the bluffs facing): the same faces turned back, their normals restored.
             me = ob.data
@@ -4925,7 +5075,7 @@ def main():
         against = 0.0
         now_t, pre_t, box, grid_points, bank_report = range_east_design()
         print("  range east design: %s" % json.dumps(bank_report))
-    elif edit not in (SHELF_ID, LANDFORM_SHELF_ID, CITY_CUT_ID, BLUFFS_ID, BLUFFS_FACING_ID):
+    elif edit not in (SHELF_ID, LANDFORM_SHELF_ID, CITY_CUT_ID, BLUFFS_ID, BLUFFS_FACING_ID, HILLSIDE_COLOURS_ID):
         now_t, pre_t, box, grid_points = grid_surfaces(edit)
     before = {ob.name: coords(ob).copy() for ob in ground_objects()}
     reports = {}
@@ -4953,6 +5103,9 @@ def main():
     elif edit == BLUFFS_FACING_ID:
         reports, city_report = bluffs_facing(edit, a["dry"])
         print("  bluffs facing: %s" % json.dumps(city_report))
+    elif edit == HILLSIDE_COLOURS_ID:
+        reports, city_report = hillside_colours(edit, a["dry"])
+        print("  hillside colours: %s" % json.dumps(city_report))
     else:
         for ob in ground_objects():
             if edit in (LAKE_BANKS_ID, SEAMS_ID) and ob.name != "terrain_world_mainland_reserve":
@@ -5011,6 +5164,8 @@ def main():
         design = {"name": "bluffs"}
     elif edit == BLUFFS_FACING_ID:
         design = {"name": "bluffs_facing"}
+    elif edit == HILLSIDE_COLOURS_ID:
+        design = {"name": "hillside_colours"}
     elif edit == RANGE_FLANKS_ID:
         design = {"name": "range_flanks"}
     elif edit == NORTH_COAST_ID:
@@ -5081,6 +5236,8 @@ def main():
         entry["bluffs"] = city_report
     if edit == BLUFFS_FACING_ID:
         entry["bluffs_facing"] = city_report
+    if edit == HILLSIDE_COLOURS_ID:
+        entry["hillside_colours"] = city_report
     log(entry)
     held = sum(r.get("seam_held", 0) for r in reports.values())
     if edit == SHELF_ID:
@@ -5119,6 +5276,14 @@ def main():
                "corner normals kept on %s for the undo. Undo: tools/blender/world_terrain_ground_edit.py -- --edit "
                "bluffs_facing --undo." % (edit, design["name"], TODAY, BLUFFS_ID, json.dumps(city_report),
                                           "%s__before_edit%d" % (BLUFF_OBJECT, edit)))
+    elif edit == HILLSIDE_COLOURS_ID:
+        readme("Ground edit %d (%s), %s: edit %d's faces (the hillside regrade) take their corner colours and texture "
+               "coordinates again from the faces it replaced, kept in %s, each corner by its weights in the face it lies "
+               "in seen from above, held to that face; when it went in they were extrapolated from faces the corners lay "
+               "outside of, and the game drew them black and white; nothing moved (%s); the old values kept on %s for the "
+               "undo. Undo: tools/blender/world_terrain_ground_edit.py -- --edit hillside_colours --undo." % (
+                   edit, design["name"], TODAY, HILLSIDE_EDIT, "%s__before_edit%d" % (HILLSIDE_OBJECT, HILLSIDE_EDIT),
+                   json.dumps(city_report), "%s__before_edit%d" % (HILLSIDE_OBJECT, edit)))
     elif edit == RANGE_FLANKS_ID:
         readme("Ground edit %d (%s), %s: range north's block hill by the headland, its flanks big flat faces of 50 to "
                "76 degrees, laid back to %.0f degrees: within %.0f m of each sheer cell of the hill, on range north's own "
