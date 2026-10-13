@@ -58,7 +58,9 @@ their slope is limited round each (`seams_design`), carried as edits are.
 
 The sea bluffs (2026-10-11, `-- --edit bluffs`, id `BLUFFS_ID`) move vertices only: the reserve's shore
 walls, cut by the coast shelf, lean back to `BLUFF_ANGLE`, their feet out to sea under the shelf
-(`bluffs`); the undo puts the feet and the walls' normals back.
+(`bluffs`); the undo puts the feet and the walls' normals back. Edit 109 (2026-10-12, `-- --edit
+bluffs_facing`, id `BLUFFS_FACING_ID`) turns those walls that were wound to the land, and the shore walls
+still standing by coast north, to face the sea (`bluffs_facing`): windings and normals only.
 
 Range north's flanks (2026-10-12, `-- --edit range_flanks`, id `RANGE_FLANKS_ID`) are no grid edit
 either: the block hill by the headland stood in big flat faces of 50 to 76 degrees, and the ground at
@@ -129,7 +131,8 @@ DESIGN_PLANES = {"K1": "water_K1_enlarged", "L0": "water_L0_enlarged"}
 POOLS = {5: {"plunge_pool": "water_plunge_pool"}}
 POOL_GROW = 2.0
 # Render views per edit beyond the lakes: {name: ((x, z) centre, width across, eye level)}.
-VIEWS = {108: {"range_east": ((40.0, -1220.0), 600.0, 160.0)},
+VIEWS = {109: {"facing_north_east": ((3050.0, -2300.0), 900.0, 10.0), "facing_by_coast_north": ((30.0, -2670.0), 400.0, 5.0)},
+         108: {"range_east": ((40.0, -1220.0), 600.0, 160.0)},
          107: {"north_tunnel": ((-250.0, -1420.0), 800.0, 120.0), "north_plug": ((-560.0, -2260.0), 600.0, 60.0)},
          106: {"flanks": ((-660.0, -1100.0), 900.0, 120.0)},
          105: {"bluffs_east": ((3520.0, 20.0), 500.0, 10.0), "bluffs_north_east": ((3050.0, -2300.0), 900.0, 10.0)},
@@ -377,6 +380,17 @@ BLUFF_ANGLE = 55.0
 BLUFF_UNDER = 0.3
 BLUFF_OBJECT = "terrain_world_mainland_reserve"
 BLUFF_CLEAR = 200.0
+# The bluffs turned to face the sea (2026-10-12): `bluffs` laid each wall back as it was wound, and the
+# north-east coast's and more were wound to the land. Standing, that was a wall the sea saw from behind;
+# laid back, 1,072 faces (12.1 ha) faced down where they are the top ground. The game's collision is
+# derived at export as a one-sided concave shape, so anything coming down onto them went through. Each
+# such face of the reserve's shore walls, laid back or still standing (by coast north, inside
+# `BLUFF_CLEAR`), is wound to face the sea and shaded flat along it; no vertex moves:
+# `-- --edit bluffs_facing`.
+BLUFFS_FACING_ID = 109
+# How far in front of and behind a face its sides are read: a wall faces the land when ground stands
+# over the point in front of it and none over the point behind.
+FACING_PROBE = 0.6
 # Range north's flanks (2026-10-12, kind C of the sheer-face survey; her "do the next part"): the block
 # hill by the headland, range north's peak of 262 m, stood on flanks of big flat triangles meeting in
 # straight creases, 58 degrees on average down its west face and 50 down its north, up to 76, until no
@@ -477,7 +491,7 @@ RE_UNDER = 8.0
 RE_TAPER = 24.0
 RE_CREST = 8.0
 CARRIED = (1, 2, 4, 5, 6, SHELF_ID, LANDFORM_SHELF_ID, LAKE_BANKS_ID, CITY_CUT_ID, SEAMS_ID, BLUFFS_ID,
-           RANGE_FLANKS_ID, NORTH_COAST_ID, RANGE_EAST_ID)
+           RANGE_FLANKS_ID, NORTH_COAST_ID, RANGE_EAST_ID, BLUFFS_FACING_ID)
 
 
 def argv():
@@ -488,7 +502,7 @@ def argv():
         out["edit"] = {"shelf": SHELF_ID, "landform_shelf": LANDFORM_SHELF_ID, "lake_banks": LAKE_BANKS_ID,
                        "city_cut": CITY_CUT_ID, "seams": SEAMS_ID, "bluffs": BLUFFS_ID,
                        "range_flanks": RANGE_FLANKS_ID, "north_coast": NORTH_COAST_ID,
-                       "range_east": RANGE_EAST_ID}.get(v) or int(v)
+                       "range_east": RANGE_EAST_ID, "bluffs_facing": BLUFFS_FACING_ID}.get(v) or int(v)
         for edit, (also, _tag) in WITH.items():
             if out["edit"] == also:
                 raise SystemExit("edit %d refines edit %d and is carried with it: --edit %d" % (also, edit, edit))
@@ -3669,6 +3683,112 @@ def bluffs(edit, dry):
     return {BLUFF_OBJECT: {"wall_faces": len(faces), "feet_moved": len(moved)}}, report
 
 
+def bluffs_facing(edit, dry):
+    """Turn the reserve's shore walls that face the land to face the sea (`BLUFFS_FACING_ID`): those
+    `bluffs` laid back and those it left standing by coast north. Windings and the turned faces' normals
+    only. Returns the report per object and the edit's own report."""
+    ob = bpy.data.objects[BLUFF_OBJECT]
+    me = ob.data
+    if ob.matrix_world != ob.matrix_world.Identity(4):
+        raise SystemExit("%s is not at the origin" % BLUFF_OBJECT)
+    hist = bpy.data.objects.get("%s__before_edit%d" % (BLUFF_OBJECT, BLUFFS_ID))
+    if hist is None:
+        raise SystemExit("Ground carries no edit %d (the bluffs) to turn" % BLUFFS_ID)
+    laid = {int(k) for k in json.loads(hist["kyt_normals"])}
+    cut_z = float(edit_constant("world_terrain_coast_extension.py", "SEA_LEVEL")) - SHELF_UNDER
+    # The top ground over a point: every Ground face, either way up, as one sees it from above.
+    verts, polys = [], []
+    for o in ground_objects():
+        om = o.matrix_world
+        base = len(verts)
+        verts.extend(om @ v.co for v in o.data.vertices)
+        polys.extend(tuple(base + i for i in p.vertices) for p in o.data.polygons)
+    tree = BVHTree.FromPolygons(verts, polys)
+    down = Vector((0.0, 0.0, -1.0))
+
+    def inside(q):
+        h = tree.ray_cast(Vector((q.x, q.y, 6000.0)), down)
+        return h[0] is not None and h[0].z > q.z + 0.05
+
+    def to_land(f):
+        c = f.calc_center_median()
+        front, back = inside(c + f.normal * FACING_PROBE), inside(c - f.normal * FACING_PROBE)
+        return None if front == back else front
+
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    bm.faces.ensure_lookup_table()
+    # The walls still standing, as `bluffs` found its panels: every corner a foot on an open edge at the
+    # shelf's cut or the land's edge straight above one. Then any panel between a foot and that edge: one
+    # at the end of a laid-back run, tilted by the foot it shares, was in neither.
+    feet = {v for e in bm.edges if e.is_boundary for v in e.verts if v.co.z <= cut_z + 0.02}
+    cut_feet = {v for v in feet if abs(v.co.z - cut_z) <= 0.02}
+    columns = {(round(v.co.x, 3), round(v.co.y, 3)) for v in cut_feet}
+    standing = {f.index for f in bm.faces if any(v in cut_feet for v in f.verts)
+                and all(v in cut_feet or (round(v.co.x, 3), round(v.co.y, 3)) in columns for v in f.verts)}
+    edge = {v for fi in laid | standing for v in bm.faces[fi].verts if v not in feet}
+    standing |= {f.index for f in bm.faces if any(v in feet for v in f.verts)
+                 and all(v in feet or v in edge for v in f.verts)} - laid
+    walls = sorted(laid | standing)
+    sides = {fi: to_land(bm.faces[fi]) for fi in walls}
+    turn = [fi for fi in walls if sides[fi]]
+    report = {"walls_laid_back": len(laid), "walls_left_by_it": len(standing - laid),
+              "turned": len(turn), "turned_laid_back": sum(1 for fi in turn if fi in laid),
+              "turned_ha": round(sum(bm.faces[fi].calc_area() for fi in turn) / 1e4, 2),
+              "facing_the_sea": sum(1 for fi in walls if sides[fi] is False),
+              "undecided": sum(1 for fi in walls if sides[fi] is None)}
+    if dry:
+        bm.free()
+        return {BLUFF_OBJECT: {"wall_faces": len(walls)}}, report
+    if not turn:
+        bm.free()
+        raise SystemExit("no shore wall of %s faces the land" % BLUFF_OBJECT)
+    before = coords(ob).copy()
+    kept = np.zeros(len(me.loops) * 3)
+    me.corner_normals.foreach_get("vector", kept)
+    kept = kept.reshape(-1, 3)
+    old_normals = {str(fi): [[me.loops[li].vertex_index] + kept[li].tolist() for li in me.polygons[fi].loop_indices]
+                   for fi in turn}
+    bmesh.ops.reverse_faces(bm, faces=[bm.faces[fi] for fi in turn])
+    bm.to_mesh(me)
+    bm.free()
+    me.update()
+    # Every other corner keeps its normal; a turned wall is shaded flat along its new winding, as the
+    # laid-back walls were along theirs.
+    normals = kept.copy()
+    for fi in turn:
+        poly = me.polygons[fi]
+        for li in poly.loop_indices:
+            normals[li] = poly.normal[:]
+    me.normals_split_custom_set([tuple(n) for n in normals])
+    hme = bpy.data.meshes.new("%s__before_edit%d" % (BLUFF_OBJECT, edit))
+    hob = bpy.data.objects.new(hme.name, hme)
+    hob["kyt_reversed"] = json.dumps(turn)
+    hob["kyt_normals"] = json.dumps(old_normals)
+    hob["kyt_note"] = ("the faces of %s that Ground edit %d (the bluffs facing) turned and their corner normals, "
+                       "for its --undo; never exported" % (BLUFF_OBJECT, edit))
+    history_collection().objects.link(hob)
+    if not np.array_equal(before, coords(ob)):
+        raise SystemExit("%s: a vertex moved" % BLUFF_OBJECT)
+    now = np.zeros(len(me.loops) * 3)
+    me.corner_normals.foreach_get("vector", now)
+    now = now.reshape(-1, 3)
+    mask = np.ones(len(me.loops), dtype=bool)
+    for fi in turn:
+        mask[list(me.polygons[fi].loop_indices)] = False
+    report["normal_drift_elsewhere"] = round(float(np.abs(now[mask] - kept[mask]).max()), 5)
+    if report["normal_drift_elsewhere"] > 2e-3:
+        raise SystemExit("%s: corner normals off the turned walls moved %.4f" % (BLUFF_OBJECT, report["normal_drift_elsewhere"]))
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    bm.faces.ensure_lookup_table()
+    still = sum(1 for fi in walls if to_land(bm.faces[fi]))
+    bm.free()
+    if still:
+        raise SystemExit("%d shore walls of %s still face the land" % (still, BLUFF_OBJECT))
+    return {BLUFF_OBJECT: {"wall_faces": len(walls), "faces_turned": len(turn)}}, report
+
+
 def range_flanks_design():
     """The block hill's design (`RANGE_FLANKS_ID`) on an `RF_STEP` raster over `RF_BOX`, as the seams': BVH
     sheets of range north's top as the design leaves it and as it stands, a box round them in Blender plan
@@ -4565,6 +4685,30 @@ def undo(edit):
     for name in entry["objects"]:
         ob = bpy.data.objects[name]
         hob = bpy.data.objects["%s__before_edit%d" % (name, edit)]
+        if hob.get("kyt_reversed"):
+            # Only windings turned (the bluffs facing): the same faces turned back, their normals restored.
+            me = ob.data
+            turned = json.loads(hob["kyt_reversed"])
+            old = json.loads(hob["kyt_normals"])
+            normals = np.zeros(len(me.loops) * 3)
+            me.corner_normals.foreach_get("vector", normals)
+            normals = normals.reshape(-1, 3)
+            bm = bmesh.new()
+            bm.from_mesh(me)
+            bm.faces.ensure_lookup_table()
+            bmesh.ops.reverse_faces(bm, faces=[bm.faces[fi] for fi in turned])
+            bm.to_mesh(me)
+            bm.free()
+            me.update()
+            for fi in turned:
+                by_vertex = {c[0]: c[1:] for c in old[str(fi)]}
+                for li in me.polygons[fi].loop_indices:
+                    normals[li] = by_vertex[me.loops[li].vertex_index]
+            me.normals_split_custom_set([tuple(n) for n in normals])
+            hme = hob.data
+            bpy.data.objects.remove(hob)
+            bpy.data.meshes.remove(hme)
+            continue
         if hob.get("kyt_vertices"):
             # Only vertices moved (the bluffs): each goes back, and the faces they held their normals.
             me = ob.data
@@ -4702,6 +4846,8 @@ def render(folder, edit, views):
     scene.render.engine = 'BLENDER_WORKBENCH'
     scene.display.shading.light = 'STUDIO'
     scene.display.shading.color_type = 'OBJECT'
+    # The turned walls are seen as the game's collision sees them: a face from behind is not there.
+    scene.display.shading.show_backface_culling = edit == BLUFFS_FACING_ID
     for ob in ground_objects():
         ob.color = (0.62, 0.66, 0.55, 1.0)
     for ob in bpy.data.collections[LAKES_COLLECTION].objects:
@@ -4779,7 +4925,7 @@ def main():
         against = 0.0
         now_t, pre_t, box, grid_points, bank_report = range_east_design()
         print("  range east design: %s" % json.dumps(bank_report))
-    elif edit not in (SHELF_ID, LANDFORM_SHELF_ID, CITY_CUT_ID, BLUFFS_ID):
+    elif edit not in (SHELF_ID, LANDFORM_SHELF_ID, CITY_CUT_ID, BLUFFS_ID, BLUFFS_FACING_ID):
         now_t, pre_t, box, grid_points = grid_surfaces(edit)
     before = {ob.name: coords(ob).copy() for ob in ground_objects()}
     reports = {}
@@ -4804,6 +4950,9 @@ def main():
     elif edit == BLUFFS_ID:
         reports, city_report = bluffs(edit, a["dry"])
         print("  bluffs: %s" % json.dumps(city_report))
+    elif edit == BLUFFS_FACING_ID:
+        reports, city_report = bluffs_facing(edit, a["dry"])
+        print("  bluffs facing: %s" % json.dumps(city_report))
     else:
         for ob in ground_objects():
             if edit in (LAKE_BANKS_ID, SEAMS_ID) and ob.name != "terrain_world_mainland_reserve":
@@ -4860,6 +5009,8 @@ def main():
         design = {"name": "seams"}
     elif edit == BLUFFS_ID:
         design = {"name": "bluffs"}
+    elif edit == BLUFFS_FACING_ID:
+        design = {"name": "bluffs_facing"}
     elif edit == RANGE_FLANKS_ID:
         design = {"name": "range_flanks"}
     elif edit == NORTH_COAST_ID:
@@ -4928,6 +5079,8 @@ def main():
         entry["city"] = city_report
     if edit == BLUFFS_ID:
         entry["bluffs"] = city_report
+    if edit == BLUFFS_FACING_ID:
+        entry["bluffs_facing"] = city_report
     log(entry)
     held = sum(r.get("seam_held", 0) for r in reports.values())
     if edit == SHELF_ID:
@@ -4958,6 +5111,14 @@ def main():
                "tools/blender/world_terrain_ground_edit.py -- --edit bluffs --undo." % (
                    edit, design["name"], TODAY, BLUFF_ANGLE, BLUFF_UNDER, json.dumps(city_report),
                    "%s__before_edit%d" % (BLUFF_OBJECT, edit)))
+    elif edit == BLUFFS_FACING_ID:
+        readme("Ground edit %d (%s), %s: the reserve's shore walls wound to the land turned to face the sea, those "
+               "edit %d laid back (which then faced down where they are the top ground, so the game's one-sided "
+               "collision let anything coming down onto them through) and those still standing by coast north; each "
+               "turned wall shaded flat along its new winding, no vertex moved (%s); the turned faces and their old "
+               "corner normals kept on %s for the undo. Undo: tools/blender/world_terrain_ground_edit.py -- --edit "
+               "bluffs_facing --undo." % (edit, design["name"], TODAY, BLUFFS_ID, json.dumps(city_report),
+                                          "%s__before_edit%d" % (BLUFF_OBJECT, edit)))
     elif edit == RANGE_FLANKS_ID:
         readme("Ground edit %d (%s), %s: range north's block hill by the headland, its flanks big flat faces of 50 to "
                "76 degrees, laid back to %.0f degrees: within %.0f m of each sheer cell of the hill, on range north's own "
