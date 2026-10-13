@@ -70,7 +70,10 @@ out (`lowland_facing`): windings only. Edit 112 (2026-10-12, `-- --edit beaches_
 `BEACHES_COLLIDE_ID`) takes the `kyt_collision = "none"` mark off the city's two beach sheets, which a
 cleanup left on them, so they collide (`beaches_collide`). Edit 113 (2026-10-12, `-- --edit beach_shelf`, id
 `BEACH_SHELF_ID`) runs those sheets on into the sea and under it from their seaward edges, as the landforms'
-shelf runs their coasts, its faces added to that shelf (`beach_shelf`).
+shelf runs their coasts, its faces added to that shelf (`beach_shelf`). Edit 114 (2026-10-12, `-- --edit beach_seams`,
+id `BEACH_SEAMS_ID`) fits them to the ground they run into: cut to the foothills' and the peninsula's rims, the rims
+brought down onto the sand, and a sand face straight down from every other edge of theirs above the water and from
+each end of their shelf (`beach_seams`).
 
 Range north's flanks (2026-10-12, `-- --edit range_flanks`, id `RANGE_FLANKS_ID`) are no grid edit
 either: the block hill by the headland stood in big flat faces of 50 to 76 degrees, and the ground at
@@ -142,7 +145,9 @@ DESIGN_PLANES = {"K1": "water_K1_enlarged", "L0": "water_L0_enlarged"}
 POOLS = {5: {"plunge_pool": "water_plunge_pool"}}
 POOL_GROW = 2.0
 # Render views per edit beyond the lakes: {name: ((x, z) centre, width across, eye level)}.
-VIEWS = {113: {"beach_south": ((-1450.0, 3950.0), 1700.0, -6.0), "beach_peninsula": ((-650.0, 2500.0), 1000.0, -6.0)},
+VIEWS = {114: {"seams_north": ((-1040.0, 2575.0), 200.0, -5.7), "seams_peninsula_west": ((-950.0, 2545.0), 220.0, -5.7),
+              "seams_tip": ((-1735.0, 5320.0), 260.0, -5.7)},
+         113: {"beach_south": ((-1450.0, 3950.0), 1700.0, -6.0), "beach_peninsula": ((-650.0, 2500.0), 1000.0, -6.0)},
          109: {"facing_north_east": ((3050.0, -2300.0), 900.0, 10.0), "facing_by_coast_north": ((30.0, -2670.0), 400.0, 5.0)},
          108: {"range_east": ((40.0, -1220.0), 600.0, 160.0)},
          107: {"north_tunnel": ((-250.0, -1420.0), 800.0, 120.0), "north_plug": ((-560.0, -2260.0), 600.0, 60.0)},
@@ -448,6 +453,30 @@ BEACH_SHELF_ID = 113
 BEACH_PROBE = 2.0
 # A shelf face narrower than this across its longest side is a sliver (see `beach_shelf`).
 BEACH_SLIVER = 0.05
+# The beaches fitted to what they run into (2026-10-12): edits 112 and 113 made the city's two beach sheets ground and
+# ran them on under the sea, but landward they were never fitted to anything, and footprint_test counted 75 open edges
+# on them and 6 where their shelf ends. The southern sheet's landward 6 m ran under the foothills for 2.8 km, their rim
+# (where their top meets their straight skirt) 0.12 m over the sand and the skirt going down through it; the
+# peninsula's sheet met the peninsula's rim in plan, 0.12 m under it, and its south-west half lay under the foothills,
+# up to 40 m deep. Each sheet is cut to the rim of each of `BEACH_SHELLS` in plan and the sand under the shell dropped.
+# Along the cut the rim comes down onto the sand, so the two share their corners and their edges, edge for edge; the
+# rim moves no more than `BEACH_RIM_REACH`, and nothing else of a shell moves (its skirt only grows shorter). Two
+# exceptions keep other seams whole: a rim corner another body holds, one of its corners within `BEACH_HELD` (edit 1's
+# sheet at the foothills' cut), stays, and the sand rises to it; and where the rim lies under the sand (the city cut's
+# bank, whose foot runs under the southern sheet's north end into the sea, up to 1.9 m under), the sand meets it with a
+# sand face straight down. Every other edge of the sand above the water that no shelf starts from, and each end of the
+# beaches' shelf, has a sand face straight down from it too: onto the edge of the ground directly under it where there
+# is one (edit 1's sheet, along the southern sheet's last 139 m at x -1725, 2.8 to 4.8 m down), else to under the
+# water, `SHELF_UNDER` below it as the coasts' walls were cut, or to the shelf end's own depth there. The sheets, the
+# shells and any body a face meets are kept whole for the undo, as edits 1 and 103 keep what they cut.
+# `-- --edit beach_seams`.
+BEACH_SEAMS_ID = 114
+BEACH_SHELLS = (CITY_SHELL, CITY_PENINSULA)
+BEACH_RIM_REACH = 0.3
+BEACH_HELD = 0.05
+# Plan distances under this are one point, or a point on a line: the peninsula's rim and its sheet's edge share their
+# corners to the bit, and the foothills' rim crosses the southern sheet's rungs at their own corners.
+BEACH_EPS = 1e-3
 # Range north's flanks (2026-10-12, kind C of the sheer-face survey; her "do the next part"): the block
 # hill by the headland, range north's peak of 262 m, stood on flanks of big flat triangles meeting in
 # straight creases, 58 degrees on average down its west face and 50 down its north, up to 76, until no
@@ -549,7 +578,7 @@ RE_TAPER = 24.0
 RE_CREST = 8.0
 CARRIED = (1, 2, 4, 5, 6, SHELF_ID, LANDFORM_SHELF_ID, LAKE_BANKS_ID, CITY_CUT_ID, SEAMS_ID, BLUFFS_ID,
            RANGE_FLANKS_ID, NORTH_COAST_ID, RANGE_EAST_ID, BLUFFS_FACING_ID, HILLSIDE_COLOURS_ID,
-           LOWLAND_FACING_ID, BEACHES_COLLIDE_ID, BEACH_SHELF_ID)
+           LOWLAND_FACING_ID, BEACHES_COLLIDE_ID, BEACH_SHELF_ID, BEACH_SEAMS_ID)
 
 
 def argv():
@@ -562,7 +591,8 @@ def argv():
                        "range_flanks": RANGE_FLANKS_ID, "north_coast": NORTH_COAST_ID,
                        "range_east": RANGE_EAST_ID, "bluffs_facing": BLUFFS_FACING_ID,
                        "hillside_colours": HILLSIDE_COLOURS_ID, "lowland_facing": LOWLAND_FACING_ID,
-                       "beaches_collide": BEACHES_COLLIDE_ID, "beach_shelf": BEACH_SHELF_ID}.get(v) or int(v)
+                       "beaches_collide": BEACHES_COLLIDE_ID, "beach_shelf": BEACH_SHELF_ID,
+                       "beach_seams": BEACH_SEAMS_ID}.get(v) or int(v)
         for edit, (also, _tag) in WITH.items():
             if out["edit"] == also:
                 raise SystemExit("edit %d refines edit %d and is carried with it: --edit %d" % (also, edit, edit))
@@ -4256,6 +4286,717 @@ def beach_shelf(edit, dry):
     return {LANDFORM_SHELF: {"faces_added": len(added), "vertices_added": len(new.vertices) - len(old.vertices)}}, report
 
 
+def plan_fraction(p, a, b, tol=BEACH_EPS):
+    """Where `p` lies along a-b seen from above, as a fraction held to 0..1, or None if it is further than `tol`
+    from the segment."""
+    dx, dy = b.x - a.x, b.y - a.y
+    run = math.hypot(dx, dy)
+    if run < tol:
+        return None
+    t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / (run * run)
+    if t * run < -tol or (t - 1.0) * run > tol:
+        return None
+    t = min(max(t, 0.0), 1.0)
+    if math.hypot(a.x + dx * t - p.x, a.y + dy * t - p.y) > tol:
+        return None
+    return t
+
+
+def split_edges(bm, splits, edit):
+    """Split edges of `bm` at the points given, {(corner index, corner index): [point, ...]}, each new corner exactly
+    where it is given, and triangulate every face a new corner lands on in its own plane (seen from above if it faces
+    up, else from its side): a corner split into an edge and then moved off its line would otherwise leave the face to
+    be triangulated through the corners either side of it, a sliver standing on edge. The new faces keep the old face's
+    material, shading and winding and take the edit's mark. Returns the new corners."""
+    verts = list(bm.verts)
+    fl = bm.faces.layers.int.get("authored_edit") or bm.faces.layers.int.new("authored_edit")
+    made = []
+    for (a, b), points in splits.items():
+        va, vb = verts[a], verts[b]
+        cur = bm.edges.get((va, vb))
+        if cur is None:
+            raise SystemExit("no edge between corners %d and %d to split" % (a, b))
+        v_from = va
+        for p in sorted(points, key=lambda q: (q.xy - va.co.xy).length):
+            _, nv = bmesh.utils.edge_split(cur, v_from, 0.5)
+            nv.co = p
+            cur = next(g for g in nv.link_edges if vb in g.verts)
+            v_from = nv
+            made.append(nv)
+    faces = {f for nv in made for f in nv.link_faces}
+    for f in faces:
+        corners = list(f.verts)
+        n = f.normal.copy()
+        if abs(n.z) > 0.5:
+            flat2 = [v.co.xy for v in corners]
+        else:
+            h = Vector((n.y, -n.x)).normalized()
+            flat2 = [Vector((v.co.xy.dot(h), v.co.z)) for v in corners]
+        out_v, _, out_f, orig_v, _, _ = delaunay_2d_cdt(flat2, [], [list(range(len(corners)))], 1, 1e-9, True)
+        if len(out_v) != len(corners):
+            raise SystemExit("a face split at (%.2f, %.2f) could not be triangulated on its own corners" % (
+                corners[0].co.x, -corners[0].co.y))
+        mat, smooth = f.material_index, f.smooth
+        bm.faces.remove(f)
+        for tri in out_f:
+            vs = [corners[orig_v[i][0]] for i in tri]
+            g = bm.faces.new(vs)
+            g.normal_update()
+            if g.normal.dot(n) < 0.0:
+                g.normal_flip()
+            g.material_index = mat
+            g.smooth = smooth
+            g[fl] = edit
+    return made
+
+
+def beach_seams(edit, dry):
+    """Fit `BEACH_OBJECTS` to the ground they run into (`BEACH_SEAMS_ID`): each sheet cut to the rim of each of
+    `BEACH_SHELLS` in plan, the rim brought onto the sand along the cut, and a sand face straight down from every other
+    edge of the sand above the water that no shelf starts from and from each end of the beaches' shelf. The sheets, the
+    shells and any body a sand face meets are kept whole in `Ground_history` for the undo. Returns the report per object
+    and the edit's own report."""
+    if not any(e.get("id") == BEACH_SHELF_ID for e in json.loads(bpy.context.scene.get("kyt_ground_edits", "[]"))):
+        raise SystemExit("Ground carries no edit %d (the beaches' shelf), whose ends this edit closes" % BEACH_SHELF_ID)
+    sea = float(edit_constant("world_terrain_coast_extension.py", "SEA_LEVEL"))
+    cut_z = sea - SHELF_UNDER
+    ground = {o.name: o for o in ground_objects()}
+    sheets = [ground[n] for n in BEACH_OBJECTS]
+    shells = [ground[n] for n in BEACH_SHELLS]
+    shelf = ground[LANDFORM_SHELF]
+    for ob in sheets + shells + [shelf]:
+        if ob.matrix_world != ob.matrix_world.Identity(4):
+            raise SystemExit("%s is not at the origin; Ground objects hold world positions" % ob.name)
+    for ob in sheets:
+        if ob.get("kyt_collision") == "none":
+            raise SystemExit("%s is marked kyt_collision=none, no ground; edit %d first" % (ob.name, BEACHES_COLLIDE_ID))
+    down = Vector((0.0, 0.0, -1.0))
+
+    def flat(co, polys):
+        return BVHTree.FromPolygons([Vector((c.x, c.y, 0.0)) for c in co], polys)
+
+    def over(tree, p):
+        return tree.ray_cast(Vector((p.x, p.y, 1.0)), down)
+
+    def boundary(me):
+        bm = bmesh.new()
+        bm.from_mesh(me)
+        out = [(e.verts[0].index, e.verts[1].index, e.verts[0].co.copy(), e.verts[1].co.copy())
+               for e in bm.edges if e.is_boundary]
+        bm.free()
+        return out
+
+    # Each shell's rim, its edges between a face one stands on and a face of its straight skirt, and its footprint,
+    # its top seen from above.
+    rims = {}
+    for ob in shells:
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        bm.verts.index_update()
+        if not all(e.is_manifold for e in bm.edges):
+            raise SystemExit("%s is not closed" % ob.name)
+        top = {f for f in bm.faces if f.normal.z > MIN_UP_FACE}
+        skirt = {f for f in bm.faces if abs(f.normal.z) <= MIN_UP_FACE}
+        co = [v.co.copy() for v in bm.verts]
+        edges = [tuple(v.index for v in e.verts) for e in bm.edges
+                 if sum(f in top for f in e.link_faces) == 1 and sum(f in skirt for f in e.link_faces) == 1]
+        rims[ob.name] = {"co": co, "edges": edges, "foot": flat(co, [tuple(v.index for v in f.verts) for f in top])}
+        bm.free()
+
+    # Every corner of any other body near the beaches, to know a rim corner another body holds.
+    sco = np.concatenate([coords(o) for o in sheets])
+    lo, hi = sco[:, :2].min(0) - 50.0, sco[:, :2].max(0) + 50.0
+    near = []
+    lower = []
+    for o in ground.values():
+        if o.name in BEACH_OBJECTS or o.name in BEACH_SHELLS:
+            continue
+        c = coords(o)
+        near.extend(c[((c[:, :2] >= lo) & (c[:, :2] <= hi)).all(1)])
+        # And their open edges, which a sand face may come down onto.
+        bb = [o.matrix_world @ Vector(v) for v in o.bound_box]
+        if o is not shelf and not (max(v.x for v in bb) < lo[0] or min(v.x for v in bb) > hi[0]
+                                   or max(v.y for v in bb) < lo[1] or min(v.y for v in bb) > hi[1]):
+            lower.extend((o.name, ia, ib, a, b) for ia, ib, a, b in boundary(o.data)
+                         if lo[0] <= min(a.x, b.x) and max(a.x, b.x) <= hi[0]
+                         and lo[1] <= min(a.y, b.y) and max(a.y, b.y) <= hi[1])
+    kd = KDTree(max(1, len(near)))
+    for i, c in enumerate(near):
+        kd.insert(c, i)
+    kd.balance()
+
+    def held(p):
+        return bool(near) and kd.find(p)[2] <= BEACH_HELD
+
+    # The beaches' shelf (edit 113): where it starts along each sheet's edge, and each end of it, its open edge from the
+    # sand out and down, followed until it is under the cut.
+    me = shelf.data
+    fa = np.zeros(len(me.polygons), dtype=np.int32)
+    me.attributes["authored_edit"].data.foreach_get("value", fa)
+    sbm = bmesh.new()
+    sbm.from_mesh(me)
+    sbm.verts.ensure_lookup_table()
+    sheet_edges = {ob.name: boundary(ob.data) for ob in sheets}
+
+    def on_sheet(p, name):
+        for _, _, a, b in sheet_edges[name]:
+            t = plan_fraction(p, a, b)
+            if t is not None and abs(a.z + (b.z - a.z) * t - p.z) <= BEACH_EPS:
+                return True
+        return False
+
+    starts = {}
+    for v in {v for f in sbm.faces if fa[f.index] == BEACH_SHELF_ID for v in f.verts}:
+        if v.co.z > cut_z:
+            name = next((n for n in sheet_edges if on_sheet(v.co, n)), None)
+            if name is not None:
+                starts[v.index] = name
+    pieces = {ob.name: [] for ob in sheets}
+    ends = []
+    for e in sbm.edges:
+        if not e.is_boundary:
+            continue
+        a, b = e.verts
+        if a.index in starts and b.index in starts:
+            pieces[starts[a.index]].append((a.co.copy(), b.co.copy()))
+            continue
+        for v in (a, b):
+            if v.index not in starts:
+                continue
+            chain, prev = [v, e.other_vert(v)], e
+            sides = [e.link_faces[0].calc_center_median()]
+            while chain[-1].co.z > cut_z:
+                nxt = [g for g in chain[-1].link_edges if g.is_boundary and g is not prev]
+                if len(nxt) != 1 or nxt[0].other_vert(chain[-1]).index in starts:
+                    raise SystemExit("the beaches' shelf's end at (%.2f, %.2f) does not run down under the cut" % (
+                        v.co.x, -v.co.y))
+                prev = nxt[0]
+                chain.append(prev.other_vert(chain[-1]))
+                sides.append(prev.link_faces[0].calc_center_median())
+            ends.append({"sheet": starts[v.index], "chain": [w.co.copy() for w in chain], "sides": sides})
+    sbm.free()
+
+    moves = {ob.name: {} for ob in shells}
+    splits = {ob.name: {} for ob in shells}
+    lower_splits = {}
+    plans = {}
+    report = {"shelf_ends": len(ends)}
+    for ob in sheets:
+        me = ob.data
+        bco = [v.co.copy() for v in me.vertices]
+        nb = len(bco)
+        me.calc_loop_triangles()
+        ltri = [tuple(t.vertices) for t in me.loop_triangles]
+        ttree = flat(bco, ltri)
+
+        def sand_z(p):
+            tri = [bco[i] for i in ltri[ttree.find_nearest(Vector((p.x, p.y, 0.0)))[2]]]
+            w = clamped(plan_weights(tri, p))
+            return sum(w[k] * tri[k].z for k in range(3))
+
+        # The sheet's own edges, the shelf's ends on it and the shells' rims near it, laid together in plan: where a rim
+        # crosses an edge of the sheet the triangulation puts a corner, and its triangles lie wholly on one side of every
+        # rim, so each is wholly under a shell or clear of all of them.
+        blo = Vector((min(c.x for c in bco) - 1.0, min(c.y for c in bco) - 1.0))
+        bhi = Vector((max(c.x for c in bco) + 1.0, max(c.y for c in bco) + 1.0))
+        pts = [c.xy for c in bco]
+        cons = [tuple(e.vertices) for e in me.edges]
+        end_at = {}
+        for r in ends:
+            if r["sheet"] == ob.name:
+                end_at[len(pts)] = r
+                pts.append(r["chain"][0].xy)
+        rim_in = {}
+        rim_edges = {}
+        for sh in shells:
+            R = rims[sh.name]
+            rim_edges[sh.name] = []
+            for a, b in R["edges"]:
+                ca, cb = R["co"][a], R["co"][b]
+                if max(ca.x, cb.x) < blo.x or min(ca.x, cb.x) > bhi.x or max(ca.y, cb.y) < blo.y or min(ca.y, cb.y) > bhi.y:
+                    continue
+                rim_edges[sh.name].append((a, b))
+                for vi in (a, b):
+                    if (sh.name, vi) not in rim_in:
+                        rim_in[sh.name, vi] = len(pts)
+                        pts.append(R["co"][vi].xy)
+                cons.append((rim_in[sh.name, a], rim_in[sh.name, b]))
+        rim_of = {i: key for key, i in rim_in.items()}
+        # Only inside the sheet's own faces: filling its hull instead, the straight run of the southern sheet's west shore
+        # (six corners in a line) was closed with a triangle of no width that the test of its middle took for sand.
+        out_v, _, out_f, orig_v, _, orig_f = delaunay_2d_cdt(pts, cons, [tuple(p.vertices) for p in me.polygons], 1,
+                                                             BEACH_EPS, True)
+        kept, gone, parent = [], [], {}
+        for f, of in zip(out_f, orig_f):
+            a, b, c = (out_v[i] for i in f)
+            if not of:
+                # A region the rims close off in the sheet's middle (the peninsula), no sand of it.
+                continue
+            # Twice its area: over its longest side, its width.
+            turn = (b - a).cross(c - a)
+            if abs(turn) <= BEACH_EPS * max((b - a).length, (c - b).length, (a - c).length):
+                raise SystemExit("%s: a triangle of no width at (%.2f, %.2f)" % (ob.name, a.x, -a.y))
+            m = (a + b + c) / 3.0
+            tri = tuple(f) if turn > 0.0 else (f[0], f[2], f[1])
+            parent[tri] = of[0]
+            (gone if any(over(rims[sh.name]["foot"], m)[0] is not None for sh in shells) else kept).append(tri)
+        corner = [{i for i in ov if i < nb} for ov in orig_v]
+        # A face of the sheet is rebuilt if any of it went, or a corner not its own came into it; the rest stand.
+        affected = {parent[t] for t in gone}
+        for t in kept:
+            poly = set(me.polygons[parent[t]].vertices)
+            if any(not (corner[k] & poly) for k in t):
+                affected.add(parent[t])
+        pos = {}
+        for k in {k for t in kept for k in t}:
+            ends_in = [i for i in orig_v[k] if i in end_at]
+            if corner[k]:
+                pos[k] = bco[min(corner[k])].copy()
+            elif ends_in:
+                # Where the shelf's end is, exactly, so the sand and the shelf share the corner.
+                pos[k] = end_at[ends_in[0]]["chain"][0].copy()
+            else:
+                pos[k] = Vector((out_v[k].x, out_v[k].y, sand_z(out_v[k])))
+        uses = {}
+        for t in kept:
+            for k in range(3):
+                e = frozenset((t[k], t[(k + 1) % 3]))
+                uses[e] = uses.get(e, 0) + 1
+        # The sheet's new edge, each piece with the sand on its left.
+        bnd = [(t[k], t[(k + 1) % 3]) for t in kept for k in range(3) if uses[frozenset((t[k], t[(k + 1) % 3]))] == 1]
+        nxt = dict(bnd)
+        prv = {w: u for u, w in bnd}
+        if len(nxt) != len(bnd) or len(prv) != len(bnd):
+            twice = [k for k in {u for u, _ in bnd} if sum(1 for u, _ in bnd if u == k) > 1]
+            raise SystemExit("%s's new edge touches itself at %s" % (
+                ob.name, ", ".join("(%.2f, %.2f)" % (out_v[k].x, -out_v[k].y) for k in twice[:6])))
+
+        def rim_at(k):
+            """Where the sheet's corner k lies on each shell's rim: ("v", corner) or ("e", corner, corner, fraction)."""
+            at = {}
+            for i in orig_v[k]:
+                if i in rim_of:
+                    at[rim_of[i][0]] = ("v", rim_of[i][1])
+            for sh in shells:
+                R = rims[sh.name]
+                for a, b in rim_edges[sh.name]:
+                    if sh.name in at:
+                        break
+                    t = plan_fraction(out_v[k], R["co"][a], R["co"][b])
+                    if t is None:
+                        continue
+                    run = (R["co"][b].xy - R["co"][a].xy).length
+                    if t * run <= BEACH_EPS:
+                        at[sh.name] = ("v", a)
+                    elif (1.0 - t) * run <= BEACH_EPS:
+                        at[sh.name] = ("v", b)
+                    else:
+                        at[sh.name] = ("e", a, b, t)
+            return at
+
+        # Along the cut: at or over the sand the rim comes down onto it, so the two share the corner; a rim corner another
+        # body holds stays, and the sand rises to it; under the sand the rim stays, and a sand face goes down to it.
+        assoc = {u: rim_at(u) for u, _ in bnd}
+        bottom = {}
+        snapped = 0.0
+        seam_note = {"down": 0, "held": 0, "under": 0, "down_most": 0.0, "under_most": 0.0, "held_most": 0.0}
+        for k, at in assoc.items():
+            if not at:
+                continue
+            heights = {}
+            for name, a in at.items():
+                R = rims[name]
+                if a[0] == "v":
+                    c = R["co"][a[1]]
+                    heights[name] = (c.z, held(c))
+                    # The sand takes the rim corner's own place in plan (the two agree to well under `BEACH_EPS`).
+                    snapped = max(snapped, (pos[k].xy - c.xy).length)
+                    pos[k].x, pos[k].y = c.x, c.y
+                else:
+                    ca, cb = R["co"][a[1]], R["co"][a[2]]
+                    heights[name] = (ca.z + (cb.z - ca.z) * a[3], False)
+            z = pos[k].z
+            hold = [n for n, (h, hd) in heights.items() if hd and h >= z - 1e-6]
+            if hold:
+                if len(at) > 1:
+                    raise SystemExit("a held rim corner at (%.2f, %.2f) meets another shell's rim" % (pos[k].x, -pos[k].y))
+                seam_note["held"] += 1
+                seam_note["held_most"] = max(seam_note["held_most"], heights[hold[0]][0] - z)
+                z = pos[k].z = heights[hold[0]][0]
+            bottom[k] = {}
+            for name, a in at.items():
+                h = heights[name][0]
+                if h - z > BEACH_RIM_REACH + 1e-6:
+                    raise SystemExit("%s's rim stands %.2f m over the sand at (%.2f, %.2f), more than %.1f" % (
+                        name, h - z, pos[k].x, -pos[k].y, BEACH_RIM_REACH))
+                at_z = z if h >= z - 1e-6 else h
+                if name not in hold:
+                    if at_z == z:
+                        seam_note["down"] += 1
+                        seam_note["down_most"] = max(seam_note["down_most"], h - z)
+                    else:
+                        seam_note["under"] += 1
+                        seam_note["under_most"] = max(seam_note["under_most"], z - h)
+                p = Vector((pos[k].x, pos[k].y, at_z))
+                if a[0] == "v":
+                    if rims[name]["co"][a[1]].z != at_z:
+                        moves[name][a[1]] = at_z
+                else:
+                    splits[name].setdefault((a[1], a[2]), []).append(p)
+                bottom[k][name] = p
+
+        def outward(u, w):
+            d = pos[w].xy - pos[u].xy
+            return Vector((d.y, -d.x)).normalized()
+
+        def seam_of(u, w):
+            m = (out_v[u] + out_v[w]) * 0.5
+            for name in set(assoc.get(u, {})) & set(assoc.get(w, {})):
+                R = rims[name]
+                if any(plan_fraction(m, R["co"][a], R["co"][b]) is not None for a, b in rim_edges[name]):
+                    return name
+            return None
+
+        def tiled(u, w):
+            """How much of the sheet's edge u-w the shelf starts along, as a fraction."""
+            spans = []
+            for p, q in pieces[ob.name]:
+                tp, tq = plan_fraction(p, pos[u], pos[w]), plan_fraction(q, pos[u], pos[w])
+                if tp is not None and tq is not None and abs(tp - tq) > 1e-9:
+                    spans.append((min(tp, tq), max(tp, tq)))
+            spans.sort()
+            total, reach = 0.0, 0.0
+            for s0, s1 in spans:
+                total += max(0.0, s1 - max(s0, reach))
+                reach = max(reach, s1)
+            return total
+
+        walls = []
+        seams = {}
+        open_edges = []
+        for u, w in bnd:
+            name = seam_of(u, w)
+            if name is not None:
+                seams[name] = seams.get(name, 0.0) + (pos[w].xy - pos[u].xy).length
+                tu, tw, bu, bw = pos[u], pos[w], bottom[u][name], bottom[w][name]
+                poly = [tu, tw] + ([bw] if (bw - tw).length > 1e-6 else []) + ([bu] if (bu - tu).length > 1e-6 else [])
+                if len(poly) > 2:
+                    walls.append(("rim", poly, outward(u, w)))
+                continue
+            run = (pos[w].xy - pos[u].xy).length
+            share = tiled(u, w)
+            if share * run >= run - 1e-3:
+                continue
+            if share * run > 1e-3:
+                raise SystemExit("the shelf starts along only %.0f%% of %s's edge at (%.2f, %.2f)" % (
+                    100.0 * share, ob.name, pos[u].x, -pos[u].y))
+            open_edges.append((u, w))
+
+        # The rest of the edge above the water in runs, each a straight line of the sheet's edges: a sand face goes down
+        # from each run, onto the edge of the ground directly under it where that runs its whole length, else under the
+        # water.
+        open_set = set(open_edges)
+
+        def straight(e1, e2):
+            d1, d2 = pos[e1[1]].xy - pos[e1[0]].xy, pos[e2[1]].xy - pos[e2[0]].xy
+            return abs(d1.cross(d2)) <= 1e-6 * d1.length * d2.length and d1.dot(d2) > 0.0
+
+        runs = []
+        for e in open_edges:
+            before = (prv[e[0]], e[0])
+            if before in open_set and straight(before, e):
+                continue
+            run = list(e)
+            last = e
+            while (run[-1], nxt[run[-1]]) in open_set and straight(last, (run[-1], nxt[run[-1]])) and nxt[run[-1]] != run[0]:
+                last = (run[-1], nxt[run[-1]])
+                run.append(last[1])
+            runs.append(run)
+        if sum(len(r) - 1 for r in runs) != len(open_edges):
+            raise SystemExit("%s: an open stretch of its edge closes on itself" % ob.name)
+        to_ground = 0.0
+        to_water = 0.0
+        for run in runs:
+            top = [pos[k] for k in run]
+            a, b = top[0], top[-1]
+            span = (b.xy - a.xy).length
+            out = outward(run[0], run[1])
+            # The open edges of other bodies along the run's line, lower than the sand; a step (edit 1's `JUMP`) is a
+            # hairline and not followed.
+            under = []
+            for name, ia, ib, ca, cb in lower:
+                if (cb.xy - ca.xy).length <= 2.0 * JUMP + 1e-6:
+                    continue
+                ta, tb = ((p.xy - a.xy).dot(b.xy - a.xy) / (span * span) for p in (ca, cb))
+                off = max(abs((p.xy - a.xy).cross(b.xy - a.xy)) / span for p in (ca, cb))
+                if off > BEACH_EPS or max(ta, tb) * span <= BEACH_EPS or min(ta, tb) * span >= span - BEACH_EPS:
+                    continue
+                if max(ca.z, cb.z) >= min(p.z for p in top) - 0.01:
+                    continue
+                under.append((name, ia, ib, ca, cb, ta, tb))
+            if not under:
+                for k in range(len(top) - 1):
+                    p, q = top[k], top[k + 1]
+                    walls.append(("water", [p, q, Vector((q.x, q.y, cut_z)), Vector((p.x, p.y, cut_z))], out))
+                to_water += span
+                continue
+            names = {u[0] for u in under}
+            if len(names) != 1:
+                raise SystemExit("%s's edge at (%.2f, %.2f) stands over the edges of %s at once" % (
+                    ob.name, a.x, -a.y, sorted(names)))
+            name = names.pop()
+            # The lower body's corners along the run, by their distance along it; its own edges must run on from one to
+            # the next and reach both ends of the run.
+            at = {}
+            for _, ia, ib, ca, cb, ta, tb in under:
+                at[ia], at[ib] = (ta * span, ca), (tb * span, cb)
+            order = sorted(at.items(), key=lambda kv: kv[1][0])
+            linked = {frozenset((u[1], u[2])) for u in under}
+            if any(frozenset((order[k][0], order[k + 1][0])) not in linked for k in range(len(order) - 1)):
+                raise SystemExit("%s's edges under %s's edge at (%.2f, %.2f) do not run on from one to the next" % (
+                    name, ob.name, a.x, -a.y))
+            if order[0][1][0] > 2.0 * JUMP or order[-1][1][0] < span - 2.0 * JUMP:
+                raise SystemExit("%s's edge at (%.2f, %.2f) stands over %s for only part of its run" % (
+                    ob.name, a.x, -a.y, name))
+            ax = (b.xy - a.xy).normalized()
+
+            def end_corner(s_end):
+                """The lower body's corner at the run's end: its own within a step (edit 1's `JUMP`, a hairline), else one
+                split into its edge right under the end, so the sand face's end stands straight up."""
+                close = [kv for kv in order if abs(kv[1][0] - s_end) <= 2.0 * JUMP]
+                if close:
+                    return min(close, key=lambda kv: abs(kv[1][0] - s_end))[1]
+                for (ia, (sa, ca)), (ib, (sb, cb)) in zip(order, order[1:]):
+                    if sa < s_end < sb:
+                        p = ca.lerp(cb, (s_end - sa) / (sb - sa))
+                        p.x, p.y = a.x + ax.x * s_end, a.y + ax.y * s_end
+                        lower_splits.setdefault(name, {}).setdefault((ia, ib), []).append(p)
+                        return s_end, p
+                raise SystemExit("no edge of %s under the end of %s's edge at (%.2f, %.2f)" % (name, ob.name, a.x, -a.y))
+
+            (s0, c0), (s1, c1) = end_corner(0.0), end_corner(span)
+            foot = [c0] + [c for s_, c in (kv[1] for kv in order) if s0 < s_ < s1] + [c1]
+            # Triangulated in its own upright plane, top and foot as they are, so its edges are theirs, edge for edge.
+            loop = top + list(reversed(foot))
+            flat2 = [Vector(((p.xy - a.xy).dot(ax), p.z)) for p in loop]
+            o_v, _, o_f, o_orig, _, _ = delaunay_2d_cdt(flat2, [], [list(range(len(loop)))], 1, 1e-6, True)
+            if len(o_v) != len(loop):
+                raise SystemExit("the sand face over %s at (%.2f, %.2f) needed a corner its edges do not have" % (
+                    name, a.x, -a.y))
+            for f in o_f:
+                walls.append(("ground", [loop[o_orig[i][0]] for i in f], out))
+            to_ground += span
+        # Each end of the shelf: a sand face down from its open edge to the depth where that edge is under the cut.
+        for r in ends:
+            if r["sheet"] != ob.name:
+                continue
+            chain = r["chain"]
+            level = chain[-1].z
+            for k in range(len(chain) - 1):
+                p, q = chain[k], chain[k + 1]
+                poly = [p, q] + ([Vector((q.x, q.y, level))] if q.z > level else []) + [Vector((p.x, p.y, level))]
+                side = (r["sides"][k].xy - (p.xy + q.xy) * 0.5)
+                d = q.xy - p.xy
+                n = Vector((d.y, -d.x)).normalized()
+                walls.append(("shelf_end", poly, n if n.dot(side) < 0.0 else -n))
+        area_before = sum(p.area for p in me.polygons)
+        kept_area = sum(abs((out_v[t[1]] - out_v[t[0]]).cross(out_v[t[2]] - out_v[t[0]])) * 0.5 for t in kept)
+        plans[ob.name] = {"kept": kept, "parent": parent, "affected": affected, "pos": pos, "corner": corner, "walls": walls}
+        report[ob.name] = {
+            "ha_before": round(area_before / 1e4, 2), "ha_after": round(kept_area / 1e4, 2),
+            "sand_dropped_m2": round(sum(abs((out_v[t[1]] - out_v[t[0]]).cross(out_v[t[2]] - out_v[t[0]])) * 0.5
+                                         for t in gone)),
+            "faces_rebuilt": len(affected), "triangles": sum(1 for t in kept if parent[t] in affected),
+            "seam_m": {n: round(v, 1) for n, v in seams.items()}, "rim_down": seam_note["down"],
+            "rim_down_most": round(seam_note["down_most"], 3), "rim_held": seam_note["held"],
+            "sand_up_to_held_most": round(seam_note["held_most"], 3), "rim_under": seam_note["under"],
+            "rim_under_most": round(seam_note["under_most"], 3), "snapped_most": round(snapped, 6),
+            "faces_down_to_ground_m": round(to_ground, 1), "faces_down_to_water_m": round(to_water, 1),
+            "sand_faces": len(walls), "sand_face_m2": round(sum(
+                0.5 * sum(((poly[i] - poly[0]).cross(poly[i + 1] - poly[0])).length for i in range(1, len(poly) - 1))
+                for _, poly, _ in walls), 1)}
+    report["shells"] = {name: {"corners_down": len(moves[name]), "splits": sum(len(v) for v in splits[name].values())}
+                        for name in moves}
+    report["lower_splits"] = {name: sum(len(v) for v in s.values()) for name, s in lower_splits.items()}
+    changed = list(sheets) + [ob for ob in shells if moves[ob.name] or splits[ob.name]] + [ground[n] for n in lower_splits]
+    reports = {ob.name: {"faces_before": len(ob.data.polygons)} for ob in changed}
+    if dry:
+        return reports, report
+
+    # The sheets: their standing faces kept, the rest rebuilt from the triangles kept, and the sand faces added.
+    new_meshes = {}
+    for ob in sheets:
+        P = plans[ob.name]
+        me = ob.data
+        bm = bmesh.new()
+        bm.from_mesh(me)
+        bm.verts.ensure_lookup_table()
+        bm.faces.ensure_lookup_table()
+        fl = bm.faces.layers.int.get("authored_edit") or bm.faces.layers.int.new("authored_edit")
+        olds = list(bm.verts)
+        kind = {fi: (me.polygons[fi].material_index, me.polygons[fi].use_smooth) for fi in P["affected"]}
+        bmesh.ops.delete(bm, geom=[bm.faces[fi] for fi in P["affected"]], context='FACES')
+        at = {}
+
+        def key(p):
+            return (round(p.x, 6), round(p.y, 6), round(p.z, 6))
+
+        for v in bm.verts:
+            at[key(v.co)] = v
+        made = {}
+
+        def vert(k):
+            if k not in made:
+                c = P["corner"][k]
+                v = olds[min(c)] if c and olds[min(c)].is_valid else None
+                if v is None:
+                    v = bm.verts.new(P["pos"][k])
+                elif v.co != P["pos"][k]:
+                    at.pop(key(v.co), None)
+                    v.co = P["pos"][k]
+                made[k] = v
+                at[key(v.co)] = v
+            return made[k]
+
+        def vert_at(p):
+            if key(p) not in at:
+                at[key(p)] = bm.verts.new(p)
+            return at[key(p)]
+
+        for t in P["kept"]:
+            fi = P["parent"][t]
+            if fi in P["affected"]:
+                f = bm.faces.new([vert(k) for k in t])
+                f.material_index, f.smooth = kind[fi]
+                f[fl] = edit
+        for k in P["pos"]:
+            vert(k)
+        for _, poly, out in P["walls"]:
+            vs = [vert_at(p) for p in poly]
+            f = bm.faces.new(vs)
+            f.normal_update()
+            if f.normal.xy.dot(out) < 0.0:
+                f.normal_flip()
+            f.material_index = 0
+            f.smooth = False
+            f[fl] = edit
+        new = me.copy()
+        bm.to_mesh(new)
+        bm.free()
+        new.update()
+        new_meshes[ob.name] = new
+    # The shells: their rim brought down, split where the sand's edge meets it between corners.
+    for ob in changed[len(sheets):]:
+        me = ob.data
+        bm = bmesh.new()
+        bm.from_mesh(me)
+        bm.verts.ensure_lookup_table()
+        for vi, z in moves.get(ob.name, {}).items():
+            bm.verts[vi].co.z = z
+        split_edges(bm, splits.get(ob.name) or lower_splits.get(ob.name, {}), edit)
+        new = me.copy()
+        bm.to_mesh(new)
+        bm.free()
+        new.update()
+        new_meshes[ob.name] = new
+
+    # The proof, before anything is kept. Each shell and lower body still closed or as open as it was; every corner it
+    # had where it was, but the rim corners brought down, each straight down and by no more than `BEACH_RIM_REACH`;
+    # every new corner on one of its old edges.
+    for ob in changed[len(sheets):]:
+        old, new = coords(ob), coords_of(new_meshes[ob.name])
+        moved = np.nonzero((old != new[:len(old)]).any(1))[0]
+        allowed = set(moves.get(ob.name, {}))
+        sideways = np.abs(old[moved, :2] - new[moved, :2]).max() if moved.size else 0.0
+        drop = np.abs(old[moved, 2] - new[moved, 2]).max() if moved.size else 0.0
+        if set(moved.tolist()) - allowed or sideways > 0.0 or drop > BEACH_RIM_REACH:
+            raise SystemExit("%s: corners moved other than its rim, straight down" % ob.name)
+        olde = [(Vector(old[a]), Vector(old[b])) for a, b in (tuple(e.vertices) for e in ob.data.edges)]
+        for c in new[len(old):]:
+            if not any(plan_fraction(Vector(c), p, q) is not None for p, q in olde):
+                raise SystemExit("%s: a new corner at (%.2f, %.2f) is on none of its edges" % (ob.name, c[0], -c[1]))
+        bm = bmesh.new()
+        bm.from_mesh(new_meshes[ob.name])
+        was = bmesh.new()
+        was.from_mesh(ob.data)
+        if sum(e.is_boundary for e in bm.edges) != sum(e.is_boundary for e in was.edges) + (
+                sum(len(v) for v in lower_splits.get(ob.name, {}).values())):
+            raise SystemExit("%s is no longer as closed as it was" % ob.name)
+        if (sum(not e.is_manifold and not e.is_boundary for e in bm.edges)
+                != sum(not e.is_manifold and not e.is_boundary for e in was.edges)):
+            raise SystemExit("%s has an edge with more than two faces" % ob.name)
+        # A piece of a straight skirt split along its top stands upright only as nearly as the corners' float positions
+        # allow (a hairline piece by the foothills' cut at x -1725, 0.15 m tall and 28 m long, leans 0.004 off): a face
+        # turned down is one flatter than `MIN_UP_FACE` the wrong way.
+        downward = sum(1 for f in bm.faces if f.normal.z < -MIN_UP_FACE
+                       and any(v.index in allowed or v.index >= len(old) for v in f.verts))
+        reports[ob.name].update({"faces_after": len(bm.faces), "corners_down": len(allowed),
+                                 "new_corners": len(new) - len(old), "down_most": round(float(drop), 4)})
+        bm.free()
+        was.free()
+        if downward:
+            raise SystemExit("%s: %d faces at its rim face down" % (ob.name, downward))
+    # The sheets: no face faces down; the sand faces stand straight up; and every edge of them above the water is now an
+    # edge of something else too, or one the shelf starts along.
+    def k4(c):
+        return tuple(round(float(x), 4) for x in c)
+
+    edge_keys = set()
+    for name, me in list(new_meshes.items()) + [(LANDFORM_SHELF, shelf.data)]:
+        c = coords_of(me)
+        for e in me.edges:
+            ka, kb = (k4(c[i]) for i in e.vertices)
+            edge_keys.add((name, min(ka, kb), max(ka, kb)))
+    for ob in sheets:
+        me = new_meshes[ob.name]
+        fa = np.zeros(len(me.polygons), dtype=np.int32)
+        me.attributes["authored_edit"].data.foreach_get("value", fa)
+        nz = np.array([p.normal.z for p in me.polygons])
+        upright = np.abs(nz) <= 1e-6
+        if (nz[~upright] <= 0.0).any():
+            raise SystemExit("%s: %d faces face down" % (ob.name, int((nz[~upright] <= 0.0).sum())))
+        bm = bmesh.new()
+        bm.from_mesh(me)
+        loose = 0
+        for e in bm.edges:
+            if not e.is_boundary or max(v.co.z for v in e.verts) < sea + 1.0:
+                continue
+            ka, kb = (k4(v.co) for v in e.verts)
+            if any((n, min(ka, kb), max(ka, kb)) in edge_keys for n in new_meshes.keys() | {LANDFORM_SHELF} if n != ob.name):
+                continue
+            p, q = e.verts[0].co, e.verts[1].co
+            if (p.xy - q.xy).length < 0.3:
+                continue
+            spans = sorted((min(tp, tq), max(tp, tq)) for tp, tq in (
+                (plan_fraction(s, p, q), plan_fraction(t, p, q)) for s, t in pieces[ob.name])
+                if tp is not None and tq is not None)
+            reach = 0.0
+            for s0, s1 in spans:
+                if s0 > reach + 1e-6:
+                    break
+                reach = max(reach, s1)
+            if reach < 1.0 - 1e-6:
+                loose += 1
+        bm.free()
+        if loose:
+            raise SystemExit("%s: %d edges above the water still meet nothing" % (ob.name, loose))
+        reports[ob.name].update({"faces_after": len(me.polygons), "faces_of_edit": int((fa == edit).sum()),
+                                 "sand_faces_upright": int(upright.sum())})
+    for ob in changed:
+        new = new_meshes[ob.name]
+        old = ob.data
+        hob = bpy.data.objects.new("%s__before_edit%d" % (ob.name, edit), old)
+        hob["kyt_whole"] = True
+        hob["kyt_note"] = "%s as it stood before Ground edit %d (the beaches' seams), for its --undo; never exported" % (
+            ob.name, edit)
+        history_collection().objects.link(hob)
+        name = old.name
+        old.name = hob.name
+        ob.data = new
+        new.name = name
+    return reports, report
+
+
 def range_flanks_design():
     """The block hill's design (`RANGE_FLANKS_ID`) on an `RF_STEP` raster over `RF_BOX`, as the seams': BVH
     sheets of range north's top as the design leaves it and as it stands, a box round them in Blender plan
@@ -5421,7 +6162,7 @@ def main():
         now_t, pre_t, box, grid_points, bank_report = range_east_design()
         print("  range east design: %s" % json.dumps(bank_report))
     elif edit not in (SHELF_ID, LANDFORM_SHELF_ID, CITY_CUT_ID, BLUFFS_ID, BLUFFS_FACING_ID, HILLSIDE_COLOURS_ID,
-                      LOWLAND_FACING_ID, BEACHES_COLLIDE_ID, BEACH_SHELF_ID):
+                      LOWLAND_FACING_ID, BEACHES_COLLIDE_ID, BEACH_SHELF_ID, BEACH_SEAMS_ID):
         now_t, pre_t, box, grid_points = grid_surfaces(edit)
     before = {ob.name: coords(ob).copy() for ob in ground_objects()}
     reports = {}
@@ -5461,6 +6202,9 @@ def main():
     elif edit == BEACH_SHELF_ID:
         reports, city_report = beach_shelf(edit, a["dry"])
         print("  beach shelf: %s" % json.dumps(city_report))
+    elif edit == BEACH_SEAMS_ID:
+        reports, city_report = beach_seams(edit, a["dry"])
+        print("  beach seams: %s" % json.dumps(city_report))
     else:
         for ob in ground_objects():
             if edit in (LAKE_BANKS_ID, SEAMS_ID) and ob.name != "terrain_world_mainland_reserve":
@@ -5496,8 +6240,8 @@ def main():
             if not np.array_equal(before[ob.name], coords(ob)):
                 raise SystemExit("%s moved, and the edit never reached it" % ob.name)
             continue
-        if edit in RANGE_BLEND or edit in (CITY_CUT_ID, BLUFFS_ID):
-            # `range_blend`, `city_cut` and `bluffs` proved what they did not move themselves.
+        if edit in RANGE_BLEND or edit in (CITY_CUT_ID, BLUFFS_ID, BEACH_SEAMS_ID):
+            # `range_blend`, `city_cut`, `bluffs` and `beach_seams` proved what they did not move themselves.
             continue
         now = coords(ob)
         used = edit_face_vertices(ob, edit)
@@ -5527,6 +6271,8 @@ def main():
         design = {"name": "beaches_collide"}
     elif edit == BEACH_SHELF_ID:
         design = {"name": "beach_shelf"}
+    elif edit == BEACH_SEAMS_ID:
+        design = {"name": "beach_seams"}
     elif edit == RANGE_FLANKS_ID:
         design = {"name": "range_flanks"}
     elif edit == NORTH_COAST_ID:
@@ -5605,6 +6351,8 @@ def main():
         entry["beaches_collide"] = city_report
     if edit == BEACH_SHELF_ID:
         entry["beach_shelf"] = city_report
+    if edit == BEACH_SEAMS_ID:
+        entry["beach_seams"] = city_report
     log(entry)
     held = sum(r.get("seam_held", 0) for r in reports.values())
     if edit == SHELF_ID:
@@ -5665,6 +6413,18 @@ def main():
                "tools/blender/world_terrain_ground_edit.py -- --edit beach_shelf --undo." % (
                    edit, design["name"], TODAY, " and ".join(BEACH_OBJECTS), BEACH_PROBE, SHELF_W, SHELF_DEPTH,
                    json.dumps(city_report), LANDFORM_SHELF, "%s__before_edit%d" % (LANDFORM_SHELF, edit)))
+    elif edit == BEACH_SEAMS_ID:
+        readme("Ground edit %d (%s), %s: %s cut to the rims of %s in plan and the sand under them dropped; along the cut "
+               "each rim brought down onto the sand, by %.1f m at most, so sand and rim share their corners and edges, "
+               "edge for edge; a rim corner another body holds stays and the sand rises to it, and where the rim lies "
+               "under the sand the sand meets it with a sand face straight down; every other edge of the sand above the "
+               "water that no shelf starts from, and each end of the beaches' shelf, given a sand face straight down, onto "
+               "the edge of the ground under it where there is one, else %.1f m under the water or to the shelf end's own "
+               "depth (%s); the sheets, the shells and %s kept whole in %s for the undo. Undo: "
+               "tools/blender/world_terrain_ground_edit.py -- --edit beach_seams --undo." % (
+                   edit, design["name"], TODAY, " and ".join(BEACH_OBJECTS), " and ".join(BEACH_SHELLS), BEACH_RIM_REACH,
+                   SHELF_UNDER, json.dumps(city_report), ", ".join(sorted(set(reports) - set(BEACH_OBJECTS) - set(BEACH_SHELLS)))
+                   or "nothing else", HISTORY))
     elif edit == LOWLAND_FACING_ID:
         readme("Ground edit %d (%s), %s: %s's side skirt, wound inward (part of it a shore wall standing out of the "
                "water, which the game's one-sided collision let a body walk through), turned to agree with the outside "

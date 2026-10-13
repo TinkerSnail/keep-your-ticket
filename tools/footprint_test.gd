@@ -419,7 +419,10 @@ func _check_open_faces() -> void:
 	# from: they are closed, and its rim is their cut, edge for edge. And the
 	# landforms' shelf (2026-10-08), wholly under the water. And the city's two
 	# beach sheets, ground since Ground edit 112 (2026-10-12), which the beaches'
-	# shelf (edit 113) starts from at the sand's own edge, above the water.
+	# shelf (edit 113) starts from at the sand's own edge, above the water, and
+	# the city's peninsula, closed, whose rim the peninsula's sheet meets edge for
+	# edge since Ground edit 114 (2026-10-12), as the southern sheet meets the
+	# foothills'.
 	var master: Node = load(WORLD_TERRAIN).instantiate()
 	var groundworks: Node = load("res://scenes/world/park_groundworks.tscn").instantiate()
 	var edges := {}
@@ -430,7 +433,8 @@ func _check_open_faces() -> void:
 			[master, "background_distant_range_south"], [master, "southern_range_connection_lowland"],
 			[master, "southern_range_connection_ridge_3"], [master, "southern_range_connection_ridge_4"],
 			[master, "southern_city_range_foothills"], [master, "southern_city_range_beaches"],
-			[master, "relocated_city_peninsula_beaches"], [groundworks, "terrain_road_corridor"]]:
+			[master, "relocated_city_peninsula_beaches"], [master, "relocated_city_peninsula"],
+			[groundworks, "terrain_road_corridor"]]:
 		var ground: Node = pair[0]
 		var name: String = pair[1]
 		var node: Node = ground.find_child(name, true, false)
