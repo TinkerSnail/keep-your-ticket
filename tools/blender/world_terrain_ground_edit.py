@@ -64,7 +64,9 @@ still standing by coast north, to face the sea (`bluffs_facing`): windings and n
 
 The hillside's colours (2026-10-12, `-- --edit hillside_colours`, id `HILLSIDE_COLOURS_ID`): edit 6's
 faces take their colours and texture coordinates again from the faces it replaced (`hillside_colours`),
-since `carry` extrapolated them when it went in; colours only.
+since `carry` extrapolated them when it went in; colours only. Edit 111 (2026-10-12, `-- --edit
+lowland_facing`, id `LOWLAND_FACING_ID`) turns the connection lowland's side skirt, wound inward, to face
+out (`lowland_facing`): windings only.
 
 Range north's flanks (2026-10-12, `-- --edit range_flanks`, id `RANGE_FLANKS_ID`) are no grid edit
 either: the block hill by the headland stood in big flat faces of 50 to 76 degrees, and the ground at
@@ -405,6 +407,16 @@ FACING_PROBE = 0.6
 HILLSIDE_COLOURS_ID = 110
 HILLSIDE_EDIT = 6
 HILLSIDE_OBJECT = "terrain_world_mainland_reserve"
+# The connection lowland's skirt turned outward (2026-10-12): `southern_range_connection_lowland` was
+# turned right side out on 2026-10-06 but for its side skirt, 139 faces wound inward; 1.3 ha of them
+# stand as a shore wall 2 m out of the water along 2.3 km of its south-west coast, which a body wading
+# the shelf walked through (the game's collision is one-sided). Its faces are made to agree with the
+# outside of its closed shell, refused if any but its side walls would turn; no vertex moves:
+# `-- --edit lowland_facing`.
+LOWLAND_FACING_ID = 111
+LOWLAND_OBJECT = "southern_range_connection_lowland"
+# A side wall: a face this near vertical.
+LOWLAND_WALL_NZ = 0.05
 # Range north's flanks (2026-10-12, kind C of the sheer-face survey; her "do the next part"): the block
 # hill by the headland, range north's peak of 262 m, stood on flanks of big flat triangles meeting in
 # straight creases, 58 degrees on average down its west face and 50 down its north, up to 76, until no
@@ -505,7 +517,8 @@ RE_UNDER = 8.0
 RE_TAPER = 24.0
 RE_CREST = 8.0
 CARRIED = (1, 2, 4, 5, 6, SHELF_ID, LANDFORM_SHELF_ID, LAKE_BANKS_ID, CITY_CUT_ID, SEAMS_ID, BLUFFS_ID,
-           RANGE_FLANKS_ID, NORTH_COAST_ID, RANGE_EAST_ID, BLUFFS_FACING_ID, HILLSIDE_COLOURS_ID)
+           RANGE_FLANKS_ID, NORTH_COAST_ID, RANGE_EAST_ID, BLUFFS_FACING_ID, HILLSIDE_COLOURS_ID,
+           LOWLAND_FACING_ID)
 
 
 def argv():
@@ -517,7 +530,7 @@ def argv():
                        "city_cut": CITY_CUT_ID, "seams": SEAMS_ID, "bluffs": BLUFFS_ID,
                        "range_flanks": RANGE_FLANKS_ID, "north_coast": NORTH_COAST_ID,
                        "range_east": RANGE_EAST_ID, "bluffs_facing": BLUFFS_FACING_ID,
-                       "hillside_colours": HILLSIDE_COLOURS_ID}.get(v) or int(v)
+                       "hillside_colours": HILLSIDE_COLOURS_ID, "lowland_facing": LOWLAND_FACING_ID}.get(v) or int(v)
         for edit, (also, _tag) in WITH.items():
             if out["edit"] == also:
                 raise SystemExit("edit %d refines edit %d and is carried with it: --edit %d" % (also, edit, edit))
@@ -3920,6 +3933,59 @@ def hillside_colours(edit, dry):
     return {HILLSIDE_OBJECT: {"corners": len(loops)}}, report
 
 
+def lowland_facing(edit, dry):
+    """Turn the faces of `LOWLAND_OBJECT` that disagree with the outside of its closed shell, its side
+    skirt, to face out (`LOWLAND_FACING_ID`). Returns the report per object and the edit's own report."""
+    ob = bpy.data.objects[LOWLAND_OBJECT]
+    me = ob.data
+    if ob.matrix_world != ob.matrix_world.Identity(4):
+        raise SystemExit("%s is not at the origin" % LOWLAND_OBJECT)
+    if me.has_custom_normals:
+        raise SystemExit("%s has custom normals, which this edit does not carry" % LOWLAND_OBJECT)
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    bm.faces.ensure_lookup_table()
+    was = [f.normal.copy() for f in bm.faces]
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
+    turn = [f.index for f in bm.faces if f.normal.dot(was[f.index]) < 0.0]
+    report = {"faces": len(bm.faces), "turned": len(turn),
+              "turned_m2": round(sum(bm.faces[fi].calc_area() for fi in turn), 1),
+              "turned_not_walls": sum(1 for fi in turn if abs(bm.faces[fi].normal.z) > LOWLAND_WALL_NZ)}
+    bm.free()
+    if report["turned_not_walls"]:
+        raise SystemExit("%s: %d faces other than its side walls would turn" % (LOWLAND_OBJECT, report["turned_not_walls"]))
+    if dry:
+        return {LOWLAND_OBJECT: {"faces_to_turn": len(turn)}}, report
+    if not turn:
+        raise SystemExit("%s has no face wound inward" % LOWLAND_OBJECT)
+    before = coords(ob).copy()
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    bm.faces.ensure_lookup_table()
+    bmesh.ops.reverse_faces(bm, faces=[bm.faces[fi] for fi in turn])
+    bm.to_mesh(me)
+    bm.free()
+    me.update()
+    hob = bpy.data.objects.new("%s__before_edit%d" % (LOWLAND_OBJECT, edit), bpy.data.meshes.new("%s__before_edit%d" % (LOWLAND_OBJECT, edit)))
+    hob["kyt_reversed"] = json.dumps(turn)
+    hob["kyt_note"] = ("the faces of %s that Ground edit %d (the lowland facing) turned, for its --undo; never "
+                       "exported" % (LOWLAND_OBJECT, edit))
+    history_collection().objects.link(hob)
+    if not np.array_equal(before, coords(ob)):
+        raise SystemExit("%s: a vertex moved" % LOWLAND_OBJECT)
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    bm.faces.ensure_lookup_table()
+    was = [f.normal.copy() for f in bm.faces]
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
+    still = sum(1 for f in bm.faces if f.normal.dot(was[f.index]) < 0.0)
+    bm.free()
+    if still:
+        raise SystemExit("%s: %d faces still disagree with its outside" % (LOWLAND_OBJECT, still))
+    return {LOWLAND_OBJECT: {"faces_turned": len(turn)}}, report
+
+
+
 def range_flanks_design():
     """The block hill's design (`RANGE_FLANKS_ID`) on an `RF_STEP` raster over `RF_BOX`, as the seams': BVH
     sheets of range north's top as the design leaves it and as it stands, a box round them in Blender plan
@@ -4839,7 +4905,8 @@ def undo(edit):
             # Only windings turned (the bluffs facing): the same faces turned back, their normals restored.
             me = ob.data
             turned = json.loads(hob["kyt_reversed"])
-            old = json.loads(hob["kyt_normals"])
+            # The lowland's (edit 111) had no custom normals to keep.
+            old = json.loads(hob.get("kyt_normals", "null"))
             normals = np.zeros(len(me.loops) * 3)
             me.corner_normals.foreach_get("vector", normals)
             normals = normals.reshape(-1, 3)
@@ -4850,11 +4917,12 @@ def undo(edit):
             bm.to_mesh(me)
             bm.free()
             me.update()
-            for fi in turned:
-                by_vertex = {c[0]: c[1:] for c in old[str(fi)]}
-                for li in me.polygons[fi].loop_indices:
-                    normals[li] = by_vertex[me.loops[li].vertex_index]
-            me.normals_split_custom_set([tuple(n) for n in normals])
+            if old is not None:
+                for fi in turned:
+                    by_vertex = {c[0]: c[1:] for c in old[str(fi)]}
+                    for li in me.polygons[fi].loop_indices:
+                        normals[li] = by_vertex[me.loops[li].vertex_index]
+                me.normals_split_custom_set([tuple(n) for n in normals])
             hme = hob.data
             bpy.data.objects.remove(hob)
             bpy.data.meshes.remove(hme)
@@ -5075,7 +5143,8 @@ def main():
         against = 0.0
         now_t, pre_t, box, grid_points, bank_report = range_east_design()
         print("  range east design: %s" % json.dumps(bank_report))
-    elif edit not in (SHELF_ID, LANDFORM_SHELF_ID, CITY_CUT_ID, BLUFFS_ID, BLUFFS_FACING_ID, HILLSIDE_COLOURS_ID):
+    elif edit not in (SHELF_ID, LANDFORM_SHELF_ID, CITY_CUT_ID, BLUFFS_ID, BLUFFS_FACING_ID, HILLSIDE_COLOURS_ID,
+                      LOWLAND_FACING_ID):
         now_t, pre_t, box, grid_points = grid_surfaces(edit)
     before = {ob.name: coords(ob).copy() for ob in ground_objects()}
     reports = {}
@@ -5106,6 +5175,9 @@ def main():
     elif edit == HILLSIDE_COLOURS_ID:
         reports, city_report = hillside_colours(edit, a["dry"])
         print("  hillside colours: %s" % json.dumps(city_report))
+    elif edit == LOWLAND_FACING_ID:
+        reports, city_report = lowland_facing(edit, a["dry"])
+        print("  lowland facing: %s" % json.dumps(city_report))
     else:
         for ob in ground_objects():
             if edit in (LAKE_BANKS_ID, SEAMS_ID) and ob.name != "terrain_world_mainland_reserve":
@@ -5166,6 +5238,8 @@ def main():
         design = {"name": "bluffs_facing"}
     elif edit == HILLSIDE_COLOURS_ID:
         design = {"name": "hillside_colours"}
+    elif edit == LOWLAND_FACING_ID:
+        design = {"name": "lowland_facing"}
     elif edit == RANGE_FLANKS_ID:
         design = {"name": "range_flanks"}
     elif edit == NORTH_COAST_ID:
@@ -5238,6 +5312,8 @@ def main():
         entry["bluffs_facing"] = city_report
     if edit == HILLSIDE_COLOURS_ID:
         entry["hillside_colours"] = city_report
+    if edit == LOWLAND_FACING_ID:
+        entry["lowland_facing"] = city_report
     log(entry)
     held = sum(r.get("seam_held", 0) for r in reports.values())
     if edit == SHELF_ID:
@@ -5284,6 +5360,13 @@ def main():
                "undo. Undo: tools/blender/world_terrain_ground_edit.py -- --edit hillside_colours --undo." % (
                    edit, design["name"], TODAY, HILLSIDE_EDIT, "%s__before_edit%d" % (HILLSIDE_OBJECT, HILLSIDE_EDIT),
                    json.dumps(city_report), "%s__before_edit%d" % (HILLSIDE_OBJECT, edit)))
+    elif edit == LOWLAND_FACING_ID:
+        readme("Ground edit %d (%s), %s: %s's side skirt, wound inward (part of it a shore wall standing out of the "
+               "water, which the game's one-sided collision let a body walk through), turned to agree with the outside "
+               "of its closed shell; no vertex moved (%s); the turned faces kept on %s for the undo. Undo: "
+               "tools/blender/world_terrain_ground_edit.py -- --edit lowland_facing --undo." % (
+                   edit, design["name"], TODAY, LOWLAND_OBJECT, json.dumps(city_report),
+                   "%s__before_edit%d" % (LOWLAND_OBJECT, edit)))
     elif edit == RANGE_FLANKS_ID:
         readme("Ground edit %d (%s), %s: range north's block hill by the headland, its flanks big flat faces of 50 to "
                "76 degrees, laid back to %.0f degrees: within %.0f m of each sheer cell of the hill, on range north's own "
