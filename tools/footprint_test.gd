@@ -417,7 +417,9 @@ func _check_open_faces() -> void:
 	# from the groundworks (2026-10-05); world positions either way. And the
 	# south range blend (Ground edit 1, 2026-10-06) with the landforms it was cut
 	# from: they are closed, and its rim is their cut, edge for edge. And the
-	# landforms' shelf (2026-10-08), wholly under the water.
+	# landforms' shelf (2026-10-08), wholly under the water. And the city's two
+	# beach sheets, ground since Ground edit 112 (2026-10-12), which the beaches'
+	# shelf (edit 113) starts from at the sand's own edge, above the water.
 	var master: Node = load(WORLD_TERRAIN).instantiate()
 	var groundworks: Node = load("res://scenes/world/park_groundworks.tscn").instantiate()
 	var edges := {}
@@ -427,7 +429,8 @@ func _check_open_faces() -> void:
 			[master, "terrain_coast_shelf"], [master, "terrain_landform_shelf"], [master, "terrain_south_range_blend"],
 			[master, "background_distant_range_south"], [master, "southern_range_connection_lowland"],
 			[master, "southern_range_connection_ridge_3"], [master, "southern_range_connection_ridge_4"],
-			[master, "southern_city_range_foothills"], [groundworks, "terrain_road_corridor"]]:
+			[master, "southern_city_range_foothills"], [master, "southern_city_range_beaches"],
+			[master, "relocated_city_peninsula_beaches"], [groundworks, "terrain_road_corridor"]]:
 		var ground: Node = pair[0]
 		var name: String = pair[1]
 		var node: Node = ground.find_child(name, true, false)
