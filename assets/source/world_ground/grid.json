@@ -1,0 +1,19 @@
+{
+  "about": "The world's ground as one height grid (documentation/terrain-height-grid-plan-2026-10-12.md). Stage 1 spec, 2026-10-12.",
+  "frozen_commit": "1926e71",
+  "axes": "Godot: x east, y up, z south. An image is a map, north up: row r is z = tile_z0 + spacing * r, column c is x = tile_x0 + spacing * c.",
+  "spacing_m": 2.0,
+  "tile_m": 1000.0,
+  "tile_samples": 501,
+  "tile_edges": "shared: a tile's last row and column repeat its neighbour's first, bit for bit",
+  "tiles_x": [-2, 3],
+  "tiles_z": [-3, 7],
+  "tile_origin": "tile (tx, tz) starts at x = 1000 * tx, z = 1000 * tz",
+  "files": {
+    "height": "height/x{tx}_z{tz}.exr, one float32 channel, Godot y in metres, NaN where there is no ground of the master's",
+    "baseline": "baseline/x{tx}_z{tz}.exr, the same from the frozen copy the generator measures change from",
+    "colour": "colour/x{tx}_z{tz}.png, 8-bit sRGB RGBA, the land's colour at each node, alpha 0 where there is no ground"
+  },
+  "sea_level": -7.5,
+  "holes": "holes.json: the outlines where generator-held ground (road corridor, tunnel lids, west shell, the anchors) meets the master's, from their open edges, exact"
+}

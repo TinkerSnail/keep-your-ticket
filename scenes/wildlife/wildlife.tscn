@@ -62,13 +62,13 @@ editor_description = "Northern offshore-rock gull colony. Roost and feeding mark
 [node name="roosts" type="Node3D" parent="gull_colony"]
 
 [node name="north_massif_nest_a" type="Marker3D" parent="gull_colony/roosts"]
-position = Vector3(-621.9016, 273.18, -1051.217)
+position = Vector3(-621.9016, 222.11, -1051.217)
 
 [node name="north_massif_nest_b" type="Marker3D" parent="gull_colony/roosts"]
-position = Vector3(-581.2512, 268.42, -1084.293)
+position = Vector3(-581.2512, 239.5, -1084.293)
 
 [node name="north_massif_nest_c" type="Marker3D" parent="gull_colony/roosts"]
-position = Vector3(-530.3429, 254.44, -1119.492)
+position = Vector3(-530.3429, 184.61, -1119.492)
 
 [node name="companion_rock_nest_a" type="Marker3D" parent="gull_colony/roosts"]
 position = Vector3(-1139.922, 129.22, -926.0009)
@@ -111,20 +111,20 @@ position = Vector3(-105, 26, 430)
 [node name="birds" type="Node3D" parent="gull_colony"]
 
 [node name="north_massif_resident_a" parent="gull_colony/birds" instance=ExtResource("1_gull")]
-position = Vector3(-621.9016, 273.18, -1051.217)
+position = Vector3(-621.9016, 222.11, -1051.217)
 rotation = Vector3(0, -0.7, 0)
 wander_radius = 0.25
 rng_seed = 4301
 
 [node name="north_massif_resident_b" parent="gull_colony/birds" instance=ExtResource("1_gull")]
-position = Vector3(-581.2512, 268.42, -1084.293)
+position = Vector3(-581.2512, 239.5, -1084.293)
 rotation = Vector3(0, 1.9, 0)
 black_tail = true
 wander_radius = 0.25
 rng_seed = 4302
 
 [node name="north_massif_juvenile" parent="gull_colony/birds" instance=ExtResource("3_juvenile_gull")]
-position = Vector3(-530.3429, 254.44, -1119.492)
+position = Vector3(-530.3429, 184.61, -1119.492)
 rotation = Vector3(0, -2.4, 0)
 wander_radius = 0.25
 rng_seed = 4303
@@ -168,20 +168,20 @@ wander_radius = 0.25
 rng_seed = 4309
 
 [node name="commuter_a" parent="gull_colony/birds" instance=ExtResource("1_gull")]
-position = Vector3(-621.9016, 273.18, -1051.217)
+position = Vector3(-621.9016, 222.11, -1051.217)
 flight_radius = 22.0
 flight_relief = 3.0
 rng_seed = 4401
 
 [node name="commuter_b" parent="gull_colony/birds" instance=ExtResource("1_gull")]
-position = Vector3(-581.2512, 268.42, -1084.293)
+position = Vector3(-581.2512, 239.5, -1084.293)
 black_tail = true
 flight_radius = 25.0
 flight_relief = 3.8
 rng_seed = 4402
 
 [node name="commuter_c" parent="gull_colony/birds" instance=ExtResource("1_gull")]
-position = Vector3(-530.3429, 254.44, -1119.492)
+position = Vector3(-530.3429, 184.61, -1119.492)
 flight_radius = 19.0
 flight_relief = 2.7
 rng_seed = 4403
