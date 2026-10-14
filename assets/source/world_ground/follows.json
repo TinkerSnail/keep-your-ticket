@@ -1,0 +1,70 @@
+{
+ "about": "Follows of the height grid by tools/ground_follow.py, in order: what moved with the ground, by id. The rocks and city objects keep their own moves as kyt_ground_moved_<id> and kyt_ground_raised_<id>; the roosts' and birds' are here. Undo: --undo <id>.",
+ "follows": [
+  {
+   "id": "G1-G7",
+   "date": "2026-10-14",
+   "from": "settled, Stage 2 put the game on the grid: no rock, block or roost stands where G1-G7 changed it (dry follow: nothing moves)",
+   "settled": true,
+   "ground": {
+    "tiles": [
+     "x-1_z0",
+     "x0_z-1",
+     "x0_z0"
+    ],
+    "nodes": 42,
+    "lowest_m": -11.015,
+    "highest_m": 6.021
+   },
+   "edits": [
+    {
+     "id": "G1",
+     "name": "r7_slot",
+     "sig": "3b3e7991d526f3f1"
+    },
+    {
+     "id": "G2",
+     "name": "route_c_gap",
+     "sig": "e031a03ad9a26656"
+    },
+    {
+     "id": "G3",
+     "name": "west_shell_step",
+     "sig": "a89d1e553e84810d"
+    },
+    {
+     "id": "G4",
+     "name": "r5_queue",
+     "sig": "bcfca182f0cb95d8"
+    },
+    {
+     "id": "G5",
+     "name": "r10_queue",
+     "sig": "fd7d183564242f77"
+    },
+    {
+     "id": "G6",
+     "name": "r7_queue_end_bed",
+     "sig": "3d077e2851c25367"
+    },
+    {
+     "id": "G7",
+     "name": "interior_pinholes",
+     "sig": "4cab6b5348425ccc"
+    }
+   ]
+  },
+  {
+   "id": "stage2",
+   "date": "2026-10-14",
+   "from": "settled, Stage 2's leftovers seated on the grid by hand: range_rocks_on_ground and city_blocks_on_ground --keep-feet the 1926e71 census (rocks 0200, 0067; block 34), and the nine roosts re-seated",
+   "settled": true,
+   "ground": {
+    "tiles": [],
+    "nodes": 0,
+    "lowest_m": 0.0,
+    "highest_m": 0.0
+   }
+  }
+ ]
+}

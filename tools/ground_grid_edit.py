@@ -9,7 +9,21 @@ follows it.
 
     python3 tools/ground_grid_edit.py --list
     python3 tools/ground_grid_edit.py <edit> [--dry] [--root DIR]
+    python3 tools/ground_grid_edit.py --values FILE.npz --name NAME --why "LINE" [--dry] [--root DIR]
     python3 tools/ground_grid_edit.py --undo [--dry] [--root DIR]
+
+- **`--values`** (2026-10-14, Stage 3) records an edit from new heights rather than from a named
+  function here: the nodes' world `x` and `z` (even metres) and new heights `y`, as arrays in an
+  `.npz`, optionally `expect`, the heights the editor started from. It is how an editor's save
+  becomes an edit like G1-G7 (the Blender panel's Save tiles calls `apply_values` in-process). Only
+  nodes whose height moves by more than `MIN_CHANGE` (1 mm) are written, so every other node stays
+  bit for bit; a node with `expect` that the grid no longer holds is refused, as is a node off the
+  lattice or outside the grid, and a height that is not finite (ground is never removed this way).
+  The name is short snake_case and the why one line, both the editor's own words. Colours may come
+  in the same edit (Photoshop's save, `tools/ground_paint.py`, calls `apply_values` with
+  `colours`): in the `.npz`, `colour_x`, `colour_z` and `colour` (N x 3 bytes), optionally
+  `colour_expect` (N x 4); only for ground, and only where the colour changes. A tile whose colour
+  alone changes has no height record, and undo restores its PNG's bytes.
 
 - **The log.** Each edit appends to `edits.json`: its id (G1, G2, ...), name, date, why (one line),
   the tiles it touched and how many nodes, and how many of them it gave ground that had none. The
@@ -35,6 +49,7 @@ import datetime
 import hashlib
 import json
 import os
+import re
 import sys
 
 import numpy as np
@@ -405,7 +420,16 @@ def new_colour(g, x, z, filled):
 def apply(root, name, dry):
     fn, why = EDITS[name]
     g = Grid(root)
-    changes = fn(g)
+    return record(g, name, why, fn(g), dry)
+
+
+def record(g, name, why, changes, dry, extra=None, show=None, paint=None):
+    """Writes `changes`, {(x, z): new height}, into the grid as the next edit, with its history and
+    its log entry (plus `extra`'s fields); prints the first `show` nodes (all when None). Returns
+    the log entry, or None when `dry`. `paint`, {(x, z): RGBA bytes} (2026-10-14, the Photoshop
+    save), sets those nodes' colour too, whether or not their height changes; a node given ground
+    without one takes its neighbours' (`new_colour`). A tile only painted has no height record."""
+    root = g.root
     log = load_log(root)
     gid = "G%d" % (len(log["edits"]) + 1)
     per_tile = {}
@@ -416,32 +440,45 @@ def apply(root, name, dry):
             made.append((x, z))
         for (tx, tz), r, c in g.homes(x, z):
             per_tile.setdefault((tx, tz), []).append((r, c, np.float32(v), (x, z)))
-    colours = {(x, z): new_colour(g, x, z, set(made)) for (x, z) in made}
-    tiles = sorted(per_tile)
-    print("%s %s: %d nodes in %s; %d given ground that had none; why: %s" % (
-        gid, name, len(changes), ", ".join("x%d_z%d" % t for t in tiles), len(made), why))
-    for (x, z), v in sorted(changes.items()):
+    paint = paint or {}
+    colours = {(x, z): new_colour(g, x, z, set(made)) for (x, z) in made if (x, z) not in paint}
+    colours.update({k: np.asarray(v, np.uint8) for k, v in paint.items()})
+    per_colour = {}
+    for (x, z), rgba in sorted(colours.items()):
+        for (tx, tz), r, c in g.homes(x, z):
+            per_colour.setdefault((tx, tz), []).append((r, c, rgba))
+    tiles = sorted(set(per_tile) | set(per_colour))
+    print("%s %s: %d nodes in %s; %d given ground that had none; %swhy: %s" % (
+        gid, name, len(changes), ", ".join("x%d_z%d" % t for t in tiles), len(made),
+        "%d nodes' colour painted; " % len(paint) if paint else "", why))
+    for k, ((x, z), v) in enumerate(sorted(changes.items())):
+        if show is not None and k == show:
+            print("  ... and %d more" % (len(changes) - show))
+            break
         print("  (%g, %g): %s -> %.3f%s" % (x, z, "none" if np.isnan(g.get(x, z)) else "%.3f" % g.get(x, z), v,
                                            "  colour %s" % [int(v) for v in colours[(x, z)]] if (x, z) in colours else ""))
     if dry:
         print("dry: nothing written")
-        return
+        return None
     hist = {}
     record_tiles = []
     for (tx, tz) in tiles:
         key = "x%d_z%d" % (tx, tz)
-        h = g.heights(tx, tz)
-        hp = g.path("height", tx, tz, "exr")
-        before = sha(hp)
-        rows = np.array([e[0] for e in per_tile[(tx, tz)]], np.int32)
-        cols = np.array([e[1] for e in per_tile[(tx, tz)]], np.int32)
-        hist["h_%s_idx" % key] = rows * g.n + cols
-        hist["h_%s_old" % key] = h[rows, cols].copy()
-        h[rows, cols] = np.array([e[2] for e in per_tile[(tx, tz)]], np.float32)
-        hist["h_%s_new" % key] = h[rows, cols].copy()
-        gb.write_exr(hp, h)
-        rec = {"tile": key, "nodes": int(len(rows)), "height_sha_before": before, "height_sha_after": sha(hp)}
-        cidx = [(e[0], e[1], colours[e[3]]) for e in per_tile[(tx, tz)] if e[3] in colours]
+        if (tx, tz) in per_tile:
+            h = g.heights(tx, tz)
+            hp = g.path("height", tx, tz, "exr")
+            before = sha(hp)
+            rows = np.array([e[0] for e in per_tile[(tx, tz)]], np.int32)
+            cols = np.array([e[1] for e in per_tile[(tx, tz)]], np.int32)
+            hist["h_%s_idx" % key] = rows * g.n + cols
+            hist["h_%s_old" % key] = h[rows, cols].copy()
+            h[rows, cols] = np.array([e[2] for e in per_tile[(tx, tz)]], np.float32)
+            hist["h_%s_new" % key] = h[rows, cols].copy()
+            gb.write_exr(hp, h)
+            rec = {"tile": key, "nodes": int(len(rows)), "height_sha_before": before, "height_sha_after": sha(hp)}
+        else:
+            rec = {"tile": key, "nodes": 0}
+        cidx = per_colour.get((tx, tz), [])
         if cidx:
             cp = g.path("colour", tx, tz, "png")
             hist["c_%s_png" % key] = np.frombuffer(open(cp, "rb").read(), np.uint8)
@@ -458,13 +495,95 @@ def apply(root, name, dry):
     os.makedirs(os.path.join(root, "history"), exist_ok=True)
     hpath = os.path.join(root, "history", gid + ".npz")
     np.savez_compressed(hpath, **hist)
-    log["edits"].append({
+    entry = {
         "id": gid, "name": name, "date": datetime.date.today().isoformat(), "why": why,
         "tiles": [r["tile"] for r in record_tiles], "nodes": len(changes), "new_ground_nodes": len(made),
         "history": "history/%s.npz" % gid, "files": record_tiles,
-    })
+    }
+    entry.update(extra or {})
+    log["edits"].append(entry)
     save_log(root, log)
     print("%s written: %s, %s" % (gid, ", ".join(r["tile"] for r in record_tiles), hpath))
+    return entry
+
+
+## The least a node must move for an editor's save to write it; a node that moves less keeps its
+## bytes exactly.
+MIN_CHANGE = 0.001
+NAME_RE = re.compile(r"[a-z0-9][a-z0-9_]{0,39}$")
+
+
+def apply_values(root, name, why, values, expect=None, dry=False, min_change=MIN_CHANGE, made_by=None,
+                 show=40, colours=None, colour_expect=None, extra=None):
+    """Records new heights as the next edit: `values` {(x, z): height}, world metres, x and z on
+    the lattice. `expect` {(x, z): height} is what the editor read at those nodes; a node the grid
+    no longer holds at that value (float32, bit for bit, in every tile holding it) is refused, so a
+    save never overwrites what changed on disk since it was read. A node within `min_change` of
+    the grid is left out. Returns the log entry, or None when nothing moved (or `dry`). Raises
+    SystemExit with a sentence for anything refused, before writing anything.
+
+    `colours` {(x, z): RGB or RGBA bytes} (2026-10-14, the Photoshop save, `ground_paint.py`) are
+    new colours in the same edit, alpha 255; only for nodes with ground (now or by this edit), and
+    a colour the grid already holds is left out. `colour_expect` {(x, z): RGBA} is what the editor
+    read there, refused like `expect`. `extra` adds fields to the log entry."""
+    if not NAME_RE.match(name or ""):
+        raise SystemExit("the edit's name must be short snake_case (a-z, 0-9 and _, up to 40), not %r" % (name,))
+    why = " ".join((why or "").split())
+    if not why:
+        raise SystemExit("say in one line why the edit is made")
+    g = Grid(root)
+    changes = {}
+    stale = []
+    for (x, z), v in values.items():
+        x, z, v = float(x), float(z), float(v)
+        if not np.isfinite(v):
+            raise SystemExit("(%g, %g): the new height is not a number; ground is never removed this way" % (x, z))
+        if x / g.step != round(x / g.step) or z / g.step != round(z / g.step):
+            raise SystemExit("(%g, %g) is not a node of the grid (every %g m)" % (x, z, g.step))
+        homes = g.homes(x, z)
+        if not homes:
+            raise SystemExit("(%g, %g) is outside the grid" % (x, z))
+        held = [g.heights(tx, tz)[r, c] for (tx, tz), r, c in homes]
+        if expect is not None and (x, z) in expect:
+            e = np.float32(expect[(x, z)]).tobytes()
+            if any(np.float32(h).tobytes() != e for h in held):
+                stale.append((x, z))
+                continue
+        old = float(held[0])
+        if np.isnan(old) or abs(float(np.float32(v)) - old) > min_change:
+            changes[(x, z)] = float(np.float32(v))
+    paint = {}
+    for (x, z), v in (colours or {}).items():
+        x, z = float(x), float(z)
+        rgba = np.array([int(v[0]), int(v[1]), int(v[2]), 255], np.uint8)
+        if x / g.step != round(x / g.step) or z / g.step != round(z / g.step):
+            raise SystemExit("(%g, %g) is not a node of the grid (every %g m)" % (x, z, g.step))
+        homes = g.homes(x, z)
+        if not homes:
+            raise SystemExit("(%g, %g) is outside the grid" % (x, z))
+        if np.isnan(g.get(x, z)) and (x, z) not in changes:
+            raise SystemExit("(%g, %g) has no ground to colour" % (x, z))
+        held = [g.colour(tx, tz)[r, c] for (tx, tz), r, c in homes]
+        if colour_expect is not None and (x, z) in colour_expect:
+            e = np.asarray(colour_expect[(x, z)], np.uint8)
+            if any(not np.array_equal(h, e) for h in held):
+                stale.append((x, z))
+                continue
+        if not np.array_equal(held[0], rgba):
+            paint[(x, z)] = rgba
+    if stale:
+        tiles = sorted({"x%d_z%d" % t for (x, z) in stale for t, _, _ in g.homes(x, z)})
+        raise SystemExit("%d of the nodes changed in %s since they were read (another edit, an undo or "
+                         "a Photoshop save): read them again before saving" % (len(stale), ", ".join(tiles)))
+    if not changes and not paint:
+        print("nothing moved by more than %g m%s: no edit recorded" % (
+            min_change, " and no colour changed" if colours else ""))
+        return None
+    extra_all = {"kind": "values", "min_change_m": min_change}
+    if made_by:
+        extra_all["made_by"] = made_by
+    extra_all.update(extra or {})
+    return record(g, name, why, changes, dry, extra_all, show, paint=paint)
 
 
 def undo(root, dry):
@@ -481,17 +600,18 @@ def undo(root, dry):
     for rec in e["files"]:
         key = rec["tile"]
         tx, tz = (int(v) for v in key[1:].split("_z"))
-        hp = g.path("height", tx, tz, "exr")
-        untouched = sha(hp) == rec["height_sha_after"]
-        h = g.heights(tx, tz)
-        idx = hist["h_%s_idx" % key]
-        h.reshape(-1)[idx] = hist["h_%s_old" % key]
-        gb.write_exr(hp, h)
-        back = sha(hp) == rec["height_sha_before"]
-        print("  %s heights: %d nodes restored; %s" % (key, len(idx), "the tile bit for bit" if back else (
-            "the tile was changed since, so only these nodes" if not untouched else "BYTES DIFFER")))
-        if not back and untouched:
-            raise SystemExit("undo of %s did not restore %s exactly" % (e["id"], hp))
+        if "h_%s_idx" % key in hist.files:  # a tile only painted has no heights to restore
+            hp = g.path("height", tx, tz, "exr")
+            untouched = sha(hp) == rec["height_sha_after"]
+            h = g.heights(tx, tz)
+            idx = hist["h_%s_idx" % key]
+            h.reshape(-1)[idx] = hist["h_%s_old" % key]
+            gb.write_exr(hp, h)
+            back = sha(hp) == rec["height_sha_before"]
+            print("  %s heights: %d nodes restored; %s" % (key, len(idx), "the tile bit for bit" if back else (
+                "the tile was changed since, so only these nodes" if not untouched else "BYTES DIFFER")))
+            if not back and untouched:
+                raise SystemExit("undo of %s did not restore %s exactly" % (e["id"], hp))
         if "c_%s_png" % key in hist.files:
             cp = g.path("colour", tx, tz, "png")
             img = g.colour(tx, tz)
@@ -521,6 +641,9 @@ def main():
     ap.add_argument("--undo", action="store_true")
     ap.add_argument("--dry", action="store_true")
     ap.add_argument("--list", action="store_true")
+    ap.add_argument("--values", help="an .npz of x, z, y (and optionally expect): record those heights as an edit")
+    ap.add_argument("--name", help="with --values: the edit's short snake_case name")
+    ap.add_argument("--why", help="with --values: one line, why")
     ap.add_argument("--root", default=GROUND)
     a = ap.parse_args()
     if a.list:
@@ -531,10 +654,23 @@ def main():
         return
     if a.undo:
         undo(a.root, a.dry)
+    elif a.values:
+        d = np.load(a.values)
+        keys = list(zip(d["x"].astype(np.float64).tolist(), d["z"].astype(np.float64).tolist()))
+        values = dict(zip(keys, d["y"].astype(np.float64).tolist()))
+        expect = dict(zip(keys, d["expect"].tolist())) if "expect" in d.files else None
+        colours = colour_expect = None
+        if "colour" in d.files:
+            ck = list(zip(d["colour_x"].astype(np.float64).tolist(), d["colour_z"].astype(np.float64).tolist()))
+            colours = dict(zip(ck, d["colour"].astype(np.uint8)))
+            if "colour_expect" in d.files:
+                colour_expect = dict(zip(ck, d["colour_expect"].astype(np.uint8)))
+        apply_values(a.root, a.name, a.why, values, expect, a.dry, made_by="ground_grid_edit.py --values",
+                     colours=colours, colour_expect=colour_expect)
     elif a.edit:
         apply(a.root, a.edit, a.dry)
     else:
-        ap.error("name an edit, or --undo, or --list")
+        ap.error("name an edit, or --values, --undo or --list")
 
 
 if __name__ == "__main__":

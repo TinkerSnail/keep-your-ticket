@@ -9,6 +9,12 @@
 // its Keep Your Ticket panel reloads the texture by itself. Any other save,
 // and the export's own save of its duplicate (which has no path), does nothing.
 //
+// A ground painting, assets/source/world_ground/paint/<name>/<name>.psd (2026-10-14,
+// tools/ground_paint.py open), is the one other case, chosen by where the file lives and handled
+// before the prop's: ground_save.jsx, read afresh at each such save, exports its height and
+// colour groups and records them as one grid edit in the background (ground_paint.log). Nothing
+// in the prop's path changes, and an error in the ground's code cannot reach it.
+//
 // The send's output goes to ~/Library/Logs/Keep Your Ticket/live_send.log.
 #include "canvas_export.jsxinc"
 
@@ -16,6 +22,15 @@
     app.displayDialogs = DialogModes.NO;
     var doc, path;
     try { doc = app.activeDocument; path = doc.fullName.fsName; } catch (e) { return; }
+    if (/\/assets\/source\/world_ground\/paint\/([^\/]+)\/\1\.psd$/.test(path)) {
+        var here = new File($.fileName).parent.fsName;
+        try { $.evalFile(new File(here + "/ground_save.jsx")); kytGroundSaved(doc, path, here); }
+        catch (e) {
+            var f = new File("~/Library/Logs/Keep Your Ticket/ground_paint.log");
+            if (f.open("a")) { f.writeln("== on_save.jsx, the ground's case: " + e); f.close(); }
+        }
+        return;
+    }
     var m = path.match(/^(.*)\/assets\/source\/textures\/([^\/]+)\/\2_colour\.psd$/);
     if (!m) return;
     var root = m[1], prop = m[2];

@@ -22,6 +22,9 @@ extends SceneTree
 ## output, like the crowd scenes: never edit it by hand; change the tiles, the colour or this
 ## tool and run it again.
 ##
+## A run that changes nothing writes nothing: a texture is saved only when what it would hold
+## differs, and the scene only when it differs by more than its root's unique_id.
+##
 ## Then it loads what it wrote, fresh, and checks every tile: mounted once, its mesh inside its
 ## own square, its UVs (x - x0) / 1000 and (z - z0) / 1000 at every vertex, its collision there,
 ## its material this shader with this tile's texture, and the texture's full-size level the PNG
@@ -135,11 +138,19 @@ func _colour_image(tx: int, tz: int, samples: int) -> Image:
 
 
 ## Saves the tile's texture if its pixels changed, and returns it as loaded from disk.
+##
+## "Changed" is against what the file would hold, not the image itself: the lossless packer
+## stores each mip level without alpha when Godot's `Image.detect_alpha` finds none (it counts
+## 254 as opaque), so a small level whose alphas are all 254 or 255 comes back with 255. That is
+## why x-1_z6 (one 7 x 7 level's corner at 254) was rewritten on every run (2026-10-14). The
+## image is compared first as it is; only when that differs is it packed and compared as it
+## would read back, which is also what is saved.
 func _texture(img: Image, path: String) -> Texture2D:
+	var had: Image = null
 	if ResourceLoader.exists(path):
 		var old := ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_IGNORE) as Texture2D
 		if old != null:
-			var had := old.get_image()
+			had = old.get_image()
 			if had != null and had.has_mipmaps() and had.get_data() == img.get_data():
 				return ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_REPLACE) as Texture2D
 	var tex := PortableCompressedTexture2D.new()
@@ -147,6 +158,10 @@ func _texture(img: Image, path: String) -> Texture2D:
 	# (gen_props.gd, `_save_texture`).
 	tex.keep_compressed_buffer = true
 	tex.create_from_image(img, PortableCompressedTexture2D.COMPRESSION_MODE_LOSSLESS)
+	if had != null and had.has_mipmaps():
+		var packed := tex.get_image()
+		if packed != null and packed.get_format() == had.get_format() and packed.get_data() == had.get_data():
+			return ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_REPLACE) as Texture2D
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(path.get_base_dir()))
 	var err := ResourceSaver.save(tex, path)
 	if err != OK:
@@ -199,26 +214,43 @@ func _mount(grid: Dictionary, tiles: Array, opts: Dictionary) -> bool:
 	if err != OK:
 		_fail("pack failed (%d)" % err)
 		return false
-	err = ResourceSaver.save(packed, opts["out"])
+	# If the scene differs from the one already there only by the unique_id Godot rolls on every
+	# save, the old bytes go back: a run on unchanged tiles and colour leaves the file as it was
+	# (2026-10-14). It is saved at its own path because the text saver's resource ids depend on it.
+	var path: String = opts["out"]
+	var had := FileAccess.get_file_as_string(path) if FileAccess.file_exists(path) else ""
+	err = ResourceSaver.save(packed, path)
 	if err != OK:
-		_fail("cannot save %s (%d)" % [opts["out"], err])
+		_fail("cannot save %s (%d)" % [path, err])
 		return false
-	_add_header(opts["out"])
-	print("  wrote %s, %d tiles" % [opts["out"], tiles.size()])
+	var text := _with_header(FileAccess.get_file_as_string(path))
+	var same := had != "" and _without_ids(had) == _without_ids(text)
+	if same:
+		text = had
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	if f == null:
+		_fail("cannot write %s (%d)" % [path, FileAccess.get_open_error()])
+		return false
+	f.store_string(text)
+	f.close()
+	print("  %s %s, %d tiles" % ["unchanged:" if same else "wrote", path, tiles.size()])
 	return true
 
 
 ## Puts HEADER under the scene's first line, where a .tscn keeps its comments.
-func _add_header(path: String) -> void:
-	var text := FileAccess.get_file_as_string(path)
+func _with_header(text: String) -> String:
 	var lines := text.split("\n")
 	var out := PackedStringArray([lines[0], ""])
 	out.append_array(PackedStringArray(HEADER))
 	for i in range(1, lines.size()):
 		out.append(lines[i])
-	var f := FileAccess.open(path, FileAccess.WRITE)
-	f.store_string("\n".join(out))
-	f.close()
+	return "\n".join(out)
+
+
+## The scene's text without the unique_id Godot gives each node on every save.
+func _without_ids(text: String) -> String:
+	var re := RegEx.create_from_string(" unique_id=[0-9]+")
+	return re.sub(text, "", true)
 
 
 func _check(grid: Dictionary, tiles: Array, opts: Dictionary) -> void:

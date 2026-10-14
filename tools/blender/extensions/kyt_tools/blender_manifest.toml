@@ -12,4 +12,4 @@ blender_version_min = "4.2.0"
 license = ["SPDX:GPL-3.0-or-later"]
 
 [permissions]
-files = "Writes the prop's GLB, and its Godot scene when asked, into the project, and runs the project's hand-back tool"
+files = "Writes the prop's GLB, and its Godot scene when asked, into the project; saves the ground's height tiles; and runs the project's hand-back and ground tools"

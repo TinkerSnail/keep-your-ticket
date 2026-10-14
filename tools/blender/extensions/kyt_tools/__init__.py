@@ -13,7 +13,9 @@ game mesh, Send to game (which offers the prop's Godot scene the first time,
 godot_scene.py); once the prop has a canvas, a Photoshop box with Open texture
 in Photoshop (handback.py), the UV guide, Add patch layer and the save hook's
 switch (photoshop.py); Hand back (handback.py); the "Reload textures on save"
-switch (live.py); Open in Godot; and the findings of the last run.
+switch (live.py); Open in Godot; and the findings of the last run. Below it, the
+Ground panel (ground.py): Load tiles, Save tiles, Undo last ground edit and Send
+ground to game, for sculpting the world's height grid.
 """
 
 import importlib
@@ -28,11 +30,11 @@ import bpy
 # reload of this file reloads them too, dependencies first (R10 in
 # prop-pipeline.md). On the first load none is in sys.modules yet.
 for _name in ("uv_check", "checks", "game_mesh", "send", "reference", "live", "godot_scene", "handback",
-              "photoshop"):
+              "photoshop", "ground"):
     if f"{__name__}.{_name}" in sys.modules:
         importlib.reload(sys.modules[f"{__name__}.{_name}"])
 
-from . import checks, game_mesh, godot_scene, handback, live, photoshop, reference, send  # noqa: E402
+from . import checks, game_mesh, godot_scene, ground, handback, live, photoshop, reference, send  # noqa: E402
 
 STAGES = [
     ("blockout", "Block-out", "Rough shape and proportions"),
@@ -208,9 +210,11 @@ def register():
     handback.register()
     photoshop.register()
     live.register()
+    ground.register()
 
 
 def unregister():
+    ground.unregister()
     live.unregister()
     photoshop.unregister()
     handback.unregister()
