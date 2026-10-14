@@ -9,8 +9,31 @@ const FOREST_SCRIPT := "res://scenes/world/range_forest.gd"
 const CANOPY_SCENE := "res://scenes/world/range_forest_canopy.tscn"
 const BACKGROUND_SCENE := "res://scenes/world/range_forest_background.tscn"
 const MIDGROUND_PROOF_SCENE := "res://scenes/world/range_forest_midground_proof.tscn"
-const SOUTH_RANGE_MIN_Z := 5200.0
+const Plan := preload("res://scripts/park_plan.gd")
 const SOUTH_COAST_OPEN_POINT := Vector2(900.0, 3150.0)
+## The range's sections in order along it, north to south, each with its summit in plan
+## and the relief over the water it must keep there: the summits are the tops of the
+## master's pieces as they were mounted until height-grid Stage 2 (2026-10-13; the pieces
+## are kept, unmounted, in scenes/world/world_terrain_pieces.tscn until Stage 5), the
+## reliefs the minima those pieces were held to before, measured now from the water rather
+## than from their closed base at -11 m. The connection's lowland, the base the ridges
+## stood on, is in the land between them. A section Christina moves on purpose moves here
+## too.
+const RANGE_SECTIONS := [
+	["north range", Vector2(127.26, -1247.87), 250.0],
+	["middle range", Vector2(1132.64, -355.02), 275.0],
+	["southeast range", Vector2(1261.42, 716.74), 160.0],
+	["southeast ridge 1", Vector2(1450.0, 1266.72), 140.0],
+	["southeast ridge 2", Vector2(1538.78, 1863.32), 140.0],
+	["southeast ridge 3", Vector2(1489.01, 2460.3), 140.0],
+	["southeast ridge 4", Vector2(1771.21, 3154.79), 140.0],
+	["southern connection ridge 0", Vector2(1297.7, 3778.69), 140.0],
+	["southern connection ridge 1", Vector2(682.45, 4052.93), 140.0],
+	["southern connection ridge 2", Vector2(322.78, 4573.34), 140.0],
+	["southern connection ridge 3", Vector2(-27.08, 5038.58), 140.0],
+	["southern connection ridge 4", Vector2(-401.17, 5475.0), 140.0],
+	["southern range", Vector2(0.0, 5652.99), 250.0],
+]
 const MIDGROUND_NEAR_DEPTH := 0.0
 const MIDGROUND_FAR_DEPTH := 164.0
 const TRANSITION_NEAR_DEPTH := 180.0
@@ -320,97 +343,63 @@ func _check_range_forest_handoff() -> void:
 		_fails.append("persistent distinct-background range scene must remain directly editor-owned")
 	# The range's landforms are the world terrain master's since 2026-10-06
 	# (tools/blender/world_terrain_join_landforms.py); the range source keeps its forest,
-	# canopy and rocks.
+	# canopy and rocks. Since height-grid Stage 2 (2026-10-13) the world terrain mounts the
+	# ground as one height grid, `world_ground`, so the range is ground among the rest and
+	# its sections are no longer bodies to find by name. Until then each body was measured
+	# for its breadth in plan, its relief, its closure down to the world's base and its plan
+	# overlap with the next, and fourteen of them had to carry collision. Breadth, closure
+	# and overlap only made sense for the pieces. What they stood for is asked of the
+	# mounted ground: each section still stands at its relief over its summit, the summits
+	# taken from the pieces as they were on 2026-10-13 (`RANGE_SECTIONS`); the range runs
+	# on as land from the north section to the southern massif, never down to the water on
+	# the line between one summit and the next; the south coast's open water stays open;
+	# and every tile under the range carries its collision.
 	var landforms := (load("res://scenes/world/world_terrain.tscn") as PackedScene).instantiate() as Node3D
 	add_child(landforms)
-	var north_range := landforms.find_child(
-		"background_distant_range_north", true, false) as MeshInstance3D
-	var middle_range := landforms.find_child(
-		"background_distant_range_middle", true, false) as MeshInstance3D
-	var southeast_range := landforms.find_child(
-		"background_distant_range_southeast_connector", true, false) as MeshInstance3D
-	var south_range := landforms.find_child(
-		"background_distant_range_south", true, false) as MeshInstance3D
-	var connection_lowland := landforms.find_child(
-		"southern_range_connection_lowland", true, false) as MeshInstance3D
-	var southeast_ridges: Array[MeshInstance3D] = []
-	for index in range(1, 5):
-		southeast_ridges.append(landforms.find_child(
-			"southeast_range_ridge_%d" % index, true, false) as MeshInstance3D)
-	var connection_ridges: Array[MeshInstance3D] = []
-	for index in 5:
-		connection_ridges.append(landforms.find_child(
-			"southern_range_connection_ridge_%d" % index, true, false) as MeshInstance3D)
-	for pair in [
-		["north range", north_range, 850.0, 250.0],
-		["middle range", middle_range, 850.0, 275.0],
-		["southeast range", southeast_range, 900.0, 160.0],
-		["southern range", south_range, 1500.0, 250.0],
-	]:
-		var part := pair[1] as MeshInstance3D
-		if part == null or part.mesh == null:
-			_fails.append("persistent range is missing its broad %s terrain" % pair[0])
-			continue
-		var bounds := _world_xz_bounds(part)
-		var plan_span := minf(bounds.y - bounds.x, bounds.w - bounds.z)
-		if plan_span < float(pair[2]):
-			_fails.append("%s is only %.1fm broad in plan" % [pair[0], plan_span])
-		var heights := _world_height_bounds(part)
-		if heights.y - heights.x < float(pair[3]):
-			_fails.append("%s has only %.1fm of relief" % [pair[0], heights.y - heights.x])
-		if heights.x > -10.9:
-			_fails.append("%s does not close down to the world base" % pair[0])
-	var layered_ridges: Array[MeshInstance3D] = []
-	layered_ridges.append_array(southeast_ridges)
-	layered_ridges.append_array(connection_ridges)
-	for index in layered_ridges.size():
-		var ridge := layered_ridges[index]
-		if ridge == null or ridge.mesh == null:
-			_fails.append("southeast-to-south connection is missing layered ridge %d" % index)
-			continue
-		var ridge_bounds := _world_xz_bounds(ridge)
-		if minf(ridge_bounds.y - ridge_bounds.x, ridge_bounds.w - ridge_bounds.z) < 550.0:
-			_fails.append("southern connection ridge %d is too narrow to read as terrain" % index)
-		var ridge_heights := _world_height_bounds(ridge)
-		if ridge_heights.x > -10.9 or ridge_heights.y - ridge_heights.x < 140.0:
-			_fails.append("southern connection ridge %d is not a closed mountain body" % index)
-	if south_range != null and _world_xz_bounds(south_range).z < SOUTH_RANGE_MIN_Z:
-		_fails.append("southern range is not beyond the city and prior south-coast envelope")
-	if connection_lowland == null or connection_lowland.mesh == null:
-		_fails.append("layered ridges are missing their continuous foothill base")
+	var grid := landforms.find_child("world_ground", true, false)
+	if grid == null or grid.get_child_count() == 0:
+		_fails.append("the world terrain does not mount the ground grid the range stands in")
 	else:
-		var lowland_heights := _world_height_bounds(connection_lowland)
-		if lowland_heights.x > -10.9 or lowland_heights.y - lowland_heights.x < 45.0:
-			_fails.append("continuous foothill base is not a closed terrain body")
-	for part in [north_range, middle_range, southeast_range, south_range,
-			connection_lowland] + layered_ridges:
-		if part != null and _mesh_covers_plan_point(part, SOUTH_COAST_OPEN_POINT):
-			_fails.append("%s occupies established south-coast open water" % part.name)
-	if north_range != null and middle_range != null \
-			and not _overlaps_plan(_world_xz_bounds(north_range), _world_xz_bounds(middle_range)):
-		_fails.append("north and middle range sections are spatially disconnected")
-	if middle_range != null and southeast_range != null \
-			and not _overlaps_plan(_world_xz_bounds(middle_range), _world_xz_bounds(southeast_range)):
-		_fails.append("middle and southeast range sections are spatially disconnected")
-	var connection_chain: Array[MeshInstance3D] = [southeast_range]
-	connection_chain.append_array(southeast_ridges)
-	connection_chain.append_array(connection_ridges)
-	connection_chain.append(south_range)
-	for index in connection_chain.size() - 1:
-		var current := connection_chain[index]
-		var next := connection_chain[index + 1]
-		if current != null and next != null \
-				and not _overlaps_plan(_world_xz_bounds(current), _world_xz_bounds(next)):
-			_fails.append("southern range chain disconnects between %s and %s" % [current.name, next.name])
-	var range_bodies_colliding := 0
-	var range_bodies: Array = [north_range, middle_range, southeast_range, south_range, connection_lowland]
-	range_bodies.append_array(southeast_ridges)
-	range_bodies.append_array(connection_ridges)
-	for body in range_bodies:
-		if body != null and not body.find_children("*", "StaticBody3D", true, false).is_empty():
-			range_bodies_colliding += 1
-	if range_bodies_colliding < 14:
-		_fails.append("the fourteen closed range bodies are missing imported collision")
+		var points := PackedVector2Array()
+		for section in RANGE_SECTIONS:
+			points.append(section[1])
+		points.append(SOUTH_COAST_OPEN_POINT)
+		var chain_from := points.size()
+		for index in RANGE_SECTIONS.size() - 1:
+			var a: Vector2 = RANGE_SECTIONS[index][1]
+			var b: Vector2 = RANGE_SECTIONS[index + 1][1]
+			var steps := ceili(a.distance_to(b) / 10.0)
+			for step in steps + 1:
+				points.append(a.lerp(b, float(step) / steps))
+		var heights := _grid_heights(grid, points)
+		for index in RANGE_SECTIONS.size():
+			var section: Array = RANGE_SECTIONS[index]
+			var top := heights[index]
+			if is_nan(top) or top - Plan.WATER_TOP < float(section[2]):
+				_fails.append("the %s stands only %s over the water at its summit %s, under its %.0fm of relief" % [
+					section[0], "nothing" if is_nan(top) else "%.1fm" % (top - Plan.WATER_TOP),
+					section[1], float(section[2])])
+		var water := heights[RANGE_SECTIONS.size()]
+		if not is_nan(water) and water > Plan.WATER_TOP:
+			_fails.append("the mounted ground stands %.1fm high in established south-coast open water" % water)
+		var at := chain_from
+		for index in RANGE_SECTIONS.size() - 1:
+			var a: Vector2 = RANGE_SECTIONS[index][1]
+			var b: Vector2 = RANGE_SECTIONS[index + 1][1]
+			var steps := ceili(a.distance_to(b) / 10.0)
+			var lowest := INF
+			for step in steps + 1:
+				var y := heights[at + step]
+				lowest = minf(lowest, -INF if is_nan(y) else y)
+			at += steps + 1
+			if lowest <= Plan.WATER_TOP:
+				_fails.append("the range does not run on as land between the %s and the %s" % [
+					RANGE_SECTIONS[index][0], RANGE_SECTIONS[index + 1][0]])
+		for section in RANGE_SECTIONS:
+			var at_summit: Vector2 = section[1]
+			var tile := grid.get_node_or_null("x%d_z%d" % [floori(at_summit.x / 1000.0), floori(at_summit.y / 1000.0)])
+			if tile == null or tile.find_children("*", "StaticBody3D", true, false).is_empty():
+				_fails.append("the ground grid's tile under the %s has no imported collision" % section[0])
 	for rejected_name in [
 		"background_canopy_mass", "background_middle_ridge", "background_far_ridge",
 		"background_distant_range_northeast_connector",
@@ -514,26 +503,53 @@ func _world_height_bounds(visual: MeshInstance3D) -> Vector2:
 	return Vector2(minimum, maximum)
 
 
-func _world_xz_bounds(visual: MeshInstance3D) -> Vector4:
-	var minimum_x := INF
-	var maximum_x := -INF
-	var minimum_z := INF
-	var maximum_z := -INF
-	for surface in visual.mesh.get_surface_count():
-		var arrays := visual.mesh.surface_get_arrays(surface)
-		if arrays.is_empty():
+## The top of the ground grid's tiles over each plan point, or NAN where the grid has
+## none (2026-10-13). Each tile is `x{tx}_z{tz}/ground_x{tx}_z{tz}` under `grid`, 1 km
+## square from (1000 tx, 1000 tz); its triangles are read once for all its points.
+func _grid_heights(grid: Node, points: PackedVector2Array) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	out.resize(points.size())
+	out.fill(NAN)
+	var by_tile := {}
+	for index in points.size():
+		var tile := "x%d_z%d" % [floori(points[index].x / 1000.0), floori(points[index].y / 1000.0)]
+		if not by_tile.has(tile):
+			by_tile[tile] = []
+		(by_tile[tile] as Array).append(index)
+	for tile in by_tile:
+		var holder := grid.get_node_or_null(String(tile))
+		var mesh := holder.find_child("ground_" + String(tile), true, false) as MeshInstance3D \
+			if holder != null else null
+		if mesh == null or mesh.mesh == null:
 			continue
-		for local_point in arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array:
-			var point := visual.global_transform * local_point
-			minimum_x = minf(minimum_x, point.x)
-			maximum_x = maxf(maximum_x, point.x)
-			minimum_z = minf(minimum_z, point.z)
-			maximum_z = maxf(maximum_z, point.z)
-	return Vector4(minimum_x, maximum_x, minimum_z, maximum_z)
-
-
-func _overlaps_plan(a: Vector4, b: Vector4) -> bool:
-	return a.x <= b.y and a.y >= b.x and a.z <= b.w and a.w >= b.z
+		var xf := (holder as Node3D).transform * mesh.transform
+		for surface in mesh.mesh.get_surface_count():
+			var arrays := mesh.mesh.surface_get_arrays(surface)
+			var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+			var indices := PackedInt32Array()
+			if arrays[Mesh.ARRAY_INDEX] != null:
+				indices = arrays[Mesh.ARRAY_INDEX]
+			var count := indices.size() if indices.size() > 0 else vertices.size()
+			for i in range(0, count, 3):
+				var a := xf * vertices[indices[i] if indices.size() > 0 else i]
+				var b := xf * vertices[indices[i + 1] if indices.size() > 0 else i + 1]
+				var c := xf * vertices[indices[i + 2] if indices.size() > 0 else i + 2]
+				var den := (b.z - c.z) * (a.x - c.x) + (c.x - b.x) * (a.z - c.z)
+				if absf(den) < 1e-9:
+					continue
+				var lo := Vector2(minf(a.x, minf(b.x, c.x)), minf(a.z, minf(b.z, c.z)))
+				var hi := Vector2(maxf(a.x, maxf(b.x, c.x)), maxf(a.z, maxf(b.z, c.z)))
+				for index in by_tile[tile]:
+					var p := points[index]
+					if p.x < lo.x or p.x > hi.x or p.y < lo.y or p.y > hi.y:
+						continue
+					var l1 := ((b.z - c.z) * (p.x - c.x) + (c.x - b.x) * (p.y - c.z)) / den
+					var l2 := ((c.z - a.z) * (p.x - c.x) + (a.x - c.x) * (p.y - c.z)) / den
+					if l1 < -1e-6 or l2 < -1e-6 or 1.0 - l1 - l2 < -1e-6:
+						continue
+					var y := l1 * a.y + l2 * b.y + (1.0 - l1 - l2) * c.y
+					out[index] = y if is_nan(out[index]) else maxf(out[index], y)
+	return out
 
 
 func _open_edge_count(visual: MeshInstance3D) -> int:
@@ -567,37 +583,6 @@ func _open_edge_count(visual: MeshInstance3D) -> int:
 func _vertex_key(point: Vector3) -> String:
 	return "%d,%d,%d" % [roundi(point.x * 1000.0), roundi(point.y * 1000.0),
 		roundi(point.z * 1000.0)]
-
-
-func _mesh_covers_plan_point(visual: MeshInstance3D, point: Vector2) -> bool:
-	for surface in visual.mesh.get_surface_count():
-		var arrays := visual.mesh.surface_get_arrays(surface)
-		if arrays.is_empty():
-			continue
-		var vertices := arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array
-		var indices := arrays[Mesh.ARRAY_INDEX] as PackedInt32Array
-		if indices.is_empty():
-			indices.resize(vertices.size())
-			for index in indices.size():
-				indices[index] = index
-		for index in range(0, indices.size(), 3):
-			var a := visual.global_transform * vertices[indices[index]]
-			var b := visual.global_transform * vertices[indices[index + 1]]
-			var c := visual.global_transform * vertices[indices[index + 2]]
-			if (b - a).cross(c - a).y <= 0.01:
-				continue
-			if _point_in_triangle(point, Vector2(a.x, a.z), Vector2(b.x, b.z),
-					Vector2(c.x, c.z)):
-				return true
-	return false
-
-
-func _point_in_triangle(point: Vector2, a: Vector2, b: Vector2, c: Vector2) -> bool:
-	var ab := (b - a).cross(point - a)
-	var bc := (c - b).cross(point - b)
-	var ca := (a - c).cross(point - c)
-	return (ab >= -0.001 and bc >= -0.001 and ca >= -0.001) \
-		or (ab <= 0.001 and bc <= 0.001 and ca <= 0.001)
 
 
 func _range_end_grounding(visual: MeshInstance3D) -> Vector2:

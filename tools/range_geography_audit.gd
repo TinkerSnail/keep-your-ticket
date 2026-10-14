@@ -11,9 +11,12 @@ const WORLD := "res://scenes/world/park_world.tscn"
 const Plan = preload("res://scripts/park_plan.gd")
 const GROUNDWORKS := "res://scenes/world/park_groundworks.tscn"
 ## Since 2026-10-05 the mainland reserve and both coasts are the world terrain
-## master's; the generator no longer writes its own (terrain master Stage 2).
+## master's; the generator no longer writes its own (terrain master Stage 2). Since
+## height-grid Stage 2 (2026-10-13) the world terrain mounts that ground, and the range's
+## and city's landforms with it, as one height grid, `world_ground`, whose 1 km tiles are
+## listed one record each in place of the master's named pieces.
 const WORLD_TERRAIN := "res://scenes/world/world_terrain.tscn"
-const MASTER_SOURCE := "res://assets/source/world_terrain_master.blend"
+const GROUND_SOURCE := "res://assets/source/world_ground/"
 const APPROACH := "res://scenes/world/park_approach.tscn"
 const RANGE_MOUNT := "res://scenes/world/range_forest_background.tscn"
 const CITY_MOUNT := "res://scenes/world/far_shore_city_relocation.tscn"
@@ -59,33 +62,6 @@ const SECTIONS := [
 var _cells_by_id := {}
 
 const RECORDS := [
-	{
-		"id": "master_mainland",
-		"root": "world_terrain",
-		"node": "terrain_world_mainland_reserve",
-		"scene": WORLD_TERRAIN,
-		"source": MASTER_SOURCE,
-		"authority": "editor-owned",
-		"role": "primary mainland support and the crescent range, copied from the generator",
-	},
-	{
-		"id": "master_coast_north",
-		"root": "world_terrain",
-		"node": "terrain_world_coast_north",
-		"scene": WORLD_TERRAIN,
-		"source": MASTER_SOURCE,
-		"authority": "editor-owned",
-		"role": "northern coast support and north-town valley mouth",
-	},
-	{
-		"id": "master_coast_south",
-		"root": "world_terrain",
-		"node": "terrain_world_coast_south",
-		"scene": WORLD_TERRAIN,
-		"source": MASTER_SOURCE,
-		"authority": "editor-owned",
-		"role": "southern coast support and beach-town shelf",
-	},
 	{
 		"id": "generated_road_corridor",
 		"root": "groundworks",
@@ -190,6 +166,23 @@ func _ready() -> void:
 		await get_tree().physics_frame
 
 	var inventory: Array[Dictionary] = []
+	# The world's ground, a tile at a time (2026-10-13).
+	var grid := world_terrain.find_child("world_ground", true, false)
+	if grid == null or grid.get_child_count() == 0:
+		push_error("range_geography_audit: missing the ground grid in %s" % WORLD_TERRAIN)
+	else:
+		for tile in grid.get_children():
+			var visual := tile.find_child("ground_" + String(tile.name), true, false) as MeshInstance3D
+			if visual == null or visual.mesh == null:
+				push_error("range_geography_audit: missing ground tile %s" % tile.name)
+				continue
+			inventory.append(_record_with_footprint(visual, {
+				"id": "ground__%s" % tile.name,
+				"scene": WORLD_TERRAIN,
+				"source": GROUND_SOURCE,
+				"authority": "editor-owned",
+				"role": "the world's ground, one 1 km tile of the height grid: land, coasts, the range's and the city's landforms",
+			}))
 	for spec in RECORDS:
 		var root := get_node_or_null(String(spec["root"]))
 		var visual := root.get_node_or_null(String(spec["node"])) as MeshInstance3D \
@@ -199,12 +192,14 @@ func _ready() -> void:
 			continue
 		inventory.append(_record_with_footprint(visual, spec))
 
-	# The range's and city's landforms are the world terrain master's since 2026-10-06
-	# (tools/blender/world_terrain_join_landforms.py); they are listed from where they stand.
+	# The range's and city's landforms were the world terrain master's from 2026-10-06
+	# (tools/blender/world_terrain_join_landforms.py) and are the ground grid's since
+	# 2026-10-13, listed as its tiles above; what the range and city sources still draw is
+	# listed from them.
 	if range_root == null:
 		push_error("range_geography_audit: mounted range root is missing")
 	else:
-		for pair in [[range_root, RANGE_MOUNT, RANGE_SOURCE], [world_terrain, WORLD_TERRAIN, MASTER_SOURCE]]:
+		for pair in [[range_root, RANGE_MOUNT, RANGE_SOURCE]]:
 			for visual in (pair[0] as Node).find_children("*", "MeshInstance3D", true, false):
 				if not _is_range_terrain(String(visual.name)):
 					continue
@@ -220,21 +215,17 @@ func _ready() -> void:
 		push_error("range_geography_audit: mounted city root is missing")
 	else:
 		var city_visuals := city_root.find_children("*", "MeshInstance3D", true, false)
-		for visual in world_terrain.find_children("*", "MeshInstance3D", true, false):
-			if CITY_ROLES.has(String(visual.name)):
-				city_visuals.append(visual)
 		for visual in city_visuals:
 			if not CITY_ROLES.has(String(visual.name)) \
 					and not CITY_INFRASTRUCTURE_ROLES.has(String(visual.name)):
 				continue
-			var joined := world_terrain.is_ancestor_of(visual)
 			var role: String = CITY_ROLES[String(visual.name)] \
 				if CITY_ROLES.has(String(visual.name)) \
 				else CITY_INFRASTRUCTURE_ROLES[String(visual.name)]
 			inventory.append(_record_with_footprint(visual, {
 				"id": "city__%s" % visual.name,
-				"scene": WORLD_TERRAIN if joined else CITY_MOUNT,
-				"source": MASTER_SOURCE if joined else CITY_SOURCE,
+				"scene": CITY_MOUNT,
+				"source": CITY_SOURCE,
 				"authority": "editor-owned",
 				"category": "terrain" if CITY_ROLES.has(String(visual.name)) \
 					else "protected infrastructure",
@@ -389,6 +380,10 @@ func _sampled_footprint_overlaps(inventory: Array[Dictionary]) -> Array[Dictiona
 		for j in range(i + 1, inventory.size()):
 			var a := inventory[i]
 			var b := inventory[j]
+			# The grid's tiles meet along their shared edges by construction, and a 40 m
+			# cell on that edge is counted in both; that is not an overlap (2026-10-13).
+			if String(a["id"]).begins_with("ground__") and String(b["id"]).begins_with("ground__"):
+				continue
 			var ac: Dictionary = _cells_by_id[a["id"]]
 			var bc: Dictionary = _cells_by_id[b["id"]]
 			var smaller := ac if ac.size() <= bc.size() else bc

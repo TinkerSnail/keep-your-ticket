@@ -1,78 +1,36 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=4 format=3]
 
-; Editor-owned world ground (2026-10-05, Stage 1 of
-; documentation/terrain-master-into-game-plan-2026-10-05.md: Christina approved
-; the world terrain master as the game's one ground). Open the Blender source
-; named below to reshape it; its `Ground` collection is what reaches the game,
-; through tools/export_world_source.sh. Collision is derived from each mesh at
-; import. The materials are the ones these grounds wore in
-; scenes/world/park_groundworks.tscn, shared from assets/materials/ so one
-; change in the inspector reaches every piece of land that uses them.
-; The hill lakes K1 and L0 (Stage 3, edit 4) and the falls' plunge pool (edit 5) come from
-; the master's Lakes collection and wear the bay's water, assets/materials/lake_water.tres;
-; they have no collision. The south beach front (edit 2, 2026-10-06) is new land in Ground
-; beyond the old shore, and the coast shelf (2026-10-06) runs every coast on below the
-; waterline from its shore wall; both wear the coasts' material. The range's and city's
-; landforms joined Ground on 2026-10-06 (tools/blender/world_terrain_join_landforms.py), the
-; meshes their own sources drew before, wearing their own materials from the master. Where
-; edit 1 (2026-10-06) blended the south range they are cut, capped and replaced by one sheet,
-; terrain_south_range_blend, which wears their materials too. Their coasts run on below the
-; waterline in terrain_landform_shelf (2026-10-08), which wears the coasts' material like the shelf.
-; corridor_natural_edit6 (2026-10-08, the master's Earthworks collection) is no ground: it hands
-; the generator the hillside regrade's natural ground under the coast highway's cutting, so the
-; road's sides are cut down to the new hill. It has no collision and is hidden here.
-[ext_resource type="PackedScene" path="res://assets/world_terrain_master.glb" id="1_source"]
-[ext_resource type="Material" path="res://assets/materials/landscape_depth_vertex.tres" id="2_depth_vertex"]
-[ext_resource type="Material" path="res://assets/materials/landscape_depth_plain.tres" id="3_depth_plain"]
-[ext_resource type="Material" path="res://assets/materials/ground_shoulder.tres" id="4_shoulder"]
-[ext_resource type="Material" path="res://assets/materials/lake_water.tres" id="5_lake"]
+; The world's ground, as one height grid since height-grid Stage 2 (2026-10-13,
+; documentation/terrain-height-grid-plan-2026-10-12.md; Christina, 2026-10-12: "this
+; multiple mesh thing is horrid"). Its source is assets/source/world_ground/: 2 m height
+; tiles and a painted colour image per 1 km square, per its grid.json. Blender builds them
+; into ordinary meshes (tools/blender/ground_build.py writes assets/world_ground/tiles/), and
+; tools/ground_mount.gd writes scenes/world/world_ground.tscn, which mounts every tile with
+; its own colour; collision is derived from each tile at import, one-sided, every face up.
+; The road corridor, the tunnel lids, the west shell and both protected cascades are the
+; generator's and stay as they were. The hill lakes K1 and L0 and the falls' plunge pool
+; are the master's Lakes collection, exported alone to assets/world_terrain_lakes.glb, and
+; wear the bay's water, assets/materials/lake_water.tres; they have no collision. Until
+; Stage 5 the ground as the master's pieces is kept, unmounted, in
+; scenes/world/world_terrain_pieces.tscn, for going back.
+[ext_resource type="PackedScene" path="res://scenes/world/world_ground.tscn" id="1_ground"]
+[ext_resource type="PackedScene" path="res://assets/world_terrain_lakes.glb" id="2_lakes"]
+[ext_resource type="Material" path="res://assets/materials/lake_water.tres" id="3_lake"]
 
-[node name="world_terrain" instance=ExtResource("1_source")]
-editor_description = "Editable source: res://assets/source/world_terrain_master.blend, its Ground collection. Since 2026-10-05 this is the ground the generator used to emit (the mainland reserve, both coasts, the park's T2, T3 and T6, both east shoulders), copied vertex for vertex. Since Stage 2 the generator no longer writes its own copies, and what it places on the ground follows this one: edit the Blender source, run tools/export_world_source.sh assets/source/world_terrain_master.blend, then Godot --headless --path . --import, then tools/world_terrain_delta.gd to see what changed, then the generator. Roads keep their own graded profiles. The road corridor, the tunnel lids, the west shell and both protected cascades are not here and stay as they were."
+[node name="world_terrain" type="Node3D"]
+editor_description = "The world's ground as one height grid (since 2026-10-13). Editable source: res://assets/source/world_ground/, the height and colour tiles. After changing them: Blender --background --factory-startup --python tools/blender/ground_build.py, then Godot --headless --path . --import, then Godot --headless --path . --script res://tools/ground_mount.gd, then tools/world_terrain_delta.gd to see what changed, then the generator. Roads keep their own graded profiles. The road corridor, the tunnel lids, the west shell and both protected cascades are not here and stay as they were."
 
-[node name="terrain_world_mainland_reserve" parent="." index="0"]
-material_override = ExtResource("2_depth_vertex")
+[node name="world_ground" parent="." instance=ExtResource("1_ground")]
 
-[node name="terrain_world_coast_north" parent="." index="1"]
-material_override = ExtResource("2_depth_vertex")
+[node name="lakes" parent="." instance=ExtResource("2_lakes")]
 
-[node name="terrain_world_coast_south" parent="." index="2"]
-material_override = ExtResource("2_depth_vertex")
+[node name="lake_K1" parent="lakes" index="0"]
+material_override = ExtResource("3_lake")
 
-[node name="terrain_T2_lowland" parent="." index="3"]
-material_override = ExtResource("3_depth_plain")
+[node name="lake_L0" parent="lakes" index="1"]
+material_override = ExtResource("3_lake")
 
-[node name="terrain_T3_headland" parent="." index="4"]
-material_override = ExtResource("3_depth_plain")
-
-[node name="terrain_T6_outer_highland" parent="." index="5"]
-material_override = ExtResource("3_depth_plain")
-
-[node name="east_shoulder_n" parent="." index="6"]
-material_override = ExtResource("4_shoulder")
-
-[node name="east_shoulder_s" parent="." index="7"]
-material_override = ExtResource("4_shoulder")
-
-[node name="terrain_south_beach_front" parent="." index="8"]
-material_override = ExtResource("2_depth_vertex")
-
-[node name="terrain_coast_shelf" parent="." index="9"]
-material_override = ExtResource("2_depth_vertex")
-
-[node name="terrain_landform_shelf" parent="." index="31"]
-material_override = ExtResource("2_depth_vertex")
-
-[node name="lake_K1" parent="." index="34"]
-material_override = ExtResource("5_lake")
-
-[node name="lake_L0" parent="." index="35"]
-material_override = ExtResource("5_lake")
-
-[node name="plunge_pool" parent="." index="36"]
-material_override = ExtResource("5_lake")
-
-[node name="corridor_natural_edit6" parent="." index="37"]
-visible = false
+[node name="plunge_pool" parent="lakes" index="2"]
+material_override = ExtResource("3_lake")
 
 [node name="authored_additions" type="Node3D" parent="."]

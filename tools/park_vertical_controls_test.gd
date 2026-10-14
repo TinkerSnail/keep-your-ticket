@@ -10,7 +10,8 @@ const EPSILON := 0.011
 const EAST_CASCADE_PATH := "res://scenes/world/generated/east_cascade.tscn"
 const GROUNDWORKS_PATH := "res://scenes/world/generated/park_groundworks.tscn"
 ## Since 2026-10-05 (terrain master Stage 2) the district shoulders' ground is
-## the world terrain master's, and the generator no longer writes its own.
+## the world terrain master's, and the generator no longer writes its own; since
+## height-grid Stage 2 (2026-10-13) it is that wrapper's ground grid.
 const WORLD_TERRAIN_PATH := "res://scenes/world/world_terrain.tscn"
 
 var _failures: PackedStringArray = PackedStringArray()
@@ -240,11 +241,22 @@ func _check_generated_scene_ownership() -> void:
 	if not misplaced.is_empty():
 		_failures.append("protected east_cascade still owns %d district shoulder nodes (first: %s)" % [
 			misplaced.size(), misplaced[0]])
+	# The shoulders' ground was the master's east_shoulder_n and east_shoulder_s until
+	# height-grid Stage 2 (2026-10-13); it is the ground grid's now, so the question is
+	# whether world_terrain's grid, and not the protected cascade, carries ground on each
+	# shoulder: at the middle of its plateau, halfway across it in x and halfway from its
+	# wall band to its brow, as gen_props.gd's `_shoulder_prm` publishes them.
 	var world_terrain := _instantiate_scene(WORLD_TERRAIN_PATH)
 	if world_terrain != null:
-		for required in [&"east_shoulder_n", &"east_shoulder_s"]:
-			if world_terrain.find_child(String(required), true, false) == null:
-				_failures.append("world_terrain is missing district terrain %s" % required)
+		var generator = Generator.new()
+		for pair in [["east_shoulder_n", -1.0], ["east_shoulder_s", 1.0]]:
+			var prm: Dictionary = generator._shoulder_prm(float(pair[1]))
+			var at := Vector2((Generator.SHOULDER_WEST_X + Generator.EARTH_TO_X) * 0.5,
+				Plan.ARCH_AT.y + float(pair[1]) * (float(prm["wall_to"]) + float(prm["brow"])) * 0.5)
+			if is_nan(_grid_ground_y(world_terrain, at)):
+				_failures.append("world_terrain's ground grid has no district terrain on %s at %s" % [
+					pair[0], at])
+		generator.free()
 		world_terrain.free()
 	var north_helpers := 0
 	for child in groundworks.get_children():
@@ -254,6 +266,47 @@ func _check_generated_scene_ownership() -> void:
 		_failures.append("park_groundworks is missing the north shoulder retaining terraces")
 	east.free()
 	groundworks.free()
+
+
+## The height of the ground grid's tile over a plan point, the highest surface if it
+## folds, or NAN where the grid has none (2026-10-13). Each tile is
+## `world_ground/x{tx}_z{tz}/ground_x{tx}_z{tz}`, 1 km square from (1000 tx, 1000 tz).
+func _grid_ground_y(world_terrain: Node, at: Vector2) -> float:
+	var tile := "x%d_z%d" % [floori(at.x / 1000.0), floori(at.y / 1000.0)]
+	var grid := world_terrain.find_child("world_ground", true, false)
+	var holder := grid.get_node_or_null(tile) if grid != null else null
+	var mesh := holder.find_child("ground_" + tile, true, false) as MeshInstance3D \
+		if holder != null else null
+	if mesh == null or mesh.mesh == null:
+		return NAN
+	var xf := Transform3D.IDENTITY
+	var walk: Node = mesh
+	while walk != null and walk != world_terrain:
+		if walk is Node3D:
+			xf = (walk as Node3D).transform * xf
+		walk = walk.get_parent()
+	var top := NAN
+	for surface in mesh.mesh.get_surface_count():
+		var arrays := mesh.mesh.surface_get_arrays(surface)
+		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var indices := PackedInt32Array()
+		if arrays[Mesh.ARRAY_INDEX] != null:
+			indices = arrays[Mesh.ARRAY_INDEX]
+		var count := indices.size() if indices.size() > 0 else vertices.size()
+		for i in range(0, count, 3):
+			var a := xf * vertices[indices[i] if indices.size() > 0 else i]
+			var b := xf * vertices[indices[i + 1] if indices.size() > 0 else i + 1]
+			var c := xf * vertices[indices[i + 2] if indices.size() > 0 else i + 2]
+			var den := (b.z - c.z) * (a.x - c.x) + (c.x - b.x) * (a.z - c.z)
+			if absf(den) < 1e-9:
+				continue
+			var l1 := ((b.z - c.z) * (at.x - c.x) + (c.x - b.x) * (at.y - c.z)) / den
+			var l2 := ((c.z - a.z) * (at.x - c.x) + (a.x - c.x) * (at.y - c.z)) / den
+			if l1 < -1e-6 or l2 < -1e-6 or 1.0 - l1 - l2 < -1e-6:
+				continue
+			var y := l1 * a.y + l2 * b.y + (1.0 - l1 - l2) * c.y
+			top = y if is_nan(top) else maxf(top, y)
+	return top
 
 
 func _instantiate_scene(path: String) -> Node:

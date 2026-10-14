@@ -1,0 +1,243 @@
+{
+ "about": "Named edits to the height grid, in order, by tools/ground_grid_edit.py; history/<id>.npz keeps each edit's previous values. Undo is LIFO.",
+ "edits": [
+  {
+   "id": "G1",
+   "name": "r7_slot",
+   "date": "2026-10-13",
+   "why": "fill the cracks at the feet of T6's risers by R7 so the foot runs level",
+   "tiles": [
+    "x0_z0"
+   ],
+   "nodes": 8,
+   "new_ground_nodes": 0,
+   "history": "history/G1.npz",
+   "files": [
+    {
+     "tile": "x0_z0",
+     "nodes": 8,
+     "height_sha_before": "4b9ec4794a7d6c3d3f73e995478cb9e454431497d348f67d3df08f0072ea9395",
+     "height_sha_after": "120356e09c4c77e8ad0d40e564329bea176c859c85350ec8e896d08e8490aad0"
+    }
+   ]
+  },
+  {
+   "id": "G2",
+   "name": "route_c_gap",
+   "date": "2026-10-13",
+   "why": "give route C's empty strip under the west shell's bluff the land beside it",
+   "tiles": [
+    "x-1_z0"
+   ],
+   "nodes": 13,
+   "new_ground_nodes": 13,
+   "history": "history/G2.npz",
+   "files": [
+    {
+     "tile": "x-1_z0",
+     "nodes": 13,
+     "height_sha_before": "3ba926263aba014ea368f9ddefa6baabb5778bc634e12df0382720307b0723d7",
+     "height_sha_after": "e0424bff708e3b269ec00641033acf56eae349c89f0029b06a9a2f20b2edb2e4",
+     "colour_nodes": 13
+    }
+   ]
+  },
+  {
+   "id": "G3",
+   "name": "west_shell_step",
+   "date": "2026-10-13",
+   "why": "hold the land to the bluff's sea face at S2 and route C",
+   "tiles": [
+    "x-1_z0"
+   ],
+   "nodes": 11,
+   "new_ground_nodes": 0,
+   "history": "history/G3.npz",
+   "files": [
+    {
+     "tile": "x-1_z0",
+     "nodes": 11,
+     "height_sha_before": "e0424bff708e3b269ec00641033acf56eae349c89f0029b06a9a2f20b2edb2e4",
+     "height_sha_after": "415f35a20e8a865f4c4cd93906abdfeb0308e2c9d54d4e9e0c0f3650469c9e6f"
+    }
+   ]
+  },
+  {
+   "id": "G4",
+   "name": "r5_queue",
+   "date": "2026-10-14",
+   "why": "hold the ground 2 cm under R5's queue: the riser's foot row moves to x 54",
+   "tiles": [
+    "x0_z0"
+   ],
+   "nodes": 3,
+   "new_ground_nodes": 0,
+   "history": "history/G4.npz",
+   "files": [
+    {
+     "tile": "x0_z0",
+     "nodes": 3,
+     "height_sha_before": "120356e09c4c77e8ad0d40e564329bea176c859c85350ec8e896d08e8490aad0",
+     "height_sha_after": "b210662e6a0c1b96bc5cef05542fcaff1a8f81c2477ec514b347d30d093be139"
+    }
+   ]
+  },
+  {
+   "id": "G5",
+   "name": "r10_queue",
+   "date": "2026-10-14",
+   "why": "hold the ground 2 cm under R10's queue in its hollow",
+   "tiles": [
+    "x0_z-1"
+   ],
+   "nodes": 15,
+   "new_ground_nodes": 0,
+   "history": "history/G5.npz",
+   "files": [
+    {
+     "tile": "x0_z-1",
+     "nodes": 15,
+     "height_sha_before": "a37fd0d291f101dab0517e4b343121a4da9c85795551b0ebdab994269f65656a",
+     "height_sha_after": "ad6f1689c7226a8d4c66425f361ddb44df882663c79e04b6e3aefac849d534be"
+    }
+   ]
+  },
+  {
+   "id": "G6",
+   "name": "r7_queue_end_bed",
+   "date": "2026-10-14",
+   "why": "hold the ground 2 cm under the stone bed at R7's queue end",
+   "tiles": [
+    "x0_z0"
+   ],
+   "nodes": 5,
+   "new_ground_nodes": 0,
+   "history": "history/G6.npz",
+   "files": [
+    {
+     "tile": "x0_z0",
+     "nodes": 5,
+     "height_sha_before": "b210662e6a0c1b96bc5cef05542fcaff1a8f81c2477ec514b347d30d093be139",
+     "height_sha_after": "b8269f916eca018c7fcea5d286967d32b339064041d1564cc6b55a5dfc36aef2"
+    }
+   ]
+  },
+  {
+   "id": "G7",
+   "name": "interior_pinholes",
+   "date": "2026-10-14",
+   "why": "fill the no-data regions enclosed by ground and clear of held outlines",
+   "tiles": [
+    "x-2_z-1",
+    "x-2_z5",
+    "x-1_z-3",
+    "x-1_z-2",
+    "x-1_z-1",
+    "x-1_z2",
+    "x-1_z4",
+    "x0_z-1",
+    "x0_z2",
+    "x0_z5",
+    "x1_z2",
+    "x1_z3",
+    "x2_z2"
+   ],
+   "nodes": 622,
+   "new_ground_nodes": 622,
+   "history": "history/G7.npz",
+   "files": [
+    {
+     "tile": "x-2_z-1",
+     "nodes": 11,
+     "height_sha_before": "2462409c1606845f59977ae8c94fbe563a6a8a2de65b49c77d705cbe7ca546ac",
+     "height_sha_after": "a6fe839a5d6bbc7100f8565cf4dcab57e25f6959b690d6b3989a9981437517b5",
+     "colour_nodes": 11
+    },
+    {
+     "tile": "x-2_z5",
+     "nodes": 50,
+     "height_sha_before": "40c54bbf94b9982c87f6631f71479656a8eb7fc1dad3e39dfc281a2e5ed38285",
+     "height_sha_after": "ee3190b42dcfcae5d3fc08ed826e12fbb1d77d18c559a8acc8fe9614ca9a79b9",
+     "colour_nodes": 50
+    },
+    {
+     "tile": "x-1_z-3",
+     "nodes": 98,
+     "height_sha_before": "0188cbb1968ba98b1420b48a8ab62086aef323def1232dab417e3a13ae8c5bcd",
+     "height_sha_after": "848f9b2a9889bef6e22075f07102104025fc48b323c767b704116a15952fc2f5",
+     "colour_nodes": 98
+    },
+    {
+     "tile": "x-1_z-2",
+     "nodes": 79,
+     "height_sha_before": "fe3873eeca545cf05b87a81cfb74ce559c81fa961530e188e3a74994f1ab31d0",
+     "height_sha_after": "7ac02ea84b0200154ad17008b8d5cd6d82eef60f6a1c8dffe81a58cf238c4bd2",
+     "colour_nodes": 79
+    },
+    {
+     "tile": "x-1_z-1",
+     "nodes": 13,
+     "height_sha_before": "351600115828f8ea2ff2de3e6525dfd26bccbf734426ab4f6e1147890735e084",
+     "height_sha_after": "0b94e7e3aa4a157e61eaea28b101cb1e6eb6293f54ba7f5cad97639b259870ec",
+     "colour_nodes": 13
+    },
+    {
+     "tile": "x-1_z2",
+     "nodes": 130,
+     "height_sha_before": "bb93e639656c580e5cd83bca9b641716a107f2f850357e46f4611408985381b7",
+     "height_sha_after": "a05de08848498dce89cb274cc05983dc714ebaa1c492a633050fe18446c19737",
+     "colour_nodes": 130
+    },
+    {
+     "tile": "x-1_z4",
+     "nodes": 7,
+     "height_sha_before": "e65fdc109ace62c3db38d2a0908d1ba2b6eb25c72d35a4e72c9d241fd669e938",
+     "height_sha_after": "b0a3302860fafe02632b0df8931774a96c05907a2ed42af3be30ac98d3a1f683",
+     "colour_nodes": 7
+    },
+    {
+     "tile": "x0_z-1",
+     "nodes": 14,
+     "height_sha_before": "ad6f1689c7226a8d4c66425f361ddb44df882663c79e04b6e3aefac849d534be",
+     "height_sha_after": "676d3b3b257d58fb72c38aaad7a342b7f633ea5c9de04cfeecdea23d007f3674",
+     "colour_nodes": 14
+    },
+    {
+     "tile": "x0_z2",
+     "nodes": 5,
+     "height_sha_before": "69ebf370eed246e6afbe3dcbc478aa6b64a1711f5d1968c62c01b06402846055",
+     "height_sha_after": "800a2abc1bf9b53bfc4c898f094bf6634c5a6db2c17a6179814623d29585bb50",
+     "colour_nodes": 5
+    },
+    {
+     "tile": "x0_z5",
+     "nodes": 18,
+     "height_sha_before": "c445d2812c6c3d05f5f2061dfb5b4448b56f8f54b9aca7932a29eb93e5ed2bb1",
+     "height_sha_after": "9d468edc089bedb9cbb2cea8c243e17ef3330a08a868bb4a4ba665ce215b36a9",
+     "colour_nodes": 18
+    },
+    {
+     "tile": "x1_z2",
+     "nodes": 36,
+     "height_sha_before": "4f5367ada3a6d1bb8991c6ec697c2bee2f9c4db3be504737e43ef8624185d0db",
+     "height_sha_after": "b38d82fd0cb82530773f59c83ecf066728bfa5475fa2c079c552ee96dc278157",
+     "colour_nodes": 36
+    },
+    {
+     "tile": "x1_z3",
+     "nodes": 102,
+     "height_sha_before": "da9a259460aecdada5abf541c3e143e7af23dcff978f77ebc87914be0d3964bf",
+     "height_sha_after": "6a03318be37fc73ab3073e4c93d4b8e794511d81c470a7ad6695f997fa2f7a0c",
+     "colour_nodes": 102
+    },
+    {
+     "tile": "x2_z2",
+     "nodes": 61,
+     "height_sha_before": "5440db9cd5e6b35b6bd2c70cf8ecbb207caa6f670d5cfe5c72a3cef1ad538d88",
+     "height_sha_after": "70f24302acecf09291ad3f6fc61f602fe44d3cf6313e1253716505cbc90cdaf7",
+     "colour_nodes": 61
+    }
+   ]
+  }
+ ]
+}

@@ -7,35 +7,36 @@
 
 Reads `assets/source/world_ground/grid.json` and writes `colour/x{tx}_z{tz}.png` beside it (or
 under `--out`): 501 x 501, 8-bit sRGB RGBA, north up, row r at z = 1000 tz + 2 r, column c at
-x = 1000 tx + 2 c, shared edges equal. Each node holds the colour the game feeds the land's
-shader at that point on the top upward face of the master's `Ground` (the highest face whose
-normal is at least `MIN_UP` up, as `scripts/world_terrain_source.gd` reads the ground; a node
-exactly on an edge takes the higher computed height, then the lower face number, so always the
-same face). Where only a face turned down lies over a node (five nodes at `1926e71`), the node
-takes that face, so the colour covers every node the height grid does. Alpha is 255 there and
-0 where there is no `Ground`, with the colour 0, so the image is already premultiplied. The
-master is only read, never saved.
+x = 1000 tx + 2 c, shared edges equal. Each node holds the albedo the game shows at that point
+today, before lighting, as sRGB: what she paints is what the ground grid's shader
+(`assets/shaders/ground_grid.gdshader`) draws, with no tint (Christina's choice, 2026-10-13).
+The point is on the top upward face of the master's `Ground` (the highest face whose normal is
+at least `MIN_UP` up, as `scripts/world_terrain_source.gd` reads the ground; a node exactly on
+an edge takes the higher computed height, then the lower face number, so always the same face).
+Where only a face turned down lies over a node (five nodes at `1926e71`), the node takes that
+face, so the colour covers every node the height grid does. Alpha is 255 there and 0 where
+there is no `Ground`, with the colour 0, so the image is already premultiplied. The master is
+only read, never saved.
 
-What "the colour the game feeds the shader" is, read from the game's files at run time:
+What the game shows, read from the game's files at run time:
 - `scenes/world/world_terrain.tscn` overrides some bodies' materials by name.
 - `landscape_depth_vertex.tres` (`landscape_depth_palette.gdshader`) reads the mesh's vertex
   colour as sRGB. Godot keeps a vertex colour as four bytes, each the float times 255 cut
   down (not rounded): measured 2026-10-12 against every vertex the game loads. So a corner
-  feeds floor(255 Col) / 255, the GPU interpolates those across the face, and the node stores
-  that interpolation rounded to the nearest byte.
-- `landscape_depth_plain.tres` (the same shader) feeds its `base_color`, as sRGB.
+  feeds floor(255 Col) / 255 and the GPU interpolates those across the face. The palette then
+  multiplies a green-dominant colour by its gain (`palette_tint`), and the node stores that,
+  rounded to the nearest byte.
+- `landscape_depth_plain.tres` (the same shader) feeds its `base_color`, tinted the same way.
 - A StandardMaterial3D (`ground_shoulder.tres`, and every landform material that comes
-  through the GLB, whose albedo Godot sets to the sRGB of the Principled Base Color) feeds
-  its albedo straight to lighting. The palette shader that will read this image multiplies
-  green-dominant colours by its gain first, so these nodes store the byte colour that the
-  palette turns back into the material's albedo (`encode_albedo`), nearest in sRGB.
+  through the GLB, whose albedo Godot sets to the sRGB of the Principled Base Color) shows
+  its albedo untouched, so the node stores the albedo, rounded.
 The palette's gain is the same near and far (both materials set `far_gain` to `near_gain`),
 so it does not depend on where a point is; the bake refuses if that ever changes.
 
 `--heights` also saves the chosen face's height at every node (float32, NaN where none) for
-comparing with the height tiles. The report (`--report`) has the proofs: every vertex-coloured
-node against its interpolated corners, every albedo node against its material, a ray-cast
-check of the chosen face, coverage by material and shader, and the tiles read back.
+comparing with the height tiles. The report (`--report`) has the proofs: every node against
+today's albedo there, a ray-cast check of the chosen face, coverage by material and shader,
+and the tiles read back.
 
 `--map` mode runs under plain Python with Pillow: a north-up mosaic of the colour tiles at
 8 m a pixel with a 1 km grid and the main places named.
@@ -234,28 +235,12 @@ def smoothstep(e0, e1, x):
 
 
 def palette_tint(s, gain):
-    """The palette's sRGB colour before linearising, for input s (..., 3) in 0..1."""
+    """The palette's sRGB colour before linearising, for input s (..., 3) in 0..1: what
+    `landscape_depth_palette.gdshader` makes of COLOR or base_color, its depth term inert."""
     s = np.asarray(s, np.float64)
     m = smoothstep(MASK_LO, MASK_HI, s[..., 1] - np.maximum(s[..., 0], s[..., 2]))
     g = 1.0 + (np.asarray(gain, np.float64) - 1.0) * m[..., None]
     return np.clip(s * g, 0.0, 1.0)
-
-
-def encode_albedo(target, gain):
-    """The byte colour whose palette tint is nearest `target` (sRGB 0..1), worst channel first."""
-    t = np.asarray(target, np.float64)
-    centres = [np.rint(t * 255), np.rint(t / np.asarray(gain) * 255)]
-    r = np.arange(-4, 5)
-    cand = []
-    for c in centres:
-        g = np.stack(np.meshgrid(c[0] + r, c[1] + r, c[2] + r, indexing="ij"), -1).reshape(-1, 3)
-        cand.append(g)
-    cand = np.unique(np.clip(np.concatenate(cand), 0, 255), axis=0)
-    out = palette_tint(cand / 255.0, gain)
-    err = np.abs(out - t)
-    key = np.lexsort((cand[:, 2], cand[:, 1], cand[:, 0], (err ** 2).sum(1), err.max(1)))
-    best = cand[key[0]].astype(np.uint8)
-    return best, float(err[key[0]].max() * 255)
 
 
 def linear_to_srgb32(c):
@@ -269,11 +254,11 @@ def linear_to_srgb32(c):
 # ---------------------------------------------------------------- reading Ground (Blender)
 
 def gather_ground(bpy, overrides, gain_default):
-    """Every triangle of Ground as Godot sees it, with what it feeds the shader."""
+    """Every triangle of Ground as Godot sees it, with the colour the game shows on it."""
     coll = bpy.data.collections[GROUND]
     objs = sorted((o for o in coll.all_objects if o.type == "MESH"), key=lambda o: o.name)
-    tris, corner_bytes, corner_raw, kind, mat_id, obj_id = [], [], [], [], [], []
-    materials = []      # one entry per game material: name, shader, kind, encoded byte colour
+    tris, corner_bytes, kind, mat_id, obj_id = [], [], [], [], []
+    materials = []      # one entry per game material: name, shader, kind, the albedo it shows
     mat_index = {}
     objects = []
     palette = None
@@ -323,21 +308,19 @@ def gather_ground(bpy, overrides, gain_default):
                 mid = material(info["name"], {"name": info["name"], "shader": "landscape_depth_palette (vertex colour)",
                                              "kind": "palette_vertex", "byte": None})
                 corner_bytes.append(cb.astype(np.uint8))
-                corner_raw.append(c)
                 kind.append(np.zeros(nt, np.uint8))
                 mat_id.append(np.full(nt, mid, np.int32))
             else:
                 if info["kind"] == "palette_base":
                     palette = palette or info
-                    byte = np.floor(np.asarray(info["base_srgb"]) * 255.0 + 0.5).astype(np.uint8)
                     entry = {"name": info["name"], "shader": "landscape_depth_palette (base colour)",
-                             "kind": "palette_base", "byte": byte, "feeds_srgb": info["base_srgb"]}
+                             "kind": "palette_base", "feeds_srgb": info["base_srgb"],
+                             "shows_srgb": [float(v) for v in palette_tint(info["base_srgb"], info["gain"])]}
                 else:
                     entry = {"name": info["name"], "shader": "StandardMaterial3D (albedo)", "kind": "albedo",
-                             "albedo_srgb": info["albedo_srgb"], "byte": None}
+                             "shows_srgb": info["albedo_srgb"]}
                 mid = material(info["name"], entry)
                 corner_bytes.append(np.zeros((nt, 3, 3), np.uint8))
-                corner_raw.append(np.zeros((nt, 3, 3), np.float32))
                 kind.append(np.ones(nt, np.uint8))
                 mat_id.append(np.full(nt, mid, np.int32))
         else:
@@ -354,9 +337,8 @@ def gather_ground(bpy, overrides, gain_default):
                 lin = list(bsdf.inputs["Base Color"].default_value)[:3]
                 alb = [float(v) for v in linear_to_srgb32(lin)]
                 ids[use] = material(m.name, {"name": m.name, "shader": "StandardMaterial3D (albedo)", "kind": "albedo",
-                                             "albedo_srgb": alb, "base_linear": lin, "byte": None})
+                                             "shows_srgb": alb, "base_linear": lin})
             corner_bytes.append(np.zeros((nt, 3, 3), np.uint8))
-            corner_raw.append(np.zeros((nt, 3, 3), np.float32))
             kind.append(np.ones(nt, np.uint8))
             mat_id.append(ids)
         tris.append(p)
@@ -364,15 +346,15 @@ def gather_ground(bpy, overrides, gain_default):
 
     gain = palette["gain"] if palette else gain_default
     for m in materials:
-        if m["kind"] == "albedo":
-            m["byte"], m["residual_levels"] = encode_albedo(m["albedo_srgb"], gain)
-            m["palette_of_byte_srgb"] = [float(v) for v in palette_tint(m["byte"] / 255.0, gain)]
-        elif m["kind"] == "palette_base":
-            m["residual_levels"] = float(np.abs(m["byte"] / 255.0 - np.asarray(m["feeds_srgb"])).max() * 255)
+        if "shows_srgb" in m:
+            m["byte"] = np.floor(np.asarray(m["shows_srgb"]) * 255.0 + 0.5).astype(np.uint8)
+            m["residual_levels"] = float(np.abs(m["byte"] / 255.0 - np.asarray(m["shows_srgb"])).max() * 255)
+        else:
+            m["byte"] = None
     P = np.concatenate(tris).astype(np.float64)            # Blender (x, y, z)
     G = np.stack([P[..., 0], P[..., 2], -P[..., 1]], -1)   # Godot (x, y, z), exact
     return {
-        "godot": G, "blender": P, "bytes": np.concatenate(corner_bytes), "raw": np.concatenate(corner_raw),
+        "godot": G, "blender": P, "bytes": np.concatenate(corner_bytes),
         "kind": np.concatenate(kind), "mat": np.concatenate(mat_id), "obj": np.concatenate(obj_id),
         "materials": materials, "objects": objects, "gain": gain,
     }
@@ -452,12 +434,9 @@ def rasterise(G, use, spec, log, what="upward"):
 
 
 def node_colours(D, best_t, spec):
-    """RGBA per node, and the interpolated byte colour (float) on vertex-coloured nodes."""
+    """RGBA per node: the albedo the game shows there, as sRGB bytes."""
     nx = spec["nx"]
-    n = len(best_t)
-    rgba = np.zeros((n, 4), np.uint8)
-    interp = np.full((n, 3), np.nan)
-    interp_raw = np.full((n, 3), np.nan)
+    rgba = np.zeros((len(best_t), 4), np.uint8)
     have = np.nonzero(best_t >= 0)[0]
     const = np.array([m["byte"] if m["byte"] is not None else (0, 0, 0) for m in D["materials"]], np.uint8)
     for s in range(0, len(have), 2_000_000):
@@ -469,16 +448,14 @@ def node_colours(D, best_t, spec):
         w = np.clip(w, 0.0, None)
         w /= w.sum(1, keepdims=True)
         vc = D["kind"][t] == 0
-        c = np.einsum("nk,nkc->nc", w[vc], D["bytes"][t[vc]].astype(np.float64))
-        cr = np.einsum("nk,nkc->nc", w[vc], D["raw"][t[vc]].astype(np.float64)) * 255.0
-        interp[nodes[vc]] = c
-        interp_raw[nodes[vc]] = cr
+        c = np.einsum("nk,nkc->nc", w[vc], D["bytes"][t[vc]].astype(np.float64)) / 255.0
+        shown = palette_tint(c, D["gain"])
         rgb = np.empty((len(nodes), 3), np.uint8)
-        rgb[vc] = np.clip(np.floor(c + 0.5), 0, 255).astype(np.uint8)
+        rgb[vc] = np.clip(np.floor(shown * 255.0 + 0.5), 0, 255).astype(np.uint8)
         rgb[~vc] = const[D["mat"][t[~vc]]]
         rgba[nodes, :3] = rgb
         rgba[nodes, 3] = 255
-    return rgba, interp, interp_raw
+    return rgba
 
 
 # ---------------------------------------------------------------- proofs
@@ -570,27 +547,78 @@ def ray_check(bpy, D, best_t, best_h, spec, samples, log):
     return res
 
 
-def proofs(D, best_t, rgba, interp, interp_raw, spec):
-    have = best_t >= 0
-    t = best_t[have]
-    vc = D["kind"][t] == 0
-    stored = rgba[have, :3].astype(np.float64)
-    out = {}
-    d_game = np.abs(stored[vc] - interp[have][vc])
-    d_raw = np.abs(stored[vc] - interp_raw[have][vc])
-    out["vertex_colour_nodes"] = int(vc.sum())
-    out["vs_game_corners_max_levels"] = float(d_game.max()) if vc.any() else 0.0
-    out["vs_game_corners_over_1_level"] = int((d_game.max(1) > 1.0).sum()) if vc.any() else 0
-    out["vs_raw_Col_max_levels"] = float(d_raw.max()) if vc.any() else 0.0
-    out["vs_raw_Col_over_1_level"] = int((d_raw.max(1) > 1.0 + 1e-9).sum()) if vc.any() else 0
-    mats = D["mat"][t[~vc]]
-    const = np.array([m["byte"] if m["byte"] is not None else (0, 0, 0) for m in D["materials"]], np.uint8)
-    wrong = (rgba[have, :3][~vc] != const[mats]).any(1)
-    out["albedo_or_base_nodes"] = int((~vc).sum())
-    out["albedo_or_base_nodes_not_their_material"] = int(wrong.sum())
-    out["alpha"] = {"255_with_ground": int((rgba[have, 3] == 255).sum()), "0_without": int((rgba[~have, 3] == 0).sum()),
-                    "rgb_zero_without": int((rgba[~have, :3] == 0).all(1).sum()), "nodes_without": int((~have).sum())}
-    return out
+def _f32(x):
+    return np.asarray(x, np.float32)
+
+
+def shader_albedo_f32(src_srgb, gain):
+    """`landscape_depth_palette.gdshader`'s fragment, line for line in float32, its depth term
+    inert: (tinted sRGB, ALBEDO linear). Written apart from palette_tint so the proof does
+    not check the bake against itself."""
+    src = _f32(src_srgb)
+    lo, hi = np.float32(MASK_LO), np.float32(MASK_HI)
+    x = src[..., 1] - np.maximum(src[..., 0], src[..., 2])
+    t = np.clip((x - lo) / (hi - lo), np.float32(0), np.float32(1))
+    green_mask = t * t * (np.float32(3) - np.float32(2) * t)
+    depth_gain = _f32(gain)
+    tinted = src * (np.float32(1) + (depth_gain - np.float32(1)) * green_mask[..., None])
+    tinted = np.clip(tinted, np.float32(0), np.float32(1))
+    return tinted, srgb_to_linear_f32(tinted)
+
+
+def srgb_to_linear_f32(c):
+    c = _f32(c)
+    low = c / np.float32(12.92)
+    high = np.power((c + np.float32(0.055)) / np.float32(1.055), np.float32(2.4))
+    return np.where(c >= np.float32(0.04045), high, low).astype(np.float32)
+
+
+def proofs(D, best_t, rgba, spec):
+    """Every node's stored colour against today's albedo there, worked out again: the corner
+    weights from plan areas rather than barycentric(), the palette from shader_albedo_f32."""
+    nx = spec["nx"]
+    have = np.nonzero(best_t >= 0)[0]
+    worst = {"vertex": 0.0, "base": 0.0, "albedo": 0.0}
+    worst_lin = 0.0
+    over = {"vertex": 0, "base": 0, "albedo": 0}
+    count = {"vertex": 0, "base": 0, "albedo": 0}
+    shows = np.array([m.get("shows_srgb", (0, 0, 0)) for m in D["materials"]], np.float32)
+    kind_of = np.array([{"palette_vertex": 0, "palette_base": 1, "albedo": 2}[m["kind"]] for m in D["materials"]])
+    for s in range(0, len(have), 2_000_000):
+        nodes = have[s:s + 2_000_000]
+        t = best_t[nodes]
+        G = D["godot"][t]
+        px = spec["x0"] + spec["spacing"] * (nodes % nx)
+        pz = spec["z0"] + spec["spacing"] * (nodes // nx)
+
+        def area(p, q, rx, rz):
+            return (q[:, 0] - p[:, 0]) * (rz - p[:, 2]) - (rx - p[:, 0]) * (q[:, 2] - p[:, 2])
+        full = area(G[:, 0], G[:, 1], G[:, 2, 0], G[:, 2, 2])
+        wa = area(G[:, 1], G[:, 2], px, pz) / full
+        wb = area(G[:, 2], G[:, 0], px, pz) / full
+        wc = area(G[:, 0], G[:, 1], px, pz) / full
+        w = np.clip(np.stack([wa, wb, wc], 1), 0.0, None)
+        w /= w.sum(1, keepdims=True)
+        k = kind_of[D["mat"][t]]
+        src = np.einsum("nk,nkc->nc", w, D["bytes"][t].astype(np.float64)) / 255.0
+        exp_srgb, exp_lin = shader_albedo_f32(src, D["gain"])
+        plain = k > 0
+        exp_srgb[plain] = shows[D["mat"][t[plain]]]
+        exp_lin[plain] = srgb_to_linear_f32(exp_srgb[plain])
+        stored = rgba[nodes, :3].astype(np.float64)
+        d = np.abs(stored - exp_srgb.astype(np.float64) * 255.0).max(1)
+        dl = np.abs(srgb_to_linear_f32(stored / 255.0) - exp_lin).max()
+        worst_lin = max(worst_lin, float(dl))
+        for name, code in (("vertex", 0), ("base", 1), ("albedo", 2)):
+            sel = k == code
+            count[name] += int(sel.sum())
+            if sel.any():
+                worst[name] = max(worst[name], float(d[sel].max()))
+                over[name] += int((d[sel] > 1.0).sum())
+    no = best_t < 0
+    return {"nodes": count, "max_levels": worst, "over_1_level": over, "max_linear_albedo_diff": worst_lin,
+            "alpha": {"255_with_ground": int((rgba[have, 3] == 255).sum()), "0_without": int((rgba[no, 3] == 0).sum()),
+                      "rgb_zero_without": int((rgba[no, :3] == 0).all(1).sum()), "nodes_without": int(no.sum())}}
 
 
 def coverage(D, best_t, spec):
@@ -661,8 +689,8 @@ def bake():
     log(f"  {int(fill.sum())} nodes have only a downward face over them and take its colour; "
         f"{int(over.sum())} have a downward face above the top upward one and keep the upward one's")
     del down_t, down_h
-    rgba, interp, interp_raw = node_colours(D, best_t, spec)
-    P = proofs(D, best_t, rgba, interp, interp_raw, spec)
+    rgba = node_colours(D, best_t, spec)
+    P = proofs(D, best_t, rgba, spec)
     C = coverage(D, best_t, spec)
     R = ray_check(bpy, D, best_t, best_h, spec, samples, log) if samples > 0 else None
 
@@ -694,13 +722,13 @@ def bake():
     land_tiles = sum(1 for a in tiles.values() if a[..., 3].any())
     log(f"  wrote    {len(written)} tiles to {out_dir} ({sizes / 1e6:.1f} MB; {land_tiles} hold ground); "
         f"read back equal: {back_ok}; {edges} shared edges equal: {edges_ok}")
-    log(f"  vertex-coloured nodes {P['vertex_colour_nodes']:,}: stored vs the game's interpolated corners, "
-        f"max {P['vs_game_corners_max_levels']:.3f} of 255 ({P['vs_game_corners_over_1_level']} over 1); "
-        f"vs Blender's raw Col, max {P['vs_raw_Col_max_levels']:.3f} ({P['vs_raw_Col_over_1_level']} over 1)")
-    log(f"  material nodes {P['albedo_or_base_nodes']:,}: {P['albedo_or_base_nodes_not_their_material']} not their material's byte colour")
+    for name in ("vertex", "base", "albedo"):
+        log(f"  {name:<7} nodes {P['nodes'][name]:>10,}: stored vs today's albedo, max {P['max_levels'][name]:.3f} of 255, "
+            f"{P['over_1_level'][name]} over 1")
+    log(f"  stored vs today's albedo, linear: max {P['max_linear_albedo_diff']:.5f}")
     for m in D["materials"]:
         if m["byte"] is not None:
-            log(f"    {m['name']:<36} {m['shader']:<38} byte {tuple(int(v) for v in m['byte'])}  "
+            log(f"    {m['name']:<36} {m['shader']:<38} shows {tuple(int(v) for v in m['byte'])}  "
                 f"residual {m.get('residual_levels', 0):.3f} of 255")
     for s, v in C["by_shader"].items():
         log(f"  {s:<44} {v['nodes']:>11,} nodes  {v['ha']:>9.1f} ha")
@@ -722,8 +750,7 @@ def bake():
             json.dump(rep, f, indent=1)
         log(f"  report   {report_path}")
     log(f"  {time.time() - started:.1f} s; the master was not saved")
-    if not (back_ok and edges_ok and P["vs_game_corners_over_1_level"] == 0
-            and P["albedo_or_base_nodes_not_their_material"] == 0):
+    if not (back_ok and edges_ok and sum(P["over_1_level"].values()) == 0):
         raise SystemExit("ground_colour_bake: a proof failed")
 
 
@@ -786,10 +813,10 @@ def mosaic(out, colour_dir, step=4):
     d.text((x, y), "The land's colour", fill=(0, 0, 0), font=font(22, True))
     y += 34
     for t in ("assets/source/world_ground/colour/, 66 tiles,",
-              "as the palette shader will read it: the",
-              "vertex colours the game interpolates today,",
-              "and each landform material's albedo,",
-              "encoded so the palette returns it.",
+              "the albedo the game shows today: the",
+              "vertex colours with the palette's tint,",
+              "and each landform material's albedo.",
+              "The grid's shader draws it as it is.",
               f"Frozen master {spec['frozen_commit']}; {px:g} m a pixel,",
               "each pixel the mean of 4 x 4 nodes.",
               "Pale blue: no Ground (sea, and the",

@@ -221,7 +221,13 @@ def main() -> None:
     # terrain master: `Ground`, 2026-10-05); then nothing else is exported, so
     # its design grid, reference curves and review water never reach the game.
     # The range and city masters name none and export as before.
+    # `-- --collections A,B` names them for one export instead: the world
+    # terrain master's `Lakes` alone, mounted beside the height grid's ground
+    # since its Stage 2 (2026-10-13), while `Ground` stays in the master's own GLB.
     only = scene.get("kyt_export_collections")
+    rest = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
+    if "--collections" in rest:
+        only = [n for n in rest[rest.index("--collections") + 1].split(",") if n]
     if only:
         names = set(only)
         visible = [o for o in visible if any(c.name in names for c in o.users_collection)]

@@ -180,44 +180,60 @@ func _check_colony(failures: Array[String]) -> void:
 			"returning commuter missed its authored rock socket", failures)
 
 
+## Each rock roost stands on the ground the world mounts, 0 to 0.2 m over its collision.
+## Until 2026-10-13 this read range north's, its west companion's and the plug's
+## vertices from the world terrain master's GLB, where the landforms had been since
+## 2026-10-06 (tools/blender/world_terrain_join_landforms.py), and wanted one within 5 cm
+## in plan. Since height-grid Stage 2 the ground is the grid's tiles
+## (scenes/world/world_terrain.tscn, `world_ground/x{tx}_z{tz}`), so it asks the tile
+## under each roost: the faces of its collision, derived from the visible tile at import,
+## and the highest of them over the roost's plan point.
 func _check_roost_grounding(roosts: Array[Node], failures: Array[String]) -> void:
-	# The range's landforms are the world terrain master's since 2026-10-06
-	# (tools/blender/world_terrain_join_landforms.py), under the same names.
-	var source := load("res://assets/world_terrain_master.glb") as PackedScene
-	_expect(source != null, "the world terrain master holding the range's landforms did not load", failures)
-	if source == null:
+	var packed := load("res://scenes/world/world_terrain.tscn") as PackedScene
+	_expect(packed != null, "the world terrain did not load", failures)
+	if packed == null:
 		return
-	var range_root := source.instantiate()
-	var rock_points: Array[Vector3] = []
-	var roost_hosts := {
-		"background_distant_range_north": true,
-		"background_distant_range_north_west_companion": true,
-		"north_shore_volcanic_plug": true,
-	}
-	for child in range_root.get_children():
-		if not child is MeshInstance3D or not roost_hosts.has(String(child.name)):
-			continue
-		var mesh_instance := child as MeshInstance3D
-		if not mesh_instance.mesh is ArrayMesh:
-			continue
-		for surface_index in range(mesh_instance.mesh.get_surface_count()):
-			var arrays := mesh_instance.mesh.surface_get_arrays(surface_index)
-			var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
-			for vertex in vertices:
-				rock_points.append(mesh_instance.transform * vertex)
+	var terrain := packed.instantiate()
+	var grid := terrain.find_child("world_ground", true, false)
+	_expect(grid != null, "the world terrain does not mount the ground grid", failures)
 	for roost in roosts:
-		var marker_position: Vector3 = roost.global_position
-		var grounded := false
-		for point in rock_points:
-			if Vector2(marker_position.x - point.x, marker_position.z - point.z).length() <= 0.05 \
-					and marker_position.y >= point.y \
-					and marker_position.y - point.y <= 0.2:
-				grounded = true
-				break
-		_expect(grounded,
-			"rock roost %s no longer sits on its editor-owned landform source" % roost.name,
-			failures)
-	range_root.queue_free()
+		var at: Vector3 = roost.global_position
+		var tile := "x%d_z%d" % [floori(at.x / 1000.0), floori(at.z / 1000.0)]
+		var holder := grid.get_node_or_null(tile) if grid != null else null
+		var top := -INF
+		if holder != null:
+			for shape_node in holder.find_children("*", "CollisionShape3D", true, false):
+				var shape := (shape_node as CollisionShape3D).shape as ConcavePolygonShape3D
+				if shape == null:
+					continue
+				var xf := Transform3D.IDENTITY
+				var walk: Node = shape_node
+				while walk != null and walk != terrain:
+					if walk is Node3D:
+						xf = (walk as Node3D).transform * xf
+					walk = walk.get_parent()
+				var faces := shape.get_faces()
+				for i in range(0, faces.size(), 3):
+					var a := xf * faces[i]
+					var b := xf * faces[i + 1]
+					var c := xf * faces[i + 2]
+					var den := (b.z - c.z) * (a.x - c.x) + (c.x - b.x) * (a.z - c.z)
+					if absf(den) < 1e-9:
+						continue
+					var l1 := ((b.z - c.z) * (at.x - c.x) + (c.x - b.x) * (at.z - c.z)) / den
+					var l2 := ((c.z - a.z) * (at.x - c.x) + (a.x - c.x) * (at.z - c.z)) / den
+					if l1 < -1e-6 or l2 < -1e-6 or 1.0 - l1 - l2 < -1e-6:
+						continue
+					top = maxf(top, l1 * a.y + l2 * b.y + (1.0 - l1 - l2) * c.y)
+		if top == -INF:
+			_expect(false, "rock roost %s at %s has no ground under it" % [roost.name, at], failures)
+			continue
+		var gap := at.y - top
+		print("  roost %s at %s: %.3f m over the ground" % [roost.name, at, gap])
+		_expect(gap >= 0.0 and gap <= 0.2,
+			"rock roost %s stands %.3f m %s the mounted ground at %s" % [
+				roost.name, absf(gap), "over" if gap > 0.0 else "under", at], failures)
+	terrain.free()
 
 
 func _check_feet(bird: Node, failures: Array[String]) -> void:

@@ -15,15 +15,40 @@ const LighthouseRegrade := preload("res://scripts/lighthouse_regrade_source.gd")
 const EPS := 0.12
 const CROSSING_CAPTURE := 12.0
 const PROTECTED_MARGIN := 1.0
-## The world terrain master's wrapper: since 2026-10-05 it holds the mainland
-## reserve, both coasts, T2, T3, T6 and both east shoulders the generator used
-## to emit (Stage 1 of documentation/terrain-master-into-game-plan-2026-10-05.md).
+## The world's ground: since height-grid Stage 2 (2026-10-13,
+## documentation/terrain-height-grid-plan-2026-10-12.md) it mounts the ground as one
+## height grid, `world_ground`, 1 km tiles `world_ground/x{tx}_z{tz}/ground_x{tx}_z{tz}`,
+## in place of the master's named pieces (the mainland reserve, both coasts, T2, T3,
+## T6, both east shoulders, the range's and city's landforms), which are kept unmounted
+## in scenes/world/world_terrain_pieces.tscn until Stage 5.
 const WORLD_TERRAIN := "res://scenes/world/world_terrain.tscn"
+## The ground the generator still holds beside the grid, every collider the player
+## stands on in these four scenes as `park_world.tscn` mounts them under `places`: the
+## groundworks (the road corridor, the tunnel lids, the east shoulder walls, the promenade
+## banks), the west shell (its shore and NT-1's bluff), NT-1's stair and NT-2's earth and
+## hills; the same set `tools/_ground_faces_dump.gd` gave the grid's bake. Their water
+## has no collision and is not ground. The road corridor's open edges are censused with
+## the tiles' (2026-10-13), from its drawn mesh; all of them close the others' edges.
+const HELD_SCENES := {
+	"park_groundworks": "res://scenes/world/park_groundworks.tscn",
+	"west_shell": "res://scenes/world/west_shell.tscn",
+	"west_stair": "res://scenes/world/west_stair.tscn",
+	"east_cascade": "res://scenes/world/east_cascade.tscn",
+}
+const CORRIDOR := "terrain_road_corridor"
+## How far the census looks across an open edge for ground beside or under it, in plan
+## and in height: the 0.3 m it already pairs near-twins and drops slivers by, and the
+## 0.30 m of a T-junction's chord (2026-10-13).
+const OPEN_SIDE_REACH := 0.3
+const OPEN_SIDE_RISE := 0.3
 
 var _fails: Array[String] = []
+## The mounted ground, loaded once by `_mounted_ground`.
+var _ground := {}
 
 
 func _ready() -> void:
+	await _mount_ground()
 	_check_envelope()
 	_check_world_reserve()
 	_check_open_faces()
@@ -264,65 +289,40 @@ func _check_world_reserve() -> void:
 			_fail("%s leaves only %.1fm beyond the developed park, expected %.1fm" % [
 				pair[0], pair[1], margin])
 
-	# Since 2026-10-05 the reserve and both coasts are the world terrain
-	# master's (scenes/world/world_terrain.tscn), copied from the generator
-	# vertex for vertex; the generator's copies are hidden in park_groundworks.
-	var ground: Node = load(WORLD_TERRAIN).instantiate()
-	var reserve := ground.find_child("terrain_world_mainland_reserve", true, false)
-	if reserve == null:
-		_fail("the surrounding mainland reserve is not mounted")
+	# The land reaches the published world bounds. Until 2026-10-13 this read the
+	# extent of the master's mainland reserve mesh, with the city's peninsula and
+	# foothills carrying it on south to the bound, and asked the two coast meshes to end
+	# exactly where the reserve took over, at the north coast bound and at the bay's
+	# far-shore crossing. The ground is one height grid since Stage 2, and its tiles run
+	# on under the sea past every bound, so the question is asked of its land, the
+	# ground above the water: it reaches the east bound (the east coast's headland
+	# touches it), the west one (the strip's shore line; the coasts run on west of it),
+	# the south one (the city's peninsula), and comes within the north shore's 100 m of
+	# the north one (the shore lies between -2600 and -2700, ParkPlan). Where one piece
+	# had to end where the next began is moot in one sheet; its seams are the open-face
+	# census's.
+	var ground := _mounted_ground()
+	if int(ground["tiles"]) == 0:
+		_fail("the world's ground grid is not mounted in %s" % WORLD_TERRAIN)
 	else:
-		var surface := _ground_mesh(reserve)
-		if surface == null or surface.mesh == null:
-			_fail("the surrounding mainland reserve has no surface mesh")
-		else:
-			var bounds := surface.mesh.get_aabb()
-			# The city's peninsula and foothills are the world terrain master's since
-			# 2026-10-06 (tools/blender/world_terrain_join_landforms.py).
-			var city_source: Node = load(WORLD_TERRAIN).instantiate()
-			add_child(city_source)
-			var city_peninsula := city_source.find_child(
-				"relocated_city_peninsula", true, false) as MeshInstance3D
-			var southern_land := city_source.find_child(
-				"southern_city_range_foothills", true, false) as MeshInstance3D
-			var south_continues := false
-			if city_peninsula != null and city_peninsula.mesh != null \
-					and southern_land != null and southern_land.mesh != null:
-				var city_bounds := city_peninsula.global_transform * city_peninsula.get_aabb()
-				var land_bounds := southern_land.global_transform * southern_land.get_aabb()
-				print("  mainland south %.1f, city peninsula %.1f..%.1f, southern foothills %.1f..%.1f" % [
-					bounds.end.z, city_bounds.position.z, city_bounds.end.z,
-					land_bounds.position.z, land_bounds.end.z])
-				south_continues = city_bounds.position.z <= bounds.end.z + EPS \
-					and land_bounds.position.z <= city_bounds.end.z + EPS \
-					and land_bounds.end.z >= Plan.REBUILD_WORLD_LAND_TO_Z - EPS
-			if bounds.position.x > Plan.REBUILD_WORLD_LAND_FROM_X + EPS \
-					or bounds.end.x < Plan.REBUILD_WORLD_LAND_TO_X - EPS \
-					or bounds.position.z > Plan.REBUILD_WORLD_LAND_FROM_Z + EPS \
-					or not south_continues:
-				_fail("the combined mainland and editor-owned city peninsula do not reach all published world bounds")
-			remove_child(city_source)
-			city_source.free()
-	# The coast meshes are the ground beyond the working strip (2026-09-04):
-	# the north one has to reach the world's north coast bound, the south one
-	# the point where the bay's far shore crosses onto the mainland reserve.
-	var south_to_z := minf(Plan.REBUILD_WORLD_COAST_TO_Z,
-		Plan.coast_south_crossing_z(Plan.SHORE_FROM_X))
-	for pair in [["north", Plan.REBUILD_WORLD_COAST_FROM_Z], ["south", south_to_z]]:
-		var coast := ground.find_child("terrain_world_coast_%s" % pair[0], true, false)
-		if coast == null:
-			_fail("the %s coastal reserve is not mounted" % pair[0])
-			continue
-		var coast_surface := _ground_mesh(coast)
-		if coast_surface == null or coast_surface.mesh == null:
-			_fail("the %s coastal reserve has no surface mesh" % pair[0])
-			continue
-		var coast_bounds := coast_surface.mesh.get_aabb()
-		var reach: float = coast_bounds.position.z if pair[0] == "north" else coast_bounds.end.z
-		if absf(reach - float(pair[1])) > 1.0:
-			_fail("the %s coast mesh ends at z %.1f, expected %.1f" % [
-				pair[0], reach, float(pair[1])])
-	ground.free()
+		var land_lo := Vector2(INF, INF)
+		var land_hi := Vector2(-INF, -INF)
+		var tri: PackedVector3Array = ground["tri"]
+		var body: PackedInt32Array = ground["body"]
+		for i in body.size():
+			if body[i] >= int(ground["tiles"]):
+				continue
+			for k in 3:
+				var v := tri[i * 3 + k]
+				if v.y > Plan.WATER_TOP:
+					land_lo = land_lo.min(Vector2(v.x, v.z))
+					land_hi = land_hi.max(Vector2(v.x, v.z))
+		print("  the grid's land: x %.1f..%.1f, z %.1f..%.1f" % [land_lo.x, land_hi.x, land_lo.y, land_hi.y])
+		if land_lo.x > Plan.REBUILD_WORLD_LAND_FROM_X + EPS \
+				or land_hi.x < Plan.REBUILD_WORLD_LAND_TO_X - EPS \
+				or land_lo.y > Plan.REBUILD_WORLD_LAND_FROM_Z + 100.0 \
+				or land_hi.y < Plan.REBUILD_WORLD_LAND_TO_Z - EPS:
+			_fail("the ground grid's land does not reach all published world bounds")
 
 	var west: Node = load("res://scenes/world/west_shell.tscn").instantiate()
 	var water := west.find_child("water", true, false) as CSGBox3D
@@ -388,6 +388,175 @@ func _check_world_reserve() -> void:
 		east, north, south, west_water])
 
 
+## A ground body's drawn mesh: the grid's tiles and the master's bodies are the
+## MeshInstance3D itself, the generator's carry it as a `surface` child.
+func _ground_mesh(node: Node) -> MeshInstance3D:
+	if node is MeshInstance3D:
+		return node as MeshInstance3D
+	return node.find_child("surface", false, false) as MeshInstance3D
+
+
+## The ground as the world mounts it (2026-10-13), into `_ground`: every tile of the
+## height grid under `world_terrain/world_ground`, then the road corridor's drawn mesh,
+## then each held collider of `HELD_SCENES` but the corridor, as triangles in world
+## positions, three corners each, with the body each came from. `tiles` is how many of
+## `names` are the grid's: a body id below it is a tile, and `tiles` itself is the
+## corridor. The held scenes are mounted in the tree for a few frames so every CSG root
+## has built its collision, then freed.
+func _mount_ground() -> void:
+	var names: Array[String] = []
+	var tri := PackedVector3Array()
+	var body := PackedInt32Array()
+	var terrain: Node = load(WORLD_TERRAIN).instantiate()
+	var grid := terrain.find_child("world_ground", true, false)
+	if grid != null:
+		for tile in grid.get_children():
+			var mesh := tile.find_child("ground_" + String(tile.name), true, false) as MeshInstance3D
+			if mesh == null or mesh.mesh == null:
+				_fail("the ground grid's tile %s has no mesh" % tile.name)
+				continue
+			_add_mesh(tri, body, names.size(), mesh, terrain)
+			names.append(String(tile.name))
+	var tiles := names.size()
+	terrain.free()
+	var places := Node3D.new()
+	places.name = "places"
+	add_child(places)
+	for scene_name in HELD_SCENES:
+		var scene := (load(HELD_SCENES[scene_name]) as PackedScene).instantiate()
+		scene.name = scene_name
+		places.add_child(scene)
+	for i in 4:
+		await get_tree().process_frame
+		await get_tree().physics_frame
+	var corridor_body := places.get_node_or_null("park_groundworks/" + CORRIDOR)
+	var corridor := _ground_mesh(corridor_body) if corridor_body != null else null
+	if corridor == null or corridor.mesh == null:
+		_fail("%s is not in %s" % [CORRIDOR, HELD_SCENES["park_groundworks"]])
+	else:
+		_add_mesh(tri, body, names.size(), corridor, places)
+	names.append(CORRIDOR)
+	for scene_name in HELD_SCENES:
+		var scene := places.get_node(scene_name)
+		for n in [scene] + scene.find_children("*", "", true, false):
+			if n == corridor_body:
+				continue
+			var faces := _collision_faces(n)
+			if faces.is_empty():
+				continue
+			var id := names.size()
+			names.append(String(places.get_path_to(n)))
+			tri.append_array(faces)
+			for t in faces.size() / 3:
+				body.append(id)
+	places.queue_free()
+	_ground = {"names": names, "tiles": tiles, "tri": tri, "body": body}
+
+
+func _mounted_ground() -> Dictionary:
+	return _ground
+
+
+## A drawn mesh's triangles in the positions `root` puts them, into `tri` and `body`.
+func _add_mesh(tri: PackedVector3Array, body: PackedInt32Array, id: int,
+		surface: MeshInstance3D, root: Node) -> void:
+	var xf := Transform3D.IDENTITY
+	var walk: Node = surface
+	while walk != null and walk != root:
+		if walk is Node3D:
+			xf = (walk as Node3D).transform * xf
+		walk = walk.get_parent()
+	for si in surface.mesh.get_surface_count():
+		var arrays: Array = surface.mesh.surface_get_arrays(si)
+		var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		# A SurfaceTool mesh committed without `index()` carries no index
+		# array at all; then every three vertices are one triangle.
+		var index := PackedInt32Array()
+		if arrays[Mesh.ARRAY_INDEX] != null:
+			index = arrays[Mesh.ARRAY_INDEX]
+		var n := index.size() if index.size() > 0 else verts.size()
+		for i in range(0, n, 3):
+			for k in 3:
+				tri.append(xf * verts[index[i + k] if index.size() > 0 else i + k])
+			body.append(id)
+
+
+## A held collider's faces in world positions as the physics has them, or none: a CSG
+## root's baked collision, a body's concave shape, or a convex shape's debug mesh; as
+## `tools/_ground_faces_dump.gd` reads them. The scenes stand at the origin.
+func _collision_faces(n: Node) -> PackedVector3Array:
+	var out := PackedVector3Array()
+	if n is CSGShape3D:
+		var csg := n as CSGShape3D
+		if not (csg.is_root_shape() and csg.use_collision):
+			return out
+		var shape := csg.bake_collision_shape()
+		if shape == null:
+			return out
+		var xf := csg.global_transform
+		for v in shape.get_faces():
+			out.append(xf * v)
+		return out
+	if n is CollisionObject3D:
+		for c in n.get_children():
+			var cs := c as CollisionShape3D
+			if cs == null or cs.disabled or cs.shape == null:
+				continue
+			var xf := cs.global_transform
+			if cs.shape is ConcavePolygonShape3D:
+				for v in (cs.shape as ConcavePolygonShape3D).get_faces():
+					out.append(xf * v)
+			else:
+				for v in cs.shape.get_debug_mesh().get_faces():
+					out.append(xf * v)
+	return out
+
+
+## Every surface of the mounted ground over each plan point: per point, its heights and
+## the bodies they belong to, alternately. One pass over the triangles, the points
+## bucketed by 8 m cells.
+func _surfaces_at(ground: Dictionary, points: PackedVector2Array) -> Array:
+	const CELL := 8.0
+	var out: Array = []
+	out.resize(points.size())
+	for i in points.size():
+		out[i] = PackedFloat32Array()
+	var buckets := {}
+	for i in points.size():
+		var key := Vector2i(floori(points[i].x / CELL), floori(points[i].y / CELL))
+		if not buckets.has(key):
+			buckets[key] = PackedInt32Array()
+		var list: PackedInt32Array = buckets[key]
+		list.append(i)
+		buckets[key] = list
+	var tri: PackedVector3Array = ground["tri"]
+	var body: PackedInt32Array = ground["body"]
+	for t in body.size():
+		var a := tri[t * 3]
+		var b := tri[t * 3 + 1]
+		var c := tri[t * 3 + 2]
+		var den := (b.z - c.z) * (a.x - c.x) + (c.x - b.x) * (a.z - c.z)
+		if absf(den) < 1e-9:
+			continue
+		for gx in range(floori(minf(a.x, minf(b.x, c.x)) / CELL), floori(maxf(a.x, maxf(b.x, c.x)) / CELL) + 1):
+			for gz in range(floori(minf(a.z, minf(b.z, c.z)) / CELL), floori(maxf(a.z, maxf(b.z, c.z)) / CELL) + 1):
+				var key := Vector2i(gx, gz)
+				if not buckets.has(key):
+					continue
+				for i in buckets[key]:
+					var q := points[i]
+					var l1 := ((b.z - c.z) * (q.x - c.x) + (c.x - b.x) * (q.y - c.z)) / den
+					var l2 := ((c.z - a.z) * (q.x - c.x) + (a.x - c.x) * (q.y - c.z)) / den
+					var l3 := 1.0 - l1 - l2
+					if l1 < -1e-6 or l2 < -1e-6 or l3 < -1e-6:
+						continue
+					var hits: PackedFloat32Array = out[i]
+					hits.append(l1 * a.y + l2 * b.y + l3 * c.y)
+					hits.append(float(body[t]))
+					out[i] = hits
+	return out
+
+
 ## The terrain is single-sided, so a boundary edge standing above the water
 ## is a face the world does not have: from outside it you look straight
 ## through the mountain. Found from the towns on 2026-09-05 — the range's
@@ -396,106 +565,97 @@ func _check_world_reserve() -> void:
 ## the coast mesh — and nothing had an opinion about it, because the census
 ## counts faces that fight and the walk asks whether something is in the
 ## way, never whether it is there. A boundary edge is one that exactly one
-## triangle uses. The coast meshes and the reserve share their seam vertex
-## for vertex, so an edge of one paired by an identical edge of the other is
-## closed, and a wall's top edge pairs with the ground edge it was built
-## from; edges that differ only by rounding are paired by their midpoints on
-## a quarter-metre grid. What remains with an end above `WATER_TOP + 1`,
-## outside the developed envelope where the park's own ground fills the
-## reserve's openings, is an open face.
-## A ground body's drawn mesh: the master's bodies are the MeshInstance3D
-## itself, the generator's carry it as a `surface` child.
-func _ground_mesh(node: Node) -> MeshInstance3D:
-	if node is MeshInstance3D:
-		return node as MeshInstance3D
-	return node.find_child("surface", false, false) as MeshInstance3D
-
-
+## triangle uses. Edges that differ only by rounding are paired by their
+## midpoints on a quarter-metre grid, near-twins within 0.3 m by proximity, and
+## a long edge tiled by collinear short ones as a T-junction. What remains with an
+## end above `WATER_TOP + 1`, outside the developed envelope where the park's own
+## ground fills the openings, is a candidate.
+##
+## Since height-grid Stage 2 (2026-10-13) the census is the grid's tiles plus the
+## road corridor. The tiles share their borders segment for segment, so they are
+## watertight between themselves; their open edges are the grid's own edge, where
+## the bake found no ground of the master's, and the corridor's outline pairs with
+## nothing now, since the master's ground runs on under and over it in places
+## instead of being stitched to it. So a candidate is open only where it is a real
+## hole. At sample points along it, every metre or less and never at its ends, the
+## census looks `OPEN_SIDE_REACH` (0.3 m) across it in plan, to the side its own
+## triangle is not on; there it wants ground of either kind, a tile or anything the
+## generator holds that the player stands on (`HELD_SCENES`: the corridor, the tunnel
+## lids, the west shell, NT-1's and NT-2's earth and hills), other than its own mesh,
+## no lower than `OPEN_SIDE_RISE` (0.3 m)
+## under its own face carried on across those 0.3 m. Ground there, beside it within
+## the reach or above it (the edge runs on under that ground), closes the sample. An
+## edge is open if any sample has nothing there (a slot: the next ground starts
+## further off) or only ground further down (a drop: the edge hangs over it, and from
+## the side you look in under it). A step's missing face is counted once, on its upper
+## edge, whose open side finds the lower ground below it.
 func _check_open_faces() -> void:
-	# The reserve, both coasts, the south beach front (Ground edit 2) and the
-	# coast shelf (2026-10-06) from the world terrain master, the road corridor
-	# from the groundworks (2026-10-05); world positions either way. And the
-	# south range blend (Ground edit 1, 2026-10-06) with the landforms it was cut
-	# from: they are closed, and its rim is their cut, edge for edge. And the
-	# landforms' shelf (2026-10-08), wholly under the water. And the city's two
-	# beach sheets, ground since Ground edit 112 (2026-10-12), which the beaches'
-	# shelf (edit 113) starts from at the sand's own edge, above the water, and
-	# the city's peninsula, closed, whose rim the peninsula's sheet meets edge for
-	# edge since Ground edit 114 (2026-10-12), as the southern sheet meets the
-	# foothills'.
-	var master: Node = load(WORLD_TERRAIN).instantiate()
-	var groundworks: Node = load("res://scenes/world/park_groundworks.tscn").instantiate()
+	var ground := _mounted_ground()
+	var names: Array[String] = ground["names"]
+	var tri: PackedVector3Array = ground["tri"]
+	var body: PackedInt32Array = ground["body"]
+	var census := int(ground["tiles"])
 	var edges := {}
 	var triangles := 0
-	for pair in [[master, "terrain_world_mainland_reserve"], [master, "terrain_world_coast_north"],
-			[master, "terrain_world_coast_south"], [master, "terrain_south_beach_front"],
-			[master, "terrain_coast_shelf"], [master, "terrain_landform_shelf"], [master, "terrain_south_range_blend"],
-			[master, "background_distant_range_south"], [master, "southern_range_connection_lowland"],
-			[master, "southern_range_connection_ridge_3"], [master, "southern_range_connection_ridge_4"],
-			[master, "southern_city_range_foothills"], [master, "southern_city_range_beaches"],
-			[master, "relocated_city_peninsula_beaches"], [master, "relocated_city_peninsula"],
-			[groundworks, "terrain_road_corridor"]]:
-		var ground: Node = pair[0]
-		var name: String = pair[1]
-		var node: Node = ground.find_child(name, true, false)
-		if node == null:
-			_fail("%s is not in %s" % [name, ground.name])
+	for t in body.size():
+		if body[t] > census:
 			continue
-		var surface := _ground_mesh(node)
-		if surface == null or surface.mesh == null:
-			_fail("%s has no surface mesh" % name)
-			continue
-		var xf := Transform3D.IDENTITY
-		var walk: Node = surface
-		while walk != null and walk != ground:
-			if walk is Node3D:
-				xf = (walk as Node3D).transform * xf
-			walk = walk.get_parent()
-		for si in surface.mesh.get_surface_count():
-			var arrays: Array = surface.mesh.surface_get_arrays(si)
-			var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
-			# A SurfaceTool mesh committed without `index()` carries no index
-			# array at all; then every three vertices are one triangle.
-			var index := PackedInt32Array()
-			if arrays[Mesh.ARRAY_INDEX] != null:
-				index = arrays[Mesh.ARRAY_INDEX]
-			var n := index.size() if index.size() > 0 else verts.size()
-			for i in range(0, n, 3):
-				var tri: Array[Vector3] = []
-				for k in 3:
-					var vi: int = index[i + k] if index.size() > 0 else i + k
-					tri.append(xf * verts[vi])
-				for k in 3:
-					_count_edge(edges, tri[k], tri[(k + 1) % 3], name)
-				triangles += 1
+		for k in 3:
+			_count_edge(edges, tri[t * 3 + k], tri[t * 3 + (k + 1) % 3], names[body[t]],
+				tri[t * 3 + (k + 2) % 3], body[t])
+		triangles += 1
 	var stray: Array = []
 	for key in edges:
 		var rec: Array = edges[key]
 		if int(rec[0]) == 1:
 			stray.append(rec)
+	edges = {}
 	var mids := {}
 	for rec in stray:
 		var mk := _mid_key(rec[1], rec[2])
 		mids[mk] = int(mids.get(mk, 0)) + 1
 	# A stray whose twin sits a few centimetres off — a wall's side edge at a
 	# shore vertex the clipper placed twice, a centimetre apart — is closed
-	# for any purpose the eye has; pair those by proximity.
+	# for any purpose the eye has; pair those by proximity. Both ends within
+	# 0.3 m puts the midpoints within 0.3 m, so only strays whose midpoints share
+	# a metre cell or its neighbours are compared (2026-10-13: the grid's 28,000
+	# strays made the all-pairs loop too slow to wait for).
 	var near_paired := {}
+	var by_mid := {}
+	for i in stray.size():
+		var m: Vector3 = ((stray[i][1] as Vector3) + (stray[i][2] as Vector3)) * 0.5
+		var key := Vector3i(m.floor())
+		if not by_mid.has(key):
+			by_mid[key] = PackedInt32Array()
+		var list: PackedInt32Array = by_mid[key]
+		list.append(i)
+		by_mid[key] = list
 	for i in stray.size():
 		if near_paired.has(i):
 			continue
 		var a1: Vector3 = stray[i][1]
 		var b1: Vector3 = stray[i][2]
-		for j in range(i + 1, stray.size()):
-			if near_paired.has(j):
-				continue
-			var a2: Vector3 = stray[j][1]
-			var b2: Vector3 = stray[j][2]
-			if (a1.distance_to(a2) < 0.3 and b1.distance_to(b2) < 0.3) \
-					or (a1.distance_to(b2) < 0.3 and b1.distance_to(a2) < 0.3):
-				near_paired[i] = true
-				near_paired[j] = true
-				break
+		var cell := Vector3i(((a1 + b1) * 0.5).floor())
+		var found := false
+		for dx in [-1, 0, 1]:
+			for dy in [-1, 0, 1]:
+				for dz in [-1, 0, 1]:
+					if found:
+						break
+					var key := cell + Vector3i(dx, dy, dz)
+					if not by_mid.has(key):
+						continue
+					for j in by_mid[key]:
+						if j <= i or near_paired.has(j):
+							continue
+						var a2: Vector3 = stray[j][1]
+						var b2: Vector3 = stray[j][2]
+						if (a1.distance_to(a2) < 0.3 and b1.distance_to(b2) < 0.3) \
+								or (a1.distance_to(b2) < 0.3 and b1.distance_to(a2) < 0.3):
+							near_paired[i] = true
+							near_paired[j] = true
+							found = true
+							break
 	# A T-junction (2026-09-05): the road corridor's boundary is its rows'
 	# outer vertices, and the lattice cell clipped against it carries a
 	# vertex wherever a lattice line crosses that edge, so along the whole
@@ -503,8 +663,7 @@ func _check_open_faces() -> void:
 	# if the short edges tile the long one within a hand, with their ends on
 	# it: collinear in plan and on its chord in height.
 	var t_closed := _pair_t_junctions(stray, near_paired, mids)
-	var open: Array = []
-	var length := 0.0
+	var candidates: Array = []
 	# The coast meshes ramp from the strip's −6 to the reserve's level over
 	# |z| 170..260, inside and just outside the envelope; that ramp is the
 	# working strip's own hand-over and is covered by the park's ground.
@@ -532,74 +691,183 @@ func _check_open_faces() -> void:
 		if m.x > Plan.REBUILD_FOOTPRINT_MIN_X - margin and m.x < Plan.REBUILD_FOOTPRINT_MAX_X + margin \
 				and m.z > Plan.REBUILD_FOOTPRINT_MIN_Z - margin and m.z < Plan.REBUILD_FOOTPRINT_MAX_Z + margin:
 			continue
+		candidates.append(rec)
+	# Across each candidate, `OPEN_SIDE_REACH` out, at its samples; then, for the
+	# open ones only, further out, to say how wide the slot is.
+	var reaches := [OPEN_SIDE_REACH, 1.0, 2.0, 3.0, 5.0, 10.0]
+	var open: Array = []
+	var length := 0.0
+	var causes := {}
+	var pass_reaches := [[OPEN_SIDE_REACH], reaches.slice(1)]
+	var verdicts := {}
+	for pass_i in 2:
+		var points := PackedVector2Array()
+		var owner := PackedInt32Array()
+		var want := PackedFloat32Array()
+		var pass_reach: Array = pass_reaches[pass_i]
+		for ci in candidates.size():
+			if pass_i == 1 and not verdicts.has(ci):
+				continue
+			var rec: Array = candidates[ci]
+			var a: Vector3 = rec[1]
+			var b: Vector3 = rec[2]
+			var c: Vector3 = rec[4]
+			var run := Vector2(b.x - a.x, b.z - a.z)
+			var across := Vector2(-run.y, run.x).normalized()
+			if across.dot(Vector2(c.x - a.x, c.z - a.z)) > 0.0:
+				across = -across
+			# The rise of its own face across the edge, from its triangle's plane;
+			# a face steeper than about 80° is taken as level, so a wall's foot does
+			# not throw the sample a long way up or down.
+			var normal := (b - a).cross(c - a).normalized()
+			var rise := 0.0
+			if absf(normal.y) > 0.17:
+				rise = -(normal.x * across.x + normal.z * across.y) / normal.y
+			var steps := maxi(1, ceili(run.length()))
+			for s in steps:
+				var p := a.lerp(b, (s + 0.5) / steps)
+				for r in pass_reach:
+					points.append(Vector2(p.x, p.z) + across * float(r))
+					owner.append(ci)
+					want.append(p.y + rise * float(r) - OPEN_SIDE_RISE)
+		var hits := _surfaces_at(ground, points)
+		if pass_i == 0:
+			for i in points.size():
+				var ci := owner[i]
+				var own := int(candidates[ci][5])
+				var ok := false
+				var drop := INF
+				var below := -1
+				var list: PackedFloat32Array = hits[i]
+				for h in range(0, list.size(), 2):
+					if int(list[h + 1]) == own:
+						continue
+					if list[h] >= want[i]:
+						ok = true
+						break
+					if want[i] + OPEN_SIDE_RISE - list[h] < drop:
+						drop = want[i] + OPEN_SIDE_RISE - list[h]
+						below = int(list[h + 1])
+				if ok:
+					continue
+				var v: Dictionary = verdicts.get(ci, {"slot": false, "drop": 0.0, "under": -1})
+				if drop == INF:
+					v["slot"] = true
+				elif drop > float(v["drop"]):
+					v["drop"] = drop
+					v["under"] = below
+				verdicts[ci] = v
+		else:
+			# How far across a slot the next ground is, the nearest reach at
+			# which every sample of the edge finds some, of any height, and whose
+			# ground that is.
+			var found := {}
+			var whose := {}
+			for i in points.size():
+				var ci := owner[i]
+				var own := int(candidates[ci][5])
+				var r := float(reaches[1 + i % (reaches.size() - 1)])
+				var any := false
+				var list: PackedFloat32Array = hits[i]
+				for h in range(0, list.size(), 2):
+					if int(list[h + 1]) != own:
+						any = true
+						whose[[ci, r]] = int(list[h + 1])
+				if not found.has(ci):
+					found[ci] = {}
+				var f: Dictionary = found[ci]
+				f[r] = bool(f.get(r, true)) and any
+			for ci in verdicts:
+				var width := INF
+				for r in reaches.slice(1):
+					if bool((found.get(ci, {}) as Dictionary).get(r, false)):
+						width = float(r)
+						verdicts[ci]["under"] = int(whose.get([ci, r], -1))
+						break
+				verdicts[ci]["width"] = width
+	for ci in verdicts:
+		var rec: Array = candidates[ci]
+		var v: Dictionary = verdicts[ci]
+		var a: Vector3 = rec[1]
+		var b: Vector3 = rec[2]
 		open.append(rec)
 		length += a.distance_to(b)
-	master.free()
-	groundworks.free()
-	if open.is_empty():
-		print("  terrain: no open face above the water (%d triangles, %d boundary edges)" % [
-			triangles, stray.size()])
-		return
-	_fail("the terrain has %d open faces above the water, %.0fm in all" % [open.size(), length])
-	# Where they are, by the line they lie on, so a seam reads as a seam and
-	# a world edge as a world edge rather than as 371 coordinates.
-	var classes := {}
-	for rec in open:
-		var a: Vector3 = rec[1]
-		var b: Vector3 = rec[2]
-		var label := "elsewhere"
-		if absf(a.x - Plan.SHORE_FROM_X) < 0.05 and absf(b.x - Plan.SHORE_FROM_X) < 0.05:
-			label = "coast seam x %.0f" % Plan.SHORE_FROM_X
-		elif absf(a.z - Plan.REBUILD_WORLD_LAND_FROM_Z) < 0.05 and absf(b.z - Plan.REBUILD_WORLD_LAND_FROM_Z) < 0.05:
-			label = "world north edge"
-		elif absf(a.z - Plan.REBUILD_WORLD_LAND_TO_Z) < 0.05 and absf(b.z - Plan.REBUILD_WORLD_LAND_TO_Z) < 0.05:
-			label = "world south edge"
-		elif absf(a.x - Plan.REBUILD_WORLD_LAND_TO_X) < 0.05 and absf(b.x - Plan.REBUILD_WORLD_LAND_TO_X) < 0.05:
-			label = "world east edge"
-		if not classes.has(label):
-			classes[label] = {"count": 0, "length": 0.0, "z_lo": INF, "z_hi": -INF,
-				"x_lo": INF, "x_hi": -INF, "sample": rec}
-		var c: Dictionary = classes[label]
+		var kind := "a tile's edge" if int(rec[5]) < int(ground["tiles"]) else "the corridor's outline"
+		var under := int(v.get("under", -1))
+		var other := _ground_label(names, int(ground["tiles"]), under)
+		var cause := ""
+		if bool(v["slot"]):
+			var w: float = v["width"]
+			cause = "no ground within 10 m across it" if w == INF \
+				else "a slot under %.0f m wide to %s" % [w, other]
+		else:
+			var d: float = v["drop"]
+			cause = "over %s %s below" % [other, "0.3-1 m" if d <= 1.0 else ("1-3 m" if d <= 3.0 \
+				else ("3-10 m" if d <= 10.0 else "over 10 m"))]
+		var label := "%s, %s" % [kind, cause]
+		if not causes.has(label):
+			causes[label] = {"count": 0, "length": 0.0, "x_lo": INF, "x_hi": -INF,
+				"y_lo": INF, "y_hi": -INF, "z_lo": INF, "z_hi": -INF, "sample": rec}
+		var c: Dictionary = causes[label]
+		c["y_lo"] = minf(float(c["y_lo"]), minf(a.y, b.y))
+		c["y_hi"] = maxf(float(c["y_hi"]), maxf(a.y, b.y))
 		c["count"] = int(c["count"]) + 1
 		c["length"] = float(c["length"]) + a.distance_to(b)
-		c["z_lo"] = minf(float(c["z_lo"]), minf(a.z, b.z))
-		c["z_hi"] = maxf(float(c["z_hi"]), maxf(a.z, b.z))
 		c["x_lo"] = minf(float(c["x_lo"]), minf(a.x, b.x))
 		c["x_hi"] = maxf(float(c["x_hi"]), maxf(a.x, b.x))
-	for label in classes:
-		var c: Dictionary = classes[label]
-		print("    %s: %d edges, %.0fm, x %.0f..%.0f, z %.0f..%.0f, e.g. %s to %s" % [
+		c["z_lo"] = minf(float(c["z_lo"]), minf(a.z, b.z))
+		c["z_hi"] = maxf(float(c["z_hi"]), maxf(a.z, b.z))
+	print("  terrain census: %d triangles of %d tiles and the corridor, %d boundary edges, %d candidates above the water" % [
+		triangles, int(ground["tiles"]), stray.size(), candidates.size()])
+	if open.is_empty():
+		print("  terrain: no open face above the water")
+		return
+	_fail("the terrain has %d open faces above the water, %.0fm in all" % [open.size(), length])
+	# Where they are and why, so a seam reads as a seam rather than as 3,000
+	# coordinates.
+	var labels := causes.keys()
+	labels.sort()
+	for label in labels:
+		var c: Dictionary = causes[label]
+		print("    %s: %d edges, %.0fm, x %.0f..%.0f, y %.1f..%.1f, z %.0f..%.0f, e.g. %s to %s" % [
 			label, int(c["count"]), float(c["length"]), float(c["x_lo"]), float(c["x_hi"]),
-			float(c["z_lo"]), float(c["z_hi"]), c["sample"][1], c["sample"][2]])
-	# And by mesh, with a few in full, since a crack along the road corridor
-	# is one thing from the corridor's side and another from the lattice's.
-	var by_mesh := {}
+			float(c["y_lo"]), float(c["y_hi"]), float(c["z_lo"]), float(c["z_hi"]),
+			c["sample"][1], c["sample"][2]])
+	# And by place, a 500 m square at a time, so a run along one seam reads as one.
+	var squares := {}
 	for rec in open:
-		by_mesh[rec[3]] = int(by_mesh.get(rec[3], 0)) + 1
-	print("    by mesh: %s" % [by_mesh])
-	for i in mini(open.size(), 8):
-		var rec: Array = open[i]
-		print("      %s %.2fm %s to %s" % [rec[3], (rec[1] as Vector3).distance_to(rec[2]), rec[1], rec[2]])
-		# What the T-junction rule saw: every other-mesh stray touching an
-		# end, with the other end's offset from its chord.
-		var a: Vector3 = rec[1]
-		var b: Vector3 = rec[2]
-		for other in stray:
-			if other[3] == rec[3]:
-				continue
-			var c: Vector3 = other[1]
-			var d: Vector3 = other[2]
-			for pair in [[a, b], [b, a]]:
-				var v: Vector3 = pair[0]
-				var far: Vector3 = pair[1]
-				if c.distance_to(v) > 0.05 and d.distance_to(v) > 0.05:
-					continue
-				var cd := Vector2(d.x - c.x, d.z - c.z)
-				var t := Vector2(far.x - c.x, far.z - c.z).dot(cd) / maxf(cd.length_squared(), 0.0001)
-				var foot := Vector3(c.x, 0.0, c.z).lerp(Vector3(d.x, 0.0, d.z), t)
-				print("        touches %s %.2fm %s to %s: far end t=%.3f, %.3fm off in plan, %.3fm off in height" % [
-					other[3], c.distance_to(d), c, d, t, Vector2(far.x - foot.x, far.z - foot.z).length(),
-					far.y - lerpf(c.y, d.y, t)])
+		var m := ((rec[1] as Vector3) + (rec[2] as Vector3)) * 0.5
+		var key := "x %d..%d z %d..%d %s" % [floori(m.x / 500.0) * 500, floori(m.x / 500.0) * 500 + 500,
+			floori(m.z / 500.0) * 500, floori(m.z / 500.0) * 500 + 500,
+			"tiles" if int(rec[5]) < int(ground["tiles"]) else "corridor"]
+		if not squares.has(key):
+			squares[key] = [0, 0.0]
+		squares[key][0] += 1
+		squares[key][1] += (rec[1] as Vector3).distance_to(rec[2])
+	var keys := squares.keys()
+	keys.sort()
+	for key in keys:
+		print("      %s: %d edges, %.0fm" % [key, squares[key][0], squares[key][1]])
+
+
+## Whose ground a body id is, for the census's report.
+func _ground_label(names: Array[String], tiles: int, id: int) -> String:
+	if id < 0:
+		return "nothing"
+	if id < tiles:
+		return "the grid"
+	var name := names[id]
+	if name == CORRIDOR:
+		return "the corridor"
+	if name.ends_with("terrain_tunnel_lids"):
+		return "the tunnel lids"
+	if name.begins_with("east_cascade"):
+		return "NT-2's ground"
+	if name.begins_with("west_stair"):
+		return "NT-1's ground"
+	if name.begins_with("west_shell"):
+		return "the west shell"
+	return "the groundworks' %s" % name.get_file()
 
 
 ## Stray edges closed as T-junctions: a stray is closed when strays of
@@ -694,7 +962,11 @@ func _on_line(p: Vector3, c: Vector3, d: Vector3) -> float:
 	return t
 
 
-func _count_edge(edges: Dictionary, a: Vector3, b: Vector3, mesh := "") -> void:
+## One triangle's edge into the census, keyed by its ends to the centimetre. The
+## record is [uses, a, b, mesh, the triangle's third corner, its body id]: the corner
+## says which side of the edge the triangle is on (2026-10-13).
+func _count_edge(edges: Dictionary, a: Vector3, b: Vector3, mesh := "", c := Vector3.ZERO,
+		body := -1) -> void:
 	var qa := Vector3i((a * 100.0).round())
 	var qb := Vector3i((b * 100.0).round())
 	var key := ""
@@ -706,7 +978,7 @@ func _count_edge(edges: Dictionary, a: Vector3, b: Vector3, mesh := "") -> void:
 		var rec: Array = edges[key]
 		rec[0] = int(rec[0]) + 1
 	else:
-		edges[key] = [1, a, b, mesh]
+		edges[key] = [1, a, b, mesh, c, body]
 
 
 func _mid_key(a: Vector3, b: Vector3) -> String:
@@ -876,10 +1148,24 @@ func _check_retired_geometry() -> void:
 		if program.find_child(required, true, false) == null:
 			_fail("the atlas program is missing %s" % required)
 	program.free()
-	var ground: Node = load(WORLD_TERRAIN).instantiate()
-	if ground.find_child("terrain_T6_outer_highland", true, false) == null:
-		_fail("the expanded eastern highland reserve is not mounted")
-	ground.free()
+	# The eastern highland reserve, T6, was the master's terrain_T6_outer_highland
+	# until height-grid Stage 2 (2026-10-13); it is the grid's ground now, so the
+	# question is whether the grid stands on land over T6's middle. Its outline is
+	# not asked: its west side runs into NT-2, which is the generator's and a hole in
+	# the grid.
+	var ground := _mounted_ground()
+	var t6: Array = Plan.rebuild_terrain_shape(&"T6")
+	var centre := Vector2.ZERO
+	for p in t6:
+		centre += Vector2(p)
+	centre /= float(t6.size())
+	var t6_top := -INF
+	var surfaces: PackedFloat32Array = _surfaces_at(ground, PackedVector2Array([centre]))[0]
+	for h in range(0, surfaces.size(), 2):
+		if int(surfaces[h + 1]) < int(ground["tiles"]):
+			t6_top = maxf(t6_top, surfaces[h])
+	if t6_top <= Plan.WATER_TOP:
+		_fail("the expanded eastern highland reserve has no land of the ground grid at its centre %s" % centre)
 
 
 func _run(id: StringName) -> Array:

@@ -1,0 +1,762 @@
+[gd_scene format=3]
+
+; Pure output of tools/ground_mount.gd: never edit this file by hand. It mounts the ground
+; grid's tile meshes (assets/world_ground/tiles/) and gives each its own material of
+; assets/shaders/ground_grid.gdshader with its tile's colour, made from Christina's painted
+; assets/source/world_ground/colour/. Change those, or the tool, and run it again.
+
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x-1_z-3.glb" id="1_ww65q"]
+[ext_resource type="Shader" path="res://assets/shaders/ground_grid.gdshader" id="2_renaq"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x-1_z-3.res" id="3_pxffl"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x0_z-3.glb" id="4_n6ras"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x0_z-3.res" id="5_mx246"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x1_z-3.glb" id="6_u5gaj"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x1_z-3.res" id="7_yb2pe"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x2_z-3.glb" id="8_2tsj1"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x2_z-3.res" id="9_eo773"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x3_z-3.glb" id="10_hlua6"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x3_z-3.res" id="11_8jwk1"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x-2_z-2.glb" id="12_n8qjd"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x-2_z-2.res" id="13_ot6f7"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x-1_z-2.glb" id="14_cqtsr"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x-1_z-2.res" id="15_k4egw"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x0_z-2.glb" id="16_fxgnp"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x0_z-2.res" id="17_r3jvs"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x1_z-2.glb" id="18_vie58"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x1_z-2.res" id="19_4tumg"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x2_z-2.glb" id="20_gcqop"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x2_z-2.res" id="21_vky08"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x3_z-2.glb" id="22_d106t"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x3_z-2.res" id="23_ip2f8"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x-2_z-1.glb" id="24_kx7qv"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x-2_z-1.res" id="25_lmjn8"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x-1_z-1.glb" id="26_1um7y"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x-1_z-1.res" id="27_8sg5e"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x0_z-1.glb" id="28_na5dn"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x0_z-1.res" id="29_alecu"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x1_z-1.glb" id="30_uv8uv"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x1_z-1.res" id="31_02yuv"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x2_z-1.glb" id="32_ihoxg"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x2_z-1.res" id="33_fv27u"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x3_z-1.glb" id="34_xr2lc"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x3_z-1.res" id="35_powl0"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x-1_z0.glb" id="36_1ln4f"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x-1_z0.res" id="37_0d6gn"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x0_z0.glb" id="38_own5m"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x0_z0.res" id="39_hgok0"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x1_z0.glb" id="40_mpmpo"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x1_z0.res" id="41_p1uma"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x2_z0.glb" id="42_b0ayp"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x2_z0.res" id="43_6vh17"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x3_z0.glb" id="44_0j0r3"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x3_z0.res" id="45_aw3jm"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x-1_z1.glb" id="46_80whr"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x-1_z1.res" id="47_ke6jv"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x0_z1.glb" id="48_8um3g"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x0_z1.res" id="49_afver"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x1_z1.glb" id="50_coy1p"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x1_z1.res" id="51_yap3j"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x2_z1.glb" id="52_lq20f"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x2_z1.res" id="53_cl6kw"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x3_z1.glb" id="54_2r54d"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x3_z1.res" id="55_4kkg6"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x-2_z2.glb" id="56_wbtqv"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x-2_z2.res" id="57_70voy"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x-1_z2.glb" id="58_l73w7"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x-1_z2.res" id="59_a07l8"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x0_z2.glb" id="60_kov4a"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x0_z2.res" id="61_dav21"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x1_z2.glb" id="62_l6do3"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x1_z2.res" id="63_eiaw0"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x2_z2.glb" id="64_r0xiw"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x2_z2.res" id="65_acqsr"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x3_z2.glb" id="66_bviwv"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x3_z2.res" id="67_vkwfh"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x-2_z3.glb" id="68_hpig3"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x-2_z3.res" id="69_iyqde"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x-1_z3.glb" id="70_j7bhg"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x-1_z3.res" id="71_cmf8w"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x0_z3.glb" id="72_p01q2"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x0_z3.res" id="73_ug7sc"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x1_z3.glb" id="74_jl1v0"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x1_z3.res" id="75_pee8r"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x2_z3.glb" id="76_n6m01"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x2_z3.res" id="77_l4m35"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x-2_z4.glb" id="78_am0wl"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x-2_z4.res" id="79_2yvvw"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x-1_z4.glb" id="80_qoeqe"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x-1_z4.res" id="81_esq63"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x0_z4.glb" id="82_rx2uq"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x0_z4.res" id="83_cwgjh"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x1_z4.glb" id="84_ny78s"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x1_z4.res" id="85_lh4mm"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x-2_z5.glb" id="86_jsvdu"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x-2_z5.res" id="87_8pjvl"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x-1_z5.glb" id="88_b5tus"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x-1_z5.res" id="89_bvfqh"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x0_z5.glb" id="90_qss7m"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x0_z5.res" id="91_hxsic"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x-2_z6.glb" id="92_pf1q5"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x-2_z6.res" id="93_mcq4c"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x-1_z6.glb" id="94_2x7no"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x-1_z6.res" id="95_ar67q"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x0_z6.glb" id="96_0nv6o"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x0_z6.res" id="97_jfux6"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x-2_z7.glb" id="98_v5156"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x-2_z7.res" id="99_i8y18"]
+[ext_resource type="PackedScene" path="res://assets/world_ground/tiles/x-1_z7.glb" id="100_jvhr7"]
+[ext_resource type="Texture2D" path="res://assets/world_ground/colour/x-1_z7.res" id="101_sgbrf"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_4rhyn"]
+resource_name = "ground_colour_x-1_z-3"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("3_pxffl")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_258u7"]
+resource_name = "ground_colour_x0_z-3"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("5_mx246")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ktjol"]
+resource_name = "ground_colour_x1_z-3"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("7_yb2pe")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_pwvla"]
+resource_name = "ground_colour_x2_z-3"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("9_eo773")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_v6fv6"]
+resource_name = "ground_colour_x3_z-3"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("11_8jwk1")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ly2ts"]
+resource_name = "ground_colour_x-2_z-2"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("13_ot6f7")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bqkst"]
+resource_name = "ground_colour_x-1_z-2"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("15_k4egw")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_35ixf"]
+resource_name = "ground_colour_x0_z-2"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("17_r3jvs")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_j4ylc"]
+resource_name = "ground_colour_x1_z-2"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("19_4tumg")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_pns6s"]
+resource_name = "ground_colour_x2_z-2"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("21_vky08")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_of2gm"]
+resource_name = "ground_colour_x3_z-2"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("23_ip2f8")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_4jjw7"]
+resource_name = "ground_colour_x-2_z-1"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("25_lmjn8")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_myr6c"]
+resource_name = "ground_colour_x-1_z-1"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("27_8sg5e")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_6wiw2"]
+resource_name = "ground_colour_x0_z-1"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("29_alecu")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_83kq2"]
+resource_name = "ground_colour_x1_z-1"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("31_02yuv")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_3dv70"]
+resource_name = "ground_colour_x2_z-1"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("33_fv27u")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_l2vsa"]
+resource_name = "ground_colour_x3_z-1"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("35_powl0")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_7o87u"]
+resource_name = "ground_colour_x-1_z0"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("37_0d6gn")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_dlabm"]
+resource_name = "ground_colour_x0_z0"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("39_hgok0")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_7d31i"]
+resource_name = "ground_colour_x1_z0"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("41_p1uma")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ws1yt"]
+resource_name = "ground_colour_x2_z0"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("43_6vh17")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_tjn8l"]
+resource_name = "ground_colour_x3_z0"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("45_aw3jm")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_w88pw"]
+resource_name = "ground_colour_x-1_z1"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("47_ke6jv")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_dsrme"]
+resource_name = "ground_colour_x0_z1"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("49_afver")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_01und"]
+resource_name = "ground_colour_x1_z1"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("51_yap3j")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_lk1tc"]
+resource_name = "ground_colour_x2_z1"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("53_cl6kw")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_uj1ge"]
+resource_name = "ground_colour_x3_z1"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("55_4kkg6")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_olqsu"]
+resource_name = "ground_colour_x-2_z2"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("57_70voy")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_nc1ab"]
+resource_name = "ground_colour_x-1_z2"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("59_a07l8")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_p5d3s"]
+resource_name = "ground_colour_x0_z2"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("61_dav21")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_465kg"]
+resource_name = "ground_colour_x1_z2"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("63_eiaw0")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_arnee"]
+resource_name = "ground_colour_x2_z2"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("65_acqsr")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_km3b7"]
+resource_name = "ground_colour_x3_z2"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("67_vkwfh")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_0bcvf"]
+resource_name = "ground_colour_x-2_z3"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("69_iyqde")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_xrcc2"]
+resource_name = "ground_colour_x-1_z3"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("71_cmf8w")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8orvv"]
+resource_name = "ground_colour_x0_z3"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("73_ug7sc")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ru6xp"]
+resource_name = "ground_colour_x1_z3"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("75_pee8r")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_asoh2"]
+resource_name = "ground_colour_x2_z3"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("77_l4m35")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_yye32"]
+resource_name = "ground_colour_x-2_z4"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("79_2yvvw")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_0gpmw"]
+resource_name = "ground_colour_x-1_z4"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("81_esq63")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_oqjlk"]
+resource_name = "ground_colour_x0_z4"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("83_cwgjh")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fujew"]
+resource_name = "ground_colour_x1_z4"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("85_lh4mm")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_2kh1l"]
+resource_name = "ground_colour_x-2_z5"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("87_8pjvl")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_rlrqo"]
+resource_name = "ground_colour_x-1_z5"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("89_bvfqh")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_hbppi"]
+resource_name = "ground_colour_x0_z5"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("91_hxsic")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_hmui4"]
+resource_name = "ground_colour_x-2_z6"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("93_mcq4c")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ftnxc"]
+resource_name = "ground_colour_x-1_z6"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("95_ar67q")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_xnwxl"]
+resource_name = "ground_colour_x0_z6"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("97_jfux6")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_16o2a"]
+resource_name = "ground_colour_x-2_z7"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("99_i8y18")
+shader_parameter/tile_samples = 501.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ry1tl"]
+resource_name = "ground_colour_x-1_z7"
+render_priority = 0
+shader = ExtResource("2_renaq")
+shader_parameter/colour = ExtResource("101_sgbrf")
+shader_parameter/tile_samples = 501.0
+
+[node name="world_ground" type="Node3D" unique_id=1770335831]
+editor_description = "Pure output of tools/ground_mount.gd; never edit by hand. The ground grid's tiles, each with its own material of ground_grid.gdshader and its tile's colour from assets/source/world_ground/colour/."
+
+[node name="x-1_z-3" parent="." unique_id=77930956 instance=ExtResource("1_ww65q")]
+
+[node name="ground_x-1_z-3" parent="x-1_z-3" index="0" unique_id=573723563]
+material_override = SubResource("ShaderMaterial_4rhyn")
+
+[node name="x0_z-3" parent="." unique_id=1102062528 instance=ExtResource("4_n6ras")]
+
+[node name="ground_x0_z-3" parent="x0_z-3" index="0" unique_id=670905184]
+material_override = SubResource("ShaderMaterial_258u7")
+
+[node name="x1_z-3" parent="." unique_id=1756139573 instance=ExtResource("6_u5gaj")]
+
+[node name="ground_x1_z-3" parent="x1_z-3" index="0" unique_id=858555150]
+material_override = SubResource("ShaderMaterial_ktjol")
+
+[node name="x2_z-3" parent="." unique_id=639563111 instance=ExtResource("8_2tsj1")]
+
+[node name="ground_x2_z-3" parent="x2_z-3" index="0" unique_id=2044013903]
+material_override = SubResource("ShaderMaterial_pwvla")
+
+[node name="x3_z-3" parent="." unique_id=23743909 instance=ExtResource("10_hlua6")]
+
+[node name="ground_x3_z-3" parent="x3_z-3" index="0" unique_id=171469192]
+material_override = SubResource("ShaderMaterial_v6fv6")
+
+[node name="x-2_z-2" parent="." unique_id=2033417232 instance=ExtResource("12_n8qjd")]
+
+[node name="ground_x-2_z-2" parent="x-2_z-2" index="0" unique_id=1663747091]
+material_override = SubResource("ShaderMaterial_ly2ts")
+
+[node name="x-1_z-2" parent="." unique_id=689017435 instance=ExtResource("14_cqtsr")]
+
+[node name="ground_x-1_z-2" parent="x-1_z-2" index="0" unique_id=1592290410]
+material_override = SubResource("ShaderMaterial_bqkst")
+
+[node name="x0_z-2" parent="." unique_id=595647732 instance=ExtResource("16_fxgnp")]
+
+[node name="ground_x0_z-2" parent="x0_z-2" index="0" unique_id=1311045576]
+material_override = SubResource("ShaderMaterial_35ixf")
+
+[node name="x1_z-2" parent="." unique_id=1810509642 instance=ExtResource("18_vie58")]
+
+[node name="ground_x1_z-2" parent="x1_z-2" index="0" unique_id=1106440244]
+material_override = SubResource("ShaderMaterial_j4ylc")
+
+[node name="x2_z-2" parent="." unique_id=1141501780 instance=ExtResource("20_gcqop")]
+
+[node name="ground_x2_z-2" parent="x2_z-2" index="0" unique_id=1242779426]
+material_override = SubResource("ShaderMaterial_pns6s")
+
+[node name="x3_z-2" parent="." unique_id=869014898 instance=ExtResource("22_d106t")]
+
+[node name="ground_x3_z-2" parent="x3_z-2" index="0" unique_id=873142535]
+material_override = SubResource("ShaderMaterial_of2gm")
+
+[node name="x-2_z-1" parent="." unique_id=556713938 instance=ExtResource("24_kx7qv")]
+
+[node name="ground_x-2_z-1" parent="x-2_z-1" index="0" unique_id=1191342741]
+material_override = SubResource("ShaderMaterial_4jjw7")
+
+[node name="x-1_z-1" parent="." unique_id=1324502840 instance=ExtResource("26_1um7y")]
+
+[node name="ground_x-1_z-1" parent="x-1_z-1" index="0" unique_id=1109043848]
+material_override = SubResource("ShaderMaterial_myr6c")
+
+[node name="x0_z-1" parent="." unique_id=1466947928 instance=ExtResource("28_na5dn")]
+
+[node name="ground_x0_z-1" parent="x0_z-1" index="0" unique_id=1820706183]
+material_override = SubResource("ShaderMaterial_6wiw2")
+
+[node name="x1_z-1" parent="." unique_id=1289791864 instance=ExtResource("30_uv8uv")]
+
+[node name="ground_x1_z-1" parent="x1_z-1" index="0" unique_id=1637752342]
+material_override = SubResource("ShaderMaterial_83kq2")
+
+[node name="x2_z-1" parent="." unique_id=762258924 instance=ExtResource("32_ihoxg")]
+
+[node name="ground_x2_z-1" parent="x2_z-1" index="0" unique_id=1708656796]
+material_override = SubResource("ShaderMaterial_3dv70")
+
+[node name="x3_z-1" parent="." unique_id=530715976 instance=ExtResource("34_xr2lc")]
+
+[node name="ground_x3_z-1" parent="x3_z-1" index="0" unique_id=1853111762]
+material_override = SubResource("ShaderMaterial_l2vsa")
+
+[node name="x-1_z0" parent="." unique_id=330152869 instance=ExtResource("36_1ln4f")]
+
+[node name="ground_x-1_z0" parent="x-1_z0" index="0" unique_id=1179269579]
+material_override = SubResource("ShaderMaterial_7o87u")
+
+[node name="x0_z0" parent="." unique_id=923249417 instance=ExtResource("38_own5m")]
+
+[node name="ground_x0_z0" parent="x0_z0" index="0" unique_id=1798639548]
+material_override = SubResource("ShaderMaterial_dlabm")
+
+[node name="x1_z0" parent="." unique_id=947177449 instance=ExtResource("40_mpmpo")]
+
+[node name="ground_x1_z0" parent="x1_z0" index="0" unique_id=1336630328]
+material_override = SubResource("ShaderMaterial_7d31i")
+
+[node name="x2_z0" parent="." unique_id=1701182003 instance=ExtResource("42_b0ayp")]
+
+[node name="ground_x2_z0" parent="x2_z0" index="0" unique_id=1395911770]
+material_override = SubResource("ShaderMaterial_ws1yt")
+
+[node name="x3_z0" parent="." unique_id=1067581292 instance=ExtResource("44_0j0r3")]
+
+[node name="ground_x3_z0" parent="x3_z0" index="0" unique_id=397253358]
+material_override = SubResource("ShaderMaterial_tjn8l")
+
+[node name="x-1_z1" parent="." unique_id=596589304 instance=ExtResource("46_80whr")]
+
+[node name="ground_x-1_z1" parent="x-1_z1" index="0" unique_id=2110877773]
+material_override = SubResource("ShaderMaterial_w88pw")
+
+[node name="x0_z1" parent="." unique_id=749383307 instance=ExtResource("48_8um3g")]
+
+[node name="ground_x0_z1" parent="x0_z1" index="0" unique_id=1173450006]
+material_override = SubResource("ShaderMaterial_dsrme")
+
+[node name="x1_z1" parent="." unique_id=426215741 instance=ExtResource("50_coy1p")]
+
+[node name="ground_x1_z1" parent="x1_z1" index="0" unique_id=1467626892]
+material_override = SubResource("ShaderMaterial_01und")
+
+[node name="x2_z1" parent="." unique_id=136777049 instance=ExtResource("52_lq20f")]
+
+[node name="ground_x2_z1" parent="x2_z1" index="0" unique_id=317110873]
+material_override = SubResource("ShaderMaterial_lk1tc")
+
+[node name="x3_z1" parent="." unique_id=1908151276 instance=ExtResource("54_2r54d")]
+
+[node name="ground_x3_z1" parent="x3_z1" index="0" unique_id=948954437]
+material_override = SubResource("ShaderMaterial_uj1ge")
+
+[node name="x-2_z2" parent="." unique_id=1832746474 instance=ExtResource("56_wbtqv")]
+
+[node name="ground_x-2_z2" parent="x-2_z2" index="0" unique_id=711278002]
+material_override = SubResource("ShaderMaterial_olqsu")
+
+[node name="x-1_z2" parent="." unique_id=1277347178 instance=ExtResource("58_l73w7")]
+
+[node name="ground_x-1_z2" parent="x-1_z2" index="0" unique_id=1427971174]
+material_override = SubResource("ShaderMaterial_nc1ab")
+
+[node name="x0_z2" parent="." unique_id=1920606350 instance=ExtResource("60_kov4a")]
+
+[node name="ground_x0_z2" parent="x0_z2" index="0" unique_id=85726276]
+material_override = SubResource("ShaderMaterial_p5d3s")
+
+[node name="x1_z2" parent="." unique_id=753408503 instance=ExtResource("62_l6do3")]
+
+[node name="ground_x1_z2" parent="x1_z2" index="0" unique_id=321642813]
+material_override = SubResource("ShaderMaterial_465kg")
+
+[node name="x2_z2" parent="." unique_id=1890191630 instance=ExtResource("64_r0xiw")]
+
+[node name="ground_x2_z2" parent="x2_z2" index="0" unique_id=1742069288]
+material_override = SubResource("ShaderMaterial_arnee")
+
+[node name="x3_z2" parent="." unique_id=1906267266 instance=ExtResource("66_bviwv")]
+
+[node name="ground_x3_z2" parent="x3_z2" index="0" unique_id=781303663]
+material_override = SubResource("ShaderMaterial_km3b7")
+
+[node name="x-2_z3" parent="." unique_id=126513405 instance=ExtResource("68_hpig3")]
+
+[node name="ground_x-2_z3" parent="x-2_z3" index="0" unique_id=697602163]
+material_override = SubResource("ShaderMaterial_0bcvf")
+
+[node name="x-1_z3" parent="." unique_id=48261603 instance=ExtResource("70_j7bhg")]
+
+[node name="ground_x-1_z3" parent="x-1_z3" index="0" unique_id=274712356]
+material_override = SubResource("ShaderMaterial_xrcc2")
+
+[node name="x0_z3" parent="." unique_id=997498062 instance=ExtResource("72_p01q2")]
+
+[node name="ground_x0_z3" parent="x0_z3" index="0" unique_id=1790024629]
+material_override = SubResource("ShaderMaterial_8orvv")
+
+[node name="x1_z3" parent="." unique_id=1038207654 instance=ExtResource("74_jl1v0")]
+
+[node name="ground_x1_z3" parent="x1_z3" index="0" unique_id=1900994240]
+material_override = SubResource("ShaderMaterial_ru6xp")
+
+[node name="x2_z3" parent="." unique_id=542684888 instance=ExtResource("76_n6m01")]
+
+[node name="ground_x2_z3" parent="x2_z3" index="0" unique_id=873279914]
+material_override = SubResource("ShaderMaterial_asoh2")
+
+[node name="x-2_z4" parent="." unique_id=331525449 instance=ExtResource("78_am0wl")]
+
+[node name="ground_x-2_z4" parent="x-2_z4" index="0" unique_id=1763278913]
+material_override = SubResource("ShaderMaterial_yye32")
+
+[node name="x-1_z4" parent="." unique_id=169910278 instance=ExtResource("80_qoeqe")]
+
+[node name="ground_x-1_z4" parent="x-1_z4" index="0" unique_id=453406859]
+material_override = SubResource("ShaderMaterial_0gpmw")
+
+[node name="x0_z4" parent="." unique_id=1591583415 instance=ExtResource("82_rx2uq")]
+
+[node name="ground_x0_z4" parent="x0_z4" index="0" unique_id=1549826349]
+material_override = SubResource("ShaderMaterial_oqjlk")
+
+[node name="x1_z4" parent="." unique_id=1551739209 instance=ExtResource("84_ny78s")]
+
+[node name="ground_x1_z4" parent="x1_z4" index="0" unique_id=1348992034]
+material_override = SubResource("ShaderMaterial_fujew")
+
+[node name="x-2_z5" parent="." unique_id=1789146083 instance=ExtResource("86_jsvdu")]
+
+[node name="ground_x-2_z5" parent="x-2_z5" index="0" unique_id=1511412936]
+material_override = SubResource("ShaderMaterial_2kh1l")
+
+[node name="x-1_z5" parent="." unique_id=997117492 instance=ExtResource("88_b5tus")]
+
+[node name="ground_x-1_z5" parent="x-1_z5" index="0" unique_id=211243731]
+material_override = SubResource("ShaderMaterial_rlrqo")
+
+[node name="x0_z5" parent="." unique_id=1386257920 instance=ExtResource("90_qss7m")]
+
+[node name="ground_x0_z5" parent="x0_z5" index="0" unique_id=921454259]
+material_override = SubResource("ShaderMaterial_hbppi")
+
+[node name="x-2_z6" parent="." unique_id=1082730561 instance=ExtResource("92_pf1q5")]
+
+[node name="ground_x-2_z6" parent="x-2_z6" index="0" unique_id=1454226383]
+material_override = SubResource("ShaderMaterial_hmui4")
+
+[node name="x-1_z6" parent="." unique_id=2036446702 instance=ExtResource("94_2x7no")]
+
+[node name="ground_x-1_z6" parent="x-1_z6" index="0" unique_id=1167330423]
+material_override = SubResource("ShaderMaterial_ftnxc")
+
+[node name="x0_z6" parent="." unique_id=568574514 instance=ExtResource("96_0nv6o")]
+
+[node name="ground_x0_z6" parent="x0_z6" index="0" unique_id=1477411666]
+material_override = SubResource("ShaderMaterial_xnwxl")
+
+[node name="x-2_z7" parent="." unique_id=1616320711 instance=ExtResource("98_v5156")]
+
+[node name="ground_x-2_z7" parent="x-2_z7" index="0" unique_id=1292734120]
+material_override = SubResource("ShaderMaterial_16o2a")
+
+[node name="x-1_z7" parent="." unique_id=471780436 instance=ExtResource("100_jvhr7")]
+
+[node name="ground_x-1_z7" parent="x-1_z7" index="0" unique_id=742413500]
+material_override = SubResource("ShaderMaterial_ry1tl")
+
+[editable path="x-1_z-3"]
+[editable path="x0_z-3"]
+[editable path="x1_z-3"]
+[editable path="x2_z-3"]
+[editable path="x3_z-3"]
+[editable path="x-2_z-2"]
+[editable path="x-1_z-2"]
+[editable path="x0_z-2"]
+[editable path="x1_z-2"]
+[editable path="x2_z-2"]
+[editable path="x3_z-2"]
+[editable path="x-2_z-1"]
+[editable path="x-1_z-1"]
+[editable path="x0_z-1"]
+[editable path="x1_z-1"]
+[editable path="x2_z-1"]
+[editable path="x3_z-1"]
+[editable path="x-1_z0"]
+[editable path="x0_z0"]
+[editable path="x1_z0"]
+[editable path="x2_z0"]
+[editable path="x3_z0"]
+[editable path="x-1_z1"]
+[editable path="x0_z1"]
+[editable path="x1_z1"]
+[editable path="x2_z1"]
+[editable path="x3_z1"]
+[editable path="x-2_z2"]
+[editable path="x-1_z2"]
+[editable path="x0_z2"]
+[editable path="x1_z2"]
+[editable path="x2_z2"]
+[editable path="x3_z2"]
+[editable path="x-2_z3"]
+[editable path="x-1_z3"]
+[editable path="x0_z3"]
+[editable path="x1_z3"]
+[editable path="x2_z3"]
+[editable path="x-2_z4"]
+[editable path="x-1_z4"]
+[editable path="x0_z4"]
+[editable path="x1_z4"]
+[editable path="x-2_z5"]
+[editable path="x-1_z5"]
+[editable path="x0_z5"]
+[editable path="x-2_z6"]
+[editable path="x-1_z6"]
+[editable path="x0_z6"]
+[editable path="x-2_z7"]
+[editable path="x-1_z7"]
