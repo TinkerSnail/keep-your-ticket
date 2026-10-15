@@ -25,6 +25,11 @@ The chain, in order, stopping at the first step that fails:
 5. **delta**: `tools/world_terrain_delta.gd`, what the generator will follow; its summary is shown.
 6. **generate**: `tools/gen_props.gd`, then `tools/gen_crowd.gd`. Like any generator run, this
    publishes every uncommitted change in the tree into the generated scenes.
+7. **seam** (Stage 6, 2026-10-15): the generator cuts the road corridor's sides to the grid's
+   ground, so an edit beside or across a road moves the corridor's edges, and the tiles the build
+   stitched to the old edges are built again against the new (`ground_build.py` over every tile,
+   which rebuilds only those whose held edges changed), then imported and mounted again. Skipped
+   when no tile needed it.
 
 It prints `step <name>: ...` as a step starts and `ok <name>: ...` or `FAIL <name>: ...` as it ends,
 and `note ...` for what is worth reading; the panel shows those. A Godot step fails on a non-zero
@@ -241,6 +246,28 @@ def main(argv):
         text, s = run("gen_crowd", godot("--script", "res://tools/gen_crowd.gd"), logs, r"wrote \d+ guests")
         crowds = len(re.findall(r"wrote \d+ guests", text))
         say("ok gen_crowd: %d crowd%s written in %s" % (crowds, "" if crowds == 1 else "s", clock(s)))
+        # 7. seam
+        say("step seam: the tiles stitched to the road corridor as the generator has just cut it")
+        text, s = run("build", [a.blender, "--background", "--factory-startup", "--python-exit-code", "1",
+                                "--python", os.path.join(ROOT, "tools", "blender", "ground_build.py")],
+                      logs, r"ground_build: built \d+ tiles", tag="seam")
+        built = sorted(set(re.findall(r"phase 2 (x-?\d+_z-?\d+):", text)))
+        if not built:
+            say("ok seam: no tile's seam changed (%s)" % clock(s))
+        else:
+            say("ok seam: %s rebuilt in %s" % (", ".join(built), clock(s)))
+            if a.import_lock:
+                take_lock(a.import_lock)
+            try:
+                _, s = run("import", godot("--import"), logs, errors=False, tag="seam")
+            finally:
+                if a.import_lock:
+                    shutil.rmtree(a.import_lock, ignore_errors=True)
+            text, s = run("mount", godot("--script", "res://tools/ground_mount.gd"), logs,
+                          r"ground_mount: \d+ tiles, PASS", tag="seam")
+            run("check", godot("--script", "res://tools/ground_mount.gd", "--", "--check"), logs,
+                r"ground_mount: \d+ tiles, PASS", tag="seam")
+            say("ok seam: imported and mounted again")
     except Failed as e:
         say("FAIL " + str(e))
         say("note Logs: " + logs)

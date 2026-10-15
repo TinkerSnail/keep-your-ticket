@@ -5,7 +5,10 @@ the grid itself, `assets/source/world_ground/height/`. Each is a named function 
 which nodes it changes and to what, computed from the grid as it stands, so running it again on
 the same grid gives the same bytes. `baseline/` is the frozen copy and is never touched: an edit
 reads as a change in `WorldTerrainSource.delta_y`, and what the generator places on the ground
-follows it.
+follows it. The one exception is a re-basing edit (`apply_arrays`'s `base_*`, Stage 6, 2026-10-15),
+which writes the copy's heights at some nodes in the same edit as the grid's, where the generator's
+measure itself moves (the road corridor's natural ground, the hill over the tunnels); its undo puts
+both back.
 
     python3 tools/ground_grid_edit.py --list
     python3 tools/ground_grid_edit.py <edit> [--dry] [--root DIR]
@@ -567,10 +570,11 @@ def _node_keys(X, Z):
     return (np.rint(X).astype(np.int64) + 50000) * 200003 + (np.rint(Z).astype(np.int64) + 50000)
 
 
-def _write(g, name, why, X, Z, Y, PX, PZ, PC, dry, extra=None, show=None):
+def _write(g, name, why, X, Z, Y, PX, PZ, PC, dry, extra=None, show=None, base=None):
     """The one place an edit is written: heights Y at nodes (X, Z) and colours PC (RGBA) at nodes
-    (PX, PZ), in whichever tier holds each; a tile with no file gets one. History and log as
-    `record` says."""
+    (PX, PZ), in whichever tier holds each; a tile with no file gets one. `base`, (BX, BZ, BY),
+    re-bases: the frozen copy's heights at those inner nodes, in tiles that have one. History and
+    log as `record` says."""
     root = g.root
     log = load_log(root)
     gid = "G%d" % (len(log["edits"]) + 1)
@@ -603,11 +607,16 @@ def _write(g, name, why, X, Z, Y, PX, PZ, PC, dry, extra=None, show=None):
         if m.any():
             for k, v in _grouped(T, CX[m], CZ[m], CC[m]).items():
                 per_colour[(ti,) + k] = v
-    tiles = sorted(set(per_tile) | set(per_colour))
+    per_base = {}
+    if base is not None and len(base[0]):
+        for k, v in _grouped(g.inner, base[0], base[1], np.asarray(base[2]).astype(np.float32)).items():
+            per_base[(0,) + k] = v
+    tiles = sorted(set(per_tile) | set(per_colour) | set(per_base))
     names = [g.tiers[ti].key(tx, tz) for ti, tx, tz in tiles]
-    print("%s %s: %d nodes in %s; %d given ground that had none; %swhy: %s" % (
+    print("%s %s: %d nodes in %s; %d given ground that had none; %s%swhy: %s" % (
         gid, name, len(X), ", ".join(names) if len(names) <= 12 else "%d tiles" % len(names), int(made.sum()),
-        "%d nodes' colour painted; " % len(PX) if len(PX) else "", why))
+        "%d nodes' colour painted; " % len(PX) if len(PX) else "",
+        "%d nodes of the frozen copy re-based; " % len(base[0]) if per_base else "", why))
     shown = range(len(X)) if show is None else range(min(len(X), show))
     ck = _node_keys(CX, CZ)
     cmap = {}
@@ -666,6 +675,17 @@ def _write(g, name, why, X, Z, Y, PX, PZ, PC, dry, extra=None, show=None):
             rec["colour_nodes"] = int(len(rows))
             if not existed:
                 rec["colour_created"] = True
+        if (ti, tx, tz) in per_base:
+            rows, cols, vals = per_base[(ti, tx, tz)]
+            bp = T.path("baseline", tx, tz, "exr")
+            b = gb.read_exr(bp)[0].copy()
+            rec["baseline_sha_before"] = sha(bp)
+            hist["b_%s_idx" % hk] = (rows * T.n + cols).astype(np.int32)
+            hist["b_%s_old" % hk] = b[rows, cols].copy()
+            b[rows, cols] = vals
+            hist["b_%s_new" % hk] = b[rows, cols].copy()
+            gb.write_exr(bp, b)
+            rec.update({"baseline_nodes": int(len(rows)), "baseline_sha_after": sha(bp)})
         record_tiles.append(rec)
     os.makedirs(os.path.join(root, "history"), exist_ok=True)
     hpath = os.path.join(root, "history", gid + ".npz")
@@ -675,6 +695,8 @@ def _write(g, name, why, X, Z, Y, PX, PZ, PC, dry, extra=None, show=None):
         "tiles": [r["tile"] for r in record_tiles], "nodes": int(len(X)), "new_ground_nodes": int(made.sum()),
         "history": "history/%s.npz" % gid, "files": record_tiles,
     }
+    if per_base:
+        entry["baseline_nodes"] = int(len(base[0]))
     entry.update(extra or {})
     log["edits"].append(entry)
     save_log(root, log)
@@ -754,14 +776,19 @@ def _all_homes_hold(T, X, Z, want, colour=False):
 
 def apply_arrays(root, name, why, x, z, y, expect=None, expect_given=None, dry=False, min_change=MIN_CHANGE,
                  made_by=None, show=40, colour_x=None, colour_z=None, colour=None, colour_expect=None,
-                 colour_expect_given=None, extra=None):
+                 colour_expect_given=None, extra=None, base_x=None, base_z=None, base_y=None):
     """`apply_values` for arrays (2026-10-14, Stage 4), whole tiles at a time: heights `y` at nodes
     (`x`, `z`), world metres, each in the inner tier (2 m, inside its domain and on its edge) or
     the outer (8 m, beyond it); a tile with no file yet is made. `expect` (heights read, NaN where
     there was no ground) with `expect_given` (which nodes to check) refuses stale nodes as
     `apply_values` does. Colours: `colour` (N x 3 bytes) at (`colour_x`, `colour_z`), optionally
     `colour_expect` (N x 4) and `colour_expect_given`. A node given ground needs a colour, its own
-    or its neighbours' (for at most MAX_NEW_COLOUR of them)."""
+    or its neighbours' (for at most MAX_NEW_COLOUR of them).
+
+    `base_y` at (`base_x`, `base_z`) (Stage 6, 2026-10-15) re-bases the frozen copy, `baseline/`, at
+    those nodes in the same edit: only inner nodes in tiles that have a copy, never NaN, and only
+    where the copy moves by more than `min_change`. It is for a change in what the generator
+    measures from, never for an editor's save."""
     if not NAME_RE.match(name or ""):
         raise SystemExit("the edit's name must be short snake_case (a-z, 0-9 and _, up to 40), not %r" % (name,))
     why = " ".join((why or "").split())
@@ -843,7 +870,30 @@ def apply_arrays(root, name, why, x, z, y, expect=None, expect_given=None, dry=F
         raise SystemExit("%d of the nodes changed in %s since they were read (another edit, an undo or "
                          "a Photoshop save): read them again before saving" % (
                              int(stale.sum() + cstale.sum()), ", ".join(sorted(names))))
-    if not changed.any() and not len(PX):
+    base = None
+    if base_y is not None and len(base_y):
+        BX = np.asarray(base_x, np.float64).ravel()
+        BZ = np.asarray(base_z, np.float64).ravel()
+        BY = np.asarray(base_y, np.float64).ravel().astype(np.float32).astype(np.float64)
+        if not np.isfinite(BY).all():
+            raise SystemExit("a re-based height is not a number")
+        if (_lattice(g, BX, BZ, " (re-based)") != 0).any():
+            raise SystemExit("only the inner tiles have a frozen copy to re-base")
+        _, btx, btz, _, _ = g.inner.homes_of(BX, BZ)
+        for key in set(zip(btx.tolist(), btz.tolist())):
+            if not os.path.exists(g.inner.path("baseline", key[0], key[1], "exr")):
+                raise SystemExit("%s has no frozen copy to re-base" % g.inner.key(*key))
+        held_b = np.full(len(BX), np.nan)
+        pi, tx, tz, r, c = g.inner.homes_of(BX, BZ)
+        keys, inv = _tiles_of(tx, tz)
+        for j, key in enumerate(keys):
+            m = inv == j
+            held_b[pi[m]] = gb.read_exr(g.inner.path("baseline", key[0], key[1], "exr"))[0][r[m], c[m]]
+        with np.errstate(invalid="ignore"):
+            moves = np.isnan(held_b) | (np.abs(BY - held_b) > min_change)
+        if moves.any():
+            base = (BX[moves], BZ[moves], BY[moves])
+    if not changed.any() and not len(PX) and base is None:
         print("nothing moved by more than %g m%s: no edit recorded" % (
             min_change, " and no colour changed" if colour is not None else ""))
         return None
@@ -851,7 +901,7 @@ def apply_arrays(root, name, why, x, z, y, expect=None, expect_given=None, dry=F
     if made_by:
         extra_all["made_by"] = made_by
     extra_all.update(extra or {})
-    return _write(g, name, why, X[changed], Z[changed], Y32[changed], PX, PZ, PC, dry, extra_all, show)
+    return _write(g, name, why, X[changed], Z[changed], Y32[changed], PX, PZ, PC, dry, extra_all, show, base)
 
 
 def undo(root, dry):
@@ -893,6 +943,17 @@ def undo(root, dry):
                 "the tile was changed since, so only these nodes" if not untouched else "BYTES DIFFER")))
             if not back and untouched:
                 raise SystemExit("undo of %s did not restore %s exactly" % (e["id"], hp))
+        if "b_%s_idx" % hk in hist.files:
+            bp = T.path("baseline", tx, tz, "exr")
+            b = gb.read_exr(bp)[0].copy()
+            bidx = hist["b_%s_idx" % hk]
+            b.reshape(-1)[bidx] = hist["b_%s_old" % hk]
+            gb.write_exr(bp, b)
+            back = sha(bp) == rec["baseline_sha_before"]
+            print("  %s frozen copy: %d nodes restored; %s" % (key, len(bidx), "the tile bit for bit" if back
+                                                               else "BYTES DIFFER"))
+            if not back:
+                raise SystemExit("undo of %s did not restore %s exactly" % (e["id"], bp))
         if rec.get("colour_created"):
             cp = T.path("colour", tx, tz, "png")
             if os.path.exists(cp):

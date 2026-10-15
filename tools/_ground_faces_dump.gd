@@ -19,7 +19,14 @@ extends SceneTree
 ##   `held_open.f32` each held collider's open edges, two corners an edge: the
 ##                   edges one face uses, corners matched bit for bit.
 ## and `faces.json`: per file, its pieces in order (name or path, first face or
-## edge, count), and the header (commit, Godot, what changed in the tree).
+## edge, count), and the header (commit, Godot, what changed in the tree); and
+## `spans`, the plan outline of each bored tunnel's span, `[[x, z], ...]` in world
+## metres, from the `kyt_tunnel_spans` meta of `terrain_tunnel_portals` in
+## `park_groundworks`. Since Stage 6 (2026-10-15) the grid holds the hill over each
+## span and the generator keeps only the portal faces there, so the build must
+## not carve the grid against the corridor lying under a span. A generator from
+## before Stage 6 has no such node: `spans` is empty, and the build carves as it
+## did.
 ##
 ## Until Stage 5 `--out` also wrote the world terrain master's ground pieces and their frozen
 ## copy (`master.f32`, `baseline.f32`) for `tools/ground_bake.py`'s bake, and `--delta` read
@@ -88,6 +95,7 @@ func _dump(dir: String) -> int:
 	for rec in index["held"]:
 		rec["kind"] = kinds[rec["name"]]
 	index["held_open"] = _write_pieces(dir.path_join("held_open.f32"), open, 2)
+	index["spans"] = _tunnel_spans(places.get_node("park_groundworks"))
 	places.free()
 
 	index["header"]["seconds"] = (Time.get_ticks_msec() - t0) / 1000.0
@@ -100,9 +108,25 @@ func _dump(dir: String) -> int:
 	var edges_n := 0
 	for rec in index["held_open"]:
 		edges_n += int(rec["count"])
-	print("ground faces dump: held %d faces in %d colliders with %d open edges; %.1fs; %s" % [
-		faces_n, held.size(), edges_n, index["header"]["seconds"], dir])
+	print("ground faces dump: held %d faces in %d colliders with %d open edges; %d tunnel spans; %.1fs; %s" % [
+		faces_n, held.size(), edges_n, (index["spans"] as Array).size(), index["header"]["seconds"], dir])
 	return 0
+
+
+## The bored tunnels' spans as the generator recorded them on the portals' body:
+## one plan polygon each, `[[x, z], ...]`, world metres (the scene stands at the
+## origin, as `park_world.tscn` mounts it). None before Stage 6.
+func _tunnel_spans(groundworks: Node) -> Array:
+	var out: Array = []
+	var portals := groundworks.find_child("terrain_tunnel_portals", true, false)
+	if portals == null or not portals.has_meta("kyt_tunnel_spans"):
+		return out
+	for poly in portals.get_meta("kyt_tunnel_spans"):
+		var pts: Array = []
+		for p in (poly as PackedVector2Array):
+			pts.append([p.x, p.y])
+		out.append(pts)
+	return out
 
 
 func _header() -> Dictionary:

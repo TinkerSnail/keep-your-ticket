@@ -17,7 +17,9 @@ extends RefCounted
 ##
 ## The master's ground pieces that the grid was baked from were retired in Stage 5 (2026-10-15);
 ## they, the faces reading of them and the frozen copy as faces are in git up to `a8cd64b`.
-## The master keeps its `Earthworks`, which `road_natural` reads.
+## Since Stage 6 (2026-10-15) the grid also holds the natural ground under the generator's road
+## corridor and the hill over its tunnels, and `road_natural` reads the change there like any other;
+## the master's `Earthworks` sheet it read until then is in git up to `f5a7b4b`.
 ##
 ## Everything that asks builds this class with `new()`; a probe may hand in the grid's two folders
 ## instead, as `load_grid` reads them.
@@ -33,8 +35,6 @@ const HOLES := GRID_DIR + "/holes.json"
 ## serves these, the ground the game mounts.
 const GROUND_TILES_DIR := "res://assets/world_ground/tiles"
 
-## The world terrain master's export: since Stage 5 its `Lakes` and its `Earthworks` only.
-const MASTER_GLB := "res://assets/world_terrain_master.glb"
 ## The generator's own ground bodies, in the order it builds them. It still builds them, because
 ## what follows in its build reads them (their seam ordinals, the corridor stitched to their edges,
 ## the routes banked against them), and then drops them: the grid is mounted in their place.
@@ -48,24 +48,11 @@ const BODIES: Array[String] = [
 	"east_shoulder_n",
 	"east_shoulder_s",
 ]
-## Where an edit reshaped ground a road's corridor covers (the hillside, Ground edit 6, 2026-10-08:
-## the hill ran down into the coast highway's cutting), the master hands over the edit's natural
-## ground there, which is no ground one stands on (`kyt_collision=none`, hidden in
-## `scenes/world/world_terrain.tscn`): a mesh named with this prefix in its `Earthworks`, each point
-## on the designed ground and carrying, as its u texture coordinate, how far the design governs
-## there, 1 inside the edit and 0 where it leaves the ground as it was. `road_natural` reads it.
-## Stage 6 of the height-grid plan, her call, would read it from the grid instead.
-const ROAD_NATURAL_PREFIX := "corridor_natural_"
-## The plan cell the road's natural ground is indexed in.
-const CELL := 8.0
 ## A face whose normal is flatter than this has no top to stand on (seam and closure walls). The
-## grid's bake skipped such faces; `tools/_underlap_probe.gd` reads the same rule from here.
+## grid's bake skipped such faces; `tools/_underlap_probe.gd` reads the same rule from here, and
+## `INSIDE_EPS`, its slack on whether a point lies in a triangle.
 const MIN_UP := 0.05
 const INSIDE_EPS := 1e-6
-
-var _road_faces := PackedVector3Array()
-var _road_weights := PackedFloat32Array()
-var _road_cells := {}
 
 ## The grid's reading. Nodes run from (`_grid_x0`, `_grid_z0`) every `_grid_step` metres,
 ## `_grid_cols` cells across and `_grid_rows` down, in tiles of `_grid_cells` cells a side
@@ -100,9 +87,8 @@ var _tile_faces_read := false
 var load_seconds := 0.0
 
 
-## Reads the grid's tiles, now and then, and the master's `Earthworks` for `road_natural`, unless
-## the tiles are handed in as {Vector2i(tx, tz): heights}, a `load_grid` each; then nothing is read
-## from disk.
+## Reads the grid's tiles, now and then, unless they are handed in as {Vector2i(tx, tz): heights},
+## a `load_grid` each; then nothing is read from disk.
 func _init(height := {}, baseline := {}) -> void:
 	var t0 := Time.get_ticks_usec()
 	_init_grid(height, baseline)
@@ -128,66 +114,20 @@ func delta_y(p: Vector2) -> float:
 
 
 ## The natural ground a road's corridor cuts its sides to at `p` (world x, z), given the
-## landform's `y` there: `y`, blended towards the master's designed natural ground where an
-## edit reshaped what the corridor covers (`ROAD_NATURAL_PREFIX`). A road's own level never
+## landform's `y` there: `y` plus the grid's change at `p`. Since Stage 6 (2026-10-15) the grid
+## holds the natural ground under every corridor, the land as if there were no road, baked from
+## the generator's own (`tools/ground_corridor_bake.py`, edit G9), so this is the grid's ground,
+## and an edit beside or across a road reshapes its cuttings and fills. A road's own level never
 ## reads it, so it keeps its graded profile; its sides follow the ground beside it.
 func road_natural(p: Vector2, y: float) -> float:
-	if _road_cells.is_empty():
-		return y
-	var key := Vector2i(floori(p.x / CELL), floori(p.y / CELL))
-	if not _road_cells.has(key):
-		return y
-	for t in (_road_cells[key] as Array):
-		var a := _road_faces[t]
-		var b := _road_faces[t + 1]
-		var c := _road_faces[t + 2]
-		var e0 := Vector2(b.x - a.x, b.z - a.z)
-		var e1 := Vector2(c.x - a.x, c.z - a.z)
-		var e2 := Vector2(p.x - a.x, p.y - a.z)
-		var den := e0.x * e1.y - e1.x * e0.y
-		if absf(den) < 1e-9:
-			continue
-		var u := (e2.x * e1.y - e1.x * e2.y) / den
-		var v := (e0.x * e2.y - e2.x * e0.y) / den
-		if u < -INSIDE_EPS or v < -INSIDE_EPS or u + v > 1.0 + INSIDE_EPS:
-			continue
-		var z := a.y + u * (b.y - a.y) + v * (c.y - a.y)
-		var w := _road_weights[t] + u * (_road_weights[t + 1] - _road_weights[t]) \
-			+ v * (_road_weights[t + 2] - _road_weights[t])
-		return lerpf(y, z, clampf(w, 0.0, 1.0))
-	return y
+	var d := delta_y(p)
+	return y if d == 0.0 else y + d
 
 
 ## One line for a log: how many nodes changed since the copy, where, and the largest rise and
 ## fall among them.
 func summary() -> String:
 	return _grid_summary()
-
-
-## The master's natural ground under road corridors, three corners a face with their weights,
-## indexed in every plan cell a face touches.
-func _read_road_natural(scene: Node) -> void:
-	for node in scene.find_children(ROAD_NATURAL_PREFIX + "*", "MeshInstance3D", true, false):
-		var mi := node as MeshInstance3D
-		var xf := _world_xf(mi)
-		for s in mi.mesh.get_surface_count():
-			var arr := mi.mesh.surface_get_arrays(s)
-			var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
-			var uv: PackedVector2Array = arr[Mesh.ARRAY_TEX_UV]
-			var idx: PackedInt32Array = arr[Mesh.ARRAY_INDEX] if arr[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
-			var order: PackedInt32Array = idx
-			if order.is_empty():
-				order.resize(v.size())
-				for i in v.size():
-					order[i] = i
-			for i in order:
-				_road_faces.append(xf * v[i])
-				_road_weights.append(uv[i].x)
-	for t in range(0, _road_faces.size(), 3):
-		for key in _cells_of(_road_faces, t):
-			if not _road_cells.has(key):
-				_road_cells[key] = []
-			(_road_cells[key] as Array).append(t)
 
 
 static func faces_of(mesh: Mesh, xf: Transform3D) -> PackedVector3Array:
@@ -217,23 +157,7 @@ static func _world_xf(n: Node) -> Transform3D:
 	return t
 
 
-func _cells_of(faces: PackedVector3Array, t: int) -> Array[Vector2i]:
-	var a := faces[t]
-	var b := faces[t + 1]
-	var c := faces[t + 2]
-	var x0 := floori(minf(a.x, minf(b.x, c.x)) / CELL)
-	var x1 := floori(maxf(a.x, maxf(b.x, c.x)) / CELL)
-	var z0 := floori(minf(a.z, minf(b.z, c.z)) / CELL)
-	var z1 := floori(maxf(a.z, maxf(b.z, c.z)) / CELL)
-	var out: Array[Vector2i] = []
-	for x in range(x0, x1 + 1):
-		for z in range(z0, z1 + 1):
-			out.append(Vector2i(x, z))
-	return out
-
-
-## The grid's reading: `grid.json`, then the master's Earthworks for `road_natural` (which stays in
-## the master until Stage 6 of the height-grid plan), then every tile, now and then. A tile whose
+## The grid's reading: `grid.json`, then every tile, now and then. A tile whose
 ## two images are the same bit for bit is not kept: it reads zero.
 func _init_grid(height: Dictionary, baseline: Dictionary) -> void:
 	var spec := grid_spec()
@@ -252,10 +176,6 @@ func _init_grid(height: Dictionary, baseline: Dictionary) -> void:
 	_grid_cols = _grid_ntx * _grid_cells
 	_grid_rows = _grid_ntz * _grid_cells
 	var read := height.is_empty() and baseline.is_empty()
-	if read:
-		var scene := (load(MASTER_GLB) as PackedScene).instantiate()
-		_read_road_natural(scene)
-		scene.free()
 	var n := _grid_samples * _grid_samples
 	for j in _grid_ntz:
 		for i in _grid_ntx:

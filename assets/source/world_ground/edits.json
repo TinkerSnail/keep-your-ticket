@@ -1293,6 +1293,115 @@
     "harbour_foot_nodes": 28,
     "profile_carries_down": true
    }
+  },
+  {
+   "id": "G9",
+   "name": "corridor_natural",
+   "date": "2026-10-14",
+   "why": "Stage 6: the road corridor's natural ground and the hill over the tunnels join the grid; the frozen copy re-based to the generator's natural ground there",
+   "tiles": [
+    "x-1_z-3",
+    "x-1_z-2",
+    "x-1_z-1",
+    "x-1_z0",
+    "x0_z-1",
+    "x0_z0",
+    "x0_z1",
+    "x0_z2"
+   ],
+   "nodes": 98502,
+   "new_ground_nodes": 71778,
+   "history": "history/G9.npz",
+   "files": [
+    {
+     "tile": "x-1_z-3",
+     "nodes": 3458,
+     "height_sha_before": "e1b6a1e275eebd0355a2de3074c9e40e491c09713e83a7517f5e88697f3b2b86",
+     "height_sha_after": "4b20e1d6ecb27d3c1b14ea3f6cf9fcbc544c0fd1f6ed5ef5c532bd35b67da3a6",
+     "colour_nodes": 3458,
+     "baseline_sha_before": "e9fc5bd3b73791be2ce3a6800c1457c1fe33f6784262410687c8640eb3c64961",
+     "baseline_nodes": 3458,
+     "baseline_sha_after": "c91e509d167e272ab3c89d4e9c007af7d32c421aad00bdadf8ffa75505f6d849"
+    },
+    {
+     "tile": "x-1_z-2",
+     "nodes": 16203,
+     "height_sha_before": "4a776c51b1c82b1b97a5fcc5cdda6b544145efd8696e06583affa85fda777f4f",
+     "height_sha_after": "5a44b040f97c645dd03f13a3d764b3d2f76371a67eb03b20b9e3b3e48eeb9fbf",
+     "colour_nodes": 16065,
+     "baseline_sha_before": "2a4d095637ff1bd8638167a1b1115a9401d3d341084467e7bdd582f9c09f2119",
+     "baseline_nodes": 16887,
+     "baseline_sha_after": "20a5cfd9fba55a5cbb50de6221818fe833833597765008a42cc5d901b6aa5a3b"
+    },
+    {
+     "tile": "x-1_z-1",
+     "nodes": 11928,
+     "height_sha_before": "b23c54f21d89418927c8bef63c4f932f6a9d6d511babebf528fcdb2f2c6c40cd",
+     "height_sha_after": "9af6b998d269de88d6b0e20768932b153b7b7be6f23d79da7bb9bbf02d4d73b0",
+     "colour_nodes": 11909,
+     "baseline_sha_before": "e9b205219479a53e68aaa7292d7626f5c857ce46c573f1bb4528205198d4e003",
+     "baseline_nodes": 12085,
+     "baseline_sha_after": "aa6b7bed5406caae09f5f34c3b4a9648a5743005d2eb9b26aeef3fa3e33d8750"
+    },
+    {
+     "tile": "x-1_z0",
+     "nodes": 1337,
+     "height_sha_before": "f933498b9dce6c5ad1a43be0818d606db2eb05adeafc47ef331390b3f3215ef3",
+     "height_sha_after": "98a0ce5538780abc8bb015898532f83f92190719efb768e8a057a715ae902375",
+     "colour_nodes": 1337,
+     "baseline_sha_before": "78e119911b8a403627c7298ad569b39f4791e57cc8c840151a50db795d5c66b8",
+     "baseline_nodes": 1337,
+     "baseline_sha_after": "bb70d9d5f1f977dd6331d119c78ce4c46443c257d8270cd3c20f4d5adc9f1552"
+    },
+    {
+     "tile": "x0_z-1",
+     "nodes": 10901,
+     "height_sha_before": "676d3b3b257d58fb72c38aaad7a342b7f633ea5c9de04cfeecdea23d007f3674",
+     "height_sha_after": "13e99b5171c6ca9b35f6b892320ef7cce851e2af3b1109f83f4d81a5c7564e91",
+     "colour_nodes": 10901,
+     "baseline_sha_before": "01a35ff501d7047d5b7eb80e4107b3e9adf44e4d0b3de0d44c7468bf65f985f0",
+     "baseline_nodes": 10901,
+     "baseline_sha_after": "a7e437c92c4629a38b192a26195041616c77cbb322f3ce13c5b19053d525492f"
+    },
+    {
+     "tile": "x0_z0",
+     "nodes": 24092,
+     "height_sha_before": "ec5ebcbe9a1dadc141dafb1bb0cdf1cf0a7dec73024e5b0267b3202a3585a8e7",
+     "height_sha_after": "443dac6c8ed6103fb38c4293050f875edbdbd566bc5413928d87450bbfb15b5a",
+     "colour_nodes": 24092,
+     "baseline_sha_before": "64d5f2c747d1a78987f0486bd08eb34d49dd1ad254f0d6472eed1a059bbfeafd",
+     "baseline_nodes": 24092,
+     "baseline_sha_after": "970075b5d8c5e2e9d1c7469d27244fece35ff1c8ce27a04013068d4161b6ced3"
+    },
+    {
+     "tile": "x0_z1",
+     "nodes": 17976,
+     "height_sha_before": "669fddde05d1085e9db0d70b468689f231426ab96d869acf8af30077563cd87f",
+     "height_sha_after": "069a9e22edbdc29b9cc554e22dd29a6436ca73e210cced5497bd8861cd30914f",
+     "colour_nodes": 17976,
+     "baseline_sha_before": "c4bd68fc27e02c629ce4132029f40f3aec785b76c2a46e5318218dbfd5068072",
+     "baseline_nodes": 17976,
+     "baseline_sha_after": "6f74169c315fae1a78a625f00adc15a87eb69f7c80bc83e03590519a93e0b290"
+    },
+    {
+     "tile": "x0_z2",
+     "nodes": 12929,
+     "height_sha_before": "fd4f2b66ee906e34e0d600662a5f132d63d8caa736269322066c669df3edf832",
+     "height_sha_after": "4f7c978a9921ecb40884bb50381c9e02c5ac8dba2b543c9bfe951d0bd9a8b858",
+     "colour_nodes": 12929,
+     "baseline_sha_before": "57a6313d6b9c1ccdb6662f6fca9ea2ba0deeb1743d4e880fac511491dfb95cf8",
+     "baseline_nodes": 12952,
+     "baseline_sha_after": "930401232d061286106ec45d404317105d0079fa87eeb0083fa24e579c3298b6"
+    }
+   ],
+   "baseline_nodes": 99357,
+   "kind": "values",
+   "min_change_m": 0.001,
+   "made_by": "ground_corridor_bake.py",
+   "stage": 6,
+   "open_corridor_nodes": 83185,
+   "tunnel_nodes": 16348,
+   "kept_grid_nodes": 1031
   }
  ]
 }

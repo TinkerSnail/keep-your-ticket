@@ -36,6 +36,11 @@ const HELD_SCENES := {
 	"east_cascade": "res://scenes/world/east_cascade.tscn",
 }
 const CORRIDOR := "terrain_road_corridor"
+## The tunnels' portal faces (height-grid Stage 6, 2026-10-15): the grid is the hill over
+## each tunnel and its tiles are stitched to each face's top, so their edges there pair
+## with the face's, as the corridor's do. The faces' own other edges are each mouth, its
+## foot on the road and its lintel over each bore, and are never a candidate.
+const PORTALS := "park_groundworks/terrain_tunnel_portals"
 ## How far the census looks across an open edge for ground beside or under it, in plan
 ## and in height: the 0.3 m it already pairs near-twins and drops slivers by, and the
 ## 0.30 m of a T-junction's chord (2026-10-13).
@@ -572,7 +577,8 @@ func _surfaces_at(ground: Dictionary, points: PackedVector2Array) -> Array:
 ## ground fills the openings, is a candidate.
 ##
 ## Since height-grid Stage 2 (2026-10-13) the census is the grid's tiles plus the
-## road corridor. The tiles share their borders segment for segment, so they are
+## road corridor; since Stage 6 (2026-10-15) the tunnels' portal faces pair with the
+## tiles' edges stitched to their tops (`PORTALS`). The tiles share their borders segment for segment, so they are
 ## watertight between themselves; their open edges are the grid's own edge, where
 ## the bake found no ground of the master's, and the corridor's outline pairs with
 ## nothing now, since the master's ground runs on under and over it in places
@@ -595,10 +601,11 @@ func _check_open_faces() -> void:
 	var tri: PackedVector3Array = ground["tri"]
 	var body: PackedInt32Array = ground["body"]
 	var census := int(ground["tiles"])
+	var portals := names.find(PORTALS)
 	var edges := {}
 	var triangles := 0
 	for t in body.size():
-		if body[t] > census:
+		if body[t] > census and body[t] != portals:
 			continue
 		for k in 3:
 			_count_edge(edges, tri[t * 3 + k], tri[t * 3 + (k + 1) % 3], names[body[t]],
@@ -607,7 +614,7 @@ func _check_open_faces() -> void:
 	var stray: Array = []
 	for key in edges:
 		var rec: Array = edges[key]
-		if int(rec[0]) == 1:
+		if int(rec[0]) == 1 and int(rec[5]) != portals:
 			stray.append(rec)
 	edges = {}
 	var mids := {}

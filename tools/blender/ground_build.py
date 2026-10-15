@@ -64,7 +64,10 @@ What a tile's mesh is
   lids, NT-2's earth and cuts; and the west shell's and the anchors' solids
   through `holes.json`'s meets), the grid is carved and stitched so it meets
   each held edge exactly, as the master did: see "the ground the generator
-  still holds" below. `--no-seam` builds the grid alone.
+  still holds" below. From a Stage 6 generator (its dump has `spans`) the grid
+  is the hill over each tunnel and is carved out of the whole open-air corridor,
+  and the portal faces' top edges are what it meets at each mouth.
+  `--no-seam` builds the grid alone.
 - **Two tiers** (2026-10-14, Stage 4 of the plan). The inner tiles (2 m) reach x -3..4 and z -4..8
   km, the sea tiles beyond Stage 1's x -2..3, z -3..7 holding ground only once the seabed is written
   (a tile with no file is no-data); there, ground below -20 m takes `tolerance_zones.deep_sea`'s 0.5 m.
@@ -705,10 +708,33 @@ def line_close(z, tol_nodes, tol_mids, positions):
 #   a gap, and the stitch closes it exactly. Nothing above held ground is ever
 #   touched, so the hill over the tunnels stands; nothing under the anchors'
 #   solids is carved.
+# - **Stage 6 (2026-10-15): the open corridor and the tunnels' spans.** The grid
+#   then holds the natural ground at every node inside the corridor's footprint,
+#   so Christina can sculpt beside and over the highway (the generator cuts the
+#   corridor's sides down to it), and the hill over each bored tunnel's span,
+#   which the lid strip used to lay back. The generator keeps only the portal
+#   faces (`terrain_tunnel_portals`) and records each span's plan outline, which
+#   the faces dump passes on as `spans`. With spans the carve goes by plan alone:
+#   a node a corridor face covers is dropped whatever its height, since in a
+#   cutting the natural ground stands over the road and must never show; but
+#   never in a span, nor within SPAN_PAD of one so a span's own edge stays whole,
+#   because there the corridor is a cutting under the hill and the grid is the
+#   ground. Under a span the corridor is no held ground to the stitch either: its
+#   edges there are not stitched to, and the band may lie over its faces. A
+#   portal face is stitched to by its top edge alone, which runs across the
+#   span's end row; its foot (on the road, and over each bore's roof) and its
+#   sides are the tunnel's mouth, not a seam. A dump without spans, of a
+#   generator from before Stage 6, carves and stitches as above, byte for byte.
 
 STITCH_REACH = 3.0
 CARVE_MARGIN = 0.30
 CARVE_UNDER = ("terrain_road_corridor", "terrain_tunnel_lids")
+# Stage 6. The portals' faces are vertical, so they cover no node in plan and
+# have no place in a carve; the open-air carve reads the corridor alone.
+CARVE_OPEN = "terrain_road_corridor"
+PORTALS = "terrain_tunnel_portals"
+SPAN_PAD = 0.01
+PORTAL_SNAP = 0.005
 
 # The open sea's edge. The bake's last node with ground is up to a cell inland
 # of where the master ran its coasts on down under the water, so the grid's
@@ -732,7 +758,8 @@ HELD_CELL = 4.0
 class Held:
     """The held colliders' faces and open edges (`tools/_ground_faces_dump.gd`'s
     `held.f32`, `held_open.f32`, `faces.json`) and `holes.json`'s meets, with a
-    plan index of the faces flatter than `_top`'s cut."""
+    plan index of the faces flatter than `_top`'s cut; and, from a Stage 6
+    generator, the tunnels' spans."""
 
     def __init__(self, folder):
         fj = json.load(open(os.path.join(folder, "faces.json")))
@@ -743,6 +770,10 @@ class Held:
         for i, p in enumerate(fj["held"]):
             piece[p["first"]:p["first"] + p["count"]] = i
             kinds.append(p["kind"])
+        self.spans = [np.asarray(p, np.float64).reshape(-1, 2) for p in fj.get("spans", [])]
+        self.portal_tops = np.zeros((0, 2, 3))
+        if self.spans:
+            E = self._stage6_edges(fj, F, E)
         holes = json.load(open(os.path.join(SRC, "holes.json")))
         meets = np.array([s for m in holes["meets"] for s in m["segments"]], np.float64).reshape(-1, 2, 3)
         segs = np.concatenate([E.astype(np.float64), meets])
@@ -769,6 +800,7 @@ class Held:
         self.fsheet = np.array([kinds[p] == "body" for p in self.fpiece], bool)
         names = [p["name"] for p in fj["held"]]
         self.fcarve = np.array([names[p].endswith(CARVE_UNDER) for p in self.fpiece], bool)
+        self.fcorr = np.array([names[p].endswith(CARVE_OPEN) for p in self.fpiece], bool)
         self.npieces = len(kinds)
         X, Z = self.F[:, :, 0], self.F[:, :, 2]
         B = HELD_CELL
@@ -786,8 +818,87 @@ class Held:
         self.reg = rep[order]
         self.start = np.searchsorted(keys[order], np.arange(self.nbx * self.nbz + 1))
 
+    def _stage6_edges(self, fj, F, E):
+        """The open edges a Stage 6 dump offers the stitch: of a portal face, its
+        top edges alone, each told by the face it bounds lying under it; of the
+        corridor, none along or under a span. Everything else as dumped."""
+        E = E.copy()
+        keep = np.ones(len(E), bool)
+        tops = np.zeros(len(E), bool)
+        corr = np.zeros(len(E), bool)
+        faces = {p["name"]: p for p in fj["held"]}
+        for p in fj["held_open"]:
+            idx = np.arange(p["first"], p["first"] + p["count"])
+            if not len(idx):
+                continue
+            if p["name"].endswith(PORTALS):
+                rec = faces[p["name"]]
+                third = {}
+                for f in F[rec["first"]:rec["first"] + rec["count"]]:
+                    for k in range(3):
+                        a, b = f[k].tobytes(), f[(k + 1) % 3].tobytes()
+                        third[min(a, b) + max(a, b)] = f[(k + 2) % 3].astype(np.float64)
+                for j in idx:
+                    a, b = E[j, 0].tobytes(), E[j, 1].tobytes()
+                    c = third[min(a, b) + max(a, b)]
+                    pa, pb = E[j, 0].astype(np.float64), E[j, 1].astype(np.float64)
+                    d = pb[[0, 2]] - pa[[0, 2]]
+                    l2 = float(d @ d)
+                    if l2 < 1e-6:
+                        keep[j] = False  # a side, standing upright
+                        continue
+                    t = float((c[[0, 2]] - pa[[0, 2]]) @ d) / l2
+                    keep[j] = tops[j] = c[1] < pa[1] + t * (pb[1] - pa[1])
+            elif p["name"].endswith(CARVE_OPEN):
+                corr[idx] = True
+                m = E[idx].astype(np.float64).mean(1)
+                keep[idx[self.in_spans(m[:, 0], m[:, 2])]] = False
+        # At a span's two outer corners a portal's top edge lands on the corridor's
+        # surface, where the corridor's outer edge runs on into the open air. The
+        # generator works that point out twice, once for each, and the copies
+        # differ by a fraction of a millimetre, so the two edges cross there and
+        # the band drops both (`band_tile`): the portal's end takes the
+        # corridor's own corner.
+        ends = E[corr].reshape(-1, 3)
+        e64 = ends.astype(np.float64)
+        for j in np.flatnonzero(tops):
+            for k in range(2):
+                d = np.abs(e64 - E[j, k].astype(np.float64)).max(1)
+                i = int(np.argmin(d)) if len(d) else -1
+                if i >= 0 and 0.0 < d[i] <= PORTAL_SNAP:
+                    E[j, k] = ends[i]
+        self.portal_tops = E[tops].astype(np.float64)
+        return E[keep]
+
+    def in_spans(self, px, pz):
+        """Whether plan points lie in a tunnel's span or within SPAN_PAD of its
+        outline (even-odd, so the outline's winding does not matter)."""
+        px = np.asarray(px, np.float64)
+        pz = np.asarray(pz, np.float64)
+        out = np.zeros(len(px), bool)
+        for poly in self.spans:
+            lo = poly.min(0) - SPAN_PAD
+            hi = poly.max(0) + SPAN_PAD
+            idx = np.flatnonzero((px >= lo[0]) & (px <= hi[0]) & (pz >= lo[1]) & (pz <= hi[1]))
+            if not len(idx):
+                continue
+            qx, qz = px[idx], pz[idx]
+            inside = np.zeros(len(idx), bool)
+            near = np.zeros(len(idx), bool)
+            for (ax, az), (bx, bz) in zip(poly, np.roll(poly, -1, 0)):
+                if az != bz:
+                    cross = (az > qz) != (bz > qz)
+                    inside ^= cross & (qx < ax + (qz - az) * (bx - ax) / (bz - az))
+                dx, dz = bx - ax, bz - az
+                l2 = dx * dx + dz * dz
+                t = np.clip(((qx - ax) * dx + (qz - az) * dz) / l2, 0.0, 1.0) if l2 > 0 else 0.0
+                near |= (qx - ax - t * dx) ** 2 + (qz - az - t * dz) ** 2 <= SPAN_PAD * SPAN_PAD
+            out[idx] |= inside | near
+        return out
+
     def hits(self, px, pz):
-        """Every (point, face, height) where a face lies over a plan point."""
+        """Every (point, face, height) where a face lies over a plan point; a
+        corridor face counts nowhere in a span, where the hill covers it."""
         px = np.asarray(px, np.float64)
         pz = np.asarray(pz, np.float64)
         bx = ((px - self.ox) // HELD_CELL).astype(np.int64)
@@ -804,6 +915,9 @@ class Held:
         w1 = ((qx - A[:, 0]) * (C[:, 2] - A[:, 2]) - (qz - A[:, 2]) * (C[:, 0] - A[:, 0])) / d
         w2 = ((Bv[:, 0] - A[:, 0]) * (qz - A[:, 2]) - (Bv[:, 2] - A[:, 2]) * (qx - A[:, 0])) / d
         inside = (w1 >= -1e-9) & (w2 >= -1e-9) & (w1 + w2 <= 1 + 1e-9)
+        if self.spans:
+            under = np.flatnonzero(inside & self.fcorr[f])
+            inside[under[self.in_spans(qx[under], qz[under])]] = False
         y = A[:, 1] + w1 * (Bv[:, 1] - A[:, 1]) + w2 * (C[:, 1] - A[:, 1])
         return rep[inside], f[inside], y[inside]
 
@@ -828,13 +942,20 @@ class Held:
         return np.where(anyh, low, np.nan), np.where(anyh, high, np.nan), anyh
 
     def faces_sha(self, xa, za, xb, zb):
-        """The faces and edges over a plan box, hashed: what a tile's seam reads."""
+        """The faces and edges over a plan box, hashed: what a tile's seam reads;
+        and the spans that reach into it, which decide what is carved and what
+        the band may cover."""
         X, Z = self.F[:, :, 0], self.F[:, :, 2]
         m = (X.max(1) >= xa) & (X.min(1) <= xb) & (Z.max(1) >= za) & (Z.min(1) <= zb)
         S = self.segs
         k = (np.maximum(S[:, 0, 0], S[:, 1, 0]) >= xa) & (np.minimum(S[:, 0, 0], S[:, 1, 0]) <= xb) & \
             (np.maximum(S[:, 0, 2], S[:, 1, 2]) >= za) & (np.minimum(S[:, 0, 2], S[:, 1, 2]) <= zb)
-        return hashlib.sha256(self.F[m].tobytes() + self.fsheet[m].tobytes() + S[k].tobytes()).hexdigest()
+        data = self.F[m].tobytes() + self.fsheet[m].tobytes() + S[k].tobytes()
+        for poly in self.spans:
+            lo, hi = poly.min(0) - SPAN_PAD, poly.max(0) + SPAN_PAD
+            if hi[0] >= xa and lo[0] <= xb and hi[1] >= za and lo[1] <= zb:
+                data += poly.tobytes()
+        return hashlib.sha256(data).hexdigest()
 
 
 def held_dump(folder=None):
@@ -854,9 +975,143 @@ def held_dump(folder=None):
 
 def carve_under_held(M, held, grid):
     """`M` without the nodes lying more than CARVE_MARGIN under the corridor or
-    the lids (the lowest of their surfaces over the node), and what was done."""
-    nz, nx = M.shape
-    F = held.F[held.fcarve]
+    the lids (the lowest of their surfaces over the node), and what was done.
+    From a Stage 6 dump, the open-air carve instead (`carve_open_air`)."""
+    if held.spans:
+        return carve_open_air(M, held, grid)
+    low = lowest_over_nodes(M.shape, held.F[held.fcarve], grid)
+    drop = np.isfinite(M) & np.isfinite(low) & (M < low - CARVE_MARGIN)
+    # Ground standing over the corridor or the lids (the hill over the tunnels)
+    # keeps the ring of nodes round it, so it runs on into them as it always
+    # did instead of ending in a new edge over the road.
+    above = np.isfinite(M) & np.isfinite(low) & (M > low)
+    ring = above.copy()
+    ring[1:, :] |= above[:-1, :]
+    ring[:-1, :] |= above[1:, :]
+    ring[:, 1:] |= ring[:, :-1].copy()
+    ring[:, :-1] |= ring[:, 1:].copy()
+    near_hill = drop & ring
+    drop &= ~ring
+    out = M.copy()
+    out[drop] = np.nan
+    under = np.isfinite(M) & np.isfinite(low)
+    stats = {"nodes_under_corridor_or_lids": int(under.sum()), "nodes_carved": int(drop.sum()),
+             "nodes_kept_within_margin": int((under & ~drop & (M <= low)).sum()),
+             "nodes_above_held_kept": int((under & (M > low)).sum()),
+             "nodes_kept_beside_them": int(near_hill.sum())}
+    return out, drop, stats
+
+
+def carve_open_air(M, held, grid):
+    """Stage 6's carve: `M` without every node a corridor face covers in plan
+    outside the tunnels' spans, whatever its height (see above), and what was done."""
+    low = lowest_over_nodes(M.shape, held.F[held.fcorr], grid)
+    covered = np.isfinite(low)
+    span = np.zeros(M.shape, bool)
+    for poly in held.spans:
+        c0, r0 = np.floor((poly.min(0) - SPAN_PAD - (grid.x0, grid.z0)) / grid.step).astype(np.int64)
+        c1, r1 = np.ceil((poly.max(0) + SPAN_PAD - (grid.x0, grid.z0)) / grid.step).astype(np.int64)
+        c0, r0 = max(c0, 0), max(r0, 0)
+        c1, r1 = min(c1, M.shape[1] - 1), min(r1, M.shape[0] - 1)
+        rr, cc = np.mgrid[r0:r1 + 1, c0:c1 + 1]
+        span[rr, cc] |= held.in_spans(grid.x0 + grid.step * cc.ravel(), grid.z0 + grid.step * rr.ravel()).reshape(rr.shape)
+    V = np.isfinite(M)
+    drop = V & covered & ~span
+    out = M.copy()
+    out[drop] = np.nan
+    # A held edge the stitch is to meet must lie in the gap, but where it clips
+    # the corner of a cell whose four nodes all stand beside the corridor, that
+    # cell holds part of it, the stitch leaves the edge, and a sliver opens
+    # between the cell and the held body: at a portal's outer corners, where its
+    # top edge climbs the hillside to the corridor's edge, up to 1.2 m wide. So
+    # such a cell's nodes beside the open-air carve go too (never one in a span),
+    # until no held edge lies in the grid's region there.
+    def samples(S):
+        """Fractional node coordinates every 0.25 m along segments, inside the grid."""
+        L = np.hypot(S[:, 1, 0] - S[:, 0, 0], S[:, 1, 2] - S[:, 0, 2])
+        ns = np.maximum(2, np.ceil(L / 0.25).astype(np.int64) + 1)
+        rep, local, _ = _expand(ns)
+        t = local / (ns[rep] - 1)
+        cf = (S[rep, 0, 0] + t * (S[rep, 1, 0] - S[rep, 0, 0]) - grid.x0) / grid.step
+        rf = (S[rep, 0, 2] + t * (S[rep, 1, 2] - S[rep, 0, 2]) - grid.z0) / grid.step
+        ok = (cf >= 0) & (cf <= M.shape[1] - 1) & (rf >= 0) & (rf <= M.shape[0] - 1)
+        return cf[ok], rf[ok]
+
+    def cells_holding(cf, rf):
+        """The nodes of every cell where a sample still lies in the grid's region."""
+        inside = in_region(out, cf, rf)
+        ci = np.clip(np.floor(cf[inside]).astype(np.int64), 0, M.shape[1] - 2)
+        ri = np.clip(np.floor(rf[inside]).astype(np.int64), 0, M.shape[0] - 2)
+        cells = np.zeros(M.shape, bool)
+        for dr, dc in ((0, 0), (0, 1), (1, 0), (1, 1)):
+            cells[ri + dr, ci + dc] = True
+        return cells
+
+    cf, rf = samples(held.segs)
+    beside = 0
+    for _ in range(3):
+        near = np.zeros(M.shape, bool)
+        for dr in (-1, 0, 1):
+            for dc in (-1, 0, 1):
+                near[max(dr, 0):M.shape[0] + min(dr, 0), max(dc, 0):M.shape[1] + min(dc, 0)] |= \
+                    drop[max(-dr, 0):M.shape[0] + min(-dr, 0), max(-dc, 0):M.shape[1] + min(-dc, 0)]
+        more = cells_holding(cf, rf) & np.isfinite(out) & near & ~span
+        if not more.any():
+            break
+        beside += int(more.sum())
+        out[more] = np.nan
+        drop |= more
+    # Every span's end row is a seam on both sides. Where the corridor runs on
+    # beyond a mouth the open-air carve has made it one; where it does not (the
+    # highway begins at tunnel 0's north mouth) the grid's cells spanned the row
+    # from the hill to the ground in front, and stood 1.5 to 6 m over the road
+    # inside the bores' openings (`tunnel_drive_test`, 2026-10-15). So every node
+    # outside the spans whose cell holds a portal's top edge goes, the top edge
+    # lies in a gap, and the stitch joins it from both sides: the hill from the
+    # span, the ground in front of the mouth from beyond it.
+    at_mouths = 0
+    if len(held.portal_tops):
+        pcf, prf = samples(held.portal_tops)
+        opened = np.zeros(M.shape, bool)
+        for _ in range(3):
+            more = cells_holding(pcf, prf) & np.isfinite(out) & ~span
+            if not more.any():
+                break
+            at_mouths += int(more.sum())
+            out[more] = np.nan
+            drop |= more
+            opened |= more
+        # A span node standing on the top edge itself (the span counts its
+        # outline's SPAN_PAD as its own) at a mouth just opened: the edge then
+        # touches the grid's region there, or a cell's side crosses it a few
+        # millimetres out, and the stitch leaves it. It goes too, and the hill
+        # meets the top edge through the band.
+        beside_opened = np.zeros(M.shape, bool)
+        for dr in (-1, 0, 1):
+            for dc in (-1, 0, 1):
+                beside_opened[max(dr, 0):M.shape[0] + min(dr, 0), max(dc, 0):M.shape[1] + min(dc, 0)] |= \
+                    opened[max(-dr, 0):M.shape[0] + min(-dr, 0), max(-dc, 0):M.shape[1] + min(-dc, 0)]
+        rr, cc = np.nonzero(beside_opened & np.isfinite(out) & span)
+        if len(rr):
+            px, pz = grid.x0 + grid.step * cc, grid.z0 + grid.step * rr
+            S = held.portal_tops
+            ax, az = S[:, 0, 0][None, :], S[:, 0, 2][None, :]
+            dx, dz = S[:, 1, 0][None, :] - ax, S[:, 1, 2][None, :] - az
+            t = np.clip(((px[:, None] - ax) * dx + (pz[:, None] - az) * dz) / np.maximum(dx * dx + dz * dz, 1e-12), 0, 1)
+            on = (np.hypot(px[:, None] - ax - t * dx, pz[:, None] - az - t * dz).min(1) <= SPAN_PAD)
+            at_mouths += int(on.sum())
+            out[rr[on], cc[on]] = np.nan
+            drop[rr[on], cc[on]] = True
+    stats = {"nodes_under_corridor": int((V & covered).sum()), "nodes_in_spans": int((V & span).sum()),
+             "nodes_carved": int(drop.sum()), "nodes_carved_above_the_corridor": int((drop & (M > low)).sum()),
+             "nodes_carved_beside_held_edges": beside, "nodes_carved_before_portals": at_mouths}
+    return out, drop, stats
+
+
+def lowest_over_nodes(shape, F, grid):
+    """Per grid node, the lowest of the faces `F` over it in plan (edges
+    included), or inf where none is."""
+    nz, nx = shape
     X, Z, Y = F[:, :, 0], F[:, :, 2], F[:, :, 1]
     c0 = np.ceil((X.min(1) - grid.x0) / grid.step).astype(np.int64)
     c1 = np.floor((X.max(1) - grid.x0) / grid.step).astype(np.int64)
@@ -882,27 +1137,7 @@ def carve_under_held(M, held, grid):
         ins = (w1 >= -1e-9) & (w2 >= -1e-9) & (w1 + w2 <= 1 + 1e-9)
         y = A[:, 1] + w1 * (B[:, 1] - A[:, 1]) + w2 * (C[:, 1] - A[:, 1])
         np.minimum.at(low, (r * nx + c)[ins], y[ins])
-    low = low.reshape(nz, nx)
-    drop = np.isfinite(M) & np.isfinite(low) & (M < low - CARVE_MARGIN)
-    # Ground standing over the corridor or the lids (the hill over the tunnels)
-    # keeps the ring of nodes round it, so it runs on into them as it always
-    # did instead of ending in a new edge over the road.
-    above = np.isfinite(M) & np.isfinite(low) & (M > low)
-    ring = above.copy()
-    ring[1:, :] |= above[:-1, :]
-    ring[:-1, :] |= above[1:, :]
-    ring[:, 1:] |= ring[:, :-1].copy()
-    ring[:, :-1] |= ring[:, 1:].copy()
-    near_hill = drop & ring
-    drop &= ~ring
-    out = M.copy()
-    out[drop] = np.nan
-    under = np.isfinite(M) & np.isfinite(low)
-    stats = {"nodes_under_corridor_or_lids": int(under.sum()), "nodes_carved": int(drop.sum()),
-             "nodes_kept_within_margin": int((under & ~drop & (M <= low)).sum()),
-             "nodes_above_held_kept": int((under & (M > low)).sum()),
-             "nodes_kept_beside_them": int(near_hill.sum())}
-    return out, drop, stats
+    return low.reshape(nz, nx)
 
 
 def open_sea(M):
@@ -1308,6 +1543,11 @@ class World:
                                    "carve_under": list(CARVE_UNDER), "skirt_y_m": SKIRT_Y,
                                    "skirt_beside_ground_above_m": SKIRT_FROM,
                                    "skirt_held_clear_m": SKIRT_HELD_CLEAR}}
+            if self.held.spans:
+                self.seam["spans"] = len(self.held.spans)
+                self.seam["rules"].update({"carve": "every node a corridor face covers, outside the spans",
+                                           "carve_open": CARVE_OPEN, "portals": PORTALS, "span_pad_m": SPAN_PAD,
+                                           "portal_snap_m": PORTAL_SNAP})
         # What each tile's mesh reads of the heights: the stored ones, raised.
         self.tile_sha = {}
         for tx, tz in g.tiles():

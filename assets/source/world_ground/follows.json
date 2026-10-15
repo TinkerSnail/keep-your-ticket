@@ -65,6 +65,172 @@
     "lowest_m": 0.0,
     "highest_m": 0.0
    }
+  },
+  {
+   "id": "G9",
+   "date": "2026-10-14",
+   "from": "settled, Stage 6's bake changed only the ground under the road corridor and over the tunnels, where no rock, block or roost stands (dry follow: nothing moves)",
+   "settled": true,
+   "ground": {
+    "tiles": [
+     "x-1_z-1",
+     "x-1_z-2",
+     "x-1_z-3",
+     "x0_z0",
+     "x0_z2"
+    ],
+    "nodes": 26750,
+    "lowest_m": -0.301,
+    "highest_m": 130.432
+   },
+   "edits": [
+    {
+     "id": "G9",
+     "name": "corridor_natural",
+     "sig": "7975934c38d31d3d"
+    }
+   ]
+  },
+  {
+   "id": "G8",
+   "date": "2026-10-14",
+   "from": "edits G8",
+   "ground": {
+    "tiles": [
+     "x-1_z-1",
+     "x-1_z-2",
+     "x-1_z-3",
+     "x-1_z0",
+     "x-1_z1",
+     "x-1_z2",
+     "x-1_z6",
+     "x-1_z7",
+     "x-2_z-1",
+     "x-2_z-2",
+     "x-2_z2",
+     "x-2_z3",
+     "x-2_z4",
+     "x-2_z5",
+     "x-2_z6",
+     "x-2_z7",
+     "x0_z0",
+     "x0_z1",
+     "x0_z2",
+     "x0_z5",
+     "x0_z6"
+    ],
+    "nodes": 216400,
+    "lowest_m": -2.685,
+    "highest_m": 7.664
+   },
+   "edits": [
+    {
+     "id": "G8",
+     "name": "seabed_c3",
+     "sig": "364423dd23cabb18"
+    }
+   ],
+   "rocks": {
+    "moved": {
+     "north_massif_base_boulder_74": 0.292,
+     "north_massif_beach_rock_032": 0.943,
+     "north_massif_beach_rock_093": 0.596,
+     "north_massif_beach_rock_097": 0.078,
+     "north_massif_beach_rock_264": 1.007,
+     "north_massif_beach_rock_362": 0.64,
+     "north_massif_beach_rock_462": 0.316,
+     "north_massif_beach_rock_467": 1.196,
+     "north_massif_beach_rock_498": 0.958,
+     "north_massif_beach_rock_515": 1.283,
+     "north_massif_beach_rock_546": 0.959,
+     "north_massif_beach_rock_609": 0.208,
+     "north_massif_beach_rock_611": 0.219,
+     "north_massif_beach_rock_653": 0.201,
+     "north_massif_beach_rock_700": 0.07,
+     "north_massif_beach_rock_739": 0.308,
+     "north_massif_beach_rock_823": 0.934,
+     "north_massif_beach_rock_857": 0.996,
+     "north_massif_beach_rock_872": 0.074,
+     "north_plug_outer_boulder_31": 3.436,
+     "north_plug_remaining_beach_rock_0053": 2.406,
+     "north_plug_remaining_beach_rock_0257": 0.649,
+     "north_plug_remaining_beach_rock_0314": 0.99
+    },
+    "uneven": {
+     "north_connector_remaining_beach_rock_0002": 0.552,
+     "north_connector_remaining_beach_rock_0011": 0.278,
+     "north_connector_remaining_beach_rock_0034": 0.552,
+     "north_connector_remaining_beach_rock_0039": 0.352,
+     "north_connector_remaining_beach_rock_0104": 0.255,
+     "north_connector_remaining_beach_rock_0146": 6.306,
+     "north_connector_remaining_beach_rock_0156": 0.567,
+     "north_connector_remaining_beach_rock_0157": 7.392,
+     "north_connector_remaining_beach_rock_0183": 0.255,
+     "north_connector_remaining_beach_rock_0215": 3.926,
+     "north_connector_remaining_beach_rock_0243": 3.182,
+     "north_connector_remaining_beach_rock_0245": 1.517,
+     "north_connector_remaining_beach_rock_0249": 0.344,
+     "north_connector_remaining_beach_rock_0286": 0.346,
+     "north_massif_base_boulder_267": 1.749,
+     "north_massif_base_boulder_74": 1.074,
+     "north_massif_beach_rock_032": 1.049,
+     "north_massif_beach_rock_093": 1.694,
+     "north_massif_beach_rock_097": 0.297,
+     "north_massif_beach_rock_264": 0.404,
+     "north_massif_beach_rock_362": 0.569,
+     "north_massif_beach_rock_462": 0.898,
+     "north_massif_beach_rock_467": 0.561,
+     "north_massif_beach_rock_498": 1.483,
+     "north_massif_beach_rock_515": 1.538,
+     "north_massif_beach_rock_546": 0.459,
+     "north_massif_beach_rock_609": 0.372,
+     "north_massif_beach_rock_611": 0.352,
+     "north_massif_beach_rock_653": 0.5,
+     "north_massif_beach_rock_700": 0.671,
+     "north_massif_beach_rock_739": 0.622,
+     "north_massif_beach_rock_823": 0.844,
+     "north_massif_beach_rock_841": 0.263,
+     "north_massif_beach_rock_857": 0.828,
+     "north_massif_beach_rock_872": 0.292,
+     "north_massif_beach_rock_873": 0.269,
+     "north_massif_remaining_beach_rock_0411": 0.302,
+     "north_massif_remaining_beach_rock_0466": 1.254,
+     "north_massif_remaining_beach_rock_0916": 0.25,
+     "north_massif_remaining_beach_rock_1351": 0.89,
+     "north_massif_remaining_beach_rock_1392": 0.265,
+     "north_plug_outer_boulder_19": 0.772,
+     "north_plug_outer_boulder_31": 4.131,
+     "north_plug_remaining_beach_rock_0005": 3.33,
+     "north_plug_remaining_beach_rock_0024": 3.625,
+     "north_plug_remaining_beach_rock_0034": 4.197,
+     "north_plug_remaining_beach_rock_0039": 0.881,
+     "north_plug_remaining_beach_rock_0053": 4.015,
+     "north_plug_remaining_beach_rock_0057": 0.499,
+     "north_plug_remaining_beach_rock_0087": 0.503,
+     "north_plug_remaining_beach_rock_0194": 1.014,
+     "north_plug_remaining_beach_rock_0236": 3.239,
+     "north_plug_remaining_beach_rock_0246": 0.475,
+     "north_plug_remaining_beach_rock_0257": 2.218,
+     "north_plug_remaining_beach_rock_0266": 4.186,
+     "north_plug_remaining_beach_rock_0297": 3.659,
+     "north_plug_remaining_beach_rock_0314": 2.117,
+     "north_plug_remaining_beach_rock_0317": 0.617,
+     "north_plug_remaining_beach_rock_0350": 4.352,
+     "north_plug_remaining_beach_rock_0370": 0.366,
+     "north_plug_remaining_beach_rock_0375": 1.883
+    }
+   },
+   "city": {
+    "raised": {},
+    "left": {}
+   },
+   "roosts": {
+    "moved": {},
+    "left": []
+   },
+   "exported": [
+    "assets/range_forest_distinct_background.glb"
+   ]
   }
  ]
 }

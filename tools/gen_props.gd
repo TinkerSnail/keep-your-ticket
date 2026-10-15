@@ -178,9 +178,12 @@ func _world_terrain_source():
 ## `_rebuild_natural_y` and `_rebuild_range_rise_raw`, which take no change: a
 ## road keeps its own graded profile whatever the master does beside it. Its
 ## corridor's sides are another matter (2026-10-08, the hillside, Ground edit 6,
-## Christina: "let the slope follow"): where an edit reshapes ground a corridor
-## covers, the master hands over the edit's natural ground there, and the sides
-## are cut down to it (`_road_natural_y`), so the cutting meets the new hill.
+## Christina: "let the slope follow"): they are cut down to the natural ground
+## the corridor covers, and since the height grid's Stage 6 (2026-10-15) that is
+## the grid's, the change read like any other (`_road_natural_y`), so a cutting
+## meets whatever hill she makes beside it while the road's level stays. A cut
+## is in absolute heights; inside a ground function it is handed back less the
+## change there, which the outermost call adds again (`_road_records_cut`).
 var _ground_depth := 0
 
 
@@ -17176,9 +17179,10 @@ func _rebuild_groundworks() -> void:
 
 	_rebuild_mesh_body("terrain_road_corridor", corridor_mesh,
 		"ground_banded", true)
-	var tunnel_lids := _rebuild_tunnel_lid_mesh()
-	if tunnel_lids.get_surface_count() > 0:
-		_rebuild_mesh_body("terrain_tunnel_lids", tunnel_lids, "ground_banded", true)
+	var portals: Array = _rebuild_tunnel_portals()
+	if (portals[0] as ArrayMesh).get_surface_count() > 0:
+		var body := _rebuild_mesh_body_of("ground_banded", "terrain_tunnel_portals", portals[0], true)
+		body.set_meta("kyt_tunnel_spans", portals[1])
 	print("corridor seam: %d boundary edges, %d lattice vertices stitched, %d refused (portal lintels and anything off by over %.1fm)" % [
 		_corridor_seam_edges.size() / 2, _corridor_seam_hits,
 		_corridor_seam_refused, CORRIDOR_SEAM_MAX_CORRECTION])
@@ -23556,9 +23560,18 @@ func _road_split_at_radius(pts: Array, centre: Vector2, radius: float) -> Array:
 ## landform over the batter, and inside a corridor the section itself,
 ## tapered in over `ROAD_TAPER` from the corridor's ends. `y` is the ground
 ## before any road. Returns [height, found].
+##
+## The section is absolute: the road's level, and the natural ground its sides
+## are cut to as the height grid has it (`y` and every `_road_natural_y` plus
+## the grid's change there). Called inside one of the five ground functions,
+## whose outermost call adds that change once more (`_ground_follows`), the
+## height it hands back is less the change at `p`, so the two cancel and the
+## verge stays on the road while the batter meets the hill (Stage 6, 2026-10-15).
 func _road_records_cut(p: Vector2, y: float) -> Array:
-	# The ground the sides are cut to, where an edit to the master reshapes it.
-	y = _world_terrain_source().road_natural(p, y)
+	# The ground the sides are cut to: the grid's, where it has changed
+	# (`WorldTerrainSource.road_natural`, read once for both uses).
+	var change: float = _world_terrain_source().delta_y(p)
+	y += change
 	var best := INF
 	var best_rec: Dictionary = {}
 	var best_seg := -1
@@ -23642,6 +23655,8 @@ func _road_records_cut(p: Vector2, y: float) -> Array:
 				continue
 			height = minf(height, _road_record_y(rec, int(near["seg"]), float(near["t"]), float(near["o"]),
 				float(near["best"]), y))
+	if _ground_depth > 0 and change != 0.0:
+		height -= change
 	return [height, true, best]
 
 
@@ -23771,9 +23786,10 @@ func _road_profile_y(rec: Dictionary, seg: int, t: float, o: float, y: float) ->
 	return _road_side_y(level, e, y, nat_ref, nat_wall, nat_fill)
 
 
-## The natural ground a road's side is cut to at `p`: the landform's, except where
-## an edit to the world terrain master reshapes ground the corridor covers, which
-## the master hands over (`WorldTerrainSource.road_natural`). Never a road's level.
+## The natural ground a road's side is cut to at `p`: the landform's plus the height
+## grid's change there (`WorldTerrainSource.road_natural`). Since the grid's Stage 6
+## (2026-10-15) the grid holds the natural ground under every corridor, the land as if
+## there were no road, so this is the grid's own ground. Never a road's level.
 func _road_natural_y(p: Vector2) -> float:
 	return _world_terrain_source().road_natural(p, _rebuild_natural_y(p))
 
@@ -24334,13 +24350,22 @@ func _road_colour(slot: String, p: Vector2, y: float, wall_here: bool) -> Color:
 ## and Christina wants what the Pacific Coast Highway has — a bore through the
 ## headland with nothing but two mouths showing.
 ##
-## So this lays the ground back over the cut at its natural height. The lid is a
-## strip between the *same* left and right row offsets the corridor polygon is
-## built from, so the lattice's hole and the lid share their boundary by
-## construction rather than by a tolerance — which is the thing every seam fix
-## before this one got wrong. Each end drops a headwall to road level, which is
-## the portal's face and keeps the lid from being an open edge in the census.
-## Ground the lid keeps over the bore's roof.
+## So until the height grid's Stage 6 this laid the ground back over the cut at
+## its natural height. The lid was a strip between the *same* left and right row
+## offsets the corridor polygon is built from, so the lattice's hole and the lid
+## shared their boundary by construction rather than by a tolerance — which is
+## the thing every seam fix before it got wrong. Each end drops a headwall to
+## road level, which is the portal's face.
+##
+## Since Stage 6 (2026-10-15) the hill over every tunnel is the height grid's own
+## ground, the lid baked into it (`tools/ground_corridor_bake.py`, edit G9), so
+## Christina shapes it like any other hill. This builds only what a grid of
+## heights cannot hold: each portal's face, from the hill's edge down to the
+## corridor's ground and each bore's roof. The plan outline each lid covered is
+## the body's meta `kyt_tunnel_spans`, one polygon a tunnel, so the grid's build
+## carves the open corridor round a tunnel and not the hill over it
+## (`tools/blender/ground_build.py`).
+## Ground the lid kept over the bore's roof.
 const BORE_LID_COVER := 1.2
 ## How steeply the hill rises away from a portal's headwall, back and to either
 ## side: the embankments' steepest bank, 1:1.6.
@@ -24352,12 +24377,42 @@ const BORE_NOSE_SLOPE := BORE_MOUTH_SLOPE * 2.0
 const BORE_LID_CLEAR := 0.15
 
 
-func _rebuild_tunnel_lid_mesh() -> ArrayMesh:
+## The portals' faces, and each tunnel's span: [ArrayMesh, Array of PackedVector2Array].
+func _rebuild_tunnel_portals() -> Array:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_smooth_group(0)
+	var spans: Array = []
+	for tunnel in _tunnel_span_rows():
+		var span: Array = tunnel["rows"]
+		# The span in plan, as the lid's strip covered it: each row's first
+		# offset in order, then each row's last back again.
+		var outline := PackedVector2Array()
+		for row in span:
+			var offs: Array = row["offsets"]
+			outline.append(Vector2(row["c"]) + Vector2(row["r"]).normalized() * float(offs[0]))
+		for k in range(span.size() - 1, -1, -1):
+			var offs: Array = span[k]["offsets"]
+			outline.append(Vector2(span[k]["c"]) + Vector2(span[k]["r"]).normalized()
+				* float(offs[offs.size() - 1]))
+		spans.append(outline)
+		# The two portal faces: the hill's edge over each end row down to the road.
+		var along: Vector2 = tunnel["along"]
+		for end in [[span[0], -1.0], [span[span.size() - 1], 1.0]]:
+			_bore_portal_face(st, end[0], Vector3(along.x, 0.0, along.y) * float(end[1]))
+	if spans.is_empty():
+		return [ArrayMesh.new(), spans]
+	st.generate_normals()
+	st.generate_tangents()
+	return [st.commit(), spans]
+
+
+## Each tunnel's corridor rows, in order, the two at its portals included: the rows
+## inside the bore's span along the road, by projection onto the portal-to-portal
+## chord. [{rows, along}], `along` the chord's direction.
+func _tunnel_span_rows() -> Array:
+	var out: Array = []
 	var stations: Array = _highway_stations()
-	var emitted := 0
 	for rec in _road_cut_records():
 		if String(rec["id"]) != "highway":
 			continue
@@ -24367,51 +24422,72 @@ func _rebuild_tunnel_lid_mesh() -> ArrayMesh:
 				var i1: int = int(run["to"])
 				var from_p := Vector2((stations[i0] as Vector3).x, (stations[i0] as Vector3).z)
 				var to_p := Vector2((stations[i1] as Vector3).x, (stations[i1] as Vector3).z)
+				var axis := to_p - from_p
 				var span: Array = []
 				for row in (run_rows as Array):
-					var c: Vector2 = row["c"]
-					# Inside the bore's span along the road, by projection onto
-					# the portal-to-portal chord.
-					var axis := to_p - from_p
-					var t := (c - from_p).dot(axis) / maxf(axis.length_squared(), 0.001)
-					if t < 0.0 or t > 1.0:
-						continue
-					span.append(row)
-				if span.size() < 2:
-					continue
-				# Each row's distance in from the nearer mouth, along the chord.
-				var axis_n := (to_p - from_p).normalized()
-				var s_first := (Vector2(span[0]["c"]) - from_p).dot(axis_n)
-				var s_last := (Vector2(span[span.size() - 1]["c"]) - from_p).dot(axis_n)
-				var profiles: Array = []
-				for row in span:
-					var s_row := (Vector2(row["c"]) - from_p).dot(axis_n)
-					profiles.append(_bore_lid_profile(row, minf(s_row - s_first, s_last - s_row)))
-				for k in span.size() - 1:
-					var p0: Array = profiles[k]
-					var p1: Array = profiles[k + 1]
-					for j in p0.size() - 1:
-						var a: Vector3 = p0[j]
-						var b: Vector3 = p0[j + 1]
-						var c3: Vector3 = p1[j + 1]
-						var d: Vector3 = p1[j]
-						_bore_lid_tri(st, a, b, c3, Vector3.UP)
-						_bore_lid_tri(st, a, c3, d, Vector3.UP)
-					emitted += 1
-				# The two portal faces: the lid's end edge down to the road.
-				var along := (to_p - from_p).normalized()
-				for end in [[span[0], -1.0], [span[span.size() - 1], 1.0]]:
-					_bore_portal_face(st, end[0], Vector3(along.x, 0.0, along.y) * float(end[1]))
-	if emitted == 0:
-		return ArrayMesh.new()
-	st.generate_normals()
-	st.generate_tangents()
-	return st.commit()
+					var t := (Vector2(row["c"]) - from_p).dot(axis) / maxf(axis.length_squared(), 0.001)
+					if t >= 0.0 and t <= 1.0:
+						span.append(row)
+				if span.size() >= 2:
+					out.append({"rows": span, "along": axis.normalized()})
+	return out
+
+
+var _bore_interior := {}
+var _bore_interior_read := false
+
+
+## The corridor rows inside a tunnel past its two portal rows, keyed by centre to the
+## centimetre: where the hill over the bores hides the corridor's sides.
+func _bore_interior_rows() -> Dictionary:
+	if not _bore_interior_read:
+		_bore_interior_read = true
+		for tunnel in _tunnel_span_rows():
+			var span: Array = tunnel["rows"]
+			for k in range(1, span.size() - 1):
+				_bore_interior[_bore_row_key(span[k]["c"])] = true
+	return _bore_interior
+
+
+func _bore_row_key(c: Vector2) -> Vector2i:
+	return Vector2i(roundi(c.x * 100.0), roundi(c.y * 100.0))
+
+
+## How far under the natural ground a tunnel's hidden fills lie: more than a 2 m
+## grid's facets fall below the lid's old shoulder over them, 0.81 m at most.
+const BORE_SIDE_UNDER := 1.0
+
+
+## A row's heights inside a tunnel, past its portal rows: beside the road bed, the
+## lower of the bed and `BORE_SIDE_UNDER` under the natural ground, so a cut's walls
+## and batters lie down to the bed and a fill sinks under the hill's shoulder. The
+## hill over the bores is the height grid's since its Stage 6 (2026-10-15), and a
+## 2 m grid cannot lie the lid's 0.15 m over a cut's 6 m retaining walls, its
+## batter's crest or a steep fill: they stood through the hill by up to 6.7 m beside
+## the portals, then 0.8 m on tunnel 1's seaward shoulder. Nothing sees them there,
+## so the cut stops at each portal's row, where the face stands across it, and the
+## bores and their bed run on under the hill alone.
+func _bore_hidden_ys(ys: PackedFloat32Array, slots: Array, c: Vector2, r: Vector2,
+		offs: Array) -> PackedFloat32Array:
+	var bed := -INF
+	for i in ys.size():
+		if String(slots[i]) in ["base", "edge", "median"]:
+			bed = maxf(bed, ys[i])
+	var out := ys.duplicate()
+	for i in out.size():
+		if String(slots[i]) in ["base", "edge", "median"]:
+			continue
+		var natural := _road_natural_y(c + r * float(offs[i]))
+		out[i] = minf(out[i], minf(bed, natural - BORE_SIDE_UNDER))
+	return out
 
 
 ## The lid across one row. Over each bore it lies at cover over that bore's own
 ## roof, straight across the median between them, or on the hill where the hill
-## is higher.
+## is higher. Since the height grid's Stage 6 the grid is the hill and only a
+## portal's face reads this, at a tunnel's two end rows: the hill is the grid's
+## natural ground there (`_road_natural_y`), so the face's top follows an edit
+## to the hill beside the headwall.
 ## Beyond them it falls in a straight shoulder to the corridor's own ground at
 ## the row's outer offset, which is the edge of the hole the corridor clips in
 ## the lattice — so the lid lands on it.
@@ -24481,7 +24557,7 @@ func _bore_lid_profile(row: Dictionary, mouth := 0.0) -> Array:
 				# bore's cover to the other's.
 				shape = lerpf(floor_lo, floor_hi,
 					(x - float(walls[1])) / maxf(float(walls[2]) - float(walls[1]), 0.01))
-		var y := maxf(_rebuild_natural_y(q), shape)
+		var y := maxf(_road_natural_y(q), shape)
 		# The hill comes down to the portal from every side, as it does at
 		# Devil's Slide: a cone on the headwall, starting a hand under the
 		# concrete's top (level with it, the two flickered along every lintel)
@@ -24731,6 +24807,8 @@ func _rebuild_road_corridor_mesh() -> ArrayMesh:
 				else:
 					for i in offs.size():
 						ys.append(_road_ground_y(c + r * float(offs[i])))
+				if _bore_interior_rows().has(_bore_row_key(c)):
+					ys = _bore_hidden_ys(ys, slots, c, r, offs)
 				for i in offs.size():
 					var wall_here := false
 					if slots[i] == "wall":
@@ -24762,7 +24840,12 @@ func _rebuild_road_corridor_mesh() -> ArrayMesh:
 			closure.call(rows[0])
 			closure.call(rows[rows.size() - 1])
 			continue
-		# A group: the union's outline, every member's samples, Delaunay.
+		# A group: the union's outline, every member's samples, Delaunay. No
+		# group reaches into a tunnel, whose rows a lone chunk lays down.
+		for mi in members:
+			for row in chunks[mi]["rows"]:
+				assert(not _bore_interior_rows().has(_bore_row_key(row["c"])),
+					"a corridor group reaches into a tunnel at %s" % row["c"])
 		# The union, chunk by chunk: each new chunk is merged into every
 		# piece it overlaps, and a piece it does not overlap is kept as it
 		# is. Merging only the first piece left a chunk that overlapped the
