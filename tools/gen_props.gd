@@ -24135,8 +24135,8 @@ func _road_rows(rec: Dictionary) -> Array:
 		# boundary is a chord through its lattice crossings, so `_road_snap_row`
 		# reads that same chord at each road-profile crossing. The fine town
 		# grids take the boundary chord as their road surface. The coarse corridor
-		# keeps its cut and fills the difference to the boundary, which is the cut
-		# face a portal headwall stands across.
+		# keeps its cut and fills the difference to the boundary where it ends
+		# against ground; at a portal the portal face closes it instead.
 		if bool(run["taper_start"]):
 			_road_snap_row(run_rows[0], -1.0)
 		if bool(run["taper_end"]):
@@ -24758,9 +24758,25 @@ func _rebuild_road_corridor_mesh() -> ArrayMesh:
 	st.set_smooth_group(0)
 	var tris := 0
 	# A closure face along a run's end row on the coarse lattice: from the road
-	# cut up to the terrain chord, facing back along the run.
-	var closure := func(row: Dictionary) -> void:
-		if not row.has("closure"):
+	# cut up to the terrain chord, facing back along the run. Never at a tunnel's
+	# portal row, where the portal face closes the run, nor where the corridor
+	# runs on past the row (`runs_on`, a group's union): there the chord is no
+	# ground's edge. Behind tunnel 0's north portal face the closure stood 2.6 m
+	# tall and 0.9 m over its top, and across the interchange a fin of it stood up
+	# to 15 cm out of the road for 50 m; the height grid, stitched to the corridor
+	# since its Stage 6, could meet neither (2026-10-15).
+	var portal_rows := {}
+	for tunnel in _tunnel_span_rows():
+		var span: Array = tunnel["rows"]
+		portal_rows[_bore_row_key(span[0]["c"])] = true
+		portal_rows[_bore_row_key(span[span.size() - 1]["c"])] = true
+	var inside_any := func(p: Vector2, polys: Array) -> bool:
+		for poly in polys:
+			if Geometry2D.is_point_in_polygon(p, poly):
+				return true
+		return false
+	var closure := func(row: Dictionary, runs_on: Array) -> void:
+		if not row.has("closure") or portal_rows.has(_bore_row_key(row["c"])):
 			return
 		var c: Vector2 = row["c"]
 		var r: Vector2 = row["r"]
@@ -24768,12 +24784,16 @@ func _rebuild_road_corridor_mesh() -> ArrayMesh:
 		var chord: PackedFloat32Array = row["closure"]
 		var facing: float = row["closure_facing"]
 		var along := Vector3(-r.y, 0.0, r.x) * -facing
+		var step := Vector2(-r.y, r.x) * 0.5
 		for i in offs.size() - 1:
 			var p0: Vector2 = c + r * float(offs[i])
 			var p1: Vector2 = c + r * float(offs[i + 1])
 			var road0 := _road_ground_y(p0)
 			var road1 := _road_ground_y(p1)
 			if chord[i] <= road0 + 0.02 and chord[i + 1] <= road1 + 0.02:
+				continue
+			var mid := (p0 + p1) * 0.5
+			if inside_any.call(mid + step, runs_on) and inside_any.call(mid - step, runs_on):
 				continue
 			var lo0 := Vector3(p0.x, road0, p0.y)
 			var lo1 := Vector3(p1.x, road1, p1.y)
@@ -24837,8 +24857,8 @@ func _rebuild_road_corridor_mesh() -> ArrayMesh:
 							d3[0], Vector2((d3[0] as Vector3).x, (d3[0] as Vector3).z) * 0.28, d3[1], Vector3.UP)
 						tris += 2
 				prev = here
-			closure.call(rows[0])
-			closure.call(rows[rows.size() - 1])
+			closure.call(rows[0], [])
+			closure.call(rows[rows.size() - 1], [])
 			continue
 		# A group: the union's outline, every member's samples, Delaunay. No
 		# group reaches into a tunnel, whose rows a lone chunk lays down.
@@ -24926,8 +24946,8 @@ func _rebuild_road_corridor_mesh() -> ArrayMesh:
 		for mi in members:
 			var chunk: Dictionary = chunks[mi]
 			var rows: Array = chunk["rows"]
-			closure.call(rows[0])
-			closure.call(rows[rows.size() - 1])
+			closure.call(rows[0], outers_all)
+			closure.call(rows[rows.size() - 1], outers_all)
 		var index := _corridor_delaunay(points, outers_all)
 		for i in range(0, index.size(), 3):
 			var ia := index[i]

@@ -13,10 +13,10 @@
  "seam": {
   "applied": true,
   "held": "dumped by Godot",
-  "held_sha256": "0988e7a345f60fc5801da4de42d5826155e5c38963c9bdaf831ef59c4b299f76",
-  "held_edges": 3706,
-  "stitched_edges": 3129,
-  "stitched_m": 10366.5,
+  "held_sha256": "ad81c45cf61fad8d789e5a973b1d90ca5a396ef975ebc32856a45c85fa4405aa",
+  "held_edges": 3695,
+  "stitched_edges": 3120,
+  "stitched_m": 10332.9,
   "carve": {
    "nodes_under_corridor": 99521,
    "nodes_in_spans": 16355,
@@ -1299,9 +1299,9 @@
    }
   },
   "x0_z0": {
-   "input_hash": "f12143eaedd6c00f40f4af7d77923997352df2d7d39efaae259f31778089b19e",
+   "input_hash": "9cde556a113eac0ad51d9675bc737f816a5c09a4003dcd33c88d9fc9dd2253e5",
    "glb": "x0_z0.glb",
-   "glb_sha256": "2256d5139864bd1a85bcbb4f3488bc5217d4fdeebcd2216f749ebf4fde71f7d5",
+   "glb_sha256": "441b8e64115f8b5a99b9c0ed4d23d53067732a9afc7fb6f315bd02683011643b",
    "glb_bytes": 1755824,
    "height_sha256": "443dac6c8ed6103fb38c4293050f875edbdbd566bc5413928d87450bbfb15b5a",
    "vertices": 40055,
@@ -1309,8 +1309,8 @@
    "stitch_band": {
     "triangles": 1826,
     "vertices": 749,
-    "pieces": 760,
-    "length_m": 2455.0
+    "pieces": 751,
+    "length_m": 2421.4
    },
    "triangles_by_zone": {
     "park": 11591,
@@ -1324,7 +1324,7 @@
    ],
    "build": {
     "rounds": 18,
-    "seconds": 2.31
+    "seconds": 1.94
    }
   },
   "x0_z1": {
@@ -30504,17 +30504,15 @@
  },
  "last_build": {
   "tiles_built": [
-   "x-1_z-1",
-   "x0_z1",
-   "x0_z2"
+   "x0_z0"
   ],
-  "phase1_built": 2,
+  "phase1_built": 0,
   "augmented_lines": {},
   "seconds": {
-   "phase1": 5.6,
-   "phase2": 5.1,
-   "export": 0.6,
-   "total": 19.6
+   "phase1": 0.0,
+   "phase2": 2.1,
+   "export": 0.3,
+   "total": 10.5
   }
  }
 }
