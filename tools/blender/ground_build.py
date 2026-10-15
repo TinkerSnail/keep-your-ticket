@@ -1072,7 +1072,6 @@ def carve_open_air(M, held, grid):
     at_mouths = 0
     if len(held.portal_tops):
         pcf, prf = samples(held.portal_tops)
-        opened = np.zeros(M.shape, bool)
         for _ in range(3):
             more = cells_holding(pcf, prf) & np.isfinite(out) & ~span
             if not more.any():
@@ -1080,25 +1079,33 @@ def carve_open_air(M, held, grid):
             at_mouths += int(more.sum())
             out[more] = np.nan
             drop |= more
-            opened |= more
         # A span node standing on the top edge itself (the span counts its
-        # outline's SPAN_PAD as its own) at a mouth just opened: the edge then
-        # touches the grid's region there, or a cell's side crosses it a few
-        # millimetres out, and the stitch leaves it. It goes too, and the hill
-        # meets the top edge through the band.
-        beside_opened = np.zeros(M.shape, bool)
-        for dr in (-1, 0, 1):
-            for dc in (-1, 0, 1):
-                beside_opened[max(dr, 0):M.shape[0] + min(dr, 0), max(dc, 0):M.shape[1] + min(dc, 0)] |= \
-                    opened[max(-dr, 0):M.shape[0] + min(-dr, 0), max(-dc, 0):M.shape[1] + min(-dc, 0)]
-        rr, cc = np.nonzero(beside_opened & np.isfinite(out) & span)
+        # outline's SPAN_PAD as its own): the edge then touches the grid's region
+        # there, or a cell's side crosses it a few millimetres out, and the
+        # stitch leaves it. It goes too, at every mouth, and the hill meets the
+        # top edge through the band. First found at tunnel 0's north mouth once
+        # it was opened; tunnel 4's north mouth has one too, the node at (560,
+        # 1750), which left 1.1 m of its top edge unstitched (2026-10-15). Not
+        # where the node stands more than CARVE_MARGIN over the edge: the hill
+        # buries the face's top there and needs no seam, and carving it dented
+        # the hill over tunnel 3's south mouth by 11.5 m.
+        near_top = np.zeros(M.shape, bool)
+        ci = np.clip(np.floor(pcf).astype(np.int64), 0, M.shape[1] - 2)
+        ri = np.clip(np.floor(prf).astype(np.int64), 0, M.shape[0] - 2)
+        for dr, dc in ((0, 0), (0, 1), (1, 0), (1, 1)):
+            near_top[ri + dr, ci + dc] = True
+        rr, cc = np.nonzero(near_top & np.isfinite(out) & span)
         if len(rr):
             px, pz = grid.x0 + grid.step * cc, grid.z0 + grid.step * rr
             S = held.portal_tops
             ax, az = S[:, 0, 0][None, :], S[:, 0, 2][None, :]
             dx, dz = S[:, 1, 0][None, :] - ax, S[:, 1, 2][None, :] - az
             t = np.clip(((px[:, None] - ax) * dx + (pz[:, None] - az) * dz) / np.maximum(dx * dx + dz * dz, 1e-12), 0, 1)
-            on = (np.hypot(px[:, None] - ax - t * dx, pz[:, None] - az - t * dz).min(1) <= SPAN_PAD)
+            dist = np.hypot(px[:, None] - ax - t * dx, pz[:, None] - az - t * dz)
+            k = dist.argmin(1)
+            i = np.arange(len(k))
+            edge_y = S[k, 0, 1] + t[i, k] * (S[k, 1, 1] - S[k, 0, 1])
+            on = (dist[i, k] <= SPAN_PAD) & (out[rr, cc] <= edge_y + CARVE_MARGIN)
             at_mouths += int(on.sum())
             out[rr[on], cc[on]] = np.nan
             drop[rr[on], cc[on]] = True

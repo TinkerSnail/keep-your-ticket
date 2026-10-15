@@ -612,11 +612,20 @@ func _check_open_faces() -> void:
 				tri[t * 3 + (k + 2) % 3], body[t])
 		triangles += 1
 	var stray: Array = []
+	var portal_tops: Array = []
 	for key in edges:
 		var rec: Array = edges[key]
-		if int(rec[0]) == 1 and int(rec[5]) != portals:
+		if int(rec[0]) != 1:
+			continue
+		if int(rec[5]) == portals:
+			portal_tops.append(rec)
+		else:
 			stray.append(rec)
 	edges = {}
+	# Where a portal's top edge crosses a tile's border the build splits it there,
+	# and each tile's piece lies along the top edge without matching it end for
+	# end; it is closed by it all the same (tunnel 4's south mouth, 2026-10-15).
+	stray = _off_portal_tops(stray, portal_tops)
 	var mids := {}
 	for rec in stray:
 		var mk := _mid_key(rec[1], rec[2])
@@ -972,6 +981,38 @@ func _on_line(p: Vector3, c: Vector3, d: Vector3) -> float:
 ## One triangle's edge into the census, keyed by its ends to the centimetre. The
 ## record is [uses, a, b, mesh, the triangle's third corner, its body id]: the corner
 ## says which side of the edge the triangle is on (2026-10-13).
+## `stray` without the edges that lie along one of `tops` (the portal faces' own
+## unpaired edges), both ends within 5 mm of it.
+func _off_portal_tops(stray: Array, tops: Array) -> Array:
+	if tops.is_empty():
+		return stray
+	var cells := {}
+	for i in tops.size():
+		var a: Vector3 = tops[i][1]
+		var b: Vector3 = tops[i][2]
+		for cx in range(floori(minf(a.x, b.x) / 4.0), floori(maxf(a.x, b.x) / 4.0) + 1):
+			for cz in range(floori(minf(a.z, b.z) / 4.0), floori(maxf(a.z, b.z) / 4.0) + 1):
+				var k := Vector2i(cx, cz)
+				if not cells.has(k):
+					cells[k] = []
+				(cells[k] as Array).append(i)
+	var out: Array = []
+	for rec in stray:
+		var a: Vector3 = rec[1]
+		var b: Vector3 = rec[2]
+		var along := false
+		for i in cells.get(Vector2i(floori(a.x / 4.0), floori(a.z / 4.0)), []):
+			var p: Vector3 = tops[i][1]
+			var q: Vector3 = tops[i][2]
+			if a.distance_to(Geometry3D.get_closest_point_to_segment(a, p, q)) < 0.005 \
+					and b.distance_to(Geometry3D.get_closest_point_to_segment(b, p, q)) < 0.005:
+				along = true
+				break
+		if not along:
+			out.append(rec)
+	return out
+
+
 func _count_edge(edges: Dictionary, a: Vector3, b: Vector3, mesh := "", c := Vector3.ZERO,
 		body := -1) -> void:
 	var qa := Vector3i((a * 100.0).round())
