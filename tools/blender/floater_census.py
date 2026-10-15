@@ -9,16 +9,20 @@ straight down from above it, which is the highest Ground surface at that plan po
 
 Read-only: every source is linked for the read; nothing is saved. Run it in an empty Blender:
 
-    Blender --background --factory-startup --python tools/blender/floater_census.py -- --ground <master.blend>
-        [--ground-collection Ground] [--range <range.blend>] [--city <city.blend>]
+    Blender --background --factory-startup --python tools/blender/ground_build.py -- --no-build --census <census.blend>
+    Blender --background --factory-startup --python tools/blender/floater_census.py -- --ground <census.blend>
+        [--ground-collection Ground] [--range <range.blend>] [--city <city.blend>] [--lakes <master.blend>]
         [--wildlife <wildlife.tscn>] [--godot <roost_census.json>] [--commit <hash>] --out <census.json>
         [--compare <older census.json>]
 
 --compare prints each kind's floating and buried counts beside the older census's, and the rocks and blocks
 whose footing got worse (newly floating > 0.05 m, or newly buried > 0.25 m), and exits 1 if any count rose.
 
---range and --city default to the files of those names beside --ground. Stage 2 re-runs it with --ground
-pointing at a blend holding the grid's ground (under the collection --ground-collection names).
+--range, --city and --lakes default to the range source, the city source and the world terrain master in
+`assets/source/`; the lakes are the master's `Lakes` collection. The ground is the height grid's since its Stage 2
+(2026-10-13): `ground_build.py --census` writes its tiles, in world coordinates, into a blend's `Ground` collection,
+never in the tree. Until Stage 5 (2026-10-15) --ground could name the world terrain master, whose `Ground` was the
+game's before the grid; the master holds no ground now.
 
 Kinds and footings (Blender is Z-up; positions are reported in Godot's (x, z) = Blender's (x, -y)):
   range_rocks     each rock's lowest vertex against the ground under that vertex (`foot`); also `clear`, the
@@ -66,12 +70,13 @@ def args():
     def opt(name, default=None):
         return a[a.index(name) + 1] if name in a else default
     ground = os.path.abspath(opt("--ground"))
-    here = os.path.dirname(ground)
+    here = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "assets", "source")
     return {
         "ground": ground,
         "ground_collection": opt("--ground-collection", "Ground"),
         "range": os.path.abspath(opt("--range", os.path.join(here, "range_forest_distinct_background.blend"))),
         "city": os.path.abspath(opt("--city", os.path.join(here, "far_shore_city_relocation.blend"))),
+        "lakes": os.path.abspath(opt("--lakes", os.path.join(here, "world_terrain_master.blend"))),
         "wildlife": opt("--wildlife"),
         "godot": opt("--godot"),
         "commit": opt("--commit", ""),
@@ -508,9 +513,12 @@ def compare(old_path, new):
 def main():
     a = args()
     print("floater_census: ground %s" % a["ground"])
-    sources = {k: {"path": a[k], "sha256": sha256(a[k])} for k in ("ground", "range", "city")}
-    gcoll, _ = link(a["ground"], collections=[a["ground_collection"], "Lakes"])
+    sources = {k: {"path": a[k], "sha256": sha256(a[k])} for k in ("ground", "range", "city", "lakes")}
+    gcoll, _ = link(a["ground"], collections=[a["ground_collection"]])
     gcoll = {c.name: c for c in gcoll}
+    if a["lakes"] != a["ground"]:
+        lcoll, _ = link(a["lakes"], collections=["Lakes"])
+        gcoll.update({c.name: c for c in lcoll})
     rcoll, robs = link(a["range"], collections=ROCK_COLLECTIONS, objects=CANOPY)
     city_names = object_names(a["city"], lambda n: True)
     _, cobs = link(a["city"], objects=city_names)
@@ -556,10 +564,10 @@ def main():
         "southern_coastal_highway_guardrail_*": "on the road, which keeps its graded profile",
         "city_skyline_glass_*": "moves with its tower (city_blocks_on_ground.py)",
         "bridge deck, cables, hangers, beams, city_highway_extension": "carried by the towers and piers",
-        "master Water_surfaces": "not exported (kyt_export_collections is Ground, Lakes, Earthworks)",
+        "master Water_surfaces": "not exported (kyt_export_collections is Lakes, Earthworks)",
         "the falls' water": "a reference curve (falls_ribbon), not in the game",
         "Earthworks/corridor_natural_edit6": "ground data the generator reads, not a thing on the ground",
-        "generator output": "follows the master through world_terrain_source.gd's delta; Stage 2 proves it with _ground_follow_probe",
+        "generator output": "follows the grid through world_terrain_source.gd's delta; Stage 2 proves it with _ground_follow_probe",
     }
     if a["wildlife"]:
         K["roosts_blender"] = roosts(a["wildlife"], ground)

@@ -1,40 +1,34 @@
 extends SceneTree
-## Dev probe: the faces the generator measures the ground from, exactly as
-## Godot loads them, for the height grid's bake. Written 2026-10-12 for Stage 1,
-## Bake, of `documentation/terrain-height-grid-plan-2026-10-12.md`; its reader
-## is `tools/ground_bake.py`, which rasterises them into
-## `assets/source/world_ground/`.
+## Dev probe: the faces of the ground the generator still holds, exactly as Godot loads them.
+## Written 2026-10-12 for Stage 1, Bake, of `documentation/terrain-height-grid-plan-2026-10-12.md`;
+## since Stage 5 (2026-10-15) its reader is `tools/blender/ground_build.py`, which dumps them
+## itself to stitch the grid's tiles to the held ground's edges.
 ##
 ##   Godot --headless --path . --script res://tools/_ground_faces_dump.gd -- --out=/abs/dir
-##   Godot --headless --path . --script res://tools/_ground_faces_dump.gd -- --delta=/abs/points.f32,/abs/out.f64
 ##   Godot --headless --path . --script res://tools/_ground_faces_dump.gd -- --read=/abs/exr_dir,/abs/out_dir
 ##
-## `--out` writes, each a raw little-endian float32 file of faces, three corners
-## a face, (x, y, z) a corner, Godot world metres:
-##   `master.f32`    the master's ground as `WorldTerrainSource.load_master` gives
-##                   it, in the order `_joined` puts it (the generator's
-##                   `_master_faces`);
-##   `baseline.f32`  the frozen copy, `load_baseline`, in the same order;
+## `--out` writes, each a raw little-endian float32 file, (x, y, z) a corner, Godot world metres:
 ##   `held.f32`      every collider of the ground the generator still holds and
-##                   the master meets: `places/park_groundworks` (the road
+##                   the grid meets: `places/park_groundworks` (the road
 ##                   corridor, the tunnel lids, the east shoulder walls, the
 ##                   promenade banks), `places/west_shell`, and the two anchors,
 ##                   `places/west_stair` (NT-1) and `places/east_cascade` (NT-2),
 ##                   from their collision shapes as the physics sees them (a CSG
-##                   root's baked collision, a body's ConcavePolygonShape3D);
+##                   root's baked collision, a body's ConcavePolygonShape3D),
+##                   three corners a face;
 ##   `held_open.f32` each held collider's open edges, two corners an edge: the
 ##                   edges one face uses, corners matched bit for bit.
 ## and `faces.json`: per file, its pieces in order (name or path, first face or
 ## edge, count), and the header (commit, Godot, what changed in the tree).
 ##
-## `--delta` reads plan points (float32 x, z pairs) and writes, for each, the
-## generator's own `WorldTerrainSource.new().delta_y` (float64), with the
-## counts of faces added and removed and of dirty cells on stdout: the bake's
-## proof that the grid reads what the generator reads.
+## Until Stage 5 `--out` also wrote the world terrain master's ground pieces and their frozen
+## copy (`master.f32`, `baseline.f32`) for `tools/ground_bake.py`'s bake, and `--delta` read
+## the generator's `delta_y` at given points for its proof; both are in git up to `a8cd64b`.
 ##
 ## `--read` loads every `.exr` in a folder with `Image.load_from_file` and
 ## writes `<name>.bin` (the image's raw data) and `<name>.json` (size and
-## format) beside each other in the out folder: the bake's Godot round trip.
+## format) beside each other in the out folder: Godot's reading of the grid's
+## tiles, to hold against another reader's.
 ##
 ## Writes nothing in the project. Prints one line per piece; returns 0, or 1.
 
@@ -52,14 +46,11 @@ func _initialize() -> void:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--out="):
 			code = await _dump(arg.trim_prefix("--out="))
-		elif arg.begins_with("--delta="):
-			var pair := arg.trim_prefix("--delta=").split(",")
-			code = _delta(pair[0], pair[1])
 		elif arg.begins_with("--read="):
 			var pair := arg.trim_prefix("--read=").split(",")
 			code = _read(pair[0], pair[1])
 	if code != 0:
-		printerr("ground faces dump: pass --out=<dir>, --delta=<points>,<out> or --read=<dir>,<out>")
+		printerr("ground faces dump: pass --out=<dir> or --read=<dir>,<out>")
 	quit(code)
 
 
@@ -67,11 +58,6 @@ func _dump(dir: String) -> int:
 	DirAccess.make_dir_recursive_absolute(dir)
 	var t0 := Time.get_ticks_msec()
 	var index := {"header": _header()}
-
-	var master := WorldTerrainSource.load_master()
-	index["master"] = _write_faces(dir.path_join("master.f32"), master)
-	var baseline := WorldTerrainSource.load_baseline()
-	index["baseline"] = _write_faces(dir.path_join("baseline.f32"), baseline)
 
 	# The held scenes as `park_world.tscn` mounts them (at the origin, under
 	# `places`), in the tree, so every CSG root has built its shape.
@@ -114,58 +100,21 @@ func _dump(dir: String) -> int:
 	var edges_n := 0
 	for rec in index["held_open"]:
 		edges_n += int(rec["count"])
-	print("ground faces dump: master %d faces, baseline %d, held %d faces in %d colliders with %d open edges; %.1fs; %s" % [
-		_count(index["master"]), _count(index["baseline"]), faces_n, held.size(), edges_n,
-		index["header"]["seconds"], dir])
+	print("ground faces dump: held %d faces in %d colliders with %d open edges; %.1fs; %s" % [
+		faces_n, held.size(), edges_n, index["header"]["seconds"], dir])
 	return 0
-
-
-func _count(pieces: Array) -> int:
-	var n := 0
-	for rec in pieces:
-		n += int(rec["count"])
-	return n
 
 
 func _header() -> Dictionary:
 	return {
-		"what": "The faces the generator measures the ground from, as Godot loads them, for the height grid's bake.",
+		"what": "The faces of the ground the generator still holds, as Godot loads them, for the height grid's tiles.",
 		"probe": "res://tools/_ground_faces_dump.gd",
 		"written": Time.get_datetime_string_from_system(true) + "Z",
 		"commit": _git(["rev-parse", "HEAD"]),
 		"modified_tracked_in_scenes_assets_scripts": Array(_git(["status", "--porcelain", "--untracked-files=no", "--", "scenes", "assets", "scripts"]).split("\n", false)),
 		"godot": Engine.get_version_info()["string"],
 		"layout": "raw little-endian float32; faces three corners each, open edges two; a corner is (x, y, z), Godot world metres, y up, x east, z south",
-		"master": WorldTerrainSource.MASTER_GLB,
-		"baseline": WorldTerrainSource.BASELINE,
 	}
-
-
-## The master's or the copy's meshes end to end in `_joined`'s order: the
-## generator's `_master_faces` and `_base_faces`, byte for byte.
-func _write_faces(path: String, faces: Dictionary) -> Array:
-	var joined := WorldTerrainSource._joined(faces)
-	var order: Array = []
-	for body in WorldTerrainSource.BODIES:
-		if faces.has(body):
-			order.append(body)
-	var names: Array = faces.keys()
-	names.sort()
-	for body in names:
-		if not String(body) in WorldTerrainSource.BODIES:
-			order.append(body)
-	var pieces: Array = []
-	var first := 0
-	for body in order:
-		var n: int = (faces[body] as PackedVector3Array).size() / 3
-		pieces.append({"name": String(body), "first": first, "count": n})
-		first += n
-	assert(first * 3 == joined.size())
-	var f := FileAccess.open(path, FileAccess.WRITE)
-	f.store_buffer(joined.to_byte_array())
-	f.close()
-	print("  %s: %d meshes, %d faces" % [path.get_file(), pieces.size(), first])
-	return pieces
 
 
 func _write_pieces(path: String, pieces: Dictionary, per: int) -> Array:
@@ -240,30 +189,6 @@ func _edge_key(a: Vector3, b: Vector3) -> String:
 	var ka := PackedVector3Array([a]).to_byte_array().hex_encode()
 	var kb := PackedVector3Array([b]).to_byte_array().hex_encode()
 	return ka + kb if ka <= kb else kb + ka
-
-
-func _delta(points_path: String, out_path: String) -> int:
-	var bytes := FileAccess.get_file_as_bytes(points_path)
-	if bytes.is_empty():
-		printerr("ground faces dump: no points in ", points_path)
-		return 1
-	var pts := bytes.to_float32_array()
-	var t0 := Time.get_ticks_msec()
-	var source := WorldTerrainSource.new()
-	var t1 := Time.get_ticks_msec()
-	# The counts `summary()` opens with; its rise and fall cost minutes.
-	print("world terrain master: %d faces added and %d removed since the copy, in %d cells of %.0fm" % [
-		source.added, source.removed, source._dirty.size(), WorldTerrainSource.CELL])
-	var out := PackedFloat64Array()
-	out.resize(pts.size() / 2)
-	for i in out.size():
-		out[i] = source.delta_y(Vector2(pts[i * 2], pts[i * 2 + 1]))
-	var f := FileAccess.open(out_path, FileAccess.WRITE)
-	f.store_buffer(out.to_byte_array())
-	f.close()
-	print("ground faces dump: delta_y at %d points; source %.1fs, points %.1fs; %s" % [
-		out.size(), (t1 - t0) / 1000.0, (Time.get_ticks_msec() - t1) / 1000.0, out_path])
-	return 0
 
 
 func _read(exr_dir: String, out_dir: String) -> int:

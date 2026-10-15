@@ -9,20 +9,23 @@
 ; its own colour; collision is derived from each tile at import, one-sided, every face up.
 ; The road corridor, the tunnel lids, the west shell and both protected cascades are the
 ; generator's and stay as they were. The hill lakes K1 and L0 and the falls' plunge pool
-; are the master's Lakes collection, exported alone to assets/world_terrain_lakes.glb, and
-; wear the bay's water, assets/materials/lake_water.tres; they have no collision. Until
-; Stage 5 the ground as the master's pieces is kept, unmounted, in
-; scenes/world/world_terrain_pieces.tscn, for going back.
+; are the world terrain master's Lakes collection, as she drew them, and wear the bay's water,
+; assets/materials/lake_water.tres; they have no collision. They come in the master's own GLB,
+; assets/world_terrain_master.glb, with its Earthworks sheet corridor_natural_edit6, which is
+; no ground: it hands the generator the hillside regrade's natural ground under the coast
+; highway's cutting (WorldTerrainSource.road_natural), has no collision and is hidden here.
+; Since Stage 5 (2026-10-15) the master holds nothing else that is exported; its old ground
+; pieces are in git up to a8cd64b.
 [ext_resource type="PackedScene" path="res://scenes/world/world_ground.tscn" id="1_ground"]
-[ext_resource type="PackedScene" path="res://assets/world_terrain_lakes.glb" id="2_lakes"]
+[ext_resource type="PackedScene" path="res://assets/world_terrain_master.glb" id="2_master"]
 [ext_resource type="Material" path="res://assets/materials/lake_water.tres" id="3_lake"]
 
 [node name="world_terrain" type="Node3D"]
-editor_description = "The world's ground as one height grid (since 2026-10-13). Editable source: res://assets/source/world_ground/, the height and colour tiles. After changing them: Blender --background --factory-startup --python tools/blender/ground_build.py, then Godot --headless --path . --import, then Godot --headless --path . --script res://tools/ground_mount.gd, then tools/world_terrain_delta.gd to see what changed, then the generator. Roads keep their own graded profiles. The road corridor, the tunnel lids, the west shell and both protected cascades are not here and stay as they were."
+editor_description = "The world's ground as one height grid (since 2026-10-13). Editable source: res://assets/source/world_ground/, the height and colour tiles. After changing them: Blender --background --factory-startup --python tools/blender/ground_build.py, then Godot --headless --path . --import, then Godot --headless --path . --script res://tools/ground_mount.gd, then tools/world_terrain_delta.gd to see what changed, then the generator. Roads keep their own graded profiles. The road corridor, the tunnel lids, the west shell and both protected cascades are not here and stay as they were. The lakes are res://assets/source/world_terrain_master.blend's Lakes collection: reshape them there, then tools/export_world_source.sh assets/source/world_terrain_master.blend and import."
 
 [node name="world_ground" parent="." instance=ExtResource("1_ground")]
 
-[node name="lakes" parent="." instance=ExtResource("2_lakes")]
+[node name="lakes" parent="." instance=ExtResource("2_master")]
 
 [node name="lake_K1" parent="lakes" index="0"]
 material_override = ExtResource("3_lake")
@@ -32,5 +35,8 @@ material_override = ExtResource("3_lake")
 
 [node name="plunge_pool" parent="lakes" index="2"]
 material_override = ExtResource("3_lake")
+
+[node name="corridor_natural_edit6" parent="lakes" index="3"]
+visible = false
 
 [node name="authored_additions" type="Node3D" parent="."]

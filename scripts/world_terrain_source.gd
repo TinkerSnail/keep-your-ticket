@@ -1,58 +1,43 @@
 extends RefCounted
 
-## Generator-facing derivation of the editor-owned world terrain master,
-## `assets/source/world_terrain_master.blend`, whose `Ground` collection reaches
-## the game as `assets/world_terrain_master.glb` (Stage 2 of
-## `documentation/terrain-master-into-game-plan-2026-10-05.md`, 2026-10-05).
+## How far the world's ground now stands above or below the frozen copy the generator was
+## measured from, for `tools/gen_props.gd`'s five ground functions and its embankment index,
+## `tools/world_terrain_delta.gd` and `tools/_ground_follow_probe.gd`.
 ##
-## The master's ground began as the generator's own, copied vertex for vertex on
-## 2026-10-05, and `assets/source/world_terrain_baseline.res` keeps that copy,
-## frozen. Whatever has changed in the master since is the difference between
-## the two, and `delta_y` reads it: how far the master's top ground at a point
-## now stands above or below the copy's. The generator adds it to its own ground
-## functions, so what it places on the ground follows an edit to the master;
-## where nothing has changed it adds nothing, and the park is built exactly as
-## it was before the master existed.
+## The ground is one height grid (`documentation/terrain-height-grid-plan-2026-10-12.md`, since
+## its Stage 2, 2026-10-13): `assets/source/world_ground/height/` holds it, one float32 EXR a
+## tile, and `baseline/` the copy, frozen at `1926e71` and never edited. The copy is the ground
+## the generator built before the world terrain master took it over (2026-10-05) with the range's
+## and city's landforms that joined the master on 2026-10-06, baked from exactly the faces the
+## generator measured from then, so that unchanged ground is bit for bit the same in both. The
+## generator adds `delta_y`, height − baseline, to its own ground functions, so what it places on
+## the ground follows an edit to the grid; where nothing has changed it adds nothing, and the park
+## is built exactly as it was before. A point where either image has no ground reads zero: nothing
+## stands there to follow, or there was nothing it stood on before.
 ##
-## The comparison is of the ground as a whole, not body by body, so joining,
-## splitting or renaming the master's objects changes nothing. A point where the
-## master no longer has ground (a hole cut through it) or where the copy had
-## none (ground added beyond it) reads zero: nothing stands there to follow, or
-## there is nothing it was standing on before.
+## The master's ground pieces that the grid was baked from were retired in Stage 5 (2026-10-15);
+## they, the faces reading of them and the frozen copy as faces are in git up to `a8cd64b`.
+## The master keeps its `Earthworks`, which `road_natural` reads.
 ##
-## Since Stage 2 of `documentation/terrain-height-grid-plan-2026-10-12.md` (2026-10-13) there
-## are two readings of the same change, and `GROUND_FROM_GRID` picks one. The faces: the master
-## GLB's against the frozen copy's, as above. The grid: the height grid's images,
-## `assets/source/world_ground/height/` against `baseline/`, which Stage 1 baked from exactly
-## those faces as `_top` reads them, so that at every node height − baseline is the faces'
-## `delta_y` (within float32, 3e-5 m) and unchanged ground is bit for bit the same.
+## Everything that asks builds this class with `new()`; a probe may hand in the grid's two folders
+## instead, as `load_grid` reads them.
 
-## The switch: false reads the faces (the game as it has been), true reads the grid. It lives
-## here, beside the reading, because everything that asks what the ground has done (the
-## generator's five ground functions and its embankment index, `tools/world_terrain_delta.gd`,
-## `tools/_ground_follow_probe.gd`) builds this class with `new()` and nothing else, so this one
-## line flips them all and flipping it back is the whole rollback until Stage 5. The
-## generator's formulas never see it. A probe that wants a reading regardless passes
-## `READ_FACES` or `READ_GRID` to `new()`.
-const GROUND_FROM_GRID := true
-const READ_SWITCH := 0
-const READ_FACES := 1
-const READ_GRID := 2
 ## The grid: `grid.json` says where its tiles lie; `height/` and `baseline/` hold one float32
 ## EXR a tile, NaN where there is no ground.
 const GRID_DIR := "res://assets/source/world_ground"
-## Where the ground the generator still holds meets the master's: each held body's open edges,
+## Where the ground the generator still holds meets the grid's: each held body's open edges,
 ## chained (Stage 1). Their outlines in plan keep `delta_y` from reading across a seam.
 const HOLES := GRID_DIR + "/holes.json"
 ## The ground the grid is built into (Stage 2): one GLB a tile, `x{tx}_z{tz}.glb`, holding the
-## mesh `ground_x{tx}_z{tz}` in tile-local metres under a node at the tile's corner. On the
-## grid's reading `master_faces` serves these, the ground the game then mounts.
+## mesh `ground_x{tx}_z{tz}` in tile-local metres under a node at the tile's corner. `master_faces`
+## serves these, the ground the game mounts.
 const GROUND_TILES_DIR := "res://assets/world_ground/tiles"
 
+## The world terrain master's export: since Stage 5 its `Lakes` and its `Earthworks` only.
 const MASTER_GLB := "res://assets/world_terrain_master.glb"
-const BASELINE := "res://assets/source/world_terrain_baseline.res"
-## The generator's copied bodies, in the order it builds them. It no longer
-## writes them; the master is mounted in their place.
+## The generator's own ground bodies, in the order it builds them. It still builds them, because
+## what follows in its build reads them (their seam ordinals, the corridor stitched to their edges,
+## the routes banked against them), and then drops them: the grid is mounted in their place.
 const BODIES: Array[String] = [
 	"terrain_world_mainland_reserve",
 	"terrain_world_coast_north",
@@ -63,63 +48,25 @@ const BODIES: Array[String] = [
 	"east_shoulder_n",
 	"east_shoulder_s",
 ]
-## The range's and city's landforms, which joined the master on 2026-10-06 exactly as their
-## own sources drew them (`tools/blender/world_terrain_join_landforms.py`, its `LANDFORMS`).
-## They were the game's ground before the master took them, so the baseline holds them as
-## they joined, and only an edit to them since reads as change.
-const JOINED: Array[String] = [
-	"background_distant_range_middle",
-	"background_distant_range_north",
-	"background_distant_range_north_inland_saddle",
-	"background_distant_range_north_west_companion",
-	"background_distant_range_south",
-	"background_distant_range_southeast_connector",
-	"north_plug_s_curve_sand_infill",
-	"north_shore_volcanic_plug",
-	"southeast_range_ridge_1",
-	"southeast_range_ridge_2",
-	"southeast_range_ridge_3",
-	"southeast_range_ridge_4",
-	"southern_range_connection_lowland",
-	"southern_range_connection_ridge_0",
-	"southern_range_connection_ridge_1",
-	"southern_range_connection_ridge_2",
-	"southern_range_connection_ridge_3",
-	"southern_range_connection_ridge_4",
-	"relocated_city_peninsula",
-	"relocated_city_peninsula_beaches",
-	"southern_city_range_foothills",
-	"southern_city_range_beaches",
-]
-## Where an edit to the master reshapes ground a road's corridor covers (the hillside, Ground
-## edit 6, 2026-10-08: the hill ran down into the coast highway's cutting), the master hands
-## over the edit's natural ground there, which is no ground one stands on (`kyt_collision=none`,
-## hidden in `scenes/world/world_terrain.tscn`): a mesh named with this prefix, each point on the
-## designed ground and carrying, as its u texture coordinate, how far the design governs there,
-## 1 inside the edit and 0 where it leaves the ground as it was. `road_natural` reads it; see
-## `tools/blender/world_terrain_ground_edit.py`, `ROAD_NATURAL`.
+## Where an edit reshaped ground a road's corridor covers (the hillside, Ground edit 6, 2026-10-08:
+## the hill ran down into the coast highway's cutting), the master hands over the edit's natural
+## ground there, which is no ground one stands on (`kyt_collision=none`, hidden in
+## `scenes/world/world_terrain.tscn`): a mesh named with this prefix in its `Earthworks`, each point
+## on the designed ground and carrying, as its u texture coordinate, how far the design governs
+## there, 1 inside the edit and 0 where it leaves the ground as it was. `road_natural` reads it.
+## Stage 6 of the height-grid plan, her call, would read it from the grid instead.
 const ROAD_NATURAL_PREFIX := "corridor_natural_"
-## The plan cell the changed faces are indexed in.
+## The plan cell the road's natural ground is indexed in.
 const CELL := 8.0
-## A face whose normal is flatter than this has no top to stand on (the seam
-## and closure walls), so it carries no height.
+## A face whose normal is flatter than this has no top to stand on (seam and closure walls). The
+## grid's bake skipped such faces; `tools/_underlap_probe.gd` reads the same rule from here.
 const MIN_UP := 0.05
 const INSIDE_EPS := 1e-6
 
-## Faces the master has that the copy does not, and the reverse.
-var added := 0
-var removed := 0
-var _master_faces := PackedVector3Array()
-var _dirty := {}
-var _master_cells := {}
-var _base_cells := {}
-var _base_faces := PackedVector3Array()
 var _road_faces := PackedVector3Array()
 var _road_weights := PackedFloat32Array()
 var _road_cells := {}
 
-## Which reading this is; see `GROUND_FROM_GRID`.
-var from_grid := false
 ## The grid's reading. Nodes run from (`_grid_x0`, `_grid_z0`) every `_grid_step` metres,
 ## `_grid_cols` cells across and `_grid_rows` down, in tiles of `_grid_cells` cells a side
 ## (`_grid_samples` nodes, the last row and column shared with the neighbour). Per tile, in
@@ -153,76 +100,36 @@ var _tile_faces_read := false
 var load_seconds := 0.0
 
 
-## Reads the imported master and the baseline unless faces are handed in, as
-## {mesh name: corners in world space, three per face}; a probe hands them in.
-## On the grid's reading (`reading` `READ_GRID`, or the switch with nothing handed in) it reads
-## the grid's tiles instead, unless they are handed in as {Vector2i(tx, tz): heights}, a
-## `load_grid` each; then nothing is read from disk.
-func _init(master := {}, baseline := {}, reading := READ_SWITCH) -> void:
+## Reads the grid's tiles, now and then, and the master's `Earthworks` for `road_natural`, unless
+## the tiles are handed in as {Vector2i(tx, tz): heights}, a `load_grid` each; then nothing is read
+## from disk.
+func _init(height := {}, baseline := {}) -> void:
 	var t0 := Time.get_ticks_usec()
-	from_grid = reading == READ_GRID or (reading == READ_SWITCH and GROUND_FROM_GRID
-		and master.is_empty() and baseline.is_empty())
-	if from_grid:
-		_init_grid(master, baseline)
-		load_seconds = (Time.get_ticks_usec() - t0) / 1e6
-		return
-	_init_faces(master, baseline)
+	_init_grid(height, baseline)
 	load_seconds = (Time.get_ticks_usec() - t0) / 1e6
 
 
-func _init_faces(master: Dictionary, baseline: Dictionary) -> void:
-	if master.is_empty():
-		var scene := (load(MASTER_GLB) as PackedScene).instantiate()
-		master = _ground_of(scene)
-		_read_road_natural(scene)
-		scene.free()
-	if baseline.is_empty():
-		baseline = load_baseline()
-	assert(not baseline.is_empty(), "the world terrain baseline is missing: %s" % BASELINE)
-	_master_faces = _joined(master)
-	_base_faces = _joined(baseline)
-	if _master_faces == _base_faces:
-		return
-	_compare()
-
-
 func changed() -> bool:
-	if from_grid:
-		return _grid_changed > 0
-	return added + removed > 0
+	return _grid_changed > 0
 
 
-## Every face of the master's ground in world space, three corners each. On the grid's reading,
-## the faces of the ground built from it (`GROUND_TILES_DIR`), which is what the game mounts
-## then: the master's own faces are the ones the grid replaces.
+## Every face of the ground the game mounts, built from the grid (`GROUND_TILES_DIR`), in world
+## space, three corners each.
 func master_faces() -> PackedVector3Array:
-	if from_grid:
-		if not _tile_faces_read:
-			_tile_faces = load_tile_faces()
-			_tile_faces_read = true
-		return _tile_faces
-	return _master_faces
+	if not _tile_faces_read:
+		_tile_faces = load_tile_faces()
+		_tile_faces_read = true
+	return _tile_faces
 
 
-## How far the master's top ground at `p` (world x, z) stands above the copy's.
+## How far the ground at `p` (world x, z) now stands above the copy's.
 func delta_y(p: Vector2) -> float:
-	if from_grid:
-		return _grid_delta(p)
-	if added + removed == 0:
-		return 0.0
-	var key := Vector2i(floori(p.x / CELL), floori(p.y / CELL))
-	if not _dirty.has(key):
-		return 0.0
-	var now := _top(_master_cells, _master_faces, key, p)
-	var then := _top(_base_cells, _base_faces, key, p)
-	if is_nan(now) or is_nan(then):
-		return 0.0
-	return now - then
+	return _grid_delta(p)
 
 
 ## The natural ground a road's corridor cuts its sides to at `p` (world x, z), given the
 ## landform's `y` there: `y`, blended towards the master's designed natural ground where an
-## edit reshapes what the corridor covers (`ROAD_NATURAL_PREFIX`). A road's own level never
+## edit reshaped what the corridor covers (`ROAD_NATURAL_PREFIX`). A road's own level never
 ## reads it, so it keeps its graded profile; its sides follow the ground beside it.
 func road_natural(p: Vector2, y: float) -> float:
 	if _road_cells.is_empty():
@@ -251,48 +158,10 @@ func road_natural(p: Vector2, y: float) -> float:
 	return y
 
 
-## One line for a log: what changed, where, and the largest rise and fall at
-## the changed faces' corners.
+## One line for a log: how many nodes changed since the copy, where, and the largest rise and
+## fall among them.
 func summary() -> String:
-	if from_grid:
-		return _grid_summary()
-	if not changed():
-		return "world terrain master: unchanged since the copy (%d faces)" % (_master_faces.size() / 3)
-	var lo := Vector2(INF, INF)
-	var hi := -lo
-	for key in _dirty:
-		lo = lo.min(Vector2(key) * CELL)
-		hi = hi.max((Vector2(key) + Vector2.ONE) * CELL)
-	var rise := 0.0
-	var fall := 0.0
-	for list in _master_cells.values():
-		for t in list:
-			for k in 3:
-				var corner: Vector3 = _master_faces[t + k]
-				var d := delta_y(Vector2(corner.x, corner.z))
-				rise = maxf(rise, d)
-				fall = minf(fall, d)
-	return "world terrain master: %d faces added and %d removed since the copy, in %d cells of %.0fm between x %.0f..%.0f z %.0f..%.0f; the ground moves %+.2f..%+.2fm" % [
-		added, removed, _dirty.size(), CELL, lo.x, hi.x, lo.y, hi.y, fall, rise]
-
-
-## The master's ground: every mesh in it that carries collision, which is every mesh one
-## can stand on. The lakes' water (2026-10-05) is exported `kyt_collision=none` and so is
-## not ground.
-static func load_master() -> Dictionary:
-	var scene := (load(MASTER_GLB) as PackedScene).instantiate()
-	var out := _ground_of(scene)
-	scene.free()
-	return out
-
-
-static func _ground_of(scene: Node) -> Dictionary:
-	var out := {}
-	for node in scene.find_children("*", "MeshInstance3D", true, false):
-		var mi := node as MeshInstance3D
-		if mi.mesh != null and not mi.find_children("*", "CollisionShape3D", true, false).is_empty():
-			out[String(mi.name)] = faces_of(mi.mesh, _world_xf(mi))
-	return out
+	return _grid_summary()
 
 
 ## The master's natural ground under road corridors, three corners a face with their weights,
@@ -319,95 +188,6 @@ func _read_road_natural(scene: Node) -> void:
 			if not _road_cells.has(key):
 				_road_cells[key] = []
 			(_road_cells[key] as Array).append(t)
-
-
-static func load_baseline() -> Dictionary:
-	var mesh := load(BASELINE) as ArrayMesh
-	var out := {}
-	if mesh == null:
-		return out
-	# A body with several materials is several surfaces under one name (the joined landforms).
-	for s in mesh.get_surface_count():
-		var name := mesh.surface_get_name(s)
-		var faces: PackedVector3Array = out.get(name, PackedVector3Array())
-		_append_faces(mesh.surface_get_arrays(s), Transform3D.IDENTITY, faces)
-		out[name] = faces
-	return out
-
-
-## The master as it is now, frozen as the baseline: one surface per mesh, named
-## after it, holding its world-space vertices and indices. Written once, on
-## 2026-10-05, while the master was still the generator's ground exactly
-## (`tools/ground_copy_compare.gd` PASS); refuses to overwrite.
-static func write_baseline() -> Error:
-	if FileAccess.file_exists(BASELINE):
-		push_error("%s exists; the baseline is written once" % BASELINE)
-		return ERR_ALREADY_EXISTS
-	var scene := (load(MASTER_GLB) as PackedScene).instantiate()
-	var out := ArrayMesh.new()
-	var meshes := scene.find_children("*", "MeshInstance3D", true, false)
-	meshes.sort_custom(func(a, b): return String(a.name) < String(b.name))
-	for node in meshes:
-		var mi := node as MeshInstance3D
-		var xf := _world_xf(mi)
-		for s in mi.mesh.get_surface_count():
-			var arr := mi.mesh.surface_get_arrays(s)
-			var world := PackedVector3Array()
-			for v in (arr[Mesh.ARRAY_VERTEX] as PackedVector3Array):
-				world.append(xf * v)
-			var kept := []
-			kept.resize(Mesh.ARRAY_MAX)
-			kept[Mesh.ARRAY_VERTEX] = world
-			kept[Mesh.ARRAY_INDEX] = arr[Mesh.ARRAY_INDEX]
-			out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, kept)
-			out.surface_set_name(out.get_surface_count() - 1, String(mi.name))
-	scene.free()
-	return ResourceSaver.save(out, BASELINE, ResourceSaver.FLAG_COMPRESS)
-
-
-## The joined landforms added to the baseline as the master holds them now: once, on
-## 2026-10-06, straight after the join, while they were still exactly their sources' meshes.
-## Only those that are ground (carry collision) go in, as `load_master` reads them. Refuses if
-## any is already there.
-static func extend_baseline() -> Error:
-	var mesh := load(BASELINE) as ArrayMesh
-	if mesh == null:
-		push_error("%s is missing" % BASELINE)
-		return ERR_FILE_NOT_FOUND
-	for s in mesh.get_surface_count():
-		if mesh.surface_get_name(s) in JOINED:
-			push_error("%s already holds %s" % [BASELINE, mesh.surface_get_name(s)])
-			return ERR_ALREADY_EXISTS
-	var out := ArrayMesh.new()
-	for s in mesh.get_surface_count():
-		out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, mesh.surface_get_arrays(s))
-		out.surface_set_name(s, mesh.surface_get_name(s))
-	var scene := (load(MASTER_GLB) as PackedScene).instantiate()
-	var added := 0
-	for name in JOINED:
-		var mi := scene.find_child(name, true, false) as MeshInstance3D
-		if mi == null:
-			push_error("the master has no %s" % name)
-			scene.free()
-			return ERR_DOES_NOT_EXIST
-		if mi.find_children("*", "CollisionShape3D", true, false).is_empty():
-			continue
-		var xf := _world_xf(mi)
-		for si in mi.mesh.get_surface_count():
-			var arr := mi.mesh.surface_get_arrays(si)
-			var world := PackedVector3Array()
-			for v in (arr[Mesh.ARRAY_VERTEX] as PackedVector3Array):
-				world.append(xf * v)
-			var kept := []
-			kept.resize(Mesh.ARRAY_MAX)
-			kept[Mesh.ARRAY_VERTEX] = world
-			kept[Mesh.ARRAY_INDEX] = arr[Mesh.ARRAY_INDEX]
-			out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, kept)
-			out.surface_set_name(out.get_surface_count() - 1, name)
-		added += 1
-	scene.free()
-	print("baseline: %d joined landforms added" % added)
-	return ResourceSaver.save(out, BASELINE, ResourceSaver.FLAG_COMPRESS)
 
 
 static func faces_of(mesh: Mesh, xf: Transform3D) -> PackedVector3Array:
@@ -437,71 +217,6 @@ static func _world_xf(n: Node) -> Transform3D:
 	return t
 
 
-## The meshes' faces end to end, the copy's bodies first in build order and
-## anything else after by name, so the same ground reads the same both ways.
-static func _joined(faces: Dictionary) -> PackedVector3Array:
-	var out := PackedVector3Array()
-	var names: Array = faces.keys()
-	names.sort()
-	for body in BODIES:
-		if faces.has(body):
-			out.append_array(faces[body])
-	for body in names:
-		if not String(body) in BODIES:
-			out.append_array(faces[body])
-	return out
-
-
-## A face as text: its three corners' float32 bytes, started at the smallest
-## corner so the winding is kept and the starting corner does not matter.
-static func _key(a: Vector3, b: Vector3, c: Vector3) -> String:
-	var ka := PackedFloat32Array([a.x, a.y, a.z]).to_byte_array().hex_encode()
-	var kb := PackedFloat32Array([b.x, b.y, b.z]).to_byte_array().hex_encode()
-	var kc := PackedFloat32Array([c.x, c.y, c.z]).to_byte_array().hex_encode()
-	if ka <= kb and ka <= kc:
-		return ka + kb + kc
-	if kb <= ka and kb <= kc:
-		return kb + kc + ka
-	return kc + ka + kb
-
-
-## Which faces differ, as multisets; the plan cells they touch; and, in those
-## cells only, every face of either ground that could stand over a point.
-func _compare() -> void:
-	var count := {}
-	for t in range(0, _base_faces.size(), 3):
-		var k := _key(_base_faces[t], _base_faces[t + 1], _base_faces[t + 2])
-		count[k] = int(count.get(k, 0)) + 1
-	var fresh: Array[int] = []
-	for t in range(0, _master_faces.size(), 3):
-		var k := _key(_master_faces[t], _master_faces[t + 1], _master_faces[t + 2])
-		var n := int(count.get(k, 0))
-		if n > 0:
-			count[k] = n - 1
-		else:
-			fresh.append(t)
-	added = fresh.size()
-	for t in fresh:
-		_mark(_master_faces, t)
-	# What is left over in the count is the copy's faces the master lost.
-	var lost := {}
-	for k in count:
-		if int(count[k]) > 0:
-			lost[k] = int(count[k])
-	for t in range(0, _base_faces.size(), 3):
-		if lost.is_empty():
-			break
-		var k := _key(_base_faces[t], _base_faces[t + 1], _base_faces[t + 2])
-		if lost.has(k):
-			removed += 1
-			_mark(_base_faces, t)
-			lost[k] = int(lost[k]) - 1
-			if int(lost[k]) == 0:
-				lost.erase(k)
-	_index(_master_faces, _master_cells)
-	_index(_base_faces, _base_cells)
-
-
 func _cells_of(faces: PackedVector3Array, t: int) -> Array[Vector2i]:
 	var a := faces[t]
 	var b := faces[t + 1]
@@ -515,48 +230,6 @@ func _cells_of(faces: PackedVector3Array, t: int) -> Array[Vector2i]:
 		for z in range(z0, z1 + 1):
 			out.append(Vector2i(x, z))
 	return out
-
-
-func _mark(faces: PackedVector3Array, t: int) -> void:
-	for key in _cells_of(faces, t):
-		_dirty[key] = true
-
-
-func _index(faces: PackedVector3Array, cells: Dictionary) -> void:
-	for t in range(0, faces.size(), 3):
-		var a := faces[t]
-		var n := (faces[t + 1] - a).cross(faces[t + 2] - a)
-		if absf(n.y) < n.length() * MIN_UP:
-			continue
-		for key in _cells_of(faces, t):
-			if not _dirty.has(key):
-				continue
-			if not cells.has(key):
-				cells[key] = []
-			(cells[key] as Array).append(t)
-
-
-## The highest face over `p` among those indexed in its cell, or NAN.
-static func _top(cells: Dictionary, faces: PackedVector3Array, key: Vector2i, p: Vector2) -> float:
-	if not cells.has(key):
-		return NAN
-	var best := -INF
-	for t in (cells[key] as Array):
-		var a := faces[t]
-		var b := faces[t + 1]
-		var c := faces[t + 2]
-		var e0 := Vector2(b.x - a.x, b.z - a.z)
-		var e1 := Vector2(c.x - a.x, c.z - a.z)
-		var e2 := Vector2(p.x - a.x, p.y - a.z)
-		var den := e0.x * e1.y - e1.x * e0.y
-		if absf(den) < 1e-9:
-			continue
-		var u := (e2.x * e1.y - e1.x * e2.y) / den
-		var v := (e0.x * e2.y - e2.x * e0.y) / den
-		if u < -INSIDE_EPS or v < -INSIDE_EPS or u + v > 1.0 + INSIDE_EPS:
-			continue
-		best = maxf(best, a.y + u * (b.y - a.y) + v * (c.y - a.y))
-	return best if best > -INF else NAN
 
 
 ## The grid's reading: `grid.json`, then the master's Earthworks for `road_natural` (which stays in
@@ -620,7 +293,7 @@ static func grid_spec() -> Dictionary:
 
 ## One of the grid's folders (`height` or `baseline`) as {Vector2i(tx, tz): its heights}, node
 ## (c, r) of a tile at index r * samples + c, NaN for no ground. A probe hands two of these to
-## `new()` with `READ_GRID`, changed or not.
+## `new()`, changed or not.
 static func load_grid(folder: String) -> Dictionary:
 	var spec := grid_spec()
 	var out := {}

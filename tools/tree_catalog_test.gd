@@ -14,7 +14,7 @@ const SOUTH_COAST_OPEN_POINT := Vector2(900.0, 3150.0)
 ## The range's sections in order along it, north to south, each with its summit in plan
 ## and the relief over the water it must keep there: the summits are the tops of the
 ## master's pieces as they were mounted until height-grid Stage 2 (2026-10-13; the pieces
-## are kept, unmounted, in scenes/world/world_terrain_pieces.tscn until Stage 5), the
+## were retired in Stage 5, 2026-10-15, and are in git up to a8cd64b), the
 ## reliefs the minima those pieces were held to before, measured now from the water rather
 ## than from their closed base at -11 m. The connection's lowland, the base the ridges
 ## stood on, is in the land between them. A section Christina moves on purpose moves here

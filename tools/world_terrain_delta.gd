@@ -1,75 +1,41 @@
 extends SceneTree
-## What has changed in the world terrain master since it was copied from the
-## generator, and how far that moves the ground the generator builds on.
-## Written 2026-10-05 for Stage 2 of
+## What has changed in the world's ground since the frozen copy the generator was measured from,
+## and how far that moves the ground the generator builds on. Written 2026-10-05 for Stage 2 of
 ## `documentation/terrain-master-into-game-plan-2026-10-05.md`; the reading is
 ## `scripts/world_terrain_source.gd`, which `tools/gen_props.gd` uses.
 ##
 ##   Godot --headless --path . --script res://tools/world_terrain_delta.gd
 ##   Godot --headless --path . --script res://tools/world_terrain_delta.gd -- --self-check
-##   Godot --headless --path . --script res://tools/world_terrain_delta.gd -- --write-baseline
-##   Godot --headless --path . --script res://tools/world_terrain_delta.gd -- --extend-baseline
-##   Godot --headless --path . --script res://tools/world_terrain_delta.gd -- [--faces | --grid] [--self-check]
 ##
-## With no argument, prints the summary: unchanged, or how many faces changed,
-## where, and the largest rise and fall. Run it after exporting and importing an
-## edit to the master, before regenerating, to see what the generated park will
-## follow.
+## With no argument, prints the summary: unchanged, or how many of the height grid's nodes
+## changed, where, and the largest rise and fall; then how long the reading took. Read it after a
+## Photoshop or Blender save of a tile, or a `tools/ground_grid_edit.py` edit, before
+## regenerating, to see what the generated park will follow. The Blender panel's Send ground to
+## game (`tools/ground_send.py`) runs it and waits for its `world_terrain_delta: read` line.
 ##
-## Since Stage 2 of `documentation/terrain-height-grid-plan-2026-10-12.md` (2026-10-13) it reads
-## whichever reading `WorldTerrainSource.GROUND_FROM_GRID` selects, the master's faces or the
-## height grid's images, and says which and how long it took; `--faces` or `--grid` picks one
-## regardless. On the grid the summary counts nodes, not faces, in the same shape. Read the
-## grid's summary after a Photoshop or Blender save of a tile, before regenerating.
+## `--self-check` raises a smooth bump in a copy of `baseline/`'s nodes in memory (nothing is
+## written) and checks the reading finds it: the bump's height at the nodes inside, exactly zero
+## outside. Quits 1 on any miss.
 ##
-## `--self-check` raises a smooth bump in a copy of the baseline's faces in
-## memory (nothing is written) and checks the reading finds it: the bump's height
-## at its corners inside, exactly zero outside. Quits 1 on any miss. On the grid
-## it raises the bump in a copy of `baseline/`'s nodes and checks the same at the
-## nodes.
-##
-## `--write-baseline` froze the master as `assets/source/world_terrain_baseline.res`
-## on 2026-10-05, while it was still the generator's ground exactly; it refuses
-## to overwrite. `--extend-baseline` added the range's and city's landforms to it
-## on 2026-10-06, as they joined the master (`WorldTerrainSource.JOINED`); it
-## refuses to add them twice.
+## Since the height grid's Stage 5 (2026-10-15) the grid is the only reading. Until then it could
+## also read the world terrain master's ground pieces against `assets/source/world_terrain_baseline.res`
+## (`--faces`), and `--write-baseline` and `--extend-baseline` had written that frozen copy on
+## 2026-10-05 and 2026-10-06; all three are in git up to `a8cd64b`.
 
 const WorldTerrainSource := preload("res://scripts/world_terrain_source.gd")
-## The self-check's bump: centre (x, z), radius and height, on the mainland
-## reserve where it is the only ground. It was at (700, -200) until the range's
-## landforms joined the master (2026-10-06): the middle range stands over the
-## reserve there, and the reading at a reserve corner is then the range face's.
+## The self-check's bump: centre (x, z), radius and height, on the mainland reserve where it
+## was the only ground before the grid, and still away from every held outline.
 const BUMP := [Vector2(2000.0, 500.0), 30.0, 2.0]
 
 
 func _init() -> void:
 	var args := OS.get_cmdline_user_args()
-	if "--write-baseline" in args:
-		var err := WorldTerrainSource.write_baseline()
-		print("world_terrain_delta: baseline %s (%s)" % [
-			WorldTerrainSource.BASELINE, "written" if err == OK else "not written: %d" % err])
-		quit(0 if err == OK else 1)
-		return
-	if "--extend-baseline" in args:
-		var ext := WorldTerrainSource.extend_baseline()
-		print("world_terrain_delta: baseline %s (%s)" % [
-			WorldTerrainSource.BASELINE, "extended with the joined landforms" if ext == OK else "not extended: %d" % ext])
-		quit(0 if ext == OK else 1)
-		return
-	var reading := WorldTerrainSource.READ_SWITCH
-	if "--grid" in args:
-		reading = WorldTerrainSource.READ_GRID
-	elif "--faces" in args:
-		reading = WorldTerrainSource.READ_FACES
-	var grid := reading == WorldTerrainSource.READ_GRID \
-		or (reading == WorldTerrainSource.READ_SWITCH and WorldTerrainSource.GROUND_FROM_GRID)
 	if "--self-check" in args:
-		quit(_self_check_grid() if grid else _self_check())
+		quit(_self_check_grid())
 		return
-	var source := WorldTerrainSource.new({}, {}, reading)
+	var source := WorldTerrainSource.new()
 	print(source.summary())
-	print("world_terrain_delta: read %s in %.1fs" % [
-		"the height grid" if source.from_grid else "the master's faces", source.load_seconds])
+	print("world_terrain_delta: read the height grid in %.1fs" % source.load_seconds)
 	quit(0)
 
 
@@ -81,71 +47,12 @@ func _bump(p: Vector2) -> float:
 	return float(BUMP[2]) * s * s * (3.0 - 2.0 * s)
 
 
-func _self_check() -> int:
-	# The bump goes on a copy of the baseline, not the master, so the check holds however
-	# far the master has been edited since.
-	var baseline := WorldTerrainSource.load_baseline()
-	var master := baseline.duplicate(true)
-	var same := WorldTerrainSource.new(master, baseline)
-	var failures := 0
-	if same.changed():
-		print("self-check: the baseline reads as changed against itself; %s" % same.summary())
-		failures += 1
-	var bumped := {}
-	var raised := 0
-	for body in master:
-		var faces: PackedVector3Array = (master[body] as PackedVector3Array).duplicate()
-		for i in faces.size():
-			var h := _bump(Vector2(faces[i].x, faces[i].z))
-			if h > 0.0:
-				faces[i].y += h
-				raised += 1
-		bumped[body] = faces
-	var source := WorldTerrainSource.new(bumped, baseline)
-	print("self-check: raised %d corners; %s" % [raised, source.summary()])
-	# At every raised corner of the top ground the reading is the bump there.
-	var worst := 0.0
-	var probed := 0
-	var top := {}
-	for body in bumped:
-		var faces: PackedVector3Array = bumped[body]
-		for i in faces.size():
-			var p := Vector2(faces[i].x, faces[i].z)
-			var key := Vector2i(roundi(p.x * 100.0), roundi(p.y * 100.0))
-			if not top.has(key) or faces[i].y > (top[key] as Vector3).y:
-				top[key] = faces[i]
-	for key in top:
-		var corner: Vector3 = top[key]
-		var p := Vector2(corner.x, corner.z)
-		var want := _bump(p)
-		if want <= 0.0:
-			continue
-		probed += 1
-		worst = maxf(worst, absf(source.delta_y(p) - want))
-	print("self-check: %d top corners inside the bump, worst miss %.4fm" % [probed, worst])
-	if probed == 0 or worst > 0.01:
-		failures += 1
-	# A ring of points just outside it, and far away, read exactly zero.
-	var stray := 0
-	for i in 72:
-		var a := TAU * float(i) / 72.0
-		for r in [float(BUMP[1]) + 60.0, float(BUMP[1]) + 400.0]:
-			var p: Vector2 = BUMP[0] + Vector2(cos(a), sin(a)) * r
-			if source.delta_y(p) != 0.0:
-				stray += 1
-	print("self-check: %d of 144 points outside the bump read other than zero" % stray)
-	if stray > 0:
-		failures += 1
-	print("self-check: %s" % ("PASS" if failures == 0 else "FAIL"))
-	return 0 if failures == 0 else 1
-
-
 ## The grid's self-check: the bump raised at the nodes of a copy of `baseline/` in memory, read
 ## back at those nodes and exactly zero round it.
 func _self_check_grid() -> int:
 	var baseline := WorldTerrainSource.load_grid("baseline")
 	var failures := 0
-	var same := WorldTerrainSource.new(baseline, baseline, WorldTerrainSource.READ_GRID)
+	var same := WorldTerrainSource.new(baseline, baseline)
 	if same.changed():
 		print("self-check (grid): the baseline reads as changed against itself; %s" % same.summary())
 		failures += 1
@@ -175,7 +82,7 @@ func _self_check_grid() -> int:
 					h[i] += b
 					raised[p] = float(h[i]) - before
 		bumped[k] = h
-	var source := WorldTerrainSource.new(bumped, baseline, WorldTerrainSource.READ_GRID)
+	var source := WorldTerrainSource.new(bumped, baseline)
 	print("self-check (grid): raised %d nodes; %s" % [raised.size(), source.summary()])
 	var worst := 0.0
 	var worst_store := 0.0

@@ -19,8 +19,8 @@ const PROTECTED_MARGIN := 1.0
 ## documentation/terrain-height-grid-plan-2026-10-12.md) it mounts the ground as one
 ## height grid, `world_ground`, 1 km tiles `world_ground/x{tx}_z{tz}/ground_x{tx}_z{tz}`,
 ## in place of the master's named pieces (the mainland reserve, both coasts, T2, T3,
-## T6, both east shoulders, the range's and city's landforms), which are kept unmounted
-## in scenes/world/world_terrain_pieces.tscn until Stage 5.
+## T6, both east shoulders, the range's and city's landforms), which were retired in
+## Stage 5 (2026-10-15) and are in git up to a8cd64b.
 const WORLD_TERRAIN := "res://scenes/world/world_terrain.tscn"
 ## The ground the generator still holds beside the grid, every collider the player
 ## stands on in these four scenes as `park_world.tscn` mounts them under `places`: the

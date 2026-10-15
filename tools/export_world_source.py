@@ -218,12 +218,11 @@ def main() -> None:
 
     visible = [o for o in scene.objects if o.type in EXPORTABLE and not o.hide_render]
     # A master may name the collections that are its game piece (the world
-    # terrain master: `Ground`, 2026-10-05); then nothing else is exported, so
-    # its design grid, reference curves and review water never reach the game.
+    # terrain master: `Lakes` and `Earthworks` since height-grid Stage 5,
+    # 2026-10-15; its `Ground` from 2026-10-05 until then); then nothing else is
+    # exported, so its reference curves and review water never reach the game.
     # The range and city masters name none and export as before.
-    # `-- --collections A,B` names them for one export instead: the world
-    # terrain master's `Lakes` alone, mounted beside the height grid's ground
-    # since its Stage 2 (2026-10-13), while `Ground` stays in the master's own GLB.
+    # `-- --collections A,B` names them for one export instead.
     only = scene.get("kyt_export_collections")
     rest = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     if "--collections" in rest:
