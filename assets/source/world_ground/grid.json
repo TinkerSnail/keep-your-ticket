@@ -1,14 +1,30 @@
 {
-  "about": "The world's ground as one height grid (documentation/terrain-height-grid-plan-2026-10-12.md). Stage 1 spec, 2026-10-12.",
+  "about": "The world's ground as one height grid (documentation/terrain-height-grid-plan-2026-10-12.md). Stage 1 spec, 2026-10-12. Extended for Stage 4, 2026-10-14: the inner tiles grew into the sea and an outer tier was added.",
   "frozen_commit": "1926e71",
   "axes": "Godot: x east, y up, z south. An image is a map, north up: row r is z = tile_z0 + spacing * r, column c is x = tile_x0 + spacing * c.",
   "spacing_m": 2.0,
   "tile_m": 1000.0,
   "tile_samples": 501,
   "tile_edges": "shared: a tile's last row and column repeat its neighbour's first, bit for bit",
-  "tiles_x": [-2, 3],
-  "tiles_z": [-3, 7],
+  "tiles_x": [-3, 4],
+  "tiles_z": [-4, 8],
   "tile_origin": "tile (tx, tz) starts at x = 1000 * tx, z = 1000 * tz",
+  "missing_tiles": "A tile with no file holds no ground. Since Stage 4 (2026-10-14) the 38 sea tiles outside x -2..3, z -3..7 have no baseline/ file, ever, and no height/ or colour/ file until the seabed is written; the generator reads zero change there.",
+  "outer": {
+    "about": "Stage 4 (2026-10-14): the sea floor beyond the inner tiles, every 8 m (the plan's review notes: 2 m within about 1 km of land, 8 m beyond). Tile (ox, oz) starts at x = 4000 * ox, z = 4000 * oz, 501 nodes a side sharing edges like the inner tiles: node (c, r) at x = 4000 * ox + 8 * c, z = 4000 * oz + 8 * r, north up.",
+    "spacing_m": 8.0,
+    "tile_m": 4000.0,
+    "tile_samples": 501,
+    "tiles_x": [-2, 2],
+    "tiles_z": [-2, 2],
+    "files": {
+      "height": "outer/height/x{ox}_z{oz}.exr, one float32 channel Y, Godot y in metres, NaN for none",
+      "colour": "outer/colour/x{ox}_z{oz}.png, 8-bit sRGB RGBA, alpha 0 where there is none"
+    },
+    "inner_domain": "Nodes inside the inner tiles' domain (x -3000..5000, z -4000..9000), its edge included, are no-data here: the inner tiles own them. The domain's edge falls on 8 m nodes, and the build takes those nodes' heights from the inner tiles.",
+    "tolerance_m": 0.5,
+    "no_baseline": "The outer tier has no baseline/: the generator never reads it."
+  },
   "files": {
     "height": "height/x{tx}_z{tz}.exr, one float32 channel, Godot y in metres, NaN where there is no ground of the master's",
     "baseline": "baseline/x{tx}_z{tz}.exr, the same from the frozen copy the generator measures change from",
@@ -57,6 +73,12 @@
           "city": [[-844.96, 2746.74], [-842.56, 2469.25], [-840.75, 2331.47], [-646.0, 2217.0], [-574.0, 2217.0], [-307.72, 2332.04], [-306.0, 2470.7], [-306.0, 2509.3], [-307.07, 2789.65], [-375.04, 2793.71], [-424.96, 2793.71], [-631.3, 2793.6], [-844.96, 2793.26]]
         }
       }
-    ]
+    ],
+    "deep_sea": {
+      "about": "Stage 4 (2026-10-14): the sea the inner tiles grew into, outside outside_rect (the inner tiles as Stage 1 baked them, x -2000..4000, z -3000..8000), takes tolerance_m wherever the ground is below below_m, instead of its zone's.",
+      "tolerance_m": 0.5,
+      "below_m": -20.0,
+      "outside_rect": [-2000.0, -3000.0, 4000.0, 8000.0]
+    }
   }
 }

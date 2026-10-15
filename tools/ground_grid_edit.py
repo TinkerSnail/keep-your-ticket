@@ -38,6 +38,13 @@ follows it.
   PNG whose pixels are back to what they were gets its old bytes back. It removes the log entry and
   its history file.
 - **`--root DIR`** works on another copy of `assets/source/world_ground/` (a proof's scratch copy).
+- **Two tiers** (2026-10-14, Stage 4). `grid.json`'s inner tiles (2 m, 1 km; since Stage 4 x -3..4, z
+  -4..8, the sea tiles new) and its `outer` tier (8 m nodes, 4 km tiles, `outer/height/` and
+  `outer/colour/`, beyond the inner domain). A node inside the inner domain or on its edge is the
+  inner tiles'; beyond it, the outer tier's, on its 8 m lattice. A tile with no file holds no ground
+  and an edit that writes to it makes it (heights NaN elsewhere, colour alpha 0); its undo removes
+  the file again. `apply_arrays` (and `--values`) take whole tiles at once; a node given ground needs a
+  colour, its own or (for at most `MAX_NEW_COLOUR` nodes) its neighbours'.
 
 After an edit: rebuild the touched tiles (`Blender -b --factory-startup --python
 tools/blender/ground_build.py -- --tiles ...`), import, run `tools/ground_mount.gd`, and read
@@ -65,32 +72,45 @@ GROUND = os.path.join(ROOT, "assets", "source", "world_ground")
 
 # --- the grid -----------------------------------------------------------------
 
-class Grid:
-    """`grid.json`'s lattice; nodes addressed by world (x, z) on even metres."""
+class Tier:
+    """One tier of the grid: the inner tiles (`height/`, `colour/`; 2 m nodes, 1 km tiles) or,
+    since Stage 4 (2026-10-14), the outer (`outer/height/`, `outer/colour/`; 8 m, 4 km), each of
+    `tile_samples` nodes a side sharing their edges. A tile with no file holds no ground (NaN,
+    alpha 0); writing to it makes the file."""
 
-    def __init__(self, root):
+    def __init__(self, root, spec, prefix, label):
         self.root = root
-        spec = json.load(open(os.path.join(root, "grid.json")))
+        self.prefix = prefix
+        self.label = label
         self.step = float(spec["spacing_m"])
         self.n = int(spec["tile_samples"])
         self.per = self.n - 1
         self.tile_m = float(spec["tile_m"])
         self.tx = range(spec["tiles_x"][0], spec["tiles_x"][1] + 1)
         self.tz = range(spec["tiles_z"][0], spec["tiles_z"][1] + 1)
+        self.x0, self.z0 = self.tx[0] * self.tile_m, self.tz[0] * self.tile_m
+        self.x1, self.z1 = (self.tx[-1] + 1) * self.tile_m, (self.tz[-1] + 1) * self.tile_m
         self.h = {}
         self.c = {}
 
+    def key(self, tx, tz):
+        return "%sx%d_z%d" % (self.prefix, tx, tz)
+
     def path(self, folder, tx, tz, ext):
-        return os.path.join(self.root, folder, "x%d_z%d.%s" % (tx, tz, ext))
+        return os.path.join(self.root, self.prefix + folder, "x%d_z%d.%s" % (tx, tz, ext))
 
     def heights(self, tx, tz):
         if (tx, tz) not in self.h:
-            self.h[(tx, tz)] = gb.read_exr(self.path("height", tx, tz, "exr"))[0].copy()
+            p = self.path("height", tx, tz, "exr")
+            self.h[(tx, tz)] = gb.read_exr(p)[0].copy() if os.path.exists(p) else \
+                np.full((self.n, self.n), np.nan, np.float32)
         return self.h[(tx, tz)]
 
     def colour(self, tx, tz):
         if (tx, tz) not in self.c:
-            self.c[(tx, tz)] = gc.png_read(self.path("colour", tx, tz, "png")).copy()
+            p = self.path("colour", tx, tz, "png")
+            self.c[(tx, tz)] = gc.png_read(p).copy() if os.path.exists(p) else \
+                np.zeros((self.n, self.n, 4), np.uint8)
         return self.c[(tx, tz)]
 
     def homes(self, x, z):
@@ -107,6 +127,55 @@ class Grid:
                         out.append(((tx, tz), rr, cc))
         return sorted(out)
 
+    def homes_of(self, X, Z):
+        """`homes` for arrays of nodes: (node index, tx, tz, row, column) per home, a node on a
+        tile's edge or corner having two or four."""
+        C = np.rint(np.asarray(X, np.float64) / self.step).astype(np.int64)
+        R = np.rint(np.asarray(Z, np.float64) / self.step).astype(np.int64)
+        out = []
+        for dtx in (0, 1):
+            for dtz in (0, 1):
+                tx = (C - dtx) // self.per
+                tz = (R - dtz) // self.per
+                ok = np.ones(len(C), bool)
+                if dtx:
+                    ok &= (C % self.per) == 0
+                if dtz:
+                    ok &= (R % self.per) == 0
+                cc, rr = C - tx * self.per, R - tz * self.per
+                ok &= (tx >= self.tx[0]) & (tx <= self.tx[-1]) & (tz >= self.tz[0]) & (tz <= self.tz[-1])
+                ok &= (cc >= 0) & (cc < self.n) & (rr >= 0) & (rr < self.n)
+                i = np.flatnonzero(ok)
+                out.append((i, tx[i], tz[i], rr[i], cc[i]))
+        return tuple(np.concatenate([o[k] for o in out]) for k in range(5))
+
+
+class Grid:
+    """`grid.json`'s lattice; nodes addressed by world (x, z). The inner tier's attributes are the
+    grid's own (`step`, `n`, `tx`, `heights`, ...), as every caller has read them; `outer` is the
+    outer tier (None before Stage 4's spec)."""
+
+    def __init__(self, root):
+        self.root = root
+        spec = json.load(open(os.path.join(root, "grid.json")))
+        self.inner = Tier(root, spec, "", "inner")
+        self.outer = Tier(root, spec["outer"], "outer/", "outer") if "outer" in spec else None
+        self.tiers = [self.inner] + ([self.outer] if self.outer is not None else [])
+        for k in ("step", "n", "per", "tile_m", "tx", "tz", "h", "c"):
+            setattr(self, k, getattr(self.inner, k))
+
+    def path(self, folder, tx, tz, ext):
+        return self.inner.path(folder, tx, tz, ext)
+
+    def heights(self, tx, tz):
+        return self.inner.heights(tx, tz)
+
+    def colour(self, tx, tz):
+        return self.inner.colour(tx, tz)
+
+    def homes(self, x, z):
+        return self.inner.homes(x, z)
+
     def get(self, x, z):
         homes = self.homes(x, z)
         if not homes:
@@ -117,6 +186,18 @@ class Grid:
     def rgba(self, x, z):
         (tx, tz), r, c = self.homes(x, z)[0]
         return self.colour(tx, tz)[r, c]
+
+    def tier_of(self, X, Z):
+        """Per node: 0 in the inner tiles' domain (its edge included: the inner tiles own it), 1 in
+        the outer tier's beyond it, -1 outside both."""
+        X = np.asarray(X, np.float64)
+        Z = np.asarray(Z, np.float64)
+        i = self.inner
+        out = np.where((X >= i.x0) & (X <= i.x1) & (Z >= i.z0) & (Z <= i.z1), 0, -1)
+        if self.outer is not None:
+            o = self.outer
+            out = np.where((out < 0) & (X >= o.x0) & (X <= o.x1) & (Z >= o.z0) & (Z <= o.z1), 1, out)
+        return out
 
 
 def ring(x, z, step, k=1, diagonal=True):
@@ -399,16 +480,19 @@ def save_log(root, log):
     os.replace(tmp, p)
 
 
-def new_colour(g, x, z, filled):
+def new_colour(g, x, z, filled, tier=None):
     """Mean colour of the nearest coloured neighbours (alpha 255), widening the ring until some."""
+    t = tier or g.inner
     for k in range(1, 13):
         cols = []
-        for (a, b) in ring(x, z, g.step, k):
-            if max(abs(a - x), abs(b - z)) != k * g.step or (a, b) in filled:
+        for (a, b) in ring(x, z, t.step, k):
+            if max(abs(a - x), abs(b - z)) != k * t.step or (a, b) in filled:
                 continue
-            if not g.homes(a, b):
+            hm = t.homes(a, b)
+            if not hm:
                 continue
-            p = g.rgba(a, b)
+            (tx, tz), r, c = hm[0]
+            p = t.colour(tx, tz)[r, c]
             if p[3] == 255:
                 cols.append(p[:3].astype(np.float64))
         if cols:
@@ -423,87 +507,178 @@ def apply(root, name, dry):
     return record(g, name, why, fn(g), dry)
 
 
+## The most nodes given ground that an edit may leave to take their neighbours' colour one by one;
+## more (a seabed) must bring their own.
+MAX_NEW_COLOUR = 20000
+
+
 def record(g, name, why, changes, dry, extra=None, show=None, paint=None):
     """Writes `changes`, {(x, z): new height}, into the grid as the next edit, with its history and
     its log entry (plus `extra`'s fields); prints the first `show` nodes (all when None). Returns
     the log entry, or None when `dry`. `paint`, {(x, z): RGBA bytes} (2026-10-14, the Photoshop
     save), sets those nodes' colour too, whether or not their height changes; a node given ground
     without one takes its neighbours' (`new_colour`). A tile only painted has no height record."""
+    keys = sorted(changes)
+    X = np.array([k[0] for k in keys], np.float64)
+    Z = np.array([k[1] for k in keys], np.float64)
+    Y = np.array([changes[k] for k in keys], np.float64)
+    pk = sorted(paint or {})
+    PX = np.array([k[0] for k in pk], np.float64)
+    PZ = np.array([k[1] for k in pk], np.float64)
+    PC = np.array([np.asarray(paint[k], np.uint8)[:4] for k in pk], np.uint8).reshape(-1, 4)
+    return _write(g, name, why, X, Z, Y, PX, PZ, PC, dry, extra, show)
+
+
+def _tiles_of(tx, tz):
+    """The distinct tiles among homes, and each home's index into them."""
+    if not len(tx):
+        return [], np.zeros(0, np.int64)
+    k, inv = np.unique(tx.astype(np.int64) * 100003 + tz.astype(np.int64), return_inverse=True)
+    first = np.zeros(len(k), np.int64)
+    first[inv[::-1]] = np.arange(len(inv))[::-1]
+    return [(int(tx[i]), int(tz[i])) for i in first], inv.ravel()
+
+
+def _first_values(T, X, Z, colour=False):
+    """Per node, what the first tile holding it holds (height, or RGBA with `colour`)."""
+    pi, tx, tz, r, c = T.homes_of(X, Z)
+    out = np.zeros((len(X), 4), np.uint8) if colour else np.full(len(X), np.nan)
+    keys, inv = _tiles_of(tx, tz)
+    for j, key in enumerate(keys):
+        m = inv == j
+        arr = T.colour(*key) if colour else T.heights(*key)
+        out[pi[m]] = arr[r[m], c[m]]
+    return out
+
+
+def _grouped(T, X, Z, V):
+    """Each tile's rows, columns and values for nodes (X, Z) holding V, every home included."""
+    pi, tx, tz, r, c = T.homes_of(X, Z)
+    keys, inv = _tiles_of(tx, tz)
+    out = {}
+    for j, key in enumerate(keys):
+        m = inv == j
+        out[key] = (r[m], c[m], V[pi[m]])
+    return out
+
+
+def _node_keys(X, Z):
+    """One int64 per node position (positions are on even metres within +-50 km)."""
+    return (np.rint(X).astype(np.int64) + 50000) * 200003 + (np.rint(Z).astype(np.int64) + 50000)
+
+
+def _write(g, name, why, X, Z, Y, PX, PZ, PC, dry, extra=None, show=None):
+    """The one place an edit is written: heights Y at nodes (X, Z) and colours PC (RGBA) at nodes
+    (PX, PZ), in whichever tier holds each; a tile with no file gets one. History and log as
+    `record` says."""
     root = g.root
     log = load_log(root)
     gid = "G%d" % (len(log["edits"]) + 1)
+    tierX = g.tier_of(X, Z)
+    tierP = g.tier_of(PX, PZ)
+    old = np.full(len(X), np.nan)
+    for ti, T in enumerate(g.tiers):
+        m = tierX == ti
+        if m.any():
+            old[m] = _first_values(T, X[m], Z[m])
+    made = np.isnan(old)
+    need = made & ~np.isin(_node_keys(X, Z), _node_keys(PX, PZ))
+    if need.sum() > MAX_NEW_COLOUR:
+        raise SystemExit("%d nodes get ground without a colour: bring their colours (colour_x, colour_z, colour), "
+                         "as a seabed must; at most %d take their neighbours'" % (int(need.sum()), MAX_NEW_COLOUR))
+    filled = set(zip(X[made].tolist(), Z[made].tolist())) if need.any() else set()
+    NC = [new_colour(g, X[i], Z[i], filled, g.tiers[tierX[i]]) for i in np.flatnonzero(need)]
+    CX = np.concatenate([X[need], PX])
+    CZ = np.concatenate([Z[need], PZ])
+    CC = np.concatenate([np.array(NC, np.uint8).reshape(-1, 4), PC.reshape(-1, 4)])
+    tierC = np.concatenate([tierX[need], tierP])
     per_tile = {}
-    made = []
-    for (x, z), v in sorted(changes.items()):
-        old = g.get(x, z)
-        if np.isnan(old):
-            made.append((x, z))
-        for (tx, tz), r, c in g.homes(x, z):
-            per_tile.setdefault((tx, tz), []).append((r, c, np.float32(v), (x, z)))
-    paint = paint or {}
-    colours = {(x, z): new_colour(g, x, z, set(made)) for (x, z) in made if (x, z) not in paint}
-    colours.update({k: np.asarray(v, np.uint8) for k, v in paint.items()})
     per_colour = {}
-    for (x, z), rgba in sorted(colours.items()):
-        for (tx, tz), r, c in g.homes(x, z):
-            per_colour.setdefault((tx, tz), []).append((r, c, rgba))
+    for ti, T in enumerate(g.tiers):
+        m = tierX == ti
+        if m.any():
+            for k, v in _grouped(T, X[m], Z[m], Y[m].astype(np.float32)).items():
+                per_tile[(ti,) + k] = v
+        m = tierC == ti
+        if m.any():
+            for k, v in _grouped(T, CX[m], CZ[m], CC[m]).items():
+                per_colour[(ti,) + k] = v
     tiles = sorted(set(per_tile) | set(per_colour))
+    names = [g.tiers[ti].key(tx, tz) for ti, tx, tz in tiles]
     print("%s %s: %d nodes in %s; %d given ground that had none; %swhy: %s" % (
-        gid, name, len(changes), ", ".join("x%d_z%d" % t for t in tiles), len(made),
-        "%d nodes' colour painted; " % len(paint) if paint else "", why))
-    for k, ((x, z), v) in enumerate(sorted(changes.items())):
+        gid, name, len(X), ", ".join(names) if len(names) <= 12 else "%d tiles" % len(names), int(made.sum()),
+        "%d nodes' colour painted; " % len(PX) if len(PX) else "", why))
+    shown = range(len(X)) if show is None else range(min(len(X), show))
+    ck = _node_keys(CX, CZ)
+    cmap = {}
+    if len(shown):
+        hit = np.isin(ck, _node_keys(X[:len(shown)], Z[:len(shown)]))
+        cmap = {(CX[i], CZ[i]): CC[i] for i in np.flatnonzero(hit)}
+    for k in range(len(X)):
         if show is not None and k == show:
-            print("  ... and %d more" % (len(changes) - show))
+            print("  ... and %d more" % (len(X) - show))
             break
-        print("  (%g, %g): %s -> %.3f%s" % (x, z, "none" if np.isnan(g.get(x, z)) else "%.3f" % g.get(x, z), v,
-                                           "  colour %s" % [int(v) for v in colours[(x, z)]] if (x, z) in colours else ""))
+        print("  (%g, %g): %s -> %.3f%s" % (X[k], Z[k], "none" if np.isnan(old[k]) else "%.3f" % old[k], Y[k],
+                                           "  colour %s" % [int(v) for v in cmap[(X[k], Z[k])]]
+                                           if (X[k], Z[k]) in cmap else ""))
     if dry:
         print("dry: nothing written")
         return None
     hist = {}
     record_tiles = []
-    for (tx, tz) in tiles:
-        key = "x%d_z%d" % (tx, tz)
-        if (tx, tz) in per_tile:
-            h = g.heights(tx, tz)
-            hp = g.path("height", tx, tz, "exr")
-            before = sha(hp)
-            rows = np.array([e[0] for e in per_tile[(tx, tz)]], np.int32)
-            cols = np.array([e[1] for e in per_tile[(tx, tz)]], np.int32)
-            hist["h_%s_idx" % key] = rows * g.n + cols
-            hist["h_%s_old" % key] = h[rows, cols].copy()
-            h[rows, cols] = np.array([e[2] for e in per_tile[(tx, tz)]], np.float32)
-            hist["h_%s_new" % key] = h[rows, cols].copy()
+    for (ti, tx, tz), key in zip(tiles, names):
+        T = g.tiers[ti]
+        hk = key.replace("/", "_")
+        rec = {"tile": key}
+        if (ti, tx, tz) in per_tile:
+            rows, cols, vals = per_tile[(ti, tx, tz)]
+            hp = T.path("height", tx, tz, "exr")
+            existed = os.path.exists(hp)
+            before = sha(hp) if existed else None
+            h = T.heights(tx, tz)
+            if existed:
+                hist["h_%s_idx" % hk] = (rows * T.n + cols).astype(np.int32)
+                hist["h_%s_old" % hk] = h[rows, cols].copy()
+            h[rows, cols] = vals
+            if existed:
+                hist["h_%s_new" % hk] = h[rows, cols].copy()
+            os.makedirs(os.path.dirname(hp), exist_ok=True)
             gb.write_exr(hp, h)
-            rec = {"tile": key, "nodes": int(len(rows)), "height_sha_before": before, "height_sha_after": sha(hp)}
+            rec.update({"nodes": int(len(rows)), "height_sha_before": before, "height_sha_after": sha(hp)})
+            if not existed:
+                rec["created"] = True
         else:
-            rec = {"tile": key, "nodes": 0}
-        cidx = per_colour.get((tx, tz), [])
-        if cidx:
-            cp = g.path("colour", tx, tz, "png")
-            hist["c_%s_png" % key] = np.frombuffer(open(cp, "rb").read(), np.uint8)
-            img = g.colour(tx, tz)
-            cr = np.array([e[0] for e in cidx], np.int32)
-            cc = np.array([e[1] for e in cidx], np.int32)
-            hist["c_%s_idx" % key] = cr * g.n + cc
-            hist["c_%s_old" % key] = img[cr, cc].copy()
-            img[cr, cc] = np.array([e[2] for e in cidx], np.uint8)
-            hist["c_%s_new" % key] = img[cr, cc].copy()
+            rec["nodes"] = 0
+        if (ti, tx, tz) in per_colour:
+            rows, cols, rgba = per_colour[(ti, tx, tz)]
+            cp = T.path("colour", tx, tz, "png")
+            existed = os.path.exists(cp)
+            img = T.colour(tx, tz)
+            if existed:
+                hist["c_%s_png" % hk] = np.frombuffer(open(cp, "rb").read(), np.uint8)
+                hist["c_%s_idx" % hk] = (rows * T.n + cols).astype(np.int32)
+                hist["c_%s_old" % hk] = img[rows, cols].copy()
+            img[rows, cols] = rgba
+            if existed:
+                hist["c_%s_new" % hk] = img[rows, cols].copy()
+            os.makedirs(os.path.dirname(cp), exist_ok=True)
             gc.png_write(cp, img)
-            rec["colour_nodes"] = int(len(cidx))
+            rec["colour_nodes"] = int(len(rows))
+            if not existed:
+                rec["colour_created"] = True
         record_tiles.append(rec)
     os.makedirs(os.path.join(root, "history"), exist_ok=True)
     hpath = os.path.join(root, "history", gid + ".npz")
     np.savez_compressed(hpath, **hist)
     entry = {
         "id": gid, "name": name, "date": datetime.date.today().isoformat(), "why": why,
-        "tiles": [r["tile"] for r in record_tiles], "nodes": len(changes), "new_ground_nodes": len(made),
+        "tiles": [r["tile"] for r in record_tiles], "nodes": int(len(X)), "new_ground_nodes": int(made.sum()),
         "history": "history/%s.npz" % gid, "files": record_tiles,
     }
     entry.update(extra or {})
     log["edits"].append(entry)
     save_log(root, log)
-    print("%s written: %s, %s" % (gid, ", ".join(r["tile"] for r in record_tiles), hpath))
+    print("%s written: %s, %s" % (gid, ", ".join(names) if len(names) <= 12 else "%d tiles" % len(names), hpath))
     return entry
 
 
@@ -525,65 +700,158 @@ def apply_values(root, name, why, values, expect=None, dry=False, min_change=MIN
     `colours` {(x, z): RGB or RGBA bytes} (2026-10-14, the Photoshop save, `ground_paint.py`) are
     new colours in the same edit, alpha 255; only for nodes with ground (now or by this edit), and
     a colour the grid already holds is left out. `colour_expect` {(x, z): RGBA} is what the editor
-    read there, refused like `expect`. `extra` adds fields to the log entry."""
+    read there, refused like `expect`. `extra` adds fields to the log entry. The nodes may be the
+    outer tier's (`apply_arrays`)."""
+    keys = list(values)
+    ck = list(colours or {})
+    return apply_arrays(
+        root, name, why,
+        np.array([k[0] for k in keys], np.float64), np.array([k[1] for k in keys], np.float64),
+        np.array([values[k] for k in keys], np.float64),
+        expect=None if expect is None else np.array([expect.get(k, np.nan) for k in keys], np.float64),
+        expect_given=None if expect is None else np.array([k in expect for k in keys], bool),
+        dry=dry, min_change=min_change, made_by=made_by, show=show,
+        colour_x=np.array([k[0] for k in ck], np.float64), colour_z=np.array([k[1] for k in ck], np.float64),
+        colour=np.array([np.asarray(colours[k])[:3] for k in ck], np.uint8).reshape(-1, 3) if ck else None,
+        colour_expect=None if colour_expect is None else np.array(
+            [np.asarray(colour_expect.get(k, (0, 0, 0, 0)), np.uint8) for k in ck], np.uint8).reshape(-1, 4),
+        colour_expect_given=None if colour_expect is None else np.array([k in colour_expect for k in ck], bool),
+        extra=extra)
+
+
+def _lattice(g, X, Z, what):
+    """Each node's tier, refusing a node outside the grid or off its tier's lattice."""
+    tier = g.tier_of(X, Z)
+    if (tier < 0).any():
+        i = int(np.flatnonzero(tier < 0)[0])
+        raise SystemExit("(%g, %g) is outside the grid" % (X[i], Z[i]))
+    for ti, T in enumerate(g.tiers):
+        m = np.flatnonzero(tier == ti)
+        off = (np.abs(X[m] / T.step - np.rint(X[m] / T.step)) > 1e-9) | \
+              (np.abs(Z[m] / T.step - np.rint(Z[m] / T.step)) > 1e-9)
+        if off.any():
+            i = int(m[np.flatnonzero(off)[0]])
+            raise SystemExit("(%g, %g) is not a node of the %s grid (every %g m)%s" % (
+                X[i], Z[i], T.label, T.step, what))
+    return tier
+
+
+def _all_homes_hold(T, X, Z, want, colour=False):
+    """Per node: whether every tile holding it holds `want` (float32 bit for bit, or RGBA)."""
+    pi, tx, tz, r, c = T.homes_of(X, Z)
+    ok = np.ones(len(X), bool)
+    keys, inv = _tiles_of(tx, tz)
+    for j, key in enumerate(keys):
+        m = inv == j
+        if colour:
+            held = T.colour(*key)[r[m], c[m]]
+            ok[pi[m]] &= (held == want[pi[m]]).all(1)
+        else:
+            held = T.heights(*key)[r[m], c[m]].astype(np.float32).view(np.uint32)
+            ok[pi[m]] &= held == want[pi[m]].astype(np.float32).view(np.uint32)
+    return ok
+
+
+def apply_arrays(root, name, why, x, z, y, expect=None, expect_given=None, dry=False, min_change=MIN_CHANGE,
+                 made_by=None, show=40, colour_x=None, colour_z=None, colour=None, colour_expect=None,
+                 colour_expect_given=None, extra=None):
+    """`apply_values` for arrays (2026-10-14, Stage 4), whole tiles at a time: heights `y` at nodes
+    (`x`, `z`), world metres, each in the inner tier (2 m, inside its domain and on its edge) or
+    the outer (8 m, beyond it); a tile with no file yet is made. `expect` (heights read, NaN where
+    there was no ground) with `expect_given` (which nodes to check) refuses stale nodes as
+    `apply_values` does. Colours: `colour` (N x 3 bytes) at (`colour_x`, `colour_z`), optionally
+    `colour_expect` (N x 4) and `colour_expect_given`. A node given ground needs a colour, its own
+    or its neighbours' (for at most MAX_NEW_COLOUR of them)."""
     if not NAME_RE.match(name or ""):
         raise SystemExit("the edit's name must be short snake_case (a-z, 0-9 and _, up to 40), not %r" % (name,))
     why = " ".join((why or "").split())
     if not why:
         raise SystemExit("say in one line why the edit is made")
     g = Grid(root)
-    changes = {}
-    stale = []
-    for (x, z), v in values.items():
-        x, z, v = float(x), float(z), float(v)
-        if not np.isfinite(v):
-            raise SystemExit("(%g, %g): the new height is not a number; ground is never removed this way" % (x, z))
-        if x / g.step != round(x / g.step) or z / g.step != round(z / g.step):
-            raise SystemExit("(%g, %g) is not a node of the grid (every %g m)" % (x, z, g.step))
-        homes = g.homes(x, z)
-        if not homes:
-            raise SystemExit("(%g, %g) is outside the grid" % (x, z))
-        held = [g.heights(tx, tz)[r, c] for (tx, tz), r, c in homes]
-        if expect is not None and (x, z) in expect:
-            e = np.float32(expect[(x, z)]).tobytes()
-            if any(np.float32(h).tobytes() != e for h in held):
-                stale.append((x, z))
+    X = np.asarray(x, np.float64).ravel()
+    Z = np.asarray(z, np.float64).ravel()
+    Y = np.asarray(y, np.float64).ravel()
+    if not (len(X) == len(Z) == len(Y)):
+        raise SystemExit("x, z and y must be as long as each other")
+    bad = ~np.isfinite(Y)
+    if bad.any():
+        i = int(np.flatnonzero(bad)[0])
+        raise SystemExit("(%g, %g): the new height is not a number; ground is never removed this way" % (X[i], Z[i]))
+    if len(X) and len(np.unique(np.stack([X, Z], 1), axis=0)) != len(X):
+        raise SystemExit("a node is given twice")
+    tier = _lattice(g, X, Z, "")
+    old = np.full(len(X), np.nan)
+    stale = np.zeros(len(X), bool)
+    for ti, T in enumerate(g.tiers):
+        m = np.flatnonzero(tier == ti)
+        if not len(m):
+            continue
+        old[m] = _first_values(T, X[m], Z[m])
+        if expect is not None:
+            given = np.ones(len(X), bool) if expect_given is None else np.asarray(expect_given, bool)
+            chk = m[given[m]]
+            if len(chk):
+                stale[chk] = ~_all_homes_hold(T, X[chk], Z[chk], np.asarray(expect, np.float64)[chk])
+    Y32 = Y.astype(np.float32).astype(np.float64)
+    with np.errstate(invalid="ignore"):
+        changed = ~stale & (np.isnan(old) | (np.abs(Y32 - old) > min_change))
+    PX = np.zeros(0)
+    PZ = np.zeros(0)
+    PC = np.zeros((0, 4), np.uint8)
+    cstale = np.zeros(0, bool)
+    if colour is not None and len(colour):
+        CXa = np.asarray(colour_x, np.float64).ravel()
+        CZa = np.asarray(colour_z, np.float64).ravel()
+        RGBA = np.concatenate([np.asarray(colour, np.uint8).reshape(-1, 3)[:, :3],
+                               np.full((len(CXa), 1), 255, np.uint8)], 1)
+        ctier = _lattice(g, CXa, CZa, " (a colour)")
+        held_c = np.zeros((len(CXa), 4), np.uint8)
+        ground = np.zeros(len(CXa), bool)
+        cstale = np.zeros(len(CXa), bool)
+        for ti, T in enumerate(g.tiers):
+            m = np.flatnonzero(ctier == ti)
+            if not len(m):
                 continue
-        old = float(held[0])
-        if np.isnan(old) or abs(float(np.float32(v)) - old) > min_change:
-            changes[(x, z)] = float(np.float32(v))
-    paint = {}
-    for (x, z), v in (colours or {}).items():
-        x, z = float(x), float(z)
-        rgba = np.array([int(v[0]), int(v[1]), int(v[2]), 255], np.uint8)
-        if x / g.step != round(x / g.step) or z / g.step != round(z / g.step):
-            raise SystemExit("(%g, %g) is not a node of the grid (every %g m)" % (x, z, g.step))
-        homes = g.homes(x, z)
-        if not homes:
-            raise SystemExit("(%g, %g) is outside the grid" % (x, z))
-        if np.isnan(g.get(x, z)) and (x, z) not in changes:
-            raise SystemExit("(%g, %g) has no ground to colour" % (x, z))
-        held = [g.colour(tx, tz)[r, c] for (tx, tz), r, c in homes]
-        if colour_expect is not None and (x, z) in colour_expect:
-            e = np.asarray(colour_expect[(x, z)], np.uint8)
-            if any(not np.array_equal(h, e) for h in held):
-                stale.append((x, z))
+            held_c[m] = _first_values(T, CXa[m], CZa[m], colour=True)
+            ground[m] = np.isfinite(_first_values(T, CXa[m], CZa[m]))
+            if colour_expect is not None:
+                given = np.ones(len(CXa), bool) if colour_expect_given is None else np.asarray(colour_expect_given, bool)
+                chk = m[given[m]]
+                if len(chk):
+                    cstale[chk] = ~_all_homes_hold(T, CXa[chk], CZa[chk], np.asarray(colour_expect, np.uint8)[chk],
+                                                   colour=True)
+        bare = ~ground & ~np.isin(_node_keys(CXa, CZa), _node_keys(X[changed], Z[changed]))
+        if bare.any():
+            i = int(np.flatnonzero(bare)[0])
+            raise SystemExit("(%g, %g) has no ground to colour" % (CXa[i], CZa[i]))
+        keep = ~cstale & ~(held_c == RGBA).all(1)
+        PX, PZ, PC = CXa[keep], CZa[keep], RGBA[keep]
+    if stale.any() or cstale.any():
+        names = set()
+        sets = [(X, Z, stale)]
+        if len(cstale):
+            sets.append((np.asarray(colour_x, np.float64).ravel(), np.asarray(colour_z, np.float64).ravel(), cstale))
+        for (XX, ZZ, st) in sets:
+            if not st.any():
                 continue
-        if not np.array_equal(held[0], rgba):
-            paint[(x, z)] = rgba
-    if stale:
-        tiles = sorted({"x%d_z%d" % t for (x, z) in stale for t, _, _ in g.homes(x, z)})
+            tt = g.tier_of(XX[st], ZZ[st])
+            for ti, T in enumerate(g.tiers):
+                mm = tt == ti
+                if mm.any():
+                    _, tx, tz, _, _ = T.homes_of(XX[st][mm], ZZ[st][mm])
+                    names |= {T.key(a, b) for a, b in zip(tx.tolist(), tz.tolist())}
         raise SystemExit("%d of the nodes changed in %s since they were read (another edit, an undo or "
-                         "a Photoshop save): read them again before saving" % (len(stale), ", ".join(tiles)))
-    if not changes and not paint:
+                         "a Photoshop save): read them again before saving" % (
+                             int(stale.sum() + cstale.sum()), ", ".join(sorted(names))))
+    if not changed.any() and not len(PX):
         print("nothing moved by more than %g m%s: no edit recorded" % (
-            min_change, " and no colour changed" if colours else ""))
+            min_change, " and no colour changed" if colour is not None else ""))
         return None
     extra_all = {"kind": "values", "min_change_m": min_change}
     if made_by:
         extra_all["made_by"] = made_by
     extra_all.update(extra or {})
-    return record(g, name, why, changes, dry, extra_all, show, paint=paint)
+    return _write(g, name, why, X[changed], Z[changed], Y32[changed], PX, PZ, PC, dry, extra_all, show)
 
 
 def undo(root, dry):
@@ -593,31 +861,50 @@ def undo(root, dry):
     e = log["edits"][-1]
     g = Grid(root)
     hist = np.load(os.path.join(root, e["history"]))
-    print("undo %s %s: %d nodes in %s" % (e["id"], e["name"], e["nodes"], ", ".join(e["tiles"])))
+    print("undo %s %s: %d nodes in %s" % (e["id"], e["name"], e["nodes"],
+                                          ", ".join(e["tiles"]) if len(e["tiles"]) <= 12 else
+                                          "%d tiles" % len(e["tiles"])))
     if dry:
         print("dry: nothing written")
         return
     for rec in e["files"]:
         key = rec["tile"]
-        tx, tz = (int(v) for v in key[1:].split("_z"))
-        if "h_%s_idx" % key in hist.files:  # a tile only painted has no heights to restore
-            hp = g.path("height", tx, tz, "exr")
+        T = g.outer if key.startswith("outer/") else g.inner
+        if T is None:
+            raise SystemExit("%s names the outer tier, which grid.json no longer has" % key)
+        tx, tz = (int(v) for v in key.split("/")[-1][1:].split("_z"))
+        hk = key.replace("/", "_")
+        if rec.get("created"):
+            # The edit made this tile: undone, it has no file again.
+            hp = T.path("height", tx, tz, "exr")
+            if os.path.exists(hp):
+                os.remove(hp)
+            T.h.pop((tx, tz), None)
+            print("  %s heights: the tile the edit made is removed" % key)
+        elif "h_%s_idx" % hk in hist.files:  # a tile only painted has no heights to restore
+            hp = T.path("height", tx, tz, "exr")
             untouched = sha(hp) == rec["height_sha_after"]
-            h = g.heights(tx, tz)
-            idx = hist["h_%s_idx" % key]
-            h.reshape(-1)[idx] = hist["h_%s_old" % key]
+            h = T.heights(tx, tz)
+            idx = hist["h_%s_idx" % hk]
+            h.reshape(-1)[idx] = hist["h_%s_old" % hk]
             gb.write_exr(hp, h)
             back = sha(hp) == rec["height_sha_before"]
             print("  %s heights: %d nodes restored; %s" % (key, len(idx), "the tile bit for bit" if back else (
                 "the tile was changed since, so only these nodes" if not untouched else "BYTES DIFFER")))
             if not back and untouched:
                 raise SystemExit("undo of %s did not restore %s exactly" % (e["id"], hp))
-        if "c_%s_png" % key in hist.files:
-            cp = g.path("colour", tx, tz, "png")
-            img = g.colour(tx, tz)
-            cidx = hist["c_%s_idx" % key]
-            img.reshape(-1, 4)[cidx] = hist["c_%s_old" % key]
-            old_bytes = hist["c_%s_png" % key].tobytes()
+        if rec.get("colour_created"):
+            cp = T.path("colour", tx, tz, "png")
+            if os.path.exists(cp):
+                os.remove(cp)
+            T.c.pop((tx, tz), None)
+            print("  %s colour: the image the edit made is removed" % key)
+        elif "c_%s_png" % hk in hist.files:
+            cp = T.path("colour", tx, tz, "png")
+            img = T.colour(tx, tz)
+            cidx = hist["c_%s_idx" % hk]
+            img.reshape(-1, 4)[cidx] = hist["c_%s_old" % hk]
+            old_bytes = hist["c_%s_png" % hk].tobytes()
             tmp = cp + ".undo"
             with open(tmp, "wb") as f:
                 f.write(old_bytes)
@@ -656,17 +943,13 @@ def main():
         undo(a.root, a.dry)
     elif a.values:
         d = np.load(a.values)
-        keys = list(zip(d["x"].astype(np.float64).tolist(), d["z"].astype(np.float64).tolist()))
-        values = dict(zip(keys, d["y"].astype(np.float64).tolist()))
-        expect = dict(zip(keys, d["expect"].tolist())) if "expect" in d.files else None
-        colours = colour_expect = None
-        if "colour" in d.files:
-            ck = list(zip(d["colour_x"].astype(np.float64).tolist(), d["colour_z"].astype(np.float64).tolist()))
-            colours = dict(zip(ck, d["colour"].astype(np.uint8)))
-            if "colour_expect" in d.files:
-                colour_expect = dict(zip(ck, d["colour_expect"].astype(np.uint8)))
-        apply_values(a.root, a.name, a.why, values, expect, a.dry, made_by="ground_grid_edit.py --values",
-                     colours=colours, colour_expect=colour_expect)
+        has_c = "colour" in d.files
+        apply_arrays(a.root, a.name, a.why, d["x"], d["z"], d["y"],
+                     expect=d["expect"] if "expect" in d.files else None, dry=a.dry,
+                     made_by="ground_grid_edit.py --values",
+                     colour_x=d["colour_x"] if has_c else None, colour_z=d["colour_z"] if has_c else None,
+                     colour=d["colour"] if has_c else None,
+                     colour_expect=d["colour_expect"] if has_c and "colour_expect" in d.files else None)
     elif a.edit:
         apply(a.root, a.edit, a.dry)
     else:

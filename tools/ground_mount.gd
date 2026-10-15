@@ -22,6 +22,12 @@ extends SceneTree
 ## output, like the crowd scenes: never edit it by hand; change the tiles, the colour or this
 ## tool and run it again.
 ##
+## Since Stage 4 (2026-10-14) it mounts the outer tier too, where `grid.json` has one: every
+## `<outer>/x{ox}_z{oz}.glb` (`res://assets/world_ground/outer`; one mesh `ground_outer_x{ox}_z{oz}`,
+## 4 km tiles, UV0 = local / 4000) as `outer_x{ox}_z{oz}`, its colour made the same way from
+## `assets/source/world_ground/outer/colour/x{ox}_z{oz}.png` into `<textures>/outer_x{ox}_z{oz}.res`,
+## and checks it the same way against its own tile size.
+##
 ## A run that changes nothing writes nothing: a texture is saved only when what it would hold
 ## differs, and the scene only when it differs by more than its root's unique_id.
 ##
@@ -34,6 +40,8 @@ extends SceneTree
 
 const GRID := "res://assets/source/world_ground/grid.json"
 const COLOUR := "res://assets/source/world_ground/colour"
+const OUTER_COLOUR := "res://assets/source/world_ground/outer/colour"
+const OUTER := "res://assets/world_ground/outer"
 const SHADER := "res://assets/shaders/ground_grid.gdshader"
 const TILES := "res://assets/world_ground/tiles"
 const TEXTURES := "res://assets/world_ground/colour"
@@ -52,7 +60,7 @@ var _failures := 0
 
 
 func _initialize() -> void:
-	var opts := {"tiles": TILES, "textures": TEXTURES, "out": OUT, "check": false}
+	var opts := {"tiles": TILES, "outer": OUTER, "textures": TEXTURES, "out": OUT, "check": false}
 	for arg in OS.get_cmdline_user_args():
 		if arg == "--check":
 			opts["check"] = true
@@ -69,7 +77,7 @@ func _initialize() -> void:
 	if grid.is_empty():
 		_fail_out("cannot read %s" % GRID)
 		return
-	var tiles := _tiles_present(grid, opts["tiles"])
+	var tiles := _tiles_present(grid, opts)
 	if tiles.is_empty():
 		_fail_out("no tile GLBs in %s" % opts["tiles"])
 		return
@@ -103,29 +111,49 @@ func _grid() -> Dictionary:
 	if absf((samples - 1) * spacing - tile) > 1e-9:
 		push_error("grid.json: tile_samples does not span tile_m")
 		return {}
-	return {"spacing": spacing, "tile": tile, "samples": samples,
+	var out := {"spacing": spacing, "tile": tile, "samples": samples,
 		"tiles_x": range(int(g["tiles_x"][0]), int(g["tiles_x"][1]) + 1),
 		"tiles_z": range(int(g["tiles_z"][0]), int(g["tiles_z"][1]) + 1)}
+	if g.has("outer"):
+		var o: Dictionary = g["outer"]
+		if absf((int(o["tile_samples"]) - 1) * float(o["spacing_m"]) - float(o["tile_m"])) > 1e-9:
+			push_error("grid.json: the outer tier's tile_samples does not span its tile_m")
+			return {}
+		out["outer"] = {"tile": float(o["tile_m"]), "samples": int(o["tile_samples"]),
+			"tiles_x": range(int(o["tiles_x"][0]), int(o["tiles_x"][1]) + 1),
+			"tiles_z": range(int(o["tiles_z"][0]), int(o["tiles_z"][1]) + 1)}
+	return out
 
 
-## The grid's tiles that have a GLB, as [tx, tz]; a GLB the editor has not imported fails.
-func _tiles_present(grid: Dictionary, dir: String) -> Array:
+## The grid's tiles that have a GLB, inner then outer, each a Dictionary of what mounting and
+## checking it needs; a GLB the editor has not imported fails.
+func _tiles_present(grid: Dictionary, opts: Dictionary) -> Array:
 	var out := []
-	for tz in grid["tiles_z"]:
-		for tx in grid["tiles_x"]:
-			var glb := "%s/x%d_z%d.glb" % [dir, tx, tz]
-			if not FileAccess.file_exists(glb):
-				continue
-			if not ResourceLoader.exists(glb):
-				_fail("%s is not imported; run Godot --import first" % glb)
-				continue
-			out.append([tx, tz])
+	var tiers := [["", grid, opts["tiles"], COLOUR]]
+	if grid.has("outer"):
+		tiers.append(["outer_", grid["outer"], opts["outer"], OUTER_COLOUR])
+	for tier in tiers:
+		var prefix: String = tier[0]
+		var spec: Dictionary = tier[1]
+		for tz in spec["tiles_z"]:
+			for tx in spec["tiles_x"]:
+				var glb := "%s/x%d_z%d.glb" % [tier[2], tx, tz]
+				if not FileAccess.file_exists(glb):
+					continue
+				if not ResourceLoader.exists(glb):
+					_fail("%s is not imported; run Godot --import first" % glb)
+					continue
+				var name := "%sx%d_z%d" % [prefix, tx, tz]
+				out.append({"tx": tx, "tz": tz, "name": name, "mesh": "ground_" + name, "glb": glb,
+					"png": "%s/x%d_z%d.png" % [tier[3], tx, tz], "texture": "%s/%s.res" % [opts["textures"], name],
+					"tile": float(spec["tile"]), "samples": int(spec["samples"])})
 	return out
 
 
 ## The tile's painted colour as the shader samples it: RGBA8, premultiplied, mipmapped.
-func _colour_image(tx: int, tz: int, samples: int) -> Image:
-	var png := ProjectSettings.globalize_path("%s/x%d_z%d.png" % [COLOUR, tx, tz])
+func _colour_image(t: Dictionary) -> Image:
+	var samples: int = t["samples"]
+	var png := ProjectSettings.globalize_path(t["png"])
 	var img := Image.load_from_file(png)
 	if img == null or img.get_width() != samples or img.get_height() != samples:
 		_fail("%s: missing or not %d x %d" % [png, samples, samples])
@@ -180,30 +208,27 @@ func _mount(grid: Dictionary, tiles: Array, opts: Dictionary) -> bool:
 	root.name = "world_ground"
 	root.editor_description = "Pure output of tools/ground_mount.gd; never edit by hand. The ground grid's tiles, each with its own material of ground_grid.gdshader and its tile's colour from assets/source/world_ground/colour/."
 	for t in tiles:
-		var tx: int = t[0]
-		var tz: int = t[1]
-		var img := _colour_image(tx, tz, grid["samples"])
+		var img := _colour_image(t)
 		if img == null:
 			continue
-		var tex := _texture(img, "%s/x%d_z%d.res" % [opts["textures"], tx, tz])
+		var tex := _texture(img, t["texture"])
 		if tex == null:
 			continue
 		# GEN_EDIT_STATE_INSTANCE keeps the GLB's own state on the instance, as the editor does, so
 		# packing saves only what differs from it (the material) and not a copy of the mesh.
-		var inst := (load("%s/x%d_z%d.glb" % [opts["tiles"], tx, tz]) as PackedScene).instantiate(
-			PackedScene.GEN_EDIT_STATE_INSTANCE)
-		inst.name = "x%d_z%d" % [tx, tz]
+		var inst := (load(t["glb"]) as PackedScene).instantiate(PackedScene.GEN_EDIT_STATE_INSTANCE)
+		inst.name = t["name"]
 		root.add_child(inst)
 		inst.owner = root
-		var mesh := inst.find_child("ground_x%d_z%d" % [tx, tz], true, false) as MeshInstance3D
+		var mesh := inst.find_child(t["mesh"], true, false) as MeshInstance3D
 		if mesh == null:
-			_fail("x%d_z%d.glb has no mesh named ground_x%d_z%d" % [tx, tz, tx, tz])
+			_fail("%s has no mesh named %s" % [t["glb"], t["mesh"]])
 			continue
 		var mat := ShaderMaterial.new()
-		mat.resource_name = "ground_colour_x%d_z%d" % [tx, tz]
+		mat.resource_name = "ground_colour_" + String(t["name"])
 		mat.shader = shader
 		mat.set_shader_parameter("colour", tex)
-		mat.set_shader_parameter("tile_samples", float(grid["samples"]))
+		mat.set_shader_parameter("tile_samples", float(t["samples"]))
 		mesh.material_override = mat
 		# The mesh is inside the tile's instance: its override is saved only if the instance's
 		# children are editable, as the editor's Editable Children does.
@@ -263,24 +288,22 @@ func _check(grid: Dictionary, tiles: Array, opts: Dictionary) -> void:
 		if ('type="%s"' % kind) in text:
 			_fail("%s holds a copy of a tile's %s; only the materials belong in it" % [opts["out"], kind])
 	var scene := packed.instantiate()
-	var tile_m: float = grid["tile"]
 	var worst_uv := 0.0
 	var worst_out := 0.0
 	var vertices := 0
 	for t in tiles:
-		var tx: int = t[0]
-		var tz: int = t[1]
-		var name := "x%d_z%d" % [tx, tz]
+		var tile_m: float = t["tile"]
+		var name: String = t["name"]
 		var inst := scene.get_node_or_null(name) as Node3D
 		if inst == null:
 			_fail("%s is not mounted" % name)
 			continue
-		var mesh := inst.find_child("ground_" + name, true, false) as MeshInstance3D
+		var mesh := inst.find_child(t["mesh"], true, false) as MeshInstance3D
 		if mesh == null:
 			_fail("%s has no mesh" % name)
 			continue
-		var x0 := tx * tile_m
-		var z0 := tz * tile_m
+		var x0: float = int(t["tx"]) * tile_m
+		var z0: float = int(t["tz"]) * tile_m
 		# Where the mesh's vertices are in the world: the scene's own transforms down to it.
 		var xf := Transform3D.IDENTITY
 		var n: Node = mesh
@@ -320,12 +343,12 @@ func _check(grid: Dictionary, tiles: Array, opts: Dictionary) -> void:
 			_fail("%s: its material is not %s" % [name, SHADER])
 			continue
 		var tex := mat.get_shader_parameter("colour") as Texture2D
-		var want := "%s/x%d_z%d.res" % [opts["textures"], tx, tz]
+		var want: String = t["texture"]
 		if tex == null or tex.resource_path != want:
 			_fail("%s: its colour is %s, not %s" % [name, "nothing" if tex == null else tex.resource_path, want])
 			continue
 		var got := tex.get_image()
-		var img := _colour_image(tx, tz, grid["samples"])
+		var img := _colour_image(t)
 		if got == null or img == null:
 			_fail("%s: no image to compare" % name)
 			continue

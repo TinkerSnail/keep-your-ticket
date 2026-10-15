@@ -587,10 +587,16 @@ func _init_grid(height: Dictionary, baseline: Dictionary) -> void:
 	for j in _grid_ntz:
 		for i in _grid_ntx:
 			var key := Vector2i(_grid_tx0 + i, _grid_tz0 + j)
-			var now: PackedFloat32Array = _read_tile("height", key) if read \
-				else height.get(key, PackedFloat32Array())
 			var then: PackedFloat32Array = _read_tile("baseline", key) if read \
 				else baseline.get(key, PackedFloat32Array())
+			# A tile with no baseline (the sea tiles Stage 4 added, 2026-10-14) has no ground then,
+			# so every change there reads zero, as `_grid_delta`'s NAN does: it is not read at all.
+			if then.size() != n:
+				_grid_now.append(PackedFloat32Array())
+				_grid_then.append(PackedFloat32Array())
+				continue
+			var now: PackedFloat32Array = _read_tile("height", key) if read \
+				else height.get(key, PackedFloat32Array())
 			if now.size() != n:
 				now = _no_ground(n)
 			if then.size() != n:
@@ -630,6 +636,9 @@ static func load_grid(folder: String) -> Dictionary:
 static func _read_tile(folder: String, key: Vector2i) -> PackedFloat32Array:
 	var path := ProjectSettings.globalize_path(GRID_DIR.path_join(folder).path_join(
 		"x%d_z%d.exr" % [key.x, key.y]))
+	# No file is no ground (grid.json, since Stage 4): an empty array, which reads as NaN.
+	if not FileAccess.file_exists(path):
+		return PackedFloat32Array()
 	var img := Image.load_from_file(path)
 	if img == null or img.is_empty():
 		push_error("the height grid has no tile %s" % path)

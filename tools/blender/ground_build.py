@@ -5,8 +5,8 @@ Blender's job of turning the grid, `assets/source/world_ground/height/`, into th
 ordinary meshes the game loads. No Godot terrain system.
 
     Blender --background --factory-startup --python tools/blender/ground_build.py -- \
-        [--tiles all|x0_z0,...] [--force] [--out DIR] [--held DUMP] [--no-seam]
-        [--census PATH.blend] [--prove PATH.json] [--no-build] [--write-zones]
+        [--tiles all|x0_z0,...] [--force] [--out DIR] [--src DIR] [--held DUMP] [--no-seam]
+        [--census PATH.blend] [--prove PATH.json] [--no-build] [--no-done] [--write-zones]
 
 About 100 s for all 50 tiles from nothing (one core), and a few seconds more
 for the held ground's faces, which it dumps with a headless Godot run of
@@ -65,6 +65,12 @@ What a tile's mesh is
   through `holes.json`'s meets), the grid is carved and stitched so it meets
   each held edge exactly, as the master did: see "the ground the generator
   still holds" below. `--no-seam` builds the grid alone.
+- **Two tiers** (2026-10-14, Stage 4 of the plan). The inner tiles (2 m) reach x -3..4 and z -4..8
+  km, the sea tiles beyond Stage 1's x -2..3, z -3..7 holding ground only once the seabed is written
+  (a tile with no file is no-data); there, ground below -20 m takes `tolerance_zones.deep_sea`'s 0.5 m.
+  Beyond them `grid.json`'s `outer` tier (8 m nodes, 4 km tiles) is built the same way within its own
+  0.5 m into `<out>/../outer/` (see "the outer tier" below), its seam with the inner tiles fanned so
+  neither side has a T-junction. `--src` builds from a copy of `assets/source/world_ground/`.
 - **The open sea's edge**: where the grid's outer edge would end above the
   water, its first ring of open-sea no-data nodes runs it on down to -16 m (see
   `SKIRT_Y`), as the master's coasts ran on under the water.
@@ -122,7 +128,7 @@ OUT = os.path.join(ROOT, "assets", "world_ground", "tiles")
 GODOT = os.environ.get("GODOT", "/Applications/Godot.app/Contents/MacOS/Godot")
 CITY_BLEND = os.path.join(ROOT, "assets", "source", "far_shore_city_relocation.blend")
 
-CORE_VERSION = "ground_build core 3"
+CORE_VERSION = "ground_build core 4"
 EXPORT_VERSION = "ground_build export 1"
 SIDES = ("n", "s", "w", "e")
 OPPOSITE = {"n": "s", "s": "n", "w": "e", "e": "w"}
@@ -209,14 +215,21 @@ def tile_name(tx, tz):
 class Zones:
     """`grid.json`'s `tolerance_zones`, evaluated on regular grids of points."""
 
-    PARK, WALK, ELSE = 0, 1, 2
-    NAMES = ("park", "walkable", "elsewhere")
+    PARK, WALK, ELSE, DEEP = 0, 1, 2, 3
+    NAMES = ("park", "walkable", "elsewhere", "deep_sea")
 
     def __init__(self, spec):
         self.spec = spec
         zones = {z["name"]: z for z in spec["zones"]}
         park, walk = zones["park"], zones["walkable"]
-        self.tol = np.array([float(park["tolerance_m"]), float(walk["tolerance_m"]), float(spec["default_m"])])
+        # The sea the grid grew into for Stage 4 (2026-10-14): outside `outside_rect` (the grid as
+        # Stage 1 baked it) a point below `below_m` takes this tolerance instead of its zone's.
+        deep = spec.get("deep_sea")
+        self.deep = None
+        if deep:
+            self.deep = (float(deep["below_m"]), [float(v) for v in deep["outside_rect"]])
+        self.tol = np.array([float(park["tolerance_m"]), float(walk["tolerance_m"]), float(spec["default_m"]),
+                             float(deep["tolerance_m"]) if deep else float(spec["default_m"])])
         self.rect = [float(v) for v in park["rect"]]
         self.within = float(walk["within_m"])
         segs = []
@@ -269,13 +282,30 @@ class Zones:
         return out
 
 
+class OuterZones:
+    """The outer tier's one tolerance (`grid.json`'s `outer.tolerance_m`)."""
+
+    NAMES = ("outer",)
+
+    def __init__(self, tol):
+        self.tol = np.array([float(tol)])
+        self.deep = None
+        self.sha = sha_json({"outer_tolerance_m": float(tol)})
+
+    def grid(self, xs, zs):
+        return np.zeros((len(zs), len(xs)), np.uint8)
+
+
 # --- one tile's grid ----------------------------------------------------------
 
 class TileData:
     """A tile's heights, the region its mesh may cover, the reference surface
     and tolerance on the half-node lattice, and the region's boundary."""
 
-    def __init__(self, tx, tz, H, zones, spacing=2.0, tile_m=1000.0):
+    def __init__(self, tx, tz, H, zones, spacing=2.0, tile_m=1000.0, cells=None):
+        """`cells` (n-1 x n-1 bools), where given, are the only cells the region may hold: the outer
+        tier's cells inside the inner domain are never its own, even the one at each of the
+        domain's corners whose three nodes on the domain's edge all hold ground."""
         n = H.shape[0]
         self.tx, self.tz, self.n = tx, tz, n
         self.spacing = spacing
@@ -288,6 +318,9 @@ class TileData:
         nv = a.astype(np.int8) + b + c + d
         self.c4 = nv == 4
         self.c3 = nv == 3
+        if cells is not None:
+            self.c4 &= cells
+            self.c3 &= cells
         # The NaN corner of a three-node cell: 0 (c, r), 1 (c+1, r), 2 (c, r+1), 3 (c+1, r+1).
         nanc = np.where(~a, 0, np.where(~b, 1, np.where(~c, 2, 3)))
         self.nanc = np.where(self.c3, nanc, -1).astype(np.int8)
@@ -311,7 +344,13 @@ class TileData:
         self.floor = floor
         xs = self.x0 + np.arange(S) * spacing / 2
         zs = self.z0 + np.arange(S) * spacing / 2
+        self.zones = zones
         self.zid = zones.grid(xs, zs)
+        if zones.deep is not None:
+            below, (rx0, rz0, rx1, rz1) = zones.deep
+            outside = ~(((xs >= rx0) & (xs <= rx1))[None, :] & ((zs >= rz0) & (zs <= rz1))[:, None])
+            with np.errstate(invalid="ignore"):
+                self.zid[outside & (R < below)] = Zones.DEEP
         T = zones.tol[self.zid]
         T[1::2, 1::2] = np.maximum(T[1::2, 1::2], floor * (1 + 1e-9) + 1e-6)
         self.T = T
@@ -1209,6 +1248,33 @@ def _band_cdt(world, t, td, held, pieces, nodes, ce):
 
 # --- the build ----------------------------------------------------------------
 
+def read_grid(folder, g, name=None):
+    """A grid folder's tiles as one mosaic (float32, NaN for no ground), a tile with no file being
+    all no-data (2026-10-14: the sea tiles Stage 4 added have none until the seabed is written);
+    where two tiles share an edge it is checked bit for bit. Returns (mosaic, nodes that differ,
+    the tiles present)."""
+    gb = _bake()
+    out = np.full((g.nz, g.nx), np.nan, "<f4")
+    seen = np.zeros((g.nz, g.nx), bool)
+    bad = 0
+    present = set()
+    for tx, tz in g.tiles():
+        path = os.path.join(folder, (name or g.name)(tx, tz))
+        if not os.path.exists(path):
+            continue
+        a = gb.read_exr(path)[0]
+        if a.shape != (g.n, g.n):
+            raise SystemExit("ground_build: %s is %s, not %d square" % (path, a.shape, g.n))
+        rows, cols = g.window(tx, tz)
+        prev = out[rows, cols]
+        sn = seen[rows, cols]
+        bad += int(np.count_nonzero(sn & (prev.view("<u4") != a.view("<u4"))))
+        out[rows, cols] = a
+        seen[rows, cols] = True
+        present.add((tx, tz))
+    return out, bad, present
+
+
 class World:
     def __init__(self, out_dir, held_dir=None, seam=True):
         gb = _bake()
@@ -1219,13 +1285,14 @@ class World:
         if "tolerance_zones" not in self.spec:
             raise SystemExit("ground_build: grid.json has no tolerance_zones; run with --write-zones first")
         self.zones = Zones(self.spec["tolerance_zones"])
-        self.raw, bad = gb.read_tiles(os.path.join(SRC, "height"), g)
+        self.raw, bad, self.present = read_grid(os.path.join(SRC, "height"), g)
         if bad:
             raise SystemExit("ground_build: %d shared-edge nodes differ between height tiles" % bad)
         self.mosaic = self.raw
         self.exr_sha = {}
         for tx, tz in g.tiles():
-            self.exr_sha[(tx, tz)] = sha_file(os.path.join(SRC, "height", g.name(tx, tz)))
+            path = os.path.join(SRC, "height", g.name(tx, tz))
+            self.exr_sha[(tx, tz)] = sha_file(path) if os.path.exists(path) else None
         self.held = None
         self.pieces = {}
         self.seam = {"applied": False}
@@ -1270,6 +1337,13 @@ class World:
 
     def tiledata(self, t):
         return TileData(t[0], t[1], self.heights(t), self.zones, self.grid.step, self.grid.tile_m)
+
+    def on_domain_edge(self, t, side):
+        """Whether a tile's side is on the inner domain's edge, where the outer tier meets it."""
+        if "outer" not in self.spec:
+            return False
+        g = self.grid
+        return {"n": t[1] == g.tz[0], "s": t[1] == g.tz[-1], "w": t[0] == g.tx[0], "e": t[0] == g.tx[-1]}[side]
 
     def line(self, t, side):
         """A border line's heights and its tolerances at nodes and midpoints."""
@@ -1403,9 +1477,9 @@ def build_tile_mesh(world, t, td, T, band=None):
             "band_vertices": nb, "band_triangles": int(len(BT))}
 
 
-def export_glb(mesh, t, x0, z0, path):
+def export_glb(mesh, t, x0, z0, path, name=None):
     import bpy
-    name = "ground_%s" % tile_name(*t)
+    name = name or "ground_%s" % tile_name(*t)
     pos = mesh["pos"]
     # Blender: (x, -z, y).
     bverts = np.stack([pos[:, 0], -pos[:, 2], pos[:, 1]], 1)
@@ -1453,6 +1527,250 @@ def export_glb(mesh, t, x0, z0, path):
     bpy.data.meshes.remove(me)
 
 
+
+# --- the outer tier ---------------------------------------------------------------
+#
+# Stage 4 (2026-10-14): beyond the inner tiles' domain the sea floor is a second, coarser grid,
+# `grid.json`'s `outer`: 4 km tiles of 501 nodes every 8 m, `outer/height/x{ox}_z{oz}.exr`. Its
+# nodes inside the inner domain are no-data, and those on the domain's edge are read from the
+# inner grid, whose nodes they are (the edge falls on 8 m nodes). It is built like the inner grid,
+# within `outer.tolerance_m`, into `assets/world_ground/outer/x{ox}_z{oz}.glb`, one mesh
+# `ground_outer_x{ox}_z{oz}` each, UV0 = local / 4000.
+#
+# The seam: an inner tile's side on the domain's edge keeps every 8 m node of that line with
+# ground, and any 2 m node its own refinement needs there. The outer tile has every 8 m node of
+# the line (each is an end of its region's edge there), and the outer triangle on each 8 m
+# segment is fanned through the inner side's nodes inside it, so both sides draw the same
+# segments: four inner vertices to an outer one at most, and no T-junction.
+
+class OuterGrid:
+    """`grid.json`'s `outer` lattice, in `ground_bake.Grid`'s terms."""
+
+    def __init__(self, spec):
+        self.spec = spec
+        self.step = float(spec["spacing_m"])
+        self.tile_m = float(spec["tile_m"])
+        self.n = int(spec["tile_samples"])
+        self.per = self.n - 1
+        if abs(self.per * self.step - self.tile_m) > 1e-9:
+            raise SystemExit("ground_build: grid.json's outer tiles of %d cells of %g m are not %g m" % (
+                self.per, self.step, self.tile_m))
+        self.tx = list(range(spec["tiles_x"][0], spec["tiles_x"][1] + 1))
+        self.tz = list(range(spec["tiles_z"][0], spec["tiles_z"][1] + 1))
+        self.x0 = self.tile_m * self.tx[0]
+        self.z0 = self.tile_m * self.tz[0]
+        self.nx = self.per * len(self.tx) + 1
+        self.nz = self.per * len(self.tz) + 1
+
+    def tiles(self):
+        for tz in self.tz:
+            for tx in self.tx:
+                yield tx, tz
+
+    def window(self, tx, tz):
+        c = (tx - self.tx[0]) * self.per
+        r = (tz - self.tz[0]) * self.per
+        return slice(r, r + self.n), slice(c, c + self.n)
+
+    def name(self, tx, tz):
+        return "x%d_z%d.exr" % (tx, tz)
+
+
+class OuterWorld:
+    """The outer tier's mosaic, its tiles with ground, and what the build reads of it."""
+
+    def __init__(self, world):
+        self.inner = world
+        self.grid = OuterGrid(world.spec["outer"])
+        g = self.grid
+        self.zones = OuterZones(world.spec["outer"]["tolerance_m"])
+        self.n = g.n
+        M, bad, self.present = read_grid(os.path.join(SRC, "outer", "height"), g)
+        if bad:
+            raise SystemExit("ground_build: %d shared-edge nodes differ between outer tiles" % bad)
+        self.raw = M
+        ig = world.grid
+        self.dx0, self.dz0 = ig.x0, ig.z0
+        self.dx1 = ig.x0 + ig.tile_m * len(ig.tx)
+        self.dz1 = ig.z0 + ig.tile_m * len(ig.tz)
+        for v in (self.dx0 - g.x0, self.dx1 - g.x0, self.dz0 - g.z0, self.dz1 - g.z0):
+            if abs(v / g.step - round(v / g.step)) > 1e-9:
+                raise SystemExit("ground_build: the inner domain's edge is not on the outer tier's nodes")
+        xs = g.x0 + g.step * np.arange(g.nx)
+        zs = g.z0 + g.step * np.arange(g.nz)
+        closed = ((xs >= self.dx0) & (xs <= self.dx1))[None, :] & ((zs >= self.dz0) & (zs <= self.dz1))[:, None]
+        strict = ((xs > self.dx0) & (xs < self.dx1))[None, :] & ((zs > self.dz0) & (zs < self.dz1))[:, None]
+        self.mosaic = M.copy()
+        self.mosaic[closed] = np.nan
+        self.boundary = closed & ~strict
+        r, c = np.nonzero(self.boundary)
+        ci = np.rint((xs[c] - ig.x0) / ig.step).astype(np.int64)
+        ri = np.rint((zs[r] - ig.z0) / ig.step).astype(np.int64)
+        self.mosaic[r, c] = world.mosaic[ri, ci]
+        self.tiles = []
+        self.tile_sha = {}
+        for t in g.tiles():
+            rows, cols = g.window(*t)
+            H = self.mosaic[rows, cols]
+            V = np.isfinite(H)
+            nv = V[:-1, :-1].astype(np.int8) + V[:-1, 1:] + V[1:, :-1] + V[1:, 1:]
+            if (nv >= 3).any():
+                self.tiles.append(t)
+            self.tile_sha[t] = hashlib.sha256(np.ascontiguousarray(H).tobytes()).hexdigest()
+        self.tileset = set(self.tiles)
+
+    def heights(self, t):
+        rows, cols = self.grid.window(*t)
+        return self.mosaic[rows, cols]
+
+    def neighbour(self, t, side):
+        dx, dz = STEP[side]
+        u = (t[0] + dx, t[1] + dz)
+        return u if u in self.tileset else None
+
+    def tiledata(self, t):
+        g = self.grid
+        x0, z0 = g.tile_m * t[0], g.tile_m * t[1]
+        cx = x0 + g.step * (np.arange(g.n - 1) + 0.5)
+        cz = z0 + g.step * (np.arange(g.n - 1) + 0.5)
+        inside = ((cx > self.dx0) & (cx < self.dx1))[None, :] & ((cz > self.dz0) & (cz < self.dz1))[:, None]
+        return TileData(t[0], t[1], self.heights(t), self.zones, g.step, g.tile_m, cells=~inside)
+
+    def line(self, t, side):
+        H = self.heights(t)
+        z = {"n": H[0, :], "s": H[-1, :], "w": H[:, 0], "e": H[:, -1]}[side].astype(np.float64)
+        tol = np.full(2 * self.n - 1, self.zones.tol[0])
+        return z, tol[0::2], tol[1::2]
+
+    def normals(self, t):
+        """The outer nodes' normals by central differences over the outer mosaic; a node on the
+        inner domain's edge takes the inner grid's normal there, as the inner tile has it."""
+        g = self.grid
+        rows, cols = g.window(*t)
+        r0, c0 = rows.start, cols.start
+        M = self.mosaic
+        n = self.n
+        W = np.full((n + 2, n + 2), np.nan)
+        ra, rb = max(r0 - 1, 0), min(r0 + n + 1, M.shape[0])
+        ca, cb = max(c0 - 1, 0), min(c0 + n + 1, M.shape[1])
+        W[ra - r0 + 1:rb - r0 + 1, ca - c0 + 1:cb - c0 + 1] = M[ra:rb, ca:cb]
+        C = W[1:-1, 1:-1]
+        h = g.step
+
+        def diff(lo, hi):
+            both = np.isfinite(lo) & np.isfinite(hi)
+            only_hi = ~np.isfinite(lo) & np.isfinite(hi)
+            only_lo = np.isfinite(lo) & ~np.isfinite(hi)
+            with np.errstate(invalid="ignore"):
+                return np.where(both, (hi - lo) / (2 * h),
+                                np.where(only_hi, (hi - C) / h, np.where(only_lo, (C - lo) / h, 0.0)))
+        dx = diff(W[1:-1, :-2], W[1:-1, 2:])
+        dz = diff(W[:-2, 1:-1], W[2:, 1:-1])
+        N = np.stack([-dx, np.ones_like(dx), -dz], -1)
+        N /= np.linalg.norm(N, axis=-1, keepdims=True)
+        b = self.boundary[rows, cols]
+        if b.any():
+            rr, cc = np.nonzero(b & np.isfinite(C))
+            N[rr, cc] = self.inner.normal_near(g.x0 + g.step * (c0 + cc), g.z0 + g.step * (r0 + rr))
+        return N
+
+    def normal_near(self, xw, zw):
+        return self.inner.normal_near(xw, zw)
+
+
+def seam_points(world, borders):
+    """The inner side of the 2/8 m seam: for each line of the inner domain's edge, the world
+    positions along it of the inner tiles' vertices there, with their heights."""
+    g = world.grid
+    out = {}
+    for (t, side), b in borders.items():
+        if b is None or not world.on_domain_edge(t, side):
+            continue
+        x0, z0 = g.tile_m * t[0], g.tile_m * t[1]
+        pos = np.asarray(b, np.int64)
+        if side in ("n", "s"):
+            zl = z0 + (0 if side == "n" else g.tile_m)
+            key = ("z", zl)
+            along = x0 + g.step * pos
+            r = int(round((zl - g.z0) / g.step))
+            ys = world.mosaic[r, np.rint((along - g.x0) / g.step).astype(np.int64)]
+        else:
+            xl = x0 + (0 if side == "w" else g.tile_m)
+            key = ("x", xl)
+            along = z0 + g.step * pos
+            c = int(round((xl - g.x0) / g.step))
+            ys = world.mosaic[np.rint((along - g.z0) / g.step).astype(np.int64), c]
+        d = out.setdefault(key, {})
+        for a, y in zip(along.tolist(), ys.tolist()):
+            d[a] = y
+    return {k: (np.array(sorted(v)), np.array([v[a] for a in sorted(v)], np.float64)) for k, v in out.items()}
+
+
+def fan_seam(outer, t, td, T, seams):
+    """The outer tile's triangles with every one on an 8 m segment of the domain's edge fanned
+    through the inner side's vertices inside that segment: (kept triangles, a band dict)."""
+    n = td.n
+    g = outer.grid
+    x0, z0 = td.x0, td.z0
+    c = T % n
+    r = T // n
+    X = x0 + g.step * c
+    Z = z0 + g.step * r
+    keep = np.ones(len(T), bool)
+    verts = []
+    vid = {}
+    tris = []
+
+    def extra(key, lo, hi):
+        if key not in seams:
+            return []
+        along, ys = seams[key]
+        i0 = np.searchsorted(along, lo, "right")
+        i1 = np.searchsorted(along, hi, "left")
+        return list(zip(along[i0:i1].tolist(), ys[i0:i1].tolist()))
+
+    for i in range(len(T)):
+        for k in range(3):
+            a, b = k, (k + 1) % 3
+            xa, za, xb, zb = X[i, a], Z[i, a], X[i, b], Z[i, b]
+            line = None
+            if xa == xb and xa in (outer.dx0, outer.dx1) and outer.dz0 <= min(za, zb) and max(za, zb) <= outer.dz1:
+                line = ("x", xa)
+                pts = extra(line, min(za, zb), max(za, zb))
+                world_pts = [(xa, y, zz) for zz, y in pts]
+                if za > zb:
+                    world_pts = world_pts[::-1]
+            elif za == zb and za in (outer.dz0, outer.dz1) and outer.dx0 <= min(xa, xb) and max(xa, xb) <= outer.dx1:
+                line = ("z", za)
+                pts = extra(line, min(xa, xb), max(xa, xb))
+                world_pts = [(xx, y, za) for xx, y in pts]
+                if xa > xb:
+                    world_pts = world_pts[::-1]
+            if line is None or not world_pts:
+                continue
+            ids = []
+            for p in world_pts:
+                key = (round(p[0], 6), round(p[2], 6))
+                if key not in vid:
+                    vid[key] = len(verts)
+                    verts.append(p)
+                ids.append(n * n + vid[key])
+            seq = [int(T[i, a])] + ids + [int(T[i, b])]
+            o = int(T[i, (k + 2) % 3])
+            for j in range(len(seq) - 1):
+                tris.append((seq[j], seq[j + 1], o))
+            keep[i] = False
+            break
+    band = None
+    if tris:
+        band = {"verts": np.array(verts, np.float64), "tris": np.array(tris, np.int64), "pieces": 0, "length_m": 0.0}
+    return T[keep], band
+
+
+def outer_tile_name(t):
+    return "outer_x%d_z%d" % t
+
+
 def zone_counts(td, mesh):
     """Triangles by the zone at their centroid."""
     P = mesh["pos"].astype(np.float64)
@@ -1461,7 +1779,169 @@ def zone_counts(td, mesh):
     sx = np.clip(np.rint(cen[:, 0]).astype(np.int64), 0, td.S - 1)
     sz = np.clip(np.rint(cen[:, 2]).astype(np.int64), 0, td.S - 1)
     z = td.zid[sz, sx]
-    return {Zones.NAMES[k]: int((z == k).sum()) for k in range(3)}
+    return {name: int((z == k).sum()) for k, name in enumerate(td.zones.NAMES)}
+
+
+
+def build_outer(world, borders, args, out, m_outer):
+    """The outer tier: like the inner tiles' build, phase 1, shared lines, phase 2, write; its
+    tiles go to `<out>/../outer`. Returns (its manifest record, tiles not written, tiles built)."""
+    ow = OuterWorld(world)
+    odir = os.path.join(os.path.dirname(os.path.abspath(out)), "outer")
+    os.makedirs(odir, exist_ok=True)
+    if args.force:
+        m_outer = {}
+    seams = seam_points(world, borders)
+    m_tiles = m_outer.get("tiles", {})
+    m_p1 = m_outer.get("phase1", {})
+    m_aug = m_outer.get("augmentations", {})
+    log("outer tier: %d of %d tiles hold sea floor; %d seam lines" % (
+        len(ow.tiles), len(list(ow.grid.tiles())), len(seams)))
+    p1 = {}
+    for t in ow.tiles:
+        key = sha_json([ow.tile_sha[t], ow.zones.sha, CORE_VERSION, "outer phase1"])
+        cached = m_p1.get(outer_tile_name(t))
+        if cached and cached.get("key") == key:
+            p1[t] = cached
+            continue
+        td = ow.tiledata(t)
+        vmask, T, _, st = refine(td, td.required.copy(), np.zeros(td.n * td.n, bool))
+        p1[t] = {"key": key, "requests": {side: [int(k) for k in np.flatnonzero(vmask[td.border_nodes(side)])]
+                                          for side in SIDES}}
+        log("outer phase 1 %s: %d rounds, %d vertices, %d triangles" % (
+            outer_tile_name(t), st["rounds"], st["vertices"], st["triangles"]))
+
+    def edge_key(t, side):
+        u = ow.neighbour(t, side)
+        if u is None:
+            return None
+        lo, hi = sorted([(t, side), (u, OPPOSITE[side])])
+        return "%s:%s|%s:%s" % (outer_tile_name(lo[0]), lo[1], outer_tile_name(hi[0]), hi[1])
+
+    def border_set(t, side):
+        u = ow.neighbour(t, side)
+        if u is None:
+            return None
+        pos = set(p1[t]["requests"][side]) | set(p1[u]["requests"][OPPOSITE[side]]) | \
+            set(m_aug.get(edge_key(t, side), []))
+        z, tn, tm = ow.line(t, side)
+        return line_close(z, tn, tm, pos)
+
+    obord = {(t, side): border_set(t, side) for t in ow.tiles for side in SIDES}
+    g = ow.grid
+
+    def seam_in(t):
+        x0, z0 = g.tile_m * t[0], g.tile_m * t[1]
+        out_ = []
+        for (axis, v), (along, ys) in sorted(seams.items()):
+            lo, hi = (z0, z0 + g.tile_m) if axis == "x" else (x0, x0 + g.tile_m)
+            if (axis == "x" and x0 <= v <= x0 + g.tile_m) or (axis == "z" and z0 <= v <= z0 + g.tile_m):
+                m = (along >= lo) & (along <= hi)
+                out_.append([axis, v, along[m].tolist(), ys[m].tolist()])
+        return out_
+
+    def outside_line(t, side):
+        rows, cols = g.window(*t)
+        M = ow.mosaic
+        r0, r1, c0, c1 = rows.start, rows.stop, cols.start, cols.stop
+        sl = {"n": (r0 - 1, slice(c0, c1)), "s": (r1, slice(c0, c1)),
+              "w": (slice(r0, r1), c0 - 1), "e": (slice(r0, r1), c1)}[side]
+        k = sl[0] if side in ("n", "s") else sl[1]
+        if k < 0 or k >= (M.shape[0] if side in ("n", "s") else M.shape[1]):
+            return None
+        return hashlib.sha256(np.ascontiguousarray(M[sl]).tobytes()).hexdigest()
+
+    def input_hash(t):
+        parts = [ow.tile_sha[t]]
+        for side in SIDES:
+            parts.append(outside_line(t, side))
+            parts.append(obord[(t, side)])
+        parts.append(seam_in(t))
+        return sha_json(parts + [ow.zones.sha, CORE_VERSION, EXPORT_VERSION])
+
+    todo = set()
+    for t in ow.tiles:
+        prev = m_tiles.get(outer_tile_name(t))
+        glb = os.path.join(odir, tile_name(*t) + ".glb")
+        if (prev is None or prev.get("input_hash") != input_hash(t) or not os.path.exists(glb)
+                or prev.get("glb_sha256") != sha_file(glb)):
+            todo.add(t)
+    results = {}
+    queue = sorted(todo)
+    while queue:
+        again = set()
+        for t in queue:
+            td = ow.tiledata(t)
+            start = td.required.copy()
+            forbidden = np.zeros(td.n * td.n, bool)
+            for side in SIDES:
+                b = obord[(t, side)]
+                if b is None:
+                    continue
+                nodes = td.border_nodes(side)
+                start[nodes[b]] = True
+                f = np.ones(td.n, bool)
+                f[b] = False
+                forbidden[nodes[f]] = True
+            vmask, T, wants, st = refine(td, start, forbidden)
+            results[t] = (td, vmask, T, st)
+            for k in wants:
+                c, r = int(k % td.n), int(k // td.n)
+                for side in SIDES:
+                    p = {"n": c if r == 0 else None, "s": c if r == td.n - 1 else None,
+                         "w": r if c == 0 else None, "e": r if c == td.n - 1 else None}[side]
+                    u = ow.neighbour(t, side)
+                    if p is None or u is None:
+                        continue
+                    ek = edge_key(t, side)
+                    m_aug.setdefault(ek, [])
+                    if p not in m_aug[ek]:
+                        m_aug[ek].append(p)
+                    obord[(t, side)] = border_set(t, side)
+                    obord[(u, OPPOSITE[side])] = border_set(u, OPPOSITE[side])
+                    again.update((t, u))
+        queue = sorted(again)
+    m_new = dict(m_tiles)
+    for t in sorted(results):
+        td, vmask, T, st = results[t]
+        if st["unfixed_triangles"]:
+            raise SystemExit("ground_build: outer %s left %d triangles out of tolerance" % (
+                tile_name(*t), st["unfixed_triangles"]))
+        T2, band = fan_seam(ow, t, td, T, seams)
+        mesh = build_tile_mesh(ow, t, td, T2, band)
+        path = os.path.join(odir, tile_name(*t) + ".glb")
+        export_glb(mesh, t, td.x0, td.z0, path, name="ground_" + outer_tile_name(t))
+        imp = path + ".import"
+        if not os.path.exists(imp):
+            with open(imp, "w") as f:
+                f.write(IMPORT_FILE)
+        m_new[outer_tile_name(t)] = {
+            "input_hash": input_hash(t), "glb": "outer/" + os.path.basename(path), "glb_sha256": sha_file(path),
+            "glb_bytes": os.path.getsize(path), "vertices": int(len(mesh["pos"])), "triangles": int(len(mesh["tris"])),
+            "seam_fan_triangles": mesh["band_triangles"],
+            "y_range": [float(mesh["pos"][:, 1].min()), float(mesh["pos"][:, 1].max())],
+            "build": {"rounds": st["rounds"], "seconds": round(st["seconds_triangulate"] + st["seconds_measure"], 2)}}
+        log("outer %s: %d triangles (%d fanned at the seam)" % (outer_tile_name(t), len(mesh["tris"]),
+                                                                 mesh["band_triangles"]))
+    names = {tile_name(*t) for t in ow.tiles}
+    for f in sorted(os.listdir(odir)):
+        if f.endswith(".glb") and f[:-4] not in names:
+            os.remove(os.path.join(odir, f))
+            if os.path.exists(os.path.join(odir, f + ".import")):
+                os.remove(os.path.join(odir, f + ".import"))
+            m_new.pop("outer_" + f[:-4], None)
+            log("removed outer/%s: the tile holds no sea floor" % f)
+    missing = [outer_tile_name(t) for t in ow.tiles if outer_tile_name(t) not in m_new
+               or not os.path.exists(os.path.join(odir, tile_name(*t) + ".glb"))]
+    rec = {"tiles": {k: m_new[k] for k in sorted(m_new)},
+           "phase1": {outer_tile_name(t): {"key": p1[t]["key"], "requests": p1[t]["requests"]} for t in sorted(p1)},
+           "borders": {edge_key(t, s): obord[(t, s)] for t in sorted(ow.tiles) for s in SIDES
+                       if obord[(t, s)] is not None and (t, s) == min((t, s), (ow.neighbour(t, s), OPPOSITE[s]))},
+           "augmentations": {k: sorted(v) for k, v in sorted(m_aug.items()) if v},
+           "tolerance_m": float(ow.zones.tol[0]),
+           "totals": {"tiles": len(m_new), "triangles": sum(v["triangles"] for v in m_new.values()),
+                      "glb_bytes": sum(v["glb_bytes"] for v in m_new.values())}}
+    return rec, missing, len(results)
 
 
 def run_build(args):
@@ -1485,6 +1965,7 @@ def run_build(args):
     m_tiles = manifest.get("tiles", {})
     m_p1 = manifest.get("phase1", {})
     m_aug = {} if args.force else manifest.get("augmentations", {})
+    m_seam_aug = {} if args.force else manifest.get("seam_augmentations", {})
     if args.tiles == "all":
         wanted = set(world.tiles)
     else:
@@ -1532,11 +2013,22 @@ def run_build(args):
     def border_set(t, side):
         u = world.neighbour(t, side)
         if u is None:
-            return None
+            if not world.on_domain_edge(t, side):
+                return None
+            # The 2/8 m seam: every 8 m node of the line with ground, what the tile asked for
+            # there, refined along the line; the outer tier fans to match (`fan_seam`).
+            z, tn, tm = world.line(t, side)
+            eight = [k for k in range(0, len(z), 4) if np.isfinite(z[k])]
+            k = seam_key(t, side)
+            pos = set(eight) | set(p1[t]["requests"][side]) | set(m_seam_aug.get(k, []))
+            return line_close(z, tn, tm, pos)
         k = edge_key(t, side)
         pos = set(p1[t]["requests"][side]) | set(p1[u]["requests"][OPPOSITE[side]]) | set(m_aug.get(k, []))
         z, tn, tm = world.line(t, side)
         return line_close(z, tn, tm, pos)
+
+    def seam_key(t, side):
+        return "%s:%s" % (tile_name(*t), side)
 
     borders = {}
     for t in world.tiles:
@@ -1624,12 +2116,22 @@ def run_build(args):
                          "w": r if c == 0 else None, "e": r if c == td.n - 1 else None}[side]
                     if p is None or borders[(t, side)] is None:
                         continue
+                    u = world.neighbour(t, side)
+                    if u is None:
+                        # A seam side: the node joins the line, and the outer tier fans to it.
+                        sk = seam_key(t, side)
+                        m_seam_aug.setdefault(sk, [])
+                        if p not in m_seam_aug[sk]:
+                            m_seam_aug[sk].append(p)
+                            augmented[sk] = augmented.get(sk, 0) + 1
+                        borders[(t, side)] = border_set(t, side)
+                        again.add(t)
+                        continue
                     ek = edge_key(t, side)
                     m_aug.setdefault(ek, [])
                     if p not in m_aug[ek]:
                         m_aug[ek].append(p)
                         augmented[ek] = augmented.get(ek, 0) + 1
-                    u = world.neighbour(t, side)
                     borders[(t, side)] = border_set(t, side)
                     borders[(u, OPPOSITE[side])] = border_set(u, OPPOSITE[side])
                     again.add(t)
@@ -1675,6 +2177,11 @@ def run_build(args):
     t3 = time.time() - t3
     missing = [tile_name(*t) for t in world.tiles if tile_name(*t) not in m_tiles_new
                or not os.path.exists(os.path.join(out, tile_name(*t) + ".glb"))]
+    # The outer tier, after the inner tiles, whose seam sides it matches.
+    outer_rec, outer_missing, outer_built = None, [], 0
+    if "outer" in world.spec:
+        outer_rec, outer_missing, outer_built = build_outer(world, borders, args, out, manifest.get("outer", {}))
+        missing += outer_missing
     manifest = {
         "about": "tools/blender/ground_build.py's record: per tile, the hash of every input its mesh is "
                  "a function of; a tile whose hash and GLB match is not built again.",
@@ -1685,8 +2192,13 @@ def run_build(args):
         "tiles": {k: m_tiles_new[k] for k in sorted(m_tiles_new)},
         "phase1": {tile_name(*t): {"key": p1[t]["key"], "requests": p1[t]["requests"]} for t in sorted(p1)},
         "borders": {edge_key(t, s): borders[(t, s)] for t in sorted(world.tiles) for s in SIDES
-                    if borders[(t, s)] is not None and (t, s) == min((t, s), (world.neighbour(t, s), OPPOSITE[s]))},
+                    if borders[(t, s)] is not None and world.neighbour(t, s) is not None
+                    and (t, s) == min((t, s), (world.neighbour(t, s), OPPOSITE[s]))},
+        "seams": {seam_key(t, s): borders[(t, s)] for t in sorted(world.tiles) for s in SIDES
+                  if borders[(t, s)] is not None and world.neighbour(t, s) is None},
         "augmentations": {k: sorted(v) for k, v in sorted(m_aug.items()) if v},
+        "seam_augmentations": {k: sorted(v) for k, v in sorted(m_seam_aug.items()) if v},
+        "outer": outer_rec,
         "totals": {"tiles": len(m_tiles_new), "triangles": sum(v["triangles"] for v in m_tiles_new.values()),
                    "vertices": sum(v["vertices"] for v in m_tiles_new.values()),
                    "triangles_by_zone": {z: sum(v["triangles_by_zone"][z] for v in m_tiles_new.values())
@@ -1700,7 +2212,7 @@ def run_build(args):
     # Nothing built and nothing removed: leave the record as it is, so a build
     # that changes nothing changes no file.
     old = json.load(open(man_path)) if os.path.exists(man_path) else None
-    if old is not None and not results and {k: v for k, v in old.items() if k != "last_build"} == \
+    if old is not None and not results and not outer_built and {k: v for k, v in old.items() if k != "last_build"} == \
             {k: v for k, v in manifest.items() if k != "last_build"}:
         manifest = old
     else:
@@ -1718,6 +2230,9 @@ def run_build(args):
     log("built %d tiles (phase 1 %d) in %.1f s: phase 1 %.1f, phase 2 %.1f, export %.1f; %d triangles in all; "
         "augmented lines %d" % (len(results), p1_built, time.time() - t_start, t1, t2, t3,
                                 manifest["totals"]["triangles"], len(augmented)))
+    if outer_rec is not None:
+        log("outer tier: built %d of %d tiles; %d triangles in all" % (
+            outer_built, len(outer_rec["tiles"]), outer_rec["totals"]["triangles"]))
     return manifest
 
 
@@ -1862,6 +2377,75 @@ def run_prove(args, world=None):
             "error_by_zone": {z: {k: round(stats[z][k], 4) for k in ("node", "edge_midpoint", "centre", "quarter")}
                               for z in Zones.NAMES if stats[z]["samples"]},
         }
+    # The outer tier, if there is one: measured the same way, against its own grid.
+    ow = OuterWorld(world) if "outer" in world.spec else None
+    outer_rep = None
+    if ow is not None:
+        odir = os.path.join(os.path.dirname(os.path.abspath(out)), "outer")
+        og = ow.grid
+        on_n = og.n
+        oh = og.step
+        outer_rep = {"tiles": 0, "triangles": 0, "fan_triangles": 0, "node": 0.0, "edge_midpoint": 0.0,
+                     "centre": 0.0, "quarter": 0.0, "excess_over_tolerance": -1.0, "glb_bytes": 0,
+                     "tolerance_m": float(ow.zones.tol[0])}
+        for t in ow.tiles:
+            path = os.path.join(odir, tile_name(*t) + ".glb")
+            if not os.path.exists(path):
+                rep["tiles"][outer_tile_name(t)] = {"missing": True}
+                continue
+            m = read_glb(path)
+            td = ow.tiledata(t)
+            P = m["pos"].astype(np.float64)
+            tr = m["tris"]
+            a, b, c = P[tr[:, 0]], P[tr[:, 1]], P[tr[:, 2]]
+            faces_down += int((np.cross(b - a, c - a)[:, 1] <= 0).sum())
+            cc = P[:, 0] / oh
+            rr = P[:, 2] / oh
+            ci = np.rint(cc).astype(np.int64)
+            ri = np.rint(rr).astype(np.int64)
+            on = (cc == ci) & (rr == ri) & (ci >= 0) & (ci < on_n) & (ri >= 0) & (ri < on_n)
+            node = np.where(on, ri * on_n + ci, 0)
+            on &= m["pos"][:, 1] == td.H.ravel()[node]
+            grid_t = on[tr].all(1)
+            uv_err = max(uv_err, float(np.abs(m["uv"][:, 0] - P[:, 0] / og.tile_m).max()),
+                         float(np.abs(m["uv"][:, 1] - P[:, 2] / og.tile_m).max()))
+            stats = lattice_errors(td, node[tr[grid_t]])["outer"]
+            for k in ("node", "edge_midpoint", "centre", "quarter"):
+                outer_rep[k] = max(outer_rep[k], stats[k])
+            outer_rep["excess_over_tolerance"] = max(outer_rep["excess_over_tolerance"], stats["excess"])
+            outer_rep["tiles"] += 1
+            outer_rep["triangles"] += int(len(tr))
+            outer_rep["fan_triangles"] += int((~grid_t).sum())
+            outer_rep["glb_bytes"] += os.path.getsize(path)
+            W = P + np.array([td.x0, 0.0, td.z0])
+            world_pts.append(W)
+            world_tris.append(tr + offset)
+            is_grid_vertex.append(on)
+            offset += len(W)
+            seam = ((W[:, 0] == ow.dx0) | (W[:, 0] == ow.dx1)) & (W[:, 2] >= ow.dz0) & (W[:, 2] <= ow.dz1) | \
+                   ((W[:, 2] == ow.dz0) | (W[:, 2] == ow.dz1)) & (W[:, 0] >= ow.dx0) & (W[:, 0] <= ow.dx1)
+            edge = (P[:, 0] == 0) | (P[:, 0] == og.tile_m) | (P[:, 2] == 0) | (P[:, 2] == og.tile_m) | seam
+            for k in np.flatnonzero(edge):
+                key = tuple(W[k].tolist())
+                v = tuple(m["normal"][k].tolist())
+                if key in border_normals and border_normals[key] != v:
+                    normal_mismatch += 1
+                border_normals.setdefault(key, v)
+            rep["tiles"][outer_tile_name(t)] = {"triangles": int(len(tr)), "fan_triangles": int((~grid_t).sum()),
+                                                "glb_bytes": os.path.getsize(path),
+                                                "error": {k: round(stats[k], 4) for k in ("node", "edge_midpoint",
+                                                                                          "centre", "quarter")}}
+        total_tris += outer_rep["triangles"]
+
+    def ground_side(px, pz):
+        """Whether world points lie on the grid's ground, the inner tiles' or the outer tier's."""
+        inner = in_region(world.mosaic, (px - g.x0) / h, (pz - g.z0) / h)
+        if ow is None:
+            return inner
+        dom = (px > ow.dx0) & (px < ow.dx1) & (pz > ow.dz0) & (pz < ow.dz1)
+        outer_ = in_region(ow.mosaic, (px - ow.grid.x0) / ow.grid.step, (pz - ow.grid.z0) / ow.grid.step)
+        return np.where(dom, inner, outer_)
+
     # The seams, by world position: every vertex once, every edge by its ends.
     WP = np.concatenate(world_pts)
     ON = np.concatenate(is_grid_vertex)
@@ -1878,13 +2462,13 @@ def run_prove(args, world=None):
     grid_of[vid[ON]] = True
     both_grid = grid_of[single // len(uniq_p)] & grid_of[single % len(uniq_p)]
     # Unpaired grid edges must lie on the data's edge: ground on one side only.
-    mc = ((pa[:, 0] + pb[:, 0]) / 2 - g.x0) / h
-    mr = ((pa[:, 2] + pb[:, 2]) / 2 - g.z0) / h
-    dc, dr = (pb[:, 0] - pa[:, 0]) / h, (pb[:, 2] - pa[:, 2]) / h
-    ln = np.hypot(dc, dr)
-    oc, orr = -dr / ln * 0.01, dc / ln * 0.01
-    side1 = world_in_region(world, mc + oc, mr + orr)
-    side2 = world_in_region(world, mc - oc, mr - orr)
+    mx = (pa[:, 0] + pb[:, 0]) / 2
+    mz = (pa[:, 2] + pb[:, 2]) / 2
+    dx_, dz_ = pb[:, 0] - pa[:, 0], pb[:, 2] - pa[:, 2]
+    ln = np.hypot(dx_, dz_)
+    ox_, oz_ = -dz_ / ln * 0.02, dx_ / ln * 0.02
+    side1 = ground_side(mx + ox_, mz + oz_)
+    side2 = ground_side(mx - ox_, mz - oz_)
     cracks = int((both_grid & side1 & side2).sum())
     # Unpaired band edges: on a held edge (the stitch, as meant) or not.
     held_keys = set()
@@ -1929,6 +2513,7 @@ def run_prove(args, world=None):
     rep["skirt_vertices"] = skirt_verts
     rep["uv_max_error"] = uv_err
     rep["zones"] = zmax
+    rep["outer"] = outer_rep
     rep["triangles"] = total_tris
     rep["seam"] = world.seam
     rep["seconds"] = round(time.time() - t0, 1)
@@ -1945,12 +2530,22 @@ def run_prove(args, world=None):
             "excess over bound %.2g; centres whose own floor beats the tolerance %d (largest %.3f m)" % (
                 z, world.zones.tol[Zones.NAMES.index(z)], d["node"], d["edge_midpoint"], d["centre"], d["quarter"],
                 d["excess_over_tolerance"], d["centres_floor_over_tolerance"], d["centre_floor_max"]))
+    if outer_rep is not None:
+        log("  outer tier tol %.2f: %d tiles, %d triangles (%d fanned at the seam); max error node %.4f, midpoint "
+            "%.4f, centre %.4f, quarter-node %.4f; excess over bound %.2g" % (
+                outer_rep["tolerance_m"], outer_rep["tiles"], outer_rep["triangles"], outer_rep["fan_triangles"],
+                outer_rep["node"], outer_rep["edge_midpoint"], outer_rep["centre"], outer_rep["quarter"],
+                outer_rep["excess_over_tolerance"]))
     return rep
 
 
 def world_in_region(world, c, r):
     """Whether global fractional node coordinates lie in the grid's region."""
-    M = world.mosaic
+    return in_region(world.mosaic, c, r)
+
+
+def in_region(M, c, r):
+    """Whether fractional node coordinates of mosaic `M` lie in its region."""
     V = np.isfinite(M)
     ci = np.clip(np.floor(c).astype(np.int64), 0, M.shape[1] - 2)
     ri = np.clip(np.floor(r).astype(np.int64), 0, M.shape[0] - 2)
@@ -1969,7 +2564,7 @@ def lattice_errors(td, T):
     the centres whose own floor exceeds the zone's tolerance."""
     n = td.n
     out = {z: {"node": 0.0, "edge_midpoint": 0.0, "centre": 0.0, "quarter": 0.0, "excess": -1.0,
-               "floor_over": 0, "floor_max": 0.0, "samples": 0} for z in Zones.NAMES}
+               "floor_over": 0, "floor_max": 0.0, "samples": 0} for z in td.zones.NAMES}
     Z = td.Z
     for q in (2, 4):  # samples per node spacing: half-node and quarter-node lattices
         for t, px, py, z in scan(td, T, q):
@@ -1981,7 +2576,7 @@ def lattice_errors(td, T):
                 bound = td.T.ravel()[s]
                 zid = td.zid.ravel()[s]
                 kind = np.where((px % 2 == 0) & (py % 2 == 0), 0, np.where((px % 2 == 1) & (py % 2 == 1), 2, 1))
-                for zi, zn in enumerate(Zones.NAMES):
+                for zi, zn in enumerate(td.zones.NAMES):
                     m = zid == zi
                     if not m.any():
                         continue
@@ -2009,7 +2604,7 @@ def lattice_errors(td, T):
                 ref = np.where(td.c3[ri, ci], pl, bil)
                 err = np.abs(z - ref)
                 zid = td.zid[np.minimum(py // 2, td.S - 1), np.minimum(px // 2, td.S - 1)]
-                for zi, zn in enumerate(Zones.NAMES):
+                for zi, zn in enumerate(td.zones.NAMES):
                     m = (zid == zi) & np.isfinite(err)
                     if m.any():
                         out[zn]["quarter"] = max(out[zn]["quarter"], float(err[m].max()))
@@ -2017,7 +2612,7 @@ def lattice_errors(td, T):
     tolc = td.tol[1::2, 1::2]
     over = td.c4 & (td.floor > tolc)
     zc = td.zid[1::2, 1::2]
-    for zi, zn in enumerate(Zones.NAMES):
+    for zi, zn in enumerate(td.zones.NAMES):
         m = over & (zc == zi)
         out[zn]["floor_over"] = int(m.sum())
         out[zn]["floor_max"] = float(td.floor[m].max()) if m.any() else 0.0
@@ -2033,6 +2628,9 @@ def run_census(args):
     coll = bpy.data.collections.new("Ground")
     bpy.context.scene.collection.children.link(coll)
     names = sorted(f for f in os.listdir(out) if f.endswith(".glb"))
+    odir = os.path.join(os.path.dirname(out), "outer")
+    if os.path.isdir(odir):
+        names += sorted(os.path.join("..", "outer", f) for f in os.listdir(odir) if f.endswith(".glb"))
     tris = 0
     for f in names:
         before = set(bpy.data.objects)
@@ -2192,6 +2790,9 @@ def run_write_zones(args):
     }
     path = os.path.join(SRC, "grid.json")
     spec = json.load(open(path))
+    # Stage 4's rule for the sea the inner tiles grew into is kept as it stands.
+    if "deep_sea" in spec.get("tolerance_zones", {}):
+        zones["deep_sea"] = spec["tolerance_zones"]["deep_sea"]
     spec["tolerance_zones"] = zones
     with open(path + ".part", "w") as f:
         f.write(_format_json(spec) + "\n")
@@ -2220,7 +2821,9 @@ def main(argv):
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--tiles", default="all", help="all, or tiles as x0_z0,x1_z0")
     p.add_argument("--force", action="store_true", help="build every asked tile from nothing")
-    p.add_argument("--out", default=OUT, help="where the tiles go (default assets/world_ground/tiles)")
+    p.add_argument("--out", default=OUT, help="where the tiles go (default assets/world_ground/tiles; the outer "
+                   "tier goes beside it, in ../outer)")
+    p.add_argument("--src", help="another copy of assets/source/world_ground to build from (a proof's scratch copy)")
     p.add_argument("--census", help="after building, write the tiles into this .blend (never in the tree)")
     p.add_argument("--prove", help="after building, measure the written tiles into this JSON")
     p.add_argument("--no-build", action="store_true", help="skip the build (with --census or --prove)")
@@ -2229,6 +2832,9 @@ def main(argv):
     p.add_argument("--no-done", action="store_true", help="do not write BUILD_DONE (the caller writes it after importing)")
     p.add_argument("--write-zones", action="store_true", help="derive tolerance_zones into grid.json and stop")
     a = p.parse_args(argv)
+    global SRC
+    if a.src:
+        SRC = os.path.abspath(a.src)
     if a.write_zones:
         run_write_zones(a)
         return

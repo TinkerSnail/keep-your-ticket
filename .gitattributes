@@ -25,3 +25,5 @@
 *.tiff filter=lfs diff=lfs merge=lfs -text
 assets/source/**/*.png filter=lfs diff=lfs merge=lfs -text
 assets/source/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+# The height grid's edit history (tools/ground_grid_edit.py): a seabed-sized edit keeps tens of MB of previous values.
+assets/source/world_ground/history/*.npz filter=lfs diff=lfs merge=lfs -text
