@@ -162,9 +162,13 @@
     {id:'R9',name:'Grove water ride',type:'polygon',points:[[9,-72],[15,-85],[27,-100],[41,-103],[48,-92],[39,-77],[28,-67],[16,-65]],queue:[[20,-56],[22,-64],[25,-71]],service:[[38,-97],[49,-108]]},
     {id:'R10',name:'Frontier mine train',type:'polygon',points:[[58,-80],[57,-102],[70,-116],[90,-114],[101,-101],[98,-83],[83,-72],[66,-72]],queue:[[67,-69],[69,-75],[71,-80]],service:[[84,-110],[90,-121]]},
     {id:'R11',name:'Observation tower',type:'circle',at:[111,-87],r:8,queue:[[119,-82],[116,-84],[114,-86]],service:[[119,-90],[128,-92]]},
-    {id:'R12',name:'Sky ride',type:'sky',terminals:[[-18,-104],[112,-106]],queue:[[-13,-99],[-17,-102]],queue2:[[106,-102],[110,-105]],service:[[-18,-108],[-18,-119]],service2:[[112,-110],[116,-120]]},
+    // R12 west terminal off route A (Christina, 2026-10-15): moved 9m west along
+    // the cable's line from [-18,-104]; its 6m platform stands 1.53m beyond A's
+    // operating edge (world). The queue still leaves A at [-13,-99]; the service
+    // moved with the terminal and still reaches S1 across the Headland loop.
+    {id:'R12',name:'Sky ride',type:'sky',terminals:[[-27,-103.9],[112,-106]],queue:[[-13,-99],[-26,-101.9]],queue2:[[106,-102],[110,-105]],service:[[-27,-108],[-27,-119]],service2:[[112,-110],[116,-120]]},
     {id:'R13',name:'High Terrace steel coaster',type:'coaster',footprint:[[124,-38],[132,-52],[144,-52],[155,-38],[158,-12],[157,18],[151,42],[139,51],[128,43],[133,27],[139,10],[138,-10],[131,-27]],track:[[129,-41],[139,-46],[150,-38],[153,-20],[150,-2],[146,17],[148,34],[141,44],[132,42],[137,29],[140,12],[140,-5],[143,-22],[139,-35],[129,-41]],station:{at:[135,-41],size:[14,8]},queue:[[118,-40],[124,-40],[129,-41],[132.2,-41]],service:[[136,-43],[146,-50],[151,-56]]},
-    {id:'R14',name:'Kiddieland junior coaster',type:'coaster',footprint:[[113,72],[121,69],[128,76],[128,87],[121,98],[115,104],[108,110],[106,110],[106,106],[112,98],[115,87],[114,78]],track:[[107,110],[111,104],[118,98],[125,89],[126,79],[121,72],[115,75],[117,86],[113,96],[108,104],[107,110]],station:{at:[107,111],size:[10,8]},queue:[[98,103],[100,105],[102,108.5]],exit:[[102,113],[99,111],[94,106]],service:[[112,111],[115,114],[111,116]],photo:[98.5,78]}
+    {id:'R14',name:'Kiddieland junior coaster',type:'coaster',note:'R14 off the Grand Circuit lane (Christina, 2026-10-15)',footprint:[[114,71],[126,71],[128,76],[128,87],[121,98],[115,104],[108,110],[106,110],[106,106],[112,98],[115,87],[114,80]],track:[[120,77],[123.5,81.5],[125,89],[118,98],[111,104],[107,110],[108,104],[113,96],[117,86],[117,81.5],[120,77]],station:{at:[120,76],size:[10,8]},queue:[[106.4,77],[111,77],[115,77.5]],exit:[[115,73.5],[111,73],[105.7,73]],service:[[125,75],[132,72],[138,67]],photo:[98.5,78]}
   ];
 
   const places=[
@@ -334,7 +338,7 @@
       {id:'R5 RAIL',at:[68,88],y:0.14,status:'measured',offset:[8,-10]},
       {id:'R6 PAD',at:[95,96],y:5.73,status:'measured',offset:[8,-10]},
       {id:'R7 PAD',at:[109,62],y:5.05,status:'measured',offset:[8,-10]},
-      {id:'R14 FFL',at:[107,111],y:5.28,status:'measured',offset:[8,18]},
+      {id:'R14 FFL',at:[120,76],y:6.73,status:'approved',offset:[8,18]},
       {id:'KC1 FFL',at:[43,115],y:0,status:'measured',offset:[-8,18],anchor:'end'},
       {id:'KC2 FFL',at:[55,118],y:0.49,status:'measured',offset:[8,18]},
       {id:'KC3 FFL',at:[70,119],y:1.74,status:'measured',offset:[8,-10]},
@@ -390,7 +394,7 @@
       {id:'F1',at:[4,-82],y:1.5,status:'measured',offset:[8,-10]},
       {id:'R9 PAD',at:[28,-84],y:2.55,status:'measured',offset:[8,18]},
       {id:'F2',at:[40,-113],y:6.05,status:'measured',offset:[8,-10]},
-      {id:'R12 WEST',at:[-18,-104],y:3.02,status:'measured',offset:[8,-10]},
+      {id:'R12 WEST',at:[-27,-103.9],y:3.02,status:'proposed',offset:[-8,-10],anchor:'end'},
       {id:'D6 LOW',at:[45,-142],y:-0.5,status:'approved',offset:[8,18]}
     ],grading:{
       contours:[
@@ -407,7 +411,7 @@
         {at:[44,-126],text:'D6 OUTER SAUCER · NO DISTRICT FLATTENING'}
       ]
     },grades:[{p:[[-6,-68],[20,-100],[40,-113]],label:'F GROVE CLIMB · ≤12.5% · E'}],walls:[],
-      note:'The Grove rises from J3 rather than sitting on one terrace. The water-ride court follows measured +2.55m ground and the west sky-ride threshold follows measured +3.02m ground. D6 is the approved low collecting the outer service-side drainage.'},
+      note:'The Grove rises from J3 rather than sitting on one terrace. The water-ride court follows measured +2.55m ground. The west sky-ride terminal moved 9m west off route A (Christina, 2026-10-15); its +3.02m threshold is carried over as a proposal, because the ground there falls from about +3.3m at A’s bank to −0.06m on its south-west side. D6 is the approved low collecting the outer service-side drainage.'},
     headland:{bands:['T0','T1','T2','T3'],spots:[
       {id:'A LOOP',at:[-37,-125],y:4,status:'measured',offset:[8,18]},
       {id:'P1 FFL',at:[-174,-202.5],y:31.1,status:'measured',offset:[8,-10]},
@@ -502,7 +506,7 @@
       operationsNote:'I5 returns west to G1 and S2; I6 returns east to G2 and S3. Public doors and staff doors occur on opposite faces.',
       protectionNote:'Q1 begins on the arrival axis and stays open to the Plaza fountain, with the lighthouse crown as its distant secondary landmark.'},
     {id:'plaza',title:'Plaza + Photo Hut',bounds:{x0:-82,x1:135,z0:-68,z1:55},routes:['A'],context:['B','C','D','E','F'],places:['E1','P5'],rides:['R3'],midway:[],service:['S1'],shared:[],water:['D2'],protected:['NT-1','NT-2'],views:['Q2','Q5'],landmarks:['PLAZA','CLOCK'],
-      summary:'The Plaza is the campaign home and the junction of the whole park. Its ring, Photo Hut, bandstand and dark ride remain destinations beside—never inside—the six outgoing route relationships.',
+      summary:'The Plaza is the campaign home and the junction of the whole park. Its ring, Photo Hut, bandstand and dark ride remain destinations beside—never inside—the seven outgoing route relationships.',
       publicNote:'The brick room carries the A ring while B, C, D, E and F leave through named junctions. The bandstand audience load doglegs around the west arch pier instead of cutting through NT-1.',
       destinationNote:'Photo Hut is home base. P5 has separate audience entry and release; R3 is a Plaza destination with its queue off the through path. The fountain and clock remain the primary landmarks.',
       operationsNote:'Bandstand backstage connects west to S1. Ride and performance operations stay behind their destinations rather than crossing the ring or a spoke mouth.',
@@ -523,7 +527,7 @@
       summary:'Three consecutive family rooms share one fixed public circuit: Arrival Commons, Ride Garden and Outer Adventure Edge. Every ride and family function gets a side court; none consumes route D.',
       publicNote:'D keeps its 9m arrival and 8m family circuit. The miniature railway platform, ride queues, play-garden gates and photo turnouts all branch from D before guests wait or stop.',
       destinationNote:'P4, two low games, Family Support functions, Squirt Garden and Character Garden make the arrival room; R5–R7 make the ride room; R14, Family Photo and Birthday Pavilion complete the outer edge.',
-      operationsNote:'Support, pavilion, rides and R14 station connect behind to S3. R14 has separate queue and exit, manual photo bay and service threshold; KG1 uses its own screened recirculation.',
+      operationsNote:'Support, pavilion, rides and R14 station connect behind to S3. R14 has separate queue and exit, manual photo bay and service threshold; KG1 uses its own screened recirculation. R14 off the Grand Circuit lane (Christina, 2026-10-15): its station closes the loop’s north end beside D, opposite KP1, and its service joins R7’s S3 link; no part stands on or over the road-train lane.',
       protectionNote:'Q4 remains open from J7 to the Terraced Fountain and R13 crest. No Kiddieland queue, roof, sign, service route, coaster rail or water system enters NT-2.'},
     {id:'high-terrace',title:'High Terrace',bounds:{x0:35,x1:165,z0:-95,z1:60},routes:['E'],context:['D','F'],places:['I4'],rides:['R8','R13'],midway:[],service:['S3'],shared:[],water:[],protected:['NT-2'],views:['Q5','Q6'],
       summary:'The Terraces orbit and northern circuit meet at a scenic highland district. The chair swing, steel coaster station and Overlook Café occupy separate edge parcels, leaving the fountain and panoramic axes open.',

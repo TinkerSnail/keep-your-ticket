@@ -2172,9 +2172,13 @@
     {id:'R9',type:'polygon',points:[[9,-72],[15,-85],[27,-100],[41,-103],[48,-92],[39,-77],[28,-67],[16,-65]],label:[29,-84],queue:[[20,-56],[22,-64],[25,-71]],service:[[38,-97],[49,-108]]},
     {id:'R10',type:'polygon',points:[[58,-80],[57,-102],[70,-116],[90,-114],[101,-101],[98,-83],[83,-72],[66,-72]],label:[79,-94],queue:[[67,-69],[69,-75],[71,-80]],service:[[84,-110],[90,-121]]},
     {id:'R11',type:'circle',at:[111,-87],r:8,queue:[[119,-82],[116,-84],[114,-86]],service:[[119,-90],[128,-92]]},
-    {id:'R12',type:'sky',terminals:[[-18,-104],[112,-106]],label:[47,-105],
-      queue:[[-13,-99],[-17,-102]],queue2:[[106,-102],[110,-105]],
-      service:[[-18,-108],[-18,-119]],service2:[[112,-110],[116,-120]]},
+    // R12 west terminal off route A (Christina, 2026-10-15): moved 9m west along
+    // the cable's line from [-18,-104], where its centre stood 4.12m from A's
+    // centreline and two of its legs stood on A. Its 6m platform now stands 1.53m beyond
+    // A's operating edge (world). The queue still leaves A at [-13,-99].
+    {id:'R12',type:'sky',terminals:[[-27,-103.9],[112,-106]],label:[47,-105],
+      queue:[[-13,-99],[-26,-101.9]],queue2:[[106,-102],[110,-105]],
+      service:[[-27,-108],[-27,-119]],service2:[[112,-110],[116,-120]]},
     {id:'R13',name:'High Terrace steel coaster',type:'coaster',label:[150,0],
       footprint:[[124,-38],[132,-52],[144,-52],[155,-38],[158,-12],[157,18],
         [151,42],[139,51],[128,43],[133,27],[139,10],[138,-10],[131,-27]],
@@ -2184,16 +2188,23 @@
       trackAnchor:[129,-41],station:{at:[135,-41],size:[14,8]},
       queue:[[118,-40],[124,-40],[129,-41],[132.2,-41]],
       service:[[136,-43],[146,-50],[151,-56]]},
-    {id:'R14',name:'Kiddieland junior coaster',type:'coaster',label:[123,84],
-      footprint:[[113,72],[121,69],[128,76],[128,87],[121,98],[115,104],
-        [108,110],[106,110],[106,106],[112,98],[115,87],[114,78]],
-      track:[[107,110],[111,104],[118,98],[125,89],[126,79],[121,72],
-        [115,75],[117,86],[113,96],[108,104],[107,110]],
-      station:{at:[107,111],size:[10,8]},
-      queue:[[98,103],[100,105],[102,108.5]],
-      exit:[[102,113],[99,111],[94,106]],
-      service:[[112,111],[115,114],[111,116]],
-      viewing:{at:[108,113],size:[6,2.5],screens:6},camera:[126,82],photo:[98.5,78],maxLift:8}
+    // R14 off the Grand Circuit lane (Christina, 2026-10-15). The station
+    // stood on the road-train lane (world (133,143)) with the loop's south tip
+    // and the exit inside the lane. The station now closes the loop's north
+    // end, beside D and opposite KP1; the loop's south half is unchanged and
+    // its tip is a turn. In world space every part clears the lane's edge by
+    // 11m or more. Service joins R7's S3 link instead of crossing the lane.
+    {id:'R14',name:'Kiddieland junior coaster',type:'coaster',label:[120.5,88],
+      note:'R14 off the Grand Circuit lane (Christina, 2026-10-15)',
+      footprint:[[114,71],[126,71],[128,76],[128,87],[121,98],[115,104],
+        [108,110],[106,110],[106,106],[112,98],[115,87],[114,80]],
+      track:[[120,77],[123.5,81.5],[125,89],[118,98],[111,104],[107,110],
+        [108,104],[113,96],[117,86],[117,81.5],[120,77]],
+      station:{at:[120,76],size:[10,8]},
+      queue:[[106.4,77],[111,77],[115,77.5]],
+      exit:[[115,73.5],[111,73],[105.7,73]],
+      service:[[125,75],[132,72],[138,67]],
+      viewing:{at:[119,73.5],size:[6,2.5],screens:6},camera:[126,82],photo:[98.5,78],maxLift:8}
   ];
 
   const kiddielandPlan = {
@@ -2426,7 +2437,7 @@
     [[90,-121],[105,-122]],
     [[128,-92],[138,-82]],
     [[112,111],[115,114],[111,116]],
-    [[-18,-119],[-34,-124],[-52,-124]],
+    [[-27,-119],[-34,-124],[-52,-124]],
     [[116,-120],[105,-122]]
   ];
 
@@ -3395,7 +3406,7 @@
         width:photoBay.size[0]*scale,height:photoBay.size[1]*scale,class:'parcel-forecourt'
       }));
       pathLine(photoBay.access,'program-access');
-      pathLine([photoBay.at,[121,78]],'parcel-sightline');
+      pathLine([photoBay.at,[117,84]],'parcel-sightline');
       parent.appendChild(make('rect',{
         x:x(junior.viewing.at[0]-junior.viewing.size[0]/2),
         y:y(junior.viewing.at[1]-junior.viewing.size[1]/2),
@@ -3405,7 +3416,7 @@
       parent.appendChild(make('circle',{
         cx:x(junior.camera[0]),cy:y(junior.camera[1]),r:compact?3.5:4.5,class:'parcel-photo'
       }));
-      pathLine([junior.camera,[123,84]],'parcel-sightline');
+      pathLine([junior.camera,[124.2,85]],'parcel-sightline');
       [
         {ride:railway,target:[68,76]},
         {ride:spinner,target:spinner.at},
@@ -4630,8 +4641,10 @@
         pathLine(junior.queue,'queue-line');
         pathLine(junior.exit,'parcel-exit');
         pathLine(junior.service,'service-line');
-        pathLine([[103,109],[103,113],[102,113]],'parcel-bypass');
-        pathLine([[105,110],[108,112],[105,113],[102,113]],'parcel-interior');
+        // R14's station interior, redrawn with the station at the loop's north
+        // end (2026-10-15): queue door south, exit door north beside the screens.
+        pathLine([[116,77.5],[116,73.5],[115,73.5]],'parcel-bypass');
+        pathLine([[118,76],[121,75],[118,73.5],[115,73.5]],'parcel-interior');
 
         const viewingBounds=interiorBounds(junior.viewing);
         svg.appendChild(make('rect',{
@@ -4646,7 +4659,7 @@
             width:0.58*scale,height:0.65*scale,class:'parcel-room'
           }));
         });
-        pathLine([[105,111.35],[111,111.35]],'parcel-platform');
+        pathLine([[118,75.65],[124,75.65]],'parcel-platform');
 
         const bay=kiddielandPlan.photoBay;
         const bayBounds=shapeBounds(bay);
@@ -4655,8 +4668,8 @@
           class:'parcel-forecourt'
         }));
         pathLine(bay.access,'program-access');
-        markPhoto(junior.photo,[121,78]);
-        markPhoto(junior.camera,[123,84]);
+        markPhoto(junior.photo,[117,84]);
+        markPhoto(junior.camera,[124.2,85]);
 
         const character=kiddielandPlan.characterGarden;
         svg.appendChild(make('ellipse',{
@@ -4697,7 +4710,7 @@
           label('D · 9m ARRIVAL / 8m CIRCUIT',[24,70],'middle');
           label('KZ1 · ARRIVAL COMMONS',[20,105],'middle');
           label('KZ2 · RIDE GARDEN',[77,61],'middle');
-          label('KZ3 · ADVENTURE EDGE',[123,69],'middle');
+          label('KZ3 · ADVENTURE EDGE',[124,66.6],'middle');
           label('P4 · PLAY GARDEN',[23,90],'middle');
           label('KG1 · FROG 1 → 2 → 3',[34,100],'middle');
           label('MW-K · 2 GAMES',[9,108],'middle');
@@ -4705,10 +4718,10 @@
           label('R6 · SPINNING TUBS',[95,97],'middle');
           label('R7 · CAROUSEL',[109,63],'middle');
           label('R14 · JUNIOR COASTER',[123,87],'middle');
-          label('8m MAX LIFT',[122,75],'middle');
+          label('8m MAX LIFT',[121,93.5],'middle');
           label('MANUAL PHOTO BAY',[98.5,74],'middle');
           label('AUTO TRIGGER',[130,82],'end');
-          label('6-SCREEN VIEW + COUNTER',[107,119],'middle');
+          label('6-SCREEN VIEW + COUNTER',[120,70.3],'middle');
           label('KC1 · CHARACTER GARDEN',[43,125],'middle');
           label('KC2 · FAMILY PHOTO',[55,116],'middle');
           label('KC3 · BIRTHDAY PAVILION',[70,124],'middle');
