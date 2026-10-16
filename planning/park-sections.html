@@ -545,7 +545,7 @@
       summary:'The waterfront spine continues beyond the old chain as an editor-owned open two-lane extension along a smooth, larger R2. It turns at the cove edge and meets a separate land-side return; two continuous timber ride forecourts and two roofed midway pavilions use the expanded field without consuming the harbour or cutting the bluff.',
       publicNote:'B is the Boardwalk itself. Its northern highland return preserves the A/F junction, takes a broad arc north of the plaza wall, descends at no steeper than 1:12, stays outside S1 and R2, and meets the open timber waterfront at the shoreline. The deck continues beside the expanded coaster, passes beneath one intentional high flyover with 4.0m fixed-structure clearance and catch protection, reaches the cove overlook, and turns inland without a dead end. The pier remains a separate westward branch with a clear approach and complete loop.',
       destinationNote:'Wheel, smooth expanded wooden coaster, Scrambler, waterfront-facing dodgems, funhouse, Arcade + Ride Photo and Boardwalk Café form a Santa Monica-inspired open seaside ride park. R15 and R16 occupy separate courts but their timber forecourts meet as one continuous pier field; two roofed midway uses remain visible in R2’s high support bays.',
-      operationsNote:'R15 and R16 have separate queue, exit, photo and service controls. R16 presents west toward the timber waterfront while its service face stays east; R15’s service edge returns inland. The land return stays outside S1 and R2 and passes beneath the Grand Circuit once at the named boardwalk_north_overpass, with 4.01m fixed clearance and all columns outside its full eight-metre envelope. R2 crosses public circulation once at a 4.0m-clear waterfront flyover with catch protection; the occupied high bay also keeps 4.0m above its solid pavilion roof. CX1 remains a locked service culvert.',
+      operationsNote:'R15 and R16 have separate queue, exit, photo and service controls. R16 presents west toward the timber waterfront while its service face stays east; R15’s service edge returns inland. The land return stays outside S1 and R2 and passes beneath the Grand Circuit once at the named boardwalk_north_overpass, with 4.01m fixed clearance and all columns outside its full eight-metre envelope. Grand Circuit clear of the north ride park (Christina, 2026-10-15): as built, the road-train lane runs through R16’s hall, R15’s pad and R2’s bent 16, under R2’s return at 2.3m and through I3 and I2 on the back lane. GC-2, approved by Christina 2026-10-15 and not yet built, keeps R2, R15, R16, I3, NT-1’s 1.3m and Q3; it passes 1.5m clear of R16 and R15 (whose east service stubs end at the lane’s verge), runs beneath R2 at two clear spans with catch decks and at least 4.06m, moves the overpass 2.7m east along B with 4.04m, passes 0.7m in plan from S1’s raised deck and cuts a 62m² wedge from I2’s back on a 9m S-bend. No course past NT-1 keeps I2 whole. R2 crosses public circulation once at a 4.0m-clear waterfront flyover with catch protection; the occupied high bay also keeps 4.0m above its solid pavilion roof. CX1 remains a locked service culvert.',
       protectionNote:'NT-1 is unchanged. Q3 keeps its fifteen-metre opening, the west-arch/pier reveal remains legible, and the sunset sector beyond the pier stays open water.'},
     {id:'fairground',title:'Fairground',bounds:{x0:-88,x1:8,z0:18,z1:138},routes:['C'],context:['A','B'],places:['P3','I1'],rides:['R4'],midway:['F1','F2','F3','F4','F5','F6'],service:['S2'],shared:[],water:[],protected:[],views:[],
       summary:'The Fairground is a closed coastal circuit, not a straight dead-end midway. Its six game fronts, Food Hall, Big Top and swinging ship all face C while their stock, backstage and ride work remain behind the public edge.',
@@ -584,6 +584,84 @@
       operationsNote:'SH2 carries servicing on the visitor walk before opening only. At the harbour, the separate working road reaches the quay and cannery. The short rail mark records only its termination at the loading doors; the world map governs the regional approach.',
       protectionNote:'The lighthouse remains dominant and visible to Q1. The harbour mouth stays clear, working boats use that mouth, and the wider sailing loop remains outside the marina and breakwater.'}
   ];
+
+  // Grand Circuit clear of the north ride park (Christina, 2026-10-15): GC-2 is the
+  // approved course, approved by Christina 2026-10-15 ("keep the café, wedge off the
+  // arcade"); GC-1, the back lane that cut I3 and I2 to 7.5 m and 8.2 m deep, was drawn
+  // beside it and not chosen. Until GC-2 is built, ParkPlan still carries the as-built
+  // course: the road-train lane from the B overpass runs through R16's hall, R15's pad
+  // and R2's bent 16, then under R2's return 2.3 m up and through I3 and I2 on the back
+  // lane. No course past
+  // NT-1 keeps I2 whole: NT-1 needs the lane at x -78 from z -16, and I2's back wall
+  // stands at -75 until z -24. These are world metres (x, y, z), not atlas units: the
+  // lane is the uniform Catmull-Rom loop through ParkPlan.GRAND_TRAM_CONTROLS, 5.4 m
+  // wide, drawn through the inverse of rebuild_expand_point. Each list runs from the
+  // Grove station to the control after the Boardwalk station; the stretch that changes
+  // is the crest at (-62, -204) to the station at (-78, 24). The control after the crest
+  // lies on the lane's own tangent through the old (-88, -170), so through the Headland
+  // cutting, the P1 footbridge and the bluff opening the lane moves 0.17 m at most.
+  const grandCircuitWest = {
+    width:5.4, clear:1.5, nt1Clear:1.3,
+    built:{id:'GC-0',name:'Grand Circuit as built (through R16, R15, R2 bent 16, I3 and I2)',
+      controls:[[62,0,-214],[-12,0,-220],[-62,-1.1,-204],[-88,-4.5,-170],[-78,-6,-82],
+        [-78,-6,-20],[-78,-6,24],[-78,-6,44]]},
+    course:{id:'GC-2',name:'GC-2 · approved by Christina 2026-10-15: I3 kept, a 9 m S-bend through a wedge of I2',
+      approved:'2026-10-15',
+      label:[-63,-40],
+      controls:[[62,0,-214],[-12,0,-220],[-62,-1.1,-204],[-73.1,-3.9,-174.8],
+        [-74.3,-5.2,-155.5],[-77.8,-6,-142],[-83.3,-6,-104.5],[-70,-6,-62.5],
+        [-69.3,-6,-42.1],[-75.3,-6,-31.6],[-78,-6,-25.2],[-78,-6,-14.4],
+        [-78,-6,24],[-78,-6,44]],
+      // I2 loses 62 m² of its 160 m², its back wall running from x -78.9 at its
+      // north end to -82.5 at its south end. The lane passes 1.6 m from I3's delivery
+      // door and 0.7 m in plan from S1's deck edge, which stands 5.7 m above it.
+      cuts:[{id:'I2',polygon:[[-75,-34],[-78.9,-34],[-80.3,-31.5],[-81.5,-29],
+        [-82.15,-26.5],[-82.5,-24],[-75,-24]]}],
+      s1Clear:0.6},
+    // With the approved course: B's overpass moves 2.7 m east along B and keeps 4.04 m
+    // fixed clearance; R2's track runs at least 4.06 m over the lane where the lane
+    // passes beneath it, at two clear spans where a standard bent steps aside with a
+    // catch deck, as at R2's waterfront flyover; R15's and R16's east service stubs end
+    // at the lane's 1.5 m verge (as drawn they join nothing inland); SH1 and the I2 and
+    // I3 service links cross the lane at grade, as they do today; the lane stands up to
+    // 3.4 m over the ground beside R16 on a bank with a retaining face toward the rides.
+    overpass:{id:'boardwalk_north_overpass',was:[-70.14,-1.74,-198.65],now:[-67.74,-1.72,-197.40]},
+    clearSpans:[{id:'R2 bent 17',at:[-79.69,-140.9]},{id:'R2 bent 32',at:[-69.05,-69.97]}],
+    serviceStubsToVerge:['R15','R16'],
+    monumentCrossing:[-78,-2]
+  };
+  const gcExpand = ([x,z]) => {
+    let qx = x, qz = z;
+    if (z > 52) { qz = 52 + (z - 52) * 1.55; if (x > 49) qx = 49 + (x - 49) * 1.45; }
+    else if (z < -52) { qz = -52 + (z + 52) * (178 / 108); if (x > 20) qx = 20 + (x - 20) * 1.35; }
+    else if (x > 128) { qx = 128 + (x - 128) * 2.5; }
+    if (x < -112) qx = -112 + (x + 112) * 1.5;
+    return [qx, qz];
+  };
+  // The inverse for the west of the park, where x stays below 20.
+  const gcAtlas = ([x,z]) => [x < -112 ? -112 + (x + 112) / 1.5 : x,
+    z < -52 ? -52 + (z + 52) * 108 / 178 : z > 52 ? 52 + (z - 52) / 1.55 : z];
+  function gcCurve(controls, steps = 16) {
+    const out = [];
+    for (let i = 1; i < controls.length - 2; i++) {
+      const [p0,p1,p2,p3] = [controls[i-1],controls[i],controls[i+1],controls[i+2]];
+      for (let j = 0; j < steps; j++) {
+        const t = j / steps, t2 = t * t, t3 = t2 * t;
+        out.push([0,1,2].map(k => 0.5 * ((2 * p1[k]) + (-p0[k] + p2[k]) * t
+          + (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * t2
+          + (-p0[k] + 3 * p1[k] - 3 * p2[k] + p3[k]) * t3)));
+      }
+    }
+    out.push(controls[controls.length - 2].slice());
+    return out;
+  }
+  // The stretch from the crest to the Boardwalk station, as [x, z] world points.
+  function gcStretch(controls) {
+    const all = gcCurve(controls);
+    const a = all.findIndex(p => Math.hypot(p[0] + 62, p[2] + 204) < 1e-6);
+    const b = all.findIndex(p => Math.hypot(p[0] + 78, p[2] - 24) < 1e-6);
+    return all.slice(a, b + 1).map(p => [p[0], p[2]]);
+  }
 
   let selected;
   let scale=1;
@@ -806,6 +884,33 @@
     root.querySelector('#grading-review').hidden=!gradingReviews[selected.id]||!terrain.checked;
   }
 
+  // Grand Circuit clear of the north ride park (Christina, 2026-10-15): the approved course GC-2 over the as-built one,
+  // drawn on the Boardwalk zoom through gcAtlas.
+  function drawGrandCircuit(){
+    const W=grandCircuitWest;
+    line(gcStretch(W.built.controls).map(gcAtlas),'gc-built',W.built.name,'public');
+    [W.course].forEach(option=>{
+      const n=line(gcStretch(option.controls).map(gcAtlas),'gc-lane',option.name,'public');
+      n.setAttribute('data-option',option.id);n.setAttribute('stroke-width',Math.max(3,W.width*scale));
+      option.cuts.forEach(cut=>{
+        const item=places.find(place=>place.id===cut.id);
+        const x1=item.at[0]+item.size[0]/2,z0=item.at[1]-item.size[1]/2,z1=item.at[1]+item.size[1]/2;
+        const poly=cut.polygon||[[cut.keepToX,z0],[x1,z0],[x1,z1],[cut.keepToX,z1]];
+        const shape=create('polygon',{points:poly.map(gcAtlas).map(point).map(q=>q.join(',')).join(' '),class:'gc-cut','data-option':option.id,'data-layer':'destinations'});
+        title(shape,`${option.id}: ${cut.id} gives up its back to clear the lane by ${W.clear} m`);
+      });
+      label(option.label,option.id,option.name,'gc-label');
+    });
+    W.clearSpans.forEach(span=>{
+      const [cx,cy]=point(gcAtlas(span.at));
+      const ring=create('circle',{cx,cy,r:Math.max(4,6.5*scale),class:'gc-span','data-layer':'operations'});
+      title(ring,`${span.id}: clear span over the lane, catch deck, at least 4.06 m clear`);
+    });
+    const [ox,oy]=point(gcAtlas([W.overpass.now[0],W.overpass.now[2]]));
+    const deck=create('rect',{x:ox-3,y:oy-3,width:6,height:6,class:'gc-overpass','data-layer':'public'});
+    title(deck,`${W.overpass.id}: re-placed 2.7 m east along B, 4.04 m fixed clearance`);
+  }
+
   function render(id){
     selected=sections.find(section=>section.id===id)||sections[0];
     drawing.replaceChildren();fit(selected.bounds);
@@ -824,6 +929,7 @@
     selected.midway.map(id=>midway.find(item=>item.id===id)).forEach(drawPlace);
     selected.places.map(id=>places.find(item=>item.id===id)).filter(Boolean).forEach(drawPlace);
     selected.rides.map(id=>rides.find(item=>item.id===id)).filter(Boolean).forEach(drawRide);
+    if(selected.id==='boardwalk')drawGrandCircuit();
     (selected.landmarks||[]).forEach(drawLandmark);
 
     root.querySelector('#section-title').textContent=selected.title;
@@ -909,6 +1015,12 @@
 .shore-host{fill:var(--muted);stroke:var(--muted-fg);stroke-width:3}
 .shore-host-building{fill:var(--muted-fg);stroke:var(--fg);stroke-width:2}
 .shore-host-line{fill:none;stroke:var(--muted-fg);stroke-width:7;stroke-linecap:round}
+.gc-built{fill:none;stroke:var(--red);stroke-width:2.5;stroke-dasharray:7 5;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+.gc-lane{fill:none;stroke:var(--purple);stroke-linecap:round;stroke-linejoin:round;opacity:.5}
+.gc-cut{fill:color-mix(in srgb,var(--red) 22%,transparent);stroke:var(--red);stroke-width:1.5}
+.gc-span{fill:none;stroke:var(--green);stroke-width:2}
+.gc-overpass{fill:var(--bg);stroke:var(--fg);stroke-width:1.5}
+.gc-label{fill:var(--fg);font-weight:800}
 .shore-change{fill:color-mix(in srgb,var(--orange) 24%,var(--bg));stroke:var(--orange);stroke-width:2}
 .shore-change-line{fill:none;stroke:var(--orange);stroke-width:5;stroke-linecap:round}
 .clear-zone{fill:color-mix(in srgb,var(--green) 7%,transparent);stroke:var(--green);stroke-width:2;stroke-dasharray:7 5}

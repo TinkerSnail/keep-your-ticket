@@ -30,7 +30,7 @@
 <p><b>Spurs run down toward the park, not rings round it.</b> Five ridgelines from the summit line to the toe, on bearings −135° (dying into the sea as the north headland's cliffs), −70° (behind the Grove and the north rides), −10° (the east spur, becoming the foothill behind the High Terrace where the plateau hands over), +40° (behind Kiddieland) and +95° (the south spur, ending behind the parking). Valleys between them, 40 to 80m below the adjacent ridges at mid-slope; the road valley on bearing +75° is the widest.</p>
 <p><b>The approach road.</b> Arrives from the south-east down the +75° valley, swings west below the toe of the south spur, and meets the arrival axis south of the parking fields at about z 240. It is a landform decision first: the valley floor stays under 1:12 and nothing of the crescent's south arm crosses it. The parking clause below fixes the junction, the lot road, the edges and the arrival view.</p>
 <p><b>The coast, after Half Moon Bay.</b> A headland juts out at the north end of a crescent bay, a harbour cove sits in its lee, and the shore runs on south in one concave arc. Here: the working shore either side of the Boardwalk, z ±70, protected as built; north of it a cove biting in between the wooden coaster and the lighthouse's headland to (−72, −218), twelve metres seaward of the Grand Circuit's lane; the promontory running west from that headland's root to a cliffed point at (−218, −262), the land between the cove's north shore and the coast beyond; north of the point a cliffed coast with two coves between z −300 and −420; south of the Boardwalk the bay's far shore, holding about x −125 past the parking's front road with the 20m bluff and its cove on that stretch, then sweeping south-east across the mainland reserve's west edge near z 530 and on to (700, 2200). <b>Reshaped 2026-09-04:</b> the first outlines ran both arms out to sea at about sixteen degrees, a V with the park at the tip of a cape; Half Moon Bay is a coast trending north-west to south-east with the point standing out of it and the harbour in its lee, so the coast north of the point now recedes north-north-west and stays east of the point's x for 400m, and the south shore recedes into the hills instead of out to sea. The reserve carries the far shore where the outline has crossed its west edge, clipped to the same outline, over a second sheet of water; the transition ramps and bench boxes that had filled the cove north of the coaster and hung over the water are retired, and the coast meshes are the ground beyond the working strip. Nothing above 10m stands in the sunset sector, 280° to 310° from the pier head. Everything outside this frame — the headland proposed as one landform with cliffs and coves on its outer face and a harbour cove in its lee, the far shore, the far headland, the pass road, the tunnel, the towns and the distant city — is package <b>02B</b> on <code>park-world-beyond.html</code>, drafted 2026-09-04 as proposals, none of it in Godot. The headland as one landform was built the same evening; the orange line here is the part of its built outline inside this frame, and P1 stands on its level top at world (−205, −300). Since 2026-09-04 the lighthouse stands on the point (04B): the tower at world (−205, −300) since the headland became one landform on the promontory's spine, which runs up the middle of the land from the headland pad to the point and carries the height from the pad's 4m to a cliffed 22m at the tip; across the land the crown is set by distance to the shoreline, so the top is a table and the sea-cliff skirt makes the cliff. The keeper's exhibit stands ten metres north of the walk, and the promontory walk leaves the headland loop's west vertex, climbs the spine at about 1:8 and keeps at least 8m inland of the shoreline everywhere. The first placement the same day put the spine, the walk and the tower on the cove-side cliff edge; it was corrected once seen from the walk. The tower is the one program element outside the developed envelope, by decision.</p>
-<p><b>North Boardwalk hardscape coordination — 2026-09-11.</b> The larger Boardwalk footprint reaches the cove at world z=-205m. Its open eight-metre waterfront extension and the two meeting R15/R16 timber forecourts are developed hardscape, not general landscape: terrain provides only shallow hidden beds below them. The land return passes below the Grand Circuit once near world (−70.14, −198.65); reserve the full eight-metre path, its 4.01m vertical clearance and the four bridge-column pockets beyond that envelope. Broader planting and landform work stays outside those editor-owned surfaces and bridge pockets. The cove, bluff, working quay, Q3, west-arch reveal and sunset-water sector remain fixed.</p>
+<p><b>North Boardwalk hardscape coordination — 2026-09-11.</b> The larger Boardwalk footprint reaches the cove at world z=-205m. Its open eight-metre waterfront extension and the two meeting R15/R16 timber forecourts are developed hardscape, not general landscape: terrain provides only shallow hidden beds below them. The land return passes below the Grand Circuit once near world (−70.14, −198.65); reserve the full eight-metre path, its 4.01m vertical clearance and the four bridge-column pockets beyond that envelope. Grand Circuit clear of the north ride park (Christina, 2026-10-15): the lane as built runs through R16, R15 and R2’s bent 16; GC-2, the course approved by Christina 2026-10-15 (dotted blue here, drawn in full in the rebuild overlay; not yet built), moves this crossing about 2.7m east along the return, to near (−67.74, −197.40), at 4.04m. Broader planting and landform work stays outside those editor-owned surfaces and bridge pockets. The cove, bluff, working quay, Q3, west-arch reveal and sunset-water sector remain fixed.</p>
 <p><b>Steepness and roughness.</b> The foothill front stays about 1:2.75; the second ridge moves in to 280m and the summit ridge to 900m so the climb is 1:3 rather than 1:5. Roughness comes from a seeded noise, two octaves at roughly 400 and 120m, ±12% and ±5% of local height, deterministic across regeneration; sines are for reference, not for mountains.</p>
 <p><b>Judged from six standpoints, not from the sea:</b> the pier head, the promenade's north end, the lighthouse forecourt, the head of the east climb, the belvedere, and the parking arrival looking both ways. Those frames are the acceptance; the sea and plan views are diagnostics.</p>
 </div>
@@ -155,6 +155,14 @@
     stroke: var(--orange);
     stroke-width: 4;
     stroke-dasharray: 10 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  #kyt-footprint-expansion .tram-proposal {
+    fill: none;
+    stroke: var(--blue);
+    stroke-width: 3;
+    stroke-dasharray: 3 3;
     stroke-linecap: round;
     stroke-linejoin: round;
   }
@@ -337,7 +345,11 @@
     F:[{w:9,p:[[-6,-68],[4,-82],[20,-100],[40,-113],[63,-120],[86,-116],[106,-104],[120,-86],[124,-62],[118,-42],[107,-30],[94,-50],[94,-58],[78,-65],[58,-70],[39,-64],[20,-55],[-1,-58],[-6,-68]]},{w:12,p:[[94,-50],[94,-58]]},{w:12,p:[[-6,-68],[-3,-52]]}]
   };
   const currentTram = [[12,123],[37,123],[70,123],[102,104],[116,78],[116,20],[116,-70],[96,-104],[55,-126],[2,-140],[-38,-130],[-58,-108],[-68,-82],[-72,-50],[-72,18],[-72,62],[-63,92],[-48,116],[-15,132],[12,123]];
-  const expandedTram = [[0,174],[44,172],[92,160],[146,136],[188,96],[208,45],[210,-24],[196,-91],[166,-145],[120,-185],[62,-214],[-12,-220],[-62,-204],[-88,-170],[-82,-124],[-72,-82],[-72,-20],[-72,44],[-73,92],[-75,137],[-48,166],[0,174]];
+  // The Grand Circuit's controls as ParkPlan.GRAND_TRAM_CONTROLS has them (the west was
+  // still the 2026-09-02 draft, x -72, until 2026-10-15). Grand Circuit clear of the north ride park (Christina, 2026-10-15):
+  // proposedTramWest is GC-2, the course approved by Christina 2026-10-15 and not yet built.
+  const expandedTram = [[0,174],[44,172],[92,160],[146,136],[188,96],[208,45],[210,-24],[196,-91],[166,-145],[120,-185],[62,-214],[-12,-220],[-62,-204],[-88,-170],[-78,-82],[-78,-20],[-78,24],[-78,44],[-104,72],[-104,130],[-80,155],[-48,166],[0,174]];
+  const proposedTramWest = [[-62,-204],[-73.1,-174.8],[-74.3,-155.5],[-77.8,-142],[-83.3,-104.5],[-70,-62.5],[-69.3,-42.1],[-75.3,-31.6],[-78,-25.2],[-78,-14.4],[-78,24]];
 
   function expandPoint(point) {
     const [x,z]=point;
@@ -583,6 +595,10 @@
     const tram=expanded?expandedTram:currentTram;
     line(groups.tram,tram,'tram-under',8);
     line(groups.tram,tram,'tram',4);
+    if(expanded){
+      const proposal=line(groups.tram,proposedTramWest,'tram-proposal',3);
+      const note=make('title',{});note.textContent='Grand Circuit clear of the north ride park: GC-2, approved by Christina 2026-10-15, not yet built';proposal.appendChild(note);
+    }
     label(groups.labels,expanded?'GRAND CIRCUIT · OUTER RESERVE':'GRAND CIRCUIT · LEGACY ALIGNMENT',expanded?[123,-205]:[80,-132],'minor-label');
     drawGround(expanded);
 const rimCheck=drawRim(expanded);

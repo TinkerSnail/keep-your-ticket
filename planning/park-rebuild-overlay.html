@@ -1525,6 +1525,41 @@
     stroke-width: 3;
     stroke-dasharray: 10 4 2 4;
   }
+  /* Grand Circuit clear of the north ride park (Christina, 2026-10-15). */
+  #park-rebuild-overlay .gc-built,
+  #park-rebuild-overlay .gc-lane {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  #park-rebuild-overlay .gc-built {
+    stroke: var(--red);
+    stroke-width: 2.5;
+    stroke-dasharray: 7 5;
+    stroke-opacity: 0.8;
+  }
+  #park-rebuild-overlay .gc-lane { stroke: var(--purple); stroke-opacity: 0.5; }
+  #park-rebuild-overlay .gc-cut {
+    fill: var(--red);
+    fill-opacity: 0.2;
+    stroke: var(--red);
+    stroke-width: 1.5;
+  }
+  #park-rebuild-overlay .gc-span {
+    fill: none;
+    stroke: var(--green);
+    stroke-width: 2;
+  }
+  #park-rebuild-overlay .gc-overpass {
+    fill: var(--background);
+    stroke: var(--foreground);
+    stroke-width: 1.5;
+  }
+  #park-rebuild-overlay .gc-label {
+    fill: var(--foreground);
+    font-size: 12px;
+    font-weight: 700;
+  }
   #park-rebuild-overlay .service-turn {
     fill: var(--background);
     stroke: var(--orange);
@@ -3211,6 +3246,147 @@
       if (!coveredSites.has(site)) throw new Error(`Feature slate does not reach ${featureSites[site].name}`);
     });
   };
+  // Grand Circuit clear of the north ride park (Christina, 2026-10-15): GC-2 is the
+  // approved course, approved by Christina 2026-10-15 ("keep the café, wedge off the
+  // arcade"); GC-1, the back lane that cut I3 and I2 to 7.5 m and 8.2 m deep, was drawn
+  // beside it and not chosen. Until GC-2 is built, ParkPlan still carries the as-built
+  // course: the road-train lane from the B overpass runs through R16's hall, R15's pad
+  // and R2's bent 16, then under R2's return 2.3 m up and through I3 and I2 on the back
+  // lane. No course past
+  // NT-1 keeps I2 whole: NT-1 needs the lane at x -78 from z -16, and I2's back wall
+  // stands at -75 until z -24. These are world metres (x, y, z), not atlas units: the
+  // lane is the uniform Catmull-Rom loop through ParkPlan.GRAND_TRAM_CONTROLS, 5.4 m
+  // wide, drawn through the inverse of rebuild_expand_point. Each list runs from the
+  // Grove station to the control after the Boardwalk station; the stretch that changes
+  // is the crest at (-62, -204) to the station at (-78, 24). The control after the crest
+  // lies on the lane's own tangent through the old (-88, -170), so through the Headland
+  // cutting, the P1 footbridge and the bluff opening the lane moves 0.17 m at most.
+  const grandCircuitWest = {
+    width:5.4, clear:1.5, nt1Clear:1.3,
+    built:{id:'GC-0',name:'Grand Circuit as built (through R16, R15, R2 bent 16, I3 and I2)',
+      controls:[[62,0,-214],[-12,0,-220],[-62,-1.1,-204],[-88,-4.5,-170],[-78,-6,-82],
+        [-78,-6,-20],[-78,-6,24],[-78,-6,44]]},
+    course:{id:'GC-2',name:'GC-2 · approved by Christina 2026-10-15: I3 kept, a 9 m S-bend through a wedge of I2',
+      approved:'2026-10-15',
+      label:[-63,-40],
+      controls:[[62,0,-214],[-12,0,-220],[-62,-1.1,-204],[-73.1,-3.9,-174.8],
+        [-74.3,-5.2,-155.5],[-77.8,-6,-142],[-83.3,-6,-104.5],[-70,-6,-62.5],
+        [-69.3,-6,-42.1],[-75.3,-6,-31.6],[-78,-6,-25.2],[-78,-6,-14.4],
+        [-78,-6,24],[-78,-6,44]],
+      // I2 loses 62 m² of its 160 m², its back wall running from x -78.9 at its
+      // north end to -82.5 at its south end. The lane passes 1.6 m from I3's delivery
+      // door and 0.7 m in plan from S1's deck edge, which stands 5.7 m above it.
+      cuts:[{id:'I2',polygon:[[-75,-34],[-78.9,-34],[-80.3,-31.5],[-81.5,-29],
+        [-82.15,-26.5],[-82.5,-24],[-75,-24]]}],
+      s1Clear:0.6},
+    // With the approved course: B's overpass moves 2.7 m east along B and keeps 4.04 m
+    // fixed clearance; R2's track runs at least 4.06 m over the lane where the lane
+    // passes beneath it, at two clear spans where a standard bent steps aside with a
+    // catch deck, as at R2's waterfront flyover; R15's and R16's east service stubs end
+    // at the lane's 1.5 m verge (as drawn they join nothing inland); SH1 and the I2 and
+    // I3 service links cross the lane at grade, as they do today; the lane stands up to
+    // 3.4 m over the ground beside R16 on a bank with a retaining face toward the rides.
+    overpass:{id:'boardwalk_north_overpass',was:[-70.14,-1.74,-198.65],now:[-67.74,-1.72,-197.40]},
+    clearSpans:[{id:'R2 bent 17',at:[-79.69,-140.9]},{id:'R2 bent 32',at:[-69.05,-69.97]}],
+    serviceStubsToVerge:['R15','R16'],
+    monumentCrossing:[-78,-2]
+  };
+  const gcExpand = ([x,z]) => {
+    let qx = x, qz = z;
+    if (z > 52) { qz = 52 + (z - 52) * 1.55; if (x > 49) qx = 49 + (x - 49) * 1.45; }
+    else if (z < -52) { qz = -52 + (z + 52) * (178 / 108); if (x > 20) qx = 20 + (x - 20) * 1.35; }
+    else if (x > 128) { qx = 128 + (x - 128) * 2.5; }
+    if (x < -112) qx = -112 + (x + 112) * 1.5;
+    return [qx, qz];
+  };
+  // The inverse for the west of the park, where x stays below 20.
+  const gcAtlas = ([x,z]) => [x < -112 ? -112 + (x + 112) / 1.5 : x,
+    z < -52 ? -52 + (z + 52) * 108 / 178 : z > 52 ? 52 + (z - 52) / 1.55 : z];
+  function gcCurve(controls, steps = 16) {
+    const out = [];
+    for (let i = 1; i < controls.length - 2; i++) {
+      const [p0,p1,p2,p3] = [controls[i-1],controls[i],controls[i+1],controls[i+2]];
+      for (let j = 0; j < steps; j++) {
+        const t = j / steps, t2 = t * t, t3 = t2 * t;
+        out.push([0,1,2].map(k => 0.5 * ((2 * p1[k]) + (-p0[k] + p2[k]) * t
+          + (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * t2
+          + (-p0[k] + 3 * p1[k] - 3 * p2[k] + p3[k]) * t3)));
+      }
+    }
+    out.push(controls[controls.length - 2].slice());
+    return out;
+  }
+  // The stretch from the crest to the Boardwalk station, as [x, z] world points.
+  function gcStretch(controls) {
+    const all = gcCurve(controls);
+    const a = all.findIndex(p => Math.hypot(p[0] + 62, p[2] + 204) < 1e-6);
+    const b = all.findIndex(p => Math.hypot(p[0] + 78, p[2] - 24) < 1e-6);
+    return all.slice(a, b + 1).map(p => [p[0], p[2]]);
+  }
+  // The approved course checked in world metres against what the atlas places beside
+  // it. It is allowed only what it declares: its cut to I2, B under the overpass and
+  // across the monument crossing, R15's and R16's service stubs ending at the verge,
+  // and S1's elevated deck edge in plan. R2's course is not
+  // tested here: the lane passes beneath it at the two clear spans, which the atlas's
+  // R2 envelope cannot show.
+  function gcGaps(option) {
+    const W = grandCircuitWest, half = W.width / 2;
+    const lane = gcStretch(option.controls);
+    const segDist = (p, a, b) => {
+      const dx = b[0] - a[0], dz = b[1] - a[1], l = dx * dx + dz * dz;
+      const t = l ? Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dz) / l)) : 0;
+      return Math.hypot(p[0] - a[0] - dx * t, p[1] - a[1] - dz * t);
+    };
+    const inPoly = (p, poly) => { let ins = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const A = poly[i], B = poly[j]; if ((A[1] > p[1]) !== (B[1] > p[1]) && p[0] < (B[0] - A[0]) * (p[1] - A[1]) / (B[1] - A[1]) + A[0]) ins = !ins; } return ins; };
+    const polyDist = (p, poly) => inPoly(p, poly) ? 0 : Math.min(...poly.map((a, i) => segDist(p, a, poly[(i + 1) % poly.length])));
+    const lineDist = (p, line) => Math.min(...line.slice(1).map((b, i) => segDist(p, line[i], b)));
+    const rect = (c, w, d) => [[c[0] - w / 2, c[1] - d / 2], [c[0] + w / 2, c[1] - d / 2], [c[0] + w / 2, c[1] + d / 2], [c[0] - w / 2, c[1] + d / 2]];
+    const gaps = [];
+    const test = (what, dist, need, skip = () => false) => {
+      let worst = Infinity;
+      lane.forEach(p => { if (!skip(p)) worst = Math.min(worst, dist(p) - half); });
+      gaps.push({what, gap:worst, need});
+    };
+    ['R15','R16','R2'].forEach(id => {
+      const ride = rides.find(r => r.id === id);
+      if (id === 'R15') test('R15 pad', p => Math.hypot(p[0] - gcExpand(ride.at)[0], p[1] - gcExpand(ride.at)[1]) - ride.r, W.clear);
+      if (id === 'R16') test('R16 hall', p => polyDist(p, rect(gcExpand(ride.at), ride.size[0], ride.size[1])), W.clear);
+      ['queue','exit','service'].forEach(kind => {
+        if (!ride[kind]) return;
+        if (kind === 'service' && W.serviceStubsToVerge.includes(id)) return;
+        const line = ride[kind].map(gcExpand);
+        test(`${id} ${kind}`, p => lineDist(p, line) - 1.3, W.clear);
+      });
+    });
+    ['I2','I3'].forEach(id => {
+      const item = newInteriors.find(r => r.id === id);
+      let poly = rect(gcExpand(item.at), item.size[0], item.size[1]);
+      const cut = option.cuts.find(c => c.id === id);
+      if (cut && cut.keepToX !== undefined) poly = poly.map(([x, z]) => [Math.min(x, cut.keepToX), z]);
+      if (cut && cut.polygon) poly = [[poly[0][0], cut.polygon[0][1]], ...cut.polygon.slice(1, -1), [poly[0][0], cut.polygon[cut.polygon.length - 1][1]]];
+      test(`${id} shell`, p => polyDist(p, poly), W.clear);
+    });
+    const s1 = serviceSpines.find(s => s.id === 'S1').p.map(gcExpand);
+    test('S1', p => lineDist(p, s1) - 2.0, option.s1Clear);
+    const nt1 = protectedZones.find(z => z.id === 'NT-1');
+    test('NT-1', p => polyDist(p, [[nt1.x0, nt1.z0], [nt1.x1, nt1.z0], [nt1.x1, nt1.z1], [nt1.x0, nt1.z1]]), W.nt1Clear - 0.005);
+    const over = [W.overpass.now[0], W.overpass.now[2]];
+    routes.B.paths.forEach((run, k) => {
+      const line = run.p.map(gcExpand);
+      test(`B run ${k}`, p => lineDist(p, line) - run.w / 2, W.clear,
+        p => Math.hypot(p[0] - over[0], p[1] - over[1]) < 10 || Math.hypot(p[0] - W.monumentCrossing[0], p[1] - W.monumentCrossing[1]) < 9.5);
+    });
+    return gaps;
+  }
+  function validateGrandCircuitPlan() {
+    const problems = [];
+    const course = grandCircuitWest.course;
+    gcGaps(course).forEach(g => {
+      if (g.gap < g.need) problems.push(`${course.id} leaves ${g.gap.toFixed(2)}m to ${g.what} (needs ${g.need}m)`);
+    });
+    if (problems.length) throw new Error(`Grand Circuit clear of the north ride park: ${problems.join('; ')}`);
+  }
+  planCheck(validateGrandCircuitPlan);
   planCheck(validateFeaturePlan);
 
   const packages = {
@@ -3218,7 +3394,7 @@
     strip:{title:'01 · Strip inherited circulation',detail:'Remove X1 plaza doglegs, X2 Kiddieland S-path and stubs, X3 Fairground spine and stubs, X4 Grove double-back and dead ends, X5 narrow Frontier approach, and all X6 guards / closures. Keep only the amber cores and purple monuments.'},
     terrain:{title:'02 · Protect, grade, and retain',detail:'Fence NT-1 and NT-2 before excavation. Form T0–T6 and reserve the outer T6 shoulder for R13, then build W1 / W3 major scarps; W4–W6 stay short and planted, and W7 remains landform rather than a path wall. The perimeter rim (former T7) is package 02A on the footprint map, in world coordinates: crest x 270 / z −275, 16 to 28m high, its derived toe clearing every route, transit reserve, parking field and parcel by 12m.'},
     trunks:{title:'03 · Lay primary trunks',detail:'Build A from gate through hub to the lighthouse loop, then B as one continuous waterfront spine with north, monument, and south returns. Do not begin district paving until both trunks close.'},
-    loops:{title:'04 · Close loops, ride courts, and attractions',detail:'Build C–F, set J1–J9, then place R1–R16 and P1–P5. R4 is the Fairground swinging ship; R14 is the Kiddieland junior coaster; R15 and R16 are separate Boardwalk courts beside the smooth expanded R2 and share one continuous timber pier field. B’s land return passes beneath the Grand Circuit once at the named boardwalk_north_overpass, with 4.01m fixed clearance and all columns beyond its full eight-metre envelope. P1’s promontory walk passes over it once, on the named p1_lighthouse_footbridge (2026-10-15): the lane runs below in its Headland cutting with at least 4.0m fixed clearance, and the walk keeps its course and levels. P1 is the lighthouse experience, P2 the Boardwalk funhouse, P3 the Big Top show, P4 the family play garden, and P5 the programmed bandstand. R13 and R14 remain entirely beyond NT-2; every queue and yellow attraction branch leaves a loop before stopping guests.'},
+    loops:{title:'04 · Close loops, ride courts, and attractions',detail:'Build C–F, set J1–J9, then place R1–R16 and P1–P5. R4 is the Fairground swinging ship; R14 is the Kiddieland junior coaster; R15 and R16 are separate Boardwalk courts beside the smooth expanded R2 and share one continuous timber pier field. B’s land return passes beneath the Grand Circuit once at the named boardwalk_north_overpass, with 4.01m fixed clearance and all columns beyond its full eight-metre envelope. Grand Circuit clear of the north ride park (Christina, 2026-10-15): as built the road-train lane runs through R16, R15 and R2’s bent 16, under R2’s return at 2.3m and through I3 and I2; GC-2, approved by Christina 2026-10-15 and not yet built, keeps R2, R15, R16, I3, NT-1’s 1.3m and Q3, cuts a 62m² wedge from I2’s back on a 9m S-bend, passes beneath R2 at two clear spans with catch decks and at least 4.06m, and moves the overpass 2.7m east along B at 4.04m. P1’s promontory walk passes over it once, on the named p1_lighthouse_footbridge (2026-10-15): the lane runs below in its Headland cutting with at least 4.0m fixed clearance, and the walk keeps its course and levels. P1 is the lighthouse experience, P2 the Boardwalk funhouse, P3 the Big Top show, P4 the family play garden, and P5 the programmed bandstand. R13 and R14 remain entirely beyond NT-2; every queue and yellow attraction branch leaves a loop before stopping guests.'},
     parcels:{title:'04A · Resolve the first attraction parcels',detail:'R4 receives a 26 × 10m operating envelope, in-court queue, separate exit to C, operator booth, photo turnout, and gated back-lane service. P2 receives a 12 × 14m show building, separate Boardwalk entry and exit, continuous interior route, level tunnel bypass, façade photo point, and rear staff gate. Neither changes a public through-route.'},
     lighthouse:{title:'04B · Resolve the Headland lighthouse experience',detail:'P1 keeps a 10m-diameter lighthouse on the boulevard axis, with a 14 × 8m low forecourt and an 8 × 6m keeper’s house to the west. Visitors enter through the exhibit, climb on the west stair, descend on the east stair, and rejoin the loop separately. A side-bay photo position keeps the boulevard clear; accessible camera-obscura content stays at ground level; servicing uses A only before opening.'},
     bigtop:{title:'04C · Resolve the Fairground Big Top',detail:'P3 moves inward to an 18 × 12m tent with a 2.2m central ring and 120 timed seats. The north ticket queue and east audience exit connect to different points on C; an exterior photo bay leaves the loop open. A 14 × 6m backstage yard meets the Fairground service spine, while a gated performer crossing stays shut through audience load and release. The cue desk owns the after-close beacon, music, ring lights, and one rigging sequence.'},
@@ -5666,6 +5842,36 @@
       drawKiddielandLayer(svg,x,y,scale,
         (values,className,attrs={}) => pathLine(svg,values,className,attrs),
         {compact,context:selected === 'all',labels:selected === 'kiddieland'});
+    }
+
+    // Grand Circuit clear of the north ride park (Christina, 2026-10-15): the approved
+    // course GC-2 over the as-built one, from the B overpass to the Boardwalk
+    // station. World points are drawn through gcAtlas, so the lane sits where the
+    // generator would put it among the atlas's expanded rides.
+    if (['loops','service','all'].includes(selected)) {
+      const W = grandCircuitWest;
+      const withTitle = (el, copy) => { const t = make('title'); t.textContent = copy; el.appendChild(t); return el; };
+      withTitle(pathLine(svg, gcStretch(W.built.controls).map(gcAtlas), 'gc-built'), W.built.name);
+      [W.course].forEach(option => {
+        withTitle(pathLine(svg, gcStretch(option.controls).map(gcAtlas), 'gc-lane',
+          {'data-option':option.id, 'stroke-width':Math.max(3, W.width * scale)}), option.name);
+        option.cuts.forEach(cut => {
+          const item = newInteriors.find(r => r.id === cut.id);
+          const x1 = item.at[0] + item.size[0] / 2, z0 = item.at[1] - item.size[1] / 2, z1 = item.at[1] + item.size[1] / 2;
+          const poly = cut.polygon || [[cut.keepToX, z0], [x1, z0], [x1, z1], [cut.keepToX, z1]];
+          withTitle(svg.appendChild(make('polygon', {points:points(poly.map(gcAtlas)), class:'gc-cut', 'data-option':option.id})),
+            `${option.id}: ${cut.id} gives up its back to clear the lane by ${W.clear} m`);
+        });
+        if (!compact) addText(svg, option.id, x(option.label[0]), y(option.label[1]), 'gc-label', 'middle');
+      });
+      W.clearSpans.forEach(span => {
+        const [ax, az] = gcAtlas(span.at);
+        withTitle(svg.appendChild(make('circle', {cx:x(ax), cy:y(az), r:Math.max(4, 6.5 * scale), class:'gc-span'})),
+          `${span.id}: clear span over the lane, catch deck, at least 4.06 m clear`);
+      });
+      const [ox, oz] = gcAtlas([W.overpass.now[0], W.overpass.now[2]]);
+      withTitle(svg.appendChild(make('rect', {x:x(ox) - 3, y:y(oz) - 3, width:6, height:6, class:'gc-overpass'})),
+        `${W.overpass.id}: re-placed 2.7 m east along B, 4.04 m fixed clearance`);
     }
 
     if (['trunks','loops','service','qa','all'].includes(selected)) {
