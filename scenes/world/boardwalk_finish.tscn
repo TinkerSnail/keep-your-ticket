@@ -85,14 +85,14 @@ metadata/protected_clearances = "NT-1,Q3,pier_approach,pavilion_turnaround,west_
 editor_description = "Texture is concentrated on blank building fields; paths keep their established quiet plank direction."
 
 [node name="I2_north_side" type="MeshInstance3D" parent="weathered_cladding"]
-position = Vector3(-83.0, -3.6, -34.18)
-scale = Vector3(15.1, 4.0, 0.035)
+position = Vector3(-85.042, -3.6, -34.18)
+scale = Vector3(11.017, 4.0, 0.035)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_weathered_board")
 
 [node name="I2_south_side" type="MeshInstance3D" parent="weathered_cladding"]
-position = Vector3(-83.0, -3.6, -23.82)
-scale = Vector3(15.1, 4.0, 0.035)
+position = Vector3(-86.831, -3.6, -23.82)
+scale = Vector3(7.438, 4.0, 0.035)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_weathered_board")
 
@@ -154,13 +154,14 @@ mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_coral_worn")
 
 [node name="packet_stack_01" type="MeshInstance3D" parent="I2_ride_photo_merchandise"]
-position = Vector3(-77.25, -4.74, -30.6)
+position = Vector3(-83.226, -4.74, -31.326)
+rotation = Vector3(0, -0.34531, 0)
 scale = Vector3(0.62, 0.12, 0.82)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_paper")
 [node name="packet_stack_02" type="MeshInstance3D" parent="I2_ride_photo_merchandise"]
-position = Vector3(-77.18, -4.62, -29.5)
-rotation = Vector3(0, 0.08, 0)
+position = Vector3(-83.532, -4.62, -30.268)
+rotation = Vector3(0, -0.26531, 0)
 scale = Vector3(0.68, 0.10, 0.9)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_paper")

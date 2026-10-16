@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=13 format=3]
 
 ; Directly editor-owned primary architecture for I2, I3 and B1-B4. The stable
 ; park_program wrapper retires the generated walls, awnings and roofs that this
@@ -6,6 +6,8 @@
 ; interior lights remain because they describe operations rather than form.
 
 [ext_resource type="Texture2D" path="res://assets/textures/boardwalk/weathered_boardwalk_albedo.res" id="1_weathered"]
+[ext_resource type="Texture2D" path="res://assets/textures/brick_albedo.res" id="2_brick"]
+[ext_resource type="Texture2D" path="res://assets/textures/brick_normal.res" id="3_brick_normal"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_weathered_cream"]
 albedo_texture = ExtResource("1_weathered")
@@ -43,6 +45,17 @@ albedo_color = Color(0.055, 0.12, 0.14, 1)
 metallic = 0.12
 roughness = 0.3
 
+; The generated floors' brick, for I2's floor since the GC-2 wedge (below).
+[sub_resource type="StandardMaterial3D" id="Mat_floor_brick"]
+albedo_color = Color(0.64, 0.5, 0.43, 1)
+albedo_texture = ExtResource("2_brick")
+roughness = 0.94
+normal_enabled = true
+normal_scale = 0.6
+normal_texture = ExtResource("3_brick_normal")
+uv1_scale = Vector3(0.3125, 0.3125, 0.3125)
+uv1_triplanar = true
+
 [node name="boardwalk_frontage_architecture" type="Node3D"]
 editor_description = "Directly editable Boardwalk streetwall architecture. I2, I3 and B1-B4 own their visible walls and roofs here; approved footprints remain in boardwalk_layout.tscn."
 metadata/section = &"boardwalk"
@@ -52,25 +65,34 @@ metadata/protected_clearances = "NT-1,Q3,west_arch_reveal,pier_approach"
 
 ; I2 · Arcade + Ride Photo. The three-step parapet supports the existing sign
 ; and gives the combined use one civic-sized address without changing its
-; 16 × 10m footprint or central west threshold.
+; central west threshold. GC-2 (Christina, 2026-10-15, "keep the café, wedge
+; off the arcade"): the Grand Circuit lane passes behind it, so its back gives
+; up the drawn 62 m² wedge of the 16 × 10m footprint. The back wall's outer face
+; is the maps' kept line, from x -78.9 at the north wall to -82.5 at the south,
+; 1.5 m clear of the lane's edge; the side walls, trims, roof and floor end at
+; it, and the service door stands on its northern length, its header lapped
+; into the wall so that it too keeps 1.5 m from the lane.
 [node name="I2_arcade_shell" type="Node3D" parent="."]
-editor_description = "I2 primary shell: weathered timber body, west entrance, stepped parapet, roof, clerestory and east service face."
+editor_description = "I2 primary shell: weathered timber body, west entrance, stepped parapet, roof, clerestory, floor and east service face. Since GC-2 (2026-10-15) its back wall, roof and floor are polygons in world x, z: the back gives up the drawn wedge to the Grand Circuit lane."
 
-[node name="back_wall" type="CSGBox3D" parent="I2_arcade_shell"]
-position = Vector3(-75.0, -3.615, -29.0)
-size = Vector3(0.32, 4.87, 10.0)
+[node name="back_wall" type="CSGPolygon3D" parent="I2_arcade_shell"]
+position = Vector3(0, -6.05, 0)
+rotation = Vector3(1.5707964, 0, 0)
 use_collision = true
+polygon = PackedVector2Array(-78.8104, -34.1600, -80.3000, -31.5000, -81.5000, -29.0000, -82.1500, -26.5000, -82.5224, -23.8400, -82.8455, -23.8400, -82.4643, -26.5627, -81.8019, -29.1105, -80.5841, -31.6476, -79.1772, -34.1600)
+depth = 4.87
 material = SubResource("Mat_weathered_cream")
+metadata/plan_outline = "polygon x, y are world x, z; extruded 4.87m up from y -6.05"
 
 [node name="north_wall" type="CSGBox3D" parent="I2_arcade_shell"]
-position = Vector3(-83.0, -3.605, -34.0)
-size = Vector3(16.0, 4.87, 0.32)
+position = Vector3(-85.042, -3.605, -34.0)
+size = Vector3(11.917, 4.87, 0.32)
 use_collision = true
 material = SubResource("Mat_weathered_cream")
 
 [node name="south_wall" type="CSGBox3D" parent="I2_arcade_shell"]
-position = Vector3(-83.0, -3.595, -24.0)
-size = Vector3(16.0, 4.87, 0.32)
+position = Vector3(-86.831, -3.595, -24.0)
+size = Vector3(8.338, 4.87, 0.32)
 use_collision = true
 material = SubResource("Mat_weathered_cream")
 
@@ -86,10 +108,22 @@ size = Vector3(0.3, 4.87, 3.52)
 use_collision = true
 material = SubResource("Mat_weathered_cream")
 
-[node name="roof" type="CSGBox3D" parent="I2_arcade_shell"]
-position = Vector3(-83.0, -0.97, -29.0)
-size = Vector3(16.6, 0.3, 10.6)
+[node name="roof" type="CSGPolygon3D" parent="I2_arcade_shell"]
+position = Vector3(0, -1.12, 0)
+rotation = Vector3(1.5707964, 0, 0)
+polygon = PackedVector2Array(-91.3000, -34.3000, -78.5715, -34.3000, -80.1757, -31.4354, -81.3679, -28.9516, -82.0125, -26.4726, -82.4006, -23.7000, -91.3000, -23.7000)
+depth = 0.3
 material = SubResource("Mat_roof")
+metadata/plan_outline = "polygon x, y are world x, z; 0.3m thick up from y -1.12, overhanging the walls as before"
+
+[node name="floor" type="CSGPolygon3D" parent="I2_arcade_shell"]
+position = Vector3(0, -5.999, 0)
+rotation = Vector3(1.5707964, 0, 0)
+polygon = PackedVector2Array(-91.0000, -34.0000, -78.9000, -34.0000, -80.3000, -31.5000, -81.5000, -29.0000, -82.1500, -26.5000, -82.5000, -24.0000, -91.0000, -24.0000)
+depth = 0.05
+material = SubResource("Mat_floor_brick")
+metadata/plan_outline = "polygon x, y are world x, z; the kept footprint, 0.05m thick up from y -5.999"
+metadata/replaces_generated = &"park_program/I2_floor"
 
 [node name="north_parapet" type="CSGBox3D" parent="I2_arcade_shell"]
 position = Vector3(-90.95, -0.54, -33.05)
@@ -137,23 +171,25 @@ size = Vector3(0.08, 0.52, 1.15)
 material = SubResource("Mat_glass")
 
 [node name="east_service_door" type="CSGBox3D" parent="I2_arcade_shell"]
-position = Vector3(-74.81, -4.35, -29.0)
+position = Vector3(-79.574, -4.35, -32.735)
+rotation = Vector3(0, -0.51049, 0)
 size = Vector3(0.08, 3.1, 1.65)
 material = SubResource("Mat_cobalt")
 
 [node name="east_service_header" type="CSGBox3D" parent="I2_arcade_shell"]
-position = Vector3(-74.76, -2.72, -29.0)
+position = Vector3(-79.574, -2.72, -32.735)
+rotation = Vector3(0, -0.51049, 0)
 size = Vector3(0.12, 0.18, 2.05)
 material = SubResource("Mat_mustard")
 
 [node name="side_trim_n" type="CSGBox3D" parent="I2_arcade_shell"]
-position = Vector3(-83.0, -1.3, -34.2)
-size = Vector3(15.5, 0.24, 0.12)
+position = Vector3(-85.042, -1.3, -34.2)
+size = Vector3(11.417, 0.24, 0.12)
 material = SubResource("Mat_turquoise")
 
 [node name="side_trim_s" type="CSGBox3D" parent="I2_arcade_shell"]
-position = Vector3(-83.0, -1.3, -23.8)
-size = Vector3(15.5, 0.24, 0.12)
+position = Vector3(-86.831, -1.3, -23.8)
+size = Vector3(7.838, 0.24, 0.12)
 material = SubResource("Mat_turquoise")
 
 ; I3 · Boardwalk Café. A shallow pitched roof and end returns make the café a

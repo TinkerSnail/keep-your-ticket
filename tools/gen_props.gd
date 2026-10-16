@@ -12579,7 +12579,7 @@ func _grand_tram_crossing(crossing: Dictionary) -> void:
 	var pedestrian := _grand_tram_service_run(service, at) if service != &"" \
 		else _grand_tram_pedestrian_run(crossing["pedestrian"], at, grade_separated)
 	if grade_separated:
-		_grand_tram_overpass(crossing, at, theta, pedestrian)
+		_grand_tram_overpass(crossing)
 		return
 	for i in 7:
 		var along := -1.65 + float(i) * 0.55
@@ -12617,43 +12617,183 @@ func _grand_tram_crossing(crossing: Dictionary) -> void:
 ## B's north return meets the Grand Circuit below the road rather than at grade.
 ## The road course remains its existing source; this derives only the visible
 ## slab, edge guards and four columns from the named crossing relationship.
-func _grand_tram_overpass(crossing: Dictionary, at: Vector3, theta: float,
-		pedestrian: Dictionary) -> void:
+## The lane falls across the crossing (about 8% after the crest), so the slab
+## and its guards are laid on the lane's own stations, as the footbridge's are
+## on its walk, and each column stands where `_grand_tram_overpass_layout`
+## finds it, under the slab. The level slab this replaced (GC-2, Christina,
+## 2026-10-15, which also moved the crossing 2.7 m east along B with the lane)
+## stood 0.54 m over the lane at one end and 0.46 m under it at the other, with
+## a column through the lane and two outside the slab.
+func _grand_tram_overpass(crossing: Dictionary) -> void:
 	var tag := String(crossing["id"])
 	var depth := float(crossing["fixed_structure_depth"])
-	# The columns stand beyond the authored route's complete envelope, measured
-	# on its own normal. The Grand Circuit is nearly perpendicular here but not
-	# exactly; placing them only on the road tangent clipped the player's right
-	# edge even though the centreline section appeared clear.
-	var column_setback := float(pedestrian["width"]) * 0.5 + 1.5
-	var span := float(pedestrian["width"]) + 4.6
-	var pedestrian_y := float(pedestrian["height"])
-	var underside_y := at.y - depth
-	var support_height := underside_y - pedestrian_y
-	assert(support_height >= float(crossing["minimum_fixed_clearance_metres"]),
+	var deck := _grand_tram_overpass_layout(crossing)
+	assert(float(deck["clearance"]) >= float(crossing["minimum_fixed_clearance_metres"]),
 		"Grand Circuit overpass %s has insufficient fixed clearance" % tag)
-	_box("grand_tram_overpass_%s_deck" % tag, at,
-		Vector3(0.0, -depth * 0.5, 0.0),
-		Vector3(Plan.GRAND_TRAM_LANE_W + 0.4, depth, span),
-		"building", theta)
+	var from_s: float = deck["from"]
+	var to_s: float = deck["to"]
+	var edge := Plan.GRAND_TRAM_LANE_W * 0.5
+	# The slab's top is the lane's graded centreline, the ribbon's lift under
+	# its paving, as the level slab's top was at the crossing.
+	var slab := _grand_tram_lane_lines(from_s, to_s,
+		[edge + GRAND_TRAM_OVERPASS_MARGIN, -edge - GRAND_TRAM_OVERPASS_MARGIN])
+	var body := _footbridge_body("grand_tram_overpass_%s_deck" % tag, slab[0], slab[1],
+		-depth, 0.0, "building")
+	body.set_meta("fixed_clearance_metres", deck["clearance"])
+	body.set_meta("envelope_clearance_metres", deck["envelope_clearance"])
+	body.set_meta("minimum_fixed_clearance_metres",
+		crossing["minimum_fixed_clearance_metres"])
+	# A guard on each edge, just outside the paving, lapped into the slab and
+	# stopped short of its ends. "l" is the lane's left, its across.
 	for side in [-1.0, 1.0]:
-		_box("grand_tram_overpass_%s_guard_%s" % [tag,
-				"l" if side < 0.0 else "r"], at,
-			Vector3(side * (Plan.GRAND_TRAM_LANE_W * 0.5 + 0.08), 0.56, 0.0),
-			Vector3(0.12, 1.12, span), "sky_green", theta)
-	var pedestrian_normal: Vector2 = pedestrian["normal"]
-	var tram_normal := Vector2(cos(theta), -sin(theta))
+		var inner: float = -side * (edge + FOOTBRIDGE_GUARD_GAP)
+		var outer: float = -side * (edge + FOOTBRIDGE_GUARD_GAP + FOOTBRIDGE_GUARD_T)
+		var guard := _grand_tram_lane_lines(from_s + FOOTBRIDGE_FOOT,
+			to_s - FOOTBRIDGE_FOOT, [inner, outer])
+		_footbridge_body("grand_tram_overpass_%s_guard_%s" % [tag,
+				"l" if side < 0.0 else "r"],
+			guard[0], guard[1], -FOOTBRIDGE_FOOT, FOOTBRIDGE_GUARD_H, "sky_green")
+	for column in deck["columns"]:
+		var top: float = column["top"]
+		var foot: float = column["foot"]
+		_box("grand_tram_overpass_%s_column_%s" % [tag, column["tag"]], column["at"],
+			Vector3(0.0, (top + foot) * 0.5, 0.0),
+			Vector3(GRAND_TRAM_OVERPASS_COLUMN_W, top - foot, GRAND_TRAM_OVERPASS_COLUMN_W),
+			"building", column["theta"])
+
+
+## The overpass's four columns stand `GRAND_TRAM_OVERPASS_COLUMN_SETBACK` beyond
+## B's walking envelope, measured on B's own normal, with their centres
+## `GRAND_TRAM_OVERPASS_COLUMN_INSET` inside the lane's edges, and the deck runs
+## `GRAND_TRAM_OVERPASS_OVERHANG` along the lane past the farthest of them. B
+## crossed at 67 degrees where the level slab stood, and since GC-2 it crosses
+## at about 86 just past the lane's crest, where the lane is still turning, so
+## each column finds its own station along the lane: laid out square from the
+## crossing, two of them stood outside the deck. For a square crossing these
+## give the deck B's width plus the 4.6 m it had.
+const GRAND_TRAM_OVERPASS_COLUMN_SETBACK := 1.5
+const GRAND_TRAM_OVERPASS_COLUMN_INSET := 0.34
+const GRAND_TRAM_OVERPASS_COLUMN_W := 0.34
+const GRAND_TRAM_OVERPASS_OVERHANG := 0.8
+## The deck's margin past the lane's edge, a side.
+const GRAND_TRAM_OVERPASS_MARGIN := 0.2
+## A column's foot stands this far into the ground under it.
+const GRAND_TRAM_OVERPASS_COLUMN_FOOT := 0.3
+
+var _grand_tram_overpass_layouts := {}
+
+
+## Where the overpass stands along the lane: `from` and `to`, the deck's ends in
+## plan length along it; its columns, each at its own station, turned with the
+## lane there, its top lapped `FOOTBRIDGE_FOOT` into the deck's underside at its
+## high side and its foot in the grid's ground; and the fixed clearance over B,
+## at the crossing (the record's measure) and the least over B's envelope under
+## the deck. Cached: the lane's bank reads it for the deck's ends.
+func _grand_tram_overpass_layout(crossing: Dictionary) -> Dictionary:
+	var id := StringName(crossing["id"])
+	if _grand_tram_overpass_layouts.has(id):
+		return _grand_tram_overpass_layouts[id]
+	var depth := float(crossing["fixed_structure_depth"])
+	var s_at := _grand_tram_arc_of(crossing["at"])
+	var at := _grand_tram_lane_point(s_at, 0.0)
+	var pedestrian := _grand_tram_pedestrian_run(crossing["pedestrian"], at, true)
+	var normal: Vector2 = pedestrian["normal"]
+	var b_half := float(pedestrian["width"]) * 0.5
+	var setback := b_half + GRAND_TRAM_OVERPASS_COLUMN_SETBACK
+	var inset := Plan.GRAND_TRAM_LANE_W * 0.5 - GRAND_TRAM_OVERPASS_COLUMN_INSET
+	var at2 := Vector2(at.x, at.z)
+	var half_w := GRAND_TRAM_OVERPASS_COLUMN_W * 0.5
+	var columns := []
+	var reach := 0.0
 	for along in [-1.0, 1.0]:
 		for side in [-1.0, 1.0]:
-			var column2: Vector2 = Vector2(at.x, at.z) \
-				+ pedestrian_normal * along * column_setback \
-				+ tram_normal * side * (Plan.GRAND_TRAM_LANE_W * 0.5 - 0.34)
-			var column_at: Vector3 = Vector3(column2.x, at.y, column2.y)
-			_box("grand_tram_overpass_%s_column_%s_%s" % [tag,
-					"a" if along < 0.0 else "b",
-					"l" if side < 0.0 else "r"], column_at,
-				Vector3(0.0, (pedestrian_y + underside_y) * 0.5 - at.y, 0.0),
-				Vector3(0.34, support_height, 0.34), "building", theta)
+			var across: float = -side * inset
+			# How far past its setback a point on the column's line along the
+			# lane stands from B's centreline, on B's normal: it changes sign
+			# once, where the column belongs.
+			var past := func(along_s: float) -> float:
+				var on := _grand_tram_lane_point(along_s, across)
+				return (Vector2(on.x, on.z) - at2).dot(normal) - along * setback
+			var lo := s_at - setback * 4.0
+			var hi := s_at + setback * 4.0
+			var lo_past: float = past.call(lo)
+			assert(lo_past * float(past.call(hi)) < 0.0,
+				"overpass %s: B's envelope does not cross the lane there" % id)
+			for k in 50:
+				var mid := (lo + hi) * 0.5
+				var mid_past: float = past.call(mid)
+				if (mid_past < 0.0) == (lo_past < 0.0):
+					lo = mid
+					lo_past = mid_past
+				else:
+					hi = mid
+			var s_col := (lo + hi) * 0.5
+			var p := _grand_tram_lane_point(s_col, across)
+			var ahead := _grand_tram_lane_point(s_col + half_w, across)
+			var behind := _grand_tram_lane_point(s_col - half_w, across)
+			var heading := Vector2(ahead.x - behind.x, ahead.z - behind.z).normalized()
+			var foot := INF
+			for corner in [Vector2(-1.0, -1.0), Vector2(-1.0, 1.0),
+					Vector2(1.0, -1.0), Vector2(1.0, 1.0)]:
+				var q: Vector2 = Vector2(p.x, p.z) + heading * float(corner.x) * half_w \
+					+ Vector2(-heading.y, heading.x) * float(corner.y) * half_w
+				var ground: float = _world_terrain_source().height_y(q)
+				if not is_nan(ground):
+					foot = minf(foot, ground)
+			if is_inf(foot):
+				foot = float(pedestrian["height"])
+			assert(foot < maxf(ahead.y, behind.y) - depth - 1.0,
+				"overpass %s: a column's ground stands over its deck" % id)
+			columns.append({"tag": "%s_%s" % ["a" if along < 0.0 else "b",
+					"l" if side < 0.0 else "r"],
+				"at": Vector3(p.x, 0.0, p.z), "theta": atan2(heading.x, heading.y),
+				"top": maxf(ahead.y, behind.y) - depth + FOOTBRIDGE_FOOT,
+				"foot": foot - GRAND_TRAM_OVERPASS_COLUMN_FOOT})
+			reach = maxf(reach, absf(s_col - s_at))
+	var from_s := s_at - reach - GRAND_TRAM_OVERPASS_OVERHANG
+	var to_s := s_at + reach + GRAND_TRAM_OVERPASS_OVERHANG
+	# The deck's underside over B, everywhere B's envelope runs under it.
+	var envelope := INF
+	var deck_half := Plan.GRAND_TRAM_LANE_W * 0.5 + GRAND_TRAM_OVERPASS_MARGIN
+	var s_scan := from_s
+	while s_scan <= to_s + 0.001:
+		var x := -deck_half
+		while x <= deck_half + 0.001:
+			var q := _grand_tram_lane_point(s_scan, x)
+			var q2 := Vector2(q.x, q.z)
+			if absf((q2 - at2).dot(normal)) <= b_half:
+				envelope = minf(envelope, q.y - depth
+					- _rebuild_build_route_height_at(crossing["pedestrian"], q2))
+			x += 0.25
+		s_scan += 0.25
+	var out := {"s": s_at, "from": from_s, "to": to_s, "columns": columns,
+		"clearance": at.y - depth - float(pedestrian["height"]),
+		"envelope_clearance": envelope}
+	print("overpass %s: deck %.2fm along the lane (s %.2f..%.2f), %.2fm fixed clearance over B at the crossing, %.2fm the least over B's envelope" % [
+		id, to_s - from_s, from_s, to_s, out["clearance"], envelope])
+	_grand_tram_overpass_layouts[id] = out
+	return out
+
+
+## Lines along the lane from `from_s` to `to_s`, one for each offset across it,
+## through both ends and every station between: what a slab laid on the lane's
+## grade is built between.
+func _grand_tram_lane_lines(from_s: float, to_s: float, offsets: Array) -> Array:
+	var arcs := _grand_tram_arcs()
+	var stations: Array[float] = [from_s]
+	for k in arcs.size():
+		if arcs[k] > from_s + 0.05 and arcs[k] < to_s - 0.05:
+			stations.append(arcs[k])
+	stations.append(to_s)
+	var lines := []
+	for offset in offsets:
+		var line := PackedVector3Array()
+		for s in stations:
+			line.append(_grand_tram_lane_point(s, float(offset)))
+		lines.append(line)
+	return lines
+
+
 
 
 ## The deck runs this far past each crest of the lane's cutting. The ground
@@ -13499,11 +13639,12 @@ func _grand_tram_portal_face(st: SurfaceTool, t: Dictionary, mouth: Dictionary,
 ## back on whichever side B's edge reaches out from under it, and ends on an
 ## abutment. Those faces are built as the deck is, not as earth. It starts
 ## inside the scarp's opening, so its end lies in the bluff's mass and the
-## opening's floor, and it ends, on a retaining face, where the lane comes to
-## the Boardwalk's north ride park (R16's court, the public aprons, the shore's
-## made ground), through which the lane's way past the rides is Christina's to
-## decide. It owns no course and no grade: move the lane, the deck or the
-## rides and it follows.
+## opening's floor. Since GC-2 (Christina, 2026-10-15) the lane passes beside
+## the Boardwalk's north ride park rather than through it, up to 3.4 m over
+## the ground beside R16: the bank goes on past the rides, ending on a
+## retaining face wherever it meets R16's court or a public apron, and ends in
+## earth where the lane comes down onto the shore. It owns no course and no
+## grade: move the lane, the deck or the rides and it follows.
 const GRAND_TRAM_BANK_STATION := 2.0
 ## The bank starts this far east of the scarp's face, inside the opening.
 const GRAND_TRAM_BANK_FACE_LAP := 2.0
@@ -13516,10 +13657,10 @@ const GRAND_TRAM_BANK_FLOOR_CLEAR := 1.0
 ## from under the deck: half that, so the lane over the corner is not left
 ## hanging over more than the slant demands.
 const GRAND_TRAM_BANK_END_CLEAR := 0.5
-## How far along the lane from the face the bank may run before it must have
-## met the ride park.
+## How far along the lane from the face the bank may run before the lane must
+## have come down onto the shore.
 const GRAND_TRAM_BANK_MAX_S := 200.0
-## The walk along the lane that finds the deck, B and the ride park.
+## The walk along the lane that finds the deck, B and where the lane comes down.
 const GRAND_TRAM_BANK_SCAN := 0.1
 
 
@@ -13565,24 +13706,22 @@ func _grand_tram_bank() -> void:
 		var out := Vector2(left.x - right.x, left.z - right.z).normalized()
 		return {"left": left, "right": right, "out": out,
 			"centre": _grand_tram[i].lerp(_grand_tram[i + 1], t)}
-	# The overpass deck as `_grand_tram_overpass` lays it.
-	var deck_at := Vector2.ZERO
-	var deck_axis := Vector2.ZERO
-	var deck_half := 0.0
+	# The overpass deck as `_grand_tram_overpass` lays it: its ends, in plan
+	# length along the lane from where this bank starts.
+	var arcs := _grand_tram_arcs()
+	var from_s := arcs[start] + (arcs[start + 1] - arcs[start]) * t0
+	var deck := {}
 	for crossing in Plan.GRAND_TRAM_CROSSINGS:
-		if not bool(crossing.get("grade_separated", false)) \
-				or bool(crossing.get("pedestrian_over", false)):
-			continue
-		var nearest := _grand_tram_nearest(crossing["at"])
-		var tangent: Vector3 = nearest["tangent"]
-		deck_at = Vector2(nearest["at"].x, nearest["at"].z)
-		deck_axis = Vector2(tangent.x, tangent.z).normalized()
-		for run in Plan.rebuild_route_runs():
-			if StringName(run["id"]) == StringName(crossing["pedestrian"]):
-				deck_half = (float(run["width"]) + 4.6) * 0.5
-	assert(deck_half > 0.0, "the Grand Circuit's bank cannot find B's overpass")
-	var reach := Plan.GRAND_TRAM_LANE_W * 0.5 + REBUILD_EMBANK_SHOULDER
-	# Walk the lane for the deck's two ends and the ride park.
+		if bool(crossing.get("grade_separated", false)) \
+				and not bool(crossing.get("pedestrian_over", false)):
+			deck = _grand_tram_overpass_layout(crossing)
+	assert(not deck.is_empty(), "the Grand Circuit's bank cannot find B's overpass")
+	var deck_from := float(deck["from"]) - from_s
+	var deck_to := float(deck["to"]) - from_s
+	# Walk the lane for the deck's two ends and for where, past the deck, the
+	# lane comes down onto its ground: both edges' shoulders no more than
+	# `REBUILD_EMBANK_MIN_GAP` over it. The lane itself never enters the ride
+	# park (GC-2 passes beside it).
 	var deck_in := -1.0
 	var deck_out := -1.0
 	var stop := -1.0
@@ -13591,21 +13730,29 @@ func _grand_tram_bank() -> void:
 		var here: Dictionary = at_s.call(s)
 		var c3: Vector3 = here["centre"]
 		var c := Vector2(c3.x, c3.z)
-		var along := (c - deck_at).dot(deck_axis)
-		var beside := absf((c - deck_at).dot(Vector2(-deck_axis.y, deck_axis.x)))
-		var under := beside < 4.0 and absf(along) < deck_half - GRAND_TRAM_BANK_DECK_LAP
+		var under := s > deck_from + GRAND_TRAM_BANK_DECK_LAP \
+			and s < deck_to - GRAND_TRAM_BANK_DECK_LAP
 		if under and deck_in < 0.0:
 			deck_in = s
 		if not under and deck_in >= 0.0 and deck_out < 0.0:
 			deck_out = s
-		var out: Vector2 = here["out"]
-		if _grand_tram_bank_ride_park(c) or _grand_tram_bank_ride_park(c + out * reach) \
-				or _grand_tram_bank_ride_park(c - out * reach):
-			stop = s - GRAND_TRAM_BANK_SCAN
-			break
+		assert(is_nan(_grand_tram_bank_ride_floor(c)),
+			"the Grand Circuit runs into the north ride park at s %.1f" % s)
+		if deck_out > 0.0 and s > deck_out + GRAND_TRAM_BANK_STATION:
+			var down := true
+			for side in 2:
+				var edge: Vector3 = here["left"] if side == 0 else here["right"]
+				var out: Vector2 = here["out"] * (1.0 if side == 0 else -1.0)
+				var shoulder := Vector2(edge.x, edge.z) + out * REBUILD_EMBANK_SHOULDER
+				var ground := _rebuild_embankment_ground_y(shoulder)
+				if is_nan(ground) or edge.y - ground > REBUILD_EMBANK_MIN_GAP:
+					down = false
+			if down:
+				stop = s
+				break
 		s += GRAND_TRAM_BANK_SCAN
 	assert(deck_in > 0.0 and deck_out > deck_in, "B's overpass is not on the bank's stretch")
-	assert(stop > deck_out, "the Grand Circuit's bank meets no ride park past the overpass")
+	assert(stop > deck_out, "the Grand Circuit's lane never comes down past the overpass")
 	# Beside the deck each side stands back until B, which crosses under it on
 	# a slant, is `GRAND_TRAM_BANK_END_CLEAR` clear of its edge and shoulder.
 	var clear_of_floor := func(sv: float, side: int) -> bool:
@@ -13634,11 +13781,9 @@ func _grand_tram_bank() -> void:
 	# Each piece: where each side starts and ends along the lane, and what
 	# closes each end.
 	var pieces := [[[0.0, 0.0], east_end, "earth", "deck"],
-		[west_start, [stop, stop], "deck", "ride_park"]]
+		[west_start, [stop, stop], "deck", "earth"]]
 	# The span in plan length along the lane, which the lane's other banks keep
 	# off.
-	var arcs := _grand_tram_arcs()
-	var from_s := arcs[start] + (arcs[start + 1] - arcs[start]) * t0
 	_grand_tram_bank_span = Vector2(from_s, from_s + stop)
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -14040,9 +14185,8 @@ func _grand_tram_lane_bank_state(s: float) -> int:
 
 
 ## Kept along the lane: from the west's bank to past the Boardwalk stop (the
-## west's own bank, then the north ride park, whose way past the rides is
-## Christina's to decide, and the Boardwalk chord, which she is re-routing as
-## GC-2 with B's overpass, 2026-10-15); a tunnel from beyond one mouth's apron
+## west's own bank, then GC-2's way past the north ride park, Christina,
+## 2026-10-15, on the Boardwalk's made ground to the Boardwalk chord); a tunnel from beyond one mouth's apron
 ## to beyond the other's; and every stop's platform.
 func _grand_tram_lane_bank_kept_arc(s: float) -> bool:
 	var keep := GRAND_TRAM_LANE_BANK_KEEP + REBUILD_EMBANK_SHOULDER
@@ -14066,8 +14210,8 @@ func _grand_tram_lane_bank_kept_arc(s: float) -> bool:
 
 
 ## Kept in plan: a protected envelope; the Boardwalk's made ground from the
-## north ride park to the promenade's south end, where the ride park's way is
-## Christina's to decide and the promenade is a deck (south of it the made
+## north ride park to the promenade's south end, where the lane passes the
+## rides on the west's bank (GC-2) and the promenade is a deck (south of it the made
 ## ground carries nothing and is earth); the footbridge; and the entrance's
 ## berms, whose decisions are hers (2026-09-29).
 func _grand_tram_lane_bank_kept(p: Vector2) -> bool:

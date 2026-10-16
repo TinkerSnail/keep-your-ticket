@@ -132,6 +132,23 @@ metadata/minimum_clearance_metres = 4.0
 metadata/clear_span_radius = 5.0
 metadata/falling_object_control = &"solid_pavilion_roof"
 
+[node name="grand_circuit_spans" type="Node3D" parent="."]
+editor_description = "Editor-owned clear spans where the Grand Circuit road-train lane passes beneath R2 (GC-2, Christina, 2026-10-15). The standard timber bent inside each clear_span_radius is omitted and a catch screen follows the live track over the lane inside each screen_radius; the track's structure stays at least 4.06m over the lane. Move a marker with the course or the lane."
+
+[node name="grand_circuit_north" type="Marker3D" parent="grand_circuit_spans"]
+position = Vector3(-77.9, -6, -141.5)
+metadata/minimum_clearance_metres = 4.06
+metadata/clear_span_radius = 3.5
+metadata/screen_radius = 5.0
+metadata/falling_object_control = &"catch_net"
+
+[node name="grand_circuit_station" type="Marker3D" parent="grand_circuit_spans"]
+position = Vector3(-71.5, -6, -67.65)
+metadata/minimum_clearance_metres = 4.06
+metadata/clear_span_radius = 4.5
+metadata/screen_radius = 5.0
+metadata/falling_object_control = &"catch_net"
+
 [node name="station_architecture" type="Node3D" parent="."]
 editor_description = "Open timber station retaining the established 11 × 12m floor, separate public load face and service-side working edge."
 

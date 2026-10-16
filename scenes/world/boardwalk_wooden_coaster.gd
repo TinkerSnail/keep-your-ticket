@@ -116,6 +116,20 @@ func _build_track(samples: Array[Dictionary], parent: Node3D) -> void:
 				Vector3(PUBLIC_SCREEN_WIDTH, 0.025, screen_delta.length()),
 				catch_material if catch_material != null else rail_material)
 
+		# The Grand Circuit's road-train lane passes beneath R2 twice (GC-2,
+		# Christina, 2026-10-15). Each pass is an editor-owned clear span with
+		# the same catch screen as the flyover, following the live track over
+		# the lane and its verges.
+		var lane_span := _lane_span_id(midpoint, "screen_radius")
+		if not lane_span.is_empty():
+			var lane_a: Vector3 = a["point"] - a["up"] * PUBLIC_SCREEN_DROP
+			var lane_b: Vector3 = b["point"] - b["up"] * PUBLIC_SCREEN_DROP
+			_box(parent, "lane_catch_%s_%03d" % [lane_span, i],
+				(lane_a + lane_b) * 0.5,
+				Basis(a["side"], a["up"], -a["direction"]).orthonormalized(),
+				Vector3(PUBLIC_SCREEN_WIDTH, 0.025, (lane_b - lane_a).length()),
+				catch_material if catch_material != null else rail_material)
+
 		# The northbound lift is the only place with a catwalk and chain. Its
 		# public-side rail gives the tall first hill scale from route B.
 		if midpoint.x < -74.0 and midpoint.z < -64.0 and midpoint.z > -94.0 \
@@ -168,6 +182,22 @@ func _occupied_high_bay_id(point: Vector3) -> String:
 	return ""
 
 
+## The Grand Circuit span whose `radius_key` reaches `point` in plan, or "".
+func _lane_span_id(point: Vector3, radius_key: String) -> String:
+	var controls := get_node_or_null("grand_circuit_spans")
+	if controls == null:
+		return ""
+	var p := Vector2(point.x, point.z)
+	for child in controls.get_children():
+		if child is not Marker3D:
+			continue
+		var marker := child as Marker3D
+		var radius := float(marker.get_meta(radius_key, 0.0))
+		if p.distance_to(Vector2(marker.position.x, marker.position.z)) <= radius:
+			return String(marker.name)
+	return ""
+
+
 func _build_bents(curve: Curve3D, length: float, parent: Node3D) -> void:
 	var count := maxi(2, floori(length / bent_interval))
 	for i in count:
@@ -185,6 +215,10 @@ func _build_bents(curve: Curve3D, length: float, parent: Node3D) -> void:
 		# the standard close bent there so the roof and its public interior do
 		# not share space with a post or brace; adjacent bents carry the span.
 		if not _occupied_high_bay_id(top).is_empty():
+			continue
+		# Where the Grand Circuit passes beneath, the standard bent there is
+		# omitted and its neighbours carry the span over the lane.
+		if not _lane_span_id(top, "clear_span_radius").is_empty():
 			continue
 		var side: Vector3 = sample["side"]
 		var half_top := 1.72

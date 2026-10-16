@@ -139,10 +139,13 @@ position = Vector3(-96, -5.95, -170)
 position = Vector3(-92, -5.95, -173)
 [node name="R15_exit_02" type="Marker3D" parent="operations"]
 position = Vector3(-88, -5.95, -176)
+; GC-2 (Christina, 2026-10-15): the Grand Circuit lane passes east of R15 and
+; R16, so each east service stub runs from the ride's edge to the lane's 1.5 m
+; verge and ends there (as drawn, neither joined anything inland).
 [node name="R15_service_00" type="Marker3D" parent="operations"]
-position = Vector3(-76, -5.95, -164)
+position = Vector3(-78.8, -5.95, -164.1)
 [node name="R15_service_01" type="Marker3D" parent="operations"]
-position = Vector3(-72, -5.95, -160)
+position = Vector3(-78.38, -5.95, -164.11)
 
 [node name="R16_queue_00" type="Marker3D" parent="operations"]
 position = Vector3(-94, -5.95, -178)
@@ -157,9 +160,9 @@ position = Vector3(-94, -5.95, -190)
 [node name="R16_exit_02" type="Marker3D" parent="operations"]
 position = Vector3(-91, -5.95, -192)
 [node name="R16_service_00" type="Marker3D" parent="operations"]
-position = Vector3(-75, -5.95, -184)
+position = Vector3(-77, -5.95, -184)
 [node name="R16_service_01" type="Marker3D" parent="operations"]
-position = Vector3(-72, -5.95, -186)
+position = Vector3(-75.87, -5.95, -183.84)
 
 [node name="R15_photo_turnout" type="MeshInstance3D" parent="operations"]
 position = Vector3(-99, -5.91, -166)

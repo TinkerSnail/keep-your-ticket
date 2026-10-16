@@ -532,9 +532,23 @@ const GRAND_TRAM_CONTROLS: Array[Vector3] = [
 	# A modest crest here gives the road-train deck a full 4m fixed clearance
 	# above B's shore-grade north return at their one controlled overpass.
 	Vector3(-62.0, -1.1, -204.0),
-	Vector3(-88.0, -4.5, -170.0),
-	Vector3(-78.0, -6.0, -82.0),
-	Vector3(-78.0, -6.0, -20.0),
+	# GC-2 (Christina, 2026-10-15: "keep the café, wedge off the arcade"). The
+	# lane ran through R16's hall, R15's pad and R2's bent 16, under R2's return
+	# 2.3 m up, and through I3 and I2 on the back lane. It now passes 1.5 m clear
+	# of R16 and R15, beneath R2 at two clear spans with at least 4.06 m, keeps
+	# I3 whole, takes a wedge off I2's back on a 9 m S-bend and joins the
+	# Boardwalk chord at x -78 before NT-1. This first control lies on the lane's
+	# own tangent through the old (-88, -170), so through the Headland cutting,
+	# the P1 footbridge and the bluff's opening the lane moved 0.17 m at most.
+	Vector3(-73.1, -3.9, -174.8),
+	Vector3(-74.3, -5.2, -155.5),
+	Vector3(-77.8, -6.0, -142.0),
+	Vector3(-83.3, -6.0, -104.5),
+	Vector3(-70.0, -6.0, -62.5),
+	Vector3(-69.3, -6.0, -42.1),
+	Vector3(-75.3, -6.0, -31.6),
+	Vector3(-78.0, -6.0, -25.2),
+	Vector3(-78.0, -6.0, -14.4),
 	Vector3(-78.0, -6.0, 24.0), # boardwalk station
 	Vector3(-78.0, -6.0, 44.0),
 	Vector3(-104.0, -5.0, 72.0),
@@ -578,8 +592,10 @@ const GRAND_TRAM_CROSSINGS := [
 		"pedestrian": &"b_waterfront",
 		"captures": [&"b_waterfront", &"b_south_return"],
 		"owner": &"park_transit"},
+	# Re-placed with GC-2 (2026-10-15) where the moved lane crosses B, 2.7 m
+	# east along B from (-70.14, -1.74, -198.65).
 	{"id": &"boardwalk_north_overpass",
-		"at": Vector3(-70.14, -1.74, -198.65),
+		"at": Vector3(-67.74, -1.72, -197.40),
 		"pedestrian": &"b_north_return", "owner": &"park_transit",
 		"grade_separated": true, "fixed_structure_depth": 0.24,
 		"minimum_fixed_clearance_metres": 4.0},

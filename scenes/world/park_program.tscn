@@ -25,6 +25,10 @@ use_collision = false
 ; these six places still stood on generic generated shells. Their artistic
 ; construction is now directly editor-owned; floors, thresholds, counters and
 ; scheduled lights remain generated because those relationships have not moved.
+; GC-2 (2026-10-15): I2's floor gives up the wedge with its back, so the
+; editor-owned shell carries a floor of the kept footprint and this retires.
+[node name="I2_floor" parent="." index="833"]
+visible = false
 [node name="I2_back" parent="." index="834"]
 visible = false
 use_collision = false

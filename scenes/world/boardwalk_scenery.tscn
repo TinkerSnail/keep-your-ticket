@@ -191,8 +191,8 @@ mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_mustard")
 
 [node name="door_floor_spine" type="MeshInstance3D" parent="I2_arcade_and_ride_photo"]
-position = Vector3(-3.6, 0.075, 0)
-scale = Vector3(8.5, 0.05, 2.2)
+position = Vector3(-4.875, 0.075, 0)
+scale = Vector3(5.95, 0.05, 2.2)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_wood")
 cast_shadow = 0
@@ -274,6 +274,9 @@ mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_screen")
 
 [node name="ride_photo_work_layer" type="Node3D" parent="I2_arcade_and_ride_photo"]
+position = Vector3(-6.1781, 0, -2.7670)
+rotation = Vector3(0, -0.34531, 0)
+editor_description = "Moved whole with GC-2's wedge (2026-10-15): turned and set back so the monitor bank stands against the new back wall, as it stood against the old one."
 
 [node name="counter" type="MeshInstance3D" parent="I2_arcade_and_ride_photo/ride_photo_work_layer"]
 position = Vector3(6.15, 0.58, 0)
@@ -335,7 +338,7 @@ metadata/base_energy = 1.55
 metadata/light_kind = 0
 
 [node name="I2_powered_work_light" type="OmniLight3D" parent="I2_arcade_and_ride_photo" groups=["park_light"]]
-position = Vector3(3.5, 2.25, 0)
+position = Vector3(-2.885, 2.25, -1.582)
 visible = false
 light_color = Color(0.72, 0.92, 0.82, 1)
 light_energy = 0.0
