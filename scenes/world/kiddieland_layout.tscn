@@ -148,55 +148,55 @@ metadata/queue_width = 2.6
 [node name="track" type="Node3D" parent="rides/R14"]
 metadata/closed = true
 [node name="p00" type="Marker3D" parent="rides/R14/track"]
-position = Vector3(107, 0, 110)
+position = Vector3(120, 0, 77)
 [node name="p01" type="Marker3D" parent="rides/R14/track"]
-position = Vector3(111, 0, 104)
+position = Vector3(123.5, 0, 81.5)
 [node name="p02" type="Marker3D" parent="rides/R14/track"]
-position = Vector3(118, 0, 98)
-[node name="p03" type="Marker3D" parent="rides/R14/track"]
 position = Vector3(125, 0, 89)
+[node name="p03" type="Marker3D" parent="rides/R14/track"]
+position = Vector3(118, 0, 98)
 [node name="p04" type="Marker3D" parent="rides/R14/track"]
-position = Vector3(126, 0, 79)
+position = Vector3(111, 0, 104)
 [node name="p05" type="Marker3D" parent="rides/R14/track"]
-position = Vector3(121, 0, 72)
-[node name="p06" type="Marker3D" parent="rides/R14/track"]
-position = Vector3(115, 0, 75)
-[node name="p07" type="Marker3D" parent="rides/R14/track"]
-position = Vector3(117, 0, 86)
-[node name="p08" type="Marker3D" parent="rides/R14/track"]
-position = Vector3(113, 0, 96)
-[node name="p09" type="Marker3D" parent="rides/R14/track"]
-position = Vector3(108, 0, 104)
-[node name="p10" type="Marker3D" parent="rides/R14/track"]
 position = Vector3(107, 0, 110)
+[node name="p06" type="Marker3D" parent="rides/R14/track"]
+position = Vector3(108, 0, 104)
+[node name="p07" type="Marker3D" parent="rides/R14/track"]
+position = Vector3(113, 0, 96)
+[node name="p08" type="Marker3D" parent="rides/R14/track"]
+position = Vector3(117, 0, 86)
+[node name="p09" type="Marker3D" parent="rides/R14/track"]
+position = Vector3(117, 0, 81.5)
+[node name="p10" type="Marker3D" parent="rides/R14/track"]
+position = Vector3(120, 0, 77)
 
 [node name="station" type="Marker3D" parent="rides/R14"]
-position = Vector3(107, 0, 111)
+position = Vector3(120, 0, 76)
 metadata/size = Vector2(10, 8)
 
 [node name="queue" type="Node3D" parent="rides/R14"]
 [node name="p00" type="Marker3D" parent="rides/R14/queue"]
-position = Vector3(98, 0, 103)
+position = Vector3(106.4, 0, 77)
 [node name="p01" type="Marker3D" parent="rides/R14/queue"]
-position = Vector3(100, 0, 105)
+position = Vector3(111, 0, 77)
 [node name="p02" type="Marker3D" parent="rides/R14/queue"]
-position = Vector3(102, 0, 108.5)
+position = Vector3(115, 0, 77.5)
 
 [node name="exit" type="Node3D" parent="rides/R14"]
 [node name="p00" type="Marker3D" parent="rides/R14/exit"]
-position = Vector3(102, 0, 113)
+position = Vector3(115, 0, 73.5)
 [node name="p01" type="Marker3D" parent="rides/R14/exit"]
-position = Vector3(99, 0, 111)
+position = Vector3(111, 0, 73)
 [node name="p02" type="Marker3D" parent="rides/R14/exit"]
-position = Vector3(94, 0, 106)
+position = Vector3(105.7, 0, 73)
 
 [node name="service" type="Node3D" parent="rides/R14"]
 [node name="p00" type="Marker3D" parent="rides/R14/service"]
-position = Vector3(112, 0, 111)
+position = Vector3(125, 0, 75)
 [node name="p01" type="Marker3D" parent="rides/R14/service"]
-position = Vector3(115, 0, 114)
+position = Vector3(132, 0, 72)
 [node name="p02" type="Marker3D" parent="rides/R14/service"]
-position = Vector3(111, 0, 116)
+position = Vector3(138, 0, 67)
 
 [node name="manual_photo" type="Marker3D" parent="rides/R14"]
 position = Vector3(98.5, 0, 78)

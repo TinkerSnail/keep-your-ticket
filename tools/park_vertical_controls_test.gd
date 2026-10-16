@@ -67,7 +67,7 @@ func _check_levels(root: Node3D) -> void:
 		[&"r5_rail", 68.0, 88.0, 0.14, &"kiddieland", &"measured", &"R5 RAIL"],
 		[&"r6_pad", 95.0, 96.0, 5.73, &"kiddieland", &"measured", &"R6 PAD"],
 		[&"r7_pad", 109.0, 62.0, 5.05, &"kiddieland", &"measured", &"R7 PAD"],
-		[&"r14_floor", 107.0, 111.0, 5.28, &"kiddieland", &"measured", &"R14 FFL"],
+		[&"r14_floor", 120.0, 76.0, 6.73, &"kiddieland", &"approved", &"R14 FFL"],
 		[&"kc1_floor", 43.0, 115.0, 0.0, &"kiddieland", &"measured", &"KC1 FFL"],
 		[&"kc2_floor", 55.0, 118.0, 0.49, &"kiddieland", &"measured", &"KC2 FFL"],
 		[&"kc3_floor", 70.0, 119.0, 1.74, &"kiddieland", &"measured", &"KC3 FFL"],

@@ -6048,7 +6048,8 @@ func _highland_side_path_grade_y(p: Vector2, uncut_y: float) -> float:
 	return y
 
 
-## The south shoulder and T2 both pass under R14's editor-owned queue. Raise or
+## The south shoulder, T2 and the outer highland pass under the editor-owned
+## R6, R7 and R14 queues (R14's on the outer highland since 2026-10-15). Raise or
 ## cut only a small eased verge to one hidden bed below that measured ride-floor
 ## line. The queue remains the editable artistic source; this is its derived
 ## terrain consequence, and it cannot reach the protected NT-2 envelope.
@@ -21863,10 +21864,12 @@ func _rebuild_coaster(site: Dictionary, junior: bool) -> void:
 	_rebuild_access_path(id + "_queue", queue,
 		&"family" if junior else &"highland", 2.6)
 	if junior:
-		# Six small monitor faces form the promised exit viewing bank.
+		# Six small monitor faces form the promised exit viewing bank. Since
+		# the station moved to the loop's north end (Christina, 2026-10-15)
+		# they hang on its north face, over the viewing strip and the exit.
 		for i in 6:
 			_box("R14_screen_%d" % i, station_at,
-				Vector3(-2.5 + float(i), 2.0, 4.08),
+				Vector3(-2.5 + float(i), 2.0, -4.08),
 				Vector3(0.72, 0.55, 0.08), "glass", 0.0, false)
 
 

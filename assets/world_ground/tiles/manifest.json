@@ -13,7 +13,7 @@
  "seam": {
   "applied": true,
   "held": "dumped by Godot",
-  "held_sha256": "5caf913581b0f379836ca36e6cf2ff1f6bf4d994b3047abab8c37ec096acb70b",
+  "held_sha256": "e319ba4b096c581c903e370d6aeefd1dbdb2a48ec4f5d0226263c3edd83bbacd",
   "held_edges": 3695,
   "stitched_edges": 3120,
   "stitched_m": 10332.9,
@@ -52,7 +52,7 @@
  },
  "tiles": {
   "x-1_z-1": {
-   "input_hash": "9d250a69305f060fff32f2e26aa5dd669e0fffd4a1f2c64bc099afe28a5e591f",
+   "input_hash": "137c999dcc1c878283ba143b885fea6b466c0fbbbdac18f75eb2add68a5f8330",
    "glb": "x-1_z-1.glb",
    "glb_sha256": "645320f59eafb4cc745d6248a641c3d6cf65648d44f85052deebca2034ea3103",
    "glb_bytes": 2092608,
@@ -77,7 +77,7 @@
    ],
    "build": {
     "rounds": 23,
-    "seconds": 2.72
+    "seconds": 2.7
    }
   },
   "x-1_z-2": {
@@ -1299,13 +1299,13 @@
    }
   },
   "x0_z0": {
-   "input_hash": "0c6dff1b0b173ec893cb8310466ff7c670be0b33f21d2ed26ceff0fa7f14fdad",
+   "input_hash": "ad1d949de6b48487fe5139cb2ec146dd5b792a620395c744159103862e778d22",
    "glb": "x0_z0.glb",
-   "glb_sha256": "8381ba50937e53ca0fce8fe02e58a035caefa639eb65c74a4ee1373bb4bdc466",
-   "glb_bytes": 1740152,
-   "height_sha256": "4c199b202c63d12ca61d60dcf3795f3dbec7147061ee2286f785d9f4b3fdc362",
-   "vertices": 39698,
-   "triangles": 78138,
+   "glb_sha256": "4b02039e1bde5e47ffc286c5a4106e308a234c1da5db3c79b3713da2907aa865",
+   "glb_bytes": 1743716,
+   "height_sha256": "5322d5fa3250900876f85f1fde5d1e421a454329c6b1f757c12827378c60ea8c",
+   "vertices": 39779,
+   "triangles": 78300,
    "stitch_band": {
     "triangles": 1826,
     "vertices": 749,
@@ -1313,9 +1313,9 @@
     "length_m": 2421.4
    },
    "triangles_by_zone": {
-    "park": 10835,
-    "walkable": 46664,
-    "elsewhere": 20639,
+    "park": 10996,
+    "walkable": 46705,
+    "elsewhere": 20599,
     "deep_sea": 0
    },
    "y_range": [
@@ -1323,8 +1323,8 @@
     296.35198974609375
    ],
    "build": {
-    "rounds": 20,
-    "seconds": 1.91
+    "rounds": 17,
+    "seconds": 1.68
    }
   },
   "x0_z1": {
@@ -9010,7 +9010,7 @@
    }
   },
   "x0_z0": {
-   "key": "75285de5e16541d93b2cbeed62605b2551f229fb081bce0407c0837f47efc3d0",
+   "key": "b1252b430de59bd087d4e441bf699955ee22ca61228d1a69043b149ffa5a27aa",
    "requests": {
     "n": [
      0,
@@ -30482,27 +30482,25 @@
  },
  "totals": {
   "tiles": 104,
-  "triangles": 1477732,
-  "vertices": 750001,
+  "triangles": 1477894,
+  "vertices": 750082,
   "triangles_by_zone": {
-   "park": 38676,
-   "walkable": 434338,
-   "elsewhere": 984450,
+   "park": 38837,
+   "walkable": 434379,
+   "elsewhere": 984410,
    "deep_sea": 20268
   },
-  "glb_bytes": 33996576
+  "glb_bytes": 34000140
  },
  "last_build": {
-  "tiles_built": [
-   "x-1_z-1"
-  ],
-  "phase1_built": 1,
+  "tiles_built": [],
+  "phase1_built": 0,
   "augmented_lines": {},
   "seconds": {
-   "phase1": 3.1,
-   "phase2": 2.8,
-   "export": 0.3,
-   "total": 14.7
+   "phase1": 0.0,
+   "phase2": 0.0,
+   "export": 0.0,
+   "total": 8.1
   }
  }
 }

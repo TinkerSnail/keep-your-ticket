@@ -1547,6 +1547,29 @@
    "kind": "values",
    "min_change_m": 0.001,
    "made_by": "ground_grid_edit.py --values"
+  },
+  {
+   "id": "G16",
+   "name": "r14_junior_coaster_seat",
+   "date": "2026-10-15",
+   "why": "Christina, 2026-10-15, build the redrawn R14: its station floor (top +6.71), queue, exit and track envelope seated at the family floor in T6's hill, the loop's south half filled under its supports, banks 1:1.4; route D, its queues, R7, KP1, S3 and the lane kept",
+   "tiles": [
+    "x0_z0"
+   ],
+   "nodes": 420,
+   "new_ground_nodes": 0,
+   "history": "history/G16.npz",
+   "files": [
+    {
+     "tile": "x0_z0",
+     "nodes": 420,
+     "height_sha_before": "4c199b202c63d12ca61d60dcf3795f3dbec7147061ee2286f785d9f4b3fdc362",
+     "height_sha_after": "5322d5fa3250900876f85f1fde5d1e421a454329c6b1f757c12827378c60ea8c"
+    }
+   ],
+   "kind": "values",
+   "min_change_m": 0.001,
+   "made_by": "ground_grid_edit.py --values"
   }
  ]
 }

@@ -231,6 +231,71 @@
    "exported": [
     "assets/range_forest_distinct_background.glb"
    ]
+  },
+  {
+   "id": "G10-G16",
+   "date": "2026-10-15",
+   "from": "edits G10, G11, G12, G13, G14, G15, G16",
+   "ground": {
+    "tiles": [
+     "x-1_z-1",
+     "x0_z-1",
+     "x0_z0"
+    ],
+    "nodes": 3065,
+    "lowest_m": -18.567,
+    "highest_m": 11.848
+   },
+   "edits": [
+    {
+     "id": "G10",
+     "name": "grand_circuit_headland_cut",
+     "sig": "c0b0d8ac86fcbdd8"
+    },
+    {
+     "id": "G11",
+     "name": "kiddieland_ride_garden",
+     "sig": "0370a9e82c62bf67"
+    },
+    {
+     "id": "G12",
+     "name": "r7_carousel_seat",
+     "sig": "ba75df8bb850b439"
+    },
+    {
+     "id": "G13",
+     "name": "r8_chair_swing_court",
+     "sig": "0b07fb8b1f419936"
+    },
+    {
+     "id": "G14",
+     "name": "frontier_r10_r11",
+     "sig": "286527d8c1b9c082"
+    },
+    {
+     "id": "G15",
+     "name": "grand_circuit_footbridge_cut",
+     "sig": "99300aee0f6c96c5"
+    },
+    {
+     "id": "G16",
+     "name": "r14_junior_coaster_seat",
+     "sig": "d1dbb1eefcb33747"
+    }
+   ],
+   "rocks": {
+    "moved": {},
+    "uneven": {}
+   },
+   "city": {
+    "raised": {},
+    "left": {}
+   },
+   "roosts": {
+    "moved": {},
+    "left": []
+   },
+   "exported": []
   }
  ]
 }

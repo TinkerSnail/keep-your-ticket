@@ -217,10 +217,10 @@ metadata/status = "measured"
 metadata/map_id = "R7 PAD"
 
 [node name="r14_floor" type="Marker3D" parent="approved_levels"]
-position = Vector3(133.1, 5.28, 143.45)
+position = Vector3(151.95, 6.73, 89.2)
 metadata/kind = "finished_floor"
 metadata/district = "kiddieland"
-metadata/status = "measured"
+metadata/status = "approved"
 metadata/map_id = "R14 FFL"
 
 [node name="kc1_floor" type="Marker3D" parent="approved_levels"]

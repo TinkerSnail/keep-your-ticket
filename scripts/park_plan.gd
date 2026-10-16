@@ -3934,6 +3934,10 @@ const REBUILD_RIDE_SITES := [
 		"station": Vector2(135, -41), "station_size": Vector2(14, 8),
 		"queue": [Vector2(118, -40), Vector2(124, -40),
 			Vector2(129, -41), Vector2(132.2, -41)]},
+	# R14 off the Grand Circuit lane (Christina, 2026-10-15): the station
+	# closes the loop's north end beside D, opposite KP1, and the loop's south
+	# tip is a turn. The editor-owned `kiddieland_layout.tscn` is what builds
+	# it; this record is the parity copy `kiddieland_layout_test` holds it to.
 	{"id": &"R14", "kind": &"junior_coaster", "track": [
 		Vector2(107, 110), Vector2(111, 104), Vector2(118, 98),
 		Vector2(125, 89), Vector2(126, 79), Vector2(121, 72),
