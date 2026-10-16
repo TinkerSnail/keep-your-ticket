@@ -4135,10 +4135,17 @@ func _west_shell() -> void:
 	# strip. Keep an ordinary 24m scarp panel between the planted reserve and the
 	# route opening instead of forcing the public path back through S1 or R2.
 	var north_reserve_end := minf(-170.5, cuts[0].x - 24.0)
+	# The Grand Circuit descends across that panel from the Headland's cutting
+	# (Christina, 2026-10-15: "Open the scarp for the lane"). `bluff_north` is the
+	# panel's part between the lane's opening and B's; the part against the
+	# planted reserve, the opening's floor and its returns are appended after
+	# everything else in this scene, so no established shape is re-planed.
+	var panel := Vector2(north_reserve_end, cuts[0].x)
+	var lane_cut := _bluff_lane_cut(panel)
 	var ranges := [
 		{"nm": "bluff_outer_north", "span": Vector2(
 			-260.5, north_reserve_end), "mat": "planting"},
-		{"nm": "bluff_north", "span": Vector2(north_reserve_end, cuts[0].x),
+		{"nm": "bluff_north", "span": Vector2(lane_cut.y, cuts[0].x),
 			"mat": "far_warm"},
 		{"nm": "bluff", "span": Vector2(cuts[0].y, cuts[1].x),
 			"mat": "far_warm"},
@@ -4149,13 +4156,7 @@ func _west_shell() -> void:
 	]
 	for i in ranges.size():
 		var record: Dictionary = ranges[i]
-		var span: Vector2 = record["span"]
-		assert(span.y > span.x, "a Route B bluff cut consumed the whole scarp")
-		_box(record["nm"], Vector3.ZERO,
-			Vector3((Plan.BLUFF_FACE_X + Plan.BLUFF_BACK_X) * 0.5,
-				-6.0 + GROUND_SEAM, (span.x + span.y) * 0.5),
-			Vector3(Plan.BLUFF_BACK_X - Plan.BLUFF_FACE_X, 12.0,
-				span.y - span.x), record["mat"])
+		_bluff_mass(record["nm"], record["span"], record["mat"])
 	_bluff_cut_returns(cuts)
 	_bluff_face(cuts)
 	# The ground the boardwalk stands on: back lane, frontage, promenade. Runs
@@ -4206,6 +4207,7 @@ func _west_shell() -> void:
 		Vector3(Plan.REBUILD_WORLD_WATER_FAR_X - Plan.EAST_WATER_FROM_X, 8.0,
 			Plan.BAY_WATER_FROM_Z - Plan.NORTH_WATER_TO_Z),
 		"water", 0.0, false)
+	_bluff_lane_opening(panel, lane_cut)
 
 
 ## How far either side of the axis the bluff's face is dressed.
@@ -4235,31 +4237,44 @@ func _bluff_route_cut(run_id: StringName) -> Vector2:
 		if StringName(run["id"]) != run_id:
 			continue
 		found = true
-		var edges := _rebuild_path_edges(run["points"], float(run["width"]), false)
-		for side_name in ["left", "right"]:
-			var edge: PackedVector3Array = edges[side_name]
-			for i in edge.size() - 1:
-				var a := edge[i]
-				var b := edge[i + 1]
-				for p in [a, b]:
-					if p.x >= Plan.BLUFF_FACE_X - 0.001 \
-							and p.x <= Plan.BLUFF_BACK_X + 0.001:
-						result.x = minf(result.x, p.z)
-						result.y = maxf(result.y, p.z)
-				for x in [Plan.BLUFF_FACE_X, Plan.BLUFF_BACK_X]:
-					if absf(b.x - a.x) < 0.001:
-						continue
-					var t: float = (x - a.x) / (b.x - a.x)
-					if t >= -0.001 and t <= 1.001:
-						var z := lerpf(a.z, b.z, clampf(t, 0.0, 1.0))
-						result.x = minf(result.x, z)
-						result.y = maxf(result.y, z)
+		result = _bluff_edges_envelope(
+			_rebuild_path_edges(run["points"], float(run["width"]), false))
 		break
 	assert(found, "the bluff cannot find approved route %s" % run_id)
 	assert(is_finite(result.x) and is_finite(result.y) and result.y > result.x,
 		"route %s has no full-width bluff crossing" % run_id)
 	return Vector2(result.x - BLUFF_ROUTE_CUT_MARGIN,
 		result.y + BLUFF_ROUTE_CUT_MARGIN)
+
+
+## The z envelope of a pair of emitted edges while they cross the full bluff
+## depth: every edge vertex between the face and the back, and every edge's
+## crossing of either plane. Only what lies inside `window` in z is counted, for
+## a course that crosses the scarp more than once.
+func _bluff_edges_envelope(edges: Dictionary,
+		window := Vector2(-INF, INF)) -> Vector2:
+	var result := Vector2(INF, -INF)
+	for side_name in ["left", "right"]:
+		var edge: PackedVector3Array = edges[side_name]
+		for i in edge.size() - 1:
+			var a := edge[i]
+			var b := edge[i + 1]
+			for p in [a, b]:
+				if p.x >= Plan.BLUFF_FACE_X - 0.001 \
+						and p.x <= Plan.BLUFF_BACK_X + 0.001 \
+						and p.z > window.x and p.z < window.y:
+					result.x = minf(result.x, p.z)
+					result.y = maxf(result.y, p.z)
+			for x in [Plan.BLUFF_FACE_X, Plan.BLUFF_BACK_X]:
+				if absf(b.x - a.x) < 0.001:
+					continue
+				var t: float = (x - a.x) / (b.x - a.x)
+				if t >= -0.001 and t <= 1.001:
+					var z := lerpf(a.z, b.z, clampf(t, 0.0, 1.0))
+					if z > window.x and z < window.y:
+						result.x = minf(result.x, z)
+						result.y = maxf(result.y, z)
+	return result
 
 
 func _bluff_return_cuts() -> Array[Vector2]:
@@ -4276,16 +4291,125 @@ func _bluff_return_cuts() -> Array[Vector2]:
 ## ends in a box. The side returns stand outside the route envelope by the same
 ## 0.75m construction margin used to cut the mass.
 func _bluff_cut_returns(cuts: Array[Vector2]) -> void:
-	var face := Plan.BLUFF_FACE_X
-	var depth := Plan.BLUFF_BACK_X - Plan.BLUFF_FACE_X
 	for i in cuts.size():
 		var cut := cuts[i]
 		for side in [-1.0, 1.0]:
 			var z := cut.x if side < 0.0 else cut.y
-			_box("bluff_cut_%d_%s_return" % [i,
-				"north" if side < 0.0 else "south"], Vector3.ZERO,
-				Vector3(face + depth * 0.5, -3.0, z),
-				Vector3(depth, 6.0, 0.28), "far_shade")
+			_bluff_return("bluff_cut_%d_%s_return" % [i,
+				"north" if side < 0.0 else "south"], z)
+
+
+func _bluff_return(nm: String, z: float) -> void:
+	var face := Plan.BLUFF_FACE_X
+	var depth := Plan.BLUFF_BACK_X - Plan.BLUFF_FACE_X
+	_box(nm, Vector3.ZERO, Vector3(face + depth * 0.5, -3.0, z),
+		Vector3(depth, 6.0, 0.28), "far_shade")
+
+
+## One length of the scarp's mass, the full bluff depth and twelve metres deep.
+func _bluff_mass(nm: String, span: Vector2, mat: String) -> void:
+	assert(span.y > span.x, "an opening consumed the whole of %s" % nm)
+	_box(nm, Vector3.ZERO,
+		Vector3((Plan.BLUFF_FACE_X + Plan.BLUFF_BACK_X) * 0.5,
+			-6.0 + GROUND_SEAM, (span.x + span.y) * 0.5),
+		Vector3(Plan.BLUFF_BACK_X - Plan.BLUFF_FACE_X, 12.0,
+			span.y - span.x), mat)
+
+
+## The Grand Circuit crosses the scarp twice: in the south, coming off the
+## Fairground, within a few centimetres of the bluff's top, and in the north it
+## descends across `bluff_north`'s panel from the Headland, where it runs in a
+## cutting (grid edits G10 and G15), toward B's overpass. There the mass stood
+## up to 0.92m over the lane (Christina, 2026-10-15: "Open the scarp for the
+## lane"). The opening is the z envelope of the cutting's formation, the lane's
+## own emitted edges carried out by `GRAND_TRAM_CUTTING_VERGE` a side, while it
+## crosses the full bluff depth: B's cuts are their route plus a construction
+## margin, and the verge is the lane's. North of the axis only, which is the
+## northern crossing.
+func _bluff_lane_cut(panel: Vector2) -> Vector2:
+	var edges := _east_path_edges(_grand_tram,
+		Plan.GRAND_TRAM_LANE_W + 2.0 * Plan.GRAND_TRAM_CUTTING_VERGE,
+		Plan.GRAND_TRAM_LANE_LIFT)
+	var cut := _bluff_edges_envelope(edges, Vector2(-INF, 0.0))
+	assert(is_finite(cut.x) and is_finite(cut.y) and cut.y > cut.x,
+		"the Grand Circuit no longer crosses the north scarp")
+	assert(cut.x > panel.x and cut.y < panel.y,
+		"the Grand Circuit's opening runs out of bluff_north's panel")
+	return cut
+
+
+## The floor is laid on this plan grid, the bluff's depth and the opening's
+## width each divided into equal steps no longer than this.
+const BLUFF_LANE_FLOOR_STEP := 0.5
+## And stands this far under the formation, so that wherever the grid's own
+## cutting reaches into the opening its formation stays the surface, and the
+## floor is the ground only where the grid lies lower.
+const BLUFF_LANE_FLOOR_YIELD := 0.02
+
+
+## The lane's opening, appended after every established shape in the scene:
+## the panel's part against the planted reserve, a floor under the lane, and a
+## return at each side the way B's cuts are finished. The floor is the
+## cutting's formation, `GRAND_TRAM_CUTTING_FORMATION_DROP` under the lane's
+## surface at its nearest station and level across, carried over the whole
+## opening from the face to the back and closed down to the mass's foot, so it
+## falls with the lane and leaves no hole where the mass was. It ends at the
+## face: west of it the lane is out over the foot of the scarp.
+func _bluff_lane_opening(panel: Vector2, cut: Vector2) -> void:
+	_bluff_mass("bluff_north_end", Vector2(panel.x, cut.x), "far_warm")
+	var x0 := Plan.BLUFF_FACE_X
+	var x1 := Plan.BLUFF_BACK_X
+	var foot := -12.0 + GROUND_SEAM
+	var nx := ceili((x1 - x0) / BLUFF_LANE_FLOOR_STEP)
+	var nz := ceili((cut.y - cut.x) / BLUFF_LANE_FLOOR_STEP)
+	var top: Array[PackedVector3Array] = []
+	for i in nx + 1:
+		var x := lerpf(x0, x1, float(i) / float(nx))
+		var row := PackedVector3Array()
+		for j in nz + 1:
+			var z := lerpf(cut.x, cut.y, float(j) / float(nz))
+			var lane := _grand_tram_nearest(Vector3(x, 0.0, z))
+			row.append(Vector3(x, float(lane["at"].y) + Plan.GRAND_TRAM_LANE_LIFT
+				- Plan.GRAND_TRAM_CUTTING_FORMATION_DROP - BLUFF_LANE_FLOOR_YIELD, z))
+		top.append(row)
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(TOWN_FLAT)
+	for i in nx:
+		for j in nz:
+			var a: Vector3 = top[i][j]
+			var b: Vector3 = top[i + 1][j]
+			var c: Vector3 = top[i][j + 1]
+			var d: Vector3 = top[i + 1][j + 1]
+			_earth_oriented_tri(st, a, Vector2(a.x, a.z) * 0.3,
+				b, Vector2(b.x, b.z) * 0.3, c, Vector2(c.x, c.z) * 0.3, Vector3.UP)
+			_earth_oriented_tri(st, c, Vector2(c.x, c.z) * 0.3,
+				b, Vector2(b.x, b.z) * 0.3, d, Vector2(d.x, d.z) * 0.3, Vector3.UP)
+			var a0 := Vector3(a.x, foot, a.z)
+			var b0 := Vector3(b.x, foot, b.z)
+			var c0 := Vector3(c.x, foot, c.z)
+			var d0 := Vector3(d.x, foot, d.z)
+			_earth_oriented_tri(st, a0, Vector2(a.x, a.z) * 0.3,
+				b0, Vector2(b.x, b.z) * 0.3, c0, Vector2(c.x, c.z) * 0.3, Vector3.DOWN)
+			_earth_oriented_tri(st, c0, Vector2(c.x, c.z) * 0.3,
+				b0, Vector2(b.x, b.z) * 0.3, d0, Vector2(d.x, d.z) * 0.3, Vector3.DOWN)
+	for j in nz:
+		for end in [[0, Vector3.LEFT], [nx, Vector3.RIGHT]]:
+			var p: Vector3 = top[end[0]][j]
+			var q: Vector3 = top[end[0]][j + 1]
+			_earth_wall_quad(st, Vector3(p.x, foot, p.z), Vector3(q.x, foot, q.z),
+				p, q, end[1])
+	for i in nx:
+		for end in [[0, Vector3.FORWARD], [nz, Vector3.BACK]]:
+			var p: Vector3 = top[i][end[0]]
+			var q: Vector3 = top[i + 1][end[0]]
+			_earth_wall_quad(st, Vector3(p.x, foot, p.z), Vector3(q.x, foot, q.z),
+				p, q, end[1])
+	st.generate_normals()
+	st.generate_tangents()
+	_rebuild_mesh_body_of("far_warm", "bluff_lane_cut_floor", st.commit(), true)
+	_bluff_return("bluff_lane_cut_north_return", cut.x)
+	_bluff_return("bluff_lane_cut_south_return", cut.y)
 
 
 func _bluff_face_ranges(cuts: Array[Vector2]) -> Array[Vector2]:
@@ -7460,17 +7584,9 @@ func _east_path_ribbon(nm: String, points: Array[Vector3], width: float,
 ## keeps movement and paving on the same turns without asking a chain of boxes
 ## to agree at every joint.
 func _east_path_mesh(points: Array[Vector3], width: float, lift: float) -> ArrayMesh:
-	assert(points.size() >= 2, "a path needs at least two points")
-	var left := PackedVector3Array()
-	var right := PackedVector3Array()
-	for i in points.size():
-		var prev: Vector3 = points[maxi(i - 1, 0)]
-		var next: Vector3 = points[mini(i + 1, points.size() - 1)]
-		var tangent := Vector2(next.x - prev.x, next.z - prev.z).normalized()
-		var normal := Vector2(-tangent.y, tangent.x)
-		var p: Vector3 = points[i] + Vector3(0.0, lift, 0.0)
-		left.append(p + Vector3(normal.x, 0.0, normal.y) * width * 0.5)
-		right.append(p - Vector3(normal.x, 0.0, normal.y) * width * 0.5)
+	var edges := _east_path_edges(points, width, lift)
+	var left: PackedVector3Array = edges["left"]
+	var right: PackedVector3Array = edges["right"]
 
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -7489,6 +7605,25 @@ func _east_path_mesh(points: Array[Vector3], width: float, lift: float) -> Array
 	st.generate_normals()
 	st.generate_tangents()
 	return st.commit()
+
+
+## A path ribbon's two edges as `_east_path_mesh` lays them: each point carried
+## half the width out along its own normal, taken across its two neighbours.
+## Shared so that anything cut for a ribbon, the scarp's opening for the Grand
+## Circuit, follows the edges the ribbon actually has.
+func _east_path_edges(points: Array[Vector3], width: float, lift: float) -> Dictionary:
+	assert(points.size() >= 2, "a path needs at least two points")
+	var left := PackedVector3Array()
+	var right := PackedVector3Array()
+	for i in points.size():
+		var prev: Vector3 = points[maxi(i - 1, 0)]
+		var next: Vector3 = points[mini(i + 1, points.size() - 1)]
+		var tangent := Vector2(next.x - prev.x, next.z - prev.z).normalized()
+		var normal := Vector2(-tangent.y, tangent.x)
+		var p: Vector3 = points[i] + Vector3(0.0, lift, 0.0)
+		left.append(p + Vector3(normal.x, 0.0, normal.y) * width * 0.5)
+		right.append(p - Vector3(normal.x, 0.0, normal.y) * width * 0.5)
+	return {"left": left, "right": right}
 
 
 func _east_path_collision(nm: String, points: Array[Vector3], width: float,
