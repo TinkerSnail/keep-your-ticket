@@ -455,7 +455,7 @@ position = Vector3(171, 4.13, 162)
 position = Vector3(157, 4.13, 157)
 
 [node name="D6_basin" type="Node3D" parent="approved_terrain_shapes"]
-editor_description = "Grove service-side low. The existing rising public spine remains intact while the outer shoulder falls locally to D6_low."
+editor_description = "Grove service-side low. The existing rising public spine remains intact while the outer shoulder falls locally to D6_low. Its lane-side edge (rim_05, rim_06) was pulled back south on 2026-10-15 (Christina: \"Pull D6's rim back from the lane\") so the ground under the Grand Circuit lane and the Grove platform can carry them."
 metadata/status = "approved_source_published"
 metadata/low_level_id = "D6_low"
 metadata/hold_fixed = "grove_spine,route_F,ride_pads,S3"
@@ -472,9 +472,9 @@ position = Vector3(73, 0, -185)
 [node name="rim_04" type="Marker3D" parent="approved_terrain_shapes/D6_basin"]
 position = Vector3(82, 0, -198)
 [node name="rim_05" type="Marker3D" parent="approved_terrain_shapes/D6_basin"]
-position = Vector3(75, 0, -212)
+position = Vector3(75, 0, -199.25)
 [node name="rim_06" type="Marker3D" parent="approved_terrain_shapes/D6_basin"]
-position = Vector3(54, 0, -217)
+position = Vector3(54, 0, -206.25)
 [node name="rim_07" type="Marker3D" parent="approved_terrain_shapes/D6_basin"]
 position = Vector3(34, 0, -212)
 

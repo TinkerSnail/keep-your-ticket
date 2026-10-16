@@ -1520,6 +1520,15 @@
   #park-rebuild-overlay .service-line.is-context {
     stroke-opacity: 0.34;
   }
+  /* yard connections (Christina, 2026-10-15), approved by Christina 2026-10-15. */
+  #park-rebuild-overlay .yard-walk,
+  #park-rebuild-overlay .yard-crossing { fill: var(--orange); fill-opacity: 0.2; stroke: var(--orange); stroke-width: 1; }
+  #park-rebuild-overlay .yard-crossing { stroke-dasharray: 2 2; }
+  #park-rebuild-overlay .yard-flight { fill: var(--orange); fill-opacity: 0.6; stroke: var(--foreground); stroke-width: 1; }
+  #park-rebuild-overlay .yard-landing { fill: var(--background); stroke: var(--foreground); stroke-width: 1; }
+  #park-rebuild-overlay .yard-bridge { fill: var(--purple); fill-opacity: 0.4; stroke: var(--purple); stroke-width: 1; }
+  #park-rebuild-overlay .yard-tread { fill: none; stroke: var(--foreground); stroke-width: 0.6; }
+  #park-rebuild-overlay .yard-course { fill: none; stroke: var(--orange); stroke-width: 1.5; }
   #park-rebuild-overlay .service-shared {
     stroke: var(--orange);
     stroke-width: 3;
@@ -2206,14 +2215,18 @@
     {id:'R8',type:'circle',at:[104,-66],r:7.5,queue:[[96,-53],[99,-56],[101,-60],[103,-63]],service:[[111,-66],[119,-66]]},
     {id:'R9',type:'polygon',points:[[9,-72],[15,-85],[27,-100],[41,-103],[48,-92],[39,-77],[28,-67],[16,-65]],label:[29,-84],queue:[[20,-56],[22,-64],[25,-71]],service:[[38,-97],[49,-108]]},
     {id:'R10',type:'polygon',points:[[58,-80],[57,-102],[70,-116],[90,-114],[101,-101],[98,-83],[83,-72],[66,-72]],label:[79,-94],queue:[[67,-69],[69,-75],[71,-80]],service:[[84,-110],[90,-121]]},
-    {id:'R11',type:'circle',at:[111,-87],r:8,queue:[[119,-82],[116,-84],[114,-86]],service:[[119,-90],[128,-92]]},
+    // yard connections (Christina, 2026-10-15), approved by her the same day: R11's service and R12's
+    // east service2 are now the atlas plan of yardConnections' YC-R11 and YC-R12 (they
+    // were service:[[119,-90],[128,-92]] with the link [[128,-92],[123.7,-99.5]], and
+    // service2:[[112,-110],[116.5,-110.1]]).
+    {id:'R11',type:'circle',at:[111,-87],r:8,queue:[[119,-82],[116,-84],[114,-86]],service:[[113.07,-82.45],[119.59,-75.54],[128.12,-77.6],[135.93,-80.52],[135.93,-88.4],[135.78,-93.56],[134,-96.2]]},
     // R12 west terminal off route A (Christina, 2026-10-15): moved 9m west along
     // the cable's line from [-18,-104], where its centre stood 4.12m from A's
     // centreline and two of its legs stood on A. Its 6m platform now stands 1.53m beyond
     // A's operating edge (world). The queue still leaves A at [-13,-99].
     {id:'R12',type:'sky',terminals:[[-27,-103.9],[112,-106]],label:[47,-105],
       queue:[[-13,-99],[-26,-101.9]],queue2:[[106,-102],[110,-105]],
-      service:[[-27,-108],[-27,-119]],service2:[[112,-110],[116.5,-110.1]]},
+      service:[[-27,-108],[-27,-119]],service2:[[114.4,-109.06],[117.7,-111.78],[115.08,-113.92],[114.4,-113.36],[117.01,-111.22],[116.39,-110.7]]},
     {id:'R13',name:'High Terrace steel coaster',type:'coaster',label:[150,0],
       footprint:[[124,-38],[132,-52],[144,-52],[155,-38],[158,-12],[157,18],
         [151,42],[139,51],[128,43],[133,27],[139,10],[138,-10],[131,-27]],
@@ -2485,8 +2498,11 @@
     // before the crossing, inside the lane; R6's link still crosses the lane on its own.
     // A west crossing (lane s 22) was the other option: it takes 154 m2 of the field and
     // stands 3.7 m from a stopped train's tail.
-    {id:'S3',name:'East / North perimeter spine',label:[151,18],note:'S3 clear of the Grand Circuit T6 tunnel (Christina, 2026-10-15); S3 start clear of the entry platform (Christina, 2026-10-15)',
-      p:[[29,120.9],[48,120.9],[50.7,122.2],[55.4,122.2],[57.9,132.9],[75.2,131.5],[94.5,133.6],[111,116],[136,100],[153.1,100.4],[162.1,88.1],[153.1,59.7],[154,42],[155,10],[154,-22],[150,-55],[145.2,-65.3],[162.2,-76.9],[165.2,-86],[157.8,-95.7],[142.8,-102.1],[136.5,-98.9],[130.2,-95.7],[123.7,-99.5],[116.5,-110.1],[103,-116.3],[89.6,-122.4],[77.8,-129.7],[57,-133],[42,-135]]}
+    // S3 narrowed to 3.5 m between the entry platform, squared to the lane, and KC2 (Christina,
+    // 2026-10-15): 1.5 m from the platform and 1.7 m from KC2, 4 m elsewhere; its third point
+    // moves half a metre north for it, and its square lane crossing is unchanged.
+    {id:'S3',name:'East / North perimeter spine',label:[151,18],note:'S3 clear of the Grand Circuit T6 tunnel (Christina, 2026-10-15); S3 start clear of the entry platform (Christina, 2026-10-15); S3 narrowed to 3.5 m between the entry platform and KC2 (Christina, 2026-10-15)',pinch:{width:3.5,clear:1.5,between:['entry platform','KC2']},
+      p:[[29,120.9],[48,120.9],[50.7,121.7],[55.4,122.2],[57.9,132.9],[75.2,131.5],[94.5,133.6],[111,116],[136,100],[153.1,100.4],[162.1,88.1],[153.1,59.7],[154,42],[155,10],[154,-22],[150,-55],[145.2,-65.3],[162.2,-76.9],[165.2,-86],[157.8,-95.7],[142.8,-102.1],[136.5,-98.9],[130.2,-95.7],[123.7,-99.5],[116.5,-110.1],[103,-116.3],[89.6,-122.4],[77.8,-129.7],[57,-133],[42,-135]]}
   ];
 
   const serviceLinks = [
@@ -2505,7 +2521,8 @@
     [[131,-57],[150,-55]],
     [[49,-108],[62,-121],[77.8,-129.7]],
     [[90,-121],[103,-116.3]],
-    [[128,-92],[123.7,-99.5]],
+    // yard connections (Christina, 2026-10-15): R11's link [[128,-92],[123.7,-99.5]] began 16 m
+    // beyond its court, in the drainage low; R11.service now runs the whole way to S3.
     [[112,111],[115,114],[111,116]],
     [[-27,-119],[-34,-124],[-52,-124]]
   ];
@@ -3387,6 +3404,201 @@
     if (problems.length) throw new Error(`Grand Circuit clear of the north ride park: ${problems.join('; ')}`);
   }
   planCheck(validateGrandCircuitPlan);
+
+  // yard connections (Christina, 2026-10-15): "Draw stairs and ramps for review". The T6 build
+  // (8ab7577) could not join R11 or R12's east terminal to the Grand Circuit's east station
+  // yard, S3's paving behind the platform at +7.31 m: R11's drawn link began 16 m beyond its
+  // court on +4.1 m ground with nothing from the court to it, and R12's ran 6.1 m for a 5.7 m
+  // drop. Both are ride service, staff only, so each is a service stair (no flight steeper
+  // than 37 degrees or rising more than 3 m, a 1.2 m landing between flights); no public
+  // route needs a ramp here. Each stays outside the lane's 1.5 m clear zone, the platform,
+  // S3's paving, every ride envelope and route F's bank, which fills the whole slope between
+  // F and S3 from R12's terminal to beyond R11; the court and the terminal stay where they are.
+  // - R11: from the court's south-east rim (+14.45) a 1.2 m staff walk climbs at 9.5% to F,
+  //   crosses F square at grade (+15.81, near z -92.5, where F's shoulders are 0.5 m wide and
+  //   flush with the ground), runs at 12.5% to the head of the stair (+14.36) on the natural slope
+  //   beyond F's bank, descends three flights north (2.35 m each, 36.9 degrees, two landings)
+  //   to +7.31 and crosses the drainage low on a level raised walk (up to 2.0 m over it) to S3's
+  //   south edge, 0.4 m outside the lane's clear zone.
+  // - R12: a 5.7 m staff bridge leaves the terminal's deck (+13.01) between its north-east leg
+  //   and S3, crosses S3 with 5.3 m clear under a 0.4 m deck, and lands on a dog-leg stair
+  //   standing between S3 and the lane's clear zone beyond the platform's west end: two
+  //   flights of 2.85 m at 36.9 degrees and a 2.5 m half-landing, down to a landing on S3's
+  //   north-east edge at +7.31.
+  // World metres (x, y, z) at the levels built at 8ab7577, drawn on the atlas through the
+  // inverse of rebuild_expand_point for the north-east band (yardAtlas). Each element's
+  // footprint is its axis p widened to w. The platform, the court and terminal radii and
+  // levels, and the yard's level are as built; the lane, S3 and F are derived here as the
+  // generator derives them. R11.service and R12.service2 are the atlas plan of each course,
+  // which validateYardConnections holds them to. Status P: proposed for Christina's review.
+  const yardConnections = {
+    note:'yard connections (Christina, 2026-10-15; approved by Christina 2026-10-15)',status:'approved',
+    lane:{width:5.4,clear:1.5,controls:[[210,5,-24],[196,7,-91],[166,7.2,-145],[120,6,-185],[62,0,-214]]},
+    platform:{id:'grand_tram_east_platform',y:7.34,corners:[[154.05,-148.17],[166.66,-132.65],[169.84,-135.23],[157.24,-150.76]]},
+    yardY:7.31,
+    envelopes:{R11:{r:8,y:14.447,name:'R11 court'},R12:{r:6,y:13.005,name:'R12 east terminal deck'}},
+    rules:{stairDeg:37,flightRise:3,landing:1.2,walkGrade:0.125,rampGrade:1/12,deck:0.4,overClear:4.0,margin:0.5,attach:0.2,squareTo:10},
+    connections:[
+      {id:'YC-R11',ride:'R11',field:'service',users:'staff',kind:'service stair',
+        name:'R11 service: F crossing and three-flight stair down to the east station yard',
+        label:'YC-R11 · STAFF STAIR · 3 × 2.35m · 36.9°',labelAt:[186,-96],mapLabelAt:[174.5,-101],
+        course:[[145.65,-102.19],[154.45,-90.8],[165.96,-94.2],[176.5,-99],[176.5,-112],[176.3,-120.5],[173.9,-124.85]],
+        elements:[
+          {kind:'walk',p:[[145.65,14.447,-102.19],[154.45,15.811,-90.8]],w:1.2},
+          {kind:'crossing',p:[[154.45,15.811,-90.8],[165.96,15.811,-94.2]],w:1.2,over:'F'},
+          {kind:'walk',p:[[165.96,15.811,-94.2],[176.5,14.363,-99]],w:1.2},
+          {kind:'landing',p:[[176.5,14.363,-99],[176.5,14.363,-100.2]],w:1.2},
+          {kind:'flight',p:[[176.5,14.363,-100.2],[176.5,12.012,-103.33]],w:1.2},
+          {kind:'landing',p:[[176.5,12.012,-103.33],[176.5,12.012,-104.53]],w:1.2},
+          {kind:'flight',p:[[176.5,12.012,-104.53],[176.5,9.661,-107.67]],w:1.2},
+          {kind:'landing',p:[[176.5,9.661,-107.67],[176.5,9.661,-108.87]],w:1.2},
+          {kind:'flight',p:[[176.5,9.661,-108.87],[176.5,7.31,-112]],w:1.2},
+          {kind:'walk',p:[[176.5,7.31,-112],[176.3,7.31,-120.5]],w:1.2,raised:true},
+          {kind:'walk',p:[[176.3,7.31,-120.5],[173.9,7.31,-124.85]],w:1.2,ends:'S3',raised:true}]},
+      {id:'YC-R12',ride:'R12',field:'service2',users:'staff',kind:'service bridge and dog-leg stair',
+        name:'R12 east service: bridge over S3 and dog-leg stair down to the east station yard',
+        label:'YC-R12 · BRIDGE +13.01 · DOG-LEG 2 × 2.85m · 36.9° · +7.31',labelAt:[153,-158],mapLabelAt:[145.5,-155.5],
+        course:[[147.44,-146.04],[151.89,-150.52],[148.36,-154.06],[147.44,-153.13],[150.97,-149.6],[150.13,-148.75]],
+        elements:[
+          {kind:'bridge',p:[[147.44,13.005,-146.04],[151.47,13.005,-150.1]],w:1.2,over:'S3'},
+          {kind:'landing',p:[[151.47,13.005,-150.1],[152.31,13.005,-150.95]],w:1.2},
+          {kind:'flight',p:[[151.47,13.005,-150.95],[148.78,10.158,-153.63]],w:1.2},
+          {kind:'landing',p:[[148.32,10.158,-153.17],[147.47,10.158,-154.02]],w:2.5},
+          {kind:'flight',p:[[147.87,10.158,-152.71],[150.55,7.31,-150.02]],w:1.2},
+          {kind:'landing',p:[[151.4,7.31,-150.03],[150.13,7.31,-148.75]],w:1.2,ends:'S3'}]}
+    ]
+  };
+  // The inverse of rebuild_expand_point in the north-east band (x > 20, z < -52).
+  const yardAtlas = ([x,z]) => [20 + (x - 20) / 1.35, -52 + (z + 52) * 108 / 178];
+  // An element's footprint: its axis widened to w, as four [x, z] corners.
+  function yardFootprint(e) {
+    const [a, b] = e.p, dx = b[0] - a[0], dz = b[2] - a[2], len = Math.hypot(dx, dz), h = e.w / 2;
+    const nx = -dz / len * h, nz = dx / len * h;
+    return [[a[0] + nx, a[2] + nz], [b[0] + nx, b[2] + nz], [b[0] - nx, b[2] - nz], [a[0] - nx, a[2] - nz]];
+  }
+  // yard connections (Christina, 2026-10-15): each element's footprint and the course,
+  // drawn on the atlas through yardAtlas; flights carry tread lines.
+  function drawYardConnections(svg, points, pathLine, addLabel) {
+    yardConnections.connections.forEach(c => {
+      c.elements.forEach(e => {
+        const corners = yardFootprint(e);
+        const shape = make('polygon', {points: points(corners.map(yardAtlas)), class: `yard-${e.kind}`});
+        const title = make('title'); title.textContent = `${c.id} ${e.kind} · ${c.name} · P`;
+        shape.appendChild(title); svg.appendChild(shape);
+        if (e.kind === 'flight') {
+          const n = Math.max(3, Math.round(Math.abs(e.p[1][1] - e.p[0][1]) / 0.36));
+          for (let k = 1; k < n; k++) {
+            const t = k / n, l = corners[0].map((v, j) => v + (corners[1][j] - v) * t), r = corners[3].map((v, j) => v + (corners[2][j] - v) * t);
+            pathLine([l, r].map(yardAtlas), 'yard-tread');
+          }
+        }
+      });
+      pathLine(c.course.map(yardAtlas), 'yard-course');
+      if (addLabel) addLabel(c.id, yardAtlas(c.mapLabelAt));
+    });
+  }
+  // The yard connections checked in world metres against what the atlas places beside them.
+  function validateYardConnections() {
+    const Y = yardConnections, R = Y.rules, problems = [];
+    const seg = (p, a, b) => {
+      const dx = b[0] - a[0], dz = b[1] - a[1], l = dx * dx + dz * dz;
+      const t = l ? Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dz) / l)) : 0;
+      return Math.hypot(p[0] - a[0] - dx * t, p[1] - a[1] - dz * t);
+    };
+    const lineDist = (p, line) => Math.min(...line.slice(1).map((b, i) => seg(p, line[i], b)));
+    const inPoly = (p, poly) => { let ins = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const A = poly[i], B = poly[j]; if ((A[1] > p[1]) !== (B[1] > p[1]) && p[0] < (B[0] - A[0]) * (p[1] - A[1]) / (B[1] - A[1]) + A[0]) ins = !ins; } return ins; };
+    const polyDist = (p, poly) => inPoly(p, poly) ? 0 : Math.min(...poly.map((a, i) => seg(p, a, poly[(i + 1) % poly.length])));
+    const quadGap = (A, B) => Math.min(...A.map(p => polyDist(p, B)), ...B.map(p => polyDist(p, A)));
+    const samples = e => {
+      const [a, b] = e.p, dx = b[0] - a[0], dz = b[2] - a[2], len = Math.hypot(dx, dz);
+      const nx = -dz / len, nz = dx / len, out = [];
+      const nu = Math.max(1, Math.ceil(len / 0.25)), nv = Math.max(1, Math.ceil(e.w / 0.2));
+      for (let i = 0; i <= nu; i++) for (let j = 0; j <= nv; j++) {
+        const u = i / nu, s = (j / nv - 0.5) * e.w;
+        out.push([a[0] + dx * u + nx * s, a[2] + dz * u + nz * s]);
+      }
+      return out;
+    };
+    // The lane, S3 and F as the generator builds them: the lane and F are uniform Catmull-Rom
+    // curves through their controls, S3 one Chaikin pass through its expanded vertices.
+    const lane = gcCurve(Y.lane.controls).map(p => [p[0], p[2]]);
+    const chaikin = pts => [pts[0], ...pts.slice(1).flatMap((b, i) => { const a = pts[i];
+      return [[a[0] + (b[0] - a[0]) * 0.25, a[1] + (b[1] - a[1]) * 0.25], [a[0] + (b[0] - a[0]) * 0.75, a[1] + (b[1] - a[1]) * 0.75]]; }), pts[pts.length - 1]];
+    const s3 = chaikin(serviceSpines.find(s => s.id === 'S3').p.map(gcExpand));
+    const fRun = routes.F.paths[0], fLoop = fRun.p.map(gcExpand);
+    const f = gcCurve([fLoop[fLoop.length - 2], ...fLoop, fLoop[1]].map(([x, z]) => [x, 0, z])).map(p => [p[0], p[2]]);
+    const rect = (c, w, d) => [[c[0] - w / 2, c[1] - d / 2], [c[0] + w / 2, c[1] - d / 2], [c[0] + w / 2, c[1] + d / 2], [c[0] - w / 2, c[1] + d / 2]];
+    const ride = id => rides.find(r => r.id === id);
+    const envelopes = {
+      R11: {c: gcExpand(ride('R11').at), ...Y.envelopes.R11},
+      R12: {c: gcExpand(ride('R12').terminals[1]), ...Y.envelopes.R12}
+    };
+    const i4 = newInteriors.find(r => r.id === 'I4');
+    const others = [
+      ['I4', p => polyDist(p, rect(i4.at, i4.size[0], i4.size[1]).map(gcExpand))],
+      ['R10', p => polyDist(p, ride('R10').points.map(gcExpand))],
+      ['R8', p => Math.hypot(p[0] - gcExpand(ride('R8').at)[0], p[1] - gcExpand(ride('R8').at)[1]) - ride('R8').r],
+      ['R11 queue', p => lineDist(p, ride('R11').queue.map(gcExpand)) - 1.3],
+      ['R12 queue', p => lineDist(p, ride('R12').queue2.map(gcExpand)) - 1.3]
+    ];
+    Y.connections.forEach(c => {
+      const env = envelopes[c.ride], els = c.elements, last = els.length - 1;
+      if (c.users !== 'staff' && els.some(e => e.kind === 'flight')) problems.push(`${c.id} serves the public and has steps`);
+      els.forEach((e, i) => {
+        const [a, b] = e.p, run = Math.hypot(b[0] - a[0], b[2] - a[2]), rise = Math.abs(b[1] - a[1]);
+        const tag = `${c.id} ${e.kind} ${i}`;
+        if (e.kind === 'flight') {
+          if (rise > R.flightRise + 1e-6) problems.push(`${tag} rises ${rise.toFixed(2)}m (max ${R.flightRise}m)`);
+          if (Math.atan2(rise, run) * 180 / Math.PI > R.stairDeg) problems.push(`${tag} is steeper than ${R.stairDeg} degrees`);
+        } else if (e.kind === 'walk') {
+          if (rise > run * R.walkGrade + 0.005) problems.push(`${tag} is steeper than ${R.walkGrade * 100}%`);
+        } else if (e.kind === 'ramp') {
+          if (rise > run * R.rampGrade + 0.005) problems.push(`${tag} is steeper than 1:12`);
+        } else {
+          if (rise > 0.005) problems.push(`${tag} is not level`);
+          if (e.kind === 'landing' && Math.min(run, e.w) < R.landing - 0.005) problems.push(`${tag} is under ${R.landing}m`);
+        }
+        if (i > 0) {
+          const prev = els[i - 1];
+          if (Math.abs(prev.p[1][1] - a[1]) > 0.005) problems.push(`${tag} starts ${Math.abs(prev.p[1][1] - a[1]).toFixed(2)}m off the level before it`);
+          if (quadGap(yardFootprint(prev), yardFootprint(e)) > 0.05) problems.push(`${tag} does not meet the element before it`);
+        }
+        if ([a, b].some(p => p[0] <= 20 || p[2] >= -52)) problems.push(`${tag} leaves the north-east band yardAtlas inverts`);
+        const S = samples(e), worst = fn => Math.min(...S.map(fn));
+        const need = (what, gap, req) => { if (gap < req - 1e-6) problems.push(`${tag} leaves ${gap.toFixed(2)}m to ${what} (needs ${req}m)`); };
+        need("the lane's edge", worst(p => lineDist(p, lane)) - Y.lane.width / 2, Y.lane.clear);
+        need('the east platform', worst(p => polyDist(p, Y.platform.corners)), R.margin);
+        if (e.over === 'S3') {
+          const under = Math.min(a[1], b[1]) - R.deck - Y.yardY;
+          if (under < R.overClear - 1e-6) problems.push(`${tag} clears S3 by ${under.toFixed(2)}m (needs ${R.overClear}m)`);
+        } else need("S3's paving", worst(p => lineDist(p, s3)) - 2.0, i === last ? -0.05 : R.margin);
+        if (e.over === 'F') {
+          const mid = [(a[0] + b[0]) / 2, (a[2] + b[2]) / 2];
+          let k = 1; for (let j = 2; j < f.length; j++) if (seg(mid, f[j - 1], f[j]) < seg(mid, f[k - 1], f[k])) k = j;
+          const tx = f[k][0] - f[k - 1][0], tz = f[k][1] - f[k - 1][1];
+          const off = Math.abs(90 - Math.acos(Math.abs((tx * (b[0] - a[0]) + tz * (b[2] - a[2])) / (Math.hypot(tx, tz) * run))) * 180 / Math.PI);
+          if (off > R.squareTo) problems.push(`${tag} crosses F ${off.toFixed(1)} degrees off square`);
+          if (lineDist(mid, f) > 0.5) problems.push(`${tag} is not centred on F`);
+        } else need("F's paving", worst(p => lineDist(p, f)) - fRun.w / 2, R.margin);
+        Object.entries(envelopes).forEach(([id, z]) => need(z.name, worst(p => Math.hypot(p[0] - z.c[0], p[1] - z.c[1])) - z.r,
+          id === c.ride && i === 0 ? -R.attach : R.margin));
+        others.forEach(([what, fn]) => need(what, worst(fn), R.margin));
+      });
+      const first = els[0].p[0], end = els[last].p[1];
+      if (Math.abs(Math.hypot(first[0] - env.c[0], first[2] - env.c[1]) - env.r) > 0.05 || Math.abs(first[1] - env.y) > 0.01)
+        problems.push(`${c.id} does not start on the ${env.name}'s edge at its level`);
+      if (Math.abs(lineDist([end[0], end[2]], s3) - 2.0) > 0.05 || Math.abs(end[1] - Y.yardY) > 0.005)
+        problems.push(`${c.id} does not end on S3's paving edge at the yard's +${Y.yardY}m`);
+      c.course.forEach((p, k) => {
+        if (Math.min(...els.map(e => polyDist(p, yardFootprint(e)))) > 0.05) problems.push(`${c.id} course point ${k} lies off its elements`);
+      });
+      const drawn = ride(c.ride)[c.field], plan = c.course.map(yardAtlas);
+      if (!drawn || drawn.length !== plan.length || drawn.some((p, k) => Math.hypot(p[0] - plan[k][0], p[1] - plan[k][1]) > 0.01))
+        problems.push(`${c.ride}.${c.field} is not the atlas plan of ${c.id}`);
+    });
+    if (problems.length) throw new Error(`Yard connections to the east station: ${problems.join('; ')}`);
+  }
+  planCheck(validateYardConnections);
   planCheck(validateFeaturePlan);
 
   const packages = {
@@ -4757,7 +4969,7 @@
         }));
         walls.find(wall => wall.id==='W4').paths.forEach(line =>
           pathLine(line,'retaining-line',{'data-kind':'local'}));
-        pathLine([[29,120.9],[48,120.9],[50.7,122.2],[55.4,122.2],[57.9,132.9],[75.2,131.5],[94.5,133.6],[111,116],[136,100],[138,100.05]],'service-line',{
+        pathLine([[29,120.9],[48,120.9],[50.7,121.7],[55.4,122.2],[57.9,132.9],[75.2,131.5],[94.5,133.6],[111,116],[136,100],[138,100.05]],'service-line',{
           'stroke-width':Math.max(4,4*scale)
         });
 
@@ -5002,6 +5214,8 @@
           pathLine(ride.service,'service-line');
           if (ride.service2) pathLine(ride.service2,'service-line');
         });
+        drawYardConnections(svg,points,(values,className) => pathLine(values,className),
+          narrow ? null : (copy,at) => label(copy,at,'end'));
         programmedAttractions.forEach(attraction => {
           if (attraction.service) pathLine(attraction.service,'service-line');
           if (attraction.service2) pathLine(attraction.service2,'service-line');
@@ -5451,6 +5665,7 @@
       drawCoastalCreekBase(svg,x,y,scale,points,(values,className,attrs={}) =>
         pathLine(svg,values,className,attrs));
       serviceLinks.forEach(line => pathLine(svg,line,'service-line'));
+      drawYardConnections(svg,points,(values,className) => pathLine(svg,values,className),null);
       serviceSpines.forEach(spine => pathLine(svg,spine.p,'service-line'));
       sharedServiceSegments.forEach(run => pathLine(svg,run.p,'service-shared'));
       if (selected === 'service') {

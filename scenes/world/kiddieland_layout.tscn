@@ -243,15 +243,15 @@ metadata/size = Vector2(12, 6)
 [node name="S3" type="Node3D" parent="operations"]
 editor_description = "East and north perimeter service spine. Context boundary for Kiddieland; not a public route."
 [node name="p00" type="Marker3D" parent="operations/S3"]
-position = Vector3(34, 0, 126)
+position = Vector3(29, 0, 120.9)
 [node name="p01" type="Marker3D" parent="operations/S3"]
-position = Vector3(75, 0, 126)
+position = Vector3(48, 0, 120.9)
 [node name="p02" type="Marker3D" parent="operations/S3"]
-position = Vector3(111, 0, 116)
+position = Vector3(50.7, 0, 121.7)
 [node name="p03" type="Marker3D" parent="operations/S3"]
-position = Vector3(136, 0, 100)
+position = Vector3(55.4, 0, 122.2)
 [node name="p04" type="Marker3D" parent="operations/S3"]
-position = Vector3(153.1, 0, 100.4)
+position = Vector3(57.9, 0, 132.9)
 
 [node name="protection" type="Node3D" parent="."]
 

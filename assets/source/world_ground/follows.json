@@ -373,6 +373,45 @@
     "left": []
    },
    "exported": []
+  },
+  {
+   "id": "G21-G22",
+   "date": "2026-10-15",
+   "from": "edits G21, G22",
+   "ground": {
+    "tiles": [
+     "x0_z-1",
+     "x0_z0"
+    ],
+    "nodes": 214,
+    "lowest_m": -2.354,
+    "highest_m": 3.848
+   },
+   "edits": [
+    {
+     "id": "G21",
+     "name": "s3_start_earthworks",
+     "sig": "e5dc4e71a6285717"
+    },
+    {
+     "id": "G22",
+     "name": "grove_platform_lane_fill",
+     "sig": "ee752828663f454f"
+    }
+   ],
+   "rocks": {
+    "moved": {},
+    "uneven": {}
+   },
+   "city": {
+    "raised": {},
+    "left": {}
+   },
+   "roosts": {
+    "moved": {},
+    "left": []
+   },
+   "exported": []
   }
  ]
 }

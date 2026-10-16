@@ -543,15 +543,21 @@ const GRAND_TRAM_CONTROLS: Array[Vector3] = [
 	Vector3(-48.0, 0.0, 166.0), # fairground station
 ]
 const GRAND_TRAM_STATIONS := [
-	{"id": &"entry", "at": Vector3(44.0, 0.0, 172.0), "theta": 0.0},
+	# Squared to the lane (Christina, 2026-10-15), as the east platform: at its
+	# `theta` of 0 it stood about nine degrees off the lane.
+	{"id": &"entry", "at": Vector3(44.0, 0.0, 172.0)},
 	# Squared to the lane (Christina, 2026-10-15): at its old `theta` of 2.08 the
 	# platform stood about ten degrees off the lane and its ends overlapped it. A
 	# station with no `theta` faces the lane's own heading at its `at`.
 	{"id": &"east", "at": Vector3(166.0, 7.2, -145.0)},
-	# The northern loop runs east-west here and the public land is to its south.
-	# Facing the stop through PI keeps the platform on that inside edge; at zero
-	# it stood north of the lane and any Grove access had to cross the vehicles.
-	{"id": &"grove", "at": Vector3(62.0, 0.0, -214.0), "theta": PI},
+	# The northern loop runs east-west here and the public land is to its south;
+	# its platform keeps that inside edge, where the Grove's access arrives.
+	# Squared to the lane (Christina, 2026-10-15), as the east platform: facing
+	# PI it stood about fifteen degrees off the lane and its east end overlapped
+	# it.
+	# It follows the lane's grade (Christina, 2026-10-15): the lane falls about a
+	# metre along the platform.
+	{"id": &"grove", "at": Vector3(62.0, 0.0, -214.0), "follows_lane": true},
 	# East-facing platform: its twenty-metre length remains south of NT-1 and
 	# its public side occupies the open service lane, not the shop backs.
 	{"id": &"boardwalk", "at": Vector3(-78.0, -6.0, 24.0), "theta": -PI * 0.5},
@@ -596,7 +602,14 @@ const GRAND_TRAM_CROSSINGS := [
 	# A service crossing: its other run is S3's own course, and it is marked as
 	# the lane's other at-grade crossings are.
 	{"id": &"s3_east_station", "at": Vector3(177.30, 7.30, -129.27),
-		"service": &"S3", "owner": &"park_transit"},
+		"service": &"S3", "owner": &"park_transit", "yard": &"east"},
+	# S3's start, redrawn clear of the entry platform (Christina, 2026-10-15,
+	# option A; the maps at 24433a0), crosses the lane once, square, at lane
+	# s 60.5, six metres east of the entry platform: a service crossing like the
+	# east platform's, with no yard behind it, holding the lane's level six metres
+	# either side, as the drawing does.
+	{"id": &"s3_entry", "at": Vector3(60.1, 0.57, 169.1),
+		"service": &"S3", "owner": &"park_transit", "hold_metres": 6.0},
 ]
 ## The lane's ribbon stands this far over its graded centreline; a clearance
 ## over the lane is measured from that surface.
@@ -4106,7 +4119,20 @@ const REBUILD_SERVICE_SPINES := [
 	# down outside the lane to its controlled crossing (`GRAND_TRAM_CROSSINGS`
 	# s3_east_station), runs through the yard behind the east platform and on to
 	# its unchanged west end.
-	{"id": &"S3", "points": [Vector2(34, 126), Vector2(75, 126),
+	# Its start redrawn clear of the entry platform (Christina, 2026-10-15,
+	# option A; the maps at 24433a0): from G2 behind the east berm it crosses
+	# the entry access once and the lane once, square, at its controlled
+	# crossing (`GRAND_TRAM_CROSSINGS` s3_entry), keeps D4's south rim outside
+	# the lane and rejoins its course at [111, 116].
+	# Between the entry platform, squared to the lane, and KC2 it narrows to
+	# 3.5 m (Christina, 2026-10-15, "Narrow S3 to 3.5 m there"), keeping 1.5 m
+	# from each (`_rebuild_service_width_at`); its third point moves half a metre
+	# north for it.
+	{"id": &"S3", "pinch_width": 3.5, "pinch_clear": 1.5,
+		"pinch_between": [&"entry", &"KC2"],
+		"points": [Vector2(29, 120.9), Vector2(48, 120.9),
+		Vector2(50.7, 121.7), Vector2(55.4, 122.2), Vector2(57.9, 132.9),
+		Vector2(75.2, 131.5), Vector2(94.5, 133.6),
 		Vector2(111, 116), Vector2(136, 100), Vector2(153.1, 100.4),
 		Vector2(162.1, 88.1), Vector2(153.1, 59.7), Vector2(154, 42),
 		Vector2(155, 10), Vector2(154, -22), Vector2(150, -55),
