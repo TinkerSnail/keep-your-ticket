@@ -129,28 +129,32 @@ metadata/retained = true
 [node name="p00" type="Marker3D" parent="primary_routes/b_south_return/points" unique_id=765399444]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -96, -6, 60)
 
-[node name="p01" type="Marker3D" parent="primary_routes/b_south_return/points" unique_id=1025342054]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -88, -4.9, 64)
+[node name="p01" type="Marker3D" parent="primary_routes/b_south_return/points"]
+editor_description = "B holds flush with the regraded Grand Circuit lane to here, 4.3 m along its south return and clear of the lane's clear zone over its whole width (Christina, 2026-10-16: \"Even 9.9% to p04\"); from here it climbs evenly to p04 at 9.92%, where C joins it at its old level."
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -92.6, -5.97, 61.68)
 
-[node name="p02" type="Marker3D" parent="primary_routes/b_south_return/points" unique_id=392570958]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -82, -3.67, 72)
+[node name="p02" type="Marker3D" parent="primary_routes/b_south_return/points" unique_id=1025342054]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -88, -5.391, 64)
 
-[node name="p03" type="Marker3D" parent="primary_routes/b_south_return/points" unique_id=1672481084]
+[node name="p03" type="Marker3D" parent="primary_routes/b_south_return/points" unique_id=392570958]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -82, -4.025, 72)
+
+[node name="p04" type="Marker3D" parent="primary_routes/b_south_return/points" unique_id=1672481084]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -80, -2.17, 84)
 
-[node name="p04" type="Marker3D" parent="primary_routes/b_south_return/points" unique_id=45567460]
+[node name="p05" type="Marker3D" parent="primary_routes/b_south_return/points" unique_id=45567460]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -75, -1.07, 95)
 
-[node name="p05" type="Marker3D" parent="primary_routes/b_south_return/points" unique_id=906059842]
+[node name="p06" type="Marker3D" parent="primary_routes/b_south_return/points" unique_id=906059842]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -64, 0.08, 101)
 
-[node name="p06" type="Marker3D" parent="primary_routes/b_south_return/points" unique_id=550487654]
+[node name="p07" type="Marker3D" parent="primary_routes/b_south_return/points" unique_id=550487654]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -53, 0.08, 98)
 
-[node name="p07" type="Marker3D" parent="primary_routes/b_south_return/points" unique_id=1318699925]
+[node name="p08" type="Marker3D" parent="primary_routes/b_south_return/points" unique_id=1318699925]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -47, 0, 90)
 
-[node name="p08" type="Marker3D" parent="primary_routes/b_south_return/points" unique_id=638609454]
+[node name="p09" type="Marker3D" parent="primary_routes/b_south_return/points" unique_id=638609454]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48, 0, 78)
 
 [node name="primary_connectors" type="Node3D" parent="." unique_id=803930021]
@@ -186,41 +190,26 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30.5, 0, -2)
 [node name="P2" type="Node3D" parent="attractions" unique_id=2139849508]
 metadata/point_type = &"vector2"
 metadata/kind = &"funhouse"
-metadata/size = Vector2(12, 14)
+metadata/size = Vector2(8, 18)
 
 [node name="at" type="Marker3D" parent="attractions/P2" unique_id=1365584820]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -77, 0, 32)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -86.5, 0, 31)
 
 [node name="access" type="Node3D" parent="attractions/P2" unique_id=1663013199]
 
 [node name="p00" type="Marker3D" parent="attractions/P2/access" unique_id=1518278039]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -96, 0, 27)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -96, 0, 25)
 
 [node name="p01" type="Marker3D" parent="attractions/P2/access" unique_id=1315984493]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -90, 0, 27)
-
-[node name="p02" type="Marker3D" parent="attractions/P2/access" unique_id=2068393626]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87, 0, 25)
-
-[node name="p03" type="Marker3D" parent="attractions/P2/access" unique_id=545731525]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -84, 0, 27)
-
-[node name="p04" type="Marker3D" parent="attractions/P2/access" unique_id=56527720]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -83, 0, 27)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -90.5, 0, 25)
 
 [node name="exit" type="Node3D" parent="attractions/P2" unique_id=1331644455]
 
 [node name="p00" type="Marker3D" parent="attractions/P2/exit" unique_id=946723575]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -83, 0, 37)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -90.5, 0, 38)
 
 [node name="p01" type="Marker3D" parent="attractions/P2/exit" unique_id=2101376662]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -88, 0, 37)
-
-[node name="p02" type="Marker3D" parent="attractions/P2/exit" unique_id=1415412426]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -91, 0, 40)
-
-[node name="p03" type="Marker3D" parent="attractions/P2/exit" unique_id=682156875]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -96, 0, 40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -96, 0, 38)
 
 [node name="interiors" type="Node3D" parent="." unique_id=84966990]
 
@@ -286,3 +275,16 @@ metadata/front = &"west"
 
 [node name="at" type="Marker3D" parent="midway/B4" unique_id=2099963820]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -86.5, 0, 17)
+
+[node name="frontage" type="Node3D" parent="."]
+editor_description = "The legacy frontage units that survive the rebuild, editor-owned since 2026-10-16: each unit's at marker is its footprint's centre and size its (x, z) extent in metres; h is its height and kind its use. tools/gen_props.gd builds the shell, bay, awning, sign and back door from them (ParkPlan.boardwalk_frontage_units)."
+
+[node name="restrooms" type="Node3D" parent="frontage"]
+editor_description = "WC-B, the Boardwalk restrooms (Christina, 2026-10-16: re-sited from (-86, 51.5), where the Grand Circuit lane ran through them, to the frontage between I3 and I2; the maps at e7037ac). Door on B's edge, 1.5 m from each interior."
+metadata/point_type = &"vector2"
+metadata/size = Vector2(9, 7)
+metadata/h = 4.5
+metadata/kind = "plain"
+
+[node name="at" type="Marker3D" parent="frontage/restrooms"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -86, 0, -39)

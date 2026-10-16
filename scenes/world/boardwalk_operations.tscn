@@ -914,34 +914,34 @@ metadata/base_energy = 1.35
 metadata/light_kind = 2
 
 [node name="P2_funhouse_operations" type="Node3D" parent="."]
-editor_description = "P2 replacement front embodies the approved separate entry at z=27 and exit at z=37; generated side/back/roof remain structural backing."
+editor_description = "P2 replacement front embodies the approved separate entry at z=25 and exit at z=38; generated side/back/roof remain structural backing. Carried with P2 to the old funhouse slot on 2026-10-16 (Christina: \"Move P2 to the old slot\"): the face on its west wall at x -90.5, the staff door on its back wall at the rear staff link, z 38."
 
 [node name="front_north_end" type="CSGBox3D" parent="P2_funhouse_operations"]
-position = Vector3(-83.01, -2.6, 25.45)
-size = Vector3(0.28, 6.76, 0.9)
+position = Vector3(-90.51, -2.6, 22.9125)
+size = Vector3(0.28, 6.76, 1.825)
 use_collision = true
 material = SubResource("Mat_worn_cream")
 
 [node name="front_middle" type="CSGBox3D" parent="P2_funhouse_operations"]
-position = Vector3(-83.01, -2.6, 32.0)
-size = Vector3(0.28, 6.76, 7.5)
+position = Vector3(-90.51, -2.6, 31.5)
+size = Vector3(0.28, 6.76, 10.65)
 use_collision = true
 material = SubResource("Mat_worn_cream")
 
 [node name="front_south_end" type="CSGBox3D" parent="P2_funhouse_operations"]
-position = Vector3(-83.01, -2.6, 38.55)
-size = Vector3(0.28, 6.76, 0.9)
+position = Vector3(-90.51, -2.6, 39.5875)
+size = Vector3(0.28, 6.76, 0.825)
 use_collision = true
 material = SubResource("Mat_worn_cream")
 
 [node name="entry_header" type="MeshInstance3D" parent="P2_funhouse_operations"]
-position = Vector3(-83.22, -0.2, 27.0)
+position = Vector3(-90.72, -0.2, 25)
 scale = Vector3(0.18, 0.62, 2.15)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_coral")
 
 [node name="entry_label" type="Label3D" parent="P2_funhouse_operations"]
-position = Vector3(-83.36, -0.2, 27.0)
+position = Vector3(-90.86, -0.2, 25)
 rotation = Vector3(0, -1.570796, 0)
 text = "ENTER"
 font_size = 66
@@ -950,25 +950,25 @@ outline_size = 7
 modulate = Color(0.96, 0.84, 0.54, 1)
 
 [node name="entry_turnstile_post" type="MeshInstance3D" parent="P2_funhouse_operations"]
-position = Vector3(-82.85, -5.16, 27.0)
+position = Vector3(-90.35, -5.16, 25)
 scale = Vector3(0.22, 1.55, 0.22)
 mesh = SubResource("CylinderMesh_unit")
 material_override = SubResource("Mat_galvanized")
 
 [node name="entry_turnstile_arm_a" type="MeshInstance3D" parent="P2_funhouse_operations"]
-position = Vector3(-83.35, -4.7, 27.0)
+position = Vector3(-90.85, -4.7, 25)
 scale = Vector3(1.0, 0.1, 0.1)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_dark_metal")
 
 [node name="exit_header" type="MeshInstance3D" parent="P2_funhouse_operations"]
-position = Vector3(-83.22, -0.2, 37.0)
+position = Vector3(-90.72, -0.2, 38)
 scale = Vector3(0.18, 0.62, 2.15)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_turquoise")
 
 [node name="exit_label" type="Label3D" parent="P2_funhouse_operations"]
-position = Vector3(-83.36, -0.2, 37.0)
+position = Vector3(-90.86, -0.2, 38)
 rotation = Vector3(0, -1.570796, 0)
 text = "EXIT"
 font_size = 66
@@ -977,43 +977,43 @@ outline_size = 7
 modulate = Color(0.72, 0.92, 0.82, 1)
 
 [node name="exit_push_gate_post" type="MeshInstance3D" parent="P2_funhouse_operations"]
-position = Vector3(-82.85, -5.16, 37.0)
+position = Vector3(-90.35, -5.16, 38)
 scale = Vector3(0.22, 1.55, 0.22)
 mesh = SubResource("CylinderMesh_unit")
 material_override = SubResource("Mat_galvanized")
 
 [node name="exit_push_bar" type="MeshInstance3D" parent="P2_funhouse_operations"]
-position = Vector3(-83.35, -4.7, 37.0)
+position = Vector3(-90.85, -4.7, 38)
 scale = Vector3(1.0, 0.1, 0.1)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_turquoise")
 
 [node name="operator_box" type="MeshInstance3D" parent="P2_funhouse_operations"]
-position = Vector3(-81.55, -5.18, 28.55)
+position = Vector3(-89.05, -5.18, 26.55)
 scale = Vector3(1.0, 1.48, 1.25)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_dark_metal")
 
 [node name="operator_panel" type="MeshInstance3D" parent="P2_funhouse_operations"]
-position = Vector3(-82.08, -4.95, 28.55)
+position = Vector3(-89.58, -4.95, 26.55)
 scale = Vector3(0.06, 0.72, 1.0)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_worn_cream")
 
 [node name="show_stop" type="MeshInstance3D" parent="P2_funhouse_operations"]
-position = Vector3(-82.13, -4.83, 28.35)
+position = Vector3(-89.63, -4.83, 26.35)
 scale = Vector3(0.13, 0.13, 0.13)
 mesh = SubResource("SphereMesh_unit")
 material_override = SubResource("Mat_signal_red")
 
 [node name="service_door" type="MeshInstance3D" parent="P2_funhouse_operations"]
-position = Vector3(-70.82, -3.58, 32.0)
+position = Vector3(-82.32, -3.58, 38)
 scale = Vector3(0.08, 4.35, 2.2)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_galvanized")
 
 [node name="service_label" type="Label3D" parent="P2_funhouse_operations"]
-position = Vector3(-70.72, -3.45, 32.0)
+position = Vector3(-82.22, -3.45, 38)
 rotation = Vector3(0, 1.570796, 0)
 text = "STAFF"
 font_size = 52
@@ -1022,13 +1022,13 @@ outline_size = 6
 modulate = Color(0.17, 0.2, 0.2, 1)
 
 [node name="P2_service_fixture" type="MeshInstance3D" parent="P2_funhouse_operations"]
-position = Vector3(-70.62, -1.05, 32.0)
+position = Vector3(-82.12, -1.05, 38)
 scale = Vector3(0.26, 0.26, 0.26)
 mesh = SubResource("SphereMesh_unit")
 material_override = ExtResource("1_bulb")
 
 [node name="P2_service_light" type="OmniLight3D" parent="P2_funhouse_operations" groups=["park_light"]]
-position = Vector3(-70.5, -1.15, 32.0)
+position = Vector3(-82, -1.15, 38)
 visible = false
 light_color = Color(0.78, 0.9, 0.72, 1)
 light_energy = 0.0

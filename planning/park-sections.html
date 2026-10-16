@@ -120,7 +120,11 @@
       {w:8,p:[[-99,-67.8],[-107,-76.3],[-108,-88.4],[-108,-103],[-106,-116.3],[-102,-127.2],[-98,-134.5],[-96,-140.6],[-92,-144.8],[-80,-144.8]]},
       {w:8,p:[[-6,-68],[-22,-66],[-40,-62],[-44,-74],[-44,-88],[-44,-102],[-42,-118],[-42,-130],[-80,-145]]},
       {w:9,p:[[-18,0],[-32,-1],[-45,-2],[-52,-2],[-58,-2],[-72,-2],[-84,-2],[-96,-2]]},
-      {w:8,p:[[-96,60],[-88,64],[-82,72],[-80,84],[-75,95],[-64,101],[-53,98],[-47,90],[-48,78]]}
+      // B flush at the crossing (Christina, 2026-10-16), levels as built: -6.00 at (-96, 60); the
+      // marker at (-92.6, 61.68), -5.97, ends the 4.28 m flush hold; an even 9.92% ("Even 9.9% to
+      // p04") through -5.391 and -4.025 to (-80, 84), where C joins it at its old -2.17; then its
+      // old levels -1.07, 0.08, 0.08, 0, 0.
+      {w:8,p:[[-96,60],[-92.6,61.68],[-88,64],[-82,72],[-80,84],[-75,95],[-64,101],[-53,98],[-47,90],[-48,78]]}
     ]},
     C:{name:'C · Coastal circuit',paths:[
       {w:8,p:[[-48,78],[-58,70],[-72,76],[-78,90],[-70,108],[-52,116],[-32,112],[-18,101],[-10,88],[-22,77],[-48,78]]},
@@ -290,7 +294,12 @@
     {id:'CB2',name:'Boardwalk promenade bridge',type:'rect',at:[-96,47],size:[10,6]},
     {id:'CX1',name:'Locked service culvert',type:'rect',at:[-62,44],size:[4,10]},
     {id:'CX2',name:'D2 culvert under the Grand Circuit lane, as at D5 · inverts −6.87 / −6.89',p:[[-80.46,53.63],[-87.12,48.16]],className:'water-culvert'},
-    {id:'D2-N',name:'Shore notch · 3.6m wide · 0.89m deep at CX2, 1.50m at the seaward fascia · grid edit at build',p:[[-87.12,48.16],[-88.6,46.8],[-91,47],[-102,47],[-108,47]],className:'water-notch'}
+    {id:'D2-N',name:'Shore notch · 3.6m wide · 0.89m deep at CX2, 1.50m at the seaward fascia · grid edit at build',p:[[-87.12,48.16],[-88.6,46.8],[-91,47],[-102,47],[-108,47]],className:'water-notch'},
+    // D2's drop and the notch guard (Christina, 2026-10-16).
+    {id:'D2-C',name:'D2 drop crest · −2.95 at (−68.08, 48.56), 4 steps of 0.95m over 1.2m',p:[[-69.04,47.28],[-67.12,49.84]],className:'water-drop'},
+    {id:'D2-P',name:'D2 drop and plunge pool as built · 4.3 × 4.0m footprint · water −6.70, bed −7.25',points:[[-66.64,49.98],[-70.08,52.36],[-72.48,49.36],[-69.04,46.78]],className:'water-place'},
+    {id:'GF',name:'Pond garden east fence as built · 32.9m, 1.5m high, from the drop’s east wall to B’s bed face (Christina, 2026-10-16)',p:[[-66.64,49.98],[-67.22,56.968],[-66.89,58.606],[-67.09,60.381],[-67.76,62.058],[-68.91,63.555],[-70.53,64.8],[-72.61,65.652],[-74.54,65.903],[-79.56,67.471]],className:'garden-fence'},
+    {id:'D2-G',name:'Notch guard · derived rail, about 11.4m, 0.4m outside the lane’s clear zone, 0.5m off B',p:[[-90.5,45.15],[-87.96,44.94],[-85.9,46.83],[-88.34,49.49],[-89.24,48.66],[-90.5,48.76]],className:'notch-guard'},
   ];
 
   const sightlines=[
@@ -348,6 +357,16 @@
       // Past the Boardwalk station (Christina, 2026-10-16): the regraded lane at B's
       // crossing, Culvert D2's levels, and the restrooms' floor (approved 2026-10-16).
       {id:'GC × B',at:[-96.73,59.7],y:-5.97,status:'approved',offset:[9,-10]},
+      {id:'B FLUSH END',at:[-92.6,61.68],y:-5.97,status:'approved',offset:[9,14]},
+      {id:'D2 CREST',at:[-68.08,48.56],y:-2.95,status:'approved',offset:[9,-10]},
+      {id:'D2 POOL',at:[-69.56,49.67],y:-6.7,status:'approved',offset:[-9,14],anchor:'end'},
+      {id:'B × C',at:[-80,84],y:-2.17,status:'measured',offset:[9,-10]},
+      {id:'B p02',at:[-88,64],y:-5.391,status:'approved',offset:[9,-10]},
+      {id:'B p03',at:[-82,72],y:-4.025,status:'approved',offset:[9,-10]},
+      {id:'D2 BED p00',at:[-48,22],y:-0.18,status:'approved',offset:[9,-10]},
+      {id:'D2 BED p01',at:[-54,29],y:-1.088,status:'approved',offset:[9,-10]},
+      {id:'D2 BED p02',at:[-59,37],y:-1.769,status:'approved',offset:[9,-10]},
+      {id:'D2 BED p03',at:[-62,44],y:-2.389,status:'approved',offset:[9,-10]},
       {id:'CX2 INVERT',at:[-83.79,51.34],y:-6.87,status:'approved',offset:[-9,-10],anchor:'end'},
       {id:'D2 POND',at:[-75,58.77],y:-6.85,status:'approved',offset:[9,4]},
       {id:'D2 WEIR',at:[-102,47],y:-6.95,status:'approved',offset:[8,-10]},
@@ -355,10 +374,13 @@
       {id:'WC-B FFL',at:[-86,-39],y:-6,status:'approved',offset:[9,-10]}
     ],grades:[
       {p:[[-6,-68],[-40,-62],[-75,-59],[-96,-62]],label:'B NORTH · 0→−6.00 · ≤13.2% · E'},
-      {p:[[-96,60],[-80,84],[-64,101],[-48,78]],label:'B SOUTH · −6.00→0 · ≤10.87% · E'},
+      {p:[[-96,60],[-92.6,61.68],[-88,64],[-82,72],[-80,84]],label:'B SOUTH · −6.00→−5.97 FLUSH 4.28m · EVEN 9.92% TO −2.17 AT C · A',approved:true},
+      {p:[[-80,84],[-75,95],[-64,101],[-48,78]],label:'B SOUTH · −2.17→0 · OLD LEVELS · E'},
+      // D2's bed (Christina, 2026-10-16): its old levels to the drop's crest, then 4 steps.
+      {p:[[-48,22],[-54,29],[-59,37],[-62,44],[-68.08,48.56]],label:'D2 BED · −0.18→−2.95 · 4 × 0.95m STEPS → POOL −6.70 · A',approved:true},
       {p:[[-78,24],[-78,44],[-104,64.9],[-106.6,74.58],[-104,102.32]],label:'GC · DECK −6.00 TO z 79 · THEN ≤8.5% · A',approved:true}
     ],walls:[{p:[[-58,-62],[-58,-14]],label:'W1 · HIGH EAST'}],
-      note:'All Boardwalk and pier decking holds −6.00m above the −7.50m water datum. The two long public returns earn the 6m climb; the protected central cascade remains the separate stair/ramp descent. Past the Boardwalk station (Christina, 2026-10-16) the Grand Circuit sits on the deck to z 79 and then climbs at no more than 8.5%, so B crosses it flush; D2’s last reach is regraded to shore level (banks −6.00, pond −6.85, culvert inverts −6.87/−6.89, weir −6.95) and leaves through a notch 1.50m deep in the seaward fascia, a grid edit at build time.'},
+      note:'All Boardwalk and pier decking holds −6.00m above the −7.50m water datum. The two long public returns earn the 6m climb; the protected central cascade remains the separate stair/ramp descent. Past the Boardwalk station (Christina, 2026-10-16) the Grand Circuit sits on the deck to z 79 and then climbs at no more than 8.5%, so B crosses it flush: B’s south return holds −5.97 for 4.3m across the lane’s clear zone, then climbs at an even 9.92% (−5.391, −4.025) to its old −2.17 where C joins it, and keeps its old levels beyond. D2 keeps its old levels (bed −0.18 to −2.389 at p03) to a crest at −2.95 and drops 3.8m in four 0.95m steps into a plunge pool (water −6.70, bed −7.25); its last reach is regraded to shore level (banks −6.00, pond −6.85, culvert inverts −6.87/−6.89, weir −6.95) and leaves through a notch 1.50m deep in the seaward fascia, a grid edit at build time, railed on its open stretch.'},
     fairground:{bands:['T1','T2'],spots:[
       {id:'J6',at:[-48,78],y:0,status:'measured',offset:[8,-10]},
       {id:'C LOW',at:[-72,76],y:-1.74,status:'measured',offset:[-8,-10],anchor:'end'},
@@ -576,7 +598,7 @@
       destinationNote:'Photo Hut is home base. P5 has separate audience entry and release; R3 is a Plaza destination with its queue off the through path. The fountain and clock remain the primary landmarks.',
       operationsNote:'Bandstand backstage connects west to S1. Ride and performance operations stay behind their destinations rather than crossing the ring or a spoke mouth.',
       protectionNote:'NT-1 and NT-2 are no-touch compositions. Q2 keeps the west cascade visible; Q5 keeps the east fountain axis and the High Terrace coaster crest layered beyond it.'},
-    {id:'boardwalk',title:'Boardwalk',bounds:{x0:-171,x1:-44,z0:-151,z1:75},routes:['B'],context:['A','C'],places:['P2','I2','I3','WC-B'],rides:['R1','R2','R15','R16'],midway:['B1','B2','B3','B4'],service:['S1','S2'],shared:['SH1'],water:['D2','D2-N','POND','CB1','GL','GL-S','CB2','CX1','CX2'],protected:['NT-1'],views:['Q3'],
+    {id:'boardwalk',title:'Boardwalk',bounds:{x0:-171,x1:-44,z0:-151,z1:75},routes:['B'],context:['A','C'],places:['P2','I2','I3','WC-B'],rides:['R1','R2','R15','R16'],midway:['B1','B2','B3','B4'],service:['S1','S2'],shared:['SH1'],water:['D2','D2-C','D2-P','D2-N','D2-G','POND','CB1','GL','GL-S','GF','CB2','CX1','CX2'],protected:['NT-1'],views:['Q3'],
       summary:'The waterfront spine continues beyond the old chain as an editor-owned open two-lane extension along a smooth, larger R2. It turns at the cove edge and meets a separate land-side return; two continuous timber ride forecourts and two roofed midway pavilions use the expanded field without consuming the harbour or cutting the bluff.',
       publicNote:'B is the Boardwalk itself. Its northern highland return preserves the A/F junction, takes a broad arc north of the plaza wall, descends at no steeper than 1:12, stays outside S1 and R2, and meets the open timber waterfront at the shoreline. The deck continues beside the expanded coaster, passes beneath one intentional high flyover with 4.0m fixed-structure clearance and catch protection, reaches the cove overlook, and turns inland without a dead end. The pier remains a separate westward branch with a clear approach and complete loop.',
       destinationNote:'Wheel, smooth expanded wooden coaster, Scrambler, waterfront-facing dodgems, funhouse, Arcade + Ride Photo and Boardwalk Café form a Santa Monica-inspired open seaside ride park. R15 and R16 occupy separate courts but their timber forecourts meet as one continuous pier field; two roofed midway uses remain visible in R2’s high support bays.',
@@ -685,12 +707,18 @@
     // platform, as I2's and I3's do. mast_11 (generated) stood 0.01 m off the regraded
     // centreline at s 1020.6; it moves to the lane's inland verge, 0.62 m beyond the clear
     // zone with its radius, 1.7 m from prom_lamp_15, and its string's last span from
-    // mast_10 then crosses over the lane at about 6.9 m.
+    // mast_10 then crosses over the lane at about 6.9 m. B flush at the crossing
+    // (Christina, 2026-10-16): B's south return holds flush with the lane, -6.00 at its
+    // first point to -5.97 at a marker at world (-92.6, 67.0), atlas (-92.6, 61.68), 4.28 m
+    // along it and 0.9 m beyond the lane's clear zone, then climbs at an even 9.92% through
+    // -5.391 and -4.025 to its old -2.17 at (-80, 84), where C joins it, and keeps its old
+    // levels beyond: -1.07, 0.08, 0.08, 0, 0 ("Even 9.9% to p04"; as built).
     south:{id:'GC-2R',name:'GC-2 past the Boardwalk station, regraded (Christina, 2026-10-16)',
       approved:'2026-10-16',
       was:[[-78,-6,-14.4],[-78,-6,24],[-78,-6,44],[-104,-5,72],[-104,-2,130],[-80,-0.5,155],[-48,0,166]],
       to:[-104,130],
-      crossing:{id:'grand_tram_crossing_boardwalk_south',at:[-96.73,63.94],reach:14,level:-5.97},
+      crossing:{id:'grand_tram_crossing_boardwalk_south',at:[-96.73,63.94],reach:14,level:-5.97,
+        flushTo:[-92.6,-5.97,67.0]},
       culvert:'CX2',
       serviceCrossings:['P2'],
       moves:[{id:'mast_11',kind:'generated mast',from:[-106.4,76.0],to:[-100.6,76.0],r:0.22}],
@@ -921,8 +949,9 @@
     const item=water.find(entry=>entry.id===id);if(!item)return;
     if(item.p)line(item.p,item.className||'water-line',`${item.id} · ${item.name}`,'protection');
     else if(item.type==='rect')rectShape(item,item.className||'water-crossing','protection');
+    else if(item.points)polygonShape(item,item.className||'water-place','protection');
     else ellipseShape(item,'water-place','protection');
-    label(item.at||item.p[Math.floor(item.p.length/2)],item.id,item.name,'water-label');
+    label(item.at||(item.p?item.p[Math.floor(item.p.length/2)]:item.points[0]),item.id,item.name,'water-label');
   }
 
   function drawView(id){
@@ -1203,6 +1232,9 @@
 /* Past the Boardwalk station (Christina, 2026-10-16). */
 .gc-move{fill:none;stroke:var(--red);stroke-width:1.5;stroke-dasharray:3 2}
 .retired-place{fill:none;stroke:var(--red);stroke-width:1.5;stroke-dasharray:2 3}
+.water-drop{fill:none;stroke:var(--fg);stroke-width:4;stroke-linecap:butt}
+.garden-fence{fill:none;stroke:var(--green);stroke-width:2.5;stroke-dasharray:1 4;stroke-linecap:round}
+.notch-guard{fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round}
 .water-culvert{fill:none;stroke:var(--orange);stroke-width:5;stroke-dasharray:4 3}
 .water-notch{fill:none;stroke:var(--blue);stroke-width:7;stroke-opacity:.35;stroke-linejoin:round}
 .garden-walk{fill:none;stroke:var(--green);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}

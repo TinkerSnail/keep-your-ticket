@@ -3012,12 +3012,13 @@ func _boardwalk_obstacles() -> Array:
 	# The canonical row now retains only units outside the approved rebuild
 	# parcels. Add each actual shell rather than the former two blanket strips,
 	# which would make the crowd avoid buildings package 04 explicitly removed.
-	for unit in Plan.FRONTAGE_UNITS:
+	# Each surviving unit where its editor-owned record puts it (2026-10-16).
+	for unit in Plan.boardwalk_frontage_units():
 		if Plan.REBUILD_RETIRED_BOARDWALK_SHOPS.has(StringName(unit["nm"])):
 			continue
-		rects.append([Vector2(front_x,
+		rects.append([Vector2(float(unit["x"]),
 			(float(unit["from"]) + float(unit["to"])) * 0.5),
-			Vector2(half_d,
+			Vector2(float(unit["depth"]) * 0.5,
 			(float(unit["to"]) - float(unit["from"])) * 0.5)])
 	for site in Plan.rebuild_interior_sites():
 		if StringName(site["district"]) != &"boardwalk":
@@ -3076,10 +3077,10 @@ func _boardwalk_pois() -> PackedVector3Array:
 ## parapet on the tall units, flat on the wall on the short ones.
 func _boardwalk_signs() -> Array:
 	var out: Array = []
-	var face := Plan.FRONT_X - Plan.FRONT_DEPTH * 0.5
-	for unit in Plan.FRONTAGE_UNITS:
+	for unit in Plan.boardwalk_frontage_units():
 		if Plan.REBUILD_RETIRED_BOARDWALK_SHOPS.has(StringName(unit["nm"])):
 			continue
+		var face: float = float(unit["x"]) - float(unit["depth"]) * 0.5
 		var mid: float = (unit["from"] + unit["to"]) * 0.5
 		var h: float = unit["h"]
 		var y: float = Plan.SHORE_TOP + (h + 1.9 if h >= 8.0 else h - 0.9)

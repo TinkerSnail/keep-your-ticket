@@ -771,6 +771,7 @@ func _initialize() -> void:
 	# banked one scene at a time, F's fill buried R8's queue. Each scene's banks
 	# are then appended to it at the seam ordinal that scene had reached.
 	var ribbon_scenes: Array = []
+	var landscape_root: Node3D = null
 	for scene in [
 			["park_circulation", CIRCULATION_PATH, _rebuild_circulation],
 			# Packages 04-05 stay in separately editable wrappers. They are
@@ -788,6 +789,14 @@ func _initialize() -> void:
 		_root = scene[0]
 		_seam_ordinal = scene[2]
 		_rebuild_flush_embankments(_root)
+		# D2's culvert, weir and pond garden loop (Christina, 2026-10-16), after
+		# the landscape's banks, so no established shape's seam ordinal moves.
+		# The landscape is saved once the lane's banks stand, so a tree over one
+		# can stand on it (`_seat_trees_on_lane_banks`).
+		if String(_root.name) == "park_landscape":
+			_rebuild_coastal_creek_reach()
+			landscape_root = _root
+			continue
 		if not _save(_root, scene[1]):
 			return
 	_root = transit_root
@@ -802,6 +811,12 @@ func _initialize() -> void:
 	# The kerb beside D4 on the lane's verge (Christina, 2026-10-16), after
 	# the yard stairs for the same reason.
 	_grand_tram_kerbs()
+	# The regraded lane's fill over the shore where its west side passes beyond
+	# the made ground's seaward face (Christina, 2026-10-16), after the kerb.
+	_grand_tram_lane_shore_fill()
+	_seat_trees_on_lane_banks(landscape_root)
+	if not _save(landscape_root, LANDSCAPE_PATH):
+		return
 	if not _save(_root, TRANSIT_PATH):
 		return
 	# The approach and the towns lay their roads on the corridor's own ground.
@@ -4195,9 +4210,13 @@ func _west_shell() -> void:
 	# Beyond it, the same six-metre bench continues as planted coastal reserve;
 	# otherwise enlarging the world turns one local material into a kilometre-long
 	# runway visible from every aerial camera.
+	# Since 2026-10-16 this is the slab's part north of D2's last reach, which is
+	# cut into the made ground; the rest is appended after everything else here
+	# (`_west_shell_creek_ground`).
+	var creek_z0 := _d2_ground_window().position.y
 	_box("shore", Vector3.ZERO,
-		Vector3((SHORE_FROM_X + SHORE_EDGE) * 0.5, SHORE_TOP - 3.0, 0.0),
-		Vector3(width, 6.0, 340.0), "far_warm")
+		Vector3((SHORE_FROM_X + SHORE_EDGE) * 0.5, SHORE_TOP - 3.0, (creek_z0 - 170.0) * 0.5),
+		Vector3(width, 6.0, creek_z0 + 170.0), "far_warm")
 	# Beyond the working strip the coast meshes are the ground, since
 	# 2026-09-04. Two transition ramps and two planted bench boxes used to run
 	# on from here to z ±2200: straight 52m slabs laid regardless of the coast
@@ -4239,6 +4258,9 @@ func _west_shell() -> void:
 	_bluff_lane_opening("bluff_north_end", Vector2(panel.x, lane_cut.x), lane_cut, "")
 	_bluff_lane_opening("bluff_south_end", Vector2(south_lane_cut.y, south_panel.y),
 		south_lane_cut, "south_")
+	# D2's last reach, cut into the made ground (Christina, 2026-10-16:
+	# "Culvert D2"), last, so no established shape here is re-planed.
+	_west_shell_creek_ground()
 
 
 ## How far either side of the axis the bluff's face is dressed.
@@ -4738,8 +4760,9 @@ func _west_far_lights(masts: Array[float]) -> void:
 	# stopping short of the gap — the 24m opening the arch is aimed at has to
 	# stay a dark slot, because it is the hole the real section is behind and a
 	# lit band across it would close it.
-	for i in FRONTAGE.size():
-		var unit: Dictionary = FRONTAGE[i]
+	var units := Plan.boardwalk_frontage_units()
+	for i in units.size():
+		var unit: Dictionary = units[i]
 		if Plan.REBUILD_RETIRED_BOARDWALK_SHOPS.has(StringName(unit["nm"])):
 			continue
 		var from: float = unit["from"]
@@ -4748,7 +4771,7 @@ func _west_far_lights(masts: Array[float]) -> void:
 		if mid > GAP_FROM - 2.0 and mid < GAP_TO + 2.0:
 			continue
 		_box("far_front_lit_%s" % unit["nm"], Vector3.ZERO,
-			Vector3(FRONT_X - FRONT_DEPTH * 0.5 - 0.3, SHORE_TOP + 2.6, mid),
+			Vector3(float(unit["x"]) - float(unit["depth"]) * 0.5 - 0.3, SHORE_TOP + 2.6, mid),
 			Vector3(0.3, 1.1, (to - from) * 0.62), "bulb", 0.0, false)
 
 	# The pavilion at the pier head, lit the same cool it is up close so the two
@@ -4766,8 +4789,9 @@ func _west_far_lights(masts: Array[float]) -> void:
 
 
 func _frontage_far() -> void:
-	for i in FRONTAGE.size():
-		var unit: Dictionary = FRONTAGE[i]
+	var units := Plan.boardwalk_frontage_units()
+	for i in units.size():
+		var unit: Dictionary = units[i]
 		if Plan.REBUILD_RETIRED_BOARDWALK_SHOPS.has(StringName(unit["nm"])):
 			continue
 		var from: float = unit["from"]
@@ -4777,12 +4801,12 @@ func _frontage_far() -> void:
 		var depth := to - from
 		var mat := "far" if i % 2 == 0 else "far_warm"
 		_box("front_%s" % unit["nm"], Vector3.ZERO,
-			Vector3(FRONT_X, SHORE_TOP + height * 0.5, mid),
-			Vector3(FRONT_DEPTH, height, depth), mat, 0.0, false)
+			Vector3(float(unit["x"]), SHORE_TOP + height * 0.5, mid),
+			Vector3(float(unit["depth"]), height, depth), mat, 0.0, false)
 		# A parapet lip, so the rooflines are edges rather than the tops of slabs.
 		_box("front_%s_cap" % unit["nm"], Vector3.ZERO,
-			Vector3(FRONT_X, SHORE_TOP + height + 0.25, mid),
-			Vector3(FRONT_DEPTH + 1.0, 0.5, depth + 0.6), "far_shade", 0.0, false)
+			Vector3(float(unit["x"]), SHORE_TOP + height + 0.25, mid),
+			Vector3(float(unit["depth"]) + 1.0, 0.5, depth + 0.6), "far_shade", 0.0, false)
 
 
 ## What runs out over the water. A strip needs stops or it trails off, so this
@@ -14126,6 +14150,7 @@ func _grand_tram_lane_banks() -> void:
 			caps, _grand_tram_lane_at, run_of)
 		built += 1
 		pieces_built.append(Vector2(from_s, to_s))
+		_grand_tram_lane_bank_spans.append(Vector2(from_s, to_s))
 		print("grand tram lane bank: s %.1f..%.1f (%s, %s), lane up to %.2fm over the ground, longest bank %.1fm in plan" % [
 			from_s, to_s, caps[0], caps[1], size.x, size.y])
 	if built == 0:
@@ -14451,6 +14476,189 @@ func _grand_tram_lane_culvert(nm: String, s: float) -> void:
 	print("grand tram lane culvert %s: s %.1f, inverts %.2f and %.2f, %.1fm long, %.2fm of fill over it under the lane" % [
 		nm, s, mouths[0].y, mouths[1].y, Vector2(mouths[0].x, mouths[0].z).distance_to(
 			Vector2(mouths[1].x, mouths[1].z)), fill])
+
+
+# ---------------------------------------------------------------------------
+# The regraded lane's fill over the shore (2026-10-16)
+# ---------------------------------------------------------------------------
+
+## Christina, 2026-10-16 ("Regrade, then bank"): past the Boardwalk station
+## the regraded lane sits on the promenade's deck to z 79, and from z 74 its west
+## side passes up to 1.8 m beyond the made ground's seaward face, where the
+## promenade keeps any bank off it. Under that overhang it stands on a fill
+## derived from it, as its bank does further south: from `GRAND_TRAM_SHORE_FILL_LAP`
+## inside the face out to the lane's shoulder at the bank's crown, ending on a
+## retaining face down to the ground under it, the toe buried as a bank's is;
+## its ends closed. It runs only where no lane bank stands, so the two never
+## overlap. The sunset bearing from the pier head and the promenade passes north
+## of it.
+const GRAND_TRAM_SHORE_FILL_LAP := 0.1
+## The Boardwalk's made ground, along which the fill can stand.
+const GRAND_TRAM_SHORE_FILL_Z := Vector2(-170.0, 170.0)
+
+var _grand_tram_lane_bank_spans: Array[Vector2] = []
+
+
+func _grand_tram_lane_shore_fill() -> void:
+	var arcs := _grand_tram_arcs()
+	var count := floori(arcs[arcs.size() - 1] / GRAND_TRAM_LANE_BANK_SCAN)
+	var runs: Array = []
+	var current: Array = []
+	for i in count + 1:
+		var s := float(mini(i, count - 1)) * GRAND_TRAM_LANE_BANK_SCAN
+		var station := {} if i >= count else _grand_tram_lane_shore_station(s)
+		if not station.is_empty():
+			current.append(station)
+		elif not current.is_empty():
+			if current.size() >= 2:
+				runs.append(current)
+			current = []
+	if runs.is_empty():
+		return
+	var top := SurfaceTool.new()
+	top.begin(Mesh.PRIMITIVE_TRIANGLES)
+	top.set_smooth_group(0)
+	var faces := SurfaceTool.new()
+	faces.begin(Mesh.PRIMITIVE_TRIANGLES)
+	faces.set_smooth_group(TOWN_FLAT)
+	for run in runs:
+		var worst := 0.0
+		for k in run.size():
+			var st: Dictionary = run[k]
+			worst = maxf(worst, float(st["gap"]))
+			if k == run.size() - 1:
+				continue
+			var nx: Dictionary = run[k + 1]
+			var a_in: Vector3 = st["inner"]
+			var a_out: Vector3 = st["outer"]
+			var b_in: Vector3 = nx["inner"]
+			var b_out: Vector3 = nx["outer"]
+			_earth_oriented_tri(top, a_in, Vector2(a_in.x, a_in.z) * 0.28,
+				a_out, Vector2(a_out.x, a_out.z) * 0.28, b_out, Vector2(b_out.x, b_out.z) * 0.28,
+				Vector3.UP)
+			_earth_oriented_tri(top, a_in, Vector2(a_in.x, a_in.z) * 0.28,
+				b_out, Vector2(b_out.x, b_out.z) * 0.28, b_in, Vector2(b_in.x, b_in.z) * 0.28,
+				Vector3.UP)
+			var out: Vector2 = st["out"]
+			_earth_wall_quad(faces, Vector3(a_out.x, float(st["outer_foot"]), a_out.z),
+				Vector3(b_out.x, float(nx["outer_foot"]), b_out.z), a_out, b_out,
+				Vector3(out.x, 0.0, out.y))
+		# Each end closed down to the ground, facing along the lane.
+		for end in [[0, 1], [run.size() - 1, run.size() - 2]]:
+			var e: Dictionary = run[end[0]]
+			var n: Dictionary = run[end[1]]
+			var ahead := Vector3(Vector3(e["outer"]).x - Vector3(n["outer"]).x, 0.0,
+				Vector3(e["outer"]).z - Vector3(n["outer"]).z).normalized()
+			var a: Vector3 = e["inner"]
+			var b: Vector3 = e["outer"]
+			_earth_wall_quad(faces, Vector3(a.x, float(e["inner_foot"]), a.z),
+				Vector3(b.x, float(e["outer_foot"]), b.z), a, b, ahead)
+		print("grand tram lane shore fill: s %.1f..%.1f, the lane's side up to %.2fm over the ground" % [
+			float(run[0]["s"]), float(run[run.size() - 1]["s"]), worst])
+	top.generate_normals()
+	top.generate_tangents()
+	_rebuild_mesh_body("grand_tram_lane_shore_fill", top.commit(), "planting", true)
+	faces.generate_normals()
+	faces.generate_tangents()
+	_rebuild_mesh_body_of("building", "grand_tram_lane_shore_fill_faces", faces.commit(), true)
+
+
+## One station of the shore fill, or {} where none is wanted: where a side's
+## shoulder passes beyond the made ground's seaward face over lower ground, on
+## the Boardwalk, and no lane bank stands.
+func _grand_tram_lane_shore_station(s: float) -> Dictionary:
+	# Up to the first station of a bank, which then carries the lane.
+	for span in _grand_tram_lane_bank_spans:
+		if s > span.x + 0.001 and s <= span.y + GRAND_TRAM_LANE_BANK_SCAN:
+			return {}
+	var here := _grand_tram_lane_at(s)
+	var centre: Vector3 = here["centre"]
+	if centre.z < GRAND_TRAM_SHORE_FILL_Z.x or centre.z > GRAND_TRAM_SHORE_FILL_Z.y:
+		return {}
+	for side in 2:
+		var edge: Vector3 = here["left"] if side == 0 else here["right"]
+		var out: Vector2 = here["out"] * (1.0 if side == 0 else -1.0)
+		if out.x >= -0.01:
+			continue
+		var crown := edge + Vector3(out.x, 0.0, out.y) * REBUILD_EMBANK_SHOULDER \
+			- Vector3.UP * 0.05
+		if crown.x >= SHORE_EDGE:
+			continue
+		var t := (SHORE_EDGE + GRAND_TRAM_SHORE_FILL_LAP - centre.x) / out.x
+		var inner := Vector3(centre.x + out.x * t, crown.y, centre.z + out.y * t)
+		var ground_out := _grand_tram_lane_bank_ground_y(Vector2(crown.x, crown.z))
+		var ground_in := _grand_tram_lane_bank_ground_y(Vector2(inner.x, inner.z))
+		if is_nan(ground_out):
+			ground_out = WATER_TOP - 1.0
+		if is_nan(ground_in):
+			ground_in = ground_out
+		var lip := Vector2(edge.x, edge.z)
+		var under_edge := _grand_tram_lane_bank_ground_y(lip)
+		var gap := edge.y - (ground_out if is_nan(under_edge) else under_edge)
+		return {"s": s, "inner": inner, "outer": crown, "out": out, "gap": gap,
+			"outer_foot": minf(ground_out, crown.y) - REBUILD_EMBANK_TOE_BURY,
+			"inner_foot": minf(ground_in, crown.y) - REBUILD_EMBANK_TOE_BURY}
+	return {}
+
+
+## A tree whose foot stands over the Grand Circuit lane's bank stands on it
+## (2026-10-16: PL2_a_00 stood 0.6-0.9 m over the bluff bank's shoulder): moved
+## down to the lowest of the bank's surface under its trunk, never up.
+func _seat_trees_on_lane_banks(landscape: Node3D) -> void:
+	var bank := _root.get_node_or_null("grand_tram_lane_banks")
+	if bank == null:
+		return
+	var surface := bank.get_node("surface") as MeshInstance3D
+	var faces := surface.mesh.get_faces()
+	var xf := (bank as Node3D).transform * surface.transform
+	# Indexed by plan cell, so each trunk reads only the triangles near it.
+	var cells := {}
+	for i in range(0, faces.size(), 3):
+		var a := xf * faces[i]
+		var b := xf * faces[i + 1]
+		var c := xf * faces[i + 2]
+		if is_zero_approx((b - a).cross(c - a).y):
+			continue
+		var lo := Vector2i(floori(minf(a.x, minf(b.x, c.x))), floori(minf(a.z, minf(b.z, c.z))))
+		var hi := Vector2i(floori(maxf(a.x, maxf(b.x, c.x))), floori(maxf(a.z, maxf(b.z, c.z))))
+		for cx in range(lo.x, hi.x + 1):
+			for cz in range(lo.y, hi.y + 1):
+				var key := Vector2i(cx, cz)
+				if not cells.has(key):
+					cells[key] = []
+				(cells[key] as Array).append([a, b, c])
+	for trunk in landscape.get_children():
+		if not (trunk is CSGCylinder3D and String(trunk.name).ends_with("_trunk")):
+			continue
+		var cyl := trunk as CSGCylinder3D
+		var foot := cyl.transform.origin.y - cyl.height * 0.5
+		var at := Vector2(cyl.transform.origin.x, cyl.transform.origin.z)
+		var lowest := INF
+		for k in 9:
+			var p := at
+			if k > 0:
+				var a := TAU * float(k - 1) / 8.0
+				p += Vector2(cos(a), sin(a)) * cyl.radius
+			for tri in cells.get(Vector2i(floori(p.x), floori(p.y)), []):
+				var a3: Vector3 = tri[0]
+				var b3: Vector3 = tri[1]
+				var c3: Vector3 = tri[2]
+				var bary := Geometry2D.point_is_inside_triangle(p, Vector2(a3.x, a3.z),
+					Vector2(b3.x, b3.z), Vector2(c3.x, c3.z))
+				if not bary:
+					continue
+				var y: Variant = Plane(a3, b3, c3).intersects_ray(Vector3(p.x, 1000.0, p.y), Vector3.DOWN)
+				if y != null:
+					lowest = minf(lowest, (y as Vector3).y)
+		if lowest == INF or foot - lowest <= 0.01:
+			continue
+		var drop := foot - lowest
+		var stem := String(trunk.name).trim_suffix("_trunk")
+		for part in ["_trunk", "_crown_a", "_crown_b"]:
+			var node := landscape.get_node_or_null(stem + part) as Node3D
+			if node != null:
+				node.transform.origin.y -= drop
+		print("tree %s seated on the lane's bank: %.2fm down" % [stem, drop])
 
 
 # ---------------------------------------------------------------------------
@@ -15758,13 +15966,19 @@ func _awning(nm: String, front_face: float, mid: float, run: float,
 
 
 func _boardwalk_frontage() -> void:
-	var front_face := FRONT_X - FRONT_DEPTH * 0.5
-	var back_face := FRONT_X + FRONT_DEPTH * 0.5
-	for i in FRONTAGE.size():
-		var unit: Dictionary = FRONTAGE[i]
+	# Each surviving unit stands where its editor-owned record puts it, since
+	# 2026-10-16 (`ParkPlan.boardwalk_frontage_units`); a unit's row index still
+	# picks its colours and its back-door clutter, so a moved unit keeps both.
+	var units := Plan.boardwalk_frontage_units()
+	for i in units.size():
+		var unit: Dictionary = units[i]
 		var nm: String = unit["nm"]
 		if Plan.REBUILD_RETIRED_BOARDWALK_SHOPS.has(StringName(nm)):
 			continue
+		var unit_x: float = unit["x"]
+		var unit_depth: float = unit["depth"]
+		var front_face := unit_x - unit_depth * 0.5
+		var back_face := unit_x + unit_depth * 0.5
 		var from: float = unit["from"]
 		var to: float = unit["to"]
 		var h: float = unit["h"]
@@ -15773,11 +15987,11 @@ func _boardwalk_frontage() -> void:
 		var depth := to - from
 		var wall := "white" if i % 2 == 0 else "accent"
 
-		_box("shop_%s" % nm, Vector3.ZERO, Vector3(FRONT_X, SHORE_TOP + h * 0.5, mid),
-			Vector3(FRONT_DEPTH, h, depth), wall)
+		_box("shop_%s" % nm, Vector3.ZERO, Vector3(unit_x, SHORE_TOP + h * 0.5, mid),
+			Vector3(unit_depth, h, depth), wall)
 		_box("shop_%s_cap" % nm, Vector3.ZERO,
-			Vector3(FRONT_X, SHORE_TOP + h + 0.25, mid),
-			Vector3(FRONT_DEPTH + 1.0, 0.5, depth + 0.6), "far_shade", 0.0, false)
+			Vector3(unit_x, SHORE_TOP + h + 0.25, mid),
+			Vector3(unit_depth + 1.0, 0.5, depth + 0.6), "far_shade", 0.0, false)
 
 		# A shuttered unit gets boards instead of a window, which is the one
 		# thing on the row that has to read differently close up.
@@ -16271,11 +16485,20 @@ func _boardwalk_edges() -> void:
 	var n := 0
 	var z := WALK_FROM_Z
 	while z <= WALK_TO_Z:
-		# The break for the pier. Everything else gets a post.
+		# The break for the pier. Everything else gets a post. Since 2026-10-16 a
+		# post over D2's notch steps along the edge clear of it, and where the
+		# regraded Grand Circuit lane runs along the promenade's edge, from its
+		# south end, the posts give way to it, keeping their names and ordinals:
+		# the fence ends at the lane's clear zone, as it ends at the pier mouth.
 		if absf(z - PIER_ROOT.y) > PIER_MOUTH_CLEAR and not _over_the_jetty(z):
-			_box("edge_post_%d" % n, Vector3.ZERO,
-				Vector3(SHORE_EDGE + 0.4, SHORE_TOP + 0.6, z),
-				Vector3(0.14, 1.3, 0.14), "wood")
+			var post := Vector2(SHORE_EDGE + 0.4,
+				Plan.coastal_creek_notch_clear(SHORE_EDGE + 0.4, z, 0.07))
+			if _boardwalk_in_lane(post, 0.07):
+				_seam_ordinal += 1
+			else:
+				_box("edge_post_%d" % n, Vector3.ZERO,
+					Vector3(post.x, SHORE_TOP + 0.6, post.y),
+					Vector3(0.14, 1.3, 0.14), "wood")
 			n += 1
 		z += 2.4
 	# Two runs of rail, north and south of the pier mouth. **These collide.** The
@@ -16290,6 +16513,17 @@ func _boardwalk_edges() -> void:
 		[Plan.WHEEL_FROM_Z - 0.4, Plan.WHEEL_TO_Z + 0.4],
 		[PIER_ROOT.y - PIER_MOUTH_CLEAR, PIER_ROOT.y + PIER_MOUTH_CLEAR],
 	]
+	# The lane's clear zone where it runs along the edge (2026-10-16).
+	var lane_from := INF
+	var lane_to := -INF
+	var scan := WALK_FROM_Z
+	while scan <= WALK_TO_Z:
+		if _boardwalk_in_lane(Vector2(SHORE_EDGE + 0.4, scan), 0.08):
+			lane_from = minf(lane_from, scan)
+			lane_to = maxf(lane_to, scan)
+		scan += 0.05
+	if lane_from <= lane_to:
+		gaps.append([lane_from - 0.05, lane_to + 0.05])
 	gaps.sort_custom(func(a, b): return a[0] < b[0])
 	var runs := []
 	var from_z := WALK_FROM_Z
@@ -16311,26 +16545,75 @@ func _boardwalk_edges() -> void:
 	# visibly carries on past both and a wall there would say the world ends
 	# where a chain says the park does. It collides for the same reason the rail
 	# does: a barrier the player walks through is scenery, not a barrier.
+	# Since 2026-10-16 the regraded Grand Circuit lane crosses the south end on
+	# the deck: there the chain's west post steps east along it, the least
+	# distance that clears the lane's clear zone, the chain runs from it, and the
+	# sign steps east clear of both.
 	var east_edge := FRONT_X - FRONT_DEPTH * 0.5
 	for end in [[WALK_TO_Z, "south"], [WALK_FROM_Z, "north"]]:
 		var z_at: float = end[0]
 		var tag: String = end[1]
+		var west_x := SHORE_EDGE + 1.0
+		var west_lap := 0.45
+		while _boardwalk_in_lane(Vector2(west_x, z_at), 0.1 + BOARDWALK_LANE_MARGIN):
+			west_x += 0.01
+			west_lap = 0.05
+		var east_x := east_edge - 1.0
 		_box("%s_chain_post_w" % tag, Vector3.ZERO,
-			Vector3(SHORE_EDGE + 1.0, SHORE_TOP + 0.55, z_at),
+			Vector3(west_x, SHORE_TOP + 0.55, z_at),
 			Vector3(0.2, 1.1, 0.2), "metal")
 		_box("%s_chain_post_e" % tag, Vector3.ZERO,
-			Vector3(east_edge - 1.0, SHORE_TOP + 0.55, z_at),
+			Vector3(east_x, SHORE_TOP + 0.55, z_at),
 			Vector3(0.2, 1.1, 0.2), "metal")
+		# The chain laps 0.45 m past each post, but stops inside a west post that
+		# stepped off the lane.
 		_box("%s_chain" % tag, Vector3.ZERO,
-			Vector3((SHORE_EDGE + east_edge) * 0.5, SHORE_TOP + 0.85, z_at),
-			Vector3(16.4, 0.1, 0.1), "metal")
+			Vector3((west_x - west_lap + east_x + 0.45) * 0.5, SHORE_TOP + 0.85, z_at),
+			Vector3(east_x - west_x + 0.45 + west_lap, 0.1, 0.1), "metal")
+		var sign_x := maxf(SHORE_EDGE + 5.0, west_x + 0.1 + 0.8 + 0.05)
+		while _boardwalk_in_lane(Vector2(sign_x, z_at), 0.8):
+			sign_x += 0.01
 		_box("%s_sign" % tag, Vector3.ZERO,
-			Vector3(SHORE_EDGE + 5.0, SHORE_TOP + 1.4, z_at),
+			Vector3(sign_x, SHORE_TOP + 1.4, z_at),
 			Vector3(1.6, 0.9, 0.1), "white", 0.0, false)
 
 	# The former yard fence across the south return was X6: a closure at the end
 	# of an obsolete strip. Route B now bends inland here, so the public paving
 	# itself supplies the edge and the fence does not survive package 01.
+
+
+## The Grand Circuit lane's half width and its clear zone, which the
+## promenade's furniture keeps off since the lane was regraded onto the deck
+## from its south return to z 79 (Christina, 2026-10-16).
+const BOARDWALK_LANE_CLEAR := Plan.GRAND_TRAM_LANE_W * 0.5 + 1.5
+const BOARDWALK_LANE_MARGIN := 0.05
+## A mast's foot clears the lane's clear zone by this much once it has stepped
+## off it, which stands mast_11 at (-100.6, 76.0), as the maps have it.
+const BOARDWALK_MAST_LANE_SETBACK := 0.6
+
+
+## True where a thing `r` round `p` reaches into the lane or its clear zone.
+func _boardwalk_in_lane(p: Vector2, r: float) -> bool:
+	var near := _grand_tram_nearest(Vector3(p.x, 0.0, p.y))
+	return float(near["distance"]) < BOARDWALK_LANE_CLEAR + r
+
+
+## `p` moved the least distance, straight away from the lane, that puts a
+## thing `r` round it clear of the lane and its clear zone; `p` where it is
+## clear already.
+func _boardwalk_lane_clear(p: Vector2, r: float) -> Vector2:
+	var need := BOARDWALK_LANE_CLEAR + r + BOARDWALK_LANE_MARGIN
+	for attempt in 4:
+		var near := _grand_tram_nearest(Vector3(p.x, 0.0, p.y))
+		if float(near["distance"]) >= need - 0.001:
+			return p
+		var at: Vector3 = near["at"]
+		var away := Vector2(p.x - at.x, p.y - at.z)
+		if away.length() < 0.001:
+			var t: Vector3 = near["tangent"]
+			away = Vector2(-t.z, t.x)
+		p = Vector2(at.x, at.z) + away.normalized() * need
+	return p
 
 
 ## Furniture. Benches facing the water, lamps, bins, and the masts with the
@@ -16348,9 +16631,12 @@ func _boardwalk_props() -> void:
 	# Lamp standards down the middle of the promenade.
 	var m := 0
 	var z := WALK_FROM_Z + 6.0
-	# D2 crosses the full promenade here. A standard in that twelve-metre bridge
-	# span is not lighting beside a route; it is a post in the route itself.
-	var creek_bridge_z := Plan.rebuild_expand_point(Vector2(-96, 55)).y
+	# D2 crosses the full promenade here. A standard in that bridge span is not
+	# lighting beside a route; it is a post in the route itself. The span is
+	# CB2's, as its editor-owned placement has it (2026-10-16).
+	var cb2: Dictionary = Plan.coastal_creek_placements()["crossings"][&"CB2"]
+	var creek_bridge_z := Plan.rebuild_expand_point(cb2["at"]).y
+	var creek_bridge_half := Vector2(cb2["size"]).y * 0.5 + 0.2
 	while z < WALK_TO_Z:
 		# **One skip now, and it is not the one that used to be here.**
 		#
@@ -16373,17 +16659,20 @@ func _boardwalk_props() -> void:
 		# luck, and the luck is invisible until the opening moves.
 		# `PIER_MOUTH_CLEAR` is the rule and all three read it.
 		if absf(z - PIER_ROOT.y) > PIER_MOUTH_CLEAR \
-				and absf(z - creek_bridge_z) > 6.2:
+				and absf(z - creek_bridge_z) > creek_bridge_half:
+			# A standard the regraded lane runs over steps off it, the least
+			# distance that clears its clear zone (2026-10-16).
+			var foot := _boardwalk_lane_clear(Vector2(PROMENADE_X, z), 0.11)
 			_cyl("prom_lamp_%d" % m, Vector3.ZERO,
-				Vector3(PROMENADE_X, SHORE_TOP + 2.4, z), 0.11, 4.8, "metal", 0.0, 8)
+				Vector3(foot.x, SHORE_TOP + 2.4, foot.y), 0.11, 4.8, "metal", 0.0, 8)
 			_sphere("prom_lamp_%d_globe" % m,
-				Vector3(PROMENADE_X, SHORE_TOP + 5.0, z), Vector3.ZERO,
+				Vector3(foot.x, SHORE_TOP + 5.0, foot.y), Vector3.ZERO,
 				0.34, "lamp_glass")
 			# Inside the globe, unlike the plaza's — this fitting is a translucent
 			# sphere rather than an opaque box, so the source belongs at its centre
 			# and the geometry reads as lit from within.
 			_omni("prom_lamp_%d_pool" % m,
-				Vector3(PROMENADE_X, SHORE_TOP + 5.0, z), "lamp", 3.0, 16.0,
+				Vector3(foot.x, SHORE_TOP + 5.0, foot.y), "lamp", 3.0, 16.0,
 				LIGHT_FIXTURE, m % 2 == 0)
 			m += 1
 		z += 9.0
@@ -16394,17 +16683,23 @@ func _boardwalk_props() -> void:
 	# The mast spacing lands one of them exactly on the pier's centre line, which
 	# is a post planted in the only doorway in the section. Skipped there, and the
 	# string of bulbs skips the span with it rather than hanging off nothing.
+	# A mast in the regraded lane's clear zone (2026-10-16) steps east across the
+	# promenade until its foot clears it by `BOARDWALK_MAST_LANE_SETBACK`, and its
+	# string runs to it there.
 	var k := 0
-	var prev_mast := 0.0
+	var prev_mast := Vector2.ZERO
 	var had_prev := false
 	z = WALK_FROM_Z + 4.0
 	while z < WALK_TO_Z:
 		if absf(z - PIER_ROOT.y) > PIER_MOUTH_CLEAR and not _over_the_jetty(z):
+			var mast := Vector2(SHORE_EDGE + 1.6, z)
+			while _boardwalk_in_lane(mast, 0.22 + BOARDWALK_MAST_LANE_SETBACK):
+				mast.x += 0.01
 			_cyl("mast_%d" % k, Vector3.ZERO,
-				Vector3(SHORE_EDGE + 1.6, SHORE_TOP + 4.0, z), 0.22, 8.0, "wood", 0.0, 6)
-			if had_prev and z - prev_mast < 12.0:
-				_light_string(k, prev_mast, z)
-			prev_mast = z
+				Vector3(mast.x, SHORE_TOP + 4.0, mast.y), 0.22, 8.0, "wood", 0.0, 6)
+			if had_prev and z - prev_mast.y < 12.0:
+				_light_string(k, prev_mast, mast)
+			prev_mast = mast
 			had_prev = true
 			k += 1
 		z += 11.0
@@ -16412,10 +16707,16 @@ func _boardwalk_props() -> void:
 	# Bins sit between the through-route and the water-side furniture rather than
 	# on B's exact centreline. There is still more than a body width to both the
 	# ten-metre route edge and the benches behind them.
+	# A bin over D2's notch steps along the promenade clear of it, and one in the
+	# regraded lane's clear zone steps off it, each the least distance
+	# (2026-10-16).
 	var b_at := [-30.0, -12.0, 8.0, 26.0, 46.0, 64.0]
 	for i in b_at.size():
+		var bin := Vector2(PROMENADE_X - 3.0,
+			Plan.coastal_creek_notch_clear(PROMENADE_X - 3.0, b_at[i], 0.38))
+		bin = _boardwalk_lane_clear(bin, 0.38)
 		_cyl("prom_bin_%d" % i, Vector3.ZERO,
-			Vector3(PROMENADE_X - 3.0, SHORE_TOP + 0.45, b_at[i]), 0.38, 0.9, "metal", 0.0, 8)
+			Vector3(bin.x, SHORE_TOP + 0.45, bin.y), 0.38, 0.9, "metal", 0.0, 8)
 	_box("prom_cart", Vector3.ZERO, Vector3(PROMENADE_X - 3.0, SHORE_TOP + 0.7, 18.0),
 		Vector3(1.8, 1.4, 1.0), "blue")
 	_box("prom_cart_roof", Vector3.ZERO, Vector3(PROMENADE_X - 3.0, SHORE_TOP + 2.1, 18.0),
@@ -16477,15 +16778,13 @@ const STRING_SAG := 0.55
 const STRING_STEPS := 6
 
 
-func _light_string(index: int, from_z: float, to_z: float) -> void:
-	var x := SHORE_EDGE + 1.6
-	var span := to_z - from_z
+func _light_string(index: int, from: Vector2, to: Vector2) -> void:
 	var points: Array[Vector3] = []
 	for s in STRING_STEPS + 1:
 		var t := float(s) / float(STRING_STEPS)
-		points.append(Vector3(x,
+		points.append(Vector3(from.x + (to.x - from.x) * t,
 			SHORE_TOP + STRING_HEIGHT - STRING_SAG * sin(PI * t),
-			from_z + span * t))
+			from.y + (to.y - from.y) * t))
 	for s in STRING_STEPS:
 		_strut("wire_%d_%d" % [index, s], points[s], points[s + 1], 0.05, "metal")
 	for b in STRING_STEPS - 1:
@@ -21987,17 +22286,104 @@ func _rebuild_route_guards(nm: String, points: Array, width: float) -> void:
 				b.y - _rebuild_bed_floor(b))
 			if exposed < 0.65:
 				continue
-			_strut("guard_%s_%s_%d_top" % [nm, side_tag, i],
-				a + Vector3.UP * 1.08, b + Vector3.UP * 1.08, 0.11, "metal")
-			_strut("guard_%s_%s_%d_mid" % [nm, side_tag, i],
-				a + Vector3.UP * 0.56, b + Vector3.UP * 0.56, 0.08, "metal")
-			var post_count := maxi(1, ceili(a.distance_to(b) / 3.0))
-			for j in post_count + 1:
-				var t := float(j) / float(post_count)
-				var at := a.lerp(b, t)
-				_cyl("guard_%s_%s_%d_%d_post" % [nm, side_tag, i, j],
-					Vector3.ZERO, at + Vector3.UP * 0.54,
-					0.075, 1.08, "metal", 0.0, 8, false)
+			# Where the guard gives way (2026-10-16), it stands in pieces either
+			# side of the opening, the first keeping the segment's names.
+			var pieces := _rebuild_guard_pieces(nm, a, b)
+			# A guard that gives way keeps the seam ordinals its whole segment had,
+			# so no later shape is re-planed.
+			var had := 3 + maxi(1, ceili(a.distance_to(b) / 3.0))
+			var has := 0
+			for piece in pieces:
+				has += 3 + maxi(1, ceili(Vector3(piece[0]).distance_to(Vector3(piece[1])) / 3.0))
+			for k in pieces.size():
+				var piece: Array = pieces[k]
+				var pa: Vector3 = piece[0]
+				var pb: Vector3 = piece[1]
+				var tag := "%d" % i if k == 0 else "%d%s" % [i, "bcdef"[k - 1]]
+				_strut("guard_%s_%s_%s_top" % [nm, side_tag, tag],
+					pa + Vector3.UP * 1.08, pb + Vector3.UP * 1.08, 0.11, "metal")
+				_strut("guard_%s_%s_%s_mid" % [nm, side_tag, tag],
+					pa + Vector3.UP * 0.56, pb + Vector3.UP * 0.56, 0.08, "metal")
+				var post_count := maxi(1, ceili(pa.distance_to(pb) / 3.0))
+				for j in post_count + 1:
+					var t := float(j) / float(post_count)
+					var at := pa.lerp(pb, t)
+					_cyl("guard_%s_%s_%s_%d_post" % [nm, side_tag, tag, j],
+						Vector3.ZERO, at + Vector3.UP * 0.54,
+						0.075, 1.08, "metal", 0.0, 8, false)
+			# One standing in more pieces hands the extra ordinals back, so every
+			# later shape keeps its own.
+			_seam_ordinal += had - has
+
+
+## The at-grade Grand Circuit crossings whose routes' guards stand back from
+## the lane: B's south return's guards follow the boardwalk_south crossing,
+## flush with the deck since the lane's regrade (Christina, 2026-10-16).
+const REBUILD_GUARDS_OPEN_AT := [&"boardwalk_south"]
+const REBUILD_GUARD_POST_R := 0.075
+## How far along a route from its crossing its guards are kept off the lane.
+const REBUILD_GUARD_CROSSING_REACH := 15.0
+## A walk that leaves a guarded route opens its guard this far past its edges.
+const REBUILD_GUARD_JOIN_CLEAR := 0.3
+const REBUILD_GUARD_MIN_PIECE := 0.6
+
+
+## A guard segment from `a` to `b` as the pieces that stand: all of it, unless
+## it crosses the lane's clear zone near a crossing in `REBUILD_GUARDS_OPEN_AT`
+## that captures the route, or a walk leaves the route through it (the pond
+## garden's stem from B's south return).
+func _rebuild_guard_pieces(nm: String, a: Vector3, b: Vector3) -> Array:
+	var crossings: Array[Vector2] = []
+	for record in Plan.GRAND_TRAM_CROSSINGS:
+		if not StringName(record["id"]) in REBUILD_GUARDS_OPEN_AT:
+			continue
+		var routes: Array = record.get("captures", [record["pedestrian"]])
+		if StringName(nm) in routes:
+			var at: Vector3 = _grand_tram_nearest(record["at"])["at"]
+			crossings.append(Vector2(at.x, at.z))
+	var joins: Array = []
+	if nm == "b_south_return":
+		var garden: Dictionary = Plan.coastal_creek_placements().get("garden", {})
+		if not garden.is_empty():
+			var stem: Array = garden["stem"]
+			var from := Plan.rebuild_expand_point(stem[0])
+			var to := Plan.rebuild_expand_point(stem[1])
+			joins.append([from, (to - from).normalized(),
+				float(garden["width"]) * 0.5 + REBUILD_GUARD_JOIN_CLEAR, from.distance_to(to)])
+	if crossings.is_empty() and joins.is_empty():
+		return [[a, b]]
+	var steps := maxi(1, ceili(a.distance_to(b) / 0.05))
+	var out: Array = []
+	var run_from := -1
+	var opened := false
+	for j in steps + 1:
+		var t := float(j) / float(steps)
+		var p3 := a.lerp(b, t)
+		var p := Vector2(p3.x, p3.z)
+		var open := false
+		for c in crossings:
+			if p.distance_to(c) <= REBUILD_GUARD_CROSSING_REACH \
+					and _boardwalk_in_lane(p, REBUILD_GUARD_POST_R):
+				open = true
+		for join in joins:
+			var from: Vector2 = join[0]
+			var dir: Vector2 = join[1]
+			var rel := p - from
+			var along := rel.dot(dir)
+			if along >= -REBUILD_GUARD_JOIN_CLEAR and along <= float(join[3]) \
+					and absf(rel.cross(dir)) <= float(join[2]):
+				open = true
+		opened = opened or open
+		if not open and run_from < 0:
+			run_from = j
+		if (open or j == steps) and run_from >= 0:
+			var last := j if not open else j - 1
+			# No sliver of guard between two openings.
+			if float(last - run_from) / float(steps) * a.distance_to(b) >= REBUILD_GUARD_MIN_PIECE:
+				out.append([a.lerp(b, float(run_from) / float(steps)),
+					a.lerp(b, float(last) / float(steps))])
+			run_from = -1
+	return out if opened else [[a, b]]
 
 
 # ---------------------------------------------------------------------------
@@ -23250,16 +23636,28 @@ func _rebuild_lighthouse(site: Dictionary) -> void:
 
 func _rebuild_funhouse(site: Dictionary) -> void:
 	var at := _rebuild_site(site["at"], &"boardwalk")
-	var front := _rebuild_site(Vector2(site["access"][-1]), &"boardwalk")
-	_rebuild_open_building("P2_funhouse", at, site["size"], front,
+	var size: Vector2 = site["size"]
+	# The open face is the one the entry's threshold stands on: in the old
+	# funhouse slot (2026-10-16) the threshold is at the facade's north end, where
+	# the nearer cardinal from the shell's centre is north, not west.
+	var threshold := _rebuild_site(Vector2(site["access"][-1]), &"boardwalk")
+	var off := Vector2(threshold.x - at.x, threshold.z - at.z)
+	var to_x := absf(absf(off.x) - size.x * 0.5)
+	var to_z := absf(absf(off.y) - size.y * 0.5)
+	var face := Vector3(signf(off.x), 0.0, 0.0) if to_x <= to_z \
+		else Vector3(0.0, 0.0, signf(off.y))
+	var front := at + face * (size.x if face.x != 0.0 else size.y)
+	_rebuild_open_building("P2_funhouse", at, size, front,
 		"far_shade", "red", 6.8)
 	# A striped marquee and crooked crown make this a destination from the
-	# promenade while the two separate paths preserve the walk-through flow.
+	# promenade while the two separate paths preserve the walk-through flow. It
+	# hangs 1.2 m proud of the open face.
+	var proud := (size.x if face.x != 0.0 else size.y) * 0.5 + 1.2
 	for i in 7:
 		var x := -4.8 + float(i) * 1.6
-		_box("P2_marquee_stripe_%d" % i, at, Vector3(x, 6.35, 7.20),
+		_box("P2_marquee_stripe_%d" % i, at, Vector3(x, 6.35, proud),
 			Vector3(1.2, 0.65, 0.12), "yellow" if i % 2 == 0 else "red",
-			-PI * 0.5, false)
+			atan2(face.x, face.z), false)
 	_rebuild_access_path("P2_entry", site["access"], &"boardwalk", 3.0)
 	_rebuild_access_path("P2_exit", site["exit"], &"boardwalk", 3.0)
 
@@ -24675,50 +25073,843 @@ func _rebuild_service_s2_route(plan_points: Array[Vector2]) -> Array[Vector3]:
 
 
 func _rebuild_coastal_creek() -> void:
-	var source: Array = Plan.rebuild_coastal_creek()
-	var expanded := Plan.rebuild_expand_points2(source)
-	var rounded := _rebuild_round_route(expanded, false, 2)
-	var water: Array[Vector3] = []
-	for i in rounded.size():
-		var p := Vector2(rounded[i])
-		var t := float(i) / float(rounded.size() - 1)
-		var y := lerpf(-0.13, Plan.SHORE_TOP + 0.08, t)
-		water.append(Vector3(p.x, y, p.y))
-	var bank_mesh := _rebuild_path_mesh(water, 9.0, false, -0.05)
-	_rebuild_mesh_body("D2_creek_banks", bank_mesh, "planting", false)
-	var water_mesh := _rebuild_path_mesh(water, 3.2, false, 0.0)
-	_rebuild_mesh_body("D2_coastal_creek", water_mesh, "water_pool", false)
+	var reach := _d2_reach()
+	# The creek above the made ground: its course as it always ran, rounded, its
+	# bed falling evenly from the daylight level to the last reach's first, and
+	# its water a film over the bed with the planted corridor under it, as
+	# before. Below the deck, the channel cut in the made ground carries it
+	# (`_west_shell_creek_ground`): its water over the bed, the pond's north end
+	# left to the pond, and the planted banks flush with the deck either side.
+	var pond: Dictionary = reach["pond"]
+	var pond_poly: PackedVector2Array = pond["poly"]
+	var open: Array[Vector3] = reach["open"]
+	var east: Array[Vector3] = reach["east"]
+	var west: Array[Vector3] = reach["west"]
+	var drop: Dictionary = reach["drop"]
+	var drop_rect: PackedVector2Array = drop["rect"]
+	var banks := SurfaceTool.new()
+	banks.begin(Mesh.PRIMITIVE_TRIANGLES)
+	banks.set_smooth_group(0)
+	_d2_ribbon(banks, open, D2_BANK_W, D2_WATER_FILM - 0.05, [])
+	for side in [-1.0, 1.0]:
+		_d2_ribbon(banks, east, D2_BANK_W * 0.5 - D2_CHANNEL_W * 0.5, 0.0, [pond_poly, drop_rect],
+			side * (D2_BANK_W + D2_CHANNEL_W) * 0.25, Plan.SHORE_TOP + D2_BANK_LIFT)
+	banks.generate_normals()
+	_rebuild_mesh_body("D2_creek_banks", banks.commit(), "planting", false)
+	var water := SurfaceTool.new()
+	water.begin(Mesh.PRIMITIVE_TRIANGLES)
+	water.set_smooth_group(0)
+	_d2_ribbon(water, open, D2_CHANNEL_W, D2_WATER_FILM, [])
+	_d2_ribbon(water, east, D2_CHANNEL_W, D2_WATER_FILM, [pond_poly, drop_rect])
+	_d2_ribbon(water, west, D2_CHANNEL_W, D2_WATER_FILM, [])
+	# The drop's plunge pool, at the last reach's head's water.
+	_d2_flat(water, drop["pool"], float(Vector3(drop["head"]).y) + D2_WATER_FILM)
+	water.generate_normals()
+	_rebuild_mesh_body("D2_coastal_creek", water.commit(), "water_pool", false)
 
-	var pond := _rebuild_site(Vector2(-88, 55), &"boardwalk")
-	pond.y = lerpf(-0.13, Plan.SHORE_TOP + 0.08, 0.72)
-	_cyl("D2_rain_pond_bank", pond, Vector3(0, -0.03, 0), 10.0,
-		0.10, "planting", 0.0, 32, false)
-	_cyl("D2_rain_pond", pond, Vector3(0, 0.02, 0), 7.0,
-		0.06, "water_pool", 0.0, 32, false)
+	# The pond: its planted bank flush with the deck round the water, open where
+	# the channel crosses its north end, and its water at its own level.
+	var ring := SurfaceTool.new()
+	ring.begin(Mesh.PRIMITIVE_TRIANGLES)
+	ring.set_smooth_group(0)
+	for piece in _d2_strip_difference(pond["bank_poly"], [pond_poly, reach["east_cut"]]):
+		_d2_flat(ring, piece, Plan.SHORE_TOP + D2_POND_BANK_LIFT)
+	ring.generate_normals()
+	_rebuild_mesh_body("D2_rain_pond_bank", ring.commit(), "planting", false)
+	var pool := SurfaceTool.new()
+	pool.begin(Mesh.PRIMITIVE_TRIANGLES)
+	pool.set_smooth_group(0)
+	_d2_flat(pool, pond_poly, float(pond["water"]))
+	pool.generate_normals()
+	_rebuild_mesh_body("D2_rain_pond", pool.commit(), "water_pool", false)
 
 	# Every crossing in the atlas is built: the garden footbridge, full-width
 	# promenade bridge and locked service culvert. No path terminates at water.
-	var foot := Plan.rebuild_expand_point(Vector2(-76, 53))
-	var foot_y := _rebuild_route_floor(&"C", foot)
+	# Both footbridges stand where the creek's editor-owned placements put them
+	# (since 2026-10-16, `ParkPlan.coastal_creek_placements`). CB1 carries the
+	# pond garden loop over the pond's north end on the bank's level: its deck
+	# is drawn under the walk, which runs on over it and is what the Player
+	# stands on, so the walk and the bridge meet without a lip.
+	var placements := Plan.coastal_creek_placements()
+	var crossings: Dictionary = placements["crossings"]
+	var cb1: Dictionary = crossings[&"CB1"]
+	var cb2: Dictionary = crossings[&"CB2"]
+	var foot := Plan.rebuild_expand_point(cb1["at"])
+	var foot_y := Plan.SHORE_TOP + D2_CB1_TOP - 0.20
+	var cb1_size: Vector2 = cb1["size"]
 	_box("CB1_funhouse_footbridge", Vector3(foot.x, foot_y, foot.y),
-		Vector3(0, 0.10, 0), Vector3(4, 0.20, 11), "wood", 0.0, true)
-	var promenade := Plan.rebuild_expand_point(Vector2(-96, 55))
+		Vector3(0, 0.10, 0), Vector3(cb1_size.x, 0.20, cb1_size.y), "wood",
+		float(cb1["yaw"]), false)
+	var promenade := Plan.rebuild_expand_point(cb2["at"])
+	var cb2_size: Vector2 = cb2["size"]
 	_box("CB2_boardwalk_bridge",
 		Vector3(promenade.x, Plan.SHORE_TOP, promenade.y),
-		Vector3(0, 0.08, 0), Vector3(10, 0.16, 12), "wood", 0.0, true)
+		Vector3(0, 0.08, 0), Vector3(cb2_size.x, 0.16, cb2_size.y), "wood",
+		float(cb2["yaw"]), true)
 	var culvert := Plan.rebuild_expand_point(Vector2(-62, 44))
 	_box("CX1_service_culvert", Vector3(culvert.x, 0, culvert.y),
 		Vector3(0, 0.09, 0), Vector3(4, 0.18, 10), "brick", 0.0, true)
-	for bridge in [["CB1", foot, foot_y, 4.0],
-		["CB2", promenade, Plan.SHORE_TOP, 10.0]]:
+	# Each bridge's guards run along it at its sides, stopping `guard_inset`
+	# short of its ends.
+	for bridge in [["CB1", foot, Plan.SHORE_TOP, cb1], ["CB2", promenade, Plan.SHORE_TOP, cb2]]:
 		var p: Vector2 = bridge[1]
 		var y: float = bridge[2]
-		var half: float = float(bridge[3]) * 0.5
+		var record: Dictionary = bridge[3]
+		var size: Vector2 = record["size"]
+		var half := size.x * 0.5
+		var span := size.y * 0.5 - float(record["guard_inset"])
+		var yaw := float(record["yaw"])
+		var base := Vector3(p.x, y, p.y)
 		for side in [-1.0, 1.0]:
 			_strut("%s_guard_%s" % [bridge[0], str(side)],
-				Vector3(p.x + side * half, y + 1.0, p.y - 5.3),
-				Vector3(p.x + side * half, y + 1.0, p.y + 5.3),
+				_place(base, Vector3(side * half, 1.0, -span), yaw),
+				_place(base, Vector3(side * half, 1.0, span), yaw),
 				0.10, "metal")
+
+
+## What the creek's last reach adds to the landscape scene, appended after its
+## banks so no established shape's seam ordinal moves (2026-10-16): CX2, the
+## culvert under the lane, as at D5 (`GRAND_TRAM_CULVERT_*`): a barrel laid on
+## its two mouths' levels, each end a hand proud of the channel's end wall, and
+## a brick lintel over each mouth; the controlled weir across the notch, its top
+## at its crest; and the pond garden loop with its stem from B.
+func _rebuild_coastal_creek_reach() -> void:
+	var reach := _d2_reach()
+	var mouths: Array = reach["mouths"]
+	var along := Vector3(mouths[1].x - mouths[0].x, 0.0, mouths[1].z - mouths[0].z).normalized()
+	var across := Vector3(-along.z, 0.0, along.x) * GRAND_TRAM_CULVERT_W * 0.5
+	var a: Vector3 = mouths[0] - along * D2_BARREL_PROUD
+	var b: Vector3 = mouths[1] + along * D2_BARREL_PROUD
+	_footbridge_body("CX2_barrel", PackedVector3Array([a + across, b + across]),
+		PackedVector3Array([a - across, b - across]), 0.0, GRAND_TRAM_CULVERT_H, "far_shade")
+	var theta := atan2(across.x, across.z)
+	for k in 2:
+		_box("CX2_lintel_%d" % k, mouths[k], Vector3(0.0, GRAND_TRAM_CULVERT_H + 0.2, 0.0),
+			Vector3(0.4, 0.4, GRAND_TRAM_CULVERT_W + 0.8), "brick", theta)
+	var mid: Vector3 = (mouths[0] + mouths[1]) * 0.5
+	var lane := _d2_lane_surface(Vector2(mid.x, mid.z))
+	print("coastal creek CX2: inverts %.2f and %.2f, %.2fm long, %.2fm cover under the lane" % [
+		mouths[0].y, mouths[1].y, Vector2(a.x, a.z).distance_to(Vector2(b.x, b.z)),
+		lane - 0.05 - (maxf(mouths[0].y, mouths[1].y) + GRAND_TRAM_CULVERT_H)])
+	var weir: Dictionary = reach["weir"]
+	var w_at: Vector3 = weir["at"]
+	var w_dir: Vector2 = weir["dir"]
+	var w_low: float = reach["sea_bed"] - D2_CUT_FOOT
+	_box("D2_weir", Vector3(w_at.x, (w_at.y + w_low) * 0.5, w_at.z), Vector3.ZERO,
+		Vector3(D2_CHANNEL_W + 0.2, w_at.y - w_low, D2_WEIR_T), "brick",
+		atan2(w_dir.x, w_dir.y))
+
+	# The pond garden loop: a walk on the pond's bank at the bank's level, closed
+	# across the pond's north end over CB1; the stem from B's south return falls
+	# from B's level to the loop's. Both lie on the made ground.
+	var garden: Dictionary = Plan.coastal_creek_placements()["garden"]
+	var width := float(garden["width"])
+	var loop: Array[Vector3] = []
+	for p in garden["loop"]:
+		var q := Plan.rebuild_expand_point(p)
+		loop.append(Vector3(q.x, Plan.SHORE_TOP, q.y))
+	loop.append(loop[0])
+	_rebuild_path("garden_loop", loop, width, true, &"")
+	var stem_plan: Array = garden["stem"]
+	var start := Plan.rebuild_expand_point(stem_plan[0])
+	var finish := Plan.rebuild_expand_point(stem_plan[-1])
+	var stem: Array[Vector3] = [
+		Vector3(start.x, _d2_route_level(&"b_south_return", start), start.y),
+		Vector3(finish.x, Plan.SHORE_TOP, finish.y)]
+	_rebuild_retained_bed("bed_garden_stem", stem, width + REBUILD_BED_MARGIN, false, true)
+	_rebuild_path("garden_stem", stem, width, false, &"")
+	var run := Vector2(start.x - finish.x, start.y - finish.y).length()
+	print("coastal creek garden stem: from B at %.2f to the loop at %.2f, %.1fm at %.1f%%" % [
+		stem[0].y, stem[1].y, run, 100.0 * (stem[0].y - stem[1].y) / run])
+	_rebuild_coastal_creek_drop()
+	_rebuild_coastal_creek_notch_guard()
+	_rebuild_coastal_creek_garden_fence()
+
+
+## The drop (Christina, 2026-10-16: "Old levels + a drop"), derived from its
+## editor-owned crest marker: a sill under the crest, then `steps` steps of equal
+## rise along the course to the last reach's head's level over `run`, each a
+## block down to the plunge pool's floor, between side walls standing
+## `D2_DROP_WALL_OVER` over each step, and a sheet of water from the crest over
+## the steps' nosings to the pool. The pool is cut into the made ground with the
+## channel (`_west_shell_creek_ground`) and its water drawn with the creek's.
+func _rebuild_coastal_creek_drop() -> void:
+	var drop: Dictionary = _d2_reach()["drop"]
+	var crest: Vector3 = drop["crest"]
+	var along: Vector2 = drop["along"]
+	var head: Vector3 = drop["head"]
+	var run: float = drop["run"]
+	var steps: int = drop["steps"]
+	var floor_y: float = float(drop["pool_bed"]) - 0.02
+	var rise := (crest.y - head.y) / float(steps)
+	var tread := run / float(steps)
+	var theta := atan2(along.x, along.y)
+	var a3 := Vector3(along.x, 0.0, along.y)
+	# The steps lap a hand into the side walls.
+	var across_half := D2_CHANNEL_W * 0.5 + 0.15
+	var wall_off := D2_POOL_W * 0.5 - D2_DROP_WALL * 0.5
+	# The sill under the crest, and the steps.
+	var blocks: Array = [["D2_drop_sill", -D2_DROP_SILL, 0.0, crest.y]]
+	for k in steps:
+		blocks.append(["D2_drop_step_%d" % k, float(k) * tread, float(k + 1) * tread,
+			crest.y - float(k + 1) * rise])
+	for block in blocks:
+		var from: float = block[1]
+		var to: float = block[2]
+		var top: float = block[3]
+		var mid := crest + a3 * ((from + to) * 0.5)
+		_box(block[0], Vector3(mid.x, (top + floor_y) * 0.5, mid.z), Vector3.ZERO,
+			Vector3(across_half * 2.0, top - floor_y, to - from), "brick", theta)
+		for side in [-1.0, 1.0]:
+			var wall_mid: Vector3 = mid + Vector3(-along.y, 0.0, along.x) * wall_off * float(side)
+			var wall_top := top + D2_DROP_WALL_OVER
+			_box("%s_wall_%s" % [block[0], "l" if side > 0.0 else "r"],
+				Vector3(wall_mid.x, (wall_top + floor_y) * 0.5, wall_mid.z), Vector3.ZERO,
+				Vector3(D2_DROP_WALL, wall_top - floor_y, to - from), "brick", theta)
+	# The water: from the crest over each step's nosing to the pool.
+	var sheet: Array[Vector3] = [crest + Vector3.UP * D2_WATER_FILM]
+	for k in steps:
+		sheet.append(crest + a3 * (float(k + 1) * tread)
+			+ Vector3.UP * (D2_WATER_FILM - float(k + 1) * rise))
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(0)
+	_d2_ribbon(st, sheet, D2_CHANNEL_W, 0.0, [])
+	st.generate_normals()
+	_rebuild_mesh_body("D2_drop_water", st.commit(), "water_pool", false)
+	print("coastal creek drop: crest %.2f at (%.2f, %.2f), %d steps of %.2fm over %.1fm into the pool, its water at %.2f, its bed %.2f" % [
+		crest.y, crest.x, crest.z, steps, rise, run, head.y + D2_WATER_FILM, float(drop["pool_bed"])])
+
+
+## A guard round the notch where it lies open (Christina, 2026-10-16: "Add a
+## derived guard"): from the culvert's shore mouth, where the notch leaves the
+## lane's side 0.4 m outside its clear zone, to the promenade deck's edge, which
+## carries on over the notch, along both its sides a hand inside its walls, and
+## across the mouth end; built as the routes' guards are, a top and a mid rail
+## on posts at most 3 m apart.
+func _rebuild_coastal_creek_notch_guard() -> void:
+	var reach := _d2_reach()
+	var west: Array[Vector3] = reach["west"]
+	var deck_edge := FRONT_X - FRONT_DEPTH * 0.5
+	var edges := _rebuild_path_edges(west, Plan.COASTAL_CREEK_NOTCH_W - 0.2, false)
+	var runs: Array = []
+	for side in ["left", "right"]:
+		var line: PackedVector3Array = edges[side]
+		var pts: Array[Vector3] = []
+		for i in line.size():
+			var p := Vector3(line[i].x, Plan.SHORE_TOP, line[i].z)
+			if p.x >= deck_edge:
+				pts.append(p)
+				continue
+			var q := Vector3(line[i - 1].x, Plan.SHORE_TOP, line[i - 1].z)
+			pts.append(q.lerp(p, (q.x - deck_edge) / (q.x - p.x)))
+			break
+		runs.append([side.substr(0, 1), pts])
+	runs.append(["m", [Vector3(edges["left"][0].x, Plan.SHORE_TOP, edges["left"][0].z),
+		Vector3(edges["right"][0].x, Plan.SHORE_TOP, edges["right"][0].z)]])
+	var length := 0.0
+	for r in runs:
+		var pts: Array = r[1]
+		for i in pts.size() - 1:
+			var a: Vector3 = pts[i]
+			var b: Vector3 = pts[i + 1]
+			length += a.distance_to(b)
+			var nm := "D2_notch_guard_%s_%d" % [r[0], i]
+			_strut(nm + "_top", a + Vector3.UP * 1.08, b + Vector3.UP * 1.08, 0.11, "metal")
+			_strut(nm + "_mid", a + Vector3.UP * 0.56, b + Vector3.UP * 0.56, 0.08, "metal")
+			var posts := maxi(1, ceili(a.distance_to(b) / 3.0))
+			for j in posts + 1:
+				_cyl("%s_%d_post" % [nm, j], Vector3.ZERO,
+					a.lerp(b, float(j) / float(posts)) + Vector3.UP * 0.54,
+					0.075, 1.08, "metal", 0.0, 8, false)
+	print("coastal creek notch guard: %.1fm of rail" % length)
+
+
+## The pond garden's east fence (Christina, 2026-10-16: "Garden's east side"),
+## between the garden and S2's yard, so nobody walks from B or the garden into
+## the yard. Derived from the garden's editor-owned record as its walks are:
+## it stands `D2_GARDEN_FENCE_CLEAR` outside the loop's east half, from the
+## loop's start at CB1 round to its southernmost point; it starts at the drop's
+## outer wall where the sill meets it, on the loop's side, and ends lapping a
+## hand into B's south return's retained bed, square from the loop's south end.
+## Panels and posts both collide; it stands on the made ground at shore level.
+const D2_GARDEN_FENCE_CLEAR := 1.0
+const D2_GARDEN_FENCE_H := 1.5
+const D2_GARDEN_FENCE_T := 0.1
+const D2_GARDEN_FENCE_POST := 0.14
+const D2_GARDEN_FENCE_BAY := 3.0
+const D2_GARDEN_FENCE_LAP := 0.05
+## Footed below the made ground's top so no face lies in its plane.
+const D2_GARDEN_FENCE_FOOT := 0.1
+
+
+func _rebuild_coastal_creek_garden_fence() -> void:
+	var garden: Dictionary = Plan.coastal_creek_placements()["garden"]
+	var loop: Array[Vector3] = []
+	for p in garden["loop"]:
+		var q := Plan.rebuild_expand_point(p)
+		loop.append(Vector3(q.x, Plan.SHORE_TOP, q.y))
+	var south := 0
+	for i in loop.size():
+		if loop[i].z > loop[south].z:
+			south = i
+	var east_half: Array[Vector3] = []
+	for i in south + 1:
+		east_half.append(loop[i])
+	# Walking the loop south from its start, its right is east, away from the pond.
+	var outer: PackedVector3Array = _rebuild_path_edges(east_half,
+		(float(garden["width"]) * 0.5 + D2_GARDEN_FENCE_CLEAR) * 2.0, false)["right"]
+	var drop: Dictionary = _d2_reach()["drop"]
+	var crest: Vector3 = drop["crest"]
+	var along: Vector2 = drop["along"]
+	var side := Vector2(-along.y, along.x)
+	var c2 := Vector2(crest.x, crest.z)
+	if side.dot(Vector2(loop[0].x, loop[0].z) - c2) < 0.0:
+		side = -side
+	var north := c2 - along * D2_DROP_SILL + side * D2_POOL_W * 0.5
+	var course: Array[Vector2] = [north]
+	for p in outer:
+		course.append(Vector2(p.x, p.z))
+	# The south end: the nearest point on either face of B's retained bed.
+	var last: Vector2 = course[-1]
+	var best := INF
+	var finish := last
+	for run in Plan.rebuild_build_runs():
+		if StringName(run["id"]) != &"b_south_return":
+			continue
+		var width: float = run["width"]
+		if bool(run.get("retained", false)):
+			width = REBUILD_SOUTH_CUT_WIDTH + REBUILD_SOUTH_CUT_SEED_MARGIN
+		var faces := _rebuild_path_edges(run["points"], width, false)
+		for key in ["left", "right"]:
+			var line: PackedVector3Array = faces[key]
+			for i in line.size() - 1:
+				var a := Vector2(line[i].x, line[i].z)
+				var ab := Vector2(line[i + 1].x, line[i + 1].z) - a
+				var t := clampf((last - a).dot(ab) / maxf(ab.length_squared(), 0.000001), 0.0, 1.0)
+				var q := a + ab * t
+				if q.distance_to(last) < best:
+					best = q.distance_to(last)
+					finish = q
+	assert(best < INF, "the garden fence found no B south return")
+	course.append(finish + (finish - last).normalized() * D2_GARDEN_FENCE_LAP)
+	var y := Plan.SHORE_TOP
+	var length := 0.0
+	var post := 0
+	for i in course.size() - 1:
+		var a: Vector2 = course[i]
+		var b: Vector2 = course[i + 1]
+		var span := a.distance_to(b)
+		length += span
+		var mid := (a + b) * 0.5
+		_box("D2_garden_fence_%d" % i,
+			Vector3(mid.x, y + (D2_GARDEN_FENCE_H - D2_GARDEN_FENCE_FOOT) * 0.5, mid.y),
+			Vector3.ZERO, Vector3(D2_GARDEN_FENCE_T, D2_GARDEN_FENCE_H + D2_GARDEN_FENCE_FOOT, span), "metal",
+			atan2(b.x - a.x, b.y - a.y))
+		var bays := maxi(1, ceili(span / D2_GARDEN_FENCE_BAY))
+		for j in bays + (1 if i == course.size() - 2 else 0):
+			var p := a.lerp(b, float(j) / float(bays))
+			_box("D2_garden_fence_post_%d" % post,
+				Vector3(p.x, y + (D2_GARDEN_FENCE_H + 0.1 - D2_GARDEN_FENCE_FOOT) * 0.5, p.y),
+				Vector3.ZERO, Vector3(D2_GARDEN_FENCE_POST, D2_GARDEN_FENCE_H + 0.1 + D2_GARDEN_FENCE_FOOT,
+					D2_GARDEN_FENCE_POST),
+				"metal", atan2(b.x - a.x, b.y - a.y))
+			post += 1
+	var where := PackedStringArray()
+	for p in course:
+		where.append("(%.2f, %.2f)" % [p.x, p.y])
+	print("coastal creek garden fence: %.1fm long, %.2fm high, from the drop's wall to B: %s" % [
+		length, D2_GARDEN_FENCE_H, ", ".join(where)])
+
+
+## The level of a primary route's graded centreline nearest `p`, as
+## `_rebuild_circulation` lays it from `ParkPlan.rebuild_build_runs`.
+func _d2_route_level(id: StringName, p: Vector2) -> float:
+	for run in Plan.rebuild_build_runs():
+		if StringName(run["id"]) != id:
+			continue
+		var points: Array = run["points"]
+		var best := INF
+		var y := 0.0
+		for i in points.size() - 1:
+			var a := Vector3(points[i])
+			var b := Vector3(points[i + 1])
+			var a2 := Vector2(a.x, a.z)
+			var ab := Vector2(b.x, b.z) - a2
+			var t := clampf((p - a2).dot(ab) / maxf(ab.length_squared(), 0.000001), 0.0, 1.0)
+			var d := p.distance_to(a2 + ab * t)
+			if d < best:
+				best = d
+				y = lerpf(a.y, b.y, t)
+		return y
+	assert(false, "no built route %s" % id)
+	return 0.0
+
+
+# ---------------------------------------------------------------------------
+# Culvert D2 (2026-10-16)
+# ---------------------------------------------------------------------------
+
+## Christina, 2026-10-16: "Culvert D2", approved on the maps (e7037ac). The
+## Grand Circuit ran through D2's banks, its pond and CB2's rail, and D2 stood
+## above the lane, so neither a bridge nor a culvert fitted. Its last reach,
+## from p04 at the bluff's foot to the sea, is regraded to shore level and
+## passes under the lane in one culvert:
+## - the course, the last reach's bed levels, the weir's crest and the outfall
+##   are the editor-owned markers of `water/CW-AQ` in `fairground_layout.tscn`
+##   (`scripts/coastal_creek_source.gd`); above the first level set the creek
+##   falls evenly from its daylight level, as it always fell to the sea;
+## - CX2, the culvert, is the one segment of the last reach that crosses the
+##   lane's centreline (`_rebuild_coastal_creek_reach`);
+## - where the bed lies under the deck the reach is a channel cut into the
+##   Boardwalk's made ground, the `shore` slab, and the pond a basin in it: the
+##   ground there is the slab over the seabed, 6 m under it, not the height
+##   grid, so a grid edit cannot open them (`_west_shell_creek_ground`);
+## - west of the lane it runs along P2's north side, under B on CB2 and the
+##   promenade's deck, which carries on over it, over the weir and out through
+##   the slab's seaward face; downstream of the weir its bed lies under sea
+##   level, so the sea stands in it.
+const D2_CHANNEL_W := 3.2
+const D2_BANK_W := 9.0
+const D2_DAYLIGHT_Y := -0.13
+const D2_WATER_FILM := 0.05
+## The planted banks over the made ground, the pond's over the creek's, CB1's
+## deck over both and the garden walk over CB1, a few millimetres apart, so
+## none shares another's plane.
+const D2_BANK_LIFT := 0.010
+const D2_POND_BANK_LIFT := 0.015
+const D2_CB1_TOP := 0.018
+const D2_WEIR_T := 0.3
+const D2_SEA_BED_DROP := 0.3
+const D2_CUT_FOOT := 0.12
+const D2_GROUND_PAD := 2.0
+const D2_POND_SIDES := 48
+const D2_BARREL_PROUD := 0.05
+## The channel's end at the inland mouth runs this far along the culvert's
+## line, so its end wall is square to the barrel.
+const D2_MOUTH_LEAD := 0.5
+## The drop's plunge pool: as wide as the channel and its walls, and reaching
+## this far past the last reach's head so it meets the channel's first square.
+const D2_POOL_W := 4.0
+const D2_POOL_LAP := 1.6
+## The drop's crest sill, its side walls and how far they stand over the steps.
+const D2_DROP_SILL := 0.3
+const D2_DROP_WALL := 0.3
+const D2_DROP_WALL_OVER := 0.45
+
+var _d2_reach_cache := {}
+
+
+## The creek in world metres, read once: its course and levels; the course
+## above the drop as it always ran (`open`), ending at the drop's crest; the
+## drop; the channel east of the lane from the last reach's head to the
+## culvert's inland mouth (`east`) and west of it to the weir (`west`), the
+## stretch below the weir (`seaward`), the culvert's `mouths`, the `weir`, the
+## pond, and each cut's outline.
+func _d2_reach() -> Dictionary:
+	if not _d2_reach_cache.is_empty():
+		return _d2_reach_cache
+	var placements := Plan.coastal_creek_placements()
+	var course: Array = placements["course"]
+	var points: Array[Vector2] = []
+	var levels := PackedFloat64Array()
+	var weir := -1
+	for i in course.size():
+		var marker: Dictionary = course[i]
+		points.append(Plan.rebuild_expand_point(marker["at"]))
+		levels.append(float(marker["level"]))
+		if bool(marker["weir"]):
+			weir = i
+	# The drop stands on the course; the last reach begins at the point after it.
+	var drop_record: Dictionary = placements["drop"]
+	var crest_plan := Plan.rebuild_expand_point(drop_record["at"])
+	var head := -1
+	var off_course := INF
+	for i in points.size() - 1:
+		var q := Geometry2D.get_closest_point_to_segment(crest_plan, points[i], points[i + 1])
+		if q.distance_to(crest_plan) < off_course:
+			off_course = q.distance_to(crest_plan)
+			head = i + 1
+	assert(off_course < 0.5, "D2's drop is not on its course")
+	for i in range(head, points.size()):
+		assert(not is_nan(levels[i]), "D2's last reach has a point with no level")
+	var lane := Plan.grand_tram_loop(16)
+	var culvert := -1
+	for i in range(head, points.size() - 1):
+		for k in lane.size() - 1:
+			if Geometry2D.segment_intersects_segment(points[i], points[i + 1],
+					Vector2(lane[k].x, lane[k].z), Vector2(lane[k + 1].x, lane[k + 1].z)) != null:
+				assert(culvert < 0 or culvert == i, "D2's last reach crosses the lane twice")
+				culvert = i
+	assert(culvert > head and weir > culvert + 1 and weir < points.size() - 1,
+		"D2's culvert, weir and outfall are out of order")
+
+	# Above the drop: the course to the last reach's head rounded as it always
+	# was, ending at the crest; its bed falls evenly along the rounded points
+	# between the levels its points set (each where the rounded course turns at
+	# it) and the crest's.
+	var upstream := _rebuild_round_route(points.slice(0, head + 1), false, 2)
+	var anchors: Array = []
+	for k in head:
+		if not is_nan(levels[k]):
+			anchors.append([_d2_round_index(upstream, points[k]), levels[k]])
+	var crest_at := _d2_round_index(upstream, crest_plan)
+	var crest_level := float(drop_record["crest"])
+	anchors.append([crest_at, crest_level])
+	assert(anchors.size() >= 2, "D2 above its drop needs a level besides the crest's")
+	var open: Array[Vector3] = []
+	for i in upstream.size():
+		if float(i) >= crest_at - 0.001:
+			break
+		open.append(Vector3(upstream[i].x, _d2_anchor_level(anchors, float(i)), upstream[i].y))
+	var ci := floori(crest_at)
+	var crest2: Vector2 = upstream[ci].lerp(upstream[mini(ci + 1, upstream.size() - 1)], crest_at - float(ci))
+	var crest := Vector3(crest2.x, crest_level, crest2.y)
+	open.append(crest)
+	# The drop: its cascade from the crest along the course toward the head, and
+	# the plunge pool from the cascade's foot to past the head.
+	var head3 := Vector3(points[head].x, levels[head], points[head].y)
+	var along := Vector2(head3.x - crest.x, head3.z - crest.z).normalized()
+	var run := float(drop_record["run"])
+	assert(Vector2(crest.x, crest.z).distance_to(Vector2(head3.x, head3.z)) > run + 0.5,
+		"D2's cascade leaves no pool before the last reach's head")
+	var drop := {"crest": crest, "along": along, "run": run, "steps": int(drop_record["steps"]),
+		"head": head3, "pool_bed": levels[head] - float(drop_record["pool_depth"]),
+		"rect": _d2_box(Vector2(crest.x, crest.z), Vector2(head3.x, head3.z) + along * D2_POOL_LAP,
+			D2_POOL_W * 0.5),
+		"pool": _d2_box(Vector2(crest.x, crest.z) + along * run,
+			Vector2(head3.x, head3.z) + along * D2_POOL_LAP, D2_POOL_W * 0.5)}
+
+	var east: Array[Vector3] = []
+	for i in range(head, culvert + 1):
+		east.append(Vector3(points[i].x, levels[i], points[i].y))
+	var line := (points[culvert + 1] - points[culvert]).normalized()
+	var mouth_in := east[east.size() - 1]
+	east.insert(east.size() - 1, mouth_in - Vector3(line.x, 0.0, line.y) * D2_MOUTH_LEAD)
+	var west: Array[Vector3] = []
+	for i in range(culvert + 1, weir + 1):
+		west.append(Vector3(points[i].x, levels[i], points[i].y))
+	var sea_bed := levels[points.size() - 1] - D2_SEA_BED_DROP
+	var seaward: Array[Vector3] = []
+	for i in range(weir, points.size()):
+		seaward.append(Vector3(points[i].x, sea_bed, points[i].y))
+	# The weir: its crest across the channel at its marker, square to the
+	# channel there; the bed above it ends at its upstream face and the bed
+	# below starts at its downstream face.
+	var into := (points[weir] - points[weir - 1]).normalized()
+	var out := (points[weir + 1] - points[weir]).normalized()
+	var w_dir := (into + out).normalized()
+	var half_t := Vector3(w_dir.x, 0.0, w_dir.y) * D2_WEIR_T * 0.5
+	west[west.size() - 1] -= half_t
+	seaward[0] += half_t
+	# Past the made ground's seaward face, so the cut opens through it cleanly.
+	var last := seaward[seaward.size() - 1]
+	var beyond := seaward[seaward.size() - 1] - seaward[seaward.size() - 2]
+	beyond.y = 0.0
+	seaward.append(last + beyond.normalized() * 1.0)
+
+	var pond_record: Dictionary = placements["pond"]
+	var pond_at := Plan.rebuild_expand_point(pond_record["at"])
+	var radii: Vector2 = pond_record["radii"]
+	var bank_radii: Vector2 = pond_record["bank_radii"]
+	var west_path: Array[Vector3] = []
+	for p in west:
+		west_path.append(p)
+	for p in seaward:
+		west_path.append(p)
+	_d2_reach_cache = {
+		"points": points, "levels": levels, "head": head, "culvert": culvert,
+		"open": open, "drop": drop, "east": east, "west": west, "seaward": seaward,
+		"sea_bed": sea_bed,
+		"mouths": [Vector3(points[culvert].x, levels[culvert], points[culvert].y),
+			Vector3(points[culvert + 1].x, levels[culvert + 1], points[culvert + 1].y)],
+		"weir": {"at": Vector3(points[weir].x, levels[weir], points[weir].y), "dir": w_dir},
+		"pond": {"at": pond_at, "water": float(pond_record["water"]),
+			"bed": float(pond_record["bed"]),
+			"poly": _d2_ellipse(pond_at, radii), "bank_poly": _d2_ellipse(pond_at, bank_radii)},
+		"east_cut": _d2_outline(east, D2_CHANNEL_W),
+		"west_cut": _d2_outline(west_path, D2_CHANNEL_W),
+	}
+	return _d2_reach_cache
+
+
+## The fractional index along a rounded course of its nearest point to `p`.
+func _d2_round_index(route: Array[Vector2], p: Vector2) -> float:
+	var best := INF
+	var at := 0.0
+	for i in route.size() - 1:
+		var ab := route[i + 1] - route[i]
+		var t := clampf((p - route[i]).dot(ab) / maxf(ab.length_squared(), 0.000001), 0.0, 1.0)
+		var d := p.distance_to(route[i] + ab * t)
+		if d < best:
+			best = d
+			at = float(i) + t
+	return at
+
+
+## The bed at a fractional rounded index, falling evenly between the anchors
+## either side of it, level beyond the first and the last.
+func _d2_anchor_level(anchors: Array, at: float) -> float:
+	if at <= float(anchors[0][0]):
+		return float(anchors[0][1])
+	for k in anchors.size() - 1:
+		var a: Array = anchors[k]
+		var b: Array = anchors[k + 1]
+		if at <= float(b[0]):
+			return lerpf(float(a[1]), float(b[1]), (at - float(a[0])) / maxf(float(b[0]) - float(a[0]), 0.000001))
+	return float(anchors[anchors.size() - 1][1])
+
+
+## A rectangle `half` either side of the line from `a` to `b`, in plan.
+func _d2_box(a: Vector2, b: Vector2, half: float) -> PackedVector2Array:
+	var n := (b - a).normalized().orthogonal() * half
+	return PackedVector2Array([a + n, b + n, b - n, a - n])
+
+
+## The lane's surface over a plan point, from its graded centreline.
+func _d2_lane_surface(p: Vector2) -> float:
+	var lane := Plan.grand_tram_loop(16)
+	var best := INF
+	var y := 0.0
+	for k in lane.size() - 1:
+		var a := Vector2(lane[k].x, lane[k].z)
+		var ab := Vector2(lane[k + 1].x, lane[k + 1].z) - a
+		var t := clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.000001), 0.0, 1.0)
+		var d := p.distance_to(a + ab * t)
+		if d < best:
+			best = d
+			y = lerpf(lane[k].y, lane[k + 1].y, t)
+	return y + Plan.GRAND_TRAM_LANE_LIFT
+
+
+func _d2_ellipse(at: Vector2, radii: Vector2) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for i in D2_POND_SIDES:
+		var a := TAU * float(i) / float(D2_POND_SIDES)
+		out.append(at + Vector2(cos(a) * radii.x, sin(a) * radii.y))
+	return out
+
+
+## A path's outline in plan, `width` wide on its mitered edges.
+func _d2_outline(path: Array[Vector3], width: float) -> PackedVector2Array:
+	var edges := _rebuild_path_edges(path, width, false)
+	var left: PackedVector3Array = edges["left"]
+	var right: PackedVector3Array = edges["right"]
+	var out := PackedVector2Array()
+	for p in left:
+		out.append(Vector2(p.x, p.z))
+	for i in range(right.size() - 1, -1, -1):
+		out.append(Vector2(right[i].x, right[i].z))
+	return out
+
+
+## A ribbon along `path`, `width` wide and its centre `offset` to the left of
+## the path's, at the path's own level plus `lift` (or at `level` when given),
+## less any part inside `holes`.
+func _d2_ribbon(st: SurfaceTool, path: Array[Vector3], width: float, lift: float,
+		holes: Array, offset := 0.0, level := NAN) -> void:
+	var centre: Array[Vector3] = []
+	if is_zero_approx(offset):
+		centre.append_array(path)
+	else:
+		var shifted := _rebuild_path_edges(path, absf(offset) * 2.0, false)
+		var side: PackedVector3Array = shifted["left" if offset > 0.0 else "right"]
+		for p in side:
+			centre.append(p)
+	var edges := _rebuild_path_edges(centre, width, false)
+	var left: PackedVector3Array = edges["left"]
+	var right: PackedVector3Array = edges["right"]
+	for i in left.size() - 1:
+		var quad := PackedVector2Array([Vector2(left[i].x, left[i].z),
+			Vector2(left[i + 1].x, left[i + 1].z), Vector2(right[i + 1].x, right[i + 1].z),
+			Vector2(right[i].x, right[i].z)])
+		var a := Vector2(centre[i].x, centre[i].z)
+		var b := Vector2(centre[i + 1].x, centre[i + 1].z)
+		var ya := centre[i].y
+		var yb := centre[i + 1].y
+		var pieces: Array = [quad]
+		for hole in holes:
+			var kept: Array = []
+			for piece in pieces:
+				kept.append_array(Geometry2D.clip_polygons(piece, hole))
+			pieces = kept
+		for piece in pieces:
+			var tris := Geometry2D.triangulate_polygon(piece)
+			for k in range(0, tris.size(), 3):
+				var corners: Array[Vector3] = []
+				for m in 3:
+					var p: Vector2 = piece[tris[k + m]]
+					var y := level
+					if is_nan(y):
+						var ab := b - a
+						var t := clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.000001), 0.0, 1.0)
+						y = lerpf(ya, yb, t) + lift
+					corners.append(Vector3(p.x, y, p.y))
+				_earth_oriented_tri(st, corners[0], Vector2(corners[0].x, corners[0].z) * 0.3,
+					corners[1], Vector2(corners[1].x, corners[1].z) * 0.3,
+					corners[2], Vector2(corners[2].x, corners[2].z) * 0.3, Vector3.UP)
+
+
+## A level polygon, facing up.
+func _d2_flat(st: SurfaceTool, poly: PackedVector2Array, y: float) -> void:
+	var tris := Geometry2D.triangulate_polygon(poly)
+	assert(not tris.is_empty(), "a D2 surface did not triangulate")
+	for k in range(0, tris.size(), 3):
+		var a := poly[tris[k]]
+		var b := poly[tris[k + 1]]
+		var c := poly[tris[k + 2]]
+		_earth_oriented_tri(st, Vector3(a.x, y, a.y), a * 0.3, Vector3(b.x, y, b.y), b * 0.3,
+			Vector3(c.x, y, c.y), c * 0.3, Vector3.UP)
+
+
+## `outer` less every polygon in `cuts`, as simple pieces with no holes: cut
+## into strips at every vertex's x, each strip clipped, so a cut inside a strip
+## always reaches both its sides and never leaves a hole.
+func _d2_strip_difference(outer: PackedVector2Array, cuts: Array) -> Array:
+	var xs: Array[float] = []
+	var lo := INF
+	var hi := -INF
+	for p in outer:
+		lo = minf(lo, p.x)
+		hi = maxf(hi, p.x)
+	for poly in [outer] + cuts:
+		for p in (poly as PackedVector2Array):
+			if p.x >= lo and p.x <= hi:
+				xs.append(p.x)
+	xs.sort()
+	var z0 := INF
+	var z1 := -INF
+	for p in outer:
+		z0 = minf(z0, p.y)
+		z1 = maxf(z1, p.y)
+	var out: Array = []
+	var x0 := xs[0]
+	for x1 in xs:
+		if x1 - x0 < 0.001:
+			continue
+		var strip := PackedVector2Array([Vector2(x0, z0 - 1.0), Vector2(x1, z0 - 1.0),
+			Vector2(x1, z1 + 1.0), Vector2(x0, z1 + 1.0)])
+		var pieces: Array = Geometry2D.intersect_polygons(strip, outer)
+		for cut in cuts:
+			var kept: Array = []
+			for piece in pieces:
+				kept.append_array(Geometry2D.clip_polygons(piece, cut))
+			pieces = kept
+		for piece in pieces:
+			if (piece as PackedVector2Array).size() >= 3:
+				out.append(piece)
+		x0 = x1
+	return out
+
+
+## The Boardwalk's made ground where D2's last reach is cut into it (2026-10-16).
+## The `shore` slab keeps its north part; south of the window and east of it
+## the slab carries on as two boxes, and in the window the ground is a mesh:
+## its top at the deck's level less the channel, the pond's basin and the notch;
+## their walls, square to the deck, down past the lowest bed; their beds at the
+## course's levels, the pond's at its own; and the slab's seaward face, open
+## where the notch leaves it. Appended after the rest of the shell, so no
+## established shape's seam ordinal moves.
+func _west_shell_creek_ground() -> void:
+	var reach := _d2_reach()
+	var window: Rect2 = _d2_ground_window()
+	var x0 := window.position.x
+	var x1 := window.end.x
+	var z0 := window.position.y
+	var z1 := window.end.y
+	var foot := Plan.SHORE_TOP - 6.0
+	_box("shore_creek_south", Vector3.ZERO,
+		Vector3((SHORE_FROM_X + SHORE_EDGE) * 0.5, Plan.SHORE_TOP - 3.0, (z1 + 170.0) * 0.5),
+		Vector3(SHORE_FROM_X - SHORE_EDGE, 6.0, 170.0 - z1), "far_warm")
+	_box("shore_creek_east", Vector3.ZERO,
+		Vector3((SHORE_FROM_X + x1) * 0.5, Plan.SHORE_TOP - 3.0, (z0 + z1) * 0.5),
+		Vector3(SHORE_FROM_X - x1, 6.0, z1 - z0), "far_warm")
+
+	var rect := PackedVector2Array([Vector2(x0, z0), Vector2(x1, z0), Vector2(x1, z1), Vector2(x0, z1)])
+	var pond: Dictionary = reach["pond"]
+	var east_cut: PackedVector2Array = reach["east_cut"]
+	var west_cut: PackedVector2Array = reach["west_cut"]
+	var west_in: Array = Geometry2D.intersect_polygons(west_cut, rect)
+	assert(west_in.size() == 1, "D2's notch is not one piece in the made ground")
+	var drop: Dictionary = reach["drop"]
+	var drop_rect: PackedVector2Array = drop["rect"]
+	var basin: Array = Geometry2D.merge_polygons(east_cut, pond["poly"])
+	assert(basin.size() == 1, "D2's channel and pond are not one basin")
+	basin = Geometry2D.merge_polygons(basin[0], drop_rect)
+	assert(basin.size() == 1, "D2's drop, channel and pond are not one basin")
+	var cuts: Array = [basin[0], west_in[0]]
+
+	var top := SurfaceTool.new()
+	top.begin(Mesh.PRIMITIVE_TRIANGLES)
+	top.set_smooth_group(0)
+	for piece in _d2_strip_difference(rect, cuts):
+		_d2_flat(top, piece, Plan.SHORE_TOP)
+	# The seaward face, open from the bed under the sea to the deck where the
+	# notch leaves it.
+	var open_z0 := INF
+	var open_z1 := -INF
+	for p in (west_in[0] as PackedVector2Array):
+		if absf(p.x - x0) < 0.001:
+			open_z0 = minf(open_z0, p.y)
+			open_z1 = maxf(open_z1, p.y)
+	assert(open_z0 < open_z1, "D2's notch does not reach the seaward face")
+	var sea_bed: float = reach["sea_bed"]
+	for span in [[z0, open_z0, Plan.SHORE_TOP], [open_z0, open_z1, sea_bed],
+			[open_z1, z1, Plan.SHORE_TOP]]:
+		var a := Vector3(x0, foot, float(span[0]))
+		var b := Vector3(x0, foot, float(span[1]))
+		_earth_wall_quad(top, a, b, Vector3(a.x, float(span[2]), a.z),
+			Vector3(b.x, float(span[2]), b.z), Vector3.LEFT)
+	top.generate_normals()
+	_rebuild_mesh_body("shore_creek_ground", top.commit(), "far_warm", true)
+
+	# The cuts' walls and beds.
+	var cut := SurfaceTool.new()
+	cut.begin(Mesh.PRIMITIVE_TRIANGLES)
+	cut.set_smooth_group(0)
+	var wall_foot := minf(sea_bed, minf(float(pond["bed"]), float(drop["pool_bed"]))) - D2_CUT_FOOT
+	for poly in cuts:
+		var ring: PackedVector2Array = poly
+		for i in ring.size():
+			var a2 := ring[i]
+			var b2 := ring[(i + 1) % ring.size()]
+			if absf(a2.x - x0) < 0.001 and absf(b2.x - x0) < 0.001:
+				continue
+			var mid := (a2 + b2) * 0.5
+			var n := (b2 - a2).orthogonal().normalized()
+			var inward := n if Geometry2D.is_point_in_polygon(mid + n * 0.02, ring) else -n
+			_earth_wall_quad(cut, Vector3(a2.x, wall_foot, a2.y), Vector3(b2.x, wall_foot, b2.y),
+				Vector3(a2.x, Plan.SHORE_TOP, a2.y), Vector3(b2.x, Plan.SHORE_TOP, b2.y),
+				Vector3(inward.x, 0.0, inward.y))
+	var pond_poly: PackedVector2Array = pond["poly"]
+	_d2_ribbon(cut, reach["east"], D2_CHANNEL_W, 0.0, [pond_poly, drop_rect])
+	_d2_flat(cut, pond_poly, float(pond["bed"]))
+	# The drop's plunge pool, and the floor its cascade stands on.
+	_d2_flat(cut, drop_rect, float(drop["pool_bed"]))
+	_d2_ribbon(cut, reach["west"], D2_CHANNEL_W, 0.0, [])
+	var seaward: Array[Vector3] = reach["seaward"]
+	var outside := PackedVector2Array([Vector2(x0 - 50.0, z0 - 50.0), Vector2(x0, z0 - 50.0),
+		Vector2(x0, z1 + 50.0), Vector2(x0 - 50.0, z1 + 50.0)])
+	_d2_ribbon(cut, seaward, D2_CHANNEL_W, 0.0, [outside])
+	cut.generate_normals()
+	_rebuild_mesh_body("shore_creek_cut", cut.commit(), "brick", true)
+	print("made ground: D2's window x %.1f..%.1f, z %.1f..%.1f; seaward opening z %.2f..%.2f" % [
+		x0, x1, z0, z1, open_z0, open_z1])
+
+
+## The window of the made ground that D2's last reach is cut into: every cut's
+## extent and `D2_GROUND_PAD` round it, from the slab's seaward face east.
+func _d2_ground_window() -> Rect2:
+	var reach := _d2_reach()
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	for poly in [reach["east_cut"], reach["pond"]["poly"], reach["west_cut"], reach["drop"]["rect"]]:
+		for p in (poly as PackedVector2Array):
+			lo = lo.min(p)
+			hi = hi.max(p)
+	var x0 := SHORE_EDGE
+	var x1 := minf(hi.x + D2_GROUND_PAD, SHORE_FROM_X - 1.0)
+	return Rect2(Vector2(x0, lo.y - D2_GROUND_PAD), Vector2(x1 - x0, hi.y - lo.y + D2_GROUND_PAD * 2.0))
 
 
 func _rebuild_planting_structure() -> void:
@@ -24757,9 +25948,14 @@ func _rebuild_planting_structure() -> void:
 				# (PL2_b in KC3's pavilion), that tree gives way (2026-10-15). Its
 				# name and its three seam ordinals stay handed out, so every other
 				# tree keeps its name and nothing after it is re-planed.
+				# And PL1_e's tree gives way inside a Boardwalk building's walls, keeping
+				# its name and ordinals likewise (2026-10-16: P2 in the old funhouse
+				# slot reaches z 22, and WC-B, the restrooms re-sited between I3 and I2,
+				# stands on PL1_e_02).
 				if _rebuild_on_service_lane(p, REBUILD_TREE_TRUNK_R) \
 						or _rebuild_in_destination(p, radius, destinations) \
-						or _rebuild_in_protected(p, 2.5):
+						or _rebuild_in_protected(p, 2.5) \
+						or (band_id == &"PL1_e" and _rebuild_in_boardwalk_building(p)):
 					ordinal += 1
 					_seam_ordinal += 3
 					continue
@@ -24855,11 +26051,34 @@ func _rebuild_boardwalk_planting_gap(p: Vector2) -> bool:
 		if absf(p.x - at.x) <= 3.0 and absf(p.y - at.y) <= 3.0:
 			return true
 
-	# P2 and the surviving restroom replace the allée as the visual edge through
-	# this stretch. Their combined frontage spans source z=24..55; those points
-	# are inside the identity region of the expansion map.
+	# P2 and the surviving restroom replaced the allée as the visual edge through
+	# this stretch, source z=24..55, inside the identity region of the expansion
+	# map. Since 2026-10-16 P2 stands in the old funhouse slot and the restrooms
+	# between I3 and I2 (`_rebuild_in_boardwalk_building`), and the Grand
+	# Circuit's Boardwalk station, its lane and D2's culvert stand in this
+	# stretch of the allée's line instead; it stays open.
 	if p.x >= -93.0 and p.x <= -79.0 and p.y >= 24.0 and p.y <= 55.5:
 		return true
+	return false
+
+
+## True where a tree's trunk reaches inside P2's shell or a surviving frontage
+## unit's, as their editor-owned records place them.
+func _rebuild_in_boardwalk_building(p: Vector2) -> bool:
+	var rects: Array[Rect2] = []
+	for site in Plan.rebuild_attraction_sites():
+		if StringName(site["id"]) == &"P2":
+			var size: Vector2 = site["size"]
+			rects.append(Rect2(Plan.rebuild_expand_point(site["at"]) - size * 0.5, size))
+	for unit in Plan.boardwalk_frontage_units():
+		if Plan.REBUILD_RETIRED_BOARDWALK_SHOPS.has(StringName(unit["nm"])):
+			continue
+		var depth: float = unit["depth"]
+		rects.append(Rect2(float(unit["x"]) - depth * 0.5, float(unit["from"]),
+			depth, float(unit["to"]) - float(unit["from"])))
+	for rect in rects:
+		if rect.grow(REBUILD_TREE_TRUNK_R).has_point(p):
+			return true
 	return false
 
 

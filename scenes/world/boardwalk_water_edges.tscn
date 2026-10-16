@@ -85,7 +85,7 @@ uv1_world_triplanar = true
 texture_filter = 5
 
 [node name="boardwalk_water_edges" type="Node3D"]
-editor_description = "Editor-owned fidelity for D2 Coastal Creek and its controlled Boardwalk outfall. Move or reshape visible pieces here; edit the creek course only in fairground_layout.tscn."
+editor_description = "Editor-owned fidelity for D2 Coastal Creek and its controlled Boardwalk outfall. Move or reshape visible pieces here; edit the creek course only in fairground_layout.tscn. Carried with the creek's regrade and culvert on 2026-10-16 (Christina: \"Culvert D2\"): the dressing above the made ground moved down with the water, the last reach's banks onto the new channel east of the lane, the pond margin to the moved pond, and CB1's, CB2's and the outfall's with them."
 metadata/section = &"boardwalk"
 metadata/layout_source = "res://scenes/world/fairground_layout.tscn"
 metadata/fidelity_pass = 3
@@ -144,37 +144,37 @@ mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_wet_mud")
 
 [node name="south_03" type="MeshInstance3D" parent="creek_wet_dry_transition"]
-position = Vector3(-67.47, -2.60, 48.96)
+position = Vector3(-66.0092, -2.6000, 47.8644)
 rotation = Vector3(0, -0.927, 0)
-scale = Vector3(1.0, 0.055, 7.1)
+scale = Vector3(1, 0.055, 3.448)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_wet_mud")
 
 [node name="north_04" type="MeshInstance3D" parent="creek_wet_dry_transition"]
-position = Vector3(-73.28, -3.30, 50.42)
-rotation = Vector3(0, -1.055, 0)
+position = Vector3(-73.5088, -5.9900, 50.6340)
+rotation = Vector3(0, -0.3425, 0)
 scale = Vector3(1.15, 0.06, 7.9)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_wet_mud")
 
 [node name="south_04" type="MeshInstance3D" parent="creek_wet_dry_transition"]
-position = Vector3(-75.72, -3.34, 54.68)
-rotation = Vector3(0, -1.055, 0)
+position = Vector3(-68.6092, -5.7939, 54.5615)
+rotation = Vector3(0, -0.3425, 0)
 scale = Vector3(1.05, 0.055, 6.9)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_wet_mud")
 
 [node name="north_05" type="MeshInstance3D" parent="creek_wet_dry_transition"]
-position = Vector3(-83.10, -4.04, 53.39)
-rotation = Vector3(0, -1.40, 0)
-scale = Vector3(1.15, 0.06, 7.4)
+position = Vector3(-81.3014, -5.9900, 56.9288)
+rotation = Vector3(0, -2.2679, 0)
+scale = Vector3(1.15, 0.06, 2.65)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_wet_mud")
 
 [node name="south_05" type="MeshInstance3D" parent="creek_wet_dry_transition"]
-position = Vector3(-83.90, -4.08, 58.36)
-rotation = Vector3(0, -1.40, 0)
-scale = Vector3(1.05, 0.055, 6.7)
+position = Vector3(-77.7225, -5.9435, 53.7130)
+rotation = Vector3(0, -2.2679, 0)
+scale = Vector3(1.05, 0.055, 3.4)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_wet_mud")
 
@@ -203,15 +203,15 @@ mesh = SubResource("SphereMesh_unit")
 material_override = SubResource("Mat_dry_bank")
 
 [node name="shelf_04" type="MeshInstance3D" parent="eroded_bank_shelves"]
-position = Vector3(-76.6, -3.34, 48.4)
-rotation = Vector3(0, -0.2, 0)
+position = Vector3(-68.7398, -5.9384, 53.6072)
+rotation = Vector3(0, 1.228, 0)
 scale = Vector3(3.4, 0.26, 1.55)
 mesh = SubResource("SphereMesh_unit")
 material_override = SubResource("Mat_dry_bank")
 
 [node name="shelf_05" type="MeshInstance3D" parent="eroded_bank_shelves"]
-position = Vector3(-82.5, -4.08, 59.6)
-rotation = Vector3(0, 0.15, 0)
+position = Vector3(-75.8055, -5.99, 53.4157)
+rotation = Vector3(0, -0.7179, 0)
 scale = Vector3(3.0, 0.3, 1.5)
 mesh = SubResource("SphereMesh_unit")
 material_override = SubResource("Mat_dry_bank")
@@ -255,22 +255,22 @@ mesh = SubResource("SphereMesh_unit")
 material_override = SubResource("Mat_stone")
 
 [node name="stone_06" type="MeshInstance3D" parent="bank_stones"]
-position = Vector3(-73.0, -3.22, 48.0)
-rotation = Vector3(0.1, -0.5, 0.12)
+position = Vector3(-67.3788, -5.9900, 52.0035)
+rotation = Vector3(0.1, 0.2125, 0.12)
 scale = Vector3(0.7, 0.38, 0.92)
 mesh = SubResource("SphereMesh_unit")
 material_override = SubResource("Mat_wet_stone")
 
 [node name="stone_07" type="MeshInstance3D" parent="bank_stones"]
-position = Vector3(-80.5, -3.82, 58.1)
-rotation = Vector3(-0.16, 0.3, 0.1)
+position = Vector3(-69.7921, -5.9088, 57.3343)
+rotation = Vector3(-0.16, 1.3575, 0.1)
 scale = Vector3(1.0, 0.48, 0.72)
 mesh = SubResource("SphereMesh_unit")
 material_override = SubResource("Mat_stone")
 
 [node name="stone_08" type="MeshInstance3D" parent="bank_stones"]
-position = Vector3(-86.3, -4.34, 53.7)
-rotation = Vector3(0.14, 0.5, -0.12)
+position = Vector3(-81.174, -5.99, 57.3446)
+rotation = Vector3(0.14, -0.3679, -0.12)
 scale = Vector3(0.82, 0.4, 1.08)
 mesh = SubResource("SphereMesh_unit")
 material_override = SubResource("Mat_wet_stone")
@@ -338,7 +338,8 @@ mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_sedge")
 
 [node name="clump_04" type="Node3D" parent="creek_planting"]
-position = Vector3(-75.5, -3.05, 48.7)
+rotation = Vector3(0, 0.7125, 0)
+position = Vector3(-67.8689, -5.7001, 53.5560)
 [node name="stem_a" type="MeshInstance3D" parent="creek_planting/clump_04"]
 position = Vector3(-0.2, 0.58, -0.12)
 scale = Vector3(1, 1.15, 1)
@@ -358,7 +359,8 @@ mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_sedge")
 
 [node name="clump_05" type="Node3D" parent="creek_planting"]
-position = Vector3(-81.0, -3.70, 59.0)
+rotation = Vector3(0, -0.8679, 0)
+position = Vector3(-75.319, -5.7377, 54.2625)
 [node name="stem_a" type="MeshInstance3D" parent="creek_planting/clump_05"]
 position = Vector3(-0.2, 0.68, -0.12)
 scale = Vector3(1, 1.35, 1)
@@ -378,60 +380,60 @@ mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_sedge")
 
 [node name="rain_pond_margin" type="Node3D" parent="creek_planting"]
-position = Vector3(-88, -4.18, 56.65)
+position = Vector3(-75, -6.781, 62.4935)
 editor_description = "A denser but still interrupted ring distinguishes the rain pond from the through-creek."
 [node name="sedge_pad_01" type="MeshInstance3D" parent="creek_planting/rain_pond_margin"]
-position = Vector3(-5.1, -0.02, -3.45)
+position = Vector3(-2.9143, -0.02, 3.45)
 scale = Vector3(2.2, 0.34, 1.15)
 mesh = SubResource("SphereMesh_unit")
 material_override = SubResource("Mat_sedge")
 [node name="sedge_pad_02" type="MeshInstance3D" parent="creek_planting/rain_pond_margin"]
-position = Vector3(5.05, -0.03, 3.7)
+position = Vector3(2.8857, -0.03, 3.7)
 scale = Vector3(2.0, 0.3, 1.2)
 mesh = SubResource("SphereMesh_unit")
 material_override = SubResource("Mat_sedge")
 [node name="sedge_pad_03" type="MeshInstance3D" parent="creek_planting/rain_pond_margin"]
-position = Vector3(-1.2, -0.05, 6.1)
+position = Vector3(-0.6857, -0.05, 6.1)
 rotation = Vector3(0, 0.45, 0)
 scale = Vector3(2.4, 0.32, 0.95)
 mesh = SubResource("SphereMesh_unit")
 material_override = SubResource("Mat_sedge")
 [node name="sedge_pad_04" type="MeshInstance3D" parent="creek_planting/rain_pond_margin"]
-position = Vector3(2.0, -0.04, -5.9)
+position = Vector3(1.1429, -0.04, 5.9)
 rotation = Vector3(0, -0.3, 0)
 scale = Vector3(2.1, 0.3, 1.0)
 mesh = SubResource("SphereMesh_unit")
 material_override = SubResource("Mat_sedge")
 [node name="reed_01" type="MeshInstance3D" parent="creek_planting/rain_pond_margin"]
-position = Vector3(-5.5, 0.62, -3.3)
+position = Vector3(-3.1429, 0.62, 3.3)
 scale = Vector3(1, 1.25, 1)
 mesh = SubResource("CylinderMesh_stem")
 material_override = SubResource("Mat_reed")
 [node name="reed_02" type="MeshInstance3D" parent="creek_planting/rain_pond_margin"]
-position = Vector3(-4.9, 0.78, -3.65)
+position = Vector3(-2.8, 0.78, 3.65)
 rotation = Vector3(0.1, 0, -0.12)
 scale = Vector3(1, 1.55, 1)
 mesh = SubResource("CylinderMesh_stem")
 material_override = SubResource("Mat_reed")
 [node name="reed_03" type="MeshInstance3D" parent="creek_planting/rain_pond_margin"]
-position = Vector3(4.8, 0.67, 3.9)
+position = Vector3(2.7429, 0.67, 3.9)
 rotation = Vector3(-0.08, 0, 0.1)
 scale = Vector3(1, 1.35, 1)
 mesh = SubResource("CylinderMesh_stem")
 material_override = SubResource("Mat_reed")
 [node name="reed_04" type="MeshInstance3D" parent="creek_planting/rain_pond_margin"]
-position = Vector3(5.45, 0.54, 3.45)
+position = Vector3(3.1143, 0.54, 3.45)
 scale = Vector3(1, 1.08, 1)
 mesh = SubResource("CylinderMesh_stem")
 material_override = SubResource("Mat_reed")
 [node name="sedge_01" type="MeshInstance3D" parent="creek_planting/rain_pond_margin"]
-position = Vector3(-5.2, 0.48, -3.5)
+position = Vector3(-2.9714, 0.48, 3.5)
 rotation = Vector3(0, -0.6, 0.18)
 scale = Vector3(0.07, 0.95, 0.22)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_sedge")
 [node name="sedge_02" type="MeshInstance3D" parent="creek_planting/rain_pond_margin"]
-position = Vector3(5.1, 0.44, 3.7)
+position = Vector3(2.9143, 0.44, 3.7)
 rotation = Vector3(0, 0.5, -0.2)
 scale = Vector3(0.07, 0.88, 0.22)
 mesh = SubResource("BoxMesh_unit")
@@ -464,87 +466,91 @@ scale = Vector3(2.2, 0.4, 1.05)
 mesh = SubResource("SphereMesh_unit")
 material_override = SubResource("Mat_sedge")
 [node name="pad_05" type="MeshInstance3D" parent="creek_planting/creek_sedge_cushions"]
-position = Vector3(-75.4, -3.28, 48.8)
-rotation = Vector3(0, 0.55, 0)
+position = Vector3(-67.6842, -5.9325, 53.5556)
+rotation = Vector3(0, 1.2625, 0)
 scale = Vector3(1.9, 0.36, 0.9)
 mesh = SubResource("SphereMesh_unit")
 material_override = SubResource("Mat_sedge")
 [node name="pad_06" type="MeshInstance3D" parent="creek_planting/creek_sedge_cushions"]
-position = Vector3(-81.2, -3.91, 59.1)
-rotation = Vector3(0, -0.2, 0)
+position = Vector3(-75.3728, -5.9321, 54.1332)
+rotation = Vector3(0, -1.0679, 0)
 scale = Vector3(2.25, 0.4, 1.0)
 mesh = SubResource("SphereMesh_unit")
 material_override = SubResource("Mat_sedge")
 [node name="pad_07" type="MeshInstance3D" parent="creek_planting/creek_sedge_cushions"]
-position = Vector3(-87.0, -4.48, 53.3)
-rotation = Vector3(0, 0.25, 0)
+position = Vector3(-81.7801, -5.99, 57.5061)
+rotation = Vector3(0, -0.6179, 0)
 scale = Vector3(1.75, 0.33, 0.88)
 mesh = SubResource("SphereMesh_unit")
 material_override = SubResource("Mat_sedge")
 [node name="bridge_edge_detail" type="Node3D" parent="."]
 editor_description = "Visible abutments, wet footings and deck joints give CB1 and CB2 construction scale without replacing their generated collision slabs or guards."
 [node name="CB1_north_abutment" type="MeshInstance3D" parent="bridge_edge_detail"]
-position = Vector3(-76.0, -4.60, 48.1)
+rotation = Vector3(0, 1.5708, 0)
+position = Vector3(-80.45, -6.232, 60)
 scale = Vector3(4.6, 0.62, 0.55)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_concrete")
 [node name="CB1_south_abutment" type="MeshInstance3D" parent="bridge_edge_detail"]
-position = Vector3(-76.0, -4.75, 59.0)
+rotation = Vector3(0, 1.5708, 0)
+position = Vector3(-69.55, -6.382, 60)
 scale = Vector3(4.6, 0.76, 0.55)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_wet_stone")
 [node name="CB1_fascia_west" type="MeshInstance3D" parent="bridge_edge_detail"]
-position = Vector3(-78.06, -4.51, 53.55)
+rotation = Vector3(0, 1.5708, 0)
+position = Vector3(-75, -6.142, 62.06)
 scale = Vector3(0.16, 0.42, 10.8)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_dry_bank")
 [node name="CB1_fascia_east" type="MeshInstance3D" parent="bridge_edge_detail"]
-position = Vector3(-73.94, -4.51, 53.55)
+rotation = Vector3(0, 1.5708, 0)
+position = Vector3(-75, -6.142, 57.94)
 scale = Vector3(0.16, 0.42, 10.8)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_dry_bank")
 [node name="CB2_north_abutment" type="MeshInstance3D" parent="bridge_edge_detail"]
-position = Vector3(-96.0, -6.14, 50.65)
+position = Vector3(-96, -6.14, 44)
 scale = Vector3(10.8, 0.72, 0.6)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_concrete")
 [node name="CB2_south_abutment" type="MeshInstance3D" parent="bridge_edge_detail"]
-position = Vector3(-96.0, -6.18, 62.65)
+position = Vector3(-96, -6.18, 50)
 scale = Vector3(10.8, 0.8, 0.6)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_wet_stone")
 [node name="CB2_fascia_west" type="MeshInstance3D" parent="bridge_edge_detail"]
-position = Vector3(-101.08, -6.02, 56.65)
-scale = Vector3(0.18, 0.44, 11.8)
+position = Vector3(-101.08, -6.02, 47)
+scale = Vector3(0.18, 0.44, 5.8)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_dry_bank")
 [node name="CB2_fascia_east" type="MeshInstance3D" parent="bridge_edge_detail"]
-position = Vector3(-90.92, -6.02, 56.65)
-scale = Vector3(0.18, 0.44, 11.8)
+position = Vector3(-90.92, -6.02, 47)
+scale = Vector3(0.18, 0.44, 5.8)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_dry_bank")
 [node name="CB2_joint_01" type="MeshInstance3D" parent="bridge_edge_detail"]
-position = Vector3(-96.0, -5.827, 52.9)
+position = Vector3(-96, -5.827, 45.125)
 scale = Vector3(9.7, 0.012, 0.055)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_wet_stone")
 [node name="CB2_joint_02" type="MeshInstance3D" parent="bridge_edge_detail"]
-position = Vector3(-96.0, -5.826, 54.8)
+position = Vector3(-96, -5.826, 46.075)
 scale = Vector3(9.7, 0.012, 0.055)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_wet_stone")
 [node name="CB2_joint_03" type="MeshInstance3D" parent="bridge_edge_detail"]
-position = Vector3(-96.0, -5.825, 56.7)
+position = Vector3(-96, -5.825, 47.025)
 scale = Vector3(9.7, 0.012, 0.055)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_wet_stone")
 [node name="CB2_joint_04" type="MeshInstance3D" parent="bridge_edge_detail"]
-position = Vector3(-96.0, -5.824, 58.6)
+position = Vector3(-96, -5.824, 47.975)
 scale = Vector3(9.7, 0.012, 0.055)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_wet_stone")
 [node name="CB2_joint_05" type="MeshInstance3D" parent="bridge_edge_detail"]
-position = Vector3(-96.0, -5.823, 60.5)
+position = Vector3(-96, -5.823, 48.925)
 scale = Vector3(9.7, 0.012, 0.055)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_wet_stone")
@@ -554,39 +560,39 @@ material_override = SubResource("Mat_wet_stone")
 ; wearing course completes the visible deck to its existing outer edge. The
 ; original promenade and CB2 collisions remain the continuous walking surface.
 [node name="CB2_seaward_deck" type="MeshInstance3D" parent="bridge_edge_detail"]
-position = Vector3(-104.5, -5.847, 56.65)
-scale = Vector3(6.98, 0.018, 11.82)
+position = Vector3(-104.5, -5.847, 47)
+scale = Vector3(6.98, 0.018, 5.82)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_boardwalk_plank")
 
 [node name="CB2_seaward_fascia" type="MeshInstance3D" parent="bridge_edge_detail"]
-position = Vector3(-108.04, -6.32, 56.65)
-scale = Vector3(0.16, 0.86, 11.82)
+position = Vector3(-108.04, -6.32, 47)
+scale = Vector3(0.16, 0.86, 5.82)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_concrete")
 
 [node name="CB2_outer_joint_01" type="MeshInstance3D" parent="bridge_edge_detail"]
-position = Vector3(-104.5, -5.826, 52.9)
+position = Vector3(-104.5, -5.826, 45.125)
 scale = Vector3(6.72, 0.012, 0.055)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_wet_stone")
 [node name="CB2_outer_joint_02" type="MeshInstance3D" parent="bridge_edge_detail"]
-position = Vector3(-104.5, -5.825, 54.8)
+position = Vector3(-104.5, -5.825, 46.075)
 scale = Vector3(6.72, 0.012, 0.055)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_wet_stone")
 [node name="CB2_outer_joint_03" type="MeshInstance3D" parent="bridge_edge_detail"]
-position = Vector3(-104.5, -5.824, 56.7)
+position = Vector3(-104.5, -5.824, 47.025)
 scale = Vector3(6.72, 0.012, 0.055)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_wet_stone")
 [node name="CB2_outer_joint_04" type="MeshInstance3D" parent="bridge_edge_detail"]
-position = Vector3(-104.5, -5.823, 58.6)
+position = Vector3(-104.5, -5.823, 47.975)
 scale = Vector3(6.72, 0.012, 0.055)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_wet_stone")
 [node name="CB2_outer_joint_05" type="MeshInstance3D" parent="bridge_edge_detail"]
-position = Vector3(-104.5, -5.822, 60.5)
+position = Vector3(-104.5, -5.822, 48.925)
 scale = Vector3(6.72, 0.012, 0.055)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_wet_stone")
@@ -665,7 +671,7 @@ modulate = Color(0.83, 0.62, 0.22, 1)
 shaded = true
 
 [node name="controlled_outfall" type="Node3D" parent="."]
-position = Vector3(-108.18, -6.58, 56.65)
+position = Vector3(-108.18, -6.58, 47)
 editor_description = "The creek passes beneath the uninterrupted Boardwalk and emerges through a maintained headwall at its seaward fascia. Every outlet part is outside the walking deck, below its surface and outside the protected sunset view."
 
 [node name="headwall" type="MeshInstance3D" parent="controlled_outfall"]
@@ -770,13 +776,13 @@ shaded = true
 editor_description = "Caused water wear on the developed shore face near the outfall; interrupted patches leave the pier and sunset water visually open."
 
 [node name="stain_north" type="MeshInstance3D" parent="shore_waterline"]
-position = Vector3(-108.08, -7.05, 47.5)
+position = Vector3(-108.08, -7.05, 37.85)
 scale = Vector3(0.05, 0.54, 10.0)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_water_stain")
 
 [node name="stain_south" type="MeshInstance3D" parent="shore_waterline"]
-position = Vector3(-108.07, -7.08, 66.0)
+position = Vector3(-108.07, -7.08, 56.35)
 scale = Vector3(0.05, 0.48, 8.5)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_water_stain")

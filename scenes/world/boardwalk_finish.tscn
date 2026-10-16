@@ -103,7 +103,7 @@ mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_weathered_board")
 
 [node name="P2_centre_board_repair" type="MeshInstance3D" parent="weathered_cladding"]
-position = Vector3(-83.17, -2.63, 32.0)
+position = Vector3(-90.67, -2.63, 31.5)
 scale = Vector3(0.035, 5.65, 2.0)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_weathered_board")
@@ -124,7 +124,7 @@ mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_turquoise_worn")
 
 [node name="P2_kick_patch" type="MeshInstance3D" parent="salt_and_maintenance_marks"]
-position = Vector3(-83.205, -5.35, 32.0)
+position = Vector3(-90.705, -5.35, 31.5)
 scale = Vector3(0.02, 0.48, 1.55)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_bleached")
@@ -324,13 +324,13 @@ mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_scuff")
 cast_shadow = 0
 [node name="P2_entry_scuff" type="MeshInstance3D" parent="caused_wear"]
-position = Vector3(-83.7, -5.938, 27.0)
+position = Vector3(-91.2, -5.938, 25)
 scale = Vector3(0.95, 0.012, 1.5)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_scuff")
 cast_shadow = 0
 [node name="P2_exit_scuff" type="MeshInstance3D" parent="caused_wear"]
-position = Vector3(-83.7, -5.937, 37.0)
+position = Vector3(-91.2, -5.937, 38)
 scale = Vector3(0.95, 0.012, 1.5)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_scuff")

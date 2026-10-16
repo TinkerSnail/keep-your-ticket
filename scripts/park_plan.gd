@@ -3,6 +3,7 @@ extends RefCounted
 
 const SectionLayouts = preload("res://scripts/park_section_layout_source.gd")
 const KiddielandLayout = preload("res://scripts/kiddieland_layout_source.gd")
+const CoastalCreekSource = preload("res://scripts/coastal_creek_source.gd")
 
 # One construction run sees one saved editor state. Cache each assembled table
 # for that process: terrain and scatter ask the same plan questions thousands of
@@ -551,7 +552,13 @@ const GRAND_TRAM_CONTROLS: Array[Vector3] = [
 	Vector3(-78.0, -6.0, -14.4),
 	Vector3(-78.0, -6.0, 24.0), # boardwalk station
 	Vector3(-78.0, -6.0, 44.0),
-	Vector3(-104.0, -5.0, 72.0),
+	# Regraded (Christina, 2026-10-16: "Regrade, then bank"; the maps at
+	# e7037ac): past the Boardwalk station the lane sits on the deck, -0.02 to
+	# +0.05 m over it, to z 79, so the boardwalk_south crossing is flush, and
+	# then climbs at no more than 8.5%. The added control moves the plan at most
+	# 2.4 m, near s 1003.
+	Vector3(-104.0, -5.95, 72.0),
+	Vector3(-106.6, -5.5, 87.0),
 	Vector3(-104.0, -2.0, 130.0),
 	Vector3(-80.0, -0.5, 155.0),
 	Vector3(-48.0, 0.0, 166.0), # fairground station
@@ -588,7 +595,9 @@ const GRAND_TRAM_CROSSINGS := [
 		"pedestrian": &"a_parking_arrival", "owner": &"entrance"},
 	{"id": &"boardwalk_monument", "at": Vector3(-78.0, -6.0, -2.0),
 		"pedestrian": &"b_monument_return", "owner": &"park_transit"},
-	{"id": &"boardwalk_south", "at": Vector3(-96.0, -6.0, 60.0),
+	# Flush since the lane's regrade (Christina, 2026-10-16; the maps at
+	# e7037ac): where the regraded lane crosses B at the end of its waterfront.
+	{"id": &"boardwalk_south", "at": Vector3(-96.73, -5.97, 63.94),
 		"pedestrian": &"b_waterfront",
 		"captures": [&"b_waterfront", &"b_south_return"],
 		"owner": &"park_transit"},
@@ -3307,6 +3316,44 @@ const REBUILD_RETIRED_BOARDWALK_SHOPS := {
 	&"games": true,
 }
 
+
+## The frontage row as it is built: `FRONTAGE_UNITS` in order, each surviving
+## unit placed by its editor-owned record in `boardwalk_layout.tscn`'s
+## `frontage` group (since 2026-10-16, the restrooms: the maquette rule moves a
+## generated placement to an owned source before it is revised). A placed unit
+## carries its footprint's centre `x` and its `depth` across the row, and its
+## `from` and `to` along it; a unit with no record keeps the row's `FRONT_X`
+## and `FRONT_DEPTH`. The generator and `gen_crowd.gd` both read this, so the
+## shell and the crowd's way round it cannot disagree.
+static func boardwalk_frontage_units() -> Array:
+	if _editor_source_cache.has(&"frontage"):
+		return _editor_source_cache[&"frontage"]
+	var placed := {}
+	for record in SectionLayouts.section_records(&"boardwalk", &"frontage"):
+		placed[StringName(record["id"])] = record
+	var out: Array = []
+	for baseline in FRONTAGE_UNITS:
+		var unit: Dictionary = (baseline as Dictionary).duplicate(true)
+		var id := StringName(unit["nm"])
+		if not REBUILD_RETIRED_BOARDWALK_SHOPS.has(id):
+			assert(placed.has(id), "the Boardwalk source has no frontage record for %s" % id)
+		if placed.has(id):
+			var record: Dictionary = placed[id]
+			var at: Vector2 = record["at"]
+			var size: Vector2 = record["size"]
+			unit["x"] = at.x
+			unit["depth"] = size.x
+			unit["from"] = at.y - size.y * 0.5
+			unit["to"] = at.y + size.y * 0.5
+			unit["h"] = float(record["h"])
+			unit["kind"] = String(record["kind"])
+		else:
+			unit["x"] = FRONT_X
+			unit["depth"] = FRONT_DEPTH
+		out.append(unit)
+	_editor_source_cache[&"frontage"] = out
+	return out
+
 ## Where somebody can sit down, which two different generators have to agree
 ## about — `gen_props.gd` builds the furniture and `gen_crowd.gd` puts people on
 ## it. The plaza's equivalents are duplicated between the two tools on purpose,
@@ -3342,15 +3389,76 @@ const BENCH_STEP := 12.0
 ##
 ## The span covers both by construction, because the booth and the queue are
 ## laid out off the platform's own east edge.
+##
+## A bench over D2's shore notch steps along the rail to its nearer side, clear
+## of it (2026-10-16, `coastal_creek_notch_clear`).
 static func bench_line() -> Array:
 	var out := []
 	var z := BENCH_FIRST_Z
 	while z < WALK_TO_Z - 8.0:
 		var clear_of_wheel := z < WHEEL_FROM_Z - 1.0 or z > WHEEL_TO_Z + 1.0
 		if absf(z - PIER_ROOT.y) > 7.0 and clear_of_wheel:
-			out.append(Vector2(BENCH_X, z))
+			out.append(Vector2(BENCH_X, coastal_creek_notch_clear(BENCH_X, z, BENCH_HALF)))
 		z += BENCH_STEP
 	return out
+
+
+## Half a promenade bench's length along the rail, its seat's.
+const BENCH_HALF := 0.905
+
+
+## D2's shore notch (Christina, 2026-10-16: "Culvert D2"): its last reach west
+## of the Grand Circuit, from the culvert's shore mouth to the outfall at the
+## seaward face, through the promenade's made ground under its deck, the 3.2 m
+## channel and its walls.
+const COASTAL_CREEK_NOTCH_W := 3.6
+## What stands on the promenade keeps this far off the notch's edge.
+const COASTAL_CREEK_NOTCH_CLEAR := 0.05
+
+
+## The notch's course in world metres: D2's course after the one segment that
+## passes under the Grand Circuit lane.
+static func coastal_creek_notch() -> Array[Vector2]:
+	if _editor_source_cache.has(&"notch"):
+		return _editor_source_cache[&"notch"]
+	var points := rebuild_expand_points2(rebuild_coastal_creek())
+	var lane := grand_tram_loop(16)
+	var after := -1
+	for i in points.size() - 1:
+		for k in lane.size() - 1:
+			if Geometry2D.segment_intersects_segment(points[i], points[i + 1],
+					Vector2(lane[k].x, lane[k].z), Vector2(lane[k + 1].x, lane[k + 1].z)) != null:
+				after = i + 1
+	var out: Array[Vector2] = []
+	if after >= 0:
+		for i in range(after, points.size()):
+			out.append(points[i])
+	_editor_source_cache[&"notch"] = out
+	return out
+
+
+## `z` along the line x = `x`, moved the least distance that puts a thing
+## `half` long in z clear of the notch there.
+static func coastal_creek_notch_clear(x: float, z: float, half: float) -> float:
+	var notch := coastal_creek_notch()
+	var reach := COASTAL_CREEK_NOTCH_W * 0.5
+	var lo := INF
+	var hi := -INF
+	for i in notch.size() - 1:
+		var a: Vector2 = notch[i]
+		var b: Vector2 = notch[i + 1]
+		var steps := maxi(1, ceili(a.distance_to(b) / 0.05))
+		for k in steps + 1:
+			var p := a.lerp(b, float(k) / float(steps))
+			var dx := absf(p.x - x)
+			if dx < reach:
+				var across := sqrt(reach * reach - dx * dx)
+				lo = minf(lo, p.y - across)
+				hi = maxf(hi, p.y + across)
+	var gap := half + COASTAL_CREEK_NOTCH_CLEAR
+	if lo > hi or z + gap <= lo or z - gap >= hi:
+		return z
+	return lo - gap if z - (lo - gap) <= (hi + gap) - z else hi + gap
 
 
 # ---------------------------------------------------------------------------
@@ -3832,8 +3940,14 @@ const REBUILD_PRIMARY_ROUTE_RUNS := [
 			# level forced the final approach into a 1:5 pitch and made the path read
 			# as a flyover meeting a cliff. These elevations distribute the same six
 			# metres over the full 56m run and reach the bluff crest before its face.
-			Vector3(-96, SHORE_TOP, 60), Vector3(-88, -4.90, 64),
-			Vector3(-82, -3.67, 72),
+			# Christina, 2026-10-16 ("Even 9.9% to p04"): the regraded Grand
+			# Circuit lane crosses B flush where its waterfront meets this return,
+			# so the return holds the crossing's level for 4.3 m, clear of the
+			# lane's clear zone over its whole width, then climbs evenly at 9.92%
+			# to where C joins it, at its old level. Before, it climbed 10.9% from
+			# here.
+			Vector3(-96, SHORE_TOP, 60), Vector3(-92.6, -5.97, 61.68),
+			Vector3(-88, -5.391, 64), Vector3(-82, -4.025, 72),
 			# C crosses this chord exactly where the approved atlas draws it.  The
 			# two controls carry one shared gentle grade so the crossing is a
 			# junction, not one public route colliding with a bridge above it.
@@ -4073,10 +4187,12 @@ const REBUILD_ATTRACTION_SITES := [
 		# park_vertical_controls.tscn now owns the exact course and grade; keeping
 		# a second list here would let clearance tests and construction disagree.
 	},
-	{"id": &"P2", "kind": &"funhouse", "at": Vector2(-77, 32),
-		"size": Vector2(12, 14), "access": [Vector2(-96, 27),
-			Vector2(-90, 27), Vector2(-87, 25), Vector2(-84, 27), Vector2(-83, 27)],
-		"exit": [Vector2(-83, 37), Vector2(-88, 37), Vector2(-91, 40), Vector2(-96, 40)]},
+	# In the old funhouse slot since 2026-10-16 (Christina: "Move P2 to the old
+	# slot"; the maps at e7037ac): at (-77, 32), 12 x 14, the Grand Circuit ran
+	# 14 m through it. Its facade stands on B's edge, 1.80 m clear of the lane.
+	{"id": &"P2", "kind": &"funhouse", "at": Vector2(-86.5, 31),
+		"size": Vector2(8, 18), "access": [Vector2(-96, 25), Vector2(-90.5, 25)],
+		"exit": [Vector2(-90.5, 38), Vector2(-96, 38)]},
 	{"id": &"P3", "kind": &"big_top", "at": Vector2(-32, 92),
 		"radii": Vector2(9, 6), "access": [Vector2(-35, 77.5),
 			Vector2(-35, 80.5), Vector2(-40, 80.5), Vector2(-40, 83),
@@ -4180,10 +4296,14 @@ const REBUILD_SERVICE_SPINES := [
 		Vector2(57, -133), Vector2(42, -135)]},
 ]
 
+## Its last reach, from p04, regraded to shore level and culverted under the
+## Grand Circuit (Christina, 2026-10-16: "Culvert D2"; the maps at e7037ac):
+## along the pond's north end into CX2, then in the shore notch to the sea.
 const REBUILD_COASTAL_CREEK := [
 	Vector2(-48, 22), Vector2(-54, 29), Vector2(-59, 37),
-	Vector2(-62, 44), Vector2(-70, 50), Vector2(-79, 54),
-	Vector2(-88, 55), Vector2(-96, 55), Vector2(-104, 55),
+	Vector2(-62, 44), Vector2(-70, 50), Vector2(-72.5, 55.23),
+	Vector2(-77.5, 55.23), Vector2(-80.46, 53.63), Vector2(-87.12, 48.16),
+	Vector2(-88.6, 46.8), Vector2(-91, 47), Vector2(-102, 47), Vector2(-108, 47),
 ]
 
 const REBUILD_PLANTING_BANDS := [
@@ -4333,6 +4453,15 @@ static func rebuild_coastal_creek() -> Array:
 		assert(not record.is_empty(), "Fairground source is missing Coastal Creek")
 		_editor_source_cache[&"water"] = (record["points"] as Array).duplicate(true)
 	return _editor_source_cache[&"water"]
+
+
+## What stands on D2 beside its course: the rain pond, CB1, CB2 and the pond
+## garden loop, editor-owned since 2026-10-16 (`scripts/coastal_creek_source.gd`
+## says how), in rebuild source space like the course.
+static func coastal_creek_placements() -> Dictionary:
+	if not _editor_source_cache.has(&"water_placements"):
+		_editor_source_cache[&"water_placements"] = CoastalCreekSource.read()
+	return _editor_source_cache[&"water_placements"]
 
 
 static func rebuild_route_runs() -> Array:

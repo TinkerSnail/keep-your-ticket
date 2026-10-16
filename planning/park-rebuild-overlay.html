@@ -265,8 +265,8 @@
       <h3>05A · Coastal Creek daylighting plan</h3>
       <svg id="creek-parcel-map" class="parcel-map" role="img" aria-labelledby="creek-parcel-title creek-parcel-description"></svg>
       <figcaption class="parcel-notes text-small">
-        <span><b>Water</b> D2 emerges southeast of the Cascading Staircases as a 2.5–4m low-flow channel and meanders through an 8–12m planted corridor. Its last reach, from the bluff’s foot, is regraded to shore level (Christina, 2026-10-16): it crosses the north end of a 14 × 8m rain pond (water −6.85) off the Grand Circuit lane, passes under the lane in one culvert as at D5 (inverts −6.87 and −6.89), runs in a shore notch along P2’s north side and leaves over one controllable waterfront weir (−6.95) through the seaward fascia, 1.5m deep there.</span>
-        <span><b>Crossings</b> B crosses on a 10m promenade bridge; the lane crosses on culvert CX2; the locked S2 service spine uses one 4m culvert. CB1 and the funhouse garden loop are re-sited, approved by Christina (2026-10-16): a 2.6m garden walk round the pond’s bank, closed across its north end by CB1, reached by a stem from B’s south return. No path ends at the water.</span>
+        <span><b>Water</b> D2 emerges southeast of the Cascading Staircases as a 2.5–4m low-flow channel and meanders through an 8–12m planted corridor at its old levels (bed −0.18 to −2.389 at the S2 culvert), then drops 3.8m in four built steps from a crest at −2.95 into a plunge pool at the bluff’s foot (water −6.70). Its last reach, from there, is regraded to shore level (Christina, 2026-10-16): it crosses the north end of a 14 × 8m rain pond (water −6.85) off the Grand Circuit lane, passes under the lane in one culvert as at D5 (inverts −6.87 and −6.89), runs in a shore notch along P2’s north side, railed on its open stretch, and leaves over one controllable waterfront weir (−6.95) through the seaward fascia, 1.5m deep there.</span>
+        <span><b>Crossings</b> B crosses on a 10m promenade bridge; the lane crosses on culvert CX2; the locked S2 service spine uses one 4m culvert. CB1 and the funhouse garden loop are re-sited, approved by Christina (2026-10-16): a 2.6m garden walk round the pond’s bank, closed across its north end by CB1, reached by a stem from B’s south return, which holds flush with the lane at −5.97 across its clear zone and then climbs at an even 9.92% to where C joins it. A fence closes the garden’s east side toward S2’s yard. No path ends at the water.</span>
         <span><b>Edges</b> Flood shelves, rushes, and low stone toes hold the ordinary banks. Hard retaining, railings, and headwalls are limited to bridge abutments and the outfall.</span>
         <span><b>After close</b> Reflected ride lights, a slow current, and the pump-and-weir sound carry through the southwest seam without adding another attraction footprint.</span>
         <span><b>Pass</b> The planted corridor stays at least 7.2m outside NT-1 and the notch 5.0m from the P2 foundation; the pond, CB2 and the open water stay outside the lane’s 1.5m clear zone; B’s bridge retains its route width; the garden walk and CB1 stay outside the clear zone too; S2 stays locked; overflow reaches the outfall without entering public paving.</span>
@@ -1681,6 +1681,19 @@
     stroke-opacity: 0.22;
     stroke-linejoin: round;
   }
+  #park-rebuild-overlay .creek-guard {
+    fill: none;
+    stroke: var(--foreground);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+  }
+  #park-rebuild-overlay .creek-fence {
+    fill: none;
+    stroke: var(--green);
+    stroke-width: 2;
+    stroke-dasharray: 1 3;
+    stroke-linecap: round;
+  }
   #park-rebuild-overlay .creek-culvert-line {
     fill: none;
     stroke: var(--orange);
@@ -2115,7 +2128,11 @@
       {w:8,p:[[-99,-67.8],[-107,-76.3],[-108,-88.4],[-108,-103],[-106,-116.3],[-102,-127.2],[-98,-134.5],[-96,-140.6],[-92,-144.8],[-80,-144.8]]},
       {w:8,p:[[-6,-68],[-22,-66],[-40,-62],[-44,-74],[-44,-88],[-44,-102],[-42,-118],[-42,-130],[-80,-145]]},
       {w:9,p:[[-18,0],[-32,-1],[-45,-2],[-52,-2],[-58,-2],[-72,-2],[-84,-2],[-96,-2]]},
-      {w:8,p:[[-96,60],[-88,64],[-82,72],[-80,84],[-75,95],[-64,101],[-53,98],[-47,90],[-48,78]]}
+      // B flush at the crossing (Christina, 2026-10-16), levels as built: -6.00 at (-96, 60); the
+      // marker at (-92.6, 61.68), -5.97, ends the 4.28 m flush hold; an even 9.92% ("Even 9.9% to
+      // p04") through -5.391 and -4.025 to (-80, 84), where C joins it at its old -2.17; then its
+      // old levels -1.07, 0.08, 0.08, 0, 0.
+      {w:8,p:[[-96,60],[-92.6,61.68],[-88,64],[-82,72],[-80,84],[-75,95],[-64,101],[-53,98],[-47,90],[-48,78]]}
     ]},
     C:{name:'C · Coastal circuit',label:[-74,94],paths:[
       {w:8,p:[[-48,78],[-58,70],[-72,76],[-78,90],[-70,108],[-52,116],[-32,112],[-18,101],[-10,88],[-22,77],[-48,78]]},
@@ -2666,10 +2683,24 @@
     ],
     weir:{p:[[-102,45.2],[-102,48.8]],crest:-6.95},
     outfall:[-108,47],
-    // The last reach's level, world metres: p04, the pond, the culvert's inverts, the
-    // weir and the outfall at sea level. Banks stand at the deck, -6.00.
-    levels:[[-70,-6.75,50],[-75,-6.85,57],[-80.46,-6.87,54.52],[-87.12,-6.89,48.16],
+    // D2's bed, world metres (Christina, 2026-10-16): the upstream keeps its old levels,
+    // p00 to p03, and falls on to the drop's crest at (-68.08, 48.56), -2.95, where it steps
+    // down 3.80 m in four steps of 0.95 m over 1.2 m into a plunge pool reaching p04 (bed
+    // -7.25, water -6.70). From p04 (-6.75) the last reach: the pond, the culvert's
+    // inverts, the weir and the outfall at sea level. Its banks stand at the deck, -6.00.
+    levels:[[-48,-0.18,22],[-54,-1.088,29],[-59,-1.769,37],[-62,-2.389,44],[-68.08,-2.95,48.56],
+      [-69.04,-6.75,49.28],[-70,-6.75,50],[-75,-6.85,57],[-80.46,-6.87,54.52],[-87.12,-6.89,48.16],
       [-102,-6.95,47],[-108,-7.5,47]],
+    // The drop as built (editor-owned marker, 2026-10-16), world metres: its crest across
+    // the 3.2 m channel; 4 steps of 0.95 m over a 1.2 m run; the plunge pool to p04 and
+    // 1.6 m past it. Its footprint, sill to pool end along the course and between the side
+    // walls, is 4.3 x 4.0 m (`footprint`: from -0.3 to 4.0 m along `along` from the crest,
+    // 4.0 m wide). Measured on it the build reports 3.37 m beyond the lane's clear zone,
+    // 1.78 m from S2's paving and 6.16 m from the garden walk (the maps: 3.31, 1.77, 6.14);
+    // validateCreekGarden holds it at `clear`, those less a small margin.
+    drop:{crest:[-68.08,48.56],top:-2.95,height:3.8,steps:4,rise:0.95,run:1.2,width:3.2,
+      along:[-0.8,0.6],pool:{water:-6.7,bed:-7.25},footprint:{from:-0.3,to:4,width:4},
+      clear:{lane:3.2,s2:1.7,walk:6}},
     // The shore notch, world metres: the reach's cut in the made ground from the
     // culvert's shore mouth to the seaward fascia, 3.6 m wide (the 3.2 m channel and its
     // walls), its floor 0.89 m under the deck at the mouth, 0.95 m at the weir and 1.50 m
@@ -2677,18 +2708,40 @@
     // water stays 0.4 m outside the lane's clear zone, then runs west 5.0 m clear of P2.
     // A grid edit at build time.
     notch:{p:[[-87.12,48.16],[-88.6,46.8],[-91,47],[-102,47],[-108,47]],width:3.6,deck:-6,
-      floor:[-6.89,-6.9,-6.91,-6.95,-7.5],depth:[0.89,0.9,0.91,0.95,1.5]},
+      floor:[-6.89,-6.9,-6.91,-6.95,-7.5],depth:[0.89,0.9,0.91,0.95,1.5],
+      // The notch guard (Christina, 2026-10-16): a derived rail round the notch's open
+      // stretch from the culvert's shore mouth to x -90.5, along each side and across the
+      // mouth end, about 11.4 m as drawn; 0.4 m outside the lane's clear zone, 0.5 m off
+      // B's edge. World metres.
+      guard:{kind:'derived rail',p:[[-90.5,45.15],[-87.96,44.94],[-85.9,46.83],[-88.34,49.49],[-89.24,48.66],[-90.5,48.76]],length:11.4,offLane:0.4,offB:0.5}},
     // CB1 and the garden loop re-sited (approved by Christina, 2026-10-16). The loop is a 2.6 m garden
     // walk on the pond's bank, 0.5 m off the water, closed across the pond's north end by
     // CB1, the same 11 x 4 m deck turned east-west, so the walk crosses D2 once, on CB1,
     // and never its channel: the creek's inflow and its outlet to CX2 both lie north of
-    // CB1. A stem leaves B's south return (where B is at about -5.34) and falls to the bank
-    // at 1:12. The walk keeps 2.9 m beyond the lane's clear zone (the stem 0.8 m), 2.1 m
+    // CB1. A stem leaves B's south return, where B is at about -5.79 on its even 9.92% from
+    // the flush crossing (2026-10-16), and falls to the bank at about 2.6%. The walk keeps 2.9 m
+    // beyond the lane's clear zone (the stem 0.8 m), 2.1 m
     // from S2's paving and 3.5 m from B's return. Atlas units; widths in world metres.
     garden:{status:'approved',approved:'2026-10-16',name:'Pond garden loop (the funhouse garden loop, re-sited)',
       width:2.6,loop:[[-80.5,57.16],[-69.5,57.16],[-69.2,58.65],[-69.37,60.14],[-69.93,61.54],[-70.85,62.74],[-72.06,63.67],[-73.48,64.25],[-75,64.45],[-76.52,64.25],[-77.94,63.67],[-79.15,62.74],[-80.07,61.54],[-80.63,60.14],[-80.8,58.65],[-80.5,57.16]],stem:[[-88.75,60.36],[-80.63,60.14]],
-      crossing:{id:'CB1',kind:'footbridge',name:'Pond garden footbridge (CB1, re-sited)',at:[-75,57.16],size:[11,4]}}
+      crossing:{id:'CB1',kind:'footbridge',name:'Pond garden footbridge (CB1, re-sited)',at:[-75,57.16],size:[11,4]},
+      // The garden's east fence (Christina, 2026-10-16: "Garden's east side") as built:
+      // 32.9 m, 1.5 m high and colliding, on the made ground at -6.0, between the garden and
+      // S2's yard, from the drop's east wall round the loop's south-east to B's bed face.
+      // Measured: 1.0 m from the loop, 9.4 m from the stem, 2.2 m from CB1, 8.6 m beyond the
+      // lane's clear zone and at least 0.4 m from S2's paving; validateCreekGarden holds it
+      // at `clear`, those less a small margin. Atlas units.
+      fence:{status:'approved',approved:'2026-10-16',height:1.5,y:-6,length:32.9,p:[[-66.64,49.98],[-67.22,56.968],[-66.89,58.606],[-67.09,60.381],[-67.76,62.058],[-68.91,63.555],[-70.53,64.8],[-72.61,65.652],[-74.54,65.903],[-79.56,67.471]],
+        clear:{loop:0.9,stem:9.3,cb1:2.1,lane:8.5,s2:0.3}}}
   };
+
+  // The drop's footprint as built (2026-10-16), world [x, z] corners: sill to pool end
+  // along the course from the crest, between the side walls.
+  function d2DropFootprint() {
+    const D = coastalCreek.drop, [ax, az] = D.along, c = D.crest, f = D.footprint, h = f.width / 2;
+    return [[f.from, -h], [f.to, -h], [f.to, h], [f.from, h]].map(([u, v]) =>
+      [c[0] + ax * u - az * v, c[1] + az * u + ax * v]);
+  }
 
   const plantingBands = [
     {id:'PL1',kind:'shade',paths:[
@@ -3469,12 +3522,18 @@
     // platform, as I2's and I3's do. mast_11 (generated) stood 0.01 m off the regraded
     // centreline at s 1020.6; it moves to the lane's inland verge, 0.62 m beyond the clear
     // zone with its radius, 1.7 m from prom_lamp_15, and its string's last span from
-    // mast_10 then crosses over the lane at about 6.9 m.
+    // mast_10 then crosses over the lane at about 6.9 m. B flush at the crossing
+    // (Christina, 2026-10-16): B's south return holds flush with the lane, -6.00 at its
+    // first point to -5.97 at a marker at world (-92.6, 67.0), atlas (-92.6, 61.68), 4.28 m
+    // along it and 0.9 m beyond the lane's clear zone, then climbs at an even 9.92% through
+    // -5.391 and -4.025 to its old -2.17 at (-80, 84), where C joins it, and keeps its old
+    // levels beyond: -1.07, 0.08, 0.08, 0, 0 ("Even 9.9% to p04"; as built).
     south:{id:'GC-2R',name:'GC-2 past the Boardwalk station, regraded (Christina, 2026-10-16)',
       approved:'2026-10-16',
       was:[[-78,-6,-14.4],[-78,-6,24],[-78,-6,44],[-104,-5,72],[-104,-2,130],[-80,-0.5,155],[-48,0,166]],
       to:[-104,130],
-      crossing:{id:'grand_tram_crossing_boardwalk_south',at:[-96.73,63.94],reach:14,level:-5.97},
+      crossing:{id:'grand_tram_crossing_boardwalk_south',at:[-96.73,63.94],reach:14,level:-5.97,
+        flushTo:[-92.6,-5.97,67.0]},
       culvert:'CX2',
       serviceCrossings:['P2'],
       moves:[{id:'mast_11',kind:'generated mast',from:[-106.4,76.0],to:[-100.6,76.0],r:0.22}],
@@ -3664,6 +3723,35 @@
       test(`B run ${k}`, p => lineDist(p, line) - run.w / 2, W.clear, lane,
         p => Math.hypot(p[0] - X[0], p[1] - X[1]) < S.crossing.reach);
     });
+    // B flush at the crossing (2026-10-16): every point of B's south return inside the
+    // lane's clear zone lies on its flush stretch, from its first point to the marker at
+    // the crossing's level, and the marker stands outside the clear zone.
+    {
+      const ret = routes.B.paths[4].p.map(gcExpand), m = S.crossing.flushTo, mk = [m[0], m[2]];
+      const k = ret.findIndex(q => Math.hypot(q[0] - mk[0], q[1] - mk[1]) < 0.05);
+      if (k !== 1) gaps.push({fault:'B’s south return does not carry its flush marker as its second point'});
+      else {
+        if (Math.abs(m[1] - S.crossing.level) > 0.005) gaps.push({fault:`B’s flush marker stands at ${m[1]}, not the crossing’s ${S.crossing.level}`});
+        gaps.push({what:'B’s flush marker', gap:laneDist(mk), need:W.clear});
+        let inside = 0;
+        ret.slice(k).forEach((b, i) => {
+          const a = ret.slice(k)[i - 1] || b;
+          for (let j = 0; j <= 40; j++) {
+            const q = [a[0] + (b[0] - a[0]) * j / 40, a[1] + (b[1] - a[1]) * j / 40];
+            if (laneDist(q) < W.clear) inside++;
+          }
+        });
+        if (inside) gaps.push({fault:'B’s south return climbs inside the lane’s clear zone past its flush marker'});
+      }
+    }
+    // The notch guard (2026-10-16): 0.4 m outside the clear zone as drawn (0.37 m at its
+    // outer corner, where the lane curves away), and 0.5 m off B's edge.
+    {
+      const guard = coastalCreek.notch.guard.p, spine = routes.B.paths[0].p.map(gcExpand);
+      gaps.push({what:'the notch guard', gap:Math.min(...guard.map(laneDist)), need:W.clear + 0.35});
+      const offB = Math.min(...guard.map(q => lineDist(q, spine) - routes.B.paths[0].w / 2));
+      if (offB < coastalCreek.notch.guard.offB - 0.01) gaps.push({fault:`the notch guard stands ${offB.toFixed(2)} m off B’s edge (at least ${coastalCreek.notch.guard.offB})`});
+    }
     const s2 = serviceSpines.find(s => s.id === 'S2').p.map(gcExpand);
     test('S2', p => lineDist(p, s2) - 2.0, W.clear);
     const wc = boardwalkRestrooms;
@@ -3754,6 +3842,43 @@
       const e = (([x0, z0], [x1, z1]) => ({x0, z0, x1, z1}))(gcExpand([b.x0, b.z0]), gcExpand([b.x1, b.z1]));
       worst(o.id, q => boxDist(q, e) - half, 1);
     });
+    // D2's drop as built (2026-10-16), held on its footprint clear of the whole approved
+    // lane, S2's paving and the garden walk's edge (CB1's deck, the ring and the stem).
+    const W = grandCircuitWest;
+    const lane = gcStretch(W.course.controls).concat(gcStretchSouth(W.course.controls).slice(1));
+    const s2 = serviceSpines.find(sp => sp.id === 'S2').p.map(gcExpand);
+    const footprint = d2DropFootprint(), outline = samples(footprint.concat([footprint[0]]));
+    {
+      const D = coastalCreek.drop;
+      const laneGap = Math.min(...outline.map(q => lineDist(q, lane))) - W.width / 2 - W.clear;
+      if (laneGap < D.clear.lane) problems.push(`the drop stands ${laneGap.toFixed(2)}m beyond the lane’s clear zone (needs ${D.clear.lane}m)`);
+      const s2Gap = Math.min(...outline.map(q => lineDist(q, s2))) - 2;
+      if (s2Gap < D.clear.s2) problems.push(`the drop stands ${s2Gap.toFixed(2)}m from S2’s paving (needs ${D.clear.s2}m)`);
+      const walkGap = Math.min(...outline.map(q => Math.min(lineDist(q, loop), lineDist(q, stem)))) - half;
+      if (walkGap < D.clear.walk) problems.push(`the drop stands ${walkGap.toFixed(2)}m from the garden walk (needs ${D.clear.walk}m)`);
+    }
+    // The garden's east fence as built (2026-10-16): it starts on the drop's east wall
+    // and crosses none of the drop, the walk, CB1 or the pond's bank, and keeps its
+    // measured clearances to the loop, the stem, CB1, the lane's clear zone and S2's paving.
+    {
+      const course = G.fence.p.map(gcExpand), K = G.fence.clear;
+      const fence = samples(course).filter(q => Math.hypot(q[0] - course[0][0], q[1] - course[0][1]) > 0.05);
+      const gap = (what, dist, n) => {
+        const g = Math.min(...fence.map(dist));
+        if (g < n) problems.push(`the garden fence leaves ${g.toFixed(2)}m to ${what} (needs ${n}m)`);
+      };
+      if (lineDist(course[0], footprint.concat([footprint[0]])) > 0.05) problems.push('the garden fence does not start on the drop’s wall');
+      gap('the garden loop', q => lineDist(q, loop) - half, K.loop);
+      gap('the garden stem', q => lineDist(q, stem) - half, K.stem);
+      gap(cb.id, q => Math.hypot(Math.max(Math.abs(q[0] - c[0]) - cb.size[0] / 2, 0), Math.max(Math.abs(q[1] - c[1]) - cb.size[1] / 2, 0)), K.cb1);
+      const bank = Array.from({length:180}, (_, k) => [pc[0] + pond.bankRadii[0] * Math.cos(k * Math.PI / 90), pc[1] + pond.bankRadii[1] * Math.sin(k * Math.PI / 90)]);
+      const inBank = q => ((q[0] - pc[0]) / pond.bankRadii[0]) ** 2 + ((q[1] - pc[1]) / pond.bankRadii[1]) ** 2 < 1;
+      gap('the pond’s bank', q => inBank(q) ? -1 : Math.min(...bank.map(b => Math.hypot(q[0] - b[0], q[1] - b[1]))), 0);
+      const inFoot = q => { let ins = false; for (let i = 0, j = footprint.length - 1; i < footprint.length; j = i++) { const A = footprint[i], B = footprint[j]; if ((A[1] > q[1]) !== (B[1] > q[1]) && q[0] < (B[0] - A[0]) * (q[1] - A[1]) / (B[1] - A[1]) + A[0]) ins = !ins; } return ins; };
+      gap('the drop', q => inFoot(q) ? -1 : lineDist(q, footprint.concat([footprint[0]])), 0);
+      gap('S2’s paving', q => lineDist(q, s2) - 2, K.s2);
+      gap('the lane’s clear zone', q => lineDist(q, lane) - W.width / 2 - W.clear, K.lane);
+    }
     if (problems.length) throw new Error(`CB1 and the pond garden loop: ${problems.join('; ')}`);
   }
   planCheck(validateCreekGarden);
@@ -3969,7 +4094,7 @@
     midway:{title:'04G · Lay the midway frontage bands',detail:'The midway is a corridor treatment, not another land. MW-F places six booths along the west side of C and terminates at the Fairground Food Hall; MW-B places four booths against B but leaves a fifteen-metre break around the Q3 Cascade axis; MW-K places two low family games beside D and the Play Garden arrival. Every 5 × 5m unit sits beyond the full public paving width, fronts a standing apron, stocks from a rear lane, and remains outside NT-1, NT-2, and Q1–Q6. The Headland and High Terrace receive no midway clutter.'},
     kiddieland:{title:'04G+ · Complete Kiddieland',detail:'Route D remains fixed while the land gains three consecutive rooms. Arrival Commons combines P4, MW-K, Family Support, a zero-depth Squirt Garden with seven flush jets and a three-frog jumping-water chain: Frog 1 arcs into Frog 2, then Frog 2 arcs into Frog 3. A 14 × 10m Character Garden and an 8 × 5m Family Photo kiosk complete the commons. Ride Garden binds R5 as the miniature railway, R6 as spinning tubs, and R7 as the carousel. R14 adds a compact junior coaster along the outer edge, with separate queue and exit, an 8m lift limit, manual photo turnout, automatic trigger, six-screen viewing bank, and S3 service. A 12 × 6m Birthday Pavilion completes the southern frontage. Every addition remains outside D, Q4, NT-2, W4, and S3; KG1 recirculates through P4 support and never connects to the Terraced Fountain water system.'},
     service:{title:'05 · Resolve service, drainage, and planting',detail:'Three 4m back-of-house spines enter through separate freight gates, end in 12m turning heads, and collect the permanent ride, show, play, and stage yards. The lighthouse and north Boardwalk retain clearly marked pre-opening shared access instead of new roads. D2 stays concealed only to its creek daylight point; the other five catchments terminate in planted detention or controlled outfalls. Shade allées, service screens, and deep-rooted slope bands keep landmark and photography sightlines open.'},
-    creek:{title:'05A · Daylight Coastal Creek',detail:'D2 now emerges southeast of NT-1 and follows a 2.5–4m low-flow channel through an 8–12m planted corridor. Culvert D2 (Christina, 2026-10-16): its last reach is regraded to shore level, crosses the north end of a 14 × 8m rain pond moved off the Grand Circuit lane, passes under the lane in one culvert as at D5, and runs in a shore notch north of P2 to one controlled waterfront weir and the outfall through the seaward fascia, 1.5m deep there, a grid edit at build time. A 10m Boardwalk bridge keeps B continuous; S2 uses one locked 4m culvert; CB1 and the funhouse garden loop are re-sited round the pond. The corridor remains 7.2m outside NT-1 and the notch 5.0m from the funhouse foundation.'},
+    creek:{title:'05A · Daylight Coastal Creek',detail:'D2 now emerges southeast of NT-1 and follows a 2.5–4m low-flow channel through an 8–12m planted corridor. Culvert D2 (Christina, 2026-10-16): the upstream keeps its old levels and drops 3.8m in four steps into a plunge pool at the bluff’s foot; the last reach is regraded to shore level, crosses the north end of a 14 × 8m rain pond moved off the Grand Circuit lane, passes under the lane in one culvert as at D5, and runs in a shore notch north of P2 to one controlled waterfront weir and the outfall through the seaward fascia, 1.5m deep there, a grid edit at build time. A 10m Boardwalk bridge keeps B continuous; S2 uses one locked 4m culvert; CB1 and the funhouse garden loop are re-sited round the pond. The corridor remains 7.2m outside NT-1 and the notch 5.0m from the funhouse foundation.'},
     qa:{title:'06 · Resolve navigation, sightlines, and reveals',detail:'Routes A–F remain continuous in both directions and J1–J9 retain their full widths. Q1–Q6 now have locked world positions, bearings, primary landmarks, secondary skyline cues, and view cones. Foreground planting stays at or below 1.2m inside every cone; trees frame rather than occupy the axes; opaque roofs, ride bases, queue covers, service yards, and attraction backs stay out. Each night view retains one warm path anchor and one cooler landmark anchor without relying on signage.'},
     mission:{title:'07 · Mission and photography spine',detail:'The Photo Hut at H0 is the shift’s home: briefing, film handoff, closing instructions, night refuge, and development. M1–M7 form one complete day of increasingly demanding photography across every district. SW1–SW5 make the closing sweep a purposeful full-park retrace. N1–N5 invert learned viewpoints and routes for the first flash-enabled night, ending with a physical explanation in the proof frame and one delayed background clue on development.'},
     campaign:{title:'08 · Assignment families and campaign progression',detail:'A1–A6 make the park reusable without turning shifts into repeated errands: people, motion, place, recovery, operations, and evidence each recur in several districts and pay out a different kind of knowledge. C1–C5 advance from daylight Instamatic work through routine mastery, the flash unlock, the accumulating wrong count, and a player-shaped final roll. The Photo Hut remains the start, return, and development point throughout.'},
@@ -4235,6 +4360,15 @@
       'stroke-width':Math.max(3,coastalCreek.notch.width*scale)
     });
     pathLine(coastalCreek.weir.p,'creek-weir');
+    // The drop and its plunge pool, and the notch guard (Christina, 2026-10-16).
+    const drop = coastalCreek.drop, [ax, az] = drop.along, half = drop.width / 2, c = drop.crest;
+    parent.appendChild(make('polygon',{points:points(d2DropFootprint().map(gcAtlas)),class:'creek-pond'}));
+    for (let k = 0; k <= drop.steps; k++) {
+      const q = [c[0] + ax * drop.run * k / drop.steps, c[1] + az * drop.run * k / drop.steps];
+      pathLine([[q[0] - az * half, q[1] + ax * half],[q[0] + az * half, q[1] - ax * half]].map(gcAtlas), k ? 'creek-guard' : 'creek-weir');
+    }
+    pathLine(coastalCreek.notch.guard.p,'creek-guard');
+    pathLine(coastalCreek.garden.fence.p,'creek-fence');
   }
 
   function drawCoastalCreekCrossings(parent,x,y,scale,pathLine) {

@@ -50,7 +50,7 @@ position = Vector3(-91.45, -5.94, 44.0)
 [node name="phone_north" parent="period_frontage_furniture" instance=ExtResource("4_phone")]
 position = Vector3(-91.15, -5.94, -37.0)
 [node name="phone_south" parent="period_frontage_furniture" instance=ExtResource("4_phone")]
-position = Vector3(-91.15, -5.94, 53.5)
+position = Vector3(-91.86, -5.94, 52.77)
 
 [node name="pier_edge_hardware" type="Node3D" parent="."]
 editor_description = "Mooring and safety hardware stays tight to the two pier rails. The full eight-metre approach and the pavilion turnaround remain empty."

@@ -253,33 +253,147 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -62, 0, 20)
 [node name="water" type="Node3D" parent="." unique_id=2075274657]
 
 [node name="CW-AQ" type="Node3D" parent="water" unique_id=788854112]
+editor_description = "D2 Coastal Creek's course: each Marker3D under points is a point of it in order. A point carrying level is the creek's bed there in world metres, where the rounded course turns at it; between two levels the bed falls evenly along the rounded course's points. Above the drop the levels are the creek's old profile (Christina, 2026-10-16: \"Old levels + a drop\"); from p04 on, its last reach is regraded to shore level and culverted under the Grand Circuit (\"Culvert D2\"). The one segment that passes under the lane is the culvert CX2; the point carrying weir is the controlled weir's crest; the last point is the outfall at the seaward face."
 metadata/point_type = &"vector2"
 
 [node name="points" type="Node3D" parent="water/CW-AQ" unique_id=1302581460]
 
 [node name="p00" type="Marker3D" parent="water/CW-AQ/points" unique_id=972623998]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48, 0, 22)
+metadata/level = -0.18
 
 [node name="p01" type="Marker3D" parent="water/CW-AQ/points" unique_id=1311470353]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54, 0, 29)
+metadata/level = -1.0879
 
 [node name="p02" type="Marker3D" parent="water/CW-AQ/points" unique_id=985348830]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59, 0, 37)
+metadata/level = -1.7693
 
 [node name="p03" type="Marker3D" parent="water/CW-AQ/points" unique_id=1330436536]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -62, 0, 44)
+metadata/level = -2.3893
 
 [node name="p04" type="Marker3D" parent="water/CW-AQ/points" unique_id=590875885]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -70, 0, 50)
+metadata/level = -6.75
 
 [node name="p05" type="Marker3D" parent="water/CW-AQ/points" unique_id=1654594506]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -79, 0, 54)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -72.5, 0, 55.23)
+metadata/level = -6.85
 
 [node name="p06" type="Marker3D" parent="water/CW-AQ/points" unique_id=1348986546]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -88, 0, 55)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -77.5, 0, 55.23)
+metadata/level = -6.85
 
 [node name="p07" type="Marker3D" parent="water/CW-AQ/points" unique_id=2001129098]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -96, 0, 55)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -80.46, 0, 53.63)
+metadata/level = -6.87
 
 [node name="p08" type="Marker3D" parent="water/CW-AQ/points" unique_id=1276034095]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -104, 0, 55)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87.12, 0, 48.16)
+metadata/level = -6.89
+
+[node name="p09" type="Marker3D" parent="water/CW-AQ/points"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -88.6, 0, 46.8)
+metadata/level = -6.9
+
+[node name="p10" type="Marker3D" parent="water/CW-AQ/points"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -91, 0, 47)
+metadata/level = -6.91
+
+[node name="p11" type="Marker3D" parent="water/CW-AQ/points"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -102, 0, 47)
+metadata/level = -6.95
+metadata/weir = true
+
+[node name="p12" type="Marker3D" parent="water/CW-AQ/points"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -108, 0, 47)
+metadata/level = -7.5
+
+[node name="drop" type="Marker3D" parent="water/CW-AQ"]
+editor_description = "D2's built drop (Christina, 2026-10-16: \"Old levels + a drop\"), editor-owned: the marker is the crest, on the creek's course between p03 and p04. Above it the creek keeps its old levels; crest is its bed there in world metres. Below it a stepped cascade of steps steps, run metres long along the course, falls into a plunge pool that reaches the last reach's head (p04), its bed pool_depth metres under p04's level. tools/gen_props.gd builds the crest sill, steps, side walls, water and the pool's cut in the made ground from these."
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -68.08, 0, 48.56)
+metadata/crest = -2.946
+metadata/steps = 4
+metadata/run = 1.2
+metadata/pool_depth = 0.5
+
+[node name="pond" type="Marker3D" parent="water/CW-AQ"]
+editor_description = "D2's rain pond (editor-owned since 2026-10-16): the marker is the pond's centre; radii are the water's half extents and bank_radii the planted bank's, x and z, in world metres; water and bed are its levels in world metres. tools/gen_props.gd builds the water, the bank and the basin cut in the made ground from them. Moved off the Grand Circuit lane to the shore-level ground between the lane, S2 and B's return, long axis north-south (Christina, 2026-10-16: \"Culvert D2\"; the maps at e7037ac)."
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -75, 0, 58.77)
+metadata/radii = Vector2(4, 7)
+metadata/bank_radii = Vector2(7, 10)
+metadata/water = -6.85
+metadata/bed = -7.45
+
+[node name="CB1" type="Marker3D" parent="water/CW-AQ"]
+editor_description = "CB1, the pond garden footbridge (editor-owned since 2026-10-16): the marker is the deck's centre, turned about y to the way its walk crosses; size is the deck's (across, along) in world metres and guard_inset how far each guard rail stops short of its ends. Re-sited across the pond's north end, east-west, closing the pond garden loop (Christina, 2026-10-16: \"Approve, commit, build\")."
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -75, 0, 57.16)
+metadata/size = Vector2(4, 11)
+metadata/guard_inset = 0.2
+
+[node name="CB2" type="Marker3D" parent="water/CW-AQ"]
+editor_description = "CB2, route B's promenade bridge over D2 (editor-owned since 2026-10-16): the marker is the deck's centre, turned about y to the way B crosses; size is the deck's (across, along) in world metres and guard_inset how far each guard rail stops short of its ends. Moved with the creek's notch to (-96, 47), 10 x 6 (Christina, 2026-10-16: \"Culvert D2\")."
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -96, 0, 47)
+metadata/size = Vector2(10, 6)
+metadata/guard_inset = 0.7
+
+[node name="garden" type="Node3D" parent="water/CW-AQ"]
+editor_description = "The pond garden loop, the funhouse garden loop re-sited (Christina, 2026-10-16: \"Approve, commit, build\"), editor-owned: a garden walk width metres wide on the pond's bank. loop runs from CB1's east end south round the pond to CB1's west end, and CB1 closes it; stem leaves route B's south return at its first marker and meets the loop at its last. tools/gen_props.gd lays the walks at the bank's level, the stem graded from B's level, and opens B's guard where the stem leaves it."
+metadata/width = 2.6
+
+[node name="loop" type="Node3D" parent="water/CW-AQ/garden"]
+
+[node name="p00" type="Marker3D" parent="water/CW-AQ/garden/loop"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -69.5, 0, 57.16)
+
+[node name="p01" type="Marker3D" parent="water/CW-AQ/garden/loop"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -69.2, 0, 58.65)
+
+[node name="p02" type="Marker3D" parent="water/CW-AQ/garden/loop"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -69.37, 0, 60.14)
+
+[node name="p03" type="Marker3D" parent="water/CW-AQ/garden/loop"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -69.93, 0, 61.54)
+
+[node name="p04" type="Marker3D" parent="water/CW-AQ/garden/loop"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -70.85, 0, 62.74)
+
+[node name="p05" type="Marker3D" parent="water/CW-AQ/garden/loop"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -72.06, 0, 63.67)
+
+[node name="p06" type="Marker3D" parent="water/CW-AQ/garden/loop"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -73.48, 0, 64.25)
+
+[node name="p07" type="Marker3D" parent="water/CW-AQ/garden/loop"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -75, 0, 64.45)
+
+[node name="p08" type="Marker3D" parent="water/CW-AQ/garden/loop"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -76.52, 0, 64.25)
+
+[node name="p09" type="Marker3D" parent="water/CW-AQ/garden/loop"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -77.94, 0, 63.67)
+
+[node name="p10" type="Marker3D" parent="water/CW-AQ/garden/loop"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -79.15, 0, 62.74)
+
+[node name="p11" type="Marker3D" parent="water/CW-AQ/garden/loop"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -80.07, 0, 61.54)
+
+[node name="p12" type="Marker3D" parent="water/CW-AQ/garden/loop"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -80.63, 0, 60.14)
+
+[node name="p13" type="Marker3D" parent="water/CW-AQ/garden/loop"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -80.8, 0, 58.65)
+
+[node name="p14" type="Marker3D" parent="water/CW-AQ/garden/loop"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -80.5, 0, 57.16)
+
+[node name="stem" type="Node3D" parent="water/CW-AQ/garden"]
+
+[node name="p00" type="Marker3D" parent="water/CW-AQ/garden/stem"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -88.75, 0, 60.36)
+
+[node name="p01" type="Marker3D" parent="water/CW-AQ/garden/stem"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -80.63, 0, 60.14)
