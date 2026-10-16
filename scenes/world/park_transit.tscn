@@ -1,8 +1,11 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 ; Stable editor-owned wrapper. The generator writes only generated/park_transit.tscn.
 [ext_resource type="PackedScene" path="res://scenes/world/generated/park_transit.tscn" id="1_generated"]
+[ext_resource type="PackedScene" path="res://scenes/world/yard_connections.tscn" id="2_yard_connections"]
 
 [node name="park_transit" instance=ExtResource("1_generated")]
 
 [node name="authored_additions" type="Node3D" parent="."]
+
+[node name="yard_connections" parent="authored_additions" instance=ExtResource("2_yard_connections")]

@@ -1,0 +1,167 @@
+[gd_scene load_steps=2 format=3]
+
+; Editor-owned since 2026-10-16. The east station yard's two staff stairs: every
+; Marker3D is a point of a course at its world level. The generator derives the stairs.
+
+[ext_resource type="Script" path="res://scenes/world/yard_connections.gd" id="1_preview"]
+
+[node name="yard_connections" type="Node3D"]
+script = ExtResource("1_preview")
+editor_description = "The east station yard's two staff stairs, editor-owned since 2026-10-16 (Christina: \"Make them editor-owned\"), as approved on the maps at e4e4273: YC-R11 leaves R11's court, crosses route F square at grade, comes down three flights and runs on a raised walk to S3's yard; YC-R12 leaves R12's terminal deck on a bridge over S3 and comes down a dog-leg to the yard. What you can move: each Marker3D is a point of a course, its y the world level in metres (from and to on a walk, crossing, landing or bridge; head and foot on a flight); an element with no from or head marker of its own starts where the element before it ends, so dragging that joint moves both. Drag a stair's node (YC-R11, YC-R12) to move it whole; duplicate or reorder an element node to change a course; an element's metadata sets its kind (walk, crossing, landing, flight, bridge), its width w, the route a crossing or bridge goes over, raised for a walk on posts, and ends for the paving the last element meets. What is derived, by tools/gen_props.gd at the next generation into generated/park_transit.tscn: the walks' paving and the earthworks' fit, the crossing's lines, every flight's ramp, treads, nosings and risers, the plinths, handrails, guards and posts, the landings' pads and the bridge's deck. The generator holds each end to what it meets (R11's court, R12's deck, F's paving, S3's yard) and stops on an end more than 5 cm off it or a flight steeper than 37 degrees or rising more than 3 m. Edit this scene itself, not its instance under park_transit's authored_additions; the outlines drawn here in the editor are a preview only and are never saved."
+metadata/layout_version = 1
+metadata/coordinate_space = &"godot_world_metres"
+metadata/approved_plan = "res://documentation/maps/park-sections.html"
+metadata/approved_at = "e4e4273"
+
+[node name="YC-R11" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 176, 0, -106)
+metadata/ride = &"R11"
+metadata/users = &"staff"
+
+[node name="court_walk" type="Node3D" parent="YC-R11"]
+metadata/kind = &"walk"
+metadata/w = 1.2
+
+[node name="from" type="Marker3D" parent="YC-R11/court_walk"]
+position = Vector3(-30.35, 14.447, 3.81)
+
+[node name="to" type="Marker3D" parent="YC-R11/court_walk"]
+position = Vector3(-21.55, 15.811, 15.2)
+
+[node name="route_F_crossing" type="Node3D" parent="YC-R11"]
+metadata/kind = &"crossing"
+metadata/w = 1.2
+metadata/over = &"F"
+
+[node name="to" type="Marker3D" parent="YC-R11/route_F_crossing"]
+position = Vector3(-10.04, 15.811, 11.8)
+
+[node name="walk_to_stair" type="Node3D" parent="YC-R11"]
+metadata/kind = &"walk"
+metadata/w = 1.2
+
+[node name="to" type="Marker3D" parent="YC-R11/walk_to_stair"]
+position = Vector3(0.5, 14.363, 7)
+
+[node name="head_landing" type="Node3D" parent="YC-R11"]
+metadata/kind = &"landing"
+metadata/w = 1.2
+
+[node name="to" type="Marker3D" parent="YC-R11/head_landing"]
+position = Vector3(0.5, 14.363, 5.8)
+
+[node name="flight_1" type="Node3D" parent="YC-R11"]
+metadata/kind = &"flight"
+metadata/w = 1.2
+
+[node name="foot" type="Marker3D" parent="YC-R11/flight_1"]
+position = Vector3(0.5, 12.012, 2.67)
+
+[node name="landing_1" type="Node3D" parent="YC-R11"]
+metadata/kind = &"landing"
+metadata/w = 1.2
+
+[node name="to" type="Marker3D" parent="YC-R11/landing_1"]
+position = Vector3(0.5, 12.012, 1.47)
+
+[node name="flight_2" type="Node3D" parent="YC-R11"]
+metadata/kind = &"flight"
+metadata/w = 1.2
+
+[node name="foot" type="Marker3D" parent="YC-R11/flight_2"]
+position = Vector3(0.5, 9.661, -1.67)
+
+[node name="landing_2" type="Node3D" parent="YC-R11"]
+metadata/kind = &"landing"
+metadata/w = 1.2
+
+[node name="to" type="Marker3D" parent="YC-R11/landing_2"]
+position = Vector3(0.5, 9.661, -2.87)
+
+[node name="flight_3" type="Node3D" parent="YC-R11"]
+metadata/kind = &"flight"
+metadata/w = 1.2
+
+[node name="foot" type="Marker3D" parent="YC-R11/flight_3"]
+position = Vector3(0.5, 7.31, -6)
+
+[node name="raised_walk" type="Node3D" parent="YC-R11"]
+metadata/kind = &"walk"
+metadata/w = 1.2
+metadata/raised = true
+
+[node name="to" type="Marker3D" parent="YC-R11/raised_walk"]
+position = Vector3(0.3, 7.31, -14.5)
+
+[node name="raised_walk_to_S3" type="Node3D" parent="YC-R11"]
+metadata/kind = &"walk"
+metadata/w = 1.2
+metadata/raised = true
+metadata/ends = &"S3"
+
+[node name="to" type="Marker3D" parent="YC-R11/raised_walk_to_S3"]
+position = Vector3(-2.1, 7.31, -18.85)
+
+[node name="YC-R12" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 150, 0, -150)
+metadata/ride = &"R12"
+metadata/users = &"staff"
+
+[node name="bridge_over_S3" type="Node3D" parent="YC-R12"]
+metadata/kind = &"bridge"
+metadata/w = 1.2
+metadata/over = &"S3"
+
+[node name="from" type="Marker3D" parent="YC-R12/bridge_over_S3"]
+position = Vector3(-2.56, 13.005, 3.96)
+
+[node name="to" type="Marker3D" parent="YC-R12/bridge_over_S3"]
+position = Vector3(1.47, 13.005, -0.1)
+
+[node name="bridge_landing" type="Node3D" parent="YC-R12"]
+metadata/kind = &"landing"
+metadata/w = 1.2
+
+[node name="to" type="Marker3D" parent="YC-R12/bridge_landing"]
+position = Vector3(2.31, 13.005, -0.95)
+
+[node name="flight_1" type="Node3D" parent="YC-R12"]
+metadata/kind = &"flight"
+metadata/w = 1.2
+
+[node name="head" type="Marker3D" parent="YC-R12/flight_1"]
+position = Vector3(1.47, 13.005, -0.95)
+
+[node name="foot" type="Marker3D" parent="YC-R12/flight_1"]
+position = Vector3(-1.22, 10.158, -3.63)
+
+[node name="half_landing" type="Node3D" parent="YC-R12"]
+metadata/kind = &"landing"
+metadata/w = 2.5
+
+[node name="from" type="Marker3D" parent="YC-R12/half_landing"]
+position = Vector3(-1.68, 10.158, -3.17)
+
+[node name="to" type="Marker3D" parent="YC-R12/half_landing"]
+position = Vector3(-2.53, 10.158, -4.02)
+
+[node name="flight_2" type="Node3D" parent="YC-R12"]
+metadata/kind = &"flight"
+metadata/w = 1.2
+
+[node name="head" type="Marker3D" parent="YC-R12/flight_2"]
+position = Vector3(-2.13, 10.158, -2.71)
+
+[node name="foot" type="Marker3D" parent="YC-R12/flight_2"]
+position = Vector3(0.55, 7.31, -0.02)
+
+[node name="foot_landing" type="Node3D" parent="YC-R12"]
+metadata/kind = &"landing"
+metadata/w = 1.2
+metadata/ends = &"S3"
+
+[node name="from" type="Marker3D" parent="YC-R12/foot_landing"]
+position = Vector3(1.4, 7.31, -0.03)
+
+[node name="to" type="Marker3D" parent="YC-R12/foot_landing"]
+position = Vector3(0.13, 7.31, 1.25)

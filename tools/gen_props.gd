@@ -27,6 +27,7 @@ const LighthouseRegradeSource := preload("res://scripts/lighthouse_regrade_sourc
 const DrainageTerrainSource := preload("res://scripts/park_drainage_terrain_source.gd")
 const VerticalControls := preload("res://scripts/park_vertical_controls_source.gd")
 const WorldTerrainSource := preload("res://scripts/world_terrain_source.gd")
+const YardSource := preload("res://scripts/yard_connections_source.gd")
 
 const GENERATED_DIR := "res://scenes/world/generated"
 const OUT_PATH := GENERATED_DIR + "/plaza_props.tscn"
@@ -797,6 +798,9 @@ func _initialize() -> void:
 	# The east station yard's two staff stairs (Christina, 2026-10-15), after
 	# the lane's banks, so no earlier shape's ordinal moves.
 	_yard_connections()
+	# The kerb beside D4 on the lane's verge (Christina, 2026-10-16), after
+	# the yard stairs for the same reason.
+	_grand_tram_kerbs()
 	if not _save(_root, TRANSIT_PATH):
 		return
 	# The approach and the towns lay their roads on the corridor's own ground.
@@ -14407,6 +14411,252 @@ func _grand_tram_lane_culvert(nm: String, s: float) -> void:
 			Vector2(mouths[1].x, mouths[1].z)), fill])
 
 
+# ---------------------------------------------------------------------------
+# The Grand Circuit's kerb beside D4 (2026-10-16)
+# ---------------------------------------------------------------------------
+
+## Christina, 2026-10-16: "Kerb the cutting there". Grid edit G23 cut the lane
+## free through Kiddieland's D4 area, and its verge passes 2.3 m from D4's low,
+## so the low ran over into the cutting at 2.90 m rather than over its rim at
+## 3.13 m. A kerb on the outer edge of the verge on the low's side holds the
+## basin's water back from the lane again. Everything about it is derived, from
+## the lane, the basin's editor-owned low and ring (`park_vertical_controls.tscn`)
+## and the grid's ground:
+## - its top: the level the basin overflows its ring at with the cutting closed
+##   (water rising from the low over the grid's nodes, kept out of the lane's
+##   band to the kerb's outer face), and `GRAND_TRAM_KERB_FREEBOARD` over it, so
+##   the water leaves over the rim and never over the kerb;
+## - its run: `GRAND_TRAM_KERB_T` thick on the verge's outer edge, so neither the
+##   lane nor its clear zone narrows, over every station where that water meets
+##   the band, and on from each end to the first station whose ground rises to
+##   the overflow level within `GRAND_TRAM_KERB_RETURN_MAX` of the kerb;
+## - its ends: turned up the batter there, along the lane's across, to that
+##   ground and `GRAND_TRAM_KERB_EMBED` into it, because the foot of the batter
+##   outside the kerb lies under the overflow level the whole way and the water
+##   would otherwise run round an end into the cutting;
+## - its foot: `GRAND_TRAM_KERB_FOOT` under the least ground across it.
+## Appended to the transit scene after the yard stairs, so no earlier shape's
+## seam ordinal moves.
+const GRAND_TRAM_KERBED_BASINS: Array[StringName] = [&"D4_basin"]
+const GRAND_TRAM_KERB_T := 0.3
+const GRAND_TRAM_KERB_FREEBOARD := 0.05
+const GRAND_TRAM_KERB_RETURN_MAX := 4.0
+const GRAND_TRAM_KERB_EMBED := 0.3
+const GRAND_TRAM_KERB_FOOT := 0.3
+## How finely the kerb follows the lane and its foot the ground, and how finely
+## a station's ground is read outward for an end.
+const GRAND_TRAM_KERB_STEP := 0.5
+const GRAND_TRAM_KERB_PROBE := 0.05
+
+
+func _grand_tram_kerbs() -> void:
+	for basin in GRAND_TRAM_KERBED_BASINS:
+		_grand_tram_kerb(basin)
+
+
+func _grand_tram_kerb(basin: StringName) -> void:
+	var controls: Array = _drainage_terrain_source().control_points(basin)
+	var low: Vector3 = controls[0]
+	var ring := PackedVector2Array()
+	for k in range(1, controls.size()):
+		ring.append(Vector2(controls[k].x, controls[k].z))
+	var inner := Plan.GRAND_TRAM_LANE_W * 0.5 + Plan.GRAND_TRAM_CUTTING_VERGE
+	var outer := inner + GRAND_TRAM_KERB_T
+	var row := _grand_tram_row(_grand_tram_arc_of(low))
+	var centre: Vector3 = row["c"]
+	var side := signf((Vector2(low.x, low.z) - Vector2(centre.x, centre.z)).dot(row["n"]))
+	var pond := _grand_tram_kerb_pond(low, ring, outer)
+	var level := float(pond["level"])
+	if is_nan(float(pond["from_s"])):
+		print("grand tram kerb %s: the low overflows its ring at %.3f by (%.0f, %.0f) and never meets the lane's cutting; no kerb" % [
+			basin, level, pond["exit"].x, pond["exit"].y])
+		return
+	var top := level + GRAND_TRAM_KERB_FREEBOARD
+	# Each end: walked on from where the water last meets the band to the first
+	# station whose ground rises to the overflow level close outside the kerb.
+	var ends: Array[Vector2] = []
+	for k in 2:
+		var way := -1.0 if k == 0 else 1.0
+		var s := float(pond["from_s"] if k == 0 else pond["to_s"])
+		var reach := _grand_tram_kerb_tie(s, side, outer, level)
+		var walked := 0.0
+		while is_nan(reach):
+			s += way * GRAND_TRAM_KERB_STEP
+			walked += GRAND_TRAM_KERB_STEP
+			assert(walked <= 30.0, "%s's kerb finds no ground at its overflow level to end on" % basin)
+			reach = _grand_tram_kerb_tie(s, side, outer, level)
+		ends.append(Vector2(s, reach))
+	var s0 := ends[0].x
+	var s1 := ends[1].x
+	# The run's stations: both ends, every lane station between them, and enough
+	# between those that the foot follows the ground; clear of a turned end by
+	# more than the kerb's thickness, so the strip never folds back.
+	var cuts: Array[float] = [s0, s1]
+	for arc in _grand_tram_arcs():
+		if arc > s0 and arc < s1:
+			cuts.append(arc)
+	cuts.sort()
+	var run: Array[float] = []
+	for k in cuts.size() - 1:
+		var parts := maxi(ceili((cuts[k + 1] - cuts[k]) / GRAND_TRAM_KERB_STEP), 1)
+		for j in parts:
+			run.append(lerpf(cuts[k], cuts[k + 1], float(j) / float(parts)))
+	run.append(s1)
+	# The strip as two rails in (s, d) across the lane, `a` the faces towards the
+	# lane and the ends, `b` the faces towards the batter: up the west end's
+	# return, along the verge, down the east end's return.
+	var rail_a: Array[Vector2] = []
+	var rail_b: Array[Vector2] = []
+	var turned := [ends[0].y > outer, ends[1].y > outer]
+	if turned[0]:
+		for d in _grand_tram_kerb_return(outer, ends[0].y + GRAND_TRAM_KERB_EMBED, true):
+			rail_a.append(Vector2(s0, d))
+			rail_b.append(Vector2(s0 + GRAND_TRAM_KERB_T, d))
+		rail_a[-1] = Vector2(s0, inner)
+	for s in run:
+		var first := s == s0
+		var last := s == s1
+		if (first and turned[0]) or (last and turned[1]):
+			continue
+		if (turned[0] and s <= s0 + GRAND_TRAM_KERB_T + 0.05) \
+				or (turned[1] and s >= s1 - GRAND_TRAM_KERB_T - 0.05):
+			continue
+		rail_a.append(Vector2(s, inner))
+		rail_b.append(Vector2(s, outer))
+	if turned[1]:
+		var first_of_return := rail_a.size()
+		for d in _grand_tram_kerb_return(outer, ends[1].y + GRAND_TRAM_KERB_EMBED, false):
+			rail_a.append(Vector2(s1, d))
+			rail_b.append(Vector2(s1 - GRAND_TRAM_KERB_T, d))
+		rail_a[first_of_return] = Vector2(s1, inner)
+	var a := PackedVector3Array()
+	var b := PackedVector3Array()
+	var a_low := PackedVector3Array()
+	var b_low := PackedVector3Array()
+	var face_least := INF
+	var face_most := -INF
+	for k in rail_a.size():
+		var pa := _grand_tram_lane_point(rail_a[k].x, side * rail_a[k].y)
+		var pb := _grand_tram_lane_point(rail_b[k].x, side * rail_b[k].y)
+		var foot := INF
+		for t in [0.0, 0.5, 1.0]:
+			var q: Vector3 = pa.lerp(pb, t)
+			var g: float = _world_terrain_source().height_y(Vector2(q.x, q.z))
+			if not is_nan(g):
+				foot = minf(foot, g)
+		assert(foot < top, "%s's kerb stands on no ground under its top" % basin)
+		a.append(Vector3(pa.x, top, pa.z))
+		b.append(Vector3(pb.x, top, pb.z))
+		a_low.append(Vector3(pa.x, foot - GRAND_TRAM_KERB_FOOT, pa.z))
+		b_low.append(Vector3(pb.x, foot - GRAND_TRAM_KERB_FOOT, pb.z))
+		if is_equal_approx(rail_a[k].y, inner):
+			var formation := _grand_tram_row_formation(_grand_tram_row(rail_a[k].x))
+			face_least = minf(face_least, top - formation)
+			face_most = maxf(face_most, top - formation)
+	_footbridge_body("grand_tram_kerb_%s" % String(basin).trim_suffix("_basin").to_lower(),
+		a, b, 0.0, 0.0, "building", true, a_low, b_low)
+	var length := 0.0
+	for k in rail_a.size() - 1:
+		length += Vector2(a[k + 1].x - a[k].x, a[k + 1].z - a[k].z).length()
+	var start := _grand_tram_lane_point(s0, side * inner)
+	var finish := _grand_tram_lane_point(s1, side * inner)
+	print("grand tram kerb %s: the low overflows its ring at %.3f by (%.0f, %.0f) with the cutting closed; top %.3f; run s %.2f..%.2f on the verge's outer edge %.2f..%.2f m from the centreline, (%.2f, %.2f) to (%.2f, %.2f), %.2f..%.2f m over the formation; ends turned %.2f and %.2f m up the batter; %.2f m along its lane-side faces" % [
+		basin, level, pond["exit"].x, pond["exit"].y, top, s0, s1, inner, outer,
+		start.x, start.z, finish.x, finish.z, face_least, face_most,
+		ends[0].y + GRAND_TRAM_KERB_EMBED - outer if turned[0] else 0.0,
+		ends[1].y + GRAND_TRAM_KERB_EMBED - outer if turned[1] else 0.0, length])
+
+
+## Distances across the lane for a turned end, from `far` down to `near` when
+## `inward`, else up from `near` to `far`, at most `GRAND_TRAM_KERB_STEP` apart.
+func _grand_tram_kerb_return(near: float, far: float, inward: bool) -> Array[float]:
+	var parts := maxi(ceili((far - near) / GRAND_TRAM_KERB_STEP), 1)
+	var out: Array[float] = []
+	for j in parts + 1:
+		var t := float(j) / float(parts)
+		out.append(lerpf(far, near, t) if inward else lerpf(near, far, t))
+	return out
+
+
+## How far across the lane at `s`, on `side`, from the kerb's outer face out to
+## `GRAND_TRAM_KERB_RETURN_MAX` beyond it, the grid's ground first stands at
+## `level`; NAN where it does not.
+func _grand_tram_kerb_tie(s: float, side: float, outer: float, level: float) -> float:
+	var d := outer
+	while d <= outer + GRAND_TRAM_KERB_RETURN_MAX + 0.0001:
+		var p := _grand_tram_lane_point(s, side * d)
+		var g: float = _world_terrain_source().height_y(Vector2(p.x, p.z))
+		if not is_nan(g) and g >= level:
+			return d
+		d += GRAND_TRAM_KERB_PROBE
+	return NAN
+
+
+## The water rising from a basin's low over the grid's nodes (eight ways from
+## each), kept out of the lane's band within `reach` of its centreline: `level`,
+## the level it leaves the basin's ring at, `exit`, where, and `from_s`/`to_s`,
+## the least and greatest lane length of every node under that level and every
+## band node beside it, where the water meets the band; NAN where it never does.
+func _grand_tram_kerb_pond(low: Vector3, ring: PackedVector2Array, reach: float) -> Dictionary:
+	var step := float(WorldTerrainSource.grid_spec()["spacing_m"])
+	var heights := {}
+	var banded := {}
+	var start := Vector2i(roundi(low.x / step), roundi(low.z / step))
+	var open: Array[Vector2i] = [start]
+	var seen := {start: true}
+	var held: Array[Vector2i] = []
+	var level := -INF
+	var exit := Vector2.INF
+	while not open.is_empty():
+		var best := 0
+		for k in range(1, open.size()):
+			if _grand_tram_kerb_node_y(open[k], step, heights) \
+					< _grand_tram_kerb_node_y(open[best], step, heights):
+				best = k
+		var node := open[best]
+		open.remove_at(best)
+		level = maxf(level, _grand_tram_kerb_node_y(node, step, heights))
+		if not Geometry2D.is_point_in_polygon(Vector2(node) * step, ring):
+			exit = Vector2(node) * step
+			break
+		held.append(node)
+		for dz in [-1, 0, 1]:
+			for dx in [-1, 0, 1]:
+				var next := node + Vector2i(dx, dz)
+				if seen.has(next) or _grand_tram_kerb_banded(next, step, reach, banded):
+					continue
+				seen[next] = true
+				open.append(next)
+	assert(exit != Vector2.INF, "the water from (%.1f, %.1f) never leaves its ring" % [low.x, low.z])
+	var from_s := NAN
+	var to_s := NAN
+	for node in held:
+		if _grand_tram_kerb_node_y(node, step, heights) >= level:
+			continue
+		for dz in [-1, 0, 1]:
+			for dx in [-1, 0, 1]:
+				var next := node + Vector2i(dx, dz)
+				if next == node or not _grand_tram_kerb_banded(next, step, reach, banded):
+					continue
+				for p in [node, next]:
+					var s := _grand_tram_arc_of(Vector3(p.x * step, 0.0, p.y * step))
+					from_s = s if is_nan(from_s) else minf(from_s, s)
+					to_s = s if is_nan(to_s) else maxf(to_s, s)
+	return {"level": level, "exit": exit, "from_s": from_s, "to_s": to_s}
+
+
+func _grand_tram_kerb_node_y(node: Vector2i, step: float, heights: Dictionary) -> float:
+	if not heights.has(node):
+		heights[node] = _world_terrain_source().height_y(Vector2(node) * step)
+	return heights[node]
+
+
+func _grand_tram_kerb_banded(node: Vector2i, step: float, reach: float, banded: Dictionary) -> bool:
+	if not banded.has(node):
+		var p := Vector3(node.x * step, 0.0, node.y * step)
+		banded[node] = float(_grand_tram_nearest(p)["distance"]) < reach
+	return banded[node]
+
 func _grand_tram_stop(id: StringName, at: Vector3, theta: float) -> void:
 	if _grand_tram_station_follows(id):
 		_grand_tram_stop_on_grade(id, at, theta)
@@ -24584,8 +24834,10 @@ func _rebuild_tree(nm: String, at: Vector3, height: float, radius: float) -> voi
 # ---------------------------------------------------------------------------
 
 ## Christina, 2026-10-15: "Build the two yard stairs", approved as drawn on the
-## maps and recorded in `ParkPlan.YARD_CONNECTIONS`. Each element of a record
-## is built in order:
+## maps. Editor-owned since 2026-10-16 ("Make them editor-owned"): each stair's
+## course and levels are the markers in `scenes/world/yard_connections.tscn`,
+## read as records by `scripts/yard_connections_source.gd`; this derives only
+## their construction. Each element of a record is built in order:
 ## - a walk as the park's paths are (`_rebuild_path`), on the earthworks laid
 ##   under it (grid edit G24); a `raised` walk as a deck on posts between
 ##   guards, standing over the drainage low it crosses rather than filling it;
@@ -24601,7 +24853,7 @@ func _rebuild_tree(nm: String, at: Vector3, height: float, radius: float) -> voi
 ##   stands more than `RAIL_FREEBOARD` over the ground;
 ## - a bridge as a deck `YARD_DECK` deep between guards, from the ride's own
 ##   deck to the landing beyond what it crosses.
-## The record's levels are as built at 8ab7577. Each end is held to what it
+## The markers' levels are as built at 8ab7577. Each end is held to what it
 ## meets (R11's court, R12's terminal deck, F's paving, S3's yard): the record
 ## must be within `YARD_JOIN_TOLERANCE` of it, and every point at that level
 ## takes the level it meets. Appended to the transit scene after the lane's
@@ -24634,7 +24886,7 @@ const YARD_ROUTE_GAP := 0.02
 
 
 func _yard_connections() -> void:
-	for record in Plan.YARD_CONNECTIONS:
+	for record in YardSource.read():
 		_yard_connection(record)
 
 
