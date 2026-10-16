@@ -1117,6 +1117,10 @@ func _check_grand_circuit() -> void:
 	for crossing in Plan.GRAND_TRAM_CROSSINGS:
 		var id: StringName = crossing["id"]
 		var at := Vector2(crossing["at"].x, crossing["at"].z)
+		if bool(crossing.get("pedestrian_over", false)):
+			_check_footbridge(crossing, grand, grand3)
+			crossings[crossing["pedestrian"]] = at
+			continue
 		var pedestrian := _run(crossing["pedestrian"])
 		var road_hit := _nearest_on_run(at, grand)
 		var walk_hit := _nearest_on_run(at, pedestrian)
@@ -1151,7 +1155,43 @@ func _check_grand_circuit() -> void:
 			continue
 		if hit["at"].distance_to(crossings[run["id"]]) > CROSSING_CAPTURE:
 			_fail("Grand Circuit's overlap with %s escapes its controlled crossing" % run["id"])
+	# P1's promontory walk is an editor-owned path, not a route run, and crossed
+	# the lane unregistered until 2026-10-15; it answers to the same rule.
+	var p1 := _xz(LighthouseRegrade.new().path_points(2.0))
+	var p1_hit := _nearest_between_runs(grand, p1)
+	if p1_hit["distance"] < lane_half + Plan.P1_WALK_W * 0.5:
+		if not crossings.has(&"P1_public_access"):
+			_fail("Grand Circuit overlaps P1's walk with no named crossing")
+		elif p1_hit["at"].distance_to(crossings[&"P1_public_access"]) > CROSSING_CAPTURE:
+			_fail("Grand Circuit's overlap with P1's walk escapes its controlled crossing")
 	print("  %d controlled Grand Circuit crossings" % Plan.GRAND_TRAM_CROSSINGS.size())
+
+
+## A footbridge carries a walk whose course is an editor-owned path over the
+## lane: P1's promontory walk since 2026-10-15. The record lies on both, they
+## meet at a real angle, and the walk's grade stands the deck's depth and the
+## minimum clearance over the lane's surface.
+func _check_footbridge(crossing: Dictionary, grand: Array, grand3: Array) -> void:
+	var id: StringName = crossing["id"]
+	if StringName(crossing.get("pedestrian_path", &"")) != &"P1":
+		_fail("footbridge %s names no walk this test reads" % id)
+		return
+	var walk3: Array[Vector3] = LighthouseRegrade.new().path_points(0.5)
+	var at := Vector2(crossing["at"].x, crossing["at"].z)
+	var road_hit := _nearest_on_run(at, grand)
+	var walk_hit := _nearest_on_run(at, _xz(walk3))
+	if road_hit["distance"] > 0.9 or walk_hit["distance"] > 0.9:
+		_fail("crossing %s is not on both of its named routes" % id)
+	var angle := _crossing_angle(road_hit["tangent"], walk_hit["tangent"])
+	if angle < 30.0:
+		_fail("crossing %s meets at only %.1f degrees" % [id, angle])
+	var road_y := _height_on_run3(at, grand3) + Plan.GRAND_TRAM_LANE_LIFT
+	var walk_y := _height_on_run3(at, walk3)
+	var fixed_clearance := walk_y - float(crossing["fixed_structure_depth"]) - road_y
+	if fixed_clearance + EPS < float(crossing["minimum_fixed_clearance_metres"]):
+		_fail("crossing %s has only %.2fm fixed clearance" % [id, fixed_clearance])
+	print("  footbridge %s: %.2fm fixed clearance at the lane's centreline, %.1f degrees" % [
+		id, fixed_clearance, angle])
 
 
 func _check_arrival_scene() -> void:

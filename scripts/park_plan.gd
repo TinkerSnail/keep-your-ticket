@@ -574,7 +574,31 @@ const GRAND_TRAM_CROSSINGS := [
 		"pedestrian": &"b_north_return", "owner": &"park_transit",
 		"grade_separated": true, "fixed_structure_depth": 0.24,
 		"minimum_fixed_clearance_metres": 4.0},
+	# Christina, 2026-10-15: "add the footbridge for the lighthouse walk". P1's
+	# promontory walk passes over the lane where the lane runs below it in its
+	# Headland cutting (grid edits G10 and G15). The walk is an editor-owned
+	# Path3D rather than a route run, and it keeps its course and every level:
+	# transit derives the deck under its paving, the guards and the abutments
+	# from this record, the walk and the cutting.
+	{"id": &"p1_lighthouse_footbridge",
+		"at": Vector3(-44.17, -0.43, -212.98),
+		"pedestrian": &"P1_public_access", "pedestrian_path": &"P1",
+		"owner": &"park_transit",
+		"grade_separated": true, "pedestrian_over": true,
+		"fixed_structure_depth": 0.40,
+		"minimum_fixed_clearance_metres": 4.0},
 ]
+## The lane's ribbon stands this far over its graded centreline; a clearance
+## over the lane is measured from that surface.
+const GRAND_TRAM_LANE_LIFT := 0.028
+## Where the lane runs in a cutting (the Headland, grid edits G10 and G15) its
+## formation lies this far under the lane's surface and runs level this far
+## past each lane edge; the batters then rise at `CLIMB_BANK_BATTER`.
+const GRAND_TRAM_CUTTING_FORMATION_DROP := 0.04
+const GRAND_TRAM_CUTTING_VERGE := 1.5
+## P1's promontory walk is paved this wide. Its course and grade are the
+## approved Path3D in `park_vertical_controls.tscn`.
+const P1_WALK_W := 3.0
 
 
 ## Smooth enough for the articulated vehicles to turn continuously, sampled

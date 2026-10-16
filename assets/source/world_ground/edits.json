@@ -1524,6 +1524,29 @@
    "kind": "values",
    "min_change_m": 0.001,
    "made_by": "ground_grid_edit.py --values"
+  },
+  {
+   "id": "G15",
+   "name": "grand_circuit_footbridge_cut",
+   "date": "2026-10-15",
+   "why": "Christina, 2026-10-15, add the footbridge for the lighthouse walk: the Grand Circuit lane's Headland cutting finished under P1's footbridge and west of the walk to G10's formation (4 cm under the lane, 1.5 m verges, 1.4 batters); the A loop and the Grove platform kept",
+   "tiles": [
+    "x-1_z-1"
+   ],
+   "nodes": 113,
+   "new_ground_nodes": 0,
+   "history": "history/G15.npz",
+   "files": [
+    {
+     "tile": "x-1_z-1",
+     "nodes": 113,
+     "height_sha_before": "81360e9656393fb206337c79665b501c4fe322d41f0fca32b933205caae6dcf3",
+     "height_sha_after": "77d593f4b4900aeba63402e0f81b29c0b9cabf20b1d16a68642e3d75b3b1a6c8"
+    }
+   ],
+   "kind": "values",
+   "min_change_m": 0.001,
+   "made_by": "ground_grid_edit.py --values"
   }
  ]
 }

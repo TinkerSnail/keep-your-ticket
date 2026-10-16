@@ -12342,7 +12342,7 @@ func _kiddie_guard(nm: String, at: Vector3, length: float, theta: float) -> void
 ## and it makes its relationship to pedestrians legible at every station.
 func _grand_tram_infrastructure() -> void:
 	_east_path_ribbon("grand_tram_lane", _grand_tram,
-		Plan.GRAND_TRAM_LANE_W, "asphalt", 0.028)
+		Plan.GRAND_TRAM_LANE_W, "asphalt", Plan.GRAND_TRAM_LANE_LIFT)
 	for station in Plan.GRAND_TRAM_STATIONS:
 		_grand_tram_stop(station["id"], station["at"], station["theta"])
 	_ride_vehicle_node("grand_tram", 1)
@@ -12357,6 +12357,9 @@ func _grand_tram_infrastructure() -> void:
 ## over one another. White bars make the vehicle priority legible from above;
 ## paired low posts mark the waiting edges without fencing the pedestrian run.
 func _grand_tram_crossing(crossing: Dictionary) -> void:
+	if bool(crossing.get("pedestrian_over", false)):
+		_grand_tram_footbridge(crossing)
+		return
 	var requested: Vector3 = crossing["at"]
 	var nearest := _grand_tram_nearest(requested)
 	var at: Vector3 = nearest["at"]
@@ -12441,6 +12444,273 @@ func _grand_tram_overpass(crossing: Dictionary, at: Vector3, theta: float,
 					"l" if side < 0.0 else "r"], column_at,
 				Vector3(0.0, (pedestrian_y + underside_y) * 0.5 - at.y, 0.0),
 				Vector3(0.34, support_height, 0.34), "building", theta)
+
+
+## The deck runs this far past each crest of the lane's cutting. The ground
+## grid's 2m cells lower every triangle that shares a node with the cut, up to
+## a cell's diagonal past the crest (2.1m along the walk, measured 2026-10-15);
+## the deck and its abutment cover them, so beyond the deck the walk stands on
+## ground the cut never touched and no bank is built from it.
+const FOOTBRIDGE_SEAT := 3.5
+## The overpass's deck margin beyond the width it carries, a side.
+const FOOTBRIDGE_MARGIN := 0.2
+## The deck's top lies this far under the walk's grade: the walk's own convex
+## prisms stay its floor and no trimesh edge of the deck is in the Player's way.
+const FOOTBRIDGE_DECK_DROP := 0.03
+## The overpass's guards: 0.12m thick, 1.12m high, just outside the paving.
+const FOOTBRIDGE_GUARD_GAP := 0.02
+const FOOTBRIDGE_GUARD_T := 0.12
+const FOOTBRIDGE_GUARD_H := 1.12
+## Guards and abutments lap this far into the deck or stop this far short of
+## its ends, so no two of them share a plane.
+const FOOTBRIDGE_FOOT := 0.05
+## Each abutment's face stands this far out from the crest, down the batter, so
+## it shows under the deck's end; its foot is the toe under the batter there.
+const FOOTBRIDGE_ABUTMENT_FRONT := 1.0
+const FOOTBRIDGE_ABUTMENT_TOE := 0.3
+
+var _footbridge_spans := {}
+
+
+## P1's promontory walk passes over the lane where the lane runs in its
+## Headland cutting (Christina, 2026-10-15). The walk's Path3D stays the source
+## of its course and every level, and its paving and collision prisms run on
+## across. This derives only what carries them, after the overpass: a deck
+## under the paving as wide as the walk plus the overpass's margin a side, a
+## sky-green guard on each edge and an abutment under each end where the deck
+## meets the walk's ground. All three follow the walk's own stations.
+func _grand_tram_footbridge(crossing: Dictionary) -> void:
+	var tag := String(crossing["id"])
+	var span := _grand_tram_footbridge_span(crossing)
+	var depth := float(crossing["fixed_structure_depth"])
+	# The walk's collision prisms hang under its grade: inside the deck they are
+	# part of it, below it they would stand in the lane's clearance.
+	assert(depth > REBUILD_COLLISION_PRISM_DEPTH + FOOTBRIDGE_DECK_DROP,
+		"footbridge %s is shallower than the walk's own collision" % tag)
+	assert(float(span["clearance"]) >= float(crossing["minimum_fixed_clearance_metres"]),
+		"Grand Circuit footbridge %s has insufficient fixed clearance" % tag)
+	var half := float(span["width"]) * 0.5
+	var deck := _rebuild_path_edges(span["deck"],
+		(half + FOOTBRIDGE_MARGIN) * 2.0, false)
+	var body := _footbridge_body("grand_tram_footbridge_%s_deck" % tag,
+		deck["left"], deck["right"], -depth, -FOOTBRIDGE_DECK_DROP, "building")
+	body.set_meta("fixed_clearance_metres", span["clearance"])
+	body.set_meta("minimum_fixed_clearance_metres",
+		crossing["minimum_fixed_clearance_metres"])
+	var guard_points := _footbridge_walk_between(span,
+		float(span["from"]) + FOOTBRIDGE_FOOT, float(span["to"]) - FOOTBRIDGE_FOOT)
+	var inner := _rebuild_path_edges(guard_points,
+		(half + FOOTBRIDGE_GUARD_GAP) * 2.0, false)
+	var outer := _rebuild_path_edges(guard_points,
+		(half + FOOTBRIDGE_GUARD_GAP + FOOTBRIDGE_GUARD_T) * 2.0, false)
+	for key in ["left", "right"]:
+		_footbridge_body("grand_tram_footbridge_%s_guard_%s" % [tag,
+				"l" if key == "left" else "r"],
+			inner[key], outer[key], -FOOTBRIDGE_DECK_DROP - FOOTBRIDGE_FOOT,
+			FOOTBRIDGE_GUARD_H, "sky_green")
+	var foot: float = -(_lighthouse_regrade_source().bed_depth()
+		+ FOOTBRIDGE_ABUTMENT_FRONT / Plan.CLIMB_BANK_BATTER
+		+ FOOTBRIDGE_ABUTMENT_TOE)
+	var crests: Array[float] = span["crests"]
+	# The walk's stations run north from the headland loop, so the first crest
+	# is the cutting's south side.
+	for end in [["s", float(span["from"]) + FOOTBRIDGE_FOOT,
+				crests[0] + FOOTBRIDGE_ABUTMENT_FRONT],
+			["n", crests[1] - FOOTBRIDGE_ABUTMENT_FRONT,
+				float(span["to"]) - FOOTBRIDGE_FOOT]]:
+		var seat := _rebuild_path_edges(
+			_footbridge_walk_between(span, end[1], end[2]),
+			(half + FOOTBRIDGE_MARGIN - FOOTBRIDGE_FOOT) * 2.0, false)
+		_footbridge_body("grand_tram_footbridge_%s_abutment_%s" % [tag, end[0]],
+			seat["left"], seat["right"], foot, -depth + FOOTBRIDGE_FOOT,
+			"building")
+
+
+## Where a footbridge's deck runs along its walk. The lane's cutting, its
+## formation `GRAND_TRAM_CUTTING_FORMATION_DROP` under the lane's surface, level
+## for `GRAND_TRAM_CUTTING_VERGE` past each lane edge and rising at
+## `CLIMB_BANK_BATTER`, meets the walk's bed (its grade less the P1 regrade's
+## bed depth) at a crest either side of the lane; the deck runs
+## `FOOTBRIDGE_SEAT` past each. With it, the least fixed clearance between the
+## deck's underside and the lane's surface over the lane's whole width. Cached:
+## the embankment builder asks about every station of every route.
+func _grand_tram_footbridge_span(crossing: Dictionary) -> Dictionary:
+	var id := StringName(crossing["id"])
+	if _footbridge_spans.has(id):
+		return _footbridge_spans[id]
+	assert(StringName(crossing.get("pedestrian_path", &"")) == &"P1",
+		"footbridge %s names no walk this generator derives" % id)
+	var regrade = _lighthouse_regrade_source()
+	var walk: Array[Vector3] = regrade.path_points(0.5)
+	var bed_depth: float = regrade.bed_depth()
+	var arcs := PackedFloat64Array([0.0])
+	for i in range(1, walk.size()):
+		arcs.append(arcs[i - 1] + Vector2(walk[i].x - walk[i - 1].x,
+			walk[i].z - walk[i - 1].z).length())
+	var requested: Vector3 = crossing["at"]
+	var near := Vector2(requested.x, requested.z)
+	var cross_index := -1
+	var miss := INF
+	for i in walk.size() - 1:
+		var a := Vector2(walk[i].x, walk[i].z)
+		var b := Vector2(walk[i + 1].x, walk[i + 1].z)
+		if a.distance_to(near) > 20.0:
+			continue
+		for j in _grand_tram.size() - 1:
+			var hit = Geometry2D.segment_intersects_segment(a, b,
+				Vector2(_grand_tram[j].x, _grand_tram[j].z),
+				Vector2(_grand_tram[j + 1].x, _grand_tram[j + 1].z))
+			if hit != null and (hit as Vector2).distance_to(near) < miss:
+				miss = (hit as Vector2).distance_to(near)
+				cross_index = i
+	assert(cross_index >= 0 and miss <= 1.0,
+		"footbridge %s: P1's walk does not cross the lane at its record" % id)
+	var crests: Array[float] = []
+	for step in [-1, 1]:
+		var k: int = cross_index if step < 0 else cross_index + 1
+		var inside := _footbridge_opening(walk[k], bed_depth)
+		assert(inside > 0.0, "footbridge %s has no cutting under it" % id)
+		while true:
+			var next: int = k + step
+			assert(next >= 0 and next < walk.size(),
+				"footbridge %s: the cutting outruns P1's walk" % id)
+			var here := _footbridge_opening(walk[next], bed_depth)
+			if here <= 0.0:
+				crests.append(lerpf(arcs[k], arcs[next], inside / (inside - here)))
+				break
+			k = next
+			inside = here
+	var span := {"walk": walk, "arcs": arcs, "crests": crests,
+		"from": crests[0] - FOOTBRIDGE_SEAT, "to": crests[1] + FOOTBRIDGE_SEAT,
+		"width": Plan.P1_WALK_W}
+	var deck := _footbridge_walk_between(span, span["from"], span["to"])
+	span["deck"] = deck
+	# The deck's underside is level across each station; ask it over every point
+	# of the lane beneath, not only the centreline.
+	var depth := float(crossing["fixed_structure_depth"])
+	var reach := Plan.P1_WALK_W * 0.5 + FOOTBRIDGE_MARGIN
+	var clearance := INF
+	var bounds := Rect2(Vector2(deck[0].x, deck[0].z), Vector2.ZERO)
+	for i in deck.size():
+		var p: Vector3 = deck[i]
+		var before: Vector3 = deck[maxi(i - 1, 0)]
+		var after: Vector3 = deck[mini(i + 1, deck.size() - 1)]
+		var along := Vector2(after.x - before.x, after.z - before.z).normalized()
+		var across := Vector2(-along.y, along.x)
+		var offset := -reach
+		while offset <= reach + 0.001:
+			var q := Vector2(p.x, p.z) + across * offset
+			var lane := _grand_tram_nearest(Vector3(q.x, 0.0, q.y))
+			if float(lane["distance"]) <= Plan.GRAND_TRAM_LANE_W * 0.5:
+				clearance = minf(clearance, p.y - depth
+					- (float(lane["at"].y) + Plan.GRAND_TRAM_LANE_LIFT))
+			offset += 0.25
+		bounds = bounds.expand(Vector2(p.x, p.z))
+	span["clearance"] = clearance
+	span["bounds"] = bounds.grow(reach)
+	print("footbridge %s: deck %.1fm along P1's walk, crests %.1fm apart, %.2fm fixed clearance over the lane" % [
+		id, float(span["to"]) - float(span["from"]), crests[1] - crests[0], clearance])
+	_footbridge_spans[id] = span
+	return span
+
+
+## How far the walk's bed at `p` stands over the lane's cutting there: positive
+## where the cutting opens under the walk.
+func _footbridge_opening(p: Vector3, bed_depth: float) -> float:
+	var lane := _grand_tram_nearest(p)
+	var cutting: float = float(lane["at"].y) + Plan.GRAND_TRAM_LANE_LIFT \
+		- Plan.GRAND_TRAM_CUTTING_FORMATION_DROP \
+		+ maxf(0.0, float(lane["distance"]) - Plan.GRAND_TRAM_LANE_W * 0.5
+			- Plan.GRAND_TRAM_CUTTING_VERGE) / Plan.CLIMB_BANK_BATTER
+	return p.y - bed_depth - cutting
+
+
+## The walk's stations between two distances along it, both ends interpolated.
+func _footbridge_walk_between(span: Dictionary, from_arc: float,
+		to_arc: float) -> Array[Vector3]:
+	var walk: Array[Vector3] = span["walk"]
+	var arcs: PackedFloat64Array = span["arcs"]
+	var out: Array[Vector3] = [_footbridge_walk_at(walk, arcs, from_arc)]
+	for i in walk.size():
+		if arcs[i] > from_arc + 0.1 and arcs[i] < to_arc - 0.1:
+			out.append(walk[i])
+	out.append(_footbridge_walk_at(walk, arcs, to_arc))
+	return out
+
+
+func _footbridge_walk_at(walk: Array[Vector3], arcs: PackedFloat64Array,
+		arc: float) -> Vector3:
+	for i in walk.size() - 1:
+		if arcs[i + 1] >= arc:
+			return walk[i].lerp(walk[i + 1], clampf((arc - arcs[i])
+				/ maxf(arcs[i + 1] - arcs[i], 0.0001), 0.0, 1.0))
+	return walk[-1]
+
+
+## A closed solid between two lines laid on the walk's grade, from `lo` to `hi`
+## over it, every face turned outward and shaded flat.
+func _footbridge_body(nm: String, a: PackedVector3Array, b: PackedVector3Array,
+		lo: float, hi: float, mat: String) -> StaticBody3D:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(TOWN_FLAT)
+	var top := Vector3.UP * hi
+	var low := Vector3.UP * lo
+	for i in a.size() - 1:
+		var a0 := a[i]
+		var a1 := a[i + 1]
+		var b0 := b[i]
+		var b1 := b[i + 1]
+		for level in [[top, Vector3.UP], [low, Vector3.DOWN]]:
+			var lift: Vector3 = level[0]
+			var face: Vector3 = level[1]
+			_earth_oriented_tri(st, a0 + lift, Vector2(a0.x, a0.z) * 0.3,
+				a1 + lift, Vector2(a1.x, a1.z) * 0.3,
+				b0 + lift, Vector2(b0.x, b0.z) * 0.3, face)
+			_earth_oriented_tri(st, b0 + lift, Vector2(b0.x, b0.z) * 0.3,
+				a1 + lift, Vector2(a1.x, a1.z) * 0.3,
+				b1 + lift, Vector2(b1.x, b1.z) * 0.3, face)
+		var out_a := Vector3(a0.x - b0.x, 0.0, a0.z - b0.z).normalized()
+		_earth_wall_quad(st, a0 + low, a1 + low, a0 + top, a1 + top, out_a)
+		_earth_wall_quad(st, b0 + low, b1 + low, b0 + top, b1 + top, -out_a)
+	var last := a.size() - 1
+	for end in [[0, 1], [last, last - 1]]:
+		var i: int = end[0]
+		var j: int = end[1]
+		var away := Vector3(a[i].x - a[j].x, 0.0, a[i].z - a[j].z).normalized()
+		_earth_wall_quad(st, a[i] + low, b[i] + low, a[i] + top, b[i] + top, away)
+	st.generate_normals()
+	st.generate_tangents()
+	return _rebuild_mesh_body_of(mat, nm, st.commit(), true)
+
+
+## True where `p` lies on a footbridge's deck or within `margin` beyond its
+## sides: the walk is a deck there.
+func _rebuild_on_footbridge(p: Vector2, margin: float) -> bool:
+	for crossing in Plan.GRAND_TRAM_CROSSINGS:
+		if not bool(crossing.get("pedestrian_over", false)):
+			continue
+		var span := _grand_tram_footbridge_span(crossing)
+		var bounds: Rect2 = span["bounds"]
+		if not bounds.grow(margin).has_point(p):
+			continue
+		var deck: Array[Vector3] = span["deck"]
+		var reach := float(span["width"]) * 0.5 + FOOTBRIDGE_MARGIN + margin
+		var last := deck.size() - 2
+		var best := INF
+		var beyond := false
+		for i in deck.size() - 1:
+			var a := Vector2(deck[i].x, deck[i].z)
+			var ab := Vector2(deck[i + 1].x, deck[i + 1].z) - a
+			var t := (p - a).dot(ab) / maxf(ab.length_squared(), 0.000001)
+			var d := p.distance_to(a + ab * clampf(t, 0.0, 1.0))
+			if d < best:
+				best = d
+				# Past either end of the deck, not beside it.
+				beyond = (i == 0 and t < 0.0) or (i == last and t > 1.0)
+		if best <= reach and not beyond:
+			return true
+	return false
 
 
 func _grand_tram_pedestrian_run(id: StringName, at: Vector3,
@@ -19334,13 +19604,15 @@ func _rebuild_flush_embankments(scene_root: Node3D) -> void:
 ## `REBUILD_EMBANK_TOE_BURY` inside the ground, and the foot of the retaining
 ## face it ends on, NAN when it ends in earth. Zero where the route already
 ## stands on its ground, on the Boardwalk's side of the bluff where a route is
-## a deck, and wherever the bank would enter a protected envelope. A bank never
+## a deck, on a footbridge's deck (P1's over the Grand Circuit, 2026-10-15),
+## and wherever the bank would enter a protected envelope. A bank never
 ## crosses a floor lower than itself: a fill beside a court ends at the court's
 ## edge on a wall, as F's does above J9.
 func _rebuild_embankment_run(crown: Vector3, out: Vector2, ratio: float,
 		owner_id: int) -> Array:
 	var at := Vector2(crown.x, crown.z)
-	if crown.x <= Plan.BLUFF_FACE_X + 1.0 or _rebuild_in_protected(at, 0.75):
+	if crown.x <= Plan.BLUFF_FACE_X + 1.0 or _rebuild_in_protected(at, 0.75) \
+			or _rebuild_on_footbridge(at, REBUILD_EMBANK_SHOULDER):
 		return [0.0, NAN]
 	var ground := _rebuild_embankment_ground_y(at, owner_id)
 	if is_nan(ground) or crown.y - ground <= REBUILD_EMBANK_MIN_GAP:
@@ -19421,7 +19693,8 @@ func _rebuild_route_embankment(nm: String, points: Array, width: float,
 		for under_at in [left[i], right[i], (left[i] + right[i]) * 0.5]:
 			var q: Vector3 = under_at
 			var q2 := Vector2(q.x, q.z)
-			if q.x <= Plan.BLUFF_FACE_X + 1.0 or _rebuild_in_protected(q2, 0.75):
+			if q.x <= Plan.BLUFF_FACE_X + 1.0 or _rebuild_in_protected(q2, 0.75) \
+					or _rebuild_on_footbridge(q2, REBUILD_EMBANK_SHOULDER):
 				continue
 			var under_y := _rebuild_embankment_ground_y(q2, owner_id)
 			if not is_nan(under_y) and q.y - under_y > REBUILD_EMBANK_MIN_GAP:
@@ -20867,7 +21140,7 @@ func _rebuild_lighthouse(site: Dictionary) -> void:
 	var access_world: Vector3 = access_points[-1]
 	_rebuild_open_building("P1_keeper_exhibit", keeper, site["keeper_size"],
 		access_world, "far_warm", "red", 4.0)
-	_rebuild_path("P1_public_access", access_points, 3.0, false, &"", true)
+	_rebuild_path("P1_public_access", access_points, Plan.P1_WALK_W, false, &"", true)
 
 
 func _rebuild_funhouse(site: Dictionary) -> void:

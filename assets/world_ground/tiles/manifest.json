@@ -13,7 +13,7 @@
  "seam": {
   "applied": true,
   "held": "dumped by Godot",
-  "held_sha256": "4574e6def81fb71b549d8c9e73123b9b1774cca31891e114b776a5089c68dc70",
+  "held_sha256": "5caf913581b0f379836ca36e6cf2ff1f6bf4d994b3047abab8c37ec096acb70b",
   "held_edges": 3695,
   "stitched_edges": 3120,
   "stitched_m": 10332.9,
@@ -52,13 +52,13 @@
  },
  "tiles": {
   "x-1_z-1": {
-   "input_hash": "d37155a2d53ed81b67e485c677a940ebda46d3dde48afce5428bce07a638ebbd",
+   "input_hash": "9d250a69305f060fff32f2e26aa5dd669e0fffd4a1f2c64bc099afe28a5e591f",
    "glb": "x-1_z-1.glb",
-   "glb_sha256": "02607801582229d9dbc19ee761b38f4ae3ddf84e7319ad0e4a1ac6ad46111156",
-   "glb_bytes": 2095160,
-   "height_sha256": "81360e9656393fb206337c79665b501c4fe322d41f0fca32b933205caae6dcf3",
-   "vertices": 47748,
-   "triangles": 94368,
+   "glb_sha256": "645320f59eafb4cc745d6248a641c3d6cf65648d44f85052deebca2034ea3103",
+   "glb_bytes": 2092608,
+   "height_sha256": "77d593f4b4900aeba63402e0f81b29c0b9cabf20b1d16a68642e3d75b3b1a6c8",
+   "vertices": 47690,
+   "triangles": 94252,
    "stitch_band": {
     "triangles": 1128,
     "vertices": 434,
@@ -66,9 +66,9 @@
     "length_m": 1507.3
    },
    "triangles_by_zone": {
-    "park": 9528,
-    "walkable": 32961,
-    "elsewhere": 51879,
+    "park": 9506,
+    "walkable": 32865,
+    "elsewhere": 51881,
     "deep_sea": 0
    },
    "y_range": [
@@ -77,7 +77,7 @@
    ],
    "build": {
     "rounds": 23,
-    "seconds": 2.57
+    "seconds": 2.72
    }
   },
   "x-1_z-2": {
@@ -6240,7 +6240,7 @@
    }
   },
   "x-1_z-1": {
-   "key": "ba0b6b9e889df280a78d686bc536f6efaaf0c106b980f1a6a8fda7bf18cce7c5",
+   "key": "fd108d31d85fbfd7df569f82f23ef00fc44bc8a2a1fe70876d176d8262f41016",
    "requests": {
     "n": [
      0,
@@ -30482,25 +30482,27 @@
  },
  "totals": {
   "tiles": 104,
-  "triangles": 1477848,
-  "vertices": 750059,
+  "triangles": 1477732,
+  "vertices": 750001,
   "triangles_by_zone": {
-   "park": 38698,
-   "walkable": 434434,
-   "elsewhere": 984448,
+   "park": 38676,
+   "walkable": 434338,
+   "elsewhere": 984450,
    "deep_sea": 20268
   },
-  "glb_bytes": 33999128
+  "glb_bytes": 33996576
  },
  "last_build": {
-  "tiles_built": [],
-  "phase1_built": 0,
+  "tiles_built": [
+   "x-1_z-1"
+  ],
+  "phase1_built": 1,
   "augmented_lines": {},
   "seconds": {
-   "phase1": 0.0,
-   "phase2": 0.0,
-   "export": 0.0,
-   "total": 8.0
+   "phase1": 3.1,
+   "phase2": 2.8,
+   "export": 0.3,
+   "total": 14.7
   }
  }
 }
