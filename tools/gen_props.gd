@@ -794,6 +794,9 @@ func _initialize() -> void:
 	# The lane's banks where it floats elsewhere, after the west's, so its
 	# ordinals stay where they were (Christina, 2026-10-15).
 	_grand_tram_lane_banks()
+	# The east station yard's two staff stairs (Christina, 2026-10-15), after
+	# the lane's banks, so no earlier shape's ordinal moves.
+	_yard_connections()
 	if not _save(_root, TRANSIT_PATH):
 		return
 	# The approach and the towns lay their roads on the corridor's own ground.
@@ -24437,6 +24440,10 @@ func _rebuild_planting_structure() -> void:
 					continue
 				var screen := StringName(band["kind"]) == &"screen"
 				var radius := 1.6 if screen else 2.2
+				if band_id in REBUILD_SCREEN_STEPS_OFF \
+						and _rebuild_on_service_lane(p, REBUILD_TREE_TRUNK_R):
+					p = _rebuild_step_off_service_lane(p,
+						REBUILD_TREE_TRUNK_R + REBUILD_SCREEN_STEP_CLEAR)
 				# A screen is drawn along the lane or the court it hides, and where
 				# its rhythm puts a trunk on a service lane's paving (PL2_a down
 				# S2, PL2_d on S3) or a crown under a Kiddieland destination's roof
@@ -24444,11 +24451,18 @@ func _rebuild_planting_structure() -> void:
 				# name and its three seam ordinals stay handed out, so every other
 				# tree keeps its name and nothing after it is re-planed.
 				if _rebuild_on_service_lane(p, REBUILD_TREE_TRUNK_R) \
-						or _rebuild_in_destination(p, radius, destinations):
+						or _rebuild_in_destination(p, radius, destinations) \
+						or _rebuild_in_protected(p, 2.5):
 					ordinal += 1
 					_seam_ordinal += 3
 					continue
 				var y := _rebuild_landscape_floor(p)
+				# A tree never stands over ground a grid edit has cut away under
+				# it: where the grid lies lower than its frozen copy it stands that
+				# much lower, on the cut (2026-10-16: PL2_b_05 on the batter of the
+				# Grand Circuit's cut through D4, grid edit G23). Ground raised
+				# under a tree only buries its foot, and is left.
+				y += minf(0.0, float(_world_terrain_source().delta_y(p)))
 				_rebuild_tree("%s_%02d" % [band["id"], ordinal],
 					Vector3(p.x, y, p.y), 4.5 if screen else 6.2, radius)
 				ordinal += 1
@@ -24466,6 +24480,45 @@ func _rebuild_on_service_lane(p: Vector2, clear: float) -> bool:
 			if p.distance_to(Geometry2D.get_closest_point_to_segment(p, a, b)) < reach:
 				return true
 	return false
+
+
+## The screens whose trees step off a service lane rather than give way to it:
+## PL2_b, whose first three trees S3's redrawn start (24433a0) runs over
+## (Christina, 2026-10-15: "Re-site the three screen trees"). Such a tree steps
+## straight away from the lane's nearest paving, on the side it already stands
+## (the side the screen keeps the lane from), until its trunk clears the paving
+## by `REBUILD_SCREEN_STEP_CLEAR`; then it stands only where the band's other
+## rules let it.
+const REBUILD_SCREEN_STEPS_OFF := [&"PL2_b"]
+const REBUILD_SCREEN_STEP_CLEAR := 0.05
+
+
+## `p` stepped off every service lane's paving it stands on, by `clear` past
+## the paving's edge, away from the paving's nearest point, as
+## `_rebuild_on_service_lane` measures the paving.
+func _rebuild_step_off_service_lane(p: Vector2, clear: float) -> Vector2:
+	for attempt in 4:
+		var nearest := INF
+		var foot := p
+		var normal := Vector2.ZERO
+		var reach := 0.0
+		for lane in _service_lanes:
+			var pts: Array = lane["points"]
+			for k in pts.size() - 1:
+				var a := Vector2(pts[k].x, pts[k].z)
+				var b := Vector2(pts[k + 1].x, pts[k + 1].z)
+				var at := Geometry2D.get_closest_point_to_segment(p, a, b)
+				var d := p.distance_to(at)
+				if d < nearest:
+					nearest = d
+					foot = at
+					normal = (b - a).orthogonal().normalized()
+					reach = float(lane["width"]) * 0.5 + clear
+		if nearest >= reach:
+			return p
+		var away := (p - foot).normalized() if nearest > 0.001 else normal
+		p = foot + away * (reach + 0.001)
+	return p
 
 
 ## True where a disc of `clear` round `p` reaches a Kiddieland destination's
@@ -24524,6 +24577,670 @@ func _rebuild_tree(nm: String, at: Vector3, height: float, radius: float) -> voi
 		radius, "foliage", 0.0, 0.82)
 	_sphere(nm + "_crown_b", at, Vector3(radius * 0.38, height * 0.84,
 		radius * 0.18), radius * 0.82, "foliage", 0.0, 0.92)
+
+
+# ---------------------------------------------------------------------------
+# The east station yard's staff stairs (2026-10-16)
+# ---------------------------------------------------------------------------
+
+## Christina, 2026-10-15: "Build the two yard stairs", approved as drawn on the
+## maps and recorded in `ParkPlan.YARD_CONNECTIONS`. Each element of a record
+## is built in order:
+## - a walk as the park's paths are (`_rebuild_path`), on the earthworks laid
+##   under it (grid edit G24); a `raised` walk as a deck on posts between
+##   guards, standing over the drainage low it crosses rather than filling it;
+## - a crossing at grade as two edge lines on the route it crosses, the walks
+##   either side carried at its level to that route's paving;
+## - a flight as the cascades' flights are (`_flight_ramp`, the floor, narrower
+##   than the treads either side of it, and a nosing at each step): on a plinth
+##   into the ground with a handrail each side where it stands on the ground,
+##   between guards where it stands in the air;
+## - a landing as a pad down into the ground, which is a pier where it stands
+##   in the air (YC-R12's half-landing, seated on S3's bank), or, after a
+##   bridge, as the bridge's deck on posts; guards on its open sides where it
+##   stands more than `RAIL_FREEBOARD` over the ground;
+## - a bridge as a deck `YARD_DECK` deep between guards, from the ride's own
+##   deck to the landing beyond what it crosses.
+## The record's levels are as built at 8ab7577. Each end is held to what it
+## meets (R11's court, R12's terminal deck, F's paving, S3's yard): the record
+## must be within `YARD_JOIN_TOLERANCE` of it, and every point at that level
+## takes the level it meets. Appended to the transit scene after the lane's
+## banks, so no earlier shape moves a seam ordinal.
+const YARD_JOIN_TOLERANCE := 0.05
+## The tallest riser a flight takes; each flight's risers divide its rise.
+const YARD_RISER := 0.18
+## The floor under a flight, the treads it lies between and the nosings on it.
+const YARD_RAMP_W := 0.8
+const YARD_TREAD_W := 1.0
+const YARD_NOSING_W := 0.7
+## How far a footing goes under the ground the grid has there.
+const YARD_FOOT := 0.3
+## The bridge's deck, the maps' rule; a raised walk's deck.
+const YARD_DECK := 0.4
+const YARD_WALK_DECK := 0.2
+## Posts under a raised walk and a bridge's landing.
+const YARD_POST := 0.18
+const YARD_POST_SPACING := 2.5
+## A guard stands on its edge, inside the element's width; a handrail on posts.
+const YARD_GUARD_T := 0.1
+const YARD_GUARD_H := 1.0
+const YARD_RAIL_H := 0.9
+const YARD_RAIL_T := 0.05
+## A flight standing more than this over the ground anywhere under it is in
+## the air, and stands between guards rather than on a plinth.
+const YARD_IN_AIR := 1.2
+## The walk stops this short of the paving of a route it crosses at grade.
+const YARD_ROUTE_GAP := 0.02
+
+
+func _yard_connections() -> void:
+	for record in Plan.YARD_CONNECTIONS:
+		_yard_connection(record)
+
+
+func _yard_connection(record: Dictionary) -> void:
+	var tag := "yard_%s" % String(record["id"]).replace("-", "_").to_lower()
+	var elements := _yard_held_elements(record)
+	var st := {}
+	for mat in ["building", "sky_green", "metal", "yellow"]:
+		var s := SurfaceTool.new()
+		s.begin(Mesh.PRIMITIVE_TRIANGLES)
+		s.set_smooth_group(TOWN_FLAT)
+		st[mat] = s
+	var body := StaticBody3D.new()
+	_add(body, tag)
+	var shapes: Array[PackedVector3Array] = []
+	var chain: Array[Vector3] = []
+	var deck: Array[Vector3] = []
+	var counts := {"walk": 0, "flight": 0, "mark": 0}
+	for i in elements.size():
+		var e: Dictionary = elements[i]
+		var a: Vector3 = e["p"][0]
+		var b: Vector3 = e["p"][1]
+		var w := float(e["w"])
+		var kind := StringName(e["kind"])
+		var raised := kind == &"walk" and bool(e.get("raised", false))
+		if not raised:
+			_yard_raised_walk(deck, w, st, shapes)
+		if raised or kind not in [&"walk", &"crossing"]:
+			_yard_flush_walk(tag, chain, w, counts)
+		match kind:
+			&"walk":
+				var line := deck if raised else chain
+				if line.is_empty() or line[-1].distance_to(a) > 0.001:
+					line.append(a)
+				line.append(b)
+			&"crossing":
+				var span := _yard_route_span(StringName(e["over"]), a, b)
+				if chain.is_empty() or chain[-1].distance_to(a) > 0.001:
+					chain.append(a)
+				chain.append(a.lerp(b, float(span.x)))
+				_yard_flush_walk(tag, chain, w, counts)
+				_yard_crossing_marks(tag, counts, StringName(e["over"]),
+					a.lerp(b, float(span.y)), a.lerp(b, float(span.z)), w)
+				chain.append(a.lerp(b, float(span.w)))
+				chain.append(b)
+			&"flight":
+				_yard_flight(tag, counts, a, b, w, st, shapes)
+			&"landing":
+				var prev: Dictionary = elements[i - 1] if i > 0 else {}
+				var next: Dictionary = elements[i + 1] if i + 1 < elements.size() else {}
+				_yard_landing(a, b, w, prev, next, st, shapes)
+			&"bridge":
+				# The deck runs on over the landing beyond it, in one piece.
+				assert(i + 2 < elements.size() and StringName(elements[i + 1]["kind"]) == &"landing"
+					and StringName(elements[i + 2]["kind"]) == &"flight",
+					"%s: a bridge lands on a landing a flight leaves" % record["id"])
+				_yard_bridge(a, b, elements[i + 1]["p"][1], elements[i + 2]["p"][0], w,
+					_yard_ride_floor(StringName(record["ride"])), st, shapes)
+	_yard_flush_walk(tag, chain, 1.2, counts)
+	_yard_raised_walk(deck, 1.2, st, shapes)
+	for mat in st:
+		var s: SurfaceTool = st[mat]
+		if not s.has_meta("used"):
+			continue
+		s.generate_normals()
+		var mesh := s.commit()
+		if mesh.get_surface_count() == 0:
+			continue
+		var mi := MeshInstance3D.new()
+		mi.name = mat
+		mi.mesh = mesh
+		mi.material_override = mats[mat]
+		body.add_child(mi)
+		mi.owner = _root
+	for k in shapes.size():
+		var shape := ConvexPolygonShape3D.new()
+		shape.points = shapes[k]
+		var cs := CollisionShape3D.new()
+		cs.name = "shape_%02d" % k
+		cs.shape = shape
+		body.add_child(cs)
+		cs.owner = _root
+
+
+## The record's elements with each end held to what it meets: every point at
+## the first point's level takes the level of the ride's floor it leaves, at a
+## crossing's level that of the route's paving, and at the last point's level
+## that of the paving it ends on.
+func _yard_held_elements(record: Dictionary) -> Array:
+	var elements: Array = (record["elements"] as Array).duplicate(true)
+	var levels := {}
+	var first: Vector3 = elements[0]["p"][0]
+	var origin := _yard_ride_floor(StringName(record["ride"]))
+	var centre: Vector3 = origin["centre"]
+	var off_rim := absf(Vector2(first.x - centre.x, first.z - centre.z).length()
+		- float(origin["radius"]))
+	assert(off_rim <= YARD_JOIN_TOLERANCE,
+		"%s does not start on %s's rim (%.3f m off)" % [record["id"], record["ride"], off_rim])
+	levels[first.y] = centre.y
+	for e in elements:
+		if StringName(e["kind"]) == &"crossing":
+			var a: Vector3 = e["p"][0]
+			var b: Vector3 = e["p"][1]
+			var mid := (a + b) * 0.5
+			levels[a.y] = float(_yard_route_at(StringName(e["over"]), Vector2(mid.x, mid.z))["y"])
+	var last: Dictionary = elements[-1]
+	var end: Vector3 = last["p"][1]
+	levels[end.y] = _yard_service_y(StringName(last["ends"]), Vector2(end.x, end.z))
+	for level in levels:
+		assert(absf(float(levels[level]) - float(level)) <= YARD_JOIN_TOLERANCE,
+			"%s: the record's %.3f m is %.3f m from what it meets" % [
+				record["id"], level, float(levels[level]) - float(level)])
+	for e in elements:
+		var pts: Array = e["p"]
+		for k in 2:
+			var p: Vector3 = pts[k]
+			for level in levels:
+				if absf(p.y - float(level)) < 0.0005:
+					p.y = float(levels[level])
+			pts[k] = p
+	var report := PackedStringArray()
+	for level in levels:
+		report.append("%.3f -> %.3f" % [level, levels[level]])
+	print("yard %s: %d elements, levels held %s" % [record["id"], elements.size(),
+		", ".join(report)])
+	return elements
+
+
+## A ride's floor a yard connection leaves: R11's court, R12's Frontier
+## terminal's deck, as `_rebuild_observation_ride` and `_rebuild_atlas_sky_ride`
+## build them. `centre` carries the floor's level.
+func _yard_ride_floor(ride: StringName) -> Dictionary:
+	for site in Plan.rebuild_ride_sites():
+		if StringName(site["id"]) != ride:
+			continue
+		match ride:
+			&"R11":
+				var at := _rebuild_site(site["at"], &"north")
+				return {"centre": at + Vector3.UP * 0.10, "radius": float(site["radius"])}
+			&"R12":
+				var base := _rebuild_site((site["terminals"] as Array)[1], &"north")
+				return {"centre": base + Vector3.UP * 0.36, "radius": 6.0}
+	assert(false, "a yard connection leaves %s, which has no floor here" % ride)
+	return {}
+
+
+## A district route's graded paving nearest `p`: its level there, how far `p`
+## is from its centreline and its half-width.
+func _yard_route_at(route: StringName, p: Vector2) -> Dictionary:
+	var best := {"distance": INF, "y": 0.0, "half": 0.0}
+	for run in _rebuild_district_build_runs():
+		if StringName(run["route"]) != route:
+			continue
+		var points := _rebuild_graded_route(run)
+		for i in points.size() - 1:
+			var a := Vector3(points[i])
+			var b := Vector3(points[i + 1])
+			var a2 := Vector2(a.x, a.z)
+			var ab := Vector2(b.x, b.z) - a2
+			var t := clampf((p - a2).dot(ab) / maxf(ab.length_squared(), 0.001), 0.0, 1.0)
+			var d := p.distance_to(a2 + ab * t)
+			if d < float(best["distance"]):
+				best = {"distance": d, "y": lerpf(a.y, b.y, t),
+					"half": float(run["width"]) * 0.5}
+	assert(float(best["distance"]) < INF, "no route %s to cross" % route)
+	return best
+
+
+## Where a crossing's axis from `a` to `b` is on the route's paving, as
+## fractions of it: (where the walk stops short of it, where the paving
+## begins, where it ends, where the walk begins again).
+func _yard_route_span(route: StringName, a: Vector3, b: Vector3) -> Vector4:
+	var length := Vector2(b.x - a.x, b.z - a.z).length()
+	var steps := ceili(length / 0.01)
+	var first := -1.0
+	var last := -1.0
+	for k in steps + 1:
+		var u := float(k) / float(steps)
+		var q := a.lerp(b, u)
+		var at := _yard_route_at(route, Vector2(q.x, q.z))
+		if float(at["distance"]) <= float(at["half"]):
+			if first < 0.0:
+				first = u
+			last = u
+	assert(first > 0.0 and last < 1.0, "a yard crossing does not cross %s" % route)
+	var gap := YARD_ROUTE_GAP / length
+	return Vector4(first - gap, first, last, last + gap)
+
+
+## The level of the service paving a connection ends on, as
+## `_rebuild_service_network` laid it.
+func _yard_service_y(id: StringName, p: Vector2) -> float:
+	for lane in _service_lanes:
+		if StringName(lane.get("id", &"")) != id:
+			continue
+		var pts: Array = lane["points"]
+		var best := INF
+		var y := 0.0
+		for i in pts.size() - 1:
+			var a: Vector3 = pts[i]
+			var b: Vector3 = pts[i + 1]
+			var a2 := Vector2(a.x, a.z)
+			var ab := Vector2(b.x, b.z) - a2
+			var t := clampf((p - a2).dot(ab) / maxf(ab.length_squared(), 0.001), 0.0, 1.0)
+			var d := p.distance_to(a2 + ab * t)
+			if d < best:
+				best = d
+				y = lerpf(a.y, b.y, t)
+		assert(best <= float(lane["width"]) * 0.5 + YARD_JOIN_TOLERANCE,
+			"a yard connection ends %.2f m off %s's paving" % [best, id])
+		return y
+	assert(false, "no service route %s to end on" % id)
+	return 0.0
+
+
+## The grid's ground under a footprint, its lowest at the corners, the middle
+## and the edges' middles.
+func _yard_ground_min(corners: Array) -> float:
+	var y := INF
+	var probes: Array[Vector3] = []
+	for k in corners.size():
+		var p: Vector3 = corners[k]
+		var q: Vector3 = corners[(k + 1) % corners.size()]
+		probes.append(p)
+		probes.append((p + q) * 0.5)
+	var centre := Vector3.ZERO
+	for p in corners:
+		centre += p
+	probes.append(centre / float(corners.size()))
+	for p in probes:
+		var g: float = _world_terrain_source().height_y(Vector2(p.x, p.z))
+		if not is_nan(g):
+			y = minf(y, g)
+	assert(y < INF, "a yard footing has no ground under it")
+	return y
+
+
+## How far a line from `a` to `b` stands over the grid's ground at most, read
+## along it and `half` either side.
+func _yard_height_over(a: Vector3, b: Vector3, half: float) -> float:
+	var high := -INF
+	var along := Vector2(b.x - a.x, b.z - a.z)
+	var across := Vector2(-along.y, along.x).normalized() * half \
+		if along.length() > 0.001 else Vector2.ZERO
+	for k in 9:
+		var q := a.lerp(b, float(k) / 8.0)
+		for side in [-1.0, 0.0, 1.0]:
+			var g: float = _world_terrain_source().height_y(Vector2(q.x, q.z) + across * float(side))
+			if not is_nan(g):
+				high = maxf(high, q.y - g)
+	return high
+
+
+## A closed solid of eight corners, the bottom four then the top four, each
+## four in order round it; every face turned outward. Its corners are a convex
+## collision shape too when `shapes` is given.
+func _yard_solid(s: SurfaceTool, c: Array, shapes = null) -> void:
+	s.set_meta("used", true)
+	var centre := Vector3.ZERO
+	for p in c:
+		centre += p
+	centre /= 8.0
+	for f in [[0, 1, 2, 3], [7, 6, 5, 4], [0, 4, 5, 1], [1, 5, 6, 2],
+			[2, 6, 7, 3], [3, 7, 4, 0]]:
+		var q: Array[Vector3] = [c[f[0]], c[f[1]], c[f[2]], c[f[3]]]
+		var hint: Vector3 = (q[0] + q[1] + q[2] + q[3]) * 0.25 - centre
+		var uv := func(p: Vector3) -> Vector2:
+			return Vector2(p.x + p.z, p.y if absf(hint.y) < hint.length() * 0.7 else p.z) * 0.3
+		_earth_oriented_tri(s, q[0], uv.call(q[0]), q[1], uv.call(q[1]), q[2], uv.call(q[2]), hint)
+		_earth_oriented_tri(s, q[0], uv.call(q[0]), q[2], uv.call(q[2]), q[3], uv.call(q[3]), hint)
+	if shapes != null:
+		(shapes as Array).append(PackedVector3Array(c))
+
+
+## A solid along an axis from `a` to `b` (its top line), `half` either side of
+## it, from `lo` to `hi` over the axis's own levels; or down to the level
+## `floor_y` when given.
+func _yard_slab(s: SurfaceTool, a: Vector3, b: Vector3, half: float, lo: float,
+		hi: float, shapes = null, floor_y := NAN, offset := 0.0) -> void:
+	_yard_solid(s, _yard_slab_corners(a, b, half, lo, hi, floor_y, offset), shapes)
+
+
+func _yard_slab_corners(a: Vector3, b: Vector3, half: float, lo: float, hi: float,
+		floor_y := NAN, offset := 0.0) -> Array:
+	var along := Vector2(b.x - a.x, b.z - a.z).normalized()
+	var across := Vector3(-along.y, 0.0, along.x)
+	var o1 := across * (offset - half)
+	var o2 := across * (offset + half)
+	var corners := []
+	for top in [false, true]:
+		var dy: float = hi if top else lo
+		for p in [a + o1, b + o1, b + o2, a + o2]:
+			var q: Vector3 = p
+			q.y = q.y + dy if (top or is_nan(floor_y)) else floor_y
+			corners.append(q)
+	return corners
+
+
+## A square bar from `a` to `b`, `half` each way about its axis.
+func _yard_bar(s: SurfaceTool, a: Vector3, b: Vector3, half: float) -> void:
+	var d := (b - a).normalized()
+	var side := d.cross(Vector3.UP)
+	if side.length() < 0.01:
+		side = Vector3.RIGHT
+	side = side.normalized() * half
+	var up := side.cross(d).normalized() * half
+	_yard_solid(s, [a - side - up, b - side - up, b + side - up, a + side - up,
+		a - side + up, b - side + up, b + side + up, a + side + up])
+
+
+func _yard_flush_walk(tag: String, chain: Array[Vector3], w: float, counts: Dictionary) -> void:
+	if chain.size() >= 2:
+		_rebuild_path("%s_walk_%d" % [tag, counts["walk"]], chain.duplicate(), w,
+			false, &"", true)
+		var legs := PackedStringArray()
+		for k in chain.size() - 1:
+			var run := Vector2(chain[k + 1].x - chain[k].x, chain[k + 1].z - chain[k].z).length()
+			legs.append("%.2f m at %+.1f%%" % [run, 100.0 * (chain[k + 1].y - chain[k].y) / run])
+		print("yard %s walk %d: %.3f to %.3f, %s; %.2f..%.2f m over the ground" % [tag,
+			counts["walk"], chain[0].y, chain[-1].y, ", ".join(legs),
+			-_yard_height_over_neg(chain, w * 0.5), _yard_height_over_line(chain, w * 0.5)])
+		counts["walk"] += 1
+	chain.clear()
+
+
+## A raised walk: a level deck on posts between guards. Its posts stand where
+## the deck's underside is over the ground; its guards where its edge stands
+## more than `RAIL_FREEBOARD` over it.
+func _yard_raised_walk(deck: Array[Vector3], w: float, st: Dictionary,
+		shapes: Array[PackedVector3Array]) -> void:
+	if deck.size() < 2:
+		deck.clear()
+		return
+	var edges := _rebuild_path_edges(deck, w, false)
+	var left: PackedVector3Array = edges["left"]
+	var right: PackedVector3Array = edges["right"]
+	var guard_in := _rebuild_path_edges(deck, w - 2.0 * YARD_GUARD_T, false)
+	for i in deck.size() - 1:
+		_yard_solid(st["building"], [left[i] + Vector3.DOWN * YARD_WALK_DECK,
+			left[i + 1] + Vector3.DOWN * YARD_WALK_DECK,
+			right[i + 1] + Vector3.DOWN * YARD_WALK_DECK,
+			right[i] + Vector3.DOWN * YARD_WALK_DECK,
+			left[i], left[i + 1], right[i + 1], right[i]], shapes)
+		for pair in [[left, guard_in["left"]], [right, guard_in["right"]]]:
+			var outer: PackedVector3Array = pair[0]
+			var inner: PackedVector3Array = pair[1]
+			if _yard_height_over(outer[i], outer[i + 1], 0.0) <= RAIL_FREEBOARD:
+				continue
+			_yard_solid(st["sky_green"], [outer[i] + Vector3.DOWN * 0.05,
+				outer[i + 1] + Vector3.DOWN * 0.05, inner[i + 1] + Vector3.DOWN * 0.05,
+				inner[i] + Vector3.DOWN * 0.05,
+				outer[i] + Vector3.UP * YARD_GUARD_H, outer[i + 1] + Vector3.UP * YARD_GUARD_H,
+				inner[i + 1] + Vector3.UP * YARD_GUARD_H, inner[i] + Vector3.UP * YARD_GUARD_H],
+				shapes)
+		# Posts under each side, every `YARD_POST_SPACING` or closer.
+		var length := Vector2(deck[i + 1].x - deck[i].x, deck[i + 1].z - deck[i].z).length()
+		var count := ceili(length / YARD_POST_SPACING)
+		for k in count + 1:
+			if i > 0 and k == 0:
+				continue
+			var t := float(k) / float(count)
+			for line in [left, right]:
+				var edge: PackedVector3Array = line
+				var at := edge[i].lerp(edge[i + 1], t)
+				var centre := at.lerp(deck[i].lerp(deck[i + 1], t), (YARD_POST * 0.5 + 0.06)
+					/ (w * 0.5))
+				_yard_post(st, centre, centre.y - YARD_WALK_DECK, shapes)
+	print("yard raised walk at %.3f, %.2f m long in %d legs, %.2f m over the ground at most" % [
+		deck[0].y, _yard_line_length(deck), deck.size() - 1, _yard_height_over_line(deck, w * 0.5)])
+	deck.clear()
+
+
+func _yard_line_length(line: Array[Vector3]) -> float:
+	var length := 0.0
+	for k in line.size() - 1:
+		length += Vector2(line[k + 1].x - line[k].x, line[k + 1].z - line[k].z).length()
+	return length
+
+
+func _yard_height_over_line(line: Array[Vector3], half: float) -> float:
+	var high := -INF
+	for k in line.size() - 1:
+		high = maxf(high, _yard_height_over(line[k], line[k + 1], half))
+	return high
+
+
+## How far the ground stands over a line at most (its least height over it, negated).
+func _yard_height_over_neg(line: Array[Vector3], half: float) -> float:
+	var low := INF
+	for k in line.size() - 1:
+		var a := line[k]
+		var b := line[k + 1]
+		var along := Vector2(b.x - a.x, b.z - a.z)
+		var across := Vector2(-along.y, along.x).normalized() * half
+		for j in 9:
+			var q := a.lerp(b, float(j) / 8.0)
+			for side in [-1.0, 0.0, 1.0]:
+				var g: float = _world_terrain_source().height_y(Vector2(q.x, q.z) + across * float(side))
+				if not is_nan(g):
+					low = minf(low, q.y - g)
+	return -low
+
+
+## A post from `top` down into the ground, where there is a drop to stand in.
+func _yard_post(st: Dictionary, at: Vector3, top: float, shapes: Array[PackedVector3Array]) -> void:
+	var h := YARD_POST * 0.5
+	var corners := [Vector3(at.x - h, 0, at.z - h), Vector3(at.x + h, 0, at.z - h),
+		Vector3(at.x + h, 0, at.z + h), Vector3(at.x - h, 0, at.z + h)]
+	var foot := _yard_ground_min(corners)
+	if top - foot <= 0.05:
+		return
+	var c := []
+	for y in [foot - YARD_FOOT, top + 0.02]:
+		for p in corners:
+			c.append(Vector3(p.x, y, p.z))
+	_yard_solid(st["building"], c, shapes)
+
+
+## The crossing's two edge lines across the route's paving, from `from` to
+## `to`, each at the route's level where it lies, as `_grand_tram_crossing`
+## paints its stripes: over the paving, through it, never on its plane.
+func _yard_crossing_marks(tag: String, counts: Dictionary, route: StringName,
+		from: Vector3, to: Vector3, w: float) -> void:
+	var along := Vector2(to.x - from.x, to.z - from.z)
+	var theta := atan2(along.x, along.y)
+	var across := Vector2(-along.y, along.x).normalized()
+	for side in [-1.0, 1.0]:
+		var mid2 := Vector2((from.x + to.x) * 0.5, (from.z + to.z) * 0.5) \
+			+ across * float(side) * (w * 0.5 - 0.1)
+		var y := float(_yard_route_at(route, mid2)["y"])
+		_box("%s_crossing_line_%d" % [tag, counts["mark"]],
+			Vector3(mid2.x, y + REBUILD_PATH_LIFT + 0.008, mid2.y), Vector3.ZERO,
+			Vector3(0.12, 0.03, along.length()), "white", theta, false)
+		counts["mark"] += 1
+
+
+## One flight from its head `a` to its foot `b`.
+func _yard_flight(tag: String, counts: Dictionary, a: Vector3, b: Vector3, w: float,
+		st: Dictionary, shapes: Array[PackedVector3Array]) -> void:
+	var run := Vector2(b.x - a.x, b.z - a.z).length()
+	var rise := a.y - b.y
+	var risers := ceili(rise / YARD_RISER - 0.0001)
+	var going := run / float(risers)
+	var theta := atan2(b.x - a.x, b.z - a.z)
+	assert(rad_to_deg(atan2(rise, run)) <= 37.0 and rise <= 3.0,
+		"a yard flight is steeper than 37 degrees or rises over 3 m")
+	_flight_ramp("%s_flight_%d" % [tag, counts["flight"]], a, b, theta, YARD_RAMP_W,
+		"building")
+	print("yard %s flight %d: %.3f m rise on %.2f m, %d risers of %.3f on %.3f, %.1f degrees, %.2f m over the ground at most, %s" % [
+		tag, counts["flight"], rise, run, risers, rise / float(risers), going,
+		rad_to_deg(atan2(rise, run)), _yard_height_over(a, b, w * 0.5),
+		"on a plinth" if _yard_height_over(a, b, w * 0.5) <= YARD_IN_AIR else "between guards"])
+	counts["flight"] += 1
+	var along := Vector3(b.x - a.x, 0.0, b.z - a.z).normalized()
+	for i in risers:
+		var tm := a.lerp(b, (float(i) + 0.5) / float(risers))
+		var tn := a.lerp(b, float(i + 1) / float(risers))
+		var tread_a := Vector3(tm.x, tn.y - 0.01, tm.z) - along * going * 0.5
+		var tread_b := Vector3(tm.x, tn.y - 0.01, tm.z) + along * going * 0.5
+		_yard_slab(st["building"], tread_a, tread_b, YARD_TREAD_W * 0.5, -0.5, 0.0)
+		if i + 1 < risers:
+			_yard_slab(st["yellow"], tn - along * 0.08, tn + along * 0.08,
+				YARD_NOSING_W * 0.5, -0.01, 0.03)
+	if _yard_height_over(a, b, w * 0.5) <= YARD_IN_AIR:
+		# On the ground: a plinth inside the treads from under the nosing line
+		# down into the ground, and a handrail each side.
+		var half := YARD_TREAD_W * 0.5 - 0.02
+		var across := Vector3(-along.z, 0.0, along.x)
+		var foot := _yard_ground_min([a + across * half, b + across * half,
+			b - across * half, a - across * half]) - YARD_FOOT
+		_yard_slab(st["building"], a, b, half, -0.3, -0.3, null, foot)
+		# Its collision is the stair's whole mass up to the nosing line, so a
+		# step off the floor's edge lands on the stair, not 0.3 m down on it.
+		shapes.append(PackedVector3Array(_yard_slab_corners(a, b, half, 0.0, 0.0, foot)))
+		for side in [-1.0, 1.0]:
+			var off := across * float(side) * (YARD_TREAD_W * 0.5 - 0.04)
+			var top_a := a + off + Vector3.UP * YARD_RAIL_H
+			var top_b := b + off + Vector3.UP * YARD_RAIL_H
+			_yard_bar(st["metal"], top_a, top_b, YARD_RAIL_T * 0.5)
+			for t in [0.04, 0.5, 0.96]:
+				var p: Vector3 = a.lerp(b, t) + off
+				_yard_bar(st["metal"], p + Vector3.DOWN * 0.1, p + Vector3.UP * YARD_RAIL_H,
+					YARD_RAIL_T * 0.5)
+	else:
+		# In the air: a guard each side, on its edge, from under the floor.
+		for side in [-1.0, 1.0]:
+			_yard_slab(st["sky_green"], a, b, YARD_GUARD_T * 0.5, -0.55, YARD_GUARD_H,
+				shapes, NAN, float(side) * (w * 0.5 - YARD_GUARD_T * 0.5))
+
+
+## A landing: a pad from its level down into the ground, guarded on its open
+## sides where it stands high. A side is open unless the element before or
+## after it starts or ends on it.
+func _yard_landing(a: Vector3, b: Vector3, w: float, prev: Dictionary, next: Dictionary,
+		st: Dictionary, shapes: Array[PackedVector3Array]) -> void:
+	if not prev.is_empty() and StringName(prev["kind"]) == &"bridge":
+		return
+	var along := Vector3(b.x - a.x, 0.0, b.z - a.z).normalized()
+	var across := Vector3(-along.z, 0.0, along.x) * (w * 0.5)
+	var corners := [a - across, b - across, b + across, a + across]
+	var foot := _yard_ground_min(corners) - YARD_FOOT
+	_yard_slab(st["building"], a, b, w * 0.5, 0.0, 0.0, shapes, foot)
+	print("yard landing at %.3f, %.2f by %.2f m, %.2f m over the ground at most, footing at %.2f" % [
+		a.y, a.distance_to(b), w, _yard_height_over(a, b, w * 0.5), foot])
+	_yard_landing_guards(corners, a.y, prev, next, st, shapes)
+
+
+func _yard_landing_guards(corners: Array, y: float, prev: Dictionary, next: Dictionary,
+		st: Dictionary, shapes: Array[PackedVector3Array]) -> void:
+	var joins: Array[Vector3] = []
+	if not prev.is_empty():
+		joins.append(prev["p"][1])
+	if not next.is_empty():
+		joins.append(next["p"][0])
+	var centre := Vector3.ZERO
+	for p in corners:
+		centre += p
+	centre /= 4.0
+	for k in 4:
+		var p: Vector3 = corners[k]
+		var q: Vector3 = corners[(k + 1) % 4]
+		var joined := false
+		for j in joins:
+			var at := Geometry3D.get_closest_point_to_segment(Vector3(j.x, 0, j.z),
+				Vector3(p.x, 0, p.z), Vector3(q.x, 0, q.z))
+			if at.distance_to(Vector3(j.x, 0, j.z)) < 0.05:
+				joined = true
+		if joined:
+			continue
+		if _yard_height_over(Vector3(p.x, y, p.z), Vector3(q.x, y, q.z), 0.0) <= RAIL_FREEBOARD:
+			continue
+		var inward := (centre - (p + q) * 0.5)
+		inward.y = 0.0
+		inward = inward.normalized() * YARD_GUARD_T
+		var c := []
+		for dy in [-0.05, YARD_GUARD_H]:
+			for v in [p, q, q + inward, p + inward]:
+				c.append(Vector3(v.x, y + dy, v.z))
+		_yard_solid(st["sky_green"], c, shapes)
+
+
+## A bridge from the ride's deck at `a` over what it crosses to `b`, on over
+## its landing to `end`: one deck, a guard each side but where the flight
+## leaves the landing (its head at `head`), a guard across the landing's far
+## end, and a post under each corner of the landing. The deck starts where it
+## clears the ride's own deck (`origin`), whose top is its level, so the two
+## never share a plane; a seat plate a little under it reaches back from there
+## to the record's start.
+func _yard_bridge(a: Vector3, b: Vector3, end: Vector3, head: Vector3, w: float,
+		origin: Dictionary, st: Dictionary, shapes: Array[PackedVector3Array]) -> void:
+	var along := Vector3(end.x - a.x, 0.0, end.z - a.z).normalized()
+	var across := Vector3(-along.z, 0.0, along.x)
+	var centre: Vector3 = origin["centre"]
+	var radius := float(origin["radius"])
+	var trim := 0.0
+	for side in [-1.0, 1.0]:
+		var c := a + across * float(side) * (w * 0.5) - centre
+		var p := Vector2(c.x, c.z)
+		var u := Vector2(along.x, along.z)
+		var pu := p.dot(u)
+		var under := pu * pu - (p.length_squared() - radius * radius)
+		if under > 0.0:
+			trim = maxf(trim, -pu + sqrt(under))
+	var deck_a := a + along * (trim + 0.01)
+	_yard_slab(st["building"], deck_a, end, w * 0.5, -YARD_DECK, 0.0, shapes)
+	_yard_slab(st["building"], a, deck_a + along * 0.05, w * 0.5 - 0.02, -YARD_DECK + 0.02,
+		-0.02, shapes)
+	var flight_side := signf((head - (b + end) * 0.5).dot(across))
+	assert(flight_side != 0.0, "a yard bridge's flight leaves from neither side")
+	for side in [-1.0, 1.0]:
+		var to := b if side == flight_side else end
+		_yard_slab(st["sky_green"], deck_a, to, YARD_GUARD_T * 0.5, -0.05, YARD_GUARD_H,
+			shapes, NAN, float(side) * (w * 0.5 - YARD_GUARD_T * 0.5))
+	_yard_slab(st["sky_green"], end - along * YARD_GUARD_T, end, w * 0.5 - YARD_GUARD_T,
+		-0.05, YARD_GUARD_H, shapes)
+	var inset := YARD_POST * 0.5 + 0.05
+	for at_end in [b + along * inset, end - along * inset]:
+		for side in [-1.0, 1.0]:
+			var at: Vector3 = at_end + across * float(side) * (w * 0.5 - inset)
+			_yard_post(st, at, at.y - YARD_DECK, shapes)
+	# Its clearance over what it crosses, the least under the deck's span.
+	var clear := INF
+	for k in 21:
+		var q := deck_a.lerp(b, float(k) / 20.0)
+		for side in [-1.0, 0.0, 1.0]:
+			var g := _yard_floor_under(Vector2(q.x, q.z) + Vector2(across.x, across.z)
+				* float(side) * w * 0.5)
+			if not is_nan(g):
+				clear = minf(clear, q.y - YARD_DECK - g)
+	print("yard bridge: deck %.2f m from %.2f m clear of its ride's deck, %.2f m over its landing, %.2f m clear under its %.2f m deck" % [
+		deck_a.distance_to(b), trim + 0.01, b.distance_to(end), clear, YARD_DECK])
+
+
+## What the yard's bridge crosses at `p`: S3's paving where it is on it, else the
+## grid's ground.
+func _yard_floor_under(p: Vector2) -> float:
+	for lane in _service_lanes:
+		var pts: Array = lane["points"]
+		for k in pts.size() - 1:
+			var a := Vector2(pts[k].x, pts[k].z)
+			var b := Vector2(pts[k + 1].x, pts[k + 1].z)
+			var at := Geometry2D.get_closest_point_to_segment(p, a, b)
+			if p.distance_to(at) <= float(lane["width"]) * 0.5:
+				var t := clampf((at - a).dot(b - a) / maxf((b - a).length_squared(), 0.0001), 0.0, 1.0)
+				return lerpf(pts[k].y, pts[k + 1].y, t)
+	return _world_terrain_source().height_y(p)
 
 
 # ---------------------------------------------------------------------------

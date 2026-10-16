@@ -659,6 +659,63 @@ const GRAND_TRAM_TUNNELS := [
 ]
 
 
+## The Grand Circuit's east station yard is S3's paving behind the east
+## platform, at the lane's level (`s3_east_station`). Two staff connections
+## reach it (Christina, 2026-10-15: "Build the two yard stairs", approved as
+## drawn; the maps' `yardConnections` at e4e4273): R11's service from its
+## court, across route F at grade and down three flights, and R12's east
+## service from its terminal's deck, over S3 on a bridge and down a dog-leg
+## stair. Ride service, staff only, so each is a service stair: no flight
+## steeper than 37 degrees or rising more than 3 m, a 1.2 m landing between
+## flights. A ParkPlan record, as S3's own crossings are (`GRAND_TRAM_CROSSINGS`):
+## world metres at the levels built at 8ab7577, element by element as the maps
+## draw them, each an axis `p` (from, to) widened to `w`. `kind` is walk,
+## crossing (at grade over the route `over`), landing, flight or bridge (over
+## `over`); a `raised` walk stands over the ground; `ends` names the paving the
+## last element meets. The generator holds each end to what it meets
+## (`_yard_connection`); the earthworks under the walks are grid edit G24.
+const YARD_CONNECTIONS := [
+	{"id": &"YC-R11", "ride": &"R11", "users": &"staff", "elements": [
+		{"kind": &"walk", "w": 1.2, "p": [Vector3(145.65, 14.447, -102.19),
+			Vector3(154.45, 15.811, -90.8)]},
+		{"kind": &"crossing", "w": 1.2, "over": &"F", "p": [
+			Vector3(154.45, 15.811, -90.8), Vector3(165.96, 15.811, -94.2)]},
+		{"kind": &"walk", "w": 1.2, "p": [Vector3(165.96, 15.811, -94.2),
+			Vector3(176.5, 14.363, -99.0)]},
+		{"kind": &"landing", "w": 1.2, "p": [Vector3(176.5, 14.363, -99.0),
+			Vector3(176.5, 14.363, -100.2)]},
+		{"kind": &"flight", "w": 1.2, "p": [Vector3(176.5, 14.363, -100.2),
+			Vector3(176.5, 12.012, -103.33)]},
+		{"kind": &"landing", "w": 1.2, "p": [Vector3(176.5, 12.012, -103.33),
+			Vector3(176.5, 12.012, -104.53)]},
+		{"kind": &"flight", "w": 1.2, "p": [Vector3(176.5, 12.012, -104.53),
+			Vector3(176.5, 9.661, -107.67)]},
+		{"kind": &"landing", "w": 1.2, "p": [Vector3(176.5, 9.661, -107.67),
+			Vector3(176.5, 9.661, -108.87)]},
+		{"kind": &"flight", "w": 1.2, "p": [Vector3(176.5, 9.661, -108.87),
+			Vector3(176.5, 7.31, -112.0)]},
+		{"kind": &"walk", "w": 1.2, "raised": true, "p": [
+			Vector3(176.5, 7.31, -112.0), Vector3(176.3, 7.31, -120.5)]},
+		{"kind": &"walk", "w": 1.2, "raised": true, "ends": &"S3", "p": [
+			Vector3(176.3, 7.31, -120.5), Vector3(173.9, 7.31, -124.85)]},
+	]},
+	{"id": &"YC-R12", "ride": &"R12", "users": &"staff", "elements": [
+		{"kind": &"bridge", "w": 1.2, "over": &"S3", "p": [
+			Vector3(147.44, 13.005, -146.04), Vector3(151.47, 13.005, -150.1)]},
+		{"kind": &"landing", "w": 1.2, "p": [Vector3(151.47, 13.005, -150.1),
+			Vector3(152.31, 13.005, -150.95)]},
+		{"kind": &"flight", "w": 1.2, "p": [Vector3(151.47, 13.005, -150.95),
+			Vector3(148.78, 10.158, -153.63)]},
+		{"kind": &"landing", "w": 2.5, "p": [Vector3(148.32, 10.158, -153.17),
+			Vector3(147.47, 10.158, -154.02)]},
+		{"kind": &"flight", "w": 1.2, "p": [Vector3(147.87, 10.158, -152.71),
+			Vector3(150.55, 7.31, -150.02)]},
+		{"kind": &"landing", "w": 1.2, "ends": &"S3", "p": [
+			Vector3(151.4, 7.31, -150.03), Vector3(150.13, 7.31, -148.75)]},
+	]},
+]
+
+
 ## Smooth enough for the articulated vehicles to turn continuously, sampled
 ## densely enough that the generated lane can use straight chords without
 ## showing corners. Uniform Catmull-Rom is safe here because the controls are
@@ -3794,6 +3851,17 @@ const REBUILD_PRIMARY_ROUTE_RUNS := [
 			Vector3(-40, -0.4, -62), Vector3(-44, -1.4, -74),
 			Vector3(-44, -2.6, -88), Vector3(-44, -3.8, -102),
 			Vector3(-42, -5.0, -118), Vector3(-42, SHORE_TOP, -130),
+			# Under the Grand Circuit's overpass (`boardwalk_north_overpass`) it dips
+			# 0.40 m below the shore's level, down and up at 1:12.5, level for the
+			# 6.9 m it runs under the deck: the deck lies on the lane's grade, which
+			# falls about 8% across B, and the dip keeps 4.0 m over B's whole eight-metre
+			# envelope (Christina, 2026-10-16, "whichever keeps both 4.0 m with least
+			# change": raising the lane's crest instead took P1's footbridge under 4.0 m).
+			# The points lie on the straight run to the deck.
+			Vector3(-60.3342, SHORE_TOP, -137.1559),
+			Vector3(-64.5393, SHORE_TOP - 0.4, -138.7971),
+			Vector3(-70.3423, SHORE_TOP - 0.4, -141.0621),
+			Vector3(-74.5474, SHORE_TOP, -142.7033),
 			# This relationship, not a rounded atlas number, makes the expanded
 			# endpoint land exactly on the editor-owned deck at world z=-205m.
 			Vector3(-80, SHORE_TOP, -144.831460674),

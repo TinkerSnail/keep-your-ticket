@@ -19,7 +19,7 @@ const SHOTS := [
 	{"name": "08_shoreline_turn", "time": [19, 0], "pos": Vector3(-98.0, SHORE_Y, -187.0), "target": Vector3(-82.0, -4.5, -204.0)},
 	{"name": "09_land_return_approach", "time": [19, 0], "pos": Vector3(-47.0, SHORE_Y, -184.0), "target": Vector3(-82.0, -4.5, -204.0)},
 	{"name": "10_open_connection_back", "time": [19, 0], "pos": Vector3(-80.0, SHORE_Y, -204.0), "target": Vector3(-92.0, -2.0, -182.0)},
-	{"name": "10b_grand_circuit_overpass", "time": [19, 0], "pos": Vector3(-73.0, SHORE_Y, -209.0), "target": Vector3(-70.14, -1.74, -198.65)},
+	{"name": "10b_grand_circuit_overpass", "time": [19, 0], "pos": Vector3(-73.0, SHORE_Y, -209.0), "target": Vector3(-67.74, -1.72, -197.40)},
 	{"name": "11_ride_district_at_night", "time": [21, 15], "pos": Vector3(-103.0, SHORE_Y, -158.0), "target": Vector3(-81.0, 3.0, -132.0)},
 	{"name": "12_q3_open", "time": [19, 0], "pos": Vector3(-102.0, SHORE_Y, -2.0), "target": Vector3(-150.0, -3.0, 6.0)},
 	{"name": "13_west_arch_reveal", "time": [19, 0], "pos": Vector3(-49.0, 0.2, -2.0), "target": Vector3(-108.0, 4.0, -16.0)},

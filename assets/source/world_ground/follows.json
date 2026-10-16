@@ -412,6 +412,45 @@
     "left": []
    },
    "exported": []
+  },
+  {
+   "id": "G23-G24",
+   "date": "2026-10-16",
+   "from": "edits G23, G24",
+   "ground": {
+    "tiles": [
+     "x0_z-1",
+     "x0_z0"
+    ],
+    "nodes": 172,
+    "lowest_m": -1.777,
+    "highest_m": 0.823
+   },
+   "edits": [
+    {
+     "id": "G23",
+     "name": "grand_circuit_d4_cut",
+     "sig": "ba7249a0009a4815"
+    },
+    {
+     "id": "G24",
+     "name": "yard_staff_stair_earthworks",
+     "sig": "517b4b455124dfce"
+    }
+   ],
+   "rocks": {
+    "moved": {},
+    "uneven": {}
+   },
+   "city": {
+    "raised": {},
+    "left": {}
+   },
+   "roosts": {
+    "moved": {},
+    "left": []
+   },
+   "exported": []
   }
  ]
 }

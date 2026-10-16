@@ -13,7 +13,7 @@
  "seam": {
   "applied": true,
   "held": "dumped by Godot",
-  "held_sha256": "5bf4c8230d286386cc3f03a813bb0a2d6a44d5539caa41cff301cfb98ec95795",
+  "held_sha256": "ce998fb1d05df897ba0915adab4f96d4d0c939cc83db4a6f02a74dae36bbdf05",
   "held_edges": 3901,
   "stitched_edges": 3326,
   "stitched_m": 10453.2,
@@ -58,7 +58,7 @@
  },
  "tiles": {
   "x-1_z-1": {
-   "input_hash": "570030dada37a6dc8a9b9a4a96926336047dc80de23a69b25ead8cd23f2871d1",
+   "input_hash": "47d7659cd8d89680ebf182f5c828ace9645160e0a80b39ae156bf11202c0e979",
    "glb": "x-1_z-1.glb",
    "glb_sha256": "06ca63fbc479fc6577037037fda5e7488b3807b7a8cc09f9dbd22a04d61948a6",
    "glb_bytes": 2094024,
@@ -83,7 +83,7 @@
    ],
    "build": {
     "rounds": 21,
-    "seconds": 2.29
+    "seconds": 2.41
    }
   },
   "x-1_z-2": {
@@ -174,13 +174,13 @@
    }
   },
   "x-1_z0": {
-   "input_hash": "395739006cd820b31f6059fb6346eb356ea33920f0d57c9dd59f91948b99e204",
+   "input_hash": "d5e3f2d969b78279cc403498089735d34911dd0bde3f1caf5e48ca86c11acb25",
    "glb": "x-1_z0.glb",
-   "glb_sha256": "273a4993892bd58d4ad3a65765117dec0caa37a2c0296308827625b0735a1b63",
-   "glb_bytes": 1692808,
+   "glb_sha256": "49164fbe501d75600ed53400c8bd1307dbb57d977aa65b3b7a3813bc3407278b",
+   "glb_bytes": 1691164,
    "height_sha256": "98a0ce5538780abc8bb015898532f83f92190719efb768e8a057a715ae902375",
-   "vertices": 38533,
-   "triangles": 76456,
+   "vertices": 38496,
+   "triangles": 76379,
    "stitch_band": {
     "triangles": 179,
     "vertices": 65,
@@ -188,9 +188,9 @@
     "length_m": 306.5
    },
    "triangles_by_zone": {
-    "park": 4445,
-    "walkable": 14954,
-    "elsewhere": 57057,
+    "park": 4443,
+    "walkable": 14923,
+    "elsewhere": 57013,
     "deep_sea": 0
    },
    "y_range": [
@@ -198,8 +198,8 @@
     5.627626419067383
    ],
    "build": {
-    "rounds": 29,
-    "seconds": 2.81
+    "rounds": 26,
+    "seconds": 2.42
    }
   },
   "x-1_z1": {
@@ -1189,13 +1189,13 @@
    }
   },
   "x0_z-1": {
-   "input_hash": "d63f5e13bff69fb5f72fa38b65e95708312dd048c444f55e5568a2807ad6860f",
+   "input_hash": "249c272e97574d329e3ad6d4b28da3d11ac9b5d9a6e30f6b681c180468c3ec57",
    "glb": "x0_z-1.glb",
-   "glb_sha256": "831f25eec51bbf80b2636286af0516047ac4273922d2b34cbe0f4d96a0bab92f",
-   "glb_bytes": 1665548,
-   "height_sha256": "6d6cbc8e95dc3107812bc48e09c361d4df258db3d89f21b8aa172847477d4806",
-   "vertices": 37964,
-   "triangles": 74947,
+   "glb_sha256": "9c10608fd97d6ba66ea82b7ea8adc94b15be02ca0d785d52644e7baf5e018f6f",
+   "glb_bytes": 1666076,
+   "height_sha256": "8a1e51a858dcfafcfcb24502347f6a3b719e24dc3359d39fe9cfb4c0abd4eb57",
+   "vertices": 37976,
+   "triangles": 74971,
    "stitch_band": {
     "triangles": 1129,
     "vertices": 539,
@@ -1203,9 +1203,9 @@
     "length_m": 1338.7
    },
    "triangles_by_zone": {
-    "park": 16115,
-    "walkable": 39038,
-    "elsewhere": 19794,
+    "park": 16135,
+    "walkable": 39030,
+    "elsewhere": 19806,
     "deep_sea": 0
    },
    "y_range": [
@@ -1213,8 +1213,8 @@
     285.5746154785156
    ],
    "build": {
-    "rounds": 18,
-    "seconds": 1.69
+    "rounds": 19,
+    "seconds": 1.81
    }
   },
   "x0_z-2": {
@@ -1305,13 +1305,13 @@
    }
   },
   "x0_z0": {
-   "input_hash": "a70543bfaec06b5cbcc18886fe3f0deee0e20b3465858b1fa515a4d1d7c481b0",
+   "input_hash": "03679dbfbd43303de098dd36310417123e3cfe20a6ed13ede6f05d2cccf14662",
    "glb": "x0_z0.glb",
-   "glb_sha256": "675e09888015792d1ab51e24c7407dfc21a0ebc8893573dd4e7e7e370e10f2cf",
-   "glb_bytes": 1762524,
-   "height_sha256": "26214cda6ae973b9e19e9f0febe89104be48b6bf837b5633937ae866c988a254",
+   "glb_sha256": "be499a70ec6df5a1aa9ac411594389f755dc43fa075bd84e87f88fa68e400b50",
+   "glb_bytes": 1762508,
+   "height_sha256": "dba97fe45dc0fe1dfd46c9d5fab5ea2ffd5586ad4e04435dc2fe6b78690bb1d4",
    "vertices": 40222,
-   "triangles": 79072,
+   "triangles": 79069,
    "stitch_band": {
     "triangles": 1961,
     "vertices": 855,
@@ -1319,9 +1319,9 @@
     "length_m": 2481.8
    },
    "triangles_by_zone": {
-    "park": 11709,
-    "walkable": 46768,
-    "elsewhere": 20595,
+    "park": 11761,
+    "walkable": 46731,
+    "elsewhere": 20577,
     "deep_sea": 0
    },
    "y_range": [
@@ -1329,8 +1329,8 @@
     296.35198974609375
    ],
    "build": {
-    "rounds": 18,
-    "seconds": 1.81
+    "rounds": 19,
+    "seconds": 1.83
    }
   },
   "x0_z1": {
@@ -8659,7 +8659,7 @@
    }
   },
   "x0_z-1": {
-   "key": "2ae37efdfd6f7267057cab951d6e6f910cc87039e18c32149c42f4cd66a5b620",
+   "key": "b49d17bcdaf92ef024027bc05c2c1588c0b494ff6a23dde01df29090669882ec",
    "requests": {
     "n": [
      0,
@@ -9019,7 +9019,7 @@
    }
   },
   "x0_z0": {
-   "key": "be11c301530030582fb1e751d772d2af575cb3278c2349f9e5cfd322b431a3f1",
+   "key": "9a8aa267a973118487f20da5c00fbbf812868d122bc4aaf9a952c5bf436e798d",
    "requests": {
     "n": [
      0,
@@ -9263,23 +9263,28 @@
     ],
     "w": [
      0,
-     39,
+     22,
+     23,
+     34,
      45,
-     46,
+     47,
      48,
      49,
+     53,
      55,
      56,
      57,
-     60,
      88,
-     95,
+     91,
+     99,
      100,
      101,
-     108,
+     102,
+     104,
+     107,
+     110,
      116,
      120,
-     124,
      128,
      132,
      136,
@@ -18369,30 +18374,33 @@
   ],
   "x-1_z0:e|x0_z0:w": [
    0,
+   22,
+   23,
    24,
    25,
+   34,
    38,
-   39,
    45,
-   46,
+   47,
    48,
    49,
    53,
    55,
    56,
    57,
-   60,
    88,
    90,
-   95,
+   91,
    99,
    100,
    101,
+   102,
+   104,
    107,
    108,
+   110,
    116,
    120,
-   124,
    128,
    132,
    136,
@@ -30511,15 +30519,15 @@
  },
  "totals": {
   "tiles": 104,
-  "triangles": 1480971,
-  "vertices": 751733,
+  "triangles": 1480915,
+  "vertices": 751708,
   "triangles_by_zone": {
-   "park": 41821,
-   "walkable": 434385,
-   "elsewhere": 984497,
+   "park": 41891,
+   "walkable": 434309,
+   "elsewhere": 984447,
    "deep_sea": 20268
   },
-  "glb_bytes": 34071436
+  "glb_bytes": 34070304
  },
  "last_build": {
   "tiles_built": [],
@@ -30529,7 +30537,7 @@
    "phase1": 0.0,
    "phase2": 0.0,
    "export": 0.0,
-   "total": 8.5
+   "total": 8.3
   }
  }
 }

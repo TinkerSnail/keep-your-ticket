@@ -1722,6 +1722,52 @@
    "kind": "values",
    "min_change_m": 0.001,
    "made_by": "ground_grid_edit.py --values"
+  },
+  {
+   "id": "G23",
+   "name": "grand_circuit_d4_cut",
+   "date": "2026-10-16",
+   "why": "Christina, 2026-10-15, cut the Grand Circuit lane free in Kiddieland's D4 area, keeping D4's low: G10's formation (4 cm under the lane, 1.5 m verges, 1:1.4 batters), lane s 77..126, cut only; no node within 2.5 m of D4's low moves, and D4's rim is lowered only where the lane's footprint crosses it",
+   "tiles": [
+    "x0_z0"
+   ],
+   "nodes": 122,
+   "new_ground_nodes": 0,
+   "history": "history/G23.npz",
+   "files": [
+    {
+     "tile": "x0_z0",
+     "nodes": 122,
+     "height_sha_before": "26214cda6ae973b9e19e9f0febe89104be48b6bf837b5633937ae866c988a254",
+     "height_sha_after": "dba97fe45dc0fe1dfd46c9d5fab5ea2ffd5586ad4e04435dc2fe6b78690bb1d4"
+    }
+   ],
+   "kind": "values",
+   "min_change_m": 0.001,
+   "made_by": "ground_grid_edit.py --values"
+  },
+  {
+   "id": "G24",
+   "name": "yard_staff_stair_earthworks",
+   "date": "2026-10-16",
+   "why": "Christina, 2026-10-15, build the two yard stairs: under YC-R11's walks their formation 5 cm under their paving, 1.5 m shoulders, 1:1.4 cuttings and fills; under its flights, landings and raised walk, and YC-R12's foot, a cutting only to 15 cm under their floors; F's paving and shoulder, R11's court and queue, S3 and the lane kept",
+   "tiles": [
+    "x0_z-1"
+   ],
+   "nodes": 50,
+   "new_ground_nodes": 0,
+   "history": "history/G24.npz",
+   "files": [
+    {
+     "tile": "x0_z-1",
+     "nodes": 50,
+     "height_sha_before": "6d6cbc8e95dc3107812bc48e09c361d4df258db3d89f21b8aa172847477d4806",
+     "height_sha_after": "8a1e51a858dcfafcfcb24502347f6a3b719e24dc3359d39fe9cfb4c0abd4eb57"
+    }
+   ],
+   "kind": "values",
+   "min_change_m": 0.001,
+   "made_by": "ground_grid_edit.py --values"
   }
  ]
 }

@@ -69,6 +69,18 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -42, -5, -118)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -42, -6, -130)
 
 [node name="p08" type="Marker3D" parent="primary_routes/b_north_return/points"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60.3342, -6.0, -137.1559)
+
+[node name="p09" type="Marker3D" parent="primary_routes/b_north_return/points"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -64.5393, -6.4, -138.7971)
+
+[node name="p10" type="Marker3D" parent="primary_routes/b_north_return/points"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -70.3423, -6.4, -141.0621)
+
+[node name="p11" type="Marker3D" parent="primary_routes/b_north_return/points"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -74.5474, -6.0, -142.7033)
+
+[node name="p12" type="Marker3D" parent="primary_routes/b_north_return/points"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -80, -6, -144.831461)
 
 
