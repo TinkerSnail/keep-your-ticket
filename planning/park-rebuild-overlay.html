@@ -2222,9 +2222,11 @@
     characterGarden:{id:'KC1',type:'ellipse',at:[43,115],radii:[7,5],
       access:[[61,108],[55,109],[50,112],[50,115]],photo:[36,115],faceBoard:[[40,118],[46,118]]},
     familyPhoto:{id:'KC2',type:'rect',at:[55,118],size:[8,5],
-      access:[[50,115],[51,116.5]],service:[[59,118],[64,123],[75,126]]},
+      access:[[50,115],[51,116.5]],service:[[59,118],[60,121.4],[55.4,122.2]]},
     birthday:{id:'KC3',type:'rect',at:[70,119],size:[12,6],
-      access:[[80,111],[78,114],[76,116]],service:[[76,121],[78,124],[75,126]]},
+      // S3 start clear of the entry platform (Christina, 2026-10-15): KC3's staff door moves to its west face; its south
+      // face stands 0.4 m off the road-train lane, so S3 cannot pass behind it.
+      access:[[80,111],[78,114],[76,116]],service:[[64,120],[60,121.4],[55.4,122.2]]},
     photoBay:{id:'KP1',type:'rect',at:[98.5,78],size:[4,4],access:[[106.5,78],[103,78],[100.5,78]]}
   };
 
@@ -2257,7 +2259,7 @@
       access2:[[36,93],[40,93],[45,92.5]],
       photo:[21,96.5],
       service:[[27,100],[27,105]],
-      service2:[[27,109],[30,117],[34,126],[75,126]],
+      service2:[[27,109],[30,117],[29,120.9]],
       support:{at:[27,107],size:[10,4]},
       stroller:{at:[30,88],size:[4,2]},
       host:{at:[23,88.5],size:[2,2]},
@@ -2293,7 +2295,7 @@
     {id:'I5',name:'LOST + FOUND / FIRST AID',district:'Entrance',type:'rect',at:[-16,116],size:[12,8],label:[-25,126],anchor:'end',routes:['A'],
       access:[[0,116],[-10,116]],service:[[-22,120],[-28,124],[-34,126]]},
     {id:'I6',name:'STAFF BREAK / OPERATIONS',district:'Entrance',type:'rect',at:[16,116],size:[12,8],label:[25,126],anchor:'start',routes:['A'],
-      access:[[0,116],[10,116]],service:[[22,120],[28,124],[34,126]]}
+      access:[[0,116],[10,116]],service:[[22,120],[29,120.9]]}
   ];
 
   const midwayBands = [
@@ -2335,7 +2337,7 @@
     {id:'MW-K',name:'FAMILY MICRO-MIDWAY',district:'Family Commons',route:'D',label:[7,107],
       anchors:['E5'],
       service:[
-        [[10,103],[16,106],[20,109],[27,109],[30,117],[34,126]]
+        [[10,103],[16,106],[20,109],[27,109],[30,117],[29,120.9]]
       ],
       units:[
         {id:'K1',name:'DUCK POND',kind:'game',at:[9.5,97],size:[5,5],front:'north',
@@ -2434,15 +2436,30 @@
     // east platform (s 447, +7.33 m, 90 degrees). It serves the platform from behind at the
     // platform's level (+7.34 m), then runs at no more than ~2 m over the lane to its
     // unchanged west end. No S3 cut or bank comes within 1.5 m of the lane, its cuttings or
-    // the platform. The start (unchanged) still meets the lane at the entry station.
-    {id:'S3',name:'East / North perimeter spine',label:[151,18],note:'S3 clear of the Grand Circuit T6 tunnel (Christina, 2026-10-15)',
-      p:[[34,126],[75,126],[111,116],[136,100],[153.1,100.4],[162.1,88.1],[153.1,59.7],[154,42],[155,10],[154,-22],[150,-55],[145.2,-65.3],[162.2,-76.9],[165.2,-86],[157.8,-95.7],[142.8,-102.1],[136.5,-98.9],[130.2,-95.7],[123.7,-99.5],[116.5,-110.1],[103,-116.3],[89.6,-122.4],[77.8,-129.7],[57,-133],[42,-135]]}
+    // the platform. Its start was redrawn the same day, below.
+    // S3 start clear of the entry platform (Christina, 2026-10-15): redrawn for her review.
+    // It used to leave G2 on the entry platform's west end, run along the platform and its
+    // access, and cross the road-train lane at 15 degrees over lane s 53-97. G2 now stands
+    // 7 m east of I6's rear (world (29, 158.8)), and S3 runs east behind the east berm's
+    // north toe, crossing the entry access once at about 83 degrees, 4 m north of the
+    // platform. Between KC2 and the platform it turns through the berm's east end and
+    // crosses the lane once, square, at lane s 60.5 (world (60.1, +0.57, 169.1)): one named
+    // controlled crossing, 14 m beyond a stopped train's tractor. Outside the lane it keeps
+    // D4's south rim, 2.1 m off the east parking field and 1.8 m off its wall, and rejoins
+    // its course at [111,116]. Grades within 11.5%. I6, P4, MW-K, KC2, KC3 and R5 now meet S3
+    // before the crossing, inside the lane; R6's link still crosses the lane on its own.
+    // A west crossing (lane s 22) was the other option: it takes 154 m2 of the field and
+    // stands 3.7 m from a stopped train's tail.
+    {id:'S3',name:'East / North perimeter spine',label:[151,18],note:'S3 clear of the Grand Circuit T6 tunnel (Christina, 2026-10-15); S3 start clear of the entry platform (Christina, 2026-10-15)',
+      p:[[29,120.9],[48,120.9],[50.7,122.2],[55.4,122.2],[57.9,132.9],[75.2,131.5],[94.5,133.6],[111,116],[136,100],[153.1,100.4],[162.1,88.1],[153.1,59.7],[154,42],[155,10],[154,-22],[150,-55],[145.2,-65.3],[162.2,-76.9],[165.2,-86],[157.8,-95.7],[142.8,-102.1],[136.5,-98.9],[130.2,-95.7],[123.7,-99.5],[116.5,-110.1],[103,-116.3],[89.6,-122.4],[77.8,-129.7],[57,-133],[42,-135]]}
   ];
 
   const serviceLinks = [
     [[-50,-119],[-52,-124]],
     [[52,-29],[55,-46],[70,-56],[90,-63],[112,-66],[134,-65],[150,-55]],
-    [[68,111],[72,120],[75,126]],
+    // S3 start clear of the entry platform (Christina, 2026-10-15): R5's link reaches S3 through the gap between KC2 and
+    // KC3, before S3's crossing; it no longer runs through KC3 or across the lane.
+    [[68,111],[62,115],[60,121.4],[55.4,122.2]],
     [[108,108],[111,116]],
     // S3 clear of the Grand Circuit T6 tunnel (Christina, 2026-10-15): R7/R14 meets S3
     // on the hill over the bore; R9 and R10 meet its new north reach; R11 comes down to
@@ -2465,7 +2482,8 @@
 
   const serviceNodes = [
     {id:'G1',kind:'gate',at:[-34,126],label:[-47,137]},
-    {id:'G2',kind:'gate',at:[34,126],label:[22,137]},
+    // G2 moved off the entry platform's west end with S3's start (S3 start clear of the entry platform (Christina, 2026-10-15)).
+    {id:'G2',kind:'gate',at:[29,120.9],label:[17,131]},
     {id:'G3',kind:'gate',at:[-96,-62],label:[-111,-69]},
     {id:'G4',kind:'gate',at:[-126,-20],label:[-135,-27]},
     {id:'H1',kind:'turn',at:[-62,-23],r:6,label:[-75,-24]},
@@ -4256,7 +4274,7 @@
         svg.appendChild(make('rect',{
           x:x(28.5),y:y(106),width:2.5*scale,height:2*scale,class:'parcel-booth'
         }));
-        pathLine([[27,109],[30,117],[34,126],[75,126]],'service-line');
+        pathLine([[27,109],[30,117],[29,120.9]],'service-line');
 
         if (!narrow) {
           pathLine([[22.415,86.976],[20.578,82.998]],'parcel-dimension');
@@ -4521,7 +4539,8 @@
 
   function drawKiddielandPlan() {
     parcelCanvas(
-      kiddielandMap,{x0:-2,x1:138,z0:44,z1:132,gridStep:10},
+      // z1 136 (was 132) since 2026-10-15: S3's redrawn start reaches z 133.6 outside the lane.
+      kiddielandMap,{x0:-2,x1:138,z0:44,z1:136,gridStep:10},
       'Measured completion plan for Kiddieland',
       'A local world-coordinate plan retaining route D while arranging Arrival Commons, Ride Garden, and Outer Adventure Edge around the existing play garden, a zero-depth Squirt Garden with seven flush jets and a three-frog jumping-water chain, miniature railway, spinning tubs, and carousel; adding a compact junior coaster, character garden, family photo kiosk, birthday pavilion, ride-photo positions, six-screen exit viewing, and measured clearances to Q4, W4, and S3.',
       ({svg,x,y,scale,points,pathLine,label,compact}) => {
@@ -4562,7 +4581,7 @@
         }));
         walls.find(wall => wall.id==='W4').paths.forEach(line =>
           pathLine(line,'retaining-line',{'data-kind':'local'}));
-        pathLine([[34,126],[75,126],[111,116],[136,100],[138,96.15]],'service-line',{
+        pathLine([[29,120.9],[48,120.9],[50.7,122.2],[55.4,122.2],[57.9,132.9],[75.2,131.5],[94.5,133.6],[111,116],[136,100],[138,100.05]],'service-line',{
           'stroke-width':Math.max(4,4*scale)
         });
 

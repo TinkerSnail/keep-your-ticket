@@ -175,7 +175,7 @@
     {id:'P1',name:'Lighthouse experience',kind:'program',type:'circle',at:[-174,-202.5],r:5,access:[[-37,-125],[-50,-162.4],[-57,-173.3],[-74,-177.3],[-104,-180],[-119.3,-185.5],[-130,-197],[-141.3,-206.1],[-158,-207.2],[-169,-204.3]]},
     {id:'P2',name:'Walk-through funhouse',kind:'program',type:'rect',at:[-77,32],size:[12,14],access:[[-96,27],[-90,27],[-87,25],[-84,27],[-83,27]],exit:[[-83,37],[-88,37],[-91,40],[-96,40]],service:[[-71,32],[-66,32],[-62,28]]},
     {id:'P3',name:'Big Top scheduled show',kind:'program',type:'ellipse',at:[-32,92],rx:9,rz:6,access:[[-35,77.5],[-35,80.5],[-40,80.5],[-40,83],[-35.5,83],[-35.5,85.5],[-32,86]],exit:[[-23,92],[-20,94],[-18,97],[-16.1,97.9]],service:[[-32,98],[-32,106],[-32,112],[-34,120],[-34,126],[-40,127],[-70,120]]},
-    {id:'P4',name:'Family Commons play garden',kind:'program',type:'ellipse',at:[27,93],rx:9,rz:7,access:[[12,82],[17,84],[21.5,87.5]],exit:[[36,93],[40,93],[45,92.5]],service:[[27,100],[27,105],[27,109],[30,117],[34,126],[75,126]]},
+    {id:'P4',name:'Family Commons play garden',kind:'program',type:'ellipse',at:[27,93],rx:9,rz:7,access:[[12,82],[17,84],[21.5,87.5]],exit:[[36,93],[40,93],[45,92.5]],service:[[27,100],[27,105],[27,109],[30,117],[29,120.9]]},
     {id:'P5',name:'Plaza bandstand',kind:'program',type:'circle',at:[-42,-32],r:6.2,access:[[-32,-1],[-28,-3],[-28,-12],[-35,-13],[-37.1,-15.5]],exit:[[-25.4,-19.3],[-21,-18],[-16,-16],[-9,-15]],service:[[-62,-38],[-58,-38],[-58,-39]]},
     {id:'E1',name:'Photo Hut',kind:'interior',type:'rect',at:[-25,25],size:[8,7]},
     {id:'E2',name:'Keeper exhibit',kind:'interior',type:'rect',at:[-160.7,-213.4],size:[8,6],access:[[-158,-207.2],[-159,-210.4]],service:[[-156.7,-216.4],[-146,-220],[-125,-221]]},
@@ -185,7 +185,7 @@
     {id:'I3',name:'Boardwalk Café',kind:'interior',type:'rect',at:[-81,-48],size:[14,8],access:[[-82,-60],[-82,-52]],service:[[-74,-48],[-68,-54],[-64,-60]]},
     {id:'I4',name:'Overlook Café',kind:'interior',type:'rect',at:[136,-73],size:[14,8],access:[[124,-62],[128,-67],[129,-73]],service:[[143,-73],[145.2,-65.3]]},
     {id:'I5',name:'Lost + Found / First Aid',kind:'interior',type:'rect',at:[-16,116],size:[12,8],access:[[0,116],[-10,116]],service:[[-22,120],[-28,124],[-34,126]]},
-    {id:'I6',name:'Staff Break / Operations',kind:'interior',type:'rect',at:[16,116],size:[12,8],access:[[0,116],[10,116]],service:[[22,120],[28,124],[34,126]]},
+    {id:'I6',name:'Staff Break / Operations',kind:'interior',type:'rect',at:[16,116],size:[12,8],access:[[0,116],[10,116]],service:[[22,120],[29,120.9]]},
     {id:'KS1',name:'Mini railway station',kind:'support',type:'rect',at:[55,88],size:[6,4]},
     {id:'KG1',name:'Squirt Garden',kind:'support',type:'ellipse',at:[31,94],rx:3.5,rz:2.5},
     {id:'KC1',name:'Character Garden',kind:'support',type:'ellipse',at:[43,115],rx:7,rz:5},
@@ -215,8 +215,21 @@
     // east platform (s 447, +7.33 m, 90 degrees). It serves the platform from behind at the
     // platform's level (+7.34 m), then runs at no more than ~2 m over the lane to its
     // unchanged west end. No S3 cut or bank comes within 1.5 m of the lane, its cuttings or
-    // the platform. The start (unchanged) still meets the lane at the entry station.
-    {id:'S3',name:'East / North perimeter spine',note:'S3 clear of the Grand Circuit T6 tunnel (Christina, 2026-10-15)',p:[[34,126],[75,126],[111,116],[136,100],[153.1,100.4],[162.1,88.1],[153.1,59.7],[154,42],[155,10],[154,-22],[150,-55],[145.2,-65.3],[162.2,-76.9],[165.2,-86],[157.8,-95.7],[142.8,-102.1],[136.5,-98.9],[130.2,-95.7],[123.7,-99.5],[116.5,-110.1],[103,-116.3],[89.6,-122.4],[77.8,-129.7],[57,-133],[42,-135]]}
+    // the platform. Its start was redrawn the same day, below.
+    // S3 start clear of the entry platform (Christina, 2026-10-15): redrawn for her review.
+    // It used to leave G2 on the entry platform's west end, run along the platform and its
+    // access, and cross the road-train lane at 15 degrees over lane s 53-97. G2 now stands
+    // 7 m east of I6's rear (world (29, 158.8)), and S3 runs east behind the east berm's
+    // north toe, crossing the entry access once at about 83 degrees, 4 m north of the
+    // platform. Between KC2 and the platform it turns through the berm's east end and
+    // crosses the lane once, square, at lane s 60.5 (world (60.1, +0.57, 169.1)): one named
+    // controlled crossing, 14 m beyond a stopped train's tractor. Outside the lane it keeps
+    // D4's south rim, 2.1 m off the east parking field and 1.8 m off its wall, and rejoins
+    // its course at [111,116]. Grades within 11.5%. I6, P4, MW-K, KC2, KC3 and R5 now meet S3
+    // before the crossing, inside the lane; R6's link still crosses the lane on its own.
+    // A west crossing (lane s 22) was the other option: it takes 154 m2 of the field and
+    // stands 3.7 m from a stopped train's tail.
+    {id:'S3',name:'East / North perimeter spine',note:'S3 clear of the Grand Circuit T6 tunnel (Christina, 2026-10-15); S3 start clear of the entry platform (Christina, 2026-10-15)',p:[[29,120.9],[48,120.9],[50.7,122.2],[55.4,122.2],[57.9,132.9],[75.2,131.5],[94.5,133.6],[111,116],[136,100],[153.1,100.4],[162.1,88.1],[153.1,59.7],[154,42],[155,10],[154,-22],[150,-55],[145.2,-65.3],[162.2,-76.9],[165.2,-86],[157.8,-95.7],[142.8,-102.1],[136.5,-98.9],[130.2,-95.7],[123.7,-99.5],[116.5,-110.1],[103,-116.3],[89.6,-122.4],[77.8,-129.7],[57,-133],[42,-135]]}
   ];
 
   const sharedService=[
@@ -356,7 +369,8 @@
       {id:'KC2 FFL',at:[55,118],y:0.49,status:'measured',offset:[8,18]},
       {id:'KC3 FFL',at:[70,119],y:1.74,status:'measured',offset:[8,-10]},
       {id:'D4 LOW',at:[88,123],y:2.93,status:'approved',offset:[8,-10]},
-      {id:'D5 LOW',at:[133,112],y:3.63,status:'approved',offset:[-8,18],anchor:'end'}
+      {id:'D5 LOW',at:[133,112],y:3.63,status:'approved',offset:[-8,18],anchor:'end'},
+      {id:'S3 CROSSING',at:[56.7,127.5],y:0.57,status:'proposed',offset:[8,18]}
     ],grading:{
       contours:[
         {p:[[72,122],[77,116],[88,113],[99,116],[104,123],[99,130],[88,133],[77,130],[72,122]],label:'D4 rim · +3.43m E',labelAt:[74,116]},
@@ -519,7 +533,7 @@
       summary:'The south arrival is a threshold, not a themed land: route A remains a clear continuous walk into the Plaza while its two recurring interiors open from public side paths and receive service from opposite rear gates.',
       publicNote:'Route A keeps its full operating width from the entry apron through J1. The I5 and I6 doors branch sideways from the arrival line; neither asks guests to walk through a building or service yard.',
       destinationNote:'Lost + Found / First Aid and Staff Break / Operations flank the approach as real rooms. They do not shrink the central arrival view or turn the entrance into another plaza.',
-      operationsNote:'I5 returns west to G1 and S2; I6 returns east to G2 and S3. Public doors and staff doors occur on opposite faces.',
+      operationsNote:'I5 returns west to G1 and S2; I6 returns east to G2 and S3. Public doors and staff doors occur on opposite faces. S3 start clear of the entry platform (Christina, 2026-10-15): G2 stands 7m east of I6’s rear, behind the east berm, off the road-train platform.',
       protectionNote:'Q1 begins on the arrival axis and stays open to the Plaza fountain, with the lighthouse crown as its distant secondary landmark.'},
     {id:'plaza',title:'Plaza + Photo Hut',bounds:{x0:-82,x1:135,z0:-68,z1:55},routes:['A'],context:['B','C','D','E','F'],places:['E1','P5'],rides:['R3'],midway:[],service:['S1'],shared:[],water:['D2'],protected:['NT-1','NT-2'],views:['Q2','Q5'],landmarks:['PLAZA','CLOCK'],
       summary:'The Plaza is the campaign home and the junction of the whole park. Its ring, Photo Hut, bandstand and dark ride remain destinations beside—never inside—the seven outgoing route relationships.',
@@ -543,7 +557,7 @@
       summary:'Three consecutive family rooms share one fixed public circuit: Arrival Commons, Ride Garden and Outer Adventure Edge. Every ride and family function gets a side court; none consumes route D.',
       publicNote:'D keeps its 9m arrival and 8m family circuit. The miniature railway platform, ride queues, play-garden gates and photo turnouts all branch from D before guests wait or stop.',
       destinationNote:'P4, two low games, Family Support functions, Squirt Garden and Character Garden make the arrival room; R5–R7 make the ride room; R14, Family Photo and Birthday Pavilion complete the outer edge.',
-      operationsNote:'Support, pavilion, rides and R14 station connect behind to S3. R14 has separate queue and exit, manual photo bay and service threshold; KG1 uses its own screened recirculation. R14 off the Grand Circuit lane (Christina, 2026-10-15): its station closes the loop’s north end beside D, opposite KP1, and its service joins R7’s S3 link; no part stands on or over the road-train lane. S3 clear of the Grand Circuit T6 tunnel (Christina, 2026-10-15): beyond R6’s link S3 stays outside the road-train lane and climbs the outer slope to cross over the T6 bore; R7 and R14’s service link meets it on the hill.',
+      operationsNote:'Support, pavilion, rides and R14 station connect behind to S3. R14 has separate queue and exit, manual photo bay and service threshold; KG1 uses its own screened recirculation. R14 off the Grand Circuit lane (Christina, 2026-10-15): its station closes the loop’s north end beside D, opposite KP1, and its service joins R7’s S3 link; no part stands on or over the road-train lane. S3 clear of the Grand Circuit T6 tunnel (Christina, 2026-10-15): beyond R6’s link S3 stays outside the road-train lane and climbs the outer slope to cross over the T6 bore; R7 and R14’s service link meets it on the hill. S3 start clear of the entry platform (Christina, 2026-10-15), for her review: S3 runs behind the east berm from G2, crosses the entry access once and the road-train lane once, square, at a named controlled crossing 6m east of the entry platform (lane s 60.5, +0.57m); KC2, KC3 and R5 meet it before that crossing. R6’s link still crosses the lane on its own.',
       protectionNote:'Q4 remains open from J7 to the Terraced Fountain and R13 crest. No Kiddieland queue, roof, sign, service route, coaster rail or water system enters NT-2.'},
     {id:'high-terrace',title:'High Terrace',bounds:{x0:35,x1:165,z0:-95,z1:60},routes:['E'],context:['D','F'],places:['I4'],rides:['R8','R13'],midway:[],service:['S3'],shared:[],water:[],protected:['NT-2'],views:['Q5','Q6'],
       summary:'The Terraces orbit and northern circuit meet at a scenic highland district. The chair swing, steel coaster station and Overlook Café occupy separate edge parcels, leaving the fountain and panoramic axes open.',
