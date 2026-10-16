@@ -124,6 +124,38 @@ func road_natural(p: Vector2, y: float) -> float:
 	return y if d == 0.0 else y + d
 
 
+var _height_tiles := {}
+
+
+## The grid's own ground at `p` (world x, z) as it stands, bilinear between the four 2 m nodes
+## round it, or NAN where one of them holds none or `p` is outside the inner tiles. Read by what
+## is shaped to the ground itself rather than to the generator's formulas plus the change: the
+## Grand Circuit's tunnel portals and mouths, and S3, whose re-route follows the earthworks laid
+## under it (2026-10-15). A tile is read from `height/` the first time it is asked for.
+@warning_ignore("integer_division")
+func height_y(p: Vector2) -> float:
+	var gx := (p.x - _grid_x0) / _grid_step
+	var gz := (p.y - _grid_z0) / _grid_step
+	if not (gx >= 0.0 and gz >= 0.0 and gx <= _grid_cols and gz <= _grid_rows):
+		return NAN
+	var c := mini(floori(gx), _grid_cols - 1)
+	var r := mini(floori(gz), _grid_rows - 1)
+	var ti := c / _grid_cells
+	var tj := r / _grid_cells
+	var key := Vector2i(_grid_tx0 + ti, _grid_tz0 + tj)
+	if not _height_tiles.has(key):
+		var read := _read_tile("height", key)
+		_height_tiles[key] = read if read.size() == _grid_samples * _grid_samples \
+			else _no_ground(_grid_samples * _grid_samples)
+	var now: PackedFloat32Array = _height_tiles[key]
+	var i := (r - tj * _grid_cells) * _grid_samples + (c - ti * _grid_cells)
+	var k := i + _grid_samples
+	var fx := gx - c
+	var fz := gz - r
+	return (now[i] * (1.0 - fx) + now[i + 1] * fx) * (1.0 - fz) \
+		+ (now[k] * (1.0 - fx) + now[k + 1] * fx) * fz
+
+
 ## One line for a log: how many nodes changed since the copy, where, and the largest rise and
 ## fall among them.
 func summary() -> String:

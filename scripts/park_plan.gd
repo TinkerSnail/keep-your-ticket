@@ -544,7 +544,10 @@ const GRAND_TRAM_CONTROLS: Array[Vector3] = [
 ]
 const GRAND_TRAM_STATIONS := [
 	{"id": &"entry", "at": Vector3(44.0, 0.0, 172.0), "theta": 0.0},
-	{"id": &"east", "at": Vector3(166.0, 7.2, -145.0), "theta": 2.08},
+	# Squared to the lane (Christina, 2026-10-15): at its old `theta` of 2.08 the
+	# platform stood about ten degrees off the lane and its ends overlapped it. A
+	# station with no `theta` faces the lane's own heading at its `at`.
+	{"id": &"east", "at": Vector3(166.0, 7.2, -145.0)},
 	# The northern loop runs east-west here and the public land is to its south.
 	# Facing the stop through PI keeps the platform on that inside edge; at zero
 	# it stood north of the lane and any Grove access had to cross the vehicles.
@@ -587,6 +590,13 @@ const GRAND_TRAM_CROSSINGS := [
 		"grade_separated": true, "pedestrian_over": true,
 		"fixed_structure_depth": 0.40,
 		"minimum_fixed_clearance_metres": 4.0},
+	# S3 re-routed clear of the T6 tunnel (Christina, 2026-10-15; the maps at
+	# 00be0f5) comes back from outside the lane at grade, ten metres short of
+	# the east platform, at ninety degrees, and serves the platform from behind.
+	# A service crossing: its other run is S3's own course, and it is marked as
+	# the lane's other at-grade crossings are.
+	{"id": &"s3_east_station", "at": Vector3(177.30, 7.30, -129.27),
+		"service": &"S3", "owner": &"park_transit"},
 ]
 ## The lane's ribbon stands this far over its graded centreline; a clearance
 ## over the lane is measured from that surface.
@@ -599,6 +609,25 @@ const GRAND_TRAM_CUTTING_VERGE := 1.5
 ## P1's promontory walk is paved this wide. Its course and grade are the
 ## approved Path3D in `park_vertical_controls.tscn`.
 const P1_WALK_W := 3.0
+## The Grand Circuit's one tunnel (Christina, 2026-10-15: "Build it as a
+## tunnel"). The lane dives under the east highland, T6, in a lined bore between
+## these two portals, listed in the loop's own order and each snapped to the
+## lane like a crossing's `at`; the lane keeps its course and level. The bore's
+## clear height is the crossings' fixed clearance and its clear width the lane's
+## with half a metre a side; the train is 2.82 m wide and 2.63 m high
+## (`ride_vehicle.gd`). A portal stands where the ground over the bore's whole
+## width first keeps `minimum_cover_metres` over its roof. The highland's ground,
+## the height grid's, is the hill over the bore; each approach is a cutting to
+## the Headland's formation (`GRAND_TRAM_CUTTING_*`), grid edit G18. Transit
+## builds the lining and each portal's frame; the groundworks hold each portal's
+## face and the floor through the bore and out over each mouth, which the grid's
+## build meets as it meets the highway's tunnels (`_grand_tram_tunnels_held`).
+const GRAND_TRAM_TUNNELS := [
+	{"id": &"t6_east_highland",
+		"portals": [Vector3(184.57, 5.91, 100.70), Vector3(192.95, 7.13, -98.88)],
+		"clear_height_metres": 4.0, "clear_width_metres": 6.4,
+		"lining_metres": 0.4, "minimum_cover_metres": 1.2},
+]
 
 
 ## Smooth enough for the articulated vehicles to turn continuously, sampled
@@ -4071,11 +4100,21 @@ const REBUILD_SERVICE_SPINES := [
 	{"id": &"S2", "points": [Vector2(-34, 126), Vector2(-40, 127),
 		Vector2(-70, 120), Vector2(-80, 105), Vector2(-73, 80),
 		Vector2(-64, 61), Vector2(-62, 38), Vector2(-62, 20)]},
+	# Re-routed clear of the Grand Circuit's T6 tunnel (Christina, 2026-10-15;
+	# the maps at 00be0f5): past R6 it climbs the outer slope and crosses over
+	# the bore, keeps its highland course, crosses back over the bore, comes
+	# down outside the lane to its controlled crossing (`GRAND_TRAM_CROSSINGS`
+	# s3_east_station), runs through the yard behind the east platform and on to
+	# its unchanged west end.
 	{"id": &"S3", "points": [Vector2(34, 126), Vector2(75, 126),
-		Vector2(111, 116), Vector2(136, 100), Vector2(149, 75),
-		Vector2(154, 42), Vector2(155, 10), Vector2(154, -22),
-		Vector2(150, -55), Vector2(138, -82), Vector2(124, -100),
-		Vector2(105, -122), Vector2(78, -132), Vector2(42, -135)]},
+		Vector2(111, 116), Vector2(136, 100), Vector2(153.1, 100.4),
+		Vector2(162.1, 88.1), Vector2(153.1, 59.7), Vector2(154, 42),
+		Vector2(155, 10), Vector2(154, -22), Vector2(150, -55),
+		Vector2(145.2, -65.3), Vector2(162.2, -76.9), Vector2(165.2, -86),
+		Vector2(157.8, -95.7), Vector2(142.8, -102.1), Vector2(136.5, -98.9),
+		Vector2(130.2, -95.7), Vector2(123.7, -99.5), Vector2(116.5, -110.1),
+		Vector2(103, -116.3), Vector2(89.6, -122.4), Vector2(77.8, -129.7),
+		Vector2(57, -133), Vector2(42, -135)]},
 ]
 
 const REBUILD_COASTAL_CREEK := [

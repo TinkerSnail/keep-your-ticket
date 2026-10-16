@@ -12,17 +12,17 @@
  },
  "seam": {
   "applied": true,
-  "held": "dumped by Godot",
-  "held_sha256": "6b819bf37deb9bc2d5453424da540b61ac0139fcb3c2eb224bd940b35b0fbfee",
-  "held_edges": 3695,
-  "stitched_edges": 3120,
-  "stitched_m": 10332.9,
+  "held": "/private/tmp/claude-501/-Users-christina-Dropbox-Mac-Documents-Keep-Your-Ticket/6be46c40-1c96-4a10-8c62-0bdeb6bbc87a/scratchpad/fixes/t6build/held",
+  "held_sha256": "e07f24ad78563d92d16ee492e8c9e44f81711b34b9221f2b0bcf852160ccbc93",
+  "held_edges": 3901,
+  "stitched_edges": 3326,
+  "stitched_m": 10453.2,
   "carve": {
-   "nodes_under_corridor": 99521,
-   "nodes_in_spans": 16355,
-   "nodes_carved": 83245,
-   "nodes_carved_above_the_corridor": 51389,
-   "nodes_carved_beside_held_edges": 17,
+   "nodes_under_corridor": 99970,
+   "nodes_in_spans": 18295,
+   "nodes_carved": 83320,
+   "nodes_carved_above_the_corridor": 51428,
+   "nodes_carved_beside_held_edges": 23,
    "nodes_carved_before_portals": 46
   },
   "skirt": {
@@ -43,22 +43,28 @@
    "skirt_beside_ground_above_m": -6.5,
    "skirt_held_clear_m": 6.0,
    "carve": "every node a corridor face covers, outside the spans",
-   "carve_open": "terrain_road_corridor",
-   "portals": "terrain_tunnel_portals",
+   "carve_open": [
+    "terrain_road_corridor",
+    "terrain_tram_tunnel_floor"
+   ],
+   "portals": [
+    "terrain_tunnel_portals",
+    "terrain_tram_tunnel_portals"
+   ],
    "span_pad_m": 0.01,
    "portal_snap_m": 0.005
   },
-  "spans": 5
+  "spans": 6
  },
  "tiles": {
   "x-1_z-1": {
-   "input_hash": "f17a6d71bf05abdb369fc1f3d3e4e9e4c3b5d1565ad6f2df7ad677cd9121037c",
+   "input_hash": "570030dada37a6dc8a9b9a4a96926336047dc80de23a69b25ead8cd23f2871d1",
    "glb": "x-1_z-1.glb",
-   "glb_sha256": "27cc3896d141bf832bfc4a214638bda427a6bd88b8d7ef348d1e7382008cb0bb",
-   "glb_bytes": 2093400,
+   "glb_sha256": "06ca63fbc479fc6577037037fda5e7488b3807b7a8cc09f9dbd22a04d61948a6",
+   "glb_bytes": 2094024,
    "height_sha256": "fd378ef6e6ee08d29a4c412bcfe93066b42db7dc8d44a7855467fe478756ae15",
-   "vertices": 47708,
-   "triangles": 94288,
+   "vertices": 47722,
+   "triangles": 94317,
    "stitch_band": {
     "triangles": 1128,
     "vertices": 434,
@@ -66,9 +72,9 @@
     "length_m": 1507.3
    },
    "triangles_by_zone": {
-    "park": 9548,
-    "walkable": 32902,
-    "elsewhere": 51838,
+    "park": 9552,
+    "walkable": 32911,
+    "elsewhere": 51854,
     "deep_sea": 0
    },
    "y_range": [
@@ -76,8 +82,8 @@
     221.927734375
    ],
    "build": {
-    "rounds": 23,
-    "seconds": 2.61
+    "rounds": 21,
+    "seconds": 2.29
    }
   },
   "x-1_z-2": {
@@ -168,13 +174,13 @@
    }
   },
   "x-1_z0": {
-   "input_hash": "a832fcde8f2000fd5d9d1c277b0d6725dc58588223ce8f86efae589089f90696",
+   "input_hash": "4668512f8338ffe54d48612280d6d1a53b6c0154de21535ae7248539a2bce8aa",
    "glb": "x-1_z0.glb",
-   "glb_sha256": "907fa4a8b1822bd28dfaa8e72e55af86d132f209f755d5a81b71efe92cef1511",
-   "glb_bytes": 1689356,
+   "glb_sha256": "586da390dea611cd948537f40557c1d8f05cae6767f14d0388f1311492e4f84f",
+   "glb_bytes": 1690672,
    "height_sha256": "98a0ce5538780abc8bb015898532f83f92190719efb768e8a057a715ae902375",
-   "vertices": 38454,
-   "triangles": 76302,
+   "vertices": 38484,
+   "triangles": 76361,
    "stitch_band": {
     "triangles": 179,
     "vertices": 65,
@@ -182,9 +188,9 @@
     "length_m": 306.5
    },
    "triangles_by_zone": {
-    "park": 4366,
-    "walkable": 14971,
-    "elsewhere": 56965,
+    "park": 4407,
+    "walkable": 14941,
+    "elsewhere": 57013,
     "deep_sea": 0
    },
    "y_range": [
@@ -192,8 +198,8 @@
     5.627626419067383
    ],
    "build": {
-    "rounds": 28,
-    "seconds": 2.6
+    "rounds": 27,
+    "seconds": 2.52
    }
   },
   "x-1_z1": {
@@ -1183,42 +1189,42 @@
    }
   },
   "x0_z-1": {
-   "input_hash": "4c867bdeee02234a48f428c9bf872c9c238f595d0f8e9a5a404b472c9aa13653",
+   "input_hash": "777fbddbb014d62e71a1b0b93e193d06b1742efb64a10d45511b0cecc8e78392",
    "glb": "x0_z-1.glb",
-   "glb_sha256": "47316321609c6d29b55dd89260745446fd2c61e9f40a339e46cd6b7583aa8198",
-   "glb_bytes": 1619164,
-   "height_sha256": "cc1c519b3641dae5e5560c8a41adad639389d6359d881fd00504eaf27b6e0bf3",
-   "vertices": 36895,
-   "triangles": 72918,
+   "glb_sha256": "6dc2283bb5f2b4bed7ac5f80d6501c94167c2eeb984f041ef3bf6696cf47b425",
+   "glb_bytes": 1666692,
+   "height_sha256": "41346a977f656fd0f89c9657a429c67e998d1736253e26651f8b7b03a27c3db7",
+   "vertices": 37990,
+   "triangles": 74999,
    "stitch_band": {
-    "triangles": 998,
-    "vertices": 436,
-    "pieces": 446,
-    "length_m": 1280.6
+    "triangles": 1129,
+    "vertices": 539,
+    "pieces": 547,
+    "length_m": 1338.7
    },
    "triangles_by_zone": {
-    "park": 13969,
-    "walkable": 39140,
-    "elsewhere": 19809,
+    "park": 16141,
+    "walkable": 39062,
+    "elsewhere": 19796,
     "deep_sea": 0
    },
    "y_range": [
-    -0.47455209493637085,
+    -0.4868435263633728,
     285.5746154785156
    ],
    "build": {
     "rounds": 19,
-    "seconds": 1.71
+    "seconds": 1.91
    }
   },
   "x0_z-2": {
-   "input_hash": "c676ff44e42b36d4b75496f8a4bd032e3144209adab4bdc8fec24b225c691f48",
+   "input_hash": "56ef3c7dc4c10bba455046cc70aa1857d52618a929379e086f96733f5453828d",
    "glb": "x0_z-2.glb",
-   "glb_sha256": "51c6dc8d18637bece3efd2f942eda17592eca4e7a30a33f6da223b498d694de1",
-   "glb_bytes": 785128,
+   "glb_sha256": "9feacafd3c18e81b6e14af4c8f4e2fbcc9725f7eb25379df87e7e922a238f16d",
+   "glb_bytes": 786272,
    "height_sha256": "36e65f3dd1f83924b4bbd1d201cbba7ed981bd0e1dee945946fe3ca2725010a2",
-   "vertices": 17876,
-   "triangles": 35347,
+   "vertices": 17902,
+   "triangles": 35399,
    "stitch_band": {
     "triangles": 0,
     "vertices": 0,
@@ -1227,8 +1233,8 @@
    },
    "triangles_by_zone": {
     "park": 0,
-    "walkable": 7921,
-    "elsewhere": 27426,
+    "walkable": 7931,
+    "elsewhere": 27468,
     "deep_sea": 0
    },
    "y_range": [
@@ -1237,7 +1243,7 @@
    ],
    "build": {
     "rounds": 16,
-    "seconds": 1.23
+    "seconds": 0.91
    }
   },
   "x0_z-3": {
@@ -1299,23 +1305,23 @@
    }
   },
   "x0_z0": {
-   "input_hash": "ad1d949de6b48487fe5139cb2ec146dd5b792a620395c744159103862e778d22",
+   "input_hash": "8c9b1ec0fc23484cfe014a01c5a26ae95886fae9d15ac4d3f008fb426f33d7a5",
    "glb": "x0_z0.glb",
-   "glb_sha256": "4b02039e1bde5e47ffc286c5a4106e308a234c1da5db3c79b3713da2907aa865",
-   "glb_bytes": 1743716,
-   "height_sha256": "5322d5fa3250900876f85f1fde5d1e421a454329c6b1f757c12827378c60ea8c",
-   "vertices": 39779,
-   "triangles": 78300,
+   "glb_sha256": "cdf601b289dddf6f5bc8ab24b3aa0098c662256ee56bcac0390d6f85a78b2855",
+   "glb_bytes": 1758012,
+   "height_sha256": "baf0c06da174939a8ac913d4086b02c8257ccbac9ff7a7c3c0d8a9a10008dca7",
+   "vertices": 40119,
+   "triangles": 78869,
    "stitch_band": {
-    "triangles": 1826,
-    "vertices": 749,
-    "pieces": 751,
-    "length_m": 2421.4
+    "triangles": 1961,
+    "vertices": 855,
+    "pieces": 854,
+    "length_m": 2481.8
    },
    "triangles_by_zone": {
-    "park": 10996,
-    "walkable": 46705,
-    "elsewhere": 20599,
+    "park": 11488,
+    "walkable": 46775,
+    "elsewhere": 20606,
     "deep_sea": 0
    },
    "y_range": [
@@ -1323,18 +1329,18 @@
     296.35198974609375
    ],
    "build": {
-    "rounds": 17,
-    "seconds": 1.68
+    "rounds": 22,
+    "seconds": 2.28
    }
   },
   "x0_z1": {
-   "input_hash": "3afe5862c127d6417526e9b266426de904612011ac5b55b78f5c7108f10a20c5",
+   "input_hash": "c47d1864341a703331ee8149ce35bc464d3a15102566e3b5c0727b484c860298",
    "glb": "x0_z1.glb",
-   "glb_sha256": "8ff5758eccb8ce897115d673153cd1070b139115318024a9eb3c3c3a50080e40",
-   "glb_bytes": 1348772,
+   "glb_sha256": "6b435ad5884d2701167f79cd7c7fc51a50e245810a10e1e5288fa05e8222091a",
+   "glb_bytes": 1348864,
    "height_sha256": "069a9e22edbdc29b9cc554e22dd29a6436ca73e210cced5497bd8861cd30914f",
-   "vertices": 30753,
-   "triangles": 60611,
+   "vertices": 30755,
+   "triangles": 60616,
    "stitch_band": {
     "triangles": 1330,
     "vertices": 519,
@@ -1343,8 +1349,8 @@
    },
    "triangles_by_zone": {
     "park": 0,
-    "walkable": 53263,
-    "elsewhere": 7348,
+    "walkable": 53269,
+    "elsewhere": 7347,
     "deep_sea": 0
    },
    "y_range": [
@@ -1352,8 +1358,8 @@
     288.997802734375
    ],
    "build": {
-    "rounds": 22,
-    "seconds": 1.74
+    "rounds": 25,
+    "seconds": 1.99
    }
   },
   "x0_z2": {
@@ -8653,7 +8659,7 @@
    }
   },
   "x0_z-1": {
-   "key": "8379b3decfa41b19064bd23611013bf534356e95b755f09f5632a551110e25d6",
+   "key": "04cc58326e496fd562212984e463fbdb32377a10462a6a0c4262d0cc43c030c8",
    "requests": {
     "n": [
      0,
@@ -8681,8 +8687,8 @@
      56,
      78,
      88,
-     100,
-     111,
+     96,
+     107,
      119,
      124,
      128,
@@ -8734,11 +8740,15 @@
      76,
      79,
      83,
+     87,
+     95,
+     96,
      98,
-     104,
-     107,
-     110,
-     113,
+     99,
+     100,
+     105,
+     108,
+     112,
      116,
      117,
      118,
@@ -8914,11 +8924,10 @@
      422,
      426,
      427,
-     429,
+     428,
      431,
      432,
-     434,
-     435,
+     436,
      437,
      438,
      440,
@@ -9010,7 +9019,7 @@
    }
   },
   "x0_z0": {
-   "key": "b1252b430de59bd087d4e441bf699955ee22ca61228d1a69043b149ffa5a27aa",
+   "key": "d4c678ecd30bf217d7d1adee178aeda8c2755fe678db42038a41be4da95d2683",
    "requests": {
     "n": [
      0,
@@ -9019,14 +9028,19 @@
      68,
      71,
      74,
-     77,
-     80,
-     84,
+     76,
+     81,
+     88,
+     89,
+     95,
+     96,
      98,
+     99,
+     100,
      104,
-     107,
-     110,
-     113,
+     106,
+     109,
+     111,
      114,
      116,
      120,
@@ -9154,7 +9168,6 @@
      152,
      154,
      156,
-     157,
      158,
      160,
      162,
@@ -9250,7 +9263,8 @@
     ],
     "w": [
      0,
-     44,
+     45,
+     46,
      48,
      49,
      55,
@@ -18253,11 +18267,10 @@
    423,
    426,
    427,
-   429,
+   428,
    431,
    432,
-   434,
-   435,
+   436,
    437,
    438,
    440,
@@ -18354,7 +18367,8 @@
    24,
    25,
    38,
-   44,
+   45,
+   46,
    48,
    49,
    53,
@@ -19193,7 +19207,7 @@
    78,
    88,
    96,
-   100,
+   107,
    111,
    119,
    120,
@@ -19345,16 +19359,24 @@
    71,
    74,
    76,
-   77,
    79,
-   80,
+   81,
    83,
-   84,
+   87,
+   88,
+   89,
+   95,
+   96,
    98,
+   99,
+   100,
    104,
-   107,
-   110,
-   113,
+   105,
+   106,
+   108,
+   109,
+   111,
+   112,
    114,
    116,
    117,
@@ -19598,7 +19620,6 @@
    154,
    155,
    156,
-   157,
    158,
    159,
    160,
@@ -30482,27 +30503,25 @@
  },
  "totals": {
   "tiles": 104,
-  "triangles": 1477930,
-  "vertices": 750100,
+  "triangles": 1480725,
+  "vertices": 751607,
   "triangles_by_zone": {
-   "park": 38879,
-   "walkable": 434416,
-   "elsewhere": 984367,
+   "park": 41588,
+   "walkable": 434403,
+   "elsewhere": 984466,
    "deep_sea": 20268
   },
-  "glb_bytes": 34000932
+  "glb_bytes": 34065932
  },
  "last_build": {
-  "tiles_built": [
-   "x-1_z-1"
-  ],
-  "phase1_built": 1,
+  "tiles_built": [],
+  "phase1_built": 0,
   "augmented_lines": {},
   "seconds": {
-   "phase1": 2.9,
-   "phase2": 2.7,
-   "export": 0.3,
-   "total": 14.4
+   "phase1": 0.0,
+   "phase2": 0.0,
+   "export": 0.0,
+   "total": 5.8
   }
  }
 }

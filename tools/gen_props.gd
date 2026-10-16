@@ -755,6 +755,9 @@ func _initialize() -> void:
 	# ordinals. The staged nodes retain the exact transforms they had when they
 	# lived in east_cascade; only their output owner changes.
 	_publish_staged_east_shoulders()
+	# The Grand Circuit's tunnel (2026-10-15): its floor and portal faces are held
+	# ground like the highway's, appended last so no seam ordinal moves.
+	_grand_tram_tunnels_held()
 	_rebuild_embankment_ground_index(_root)
 	_drop_world_terrain_copies()
 	if not _save(_root, GROUNDWORKS_PATH):
@@ -12501,13 +12504,56 @@ func _grand_tram_infrastructure() -> void:
 	_east_path_ribbon("grand_tram_lane", _grand_tram,
 		Plan.GRAND_TRAM_LANE_W, "asphalt", Plan.GRAND_TRAM_LANE_LIFT)
 	for station in Plan.GRAND_TRAM_STATIONS:
-		_grand_tram_stop(station["id"], station["at"], station["theta"])
+		_grand_tram_stop(station["id"], _grand_tram_station_base(station),
+			_grand_tram_station_theta(station))
 	_ride_vehicle_node("grand_tram", 1)
 	# Crossings append after the established lane, stops and vehicle so marking a
 	# new public connection cannot re-plane any of that infrastructure.
 	for crossing in Plan.GRAND_TRAM_CROSSINGS:
 		if crossing["owner"] == &"park_transit":
 			_grand_tram_crossing(crossing)
+	# The tunnel under the east highland (2026-10-15), after every crossing for
+	# the same reason.
+	for tunnel in Plan.GRAND_TRAM_TUNNELS:
+		_grand_tram_tunnel_build(_grand_tram_tunnel(tunnel))
+
+
+## A station faces its `theta`, or, with none, the lane's own heading at its
+## `at` (the east platform, squared to the lane on 2026-10-15): the platform's
+## length along the lane and its side on local -Z, inside the loop, as before.
+func _grand_tram_station_theta(station: Dictionary) -> float:
+	if station.has("theta"):
+		return float(station["theta"])
+	var at: Vector3 = station["at"]
+	var k := 0
+	for i in _grand_tram.size():
+		if Vector2(_grand_tram[i].x - at.x, _grand_tram[i].z - at.z).length() \
+				< Vector2(_grand_tram[k].x - at.x, _grand_tram[k].z - at.z).length():
+			k = i
+	# Local +X along the lane's heading: cos(theta) = heading.x and
+	# sin(theta) = -heading.z, where the across is (-heading.z, heading.x).
+	var across := _grand_tram_across(k)
+	return atan2(across.x, across.y)
+
+
+## Where a station's stop is built from: its `at`, on the lane. A stop squared to
+## the lane stands out from it, along its platform's side, by as much as the lane
+## curves in under the platform's ends, so the platform's lane edge keeps the
+## clearance there that it has at its middle (`GRAND_TRAM_PLATFORM_CLEAR`).
+const GRAND_TRAM_PLATFORM_CLEAR := 0.1
+
+
+func _grand_tram_station_base(station: Dictionary) -> Vector3:
+	var at: Vector3 = station["at"]
+	if station.has("theta"):
+		return at
+	var theta := _grand_tram_station_theta(station)
+	var nearest := INF
+	for x in [-10.0, 10.0]:
+		var corner := _place(at, Vector3(x, 0.0, -2.8), theta)
+		nearest = minf(nearest, float(_grand_tram_nearest(corner)["distance"]))
+	var shift := maxf(0.0, Plan.GRAND_TRAM_LANE_W * 0.5 + GRAND_TRAM_PLATFORM_CLEAR - nearest)
+	return _place(at, Vector3(0.0, 0.0, -shift), theta)
 
 
 ## A crossing is a named piece of the plan, not two ribbons accidentally drawn
@@ -12524,8 +12570,11 @@ func _grand_tram_crossing(crossing: Dictionary) -> void:
 	var theta := atan2(tangent.x, tangent.z)
 	var tag := String(crossing["id"])
 	var grade_separated := bool(crossing.get("grade_separated", false))
-	var pedestrian := _grand_tram_pedestrian_run(crossing["pedestrian"], at,
-		grade_separated)
+	# A service route crosses as a public one does, on its own course: S3 at the
+	# east platform (2026-10-15).
+	var service := StringName(crossing.get("service", &""))
+	var pedestrian := _grand_tram_service_run(service, at) if service != &"" \
+		else _grand_tram_pedestrian_run(crossing["pedestrian"], at, grade_separated)
 	if grade_separated:
 		_grand_tram_overpass(crossing, at, theta, pedestrian)
 		return
@@ -12540,7 +12589,7 @@ func _grand_tram_crossing(crossing: Dictionary) -> void:
 	# its complete envelope at both vehicle-lane edges. At compound crossings,
 	# keep walking outward until every captured public route is clear.
 	var pedestrian_normal: Vector2 = pedestrian["normal"]
-	var captured: Array = crossing.get("captures", [crossing["pedestrian"]])
+	var captured: Array = crossing.get("captures", [crossing.get("pedestrian", &"")])
 	var tram_normal := Vector2(cos(theta), -sin(theta))
 	for wait_side in [-1.0, 1.0]:
 		var wait2: Vector2 = Vector2(at.x, at.z) + tram_normal \
@@ -12548,7 +12597,8 @@ func _grand_tram_crossing(crossing: Dictionary) -> void:
 		for edge_side in [-1.0, 1.0]:
 			var edge_offset: float = float(pedestrian["width"]) * 0.5 + 0.55
 			var post2: Vector2 = wait2 + pedestrian_normal * edge_side * edge_offset
-			while not _grand_tram_post_clear(post2, captured, 0.35):
+			while not _grand_tram_post_clear(post2, captured, 0.35) \
+					or not _grand_tram_service_clear(post2, service, 0.35):
 				edge_offset += 0.40
 				assert(edge_offset <= float(pedestrian["width"]) * 0.5 + 5.0,
 					"crossing %s has no clear wait-post corner" % tag)
@@ -12912,6 +12962,25 @@ func _rebuild_build_route_height_at(id: StringName, point: Vector2) -> float:
 	return best_height
 
 
+## A service route's run where a crossing meets it, as a crossing reads a public
+## route's: its normal there, its width and its height (the crossing's own).
+func _grand_tram_service_run(id: StringName, at: Vector3) -> Dictionary:
+	var nearest := _rebuild_nearest_plan_segment(_rebuild_service_course(id),
+		Vector2(at.x, at.z))
+	var tangent: Vector2 = nearest["tangent"]
+	return {"normal": Vector2(-tangent.y, tangent.x), "width": REBUILD_SERVICE_W,
+		"height": at.y}
+
+
+## Whether `point` stands `margin` clear of a service route's paving, or there is
+## no service route to clear.
+func _grand_tram_service_clear(point: Vector2, id: StringName, margin: float) -> bool:
+	if id == &"":
+		return true
+	var nearest := _rebuild_nearest_plan_segment(_rebuild_service_course(id), point)
+	return float(nearest["distance"]) >= REBUILD_SERVICE_W * 0.5 + margin
+
+
 func _grand_tram_post_clear(point: Vector2, route_ids: Array,
 		margin: float) -> bool:
 	for id in route_ids:
@@ -12967,6 +13036,431 @@ func _grand_tram_nearest(point: Vector3) -> Dictionary:
 			best_at = q
 			best_tangent = b - a
 	return {"at": best_at, "tangent": best_tangent.normalized(), "distance": best_d}
+
+
+# ---------------------------------------------------------------------------
+# The Grand Circuit's tunnel under the east highland, T6 (2026-10-15)
+# ---------------------------------------------------------------------------
+
+## The floor the groundworks hold runs this far out over each mouth, covering
+## the cutting in plan from the portal's plane to the crests, so the grid's build
+## carves its ground there, stitches it to the floor's edges and lays no band
+## across the mouth, as the road corridor does in front of the highway's portals.
+## Grid edit G18 leaves the ground natural for `GRAND_TRAM_TUNNEL_MOUTH_KEEP` in
+## front of each portal, under the floor, so the hill is read whole on the
+## portal's plane; the floor reaches a 2 m cell's diagonal past that, onto the
+## cutting as cut.
+const GRAND_TRAM_TUNNEL_APRON := 6.0
+const GRAND_TRAM_TUNNEL_MOUTH_KEEP := 3.0
+const GRAND_TRAM_TUNNEL_APRON_ROW := 1.0
+## The lining's walls stand this far into the ground under the floor.
+const GRAND_TRAM_TUNNEL_WALL_FOOT := 0.3
+## A portal's frame: a pier each side, from a hand inside the lining's outer
+## face to `GRAND_TRAM_PORTAL_PIER_W` past it, up to a hand under the portal's
+## top; and a lintel from five centimetres over the clear height to the top,
+## which is the roof's top and the minimum cover over it, a hand wider than the
+## piers. Both straddle the portal's plane, the lintel the deeper.
+const GRAND_TRAM_PORTAL_PIER_W := 1.0
+const GRAND_TRAM_PORTAL_HAND := 0.1
+const GRAND_TRAM_PORTAL_DEPTH := 1.0
+## The span the grid holds as the hill over the bore runs this far past the
+## farther end of either portal's face, so no node behind a face is carved.
+const GRAND_TRAM_TUNNEL_SPAN_MARGIN := 3.0
+## No edge of the floor over a mouth is longer than this across the cutting: the
+## grid's build bands the ground to the floor's far row, and a band triangle
+## spans no more than twice its stitch reach, so a longer edge would leave a
+## hole in front of the floor (`tools/blender/ground_build.py`, `_band_cdt`).
+const GRAND_TRAM_TUNNEL_APRON_EDGE := 1.0
+## A cutting's crest: where its batter, walked out from the formation's edge,
+## first stands `GRAND_TRAM_CREST_RISE` over the grid's ground.
+const GRAND_TRAM_CREST_RISE := 0.02
+const GRAND_TRAM_CREST_STEP := 0.05
+const GRAND_TRAM_CREST_MAX := 60.0
+
+var _grand_tram_arc := PackedFloat64Array()
+var _grand_tram_tunnel_cache := {}
+
+
+## The lane's plan length from its first station to each of its stations.
+func _grand_tram_arcs() -> PackedFloat64Array:
+	if _grand_tram_arc.is_empty():
+		_grand_tram_arc.append(0.0)
+		for i in _grand_tram.size() - 1:
+			_grand_tram_arc.append(_grand_tram_arc[i] + Vector2(_grand_tram[i + 1].x - _grand_tram[i].x,
+				_grand_tram[i + 1].z - _grand_tram[i].z).length())
+	return _grand_tram_arc
+
+
+## The lane's across at its station `i`, as `_east_path_edges` lays the ribbon's
+## edges there: the normal to the chord over the station's two neighbours.
+func _grand_tram_across(i: int) -> Vector2:
+	var prev: Vector3 = _grand_tram[maxi(i - 1, 0)]
+	var next: Vector3 = _grand_tram[mini(i + 1, _grand_tram.size() - 1)]
+	var tangent := Vector2(next.x - prev.x, next.z - prev.z).normalized()
+	return Vector2(-tangent.y, tangent.x)
+
+
+## The lane at plan length `s` along it: the centreline point `c` on its chord,
+## the across `n` its ribbon's edges are laid on there (the two stations', carried
+## along the chord and made unit), and `t`, the chord's heading. Everything a
+## tunnel builds across a row is linear along the chord, as the ribbon is, so
+## the floor keeps the formation's drop under the lane all the way.
+func _grand_tram_row(s: float) -> Dictionary:
+	var arcs := _grand_tram_arcs()
+	var i := clampi(arcs.bsearch(s, true) - 1, 0, arcs.size() - 2)
+	var t := clampf((s - arcs[i]) / maxf(arcs[i + 1] - arcs[i], 0.0001), 0.0, 1.0)
+	var a: Vector3 = _grand_tram[i]
+	var b: Vector3 = _grand_tram[i + 1]
+	return {"s": s, "c": a.lerp(b, t),
+		"n": _grand_tram_across(i).lerp(_grand_tram_across(i + 1), t).normalized(),
+		"t": Vector2(b.x - a.x, b.z - a.z).normalized()}
+
+
+## The plan length along the lane of the lane's nearest point to `p`.
+func _grand_tram_arc_of(p: Vector3) -> float:
+	var arcs := _grand_tram_arcs()
+	var pv := Vector2(p.x, p.z)
+	var best := INF
+	var best_s := 0.0
+	for i in _grand_tram.size() - 1:
+		var a := Vector2(_grand_tram[i].x, _grand_tram[i].z)
+		var ab := Vector2(_grand_tram[i + 1].x, _grand_tram[i + 1].z) - a
+		var t := clampf((pv - a).dot(ab) / maxf(ab.length_squared(), 0.000001), 0.0, 1.0)
+		var d := pv.distance_to(a + ab * t)
+		if d < best:
+			best = d
+			best_s = arcs[i] + ab.length() * t
+	return best_s
+
+
+## A point across a row: `x` along its across, at height `y`.
+func _grand_tram_row_point(row: Dictionary, x: float, y: float) -> Vector3:
+	var c: Vector3 = row["c"]
+	var n: Vector2 = row["n"]
+	return Vector3(c.x + n.x * x, y, c.z + n.y * x)
+
+
+## The lane's surface over a row's centreline, and its cutting's formation.
+func _grand_tram_row_surface(row: Dictionary) -> float:
+	return (row["c"] as Vector3).y + Plan.GRAND_TRAM_LANE_LIFT
+
+
+func _grand_tram_row_formation(row: Dictionary) -> float:
+	return _grand_tram_row_surface(row) - Plan.GRAND_TRAM_CUTTING_FORMATION_DROP
+
+
+## A tunnel as built: its portals' plan lengths along the lane `s`; `rows` from
+## portal to portal, both portals' and every lane station between; each mouth's
+## `aprons`, rows from its portal out every `GRAND_TRAM_TUNNEL_APRON_ROW`; and
+## the cross-section, half-widths across the lane and heights over its surface.
+func _grand_tram_tunnel(tunnel: Dictionary) -> Dictionary:
+	var id := StringName(tunnel["id"])
+	if _grand_tram_tunnel_cache.has(id):
+		return _grand_tram_tunnel_cache[id]
+	var portals: Array = tunnel["portals"]
+	var s_a := _grand_tram_arc_of(portals[0])
+	var s_b := _grand_tram_arc_of(portals[1])
+	assert(s_b > s_a + 10.0, "tunnel %s's portals are not in the lane's order" % id)
+	var arcs := _grand_tram_arcs()
+	var rows: Array = [_grand_tram_row(s_a)]
+	for i in arcs.size():
+		if arcs[i] > s_a + 0.05 and arcs[i] < s_b - 0.05:
+			rows.append(_grand_tram_row(arcs[i]))
+	rows.append(_grand_tram_row(s_b))
+	var count := ceili(GRAND_TRAM_TUNNEL_APRON / GRAND_TRAM_TUNNEL_APRON_ROW)
+	var aprons: Array = []
+	for end in [[s_a, -1.0], [s_b, 1.0]]:
+		var mouth: Array = []
+		for k in count + 1:
+			mouth.append(_grand_tram_row(float(end[0])
+				+ float(end[1]) * GRAND_TRAM_TUNNEL_APRON * float(k) / float(count)))
+		aprons.append(mouth)
+	var clear_half := float(tunnel["clear_width_metres"]) * 0.5
+	var lining := float(tunnel["lining_metres"])
+	var clear_h := float(tunnel["clear_height_metres"])
+	var out := {"id": id, "s": [s_a, s_b], "rows": rows, "aprons": aprons,
+		"clear_half": clear_half, "outer_half": clear_half + lining,
+		"formation_half": Plan.GRAND_TRAM_LANE_W * 0.5 + Plan.GRAND_TRAM_CUTTING_VERGE,
+		"pier_out": clear_half + lining + GRAND_TRAM_PORTAL_PIER_W,
+		"clear_h": clear_h, "roof_top": clear_h + lining,
+		"portal_top": clear_h + lining + float(tunnel["minimum_cover_metres"])}
+	assert(float(out["outer_half"]) < float(out["formation_half"]),
+		"tunnel %s's lining stands outside its cutting's formation" % id)
+	_grand_tram_tunnel_cache[id] = out
+	return out
+
+
+## The tunnel's lining and each portal's frame, in transit. The lining is one
+## mesh along the bore's rows: upright walls, `GRAND_TRAM_TUNNEL_WALL_FOOT` into
+## the ground under the floor, under a roof that keeps the lane's grade, as the
+## highway's bores are built (a tall box is never tilted). Its faces collide, so
+## the bore holds whoever walks it; the floor is the groundworks'
+## (`_grand_tram_tunnels_held`), and the hill over it the height grid's.
+func _grand_tram_tunnel_build(t: Dictionary) -> void:
+	var tag := "grand_tram_tunnel_%s" % t["id"]
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(TOWN_FLAT)
+	var inner: float = t["clear_half"]
+	var outer: float = t["outer_half"]
+	var rows: Array = t["rows"]
+	var quad := func(a: Vector3, b: Vector3, c: Vector3, d: Vector3, hint: Vector3) -> void:
+		_earth_oriented_tri(st, a, Vector2(a.x + a.y, a.z) * 0.3, b, Vector2(b.x + b.y, b.z) * 0.3,
+			c, Vector2(c.x + c.y, c.z) * 0.3, hint)
+		_earth_oriented_tri(st, a, Vector2(a.x + a.y, a.z) * 0.3, c, Vector2(c.x + c.y, c.z) * 0.3,
+			d, Vector2(d.x + d.y, d.z) * 0.3, hint)
+	for k in rows.size() - 1:
+		var ra: Dictionary = rows[k]
+		var rb: Dictionary = rows[k + 1]
+		var foot_a := _grand_tram_row_formation(ra) - GRAND_TRAM_TUNNEL_WALL_FOOT
+		var foot_b := _grand_tram_row_formation(rb) - GRAND_TRAM_TUNNEL_WALL_FOOT
+		var soffit_a := _grand_tram_row_surface(ra) + float(t["clear_h"])
+		var soffit_b := _grand_tram_row_surface(rb) + float(t["clear_h"])
+		var top_a := _grand_tram_row_surface(ra) + float(t["roof_top"])
+		var top_b := _grand_tram_row_surface(rb) + float(t["roof_top"])
+		var na: Vector2 = ra["n"]
+		for side in [-1.0, 1.0]:
+			var out_hint := Vector3(na.x, 0.0, na.y) * float(side)
+			quad.call(_grand_tram_row_point(ra, side * inner, foot_a),
+				_grand_tram_row_point(rb, side * inner, foot_b),
+				_grand_tram_row_point(rb, side * inner, soffit_b),
+				_grand_tram_row_point(ra, side * inner, soffit_a), -out_hint)
+			quad.call(_grand_tram_row_point(ra, side * outer, foot_a),
+				_grand_tram_row_point(rb, side * outer, foot_b),
+				_grand_tram_row_point(rb, side * outer, top_b),
+				_grand_tram_row_point(ra, side * outer, top_a), out_hint)
+		quad.call(_grand_tram_row_point(ra, -inner, soffit_a),
+			_grand_tram_row_point(rb, -inner, soffit_b),
+			_grand_tram_row_point(rb, inner, soffit_b),
+			_grand_tram_row_point(ra, inner, soffit_a), Vector3.DOWN)
+		quad.call(_grand_tram_row_point(ra, -outer, top_a),
+			_grand_tram_row_point(rb, -outer, top_b),
+			_grand_tram_row_point(rb, outer, top_b),
+			_grand_tram_row_point(ra, outer, top_a), Vector3.UP)
+	st.generate_normals()
+	st.generate_tangents()
+	_rebuild_mesh_body_of("building", tag + "_lining", st.commit(), true)
+	# Each portal's frame, square to the lane at its portal: local X across.
+	for end in [[rows[0], "a"], [rows[rows.size() - 1], "b"]]:
+		var row: Dictionary = end[0]
+		var n: Vector2 = row["n"]
+		var theta := atan2(-n.y, n.x)
+		var surface := _grand_tram_row_surface(row)
+		var base := Vector3((row["c"] as Vector3).x, surface, (row["c"] as Vector3).z)
+		var pier_in := outer - GRAND_TRAM_PORTAL_HAND
+		var pier_out: float = t["pier_out"]
+		var pier_foot := -Plan.GRAND_TRAM_CUTTING_FORMATION_DROP - GRAND_TRAM_TUNNEL_WALL_FOOT
+		var pier_top := float(t["portal_top"]) - GRAND_TRAM_PORTAL_HAND
+		for side in [-1.0, 1.0]:
+			_box("%s_portal_%s_pier_%s" % [tag, end[1], "l" if side < 0.0 else "r"], base,
+				Vector3(side * (pier_in + pier_out) * 0.5, (pier_foot + pier_top) * 0.5, 0.0),
+				Vector3(pier_out - pier_in, pier_top - pier_foot,
+					GRAND_TRAM_PORTAL_DEPTH - GRAND_TRAM_PORTAL_HAND), "building", theta)
+		var soffit := float(t["clear_h"]) + 0.05
+		_box("%s_portal_%s_lintel" % [tag, end[1]], base,
+			Vector3(0.0, (soffit + float(t["portal_top"])) * 0.5, 0.0),
+			Vector3((pier_out + GRAND_TRAM_PORTAL_HAND) * 2.0, float(t["portal_top"]) - soffit,
+				GRAND_TRAM_PORTAL_DEPTH), "building", theta)
+
+
+## The tunnels' held ground, in the groundworks (2026-10-15), extending the
+## highway tunnels' pattern to the lane: the floor through each bore and out over
+## each mouth, `terrain_tram_tunnel_floor`, which the grid's build carves the
+## open air out under and stitches to as it does the road corridor; and each
+## portal's face, `terrain_tram_tunnel_portals`, whose top edges it stitches the
+## hill to, with each tunnel's span, the plan outline over which the grid is
+## the hill, as the body's meta `kyt_tunnel_spans`
+## (`tools/_ground_faces_dump.gd`, `tools/blender/ground_build.py`).
+func _grand_tram_tunnels_held() -> void:
+	if Plan.GRAND_TRAM_TUNNELS.is_empty():
+		return
+	var floor_st := SurfaceTool.new()
+	floor_st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	floor_st.set_smooth_group(0)
+	var face_st := SurfaceTool.new()
+	face_st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	face_st.set_smooth_group(0)
+	var spans: Array = []
+	for tunnel in Plan.GRAND_TRAM_TUNNELS:
+		spans.append(_grand_tram_tunnel_held(_grand_tram_tunnel(tunnel), floor_st, face_st))
+	floor_st.generate_normals()
+	floor_st.generate_tangents()
+	face_st.generate_normals()
+	face_st.generate_tangents()
+	_rebuild_mesh_body_of("ground_banded", "terrain_tram_tunnel_floor", floor_st.commit(), true)
+	var portals := _rebuild_mesh_body_of("ground_banded", "terrain_tram_tunnel_portals",
+		face_st.commit(), true)
+	portals.set_meta("kyt_tunnel_spans", spans)
+
+
+## A cutting's crests across one row of a mouth, as grid edit G18 cut it: the
+## formation out to `half`, then the batter at `CLIMB_BANK_BATTER` out to where it
+## first stands `GRAND_TRAM_CREST_RISE` over the grid's ground. [right, left] as
+## offsets across (negative, positive).
+func _grand_tram_cut_crests(row: Dictionary, half: float) -> Array:
+	var c: Vector3 = row["c"]
+	var n: Vector2 = row["n"]
+	var f := _grand_tram_row_formation(row)
+	var out: Array = []
+	for side in [-1.0, 1.0]:
+		var x := half + GRAND_TRAM_CREST_STEP
+		while x < half + GRAND_TRAM_CREST_MAX:
+			var g: float = _world_terrain_source().height_y(Vector2(c.x, c.z) + n * float(side) * x)
+			if is_nan(g) or f + (x - half) / Plan.CLIMB_BANK_BATTER > g + GRAND_TRAM_CREST_RISE:
+				break
+			x += GRAND_TRAM_CREST_STEP
+		out.append(float(side) * x)
+	return out
+
+
+## One tunnel's floor and portal faces into the two meshes, and its span.
+func _grand_tram_tunnel_held(t: Dictionary, floor_st: SurfaceTool,
+		face_st: SurfaceTool) -> PackedVector2Array:
+	var half: float = t["formation_half"]
+	var outer: float = t["outer_half"]
+	# Each mouth: the cutting's profile across every row out from the portal,
+	# crest, batter, formation's edge, lining's outer face, formation, both sides,
+	# every `GRAND_TRAM_TUNNEL_APRON_EDGE` or less; joined row to row. Every row of
+	# a mouth has as many points on each batter, its longest's share.
+	var mouths: Array = []
+	var widest := 0.0
+	var inner: Array = [-outer]
+	var across := ceili(outer * 2.0 / GRAND_TRAM_TUNNEL_APRON_EDGE)
+	for k in range(1, across):
+		inner.append(-outer + outer * 2.0 * float(k) / float(across))
+	inner.append(outer)
+	for m in 2:
+		var rows_m: Array = t["aprons"][m]
+		var crests: Array = []
+		var longest := 0.0
+		for row in rows_m:
+			var c := _grand_tram_cut_crests(row, half)
+			crests.append(c)
+			longest = maxf(longest, maxf(-float(c[0]), float(c[1])) - half)
+		var steps := maxi(1, ceili(longest / GRAND_TRAM_TUNNEL_APRON_EDGE))
+		var profiles: Array = []
+		for r in rows_m.size():
+			var row: Dictionary = rows_m[r]
+			var f := _grand_tram_row_formation(row)
+			var right: float = crests[r][0]
+			var left: float = crests[r][1]
+			var xs: Array = []
+			for k in steps:
+				xs.append(lerpf(right, -half, float(k) / float(steps)))
+			xs.append(-half)
+			xs.append_array(inner)
+			xs.append(half)
+			for k in range(1, steps + 1):
+				xs.append(lerpf(half, left, float(k) / float(steps)))
+			var points: Array = []
+			for x in xs:
+				points.append(_grand_tram_row_point(row, x,
+					f + maxf(0.0, absf(float(x)) - half) / Plan.CLIMB_BANK_BATTER))
+			profiles.append({"row": row, "xs": xs, "points": points,
+				"outer": [steps + 1, steps + inner.size()]})
+		for k in profiles.size() - 1:
+			var a: Array = profiles[k]["points"]
+			var b: Array = profiles[k + 1]["points"]
+			for j in a.size() - 1:
+				_bore_lid_tri(floor_st, a[j], a[j + 1], b[j + 1], Vector3.UP)
+				_bore_lid_tri(floor_st, a[j], b[j + 1], b[j], Vector3.UP)
+		mouths.append(profiles[0])
+		widest = maxf(widest, maxf(-float(profiles[0]["xs"][0]),
+			float(profiles[0]["xs"][profiles[0]["xs"].size() - 1])))
+	# Through the bore: the formation out to the lining's outer faces, from the
+	# lining points of one portal's row to the other's.
+	var rows: Array = t["rows"]
+	var strips: Array = []
+	for k in rows.size():
+		var f := _grand_tram_row_formation(rows[k])
+		strips.append([_grand_tram_row_point(rows[k], -outer, f),
+			_grand_tram_row_point(rows[k], outer, f)])
+	for m in 2:
+		var ends: Array = mouths[m]["outer"]
+		strips[0 if m == 0 else strips.size() - 1] = [mouths[m]["points"][ends[0]],
+			mouths[m]["points"][ends[1]]]
+	for k in strips.size() - 1:
+		_bore_lid_tri(floor_st, strips[k][0], strips[k][1], strips[k + 1][1], Vector3.UP)
+		_bore_lid_tri(floor_st, strips[k][0], strips[k + 1][1], strips[k + 1][0], Vector3.UP)
+	# Each portal's face, facing out along its approach.
+	for m in 2:
+		var row: Dictionary = mouths[m]["row"]
+		var along: Vector2 = row["t"]
+		_grand_tram_portal_face(face_st, t, mouths[m],
+			Vector3(along.x, 0.0, along.y) * (-1.0 if m == 0 else 1.0))
+	# The span: the bore's rows out to the wider face and its margin both sides.
+	var w := widest + GRAND_TRAM_TUNNEL_SPAN_MARGIN
+	var span := PackedVector2Array()
+	for row in rows:
+		var p := _grand_tram_row_point(row, w, 0.0)
+		span.append(Vector2(p.x, p.z))
+	for k in range(rows.size() - 1, -1, -1):
+		var p := _grand_tram_row_point(rows[k], -w, 0.0)
+		span.append(Vector2(p.x, p.z))
+	return span
+
+
+## A portal's face, as `_bore_portal_face` stands the highway's: from the hill's
+## edge across the portal's row down to the cutting's profile there (its mouth's
+## first row), except over the bore, out to the lining's outer faces, where it
+## stops on the roof. Its top is the grid's ground on the portal's plane, natural
+## there because G18 leaves the mouth uncut under the floor, coned down to a hand
+## under the frame's top near it at `BORE_MOUTH_SLOPE`, as the highway's hill
+## comes down to its headwalls; its two ends are the cutting's crests.
+func _grand_tram_portal_face(st: SurfaceTool, t: Dictionary, mouth: Dictionary,
+		outward: Vector3) -> void:
+	var row: Dictionary = mouth["row"]
+	var xs: Array = mouth["xs"]
+	var points: Array = mouth["points"]
+	var outer: float = t["outer_half"]
+	var surface := _grand_tram_row_surface(row)
+	var roof := surface + float(t["roof_top"])
+	var head := surface + float(t["portal_top"]) - BORE_LID_CLEAR
+	var last := xs.size() - 1
+	var x0 := float(xs[0])
+	var x1 := float(xs[last])
+	# The cutting's height at an across position, read off the profile.
+	var profile := func(x: float) -> float:
+		for j in last:
+			var xa := float(xs[j])
+			var xb := float(xs[j + 1])
+			if x <= xb + 0.0001:
+				var u := clampf((x - xa) / maxf(xb - xa, 0.0001), 0.0, 1.0)
+				return lerpf((points[j] as Vector3).y, (points[j + 1] as Vector3).y, u)
+		return (points[last] as Vector3).y
+	var cuts: Array = xs.duplicate()
+	var x := ceilf(x0)
+	while x < x1:
+		cuts.append(x)
+		x += 1.0
+	cuts.sort()
+	var top := func(x: float) -> float:
+		if x <= x0 + 0.0001 or x >= x1 - 0.0001:
+			return profile.call(x)
+		var p := _grand_tram_row_point(row, x, 0.0)
+		var g: float = _world_terrain_source().height_y(Vector2(p.x, p.z))
+		var cone := head + BORE_MOUTH_SLOPE * maxf(0.0, absf(x) - float(t["pier_out"]))
+		return cone if is_nan(g) else minf(g, cone)
+	for k in cuts.size() - 1:
+		var xa := float(cuts[k])
+		var xb := float(cuts[k + 1])
+		if xb - xa < 0.01:
+			continue
+		var over := absf((xa + xb) * 0.5) < outer
+		var ta: float = top.call(xa)
+		var tb: float = top.call(xb)
+		var fa: float = roof if over else profile.call(xa)
+		var fb: float = roof if over else profile.call(xb)
+		if ta <= fa + 0.01 and tb <= fb + 0.01:
+			continue
+		# The crests are the profile's own points, so a face's end meets the
+		# floor's corner exactly.
+		var at: Vector3 = points[0] if k == 0 else _grand_tram_row_point(row, xa, ta)
+		var bt: Vector3 = points[last] if k == cuts.size() - 2 else _grand_tram_row_point(row, xb, tb)
+		var ab := _grand_tram_row_point(row, xa, minf(fa, ta))
+		var bb := _grand_tram_row_point(row, xb, minf(fb, tb))
+		_bore_lid_tri(st, at, bt, bb, outward)
+		_bore_lid_tri(st, at, bb, ab, outward)
 
 
 # ---------------------------------------------------------------------------
@@ -20178,6 +20672,46 @@ func _rebuild_embankment_run(crown: Vector3, out: Vector2, ratio: float,
 	return [REBUILD_EMBANK_MAX_RUN, NAN]
 
 
+## Whether a bank of route F, leaving `crown` along `out`, would come down onto a
+## service route at its ordinary pitch: within its widest run of the service's
+## paving and shoulder, the service standing below the crown.
+func _rebuild_bank_meets_service(nm: String, crown: Vector3, out: Vector2,
+		id: StringName) -> bool:
+	if not nm.begins_with("route_f_"):
+		return false
+	for lane in _service_lanes:
+		if StringName(lane.get("id", &"")) != id:
+			continue
+		var pts: Array = lane["points"]
+		var reach := float(lane["width"]) * 0.5 + REBUILD_EMBANK_SHOULDER
+		var at := Vector2(crown.x, crown.z)
+		# Out of reach altogether: farther than the longest bank down to its lowest.
+		var lowest := INF
+		var nearest := INF
+		for i in pts.size() - 1:
+			lowest = minf(lowest, (pts[i] as Vector3).y)
+			nearest = minf(nearest, at.distance_to(Geometry2D.get_closest_point_to_segment(at,
+				Vector2((pts[i] as Vector3).x, (pts[i] as Vector3).z),
+				Vector2((pts[i + 1] as Vector3).x, (pts[i + 1] as Vector3).z))))
+		if nearest - reach > maxf(0.0, crown.y - lowest) * 2.65:
+			return false
+		var t := 0.0
+		while t <= REBUILD_EMBANK_MAX_RUN:
+			var q := at + out * t
+			for i in pts.size() - 1:
+				var a := Vector2((pts[i] as Vector3).x, (pts[i] as Vector3).z)
+				var b := Vector2((pts[i + 1] as Vector3).x, (pts[i + 1] as Vector3).z)
+				var near := Geometry2D.get_closest_point_to_segment(q, a, b)
+				if q.distance_to(near) > reach:
+					continue
+				var u := clampf((near - a).dot(b - a) / maxf((b - a).length_squared(), 0.0001), 0.0, 1.0)
+				var y := lerpf((pts[i] as Vector3).y, (pts[i + 1] as Vector3).y, u)
+				# Reached at the ordinary pitch's steepest (1:1.6) or not at all.
+				return y < crown.y and (crown.y - y) * 2.65 >= t
+			t += 1.0
+	return false
+
+
 func _rebuild_route_embankment(nm: String, points: Array, width: float,
 		closed: bool, owner_id: int) -> void:
 	var edges := _rebuild_path_edges(points, width, closed)
@@ -20235,14 +20769,20 @@ func _rebuild_route_embankment(nm: String, points: Array, width: float,
 			var rim := edge - Vector3.UP * 0.002
 			var crown := edge + Vector3(out.x, 0.0, out.y) * REBUILD_EMBANK_SHOULDER \
 				- Vector3.UP * 0.05
-			var reach := _rebuild_embankment_run(crown, out, ratio, owner_id)
+			# F's bank comes down to S3's re-route along the east station's yard and
+			# its north reach (2026-10-15): there it falls at the cuttings' batter, so
+			# it meets S3 on a face as low as the room allows, or none.
+			var side_ratio := ratio
+			if _rebuild_bank_meets_service(nm, crown, out, &"S3"):
+				side_ratio = Plan.CLIMB_BANK_BATTER
+			var reach := _rebuild_embankment_run(crown, out, side_ratio, owner_id)
 			var run: float = reach[0]
-			var toe := crown + Vector3(out.x * run, -run / ratio, out.y * run)
+			var toe := crown + Vector3(out.x * run, -run / side_ratio, out.y * run)
 			if run > 0.0 or not is_nan(reach[1]):
 				any = true
 			(rims[side] as Array).append(rim)
 			(crowns[side] as Array).append(crown)
-			(toes[side] as Array).append([toe, run, reach[1], out, ratio])
+			(toes[side] as Array).append([toe, run, reach[1], out, side_ratio])
 	if not any:
 		return
 	# A bank that ends early on a wall beside one that runs thirty metres makes
@@ -22761,29 +23301,181 @@ func _rebuild_service_network() -> void:
 		if StringName(spine["id"]) == &"S2":
 			rounded = _rebuild_resample_route(rounded, 3.0)
 			points = _rebuild_service_s2_route(rounded)
+		elif StringName(spine["id"]) == &"S3":
+			points = _rebuild_service_s3_route(rounded)
 		else:
 			for point in rounded:
 				var p := Vector2(point)
-				var y := 0.0
-				if StringName(spine["id"]) == &"S3":
-					y = _rebuild_family_floor(p) if p.y > 40.0 \
-						else _rebuild_highland_floor(p)
-				points.append(Vector3(p.x, y, p.y))
+				points.append(Vector3(p.x, 0.0, p.y))
 		if StringName(spine["id"]) == &"S2":
 			var section_index := 0
 			for section in _rebuild_below_lowland_sections(points):
 				_rebuild_retained_bed("bed_service_S2_%d" % section_index,
 					section, 4.0 + REBUILD_BED_MARGIN, false, true, INF, true)
 				section_index += 1
+		var first_ordinal := _seam_ordinal
 		_rebuild_path("service_%s" % spine["id"], points, 4.0, false, &"")
-		_service_lanes.append({"points": points, "width": 4.0})
+		_service_lanes.append({"points": points, "width": 4.0, "id": StringName(spine["id"])})
 		# A repeated low screen communicates back-of-house ownership without
-		# walling the whole park or hiding its district landmarks.
+		# walling the whole park or hiding its district landmarks. S3's stations
+		# follow the ground every two metres since its re-route, so its screens
+		# keep the rhythm of its rounded course, and none stands on the Grand
+		# Circuit or across the yard it holds level (2026-10-15).
+		if StringName(spine["id"]) == &"S3":
+			_rebuild_service_s3_screens(rounded, points)
+			# S3 hands on the seam ordinals its path and seven screens did before
+			# its re-route, so every shape after it in this scene keeps its
+			# displacement: two more moved a Grove tree's foot onto the sky ride
+			# platform's plane. Drop this the next time this scene's seams are
+			# rebuilt on purpose, and run `coplanar_test.py`.
+			_seam_ordinal = first_ordinal + REBUILD_S3_SEAM_ORDINALS
+			continue
 		for i in range(1, points.size() - 1, 4):
 			var p: Vector3 = points[i]
 			_box("service_%s_screen_%02d" % [spine["id"], i], p,
 				Vector3(0, 1.1, 0), Vector3(3.2, 2.2, 0.20),
 				"sky_green", 0.0, false)
+
+
+const REBUILD_SERVICE_W := 4.0
+## S3's first four atlas vertices, to its rise past R6, are its course from
+## before the re-route clear of the T6 tunnel (Christina, 2026-10-15) and keep
+## the levels they had, off the family floor.
+const REBUILD_S3_KEPT_VERTICES := 4
+## The re-route's steepest grade, the drawing's.
+const REBUILD_S3_MAX_GRADE := 0.115
+## Its paving stands this far over the ground its earthworks lay under it, grid
+## edit G20, which is that ground's formation.
+const REBUILD_S3_BED := 0.05
+## It holds the lane's level this far either side of its crossing, the crossing's
+## centre; and beyond the crossing it holds it on through the east platform's
+## yard, while it runs within `REBUILD_S3_YARD_REACH` of the platform.
+const REBUILD_S3_CROSSING_HOLD := 11.0
+const REBUILD_S3_YARD_REACH := 10.0
+## Its stations along the re-route, where it reads the ground.
+const REBUILD_S3_STATION := 2.0
+## The seam ordinals S3's path and screens handed out before the re-route.
+const REBUILD_S3_SEAM_ORDINALS := 8
+
+
+## A service route's course in plan: its editor-owned points, expanded once and
+## rounded once, as `_rebuild_service_network` lays it.
+func _rebuild_service_course(id: StringName) -> Array[Vector2]:
+	for spine in Plan.rebuild_service_spines():
+		if StringName(spine["id"]) == id:
+			return _rebuild_round_route(Plan.rebuild_expand_points2(spine["points"]), false, 1)
+	assert(false, "service route %s is missing" % id)
+	return []
+
+
+## S3 re-routed clear of the Grand Circuit's T6 tunnel (Christina, 2026-10-15;
+## the maps at 00be0f5). Up to its rise past R6 it keeps its course and the
+## levels it had (`REBUILD_S3_KEPT_VERTICES`). From there it follows the ground
+## it runs on, the height grid's, every `REBUILD_S3_STATION`, at
+## `REBUILD_S3_BED` over it, never steeper than `REBUILD_S3_MAX_GRADE`: its
+## earthworks, grid edit G20, lay that ground to the drawing's levels (over the
+## bore at +13.9 and +14.4 on the hill's own ground, then down outside the lane),
+## so moving the earthworks moves S3 and it never stands buried or in the air.
+## It holds the lane's level, a hand over the lane's paving, across its at-grade
+## crossing (`GRAND_TRAM_CROSSINGS` s3_east_station) and on through the yard
+## behind the east platform, which is the platform's level to a few centimetres.
+func _rebuild_service_s3_route(rounded: Array[Vector2]) -> Array[Vector3]:
+	var kept := 2 * (REBUILD_S3_KEPT_VERTICES - 1) + 1
+	var plan: Array[Vector2] = rounded.slice(0, kept)
+	var tail := _rebuild_resample_route(rounded.slice(kept - 1), REBUILD_S3_STATION)
+	plan.append_array(tail.slice(1))
+	var crossing := {}
+	for record in Plan.GRAND_TRAM_CROSSINGS:
+		if StringName(record.get("service", &"")) == &"S3":
+			crossing = record
+	assert(not crossing.is_empty(), "S3 has no controlled crossing of the Grand Circuit")
+	var cross: Vector3 = _grand_tram_nearest(crossing["at"])["at"]
+	var cross2 := Vector2(cross.x, cross.z)
+	var held_y := cross.y + Plan.GRAND_TRAM_LANE_LIFT + 0.004 - REBUILD_PATH_LIFT
+	var platform := _grand_tram_platform_outline(&"east")
+	var desired := PackedFloat32Array()
+	var pins := {}
+	var holding := false
+	var held_done := false
+	for i in plan.size():
+		var p := plan[i]
+		if i < kept:
+			var y := _rebuild_family_floor(p) if p.y > 40.0 else _rebuild_highland_floor(p)
+			desired.append(y)
+			pins[i] = y
+			continue
+		var ground: float = _world_terrain_source().height_y(p)
+		assert(not is_nan(ground), "S3 runs off the height grid at %s" % p)
+		desired.append(ground + REBUILD_S3_BED)
+		var near_crossing := p.distance_to(cross2) <= REBUILD_S3_CROSSING_HOLD
+		if near_crossing:
+			holding = true
+		elif holding and not held_done:
+			var reach := INF
+			for k in platform.size():
+				reach = minf(reach, p.distance_to(Geometry2D.get_closest_point_to_segment(p,
+					platform[k], platform[(k + 1) % platform.size()])))
+			if Geometry2D.is_point_in_polygon(p, platform) or reach > REBUILD_S3_YARD_REACH:
+				held_done = true
+		if near_crossing or (holding and not held_done):
+			pins[i] = held_y
+	assert(holding, "S3 never reaches its crossing of the Grand Circuit")
+	var heights := _rebuild_limited_route_heights(plan, desired, pins, REBUILD_S3_MAX_GRADE)
+	var out: Array[Vector3] = []
+	for i in plan.size():
+		out.append(Vector3(plan[i].x, heights[i], plan[i].y))
+	return out
+
+
+## The east platform's outline in plan, as `_grand_tram_stop` lays it.
+func _grand_tram_platform_outline(id: StringName) -> PackedVector2Array:
+	for station in Plan.GRAND_TRAM_STATIONS:
+		if StringName(station["id"]) != id:
+			continue
+		var theta := _grand_tram_station_theta(station)
+		var base := _grand_tram_station_base(station)
+		var out := PackedVector2Array()
+		for corner in [Vector3(-10.0, 0.0, -2.8), Vector3(10.0, 0.0, -2.8),
+				Vector3(10.0, 0.0, -6.9), Vector3(-10.0, 0.0, -6.9)]:
+			var p := _place(base, corner, theta)
+			out.append(Vector2(p.x, p.z))
+		return out
+	assert(false, "the Grand Circuit has no %s platform" % id)
+	return PackedVector2Array()
+
+
+## S3's screens on its rounded course's every fourth point, as the other
+## services', at the level its stations give there; none on the Grand Circuit's
+## lane or verge, and none on the stretch it holds at the crossing and the yard.
+func _rebuild_service_s3_screens(rounded: Array[Vector2], points: Array[Vector3]) -> void:
+	var crossing := {}
+	for record in Plan.GRAND_TRAM_CROSSINGS:
+		if StringName(record.get("service", &"")) == &"S3":
+			crossing = record
+	var cross: Vector3 = _grand_tram_nearest(crossing["at"])["at"]
+	var platform := _grand_tram_platform_outline(&"east")
+	for i in range(1, rounded.size() - 1, 4):
+		var p := rounded[i]
+		var lane := _grand_tram_nearest(Vector3(p.x, 0.0, p.y))
+		if float(lane["distance"]) < Plan.GRAND_TRAM_LANE_W * 0.5 \
+				+ Plan.GRAND_TRAM_CUTTING_VERGE + 1.6:
+			continue
+		if p.distance_to(Vector2(cross.x, cross.z)) <= REBUILD_S3_CROSSING_HOLD:
+			continue
+		var by_yard := false
+		for k in platform.size():
+			if p.distance_to(Geometry2D.get_closest_point_to_segment(p, platform[k],
+					platform[(k + 1) % platform.size()])) <= REBUILD_S3_YARD_REACH:
+				by_yard = true
+		if by_yard:
+			continue
+		var best := 0
+		for k in points.size():
+			if Vector2(points[k].x, points[k].z).distance_to(p) \
+					< Vector2(points[best].x, points[best].z).distance_to(p):
+				best = k
+		_box("service_S3_screen_%02d" % i, Vector3(p.x, points[best].y, p.y),
+			Vector3(0, 1.1, 0), Vector3(3.2, 2.2, 0.20), "sky_green", 0.0, false)
 
 
 ## S2 crosses the public coastal loop at grade. Match C for six metres either

@@ -39,8 +39,10 @@ const CORRIDOR := "terrain_road_corridor"
 ## The tunnels' portal faces (height-grid Stage 6, 2026-10-15): the grid is the hill over
 ## each tunnel and its tiles are stitched to each face's top, so their edges there pair
 ## with the face's, as the corridor's do. The faces' own other edges are each mouth, its
-## foot on the road and its lintel over each bore, and are never a candidate.
-const PORTALS := "park_groundworks/terrain_tunnel_portals"
+## foot on the road and its lintel over each bore, and are never a candidate. Since
+## 2026-10-15 the Grand Circuit's tunnel under T6 has portal faces of the same kind.
+const PORTALS: Array[String] = ["park_groundworks/terrain_tunnel_portals",
+	"park_groundworks/terrain_tram_tunnel_portals"]
 ## How far the census looks across an open edge for ground beside or under it, in plan
 ## and in height: the 0.3 m it already pairs near-twins and drops slivers by, and the
 ## 0.30 m of a T-junction's chord (2026-10-13).
@@ -601,11 +603,14 @@ func _check_open_faces() -> void:
 	var tri: PackedVector3Array = ground["tri"]
 	var body: PackedInt32Array = ground["body"]
 	var census := int(ground["tiles"])
-	var portals := names.find(PORTALS)
+	var portals := {}
+	for portal in PORTALS:
+		if names.has(portal):
+			portals[names.find(portal)] = true
 	var edges := {}
 	var triangles := 0
 	for t in body.size():
-		if body[t] > census and body[t] != portals:
+		if body[t] > census and not portals.has(body[t]):
 			continue
 		for k in 3:
 			_count_edge(edges, tri[t * 3 + k], tri[t * 3 + (k + 1) % 3], names[body[t]],
@@ -617,7 +622,7 @@ func _check_open_faces() -> void:
 		var rec: Array = edges[key]
 		if int(rec[0]) != 1:
 			continue
-		if int(rec[5]) == portals:
+		if portals.has(int(rec[5])):
 			portal_tops.append(rec)
 		else:
 			stray.append(rec)
@@ -1121,7 +1126,10 @@ func _check_grand_circuit() -> void:
 			_check_footbridge(crossing, grand, grand3)
 			crossings[crossing["pedestrian"]] = at
 			continue
-		var pedestrian := _run(crossing["pedestrian"])
+		# A service route's crossing lies on its own course (S3 at the east
+		# platform, 2026-10-15).
+		var pedestrian := _service_run(crossing["service"]) if crossing.has("service") \
+			else _run(crossing["pedestrian"])
 		var road_hit := _nearest_on_run(at, grand)
 		var walk_hit := _nearest_on_run(at, pedestrian)
 		if road_hit["distance"] > 0.9 or walk_hit["distance"] > 0.9:
@@ -1136,7 +1144,8 @@ func _check_grand_circuit() -> void:
 				- float(crossing["fixed_structure_depth"]) - walk_y
 			if fixed_clearance + EPS < float(crossing["minimum_fixed_clearance_metres"]):
 				_fail("crossing %s has only %.2fm fixed clearance" % [id, fixed_clearance])
-		var captures: Array = crossing.get("captures", [crossing["pedestrian"]])
+		var captures: Array = crossing.get("captures",
+			[crossing.get("pedestrian", crossing.get("service", &""))])
 		for captured in captures:
 			crossings[captured] = at
 
@@ -1261,6 +1270,15 @@ func _run(id: StringName) -> Array:
 		if run["id"] == id:
 			return run["points"]
 	_fail("missing plan route %s" % id)
+	return []
+
+
+## A service route's course in plan, its editor-owned points expanded once.
+func _service_run(id: StringName) -> Array:
+	for spine in Plan.rebuild_service_spines():
+		if StringName(spine["id"]) == id:
+			return Plan.rebuild_expand_points2(spine["points"])
+	_fail("missing service route %s" % id)
 	return []
 
 

@@ -329,6 +329,50 @@
     "left": []
    },
    "exported": []
+  },
+  {
+   "id": "G18-G20",
+   "date": "2026-10-15",
+   "from": "edits G18, G19, G20",
+   "ground": {
+    "tiles": [
+     "x0_z-1",
+     "x0_z0"
+    ],
+    "nodes": 2216,
+    "lowest_m": -5.939,
+    "highest_m": 9.127
+   },
+   "edits": [
+    {
+     "id": "G18",
+     "name": "grand_circuit_t6_approach_cuts",
+     "sig": "52a04a014466d5c2"
+    },
+    {
+     "id": "G19",
+     "name": "grand_circuit_east_station_ground",
+     "sig": "25e7b5da497b4dc9"
+    },
+    {
+     "id": "G20",
+     "name": "s3_reroute_earthworks",
+     "sig": "ae58ebbb5761bee3"
+    }
+   ],
+   "rocks": {
+    "moved": {},
+    "uneven": {}
+   },
+   "city": {
+    "raised": {},
+    "left": {}
+   },
+   "roosts": {
+    "moved": {},
+    "left": []
+   },
+   "exported": []
   }
  ]
 }

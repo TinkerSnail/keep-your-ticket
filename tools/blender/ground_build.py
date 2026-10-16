@@ -730,9 +730,13 @@ STITCH_REACH = 3.0
 CARVE_MARGIN = 0.30
 CARVE_UNDER = ("terrain_road_corridor", "terrain_tunnel_lids")
 # Stage 6. The portals' faces are vertical, so they cover no node in plan and
-# have no place in a carve; the open-air carve reads the corridor alone.
-CARVE_OPEN = "terrain_road_corridor"
-PORTALS = "terrain_tunnel_portals"
+# have no place in a carve; the open-air carve reads the corridor alone. Since
+# 2026-10-15 the Grand Circuit's tunnel under T6 extends the pattern: its floor
+# through the bore and out over each mouth is carved under and stitched to as the
+# corridor is, and its portals' faces as the highway's are (names are matched by
+# their ends, so each tuple holds both).
+CARVE_OPEN = ("terrain_road_corridor", "terrain_tram_tunnel_floor")
+PORTALS = ("terrain_tunnel_portals", "terrain_tram_tunnel_portals")
 SPAN_PAD = 0.01
 PORTAL_SNAP = 0.005
 

@@ -186,31 +186,64 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 111, 0, 116)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 136, 0, 100)
 
 [node name="p04" type="Marker3D" parent="services/S3/points" unique_id=1313309784]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 149, 0, 75)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 153.1, 0, 100.4)
 
 [node name="p05" type="Marker3D" parent="services/S3/points" unique_id=2119329919]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 154, 0, 42)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 162.1, 0, 88.1)
 
 [node name="p06" type="Marker3D" parent="services/S3/points" unique_id=849142533]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 155, 0, 10)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 153.1, 0, 59.7)
 
 [node name="p07" type="Marker3D" parent="services/S3/points" unique_id=1148985534]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 154, 0, -22)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 154, 0, 42)
 
 [node name="p08" type="Marker3D" parent="services/S3/points" unique_id=1683991723]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 150, 0, -55)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 155, 0, 10)
 
 [node name="p09" type="Marker3D" parent="services/S3/points" unique_id=714453472]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 138, 0, -82)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 154, 0, -22)
 
 [node name="p10" type="Marker3D" parent="services/S3/points" unique_id=761635938]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 124, 0, -100)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 150, 0, -55)
 
 [node name="p11" type="Marker3D" parent="services/S3/points" unique_id=850037517]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 105, 0, -122)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 145.2, 0, -65.3)
 
 [node name="p12" type="Marker3D" parent="services/S3/points" unique_id=445977419]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 78, 0, -132)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 162.2, 0, -76.9)
 
 [node name="p13" type="Marker3D" parent="services/S3/points" unique_id=316691033]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 165.2, 0, -86)
+
+[node name="p14" type="Marker3D" parent="services/S3/points" unique_id=1973535912]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 157.8, 0, -95.7)
+
+[node name="p15" type="Marker3D" parent="services/S3/points" unique_id=463644888]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 142.8, 0, -102.1)
+
+[node name="p16" type="Marker3D" parent="services/S3/points" unique_id=436142795]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 136.5, 0, -98.9)
+
+[node name="p17" type="Marker3D" parent="services/S3/points" unique_id=955456997]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 130.2, 0, -95.7)
+
+[node name="p18" type="Marker3D" parent="services/S3/points" unique_id=1042896790]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 123.7, 0, -99.5)
+
+[node name="p19" type="Marker3D" parent="services/S3/points" unique_id=32491952]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 116.5, 0, -110.1)
+
+[node name="p20" type="Marker3D" parent="services/S3/points" unique_id=1770850141]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 103, 0, -116.3)
+
+[node name="p21" type="Marker3D" parent="services/S3/points" unique_id=1778802636]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 89.6, 0, -122.4)
+
+[node name="p22" type="Marker3D" parent="services/S3/points" unique_id=96550337]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 77.8, 0, -129.7)
+
+[node name="p23" type="Marker3D" parent="services/S3/points" unique_id=74162543]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 57, 0, -133)
+
+[node name="p24" type="Marker3D" parent="services/S3/points" unique_id=1320052080]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42, 0, -135)

@@ -1593,6 +1593,89 @@
    "kind": "values",
    "min_change_m": 0.001,
    "made_by": "ground_grid_edit.py --values"
+  },
+  {
+   "id": "G18",
+   "name": "grand_circuit_t6_approach_cuts",
+   "date": "2026-10-15",
+   "why": "Christina, 2026-10-15, build the T6 tunnel: the Grand Circuit lane's two approach cuttings to the Headland's formation (4 cm under the lane, 1.5 m verges, 1:1.4 batters), each stopping 3 m short of its portal, under the floor the groundworks hold over the mouth",
+   "tiles": [
+    "x0_z-1",
+    "x0_z0"
+   ],
+   "nodes": 134,
+   "new_ground_nodes": 0,
+   "history": "history/G18.npz",
+   "files": [
+    {
+     "tile": "x0_z-1",
+     "nodes": 53,
+     "height_sha_before": "cc1c519b3641dae5e5560c8a41adad639389d6359d881fd00504eaf27b6e0bf3",
+     "height_sha_after": "fc8fbd4696f93302be756e981d26388ebf658de631175b00866e61302bc99a3c"
+    },
+    {
+     "tile": "x0_z0",
+     "nodes": 81,
+     "height_sha_before": "5322d5fa3250900876f85f1fde5d1e421a454329c6b1f757c12827378c60ea8c",
+     "height_sha_after": "e5bb81138e433e3d9027afc1422dd53389290dc4fc73ba512c757f53f63603f8"
+    }
+   ],
+   "kind": "values",
+   "min_change_m": 0.001,
+   "made_by": "ground_grid_edit.py --values"
+  },
+  {
+   "id": "G19",
+   "name": "grand_circuit_east_station_ground",
+   "date": "2026-10-15",
+   "why": "Christina, 2026-10-15, build it all: ground under the Grand Circuit lane from the T6 tunnel's east mouth to the Grove (its formation, 1.5 m verges, 1:1.4 batters) and under the squared east platform and its yard (3 cm over the platform's bottom, 1.5 m beyond, 1:1.4); the Grove platform kept",
+   "tiles": [
+    "x0_z-1"
+   ],
+   "nodes": 978,
+   "new_ground_nodes": 0,
+   "history": "history/G19.npz",
+   "files": [
+    {
+     "tile": "x0_z-1",
+     "nodes": 978,
+     "height_sha_before": "fc8fbd4696f93302be756e981d26388ebf658de631175b00866e61302bc99a3c",
+     "height_sha_after": "91b135a92739656260a8aba699f4ab56e75d89e9d496c31a6e18eacd96f1dd8c"
+    }
+   ],
+   "kind": "values",
+   "min_change_m": 0.001,
+   "made_by": "ground_grid_edit.py --values"
+  },
+  {
+   "id": "G20",
+   "name": "s3_reroute_earthworks",
+   "date": "2026-10-15",
+   "why": "Christina, 2026-10-15, build S3's re-route as drawn: its formation 5 cm under its paving at the drawing's levels, 0.9 m shoulders, 1:1.4 cuttings and fills, from its rise past R6 to its west end; the lane's formation kept",
+   "tiles": [
+    "x0_z-1",
+    "x0_z0"
+   ],
+   "nodes": 1350,
+   "new_ground_nodes": 0,
+   "history": "history/G20.npz",
+   "files": [
+    {
+     "tile": "x0_z-1",
+     "nodes": 1008,
+     "height_sha_before": "91b135a92739656260a8aba699f4ab56e75d89e9d496c31a6e18eacd96f1dd8c",
+     "height_sha_after": "41346a977f656fd0f89c9657a429c67e998d1736253e26651f8b7b03a27c3db7"
+    },
+    {
+     "tile": "x0_z0",
+     "nodes": 345,
+     "height_sha_before": "e5bb81138e433e3d9027afc1422dd53389290dc4fc73ba512c757f53f63603f8",
+     "height_sha_after": "baf0c06da174939a8ac913d4086b02c8257ccbac9ff7a7c3c0d8a9a10008dca7"
+    }
+   ],
+   "kind": "values",
+   "min_change_m": 0.001,
+   "made_by": "ground_grid_edit.py --values"
   }
  ]
 }
