@@ -161,7 +161,7 @@ metadata/kind = &"sky_ride"
 [node name="terminals" type="Node3D" parent="rides/R12" unique_id=485797302]
 
 [node name="p00" type="Marker3D" parent="rides/R12/terminals" unique_id=1032825260]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0, -104)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27, 0, -103.9)
 
 [node name="p01" type="Marker3D" parent="rides/R12/terminals" unique_id=681659221]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 112, 0, -106)

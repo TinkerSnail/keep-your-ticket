@@ -1570,6 +1570,29 @@
    "kind": "values",
    "min_change_m": 0.001,
    "made_by": "ground_grid_edit.py --values"
+  },
+  {
+   "id": "G17",
+   "name": "r12_west_terminal_pad",
+   "date": "2026-10-15",
+   "why": "Christina, 2026-10-15, build R12's west terminal at the plan's +3.02: the ground seated 4 cm over the platform's bottom out to 7 m from its centre, 1:1.4 batters to the Grove's flat and A's bank; route ribbons and B's cut kept",
+   "tiles": [
+    "x-1_z-1"
+   ],
+   "nodes": 71,
+   "new_ground_nodes": 0,
+   "history": "history/G17.npz",
+   "files": [
+    {
+     "tile": "x-1_z-1",
+     "nodes": 71,
+     "height_sha_before": "77d593f4b4900aeba63402e0f81b29c0b9cabf20b1d16a68642e3d75b3b1a6c8",
+     "height_sha_after": "fd378ef6e6ee08d29a4c412bcfe93066b42db7dc8d44a7855467fe478756ae15"
+    }
+   ],
+   "kind": "values",
+   "min_change_m": 0.001,
+   "made_by": "ground_grid_edit.py --values"
   }
  ]
 }

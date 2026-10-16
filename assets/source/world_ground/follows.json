@@ -296,6 +296,39 @@
     "left": []
    },
    "exported": []
+  },
+  {
+   "id": "G17",
+   "date": "2026-10-15",
+   "from": "edits G17",
+   "ground": {
+    "tiles": [
+     "x-1_z-1"
+    ],
+    "nodes": 71,
+    "lowest_m": 0.0,
+    "highest_m": 3.116
+   },
+   "edits": [
+    {
+     "id": "G17",
+     "name": "r12_west_terminal_pad",
+     "sig": "a6f58486329923da"
+    }
+   ],
+   "rocks": {
+    "moved": {},
+    "uneven": {}
+   },
+   "city": {
+    "raised": {},
+    "left": {}
+   },
+   "roosts": {
+    "moved": {},
+    "left": []
+   },
+   "exported": []
   }
  ]
 }

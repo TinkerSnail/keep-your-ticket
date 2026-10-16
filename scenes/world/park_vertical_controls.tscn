@@ -336,10 +336,10 @@ metadata/status = "measured"
 metadata/map_id = "F2"
 
 [node name="r12_west" type="Marker3D" parent="approved_levels"]
-position = Vector3(-18, 3.02, -137.704)
+position = Vector3(-27, 3.02, -137.539)
 metadata/kind = "ride_level"
 metadata/district = "grove"
-metadata/status = "measured"
+metadata/status = "approved"
 metadata/map_id = "R12 WEST"
 
 [node name="headland_a_loop" type="Marker3D" parent="approved_levels"]

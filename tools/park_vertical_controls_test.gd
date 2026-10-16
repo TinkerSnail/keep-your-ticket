@@ -86,7 +86,7 @@ func _check_levels(root: Node3D) -> void:
 		[&"grove_f1", 4.0, -82.0, 1.5, &"grove", &"measured", &"F1"],
 		[&"r9_pad", 28.0, -84.0, 2.55, &"grove", &"measured", &"R9 PAD"],
 		[&"grove_f2", 40.0, -113.0, 6.05, &"grove", &"measured", &"F2"],
-		[&"r12_west", -18.0, -104.0, 3.02, &"grove", &"measured", &"R12 WEST"],
+		[&"r12_west", -27.0, -103.9, 3.02, &"grove", &"approved", &"R12 WEST"],
 		[&"D6_low", 45.0, -142.0, -0.5, &"grove", &"approved", &"D6 LOW"],
 		[&"headland_a_loop", -37.0, -125.0, 4.0, &"headland", &"measured", &"A LOOP"],
 		[&"p1_floor", -174.0, -202.5, 31.1, &"headland", &"measured", &"P1 FFL"],

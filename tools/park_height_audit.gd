@@ -44,7 +44,7 @@ func _initialize() -> void:
 		["R9 water ride", Vector2(28.0, -84.0), &"north"],
 		["R10 mine train", Vector2(80.0, -94.0), &"north"],
 		["R11 observation tower", Vector2(111.0, -87.0), &"north"],
-		["R12 west sky-ride threshold", Vector2(-18.0, -104.0), &"north"],
+		["R12 west sky-ride threshold", Vector2(-27.0, -103.9), &"north"],
 		["R13 steel coaster station", Vector2(135.0, -41.0), &"highland"],
 		["R14 junior coaster station", Vector2(120.0, 76.0), &"family"],
 	]

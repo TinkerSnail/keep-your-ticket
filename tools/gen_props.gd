@@ -25,6 +25,7 @@ const Plan := preload("res://scripts/park_plan.gd")
 const KiddielandSource := preload("res://scripts/kiddieland_layout_source.gd")
 const LighthouseRegradeSource := preload("res://scripts/lighthouse_regrade_source.gd")
 const DrainageTerrainSource := preload("res://scripts/park_drainage_terrain_source.gd")
+const VerticalControls := preload("res://scripts/park_vertical_controls_source.gd")
 const WorldTerrainSource := preload("res://scripts/world_terrain_source.gd")
 
 const GENERATED_DIR := "res://scenes/world/generated"
@@ -737,8 +738,11 @@ func _initialize() -> void:
 	_root.name = "park_transit"
 	_begin_scene()
 	_grand_tram_infrastructure()
-	if not _save(_root, TRANSIT_PATH):
-		return
+	# Its bank west of the scarp stands on the ground the groundworks emit and
+	# stops at the floors the ribbon scenes lay, so this scene is held open and
+	# saved once they are banked, the bank appended last (`_grand_tram_bank`).
+	var transit_root := _root
+	var transit_ordinal := _seam_ordinal
 
 	# The rebuild is appended after every established output. New terrain or
 	# circulation can therefore change freely without moving a seam ordinal in
@@ -781,6 +785,11 @@ func _initialize() -> void:
 		_rebuild_flush_embankments(_root)
 		if not _save(_root, scene[1]):
 			return
+	_root = transit_root
+	_seam_ordinal = transit_ordinal
+	_grand_tram_bank()
+	if not _save(_root, TRANSIT_PATH):
+		return
 	# The approach and the towns lay their roads on the corridor's own ground.
 	_embank_live = false
 
@@ -4141,7 +4150,13 @@ func _west_shell() -> void:
 	# planted reserve, the opening's floor and its returns are appended after
 	# everything else in this scene, so no established shape is re-planed.
 	var panel := Vector2(north_reserve_end, cuts[0].x)
-	var lane_cut := _bluff_lane_cut(panel)
+	var lane_cut := _bluff_lane_cut(panel, Vector2(-INF, 0.0))
+	# In the south it crosses `bluff_south`'s panel coming off the Fairground,
+	# whose top stood 3 cm over the lane (Christina, 2026-10-15: "Cut it the
+	# same way"). The same opening: `bluff_south` keeps the part against B's cut
+	# and its build slot, and the rest is appended after the north's.
+	var south_panel := Vector2(cuts[1].y, 170.5)
+	var south_lane_cut := _bluff_lane_cut(south_panel, Vector2(0.0, INF))
 	var ranges := [
 		{"nm": "bluff_outer_north", "span": Vector2(
 			-260.5, north_reserve_end), "mat": "planting"},
@@ -4149,7 +4164,7 @@ func _west_shell() -> void:
 			"mat": "far_warm"},
 		{"nm": "bluff", "span": Vector2(cuts[0].y, cuts[1].x),
 			"mat": "far_warm"},
-		{"nm": "bluff_south", "span": Vector2(cuts[1].y, 170.5),
+		{"nm": "bluff_south", "span": Vector2(cuts[1].y, south_lane_cut.x),
 			"mat": "far_warm"},
 		{"nm": "bluff_outer_south", "span": Vector2(
 			170.5, 260.5), "mat": "planting"},
@@ -4207,7 +4222,9 @@ func _west_shell() -> void:
 		Vector3(Plan.REBUILD_WORLD_WATER_FAR_X - Plan.EAST_WATER_FROM_X, 8.0,
 			Plan.BAY_WATER_FROM_Z - Plan.NORTH_WATER_TO_Z),
 		"water", 0.0, false)
-	_bluff_lane_opening(panel, lane_cut)
+	_bluff_lane_opening("bluff_north_end", Vector2(panel.x, lane_cut.x), lane_cut, "")
+	_bluff_lane_opening("bluff_south_end", Vector2(south_lane_cut.y, south_panel.y),
+		south_lane_cut, "south_")
 
 
 ## How far either side of the axis the bluff's face is dressed.
@@ -4324,17 +4341,17 @@ func _bluff_mass(nm: String, span: Vector2, mat: String) -> void:
 ## lane"). The opening is the z envelope of the cutting's formation, the lane's
 ## own emitted edges carried out by `GRAND_TRAM_CUTTING_VERGE` a side, while it
 ## crosses the full bluff depth: B's cuts are their route plus a construction
-## margin, and the verge is the lane's. North of the axis only, which is the
-## northern crossing.
-func _bluff_lane_cut(panel: Vector2) -> Vector2:
+## margin, and the verge is the lane's. `window` picks the crossing: north of
+## the axis or south of it (the south opened as the north was, 2026-10-15).
+func _bluff_lane_cut(panel: Vector2, window: Vector2) -> Vector2:
 	var edges := _east_path_edges(_grand_tram,
 		Plan.GRAND_TRAM_LANE_W + 2.0 * Plan.GRAND_TRAM_CUTTING_VERGE,
 		Plan.GRAND_TRAM_LANE_LIFT)
-	var cut := _bluff_edges_envelope(edges, Vector2(-INF, 0.0))
+	var cut := _bluff_edges_envelope(edges, window)
 	assert(is_finite(cut.x) and is_finite(cut.y) and cut.y > cut.x,
-		"the Grand Circuit no longer crosses the north scarp")
+		"the Grand Circuit no longer crosses the scarp within %s" % window)
 	assert(cut.x > panel.x and cut.y < panel.y,
-		"the Grand Circuit's opening runs out of bluff_north's panel")
+		"the Grand Circuit's opening runs out of its panel %s" % panel)
 	return cut
 
 
@@ -4348,15 +4365,19 @@ const BLUFF_LANE_FLOOR_YIELD := 0.02
 
 
 ## The lane's opening, appended after every established shape in the scene:
-## the panel's part against the planted reserve, a floor under the lane, and a
-## return at each side the way B's cuts are finished. The floor is the
+## the panel's other part (`end_name` over `end_span`: against the planted
+## reserve in the north, the outer end in the south), a floor under the lane,
+## and a return at each side the way B's cuts are finished. The floor is the
 ## cutting's formation, `GRAND_TRAM_CUTTING_FORMATION_DROP` under the lane's
 ## surface at its nearest station and level across, carried over the whole
 ## opening from the face to the back and closed down to the mass's foot, so it
 ## falls with the lane and leaves no hole where the mass was. It ends at the
-## face: west of it the lane is out over the foot of the scarp.
-func _bluff_lane_opening(panel: Vector2, cut: Vector2) -> void:
-	_bluff_mass("bluff_north_end", Vector2(panel.x, cut.x), "far_warm")
+## face: west of it the lane is on its bank in the north (`_grand_tram_bank`)
+## and out over the shore in the south. `tag` names the south's pieces; the
+## north's keep the names they had.
+func _bluff_lane_opening(end_name: String, end_span: Vector2, cut: Vector2,
+		tag: String) -> void:
+	_bluff_mass(end_name, end_span, "far_warm")
 	var x0 := Plan.BLUFF_FACE_X
 	var x1 := Plan.BLUFF_BACK_X
 	var foot := -12.0 + GROUND_SEAM
@@ -4407,9 +4428,9 @@ func _bluff_lane_opening(panel: Vector2, cut: Vector2) -> void:
 				p, q, end[1])
 	st.generate_normals()
 	st.generate_tangents()
-	_rebuild_mesh_body_of("far_warm", "bluff_lane_cut_floor", st.commit(), true)
-	_bluff_return("bluff_lane_cut_north_return", cut.x)
-	_bluff_return("bluff_lane_cut_south_return", cut.y)
+	_rebuild_mesh_body_of("far_warm", "bluff_%slane_cut_floor" % tag, st.commit(), true)
+	_bluff_return("bluff_%slane_cut_north_return" % tag, cut.x)
+	_bluff_return("bluff_%slane_cut_south_return" % tag, cut.y)
 
 
 func _bluff_face_ranges(cuts: Array[Vector2]) -> Array[Vector2]:
@@ -12946,6 +12967,375 @@ func _grand_tram_nearest(point: Vector3) -> Dictionary:
 			best_at = q
 			best_tangent = b - a
 	return {"at": best_at, "tangent": best_tangent.normalized(), "distance": best_d}
+
+
+# ---------------------------------------------------------------------------
+# The Grand Circuit's bank west of the scarp (2026-10-15)
+# ---------------------------------------------------------------------------
+
+## West of the scarp the lane descends from the bluff's opening toward the
+## Boardwalk, and either side of B's overpass it stood 1.3 to 5.3 m over the
+## ground at the scarp's foot (Christina, 2026-10-15: "Embankment"). Its bank
+## is the route embankments' construction read off the lane's own ribbon: a
+## fill five centimetres under the ribbon, a flush shoulder, and a bank at the
+## lane cutting's batter falling to whatever ground the groundworks and the
+## ribbon scenes emitted. Where it meets a floor (B's ribbon, which passes
+## under the overpass on a slant) it ends on a retaining face; at each end of
+## the overpass deck it laps `GRAND_TRAM_BANK_DECK_LAP` under the deck, skewed
+## back on whichever side B's edge reaches out from under it, and ends on an
+## abutment. Those faces are built as the deck is, not as earth. It starts
+## inside the scarp's opening, so its end lies in the bluff's mass and the
+## opening's floor, and it ends, on a retaining face, where the lane comes to
+## the Boardwalk's north ride park (R16's court, the public aprons, the shore's
+## made ground), through which the lane's way past the rides is Christina's to
+## decide. It owns no course and no grade: move the lane, the deck or the
+## rides and it follows.
+const GRAND_TRAM_BANK_STATION := 2.0
+## The bank starts this far east of the scarp's face, inside the opening.
+const GRAND_TRAM_BANK_FACE_LAP := 2.0
+## It laps this far under each end of the overpass deck, which bears on it.
+const GRAND_TRAM_BANK_DECK_LAP := 0.5
+## A floor is looked for this far beyond a bank's shoulder or toe, so a
+## retaining face stands clear of the floor's edge rather than on it.
+const GRAND_TRAM_BANK_FLOOR_CLEAR := 1.0
+## And an abutment's corner stands this far clear of B where B slants out
+## from under the deck: half that, so the lane over the corner is not left
+## hanging over more than the slant demands.
+const GRAND_TRAM_BANK_END_CLEAR := 0.5
+## How far along the lane from the face the bank may run before it must have
+## met the ride park.
+const GRAND_TRAM_BANK_MAX_S := 200.0
+## The walk along the lane that finds the deck, B and the ride park.
+const GRAND_TRAM_BANK_SCAN := 0.1
+
+
+func _grand_tram_bank() -> void:
+	var edges := _east_path_edges(_grand_tram, Plan.GRAND_TRAM_LANE_W,
+		Plan.GRAND_TRAM_LANE_LIFT)
+	var left_line: PackedVector3Array = edges["left"]
+	var right_line: PackedVector3Array = edges["right"]
+	# The lane's descent across the north scarp, from inside the opening.
+	var from_x := Plan.BLUFF_FACE_X + GRAND_TRAM_BANK_FACE_LAP
+	var start := -1
+	for i in _grand_tram.size() - 1:
+		if _grand_tram[i].z < 0.0 and _grand_tram[i].x > from_x \
+				and _grand_tram[i + 1].x <= from_x:
+			start = i
+			break
+	assert(start >= 0, "the Grand Circuit no longer descends across the north scarp")
+	var t0 := (_grand_tram[start].x - from_x) \
+		/ (_grand_tram[start].x - _grand_tram[start + 1].x)
+	# Distance along the centreline from there, at the start of each segment.
+	var seg_s: Array[float] = []
+	var total := 0.0
+	var j := start
+	while total < GRAND_TRAM_BANK_MAX_S + 20.0 and j < _grand_tram.size() - 1:
+		var a := Vector2(_grand_tram[j].x, _grand_tram[j].z)
+		var b := Vector2(_grand_tram[j + 1].x, _grand_tram[j + 1].z)
+		seg_s.append(total)
+		total += a.distance_to(b) * ((1.0 - t0) if j == start else 1.0)
+		j += 1
+	# The ribbon across the lane at `s`: both edges, as `_east_path_mesh` lays
+	# them, and the way out from each.
+	var at_s := func(s: float) -> Dictionary:
+		var k := 0
+		while k < seg_s.size() - 1 and seg_s[k + 1] <= s:
+			k += 1
+		var i := start + k
+		var a := Vector2(_grand_tram[i].x, _grand_tram[i].z)
+		var b := Vector2(_grand_tram[i + 1].x, _grand_tram[i + 1].z)
+		var t := (t0 if k == 0 else 0.0) + (s - seg_s[k]) / maxf(a.distance_to(b), 0.001)
+		t = clampf(t, 0.0, 1.0)
+		var left := left_line[i].lerp(left_line[i + 1], t)
+		var right := right_line[i].lerp(right_line[i + 1], t)
+		var out := Vector2(left.x - right.x, left.z - right.z).normalized()
+		return {"left": left, "right": right, "out": out,
+			"centre": _grand_tram[i].lerp(_grand_tram[i + 1], t)}
+	# The overpass deck as `_grand_tram_overpass` lays it.
+	var deck_at := Vector2.ZERO
+	var deck_axis := Vector2.ZERO
+	var deck_half := 0.0
+	for crossing in Plan.GRAND_TRAM_CROSSINGS:
+		if not bool(crossing.get("grade_separated", false)) \
+				or bool(crossing.get("pedestrian_over", false)):
+			continue
+		var nearest := _grand_tram_nearest(crossing["at"])
+		var tangent: Vector3 = nearest["tangent"]
+		deck_at = Vector2(nearest["at"].x, nearest["at"].z)
+		deck_axis = Vector2(tangent.x, tangent.z).normalized()
+		for run in Plan.rebuild_route_runs():
+			if StringName(run["id"]) == StringName(crossing["pedestrian"]):
+				deck_half = (float(run["width"]) + 4.6) * 0.5
+	assert(deck_half > 0.0, "the Grand Circuit's bank cannot find B's overpass")
+	var reach := Plan.GRAND_TRAM_LANE_W * 0.5 + REBUILD_EMBANK_SHOULDER
+	# Walk the lane for the deck's two ends and the ride park.
+	var deck_in := -1.0
+	var deck_out := -1.0
+	var stop := -1.0
+	var s := 0.0
+	while s <= GRAND_TRAM_BANK_MAX_S:
+		var here: Dictionary = at_s.call(s)
+		var c3: Vector3 = here["centre"]
+		var c := Vector2(c3.x, c3.z)
+		var along := (c - deck_at).dot(deck_axis)
+		var beside := absf((c - deck_at).dot(Vector2(-deck_axis.y, deck_axis.x)))
+		var under := beside < 4.0 and absf(along) < deck_half - GRAND_TRAM_BANK_DECK_LAP
+		if under and deck_in < 0.0:
+			deck_in = s
+		if not under and deck_in >= 0.0 and deck_out < 0.0:
+			deck_out = s
+		var out: Vector2 = here["out"]
+		if _grand_tram_bank_ride_park(c) or _grand_tram_bank_ride_park(c + out * reach) \
+				or _grand_tram_bank_ride_park(c - out * reach):
+			stop = s - GRAND_TRAM_BANK_SCAN
+			break
+		s += GRAND_TRAM_BANK_SCAN
+	assert(deck_in > 0.0 and deck_out > deck_in, "B's overpass is not on the bank's stretch")
+	assert(stop > deck_out, "the Grand Circuit's bank meets no ride park past the overpass")
+	# Beside the deck each side stands back until B, which crosses under it on
+	# a slant, is `GRAND_TRAM_BANK_END_CLEAR` clear of its edge and shoulder.
+	var clear_of_floor := func(sv: float, side: int) -> bool:
+		var here: Dictionary = at_s.call(sv)
+		var edge: Vector3 = here["left"] if side == 0 else here["right"]
+		var out: Vector2 = here["out"] * (1.0 if side == 0 else -1.0)
+		var e := Vector2(edge.x, edge.z)
+		var along := Vector2(out.y, -out.x)
+		for d in [0.0, REBUILD_EMBANK_SHOULDER,
+				REBUILD_EMBANK_SHOULDER + GRAND_TRAM_BANK_END_CLEAR]:
+			for a in [-1.0, -0.5, 0.0, 0.5, 1.0]:
+				var q := e + out * float(d) + along * float(a) * GRAND_TRAM_BANK_END_CLEAR
+				var floor_y := _rebuild_embankment_ground_y(q, -1, true)
+				if not is_nan(floor_y) and floor_y < edge.y - REBUILD_EMBANK_MIN_GAP:
+					return false
+		return true
+	var east_end := [deck_in - GRAND_TRAM_BANK_SCAN, deck_in - GRAND_TRAM_BANK_SCAN]
+	var west_start := [deck_out, deck_out]
+	for side in 2:
+		while not clear_of_floor.call(east_end[side], side):
+			east_end[side] -= GRAND_TRAM_BANK_SCAN
+		while not clear_of_floor.call(west_start[side], side):
+			west_start[side] += GRAND_TRAM_BANK_SCAN
+	assert(east_end[0] > 0.0 and east_end[1] > 0.0 and west_start[0] < stop
+		and west_start[1] < stop, "B's crossing leaves no bank beside the overpass")
+	# Each piece: where each side starts and ends along the lane, and what
+	# closes each end.
+	var pieces := [[[0.0, 0.0], east_end, "scarp", "deck"],
+		[west_start, [stop, stop], "deck", "ride_park"]]
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(0)
+	var walls := SurfaceTool.new()
+	walls.begin(Mesh.PRIMITIVE_TRIANGLES)
+	walls.set_smooth_group(TOWN_FLAT)
+	var quad := func(a: Vector3, b: Vector3, c: Vector3, d: Vector3) -> void:
+		_earth_oriented_tri(st, a, Vector2(a.x, a.z) * 0.28, b, Vector2(b.x, b.z) * 0.28,
+			c, Vector2(c.x, c.z) * 0.28, Vector3.UP)
+		_earth_oriented_tri(st, a, Vector2(a.x, a.z) * 0.28, c, Vector2(c.x, c.z) * 0.28,
+			d, Vector2(d.x, d.z) * 0.28, Vector3.UP)
+	var longest := 0.0
+	var tallest := 0.0
+	var ratio := Plan.CLIMB_BANK_BATTER
+	for piece in pieces:
+		var from_s: Array = piece[0]
+		var to_s: Array = piece[1]
+		var span := maxf(float(to_s[0]) - float(from_s[0]), float(to_s[1]) - float(from_s[1]))
+		var count := maxi(1, ceili(span / GRAND_TRAM_BANK_STATION)) + 1
+		# Per station: both edges (each side at its own distance along, so a
+		# skewed end is a straight line), the shoulder, the toe.
+		var lines: Array = [[], []]
+		var rims: Array = [[], []]
+		var crowns: Array = [[], []]
+		var toes: Array = [[], []]
+		for k in count:
+			var f := float(k) / float(count - 1)
+			for side in 2:
+				var here: Dictionary = at_s.call(lerpf(float(from_s[side]), float(to_s[side]), f))
+				var edge: Vector3 = here["left"] if side == 0 else here["right"]
+				var out: Vector2 = here["out"] * (1.0 if side == 0 else -1.0)
+				var c3: Vector3 = here["centre"]
+				var under_c := _rebuild_embankment_ground_y(Vector2(c3.x, c3.z))
+				if not is_nan(under_c):
+					tallest = maxf(tallest, c3.y + Plan.GRAND_TRAM_LANE_LIFT - under_c)
+				var rim := edge - Vector3.UP * 0.002
+				var crown := edge + Vector3(out.x, 0.0, out.y) * REBUILD_EMBANK_SHOULDER \
+					- Vector3.UP * 0.05
+				# In the opening the scarp's floor carries the lane: no bank out.
+				var reached := [0.0, NAN] if c3.x > Plan.BLUFF_FACE_X \
+					else _grand_tram_bank_run(crown, out, ratio)
+				var run: float = reached[0]
+				(lines[side] as Array).append(edge)
+				(rims[side] as Array).append(rim)
+				(crowns[side] as Array).append(crown)
+				(toes[side] as Array).append([crown + Vector3(out.x * run, -run / ratio,
+					out.y * run), run, reached[1], out])
+		# No station's bank may outrun its neighbour's by much more than their
+		# spacing, as with the route banks; one cut short ends on a face.
+		for side in 2:
+			for pass_index in 3:
+				for i in count:
+					var limit := INF
+					for n in [i - 1, i + 1]:
+						if n < 0 or n >= count:
+							continue
+						var gap: float = (crowns[side][i] as Vector3).distance_to(crowns[side][n])
+						limit = minf(limit, float(toes[side][n][1]) + gap * 1.5)
+					if float(toes[side][i][1]) <= limit:
+						continue
+					var crown: Vector3 = crowns[side][i]
+					var out: Vector2 = toes[side][i][3]
+					var toe := crown + Vector3(out.x * limit, -limit / ratio, out.y * limit)
+					var below := _rebuild_embankment_ground_y(Vector2(toe.x, toe.z))
+					toes[side][i][0] = toe
+					toes[side][i][1] = limit
+					toes[side][i][2] = NAN if is_nan(below) else below - REBUILD_EMBANK_TOE_BURY
+		for i in count - 1:
+			for side in 2:
+				quad.call(rims[side][i], rims[side][i + 1],
+					crowns[side][i + 1], crowns[side][i])
+				quad.call(crowns[side][i], crowns[side][i + 1],
+					toes[side][i + 1][0], toes[side][i][0])
+				longest = maxf(longest, float(toes[side][i][1]))
+				# A retaining face where the bank meets a floor: built as the
+				# deck is, since beside B under the overpass it is its wing wall.
+				var foot_a: float = toes[side][i][2]
+				var foot_b: float = toes[side][i + 1][2]
+				if not is_nan(foot_a) or not is_nan(foot_b):
+					var toe_a: Vector3 = toes[side][i][0]
+					var toe_b: Vector3 = toes[side][i + 1][0]
+					var face: Vector2 = toes[side][i][3]
+					_earth_wall_quad(walls,
+						Vector3(toe_a.x, minf(toe_a.y, foot_b if is_nan(foot_a) else foot_a), toe_a.z),
+						Vector3(toe_b.x, minf(toe_b.y, foot_a if is_nan(foot_b) else foot_b), toe_b.z),
+						toe_a, toe_b, Vector3(face.x, 0.0, face.y))
+			quad.call(lines[0][i] - Vector3.UP * 0.05, lines[0][i + 1] - Vector3.UP * 0.05,
+				lines[1][i + 1] - Vector3.UP * 0.05, lines[1][i] - Vector3.UP * 0.05)
+		# Each end closed down to the ground: in the scarp's mass at the start,
+		# an abutment under each end of the deck, a retaining face at the ride
+		# park.
+		for end in [[0, 1, piece[2]], [count - 1, count - 2, piece[3]]]:
+			var e: int = end[0]
+			var mid: Vector3 = (lines[0][e] + lines[1][e]) * 0.5
+			var inner: Vector3 = (lines[0][end[1]] + lines[1][end[1]]) * 0.5
+			var ahead := Vector3(mid.x - inner.x, 0.0, mid.z - inner.z).normalized()
+			var outline := [toes[0][e][0], crowns[0][e], rims[0][e],
+				rims[1][e], crowns[1][e], toes[1][e][0]]
+			var target := st if end[2] == "scarp" else walls
+			for k in outline.size() - 1:
+				var a: Vector3 = outline[k]
+				var b: Vector3 = outline[k + 1]
+				_earth_wall_quad(target, Vector3(a.x, _grand_tram_bank_foot(a), a.z),
+					Vector3(b.x, _grand_tram_bank_foot(b), b.z), a, b, ahead)
+	st.generate_normals()
+	st.generate_tangents()
+	_rebuild_mesh_body("grand_tram_lane_bank", st.commit(), "planting", true)
+	walls.generate_normals()
+	walls.generate_tangents()
+	_rebuild_mesh_body_of("building", "grand_tram_lane_bank_faces", walls.commit(), true)
+	print("grand tram bank: s 0..%.1f/%.1f and %.1f/%.1f..%.1f from inside the scarp (the deck's ends at %.1f and %.1f), lane up to %.2fm over the ground, longest bank %.1fm in plan" % [
+		east_end[0], east_end[1], west_start[0], west_start[1], stop,
+		deck_in - GRAND_TRAM_BANK_DECK_LAP, deck_out + GRAND_TRAM_BANK_DECK_LAP, tallest, longest])
+
+
+## Where an end of the bank closes down to: the ground under it, buried as a
+## toe is, and never above the point itself.
+func _grand_tram_bank_foot(p: Vector3) -> float:
+	var ground := _rebuild_embankment_ground_y(Vector2(p.x, p.z))
+	if is_nan(ground):
+		return p.y - REBUILD_EMBANK_TOE_BURY
+	return minf(p.y, ground) - REBUILD_EMBANK_TOE_BURY
+
+
+## The Boardwalk's north ride park, where the bank ends: R16's court as its
+## terrain bed reads it (the hall, its margin and its public apron), the
+## public aprons, and the shore's made ground.
+func _grand_tram_bank_ride_park(p: Vector2) -> bool:
+	if p.x >= Plan.SHORE_EDGE and p.x <= Plan.SHORE_FROM_X and absf(p.y) <= 170.0:
+		return true
+	return not is_nan(_grand_tram_bank_ride_floor(p))
+
+
+## The ride park's floor level at a plan point, NAN off it.
+func _grand_tram_bank_ride_floor(p: Vector2) -> float:
+	var court := _north_boardwalk_dodgems_court()
+	var direction: Vector2 = Vector2(court["public_direction"]).normalized()
+	var apron := float(court["public_apron"])
+	var centre: Vector2 = court["centre"] + direction * apron * 0.5
+	var half: Vector2 = court["half"] + Vector2.ONE * float(court["margin"])
+	half += Vector2(absf(direction.x), absf(direction.y)) * apron * 0.5
+	if absf(p.x - centre.x) <= half.x and absf(p.y - centre.y) <= half.y:
+		return float(court["floor_y"]) - float(court["depth"])
+	for record in _north_boardwalk_public_aprons():
+		var a: Vector2 = record["a"]
+		var ab: Vector2 = Vector2(record["b"]) - a
+		var t := clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.000001), 0.0, 1.0)
+		if p.distance_to(a + ab * t) <= float(record["half_width"]):
+			return float(record["target_y"])
+	return NAN
+
+
+var _grand_tram_bank_cuts: Array[Vector2] = []
+
+
+## Whether the scarp's mass stands at a plan point: between its face and its
+## back, and not in either of B's return cuts (the lane's own opening has its
+## floor there, which is mass enough for a bank's toe).
+func _grand_tram_bank_in_scarp(p: Vector2) -> bool:
+	if p.x <= Plan.BLUFF_FACE_X or p.x >= Plan.BLUFF_BACK_X:
+		return false
+	if _grand_tram_bank_cuts.is_empty():
+		_grand_tram_bank_cuts = _bluff_return_cuts()
+	for cut in _grand_tram_bank_cuts:
+		if p.y > cut.x and p.y < cut.y:
+			return false
+	return true
+
+
+## `_rebuild_embankment_run` for the lane west of the scarp: the same steps,
+## toe and floors, with the face the other way round (a bank that meets the
+## scarp's mass runs on into it; where B's cut opens the scarp it finds B as
+## any floor) and the ride park as a floor, each looked for
+## `GRAND_TRAM_BANK_FLOOR_CLEAR` ahead as well.
+func _grand_tram_bank_run(crown: Vector3, out: Vector2, ratio: float) -> Array:
+	var at := Vector2(crown.x, crown.z)
+	if crown.x > Plan.BLUFF_FACE_X or _rebuild_in_protected(at, 0.75):
+		return [0.0, NAN]
+	var ground := _rebuild_embankment_ground_y(at)
+	if is_nan(ground) or crown.y - ground <= REBUILD_EMBANK_MIN_GAP:
+		return [0.0, NAN]
+	var run := 0.0
+	while run <= REBUILD_EMBANK_MAX_RUN:
+		var p := at + out * run
+		if _grand_tram_bank_in_scarp(p):
+			return [run + REBUILD_EMBANK_STEP, NAN]
+		if _rebuild_in_protected(p, 0.75):
+			return [maxf(run - REBUILD_EMBANK_STEP, 0.0), NAN]
+		var under := _rebuild_embankment_ground_y(p)
+		if is_nan(under):
+			return [maxf(run - REBUILD_EMBANK_STEP, 0.0), NAN]
+		var bank_y := crown.y - run / ratio
+		if run > 0.0 and bank_y <= under - REBUILD_EMBANK_TOE_BURY:
+			return [run, NAN]
+		var floor_y := NAN
+		var ahead := p + out * GRAND_TRAM_BANK_FLOOR_CLEAR
+		var along := Vector2(-out.y, out.x)
+		for lateral in [0.0, -1.0, 1.0, -2.0, 2.0]:
+			for q in [p + along * float(lateral), ahead + along * float(lateral)]:
+				var here := _rebuild_embankment_ground_y(q, -1, true)
+				if not is_nan(here):
+					var earth := _rebuild_embankment_ground_y(q)
+					if here >= earth - 0.5 and (is_nan(floor_y) or here < floor_y):
+						floor_y = here
+				var ride := _grand_tram_bank_ride_floor(q)
+				if not is_nan(ride) and (is_nan(floor_y) or ride < floor_y):
+					floor_y = ride
+		if not is_nan(floor_y) and bank_y > floor_y + REBUILD_EMBANK_MIN_GAP:
+			var back := maxf(run - REBUILD_EMBANK_STEP, 0.0)
+			var foot := _rebuild_embankment_ground_y(at + out * back)
+			if is_nan(foot):
+				foot = floor_y
+			return [back, minf(foot, floor_y) - REBUILD_EMBANK_TOE_BURY]
+		run += REBUILD_EMBANK_STEP
+	return [REBUILD_EMBANK_MAX_RUN, NAN]
 
 
 func _grand_tram_stop(id: StringName, at: Vector3, theta: float) -> void:
@@ -21783,9 +22173,17 @@ func _rebuild_observation_ride(site: Dictionary) -> void:
 	_rebuild_access_path("R11_queue", site["queue"], &"north", 2.6)
 
 
+## R12's Grove terminal stands at its approved level, `R12 WEST` in the
+## editor-owned vertical controls. Moved nine metres west off route A on the
+## maps (Christina, 2026-10-15: "Build it at the plan's +3.02"), it is past the
+## reach of F's graded floor, which set the measured +3.02 where it stood, on
+## ground falling from A's bank to the Grove's flat; so the platform takes the
+## approved datum and grid edit G17 seats the ground under it. The Frontier
+## terminal keeps the highland floor.
 func _rebuild_atlas_sky_ride(site: Dictionary) -> void:
 	var terminal_sources: Array = site["terminals"]
 	var a := _rebuild_site(terminal_sources[0], &"north")
+	a.y = _approved_level(&"r12_west", a)
 	var b := _rebuild_site(terminal_sources[1], &"north")
 	var cable_a := a + Vector3.UP * 12.0
 	var cable_b := b + Vector3.UP * 18.0
@@ -21814,6 +22212,21 @@ func _rebuild_atlas_sky_ride(site: Dictionary) -> void:
 			car + Vector3.UP * 0.35, 0.06, "metal")
 		_box("R12_car_%02d" % i, car, Vector3.ZERO, Vector3(1.5, 1.0, 1.2),
 			["red", "yellow", "blue"][i % 3], 0.0, false)
+
+
+## An approved level from the editor-owned vertical controls, which must stand
+## where the thing it levels stands (to 5 cm in plan).
+func _approved_level(id: StringName, at: Vector3) -> float:
+	var root := VerticalControls.instantiate()
+	var levels := VerticalControls.approved_levels(root)
+	root.free()
+	assert(levels.has(id), "the vertical controls have no level %s" % id)
+	var record: Dictionary = levels[id]
+	assert(record["status"] == &"approved", "%s is not an approved level" % id)
+	var p: Vector3 = record["position"]
+	assert(Vector2(p.x, p.z).distance_to(Vector2(at.x, at.z)) < 0.05,
+		"%s stands at %s, not at %s" % [id, p, at])
+	return p.y
 
 
 func _rebuild_coaster(site: Dictionary, junior: bool) -> void:

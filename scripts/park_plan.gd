@@ -3917,8 +3917,10 @@ const REBUILD_RIDE_SITES := [
 	], "queue": [Vector2(67, -69), Vector2(69, -75), Vector2(71, -80)]},
 	{"id": &"R11", "kind": &"observation", "at": Vector2(111, -87),
 		"radius": 8.0, "queue": [Vector2(119, -82), Vector2(114, -86)]},
+	# R12's west terminal moved 9 m west along the cable's line, off route A
+	# (Christina, 2026-10-15); its platform stands at the approved R12 WEST level.
 	{"id": &"R12", "kind": &"sky_ride", "terminals": [
-		Vector2(-18, -104), Vector2(112, -106),
+		Vector2(-27, -103.9), Vector2(112, -106),
 	]},
 	{"id": &"R13", "kind": &"steel_coaster", "track": [
 		Vector2(129, -41), Vector2(139, -46), Vector2(150, -38),
@@ -3939,12 +3941,12 @@ const REBUILD_RIDE_SITES := [
 	# tip is a turn. The editor-owned `kiddieland_layout.tscn` is what builds
 	# it; this record is the parity copy `kiddieland_layout_test` holds it to.
 	{"id": &"R14", "kind": &"junior_coaster", "track": [
-		Vector2(107, 110), Vector2(111, 104), Vector2(118, 98),
-		Vector2(125, 89), Vector2(126, 79), Vector2(121, 72),
-		Vector2(115, 75), Vector2(117, 86), Vector2(113, 96),
-		Vector2(108, 104), Vector2(107, 110),
-	], "station": Vector2(107, 111), "station_size": Vector2(10, 8),
-		"queue": [Vector2(98, 103), Vector2(100, 105), Vector2(102, 108.5)]},
+		Vector2(120, 77), Vector2(123.5, 81.5), Vector2(125, 89),
+		Vector2(118, 98), Vector2(111, 104), Vector2(107, 110),
+		Vector2(108, 104), Vector2(113, 96), Vector2(117, 86),
+		Vector2(117, 81.5), Vector2(120, 77),
+	], "station": Vector2(120, 76), "station_size": Vector2(10, 8),
+		"queue": [Vector2(106.4, 77), Vector2(111, 77), Vector2(115, 77.5)]},
 ]
 
 
