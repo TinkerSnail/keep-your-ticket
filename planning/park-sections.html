@@ -177,7 +177,13 @@
 
   const places=[
     {id:'P1',name:'Lighthouse experience',kind:'program',type:'circle',at:[-174,-202.5],r:5,access:[[-37,-125],[-50,-162.4],[-57,-173.3],[-74,-177.3],[-104,-180],[-119.3,-185.5],[-130,-197],[-141.3,-206.1],[-158,-207.2],[-169,-204.3]]},
-    {id:'P2',name:'Walk-through funhouse',kind:'program',type:'rect',at:[-77,32],size:[12,14],access:[[-96,27],[-90,27],[-87,25],[-84,27],[-83,27]],exit:[[-83,37],[-88,37],[-91,40],[-96,40]],service:[[-71,32],[-66,32],[-62,28]]},
+    // P2 in the old funhouse slot (Christina, 2026-10-16: "Move P2 to the old slot"): 1.80 m clear of
+    // the Grand Circuit lane's edge and wholly clear of its platform; 144 of 168 m² kept.
+    // Approved by Christina as drawn, 2026-10-16.
+    {id:'P2',name:'Walk-through funhouse',kind:'program',type:'rect',at:[-86.5,31],size:[8,18],access:[[-96,25],[-90.5,25]],exit:[[-90.5,38],[-96,38]],service:[[-82.5,38],[-66,38],[-62,38]]},
+    // Restrooms re-sited (Christina, 2026-10-16: "re-site the WC"; this place approved by her the
+    // same day). The legacy unit at (-86, 51.5) spans the Grand Circuit lane at s 983-994.
+    {id:'WC-B',name:'Boardwalk restrooms · 9 × 7m · approved 2026-10-16',kind:'support',type:'rect',at:[-86,-39],size:[9,7],access:[[-96,-39],[-90.5,-39]],service:[[-81.5,-39],[-78,-39]]},
     {id:'P3',name:'Big Top scheduled show',kind:'program',type:'ellipse',at:[-32,92],rx:9,rz:6,access:[[-35,77.5],[-35,80.5],[-40,80.5],[-40,83],[-35.5,83],[-35.5,85.5],[-32,86]],exit:[[-23,92],[-20,94],[-18,97],[-16.1,97.9]],service:[[-32,98],[-32,106],[-32,112],[-34,120],[-34,126],[-40,127],[-70,120]]},
     {id:'P4',name:'Family Commons play garden',kind:'program',type:'ellipse',at:[27,93],rx:9,rz:7,access:[[12,82],[17,84],[21.5,87.5]],exit:[[36,93],[40,93],[45,92.5]],service:[[27,100],[27,105],[27,109],[30,117],[29,120.9]]},
     {id:'P5',name:'Plaza bandstand',kind:'program',type:'circle',at:[-42,-32],r:6.2,access:[[-32,-1],[-28,-3],[-28,-12],[-35,-13],[-37.1,-15.5]],exit:[[-25.4,-19.3],[-21,-18],[-16,-16],[-9,-15]],service:[[-62,-38],[-58,-38],[-58,-39]]},
@@ -271,11 +277,20 @@
   ];
 
   const water=[
-    {id:'D2',name:'Coastal Creek',p:[[-48,22],[-54,29],[-59,37],[-62,44],[-70,50],[-79,54],[-88,55],[-96,55],[-104,55]]},
-    {id:'POND',name:'Rain pond',type:'ellipse',at:[-88,55],rx:7,rz:4},
-    {id:'CB1',name:'Funhouse garden footbridge',type:'rect',at:[-76,53],size:[4,11]},
-    {id:'CB2',name:'Boardwalk promenade bridge',type:'rect',at:[-96,55],size:[10,12]},
-    {id:'CX1',name:'Locked service culvert',type:'rect',at:[-62,44],size:[4,10]}
+    // Culvert D2 (Christina, 2026-10-16): the last reach regraded to shore level, the pond off
+    // the Grand Circuit lane, one culvert under the lane as at D5 (CX2), the shore notch to the
+    // weir and the outfall, approved by Christina as drawn; CB1 and the funhouse garden loop
+    // re-sited round the pond (approved 2026-10-16: a 2.6 m walk on its bank closed across its north
+    // end by CB1, with a stem from B's south return). Atlas units, as the overlay.
+    {id:'D2',name:'Coastal Creek',p:[[-48,22],[-54,29],[-59,37],[-62,44],[-70,50],[-72.5,55.23],[-77.5,55.23],[-80.46,53.63],[-87.12,48.16],[-88.6,46.8],[-91,47],[-102,47],[-108,47]]},
+    {id:'POND',name:'Rain pond · 14 × 8m, long axis north-south · water −6.85',type:'ellipse',at:[-75,58.77],rx:4,rz:7},
+    {id:'CB1',name:'Pond garden footbridge · CB1 re-sited, 11 × 4m across the pond’s north end · approved 2026-10-16',type:'rect',at:[-75,57.16],size:[11,4]},
+    {id:'GL',name:'Pond garden loop · the funhouse garden loop re-sited, 2.6m walk on the pond’s bank · approved 2026-10-16',p:[[-80.5,57.16],[-69.5,57.16],[-69.2,58.65],[-69.37,60.14],[-69.93,61.54],[-70.85,62.74],[-72.06,63.67],[-73.48,64.25],[-75,64.45],[-76.52,64.25],[-77.94,63.67],[-79.15,62.74],[-80.07,61.54],[-80.63,60.14],[-80.8,58.65],[-80.5,57.16]],className:'garden-walk'},
+    {id:'GL-S',name:'Pond garden loop stem from B’s south return · approved 2026-10-16',p:[[-88.75,60.36],[-80.63,60.14]],className:'garden-walk'},
+    {id:'CB2',name:'Boardwalk promenade bridge',type:'rect',at:[-96,47],size:[10,6]},
+    {id:'CX1',name:'Locked service culvert',type:'rect',at:[-62,44],size:[4,10]},
+    {id:'CX2',name:'D2 culvert under the Grand Circuit lane, as at D5 · inverts −6.87 / −6.89',p:[[-80.46,53.63],[-87.12,48.16]],className:'water-culvert'},
+    {id:'D2-N',name:'Shore notch · 3.6m wide · 0.89m deep at CX2, 1.50m at the seaward fascia · grid edit at build',p:[[-87.12,48.16],[-88.6,46.8],[-91,47],[-102,47],[-108,47]],className:'water-notch'}
   ];
 
   const sightlines=[
@@ -329,12 +344,21 @@
       {id:'N CREST',at:[-6,-68],y:0,status:'measured',offset:[9,-10]},
       {id:'S CREST',at:[-48,78],y:0,status:'measured',offset:[9,-10]},
       {id:'PIER',at:[-130,6],y:-6,status:'protected',offset:[8,18]},
-      {id:'WATER',at:[-146,40],y:-7.5,status:'protected',offset:[8,-10]}
+      {id:'WATER',at:[-146,40],y:-7.5,status:'protected',offset:[8,-10]},
+      // Past the Boardwalk station (Christina, 2026-10-16): the regraded lane at B's
+      // crossing, Culvert D2's levels, and the restrooms' floor (approved 2026-10-16).
+      {id:'GC × B',at:[-96.73,59.7],y:-5.97,status:'approved',offset:[9,-10]},
+      {id:'CX2 INVERT',at:[-83.79,51.34],y:-6.87,status:'approved',offset:[-9,-10],anchor:'end'},
+      {id:'D2 POND',at:[-75,58.77],y:-6.85,status:'approved',offset:[9,4]},
+      {id:'D2 WEIR',at:[-102,47],y:-6.95,status:'approved',offset:[8,-10]},
+      {id:'D2 NOTCH',at:[-108,47],y:-7.5,status:'approved',offset:[-8,18],anchor:'end'},
+      {id:'WC-B FFL',at:[-86,-39],y:-6,status:'approved',offset:[9,-10]}
     ],grades:[
       {p:[[-6,-68],[-40,-62],[-75,-59],[-96,-62]],label:'B NORTH · 0→−6.00 · ≤13.2% · E'},
-      {p:[[-96,60],[-80,84],[-64,101],[-48,78]],label:'B SOUTH · −6.00→0 · ≤10.87% · E'}
+      {p:[[-96,60],[-80,84],[-64,101],[-48,78]],label:'B SOUTH · −6.00→0 · ≤10.87% · E'},
+      {p:[[-78,24],[-78,44],[-104,64.9],[-106.6,74.58],[-104,102.32]],label:'GC · DECK −6.00 TO z 79 · THEN ≤8.5% · A',approved:true}
     ],walls:[{p:[[-58,-62],[-58,-14]],label:'W1 · HIGH EAST'}],
-      note:'All Boardwalk and pier decking holds −6.00m above the −7.50m water datum. The two long public returns earn the 6m climb; the protected central cascade remains the separate stair/ramp descent.'},
+      note:'All Boardwalk and pier decking holds −6.00m above the −7.50m water datum. The two long public returns earn the 6m climb; the protected central cascade remains the separate stair/ramp descent. Past the Boardwalk station (Christina, 2026-10-16) the Grand Circuit sits on the deck to z 79 and then climbs at no more than 8.5%, so B crosses it flush; D2’s last reach is regraded to shore level (banks −6.00, pond −6.85, culvert inverts −6.87/−6.89, weir −6.95) and leaves through a notch 1.50m deep in the seaward fascia, a grid edit at build time.'},
     fairground:{bands:['T1','T2'],spots:[
       {id:'J6',at:[-48,78],y:0,status:'measured',offset:[8,-10]},
       {id:'C LOW',at:[-72,76],y:-1.74,status:'measured',offset:[-8,-10],anchor:'end'},
@@ -552,11 +576,11 @@
       destinationNote:'Photo Hut is home base. P5 has separate audience entry and release; R3 is a Plaza destination with its queue off the through path. The fountain and clock remain the primary landmarks.',
       operationsNote:'Bandstand backstage connects west to S1. Ride and performance operations stay behind their destinations rather than crossing the ring or a spoke mouth.',
       protectionNote:'NT-1 and NT-2 are no-touch compositions. Q2 keeps the west cascade visible; Q5 keeps the east fountain axis and the High Terrace coaster crest layered beyond it.'},
-    {id:'boardwalk',title:'Boardwalk',bounds:{x0:-171,x1:-44,z0:-151,z1:75},routes:['B'],context:['A','C'],places:['P2','I2','I3'],rides:['R1','R2','R15','R16'],midway:['B1','B2','B3','B4'],service:['S1','S2'],shared:['SH1'],water:['D2','POND','CB1','CB2','CX1'],protected:['NT-1'],views:['Q3'],
+    {id:'boardwalk',title:'Boardwalk',bounds:{x0:-171,x1:-44,z0:-151,z1:75},routes:['B'],context:['A','C'],places:['P2','I2','I3','WC-B'],rides:['R1','R2','R15','R16'],midway:['B1','B2','B3','B4'],service:['S1','S2'],shared:['SH1'],water:['D2','D2-N','POND','CB1','GL','GL-S','CB2','CX1','CX2'],protected:['NT-1'],views:['Q3'],
       summary:'The waterfront spine continues beyond the old chain as an editor-owned open two-lane extension along a smooth, larger R2. It turns at the cove edge and meets a separate land-side return; two continuous timber ride forecourts and two roofed midway pavilions use the expanded field without consuming the harbour or cutting the bluff.',
       publicNote:'B is the Boardwalk itself. Its northern highland return preserves the A/F junction, takes a broad arc north of the plaza wall, descends at no steeper than 1:12, stays outside S1 and R2, and meets the open timber waterfront at the shoreline. The deck continues beside the expanded coaster, passes beneath one intentional high flyover with 4.0m fixed-structure clearance and catch protection, reaches the cove overlook, and turns inland without a dead end. The pier remains a separate westward branch with a clear approach and complete loop.',
       destinationNote:'Wheel, smooth expanded wooden coaster, Scrambler, waterfront-facing dodgems, funhouse, Arcade + Ride Photo and Boardwalk Café form a Santa Monica-inspired open seaside ride park. R15 and R16 occupy separate courts but their timber forecourts meet as one continuous pier field; two roofed midway uses remain visible in R2’s high support bays.',
-      operationsNote:'R15 and R16 have separate queue, exit, photo and service controls. R16 presents west toward the timber waterfront while its service face stays east; R15’s service edge returns inland. The land return stays outside S1 and R2 and passes beneath the Grand Circuit once at the named boardwalk_north_overpass, with 4.01m fixed clearance and all columns outside its full eight-metre envelope. Grand Circuit clear of the north ride park (Christina, 2026-10-15): the road-train lane ran through R16’s hall, R15’s pad and R2’s bent 16, under R2’s return at 2.3m and through I3 and I2 on the back lane. GC-2, approved by Christina and built on 2026-10-15, keeps R2, R15, R16, I3, NT-1’s 1.3m and Q3; it passes 1.5m clear of R16 and R15 (whose east service stubs end at the lane’s verge), runs beneath R2 at two clear spans with catch decks and at least 4.06m, moves the overpass 2.7m east along B with 4.04m, passes 0.7m in plan from S1’s raised deck and cuts a 62m² wedge from I2’s back on a 9m S-bend. No course past NT-1 keeps I2 whole. R2 crosses public circulation once at a 4.0m-clear waterfront flyover with catch protection; the occupied high bay also keeps 4.0m above its solid pavilion roof. CX1 remains a locked service culvert.',
+      operationsNote:'R15 and R16 have separate queue, exit, photo and service controls. R16 presents west toward the timber waterfront while its service face stays east; R15’s service edge returns inland. The land return stays outside S1 and R2 and passes beneath the Grand Circuit once at the named boardwalk_north_overpass, with 4.01m fixed clearance and all columns outside its full eight-metre envelope. Grand Circuit clear of the north ride park (Christina, 2026-10-15): the road-train lane ran through R16’s hall, R15’s pad and R2’s bent 16, under R2’s return at 2.3m and through I3 and I2 on the back lane. GC-2, approved by Christina and built on 2026-10-15, keeps R2, R15, R16, I3, NT-1’s 1.3m and Q3; it passes 1.5m clear of R16 and R15 (whose east service stubs end at the lane’s verge), runs beneath R2 at two clear spans with catch decks and at least 4.06m, moves the overpass 2.7m east along B with 4.04m, passes 0.7m in plan from S1’s raised deck and cuts a 62m² wedge from I2’s back on a 9m S-bend. No course past NT-1 keeps I2 whole. R2 crosses public circulation once at a 4.0m-clear waterfront flyover with catch protection; the occupied high bay also keeps 4.0m above its solid pavilion roof. CX1 remains a locked service culvert. Past the Boardwalk station (Christina, 2026-10-16): the lane is regraded onto the deck to z 79 (control 24 at −5.95, one control added at (−106.6, −5.5, 87)) and climbs at no more than 8.5%, B crosses it flush at grand_tram_crossing_boardwalk_south, P2 moves to the old funhouse slot 1.80m clear of it, D2 passes under it once in culvert CX2 as at D5, P2’s staff link crosses it at grade north of the platform, the generated mast_11 moves off it to (−100.6, 76.0), and the legacy restrooms that span it are re-sited between I3 and I2 (WC-B), all approved by Christina on 2026-10-16. CB1 and the funhouse garden loop are re-sited round the pond (approved 2026-10-16): a 2.6m walk on its bank, 2.9m beyond the lane’s clear zone, closed across its north end by CB1, with a stem from B’s south return.',
       protectionNote:'NT-1 is unchanged. Q3 keeps its fifteen-metre opening, the west-arch/pier reveal remains legible, and the sunset sector beyond the pier stays open water.'},
     {id:'fairground',title:'Fairground',bounds:{x0:-88,x1:8,z0:18,z1:138},routes:['C'],context:['A','B'],places:['P3','I1'],rides:['R4'],midway:['F1','F2','F3','F4','F5','F6'],service:['S2'],shared:[],water:[],protected:[],views:[],
       summary:'The Fairground is a closed coastal circuit, not a straight dead-end midway. Its six game fronts, Food Hall, Big Top and swinging ship all face C while their stock, backstage and ride work remain behind the public edge.',
@@ -611,6 +635,15 @@
   // is the crest at (-62, -204) to the station at (-78, 24). The control after the crest
   // lies on the lane's own tangent through the old (-88, -170), so through the Headland
   // cutting, the P1 footbridge and the bluff opening the lane moves 0.17 m at most.
+  // Regrade by the promenade (Christina, 2026-10-16: "Regrade", approved). Past the
+  // Boardwalk station the lane climbed off the deck at once and floated up to 1.53 m over
+  // it at s 994-1023; the boardwalk_south crossing stood 0.34 m over CB2, and a bank would
+  // have buried the kept made ground to z 79. Control 24 goes to y -5.95 and one control
+  // is added at (-106.6, -5.5, 87): the lane sits on the deck (-0.02 to +0.05) to z 79,
+  // then climbs at no more than 8.5%, and the crossing is flush with B. The approved
+  // course now runs on to the Fairground station, and `south` is the stretch from the
+  // Boardwalk station to (-104, 130) that validateGrandCircuitPlan also checks; its plan
+  // moves at most 2.4 m off the line built on 2026-10-15 (near s 1003).
   const grandCircuitWest = {
     width:5.4, clear:1.5, nt1Clear:1.3,
     built:{id:'GC-0',name:'Grand Circuit before GC-2 (through R16, R15, R2 bent 16, I3 and I2)',
@@ -622,7 +655,8 @@
       controls:[[62,0,-214],[-12,0,-220],[-62,-1.1,-204],[-73.1,-3.9,-174.8],
         [-74.3,-5.2,-155.5],[-77.8,-6,-142],[-83.3,-6,-104.5],[-70,-6,-62.5],
         [-69.3,-6,-42.1],[-75.3,-6,-31.6],[-78,-6,-25.2],[-78,-6,-14.4],
-        [-78,-6,24],[-78,-6,44]],
+        [-78,-6,24],[-78,-6,44],[-104,-5.95,72],[-106.6,-5.5,87],[-104,-2,130],
+        [-80,-0.5,155],[-48,0,166]],
       // I2 loses 62 m² of its 160 m², its back wall running from x -78.9 at its
       // north end to -82.5 at its south end. The lane passes 1.6 m from I3's delivery
       // door and 0.7 m in plan from S1's deck edge, which stands 5.7 m above it.
@@ -639,7 +673,28 @@
     overpass:{id:'boardwalk_north_overpass',was:[-70.14,-1.74,-198.65],now:[-67.74,-1.72,-197.40]},
     clearSpans:[{id:'R2 bent 17',at:[-79.69,-140.9]},{id:'R2 bent 32',at:[-69.05,-69.97]}],
     serviceStubsToVerge:['R15','R16'],
-    monumentCrossing:[-78,-2]
+    monumentCrossing:[-78,-2],
+    // Past the Boardwalk station (Christina, 2026-10-16): the regrade, P2 in the old
+    // funhouse slot, Culvert D2 and the restrooms' site, all approved by Christina on
+    // 2026-10-16 as drawn, with CB1 and the garden loop re-sited round the pond (approved by
+    // her the same day: "Approve, commit, build"). `was` is the course
+    // built on 2026-10-15, drawn for comparison. The crossing is where the lane meets B's
+    // centreline; B is not tested within `reach` of it, the oblique crossing of B's 10 m
+    // at about 45 degrees with the lane's own width. CX2 is the one place the creek
+    // passes under the lane, square to it. P2's staff link crosses at grade north of the
+    // platform, as I2's and I3's do. mast_11 (generated) stood 0.01 m off the regraded
+    // centreline at s 1020.6; it moves to the lane's inland verge, 0.62 m beyond the clear
+    // zone with its radius, 1.7 m from prom_lamp_15, and its string's last span from
+    // mast_10 then crosses over the lane at about 6.9 m.
+    south:{id:'GC-2R',name:'GC-2 past the Boardwalk station, regraded (Christina, 2026-10-16)',
+      approved:'2026-10-16',
+      was:[[-78,-6,-14.4],[-78,-6,24],[-78,-6,44],[-104,-5,72],[-104,-2,130],[-80,-0.5,155],[-48,0,166]],
+      to:[-104,130],
+      crossing:{id:'grand_tram_crossing_boardwalk_south',at:[-96.73,63.94],reach:14,level:-5.97},
+      culvert:'CX2',
+      serviceCrossings:['P2'],
+      moves:[{id:'mast_11',kind:'generated mast',from:[-106.4,76.0],to:[-100.6,76.0],r:0.22}],
+      resited:['CB1','pond garden loop']}
   };
   const gcExpand = ([x,z]) => {
     let qx = x, qz = z;
@@ -671,6 +726,14 @@
     const all = gcCurve(controls);
     const a = all.findIndex(p => Math.hypot(p[0] + 62, p[2] + 204) < 1e-6);
     const b = all.findIndex(p => Math.hypot(p[0] + 78, p[2] - 24) < 1e-6);
+    return all.slice(a, b + 1).map(p => [p[0], p[2]]);
+  }
+  // Past the Boardwalk station (Christina, 2026-10-16): the station to `south.to`, as
+  // [x, z] world points.
+  function gcStretchSouth(controls) {
+    const all = gcCurve(controls), to = grandCircuitWest.south.to;
+    const a = all.findIndex(p => Math.hypot(p[0] + 78, p[2] - 24) < 1e-6);
+    const b = all.findIndex(p => Math.hypot(p[0] - to[0], p[2] - to[1]) < 1e-6);
     return all.slice(a, b + 1).map(p => [p[0], p[2]]);
   }
 
@@ -856,8 +919,8 @@
 
   function drawWater(id){
     const item=water.find(entry=>entry.id===id);if(!item)return;
-    if(item.p)line(item.p,'water-line',`${item.id} · ${item.name}`,'protection');
-    else if(item.type==='rect')rectShape(item,'water-crossing','protection');
+    if(item.p)line(item.p,item.className||'water-line',`${item.id} · ${item.name}`,'protection');
+    else if(item.type==='rect')rectShape(item,item.className||'water-crossing','protection');
     else ellipseShape(item,'water-place','protection');
     label(item.at||item.p[Math.floor(item.p.length/2)],item.id,item.name,'water-label');
   }
@@ -993,8 +1056,9 @@
   function drawGrandCircuit(){
     const W=grandCircuitWest;
     line(gcStretch(W.built.controls).map(gcAtlas),'gc-built',W.built.name,'public');
+    line(gcStretchSouth(W.south.was).map(gcAtlas),'gc-built','GC-2 as built on 2026-10-15 past the Boardwalk station, before the regrade','public');
     [W.course].forEach(option=>{
-      const n=line(gcStretch(option.controls).map(gcAtlas),'gc-lane',option.name,'public');
+      const n=line(gcStretch(option.controls).concat(gcStretchSouth(option.controls).slice(1)).map(gcAtlas),'gc-lane',`${option.name}; past the Boardwalk station, ${W.south.name}`,'public');
       n.setAttribute('data-option',option.id);n.setAttribute('stroke-width',Math.max(3,W.width*scale));
       option.cuts.forEach(cut=>{
         const item=places.find(place=>place.id===cut.id);
@@ -1013,6 +1077,16 @@
     const [ox,oy]=point(gcAtlas([W.overpass.now[0],W.overpass.now[2]]));
     const deck=create('rect',{x:ox-3,y:oy-3,width:6,height:6,class:'gc-overpass','data-layer':'public'});
     title(deck,`${W.overpass.id}: re-placed 2.7 m east along B, 4.04 m fixed clearance`);
+    // Past the Boardwalk station (Christina, 2026-10-16): the flush crossing of B, the
+    // generated mast that moves off the regraded lane, and the legacy restrooms to retire.
+    const [kx,ky]=point(gcAtlas(W.south.crossing.at));
+    title(create('rect',{x:kx-3,y:ky-3,width:6,height:6,class:'gc-overpass','data-layer':'public'}),`${W.south.crossing.id}: B crosses the regraded lane flush at ${W.south.crossing.level.toFixed(2)}`);
+    W.south.moves.forEach(m=>{
+      const copy=`${m.id} (${m.kind}): moves from (${m.from.join(', ')}) in the regraded lane to (${m.to.join(', ')}) on its inland verge`;
+      line([gcAtlas(m.from),gcAtlas(m.to)],'gc-move',copy,'operations');
+      const [mx,my]=point(gcAtlas(m.to));title(create('circle',{cx:mx,cy:my,r:Math.max(2.5,0.6*scale),class:'gc-move','data-layer':'operations'}),copy);
+    });
+    rectShape({id:'shop_restrooms',name:'legacy restrooms across the Grand Circuit lane at s 983-994 · retire, replaced by WC-B',at:gcAtlas([-86,51.5]),size:[9,7]},'retired-place','destinations');
   }
 
   function render(id){
@@ -1126,6 +1200,12 @@
 .gc-span{fill:none;stroke:var(--green);stroke-width:2}
 .gc-overpass{fill:var(--bg);stroke:var(--fg);stroke-width:1.5}
 .gc-label{fill:var(--fg);font-weight:800}
+/* Past the Boardwalk station (Christina, 2026-10-16). */
+.gc-move{fill:none;stroke:var(--red);stroke-width:1.5;stroke-dasharray:3 2}
+.retired-place{fill:none;stroke:var(--red);stroke-width:1.5;stroke-dasharray:2 3}
+.water-culvert{fill:none;stroke:var(--orange);stroke-width:5;stroke-dasharray:4 3}
+.water-notch{fill:none;stroke:var(--blue);stroke-width:7;stroke-opacity:.35;stroke-linejoin:round}
+.garden-walk{fill:none;stroke:var(--green);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
 /* yard connections (Christina, 2026-10-15), approved by Christina 2026-10-15. */
 .yard-walk,.yard-crossing{fill:color-mix(in srgb,var(--service) 22%,transparent);stroke:var(--service);stroke-width:1}
 .yard-crossing{stroke-dasharray:2 2}
