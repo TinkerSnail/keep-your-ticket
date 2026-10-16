@@ -3863,9 +3863,24 @@ func _litter() -> void:
 			_box("litter_%d" % i, spots[i], Vector3(0, 0.006, 0), Vector3(0.22, 0.012, 0.16), "white", th, false)
 
 
+## The two picnic tables, in final 104m coordinates since 2026-10-15. They were
+## typed in the 80m plaza at (-13, 18) and (-17, 15) and dilated; the 104m plaza
+## then set the Photo Hut over the second, and the Fairground's midway F1 moved
+## over the first (Christina, 2026-10-15). Each now stands on the nearest open
+## paving in the south-west quadrant, clear of the midway booths, their aprons
+## and stock lane, the hut and its queue rope, the cafe, the benches, lamps and
+## trees, every route's paving by `_stand_clear`, and the crowd's paths: the
+## first beside the cafe terrace (the strip between the queue rope and C's
+## Plaza return lay on the guests' walk from the queue to the hut, and
+## `gen_crowd.gd` refused it), the second under the trees north of the hut. The
+## spots are `Plan.PLAZA_PICNIC_SPOTS`. The trees and outer lamps are sampled
+## after these and keep 2.3 m
+## clear of them (`_stood`), so a table set nearer one would re-sample the
+## plaza's planting; both stand at least 2.4 m from every one.
 func _picnic() -> void:
-	_stand_clear = 1.4
-	var spots := [Vector2(-13, 18), Vector2(-17, 15)]
+	_dilate_plaza = false
+	_stand_clear = Plan.PLAZA_PICNIC_CLEAR
+	var spots: Array = Plan.PLAZA_PICNIC_SPOTS
 	var turns := [25.0, -15.0]
 	for i in spots.size():
 		var b := Vector3(spots[i].x, 0, spots[i].y)
@@ -3876,6 +3891,7 @@ func _picnic() -> void:
 		_box("picnic_%d_leg_a" % i, b, Vector3(-0.7, 0.37, 0), Vector3(0.1, 0.75, 1.7), "metal", th)
 		_box("picnic_%d_leg_b" % i, b, Vector3(0.7, 0.37, 0), Vector3(0.1, 0.75, 1.7), "metal", th)
 	_stand_clear = 0.0
+	_dilate_plaza = true
 
 
 # --- the park beyond the plaza ----------------------------------------------
@@ -10905,21 +10921,25 @@ func _entrance() -> void:
 	_arcade_rear_exit()
 
 
-## The arrival, after dark — and until now there was none at all.
+## The arrival, after dark.
 ##
-## `entrance.tscn` was the one scene on the plaza's side of the park with zero
-## lights in it. Not dim: zero. Fifty-seven metres of street, ten shopfronts,
-## three game booths, a walk-in arcade, the turnstiles and the apron outside
-## them, all of it pitch black from about half past eight, while the plaza it
-## leads to was fully lit. The gap survived a whole lighting pass and a capture
-## run because no vantage in `night_capture.gd` pointed south.
+## What stands to light is the east range, three shopfronts and the breezeway
+## to the family commons, then the turnstiles' gate and the apron outside it.
+## The west range, its walk-in arcade and the three game booths were retired on
+## 2026-09-03 for route A's eleven-metre envelope
+## (`REBUILD_RETIRED_STREET_SHOPS`), so `_arcade_lights` returns at once and
+## `_street_festoons` finds no west wall to string from.
 ##
-## It matters more than its area suggests, for two reasons the design has
-## already argued elsewhere. The street is the answer to "the hub is a junction,
-## not a destination" — the thing that stops the park being gate-straight-into-
-## plaza — and a corridor nobody can see is not a corridor. And it is a midway:
-## small commerce, close frontage, awnings, booths. A midway that goes dark is
-## just an alley you cross to get somewhere better.
+## `entrance.tscn` was once the one scene on the plaza's side of the park with
+## no light in it at all, pitch black from about half past eight while the
+## plaza it leads to was fully lit. The gap survived a whole lighting pass and
+## a capture run because no vantage in `night_capture.gd` pointed south.
+##
+## It matters more than its area suggests. The street is the answer to "the hub
+## is a junction, not a destination" — the thing that stops the park being
+## gate-straight-into-plaza — and a corridor nobody can see is not a corridor.
+## And its frontage is small commerce under awnings; shopfronts that go dark
+## are just an alley you cross to get somewhere better.
 func _entrance_lights() -> void:
 	_street_shop_lights()
 	_street_festoons()
@@ -20687,6 +20707,14 @@ func _rebuild_program() -> void:
 ## on the cove's east shore under the coaster's beach, and two boats. Scenery
 ## with no route to it; appended after everything in this scene so nothing
 ## before it moves an ordinal.
+##
+## Every part stands on its own base, the world position given here, and a yaw
+## turns only its local offset (`_place`). Until 2026-10-15 the arc's segments
+## and the boats handed their world positions in as the offset on a zero base,
+## so each yaw swung them about the world origin: the segments stood 50-70 m
+## out in the cove, the white boat beside them, and the red boat 10 m inside
+## the headland. The head, light, quay and bollards have no yaw and always
+## stood where they were meant to.
 func _rebuild_harbour() -> void:
 	var arc := [Vector2(-104.0, -236.0), Vector2(-101.0, -224.0),
 		Vector2(-97.0, -213.0), Vector2(-93.0, -203.0)]
@@ -20695,26 +20723,42 @@ func _rebuild_harbour() -> void:
 		var b: Vector2 = arc[i + 1]
 		var mid := (a + b) * 0.5
 		var theta := atan2(b.x - a.x, b.y - a.y)
-		_box("harbour_breakwater_%d" % i, Vector3.ZERO,
-			Vector3(mid.x, WATER_TOP - 0.7, mid.y),
-			Vector3(5.0, 4.4, a.distance_to(b) + 1.2), "building", theta, false)
-	_box("harbour_breakwater_head", Vector3.ZERO,
-		Vector3(-92.5, WATER_TOP - 0.4, -201.5), Vector3(4.0, 5.0, 4.0), "building", 0.0, false)
+		_box("harbour_breakwater_%d" % i,
+			Vector3(mid.x, (HARBOUR_CREST + HARBOUR_FOOT) * 0.5, mid.y), Vector3.ZERO,
+			Vector3(5.0, HARBOUR_CREST - HARBOUR_FOOT, a.distance_to(b) + 1.2),
+			"building", theta, false)
+	_box("harbour_breakwater_head",
+		Vector3(-92.5, (HARBOUR_HEAD_CREST + HARBOUR_FOOT) * 0.5, -201.5), Vector3.ZERO,
+		Vector3(4.0, HARBOUR_HEAD_CREST - HARBOUR_FOOT, 4.0), "building", 0.0, false)
 	_cyl("harbour_light", Vector3(-92.5, WATER_TOP + 2.1, -201.5), Vector3.ZERO,
 		0.25, 3.0, "white", 0.0, 10, false)
 	_omni("harbour_light_glow", Vector3(-92.5, WATER_TOP + 3.8, -201.5), "warm", 1.6, 12.0,
 		LIGHT_FEATURE)
-	_box("harbour_quay", Vector3.ZERO, Vector3(-83.0, WATER_TOP + 1.0, -208.0),
+	_box("harbour_quay", Vector3(-83.0, WATER_TOP + 1.0, -208.0), Vector3.ZERO,
 		Vector3(6.0, 1.4, 16.0), "plank", 0.0, false)
 	for i in 3:
 		_cyl("harbour_bollard_%d" % i, Vector3(-85.4, WATER_TOP + 2.0, -214.0 + float(i) * 6.0),
 			Vector3.ZERO, 0.16, 0.6, "metal", 0.0, 8, false)
+	# The hull floats 0.2 m deep; the cabin sits on it 0.6 m aft of amidships,
+	# an offset in the boat's own frame, so the boat's yaw carries it.
 	for boat in [[Vector2(-90.0, -212.0), 0.3, "white"], [Vector2(-88.5, -224.0), -0.2, "red"]]:
 		var at: Vector2 = boat[0]
-		_box("harbour_boat_%s_hull" % boat[2], Vector3.ZERO,
-			Vector3(at.x, WATER_TOP + 0.3, at.y), Vector3(2.2, 1.0, 6.0), boat[2], float(boat[1]), false)
-		_box("harbour_boat_%s_cabin" % boat[2], Vector3.ZERO,
-			Vector3(at.x, WATER_TOP + 1.3, at.y - 0.6), Vector3(1.6, 1.1, 2.0), "far_warm", float(boat[1]), false)
+		var hull := Vector3(at.x, WATER_TOP + 0.3, at.y)
+		_box("harbour_boat_%s_hull" % boat[2], hull, Vector3.ZERO,
+			Vector3(2.2, 1.0, 6.0), boat[2], float(boat[1]), false)
+		_box("harbour_boat_%s_cabin" % boat[2], hull, Vector3(0.0, 1.0, -0.6),
+			Vector3(1.6, 1.1, 2.0), "far_warm", float(boat[1]), false)
+
+
+## The breakwater's crest over the water, and its head's, as built on
+## 2026-09-04. Their foot is the depth the coast's sea-cliff skirt runs down to
+## (`_rebuild_coastal_polygon_mesh`): seabed G8 (2026-10-14) keeps the cove
+## 4.05 m deep and reads -11.5 to -13.1 under the arc and head, so a foot at the
+## old WATER_TOP - 2.9 stood them 1-2.6 m over the bed. Arc segment 0 roots
+## into the headland's shore, which is what it arcs out from.
+const HARBOUR_CREST := WATER_TOP + 1.5
+const HARBOUR_HEAD_CREST := WATER_TOP + 2.1
+const HARBOUR_FOOT := WATER_TOP - 6.0
 
 
 func _rebuild_open_building(nm: String, at: Vector3, size: Vector2,
@@ -21878,7 +21922,13 @@ func _rebuild_landscape() -> void:
 	_rebuild_planting_structure()
 
 
+## The service lanes as `_rebuild_service_network` built them, each its graded
+## centreline and width, for the planting that must stand clear of them.
+var _service_lanes: Array = []
+
+
 func _rebuild_service_network() -> void:
+	_service_lanes.clear()
 	for spine in Plan.rebuild_service_spines():
 		var source: Array = spine["points"]
 		var expanded := Plan.rebuild_expand_points2(source)
@@ -21902,6 +21952,7 @@ func _rebuild_service_network() -> void:
 					section, 4.0 + REBUILD_BED_MARGIN, false, true, INF, true)
 				section_index += 1
 		_rebuild_path("service_%s" % spine["id"], points, 4.0, false, &"")
+		_service_lanes.append({"points": points, "width": 4.0})
 		# A repeated low screen communicates back-of-house ownership without
 		# walling the whole park or hiding its district landmarks.
 		for i in range(1, points.size() - 1, 4):
@@ -21990,6 +22041,9 @@ func _rebuild_coastal_creek() -> void:
 
 
 func _rebuild_planting_structure() -> void:
+	var kiddieland_layout := KiddielandSource.instantiate()
+	var destinations: Array = KiddielandSource.support_sites(kiddieland_layout).values()
+	kiddieland_layout.free()
 	for band in Plan.REBUILD_PLANTING_BANDS:
 		var band_id := StringName(band["id"])
 		var points := Plan.rebuild_expand_points2(band["points"])
@@ -22010,12 +22064,54 @@ func _rebuild_planting_structure() -> void:
 				# keeping the gap here also leaves the rear stock doors readable.
 				if band_id == &"PL1_e" and _rebuild_boardwalk_planting_gap(p):
 					continue
-				var y := _rebuild_landscape_floor(p)
 				var screen := StringName(band["kind"]) == &"screen"
+				var radius := 1.6 if screen else 2.2
+				# A screen is drawn along the lane or the court it hides, and where
+				# its rhythm puts a trunk on a service lane's paving (PL2_a down
+				# S2, PL2_d on S3) or a crown under a Kiddieland destination's roof
+				# (PL2_b in KC3's pavilion), that tree gives way (2026-10-15). Its
+				# name and its three seam ordinals stay handed out, so every other
+				# tree keeps its name and nothing after it is re-planed.
+				if _rebuild_on_service_lane(p, REBUILD_TREE_TRUNK_R) \
+						or _rebuild_in_destination(p, radius, destinations):
+					ordinal += 1
+					_seam_ordinal += 3
+					continue
+				var y := _rebuild_landscape_floor(p)
 				_rebuild_tree("%s_%02d" % [band["id"], ordinal],
-					Vector3(p.x, y, p.y), 4.5 if screen else 6.2,
-					1.6 if screen else 2.2)
+					Vector3(p.x, y, p.y), 4.5 if screen else 6.2, radius)
 				ordinal += 1
+
+
+## True where a disc of `clear` round `p` reaches a service lane's paving, as
+## `_rebuild_service_network` laid it.
+func _rebuild_on_service_lane(p: Vector2, clear: float) -> bool:
+	for lane in _service_lanes:
+		var pts: Array = lane["points"]
+		var reach := float(lane["width"]) * 0.5 + clear
+		for k in pts.size() - 1:
+			var a := Vector2(pts[k].x, pts[k].z)
+			var b := Vector2(pts[k + 1].x, pts[k + 1].z)
+			if p.distance_to(Geometry2D.get_closest_point_to_segment(p, a, b)) < reach:
+				return true
+	return false
+
+
+## True where a disc of `clear` round `p` reaches a Kiddieland destination's
+## footprint, a rectangle (`size`) or an ellipse (`radii`) about its marker, as
+## the editor source saves them and the program scene builds them.
+func _rebuild_in_destination(p: Vector2, clear: float, sites: Array) -> bool:
+	for site in sites:
+		var d := p - Plan.rebuild_expand_point(site["at"])
+		if site.has("size"):
+			var half: Vector2 = Vector2(site["size"]) * 0.5
+			if Vector2(maxf(absf(d.x) - half.x, 0.0), maxf(absf(d.y) - half.y, 0.0)).length() < clear:
+				return true
+		elif site.has("radii"):
+			var r: Vector2 = Vector2(site["radii"]) + Vector2.ONE * clear
+			if (d.x * d.x) / (r.x * r.x) + (d.y * d.y) / (r.y * r.y) <= 1.0:
+				return true
+	return false
 
 
 func _rebuild_boardwalk_planting_gap(p: Vector2) -> bool:
@@ -22047,9 +22143,12 @@ func _rebuild_landscape_floor(p: Vector2) -> float:
 		[&"D3_basin", &"D4_basin", &"D5_basin", &"D6_basin"])
 
 
+const REBUILD_TREE_TRUNK_R := 0.18
+
+
 func _rebuild_tree(nm: String, at: Vector3, height: float, radius: float) -> void:
 	_cyl(nm + "_trunk", at, Vector3(0, height * 0.36, 0),
-		0.18, height * 0.72, "wood", 0.0, 8)
+		REBUILD_TREE_TRUNK_R, height * 0.72, "wood", 0.0, 8)
 	_sphere(nm + "_crown_a", at, Vector3(-radius * 0.28, height * 0.78, 0),
 		radius, "foliage", 0.0, 0.82)
 	_sphere(nm + "_crown_b", at, Vector3(radius * 0.38, height * 0.84,

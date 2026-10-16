@@ -198,6 +198,12 @@ const CLOCK_TOWER_AT := Vector2(20.0, -28.0)
 ## stands between the kiosk and the fountain rather than across a through-route.
 const PHOTO_HUT_AT := Vector2(-25.0, 25.0)
 const PHOTO_HUT_QUEUE_X_OFFSET := 6.0
+## The Plaza's two picnic tables, world plan, each stood `PLAZA_PICNIC_CLEAR`
+## off the walkways. Re-sited on 2026-10-15, when the Fairground midway closed
+## up over the first and the hut was found standing on the second; one list,
+## because `gen_props.gd` builds them and `gen_crowd.gd` routes round them.
+const PLAZA_PICNIC_SPOTS := [Vector2(-25.5, 12.5), Vector2(-25.8, 20.0)]
+const PLAZA_PICNIC_CLEAR := 1.4
 
 ## The cafe terrace: three tables, and where they stand.
 ##
@@ -4012,11 +4018,14 @@ const REBUILD_INTERIOR_SITES := [
 ]
 
 const REBUILD_MIDWAY_UNITS := [
-	{"id": &"F1", "at": Vector2(-22.5, 24), "front": &"east"},
-	{"id": &"F2", "at": Vector2(-21.5, 31), "front": &"east"},
-	{"id": &"F3", "at": Vector2(-22, 38), "front": &"east"},
-	{"id": &"F4", "at": Vector2(-23.5, 45), "front": &"east"},
-	{"id": &"F5", "at": Vector2(-25.5, 52), "front": &"east"},
+	# Closed up on 2026-10-15 (Christina): F1 stood inside the Photo Hut. It now
+	# clears the hut by the atlas' one-metre rule and the six step down C as a
+	# near-continuous row to F6, which keeps its distance from I1.
+	{"id": &"F1", "at": Vector2(-21.6, 32), "front": &"east"},
+	{"id": &"F2", "at": Vector2(-22, 37.4), "front": &"east"},
+	{"id": &"F3", "at": Vector2(-23, 42.8), "front": &"east"},
+	{"id": &"F4", "at": Vector2(-24.4, 48.2), "front": &"east"},
+	{"id": &"F5", "at": Vector2(-26, 53.6), "front": &"east"},
 	{"id": &"F6", "at": Vector2(-27.5, 59), "front": &"east"},
 	{"id": &"B1", "at": Vector2(-86.5, -19), "front": &"west"},
 	{"id": &"B2", "at": Vector2(-86.5, -11), "front": &"west"},

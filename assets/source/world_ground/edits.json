@@ -1402,6 +1402,128 @@
    "open_corridor_nodes": 83185,
    "tunnel_nodes": 16348,
    "kept_grid_nodes": 1031
+  },
+  {
+   "id": "G10",
+   "name": "grand_circuit_headland_cut",
+   "date": "2026-10-15",
+   "why": "cut the Grand Circuit lane down through the Headland's +4 table and the Grove's flat west of its stop: formation 4 cm under the lane, 1.5 m verges, 1.4 batters; the P1 walk's ground, the A loop and the Grove platform kept",
+   "tiles": [
+    "x-1_z-1",
+    "x0_z-1"
+   ],
+   "nodes": 259,
+   "new_ground_nodes": 0,
+   "history": "history/G10.npz",
+   "files": [
+    {
+     "tile": "x-1_z-1",
+     "nodes": 155,
+     "height_sha_before": "9af6b998d269de88d6b0e20768932b153b7b7be6f23d79da7bb9bbf02d4d73b0",
+     "height_sha_after": "81360e9656393fb206337c79665b501c4fe322d41f0fca32b933205caae6dcf3"
+    },
+    {
+     "tile": "x0_z-1",
+     "nodes": 104,
+     "height_sha_before": "13e99b5171c6ca9b35f6b892320ef7cce851e2af3b1109f83f4d81a5c7564e91",
+     "height_sha_after": "6dfe7c8375af3c4ea4cbf62c74ef8757e19e1236c3dd11e8c945a7b30ed1a7bb"
+    }
+   ],
+   "kind": "values",
+   "min_change_m": 0.001,
+   "made_by": "ground_grid_edit.py --values"
+  },
+  {
+   "id": "G11",
+   "name": "kiddieland_ride_garden",
+   "date": "2026-10-15",
+   "why": "Christina's east-side fixes (2026-10-15): the Ride Garden inside route D as one landform, the 12-21 m mesa taken down to R5's lawn at +0.26 under its rails and KS1, rising east to R6's court (+5.83) and KP1 (+6.59); route D and its queues kept",
+   "tiles": [
+    "x0_z0"
+   ],
+   "nodes": 1388,
+   "new_ground_nodes": 0,
+   "history": "history/G11.npz",
+   "files": [
+    {
+     "tile": "x0_z0",
+     "nodes": 1388,
+     "height_sha_before": "443dac6c8ed6103fb38c4293050f875edbdbd566bc5413928d87450bbfb15b5a",
+     "height_sha_after": "17f954d6ac4fd9e74f4996cfb9301a3e33bcae6e3aa865c5b50be97c828f6111"
+    }
+   ],
+   "kind": "values",
+   "min_change_m": 0.001,
+   "made_by": "ground_grid_edit.py --values"
+  },
+  {
+   "id": "G12",
+   "name": "r7_carousel_seat",
+   "date": "2026-10-15",
+   "why": "Christina's east-side fixes (2026-10-15): R7's carousel deck (bottom +5.08) seated on a +5.12 apron cut into T6's riser, its banks 1:1.4 back to the hill",
+   "tiles": [
+    "x0_z0"
+   ],
+   "nodes": 378,
+   "new_ground_nodes": 0,
+   "history": "history/G12.npz",
+   "files": [
+    {
+     "tile": "x0_z0",
+     "nodes": 378,
+     "height_sha_before": "17f954d6ac4fd9e74f4996cfb9301a3e33bcae6e3aa865c5b50be97c828f6111",
+     "height_sha_after": "4c199b202c63d12ca61d60dcf3795f3dbec7147061ee2286f785d9f4b3fdc362"
+    }
+   ],
+   "kind": "values",
+   "min_change_m": 0.001,
+   "made_by": "ground_grid_edit.py --values"
+  },
+  {
+   "id": "G13",
+   "name": "r8_chair_swing_court",
+   "date": "2026-10-15",
+   "why": "Christina's east-side fixes (2026-10-15): R8's court (top +14.82) seated at +14.78, cut 1:1.4 back to the hill",
+   "tiles": [
+    "x0_z-1"
+   ],
+   "nodes": 143,
+   "new_ground_nodes": 0,
+   "history": "history/G13.npz",
+   "files": [
+    {
+     "tile": "x0_z-1",
+     "nodes": 143,
+     "height_sha_before": "6dfe7c8375af3c4ea4cbf62c74ef8757e19e1236c3dd11e8c945a7b30ed1a7bb",
+     "height_sha_after": "237d20211eec550768365d14eacadac48e4cc2790f1517dc6b200ed8348f697a"
+    }
+   ],
+   "kind": "values",
+   "min_change_m": 0.001,
+   "made_by": "ground_grid_edit.py --values"
+  },
+  {
+   "id": "G14",
+   "name": "frontier_r10_r11",
+   "date": "2026-10-15",
+   "why": "Christina's east-side fixes (2026-10-15): R10's buried east and south track cut to a formation 5 cm under it (4.4 m each side), R11's court filled under at +14.41, banks 1:1.4",
+   "tiles": [
+    "x0_z-1"
+   ],
+   "nodes": 464,
+   "new_ground_nodes": 0,
+   "history": "history/G14.npz",
+   "files": [
+    {
+     "tile": "x0_z-1",
+     "nodes": 464,
+     "height_sha_before": "237d20211eec550768365d14eacadac48e4cc2790f1517dc6b200ed8348f697a",
+     "height_sha_after": "cc1c519b3641dae5e5560c8a41adad639389d6359d881fd00504eaf27b6e0bf3"
+    }
+   ],
+   "kind": "values",
+   "min_change_m": 0.001,
+   "made_by": "ground_grid_edit.py --values"
   }
  ]
 }

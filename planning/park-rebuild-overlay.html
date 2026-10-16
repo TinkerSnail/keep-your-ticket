@@ -2292,16 +2292,16 @@
         [[-30,21],[-30,24],[-29,31],[-30,38],[-32,45],[-34,52],[-38,59],[-43,63],[-43,68],[-52,64],[-64,61]]
       ],
       units:[
-        {id:'F1',name:'RING TOSS',kind:'game',at:[-22.5,24],size:[5,5],front:'east',
-          access:[[-16,24],[-20,24]],service:[[-25,24],[-30,24]]},
-        {id:'F2',name:'BOTTLE KNOCKDOWN',kind:'game',at:[-21.5,31],size:[5,5],front:'east',
-          access:[[-15,31],[-19,31]],service:[[-24,31],[-29,31]]},
-        {id:'F3',name:'SHOOTING GALLERY',kind:'game',at:[-22,38],size:[5,5],front:'east',
-          access:[[-16.5,38],[-19.5,38]],service:[[-24.5,38],[-30,38]]},
-        {id:'F4',name:'WATER RACE',kind:'game',at:[-23.5,45],size:[5,5],front:'east',
-          access:[[-18,45],[-21,45]],service:[[-26,45],[-32,45]]},
-        {id:'F5',name:'BALLOON DARTS',kind:'game',at:[-25.5,52],size:[5,5],front:'east',
-          access:[[-20,52],[-23,52]],service:[[-28,52],[-34,52]]},
+        {id:'F1',name:'RING TOSS',kind:'game',at:[-21.6,32],size:[5,5],front:'east',
+          access:[[-15.1,32],[-19.1,32]],service:[[-24.1,32],[-29.1,32]]},
+        {id:'F2',name:'BOTTLE KNOCKDOWN',kind:'game',at:[-22,37.4],size:[5,5],front:'east',
+          access:[[-16.5,37.4],[-19.5,37.4]],service:[[-24.5,37.4],[-29.9,37.4]]},
+        {id:'F3',name:'SHOOTING GALLERY',kind:'game',at:[-23,42.8],size:[5,5],front:'east',
+          access:[[-17.5,42.8],[-20.5,42.8]],service:[[-25.5,42.8],[-31.4,42.8]]},
+        {id:'F4',name:'WATER RACE',kind:'game',at:[-24.4,48.2],size:[5,5],front:'east',
+          access:[[-18.9,48.2],[-21.9,48.2]],service:[[-26.9,48.2],[-32.9,48.2]]},
+        {id:'F5',name:'BALLOON DARTS',kind:'game',at:[-26,53.6],size:[5,5],front:'east',
+          access:[[-20.5,53.6],[-23.5,53.6]],service:[[-28.5,53.6],[-34.9,53.6]]},
         {id:'F6',name:'PRIZE + NOVELTY',kind:'prize',at:[-27.5,59],size:[5,5],front:'east',
           access:[[-22,59],[-25,59]],service:[[-30,59],[-38,59]]}
       ]},
@@ -2686,10 +2686,14 @@
         }
       });
     });
+    // Booths of one band may stand as a near-continuous row (Christina,
+    // 2026-10-15: MW-F closed up so F1 clears the Photo Hut); booths of
+    // different bands keep a metre apart, as every unit does from interiors.
     midwayUnits.forEach((unit,index) => {
       const bounds=interiorBounds(unit);
       midwayUnits.slice(index+1).forEach(other => {
-        if (boundsOverlap(bounds,interiorBounds(other),1)) throw new Error(`${unit.id} overlaps ${other.id}`);
+        const pad=other.band===unit.band ? 0.3 : 1;
+        if (boundsOverlap(bounds,interiorBounds(other),pad)) throw new Error(`${unit.id} overlaps ${other.id}`);
       });
     });
   };

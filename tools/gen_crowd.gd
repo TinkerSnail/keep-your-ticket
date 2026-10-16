@@ -796,8 +796,6 @@ func _plaza_obstacles() -> Array:
 	# there. Which is the same failure the terrace had, in the same file.
 	var circles := [
 		[Vector2(-6, -10), 1.3, 1.5],     # cart
-		[Vector2(-13, 18), 1.3, 1.4],     # picnic tables
-		[Vector2(-17, 15), 1.3, 1.4],
 		[Vector2(3, 10), 0.65, 0.8],      # a-frames
 		[Vector2(-12, -9), 0.65, 0.8],
 		[Vector2(12, -8), 0.65, 0.8],
@@ -807,6 +805,10 @@ func _plaza_obstacles() -> Array:
 		if float(spot[2]) > 0.0:
 			at = Plan.clear_of_walkways(at, spot[2])
 		out.append({"kind": "circle", "at": at, "r": spot[1]})
+	# The picnic tables are world plan already, where `gen_props.gd` stands them.
+	for spot in Plan.PLAZA_PICNIC_SPOTS:
+		out.append({"kind": "circle", "r": 1.3,
+			"at": Plan.clear_of_walkways(spot, Plan.PLAZA_PICNIC_CLEAR)})
 
 	# The flagpoles are one assembly with two poles 5m apart, so they are stood
 	# clear as a pair and then modelled as a pair — two circles hung off the one
