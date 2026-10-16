@@ -72,8 +72,8 @@ mesh = SubResource("Mesh_unit")
 material_override = SubResource("Mat_floor")
 
 [node name="roof" type="MeshInstance3D" parent="."]
-position = Vector3(0, 4.72, 0)
-scale = Vector3(15, 0.34, 11)
+position = Vector3(-0.1, 4.72, 0)
+scale = Vector3(14.8, 0.34, 11)
 mesh = SubResource("Mesh_unit")
 material_override = SubResource("Mat_roof")
 

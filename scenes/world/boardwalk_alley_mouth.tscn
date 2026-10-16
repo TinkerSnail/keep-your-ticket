@@ -1,0 +1,70 @@
+[gd_scene load_steps=2 format=3]
+
+; Editor-owned since 2026-10-16. The Boardwalk alley mouth's two festoon frames:
+; each Marker3D is a point at its world position. The generator derives the frames.
+
+[ext_resource type="Script" path="res://scenes/world/boardwalk_alley_mouth.gd" id="1_preview"]
+
+[node name="boardwalk_alley_mouth" type="Node3D"]
+script = ExtResource("1_preview")
+editor_description = "The Boardwalk alley mouth's festoon frames, editor-owned since 2026-10-16. Each end of the alley (lane, on the Grand Circuit's side; strip, on the promenade's) has two posts, a valance and a run of bulbs. Drag post_0 and post_1 (each post's foot; it rises post_size.y), the valance's from and to (its centreline at its own level; depth and thickness are its metadata) and the bulbs' first and last (count bulbs evenly between them). tools/gen_props.gd builds the posts, valance, bulbs and the end's glow from these at the next generation, into generated/boardwalk.tscn; the beam, corbels and sign stay the facade's. Edit this scene itself, not its instance under the boardwalk wrapper; the outlines drawn here are a preview only."
+metadata/layout_version = 1
+metadata/coordinate_space = &"godot_world_metres"
+
+[node name="lane" type="Node3D" parent="."]
+metadata/post_size = Vector3(0.28, 4.3, 0.28)
+
+[node name="post_0" type="Marker3D" parent="lane"]
+position = Vector3(-81.65, -6, -13.4)
+
+[node name="post_1" type="Marker3D" parent="lane"]
+position = Vector3(-81.65, -6, 9.4)
+
+[node name="valance" type="Node3D" parent="lane"]
+metadata/depth = 1.5
+metadata/thickness = 0.18
+
+[node name="from" type="Marker3D" parent="lane/valance"]
+position = Vector3(-81.55, -1.82, -13.5)
+
+[node name="to" type="Marker3D" parent="lane/valance"]
+position = Vector3(-81.55, -1.82, 9.5)
+
+[node name="bulbs" type="Node3D" parent="lane"]
+metadata/count = 9
+metadata/radius = 0.13
+
+[node name="first" type="Marker3D" parent="lane/bulbs"]
+position = Vector3(-81.1, -2.05, -11.6)
+
+[node name="last" type="Marker3D" parent="lane/bulbs"]
+position = Vector3(-81.1, -2.05, 7.6)
+
+[node name="strip" type="Node3D" parent="."]
+metadata/post_size = Vector3(0.28, 4.3, 0.28)
+
+[node name="post_0" type="Marker3D" parent="strip"]
+position = Vector3(-90.95, -6, -13.4)
+
+[node name="post_1" type="Marker3D" parent="strip"]
+position = Vector3(-90.95, -6, 9.4)
+
+[node name="valance" type="Node3D" parent="strip"]
+metadata/depth = 1.5
+metadata/thickness = 0.18
+
+[node name="from" type="Marker3D" parent="strip/valance"]
+position = Vector3(-91.25, -1.82, -13.5)
+
+[node name="to" type="Marker3D" parent="strip/valance"]
+position = Vector3(-91.25, -1.82, 9.5)
+
+[node name="bulbs" type="Node3D" parent="strip"]
+metadata/count = 7
+metadata/radius = 0.13
+
+[node name="first" type="Marker3D" parent="strip/bulbs"]
+position = Vector3(-91.7, -2.05, -11.257143)
+
+[node name="last" type="Marker3D" parent="strip/bulbs"]
+position = Vector3(-91.7, -2.05, 7.257143)

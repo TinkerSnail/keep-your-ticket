@@ -28,6 +28,7 @@ const DrainageTerrainSource := preload("res://scripts/park_drainage_terrain_sour
 const VerticalControls := preload("res://scripts/park_vertical_controls_source.gd")
 const WorldTerrainSource := preload("res://scripts/world_terrain_source.gd")
 const YardSource := preload("res://scripts/yard_connections_source.gd")
+const AlleyMouthSource := preload("res://scripts/boardwalk_alley_mouth_source.gd")
 
 const GENERATED_DIR := "res://scenes/world/generated"
 const OUT_PATH := GENERATED_DIR + "/plaza_props.tscn"
@@ -14054,6 +14055,17 @@ func _grand_tram_bank_run(crown: Vector3, out: Vector2, ratio: float) -> Array:
 ## berms and any floor the lane passes over. Those end a bank on a retaining
 ## face; a side also ends on one where it would run out into the sea. It owns
 ## no course and no grade.
+##
+## Christina, 2026-10-16 ("Regrade, then bank"): the south climb's bank runs on
+## to the bluff face. West of the face the lane comes up off the shore at park
+## level, up to 5.95 m over it, under the west berm's end and alongside S2, which
+## shares its plan there; the berm's keep held it at s 1112. The berm keeps east
+## of the face only, and while any of the lane's ribbon or shoulders still stands
+## over the shore west of the face neither the berm nor the fairground stop's
+## platform, both on the bluff, keeps it (`_grand_tram_lane_bank_state`). West of
+## the face a route's ribbon is a deck on nothing, as `_rebuild_embankment_run`
+## has it, so the bank runs down past S2 to the shore under it
+## (`_grand_tram_lane_bank_ground_y`) and S2 rides its crown.
 const GRAND_TRAM_LANE_BANK_SCAN := 0.5
 ## Floating stretches closer than this along the lane are one bank, and a
 ## shorter one is left.
@@ -14161,11 +14173,11 @@ func _grand_tram_lane_at(s: float) -> Dictionary:
 
 ## 2 where the lane at `s` is kept, its band to a shoulder past each edge in a
 ## kept place or over a floor lower than it; 1 where its fill would stand more
-## than `REBUILD_EMBANK_MIN_GAP` over the ground under an edge or the centre;
-## 0 where it is on its ground.
+## than `REBUILD_EMBANK_MIN_GAP` over the ground under an edge or the centre, or
+## a shoulder's would over the shore west of the bluff face; 0 where it is on its
+## ground. Off the face, some of the ribbon or a shoulder over the shore west of
+## it, the berm and the stops' platforms keep nothing (Christina, 2026-10-16).
 func _grand_tram_lane_bank_state(s: float) -> int:
-	if _grand_tram_lane_bank_kept_arc(s):
-		return 2
 	var here := _grand_tram_lane_at(s)
 	var out: Vector2 = here["out"]
 	var left: Vector3 = here["left"]
@@ -14174,28 +14186,52 @@ func _grand_tram_lane_bank_state(s: float) -> int:
 	var reach := REBUILD_EMBANK_SHOULDER + GRAND_TRAM_LANE_BANK_KEEP
 	var left2 := Vector2(left.x, left.z)
 	var right2 := Vector2(right.x, right.z)
-	if _grand_tram_lane_bank_kept(left2 + out * reach) \
-			or _grand_tram_lane_bank_kept(right2 - out * reach):
-		return 2
 	var floats := false
+	var off_face := false
+	# The ribbon's edges and centre, then the shoulders' outer edges, which
+	# count only west of the face.
+	var points := [left2, (left2 + right2) * 0.5, right2,
+		left2 + out * REBUILD_EMBANK_SHOULDER, right2 - out * REBUILD_EMBANK_SHOULDER]
+	for k in points.size():
+		var q2: Vector2 = points[k]
+		var ground := _grand_tram_lane_bank_ground_y(q2)
+		if is_nan(ground) or surface - 0.05 - ground <= REBUILD_EMBANK_MIN_GAP:
+			continue
+		if q2.x < Plan.BLUFF_FACE_X:
+			off_face = true
+			floats = true
+		elif k < 3:
+			floats = true
+	if _grand_tram_lane_bank_kept_arc(s, off_face):
+		return 2
+	if _grand_tram_lane_bank_kept(left2 + out * reach, off_face) \
+			or _grand_tram_lane_bank_kept(right2 - out * reach, off_face):
+		return 2
 	for q in [left2, (left2 + right2) * 0.5, right2]:
 		var q2: Vector2 = q
-		if _grand_tram_lane_bank_kept(q2):
+		if _grand_tram_lane_bank_kept(q2, off_face):
 			return 2
 		var floor_y := _rebuild_embankment_ground_y(q2, -1, true)
 		if not is_nan(floor_y) and surface - floor_y > REBUILD_EMBANK_MIN_GAP:
 			return 2
-		var ground := _rebuild_embankment_ground_y(q2)
-		if not is_nan(ground) and surface - 0.05 - ground > REBUILD_EMBANK_MIN_GAP:
-			floats = true
 	return 1 if floats else 0
+
+
+## The ground a lane bank stands on and runs down to: what the groundworks and
+## the ribbon scenes emitted, except that west of the bluff face a route's
+## ribbon is a deck on nothing (`_rebuild_embankment_run` banks none there), so
+## S2, at park level over the south shore, is passed under and the shore read.
+func _grand_tram_lane_bank_ground_y(p: Vector2) -> float:
+	if p.x < Plan.BLUFF_FACE_X:
+		return _rebuild_embankment_ground_y(p, -1, false, true)
+	return _rebuild_embankment_ground_y(p)
 
 
 ## Kept along the lane: from the west's bank to past the Boardwalk stop (the
 ## west's own bank, then GC-2's way past the north ride park, Christina,
 ## 2026-10-15, on the Boardwalk's made ground to the Boardwalk chord); a tunnel from beyond one mouth's apron
-## to beyond the other's; and every stop's platform.
-func _grand_tram_lane_bank_kept_arc(s: float) -> bool:
+## to beyond the other's; and every stop's platform, except `off_face`.
+func _grand_tram_lane_bank_kept_arc(s: float, off_face := false) -> bool:
 	var keep := GRAND_TRAM_LANE_BANK_KEEP + REBUILD_EMBANK_SHOULDER
 	if _grand_tram_station_arcs.is_empty():
 		for station in Plan.GRAND_TRAM_STATIONS:
@@ -14210,6 +14246,8 @@ func _grand_tram_lane_bank_kept_arc(s: float) -> bool:
 		if s >= float(ends[0]) - GRAND_TRAM_TUNNEL_APRON - keep \
 				and s <= float(ends[1]) + GRAND_TRAM_TUNNEL_APRON + keep:
 			return true
+	if off_face:
+		return false
 	for at_s in _grand_tram_station_arcs.values():
 		if absf(s - float(at_s)) <= GRAND_TRAM_PLATFORM_HALF + keep:
 			return true
@@ -14220,14 +14258,18 @@ func _grand_tram_lane_bank_kept_arc(s: float) -> bool:
 ## north ride park to the promenade's south end, where the lane passes the
 ## rides on the west's bank (GC-2) and the promenade is a deck (south of it the made
 ## ground carries nothing and is earth); the footbridge; and the entrance's
-## berms, whose decisions are hers (2026-09-29).
-func _grand_tram_lane_bank_kept(p: Vector2) -> bool:
+## berms, whose decisions are hers (2026-09-29), east of the bluff face only and
+## not `off_face` (2026-10-16): west of it the west berm's end is a sheet over
+## the shore, and nothing of it is on the ground for a bank to bury.
+func _grand_tram_lane_bank_kept(p: Vector2, off_face := false) -> bool:
 	if _rebuild_in_protected(p, 0.75):
 		return true
 	if _grand_tram_bank_ride_park(p) and p.y <= Plan.WALK_TO_Z + GRAND_TRAM_LANE_BANK_KEEP:
 		return true
 	if _rebuild_on_footbridge(p, GRAND_TRAM_LANE_BANK_KEEP):
 		return true
+	if off_face or p.x <= Plan.BLUFF_FACE_X:
+		return false
 	for side in [-1.0, 1.0]:
 		var x0: float = side * Plan.BERM_X.x
 		var x1: float = side * Plan.BERM_X.y
@@ -14245,19 +14287,19 @@ func _grand_tram_lane_bank_kept(p: Vector2) -> bool:
 ## the last ground it stood on.
 func _grand_tram_lane_bank_run(crown: Vector3, out: Vector2, ratio: float) -> Array:
 	var at := Vector2(crown.x, crown.z)
-	var ground := _rebuild_embankment_ground_y(at)
+	var ground := _grand_tram_lane_bank_ground_y(at)
 	if is_nan(ground) or crown.y - ground <= REBUILD_EMBANK_MIN_GAP:
 		return [0.0, NAN]
 	var run := 0.0
 	while run <= REBUILD_EMBANK_MAX_RUN:
 		var p := at + out * run
-		var under := _rebuild_embankment_ground_y(p)
+		var under := _grand_tram_lane_bank_ground_y(p)
 		if is_nan(under):
 			return [maxf(run - REBUILD_EMBANK_STEP, 0.0), NAN]
 		if under < Plan.WATER_TOP or _grand_tram_lane_bank_in_low(p) \
 				or _grand_tram_lane_bank_kept(p + out * GRAND_TRAM_BANK_FLOOR_CLEAR):
 			var back := maxf(run - REBUILD_EMBANK_STEP, 0.0)
-			var foot := _rebuild_embankment_ground_y(at + out * back)
+			var foot := _grand_tram_lane_bank_ground_y(at + out * back)
 			return [back, (under if is_nan(foot) else foot) - REBUILD_EMBANK_TOE_BURY]
 		var bank_y := crown.y - run / ratio
 		if run > 0.0 and bank_y <= under - REBUILD_EMBANK_TOE_BURY:
@@ -14274,7 +14316,7 @@ func _grand_tram_lane_bank_run(crown: Vector3, out: Vector2, ratio: float) -> Ar
 						floor_y = here
 		if not is_nan(floor_y) and bank_y > floor_y + REBUILD_EMBANK_MIN_GAP:
 			var back := maxf(run - REBUILD_EMBANK_STEP, 0.0)
-			var foot := _rebuild_embankment_ground_y(at + out * back)
+			var foot := _grand_tram_lane_bank_ground_y(at + out * back)
 			if is_nan(foot):
 				foot = floor_y
 			return [back, minf(foot, floor_y) - REBUILD_EMBANK_TOE_BURY]
@@ -15804,10 +15846,11 @@ func _alley_mouth() -> void:
 	var front_face := FRONT_X - FRONT_DEPTH * 0.5
 	var back_face := FRONT_X + FRONT_DEPTH * 0.5
 	var gap_w := GAP_TO - GAP_FROM
-	# face x, which way is out, sign height, sign colour, valance colour, bulbs
+	var frames := AlleyMouthSource.read()
+	# face x, which way is out, sign height, sign colour, valance colour
 	var faces := [
-		[back_face, 1.0, 2.4, "canvas", "canvas_alt", 9, "lane"],
-		[front_face, -1.0, 1.7, "canvas_alt", "canvas", 7, "strip"],
+		[back_face, 1.0, 2.4, "canvas", "canvas_alt", "lane"],
+		[front_face, -1.0, 1.7, "canvas_alt", "canvas", "strip"],
 	]
 	for f in faces:
 		var fx: float = f[0]
@@ -15815,8 +15858,7 @@ func _alley_mouth() -> void:
 		var sh: float = f[2]
 		var sign_mat: String = f[3]
 		var valance_mat: String = f[4]
-		var bulbs: int = f[5]
-		var tag: String = f[6]
+		var tag: String = f[5]
 
 		# The beam, let into both buildings rather than butted against them —
 		# 0.4m of lap at each end, which is also what keeps its end faces off
@@ -15833,34 +15875,47 @@ func _alley_mouth() -> void:
 				Vector3(fx - out * 0.5, SHORE_TOP + 4.05, cz),
 				Vector3(0.9, 0.6, 1.4), "wood", 0.0, false)
 
+		# Since 2026-10-16 the posts, the valance and the bulb run are placed in
+		# the editor-owned `boardwalk_alley_mouth.tscn` (Christina: move the
+		# mouth's placement to a scene she can drag, then set the lane end's posts
+		# back toward the facade); this builds them where its markers stand, in
+		# the order and shapes they always had.
+		var frame: Dictionary = frames[StringName(tag)]
+
 		# Legs, standing on the deck 0.6m in from each corner. They collide,
 		# which is fine: the alley is 14m wide and its walkway is the middle 6,
 		# so a post at 6.4m off centre is nowhere anybody walks.
+		var post_size: Vector3 = frame["post_size"]
 		for i in 2:
-			var pz: float = GAP_FROM + 0.6 if i == 0 else GAP_TO - 0.6
 			_box("alley_post_%s_%d" % [tag, i], Vector3.ZERO,
-				Vector3(fx + out * 0.45, SHORE_TOP + 2.15, pz),
-				Vector3(0.28, 4.3, 0.28), "wood")
+				Vector3(frame["posts"][i]) + Vector3.UP * post_size.y * 0.5,
+				post_size, "wood")
 
 		# The valance, and the bulbs along its lip. Flat rather than raked: the
 		# `_box` tilt turns about the part's own X, which cants a canopy along
 		# the frontage instead of sloping it outward, and a flat soffit under a
-		# beam is what this wants anyway.
-		_box("alley_valance_%s" % tag, Vector3.ZERO,
-			Vector3(fx + out * 0.75, SHORE_TOP + 4.18, ALLEY_Z),
-			Vector3(1.5, 0.18, gap_w - 1.0), valance_mat, 0.0, false)
+		# beam is what this wants anyway. Its line turns it, if it is turned.
+		var va: Vector3 = frame["valance"][0]
+		var vb: Vector3 = frame["valance"][1]
+		var line := Vector2(vb.x - va.x, vb.z - va.z)
+		var valance_size: Vector2 = frame["valance_size"]
+		_box("alley_valance_%s" % tag, (va + vb) * 0.5, Vector3.ZERO,
+			Vector3(valance_size.x, valance_size.y, line.length()), valance_mat,
+			atan2(line.x, line.y), false)
+		var first: Vector3 = frame["bulbs"][0]
+		var last: Vector3 = frame["bulbs"][1]
+		var bulbs := int(frame["bulb_count"])
 		for i in bulbs:
-			var t := (float(i) + 0.5) / float(bulbs)
-			var bz: float = lerpf(GAP_FROM + 1.2, GAP_TO - 1.2, t)
-			_sphere("alley_bulb_%s_%d" % [tag, i],
-				Vector3(fx + out * 1.2, SHORE_TOP + 3.95, bz), Vector3.ZERO,
-				0.13, "bulb")
+			var t := float(i) / float(bulbs - 1) if bulbs > 1 else 0.5
+			_sphere("alley_bulb_%s_%d" % [tag, i], first.lerp(last, t), Vector3.ZERO,
+				float(frame["bulb_radius"]), "bulb")
 
 		# The mouth's own glow, one per end. The lane end is the event and the
 		# promenade end is the acknowledgement — the same asymmetry the sign
 		# heights and colours carry — so the brighter one goes on the side you
-		# arrive from and the arrival stays a one-way reveal after dark.
-		_omni("alley_glow_%s" % tag, Vector3(fx + out * 1.2, SHORE_TOP + 3.8, ALLEY_Z),
+		# arrive from and the arrival stays a one-way reveal after dark. It
+		# hangs at the bulb run's middle, a little under it.
+		_omni("alley_glow_%s" % tag, (first + last) * 0.5 + Vector3.DOWN * 0.15,
 			"warm", 4.2 if tag == "lane" else 2.8, 15.0)
 
 		# The sign, lapping the beam by 0.15 so it sits on it, and standing
@@ -21560,9 +21615,10 @@ func _rebuild_embankment_index_faces(faces: PackedVector3Array, xf: Transform3D,
 				_embank_cells[key] = bucket
 
 
-## The highest emitted ground at a plan point, or NAN where there is none.
+## The highest emitted ground at a plan point, or NAN where there is none;
+## `floors_only` reads the floors alone and `earth_only` the earth alone.
 func _rebuild_embankment_ground_y(p: Vector2, skip_owner := -1,
-		floors_only := false) -> float:
+		floors_only := false, earth_only := false) -> float:
 	var key := Vector2i(floori(p.x / REBUILD_EMBANK_CELL),
 		floori(p.y / REBUILD_EMBANK_CELL))
 	if not _embank_cells.has(key):
@@ -21570,7 +21626,8 @@ func _rebuild_embankment_ground_y(p: Vector2, skip_owner := -1,
 	var best := NAN
 	for at in _embank_cells[key] as PackedInt32Array:
 		if _embank_owner[at / 3] == skip_owner \
-				or (floors_only and _embank_owner[at / 3] == 0):
+				or (floors_only and _embank_owner[at / 3] == 0) \
+				or (earth_only and _embank_owner[at / 3] != 0):
 			continue
 		var a := _embank_tris[at]
 		var b := _embank_tris[at + 1]

@@ -832,43 +832,43 @@ material_override = SubResource("Mat_metal")
 editor_description = "Rear-side Boardwalk stock and closing residue. Kept off route B and out of the Q3 opening."
 
 [node name="north_stock_cart_body" type="MeshInstance3D" parent="shared_service_residue"]
-position = Vector3(-82.75, -5.25, -15)
+position = Vector3(-83, -5.25, -15)
 scale = Vector3(1.55, 0.75, 2.2)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_metal")
 
 [node name="north_stock_cart_handle" type="MeshInstance3D" parent="shared_service_residue"]
-position = Vector3(-82.3, -4.55, -15)
+position = Vector3(-82.55, -4.55, -15)
 scale = Vector3(0.12, 0.85, 1.75)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_metal")
 
 [node name="north_stock_crate" type="MeshInstance3D" parent="shared_service_residue"]
-position = Vector3(-82.65, -4.45, -15)
+position = Vector3(-82.9, -4.45, -15)
 scale = Vector3(1.1, 0.72, 1.35)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_wood")
 
 [node name="south_stock_cart_body" type="MeshInstance3D" parent="shared_service_residue"]
-position = Vector3(-82.75, -5.25, 13)
+position = Vector3(-83, -5.25, 13)
 scale = Vector3(1.55, 0.75, 2.2)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_metal")
 
 [node name="south_stock_cart_handle" type="MeshInstance3D" parent="shared_service_residue"]
-position = Vector3(-82.3, -4.55, 13)
+position = Vector3(-82.55, -4.55, 13)
 scale = Vector3(0.12, 0.85, 1.75)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_metal")
 
 [node name="south_stock_crate_1" type="MeshInstance3D" parent="shared_service_residue"]
-position = Vector3(-82.65, -4.45, 12.55)
+position = Vector3(-82.9, -4.45, 12.55)
 scale = Vector3(1.1, 0.72, 0.8)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_wood")
 
 [node name="south_stock_crate_2" type="MeshInstance3D" parent="shared_service_residue"]
-position = Vector3(-82.65, -4.45, 13.45)
+position = Vector3(-82.9, -4.45, 13.45)
 scale = Vector3(1.1, 0.72, 0.8)
 mesh = SubResource("BoxMesh_unit")
 material_override = SubResource("Mat_wood")
