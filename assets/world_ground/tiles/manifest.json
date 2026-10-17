@@ -13,7 +13,7 @@
  "seam": {
   "applied": true,
   "held": "dumped by Godot",
-  "held_sha256": "3ca9b88b5e87d288b569d4db6823cbf6c56ecc36441febd737223561be6b18a1",
+  "held_sha256": "91efc1e26cbc037e8300cade350d6d6f26df9e23cd5e23752cb7b5839b0896ec",
   "held_edges": 4342,
   "stitched_edges": 3441,
   "stitched_m": 10735.4,
@@ -1305,13 +1305,13 @@
    }
   },
   "x0_z0": {
-   "input_hash": "a033006f3d211423204ad2c2e7ba0504dd026c82baf69aeb6a020212fefb4a3f",
+   "input_hash": "b9ae1b1e84d932a62230cf6d4aca3189c396e4c6655a262b3b5b5611b5d4cce1",
    "glb": "x0_z0.glb",
-   "glb_sha256": "bb983dc955c76779080b53f6e488ba0954cf0f764b691301eb205f4a2ed7f88c",
-   "glb_bytes": 1765764,
-   "height_sha256": "dba97fe45dc0fe1dfd46c9d5fab5ea2ffd5586ad4e04435dc2fe6b78690bb1d4",
-   "vertices": 40296,
-   "triangles": 79217,
+   "glb_sha256": "5ca79963545ce9d3b1d13f4608f661eeea91c08ad02251af49f911efd6b6fdfd",
+   "glb_bytes": 1764928,
+   "height_sha256": "f2565c538b059d0809d37f6987a869d684a05242e620a1fc0a1087172cc55fd2",
+   "vertices": 40277,
+   "triangles": 79179,
    "stitch_band": {
     "triangles": 1961,
     "vertices": 855,
@@ -1319,9 +1319,9 @@
     "length_m": 2481.8
    },
    "triangles_by_zone": {
-    "park": 11836,
-    "walkable": 46786,
-    "elsewhere": 20595,
+    "park": 11842,
+    "walkable": 46752,
+    "elsewhere": 20585,
     "deep_sea": 0
    },
    "y_range": [
@@ -1329,8 +1329,8 @@
     296.35198974609375
    ],
    "build": {
-    "rounds": 23,
-    "seconds": 2.29
+    "rounds": 18,
+    "seconds": 1.82
    }
   },
   "x0_z1": {
@@ -9015,7 +9015,7 @@
    }
   },
   "x0_z0": {
-   "key": "9a8aa267a973118487f20da5c00fbbf812868d122bc4aaf9a952c5bf436e798d",
+   "key": "35e7302ecbea775add9e7fea8558d5fdd60200d98ebcf1c29485e4c7c34abd86",
    "requests": {
     "n": [
      0,
@@ -30515,15 +30515,15 @@
  },
  "totals": {
   "tiles": 104,
-  "triangles": 1481169,
-  "vertices": 751835,
+  "triangles": 1481131,
+  "vertices": 751816,
   "triangles_by_zone": {
-   "park": 42052,
-   "walkable": 434392,
-   "elsewhere": 984457,
+   "park": 42058,
+   "walkable": 434358,
+   "elsewhere": 984447,
    "deep_sea": 20268
   },
-  "glb_bytes": 34075892
+  "glb_bytes": 34075056
  },
  "last_build": {
   "tiles_built": [],

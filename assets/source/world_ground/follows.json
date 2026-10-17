@@ -517,6 +517,39 @@
     "left": []
    },
    "exported": []
+  },
+  {
+   "id": "G27",
+   "date": "2026-10-17",
+   "from": "edits G27",
+   "ground": {
+    "tiles": [
+     "x0_z0"
+    ],
+    "nodes": 4,
+    "lowest_m": -0.969,
+    "highest_m": 0.0
+   },
+   "edits": [
+    {
+     "id": "G27",
+     "name": "grand_circuit_d4_north_edge_cut",
+     "sig": "bc86f04b3211548e"
+    }
+   ],
+   "rocks": {
+    "moved": {},
+    "uneven": {}
+   },
+   "city": {
+    "raised": {},
+    "left": {}
+   },
+   "roosts": {
+    "moved": {},
+    "left": []
+   },
+   "exported": []
   }
  ]
 }

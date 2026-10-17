@@ -1814,6 +1814,29 @@
    "kind": "values",
    "min_change_m": 0.001,
    "made_by": "ground_grid_edit.py --values"
+  },
+  {
+   "id": "G27",
+   "name": "grand_circuit_d4_north_edge_cut",
+   "date": "2026-10-17",
+   "why": "Christina, 2026-10-16, fix the Grand Circuit lane's buried north edge by D4 (lane s 133-134.5, up to 0.27 m over it): G10's formation (4 cm under the lane, 1.5 m verges, 1:1.4 batters) on from G23 at s 124..142, cut only; route D's embankment, S3, the lane's banks and culvert kept",
+   "tiles": [
+    "x0_z0"
+   ],
+   "nodes": 4,
+   "new_ground_nodes": 0,
+   "history": "history/G27.npz",
+   "files": [
+    {
+     "tile": "x0_z0",
+     "nodes": 4,
+     "height_sha_before": "dba97fe45dc0fe1dfd46c9d5fab5ea2ffd5586ad4e04435dc2fe6b78690bb1d4",
+     "height_sha_after": "f2565c538b059d0809d37f6987a869d684a05242e620a1fc0a1087172cc55fd2"
+    }
+   ],
+   "kind": "values",
+   "min_change_m": 0.001,
+   "made_by": "ground_grid_edit.py --values"
   }
  ]
 }
