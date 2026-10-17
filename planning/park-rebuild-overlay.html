@@ -2308,7 +2308,11 @@
 
   const rides = [
     {id:'R1',type:'rect',at:[-113,-20],size:[10,30],queue:[[-102,-15],[-107,-15],[-108,-9]],service:[[-118,-20],[-126,-20]]},
-    {id:'R2',type:'polygon',points:[[-85.5,-52.9],[-85.5,-56.2],[-88,-61.1],[-93,-67.2],[-99,-73.2],[-106,-79.3],[-110,-85.4],[-101,-93.3],[-90,-101.8],[-75,-106.6],[-60,-103],[-52,-94.5],[-52,-84.8],[-56,-75.7],[-62,-68.4],[-70,-62.3],[-79,-58.1]],label:[-78,-83],queue:[[-94,-55],[-88,-58],[-84,-66]],service:[[-60,-106],[-50,-119]]},
+    {id:'R2',type:'polygon',points:[[-85.5,-52.9],[-85.5,-56.2],[-88,-61.1],[-93,-67.2],[-99,-73.2],[-106,-79.3],[-110,-85.4],[-101,-93.3],[-90,-101.8],[-75,-106.6],[-60,-103],[-52,-94.5],[-52,-84.8],[-56,-75.7],[-62,-68.4],[-70,-62.3],[-79,-58.1]],label:[-78,-83],queue:[[-94,-55],[-88,-58],[-84,-66]],
+      // R2's service at grade on S1 (S1 brought down, 2026-10-17, option A, approved): a stub on the shore at -6.00 from
+      // inside R2's parcel's north-east corner onto S1 just past its foot. It climbed over the bluff to H3
+      // (`serviceWas`); S1 now passes that corner on its descent, 2.2 m over the shore there.
+      service:[[-64.5,-97.809],[-68.299,-95.867]],serviceWas:[[-60,-106],[-50,-119]]},
     {id:'R15',name:'Boardwalk Scrambler',type:'circle',at:[-86,-120],r:7.2,label:[-86,-120],queue:[[-100,-116.3],[-98,-118.7],[-96,-121.1]],exit:[[-96,-123.6],[-92,-125.4],[-88,-127.2]],service:[[-76,-120],[-72,-117.5]],photo:[-99,-121.1]},
     {id:'R16',name:'Boardwalk dodgems',type:'rect',at:[-84,-132.1],size:[14,10],label:[-84,-132.1],queue:[[-94,-128.5],[-94,-130.3],[-94,-132.1]],exit:[[-94,-133.9],[-94,-135.7],[-91,-136.9]],service:[[-75,-132.1],[-72,-133.3]],photo:[-95,-132.1]},
     {id:'R3',type:'rect',at:[36,-28],size:[20,26],queue:[[24,-20],[29,-22],[32,-25]],service:[[46,-28],[52,-29]]},
@@ -2438,7 +2442,11 @@
       access:[[-32,-1],[-28,-3],[-28,-12],[-35,-13],[-37.1,-15.5]],
       access2:[[-25.4,-19.3],[-21,-18],[-16,-16],[-9,-15]],
       photo:[-20,-28],photoAccess:[[-25,-20],[-22,-23],[-20,-28]],
-      service:[[-62,-38],[-58,-38],[-58,-39]],
+      // P5's cue yard by a goods hoist (S1 brought down, Christina, 2026-10-17: option A, "a goods hoist"), approved 2026-10-17:
+      // its service left S1's old 0.00 deck at (-62, -38) on a bed and loading bridge to the yard's west
+      // gate (`serviceWas`). Now from S1 at -6.00, 1.37 m across S1's verge to the hoist's lower door in
+      // the bluff face, and up 6.00 m to the yard's west end at 0.00 (S1.links.P5.hoist).
+      service:[[-62.022,-39],[-58.65,-39],[-56.25,-39]],serviceWas:[[-62,-38],[-58,-38],[-58,-39]],
       backstage:{at:[-53,-39],size:[10,6]},
       host:{at:[-36,-16.5],size:[2,2]},host2:{at:[-27,-20.5],size:[2,2]}}
   ];
@@ -2469,9 +2477,9 @@
     {id:'I1',name:'FAIRGROUND FOOD HALL',district:'Fairground',type:'rect',at:[-35,68],size:[16,10],label:[-35,58],anchor:'middle',routes:['C'],
       access:[[-35,77],[-35,73]],service:[[-43,68],[-52,64],[-64,61]]},
     {id:'I2',name:'ARCADE + RIDE PHOTO',district:'Boardwalk',type:'rect',at:[-83,-29],size:[16,10],label:[-72,-37],anchor:'start',routes:['B'],
-      access:[[-96,-29],[-91,-29]],service:[[-75,-29],[-68,-30],[-62,-30]]},
+      access:[[-96,-29],[-91,-29]],service:[[-75,-29],[-68,-30],[-63.696,-30]]},  // ends on S1 at -6.00 (2026-10-17, option A, approved; was [-62,-30])
     {id:'I3',name:'BOARDWALK CAFÉ',district:'Boardwalk',type:'rect',at:[-81,-48],size:[14,8],label:[-72,-56],anchor:'start',routes:['B'],
-      access:[[-82,-60],[-82,-52]],service:[[-74,-48],[-68,-54],[-64,-60]]},
+      access:[[-82,-60],[-82,-52]],service:[[-74,-48],[-68,-54],[-63.283,-60]]},  // ends on S1 at -6.00 (2026-10-17, option A, approved; was [-64,-60])
     {id:'I4',name:'OVERLOOK CAFÉ',district:'High Terrace',type:'rect',at:[136,-73],size:[14,8],label:[136,-84],anchor:'middle',routes:['F'],
       access:[[124,-62],[128,-67],[129,-73]],service:[[143,-73],[145.2,-65.3]]},
     {id:'I5',name:'LOST + FOUND / FIRST AID',district:'Entrance',type:'rect',at:[-16,116],size:[12,8],label:[-25,126],anchor:'end',routes:['A'],
@@ -2503,7 +2511,9 @@
     {id:'MW-B',name:'BOARDWALK MIDWAY',district:'Boardwalk',route:'B',label:[-73,1],
       anchors:['I2','I3','E3'],
       service:[
-        [[-78,-22],[-78,-8],[-70,-12],[-62,-23]],
+        // the northern stock lane ends at H1 on the shore (2026-10-17, option A, approved; was [-62,-23]).
+        // Found 2026-10-17, not fixed: its point (-70, -12) stands 3 m inside NT-1's zone line (z -15).
+        [[-78,-22],[-78,-8],[-70,-12],[-65.5,-23]],
         [[-78,6],[-78,20],[-70,20],[-62,20]]
       ],
       units:[
@@ -2602,24 +2612,81 @@
   planCheck(validateInteriorPlan);
 
   const serviceSpines = [
-    // S1 the same way as S2 (Christina, 2026-10-16: bring it down to the ground it runs over, to
-    // H1, by the same rules, once its own constraints are checked): held, drawn 2026-10-17 as
-    // built, a 0.0 ribbon about 6 m over the shore for about 130 m. Its own constraints, for her
-    // (`held.why`): its start at H3 stands on +3.84 ground, 9.8 m over the shore, and its first leg
-    // leaves no room for 12.5% (79 m) before the shore; on the shore it runs through R2's parcel
-    // (x -68 to -69, z -144 to -98), among the coaster's bents; at grade it would stand 0.6-0.9 m
-    // from the lane's edge at z -45 to -73, inside the 1.5 m clear zone (gcGaps' s1Clear holds
-    // its deck edge only because it is 5.7 m up); P5's backstage service access meets it at 0.0
-    // from the bluff top at (-62, -38); H1 stands 2 m onto the bluff wall and the north bluff
-    // beds and 2 m from NT-1's zone line (z -15), beside NT-1; and D1's drainage line follows it
-    // from H3 to (-69, -98). The I2 and I3 staff links and SH1, at the shore's level, would meet
-    // it at grade. `levels`, world metres, are as built.
-    {id:'S1',name:'West / Headland spine',label:[-69,-77],status:'held',
-      levels:[[-52,0,-170.667],[-68,0,-144.296],[-69,0,-98.148],[-64,0,-65.185],[-62,0,-38],[-62,0,-23]],
-      held:{why:['its start at H3 on +3.84 ground, 9.8 m over the shore: 79 m at 12.5%','R2’s parcel and bents, z −144 to −98',
-        '0.6–0.9 m from the lane’s edge at z −45 to −73 at grade','P5’s backstage service access at 0.0, (−62, −38)',
-        'H1 on the bluff wall and beds, 2 m from NT-1’s zone','D1’s drainage line along it']},
-      p:[[-52,-124],[-68,-108],[-69,-80],[-64,-60],[-62,-38],[-62,-23]]},
+    // S1 brought down to the shore (Christina, 2026-10-17: option A, "a portal frame, a goods hoist"),
+    // drawn the same day and approved by her (2026-10-17, with her choices below). It supersedes S1 held as built (`was`): a 0.0 ribbon about
+    // 6 m over the shore for about 130 m, from H3 on +3.84 ground to H1 on the bluff wall. Now
+    // (`levels`, world metres (x, y, z) on the plan course, straight between):
+    // - H3 moves 2 m west to (-54, -170.67) and down to 0.00, its edge 0.7 m clear of the line of B's
+    //   open cut's west wall; it is cut 3.84 m into the Headland's ground on its east half and stands
+    //   up to 2.1 m over the bluff's north slope on its west (serviceNodes H3).
+    // - From H3 S1 falls at an even 12.5% for 48.0 m to the shore's -6.00 at its foot, (-68.11,
+    //   -125.75), and runs flush on the shore to H1. Its first 30 m cut into the bluff's north end (up
+    //   to 4.6 m at its east edge, 5.1 m at the top of the cut); its west side from 1.5 m to 45.6 m,
+    //   and its east side from 29.5 m, stand on a retained bank up to 2.8 m over the ground beside
+    //   its paving (3.2 m 4 m out) (`measured`, the mounted world at b5dd47e).
+    // - On the shore it keeps option A's nudges, about 1 m east of the old course from z -64 to -34,
+    //   so its paving keeps at least 0.48 m beyond the Grand Circuit lane's 1.5 m clear zone
+    //   (`clear.lane`) and 0.90 m from the bluff's plinth (x -58.65, `clear.plinth`), as Christina's
+    //   decision gives them.
+    // - It passes between R2's bents 19 and 20 (`bents`, 0.83 m from their posts) with 6.2 m under the
+    //   track, and through bent 31 on a portal frame (`portal`): two posts on the bent's line, each
+    //   0.6 m off S1's paving, and a beam at the bent's cap with its soffit 5.9 m over S1, the height of
+    //   R2's lowest track member over it. R2's course, track and bent spacing stay as they are. R2 is
+    //   Christina's editor-owned source (scenes/world/boardwalk_wooden_coaster.tscn): she approved the
+    //   note (2026-10-17, "Approve, add the note"), so the build may add portal metadata for bent 31 to
+    //   that scene for the bents it derives; R2's course does not change.
+    // - H1 becomes a 10 m head at (-65.5, -23) at -6.00 (serviceNodes H1).
+    // - `guards`: B's derived rail (a top and a mid rail on posts at most 3 m apart, colliding) 0.325 m
+    //   outside the paving wherever S1 or H3 stands `minRise` or more over the ground beside it
+    //   (`west`, `east`), ending where S1 stands `minRise` over the shore's floor (45.6 m from H3); and
+    //   the same rail 0.325 m back from the top of S1's and H3's cut walls (`rimNE` round H3's north
+    //   side, `rimSE` round its south-east and down S1's east side to the bluff face, where `east`
+    //   begins). H3's east side opens onto B's guarded west rim (serviceNodes H3 `strip`).
+    // - `links` (2026-10-17): every link S1 serves meets it at grade or by a drawn stair or hoist.
+    //   R12's west-terminal link crosses A at A's +4.00 and comes down onto H3 by a staff
+    //   stair-bridge over B's open bed (two flights of 2.0 m at 34 degrees, a 1.2 m landing, 6.4 m over
+    //   B; the yard connections' stair rules); R2's service is a stub at grade onto S1 just past its
+    //   foot, inside R2's parcel (its climb over the bluff to H3, `was`, is gone); I3's link, SH1 and
+    //   I2's link end on S1 at -6.00; MW-B's northern stock lane ends at H1; and P5's cue yard is served
+    //   by a goods hoist in the bluff face (`P5.hoist`), from S1's -6.00 to the yard's 0.00, which
+    //   replaces P5's bed and loading bridge on S1's old level.
+    // Approved by Christina on 2026-10-17 with her choices: the portal noted for her R2 scene ("Approve,
+    // add the note"), H3's east strip lowered ("Lower it, rim closes it"), D1 carried under R12's
+    // stair-bridge across B's cut ("On R12's stair-bridge") and the cue yard's west room shortened by
+    // 0.75 m where the hoist head lands ("Shorten the room"). Found, not fixed: MW-B's northern stock
+    // lane has a point at (-70, -12), 3 m inside NT-1's zone line (`links.MWB.found`).
+    {id:'S1',name:'West / Headland spine',label:[-69,-77],status:'approved',decided:'2026-10-17',drawn:'2026-10-17',approved:'2026-10-17',option:'A',
+      p:[[-54,-124],[-56.6,-119.955],[-59.06,-108.427],[-67.29,-100.539],[-68.108,-96.75],[-68.6,-94.472],[-68.75,-87],[-67.75,-75],[-65.25,-65],[-63,-59.281],[-61.95,-54.427],[-61.55,-46],[-61.9,-40],[-62.6,-34.25],[-65.5,-23]],
+      levels:[[-54,0,-170.667],[-56.6,-0.895,-164],[-59.06,-3.289,-145],[-67.29,-5.213,-132],[-68.108,-6,-125.754],[-68.6,-6,-122],[-68.75,-6,-109.685],[-67.75,-6,-89.907],[-65.25,-6,-73.426],[-63,-6,-64],[-61.95,-6,-56],[-61.55,-6,-46],[-61.9,-6,-40],[-62.6,-6,-34.25],[-65.5,-6,-23]],
+      grade:0.125,floor:-6,foot:[-68.108,-6,-125.754],
+      clear:{lane:0.48,plinth:0.9,face:-58.65,bents:0.75,track:5.9},
+      measured:{at:'b5dd47e (s1opts)',westBank:{arcs:[1.5,45.3],paving:2.8,out4m:3.22},eastBank:{arcs:[29.5,45.3],paving:2.24},
+        eastCut:{arcs:[0,30],edge:4.62,top:5.08},h3:{cut:3.84,drop:2.08},track:{between19and20:6.17,atBent31:5.91}},
+      guards:{kind:'derived rail',offset:0.325,minRise:0.3,
+        west:[[-57.163,-176.145],[-58.126,-175.461],[-58.946,-174.609],[-59.593,-173.62],[-60.045,-172.528],[-60.286,-171.371],[-60.307,-170.189],[-60.108,-169.024],[-59.696,-167.916],[-59.084,-166.905],[-58.296,-166.024],[-58.318,-165.994],[-58.853,-164.575],[-59.034,-163.312],[-59.161,-162.325],[-59.289,-161.337],[-59.417,-160.35],[-59.545,-159.363],[-59.673,-158.376],[-59.8,-157.389],[-59.928,-156.402],[-60.056,-155.415],[-60.184,-154.428],[-60.311,-153.441],[-60.439,-152.454],[-60.567,-151.467],[-60.695,-150.48],[-60.823,-149.493],[-60.95,-148.506],[-61.078,-147.519],[-61.206,-146.532],[-61.423,-145.615],[-61.954,-144.776],[-62.485,-143.937],[-63.016,-143.098],[-63.547,-142.26],[-64.077,-141.421],[-64.608,-140.582],[-65.139,-139.744],[-65.67,-138.905],[-66.201,-138.066],[-66.732,-137.228],[-67.263,-136.389],[-67.794,-135.55],[-68.325,-134.711],[-68.856,-133.873],[-69.627,-132.062],[-69.784,-130.861],[-69.91,-129.9],[-70.036,-128.939],[-70.13,-128.218]],
+        east:[[-58.821,-141.031],[-59.352,-140.192],[-59.883,-139.353],[-60.414,-138.514],[-60.945,-137.676],[-61.476,-136.837],[-62.14,-135.789],[-62.671,-134.95],[-63.202,-134.111],[-63.733,-133.272],[-64.264,-132.434],[-64.795,-131.595],[-65.111,-130.737],[-65.236,-129.776],[-65.362,-128.815],[-65.488,-127.854],[-65.52,-127.614]],
+        rimNE:[[-57.163,-176.145],[-56.089,-176.637],[-54.942,-176.921],[-53.763,-176.988],[-52.592,-176.833],[-51.47,-176.464],[-50.436,-175.892],[-49.527,-175.139],[-48.773,-174.229],[-48.202,-173.195]],
+        rimSE:[[-48.202,-168.139],[-48.794,-167.075],[-49.578,-166.144],[-50.527,-165.381],[-51.604,-164.813],[-52.77,-164.463],[-53.982,-164.342],[-53.986,-164.305],[-54.347,-163.425],[-54.422,-162.714],[-54.55,-161.727],[-54.678,-160.74],[-54.805,-159.753],[-54.933,-158.766],[-55.061,-157.779],[-55.189,-156.792],[-55.317,-155.805],[-55.444,-154.818],[-55.572,-153.831],[-55.7,-152.844],[-55.828,-151.857],[-55.956,-150.87],[-56.083,-149.883],[-56.211,-148.896],[-56.339,-147.909],[-56.467,-146.922],[-56.595,-145.935],[-56.722,-144.948],[-57.494,-143.127],[-58.025,-142.289],[-58.556,-141.45],[-58.821,-141.031]]},
+      bents:{measured:'R2 as built, b5dd47e',post:0.3,'19':[[-67.28,-137.596],[-66.838,-138.526]],'20':[[-62.282,-134.332],[-61.63,-135.128]]},
+      portal:{bent:31,kind:'portal frame',owner:'scenes/world/boardwalk_wooden_coaster.tscn',posts:[[-62.274,-72.809],[-68.67,-77.625]],post:0.3,clear:0.6,
+        cap:0.578,soffit:-0.1,span:8.006,skew:44.4,approved:'2026-10-17',
+        note:'Christina, 2026-10-17: “Approve, add the note”: the build may add portal metadata for bent 31 to her R2 scene; R2’s course, track and bent spacing do not change.',
+        was:{feet:[[-62.714,-73.14],[-67.107,-76.448]],tops:[[-63.536,-73.76],[-66.285,-75.828]],measured:'R2 as built, b5dd47e'}},
+      links:{
+        R12:{kind:'staff stair-bridge',A:4,over:'b_north_return',carries:'D1',
+          stair:{top:[-41.424,4,-169.891],land:[[-44.119,2,-170.057],[-45.317,2,-170.131]],foot:[-48.011,0,-170.297],w:1.2,risers:22,riser:0.182,tread:0.27,deg:34,depth:0.4,headroom:6.393,
+            rules:{stairDeg:37,flightRise:3,landing:1.2,overClear:4},
+            gates:['a locked staff gate in the deck’s guard on A’s paving edge','an opening in B’s west-rim guard onto H3']}},
+        R2:{y:-6,was:{service:[[-60,-106],[-50,-119]],link:[[-50,-119],[-52,-124]]}},
+        I3:{y:-6,was:[-64,-60]},SH1:{y:-6,was:[-64,-60]},I2:{y:-6,was:[-62,-30]},
+        MWB:{y:-6,to:'H1',was:[-62,-23],found:{at:[-70,-12],insideNT1:3,on:'2026-10-17',fixed:false}},
+        P5:{y:-6,hoist:{shaft:[[-58.65,-40.5],[-56.25,-37.5]],face:-58.65,y:[-6,0],travel:6,level:0,doors:{low:[-58.65,-39],high:[-56.25,-39]},
+          serves:'P5’s cue yard',room:{was:[-57,-53],now:[-56.25,-53],decided:'2026-10-17',choice:'Shorten the room'},replaces:'P5’s bed and loading bridge on S1’s old 0.00 (bed_P5_service_access, P5_service_access)'}}},
+      was:{status:'held',p:[[-52,-124],[-68,-108],[-69,-80],[-64,-60],[-62,-38],[-62,-23]],
+        levels:[[-52,0,-170.667],[-68,0,-144.296],[-69,0,-98.148],[-64,0,-65.185],[-62,0,-38],[-62,0,-23]],
+        held:{why:['its start at H3 on +3.84 ground, 9.8 m over the shore: 79 m at 12.5%','R2’s parcel and bents, z −144 to −98',
+          '0.6–0.9 m from the lane’s edge at z −45 to −73 at grade','P5’s backstage service access at 0.0, (−62, −38)',
+          'H1 on the bluff wall and beds, 2 m from NT-1’s zone','D1’s drainage line along it']}}},
     // S2 brought down to the Boardwalk (Christina, 2026-10-16: option A) and its south arm and G1
     // moved off the Grand Circuit lane behind the Fairground stop (Christina, 2026-10-16), drawn
     // 2026-10-17 and approved by her the same day. Before (`was`): a 0.0 ribbon 5.94-6.00 m over the staff yard and
@@ -2718,7 +2785,8 @@
   ];
 
   const serviceLinks = [
-    [[-50,-119],[-52,-124]],
+    // R2's climb over the bluff to H3, [[-50,-119],[-52,-124]], is gone with S1 brought down (2026-10-17,
+    // option A, approved): S1 itself passes R2's north-east corner; R2's service meets it at grade (rides R2).
     [[52,-29],[55,-46],[70,-56],[90,-63],[112,-66],[134,-65],[150,-55]],
     // S3 start clear of the entry platform (Christina, 2026-10-15): R5's link reaches S3 through the gap between KC2 and
     // KC3, before S3's crossing; it no longer runs through KC3 or across the lane.
@@ -2736,11 +2804,13 @@
     // yard connections (Christina, 2026-10-15): R11's link [[128,-92],[123.7,-99.5]] began 16 m
     // beyond its court, in the drainage low; R11.service now runs the whole way to S3.
     [[112,111],[115,114],[111,116]],
-    [[-27,-119],[-34,-124],[-52,-124]]
+    // R12's west-terminal link (S1 brought down, 2026-10-17, option A, approved): across A at A's +4.00, then down
+    // its staff stair-bridge over B's open bed from the deck's free edge onto H3 at 0.00 (S1.links.R12).
+    [[-27,-119],[-34,-124],[-41.424,-123.529],[-48.011,-123.776],[-54,-124]]
   ];
 
   const sharedServiceSegments = [
-    {id:'SH1',name:'North Boardwalk · before opening',p:[[-96,-62],[-90,-62],[-75,-59],[-64,-60]],label:[-88,-68]},
+    {id:'SH1',name:'North Boardwalk · before opening',p:[[-96,-62],[-90,-62],[-75,-59],[-63.283,-60]],label:[-88,-68]},  // ends on S1 at -6.00 (2026-10-17, option A, approved; was [-64,-60])
     {id:'SH2',name:'Lighthouse · before opening',p:[[-13,-101],[-16,-112],[-16,-118],[-18,-121]],label:[-7,-113]}
   ];
 
@@ -2756,22 +2826,45 @@
     {id:'G2',kind:'gate',at:[29,120.9],label:[17,131]},
     {id:'G3',kind:'gate',at:[-96,-62],label:[-111,-69]},
     {id:'G4',kind:'gate',at:[-126,-20],label:[-135,-27]},
-    // H1 is held with S1 (2026-10-17): at (-62, -23) its east 2 m stand on the bluff wall and the
-    // north bluff beds, 2 m from NT-1's zone line.
-    {id:'H1',kind:'turn',at:[-62,-23],r:6,label:[-75,-24],status:'held'},
+    // H1 on the shore (S1 brought down, Christina, 2026-10-17: option A, "H1 becomes a 10 m head"), approved 2026-10-17: at
+    // (-62, -23), held, its east 2 m stood on the bluff wall and the north bluff beds, 2 m from NT-1's zone
+    // line. Now at -6.00, 1.85 m off the bluff's plinth (x -58.65), 0.5 m off the north bluff beds (x -60,
+    // which stay whole), 3.0 m from NT-1's zone and 3.5 m beyond the lane's clear zone.
+    {id:'H1',kind:'turn',at:[-65.5,-23],r:5,y:-6,label:[-75,-24],status:'approved',decided:'2026-10-17',approved:'2026-10-17',was:[-62,-23],
+      beds:{what:'north bluff beds',edge:-60,z:[-30.8,-16.8]}},
     // H2 on the back lane (S2 brought down, Christina, 2026-10-16): at (-62, 20) it stood 2 m into
     // the bluff face. A 10 m head (Christina, 2026-10-17: "10 m, keep the beds"), 0.55 m from the
     // Boardwalk platform (x -71.1) and 0.55 m from the south bluff beds s_1 and s_2 (x -60), which
     // stay whole; a 12 m head would have taken 1.2 m off them.
     {id:'H2',kind:'turn',at:[-65.55,21],r:5,label:[-75,20],status:'approved',approved:'2026-10-17',was:[-62,20],
       beds:{what:'south bluff beds s_1 and s_2',edge:-60,z:[12,30.8]}},
-    {id:'H3',kind:'turn',at:[-52,-124],r:6,label:[-65,-132]},
+    // H3 off B's open cut (S1 brought down, Christina, 2026-10-17: option A), approved the same day: at (-52, -170.67) on +3.84
+    // ground it reached 1.3 m over the line of the cut's west wall. Now 2 m west at 0.00, cut 3.84 m into the
+    // Headland on its east half, its edge 0.7 m from the wall's line (`wall`). `strip`: where its ring comes
+    // within 1.2 m of that line, the ground between comes down to H3's 0.00, so B's west wall retains 0.00
+    // there and B's guarded rim closes H3's east side, and R12's stair-bridge lands there (Christina,
+    // 2026-10-17: "Lower it, rim closes it"; the other was to keep +3.84 there, a 0.7 m wall between two cuts).
+    {id:'H3',kind:'turn',at:[-54,-124],r:6,y:0,label:[-65,-132],status:'approved',decided:'2026-10-17',approved:'2026-10-17',was:[-52,-124],
+      cut:3.84,wall:{line:'bNorthCut.cut.west',clear:0.7},strip:{x:[-48.5,-47.3],z:[-173.07,-168.27],to:0,decided:'2026-10-17',choice:'Lower it, rim closes it'}},
     {id:'H4',kind:'turn',at:[42,-135],r:6,label:[29,-144]}
   ];
 
   const drainageLines = [
+    // D1 along S1 brought down (2026-10-17, option A, approved): it follows S1 from H3 down its descent, a drain
+    // 0.60 m under its paving, to its foot, and on the shore to its old turn, then west under R2's parcel
+    // (clear of the bents' footings) and the Grand Circuit lane to its outfall at the Boardwalk's seaward
+    // fascia, as before. On the flat shore it falls in a 0.30 m pipe (`profile`): invert -6.60 at S1's foot,
+    // evenly at 0.667% for 75 m, to -7.10 at the outfall, 0.40 m over the -7.50 water datum (D2's weir
+    // is at -6.95); under the lane it keeps at least 0.25 m of cover, as CX2 does. East of H3 it crossed
+    // B's open cut on its own line (`upstream.was`); it now runs east of the cut to R12's link and crosses
+    // the cut with it, in a pipe slung under A's deck from the east wall to the free edge and on under
+    // R12's stair-bridge down to H3 (Christina, 2026-10-17: "On R12's stair-bridge"). Approved by her the
+    // same day.
     {id:'D1',name:'Headland / north Boardwalk outfall',label:[-91,-73],
-      p:[[-16,-144],[-30,-143],[-44,-134],[-52,-124],[-62,-110],[-68,-92],[-69,-80],[-82,-70],[-96,-66],[-104,-62]]},
+      p:[[-16,-144],[-30,-143],[-34,-124],[-41.424,-123.529],[-48.011,-123.776],[-54,-124],[-56.6,-119.955],[-59.06,-108.427],[-67.29,-100.539],[-68.108,-96.75],[-68.6,-94.472],[-68.75,-87],[-68.167,-80],[-82,-70],[-96,-66],[-104,-62]],
+      profile:{status:'approved',approved:'2026-10-17',from:[-68.108,-125.754],invert:-6.6,outfall:-7.1,datum:-7.5,minFall:0.005,cover:0.6,dia:0.3,laneCover:0.25},
+      upstream:{via:'R12’s stair-bridge',decided:'2026-10-17',choice:'On R12’s stair-bridge',was:[[-16,-144],[-30,-143],[-44,-134],[-52,-124]]},
+      was:[[-16,-144],[-30,-143],[-44,-134],[-52,-124],[-62,-110],[-68,-92],[-69,-80],[-82,-70],[-96,-66],[-104,-62]]},
     {id:'D2',name:'Plaza / Coastal Creek feeder',label:[-39,14],
       p:[[-16,6],[-32,10],[-46,14],[-48,22]]},
     {id:'D3',name:'Fairground south garden',label:[-42,138],
@@ -3763,10 +3856,12 @@
         [-80,-0.5,155],[-48,0,166]],
       // I2 loses 62 m² of its 160 m², its back wall running from x -78.9 at its
       // north end to -82.5 at its south end. The lane passes 1.6 m from I3's delivery
-      // door and 0.7 m in plan from S1's deck edge, which stands 5.7 m above it.
+      // door and 0.7 m in plan from S1's deck edge, which stood 5.7 m above it. With S1 brought
+      // down to the shore (2026-10-17, option A, approved) S1 is at the lane's level, so `s1Clear` is the
+      // lane's 1.5 m clear zone and the 0.48 m S1 keeps beyond it (S1.clear.lane), less 0.03 m.
       cuts:[{id:'I2',polygon:[[-75,-34],[-78.9,-34],[-80.3,-31.5],[-81.5,-29],
         [-82.15,-26.5],[-82.5,-24],[-75,-24]]}],
-      s1Clear:0.6},
+      s1Clear:1.95},
     // With the approved course: B's overpass moves 2.7 m east along B and keeps 4.04 m
     // fixed clearance; R2's track runs at least 4.06 m over the lane where the lane
     // passes beneath it, at two clear spans where a standard bent steps aside with a
@@ -3900,7 +3995,7 @@
   // The approved course checked in world metres against what the atlas places beside
   // it. It is allowed only what it declares: its cut to I2, B under the overpass and
   // across the monument crossing, R15's and R16's service stubs ending at the verge,
-  // and S1's elevated deck edge in plan. R2's course is not
+  // and S1's paving at grade beyond the clear zone (2026-10-17). R2's course is not
   // tested here: the lane passes beneath it at the two clear spans, which the atlas's
   // R2 envelope cannot show.
   function gcGaps(option) {
@@ -4357,7 +4452,9 @@
   planCheck(validateYardEdges);
 
   // S1 and S2 at their levels (2026-10-17), world metres: S2 brought down to the Boardwalk and its
-  // south arm and G1 moved off the lane (Christina, 2026-10-16); S1 held on its own constraints.
+  // south arm and G1 moved off the lane (Christina, 2026-10-16); S1 brought down to the shore
+  // (Christina, 2026-10-17: option A; approved 2026-10-17), checked below. It runs after bNorthCut, whose deck, cut
+  // and B levels S1's links are held to.
   // Each spine's `levels` lie on its plan course from end to end and climb or fall no more than
   // 12.5%. Wherever a spine stands within 4 m of the lane's level it keeps its 4 m paving out of
   // the lane's 2.7 m half-width and 1.5 m clear zone, over the whole lane from the crest to
@@ -4579,9 +4676,184 @@
       const jr2 = Y.junctionRail.world[1].at(-1);
       if (gap(sh.gates.W.p[0], jr2) > 0.3) problems.push(`the shared stretch's west gate stands ${gap(sh.gates.W.p[0], jr2).toFixed(2)}m from the end of C's rail`);
     }
+    // S1 brought down to the shore (Christina, 2026-10-17: option A, "a portal frame, a goods hoist";
+    // P). It starts at H3 and ends at H1, each at its level; it falls at an even 12.5% to its foot on
+    // the shore's floor and holds that floor, flush, to H1; its paving keeps `clear.lane` beyond the
+    // lane's clear zone wherever it is within 4 m of the lane's level, and `clear.plinth` off the
+    // bluff's plinth; H3 keeps its clearance to the line of B's open cut's west wall, and H1 the
+    // lane, the plinth, the north bluff beds and NT-1's zone, as H2 does. It passes R2's bents 19 and
+    // 20 by `clear.bents`, and bent 31 between the posts of its portal, which stand on the bent's
+    // line, off its paving and out of the lane's clear zone, under a beam `clear.track` over it. Its
+    // guards run `offset` outside its paving (or H3's) and end where it stands `minRise` over the
+    // shore. Every link it serves meets it at grade or by its drawn stair or hoist: R12's link down
+    // its stair-bridge from the deck's free edge at A's level onto H3, within the stair rules and
+    // `overClear` over B's paving; R2's service, I3's and I2's links and SH1 on S1 at their level;
+    // MW-B's northern stock lane at H1; P5's link through its goods hoist in the bluff face, from
+    // S1's level to its cue yard's; and no other link ends on S1, H3 or H1. D1 runs along it from H3,
+    // past its foot, and falls on across the flat shore to an outfall over the water datum, with
+    // cover under S1 and under the lane.
+    const s1 = serviceSpines.find(sp => sp.id === 'S1');
+    if (s1 && s1.option === 'A') {
+      const lv1 = s1.levels, line1 = s1.p.map(gcExpand), C1 = s1.clear, fl1 = s1.floor, L1 = s1.links || {};
+      const h3n = serviceNodes.find(n => n.id === 'H3'), h1n = serviceNodes.find(n => n.id === 'H1');
+      const h3c = gcExpand(h3n.at), h1c = gcExpand(h1n.at);
+      const onS1 = (q, what, y) => {
+        const d = lineDist(q, line1), r3 = gap(q, h3c) - h3n.r, r1 = gap(q, h1c) - h1n.r;
+        if (d > tol && r3 > tol && r1 > tol) { problems.push(`${what} does not end on S1`); return; }
+        const at = d <= tol ? levelAt(lv1, q) : r3 <= tol ? h3n.y : h1n.y;
+        if (!(Math.abs(at - y) <= 0.02)) problems.push(`${what} meets S1 ${Math.abs(at - y).toFixed(2)}m off grade`);
+      };
+      if (gap(line1[0], h3c) > tol || Math.abs(lv1[0][1] - h3n.y) > 0.005) problems.push('S1 does not start at H3 at its level');
+      if (gap(line1.at(-1), h1c) > tol || Math.abs(lv1.at(-1)[1] - h1n.y) > 0.005) problems.push('S1 does not end at H1 at its level');
+      const f1 = lv1.findIndex(q => gap([q[0], q[2]], [s1.foot[0], s1.foot[2]]) < 1e-6);
+      if (f1 < 0 || Math.abs(s1.foot[1] - fl1) > 0.005) problems.push('S1’s foot is not one of its levels at the shore’s floor');
+      else {
+        lv1.slice(f1).forEach(q => { if (Math.abs(q[1] - fl1) > 0.02) problems.push(`S1 leaves the shore's floor at (${q[0]}, ${q[2]}) between its foot and H1`); });
+        lv1.slice(1, f1 + 1).forEach((b, i) => { const a = lv1[i], g = (a[1] - b[1]) / Math.hypot(b[0] - a[0], b[2] - a[2]);
+          if (Math.abs(g - s1.grade) > 0.002) problems.push(`S1 falls ${(g * 100).toFixed(1)}% between (${a[0]}, ${a[2]}) and (${b[0]}, ${b[2]}), not an even ${s1.grade * 100}% to its foot`); });
+      }
+      let lw = Infinity, la = null;
+      samples(lv1).forEach(q => { const [d, y] = laneAt([q[0], q[2]]);
+        if (Math.abs(q[1] - y) < 4) { const g = d - half - 2 - W.clear; if (g < lw) { lw = g; la = q; } } });
+      if (lw < C1.lane - 0.005) problems.push(`S1 stands ${lw.toFixed(2)}m beyond the lane's clear zone at (${la[0].toFixed(1)}, ${la[2].toFixed(1)}) (keep ${C1.lane}m)`);
+      const pl1 = Math.min(...samples(lv1).filter(q => q[2] >= -75 && q[2] <= 75).map(q => C1.face - q[0] - 2));
+      if (pl1 < C1.plinth - 0.005) problems.push(`S1's paving comes within ${pl1.toFixed(2)}m of the bluff's plinth (keep ${C1.plinth}m)`);
+      // H3 off the open cut's west wall; H1 as H2.
+      const wl = bNorthCut.cut.west, h3w = Math.min(...wl.slice(1).map((b, i) => segT(h3c, wl[i], b)[0])) - h3n.r;
+      if (h3w < h3n.wall.clear - 0.1) problems.push(`H3 stands ${h3w.toFixed(2)}m from the line of B's open cut's west wall (keep ${h3n.wall.clear}m)`);
+      const ring1 = Array.from({length:144}, (_, k) => [h1c[0] + h1n.r * Math.cos(k * Math.PI / 72), h1c[1] + h1n.r * Math.sin(k * Math.PI / 72)]);
+      const lg1 = Math.min(...ring1.map(q => laneAt(q)[0])) - half - W.clear;
+      if (lg1 < 0.3) problems.push(`H1 stands ${lg1.toFixed(2)}m beyond the lane's clear zone (needs 0.3m)`);
+      if (h1c[0] + h1n.r > C1.face - 0.1) problems.push(`H1 reaches within ${(C1.face - h1c[0] - h1n.r).toFixed(2)}m of the bluff's plinth (keep 0.1m)`);
+      const bd1 = h1n.beds.edge - (h1c[0] + h1n.r);
+      if (bd1 < 0.3) problems.push(`H1 reaches ${bd1 < 0 ? (-bd1).toFixed(2) + 'm onto' : 'within ' + bd1.toFixed(2) + 'm of'} the ${h1n.beds.what} (keep them whole, 0.3m clear)`);
+      const nz = protectedZones.find(z => z.id === 'NT-1');
+      const nt1g = Math.min(...ring1.map(q => Math.hypot(Math.max(nz.x0 - q[0], 0, q[0] - nz.x1), Math.max(nz.z0 - q[1], 0, q[1] - nz.z1))));
+      if (nt1g < 1) problems.push(`H1 stands ${nt1g.toFixed(2)}m from NT-1's zone (needs 1m)`);
+      // R2's bents 19 and 20, and the portal at bent 31.
+      Object.entries(s1.bents).filter(([k]) => /^\d+$/.test(k)).forEach(([k, posts]) => posts.forEach(q => {
+        const g = lineDist(q, line1) - 2 - s1.bents.post / 2;
+        if (g < C1.bents) problems.push(`S1's paving passes ${g.toFixed(2)}m from R2's bent ${k} (keep ${C1.bents}m)`); }));
+      const P1 = s1.portal;
+      if (!P1) problems.push('S1 runs through R2’s bent 31 with no portal');
+      else {
+        const bf = P1.was.feet, bt = P1.was.tops, mid = [(bt[0][0] + bt[1][0]) / 2, (bt[0][1] + bt[1][1]) / 2];
+        const bdir = [bf[1][0] - bf[0][0], bf[1][1] - bf[0][1]], blen = Math.hypot(bdir[0], bdir[1]);
+        P1.posts.forEach((q, k) => {
+          const side = k ? 'west' : 'east', off = Math.abs((q[0] - mid[0]) * bdir[1] - (q[1] - mid[1]) * bdir[0]) / blen;
+          if (off > 0.05) problems.push(`the portal's ${side} post stands ${off.toFixed(2)}m off bent ${P1.bent}'s line`);
+          const g = lineDist(q, line1) - 2 - P1.post / 2;
+          if (g < P1.clear - 0.005) problems.push(`the portal's ${side} post stands ${g.toFixed(2)}m off S1's paving (keep ${P1.clear}m)`);
+          const lg = laneAt(q)[0] - half - W.clear;
+          if (lg < 0.3) problems.push(`the portal's ${side} post stands ${lg.toFixed(2)}m beyond the lane's clear zone (needs 0.3m)`);
+        });
+        const cr = crossOf(P1.posts, line1);
+        if (!cr) problems.push('S1 does not pass between the portal’s posts');
+        else { const hr = P1.soffit - levelAt(lv1, cr.at);
+          if (hr < C1.track - 0.005) problems.push(`the portal's beam stands ${hr.toFixed(2)}m over S1 (keep ${C1.track}m, R2's lowest track over it)`); }
+      }
+      // Guards.
+      const G1 = s1.guards;
+      if (!G1) problems.push('S1 has no guards where it stands over the ground');
+      else {
+        ['west', 'east', 'rimNE', 'rimSE'].forEach(k => {
+          if (!G1[k] || G1[k].length < 2) { problems.push(`S1's ${k} guard is missing`); return; }
+          const off = G1[k].filter(q => Math.abs(lineDist(q, line1) - 2 - G1.offset) > 0.06 && Math.abs(gap(q, h3c) - h3n.r - G1.offset) > 0.06);
+          if (off.length) problems.push(`S1's ${k} guard stands off its line ${G1.offset}m outside the paving at ${off.length} point(s), first (${off[0][0]}, ${off[0][1]})`);
+          const lg = Math.min(...G1[k].map(q => laneAt(q)[0])) - half - W.clear;
+          if (lg < 0.3) problems.push(`S1's ${k} guard stands ${lg.toFixed(2)}m beyond the lane's clear zone (needs 0.3m)`);
+        });
+        ['west', 'east'].forEach(k => { if (!G1[k] || G1[k].length < 2) return;
+          const rise = levelAt(lv1, G1[k].at(-1)) - fl1;
+          if (Math.abs(rise - G1.minRise) > 0.15) problems.push(`S1's ${k} guard ends where S1 stands ${rise.toFixed(2)}m over the shore (end it at ${G1.minRise}m)`); });
+        if (G1.rimSE && G1.east && G1.east.length && gap(G1.rimSE.at(-1), G1.east[0]) > tol) problems.push('S1’s east rim guard does not meet its east bank guard at the bluff face');
+        if (G1.west && G1.rimNE && G1.west.length && gap(G1.west[0], G1.rimNE[0]) > tol) problems.push('S1’s west guard does not meet H3’s north rim guard');
+      }
+      // R12's west-terminal link: across A at its level, down its stair-bridge over B's open bed onto H3.
+      const r12s = rides.find(r => r.id === 'R12').service.at(-1), rl = serviceLinks.find(l => gap(l[0], r12s) < tol);
+      if (!rl || !L1.R12) problems.push('R12’s west-terminal link to S1 is not drawn');
+      else {
+        const S = L1.R12.stair, R = S.rules, top = gcExpand(rl.at(-3)), foot = gcExpand(rl.at(-2));
+        if (gap(top, [S.top[0], S.top[2]]) > tol || gap(foot, [S.foot[0], S.foot[2]]) > tol) problems.push('R12’s link does not run down its stair-bridge');
+        if (gap(gcExpand(rl.at(-1)), h3c) > tol) problems.push('R12’s link does not end at H3');
+        const ed = bNorthCut.deck.edge.map(p => [p[0], p[2]]);
+        if (Math.min(...ed.slice(1).map((b, i) => segT([S.top[0], S.top[2]], ed[i], b)[0])) > tol || Math.abs(S.top[1] - L1.R12.A) > 0.02)
+          problems.push('R12’s stair-bridge does not leave the deck’s free edge at A’s level');
+        if (Math.abs(gap([S.foot[0], S.foot[2]], h3c) - h3n.r) > tol || Math.abs(S.foot[1] - h3n.y) > 0.02) problems.push('R12’s stair-bridge does not land on H3 at its level');
+        const sp = [S.top, ...S.land, S.foot];
+        [[sp[0], sp[1]], [sp[2], sp[3]]].forEach(([a, b], k) => {
+          const run = Math.hypot(b[0] - a[0], b[2] - a[2]), rise = a[1] - b[1], deg = Math.atan2(rise, run) * 180 / Math.PI;
+          if (rise > R.flightRise + 0.005 || deg > R.stairDeg + 0.05) problems.push(`R12's stair flight ${k + 1} falls ${rise.toFixed(2)}m at ${deg.toFixed(1)} degrees (at most ${R.flightRise}m, ${R.stairDeg} degrees)`); });
+        const ld = Math.hypot(sp[2][0] - sp[1][0], sp[2][2] - sp[1][2]);
+        if (ld < R.landing - 0.005 || Math.abs(sp[1][1] - sp[2][1]) > 0.005) problems.push(`R12's stair landing is ${ld.toFixed(2)}m (at least ${R.landing}m, level)`);
+        const bc = bNorthCut.cut.centre, bp = bc.map(p => [p[0], p[2]]);
+        let hd = Infinity;
+        samples(sp, 0.1).forEach(q => { if (lineDist([q[0], q[2]], bp) > 4) return;
+          let best = [Infinity, 0];
+          bc.slice(1).forEach((b, i) => { const a = bc[i], [dd, t] = segT([q[0], q[2]], [a[0], a[2]], [b[0], b[2]]); if (dd < best[0]) best = [dd, a[1] + (b[1] - a[1]) * t]; });
+          hd = Math.min(hd, q[1] - S.depth - best[1]); });
+        if (hd < R.overClear - 0.005) problems.push(`R12's stair-bridge stands ${hd.toFixed(2)}m over B's paving (at least ${R.overClear}m)`);
+      }
+      // The links on the shore, at grade.
+      const ri2 = rides.find(r => r.id === 'R2');
+      onS1(gcExpand(ri2.service.at(-1)), 'R2’s service', L1.R2 ? L1.R2.y : NaN);
+      onS1(gcExpand(newInteriors.find(i => i.id === 'I3').service.at(-1)), 'I3’s staff link', L1.I3 ? L1.I3.y : NaN);
+      onS1(gcExpand(sharedServiceSegments.find(s => s.id === 'SH1').p.at(-1)), 'SH1', L1.SH1 ? L1.SH1.y : NaN);
+      onS1(gcExpand(newInteriors.find(i => i.id === 'I2').service.at(-1)), 'I2’s staff link', L1.I2 ? L1.I2.y : NaN);
+      const mw = gcExpand(midwayBands.find(b => b.id === 'MW-B').service[0].at(-1));
+      if (gap(mw, h1c) > tol) problems.push('MW-B’s northern stock lane does not reach H1');
+      else onS1(mw, 'MW-B’s northern stock lane', L1.MWB ? L1.MWB.y : NaN);
+      // P5's cue yard by its goods hoist.
+      const p5 = programmedAttractions.find(a => a.id === 'P5'), ho = L1.P5 && L1.P5.hoist;
+      if (!ho) problems.push('P5’s cue yard has no way to S1');
+      else {
+        const sv = p5.service.map(gcExpand);
+        onS1(sv[0], 'P5’s staff link', ho.y[0]);
+        if (gap(sv[1], ho.doors.low) > tol || gap(sv.at(-1), ho.doors.high) > tol) problems.push('P5’s staff link does not run through its goods hoist');
+        if (Math.abs(ho.doors.low[0] - C1.face) > 0.05 || Math.abs(ho.shaft[0][0] - C1.face) > 0.05) problems.push('P5’s goods hoist does not stand in the bluff face');
+        const ap = lineDist(ho.doors.low, line1) - 2;
+        if (ap < C1.plinth - 0.005) problems.push(`P5's goods hoist opens ${ap.toFixed(2)}m from S1's paving (keep ${C1.plinth}m)`);
+        const bs = p5.backstage, hi = ho.doors.high;
+        if (Math.abs(hi[0] - bs.at[0]) > bs.size[0] / 2 + tol || Math.abs(hi[1] - bs.at[1]) > bs.size[1] / 2 + tol) problems.push('P5’s goods hoist does not open into its cue yard');
+        if (ho.room && ho.shaft[1][0] > ho.room.now[0] + 0.005) problems.push(`P5's goods hoist stands ${(ho.shaft[1][0] - ho.room.now[0]).toFixed(2)}m into its cue yard's west room (shortened to x ${ho.room.now[0]}, Christina, 2026-10-17)`);
+        if (Math.abs(ho.y[1] - ho.level) > 0.005 || Math.abs(ho.y[1] - ho.y[0] - ho.travel) > 0.005) problems.push(`P5's goods hoist rises from ${ho.y[0]} to ${ho.y[1]}, not from S1 to its cue yard's ${ho.level}`);
+      }
+      // No other link ends on S1, H3 or H1.
+      serviceLinks.forEach(l => { if (l === rl) return; const e = gcExpand(l.at(-1));
+        if (gap(e, h3c) <= h3n.r + tol || gap(e, h1c) <= h1n.r + tol || lineDist(e, line1) <= 2)
+          problems.push(`a link ends on S1 at (${l.at(-1).join(', ')}) with no level drawn`); });
+      // D1 along S1 and across the flat shore.
+      const d1 = drainageLines.find(d => d.id === 'D1'), Pf = d1.profile;
+      if (!Pf) problems.push('D1 has no fall drawn along S1');
+      else {
+        const dl = d1.p.map(gcExpand), k = dl.findIndex(q => gap(q, Pf.from) < tol);
+        if (!dl.some(q => gap(q, h3c) < tol)) problems.push('D1 does not run along S1 from H3');
+        // Across B's open cut only under A's deck and R12's stair-bridge (Christina, 2026-10-17: "On R12's stair-bridge").
+        if (d1.upstream && L1.R12) {
+          const N1 = bNorthCut, cutP = N1.cut.east.concat(N1.cut.west.slice().reverse());
+          const deckP = N1.deck.edge.map(p => [p[0], p[2]]).concat(N1.deck.root.slice(1, -1).reverse()), S = L1.R12.stair;
+          const inP = (q, poly) => { let ins = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const A = poly[i], B = poly[j]; if ((A[1] > q[1]) !== (B[1] > q[1]) && q[0] < (B[0] - A[0]) * (q[1] - A[1]) / (B[1] - A[1]) + A[0]) ins = !ins; } return ins; };
+          const sl = [[S.top[0], S.top[2]], [S.foot[0], S.foot[2]]];
+          const off = samples(dl, 0.25).filter(q => inP(q, cutP) && !inP(q, deckP) && lineDist(q, sl) > 0.6);
+          if (off.length) problems.push(`D1 crosses B's open cut off A's deck and R12's stair-bridge at (${off[0][0].toFixed(1)}, ${off[0][1].toFixed(1)})`);
+        }
+        if (k < 0 || gap(Pf.from, [s1.foot[0], s1.foot[2]]) > tol) problems.push('D1 does not pass S1’s foot');
+        else {
+          const len = dl.slice(k + 1).reduce((s, q, i) => s + gap(dl[k + i], q), 0), fall = (Pf.invert - Pf.outfall) / len;
+          if (fall < Pf.minFall - 1e-4) problems.push(`D1 falls ${(fall * 100).toFixed(2)}% across the flat shore (at least ${Pf.minFall * 100}%)`);
+          if (Pf.outfall - Pf.datum < 0.3) problems.push(`D1's outfall invert stands ${(Pf.outfall - Pf.datum).toFixed(2)}m over the water datum (keep 0.3m)`);
+          if (fl1 - Pf.invert < Pf.cover - 0.005) problems.push(`D1 lies ${(fl1 - Pf.invert).toFixed(2)}m under S1 at its foot (at least ${Pf.cover}m)`);
+          const lane2 = lane3.map(p => [p[0], p[2]]);
+          let acc = 0;
+          dl.slice(k + 1).forEach((b, i) => { const a = dl[k + i], c = crossOf([a, b], lane2), l = gap(a, b);
+            if (c) { const inv = Pf.invert - (Pf.invert - Pf.outfall) * (acc + gap(a, c.at)) / len, cov = laneAt(c.at)[1] - inv - Pf.dia;
+              if (cov < Pf.laneCover - 0.005) problems.push(`D1 passes ${cov.toFixed(2)}m under the lane (at least ${Pf.laneCover}m)`); }
+            acc += l; });
+        }
+      }
+    }
     if (problems.length) throw new Error(`S1 and S2 at their levels: ${problems.join('; ')}`);
   }
-  planCheck(validateServiceLevels);
 
   // B's north return in an open cut, A and P1 over it on one cantilevered deck (Christina,
   // 2026-10-17: "an open cut, with a cantilevered deck"), drawn the same day and approved by her
@@ -4609,10 +4881,14 @@
   //   `headroom` over its whole eight-metre envelope; at the deck's widest, A's corner, `openMin` of
   //   B's 8 m paving stays open to the sky, and more everywhere else.
   // - `crossings`: the two named crossings on the one deck, A over B and P1 over B.
-  // - `meets`: where S1, held, meets the cut: H3's turning head, drawn at S1's 0.00 on the +3.84
-  //   ground west of the cut, reaches 1.30 m over the west wall's line; S1's paving stays 2.7 m off.
-  //   Christina chose S1's option A (2026-10-17), drawn next by another agent: H3 moves 2 m west
-  //   and down to 0.00 (`moves`), 0.7 m clear of the west wall, and the overlap goes away.
+  // - `meets`: where S1 meets the cut. Christina chose S1's option A (2026-10-17) and approved it as
+  //   drawn the same day: H3 moves 2 m west and down to 0.00, its edge 0.70 m clear of the west wall's
+  //   line (`over` -0.7: it no longer reaches over it; `was`, held, it reached 1.30 m over). Where its
+  //   ring comes within 1.2 m of the wall line, the ground between comes down to H3's 0.00 (`strip`),
+  //   so the west wall retains 0.00 there and its guarded rim closes H3's east side (Christina,
+  //   2026-10-17: "Lower it, rim closes it"). R12's west-terminal link crosses the cut on a staff
+  //   stair-bridge (`stair`) from the deck's free edge at A's +4.00 down onto H3, with `headroom` over
+  //   B's paving, and D1's pipe crosses under it (Christina, 2026-10-17: "On R12's stair-bridge").
   const bNorthCut = {
     id:'B-NC',status:'approved',decided:'2026-10-17',drawn:'2026-10-17',approved:'2026-10-17',change:'guard on A’s edge',
     name:'B’s north return in an open cut, A and P1 over it on one cantilevered deck',
@@ -4634,8 +4910,10 @@
         at:[-39.451,4,-172.81],minClear:4,headroom:[8.63,9.67]},
       {id:'p1_walk_over_b_north',over:'P1_public_access',under:'b_north_return',deck:'b_north_cut_deck',
         at:[-38.898,4.05,-178.795],minClear:4,headroom:[9.14,9.68]}],
-    meets:{S1:{status:'held',turn:'H3',at:[-52,0,-170.667],r:6,over:1.3,pavingClear:2.7,ground:3.84,
-      moves:{chosen:'2026-10-17',option:'A',west:2,to:0,clear:0.7,by:'drawn next by another agent'}}}
+    meets:{S1:{status:'approved',approved:'2026-10-17',turn:'H3',at:[-54,0,-170.667],r:6,over:-0.7,clear:0.7,ground:3.84,
+      decided:'2026-10-17',option:'A',drawn:'2026-10-17',was:{status:'held',at:[-52,0,-170.667],over:1.3,pavingClear:2.7},
+      strip:{x:[-48.5,-47.3],z:[-173.07,-168.27],to:0,decided:'2026-10-17',choice:'Lower it, rim closes it'},
+      stair:{id:'R12 west-terminal link',kind:'staff stair-bridge',over:'b_north_return',from:[-41.424,4,-169.891],to:[-48.011,0,-170.297],headroom:6.393,carries:'D1'}}}
   };
 
   // Every place a route overlaps another at a different level is a named crossing with headroom
@@ -4865,6 +5143,7 @@
     if (problems.length) throw new Error(`Routes crossing at different levels: ${problems.join('; ')}`);
   }
   planCheck(validateRouteCrossings);
+  planCheck(validateServiceLevels);
 
   // B's north return in an open cut, A and P1 over it on one cantilevered deck (Christina,
   // 2026-10-17; approved the same day, guard on A's edge): the open bed, its two walls, the deck with the guard on its free edge,
@@ -4894,6 +5173,30 @@
     }
   }
 
+  // S1 brought down to the shore (Christina, 2026-10-17: option A; approved 2026-10-17), drawn on the atlas through
+  // gcAtlas: its guards, the portal frame at R2's bent 31, P5's goods hoist in the bluff face, and
+  // R12's staff stair-bridge from the deck's free edge onto H3, each titled with its numbers.
+  function drawS1Works(svg, x, y, scale, pathLine) {
+    const s1 = serviceSpines.find(spine => spine.id === 'S1');
+    if (!s1 || s1.option !== 'A') return;
+    const titled = (el, copy) => { if (!el) return el; const t = make('title'); t.textContent = copy; el.appendChild(t); return el; };
+    const G = s1.guards, L = s1.links, P = s1.portal;
+    ['west','east','rimNE','rimSE'].forEach(k => titled(pathLine(G[k].map(gcAtlas),'creek-guard'),
+      `S1 ${k.startsWith('rim') ? 'cut rim' : k + ' bank'} guard · B’s derived rail ${G.offset} m ${k.startsWith('rim') ? 'back from the top of the cut wall' : 'outside the paving'} · A (approved 2026-10-17)`));
+    titled(pathLine(P.posts.map(gcAtlas),'staff-yard-gate'),
+      `R2 bent ${P.bent} as a portal frame over S1 · posts ${P.span} m apart on the bent’s line, ${P.clear} m off S1’s paving · beam soffit ${P.soffit.toFixed(2)}, ${(P.soffit + 6).toFixed(1)} m over S1 · R2’s course and bent spacing unchanged (its editor-owned source carries it) · A (approved 2026-10-17)`);
+    P.posts.forEach(q => { const [ax, az] = gcAtlas(q);
+      svg.appendChild(make('rect',{x:x(ax) - 2,y:y(az) - 2,width:4,height:4,class:'service-gate'})); });
+    const ho = L.P5.hoist, [a, b] = ho.shaft.map(gcAtlas);
+    titled(svg.appendChild(make('rect',{x:x(a[0]),y:y(a[1]),width:Math.max(3,(b[0] - a[0]) * scale),height:Math.max(3,(b[1] - a[1]) * scale),class:'service-gate'})),
+      `P5 goods hoist in the bluff face · ${ho.y[0].toFixed(2)} on S1 → ${ho.y[1].toFixed(2)} in the cue yard · replaces ${ho.replaces} · A (approved 2026-10-17)`);
+    const S = L.R12.stair, parts = [{kind:'flight',p:[S.top,S.land[0]],w:S.w},{kind:'landing',p:[S.land[0],S.land[1]],w:S.w},{kind:'flight',p:[S.land[1],S.foot],w:S.w}];
+    parts.forEach(e => {
+      const corners = yardFootprint(e);
+      titled(svg.appendChild(make('polygon',{points:corners.map(gcAtlas).map(([px, pz]) => `${x(px)},${y(pz)}`).join(' '),class:`yard-${e.kind}`})),
+        `R12 west-terminal link · staff stair-bridge over B’s open bed · +${S.top[1].toFixed(2)} at A’s edge → ${S.foot[1].toFixed(2)} on H3 · ${S.risers} risers of ${S.riser} m, ${S.deg}° · ${S.headroom} m over B · A (approved 2026-10-17)`);
+    });
+  }
   // yard connections (Christina, 2026-10-15): "Draw stairs and ramps for review". The T6 build
   // (8ab7577) could not join R11 or R12's east terminal to the Grand Circuit's east station
   // yard, S3's paving behind the platform at +7.31 m: R11's drawn link began 16 m beyond its
@@ -6273,7 +6576,7 @@
     parcelCanvas(
       p5ParcelMap,{x0:-78,x1:12,z0:-58,z1:22},
       'Resolved plan for the P5 Plaza bandstand performance court',
-      'A local world-coordinate plan showing the full plaza hub ring, the north boulevard, the west waterfront spine, untouched Cascading Staircases, a relocated twelve-point-four-metre bandstand, a twenty-by-fourteen-metre audience lawn with ninety-six removable chairs and accessible seating, separate audience entry and release, a photography turnout, crowd-control boundary, and a rear cue yard connected to the west service spine.',
+      'A local world-coordinate plan showing the full plaza hub ring, the north boulevard, the west waterfront spine, untouched Cascading Staircases, a relocated twelve-point-four-metre bandstand, a twenty-by-fourteen-metre audience lawn with ninety-six removable chairs and accessible seating, separate audience entry and release, a photography turnout, crowd-control boundary, and a rear cue yard served from the west service spine on the shore below by a goods hoist in the bluff face (approved 2026-10-17).',
       ({svg,x,y,scale,points,pathLine,label,compact}) => {
         const narrow = compact || p5ParcelMap.getBoundingClientRect().width < 520;
         const stage = [-42,-32];
@@ -6299,8 +6602,13 @@
         }));
         pathLine([[-57,-2],[-72,-2]],'protected-path');
 
-        pathLine([[-62,-58],[-62,-38],[-62,-15]],'service-line');
-        pathLine([[-62,-38],[-58,-38],[-58,-39]],'service-line');
+        // S1 brought down to the shore and P5's goods hoist (2026-10-17, option A, approved).
+        pathLine(serviceSpines.find(spine => spine.id === 'S1').p.filter(q => q[1] >= -60),'service-line');
+        {
+          const h1 = serviceNodes.find(node => node.id === 'H1');
+          svg.appendChild(make('circle',{cx:x(h1.at[0]),cy:y(h1.at[1]),r:h1.r*scale,class:'service-turn'}));
+        }
+        pathLine(programmedAttractions.find(a => a.id === 'P5').service,'service-line');
 
         svg.appendChild(make('ellipse',{
           cx:x(audience[0]),cy:y(audience[1]),rx:7*scale,ry:10*scale,
@@ -6354,7 +6662,8 @@
           x:x(-58),y:y(-42),width:10*scale,height:6*scale,class:'parcel-backstage'
         }));
         svg.appendChild(make('rect',{
-          x:x(-57),y:y(-41),width:4*scale,height:4*scale,class:'parcel-room'
+          // shortened by 0.75 m where the goods hoist's head lands (Christina, 2026-10-17: "Shorten the room")
+          x:x(-56.25),y:y(-41),width:3.25*scale,height:4*scale,class:'parcel-room'
         }));
         svg.appendChild(make('rect',{
           x:x(-52),y:y(-41),width:3*scale,height:4*scale,class:'parcel-room'
@@ -6363,9 +6672,11 @@
           x:x(-50.5),y:y(-40.5),width:1.6*scale,height:1.6*scale,class:'parcel-booth'
         }));
         pathLine([[-49,-38],[-47,-36],offset(stage,-5.8,0)],'parcel-interior');
-        svg.appendChild(make('line',{
-          x1:x(-58),y1:y(-40.5),x2:x(-58),y2:y(-37.5),class:'parcel-gate'
-        }));
+        {
+          const ho = serviceSpines.find(spine => spine.id === 'S1').links.P5.hoist, [a, b] = ho.shaft;
+          svg.appendChild(make('rect',{x:x(a[0]),y:y(a[1]),width:(b[0]-a[0])*scale,height:(b[1]-a[1])*scale,class:'service-gate'}));
+          svg.appendChild(make('line',{x1:x(ho.doors.high[0]),y1:y(a[1]),x2:x(ho.doors.high[0]),y2:y(b[1]),class:'parcel-gate'}));
+        }
         svg.appendChild(make('line',{
           x1:x(-49),y1:y(-38.5),x2:x(-47),y2:y(-36.5),class:'parcel-gate'
         }));
@@ -6390,7 +6701,9 @@
           label('8.8m FROM B',[-27,-5],'middle');
           label('PHOTO BAY',[-13,-29],'end');
           label('10 × 6m REAR CUE / LOAD YARD',[-53,-46],'middle');
-          label('WEST SERVICE SPINE',[-68,-51]);
+          label('S1 · −6.00 ON THE SHORE',[-76,-51]);
+          label('GOODS HOIST · −6.00 → 0.00',[-57,-43.5],'middle');
+          label('H1 · 10m',[-72,-17],'middle');
           label('15.2m TO NT-1',[-54,-24],'middle');
         } else {
           label('HUB RING',[8,17],'end');
@@ -6401,7 +6714,7 @@
           label('ENTRY',[-43,-10],'end');
           label('RELEASE',[-6,-13],'end');
           label('5.5m HUB CLEAR',[-9,-6],'end');
-          label('SERVICE + CUE',[-68,-49]);
+          label('S1 + HOIST',[-68,-49]);
         }
       }
     );
@@ -6800,6 +7113,7 @@
           if (s2.shared && s2.shared.beyondE) Object.values(s2.shared.beyondE.rails).forEach(r => pathLine(r.map(gcAtlas),'creek-guard'));
           if (s2.guards) ['arm','east','west'].forEach(k => pathLine(s2.guards[k].map(gcAtlas),'creek-guard'));
         }
+        drawS1Works(svg,x,y,scale,(values,className) => pathLine(values,className));
         sharedServiceSegments.forEach(run => pathLine(run.p,'service-shared'));
         drawCoastalCreekCrossings(svg,x,y,scale,pathLine);
 
@@ -6817,7 +7131,7 @@
         });
 
         if (!narrow) {
-          label('S1 · 4m WEST',[-68,-88],'middle');
+          label('S1 · 4m WEST · H3 0.00 → 12.5% → −6.00',[-68,-88],'middle');
           label('S2 · 4m SOUTH',[-77,77],'middle');
           label('S3 · 4m EAST / NORTH',[157,18],'end');
           label('SH1 · B PRE-OPEN',[-82,-71],'middle');
@@ -6826,7 +7140,7 @@
           label('G2',[34,139],'middle');
           label('G3',[-112,-66],'end');
           label('G4',[-128,-18],'middle');
-          label('H1 · 12m',[-74,-24],'middle');
+          label('H1 · 10m',[-74,-24],'middle');
           label('H2 · 12m',[-78,16],'end');
           label('H3 · 12m',[-52,-139],'middle');
           label('H4 · 12m',[42,-146],'middle');
@@ -7271,6 +7585,7 @@
         if (s2.shared) Object.values(s2.shared.gates).forEach(g => pathLine(svg,g.p.map(gcAtlas),'staff-yard-gate'));
         if (s2.shared && s2.shared.beyondE) Object.values(s2.shared.beyondE.rails).forEach(r => pathLine(svg,r.map(gcAtlas),'creek-guard'));
       }
+      drawS1Works(svg,x,y,scale,(values,className) => pathLine(svg,values,className));
       sharedServiceSegments.forEach(run => pathLine(svg,run.p,'service-shared'));
       if (selected === 'service') {
         serviceNodes.forEach(node => {

@@ -375,10 +375,14 @@
   //   `headroom` over its whole eight-metre envelope; at the deck's widest, A's corner, `openMin` of
   //   B's 8 m paving stays open to the sky, and more everywhere else.
   // - `crossings`: the two named crossings on the one deck, A over B and P1 over B.
-  // - `meets`: where S1, held, meets the cut: H3's turning head, drawn at S1's 0.00 on the +3.84
-  //   ground west of the cut, reaches 1.30 m over the west wall's line; S1's paving stays 2.7 m off.
-  //   Christina chose S1's option A (2026-10-17), drawn next by another agent: H3 moves 2 m west
-  //   and down to 0.00 (`moves`), 0.7 m clear of the west wall, and the overlap goes away.
+  // - `meets`: where S1 meets the cut. Christina chose S1's option A (2026-10-17) and approved it as
+  //   drawn the same day: H3 moves 2 m west and down to 0.00, its edge 0.70 m clear of the west wall's
+  //   line (`over` -0.7: it no longer reaches over it; `was`, held, it reached 1.30 m over). Where its
+  //   ring comes within 1.2 m of the wall line, the ground between comes down to H3's 0.00 (`strip`),
+  //   so the west wall retains 0.00 there and its guarded rim closes H3's east side (Christina,
+  //   2026-10-17: "Lower it, rim closes it"). R12's west-terminal link crosses the cut on a staff
+  //   stair-bridge (`stair`) from the deck's free edge at A's +4.00 down onto H3, with `headroom` over
+  //   B's paving, and D1's pipe crosses under it (Christina, 2026-10-17: "On R12's stair-bridge").
   const bNorthCut = {
     id:'B-NC',status:'approved',decided:'2026-10-17',drawn:'2026-10-17',approved:'2026-10-17',change:'guard on A’s edge',
     name:'B’s north return in an open cut, A and P1 over it on one cantilevered deck',
@@ -400,8 +404,10 @@
         at:[-39.451,4,-172.81],minClear:4,headroom:[8.63,9.67]},
       {id:'p1_walk_over_b_north',over:'P1_public_access',under:'b_north_return',deck:'b_north_cut_deck',
         at:[-38.898,4.05,-178.795],minClear:4,headroom:[9.14,9.68]}],
-    meets:{S1:{status:'held',turn:'H3',at:[-52,0,-170.667],r:6,over:1.3,pavingClear:2.7,ground:3.84,
-      moves:{chosen:'2026-10-17',option:'A',west:2,to:0,clear:0.7,by:'drawn next by another agent'}}}
+    meets:{S1:{status:'approved',approved:'2026-10-17',turn:'H3',at:[-54,0,-170.667],r:6,over:-0.7,clear:0.7,ground:3.84,
+      decided:'2026-10-17',option:'A',drawn:'2026-10-17',was:{status:'held',at:[-52,0,-170.667],over:1.3,pavingClear:2.7},
+      strip:{x:[-48.5,-47.3],z:[-173.07,-168.27],to:0,decided:'2026-10-17',choice:'Lower it, rim closes it'},
+      stair:{id:'R12 west-terminal link',kind:'staff stair-bridge',over:'b_north_return',from:[-41.424,4,-169.891],to:[-48.011,0,-170.297],headroom:6.393,carries:'D1'}}}
   };
 
   function expandPoint(point) {
