@@ -1791,6 +1791,29 @@
    "kind": "values",
    "min_change_m": 0.001,
    "made_by": "ground_grid_edit.py --values"
+  },
+  {
+   "id": "G26",
+   "name": "junction_pit_fill",
+   "date": "2026-10-17",
+   "why": "Christina, 2026-10-16, fill the 6 m pit at x -66 to -58, z 130-147: where the shore showed through between C's inner edge, the B/C junction floor's south end, B's south return and the bluff, the ground is raised to the land's level, 4 cm under the paving beside it, clear of the Grand Circuit's banks",
+   "tiles": [
+    "x-1_z0"
+   ],
+   "nodes": 40,
+   "new_ground_nodes": 0,
+   "history": "history/G26.npz",
+   "files": [
+    {
+     "tile": "x-1_z0",
+     "nodes": 40,
+     "height_sha_before": "01063df30d3d62d8d7901eebdf8600679bda15bc0cfe978536cc64cd4a7e6b1f",
+     "height_sha_after": "457ebc1a8976a81457aaf68f2a4630b762dfc3f39d03f2e281971cfbdb2f7c4d"
+    }
+   ],
+   "kind": "values",
+   "min_change_m": 0.001,
+   "made_by": "ground_grid_edit.py --values"
   }
  ]
 }

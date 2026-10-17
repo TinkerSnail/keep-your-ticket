@@ -484,6 +484,39 @@
     "left": []
    },
    "exported": []
+  },
+  {
+   "id": "G26",
+   "date": "2026-10-17",
+   "from": "edits G26",
+   "ground": {
+    "tiles": [
+     "x-1_z0"
+    ],
+    "nodes": 40,
+    "lowest_m": 0.0,
+    "highest_m": 6.016
+   },
+   "edits": [
+    {
+     "id": "G26",
+     "name": "junction_pit_fill",
+     "sig": "23bdd4cccc60456f"
+    }
+   ],
+   "rocks": {
+    "moved": {},
+    "uneven": {}
+   },
+   "city": {
+    "raised": {},
+    "left": {}
+   },
+   "roosts": {
+    "moved": {},
+    "left": []
+   },
+   "exported": []
   }
  ]
 }

@@ -2776,16 +2776,24 @@
     // The yard's other edges railed and S2's south arm gated (Christina, 2026-10-16: "rail these
     // four in one batch"), each B's derived guard as C's west-lobe rail is (world metres, as built):
     // - `crestRail`: the bluff top's west edge, which dropped six metres into the yard and onto
-    //   the back lane. On the face line, on the coping, from NT-1's protected zone's south line
-    //   (z 12), which it does not enter, to where C's rail starts on the face. No walk crosses
-    //   it: S2 runs beside the bluff at its level, 2–6 m off the face with the drop between.
+    //   the back lane. On the face line, on the coping, from the end of NT-1's south bank, `into`
+    //   NT-1's protected zone past its south line (z 12; Christina, 2026-10-16: between the line
+    //   and the bank the crest still dropped six metres), to where C's rail starts on the face.
+    //   Nothing of NT-1 changes. No walk crosses it: S2 runs beside the bluff at its level, 2–6 m
+    //   off the face with the drop between.
     // - `junctionRail`: the B/C junction floor's open edges and C south of it, which dropped to
     //   the south shore: its guard line, `offset` outside the paving, from B's guard across the
     //   floor's north end and down its west side to S2's south gate, and from the gate round the
     //   floor's south corner onto C's outer guard line, along it to the bluff face.
     // - `s2SouthGate`: a locked double staff gate across S2's 4 m paving where its south arm
     //   leaves the junction floor, standing in that rail (water/CW-AQ/yard/S2_south_gate, its two
-    //   posts on S2's paving edges, atlas units).
+    //   posts on S2's paving edges, atlas units). Its `ret` (Christina, 2026-10-16: "close S2's
+    //   ledge"): from S2's south arm a guest slid round the first post onto the junction bed's
+    //   0.375 m shoulder outside the rail and along it to the floor's open north end, so a return
+    //   crosses the shoulder at that post, square to the rail, to where the beds end (world).
+    // - `pitFill`: the 6 m pit between C's inner edge, the junction floor's south end, B's south
+    //   return and the bluff, filled to the land's level, 4 cm under the paving beside it (grid
+    //   edit G26, world metres), clear of the Grand Circuit's banks.
     yard:{status:'approved',approved:'2026-10-16',name:'S2’s staff yard, solid and gated',
       bluffFace:-58,guardOffset:0.325,
       fence:{p:[[-66.64,49.98],[-57.95,49.98]],height:1.5,y:-6,
@@ -2795,11 +2803,13 @@
         world:[[[-58,75.527],[-62.765,76.239],[-65.488,77.663]],[[-70.816,81.41],[-72.05,82.43],[-75.607,86.778],[-76.973,89.297]]]},
       banks:{solid:true,westOf:-58,minRise:0.3,routes:['B','C','B/C junction','S2'],floor:-6.16},
       fills:{kind:'grid edit',edit:'G25',raised:62,cut:24,where:'inside B’s loop',world:{holes:[[-61,104],[-68,110],[-70.5,96]],slot:[[-59,85],[-65,121]]}},
-      crestRail:{from:'NT-1',world:[[-58,12],[-58,75.527]]},
+      crestRail:{from:'NT-1',into:{to:10.533,approved:'2026-10-16',why:'to the end of NT-1’s south bank'},
+        world:[[-58,10.533],[-58,12],[-58,75.527]]},
       junctionRail:{offset:0.325,
         world:[[[-84.768,97.712],[-88.379,97.678],[-88.391,99.003],[-88.43,103.213],[-88.39,105.582],[-87.907,109.918],[-87.635,112.356],[-85.974,120.622],[-82.609,128.156],[-79.869,132.385]],
           [[-75.541,139.063],[-75.158,139.655],[-74.981,139.928],[-74.416,139.644],[-73.654,141.16],[-71.697,143.575],[-69.335,146.488],[-64.177,150.736],[-58.531,153.793],[-58,153.948]]]},
-      s2SouthGate:{p:[[-79.869,103.861],[-75.541,108.17]],locked:true}}
+      s2SouthGate:{p:[[-79.869,103.861],[-75.541,108.17]],locked:true,ret:[[-79.869,132.385],[-80.54,132.82]]},
+      pitFill:{kind:'grid edit',edit:'G26',raised:40,cut:0,where:'between C, the B/C junction floor’s south end, B’s south return and the bluff',world:{pit:[[-70,128],[-56,142]]}}}
   };
 
   // The drop's footprint as built (2026-10-16), world [x, z] corners: sill to pool end
@@ -4042,13 +4052,17 @@
     const B = routes.B.paths[4], bLine = B.p.map(gcExpand), bGuard = B.w / 2 + Y.guardOffset;
     const C = routes.C.paths[0], cLine = C.p.map(gcExpand), cGuard = C.w / 2 + Y.junctionRail.offset;
     // The crest.
+    // It may enter NT-1's zone only as far as Christina approved (`into`, 2026-10-16: to the end
+    // of the south bank), and it starts there.
     const crest = Y.crestRail.world, nt1 = protectedZones.find(z => z.id === Y.crestRail.from);
-    const zoneEnd = gcExpand([nt1.x1, nt1.z1])[1];
+    const zoneEnd = gcExpand([nt1.x1, nt1.z1])[1], into = Y.crestRail.into;
+    if (into && !(into.approved && into.to < zoneEnd)) problems.push(`the crest rail's way into ${nt1.id}’s zone is not an approved one inside its line`);
+    const from = into ? into.to : zoneEnd;
     crest.forEach(q => {
       if (Math.abs(q[0] - Y.bluffFace) > tol) problems.push(`the crest rail stands ${Math.abs(q[0] - Y.bluffFace).toFixed(2)}m off the bluff face`);
-      if (q[1] < zoneEnd - tol) problems.push(`the crest rail enters ${nt1.id}’s protected zone by ${(zoneEnd - q[1]).toFixed(2)}m`);
+      if (q[1] < from - tol) problems.push(`the crest rail enters ${nt1.id}’s protected zone by ${(zoneEnd - q[1]).toFixed(2)}m, ${(from - q[1]).toFixed(2)}m past what was approved`);
     });
-    if (Math.abs(crest[0][1] - zoneEnd) > tol) problems.push(`the crest rail starts ${Math.abs(crest[0][1] - zoneEnd).toFixed(2)}m from ${nt1.id}’s protected zone`);
+    if (Math.abs(crest[0][1] - from) > tol) problems.push(`the crest rail starts ${Math.abs(crest[0][1] - from).toFixed(2)}m from ${into ? 'the end of its approved way into ' : ''}${nt1.id}’s protected zone`);
     if (gap(crest.at(-1), Y.rail.world[0][0]) > tol) problems.push(`the crest rail stops ${gap(crest.at(-1), Y.rail.world[0][0]).toFixed(2)}m short of C's rail`);
     // The junction and C south of it.
     const [north, south] = Y.junctionRail.world, posts = Y.s2SouthGate.p.map(gcExpand);
@@ -4078,10 +4092,22 @@
       const square = Math.abs((posts[1][0] - posts[0][0]) * cross[1] - (posts[1][1] - posts[0][1]) * cross[0]);
       if (square < 4 - tol) problems.push(`S2's south gate spans ${square.toFixed(2)}m of S2's 4m paving`);
     }
+    // Its return across the shoulder at the first post: from the post, square to the junction
+    // rail's last piece, across the 0.375 m shoulder and no further than S2's bed reaches.
+    const ret = Y.s2SouthGate.ret;
+    if (!ret) problems.push('S2’s south gate has no return across the shoulder at its first post');
+    else {
+      if (gap(ret[0], posts[0]) > tol) problems.push(`S2's south gate's return starts ${gap(ret[0], posts[0]).toFixed(2)}m from its first post`);
+      const len = gap(ret[0], ret[1]), [ra, rb] = [north.at(-2), north.at(-1)];
+      if (len < 0.375 - tol || len > 1.5) problems.push(`S2's south gate's return is ${len.toFixed(2)}m: it must cross the 0.375m shoulder and stop at the beds' edge`);
+      const along = [(rb[0] - ra[0]) / gap(ra, rb), (rb[1] - ra[1]) / gap(ra, rb)];
+      const cos = Math.abs(((ret[1][0] - ret[0][0]) * along[0] + (ret[1][1] - ret[0][1]) * along[1]) / Math.max(len, 1e-9));
+      if (cos > Math.sin(5 * Math.PI / 180)) problems.push('S2’s south gate’s return is not square to the junction’s rail');
+    }
     // Clear of the lane's clear zone, with a metre to spare.
     const W = grandCircuitWest;
     const lane = gcStretch(W.course.controls).concat(gcStretchSouth(W.course.controls).slice(1));
-    [crest, north, south, posts].forEach(line => line.forEach(q => {
+    [crest, north, south, posts].concat(ret ? [ret] : []).forEach(line => line.forEach(q => {
       const g = lineDist(q, lane) - W.width / 2 - W.clear;
       if (g < 1) problems.push(`the yard's rails stand ${g.toFixed(2)}m beyond the lane's clear zone (needs 1m)`);
     }));
@@ -4614,6 +4640,7 @@
     pathLine(Y.crestRail.world.map(gcAtlas),'creek-guard');
     Y.junctionRail.world.forEach(piece => pathLine(piece.map(gcAtlas),'creek-guard'));
     pathLine(Y.s2SouthGate.p,'staff-yard-gate');
+    if (Y.s2SouthGate.ret) pathLine(Y.s2SouthGate.ret.map(gcAtlas),'creek-guard');
   }
 
   function drawCoastalCreekCrossings(parent,x,y,scale,pathLine) {

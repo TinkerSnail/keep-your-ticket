@@ -10509,12 +10509,7 @@ func _cascade_bank(site: Dictionary, side: float) -> void:
 	var tag := "n" if side < 0.0 else "s"
 	var path := Plan.wing_path(site, side)
 	var a: Vector3 = path[0]
-	var b: Vector3 = path[1]
 	var base_y := _wing_base_y(site)
-	# The bank's surface is capped just under the head, because past that it would
-	# stand above the ground it is retaining. `-0.25` meant that at the west site
-	# and meant "a quarter metre below sea level" everywhere else.
-	var head: float = site["head_y"]
 	var x0: float = a.x + Plan.WING_W * 0.5 + 0.4
 	# **The far end is buried, and it may not be buried by the same amount as the
 	# bluff's plinth.** `CASCADE_TOP_X` *is* `BLUFF_FACE_X`, so at the west site
@@ -10535,6 +10530,51 @@ func _cascade_bank(site: Dictionary, side: float) -> void:
 		return
 	var cx := (x0 + x1) * 0.5
 	var w := x1 - x0
+	for bay in _cascade_bank_bays(site, side):
+		var i: int = bay[0]
+		var z0: float = bay[1]
+		var z1: float = bay[2]
+		var y: float = bay[3]
+		var cz := (z0 + z1) * 0.5
+		var d := absf(z1 - z0) + BANK_BAY_LAP * 2.0
+		_box("bank_%s_%d" % [tag, i], Vector3.ZERO,
+			Vector3(cx, (y + base_y - 0.4) * 0.5, cz),
+			Vector3(w, y - base_y + 0.4, d), "building")
+		_box("bank_soil_%s_%d" % [tag, i], Vector3.ZERO,
+			Vector3(cx, y + 0.17, cz), Vector3(w - 0.4, 0.34, d - 0.2),
+			"planting", 0.0, false)
+		for k in 6:
+			var hx: float = lerpf(x0 + 0.4, x1 - 0.4, _hash01(i * 19 + k, 3, 43))
+			# `min`/`max` rather than `z0`/`z1`, which `_cascade_bed` has always
+			# done and this had not: the north bank runs in −z, so `z0 + 0.3` and
+			# `z1 − 0.3` *widened* the range there instead of insetting it and put
+			# the odd bloom over the edge of its own planter.
+			var hz: float = lerpf(minf(z0, z1) + 0.3, maxf(z0, z1) - 0.3,
+				_hash01(i * 19 + k, 5, 47))
+			var bloom: String = ["bloom_warm", "bloom_pink", "bloom_pale"][(i + k) % 3]
+			_sphere("bank_bloom_%s_%d_%d" % [tag, i, k],
+				Vector3(hx, y + 0.34, hz), Vector3.ZERO,
+				0.15 + _hash01(k, 2, 23) * 0.13, bloom)
+
+
+## How far each bay's box runs past its own going at either end, so the bays lap.
+const BANK_BAY_LAP := 0.2
+
+
+## The bays `_cascade_bank` builds on one side, in order: each its index, the z
+## its going runs between (`z0` toward the head) and its top, and only the bays
+## that stand clear of the wing's base. Pulled out of `_cascade_bank` on
+## 2026-10-16, unchanged, so the bluff crest's rail can stop where the south
+## bank ends (`_cascade_bank_reach`).
+func _cascade_bank_bays(site: Dictionary, side: float) -> Array:
+	var path := Plan.wing_path(site, side)
+	var a: Vector3 = path[0]
+	var b: Vector3 = path[1]
+	var base_y := _wing_base_y(site)
+	# The bank's surface is capped just under the head, because past that it would
+	# stand above the ground it is retaining. `-0.25` meant that at the west site
+	# and meant "a quarter metre below sea level" everywhere else.
+	var head: float = site["head_y"]
 	# **Six steps down the slope and a seventh across the turn, and the seventh
 	# is the whole reason this is a list of segments rather than a lerp.**
 	#
@@ -10569,6 +10609,7 @@ func _cascade_bank(site: Dictionary, side: float) -> void:
 	var going: float = (b.z - a.z) / 6.0
 	var fall: float = (a.y - b.y) / 6.0
 	var segs: Array = []
+	var bays: Array = []
 	segs.append([a.z - going, a.z, a.y])
 	for i in 6:
 		var p0 := a.lerp(b, float(i) / 6.0)
@@ -10582,26 +10623,20 @@ func _cascade_bank(site: Dictionary, side: float) -> void:
 		var y: float = minf(head - 0.25, float(segs[i][2]) + 1.4)
 		if y <= base_y + 0.4:
 			continue
-		var cz := (z0 + z1) * 0.5
-		var d := absf(z1 - z0) + 0.4
-		_box("bank_%s_%d" % [tag, i], Vector3.ZERO,
-			Vector3(cx, (y + base_y - 0.4) * 0.5, cz),
-			Vector3(w, y - base_y + 0.4, d), "building")
-		_box("bank_soil_%s_%d" % [tag, i], Vector3.ZERO,
-			Vector3(cx, y + 0.17, cz), Vector3(w - 0.4, 0.34, d - 0.2),
-			"planting", 0.0, false)
-		for k in 6:
-			var hx: float = lerpf(x0 + 0.4, x1 - 0.4, _hash01(i * 19 + k, 3, 43))
-			# `min`/`max` rather than `z0`/`z1`, which `_cascade_bed` has always
-			# done and this had not: the north bank runs in −z, so `z0 + 0.3` and
-			# `z1 − 0.3` *widened* the range there instead of insetting it and put
-			# the odd bloom over the edge of its own planter.
-			var hz: float = lerpf(minf(z0, z1) + 0.3, maxf(z0, z1) - 0.3,
-				_hash01(i * 19 + k, 5, 47))
-			var bloom: String = ["bloom_warm", "bloom_pink", "bloom_pale"][(i + k) % 3]
-			_sphere("bank_bloom_%s_%d_%d" % [tag, i, k],
-				Vector3(hx, y + 0.34, hz), Vector3.ZERO,
-				0.15 + _hash01(k, 2, 23) * 0.13, bloom)
+		bays.append([i, z0, z1, y])
+	return bays
+
+
+## How far along z the bank on one side reaches from the axis: the far face of
+## its last bay's box, past the turn (`side` +1, the south bank, the largest z).
+func _cascade_bank_reach(site: Dictionary, side: float) -> float:
+	var reach: float = float(site["axis_z"])
+	for bay in _cascade_bank_bays(site, side):
+		for z in [float(bay[1]), float(bay[2])]:
+			var lapped: float = z + side * BANK_BAY_LAP
+			if (lapped - reach) * side > 0.0:
+				reach = lapped
+	return reach
 
 
 ## The lower tier of planting: a raised bed along the foot of each wing, in the
@@ -21700,13 +21735,45 @@ func _rebuild_retained_bed(nm: String, points: Array, width: float,
 	if collide and flush_collision:
 		var shape := CollisionShape3D.new()
 		shape.name = "shape"
-		var collision := _rebuild_cut_bed_collision(points, left, right, floor_drop)
+		var cut := _rebuild_cut_bed_collision(points, left, right, floor_drop)
+		var collision: ArrayMesh = cut[0]
 		# A section wholly on the shore side emits nothing and has no shape.
 		if collision.get_surface_count() > 0:
 			shape.shape = collision.create_trimesh_shape()
 			body.add_child(shape)
 			shape.owner = _root
 			_rebuild_embankment_index_faces(shape.shape.get_faces(), body.transform, 0)
+		# The part of a segment through the bluff face east of it (2026-10-16): its own
+		# shape, not indexed, so the route's embankment there stands as it did.
+		var through: ArrayMesh = cut[1]
+		if through.get_surface_count() > 0:
+			var through_shape := CollisionShape3D.new()
+			through_shape.name = "through_face"
+			through_shape.shape = through.create_trimesh_shape()
+			body.add_child(through_shape)
+			through_shape.owner = _root
+		# The cut's rim, where the grid's edge stands off the wall. Not indexed for
+		# the embankments: it lies under the grid wherever the grid has ground.
+		var rims := _rebuild_cut_rim(left, right)
+		for k in 2:
+			var mesh_k: ArrayMesh = rims[k]
+			if mesh_k.get_surface_count() == 0:
+				continue
+			var rim_body := StaticBody3D.new()
+			body.add_child(rim_body)
+			rim_body.name = "rim_wall" if k == 0 else "rim"
+			rim_body.owner = _root
+			var rim_mesh := MeshInstance3D.new()
+			rim_mesh.name = "surface"
+			rim_mesh.mesh = mesh_k
+			rim_mesh.material_override = mats["brick" if k == 0 else "planting"]
+			rim_body.add_child(rim_mesh)
+			rim_mesh.owner = _root
+			var rim_shape := CollisionShape3D.new()
+			rim_shape.name = "shape"
+			rim_shape.shape = mesh_k.create_trimesh_shape()
+			rim_body.add_child(rim_shape)
+			rim_shape.owner = _root
 		# S2's yard (Christina, 2026-10-16: "Make it solid and gate it"): west of the
 		# bluff face B's, C's, their junction's and S2's banks are solid too.
 		var owner := _yard_bank_owner(nm)
@@ -21728,19 +21795,27 @@ func _rebuild_retained_bed(nm: String, points: Array, width: float,
 ## on B's south ramp the first time (2026-09-21). On the shore side the deck
 ## is the floor and the visible stone stays visual.
 func _rebuild_cut_bed_collision(points: Array, left: PackedVector3Array,
-		right: PackedVector3Array, floor_drop: float) -> ArrayMesh:
+		right: PackedVector3Array, floor_drop: float) -> Array:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var through := SurfaceTool.new()
+	through.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var enter_y := REBUILD_LOWLAND_Y + 0.04
 	for i in left.size() - 1:
 		var l0 := left[i]
 		var l1 := left[i + 1]
 		var r0 := right[i]
 		var r1 := right[i + 1]
-		var in_cut := l0.y < enter_y and l1.y < enter_y \
-			and minf(l0.x, minf(l1.x, minf(r0.x, r1.x))) > Plan.BLUFF_FACE_X
-		if not in_cut:
+		# A segment that crosses the bluff face is in the cut east of it: its strips
+		# and walls are clipped to the face (`_rebuild_cut_bed_clipped`) rather than
+		# dropped whole, which left B's north return's last segment through the
+		# bluff (x -42 to -60, z -181 to -192) with visible stone and nothing under
+		# it to stand on, and the Player fell through beside the paving (2026-10-16).
+		if not (l0.y < enter_y and l1.y < enter_y):
 			continue
+		if maxf(l0.x, maxf(l1.x, maxf(r0.x, r1.x))) <= Plan.BLUFF_FACE_X:
+			continue
+		var straddles := minf(l0.x, minf(l1.x, minf(r0.x, r1.x))) <= Plan.BLUFF_FACE_X
 		# The strips: from a line `REBUILD_CUT_BED_SHOULDER` inside each bed edge
 		# out to the edge. The paving's edge is inside that line, so the strip
 		# and the prism top overlap by a few centimetres on one plane, which
@@ -21755,6 +21830,11 @@ func _rebuild_cut_bed_collision(points: Array, left: PackedVector3Array,
 		var li1 := l1 - across1 * (REBUILD_CUT_BED_SHOULDER / w1)
 		var ri0 := r0 + across0 * (REBUILD_CUT_BED_SHOULDER / w0)
 		var ri1 := r1 + across1 * (REBUILD_CUT_BED_SHOULDER / w1)
+		if straddles:
+			_rebuild_cut_bed_clipped(through, [[li0, li1, l1, l0], [r0, r1, ri1, ri0]],
+				[[l0, l1, Vector3(l0.x - r0.x, 0, l0.z - r0.z).normalized()],
+					[r1, r0, Vector3(r0.x - l0.x, 0, r0.z - l0.z).normalized()]], floor_drop)
+			continue
 		_earth_oriented_tri(st, li0, Vector2.ZERO, li1, Vector2.ZERO, l0, Vector2.ZERO, Vector3.UP)
 		_earth_oriented_tri(st, l0, Vector2.ZERO, li1, Vector2.ZERO, l1, Vector2.ZERO, Vector3.UP)
 		_earth_oriented_tri(st, r0, Vector2.ZERO, r1, Vector2.ZERO, ri0, Vector2.ZERO, Vector3.UP)
@@ -21772,7 +21852,155 @@ func _rebuild_cut_bed_collision(points: Array, left: PackedVector3Array,
 			Vector3(l0.x - r0.x, 0, l0.z - r0.z).normalized())
 		_earth_wall_quad(st, rb1, rb0, r1, r0,
 			Vector3(r0.x - l0.x, 0, r0.z - l0.z).normalized())
-	return st.commit()
+	return [st.commit(), through.commit()]
+
+
+## The part east of the bluff face of a cut bed's segment that crosses it: each
+## shoulder strip (a quad, `strips`) clipped to the face and laid as a fan, and
+## each wall (`walls`: its edge's two ends and the side it faces) along the part
+## of its edge east of the face, from the edge to the cut's floor as
+## `_rebuild_cut_bed_collision` lays it. West of the face the deck is the floor.
+func _rebuild_cut_bed_clipped(st: SurfaceTool, strips: Array, walls: Array,
+		floor_drop: float) -> void:
+	var face := Plan.BLUFF_FACE_X
+	for quad in strips:
+		var kept: Array[Vector3] = []
+		var n: int = quad.size()
+		for k in n:
+			var a: Vector3 = quad[k]
+			var b: Vector3 = quad[(k + 1) % n]
+			if a.x > face:
+				kept.append(a)
+			if (a.x > face) != (b.x > face):
+				kept.append(a.lerp(b, (face - a.x) / (b.x - a.x)))
+		for k in range(1, kept.size() - 1):
+			_earth_oriented_tri(st, kept[0], Vector2.ZERO, kept[k], Vector2.ZERO,
+				kept[k + 1], Vector2.ZERO, Vector3.UP)
+	for wall in walls:
+		var a: Vector3 = wall[0]
+		var b: Vector3 = wall[1]
+		if a.x <= face and b.x <= face:
+			continue
+		var p := a if a.x > face else a.lerp(b, (face - a.x) / (b.x - a.x))
+		var q := b if b.x > face else a.lerp(b, (face - a.x) / (b.x - a.x))
+		# On the face itself the floor is the cut's, not the shore's.
+		var pb := Vector3(p.x, _rebuild_bed_floor(Vector3(maxf(p.x, face + 0.001), p.y, p.z)), p.z)
+		var qb := Vector3(q.x, _rebuild_bed_floor(Vector3(maxf(q.x, face + 0.001), q.y, q.z)), q.z)
+		if floor_drop < INF:
+			pb.y = maxf(pb.y, p.y - floor_drop)
+			qb.y = maxf(qb.y, q.y - floor_drop)
+		_earth_wall_quad(st, pb, qb, p, q, wall[2])
+
+
+## The rim of a cut (2026-10-16). The grid's ground can only end on its 2 m
+## lattice, and it was carved for B's cut along the lattice, while a cut bed's
+## wall stands on the bed's own edge: between the two lay a slot up to two metres
+## wide with nothing under it, and from the field a guest stepped off the grid's
+## edge into it and out of the world (B's north return, z -100 to -155 and where
+## it leaves the bluff). Along each wall in the cut, piece by piece, the rim looks
+## out square from the wall for the grid's ground within `REBUILD_CUT_RIM_REACH`;
+## where it finds it off the wall it lays ground from the wall out to it and
+## `REBUILD_CUT_RIM_LAP` on under it, `REBUILD_CUT_RIM_YIELD` under the grid
+## so the grid stays the surface wherever it has ground, and carries the wall on
+## up to the rim where the grid stands above the wall's top, as `_rebuild_bed_floor`
+## says a cut's wall runs up to the field's own surface. Where the grid already
+## holds ground over the wall's line at both ends of a piece there is no slot and
+## nothing is laid: that is where the grid runs on over the route. Returns the
+## walls' mesh and the rim's.
+const REBUILD_CUT_RIM_REACH := 3.0
+const REBUILD_CUT_RIM_LAP := 0.5
+const REBUILD_CUT_RIM_YIELD := 0.04
+const REBUILD_CUT_RIM_STEP := 0.5
+
+
+func _rebuild_cut_rim(left: PackedVector3Array, right: PackedVector3Array) -> Array:
+	var walls := SurfaceTool.new()
+	walls.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var rim := SurfaceTool.new()
+	rim.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var enter_y := REBUILD_LOWLAND_Y + 0.04
+	var pieces_laid := 0
+	var unfound := 0
+	for side in 2:
+		var edge: PackedVector3Array = left if side == 0 else right
+		var other: PackedVector3Array = right if side == 0 else left
+		for i in edge.size() - 1:
+			if edge[i].y >= enter_y or edge[i + 1].y >= enter_y:
+				continue
+			var pieces := maxi(1, ceili(edge[i].distance_to(edge[i + 1]) / REBUILD_CUT_RIM_STEP))
+			var last := {}
+			for k in pieces + 1:
+				var t := float(k) / float(pieces)
+				var e := edge[i].lerp(edge[i + 1], t)
+				var o := other[i].lerp(other[i + 1], t)
+				var out := Vector2(e.x - o.x, e.z - o.z).normalized()
+				var here := {}
+				if e.x > Plan.BLUFF_FACE_X:
+					here = _rebuild_cut_rim_sample(e, out)
+					if here.is_empty():
+						unfound += 1
+				if k > 0 and not last.is_empty() and not here.is_empty() \
+						and not (bool(last["covered"]) and bool(here["covered"])):
+					_rebuild_cut_rim_piece(walls, rim, last, here)
+					pieces_laid += 1
+				last = here
+	if pieces_laid > 0 or unfound > 0:
+		print("cut rim: %d pieces laid, %d wall points with no ground within %.1fm" % [
+			pieces_laid, unfound, REBUILD_CUT_RIM_REACH])
+	return [walls.commit(), rim.commit()]
+
+
+## What the rim finds square out from a cut wall's point `e` (`out`, in plan):
+## the wall's top, whether the grid already holds ground over `e`, the rim's
+## level there (`y`, the nearest ground out from the wall less the yield), and
+## the rim's outer point, `REBUILD_CUT_RIM_LAP` past where the ground begins.
+## Empty where no ground lies within the reach.
+func _rebuild_cut_rim_sample(e: Vector3, out: Vector2) -> Dictionary:
+	var ground = _world_terrain_source()
+	var top := _rebuild_bed_floor(e)
+	var at := float(ground.height_y(Vector2(e.x, e.z)))
+	var reach := 0.0
+	if is_nan(at):
+		reach = -1.0
+		var r := 0.25
+		while r <= REBUILD_CUT_RIM_REACH + 0.001:
+			var h := float(ground.height_y(Vector2(e.x, e.z) + out * r))
+			if not is_nan(h):
+				reach = r
+				at = h
+				break
+			r += 0.25
+		if reach < 0.0:
+			return {}
+	var p := Vector2(e.x, e.z) + out * (reach + REBUILD_CUT_RIM_LAP)
+	var beyond := float(ground.height_y(p))
+	if is_nan(beyond):
+		beyond = at
+	return {"e": e, "top": top, "covered": reach == 0.0, "out": Vector3(out.x, 0.0, out.y),
+		"y": at - REBUILD_CUT_RIM_YIELD,
+		"outer": Vector3(p.x, beyond - REBUILD_CUT_RIM_YIELD, p.y)}
+
+
+func _rebuild_cut_rim_piece(walls: SurfaceTool, rim: SurfaceTool, a: Dictionary,
+		b: Dictionary) -> void:
+	var ea: Vector3 = a["e"]
+	var eb: Vector3 = b["e"]
+	var ya := float(a["y"])
+	var yb := float(b["y"])
+	var facing: Vector3 = (Vector3(a["out"]) + Vector3(b["out"])).normalized()
+	if ya > float(a["top"]) + 0.005 or yb > float(b["top"]) + 0.005:
+		_earth_wall_quad(walls, Vector3(ea.x, float(a["top"]), ea.z),
+			Vector3(eb.x, float(b["top"]), eb.z),
+			Vector3(ea.x, maxf(ya, float(a["top"])), ea.z),
+			Vector3(eb.x, maxf(yb, float(b["top"])), eb.z), facing)
+	var ia := Vector3(ea.x, ya, ea.z)
+	var ib := Vector3(eb.x, yb, eb.z)
+	var oa: Vector3 = a["outer"]
+	var ob: Vector3 = b["outer"]
+	_earth_oriented_tri(rim, ia, Vector2(ia.x, ia.z) * 0.3, ib, Vector2(ib.x, ib.z) * 0.3,
+		ob, Vector2(ob.x, ob.z) * 0.3, Vector3.UP)
+	_earth_oriented_tri(rim, ia, Vector2(ia.x, ia.z) * 0.3, ob, Vector2(ob.x, ob.z) * 0.3,
+		oa, Vector2(oa.x, oa.z) * 0.3, Vector3.UP)
 
 
 func _rebuild_retained_bed_mesh(left: PackedVector3Array,
@@ -25916,9 +26144,10 @@ func _rebuild_coastal_creek_yard() -> void:
 ## all colliding), derived from the edge it guards:
 ## - the bluff top's crest. From C a guest walked north onto the bluff top and
 ##   fell six metres off its west edge into the yard or onto the back lane. The
-##   rail stands on the face line (`Plan.BLUFF_FACE_X`), on the coping, from
-##   NT-1's protected zone's south line, which it does not enter, to the post
-##   where C's rail starts on the face. No walk crosses the crest there: S2 runs
+##   rail stands on the face line (`Plan.BLUFF_FACE_X`), on the coping, from the
+##   end of NT-1's south bank, 1.47 m inside NT-1's protected zone line (Christina,
+##   2026-10-16: the crest still dropped six metres between the line and the
+##   bank), to the post where C's rail starts on the face. No walk crosses the crest there: S2 runs
 ##   beside the bluff at its level but two to six metres off the face with the
 ##   drop between, so the rail neither cuts S2 off nor opens a way onto it round
 ##   S2's gates.
@@ -25941,21 +26170,31 @@ func _rebuild_coastal_creek_yard_rails() -> void:
 	var c_line: PackedVector3Array = _rebuild_path_edges(_yard_c_points(),
 		REBUILD_YARD_C_W + REBUILD_GUARD_OFFSET * 2.0, true)["left"]
 
-	# The crest: from NT-1's zone to where C's rail starts, C's outer guard line's
-	# crossing of the face before S2's gate at C, as `_rebuild_coastal_creek_yard`
-	# finds it. That end's post is C's rail's.
+	# The crest: from the end of NT-1's south bank to where C's rail starts, C's
+	# outer guard line's crossing of the face before S2's gate at C, as
+	# `_rebuild_coastal_creek_yard` finds it. That end's post is C's rail's.
 	var gate_c: Dictionary = yard["S2_gate"]
 	var s_gate := minf(
 		_yard_line_param(c_line, Plan.rebuild_expand_point(gate_c["posts"][0])),
 		_yard_line_param(c_line, Plan.rebuild_expand_point(gate_c["posts"][1])))
 	var c_start := _yard_line_at(c_line, _yard_face_crossing(c_line, s_gate, -1))
+	# Christina, 2026-10-16, approving this rail inside NT-1's protected zone line:
+	# between the line and the end of the monument's south bank the crest still
+	# dropped six metres to the shore, so the rail runs on to the bank's end, the
+	# far face of its last bay (`_cascade_bank_reach`). Nothing of NT-1 moves: the
+	# rail stands in this scene, on the face line as the rest of it does.
 	var nt1: Dictionary = Plan.REBUILD_PROTECTED_ZONES[&"NT-1"]
-	var crest_from := Plan.rebuild_expand_point(Vector2(nt1["max"])).y
-	# The bluff mass's top, as `_bluff_mass` lays it.
-	var crest: Array[Vector3] = [Vector3(Plan.BLUFF_FACE_X, GROUND_SEAM, crest_from), c_start]
+	var zone_line := Plan.rebuild_expand_point(Vector2(nt1["max"])).y
+	var crest_from := _cascade_bank_reach(Plan.CASCADE_WEST, 1.0)
+	assert(crest_from < zone_line and crest_from > zone_line - 2.0,
+		"the end of NT-1's south bank is no longer just inside its zone line")
+	# The bluff mass's top, as `_bluff_mass` lays it. A joint at the zone line keeps
+	# the posts south of it where they stood before the rail ran on.
+	var crest: Array[Vector3] = [Vector3(Plan.BLUFF_FACE_X, GROUND_SEAM, crest_from),
+		Vector3(Plan.BLUFF_FACE_X, GROUND_SEAM, zone_line), c_start]
 	var crest_length := _yard_rail("bluff_crest_rail", crest, false, true)
-	print("S2 yard bluff crest rail: %.1fm from (%.3f, %.3f) to (%.3f, %.3f)" % [
-		crest_length, crest[0].x, crest[0].z, c_start.x, c_start.z])
+	print("S2 yard bluff crest rail: %.1fm from (%.3f, %.3f), %.3fm inside NT-1's zone line, to (%.3f, %.3f)" % [
+		crest_length, crest[0].x, crest[0].z, zone_line - crest_from, c_start.x, c_start.z])
 
 	# The junction's line: across the floor's north end from B's guard, the
 	# floor's west guard line, its south corner, and C's outer guard line from
@@ -26021,6 +26260,23 @@ func _rebuild_coastal_creek_yard_rails() -> void:
 	var length := _yard_rail("BC_west_rail_n", north, false, true)
 	length += _yard_rail("BC_west_rail_s", south, true, false)
 	_yard_gate("S2_south_gate", Vector3(pa.x, ya, pa.y), Vector3(pb.x, yb, pb.y), 1.08, false)
+	# S2's ledge (Christina, 2026-10-16: "close S2's ledge"). The junction's bed runs
+	# on 0.375 m outside its rail, and S2's past the gate's first post, so from S2's
+	# south arm a guest slid round that post onto the shoulder outside the north run
+	# and along it to the floor's open north end. A return crosses the shoulder at
+	# the post, square to the run it ends, from the post to where the beds end
+	# (`_yard_bed_reach`), so a body cannot pass its end post without stepping off.
+	var seg := clampi(int(floor(sa)), 0, line.size() - 2)
+	var along := Vector2(line[seg + 1].x - line[seg].x, line[seg + 1].z - line[seg].z).normalized()
+	var away := Vector2(-along.y, along.x)
+	if _yard_plan_distance(floor_points, pa + away * 0.5) < _yard_plan_distance(floor_points, pa):
+		away = -away
+	var reach := _yard_bed_reach(pa, away, [&"J", &"S2"])
+	var ret: Array[Vector3] = [Vector3(pa.x, ya, pa.y),
+		Vector3(pa.x + away.x * reach, ya, pa.y + away.y * reach)]
+	_yard_rail("S2_south_gate_return", ret, true, false)
+	print("S2 yard: S2's south gate's return across the beds' shoulder, %.2fm from (%.3f, %.3f) to (%.3f, %.3f)" % [
+		reach, pa.x, pa.y, ret[1].x, ret[1].z])
 	var where := PackedStringArray()
 	for piece in [north, south]:
 		var pts := PackedStringArray()
@@ -26029,6 +26285,24 @@ func _rebuild_coastal_creek_yard_rails() -> void:
 		where.append("[" + ", ".join(pts) + "]")
 	print("S2 yard B/C junction and C south rail: %.1fm in two runs %s; S2's locked south gate %.2fm between (%.3f, %.3f) at %.2f and (%.3f, %.3f) at %.2f" % [
 		length, " and ".join(where), pa.distance_to(pb), pa.x, pa.y, ya, pb.x, pb.y, yb])
+
+
+## How far from `p` along `out` (in plan) the beds of the yard walks named in
+## `owners` reach: the first point, in 5 cm steps, on none of their beds.
+func _yard_bed_reach(p: Vector2, out: Vector2, owners: Array) -> float:
+	var r := 0.0
+	while r < 3.0:
+		var q := p + out * (r + 0.05)
+		var on := false
+		for record in _yard_floors():
+			if StringName(record["id"]) in owners and _yard_in_ribbon(record["points"], q,
+					float(record["half"]), bool(record["closed"])):
+				on = true
+				break
+		if not on:
+			break
+		r += 0.05
+	return r
 
 
 ## Where a course crosses the bluff face, searching from position `s` along it

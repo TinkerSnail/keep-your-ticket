@@ -16,7 +16,9 @@ extends Node
 ## five ways it was open, and B and C are walked beside it and across the holes
 ## filled inside B's loop. The rails on its other edges (the bluff crest, the B/C
 ## junction and C south of it) and S2's south gate are pushed, and the walks
-## beside them walked.
+## beside them walked. The four closed after them (NT-1's crest gap, the pit by
+## the junction, B's north return through the bluff and S2's ledge) are pushed
+## and walked too.
 ##
 ## Split out of the retired `walk_test.gd` on 2026-09-05, minus its strip-end
 ## probes, which named the pre-expansion boundary: the coast now tapers into
@@ -169,6 +171,7 @@ func _legs_list() -> Array:
 	])
 	legs.append_array(_yard_legs(y))
 	legs.append_array(_yard_rail_legs())
+	legs.append_array(_holes_legs())
 	return legs
 
 
@@ -319,6 +322,105 @@ func _yard_rail_legs() -> Array:
 		on.call("bw B under overpass", Vector2(-60.3, -192.3), Vector2(-74.5, -201.5), true),
 		on.call("bw B under overpass back", Vector2(-74.5, -201.5), Vector2(-60.3, -192.3), true),
 	])
+	return legs
+
+
+## The four closed on 2026-10-16 (Christina: "do these four in one batch"):
+## - NT-1's crest, where the crest rail now runs on inside the monument's zone
+##   line to the end of its south bank, pushed west between the two;
+## - the pit between C, the junction floor's south end, B's south return and
+##   the bluff, filled (grid edit G26), crossed from C and from the junction;
+## - B's north return where it leaves the headland through the bluff, walked
+##   centre and both edges both ways and pushed square at both sides, its trench
+##   walls pushed from the paving, and the cut's rim walked along the line where
+##   a slot between the grid's edge and the wall dropped out of the world;
+## - S2's ledge, pushed from S2's south arm along the rail's outside at the
+##   gate's first post, where a guest slid round it onto the junction's shoulder.
+func _holes_legs() -> Array:
+	var on := func(label: String, a: Vector2, b: Vector2, arrive: bool) -> Array:
+		var from := _stand(a.x, a.y)
+		return [label, from, _stand(b.x, b.y) if arrive else Vector3(b.x, from.y, b.y), arrive]
+	var legs := []
+	for z in [10.65, 10.9, 11.2, 11.5, 11.8]:
+		legs.append(on.call("bw NT-1 crest z%s" % str(z), Vector2(-55.0, z), Vector2(-63.0, z), false))
+	legs.append_array([
+		on.call("bw pit from C", Vector2(-66.5, 143.0), Vector2(-57.0, 136.0), true),
+		on.call("bw pit from C on", Vector2(-62.5, 146.5), Vector2(-60.5, 137.5), true),
+		on.call("bw pit from J", Vector2(-68.5, 134.5), Vector2(-58.5, 137.0), true),
+		on.call("bw pit to C", Vector2(-59.0, 134.0), Vector2(-66.0, 142.0), true),
+	])
+	# B's north return: the leg that crosses the bluff face, centre and 3.1 m either
+	# side (0.9 m inside the paving's edge), stopping a metre short of each end.
+	var b_points: Array = []
+	for run in ParkPlan.rebuild_build_runs():
+		if StringName(run["id"]) == &"b_north_return":
+			b_points = run["points"]
+	for i in b_points.size() - 1:
+		var a3 := Vector3(b_points[i])
+		var b3 := Vector3(b_points[i + 1])
+		if (a3.x > ParkPlan.BLUFF_FACE_X) == (b3.x > ParkPlan.BLUFF_FACE_X):
+			continue
+		# B is at its own level here, under the headland's ground where it leaves it:
+		# the legs start on the paving, not on the top surface.
+		var at := func(p: Vector2) -> Vector3:
+			var t := clampf((p - Vector2(a3.x, a3.z)).dot(Vector2(b3.x - a3.x, b3.z - a3.z))
+				/ Vector2(b3.x - a3.x, b3.z - a3.z).length_squared(), 0.0, 1.0)
+			return Vector3(p.x, lerpf(a3.y, b3.y, t) + 1.2, p.y)
+		var a := Vector2(a3.x, a3.z)
+		var b := Vector2(b3.x, b3.z)
+		var d := (b - a).normalized()
+		var side := Vector2(-d.y, d.x)
+		for lane in [["c", 0.0], ["l", 3.1], ["r", -3.1]]:
+			var p0: Vector2 = a + d + side * float(lane[1])
+			var p1: Vector2 = b - d + side * float(lane[1])
+			legs.append(["bw B bluff %s out" % lane[0], at.call(p0), at.call(p1), true])
+			legs.append(["bw B bluff %s back" % lane[0], at.call(p1), at.call(p0), true])
+		# Square at both sides east of the face, where the cut's walls stand.
+		for k in 5:
+			var m := a.lerp(b, 0.1 + 0.15 * float(k))
+			var from: Vector3 = at.call(m)
+			var l := m + side * 8.0
+			var r := m - side * 8.0
+			legs.append(["bw B bluff push l%d" % k, from, Vector3(l.x, from.y, l.y), false])
+			legs.append(["bw B bluff push r%d" % k, from, Vector3(r.x, from.y, r.y), false])
+		break
+	# Its trench, pushed square at both walls from the paving, and walked along both
+	# rims where the slots were, both ways.
+	for z in [-105.0, -115.0, -125.0, -135.0, -145.0]:
+		var c := _stand(-44.0, z)
+		legs.append(["bw B trench w z%d" % int(z), c, Vector3(-56.0, c.y, z), false])
+		legs.append(["bw B trench e z%d" % int(z), c, Vector3(-32.0, c.y, z), false])
+	legs.append_array([
+		on.call("bw B rim w", Vector2(-49.5, -104.0), Vector2(-49.5, -136.0), true),
+		on.call("bw B rim w back", Vector2(-49.5, -136.0), Vector2(-49.5, -104.0), true),
+		on.call("bw B rim e", Vector2(-38.5, -104.0), Vector2(-38.5, -136.0), true),
+		on.call("bw B rim e back", Vector2(-38.5, -136.0), Vector2(-38.5, -104.0), true),
+	])
+	# S2's ledge: from S2's south arm along the outside of the junction's north run
+	# at the gate's first post, on S2's shoulder and from its paving.
+	var gate: Dictionary = ParkPlan.coastal_creek_placements()["yard"]["S2_south_gate"]
+	var pa := ParkPlan.rebuild_expand_point(gate["posts"][0])
+	var pb := ParkPlan.rebuild_expand_point(gate["posts"][1])
+	var run := (pb - pa).normalized()
+	var out := Vector2(-run.y, run.x)
+	if out.dot(Vector2(-70.0, 125.0) - pa) > 0.0:
+		out = -out
+	# Along the rail's outside, parallel to the gate, from S2's paving to 6 m past the
+	# post. Offsets start at 0.35 m: a body's centre cannot stand nearer the gate's leaf
+	# than its 0.35 m radius, and a leg started nearer (0.20 m, dropped 1.2 m from the
+	# start's height as every leg is) landed on the leaf's top rail and walked the rails'
+	# tops onto the shoulder, a path no guest can take with no step-up.
+	for off in [0.35, 0.55]:
+		legs.append(on.call("bw S2 ledge at post a %.2f" % off, pa + run * 1.2 + out * off,
+			pa - run * 6.0 + out * off, false))
+	# From S2's paving 0.6 m outside the gate's line, slanting past the post to the
+	# shoulder's middle beyond it: on S2's paving until the post, so it asks whether the
+	# shoulder can be reached. Started on S2's west shoulder instead (1.2 m out), it
+	# slid along the return and stepped off the shoulder's outer edge, S2's own
+	# unguarded west edge, which a guest can walk off anywhere along S2's south arm;
+	# that edge is not this leg's question (2026-10-17, reported, not railed).
+	legs.append(on.call("bw S2 ledge in from S2", pa + run * 1.0 + out * 0.6,
+		pa - run * 6.0 + out * 0.19, false))
 	return legs
 
 
