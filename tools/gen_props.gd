@@ -3941,8 +3941,10 @@ func _picnic() -> void:
 
 
 ## A box stretched between two points, oriented with Basis.looking_at so no
-## matrix is written by hand.
-func _strut(nm: String, a: Vector3, b: Vector3, thickness: float, mat: String) -> void:
+## matrix is written by hand. It collides only when asked: a guard rail that
+## must stop the Player (S2's yard, Christina, 2026-10-16) passes `collide`.
+func _strut(nm: String, a: Vector3, b: Vector3, thickness: float, mat: String,
+		collide := false) -> void:
 	var d := b - a
 	var len := d.length()
 	if len < 0.001:
@@ -3951,7 +3953,7 @@ func _strut(nm: String, a: Vector3, b: Vector3, thickness: float, mat: String) -
 	var box := CSGBox3D.new()
 	box.size = Vector3(thickness, thickness, len)
 	box.material = mats[mat]
-	box.use_collision = false
+	box.use_collision = collide
 	box.transform = Transform3D(Basis.looking_at(d, up), a + d * 0.5)
 	_add(box, nm)
 
@@ -21705,6 +21707,17 @@ func _rebuild_retained_bed(nm: String, points: Array, width: float,
 			body.add_child(shape)
 			shape.owner = _root
 			_rebuild_embankment_index_faces(shape.shape.get_faces(), body.transform, 0)
+		# S2's yard (Christina, 2026-10-16: "Make it solid and gate it"): west of the
+		# bluff face B's, C's, their junction's and S2's banks are solid too.
+		var owner := _yard_bank_owner(nm)
+		if owner != &"":
+			var bank := _yard_bank_collision(owner, left, right, closed)
+			if bank.get_surface_count() > 0:
+				var bank_shape := CollisionShape3D.new()
+				bank_shape.name = "bank"
+				bank_shape.shape = bank.create_trimesh_shape()
+				body.add_child(bank_shape)
+				bank_shape.owner = _root
 
 
 ## The collider of a bed in a T2 cut: the shoulder strips between the paving
@@ -22273,8 +22286,18 @@ func _rebuild_source_path_bed(nm: String, id: StringName, records: Array,
 
 ## A retained ramp with more than a step of exposed side gets a real guard on
 ## both edges. Long rails follow the grade; posts are sampled at roughly three
-## metres so neither return becomes a line floating over a drop.
+## metres so neither return becomes a line floating over a drop. B's south
+## return's guards collide (Christina, 2026-10-16: "Make it solid and gate it"):
+## they were drawn only, and the Player walked through them off B's east edge
+## into S2's yard.
+const REBUILD_GUARDS_COLLIDE := [&"b_south_return"]
+## How far outside its paving a route's guard stands: half the 0.65 m that
+## `_rebuild_route_guards` widens the route by.
+const REBUILD_GUARD_OFFSET := 0.325
+
+
 func _rebuild_route_guards(nm: String, points: Array, width: float) -> void:
+	var collide := StringName(nm) in REBUILD_GUARDS_COLLIDE
 	var edges := _rebuild_path_edges(points, width + 0.65, false)
 	for side_index in 2:
 		var edge: PackedVector3Array = edges["left" if side_index == 0 else "right"]
@@ -22301,16 +22324,16 @@ func _rebuild_route_guards(nm: String, points: Array, width: float) -> void:
 				var pb: Vector3 = piece[1]
 				var tag := "%d" % i if k == 0 else "%d%s" % [i, "bcdef"[k - 1]]
 				_strut("guard_%s_%s_%s_top" % [nm, side_tag, tag],
-					pa + Vector3.UP * 1.08, pb + Vector3.UP * 1.08, 0.11, "metal")
+					pa + Vector3.UP * 1.08, pb + Vector3.UP * 1.08, 0.11, "metal", collide)
 				_strut("guard_%s_%s_%s_mid" % [nm, side_tag, tag],
-					pa + Vector3.UP * 0.56, pb + Vector3.UP * 0.56, 0.08, "metal")
+					pa + Vector3.UP * 0.56, pb + Vector3.UP * 0.56, 0.08, "metal", collide)
 				var post_count := maxi(1, ceili(pa.distance_to(pb) / 3.0))
 				for j in post_count + 1:
 					var t := float(j) / float(post_count)
 					var at := pa.lerp(pb, t)
 					_cyl("guard_%s_%s_%s_%d_post" % [nm, side_tag, tag, j],
 						Vector3.ZERO, at + Vector3.UP * 0.54,
-						0.075, 1.08, "metal", 0.0, 8, false)
+						0.075, 1.08, "metal", 0.0, 8, collide)
 			# One standing in more pieces hands the extra ordinals back, so every
 			# later shape keeps its own.
 			_seam_ordinal += had - has
@@ -22342,6 +22365,12 @@ func _rebuild_guard_pieces(nm: String, a: Vector3, b: Vector3) -> Array:
 			var at: Vector3 = _grand_tram_nearest(record["at"])["at"]
 			crossings.append(Vector2(at.x, at.z))
 	var joins: Array = []
+	# Pavings a guard gives way over, each [graded points, half width]. Since B's
+	# south return's guards collide (2026-10-16), they give way where C's paving
+	# crosses them at the B/C junction and leaves B again south of it, and where
+	# S2's paving crosses B's west guard line beside the junction, as they do for
+	# the garden stem; before, one stood across C's paving and drew nothing.
+	var pavings: Array = []
 	if nm == "b_south_return":
 		var garden: Dictionary = Plan.coastal_creek_placements().get("garden", {})
 		if not garden.is_empty():
@@ -22350,7 +22379,9 @@ func _rebuild_guard_pieces(nm: String, a: Vector3, b: Vector3) -> Array:
 			var to := Plan.rebuild_expand_point(stem[1])
 			joins.append([from, (to - from).normalized(),
 				float(garden["width"]) * 0.5 + REBUILD_GUARD_JOIN_CLEAR, from.distance_to(to)])
-	if crossings.is_empty() and joins.is_empty():
+		pavings.append([_yard_c_points(), REBUILD_YARD_C_W * 0.5])
+		pavings.append([_yard_s2_points(), REBUILD_SERVICE_W * 0.5 + REBUILD_GUARD_POST_R])
+	if crossings.is_empty() and joins.is_empty() and pavings.is_empty():
 		return [[a, b]]
 	var steps := maxi(1, ceili(a.distance_to(b) / 0.05))
 	var out: Array = []
@@ -22372,6 +22403,9 @@ func _rebuild_guard_pieces(nm: String, a: Vector3, b: Vector3) -> Array:
 			var along := rel.dot(dir)
 			if along >= -REBUILD_GUARD_JOIN_CLEAR and along <= float(join[3]) \
 					and absf(rel.cross(dir)) <= float(join[2]):
+				open = true
+		for paving in pavings:
+			if not open and _yard_plan_distance(paving[0], p) < float(paving[1]):
 				open = true
 		opened = opened or open
 		if not open and run_from < 0:
@@ -25160,11 +25194,12 @@ func _rebuild_coastal_creek() -> void:
 		var span := size.y * 0.5 - float(record["guard_inset"])
 		var yaw := float(record["yaw"])
 		var base := Vector3(p.x, y, p.y)
+		# CB2's guards collide (2026-10-16): B crosses D2 on it, over the notch.
 		for side in [-1.0, 1.0]:
 			_strut("%s_guard_%s" % [bridge[0], str(side)],
 				_place(base, Vector3(side * half, 1.0, -span), yaw),
 				_place(base, Vector3(side * half, 1.0, span), yaw),
-				0.10, "metal")
+				0.10, "metal", bridge[0] == "CB2")
 
 
 ## What the creek's last reach adds to the landscape scene, appended after its
@@ -25224,6 +25259,9 @@ func _rebuild_coastal_creek_reach() -> void:
 	_rebuild_coastal_creek_drop()
 	_rebuild_coastal_creek_notch_guard()
 	_rebuild_coastal_creek_garden_fence()
+	# S2's yard closed (Christina, 2026-10-16), after the garden fence, so no
+	# established shape's seam ordinal moves.
+	_rebuild_coastal_creek_yard()
 
 
 ## The drop (Christina, 2026-10-16: "Old levels + a drop"), derived from its
@@ -25315,13 +25353,14 @@ func _rebuild_coastal_creek_notch_guard() -> void:
 			var b: Vector3 = pts[i + 1]
 			length += a.distance_to(b)
 			var nm := "D2_notch_guard_%s_%d" % [r[0], i]
-			_strut(nm + "_top", a + Vector3.UP * 1.08, b + Vector3.UP * 1.08, 0.11, "metal")
-			_strut(nm + "_mid", a + Vector3.UP * 0.56, b + Vector3.UP * 0.56, 0.08, "metal")
+			# The guard collides (2026-10-16), as B's beside it does.
+			_strut(nm + "_top", a + Vector3.UP * 1.08, b + Vector3.UP * 1.08, 0.11, "metal", true)
+			_strut(nm + "_mid", a + Vector3.UP * 0.56, b + Vector3.UP * 0.56, 0.08, "metal", true)
 			var posts := maxi(1, ceili(a.distance_to(b) / 3.0))
 			for j in posts + 1:
 				_cyl("%s_%d_post" % [nm, j], Vector3.ZERO,
 					a.lerp(b, float(j) / float(posts)) + Vector3.UP * 0.54,
-					0.075, 1.08, "metal", 0.0, 8, false)
+					0.075, 1.08, "metal", 0.0, 8, true)
 	print("coastal creek notch guard: %.1fm of rail" % length)
 
 
@@ -25330,8 +25369,11 @@ func _rebuild_coastal_creek_notch_guard() -> void:
 ## the yard. Derived from the garden's editor-owned record as its walks are:
 ## it stands `D2_GARDEN_FENCE_CLEAR` outside the loop's east half, from the
 ## loop's start at CB1 round to its southernmost point; it starts at the drop's
-## outer wall where the sill meets it, on the loop's side, and ends lapping a
-## hand into B's south return's retained bed, square from the loop's south end.
+## outer wall where the sill meets it, on the loop's side, and ends square from
+## the loop's south end on B's south return. It ended a hand into B's retained
+## bed and left 1.3 m of bank to B's paving; its south end is closed to B's
+## paving (Christina, 2026-10-16: "Make it solid and gate it"): it runs on over
+## the bank, which is solid now, to lap a hand past B's guard.
 ## Panels and posts both collide; it stands on the made ground at shore level.
 const D2_GARDEN_FENCE_CLEAR := 1.0
 const D2_GARDEN_FENCE_H := 1.5
@@ -25370,16 +25412,14 @@ func _rebuild_coastal_creek_garden_fence() -> void:
 	var course: Array[Vector2] = [north]
 	for p in outer:
 		course.append(Vector2(p.x, p.z))
-	# The south end: the nearest point on either face of B's retained bed.
+	# The south end: the nearest point on either of B's guard lines.
 	var last: Vector2 = course[-1]
 	var best := INF
 	var finish := last
 	for run in Plan.rebuild_build_runs():
 		if StringName(run["id"]) != &"b_south_return":
 			continue
-		var width: float = run["width"]
-		if bool(run.get("retained", false)):
-			width = REBUILD_SOUTH_CUT_WIDTH + REBUILD_SOUTH_CUT_SEED_MARGIN
+		var width: float = float(run["width"]) + REBUILD_GUARD_OFFSET * 2.0
 		var faces := _rebuild_path_edges(run["points"], width, false)
 		for key in ["left", "right"]:
 			var line: PackedVector3Array = faces[key]
@@ -25444,6 +25484,427 @@ func _d2_route_level(id: StringName, p: Vector2) -> float:
 		return y
 	assert(false, "no built route %s" % id)
 	return 0.0
+
+
+# ---------------------------------------------------------------------------
+# S2's staff yard, solid and gated (2026-10-16)
+# ---------------------------------------------------------------------------
+
+## Christina, 2026-10-16: "Make it solid and gate it". S2's staff yard by the
+## Boardwalk station is the shore floor (-6.0) between the garden fence, the
+## bluff face, B's south return and C's west lobe. It was open five ways: from
+## the north along the back lane; up S2 from C; off B's east edge, whose guards
+## were drawn only; off C's west lobe, which had no guard; and round the garden
+## fence's end and through B's and C's banks, which had no collision west of the
+## bluff face. Approved on the maps (`coastalCreek.yard` in
+## park-rebuild-overlay.html, held by its validateStaffYard). Derived here from
+## the editor-owned markers of `water/CW-AQ/yard` in `fairground_layout.tscn`
+## (`scripts/coastal_creek_source.gd`), as the garden's fence is from its walks:
+## - the north fence across the yard's north opening, built as the garden's
+##   fence is, with the yard's locked staff gate, two closed leaves between gate
+##   posts (`_rebuild_coastal_creek_yard`);
+## - S2's locked staff gate, two closed leaves between its two posts where S2
+##   leaves C, standing in C's rail;
+## - C's rail along its west lobe, B's guard as `_rebuild_route_guards` builds
+##   it, from the bluff face to S2's gate and on from it to B's guard;
+## - the banks' collision west of the bluff face (`_yard_bank_collision`), in
+##   the beds' own bodies, for B, C, their junction and S2.
+## B's guards collide and give way over C's and S2's paving
+## (`_rebuild_guard_pieces`), and the garden fence's south end is closed to B's
+## guard (`_rebuild_coastal_creek_garden_fence`).
+const REBUILD_YARD_C_W := 8.0
+## A bank is closed in pieces this long, each kept or opened on its own.
+const REBUILD_YARD_BANK_PIECE := 0.25
+## A bank stands solid where its route is at least this much over the shore;
+## lower, the route's own paving is the step.
+const REBUILD_YARD_BANK_MIN_RISE := 0.3
+## The gates: square posts this thick, standing this much over the leaves, and
+## the leaves this far over the floor, meeting with this gap.
+const YARD_GATE_POST := 0.18
+const YARD_GATE_POST_OVER := 0.15
+const YARD_GATE_FOOT := 0.05
+const YARD_GATE_LEAF_GAP := 0.03
+const YARD_GATE_LEAF_T := 0.06
+
+var _yard_c_cache: Array = []
+var _yard_s2_cache: Array = []
+var _yard_floor_cache: Array = []
+
+
+## Route C's graded course, as `_rebuild_district_routes` lays it.
+func _yard_c_points() -> Array:
+	if _yard_c_cache.is_empty():
+		for run in _rebuild_district_build_runs():
+			if StringName(run["id"]) == &"c_coastal_loop":
+				_yard_c_cache = _rebuild_graded_route(run)
+				break
+		assert(not _yard_c_cache.is_empty(), "S2's yard found no route C")
+	return _yard_c_cache
+
+
+## S2's graded course, as `_rebuild_service_network` lays it.
+func _yard_s2_points() -> Array:
+	if _yard_s2_cache.is_empty():
+		for spine in Plan.rebuild_service_spines():
+			if StringName(spine["id"]) != &"S2":
+				continue
+			var expanded := Plan.rebuild_expand_points2(spine["points"])
+			_yard_s2_cache = _rebuild_service_s2_route(
+				_rebuild_resample_route(_rebuild_round_route(expanded, false, 1), 3.0))
+		assert(not _yard_s2_cache.is_empty(), "S2's yard found no S2")
+	return _yard_s2_cache
+
+
+## The plan distance from `p` to a course of Vector3 points.
+func _yard_plan_distance(points: Array, p: Vector2) -> float:
+	var best := INF
+	for i in points.size() - 1:
+		var a := Vector3(points[i])
+		var b := Vector3(points[i + 1])
+		best = minf(best, p.distance_to(Geometry2D.get_closest_point_to_segment(p,
+			Vector2(a.x, a.z), Vector2(b.x, b.z))))
+	return best
+
+
+## Whether `p` lies on a ribbon `half` either side of a course: not past an open
+## course's square ends, as `_rebuild_path_edges` lays them.
+func _yard_in_ribbon(points: Array, p: Vector2, half: float, closed: bool) -> bool:
+	var last := points.size() - 2
+	for i in points.size() - 1:
+		var a3 := Vector3(points[i])
+		var b3 := Vector3(points[i + 1])
+		var a := Vector2(a3.x, a3.z)
+		var ab := Vector2(b3.x, b3.z) - a
+		var l2 := ab.length_squared()
+		if l2 < 0.000001:
+			continue
+		var t := (p - a).dot(ab) / l2
+		if not closed and ((i == 0 and t < 0.0) or (i == last and t > 1.0)):
+			continue
+		if p.distance_to(a + ab * clampf(t, 0.0, 1.0)) < half:
+			return true
+	return false
+
+
+## The walks whose beds meet here, each its graded course and its bed's half
+## width: a bank gives way where it stands on another's, which is where that
+## walk joins it at grade.
+func _yard_floors() -> Array:
+	if not _yard_floor_cache.is_empty():
+		return _yard_floor_cache
+	for run in Plan.rebuild_build_runs():
+		if StringName(run["id"]) == &"b_south_return":
+			_yard_floor_cache.append({"id": &"B", "points": run["points"], "closed": false,
+				"half": (REBUILD_SOUTH_CUT_WIDTH + REBUILD_SOUTH_CUT_SEED_MARGIN) * 0.5})
+	_yard_floor_cache.append({"id": &"C", "points": _yard_c_points(), "closed": true,
+		"half": (REBUILD_YARD_C_W + REBUILD_BED_MARGIN) * 0.5})
+	var bc := _rebuild_bc_junction_floor()
+	_yard_floor_cache.append({"id": &"J", "points": bc["points"], "closed": false,
+		"half": (float(bc["width"]) + REBUILD_BED_MARGIN) * 0.5})
+	_yard_floor_cache.append({"id": &"S2", "points": _yard_s2_points(), "closed": false,
+		"half": (REBUILD_SERVICE_W + REBUILD_BED_MARGIN) * 0.5})
+	_yard_floor_cache.append({"id": &"R4", "points": _fairground_r4_queue, "closed": false,
+		"half": (_fairground_r4_queue_width + REBUILD_BED_MARGIN) * 0.5})
+	var garden: Dictionary = Plan.coastal_creek_placements().get("garden", {})
+	if not garden.is_empty():
+		var stem: Array = garden["stem"]
+		var a := Plan.rebuild_expand_point(stem[0])
+		var b := Plan.rebuild_expand_point(stem[-1])
+		_yard_floor_cache.append({"id": &"stem", "closed": false,
+			"points": [Vector3(a.x, 0.0, a.y), Vector3(b.x, 0.0, b.y)],
+			"half": (float(garden["width"]) + REBUILD_BED_MARGIN) * 0.5})
+	return _yard_floor_cache
+
+
+## Which yard walk a retained bed belongs to, or none.
+func _yard_bank_owner(nm: String) -> StringName:
+	if nm == "bed_b_south_return":
+		return &"B"
+	if nm.begins_with("bed_c_coastal_loop_"):
+		return &"C"
+	if nm == "bed_junction_bc_shared":
+		return &"J"
+	if nm.begins_with("bed_service_S2_"):
+		return &"S2"
+	return &""
+
+
+## Whether a yard bank stands solid at `top`, a point on its edge at its route's
+## level: west of the bluff face, its route a step or more over the shore, out
+## of the Grand Circuit's clear zone, and on no other walk's bed.
+func _yard_bank_stands(owner: StringName, top: Vector3) -> bool:
+	if top.x > Plan.BLUFF_FACE_X or top.y - Plan.SHORE_TOP < REBUILD_YARD_BANK_MIN_RISE:
+		return false
+	var p := Vector2(top.x, top.z)
+	for record in _yard_floors():
+		if StringName(record["id"]) != owner and _yard_in_ribbon(record["points"], p,
+				float(record["half"]), bool(record["closed"])):
+			return false
+	return not _boardwalk_in_lane(p, 0.0)
+
+
+## A yard bank's collision west of the bluff face, where `_rebuild_cut_bed_collision`
+## builds none: the shoulder strips flush with the route, from
+## `REBUILD_CUT_BED_SHOULDER` inside the bed's edge out to it, as a bed in a cut
+## has, and the bank's face from the edge down to the bed's floor at the shore,
+## facing out; an open end over the shore is faced too. Piece by piece, each
+## kept where `_yard_bank_stands`. Not added to the embankment index: no route's
+## bank reaches west of the bluff face to read it.
+func _yard_bank_collision(owner: StringName, left: PackedVector3Array,
+		right: PackedVector3Array, closed: bool) -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var low := Plan.SHORE_TOP - 0.16
+	for side in 2:
+		var edge: PackedVector3Array = left if side == 0 else right
+		var other: PackedVector3Array = right if side == 0 else left
+		for i in edge.size() - 1:
+			var pieces := maxi(1, ceili(edge[i].distance_to(edge[i + 1]) / REBUILD_YARD_BANK_PIECE))
+			for k in pieces:
+				var t0 := float(k) / float(pieces)
+				var t1 := float(k + 1) / float(pieces)
+				var e0 := edge[i].lerp(edge[i + 1], t0)
+				var e1 := edge[i].lerp(edge[i + 1], t1)
+				if not _yard_bank_stands(owner, (e0 + e1) * 0.5):
+					continue
+				var o0 := other[i].lerp(other[i + 1], t0)
+				var o1 := other[i].lerp(other[i + 1], t1)
+				var i0 := e0 - (e0 - o0) * (REBUILD_CUT_BED_SHOULDER / maxf(e0.distance_to(o0), 0.01))
+				var i1 := e1 - (e1 - o1) * (REBUILD_CUT_BED_SHOULDER / maxf(e1.distance_to(o1), 0.01))
+				_earth_oriented_tri(st, i0, Vector2.ZERO, i1, Vector2.ZERO, e0, Vector2.ZERO, Vector3.UP)
+				_earth_oriented_tri(st, e0, Vector2.ZERO, i1, Vector2.ZERO, e1, Vector2.ZERO, Vector3.UP)
+				_earth_wall_quad(st, Vector3(e0.x, low, e0.z), Vector3(e1.x, low, e1.z), e0, e1,
+					Vector3(e0.x - o0.x, 0.0, e0.z - o0.z).normalized())
+	if not closed:
+		for end in [0, left.size() - 1]:
+			var l := left[end]
+			var r := right[end]
+			var inner: int = 1 if end == 0 else left.size() - 2
+			var out := (l + r) * 0.5 - (left[inner] + right[inner]) * 0.5
+			out = Vector3(out.x, 0.0, out.z).normalized()
+			var pieces := maxi(1, ceili(l.distance_to(r) / REBUILD_YARD_BANK_PIECE))
+			for k in pieces:
+				var a := l.lerp(r, float(k) / float(pieces))
+				var b := l.lerp(r, float(k + 1) / float(pieces))
+				if _yard_bank_stands(owner, (a + b) * 0.5):
+					_earth_wall_quad(st, Vector3(a.x, low, a.z), Vector3(b.x, low, b.z), a, b, out)
+	return st.commit()
+
+
+## The position along a polyline nearest `p`, as the index of its segment plus
+## how far along that segment.
+func _yard_line_param(line: PackedVector3Array, p: Vector2) -> float:
+	var best := INF
+	var at := 0.0
+	for i in line.size() - 1:
+		var a := Vector2(line[i].x, line[i].z)
+		var ab := Vector2(line[i + 1].x, line[i + 1].z) - a
+		var t := clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.000001), 0.0, 1.0)
+		var d := p.distance_to(a + ab * t)
+		if d < best:
+			best = d
+			at = float(i) + t
+	return at
+
+
+func _yard_line_at(line: PackedVector3Array, s: float) -> Vector3:
+	var i := clampi(int(floor(s)), 0, line.size() - 2)
+	return line[i].lerp(line[i + 1], s - float(i))
+
+
+## The polyline between two positions along it.
+func _yard_line_between(line: PackedVector3Array, s0: float, s1: float) -> Array[Vector3]:
+	var out: Array[Vector3] = [_yard_line_at(line, s0)]
+	for i in range(int(floor(s0)) + 1, int(ceil(s1))):
+		if float(i) > s0 and float(i) < s1:
+			out.append(line[i])
+	out.append(_yard_line_at(line, s1))
+	return out
+
+
+## A run of B's guard (`_rebuild_route_guards`): a top and a mid rail on posts at
+## most three metres apart, all colliding; no post where `skip_first` or
+## `skip_last` says a gate post stands. Returns its length.
+func _yard_rail(nm: String, pts: Array[Vector3], skip_first: bool, skip_last: bool) -> float:
+	var length := 0.0
+	for i in pts.size() - 1:
+		var a := pts[i]
+		var b := pts[i + 1]
+		if a.distance_to(b) < 0.01:
+			continue
+		length += a.distance_to(b)
+		_strut("%s_%d_top" % [nm, i], a + Vector3.UP * 1.08, b + Vector3.UP * 1.08, 0.11, "metal", true)
+		_strut("%s_%d_mid" % [nm, i], a + Vector3.UP * 0.56, b + Vector3.UP * 0.56, 0.08, "metal", true)
+		var posts := maxi(1, ceili(a.distance_to(b) / 3.0))
+		for j in posts + 1:
+			if j == 0 and (i > 0 or skip_first):
+				continue
+			if j == posts and i == pts.size() - 2 and skip_last:
+				continue
+			_cyl("%s_%d_%d_post" % [nm, i, j], Vector3.ZERO,
+				a.lerp(b, float(j) / float(posts)) + Vector3.UP * 0.54,
+				0.075, 1.08, "metal", 0.0, 8, true)
+	return length
+
+
+## A locked staff gate between two gate posts standing at `a` and `b` (their
+## floor's level): the posts, and two closed leaves meeting between them with a
+## hasp across. `panels` gives each leaf a solid panel, as the garden fence's,
+## `height` high; otherwise each is a frame of three rails and two stiles
+## following the floor's fall, like the guards beside it. All of it collides but
+## the hasp.
+func _yard_gate(nm: String, a: Vector3, b: Vector3, height: float, panels: bool) -> void:
+	var theta := atan2(b.x - a.x, b.z - a.z)
+	for k in 2:
+		var p := a if k == 0 else b
+		var post_h := height + YARD_GATE_POST_OVER + D2_GARDEN_FENCE_FOOT
+		_box("%s_post_%d" % [nm, k], p + Vector3.UP * (post_h * 0.5 - D2_GARDEN_FENCE_FOOT),
+			Vector3.ZERO, Vector3(YARD_GATE_POST, post_h, YARD_GATE_POST), "metal", theta)
+	var mid := (a + b) * 0.5
+	var dir := (b - a).normalized()
+	for k in 2:
+		var from := a if k == 0 else b
+		var sense := 1.0 if k == 0 else -1.0
+		var l0 := from + dir * (sense * YARD_GATE_POST * 0.5)
+		var l1 := mid - dir * (sense * YARD_GATE_LEAF_GAP * 0.5)
+		var leaf := "%s_leaf_%d" % [nm, k]
+		if panels:
+			var c := (l0 + l1) * 0.5
+			var h := height - YARD_GATE_FOOT
+			_box(leaf, c + Vector3.UP * (YARD_GATE_FOOT + h * 0.5), Vector3.ZERO,
+				Vector3(YARD_GATE_LEAF_T, h, Vector2(l0.x, l0.z).distance_to(Vector2(l1.x, l1.z))),
+				"metal", theta)
+			continue
+		for rail in [["top", height, 0.08], ["mid", 0.56, 0.06], ["bottom", 0.12, 0.06]]:
+			_strut("%s_%s" % [leaf, rail[0]], l0 + Vector3.UP * float(rail[1]),
+				l1 + Vector3.UP * float(rail[1]), float(rail[2]), "metal", true)
+		for s in 2:
+			var at := l0 if s == 0 else l1
+			_strut("%s_stile_%d" % [leaf, s], at + Vector3.UP * 0.09,
+				at + Vector3.UP * (height + 0.04), 0.06, "metal", true)
+	_box("%s_lock" % nm, mid + Vector3.UP * (height * 0.6), Vector3.ZERO,
+		Vector3(0.14, 0.16, 0.12), "accent", theta, false)
+
+
+func _rebuild_coastal_creek_yard() -> void:
+	var yard: Dictionary = Plan.coastal_creek_placements().get("yard", {})
+	if yard.is_empty():
+		return
+	var y := Plan.SHORE_TOP
+	# The north fence: the garden fence's construction, from its west end to the
+	# gate's post and from the gate's other post to its east end. No post at an
+	# end the garden fence already stands a post on.
+	var fence: Dictionary = yard["north_fence"]
+	var w0 := Plan.rebuild_expand_point(fence["from"])
+	var e0 := Plan.rebuild_expand_point(fence["to"])
+	var along_dir := (e0 - w0).normalized()
+	var span := w0.distance_to(e0)
+	var half := float(fence["gate_width"]) * 0.5
+	var at := clampf((Plan.rebuild_expand_point(fence["gate"]) - w0).dot(along_dir), half, span - half)
+	var gl := w0 + along_dir * (at - half)
+	var gr := w0 + along_dir * (at + half)
+	var garden_start := Vector2.INF
+	var garden: Dictionary = Plan.coastal_creek_placements().get("garden", {})
+	var drop: Dictionary = _d2_reach()["drop"]
+	if not garden.is_empty():
+		var crest: Vector3 = drop["crest"]
+		var a2: Vector2 = drop["along"]
+		var side := Vector2(-a2.y, a2.x)
+		var c2 := Vector2(crest.x, crest.z)
+		var loop0 := Plan.rebuild_expand_point(garden["loop"][0])
+		if side.dot(loop0 - c2) < 0.0:
+			side = -side
+		garden_start = c2 - a2 * D2_DROP_SILL + side * D2_POOL_W * 0.5
+	var panel := 0
+	var post := 0
+	var theta := atan2(e0.x - w0.x, e0.y - w0.y)
+	for run in [[w0, gl, w0.distance_to(garden_start) > 0.2, false], [gr, e0, false, true]]:
+		var p0: Vector2 = run[0]
+		var p1: Vector2 = run[1]
+		var length := p0.distance_to(p1)
+		if length < 0.05:
+			continue
+		var c := (p0 + p1) * 0.5
+		_box("yard_fence_%d" % panel,
+			Vector3(c.x, y + (D2_GARDEN_FENCE_H - D2_GARDEN_FENCE_FOOT) * 0.5, c.y), Vector3.ZERO,
+			Vector3(D2_GARDEN_FENCE_T, D2_GARDEN_FENCE_H + D2_GARDEN_FENCE_FOOT, length), "metal", theta)
+		panel += 1
+		var bays := maxi(1, ceili(length / D2_GARDEN_FENCE_BAY))
+		for j in bays + 1:
+			if (j == 0 and not run[2]) or (j == bays and not run[3]):
+				continue
+			var p := p0.lerp(p1, float(j) / float(bays))
+			_box("yard_fence_post_%d" % post,
+				Vector3(p.x, y + (D2_GARDEN_FENCE_H + 0.1 - D2_GARDEN_FENCE_FOOT) * 0.5, p.y),
+				Vector3.ZERO, Vector3(D2_GARDEN_FENCE_POST, D2_GARDEN_FENCE_H + 0.1 + D2_GARDEN_FENCE_FOOT,
+					D2_GARDEN_FENCE_POST), "metal", theta)
+			post += 1
+	_yard_gate("yard_gate", Vector3(gl.x, y, gl.y), Vector3(gr.x, y, gr.y), D2_GARDEN_FENCE_H, true)
+	print("S2 yard north fence: %.2fm from (%.2f, %.2f) to (%.2f, %.2f), its locked staff gate %.2fm between posts at (%.2f, %.2f) and (%.2f, %.2f)" % [
+		span, w0.x, w0.y, e0.x, e0.y, half * 2.0, gl.x, gl.y, gr.x, gr.y])
+
+	# S2's gate and C's rail along its west lobe. The rail is C's outer guard line,
+	# 0.325 m outside its paving: from where it crosses the bluff face to the gate's
+	# first post, and from its second post until it meets B's guard.
+	var gate: Dictionary = yard["S2_gate"]
+	var pa := Plan.rebuild_expand_point(gate["posts"][0])
+	var pb := Plan.rebuild_expand_point(gate["posts"][1])
+	var line: PackedVector3Array = _rebuild_path_edges(_yard_c_points(),
+		REBUILD_YARD_C_W + REBUILD_GUARD_OFFSET * 2.0, true)["left"]
+	var sa := _yard_line_param(line, pa)
+	var sb := _yard_line_param(line, pb)
+	if sa > sb:
+		var swap := pa
+		pa = pb
+		pb = swap
+		var s := sa
+		sa = sb
+		sb = s
+	var s0 := -1.0
+	var k := int(floor(sa))
+	while k >= 0:
+		if line[k].x > Plan.BLUFF_FACE_X:
+			var t := (line[k].x - Plan.BLUFF_FACE_X) / maxf(line[k].x - line[k + 1].x, 0.000001)
+			s0 = float(k) + clampf(t, 0.0, 1.0)
+			break
+		k -= 1
+	assert(s0 >= 0.0, "C's rail found no bluff face before S2's gate")
+	var b_points: Array = _yard_floors()[0]["points"]
+	var guard := REBUILD_YARD_C_W * 0.5 + REBUILD_GUARD_OFFSET
+	var on_b := func(s: float) -> bool:
+		var q := _yard_line_at(line, s)
+		return _yard_plan_distance(b_points, Vector2(q.x, q.z)) < guard
+	var s1 := sb
+	while s1 < float(line.size() - 1) and not on_b.call(s1):
+		s1 += 0.01
+	assert(s1 < float(line.size() - 1), "C's rail found no B guard after S2's gate")
+	var lo := s1 - 0.01
+	for i in 20:
+		var m := (lo + s1) * 0.5
+		if on_b.call(m):
+			s1 = m
+		else:
+			lo = m
+	var west := _yard_line_between(line, s0, sa)
+	var south := _yard_line_between(line, sb, s1)
+	var ya := west[-1].y
+	var yb := south[0].y
+	# A post off the rail's line gets a return from the rail to it.
+	if Vector2(west[-1].x, west[-1].z).distance_to(pa) > 0.05:
+		west.append(Vector3(pa.x, ya, pa.y))
+	if Vector2(south[0].x, south[0].z).distance_to(pb) > 0.05:
+		south.push_front(Vector3(pb.x, yb, pb.y))
+	var length := _yard_rail("C_lobe_rail_w", west, false, true)
+	length += _yard_rail("C_lobe_rail_s", south, true, false)
+	_yard_gate("S2_gate", Vector3(pa.x, ya, pa.y), Vector3(pb.x, yb, pb.y), 1.08, false)
+	var where := PackedStringArray()
+	for piece in [west, south]:
+		var pts := PackedStringArray()
+		for p in piece:
+			pts.append("(%.3f, %.3f)" % [p.x, p.z])
+		where.append("[" + ", ".join(pts) + "]")
+	print("S2 yard C lobe rail: %.1fm in two runs %s; S2's locked gate %.2fm between (%.3f, %.3f) at %.2f and (%.3f, %.3f) at %.2f" % [
+		length, " and ".join(where), pa.distance_to(pb), pa.x, pa.y, ya, pb.x, pb.y, yb])
 
 
 # ---------------------------------------------------------------------------

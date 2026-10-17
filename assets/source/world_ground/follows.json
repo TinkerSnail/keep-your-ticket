@@ -451,6 +451,39 @@
     "left": []
    },
    "exported": []
+  },
+  {
+   "id": "G25",
+   "date": "2026-10-16",
+   "from": "edits G25",
+   "ground": {
+    "tiles": [
+     "x-1_z0"
+    ],
+    "nodes": 86,
+    "lowest_m": -1.756,
+    "highest_m": 6.016
+   },
+   "edits": [
+    {
+     "id": "G25",
+     "name": "b_loop_holes_fill",
+     "sig": "1afffd74aeca10ee"
+    }
+   ],
+   "rocks": {
+    "moved": {},
+    "uneven": {}
+   },
+   "city": {
+    "raised": {},
+    "left": {}
+   },
+   "roosts": {
+    "moved": {},
+    "left": []
+   },
+   "exported": []
   }
  ]
 }

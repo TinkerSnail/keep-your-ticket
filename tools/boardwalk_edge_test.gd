@@ -11,7 +11,10 @@ extends Node
 ## water edge is pushed, and the Grand Circuit platform in the back lane is
 ## walked with its lane-side guard probed. The editor-owned north Boardwalk
 ## extension is walked centre and both edges, both ways, with its outer
-## guardrail pushed.
+## guardrail pushed. S2's staff yard by the station, solid and gated since
+## 2026-10-16 (Christina: "Make it solid and gate it"), is pushed at each of the
+## five ways it was open, and B and C are walked beside it and across the holes
+## filled inside B's loop.
 ##
 ## Split out of the retired `walk_test.gd` on 2026-09-05, minus its strip-end
 ## probes, which named the pre-expansion boundary: the coast now tapers into
@@ -161,6 +164,84 @@ func _legs_list() -> Array:
 	legs.append_array([
 		["bw north west rail", Vector3(-104, y, -118), Vector3(-116, y, -118), false],
 		["bw north arc rail", Vector3(-97, y, -193), Vector3(-109, y, -195.4), false],
+	])
+	legs.append_array(_yard_legs(y))
+	return legs
+
+
+## A point on the top surface under (x, z), at the legs' eye height over it.
+func _stand(x: float, z: float) -> Vector3:
+	var space := get_tree().root.get_world_3d().direct_space_state
+	var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(
+		Vector3(x, 60.0, z), Vector3(x, -40.0, z)))
+	var top: float = ParkPlan.SHORE_TOP if hit.is_empty() else float(hit["position"].y)
+	return Vector3(x, top + 1.2, z)
+
+
+## S2's staff yard (2026-10-16), the shore floor between the garden fence, the
+## bluff face, B's south return and C's west lobe: each way it was open is
+## pushed and must hold, a leg into the yard ending in it if it does not. Legs on
+## a route start on its surface and keep that level, so a drop into the yard
+## counts as a fall. Then the routes beside it are walked, and the holes filled
+## inside B's loop crossed.
+func _yard_legs(y: float) -> Array:
+	var floor_at := func(x: float, z: float) -> Vector3: return Vector3(x, y, z)
+	var on := func(label: String, a: Vector2, b: Vector2, arrive: bool) -> Array:
+		var from := _stand(a.x, a.y)
+		return [label, from, _stand(b.x, b.y) if arrive else Vector3(b.x, from.y, b.y), arrive]
+	# S2's gate stands between its posts where S2 leaves C: pushed square at
+	# it from C, at a quarter, the middle and three quarters of its span.
+	var gate: Dictionary = ParkPlan.coastal_creek_placements()["yard"]["S2_gate"]
+	var pa := ParkPlan.rebuild_expand_point(gate["posts"][0])
+	var pb := ParkPlan.rebuild_expand_point(gate["posts"][1])
+	var square := Vector2(-(pb - pa).y, (pb - pa).x).normalized()
+	if square.dot(Vector2(-75.0, 98.0) - pa) < 0.0:
+		square = -square
+	var legs := [
+		# The north fence and its staff gate, from the back lane and from the yard.
+		["bw yard gate holds", floor_at.call(-62.3, 42.0), floor_at.call(-62.3, 60.0), false],
+		["bw yard fence holds by drop", floor_at.call(-65.5, 42.0), floor_at.call(-65.5, 60.0), false],
+		["bw yard fence holds by bluff", floor_at.call(-59.2, 42.0), floor_at.call(-59.2, 60.0), false],
+		["bw yard gate holds out", floor_at.call(-62.3, 58.0), floor_at.call(-62.3, 40.0), false],
+		["bw yard fence holds out", floor_at.call(-59.2, 58.0), floor_at.call(-59.2, 40.0), false],
+		# Off B's east edge, its guard.
+		on.call("bw yard B guard z72", Vector2(-86.5, 72.0), Vector2(-72.0, 72.0), false),
+		on.call("bw yard B guard z78", Vector2(-84.5, 78.0), Vector2(-70.0, 78.0), false),
+		on.call("bw yard B guard z82", Vector2(-82.4, 82.0), Vector2(-71.6, 76.8), false),
+		# Off C's west lobe, its rail.
+		on.call("bw yard C rail x-62", Vector2(-62.0, 80.6), Vector2(-62.0, 70.0), false),
+		on.call("bw yard C rail NW", Vector2(-69.0, 85.5), Vector2(-77.0, 77.5), false),
+		on.call("bw yard C rail W", Vector2(-72.0, 89.2), Vector2(-80.0, 83.5), false),
+		# Round the garden fence's end, both ways, and under B, C and S2 through
+		# their banks.
+		["bw yard fence end holds", floor_at.call(-77.0, 79.0), floor_at.call(-82.0, 71.0), false],
+		["bw yard fence end holds in", floor_at.call(-79.0, 71.0), floor_at.call(-76.0, 80.0), false],
+		["bw yard B bank holds", floor_at.call(-90.5, 80.0), floor_at.call(-72.0, 80.0), false],
+		["bw yard C bank holds", floor_at.call(-62.0, 70.0), floor_at.call(-62.0, 92.0), false],
+		["bw yard S2 bank holds", floor_at.call(-65.0, 66.0), floor_at.call(-68.5, 86.0), false],
+	]
+	for k in 3:
+		var at := pa.lerp(pb, 0.25 + 0.25 * float(k))
+		legs.append(on.call("bw yard S2 gate holds %d" % k, at + square * 3.0, at - square * 6.0, false))
+	legs.append_array([
+		# B and C beside the yard, and B and C at their junction.
+		on.call("bw yard B walks", Vector2(-92.6, 67.0), Vector2(-82.0, 83.0), true),
+		on.call("bw yard B walks on", Vector2(-82.0, 83.0), Vector2(-80.0, 101.6), true),
+		on.call("bw yard C walks", Vector2(-58.0, 79.9), Vector2(-69.0, 85.5), true),
+		on.call("bw yard C walks on", Vector2(-69.0, 85.5), Vector2(-76.4, 98.9), true),
+		on.call("bw yard C walks its rail", Vector2(-58.5, 77.0), Vector2(-67.5, 80.0), true),
+		on.call("bw yard C crosses S2", Vector2(-65.5, 80.5), Vector2(-73.0, 87.0), true),
+		on.call("bw yard C to B", Vector2(-73.5, 96.0), Vector2(-84.0, 96.0), true),
+		on.call("bw yard B to C", Vector2(-84.0, 100.0), Vector2(-72.0, 100.0), true),
+		on.call("bw yard garden stem", Vector2(-88.5, 64.1), Vector2(-80.8, 63.7), true),
+		# The holes filled inside B's loop, walked off the paving beside each and
+		# over it to the land, or down from the land to the paving.
+		on.call("bw loop hole -61,104", Vector2(-61.0, 106.5), Vector2(-61.0, 100.0), true),
+		on.call("bw loop hole -68,110", Vector2(-63.0, 110.0), Vector2(-74.0, 110.0), true),
+		on.call("bw loop hole -70.5,96", Vector2(-75.0, 96.5), Vector2(-69.5, 96.5), true),
+		on.call("bw loop slot z90", Vector2(-70.0, 90.0), Vector2(-59.0, 90.0), true),
+		on.call("bw loop slot z112", Vector2(-70.5, 112.0), Vector2(-60.0, 112.0), true),
+		on.call("bw loop slot z116", Vector2(-67.6, 116.5), Vector2(-60.0, 116.5), true),
 	])
 	return legs
 

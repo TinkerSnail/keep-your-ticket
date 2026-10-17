@@ -1694,6 +1694,19 @@
     stroke-dasharray: 1 3;
     stroke-linecap: round;
   }
+  /* S2's staff yard solid and gated (Christina, 2026-10-16). */
+  #park-rebuild-overlay .staff-yard-bank {
+    fill: none;
+    stroke: var(--foreground);
+    stroke-opacity: 0.16;
+    stroke-linejoin: round;
+  }
+  #park-rebuild-overlay .staff-yard-gate {
+    fill: none;
+    stroke: var(--orange);
+    stroke-width: 3.5;
+    stroke-linecap: butt;
+  }
   #park-rebuild-overlay .creek-culvert-line {
     fill: none;
     stroke: var(--orange);
@@ -2726,13 +2739,49 @@
       width:2.6,loop:[[-80.5,57.16],[-69.5,57.16],[-69.2,58.65],[-69.37,60.14],[-69.93,61.54],[-70.85,62.74],[-72.06,63.67],[-73.48,64.25],[-75,64.45],[-76.52,64.25],[-77.94,63.67],[-79.15,62.74],[-80.07,61.54],[-80.63,60.14],[-80.8,58.65],[-80.5,57.16]],stem:[[-88.75,60.36],[-80.63,60.14]],
       crossing:{id:'CB1',kind:'footbridge',name:'Pond garden footbridge (CB1, re-sited)',at:[-75,57.16],size:[11,4]},
       // The garden's east fence (Christina, 2026-10-16: "Garden's east side") as built:
-      // 32.9 m, 1.5 m high and colliding, on the made ground at -6.0, between the garden and
-      // S2's yard, from the drop's east wall round the loop's south-east to B's bed face.
+      // 33.8 m, 1.5 m high and colliding, on the made ground at -6.0, between the garden and
+      // S2's yard, from the drop's east wall round the loop's south-east to B. Its south end
+      // is closed to B's paving (Christina, 2026-10-16: "Make it solid and gate it"): it ran
+      // to B's bed face and left 1.3 m of bank to B's paving; it now runs on over the bank,
+      // which is solid, to B's guard, 0.325 m outside the paving, lapping a hand past it.
       // Measured: 1.0 m from the loop, 9.4 m from the stem, 2.2 m from CB1, 8.6 m beyond the
       // lane's clear zone and at least 0.4 m from S2's paving; validateCreekGarden holds it
       // at `clear`, those less a small margin. Atlas units.
-      fence:{status:'approved',approved:'2026-10-16',height:1.5,y:-6,length:32.9,p:[[-66.64,49.98],[-67.22,56.968],[-66.89,58.606],[-67.09,60.381],[-67.76,62.058],[-68.91,63.555],[-70.53,64.8],[-72.61,65.652],[-74.54,65.903],[-79.56,67.471]],
-        clear:{loop:0.9,stem:9.3,cb1:2.1,lane:8.5,s2:0.3}}}
+      fence:{status:'approved',approved:'2026-10-16',height:1.5,y:-6,length:33.8,p:[[-66.64,49.98],[-67.22,56.968],[-66.89,58.606],[-67.09,60.381],[-67.76,62.058],[-68.91,63.555],[-70.53,64.8],[-72.61,65.652],[-74.54,65.903],[-80.442,67.745]],
+        clear:{loop:0.9,stem:9.3,cb1:2.1,lane:8.5,s2:0.3}}},
+    // S2's staff yard by the Boardwalk station made solid and gated (Christina, 2026-10-16:
+    // "Make it solid and gate it", and fill the holes inside B's loop in the same batch). The
+    // yard is the -6.0 shore floor between the garden fence, the bluff face (x -58), B's south
+    // return and C's west lobe; it was open five ways: from the north along the back lane, up
+    // S2 from C, off B's east edge, off C's west lobe, and round the garden fence's end and
+    // through B's and C's banks, which had no collision west of the bluff face. Now:
+    // - `fence`: a fence like the garden's, 1.5 m on the shore floor, across the yard's north
+    //   opening from the drop's east corner (where the garden fence starts) to the bluff face,
+    //   under S2, with a locked double staff gate (`gate`, its centre and opening). Editor-owned
+    //   markers in fairground_layout.tscn (water/CW-AQ/yard/north_fence). Atlas units.
+    // - `s2Gate`: a locked double staff gate across S2 where it leaves C, standing in C's rail
+    //   between S2's paving edges (its two posts, water/CW-AQ/yard/S2_gate). Atlas units.
+    // - `rail`: B's derived guard (a top and a mid rail on posts at most 3 m apart, `offset`
+    //   outside the paving, colliding) along C's west lobe from the bluff face to B's guard,
+    //   open only at S2's gate. World metres, as built.
+    // - `banks`: B's, C's, the B/C junction's and S2's retained banks west of the bluff face
+    //   are solid down to the shore wherever their route stands `minRise` over it: walls and
+    //   flush shoulders that collide, opened only where another walk joins at grade and kept
+    //   out of the Grand Circuit's clear zone; an open end over the shore is closed.
+    // - `fills`: the holes and the slot inside B's loop, where the grid's ground fell to the
+    //   shore between C, the junction, R4's queue and the land, filled to the floors round them:
+    //   grid edit G25, 62 nodes raised to 4 cm under the paving beside them (to the land where
+    //   none is near), 24 land nodes cut to the same where the fill would bury paving (world metres).
+    // validateStaffYard holds the boundary closed, piece to piece.
+    yard:{status:'approved',approved:'2026-10-16',name:'S2’s staff yard, solid and gated',
+      bluffFace:-58,guardOffset:0.325,
+      fence:{p:[[-66.64,49.98],[-57.95,49.98]],height:1.5,y:-6,
+        gate:{at:[-62.3,49.98],width:3,locked:true}},
+      s2Gate:{p:[[-65.488,68.557],[-70.816,70.974]],locked:true},
+      rail:{route:'C',offset:0.325,
+        world:[[[-58,75.527],[-62.765,76.239],[-65.488,77.663]],[[-70.816,81.41],[-72.05,82.43],[-75.607,86.778],[-76.973,89.297]]]},
+      banks:{solid:true,westOf:-58,minRise:0.3,routes:['B','C','B/C junction','S2'],floor:-6.16},
+      fills:{kind:'grid edit',edit:'G25',raised:62,cut:24,where:'inside B’s loop',world:{holes:[[-61,104],[-68,110],[-70.5,96]],slot:[[-59,85],[-65,121]]}}}
   };
 
   // The drop's footprint as built (2026-10-16), world [x, z] corners: sill to pool end
@@ -3883,6 +3932,79 @@
   }
   planCheck(validateCreekGarden);
 
+  // S2's staff yard solid and gated (approved, 2026-10-16), in world metres: its boundary closes
+  // on itself, piece to piece. The north fence runs from the garden fence's start on the drop's
+  // east corner to the bluff face; the bluff face runs to C's rail; C's rail runs to S2's gate,
+  // whose posts stand in it, and on from the gate to B's guard; B's guard runs unbroken (the garden
+  // stem's opening lies north of the fence's end) to the garden fence's end, which is closed to
+  // B's paving at the guard; the garden fence runs back to the drop. Each gate is locked and
+  // stands in its line: the north gate on the fence with room for its posts, S2's spanning S2's
+  // whole paving square to its course. Nothing stands in the lane's clear zone, and the banks
+  // are solid to the bluff face.
+  function validateStaffYard() {
+    const Y = coastalCreek.yard, G = coastalCreek.garden, problems = [], tol = 0.05;
+    const segDist = (q, a, b) => {
+      const dx = b[0] - a[0], dz = b[1] - a[1], l = dx * dx + dz * dz;
+      const t = l ? Math.max(0, Math.min(1, ((q[0] - a[0]) * dx + (q[1] - a[1]) * dz) / l)) : 0;
+      return Math.hypot(q[0] - a[0] - dx * t, q[1] - a[1] - dz * t);
+    };
+    const lineDist = (q, line) => Math.min(...line.slice(1).map((b, i) => segDist(q, line[i], b)));
+    const gap = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+    const fence = Y.fence.p.map(gcExpand), garden = G.fence.p.map(gcExpand);
+    const posts = Y.s2Gate.p.map(gcExpand), rail = Y.rail.world;
+    const B = routes.B.paths[4], bLine = B.p.map(gcExpand), guard = B.w / 2 + Y.guardOffset;
+    // The ring: each piece starts where the last one ends.
+    if (gap(fence[0], garden[0]) > tol) problems.push(`the north fence starts ${gap(fence[0], garden[0]).toFixed(2)}m from the garden fence's start on the drop`);
+    if (Math.abs(fence[1][0] - Y.bluffFace) > tol) problems.push(`the north fence ends ${Math.abs(fence[1][0] - Y.bluffFace).toFixed(2)}m off the bluff face`);
+    if (Math.abs(rail[0][0][0] - Y.bluffFace) > tol) problems.push(`C's rail starts ${Math.abs(rail[0][0][0] - Y.bluffFace).toFixed(2)}m off the bluff face`);
+    if (gap(rail[0].at(-1), posts[0]) > tol) problems.push(`C's rail stops ${gap(rail[0].at(-1), posts[0]).toFixed(2)}m short of S2's gate`);
+    if (gap(rail[1][0], posts[1]) > tol) problems.push(`C's rail starts ${gap(rail[1][0], posts[1]).toFixed(2)}m from S2's gate's far post`);
+    const railEnd = rail[1].at(-1);
+    if (Math.abs(lineDist(railEnd, bLine) - guard) > tol) problems.push(`C's rail ends ${(lineDist(railEnd, bLine) - guard).toFixed(2)}m off B's guard`);
+    const fenceEnd = garden.at(-1), endOff = lineDist(fenceEnd, bLine);
+    if (endOff > guard + 0.01) problems.push(`the garden fence stops ${(endOff - guard).toFixed(2)}m short of B's guard`);
+    if (endOff < B.w / 2) problems.push('the garden fence runs onto B’s paving');
+    // C's rail and the fence's end meet B's guard on its yard side, with no opening between them.
+    const side = q => { let best = Infinity, sgn = 0;
+      bLine.slice(1).forEach((b, i) => { const a = bLine[i], d = segDist(q, a, b);
+        if (d < best) { best = d; sgn = Math.sign((b[0] - a[0]) * (q[1] - a[1]) - (b[1] - a[1]) * (q[0] - a[0])); } });
+      return sgn; };
+    if (side(railEnd) !== side(fenceEnd)) problems.push('C’s rail and the garden fence meet B’s guard on opposite sides');
+    const stem = gcExpand(G.stem[0]);
+    const between = (q, a, b) => (q[1] - a[1]) * (q[1] - b[1]) < 0;
+    if (between(stem, railEnd, fenceEnd)) problems.push('the garden stem’s opening in B’s guard lies inside the yard');
+    // The gates.
+    const gate = gcExpand(Y.fence.gate.at), gw = Y.fence.gate.width;
+    if (lineDist(gate, fence) > tol) problems.push(`the yard's staff gate stands ${lineDist(gate, fence).toFixed(2)}m off the north fence`);
+    if (Math.min(gap(gate, fence[0]), gap(gate, fence[1])) < gw / 2 + 0.3) problems.push('the yard’s staff gate leaves no room for its posts in the north fence');
+    if (!Y.fence.gate.locked || !Y.s2Gate.locked) problems.push('a staff gate is not locked');
+    const s2 = serviceSpines.find(sp => sp.id === 'S2').p.map(gcExpand);
+    let cross = null;
+    s2.slice(1).forEach((b, i) => {
+      const a = s2[i], d = (posts[1][0] - posts[0][0]) * (b[1] - a[1]) - (posts[1][1] - posts[0][1]) * (b[0] - a[0]);
+      if (Math.abs(d) < 1e-9) return;
+      const t = ((a[0] - posts[0][0]) * (b[1] - a[1]) - (a[1] - posts[0][1]) * (b[0] - a[0])) / d;
+      const u = ((a[0] - posts[0][0]) * (posts[1][1] - posts[0][1]) - (a[1] - posts[0][1]) * (posts[1][0] - posts[0][0])) / d;
+      if (t >= 0 && t <= 1 && u >= 0 && u <= 1) { const l = Math.hypot(b[0] - a[0], b[1] - a[1]); cross = [(b[0] - a[0]) / l, (b[1] - a[1]) / l]; }
+    });
+    if (!cross) problems.push('S2’s gate does not cross S2');
+    else {
+      const square = Math.abs((posts[1][0] - posts[0][0]) * cross[1] - (posts[1][1] - posts[0][1]) * cross[0]);
+      if (square < 4 - tol) problems.push(`S2's gate spans ${square.toFixed(2)}m of S2's 4m paving`);
+    }
+    // Clear of the lane's clear zone, with a metre to spare.
+    const W = grandCircuitWest;
+    const lane = gcStretch(W.course.controls).concat(gcStretchSouth(W.course.controls).slice(1));
+    const pieces = [fence, posts, ...rail, [garden.at(-2), fenceEnd]];
+    pieces.forEach(line => line.forEach(q => {
+      const g = lineDist(q, lane) - W.width / 2 - W.clear;
+      if (g < 1) problems.push(`the yard's enclosure stands ${g.toFixed(2)}m beyond the lane's clear zone (needs 1m)`);
+    }));
+    if (!(Y.banks.solid && Y.banks.westOf === Y.bluffFace)) problems.push('B’s and C’s banks are not solid to the bluff face');
+    if (problems.length) throw new Error(`S2's staff yard: ${problems.join('; ')}`);
+  }
+  planCheck(validateStaffYard);
+
   // yard connections (Christina, 2026-10-15): "Draw stairs and ramps for review". The T6 build
   // (8ab7577) could not join R11 or R12's east terminal to the Grand Circuit's east station
   // yard, S3's paving behind the platform at +7.31 m: R11's drawn link began 16 m beyond its
@@ -4094,7 +4216,7 @@
     midway:{title:'04G · Lay the midway frontage bands',detail:'The midway is a corridor treatment, not another land. MW-F places six booths along the west side of C and terminates at the Fairground Food Hall; MW-B places four booths against B but leaves a fifteen-metre break around the Q3 Cascade axis; MW-K places two low family games beside D and the Play Garden arrival. Every 5 × 5m unit sits beyond the full public paving width, fronts a standing apron, stocks from a rear lane, and remains outside NT-1, NT-2, and Q1–Q6. The Headland and High Terrace receive no midway clutter.'},
     kiddieland:{title:'04G+ · Complete Kiddieland',detail:'Route D remains fixed while the land gains three consecutive rooms. Arrival Commons combines P4, MW-K, Family Support, a zero-depth Squirt Garden with seven flush jets and a three-frog jumping-water chain: Frog 1 arcs into Frog 2, then Frog 2 arcs into Frog 3. A 14 × 10m Character Garden and an 8 × 5m Family Photo kiosk complete the commons. Ride Garden binds R5 as the miniature railway, R6 as spinning tubs, and R7 as the carousel. R14 adds a compact junior coaster along the outer edge, with separate queue and exit, an 8m lift limit, manual photo turnout, automatic trigger, six-screen viewing bank, and S3 service. A 12 × 6m Birthday Pavilion completes the southern frontage. Every addition remains outside D, Q4, NT-2, W4, and S3; KG1 recirculates through P4 support and never connects to the Terraced Fountain water system.'},
     service:{title:'05 · Resolve service, drainage, and planting',detail:'Three 4m back-of-house spines enter through separate freight gates, end in 12m turning heads, and collect the permanent ride, show, play, and stage yards. The lighthouse and north Boardwalk retain clearly marked pre-opening shared access instead of new roads. D2 stays concealed only to its creek daylight point; the other five catchments terminate in planted detention or controlled outfalls. Shade allées, service screens, and deep-rooted slope bands keep landmark and photography sightlines open.'},
-    creek:{title:'05A · Daylight Coastal Creek',detail:'D2 now emerges southeast of NT-1 and follows a 2.5–4m low-flow channel through an 8–12m planted corridor. Culvert D2 (Christina, 2026-10-16): the upstream keeps its old levels and drops 3.8m in four steps into a plunge pool at the bluff’s foot; the last reach is regraded to shore level, crosses the north end of a 14 × 8m rain pond moved off the Grand Circuit lane, passes under the lane in one culvert as at D5, and runs in a shore notch north of P2 to one controlled waterfront weir and the outfall through the seaward fascia, 1.5m deep there, a grid edit at build time. A 10m Boardwalk bridge keeps B continuous; S2 uses one locked 4m culvert; CB1 and the funhouse garden loop are re-sited round the pond. The corridor remains 7.2m outside NT-1 and the notch 5.0m from the funhouse foundation.'},
+    creek:{title:'05A · Daylight Coastal Creek',detail:'D2 now emerges southeast of NT-1 and follows a 2.5–4m low-flow channel through an 8–12m planted corridor. Culvert D2 (Christina, 2026-10-16): the upstream keeps its old levels and drops 3.8m in four steps into a plunge pool at the bluff’s foot; the last reach is regraded to shore level, crosses the north end of a 14 × 8m rain pond moved off the Grand Circuit lane, passes under the lane in one culvert as at D5, and runs in a shore notch north of P2 to one controlled waterfront weir and the outfall through the seaward fascia, 1.5m deep there, a grid edit at build time. A 10m Boardwalk bridge keeps B continuous; S2 uses one locked 4m culvert; CB1 and the funhouse garden loop are re-sited round the pond. S2’s staff yard is solid and gated (Christina, 2026-10-16: “Make it solid and gate it”): a 1.5m fence with a locked staff gate across its north opening, a locked gate on S2 where it leaves C, a rail along C’s west lobe, the garden fence closed to B’s paving, and B’s and C’s banks solid to the shore west of the bluff face; the holes inside B’s loop are filled. The corridor remains 7.2m outside NT-1 and the notch 5.0m from the funhouse foundation.'},
     qa:{title:'06 · Resolve navigation, sightlines, and reveals',detail:'Routes A–F remain continuous in both directions and J1–J9 retain their full widths. Q1–Q6 now have locked world positions, bearings, primary landmarks, secondary skyline cues, and view cones. Foreground planting stays at or below 1.2m inside every cone; trees frame rather than occupy the axes; opaque roofs, ride bases, queue covers, service yards, and attraction backs stay out. Each night view retains one warm path anchor and one cooler landmark anchor without relying on signage.'},
     mission:{title:'07 · Mission and photography spine',detail:'The Photo Hut at H0 is the shift’s home: briefing, film handoff, closing instructions, night refuge, and development. M1–M7 form one complete day of increasingly demanding photography across every district. SW1–SW5 make the closing sweep a purposeful full-park retrace. N1–N5 invert learned viewpoints and routes for the first flash-enabled night, ending with a physical explanation in the proof frame and one delayed background clue on development.'},
     campaign:{title:'08 · Assignment families and campaign progression',detail:'A1–A6 make the park reusable without turning shifts into repeated errands: people, motion, place, recovery, operations, and evidence each recur in several districts and pay out a different kind of knowledge. C1–C5 advance from daylight Instamatic work through routine mastery, the flash unlock, the accumulating wrong count, and a player-shaped final roll. The Photo Hut remains the start, return, and development point throughout.'},
@@ -4369,6 +4491,41 @@
     }
     pathLine(coastalCreek.notch.guard.p,'creek-guard');
     pathLine(coastalCreek.garden.fence.p,'creek-fence');
+    drawStaffYard(parent,x,y,scale,pathLine);
+  }
+
+  // S2's staff yard solid and gated (Christina, 2026-10-16): B's and C's banks west of the
+  // bluff face drawn solid at their beds' widths, the north fence and its locked staff gate,
+  // S2's locked gate in C's rail, and C's rail along its west lobe.
+  function drawStaffYard(parent,x,y,scale,pathLine) {
+    const Y = coastalCreek.yard;
+    const westOf = (line, x0) => {
+      const runs = []; let run = [];
+      line.forEach((q, i) => {
+        if (i) {
+          const p = line[i - 1];
+          if ((p[0] < x0) !== (q[0] < x0)) {
+            const t = (x0 - p[0]) / (q[0] - p[0]), c = [x0, p[1] + (q[1] - p[1]) * t];
+            run.push(c);
+            if (q[0] >= x0) { runs.push(run); run = []; } else run = [c];
+          }
+        }
+        if (q[0] < x0) run.push(q);
+      });
+      if (run.length > 1) runs.push(run);
+      return runs.filter(r => r.length > 1);
+    };
+    [[routes.B.paths[4], 10.6], [routes.C.paths[0], 9.4]].forEach(([run, bed]) =>
+      westOf(run.p, Y.banks.westOf).forEach(part => pathLine(part,'staff-yard-bank',{
+        'stroke-width':Math.max(4,bed*scale)
+      })));
+    pathLine(Y.fence.p,'creek-fence');
+    const g = Y.fence.gate, [f0, f1] = Y.fence.p, l = Math.hypot(f1[0] - f0[0], f1[1] - f0[1]);
+    const u = [(f1[0] - f0[0]) / l, (f1[1] - f0[1]) / l];
+    pathLine([[g.at[0] - u[0] * g.width / 2, g.at[1] - u[1] * g.width / 2],
+      [g.at[0] + u[0] * g.width / 2, g.at[1] + u[1] * g.width / 2]],'staff-yard-gate');
+    pathLine(Y.s2Gate.p,'staff-yard-gate');
+    Y.rail.world.forEach(piece => pathLine(piece.map(gcAtlas),'creek-guard'));
   }
 
   function drawCoastalCreekCrossings(parent,x,y,scale,pathLine) {

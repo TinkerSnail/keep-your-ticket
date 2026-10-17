@@ -1768,6 +1768,29 @@
    "kind": "values",
    "min_change_m": 0.001,
    "made_by": "ground_grid_edit.py --values"
+  },
+  {
+   "id": "G25",
+   "name": "b_loop_holes_fill",
+   "date": "2026-10-16",
+   "why": "Christina, 2026-10-16, make S2's yard solid and gate it and fill the holes inside B's loop in the same batch: where the shore showed through the land between C, the B/C junction, R4's queue and the land, the ground is raised to 4 cm under the paving beside it (to the land's level where none is near) and may lie over a bank's outer strip; the land is cut to the same only where the fill would bury paving",
+   "tiles": [
+    "x-1_z0"
+   ],
+   "nodes": 86,
+   "new_ground_nodes": 0,
+   "history": "history/G25.npz",
+   "files": [
+    {
+     "tile": "x-1_z0",
+     "nodes": 86,
+     "height_sha_before": "98a0ce5538780abc8bb015898532f83f92190719efb768e8a057a715ae902375",
+     "height_sha_after": "01063df30d3d62d8d7901eebdf8600679bda15bc0cfe978536cc64cd4a7e6b1f"
+    }
+   ],
+   "kind": "values",
+   "min_change_m": 0.001,
+   "made_by": "ground_grid_edit.py --values"
   }
  ]
 }

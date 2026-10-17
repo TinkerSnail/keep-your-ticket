@@ -28,6 +28,12 @@ extends RefCounted
 ##   Christina 2026-10-16: "Approve, commit, build"), metadata `width` in world
 ##   metres; its `loop` and `stem` children hold their courses' Marker3Ds in
 ##   order. The loop's ends are CB1's; the stem leaves route B's south return.
+## - `yard`: S2's staff yard by the Boardwalk station made solid and gated
+##   (Christina, 2026-10-16: "Make it solid and gate it"). `north_fence`: `from`
+##   and `to`, its two ends (the `west_end` and `east_end` markers); `gate`, the
+##   staff gate's centre on it, `gate_width` the distance between its posts in
+##   world metres, and `locked`. `S2_gate`: `posts`, its two gate posts in order
+##   (`post_a`, on the bluff's side, then `post_b`), and `locked`.
 
 const SCENE := "res://scenes/world/fairground_layout.tscn"
 const RECORD := "water/CW-AQ"
@@ -83,6 +89,21 @@ static func records(root: Node3D) -> Dictionary:
 		out["garden"] = {"width": float(garden.get_meta("width")),
 			"loop": _course(garden.get_node("loop"), root),
 			"stem": _course(garden.get_node("stem"), root)}
+	var yard := creek.get_node_or_null("yard") as Node3D
+	if yard != null:
+		var fence := yard.get_node("north_fence") as Node3D
+		var gate := fence.get_node("gate") as Node3D
+		assert(gate != null and gate.has_meta("width"),
+			"the yard's north fence needs its gate marker and width")
+		var s2 := yard.get_node("S2_gate") as Node3D
+		out["yard"] = {
+			"north_fence": {"from": _plan(fence.get_node("west_end"), root),
+				"to": _plan(fence.get_node("east_end"), root),
+				"gate": _plan(gate, root), "gate_width": float(gate.get_meta("width")),
+				"locked": bool(gate.get_meta("locked", true))},
+			"S2_gate": {"posts": [_plan(s2.get_node("post_a"), root),
+				_plan(s2.get_node("post_b"), root)],
+				"locked": bool(s2.get_meta("locked", true))}}
 	return out
 
 

@@ -397,3 +397,35 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -88.75, 0, 60.36)
 
 [node name="p01" type="Marker3D" parent="water/CW-AQ/garden/stem"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -80.63, 0, 60.14)
+
+[node name="yard" type="Node3D" parent="water/CW-AQ"]
+editor_description = "S2's staff yard by the Boardwalk station, made solid and gated (Christina, 2026-10-16: \"Make it solid and gate it\"), editor-owned. north_fence closes the yard's north opening, from the drop's east corner (where the garden fence starts) to the bluff face, under S2, and holds the yard's locked staff gate; S2_gate is the locked staff gate across S2 where it leaves route C, standing in C's rail. tools/gen_props.gd derives the fence, its posts, the gate leaves and their collision from these markers as it does the garden's fence, runs route C's rail along its west lobe from the bluff face to B's guard, open only between S2_gate's posts, and closes the garden fence's south end to B's paving."
+
+[node name="north_fence" type="Node3D" parent="water/CW-AQ/yard"]
+editor_description = "The yard's north fence: a fence like the garden's, 1.5 m on the shore floor, straight from west_end to east_end, with the staff gate at gate. Move the markers to move it."
+
+[node name="west_end" type="Marker3D" parent="water/CW-AQ/yard/north_fence"]
+editor_description = "The north fence's west end, on the drop's east corner where the garden fence starts."
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -66.64, 0, 49.98)
+
+[node name="east_end" type="Marker3D" parent="water/CW-AQ/yard/north_fence"]
+editor_description = "The north fence's east end, a hand into the bluff face (x -58)."
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -57.95, 0, 49.98)
+
+[node name="gate" type="Marker3D" parent="water/CW-AQ/yard/north_fence"]
+editor_description = "The yard's locked staff gate: the marker is the gate's centre on the north fence (it is placed on the line between the fence's ends); width is the distance between its two gate posts' centres, in world metres. It is built as a pair of leaves, closed."
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -62.3, 0, 49.98)
+metadata/width = 3.0
+metadata/locked = true
+
+[node name="S2_gate" type="Node3D" parent="water/CW-AQ/yard"]
+editor_description = "S2's locked staff gate where S2 leaves route C: a pair of leaves, closed, between the gate posts post_a and post_b, standing in C's rail along its west lobe; the rail runs from the bluff face to post_a and from post_b to B's guard. The posts stand on C's rail line at S2's paving edges."
+metadata/locked = true
+
+[node name="post_a" type="Marker3D" parent="water/CW-AQ/yard/S2_gate"]
+editor_description = "S2's gate's east post, where C's rail from the bluff face meets S2's east paving edge."
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -65.488, 0, 68.557)
+
+[node name="post_b" type="Marker3D" parent="water/CW-AQ/yard/S2_gate"]
+editor_description = "S2's gate's west post, where S2's west paving edge meets C's rail on to B's guard."
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -70.816, 0, 70.974)
