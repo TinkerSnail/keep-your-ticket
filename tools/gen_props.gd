@@ -11228,10 +11228,15 @@ func _booth_lights() -> void:
 ## colonnade you walk along, and the shopfronts read as premises rather than as
 ## the sides of a corridor.
 func _street_shop_lights() -> void:
-	var n := 0
-	for pair in [[STREET_WEST, -1.0], [STREET_EAST, 1.0]]:
+	# Each range counts its premises from its own first id, as `_street_frontage`
+	# builds them and `_street_festoons` reads them: the west from 0, the east
+	# from 10. Until 2026-10-16 one count ran on from the west into the east, so
+	# the east was counted from 7: four lamps hung under the retired shops 13 to
+	# 15 and none under shop_16 (the 2026-10-15 re-audit).
+	for pair in [[STREET_WEST, -1.0, 0], [STREET_EAST, 1.0, 10]]:
 		var rows: Array = pair[0]
 		var side: float = pair[1]
+		var n: int = pair[2]
 		var face: float = ST_X + side * ST_HALF
 		for row in rows:
 			if REBUILD_RETIRED_STREET_SHOPS.has(n):
@@ -22483,12 +22488,18 @@ func _rebuild_bed_floor(p: Vector3) -> float:
 ## terrain bands. Its visible shape remains the saved markers; this derived,
 ## slightly wider earth core only closes interpolation cracks beneath it. The
 ## retained depth follows the line's own vertical span plus a half-metre toe.
+## `end_y`, where given, is the level the line's queue lands at its last marker
+## (`_rebuild_court_landing_path`); the bed lands with it, and the record, which
+## the ground formulas read, keeps its own.
 func _rebuild_source_path_bed(nm: String, id: StringName, records: Array,
-		extra_width := REBUILD_BED_MARGIN) -> void:
+		extra_width := REBUILD_BED_MARGIN, end_y := NAN) -> void:
 	for record in records:
 		if StringName(record["id"]) != id:
 			continue
-		var points := _rebuild_resample_path3(record["points"], 2.0)
+		var source: Array = record["points"]
+		if not is_nan(end_y):
+			source = _rebuild_landed(source, end_y)
+		var points := _rebuild_resample_path3(source, 2.0)
 		var low := INF
 		var high := -INF
 		for point_value in points:
@@ -23680,6 +23691,61 @@ func _rebuild_deck_landing_path(nm: String, source: Array, zone: StringName,
 	_rebuild_path(nm, points, width, false, &"")
 
 
+## A court ride's queue (R6, R11) lands on the ground it ends on. Its markers
+## carry the zone's floor, the nearest route's level, and inside the courts that
+## left the queue's end 0.10 to 0.23 m proud of the ground the courts were
+## seated on (G11-G14, 2026-10-15; G27 by R6), a lip the Player could not
+## always walk back up from the court (2026-10-16). So the last marker takes
+## the ground's level (`_rebuild_queue_landing_y`), and along the last leg,
+## every `REBUILD_QUEUE_LANDING_STATION`, the queue stands on the ground where
+## the ground rises above its straight line, so the end is flush and nothing of
+## the queue lies under the ground. The horizontal course stays the markers'.
+const REBUILD_QUEUE_LANDING_STATION := 0.5
+
+
+func _rebuild_court_landing_path(nm: String, source: Array, zone: StringName,
+		width: float, landing_y: float) -> void:
+	if source.size() < 2:
+		return
+	var points: Array[Vector3] = []
+	for source_point in source:
+		var p := Plan.rebuild_expand_point(Vector2(source_point))
+		points.append(_rebuild_site_at(p, zone))
+	var a := points[-2]
+	var b := points[-1]
+	b.y = landing_y
+	points.remove_at(points.size() - 1)
+	var steps := maxi(1, ceili(Vector2(a.x, a.z).distance_to(Vector2(b.x, b.z))
+		/ REBUILD_QUEUE_LANDING_STATION))
+	for k in range(1, steps):
+		var q := a.lerp(b, float(k) / float(steps))
+		var ground := _rebuild_embankment_ground_y(Vector2(q.x, q.z), -1, false, true)
+		if not is_nan(ground) and ground > q.y:
+			q.y = ground
+		points.append(q)
+	points.append(b)
+	_rebuild_path(nm, points, width, false, &"")
+
+
+## The level a court ride's queue ends at: the ground under its last marker,
+## read as the earth the build has emitted there (the grid) before the queue's
+## own bed joins it; the zone's floor where there is none.
+func _rebuild_queue_landing_y(source: Array, zone: StringName) -> float:
+	var end := Plan.rebuild_expand_point(Vector2(source[-1]))
+	var ground := _rebuild_embankment_ground_y(end, -1, false, true)
+	return _rebuild_site_at(end, zone).y if is_nan(ground) else ground
+
+
+## `points` with its last point at `end_y`, for a queue's bed or record that
+## lands with it; the source array is left as it was.
+func _rebuild_landed(points: Array, end_y: float) -> Array:
+	var out := points.duplicate()
+	var last := Vector3(out[-1])
+	last.y = end_y
+	out[-1] = last
+	return out
+
+
 # ---------------------------------------------------------------------------
 # Park rebuild: package 04 program
 # ---------------------------------------------------------------------------
@@ -24270,6 +24336,9 @@ func _rebuild_spinning_tubs(site: Dictionary) -> void:
 		var pod := at + Vector3(cos(a) * 4.1, 0, sin(a) * 4.1)
 		_cyl("R6_tub_%d" % i, pod, Vector3(0, 0.60, 0), 1.25, 1.2,
 			"red" if i % 2 == 0 else "blue", 0.0, 16, false)
+	# The queue ends on the ground G11 graded down to the court, and its bed
+	# lands with it (2026-10-16, `_rebuild_court_landing_path`).
+	var queue_end := _rebuild_queue_landing_y(site["queue"], &"family")
 	# The source crosses the stitched shoulder/T2/outer-highland boundary. Its
 	# ordinary cut-or-fill verge carries most of the run; this narrow retained
 	# core closes sub-metre cracks where three separately triangulated terrains
@@ -24277,7 +24346,7 @@ func _rebuild_spinning_tubs(site: Dictionary) -> void:
 	for record in _family_terrain_paths:
 		if StringName(record["id"]) != &"R6":
 			continue
-		var queue_points: Array = record["points"]
+		var queue_points: Array = _rebuild_landed(record["points"], queue_end)
 		var queue_span := absf(Vector3(queue_points[-1]).y \
 			- Vector3(queue_points[0]).y)
 		_rebuild_retained_bed("bed_R6_queue", queue_points,
@@ -24291,8 +24360,8 @@ func _rebuild_spinning_tubs(site: Dictionary) -> void:
 			queue_start - Vector3.UP * (0.05 + cap_height * 0.5),
 			(float(record["width"]) + REBUILD_BED_MARGIN) * 0.5,
 			cap_height, "brick", 0.0, 20, true)
-	_rebuild_access_path("R6_queue", site["queue"], &"family",
-		float(site.get("queue_width", 2.2)))
+	_rebuild_court_landing_path("R6_queue", site["queue"], &"family",
+		float(site.get("queue_width", 2.2)), queue_end)
 
 
 func _rebuild_carousel_ride(site: Dictionary) -> void:
@@ -24375,6 +24444,8 @@ func _rebuild_outline_ride(site: Dictionary, elevated: bool) -> void:
 			0.28, "wood" if elevated else "blue")
 		if i % 2 == 0:
 			var ground := _rebuild_highland_floor(Vector2(path[i].x, path[i].z))
+			if StringName(site["id"]) in REBUILD_SEATED_SUPPORT_RIDES:
+				ground = _rebuild_seated_support_foot(path[i], ground, 0.18)
 			_strut("%s_support_%02d" % [site["id"], i],
 				Vector3(path[i].x, ground, path[i].z), path[i], 0.18,
 				"wood" if elevated else "metal")
@@ -24407,9 +24478,13 @@ func _rebuild_observation_ride(site: Dictionary) -> void:
 		"yellow", 0.0, 24, false)
 	_cyl("R11_spire", at, Vector3(0, 34.7, 0), 0.13, 12.5,
 		"metal", 0.0, 10, false)
+	# The queue ends on the court's ground, and its bed lands with it
+	# (2026-10-16, `_rebuild_court_landing_path`).
+	var queue_end := _rebuild_queue_landing_y(site["queue"], &"north")
 	_rebuild_source_path_bed("bed_R11_queue", &"R11",
-		_highland_terrain_paths)
-	_rebuild_access_path("R11_queue", site["queue"], &"north", 2.6)
+		_highland_terrain_paths, REBUILD_BED_MARGIN, queue_end)
+	_rebuild_court_landing_path("R11_queue", site["queue"], &"north", 2.6,
+		queue_end)
 
 
 ## R12's Grove terminal stands at its approved level, `R12 WEST` in the
@@ -24468,6 +24543,38 @@ func _approved_level(id: StringName, at: Vector3) -> float:
 	return p.y
 
 
+## The rides whose supports stand on their ground (Christina, 2026-10-16, the
+## 2026-10-15 re-audit's hanging supports): R10's, R13's and R14's. R9's hang
+## the same way and are not yet among them.
+const REBUILD_SEATED_SUPPORT_RIDES := [&"R10", &"R13", &"R14"]
+## How far a seated support's foot reaches into the ground under it.
+const REBUILD_SUPPORT_SEAT_BURY := 0.10
+
+
+## A ride support's foot. The zone's floor function is the nearest route's
+## level, not the ground, so where the ground falls away from the route a
+## support stopped in the air: one of R10's 6.6 m over F's bank (9.4 m over the
+## grid), two of R13's 1.6 and 2.1 m, R14's first 0.08 m. Where any of the ground under the
+## support's footprint lies below that floor, the foot goes to the lowest of it
+## less `REBUILD_SUPPORT_SEAT_BURY`; elsewhere the support is as it was. The
+## ground is what the build has emitted there by now, the grid and the floors
+## laid before the ride; a route's bank laid after it is stood in, not on,
+## which looks the same.
+func _rebuild_seated_support_foot(top: Vector3, floor_y: float,
+		thickness: float) -> float:
+	var lowest := INF
+	var half := thickness * 0.5
+	for d: Vector2 in [Vector2.ZERO, Vector2(half, half), Vector2(-half, half),
+			Vector2(half, -half), Vector2(-half, -half)]:
+		var ground := _rebuild_embankment_ground_y(Vector2(top.x + d.x, top.z + d.y))
+		if is_nan(ground):
+			return floor_y
+		lowest = minf(lowest, ground)
+	if floor_y <= lowest:
+		return floor_y
+	return lowest - REBUILD_SUPPORT_SEAT_BURY
+
+
 func _rebuild_coaster(site: Dictionary, junior: bool) -> void:
 	var station_source: Vector2 = site["station"]
 	var track_anchor_source: Vector2 = site.get("track_anchor", station_source)
@@ -24501,6 +24608,9 @@ func _rebuild_coaster(site: Dictionary, junior: bool) -> void:
 			var p := track[i]
 			var ground := _rebuild_family_floor(Vector2(p.x, p.z)) if junior \
 				else _rebuild_highland_floor(Vector2(p.x, p.z))
+			if StringName(id) in REBUILD_SEATED_SUPPORT_RIDES:
+				ground = _rebuild_seated_support_foot(p, ground,
+					0.20 if junior else 0.28)
 			_strut("%s_support_%02d" % [id, i],
 				Vector3(p.x, ground, p.z), p, 0.20 if junior else 0.28,
 				"metal")
