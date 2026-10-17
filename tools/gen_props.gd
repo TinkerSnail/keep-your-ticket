@@ -789,6 +789,10 @@ func _initialize() -> void:
 		_root = scene[0]
 		_seam_ordinal = scene[2]
 		_rebuild_flush_embankments(_root)
+		# R4's queue railed over the B/C junction (Christina, 2026-10-17), after
+		# the program's banks, so no established shape's seam ordinal moves.
+		if String(_root.name) == "park_program":
+			_rebuild_r4_queue_rail()
 		# D2's culvert, weir and pond garden loop (Christina, 2026-10-16), after
 		# the landscape's banks, so no established shape's seam ordinal moves.
 		# The landscape is saved once the lane's banks stand, so a tree over one
@@ -21452,6 +21456,22 @@ func _rebuild_path(nm: String, points: Array, width: float, closed: bool,
 		_embank_queue.append({"nm": nm, "points": points, "width": width,
 			"closed": closed, "owner": ribbon_owner, "scene": _root,
 			"width_at": width_at})
+	# The B/C junction rebuilt flush (2026-10-17): the shared floor and C build
+	# their own ribbons and colliders on the junction's surface.
+	if nm == "junction_bc_shared_floor":
+		body.set_meta("points", _rebuild_bc_flush_floor(body, points, width, visual_lift))
+		return
+	if nm == "route_c_coastal_loop":
+		var c_visual := MeshInstance3D.new()
+		c_visual.name = "surface"
+		c_visual.mesh = _rebuild_bc_flush_c_mesh(points, width, visual_lift)
+		c_visual.material_override = mats["asphalt"]
+		c_visual.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		body.add_child(c_visual)
+		c_visual.owner = _root
+		if collide:
+			_rebuild_bc_flush_c_collision(body, points, width, _rebuild_path_owner_exclusions(nm))
+		return
 	var visual := MeshInstance3D.new()
 	visual.name = "surface"
 	visual.mesh = _rebuild_path_mesh(points, width, closed, visual_lift, width_at)
@@ -21542,13 +21562,9 @@ func _rebuild_path_collision_prisms(body: StaticBody3D, points: Array,
 func _rebuild_path_owner_exclusions(nm: String) -> Array:
 	var exclusions := []
 	if nm == "route_c_coastal_loop":
-		var junction := _rebuild_bc_junction_floor()
-		exclusions.append({"points": junction["points"],
-			"width": float(junction["width"]), "square_caps": true,
-			# The exclusion tests the branch centreline, while physical support
-			# must cover its complete four-metre half-width. Resume each branch
-			# with half a metre of shared floor still beneath its outside edge.
-			"clearance": -4.0})
+		# Since the junction was rebuilt flush (2026-10-17) C yields to the shared
+		# floor by station, from where its centre comes down to the junction's
+		# surface to where it has left the floor (`_rebuild_bc_flush_c_collision`).
 		# At named J6, away from the widened interior merge, B remains the sole
 		# physical owner. This keeps that exact endpoint free of duplicate planes.
 		for run in Plan.rebuild_build_runs():
@@ -21731,11 +21747,26 @@ func _rebuild_path_edges(points: Array, width: float, closed: bool,
 ## stone keeps its shadow line.
 func _rebuild_retained_bed(nm: String, points: Array, width: float,
 		closed: bool, collide := false, floor_drop := INF,
-		flush_collision := false) -> void:
+		flush_collision := false, height_at := Callable(), drop := 0.035,
+		across := 1) -> void:
 	var edges := _rebuild_path_edges(points, width, closed)
 	var left: PackedVector3Array = edges["left"]
 	var right: PackedVector3Array = edges["right"]
-	var mesh := _rebuild_retained_bed_mesh(left, right, 0.035, floor_drop)
+	# A bed on a surface its route does not lay level across (the B/C junction,
+	# 2026-10-17): its edges on that surface where `height_at` gives one.
+	if height_at.is_valid():
+		for i in left.size():
+			for side in 2:
+				var v: Vector3 = left[i] if side == 0 else right[i]
+				var y: float = height_at.call(Vector2(v.x, v.z))
+				if is_nan(y):
+					continue
+				v.y = y
+				if side == 0:
+					left[i] = v
+				else:
+					right[i] = v
+	var mesh := _rebuild_retained_bed_mesh(left, right, drop, floor_drop, height_at, across)
 	var body := _rebuild_mesh_body_of("brick", nm, mesh, collide and not flush_collision)
 	if collide and flush_collision:
 		var shape := CollisionShape3D.new()
@@ -21783,7 +21814,7 @@ func _rebuild_retained_bed(nm: String, points: Array, width: float,
 		# bluff face B's, C's, their junction's and S2's banks are solid too.
 		var owner := _yard_bank_owner(nm)
 		if owner != &"":
-			var bank := _yard_bank_collision(owner, left, right, closed)
+			var bank := _yard_bank_collision(owner, left, right, closed, height_at)
 			if bank.get_surface_count() > 0:
 				var bank_shape := CollisionShape3D.new()
 				bank_shape.name = "bank"
@@ -22009,7 +22040,8 @@ func _rebuild_cut_rim_piece(walls: SurfaceTool, rim: SurfaceTool, a: Dictionary,
 
 
 func _rebuild_retained_bed_mesh(left: PackedVector3Array,
-		right: PackedVector3Array, drop: float, floor_drop: float) -> ArrayMesh:
+		right: PackedVector3Array, drop: float, floor_drop: float,
+		height_at := Callable(), across := 1) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_smooth_group(0)
@@ -22018,12 +22050,40 @@ func _rebuild_retained_bed_mesh(left: PackedVector3Array,
 		var r0 := right[i] - Vector3.UP * drop
 		var l1 := left[i + 1] - Vector3.UP * drop
 		var r1 := right[i + 1] - Vector3.UP * drop
-		_earth_oriented_tri(st, l0, Vector2(l0.x, l0.z) * 0.3,
-			l1, Vector2(l1.x, l1.z) * 0.3,
-			r0, Vector2(r0.x, r0.z) * 0.3, Vector3.UP)
-		_earth_oriented_tri(st, r0, Vector2(r0.x, r0.z) * 0.3,
-			l1, Vector2(l1.x, l1.z) * 0.3,
-			r1, Vector2(r1.x, r1.z) * 0.3, Vector3.UP)
+		# On a surface not level across (2026-10-17) the top is cut across and
+		# follows it, where `height_at` gives it at either end.
+		var follows := across > 1 and height_at.is_valid() and (
+			not is_nan(float(height_at.call(Vector2(left[i].x, left[i].z))))
+			or not is_nan(float(height_at.call(Vector2(left[i + 1].x, left[i + 1].z)))))
+		if follows:
+			var rows: Array = []
+			for at in [i, i + 1]:
+				var row := PackedVector3Array()
+				for k in across + 1:
+					var v := left[at].lerp(right[at], float(k) / float(across))
+					var y: float = height_at.call(Vector2(v.x, v.z))
+					if not is_nan(y):
+						v.y = y
+					row.append(v - Vector3.UP * drop)
+				rows.append(row)
+			for k in across:
+				var a: Vector3 = rows[0][k]
+				var b: Vector3 = rows[0][k + 1]
+				var c: Vector3 = rows[1][k]
+				var d: Vector3 = rows[1][k + 1]
+				_earth_oriented_tri(st, a, Vector2(a.x, a.z) * 0.3,
+					c, Vector2(c.x, c.z) * 0.3,
+					b, Vector2(b.x, b.z) * 0.3, Vector3.UP)
+				_earth_oriented_tri(st, b, Vector2(b.x, b.z) * 0.3,
+					c, Vector2(c.x, c.z) * 0.3,
+					d, Vector2(d.x, d.z) * 0.3, Vector3.UP)
+		else:
+			_earth_oriented_tri(st, l0, Vector2(l0.x, l0.z) * 0.3,
+				l1, Vector2(l1.x, l1.z) * 0.3,
+				r0, Vector2(r0.x, r0.z) * 0.3, Vector3.UP)
+			_earth_oriented_tri(st, r0, Vector2(r0.x, r0.z) * 0.3,
+				l1, Vector2(l1.x, l1.z) * 0.3,
+				r1, Vector2(r1.x, r1.z) * 0.3, Vector3.UP)
 
 		var lb0 := Vector3(l0.x, _rebuild_bed_floor(l0), l0.z)
 		var lb1 := Vector3(l1.x, _rebuild_bed_floor(l1), l1.z)
@@ -22679,10 +22739,16 @@ func _rebuild_district_routes() -> void:
 		# opening; the route is never a loose ribbon over a void.
 		if StringName(run["route"]) == &"C":
 			var section_index := 0
+			# The coastal loop's bed follows its built surface by the junction
+			# (2026-10-17), at the collider's stations there.
+			var flush := id == &"c_coastal_loop"
 			for section in _rebuild_below_lowland_sections(points):
 				_rebuild_retained_bed("bed_%s_%d" % [run["id"], section_index],
-					section, float(run["width"]) + REBUILD_BED_MARGIN, false,
-					true, INF, true)
+					_bc_flush_c_bed_points(section) if flush else section,
+					float(run["width"]) + REBUILD_BED_MARGIN, false,
+					true, INF, true,
+					Callable(self, "_bc_flush_c_bed_y") if flush else Callable(),
+					0.035, BC_FLUSH_C_ACROSS if flush else 1)
 				section_index += 1
 		# E's J9 approach and F's terrace link are visibly two map lines but
 		# spatially one broad fork: their full walking envelopes overlap from
@@ -22696,8 +22762,11 @@ func _rebuild_district_routes() -> void:
 	# collider cover the union of both complete walking envelopes; the two route
 	# ribbons remain visible as wayfinding but yield physical ownership here.
 	var bc_floor := _rebuild_bc_junction_floor()
-	_rebuild_retained_bed("bed_junction_bc_shared", bc_floor["points"],
-		float(bc_floor["width"]) + REBUILD_BED_MARGIN, false, true, INF, true)
+	# On the junction's surface since 2026-10-17, a centimetre under B's bed.
+	_rebuild_retained_bed("bed_junction_bc_shared",
+		_rebuild_resample_path3(bc_floor["points"], REBUILD_COLLISION_PATH_CHORD),
+		float(bc_floor["width"]) + REBUILD_BED_MARGIN, false, true, INF, true,
+		Callable(self, "_bc_flush_floor_y"), BC_FLUSH_FLOOR_BED_DROP, BC_FLUSH_ACROSS)
 	_rebuild_path("junction_bc_shared_floor", bc_floor["points"],
 		float(bc_floor["width"]), false, &"")
 
@@ -23142,6 +23211,923 @@ func _rebuild_bc_junction_floor() -> Dictionary:
 		"the B/C overlap has widened beyond a junction: %.2fm" % width)
 	_rebuild_bc_floor_cache = {"points": points, "width": width}
 	return _rebuild_bc_floor_cache
+
+
+# ---------------------------------------------------------------------------
+# The B/C junction rebuilt flush (2026-10-17)
+# ---------------------------------------------------------------------------
+
+## Christina, 2026-10-17: "Rail it, rebuild flush". C comes off the bluff at its
+## 10% limit and meets B's 9.92% climb to p04 at the Boardwalk station. Both are
+## level across and cross at 19 to 27 degrees, so wherever they overlapped their
+## edges disagreed by 0.1 to 0.2 m, and where C's west edge first ran onto B's
+## east edge (z 90.5) C stood 1.13 m over B. The junction is rebuilt to B's own
+## slope across its width, with the cross-fall Christina accepted (up to about
+## 4.5%):
+## - the junction's surface (`_bc_flush_j`) is B's own top where B's prisms hold
+##   a point, and elsewhere B's level lines carried across from the nearest of
+##   B's stations. Where two of B's legs claim a point with different heights
+##   (the inside of a bend), where B's top meets the carried lines with a seam,
+##   or where B's folded corner at p06 stands over its own lower leg, the
+##   surface is relaxed (Laplace) so it stays continuous, never below B's top;
+## - C keeps its course and its profile. Over `BC_FLUSH_TWIST` before the
+##   station where its centre comes down to the surface it gains the surface's
+##   cross-fall about its own centre (a twist), so that at that station it lies
+##   on the surface across its whole width. From there its collider yields to
+##   the floor until it has left the floor's footprint, and over the next
+##   `BC_FLUSH_TWIST` it eases back to its own level;
+## - the shared floor keeps its footprint. Every vertex lies on the surface,
+##   except north of C's twist's last cross-section, where the floor carries
+##   C's twisting approach across to its east edge, and a cell is raised
+##   wherever B's own top stands over it, so B never shows through;
+## - C's west edge, where it stands over B north of that station, is railed from
+##   the end of C's west-lobe rail and B's east guard, on C's paving
+##   (`_rebuild_bc_flush_c_west_rail`).
+## B's grade and course, C's course and p04's level do not change.
+const BC_FLUSH_CLAIM := 12.0
+## The surface's raster step, and the relaxation round what it smooths.
+const BC_FLUSH_CELL := 0.5
+const BC_FLUSH_GROW := 4
+const BC_FLUSH_PASSES := 300
+const BC_FLUSH_OMEGA := 1.9
+## A jump between raster neighbours larger than any grade gives (B's own fold),
+## and a seam where B's top meets the carried lines, are smoothed.
+const BC_FLUSH_STEP := 0.08
+const BC_FLUSH_SEAM := 0.01
+## The floor's cells across its width and C's across its own where it twists.
+const BC_FLUSH_ACROSS := 24
+const BC_FLUSH_C_ACROSS := 8
+const BC_FLUSH_TWIST := 4.0
+## Bed tops under the surface: the floor's a centimetre under B's (0.035), C's a
+## centimetre under the floor's where it yields, so no two share a plane.
+const BC_FLUSH_FLOOR_BED_DROP := 0.045
+const BC_FLUSH_C_BED_SINK := 0.02
+## C's ribbon where it yields to the floor: kept under the floor's and B's.
+const BC_FLUSH_C_HIDE := 0.012
+## C's west rail stands this far inside C's paving edge, on C.
+const BC_FLUSH_RAIL_INSET := 0.15
+## A bed's flush shoulder on the surface starts this far inside the paving's
+## edge and this far under the surface, so the paving stays on top.
+const BC_FLUSH_SHOULDER_LAP := 0.05
+## The floor's cells within this of C's crease, and this far along it from C's
+## centre, are cut this much finer.
+const BC_FLUSH_CREASE_REACH := 1.5
+const BC_FLUSH_CREASE_SPAN := 14.0
+const BC_FLUSH_CREASE_CUT := 4
+const BC_FLUSH_SHOULDER_SINK := 0.003
+
+var _bc_flush_b := {}
+var _bc_flush_r := {}
+var _bc_flush_c := {}
+
+
+## B's south return as its collider is built: the resampled stations, their
+## level cross-sections and the convex prisms between, bucketed in plan.
+func _bc_flush_b_geo() -> Dictionary:
+	if not _bc_flush_b.is_empty():
+		return _bc_flush_b
+	var b_points: Array = []
+	var b_width := 8.0
+	for run in Plan.rebuild_build_runs():
+		if StringName(run["id"]) == &"b_south_return":
+			b_points = run["points"]
+			b_width = float(run["width"])
+	assert(not b_points.is_empty(), "the flush junction found no B")
+	var cp: Array[Vector3] = _rebuild_resample_path3(b_points, REBUILD_COLLISION_PATH_CHORD)
+	var edges := _rebuild_path_edges(cp, b_width, false)
+	var left: PackedVector3Array = edges["left"]
+	var right: PackedVector3Array = edges["right"]
+	var c := PackedVector2Array()
+	var y := PackedFloat32Array()
+	var n := PackedVector2Array()
+	for i in cp.size():
+		c.append(Vector2(cp[i].x, cp[i].z))
+		y.append(cp[i].y)
+	for i in cp.size():
+		var d := Vector2(right[i].x - left[i].x, right[i].z - left[i].z).normalized()
+		var nn := Vector2(-d.y, d.x)
+		var j := mini(i, cp.size() - 2)
+		if nn.dot(c[j + 1] - c[j]) < 0.0:
+			nn = -nn
+		n.append(nn)
+	var quads: Array = []
+	var buckets := {}
+	for i in cp.size() - 1:
+		var q: Array[Vector3] = [left[i], right[i], left[i + 1], right[i + 1]]
+		quads.append(q)
+		var lo := Vector2(INF, INF)
+		var hi := Vector2(-INF, -INF)
+		for v in q:
+			lo = Vector2(minf(lo.x, v.x), minf(lo.y, v.z))
+			hi = Vector2(maxf(hi.x, v.x), maxf(hi.y, v.z))
+		for bx in range(floori(lo.x / 4.0), floori(hi.x / 4.0) + 1):
+			for bz in range(floori(lo.y / 4.0), floori(hi.y / 4.0) + 1):
+				var key := Vector2i(bx, bz)
+				if not buckets.has(key):
+					buckets[key] = []
+				buckets[key].append(i)
+	_bc_flush_b = {"c": c, "y": y, "n": n, "quads": quads, "buckets": buckets,
+		"points": b_points}
+	return _bc_flush_b
+
+
+## The height of a triangle over plan point `p`, or NAN outside it.
+func _bc_flush_tri_y(a: Vector3, b: Vector3, c: Vector3, p: Vector2) -> float:
+	var d := (b.z - c.z) * (a.x - c.x) + (c.x - b.x) * (a.z - c.z)
+	if absf(d) < 0.000000000001:
+		return NAN
+	var l1 := ((b.z - c.z) * (p.x - c.x) + (c.x - b.x) * (p.y - c.z)) / d
+	var l2 := ((c.z - a.z) * (p.x - c.x) + (a.x - c.x) * (p.y - c.z)) / d
+	var l3 := 1.0 - l1 - l2
+	if minf(l1, minf(l2, l3)) < -0.000000001:
+		return NAN
+	return l1 * a.y + l2 * b.y + l3 * c.y
+
+
+## The top of a convex prism over four corners (l0, r0, l1, r1) at `p`: the
+## higher of its two triangulations, as the hull's top is. NAN outside it.
+func _bc_flush_quad_top(q: Array, p: Vector2) -> float:
+	var best := NAN
+	for tri in [[0, 1, 2], [1, 3, 2], [0, 1, 3], [0, 3, 2]]:
+		var h := _bc_flush_tri_y(q[tri[0]], q[tri[1]], q[tri[2]], p)
+		if not is_nan(h) and (is_nan(best) or h > best):
+			best = h
+	return best
+
+
+## B's own collider's top over `p`, or NAN where none of its prisms is.
+func _bc_flush_b_top(p: Vector2) -> float:
+	var g := _bc_flush_b_geo()
+	var key := Vector2i(floori(p.x / 4.0), floori(p.y / 4.0))
+	var best := NAN
+	var quads: Array = g["quads"]
+	for i in (g["buckets"] as Dictionary).get(key, []):
+		var h := _bc_flush_quad_top(quads[int(i)], p)
+		if not is_nan(h) and (is_nan(best) or h > best):
+			best = h
+	return best
+
+
+## The junction's surface on a plan raster round the shared floor (its
+## footprint and `BC_FLUSH_CLAIM` round it): B's own top, B's level lines
+## carried across, and the relaxation where those disagree.
+func _bc_flush_raster() -> Dictionary:
+	if not _bc_flush_r.is_empty():
+		return _bc_flush_r
+	var g := _bc_flush_b_geo()
+	var bc := _rebuild_bc_junction_floor()
+	var fe := _rebuild_path_edges(bc["points"], float(bc["width"]), false)
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	for side in ["left", "right"]:
+		for v in (fe[side] as PackedVector3Array):
+			lo = Vector2(minf(lo.x, v.x), minf(lo.y, v.z))
+			hi = Vector2(maxf(hi.x, v.x), maxf(hi.y, v.z))
+	var h := BC_FLUSH_CELL
+	var x0 := floorf((lo.x - BC_FLUSH_CLAIM) / h) * h
+	var z0 := floorf((lo.y - BC_FLUSH_CLAIM) / h) * h
+	var nx := int(round((ceilf((hi.x + BC_FLUSH_CLAIM) / h) * h - x0) / h)) + 1
+	var nz := int(round((ceilf((hi.y + BC_FLUSH_CLAIM) / h) * h - z0) / h)) + 1
+	var count := nx * nz
+	var v_ := PackedFloat32Array()
+	v_.resize(count)
+	var known := PackedByteArray()
+	known.resize(count)
+	var in_b := PackedByteArray()
+	in_b.resize(count)
+	var amb := PackedByteArray()
+	amb.resize(count)
+	var c: PackedVector2Array = g["c"]
+	var y: PackedFloat32Array = g["y"]
+	var n: PackedVector2Array = g["n"]
+	for j in nz:
+		for i in nx:
+			var k := j * nx + i
+			var p := Vector2(x0 + i * h, z0 + j * h)
+			var b := _bc_flush_b_top(p)
+			if not is_nan(b):
+				v_[k] = b
+				known[k] = 1
+				in_b[k] = 1
+				continue
+			var best_d := INF
+			var best_v := 0.0
+			var vlo := INF
+			var vhi := -INF
+			var claims := 0
+			var near_d := INF
+			var near_v := 0.0
+			for s in c.size() - 1:
+				var a := c[s]
+				var ab := c[s + 1] - a
+				var t := clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.000000001), 0.0, 1.0)
+				var dist := p.distance_to(a + ab * t)
+				if dist < near_d:
+					near_d = dist
+					near_v = lerpf(y[s], y[s + 1], t)
+				if dist > BC_FLUSH_CLAIM:
+					continue
+				var sa := (p - c[s]).dot(n[s])
+				var sb := (p - c[s + 1]).dot(n[s + 1])
+				if sa < -0.000000001 or sb > 0.000000001:
+					continue
+				var u := sa / (sa - sb) if sa - sb > 0.000000000001 else 0.0
+				var val := y[s] + u * (y[s + 1] - y[s])
+				claims += 1
+				vlo = minf(vlo, val)
+				vhi = maxf(vhi, val)
+				if dist < best_d:
+					best_d = dist
+					best_v = val
+			if claims == 0:
+				if near_d > 2.5 * BC_FLUSH_CLAIM:
+					continue
+				v_[k] = near_v
+				known[k] = 1
+				amb[k] = 1
+				continue
+			v_[k] = best_v
+			known[k] = 1
+			if vhi - vlo > 0.002:
+				amb[k] = 1
+	# Seams where B's top meets the carried lines; B's own steps.
+	var step := PackedByteArray()
+	step.resize(count)
+	for j in nz:
+		for i in nx:
+			var k := j * nx + i
+			for dd in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+				var ii: int = i + dd.x
+				var jj: int = j + dd.y
+				if ii < 0 or jj < 0 or ii >= nx or jj >= nz:
+					continue
+				var m := jj * nx + ii
+				if in_b[k] == 1 and in_b[m] == 0 and known[m] == 1 \
+						and absf(v_[k] - v_[m]) > BC_FLUSH_SEAM:
+					amb[m] = 1
+				if (dd.x > 0 or dd.y > 0) and known[k] == 1 and known[m] == 1 \
+						and absf(v_[k] - v_[m]) > BC_FLUSH_STEP:
+					step[k] = 1
+					step[m] = 1
+	var outside := PackedByteArray()
+	outside.resize(count)
+	for k in count:
+		outside[k] = 1 if amb[k] == 1 and in_b[k] == 0 else 0
+	var grown_out := _bc_flush_grow(outside, nx, nz, BC_FLUSH_GROW)
+	var grown_step := _bc_flush_grow(step, nx, nz, BC_FLUSH_GROW)
+	var free := PackedByteArray()
+	free.resize(count)
+	for k in count:
+		free[k] = 1 if (grown_out[k] == 1 and in_b[k] == 0) or grown_step[k] == 1 else 0
+	var top := v_.duplicate()
+	# Free nodes with no value take their known neighbours'.
+	for pass_ in 64:
+		var changed := false
+		for j in nz:
+			for i in nx:
+				var k := j * nx + i
+				if free[k] == 0 or known[k] == 1:
+					continue
+				var sum := 0.0
+				var cnt := 0
+				for dd in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+					var ii: int = i + dd.x
+					var jj: int = j + dd.y
+					if ii < 0 or jj < 0 or ii >= nx or jj >= nz or known[jj * nx + ii] == 0:
+						continue
+					sum += v_[jj * nx + ii]
+					cnt += 1
+				if cnt > 0:
+					v_[k] = sum / float(cnt)
+					known[k] = 1
+					changed = true
+		if not changed:
+			break
+	var order := PackedInt32Array()
+	for k in count:
+		if free[k] == 1 and known[k] == 1:
+			order.append(k)
+	for pass_ in BC_FLUSH_PASSES:
+		for k in order:
+			var i := k % nx
+			var j := k / nx
+			var sum := 0.0
+			var cnt := 0
+			if i > 0 and known[k - 1] == 1:
+				sum += v_[k - 1]
+				cnt += 1
+			if i < nx - 1 and known[k + 1] == 1:
+				sum += v_[k + 1]
+				cnt += 1
+			if j > 0 and known[k - nx] == 1:
+				sum += v_[k - nx]
+				cnt += 1
+			if j < nz - 1 and known[k + nx] == 1:
+				sum += v_[k + nx]
+				cnt += 1
+			if cnt == 0:
+				continue
+			var nv := v_[k] + BC_FLUSH_OMEGA * (sum / float(cnt) - v_[k])
+			if in_b[k] == 1:
+				nv = maxf(nv, top[k])
+			v_[k] = nv
+	_bc_flush_r = {"x0": x0, "z0": z0, "nx": nx, "nz": nz, "h": h, "v": v_, "known": known}
+	var relaxed := 0
+	for k in count:
+		relaxed += free[k]
+	print("bc flush: the junction's surface on a %d x %d raster from (%.1f, %.1f), %d nodes relaxed" % [
+		nx, nz, x0, z0, relaxed])
+	return _bc_flush_r
+
+
+## A mask grown by `steps` raster neighbours.
+func _bc_flush_grow(mask: PackedByteArray, nx: int, nz: int, steps: int) -> PackedByteArray:
+	var m := mask.duplicate()
+	for s in steps:
+		var g := m.duplicate()
+		for j in nz:
+			for i in nx:
+				var k := j * nx + i
+				if m[k] == 0:
+					continue
+				if i > 0:
+					g[k - 1] = 1
+				if i < nx - 1:
+					g[k + 1] = 1
+				if j > 0:
+					g[k - nx] = 1
+				if j < nz - 1:
+					g[k + nx] = 1
+		m = g
+	return m
+
+
+## The junction's surface at plan point `p` (bilinear on the raster).
+func _bc_flush_j(p: Vector2) -> float:
+	var r := _bc_flush_raster()
+	var h: float = r["h"]
+	var nx: int = r["nx"]
+	var nz: int = r["nz"]
+	var v_: PackedFloat32Array = r["v"]
+	var known: PackedByteArray = r["known"]
+	var fi := (p.x - float(r["x0"])) / h
+	var fj := (p.y - float(r["z0"])) / h
+	var i := clampi(floori(fi), 0, nx - 2)
+	var j := clampi(floori(fj), 0, nz - 2)
+	var u := clampf(fi - i, 0.0, 1.0)
+	var w := clampf(fj - j, 0.0, 1.0)
+	var ks := [j * nx + i, j * nx + i + 1, (j + 1) * nx + i, (j + 1) * nx + i + 1]
+	var ws := [(1.0 - u) * (1.0 - w), u * (1.0 - w), (1.0 - u) * w, u * w]
+	var sum := 0.0
+	var wsum := 0.0
+	for q in 4:
+		if known[ks[q]] == 1:
+			sum += v_[ks[q]] * float(ws[q])
+			wsum += float(ws[q])
+	if wsum <= 0.0:
+		return _rebuild_polyline_height(_bc_flush_b_geo()["points"], p)
+	return sum / wsum
+
+
+## C's graded loop as its collider is built, its stations' arc lengths, level
+## cross-sections and the stations of its twist (`S_A` to `S_B`), its yield to
+## the floor (`S_B` to `S_C`) and its easing back (`S_C` to `S_D`).
+func _bc_flush_c_geo() -> Dictionary:
+	if not _bc_flush_c.is_empty():
+		return _bc_flush_c
+	var pts := _yard_c_points()
+	var cp: Array[Vector3] = _rebuild_resample_path3(pts, REBUILD_COLLISION_PATH_CHORD)
+	var edges := _rebuild_path_edges(cp, REBUILD_YARD_C_W, true)
+	var left: PackedVector3Array = edges["left"]
+	var right: PackedVector3Array = edges["right"]
+	var s := PackedFloat32Array([0.0])
+	for i in range(1, cp.size()):
+		s.append(s[i - 1] + Vector2(cp[i].x, cp[i].z).distance_to(Vector2(cp[i - 1].x, cp[i - 1].z)))
+	var c := PackedVector2Array()
+	var n := PackedVector2Array()
+	for i in cp.size():
+		c.append(Vector2(cp[i].x, cp[i].z))
+	for i in cp.size():
+		var d := Vector2(right[i].x - left[i].x, right[i].z - left[i].z).normalized()
+		var nn := Vector2(-d.y, d.x)
+		var j := mini(i, cp.size() - 2)
+		if nn.dot(c[j + 1] - c[j]) < 0.0:
+			nn = -nn
+		n.append(nn)
+	_bc_flush_c = {"cp": cp, "s": s, "c": c, "n": n, "left": left, "right": right}
+	# Where C's centre comes down to the surface: the first station near B, past
+	# J6's own start, where it has, found to the centimetre between stations.
+	var bc := _rebuild_bc_junction_floor()
+	var f0 := Vector3(bc["points"][0])
+	var s_mid := 0.0
+	var d_mid := INF
+	for i in cp.size():
+		var dd := c[i].distance_to(Vector2(f0.x, f0.z))
+		if dd < d_mid:
+			d_mid = dd
+			s_mid = s[i]
+	var hit := -1
+	for i in range(1, cp.size()):
+		if s[i] < s_mid - 15.0 or s[i] > s_mid + 15.0:
+			continue
+		if hit < 0 and s[i - 1] >= s_mid - 15.0 and _bc_flush_c_gap(s[i - 1]) <= 0.0:
+			break
+		if _bc_flush_c_gap(s[i]) <= 0.0:
+			hit = i
+			break
+	assert(hit > 0, "the flush junction found no station where C comes down to the junction's surface")
+	var lo := s[hit - 1]
+	var hi := s[hit]
+	for k in 40:
+		var mid := (lo + hi) * 0.5
+		if _bc_flush_c_gap(mid) > 0.0:
+			lo = mid
+		else:
+			hi = mid
+	var s_b := (lo + hi) * 0.5
+	# Where C has left the floor's footprint, its centre and both edges.
+	var fe := _rebuild_path_edges(bc["points"], float(bc["width"]), false)
+	var poly := PackedVector2Array()
+	for v in (fe["left"] as PackedVector3Array):
+		poly.append(Vector2(v.x, v.z))
+	var fr: PackedVector3Array = fe["right"]
+	for k in range(fr.size() - 1, -1, -1):
+		poly.append(Vector2(fr[k].x, fr[k].z))
+	var s_c := -1.0
+	for i in cp.size():
+		if s[i] <= s_b + 10.0:
+			continue
+		if not Geometry2D.is_point_in_polygon(c[i], poly) \
+				and not Geometry2D.is_point_in_polygon(Vector2(left[i].x, left[i].z), poly) \
+				and not Geometry2D.is_point_in_polygon(Vector2(right[i].x, right[i].z), poly):
+			s_c = s[i]
+			break
+	assert(s_c > 0.0, "the flush junction found C never leaving the floor")
+	_bc_flush_c["s_a"] = s_b - BC_FLUSH_TWIST
+	_bc_flush_c["s_b"] = s_b
+	_bc_flush_c["s_c"] = s_c
+	_bc_flush_c["s_d"] = s_c + BC_FLUSH_TWIST
+	print("bc flush: C twists from s %.2f to %.2f, where its centre comes down to the surface, yields to the floor to s %.2f and eases back by s %.2f" % [
+		s_b - BC_FLUSH_TWIST, s_b, s_c, s_c + BC_FLUSH_TWIST])
+	return _bc_flush_c
+
+
+## C's graded centre at arc length `s`, between its resampled stations.
+func _bc_flush_c_at(s: float) -> Vector3:
+	var geo := _bc_flush_c
+	var sv: PackedFloat32Array = geo["s"]
+	var cp: Array = geo["cp"]
+	var i := clampi(sv.bsearch(s, true) - 1, 0, sv.size() - 2)
+	var t := clampf((s - sv[i]) / maxf(sv[i + 1] - sv[i], 0.000000001), 0.0, 1.0)
+	return Vector3(cp[i]).lerp(Vector3(cp[i + 1]), t)
+
+
+func _bc_flush_c_gap(s: float) -> float:
+	var c := _bc_flush_c_at(s)
+	return c.y - _bc_flush_j(Vector2(c.x, c.z))
+
+
+## How much of the surface's cross-fall C has taken at `s`, and how much of
+## its level.
+func _bc_flush_c_w(s: float) -> float:
+	var geo := _bc_flush_c_geo()
+	var s_a: float = geo["s_a"]
+	var s_b: float = geo["s_b"]
+	var s_c: float = geo["s_c"]
+	var s_d: float = geo["s_d"]
+	if s <= s_a or s >= s_d:
+		return 0.0
+	if s < s_b:
+		return (s - s_a) / (s_b - s_a)
+	if s <= s_c:
+		return 1.0
+	return (s_d - s) / (s_d - s_c)
+
+
+func _bc_flush_c_level(s: float) -> float:
+	return 0.0 if s < float(_bc_flush_c_geo()["s_b"]) else _bc_flush_c_w(s)
+
+
+## C's built surface at station `s` and plan point `p` on its cross-section
+## there (or beyond it, along it).
+func _bc_flush_c_y(s: float, p: Vector2) -> float:
+	var c := _bc_flush_c_at(s)
+	var w := _bc_flush_c_w(s)
+	if w <= 0.0:
+		return c.y
+	var jc := _bc_flush_j(Vector2(c.x, c.z))
+	return c.y + w * (_bc_flush_j(p) - jc) + _bc_flush_c_level(s) * (jc - c.y)
+
+
+## The station of C whose cross-section passes through `p`, between `s_lo`
+## and `s_hi`, or NAN.
+func _bc_flush_c_station(p: Vector2, s_lo: float, s_hi: float) -> float:
+	var geo := _bc_flush_c_geo()
+	var sv: PackedFloat32Array = geo["s"]
+	var c: PackedVector2Array = geo["c"]
+	var n: PackedVector2Array = geo["n"]
+	var i0 := clampi(sv.bsearch(s_lo, true) - 1, 0, sv.size() - 2)
+	var i1 := clampi(sv.bsearch(s_hi, true) + 1, 0, sv.size() - 2)
+	var best_d := INF
+	var best_s := NAN
+	for i in range(i0, i1 + 1):
+		var sa := (p - c[i]).dot(n[i])
+		var sb := (p - c[i + 1]).dot(n[i + 1])
+		if sa < -0.000000001 or sb > 0.000000001:
+			continue
+		var u := sa / (sa - sb) if sa - sb > 0.000000000001 else 0.0
+		var ab := c[i + 1] - c[i]
+		var t := clampf((p - c[i]).dot(ab) / maxf(ab.length_squared(), 0.000000001), 0.0, 1.0)
+		var dist := p.distance_to(c[i] + ab * t)
+		if dist < best_d:
+			best_d = dist
+			best_s = sv[i] + u * (sv[i + 1] - sv[i])
+	return best_s
+
+
+## The shared floor's surface: the junction's, except north of C's twist's last
+## cross-section, where it carries C's twisting approach across.
+func _bc_flush_floor_y(p: Vector2) -> float:
+	var geo := _bc_flush_c_geo()
+	var s_b: float = geo["s_b"]
+	var st := _bc_flush_c_station(p, float(geo["s_a"]) - 3.0, s_b)
+	if not is_nan(st) and st < s_b:
+		return _bc_flush_c_y(st, p)
+	return _bc_flush_j(p)
+
+
+## C's built surface near the junction, for what stands beside it (its beds and
+## rails): NAN away from its twist, yield and easing.
+func _bc_flush_c_surface_y(p: Vector2) -> float:
+	var geo := _bc_flush_c_geo()
+	var st := _bc_flush_c_station(p, float(geo["s_a"]) - 1.0, float(geo["s_d"]) + 1.0)
+	if is_nan(st):
+		return NAN
+	if st > float(geo["s_b"]) and st < float(geo["s_c"]):
+		return _bc_flush_j(p)
+	return _bc_flush_c_y(st, p)
+
+
+## C's bed's edges: on C's surface, and a little under the floor where C yields.
+func _bc_flush_c_bed_y(p: Vector2) -> float:
+	var geo := _bc_flush_c_geo()
+	var st := _bc_flush_c_station(p, float(geo["s_a"]) - 1.0, float(geo["s_d"]) + 1.0)
+	if is_nan(st):
+		return NAN
+	if st > float(geo["s_b"]) and st < float(geo["s_c"]):
+		return _bc_flush_j(p) - BC_FLUSH_C_BED_SINK
+	return _bc_flush_c_y(st, p)
+
+
+## A section of C's bed with the collider's stations inserted where it runs by
+## the junction, so its top and its shoulders can follow C's built surface.
+func _bc_flush_c_bed_points(section: Array) -> Array:
+	var geo := _bc_flush_c_geo()
+	var lo: float = float(geo["s_a"]) - 3.0
+	var hi: float = float(geo["s_d"]) + 3.0
+	var out: Array[Vector3] = [Vector3(section[0])]
+	for i in section.size() - 1:
+		var a := Vector3(section[i])
+		var b := Vector3(section[i + 1])
+		if not is_nan(_bc_flush_c_station(Vector2(a.x, a.z), lo, hi)) \
+				or not is_nan(_bc_flush_c_station(Vector2(b.x, b.z), lo, hi)):
+			var steps := maxi(1, ceili(a.distance_to(b) / REBUILD_COLLISION_PATH_CHORD))
+			for k in range(1, steps):
+				out.append(a.lerp(b, float(k) / float(steps)))
+		out.append(b)
+	return out
+
+
+## C's graded points with the collider's stations inserted from a little before
+## its twist to a little after its easing, so its ribbon follows them; and each
+## point's arc length.
+func _bc_flush_c_dense(points: Array) -> Dictionary:
+	var geo := _bc_flush_c_geo()
+	var lo: float = float(geo["s_a"]) - 2.0
+	var hi: float = float(geo["s_d"]) + 2.0
+	var out: Array[Vector3] = [Vector3(points[0])]
+	var sv := PackedFloat32Array([0.0])
+	var s := 0.0
+	for i in points.size() - 1:
+		var a := Vector3(points[i])
+		var b := Vector3(points[i + 1])
+		var run := Vector2(a.x, a.z).distance_to(Vector2(b.x, b.z))
+		if s + run >= lo and s <= hi:
+			var steps := maxi(1, ceili(a.distance_to(b) / REBUILD_COLLISION_PATH_CHORD))
+			for k in range(1, steps):
+				var t := float(k) / float(steps)
+				out.append(a.lerp(b, t))
+				sv.append(s + run * t)
+		out.append(b)
+		sv.append(s + run)
+		s += run
+	return {"points": out, "s": sv}
+
+
+## C's ribbon: on its twist and easing it follows its built surface, and where
+## it yields to the floor it lies just under the floor and B.
+func _rebuild_bc_flush_c_mesh(points: Array, width: float, lift: float) -> ArrayMesh:
+	var geo := _bc_flush_c_geo()
+	var dense := _bc_flush_c_dense(points)
+	var pts: Array[Vector3] = dense["points"]
+	var sv: PackedFloat32Array = dense["s"]
+	var edges := _rebuild_path_edges(pts, width, true)
+	var left: PackedVector3Array = edges["left"]
+	var right: PackedVector3Array = edges["right"]
+	var s_a: float = geo["s_a"]
+	var s_b: float = geo["s_b"]
+	var s_c: float = geo["s_c"]
+	var s_d: float = geo["s_d"]
+	for i in left.size():
+		var s: float = sv[i] if i < sv.size() else sv[0]
+		if s < s_a or s > s_d:
+			continue
+		for side in 2:
+			var v: Vector3 = left[i] if side == 0 else right[i]
+			var p := Vector2(v.x, v.z)
+			if s > s_b and s < s_c:
+				v.y = _bc_flush_j(p) - BC_FLUSH_C_HIDE
+			else:
+				v.y = _bc_flush_c_y(s, p)
+			if side == 0:
+				left[i] = v
+			else:
+				right[i] = v
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(0)
+	for i in left.size():
+		var l := left[i] + Vector3.UP * lift
+		var r := right[i] + Vector3.UP * lift
+		st.set_uv(Vector2(l.x, l.z) * 0.35)
+		st.add_vertex(l)
+		st.set_uv(Vector2(r.x, r.z) * 0.35)
+		st.add_vertex(r)
+	for i in left.size() - 1:
+		var l0 := i * 2
+		var r0 := l0 + 1
+		var l1 := (i + 1) * 2
+		var r1 := l1 + 1
+		for index in [l0, r0, l1, r0, r1, l1]:
+			st.add_index(index)
+	st.generate_normals()
+	st.generate_tangents()
+	return st.commit()
+
+
+## C's collider: its own prisms, cut across into `BC_FLUSH_C_ACROSS` on its twist
+## and easing so they lie on its built surface, none where it yields to the
+## floor, and none where `exclusions` give B the floor (J6).
+func _rebuild_bc_flush_c_collision(body: StaticBody3D, points: Array, width: float,
+		exclusions: Array) -> void:
+	var geo := _bc_flush_c_geo()
+	var cp: Array[Vector3] = geo["cp"]
+	var sv: PackedFloat32Array = geo["s"]
+	var left: PackedVector3Array = geo["left"]
+	var right: PackedVector3Array = geo["right"]
+	var s_b: float = geo["s_b"]
+	var s_c: float = geo["s_c"]
+	var down := Vector3.DOWN * REBUILD_COLLISION_PRISM_DEPTH
+	var emitted := 0
+	var count := mini(left.size(), cp.size())
+	for i in count - 1:
+		if sv[i] >= s_b and sv[i + 1] <= s_c:
+			continue
+		if _rebuild_path_segment_excluded(cp[i], cp[i + 1], exclusions):
+			continue
+		var tops: Array = []
+		if _bc_flush_c_w(sv[i]) > 0.0 or _bc_flush_c_w(sv[i + 1]) > 0.0:
+			# A prism across the twist's last station or the easing's first is cut
+			# there exactly, so C ends and starts again on the junction's surface,
+			# on its crease where C's own fall meets B's climb.
+			var spans: Array = []
+			var run := maxf(sv[i + 1] - sv[i], 0.000001)
+			if sv[i] < s_b and sv[i + 1] > s_b:
+				spans.append([0.0, (s_b - sv[i]) / run])
+			elif sv[i] < s_c and sv[i + 1] > s_c:
+				spans.append([(s_c - sv[i]) / run, 1.0])
+			else:
+				spans.append([0.0, 1.0])
+			for span in spans:
+				var f0: float = span[0]
+				var f1: float = span[1]
+				var sa := lerpf(sv[i], sv[i + 1], f0)
+				var sb := lerpf(sv[i], sv[i + 1], f1)
+				var la := left[i].lerp(left[i + 1], f0)
+				var ra := right[i].lerp(right[i + 1], f0)
+				var lb := left[i].lerp(left[i + 1], f1)
+				var rb := right[i].lerp(right[i + 1], f1)
+				for k in BC_FLUSH_C_ACROSS:
+					var t0 := float(k) / float(BC_FLUSH_C_ACROSS)
+					var t1 := float(k + 1) / float(BC_FLUSH_C_ACROSS)
+					var cell: Array[Vector3] = []
+					for corner in [[la, ra, sa, t0], [la, ra, sa, t1], [lb, rb, sb, t0], [lb, rb, sb, t1]]:
+						var v := Vector3(corner[0]).lerp(Vector3(corner[1]), float(corner[3]))
+						v.y = _bc_flush_c_y(float(corner[2]), Vector2(v.x, v.z))
+						cell.append(v)
+					tops.append(cell)
+		else:
+			tops.append([left[i], right[i], left[i + 1], right[i + 1]])
+		for cell in tops:
+			var hull := ConvexPolygonShape3D.new()
+			hull.points = PackedVector3Array([cell[0], cell[1], cell[2], cell[3],
+				cell[0] + down, cell[1] + down, cell[2] + down, cell[3] + down])
+			var shape := CollisionShape3D.new()
+			shape.name = "shape_%04d" % emitted
+			shape.shape = hull
+			body.add_child(shape)
+			shape.owner = _root
+			emitted += 1
+	assert(emitted > 0, "route %s emitted no collision prisms" % body.name)
+
+
+## The shared floor's ribbon and collider: its footprint as before, cut into
+## `BC_FLUSH_ACROSS` across at the collider's half-metre stations, every vertex
+## on `_bc_flush_floor_y`, each cell raised where B's own top stands over it.
+## Returns the floor's points on its surface, for its record.
+func _rebuild_bc_flush_floor(body: StaticBody3D, points: Array, width: float,
+		lift: float) -> PackedVector3Array:
+	var geo := _bc_flush_c_geo()
+	var s_b: float = geo["s_b"]
+	var s_lo: float = float(geo["s_a"]) - 3.0
+	var cp: Array[Vector3] = _rebuild_resample_path3(points, REBUILD_COLLISION_PATH_CHORD)
+	var edges := _rebuild_path_edges(cp, width, false)
+	var left: PackedVector3Array = edges["left"]
+	var right: PackedVector3Array = edges["right"]
+	var k_n := BC_FLUSH_ACROSS
+	var grid: Array = []
+	var zone: Array = []
+	for i in cp.size():
+		var row := PackedVector3Array()
+		var zrow := PackedByteArray()
+		for k in k_n + 1:
+			var v := left[i].lerp(right[i], float(k) / float(k_n))
+			var p := Vector2(v.x, v.z)
+			var st := _bc_flush_c_station(p, s_lo, s_b)
+			var in_zone := not is_nan(st) and st < s_b
+			v.y = _bc_flush_c_y(st, p) if in_zone else _bc_flush_j(p)
+			row.append(v)
+			zrow.append(1 if in_zone else 0)
+		grid.append(row)
+		zone.append(zrow)
+	# Raise a cell wherever B's own top stands over it, so B never shows through.
+	var raised_cells := 0
+	for pass_ in 4:
+		var raised := 0
+		for i in cp.size() - 1:
+			for k in k_n:
+				if zone[i][k] == 1 or zone[i][k + 1] == 1 or zone[i + 1][k] == 1 or zone[i + 1][k + 1] == 1:
+					continue
+				var q: Array[Vector3] = [grid[i][k], grid[i][k + 1], grid[i + 1][k], grid[i + 1][k + 1]]
+				var deficit := 0.0
+				for a in [0.15, 0.5, 0.85]:
+					for b in [0.15, 0.5, 0.85]:
+						var x: float = lerpf(lerpf(q[0].x, q[1].x, a), lerpf(q[2].x, q[3].x, a), b)
+						var z: float = lerpf(lerpf(q[0].z, q[1].z, a), lerpf(q[2].z, q[3].z, a), b)
+						var bt := _bc_flush_b_top(Vector2(x, z))
+						var ft := _bc_flush_quad_top(q, Vector2(x, z))
+						if not is_nan(bt) and not is_nan(ft):
+							deficit = maxf(deficit, bt - ft)
+				if deficit > 0.002:
+					raised += 1
+					for cell in [[i, k], [i, k + 1], [i + 1, k], [i + 1, k + 1]]:
+						var row: PackedVector3Array = grid[cell[0]]
+						row[cell[1]] = row[cell[1]] + Vector3.UP * deficit
+						grid[cell[0]] = row
+		raised_cells += raised
+		if raised == 0:
+			break
+	# C's crease: its cross-section at the twist's last station.
+	var c_b := _bc_flush_c_at(s_b)
+	var crease_at := Vector2(c_b.x, c_b.z)
+	var c_sv: PackedFloat32Array = geo["s"]
+	var c_left: PackedVector3Array = geo["left"]
+	var c_right: PackedVector3Array = geo["right"]
+	var ci := clampi(c_sv.bsearch(s_b, true) - 1, 0, c_sv.size() - 2)
+	var ct := clampf((s_b - c_sv[ci]) / maxf(c_sv[ci + 1] - c_sv[ci], 0.000001), 0.0, 1.0)
+	var across := (c_right[ci] - c_left[ci]).lerp(c_right[ci + 1] - c_left[ci + 1], ct)
+	var crease_n := Vector2(-across.z, across.x).normalized()
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(0)
+	var down := Vector3.DOWN * REBUILD_COLLISION_PRISM_DEPTH
+	var up := Vector3.UP * lift
+	var emitted := 0
+	for i in cp.size() - 1:
+		for k in k_n:
+			var c0: Vector3 = grid[i][k]
+			var c1: Vector3 = grid[i][k + 1]
+			var c2: Vector3 = grid[i + 1][k]
+			var c3: Vector3 = grid[i + 1][k + 1]
+			# A cell on C's crease, where C's own fall meets B's climb at its twist's
+			# last station, is cut finer and laid on the surface, so it follows it.
+			var fine := 1
+			for c in [c0, c1, c2, c3]:
+				if absf((Vector2(c.x, c.z) - crease_at).dot(crease_n)) < BC_FLUSH_CREASE_REACH \
+						and Vector2(c.x, c.z).distance_to(crease_at) < BC_FLUSH_CREASE_SPAN:
+					fine = BC_FLUSH_CREASE_CUT
+			var lift_by := 0.0
+			if fine > 1:
+				for c in [c0, c1, c2, c3]:
+					lift_by = maxf(lift_by, c.y - _bc_flush_floor_y(Vector2(c.x, c.z)))
+			for a in fine:
+				for b in fine:
+					var l0 := c0
+					var r0 := c1
+					var l1 := c2
+					var r1 := c3
+					if fine > 1:
+						var sub: Array[Vector3] = []
+						for uv in [[a, b], [a, b + 1], [a + 1, b], [a + 1, b + 1]]:
+							var u := float(uv[1]) / float(fine)
+							var w := float(uv[0]) / float(fine)
+							var v := c0.lerp(c1, u).lerp(c2.lerp(c3, u), w)
+							v.y = _bc_flush_floor_y(Vector2(v.x, v.z)) + lift_by
+							sub.append(v)
+						l0 = sub[0]
+						r0 = sub[1]
+						l1 = sub[2]
+						r1 = sub[3]
+					# The ribbon takes the diagonal the collider's hull does: the higher.
+					if l0.y + r1.y >= r0.y + l1.y:
+						_earth_oriented_tri(st, l0 + up, Vector2(l0.x, l0.z) * 0.35, r0 + up, Vector2(r0.x, r0.z) * 0.35,
+							r1 + up, Vector2(r1.x, r1.z) * 0.35, Vector3.UP)
+						_earth_oriented_tri(st, l0 + up, Vector2(l0.x, l0.z) * 0.35, r1 + up, Vector2(r1.x, r1.z) * 0.35,
+							l1 + up, Vector2(l1.x, l1.z) * 0.35, Vector3.UP)
+					else:
+						_earth_oriented_tri(st, l0 + up, Vector2(l0.x, l0.z) * 0.35, r0 + up, Vector2(r0.x, r0.z) * 0.35,
+							l1 + up, Vector2(l1.x, l1.z) * 0.35, Vector3.UP)
+						_earth_oriented_tri(st, r0 + up, Vector2(r0.x, r0.z) * 0.35, r1 + up, Vector2(r1.x, r1.z) * 0.35,
+							l1 + up, Vector2(l1.x, l1.z) * 0.35, Vector3.UP)
+					var hull := ConvexPolygonShape3D.new()
+					hull.points = PackedVector3Array([l0, r0, l1, r1, l0 + down, r0 + down, l1 + down, r1 + down])
+					var shape := CollisionShape3D.new()
+					shape.name = "shape_%04d" % emitted
+					shape.shape = hull
+					body.add_child(shape)
+					shape.owner = _root
+					emitted += 1
+	st.generate_normals()
+	st.generate_tangents()
+	var visual := MeshInstance3D.new()
+	visual.name = "surface"
+	visual.mesh = st.commit()
+	visual.material_override = mats["asphalt"]
+	visual.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	body.add_child(visual)
+	visual.owner = _root
+	var record := PackedVector3Array()
+	for point in points:
+		var p3 := Vector3(point)
+		record.append(Vector3(p3.x, _bc_flush_floor_y(Vector2(p3.x, p3.z)), p3.z))
+	print("bc flush: the shared floor in %d cells at %d stations, %d raised over B's own top" % [
+		emitted, cp.size(), raised_cells])
+	return record
+
+
+## C's west edge where it stands over B north of where its centre comes down to
+## the surface (Christina, 2026-10-17: "Rail it"): from the end of C's west-lobe
+## rail, where it meets B's east guard (`_bc_flush_lobe_end`), across C's edge
+## onto C's paving `BC_FLUSH_RAIL_INSET` inside it, and along it to the twist's
+## last station, where C's edge meets B. B's guard as the lobe rail is
+## (`_yard_rail`), on C's built surface; built last in its scene and handing its
+## seam ordinals back, so no later shape is re-planed.
+var _bc_flush_lobe_end := Vector3.INF
+
+
+func _rebuild_bc_flush_c_west_rail() -> void:
+	assert(_bc_flush_lobe_end != Vector3.INF, "C's west rail found no end of C's west-lobe rail")
+	var geo := _bc_flush_c_geo()
+	var s_b: float = geo["s_b"]
+	var line: PackedVector3Array = _rebuild_path_edges(_yard_c_points(),
+		REBUILD_YARD_C_W - BC_FLUSH_RAIL_INSET * 2.0, true)["left"]
+	var start := _bc_flush_lobe_end
+	var from := _yard_line_param(line, Vector2(start.x, start.z))
+	# Along the inset line in short steps to where its own station reaches the
+	# twist's last.
+	var to := from
+	while to < float(line.size() - 1):
+		var q := _yard_line_at(line, to)
+		var sq := _bc_flush_c_station(Vector2(q.x, q.z), s_b - 15.0, s_b + 15.0)
+		if not is_nan(sq) and sq >= s_b:
+			break
+		to += 0.005
+	assert(to < float(line.size() - 1), "C's west rail ran off C's line")
+	var pts: Array[Vector3] = [start]
+	for p in _yard_line_between(line, from, to):
+		var y := _bc_flush_c_surface_y(Vector2(p.x, p.z))
+		pts.append(Vector3(p.x, p.y if is_nan(y) else y, p.z))
+	var saved := _seam_ordinal
+	var length := _yard_rail("C_west_rail_over_B", pts, true, false)
+	# Its line, published for what reads where B's claimed width stops (ParkPlan's
+	# b_south_return `claim_right_stops_at`; Christina, 2026-10-17: "B narrows to
+	# the rail"). Nothing is drawn.
+	var line_node := Node3D.new()
+	line_node.set_meta("points", PackedVector3Array(pts))
+	_add(line_node, "C_west_rail_over_B")
+	_seam_ordinal = saved
+	print("bc flush: C's west rail over B, %.1fm from (%.3f, %.3f) to (%.3f, %.3f)" % [
+		length, pts[0].x, pts[0].z, pts[-1].x, pts[-1].z])
 
 
 ## Return the exact beginning of a graded route, inserting a final station at
@@ -24290,6 +25276,82 @@ func _rebuild_swinging_ship(site: Dictionary) -> void:
 		cap_height, "brick", 0.0, 20, true)
 	_rebuild_path("R4_queue", _fairground_r4_queue,
 		_fairground_r4_queue_width, false, &"")
+
+
+## R4's queue railed where its bed stands over the B/C junction (Christina,
+## 2026-10-17: "Rail it, this batch"): the junction was rebuilt flush to B's
+## slope and the queue climbs beside it on its retained bed, up to a metre over
+## the floor, the land between and C. On the queue's side toward the floor, B's
+## derived guard as C's rails are (`_yard_rail`, `REBUILD_GUARD_OFFSET` outside
+## the paving, on the bed's shoulder, so the queue keeps its whole width), where
+## the queue stands more than `REBUILD_YARD_BANK_MIN_RISE` over the highest thing
+## built `R4_RAIL_PROBE` beyond its bed. Appended to its scene after the banks.
+const R4_RAIL_PROBE := 0.3
+const R4_RAIL_STEP := 0.25
+
+
+func _rebuild_r4_queue_rail() -> void:
+	var queue := _fairground_r4_queue
+	var width := _fairground_r4_queue_width
+	var bed_drop := 0.035
+	# The side toward the junction: the one whose guard line lies nearer the
+	# floor's centreline.
+	var floor_line := PackedVector3Array(_rebuild_bc_junction_floor()["points"])
+	var guards := _rebuild_path_edges(queue, width + REBUILD_GUARD_OFFSET * 2.0, false)
+	var probes := _rebuild_path_edges(queue, width + REBUILD_BED_MARGIN + R4_RAIL_PROBE * 2.0, false)
+	var side := "left"
+	var near := INF
+	for key in ["left", "right"]:
+		var sum := 0.0
+		for v in guards[key] as PackedVector3Array:
+			var at := _yard_line_at(floor_line, _yard_line_param(floor_line, Vector2(v.x, v.z)))
+			sum += Vector2(v.x, v.z).distance_to(Vector2(at.x, at.z))
+		if sum < near:
+			near = sum
+			side = key
+	var guard: PackedVector3Array = guards[side]
+	var probe: PackedVector3Array = probes[side]
+	# Stations along the guard line, railed where the queue stands over what is
+	# beside its bed; each run of them is one rail.
+	var runs: Array = []
+	var run: Array[Vector3] = []
+	for i in queue.size() - 1:
+		var steps := maxi(1, ceili(guard[i].distance_to(guard[i + 1]) / R4_RAIL_STEP))
+		for k in steps + 1:
+			if k == 0 and i > 0:
+				continue
+			var t := float(k) / float(steps)
+			var g := guard[i].lerp(guard[i + 1], t)
+			var q := probe[i].lerp(probe[i + 1], t)
+			var level := lerpf(queue[i].y, queue[i + 1].y, t)
+			var beside := _rebuild_embankment_ground_y(Vector2(q.x, q.z))
+			if not is_nan(beside) and level - beside > REBUILD_YARD_BANK_MIN_RISE:
+				run.append(Vector3(g.x, level - bed_drop, g.z))
+			elif run.size() > 1:
+				runs.append(run)
+				run = []
+			else:
+				run = []
+	if run.size() > 1:
+		runs.append(run)
+	assert(not runs.is_empty(), "R4's queue rail found no stretch over the junction")
+	for n in runs.size():
+		# The stations between the guard line's corners are straight; keep the ends
+		# and the corners.
+		var stations: Array = runs[n]
+		var line: Array[Vector3] = [stations[0]]
+		for j in range(1, stations.size() - 1):
+			var a: Vector3 = stations[j - 1]
+			var b: Vector3 = stations[j]
+			var c: Vector3 = stations[j + 1]
+			var ab := Vector2(b.x - a.x, b.z - a.z).normalized()
+			var bc := Vector2(c.x - b.x, c.z - b.z).normalized()
+			if ab.dot(bc) < 0.9999:
+				line.append(b)
+		line.append(stations[-1])
+		var length := _yard_rail("R4_queue_rail_%d" % n, line, false, false)
+		print("R4 queue rail %d: %.1fm on its %s side from (%.3f, %.3f) to (%.3f, %.3f)" % [
+			n, length, side, line[0].x, line[0].z, line[-1].x, line[-1].z])
 
 
 func _rebuild_mini_rail(site: Dictionary) -> void:
@@ -25603,6 +26665,8 @@ func _rebuild_coastal_creek_reach() -> void:
 	# The yard's other edges railed and S2's south arm gated (2026-10-16), last,
 	# for the same reason.
 	_rebuild_coastal_creek_yard_rails()
+	# C's west edge over B railed with the junction rebuilt flush (2026-10-17).
+	_rebuild_bc_flush_c_west_rail()
 
 
 ## The drop (Christina, 2026-10-16: "Old levels + a drop"), derived from its
@@ -25992,7 +27056,7 @@ func _yard_bank_stands(owner: StringName, top: Vector3) -> bool:
 ## kept where `_yard_bank_stands`. Not added to the embankment index: no route's
 ## bank reaches west of the bluff face to read it.
 func _yard_bank_collision(owner: StringName, left: PackedVector3Array,
-		right: PackedVector3Array, closed: bool) -> ArrayMesh:
+		right: PackedVector3Array, closed: bool, height_at := Callable()) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var low := Plan.SHORE_TOP - 0.16
@@ -26010,8 +27074,21 @@ func _yard_bank_collision(owner: StringName, left: PackedVector3Array,
 					continue
 				var o0 := other[i].lerp(other[i + 1], t0)
 				var o1 := other[i].lerp(other[i + 1], t1)
-				var i0 := e0 - (e0 - o0) * (REBUILD_CUT_BED_SHOULDER / maxf(e0.distance_to(o0), 0.01))
-				var i1 := e1 - (e1 - o1) * (REBUILD_CUT_BED_SHOULDER / maxf(e1.distance_to(o1), 0.01))
+				# On a surface not level across (2026-10-17) the strip starts just inside
+				# the paving's edge rather than 0.66 m in, and lies on the surface, a hair
+				# under it at its inner edge (`BC_FLUSH_SHOULDER_SINK`), so the paving
+				# stays on top.
+				var reach := REBUILD_CUT_BED_SHOULDER if not height_at.is_valid() \
+					else REBUILD_BED_MARGIN * 0.5 + BC_FLUSH_SHOULDER_LAP
+				var i0 := e0 - (e0 - o0) * (reach / maxf(e0.distance_to(o0), 0.01))
+				var i1 := e1 - (e1 - o1) * (reach / maxf(e1.distance_to(o1), 0.01))
+				if height_at.is_valid():
+					var y0: float = height_at.call(Vector2(i0.x, i0.z))
+					var y1: float = height_at.call(Vector2(i1.x, i1.z))
+					if not is_nan(y0):
+						i0.y = y0 - BC_FLUSH_SHOULDER_SINK
+					if not is_nan(y1):
+						i1.y = y1 - BC_FLUSH_SHOULDER_SINK
 				_earth_oriented_tri(st, i0, Vector2.ZERO, i1, Vector2.ZERO, e0, Vector2.ZERO, Vector3.UP)
 				_earth_oriented_tri(st, e0, Vector2.ZERO, i1, Vector2.ZERO, e1, Vector2.ZERO, Vector3.UP)
 				_earth_wall_quad(st, Vector3(e0.x, low, e0.z), Vector3(e1.x, low, e1.z), e0, e1,
@@ -26228,6 +27305,7 @@ func _rebuild_coastal_creek_yard() -> void:
 			lo = m
 	var west := _yard_line_between(line, s0, sa)
 	var south := _yard_line_between(line, sb, s1)
+	_bc_flush_lobe_end = south[-1]
 	var ya := west[-1].y
 	var yb := south[0].y
 	# A post off the rail's line gets a return from the rail to it.
@@ -26344,6 +27422,15 @@ func _rebuild_coastal_creek_yard_rails() -> void:
 		line.append(floor_line[i])
 	line.append(south_corner)
 	line.append_array(PackedVector3Array(_yard_line_between(c_line, sc, se)))
+	# Since the junction was rebuilt flush (2026-10-17) its floor follows B's slope
+	# across, and C eases back to its own level south of it: the rail stands on
+	# what it guards.
+	var c_from := floor_line.size() + 2
+	for i in line.size():
+		var q := Vector2(line[i].x, line[i].z)
+		var y := _bc_flush_floor_y(q) if i < c_from else _bc_flush_c_surface_y(q)
+		if not is_nan(y):
+			line[i] = Vector3(line[i].x, y, line[i].z)
 
 	# S2's south gate in that line, between its posts; a post off the line gets a
 	# return from the rail to it, as at C.

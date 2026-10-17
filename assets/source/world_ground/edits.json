@@ -1837,6 +1837,52 @@
    "kind": "values",
    "min_change_m": 0.001,
    "made_by": "ground_grid_edit.py --values"
+  },
+  {
+   "id": "G28",
+   "name": "bc_junction_land_hold",
+   "date": "2026-10-17",
+   "why": "Christina, 2026-10-17, rail it, rebuild flush: where the land inside B's loop meets the B/C junction's floor, its bed and C's twist on their east side, rebuilt to B's slope, the ground is raised to 4 cm under the paving beside it (17 nodes, up to 0.48 m), nothing cut; S2, R4 and the berms kept",
+   "tiles": [
+    "x-1_z0"
+   ],
+   "nodes": 17,
+   "new_ground_nodes": 0,
+   "history": "history/G28.npz",
+   "files": [
+    {
+     "tile": "x-1_z0",
+     "nodes": 17,
+     "height_sha_before": "457ebc1a8976a81457aaf68f2a4630b762dfc3f39d03f2e281971cfbdb2f7c4d",
+     "height_sha_after": "05ba72170ec846b07172e3185e32b34b78bdf1fca46cd610267ce3d29df56268"
+    }
+   ],
+   "kind": "values",
+   "min_change_m": 0.001,
+   "made_by": "ground_grid_edit.py --values"
+  },
+  {
+   "id": "G29",
+   "name": "bc_junction_land_hold_2",
+   "date": "2026-10-17",
+   "why": "Christina, 2026-10-17, rail it, rebuild flush: the second ring of nodes under the B/C junction bed's east edge (inside B's loop, z 102-132), raised to 4 cm under the bed and floor beside them so the land meets the rebuilt bed instead of standing up to 0.42 m below its edge (11 nodes, up to 0.50 m), nothing cut; R4's bed, S2 and the berms kept",
+   "tiles": [
+    "x-1_z0"
+   ],
+   "nodes": 11,
+   "new_ground_nodes": 0,
+   "history": "history/G29.npz",
+   "files": [
+    {
+     "tile": "x-1_z0",
+     "nodes": 11,
+     "height_sha_before": "05ba72170ec846b07172e3185e32b34b78bdf1fca46cd610267ce3d29df56268",
+     "height_sha_after": "a64e466285ae7d857e50c3a387e31a1707fc3c8e141fc9a6f21cf42bfa399167"
+    }
+   ],
+   "kind": "values",
+   "min_change_m": 0.001,
+   "made_by": "ground_grid_edit.py --values"
   }
  ]
 }

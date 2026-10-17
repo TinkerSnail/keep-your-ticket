@@ -118,11 +118,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -84, -6, -2)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -96, -6, -2)
 
 [node name="b_south_return" type="Node3D" parent="primary_routes" unique_id=1995450633]
+editor_description = "Where C stands over B's east strip beside the rebuilt B/C junction, from where C's west rail crosses B's edge (z 90.5) to where C meets the junction (z 97.1), B's claimed width stops at that rail: claim_right_stops_at (Christina, 2026-10-17: \"B narrows to the rail\"). Nothing moves."
 metadata/point_type = &"vector3"
 metadata/route = &"B"
 metadata/width = 8.0
 metadata/build = true
 metadata/retained = true
+metadata/claim_right_stops_at = &"C_west_rail_over_B"
 
 [node name="points" type="Node3D" parent="primary_routes/b_south_return" unique_id=847759433]
 

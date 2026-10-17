@@ -550,6 +550,72 @@
     "left": []
    },
    "exported": []
+  },
+  {
+   "id": "G28",
+   "date": "2026-10-17",
+   "from": "edits G28",
+   "ground": {
+    "tiles": [
+     "x-1_z0"
+    ],
+    "nodes": 17,
+    "lowest_m": 0.0,
+    "highest_m": 0.481
+   },
+   "edits": [
+    {
+     "id": "G28",
+     "name": "bc_junction_land_hold",
+     "sig": "ebc721473021939b"
+    }
+   ],
+   "rocks": {
+    "moved": {},
+    "uneven": {}
+   },
+   "city": {
+    "raised": {},
+    "left": {}
+   },
+   "roosts": {
+    "moved": {},
+    "left": []
+   },
+   "exported": []
+  },
+  {
+   "id": "G29",
+   "date": "2026-10-17",
+   "from": "edits G29",
+   "ground": {
+    "tiles": [
+     "x-1_z0"
+    ],
+    "nodes": 11,
+    "lowest_m": 0.0,
+    "highest_m": 0.501
+   },
+   "edits": [
+    {
+     "id": "G29",
+     "name": "bc_junction_land_hold_2",
+     "sig": "ff3cd1f7277bafdb"
+    }
+   ],
+   "rocks": {
+    "moved": {},
+    "uneven": {}
+   },
+   "city": {
+    "raised": {},
+    "left": {}
+   },
+   "roosts": {
+    "moved": {},
+    "left": []
+   },
+   "exported": []
   }
  ]
 }

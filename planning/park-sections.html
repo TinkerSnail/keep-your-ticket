@@ -337,6 +337,8 @@
     {id:'S2-G',name:'S2’s staff gate · locked double leaf across S2’s 4m paving where it leaves C, in C’s rail',p:[[-65.488,68.557],[-70.816,70.974]],className:'staff-yard-gate'},
     {id:'CR1',name:'C’s west-lobe rail · B’s derived guard, 0.325m outside C’s paving, from the bluff face to S2’s gate',p:[[-58,67.179],[-62.765,67.638],[-65.488,68.557]],className:'notch-guard'},
     {id:'CR2',name:'C’s west-lobe rail · from S2’s gate to B’s guard',p:[[-70.816,70.974],[-72.05,71.632],[-75.607,74.437],[-76.973,76.063]],className:'notch-guard'},
+    {id:'CR3',name:'C’s west rail over B · from the end of C’s west-lobe rail at B’s guard, 0.15m inside C’s paving, to where C comes down flush onto the B/C junction, rebuilt to B’s slope (Christina, 2026-10-17: “Rail it, rebuild flush”); B’s claimed width stops at it, 8m to z 90.5 narrowing to 4.7m at its end (“B narrows to the rail”)',p:[[-76.973,76.063],[-76.553,76.21],[-77.898,77.812],[-78.859,79.463],[-79.821,81.114]],className:'notch-guard'},
+    {id:'CR4',name:'R4’s queue rail · B’s derived guard, 0.325m outside R4’s queue paving on its bed’s shoulder, on its side toward the B/C junction, wherever the queue stands over 0.3m above what is beside its bed (Christina, 2026-10-17: “Rail it, this batch”)',p:[[-70.355,79.067],[-68.039,80.225],[-70.937,83.124],[-67.936,85.125],[-70.036,87.227],[-64.816,89.837]],className:'notch-guard'},
     {id:'YB-B',name:'B’s bank solid west of the bluff face · retained, colliding to the shore',p:[[-92.6,61.68],[-88,64],[-82,72],[-80,84],[-75,95],[-64,101],[-58,99.364]],className:'staff-yard-bank'},
     {id:'YB-C',name:'C’s bank solid west of the bluff face · retained, colliding to the shore',p:[[-58,70],[-72,76],[-78,90],[-70,108],[-58,113.333]],className:'staff-yard-bank'},
     // The yard's other edges railed and S2's south arm gated (Christina, 2026-10-16: "rail these four in
@@ -807,7 +809,15 @@
     // tapering over 6 m. Its shape waits on Christina's entrance decisions of 2026-09-29; it stands
     // up to 2.47 m over the lane's centreline (s 1140) and over the Fairground platform's front
     // half. Nothing drawn for S2 or G1 touches it.
-    bermW:{x:[-80,-13],z:[160,170],height:2.5,taper:6,overLane:2.47,waits:'2026-09-29 entrance decisions'}
+    bermW:{x:[-80,-13],z:[160,170],height:2.5,taper:6,overLane:2.47,waits:'2026-09-29 entrance decisions'},
+    // Held level (Christina, 2026-10-17: "Hold it level"), world metres. Between the entrance
+    // crossing and the entry stop, both controls at 0.0, the uniform Catmull-Rom loop sagged
+    // 0.148 m under them (s 29) and the flat ground stood up to 6.8 cm over the lane at s 16-39.
+    // The lane is held at its two controls' level over that whole span
+    // (ParkPlan.GRAND_TRAM_LEVEL_SPANS): 0.0 from s 0 to the entry stop at s 44, its course
+    // unchanged, climbing from the stop as before. `through` above ends at s 1175, short of it.
+    entryHold:{from:[0,0,174],to:[44,0,172],level:0,was:{sag:0.148,atS:29,overGround:0.068,s:[16,39]},
+      approved:'2026-10-17'}
   };
   const gcExpand = ([x,z]) => {
     let qx = x, qz = z;

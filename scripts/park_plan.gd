@@ -683,6 +683,15 @@ const GRAND_TRAM_TUNNELS := [
 ## showing corners. Uniform Catmull-Rom is safe here because the controls are
 ## deliberately kept within one order of spacing; this is a transport reserve,
 ## not the rim's irregular survey where centripetal knots are load-bearing.
+## The spans the lane is held level across, each named by its two controls'
+## plan positions (x, z, x, z) (Christina, 2026-10-17: "Hold it level"). Between
+## the entrance crossing and the entry stop, both at 0.0, the uniform
+## Catmull-Rom loop sagged 0.148 m under them at s 29, and the flat ground stood
+## up to 6.8 cm over the lane at s 16-39. Across a held span the lane runs
+## straight between its two controls' levels; its course does not change.
+const GRAND_TRAM_LEVEL_SPANS: Array[Vector4] = [Vector4(0.0, 174.0, 44.0, 172.0)]
+
+
 static func grand_tram_loop(samples_per_span := 8) -> Array[Vector3]:
 	var out: Array[Vector3] = []
 	var n := GRAND_TRAM_CONTROLS.size()
@@ -691,14 +700,22 @@ static func grand_tram_loop(samples_per_span := 8) -> Array[Vector3]:
 		var p1: Vector3 = GRAND_TRAM_CONTROLS[i]
 		var p2: Vector3 = GRAND_TRAM_CONTROLS[(i + 1) % n]
 		var p3: Vector3 = GRAND_TRAM_CONTROLS[(i + 2) % n]
+		var held := false
+		for span in GRAND_TRAM_LEVEL_SPANS:
+			if Vector2(p1.x, p1.z).distance_to(Vector2(span.x, span.y)) < 0.01 \
+					and Vector2(p2.x, p2.z).distance_to(Vector2(span.z, span.w)) < 0.01:
+				held = true
 		for j in samples_per_span:
 			var t := float(j) / float(samples_per_span)
 			var t2 := t * t
 			var t3 := t2 * t
-			out.append(0.5 * ((2.0 * p1)
+			var q: Vector3 = 0.5 * ((2.0 * p1)
 				+ (-p0 + p2) * t
 				+ (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * t2
-				+ (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * t3))
+				+ (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * t3)
+			if held:
+				q.y = lerpf(p1.y, p2.y, t)
+			out.append(q)
 	if not out.is_empty():
 		out.append(out[0])
 	return out
@@ -3935,7 +3952,14 @@ const REBUILD_PRIMARY_ROUTE_RUNS := [
 			Vector3(-96, SHORE_TOP, -2),
 		]},
 	{"id": &"b_south_return", "route": &"B", "width": 8.0,
-		"build": true, "retained": true, "points": [
+		"build": true, "retained": true,
+		# Christina, 2026-10-17 ("B narrows to the rail"): where C stands over B's
+		# east strip beside the rebuilt junction, from where C's west rail crosses
+		# B's edge (z 90.5) to where C meets the junction (z 97.1), B's claimed
+		# width stops at that rail. Nothing moves. Its right, in the points' order,
+		# is its east; the rail publishes its line (gen_props.gd).
+		"claim_right_stops_at": &"C_west_rail_over_B",
+		"points": [
 			# The whole outer sweep is the climb. Holding the first nineteen metres
 			# level forced the final approach into a 1:5 pitch and made the path read
 			# as a flyover meeting a cliff. These elevations distribute the same six

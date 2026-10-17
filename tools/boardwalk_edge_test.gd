@@ -172,7 +172,41 @@ func _legs_list() -> Array:
 	legs.append_array(_yard_legs(y))
 	legs.append_array(_yard_rail_legs())
 	legs.append_array(_holes_legs())
+	legs.append_array(_r4_rail_legs())
 	return legs
+
+
+## R4's queue railed where its bed stands over the B/C junction (Christina,
+## 2026-10-17: "Rail it, this batch"): pushed square from the queue's centre
+## toward the floor on each of its railed legs, which must hold; the queue walked
+## up and down its centre and along its railed side, 0.7 m off its centre; and
+## the floor walked along the rail both ways.
+func _r4_rail_legs() -> Array:
+	var on := func(label: String, a: Vector2, b: Vector2, arrive: bool) -> Array:
+		var from := _stand(a.x, a.y)
+		return [label, from, _stand(b.x, b.y) if arrive else Vector3(b.x, from.y, b.y), arrive]
+	return [
+		on.call("bw R4 rail 0", Vector2(-67.20, 94.47), Vector2(-70.26, 98.42), false),
+		on.call("bw R4 rail 1", Vector2(-67.50, 97.72), Vector2(-71.70, 95.01), false),
+		on.call("bw R4 rail 2", Vector2(-67.50, 101.60), Vector2(-71.09, 105.08), false),
+		on.call("bw R4 rail 3", Vector2(-67.00, 104.70), Vector2(-71.20, 101.99), false),
+		on.call("bw R4 rail 4", Vector2(-66.40, 107.49), Vector2(-69.46, 111.44), false),
+		on.call("bw R4 rail 4 north", Vector2(-65.00, 108.57), Vector2(-68.06, 112.53), false),
+		on.call("bw R4 queue up 1", Vector2(-66.0, 95.4), Vector2(-69.0, 100.05), true),
+		on.call("bw R4 queue up 2", Vector2(-69.0, 100.05), Vector2(-66.0, 103.15), true),
+		on.call("bw R4 queue up 3", Vector2(-66.0, 103.15), Vector2(-68.0, 106.25), true),
+		on.call("bw R4 queue up 4", Vector2(-68.0, 106.25), Vector2(-64.0, 109.35), true),
+		on.call("bw R4 queue down 4", Vector2(-64.0, 109.35), Vector2(-68.0, 106.25), true),
+		on.call("bw R4 queue down 1", Vector2(-69.0, 100.05), Vector2(-66.0, 95.4), true),
+		on.call("bw R4 queue side 1", Vector2(-66.59, 95.02), Vector2(-69.59, 99.67), true),
+		on.call("bw R4 queue side 2", Vector2(-69.50, 100.54), Vector2(-66.50, 103.64), true),
+		on.call("bw R4 queue side 3", Vector2(-66.59, 102.77), Vector2(-68.59, 105.87), true),
+		on.call("bw R4 queue side 4", Vector2(-68.43, 106.80), Vector2(-64.43, 109.90), true),
+		on.call("bw R4 queue side 4 down", Vector2(-64.43, 109.90), Vector2(-68.43, 106.80), true),
+		on.call("bw R4 queue side 1 down", Vector2(-69.59, 99.67), Vector2(-66.59, 95.02), true),
+		on.call("bw R4 rail floor north", Vector2(-72.2, 98.8), Vector2(-72.2, 108.2), true),
+		on.call("bw R4 rail floor south", Vector2(-72.2, 108.2), Vector2(-72.2, 98.8), true),
+	]
 
 
 ## A point on the top surface under (x, z), at the legs' eye height over it.
@@ -237,13 +271,34 @@ func _yard_legs(y: float) -> Array:
 		on.call("bw yard C walks on", Vector2(-69.0, 85.5), Vector2(-76.4, 98.9), true),
 		on.call("bw yard C walks its rail", Vector2(-58.5, 77.0), Vector2(-67.5, 80.0), true),
 		on.call("bw yard C crosses S2", Vector2(-65.5, 80.5), Vector2(-73.0, 87.0), true),
-		on.call("bw yard C to B", Vector2(-73.5, 96.0), Vector2(-84.0, 96.0), true),
+		# C's west edge over B, north of where C comes down to the junction's surface,
+		# is railed (2026-10-17, Christina: "Rail it, rebuild flush"): pushed both ways.
+		on.call("bw C rail over B z92", Vector2(-73.5, 92.0), Vector2(-84.0, 92.0), false),
+		on.call("bw C rail over B z94", Vector2(-73.5, 94.0), Vector2(-84.0, 94.0), false),
+		on.call("bw C rail over B z96", Vector2(-73.5, 96.0), Vector2(-84.0, 96.0), false),
+		on.call("bw B to C rail z94", Vector2(-84.0, 94.0), Vector2(-73.5, 94.0), false),
+		on.call("bw B to C rail z96", Vector2(-84.0, 96.0), Vector2(-73.5, 96.0), false),
 		on.call("bw yard B to C", Vector2(-84.0, 100.0), Vector2(-72.0, 100.0), true),
+		# Where C has come down onto it the junction is one surface: crossed both
+		# ways, and walked along C onto it and back at its centre and both sides.
+		on.call("bw junction B to C z98.5", Vector2(-84.0, 98.5), Vector2(-72.5, 98.5), true),
+		on.call("bw junction C to B z98.5", Vector2(-72.5, 98.5), Vector2(-84.0, 98.5), true),
+		on.call("bw junction C to B z100", Vector2(-72.0, 100.0), Vector2(-84.0, 100.0), true),
+		on.call("bw junction B to C z104", Vector2(-84.0, 104.0), Vector2(-71.0, 104.0), true),
+		on.call("bw junction C to B z104", Vector2(-71.0, 104.0), Vector2(-84.0, 104.0), true),
+		on.call("bw junction C onto floor", Vector2(-74.4, 93.6), Vector2(-77.9, 108.8), true),
+		on.call("bw junction floor onto C", Vector2(-77.9, 108.8), Vector2(-74.4, 93.6), true),
+		on.call("bw junction C east onto floor", Vector2(-71.5, 94.3), Vector2(-75.0, 109.5), true),
+		on.call("bw junction floor onto C east", Vector2(-75.0, 109.5), Vector2(-71.5, 94.3), true),
+		on.call("bw junction C west onto floor", Vector2(-77.3, 92.9), Vector2(-80.8, 108.1), true),
+		on.call("bw junction floor onto C west", Vector2(-80.8, 108.1), Vector2(-77.3, 92.9), true),
 		on.call("bw yard garden stem", Vector2(-88.5, 64.1), Vector2(-80.8, 63.7), true),
 		# The holes filled inside B's loop, walked off the paving beside each and
 		# over it to the land, or down from the land to the paving.
 		on.call("bw loop hole -61,104", Vector2(-61.0, 106.5), Vector2(-61.0, 100.0), true),
-		on.call("bw loop hole -68,110", Vector2(-63.0, 110.0), Vector2(-74.0, 110.0), true),
+		# From the land beside R4's queue bed: the bed's own side is railed since
+		# 2026-10-17 (`_r4_rail_legs`).
+		on.call("bw loop hole -68,110", Vector2(-66.5, 111.0), Vector2(-74.0, 110.0), true),
 		on.call("bw loop hole -70.5,96", Vector2(-75.0, 96.5), Vector2(-69.5, 96.5), true),
 		on.call("bw loop slot z90", Vector2(-70.0, 90.0), Vector2(-59.0, 90.0), true),
 		on.call("bw loop slot z112", Vector2(-70.5, 112.0), Vector2(-60.0, 112.0), true),

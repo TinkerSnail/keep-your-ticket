@@ -2947,6 +2947,26 @@
     // - `pitFill`: the 6 m pit between C's inner edge, the junction floor's south end, B's south
     //   return and the bluff, filled to the land's level, 4 cm under the paving beside it (grid
     //   edit G26, world metres), clear of the Grand Circuit's banks.
+    // The B/C junction rebuilt flush and C railed over B (Christina, 2026-10-17: "Rail it, rebuild
+    // flush"), world metres, as built:
+    // - `cWestRail`: C's west edge where it stands over B (up to 1.13 m at z 90.5), from the end of
+    //   C's west-lobe rail at B's guard, `inset` inside C's paving, to where C has come down onto
+    //   the junction's surface (z 97.1); B's guard as the lobe rail is. North of its end B and C
+    //   no longer meet at grade.
+    // - `junctionFlush`: the shared floor rebuilt to B's own slope across its width, B's grade,
+    //   B's and C's courses and p04's level unchanged; C turns to the floor's cross-fall over
+    //   `twist` metres before it meets it and back over as many after, so the two meet flush
+    //   (no lip over `maxLip` at the floor's edges; C's cross-fall up to `maxCrossFall` there).
+    // - `landHold`: the land inside B's loop raised to 4 cm under the rebuilt floor's, its bed's
+    //   and C's east edges (grid edits G28 and G29), nothing cut.
+    // B narrowed to the rail and R4's queue railed over the junction (Christina, 2026-10-17):
+    // - `bClaim`: B's claimed width stops at `cWestRail` where C stands over its east strip:
+    //   its full 8 m to z 90.5, narrowing to 4.7 m at the rail's end (z 97.1). Nothing moves;
+    //   ParkPlan's b_south_return and its editor source carry it as `claim_right_stops_at`.
+    // - `r4Rail`: B's derived guard, `offset` outside R4's queue paving on its bed's shoulder,
+    //   on the queue's side toward the junction, wherever the queue stands more than `minRise`
+    //   over what is beside its bed: along the floor's east edge, and on to C at its south end
+    //   and over the land between the bed and the floor's north-east corner at its north end.
     // The yard's gate re-sited as S2's descent needs (Christina, 2026-10-16), approved 2026-10-17.
     // S2 now stands 1.4 m over the yard floor where the north fence crossed it (z 49.98) and
     // reaches the floor only at z 39.03, so the fence and its gate move to S2's foot: the gate,
@@ -2972,7 +2992,15 @@
         world:[[[-84.768,97.712],[-88.379,97.678],[-88.391,99.003],[-88.43,103.213],[-88.39,105.582],[-87.907,109.918],[-87.635,112.356],[-85.974,120.622],[-82.609,128.156],[-79.869,132.385]],
           [[-75.541,139.063],[-75.158,139.655],[-74.981,139.928],[-74.416,139.644],[-73.654,141.16],[-71.697,143.575],[-69.335,146.488],[-64.177,150.736],[-58.531,153.793],[-58,153.948]]]},
       s2SouthGate:{p:[[-79.869,103.861],[-75.541,108.17]],locked:true,ret:[[-79.869,132.385],[-80.54,132.82]]},
-      pitFill:{kind:'grid edit',edit:'G26',raised:40,cut:0,where:'between C, the B/C junction floor’s south end, B’s south return and the bluff',world:{pit:[[-70,128],[-56,142]]}}}
+      pitFill:{kind:'grid edit',edit:'G26',raised:40,cut:0,where:'between C, the B/C junction floor’s south end, B’s south return and the bluff',world:{pit:[[-70,128],[-56,142]]}},
+      cWestRail:{over:'B',inset:0.15,approved:'2026-10-17',
+        world:[[-76.973,89.297],[-76.553,89.526],[-77.898,92.008],[-78.859,94.568],[-79.821,97.127]]},
+      junctionFlush:{approved:'2026-10-17',slope:'B',bGrade:0.0992,twist:4,maxLip:0.01,maxCrossFall:0.0475,
+        unchanged:['B’s grade','B’s course','C’s course','p04’s level']},
+      landHold:{kind:'grid edit',edits:['G28','G29'],raised:28,cut:0,maxRaise:0.5,where:'inside B’s loop, east of the B/C junction floor, its bed and C',world:{band:[[-76,94],[-58,142]]}},
+      bClaim:{route:'B',side:'east',stopsAt:'cWestRail',full:8,fullTo:90.5,narrowest:4.7,at:97.1,approved:'2026-10-17'},
+      r4Rail:{route:'R4 queue',offset:0.325,minRise:0.3,approved:'2026-10-17',
+        world:[[-70.355,93.954],[-68.039,95.749],[-70.937,100.242],[-67.936,103.343],[-70.036,106.602],[-64.816,110.648]]}}
   };
 
   // The drop's footprint (approved 2026-10-17), world [x, z] corners: the plunge basin at the
@@ -3792,7 +3820,15 @@
     // tapering over 6 m. Its shape waits on Christina's entrance decisions of 2026-09-29; it stands
     // up to 2.47 m over the lane's centreline (s 1140) and over the Fairground platform's front
     // half. Nothing drawn for S2 or G1 touches it.
-    bermW:{x:[-80,-13],z:[160,170],height:2.5,taper:6,overLane:2.47,waits:'2026-09-29 entrance decisions'}
+    bermW:{x:[-80,-13],z:[160,170],height:2.5,taper:6,overLane:2.47,waits:'2026-09-29 entrance decisions'},
+    // Held level (Christina, 2026-10-17: "Hold it level"), world metres. Between the entrance
+    // crossing and the entry stop, both controls at 0.0, the uniform Catmull-Rom loop sagged
+    // 0.148 m under them (s 29) and the flat ground stood up to 6.8 cm over the lane at s 16-39.
+    // The lane is held at its two controls' level over that whole span
+    // (ParkPlan.GRAND_TRAM_LEVEL_SPANS): 0.0 from s 0 to the entry stop at s 44, its course
+    // unchanged, climbing from the stop as before. `through` above ends at s 1175, short of it.
+    entryHold:{from:[0,0,174],to:[44,0,172],level:0,was:{sag:0.148,atS:29,overGround:0.068,s:[16,39]},
+      approved:'2026-10-17'}
   };
   const gcExpand = ([x,z]) => {
     let qx = x, qz = z;
@@ -5381,6 +5417,10 @@
     // The bluff crest, the junction's open edges and C south of it, and S2's south gate (2026-10-16).
     pathLine(Y.crestRail.world.map(gcAtlas),'creek-guard');
     Y.junctionRail.world.forEach(piece => pathLine(piece.map(gcAtlas),'creek-guard'));
+    // C railed over B where the junction was rebuilt flush (2026-10-17).
+    if (Y.cWestRail) pathLine(Y.cWestRail.world.map(gcAtlas),'creek-guard');
+    // R4's queue railed over the junction (2026-10-17).
+    if (Y.r4Rail) pathLine(Y.r4Rail.world.map(gcAtlas),'creek-guard');
     pathLine(Y.s2SouthGate.p,'staff-yard-gate');
     if (Y.s2SouthGate.ret) pathLine(Y.s2SouthGate.ret.map(gcAtlas),'creek-guard');
   }

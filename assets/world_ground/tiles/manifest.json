@@ -13,7 +13,7 @@
  "seam": {
   "applied": true,
   "held": "dumped by Godot",
-  "held_sha256": "91efc1e26cbc037e8300cade350d6d6f26df9e23cd5e23752cb7b5839b0896ec",
+  "held_sha256": "dc7b75554f332d68e22069e5a340a4d39a73ca2ffbc53666b471b4722338a100",
   "held_edges": 4342,
   "stitched_edges": 3441,
   "stitched_m": 10735.4,
@@ -174,13 +174,13 @@
    }
   },
   "x-1_z0": {
-   "input_hash": "516d057721d70102c269239ff62da1802121781ef9d24f34318f04d414cc46f7",
+   "input_hash": "b32e576acc15c04e140f7f10a3f944e37214c4a76d0cc2b6ac907b3cdd47ec59",
    "glb": "x-1_z0.glb",
-   "glb_sha256": "1c1abb61cb426534b5f66224acbb26747d1af28564b30f92943f0c9689a9af01",
-   "glb_bytes": 1693496,
-   "height_sha256": "457ebc1a8976a81457aaf68f2a4630b762dfc3f39d03f2e281971cfbdb2f7c4d",
-   "vertices": 38549,
-   "triangles": 76485,
+   "glb_sha256": "a8836898448505d090c1fb02c14a1d0e098b235ba0464bd7077bd1e5c6194218",
+   "glb_bytes": 1696092,
+   "height_sha256": "a64e466285ae7d857e50c3a387e31a1707fc3c8e141fc9a6f21cf42bfa399167",
+   "vertices": 38608,
+   "triangles": 76603,
    "stitch_band": {
     "triangles": 179,
     "vertices": 65,
@@ -188,9 +188,9 @@
     "length_m": 562.0
    },
    "triangles_by_zone": {
-    "park": 4529,
-    "walkable": 14951,
-    "elsewhere": 57005,
+    "park": 4557,
+    "walkable": 14959,
+    "elsewhere": 57087,
     "deep_sea": 0
    },
    "y_range": [
@@ -198,8 +198,8 @@
     5.627626419067383
    ],
    "build": {
-    "rounds": 27,
-    "seconds": 2.51
+    "rounds": 29,
+    "seconds": 2.81
    }
   },
   "x-1_z1": {
@@ -1305,13 +1305,13 @@
    }
   },
   "x0_z0": {
-   "input_hash": "b9ae1b1e84d932a62230cf6d4aca3189c396e4c6655a262b3b5b5611b5d4cce1",
+   "input_hash": "25b52502b0b3addff8a3f1fb6366b724aeefe257648668cfe4c55fcdf730667f",
    "glb": "x0_z0.glb",
-   "glb_sha256": "5ca79963545ce9d3b1d13f4608f661eeea91c08ad02251af49f911efd6b6fdfd",
-   "glb_bytes": 1764928,
+   "glb_sha256": "24f5fa9d5862da1a1a9faa8cb0a02e99e5c7778ca14715c8ed546f75b4d60a97",
+   "glb_bytes": 1763300,
    "height_sha256": "f2565c538b059d0809d37f6987a869d684a05242e620a1fc0a1087172cc55fd2",
-   "vertices": 40277,
-   "triangles": 79179,
+   "vertices": 40240,
+   "triangles": 79105,
    "stitch_band": {
     "triangles": 1961,
     "vertices": 855,
@@ -1319,9 +1319,9 @@
     "length_m": 2481.8
    },
    "triangles_by_zone": {
-    "park": 11842,
-    "walkable": 46752,
-    "elsewhere": 20585,
+    "park": 11766,
+    "walkable": 46750,
+    "elsewhere": 20589,
     "deep_sea": 0
    },
    "y_range": [
@@ -1329,8 +1329,8 @@
     296.35198974609375
    ],
    "build": {
-    "rounds": 18,
-    "seconds": 1.82
+    "rounds": 23,
+    "seconds": 2.31
    }
   },
   "x0_z1": {
@@ -6646,7 +6646,7 @@
    }
   },
   "x-1_z0": {
-   "key": "af209f8d0f57aeaaf33a59877966e009c0245cba35b1eb8c48d3374e53c9df69",
+   "key": "8e44a06d9d802fd977cb18aafebf11df5754eef15c64ad269754489da51143e1",
    "requests": {
     "n": [
      0,
@@ -6964,19 +6964,21 @@
     ],
     "e": [
      0,
-     40,
+     24,
+     25,
+     38,
      48,
      49,
-     51,
+     53,
      55,
      56,
-     57,
-     73,
-     91,
+     90,
+     99,
      100,
      101,
+     107,
      108,
-     117,
+     116,
      120,
      128,
      132,
@@ -18372,19 +18374,20 @@
    0,
    22,
    23,
+   24,
+   25,
    34,
-   40,
+   38,
    45,
    47,
    48,
    49,
-   51,
    53,
    55,
    56,
    57,
-   73,
    88,
+   90,
    91,
    99,
    100,
@@ -18395,7 +18398,6 @@
    108,
    110,
    116,
-   117,
    120,
    128,
    132,
@@ -30515,15 +30517,15 @@
  },
  "totals": {
   "tiles": 104,
-  "triangles": 1481131,
-  "vertices": 751816,
+  "triangles": 1481175,
+  "vertices": 751838,
   "triangles_by_zone": {
-   "park": 42058,
-   "walkable": 434358,
-   "elsewhere": 984447,
+   "park": 42010,
+   "walkable": 434364,
+   "elsewhere": 984533,
    "deep_sea": 20268
   },
-  "glb_bytes": 34075056
+  "glb_bytes": 34076024
  },
  "last_build": {
   "tiles_built": [],
@@ -30533,7 +30535,7 @@
    "phase1": 0.0,
    "phase2": 0.0,
    "export": 0.0,
-   "total": 8.2
+   "total": 8.3
   }
  }
 }

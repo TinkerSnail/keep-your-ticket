@@ -99,6 +99,19 @@ func _build_legs() -> void:
 	# landform end to end, so it is walked centre and both edges like A-F.
 	var p5_public := [&"P5_audience_entry", &"P5_audience_release",
 		&"P5_photo_access", &"P1_public_access"]
+	# A route whose claimed width stops short of its paving names what it stops
+	# at (`claim_right_stops_at`, Christina, 2026-10-17: "B narrows to the rail");
+	# that thing publishes its line.
+	var right_limits := {}
+	for run in ParkPlan.rebuild_primary_route_sources():
+		if not run.has("claim_right_stops_at"):
+			continue
+		var stop := world.find_child(String(run["claim_right_stops_at"]), true, false)
+		if stop == null or not stop.has_meta("points"):
+			_fails.append("%s's claim stops at %s, which the world does not publish" % [
+				run["id"], run["claim_right_stops_at"]])
+			continue
+		right_limits["route_%s" % run["id"]] = stop.get_meta("points")
 	for layer_spec in layers:
 		var layer: Node = layer_spec["node"]
 		if layer == null:
@@ -119,7 +132,8 @@ func _build_legs() -> void:
 				continue
 			var width := float(body.get_meta("width", 0.0))
 			var closed := bool(body.get_meta("closed", false))
-			_add_run_legs(String(body.name), points, width, closed)
+			_add_run_legs(String(body.name), points, width, closed,
+				right_limits.get(String(body.name), PackedVector3Array()))
 
 	# These two rebuild runs deliberately retain their established scene owners,
 	# so they have no generated `route_*` body to discover above. They are still
@@ -136,7 +150,8 @@ func _build_legs() -> void:
 		_add_run_legs(String(run["id"]), points, float(run["width"]), false)
 
 
-func _add_run_legs(label: String, points, width: float, closed: bool) -> void:
+func _add_run_legs(label: String, points, width: float, closed: bool,
+		right_limit := PackedVector3Array()) -> void:
 	if width <= EDGE_INSET * 2.0:
 		_fails.append("%s is too narrow for edge traversal" % label)
 		return
@@ -147,8 +162,51 @@ func _add_run_legs(label: String, points, width: float, closed: bool) -> void:
 	for side in ["center", "left", "right"]:
 		var line: PackedVector3Array = lines[side]
 		for i in line.size() - 1:
+			if side == "right" and not right_limit.is_empty():
+				var narrowed := _narrowed_right(Vector3(points[i]), Vector3(points[i + 1]),
+					line[i], line[i + 1], width * 0.5, right_limit)
+				if not narrowed.is_empty():
+					for k in narrowed.size() - 1:
+						_add_leg("%s right %02d.%02d out" % [label, i, k], narrowed[k], narrowed[k + 1])
+						_add_leg("%s right %02d.%02d back" % [label, i, k], narrowed[k + 1], narrowed[k])
+					continue
 			_add_leg("%s %s %02d out" % [label, side, i], line[i], line[i + 1])
 			_add_leg("%s %s %02d back" % [label, side, i], line[i + 1], line[i])
+
+
+## A right edge segment where the route's claimed width stops at `limit`, a rail
+## standing on its paving: walked EDGE_INSET inside the rail, and past its ends by
+## as much, in steps of a metre; empty where the segment's claim reaches its edge.
+func _narrowed_right(c0: Vector3, c1: Vector3, w0: Vector3, w1: Vector3,
+		half: float, limit: PackedVector3Array) -> PackedVector3Array:
+	var ext := PackedVector3Array(limit)
+	var head := Vector3(ext[0] - ext[1]).normalized()
+	var tail := Vector3(ext[-1] - ext[-2]).normalized()
+	ext.insert(0, ext[0] + head * EDGE_INSET)
+	ext.append(ext[-1] + tail * EDGE_INSET)
+	var scale := half / (half - EDGE_INSET)
+	var steps := maxi(1, ceili(c0.distance_to(c1)))
+	var out := PackedVector3Array()
+	var narrowed := false
+	for k in steps + 1:
+		var t := float(k) / float(steps)
+		var c := c0.lerp(c1, t)
+		var w := w0.lerp(w1, t)
+		var c2 := Vector2(c.x, c.z)
+		var e2 := c2 + (Vector2(w.x, w.z) - c2) * scale
+		var reach := INF
+		for j in ext.size() - 1:
+			var hit: Variant = Geometry2D.segment_intersects_segment(c2, e2,
+				Vector2(ext[j].x, ext[j].z), Vector2(ext[j + 1].x, ext[j + 1].z))
+			if hit != null:
+				reach = minf(reach, c2.distance_to(hit))
+		if reach < INF:
+			narrowed = true
+			var q := c2 + (e2 - c2).normalized() * (reach - EDGE_INSET)
+			out.append(Vector3(q.x, w.y, q.y))
+		else:
+			out.append(w)
+	return out if narrowed else PackedVector3Array()
 
 
 # This is intentionally the same miter construction as `gen_props.gd` uses for
