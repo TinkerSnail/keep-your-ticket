@@ -258,15 +258,15 @@
         <span><b>Operations</b> Three 4m back-of-house spines enter from separate gates, terminate in 12m turning heads, and connect every permanent ride yard; only the lighthouse and north Boardwalk use public paving, before opening.</span>
         <span><b>Water</b> D2 remains concealed only from the Plaza to its daylight point, then becomes Coastal Creek; the other five catchments end in planted detention or controlled waterfront outfalls. No swale, pipe, basin, or open water uses either protected monument as a drainage shortcut.</span>
         <span><b>Planting</b> Shade allées sit beyond public paving, service screens wrap cue and load yards, and deep-rooted slope bands stabilize the retained edges while landmark and photography sightlines stay low and open.</span>
-        <span><b>Pass</b> The two west service spines stop 8m short of NT-1; no permanent service lane enters NT-1 or NT-2; S2 crosses the creek on one locked 4m culvert; tree trunks remain at least 2.5m beyond paving edges and every drainage arrow reaches detention or the controlled creek outfall.</span>
+        <span><b>Pass</b> The two west service spines stop 8m short of NT-1; no permanent service lane enters NT-1 or NT-2; S2 crosses the creek over one culvert, CX1 (approved 2026-10-17, with S2 brought down to the Boardwalk); tree trunks remain at least 2.5m beyond paving edges and every drainage arrow reaches detention or the controlled creek outfall.</span>
       </figcaption>
     </figure>
     <figure class="parcel-wide" data-detail="creek">
       <h3>05A · Coastal Creek daylighting plan</h3>
       <svg id="creek-parcel-map" class="parcel-map" role="img" aria-labelledby="creek-parcel-title creek-parcel-description"></svg>
       <figcaption class="parcel-notes text-small">
-        <span><b>Water</b> D2 emerges southeast of the Cascading Staircases as a 2.5–4m low-flow channel and meanders through an 8–12m planted corridor at its old levels (bed −0.18 to −2.389 at the S2 culvert), then drops 3.8m in four built steps from a crest at −2.95 into a plunge pool at the bluff’s foot (water −6.70). Its last reach, from there, is regraded to shore level (Christina, 2026-10-16): it crosses the north end of a 14 × 8m rain pond (water −6.85) off the Grand Circuit lane, passes under the lane in one culvert as at D5 (inverts −6.87 and −6.89), runs in a shore notch along P2’s north side, railed on its open stretch, and leaves over one controllable waterfront weir (−6.95) through the seaward fascia, 1.5m deep there.</span>
-        <span><b>Crossings</b> B crosses on a 10m promenade bridge; the lane crosses on culvert CX2; the locked S2 service spine uses one 4m culvert. CB1 and the funhouse garden loop are re-sited, approved by Christina (2026-10-16): a 2.6m garden walk round the pond’s bank, closed across its north end by CB1, reached by a stem from B’s south return, which holds flush with the lane at −5.97 across its clear zone and then climbs at an even 9.92% to where C joins it. A fence closes the garden’s east side toward S2’s yard. No path ends at the water.</span>
+        <span><b>Water</b> D2 emerges southeast of the Cascading Staircases as a 2.5–4m low-flow channel and meanders through an 8–12m planted corridor at its old levels (bed −0.18 to −1.63 at the bluff face), then falls 5.1m down the bluff face into a plunge basin at its foot (water −6.70) and passes under S2 in culvert CX1 (Christina, 2026-10-16, with S2 brought down to the Boardwalk; drawn 2026-10-17 and approved by her the same day; it supersedes the drop at −2.95 below the bluff, approved 2026-10-16). Its last reach, from there, is regraded to shore level (Christina, 2026-10-16): it crosses the north end of a 14 × 8m rain pond (water −6.85) off the Grand Circuit lane, passes under the lane in one culvert as at D5 (inverts −6.87 and −6.89), runs in a shore notch along P2’s north side, railed on its open stretch, and leaves over one controllable waterfront weir (−6.95) through the seaward fascia, 1.5m deep there.</span>
+        <span><b>Crossings</b> B crosses on a 10m promenade bridge; the lane crosses on culvert CX2; S2, now at the shore’s level, crosses over CX1, a culvert like CX2, at its foot (approved 2026-10-17). CB1 and the funhouse garden loop are re-sited, approved by Christina (2026-10-16): a 2.6m garden walk round the pond’s bank, closed across its north end by CB1, reached by a stem from B’s south return, which holds flush with the lane at −5.97 across its clear zone and then climbs at an even 9.92% to where C joins it. A fence closes the garden’s east side toward S2’s yard. No path ends at the water.</span>
         <span><b>Edges</b> Flood shelves, rushes, and low stone toes hold the ordinary banks. Hard retaining, railings, and headwalls are limited to bridge abutments and the outfall.</span>
         <span><b>After close</b> Reflected ride lights, a slow current, and the pump-and-weir sound carry through the southwest seam without adding another attraction footprint.</span>
         <span><b>Pass</b> The planted corridor stays at least 7.2m outside NT-1 and the notch 5.0m from the P2 foundation; the pond, CB2 and the open water stay outside the lane’s 1.5m clear zone; B’s bridge retains its route width; the garden walk and CB1 stay outside the clear zone too; S2 stays locked; overflow reaches the outfall without entering public paving.</span>
@@ -2563,10 +2563,88 @@
   planCheck(validateInteriorPlan);
 
   const serviceSpines = [
-    {id:'S1',name:'West / Headland spine',label:[-69,-77],
+    // S1 the same way as S2 (Christina, 2026-10-16: bring it down to the ground it runs over, to
+    // H1, by the same rules, once its own constraints are checked): held, drawn 2026-10-17 as
+    // built, a 0.0 ribbon about 6 m over the shore for about 130 m. Its own constraints, for her
+    // (`held.why`): its start at H3 stands on +3.84 ground, 9.8 m over the shore, and its first leg
+    // leaves no room for 12.5% (79 m) before the shore; on the shore it runs through R2's parcel
+    // (x -68 to -69, z -144 to -98), among the coaster's bents; at grade it would stand 0.6-0.9 m
+    // from the lane's edge at z -45 to -73, inside the 1.5 m clear zone (gcGaps' s1Clear holds
+    // its deck edge only because it is 5.7 m up); P5's backstage service access meets it at 0.0
+    // from the bluff top at (-62, -38); H1 stands 2 m onto the bluff wall and the north bluff
+    // beds and 2 m from NT-1's zone line (z -15), beside NT-1; and D1's drainage line follows it
+    // from H3 to (-69, -98). The I2 and I3 staff links and SH1, at the shore's level, would meet
+    // it at grade. `levels`, world metres, are as built.
+    {id:'S1',name:'West / Headland spine',label:[-69,-77],status:'held',
+      levels:[[-52,0,-170.667],[-68,0,-144.296],[-69,0,-98.148],[-64,0,-65.185],[-62,0,-38],[-62,0,-23]],
+      held:{why:['its start at H3 on +3.84 ground, 9.8 m over the shore: 79 m at 12.5%','R2’s parcel and bents, z −144 to −98',
+        '0.6–0.9 m from the lane’s edge at z −45 to −73 at grade','P5’s backstage service access at 0.0, (−62, −38)',
+        'H1 on the bluff wall and beds, 2 m from NT-1’s zone','D1’s drainage line along it']},
       p:[[-52,-124],[-68,-108],[-69,-80],[-64,-60],[-62,-38],[-62,-23]]},
-    {id:'S2',name:'Fairground / Boardwalk spine',label:[-77,77],
-      p:[[-34,126],[-40,127],[-70,120],[-80,105],[-73,80],[-64,61],[-62,38],[-62,20]]},
+    // S2 brought down to the Boardwalk (Christina, 2026-10-16: option A) and its south arm and G1
+    // moved off the Grand Circuit lane behind the Fairground stop (Christina, 2026-10-16), drawn
+    // 2026-10-17 and approved by her the same day. Before (`was`): a 0.0 ribbon 5.94-6.00 m over the staff yard and
+    // the back lane for 52 m (z 72 to 20), ending at H2 2 m into the bluff face; its south arm
+    // left the lane's bank up to 6 m over the south shore and ran on the lane from s 1121.6 to
+    // s 1162, through the Fairground stop's boarding gates, to G1 inside the lane. Now (`levels`,
+    // world metres (x, y, z) on the plan course, straight between):
+    // - C's gate (water/CW-AQ/yard/S2_gate) stays as built; S2 is at C's level there, -0.85.
+    // - From it S2 descends at an even 12.5% on its solid retained bank through the yard to the
+    //   yard floor, -6.00, at (-62.07, 39.03), 41.2 m on, and holds -6.00, flush with the back
+    //   lane, past P2's staff link, which meets it at grade at (-62, 38), to H2.
+    // - The yard's gate crosses S2 at its foot, 0.5 m up the ramp, at -5.94 (coastalCreek.yard).
+    // - Between C's gate and its south gate it keeps C's and the B/C junction's levels as built.
+    // - Its south arm leaves the south gate (as built) outside C's rail, on fill over the south
+    //   shore at 0.00, at least 0.8 m beyond the lane's clear zone and 0.19 m off C's rail, to the
+    //   bluff face behind the Fairground platform's west end, on the land at 0.00.
+    // - `shared` (Christina, 2026-10-17: "share C between gates"): behind the platform, where C's
+    //   paving stands only 2.84-3.95 m from its back edge (C's ribbon as built), S2 runs on C's
+    //   paving for 12.2 m between two locked staff gates, W and E, and so reaches G1; C and S2 both
+    //   keep their lines. Each gate spans S2's 4 m square and stands wholly outside C's paving, so
+    //   C keeps its full 8 m for guests when they are shut; W meets the end of C's rail (JR2) and
+    //   the arm's guard. S2 keeps north of berm_w's toe (z 160) throughout, which it never touches.
+    // - `shared.beyondE` (2026-10-17: S2 staff only and gated, as Christina chose): east of gate E
+    //   S2 runs 16 m behind the platform's east half to G1, 0.22-1.6 m from its back edge, with
+    //   the land between it and C open. A derived rail closes each side, from gate E's posts to
+    //   G1's: on the platform side it leaves the gate post on S2's paving edge and runs 0.15-0.2 m
+    //   outside it from x -44, keeping at least 0.22 m off the platform's paving and 0.25 m off
+    //   berm_w's toe (the platform has no back guard of its own: its only rail is on the lane
+    //   side); on C's side it widens to 0.325 m, at least 0.24 m off C's paving. G1 is a locked
+    //   4 m gate across S2's end. With the arm's guard, C's rail and the gates, S2 has no edge
+    //   open to guests from its south gate to G1.
+    // - `guards` (Christina, 2026-10-17): wherever S2 still drops once rebuilt, below.
+    {id:'S2',name:'Fairground / Boardwalk spine',label:[-77,77],status:'approved',decided:'2026-10-16',approved:'2026-10-17',
+      p:[[-29,120.1],[-40,120.129],[-46,119.852],[-50,119.323],[-54,118.8],
+        [-58.4,119.29],[-62.5,118],[-68,115.871],[-73,113.677],[-76.6,111.097],[-80,105],[-73,80],[-64,61],[-62,38],[-65.55,21]],
+      levels:[[-29,0,157.555],[-40,0,157.6],[-46,0,157.17],[-50,0,156.35],[-54,0,155.54],[-58.4,0,156.3],[-62.5,0,154.3],[-68,0,151],[-73,0,147.6],[-76.6,0,143.6],[-80,-0.25,134.15],[-73,-2.32,95.4],
+        [-68.152,-0.85,79.537],[-64,-2.626,65.95],[-62.073,-6,39.026],[-62,-6,38],[-65.55,-6,21]],
+      grade:0.125,cGate:{at:[-68.152,79.537],level:-0.85},foot:[-62.073,-6,39.026],
+      meets:{P2:{at:[-62,38],level:-6}},
+      // Guards where S2 drops (Christina, 2026-10-17: its south arm has no rails and drops 3.8-6 m
+      // both sides; guard whatever drops remain as part of S2's rebuild). B's derived guard (a top
+      // and a mid rail on posts at most 3 m apart, colliding), `offset` outside the paving,
+      // wherever S2 stands `minRise` or more over the ground beside it once rebuilt: the arm's lane
+      // side from the south gate's west post to the shared stretch's west gate (W), 38 m; and
+      // both sides of the descent from C's gate's posts to where it stands 0.3 m over the yard
+      // floor (z 41.4), 39 m each, the west one meeting the yard fence there. The arm's C side
+      // needs none: its bank meets C's bank, the 0.2-1.8 m slot between them filled flush, and C's
+      // rail (JR2) stands between them. World metres.
+      guards:{kind:'derived rail',offset:0.325,minRise:0.3,armTo:'W',
+        arm:[[-79.869,132.385],[-78.633,144.816],[-74.54,149.364],[-69.253,152.96],[-63.61,156.345],[-60.5,157.862],[-58.727,158.602],[-57.26,158.133]],
+        east:[[-65.488,77.663],[-61.7,66.378],[-59.926,41.586]],
+        west:[[-70.816,81.41],[-66.3,65.522],[-64.564,41.254]],
+        armSlot:'filled flush between S2’s bank and C’s bank, with C’s rail (JR2) between them'},
+      was:{p:[[-34,126],[-40,127],[-70,120],[-80,105],[-73,80],[-64,61],[-62,38],[-62,20]],level:0},
+      // The shared stretch, world metres: its two gates (north post first), C's ribbon as built
+      // beside them (`cBuilt`, its centreline, half-width 4), and how far S2 overlaps C's paving.
+      shared:{with:'C',approved:'2026-10-17',length:12.2,overlap:1.28,
+        pinch:{x:[-57.2,-46.3],gap:[2.84,3.95]},
+        gates:{W:{p:[[-57.94,154.191],[-57.26,158.133]],locked:true},E:{p:[[-45.457,155.204],[-45.743,159.194]],locked:true}},
+        beyondE:{to:'G1',kind:'derived rail',
+          rails:{c:[[-45.457,155.204],[-43.834,154.995],[-39.92,155.278],[-30.01,155.234],[-29,155.555]],
+            platform:[[-45.743,159.194],[-44.157,159.508],[-40.07,159.75],[-29.991,159.71],[-29,159.555]]}},
+        cBuilt:{half:4,centre:[[-66.25,143.43],[-61.75,147.13],[-56.88,149.77],[-52,151.2],[-47,151.21],[-41.75,149.94],[-36.62,147.75]],
+          measured:'route_c_coastal_loop as built, 2026-10-17'}}},
     // S3 clear of the Grand Circuit T6 tunnel (Christina, 2026-10-15): approved change
     // pending build. Atlas units, expanded vertex by vertex as ParkPlan does. The road
     // train dives under the east highland in a bore from lane s 205 to s 413; S3 crossed
@@ -2628,13 +2706,26 @@
   ];
 
   const serviceNodes = [
-    {id:'G1',kind:'gate',at:[-34,126],label:[-47,137]},
+    // G1 off the Grand Circuit lane (Christina, 2026-10-16), approved 2026-10-17: it stood inside the
+    // lane at world (-34, 166.7). Now behind the Fairground stop, 7 m west of I5's rear as G2 is
+    // 7 m east of I6's, at world (-29, 157.56), S2's edge 0.2 m north of berm_w's toe. G2's exact
+    // mirror, world (-29, 158.8), would need a 0.8 m notch in berm_w's toe, as berm_e has for S3.
+    // S2 reaches it through the stretch it shares with C behind the platform (Christina, 2026-10-17).
+    {id:'G1',kind:'gate',at:[-29,120.1],label:[-41,128],status:'approved',approved:'2026-10-17',was:[-34,126],
+      locked:true,p:[[-29,155.555],[-29,159.555]]},
     // G2 moved off the entry platform's west end with S3's start (S3 start clear of the entry platform (Christina, 2026-10-15)).
     {id:'G2',kind:'gate',at:[29,120.9],label:[17,131]},
     {id:'G3',kind:'gate',at:[-96,-62],label:[-111,-69]},
     {id:'G4',kind:'gate',at:[-126,-20],label:[-135,-27]},
-    {id:'H1',kind:'turn',at:[-62,-23],r:6,label:[-75,-24]},
-    {id:'H2',kind:'turn',at:[-62,20],r:6,label:[-75,20]},
+    // H1 is held with S1 (2026-10-17): at (-62, -23) its east 2 m stand on the bluff wall and the
+    // north bluff beds, 2 m from NT-1's zone line.
+    {id:'H1',kind:'turn',at:[-62,-23],r:6,label:[-75,-24],status:'held'},
+    // H2 on the back lane (S2 brought down, Christina, 2026-10-16): at (-62, 20) it stood 2 m into
+    // the bluff face. A 10 m head (Christina, 2026-10-17: "10 m, keep the beds"), 0.55 m from the
+    // Boardwalk platform (x -71.1) and 0.55 m from the south bluff beds s_1 and s_2 (x -60), which
+    // stay whole; a 12 m head would have taken 1.2 m off them.
+    {id:'H2',kind:'turn',at:[-65.55,21],r:5,label:[-75,20],status:'approved',approved:'2026-10-17',was:[-62,20],
+      beds:{what:'south bluff beds s_1 and s_2',edge:-60,z:[12,30.8]}},
     {id:'H3',kind:'turn',at:[-52,-124],r:6,label:[-65,-132]},
     {id:'H4',kind:'turn',at:[42,-135],r:6,label:[29,-144]}
   ];
@@ -2684,36 +2775,57 @@
   // `levels` are world metres (x, y, z) at the regraded levels.
   const coastalCreek = {
     id:'D2',name:'Coastal Creek',
-    channel:[[-48,22],[-54,29],[-59,37],[-62,44],[-70,50],[-72.5,55.23],[-77.5,55.23],[-80.46,53.63],
+    // D2's drop moved to the bluff face (Christina, 2026-10-16, with S2 brought down to the
+    // Boardwalk), drawn 2026-10-17 and approved by her the same day. It knowingly revises her "old levels + a drop"
+    // below the bluff (2026-10-16): the creek kept its old levels for 15 m past the face, on a bank
+    // 3.1-4.3 m over the yard, and dropped at (-68.08, 48.56). Upstream of the face its course,
+    // levels (bed -0.18 to -1.633 at the face) and planting are unchanged (`drop.upstream`). At the
+    // face it falls into a plunge basin at the bluff's foot and passes under S2 in CX1, a culvert
+    // like CX2; from CX1 its last reach runs to the pond as before. p02 (-59, 37) and p03 (-62, 44)
+    // give way to the face, the basin's outlet and CX1's outlet (`was`).
+    channel:[[-48,22],[-54,29],[-58,35.4],[-59.5,37],[-66.6,43.3],[-70,50],[-72.5,55.23],[-77.5,55.23],[-80.46,53.63],
       [-87.12,48.16],[-88.6,46.8],[-91,47],[-102,47],[-108,47]],
+    was:{channel:[[-48,22],[-54,29],[-59,37],[-62,44],[-70,50]],drop:{crest:[-68.08,48.56],top:-2.95,height:3.8}},
     pond:{at:[-75,58.77],radii:[4,7],bankRadii:[7,10],water:-6.85,bed:-7.45},
     crossings:[
       {id:'CB2',kind:'promenade',name:'Boardwalk promenade bridge',at:[-96,47],size:[10,6]},
-      {id:'CX1',kind:'culvert',name:'S2 locked service culvert',at:[-62,44],size:[4,10]},
+      // CX1 a culvert like CX2 (Christina, 2026-10-16), approved 2026-10-17: it was a 4 x 10 m slab on
+      // S2's paving, 0.18 m proud, with the creek 3.1-4.3 m up on its bank. Now a 1.2 x 0.6 m barrel
+      // from the plunge basin's outlet to the creek's open reach, mouth to mouth under S2's foot,
+      // brick lintels at the mouths, 0.24 m under S2 at -6.00. It crosses S2 at about 45 degrees:
+      // square to S2 its outlet would stand in P2's staff link or on the yard's fence. World metres.
+      {id:'CX1',kind:'service-culvert',name:'D2 culvert under S2, as at CX2',status:'approved',approved:'2026-10-17',
+        p:[[-59.5,37],[-66.6,43.3]],world:[[-59.5,37],[-66.6,43.3]],under:'S2',
+        barrel:[1.2,0.6],invert:[-6.84,-6.845],cover:0.24,was:{kind:'slab',at:[-62,44],size:[4,10]}},
       {id:'CX2',kind:'lane-culvert',name:'D2 culvert under the Grand Circuit lane, as at D5',
         p:[[-80.46,53.63],[-87.12,48.16]],world:[[-80.46,54.52],[-87.12,48.16]],
         s:987,barrel:[1.2,0.6],invert:[-6.87,-6.89],cover:0.25}
     ],
     weir:{p:[[-102,45.2],[-102,48.8]],crest:-6.95},
     outfall:[-108,47],
-    // D2's bed, world metres (Christina, 2026-10-16): the upstream keeps its old levels,
-    // p00 to p03, and falls on to the drop's crest at (-68.08, 48.56), -2.95, where it steps
-    // down 3.80 m in four steps of 0.95 m over 1.2 m into a plunge pool reaching p04 (bed
-    // -7.25, water -6.70). From p04 (-6.75) the last reach: the pond, the culvert's
-    // inverts, the weir and the outfall at sea level. Its banks stand at the deck, -6.00.
-    levels:[[-48,-0.18,22],[-54,-1.088,29],[-59,-1.769,37],[-62,-2.389,44],[-68.08,-2.95,48.56],
-      [-69.04,-6.75,49.28],[-70,-6.75,50],[-75,-6.85,57],[-80.46,-6.87,54.52],[-87.12,-6.89,48.16],
+    // D2's bed, world metres: the upstream keeps its old levels to the bluff face, -1.633 there on
+    // its old line (Christina, 2026-10-16); it falls 5.12 m at the face into the plunge basin
+    // (water -6.70, bed -7.25) and leaves it through CX1 (inverts -6.84 and -6.845), then the last
+    // reach as before: the pond, CX2's inverts, the weir and the outfall at sea level, its bed set
+    // 0.10 m lower to (-70, 50) so that it falls from CX1 (2026-10-17). Its banks stand at the
+    // deck, -6.00. Until 2026-10-16 the bed fell on past the face to a drop at (-68.08, 48.56),
+    // -2.95, which stepped 3.80 m in four steps into a pool there.
+    levels:[[-48,-0.18,22],[-54,-1.088,29],[-58,-1.633,35.4],[-59.5,-6.84,37],[-66.6,-6.845,43.3],
+      [-70,-6.848,50],[-75,-6.85,57],[-80.46,-6.87,54.52],[-87.12,-6.89,48.16],
       [-102,-6.95,47],[-108,-7.5,47]],
-    // The drop as built (editor-owned marker, 2026-10-16), world metres: its crest across
-    // the 3.2 m channel; 4 steps of 0.95 m over a 1.2 m run; the plunge pool to p04 and
-    // 1.6 m past it. Its footprint, sill to pool end along the course and between the side
-    // walls, is 4.3 x 4.0 m (`footprint`: from -0.3 to 4.0 m along `along` from the crest,
-    // 4.0 m wide). Measured on it the build reports 3.37 m beyond the lane's clear zone,
-    // 1.78 m from S2's paving and 6.16 m from the garden walk (the maps: 3.31, 1.77, 6.14);
-    // validateCreekGarden holds it at `clear`, those less a small margin.
-    drop:{crest:[-68.08,48.56],top:-2.95,height:3.8,steps:4,rise:0.95,run:1.2,width:3.2,
-      along:[-0.8,0.6],pool:{water:-6.7,bed:-7.25},footprint:{from:-0.3,to:4,width:4},
-      clear:{lane:3.2,s2:1.7,walk:6}},
+    // The drop at the bluff face (approved 2026-10-17), world metres: its crest on the coping
+    // across the 3.2 m channel where the old line meets the face (`crestLine`), at the old bed
+    // there; a 5.12 m fall down the face, the plinth notched under it, into a plunge basin between
+    // the face and S2's paving (`basin`, 2.0 x 3.4 m; its west wall is S2's guarded verge); CX1
+    // leaves its south-west corner. `upstream` is the course and bed from the daylight point to
+    // the face as approved on 2026-10-16, which this keeps. validateCreekGarden holds the basin at
+    // `clear` from the lane's clear zone, S2's paving and the garden walk. `was`: the drop built
+    // on 2026-10-16 below the bluff, retired with this change.
+    drop:{kind:'fall',crest:[-58,35.4],face:-58,top:-1.633,base:-6.75,height:5.117,width:3.2,
+      crestLine:[[-58,33.8],[-58,37]],pool:{water:-6.7,bed:-7.25},basin:{x:[-60,-58],z:[33.6,37]},
+      upstream:{channel:[[-48,22],[-54,29]],levels:[[-48,-0.18,22],[-54,-1.088,29]],face:[-58,-1.633,35.4]},
+      clear:{lane:11.8,s2:0.1,walk:6},
+      was:{crest:[-68.08,48.56],top:-2.95,height:3.8,steps:4,footprint:[[-66.64,49.98],[-70.08,52.36],[-72.48,49.36],[-69.04,46.78]]}},
     // The shore notch, world metres: the reach's cut in the made ground from the
     // culvert's shore mouth to the seaward fascia, 3.6 m wide (the 3.2 m channel and its
     // walls), its floor 0.89 m under the deck at the mouth, 0.95 m at the weir and 1.50 m
@@ -2747,6 +2859,8 @@
       // Measured: 1.0 m from the loop, 9.4 m from the stem, 2.2 m from CB1, 8.6 m beyond the
       // lane's clear zone and at least 0.4 m from S2's paving; validateCreekGarden holds it
       // at `clear`, those less a small margin. Atlas units.
+      // With the drop moved to the bluff face (2026-10-17) its start, the old drop's east wall,
+      // becomes the yard fence's corner post; the garden fence itself does not move.
       fence:{status:'approved',approved:'2026-10-16',height:1.5,y:-6,length:33.8,p:[[-66.64,49.98],[-67.22,56.968],[-66.89,58.606],[-67.09,60.381],[-67.76,62.058],[-68.91,63.555],[-70.53,64.8],[-72.61,65.652],[-74.54,65.903],[-80.442,67.745]],
         clear:{loop:0.9,stem:9.3,cb1:2.1,lane:8.5,s2:0.3}}},
     // S2's staff yard by the Boardwalk station made solid and gated (Christina, 2026-10-16:
@@ -2794,10 +2908,20 @@
     // - `pitFill`: the 6 m pit between C's inner edge, the junction floor's south end, B's south
     //   return and the bluff, filled to the land's level, 4 cm under the paving beside it (grid
     //   edit G26, world metres), clear of the Grand Circuit's banks.
+    // The yard's gate re-sited as S2's descent needs (Christina, 2026-10-16), approved 2026-10-17.
+    // S2 now stands 1.4 m over the yard floor where the north fence crossed it (z 49.98) and
+    // reaches the floor only at z 39.03, so the fence and its gate move to S2's foot: the gate,
+    // 4 m, across S2's paving square to it 0.5 m up the ramp, at -5.94, so that the yard is
+    // reached from S2 at grade; the fence from the garden fence's start to the gate's west post,
+    // and from its east post to the bluff face, 2.7 m south of the plunge basin. CX1 passes under
+    // the west piece; its outlet and the open creek, the basin and the fall stay outside the
+    // yard, and P2's staff link meets S2 just north of the gate. `was`: the north fence and 3 m
+    // gate built on 2026-10-16, which S2's ramp would bury.
     yard:{status:'approved',approved:'2026-10-16',name:'S2’s staff yard, solid and gated',
       bluffFace:-58,guardOffset:0.325,
-      fence:{p:[[-66.64,49.98],[-57.95,49.98]],height:1.5,y:-6,
-        gate:{at:[-62.3,49.98],width:3,locked:true}},
+      fence:{status:'approved',approved:'2026-10-17',p:[[-66.64,49.98],[-64.104,39.382]],east:[[-60.114,39.667],[-58,39.818]],height:1.5,y:-6,
+        gate:{p:[[-64.104,39.382],[-60.114,39.667]],across:'S2',width:4,level:-5.94,locked:true},
+        was:{p:[[-66.64,49.98],[-57.95,49.98]],gate:{at:[-62.3,49.98],width:3}}},
       s2Gate:{p:[[-65.488,68.557],[-70.816,70.974]],locked:true},
       rail:{route:'C',offset:0.325,
         world:[[[-58,75.527],[-62.765,76.239],[-65.488,77.663]],[[-70.816,81.41],[-72.05,82.43],[-75.607,86.778],[-76.973,89.297]]]},
@@ -2812,12 +2936,11 @@
       pitFill:{kind:'grid edit',edit:'G26',raised:40,cut:0,where:'between C, the B/C junction floor’s south end, B’s south return and the bluff',world:{pit:[[-70,128],[-56,142]]}}}
   };
 
-  // The drop's footprint as built (2026-10-16), world [x, z] corners: sill to pool end
-  // along the course from the crest, between the side walls.
+  // The drop's footprint (approved 2026-10-17), world [x, z] corners: the plunge basin at the
+  // bluff's foot, between the face and S2's paving.
   function d2DropFootprint() {
-    const D = coastalCreek.drop, [ax, az] = D.along, c = D.crest, f = D.footprint, h = f.width / 2;
-    return [[f.from, -h], [f.to, -h], [f.to, h], [f.from, h]].map(([u, v]) =>
-      [c[0] + ax * u - az * v, c[1] + az * u + ax * v]);
+    const b = coastalCreek.drop.basin;
+    return [[b.x[1], b.z[0]], [b.x[0], b.z[0]], [b.x[0], b.z[1]], [b.x[1], b.z[1]]];
   }
 
   const plantingBands = [
@@ -3614,7 +3737,23 @@
       culvert:'CX2',
       serviceCrossings:['P2'],
       moves:[{id:'mast_11',kind:'generated mast',from:[-106.4,76.0],to:[-100.6,76.0],r:0.22}],
-      resited:['CB1','pond garden loop']}
+      resited:['CB1','pond garden loop'],
+      // To s 1175 (2026-10-17): gcSouthGaps checks the whole stretch from the Boardwalk station
+      // through the Fairground stop (s 1144) to s 1175, past where S2's arm and G1 stood on the
+      // lane. `through` are the loop's next controls (ParkPlan.GRAND_TRAM_CONTROLS); `end` is the
+      // lane's point at s 1175, world metres.
+      through:[[0,0,174],[44,0,172]],end:{s:1175,at:[-17.935,171.938]}},
+    // The Fairground stop as built (2026-10-17), world metres: its platform on the lane's inland
+    // side, 20 x 4.1 m, at `at` turned by `theta`; `back` is its back edge, toward C.
+    fairgroundStop:{at:[-48,0,166],theta:-0.2,platform:{along:[-10,10],across:[-6.9,-2.8]},
+      back:[[-56.43,157.25],[-36.83,161.22]]},
+    // The Boardwalk platform as built, world metres (x0, z0, x1, z1).
+    boardwalkStop:{platform:[-75.2,14,-71.1,34]},
+    // berm_w as built, world metres: a 2.5 m planted ridge on z 160-170 from x -80 to -13, its ends
+    // tapering over 6 m. Its shape waits on Christina's entrance decisions of 2026-09-29; it stands
+    // up to 2.47 m over the lane's centreline (s 1140) and over the Fairground platform's front
+    // half. Nothing drawn for S2 or G1 touches it.
+    bermW:{x:[-80,-13],z:[160,170],height:2.5,taper:6,overLane:2.47,waits:'2026-09-29 entrance decisions'}
   };
   const gcExpand = ([x,z]) => {
     let qx = x, qz = z;
@@ -3656,6 +3795,21 @@
     const b = all.findIndex(p => Math.hypot(p[0] - to[0], p[2] - to[1]) < 1e-6);
     return all.slice(a, b + 1).map(p => [p[0], p[2]]);
   }
+  // To s 1175 (2026-10-17): the station to `south.end`, through the loop's next controls, as
+  // [x, z] world points, or [x, y, z] with `withY`; it ends at the lane's own point nearest `end`.
+  function gcStretchSouthTo(controls, withY = false) {
+    const S = grandCircuitWest.south, all = gcCurve(controls.concat(S.through)), e = S.end.at;
+    const a = all.findIndex(p => Math.hypot(p[0] + 78, p[2] - 24) < 1e-6);
+    let best = Infinity, k = a, t = 0;
+    for (let i = a; i < all.length - 1; i++) {
+      const p = all[i], q = all[i + 1], dx = q[0] - p[0], dz = q[2] - p[2], l = dx * dx + dz * dz;
+      const u = l ? Math.max(0, Math.min(1, ((e[0] - p[0]) * dx + (e[1] - p[2]) * dz) / l)) : 0;
+      const d = Math.hypot(e[0] - p[0] - dx * u, e[1] - p[2] - dz * u);
+      if (d < best) { best = d; k = i; t = u; }
+    }
+    const out = all.slice(a, k + 1).concat([all[k].map((v, j) => v + (all[k + 1][j] - v) * t)]);
+    return withY ? out : out.map(p => [p[0], p[2]]);
+  }
   // The approved lane from the crest to `south.to`, drawn on the atlas at its width with
   // its 1.5 m clear zone, clipped to a local parcel plan's domain.
   function drawGrandCircuitBand(svg, x, y, pathLine, scale, domain) {
@@ -3664,7 +3818,7 @@
     clip.appendChild(make('rect', {x:x(domain.x0), y:y(domain.z0),
       width:(domain.x1 - domain.x0) * scale, height:(domain.z1 - domain.z0) * scale}));
     svg.appendChild(clip);
-    const lane = gcStretch(W.course.controls).concat(gcStretchSouth(W.course.controls).slice(1)).map(gcAtlas);
+    const lane = gcStretch(W.course.controls).concat(gcStretchSouthTo(W.course.controls).slice(1)).map(gcAtlas);
     pathLine(lane, 'gc-clear', {'stroke-width':Math.max(4, (W.width + 2 * W.clear) * scale), 'clip-path':`url(#${id})`});
     pathLine(lane, 'gc-lane', {'stroke-width':Math.max(3, W.width * scale), 'clip-path':`url(#${id})`});
   }
@@ -3731,9 +3885,11 @@
   // the restroom site, the moved mast_11 and the re-sited CB1 and garden loop clear of the
   // whole approved lane, and
   // that the regrade keeps the lane on the deck to z 79 and no steeper than 8.5% after it.
+  // Since 2026-10-17 the stretch runs on through the Fairground stop to s 1175 (`south.end`), and
+  // S2's stretch shared with C behind the stop and G1 are held clear of it too.
   function gcSouthGaps(option) {
     const W = grandCircuitWest, S = W.south, half = W.width / 2;
-    const lane = gcStretchSouth(option.controls);
+    const lane = gcStretchSouthTo(option.controls);
     const whole = gcStretch(option.controls).concat(lane.slice(1));
     const segDist = (p, a, b) => {
       const dx = b[0] - a[0], dz = b[1] - a[1], l = dx * dx + dz * dz;
@@ -3831,6 +3987,10 @@
     }
     const s2 = serviceSpines.find(s => s.id === 'S2').p.map(gcExpand);
     test('S2', p => lineDist(p, s2) - 2.0, W.clear);
+    const g1 = gcExpand(serviceNodes.find(n => n.id === 'G1').at);
+    test('G1', p => Math.hypot(p[0] - g1[0], p[1] - g1[1]) - 1.7, W.clear);
+    const stretchEnd = lane.at(-1), off = Math.hypot(stretchEnd[0] - S.end.at[0], stretchEnd[1] - S.end.at[1]);
+    if (off > 0.05) gaps.push({fault:`the checked stretch ends ${off.toFixed(2)} m off the lane's point at s ${S.end.s}`});
     const wc = boardwalkRestrooms;
     test(wc.id, p => polyDist(p, rect(gcExpand(wc.at), wc.size[0], wc.size[1])), W.clear, whole);
     const garden = coastalCreek.garden, cb1 = garden.crossing;
@@ -3919,8 +4079,9 @@
       const e = (([x0, z0], [x1, z1]) => ({x0, z0, x1, z1}))(gcExpand([b.x0, b.z0]), gcExpand([b.x1, b.z1]));
       worst(o.id, q => boxDist(q, e) - half, 1);
     });
-    // D2's drop as built (2026-10-16), held on its footprint clear of the whole approved
-    // lane, S2's paving and the garden walk's edge (CB1's deck, the ring and the stem).
+    // D2's fall at the bluff face and its plunge basin (approved 2026-10-17; the drop built on
+    // 2026-10-16 before it), held on its footprint clear of the whole approved lane, S2's paving
+    // and the garden walk's edge (CB1's deck, the ring and the stem).
     const W = grandCircuitWest;
     const lane = gcStretch(W.course.controls).concat(gcStretchSouth(W.course.controls).slice(1));
     const s2 = serviceSpines.find(sp => sp.id === 'S2').p.map(gcExpand);
@@ -3934,8 +4095,9 @@
       const walkGap = Math.min(...outline.map(q => Math.min(lineDist(q, loop), lineDist(q, stem)))) - half;
       if (walkGap < D.clear.walk) problems.push(`the drop stands ${walkGap.toFixed(2)}m from the garden walk (needs ${D.clear.walk}m)`);
     }
-    // The garden's east fence as built (2026-10-16): it starts on the drop's east wall
-    // and crosses none of the drop, the walk, CB1 or the pond's bank, and keeps its
+    // The garden's east fence as built (2026-10-16): it starts at the yard fence's corner, the
+    // old drop's east wall (2026-10-17), and crosses none of the drop, the walk, CB1 or the
+    // pond's bank, and keeps its
     // measured clearances to the loop, the stem, CB1, the lane's clear zone and S2's paving.
     {
       const course = G.fence.p.map(gcExpand), K = G.fence.clear;
@@ -3944,7 +4106,8 @@
         const g = Math.min(...fence.map(dist));
         if (g < n) problems.push(`the garden fence leaves ${g.toFixed(2)}m to ${what} (needs ${n}m)`);
       };
-      if (lineDist(course[0], footprint.concat([footprint[0]])) > 0.05) problems.push('the garden fence does not start on the drop’s wall');
+      const corner = gcExpand(coastalCreek.yard.fence.p[0]);
+      if (Math.hypot(course[0][0] - corner[0], course[0][1] - corner[1]) > 0.05) problems.push('the garden fence does not start at the yard fence’s corner');
       gap('the garden loop', q => lineDist(q, loop) - half, K.loop);
       gap('the garden stem', q => lineDist(q, stem) - half, K.stem);
       gap(cb.id, q => Math.hypot(Math.max(Math.abs(q[0] - c[0]) - cb.size[0] / 2, 0), Math.max(Math.abs(q[1] - c[1]) - cb.size[1] / 2, 0)), K.cb1);
@@ -3961,8 +4124,9 @@
   planCheck(validateCreekGarden);
 
   // S2's staff yard solid and gated (approved, 2026-10-16), in world metres: its boundary closes
-  // on itself, piece to piece. The north fence runs from the garden fence's start on the drop's
-  // east corner to the bluff face; the bluff face runs to C's rail; C's rail runs to S2's gate,
+  // on itself, piece to piece. The yard fence runs from the garden fence's start (the old drop's
+  // east corner) to the yard gate across S2's foot and on from its far post to the bluff face
+  // (re-sited 2026-10-17); the bluff face runs to C's rail; C's rail runs to S2's gate,
   // whose posts stand in it, and on from the gate to B's guard; B's guard runs unbroken (the garden
   // stem's opening lies north of the fence's end) to the garden fence's end, which is closed to
   // B's paving at the guard; the garden fence runs back to the drop. Each gate is locked and
@@ -3978,12 +4142,15 @@
     };
     const lineDist = (q, line) => Math.min(...line.slice(1).map((b, i) => segDist(q, line[i], b)));
     const gap = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
-    const fence = Y.fence.p.map(gcExpand), garden = G.fence.p.map(gcExpand);
+    const fence = Y.fence.p.map(gcExpand), east = Y.fence.east.map(gcExpand), garden = G.fence.p.map(gcExpand);
+    const yardGate = Y.fence.gate.p.map(gcExpand);
     const posts = Y.s2Gate.p.map(gcExpand), rail = Y.rail.world;
     const B = routes.B.paths[4], bLine = B.p.map(gcExpand), guard = B.w / 2 + Y.guardOffset;
     // The ring: each piece starts where the last one ends.
-    if (gap(fence[0], garden[0]) > tol) problems.push(`the north fence starts ${gap(fence[0], garden[0]).toFixed(2)}m from the garden fence's start on the drop`);
-    if (Math.abs(fence[1][0] - Y.bluffFace) > tol) problems.push(`the north fence ends ${Math.abs(fence[1][0] - Y.bluffFace).toFixed(2)}m off the bluff face`);
+    if (gap(fence[0], garden[0]) > tol) problems.push(`the yard fence starts ${gap(fence[0], garden[0]).toFixed(2)}m from the garden fence's start`);
+    if (gap(fence.at(-1), yardGate[0]) > tol) problems.push(`the yard fence stops ${gap(fence.at(-1), yardGate[0]).toFixed(2)}m short of the yard gate`);
+    if (gap(yardGate[1], east[0]) > tol) problems.push(`the yard fence's east piece starts ${gap(yardGate[1], east[0]).toFixed(2)}m from the yard gate's far post`);
+    if (Math.abs(east.at(-1)[0] - Y.bluffFace) > tol) problems.push(`the yard fence ends ${Math.abs(east.at(-1)[0] - Y.bluffFace).toFixed(2)}m off the bluff face`);
     if (Math.abs(rail[0][0][0] - Y.bluffFace) > tol) problems.push(`C's rail starts ${Math.abs(rail[0][0][0] - Y.bluffFace).toFixed(2)}m off the bluff face`);
     if (gap(rail[0].at(-1), posts[0]) > tol) problems.push(`C's rail stops ${gap(rail[0].at(-1), posts[0]).toFixed(2)}m short of S2's gate`);
     if (gap(rail[1][0], posts[1]) > tol) problems.push(`C's rail starts ${gap(rail[1][0], posts[1]).toFixed(2)}m from S2's gate's far post`);
@@ -4001,10 +4168,9 @@
     const stem = gcExpand(G.stem[0]);
     const between = (q, a, b) => (q[1] - a[1]) * (q[1] - b[1]) < 0;
     if (between(stem, railEnd, fenceEnd)) problems.push('the garden stem’s opening in B’s guard lies inside the yard');
-    // The gates.
-    const gate = gcExpand(Y.fence.gate.at), gw = Y.fence.gate.width;
-    if (lineDist(gate, fence) > tol) problems.push(`the yard's staff gate stands ${lineDist(gate, fence).toFixed(2)}m off the north fence`);
-    if (Math.min(gap(gate, fence[0]), gap(gate, fence[1])) < gw / 2 + 0.3) problems.push('the yard’s staff gate leaves no room for its posts in the north fence');
+    // The gates. The yard's gate spans its width between its posts; that it crosses S2 square, at
+    // grade with the floor, is held by validateServiceLevels (2026-10-17).
+    if (Math.abs(gap(yardGate[0], yardGate[1]) - Y.fence.gate.width) > tol) problems.push(`the yard's staff gate spans ${gap(yardGate[0], yardGate[1]).toFixed(2)}m, not its ${Y.fence.gate.width}m`);
     if (!Y.fence.gate.locked || !Y.s2Gate.locked) problems.push('a staff gate is not locked');
     const s2 = serviceSpines.find(sp => sp.id === 'S2').p.map(gcExpand);
     let cross = null;
@@ -4023,7 +4189,7 @@
     // Clear of the lane's clear zone, with a metre to spare.
     const W = grandCircuitWest;
     const lane = gcStretch(W.course.controls).concat(gcStretchSouth(W.course.controls).slice(1));
-    const pieces = [fence, posts, ...rail, [garden.at(-2), fenceEnd]];
+    const pieces = [fence, east, yardGate, posts, ...rail, [garden.at(-2), fenceEnd]];
     pieces.forEach(line => line.forEach(q => {
       const g = lineDist(q, lane) - W.width / 2 - W.clear;
       if (g < 1) problems.push(`the yard's enclosure stands ${g.toFixed(2)}m beyond the lane's clear zone (needs 1m)`);
@@ -4114,6 +4280,233 @@
     if (problems.length) throw new Error(`The yard's edges: ${problems.join('; ')}`);
   }
   planCheck(validateYardEdges);
+
+  // S1 and S2 at their levels (2026-10-17), world metres: S2 brought down to the Boardwalk and its
+  // south arm and G1 moved off the lane (Christina, 2026-10-16); S1 held on its own constraints.
+  // Each spine's `levels` lie on its plan course from end to end and climb or fall no more than
+  // 12.5%. Wherever a spine stands within 4 m of the lane's level it keeps its 4 m paving out of
+  // the lane's 2.7 m half-width and 1.5 m clear zone, over the whole lane from the crest to
+  // s 1175; where it stands 4 m or more above or below it is grade-separated, and gcGaps holds
+  // its plan. S2 keeps C's level at C's gate, reaches the yard floor at its foot and keeps it,
+  // flush, to H2; P2's staff link meets it at grade; the yard gate crosses it square at its foot,
+  // at grade with the floor. H2 stands clear of the lane's clear zone, the Boardwalk platform,
+  // the bluff's plinth, the bluff beds and NT-1's zone.
+  // CX1 runs under S2 between consecutive points of D2's channel, its mouths outside S2's paving,
+  // under its declared cover. D2's fall stands on the bluff face with the course and bed upstream
+  // of it as approved. S2 and G1 keep off berm_w. Where S2 shares C behind the Fairground stop,
+  // its two gates are locked, cross S2 square over its 4 m, stand wholly outside C's paving as
+  // built (so C keeps its full width for guests when they are shut) and out of the lane's clear
+  // zone, and the west one closes on C's rail and the arm's guard.
+  function validateServiceLevels() {
+    const problems = [], tol = 0.05, W = grandCircuitWest, half = W.width / 2;
+    const segT = (q, a, b) => {
+      const dx = b[0] - a[0], dz = b[1] - a[1], l = dx * dx + dz * dz;
+      const t = l ? Math.max(0, Math.min(1, ((q[0] - a[0]) * dx + (q[1] - a[1]) * dz) / l)) : 0;
+      return [Math.hypot(q[0] - a[0] - dx * t, q[1] - a[1] - dz * t), t];
+    };
+    const lineDist = (q, line) => Math.min(...line.slice(1).map((b, i) => segT(q, line[i], b)[0]));
+    const gap = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+    const samples = (line, step = 0.25) => line.slice(1).flatMap((b, i) => {
+      const a = line[i], n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[b.length - 1] - a[a.length - 1]) / step));
+      return Array.from({length:n + 1}, (_, k) => a.map((v, j) => v + (b[j] - v) * k / n));
+    });
+    // The lane in 3D from the crest to s 1175, and its level nearest a plan point.
+    const all = gcCurve(W.course.controls);
+    const ia = all.findIndex(p => Math.hypot(p[0] + 62, p[2] + 204) < 1e-6);
+    const ib = all.findIndex(p => Math.hypot(p[0] + 78, p[2] - 24) < 1e-6);
+    const lane3 = all.slice(ia, ib + 1).concat(gcStretchSouthTo(W.course.controls, true).slice(1));
+    const laneAt = q => { let best = [Infinity, 0];
+      lane3.slice(1).forEach((b, i) => { const a = lane3[i], [d, t] = segT(q, [a[0], a[2]], [b[0], b[2]]);
+        if (d < best[0]) best = [d, a[1] + (b[1] - a[1]) * t]; });
+      return best; };
+    // A spine's level at a plan point, from its nearest `levels` segment.
+    const levelAt = (lv, q) => { let best = [Infinity, 0];
+      lv.slice(1).forEach((b, i) => { const a = lv[i], [d, t] = segT(q, [a[0], a[2]], [b[0], b[2]]);
+        if (d < best[0]) best = [d, a[1] + (b[1] - a[1]) * t]; });
+      return best[1]; };
+    const crossOf = (posts, line) => { let out = null;
+      line.slice(1).forEach((b, i) => { const a = line[i];
+        const d = (posts[1][0] - posts[0][0]) * (b[1] - a[1]) - (posts[1][1] - posts[0][1]) * (b[0] - a[0]);
+        if (Math.abs(d) < 1e-9) return;
+        const t = ((a[0] - posts[0][0]) * (b[1] - a[1]) - (a[1] - posts[0][1]) * (b[0] - a[0])) / d;
+        const u = ((a[0] - posts[0][0]) * (posts[1][1] - posts[0][1]) - (a[1] - posts[0][1]) * (posts[1][0] - posts[0][0])) / d;
+        if (t >= 0 && t <= 1 && u >= 0 && u <= 1) { const l = Math.hypot(b[0] - a[0], b[1] - a[1]);
+          out = {at:[posts[0][0] + (posts[1][0] - posts[0][0]) * t, posts[0][1] + (posts[1][1] - posts[0][1]) * t],
+            dir:[(b[0] - a[0]) / l, (b[1] - a[1]) / l]}; } });
+      return out; };
+    serviceSpines.filter(sp => sp.levels).forEach(sp => {
+      const line = sp.p.map(gcExpand), lv = sp.levels, cap = sp.grade || 0.125;
+      lv.forEach(q => { const d = lineDist([q[0], q[2]], line);
+        if (d > tol) problems.push(`${sp.id}'s level at (${q[0]}, ${q[2]}) stands ${d.toFixed(2)}m off its course`); });
+      if (gap([lv[0][0], lv[0][2]], line[0]) > tol || gap([lv.at(-1)[0], lv.at(-1)[2]], line.at(-1)) > tol)
+        problems.push(`${sp.id}'s levels do not run from end to end of its course`);
+      lv.slice(1).forEach((b, i) => { const a = lv[i], run = Math.hypot(b[0] - a[0], b[2] - a[2]);
+        if (run > 0 && Math.abs(b[1] - a[1]) / run > cap + 0.0005)
+          problems.push(`${sp.id} climbs ${(Math.abs(b[1] - a[1]) / run * 100).toFixed(1)}% between (${a[0]}, ${a[2]}) and (${b[0]}, ${b[2]}) (at most ${cap * 100}%)`); });
+      let worst = Infinity, at = null;
+      samples(lv).forEach(q => { const [d, y] = laneAt([q[0], q[2]]);
+        if (Math.abs(q[1] - y) < 4) { const g = d - half - 2 - W.clear; if (g < worst) { worst = g; at = q; } } });
+      if (worst < -0.005) problems.push(`${sp.id} stands ${(-worst).toFixed(2)}m inside the lane's clear zone at (${at[0].toFixed(1)}, ${at[2].toFixed(1)}), within 4m of its level`);
+    });
+    // S2 at C's gate, at its foot and on to H2, and at P2's staff link.
+    const s2 = serviceSpines.find(sp => sp.id === 'S2'), lv2 = s2.levels, line2 = s2.p.map(gcExpand);
+    const Y = coastalCreek.yard, floor = Y.fence.y;
+    const cg = crossOf(Y.s2Gate.p.map(gcExpand), line2);
+    if (!cg || gap(cg.at, s2.cGate.at) > 0.1) problems.push('S2’s level at C’s gate is not where S2 crosses the gate');
+    if (Math.abs(levelAt(lv2, s2.cGate.at) - s2.cGate.level) > 0.03) problems.push(`S2 stands at ${levelAt(lv2, s2.cGate.at).toFixed(2)} at C's gate, not C's ${s2.cGate.level}`);
+    const fi = lv2.findIndex(q => gap([q[0], q[2]], [s2.foot[0], s2.foot[2]]) < 1e-6);
+    if (fi < 0 || Math.abs(s2.foot[1] - floor) > 0.005) problems.push('S2’s foot is not one of its levels at the yard floor');
+    else lv2.slice(fi).forEach(q => { if (Math.abs(q[1] - floor) > 0.02) problems.push(`S2 leaves the yard floor's level at (${q[0]}, ${q[2]}) between its foot and H2`); });
+    const link = programmedAttractions.find(a => a.id === 'P2').service, linkEnd = gcExpand(link.at(-1)), m = s2.meets.P2;
+    if (gap(linkEnd, m.at) > tol || lineDist(linkEnd, line2) > tol) problems.push('P2’s staff link does not end on S2');
+    if (Math.abs(levelAt(lv2, linkEnd) - m.level) > 0.02) problems.push(`P2's staff link meets S2 ${Math.abs(levelAt(lv2, linkEnd) - m.level).toFixed(2)}m off grade`);
+    // The yard gate, across S2's foot at grade.
+    const yg = Y.fence.gate.p.map(gcExpand), gx = crossOf(yg, line2);
+    if (!gx) problems.push('the yard gate does not cross S2');
+    else {
+      const square = Math.abs((yg[1][0] - yg[0][0]) * gx.dir[1] - (yg[1][1] - yg[0][1]) * gx.dir[0]);
+      if (square < 4 - tol) problems.push(`the yard gate spans ${square.toFixed(2)}m of S2's 4m paving`);
+      const y = levelAt(lv2, gx.at);
+      if (Math.abs(y - floor) > 0.07 || Math.abs(y - Y.fence.gate.level) > 0.02) problems.push(`S2 stands ${(y - floor).toFixed(2)}m off the yard floor at the yard gate`);
+    }
+    // H2.
+    const h2 = serviceNodes.find(n => n.id === 'H2'), hc = gcExpand(h2.at);
+    const ring = Array.from({length:144}, (_, k) => [hc[0] + h2.r * Math.cos(k * Math.PI / 72), hc[1] + h2.r * Math.sin(k * Math.PI / 72)]);
+    if (gap(line2.at(-1), hc) > tol) problems.push('S2 does not end at H2');
+    const laneGap = Math.min(...ring.map(q => laneAt(q)[0])) - half - W.clear;
+    if (laneGap < 0.3) problems.push(`H2 stands ${laneGap.toFixed(2)}m beyond the lane's clear zone (needs 0.3m)`);
+    const [px0, pz0, px1, pz1] = W.boardwalkStop.platform;
+    const inPlat = ring.some(q => q[0] > px0 && q[0] < px1 && q[1] > pz0 && q[1] < pz1);
+    const platGap = Math.min(...ring.map(q => Math.hypot(Math.max(px0 - q[0], 0, q[0] - px1), Math.max(pz0 - q[1], 0, q[1] - pz1))));
+    if (inPlat || platGap < 0.25) problems.push(`H2 leaves ${inPlat ? 'no room' : platGap.toFixed(2) + 'm'} to the Boardwalk platform (needs 0.25m)`);
+    if (hc[0] + h2.r > -58.65 - 0.1) problems.push(`H2 reaches within ${(-58.65 - hc[0] - h2.r).toFixed(2)}m of the bluff's plinth (keep 0.1m)`);
+    const nt1 = protectedZones.find(z => z.id === 'NT-1');
+    const ntGap = Math.min(...ring.map(q => Math.hypot(Math.max(nt1.x0 - q[0], 0, q[0] - nt1.x1), Math.max(nt1.z0 - q[1], 0, q[1] - nt1.z1))));
+    if (ntGap < 1) problems.push(`H2 stands ${ntGap.toFixed(2)}m from NT-1's zone (needs 1m)`);
+    const bedGap = h2.beds.edge - (hc[0] + h2.r);
+    if (bedGap < 0.3) problems.push(`H2 reaches ${bedGap < 0 ? (-bedGap).toFixed(2) + 'm onto' : 'within ' + bedGap.toFixed(2) + 'm of'} the ${h2.beds.what} (keep them whole, 0.3m clear)`);
+    // CX1, under S2.
+    const cx1 = coastalCreek.crossings.find(c => c.id === 'CX1'), channel = coastalCreek.channel.map(gcExpand);
+    const ci = channel.findIndex(q => gap(q, cx1.world[0]) < 0.01);
+    if (ci < 0 || gap(channel[ci + 1], cx1.world[1]) > 0.01) problems.push('CX1’s mouths are not consecutive points of D2’s channel');
+    if (!crossOf(cx1.world, line2)) problems.push('CX1 does not pass under S2');
+    const cxl = samples(cx1.world, 0.1);
+    let cover = Infinity;
+    cxl.forEach((q, i) => { if (lineDist(q, line2) <= 2) {
+      const inv = cx1.invert[0] + (cx1.invert[1] - cx1.invert[0]) * i / (cxl.length - 1);
+      cover = Math.min(cover, levelAt(lv2, q) - inv - cx1.barrel[1]); } });
+    if (cover < cx1.cover - 0.005) problems.push(`CX1 lies ${cover.toFixed(2)}m under S2 (at least ${cx1.cover}m)`);
+    cx1.world.forEach((q, k) => { const g = lineDist(q, line2) - 2;
+      if (g < 0.4) problems.push(`CX1's ${k ? 'outlet' : 'inlet'} stands ${g.toFixed(2)}m outside S2's paving (needs 0.4m)`); });
+    // D2's fall on the bluff face, its course and bed upstream as approved.
+    const D = coastalCreek.drop, U = D.upstream;
+    if (Math.abs(D.crest[0] - D.face) > 0.005 || Math.abs(D.face - Y.bluffFace) > 0.005) problems.push('D2’s fall is not on the bluff face');
+    const k0 = coastalCreek.channel.findIndex(q => gap(q, D.crest) < 0.01);
+    if (k0 < 0) problems.push('D2’s fall is not a point of its channel');
+    else {
+      if (JSON.stringify(coastalCreek.channel.slice(0, k0)) !== JSON.stringify(U.channel)) problems.push('D2’s course upstream of the bluff face has changed');
+      if (JSON.stringify(coastalCreek.levels.slice(0, k0)) !== JSON.stringify(U.levels)) problems.push('D2’s levels upstream of the bluff face have changed');
+      const [a, b] = [U.channel.at(-1), coastalCreek.was.channel[k0]], t = (D.face - a[0]) / (b[0] - a[0]);
+      const onLine = Math.abs(D.crest[1] - (a[1] + (b[1] - a[1]) * t)) < 0.01;
+      if (!onLine || JSON.stringify(coastalCreek.levels[k0]) !== JSON.stringify(U.face) || Math.abs(D.top - U.face[1]) > 0.005)
+        problems.push('D2’s crest is not at its approved bed where its old line meets the bluff face');
+    }
+    // S2's guards (2026-10-17): each starts at its gate's post, runs `offset` outside S2's paving,
+    // keeps 0.3 m beyond the lane's clear zone, and ends where S2 no longer drops: the descent's
+    // where S2 stands `minRise` over the yard floor, the arm's where the land begins beside it.
+    const Gd = s2.guards;
+    if (!Gd) problems.push('S2 has no guards where it drops');
+    else {
+      const sg = Y.s2SouthGate.p.map(gcExpand), cgp = Y.s2Gate.p.map(gcExpand);
+      Object.entries({arm:sg[0], east:cgp[0], west:cgp[1]}).forEach(([k, post]) => {
+        const g = Gd[k];
+        if (!g) { problems.push(`S2's ${k} guard is missing`); return; }
+        if (gap(g[0], post) > tol) problems.push(`S2's ${k} guard starts ${gap(g[0], post).toFixed(2)}m from its gate's post`);
+        g.slice(1, k === 'arm' ? -1 : undefined).forEach(q => { const d = lineDist(q, line2) - 2 - Gd.offset;
+          if (Math.abs(d) > 0.06) problems.push(`S2's ${k} guard stands ${d.toFixed(2)}m off its line ${Gd.offset}m outside the paving`); });
+        g.forEach(q => { const lg = laneAt(q)[0] - half - W.clear;
+          if (lg < 0.3) problems.push(`S2's ${k} guard stands ${lg.toFixed(2)}m beyond the lane's clear zone (needs 0.3m)`); });
+      });
+      ['east', 'west'].forEach(k => { if (!Gd[k]) return;
+        const rise = levelAt(lv2, Gd[k].at(-1)) - floor;
+        if (Math.abs(rise - Gd.minRise) > 0.15) problems.push(`S2's ${k} guard ends where S2 stands ${rise.toFixed(2)}m over the yard floor (end it at ${Gd.minRise}m)`); });
+      const wSouth = s2.shared && s2.shared.gates[Gd.armTo] && s2.shared.gates[Gd.armTo].p[1];
+      if (Gd.arm && (!wSouth || gap(Gd.arm.at(-1), wSouth) > tol)) problems.push('S2’s arm guard does not run on to the shared stretch’s west gate');
+    }
+    // S2 and G1 off berm_w.
+    const B = W.bermW, toe = B.z[0];
+    const offBerm = (what, line, halfW) => { let worst = Infinity;
+      samples(line).forEach(q => { const z = q[q.length - 1];
+        if (q[0] > B.x[0] && q[0] < B.x[1]) worst = Math.min(worst, toe - z - halfW); });
+      if (worst < 0.2) problems.push(`${what} comes within ${worst.toFixed(2)}m of berm_w's toe (keep 0.2m)`); };
+    offBerm('S2', line2, 2);
+    const g1 = gcExpand(serviceNodes.find(n => n.id === 'G1').at);
+    offBerm('G1', [[g1[0] - 1.7, g1[1]], [g1[0] + 1.7, g1[1]]], 1.7);
+    if (gap(line2[0], g1) > tol) problems.push('S2 does not reach G1');
+    // The stretch S2 shares with C (Christina, 2026-10-17), between its two locked gates.
+    const sh = s2.shared;
+    if (!sh) problems.push('S2’s stretch behind the Fairground stop is not drawn');
+    else {
+      const cb = sh.cBuilt, cLine = cb.centre, xs = [];
+      Object.entries(sh.gates).forEach(([k, g]) => {
+        if (!g.locked) problems.push(`the shared stretch's ${k} gate is not locked`);
+        const cr = crossOf(g.p, line2);
+        if (!cr) { problems.push(`the shared stretch's ${k} gate does not cross S2`); return; }
+        const square = Math.abs((g.p[1][0] - g.p[0][0]) * cr.dir[1] - (g.p[1][1] - g.p[0][1]) * cr.dir[0]);
+        if (square < 4 - tol) problems.push(`the shared stretch's ${k} gate spans ${square.toFixed(2)}m of S2's 4m paving`);
+        const leaf = samples(g.p, 0.1), inC = Math.min(...leaf.map(q => lineDist(q, cLine) - cb.half));
+        if (inC < 0.2) problems.push(`the shared stretch's ${k} gate stands ${inC.toFixed(2)}m outside C's paving: shut, it must leave C its full width (keep 0.2m)`);
+        const lg = Math.min(...leaf.map(q => laneAt(q)[0])) - half - W.clear;
+        if (lg < 0.3) problems.push(`the shared stretch's ${k} gate stands ${lg.toFixed(2)}m beyond the lane's clear zone (needs 0.3m)`);
+        xs.push(cr.at);
+      });
+      if (xs.length === 2) {
+        // S2's length between the gates, along its course.
+        const arcAt = q => { let best = [Infinity, 0], acc = 0;
+          line2.slice(1).forEach((b, i) => { const a = line2[i], [d, t] = segT(q, a, b), l = gap(a, b);
+            if (d < best[0]) best = [d, acc + t * l]; acc += l; });
+          return best[1]; };
+        const run = Math.abs(arcAt(xs[0]) - arcAt(xs[1]));
+        if (Math.abs(run - sh.length) > 0.3) problems.push(`S2 runs ${run.toFixed(1)}m between the shared stretch's gates, not the ${sh.length}m drawn`);
+      }
+      // East of gate E (2026-10-17: S2 staff only, gated): a rail each side from gate E's posts to
+      // G1's, each 0 to 0.4 m outside S2's paving, off C's paving, the platform's paving and
+      // berm_w, and out of the lane's clear zone; G1 a locked gate across S2's end.
+      const g1n = serviceNodes.find(n => n.id === 'G1'), be = sh.beyondE;
+      if (!g1n.locked || !g1n.p) problems.push('G1 is not a locked gate across S2');
+      else {
+        const mid = [(g1n.p[0][0] + g1n.p[1][0]) / 2, (g1n.p[0][1] + g1n.p[1][1]) / 2];
+        if (gap(mid, line2[0]) > tol || Math.abs(gap(g1n.p[0], g1n.p[1]) - 4) > tol) problems.push('G1 does not span S2’s 4m paving at its end');
+      }
+      if (!be) problems.push('S2 is open to guests east of the shared stretch’s east gate');
+      else {
+        const F = W.fairgroundStop, fc = [F.at[0], F.at[2]], cs = Math.cos(F.theta), sn = Math.sin(F.theta);
+        const plat = [[F.platform.along[0], F.platform.across[0]], [F.platform.along[1], F.platform.across[0]],
+          [F.platform.along[1], F.platform.across[1]], [F.platform.along[0], F.platform.across[1]]].map(([u, v]) => [fc[0] + u * cs + v * sn, fc[1] - u * sn + v * cs]);
+        const inPoly = (q, poly) => { let ins = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const A = poly[i], B = poly[j]; if ((A[1] > q[1]) !== (B[1] > q[1]) && q[0] < (B[0] - A[0]) * (q[1] - A[1]) / (B[1] - A[1]) + A[0]) ins = !ins; } return ins; };
+        const platGap = q => inPoly(q, plat) ? -1 : lineDist(q, plat.concat([plat[0]]));
+        Object.entries({c:[sh.gates.E.p[0], g1n.p && g1n.p[0]], platform:[sh.gates.E.p[1], g1n.p && g1n.p[1]]}).forEach(([k, [a, b]]) => {
+          const r = be.rails[k];
+          if (!r) { problems.push(`S2 has no rail on its ${k} side east of gate E: guests can walk onto it`); return; }
+          if (gap(r[0], a) > tol || !b || gap(r.at(-1), b) > tol) problems.push(`S2's ${k}-side rail east of gate E does not run from gate E's post to G1's`);
+          r.forEach(q => { const d = lineDist(q, line2) - 2;
+            if (d < -0.02 || d > 0.4) problems.push(`S2's ${k}-side rail stands ${d.toFixed(2)}m outside its paving (0 to 0.4m)`); });
+          const rs = samples(r, 0.1);
+          const cGap = Math.min(...rs.map(q => lineDist(q, cb.centre) - cb.half));
+          if (cGap < 0.05) problems.push(`S2's ${k}-side rail stands ${cGap.toFixed(2)}m off C's paving`);
+          const pGap = Math.min(...rs.map(platGap));
+          if (pGap < 0.05) problems.push(`S2's ${k}-side rail stands ${pGap < 0 ? 'on' : pGap.toFixed(2) + 'm off'} the Fairground platform's paving`);
+          offBerm(`S2's ${k}-side rail`, r, 0);
+          const lg = Math.min(...rs.map(q => laneAt(q)[0])) - half - W.clear;
+          if (lg < 0.3) problems.push(`S2's ${k}-side rail stands ${lg.toFixed(2)}m beyond the lane's clear zone`);
+        });
+      }
+      const jr2 = Y.junctionRail.world[1].at(-1);
+      if (gap(sh.gates.W.p[0], jr2) > 0.3) problems.push(`the shared stretch's west gate stands ${gap(sh.gates.W.p[0], jr2).toFixed(2)}m from the end of C's rail`);
+    }
+    if (problems.length) throw new Error(`S1 and S2 at their levels: ${problems.join('; ')}`);
+  }
+  planCheck(validateServiceLevels);
 
   // yard connections (Christina, 2026-10-15): "Draw stairs and ramps for review". The T6 build
   // (8ab7577) could not join R11 or R12's east terminal to the Grand Circuit's east station
@@ -4326,7 +4719,7 @@
     midway:{title:'04G · Lay the midway frontage bands',detail:'The midway is a corridor treatment, not another land. MW-F places six booths along the west side of C and terminates at the Fairground Food Hall; MW-B places four booths against B but leaves a fifteen-metre break around the Q3 Cascade axis; MW-K places two low family games beside D and the Play Garden arrival. Every 5 × 5m unit sits beyond the full public paving width, fronts a standing apron, stocks from a rear lane, and remains outside NT-1, NT-2, and Q1–Q6. The Headland and High Terrace receive no midway clutter.'},
     kiddieland:{title:'04G+ · Complete Kiddieland',detail:'Route D remains fixed while the land gains three consecutive rooms. Arrival Commons combines P4, MW-K, Family Support, a zero-depth Squirt Garden with seven flush jets and a three-frog jumping-water chain: Frog 1 arcs into Frog 2, then Frog 2 arcs into Frog 3. A 14 × 10m Character Garden and an 8 × 5m Family Photo kiosk complete the commons. Ride Garden binds R5 as the miniature railway, R6 as spinning tubs, and R7 as the carousel. R14 adds a compact junior coaster along the outer edge, with separate queue and exit, an 8m lift limit, manual photo turnout, automatic trigger, six-screen viewing bank, and S3 service. A 12 × 6m Birthday Pavilion completes the southern frontage. Every addition remains outside D, Q4, NT-2, W4, and S3; KG1 recirculates through P4 support and never connects to the Terraced Fountain water system.'},
     service:{title:'05 · Resolve service, drainage, and planting',detail:'Three 4m back-of-house spines enter through separate freight gates, end in 12m turning heads, and collect the permanent ride, show, play, and stage yards. The lighthouse and north Boardwalk retain clearly marked pre-opening shared access instead of new roads. D2 stays concealed only to its creek daylight point; the other five catchments terminate in planted detention or controlled outfalls. Shade allées, service screens, and deep-rooted slope bands keep landmark and photography sightlines open.'},
-    creek:{title:'05A · Daylight Coastal Creek',detail:'D2 now emerges southeast of NT-1 and follows a 2.5–4m low-flow channel through an 8–12m planted corridor. Culvert D2 (Christina, 2026-10-16): the upstream keeps its old levels and drops 3.8m in four steps into a plunge pool at the bluff’s foot; the last reach is regraded to shore level, crosses the north end of a 14 × 8m rain pond moved off the Grand Circuit lane, passes under the lane in one culvert as at D5, and runs in a shore notch north of P2 to one controlled waterfront weir and the outfall through the seaward fascia, 1.5m deep there, a grid edit at build time. A 10m Boardwalk bridge keeps B continuous; S2 uses one locked 4m culvert; CB1 and the funhouse garden loop are re-sited round the pond. S2’s staff yard is solid and gated (Christina, 2026-10-16: “Make it solid and gate it”): a 1.5m fence with a locked staff gate across its north opening, a locked gate on S2 where it leaves C, a rail along C’s west lobe, the garden fence closed to B’s paving, and B’s and C’s banks solid to the shore west of the bluff face; the holes inside B’s loop are filled. The corridor remains 7.2m outside NT-1 and the notch 5.0m from the funhouse foundation.'},
+    creek:{title:'05A · Daylight Coastal Creek',detail:'D2 now emerges southeast of NT-1 and follows a 2.5–4m low-flow channel through an 8–12m planted corridor. Culvert D2 (Christina, 2026-10-16): the upstream keeps its old levels to the bluff face and, with S2 brought down to the Boardwalk (Christina, 2026-10-16; drawn 2026-10-17 and approved by her the same day), falls 5.1m down the face into a plunge basin and passes under S2 in culvert CX1; the last reach is regraded to shore level, crosses the north end of a 14 × 8m rain pond moved off the Grand Circuit lane, passes under the lane in one culvert as at D5, and runs in a shore notch north of P2 to one controlled waterfront weir and the outfall through the seaward fascia, 1.5m deep there, a grid edit at build time. A 10m Boardwalk bridge keeps B continuous; S2 crosses over CX1 at its foot; CB1 and the funhouse garden loop are re-sited round the pond. S2’s staff yard is solid and gated (Christina, 2026-10-16: “Make it solid and gate it”): a 1.5m fence with a locked staff gate across its north opening (re-sited 2026-10-17 to S2’s foot, where S2 reaches the yard floor at grade), a locked gate on S2 where it leaves C, a rail along C’s west lobe, the garden fence closed to B’s paving, and B’s and C’s banks solid to the shore west of the bluff face; the holes inside B’s loop are filled. The corridor remains 7.2m outside NT-1 and the notch 5.0m from the funhouse foundation.'},
     qa:{title:'06 · Resolve navigation, sightlines, and reveals',detail:'Routes A–F remain continuous in both directions and J1–J9 retain their full widths. Q1–Q6 now have locked world positions, bearings, primary landmarks, secondary skyline cues, and view cones. Foreground planting stays at or below 1.2m inside every cone; trees frame rather than occupy the axes; opaque roofs, ride bases, queue covers, service yards, and attraction backs stay out. Each night view retains one warm path anchor and one cooler landmark anchor without relying on signage.'},
     mission:{title:'07 · Mission and photography spine',detail:'The Photo Hut at H0 is the shift’s home: briefing, film handoff, closing instructions, night refuge, and development. M1–M7 form one complete day of increasingly demanding photography across every district. SW1–SW5 make the closing sweep a purposeful full-park retrace. N1–N5 invert learned viewpoints and routes for the first flash-enabled night, ending with a physical explanation in the proof frame and one delayed background clue on development.'},
     campaign:{title:'08 · Assignment families and campaign progression',detail:'A1–A6 make the park reusable without turning shifts into repeated errands: people, motion, place, recovery, operations, and evidence each recur in several districts and pay out a different kind of knowledge. C1–C5 advance from daylight Instamatic work through routine mastery, the flash unlock, the accumulating wrong count, and a player-shaped final roll. The Photo Hut remains the start, return, and development point throughout.'},
@@ -4592,13 +4985,10 @@
       'stroke-width':Math.max(3,coastalCreek.notch.width*scale)
     });
     pathLine(coastalCreek.weir.p,'creek-weir');
-    // The drop and its plunge pool, and the notch guard (Christina, 2026-10-16).
-    const drop = coastalCreek.drop, [ax, az] = drop.along, half = drop.width / 2, c = drop.crest;
+    // The fall at the bluff face and its plunge basin (approved 2026-10-17), and the notch guard
+    // (Christina, 2026-10-16).
     parent.appendChild(make('polygon',{points:points(d2DropFootprint().map(gcAtlas)),class:'creek-pond'}));
-    for (let k = 0; k <= drop.steps; k++) {
-      const q = [c[0] + ax * drop.run * k / drop.steps, c[1] + az * drop.run * k / drop.steps];
-      pathLine([[q[0] - az * half, q[1] + ax * half],[q[0] + az * half, q[1] - ax * half]].map(gcAtlas), k ? 'creek-guard' : 'creek-weir');
-    }
+    pathLine(coastalCreek.drop.crestLine.map(gcAtlas),'creek-weir');
     pathLine(coastalCreek.notch.guard.p,'creek-guard');
     pathLine(coastalCreek.garden.fence.p,'creek-fence');
     drawStaffYard(parent,x,y,scale,pathLine);
@@ -4629,11 +5019,13 @@
       westOf(run.p, Y.banks.westOf).forEach(part => pathLine(part,'staff-yard-bank',{
         'stroke-width':Math.max(4,bed*scale)
       })));
+    // The yard fence and its gate across S2's foot (re-sited 2026-10-17).
     pathLine(Y.fence.p,'creek-fence');
-    const g = Y.fence.gate, [f0, f1] = Y.fence.p, l = Math.hypot(f1[0] - f0[0], f1[1] - f0[1]);
-    const u = [(f1[0] - f0[0]) / l, (f1[1] - f0[1]) / l];
-    pathLine([[g.at[0] - u[0] * g.width / 2, g.at[1] - u[1] * g.width / 2],
-      [g.at[0] + u[0] * g.width / 2, g.at[1] + u[1] * g.width / 2]],'staff-yard-gate');
+    pathLine(Y.fence.east,'creek-fence');
+    pathLine(Y.fence.gate.p,'staff-yard-gate');
+    // S2's guards where it drops (Christina, 2026-10-17).
+    const s2guards = serviceSpines.find(spine => spine.id === 'S2').guards;
+    if (s2guards) ['arm', 'east', 'west'].forEach(k => pathLine(s2guards[k].map(gcAtlas),'creek-guard'));
     pathLine(Y.s2Gate.p,'staff-yard-gate');
     Y.rail.world.forEach(piece => pathLine(piece.map(gcAtlas),'creek-guard'));
     // The bluff crest, the junction's open edges and C south of it, and S2's south gate (2026-10-16).
@@ -6011,6 +6403,13 @@
         serviceSpines.forEach(spine => pathLine(spine.p,'service-line',{
           'stroke-width':Math.max(4,4*scale)
         }));
+        // S2's stretch shared with C behind the Fairground stop, its two gates, and its guards (2026-10-17).
+        {
+          const s2 = serviceSpines.find(spine => spine.id === 'S2');
+          if (s2.shared) Object.values(s2.shared.gates).forEach(g => pathLine(g.p.map(gcAtlas),'staff-yard-gate'));
+          if (s2.shared && s2.shared.beyondE) Object.values(s2.shared.beyondE.rails).forEach(r => pathLine(r.map(gcAtlas),'creek-guard'));
+          if (s2.guards) ['arm','east','west'].forEach(k => pathLine(s2.guards[k].map(gcAtlas),'creek-guard'));
+        }
         sharedServiceSegments.forEach(run => pathLine(run.p,'service-shared'));
         drawCoastalCreekCrossings(svg,x,y,scale,pathLine);
 
@@ -6033,7 +6432,7 @@
           label('S3 · 4m EAST / NORTH',[157,18],'end');
           label('SH1 · B PRE-OPEN',[-82,-71],'middle');
           label('SH2 · P1 PRE-OPEN',[-31,-116],'middle');
-          label('G1',[-34,123],'middle');
+          label('G1',[-29,124],'middle');
           label('G2',[34,139],'middle');
           label('G3',[-112,-66],'end');
           label('G4',[-128,-18],'middle');
@@ -6109,9 +6508,15 @@
         pathLine([[-96,25],[-90.5,25]],'program-access');
         pathLine([[-90.5,38],[-96,38]],'program-access');
 
-        pathLine([[-62,20],[-62,38],[-64,61]],'service-line',{
+        // S2 brought down (Christina, 2026-10-16; approved 2026-10-17): from C's gate to its foot at
+        // the yard gate, P2's link at grade, flush to H2 on the back lane.
+        pathLine([[-65.55,21],[-62,38],[-64,61]],'service-line',{
           'stroke-width':Math.max(4,4*scale)
         });
+        {
+          const h2 = serviceNodes.find(node => node.id === 'H2');
+          svg.appendChild(make('circle',{cx:x(h2.at[0]),cy:y(h2.at[1]),r:h2.r*scale,class:'service-turn'}));
+        }
         pathLine([[-82.5,38],[-66,38],[-62,38]],'service-line');
         pathLine([[-40,12],[-46,14],[-48,22]],'drainage-line');
 
@@ -6126,8 +6531,11 @@
           label('7.2m MIN. CLEAR',[-47.5,16],'end');
           label('D2 CONCEALED FEEDER',[-41,10],'end');
           label('DAYLIGHT POINT',[-46,24],'end');
-          label('S2 · 4m LOCKED SERVICE',[-59,20]);
-          label('4m SERVICE CULVERT',[-59,49]);
+          label('S2 · −6.00 FLUSH · H2 10m',[-57,19]);
+          label('S2 · 12.5% FROM C’S GATE −0.85',[-61,60]);
+          label('YARD GATE · S2 FOOT −5.94',[-57,42]);
+          label('D2 FALL −1.63 → BASIN −6.70',[-57,32]);
+          label('CX1 · CULVERT UNDER S2',[-68,46],'end');
           label('P2 · FUNHOUSE',[-86.5,31],'middle');
           label('P2 CLEAR · 5.0m',[-91.5,43.5],'end');
           label('2.5–4m LOW-FLOW CHANNEL',[-43,33],'end');
@@ -6144,7 +6552,7 @@
           label('NT-1 · NO TOUCH',[-64.5,-10],'middle');
           label('7.2m CLEAR',[-47.5,16],'end');
           label('D2 DAYLIGHT',[-46,24],'end');
-          label('S2 CULVERT',[-64,49],'end');
+          label('CX1',[-68,46],'end');
           label('P2',[-86.5,31],'middle');
           label('5.0m CLEAR',[-91.5,43.5],'end');
           label('CB1 + LOOP',[-66,66]);
@@ -6468,6 +6876,11 @@
       serviceLinks.forEach(line => pathLine(svg,line,'service-line'));
       drawYardConnections(svg,points,(values,className) => pathLine(svg,values,className),null);
       serviceSpines.forEach(spine => pathLine(svg,spine.p,'service-line'));
+      {
+        const s2 = serviceSpines.find(spine => spine.id === 'S2');
+        if (s2.shared) Object.values(s2.shared.gates).forEach(g => pathLine(svg,g.p.map(gcAtlas),'staff-yard-gate'));
+        if (s2.shared && s2.shared.beyondE) Object.values(s2.shared.beyondE.rails).forEach(r => pathLine(svg,r.map(gcAtlas),'creek-guard'));
+      }
       sharedServiceSegments.forEach(run => pathLine(svg,run.p,'service-shared'));
       if (selected === 'service') {
         serviceNodes.forEach(node => {
@@ -6489,7 +6902,7 @@
       pathLine(svg,drainageLines.find(drain => drain.id === 'D2').p,'drainage-line');
       drawCoastalCreekBase(svg,x,y,scale,points,(values,className,attrs={}) =>
         pathLine(svg,values,className,attrs));
-      pathLine(svg,[[-62,20],[-62,38],[-64,61]],'service-line',{
+      pathLine(svg,[[-65.55,21],[-62,38],[-64,61]],'service-line',{
         'stroke-width':Math.max(4,4*scale)
       });
     }
