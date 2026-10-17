@@ -214,6 +214,10 @@
     stroke: var(--red);
     stroke-width: 2;
   }
+  /* B's north return in an open cut, A and P1 over it on one deck (Christina, 2026-10-17; approved, guard on A's edge). */
+  #kyt-footprint-expansion .bcut-open { fill: var(--blue); fill-opacity: .35; stroke: none; }
+  #kyt-footprint-expansion .bcut-wall { fill: none; stroke: var(--orange); }
+  #kyt-footprint-expansion .bcut-deck { fill: var(--foreground); fill-opacity: .45; stroke: var(--foreground); stroke-width: .75; }
   #kyt-footprint-expansion .formal-crossing {
     fill: var(--yellow);
     stroke: var(--background);
@@ -327,7 +331,9 @@
     ],
     B:[
       {w:10,p:[[-96,-62],[-96,-40],[-96,-15],[-96,10],[-96,35],[-96,60]]},
-      {w:8,p:[[-6,-68],[-22,-66],[-40,-62],[-48,-66],[-50,-78],[-50,-90],[-58,-95.7],[-70,-95.7],[-82,-95.7],[-92,-95.7]]},
+      // B's north return as built (2026-10-17: this run still drew the short return the 2026-09-11
+      // rebuild replaced), the overlay's: its open cut is drawn on it below.
+      {w:8,p:[[-6,-68],[-22,-66],[-40,-62],[-44,-74],[-44,-88],[-44,-102],[-42,-118],[-42,-130],[-80,-145]]},
       {w:9,p:[[-18,0],[-32,-1],[-45,-2],[-52,-2],[-58,-2],[-72,-2],[-84,-2],[-96,-2]]},
       {w:8,p:[[-96,60],[-88,64],[-82,72],[-80,84],[-75,95],[-64,101],[-53,98],[-47,90],[-48,78]]}
     ],
@@ -342,6 +348,61 @@
   // the west is GC-2, approved and built that day. Regrade by the promenade (Christina,
   // 2026-10-16): one control added at (-106.6, 87), so the lane sits on the deck to z 79.
   const expandedTram = [[0,174],[44,172],[92,160],[146,136],[188,96],[208,45],[210,-24],[196,-91],[166,-145],[120,-185],[62,-214],[-12,-220],[-62,-204],[-73.1,-174.8],[-74.3,-155.5],[-77.8,-142],[-83.3,-104.5],[-70,-62.5],[-69.3,-42.1],[-75.3,-31.6],[-78,-25.2],[-78,-14.4],[-78,24],[-78,44],[-104,72],[-106.6,87],[-104,130],[-80,155],[-48,166],[0,174]];
+
+  // B's north return in an open cut, A and P1 over it on one cantilevered deck (Christina,
+  // 2026-10-17: "an open cut, with a cantilevered deck"), drawn the same day and approved by her
+  // the same day with one change, "guard on A's edge": the deck's guard stands on A's and P1's
+  // paving edges, not 0.325 m outside them.
+  // From z -143 to -185 B ran 6.4-10 m under the height grid's Headland ground, with A's lighthouse
+  // loop (+4.00) over its east 4 m and P1's walk (+4.00 to +4.10) over its east 2 m, and no crossing
+  // was named: the plan has B open-air, no steeper than 1:12, passing under the Grand Circuit once.
+  // B's course, levels and grades do not change, nor do A's or P1's. World metres (x, y, z), drawn
+  // on the atlas through gcAtlas; `s` is metres along B from J3, as ParkPlan's b_north_return runs.
+  // - `cut`: B's 10.6 m retained bed (`_rebuild_retained_bed`'s, as the cut to its north) opened to
+  //   the sky from s 110.5 to 156.5 by a grid edit that removes the ground at `grid.nodes` lattice
+  //   nodes inside the bed (heights `grid.height`, 6.4-10 m over B), as the cut to its north already
+  //   is. It joins that cut and the opening where B leaves through the bluff, so B's whole north
+  //   return runs open to the sky. Its walls are derived, as that cut's are (the bed's walls and
+  //   `_rebuild_cut_rim`): the bed's edges `east` and `west`, from B up to the grid's ground
+  //   (`walls`: the ground they retain and their height over B). Both rims are guarded.
+  // - `deck`: A's and P1's paving over the cut on one deck, cantilevered off the east wall, with no
+  //   column in the cut. Its root is the east wall between `edge[0]` and `edge[3]` (B's bed edge,
+  //   derived); its free edge `edge`, where its guard stands, is A's west paving edge from the
+  //   wall to A's corner and on to P1's, then P1's west paving edge back to the wall past B's bend.
+  //   Each `edge` point's y is the deck's top there, A's and P1's paving. It reaches 5.56 m from the
+  //   wall to A's paving edge and its guard (`cantilever`); its fixed structure is `depth` deep over B's
+  //   paving (the root's haunch stands over B's 1.3 m shoulder, outside the paving), so B keeps
+  //   `headroom` over its whole eight-metre envelope; at the deck's widest, A's corner, `openMin` of
+  //   B's 8 m paving stays open to the sky, and more everywhere else.
+  // - `crossings`: the two named crossings on the one deck, A over B and P1 over B.
+  // - `meets`: where S1, held, meets the cut: H3's turning head, drawn at S1's 0.00 on the +3.84
+  //   ground west of the cut, reaches 1.30 m over the west wall's line; S1's paving stays 2.7 m off.
+  //   Christina chose S1's option A (2026-10-17), drawn next by another agent: H3 moves 2 m west
+  //   and down to 0.00 (`moves`), 0.7 m clear of the west wall, and the overlap goes away.
+  const bNorthCut = {
+    id:'B-NC',status:'approved',decided:'2026-10-17',drawn:'2026-10-17',approved:'2026-10-17',change:'guard on A’s edge',
+    name:'B’s north return in an open cut, A and P1 over it on one cantilevered deck',
+    decision:'Christina, 2026-10-17: an open cut, with a cantilevered deck',
+    route:{id:'b_north_return',run:2,paving:8},
+    cut:{s:[110.5,156.5],length:46,bed:10.6,
+      centre:[[-43.344,-4.19,-143.05],[-42,-5,-160.778],[-42,-6,-180.556],[-49.101,-6,-185.124]],
+      east:[[-38.044,-142.85],[-36.7,-160.577],[-36.7,-183.448],[-44.743,-188.623]],
+      west:[[-48.644,-143.251],[-47.3,-160.979],[-47.3,-177.664],[-53.459,-181.625]],
+      walls:{east:{top:[2.21,4],height:[6.4,10]},west:{top:[-0.03,3.9],height:[4.7,9.9]}},
+      grid:{edit:'removal',nodes:106,height:[2.38,4],x:[-48,-38],z:[-188,-144]},
+      guards:['east rim','west rim']},
+    deck:{id:'b_north_cut_deck',source:'scenes/world/b_north_cut_deck.tscn',depth:0.4,guard:0,
+      edge:[[-36.885,4,-158.136],[-42.263,4,-172.064],[-39.934,4.056,-180.378],[-40.918,4.098,-186.162]],
+      root:[[-36.885,-158.136],[-36.7,-160.577],[-36.7,-183.448],[-40.918,-186.162]],
+      top:[4,4.1],cantilever:{paving:5.56,guard:5.56},area:92,headroom:[8.63,9.68],openMin:3.7},
+    crossings:[
+      {id:'a_loop_over_b_north',over:'a_lighthouse_loop',under:'b_north_return',deck:'b_north_cut_deck',
+        at:[-39.451,4,-172.81],minClear:4,headroom:[8.63,9.67]},
+      {id:'p1_walk_over_b_north',over:'P1_public_access',under:'b_north_return',deck:'b_north_cut_deck',
+        at:[-38.898,4.05,-178.795],minClear:4,headroom:[9.14,9.68]}],
+    meets:{S1:{status:'held',turn:'H3',at:[-52,0,-170.667],r:6,over:1.3,pavingClear:2.7,ground:3.84,
+      moves:{chosen:'2026-10-17',option:'A',west:2,to:0,clear:0.7,by:'drawn next by another agent'}}}
+  };
 
   function expandPoint(point) {
     const [x,z]=point;
@@ -581,6 +642,16 @@
       line(groups.routes,pts,'route-under',width+4);
       line(groups.routes,pts,`route ${['A','B'].includes(id)?'':'future'}`,width);
     }));
+    // B's north return in an open cut, A and P1 over it on one deck (Christina, 2026-10-17;
+    // approved the same day, guard on A's edge), in world metres: the open bed, its walls and the deck.
+    if(expanded){
+      const N=bNorthCut;
+      poly(groups.routes,N.cut.east.concat(N.cut.west.slice().reverse()),'bcut-open');
+      line(groups.routes,N.cut.east,'bcut-wall',2);
+      line(groups.routes,N.cut.west,'bcut-wall',2);
+      poly(groups.routes,N.deck.edge.map(p=>[p[0],p[2]]).concat(N.deck.root.slice(1,-1).reverse()),'bcut-deck');
+      label(groups.labels,'B OPEN CUT + A/P1 DECK · A',[-92,-176],'minor-label');
+    }
     const routeLabels=expanded?{A:[-28,-145],B:[-104,5],C:[-52,143],D:[110,145],E:[114,20],F:[97,-149]}:{A:[-28,-88],B:[-105,5],C:[-70,105],D:[80,102],E:[112,20],F:[62,-120]};
     Object.entries(routeLabels).forEach(([id,at])=>label(groups.labels,id,at));
 

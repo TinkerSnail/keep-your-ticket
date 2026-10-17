@@ -424,7 +424,11 @@
       {id:'D2 NOTCH',at:[-108,47],y:-7.5,status:'approved',offset:[-8,18],anchor:'end'},
       {id:'WC-B FFL',at:[-86,-39],y:-6,status:'approved',offset:[9,-10]}
     ],grades:[
-      {p:[[-6,-68],[-40,-62],[-75,-59],[-96,-62]],label:'B NORTH · 0→−6.00 · ≤13.2% · E'},
+      // B's north return as built (2026-10-17): this line still drew the short return along SH1's line
+      // that the 2026-09-11 rebuild replaced. Now ParkPlan's b_north_return: 0 at J3, −0.4, −1.4,
+      // −2.6, −3.8, −5.0, −6.00 at its bend, and the 0.40m dip under the Grand Circuit's overpass
+      // (2026-10-16), down and up at 8.0%.
+      {p:[[-6,-68],[-22,-66],[-40,-62],[-44,-74],[-44,-88],[-44,-102],[-42,-118],[-42,-130],[-60.3342,-137.1559],[-64.5393,-138.7971],[-70.3423,-141.0621],[-74.5474,-142.7033],[-80,-144.831460674]],label:'B NORTH · 0→−6.00 · ≤5.2%, 8.0% INTO ITS −6.40 DIP UNDER THE GC · E'},
       {p:[[-96,60],[-92.6,61.68],[-88,64],[-82,72],[-80,84]],label:'B SOUTH · −6.00→−5.97 FLUSH 4.28m · EVEN 9.92% TO −2.17 AT C · A',approved:true},
       {p:[[-80,84],[-75,95],[-64,101],[-48,78]],label:'B SOUTH · −2.17→0 · OLD LEVELS · E'},
       // D2's bed: its old levels to the bluff face (Christina, 2026-10-16), then the fall there and
@@ -560,6 +564,12 @@
       note:'The Grove rises from J3 rather than sitting on one terrace. The water-ride court follows measured +2.55m ground. The west sky-ride terminal moved 9m west off route A (Christina, 2026-10-15); its +3.02m threshold is approved by Christina 2026-10-15, the platform seated on a fill under its low half (grid edit G17), where the ground fell from about +3.3m at A’s bank to −0.06m on its south-west side. D6 is the approved low collecting the outer service-side drainage.'},
     headland:{bands:['T0','T1','T2','T3'],spots:[
       {id:'A LOOP',at:[-37,-125],y:4,status:'measured',offset:[8,18]},
+      // B's north return in an open cut, A and P1 over it on one deck (Christina, 2026-10-17; approved):
+      // B's levels as built at the cut's ends and under the deck's widest point, and the deck's top.
+      {id:'CUT N END · B',at:[-43.344,-107.243],y:-4.19,status:'measured',offset:[-9,-10],anchor:'end'},
+      {id:'B UNDER DECK',at:[-42,-125],y:-5.58,status:'measured',offset:[-9,4],anchor:'end'},
+      {id:'CUT S END · B',at:[-49.101,-132.772],y:-6,status:'measured',offset:[-9,14],anchor:'end'},
+      {id:'A + P1 DECK',at:[-39.4,-127.24],y:4,status:'approved',offset:[9,16]},
       {id:'P1 FFL',at:[-174,-202.5],y:31.1,status:'measured',offset:[8,-10]},
       {id:'E2 FFL',at:[-160.7,-213.4],y:30.61,status:'measured',offset:[8,18]},
       {id:'AQ FFL',at:[-151.7,-213.4],y:30.61,status:'approved',offset:[8,-10]},
@@ -590,8 +600,8 @@
         {at:[-157,-220],text:'E2 + AQUARIUM · ONE +30.61m COURT'},
         {at:[-69,-128],text:'QUAY + CANNERY · ONE −5.80m WORKING FLOOR'}
       ]
-    },grades:[{p:[[-37,-125],[-74,-177.3],[-130,-197],[-174,-202.5]],label:'A · LOCALIZED 1:8 CORRECTION · CURRENT MAX 21.95%',approved:true}],walls:[],
-      note:'Approved Godot source: keep the +4.00m loop, 30.6–31.1m lighthouse table, endpoints, shoreline and silhouette fixed. The 21-control editor curve provides 308.08m horizontal run, proves 12.32% maximum grade, remains at least 8.45m from shore and stays inside the 20m central-climb corridor. The blue A line is a schematic echo only; park_vertical_controls.tscn owns the exact course.'}
+    },grades:[{p:[[-43.344,-107.243],[-42,-118],[-42,-130],[-49.101,-132.772]],label:'B IN OPEN CUT · −4.19→−6.00 E · A'},{p:[[-37,-125],[-74,-177.3],[-130,-197],[-174,-202.5]],label:'A · LOCALIZED 1:8 CORRECTION · CURRENT MAX 21.95%',approved:true}],walls:[],
+      note:'Approved Godot source: keep the +4.00m loop, 30.6–31.1m lighthouse table, endpoints, shoreline and silhouette fixed. The 21-control editor curve provides 308.08m horizontal run, proves 12.32% maximum grade, remains at least 8.45m from shore and stays inside the 20m central-climb corridor. The blue A line is a schematic echo only; park_vertical_controls.tscn owns the exact course. B’s north return in an open cut (Christina, 2026-10-17; approved): B keeps its measured −4.19 to −6.00 between derived walls retaining +2.2 to +4.0 ground, 4.7–10.0m high; the deck’s top is A’s +4.00 and P1’s +4.00 to +4.10, its structure 0.40m deep over B’s paving, 8.6–9.7m clear.'}
   };
 
   const gradingReviews={
@@ -661,7 +671,7 @@
       summary:'The waterfront spine continues beyond the old chain as an editor-owned open two-lane extension along a smooth, larger R2. It turns at the cove edge and meets a separate land-side return; two continuous timber ride forecourts and two roofed midway pavilions use the expanded field without consuming the harbour or cutting the bluff.',
       publicNote:'B is the Boardwalk itself. Its northern highland return preserves the A/F junction, takes a broad arc north of the plaza wall, descends at no steeper than 1:12, stays outside S1 and R2, and meets the open timber waterfront at the shoreline. The deck continues beside the expanded coaster, passes beneath one intentional high flyover with 4.0m fixed-structure clearance and catch protection, reaches the cove overlook, and turns inland without a dead end. The pier remains a separate westward branch with a clear approach and complete loop.',
       destinationNote:'Wheel, smooth expanded wooden coaster, Scrambler, waterfront-facing dodgems, funhouse, Arcade + Ride Photo and Boardwalk Café form a Santa Monica-inspired open seaside ride park. R15 and R16 occupy separate courts but their timber forecourts meet as one continuous pier field; two roofed midway uses remain visible in R2’s high support bays.',
-      operationsNote:'R15 and R16 have separate queue, exit, photo and service controls. R16 presents west toward the timber waterfront while its service face stays east; R15’s service edge returns inland. The land return stays outside S1 and R2 and passes beneath the Grand Circuit once at the named boardwalk_north_overpass, with 4.01m fixed clearance and all columns outside its full eight-metre envelope. Grand Circuit clear of the north ride park (Christina, 2026-10-15): the road-train lane ran through R16’s hall, R15’s pad and R2’s bent 16, under R2’s return at 2.3m and through I3 and I2 on the back lane. GC-2, approved by Christina and built on 2026-10-15, keeps R2, R15, R16, I3, NT-1’s 1.3m and Q3; it passes 1.5m clear of R16 and R15 (whose east service stubs end at the lane’s verge), runs beneath R2 at two clear spans with catch decks and at least 4.06m, moves the overpass 2.7m east along B with 4.04m, passes 0.7m in plan from S1’s raised deck and cuts a 62m² wedge from I2’s back on a 9m S-bend. No course past NT-1 keeps I2 whole. R2 crosses public circulation once at a 4.0m-clear waterfront flyover with catch protection; the occupied high bay also keeps 4.0m above its solid pavilion roof. CX1 remains a locked service culvert. Past the Boardwalk station (Christina, 2026-10-16): the lane is regraded onto the deck to z 79 (control 24 at −5.95, one control added at (−106.6, −5.5, 87)) and climbs at no more than 8.5%, B crosses it flush at grand_tram_crossing_boardwalk_south, P2 moves to the old funhouse slot 1.80m clear of it, D2 passes under it once in culvert CX2 as at D5, P2’s staff link crosses it at grade north of the platform, the generated mast_11 moves off it to (−100.6, 76.0), and the legacy restrooms that span it are re-sited between I3 and I2 (WC-B), all approved by Christina on 2026-10-16. CB1 and the funhouse garden loop are re-sited round the pond (approved 2026-10-16): a 2.6m walk on its bank, 2.9m beyond the lane’s clear zone, closed across its north end by CB1, with a stem from B’s south return. S2’s staff yard is solid and gated (Christina, 2026-10-16: “Make it solid and gate it”): a 1.5m fence with a locked staff gate across its north opening, a locked gate on S2 where it leaves C, a rail along C’s west lobe, the garden fence closed to B’s paving, and B’s and C’s banks solid west of the bluff face; the holes inside B’s loop are filled.',
+      operationsNote:'R15 and R16 have separate queue, exit, photo and service controls. R16 presents west toward the timber waterfront while its service face stays east; R15’s service edge returns inland. The land return stays outside S1 and R2 and passes beneath the Grand Circuit once at the named boardwalk_north_overpass, with 4.01m fixed clearance and all columns outside its full eight-metre envelope. B’s north return in an open cut (Christina, 2026-10-17; approved, guard on A’s edge): from z −143 to −185 it runs open to the sky between derived walls, and A’s loop and P1’s walk cross over it on one cantilevered deck, the named a_loop_over_b_north and p1_walk_over_b_north, 8.6–9.7m clear, with no column in the cut. Grand Circuit clear of the north ride park (Christina, 2026-10-15): the road-train lane ran through R16’s hall, R15’s pad and R2’s bent 16, under R2’s return at 2.3m and through I3 and I2 on the back lane. GC-2, approved by Christina and built on 2026-10-15, keeps R2, R15, R16, I3, NT-1’s 1.3m and Q3; it passes 1.5m clear of R16 and R15 (whose east service stubs end at the lane’s verge), runs beneath R2 at two clear spans with catch decks and at least 4.06m, moves the overpass 2.7m east along B with 4.04m, passes 0.7m in plan from S1’s raised deck and cuts a 62m² wedge from I2’s back on a 9m S-bend. No course past NT-1 keeps I2 whole. R2 crosses public circulation once at a 4.0m-clear waterfront flyover with catch protection; the occupied high bay also keeps 4.0m above its solid pavilion roof. CX1 remains a locked service culvert. Past the Boardwalk station (Christina, 2026-10-16): the lane is regraded onto the deck to z 79 (control 24 at −5.95, one control added at (−106.6, −5.5, 87)) and climbs at no more than 8.5%, B crosses it flush at grand_tram_crossing_boardwalk_south, P2 moves to the old funhouse slot 1.80m clear of it, D2 passes under it once in culvert CX2 as at D5, P2’s staff link crosses it at grade north of the platform, the generated mast_11 moves off it to (−100.6, 76.0), and the legacy restrooms that span it are re-sited between I3 and I2 (WC-B), all approved by Christina on 2026-10-16. CB1 and the funhouse garden loop are re-sited round the pond (approved 2026-10-16): a 2.6m walk on its bank, 2.9m beyond the lane’s clear zone, closed across its north end by CB1, with a stem from B’s south return. S2’s staff yard is solid and gated (Christina, 2026-10-16: “Make it solid and gate it”): a 1.5m fence with a locked staff gate across its north opening, a locked gate on S2 where it leaves C, a rail along C’s west lobe, the garden fence closed to B’s paving, and B’s and C’s banks solid west of the bluff face; the holes inside B’s loop are filled.',
       protectionNote:'NT-1 is unchanged. Q3 keeps its fifteen-metre opening, the west-arch/pier reveal remains legible, and the sunset sector beyond the pier stays open water.'},
     {id:'fairground',title:'Fairground',bounds:{x0:-88,x1:8,z0:18,z1:138},routes:['C'],context:['A','B'],places:['P3','I1'],rides:['R4'],midway:['F1','F2','F3','F4','F5','F6'],service:['S2'],shared:[],water:['JR1','JR2','S2-SG','S2-SR','S2-GA','S2-GE','S2-GW','S2-XW','S2-XE','S2-RC','S2-RP','G1'],protected:[],views:[],
       summary:'The Fairground is a closed coastal circuit, not a straight dead-end midway. Its six game fronts, Food Hall, Big Top and swinging ship all face C while their stock, backstage and ride work remain behind the public edge.',
@@ -695,9 +705,9 @@
       protectionNote:'Planting frames the next destination without becoming an opaque wall. The Grove keeps cross-park views and the route toward the Headland open.'},
     {id:'headland',title:'Headland + Working Harbour',bounds:{x0:-190,x1:18,z0:-225,z1:-110},routes:['A'],context:['B','F'],places:['P1','E2','CW-AQ'],rides:[],midway:[],service:['S1'],shared:['SH2'],water:[],protected:[],views:[],
       summary:'The public Headland visitor cluster and the working harbour now read together without sharing circulation. The aquarium completes the keeper-exhibit court; marina, seafood and cannery complete the existing quay and sheltered cove.',
-      publicNote:'A closes the in-park loop, then the promontory walk reaches one shared lighthouse, keeper-exhibit and aquarium court. The walk crosses over the Grand Circuit on a footbridge, the named p1_lighthouse_footbridge (2026-10-15): the lane runs below in its cutting with at least 4.0m fixed clearance. The final public path remains at least 8m inland of the shoreline and never becomes the harbour service road.',
+      publicNote:'A closes the in-park loop, then the promontory walk reaches one shared lighthouse, keeper-exhibit and aquarium court. The walk crosses over the Grand Circuit on a footbridge, the named p1_lighthouse_footbridge (2026-10-15): the lane runs below in its cutting with at least 4.0m fixed clearance. The final public path remains at least 8m inland of the shoreline and never becomes the harbour service road. B’s north return in an open cut (Christina, 2026-10-17; approved the same day with its guard on A’s edge): where the loop and the walk start, B ran 6.4–10m under the Headland’s ground with both over it and no crossing named. Its bed is opened to the sky for 46m by a grid edit, its walls derived and its rims guarded, and A and P1 cross over it on one deck cantilevered 5.56m off the cut’s east wall, its guard standing on A’s and P1’s paving edges, the named a_loop_over_b_north and p1_walk_over_b_north, 8.6–9.7m over B with no column in the cut; at least 3.7m of B’s 8m stays open to the sky at the deck’s widest, A’s corner. B, A and P1 keep their courses and levels.',
       destinationNote:'P1, E2 and CW-AQ form one visitor cluster. Marina slips grow from the existing quay; fuel, racks and launch share its service end; seafood fronts the working road; the cannery closes the landward working edge.',
-      operationsNote:'SH2 carries servicing on the visitor walk before opening only. At the harbour, the separate working road reaches the quay and cannery. The short rail mark records only its termination at the loading doors; the world map governs the regional approach.',
+      operationsNote:'SH2 carries servicing on the visitor walk before opening only. At the harbour, the separate working road reaches the quay and cannery. The short rail mark records only its termination at the loading doors; the world map governs the regional approach. H3, S1’s turning head (S1 held), stands on +3.84 ground west of B’s open cut and reaches 1.3m over its west wall; S1’s paving stays 2.7m off. Christina chose S1’s option A (2026-10-17), drawn next by another agent: H3 moves 2m west and down to 0.00, 0.7m clear of the wall, and the overlap goes away.',
       protectionNote:'The lighthouse remains dominant and visible to Q1. The harbour mouth stays clear, working boats use that mouth, and the wider sailing loop remains outside the marina and breakwater.'}
   ];
 
@@ -946,6 +956,61 @@
       const t=create('text',{x,y,class:'yard-label','data-layer':'operations'});t.textContent=c.label+' · P';
     });
   }
+
+  // B's north return in an open cut, A and P1 over it on one cantilevered deck (Christina,
+  // 2026-10-17: "an open cut, with a cantilevered deck"), drawn the same day and approved by her
+  // the same day with one change, "guard on A's edge": the deck's guard stands on A's and P1's
+  // paving edges, not 0.325 m outside them.
+  // From z -143 to -185 B ran 6.4-10 m under the height grid's Headland ground, with A's lighthouse
+  // loop (+4.00) over its east 4 m and P1's walk (+4.00 to +4.10) over its east 2 m, and no crossing
+  // was named: the plan has B open-air, no steeper than 1:12, passing under the Grand Circuit once.
+  // B's course, levels and grades do not change, nor do A's or P1's. World metres (x, y, z), drawn
+  // on the atlas through gcAtlas; `s` is metres along B from J3, as ParkPlan's b_north_return runs.
+  // - `cut`: B's 10.6 m retained bed (`_rebuild_retained_bed`'s, as the cut to its north) opened to
+  //   the sky from s 110.5 to 156.5 by a grid edit that removes the ground at `grid.nodes` lattice
+  //   nodes inside the bed (heights `grid.height`, 6.4-10 m over B), as the cut to its north already
+  //   is. It joins that cut and the opening where B leaves through the bluff, so B's whole north
+  //   return runs open to the sky. Its walls are derived, as that cut's are (the bed's walls and
+  //   `_rebuild_cut_rim`): the bed's edges `east` and `west`, from B up to the grid's ground
+  //   (`walls`: the ground they retain and their height over B). Both rims are guarded.
+  // - `deck`: A's and P1's paving over the cut on one deck, cantilevered off the east wall, with no
+  //   column in the cut. Its root is the east wall between `edge[0]` and `edge[3]` (B's bed edge,
+  //   derived); its free edge `edge`, where its guard stands, is A's west paving edge from the
+  //   wall to A's corner and on to P1's, then P1's west paving edge back to the wall past B's bend.
+  //   Each `edge` point's y is the deck's top there, A's and P1's paving. It reaches 5.56 m from the
+  //   wall to A's paving edge and its guard (`cantilever`); its fixed structure is `depth` deep over B's
+  //   paving (the root's haunch stands over B's 1.3 m shoulder, outside the paving), so B keeps
+  //   `headroom` over its whole eight-metre envelope; at the deck's widest, A's corner, `openMin` of
+  //   B's 8 m paving stays open to the sky, and more everywhere else.
+  // - `crossings`: the two named crossings on the one deck, A over B and P1 over B.
+  // - `meets`: where S1, held, meets the cut: H3's turning head, drawn at S1's 0.00 on the +3.84
+  //   ground west of the cut, reaches 1.30 m over the west wall's line; S1's paving stays 2.7 m off.
+  //   Christina chose S1's option A (2026-10-17), drawn next by another agent: H3 moves 2 m west
+  //   and down to 0.00 (`moves`), 0.7 m clear of the west wall, and the overlap goes away.
+  const bNorthCut = {
+    id:'B-NC',status:'approved',decided:'2026-10-17',drawn:'2026-10-17',approved:'2026-10-17',change:'guard on A’s edge',
+    name:'B’s north return in an open cut, A and P1 over it on one cantilevered deck',
+    decision:'Christina, 2026-10-17: an open cut, with a cantilevered deck',
+    route:{id:'b_north_return',run:2,paving:8},
+    cut:{s:[110.5,156.5],length:46,bed:10.6,
+      centre:[[-43.344,-4.19,-143.05],[-42,-5,-160.778],[-42,-6,-180.556],[-49.101,-6,-185.124]],
+      east:[[-38.044,-142.85],[-36.7,-160.577],[-36.7,-183.448],[-44.743,-188.623]],
+      west:[[-48.644,-143.251],[-47.3,-160.979],[-47.3,-177.664],[-53.459,-181.625]],
+      walls:{east:{top:[2.21,4],height:[6.4,10]},west:{top:[-0.03,3.9],height:[4.7,9.9]}},
+      grid:{edit:'removal',nodes:106,height:[2.38,4],x:[-48,-38],z:[-188,-144]},
+      guards:['east rim','west rim']},
+    deck:{id:'b_north_cut_deck',source:'scenes/world/b_north_cut_deck.tscn',depth:0.4,guard:0,
+      edge:[[-36.885,4,-158.136],[-42.263,4,-172.064],[-39.934,4.056,-180.378],[-40.918,4.098,-186.162]],
+      root:[[-36.885,-158.136],[-36.7,-160.577],[-36.7,-183.448],[-40.918,-186.162]],
+      top:[4,4.1],cantilever:{paving:5.56,guard:5.56},area:92,headroom:[8.63,9.68],openMin:3.7},
+    crossings:[
+      {id:'a_loop_over_b_north',over:'a_lighthouse_loop',under:'b_north_return',deck:'b_north_cut_deck',
+        at:[-39.451,4,-172.81],minClear:4,headroom:[8.63,9.67]},
+      {id:'p1_walk_over_b_north',over:'P1_public_access',under:'b_north_return',deck:'b_north_cut_deck',
+        at:[-38.898,4.05,-178.795],minClear:4,headroom:[9.14,9.68]}],
+    meets:{S1:{status:'held',turn:'H3',at:[-52,0,-170.667],r:6,over:1.3,pavingClear:2.7,ground:3.84,
+      moves:{chosen:'2026-10-17',option:'A',west:2,to:0,clear:0.7,by:'drawn next by another agent'}}}
+  };
 
   let selected;
   let scale=1;
@@ -1222,6 +1287,31 @@
     polygonShape({id:'berm_w',name:`berm_w as built · ${B.height}m planted ridge on z ${B.z[0]}–${B.z[1]}, up to ${B.overLane}m over the lane · its shape waits on the ${B.waits}`,points:berm},'berm-place','terrain');
   }
 
+  // B's north return in an open cut, A and P1 over it on one cantilevered deck (Christina,
+  // 2026-10-17; approved the same day, guard on A's edge), on the Headland, Grove and Boardwalk zooms through gcAtlas: the open
+  // bed, its walls, the deck with the guard on its free edge, the two named crossings, and H3,
+  // S1's held turning head, where it reaches over the west wall until S1's option A moves it.
+  function drawBNorthCut(){
+    const N=bNorthCut,D=N.deck,W=N.cut.walls,pts=list=>list.map(gcAtlas).map(point).map(q=>q.join(',')).join(' ');
+    title(create('polygon',{points:pts(N.cut.east.concat(N.cut.west.slice().reverse())),class:'bcut-open','data-layer':'terrain'}),
+      `${N.id} · ${N.name} · A, ${N.approved}, ${N.change} (${N.decision}): B’s ${N.cut.bed}m bed open to the sky for ${N.cut.length}m, s ${N.cut.s[0]}–${N.cut.s[1]} along B, by a grid edit removing the ground at ${N.cut.grid.nodes} nodes; B’s course and levels unchanged`);
+    line(N.cut.east.map(gcAtlas),'bcut-wall',`east wall · derived · retains +${W.east.top[0].toFixed(2)} to +${W.east.top[1].toFixed(2)}, ${W.east.height[0]}–${W.east.height[1]}m over B · guarded rim · the deck’s root`,'terrain');
+    line(N.cut.west.map(gcAtlas),'bcut-wall',`west wall · derived · retains ${W.west.top[0].toFixed(2)} to +${W.west.top[1].toFixed(2)}, ${W.west.height[0]}–${W.west.height[1]}m over B · guarded rim`,'terrain');
+    title(create('polygon',{points:pts(D.edge.map(p=>[p[0],p[2]]).concat(D.root.slice(1,-1).reverse())),class:'bcut-deck','data-layer':'public'}),
+      `${D.id} · one deck for A and P1, cantilevered off the east wall, no column in the cut: ${D.cantilever.guard}m to its guard on A’s paving edge · top +${D.top[0].toFixed(2)} to +${D.top[1].toFixed(2)} · ${D.area}m² · ${D.headroom[0]}–${D.headroom[1]}m over B’s 8m · at least ${D.openMin}m of B’s paving open to the sky · A`);
+    line(D.edge.map(p=>gcAtlas([p[0],p[2]])),'bcut-guard','the deck’s guard on its free edge, standing on A’s and P1’s paving edges (Christina, 2026-10-17: “guard on A’s edge”)','public');
+    N.crossings.forEach(c=>{
+      const [cx,cy]=point(gcAtlas([c.at[0],c.at[2]]));
+      title(create('rect',{x:cx-3.5,y:cy-3.5,width:7,height:7,class:'bcut-crossing','data-layer':'public'}),
+        `${c.id}: ${c.over} (+${c.at[1].toFixed(2)}) over ${c.under} on ${c.deck}, ${c.headroom[0]}–${c.headroom[1]}m clear (at least ${c.minClear}m) · A`);
+    });
+    const m=N.meets.S1,[mx,my]=point(gcAtlas([m.at[0],m.at[2]]));
+    title(create('ellipse',{cx:mx,cy:my,rx:m.r*scale,ry:m.r*scale*108/178,class:'bcut-meet','data-layer':'operations'}),
+      `${m.turn}, S1’s turning head (S1 held), at S1’s 0.00 on +${m.ground}m ground: reaches ${m.over}m over the cut’s west wall; S1’s paving stays ${m.pavingClear}m off · Christina chose S1’s option A (${m.moves.chosen}): H3 moves ${m.moves.west}m west and down to ${m.moves.to.toFixed(2)}, ${m.moves.clear}m clear of the wall, ${m.moves.by}`);
+    const t1=create('text',{x:point(gcAtlas(N.cut.west[1]))[0]-8,y:point(gcAtlas(N.cut.west[1]))[1],class:'bcut-label','text-anchor':'end','data-layer':'terrain'});
+    t1.textContent=`B · OPEN CUT · WALLS TO ${W.east.height[1]}m · A`;
+  }
+
   function render(id){
     selected=sections.find(section=>section.id===id)||sections[0];
     drawing.replaceChildren();fit(selected.bounds);
@@ -1243,6 +1333,8 @@
     if(selected.id==='boardwalk')drawGrandCircuit();
     if(selected.id==='fairground'||selected.id==='entrance')drawFairgroundStop();
     if(selected.id==='frontier')drawYardConnections();
+    // B's north return in an open cut, A and P1 over it on one deck (Christina, 2026-10-17; approved, guard on A's edge).
+    if(['headland','grove','boardwalk'].includes(selected.id))drawBNorthCut();
     (selected.landmarks||[]).forEach(drawLandmark);
 
     root.querySelector('#section-title').textContent=selected.title;
@@ -1263,7 +1355,8 @@
       ...selected.water,
       ...selected.protected,
       ...selected.views,
-      ...selectedShoreline.map(item=>`${item.id} ${item.name}`)
+      ...selectedShoreline.map(item=>`${item.id} ${item.name}`),
+      ...(['headland','grove','boardwalk'].includes(selected.id)?[`${bNorthCut.id} ${bNorthCut.name} (approved ${bNorthCut.approved})`,...bNorthCut.crossings.map(c=>c.id)]:[])
     ];
     root.querySelector('#section-register').textContent=included.join(' · ');
     root.querySelectorAll('[data-section]').forEach(button=>{
@@ -1336,6 +1429,14 @@
 .gc-label{fill:var(--fg);font-weight:800}
 /* Past the Boardwalk station (Christina, 2026-10-16). */
 .gc-move{fill:none;stroke:var(--red);stroke-width:1.5;stroke-dasharray:3 2}
+/* B's north return in an open cut, A and P1 over it on one deck (Christina, 2026-10-17; approved, guard on A's edge). */
+.bcut-open{fill:var(--blue);fill-opacity:.16;stroke:none}
+.bcut-wall{fill:none;stroke:var(--orange);stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter}
+.bcut-deck{fill:var(--fg);fill-opacity:.22;stroke:var(--fg);stroke-width:1}
+.bcut-guard{fill:none;stroke:var(--fg);stroke-width:2.5;stroke-linejoin:round}
+.bcut-crossing{fill:var(--bg);stroke:var(--fg);stroke-width:1.5}
+.bcut-meet{fill:none;stroke:var(--service);stroke-width:2;stroke-dasharray:3 3}
+.bcut-label{fill:var(--fg);font-weight:800}
 .retired-place{fill:none;stroke:var(--red);stroke-width:1.5;stroke-dasharray:2 3}
 .water-drop{fill:none;stroke:var(--fg);stroke-width:4;stroke-linecap:butt}
 .garden-fence{fill:none;stroke:var(--green);stroke-width:2.5;stroke-dasharray:1 4;stroke-linecap:round}

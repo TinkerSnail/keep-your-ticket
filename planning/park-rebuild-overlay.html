@@ -574,6 +574,7 @@
     <span><b class="key-zone key-protect"></b> No-touch monument</span>
     <span><b class="key-line key-new"></b> New public route</span>
     <span><b class="key-line key-wall"></b> Retaining edge</span>
+    <span><b class="key-line key-bcut"></b> B’s north return in an open cut, A and P1 over it on one deck (approved 2026-10-17)</span>
     <span><b class="key-pad"></b> Ride / queue / coaster</span>
     <span><b class="key-program"></b> Programmed attraction + branch</span>
     <span><b class="key-interior"></b> Playable interior footprint</span>
@@ -1588,6 +1589,44 @@
     stroke: var(--red);
     stroke-width: 1.5;
     stroke-dasharray: 3 2;
+  }
+  /* B's north return in an open cut, A and P1 over it on one deck (Christina, 2026-10-17; approved, guard on A's edge). */
+  #park-rebuild-overlay .bcut-open {
+    fill: var(--blue);
+    fill-opacity: 0.14;
+    stroke: none;
+  }
+  #park-rebuild-overlay .bcut-wall {
+    fill: none;
+    stroke: var(--orange);
+    stroke-width: 3;
+    stroke-linecap: butt;
+    stroke-linejoin: miter;
+  }
+  #park-rebuild-overlay .bcut-deck {
+    fill: var(--foreground);
+    fill-opacity: 0.22;
+    stroke: var(--foreground);
+    stroke-width: 1;
+  }
+  #park-rebuild-overlay .bcut-guard {
+    fill: none;
+    stroke: var(--foreground);
+    stroke-width: 2;
+    stroke-linejoin: round;
+  }
+  #park-rebuild-overlay .bcut-crossing {
+    fill: var(--background);
+    stroke: var(--foreground);
+    stroke-width: 1.5;
+  }
+  #park-rebuild-overlay .bcut-label {
+    fill: var(--foreground);
+    font-size: 11px;
+    font-weight: 700;
+  }
+  #park-rebuild-overlay .key-bcut {
+    background: linear-gradient(90deg,var(--orange) 0 2px,color-mix(in oklab,var(--blue) 20%,transparent) 2px 9px,color-mix(in oklab,var(--foreground) 30%,transparent) 9px 16px,var(--orange) 16px 18px);
   }
   #park-rebuild-overlay .wc-site {
     fill: var(--orange);
@@ -4508,6 +4547,317 @@
   }
   planCheck(validateServiceLevels);
 
+  // B's north return in an open cut, A and P1 over it on one cantilevered deck (Christina,
+  // 2026-10-17: "an open cut, with a cantilevered deck"), drawn the same day and approved by her
+  // the same day with one change, "guard on A's edge": the deck's guard stands on A's and P1's
+  // paving edges, not 0.325 m outside them.
+  // From z -143 to -185 B ran 6.4-10 m under the height grid's Headland ground, with A's lighthouse
+  // loop (+4.00) over its east 4 m and P1's walk (+4.00 to +4.10) over its east 2 m, and no crossing
+  // was named: the plan has B open-air, no steeper than 1:12, passing under the Grand Circuit once.
+  // B's course, levels and grades do not change, nor do A's or P1's. World metres (x, y, z), drawn
+  // on the atlas through gcAtlas; `s` is metres along B from J3, as ParkPlan's b_north_return runs.
+  // - `cut`: B's 10.6 m retained bed (`_rebuild_retained_bed`'s, as the cut to its north) opened to
+  //   the sky from s 110.5 to 156.5 by a grid edit that removes the ground at `grid.nodes` lattice
+  //   nodes inside the bed (heights `grid.height`, 6.4-10 m over B), as the cut to its north already
+  //   is. It joins that cut and the opening where B leaves through the bluff, so B's whole north
+  //   return runs open to the sky. Its walls are derived, as that cut's are (the bed's walls and
+  //   `_rebuild_cut_rim`): the bed's edges `east` and `west`, from B up to the grid's ground
+  //   (`walls`: the ground they retain and their height over B). Both rims are guarded.
+  // - `deck`: A's and P1's paving over the cut on one deck, cantilevered off the east wall, with no
+  //   column in the cut. Its root is the east wall between `edge[0]` and `edge[3]` (B's bed edge,
+  //   derived); its free edge `edge`, where its guard stands, is A's west paving edge from the
+  //   wall to A's corner and on to P1's, then P1's west paving edge back to the wall past B's bend.
+  //   Each `edge` point's y is the deck's top there, A's and P1's paving. It reaches 5.56 m from the
+  //   wall to A's paving edge and its guard (`cantilever`); its fixed structure is `depth` deep over B's
+  //   paving (the root's haunch stands over B's 1.3 m shoulder, outside the paving), so B keeps
+  //   `headroom` over its whole eight-metre envelope; at the deck's widest, A's corner, `openMin` of
+  //   B's 8 m paving stays open to the sky, and more everywhere else.
+  // - `crossings`: the two named crossings on the one deck, A over B and P1 over B.
+  // - `meets`: where S1, held, meets the cut: H3's turning head, drawn at S1's 0.00 on the +3.84
+  //   ground west of the cut, reaches 1.30 m over the west wall's line; S1's paving stays 2.7 m off.
+  //   Christina chose S1's option A (2026-10-17), drawn next by another agent: H3 moves 2 m west
+  //   and down to 0.00 (`moves`), 0.7 m clear of the west wall, and the overlap goes away.
+  const bNorthCut = {
+    id:'B-NC',status:'approved',decided:'2026-10-17',drawn:'2026-10-17',approved:'2026-10-17',change:'guard on A’s edge',
+    name:'B’s north return in an open cut, A and P1 over it on one cantilevered deck',
+    decision:'Christina, 2026-10-17: an open cut, with a cantilevered deck',
+    route:{id:'b_north_return',run:2,paving:8},
+    cut:{s:[110.5,156.5],length:46,bed:10.6,
+      centre:[[-43.344,-4.19,-143.05],[-42,-5,-160.778],[-42,-6,-180.556],[-49.101,-6,-185.124]],
+      east:[[-38.044,-142.85],[-36.7,-160.577],[-36.7,-183.448],[-44.743,-188.623]],
+      west:[[-48.644,-143.251],[-47.3,-160.979],[-47.3,-177.664],[-53.459,-181.625]],
+      walls:{east:{top:[2.21,4],height:[6.4,10]},west:{top:[-0.03,3.9],height:[4.7,9.9]}},
+      grid:{edit:'removal',nodes:106,height:[2.38,4],x:[-48,-38],z:[-188,-144]},
+      guards:['east rim','west rim']},
+    deck:{id:'b_north_cut_deck',source:'scenes/world/b_north_cut_deck.tscn',depth:0.4,guard:0,
+      edge:[[-36.885,4,-158.136],[-42.263,4,-172.064],[-39.934,4.056,-180.378],[-40.918,4.098,-186.162]],
+      root:[[-36.885,-158.136],[-36.7,-160.577],[-36.7,-183.448],[-40.918,-186.162]],
+      top:[4,4.1],cantilever:{paving:5.56,guard:5.56},area:92,headroom:[8.63,9.68],openMin:3.7},
+    crossings:[
+      {id:'a_loop_over_b_north',over:'a_lighthouse_loop',under:'b_north_return',deck:'b_north_cut_deck',
+        at:[-39.451,4,-172.81],minClear:4,headroom:[8.63,9.67]},
+      {id:'p1_walk_over_b_north',over:'P1_public_access',under:'b_north_return',deck:'b_north_cut_deck',
+        at:[-38.898,4.05,-178.795],minClear:4,headroom:[9.14,9.68]}],
+    meets:{S1:{status:'held',turn:'H3',at:[-52,0,-170.667],r:6,over:1.3,pavingClear:2.7,ground:3.84,
+      moves:{chosen:'2026-10-17',option:'A',west:2,to:0,clear:0.7,by:'drawn next by another agent'}}}
+  };
+
+  // Every place a route overlaps another at a different level is a named crossing with headroom
+  // (2026-10-17). B's north return lay 6.4-10 m under the Headland with A's loop and P1's walk over
+  // it and no crossing named, and nothing caught it: each route was held clear of the lane, the
+  // rides and the walls, never of the other routes in height. World metres. Every public route
+  // run (A-F, through gcExpand), P1's walk (its Path3D as baked) and the Grand Circuit lane (the
+  // approved course from (-12, -220) to the Fairground stop) is sampled every 0.5 m along its
+  // centre and both paving edges; wherever a sample lies inside another run's paving the two
+  // overlap.
+  // - Where both runs' levels are written down (`routeLevels`: ParkPlan's primary runs, P1's
+  //   walk, the lane's own) and differ by more than `atGrade`, the overlap must lie in a named
+  //   grade-separated crossing of those two runs, the right way up, and the run over it, less the
+  //   crossing's fixed structure, must stand its minimum clearance over the run under it at every
+  //   such sample. Each named crossing must cross what it names, and its stated headroom must not
+  //   be more than the levels give.
+  // - Where a run's levels are not written down (C-F lie on the ground) the overlap must touch a
+  //   junction: a J point, a point both runs share (a run's vertex or end on the other's centre),
+  //   or a declared `meetings` place at grade.
+  // - B's open cut and its deck (`bNorthCut`): the deck carries all of A's and P1's paving and its
+  //   guard (on their paving edges) over the cut, stands on the cut's east wall, leaves `openMin` of B's paving open to
+  //   the sky, and the cut follows B's course at B's levels; a service turning head that reaches
+  //   over the cut is declared in `meets`.
+  // Service spines are held to their levels by validateServiceLevels and are not routes here.
+  const routeLevels = {
+    // ParkPlan.REBUILD_PRIMARY_ROUTE_RUNS: atlas x and z with world y, by overlay run (a number is
+    // the run's level throughout).
+    A0:0,
+    A1:[[0,0,-18],[-1,0,-35],[-3,0,-52],[-6,0,-68],[-10,1,-84],[-13,2.8,-101],[-14.64,4,-107],[-16,4,-112]],
+    A2:4, A3:0, B0:-6, B1:-6,
+    B2:[[-6,0,-68],[-22,0,-66],[-40,-0.4,-62],[-44,-1.4,-74],[-44,-2.6,-88],[-44,-3.8,-102],[-42,-5,-118],
+      [-42,-6,-130],[-60.3342,-6,-137.1559],[-64.5393,-6.4,-138.7971],[-70.3423,-6.4,-141.0621],
+      [-74.5474,-6,-142.7033],[-80,-6,-144.831460674]],
+    B3:[[-18,0,0],[-32,0,-1],[-45,0,-2],[-52,0,-2],[-58,0,-2],[-72,-6,-2],[-84,-6,-2],[-96,-6,-2]],
+    B4:[[-96,-6,60],[-92.6,-5.97,61.68],[-88,-5.391,64],[-82,-4.025,72],[-80,-2.17,84],[-75,-1.07,95],
+      [-64,0.08,101],[-53,0.08,98],[-47,0,90],[-48,0,78]]
+  };
+  const routeCrossings = {
+    atGrade:0.5, junctionReach:2, step:0.5,
+    // P1's promontory walk as baked from its Path3D (park_vertical_controls.tscn), world metres, from
+    // A's west vertex past the lane.
+    p1:{id:'P1',name:'P1_public_access',w:3,p:[[-37,4,-172.31],[-37.516,4.022,-175.262],[-38.034,4.04,-178.213],
+      [-38.549,4.059,-181.165],[-39.056,4.081,-184.118],[-39.548,4.102,-187.074],[-40.03,4.121,-190.031],
+      [-40.514,4.139,-192.988],[-41.012,4.161,-195.943],[-41.523,4.182,-198.895],[-42.042,4.201,-201.846],
+      [-42.577,4.22,-204.794],[-43.137,4.242,-207.738],[-43.713,4.263,-210.678],[-44.305,4.282,-213.616],
+      [-44.932,4.301,-216.546],[-45.613,4.323,-219.464],[-46.534,4.344,-222.313],[-47.63,4.362,-225.102],
+      [-48.516,4.38,-227.961],[-48.879,4.402,-230.93],[-48.556,4.4,-233.903],[-48.081,4.381,-235.843]]},
+    // The named grade-separated crossings among them, world metres: ParkPlan.GRAND_TRAM_CROSSINGS'
+    // two and the deck's two. `reach` holds a crossing to a circle round `at`; `deck` to the deck's
+    // outline. Under the lane the clearance is taken from its graded centreline, as ParkPlan
+    // measures it.
+    named:[
+      {id:'boardwalk_north_overpass',over:'GC',under:'B2',at:[-67.74,-1.72,-197.4],reach:10,depth:0.24,minClear:4,headroom:[4.02,4.44]},
+      {id:'p1_lighthouse_footbridge',over:'P1',under:'GC',at:[-44.17,-0.43,-212.98],reach:10,depth:0.4,minClear:4,headroom:[4.24,4.32]},
+      ...bNorthCut.crossings.map(c => ({id:c.id,over:c.over === 'a_lighthouse_loop' ? 'A2' : 'P1',under:'B2',at:c.at,
+        deck:c.deck,depth:bNorthCut.deck.depth,minClear:c.minClear,headroom:c.headroom}))
+    ],
+    // Places at grade where a run with no written levels meets another away from a J point.
+    meetings:[
+      {id:'Plaza hub ring',at:[0,0],r:28,why:'the Plaza and every spoke mouth hold +0.00m'},
+      {id:'B × C',at:[-80,84],r:9,why:'C crosses B’s south return at its grade, −2.17 (ParkPlan)'},
+      {id:'E × F',at:[118,-41],r:9,why:'F’s outer arc ends at (118, −42), where its terrace walk and E’s outer orbit, both NT-2’s walks, meet'}
+    ]
+  };
+  function validateRouteCrossings() {
+    const problems = [], RC = routeCrossings, W = grandCircuitWest, N = bNorthCut;
+    const segT = (q, a, b) => {
+      const dx = b[0] - a[0], dz = b[1] - a[1], l = dx * dx + dz * dz;
+      const t = l ? Math.max(0, Math.min(1, ((q[0] - a[0]) * dx + (q[1] - a[1]) * dz) / l)) : 0;
+      return [Math.hypot(q[0] - a[0] - dx * t, q[1] - a[1] - dz * t), t];
+    };
+    const inPoly = (p, poly) => { let ins = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const A = poly[i], B = poly[j]; if ((A[1] > p[1]) !== (B[1] > p[1]) && p[0] < (B[0] - A[0]) * (p[1] - A[1]) / (B[1] - A[1]) + A[0]) ins = !ins; } return ins; };
+    // A run: plan line, half width, level line (x, y, z) or null, bounding box.
+    const near = (line3, q) => { let best = [Infinity, 0];
+      line3.slice(1).forEach((b, i) => { const a = line3[i], [d, t] = segT(q, [a[0], a[2]], [b[0], b[2]]);
+        if (d < best[0]) best = [d, a[1] + (b[1] - a[1]) * t]; });
+      return best; };
+    const runs = [];
+    const addRun = (id, line, w, lv) => {
+      const xs = line.map(p => p[0]), zs = line.map(p => p[1]), h = w / 2;
+      runs.push({id, line, h, lv, box:[Math.min(...xs) - h, Math.min(...zs) - h, Math.max(...xs) + h, Math.max(...zs) + h]});
+    };
+    Object.entries(routes).forEach(([r, route]) => route.paths.forEach((run, k) => {
+      const id = `${r}${k}`, line = run.p.map(gcExpand), lv = routeLevels[id];
+      addRun(id, line, run.w, lv === undefined ? null
+        : typeof lv === 'number' ? line.map(p => [p[0], lv, p[1]])
+        : lv.map(([x, y, z]) => { const [qx, qz] = gcExpand([x, z]); return [qx, y, qz]; }));
+    }));
+    addRun(RC.p1.id, RC.p1.p.map(p => [p[0], p[2]]), RC.p1.w, RC.p1.p);
+    {
+      const all = gcCurve(W.course.controls);
+      addRun('GC', all.map(p => [p[0], p[2]]), W.width, all);
+    }
+    const dist = (run, q) => { let d = Infinity; for (let i = 1; i < run.line.length; i++) d = Math.min(d, segT(q, run.line[i - 1], run.line[i])[0]); return d; };
+    const inBox = (run, q) => q[0] >= run.box[0] && q[0] <= run.box[2] && q[1] >= run.box[1] && q[1] <= run.box[3];
+    // Within a run's paving: its segments bucketed by 8 m cell, each in every cell its box (widened
+    // by the half width) meets, so a sample looks only at the segments near it.
+    const CELL = 8, cellKey = (cx, cz) => cx * 100003 + cz;
+    const inside = (run, q, h) => {
+      if (!run.cells) {
+        run.cells = new Map();
+        run.line.slice(1).forEach((b, i) => {
+          const a = run.line[i];
+          for (let cx = Math.floor((Math.min(a[0], b[0]) - run.h) / CELL); cx <= Math.floor((Math.max(a[0], b[0]) + run.h) / CELL); cx++)
+            for (let cz = Math.floor((Math.min(a[1], b[1]) - run.h) / CELL); cz <= Math.floor((Math.max(a[1], b[1]) + run.h) / CELL); cz++) {
+              const k = cellKey(cx, cz);
+              if (!run.cells.has(k)) run.cells.set(k, []);
+              run.cells.get(k).push(i);
+            }
+        });
+      }
+      const list = run.cells.get(cellKey(Math.floor(q[0] / CELL), Math.floor(q[1] / CELL)));
+      return !!list && list.some(i => segT(q, run.line[i], run.line[i + 1])[0] < h);
+    };
+    // Samples along a run's centre and both edges, each with its offset line and index along it.
+    const samplesOf = run => {
+      if (run.samples) return run.samples;
+      const out = run.samples = [];
+      run.line.slice(1).forEach((b, i) => {
+        const a = run.line[i], len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+        if (len < 1e-9) return;
+        const u = [(b[0] - a[0]) / len, (b[1] - a[1]) / len], nrm = [-u[1], u[0]];
+        const n = Math.max(1, Math.ceil(len / RC.step));
+        for (let k = 0; k < n; k++) [-1, 0, 1].forEach(side => {
+          const f = side * (run.h - 0.02);
+          out.push({q:[a[0] + (b[0] - a[0]) * k / n + nrm[0] * f, a[1] + (b[1] - a[1]) * k / n + nrm[1] * f], side, seg:i, k});
+        });
+      });
+      return out;
+    };
+    const junctionPoints = junctions.map(([, x, z]) => gcExpand([x, z]));
+    const meetings = RC.meetings.map(m => ({...m, w:gcExpand(m.at)}));
+    const shared = (a, b) => [...a.line.filter(p => dist(b, p) < 0.5), ...b.line.filter(p => dist(a, p) < 0.5), ...junctionPoints];
+    const used = new Map(RC.named.map(c => [c.id, Infinity]));
+    const fmt = q => `(${q[0].toFixed(1)}, ${q[1].toFixed(1)})`;
+    for (let i = 0; i < runs.length; i++) for (let j = 0; j < runs.length; j++) {
+      if (i === j) continue;
+      const a = runs[i], b = runs[j];
+      if (a.box[2] < b.box[0] || b.box[2] < a.box[0] || a.box[3] < b.box[1] || b.box[3] < a.box[1]) continue;
+      const hits = samplesOf(a).filter(s => inBox(b, s.q) && inside(b, s.q, b.h - 0.02));
+      if (!hits.length) continue;
+      if (a.lv && b.lv) {
+        let bad = null;
+        hits.forEach(s => {
+          const ya = near(a.lv, s.q)[1], yb = near(b.lv, s.q)[1];
+          if (Math.abs(ya - yb) <= RC.atGrade) return;
+          const [over, under, yo, yu] = ya > yb ? [a, b, ya, yb] : [b, a, yb, ya];
+          const c = RC.named.find(c => c.over === over.id && c.under === under.id
+            && (c.deck ? inPoly(s.q, N.deck.edge.map(p => [p[0], p[2]]).concat(N.deck.root.slice(1, -1).reverse()))
+              : Math.hypot(s.q[0] - c.at[0], s.q[1] - c.at[2]) <= c.reach));
+          if (!c) { if (!bad) bad = `${over.id} passes ${(yo - yu).toFixed(2)}m over ${under.id} at ${fmt(s.q)} with no named crossing`; return; }
+          const h = yo - c.depth - yu;
+          used.set(c.id, Math.min(used.get(c.id), h));
+        });
+        if (bad) problems.push(bad);
+      } else {
+        const pts = shared(a, b);
+        const reach = a.h + b.h + RC.junctionReach;
+        // The overlap's pieces, its samples joined within a station's width of each other: each
+        // must touch a junction.
+        const link = a.h + 0.6, seen = new Array(hits.length).fill(false);
+        hits.forEach((s0, n0) => {
+          if (seen[n0]) return;
+          const piece = [s0], todo = [n0];
+          seen[n0] = true;
+          while (todo.length) {
+            const s = hits[todo.pop()];
+            hits.forEach((t, n) => { if (!seen[n] && Math.hypot(s.q[0] - t.q[0], s.q[1] - t.q[1]) <= link) { seen[n] = true; todo.push(n); piece.push(t); } });
+          }
+          const ok = piece.some(s => pts.some(p => Math.hypot(s.q[0] - p[0], s.q[1] - p[1]) <= reach)
+            || meetings.some(m => Math.hypot(s.q[0] - m.w[0], s.q[1] - m.w[1]) <= m.r));
+          if (!ok) problems.push(`${a.id} meets ${b.id} at ${fmt(piece[0].q)} with no written levels and no junction`);
+        });
+      }
+    }
+    RC.named.forEach(c => {
+      const h = used.get(c.id);
+      if (h === Infinity) problems.push(`${c.id} crosses nothing: ${c.over} does not pass over ${c.under} there`);
+      else {
+        if (h < c.minClear - 0.005) problems.push(`${c.id} leaves ${h.toFixed(2)}m under it (needs ${c.minClear}m)`);
+        if (h < c.headroom[0] - 0.05) problems.push(`${c.id} states ${c.headroom[0]}m of headroom; its levels give ${h.toFixed(2)}m`);
+      }
+    });
+    // The deck carries all of A's and P1's paving over the cut, its guard on their edges (`guard` 0), and
+    // stands on the east wall.
+    {
+      const cut = N.cut.east.concat(N.cut.west.slice().reverse());
+      const deck = N.deck.edge.map(p => [p[0], p[2]]).concat(N.deck.root.slice(1, -1).reverse());
+      const runA = runs.find(r => r.id === 'A2'), runP = runs.find(r => r.id === 'P1'), runB = runs.find(r => r.id === 'B2');
+      let out = null;
+      [[runA, N.deck.guard], [runP, N.deck.guard]].forEach(([run, g]) => {
+        const xs = cut.map(p => p[0]), zs = cut.map(p => p[1]);
+        for (let x = Math.min(...xs); x <= Math.max(...xs); x += 0.25) for (let z = Math.min(...zs); z <= Math.max(...zs); z += 0.25) {
+          const q = [x, z];
+          if (!out && inPoly(q, cut) && !inPoly(q, deck) && inside(run, q, run.h + g - 0.03)) out = `${run.id}'s paving or guard stands over the open cut off the deck at ${fmt(q)}`;
+        }
+      });
+      if (out) problems.push(out);
+      const eastWall = N.cut.east;
+      const offWall = Math.max(...N.deck.root.map(p => Math.min(...eastWall.slice(1).map((b, i) => segT(p, eastWall[i], b)[0]))));
+      if (offWall > 0.05) problems.push(`the deck's root stands ${offWall.toFixed(2)}m off the cut's east wall`);
+      // How much of B's paving the deck leaves open to the sky, square to B, at every half metre.
+      let open = Infinity;
+      runB.line.slice(1).forEach((b, i) => {
+        const a = runB.line[i], len = Math.hypot(b[0] - a[0], b[1] - a[1]), u = [(b[0] - a[0]) / len, (b[1] - a[1]) / len];
+        for (let t = 0; t <= len; t += 0.5) {
+          const c = [a[0] + u[0] * t, a[1] + u[1] * t];
+          let covered = 0;
+          for (let f = -runB.h; f <= runB.h + 1e-9; f += 0.05) if (inPoly([c[0] - u[1] * f, c[1] + u[0] * f], deck)) covered += 0.05;
+          if (covered > 0) open = Math.min(open, 2 * runB.h - covered);
+        }
+      });
+      if (open < N.deck.openMin - 0.05) problems.push(`the deck leaves ${open.toFixed(2)}m of B's paving open to the sky (at least ${N.deck.openMin}m)`);
+      // The cut keeps B's course and levels.
+      N.cut.centre.forEach(p => {
+        const [d, y] = near(runB.lv, [p[0], p[2]]);
+        if (d > 0.05 || Math.abs(y - p[1]) > 0.02) problems.push(`the cut's centre (${p[0]}, ${p[2]}) is not B's course at its level`);
+      });
+      // A service turning head over the cut is declared.
+      serviceNodes.filter(n => n.kind === 'turn').forEach(n => {
+        const c = gcExpand(n.at), w = N.cut.west, e = N.cut.east;
+        const into = n.r - Math.min(...[w, e].map(line => Math.min(...line.slice(1).map((b, i) => segT(c, line[i], b)[0]))));
+        const m = Object.values(N.meets).find(m => m.turn === n.id);
+        if ((into > 0 || inPoly(c, cut)) && !(m && into <= m.over + 0.05)) problems.push(`${n.id} reaches ${into.toFixed(2)}m over the open cut's wall undeclared`);
+      });
+    }
+    if (problems.length) throw new Error(`Routes crossing at different levels: ${problems.join('; ')}`);
+  }
+  planCheck(validateRouteCrossings);
+
+  // B's north return in an open cut, A and P1 over it on one cantilevered deck (Christina,
+  // 2026-10-17; approved the same day, guard on A's edge): the open bed, its two walls, the deck with the guard on its free edge,
+  // and the two named crossings, drawn on the atlas through gcAtlas.
+  function drawBNorthCut(parent,x,y,scale,points,pathLine,{compact=false,labels=true}={}) {
+    const N = bNorthCut, W = N.cut.walls, D = N.deck;
+    const titled = (el, copy) => { const t = make('title'); t.textContent = copy; el.appendChild(t); return el; };
+    const cut = N.cut.east.concat(N.cut.west.slice().reverse()).map(gcAtlas);
+    titled(parent.appendChild(make('polygon',{points:points(cut),class:'bcut-open'})),
+      `${N.id} · ${N.name} · approved ${N.approved}, ${N.change} (${N.decision}): B’s ${N.cut.bed} m bed open to the sky for ${N.cut.length} m, s ${N.cut.s[0]}–${N.cut.s[1]} along B, by a grid edit removing the ground at ${N.cut.grid.nodes} nodes; B’s course and levels unchanged`);
+    titled(pathLine(N.cut.east.map(gcAtlas),'bcut-wall'),`east wall of the cut · derived · retains +${W.east.top[0].toFixed(2)} to +${W.east.top[1].toFixed(2)}, ${W.east.height[0]}–${W.east.height[1]} m over B · guarded rim · carries the deck’s root`);
+    titled(pathLine(N.cut.west.map(gcAtlas),'bcut-wall'),`west wall of the cut · derived · retains ${W.west.top[0].toFixed(2)} to +${W.west.top[1].toFixed(2)}, ${W.west.height[0]}–${W.west.height[1]} m over B · guarded rim`);
+    const deck = D.edge.map(p => [p[0], p[2]]).concat(D.root.slice(1, -1).reverse()).map(gcAtlas);
+    titled(parent.appendChild(make('polygon',{points:points(deck),class:'bcut-deck'})),
+      `${D.id} · one deck for A and P1, cantilevered off the east wall, no column in the cut: ${D.cantilever.guard} m to its guard on A’s paving edge · top +${D.top[0].toFixed(2)} to +${D.top[1].toFixed(2)} · ${D.area} m² · ${D.headroom[0]}–${D.headroom[1]} m over B’s 8 m · at least ${D.openMin} m of B’s paving open to the sky · approved ${N.approved}`);
+    titled(pathLine(D.edge.map(p => gcAtlas([p[0], p[2]])),'bcut-guard'),'the deck’s guard on its free edge, standing on A’s and P1’s paving edges (Christina, 2026-10-17: “guard on A’s edge”)');
+    N.crossings.forEach(c => {
+      const [cx, cz] = gcAtlas([c.at[0], c.at[2]]);
+      titled(parent.appendChild(make('rect',{x:x(cx) - 3,y:y(cz) - 3,width:6,height:6,class:'bcut-crossing'})),
+        `${c.id}: ${c.over} (+${c.at[1].toFixed(2)}) over ${c.under} on ${c.deck}, ${c.headroom[0]}–${c.headroom[1]} m clear (at least ${c.minClear} m) · approved ${N.approved}`);
+    });
+    if (!compact && labels) {
+      const [lx, lz] = gcAtlas([N.cut.west[1][0] - 2, N.cut.west[1][1]]);
+      addText(parent,'B · OPEN CUT',x(lx),y(lz),'bcut-label','end');
+      const [dx, dz] = gcAtlas([D.edge[1][0] + 7, D.edge[1][2] + 2]);
+      addText(parent,'A + P1 DECK · A',x(dx),y(dz),'bcut-label','start');
+    }
+  }
+
   // yard connections (Christina, 2026-10-15): "Draw stairs and ramps for review". The T6 build
   // (8ab7577) could not join R11 or R12's east terminal to the Grand Circuit's east station
   // yard, S3's paving behind the platform at +7.31 m: R11's drawn link began 16 m beyond its
@@ -4708,10 +5058,10 @@
     all:{title:'All packages · one-way execution order',detail:'Red work is removed first; amber cores and NT-1 / NT-2 are the only inherited circulation carried into routes A–F. R13 occupies the expanded outer high shoulder beyond the Terraced Fountain; R14 completes Kiddieland’s outer edge without changing D, W4, or S3; KG1 adds seven flush jets and a three-frog jumping-water chain inside P4 with independent recirculation; R4 and P1–P5 are complete operating parcels; E1–E6 and I1–I6 distribute twelve recurring interiors across every loop; MW-F, MW-B, and MW-K add twelve one-building-deep midway units without narrowing B, C, or D; and the plan is backed by the resolved S1–S3 service system, D1–D6 drainage catchments, PL1–PL3 planting structure, the daylighted D2 Coastal Creek, six locked reveal checks at Q1–Q6, the H0 / M1–M7 / SW1–SW5 / N1–N5 mission spine, assignment families A1–A6 across campaign phases C1–C5, seven five-beat district mini-campaigns returning to the Photo Hut, four mutually exclusive seasonal mission and decor overlays, twelve original Feature Assignments synthesized from thirty-six mapped reference lenses, and the L1–L9 photograph lifecycle from paper brief to preserved print.'},
     strip:{title:'01 · Strip inherited circulation',detail:'Remove X1 plaza doglegs, X2 Kiddieland S-path and stubs, X3 Fairground spine and stubs, X4 Grove double-back and dead ends, X5 narrow Frontier approach, and all X6 guards / closures. Keep only the amber cores and purple monuments.'},
     terrain:{title:'02 · Protect, grade, and retain',detail:'Fence NT-1 and NT-2 before excavation. Form T0–T6 and reserve the outer T6 shoulder for R13, then build W1 / W3 major scarps; W4–W6 stay short and planted, and W7 remains landform rather than a path wall. The perimeter rim (former T7) is package 02A on the footprint map, in world coordinates: crest x 270 / z −275, 16 to 28m high, its derived toe clearing every route, transit reserve, parking field and parcel by 12m.'},
-    trunks:{title:'03 · Lay primary trunks',detail:'Build A from gate through hub to the lighthouse loop, then B as one continuous waterfront spine with north, monument, and south returns. Do not begin district paving until both trunks close.'},
-    loops:{title:'04 · Close loops, ride courts, and attractions',detail:'Build C–F, set J1–J9, then place R1–R16 and P1–P5. R4 is the Fairground swinging ship; R14 is the Kiddieland junior coaster; R15 and R16 are separate Boardwalk courts beside the smooth expanded R2 and share one continuous timber pier field. B’s land return passes beneath the Grand Circuit once at the named boardwalk_north_overpass, with 4.01m fixed clearance and all columns beyond its full eight-metre envelope. Grand Circuit clear of the north ride park (Christina, 2026-10-15): the road-train lane ran through R16, R15 and R2’s bent 16, under R2’s return at 2.3m and through I3 and I2; GC-2, approved by Christina and built on 2026-10-15, keeps R2, R15, R16, I3, NT-1’s 1.3m and Q3, cuts a 62m² wedge from I2’s back on a 9m S-bend, passes beneath R2 at two clear spans with catch decks and at least 4.06m, and moves the overpass 2.7m east along B at 4.04m. P1’s promontory walk passes over it once, on the named p1_lighthouse_footbridge (2026-10-15): the lane runs below in its Headland cutting with at least 4.0m fixed clearance, and the walk keeps its course and levels. Past the Boardwalk station (Christina, 2026-10-16) the lane is regraded to sit on the deck to z 79 and climb at no more than 8.5%, B crosses it flush, P2 moves to the old funhouse slot 1.80m clear, D2 passes under it in one culvert, and the restrooms that stood across it are re-sited between I3 and I2; CB1 and the funhouse garden loop are re-sited round the pond. P1 is the lighthouse experience, P2 the Boardwalk funhouse, P3 the Big Top show, P4 the family play garden, and P5 the programmed bandstand. R13 and R14 remain entirely beyond NT-2; every queue and yellow attraction branch leaves a loop before stopping guests.'},
+    trunks:{title:'03 · Lay primary trunks',detail:'Build A from gate through hub to the lighthouse loop, then B as one continuous waterfront spine with north, monument, and south returns. Do not begin district paving until both trunks close. Where A’s lighthouse loop crosses over B’s north return the two are grade-separated on a named deck over B’s open cut (approved 2026-10-17).'},
+    loops:{title:'04 · Close loops, ride courts, and attractions',detail:'Build C–F, set J1–J9, then place R1–R16 and P1–P5. R4 is the Fairground swinging ship; R14 is the Kiddieland junior coaster; R15 and R16 are separate Boardwalk courts beside the smooth expanded R2 and share one continuous timber pier field. B’s land return passes beneath the Grand Circuit once at the named boardwalk_north_overpass, with 4.01m fixed clearance and all columns beyond its full eight-metre envelope. B’s north return in an open cut (Christina, 2026-10-17; approved the same day, guard on A’s edge): from z −143 to −185 it ran 6.4–10m under the Headland’s ground with A’s loop and P1’s walk over it; its bed is opened to the sky by a grid edit, its walls derived, and A and P1 cross over it on one deck cantilevered 5.56m off the cut’s east wall, its guard on A’s and P1’s paving edges, the named a_loop_over_b_north and p1_walk_over_b_north, 8.6–9.7m over B with no column in the cut. B, A and P1 keep their courses and levels. Grand Circuit clear of the north ride park (Christina, 2026-10-15): the road-train lane ran through R16, R15 and R2’s bent 16, under R2’s return at 2.3m and through I3 and I2; GC-2, approved by Christina and built on 2026-10-15, keeps R2, R15, R16, I3, NT-1’s 1.3m and Q3, cuts a 62m² wedge from I2’s back on a 9m S-bend, passes beneath R2 at two clear spans with catch decks and at least 4.06m, and moves the overpass 2.7m east along B at 4.04m. P1’s promontory walk passes over it once, on the named p1_lighthouse_footbridge (2026-10-15): the lane runs below in its Headland cutting with at least 4.0m fixed clearance, and the walk keeps its course and levels. Past the Boardwalk station (Christina, 2026-10-16) the lane is regraded to sit on the deck to z 79 and climb at no more than 8.5%, B crosses it flush, P2 moves to the old funhouse slot 1.80m clear, D2 passes under it in one culvert, and the restrooms that stood across it are re-sited between I3 and I2; CB1 and the funhouse garden loop are re-sited round the pond. P1 is the lighthouse experience, P2 the Boardwalk funhouse, P3 the Big Top show, P4 the family play garden, and P5 the programmed bandstand. R13 and R14 remain entirely beyond NT-2; every queue and yellow attraction branch leaves a loop before stopping guests.'},
     parcels:{title:'04A · Resolve the first attraction parcels',detail:'R4 receives a 26 × 10m operating envelope, in-court queue, separate exit to C, operator booth, photo turnout, and gated back-lane service. P2 receives an 8 × 18m show building in the old funhouse slot (Christina, 2026-10-16; it was 12 × 14m across the Grand Circuit lane), separate Boardwalk entry and exit, continuous interior route, level tunnel bypass, façade photo point, and a rear staff gate crossing the lane at grade to S2. Neither changes a public through-route.'},
-    lighthouse:{title:'04B · Resolve the Headland lighthouse experience',detail:'P1 keeps a 10m-diameter lighthouse on the boulevard axis, with a 14 × 8m low forecourt and an 8 × 6m keeper’s house to the west. Visitors enter through the exhibit, climb on the west stair, descend on the east stair, and rejoin the loop separately. A side-bay photo position keeps the boulevard clear; accessible camera-obscura content stays at ground level; servicing uses A only before opening.'},
+    lighthouse:{title:'04B · Resolve the Headland lighthouse experience',detail:'P1 keeps a 10m-diameter lighthouse on the boulevard axis, with a 14 × 8m low forecourt and an 8 × 6m keeper’s house to the west. Visitors enter through the exhibit, climb on the west stair, descend on the east stair, and rejoin the loop separately. A side-bay photo position keeps the boulevard clear; accessible camera-obscura content stays at ground level; servicing uses A only before opening. The promontory walk leaves the loop over B’s north return on the same deck as A, the named p1_walk_over_b_north (approved 2026-10-17).'},
     bigtop:{title:'04C · Resolve the Fairground Big Top',detail:'P3 moves inward to an 18 × 12m tent with a 2.2m central ring and 120 timed seats. The north ticket queue and east audience exit connect to different points on C; an exterior photo bay leaves the loop open. A 14 × 6m backstage yard meets the Fairground service spine, while a gated performer crossing stays shut through audience load and release. The cue desk owns the after-close beacon, music, ring lights, and one rigging sequence.'},
     playgarden:{title:'04D · Resolve the Family commons play garden',detail:'P4 becomes an 18 × 14m fenced play garden beside D, not inside it. West and east public gates connect different points of the family circuit through a 1.8m accessible loop around toddler, climbing, and sensory zones. A monitored host point, stroller bay, shaded family-photo position, and south staff gate complete the day plan. The screened support yard reaches the outer service spine without crossing D and owns the after-close lantern, chime, and windmill cues.'},
     bandstand:{title:'04E · Resolve the Plaza bandstand performance court',detail:'P5 moves the existing 12.4m bandstand to the north-west performance pocket, where it faces a 20 × 14m event lawn rather than the hub. Ninety-six removable chairs, a level center aisle, four wheelchair-and-companion bays, separate audience entry and release, two usher posts, and a side photo turnout make it operable. A 10 × 6m rear cue yard reaches the west service spine without crossing public circulation. A 5.5m no-queue strip keeps the full hub ring open during shows.'},
@@ -7314,6 +7664,12 @@
         withTitle(pathLine(svg, [a, b], 'gc-move'), copy);
         withTitle(svg.appendChild(make('circle', {cx:x(b[0]), cy:y(b[1]), r:Math.max(2.5, 0.6 * scale), class:'gc-move'})), copy);
       });
+    }
+
+    // B's north return in an open cut, A and P1 over it on one deck (Christina, 2026-10-17; approved, guard on A's edge).
+    if (['trunks','loops','lighthouse','service','all'].includes(selected)) {
+      drawBNorthCut(svg,x,y,scale,points,(values,className,attrs={}) => pathLine(svg,values,className,attrs),
+        {compact,labels:selected !== 'all'});
     }
 
     // Restrooms re-sited (approved by Christina, 2026-10-16).
