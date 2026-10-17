@@ -25262,6 +25262,9 @@ func _rebuild_coastal_creek_reach() -> void:
 	# S2's yard closed (Christina, 2026-10-16), after the garden fence, so no
 	# established shape's seam ordinal moves.
 	_rebuild_coastal_creek_yard()
+	# The yard's other edges railed and S2's south arm gated (2026-10-16), last,
+	# for the same reason.
+	_rebuild_coastal_creek_yard_rails()
 
 
 ## The drop (Christina, 2026-10-16: "Old levels + a drop"), derived from its
@@ -25905,6 +25908,144 @@ func _rebuild_coastal_creek_yard() -> void:
 		where.append("[" + ", ".join(pts) + "]")
 	print("S2 yard C lobe rail: %.1fm in two runs %s; S2's locked gate %.2fm between (%.3f, %.3f) at %.2f and (%.3f, %.3f) at %.2f" % [
 		length, " and ".join(where), pa.distance_to(pb), pa.x, pa.y, ya, pb.x, pb.y, yb])
+
+
+## Christina, 2026-10-16: "rail these four in one batch", after S2's yard was
+## closed. Three of the four are built here, each B's guard as C's west-lobe rail
+## is (`_yard_rail`: a top and a mid rail on posts at most three metres apart,
+## all colliding), derived from the edge it guards:
+## - the bluff top's crest. From C a guest walked north onto the bluff top and
+##   fell six metres off its west edge into the yard or onto the back lane. The
+##   rail stands on the face line (`Plan.BLUFF_FACE_X`), on the coping, from
+##   NT-1's protected zone's south line, which it does not enter, to the post
+##   where C's rail starts on the face. No walk crosses the crest there: S2 runs
+##   beside the bluff at its level but two to six metres off the face with the
+##   drop between, so the rail neither cuts S2 off nor opens a way onto it round
+##   S2's gates.
+## - the B/C junction's open edges, and C south of it. The shared floor's north
+##   end and west side dropped to the south shore, and so did C's outer side south
+##   of the junction. The rail is the floor's guard line, `REBUILD_GUARD_OFFSET`
+##   outside its paving: from B's guard across the floor's north end and down its
+##   west side, round its south corner onto C's outer guard line, and along that
+##   to the bluff face, where C reaches the land.
+## - S2's south arm. S2 leaves the junction floor across that rail line; its
+##   locked staff gate stands in the rail between the editor-owned posts of
+##   `water/CW-AQ/yard/S2_south_gate` in `fairground_layout.tscn`, as S2's gate
+##   at C stands in C's rail.
+## Approved on the maps (`coastalCreek.yard` crestRail, junctionRail and
+## s2SouthGate in park-rebuild-overlay.html, held by validateYardEdges).
+func _rebuild_coastal_creek_yard_rails() -> void:
+	var yard: Dictionary = Plan.coastal_creek_placements().get("yard", {})
+	if yard.is_empty() or not yard.has("S2_south_gate"):
+		return
+	var c_line: PackedVector3Array = _rebuild_path_edges(_yard_c_points(),
+		REBUILD_YARD_C_W + REBUILD_GUARD_OFFSET * 2.0, true)["left"]
+
+	# The crest: from NT-1's zone to where C's rail starts, C's outer guard line's
+	# crossing of the face before S2's gate at C, as `_rebuild_coastal_creek_yard`
+	# finds it. That end's post is C's rail's.
+	var gate_c: Dictionary = yard["S2_gate"]
+	var s_gate := minf(
+		_yard_line_param(c_line, Plan.rebuild_expand_point(gate_c["posts"][0])),
+		_yard_line_param(c_line, Plan.rebuild_expand_point(gate_c["posts"][1])))
+	var c_start := _yard_line_at(c_line, _yard_face_crossing(c_line, s_gate, -1))
+	var nt1: Dictionary = Plan.REBUILD_PROTECTED_ZONES[&"NT-1"]
+	var crest_from := Plan.rebuild_expand_point(Vector2(nt1["max"])).y
+	# The bluff mass's top, as `_bluff_mass` lays it.
+	var crest: Array[Vector3] = [Vector3(Plan.BLUFF_FACE_X, GROUND_SEAM, crest_from), c_start]
+	var crest_length := _yard_rail("bluff_crest_rail", crest, false, true)
+	print("S2 yard bluff crest rail: %.1fm from (%.3f, %.3f) to (%.3f, %.3f)" % [
+		crest_length, crest[0].x, crest[0].z, c_start.x, c_start.z])
+
+	# The junction's line: across the floor's north end from B's guard, the
+	# floor's west guard line, its south corner, and C's outer guard line from
+	# the point nearest that corner to the face.
+	var bc := _rebuild_bc_junction_floor()
+	var floor_points: Array = bc["points"]
+	var floor_line: PackedVector3Array = _rebuild_path_edges(floor_points,
+		float(bc["width"]) + REBUILD_GUARD_OFFSET * 2.0, false)["left"]
+	var f0 := Vector3(floor_points[0])
+	var f1 := Vector3(floor_points[1])
+	var into := Vector3(f1.x - f0.x, 0.0, f1.z - f0.z).normalized()
+	var north_corner := floor_line[0] - into * REBUILD_GUARD_OFFSET
+	var b_guard := PackedVector3Array()
+	for run in Plan.rebuild_build_runs():
+		if StringName(run["id"]) == &"b_south_return":
+			b_guard = _rebuild_path_edges(run["points"],
+				float(run["width"]) + REBUILD_GUARD_OFFSET * 2.0, false)["left"]
+	var across := Vector3(into.z, 0.0, -into.x)
+	var c0 := Vector2(north_corner.x, north_corner.z)
+	var c1 := c0 + Vector2(across.x, across.z) * float(bc["width"])
+	var start := Vector3.INF
+	for i in b_guard.size() - 1:
+		var hit: Variant = Geometry2D.segment_intersects_segment(c0, c1,
+			Vector2(b_guard[i].x, b_guard[i].z), Vector2(b_guard[i + 1].x, b_guard[i + 1].z))
+		if hit != null and (start == Vector3.INF \
+				or c0.distance_to(hit) < c0.distance_to(Vector2(start.x, start.z))):
+			start = Vector3(hit.x, north_corner.y, hit.y)
+	assert(start != Vector3.INF, "the junction's rail found no B guard across the floor's north end")
+	var fl := Vector3(floor_points[-1])
+	var fk := Vector3(floor_points[-2])
+	var out := Vector3(fl.x - fk.x, 0.0, fl.z - fk.z).normalized()
+	var south_corner := floor_line[floor_line.size() - 1] + out * REBUILD_GUARD_OFFSET
+	var sc := _yard_line_param(c_line, Vector2(south_corner.x, south_corner.z))
+	var se := _yard_face_crossing(c_line, sc, 1)
+	var line := PackedVector3Array([start, north_corner])
+	for i in range(1, floor_line.size()):
+		line.append(floor_line[i])
+	line.append(south_corner)
+	line.append_array(PackedVector3Array(_yard_line_between(c_line, sc, se)))
+
+	# S2's south gate in that line, between its posts; a post off the line gets a
+	# return from the rail to it, as at C.
+	var gate: Dictionary = yard["S2_south_gate"]
+	var pa := Plan.rebuild_expand_point(gate["posts"][0])
+	var pb := Plan.rebuild_expand_point(gate["posts"][1])
+	var sa := _yard_line_param(line, pa)
+	var sb := _yard_line_param(line, pb)
+	if sa > sb:
+		var swap := pa
+		pa = pb
+		pb = swap
+		var s := sa
+		sa = sb
+		sb = s
+	var north := _yard_line_between(line, 0.0, sa)
+	var south := _yard_line_between(line, sb, float(line.size() - 1))
+	var ya := north[-1].y
+	var yb := south[0].y
+	if Vector2(north[-1].x, north[-1].z).distance_to(pa) > 0.05:
+		north.append(Vector3(pa.x, ya, pa.y))
+	if Vector2(south[0].x, south[0].z).distance_to(pb) > 0.05:
+		south.push_front(Vector3(pb.x, yb, pb.y))
+	var length := _yard_rail("BC_west_rail_n", north, false, true)
+	length += _yard_rail("BC_west_rail_s", south, true, false)
+	_yard_gate("S2_south_gate", Vector3(pa.x, ya, pa.y), Vector3(pb.x, yb, pb.y), 1.08, false)
+	var where := PackedStringArray()
+	for piece in [north, south]:
+		var pts := PackedStringArray()
+		for p in piece:
+			pts.append("(%.3f, %.3f)" % [p.x, p.z])
+		where.append("[" + ", ".join(pts) + "]")
+	print("S2 yard B/C junction and C south rail: %.1fm in two runs %s; S2's locked south gate %.2fm between (%.3f, %.3f) at %.2f and (%.3f, %.3f) at %.2f" % [
+		length, " and ".join(where), pa.distance_to(pb), pa.x, pa.y, ya, pb.x, pb.y, yb])
+
+
+## Where a course crosses the bluff face, searching from position `s` along it
+## backward (`step` -1) or forward (+1): on the first segment with one end east
+## of the face and the other on or west of it.
+func _yard_face_crossing(line: PackedVector3Array, s: float, step: int) -> float:
+	var k := int(floor(s))
+	while k >= 0 and k < line.size() - 1:
+		var a := line[k].x - Plan.BLUFF_FACE_X
+		var b := line[k + 1].x - Plan.BLUFF_FACE_X
+		if (a > 0.0) != (b > 0.0):
+			var at := float(k) + clampf(a / (a - b), 0.0, 1.0)
+			if (at - s) * float(step) >= 0.0:
+				return at
+		k += step
+	assert(false, "a yard rail found no crossing of the bluff face")
+	return -1.0
 
 
 # ---------------------------------------------------------------------------

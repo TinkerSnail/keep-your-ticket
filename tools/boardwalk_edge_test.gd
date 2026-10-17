@@ -14,7 +14,9 @@ extends Node
 ## guardrail pushed. S2's staff yard by the station, solid and gated since
 ## 2026-10-16 (Christina: "Make it solid and gate it"), is pushed at each of the
 ## five ways it was open, and B and C are walked beside it and across the holes
-## filled inside B's loop.
+## filled inside B's loop. The rails on its other edges (the bluff crest, the B/C
+## junction and C south of it) and S2's south gate are pushed, and the walks
+## beside them walked.
 ##
 ## Split out of the retired `walk_test.gd` on 2026-09-05, minus its strip-end
 ## probes, which named the pre-expansion boundary: the coast now tapers into
@@ -166,6 +168,7 @@ func _legs_list() -> Array:
 		["bw north arc rail", Vector3(-97, y, -193), Vector3(-109, y, -195.4), false],
 	])
 	legs.append_array(_yard_legs(y))
+	legs.append_array(_yard_rail_legs())
 	return legs
 
 
@@ -242,6 +245,79 @@ func _yard_legs(y: float) -> Array:
 		on.call("bw loop slot z90", Vector2(-70.0, 90.0), Vector2(-59.0, 90.0), true),
 		on.call("bw loop slot z112", Vector2(-70.5, 112.0), Vector2(-60.0, 112.0), true),
 		on.call("bw loop slot z116", Vector2(-67.6, 116.5), Vector2(-60.0, 116.5), true),
+	])
+	return legs
+
+
+## The yard's other edges railed and S2's south arm gated (2026-10-16, Christina:
+## "rail these four in one batch"). Each rail is pushed square along its length
+## from the walk it guards and must hold: the bluff crest from the bluff top, the
+## B/C junction's north end and west side from its floor, and C south of the
+## junction from C. S2's south gate is pushed from the junction at a quarter, the
+## middle and three quarters of its span, and from S2's south arm back toward the
+## junction, square at it where S2's paving reaches it and up S2's east half to
+## its far post. Then the walks the rails
+## stand beside are walked: the bluff top along the crest and in from C, the
+## junction's west strip, C south of the junction to the bluff, S2 inside the
+## junction up to its south gate, and B under the Grand Circuit's overpass.
+func _yard_rail_legs() -> Array:
+	var on := func(label: String, a: Vector2, b: Vector2, arrive: bool) -> Array:
+		var from := _stand(a.x, a.y)
+		return [label, from, _stand(b.x, b.y) if arrive else Vector3(b.x, from.y, b.y), arrive]
+	var legs := []
+	for z in [12.5, 16.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0, 55.0, 60.0, 65.0, 70.0,
+			74.0, 75.3]:
+		legs.append(on.call("bw crest rail z%s" % str(z), Vector2(-55.0, z), Vector2(-63.0, z), false))
+	legs.append_array([
+		on.call("bw rail BC north end", Vector2(-86.8, 100.2), Vector2(-86.7, 92.7), false),
+		on.call("bw rail BC north corner", Vector2(-87.8, 100.5), Vector2(-87.8, 92.7), false),
+		on.call("bw rail BC z99", Vector2(-85.9, 99.0), Vector2(-93.4, 99.0), false),
+		on.call("bw rail BC z103", Vector2(-85.9, 103.0), Vector2(-93.4, 103.0), false),
+		on.call("bw rail BC z106", Vector2(-85.9, 105.3), Vector2(-93.4, 106.1), false),
+		on.call("bw rail BC z110", Vector2(-85.5, 109.3), Vector2(-92.9, 110.1), false),
+		on.call("bw rail BC z112", Vector2(-85.2, 111.9), Vector2(-92.5, 113.3), false),
+		on.call("bw rail BC z116", Vector2(-84.4, 115.8), Vector2(-91.7, 117.3), false),
+		on.call("bw rail BC z120", Vector2(-83.6, 119.7), Vector2(-91.0, 121.2), false),
+		on.call("bw rail BC z124", Vector2(-82.1, 123.3), Vector2(-88.9, 126.3), false),
+		on.call("bw rail BC z128", Vector2(-80.4, 126.9), Vector2(-87.3, 130.0), false),
+		on.call("bw rail BC z132", Vector2(-78.3, 130.2), Vector2(-84.6, 134.2), false),
+		on.call("bw rail C south -74,141", Vector2(-71.3, 139.3), Vector2(-77.5, 144.3), false),
+		on.call("bw rail C south -72,144", Vector2(-69.4, 141.7), Vector2(-75.6, 146.7), false),
+		on.call("bw rail C south -69,146", Vector2(-67.4, 144.2), Vector2(-72.5, 150.3), false),
+		on.call("bw rail C south -66,149", Vector2(-64.3, 146.7), Vector2(-69.4, 152.9), false),
+		on.call("bw rail C south -64,151", Vector2(-62.7, 148.1), Vector2(-66.6, 155.1), false),
+		on.call("bw rail C south -61,153", Vector2(-59.2, 150.0), Vector2(-63.0, 157.0), false),
+		on.call("bw rail C south -59,154", Vector2(-57.7, 150.9), Vector2(-59.9, 158.6), false),
+	])
+	# S2's south gate, square at it from the junction (inside, toward the floor's
+	# middle) and along S2 from its south arm.
+	var gate: Dictionary = ParkPlan.coastal_creek_placements()["yard"]["S2_south_gate"]
+	var pa := ParkPlan.rebuild_expand_point(gate["posts"][0])
+	var pb := ParkPlan.rebuild_expand_point(gate["posts"][1])
+	var square := Vector2(-(pb - pa).y, (pb - pa).x).normalized()
+	if square.dot(Vector2(-70.0, 125.0) - pa) < 0.0:
+		square = -square
+	for k in 3:
+		var at := pa.lerp(pb, 0.25 + 0.25 * float(k))
+		legs.append(on.call("bw S2 south gate holds %d" % k, at + square * 3.0, at - square * 6.0, false))
+	# From S2's south arm the gate stands askew across the paving, so each push
+	# starts on S2 just outside it, at the part of the span S2's paving reaches.
+	for spec in [[0.4, 1.0], [0.5, 1.2], [0.75, 2.0]]:
+		var at := pa.lerp(pb, float(spec[0]))
+		legs.append(on.call("bw S2 south gate holds out %.2f" % float(spec[0]),
+			at - square * float(spec[1]), at + square * 5.0, false))
+	legs.append_array([
+		on.call("bw S2 south gate out e", Vector2(-75.9, 141.2), Vector2(-75.3, 136.5), false),
+		# The walks beside the rails.
+		on.call("bw crest walks", Vector2(-56.0, 14.0), Vector2(-56.0, 72.0), true),
+		on.call("bw crest walks back", Vector2(-56.0, 72.0), Vector2(-56.0, 14.0), true),
+		on.call("bw crest from C", Vector2(-55.0, 82.0), Vector2(-56.0, 60.0), true),
+		on.call("bw BC strip walks", Vector2(-86.5, 101.0), Vector2(-84.8, 117.0), true),
+		on.call("bw C south walks", Vector2(-71.0, 135.5), Vector2(-63.5, 147.5), true),
+		on.call("bw C south walks on", Vector2(-63.5, 147.5), Vector2(-54.0, 151.5), true),
+		on.call("bw S2 to its south gate", Vector2(-74.8, 105.1), Vector2(-77.6, 129.0), true),
+		on.call("bw B under overpass", Vector2(-60.3, -192.3), Vector2(-74.5, -201.5), true),
+		on.call("bw B under overpass back", Vector2(-74.5, -201.5), Vector2(-60.3, -192.3), true),
 	])
 	return legs
 

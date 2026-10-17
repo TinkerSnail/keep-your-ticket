@@ -34,6 +34,9 @@ extends RefCounted
 ##   staff gate's centre on it, `gate_width` the distance between its posts in
 ##   world metres, and `locked`. `S2_gate`: `posts`, its two gate posts in order
 ##   (`post_a`, on the bluff's side, then `post_b`), and `locked`.
+##   `S2_south_gate` (2026-10-16, when it is there): the same for the gate across
+##   S2's south arm where it leaves the B/C junction (`post_a` on the junction's
+##   north side, then `post_b` on C's).
 
 const SCENE := "res://scenes/world/fairground_layout.tscn"
 const RECORD := "water/CW-AQ"
@@ -104,6 +107,11 @@ static func records(root: Node3D) -> Dictionary:
 			"S2_gate": {"posts": [_plan(s2.get_node("post_a"), root),
 				_plan(s2.get_node("post_b"), root)],
 				"locked": bool(s2.get_meta("locked", true))}}
+		var south := yard.get_node_or_null("S2_south_gate") as Node3D
+		if south != null:
+			out["yard"]["S2_south_gate"] = {"posts": [_plan(south.get_node("post_a"), root),
+				_plan(south.get_node("post_b"), root)],
+				"locked": bool(south.get_meta("locked", true))}
 	return out
 
 

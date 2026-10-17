@@ -2773,6 +2773,19 @@
     //   grid edit G25, 62 nodes raised to 4 cm under the paving beside them (to the land where
     //   none is near), 24 land nodes cut to the same where the fill would bury paving (world metres).
     // validateStaffYard holds the boundary closed, piece to piece.
+    // The yard's other edges railed and S2's south arm gated (Christina, 2026-10-16: "rail these
+    // four in one batch"), each B's derived guard as C's west-lobe rail is (world metres, as built):
+    // - `crestRail`: the bluff top's west edge, which dropped six metres into the yard and onto
+    //   the back lane. On the face line, on the coping, from NT-1's protected zone's south line
+    //   (z 12), which it does not enter, to where C's rail starts on the face. No walk crosses
+    //   it: S2 runs beside the bluff at its level, 2–6 m off the face with the drop between.
+    // - `junctionRail`: the B/C junction floor's open edges and C south of it, which dropped to
+    //   the south shore: its guard line, `offset` outside the paving, from B's guard across the
+    //   floor's north end and down its west side to S2's south gate, and from the gate round the
+    //   floor's south corner onto C's outer guard line, along it to the bluff face.
+    // - `s2SouthGate`: a locked double staff gate across S2's 4 m paving where its south arm
+    //   leaves the junction floor, standing in that rail (water/CW-AQ/yard/S2_south_gate, its two
+    //   posts on S2's paving edges, atlas units).
     yard:{status:'approved',approved:'2026-10-16',name:'S2’s staff yard, solid and gated',
       bluffFace:-58,guardOffset:0.325,
       fence:{p:[[-66.64,49.98],[-57.95,49.98]],height:1.5,y:-6,
@@ -2781,7 +2794,12 @@
       rail:{route:'C',offset:0.325,
         world:[[[-58,75.527],[-62.765,76.239],[-65.488,77.663]],[[-70.816,81.41],[-72.05,82.43],[-75.607,86.778],[-76.973,89.297]]]},
       banks:{solid:true,westOf:-58,minRise:0.3,routes:['B','C','B/C junction','S2'],floor:-6.16},
-      fills:{kind:'grid edit',edit:'G25',raised:62,cut:24,where:'inside B’s loop',world:{holes:[[-61,104],[-68,110],[-70.5,96]],slot:[[-59,85],[-65,121]]}}}
+      fills:{kind:'grid edit',edit:'G25',raised:62,cut:24,where:'inside B’s loop',world:{holes:[[-61,104],[-68,110],[-70.5,96]],slot:[[-59,85],[-65,121]]}},
+      crestRail:{from:'NT-1',world:[[-58,12],[-58,75.527]]},
+      junctionRail:{offset:0.325,
+        world:[[[-84.768,97.712],[-88.379,97.678],[-88.391,99.003],[-88.43,103.213],[-88.39,105.582],[-87.907,109.918],[-87.635,112.356],[-85.974,120.622],[-82.609,128.156],[-79.869,132.385]],
+          [[-75.541,139.063],[-75.158,139.655],[-74.981,139.928],[-74.416,139.644],[-73.654,141.16],[-71.697,143.575],[-69.335,146.488],[-64.177,150.736],[-58.531,153.793],[-58,153.948]]]},
+      s2SouthGate:{p:[[-79.869,103.861],[-75.541,108.17]],locked:true}}
   };
 
   // The drop's footprint as built (2026-10-16), world [x, z] corners: sill to pool end
@@ -4005,6 +4023,72 @@
   }
   planCheck(validateStaffYard);
 
+  // The yard's other edges railed and S2's south arm gated (approved, 2026-10-16), in world
+  // metres, piece to piece as validateStaffYard holds the yard. The crest rail stands on the bluff
+  // face from NT-1's protected zone's south line, never inside it, to where C's rail starts. The
+  // junction's rail starts on B's guard, runs off every public paving (outside C's and B's guards)
+  // to S2's south gate's first post, and from its second post on to the bluff face on C's outer
+  // guard line. The gate is locked, crosses S2 with its posts on S2's paving edges, and spans S2's
+  // whole paving square to its course. Nothing stands in the lane's clear zone.
+  function validateYardEdges() {
+    const Y = coastalCreek.yard, problems = [], tol = 0.05;
+    const segDist = (q, a, b) => {
+      const dx = b[0] - a[0], dz = b[1] - a[1], l = dx * dx + dz * dz;
+      const t = l ? Math.max(0, Math.min(1, ((q[0] - a[0]) * dx + (q[1] - a[1]) * dz) / l)) : 0;
+      return Math.hypot(q[0] - a[0] - dx * t, q[1] - a[1] - dz * t);
+    };
+    const lineDist = (q, line) => Math.min(...line.slice(1).map((b, i) => segDist(q, line[i], b)));
+    const gap = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+    const B = routes.B.paths[4], bLine = B.p.map(gcExpand), bGuard = B.w / 2 + Y.guardOffset;
+    const C = routes.C.paths[0], cLine = C.p.map(gcExpand), cGuard = C.w / 2 + Y.junctionRail.offset;
+    // The crest.
+    const crest = Y.crestRail.world, nt1 = protectedZones.find(z => z.id === Y.crestRail.from);
+    const zoneEnd = gcExpand([nt1.x1, nt1.z1])[1];
+    crest.forEach(q => {
+      if (Math.abs(q[0] - Y.bluffFace) > tol) problems.push(`the crest rail stands ${Math.abs(q[0] - Y.bluffFace).toFixed(2)}m off the bluff face`);
+      if (q[1] < zoneEnd - tol) problems.push(`the crest rail enters ${nt1.id}’s protected zone by ${(zoneEnd - q[1]).toFixed(2)}m`);
+    });
+    if (Math.abs(crest[0][1] - zoneEnd) > tol) problems.push(`the crest rail starts ${Math.abs(crest[0][1] - zoneEnd).toFixed(2)}m from ${nt1.id}’s protected zone`);
+    if (gap(crest.at(-1), Y.rail.world[0][0]) > tol) problems.push(`the crest rail stops ${gap(crest.at(-1), Y.rail.world[0][0]).toFixed(2)}m short of C's rail`);
+    // The junction and C south of it.
+    const [north, south] = Y.junctionRail.world, posts = Y.s2SouthGate.p.map(gcExpand);
+    if (Math.abs(lineDist(north[0], bLine) - bGuard) > tol) problems.push(`the junction's rail starts ${(lineDist(north[0], bLine) - bGuard).toFixed(2)}m off B's guard`);
+    if (gap(north.at(-1), posts[0]) > tol) problems.push(`the junction's rail stops ${gap(north.at(-1), posts[0]).toFixed(2)}m short of S2's south gate`);
+    if (gap(south[0], posts[1]) > tol) problems.push(`the junction's rail starts ${gap(south[0], posts[1]).toFixed(2)}m from S2's south gate's far post`);
+    const end = south.at(-1);
+    if (Math.abs(end[0] - Y.bluffFace) > tol) problems.push(`C's south rail ends ${Math.abs(end[0] - Y.bluffFace).toFixed(2)}m off the bluff face`);
+    [north, south].forEach(run => run.forEach(q => {
+      const onC = lineDist(q, cLine) - cGuard, onB = lineDist(q, bLine) - bGuard;
+      if (onC < -tol) problems.push(`the junction's rail stands ${(-onC).toFixed(2)}m inside C's guard line`);
+      if (onB < -tol) problems.push(`the junction's rail stands ${(-onB).toFixed(2)}m inside B's guard line`);
+    }));
+    // S2's south gate.
+    if (!Y.s2SouthGate.locked) problems.push('S2’s south gate is not locked');
+    const s2 = serviceSpines.find(sp => sp.id === 'S2').p.map(gcExpand);
+    let cross = null;
+    s2.slice(1).forEach((b, i) => {
+      const a = s2[i], d = (posts[1][0] - posts[0][0]) * (b[1] - a[1]) - (posts[1][1] - posts[0][1]) * (b[0] - a[0]);
+      if (Math.abs(d) < 1e-9) return;
+      const t = ((a[0] - posts[0][0]) * (b[1] - a[1]) - (a[1] - posts[0][1]) * (b[0] - a[0])) / d;
+      const u = ((a[0] - posts[0][0]) * (posts[1][1] - posts[0][1]) - (a[1] - posts[0][1]) * (posts[1][0] - posts[0][0])) / d;
+      if (t >= 0 && t <= 1 && u >= 0 && u <= 1) { const l = Math.hypot(b[0] - a[0], b[1] - a[1]); cross = [(b[0] - a[0]) / l, (b[1] - a[1]) / l]; }
+    });
+    if (!cross) problems.push('S2’s south gate does not cross S2');
+    else {
+      const square = Math.abs((posts[1][0] - posts[0][0]) * cross[1] - (posts[1][1] - posts[0][1]) * cross[0]);
+      if (square < 4 - tol) problems.push(`S2's south gate spans ${square.toFixed(2)}m of S2's 4m paving`);
+    }
+    // Clear of the lane's clear zone, with a metre to spare.
+    const W = grandCircuitWest;
+    const lane = gcStretch(W.course.controls).concat(gcStretchSouth(W.course.controls).slice(1));
+    [crest, north, south, posts].forEach(line => line.forEach(q => {
+      const g = lineDist(q, lane) - W.width / 2 - W.clear;
+      if (g < 1) problems.push(`the yard's rails stand ${g.toFixed(2)}m beyond the lane's clear zone (needs 1m)`);
+    }));
+    if (problems.length) throw new Error(`The yard's edges: ${problems.join('; ')}`);
+  }
+  planCheck(validateYardEdges);
+
   // yard connections (Christina, 2026-10-15): "Draw stairs and ramps for review". The T6 build
   // (8ab7577) could not join R11 or R12's east terminal to the Grand Circuit's east station
   // yard, S3's paving behind the platform at +7.31 m: R11's drawn link began 16 m beyond its
@@ -4526,6 +4610,10 @@
       [g.at[0] + u[0] * g.width / 2, g.at[1] + u[1] * g.width / 2]],'staff-yard-gate');
     pathLine(Y.s2Gate.p,'staff-yard-gate');
     Y.rail.world.forEach(piece => pathLine(piece.map(gcAtlas),'creek-guard'));
+    // The bluff crest, the junction's open edges and C south of it, and S2's south gate (2026-10-16).
+    pathLine(Y.crestRail.world.map(gcAtlas),'creek-guard');
+    Y.junctionRail.world.forEach(piece => pathLine(piece.map(gcAtlas),'creek-guard'));
+    pathLine(Y.s2SouthGate.p,'staff-yard-gate');
   }
 
   function drawCoastalCreekCrossings(parent,x,y,scale,pathLine) {
